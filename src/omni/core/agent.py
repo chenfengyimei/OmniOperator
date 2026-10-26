@@ -5,7 +5,7 @@ import datetime as dt
 from typing import Any
 
 from ..config import AppConfig
-from ..llm.gateway import Gateway
+from ..llm.gateway import Gateway, to_openai_tool_call
 from ..memory.store import MemoryStore
 from ..safety.gates import Approver
 from ..tools.registry import ToolRegistry
@@ -32,7 +32,11 @@ class Agent:
 
     def _system_prompt(self) -> str:
         now = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %A")
-        return self.config.persona.system_prompt.replace("{now}", now)
+        prompt = self.config.persona.system_prompt.replace("{now}", now)
+        profile_block = self.store.profile_block()  # 人物档案快照（有内容才注入）
+        if profile_block:
+            prompt = f"{prompt}\n\n{profile_block}"
+        return prompt
 
     def chat(self, user_text: str) -> str:
         """处理一条用户消息，返回最终回答（中间工具循环不落库）。"""
@@ -60,7 +64,7 @@ class Agent:
                 {
                     "role": "assistant",
                     "content": reply.text or "",
-                    "tool_calls": [self._dump_call(c) for c in reply.tool_calls],
+                    "tool_calls": [to_openai_tool_call(c) for c in reply.tool_calls],
                 }
             )
             for call in reply.tool_calls:
@@ -80,15 +84,3 @@ class Agent:
             self.session_id, "assistant", answer, auto_title=False
         )
         return answer
-
-    @staticmethod
-    def _dump_call(call: Any) -> dict[str, Any]:
-        """LiteLLM ToolCall → OpenAI 消息格式。"""
-        return {
-            "id": call.id,
-            "type": "function",
-            "function": {
-                "name": call.function.name,
-                "arguments": call.function.arguments,
-            },
-        }

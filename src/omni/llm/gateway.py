@@ -21,6 +21,18 @@ class GatewayError(RuntimeError):
     """LLM 调用失败（密钥缺失 / 模型名错误 / 网络不通等）。"""
 
 
+def to_openai_tool_call(call: Any) -> dict[str, Any]:
+    """LiteLLM ToolCall → OpenAI assistant 消息里的 tool_calls 条目。"""
+    return {
+        "id": call.id,
+        "type": "function",
+        "function": {
+            "name": call.function.name,
+            "arguments": call.function.arguments,
+        },
+    }
+
+
 @dataclass
 class Reply:
     """归一化的模型回复。"""

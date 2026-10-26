@@ -12,12 +12,17 @@ from pathlib import Path
 
 from .config import AppConfig, load_config
 from .core.agent import Agent
+from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
 from .memory.store import MemoryStore
 from .safety.gates import Approver
 from .tools.bilibili.api import BiliAPI
 from .tools.bilibili.tools import register_bilibili_tools
-from .tools.builtin import register_core_tools
+from .tools.builtin import (
+    register_core_tools,
+    register_memory_tools,
+    register_profile_tools,
+)
 from .tools.registry import ToolRegistry
 
 
@@ -30,6 +35,7 @@ class Runtime:
     gateway: Gateway
     registry: ToolRegistry
     agent: Agent
+    reviewer: TurnEndReviewer | None = None
 
     def new_session(self) -> int:
         """新开会话并把 agent 切过去。"""
@@ -42,6 +48,11 @@ class Runtime:
             self.agent.session_id = session_id
             return True
         return False
+
+    def spawn_review(self) -> None:
+        """回合后异步记忆整理（未启用则为空操作）。通道在回答后调用即可，不阻塞。"""
+        if self.reviewer is not None:
+            self.reviewer.review_in_background(self.agent.session_id)
 
 
 def build_runtime(
@@ -58,4 +69,30 @@ def build_runtime(
     register_bilibili_tools(registry, BiliAPI())
     session_id = store.latest_session_id() or store.new_session()
     agent = Agent(config, gateway, store, registry, session_id, approver=approver)
-    return Runtime(config=config, store=store, gateway=gateway, registry=registry, agent=agent)
+
+    # 回合后 review：白名单（最小权限：只给记忆与档案工具）在这里定义，
+    # 属策略接线；store/registry 工厂保证每次 review 用独立连接与注册表。
+    def _review_registry(review_store: MemoryStore) -> ToolRegistry:
+        review_registry = ToolRegistry()
+        register_memory_tools(review_registry, review_store)
+        register_profile_tools(review_registry, review_store)
+        return review_registry
+
+    reviewer = (
+        TurnEndReviewer(
+            config,
+            gateway,
+            lambda: MemoryStore(db_path),
+            _review_registry,
+        )
+        if config.review.enabled
+        else None
+    )
+    return Runtime(
+        config=config,
+        store=store,
+        gateway=gateway,
+        registry=registry,
+        agent=agent,
+        reviewer=reviewer,
+    )

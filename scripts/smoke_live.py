@@ -33,6 +33,13 @@ def main() -> None:
     except GatewayError as exc:
         raise SystemExit(f"调用失败：{exc}\n提示：检查 .env 里的 API key 与 config/config.yaml 的模型名。")
     print(f"[{runtime.config.persona.name}] {answer}")
+    if runtime.reviewer is not None:
+        try:
+            # 冒烟里同步跑 review，便于直接观测"自进化"效果
+            outcome = runtime.reviewer.review_recent(runtime.agent.session_id)
+            print(f"[回合后review] {outcome}")
+        except Exception as exc:  # noqa: BLE001 —— review 失败不影响主流程展示
+            print(f"[回合后review失败] {exc}")
     runtime.store.close()
 
 

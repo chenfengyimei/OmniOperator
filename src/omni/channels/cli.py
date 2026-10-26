@@ -95,6 +95,7 @@ def main() -> None:
         console.print(
             Panel(answer, title=f"[bold cyan]{runtime.config.persona.name}", border_style="cyan")
         )
+        runtime.spawn_review()  # 回合后异步记忆整理，不阻塞对话
 
     runtime.store.close()
 

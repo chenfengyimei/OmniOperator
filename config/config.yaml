@@ -8,6 +8,9 @@ persona:
     当前时间：{now}
     你有 remember（写入长期记忆）和 recall（检索长期记忆）两个工具，
     用户提到的偏好、约定、重要结论请主动记住；被问及相关信息时先 recall 再回答。
+    你还有 search_history（搜过去的对话记录）和 profile_manage（维护用户长期档案，
+    有字符额度限制，写满先合并）两个工具——了解到用户稳定的核心特征
+    （职业、偏好、性格）时，请合并进档案而不是反复新增。
     用户发来B站视频链接时：先用 bilibili_video_info 了解视频，再视情况用
     bilibili_video_subtitle 拿字幕、bilibili_video_comments 看观众反响，
     最后给出你自己的"看后感"——要有观点和细节，不要只复述数据。
@@ -17,7 +20,13 @@ models:
   chat: deepseek/deepseek-chat            # 日常对话（便宜量大）
   vision: anthropic/claude-sonnet-4-5     # 截屏/UI 视觉定位（强视觉）
   local: ollama/qwen2.5:7b                # 本地零成本任务
+  review: ""                               # 回合后 review 用；留空跟随 chat
 
 limits:
   max_history_messages: 40    # 每次送入 LLM 的历史消息条数上限
   max_agent_steps: 8          # 单条消息内最多工具循环轮数
+
+review:
+  enabled: true               # 回合后异步记忆整理（自进化）
+  max_messages: 12            # review 重放最近多少条消息
+  steps: 4                    # review 的工具循环步数预算

@@ -2,7 +2,7 @@
 
 像人一样生活在平台里的具身个人 agent：B站（看视频/发视频/私信）、QQ 收发、ADB 控安卓真机、长期记忆，Windows / macOS 通用。
 
-当前阶段：**Phase 0 —— 本地 CLI 简单闭环**（多供应商对话 + 模型切换 + 跨会话记忆 + remember/recall 工具）。
+当前阶段：**Phase 1 进行中** —— B站读工具集（信息/热评/字幕，丢链接出看后感）+ 记忆系统成型（FTS5 全文检索、用户档案、回合后自进化 review）已完成；CLI 闭环已真实跑通。
 
 ## 快速开始
 
@@ -43,11 +43,12 @@ uv run pytest
 ```
 src/omni/
 ├── config.py          # .env + config.yaml 加载（叶子层）
-├── bootstrap.py       # 组装根：唯一构造 Gateway/Store/Registry/Agent 的地方，暴露 Runtime 门面
+├── bootstrap.py       # 组装根：唯一构造核心对象的地方，暴露 Runtime 门面
 ├── core/agent.py      # Agent 编排循环（纯内核：上下文 → LLM → 工具 → 回答）
+├── core/review.py     # 回合后异步记忆整理（自进化，最小权限白名单）
 ├── llm/gateway.py     # LiteLLM 统一网关（Adapter：海外/国产/Ollama 一套格式）
-├── memory/store.py    # SQLite 仓储（会话 / 消息 / 事实记忆）
-├── tools/             # Registry + 各能力域工具集（Registry 模式；P1+ 每能力域一包）
+├── memory/store.py    # SQLite 仓储（会话/消息/事实/用户档案 + FTS5 全文检索）
+├── tools/             # Registry + 能力域工具集：builtin（core）、bilibili（读）
 ├── safety/gates.py    # 审批闸门（Risk 分级 + 上下文审批策略）
 └── channels/cli.py    # 终端 REPL（只碰 Runtime，不构造任何对象）
 ```

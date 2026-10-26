@@ -45,6 +45,7 @@ class Models(BaseModel):
     chat: str = "deepseek/deepseek-chat"
     vision: str = "anthropic/claude-sonnet-4-5"
     local: str = "ollama/qwen2.5:7b"
+    review: str = ""  # 回合后 review 用的模型；留空则跟随 chat
 
 
 class Limits(BaseModel):
@@ -52,10 +53,19 @@ class Limits(BaseModel):
     max_agent_steps: int = 8
 
 
+class Review(BaseModel):
+    """回合后异步 review（记忆自进化）的开关与预算。"""
+
+    enabled: bool = True
+    max_messages: int = 12
+    steps: int = 4
+
+
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
     limits: Limits = Field(default_factory=Limits)
+    review: Review = Field(default_factory=Review)
 
 
 def load_config(path: Path | None = None) -> AppConfig:
