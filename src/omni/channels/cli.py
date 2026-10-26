@@ -33,12 +33,12 @@ def main() -> None:
 
     console.print(
         Panel.fit(
-            f"[bold]{runtime.config.persona.name}[/] · OmniOperator Phase 0\n"
+            f"[bold]{runtime.config.persona.name}[/] · OmniOperator CLI\n"
             f"会话 #{agent.session_id} · 模型 [cyan]{agent.model}[/]",
             border_style="cyan",
         )
     )
-    console.print("[dim]输入 /help 查看命令；直接说话开始聊天。[/]")
+    console.print("[dim]输入 /help 查看命令；直接说话开始聊天。Web 工作台：uv run omni-web[/]")
 
     while True:
         try:

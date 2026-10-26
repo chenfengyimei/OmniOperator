@@ -2,6 +2,8 @@
 
 设计取舍（P1）：
 - 单文件 SQLite + WAL + busy_timeout，零外部服务，Windows/macOS 通用；
+- Web 通道多线程访问同一连接：check_same_thread=False + 全公开方法一把
+  可重入锁（ @_locked ），本地单用户场景足够（回顾线程用的是独立连接）；
 - 全文检索用 FTS5 trigram tokenizer（对中文原生友好，2字以上可查）；
   FTS5 不可用时自动降级到 LIKE 三级链，功能不缺失只损失排序质量；
 - facts/messages 写入时同步进 FTS 索引，每次打开 'rebuild' 一次
@@ -14,7 +16,9 @@
 from __future__ import annotations
 
 import datetime as dt
+import functools
 import sqlite3
+import threading
 from pathlib import Path
 
 from ..config import DATA_DIR
@@ -79,11 +83,23 @@ def _match_expr(tokens: list[str]) -> str:
     return " OR ".join('"' + t.replace('"', '""') + '"' for t in tokens)
 
 
+def _locked(method):
+    """公开存储方法统一加可重入锁（web 通道线程池会并发访问同一连接）。"""
+
+    @functools.wraps(method)
+    def wrapper(self: "MemoryStore", *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    return wrapper
+
+
 class MemoryStore:
     def __init__(self, db_path: Path | None = None) -> None:
         path = db_path or (DATA_DIR / "memory.db")
         path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(path)
+        self._lock = threading.RLock()
+        self._conn = sqlite3.connect(path, check_same_thread=False)
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA busy_timeout=5000")
         self._conn.executescript(_SCHEMA)
@@ -109,6 +125,7 @@ class MemoryStore:
 
     # ---------- 会话 ----------
 
+    @_locked
     def new_session(self, title: str = DEFAULT_TITLE) -> int:
         cur = self._conn.execute(
             "INSERT INTO sessions(created_at, title) VALUES (?, ?)", (_now(), title)
@@ -116,12 +133,14 @@ class MemoryStore:
         self._conn.commit()
         return int(cur.lastrowid)
 
+    @_locked
     def latest_session_id(self) -> int | None:
         row = self._conn.execute(
             "SELECT id FROM sessions ORDER BY id DESC LIMIT 1"
         ).fetchone()
         return int(row[0]) if row else None
 
+    @_locked
     def list_sessions(self, limit: int = 20) -> list[tuple[int, str, str]]:
         rows = self._conn.execute(
             "SELECT id, title, created_at FROM sessions ORDER BY id DESC LIMIT ?",
@@ -129,12 +148,14 @@ class MemoryStore:
         ).fetchall()
         return [(int(r[0]), str(r[1]), str(r[2])) for r in rows]
 
+    @_locked
     def session_exists(self, session_id: int) -> bool:
         row = self._conn.execute(
             "SELECT 1 FROM sessions WHERE id = ?", (session_id,)
         ).fetchone()
         return row is not None
 
+    @_locked
     def rename_session(self, session_id: int, title: str) -> None:
         self._conn.execute(
             "UPDATE sessions SET title = ? WHERE id = ?", (title, session_id)
@@ -143,6 +164,7 @@ class MemoryStore:
 
     # ---------- 消息 ----------
 
+    @_locked
     def append_message(
         self,
         session_id: int,
@@ -168,6 +190,7 @@ class MemoryStore:
                 self.rename_session(session_id, content[:24])
         self._conn.commit()
 
+    @_locked
     def recent_messages(self, session_id: int, limit: int) -> list[tuple[str, str]]:
         rows = self._conn.execute(
             "SELECT role, content FROM messages WHERE session_id = ? ORDER BY id DESC LIMIT ?",
@@ -175,6 +198,19 @@ class MemoryStore:
         ).fetchall()
         return [(str(r[0]), str(r[1])) for r in reversed(rows)]
 
+    @_locked
+    def list_messages(
+        self, session_id: int, limit: int = 500
+    ) -> list[tuple[str, str, str]]:
+        """工作台展示用：按时间正序返回 (role, content, created_at)。"""
+        rows = self._conn.execute(
+            "SELECT role, content, created_at FROM messages WHERE session_id = ? "
+            "ORDER BY id ASC LIMIT ?",
+            (session_id, limit),
+        ).fetchall()
+        return [(str(r[0]), str(r[1]), str(r[2])) for r in rows]
+
+    @_locked
     def search_messages(
         self, query: str, limit: int = 8
     ) -> list[tuple[int, str, str, str]]:
@@ -218,6 +254,7 @@ class MemoryStore:
 
     # ---------- 事实记忆 ----------
 
+    @_locked
     def save_fact(self, content: str) -> int:
         cur = self._conn.execute(
             "INSERT INTO facts(content, created_at) VALUES (?, ?)", (content, _now())
@@ -229,6 +266,7 @@ class MemoryStore:
         self._conn.commit()
         return int(cur.lastrowid)
 
+    @_locked
     def search_facts(self, query: str, limit: int = 5) -> list[str]:
         """多级降级检索：FTS5（bm25 排序）→ 全词 AND → 全词 OR → 中文 2-gram 兜底。
 
@@ -282,15 +320,18 @@ class MemoryStore:
 
     # ---------- 用户档案（USER.md 式，限额+报错驱动自整理） ----------
 
+    @_locked
     def profile_lines(self) -> list[tuple[int, str]]:
         rows = self._conn.execute(
             "SELECT id, content FROM profile ORDER BY id"
         ).fetchall()
         return [(int(r[0]), str(r[1])) for r in rows]
 
+    @_locked
     def profile_usage_chars(self) -> int:
         return sum(len(content) for _, content in self.profile_lines())
 
+    @_locked
     def profile_add(self, content: str) -> tuple[bool, str]:
         """超限时返回 (False, 错误+当前档案+剩余额度)，逼调用方当轮合并。"""
         content = content.strip()
@@ -298,9 +339,7 @@ class MemoryStore:
             return False, "错误：档案内容不能为空"
         usage = self.profile_usage_chars()
         if usage + len(content) > PROFILE_MAX_CHARS:
-            current = "\n".join(
-                f"[{lid}] {text}" for lid, text in self.profile_lines()
-            )
+            current = "\n".join(f"[{lid}] {text}" for lid, text in self.profile_lines())
             return False, (
                 f"档案已满（{usage}/{PROFILE_MAX_CHARS} 字符，剩余 "
                 f"{PROFILE_MAX_CHARS - usage}），放不下这条。请先合并或删减现有条目再添加。"
@@ -314,6 +353,7 @@ class MemoryStore:
         self._conn.commit()
         return True, f"已加入档案：{content}（当前 {usage + len(content)}/{PROFILE_MAX_CHARS} 字符）"
 
+    @_locked
     def profile_edit(self, line_id: int, content: str) -> bool:
         cur = self._conn.execute(
             "UPDATE profile SET content = ?, updated_at = ? WHERE id = ?",
@@ -322,11 +362,13 @@ class MemoryStore:
         self._conn.commit()
         return cur.rowcount > 0
 
+    @_locked
     def profile_delete(self, line_id: int) -> bool:
         cur = self._conn.execute("DELETE FROM profile WHERE id = ?", (line_id,))
         self._conn.commit()
         return cur.rowcount > 0
 
+    @_locked
     def profile_block(self) -> str:
         """系统提示词注入用的人物档案快照块；空档案返回空串。"""
         lines = self.profile_lines()
@@ -341,6 +383,7 @@ class MemoryStore:
 
     # ---------- review 日志（回合后自进化观测） ----------
 
+    @_locked
     def save_review_log(self, session_id: int, outcome: str) -> None:
         self._conn.execute(
             "INSERT INTO reviews(session_id, outcome, created_at) VALUES (?, ?, ?)",
@@ -348,6 +391,7 @@ class MemoryStore:
         )
         self._conn.commit()
 
+    @_locked
     def list_reviews(self, session_id: int, limit: int = 10) -> list[str]:
         rows = self._conn.execute(
             "SELECT outcome FROM reviews WHERE session_id = ? ORDER BY id DESC LIMIT ?",
@@ -355,5 +399,15 @@ class MemoryStore:
         ).fetchall()
         return [str(r[0]) for r in rows]
 
+    @_locked
+    def list_all_reviews(self, limit: int = 20) -> list[tuple[int, str, str]]:
+        """工作台展示用：跨会话最近 review 记录，新的在前。"""
+        rows = self._conn.execute(
+            "SELECT session_id, outcome, created_at FROM reviews ORDER BY id DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [(int(r[0]), str(r[1]), str(r[2])) for r in rows]
+
+    @_locked
     def close(self) -> None:
         self._conn.close()

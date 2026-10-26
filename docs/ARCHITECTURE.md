@@ -33,7 +33,7 @@
 | `memory/` | SQLite 仓储：会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 | 不知道 LLM 与工具的存在 | `memory/store.py` |
 | `tools/` | Registry（注册/查找/规格生成/派发）+ 能力域工具集（core：时间/记忆/档案；bilibili：读） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/bilibili/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文选择审批策略 | 不实现工具、不知道通道细节 | `safety/gates.py` |
-| `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件 | 不构造任何核心对象 | `channels/cli.py` |
+| `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
 
 ## 3. 依赖规则（`tests/test_arch.py` 强制）
