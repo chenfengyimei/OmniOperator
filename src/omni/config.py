@@ -12,6 +12,7 @@ CONFIG_PATH = PROJECT_ROOT / "config" / "config.yaml"
 ENV_PATH = PROJECT_ROOT / ".env"
 DATA_DIR = PROJECT_ROOT / "data"
 SKILLS_DIR = PROJECT_ROOT / "skills"  # 程序性记忆：skills/<name>/SKILL.md
+BILI_COOKIES_PATH = DATA_DIR / "bili_cookies.json"  # B站登录态（浏览器 Cookie，gitignore）
 
 
 def load_env(env_path: Path | None = None) -> None:
@@ -62,11 +63,20 @@ class Review(BaseModel):
     steps: int = 4
 
 
+class Asr(BaseModel):
+    """本地 ASR（faster-whisper，无字幕视频转写兜底）。"""
+
+    model: str = "small"       # tiny/base/small/medium；small 中文质量与速度平衡
+    device: str = "cpu"        # 有 NVIDIA GPU 可改 cuda
+    compute_type: str = "int8"
+
+
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
     limits: Limits = Field(default_factory=Limits)
     review: Review = Field(default_factory=Review)
+    asr: Asr = Field(default_factory=Asr)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

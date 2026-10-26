@@ -72,7 +72,7 @@ def build_runtime(
     registry = ToolRegistry()
     register_core_tools(registry, store)
     register_skill_tools(registry, skills)
-    register_bilibili_tools(registry, BiliAPI())
+    register_bilibili_tools(registry, BiliAPI(), config.asr)
     session_id = store.latest_session_id() or store.new_session()
     agent = Agent(config, gateway, store, registry, session_id, approver=approver)
 

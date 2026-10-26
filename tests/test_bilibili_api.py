@@ -1,4 +1,6 @@
 """BiliAPI 单测：全部走 httpx.MockTransport，不发真实网络请求。"""
+import json
+
 import httpx
 import pytest
 
@@ -155,3 +157,128 @@ def test_video_subtitle_none_available():
 
     api = _api(handler)
     assert api.video_subtitle(BV) == ""
+
+
+def test_audio_stream_picks_lowest_bandwidth():
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/nav":
+            return httpx.Response(200, json=NAV)
+        if path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        if path == "/x/player/playurl":
+            return httpx.Response(
+                200,
+                json={
+                    "code": 0,
+                    "data": {
+                        "dash": {
+                            "audio": [
+                                {"baseUrl": "https://upos.example/high.m4s", "bandwidth": 320000},
+                                {"baseUrl": "https://upos.example/low.m4s", "bandwidth": 64000},
+                            ]
+                        }
+                    },
+                },
+            )
+        raise AssertionError(f"unexpected request: {request.url}")
+
+    api = _api(handler)
+    assert api.audio_stream(BV) == "https://upos.example/low.m4s"
+
+
+def test_audio_stream_no_source_raises():
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/nav":
+            return httpx.Response(200, json=NAV)
+        if path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        if path == "/x/player/playurl":
+            return httpx.Response(200, json={"code": 0, "data": {"durl": []}})
+        raise AssertionError(f"unexpected request: {request.url}")
+
+    api = _api(handler)
+    with pytest.raises(BiliAPIError, match="没有可用的音频"):
+        api.audio_stream(BV)
+
+
+def test_download_binary_writes_file(tmp_path):
+    payload = b"fake-audio-bytes-1234567890"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, content=payload, headers={"content-length": str(len(payload))}
+        )
+
+    api = _api(handler)
+    dest = tmp_path / "audio.m4s"
+    api.download_binary("https://upos.example/low.m4s", dest)
+    assert dest.read_bytes() == payload
+
+
+def test_download_binary_rejects_oversize(tmp_path):
+    huge = 10 * 1024 * 1024
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, content=b"x" * 1024, headers={"content-length": str(huge)}
+        )
+
+    api = _api(handler)
+    dest = tmp_path / "audio.m4s"
+    with pytest.raises(BiliAPIError, match="过大"):
+        api.download_binary("https://upos.example/low.m4s", dest, max_bytes=1024)
+
+
+def test_audio_stream_falls_back_to_durl():
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        if path == "/x/player/playurl":
+            return httpx.Response(
+                200,
+                json={"code": 0, "data": {"durl": [{"url": "https://upos.example/360p.mp4"}]}},
+            )
+        raise AssertionError(f"unexpected request: {request.url}")
+
+    api = _api(handler)
+    assert api.audio_stream(BV) == "https://upos.example/360p.mp4"
+
+
+def test_minus_101_error_carries_cookie_hint():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        if request.url.path == "/x/player/playurl":
+            return httpx.Response(200, json={"code": -101, "message": "账号未登录"})
+        raise AssertionError(f"unexpected request: {request.url}")
+
+    api = _api(handler)
+    with pytest.raises(BiliAPIError, match="bili_cookies"):
+        api.audio_stream(BV)
+
+
+def test_cookies_loaded_from_file(tmp_path):
+    cookies = tmp_path / "bili_cookies.json"
+    cookies.write_text(
+        json.dumps({"SESSDATA": "sess-abc", "bili_jct": "jct", "buvid3": "bv3"}),
+        encoding="utf-8",
+    )
+    client = httpx.Client(
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json={})),
+        follow_redirects=True,
+    )
+    api = BiliAPI(client=client, cookies_path=cookies)
+    assert api._client.cookies.get("SESSDATA") == "sess-abc"
+    assert api._client.cookies.get("buvid3") == "bv3"
+
+
+def test_missing_cookies_file_is_silent(tmp_path):
+    client = httpx.Client(
+        transport=httpx.MockTransport(lambda r: httpx.Response(200, json={})),
+        follow_redirects=True,
+    )
+    api = BiliAPI(client=client, cookies_path=tmp_path / "nope.json")
+    assert api._client.cookies.get("SESSDATA") is None  # 匿名模式，不报错

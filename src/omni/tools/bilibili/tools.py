@@ -1,17 +1,24 @@
 """B站读工具集（toolset=bilibili，全部 SAFE 只读）。
 
-包装原则：只做参数校验 + 结果排版；业务与 HTTP 细节在 api.py。
+包装原则：只做参数校验 + 结果排版；业务与 HTTP 细节在 api.py，
+ASR 细节在 asr.py。
 """
 from __future__ import annotations
 
 import datetime as dt
+import tempfile
+from pathlib import Path
 from typing import Any
 
+from ...config import Asr
 from ..registry import Risk, Tool, ToolRegistry
+from . import asr
 from .api import BiliAPI
 
 
-def register_bilibili_tools(registry: ToolRegistry, api: BiliAPI) -> None:
+def register_bilibili_tools(
+    registry: ToolRegistry, api: BiliAPI, asr_config: Asr | None = None
+) -> None:
 
     def _fmt_duration(seconds: Any) -> str:
         try:
@@ -61,8 +68,26 @@ def register_bilibili_tools(registry: ToolRegistry, api: BiliAPI) -> None:
     def video_subtitle(args: dict[str, Any]) -> str:
         text = api.video_subtitle(str(args["target"]))
         if not text:
-            return "该视频没有可获取的字幕（未登录时 AI 字幕通常不可见）。建议结合简介与热门评论理解内容。"
+            return (
+                "该视频没有可获取的字幕（未登录时 AI 字幕通常不可见）。"
+                "可改用 bilibili_video_transcript 转写音频（更慢但通用），"
+                "或结合简介与热门评论理解内容。"
+            )
         return text
+
+    def video_transcript(args: dict[str, Any]) -> str:
+        cfg = asr_config or Asr()
+        target = str(args["target"])
+        audio_url = api.audio_stream(target)
+        with tempfile.TemporaryDirectory(prefix="omni-asr-") as tmp:
+            audio = Path(tmp) / "audio.m4s"
+            api.download_binary(audio_url, audio)
+            return asr.transcribe(
+                audio,
+                model_name=cfg.model,
+                device=cfg.device,
+                compute_type=cfg.compute_type,
+            )
 
     registry.register(
         Tool(
@@ -103,7 +128,7 @@ def register_bilibili_tools(registry: ToolRegistry, api: BiliAPI) -> None:
     registry.register(
         Tool(
             name="bilibili_video_subtitle",
-            description="获取B站视频的字幕全文（如有）。返回空提示说明没有可获取的字幕",
+            description="获取B站视频的字幕全文（如有）。返回提示说明没有可获取的字幕时，改用 bilibili_video_transcript",
             parameters={
                 "type": "object",
                 "properties": {
@@ -112,6 +137,26 @@ def register_bilibili_tools(registry: ToolRegistry, api: BiliAPI) -> None:
                 "required": ["target"],
             },
             func=video_subtitle,
+            toolset="bilibili",
+            risk=Risk.SAFE,
+        )
+    )
+    registry.register(
+        Tool(
+            name="bilibili_video_transcript",
+            description=(
+                "获取B站视频的完整语音转写（下载音频流并用本地 ASR 识别，无需字幕存在）。"
+                "适用于没有字幕的视频；速度取决于视频长度（约为时长的 1/3~1 倍），"
+                "返回带 [分:秒] 时间戳的文本"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string", "description": "视频标识或链接"}
+                },
+                "required": ["target"],
+            },
+            func=video_transcript,
             toolset="bilibili",
             risk=Risk.SAFE,
         )

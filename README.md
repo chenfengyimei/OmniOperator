@@ -13,10 +13,15 @@ uv sync
 # 2. 配密钥：复制 .env.example 为 .env，填至少一家 API key
 #    （用本地 Ollama 则免 key：把 config/config.yaml 的 chat 改成 ollama/<模型名>）
 
-# 3. 启动终端版（自动续接上一次会话）
+# 3.（可选，推荐）B站 Cookie：浏览器登录B站 → F12 → Network 任一请求 →
+#    复制 Cookie 里的 SESSDATA / bili_jct / buvid3，存成 data/bili_cookies.json：
+#    {"SESSDATA": "...", "bili_jct": "...", "buvid3": "..."}
+#    不配也能用（视频信息/评论匿名可读），但字幕与部分音频流需要登录态
+
+# 4. 启动终端版（自动续接上一次会话）
 uv run omni
 
-# 4. 启动 Web 工作台（会话 / 聊天 / 记忆 / 档案 / Review / 技能可视化）
+# 5. 启动 Web 工作台（会话 / 聊天 / 记忆 / 档案 / Review / 技能可视化）
 uv run omni-web            # 打开 http://127.0.0.1:8000
 ```
 

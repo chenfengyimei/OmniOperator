@@ -9,11 +9,14 @@
 """
 from __future__ import annotations
 
+import json
 import re
+from pathlib import Path
 from typing import Any
 
 import httpx
 
+from ...config import BILI_COOKIES_PATH
 from .wbi import sign_wbi
 
 API_BASE = "https://api.bilibili.com"
@@ -31,14 +34,33 @@ class BiliAPIError(RuntimeError):
 
 
 class BiliAPI:
-    def __init__(self, client: httpx.Client | None = None, timeout: float = 10.0) -> None:
+    def __init__(
+        self,
+        client: httpx.Client | None = None,
+        timeout: float = 10.0,
+        cookies_path: Path | None = None,
+    ) -> None:
         self._client = client or httpx.Client(
             headers={"User-Agent": UA, "Referer": "https://www.bilibili.com/"},
             timeout=timeout,
             follow_redirects=True,
         )
+        self._apply_cookies(cookies_path or BILI_COOKIES_PATH)
         self._resolve_cache: dict[str, dict[str, Any]] = {}
         self._wbi_keys: tuple[str, str] | None = None
+
+    def _apply_cookies(self, cookies_path: Path) -> None:
+        """从 data/bili_cookies.json 读浏览器 Cookie（SESSDATA/bili_jct/buvid3…）。
+
+        匿名访问时 WBI 端点（字幕等）可能返回 -101；把登录浏览器的
+        Cookie 粘到这里即可。文件不存在则静默跳过（保持匿名模式）。
+        """
+        try:
+            raw = json.loads(cookies_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return
+        if isinstance(raw, dict):
+            self._client.cookies.update({str(k): str(v) for k, v in raw.items() if v})
 
     # ---------- 目标归一化 ----------
 
@@ -137,6 +159,53 @@ class BiliAPI:
             str(line.get("content", "")) for line in body.get("body") or []
         ).strip()
 
+    def audio_stream(self, target: str) -> str:
+        """音频直链（DASH 最低码率，ASR 够用）；拿不到抛 BiliAPIError。"""
+        info = self.video_info(target)
+        bvid, cid = info.get("bvid"), info.get("cid")
+        if not bvid or not cid:
+            raise BiliAPIError(f"拿不到视频信息：{target}")
+        # playurl 走普通端点（无需 WBI 签名，避免依赖 nav）；未登录时
+        # 部分视频只回 durl（FLV/MP4 音画合流），同样可用于转写
+        params = {"bvid": bvid, "cid": cid, "qn": 64, "fnval": 16, "fnver": 0, "fourk": 0}
+        data = self._get_json("/x/player/playurl", params=params)
+        audio_list = (data.get("dash") or {}).get("audio") or []
+        if audio_list:
+            best = min(audio_list, key=lambda a: int(a.get("bandwidth") or 10**9))
+            url = str(best.get("baseUrl") or best.get("base_url") or "")
+            if not url:
+                backups = best.get("backupUrl") or best.get("backup_url") or []
+                url = str(backups[0]) if backups else ""
+        else:
+            durl = data.get("durl") or []
+            url = str((durl[0] or {}).get("url") or "") if durl else ""
+        if not url:
+            raise BiliAPIError(
+                "该视频没有可用的音频/视频流（可能需要登录：把浏览器 Cookie "
+                "配到 data/bili_cookies.json 后重试）"
+            )
+        return url
+
+    def download_binary(
+        self, url: str, dest: Path, max_bytes: int = 300 * 1024 * 1024
+    ) -> None:
+        """流式下载二进制到 dest；m4s 直链要求带 Referer（client 已全局配置）。"""
+        try:
+            with self._client.stream("GET", url) as resp:
+                resp.raise_for_status()
+                size = int(resp.headers.get("content-length") or 0)
+                if size > max_bytes:
+                    raise BiliAPIError(
+                        f"文件过大（{size // 1048576}MB > {max_bytes // 1048576}MB），放弃下载"
+                    )
+                with dest.open("wb") as fh:
+                    for chunk in resp.iter_bytes(1 << 20):
+                        fh.write(chunk)
+        except httpx.HTTPError as exc:
+            raise BiliAPIError(f"下载失败: {exc}") from exc
+        if not dest.exists() or dest.stat().st_size == 0:
+            raise BiliAPIError("下载结果为空文件")
+
     # ---------- 内部 ----------
 
     def _aid_of(self, target: str) -> int:
@@ -168,8 +237,9 @@ class BiliAPI:
         payload = self._get(path, params=params).json()
         code = payload.get("code", -1)
         if code != 0:
+            hint = "（需要登录态：把浏览器 Cookie 配到 data/bili_cookies.json）" if code == -101 else ""
             raise BiliAPIError(
-                f"B站接口 {path} 返回错误 code={code}: {payload.get('message', '')}"
+                f"B站接口 {path} 返回错误 code={code}: {payload.get('message', '')}{hint}"
             )
         return payload.get("data")
 

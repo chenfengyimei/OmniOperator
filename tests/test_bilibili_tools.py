@@ -27,6 +27,13 @@ class FakeAPI:
     def video_subtitle(self, target):
         return "字幕第一句\n字幕第二句"
 
+    def audio_stream(self, target):
+        assert target == "BV1GJ411x7h7"
+        return "https://upos.example/low.m4s"
+
+    def download_binary(self, url, dest, max_bytes=None):
+        dest.write_bytes(b"fake-audio")
+
 
 def _registry() -> ToolRegistry:
     registry = ToolRegistry()
@@ -75,3 +82,28 @@ def test_subtitle_empty_hint():
 def test_bilibili_api_is_real_class_importable():
     # 冒烟：假 API 与真 API 接口一致（duck typing 已由 FakeAPI 结构保证）
     assert BiliAPI is not None
+
+
+def test_transcript_tool_with_mocked_asr(tmp_path, monkeypatch):
+    """转写工具链路：音频流→下载→ASR（模型用假实现，不真跑）。"""
+    from omni.tools.bilibili import asr as asr_mod
+
+    def fake_transcribe(path, *, model_name="small", device="cpu", compute_type="int8"):
+        assert path.exists() and path.stat().st_size > 0
+        assert model_name == "small"
+        return "[00:00] 假转写第一句 [00:01] 第二句"
+
+    monkeypatch.setattr(asr_mod, "transcribe", fake_transcribe)
+    out = _registry().dispatch("bilibili_video_transcript", {"target": "BV1GJ411x7h7"})
+    assert "假转写第一句" in out
+
+
+def test_transcript_tool_surfaces_api_error(monkeypatch):
+    class NoAudio(FakeAPI):
+        def audio_stream(self, target):
+            raise RuntimeError("该视频没有可用的 DASH 音频流（可能仅登录可见或受限）")
+
+    registry = ToolRegistry()
+    register_bilibili_tools(registry, NoAudio())
+    out = registry.dispatch("bilibili_video_transcript", {"target": "BV1GJ411x7h7"})
+    assert "DASH" in out  # 错误以字符串回传给 LLM，而不是抛异常

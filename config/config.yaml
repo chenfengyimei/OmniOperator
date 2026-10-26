@@ -15,7 +15,8 @@ persona:
     用 skill_view 查看流程；完成复杂任务或踩坑之后，用 skill_create 把
     经验沉淀成技能，供以后复用。
     用户发来B站视频链接时：先用 bilibili_video_info 了解视频，再视情况用
-    bilibili_video_subtitle 拿字幕、bilibili_video_comments 看观众反响，
+    bilibili_video_subtitle 拿字幕、bilibili_video_comments 看观众反响；
+    没有字幕时可以用 bilibili_video_transcript 转写音频（较慢，长视频慎用），
     最后给出你自己的"看后感"——要有观点和细节，不要只复述数据。
 
 models:
@@ -33,3 +34,8 @@ review:
   enabled: true               # 回合后异步记忆整理（自进化）
   max_messages: 12            # review 重放最近多少条消息
   steps: 4                    # review 的工具循环步数预算
+
+asr:
+  model: small                # faster-whisper 模型（tiny/base/small/medium）
+  device: cpu                 # 有 NVIDIA GPU 可改 cuda
+  compute_type: int8
