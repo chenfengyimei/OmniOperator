@@ -37,6 +37,10 @@ CREATE TABLE IF NOT EXISTS facts (
 DEFAULT_TITLE = "新会话"
 
 
+def _has_cjk(text: str) -> bool:
+    return any("\u4e00" <= ch <= "\u9fff" for ch in text)
+
+
 def _now() -> str:
     return dt.datetime.now().astimezone().isoformat(timespec="seconds")
 
@@ -124,18 +128,37 @@ class MemoryStore:
         return int(cur.lastrowid)
 
     def search_facts(self, query: str, limit: int = 5) -> list[str]:
+        """三级降级检索（中文 LIKE 直查太脆，P1 升级 FTS5/向量后替换本实现）：
+
+        ① 全词 AND（最精确）→ ② 全词 OR（任一命中）→ ③ 中文 2-gram OR 兜底
+        （应对"我喜欢喝什么"这类整句式查询——"喜欢"等片段能命中"用户喜欢喝拿铁"）。
+        """
         tokens = [t for t in query.split() if t]
         if not tokens:  # 空查询：返回最近的记忆
             rows = self._conn.execute(
                 "SELECT content FROM facts ORDER BY id DESC LIMIT ?", (limit,)
             ).fetchall()
             return [str(r[0]) for r in rows]
-        where = " AND ".join("content LIKE ?" for _ in tokens)
-        params = [f"%{t}%" for t in tokens]
-        params.append(limit)
-        rows = self._conn.execute(
-            f"SELECT content FROM facts WHERE {where} ORDER BY id DESC LIMIT ?",  # noqa: S608 —— 模板由 token 数生成，参数全部绑定
-            params,
+        and_where = " AND ".join("content LIKE ?" for _ in tokens)
+        rows = self._fetch_facts(and_where, [f"%{t}%" for t in tokens], limit)
+        if rows:
+            return rows
+        or_where = " OR ".join("content LIKE ?" for _ in tokens)
+        rows = self._fetch_facts(or_where, [f"%{t}%" for t in tokens], limit)
+        if rows:
+            return rows
+        if any(_has_cjk(t) for t in tokens):
+            bigrams = sorted(
+                {t[i : i + 2] for t in tokens for i in range(len(t) - 1) if _has_cjk(t[i : i + 2])}
+            )
+            where = " OR ".join("content LIKE ?" for _ in bigrams)
+            return self._fetch_facts(where, [f"%{b}%" for b in bigrams], limit)
+        return []
+
+    def _fetch_facts(self, where: str, params: list[str], limit: int) -> list[str]:
+        rows = self._conn.execute(  # 模板由 token 数生成，参数全部绑定
+            f"SELECT content FROM facts WHERE {where} ORDER BY id DESC LIMIT ?",
+            [*params, limit],
         ).fetchall()
         return [str(r[0]) for r in rows]
 

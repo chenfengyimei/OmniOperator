@@ -34,3 +34,13 @@ def test_facts_search(tmp_path):
     # 空查询返回最近记忆
     assert len(store.search_facts("")) == 2
     store.close()
+
+
+def test_facts_phrase_query_fallback(tmp_path):
+    """整句式查询（无空格、无精确词命中）要靠中文 2-gram 兜底命中。"""
+    store = MemoryStore(tmp_path / "m.db")
+    store.save_fact("用户喜欢喝拿铁。")
+    assert any("拿铁" in f for f in store.search_facts("我喜欢喝什么"))
+    store.save_fact("用户养了一只猫，名字叫煤球。")
+    assert any("煤球" in f for f in store.search_facts("我的猫叫什么名字"))
+    store.close()

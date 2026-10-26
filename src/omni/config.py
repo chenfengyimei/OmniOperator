@@ -14,7 +14,12 @@ DATA_DIR = PROJECT_ROOT / "data"
 
 
 def load_env(env_path: Path | None = None) -> None:
-    """把 .env 里的 KEY=VALUE 注入环境变量（已存在的不覆盖），供 LiteLLM 读取。"""
+    """把 .env 里的 KEY=VALUE 注入环境变量，供 LiteLLM 读取。
+
+    优先级约定：已存在的**非空**环境变量优先（尊重外部预配置）；
+    缺失或为空的变量用 .env 填充——机器里可能残留空值变量（本次踩坑：
+    空的 DEEPSEEK_API_KEY 曾导致 Authorization: "Bearer " 非法）。
+    """
     path = env_path or ENV_PATH
     if not path.exists():
         return
@@ -25,7 +30,7 @@ def load_env(env_path: Path | None = None) -> None:
         key, _, value = line.partition("=")
         key = key.strip()
         value = value.strip().strip('"').strip("'")
-        if key and value and key not in os.environ:
+        if key and value and not os.environ.get(key):
             os.environ[key] = value
 
 

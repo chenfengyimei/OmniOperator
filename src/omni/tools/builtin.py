@@ -69,10 +69,12 @@ def register_core_tools(registry: ToolRegistry, store: MemoryStore) -> None:
     registry.register(
         Tool(
             name="recall",
-            description="从长期记忆里检索相关信息",
+            description="从长期记忆里检索相关信息。query 建议用简短关键词（如'猫 名字'、'拿铁'），也支持整句提问",
             parameters={
                 "type": "object",
-                "properties": {"query": {"type": "string", "description": "检索关键词"}},
+                "properties": {
+                    "query": {"type": "string", "description": "检索关键词或问题，尽量简短"}
+                },
                 "required": ["query"],
             },
             func=recall,

@@ -15,6 +15,8 @@ from .core.agent import Agent
 from .llm.gateway import Gateway
 from .memory.store import MemoryStore
 from .safety.gates import Approver
+from .tools.bilibili.api import BiliAPI
+from .tools.bilibili.tools import register_bilibili_tools
 from .tools.builtin import register_core_tools
 from .tools.registry import ToolRegistry
 
@@ -53,6 +55,7 @@ def build_runtime(
     gateway = Gateway(config.models)
     registry = ToolRegistry()
     register_core_tools(registry, store)
+    register_bilibili_tools(registry, BiliAPI())
     session_id = store.latest_session_id() or store.new_session()
     agent = Agent(config, gateway, store, registry, session_id, approver=approver)
     return Runtime(config=config, store=store, gateway=gateway, registry=registry, agent=agent)

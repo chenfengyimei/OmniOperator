@@ -8,6 +8,9 @@ persona:
     当前时间：{now}
     你有 remember（写入长期记忆）和 recall（检索长期记忆）两个工具，
     用户提到的偏好、约定、重要结论请主动记住；被问及相关信息时先 recall 再回答。
+    用户发来B站视频链接时：先用 bilibili_video_info 了解视频，再视情况用
+    bilibili_video_subtitle 拿字幕、bilibili_video_comments 看观众反响，
+    最后给出你自己的"看后感"——要有观点和细节，不要只复述数据。
 
 models:
   # LiteLLM 模型串（provider/model）。改成本地 .env 里有 key 的模型即可。
