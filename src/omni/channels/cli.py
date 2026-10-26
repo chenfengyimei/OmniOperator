@@ -1,22 +1,25 @@
-"""本地终端 REPL 入口：uv run omni。"""
+"""本地终端 REPL 入口：uv run omni。
+
+职责纪律：本文件只做「界面展示 + 输入解析 + 调 Runtime 门面」；
+所有对象装配都在 bootstrap.build_runtime 里完成（组装根规则见 docs/ARCHITECTURE.md）。
+"""
 from __future__ import annotations
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from ..config import load_config, load_env
-from ..core.agent import Agent
-from ..core.tools import build_default_tools
-from ..llm.gateway import Gateway, GatewayError
-from ..memory.store import MemoryStore
+from ..bootstrap import build_runtime
+from ..config import load_env
+from ..llm.gateway import GatewayError
+from ..safety.gates import ConsoleApprover
 
 HELP = """\
 /new              新开会话
 /list             列出最近会话
 /use <id>         切换到指定会话
 /switch <model>   切换模型（LiteLLM 串，如 deepseek/deepseek-chat）
-/model            查看当前模型
+/model            查看当前模型与工具
 /help             本帮助
 /quit             退出
 其余输入都作为对话发给 agent。"""
@@ -24,20 +27,14 @@ HELP = """\
 
 def main() -> None:
     load_env()
-    config = load_config()
-    store = MemoryStore()
-    gateway = Gateway(config.models)
-    registry = build_default_tools(store)
-
-    # 自动续接最近一次会话（跨会话记得昨天聊的）
-    session_id = store.latest_session_id() or store.new_session()
-    agent = Agent(config, gateway, store, registry, session_id)
-
     console = Console()
+    runtime = build_runtime(approver=ConsoleApprover(console))
+    agent = runtime.agent
+
     console.print(
         Panel.fit(
-            f"[bold]{config.persona.name}[/] · OmniOperator Phase 0\n"
-            f"会话 #{session_id} · 模型 [cyan]{agent.model}[/]",
+            f"[bold]{runtime.config.persona.name}[/] · OmniOperator Phase 0\n"
+            f"会话 #{agent.session_id} · 模型 [cyan]{agent.model}[/]",
             border_style="cyan",
         )
     )
@@ -60,19 +57,15 @@ def main() -> None:
             if cmd == "/help":
                 console.print(HELP)
             elif cmd == "/new":
-                session_id = store.new_session()
-                agent.session_id = session_id
-                console.print(f"[cyan]已开新会话 #{session_id}[/]")
+                console.print(f"[cyan]已开新会话 #{runtime.new_session()}[/]")
             elif cmd == "/list":
                 table = Table("ID", "标题", "创建时间")
-                for sid, title, created in store.list_sessions():
+                for sid, title, created in runtime.store.list_sessions():
                     table.add_row(str(sid), title, created)
                 console.print(table)
             elif cmd == "/use":
-                if arg.isdigit() and store.session_exists(int(arg)):
-                    session_id = int(arg)
-                    agent.session_id = session_id
-                    console.print(f"[cyan]已切换到会话 #{session_id}[/]")
+                if arg.isdigit() and runtime.use_session(int(arg)):
+                    console.print(f"[cyan]已切换到会话 #{arg}[/]")
                 else:
                     console.print("[yellow]用法: /use <会话ID>（先用 /list 查看）[/]")
             elif cmd == "/switch":
@@ -83,7 +76,8 @@ def main() -> None:
                     console.print("[yellow]用法: /switch <LiteLLM模型串>[/]")
             elif cmd == "/model":
                 console.print(
-                    f"当前模型: [cyan]{agent.model}[/] · 工具: {', '.join(registry.names())}"
+                    f"当前模型: [cyan]{agent.model}[/] · 工具集: "
+                    f"{', '.join(runtime.registry.names())}"
                 )
             else:
                 console.print(f"[yellow]未知命令 {cmd}，/help 查看可用命令。[/]")
@@ -99,10 +93,10 @@ def main() -> None:
             )
             continue
         console.print(
-            Panel(answer, title=f"[bold cyan]{config.persona.name}", border_style="cyan")
+            Panel(answer, title=f"[bold cyan]{runtime.config.persona.name}", border_style="cyan")
         )
 
-    store.close()
+    runtime.store.close()
 
 
 if __name__ == "__main__":

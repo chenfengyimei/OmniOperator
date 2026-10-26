@@ -36,16 +36,20 @@ uv run omni
 uv run pytest
 ```
 
-## 架构（Phase 0）
+## 架构
+
+六层分包 + 组装根，依赖单向（`tests/test_arch.py` 用 AST 强制，详见 `docs/ARCHITECTURE.md`）：
 
 ```
 src/omni/
-├── config.py          # .env + config.yaml 加载
-├── llm/gateway.py     # LiteLLM 统一网关（海外/国产/Ollama 一套 OpenAI 格式）
-├── memory/store.py    # SQLite：会话 / 消息 / 事实记忆
-├── core/agent.py      # Agent 循环（上下文 → LLM → 工具 → 回答）
-├── core/tools.py      # 工具注册表（function calling）
-└── channels/cli.py    # 终端 REPL 入口
+├── config.py          # .env + config.yaml 加载（叶子层）
+├── bootstrap.py       # 组装根：唯一构造 Gateway/Store/Registry/Agent 的地方，暴露 Runtime 门面
+├── core/agent.py      # Agent 编排循环（纯内核：上下文 → LLM → 工具 → 回答）
+├── llm/gateway.py     # LiteLLM 统一网关（Adapter：海外/国产/Ollama 一套格式）
+├── memory/store.py    # SQLite 仓储（会话 / 消息 / 事实记忆）
+├── tools/             # Registry + 各能力域工具集（Registry 模式；P1+ 每能力域一包）
+├── safety/gates.py    # 审批闸门（Risk 分级 + 上下文审批策略）
+└── channels/cli.py    # 终端 REPL（只碰 Runtime，不构造任何对象）
 ```
 
 ## 路线图

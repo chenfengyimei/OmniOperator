@@ -7,7 +7,8 @@ from typing import Any
 from ..config import AppConfig
 from ..llm.gateway import Gateway
 from ..memory.store import MemoryStore
-from .tools import ToolRegistry
+from ..safety.gates import Approver
+from ..tools.registry import ToolRegistry
 
 
 class Agent:
@@ -18,11 +19,14 @@ class Agent:
         store: MemoryStore,
         registry: ToolRegistry,
         session_id: int,
+        *,
+        approver: Approver | None = None,
     ) -> None:
         self.config = config
         self.gateway = gateway
         self.store = store
         self.registry = registry
+        self.approver = approver
         self.session_id = session_id
         self.model = gateway.resolve("chat")
 
@@ -60,12 +64,16 @@ class Agent:
                 }
             )
             for call in reply.tool_calls:
-                result = self.registry.dispatch(call.function.name, call.function.arguments)
+                result = self.registry.dispatch(
+                    call.function.name,
+                    call.function.arguments,
+                    approver=self.approver,
+                )
                 messages.append(
                     {"role": "tool", "tool_call_id": call.id, "content": result}
                 )
 
-        # 达到步数上限：不再给工具，逼出最终回答
+        # 步数预算耗尽：一次无工具的 grace call，强制收敛出最终回答
         reply = self.gateway.complete(messages, model=self.model, tools=None)
         answer = reply.text.strip() or "（达到工具调用轮数上限，先停在这里）"
         self.store.append_message(

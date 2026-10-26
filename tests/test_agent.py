@@ -3,8 +3,15 @@ from types import SimpleNamespace
 
 from omni.config import AppConfig
 from omni.core.agent import Agent
-from omni.core.tools import build_default_tools
 from omni.memory.store import MemoryStore
+from omni.tools.builtin import register_core_tools
+from omni.tools.registry import ToolRegistry
+
+
+def _core_registry(store: MemoryStore) -> ToolRegistry:
+    registry = ToolRegistry()
+    register_core_tools(registry, store)
+    return registry
 
 
 class ScriptedGateway:
@@ -35,7 +42,7 @@ def test_tool_loop_persists_fact_and_answer(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
     sid = store.new_session()
     gateway = ScriptedGateway()
-    agent = Agent(AppConfig(), gateway, store, build_default_tools(store), sid)
+    agent = Agent(AppConfig(), gateway, store, _core_registry(store), sid)
 
     answer = agent.chat("请记住我喜欢拿铁")
     assert answer == "好的，我记住了。"
@@ -57,7 +64,7 @@ def test_history_grows_across_turns(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
     sid = store.new_session()
     gateway = ScriptedGateway()
-    agent = Agent(AppConfig(), gateway, store, build_default_tools(store), sid)
+    agent = Agent(AppConfig(), gateway, store, _core_registry(store), sid)
     agent.chat("第一句话")
     agent.chat("第二句话")
     # 第二次对话的请求里应携带第一轮的 user/assistant 文本
