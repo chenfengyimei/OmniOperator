@@ -71,12 +71,24 @@ class Asr(BaseModel):
     compute_type: str = "int8"
 
 
+class QQ(BaseModel):
+    """QQ 通道（NapCat / OneBot v11）。"""
+
+    enabled: bool = False
+    ws_url: str = "ws://127.0.0.1:3001"
+    access_token: str = ""
+    allowed_users: list[int] = Field(default_factory=list)   # 私聊白名单（空=拒绝所有人）
+    allowed_groups: list[int] = Field(default_factory=list)  # 群白名单（群里还需 @机器人）
+    reply_delay_s: list[float] = Field(default_factory=lambda: [1.0, 3.0])  # 拟人回复延迟
+
+
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
     limits: Limits = Field(default_factory=Limits)
     review: Review = Field(default_factory=Review)
     asr: Asr = Field(default_factory=Asr)
+    qq: QQ = Field(default_factory=QQ)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

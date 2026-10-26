@@ -25,6 +25,8 @@ from .tools.builtin import (
     register_profile_tools,
 )
 from .tools.registry import ToolRegistry
+from .tools.qq.client import OneBotClient
+from .tools.qq.tools import register_qq_tools
 from .tools.skill_tools import register_skill_tools
 
 
@@ -39,6 +41,7 @@ class Runtime:
     skills: SkillStore
     agent: Agent
     reviewer: TurnEndReviewer | None = None
+    qq: OneBotClient | None = None
 
     def new_session(self) -> int:
         """新开会话并把 agent 切过去。"""
@@ -52,10 +55,12 @@ class Runtime:
             return True
         return False
 
-    def spawn_review(self) -> None:
-        """回合后异步记忆整理（未启用则为空操作）。通道在回答后调用即可，不阻塞。"""
+    def spawn_review(self, session_id: int | None = None) -> None:
+        """回合后异步记忆整理（未启用则为空操作）；通道可传绑定会话。"""
         if self.reviewer is not None:
-            self.reviewer.review_in_background(self.agent.session_id)
+            self.reviewer.review_in_background(
+                session_id if session_id is not None else self.agent.session_id
+            )
 
 
 def build_runtime(
@@ -73,6 +78,10 @@ def build_runtime(
     register_core_tools(registry, store)
     register_skill_tools(registry, skills)
     register_bilibili_tools(registry, BiliAPI(), config.asr)
+    qq_client: OneBotClient | None = None
+    if config.qq.enabled:
+        qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
+        register_qq_tools(registry, qq_client, config.qq.allowed_users)
     session_id = store.latest_session_id() or store.new_session()
     agent = Agent(config, gateway, store, registry, session_id, approver=approver)
 
@@ -104,4 +113,5 @@ def build_runtime(
         skills=skills,
         agent=agent,
         reviewer=reviewer,
+        qq=qq_client,
     )

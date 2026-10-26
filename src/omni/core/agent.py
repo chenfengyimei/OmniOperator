@@ -38,11 +38,16 @@ class Agent:
             prompt = f"{prompt}\n\n{profile_block}"
         return prompt
 
-    def chat(self, user_text: str) -> str:
-        """处理一条用户消息，返回最终回答（中间工具循环不落库）。"""
-        self.store.append_message(self.session_id, "user", user_text)
+    def chat(self, user_text: str, *, session_id: int | None = None) -> str:
+        """处理一条用户消息，返回最终回答（中间工具循环不落库）。
+
+        session_id 覆盖用于多通道并发：QQ 等通道按各自绑定传会话，
+        不依赖 self.session_id（那是 CLI/Web 的当前会话，可能被随时切换）。
+        """
+        sid = session_id if session_id is not None else self.session_id
+        self.store.append_message(sid, "user", user_text)
         history = self.store.recent_messages(
-            self.session_id, self.config.limits.max_history_messages
+            sid, self.config.limits.max_history_messages
         )
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": self._system_prompt()}
@@ -55,9 +60,7 @@ class Agent:
             )
             if not reply.tool_calls:
                 answer = reply.text.strip() or "（模型没有返回内容）"
-                self.store.append_message(
-                    self.session_id, "assistant", answer, auto_title=False
-                )
+                self.store.append_message(sid, "assistant", answer, auto_title=False)
                 return answer
             # 有工具调用：执行并把结果回填，继续循环
             messages.append(
@@ -80,7 +83,5 @@ class Agent:
         # 步数预算耗尽：一次无工具的 grace call，强制收敛出最终回答
         reply = self.gateway.complete(messages, model=self.model, tools=None)
         answer = reply.text.strip() or "（达到工具调用轮数上限，先停在这里）"
-        self.store.append_message(
-            self.session_id, "assistant", answer, auto_title=False
-        )
+        self.store.append_message(sid, "assistant", answer, auto_title=False)
         return answer

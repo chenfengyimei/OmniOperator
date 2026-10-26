@@ -54,6 +54,12 @@ CREATE TABLE IF NOT EXISTS reviews (
     outcome TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS bindings (
+    channel TEXT NOT NULL,
+    channel_user TEXT NOT NULL,
+    session_id INTEGER NOT NULL,
+    PRIMARY KEY (channel, channel_user)
+);
 """
 
 _FTS_SCHEMA = """
@@ -159,6 +165,43 @@ class MemoryStore:
     def rename_session(self, session_id: int, title: str) -> None:
         self._conn.execute(
             "UPDATE sessions SET title = ? WHERE id = ?", (title, session_id)
+        )
+        self._conn.commit()
+
+    # ---------- 通道绑定（QQ 等外部用户 ↔ 本地会话） ----------
+
+    @_locked
+    def get_or_create_binding(self, channel: str, channel_user: str) -> int:
+        """通道用户绑定到独立会话（首次自动创建，标题带通道前缀，工作台可见）。"""
+        row = self._conn.execute(
+            "SELECT session_id FROM bindings WHERE channel = ? AND channel_user = ?",
+            (channel, str(channel_user)),
+        ).fetchone()
+        if row:
+            return int(row[0])
+        session_id = self.new_session(title=f"{channel}:{channel_user}")
+        self._conn.execute(
+            "INSERT INTO bindings(channel, channel_user, session_id) VALUES (?, ?, ?)",
+            (channel, str(channel_user), session_id),
+        )
+        self._conn.commit()
+        return session_id
+
+    @_locked
+    def get_binding(self, channel: str, channel_user: str) -> int | None:
+        row = self._conn.execute(
+            "SELECT session_id FROM bindings WHERE channel = ? AND channel_user = ?",
+            (channel, str(channel_user)),
+        ).fetchone()
+        return int(row[0]) if row else None
+
+    @_locked
+    def set_binding(self, channel: str, channel_user: str, session_id: int) -> None:
+        """换绑（比如用户要求重开记忆）。"""
+        self._conn.execute(
+            "INSERT INTO bindings(channel, channel_user, session_id) VALUES (?, ?, ?) "
+            "ON CONFLICT(channel, channel_user) DO UPDATE SET session_id = excluded.session_id",
+            (channel, str(channel_user), session_id),
         )
         self._conn.commit()
 
