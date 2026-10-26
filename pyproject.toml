@@ -21,6 +21,7 @@ dependencies = [
 omni = "omni.channels.cli:main"
 omni-web = "omni.channels.web:main"
 omni-qq = "omni.channels.qq:main"
+omni-heartbeat = "omni.channels.heartbeat:main"
 
 [dependency-groups]
 dev = ["pytest>=8.3"]

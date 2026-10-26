@@ -28,6 +28,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "Gateway",
     "MemoryStore",
     "SkillStore",
+    "JobStore",
     "ToolRegistry",
     "Agent",
     "TurnEndReviewer",

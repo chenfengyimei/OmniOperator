@@ -14,6 +14,7 @@ from .config import AppConfig, load_config
 from .core.agent import Agent
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
+from .memory.cron import JobStore
 from .memory.skills import SkillStore
 from .memory.store import MemoryStore
 from .safety.gates import Approver
@@ -24,6 +25,7 @@ from .tools.builtin import (
     register_memory_tools,
     register_profile_tools,
 )
+from .tools.cron_tools import register_cron_tools
 from .tools.registry import ToolRegistry
 from .tools.qq.client import OneBotClient
 from .tools.qq.tools import register_qq_tools
@@ -39,6 +41,7 @@ class Runtime:
     gateway: Gateway
     registry: ToolRegistry
     skills: SkillStore
+    cron_jobs: JobStore
     agent: Agent
     reviewer: TurnEndReviewer | None = None
     qq: OneBotClient | None = None
@@ -78,6 +81,8 @@ def build_runtime(
     register_core_tools(registry, store)
     register_skill_tools(registry, skills)
     register_bilibili_tools(registry, BiliAPI(), config.asr)
+    cron_jobs = JobStore()
+    register_cron_tools(registry, cron_jobs, config.qq.allowed_users)
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
@@ -111,6 +116,7 @@ def build_runtime(
         gateway=gateway,
         registry=registry,
         skills=skills,
+        cron_jobs=cron_jobs,
         agent=agent,
         reviewer=reviewer,
         qq=qq_client,

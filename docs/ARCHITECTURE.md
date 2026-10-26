@@ -28,12 +28,12 @@
 | 模块 | 职责 | 明确不做 | 关键文件 |
 |---|---|---|---|
 | `config.py` | 加载 .env 密钥与 config.yaml 配置 | 不含任何业务逻辑 | `config.py` |
-| `core/` | Agent 编排循环：上下文组装 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化） | 不实现具体工具、不感知通道存在；review 的工具白名单由 bootstrap 注入 | `core/agent.py`、`core/review.py` |
+| `core/` | Agent 编排循环：上下文组装 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次） | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/review.py`、`core/cron.py` |
 | `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、错误包装 | 不做记忆、不管理会话 | `llm/gateway.py` |
-| `memory/` | SQLite 仓储：会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志；技能存储（程序性记忆，文件式 SKILL.md + linter） | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/skills.py` |
-| `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能；bilibili：读；qq：主动消息） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/skill_tools.py`、`tools/bilibili/`、`tools/qq/` |
+| `memory/` | SQLite 仓储：会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定；技能存储（SKILL.md+linter）；定时任务存储（cron_jobs.json 原子写） | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/skills.py`、`memory/cron.py` |
+| `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能；bilibili：读；qq：主动消息；cron：定时任务管理） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文选择审批策略 | 不实现工具、不知道通道细节 | `safety/gates.py` |
-| `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台 / QQ） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/qq.py` |
+| `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台 / QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/qq.py`、`channels/heartbeat.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
 
 ## 3. 依赖规则（`tests/test_arch.py` 强制）
@@ -49,7 +49,7 @@
 - `safety` / `config`（叶子）→ 不允许 import 任何内部模块
 
 ### 3.2 组装根规则
-`Gateway`、`MemoryStore`、`SkillStore`、`ToolRegistry`、`Agent`、`TurnEndReviewer` 六个类的**构造调用只允许出现在 `bootstrap.py`**（tests 除外）。通道与内核通过构造函数注入持有引用。
+`Gateway`、`MemoryStore`、`SkillStore`、`JobStore`、`ToolRegistry`、`Agent`、`TurnEndReviewer` 七个类的**构造调用只允许出现在 `bootstrap.py`**（tests 除外）。通道与内核通过构造函数注入持有引用。
 
 好处：换实现（如 P1 记忆升级向量库）只动 bootstrap 一处；全部依赖关系在构造处一眼可见；工具集以 `register_xxx_tools(registry, deps)` 模式注册进唯一注册表，多能力域无冲突合并。
 
