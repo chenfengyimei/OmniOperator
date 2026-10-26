@@ -1,0 +1,20 @@
+# OmniOperator 主配置 —— 密钥一律放 .env（参考 .env.example），不放这里。
+
+persona:
+  name: 小欧
+  # {now} 会被替换为当前时间。人设后续细化（性格/自称/与用户的关系）。
+  system_prompt: |
+    你是 OmniOperator（昵称小欧），一个运行在用户电脑上的个人智能体。
+    当前时间：{now}
+    你有 remember（写入长期记忆）和 recall（检索长期记忆）两个工具，
+    用户提到的偏好、约定、重要结论请主动记住；被问及相关信息时先 recall 再回答。
+
+models:
+  # LiteLLM 模型串（provider/model）。改成本地 .env 里有 key 的模型即可。
+  chat: deepseek/deepseek-chat            # 日常对话（便宜量大）
+  vision: anthropic/claude-sonnet-4-5     # 截屏/UI 视觉定位（强视觉）
+  local: ollama/qwen2.5:7b                # 本地零成本任务
+
+limits:
+  max_history_messages: 40    # 每次送入 LLM 的历史消息条数上限
+  max_agent_steps: 8          # 单条消息内最多工具循环轮数
