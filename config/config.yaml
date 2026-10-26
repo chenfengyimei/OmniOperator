@@ -50,3 +50,9 @@ qq:
   allowed_users: []           # 私聊白名单：填你的 QQ 号，如 [123456789]（空=不响应任何人）
   allowed_groups: []          # 群白名单：群号列表（群里还需 @机器人 才响应）
   reply_delay_s: [1.0, 3.0]   # 拟人回复延迟区间（秒）
+
+browser:
+  headless: false             # 默认有头浏览器：你能看到它在干什么（像人）
+  slow_mo_ms: 120             # 动作慢放（拟人节奏 + 稳定性）
+  max_writes_per_day: 50      # 每日写操作预算（click/type 合计，防失控）
+  approval_timeout_s: 180     # 写操作确认等待上限（秒），超时自动拒绝

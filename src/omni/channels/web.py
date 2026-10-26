@@ -2,8 +2,8 @@
 
 职责纪律：本文件只做 HTTP 适配（路由 + 请求模型 + 静态文件挂载），
 领域操作全部通过 bootstrap.Runtime 门面，不构造核心对象。
-审批策略：web 上下文用 DenyApprover（fail-closed）——safe 工具直通，
-confirm/dangerous 在 P3 引入 UI 确认流之前一律拒绝。
+审批策略：WebApprover——safe 直通，confirm 弹工作台确认横幅（阻塞等待，
+超时自动拒绝），dangerous 一律拒绝。
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from ..bootstrap import Runtime, build_runtime
 from ..config import load_env
 from ..llm.gateway import GatewayError
 from ..memory.store import PROFILE_MAX_CHARS
-from ..safety.gates import DenyApprover
+from ..safety.gates import WebApprover
 
 _STATIC_DIR = Path(__file__).parent / "web_static"
 
@@ -28,6 +28,11 @@ _STATIC_DIR = Path(__file__).parent / "web_static"
 class ChatIn(BaseModel):
     message: str
     session_id: int | None = None
+
+
+class ResolveIn(BaseModel):
+    allowed: bool
+    reason: str = ""
 
 
 def create_app(runtime: Runtime) -> FastAPI:
@@ -150,13 +155,32 @@ def create_app(runtime: Runtime) -> FastAPI:
             raise HTTPException(status_code=404, detail="技能不存在")
         return {"content": content}
 
+    # ---------- 确认流（confirm 级工具的人工审批） ----------
+
+    @app.get("/api/approvals")
+    def get_approvals() -> dict[str, Any]:
+        used, quota = runtime.write_budget.usage_today()
+        return {
+            "pending": runtime.approvals.list_pending(),
+            "browser_writes": {"used": used, "max": quota},
+        }
+
+    @app.post("/api/approvals/{approval_id}/resolve")
+    def resolve_approval(approval_id: str, payload: ResolveIn) -> dict[str, Any]:
+        ok = runtime.approvals.resolve(
+            approval_id, payload.allowed, payload.reason
+        )
+        return {"ok": ok}
+
     app.mount("/", StaticFiles(directory=str(_STATIC_DIR), html=True), name="ui")
     return app
 
 
 def main() -> None:
     load_env()
-    runtime = build_runtime(approver=DenyApprover())
+    runtime = build_runtime()
+    # Web 上下文的确认流：confirm 工具 → 工作台横幅（agent 线程阻塞等待用户点击）
+    runtime.agent.approver = WebApprover(runtime.approvals)
     app = create_app(runtime)
     host = os.environ.get("OMNI_WEB_HOST", "127.0.0.1")
     port = int(os.environ.get("OMNI_WEB_PORT", "8000"))

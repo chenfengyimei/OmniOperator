@@ -17,9 +17,13 @@ from .llm.gateway import Gateway
 from .memory.cron import JobStore
 from .memory.skills import SkillStore
 from .memory.store import MemoryStore
+from .safety.broker import ApprovalBroker
 from .safety.gates import Approver
 from .tools.bilibili.api import BiliAPI
 from .tools.bilibili.tools import register_bilibili_tools
+from .tools.browser.budget import WriteBudget
+from .tools.browser.driver import BrowserDriver
+from .tools.browser.tools import register_browser_tools
 from .tools.builtin import (
     register_core_tools,
     register_memory_tools,
@@ -42,6 +46,9 @@ class Runtime:
     registry: ToolRegistry
     skills: SkillStore
     cron_jobs: JobStore
+    browser: BrowserDriver
+    write_budget: WriteBudget
+    approvals: ApprovalBroker
     agent: Agent
     reviewer: TurnEndReviewer | None = None
     qq: OneBotClient | None = None
@@ -83,6 +90,12 @@ def build_runtime(
     register_bilibili_tools(registry, BiliAPI(), config.asr)
     cron_jobs = JobStore()
     register_cron_tools(registry, cron_jobs, config.qq.allowed_users)
+    browser = BrowserDriver(
+        headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms
+    )
+    write_budget = WriteBudget(max_per_day=config.browser.max_writes_per_day)
+    register_browser_tools(registry, browser, write_budget)
+    approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
@@ -117,6 +130,9 @@ def build_runtime(
         registry=registry,
         skills=skills,
         cron_jobs=cron_jobs,
+        browser=browser,
+        write_budget=write_budget,
+        approvals=approvals,
         agent=agent,
         reviewer=reviewer,
         qq=qq_client,

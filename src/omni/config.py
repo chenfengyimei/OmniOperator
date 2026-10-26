@@ -82,6 +82,15 @@ class QQ(BaseModel):
     reply_delay_s: list[float] = Field(default_factory=lambda: [1.0, 3.0])  # 拟人回复延迟
 
 
+class Browser(BaseModel):
+    """浏览器能力域（P3 写操作走 UI）。"""
+
+    headless: bool = False          # 默认有头：用户能看到它在干什么（像人）
+    slow_mo_ms: int = 120           # Playwright 慢放（拟人节奏 + 稳定性）
+    max_writes_per_day: int = 50    # 每日写操作预算（click/type 合计）
+    approval_timeout_s: float = 180.0  # 确认等待上限，超时自动拒绝
+
+
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
@@ -89,6 +98,7 @@ class AppConfig(BaseModel):
     review: Review = Field(default_factory=Review)
     asr: Asr = Field(default_factory=Asr)
     qq: QQ = Field(default_factory=QQ)
+    browser: Browser = Field(default_factory=Browser)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

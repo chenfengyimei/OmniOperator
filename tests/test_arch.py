@@ -32,6 +32,9 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "ToolRegistry",
     "Agent",
     "TurnEndReviewer",
+    "BrowserDriver",
+    "WriteBudget",
+    "ApprovalBroker",
 }
 
 

@@ -66,3 +66,18 @@ class ConsoleApprover(Approver):
         if answer in ("y", "yes"):
             return Decision(True)
         return Decision(False, "用户在确认时拒绝了该操作")
+
+
+class WebApprover(Approver):
+    """Web 工作台上下文：CONFIRM 级弹工作台确认横幅（阻塞等用户点击，超时拒）。"""
+
+    def __init__(self, broker: Any) -> None:
+        self._broker = broker
+
+    def check(self, tool: Any) -> Decision:
+        risk = getattr(tool, "risk", Risk.SAFE)
+        if risk == Risk.SAFE:
+            return Decision(True)
+        if risk == Risk.DANGEROUS:
+            return Decision(False, "dangerous 级操作在当前版本一律拒绝")
+        return self._broker.request(tool)

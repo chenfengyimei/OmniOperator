@@ -99,3 +99,40 @@ def test_chat_with_bad_session_404(tmp_path):
     client, _rt = _client(tmp_path)
     resp = client.post("/api/chat", json={"message": "hi", "session_id": 999})
     assert resp.status_code == 404
+
+
+def test_approvals_endpoints(tmp_path):
+    client, runtime = _client(tmp_path)
+    # 空待审 + 预算信息
+    data = client.get("/api/approvals").json()
+    assert data["pending"] == []
+    assert "browser_writes" in data and data["browser_writes"]["max"] > 0
+    # 决议不存在的 id
+    assert client.post(
+        "/api/approvals/nope/resolve", json={"allowed": True}
+    ).json()["ok"] is False
+    # 发起一个待审（走 broker），端点可见 → 决议 → 线程放行
+    import threading
+    from types import SimpleNamespace
+
+    from omni.safety.gates import Risk
+
+    tool = SimpleNamespace(
+        name="browser_click", description="点击", risk=Risk.CONFIRM
+    )
+    result = {}
+
+    def request():
+        result["decision"] = runtime.approvals.request(tool, timeout=5)
+
+    threading.Thread(target=request, daemon=True).start()
+    import time
+
+    time.sleep(0.2)
+    pending = client.get("/api/approvals").json()["pending"]
+    assert len(pending) == 1 and pending[0]["tool_name"] == "browser_click"
+    assert client.post(
+        f"/api/approvals/{pending[0]['id']}/resolve", json={"allowed": True}
+    ).json()["ok"] is True
+    time.sleep(0.2)
+    assert result["decision"].allowed is True
