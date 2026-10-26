@@ -130,6 +130,26 @@ def create_app(runtime: Runtime) -> FastAPI:
             ]
         }
 
+    @app.get("/api/skills")
+    def get_skills() -> dict[str, Any]:
+        return {
+            "skills": [
+                {
+                    "name": s["name"],
+                    "description": s["description"],
+                    "version": s["version"],
+                }
+                for s in runtime.skills.list()
+            ]
+        }
+
+    @app.get("/api/skills/{name}")
+    def get_skill(name: str) -> dict[str, Any]:
+        content = runtime.skills.view(name)
+        if content is None:
+            raise HTTPException(status_code=404, detail="技能不存在")
+        return {"content": content}
+
     app.mount("/", StaticFiles(directory=str(_STATIC_DIR), html=True), name="ui")
     return app
 

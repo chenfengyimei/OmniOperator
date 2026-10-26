@@ -27,6 +27,7 @@ FORBIDDEN_IMPORTS: dict[str, set[str]] = {
 CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "Gateway",
     "MemoryStore",
+    "SkillStore",
     "ToolRegistry",
     "Agent",
     "TurnEndReviewer",

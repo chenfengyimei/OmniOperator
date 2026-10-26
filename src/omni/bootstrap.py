@@ -14,6 +14,7 @@ from .config import AppConfig, load_config
 from .core.agent import Agent
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
+from .memory.skills import SkillStore
 from .memory.store import MemoryStore
 from .safety.gates import Approver
 from .tools.bilibili.api import BiliAPI
@@ -24,6 +25,7 @@ from .tools.builtin import (
     register_profile_tools,
 )
 from .tools.registry import ToolRegistry
+from .tools.skill_tools import register_skill_tools
 
 
 @dataclass
@@ -34,6 +36,7 @@ class Runtime:
     store: MemoryStore
     gateway: Gateway
     registry: ToolRegistry
+    skills: SkillStore
     agent: Agent
     reviewer: TurnEndReviewer | None = None
 
@@ -60,22 +63,27 @@ def build_runtime(
     approver: Approver | None = None,
     db_path: Path | None = None,
     config_path: Path | None = None,
+    skills_root: Path | None = None,
 ) -> Runtime:
     config = load_config(config_path)
     store = MemoryStore(db_path)
     gateway = Gateway(config.models)
+    skills = SkillStore(skills_root)
     registry = ToolRegistry()
     register_core_tools(registry, store)
+    register_skill_tools(registry, skills)
     register_bilibili_tools(registry, BiliAPI())
     session_id = store.latest_session_id() or store.new_session()
     agent = Agent(config, gateway, store, registry, session_id, approver=approver)
 
-    # 回合后 review：白名单（最小权限：只给记忆与档案工具）在这里定义，
-    # 属策略接线；store/registry 工厂保证每次 review 用独立连接与注册表。
+    # 回合后 review：白名单（最小权限：记忆/档案/技能）在这里定义，
+    # 属策略接线；store/registry 工厂保证每次 review 用独立连接与注册表
+    # （技能是文件存储，SkillStore 实例线程安全，可直接共享）。
     def _review_registry(review_store: MemoryStore) -> ToolRegistry:
         review_registry = ToolRegistry()
         register_memory_tools(review_registry, review_store)
         register_profile_tools(review_registry, review_store)
+        register_skill_tools(review_registry, skills)
         return review_registry
 
     reviewer = (
@@ -93,6 +101,7 @@ def build_runtime(
         store=store,
         gateway=gateway,
         registry=registry,
+        skills=skills,
         agent=agent,
         reviewer=reviewer,
     )
