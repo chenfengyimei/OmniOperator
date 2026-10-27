@@ -12,3 +12,7 @@ data/
 
 # 学习用参考项目（不进主仓库）
 xuexi/
+
+# 技能编辑锁与本地历史（运行时生成，不进库）
+skills/.locks/
+skills/.history/

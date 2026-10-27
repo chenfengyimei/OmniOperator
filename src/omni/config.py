@@ -31,6 +31,8 @@ class RuntimePaths:
     data: Path
     config: Path          # 配置源（读 + 工作台写回同一个文件）
     state: Path           # 共享运行状态（任务/执行账本/额度/迁移记录，SQLite）
+    resident: Path        # 常驻工作笔记（MEMORY.md）
+    history: Path         # 技能与常驻内容的修订快照（可回滚）
     cookies: Path         # B站登录态
     skills: Path          # 技能库（与 data 独立，可单独注入）
     cache: Path           # 可再生的缓存（ASR 等）
@@ -55,6 +57,8 @@ class RuntimePaths:
             data=data,
             config=Path(config_path) if config_path is not None else CONFIG_PATH,
             state=data / "state.db",
+            resident=data / "MEMORY.md",
+            history=data / "history",
             cookies=data / "bili_cookies.json",
             skills=Path(skills_root) if skills_root is not None else SKILLS_DIR,
             cache=data / "cache",

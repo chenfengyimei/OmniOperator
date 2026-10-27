@@ -9,6 +9,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .atomic import atomic_write_text
+
 # 允许通过接口修改的键：(section, key) → 渲染方式
 EDITABLE: dict[tuple[str, str], str] = {
     ("persona", "name"): "str",
@@ -173,7 +175,5 @@ def apply_updates(text: str, updates: dict[str, dict[str, Any]]) -> str:
 
 
 def safe_write(path: Path, new_text: str) -> None:
-    """原子写：先写 .tmp 再替换。"""
-    tmp = path.with_suffix(".yaml.tmp")
-    tmp.write_text(new_text, encoding="utf-8")
-    tmp.replace(path)
+    """原子写：同目录唯一临时文件 + fsync + 替换（固定 `.tmp` 名字并发时会互相覆盖）。"""
+    atomic_write_text(path, new_text)

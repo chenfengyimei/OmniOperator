@@ -45,12 +45,12 @@
 | A06 | Web `/api/chat` 先改共享 `runtime.agent.session_id` 再 `chat()`，响应与 review 也读共享值；并发请求会串话 | 已修复 | 会话 id 由请求固定；进程内闸门（同会话串行/异会话并行/队列满 429）+ `state.db` 跨进程租约；review 显式带 sid；`tests/test_sessions.py` 14 例（含两个请求真并行、同会话不交错、工具写入正确会话、异常回合释放自己的租约） | D06 | 已修复（QQ 侧接入租约留 D22） |
 | A07 | 全套 API 无身份校验、无 Origin/Host 校验；`/api/terminal/ws` 直接 `accept()`；`/api/system/config` 回显 `qq.access_token` 明文 | 源码→已修复 | `tests/test_web_auth.py` 31 例：12 个敏感 GET 未配对即 401、写接口/服务/审批/WS 全拒、跨站 POST 无副作用、Host 伪造、过期/篡改会话、密钥不回显与三态修改、非回环监听默认拒绝 | D03 | 已修复（真实浏览器跨站尝试与 PTY 会话待手动验收） |
 | A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码→已修复 | `config.RuntimePaths` 统一声明 12 个路径；`tests/test_paths.py` 10 例：路径派生、安卓截图、Cookie 读取、Web 写配置/Cookie、隔离实例不探测/不启停真机进程、真实 `data/` 目录 canary 全量快照不变 | D04 | 已修复（真机目录 canary 用 mtime 快照验证；跨盘符/junction 场景留待 D13 文件域） |
-| A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换 | 已修复（任务/账本/额度） | 三者全部迁入 `data/state.db`（`memory/state.py`）：跨进程事务 + 唯一键 + 条件更新；`tests/test_state.py` 用 4 个真实子进程验证「最后一份额度只成功一次」「并发写任务不丢数据」 | D05、D08 | 已修复；`ResidentMemory`（MEMORY.md 文件）仍属 D08 |
+| A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换 | 已修复 | 任务/账本/额度迁入 `data/state.db`（跨进程事务 + 唯一键 + 条件更新）；技能与常驻记忆的**文件**读改写改用 `system/filelock` 跨进程锁 + `system/atomic` 唯一临时文件原子替换；`tests/test_state.py`、`tests/test_skills_history.py` 各用真实子进程验证「不丢写」 | D05、D08 | 已修复 |
 | A10 | 损坏/不可读状态一律当空数据：`WriteBudget._load` 返回 `{}` → 当日额度被重置；`JobStore` 读失败降级 | 已修复 | 迁移区分 缺失/合法空/0 字节/损坏；损坏且库内无可用数据时**停用能力**（budget 一律停用），预算显示满额而非 0；工作台返回 503 而不是空列表；心跳不启动调度器 | D05、D25 | 已修复（历史用量确实无法恢复时在 detail 里写明） |
 | A11 | 同步 Playwright 实例跨线程复用，`RLock` 只串行化、不改变线程归属；同 profile 无跨进程占用协议 | 已修复 | 专用所有者线程 + 有界队列 + `BrowserUnknown` 超时语义；profile 走 `resource_leases`（v3）；`tests/test_browser_owner.py` 8 例，含真实 Chromium 多线程用例与跨进程租约 | D07 | 已修复（真实登录 profile 未用于测试，符合边界） |
 | A12 | `tap_element` 在陈旧/换设备时先 `refresh_tree()` 再用**同一个 idx** 在新树里找元素 → 可能点到别的东西；动作后无强制复检 | 源码 | `tools/android/driver.py:168-185` | D16 | 源码发现 |
 | A13 | 截图工具只回路径字符串，`Agent` 未构造图像消息块，模型收不到图 | 源码 | `tools/browser/tools.py`、`tools/android/tools.py`、`core/agent.py` | D15 | 源码发现 |
-| A14 | 技能更新锁只覆盖最终 `write`，读改写不原子；版本号递增但无历史快照 | 源码 | `memory/skills.py:patch/rewrite/_write_versioned` | D08、D18 | 源码发现 |
+| A14 | 技能更新锁只覆盖最终 `write`，读改写不原子；版本号递增但无历史快照 | 已修复 | 整段读改写进跨进程锁；`expected_hash`/`_seen` 做 CAS；`memory/revisions.py` 保存每版内容（作者/来源/时间/摘要/附件清单）；回滚产生新修订；`tests/test_skills_history.py` 18 例（含两进程同指纹只有一个成功、落盘失败原文件不变、junction 写入被拒） | D08 | 已修复；编辑 UI 与差异展示留 D18 |
 | A15 | `profile_edit` 未重跑总额度校验；常驻防注入规则未覆盖 review/skill 等全部学习入口 | 源码 | `memory/store.py::profile_edit`、`core/review.py` | D12 | 源码发现 |
 | A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 源码 | `core/review.py`、`memory/store.py::_init_fts` | D11、D12 | 源码发现 |
 | A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 部分修复 | `claim_due()` 在单个写事务里推进 `next_run_at` + 写 `job_claims`；4 个真实进程同时 tick 只派发一次（`tests/test_state.py::test_claim_due_is_atomic_across_processes`） | D05、D17 | 领取已修复；并行上限、投递 outbox/去重、`context_from` 绑定 run_id 仍属 D17 |
@@ -76,14 +76,46 @@
 | D05 | 完成 | A09（任务/账本/额度）、A10、A17（领取） | 见第 5 节 | `uv run --no-sync pytest -q` → 380 passed | 真机旧 JSON 为 `[]`，重启后迁移为空操作 | 进入 D06 |
 | D06 | 完成 | A06 | 见第 5 节 | `uv run pytest -q` → 394 passed | 真实浏览器两个标签页并发聊天待手动验收（自动用例用 ASGI 直连） | 进入 D07 |
 | D07 | 完成 | A11 | 见第 5 节 | `uv run pytest -q` → 403 passed（含真实 Chromium 用例） | 真实登录 profile（B站）未用于自动测试；桌面/无头差异待 D23 实站验收 | 进入 D08 |
-| D08 | 待开始 | A14 | — | — | — | 依赖 D07 |
-| D09–D12 | 待开始 | A06、A15、A16、A19、A20 | — | — | — | 依赖 R1 |
+| D08 | 完成 | A09（技能/常驻文件）、A14 | 见第 5 节 | `uv run pytest -q` → 421 passed | 真实 `skills/` 库未用于写测试（一律临时根）；两进程并发是真实子进程，非 mock | 进入 D09 |
+| D09–D12 | 待开始 | A15、A16、A20（A06/A19 已提前关闭） | — | — | — | 依赖 R1 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D08（技能历史、CAS 与常驻文件一致性）
+
+- **改了什么**：
+  - 新增 `system/atomic.py`：同目录唯一临时名 + `fsync` + `os.replace`，失败删临时文件且不碰原文件
+    （旧各处固定 `.tmp` 名字，两个进程同时写会互相覆盖）；`system/config_io.safe_write` 也改走它；
+  - 新增 `system/filelock.py`：Windows `msvcrt.locking` / POSIX `flock`，进程退出锁自动释放，
+    超时把持有者写进错误消息；Windows 并发首次创建锁文件偶发 EACCES 时短暂重试；
+  - 新增 `memory/revisions.py`：按 key 分目录的修订快照（`data/history/skills/<name>/<rev>-<sha8>.json`、
+    `data/history/resident/MEMORY.md/…`），每条含作者/来源/时间/摘要/内容/版号/附件清单；按内容去重、保留最近 50 条；
+  - `memory/skills.py` 重写写路径：`_locked()` 跨进程互斥覆盖整段读改写；`read()`/`view()` 输出内容指纹；
+    `patch/rewrite/rollback` 支持 `expected_hash`（≥8 位前缀），缺省时用本进程上次 view 的指纹；
+    写入前先把磁盘现状（可能是手工编辑）记入历史；落盘失败返回「未修改」；
+    `rollback()` 取旧修订重新过 linter 后作为**新修订**写入，版号继续加；
+    每个修订记录 `references/` 的 {路径: sha256}，`reference_drift()` 报附件漂移；
+  - `memory/resident.py`：同样加跨进程锁 + 修订历史；按编号的 `replace/remove` 用 `_seen` 做 CAS
+    （先记基线再读，否则读操作会刷新基线导致永远相等）；读不出文件时**拒绝写**（不再当空文件覆盖）；
+  - 技能工具（`tools/skill_tools.py`）：`skill_view` 输出指纹，`skill_patch`/`skill_rewrite`/`skill_rollback` 接受 `expected_hash`，
+    新增 `skill_history` / `skill_rollback` 两个 SAFE 工具；
+  - `RuntimePaths` 增加 `resident`/`history`，`bootstrap` 注入；工作台写常驻记忆时来源记 `user/workbench`。
+- **关闭了什么**：A14（技能原子性与历史）、A09 在文件类记忆上的残留。
+- **跑了什么**：`uv run pytest tests/test_skills_history.py -q` → 18 passed（连跑 3 次稳定）；
+  `uv run pytest -q` → **421 passed, 1 warning**。
+- **没测什么**：真实 `skills/` 库的写入（测试一律临时根）；工作台/UI 的差异展示与回滚按钮（D18）；
+  网络文件系统上的 flock 语义（不在范围）。
+- **过程记录**：
+  1. 第一版 `view()` 用 `read_text` 算指纹，而写路径用 `read_bytes`：Windows 上被记事本存成 CRLF 的
+     技能会被永久误判「被改动过」。已统一为按字节算（`read_bytes`）。
+  2. 起初 `_load_for_write` 先 `_read_entries()` 再比较 `_seen`，而 `_read_entries` 自己会刷新 `_seen`
+     ——CAS 变成恒等。改成先取基线再读。
+  3. 四个子进程并发 `add` 时出现过一次 `PermissionError: .MEMORY.md.lock`（Windows 并发首次创建锁文件
+     的共享冲突），加有限重试；之后连跑多次未复现。
 
 ### 2026-10-27 · D07（浏览器单一所有者与 profile 租约）
 
@@ -288,10 +320,9 @@
 
 测试从 246 → **349**（新增 103 条，其中安全负例 60+ 条；所有负例的判据是"假执行器调用次数为零"）。
 
-### 7.2 仍未关闭（R0 之外，按计划顺序）
+### 7.2 仍未关闭（截至 D08）
 
-A06（Web 共享 `agent.session_id` 串话）、A09/A10（JSON 锁与损坏降级）、A11（Playwright 线程归属）、
-A12（安卓旧 idx）、A13（截图只回路径）、A14/A15/A16（技能原子性与 review 治理）、
+A12（安卓旧 idx）、A13（截图只回路径）、A15/A16（review 治理与学习入口额度）、
 A17（cron 跨进程领取/积压）、A18（pid 身份）、A20（Run/ToolResult/预算）。
 
 ### 7.3 真实环境待验收（缺外部前提，不能算完成）
@@ -308,5 +339,5 @@ A17（cron 跨进程领取/积压）、A18（pid 身份）、A20（Run/ToolResul
 2. **D06 的会话路由**是 A06 的正解，也会让 D02 的 `personal_context` 变成"作用域策略"的一部分；
    建议先定 `SessionScope` 契约再动 Web/QQ/CLI。
 3. **D07 浏览器所有权**独立性强，可与 D05/D06 并行设计，但必须先有 profile 跨进程租约协议。
-4. **D08 技能 CAS** 与 D12 的 review 写入共享同一把锁语义，建议 D08 就把
+4. ~~**D08 技能 CAS**~~：已完成（见 §5 D08）。与 D12 的 review 写入共享同一把锁语义，D08 就把
    `expected_hash + 历史快照` 做成仓储 API，D18 再做 UI。

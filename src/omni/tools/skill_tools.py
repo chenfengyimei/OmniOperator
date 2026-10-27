@@ -6,6 +6,10 @@
 - skill_create：把流程沉淀成新技能（linter 守门在 SkillStore）
 - skill_patch：只改一个小节（踩坑后往 Pitfalls 补条目的首选，省 token）
 - skill_rewrite：结构级变化时全文重写（重新过 linter）
+- skill_history / skill_rollback：看修订历史、回到某一版（回滚产生新修订）
+
+写入类工具都支持 expected_hash：把 skill_view 给的指纹传回来，文件在你读过之后
+被别人（用户编辑器、后台整理）改过就会冲突而不是静默覆盖。
 """
 from __future__ import annotations
 
@@ -13,6 +17,19 @@ from typing import Any
 
 from ..memory.skills import SkillStore
 from .registry import Risk, Tool, ToolRegistry
+
+
+def _hash_arg(args: dict[str, Any]) -> str | None:
+    """expected_hash 允许缺省（缺省时用本进程上次 view 看到的指纹）。"""
+    value = args.get("expected_hash")
+    text = str(value).strip() if value is not None else ""
+    return text or None
+
+
+_EXPECTED_HASH_PARAM = {
+    "type": "string",
+    "description": "可选：skill_view 给出的内容指纹（前 16 位即可）。传了就要求文件未被改动，防覆盖别人的编辑",
+}
 
 
 def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
@@ -38,6 +55,12 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
             if references:
                 content += "\n\n参考文件（按需用 skill_view 的 path 读取，最多列出 60 项）：\n"
                 content += "\n".join(f"- {p}" for p in references)
+            loaded = skills.read(name)
+            if loaded is not None:
+                content += (
+                    f"\n\n内容指纹：{loaded[1][:16]}"
+                    "（改动时传 expected_hash=该值；文件被别人改过会冲突而不是覆盖）"
+                )
         return content
 
     def skill_create(args: dict[str, Any]) -> str:
@@ -49,18 +72,49 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
         return msg
 
     def skill_patch(args: dict[str, Any]) -> str:
-        ok, msg = skills.patch(
+        _ok, msg = skills.patch(
             str(args.get("name", "")),
             str(args.get("section", "")),
             str(args.get("content", "")),
+            expected_hash=_hash_arg(args),
         )
         return msg
 
     def skill_rewrite(args: dict[str, Any]) -> str:
-        ok, msg = skills.rewrite(
+        _ok, msg = skills.rewrite(
             str(args.get("name", "")),
             str(args.get("description", "")),
             str(args.get("content", "")),
+            expected_hash=_hash_arg(args),
+        )
+        return msg
+
+    def skill_history(args: dict[str, Any]) -> str:
+        name = str(args.get("name", "")).strip()
+        if not skills.exists(name):
+            return f"错误：技能 {name or '（空）'} 不存在（先用 skills_list 查看）"
+        try:
+            limit = max(1, min(int(args.get("limit") or 10), 50))
+        except (TypeError, ValueError):
+            limit = 10
+        revisions = skills.history(name, limit=limit)
+        if not revisions:
+            return f"技能 {name} 还没有修订记录（下一次写入会开始记录）"
+        lines = [f"技能 {name} 的修订（新→旧，最多 {limit} 条）："]
+        for rev in revisions:
+            drift = skills.reference_drift(name, rev.rev)
+            suffix = f"　附件差异：{'、'.join(drift)}" if drift else ""
+            lines.append(f"- {rev.brief()}{suffix}")
+        lines.append("用 skill_rollback(name, rev=N) 回到某一版（会产生新修订，版本号继续加）")
+        return "\n".join(lines)
+
+    def skill_rollback(args: dict[str, Any]) -> str:
+        try:
+            rev = int(args.get("rev"))
+        except (TypeError, ValueError):
+            return "错误：rev 必须是整数（先 skill_history 查看）"
+        _ok, msg = skills.rollback(
+            str(args.get("name", "")), rev, expected_hash=_hash_arg(args)
         )
         return msg
 
@@ -132,6 +186,7 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
                         "description": "要替换的小节",
                     },
                     "content": {"type": "string", "description": "该小节的新内容（Markdown）"},
+                    "expected_hash": _EXPECTED_HASH_PARAM,
                 },
                 "required": ["name", "section", "content"],
             },
@@ -153,10 +208,53 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
                     "name": {"type": "string", "description": "技能名"},
                     "description": {"type": "string", "description": "新的一句话描述（≤60字）"},
                     "content": {"type": "string", "description": "新正文（含四个小节）"},
+                    "expected_hash": _EXPECTED_HASH_PARAM,
                 },
                 "required": ["name", "description", "content"],
             },
             func=skill_rewrite,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+
+    registry.register(
+        Tool(
+            name="skill_history",
+            description=(
+                "查看技能的修订历史（谁在什么时候、以什么来源改的，附件是否跟着变过）。"
+                "技能被改坏、或想找回旧版流程时先看这个"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "技能名"},
+                    "limit": {"type": "integer", "description": "最多返回几条（默认 10，上限 50）"},
+                },
+                "required": ["name"],
+            },
+            func=skill_history,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+    registry.register(
+        Tool(
+            name="skill_rollback",
+            description=(
+                "把技能回滚到某个历史修订（skill_history 的 rev）。"
+                "回滚会作为**新修订**写入，版本号继续加，旧修订仍可取回"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "技能名"},
+                    "rev": {"type": "integer", "description": "要恢复的修订号"},
+                    "expected_hash": _EXPECTED_HASH_PARAM,
+                },
+                "required": ["name", "rev"],
+            },
+            func=skill_rollback,
             toolset="core",
             risk=Risk.SAFE,
         )

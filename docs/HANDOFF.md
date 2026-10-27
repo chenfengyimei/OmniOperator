@@ -22,7 +22,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **403 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
+- 测试：`uv run pytest`（当前 **421 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -139,7 +139,9 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 18. **备份 SQLite 不要直接 copy 文件**：WAL 里还有已提交事务，复制出来像"丢了一段历史"且不报错。用 `omni.system.backup.snapshot_sqlite`（`Connection.backup()` + `integrity_check` + sha256）
 19. **会话 id 由请求固定**：`/api/chat` 不再改写 `agent.session_id`，回答、落库、review、工具作用域全用本回合的 sid。想切到某个会话是客户端动作（`POST /api/sessions/{id}/select`），不是发消息的副作用。并发保护两层：进程内 `SessionGate`（同会话串行、队列满 429）+ `state.db` 的 `session_leases`（跨进程互斥）
 20. **Playwright 同步 API 只能用一条线程**：所有调用都进 `BrowserDriver._OwnerThread` 的队列；别再给驱动加 `RLock` 就当线程安全（那只防并发、不改线程归属）。超时返回 `BrowserUnknown`——是"可能仍在进行、状态未知"，不要自动重试写操作；`close()` 超时也要如实说"可能仍在运行"
-21. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
+21. **文件类记忆不要用 `threading.Lock`**：`skills/`、`data/MEMORY.md` 的写入者是 CLI/心跳/工作台三个进程，线程锁各管各的。整段读改写要拿 `system/filelock.FileLock`（进程退出自动释放，无僵尸锁），落盘走 `atomic_write_text`（固定 `.tmp` 名字会在并发时互相覆盖）。技能/常驻改动都会进 `data/history/`，回滚是「产生新修订」而不是把版本号改小
+22. **指纹按字节算**：`view()` 用 `read_text` 得到的是 LF 版本，`read_bytes` 得到的是磁盘上的 CRLF，两者哈希不同 → 用户用记事本存过的技能会被误判「被改动过」。指纹统一取 `read_bytes()`
+23. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
 
 ## 6. 未完成事项（按优先级）
 
@@ -184,6 +186,7 @@ src/omni/
   memory/skills.py       SKILL.md 技能库（create/patch/rewrite）
   memory/jobs.py         Job 模型 + 校验 + 调度时间（纯数据/纯函数）
   memory/state.py        data/state.db：任务/执行账本/写额度/迁移记录（事务、原子领取、revision）
+  memory/revisions.py    内容修订快照（技能/常驻的回滚底座）
   memory/cron.py         兼容再导出（老导入路径不变）
   safety/gates.py        风险分级 + 各上下文 Approver
   safety/smart.py        smart 审批档（ask_model 注入）
@@ -201,6 +204,8 @@ src/omni/
   tools/system_tools.py  服务管理工具
   tools/mcp/             MCP stdio 客户端、生命周期与三项工具适配
   system/services.py     服务启停（分离进程、pid、日志）
+  system/atomic.py       原子写（同目录唯一临时名 + fsync + replace）
+  system/filelock.py     跨进程文件锁（msvcrt/flock，超时带持有者）
   system/backup.py       离线备份/恢复（SQLite 一致快照 + integrity_check + sha256）
   system/config_io.py    config.yaml 白名单键定向修改（保留注释）
   channels/web.py        工作台 REST + WS（终端）+ MJPEG

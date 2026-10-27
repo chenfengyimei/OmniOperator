@@ -155,11 +155,17 @@ def build_runtime(
     memory_path = db_path if db_path is not None else data_root / "memory.db"
     store = MemoryStore(memory_path)
     gateway = Gateway(config.models)
-    skills = SkillStore(paths.skills)
+    # 技能与常驻记忆共用一份修订存储：写入前先落历史，改坏了能回滚（D08）
+    skills = SkillStore(
+        paths.skills, history_root=paths.history, owner=f"pid:{os.getpid()}:skills"
+    )
     registry = ToolRegistry()
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
     resident = ResidentMemory(
-        data_root / "MEMORY.md", char_limit=config.limits.resident_memory_chars
+        paths.resident,
+        char_limit=config.limits.resident_memory_chars,
+        history_root=paths.history,
+        owner=f"pid:{os.getpid()}:resident",
     )
     register_core_tools(registry, store)
     register_digest_tool(registry, store)

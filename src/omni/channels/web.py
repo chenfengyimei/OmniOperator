@@ -418,12 +418,17 @@ def create_app(runtime: Runtime) -> FastAPI:
     @app.post("/api/resident/update")
     def resident_update(payload: ResidentUpdateIn) -> dict[str, Any]:
         op = payload.operation
+        # 来源记为工作台：修订历史里能分清"用户手改"与"模型写入"
         if op == "add":
-            message = runtime.resident.add(payload.content)
+            message = runtime.resident.add(payload.content, author="user", source="workbench")
         elif op == "replace":
-            message = runtime.resident.replace(int(payload.id or 0), payload.content)
+            message = runtime.resident.replace(
+                int(payload.id or 0), payload.content, author="user", source="workbench"
+            )
         elif op == "remove":
-            message = runtime.resident.remove(int(payload.id or 0))
+            message = runtime.resident.remove(
+                int(payload.id or 0), author="user", source="workbench"
+            )
         else:
             raise HTTPException(status_code=400, detail=f"未知操作 {op}")
         if message.startswith("错误"):

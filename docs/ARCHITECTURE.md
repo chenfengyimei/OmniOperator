@@ -30,7 +30,7 @@
 | `config.py` | 加载 .env 密钥与 config.yaml 配置 | 不含任何业务逻辑 | `config.py` |
 | `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/review.py`、`core/cron.py`、`core/compress.py` |
 | `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、错误包装 | 不做记忆、不管理会话 | `llm/gateway.py` |
-| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议）；技能存储（SKILL.md+linter，patch/rewrite 版本化） | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/resident.py`、`memory/skills.py` |
+| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py` |
 | `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
 | `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台（含内置终端 ConPTY）/ QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal.py`、`channels/qq.py`、`channels/heartbeat.py` |
@@ -125,28 +125,31 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 租约 v3 起统一到 `resource_leases`（会话是 `session:<id>` 这一特例），一套 `acquire/renew/release`。
 浏览器每次操作续期，进程崩溃后按 TTL 过期，不需要人工解锁。
 
-### 3.6 浏览器所有权（D07）
+### 3.7 技能与常驻记忆的一致性（D08）
 
-Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`threading.RLock` 只保证不并发，
-不改变线程归属——web 线程池里换个线程调用就会失败或行为异常。所以：
+技能（`skills/<name>/SKILL.md`）与常驻记忆（`data/MEMORY.md`）都是**文件**，而写入者有三个独立进程
+（CLI、心跳、工作台）加若干线程（后台 review）。`threading.Lock` 只在单进程内有效，所以这里的
+互斥必须是操作系统的建议锁。
 
 | 契约 | 实现 | 必须满足 |
 | --- | --- | --- |
-| 单一所有者线程 | `tools/browser/driver._OwnerThread` | 启动、每次调用、关闭全在同一条线程；`_ensure_page()` 断言当前线程就是所有者线程 |
-| 有界队列 | 同上（`queue_size`，默认 8） | 浏览器卡住时不再堆任务；满了立刻 `BrowserBusy` |
-| 超时≠取消 | `BrowserUnknown` | 等不到结果时说"可能仍在进行、状态未知"，不重试、不假装失败 |
-| 关闭有界 | `BrowserDriver.close(wait_s)` | 超时返回"可能仍在运行"，不写"已关闭" |
-| profile 互斥 | `state.db` 的 `resource_leases`（键 `browser_profile:<绝对路径>`） | 跨进程只有一个能打开同一 profile；拿不到带持有者报错；关闭即释放 |
+| 跨进程互斥 | `system/filelock.FileLock`（Windows `msvcrt.locking` / POSIX `flock`） | 覆盖**整段读改写**，不只是最后一次 write；进程崩溃锁自动释放，不留僵尸锁；超时带持有者 |
+| 原子落盘 | `system/atomic.atomic_write_text` | 同目录唯一临时名 + `fsync` + `os.replace`；失败删临时文件、原文件不动 |
+| 内容指纹（CAS） | `SkillStore.read()` / `skill_view` 输出指纹 | 写操作可带 `expected_hash`（≥8 位前缀即可）；与当前不一致就**拒绝并保留原文件** |
+| 隐式基线 | `SkillStore._seen` / `ResidentMemory._seen` | 本进程上次看到的内容指纹；用户用编辑器改过之后，不带 hash 的写入也会冲突 |
+| 修订历史 | `memory/revisions.RevisionStore`（`data/history/<key>/<rev>-<sha8>.json`） | 每条修订含作者/来源/时间/摘要/内容/版号/附件清单；写入前先把磁盘现状纳入历史 |
+| 回滚 | `SkillStore.rollback` / `ResidentMemory.rollback` | 回滚 = 取旧修订重新校验并写入，**产生新修订**，版号继续加，旧修订仍可取回 |
+| 附件归属 | 修订里的 `references: {path: sha256}` | 主文修订不复制附件内容，但记录当时清单，`reference_drift()` 能报"附件是否跟着这一版" |
 
-租约 v3 起统一到 `resource_leases`（会话是 `session:<id>` 这一特例），一套 `acquire/renew/release`。
-浏览器每次操作续期，进程崩溃后按 TTL 过期，不需要人工解锁。
+明确不做：不做多写者合并（冲突就报错让人/模型重新读一遍）；历史只保留最近 N 条（默认 50），
+它是"能回滚"而不是"永久归档"；符号链接/junction 仍按 §3.3 的规则拒绝，写入路径同样受限。
 
 ## 4. 设计模式落位
 
 | 模式 | 位置 | 解决什么问题 |
 |---|---|---|
 | Adapter（适配器） | `llm/gateway.py`、`channels/*` | 屏蔽 LiteLLM 与各平台差异，内核只见统一接口 |
-| Repository（仓储） | `memory/store.py`、`memory/state.py` | 持久化细节与业务解耦，P1 升级向量库不动上层；`JobStore`/`ExecutionLog`/`WriteBudget` 只是 `StateStore` 的薄门面 |
+| Repository（仓储） | `memory/store.py`、`memory/state.py`、`memory/revisions.py` | 持久化细节与业务解耦，P1 升级向量库不动上层；`JobStore`/`ExecutionLog`/`WriteBudget` 只是 `StateStore` 的薄门面 |
 | Registry（注册表） | `tools/registry.py` | 新工具零侵入接入；toolset 分组即能力开关 |
 | Strategy（策略） | `safety/gates.py` | 同一审批接口按上下文换策略：CLI 问人（ConsoleApprover）、无人值守拒绝（DenyApprover）、测试放行（AllowAllApprover） |
 | Facade（门面） | `bootstrap.Runtime` | 通道只见 new/use/chat，不碰内部对象 |
