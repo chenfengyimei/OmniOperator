@@ -1,5 +1,6 @@
 """Agent 循环单测：用假 Gateway 验证 工具调用 → 回填 → 最终回答 → 持久化 全链路。"""
 from types import SimpleNamespace
+import pytest
 
 from omni.config import AppConfig
 from omni.core.agent import Agent
@@ -71,3 +72,60 @@ def test_history_grows_across_turns(tmp_path):
     contents = [m["content"] for m in gateway.calls[2]]
     assert "第一句话" in contents and "第二句话" in contents
     store.close()
+
+
+@pytest.mark.parametrize("max_steps", [1, 8])
+def test_multiple_tool_calls_reach_normal_or_grace_answer(tmp_path, max_steps):
+    from omni.tools.registry import Tool
+
+    store = MemoryStore(tmp_path / "m.db")
+    registry = ToolRegistry()
+    calls = []
+    registry.register(Tool("echo", "回显", {}, lambda args: calls.append(args["n"]) or str(args["n"])))
+
+    class BatchGateway(ScriptedGateway):
+        def complete(self, messages, *, model, tools=None):
+            self.calls.append([dict(m) for m in messages])
+            if len(self.calls) == 1:
+                return SimpleNamespace(text="", tool_calls=[SimpleNamespace(id=f"c{i}", function=SimpleNamespace(name="echo", arguments=f'{{"n":{i}}}')) for i in (1, 2)])
+            assert [m["tool_call_id"] for m in messages if m["role"] == "tool"] == ["c1", "c2"]
+            assert (tools is None) == (max_steps == 1)
+            return SimpleNamespace(text="两项完成", tool_calls=[])
+
+    config = AppConfig()
+    config.limits.max_agent_steps = max_steps
+    try:
+        agent = Agent(config, BatchGateway(), store, registry, store.new_session())
+        assert agent.chat("处理两项") == "两项完成"
+        assert calls == [1, 2]
+    finally:
+        store.close()
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_agent_always_restores_callers_session_context(tmp_path, fail):
+    from omni.tools.registry import SessionRef
+
+    store = MemoryStore(tmp_path / "m.db")
+    sid = store.new_session()
+    ref = SessionRef()
+    ref.set(999)
+
+    class Gateway(ScriptedGateway):
+        def complete(self, messages, *, model, tools=None):
+            assert ref.get() == sid
+            if fail:
+                raise RuntimeError("模拟故障")
+            return SimpleNamespace(text="完成", tool_calls=[])
+
+    try:
+        agent = Agent(AppConfig(), Gateway(), store, ToolRegistry(), sid, session_ref=ref)
+        if fail:
+            with pytest.raises(RuntimeError):
+                agent.chat("测试")
+        else:
+            assert agent.chat("测试") == "完成"
+        assert ref.get() == 999
+        assert agent.session_id == sid
+    finally:
+        store.close()

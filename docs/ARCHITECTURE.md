@@ -73,6 +73,10 @@
 | 会话上下文（thread-local） | `tools/registry.SessionRef` + `core/agent.py` | 会话级工具（todo）在 CLI/Web/QQ/心跳并发下各线程取到自己的当前会话 |
 | Grace call | `core/agent.py` 循环尾部 | 步数预算耗尽仍强制收敛出最终回答，防死循环不粗暴截断 |
 
+工具消息按一批调用维护待返回 id 集合，允许连续多个 tool 结果；发起下一次模型请求前
+必须一一对应完整。压缩保留整批调用与结果。Agent.chat 用 SessionRef.bind 建立回合作用域，
+正常结束及异常均还原；delegate 的绑定键使用 UUID，不能用时分秒复用子任务上下文。
+
 ## 5. 新能力接入指南（checklist）
 
 ### 5.1 加一个工具（例：P1 的 B站"看视频"）

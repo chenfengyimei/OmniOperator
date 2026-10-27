@@ -12,8 +12,8 @@
 """
 from __future__ import annotations
 
-import datetime as dt
 import threading
+import uuid
 from typing import Any
 
 from ..memory.store import MemoryStore
@@ -49,7 +49,8 @@ def register_delegate_tools(
                 "请把子任务拆到主循环顺序执行"
             )
         label = str(args.get("label", "")).strip() or "task"
-        key = f"{label}-{dt.datetime.now().strftime('%H%M%S')}"
+        # 时分秒会在同秒并发或跨天同一时刻碰撞，导致本应干净的子任务读到旧历史。
+        key = f"{label[:60]}-{uuid.uuid4().hex}"
         session_id = store.get_or_create_binding("delegate", key)
         _local.delegate_depth = 1
         try:

@@ -101,3 +101,62 @@ def test_delegate_guards(tmp_path):
     out = registry.dispatch("delegate_task", {"prompt": "会失败的任务"})
     assert "子任务执行失败" in out and "现场已保留" in out
     store.close()
+
+
+def test_repeated_delegate_labels_always_get_fresh_sessions(tmp_path):
+    store = MemoryStore(tmp_path / "m.db")
+    registry = ToolRegistry()
+    agent = FakeAgent(store)
+    register_delegate_tools(registry, store, {"agent": agent})
+    try:
+        for i in range(10):
+            registry.dispatch("delegate_task", {"prompt": f"任务{i}", "label": "same"})
+        sessions = [sid for _, sid in agent.chat_calls]
+        assert len(set(sessions)) == 10
+        assert all(len(store.recent_messages(sid, 20)) == 2 for sid in sessions)
+    finally:
+        store.close()
+
+
+def test_real_delegate_inherits_approval_and_restores_parent(tmp_path):
+    from types import SimpleNamespace
+    from omni.config import AppConfig
+    from omni.core.agent import Agent
+    from omni.safety.gates import DenyApprover, Risk
+    from omni.tools.registry import Tool
+
+    store = MemoryStore(tmp_path / "m.db")
+    main_sid = store.new_session()
+    registry = ToolRegistry()
+    writes = []
+    registry.register(Tool("write", "写入", {}, lambda args: writes.append(args) or "执行了", risk=Risk.CONFIRM))
+    ref = SessionRef()
+    holder = {}
+    register_delegate_tools(registry, store, holder)
+    seen = []
+
+    class Gateway:
+        def resolve(self, route):
+            return "fake/model"
+
+        def complete(self, messages, *, model, tools=None):
+            seen.append(ref.get())
+            if messages[-1]["role"] == "tool":
+                return SimpleNamespace(text=messages[-1]["content"], tool_calls=[])
+            main = messages[-1]["content"] == "主任务"
+            call = SimpleNamespace(id="c1", function=SimpleNamespace(
+                name="delegate_task" if main else "write",
+                arguments='{"prompt":"子任务"}' if main else "{}",
+            ))
+            return SimpleNamespace(text="", tool_calls=[call])
+
+    try:
+        agent = Agent(AppConfig(), Gateway(), store, registry, main_sid, approver=DenyApprover(), session_ref=ref)
+        holder["agent"] = agent
+        answer = agent.chat("主任务")
+        assert "未获批准" in answer and writes == []
+        assert seen[0] == seen[-1] == main_sid and seen[1] != main_sid
+        assert ref.get() is None
+        assert [text for role, text in store.recent_messages(main_sid, 10) if role == "user"] == ["主任务"]
+    finally:
+        store.close()

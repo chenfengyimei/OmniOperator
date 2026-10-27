@@ -12,6 +12,8 @@ from __future__ import annotations
 import json
 import threading
 from dataclasses import dataclass
+from contextlib import contextmanager
+from collections.abc import Iterator
 from typing import Any, Callable
 
 from ..safety.gates import Approver, DenyApprover, Risk
@@ -32,6 +34,16 @@ class SessionRef:
 
     def get(self) -> int | None:
         return getattr(self._local, "sid", None)
+
+    @contextmanager
+    def bind(self, session_id: int) -> Iterator[None]:
+        """回合内绑定；正常返回、异常、嵌套子回合均恢复调用者的上下文。"""
+        previous = self.get()
+        self.set(session_id)
+        try:
+            yield
+        finally:
+            self.set(previous)
 
 
 @dataclass

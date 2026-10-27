@@ -13,7 +13,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **233 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
+- 测试：`uv run pytest`（当前 **246 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
 
 ## 2. 五分钟上手
 
@@ -38,7 +38,7 @@ uv run omni-heartbeat              # 心跳调度（cron）
 1. **分层不倒挂**：`channels`/`bootstrap` → `core` → `tools`/`llm`/`memory`/`safety` → `config`。
    - `safety` 是叶子层：**不能 import llm**（smart 审批用注入的 `ask_model`，不要破坏）
    - `tools` 不能 import `core`/`llm`
-2. **组装根**：`Gateway / MemoryStore / SkillStore / JobStore / ToolRegistry / Agent / TurnEndReviewer / BrowserDriver / WriteBudget / ApprovalBroker` 只准在 `bootstrap.py` 构造
+2. **组装根**：`Gateway / MemoryStore / SkillStore / JobStore / ToolRegistry / Agent / TurnEndReviewer / BrowserDriver / WriteBudget / ApprovalBroker / ServiceManager / MCPManager` 只准在 `bootstrap.py` 构造
 3. **工具接入**：`tools/<域>/` 建包 → `register_xxx_tools(registry, deps)` → 在 `bootstrap.build_runtime` 接线 → 写单测（见 ARCHITECTURE §5 checklist）
 4. 工具风险分级：读=SAFE / 写=CONFIRM / 高危=DANGEROUS（当前一律拒）
 5. 新数据存储要支持**测试隔离**：`build_runtime(data_dir=tmp_path)`（jobs/账本/常驻记忆/安卓缓存都走它）；`ServiceManager(run_dir=..., log_dir=...)` 同理
@@ -55,7 +55,7 @@ uv run omni-heartbeat              # 心跳调度（cron）
 | core | todo | 会话级多步清单（SessionRef thread-local 注入当前会话） |
 | core | daily_digest | 过去 N 小时活动摘要（夜间整理素材） |
 | core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite | 技能（SKILL.md，渐进披露，patch 按节省 token）；skill_view(name, path="references/guide.md") 按需读参考文本 |
-| core | delegate_task | 子任务委派到干净会话（thread-local 防嵌套，会话引用自动还原） |
+| core | delegate_task | 子任务委派到 UUID 独立会话（同标签并发也不串历史，thread-local 防嵌套，会话引用自动还原） |
 | shell | peek_command（SAFE，只读白名单）/ run_command（CONFIRM） | 本机命令；含硬黑名单（灾难级即使确认也不执行） |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
 | qq | qq_send_message | 主动私聊（限白名单） |
@@ -68,7 +68,8 @@ uv run omni-heartbeat              # 心跳调度（cron）
 ### 4.2 Agent 内核（`core/`）
 - 工具循环 + 步数预算（8）+ grace call 强制收敛
 - **上下文压缩**（`core/compress.py`）：超 24k 字符把旧块压摘要（工具调用对不拆开），失败降级
-- **消息不变量断言**：system 唯一首位 / tool 必跟 tool_calls
+- **消息不变量断言**：system 唯一首位 / 一批 tool_calls 后允许连续多项结果，每个调用 id 必须恰好匹配一项结果，不能漏回、重复或插入其它消息
+- **回合作用域**：SessionRef.bind 在正常返回和异常时均恢复调用者会话；delegate 保持父审批链，无需放宽权限
 - 系统提示词 = 人设 + 常驻记忆快照（用量头）+ 档案块，单轮内字节稳定
 - 回合后异步 review（`core/review.py`，白名单：记忆/档案/常驻/技能）
 - 心跳调度（`core/cron.py`）：tick 30s，先推进 next_run 再派发（至多一次），错过半周期跳过，执行账本

@@ -68,6 +68,7 @@ def test_invariants_reject_bad_sequences():
                 {"role": "system", "content": "s2"},
             ]
         )
+
     with pytest.raises(AssertionError):
         # tool 直接跟在 user 后（前面没有带 tool_calls 的 assistant）
         assert_invariants(
@@ -77,6 +78,43 @@ def test_invariants_reject_bad_sequences():
                 {"role": "tool", "tool_call_id": "c1", "content": "t"},
             ]
         )
+
+
+def _multi_call_block():
+    first, answer1 = _pair(1)
+    second, answer2 = _pair(2)
+    first["tool_calls"] += second["tool_calls"]
+    return first, answer1, answer2
+
+
+def test_invariants_accept_multiple_tool_results_and_compression():
+    block = list(_multi_call_block())
+    messages = _long_history(12) + block
+    assert_invariants(messages)
+    assert atomic_blocks(block) == [block]
+    compressed = compress_if_needed(messages, gateway=SummaryGateway(), model="fake", trigger_chars=1000, keep_recent=1)
+    assert compressed[-3:] == block
+    assert_invariants(compressed)
+
+
+@pytest.mark.parametrize("mutation", ["missing", "duplicate", "unknown", "interrupted", "duplicate-call-id", "empty-call-id"])
+def test_invariants_require_exactly_one_result_per_call(mutation):
+    call, first, second = _multi_call_block()
+    block = [call, first, second]
+    if mutation == "missing":
+        block.pop()
+    elif mutation == "duplicate":
+        block.append(first)
+    elif mutation == "unknown":
+        second["tool_call_id"] = "not-called"
+    elif mutation == "interrupted":
+        block.insert(2, {"role": "assistant", "content": "太早结束"})
+    elif mutation == "duplicate-call-id":
+        call["tool_calls"][1]["id"] = "c1"
+    else:
+        call["tool_calls"][1]["id"] = ""
+    with pytest.raises(AssertionError):
+        assert_invariants([{"role": "system", "content": "s"}, *block])
 
 
 def test_atomic_blocks_group_tool_pairs():

@@ -78,10 +78,13 @@ class Agent:
         不依赖 self.session_id（那是 CLI/Web 的当前会话，可能被随时切换）。
         """
         sid = session_id if session_id is not None else self.session_id
-        # 会话级工具（todo 等）经 SessionRef 读当前会话；thread-local 保证
-        # 多通道并发时各线程看到自己的 sid
         if self._session_ref is not None:
-            self._session_ref.set(sid)
+            with self._session_ref.bind(sid):
+                return self._chat(user_text, sid)
+        return self._chat(user_text, sid)
+
+    def _chat(self, user_text: str, sid: int) -> str:
+        """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。"""
         self.store.append_message(sid, "user", user_text)
         history = self.store.recent_messages(
             sid, self.config.limits.max_history_messages

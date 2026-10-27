@@ -35,13 +35,22 @@ def assert_invariants(messages: list[dict[str, Any]]) -> None:
     assert (
         sum(1 for m in messages if m.get("role") == "system") == 1
     ), "system 只能有一条"
+    pending: set[str] = set()
     for i, m in enumerate(messages[1:], start=1):
-        if m.get("role") != "tool":
+        if m.get("role") == "tool":
+            call_id = m.get("tool_call_id")
+            assert call_id in pending, f"第 {i} 条 tool 结果没有对应的待完成调用或已重复"
+            pending.remove(call_id)
             continue
-        prev = messages[i - 1]
-        assert (
-            prev.get("role") == "assistant" and prev.get("tool_calls")
-        ), f"第 {i} 条 tool 消息必须紧跟在带 tool_calls 的 assistant 之后"
+        assert not pending, f"第 {i} 条消息打断了尚未返回结果的工具调用"
+        calls = m.get("tool_calls") or []
+        if calls:
+            assert m.get("role") == "assistant", "只有 assistant 可以声明 tool_calls"
+            ids = [call.get("id") for call in calls]
+            assert all(isinstance(cid, str) and cid for cid in ids), "工具调用必须有非空 id"
+            assert len(ids) == len(set(ids)), "同一批工具调用的 id 不可重复"
+            pending.update(ids)
+    assert not pending, "消息尾部存在缺少结果的工具调用"
 
 
 def atomic_blocks(messages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
