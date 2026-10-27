@@ -451,6 +451,59 @@ class MemoryStore:
         ).fetchall()
         return [(int(r[0]), str(r[1]), str(r[2])) for r in rows]
 
+    # ---------- 夜间整理（批量 review 的素材源） ----------
+
+    @_locked
+    def digest_since(self, since_iso: str) -> dict:
+        """自某时刻以来的活动统计：活跃会话/新记忆/最近 review/档案额度。
+
+        created_at 统一由 _now() 生成（带时区偏移的 ISO），同格式字符串
+        直接字典序比较即时间序。夜间整理（daily_digest 工具）以这份
+        统计为素材决定合并/沉淀什么。
+        """
+        counts = {
+            int(r[0]): int(r[1])
+            for r in self._conn.execute(
+                "SELECT session_id, COUNT(*) FROM messages WHERE created_at >= ? "
+                "GROUP BY session_id",
+                (since_iso,),
+            ).fetchall()
+        }
+        sessions = [
+            {"id": sid, "title": title, "messages": counts[sid]}
+            for sid, title, _created in self.list_sessions(limit=50)
+            if sid in counts
+        ]
+        facts_new = int(
+            self._conn.execute(
+                "SELECT COUNT(*) FROM facts WHERE created_at >= ?", (since_iso,)
+            ).fetchone()[0]
+        )
+        facts_recent = [
+            str(r[0])
+            for r in self._conn.execute(
+                "SELECT content FROM facts WHERE created_at >= ? "
+                "ORDER BY id DESC LIMIT 20",
+                (since_iso,),
+            ).fetchall()
+        ]
+        reviews_recent = [
+            str(r[0])
+            for r in self._conn.execute(
+                "SELECT outcome FROM reviews WHERE created_at >= ? "
+                "ORDER BY id DESC LIMIT 5",
+                (since_iso,),
+            ).fetchall()
+        ]
+        return {
+            "since": since_iso,
+            "sessions": sessions,
+            "facts_new": facts_new,
+            "facts_recent": facts_recent,
+            "reviews_recent": reviews_recent,
+            "profile_chars": self.profile_usage_chars(),
+        }
+
     @_locked
     def close(self) -> None:
         self._conn.close()

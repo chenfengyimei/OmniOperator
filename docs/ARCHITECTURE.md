@@ -31,7 +31,7 @@
 | `core/` | Agent 编排循环：上下文组装 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次） | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/review.py`、`core/cron.py` |
 | `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、错误包装 | 不做记忆、不管理会话 | `llm/gateway.py` |
 | `memory/` | SQLite 仓储：会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定；技能存储（SKILL.md+linter）；定时任务存储（cron_jobs.json 原子写） | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/skills.py`、`memory/cron.py` |
-| `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/` |
+| `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能/活动摘要；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略 + 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节 | `safety/gates.py`、`safety/broker.py` |
 | `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台 / QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/qq.py`、`channels/heartbeat.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |

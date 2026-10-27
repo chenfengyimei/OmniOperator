@@ -72,3 +72,21 @@ def test_tools_dispatch(tmp_path):
     assert "错误" in registry.dispatch(
         "skill_create", json.dumps({"name": "Bad", "description": "x", "content": _body()})
     )
+
+
+def test_seed_skills_are_valid():
+    """仓库自带种子技能必须能被解析且过 linter 等价检查（防手改破坏渐进披露）。"""
+    from omni.config import SKILLS_DIR
+    from omni.memory.skills import MAX_DESCRIPTION, MIN_BODY, parse_skill_md
+
+    names = []
+    for skill_md in sorted(SKILLS_DIR.glob("*/SKILL.md")):
+        parsed = parse_skill_md(skill_md)
+        assert parsed is not None, f"{skill_md} 格式损坏（frontmatter 缺失？）"
+        meta = parsed["meta"]
+        desc = str(meta.get("description", ""))
+        assert 0 < len(desc) <= MAX_DESCRIPTION, f"{skill_md} description 超限"
+        assert len(parsed["body"]) >= MIN_BODY, f"{skill_md} 正文过短"
+        names.append(str(meta.get("name") or skill_md.parent.name))
+    assert "bilibili-watch" in names
+    assert "nightly-tidy" in names

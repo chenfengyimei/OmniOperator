@@ -106,3 +106,27 @@ def test_review_log_roundtrip(tmp_path):
     outcomes = store.list_reviews(sid)
     assert outcomes == ["无需变更", "记住了用户职业"]  # 新的在前
     store.close()
+
+
+def test_digest_since(tmp_path):
+    store = MemoryStore(tmp_path / "m.db")
+    sid = store.new_session()
+    store.append_message(sid, "user", "帮我看看这个视频")
+    store.append_message(sid, "assistant", "好的", auto_title=False)
+    other = store.new_session()  # 无消息的会话不应出现在 digest
+    store.save_fact("用户喜欢喝拿铁")
+    store.save_fact("用户养了一只猫叫煤球")
+    store.save_review_log(sid, "记住猫名")
+
+    d = store.digest_since("2000-01-01T00:00:00+08:00")
+    assert d["sessions"] == [{"id": sid, "title": "帮我看看这个视频", "messages": 2}]
+    assert d["facts_new"] == 2
+    assert any("煤球" in f for f in d["facts_recent"])
+    assert d["reviews_recent"] == ["记住猫名"]
+    assert d["profile_chars"] == 0
+
+    # 未来窗口：全部排除
+    d2 = store.digest_since("2999-01-01T00:00:00+08:00")
+    assert d2["sessions"] == [] and d2["facts_new"] == 0
+    assert d2["facts_recent"] == [] and d2["reviews_recent"] == []
+    store.close()

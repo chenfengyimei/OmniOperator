@@ -80,3 +80,29 @@ def test_dispatch_approval_gate(tmp_path):
     assert "send_msg" not in registry.names(toolsets={"core"})
     assert "send_msg" in registry.names(toolsets={"core", "test"})
     store.close()
+
+
+def test_daily_digest_dispatch(tmp_path):
+    """daily_digest：空库如实说无事；有活动时给会话/记忆/档案额度摘要。"""
+    from omni.tools.builtin import register_digest_tool
+
+    store = MemoryStore(tmp_path / "m.db")
+    registry = ToolRegistry()
+    register_digest_tool(registry, store)
+    assert registry.get("daily_digest").risk.value == "safe"
+
+    out_empty = registry.dispatch("daily_digest", "{}")
+    assert "无需整理" in out_empty
+
+    sid = store.new_session()
+    store.append_message(sid, "user", "聊聊猫粮怎么选")
+    store.append_message(sid, "assistant", "好的", auto_title=False)
+    store.save_fact("用户养了一只猫叫煤球")
+    out = registry.dispatch("daily_digest", {"hours": 24})
+    assert f"#{sid}" in out and "聊聊猫粮怎么选" in out
+    assert "2 条消息" in out and "煤球" in out
+    assert "1 条" in out  # 新增记忆计数
+
+    # 非法参数以字符串回传；窗口收窄到 0 会话也如实呈现
+    assert registry.dispatch("daily_digest", {"hours": "abc"}).startswith("错误")
+    store.close()

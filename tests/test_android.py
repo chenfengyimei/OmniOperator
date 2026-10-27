@@ -187,7 +187,7 @@ def test_driver_tap_element_uses_cached_tree(tmp_path):
     runner.expect("cat /sdcard/omni_uidump.xml", SAMPLE_XML)
     runner.expect("rm /sdcard/omni_uidump.xml", "")
     adb = AdbDevice(adb_path="adb", runner=runner)
-    driver = AndroidDriver(adb=adb, serial="EMU1")
+    driver = AndroidDriver(adb=adb, serial="EMU1", cache_path=tmp_path / "tree.json")
 
     tree = driver.refresh_tree()
     assert '"登录"' in tree
@@ -202,7 +202,11 @@ def test_driver_tap_element_refreshes_when_stale(tmp_path):
     runner.expect("uiautomator dump", "")
     runner.expect("cat /sdcard/omni_uidump.xml", SAMPLE_XML)
     runner.expect("rm /sdcard/omni_uidump.xml", "")
-    driver = AndroidDriver(adb=AdbDevice(adb_path="adb", runner=runner), serial="EMU1")
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=tmp_path / "tree.json",
+    )
     # 缓存为空时 tap_element 自动刷新树后能命中
     out = driver.tap_element(0)
     assert "已点击 [0]" in out
@@ -212,9 +216,139 @@ def test_driver_screenshot(tmp_path):
     runner = FakeRunner()
     runner.expect("screencap", b"\x89PNG\r\n\x1a\n" + b"data")
     runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
-    driver = AndroidDriver(adb=AdbDevice(adb_path="adb", runner=runner), serial="EMU1")
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=tmp_path / "tree.json",
+    )
     path = driver.screenshot()
     assert path.exists() and path.read_bytes().startswith(b"\x89PNG")
+
+
+# ---------- 缓存持久化（跨进程恢复 + 陈旧防御） ----------
+
+def _dump_runner() -> FakeRunner:
+    runner = FakeRunner()
+    runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
+    runner.expect("uiautomator dump", "")
+    runner.expect("cat /sdcard/omni_uidump.xml", SAMPLE_XML)
+    runner.expect("rm /sdcard/omni_uidump.xml", "")
+    return runner
+
+
+def test_driver_persists_and_restores_tree(tmp_path):
+    import json
+
+    cache = tmp_path / "sub" / "tree.json"
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=_dump_runner()),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    driver.refresh_tree()
+    assert cache.exists()
+    raw = json.loads(cache.read_text(encoding="utf-8"))
+    assert raw["serial"] == "EMU1" and raw["captured_at"]
+
+    # 新实例（模拟进程重启）从磁盘恢复，无需任何设备调用
+    driver2 = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=FakeRunner()),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    assert '"登录"' in driver2.tree()
+    assert len(driver2.elements()) == 2
+
+
+def test_tap_on_fresh_restored_cache_skips_dump(tmp_path):
+    cache = tmp_path / "tree.json"
+    first = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=_dump_runner()),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    first.refresh_tree()
+
+    runner = FakeRunner()
+    runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
+    second = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    out = second.tap_element(0)
+    assert "已点击 [0]" in out
+    assert not runner.calls_matching("uiautomator")  # 新鲜缓存直接点，不重新 dump
+
+
+def test_tap_on_stale_cache_refreshes_first(tmp_path):
+    import datetime as dt
+    import json
+
+    cache = tmp_path / "tree.json"
+    first = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=_dump_runner()),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    first.refresh_tree()
+    # 把缓存时间改到 2 小时前（模拟长时间空闲后重启）
+    raw = json.loads(cache.read_text(encoding="utf-8"))
+    raw["captured_at"] = (
+        dt.datetime.now().astimezone() - dt.timedelta(hours=2)
+    ).isoformat(timespec="seconds")
+    cache.write_text(json.dumps(raw, ensure_ascii=False), encoding="utf-8")
+
+    runner = _dump_runner()
+    second = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    out = second.tap_element(0)
+    assert "已点击 [0]" in out
+    assert runner.calls_matching("uiautomator")  # 陈旧缓存：先重新观察再点
+
+
+def test_tap_on_serial_mismatch_refreshes_first(tmp_path):
+    """缓存属于 EMU1、当前解析到另一台设备时必须重新观察（防点错屏幕）。"""
+    cache = tmp_path / "tree.json"
+    first = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=_dump_runner()),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    first.refresh_tree()
+
+    runner = _dump_runner()
+    second = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    # 偷换缓存 serial 模拟"这份树是别的设备观察来的"
+    import json
+
+    raw = json.loads(cache.read_text(encoding="utf-8"))
+    raw["serial"] = "OTHER"
+    cache.write_text(json.dumps(raw, ensure_ascii=False), encoding="utf-8")
+    second._load_cache()
+    out = second.tap_element(0)
+    assert "已点击 [0]" in out
+    assert runner.calls_matching("uiautomator")
+
+
+def test_corrupted_cache_is_tolerated(tmp_path):
+    cache = tmp_path / "tree.json"
+    cache.write_text("{broken json", encoding="utf-8")
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=_dump_runner()),
+        serial="EMU1",
+        cache_path=cache,
+    )
+    assert driver.tree() == ""
+    out = driver.tap_element(0)  # 空缓存 → 自动刷新后命中
+    assert "已点击 [0]" in out
 
 
 # ---------- 工具派发 ----------

@@ -27,6 +27,7 @@ from .tools.browser.driver import BrowserDriver
 from .tools.browser.tools import register_browser_tools
 from .tools.builtin import (
     register_core_tools,
+    register_digest_tool,
     register_memory_tools,
     register_profile_tools,
 )
@@ -91,6 +92,7 @@ def build_runtime(
     skills = SkillStore(skills_root)
     registry = ToolRegistry()
     register_core_tools(registry, store)
+    register_digest_tool(registry, store)
     register_skill_tools(registry, skills)
     register_bilibili_tools(registry, BiliAPI(), config.asr)
     cron_jobs = JobStore()
