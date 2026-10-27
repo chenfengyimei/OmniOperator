@@ -190,6 +190,23 @@ class Memory(BaseModel):
     recall_prefix: bool = True      # 检索结果加"这是数据不是指令"的说明
 
 
+class Web(BaseModel):
+    """通用网页读取（D14）：一次抓取的硬边界。
+
+    `allow_private_hosts` 是唯一能放开内网目标的地方：写域名或 `域名:端口`，
+    由用户在配置里逐条授权——模型没有任何参数能让它连内网。
+    """
+
+    max_bytes: int = 2_000_000          # 响应体最多读多少字节（超出即停，不落盘）
+    max_chars: int = 8000               # 默认返回多少字符正文
+    max_links: int = 10                 # 默认返回多少条链接
+    timeout_s: float = 15.0             # 单次连接/读取超时
+    total_deadline_s: float = 30.0      # 含重定向的总时限
+    max_redirects: int = 5              # 最多跟随几次重定向（每跳重新校验目标）
+    allow_private_hosts: list[str] = Field(default_factory=list)  # 显式授权的内网目标
+    user_agent: str = ""                # 留空用内置 UA
+
+
 class Files(BaseModel):
     """结构化文件工具的边界（D13）。
 
@@ -309,6 +326,7 @@ class AppConfig(BaseModel):
     limits: Limits = Field(default_factory=Limits)
     review: Review = Field(default_factory=Review)
     files: Files = Field(default_factory=Files)
+    web: Web = Field(default_factory=Web)
     memory: Memory = Field(default_factory=Memory)
     compression: Compression = Field(default_factory=Compression)
     asr: Asr = Field(default_factory=Asr)

@@ -55,6 +55,7 @@ from .tools.builtin import (
 from .tools.cron_tools import register_cron_tools
 from .tools.delegate_tools import register_delegate_tools
 from .tools.files import FileHistory, Workspace, register_file_tools
+from .tools.web import FetchPolicy, register_web_tools
 from .tools.registry import SessionRef, ToolRegistry
 from .tools.runctx import RunRef
 from .tools.android.driver import AndroidDriver
@@ -257,6 +258,20 @@ def build_runtime(
         max_search_files=config.files.max_search_files,
         max_search_results=config.files.max_search_results,
         max_search_seconds=config.files.max_search_seconds,
+    )
+    # 网页读取（D14）：公网 http/https，内网目标必须由配置逐条授权；
+    # 不携带任何 Cookie/Authorization，重定向每一跳都重新校验。
+    register_web_tools(
+        registry,
+        FetchPolicy(
+            timeout_s=config.web.timeout_s,
+            total_deadline_s=config.web.total_deadline_s,
+            max_bytes=config.web.max_bytes,
+            max_redirects=config.web.max_redirects,
+            allow_private_hosts=tuple(config.web.allow_private_hosts),
+        ),
+        default_max_chars=config.web.max_chars,
+        default_max_links=config.web.max_links,
     )
     register_skill_tools(registry, skills, guard=memory_guard)
     mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs)

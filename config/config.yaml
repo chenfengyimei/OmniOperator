@@ -84,6 +84,17 @@ files:
   max_search_results: 80      # 搜索最多返回多少条命中
   max_search_seconds: 5.0     # 搜索时间上限
 
+web:
+  # 通用网页读取：公网 http/https，有界抓取；内容一律当"不可信数据"交给模型
+  max_bytes: 2000000          # 响应体最多读多少字节（超出即停，不落盘）
+  max_chars: 8000             # 默认返回多少字符正文
+  max_links: 10               # 默认返回多少条链接
+  timeout_s: 15               # 单次连接/读取超时
+  total_deadline_s: 30        # 含重定向的总时限
+  max_redirects: 5            # 最多跟随几次（每一跳都重新解析并校验目标）
+  allow_private_hosts: []     # 唯一能放开内网的口子：写 "host" 或 "host:port"
+  user_agent: ""              # 留空用内置 UA（不伪装成浏览器）
+
 asr:
   model: small                # faster-whisper 模型（tiny/base/small/medium）
   device: cpu                 # 有 NVIDIA GPU 可改 cuda
