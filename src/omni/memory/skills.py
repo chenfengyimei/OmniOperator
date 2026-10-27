@@ -27,6 +27,7 @@ MAX_DESCRIPTION = 60
 MIN_BODY = 50
 MAX_BODY = 24000
 PLATFORMS = ["windows", "macos"]
+SECTIONS = ("When to Use", "Procedure", "Pitfalls", "Verification")
 
 
 def parse_skill_md(path: Path) -> dict[str, Any] | None:
@@ -125,6 +126,81 @@ class SkillStore:
             )
             path.write_text(content, encoding="utf-8")
         return True, f"已创建技能 {name}（skills/{name}/SKILL.md）"
+
+    def patch(self, name: str, section: str, content: str) -> tuple[bool, str]:
+        """按小节增量修改（Hermes：patch 优先于 rewrite，省 token）。
+
+        只重写四节之一（When to Use / Procedure / Pitfalls / Verification），
+        其余原文保留；版本号 +1。典型用途：踩坑后往 Pitfalls 补一条。
+        """
+        path = self._safe_path(name)
+        if path is None or not path.exists():
+            return False, f"错误：技能 {name or '（空）'} 不存在（先 skills_list 查看）"
+        parsed = parse_skill_md(path)
+        if parsed is None:
+            return False, "错误：SKILL.md 格式损坏，请用 skill_rewrite 全文重写"
+        section = (section or "").strip()
+        if section not in SECTIONS:
+            return False, f"错误：section 必须是 {' / '.join(SECTIONS)} 之一"
+        content = (content or "").strip()
+        if not content:
+            return False, "错误：content 不能为空"
+        body = str(parsed["body"])
+        pattern = re.compile(
+            rf"(?ms)^## {re.escape(section)}\s*\n(.*?)(?=^## |\Z)"
+        )
+        matched = pattern.search(body)
+        if matched is None:
+            return False, f"错误：正文里没有 {section} 小节（四节为固定结构）"
+        new_body = (
+            body[: matched.start(1)] + content + "\n\n" + body[matched.end(1) :]
+        ).strip() + "\n"
+        if len(new_body) > MAX_BODY:
+            return False, f"错误：修改后正文超过 {MAX_BODY} 字，请精简内容"
+        return self._write_versioned(path, dict(parsed["meta"]), new_body)
+
+    def rewrite(self, name: str, description: str, body: str) -> tuple[bool, str]:
+        """全文重写（patch 装不下结构级变化时用）；描述与正文重新过 linter。"""
+        path = self._safe_path(name)
+        if path is None or not path.exists():
+            return False, f"错误：技能 {name or '（空）'} 不存在（先 skills_list 查看）"
+        parsed = parse_skill_md(path)
+        if parsed is None:
+            return False, "错误：SKILL.md 格式损坏，无法解析 frontmatter"
+        description = (description or "").strip()
+        body = (body or "").strip()
+        if not description or len(description) > MAX_DESCRIPTION:
+            return False, (
+                f"错误：description 必须非空且 ≤{MAX_DESCRIPTION} 字"
+                f"（当前 {len(description)}）"
+            )
+        if len(body) < MIN_BODY:
+            return False, f"错误：正文太短（<{MIN_BODY} 字），技能应是完整流程"
+        if len(body) > MAX_BODY:
+            return False, f"错误：正文超过 {MAX_BODY} 字，请精简或拆分"
+        meta = dict(parsed["meta"])
+        meta["description"] = description
+        return self._write_versioned(path, meta, body + "\n")
+
+    def _write_versioned(
+        self, path: Path, meta: dict[str, Any], body: str
+    ) -> tuple[bool, str]:
+        """统一落盘：版本号 +1（修正也要留痕），类级锁防并发写。"""
+        try:
+            meta["version"] = int(meta.get("version", 1)) + 1
+        except (TypeError, ValueError):
+            meta["version"] = 1
+        content = (
+            "---\n"
+            + yaml.safe_dump(meta, allow_unicode=True, sort_keys=False)
+            + "---\n\n"
+            + body.rstrip()
+            + "\n"
+        )
+        with self._create_lock:
+            path.write_text(content, encoding="utf-8")
+        name = str(meta.get("name") or path.parent.name)
+        return True, f"已更新技能 {name}（v{meta['version']}）"
 
     def _safe_path(self, name: str) -> Path | None:
         if not NAME_RE.match((name or "").strip()):

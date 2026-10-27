@@ -34,6 +34,7 @@ class Job:
     daily_at: str | None = None        # 每日定时 "HH:MM"（本地时区）
     deliver_to_qq: int | None = None   # 投递给白名单 QQ 用户（可选）
     skills: list[str] = field(default_factory=list)  # 执行前注入的技能
+    context_from: str | None = None    # 任务链：把源任务的最新输出注入本次 prompt
     enabled: bool = True
     next_run_at: str | None = None     # ISO 本地时间
     last_run_at: str | None = None
@@ -52,6 +53,13 @@ class Job:
             raise CronError(f"every_minutes 最小 {MIN_EVERY_MINUTES} 分钟（防打爆）")
         if has_daily and not DAILY_RE.match(self.daily_at or ""):
             raise CronError("daily_at 需为 HH:MM（如 08:30）")
+        if self.context_from is not None:
+            if not NAME_RE.match(self.context_from):
+                raise CronError(
+                    "context_from 需为有效任务名（3-40 位小写字母/数字/连字符）"
+                )
+            if self.context_from == self.name:
+                raise CronError("context_from 不能引用任务自己")
 
 
 def compute_next_run(job: Job, from_dt: dt.datetime) -> dt.datetime:
@@ -97,6 +105,13 @@ class JobStore:
             job.validate()
         with self._lock:
             jobs = [raw for raw in self._load() if raw.get("name") != job.name]
+            if validate and job.context_from:
+                # 跨任务校验：源任务必须已存在（自引用已在 validate 拒绝）
+                names = {str(raw.get("name")) for raw in jobs}
+                if job.context_from not in names:
+                    raise CronError(
+                        f"context_from 指向的任务 {job.context_from} 不存在（先创建它）"
+                    )
             jobs.append(asdict(job))
             self._save(jobs)
 

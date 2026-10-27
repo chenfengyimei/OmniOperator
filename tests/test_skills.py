@@ -90,3 +90,38 @@ def test_seed_skills_are_valid():
         names.append(str(meta.get("name") or skill_md.parent.name))
     assert "bilibili-watch" in names
     assert "nightly-tidy" in names
+
+
+def test_patch_and_rewrite(tmp_path):
+    """skill_patch 只动一小节（版本+1）；skill_rewrite 全文重写并重过 linter。"""
+    store = SkillStore(tmp_path)
+    ok, msg = store.create("demo-skill", "演示技能", _body())
+    assert ok, msg
+
+    ok, msg = store.patch("demo-skill", "Pitfalls", "新坑：不要在雨天操作。")
+    assert ok, msg
+    after = store.view("demo-skill")
+    assert "不要在雨天操作" in after
+    assert "演示时用" in after and "跑通即成功" in after  # 其它节原样
+    assert "version: 2" in after
+    assert store.list()[0]["version"] == "2"
+
+    # 非法 section / 不存在的技能
+    ok, msg = store.patch("demo-skill", "Nope", "x")
+    assert not ok and "section" in msg
+    ok, msg = store.patch("nope-skill", "Pitfalls", "x")
+    assert not ok and "不存在" in msg
+
+    # rewrite：描述与正文一起更新
+    ok, msg = store.rewrite(
+        "demo-skill", "重写后的描述", _body() + "\n补充一行让长度达标。"
+    )
+    assert ok, msg
+    after2 = store.view("demo-skill")
+    assert "version: 3" in after2 and "重写后的描述" in after2
+
+    # rewrite 也要过 linter：描述超长 / 正文过短
+    ok, msg = store.rewrite("demo-skill", "描" * 61, _body())
+    assert not ok and "60" in msg
+    ok, msg = store.rewrite("demo-skill", "合法描述", "太短")
+    assert not ok and "太短" in msg

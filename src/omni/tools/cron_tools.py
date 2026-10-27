@@ -20,8 +20,9 @@ def register_cron_tools(
         schedule = f"每 {job.every_minutes} 分钟" if job.every_minutes else f"每天 {job.daily_at}"
         state = "启用" if job.enabled else "停用"
         delivery = f" → QQ {job.deliver_to_qq}" if job.deliver_to_qq else ""
+        chain = f" ← {job.context_from}" if job.context_from else ""
         return (
-            f"- {job.name}：{schedule}{delivery}（{state}，下次 {job.next_run_at or '待排'}，"
+            f"- {job.name}：{schedule}{delivery}{chain}（{state}，下次 {job.next_run_at or '待排'}，"
             f"上次 {job.last_run_at or '从未'}）"
         )
 
@@ -40,15 +41,20 @@ def register_cron_tools(
                 daily_at=str(args["daily_at"]) if args.get("daily_at") else None,
                 deliver_to_qq=args.get("deliver_to_qq"),
                 skills=[str(s) for s in (args.get("skills") or [])],
+                context_from=(
+                    str(args["context_from"]).strip() if args.get("context_from") else None
+                ),
             )
             if job.deliver_to_qq is not None and allowed_qq_users:
                 if int(job.deliver_to_qq) not in allowed_qq_users:
                     return "错误：deliver_to_qq 必须是白名单里的 QQ 号"
             job.validate()
+            job.next_run_at = to_iso(
+                compute_next_run(job, dt.datetime.now().astimezone())
+            )
+            store.upsert(job)  # upsert 做跨任务校验：context_from 源必须已存在
         except (CronError, TypeError, ValueError) as exc:
             return f"错误：{exc}"
-        job.next_run_at = to_iso(compute_next_run(job, dt.datetime.now().astimezone()))
-        store.upsert(job)
         return (
             f"已创建任务 {job.name}（下次运行 {job.next_run_at}）。"
             "注意：任务由 omni-heartbeat 进程执行，需它在运行才会触发。"
@@ -88,6 +94,13 @@ def register_cron_tools(
                         "type": "array",
                         "items": {"type": "string"},
                         "description": "执行前注入的技能名列表（可选）",
+                    },
+                    "context_from": {
+                        "type": "string",
+                        "description": (
+                            "任务链（可选）：把另一个已存在任务的最新输出作为本次输入。"
+                            "如夜间整理的输出喂给早报任务"
+                        ),
                     },
                 },
                 "required": ["name", "prompt"],

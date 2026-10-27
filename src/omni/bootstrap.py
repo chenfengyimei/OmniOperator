@@ -30,9 +30,10 @@ from .tools.builtin import (
     register_digest_tool,
     register_memory_tools,
     register_profile_tools,
+    register_todo_tools,
 )
 from .tools.cron_tools import register_cron_tools
-from .tools.registry import ToolRegistry
+from .tools.registry import SessionRef, ToolRegistry
 from .tools.android.driver import AndroidDriver
 from .tools.android.tools import register_android_tools
 from .tools.qq.client import OneBotClient
@@ -91,8 +92,10 @@ def build_runtime(
     gateway = Gateway(config.models)
     skills = SkillStore(skills_root)
     registry = ToolRegistry()
+    session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
     register_core_tools(registry, store)
     register_digest_tool(registry, store)
+    register_todo_tools(registry, store, session_ref)
     register_skill_tools(registry, skills)
     register_bilibili_tools(registry, BiliAPI(), config.asr)
     cron_jobs = JobStore()
@@ -114,7 +117,10 @@ def build_runtime(
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
         register_qq_tools(registry, qq_client, config.qq.allowed_users)
     session_id = store.latest_session_id() or store.new_session()
-    agent = Agent(config, gateway, store, registry, session_id, approver=approver)
+    agent = Agent(
+        config, gateway, store, registry, session_id,
+        approver=approver, session_ref=session_ref,
+    )
 
     # 回合后 review：白名单（最小权限：记忆/档案/技能）在这里定义，
     # 属策略接线；store/registry 工厂保证每次 review 用独立连接与注册表

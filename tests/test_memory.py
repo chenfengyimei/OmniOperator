@@ -130,3 +130,28 @@ def test_digest_since(tmp_path):
     assert d2["sessions"] == [] and d2["facts_new"] == 0
     assert d2["facts_recent"] == [] and d2["reviews_recent"] == []
     store.close()
+
+
+def test_todo_crud(tmp_path):
+    store = MemoryStore(tmp_path / "m.db")
+    sid = store.new_session()
+    assert store.todo_list(sid) == []
+    t1 = store.todo_add(sid, "查字幕")
+    t2 = store.todo_add(sid, "写看后感")
+    assert [(r[0], r[1], r[2]) for r in store.todo_list(sid)] == [
+        (t1, "查字幕", 0),
+        (t2, "写看后感", 0),
+    ]
+    assert store.todo_set_done(sid, t1, True)
+    assert store.todo_list(sid)[0][2] == 1
+    assert not store.todo_set_done(sid, 999, True)
+    assert store.todo_delete(sid, t2)
+    assert not store.todo_delete(sid, t2)
+    store.todo_add(sid, "临时项")
+    # done_only 只清已完成的（t1 此前已标完成）→ 清掉 1 条，临时项保留
+    assert store.todo_clear(sid, done_only=True) == 1
+    assert [r[1] for r in store.todo_list(sid)] == ["临时项"]
+    store.todo_add(sid, "另一条")
+    assert store.todo_clear(sid) == 2
+    assert store.todo_list(sid) == []
+    store.close()

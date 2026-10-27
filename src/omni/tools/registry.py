@@ -10,10 +10,28 @@
 from __future__ import annotations
 
 import json
+import threading
 from dataclasses import dataclass
 from typing import Any, Callable
 
 from ..safety.gates import Approver, Risk
+
+
+class SessionRef:
+    """跨层共享的"当前会话"引用（thread-local，多通道并发各看各的）。
+
+    bootstrap 把同一个实例注入 Agent（chat 开始时 set）与会话级工具
+    （todo 等，派发时 get）。放 tools 层：core 可以依赖 tools，反向不行。
+    """
+
+    def __init__(self) -> None:
+        self._local = threading.local()
+
+    def set(self, session_id: int | None) -> None:
+        self._local.sid = session_id
+
+    def get(self) -> int | None:
+        return getattr(self._local, "sid", None)
 
 
 @dataclass

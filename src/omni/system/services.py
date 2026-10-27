@@ -165,12 +165,18 @@ class ServiceManager:
         *,
         napcat_ws_port: int = 3001,
         napcat_webui_port: int = 6099,
+        run_dir: Path | None = None,
+        log_dir: Path | None = None,
     ) -> None:
         self._napcat_dir = Path(napcat_dir) if napcat_dir else None
         self._ws_port = napcat_ws_port
         self._webui_port = napcat_webui_port
-        RUN_DIR.mkdir(parents=True, exist_ok=True)
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        # pid/日志目录可注入：测试必须与真机的 data/run 隔离，
+        # 否则"未安装"类测试会读到真实 pid，甚至把真服务当测试残留杀掉
+        self._run_dir = Path(run_dir) if run_dir else RUN_DIR
+        self._log_dir = Path(log_dir) if log_dir else LOG_DIR
+        self._run_dir.mkdir(parents=True, exist_ok=True)
+        self._log_dir.mkdir(parents=True, exist_ok=True)
 
     # ---------- NapCat ----------
 
@@ -196,7 +202,7 @@ class ServiceManager:
         argv = ["cmd", "/c", str(napcat_dir / "napcat.bat")]
         if qq.strip():
             argv += ["-q", qq.strip()]
-        pid = _spawn(argv, cwd=napcat_dir, log_path=LOG_DIR / "napcat.log")
+        pid = _spawn(argv, cwd=napcat_dir, log_path=self._log_dir / "napcat.log")
         self._write_pid("napcat", pid)
         return {"name": "napcat", "pid": pid, "started": True}
 
@@ -253,7 +259,7 @@ class ServiceManager:
         if self._omni_pid(name):
             raise ServiceError(f"{name} 已在运行")
         argv, cwd = self._omni_argv(name)
-        pid = _spawn(argv, cwd=cwd, log_path=LOG_DIR / f"{name}.log")
+        pid = _spawn(argv, cwd=cwd, log_path=self._log_dir / f"{name}.log")
         self._write_pid(name, pid)
         return {"name": name, "pid": pid, "started": True}
 
@@ -316,7 +322,7 @@ class ServiceManager:
         return self.omni_stop(name)
 
     def log_tail(self, name: str, lines: int = 80) -> str:
-        path = LOG_DIR / f"{name}.log"
+        path = self._log_dir / f"{name}.log"
         if not path.exists():
             return f"（{name} 暂无工作台侧日志；外部启动的进程日志见其自身终端）"
         try:
@@ -327,9 +333,8 @@ class ServiceManager:
 
     # ---------- pid 文件 ----------
 
-    @staticmethod
-    def _pid_path(name: str) -> Path:
-        return RUN_DIR / f"{name}.pid"
+    def _pid_path(self, name: str) -> Path:
+        return self._run_dir / f"{name}.pid"
 
     def _read_pid(self, name: str) -> int | None:
         try:

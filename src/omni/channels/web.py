@@ -67,6 +67,12 @@ class CronToggleIn(BaseModel):
     enabled: bool
 
 
+class TodoToggleIn(BaseModel):
+    session_id: int
+    todo_id: int
+    done: bool
+
+
 def create_app(runtime: Runtime) -> FastAPI:
     """把 Runtime 暴露成 REST + 静态工作台（测试用 TestClient 直接调）。"""
     app = FastAPI(title="OmniOperator Workbench")
@@ -129,6 +135,26 @@ def create_app(runtime: Runtime) -> FastAPI:
                 for role, content, created in rows
             ]
         }
+
+    @app.get("/api/sessions/{session_id}/todos")
+    def get_todos(session_id: int) -> dict[str, Any]:
+        """会话待办（todo 工具与工作台同源）。"""
+        if not runtime.store.session_exists(session_id):
+            raise HTTPException(status_code=404, detail="会话不存在")
+        return {
+            "todos": [
+                {"id": tid, "content": content, "done": bool(done)}
+                for tid, content, done in runtime.store.todo_list(session_id)
+            ]
+        }
+
+    @app.post("/api/todos/toggle")
+    def toggle_todo(payload: TodoToggleIn) -> dict[str, Any]:
+        if not runtime.store.todo_set_done(
+            payload.session_id, payload.todo_id, payload.done
+        ):
+            raise HTTPException(status_code=404, detail="待办不存在")
+        return {"ok": True}
 
     @app.post("/api/chat")
     def chat(payload: ChatIn) -> dict[str, Any]:
@@ -349,6 +375,7 @@ def create_app(runtime: Runtime) -> FastAPI:
                         else f"每天 {j.daily_at}"
                     ),
                     "deliver_to_qq": j.deliver_to_qq,
+                    "context_from": j.context_from,
                     "enabled": j.enabled,
                     "next_run_at": j.next_run_at,
                     "last_run_at": j.last_run_at,

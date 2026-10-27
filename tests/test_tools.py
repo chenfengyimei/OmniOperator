@@ -106,3 +106,95 @@ def test_daily_digest_dispatch(tmp_path):
     # 非法参数以字符串回传；窗口收窄到 0 会话也如实呈现
     assert registry.dispatch("daily_digest", {"hours": "abc"}).startswith("错误")
     store.close()
+
+
+# ---------- todo 内联工具（SessionRef 会话注入） ----------
+
+def test_todo_dispatch_session_scoped(tmp_path):
+    from omni.tools.builtin import register_todo_tools
+    from omni.tools.registry import SessionRef
+
+    store = MemoryStore(tmp_path / "m.db")
+    sid_a = store.new_session()
+    sid_b = store.new_session()
+    ref = SessionRef()
+    registry = ToolRegistry()
+    register_todo_tools(registry, store, ref)
+
+    # 无会话上下文 → 明确报错而非崩溃
+    assert "会话上下文缺失" in registry.dispatch("todo", '{"operation": "view"}')
+
+    ref.set(sid_a)
+    assert "已加待办 #1" in registry.dispatch(
+        "todo", json.dumps({"operation": "add", "content": "查字幕"})
+    )
+    ref.set(sid_b)
+    # id 全表自增（跨会话唯一，view/操作都按全局编号）
+    assert "已加待办 #2" in registry.dispatch(
+        "todo", json.dumps({"operation": "add", "content": "发测试消息"})
+    )
+    # 会话隔离：A 看不到 B 的待办
+    ref.set(sid_a)
+    view_a = registry.dispatch("todo", '{"operation": "view"}')
+    assert "查字幕" in view_a and "发测试消息" not in view_a
+    # done / undo / delete / clear / 异常 id
+    assert "已标记完成" in registry.dispatch("todo", '{"operation": "done", "id": 1}')
+    assert "[x]" in registry.dispatch("todo", '{"operation": "view"}')
+    assert "已撤销" in registry.dispatch("todo", '{"operation": "undo", "id": 1}')
+    assert "已删除" in registry.dispatch("todo", '{"operation": "delete", "id": 1}')
+    assert "不存在" in registry.dispatch("todo", '{"operation": "done", "id": 99}')
+    assert "未知操作" in registry.dispatch("todo", '{"operation": "nope"}')
+    assert "已清空 0 条" in registry.dispatch("todo", '{"operation": "clear"}')
+    store.close()
+
+
+def test_agent_chat_binds_session_ref(tmp_path):
+    """Agent.chat 把当前会话写进 SessionRef：todo 落到正确的会话（含 QQ 式覆盖）。"""
+    from types import SimpleNamespace
+
+    from omni.config import AppConfig
+    from omni.core.agent import Agent
+    from omni.tools.builtin import register_todo_tools
+    from omni.tools.registry import SessionRef
+
+    store = MemoryStore(tmp_path / "m.db")
+    sid = store.new_session()
+    other = store.new_session()
+
+    class TodoGateway:
+        """每轮对话第一轮发起 todo add，第二轮给最终回答。"""
+
+        def __init__(self):
+            self.step = 0
+
+        def resolve(self, route: str) -> str:
+            return "fake/model"
+
+        def complete(self, messages, *, model, tools=None):
+            self.step += 1
+            if self.step % 2 == 1:
+                call = SimpleNamespace(
+                    id=f"c{self.step}",
+                    function=SimpleNamespace(
+                        name="todo",
+                        arguments=json.dumps(
+                            {"operation": "add", "content": f"步骤{self.step}"}
+                        ),
+                    ),
+                )
+                return SimpleNamespace(text="", tool_calls=[call])
+            return SimpleNamespace(text="清单已更新。", tool_calls=[])
+
+    ref = SessionRef()
+    registry = ToolRegistry()
+    register_core_tools(registry, store)
+    register_todo_tools(registry, store, ref)
+    agent = Agent(AppConfig(), TodoGateway(), store, registry, sid, session_ref=ref)
+
+    assert agent.chat("帮我拆解任务") == "清单已更新。"
+    assert [t[1] for t in store.todo_list(sid)] == ["步骤1"]
+    # QQ 式会话覆盖：显式 session_id 优先生效
+    assert agent.chat("换会话继续", session_id=other) == "清单已更新。"
+    assert [t[1] for t in store.todo_list(other)] == ["步骤3"]
+    assert [t[1] for t in store.todo_list(sid)] == ["步骤1"]
+    store.close()

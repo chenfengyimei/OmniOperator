@@ -63,6 +63,9 @@ ul{list-style:none;overflow-y:auto}
 #tools li{padding:6px 12px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border)}
 .tool-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tool-set{color:var(--dim);font-size:11px;flex-shrink:0}
+#todos-list li{display:flex;align-items:flex-start;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px;line-height:1.55}
+#todos-list input[type=checkbox]{accent-color:var(--accent);margin-top:3px;flex-shrink:0}
+#todos-list .todo-done{text-decoration:line-through;color:var(--dim)}
 .skill-item{padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px;cursor:pointer}
 .skill-item:hover{background:var(--panel2)}
 .skill-item b{color:var(--text)}
@@ -169,6 +172,7 @@ ul{list-style:none;overflow-y:auto}
       <div class="tabs">
         <button data-tab="facts" class="active">记忆</button>
         <button data-tab="profile">档案</button>
+        <button data-tab="todos">待办</button>
         <button data-tab="reviews">Review</button>
         <button data-tab="skills">技能</button>
       </div>
@@ -177,6 +181,7 @@ ul{list-style:none;overflow-y:auto}
         <ul id="facts-list"></ul>
       </div>
       <div id="tab-profile" class="tab-body hidden"><div id="profile-usage"></div><ul id="profile-list"></ul></div>
+      <div id="tab-todos" class="tab-body hidden"><ul id="todos-list"></ul></div>
       <div id="tab-reviews" class="tab-body hidden"><ul id="reviews-list"></ul></div>
       <div id="tab-skills" class="tab-body hidden"><ul id="skills-list"></ul></div>
     </div>
@@ -324,7 +329,7 @@ async function loadSessions(){
 window.selectSession=async id=>{
   try{
     await api(`/api/sessions/${id}/select`,{method:'POST'});
-    currentSession=id;await loadSessions();await loadMessages();
+    currentSession=id;await loadSessions();await loadMessages();loadTodos();
   }catch(e){alert(e.message)}
 };
 
@@ -390,7 +395,23 @@ window.toggleSkill=async(name,el)=>{
     el.appendChild(pre);el.dataset.open='1';
   }catch(e){alert(e.message)}
 };
-function refreshMemory(){loadFacts();loadProfile();loadReviews();loadSkills()}
+async function loadTodos(){
+  if(currentSession==null)return;
+  try{
+    const d=await api(`/api/sessions/${currentSession}/todos`);
+    $('#todos-list').innerHTML=d.todos.length?d.todos.map(t=>
+      `<li><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id},this.checked)">`+
+      `<span class="${t.done?'todo-done':''}">${esc(t.content)}</span></li>`).join('')
+      :'<li class="empty">暂无待办（多步任务小鱼会用 todo 工具自动维护）</li>';
+  }catch(e){$('#todos-list').innerHTML='<li class="empty">'+esc(e.message)+'</li>'}
+}
+window.toggleTodo=async(id,done)=>{
+  try{
+    await api('/api/todos/toggle',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({session_id:currentSession,todo_id:id,done})});
+  }catch(e){loadTodos()}
+};
+function refreshMemory(){loadFacts();loadProfile();loadReviews();loadSkills();loadTodos()}
 
 async function pollApprovals(){
   try{
@@ -420,7 +441,7 @@ window.resolveApproval=async(id,allowed)=>{
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  ['facts','profile','reviews','skills'].forEach(t=>$('#tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));
+  ['facts','profile','todos','reviews','skills'].forEach(t=>$('#tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));
 });
 $('#send').onclick=sendMessage;
 $('#input').addEventListener('keydown',e=>{
@@ -428,7 +449,7 @@ $('#input').addEventListener('keydown',e=>{
 });
 $('#new-session').onclick=async()=>{
   try{const d=await api('/api/sessions',{method:'POST'});
-    currentSession=d.session_id;await loadSessions();await loadMessages();
+    currentSession=d.session_id;await loadSessions();await loadMessages();loadTodos();
   }catch(e){alert(e.message)}
 };
 $('#fact-q').addEventListener('input',loadFacts);

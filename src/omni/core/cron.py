@@ -102,10 +102,23 @@ class CronScheduler:
                 self._store.upsert(fresh, validate=False)
 
 
+def _latest_source_output(store: Any, source_name: str) -> str:
+    """取源任务绑定会话的最后一条 assistant 输出（没跑过则空，不虚构）。"""
+    sid = store.get_binding("cron", source_name)
+    if sid is None:
+        return ""
+    for role, content in reversed(store.recent_messages(sid, 10)):
+        if role == "assistant" and content.strip():
+            return content[:4000]
+    return ""
+
+
 def make_runtime_executor(runtime: Any) -> Callable[[Job], Awaitable[str]]:
     """默认执行器：任务绑定独立会话（保留历史，日报能对比昨天）→ agent → 回合 review。
 
     runtime 参数是 bootstrap.Runtime（duck typing，避免 core→bootstrap 依赖倒挂）。
+    context_from 任务链（Hermes 同款）：源任务的最新输出注入本次 prompt 头部，
+    串起"夜间整理 → 早报"这类先整理再汇报的流水线。
     """
 
     async def executor(job: Job) -> str:
@@ -114,6 +127,13 @@ def make_runtime_executor(runtime: Any) -> Callable[[Job], Awaitable[str]]:
         if job.skills:
             names = ", ".join(job.skills)
             prompt = f"（先 skill_view 查看 {names} 并按其流程执行）\n{job.prompt}"
+        if job.context_from:
+            context = _latest_source_output(runtime.store, job.context_from)
+            if context:
+                prompt = (
+                    f"以下是定时任务「{job.context_from}」的最新输出，"
+                    f"作为本次工作的输入：\n\n{context}\n\n---\n{prompt}"
+                )
         answer = await asyncio.to_thread(
             runtime.agent.chat, prompt, session_id=session_id
         )

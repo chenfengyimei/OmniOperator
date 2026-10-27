@@ -91,13 +91,23 @@ def _fake_napcat(tmp_path: Path, with_qr: bool, uin: str | None) -> Path:
     return napcat
 
 
-def _isolated_manager(napcat: Path) -> ServiceManager:
-    """注入不存在的端口（1/2），隔离本机真实 NapCat 的状态影响。"""
-    return ServiceManager(napcat_dir=napcat, napcat_ws_port=1, napcat_webui_port=2)
+def _isolated_manager(napcat: Path, tmp_path: Path) -> ServiceManager:
+    """隔离本机真实服务状态：不存在的端口（1/2）+ 独立的 pid/日志目录。
+
+    pid 目录不隔离会读到真机的 data/run/*.pid——"未安装"类测试会误判
+    服务在运行，停止类测试甚至会杀掉真实进程（已踩坑）。
+    """
+    return ServiceManager(
+        napcat_dir=napcat,
+        napcat_ws_port=1,
+        napcat_webui_port=2,
+        run_dir=tmp_path / "run",
+        log_dir=tmp_path / "logs",
+    )
 
 
 def test_napcat_not_installed(tmp_path):
-    manager = _isolated_manager(tmp_path / "nope")
+    manager = _isolated_manager(tmp_path / "nope", tmp_path)
     assert manager.napcat_dir is None
     qr = manager.napcat_qr()
     assert qr["available"] is False and qr["logged_in"] is False
@@ -107,7 +117,7 @@ def test_napcat_not_installed(tmp_path):
 
 def test_napcat_qr_and_uin(tmp_path):
     napcat = _fake_napcat(tmp_path, with_qr=True, uin="123456")
-    manager = _isolated_manager(napcat)
+    manager = _isolated_manager(napcat, tmp_path)
     qr = manager.napcat_qr()
     assert qr["available"] is True
     assert qr["image"].startswith("data:image/png;base64,")
@@ -118,7 +128,7 @@ def test_napcat_qr_and_uin(tmp_path):
 
 def test_overview_shape(tmp_path):
     napcat = _fake_napcat(tmp_path, with_qr=False, uin=None)
-    manager = _isolated_manager(napcat)
+    manager = _isolated_manager(napcat, tmp_path)
     overview = manager.overview()
     names = [s["name"] for s in overview["services"]]
     assert names == ["napcat", "omni-qq", "omni-heartbeat"]
@@ -126,7 +136,7 @@ def test_overview_shape(tmp_path):
 
 
 def test_start_without_install_errors(tmp_path):
-    manager = _isolated_manager(tmp_path / "nope")
+    manager = _isolated_manager(tmp_path / "nope", tmp_path)
     from omni.system.services import ServiceError
 
     with pytest.raises(ServiceError, match="未找到 NapCat"):
@@ -139,7 +149,7 @@ def test_start_without_install_errors(tmp_path):
 
 def test_system_tools_dispatch(tmp_path):
     registry = ToolRegistry()
-    register_system_tools(registry, _isolated_manager(tmp_path / "nope"))
+    register_system_tools(registry, _isolated_manager(tmp_path / "nope", tmp_path))
     out = registry.dispatch("system_status", "{}")
     assert "NapCat" in out and ("未安装" in out or "未登录" in out)
     # 参数校验

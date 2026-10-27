@@ -63,6 +63,15 @@ class Review(BaseModel):
     steps: int = 4
 
 
+class Compression(BaseModel):
+    """上下文压缩（长会话防膨胀；Hermes compression_facade 最小版）。"""
+
+    enabled: bool = True
+    trigger_chars: int = 24000  # 上下文总字符量超过此值触发压缩
+    keep_recent: int = 12       # 压缩时原样保留最近多少条消息
+    min_messages: int = 16      # 消息总数少于此不压（得不偿失）
+
+
 class Asr(BaseModel):
     """本地 ASR（faster-whisper，无字幕视频转写兜底）。"""
 
@@ -102,6 +111,7 @@ class AppConfig(BaseModel):
     models: Models = Field(default_factory=Models)
     limits: Limits = Field(default_factory=Limits)
     review: Review = Field(default_factory=Review)
+    compression: Compression = Field(default_factory=Compression)
     asr: Asr = Field(default_factory=Asr)
     qq: QQ = Field(default_factory=QQ)
     browser: Browser = Field(default_factory=Browser)

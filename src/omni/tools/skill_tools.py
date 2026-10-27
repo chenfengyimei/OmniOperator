@@ -1,9 +1,11 @@
-"""技能工具集（toolset=core）：技能的渐进披露与创建。
+"""技能工具集（toolset=core）：技能的渐进披露与维护。
 
-三件套对应 Hermes 的渐进披露设计（省 token）：
+渐进披露 + 生命周期（Hermes 设计，省 token）：
 - skills_list：名字+描述（千级 token 内浏览全部技能）
 - skill_view：按需展开单个技能全文
 - skill_create：把流程沉淀成新技能（linter 守门在 SkillStore）
+- skill_patch：只改一个小节（踩坑后往 Pitfalls 补条目的首选，省 token）
+- skill_rewrite：结构级变化时全文重写（重新过 linter）
 """
 from __future__ import annotations
 
@@ -31,6 +33,22 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
 
     def skill_create(args: dict[str, Any]) -> str:
         ok, msg = skills.create(
+            str(args.get("name", "")),
+            str(args.get("description", "")),
+            str(args.get("content", "")),
+        )
+        return msg
+
+    def skill_patch(args: dict[str, Any]) -> str:
+        ok, msg = skills.patch(
+            str(args.get("name", "")),
+            str(args.get("section", "")),
+            str(args.get("content", "")),
+        )
+        return msg
+
+    def skill_rewrite(args: dict[str, Any]) -> str:
+        ok, msg = skills.rewrite(
             str(args.get("name", "")),
             str(args.get("description", "")),
             str(args.get("content", "")),
@@ -80,6 +98,53 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
                 "required": ["name", "description", "content"],
             },
             func=skill_create,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+    registry.register(
+        Tool(
+            name="skill_patch",
+            description=(
+                "增量修改技能的一个小节（优先用这个而不是全文重写，省 token）。"
+                "典型场景：踩坑后往 Pitfalls 补一条、流程变化后更新 Procedure。"
+                "section 取 When to Use / Procedure / Pitfalls / Verification 之一"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "技能名"},
+                    "section": {
+                        "type": "string",
+                        "enum": ["When to Use", "Procedure", "Pitfalls", "Verification"],
+                        "description": "要替换的小节",
+                    },
+                    "content": {"type": "string", "description": "该小节的新内容（Markdown）"},
+                },
+                "required": ["name", "section", "content"],
+            },
+            func=skill_patch,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+    registry.register(
+        Tool(
+            name="skill_rewrite",
+            description=(
+                "全文重写技能（仅当 patch 装不下结构级变化时用）。"
+                "description 与 content 会重新过格式检查；版本号自动 +1"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "技能名"},
+                    "description": {"type": "string", "description": "新的一句话描述（≤60字）"},
+                    "content": {"type": "string", "description": "新正文（含四个小节）"},
+                },
+                "required": ["name", "description", "content"],
+            },
+            func=skill_rewrite,
             toolset="core",
             risk=Risk.SAFE,
         )

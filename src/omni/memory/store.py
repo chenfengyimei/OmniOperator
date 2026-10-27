@@ -60,6 +60,13 @@ CREATE TABLE IF NOT EXISTS bindings (
     session_id INTEGER NOT NULL,
     PRIMARY KEY (channel, channel_user)
 );
+CREATE TABLE IF NOT EXISTS todos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    pos INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    done INTEGER NOT NULL DEFAULT 0
+);
 """
 
 _FTS_SCHEMA = """
@@ -503,6 +510,56 @@ class MemoryStore:
             "reviews_recent": reviews_recent,
             "profile_chars": self.profile_usage_chars(),
         }
+
+    # ---------- 待办清单（todo 内联工具：agent 自维护多步编排） ----------
+
+    @_locked
+    def todo_add(self, session_id: int, content: str) -> int:
+        row = self._conn.execute(
+            "SELECT COALESCE(MAX(pos), 0) FROM todos WHERE session_id = ?",
+            (session_id,),
+        ).fetchone()
+        cur = self._conn.execute(
+            "INSERT INTO todos(session_id, pos, content) VALUES (?, ?, ?)",
+            (session_id, int(row[0]) + 1, content),
+        )
+        self._conn.commit()
+        return int(cur.lastrowid)
+
+    @_locked
+    def todo_list(self, session_id: int) -> list[tuple[int, str, int]]:
+        rows = self._conn.execute(
+            "SELECT id, content, done FROM todos WHERE session_id = ? ORDER BY pos, id",
+            (session_id,),
+        ).fetchall()
+        return [(int(r[0]), str(r[1]), int(r[2])) for r in rows]
+
+    @_locked
+    def todo_set_done(self, session_id: int, todo_id: int, done: bool = True) -> bool:
+        cur = self._conn.execute(
+            "UPDATE todos SET done = ? WHERE id = ? AND session_id = ?",
+            (1 if done else 0, todo_id, session_id),
+        )
+        self._conn.commit()
+        return cur.rowcount > 0
+
+    @_locked
+    def todo_delete(self, session_id: int, todo_id: int) -> bool:
+        cur = self._conn.execute(
+            "DELETE FROM todos WHERE id = ? AND session_id = ?", (todo_id, session_id)
+        )
+        self._conn.commit()
+        return cur.rowcount > 0
+
+    @_locked
+    def todo_clear(self, session_id: int, *, done_only: bool = False) -> int:
+        sql = "DELETE FROM todos WHERE session_id = ?"
+        params: list = [session_id]
+        if done_only:
+            sql += " AND done = 1"
+        cur = self._conn.execute(sql, params)
+        self._conn.commit()
+        return int(cur.rowcount)
 
     @_locked
     def close(self) -> None:

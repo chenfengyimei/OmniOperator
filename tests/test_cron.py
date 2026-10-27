@@ -189,6 +189,58 @@ def test_runtime_deliver_guards():
     assert asyncio.run(deliver(_job(deliver_to_qq=None), "hi")) == ""
 
 
+# ---------- 任务链 context_from ----------
+
+def test_context_from_validation(tmp_path):
+    store = JobStore(tmp_path / "jobs.json")
+    with pytest.raises(CronError):  # 自引用
+        _job(name="a-b", every_minutes=30, context_from="a-b").validate()
+    with pytest.raises(CronError):  # 名字非法
+        _job(name="a-b", every_minutes=30, context_from="BAD NAME").validate()
+    # 跨任务校验：源不存在 → upsert 拒绝
+    store.upsert(_job(name="src", every_minutes=30))
+    with pytest.raises(CronError):
+        store.upsert(_job(name="dst", every_minutes=30, context_from="ghost"))
+    store.upsert(_job(name="dst", every_minutes=30, context_from="src"))
+    assert store.get("dst").context_from == "src"
+
+
+def test_executor_injects_context_from_source(tmp_path):
+    store = MemoryStore(tmp_path / "m.db")
+    seen_prompts: list[str] = []
+
+    class FakeAgent:
+        def chat(self, text: str, *, session_id=None):
+            store.append_message(session_id, "user", text)
+            store.append_message(
+                session_id, "assistant", f"输出@{len(seen_prompts)}", auto_title=False
+            )
+            seen_prompts.append(text)
+            return f"输出@{len(seen_prompts) - 1}"
+
+    runtime = SimpleNamespace(
+        store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None
+    )
+    executor = make_runtime_executor(runtime)
+    # 先跑源任务产出输出
+    asyncio.run(executor(_job(name="nightly-tidy", prompt="整理")))
+    # 下游任务带 context_from：源输出注入 prompt 头部
+    result = asyncio.run(
+        executor(
+            _job(name="morning-report", prompt="写早报", context_from="nightly-tidy")
+        )
+    )
+    assert "nightly-tidy" in seen_prompts[1]
+    assert "输出@0" in seen_prompts[1] and "写早报" in seen_prompts[1]
+    assert result == "输出@1"
+    # 源任务从未跑过 → 不注入也不虚构
+    asyncio.run(
+        executor(_job(name="fresh", prompt="直接干", context_from="never-ran"))
+    )
+    assert seen_prompts[2] == "直接干"
+    store.close()
+
+
 # ---------- 工具 ----------
 
 def test_cron_tools_dispatch(tmp_path):
@@ -219,5 +271,29 @@ def test_cron_tools_dispatch(tmp_path):
     assert "白名单" in bad
     # 缺调度方式
     assert "错误" in registry.dispatch("cron_add", json.dumps({"name": "no-sched", "prompt": "x"}))
+    # 任务链：源不存在被拒；存在则建链成功并在列表可见
+    bad_chain = registry.dispatch(
+        "cron_add",
+        json.dumps(
+            {"name": "chain-dst", "prompt": "x", "every_minutes": 30, "context_from": "ghost"}
+        ),
+    )
+    assert "不存在" in bad_chain
+    registry.dispatch(
+        "cron_add", json.dumps({"name": "chain-src", "prompt": "x", "every_minutes": 30})
+    )
+    ok_chain = registry.dispatch(
+        "cron_add",
+        json.dumps(
+            {
+                "name": "chain-dst",
+                "prompt": "x",
+                "every_minutes": 30,
+                "context_from": "chain-src",
+            }
+        ),
+    )
+    assert "已创建" in ok_chain
+    assert "← chain-src" in registry.dispatch("cron_list", "{}")
     assert "已删除" in registry.dispatch("cron_remove", json.dumps({"name": "morning-report"}))
     assert "没有任务" in registry.dispatch("cron_remove", json.dumps({"name": "nope"}))

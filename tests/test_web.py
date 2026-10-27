@@ -32,6 +32,8 @@ def test_state_shape(tmp_path):
         "recall",
         "search_history",
         "profile_manage",
+        "todo",
+        "daily_digest",
         "skills_list",
         "skill_view",
         "skill_create",
@@ -56,6 +58,28 @@ def test_sessions_create_select_messages(tmp_path):
     # 会话列表里能看到
     sessions = client.get("/api/sessions").json()["sessions"]
     assert any(s["id"] == created for s in sessions)
+
+
+def test_todos_endpoints(tmp_path):
+    client, runtime = _client(tmp_path)
+    sid = client.post("/api/sessions").json()["session_id"]
+    assert client.get(f"/api/sessions/{sid}/todos").json()["todos"] == []
+    assert client.get("/api/sessions/999/todos").status_code == 404
+    runtime.store.todo_add(sid, "写日报")
+    todos = client.get(f"/api/sessions/{sid}/todos").json()["todos"]
+    assert todos and todos[0]["content"] == "写日报" and todos[0]["done"] is False
+    tid = todos[0]["id"]
+    ok = client.post(
+        "/api/todos/toggle", json={"session_id": sid, "todo_id": tid, "done": True}
+    )
+    assert ok.status_code == 200
+    assert client.get(f"/api/sessions/{sid}/todos").json()["todos"][0]["done"] is True
+    assert (
+        client.post(
+            "/api/todos/toggle", json={"session_id": sid, "todo_id": 999, "done": True}
+        ).status_code
+        == 404
+    )
 
 
 def test_memory_endpoints(tmp_path):
