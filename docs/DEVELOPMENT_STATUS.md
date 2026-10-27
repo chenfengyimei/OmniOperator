@@ -55,8 +55,8 @@
 | A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 源码 | `core/review.py`、`memory/store.py::_init_fts` | D11、D12 | 源码发现 |
 | A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 部分修复 | `claim_due()` 在单个写事务里推进 `next_run_at` + 写 `job_claims`；4 个真实进程同时 tick 只派发一次（`tests/test_state.py::test_claim_due_is_atomic_across_processes`） | D05、D17 | 领取已修复；并行上限、投递 outbox/去重、`context_from` 绑定 run_id 仍属 D17 |
 | A18 | 服务停止只比对 pid 文件与进程存活，无创建时间/命令行身份绑定，pid 重用有误杀风险 | 源码 | `system/services.py` | D25 | 源码发现 |
-| A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 复现→已修复 | `test_process_boundary_reclaims_child_process_tree`（真实父子进程，孙进程 pid 已消失）；超时话术区分"已确认回收/回收状态未知" | D01、D09 | 进程边界已修复；统一 ToolResult 在 D09 |
-| A20 | 无运行账本/取消/token 与费用硬预算/统一 `ToolResult` 状态（工具回的是字符串） | 源码 | `core/agent.py`、`llm/gateway.py`、`tools/registry.py` | D09、D10 | 源码发现 |
+| A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 已修复 | 进程树回收 + "已确认回收/回收状态未知"话术；D09 起工具异常/超时统一记 `side_effect_state=unknown`（`tests/test_runs.py::test_execute_distinguishes_the_four_outcomes`） | D01、D09 | 已修复 |
+| A20 | 无运行账本/取消/token 与费用硬预算/统一 `ToolResult` 状态（工具回的是字符串） | 部分修复 | 运行账本 + 事件流 + 协作式取消 + `ToolResult` 已落地（`memory/runs.py`、`core/run.py`、`tools/result.py`，18 例）；**token/费用预算与流式 usage 仍属 D10** | D09、D10 | 账本/取消/结果契约已修复；预算未做 |
 
 补充观察（D00 新增登记，尚未编号为 A 项，供后续任务核对）：
 
@@ -77,13 +77,53 @@
 | D06 | 完成 | A06 | 见第 5 节 | `uv run pytest -q` → 394 passed | 真实浏览器两个标签页并发聊天待手动验收（自动用例用 ASGI 直连） | 进入 D07 |
 | D07 | 完成 | A11 | 见第 5 节 | `uv run pytest -q` → 403 passed（含真实 Chromium 用例） | 真实登录 profile（B站）未用于自动测试；桌面/无头差异待 D23 实站验收 | 进入 D08 |
 | D08 | 完成 | A09（技能/常驻文件）、A14 | 见第 5 节 | `uv run pytest -q` → 421 passed | 真实 `skills/` 库未用于写测试（一律临时根）；两进程并发是真实子进程，非 mock | 进入 D09 |
-| D09–D12 | 待开始 | A15、A16、A20（A06/A19 已提前关闭） | — | — | — | 依赖 R1 |
+| D09 | 完成 | A19、A20（账本/取消/ToolResult） | 见第 5 节 | `uv run pytest -q` → 439 passed | 真实网关下的取消时延、跨进程取消（返回 409）待 D27 实测 | 进入 D10 |
+| D10–D12 | 待开始 | A15、A16、A20（token/费用预算） | — | — | — | 依赖 D09 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D09（运行、取消、ToolResult 与委派）
+
+- **改了什么**：
+  - `state.db` 升 **v4**：新增 `runs`（run_id/parent/session/channel/principal/owner/status/phase/
+    时间戳/error_code/last_seq）与 `run_events`（`(run_id, seq)` 主键）；
+  - 新增 `memory/runs.py`：`create / append_event（同一写事务里 last_seq+1）/ touch / finish /
+    list_recent / events(after=…) / interrupt_stale(owner_kind, current_owner)`；
+  - 新增 `core/run.py`：`RunIdentity`、`CancelToken`（父取消传染子）、`RunContext`（步数记账、
+    事件、阶段、check）、`ActiveRuns`（本进程的取消入口）、`TurnResult`；
+  - 新增 `tools/result.py`：`ToolResult`（status/error_code/retryable/side_effect_state/artifacts/
+    verification）+ `from_legacy()`（旧字符串按前缀适配并标 `legacy=True`）；
+  - `tools/registry.py`：新增 `execute() -> ToolResult`，`dispatch()` 改为 `execute().to_message()`
+    （旧字符串逐字不变）；审批器签名用「所属类+方法名」探测是否支持 `cancel`；
+  - `safety/gates.py` / `safety/broker.py`：审批链支持取消——等待期间轮询取消信号，
+    取消即撤销待批准项（界面上不能再点「同意」）；
+  - `core/agent.py`：新增 `run_turn()`（返回 `TurnResult`，`chat()` 退化为取 `.answer`）；
+    检查点为「模型调用前 / 模型返回后 / 每次工具调用前」；工具事件记录结构化结果；
+    取消时写一条「已取消」历史，不假装有答案；
+  - `tools/delegate_tools.py`：子 run 记 `parent_run_id`、步数 `min(父剩余, 配置上限)`、
+    父取消传染、作用域继承（群聊委派拿不到私人上下文）；
+  - `bootstrap`：注入 `RunStore`/`ActiveRuns`/`RunRef`/`owner`；启动时 `interrupt_stale`；
+    入口标注 `owner_kind`（web/qq/heartbeat/cli）；
+  - 工作台新增 `POST /api/runs`、`GET /api/runs`、`GET /api/runs/{id}`、
+    `GET /api/runs/{id}/events?after=`、`POST /api/runs/{id}/cancel`；`/api/chat` 响应带 `run_id`。
+- **关闭了什么**：A19（副作用未知的表达）、A20 的账本/取消/ToolResult 部分。
+- **跑了什么**：`uv run pytest tests/test_runs.py -q` → 18 passed；
+  `uv run pytest -q` → **439 passed, 1 warning**。
+- **没测什么**：真实网关下的取消时延（假网关是瞬时返回）；跨进程取消（设计上返回 409，未做真实双进程演练）；
+  token/费用预算与流式 usage（D10）。
+- **行为变化**：`/api/chat` 响应多了 `run_id` 与 `status`；取消是协作式的，接口返回「已请求取消」，
+  真正停下要看 `GET /api/runs/{id}` 的终态。
+- **过程记录**：
+  1. 审批器签名探测最初用 `type(func)` 做缓存键——绑定方法的类型恒为 `method`，
+     于是一个支持 `cancel` 的审批器会让**所有**审批器都被按「支持 cancel」调用，
+     旧审批器直接 TypeError → 被判成「审批失败」。改成按 `(所属类, 方法名)` 缓存。
+  2. 改写 `chat()` 时漏掉了 `session_ref` 绑定（只在 `run_turn` 里绑了 run_ref），
+     被 `test_tool_calls_stay_in_the_request_session` 抓到：工具写到了别的会话。
+     现在两者都在同一个 `ExitStack` 里绑定/恢复。
 
 ### 2026-10-27 · D08（技能历史、CAS 与常驻文件一致性）
 
@@ -323,7 +363,7 @@
 ### 7.2 仍未关闭（截至 D08）
 
 A12（安卓旧 idx）、A13（截图只回路径）、A15/A16（review 治理与学习入口额度）、
-A17（cron 跨进程领取/积压）、A18（pid 身份）、A20（Run/ToolResult/预算）。
+A17（cron 跨进程领取/积压）、A18（pid 身份）、A20 的 token/费用预算部分（运行账本与 ToolResult 已在 D09 关闭）。
 
 ### 7.3 真实环境待验收（缺外部前提，不能算完成）
 

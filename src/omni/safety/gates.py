@@ -51,13 +51,22 @@ class Approver(abc.ABC):
     allows_auto_approval: bool = True
 
     @abc.abstractmethod
-    def check(self, tool: Any, arguments: Any = None) -> Decision: ...
+    def check(
+        self, tool: Any, arguments: Any = None, *, cancel: Any = None
+    ) -> Decision:
+        """cancel 是本次运行的取消信号（有 `.cancelled`）；不支持时忽略。
+
+        交互式审批器必须在等待中检查它：运行被取消后，待批准的操作要立刻撤销，
+        不能让用户三分钟后再点一次"同意"去执行一个已经没人等的动作。
+        """
 
 
 class AllowAllApprover(Approver):
     """测试/受控场景：全部放行。"""
 
-    def check(self, tool: Any, arguments: Any = None) -> Decision:
+    def check(self, tool: Any, arguments: Any = None, *, cancel: Any = None) -> Decision:
+        if getattr(cancel, "cancelled", False):
+            return Decision(False, "本次运行已取消")
         return Decision(True)
 
 
@@ -66,7 +75,9 @@ class DenyApprover(Approver):
 
     allows_auto_approval = False
 
-    def check(self, tool: Any, arguments: Any = None) -> Decision:
+    def check(self, tool: Any, arguments: Any = None, *, cancel: Any = None) -> Decision:
+        if getattr(cancel, "cancelled", False):
+            return Decision(False, "本次运行已取消")
         if getattr(tool, "risk", Risk.SAFE) == Risk.SAFE:
             return Decision(True)
         return Decision(False, "无人值守上下文默认拒绝非 safe 工具")
@@ -78,7 +89,9 @@ class ConsoleApprover(Approver):
     def __init__(self, console: Any) -> None:
         self._console = console
 
-    def check(self, tool: Any, arguments: Any = None) -> Decision:
+    def check(self, tool: Any, arguments: Any = None, *, cancel: Any = None) -> Decision:
+        if getattr(cancel, "cancelled", False):
+            return Decision(False, "本次运行已取消")
         risk = getattr(tool, "risk", Risk.SAFE)
         if risk == Risk.SAFE:
             return Decision(True)
@@ -106,7 +119,9 @@ class WebApprover(Approver):
     def __init__(self, broker: Any) -> None:
         self._broker = broker
 
-    def check(self, tool: Any, arguments: Any = None) -> Decision:
+    def check(self, tool: Any, arguments: Any = None, *, cancel: Any = None) -> Decision:
+        if getattr(cancel, "cancelled", False):
+            return Decision(False, "本次运行已取消")
         risk = getattr(tool, "risk", Risk.SAFE)
         if risk == Risk.SAFE:
             return Decision(True)

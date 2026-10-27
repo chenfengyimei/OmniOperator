@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import atexit
 import os
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -23,9 +24,11 @@ from .config import (
     load_qq_policy,
 )
 from .core.agent import Agent
+from .core.run import ActiveRuns
 from .core.session import ResourceLeases, SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
+from .memory.runs import RunStore
 from .memory.state import ExecutionLog, JobStore, StateStore
 from .memory.resident import ResidentMemory
 from .memory.skills import SkillStore
@@ -49,6 +52,8 @@ from .tools.builtin import (
 from .tools.cron_tools import register_cron_tools
 from .tools.delegate_tools import register_delegate_tools
 from .tools.registry import SessionRef, ToolRegistry
+from .tools.runctx import RunRef
+from .tools.runctx import RunRef
 from .tools.android.driver import AndroidDriver
 from .tools.android.tools import register_android_tools
 from .tools.qq.client import OneBotClient
@@ -83,7 +88,9 @@ class Runtime:
     gateway: Gateway
     registry: ToolRegistry
     skills: SkillStore
-    state: StateStore          # 共享状态库（任务/账本/额度/迁移）
+    state: StateStore          # 共享状态库（任务/账本/额度/迁移/运行）
+    runs: RunStore             # 运行记录与事件流
+    active_runs: ActiveRuns    # 本进程内可取消的运行
     session_gate: SessionGate  # 进程内：同会话串行 + 排队有界
     session_leases: SessionLeases  # 跨进程：同会话同一时刻只有一个进程在跑
     cron_jobs: JobStore
@@ -146,6 +153,7 @@ def build_runtime(
     config_path: Path | None = None,
     skills_root: Path | None = None,
     data_dir: Path | None = None,
+    owner_kind: str = "cli",
 ) -> Runtime:
     # 记住实际读取的配置源：策略热读必须命中同一个文件，否则会读到真机配置
     config_path = Path(config_path) if config_path else CONFIG_PATH
@@ -159,6 +167,22 @@ def build_runtime(
     skills = SkillStore(
         paths.skills, history_root=paths.history, owner=f"pid:{os.getpid()}:skills"
     )
+    # 共享状态集中到 state.db（A09 跨进程丢写 / A10 损坏当空）：先迁移旧 JSON，
+    # 缺失/合法空/损坏分别处理；损坏时只停用对应能力，绝不把已用额度归零。
+    state = StateStore(paths.state)
+    state.migrate_legacy(paths.data)
+    session_gate = SessionGate(capacity=config.limits.session_queue_depth)
+    session_leases = SessionLeases(
+        state, ttl_s=config.limits.session_lease_ttl_s
+    )
+    cron_jobs = JobStore(state)
+    cron_ledger = ExecutionLog(state)
+    # 运行记录：owner 记"本类进程的哪一次启动"，重启时据此对账（见 RunStore.interrupt_stale）
+    runs = RunStore(state)
+    active_runs = ActiveRuns()
+    run_ref = RunRef()
+    owner = f"{owner_kind}:{os.getpid()}:{uuid.uuid4().hex[:6]}"
+    interrupted = runs.interrupt_stale(owner_kind=owner_kind, current_owner=owner)
     registry = ToolRegistry()
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
     resident = ResidentMemory(
@@ -172,7 +196,7 @@ def build_runtime(
     register_todo_tools(registry, store, session_ref)
     register_resident_tools(registry, resident)
     agent_holder: dict[str, Any] = {}  # Agent 构造在后，delegate 工具运行期取用
-    register_delegate_tools(registry, store, agent_holder)
+    register_delegate_tools(registry, store, agent_holder, run_ref)
     register_shell_tools(registry)
     register_skill_tools(registry, skills)
     mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs)
@@ -181,16 +205,6 @@ def build_runtime(
         atexit.register(mcp.close)
     # Cookie 路径必须注入：否则临时实例会读到真机的 B 站登录态
     register_bilibili_tools(registry, BiliAPI(cookies_path=paths.cookies), config.asr)
-    # 共享状态集中到 state.db（A09 跨进程丢写 / A10 损坏当空）：先迁移旧 JSON，
-    # 缺失/合法空/损坏分别处理；损坏时只停用对应能力，绝不把已用额度归零。
-    state = StateStore(paths.state)
-    state.migrate_legacy(paths.data)
-    session_gate = SessionGate(capacity=config.limits.session_queue_depth)
-    session_leases = SessionLeases(
-        state, ttl_s=config.limits.session_lease_ttl_s
-    )
-    cron_jobs = JobStore(state)
-    cron_ledger = ExecutionLog(state)
     # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照
     def _allowed_qq_users() -> list[int]:
         return load_qq_policy(config_path).allowed_users
@@ -210,6 +224,12 @@ def build_runtime(
     approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
     # 隔离实例（注入了 data_dir）不探测也不终止真机进程：否则测试可能把真 NapCat 当残留杀掉
     isolated = data_dir is not None
+    if interrupted and not isolated:
+        print(
+            f"[运行] 上次有 {len(interrupted)} 个运行未正常结束，已标记为 interrupted（不自动重试）："
+            + "、".join(interrupted[:5]),
+            flush=True,
+        )
     services = ServiceManager(
         napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None,
         run_dir=paths.run, log_dir=paths.logs,
@@ -230,6 +250,7 @@ def build_runtime(
     agent = Agent(
         config, gateway, store, registry, session_id,
         approver=approver, session_ref=session_ref, resident=resident,
+        runs=runs, active_runs=active_runs, run_ref=run_ref, owner=owner,
     )
     agent_holder["agent"] = agent
 
@@ -261,6 +282,8 @@ def build_runtime(
         registry=registry,
         skills=skills,
         state=state,
+        runs=runs,
+        active_runs=active_runs,
         session_gate=session_gate,
         session_leases=session_leases,
         cron_jobs=cron_jobs,

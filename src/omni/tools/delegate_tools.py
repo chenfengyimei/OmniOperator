@@ -7,6 +7,8 @@
   对话上下文，主 agent 可用 search_history 找回完整现场；
 - 防嵌套：thread-local 深度计数，委派内部再委派直接拒绝（嵌套会让上下文
   与步数预算失控）；
+- 子 run 带父 run id，**步数不超过父的剩余步数**，父取消立刻传染给子；
+- 作用域继承：群聊里发起的委派拿不到私人上下文（否则一句"帮我委派"就绕过了群聊限制）；
 - 会话引用保存/恢复：子 run 会把 SessionRef 切到子会话，返回前必须还原，
   否则主回合后续工具（todo 等）会写错会话。
 """
@@ -18,6 +20,7 @@ from typing import Any
 
 from ..memory.store import MemoryStore
 from .registry import Risk, Tool, ToolRegistry
+from .runctx import RunRef
 
 _MAX_SUB_RESULT_CHARS = 4000
 
@@ -32,6 +35,7 @@ def register_delegate_tools(
     registry: ToolRegistry,
     store: MemoryStore,
     agent_holder: dict[str, Any],
+    run_ref: RunRef | None = None,
 ) -> None:
     """agent_holder 延迟绑定：组装根在 Agent 构造后填 {"agent": agent}
     （工具注册先于 Agent 构造，与 SessionRef 同属"组装根注入、运行期使用"）。"""
@@ -48,6 +52,9 @@ def register_delegate_tools(
                 "错误：已处于委派任务中，不支持嵌套委派——"
                 "请把子任务拆到主循环顺序执行"
             )
+        parent = run_ref.get() if run_ref is not None else None
+        if parent is not None and parent.cancelled:
+            return "错误：父运行已取消，不再启动新的子任务"
         label = str(args.get("label", "")).strip() or "task"
         # 时分秒会在同秒并发或跨天同一时刻碰撞，导致本应干净的子任务读到旧历史。
         key = f"{label[:60]}-{uuid.uuid4().hex}"
@@ -57,7 +64,26 @@ def register_delegate_tools(
             ref = agent.session_ref
             prev = ref.get() if ref is not None else None
             try:
-                result = agent.chat(prompt, session_id=session_id)
+                # 子 run：继承父的步数上限与作用域（群聊里委派也不会拿到私人记忆）
+                runner = getattr(agent, "run_turn", None)
+                if runner is None:  # 只有 chat 的最小实现（嵌入式/单测）
+                    result = agent.chat(prompt, session_id=session_id)
+                else:
+                    turn = runner(
+                        prompt,
+                        session_id=session_id,
+                        channel=f"{getattr(parent, 'channel', 'cli')}:delegate",
+                        principal=(
+                            getattr(parent, "principal", "owner") if parent else "owner"
+                        ),
+                        personal_context=(
+                            getattr(parent, "scope", "private") == "private"
+                        ),
+                        parent=parent,
+                    )
+                    result = turn.answer
+                    if turn.status == "cancelled":
+                        return f"子任务被取消（{turn.run_id}）：{turn.answer}"
             finally:
                 if ref is not None:
                     ref.set(prev)  # 还原主回合的会话指向

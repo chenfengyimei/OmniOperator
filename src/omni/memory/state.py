@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -126,7 +126,38 @@ INSERT OR IGNORE INTO resource_leases(resource, owner, token, acquired_at, expir
 DROP TABLE IF EXISTS session_leases;
 """
 
-_MIGRATIONS: dict[int, str] = {1: _SCHEMA_V1, 2: _SCHEMA_V2, 3: _SCHEMA_V3}
+# v4：运行记录与事件流（D09）。事件序号按 run 单调递增，客户端用 after=seq 续读，
+# 不需要重放整个回合；`owner` 记"哪个进程的哪次启动"，重启时据此把遗留 running 归入 interrupted。
+_SCHEMA_V4 = """
+CREATE TABLE IF NOT EXISTS runs (
+    run_id TEXT PRIMARY KEY,
+    parent_run_id TEXT,
+    session_id INTEGER,
+    channel TEXT NOT NULL DEFAULT '',
+    principal TEXT NOT NULL DEFAULT '',
+    owner TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL,
+    phase TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    ended_at TEXT,
+    error_code TEXT NOT NULL DEFAULT '',
+    error_text TEXT NOT NULL DEFAULT '',
+    last_seq INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_runs_session ON runs(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status, created_at);
+CREATE TABLE IF NOT EXISTS run_events (
+    run_id TEXT NOT NULL,
+    seq INTEGER NOT NULL,
+    at TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    data TEXT NOT NULL DEFAULT '{}',
+    PRIMARY KEY (run_id, seq)
+);
+"""
+
+_MIGRATIONS: dict[int, str] = {1: _SCHEMA_V1, 2: _SCHEMA_V2, 3: _SCHEMA_V3, 4: _SCHEMA_V4}
 
 SESSION_RESOURCE = "session:{}"
 
@@ -953,7 +984,7 @@ class StateStore:
                 ]
                 counts = {
                     table: int(self._conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
-                    for table in ("jobs", "executions", "budgets")
+                    for table in ("jobs", "executions", "budgets", "runs")
                 }
             except sqlite3.Error as exc:
                 return {"path": str(self.path), "integrity": f"error: {exc}", "degraded": dict(self._degraded)}

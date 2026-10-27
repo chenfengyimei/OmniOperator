@@ -28,10 +28,10 @@
 | 模块 | 职责 | 明确不做 | 关键文件 |
 |---|---|---|---|
 | `config.py` | 加载 .env 密钥与 config.yaml 配置 | 不含任何业务逻辑 | `config.py` |
-| `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/review.py`、`core/cron.py`、`core/compress.py` |
+| `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/run.py`、`core/session.py`、`core/review.py`、`core/cron.py`、`core/compress.py` |
 | `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、错误包装 | 不做记忆、不管理会话 | `llm/gateway.py` |
-| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py` |
-| `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
+| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py` |
+| `tools/` | Registry（注册/查找/规格生成/派发/结构化 `ToolResult`）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/result.py`、`tools/runctx.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
 | `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台（含内置终端 ConPTY）/ QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal.py`、`channels/qq.py`、`channels/heartbeat.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
@@ -93,22 +93,6 @@
 明确不做：不用一把全局锁把不同会话也串起来——那只是把并发问题换成了响应变慢。
 QQ 通道已有的按会话 `asyncio.Lock` 保留；QQ 侧接入跨进程租约留给 D22。
 
-### 3.5 会话作用域（D06）
-
-"当前选中会话"是**客户端状态**，不是进程级变量。一个回合的会话 id 在请求开始时确定，
-此后落库历史、工具作用域（`SessionRef`）、回合后 review 全部用它，不再回头读"现在是谁"。
-
-| 契约 | 位置 | 必须满足 |
-| --- | --- | --- |
-| 请求固定会话 | `channels/web.py` 的 `/api/chat` | 会话 id 由请求带来（缺省取客户端当前会话），本回合内不写 `agent.session_id` |
-| 进程内串行 | `core/session.SessionGate` | 同一会话按到达顺序执行；不同会话并行；等待队列有上限，满了返 429 |
-| 跨进程互斥 | `state.db.session_leases` | 同一会话同一时刻只有一个进程在跑；拿不到就报 busy 并带上持有者；进程崩溃按 TTL 过期 |
-| 绑定唯一 | `memory/store.get_or_create_binding` | `BEGIN IMMEDIATE` + 主键唯一，不允许"先查后插"建出两个会话 |
-| 工具作用域 | `tools/registry.SessionRef` | 回合内工具（todo 等）写入请求会话，与进程级当前会话无关 |
-
-明确不做：不用一把全局锁把不同会话也串起来——那只是把并发问题换成了响应变慢。
-QQ 通道已有的按会话 `asyncio.Lock` 保留；QQ 侧接入跨进程租约留给 D22。
-
 ### 3.6 浏览器所有权（D07）
 
 Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`threading.RLock` 只保证不并发，
@@ -143,6 +127,24 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 
 明确不做：不做多写者合并（冲突就报错让人/模型重新读一遍）；历史只保留最近 N 条（默认 50），
 它是"能回滚"而不是"永久归档"；符号链接/junction 仍按 §3.3 的规则拒绝，写入路径同样受限。
+
+### 3.8 运行、取消与委派（D09）
+
+一次回合 = 一个 run。run 是**可查的账本**，不是并发控制手段（并发仍归 §3.5 的会话闸门）。
+
+| 契约 | 位置 | 必须满足 |
+| --- | --- | --- |
+| 运行状态 | `state.db` 的 `runs` | `queued/running/waiting_approval/done/failed/cancelled/interrupted`；`phase` 显示当前步骤（model/tool/final/cancelling）；终态必须带 `ended_at` |
+| 事件流 | `state.db` 的 `run_events` | `(run_id, seq)` 主键，`seq` 由同一写事务里的 `last_seq+1` 决定；客户端用 `after=seq` 续读，断线不重放 |
+| 重启对账 | `RunStore.interrupt_stale(owner_kind, current_owner)` | 只对**同类进程**（web/qq/heartbeat）的上一次启动对账；标记 `interrupted` + `process_restart`，写明"结果未知、未自动重试"；不碰别的进程手里的运行 |
+| 取消 | `core/run.CancelToken` + `ActiveRuns` | **协作式**：检查点在每次模型调用前、模型返回后、每次工具调用前；状态先 `cancelling`，真正停下才写 `cancelled`；跨进程不假装能停 |
+| 审批撤销 | `safety/broker.request(cancel=…)` | 等待期间轮询取消信号，取消即把待批准项从队列移除，界面不能再点"同意"执行一个没人等的动作 |
+| 工具结果 | `tools/result.ToolResult` | `status`（ok/error/denied/cancelled/unknown）+ `error_code` + `retryable` + `side_effect_state`；旧字符串经 `from_legacy()` 适配并标 `legacy=True`（推断值不能当"副作用已确认"用） |
+| 委派 | `tools/delegate_tools` + `RunRef` | 子 run 记 `parent_run_id`；步数 `min(父剩余, 配置上限)`；父取消传染子；作用域继承（群聊委派拿不到私人上下文）；不得嵌套 |
+
+明确不做：不做抢占式取消（不杀线程、不发信号）；工具执行中途无法中断，只能在下一个检查点停；
+跨进程取消返回 409 并说明"该运行不在本进程内"；`tool_call_id` 只是本次记录身份，不代表外部系统
+支持幂等——所以"结果未知"的写操作一律不自动重试。
 
 ## 4. 设计模式落位
 

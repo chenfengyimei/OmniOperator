@@ -22,7 +22,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **421 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
+- 测试：`uv run pytest`（当前 **439 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -141,7 +141,10 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 20. **Playwright 同步 API 只能用一条线程**：所有调用都进 `BrowserDriver._OwnerThread` 的队列；别再给驱动加 `RLock` 就当线程安全（那只防并发、不改线程归属）。超时返回 `BrowserUnknown`——是"可能仍在进行、状态未知"，不要自动重试写操作；`close()` 超时也要如实说"可能仍在运行"
 21. **文件类记忆不要用 `threading.Lock`**：`skills/`、`data/MEMORY.md` 的写入者是 CLI/心跳/工作台三个进程，线程锁各管各的。整段读改写要拿 `system/filelock.FileLock`（进程退出自动释放，无僵尸锁），落盘走 `atomic_write_text`（固定 `.tmp` 名字会在并发时互相覆盖）。技能/常驻改动都会进 `data/history/`，回滚是「产生新修订」而不是把版本号改小
 22. **指纹按字节算**：`view()` 用 `read_text` 得到的是 LF 版本，`read_bytes` 得到的是磁盘上的 CRLF，两者哈希不同 → 用户用记事本存过的技能会被误判「被改动过」。指纹统一取 `read_bytes()`
-23. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
+24. **取消是协作式的**：不杀线程、不发信号，检查点在「每次模型调用前 / 模型返回后 / 每次工具调用前」。取消时状态先 `cancelling`，真停了才写 `cancelled`——把仍在跑的线程显示成已停止是最容易被信以为真的谎
+25. **run 的 owner 决定重启对账范围**：`owner = <kind>:<pid>:<boot>`，`interrupt_stale()` 只对同类进程（web/qq/heartbeat）的旧启动对账；否则网页重启会把心跳手里正在跑的任务宣布成失败
+26. **审批器签名不能靠 try/except TypeError 探测**：`type(绑定方法)` 对所有方法都是 `method`，拿它做缓存键会把「WebApprover 支持 cancel」套到每一个审批器上。按 (所属类, 方法名) 缓存
+27. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
 
 ## 6. 未完成事项（按优先级）
 
@@ -180,6 +183,7 @@ src/omni/
   core/review.py         回合后异步记忆整理
   core/cron.py           心跳调度器 + 任务执行/投递 + 账本记账
   core/session.py        会话闸门（同会话串行/队列有界）+ 跨进程会话租约
+  core/run.py            运行身份/取消信号/RunContext/ActiveRuns（协作式取消）
   llm/gateway.py         LiteLLM 统一网关
   memory/store.py        SQLite 仓储（会话/消息/事实/档案/review/绑定/待办/摘要）
   memory/resident.py     常驻小记忆（MEMORY.md 式，限额+防注入）
@@ -187,11 +191,14 @@ src/omni/
   memory/jobs.py         Job 模型 + 校验 + 调度时间（纯数据/纯函数）
   memory/state.py        data/state.db：任务/执行账本/写额度/迁移记录（事务、原子领取、revision）
   memory/revisions.py    内容修订快照（技能/常驻的回滚底座）
+  memory/runs.py         运行记录 + 事件流（单调 seq、重启对账）
   memory/cron.py         兼容再导出（老导入路径不变）
   safety/gates.py        风险分级 + 各上下文 Approver
   safety/smart.py        smart 审批档（ask_model 注入）
   safety/broker.py       跨线程确认（Web 横幅）
-  tools/registry.py      Registry + SessionRef
+  tools/registry.py      Registry + SessionRef（execute→ToolResult，dispatch→字符串）
+  tools/result.py        ToolResult 契约（status/error_code/side_effect_state + 旧字符串适配）
+  tools/runctx.py        RunRef（线程内的「当前 run」，给委派用）
   tools/builtin.py       core 工具（记忆/档案/待办/常驻/摘要）
   tools/shell/           SAFE 结构化命令（spec/process/danger/tools）+ 兼容薄层 shell_tools.py
   tools/delegate_tools.py 子任务委派

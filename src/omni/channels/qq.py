@@ -126,7 +126,7 @@ async def _serve(runtime: Runtime) -> None:
 
 def main() -> None:
     load_env()
-    runtime = build_runtime(approver=DenyApprover())
+    runtime = build_runtime(approver=DenyApprover(), owner_kind="qq")
     # pid 目录来自 RuntimePaths：与运行数据根同源，不再另拼全局路径
     pid_file = runtime.paths.run / "omni-qq.pid"
     pid_file.parent.mkdir(parents=True, exist_ok=True)

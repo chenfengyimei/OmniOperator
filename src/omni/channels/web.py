@@ -12,6 +12,7 @@ Host/Origin/Sec-Fetch-Site 三级校验挡住跨站与 DNS rebinding；终端 WS
 from __future__ import annotations
 
 import asyncio
+import functools
 import datetime as dt
 import json
 import os
@@ -348,6 +349,23 @@ def create_app(runtime: Runtime) -> FastAPI:
             raise HTTPException(status_code=404, detail="待办不存在")
         return {"ok": True}
 
+    async def _run_turn(sid: int, message: str):
+        """跑一个回合并返回 TurnResult（run_id 给界面查事件流）。
+
+        仍然保留"同一会话串行 + 跨进程租约"：run 是账本，不是并发控制手段。
+        """
+        async with runtime.session_gate.turn(sid):
+            with runtime.session_leases.hold(sid):
+                return await asyncio.to_thread(
+                    functools.partial(
+                        runtime.agent.run_turn,
+                        message,
+                        session_id=sid,
+                        channel="web",
+                        principal="owner",
+                    )
+                )
+
     @app.post("/api/chat")
     async def chat(payload: ChatIn) -> dict[str, Any]:
         """一个回合只认请求里带来的会话（A06）。
@@ -363,17 +381,90 @@ def create_app(runtime: Runtime) -> FastAPI:
         if not runtime.store.session_exists(sid):
             raise HTTPException(status_code=404, detail="会话不存在")
         try:
-            async with runtime.session_gate.turn(sid):
-                with runtime.session_leases.hold(sid):
-                    answer = await asyncio.to_thread(
-                        runtime.agent.chat, payload.message, session_id=sid
-                    )
+            turn = await _run_turn(sid, payload.message)
         except SessionBusy as exc:
             raise HTTPException(status_code=429, detail=str(exc))
         except GatewayError as exc:
             raise HTTPException(status_code=502, detail=str(exc))
         runtime.spawn_review(sid)  # 与 CLI 一致：回合后异步记忆整理（会话由本回合固定）
-        return {"answer": answer, "session_id": sid}
+        return {
+            "answer": turn.answer,
+            "session_id": sid,
+            "run_id": turn.run_id,
+            "status": turn.status,
+        }
+
+    # ---------------------------------------------------------------- 运行（D09）
+
+    @app.post("/api/runs")
+    async def run_create(payload: ChatIn) -> dict[str, Any]:
+        """显式运行入口：语义同 /api/chat，但调用方明确按 run 消费。"""
+        sid = payload.session_id if payload.session_id is not None else runtime.agent.session_id
+        if not runtime.store.session_exists(sid):
+            raise HTTPException(status_code=404, detail="会话不存在")
+        try:
+            turn = await _run_turn(sid, payload.message)
+        except SessionBusy as exc:
+            raise HTTPException(status_code=429, detail=str(exc))
+        except GatewayError as exc:
+            raise HTTPException(status_code=502, detail=str(exc))
+        runtime.spawn_review(sid)
+        return {
+            "run_id": turn.run_id,
+            "session_id": sid,
+            "status": turn.status,
+            "answer": turn.answer,
+            "error_code": turn.error_code,
+        }
+
+    @app.get("/api/runs")
+    def run_list(session_id: int | None = None, limit: int = 20) -> dict[str, Any]:
+        try:
+            runs = runtime.runs.list_recent(session_id=session_id, limit=limit)
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        return {"runs": [run.brief() for run in runs]}
+
+    @app.get("/api/runs/{run_id}")
+    def run_get(run_id: str) -> dict[str, Any]:
+        record = runtime.runs.get(run_id)
+        if record is None:
+            raise HTTPException(status_code=404, detail="运行不存在")
+        return {"run": record.brief(), "live": runtime.active_runs.get(run_id) is not None}
+
+    @app.get("/api/runs/{run_id}/events")
+    def run_events(run_id: str, after: int = 0, limit: int = 200) -> dict[str, Any]:
+        """事件续读：`after=seq` 只拿新事件，断线重连不会重放整个回合。"""
+        if runtime.runs.get(run_id) is None:
+            raise HTTPException(status_code=404, detail="运行不存在")
+        events = runtime.runs.events(run_id, after=after, limit=limit)
+        return {
+            "run_id": run_id,
+            "events": [event.brief() for event in events],
+            "next_after": events[-1].seq if events else after,
+        }
+
+    @app.post("/api/runs/{run_id}/cancel")
+    def run_cancel(run_id: str) -> dict[str, Any]:
+        """取消一次运行：**协作式**，不会杀线程。
+
+        检查点在"每次模型调用前、模型返回后、每次工具调用前"；正在等待的模型请求
+        会在返回后立刻停止，正在等人工批准的会撤销待批准项。所以这里返回的
+        `status` 是"已经开始取消"，真正停下以 GET /api/runs/{id} 的终态为准。
+        """
+        if runtime.active_runs.cancel(run_id, "用户在工作台取消"):
+            return {"ok": True, "run_id": run_id, "detail": "已请求取消（协作式生效中）"}
+        record = runtime.runs.get(run_id)
+        if record is None:
+            raise HTTPException(status_code=404, detail="运行不存在")
+        if record.finished:
+            raise HTTPException(
+                status_code=409, detail=f"运行已结束（{record.status}），无需取消"
+            )
+        raise HTTPException(
+            status_code=409,
+            detail="该运行不在本进程内（可能由其它进程执行），本进程无法取消",
+        )
 
     @app.get("/api/facts")
     def get_facts(q: str = "", limit: int = 50) -> dict[str, Any]:
@@ -911,7 +1002,7 @@ def main() -> None:
     if host not in LOOPBACK_HOSTS:
         _validate_bind_host(host)  # 未显式开启会 SystemExit
         print(f"[工作台] 警告：正在非回环地址 {host} 监听（已由 OMNI_WEB_ALLOW_REMOTE=1 显式开启）")
-    runtime = build_runtime()
+    runtime = build_runtime(owner_kind="web")
     # Web 上下文的确认流：confirm 工具 → 工作台横幅（agent 线程阻塞等待用户点击）。
     # approval.mode=smart 时先经辅助模型预筛（明显安全放行/明显危险拒），拿不准仍走横幅。
     approver: Any = WebApprover(runtime.approvals)

@@ -73,7 +73,7 @@ def test_fresh_database_has_schema_version_and_wal(tmp_path):
     assert health["journal_mode"].lower() == "wal"  # 已用 WAL：不重复包装成新功能
     assert health["integrity"] == "ok"
     assert health["degraded"] == {}
-    assert health["counts"] == {"jobs": 0, "executions": 0, "budgets": 0}
+    assert health["counts"] == {"jobs": 0, "executions": 0, "budgets": 0, "runs": 0}
 
 
 def test_newer_schema_version_is_refused(tmp_path):
@@ -443,7 +443,8 @@ def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
         conn.close()
 
     upgraded = _state(tmp_path)
-    assert upgraded.health()["schema_version"] == 3
+    # 从 v2 一步升到当前版本（v3 合并租约表、v4 建运行表）
+    assert upgraded.health()["schema_version"] == SCHEMA_VERSION
     lease = upgraded.session_lease(7)
     assert lease is not None and lease.owner == "pid:123" and lease.token == "tok-abc"
     assert lease.session_id == 7
@@ -479,7 +480,8 @@ def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
         conn.close()
 
     upgraded = _state(tmp_path)
-    assert upgraded.health()["schema_version"] == 3
+    # 从 v2 一步升到当前版本（v3 合并租约表、v4 建运行表）
+    assert upgraded.health()["schema_version"] == SCHEMA_VERSION
     lease = upgraded.session_lease(7)
     assert lease is not None and lease.owner == "pid:123" and lease.token == "tok-abc"
     assert lease.session_id == 7

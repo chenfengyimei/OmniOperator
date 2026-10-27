@@ -45,7 +45,7 @@ async def _serve(runtime) -> None:
 
 def main() -> None:
     load_env()
-    runtime = build_runtime(approver=DenyApprover())  # 无人值守：fail-closed
+    runtime = build_runtime(approver=DenyApprover(), owner_kind="heartbeat")  # 无人值守：fail-closed
     # pid 目录来自 RuntimePaths（与真实运行数据根一起注入，不另拼全局路径）
     pid_file = runtime.paths.run / "omni-heartbeat.pid"
     pid_file.parent.mkdir(parents=True, exist_ok=True)

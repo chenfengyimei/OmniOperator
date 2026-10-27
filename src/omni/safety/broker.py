@@ -34,8 +34,19 @@ class ApprovalBroker:
         self._lock = threading.Lock()
         self._pending: dict[str, PendingApproval] = {}
 
-    def request(self, tool: Any, detail: str = "", timeout: float | None = None) -> Decision:
-        """阻塞等待用户的批准决定（在 agent 线程里调用）。"""
+    def request(
+        self,
+        tool: Any,
+        detail: str = "",
+        timeout: float | None = None,
+        cancel: Any = None,
+    ) -> Decision:
+        """阻塞等待用户的批准决定（在 agent 线程里调用）。
+
+        `cancel` 是本次运行的取消信号：等待期间轮询它，一旦取消就**把待批准项从
+        队列里撤掉**再返回拒绝——否则界面上的"同意"按钮还能点，点下去会执行一个
+        已经没人等的操作。
+        """
         pending = PendingApproval(
             id=uuid.uuid4().hex[:8],
             tool_name=str(getattr(tool, "name", "unknown")),
@@ -46,10 +57,23 @@ class ApprovalBroker:
         )
         with self._lock:
             self._pending[pending.id] = pending
-        ok = pending.event.wait(timeout if timeout is not None else self._timeout)
+        remaining = float(timeout if timeout is not None else self._timeout)
+        answered = False
+        while True:
+            slice_s = 0.1 if cancel is not None else remaining
+            if pending.event.wait(max(0.0, min(slice_s, remaining))):
+                answered = True
+                break
+            remaining -= min(slice_s, remaining)
+            if cancel is not None and getattr(cancel, "cancelled", False):
+                with self._lock:
+                    self._pending.pop(pending.id, None)
+                return Decision(False, "本次运行已取消，待批准的操作已撤销")
+            if remaining <= 0:
+                break
         with self._lock:
             self._pending.pop(pending.id, None)
-        if not ok:
+        if not answered:
             return Decision(False, "确认超时（3 分钟无人处理），已自动拒绝")
         if pending.allowed:
             return Decision(True)
