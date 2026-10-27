@@ -55,6 +55,19 @@ def test_android_stream_bad_capture_ends_without_invalid_frame(tmp_path, monkeyp
     assert client.get("/api/android/stream").content == b""
 
 
+def test_skill_reference_endpoint(tmp_path):
+    client, runtime = _client(tmp_path, skills_root=tmp_path / "skills")
+    runtime.skills.create("demo-skill", "演示", "完整流程。" * 20)
+    refs = tmp_path / "skills" / "demo-skill" / "references"
+    refs.mkdir()
+    (refs / "guide.md").write_text("按需读取", encoding="utf-8")
+    assert client.get("/api/skills/demo-skill").json()["references"] == ["references/guide.md"]
+    response = client.get("/api/skills/demo-skill", params={"path": "references/guide.md"})
+    assert response.json()["content"] == "按需读取"
+    assert client.get("/api/skills/demo-skill", params={"path": "../secret"}).status_code == 400
+    assert client.get("/api/skills/demo-skill", params={"path": "references/no.md"}).status_code == 404
+
+
 def test_state_shape(tmp_path):
     client, _rt = _client(tmp_path)
     data = client.get("/api/state").json()

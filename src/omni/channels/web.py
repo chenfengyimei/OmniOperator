@@ -290,11 +290,14 @@ def create_app(runtime: Runtime) -> FastAPI:
         }
 
     @app.get("/api/skills/{name}")
-    def get_skill(name: str) -> dict[str, Any]:
-        content = runtime.skills.view(name)
+    def get_skill(name: str, path: str | None = None) -> dict[str, Any]:
+        try:
+            content = runtime.skills.view(name, path)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
         if content is None:
             raise HTTPException(status_code=404, detail="技能不存在")
-        return {"content": content}
+        return {"content": content, "references": runtime.skills.references(name) if path is None else []}
 
     # ---------- 确认流（confirm 级工具的人工审批） ----------
 

@@ -13,7 +13,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **205 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
+- 测试：`uv run pytest`（当前 **220 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
 
 ## 2. 五分钟上手
 
@@ -54,7 +54,7 @@ uv run omni-heartbeat              # 心跳调度（cron）
 | core | resident_memory | 常驻工作笔记（2200 限额，每轮注入系统提示词，带防注入扫描） |
 | core | todo | 会话级多步清单（SessionRef thread-local 注入当前会话） |
 | core | daily_digest | 过去 N 小时活动摘要（夜间整理素材） |
-| core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite | 技能（SKILL.md，渐进披露，patch 按节省 token） |
+| core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite | 技能（SKILL.md，渐进披露，patch 按节省 token）；skill_view(name, path="references/guide.md") 按需读参考文本 |
 | core | delegate_task | 子任务委派到干净会话（thread-local 防嵌套，会话引用自动还原） |
 | shell | peek_command（SAFE，只读白名单）/ run_command（CONFIRM） | 本机命令；含硬黑名单（灾难级即使确认也不执行） |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
@@ -97,7 +97,7 @@ uv run omni-heartbeat              # 心跳调度（cron）
 delegate_task、工具自注册+toolset 分组。
 **未做**：cron script/预采集脚本、provider 覆盖、suggestions（主动建议）、
 记忆向量检索（sqlite-vec）、computer-use 桌面控制（Hermes 经 MCP 接 cua-driver）、
-MCP 客户端支持、技能 references 目录与安装扫描。
+MCP 客户端支持、技能安装扫描。技能 references 已支持：主文列路径、三级按需读；限制 UTF-8 文本 64 KiB，禁越界/符号链接/junction/Windows ADS；目录最多列 60 项。
 
 ## 5. 平台坑清单（血泪，别再踩）
 

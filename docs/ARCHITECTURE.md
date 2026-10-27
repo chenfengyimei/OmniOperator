@@ -92,6 +92,11 @@
 1. 在 `memory/store.py` 加表与方法（上层不感知 SQL）
 2. 需要暴露给 LLM 的，包装成工具或注入系统提示词——在哪注入由 bootstrap 决定
 
+### 5.4 技能参考文件
+`SkillStore` 负责 `references/` 路径校验、目录清单与有限文本读取；工具层通过
+`skill_view(name, path=...)` 渐进披露，不执行附件。绝对路径、目录穿越、符号链接、
+Windows junction/ADS 均拒绝，单文件上限 64 KiB；已有 `skills_root` 注入覆盖全部参考路径。
+
 ## 6. Phase 架构演进预告
 
 | Phase | 新增 | 结构原则 |

@@ -13,9 +13,10 @@
 """
 from __future__ import annotations
 
+import os
 import re
 import threading
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 import yaml
@@ -28,13 +29,16 @@ MIN_BODY = 50
 MAX_BODY = 24000
 PLATFORMS = ["windows", "macos"]
 SECTIONS = ("When to Use", "Procedure", "Pitfalls", "Verification")
+REFERENCE_SUFFIXES = {".md", ".txt", ".rst", ".json", ".yaml", ".yml", ".toml", ".csv"}
+MAX_REFERENCE_BYTES = 64 * 1024
+MAX_REFERENCES = 60
 
 
 def parse_skill_md(path: Path) -> dict[str, Any] | None:
     """解析 SKILL.md → {"meta": {...}, "body": "..."}；格式不对返回 None。"""
     try:
         text = path.read_text(encoding="utf-8")
-    except OSError:
+    except (OSError, UnicodeError):
         return None
     if not text.startswith("---"):
         return None
@@ -54,13 +58,15 @@ class SkillStore:
     _create_lock = threading.Lock()  # 类级锁：主实例与 review 实例共用
 
     def __init__(self, root: Path | None = None) -> None:
-        self._root = root or SKILLS_DIR
+        self._root = Path(root or SKILLS_DIR).resolve()
         self._root.mkdir(parents=True, exist_ok=True)
 
     def list(self) -> list[dict[str, Any]]:
         """渐进披露第一级：只给名字/描述/版本。"""
         out: list[dict[str, Any]] = []
         for skill_md in sorted(self._root.glob("*/SKILL.md")):
+            if self._safe_path(skill_md.parent.name) is None:
+                continue
             parsed = parse_skill_md(skill_md)
             if parsed is None:
                 continue
@@ -74,12 +80,87 @@ class SkillStore:
             )
         return out
 
-    def view(self, name: str) -> str | None:
-        """渐进披露第二级：完整 SKILL.md。"""
-        path = self._safe_path(name)
-        if path is None or not path.exists():
+    def view(self, name: str, path: str | None = None) -> str | None:
+        """第二级读 SKILL.md，第三级只读指定 references 文本；绝不执行附件。"""
+        skill_md = self._safe_path(name)
+        if skill_md is None or not skill_md.is_file():
             return None
-        return path.read_text(encoding="utf-8")
+        if path is None:
+            return skill_md.read_text(encoding="utf-8")
+        target = self._reference_path(name, path)
+        if target is None:
+            raise ValueError("只允许技能 references/ 内的文本文件；禁止绝对路径、越界与链接")
+        if not target.is_file():
+            return None
+        with target.open("rb") as stream:
+            data = stream.read(MAX_REFERENCE_BYTES + 1)
+        if len(data) > MAX_REFERENCE_BYTES:
+            raise ValueError("参考文件超过 64 KiB，请拆分后按需读取")
+        try:
+            text = data.decode("utf-8-sig")
+        except UnicodeError as exc:
+            raise ValueError("参考文件必须是 UTF-8 文本") from exc
+        if "\x00" in text:
+            raise ValueError("参考文件包含二进制内容")
+        return text
+
+    def references(self, name: str) -> list[str]:
+        """只列文件名，最多 60 个、四级目录；不遍历链接或读取附件正文。"""
+        skill_md = self._safe_path(name)
+        if skill_md is None or not skill_md.is_file():
+            return []
+        root = skill_md.parent / "references"
+        if not self._contained(root) or not root.is_dir():
+            return []
+        out: list[str] = []
+        visited = 0
+        for directory, dirs, files in os.walk(root, followlinks=False):
+            visited += 1
+            if visited > 256:
+                break
+            parent = Path(directory)
+            dirs[:] = sorted(d for d in dirs if self._contained(parent / d))
+            if len(parent.relative_to(root).parts) >= 3:
+                dirs.clear()
+            for filename in sorted(files):
+                relative = (parent / filename).relative_to(skill_md.parent).as_posix()
+                if self._reference_path(name, relative) is not None:
+                    out.append(relative)
+                    if len(out) >= MAX_REFERENCES:
+                        return out
+        return out
+
+    def _reference_path(self, name: str, relative: str) -> Path | None:
+        # 同时检查 Windows 和 POSIX 语法，不能靠宿主 OS 的 Path 判断盘符与 ADS。
+        parts = relative.replace("\\", "/").split("/")
+        if (
+            not parts or parts[0] != "references" or len(parts) < 2
+            or PureWindowsPath(relative).drive
+            or any(p in {"", ".", ".."} or p.endswith((" ", ".")) or ":" in p or "\x00" in p
+                   or PureWindowsPath(p).is_reserved() for p in parts)
+        ):
+            return None
+        skill_md = self._safe_path(name)
+        if skill_md is None:
+            return None
+        target = skill_md.parent.joinpath(*parts)
+        if target.suffix.lower() not in REFERENCE_SUFFIXES or not self._contained(target):
+            return None
+        return target
+
+    def _contained(self, path: Path) -> bool:
+        """禁止符号链接/junction（含指向其它技能）和根目录外路径。"""
+        try:
+            path.resolve().relative_to(self._root)
+            relative = path.relative_to(self._root)
+            current = self._root
+            for part in relative.parts:
+                current /= part
+                if current.is_symlink() or current.is_junction():
+                    return False
+            return True
+        except (OSError, ValueError, RuntimeError):
+            return False
 
     def exists(self, name: str) -> bool:
         path = self._safe_path(name)
@@ -109,7 +190,9 @@ class SkillStore:
                     f"错误：技能 {name} 已存在。先 skill_view 查看现有内容，"
                     "把新经验合并进去而不是建重复技能"
                 )
-            path = self._root / name / "SKILL.md"
+            path = self._safe_path(name)
+            if path is None:
+                return False, "错误：技能目录包含链接或越界路径"
             path.parent.mkdir(parents=True, exist_ok=True)
             frontmatter = {
                 "name": name,
@@ -205,4 +288,5 @@ class SkillStore:
     def _safe_path(self, name: str) -> Path | None:
         if not NAME_RE.match((name or "").strip()):
             return None
-        return self._root / name.strip() / "SKILL.md"
+        path = self._root / name.strip() / "SKILL.md"
+        return path if self._contained(path) else None

@@ -1,5 +1,6 @@
 """技能系统单测：存储（创建/列表/查看/linter）+ 工具派发。"""
 import json
+import pytest
 
 from omni.memory.skills import SkillStore
 from omni.tools.registry import ToolRegistry
@@ -125,3 +126,76 @@ def test_patch_and_rewrite(tmp_path):
     assert not ok and "60" in msg
     ok, msg = store.rewrite("demo-skill", "合法描述", "太短")
     assert not ok and "太短" in msg
+
+
+def test_references_progressive_disclosure(tmp_path):
+    store = SkillStore(tmp_path)
+    assert store.create("demo-skill", "演示", _body())[0]
+    refs = tmp_path / "demo-skill" / "references"
+    refs.mkdir()
+    (refs / "guide.md").write_text("只在第三级出现的正文", encoding="utf-8")
+    registry = ToolRegistry()
+    register_skill_tools(registry, store)
+    listing = registry.dispatch("skills_list", {})
+    assert "guide.md" not in listing
+    main = registry.dispatch("skill_view", {"name": "demo-skill"})
+    assert "references/guide.md" in main and "只在第三级" not in main
+    assert registry.dispatch("skill_view", {"name": "demo-skill", "path": "references/guide.md"}) == "只在第三级出现的正文"
+    assert store.view("demo-skill", "references/missing.md") is None
+
+
+@pytest.mark.parametrize("path", ["../secret.md", "references/../../secret.md", "C:/secret.md", "C:secret.md", "\\\\server\\share\\secret.md", "references/a.md:stream", "references/../SKILL.md", "references/NUL.txt", "references/guide.md.", "scripts/run.py"])
+def test_reference_paths_cannot_escape(tmp_path, path):
+    store = SkillStore(tmp_path)
+    store.create("demo-skill", "演示", _body())
+    with pytest.raises(ValueError):
+        store.view("demo-skill", path)
+
+
+def test_references_reject_binary_and_oversize(tmp_path):
+    store = SkillStore(tmp_path)
+    store.create("demo-skill", "演示", _body())
+    refs = tmp_path / "demo-skill" / "references"
+    refs.mkdir()
+    target = refs / "guide.md"
+    for data in (b"x" * 65537, b"\xff\xfe", b"hello\x00world"):
+        target.write_bytes(data)
+        with pytest.raises(ValueError):
+            store.view("demo-skill", "references/guide.md")
+
+
+def test_references_listing_is_bounded(tmp_path):
+    store = SkillStore(tmp_path)
+    store.create("demo-skill", "演示", _body())
+    refs = tmp_path / "demo-skill" / "references"
+    refs.mkdir()
+    for i in range(70):
+        (refs / f"guide-{i:02}.md").write_text("正文", encoding="utf-8")
+    assert len(store.references("demo-skill")) == 60
+
+
+def test_skill_and_reference_links_are_rejected(tmp_path):
+    store = SkillStore(tmp_path / "skills")
+    store.create("demo-skill", "演示", _body())
+    external = tmp_path / "external"
+    external.mkdir()
+    (external / "secret.md").write_text("不可泄露", encoding="utf-8")
+    skill = tmp_path / "skills" / "demo-skill"
+    # Windows 无符号链接权限时用 junction；两种都是需要阻断的真实文件系统路径。
+    import os
+    import subprocess
+    reference_link = skill / "references"
+    if os.name == "nt":
+        result = subprocess.run(["cmd", "/c", "mklink", "/J", str(reference_link), str(external)], capture_output=True)
+        assert result.returncode == 0
+    else:
+        reference_link.symlink_to(external, target_is_directory=True)
+    try:
+        assert store.references("demo-skill") == []
+        with pytest.raises(ValueError):
+            store.view("demo-skill", "references/secret.md")
+    finally:
+        if os.name == "nt":
+            reference_link.rmdir()
+        else:
+            reference_link.unlink()

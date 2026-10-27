@@ -26,9 +26,18 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
 
     def skill_view(args: dict[str, Any]) -> str:
         name = str(args.get("name", "")).strip()
-        content = skills.view(name)
+        path = args.get("path")
+        try:
+            content = skills.view(name, str(path) if path is not None else None)
+        except ValueError as exc:
+            return f"错误：{exc}"
         if content is None:
-            return f"错误：没有技能 {name or '（空）'}（先用 skills_list 查看名字）"
+            return f"错误：没有技能或参考文件 {name or '（空）'}（先用 skills_list 查看名字）"
+        if path is None:
+            references = skills.references(name)
+            if references:
+                content += "\n\n参考文件（按需用 skill_view 的 path 读取，最多列出 60 项）：\n"
+                content += "\n".join(f"- {p}" for p in references)
         return content
 
     def skill_create(args: dict[str, Any]) -> str:
@@ -68,10 +77,13 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
     registry.register(
         Tool(
             name="skill_view",
-            description="查看某个技能的完整内容（When to Use / Procedure / Pitfalls / Verification）",
+            description="查看技能全文及参考文件列表；提供 path 时只读该 references/ 文本（不执行附件）",
             parameters={
                 "type": "object",
-                "properties": {"name": {"type": "string", "description": "技能名（skills_list 里有）"}},
+                "properties": {
+                    "name": {"type": "string", "description": "技能名（skills_list 里有）"},
+                    "path": {"type": "string", "description": "可选：如 references/guide.md；省略读 SKILL.md"},
+                },
                 "required": ["name"],
             },
             func=skill_view,
