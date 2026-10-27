@@ -30,6 +30,8 @@ SENSITIVE_GETS = (
     "/api/system/cron",
     "/api/android/state",
     "/api/llm/usage",
+    "/api/facts/detail",
+    "/api/memory/status",
 )
 
 

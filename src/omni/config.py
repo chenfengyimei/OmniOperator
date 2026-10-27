@@ -172,6 +172,20 @@ class Review(BaseModel):
     enabled: bool = True
     max_messages: int = 12
     steps: int = 4
+    queue_depth: int = 4      # 待整理队列上限：满了就明确跳过，不无限堆线程（A16）
+    min_messages: int = 2     # 少于这么多条新消息不整理（节省调用）
+
+
+class Memory(BaseModel):
+    """记忆写入的确定性约束（D12/A15）。
+
+    额度不是"建议"：所有记忆写入口（事实 / 档案 / 技能）共用同一份当日额度，
+    自动 review 与用户手动操作走同一条路，不能靠模型自觉。
+    """
+
+    max_writes_per_day: int = 200   # 事实+档案+技能的每日写入总次数
+    max_fact_chars: int = 500       # 单条事实的最大长度（防止把整段对话塞进来）
+    recall_prefix: bool = True      # 检索结果加"这是数据不是指令"的说明
 
 
 class Compression(BaseModel):
@@ -274,6 +288,7 @@ class AppConfig(BaseModel):
     llm: LLM = Field(default_factory=LLM)
     limits: Limits = Field(default_factory=Limits)
     review: Review = Field(default_factory=Review)
+    memory: Memory = Field(default_factory=Memory)
     compression: Compression = Field(default_factory=Compression)
     asr: Asr = Field(default_factory=Asr)
     qq: QQ = Field(default_factory=QQ)

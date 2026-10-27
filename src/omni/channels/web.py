@@ -600,6 +600,41 @@ def create_app(runtime: Runtime) -> FastAPI:
     def get_facts(q: str = "", limit: int = 50) -> dict[str, Any]:
         return {"facts": runtime.store.search_facts(q, limit=min(limit, 100))}
 
+    @app.get("/api/facts/detail")
+    def get_facts_detail(limit: int = 200) -> dict[str, Any]:
+        """带来源/作用域/时间的事实列表（D12）：让人能判断"这条是哪来的"。"""
+        return {"facts": runtime.store.fact_rows(limit=min(limit, 500))}
+
+    @app.delete("/api/facts/{fact_id}")
+    def delete_fact(fact_id: int) -> dict[str, Any]:
+        """用户主动删除：与工具走的同一条遗忘路径（留墓碑 + 摘要失效）。"""
+        if not runtime.store.forget_fact(fact_id, reason="工作台手动删除"):
+            raise HTTPException(status_code=404, detail="记忆不存在")
+        return {"ok": True, "fact_id": fact_id, "detail": "已删除，并标记为不再学习"}
+
+    @app.get("/api/memory/status")
+    def memory_status() -> dict[str, Any]:
+        """记忆写入额度、review 队列与最近整理记录（D12 可观测面）。"""
+        used, limit = (
+            runtime.memory_guard.usage_today()
+            if runtime.memory_guard is not None
+            else (0, 0)
+        )
+        reviewer = runtime.reviewer
+        reviews: list[dict[str, Any]] = []
+        sid = runtime.agent.session_id
+        if runtime.store.session_exists(sid):
+            reviews = runtime.store.review_history(sid, limit=5)
+        return {
+            "writes": {"used": used, "limit": limit or None},
+            "review": {
+                "enabled": reviewer is not None,
+                "queue_depth": reviewer.queue_depth if reviewer is not None else 0,
+                "stats": dict(reviewer.stats) if reviewer is not None else {},
+                "recent": reviews,
+            },
+        }
+
     @app.get("/api/profile")
     def get_profile() -> dict[str, Any]:
         return {

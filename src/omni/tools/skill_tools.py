@@ -32,7 +32,17 @@ _EXPECTED_HASH_PARAM = {
 }
 
 
-def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
+def register_skill_tools(
+    registry: ToolRegistry, skills: SkillStore, *, guard: Any = None
+) -> None:
+    """技能工具。`guard` 存在时，创建/改写/回滚共用记忆写入额度（D12）。"""
+
+    def _gate(content: str) -> str | None:
+        if guard is None:
+            return None
+        decision = guard.check("skill", content)
+        return None if decision.allowed else f"未写入技能：{decision.reason}"
+
     def skills_list(_: dict[str, Any]) -> str:
         items = skills.list()
         if not items:
@@ -64,6 +74,9 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
         return content
 
     def skill_create(args: dict[str, Any]) -> str:
+        blocked = _gate(str(args.get("content", "")))
+        if blocked:
+            return blocked
         ok, msg = skills.create(
             str(args.get("name", "")),
             str(args.get("description", "")),
@@ -72,6 +85,9 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
         return msg
 
     def skill_patch(args: dict[str, Any]) -> str:
+        blocked = _gate(str(args.get("content", "")))
+        if blocked:
+            return blocked
         _ok, msg = skills.patch(
             str(args.get("name", "")),
             str(args.get("section", "")),
@@ -81,6 +97,9 @@ def register_skill_tools(registry: ToolRegistry, skills: SkillStore) -> None:
         return msg
 
     def skill_rewrite(args: dict[str, Any]) -> str:
+        blocked = _gate(str(args.get("content", "")))
+        if blocked:
+            return blocked
         _ok, msg = skills.rewrite(
             str(args.get("name", "")),
             str(args.get("description", "")),

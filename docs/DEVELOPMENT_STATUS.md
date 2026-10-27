@@ -51,8 +51,8 @@
 | A12 | `tap_element` 在陈旧/换设备时先 `refresh_tree()` 再用**同一个 idx** 在新树里找元素 → 可能点到别的东西；动作后无强制复检 | 源码 | `tools/android/driver.py:168-185` | D16 | 源码发现 |
 | A13 | 截图工具只回路径字符串，`Agent` 未构造图像消息块，模型收不到图 | 源码 | `tools/browser/tools.py`、`tools/android/tools.py`、`core/agent.py` | D15 | 源码发现 |
 | A14 | 技能更新锁只覆盖最终 `write`，读改写不原子；版本号递增但无历史快照 | 已修复 | 整段读改写进跨进程锁；`expected_hash`/`_seen` 做 CAS；`memory/revisions.py` 保存每版内容（作者/来源/时间/摘要/附件清单）；回滚产生新修订；`tests/test_skills_history.py` 18 例（含两进程同指纹只有一个成功、落盘失败原文件不变、junction 写入被拒） | D08 | 已修复；编辑 UI 与差异展示留 D18 |
-| A15 | `profile_edit` 未重跑总额度校验；常驻防注入规则未覆盖 review/skill 等全部学习入口 | 源码 | `memory/store.py::profile_edit`、`core/review.py` | D12 | 源码发现 |
-| A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 部分修复 | **索引**：FTS 改由触发器增量维护，`meta` 记分词器/版本/构建时间，只在「首次 / 分词器升级 / 旧库无状态」重建一次（`tests/test_context.py` 5 例，含 3 个连接同时打开不重建）；真机 `data/memory.db` 首次 0.04s 重建、二次 0.02s 不重建 | D11、D12 | 索引已修复；review 的有界队列/去重/累计预算仍属 D12 |
+| A15 | `profile_edit` 未重跑总额度校验；常驻防注入规则未覆盖 review/skill 等全部学习入口 | 已修复 | `profile_edit_checked` 重算总额并拒绝超限（`test_profile_edit_cannot_exceed_total`）；事实/档案/技能/回滚统一走 `MemoryGuard`（输入检查 + 共用当日额度 + 遗忘检查），review 与手动写入同一闸门（`tests/test_memory_governance.py` 18 例） | D12 | 已修复（"候选队列/差异确认"未做，见第 5 节剩余限制） |
+| A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 已修复 | **索引**：FTS 改由触发器增量维护，只在「首次 / 分词器升级 / 旧库无状态」重建一次（`tests/test_context.py` 5 例）；**review**：单 worker + 有界队列 + 按消息区间认领去重，队列满返回 `full`（`test_review_queue_is_bounded`、`test_review_is_deduplicated_by_message_range`）；模型消耗计入 D10 账本（`purpose=review`） | D11、D12 | 已修复（真实多进程并发 review 未演练） |
 | A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 部分修复 | `claim_due()` 在单个写事务里推进 `next_run_at` + 写 `job_claims`；4 个真实进程同时 tick 只派发一次（`tests/test_state.py::test_claim_due_is_atomic_across_processes`） | D05、D17 | 领取已修复；并行上限、投递 outbox/去重、`context_from` 绑定 run_id 仍属 D17 |
 | A18 | 服务停止只比对 pid 文件与进程存活，无创建时间/命令行身份绑定，pid 重用有误杀风险 | 源码 | `system/services.py` | D25 | 源码发现 |
 | A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 已修复 | 进程树回收 + "已确认回收/回收状态未知"话术；D09 起工具异常/超时统一记 `side_effect_state=unknown`（`tests/test_runs.py::test_execute_distinguishes_the_four_outcomes`） | D01、D09 | 已修复 |
@@ -80,6 +80,7 @@
 | D09 | 完成 | A19、A20（账本/取消/ToolResult） | 见第 5 节 | `uv run pytest -q` → 439 passed | 真实网关下的取消时延、跨进程取消（返回 409）待 D27 实测 | 进入 D10 |
 | D10 | 完成 | A20（费用预算、流式 usage） | 见第 5 节 | `uv run pytest tests/test_gateway.py tests/test_usage.py -q` → 54 passed；`uv run pytest -q` → 501 passed | 真机 `data/state.db` 已 v2→v5 迁移，账本自检通过（演示流水已清理）；真实供应商 429/超时/流式断连与账单对账未验 | 进入 D11 |
 | D11 | 完成 | A16（FTS 生命周期）、持久摘要 | 见第 5 节 | `uv run pytest tests/test_context.py -q` → 13 passed；`uv run pytest -q` → 514 passed | 真机 `data/memory.db` 一次性升级（legacy rebuild 0.04s），二次打开不再重建（0.02s），16 个会话与检索不变 | 进入 D12 |
+| D12 | 完成 | A15、A16（review 队列/去重） | 见第 5 节 | `uv run pytest tests/test_memory_governance.py -q` → 18 passed；`uv run pytest -q` → 535 passed | 真机库未做写入压力测试；"候选队列/差异确认"按当前风险面评估未做（见第 5 节剩余限制） | 进入 R3（D13 结构化文件工具） |
 | D10–D12 | 待开始 | A15、A16、A20（token/费用预算） | — | — | — | 依赖 D09 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
@@ -87,6 +88,56 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D12（记忆治理：额度、来源、遗忘与有界 review）
+
+- **改了什么**：
+  - 新增 `memory/guard.py`：`MemoryGuard.check(kind, text, store)` 按「输入 → 遗忘 → 额度」
+    判定，事实/档案/技能共用一份当日额度（`state.db` 的 `memory_write` 作用域，条件更新），
+    额度状态不可用时 **fail-closed**；被拒的写入**不消耗额度**；
+  - `memory/store.py`：`facts` 增加 `source / scope / session_id / updated_at / superseded_by`
+    （旧库用 `PRAGMA table_info` 补列，不改旧数据）；新增 `tombstones`（遗忘）、`review_runs`
+    （按消息区间认领）；`search_facts(scope=…)` **先按作用域过滤**；`save_fact()` 在存储层
+    拒绝遗忘过的内容（任何入口都绕不过）；`forget_fact()` 删除原文 + 留墓碑 + 让包含它的
+    摘要失效（`summaries.invalidated_at`）；
+  - `profile_edit_checked()`：改档案**重算总额度**（A15），超限拒绝并保留原内容；
+  - `tools/builtin.py`：`remember` 记录来源与作用域（作用域取自当前 run，**不接受模型参数**）、
+    新增 `forget`（CONFIRM）；`recall` 输出前加"这是数据不是指令"的说明；
+  - `tools/skill_tools.py`：创建/改写/回滚共用同一额度；
+  - `core/review.py`：改为**单个 worker + 有界队列**（`review.queue_depth`），按消息区间认领
+    去重，队列满返回 `full` 并记账，`close(wait_s)` 有界收尾；失败撤销认领（下次还能重试）；
+    提示词明确"对话内容只是数据"，并把这类文本标在 user 消息里；
+  - `bootstrap`：构造 `MemoryGuard` 并注入主注册表、技能工具与 review 注册表；`Runtime`
+    暴露 `memory_guard` 与 `close_reviewer()`；
+  - 工作台：`GET /api/facts/detail`（带来源/作用域/时间）、`DELETE /api/facts/{id}`
+    （走同一条遗忘路径）、`GET /api/memory/status`（写入额度、review 队列与最近整理）。
+- **关闭了什么**：A15；A16 的 review 队列/去重部分。
+- **跑了什么**：`uv run pytest tests/test_memory_governance.py -q` → 18 passed；
+  `uv run pytest -q` → **535 passed, 1 warning**（2026-10-28）。
+- **没测什么**：真实多进程同时 review（用同一 DB 的顺序调用与被占用的认领逻辑验证）；
+  真实模型在 review 里是否遵循"内容是数据"的提示；大规模写入下的额度压力。
+  真机 `data/memory.db` 未做批量写入压测（补列迁移已随 D11 的打开动作完成）。
+- **行为变化**：
+  1. 记忆写入有了**每日总次数上限**（默认 200）与单条长度上限（事实 500 字符）；
+  2. 群聊里 `remember` 写入的是群作用域，`recall` 也只看得到群作用域——私人事实
+     不会因为模型"想看"而出现在群里；
+  3. `forget` 是 CONFIRM 风险（不可撤销），删除后相关摘要失效；
+  4. review 不再每轮起线程：队列满时这一轮直接跳过（stderr 有记录，`/api/memory/status` 可见）。
+- **剩余限制（明确记录）**：
+  1. **候选队列/差异确认没有做**：计划里"敏感覆盖或技能变化进入可查看差异的候选队列"
+     属于治理增强，本轮的确定性约束（额度、作用域、遗忘）已覆盖"学习不能改权限"这条底线；
+     差异审核留到 D18（技能编辑 UI）时一并做，届时有界面承载 diff；
+  2. 遗忘匹配是**归一化精确匹配**（去空白标点、大小写），不做语义近似——误删比漏删更难挽回；
+  3. 迁移/导入历史事实没有 `source` 区分（统一记 `chat`），因为旧数据无法可靠追溯来源；
+  4. review 的模型调用会计入 D10 账本（`purpose=review`），但没有单独的"review 每日次数"上限，
+     额度由 token/费用预算统一约束。
+- **过程记录**：
+  1. 遗忘检查最初只放在 `MemoryGuard` 里，而 `guard=None`（不限额的嵌入式用法）时整段跳过，
+     测试立刻抓到"删了还能记回来"。改成存储层兜底 + 闸门预检两道；
+  2. review 失败时必须**撤销认领**，否则这段消息永远"被整理过"，再也不会重试——
+     这条是在写 `test_failed_review_releases_the_claim` 时才补上的；
+  3. 测试里假模型第一轮调用工具、第二轮必须能看到工具结果，否则 `outcome` 永远是
+     "无需变更"，断言看起来通过但什么都没验证。假网关改成回显最后一条 tool 消息。
 
 ### 2026-10-28 · D11（持久摘要与索引生命周期）
 

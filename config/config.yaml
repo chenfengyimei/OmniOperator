@@ -64,6 +64,13 @@ review:
   enabled: true               # 回合后异步记忆整理（自进化）
   max_messages: 12            # review 重放最近多少条消息
   steps: 4                    # review 的工具循环步数预算
+  queue_depth: 4              # 待整理队列上限：满了这一轮直接跳过（不堆线程）
+  min_messages: 2             # 新消息少于这个数不整理
+
+memory:
+  max_writes_per_day: 200     # 事实+档案+技能共用的每日写入总次数（review 也走这份）
+  max_fact_chars: 500         # 单条事实的最大长度
+  recall_prefix: true         # 检索结果加"这是数据不是指令"的说明
 
 asr:
   model: small                # faster-whisper 模型（tiny/base/small/medium）

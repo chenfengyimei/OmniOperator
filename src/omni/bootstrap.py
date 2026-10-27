@@ -31,6 +31,7 @@ from .llm.gateway import Gateway
 from .memory.runs import RunStore
 from .memory.state import ExecutionLog, JobStore, StateStore
 from .memory.usage import UsageLedger
+from .memory.guard import MemoryGuard
 from .memory.resident import ResidentMemory
 from .memory.skills import SkillStore
 from .memory.store import MemoryStore
@@ -106,6 +107,7 @@ class Runtime:
     android: AndroidDriver
     mcp: MCPManager
     reviewer: TurnEndReviewer | None = None
+    memory_guard: MemoryGuard | None = None  # 记忆写入额度与输入检查（D12）
     qq: OneBotClient | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
@@ -119,6 +121,12 @@ class Runtime:
         """入口关闭时回收本 Runtime 的 MCP 子进程；不干扰其它服务。"""
         self.mcp.close()
         atexit.unregister(self.mcp.close)
+
+    def close_reviewer(self, wait_s: float = 5.0) -> bool:
+        """停掉 review worker（有界队列，最多等 wait_s）；返回是否在时限内结束。"""
+        if self.reviewer is None:
+            return True
+        return self.reviewer.close(wait_s=wait_s)
 
     def close_state(self) -> None:
         """关闭共享状态库连接（测试与一次性命令用；常驻进程退出时由 OS 收尾）。"""
@@ -201,14 +209,27 @@ def build_runtime(
         history_root=paths.history,
         owner=f"pid:{os.getpid()}:resident",
     )
-    register_core_tools(registry, store)
+    # 记忆写入闸门（D12）：事实/档案/技能共用一份当日额度，review 走同一个闸门
+    memory_guard = MemoryGuard(
+        state,
+        max_writes_per_day=config.memory.max_writes_per_day,
+        max_fact_chars=config.memory.max_fact_chars,
+    )
+    register_core_tools(
+        registry,
+        store,
+        guard=memory_guard,
+        run_ref=run_ref,
+        session_ref=session_ref,
+        recall_prefix=config.memory.recall_prefix,
+    )
     register_digest_tool(registry, store)
     register_todo_tools(registry, store, session_ref)
     register_resident_tools(registry, resident)
     agent_holder: dict[str, Any] = {}  # Agent 构造在后，delegate 工具运行期取用
     register_delegate_tools(registry, store, agent_holder, run_ref)
     register_shell_tools(registry)
-    register_skill_tools(registry, skills)
+    register_skill_tools(registry, skills, guard=memory_guard)
     mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs)
     register_mcp_tools(registry, mcp)
     if mcp.servers():
@@ -269,10 +290,14 @@ def build_runtime(
     # （技能是文件存储、常驻记忆自带锁，实例线程安全，可直接共享）。
     def _review_registry(review_store: MemoryStore) -> ToolRegistry:
         review_registry = ToolRegistry()
-        register_memory_tools(review_registry, review_store)
-        register_profile_tools(review_registry, review_store)
+        # review 的写入与用户手动写入抢同一份额度（同一 MemoryGuard 实例）
+        register_memory_tools(
+            review_registry, review_store, guard=memory_guard,
+            recall_prefix=config.memory.recall_prefix, source="review",
+        )
+        register_profile_tools(review_registry, review_store, guard=memory_guard, source="review")
         register_resident_tools(review_registry, resident)
-        register_skill_tools(review_registry, skills)
+        register_skill_tools(review_registry, skills, guard=memory_guard)
         return review_registry
 
     reviewer = (
@@ -308,6 +333,7 @@ def build_runtime(
         android=android_driver,
         mcp=mcp,
         reviewer=reviewer,
+        memory_guard=memory_guard,
         qq=qq_client,
         config_path=config_path,
         data_dir=data_root,

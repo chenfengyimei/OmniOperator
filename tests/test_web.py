@@ -581,3 +581,26 @@ def test_model_test_maps_auth_error_to_401(tmp_path):
     assert response.status_code == 401
     detail = response.json()["detail"]
     assert detail["code"] == AUTH and detail["hint"]
+
+
+# ---------- D12：记忆来源、删除与治理状态 ----------
+
+
+def test_fact_provenance_delete_and_memory_status(tmp_path):
+    client, runtime = _client(tmp_path)
+    runtime.store.save_fact("用户喜欢拿铁", source="review", scope="private", session_id=1)
+
+    detail = client.get("/api/facts/detail").json()["facts"][0]
+    assert detail["source"] == "review" and detail["scope"] == "private"
+    assert detail["session_id"] == 1
+
+    # 用户手动删除：与工具同一条遗忘路径（留墓碑，review 不能再写回来）
+    assert client.delete(f"/api/facts/{detail['id']}").status_code == 200
+    assert client.get("/api/facts/detail").json()["facts"] == []
+    assert runtime.store.is_forgotten("用户喜欢拿铁")
+    assert client.delete("/api/facts/999999").status_code == 404
+
+    status = client.get("/api/memory/status").json()
+    assert status["writes"]["limit"] == 200
+    assert status["review"]["enabled"] is True
+    assert status["review"]["queue_depth"] == 0
