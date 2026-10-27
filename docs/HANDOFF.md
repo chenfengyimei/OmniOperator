@@ -3,6 +3,15 @@
 > 生成于 2026-10-27。本文是跨会话接手的唯一入口：先读本文，再读 `docs/ARCHITECTURE.md`（模块职责唯一权威）。
 > 学习资料在 `xuexi/`（已 gitignore，不入库）：`NOTES.md` 是四个参考项目的深度提炼，本项目的对标路线全部出自它。
 
+## 0 接手顺序（R0–R7 开发轮次）
+
+1. 本文（能力清单 + 平台坑）
+2. `docs/ARCHITECTURE.md`（分层与组装根唯一权威）
+3. `docs/DEVELOPMENT_STATUS.md`（**当前进度、A01–A20 阻断项证据、谁在哪个 commit 关了什么**）
+4. `docs/LOCAL_AGENT_PLAN.md`（完整评估与路线）→ `docs/DEEPSEEK_DEVELOPMENT_OUTLINE.md`（任务卡与验收）
+
+任何"已完成"的宣称只认 `DEVELOPMENT_STATUS.md` 里的证据列：源码发现 ≠ 已复现 ≠ 已修复 ≠ 真实验收完成。
+
 ---
 
 ## 1. 一句话定位
