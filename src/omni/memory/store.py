@@ -15,6 +15,8 @@
 """
 from __future__ import annotations
 
+import contextlib
+import contextlib
 import datetime as dt
 import functools
 import sqlite3
@@ -179,20 +181,40 @@ class MemoryStore:
 
     @_locked
     def get_or_create_binding(self, channel: str, channel_user: str) -> int:
-        """通道用户绑定到独立会话（首次自动创建，标题带通道前缀，工作台可见）。"""
-        row = self._conn.execute(
-            "SELECT session_id FROM bindings WHERE channel = ? AND channel_user = ?",
-            (channel, str(channel_user)),
-        ).fetchone()
-        if row:
-            return int(row[0])
-        session_id = self.new_session(title=f"{channel}:{channel_user}")
-        self._conn.execute(
-            "INSERT INTO bindings(channel, channel_user, session_id) VALUES (?, ?, ?)",
-            (channel, str(channel_user), session_id),
-        )
-        self._conn.commit()
-        return session_id
+        """通道用户绑定到独立会话（首次自动创建，标题带通道前缀，工作台可见）。
+
+        D06：跨进程用"写事务 + 主键唯一"完成，不再"先查后插"。旧写法两个进程同时
+        第一次见到同一个 QQ 用户时，会各自建一个会话，其中一个绑定被覆盖成孤儿会话——
+        表现为"这个人有两条互不相干的历史"。
+        """
+        key = (channel, str(channel_user))
+        try:
+            self._conn.execute("BEGIN IMMEDIATE")
+        except sqlite3.OperationalError as exc:
+            raise RuntimeError(f"绑定会话失败（数据库忙）：{exc}") from exc
+        try:
+            row = self._conn.execute(
+                "SELECT session_id FROM bindings WHERE channel = ? AND channel_user = ?",
+                key,
+            ).fetchone()
+            if row is not None:
+                self._conn.commit()
+                return int(row[0])
+            cur = self._conn.execute(
+                "INSERT INTO sessions(created_at, title) VALUES (?, ?)",
+                (_now(), f"{channel}:{key[1]}"),
+            )
+            session_id = int(cur.lastrowid)
+            self._conn.execute(
+                "INSERT INTO bindings(channel, channel_user, session_id) VALUES (?, ?, ?)",
+                (*key, session_id),
+            )
+            self._conn.commit()
+            return session_id
+        except BaseException:
+            with contextlib.suppress(sqlite3.Error):
+                self._conn.rollback()
+            raise
 
     @_locked
     def get_binding(self, channel: str, channel_user: str) -> int | None:

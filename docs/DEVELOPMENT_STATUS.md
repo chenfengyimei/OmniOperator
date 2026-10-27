@@ -42,7 +42,7 @@
 | A03 | 私聊判断 `if cfg.allowed_users and ...`：空白名单 = 不限，任何人私聊都被回复 | 复现→已修复 | `test_a03_*` 翻转；`tests/test_qq_scope.py` 7 例（空白名单/名单外/正常私聊/撤销即时生效） | D02 | 已修复（真实 QQ 收发待验收） |
 | A04 | `make_runtime_deliver` 用 `if allowed and ...`：空白名单 = 不限，cron 可发给任意 QQ；工作台建任务 `cron_create` 同款判断 | 复现→已修复 | `test_a04_*` 翻转；`test_cron.py::test_runtime_deliver_guards` 覆盖空白名单/撤销；`test_web.py` 覆盖建任务校验与撤销 | D02、D17 | 已修复；投递 outbox 与去重仍属 D17 |
 | A05 | 私聊与各群共用 `get_or_create_binding("qq", str(user_id))`，历史跨场景混合 | 复现→已修复 | 绑定键改为 `dm:<qq>` / `group:<群号>`；`test_a05_*`；旧键只迁给私聊；群聊 `personal_context=False` 并有 `GROUP_DENIED_TOOLS` | D02、D06、D22 | 已修复（记忆作用域完整策略仍待 D12/D22） |
-| A06 | Web `/api/chat` 先改共享 `runtime.agent.session_id` 再 `chat()`，响应与 review 也读共享值；并发请求会串话 | 源码 | `channels/web.py:210-220` | D06 | 源码发现 |
+| A06 | Web `/api/chat` 先改共享 `runtime.agent.session_id` 再 `chat()`，响应与 review 也读共享值；并发请求会串话 | 已修复 | 会话 id 由请求固定；进程内闸门（同会话串行/异会话并行/队列满 429）+ `state.db` 跨进程租约；review 显式带 sid；`tests/test_sessions.py` 14 例（含两个请求真并行、同会话不交错、工具写入正确会话、异常回合释放自己的租约） | D06 | 已修复（QQ 侧接入租约留 D22） |
 | A07 | 全套 API 无身份校验、无 Origin/Host 校验；`/api/terminal/ws` 直接 `accept()`；`/api/system/config` 回显 `qq.access_token` 明文 | 源码→已修复 | `tests/test_web_auth.py` 31 例：12 个敏感 GET 未配对即 401、写接口/服务/审批/WS 全拒、跨站 POST 无副作用、Host 伪造、过期/篡改会话、密钥不回显与三态修改、非回环监听默认拒绝 | D03 | 已修复（真实浏览器跨站尝试与 PTY 会话待手动验收） |
 | A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码→已修复 | `config.RuntimePaths` 统一声明 12 个路径；`tests/test_paths.py` 10 例：路径派生、安卓截图、Cookie 读取、Web 写配置/Cookie、隔离实例不探测/不启停真机进程、真实 `data/` 目录 canary 全量快照不变 | D04 | 已修复（真机目录 canary 用 mtime 快照验证；跨盘符/junction 场景留待 D13 文件域） |
 | A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换 | 已修复（任务/账本/额度） | 三者全部迁入 `data/state.db`（`memory/state.py`）：跨进程事务 + 唯一键 + 条件更新；`tests/test_state.py` 用 4 个真实子进程验证「最后一份额度只成功一次」「并发写任务不丢数据」 | D05、D08 | 已修复；`ResidentMemory`（MEMORY.md 文件）仍属 D08 |
@@ -73,8 +73,9 @@
 | D02 | 完成 | A03、A04、A05 | 见第 5 节 | `uv run pytest -q` → 308 passed | QQ 真实收发未验（需 NapCat 扫码登录） | 进入 D03 |
 | D03 | 完成 | A07 | 见第 5 节 | `uv run pytest -q` → 339 passed | 真实浏览器跨站请求、真实 ConPTY 会话待手动验收；前端设置页对 `access_token` 的展示需跟随（见第 5 节遗留项） | 进入 D04 |
 | D04 | 完成 | A08 | 见第 5 节 | `uv run pytest -q` → 349 passed | 真机 `data/` canary 已用快照验证未被写；跨设备/跨盘符路径与 junction 留待 D13 | R0 收口，进入 R1（D05） |
-| D05 | 完成 | A09（任务/账本/额度）、A10、A17（领取） | 见第 5 节 | `uv run --no-sync pytest -q` → 380 passed | 常驻服务仍在跑旧代码，重启后才用新库；真机 `data/` 的旧 JSON 会在下次启动时迁移（未在真机执行） | 进入 D06 |
-| D06–D08 | 待开始 | A06、A14 | — | — | — | 依赖 D05 |
+| D05 | 完成 | A09（任务/账本/额度）、A10、A17（领取） | 见第 5 节 | `uv run --no-sync pytest -q` → 380 passed | 真机旧 JSON 为 `[]`，重启后迁移为空操作 | 进入 D06 |
+| D06 | 完成 | A06 | 见第 5 节 | `uv run pytest -q` → 394 passed | 真实浏览器两个标签页并发聊天待手动验收（自动用例用 ASGI 直连） | 进入 D07 |
+| D07–D08 | 待开始 | A11、A14 | — | — | — | 依赖 D06 |
 | D09–D12 | 待开始 | A06、A15、A16、A19、A20 | — | — | — | 依赖 R1 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
@@ -82,6 +83,30 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D06（显式会话与有界队列）
+
+- **改了什么**：
+  - 新增 `core/session.py`：`SessionGate`（进程内按会话串行；等待队列上限可配，满了抛 `SessionBusy`；
+    按 `(loop, session)` 分槽，测试里多个事件循环不互相污染）与 `SessionLeases`（`state.db` 跨进程租约，
+    拿不到带持有者报错，`finally` 只释放自己的 token）；
+  - `state.db` 升到 **v2**：新增 `session_leases` 表（`acquire/renew/release/session_lease`，
+    过期按 TTL 自动可被接手）——这也是第一次真的走 `_MIGRATIONS` 的增量升级路径；
+  - `/api/chat` 改成 `async`：会话 id 由请求固定，不再写 `agent.session_id`；回合包在
+    `session_gate.turn(sid)` + `session_leases.hold(sid)` 里，阻塞的 `agent.chat` 走 `to_thread`；
+    review 显式传 `sid`；排队满/被别的进程占着返回 **429**；
+  - `get_or_create_binding` 改为 `BEGIN IMMEDIATE` + 唯一键（不再"先查后插"）；
+  - `config.limits` 增加 `session_queue_depth`、`session_lease_ttl_s`；`Runtime` 增加
+    `session_gate`/`session_leases`。
+- **关闭了什么**：A06。
+- **跑了什么**：`uv run pytest tests/test_sessions.py -q` → 14 passed；
+  `uv run pytest -q` → **394 passed, 1 warning**。
+- **没测什么**：真实浏览器两个标签页并发（自动用例是 ASGI 直连，不经过真实网络与前端）；
+  QQ 侧跨进程租约（D22）；多机/多用户场景不在范围（本地单所有者）。
+- **行为变化（前端需知）**：`/api/chat` 不再顺便把"当前会话"切到请求里的 `session_id`。
+  需要切换请在会话列表里点选（`POST /api/sessions/{id}/select`），响应里仍带 `session_id`。
+- **过程记录**：为让 `uv run` 能重建（用户已授权重启旧服务），先停掉了旧代码的 `omni-web`/`omni-qq`；
+  之后所有测试回到普通 `uv run pytest`。
 
 ### 2026-10-27 · D05（事务状态与可恢复迁移）
 

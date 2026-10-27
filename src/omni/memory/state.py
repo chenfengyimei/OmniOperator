@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -100,7 +100,18 @@ CREATE TABLE IF NOT EXISTS migrations (
 );
 """
 
-_MIGRATIONS: dict[int, str] = {1: _SCHEMA_V1}
+# v2：跨进程会话租约（同一会话同一时刻只有一个进程在跑回合）
+_SCHEMA_V2 = """
+CREATE TABLE IF NOT EXISTS session_leases (
+    session_id INTEGER PRIMARY KEY,
+    owner TEXT NOT NULL,
+    token TEXT NOT NULL,
+    acquired_at TEXT NOT NULL,
+    expires_at REAL NOT NULL
+);
+"""
+
+_MIGRATIONS: dict[int, str] = {1: _SCHEMA_V1, 2: _SCHEMA_V2}
 
 _CAPABILITY_TABLE = {"jobs": "jobs", "executions": "executions", "budget": "budgets"}
 
@@ -134,6 +145,17 @@ class Claim:
     job: Job
     token: str
     overdue_s: float
+
+
+@dataclass(frozen=True)
+class SessionLease:
+    """会话租约：谁在跑这个会话的回合，什么时候自动失效。"""
+
+    session_id: int
+    owner: str
+    token: str
+    acquired_at: str
+    expires_at: float
 
 
 @dataclass(frozen=True)
@@ -504,6 +526,78 @@ class StateStore:
     def release_claim(self, token: str) -> bool:
         with self._tx() as conn:
             return conn.execute("DELETE FROM job_claims WHERE token = ?", (token,)).rowcount > 0
+
+    # ---------------------------------------------------------------- 会话租约
+
+    def session_lease(self, session_id: int) -> SessionLease | None:
+        rows = self._read(
+            "SELECT * FROM session_leases WHERE session_id = ?", (int(session_id),)
+        )
+        if not rows:
+            return None
+        row = rows[0]
+        return SessionLease(
+            session_id=int(row["session_id"]),
+            owner=str(row["owner"]),
+            token=str(row["token"]),
+            acquired_at=str(row["acquired_at"]),
+            expires_at=float(row["expires_at"]),
+        )
+
+    def acquire_session_lease(
+        self,
+        session_id: int,
+        owner: str,
+        *,
+        ttl_s: float = 600.0,
+        token: str | None = None,
+        now: float | None = None,
+    ) -> SessionLease | None:
+        """拿到租约返回 SessionLease；被别的所有者占着返回 None（不排队、不抢）。"""
+        token = token or uuid.uuid4().hex
+        stamp = time.time() if now is None else float(now)
+        expires = stamp + float(ttl_s)
+        with self._tx() as conn:
+            # 过期租约先清掉：进程崩溃后不需要人工解锁，但要等满 TTL
+            conn.execute(
+                "DELETE FROM session_leases WHERE session_id = ? AND expires_at < ?",
+                (int(session_id), stamp),
+            )
+            held = conn.execute(
+                "SELECT owner FROM session_leases WHERE session_id = ?", (int(session_id),)
+            ).fetchone()
+            if held is not None:
+                return None
+            conn.execute(
+                "INSERT INTO session_leases(session_id, owner, token, acquired_at, expires_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (int(session_id), str(owner), token, _now(), expires),
+            )
+        return SessionLease(
+            session_id=int(session_id),
+            owner=str(owner),
+            token=token,
+            acquired_at=_now(),
+            expires_at=expires,
+        )
+
+    def renew_session_lease(
+        self, token: str, *, ttl_s: float = 600.0, now: float | None = None
+    ) -> bool:
+        stamp = time.time() if now is None else float(now)
+        with self._tx() as conn:
+            cur = conn.execute(
+                "UPDATE session_leases SET expires_at = ? WHERE token = ? AND expires_at >= ?",
+                (stamp + float(ttl_s), token, stamp),
+            )
+            return cur.rowcount > 0
+
+    def release_session_lease(self, token: str) -> bool:
+        """只释放自己那把（按 token）：不能顺手释放别人持有的租约。"""
+        with self._tx() as conn:
+            return conn.execute(
+                "DELETE FROM session_leases WHERE token = ?", (token,)
+            ).rowcount > 0
 
     # ---------------------------------------------------------------- 执行账本
 

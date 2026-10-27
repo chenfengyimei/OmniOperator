@@ -30,6 +30,7 @@ from PIL import Image
 
 from ..bootstrap import Runtime, build_runtime
 from ..config import load_env
+from ..core.session import SessionBusy
 from ..llm.gateway import GatewayError
 from ..memory.cron import CronError, Job, compute_next_run, to_iso
 from ..memory.store import PROFILE_MAX_CHARS
@@ -344,16 +345,31 @@ def create_app(runtime: Runtime) -> FastAPI:
         return {"ok": True}
 
     @app.post("/api/chat")
-    def chat(payload: ChatIn) -> dict[str, Any]:
-        if payload.session_id is not None and payload.session_id != runtime.agent.session_id:
-            if not runtime.use_session(payload.session_id):
-                raise HTTPException(status_code=404, detail="会话不存在")
+    async def chat(payload: ChatIn) -> dict[str, Any]:
+        """一个回合只认请求里带来的会话（A06）。
+
+        以前这里是"改 agent.session_id → chat() → 再读 agent.session_id"，两个并发请求
+        会串话：回答、落库历史和回合后 review 都可能算到别人的会话上。现在：
+        - 会话 id 在请求开始时确定，之后**不再读也不写**进程级的"当前会话"；
+        - 同一会话串行（进程内闸门）+ 同一会话同一时刻只允许一个进程（state.db 租约）；
+        - 排队满返回 429，不把请求无限挂着；
+        - review 明确带上这个 sid，不回头猜"当前是谁"。
+        """
+        sid = payload.session_id if payload.session_id is not None else runtime.agent.session_id
+        if not runtime.store.session_exists(sid):
+            raise HTTPException(status_code=404, detail="会话不存在")
         try:
-            answer = runtime.agent.chat(payload.message)
+            async with runtime.session_gate.turn(sid):
+                with runtime.session_leases.hold(sid):
+                    answer = await asyncio.to_thread(
+                        runtime.agent.chat, payload.message, session_id=sid
+                    )
+        except SessionBusy as exc:
+            raise HTTPException(status_code=429, detail=str(exc))
         except GatewayError as exc:
             raise HTTPException(status_code=502, detail=str(exc))
-        runtime.spawn_review()  # 与 CLI 一致：回合后异步记忆整理
-        return {"answer": answer, "session_id": runtime.agent.session_id}
+        runtime.spawn_review(sid)  # 与 CLI 一致：回合后异步记忆整理（会话由本回合固定）
+        return {"answer": answer, "session_id": sid}
 
     @app.get("/api/facts")
     def get_facts(q: str = "", limit: int = 50) -> dict[str, Any]:

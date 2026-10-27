@@ -107,6 +107,8 @@ class Limits(BaseModel):
     max_history_messages: int = 40
     max_agent_steps: int = 8
     resident_memory_chars: int = 2200  # 常驻小记忆（MEMORY.md 式）整文件限额
+    session_queue_depth: int = 1   # 同一会话允许排队的请求数（不含正在执行的那条）
+    session_lease_ttl_s: int = 600  # 跨进程会话租约的有效期（进程崩溃后按此过期）
 
 
 class Review(BaseModel):

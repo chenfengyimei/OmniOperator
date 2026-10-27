@@ -22,6 +22,7 @@ from .config import (
     load_qq_policy,
 )
 from .core.agent import Agent
+from .core.session import SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
 from .memory.state import ExecutionLog, JobStore, StateStore
@@ -82,6 +83,8 @@ class Runtime:
     registry: ToolRegistry
     skills: SkillStore
     state: StateStore          # 共享状态库（任务/账本/额度/迁移）
+    session_gate: SessionGate  # 进程内：同会话串行 + 排队有界
+    session_leases: SessionLeases  # 跨进程：同会话同一时刻只有一个进程在跑
     cron_jobs: JobStore
     cron_ledger: ExecutionLog
     resident: ResidentMemory
@@ -171,6 +174,10 @@ def build_runtime(
     # 缺失/合法空/损坏分别处理；损坏时只停用对应能力，绝不把已用额度归零。
     state = StateStore(paths.state)
     state.migrate_legacy(paths.data)
+    session_gate = SessionGate(capacity=config.limits.session_queue_depth)
+    session_leases = SessionLeases(
+        state, ttl_s=config.limits.session_lease_ttl_s
+    )
     cron_jobs = JobStore(state)
     cron_ledger = ExecutionLog(state)
     # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照
@@ -238,6 +245,8 @@ def build_runtime(
         registry=registry,
         skills=skills,
         state=state,
+        session_gate=session_gate,
+        session_leases=session_leases,
         cron_jobs=cron_jobs,
         cron_ledger=cron_ledger,
         resident=resident,
