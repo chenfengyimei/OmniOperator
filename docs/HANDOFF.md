@@ -22,7 +22,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **394 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
+- 测试：`uv run pytest`（当前 **403 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -138,7 +138,8 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 17. **跨进程状态不要用 JSON + threading.Lock**：`JobStore`/`ExecutionLog`/`WriteBudget` 已迁进 `data/state.db`。JSON 时代三个进程互相覆盖、固定 `.tmp` 互踩、读失败当空数据（额度被清零）。额度只能用 `UPDATE ... WHERE used < limit` 的 rowcount 判定，任务领取只能用同一个写事务推进 `next_run_at`——不要退回"先读后写"
 18. **备份 SQLite 不要直接 copy 文件**：WAL 里还有已提交事务，复制出来像"丢了一段历史"且不报错。用 `omni.system.backup.snapshot_sqlite`（`Connection.backup()` + `integrity_check` + sha256）
 19. **会话 id 由请求固定**：`/api/chat` 不再改写 `agent.session_id`，回答、落库、review、工具作用域全用本回合的 sid。想切到某个会话是客户端动作（`POST /api/sessions/{id}/select`），不是发消息的副作用。并发保护两层：进程内 `SessionGate`（同会话串行、队列满 429）+ `state.db` 的 `session_leases`（跨进程互斥）
-20. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
+20. **Playwright 同步 API 只能用一条线程**：所有调用都进 `BrowserDriver._OwnerThread` 的队列；别再给驱动加 `RLock` 就当线程安全（那只防并发、不改线程归属）。超时返回 `BrowserUnknown`——是"可能仍在进行、状态未知"，不要自动重试写操作；`close()` 超时也要如实说"可能仍在运行"
+21. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
 
 ## 6. 未完成事项（按优先级）
 
@@ -194,7 +195,7 @@ src/omni/
   tools/skill_tools.py   技能工具
   tools/cron_tools.py    定时任务工具
   tools/bilibili/        B站 API + ASR
-  tools/browser/         Playwright 驱动 + 预算
+  tools/browser/         Playwright 驱动器（单一所有者线程 + profile 租约）+ 写预算
   tools/android/         ADB 协议 + UI 树 + 语义驱动
   tools/qq/              OneBot v11 客户端与工具
   tools/system_tools.py  服务管理工具

@@ -12,6 +12,7 @@ import os
 import sqlite3
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -157,7 +158,7 @@ print("GRANTED" if hit.ok else "DENIED")
 
 def test_concurrent_job_writes_do_not_lose_updates(tmp_path):
     db = tmp_path / "state.db"
-    _state(tmp_path).close()
+    keeper = _state(tmp_path)  # 常驻连接：不要造"所有连接都退出→WAL 被删"的假现场
     code = """
 import sys, time
 from pathlib import Path
@@ -174,8 +175,9 @@ print("OK")
         code, [[str(db), "{go}", name] for name in names], tmp_path / "go"
     )
     assert outs == ["OK"] * 4
-    stored = {job.name for job in _state(tmp_path).list_jobs()}
+    stored = {job.name for job in keeper.list_jobs()}
     assert stored == set(names), f"有写入被覆盖丢失：{stored}"
+    keeper.close()
 
 
 def test_busy_database_reports_busy_instead_of_success(tmp_path):
@@ -238,8 +240,7 @@ def test_claim_due_is_atomic_across_processes(tmp_path):
     now = dt.datetime.now().astimezone()
     job = _job(every_minutes=60)
     job.next_run_at = (now - dt.timedelta(minutes=1)).isoformat(timespec="seconds")
-    state.upsert_job(job, validate=False)
-    state.close()
+    state.upsert_job(job, validate=False)  # state 本身就是常驻连接（模拟服务在跑）
 
     code = """
 import sys, time, datetime as dt
@@ -417,3 +418,75 @@ def test_removing_corrupt_file_releases_the_degraded_capability(tmp_path):
     assert state.degraded_reason("budget") is None
     ok, _detail = WriteBudget(state, max_per_day=3).try_consume()
     assert ok  # 用户显式移走坏文件后，写操作恢复（用量无法恢复这件事写在 detail 里）
+
+
+def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
+    """v3 把 session_leases 合并进 resource_leases：升级后仍在有效期内的租约不能丢。"""
+    db = tmp_path / "state.db"
+    state = _state(tmp_path)
+    state.close()
+
+    # 手工退回 v2 的形态：session_leases 表 + 一条活跃租约
+    conn = sqlite3.connect(str(db), isolation_level=None)
+    try:
+        conn.execute("DROP TABLE resource_leases")
+        conn.execute(
+            "CREATE TABLE session_leases (session_id INTEGER PRIMARY KEY, owner TEXT NOT NULL, "
+            "token TEXT NOT NULL, acquired_at TEXT NOT NULL, expires_at REAL NOT NULL)"
+        )
+        conn.execute(
+            "INSERT INTO session_leases VALUES (7, 'pid:123', 'tok-abc', '2026-10-27T23:00:00+08:00', ?)",
+            (time.time() + 600,),
+        )
+        conn.execute("UPDATE meta SET value = '2' WHERE key = 'schema_version'")
+    finally:
+        conn.close()
+
+    upgraded = _state(tmp_path)
+    assert upgraded.health()["schema_version"] == 3
+    lease = upgraded.session_lease(7)
+    assert lease is not None and lease.owner == "pid:123" and lease.token == "tok-abc"
+    assert lease.session_id == 7
+    # 旧的 session_leases 已合并，不再存在
+    conn = sqlite3.connect(str(db))
+    try:
+        tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    finally:
+        conn.close()
+    assert "session_leases" not in tables and "resource_leases" in tables
+
+
+def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
+    """v3 把 session_leases 合并进 resource_leases：升级后仍在有效期内的租约不能丢。"""
+    db = tmp_path / "state.db"
+    state = _state(tmp_path)
+    state.close()
+
+    # 手工退回 v2 的形态：session_leases 表 + 一条活跃租约
+    conn = sqlite3.connect(str(db), isolation_level=None)
+    try:
+        conn.execute("DROP TABLE resource_leases")
+        conn.execute(
+            "CREATE TABLE session_leases (session_id INTEGER PRIMARY KEY, owner TEXT NOT NULL, "
+            "token TEXT NOT NULL, acquired_at TEXT NOT NULL, expires_at REAL NOT NULL)"
+        )
+        conn.execute(
+            "INSERT INTO session_leases VALUES (7, 'pid:123', 'tok-abc', '2026-10-27T23:00:00+08:00', ?)",
+            (time.time() + 600,),
+        )
+        conn.execute("UPDATE meta SET value = '2' WHERE key = 'schema_version'")
+    finally:
+        conn.close()
+
+    upgraded = _state(tmp_path)
+    assert upgraded.health()["schema_version"] == 3
+    lease = upgraded.session_lease(7)
+    assert lease is not None and lease.owner == "pid:123" and lease.token == "tok-abc"
+    assert lease.session_id == 7
+    # 旧的 session_leases 已合并，不再存在
+    conn = sqlite3.connect(str(db))
+    try:
+        tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    finally:
+        conn.close()
+    assert "session_leases" not in tables and "resource_leases" in tables

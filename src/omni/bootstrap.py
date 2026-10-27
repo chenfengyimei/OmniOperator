@@ -8,6 +8,7 @@ ToolRegistry / Agent——依赖关系只允许在本文件发生
 from __future__ import annotations
 
 import atexit
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -22,7 +23,7 @@ from .config import (
     load_qq_policy,
 )
 from .core.agent import Agent
-from .core.session import SessionGate, SessionLeases
+from .core.session import ResourceLeases, SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
 from .memory.state import ExecutionLog, JobStore, StateStore
@@ -114,6 +115,10 @@ class Runtime:
         """关闭共享状态库连接（测试与一次性命令用；常驻进程退出时由 OS 收尾）。"""
         self.state.close()
 
+    def close_browser(self, *, wait_s: float | None = None) -> str:
+        """关闭浏览器并在有界时间内回收线程与 profile 租约；返回可读结论。"""
+        return self.browser.close(wait_s=wait_s)
+
     def new_session(self) -> int:
         """新开会话并把 agent 切过去。"""
         self.agent.session_id = self.store.new_session()
@@ -185,9 +190,14 @@ def build_runtime(
         return load_qq_policy(config_path).allowed_users
 
     register_cron_tools(registry, cron_jobs, _allowed_qq_users)
+    # 浏览器：所有 Playwright 调用在一条专用线程里，profile 用 state.db 租约跨进程互斥
     browser = BrowserDriver(
-        headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms,
-        profile_dir=paths.browser_profile, shots_dir=paths.browser_shots,
+        headless=config.browser.headless,
+        slow_mo_ms=config.browser.slow_mo_ms,
+        profile_dir=paths.browser_profile,
+        shots_dir=paths.browser_shots,
+        lease=ResourceLeases(state, owner=f"pid:{os.getpid()}"),
+        lease_owner=f"pid:{os.getpid()}:browser",
     )
     write_budget = WriteBudget(state, max_per_day=config.browser.max_writes_per_day)
     register_browser_tools(registry, browser, write_budget)

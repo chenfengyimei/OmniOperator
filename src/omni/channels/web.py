@@ -181,6 +181,10 @@ def create_app(runtime: Runtime) -> FastAPI:
         try:
             yield
         finally:
+            # 先收浏览器（有界等待：它可能正卡在一个动作上），再收 MCP 子进程
+            note = await asyncio.to_thread(runtime.close_browser, wait_s=8.0)
+            if "已关闭" not in note and "未启动" not in note:
+                print(f"[工作台] 关闭浏览器：{note}", flush=True)
             await asyncio.to_thread(runtime.close_mcp)
 
     app = FastAPI(title="OmniOperator Workbench", lifespan=lifespan)

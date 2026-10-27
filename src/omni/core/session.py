@@ -80,6 +80,35 @@ class SessionGate:
                 self._slots.pop(key, None)
 
 
+class ResourceLeases:
+    """任意资源的跨进程租约（`acquire/renew/release` 三件套，供浏览器驱动等使用）。
+
+    与 `SessionLeases` 同一张 `resource_leases` 表、同一套语义：拿不到就带持有者报错。
+    """
+
+    def __init__(self, state: StateStore, *, owner: str | None = None) -> None:
+        self._state = state
+        self.owner = owner or f"pid:{os.getpid()}"
+
+    def acquire(
+        self, resource: str, *, owner: str | None = None, ttl_s: float = 1800.0
+    ) -> str:
+        lease = self._state.acquire_lease(
+            resource, owner or self.owner, ttl_s=float(ttl_s)
+        )
+        if lease is None:
+            current = self._state.lease(resource)
+            holder = current.owner if current else "未知进程"
+            raise RuntimeError(f"{resource} 正被 {holder} 占用")
+        return lease.token
+
+    def renew(self, token: str, ttl_s: float = 1800.0) -> bool:
+        return self._state.renew_lease(token, ttl_s=float(ttl_s))
+
+    def release(self, token: str) -> bool:
+        return self._state.release_lease(token)
+
+
 class SessionLeases:
     """跨进程会话租约（落在 `state.db`）。
 

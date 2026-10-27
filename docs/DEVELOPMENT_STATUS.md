@@ -47,7 +47,7 @@
 | A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码→已修复 | `config.RuntimePaths` 统一声明 12 个路径；`tests/test_paths.py` 10 例：路径派生、安卓截图、Cookie 读取、Web 写配置/Cookie、隔离实例不探测/不启停真机进程、真实 `data/` 目录 canary 全量快照不变 | D04 | 已修复（真机目录 canary 用 mtime 快照验证；跨盘符/junction 场景留待 D13 文件域） |
 | A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换 | 已修复（任务/账本/额度） | 三者全部迁入 `data/state.db`（`memory/state.py`）：跨进程事务 + 唯一键 + 条件更新；`tests/test_state.py` 用 4 个真实子进程验证「最后一份额度只成功一次」「并发写任务不丢数据」 | D05、D08 | 已修复；`ResidentMemory`（MEMORY.md 文件）仍属 D08 |
 | A10 | 损坏/不可读状态一律当空数据：`WriteBudget._load` 返回 `{}` → 当日额度被重置；`JobStore` 读失败降级 | 已修复 | 迁移区分 缺失/合法空/0 字节/损坏；损坏且库内无可用数据时**停用能力**（budget 一律停用），预算显示满额而非 0；工作台返回 503 而不是空列表；心跳不启动调度器 | D05、D25 | 已修复（历史用量确实无法恢复时在 detail 里写明） |
-| A11 | 同步 Playwright 实例跨线程复用，`RLock` 只串行化、不改变线程归属；同 profile 无跨进程占用协议 | 源码 | `tools/browser/driver.py` | D07 | 源码发现 |
+| A11 | 同步 Playwright 实例跨线程复用，`RLock` 只串行化、不改变线程归属；同 profile 无跨进程占用协议 | 已修复 | 专用所有者线程 + 有界队列 + `BrowserUnknown` 超时语义；profile 走 `resource_leases`（v3）；`tests/test_browser_owner.py` 8 例，含真实 Chromium 多线程用例与跨进程租约 | D07 | 已修复（真实登录 profile 未用于测试，符合边界） |
 | A12 | `tap_element` 在陈旧/换设备时先 `refresh_tree()` 再用**同一个 idx** 在新树里找元素 → 可能点到别的东西；动作后无强制复检 | 源码 | `tools/android/driver.py:168-185` | D16 | 源码发现 |
 | A13 | 截图工具只回路径字符串，`Agent` 未构造图像消息块，模型收不到图 | 源码 | `tools/browser/tools.py`、`tools/android/tools.py`、`core/agent.py` | D15 | 源码发现 |
 | A14 | 技能更新锁只覆盖最终 `write`，读改写不原子；版本号递增但无历史快照 | 源码 | `memory/skills.py:patch/rewrite/_write_versioned` | D08、D18 | 源码发现 |
@@ -75,7 +75,8 @@
 | D04 | 完成 | A08 | 见第 5 节 | `uv run pytest -q` → 349 passed | 真机 `data/` canary 已用快照验证未被写；跨设备/跨盘符路径与 junction 留待 D13 | R0 收口，进入 R1（D05） |
 | D05 | 完成 | A09（任务/账本/额度）、A10、A17（领取） | 见第 5 节 | `uv run --no-sync pytest -q` → 380 passed | 真机旧 JSON 为 `[]`，重启后迁移为空操作 | 进入 D06 |
 | D06 | 完成 | A06 | 见第 5 节 | `uv run pytest -q` → 394 passed | 真实浏览器两个标签页并发聊天待手动验收（自动用例用 ASGI 直连） | 进入 D07 |
-| D07–D08 | 待开始 | A11、A14 | — | — | — | 依赖 D06 |
+| D07 | 完成 | A11 | 见第 5 节 | `uv run pytest -q` → 403 passed（含真实 Chromium 用例） | 真实登录 profile（B站）未用于自动测试；桌面/无头差异待 D23 实站验收 | 进入 D08 |
+| D08 | 待开始 | A14 | — | — | — | 依赖 D07 |
 | D09–D12 | 待开始 | A06、A15、A16、A19、A20 | — | — | — | 依赖 R1 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
@@ -83,6 +84,28 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D07（浏览器单一所有者与 profile 租约）
+
+- **改了什么**：
+  - `tools/browser/driver.py` 重写：新增 `_OwnerThread`（专用线程 + 有界队列），
+    启动/读/写/关闭全部经它执行；`_ensure_page()` 断言"当前线程就是所有者线程"（A11 回归会被立刻发现）；
+  - 错误语义分三类：`BrowserBusy`（队列满/profile 被占）、`BrowserUnknown`（超时不等于取消）、
+    `BrowserError`（一般失败）；`close(wait_s)` 有界等待，超时如实返回"可能仍在运行"；
+  - `state.db` 升 **v3**：`session_leases` 合并进通用的 `resource_leases`（键 `session:<id>` /
+    `browser_profile:<绝对路径>`），一套 `acquire/renew/release`；迁移在一个写事务里完成；
+  - `core/session.py` 增加 `ResourceLeases`（driver 用的适配器，拿不到带持有者）；
+  - `bootstrap` 给 `BrowserDriver` 注入租约与 owner；`Runtime.close_browser()`；工作台 `lifespan`
+    退出时先关浏览器再关 MCP（有界 8s，超时打印残留提示）。
+- **关闭了什么**：A11。
+- **跑了什么**：`uv run pytest tests/test_browser_owner.py -q` → 8 passed（其中 `test_real_chromium_*`
+  真的启动了本机 headless Chromium，多线程读全都成功且与启动同一线程）；
+  `uv run pytest -q` → **403 passed, 1 warning**。
+- **没测什么**：真实登录 profile（测试一律用临时 profile，符合"不使用真实登录 profile"的边界）；
+  有头模式（headless 与有头在 Playwright 侧差异未单独验证）；B 站实站写流程属 D23。
+- **顺带修掉的隐患**：迁移原来用 `executescript`（会先隐式 COMMIT），两个进程同时首次启动时
+  "建表 + 搬数据 + 删旧表"可能被穿插。现在每一步迁移都在 `BEGIN IMMEDIATE` 里逐条执行，
+  并重新检查版本；新增了 v2→v3 保数据用例。
 
 ### 2026-10-27 · D06（显式会话与有界队列）
 

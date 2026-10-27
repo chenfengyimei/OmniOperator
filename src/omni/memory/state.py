@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -111,7 +111,24 @@ CREATE TABLE IF NOT EXISTS session_leases (
 );
 """
 
-_MIGRATIONS: dict[int, str] = {1: _SCHEMA_V1, 2: _SCHEMA_V2}
+# v3：租约推广到任意"一次只能一个进程用"的资源（浏览器 profile 也要）。
+# 会话租约从 session_id 整数键换成统一的 resource 键（"session:<id>"），既有一行都不丢。
+_SCHEMA_V3 = """
+CREATE TABLE IF NOT EXISTS resource_leases (
+    resource TEXT PRIMARY KEY,
+    owner TEXT NOT NULL,
+    token TEXT NOT NULL,
+    acquired_at TEXT NOT NULL,
+    expires_at REAL NOT NULL
+);
+INSERT OR IGNORE INTO resource_leases(resource, owner, token, acquired_at, expires_at)
+    SELECT 'session:' || session_id, owner, token, acquired_at, expires_at FROM session_leases;
+DROP TABLE IF EXISTS session_leases;
+"""
+
+_MIGRATIONS: dict[int, str] = {1: _SCHEMA_V1, 2: _SCHEMA_V2, 3: _SCHEMA_V3}
+
+SESSION_RESOURCE = "session:{}"
 
 _CAPABILITY_TABLE = {"jobs": "jobs", "executions": "executions", "budget": "budgets"}
 
@@ -148,14 +165,23 @@ class Claim:
 
 
 @dataclass(frozen=True)
-class SessionLease:
-    """会话租约：谁在跑这个会话的回合，什么时候自动失效。"""
+class Lease:
+    """资源租约：谁占着这个资源（会话 / 浏览器 profile），什么时候自动失效。"""
 
-    session_id: int
+    resource: str
     owner: str
     token: str
     acquired_at: str
     expires_at: float
+
+    @property
+    def session_id(self) -> int | None:
+        """`session:<id>` 形态时返回会话 id（其它资源返回 None）。"""
+        prefix, _, rest = self.resource.partition(":")
+        return int(rest) if prefix == "session" and rest.isdigit() else None
+
+
+SessionLease = Lease  # 兼容旧名
 
 
 @dataclass(frozen=True)
@@ -166,6 +192,11 @@ class MigrationRecord:
     imported: int = 0
     detail: str = ""
     applied_at: str = ""
+
+
+def _statements(sql: str) -> list[str]:
+    """把迁移脚本拆成单条语句（迁移 SQL 里不要在字符串字面量中出现分号）。"""
+    return [chunk.strip() for chunk in sql.split(";") if chunk.strip()]
 
 
 def _now() -> str:
@@ -285,23 +316,40 @@ class StateStore:
                 f"state.db 版本 {version} 高于本程序支持的 {SCHEMA_VERSION}："
                 "拒绝打开（降级写入会破坏新版本数据）。请升级程序，或用备份恢复到新目录"
             )
-        if version == SCHEMA_VERSION:
-            return
-        for target in range(version + 1, SCHEMA_VERSION + 1):
+        # 每一步都在**一个写事务**里：两个进程同时第一次启动时，后来者要么等锁，
+        # 要么进事务后发现版本已经推进而直接跳过。不能用 executescript——它会先隐式
+        # COMMIT，等于把"建表 + 搬数据 + 删旧表"拆成三条可被穿插的语句。
+        while version < SCHEMA_VERSION:
+            target = version + 1
             sql = _MIGRATIONS.get(target)
             if sql is None:
                 self._conn.close()
                 raise StateUnavailable(f"缺少 v{target} 的迁移脚本，拒绝继续")
             try:
-                self._conn.executescript(sql)
+                self._begin()
+            except StateError as exc:
+                self._conn.close()
+                raise StateUnavailable(f"state.db 迁移到 v{target} 时无法取得写锁：{exc}") from exc
+            try:
+                current = self._current_version()
+                if current >= target:  # 别的进程已经做完了
+                    self._conn.rollback()
+                    version = current
+                    continue
+                for statement in _statements(sql):
+                    self._conn.execute(statement)
+                self._conn.execute(
+                    "INSERT INTO meta(key, value) VALUES ('schema_version', ?) "
+                    "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                    (str(target),),
+                )
+                self._conn.commit()
             except sqlite3.Error as exc:
+                with contextlib.suppress(sqlite3.Error):
+                    self._conn.rollback()
                 self._conn.close()
                 raise StateUnavailable(f"state.db 迁移到 v{target} 失败：{exc}") from exc
-            self._conn.execute(
-                "INSERT INTO meta(key, value) VALUES ('schema_version', ?) "
-                "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-                (str(target),),
-            )
+            version = target
 
     @property
     def schema_version(self) -> int:
@@ -527,22 +575,79 @@ class StateStore:
         with self._tx() as conn:
             return conn.execute("DELETE FROM job_claims WHERE token = ?", (token,)).rowcount > 0
 
-    # ---------------------------------------------------------------- 会话租约
+    # ---------------------------------------------------------------- 租约
 
-    def session_lease(self, session_id: int) -> SessionLease | None:
-        rows = self._read(
-            "SELECT * FROM session_leases WHERE session_id = ?", (int(session_id),)
-        )
+    def lease(self, resource: str) -> Lease | None:
+        rows = self._read("SELECT * FROM resource_leases WHERE resource = ?", (resource,))
         if not rows:
             return None
         row = rows[0]
-        return SessionLease(
-            session_id=int(row["session_id"]),
+        return Lease(
+            resource=str(row["resource"]),
             owner=str(row["owner"]),
             token=str(row["token"]),
             acquired_at=str(row["acquired_at"]),
             expires_at=float(row["expires_at"]),
         )
+
+    def acquire_lease(
+        self,
+        resource: str,
+        owner: str,
+        *,
+        ttl_s: float = 600.0,
+        token: str | None = None,
+        now: float | None = None,
+    ) -> Lease | None:
+        """拿到租约返回 Lease；被别的所有者占着返回 None（不排队、不抢）。"""
+        token = token or uuid.uuid4().hex
+        stamp = time.time() if now is None else float(now)
+        expires = stamp + float(ttl_s)
+        with self._tx() as conn:
+            # 过期租约先清掉：进程崩溃后不需要人工解锁，但要等满 TTL
+            conn.execute(
+                "DELETE FROM resource_leases WHERE resource = ? AND expires_at < ?",
+                (resource, stamp),
+            )
+            held = conn.execute(
+                "SELECT owner FROM resource_leases WHERE resource = ?", (resource,)
+            ).fetchone()
+            if held is not None:
+                return None
+            conn.execute(
+                "INSERT INTO resource_leases(resource, owner, token, acquired_at, expires_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (resource, str(owner), token, _now(), expires),
+            )
+        return Lease(
+            resource=resource,
+            owner=str(owner),
+            token=token,
+            acquired_at=_now(),
+            expires_at=expires,
+        )
+
+    def renew_lease(
+        self, token: str, *, ttl_s: float = 600.0, now: float | None = None
+    ) -> bool:
+        stamp = time.time() if now is None else float(now)
+        with self._tx() as conn:
+            cur = conn.execute(
+                "UPDATE resource_leases SET expires_at = ? WHERE token = ? AND expires_at >= ?",
+                (stamp + float(ttl_s), token, stamp),
+            )
+            return cur.rowcount > 0
+
+    def release_lease(self, token: str) -> bool:
+        """只释放自己那把（按 token）：不能顺手释放别人持有的租约。"""
+        with self._tx() as conn:
+            return conn.execute(
+                "DELETE FROM resource_leases WHERE token = ?", (token,)
+            ).rowcount > 0
+
+    # 会话是资源租约的特例（键 `session:<id>`），保留语义化方法给调用方用
+    def session_lease(self, session_id: int) -> Lease | None:
+        return self.lease(SESSION_RESOURCE.format(int(session_id)))
 
     def acquire_session_lease(
         self,
@@ -552,52 +657,22 @@ class StateStore:
         ttl_s: float = 600.0,
         token: str | None = None,
         now: float | None = None,
-    ) -> SessionLease | None:
-        """拿到租约返回 SessionLease；被别的所有者占着返回 None（不排队、不抢）。"""
-        token = token or uuid.uuid4().hex
-        stamp = time.time() if now is None else float(now)
-        expires = stamp + float(ttl_s)
-        with self._tx() as conn:
-            # 过期租约先清掉：进程崩溃后不需要人工解锁，但要等满 TTL
-            conn.execute(
-                "DELETE FROM session_leases WHERE session_id = ? AND expires_at < ?",
-                (int(session_id), stamp),
-            )
-            held = conn.execute(
-                "SELECT owner FROM session_leases WHERE session_id = ?", (int(session_id),)
-            ).fetchone()
-            if held is not None:
-                return None
-            conn.execute(
-                "INSERT INTO session_leases(session_id, owner, token, acquired_at, expires_at) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (int(session_id), str(owner), token, _now(), expires),
-            )
-        return SessionLease(
-            session_id=int(session_id),
-            owner=str(owner),
+    ) -> Lease | None:
+        return self.acquire_lease(
+            SESSION_RESOURCE.format(int(session_id)),
+            owner,
+            ttl_s=ttl_s,
             token=token,
-            acquired_at=_now(),
-            expires_at=expires,
+            now=now,
         )
 
     def renew_session_lease(
         self, token: str, *, ttl_s: float = 600.0, now: float | None = None
     ) -> bool:
-        stamp = time.time() if now is None else float(now)
-        with self._tx() as conn:
-            cur = conn.execute(
-                "UPDATE session_leases SET expires_at = ? WHERE token = ? AND expires_at >= ?",
-                (stamp + float(ttl_s), token, stamp),
-            )
-            return cur.rowcount > 0
+        return self.renew_lease(token, ttl_s=ttl_s, now=now)
 
     def release_session_lease(self, token: str) -> bool:
-        """只释放自己那把（按 token）：不能顺手释放别人持有的租约。"""
-        with self._tx() as conn:
-            return conn.execute(
-                "DELETE FROM session_leases WHERE token = ?", (token,)
-            ).rowcount > 0
+        return self.release_lease(token)
 
     # ---------------------------------------------------------------- 执行账本
 
