@@ -22,7 +22,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **349 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
+- 测试：`uv run --no-sync pytest`（当前 **380 全绿**；`--no-sync` 是因为常驻服务占着 `Scripts/omni-*.exe`，uv 重新构建会失败——服务停着时 `uv run pytest` 即可）；架构守卫 `tests/test_arch.py` 会拦分层违规
 
 ## 2. 五分钟上手
 
@@ -33,6 +33,8 @@ uv run omni-web                    # 工作台 http://127.0.0.1:8000（控制台
 uv run omni-cli                    # 终端 REPL
 uv run omni-qq                     # QQ 通道（需 NapCat 运行）
 uv run omni-heartbeat              # 心跳调度（cron）
+uv run python -m omni.system.backup --to data/backups/2026-10-27   # 离线备份（先备份再升级）
+uv run python -m omni.system.backup --restore <备份目录> --into <新目录>  # 恢复到新目录再校验
 ```
 
 服务管理（工作台"服务"面板或 `omni/system/services.py`）：
@@ -132,7 +134,9 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 14. **data_dir 完整隔离**：所有可写路径都在 `config.RuntimePaths` 里声明一次，由 bootstrap 注入（jobs/常驻/记忆/浏览器/安卓截图与缓存/服务 pid 与日志/MCP 日志/工作台密钥/B站 Cookie/配置读写）；skills 仍由 skills_root 单独控制。注入 `data_dir` 的实例**不探测也不启停真机进程**——`stop()` 的端口兜底曾把用户真服务当过残留
 15. **SAFE 命令不要用 shell**：`shell=True` 下前缀白名单等于没有白名单（`git status & 任意命令`）。改成 argv + `shell=False` 后，参数形态也要逐条校验——`git branch <name>`、`git show HEAD:.env` 都能借只读子命令读写
 16. **`git status` 会写 index**：观察类 git 必须带 `GIT_OPTIONAL_LOCKS=0`，否则 SAFE 观察也会改仓库状态；超时用 `taskkill /F /T` 收进程树，不能只 kill 直接子进程
-17. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
+17. **跨进程状态不要用 JSON + threading.Lock**：`JobStore`/`ExecutionLog`/`WriteBudget` 已迁进 `data/state.db`。JSON 时代三个进程互相覆盖、固定 `.tmp` 互踩、读失败当空数据（额度被清零）。额度只能用 `UPDATE ... WHERE used < limit` 的 rowcount 判定，任务领取只能用同一个写事务推进 `next_run_at`——不要退回"先读后写"
+18. **备份 SQLite 不要直接 copy 文件**：WAL 里还有已提交事务，复制出来像"丢了一段历史"且不报错。用 `omni.system.backup.snapshot_sqlite`（`Connection.backup()` + `integrity_check` + sha256）
+19. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
 
 ## 6. 未完成事项（按优先级）
 
@@ -174,7 +178,9 @@ src/omni/
   memory/store.py        SQLite 仓储（会话/消息/事实/档案/review/绑定/待办/摘要）
   memory/resident.py     常驻小记忆（MEMORY.md 式，限额+防注入）
   memory/skills.py       SKILL.md 技能库（create/patch/rewrite）
-  memory/cron.py         Job 模型 + JobStore + ExecutionLog
+  memory/jobs.py         Job 模型 + 校验 + 调度时间（纯数据/纯函数）
+  memory/state.py        data/state.db：任务/执行账本/写额度/迁移记录（事务、原子领取、revision）
+  memory/cron.py         兼容再导出（老导入路径不变）
   safety/gates.py        风险分级 + 各上下文 Approver
   safety/smart.py        smart 审批档（ask_model 注入）
   safety/broker.py       跨线程确认（Web 横幅）
@@ -191,6 +197,7 @@ src/omni/
   tools/system_tools.py  服务管理工具
   tools/mcp/             MCP stdio 客户端、生命周期与三项工具适配
   system/services.py     服务启停（分离进程、pid、日志）
+  system/backup.py       离线备份/恢复（SQLite 一致快照 + integrity_check + sha256）
   system/config_io.py    config.yaml 白名单键定向修改（保留注释）
   channels/web.py        工作台 REST + WS（终端）+ MJPEG
   channels/terminal.py   ConPTY 终端会话池

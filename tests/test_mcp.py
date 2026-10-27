@@ -259,7 +259,9 @@ def test_runtime_isolates_all_data_and_mcp_logs(tmp_path):
         assert runtime.services._log_dir == tmp_path / "system_logs"
         assert runtime.browser._profile_dir == tmp_path / "browser_profile"
         assert runtime.browser._shots_dir == tmp_path / "browser_shots"
-        assert runtime.write_budget._path == tmp_path / "browser_budget.json"
+        # 额度与任务/账本共享 state.db（D05），不再是独立 JSON
+        assert runtime.write_budget.db_path == tmp_path / "state.db"
+        assert runtime.state.path == tmp_path / "state.db"
         assert {"mcp_list_tools", "mcp_read_tool", "mcp_call_tool"} <= set(runtime.registry.names())
         assert runtime.mcp.servers() == []
         assert not (tmp_path / "mcp_logs").exists()

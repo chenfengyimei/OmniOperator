@@ -101,7 +101,13 @@ def test_bootstrap_wiring_includes_resident(tmp_path):
     """组装根接线：主注册表与 review 白名单都能看到 resident_memory。"""
     from omni.bootstrap import build_runtime
 
-    runtime = build_runtime(db_path=tmp_path / "m.db", skills_root=tmp_path / "skills")
+    # data_dir 必须注入：否则 build_runtime 会把 state.db/账本/额度写进真机 data/
+    runtime = build_runtime(
+        db_path=tmp_path / "m.db",
+        skills_root=tmp_path / "skills",
+        data_dir=tmp_path / "data",
+    )
+    assert runtime.state.path == tmp_path / "data" / "state.db"
     assert "resident_memory" in runtime.registry.names()
     tools = runtime.reviewer._make_registry(runtime.store) if runtime.reviewer else None
     if tools is not None:

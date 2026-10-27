@@ -4,12 +4,17 @@ import threading
 import time
 from types import SimpleNamespace
 
+from omni.memory.state import StateStore
 from omni.safety.broker import ApprovalBroker
 from omni.safety.gates import AllowAllApprover, Risk, WebApprover
 from omni.tools.browser.budget import WriteBudget
 from omni.tools.browser.driver import BrowserError
 from omni.tools.browser.tools import register_browser_tools
 from omni.tools.registry import Tool, ToolRegistry
+
+
+def _state(tmp_path, name="state.db") -> StateStore:
+    return StateStore(tmp_path / name)
 
 
 def _confirm_tool() -> Tool:
@@ -25,20 +30,27 @@ def _confirm_tool() -> Tool:
 
 # ---------- 写预算 ----------
 
-def test_write_budget_limit_and_rollover(tmp_path):
-    budget = WriteBudget(tmp_path / "b.json", max_per_day=2)
+def test_write_budget_limit_and_day_rollover(tmp_path):
+    state = StateStore(tmp_path / "state.db")
+    budget = WriteBudget(state, max_per_day=2)
     ok1, msg1 = budget.try_consume()
     ok2, _msg2 = budget.try_consume()
     assert ok1 and ok2 and "2/2" in msg1 or "1/2" in msg1
     ok3, msg3 = budget.try_consume()
     assert not ok3 and "额度已用完" in msg3
     assert budget.usage_today() == (2, 2)
-    # 手动把状态改成"昨天"→ 新一天额度重置
-    (tmp_path / "b.json").write_text(
-        json.dumps({"date": "2000-01-01", "used": 99}), encoding="utf-8"
-    )
-    ok4, msg4 = budget.try_consume()
-    assert ok4 and "1/2" in msg4
+
+    # 额度按 (scope, 日) 分行存：别的日期用满 99 次不影响今天
+    with state._tx() as conn:
+        conn.execute(
+            "INSERT INTO budgets(scope, day, used) VALUES ('browser_write', '2000-01-01', 99)"
+        )
+    assert budget.usage_today() == (2, 2)
+    ok4 = WriteBudget(state, max_per_day=2)
+    assert ok4.usage_today() == (2, 2)
+    # 新的一天（模拟 tomorrow）只有当天那行会被读
+    assert state.budget_used("browser_write", "2000-01-01") == 99
+    assert state.budget_used("browser_write", "2000-01-02") == 0
 
 
 # ---------- 审批代理 ----------
@@ -139,7 +151,7 @@ def _registry(driver, budget) -> ToolRegistry:
 
 
 def test_browser_tools_read_safe(tmp_path):
-    registry = _registry(FakeDriver(), WriteBudget(tmp_path / "b.json"))
+    registry = _registry(FakeDriver(), WriteBudget(_state(tmp_path)))
     assert "标题" in registry.dispatch("browser_navigate", {"url": "https://bilibili.com"})
     assert "页面文本内容" in registry.dispatch("browser_read", "{}")
     assert "latest.png" in registry.dispatch("browser_screenshot", "{}")
@@ -147,7 +159,7 @@ def test_browser_tools_read_safe(tmp_path):
 
 def test_browser_tools_write_consumes_budget(tmp_path):
     driver = FakeDriver()
-    budget = WriteBudget(tmp_path / "b.json", max_per_day=1)
+    budget = WriteBudget(_state(tmp_path), max_per_day=1)
     registry = _registry(driver, budget)
     out = registry.dispatch("browser_click", {"target": "text=登录"}, approver=AllowAllApprover())
     assert "已点击" in out and driver.clicked == ["text=登录"]
@@ -160,5 +172,5 @@ def test_browser_tools_write_consumes_budget(tmp_path):
         def click(self, target):
             raise BrowserError("元素找不到")
 
-    registry2 = _registry(BoomDriver(), WriteBudget(tmp_path / "b2.json", max_per_day=5))
+    registry2 = _registry(BoomDriver(), WriteBudget(_state(tmp_path, "s2"), max_per_day=5))
     assert "错误：元素找不到" in registry2.dispatch("browser_click", {"target": "text=x"}, approver=AllowAllApprover())

@@ -24,7 +24,7 @@ from .config import (
 from .core.agent import Agent
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
-from .memory.cron import ExecutionLog, JobStore
+from .memory.state import ExecutionLog, JobStore, StateStore
 from .memory.resident import ResidentMemory
 from .memory.skills import SkillStore
 from .memory.store import MemoryStore
@@ -81,6 +81,7 @@ class Runtime:
     gateway: Gateway
     registry: ToolRegistry
     skills: SkillStore
+    state: StateStore          # 共享状态库（任务/账本/额度/迁移）
     cron_jobs: JobStore
     cron_ledger: ExecutionLog
     resident: ResidentMemory
@@ -105,6 +106,10 @@ class Runtime:
         """入口关闭时回收本 Runtime 的 MCP 子进程；不干扰其它服务。"""
         self.mcp.close()
         atexit.unregister(self.mcp.close)
+
+    def close_state(self) -> None:
+        """关闭共享状态库连接（测试与一次性命令用；常驻进程退出时由 OS 收尾）。"""
+        self.state.close()
 
     def new_session(self) -> int:
         """新开会话并把 agent 切过去。"""
@@ -162,8 +167,12 @@ def build_runtime(
         atexit.register(mcp.close)
     # Cookie 路径必须注入：否则临时实例会读到真机的 B 站登录态
     register_bilibili_tools(registry, BiliAPI(cookies_path=paths.cookies), config.asr)
-    cron_jobs = JobStore(data_root / "cron_jobs.json")
-    cron_ledger = ExecutionLog(data_root / "cron_executions.json")
+    # 共享状态集中到 state.db（A09 跨进程丢写 / A10 损坏当空）：先迁移旧 JSON，
+    # 缺失/合法空/损坏分别处理；损坏时只停用对应能力，绝不把已用额度归零。
+    state = StateStore(paths.state)
+    state.migrate_legacy(paths.data)
+    cron_jobs = JobStore(state)
+    cron_ledger = ExecutionLog(state)
     # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照
     def _allowed_qq_users() -> list[int]:
         return load_qq_policy(config_path).allowed_users
@@ -173,9 +182,7 @@ def build_runtime(
         headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms,
         profile_dir=paths.browser_profile, shots_dir=paths.browser_shots,
     )
-    write_budget = WriteBudget(
-        data_root / "browser_budget.json", max_per_day=config.browser.max_writes_per_day
-    )
+    write_budget = WriteBudget(state, max_per_day=config.browser.max_writes_per_day)
     register_browser_tools(registry, browser, write_budget)
     approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
     # 隔离实例（注入了 data_dir）不探测也不终止真机进程：否则测试可能把真 NapCat 当残留杀掉
@@ -230,6 +237,7 @@ def build_runtime(
         gateway=gateway,
         registry=registry,
         skills=skills,
+        state=state,
         cron_jobs=cron_jobs,
         cron_ledger=cron_ledger,
         resident=resident,

@@ -4,6 +4,10 @@
 1. tick 里**先推进 next_run_at 并落盘**，再派发（至多一次语义，进程崩溃也不重放）；
 2. 错过超过半个周期（每日任务上限 2 小时）不补跑，只重排；
 3. 无人值守上下文：入口通道负责用 DenyApprover 构建 runtime（fail-closed）。
+
+D05：领取改成 `JobStore.claim_due()` —— 选任务、推进 next_run_at、写领取记录在**同一个
+写事务**里完成。所以两个调度进程同时 tick 时，同一个到期时刻只有一个能拿到（A17 的一部分；
+完整的调度/投递语义在 D17）。旧的 `list() + upsert()` 是"先读后写"，两个进程都会派发。
 """
 from __future__ import annotations
 
@@ -13,7 +17,7 @@ import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from ..memory.cron import Job, JobStore, compute_next_run, parse_iso, to_iso
+from ..memory.cron import Job, JobStore, to_iso
 from ..safety.gates import private_target_allowed
 
 TICK_SECONDS = 30
@@ -47,34 +51,27 @@ class CronScheduler:
             await asyncio.sleep(TICK_SECONDS)
 
     async def tick(self, now: float | None = None) -> list[str]:
-        """检查到期任务：先推进再派发；返回本次触发的任务名。"""
+        """检查到期任务：原子领取 → 跳过过期窗口 → 派发；返回本次触发的任务名。"""
         now = self._clock() if now is None else now
         now_dt = dt.datetime.fromtimestamp(now).astimezone()
         fired: list[str] = []
-        for job in self._store.list():
-            if not job.enabled or not job.next_run_at:
-                continue
-            try:
-                due_dt = parse_iso(job.next_run_at)
-            except ValueError:
-                continue
-            if now_dt < due_dt:
-                continue
-            overdue = (now_dt - due_dt).total_seconds()
+        while True:
+            claim = self._store.claim_due(now_dt)
+            if claim is None:
+                break
+            job = claim.job
             period = self._period_seconds(job)
-            skip = overdue > min(period / 2, DAILY_MISS_SKIP_SECONDS)
-            # 纪律 1：先推进并落盘（至多一次）
-            job.next_run_at = to_iso(compute_next_run(job, from_dt=now_dt))
-            self._store.upsert(job, validate=False)
-            if skip:
+            if claim.overdue_s > min(period / 2, DAILY_MISS_SKIP_SECONDS):
+                # 纪律 2：错过窗口只重排（claim 已推进 next_run_at），释放领取记录
+                self._store.release_claim(claim.token)
                 print(
-                    f"[心跳] {job.name} 错过窗口（迟到 {overdue / 60:.0f} 分钟），"
+                    f"[心跳] {job.name} 错过窗口（迟到 {claim.overdue_s / 60:.0f} 分钟），"
                     "跳过补跑、仅重排",
                     flush=True,
                 )
                 continue
             fired.append(job.name)
-            asyncio.create_task(self._run_job_safely(job))
+            asyncio.create_task(self._run_job_safely(job, claim.token))
         return fired
 
     @staticmethod
@@ -83,8 +80,8 @@ class CronScheduler:
             return float(job.every_minutes) * 60
         return 86400.0
 
-    async def _run_job_safely(self, job: Job) -> None:
-        """同一任务串行执行；失败记账不崩调度器。"""
+    async def _run_job_safely(self, job: Job, claim_token: str | None = None) -> None:
+        """同一任务串行执行；失败记账不崩调度器；结束时释放领取记录。"""
         lock = self._job_locks.setdefault(job.name, asyncio.Lock())
         async with lock:
             now_dt = dt.datetime.now().astimezone()
@@ -109,11 +106,14 @@ class CronScheduler:
                     result=result,
                     delivery=delivery,
                 )
-            fresh = self._store.get(job.name)
-            if fresh is not None:
-                fresh.last_run_at = to_iso(now_dt)
-                fresh.last_result = (result[:180] + (f" | {delivery}" if delivery else ""))[:240]
-                self._store.upsert(fresh, validate=False)
+            # 只写调度器拥有的字段：不碰 revision，免得用户正在编辑的表单永远冲突
+            self._store.update_run_state(
+                job.name,
+                last_run_at=to_iso(now_dt),
+                last_result=(result[:180] + (f" | {delivery}" if delivery else ""))[:240],
+            )
+            if claim_token:
+                self._store.release_claim(claim_token)
 
 
 def _latest_source_output(store: Any, source_name: str) -> str:

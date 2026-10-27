@@ -34,6 +34,7 @@ from ..llm.gateway import GatewayError
 from ..memory.cron import CronError, Job, compute_next_run, to_iso
 from ..memory.store import PROFILE_MAX_CHARS
 from ..safety.gates import WebApprover, private_target_allowed
+from ..memory.state import StateConflict, StateUnavailable
 from ..system.config_io import EDITABLE, ConfigEditError, apply_updates, safe_write
 from ..system.services import ServiceError
 from .terminal import TerminalManager
@@ -630,12 +631,21 @@ def create_app(runtime: Runtime) -> FastAPI:
             runtime.cron_jobs.upsert(job)  # 含 context_from 源存在校验
         except CronError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
+        except StateConflict as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
         return {"ok": True, "name": job.name, "next_run_at": job.next_run_at}
 
     @app.get("/api/system/cron")
     def cron_list() -> dict[str, Any]:
+        # 读不出来就报 503：返回空列表会让界面显示"还没有任务"，那是假消息
+        try:
+            stored = runtime.cron_jobs.list()
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=f"任务状态不可用：{exc}")
         jobs = []
-        for j in runtime.cron_jobs.list():
+        for j in stored:
             jobs.append(
                 {
                     "name": j.name,
@@ -657,23 +667,39 @@ def create_app(runtime: Runtime) -> FastAPI:
 
     @app.post("/api/system/cron/toggle")
     def cron_toggle(payload: CronToggleIn) -> dict[str, Any]:
-        job = runtime.cron_jobs.get(payload.name)
-        if job is None:
-            raise HTTPException(status_code=404, detail="任务不存在")
-        job.enabled = payload.enabled
-        if payload.enabled:
-            job.next_run_at = to_iso(compute_next_run(job, dt.datetime.now().astimezone()))
-        runtime.cron_jobs.upsert(job, validate=False)
+        try:
+            job = runtime.cron_jobs.get(payload.name)
+            if job is None:
+                raise HTTPException(status_code=404, detail="任务不存在")
+            job.enabled = payload.enabled
+            if payload.enabled:
+                job.next_run_at = to_iso(
+                    compute_next_run(job, dt.datetime.now().astimezone())
+                )
+            runtime.cron_jobs.upsert(job, validate=False)
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
         return {"ok": True, "enabled": job.enabled, "next_run_at": job.next_run_at}
 
     @app.post("/api/system/cron/delete")
     def cron_delete(payload: CronNameIn) -> dict[str, Any]:
-        return {"ok": runtime.cron_jobs.remove(payload.name)}
+        try:
+            return {"ok": runtime.cron_jobs.remove(payload.name)}
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
 
     @app.get("/api/system/cron/history")
     def cron_history(limit: int = 50) -> dict[str, Any]:
         """执行账本：成功与失败都记账，新的在前。"""
-        return {"history": runtime.cron_ledger.recent(min(limit, 100))}
+        try:
+            return {"history": runtime.cron_ledger.recent(min(limit, 100))}
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+
+    @app.get("/api/system/state")
+    def system_state() -> dict[str, Any]:
+        """共享状态库自检：版本、完整性、迁移记录、被停用的能力（doctor 的雏形）。"""
+        return runtime.state.health()
 
     # ---------- 安卓工作台（MJPEG 看屏 + UI 树 + 点击下发，NOTES §2.3 最低成本方案） ----------
 

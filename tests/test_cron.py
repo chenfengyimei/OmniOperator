@@ -14,14 +14,21 @@ from omni.core.cron import (
 )
 from omni.memory.cron import (
     CronError,
+    ExecutionLog,
     Job,
     JobStore,
     compute_next_run,
     to_iso,
 )
+from omni.memory.state import StateStore
 from omni.memory.store import MemoryStore
 from omni.tools.cron_tools import register_cron_tools
 from omni.tools.registry import ToolRegistry
+
+
+def _job_store(tmp_path) -> JobStore:
+    """任务仓储落在临时 state.db：不碰真机 data/。"""
+    return JobStore(StateStore(tmp_path / "state.db"))
 
 
 def _job(**kw) -> Job:
@@ -62,7 +69,7 @@ def test_compute_next_run():
 
 
 def test_job_store_roundtrip(tmp_path):
-    store = JobStore(tmp_path / "jobs.json")
+    store = _job_store(tmp_path)
     job = _job()
     job.next_run_at = to_iso(dt.datetime.now().astimezone())
     store.upsert(job)
@@ -78,7 +85,7 @@ def test_job_store_roundtrip(tmp_path):
 # ---------- 调度器三纪律 ----------
 
 def test_scheduler_advance_first_and_skip_missed(tmp_path):
-    store = JobStore(tmp_path / "jobs.json")
+    store = _job_store(tmp_path)
     now = dt.datetime(2026, 10, 27, 12, 0, 0)
     due = _job(name="due-job", every_minutes=60)
     due.next_run_at = to_iso(now - dt.timedelta(seconds=1))  # 恰好到期
@@ -119,7 +126,7 @@ def test_scheduler_advance_first_and_skip_missed(tmp_path):
 
 
 def test_scheduler_executor_failure_is_recorded(tmp_path):
-    store = JobStore(tmp_path / "jobs.json")
+    store = _job_store(tmp_path)
     now = dt.datetime.now().astimezone()
     job = _job(name="boom", every_minutes=60)
     job.next_run_at = to_iso(now - dt.timedelta(seconds=1))
@@ -207,7 +214,7 @@ def test_runtime_deliver_guards():
 # ---------- 任务链 context_from ----------
 
 def test_context_from_validation(tmp_path):
-    store = JobStore(tmp_path / "jobs.json")
+    store = _job_store(tmp_path)
     with pytest.raises(CronError):  # 自引用
         _job(name="a-b", every_minutes=30, context_from="a-b").validate()
     with pytest.raises(CronError):  # 名字非法
@@ -259,9 +266,7 @@ def test_executor_injects_context_from_source(tmp_path):
 # ---------- 执行账本 ----------
 
 def test_execution_log_records_and_caps(tmp_path):
-    from omni.memory.cron import ExecutionLog
-
-    log = ExecutionLog(tmp_path / "exec.json", keep=3)
+    log = ExecutionLog(StateStore(tmp_path / "state.db"), keep=3)
     for i in range(5):
         log.record(
             f"job-{i}", f"2026-10-27T10:0{i}:00", 1.5, ok=True, result=f"r{i}", delivery="d"
@@ -274,10 +279,8 @@ def test_execution_log_records_and_caps(tmp_path):
 
 
 def test_scheduler_writes_ledger(tmp_path):
-    from omni.memory.cron import ExecutionLog
-
-    store = JobStore(tmp_path / "jobs.json")
-    log = ExecutionLog(tmp_path / "exec.json")
+    store = _job_store(tmp_path)
+    log = ExecutionLog(StateStore(tmp_path / "state.db"))
     now = dt.datetime(2026, 10, 27, 12, 0, 0)
     job = _job(name="ledgered", every_minutes=60)
     job.next_run_at = to_iso(now - dt.timedelta(seconds=1))
@@ -305,10 +308,8 @@ def test_scheduler_writes_ledger(tmp_path):
 
 
 def test_scheduler_ledger_records_failure(tmp_path):
-    from omni.memory.cron import ExecutionLog
-
-    store = JobStore(tmp_path / "jobs.json")
-    log = ExecutionLog(tmp_path / "exec.json")
+    store = _job_store(tmp_path)
+    log = ExecutionLog(StateStore(tmp_path / "state.db"))
     now = dt.datetime.now().astimezone()
     job = _job(name="boom2", every_minutes=60)
     job.next_run_at = to_iso(now - dt.timedelta(seconds=1))
@@ -333,7 +334,7 @@ def test_scheduler_ledger_records_failure(tmp_path):
 
 def test_cron_tools_dispatch(tmp_path):
     registry = ToolRegistry()
-    store = JobStore(tmp_path / "jobs.json")
+    store = _job_store(tmp_path)
     register_cron_tools(registry, store, allowed_qq_users=[10001])
 
     assert "还没有定时任务" in registry.dispatch("cron_list", "{}")

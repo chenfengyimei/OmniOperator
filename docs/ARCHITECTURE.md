@@ -30,7 +30,7 @@
 | `config.py` | 加载 .env 密钥与 config.yaml 配置 | 不含任何业务逻辑 | `config.py` |
 | `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/review.py`、`core/cron.py`、`core/compress.py` |
 | `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、错误包装 | 不做记忆、不管理会话 | `llm/gateway.py` |
-| `memory/` | SQLite 仓储：会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办；常驻小记忆（MEMORY.md 式快照注入+限额合并协议）；技能存储（SKILL.md+linter，patch/rewrite 版本化）；定时任务存储（jobs + 执行账本，原子写） | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/resident.py`、`memory/skills.py`、`memory/cron.py` |
+| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议）；技能存储（SKILL.md+linter，patch/rewrite 版本化） | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/resident.py`、`memory/skills.py` |
 | `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
 | `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台（含内置终端 ConPTY）/ QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal.py`、`channels/qq.py`、`channels/heartbeat.py` |
@@ -59,12 +59,30 @@
 - **LLM 调用失败**：Gateway 包装成 `GatewayError` 抛给通道层
 - **通道层**：只捕获 `GatewayError`，不感知 litellm 原始异常
 
+### 3.4 共享状态与迁移契约（D05）
+
+**两个库各管一件事**：`memory.db` 是"对话与记忆"（用户能看见的内容），`state.db` 是
+"运行状态"（任务、账本、额度、迁移记录）。分开的理由是备份与恢复的粒度不同——
+对话历史可以有损迁移，额度与任务领取不能。
+
+| 契约 | 位置 | 必须满足 |
+| --- | --- | --- |
+| schema_version | `state.db` 的 `meta` 表 | 旧版升级按 `_MIGRATIONS` 逐级执行；**高于本程序版本直接拒绝打开**，不允许降级写入 |
+| 任务定义 | `jobs` 表 | `revision` 只在定义变化时递增；调度器推进 `next_run_at` 用 `update_run_state()`，不碰 revision（否则用户表单永远冲突） |
+| 至多一次 | `claim_due()` | 选任务 + 推进 `next_run_at` + 写 `job_claims` 在**同一个 `BEGIN IMMEDIATE`** 事务；多调度进程并发只有一个拿到 |
+| 额度 | `budgets(scope, day, used)` | 用 `UPDATE ... WHERE used < limit` 的 rowcount 判定，不做"读-加-写"；跨进程竞争最后一份额度只有一个成功 |
+| 迁移 | `migrations` 表 | 导入与"已迁移"标记同一事务（崩在中途就整份不生效）；记录源文件 sha256 与导入条数；旧文件保留不动 |
+| 降级 | `degraded` | 旧文件损坏且库内没有可用数据时**停用该能力**（`jobs`/`budget`），不是当成空数据；错误必须能被界面/心跳看到 |
+
+事务纪律：只包数据库操作，不把模型调用、人工审批、网络请求放进写事务。
+只重试 `BEGIN`（此前没有任何语句执行过），**绝不重试事务体**。
+
 ## 4. 设计模式落位
 
 | 模式 | 位置 | 解决什么问题 |
 |---|---|---|
 | Adapter（适配器） | `llm/gateway.py`、`channels/*` | 屏蔽 LiteLLM 与各平台差异，内核只见统一接口 |
-| Repository（仓储） | `memory/store.py` | 持久化细节与业务解耦，P1 升级向量库不动上层 |
+| Repository（仓储） | `memory/store.py`、`memory/state.py` | 持久化细节与业务解耦，P1 升级向量库不动上层；`JobStore`/`ExecutionLog`/`WriteBudget` 只是 `StateStore` 的薄门面 |
 | Registry（注册表） | `tools/registry.py` | 新工具零侵入接入；toolset 分组即能力开关 |
 | Strategy（策略） | `safety/gates.py` | 同一审批接口按上下文换策略：CLI 问人（ConsoleApprover）、无人值守拒绝（DenyApprover）、测试放行（AllowAllApprover） |
 | Facade（门面） | `bootstrap.Runtime` | 通道只见 new/use/chat，不碰内部对象 |

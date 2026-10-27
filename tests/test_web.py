@@ -391,10 +391,9 @@ def test_cron_create_endpoint(tmp_path):
     )
 
 
-def test_cron_history_endpoint(tmp_path, monkeypatch):
+def test_cron_history_endpoint(tmp_path):
     client, runtime = _client(tmp_path)
-    # 账本默认落 data/（真机运行态），测试必须指向 tmp 防污染
-    monkeypatch.setattr(runtime.cron_ledger, "_path", tmp_path / "exec.json")
+    # 账本在注入的 state.db 里（D05），测试实例本来就不碰真机 data/
     assert client.get("/api/system/cron/history").json()["history"] == []
     runtime.cron_ledger.record(
         "j1", "2026-10-27T10:00:00", 2.0, ok=True, result="结果", delivery=""
@@ -446,3 +445,26 @@ def test_android_state_connected(tmp_path, monkeypatch):
     )
     state = client.get("/api/android/state").json()
     assert state == {"connected": True, "serial": "EMU1", "width": 1080, "height": 2400}
+
+
+# ---------- D05：状态不可用要如实上报（不是"没有任务"） ----------
+
+
+def test_cron_endpoints_report_unavailable_state(tmp_path):
+    """旧任务文件损坏且库里没有数据：接口必须 503，不能返回空列表冒充"还没有任务"。"""
+    data = tmp_path / "data"
+    data.mkdir()
+    (data / "cron_jobs.json").write_text("{这明显不是合法 JSON", encoding="utf-8")
+
+    client, _runtime = _client(tmp_path)
+
+    listing = client.get("/api/system/cron")
+    assert listing.status_code == 503
+    assert "任务状态不可用" in listing.json()["detail"]
+    created = client.post(
+        "/api/system/cron/create",
+        json={"name": "new-job", "prompt": "x", "every_minutes": 30},
+    )
+    assert created.status_code == 503
+    health = client.get("/api/system/state").json()
+    assert health["migrations"] and health["degraded"]["jobs"]

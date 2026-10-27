@@ -45,15 +45,15 @@
 | A06 | Web `/api/chat` 先改共享 `runtime.agent.session_id` 再 `chat()`，响应与 review 也读共享值；并发请求会串话 | 源码 | `channels/web.py:210-220` | D06 | 源码发现 |
 | A07 | 全套 API 无身份校验、无 Origin/Host 校验；`/api/terminal/ws` 直接 `accept()`；`/api/system/config` 回显 `qq.access_token` 明文 | 源码→已修复 | `tests/test_web_auth.py` 31 例：12 个敏感 GET 未配对即 401、写接口/服务/审批/WS 全拒、跨站 POST 无副作用、Host 伪造、过期/篡改会话、密钥不回显与三态修改、非回环监听默认拒绝 | D03 | 已修复（真实浏览器跨站尝试与 PTY 会话待手动验收） |
 | A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码→已修复 | `config.RuntimePaths` 统一声明 12 个路径；`tests/test_paths.py` 10 例：路径派生、安卓截图、Cookie 读取、Web 写配置/Cookie、隔离实例不探测/不启停真机进程、真实 `data/` 目录 canary 全量快照不变 | D04 | 已修复（真机目录 canary 用 mtime 快照验证；跨盘符/junction 场景留待 D13 文件域） |
-| A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换：`JobStore`/`ExecutionLog`/`WriteBudget`/`ResidentMemory` | 源码 | `memory/cron.py`、`tools/browser/budget.py:33-58` | D05、D08 | 源码发现 |
-| A10 | 损坏/不可读状态一律当空数据：`WriteBudget._load` 返回 `{}` → 当日额度被重置；`JobStore` 读失败降级 | 源码 | `tools/browser/budget.py:44-50` | D05、D25 | 源码发现 |
+| A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换 | 已修复（任务/账本/额度） | 三者全部迁入 `data/state.db`（`memory/state.py`）：跨进程事务 + 唯一键 + 条件更新；`tests/test_state.py` 用 4 个真实子进程验证「最后一份额度只成功一次」「并发写任务不丢数据」 | D05、D08 | 已修复；`ResidentMemory`（MEMORY.md 文件）仍属 D08 |
+| A10 | 损坏/不可读状态一律当空数据：`WriteBudget._load` 返回 `{}` → 当日额度被重置；`JobStore` 读失败降级 | 已修复 | 迁移区分 缺失/合法空/0 字节/损坏；损坏且库内无可用数据时**停用能力**（budget 一律停用），预算显示满额而非 0；工作台返回 503 而不是空列表；心跳不启动调度器 | D05、D25 | 已修复（历史用量确实无法恢复时在 detail 里写明） |
 | A11 | 同步 Playwright 实例跨线程复用，`RLock` 只串行化、不改变线程归属；同 profile 无跨进程占用协议 | 源码 | `tools/browser/driver.py` | D07 | 源码发现 |
 | A12 | `tap_element` 在陈旧/换设备时先 `refresh_tree()` 再用**同一个 idx** 在新树里找元素 → 可能点到别的东西；动作后无强制复检 | 源码 | `tools/android/driver.py:168-185` | D16 | 源码发现 |
 | A13 | 截图工具只回路径字符串，`Agent` 未构造图像消息块，模型收不到图 | 源码 | `tools/browser/tools.py`、`tools/android/tools.py`、`core/agent.py` | D15 | 源码发现 |
 | A14 | 技能更新锁只覆盖最终 `write`，读改写不原子；版本号递增但无历史快照 | 源码 | `memory/skills.py:patch/rewrite/_write_versioned` | D08、D18 | 源码发现 |
 | A15 | `profile_edit` 未重跑总额度校验；常驻防注入规则未覆盖 review/skill 等全部学习入口 | 源码 | `memory/store.py::profile_edit`、`core/review.py` | D12 | 源码发现 |
 | A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 源码 | `core/review.py`、`memory/store.py::_init_fts` | D11、D12 | 源码发现 |
-| A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 源码 | `core/cron.py:76`、`_latest_source_output` | D05、D17 | 源码发现 |
+| A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 部分修复 | `claim_due()` 在单个写事务里推进 `next_run_at` + 写 `job_claims`；4 个真实进程同时 tick 只派发一次（`tests/test_state.py::test_claim_due_is_atomic_across_processes`） | D05、D17 | 领取已修复；并行上限、投递 outbox/去重、`context_from` 绑定 run_id 仍属 D17 |
 | A18 | 服务停止只比对 pid 文件与进程存活，无创建时间/命令行身份绑定，pid 重用有误杀风险 | 源码 | `system/services.py` | D25 | 源码发现 |
 | A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 复现→已修复 | `test_process_boundary_reclaims_child_process_tree`（真实父子进程，孙进程 pid 已消失）；超时话术区分"已确认回收/回收状态未知" | D01、D09 | 进程边界已修复；统一 ToolResult 在 D09 |
 | A20 | 无运行账本/取消/token 与费用硬预算/统一 `ToolResult` 状态（工具回的是字符串） | 源码 | `core/agent.py`、`llm/gateway.py`、`tools/registry.py` | D09、D10 | 源码发现 |
@@ -61,7 +61,7 @@
 补充观察（D00 新增登记，尚未编号为 A 项，供后续任务核对）：
 
 - `peek_command` 的 `_PEEK_RE` 允许 `python --version` / `uv --version`，但同样允许 `python -V;任意命令`——A01 的同一根因，随 D01 一起关闭；
-- `WriteBudget._save` 直接 `write_text` 覆盖正在被其它进程读的文件（A09 同源），D05 统一迁 `state.db`；
+- ~~`WriteBudget._save` 直接 `write_text` 覆盖正在被其它进程读的文件（A09 同源）~~ → D05 已迁 `state.db`；
 - `JobStore`/`ExecutionLog` 默认路径仍写死 `DATA_DIR`，与 D04 的 `RuntimePaths` 一致处理。
 
 ## 4 任务台账
@@ -73,7 +73,8 @@
 | D02 | 完成 | A03、A04、A05 | 见第 5 节 | `uv run pytest -q` → 308 passed | QQ 真实收发未验（需 NapCat 扫码登录） | 进入 D03 |
 | D03 | 完成 | A07 | 见第 5 节 | `uv run pytest -q` → 339 passed | 真实浏览器跨站请求、真实 ConPTY 会话待手动验收；前端设置页对 `access_token` 的展示需跟随（见第 5 节遗留项） | 进入 D04 |
 | D04 | 完成 | A08 | 见第 5 节 | `uv run pytest -q` → 349 passed | 真机 `data/` canary 已用快照验证未被写；跨设备/跨盘符路径与 junction 留待 D13 | R0 收口，进入 R1（D05） |
-| D05–D08 | 待开始 | A09、A10、A14、A17 | — | — | — | 依赖 D04 |
+| D05 | 完成 | A09（任务/账本/额度）、A10、A17（领取） | 见第 5 节 | `uv run --no-sync pytest -q` → 380 passed | 常驻服务仍在跑旧代码，重启后才用新库；真机 `data/` 的旧 JSON 会在下次启动时迁移（未在真机执行） | 进入 D06 |
+| D06–D08 | 待开始 | A06、A14 | — | — | — | 依赖 D05 |
 | D09–D12 | 待开始 | A06、A15、A16、A19、A20 | — | — | — | 依赖 R1 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
@@ -81,6 +82,42 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D05（事务状态与可恢复迁移）
+
+- **改了什么**：
+  - 新增 `system/backup.py`（D25 提前子项）：`snapshot_sqlite` 用 `Connection.backup()` 取一致快照、
+    对副本跑 `integrity_check`、记 sha256/字节数/关键表行数；`backup_runtime` 覆盖 `state.db`/`memory.db`/
+    `config.yaml`/`MEMORY.md`/`skills/`，缺失项进 `skipped` 而不是假装备份；`restore_into` 只往新目录写、
+    默认拒绝覆盖、恢复后再校验并比对校验和；CLI `python -m omni.system.backup`；
+  - 新增 `memory/state.py`（`data/state.db`）：`meta.schema_version`（高于本程序版本直接拒绝打开）、
+    `jobs`（含 revision）、`job_claims`、`executions`、`budgets(scope, day, used)`、`migrations`；
+    提供 `claim_due()`（原子领取）、`consume_budget()`（条件更新）、`upsert_job(expected_revision=)`、
+    `update_run_state()`（不动 revision）、`health()`；
+  - `memory/jobs.py` 拆出模型与时间计算，`memory/cron.py` 退化为再导出（老导入路径不变）；
+  - `JobStore`/`ExecutionLog`/`WriteBudget` 改为 `StateStore` 的薄门面；`bootstrap` 建一次 state 并在启动时
+    执行 `migrate_legacy()`；`RuntimePaths` 增加 `state`；`Runtime` 增加 `state`/`close_state()`；
+  - `core/cron.py` 的 tick 改走 `claim_due()`，执行完 `update_run_state()` 而不是整条 upsert；
+  - 工作台 cron 接口在状态不可用时返回 503（新增 `GET /api/system/state` 自检）；心跳在 jobs 不可用时
+    不启动调度器并打印原因。
+- **关闭了什么**：A09（任务/账本/额度）、A10（损坏不再当空，额度 fail-closed）、A17 的领取部分。
+- **跑了什么**：`uv run --no-sync pytest tests/test_state.py -q` → 21 passed（连跑 3 次稳定）；
+  `uv run --no-sync pytest tests/test_backup.py -q` → 9 passed；
+  `uv run --no-sync pytest -q` → **380 passed, 1 warning**。
+- **没测什么**：真实 `data/` 的旧 JSON 迁移（常驻服务在跑旧代码，未在真机执行迁移）；
+  跨盘符/junction 路径（D13）；`context_from` 绑定 run_id、投递 outbox（D17）。
+- **过程记录**：
+  1. 加 `omni-backup` 脚本入口失败——用户正在跑 `omni-qq`/`omni-web`，uv 重建会替换
+     `Scripts/omni-*.exe` 而文件被占用。撤回脚本入口，改用 `python -m omni.system.backup`；
+     因此本批测试用 `uv run --no-sync pytest`。
+  2. 跨进程用例起初出现 `attempt to write a readonly database`：所有连接都退出时 SQLite 会删掉
+     `-wal`/`-shm`，其余并发写入撞上 WAL 重建——这是测试造的假现场。改成父进程保持一个连接
+     （模拟常驻服务），并在 `_begin()` 里只对 BEGIN 做有限重试（BEGIN 前没有任何语句执行过）。
+  3. **顺手发现一处真实的测试泄漏**：`tests/test_resident.py` 的 `build_runtime` 只注入了
+     `db_path`/`skills_root`，没有 `data_dir`——D05 之后它会直接在真机 `data/` 建 `state.db`
+     （之前是往真 `data/` 写 cron JSON 的同源问题，只因为文件名叫 json 没被注意）。已补
+     `data_dir` 与路径断言。真机上那次生成的 `data/state.db` 只含 3 条 `empty`/`missing`
+     迁移记录，没有任何任务、账本或额度数据；未删除，下次启动会继续复用。
 
 ### 2026-10-27 · D04（全路径与外部依赖隔离）
 
@@ -211,9 +248,9 @@ A17（cron 跨进程领取/积压）、A18（pid 身份）、A20（Run/ToolResul
 - 安卓真机截图/动作（需设备 + ADBKeyboard）；
 - B 站 Cookie 生效与字幕/转写链路。
 
-### 7.4 进入 D05–D08 的建议
+### 7.4 进入 D05–D08 的建议（D05 已按此执行）
 
-1. **D05 先做最小备份**：`state.db` 之前必须有一个能对 SQLite 做一致快照的备份命令，
+1. ~~**D05 先做最小备份**~~：已完成（`system/backup.py`，见 §5 D05）。备份命令先于迁移可用，
    否则迁移失败就没有回头路；顺带把 `WriteBudget._load` 的"损坏当空"改成 fail-closed（A10）。
 2. **D06 的会话路由**是 A06 的正解，也会让 D02 的 `personal_context` 变成"作用域策略"的一部分；
    建议先定 `SessionScope` 契约再动 Web/QQ/CLI。
