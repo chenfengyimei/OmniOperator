@@ -129,3 +129,60 @@ def test_agent_always_restores_callers_session_context(tmp_path, fail):
         assert agent.session_id == sid
     finally:
         store.close()
+
+
+# ---------- D02：群聊作用域不注入私人上下文 ----------
+
+
+def test_group_scope_hides_profile_resident_and_memory_tools(tmp_path):
+    """群聊回合：系统提示里没有档案/常驻笔记，个人记忆工具既不给规格也拒绝派发。"""
+    from omni.core.agent import GROUP_DENIED_TOOLS
+    from omni.memory.resident import ResidentMemory
+    from omni.tools.builtin import register_core_tools, register_resident_tools
+
+    store = MemoryStore(tmp_path / "m.db")
+    store.profile_add("主人的家庭住址是秘密花园 1 号")
+    resident = ResidentMemory(tmp_path / "MEMORY.md")
+    assert not resident.add("主人讨厌被叫全名").startswith("错误")
+    sid = store.new_session()
+    registry = _core_registry(store)
+    register_resident_tools(registry, resident)
+
+    class CaptureGateway:
+        def __init__(self) -> None:
+            self.messages: list[dict] = []
+            self.tool_names: list[str] = []
+
+        def resolve(self, route: str) -> str:
+            return "fake/model"
+
+        def complete(self, messages, *, model, tools=None):
+            self.messages = [dict(m) for m in messages]
+            self.tool_names = [t["function"]["name"] for t in (tools or [])]
+            return SimpleNamespace(text="我只回答群里的问题", tool_calls=[])
+
+    try:
+        gateway = CaptureGateway()
+        agent = Agent(
+            AppConfig(), gateway, store, registry, sid, resident=resident
+        )
+        # 私聊：档案与常驻都在
+        agent.chat("我叫什么", session_id=sid)
+        private_prompt = gateway.messages[0]["content"]
+        assert "秘密花园" in private_prompt and "讨厌被叫全名" in private_prompt
+
+        # 群聊：同一会话也不带私人上下文
+        agent.chat("群里问一句", session_id=sid, personal_context=False)
+        group_prompt = gateway.messages[0]["content"]
+        assert "秘密花园" not in group_prompt
+        assert "讨厌被叫全名" not in group_prompt
+        assert "群聊场景" in group_prompt
+        assert not (set(gateway.tool_names) & GROUP_DENIED_TOOLS)
+        assert "get_time" in gateway.tool_names  # 无害工具仍然可用
+
+        # 模型硬编工具名也没用：派发处再拦一次
+        out = registry.dispatch("recall", {"query": "住址"}, denied_tools=GROUP_DENIED_TOOLS)
+        assert "当前场景不提供工具" in out
+        assert "秘密花园" not in out
+    finally:
+        store.close()

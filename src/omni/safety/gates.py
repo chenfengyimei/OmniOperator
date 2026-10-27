@@ -26,6 +26,21 @@ class Decision:
     reason: str = ""
 
 
+def private_target_allowed(allowed_users, target: int) -> Decision:
+    """QQ 私聊/主动投递的唯一判定入口（A03/A04 的根因修复）。
+
+    为什么收在一处：旧代码在两处写出了相反的语义——
+    入站 `if allowed_users and ...`（空名单=不限）、工具 `if user not in allowed`（空名单=全拒）。
+    现在统一为 **空白名单 = 谁都不许**：没有配置所有者等于没有授权任何目标。
+    """
+    allowed = {int(user) for user in (allowed_users or [])}
+    if not allowed:
+        return Decision(False, "QQ 私聊白名单为空——先配置所有者的 QQ 号；空名单不等于不限")
+    if int(target) not in allowed:
+        return Decision(False, f"QQ {target} 不在私聊白名单内")
+    return Decision(True)
+
+
 class Approver(abc.ABC):
     """审批策略接口：给定工具与本次调用参数，决定是否放行。
 

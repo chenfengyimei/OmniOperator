@@ -16,10 +16,17 @@ from omni.memory.cron import Job, to_iso
 from omni.safety.gates import DenyApprover, Risk
 
 
-def _client(tmp_path, skills_root=None):
+def _client(tmp_path, skills_root=None, config_text=None):
+    """临时配置 + 临时库：不读真机 config.yaml（QQ 白名单属真实授权，测试不能借用）。"""
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        config_text if config_text is not None else "persona:\n  name: 测试小鱼\n",
+        encoding="utf-8",
+    )
     runtime = build_runtime(
         approver=DenyApprover(),
         db_path=tmp_path / "m.db",
+        config_path=config_path,
         skills_root=skills_root,
         data_dir=tmp_path / "data",  # 隔离真机运行态（jobs/账本/常驻记忆/安卓缓存）
     )
@@ -350,12 +357,30 @@ def test_cron_create_endpoint(tmp_path):
         json={"name": "chain-x", "prompt": "x", "every_minutes": 30, "context_from": "src-job"},
     )
     assert ok.status_code == 200
-    # QQ 白名单守卫
-    runtime.config.qq.allowed_users = [10001]
+    # QQ 白名单守卫：写进配置源（策略是热读的，改内存对象不算数）
+    runtime.config_path.write_text(
+        "persona:\n  name: 测试小鱼\nqq:\n  allowed_users: [10001]\n", encoding="utf-8"
+    )
     assert (
         client.post(
             "/api/system/cron/create",
             json={"name": "bad-qq", "prompt": "x", "every_minutes": 30, "deliver_to_qq": 999},
+        ).status_code
+        == 400
+    )
+    allowed = client.post(
+        "/api/system/cron/create",
+        json={"name": "ok-qq", "prompt": "x", "every_minutes": 30, "deliver_to_qq": 10001},
+    )
+    assert allowed.status_code == 200
+    # 撤销白名单立即生效：同一进程内下一条就拒
+    runtime.config_path.write_text(
+        "persona:\n  name: 测试小鱼\nqq:\n  allowed_users: []\n", encoding="utf-8"
+    )
+    assert (
+        client.post(
+            "/api/system/cron/create",
+            json={"name": "revoked-qq", "prompt": "x", "every_minutes": 30, "deliver_to_qq": 10001},
         ).status_code
         == 400
     )

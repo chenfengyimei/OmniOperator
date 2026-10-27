@@ -178,3 +178,15 @@ def load_config(path: Path | None = None) -> AppConfig:
         return AppConfig()
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     return AppConfig(**data)
+
+
+def load_qq_policy(path: Path | None = None) -> QQ:
+    """每次调用都从配置源重读 QQ 策略（白名单/群名单/开关）。
+
+    为什么不做缓存：撤销白名单必须在下一条消息、下一次投递就生效，不能等进程重启；
+    读失败或字段非法时返回**全空**策略——安全配置一旦损坏，宁可谁都不许，也不沿用旧权限。
+    """
+    try:
+        return load_config(path).qq
+    except Exception:  # noqa: BLE001 —— 任何解析失败都按 fail-closed 处理
+        return QQ(enabled=False, allowed_users=[], allowed_groups=[])

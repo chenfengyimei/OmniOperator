@@ -73,8 +73,14 @@ class ToolRegistry:
     def toolsets(self) -> list[str]:
         return sorted({t.toolset for t in self._tools.values()})
 
-    def specs(self, toolsets: set[str] | None = None) -> list[dict[str, Any]]:
-        """生成 LiteLLM/OpenAI 格式的 tools 参数（可按能力组过滤）。"""
+    def specs(
+        self, toolsets: set[str] | None = None, *, exclude: frozenset[str] = frozenset()
+    ) -> list[dict[str, Any]]:
+        """生成 LiteLLM/OpenAI 格式的 tools 参数（可按能力组过滤）。
+
+        exclude 是**当前回合**不可用的工具名（如群聊作用域下的个人记忆工具）：
+        既不出现在规格里，也会在 dispatch 处再拦一次——模型自己编出名字也没用。
+        """
         return [
             {
                 "type": "function",
@@ -85,6 +91,7 @@ class ToolRegistry:
                 },
             }
             for t in self._iter(toolsets)
+            if t.name not in exclude
         ]
 
     def dispatch(
@@ -93,10 +100,16 @@ class ToolRegistry:
         arguments: str | dict[str, Any],
         *,
         approver: Approver | None = None,
+        denied_tools: frozenset[str] = frozenset(),
     ) -> str:
         tool = self._tools.get(name)
         if tool is None:
             return f"错误：没有名为 {name} 的工具"
+        if name in denied_tools:
+            return (
+                f"错误：当前场景不提供工具 {name}"
+                "（群聊作用域不读取所有者的个人档案、常驻笔记与跨会话历史）"
+            )
         if isinstance(arguments, str):
             try:
                 arguments = json.loads(arguments or "{}")

@@ -124,8 +124,23 @@ roots 或 elicitation 回调，故不能借服务器反向调用模型或扩大�
 `register_shell_tools(registry, runner=..., shell_runner=..., cwd=..., root=...)` 的
 两个 runner 都可注入，安全测试一律用假执行器并断言"调用次数为零"。
 
-## 6. Phase 架构演进预告
+### 5.7 授权判定与场景作用域（D02）
 
+**一处判定**：`safety.gates.private_target_allowed(allowed_users, target)` 是"能否给某个 QQ 号发私聊"
+的唯一入口，入站、`qq_send_message`、`cron_add` 校验、cron 投递、Web 建任务全部走它。
+空白名单一律视为"谁都不许"——不允许任何一处再写成"空 = 不限"。
+
+**读时为准**：`config.load_qq_policy()` 每次从配置源重读 QQ 策略（读失败 → 全空，fail-closed）。
+`bootstrap.Runtime.qq_policy()` 与注入工具的白名单提供者都接到它上面，所以撤销白名单
+在下一条消息 / 下一次投递就生效，不用重启进程。`Runtime.config_path` 记录**实际读取**的那个文件，
+测试用临时配置就不会热读到真机配置。
+
+**场景作用域**：QQ 绑定键改为 `dm:<user>` / `group:<group_id>`，同一发送者在私聊与各群各自一条历史；
+旧键 `qq:<user>` 只迁移给私聊，绝不进群。群聊回合 `Agent.chat(personal_context=False)`：
+不注入档案/常驻笔记，并把 `core.agent.GROUP_DENIED_TOOLS` 从工具规格与派发两处同时剔除。
+D12/D22 会把这里换成正式的记忆作用域策略，本节的 API 形状保持不变。
+
+## 6. Phase 架构演进预告
 | Phase | 新增 | 结构原则 |
 |---|---|---|
 | P1 | `tools/bilibili/`（读 API + WBI 签名）、memory 向量检索（sqlite-vec）、回合后 review 线程、`skills/` 技能系统 | api 层不知道 LLM；review 是 Gateway 的独立消费者（换廉价模型跑） |

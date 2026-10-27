@@ -12,6 +12,24 @@ from ..safety.gates import Approver
 from ..tools.registry import SessionRef, ToolRegistry
 from .compress import assert_invariants, compress_if_needed
 
+# 群聊作用域下不提供的工具：会读全局个人数据或跨会话历史（D12/D22 会换成正式的作用域策略）
+GROUP_DENIED_TOOLS = frozenset(
+    {
+        "recall",
+        "search_history",
+        "remember",
+        "profile_manage",
+        "resident_memory",
+        "daily_digest",
+        "skills_list",
+        "skill_view",
+        "skill_create",
+        "skill_patch",
+        "skill_rewrite",
+        "delegate_task",
+    }
+)
+
 
 class Agent:
     def __init__(
@@ -44,9 +62,15 @@ class Agent:
         """会话引用（delegate_task 等需要临时切换/还原会话指向的工具用）。"""
         return self._session_ref
 
-    def _system_prompt(self) -> str:
+    def _system_prompt(self, *, include_personal: bool = True) -> str:
         now = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %A")
         prompt = self.config.persona.system_prompt.replace("{now}", now)
+        if not include_personal:
+            # 群聊/他人可见场景：只给"它是谁"，不给所有者的私人资料
+            return prompt + (
+                "\n\n（当前是群聊场景：不注入所有者的个人档案、常驻笔记与其它会话历史。"
+                "不要假设自己知道群外信息；涉及私人资料的请求请让用户私下联系。）"
+            )
         # 常驻小记忆冻结快照（本轮内字节稳定；中途写入只落盘，下一轮生效）
         if self._resident is not None:
             memory_block = self._resident.block()
@@ -71,26 +95,39 @@ class Agent:
             min_messages=comp.min_messages,
         )
 
-    def chat(self, user_text: str, *, session_id: int | None = None) -> str:
+    def chat(
+        self,
+        user_text: str,
+        *,
+        session_id: int | None = None,
+        personal_context: bool = True,
+    ) -> str:
         """处理一条用户消息，返回最终回答（中间工具循环不落库）。
 
         session_id 覆盖用于多通道并发：QQ 等通道按各自绑定传会话，
         不依赖 self.session_id（那是 CLI/Web 的当前会话，可能被随时切换）。
+
+        personal_context=False 用于他人可见的场景（群聊）：不注入档案/常驻笔记，
+        并隐藏只服务所有者的个人记忆工具——在 D12 的完整作用域策略落地前先把口子关死。
         """
         sid = session_id if session_id is not None else self.session_id
         if self._session_ref is not None:
             with self._session_ref.bind(sid):
-                return self._chat(user_text, sid)
-        return self._chat(user_text, sid)
+                return self._chat(user_text, sid, personal_context=personal_context)
+        return self._chat(user_text, sid, personal_context=personal_context)
 
-    def _chat(self, user_text: str, sid: int) -> str:
+    def _chat(self, user_text: str, sid: int, *, personal_context: bool = True) -> str:
         """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。"""
+        denied = frozenset() if personal_context else GROUP_DENIED_TOOLS
         self.store.append_message(sid, "user", user_text)
         history = self.store.recent_messages(
             sid, self.config.limits.max_history_messages
         )
         messages: list[dict[str, Any]] = [
-            {"role": "system", "content": self._system_prompt()}
+            {
+                "role": "system",
+                "content": self._system_prompt(include_personal=personal_context),
+            }
         ]
         messages += [{"role": role, "content": content} for role, content in history]
         messages = self._maybe_compress(messages)
@@ -99,7 +136,7 @@ class Agent:
             messages = self._maybe_compress(messages)
             assert_invariants(messages)
             reply = self.gateway.complete(
-                messages, model=self.model, tools=self.registry.specs()
+                messages, model=self.model, tools=self.registry.specs(exclude=denied)
             )
             if not reply.tool_calls:
                 answer = reply.text.strip() or "（模型没有返回内容）"
@@ -118,6 +155,7 @@ class Agent:
                     call.function.name,
                     call.function.arguments,
                     approver=self.approver,
+                    denied_tools=denied,
                 )
                 messages.append(
                     {"role": "tool", "tool_call_id": call.id, "content": result}

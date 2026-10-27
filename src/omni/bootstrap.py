@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .config import DATA_DIR, AppConfig, load_config
+from .config import CONFIG_PATH, DATA_DIR, AppConfig, QQ, load_config, load_qq_policy
 from .core.agent import Agent
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
@@ -71,6 +71,11 @@ class Runtime:
     mcp: MCPManager
     reviewer: TurnEndReviewer | None = None
     qq: OneBotClient | None = None
+    config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
+
+    def qq_policy(self) -> QQ:
+        """当前 QQ 授权策略：每次从配置源重读，撤销白名单不必重启进程。"""
+        return load_qq_policy(self.config_path)
 
     def close_mcp(self) -> None:
         """入口关闭时回收本 Runtime 的 MCP 子进程；不干扰其它服务。"""
@@ -105,6 +110,8 @@ def build_runtime(
     skills_root: Path | None = None,
     data_dir: Path | None = None,
 ) -> Runtime:
+    # 记住实际读取的配置源：策略热读必须命中同一个文件，否则会读到真机配置
+    config_path = Path(config_path) if config_path else CONFIG_PATH
     config = load_config(config_path)
     data_root = Path(data_dir) if data_dir else DATA_DIR
     memory_path = db_path if db_path is not None else data_root / "memory.db"
@@ -131,7 +138,11 @@ def build_runtime(
     register_bilibili_tools(registry, BiliAPI(), config.asr)
     cron_jobs = JobStore(data_root / "cron_jobs.json")
     cron_ledger = ExecutionLog(data_root / "cron_executions.json")
-    register_cron_tools(registry, cron_jobs, config.qq.allowed_users)
+    # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照
+    def _allowed_qq_users() -> list[int]:
+        return load_qq_policy(config_path).allowed_users
+
+    register_cron_tools(registry, cron_jobs, _allowed_qq_users)
     browser = BrowserDriver(
         headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms,
         profile_dir=data_root / "browser_profile", shots_dir=data_root / "browser_shots",
@@ -149,7 +160,7 @@ def build_runtime(
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
-        register_qq_tools(registry, qq_client, config.qq.allowed_users)
+        register_qq_tools(registry, qq_client, _allowed_qq_users)
     session_id = store.latest_session_id() or store.new_session()
     agent = Agent(
         config, gateway, store, registry, session_id,
@@ -196,4 +207,5 @@ def build_runtime(
         mcp=mcp,
         reviewer=reviewer,
         qq=qq_client,
+        config_path=config_path,
     )

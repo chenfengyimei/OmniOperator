@@ -67,7 +67,7 @@ uv run omni-heartbeat              # 心跳调度（cron）
 | core | delegate_task | 子任务委派到 UUID 独立会话（同标签并发也不串历史，thread-local 防嵌套，会话引用自动还原） |
 | shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
-| qq | qq_send_message | 主动私聊（限白名单） |
+| qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
 | cron | cron_list / cron_add / cron_remove | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链） |
 | browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流 |
 | android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM |
@@ -89,8 +89,10 @@ uv run omni-heartbeat              # 心跳调度（cron）
   设置中心（人设·模型·记忆·B站与转写·浏览器·QQ·定时任务（含新建表单+执行历史）·关于）/
   **内置终端**（xterm.js + ConPTY，header「⌨ 终端」）/ **安卓手机页**（MJPEG 看屏 + 点屏下发 + UI 树）
 - CLI（rich REPL，`/new /list /use /switch /tools /memory /skills /help`）
-- QQ（OneBot v11 正向 WS，白名单 + 拟人延迟 + 长消息分段）
-- 心跳（无人值守 DenyApprover；支持 QQ 投递）
+- QQ（OneBot v11 正向 WS，白名单 + 拟人延迟 + 长消息分段）：
+  空白名单不响应任何人；私聊 `dm:<qq>` 与群聊 `group:<群号>` 各自一条历史；
+  群聊只在被 @ 时回复，且**不注入**所有者档案/常驻笔记、不提供个人记忆工具
+- 心跳（无人值守 DenyApprover；支持 QQ 投递，空白名单不投递）
 
 ### 4.4 安全层
 - 审批三档：SAFE 直通 / CONFIRM 问人 / DANGEROUS 拒
@@ -128,6 +130,7 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 14. **data_dir 完整隔离**：除 jobs/常驻/安卓，memory.db（含 review）、浏览器 profile/截图/预算、服务 pid/日志、MCP 日志也统一注入；skills 仍由 skills_root 单独控制（仍有遗漏，见 DEVELOPMENT_STATUS 的 A08/D04）
 15. **SAFE 命令不要用 shell**：`shell=True` 下前缀白名单等于没有白名单（`git status & 任意命令`）。改成 argv + `shell=False` 后，参数形态也要逐条校验——`git branch <name>`、`git show HEAD:.env` 都能借只读子命令读写
 16. **`git status` 会写 index**：观察类 git 必须带 `GIT_OPTIONAL_LOCKS=0`，否则 SAFE 观察也会改仓库状态；超时用 `taskkill /F /T` 收进程树，不能只 kill 直接子进程
+17. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
 
 ## 6. 未完成事项（按优先级）
 

@@ -6,15 +6,23 @@
 from __future__ import annotations
 
 import datetime as dt
+from collections.abc import Callable
 from typing import Any
 
 from ..memory.cron import CronError, Job, JobStore, compute_next_run, to_iso
+from ..safety.gates import private_target_allowed
 from .registry import Risk, Tool, ToolRegistry
+
+AllowedUsers = list[int] | Callable[[], list[int]]
 
 
 def register_cron_tools(
-    registry: ToolRegistry, store: JobStore, allowed_qq_users: list[int]
+    registry: ToolRegistry, store: JobStore, allowed_qq_users: AllowedUsers
 ) -> None:
+    """allowed_qq_users 可以是列表或提供者；传提供者时按"读时"取当前白名单。"""
+    if not callable(allowed_qq_users):
+        snapshot = list(allowed_qq_users)
+        allowed_qq_users = lambda: list(snapshot)  # noqa: E731 —— 只是包一层取数
 
     def _fmt(job: Job) -> str:
         schedule = f"每 {job.every_minutes} 分钟" if job.every_minutes else f"每天 {job.daily_at}"
@@ -45,9 +53,10 @@ def register_cron_tools(
                     str(args["context_from"]).strip() if args.get("context_from") else None
                 ),
             )
-            if job.deliver_to_qq is not None and allowed_qq_users:
-                if int(job.deliver_to_qq) not in allowed_qq_users:
-                    return "错误：deliver_to_qq 必须是白名单里的 QQ 号"
+            if job.deliver_to_qq is not None:
+                decision = private_target_allowed(allowed_qq_users(), job.deliver_to_qq)
+                if not decision.allowed:
+                    return f"错误：deliver_to_qq 不可用（{decision.reason}）"
             job.validate()
             job.next_run_at = to_iso(
                 compute_next_run(job, dt.datetime.now().astimezone())

@@ -2,8 +2,9 @@
 
 **这些用例记录问题的生命周期，不是期望行为的最终定义。**
 - `test_a01_*` / `test_a02_*`：D01 已翻转——现在断言"在假执行器之前拒绝"；
-- `test_a03_*` / `test_a04_*` / `test_a05_*`：仍是当前 HEAD 的失效行为，
-  D02 修复后同样翻转为负例。翻转过程记录在 `docs/DEVELOPMENT_STATUS.md`。
+- `test_a03_*` / `test_a04_*` / `test_a05_*`：D02 已翻转——现在断言"空白名单不响应、
+  不投递、场景绑定分离"。翻转前它们断言的是这些缺陷确实可复现。
+- 翻转过程与证据编号记录在 `docs/DEVELOPMENT_STATUS.md`。
 
 全部使用假执行器 / 假模型 / 假发送器：不触碰真实命令、真实账号、真实 QQ 连接。
 """
@@ -109,10 +110,12 @@ def _group_event(user_id: int, group_id: int, self_id: int, text: str = "在吗"
 
 class _FakeAgent:
     def __init__(self) -> None:
-        self.calls: list[tuple[str, int | None]] = []
+        self.calls: list[tuple[str, int | None, bool]] = []
 
-    def chat(self, text: str, session_id: int | None = None) -> str:
-        self.calls.append((text, session_id))
+    def chat(
+        self, text: str, session_id: int | None = None, *, personal_context: bool = True
+    ) -> str:
+        self.calls.append((text, session_id, personal_context))
         return "好的"
 
 
@@ -121,10 +124,17 @@ class _FakeStore:
 
     def __init__(self) -> None:
         self.binding_calls: list[tuple[str, str]] = []
+        self.alias: dict[tuple[str, str], int] = {}
 
     def get_or_create_binding(self, channel: str, key: str) -> int:
         self.binding_calls.append((channel, key))
-        return 1
+        return self.alias.setdefault((channel, key), len(self.alias) + 1)
+
+    def get_binding(self, channel: str, key: str) -> int | None:
+        return self.alias.get((channel, key))
+
+    def set_binding(self, channel: str, key: str, session_id: int) -> None:
+        self.alias[(channel, key)] = session_id
 
 
 class _FakeQQClient:
@@ -146,21 +156,37 @@ class _FakeRuntime:
     store: _FakeStore = field(default_factory=_FakeStore)
     agent: _FakeAgent = field(default_factory=_FakeAgent)
 
+    def qq_policy(self):  # 与 bootstrap.Runtime 同形：策略按"读时"取
+        return self.config.qq
+
     def spawn_review(self, session_id: int | None = None) -> None:
         return None
 
 
-def test_a03_qq_empty_allowlist_still_answers_private_message():
-    """`if allowed_users and ...` —— 白名单为空时条件短路，任何人私聊都会被回复。"""
+def test_a03_empty_allowlist_rejects_private_message():
+    """空白名单 = 谁都不许：假 agent 不被调用，假 client 不发送。"""
     runtime = _FakeRuntime()
     runtime.config.qq.allowed_users = []
-    runtime.config.qq.reply_delay_s = [0.0, 0.0]  # 跳过拟人延迟，测试不占时间
+    runtime.config.qq.reply_delay_s = [0.0, 0.0]
     client = _FakeQQClient()
 
     asyncio.run(_handle_message(runtime, client, _private_event(999999), {}))
 
-    assert runtime.agent.calls, "空私聊白名单仍触达了 agent（应拒绝）"
-    assert client.sent and client.sent[0][1] == 999999
+    assert runtime.agent.calls == []
+    assert client.sent == []
+    assert runtime.store.binding_calls == []
+
+
+def test_a03_allowlisted_private_message_still_answered():
+    runtime = _FakeRuntime()
+    runtime.config.qq.allowed_users = [10001]
+    runtime.config.qq.reply_delay_s = [0.0, 0.0]
+    client = _FakeQQClient()
+
+    asyncio.run(_handle_message(runtime, client, _private_event(10001), {}))
+
+    assert client.sent == [("private", 10001, "好的")]
+    assert runtime.agent.calls[0][2] is True  # 私聊带个人上下文
 
 
 # ---------- A04：cron 投递空白名单仍可发送 ----------
@@ -181,25 +207,29 @@ class _CronRuntime:
     config: AppConfig = field(default_factory=AppConfig)
     qq: _FakeQQ | None = field(default_factory=_FakeQQ)
 
+    def qq_policy(self):
+        return self.config.qq
 
-def test_a04_cron_delivery_with_empty_allowlist_still_sends():
-    """`make_runtime_deliver` 与 qq_send_message 的判断方向相反：空名单被当成"不限"。"""
+
+def test_a04_cron_delivery_with_empty_allowlist_is_refused():
+    """投递与工具同一判定：空白名单不是"不限"，假发送器不得被调用。"""
     runtime = _CronRuntime()
     runtime.config.qq.allowed_users = []
     job = Job(name="nightly", prompt="整理", daily_at="22:00", deliver_to_qq=999999)
 
     detail = asyncio.run(make_runtime_deliver(runtime)(job, "早报"))
 
-    assert runtime.qq is not None and runtime.qq.sent == [(999999, "早报")], "空名单仍投递了"
-    assert "已投递" in detail
+    assert runtime.qq is not None and runtime.qq.sent == []
+    assert "白名单为空" in detail
 
 
 # ---------- A05：私聊与群聊共用同一把绑定键 ----------
 
 
-def test_a05_private_and_group_share_binding_key():
-    """同一 QQ 号在私聊和两个群里都落到 `qq:<user_id>` —— 历史会混。"""
+def test_a05_private_and_group_bindings_are_separate():
+    """私聊 `dm:<uid>`、群聊 `group:<gid>`：同一发送者跨场景不再共用历史。"""
     runtime = _FakeRuntime()
+    runtime.config.qq.allowed_users = [10001]
     runtime.config.qq.allowed_groups = [200, 300]
     runtime.config.qq.reply_delay_s = [0.0, 0.0]
     client = _FakeQQClient()
@@ -208,5 +238,8 @@ def test_a05_private_and_group_share_binding_key():
     asyncio.run(_handle_message(runtime, client, _group_event(10001, 200, client.self_id), {}))
     asyncio.run(_handle_message(runtime, client, _group_event(10001, 300, client.self_id), {}))
 
-    keys = {key for _, key in runtime.store.binding_calls}
-    assert keys == {"10001"}, f"三个场景共用了同一绑定键：{keys}"
+    keys = [key for _, key in runtime.store.binding_calls]
+    assert keys == ["dm:10001", "group:200", "group:300"]
+    # 群聊不注入个人上下文
+    group_calls = [call for call in runtime.agent.calls if call[2] is False]
+    assert len(group_calls) == 2

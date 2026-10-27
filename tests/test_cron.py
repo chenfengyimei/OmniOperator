@@ -176,14 +176,29 @@ def test_runtime_deliver_guards():
             self.sent.append((user_id, text))
 
     qq = FakeQQ()
-    rt = SimpleNamespace(qq=qq, config=SimpleNamespace(qq=SimpleNamespace(allowed_users=[10001])))
+    # 策略是热读的：每次投递都问 qq_policy()，所以用可变容器模拟"配置被改"
+    state = {"allowed": [10001]}
+    rt = SimpleNamespace(
+        qq=qq, qq_policy=lambda: SimpleNamespace(allowed_users=state["allowed"])
+    )
     deliver = make_runtime_deliver(rt)
     assert asyncio.run(deliver(_job(deliver_to_qq=10001), "hi")) == "已投递 QQ 10001"
     assert qq.sent == [(10001, "hi")]
-    # 白名单外拒绝
+    # 白名单外拒绝，且不发送
     assert "白名单" in asyncio.run(deliver(_job(deliver_to_qq=999), "hi"))
+    assert qq.sent == [(10001, "hi")]
+    # 空白名单 = 谁都不许（旧实现会当成"不限"直接发出去）
+    state["allowed"] = []
+    detail = asyncio.run(deliver(_job(deliver_to_qq=10001), "hi"))
+    assert "白名单为空" in detail
+    assert qq.sent == [(10001, "hi")]
+    # 撤销白名单在下一次投递就生效
+    state["allowed"] = [10001]
+    assert asyncio.run(deliver(_job(deliver_to_qq=10001), "hi")) == "已投递 QQ 10001"
+    state["allowed"] = [20002]
+    assert "白名单" in asyncio.run(deliver(_job(deliver_to_qq=10001), "hi"))
     # QQ 未启用
-    rt_none = SimpleNamespace(qq=None, config=SimpleNamespace(qq=SimpleNamespace(allowed_users=[])))
+    rt_none = SimpleNamespace(qq=None, qq_policy=lambda: SimpleNamespace(allowed_users=[]))
     assert "未启用" in asyncio.run(make_runtime_deliver(rt_none)(_job(deliver_to_qq=1), "hi"))
     # 无投递目标 → 空串（只落会话）
     assert asyncio.run(deliver(_job(deliver_to_qq=None), "hi")) == ""

@@ -39,9 +39,9 @@
 | --- | --- | --- | --- | --- | --- |
 | A01 | `peek_command` 前缀正则 + `shell=True`，复合命令/重定向/`&&` 全部穿过 SAFE | 复现→已修复 | `test_a01_*` 已翻转为负例；`test_shell_tools.py` 另有 10 种复合/重定向形态 | D01 | 已修复（待真实验收：真实命令面） |
 | A02 | 只读名单含写子命令与敏感文件：`git branch <name>`、`git remote add`、`type .env` 均到执行器 | 复现→已修复（命令面） | `test_a02_*` 翻转 + 14 种 git 写参数/泄密参数负例 + 8 种敏感路径负例；`type`/`get-content` 已移出 SAFE | D01、D13 | 命令面已修复；文件域仍待 D13 |
-| A03 | 私聊判断 `if cfg.allowed_users and ...`：空白名单 = 不限，任何人私聊都被回复 | 复现 | `test_a03_*`（假 agent 被调用、假 client 已发送） | D02 | 已复现 |
-| A04 | `make_runtime_deliver` 用 `if allowed and ...`：空白名单 = 不限，cron 可发给任意 QQ；工作台建任务 `cron_create` 同款判断 | 复现 | `test_a04_*`；`core/cron.py:170`、`channels/web.py:476` | D02、D17 | 已复现 |
-| A05 | 私聊与各群共用 `get_or_create_binding("qq", str(user_id))`，历史跨场景混合 | 复现 | `test_a05_*`（三场景同一键 `10001`） | D02、D06、D22 | 已复现 |
+| A03 | 私聊判断 `if cfg.allowed_users and ...`：空白名单 = 不限，任何人私聊都被回复 | 复现→已修复 | `test_a03_*` 翻转；`tests/test_qq_scope.py` 7 例（空白名单/名单外/正常私聊/撤销即时生效） | D02 | 已修复（真实 QQ 收发待验收） |
+| A04 | `make_runtime_deliver` 用 `if allowed and ...`：空白名单 = 不限，cron 可发给任意 QQ；工作台建任务 `cron_create` 同款判断 | 复现→已修复 | `test_a04_*` 翻转；`test_cron.py::test_runtime_deliver_guards` 覆盖空白名单/撤销；`test_web.py` 覆盖建任务校验与撤销 | D02、D17 | 已修复；投递 outbox 与去重仍属 D17 |
+| A05 | 私聊与各群共用 `get_or_create_binding("qq", str(user_id))`，历史跨场景混合 | 复现→已修复 | 绑定键改为 `dm:<qq>` / `group:<群号>`；`test_a05_*`；旧键只迁给私聊；群聊 `personal_context=False` 并有 `GROUP_DENIED_TOOLS` | D02、D06、D22 | 已修复（记忆作用域完整策略仍待 D12/D22） |
 | A06 | Web `/api/chat` 先改共享 `runtime.agent.session_id` 再 `chat()`，响应与 review 也读共享值；并发请求会串话 | 源码 | `channels/web.py:210-220` | D06 | 源码发现 |
 | A07 | 全套 API 无身份校验、无 Origin/Host 校验；`/api/terminal/ws` 直接 `accept()`；`/api/system/config` 回显 `qq.access_token` 明文 | 源码 | `channels/web.py:358-398`、`626-628`、`712`（`OMNI_WEB_HOST` 可任意） | D03 | 源码发现 |
 | A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码 | `tools/android/driver.py:136`、`channels/web.py:28,403,419,439`、`bootstrap.py:131` | D04 | 源码发现 |
@@ -70,7 +70,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | D00 | 完成 | 本文件 + `tests/test_r0_repro.py`（A01–A05 复现） | `3fbf762` | `uv run pytest -q` → 254 passed（246 基线 + 8 复现） | 不适用 | 进入 D01 |
 | D01 | 完成 | A01、A02（命令面）、A19（进程边界） | 见第 5 节 | `uv run pytest -q` → 297 passed | 真实命令面（中文输出、带空格路径）已由本机 `git status` 用例覆盖；真实危险命令不做验收 | 进入 D02 |
-| D02 | 待开始 | A03、A04、A05 | — | — | QQ 真实收发待用户登录后可验 | — |
+| D02 | 完成 | A03、A04、A05 | 见第 5 节 | `uv run pytest -q` → 308 passed | QQ 真实收发未验（需 NapCat 扫码登录） | 进入 D03 |
 | D03 | 待开始 | A07 | — | — | 浏览器真实跨站尝试待验 | — |
 | D04 | 待开始 | A08 | — | — | 真机目录 canary 待验 | — |
 | D05–D08 | 待开始 | A09、A10、A14、A17 | — | — | — | 依赖 D04 |
@@ -81,6 +81,24 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D02（QQ/cron 身份与投递边界）
+
+- **改了什么**：
+  - `safety/gates.py` 新增 `private_target_allowed`：私聊/投递的**唯一**授权判定，空白名单 = 谁都不许；
+    入站、`qq_send_message`、`cron_add`、cron 投递、Web `cron_create` 全部改走它（A03/A04 的根因是两处语义相反）；
+  - `config.load_qq_policy()` + `Runtime.qq_policy()`：策略**读时**从配置源取，撤销白名单下一条消息就生效；
+    解析失败 → 全空（fail-closed）；`build_runtime` 记住实际读取的 `config_path`，测试不再热读到真机配置；
+  - `channels/qq.py` 重写路由：`dm:<qq>` / `group:<群号>` 分开绑定，旧键 `qq:<qq>` 只迁给私聊；
+    群聊需白名单 + @ 双条件，未知事件类型与非法 ID 直接忽略；日志标出群号；
+  - `core/agent.py`：`chat(personal_context=False)` 不注入档案/常驻笔记，并从**规格与派发两处**剔除
+    `GROUP_DENIED_TOOLS`（模型硬编工具名也拿不到私人数据）；`ToolRegistry.specs/dispatch` 增加相应参数；
+  - 测试改用临时 `config.yaml`（`test_web` 不再读真机 `config/config.yaml` 里的真实 QQ 白名单）。
+- **关闭了什么**：A03（空白名单入站）、A04（空白名单投递 + 建任务校验）、A05（跨场景历史混用）。
+- **跑了什么**：`uv run pytest tests/test_qq_scope.py tests/test_qq.py tests/test_cron.py tests/test_web.py -q` → 55 passed；
+  `uv run pytest -q` → **308 passed, 1 warning**。
+- **没测什么**：真实 QQ 收发与 NapCat 登录（缺外部前提）；D12/D22 的完整记忆作用域（当前是"关死"而非"按 scope 过滤"）。
+- **下一任务**：D03（工作台与终端身份保护）。
 
 ### 2026-10-27 · D01（结构化 SAFE 命令与进程边界）
 

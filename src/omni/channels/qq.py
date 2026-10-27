@@ -3,9 +3,12 @@
 职责纪律：只做「事件路由 + 白名单过滤 + 会话绑定 + 拟人延迟 + 回发」；
 领域操作全部经 Runtime 门面。安装 NapCat 见 docs/QQ_SETUP.md。
 
-安全边界（NOTES §1.7，P2 上线当天必须有"谁能指挥它"的白名单）：
-- 私聊：仅 allowed_users 内的 QQ 号生效，其它静默忽略（不暴露存在）；
-- 群聊：仅 allowed_groups 内的群 + 消息里 @机器人 才生效；
+安全边界（A03/A05 修复后的语义）：
+- 私聊：`allowed_users` **为空时谁都不回**（空名单不等于不限）；名单外静默忽略（不暴露存在）；
+- 群聊：`allowed_groups` 内的群 + 消息里 @机器人 才生效；群聊**不注入**所有者档案/常驻笔记，
+  并禁用个人记忆类工具（他人可见的上下文不该带出私人信息）；
+- 会话按场景分开绑定：私聊 `dm:<user>`、群聊 `group:<group>`，同一发送者在两个群不会串历史；
+- 策略每次从配置源重读：撤销白名单在下一条消息就生效，不必重启进程；
 - 工具：QQ 上下文 DenyApprover（fail-closed），safe 级直通。
 """
 from __future__ import annotations
@@ -17,59 +20,98 @@ import random
 from ..bootstrap import Runtime, build_runtime
 from ..config import DATA_DIR, load_env
 from ..llm.gateway import GatewayError
-from ..safety.gates import DenyApprover
+from ..safety.gates import DenyApprover, private_target_allowed
 from ..tools.qq.client import OneBotClient, clean_cq_message
 
 
-async def _handle_message(
-    runtime: Runtime, client: OneBotClient, event: dict, locks: dict[int, asyncio.Lock]
-) -> None:
-    cfg = runtime.config.qq
+def _resolve_scope(
+    runtime: Runtime, client: OneBotClient, event: dict
+) -> tuple[str, int, bool] | None:
+    """判定本条消息是否该处理：返回 (作用域键, 会话 key, 是否带个人上下文)。
+
+    拒绝路径一律返回 None（静默），不区分"没授权"和"不存在"，避免探测。
+    """
+    policy = runtime.qq_policy()
     message_type = event.get("message_type")
     user_id = int(event.get("user_id") or 0)
-    raw = str(event.get("raw_message") or "")
-    group_id = int(event.get("group_id") or 0)
-
+    if user_id <= 0:
+        return None  # 伪造/异常事件
     if message_type == "private":
-        if cfg.allowed_users and user_id not in cfg.allowed_users:
-            return  # 白名单外：静默忽略
-    elif message_type == "group":
-        if group_id not in cfg.allowed_groups:
-            return
+        if not private_target_allowed(policy.allowed_users, user_id).allowed:
+            return None
+        return "dm", user_id, True
+    if message_type == "group":
+        group_id = int(event.get("group_id") or 0)
+        if group_id <= 0 or group_id not in set(policy.allowed_groups):
+            return None
+        raw = str(event.get("raw_message") or "")
         if client.self_id is None or f"[CQ:at,qq={client.self_id}" not in raw:
-            return  # 群里只回应被 @ 的消息
-    else:
-        return
+            return None  # 群里只回应被 @ 的消息
+        return "group", group_id, False
+    return None
 
+
+def _session_for(runtime: Runtime, scope: str, key: int) -> int:
+    """场景内绑定会话；私聊兼容旧键（旧键只可能来自私聊，绝不迁进群）。"""
+    if scope == "group":
+        return runtime.store.get_or_create_binding("qq", f"group:{key}")
+    binding_key = f"dm:{key}"
+    existing = runtime.store.get_binding("qq", binding_key)
+    if existing is not None:
+        return existing
+    legacy = runtime.store.get_binding("qq", str(key))
+    if legacy is not None:
+        runtime.store.set_binding("qq", binding_key, legacy)
+        return legacy
+    return runtime.store.get_or_create_binding("qq", binding_key)
+
+
+async def _handle_message(
+    runtime: Runtime, client: OneBotClient, event: dict, locks: dict[str, asyncio.Lock]
+) -> None:
+    scope = _resolve_scope(runtime, client, event)
+    if scope is None:
+        return
+    scope_name, target_id, personal_context = scope
+    raw = str(event.get("raw_message") or "")
     text = clean_cq_message(raw, self_id=client.self_id)
     if not text:
         return
 
+    user_id = int(event.get("user_id") or 0)
     sender = (event.get("sender") or {}).get("nickname") or str(user_id)
-    session_id = runtime.store.get_or_create_binding("qq", str(user_id))
-    lock = locks.setdefault(user_id, asyncio.Lock())
-    async with lock:  # 同一用户的回合串行，防止历史交叉
+    session_id = _session_for(runtime, scope_name, target_id)
+    lock_key = f"{scope_name}:{target_id}"
+    lock = locks.setdefault(lock_key, asyncio.Lock())  # 同一会话串行，防历史交叉
+    cfg = runtime.config.qq
+    async with lock:
         lo, hi = (cfg.reply_delay_s + [1.0, 3.0])[:2]
         await asyncio.sleep(random.uniform(float(lo), float(hi)))  # 拟人：不秒回
         try:
             answer = await asyncio.to_thread(
-                runtime.agent.chat, text, session_id=session_id
+                runtime.agent.chat,
+                text,
+                session_id=session_id,
+                personal_context=personal_context,
             )
         except GatewayError as exc:
             answer = f"（模型调用失败：{exc}）"
         runtime.spawn_review(session_id)  # QQ 的回合也进记忆自整理
 
-    print(f"[QQ] {sender}({user_id}): {text[:40]} → 回复 {len(answer)} 字", flush=True)
-    if message_type == "private":
-        await client.send_private(user_id, answer)
+    where = f"群{target_id}" if scope_name == "group" else "私聊"
+    print(
+        f"[QQ] {where} {sender}({user_id}): {text[:40]} → 回复 {len(answer)} 字", flush=True
+    )
+    if scope_name == "dm":
+        await client.send_private(target_id, answer)
     else:
-        await client.send_group(group_id, answer)
+        await client.send_group(target_id, answer)
 
 
 async def _serve(runtime: Runtime) -> None:
     client = runtime.qq
     assert client is not None  # main() 已检查
-    locks: dict[int, asyncio.Lock] = {}
+    locks: dict[str, asyncio.Lock] = {}
 
     async def on_event(event: dict) -> None:
         if event.get("post_type") != "message":
@@ -94,8 +136,18 @@ def main() -> None:
                 "QQ 未启用：在 config/config.yaml 设置 qq.enabled: true，"
                 "并按 docs/QQ_SETUP.md 启动 NapCat。"
             )
-        if not runtime.config.qq.allowed_users:
-            print("[QQ] 警告：allowed_users 为空，将不响应任何私聊（先配置你的 QQ 号）", flush=True)
+        policy = runtime.qq_policy()
+        if not policy.allowed_users:
+            print(
+                "[QQ] 警告：allowed_users 为空，将不响应任何私聊、也不投递任何主动消息"
+                "（先配置你的 QQ 号）",
+                flush=True,
+            )
+        if policy.allowed_groups:
+            print(
+                f"[QQ] 已授权群 {policy.allowed_groups}：仅在被 @ 时回复，且不注入个人档案",
+                flush=True,
+            )
         asyncio.run(_serve(runtime))
     finally:
         pid_file.unlink(missing_ok=True)

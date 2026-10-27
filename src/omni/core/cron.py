@@ -14,6 +14,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from ..memory.cron import Job, JobStore, compute_next_run, parse_iso, to_iso
+from ..safety.gates import private_target_allowed
 
 TICK_SECONDS = 30
 DAILY_MISS_SKIP_SECONDS = 2 * 3600
@@ -157,18 +158,23 @@ def make_runtime_executor(runtime: Any) -> Callable[[Job], Awaitable[str]]:
 
 
 def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
-    """投递：QQ 白名单用户私聊；未配置/未连接时如实记账（不静默丢）。"""
+    """投递：QQ 白名单用户私聊；未配置/未连接时如实记账（不静默丢）。
+
+    授权判定与工具侧共用 `private_target_allowed`（A04 的根因是两处语义相反：
+    这里把空名单当"不限"，工具侧当"全拒"）。策略每次从 runtime.qq_policy() 现取，
+    撤销白名单在下一次投递就生效。
+    """
 
     async def deliver(job: Job, result: str) -> str:
         target = job.deliver_to_qq
         if not target:
             return ""  # 只落会话，不投递
         qq = runtime.qq
-        allowed = runtime.config.qq.allowed_users
         if qq is None:
             return "未投递：QQ 未启用"
-        if allowed and int(target) not in allowed:
-            return "未投递：目标不在白名单"
+        decision = private_target_allowed(runtime.qq_policy().allowed_users, target)
+        if not decision.allowed:
+            return f"未投递：{decision.reason}"
         if not qq.connected:
             return "未投递：QQ 未连接（NapCat 未启动？）"
         await qq.send_private(int(target), result)

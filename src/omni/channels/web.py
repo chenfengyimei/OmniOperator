@@ -29,7 +29,7 @@ from ..config import BILI_COOKIES_PATH, CONFIG_PATH, load_env
 from ..llm.gateway import GatewayError
 from ..memory.cron import CronError, Job, compute_next_run, to_iso
 from ..memory.store import PROFILE_MAX_CHARS
-from ..safety.gates import WebApprover
+from ..safety.gates import WebApprover, private_target_allowed
 from ..system.config_io import EDITABLE, ConfigEditError, apply_updates, safe_write
 from ..system.services import ServiceError
 from .terminal import TerminalManager
@@ -473,9 +473,13 @@ def create_app(runtime: Runtime) -> FastAPI:
         )
         try:
             job.validate()
-            if job.deliver_to_qq is not None and runtime.config.qq.allowed_users:
-                if int(job.deliver_to_qq) not in runtime.config.qq.allowed_users:
-                    raise CronError("deliver_to_qq 必须是白名单里的 QQ 号")
+            if job.deliver_to_qq is not None:
+                # 与工具/投递同一判定：空白名单不是"不限"，撤销后立刻建不出新任务
+                decision = private_target_allowed(
+                    runtime.qq_policy().allowed_users, job.deliver_to_qq
+                )
+                if not decision.allowed:
+                    raise CronError(f"deliver_to_qq 不可用（{decision.reason}）")
             job.next_run_at = to_iso(
                 compute_next_run(job, dt.datetime.now().astimezone())
             )
