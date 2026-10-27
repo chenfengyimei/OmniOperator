@@ -32,6 +32,8 @@ from .tools.builtin import (
 )
 from .tools.cron_tools import register_cron_tools
 from .tools.registry import ToolRegistry
+from .tools.android.driver import AndroidDriver
+from .tools.android.tools import register_android_tools
 from .tools.qq.client import OneBotClient
 from .tools.qq.tools import register_qq_tools
 from .tools.skill_tools import register_skill_tools
@@ -103,6 +105,8 @@ def build_runtime(
         napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None
     )
     register_system_tools(registry, services)
+    android_driver = AndroidDriver()
+    register_android_tools(registry, android_driver)
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)

@@ -24,11 +24,14 @@ uv run omni
 # 5. 启动 Web 工作台（会话 / 聊天 / 记忆 / 档案 / Review / 技能可视化）
 uv run omni-web            # 打开 http://127.0.0.1:8000
 
-# 6.（可选）QQ 通道：按 docs/QQ_SETUP.md 启动 NapCat 后
+# 6.（可选）QQ 通道：NapCat 已装在 D:\tools\napcat（扫码见工作台「服务」面板）
 uv run omni-qq             # 在 QQ 上跟它聊（白名单外的消息会被忽略）
 
 # 7.（可选）心跳/定时任务常驻：对它说"每天早上八点给我发B站日报"即可排程
 uv run omni-heartbeat      # 结果可投递到 QQ；无人值守上下文 fail-closed
+
+# 8.（可选）安卓真机：手机开 USB 调试插上电脑（需 adb 在 PATH）
+#    工具会自动出现在小欧的工具列表
 ```
 
 ## CLI 命令
@@ -63,14 +66,22 @@ src/omni/
 ├── llm/gateway.py     # LiteLLM 统一网关（Adapter：海外/国产/Ollama 一套格式）
 ├── memory/store.py    # SQLite 仓储（会话/消息/事实/用户档案 + FTS5 全文检索）
 ├── memory/skills.py   # 技能存储（程序性记忆，skills/<name>/SKILL.md）
-├── tools/             # Registry + 工具集：builtin（core）、skill_tools、bilibili（读）
+├── memory/store.py    # SQLite 仓储（会话/消息/事实/用户档案 + FTS5 全文检索）
+├── memory/skills.py   # 技能存储（程序性记忆，skills/<name>/SKILL.md）
+├── memory/cron.py     # 定时任务存储（cron_jobs.json 原子写）
+├── tools/             # Registry + 工具集：builtin（core）、skill_tools、bilibili（读）、browser（读+写）、android（安卓）
 ├── safety/gates.py    # 审批闸门（Risk 分级 + 上下文审批策略）
+├── system/services.py # 本地服务管理（NapCat/omni-qq/心跳 启停+状态+日志）
+├── system/config_io.py# config.yaml 白名单键定向修改（保留注释）
 ├── channels/cli.py    # 终端 REPL（只碰 Runtime，不构造任何对象）
-└── channels/web.py    # Web 工作台（FastAPI + 静态前端，uv run omni-web）
+├── channels/web.py    # Web 工作台（FastAPI + 静态前端，uv run omni-web）
+└── channels/qq.py     # QQ 通道（OneBot v11 正向 WS，uv run omni-qq）
 ```
 
 ## 路线图
 
 P0 本地闭环 → P1 B站读 + 记忆成型 → P2 QQ（NapCat）→ P3 浏览器写操作 → P4 安卓（ADB）→ P5 像人化（心跳/夜间整理/Web 面板）。
+
+**进度：P0-P3 完成 ✅ · P2 已上线（NapCat 部署于 D:\tools\napcat）✅ · P5 心跳完成 ✅ · P4 安卓协议层完成（真机联调待用户插机）🔧**
 
 参考项目在 `xuexi/`（仅学习用，不入库）：Hermes Agent、ghost-in-the-droid/android-agent、dsh-bili-whale、android-adb-control。研究笔记见 `xuexi/NOTES.md`。
