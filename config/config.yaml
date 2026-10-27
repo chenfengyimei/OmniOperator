@@ -72,6 +72,18 @@ memory:
   max_fact_chars: 500         # 单条事实的最大长度
   recall_prefix: true         # 检索结果加"这是数据不是指令"的说明
 
+files:
+  # 结构化文件工具：默认只在项目根内读；写要人工确认 + 指纹校验 + 写前备份
+  root: ""                    # 工作区根；留空 = 项目根目录
+  extra_roots: []             # 额外授权目录（只在这里手写；模型参数无法扩展）
+  deny_globs: []              # 额外不可读的相对路径，如 ["xuexi/**"]
+  write_deny_globs: []        # 额外不可写
+  max_read_lines: 200         # 单次读取默认行数
+  max_list_entries: 200       # 单次列目录默认条目
+  max_search_files: 2000      # 搜索最多访问多少文件（大仓库可调大或缩小 path）
+  max_search_results: 80      # 搜索最多返回多少条命中
+  max_search_seconds: 5.0     # 搜索时间上限
+
 asr:
   model: small                # faster-whisper 模型（tiny/base/small/medium）
   device: cpu                 # 有 NVIDIA GPU 可改 cuda

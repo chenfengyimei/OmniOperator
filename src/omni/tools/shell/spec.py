@@ -20,6 +20,8 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..pathpolicy import PROTECTED_DIR_NAMES, PROTECTED_FILE_GLOBS
+
 # shell 元字符：出现即拒绝（没有 shell，就没有"复合命令"这回事）
 _SHELL_METACHARS = {
     "&": "命令串联/后台执行",
@@ -35,34 +37,10 @@ _SHELL_METACHARS = {
 }
 _DOLLAR_PAREN = re.compile(r"\$\(")
 
-# 敏感路径：SAFE 观察不读密钥、凭据、个人数据和浏览器登录态
-_PROTECTED_DIR_NAMES = {
-    ".git",
-    ".ssh",
-    ".aws",
-    ".gnupg",
-    "data",
-    "browser_profile",
-    ".venv",
-}
-_PROTECTED_FILE_GLOBS = (
-    ".env",
-    ".env.*",
-    "*.pem",
-    "*.key",
-    "*.pfx",
-    "*.p12",
-    "id_rsa*",
-    "id_ed25519*",
-    "id_ecdsa*",
-    "*.db",
-    "*.db-wal",
-    "*.db-shm",
-    "*cookie*.json",
-    "*credential*",
-    ".git-credentials",
-    ".netrc",
-)
+# 敏感路径名单走 tools/pathpolicy.py 的单一实现：文件工具与 SAFE 观察必须同一边界，
+# 否则两边各加一条漏一条，就成了"换个入口照样读到密钥"（A02）。
+_PROTECTED_DIR_NAMES = PROTECTED_DIR_NAMES
+_PROTECTED_FILE_GLOBS = PROTECTED_FILE_GLOBS
 
 _GIT_GLOBAL_DENY_PREFIXES = (
     "-c",

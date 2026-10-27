@@ -17,6 +17,7 @@ from typing import Any
 from .config import (
     CONFIG_PATH,
     DATA_DIR,
+    PROJECT_ROOT,
     AppConfig,
     QQ,
     RuntimePaths,
@@ -53,8 +54,8 @@ from .tools.builtin import (
 )
 from .tools.cron_tools import register_cron_tools
 from .tools.delegate_tools import register_delegate_tools
+from .tools.files import FileHistory, Workspace, register_file_tools
 from .tools.registry import SessionRef, ToolRegistry
-from .tools.runctx import RunRef
 from .tools.runctx import RunRef
 from .tools.android.driver import AndroidDriver
 from .tools.android.tools import register_android_tools
@@ -79,6 +80,12 @@ def _no_kill(_pid: int) -> None:
 
 def _no_spawn(*_args, **_kwargs) -> int:
     raise RuntimeError("隔离实例不允许启动本机服务")
+
+
+def _resolve_root(value: str | Path) -> Path:
+    """配置里的根：相对路径按项目根解析，不按当前工作目录（服务可能从别处启动）。"""
+    path = Path(value).expanduser()
+    return path if path.is_absolute() else (PROJECT_ROOT / path)
 
 
 @dataclass
@@ -108,6 +115,8 @@ class Runtime:
     mcp: MCPManager
     reviewer: TurnEndReviewer | None = None
     memory_guard: MemoryGuard | None = None  # 记忆写入额度与输入检查（D12）
+    workspace: Workspace | None = None        # 文件工具的允许根与敏感项边界（D13）
+    file_history: FileHistory | None = None   # 工作区文件的写入备份（D13）
     qq: OneBotClient | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
@@ -229,6 +238,26 @@ def build_runtime(
     agent_holder: dict[str, Any] = {}  # Agent 构造在后，delegate 工具运行期取用
     register_delegate_tools(registry, store, agent_holder, run_ref)
     register_shell_tools(registry)
+    # 工作区文件工具（D13）：允许的根只来自配置；写需人工确认 + 指纹 CAS + 写前备份。
+    # 模型侧没有任何"再加一个根"的参数——路径参数只做相对定位。
+    workspace = Workspace(
+        root=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT,
+        extra_roots=[_resolve_root(item) for item in config.files.extra_roots],
+        deny_globs=tuple(config.files.deny_globs),
+        write_deny_globs=tuple(config.files.write_deny_globs),
+    )
+    file_history = FileHistory(paths.file_history)
+    register_file_tools(
+        registry,
+        workspace,
+        file_history,
+        lock_dir=paths.file_history / "locks",
+        max_read_lines=config.files.max_read_lines,
+        max_list_entries=config.files.max_list_entries,
+        max_search_files=config.files.max_search_files,
+        max_search_results=config.files.max_search_results,
+        max_search_seconds=config.files.max_search_seconds,
+    )
     register_skill_tools(registry, skills, guard=memory_guard)
     mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs)
     register_mcp_tools(registry, mcp)
@@ -334,6 +363,8 @@ def build_runtime(
         mcp=mcp,
         reviewer=reviewer,
         memory_guard=memory_guard,
+        workspace=workspace,
+        file_history=file_history,
         qq=qq_client,
         config_path=config_path,
         data_dir=data_root,

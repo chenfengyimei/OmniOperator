@@ -43,6 +43,14 @@ GROUP_DENIED_TOOLS = frozenset(
         "skill_history",
         "skill_rollback",
         "delegate_task",
+        # 群聊里不读所有者的工作区文件：源码、笔记、配置都可能含个人信息
+        "files_list",
+        "files_search",
+        "files_read",
+        "files_diff",
+        "files_write",
+        "files_history",
+        "files_restore",
     }
 )
 

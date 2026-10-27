@@ -116,6 +116,9 @@ class ConsoleApprover(Approver):
 class WebApprover(Approver):
     """Web 工作台上下文：CONFIRM 级弹工作台确认横幅（阻塞等用户点击，超时拒）。"""
 
+    # 横幅要能读：两兆的整文件内容塞进确认框，人只会点"同意"而不是看
+    MAX_DETAIL_CHARS = 20000
+
     def __init__(self, broker: Any) -> None:
         self._broker = broker
 
@@ -127,6 +130,10 @@ class WebApprover(Approver):
             return Decision(True)
         if risk == Risk.DANGEROUS:
             return Decision(False, "dangerous 级操作在当前版本一律拒绝")
-        return self._broker.request(
-            tool, detail=json.dumps(arguments or {}, ensure_ascii=False, indent=2)
-        )
+        detail = json.dumps(arguments or {}, ensure_ascii=False, indent=2)
+        if len(detail) > self.MAX_DETAIL_CHARS:
+            detail = (
+                detail[: self.MAX_DETAIL_CHARS]
+                + "\n…（参数过长，已截断；完整内容见执行结果与写入备份）"
+            )
+        return self._broker.request(tool, detail=detail)

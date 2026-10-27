@@ -38,7 +38,7 @@
 | 编号 | 当前结论（D00 审核） | 证据等级 | 证据位置 | 关闭任务 | 状态 |
 | --- | --- | --- | --- | --- | --- |
 | A01 | `peek_command` 前缀正则 + `shell=True`，复合命令/重定向/`&&` 全部穿过 SAFE | 复现→已修复 | `test_a01_*` 已翻转为负例；`test_shell_tools.py` 另有 10 种复合/重定向形态 | D01 | 已修复（待真实验收：真实命令面） |
-| A02 | 只读名单含写子命令与敏感文件：`git branch <name>`、`git remote add`、`type .env` 均到执行器 | 复现→已修复（命令面） | `test_a02_*` 翻转 + 14 种 git 写参数/泄密参数负例 + 8 种敏感路径负例；`type`/`get-content` 已移出 SAFE | D01、D13 | 命令面已修复；文件域仍待 D13 |
+| A02 | 只读名单含写子命令与敏感文件：`git branch <name>`、`git remote add`、`type .env` 均到执行器 | 完成 | 命令面：`test_a02_*` 翻转 + 14 种 git 写参数/泄密参数负例 + 8 种敏感路径负例；`type`/`get-content` 已移出 SAFE（`b17cdc1`）。文件域：敏感名单收口到 `tools/pathpolicy.py` 由 shell 与 `files_*` 共用；`files_read/search/list` 在打开文件前拒绝 `.env`/`id_rsa`/`data/`，搜索不返回命中片段（`tests/test_files.py` 26 例） | D01、D13 | 已修复（命令面 + 文件域） |
 | A03 | 私聊判断 `if cfg.allowed_users and ...`：空白名单 = 不限，任何人私聊都被回复 | 复现→已修复 | `test_a03_*` 翻转；`tests/test_qq_scope.py` 7 例（空白名单/名单外/正常私聊/撤销即时生效） | D02 | 已修复（真实 QQ 收发待验收） |
 | A04 | `make_runtime_deliver` 用 `if allowed and ...`：空白名单 = 不限，cron 可发给任意 QQ；工作台建任务 `cron_create` 同款判断 | 复现→已修复 | `test_a04_*` 翻转；`test_cron.py::test_runtime_deliver_guards` 覆盖空白名单/撤销；`test_web.py` 覆盖建任务校验与撤销 | D02、D17 | 已修复；投递 outbox 与去重仍属 D17 |
 | A05 | 私聊与各群共用 `get_or_create_binding("qq", str(user_id))`，历史跨场景混合 | 复现→已修复 | 绑定键改为 `dm:<qq>` / `group:<群号>`；`test_a05_*`；旧键只迁给私聊；群聊 `personal_context=False` 并有 `GROUP_DENIED_TOOLS` | D02、D06、D22 | 已修复（记忆作用域完整策略仍待 D12/D22） |
@@ -81,13 +81,73 @@
 | D10 | 完成 | A20（费用预算、流式 usage） | 见第 5 节 | `uv run pytest tests/test_gateway.py tests/test_usage.py -q` → 54 passed；`uv run pytest -q` → 501 passed | 真机 `data/state.db` 已 v2→v5 迁移，账本自检通过（演示流水已清理）；真实供应商 429/超时/流式断连与账单对账未验 | 进入 D11 |
 | D11 | 完成 | A16（FTS 生命周期）、持久摘要 | 见第 5 节 | `uv run pytest tests/test_context.py -q` → 13 passed；`uv run pytest -q` → 514 passed | 真机 `data/memory.db` 一次性升级（legacy rebuild 0.04s），二次打开不再重建（0.02s），16 个会话与检索不变 | 进入 D12 |
 | D12 | 完成 | A15、A16（review 队列/去重） | 见第 5 节 | `uv run pytest tests/test_memory_governance.py -q` → 18 passed；`uv run pytest -q` → 535 passed | 真机库未做写入压力测试；"候选队列/差异确认"按当前风险面评估未做（见第 5 节剩余限制） | 进入 R3（D13 结构化文件工具） |
-| D10–D12 | 待开始 | A15、A16、A20（token/费用预算） | — | — | — | 依赖 D09 |
-| D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
+| D13 | 完成 | A02（文件域）、路径与写入边界 | 见第 5 节 | `uv run pytest tests/test_files.py -q` → 29 passed；`uv run pytest -q` → 564 passed（无 F/E） | 真机仓库只读冒烟：`src/omni` 列表、`config.py` 前 3 行 + 指纹、`.env`/`data/` 被拒、`C:/Windows/win.ini` 越根被拒、`data/file_history` 未被创建；junction 逃逸与只读盘在临时目录验证；真实编辑器并发写入待 D27 | 进入 R3（D14 通用网页读取） |
+| D14–D16 | 待开始 | A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D13（工作区文件域：路径边界、指纹写入与回滚）
+
+- **改了什么**：
+  - 新增 `tools/pathpolicy.py`：敏感目录/文件名单的**单一实现**（`.env`、私钥、`*.db`、
+    `*cookie*.json`、`data/`、`browser_profile/`、`.git`…）；`tools/shell/spec.py` 改为从
+    这里取名单，不再各写一份——两份名单迟早一份加了一条、另一份没加（A02 的另一半）；
+  - 新增 `tools/files/paths.py`：`Workspace.resolve()` 先拒绝可疑形态（UNC/设备路径、
+    驱动器相对 `C:foo`、NTFS 备用数据流 `a.txt:stream`、Windows 保留设备名、以空格或点
+    结尾的路径段、控制字符），再 `realpath` 解析链接后做**根校验**（不做字符串前缀比较）；
+    写入额外拒绝目标本身是符号链接、以及 `data/`、`skills/`、`config/`、`.git/`；
+    允许的根只来自配置，工具入参里没有"根"这个字段；
+  - 新增 `tools/files/io.py`：编码识别（UTF-8 / UTF-8+BOM / GB18030）、保留原换行风格、
+    前 8KB 有 NUL 判为二进制并拒绝、按行窗口读取（带总行数与行号）、≤4MB 文件给出
+    **原始字节**的 sha256 指纹、`fstat(fd)` 与 `stat(path)` 比对文件身份（检查后不变）；
+  - 新增 `tools/files/search.py`：广度优先有界遍历；命中上限/文件数上限/时间上限三重约束；
+    敏感文件在打开前跳过（不回显名字与片段）、二进制与超大文件跳过、不跟随符号链接；
+  - 新增 `tools/files/history.py`：按路径哈希分目录存快照（允许中文文件名），保留最近 20 版，
+    单版上限 4MB；超过上限直接拒绝写入（"改了但回不去"比"不让改"更糟）；
+  - 新增 7 个工具：`files_list / files_search / files_read / files_diff`（SAFE）与
+    `files_write / files_history / files_restore`（后两者中的写操作 CONFIRM +
+    `requires_human`）。写入是 `expected_hash` 短前缀 CAS，读→比对→写在**同一把跨进程
+    文件锁**内完成，先备份再 `os.replace`，写完回读比对指纹；
+  - `config.py`：新增 `Files`（根/额外根/额外禁区/四类上限）与 `RuntimePaths.file_history`；
+    `bootstrap` 构造 `Workspace` + `FileHistory` 并注册；`Runtime` 暴露 `workspace`、
+    `file_history`；
+  - `core/agent.py`：群聊作用域禁用全部 `files_*`（源码、笔记、配置都可能含个人信息）；
+    `safety/gates.WebApprover` 对超长确认参数截断到 2 万字符并注明（2MB 内容塞进确认框，
+    人只会点"同意"）。
+- **关闭了什么**：A02 的文件域部分（命令面在 D01 已关闭）。
+- **跑了什么**：`uv run pytest tests/test_files.py -q` → **29 passed**；
+  `uv run pytest -q` → **564 passed, 1 warning**（2026-10-28；本机收尾清理临时目录被宿主
+  安全钩子拦下，进程退出码为 1，与用例结果无关）。
+- **没测什么**：真实编辑器与工具同时改同一文件（CAS 只在写入瞬间比对，无文件监听）；
+  真实云盘/杀软在 `os.replace` 与回读之间插手的场景（用替换写入函数的用例模拟了回读不一致）；
+  网络盘（SMB）上的锁语义；>4MB 文件的编辑需求（当前直接拒绝）。
+- **真机证据**：对真实仓库做**只读**冒烟——`files_list src/omni` 正常（缓存目录已跳过）、
+  `files_read src/omni/config.py` 显示 339 行与前 3 行 + 指纹、`.env` 与 `data/state.db`
+  被拒并说明原因、`C:/Windows/win.ini` 越根被拒、`files_search` 命中
+  `src/omni/memory/guard.py:43`；整个过程未创建 `data/file_history`（只读不写盘）。
+- **行为变化**：
+  1. 模型现在有一组结构化文件工具，读操作不需要确认，写操作一定弹确认；
+  2. 群聊里完全看不到工作区文件（与个人记忆工具同等处理）；
+  3. `data/`、`skills/`、`config/` 不能用文本工具改——它们各自的写入通道带额度/版本/校验；
+  4. 搜索是广度优先：同样的文件数上限下，先看到浅层文件，而不是一头扎进某个大目录。
+- **剩余限制（明确记录）**：
+  1. 没有文件监听：并发修改只能靠写入瞬间的指纹比对发现，不阻止"读完之后别人改、我再改"；
+  2. `expected_hash` 允许 8 位十六进制前缀（约 32 位），这是**防误覆盖**而不是防篡改——
+     真正的权限边界是"写要人工确认 + 路径在根内"；
+  3. UTF-16 文本会被判为二进制（NUL 字节），需要时另加编码探测；
+  4. 没有工作台文件浏览/编辑界面（D18 的编辑 UI 会复用这里的工具契约）；
+  5. 额外根通过配置授权，不提供运行期"临时授权某个目录"的交互——加根必须改配置并重启。
+- **过程记录**：
+  1. `files` 是两层包，`..system` 实际指向 `omni.tools.system`，导入直接崩；改成 `...system`；
+  2. 首版把 `.` 与 `..` 也当成"以点结尾的路径段"拒绝，导致 `files_list path="."` 无法工作；
+     相对段的落点应该交给根校验，而不是形态检查；
+  3. 列表里混进 `__pycache__/`、仓库级搜索先撞文件数上限却没扫到 `src/`——搜索从深度优先
+     改成广度优先，列表跳过缓存/构建目录；
+  4. 测试里断言"搜索结果不含查询词"是错的：查询词本身会回显（那是模型给的），
+     真正不能出现的是**命中行**与文件名。
 
 ### 2026-10-28 · D12（记忆治理：额度、来源、遗忘与有界 review）
 

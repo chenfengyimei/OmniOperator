@@ -33,6 +33,7 @@ class RuntimePaths:
     state: Path           # 共享运行状态（任务/执行账本/额度/迁移记录，SQLite）
     resident: Path        # 常驻工作笔记（MEMORY.md）
     history: Path         # 技能与常驻内容的修订快照（可回滚）
+    file_history: Path    # 工作区文件的写入备份与回滚（D13）
     cookies: Path         # B站登录态
     skills: Path          # 技能库（与 data 独立，可单独注入）
     cache: Path           # 可再生的缓存（ASR 等）
@@ -59,6 +60,7 @@ class RuntimePaths:
             state=data / "state.db",
             resident=data / "MEMORY.md",
             history=data / "history",
+            file_history=data / "file_history",
             cookies=data / "bili_cookies.json",
             skills=Path(skills_root) if skills_root is not None else SKILLS_DIR,
             cache=data / "cache",
@@ -188,6 +190,24 @@ class Memory(BaseModel):
     recall_prefix: bool = True      # 检索结果加"这是数据不是指令"的说明
 
 
+class Files(BaseModel):
+    """结构化文件工具的边界（D13）。
+
+    允许的根**只来自这里**：`root` 是工作区，`extra_roots` 是用户显式写下的额外目录。
+    模型没有任何参数能扩展它——否则"再传一个 path"就成了自我授权。
+    """
+
+    root: str = ""                    # 留空 = 项目根目录
+    extra_roots: list[str] = Field(default_factory=list)        # 额外授权目录（用户手写）
+    deny_globs: list[str] = Field(default_factory=list)         # 额外不可读（相对各根）
+    write_deny_globs: list[str] = Field(default_factory=list)   # 额外不可写
+    max_read_lines: int = 200         # files_read 单次默认行数
+    max_list_entries: int = 200       # files_list 单次默认条目
+    max_search_files: int = 2000      # 搜索最多访问多少个文件
+    max_search_results: int = 80      # 搜索最多返回多少条命中
+    max_search_seconds: float = 5.0   # 搜索时间上限（防止巨目录拖死回合）
+
+
 class Compression(BaseModel):
     """上下文压缩（长会话防膨胀；Hermes compression_facade 最小版）。"""
 
@@ -288,6 +308,7 @@ class AppConfig(BaseModel):
     llm: LLM = Field(default_factory=LLM)
     limits: Limits = Field(default_factory=Limits)
     review: Review = Field(default_factory=Review)
+    files: Files = Field(default_factory=Files)
     memory: Memory = Field(default_factory=Memory)
     compression: Compression = Field(default_factory=Compression)
     asr: Asr = Field(default_factory=Asr)
