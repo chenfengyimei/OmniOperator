@@ -12,6 +12,7 @@ dependencies = [
     "playwright>=1.64.1",
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
+    "pywinpty>=3.1.0",
     "pyyaml>=6.0",
     "rich>=13.9",
     "uvicorn>=0.54.0",

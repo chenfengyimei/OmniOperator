@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 import json
 import os
@@ -14,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -26,6 +27,7 @@ from ..memory.store import PROFILE_MAX_CHARS
 from ..safety.gates import WebApprover
 from ..system.config_io import EDITABLE, ConfigEditError, apply_updates, safe_write
 from ..system.services import ServiceError
+from .terminal import TerminalManager
 
 _STATIC_DIR = Path(__file__).parent / "web_static"
 
@@ -76,6 +78,7 @@ class TodoToggleIn(BaseModel):
 def create_app(runtime: Runtime) -> FastAPI:
     """把 Runtime 暴露成 REST + 静态工作台（测试用 TestClient 直接调）。"""
     app = FastAPI(title="OmniOperator Workbench")
+    terminal_manager = TerminalManager()
 
     @app.get("/api/state")
     def get_state() -> dict[str, Any]:
@@ -398,6 +401,65 @@ def create_app(runtime: Runtime) -> FastAPI:
     @app.post("/api/system/cron/delete")
     def cron_delete(payload: CronNameIn) -> dict[str, Any]:
         return {"ok": runtime.cron_jobs.remove(payload.name)}
+
+    # ---------- 内置终端（ConPTY，Windows；仅本机 127.0.0.1） ----------
+
+    @app.websocket("/api/terminal/ws")
+    async def terminal_ws(ws: WebSocket) -> None:
+        await ws.accept()
+        if not terminal_manager.available:
+            await ws.send_text(
+                f"终端不可用（需要 Windows + pywinpty）：{terminal_manager.unavailable_reason}"
+            )
+            await ws.close()
+            return
+        try:
+            session = terminal_manager.open()
+        except RuntimeError as exc:
+            await ws.send_text(f"无法打开终端：{exc}")
+            await ws.close()
+            return
+
+        async def pump() -> None:
+            """PTY → WS：阻塞读放线程池；进程退出/连接断开都会收尾。"""
+            try:
+                while session.isalive():
+                    data = await asyncio.to_thread(session.read)
+                    if not data:
+                        break
+                    await ws.send_text(data)
+            except Exception:  # noqa: BLE001 —— 断开与退出都是正常结束路径
+                pass
+
+        async def writer() -> None:
+            """WS → PTY：纯文本为键盘输入；{"resize":[cols,rows]} 调整窗口。"""
+            try:
+                while True:
+                    msg = await ws.receive_text()
+                    if msg.startswith('{"resize"'):
+                        try:
+                            cols, rows = json.loads(msg)["resize"]
+                            session.resize(int(cols), int(rows))
+                        except (ValueError, TypeError, KeyError):
+                            pass
+                        continue
+                    session.write(msg)
+            except Exception:  # noqa: BLE001
+                pass
+
+        pump_task = asyncio.create_task(pump())
+        writer_task = asyncio.create_task(writer())
+        done, pending = await asyncio.wait(
+            {pump_task, writer_task}, return_when=asyncio.FIRST_COMPLETED
+        )
+        for task in pending:
+            task.cancel()
+        terminal_manager.close(session)  # 杀 PTY 会解除阻塞中的 read 线程
+        for task in pending:
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                pass
 
     app.mount("/", StaticFiles(directory=str(_STATIC_DIR), html=True), name="ui")
     return app

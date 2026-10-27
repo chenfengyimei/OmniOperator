@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OmniOperator 工作台</title>
+<link rel="stylesheet" href="/vendor/xterm.min.css">
 <style>
 :root{
   --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --border:#2a3240;
@@ -63,6 +64,12 @@ ul{list-style:none;overflow-y:auto}
 #tools li{padding:6px 12px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border)}
 .tool-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tool-set{color:var(--dim);font-size:11px;flex-shrink:0}
+.header-spacer{flex:1}
+#open-terminal{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 16px;font-size:12.5px;cursor:pointer}
+#open-terminal:hover{border-color:var(--accent);color:var(--accent)}
+#term-modal .modal-box{width:min(980px,96vw);height:min(660px,92vh);display:flex;flex-direction:column}
+#terminal{flex:1;min-height:0;background:#0e1116;border-radius:8px;overflow:hidden}
+#terminal .xterm{height:100%}
 #todos-list li{display:flex;align-items:flex-start;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px;line-height:1.55}
 #todos-list input[type=checkbox]{accent-color:var(--accent);margin-top:3px;flex-shrink:0}
 #todos-list .todo-done{text-decoration:line-through;color:var(--dim)}
@@ -144,6 +151,8 @@ ul{list-style:none;overflow-y:auto}
 <header>
   <div class="brand"><em>Omni</em>Operator 工作台</div>
   <div id="chips"></div>
+  <div class="header-spacer"></div>
+  <button id="open-terminal" title="内置终端（PowerShell）：不用再开 Windows 终端窗口">⌨ 终端</button>
 </header>
 <main>
   <aside>
@@ -199,6 +208,14 @@ ul{list-style:none;overflow-y:auto}
     <img id="qr-img" class="qr-img" alt="登录二维码">
     <div class="qr-hint">用手机 QQ（机器人小号）扫码并确认登录。<br>二维码约 2 分钟自动刷新，弹窗每 5 秒自动取最新。</div>
     <button class="svc-btn" style="width:100%;padding:6px" onclick="loadQR()">立即刷新</button>
+  </div>
+</div>
+<!-- ============ 内置终端 ============ -->
+<div id="term-modal" class="modal hidden" onclick="if(event.target===this)closeTerminal()">
+  <div class="modal-box">
+    <div class="modal-title"><span>内置终端（PowerShell）</span><button class="modal-x" onclick="closeTerminal()">✕</button></div>
+    <div id="terminal"></div>
+    <div class="qr-hint">每个终端按钮会开一个独立会话；关闭弹窗即结束该会话。</div>
   </div>
 </div>
 <!-- ============ 设置中心 ============ -->
@@ -616,6 +633,46 @@ window.saveHub=async()=>{
   }catch(e){$('#hub-msg').textContent='❌ '+e.message;$('#hub-msg').style.color='#f87171'}
 };
 
+// ---------- 内置终端（xterm.js + ConPTY） ----------
+let term=null,termWS=null,termFit=null,termSessionOpen=false;
+window.openTerminal=()=>{
+  $('#term-modal').classList.remove('hidden');
+  termSessionOpen=true;
+  if(!term)initTerminal();
+  else if(termFit)setTimeout(()=>{try{termFit.fit()}catch(e){}},60);
+};
+window.closeTerminal=()=>{
+  $('#term-modal').classList.add('hidden');
+  termSessionOpen=false;
+  if(termWS){termWS.close();termWS=null}
+};
+function initTerminal(){
+  term=new window.Terminal({
+    fontFamily:'Consolas, "Cascadia Mono", "Microsoft YaHei Mono", monospace',
+    fontSize:13,cursorBlink:true,scrollback:4000,
+    theme:{background:'#0e1116',foreground:'#dbe2ea',cursor:'#22d3ee'}
+  });
+  termFit=new window.FitAddon.FitAddon();
+  term.loadAddon(termFit);
+  term.open($('#terminal'));
+  term.onData(d=>{if(termWS&&termWS.readyState===1)termWS.send(d)});
+  term.onResize(({cols,rows})=>{
+    if(termWS&&termWS.readyState===1)termWS.send(JSON.stringify({resize:[cols,rows]}))
+  });
+  const connect=()=>{
+    const proto=location.protocol==='https:'?'wss':'ws';
+    termWS=new WebSocket(`${proto}://${location.host}/api/terminal/ws`);
+    termWS.onmessage=e=>term.write(e.data);
+    termWS.onclose=()=>{
+      if(termSessionOpen)term.writeln('\r\n\x1b[33m—— 会话已结束（重新打开弹窗可再开一个）——\x1b[0m');
+    };
+    setTimeout(()=>{try{termFit.fit();termWS.send(JSON.stringify({resize:[term.cols,term.rows]}))}catch(e){}},100);
+  };
+  connect();
+}
+window.addEventListener('resize',()=>{if(termSessionOpen&&termFit){try{termFit.fit()}catch(e){}}});
+$('#open-terminal').onclick=openTerminal;
+
 (async function init(){
   try{await loadState();await loadSessions();await loadMessages();refreshMemory()}
   catch(e){console.error(e)}
@@ -627,5 +684,7 @@ window.saveHub=async()=>{
 })();
 $('#open-settings').onclick=openHub;
 </script>
+<script src="/vendor/xterm.js"></script>
+<script src="/vendor/xterm-addon-fit.js"></script>
 </body>
 </html>

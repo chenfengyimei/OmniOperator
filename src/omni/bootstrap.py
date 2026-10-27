@@ -38,6 +38,7 @@ from .tools.android.driver import AndroidDriver
 from .tools.android.tools import register_android_tools
 from .tools.qq.client import OneBotClient
 from .tools.qq.tools import register_qq_tools
+from .tools.shell_tools import register_shell_tools
 from .tools.skill_tools import register_skill_tools
 from .tools.system_tools import register_system_tools
 
@@ -96,6 +97,7 @@ def build_runtime(
     register_core_tools(registry, store)
     register_digest_tool(registry, store)
     register_todo_tools(registry, store, session_ref)
+    register_shell_tools(registry)
     register_skill_tools(registry, skills)
     register_bilibili_tools(registry, BiliAPI(), config.asr)
     cron_jobs = JobStore()
