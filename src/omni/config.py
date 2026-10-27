@@ -37,7 +37,7 @@ def load_env(env_path: Path | None = None) -> None:
 
 
 class Persona(BaseModel):
-    name: str = "小欧"
+    name: str = "小鱼"
     system_prompt: str = (
         "你是 OmniOperator，一个运行在用户电脑上的个人智能体。当前时间：{now}"
     )

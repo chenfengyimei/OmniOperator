@@ -1,9 +1,16 @@
 """Web 工作台接口单测：TestClient + 临时库（不真调 LLM）。"""
+import datetime as dt
+import json
+import threading
+import time
+from types import SimpleNamespace
+
 from fastapi.testclient import TestClient
 
 from omni.bootstrap import build_runtime
 from omni.channels.web import create_app
-from omni.safety.gates import DenyApprover
+from omni.memory.cron import Job, to_iso
+from omni.safety.gates import DenyApprover, Risk
 
 
 def _client(tmp_path, skills_root=None):
@@ -112,7 +119,6 @@ def test_approvals_endpoints(tmp_path):
         "/api/approvals/nope/resolve", json={"allowed": True}
     ).json()["ok"] is False
     # 发起一个待审（走 broker），端点可见 → 决议 → 线程放行
-    import threading
     from types import SimpleNamespace
 
     from omni.safety.gates import Risk
@@ -126,8 +132,6 @@ def test_approvals_endpoints(tmp_path):
         result["decision"] = runtime.approvals.request(tool, timeout=5)
 
     threading.Thread(target=request, daemon=True).start()
-    import time
-
     time.sleep(0.2)
     pending = client.get("/api/approvals").json()["pending"]
     assert len(pending) == 1 and pending[0]["tool_name"] == "browser_click"
@@ -136,3 +140,72 @@ def test_approvals_endpoints(tmp_path):
     ).json()["ok"] is True
     time.sleep(0.2)
     assert result["decision"].allowed is True
+
+
+def test_config_endpoints_extended_shape(tmp_path):
+    client, _rt = _client(tmp_path)
+    cfg = client.get("/api/system/config").json()
+    # 设置中心需要的全部分组
+    for group in ("persona", "models", "limits", "review", "asr", "qq", "browser"):
+        assert group in cfg
+    assert cfg["persona"]["name"]
+    assert "system_prompt" in cfg["persona"]
+    assert {"chat", "vision", "review"} <= set(cfg["models"])
+
+
+def test_bili_cookies_endpoints(tmp_path, monkeypatch):
+    import omni.channels.web as web_mod
+
+    fake = tmp_path / "bili_cookies.json"
+    monkeypatch.setattr(web_mod, "BILI_COOKIES_PATH", fake)
+    client, _rt = _client(tmp_path)
+    # 未配置
+    status = client.get("/api/system/bili-cookies").json()
+    assert status["configured"] is False
+    # 保存
+    resp = client.post(
+        "/api/system/bili-cookies",
+        json={"sessdata": "s1", "bili_jct": "j1", "buvid3": "b1"},
+    )
+    assert resp.json()["ok"] is True
+    data = json.loads(fake.read_text(encoding="utf-8"))
+    assert data == {"SESSDATA": "s1", "bili_jct": "j1", "buvid3": "b1"}
+    status2 = client.get("/api/system/bili-cookies").json()
+    assert status2["configured"] is True and status2["keys"]["SESSDATA"] is True
+
+
+def test_cron_endpoints(tmp_path):
+    client, runtime = _client(tmp_path)
+    assert client.get("/api/system/cron").json()["jobs"] == []
+    # 造一个任务（模拟 agent cron_add 的产物）
+    job = Job(name="demo-job", prompt="报个到", every_minutes=30)
+    job.next_run_at = to_iso(dt.datetime.now().astimezone())
+    runtime.cron_jobs.upsert(job, validate=False)
+    cron = client.get("/api/system/cron").json()["jobs"]
+    assert cron and cron[0]["name"] == "demo-job"
+    assert cron[0]["schedule"] == "每 30 分钟"
+    # 启停
+    resp = client.post(
+        "/api/system/cron/toggle", json={"name": "demo-job", "enabled": False}
+    )
+    assert resp.json()["ok"] is True
+    assert runtime.cron_jobs.get("demo-job").enabled is False
+    resp = client.post(
+        "/api/system/cron/toggle", json={"name": "demo-job", "enabled": True}
+    )
+    assert resp.json()["ok"] is True
+    # 删除
+    assert client.post("/api/system/cron/delete", json={"name": "demo-job"}).json()["ok"] is True
+    assert runtime.cron_jobs.get("demo-job") is None
+    # 不存在的任务：toggle 404 / delete ok:False
+    assert (
+        client.post("/api/system/cron/toggle", json={"name": "nope", "enabled": True}).status_code
+        == 404
+    )
+    assert client.post("/api/system/cron/delete", json={"name": "nope"}).json()["ok"] is False
+
+
+def test_model_test_endpoint_rejects_bad_model(tmp_path):
+    client, _rt = _client(tmp_path)
+    resp = client.post("/api/system/model-test", json={"model": "nonexistent/model-xyz"})
+    assert resp.status_code == 400

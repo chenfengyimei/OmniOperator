@@ -58,8 +58,9 @@ def test_apply_updates_preserves_comments():
 
 
 def test_apply_updates_rejects_unknown_and_missing():
+    # 未知 section/键：直接拒绝
     with pytest.raises(ConfigEditError, match="不允许修改"):
-        apply_updates(SAMPLE_YAML, {"models": {"chat": "x/y"}})
+        apply_updates(SAMPLE_YAML, {"bogus": {"x": 1}})
     # 白名单内但 yaml 里不存在的键 → 未做破坏性改动
     with pytest.raises(ConfigEditError, match="没找到"):
         apply_updates(SAMPLE_YAML, {"review": {"enabled": True}})

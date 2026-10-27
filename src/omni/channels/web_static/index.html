@@ -7,7 +7,7 @@
 <style>
 :root{
   --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --border:#2a3240;
-  --text:#dbe2ea; --dim:#8b95a5; --accent:#22d3ee;
+  --text:#dbe2ea; --dim:#8b95a5; --accent:#22d3ee; --accent2:#818cf8;
   --user:#2563eb; --assistant:#222c3a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -98,6 +98,40 @@ ul{list-style:none;overflow-y:auto}
 .form-row label{display:flex;flex-direction:column;gap:4px}
 .form-row input[type=text],.form-row input[type=number],.form-row select{background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font:inherit}
 .form-row input[type=checkbox]{margin-right:6px;transform:translateY(1px)}
+/* ---- 小鱼大脑（设置中心） ---- */
+#hub{position:fixed;inset:0;z-index:300;background:var(--bg);display:flex;flex-direction:column}
+#hub.hidden{display:none}
+.hub-header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--panel)}
+.hub-header .title{font-size:16px;font-weight:800}
+.hub-header .title span{color:var(--accent)}
+.hub-header .sub{color:var(--dim);font-size:12px}
+.hub-header .spacer{flex:1}
+.hub-save{background:linear-gradient(135deg,#22d3ee,#818cf8);border:none;color:#06202a;font-weight:800;border-radius:8px;padding:9px 26px;cursor:pointer;font-size:13.5px}
+.hub-save:hover{filter:brightness(1.1)}
+.hub-close{background:none;border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:8px 16px;cursor:pointer}
+.hub-layout{flex:1;display:grid;grid-template-columns:190px 1fr;min-height:0}
+.hub-nav{border-right:1px solid var(--border);padding:14px 10px;display:flex;flex-direction:column;gap:2px}
+.hub-nav a{color:var(--dim);text-decoration:none;padding:9px 14px;border-radius:8px;font-size:13.5px;cursor:pointer}
+.hub-nav a:hover{background:var(--panel2);color:var(--text)}
+.hub-nav a.active{background:var(--panel2);color:var(--accent);font-weight:600}
+.hub-body{overflow-y:auto;padding:20px 26px 90px}
+.hub-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px;max-width:780px}
+.hub-card h3{font-size:14.5px;margin-bottom:4px}
+.hub-card .hint{font-size:12px;color:var(--dim);margin-bottom:12px}
+.field{margin:12px 0}
+.field>label{display:block;font-size:12.5px;color:var(--dim);margin-bottom:5px}
+.field input[type=text],.field input[type=number],.field textarea,.field select{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font:inherit}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field textarea{min-height:190px;font:12px/1.6 Consolas,monospace;white-space:pre-wrap}
+.field-row{display:flex;gap:12px}
+.field-row .field{flex:1}
+.tiny-btn{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;margin-left:8px}
+.tiny-btn:hover{border-color:var(--accent)}
+.test-out{font-size:12px;color:var(--dim);margin-top:4px;min-height:1em;white-space:pre-wrap;word-break:break-all}
+.cron-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.cron-row .c-name{color:var(--text);font-weight:600;min-width:130px}
+.cron-row .c-sched{color:var(--dim);flex:1}
+.cron-row .svc-btn{flex-shrink:0}
 .empty{color:var(--dim);text-align:center;padding:24px 10px;font-size:12.5px}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 @media (max-width:1000px){main{grid-template-columns:1fr;overflow-y:auto}aside,section{max-height:45vh}}
@@ -105,7 +139,7 @@ ul{list-style:none;overflow-y:auto}
 </head>
 <body>
 <header>
-  <div class="brand">🦞 <em>Omni</em>Operator 工作台</div>
+  <div class="brand"><em>Omni</em>Operator 工作台</div>
   <div id="chips"></div>
 </header>
 <main>
@@ -119,14 +153,14 @@ ul{list-style:none;overflow-y:auto}
       <div id="status"></div>
     </div>
     <div class="panel" style="flex:1">
-      <div class="panel-title"><span>服务</span><button id="open-settings">⚙ 设置</button></div>
+      <div class="panel-title"><span>服务</span><button id="open-settings">🧠 大脑</button></div>
       <div id="services"></div>
     </div>
   </aside>
   <section id="chat">
     <div id="messages"><div class="empty">选择左侧会话，或直接开始聊天</div></div>
     <div id="composer">
-      <textarea id="input" rows="2" placeholder="给小欧发消息…（丢B站链接也行）"></textarea>
+      <textarea id="input" rows="2" placeholder="给小鱼发消息…（丢B站链接也行）"></textarea>
       <button id="send">发送</button>
     </div>
   </section>
@@ -162,18 +196,102 @@ ul{list-style:none;overflow-y:auto}
     <button class="svc-btn" style="width:100%;padding:6px" onclick="loadQR()">立即刷新</button>
   </div>
 </div>
-<div id="settings-modal" class="modal hidden" onclick="if(event.target===this)closeModal('settings-modal')">
-  <div class="modal-box">
-    <div class="modal-title"><span>设置</span><button class="modal-x" onclick="closeModal('settings-modal')">✕</button></div>
-    <div class="form-row"><label><span><input type="checkbox" id="cfg-qq-enabled"> QQ 通道启用</span></label></div>
-    <div class="form-row"><label>私聊白名单（QQ 号，逗号分隔）<input type="text" id="cfg-qq-users" placeholder="123456, 234567"></label></div>
-    <div class="form-row"><label>拟人回复延迟（秒，小 到 大）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"></label></div>
-    <div class="form-row"><label><span><input type="checkbox" id="cfg-browser-headless"> 浏览器无头模式（关=能看到它在干什么）</span></label></div>
-    <div class="form-row"><label>每日浏览器写预算<input type="number" id="cfg-browser-budget"></label></div>
-    <div class="form-row"><label><span><input type="checkbox" id="cfg-review-enabled"> 回合后自动记忆整理</span></label></div>
-    <div class="form-row"><label>ASR 转写模型<select id="cfg-asr-model"><option>tiny</option><option>base</option><option>small</option><option>medium</option></select></label></div>
-    <button class="svc-btn" style="width:100%;padding:6px;margin-top:10px" onclick="saveSettings()">保存（运行中的服务需重启生效）</button>
-    <div id="settings-msg" class="qr-status"></div>
+<!-- ============ 小鱼大脑（设置中心） ============ -->
+<div id="hub" class="hidden">
+  <div class="hub-header">
+    <div>
+      <div class="title">🧠 <span>小鱼大脑</span></div>
+      <div class="sub">神经中枢 · 设置中心 —— 昵称、人设、模型、记忆、能力，都从这里长出来</div>
+    </div>
+    <div class="spacer"></div>
+    <div id="hub-msg" style="font-size:12.5px;color:#34d399;min-height:1em;margin-right:8px"></div>
+    <button class="hub-save" onclick="saveHub()">保存全部设置</button>
+    <button class="hub-close" onclick="closeHub()">返回工作台</button>
+  </div>
+  <div class="hub-layout">
+    <nav class="hub-nav">
+      <a data-go="sec-persona" class="active">灵格 · 人设</a>
+      <a data-go="sec-models">神识 · 模型</a>
+      <a data-go="sec-memory">记性 · 记忆</a>
+      <a data-go="sec-media">视听 · B站与转写</a>
+      <a data-go="sec-browser">手脚 · 浏览器</a>
+      <a data-go="sec-qq">声息 · QQ</a>
+      <a data-go="sec-cron">心律 · 定时任务</a>
+      <a data-go="sec-about">关于</a>
+    </nav>
+    <div class="hub-body">
+      <div class="hub-card" id="sec-persona">
+        <h3>灵格 · 人设</h3>
+        <div class="hint">小鱼的"灵魂"：昵称与世界观的设定。改完保存，新对话即刻生效。</div>
+        <div class="field"><label>昵称</label><input type="text" id="cfg-persona-name"></div>
+        <div class="field"><label>人设提示词（{now} 会被替换为当前时间）</label><textarea id="cfg-persona-prompt"></textarea></div>
+      </div>
+      <div class="hub-card" id="sec-models">
+        <h3>神识 · 模型</h3>
+        <div class="hint">LiteLLM 模型串（provider/model）。右侧「测试」按钮会真实调用一次验证连通性。</div>
+        <div class="field"><label>日常对话（便宜量大）<button class="tiny-btn" onclick="testModel('chat')">测试</button><div class="test-out" id="test-out-chat"></div></label><input type="text" id="cfg-model-chat"></div>
+        <div class="field"><label>视觉 / UI 定位（强视觉）<button class="tiny-btn" onclick="testModel('vision')">测试</button><div class="test-out" id="test-out-vision"></div></label><input type="text" id="cfg-model-vision"></div>
+        <div class="field"><label>回合后 Review（留空跟随对话模型）<button class="tiny-btn" onclick="testModel('review')">测试</button><div class="test-out" id="test-out-review"></div></label><input type="text" id="cfg-model-review" placeholder="留空跟随对话模型"></div>
+      </div>
+      <div class="hub-card" id="sec-memory">
+        <h3>记性 · 记忆与自省</h3>
+        <div class="hint">记忆的容量与节奏：历史送多少、工具循环几轮、review 的强度。</div>
+        <div class="field-row">
+          <div class="field"><label>历史消息条数上限</label><input type="number" id="cfg-limits-history"></div>
+          <div class="field"><label>工具循环轮数上限</label><input type="number" id="cfg-limits-steps"></div>
+        </div>
+        <div class="field"><label><span><input type="checkbox" id="cfg-review-enabled" style="accent-color:var(--accent)"> 回合后自动记忆整理（自进化）</span></label></div>
+        <div class="field-row">
+          <div class="field"><label>review 重放消息数</label><input type="number" id="cfg-review-max-messages"></div>
+          <div class="field"><label>review 步数预算</label><input type="number" id="cfg-review-steps"></div>
+        </div>
+      </div>
+      <div class="hub-card" id="sec-media">
+        <h3>视听 · B站与转写</h3>
+        <div class="hint">B站 Cookie 决定字幕/音频流能否拿到；ASR 负责无字幕视频的语音转写。</div>
+        <div class="field"><label>B站 Cookie 状态</label><div id="bili-cookie-status" class="test-out"></div></div>
+        <div class="field"><label>SESSDATA<input type="text" id="cfg-bili-sessdata" placeholder="粘贴浏览器里的 SESSDATA 值"></label></div>
+        <div class="field"><label>bili_jct<input type="text" id="cfg-bili-jct" placeholder="（可选）"></label></div>
+        <div class="field"><label>buvid3<input type="text" id="cfg-bili-buvid3" placeholder="（可选）"></label></div>
+        <button class="tiny-btn" onclick="saveBiliCookies()">保存 Cookie</button>
+        <div class="field" style="margin-top:16px"><label>ASR 转写模型</label><select id="cfg-asr-model"><option>tiny</option><option>base</option><option>small</option><option>medium</option></select></div>
+        <div class="field-row">
+          <div class="field"><label>ASR 设备</label><select id="cfg-asr-device"><option>cpu</option><option>cuda</option></select></div>
+          <div class="field"><label>计算精度</label><select id="cfg-asr-compute-type"><option>int8</option><option>float16</option></select></div>
+        </div>
+      </div>
+      <div class="hub-card" id="sec-browser">
+        <h3>手脚 · 浏览器</h3>
+        <div class="hint">写操作（点击/输入）全部走确认流 + 每日写预算，防失控。</div>
+        <div class="field"><label><span><input type="checkbox" id="cfg-browser-headless" style="accent-color:var(--accent)"> 无头模式（关=你能看到它在干什么，推荐）</span></label></div>
+        <div class="field-row">
+          <div class="field"><label>动作慢放（毫秒）</label><input type="number" id="cfg-browser-slowmo"></div>
+          <div class="field"><label>每日写操作预算</label><input type="number" id="cfg-browser-budget"></div>
+          <div class="field"><label>确认等待上限（秒）</label><input type="number" id="cfg-browser-approval-timeout"></div>
+        </div>
+      </div>
+      <div class="hub-card" id="sec-qq">
+        <h3>声息 · QQ</h3>
+        <div class="hint">白名单外静默忽略；群里必须被 @ 才回应。改完到服务面板重启 QQ 通道生效。</div>
+        <div class="field"><label><span><input type="checkbox" id="cfg-qq-enabled" style="accent-color:var(--accent)"> QQ 通道启用（NapCat 需在运行）</span></label></div>
+        <div class="field"><label>NapCat 正向 WS 地址<input type="text" id="cfg-qq-ws-url"></label></div>
+        <div class="field"><label>NapCat access_token（可留空）<input type="text" id="cfg-qq-token"></label></div>
+        <div class="field"><label>私聊白名单（QQ 号，逗号分隔）<input type="text" id="cfg-qq-users" placeholder="10000000001"></label></div>
+        <div class="field"><label>群白名单（逗号分隔群号）<input type="text" id="cfg-qq-groups" placeholder="可选"></label></div>
+        <div class="field"><label>拟人回复延迟（秒，小 到 大）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"></label></div>
+      </div>
+      <div class="hub-card" id="sec-cron">
+        <h3>心律 · 定时任务</h3>
+        <div class="hint">到点自动执行并投递；对小鱼说"每天早上八点给我发B站日报"即可新增。心跳进程（omni-heartbeat）需在运行。</div>
+        <div id="cron-list"></div>
+      </div>
+      <div class="hub-card" id="sec-about">
+        <h3>关于</h3>
+        <div class="hint">OmniOperator · 像人一样生活在平台里的具身智能体。架构与红线见 docs/ARCHITECTURE.md；<br>一切花钱/发布/群发/加好友操作必须经你确认后才执行。</div>
+        <button class="tiny-btn" onclick="runTests()">运行后端自检（uv run pytest）</button>
+        <div id="test-run-out" class="test-out" style="margin-top:8px"></div>
+      </div>
+    </div>
   </div>
 </div>
 <script>
@@ -315,7 +433,7 @@ $('#new-session').onclick=async()=>{
 };
 $('#fact-q').addEventListener('input',loadFacts);
 
-// ---------- 系统控制台（服务/扫码/设置） ----------
+// ---------- 系统控制台（服务/扫码） ----------
 let QR_TIMER=null;
 function closeModal(id){
   $('#'+id).classList.add('hidden');
@@ -360,36 +478,121 @@ window.loadQR=async()=>{
     else{$('#qr-status').textContent='二维码还没生成（NapCat 可能未启动，先在服务面板启动它）'}
   }catch(e){$('#qr-status').textContent='获取失败：'+e.message}
 };
-window.openSettings=async()=>{
-  $('#settings-modal').classList.remove('hidden');
-  try{
-    const d=await api('/api/system/config');
-    $('#cfg-qq-enabled').checked=d.qq.enabled;
-    $('#cfg-qq-users').value=d.qq.allowed_users.join(', ');
-    $('#cfg-qq-delay').value=d.qq.reply_delay_s.join(', ');
-    $('#cfg-browser-headless').checked=d.browser.headless;
-    $('#cfg-browser-budget').value=d.browser.max_writes_per_day;
-    $('#cfg-review-enabled').checked=d.review.enabled;
-    $('#cfg-asr-model').value=d.asr.model;
-    $('#settings-msg').textContent='';
-  }catch(e){$('#settings-msg').textContent=e.message}
+
+// ---------- 小鱼大脑（设置中心） ----------
+window.openHub=async()=>{
+  $('#hub').classList.remove('hidden');
+  try{await loadHubConfig();loadCookies();loadCron()}catch(e){$('#hub-msg').textContent=e.message}
 };
-window.saveSettings=async()=>{
-  const users=$('#cfg-qq-users').value.split(/[,，\s]+/).map(x=>parseInt(x)).filter(x=>Number.isInteger(x));
-  const delay=$('#cfg-qq-delay').value.split(/[,，\s]+/).map(parseFloat).filter(x=>!isNaN(x));
+function closeHub(){$('#hub').classList.add('hidden')}
+window.closeHub=closeHub;
+document.querySelectorAll('.hub-nav a').forEach(a=>a.onclick=()=>{
+  document.querySelectorAll('.hub-nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  const el=$('#'+a.dataset.go);
+  if(el)el.scrollIntoView({behavior:'smooth'});
+});
+
+async function loadHubConfig(){
+  const d=await api('/api/system/config');
+  $('#cfg-persona-name').value=d.persona.name;
+  $('#cfg-persona-prompt').value=d.persona.system_prompt;
+  $('#cfg-model-chat').value=d.models.chat;
+  $('#cfg-model-vision').value=d.models.vision;
+  $('#cfg-model-review').value=d.models.review;
+  $('#cfg-limits-history').value=d.limits.max_history_messages;
+  $('#cfg-limits-steps').value=d.limits.max_agent_steps;
+  $('#cfg-review-enabled').checked=d.review.enabled;
+  $('#cfg-review-max-messages').value=d.review.max_messages;
+  $('#cfg-review-steps').value=d.review.steps;
+  $('#cfg-asr-model').value=d.asr.model;
+  $('#cfg-asr-device').value=d.asr.device;
+  $('#cfg-asr-compute-type').value=d.asr.compute_type;
+  $('#cfg-qq-enabled').checked=d.qq.enabled;
+  $('#cfg-qq-ws-url').value=d.qq.ws_url;
+  $('#cfg-qq-users').value=d.qq.allowed_users.join(', ');
+  $('#cfg-qq-groups').value=d.qq.allowed_groups.join(', ');
+  $('#cfg-qq-delay').value=d.qq.reply_delay_s.join(', ');
+  $('#cfg-browser-headless').checked=d.browser.headless;
+  $('#cfg-browser-slowmo').value=d.browser.slow_mo_ms;
+  $('#cfg-browser-budget').value=d.browser.max_writes_per_day;
+  $('#cfg-browser-approval-timeout').value=d.browser.approval_timeout_s;
+}
+async function loadCookies(){
+  try{
+    const d=await api('/api/system/bili-cookies');
+    $('#bili-cookie-status').innerHTML='SESSDATA '+(d.keys.SESSDATA?'✅':'✗')+
+      ' · bili_jct '+(d.keys.bili_jct?'✅':'✗')+' · buvid3 '+(d.keys.buvid3?'✅':'✗')+
+      (d.configured?'（已配置）':'（未配置：字幕/音频流匿名拿不到）');
+  }catch(e){$('#bili-cookie-status').textContent=e.message}
+}
+window.saveBiliCookies=async()=>{
+  try{
+    const d=await api('/api/system/bili-cookies',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sessdata:$('#cfg-bili-sessdata').value,bili_jct:$('#cfg-bili-jct').value,buvid3:$('#cfg-bili-buvid3').value})});
+    $('#bili-cookie-status').textContent='✅ 已保存 '+d.saved.join(' / ');
+    loadCookies();
+  }catch(e){alert(e.message)}
+};
+window.testModel=async(kind)=>{
+  const out=$('#test-out-'+kind);
+  const model=$('#cfg-model-'+kind).value.trim();
+  if(!model){out.textContent='⚠ 先填写模型串';return}
+  out.textContent='测试中…';
+  try{
+    const d=await api('/api/system/model-test',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model})});
+    out.textContent='✅ 连通：'+(d.reply||'（空回复）');
+  }catch(e){out.textContent='❌ '+(e.message||'失败')}
+};
+async function loadCron(){
+  try{
+    const d=await api('/api/system/cron');
+    $('#cron-list').innerHTML=d.jobs.length?d.jobs.map(j=>
+      `<div class="cron-row"><span class="c-name">${esc(j.name)}</span>`+
+      `<span class="c-sched">${esc(j.schedule)} · 下次 ${esc((j.next_run_at||'—').slice(5,16))}</span>`+
+      `<span>${j.enabled?'✅':'⛔'}</span>`+
+      `<button class="svc-btn" onclick="cronToggle('${esc(j.name)}',${!j.enabled})">${j.enabled?'停用':'启用'}</button>`+
+      `<button class="svc-btn" onclick="cronDelete('${esc(j.name)}')">删除</button></div>`).join(''):'<div class="empty">还没有定时任务</div>';
+  }catch(e){$('#cron-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+}
+window.cronToggle=async(name,enabled)=>{
+  try{await api('/api/system/cron/toggle',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,enabled})});loadCron()}catch(e){alert(e.message)}
+};
+window.cronDelete=async(name)=>{
+  try{await api('/api/system/cron/delete',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name})});loadCron()}catch(e){alert(e.message)}
+};
+window.saveHub=async()=>{
   const updates={
-    qq:{enabled:$('#cfg-qq-enabled').checked,allowed_users:users,reply_delay_s:delay},
+    persona:{name:$('#cfg-persona-name').value,
+             system_prompt:$('#cfg-persona-prompt').value.split('\n')},
+    models:{chat:$('#cfg-model-chat').value,vision:$('#cfg-model-vision').value,
+            review:$('#cfg-model-review').value},
+    limits:{max_history_messages:parseInt($('#cfg-limits-history').value)||40,
+            max_agent_steps:parseInt($('#cfg-limits-steps').value)||8},
+    review:{enabled:$('#cfg-review-enabled').checked,
+            max_messages:parseInt($('#cfg-review-max-messages').value)||12,
+            steps:parseInt($('#cfg-review-steps').value)||4},
+    asr:{model:$('#cfg-asr-model').value,device:$('#cfg-asr-device').value,
+         compute_type:$('#cfg-asr-compute-type').value},
+    qq:{enabled:$('#cfg-qq-enabled').checked,ws_url:$('#cfg-qq-ws-url').value,
+        access_token:$('#cfg-qq-token').value,
+        allowed_users:$('#cfg-qq-users').value.split(/[,，\s]+/).map(x=>parseInt(x)).filter(Number.isInteger),
+        allowed_groups:$('#cfg-qq-groups').value.split(/[,，\s]+/).map(x=>parseInt(x)).filter(Number.isInteger),
+        reply_delay_s:$('#cfg-qq-delay').value.split(/[,，\s]+/).map(parseFloat).filter(x=>!isNaN(x))},
     browser:{headless:$('#cfg-browser-headless').checked,
-             max_writes_per_day:parseInt($('#cfg-browser-budget').value)||50},
-    review:{enabled:$('#cfg-review-enabled').checked},
-    asr:{model:$('#cfg-asr-model').value}
+             slow_mo_ms:parseInt($('#cfg-browser-slowmo').value)||120,
+             max_writes_per_day:parseInt($('#cfg-browser-budget').value)||50,
+             approval_timeout_s:parseFloat($('#cfg-browser-approval-timeout').value)||180}
   };
   try{
     await api('/api/system/config',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({updates})});
-    $('#settings-msg').style.color='#34d399';
-    $('#settings-msg').textContent='✅ 已保存（运行中的服务到服务面板重启生效）';
-  }catch(e){$('#settings-msg').style.color='#f87171';$('#settings-msg').textContent=e.message}
+    $('#hub-msg').textContent='✅ 已保存 '+new Date().toLocaleTimeString()+'（QQ/浏览器等常驻服务需在服务面板重启生效）';
+    loadState();
+  }catch(e){$('#hub-msg').textContent='❌ '+e.message;$('#hub-msg').style.color='#f87171'}
 };
 
 (async function init(){
@@ -401,7 +604,7 @@ window.saveSettings=async()=>{
   loadServices();
   setInterval(loadServices,5000);
 })();
-$('#open-settings').onclick=openSettings;
+$('#open-settings').onclick=openHub;
 </script>
 </body>
 </html>
