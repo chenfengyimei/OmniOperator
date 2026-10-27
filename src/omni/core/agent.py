@@ -15,7 +15,7 @@ from ..memory.store import MemoryStore
 from ..safety.gates import Approver
 from ..tools.registry import SessionRef, ToolRegistry
 from ..tools.runctx import RunRef
-from .compress import assert_invariants, compress_if_needed
+from .compress import assemble_context, assert_invariants, compress_if_needed
 from .run import (
     ActiveRuns,
     CancelToken,
@@ -149,8 +149,36 @@ class Agent:
             cancel=run.cancel_token if run is not None else None,
         )
 
-    # ---------------------------------------------------------------- 回合入口
+    def _assemble_body(
+        self, sid: int, *, run: RunContext | None = None
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        """组装历史：持久摘要 + 未被摘要覆盖的消息（D11）。
 
+        摘要在库里按消息 id 区间记账，所以重启、换进程、多个 review 连接都不会
+        重压同一段；压缩失败时原样返回（不改事实、不写半截摘要）。
+        """
+        comp = self.config.compression
+        history = self.store.recent_messages_ex(
+            sid, self.config.limits.max_history_messages
+        )
+        return assemble_context(
+            history,
+            self.store.active_summary(sid),
+            gateway=self.gateway,
+            model=self._summary_model,
+            # 关掉压缩时不再产生摘要，但**已有的摘要仍然进上下文**——
+            # 否则关开关就等于把旧对话静默丢掉
+            trigger_chars=comp.trigger_chars if comp.enabled else 10**9,
+            keep_recent=comp.keep_recent,
+            min_messages=comp.min_messages,
+            run_id=run.run_id if run is not None else None,
+            session_id=sid,
+            run_budget=run.budget if run is not None else None,
+            cancel=run.cancel_token if run is not None else None,
+            save=lambda **fields: self.store.save_summary(sid, **fields),
+        )
+
+    # ---------------------------------------------------------------- 回合入口
     def chat(
         self,
         user_text: str,
@@ -342,16 +370,22 @@ class Agent:
         """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。"""
         denied = frozenset() if personal_context else GROUP_DENIED_TOOLS
         self.store.append_message(sid, "user", user_text)
-        history = self.store.recent_messages(
-            sid, self.config.limits.max_history_messages
-        )
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
                 "content": self._system_prompt(include_personal=personal_context),
             }
         ]
-        messages += [{"role": role, "content": content} for role, content in history]
+        body, context_info = self._assemble_body(sid, run=run)
+        messages += body
+        if run is not None and context_info.get("summarized"):
+            run.event(
+                "context_summary",
+                **{
+                    key: context_info.get(key)
+                    for key in ("summary_id", "version", "from_msg_id", "to_msg_id")
+                },
+            )
         messages = self._maybe_compress(messages, run=run, sid=sid)
         cancel = run.cancel_token if run is not None else None
 

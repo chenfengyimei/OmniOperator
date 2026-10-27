@@ -21,9 +21,120 @@ SUMMARY_HEADER = "（以下是此前对话的压缩摘要，细节可用 search_
 
 _COMPRESS_SYSTEM = (
     "你是 OmniOperator 的上下文压缩器。把旧对话压缩成要点摘要，供 agent 延续"
-    "工作。必须保留：用户的目标与决定、重要事实（人名/数字/链接）、已完成的"
-    "步骤、未完成的待办与下一步。用紧凑条目列出，300 字以内，不要评论。"
+    "工作。必须保留：用户的目标与约束（尤其是'只能/不要/必须'这类硬要求）、"
+    "重要事实（人名/数字/链接/文件路径，作为证据引用）、已完成的步骤、未完成的"
+    "待办与下一步、以及用户明确纠正过的结论。用紧凑条目列出，300 字以内，不要评论。"
 )
+
+
+def _summary_message(summary_text: str, first_user: str | None) -> dict[str, Any]:
+    """摘要以 user 消息进入上下文；紧跟用户消息时并进去（维持严格角色交替）。"""
+    body = f"{SUMMARY_HEADER}\n{summary_text}"
+    if first_user:
+        return {"role": "user", "content": f"{body}\n\n{first_user}"}
+    return {"role": "user", "content": body}
+
+
+def assemble_context(
+    rows: list[tuple[int, str, str]],
+    summary: tuple[int, int, int, str, int] | None,
+    *,
+    gateway: Gateway,
+    model: str,
+    trigger_chars: int,
+    keep_recent: int = 12,
+    min_messages: int = 16,
+    run_id: str | None = None,
+    session_id: int | None = None,
+    run_budget: Any = None,
+    cancel: Any = None,
+    save: Any = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """组装"摘要 + 未被摘要覆盖的消息"，需要时把更老的一段折进摘要（D11）。
+
+    与 `compress_if_needed` 的区别：这里**持久化**摘要及其覆盖的消息区间。
+    好处是上下文不必每轮重新压缩、重启后仍然在；代价是要按 id 记账，
+    所以调用方传的是带 id 的行（`recent_messages_ex`）。
+
+    `save(content=..., from_msg_id=..., to_msg_id=..., supersedes=...)` 由调用方注入，
+    内核层不认识 SQLite。摘要失败时**原样返回**，不写半截摘要（保守降级）。
+    """
+    info: dict[str, Any] = {"summarized": False, "summary_id": None, "version": None}
+    if summary is not None:
+        info["summary_id"], info["version"] = summary[0], summary[4]
+    uncovered = [
+        row for row in rows if summary is None or row[0] > summary[2]
+    ]
+    total_chars = sum(len(row[2]) for row in uncovered)
+    if len(uncovered) < min_messages or total_chars <= trigger_chars:
+        return _rows_to_messages(uncovered, summary), info
+
+    old = uncovered[:-keep_recent] if keep_recent > 0 else uncovered
+    recent = uncovered[-keep_recent:] if keep_recent > 0 else []
+    if not old:
+        return _rows_to_messages(uncovered, summary), info
+
+    transcript = "\n".join(
+        f"[{row[1]}] {row[2][:400]}" for row in old
+    )
+    try:
+        reply = gateway.complete(
+            [
+                {"role": "system", "content": _COMPRESS_SYSTEM},
+                {"role": "user", "content": f"待压缩的旧对话：\n{transcript}"},
+            ],
+            model=model,
+            tools=None,
+            purpose="compress",
+            run_id=run_id,
+            session_id=session_id,
+            run_budget=run_budget,
+            cancel=cancel,
+        )
+        fresh = reply.text.strip()
+    except Exception:  # noqa: BLE001 —— 降级：宁可不压也不能篡改事实或中断会话
+        info["reason"] = "summary_failed"
+        return _rows_to_messages(uncovered, summary), info
+    if not fresh:
+        info["reason"] = "summary_empty"
+        return _rows_to_messages(uncovered, summary), info
+
+    merged = f"{summary[3]}\n{fresh}" if summary is not None else fresh
+    from_msg = summary[1] if summary is not None else old[0][0]
+    to_msg = old[-1][0]
+    if save is not None:
+        try:
+            new_id, version, created = save(
+                content=merged,
+                from_msg_id=from_msg,
+                to_msg_id=to_msg,
+                supersedes=summary[0] if summary is not None else None,
+            )
+            info.update(
+                summarized=created, summary_id=new_id, version=version,
+                from_msg_id=from_msg, to_msg_id=to_msg,
+            )
+        except Exception as exc:  # noqa: BLE001 —— 存不下就只影响本轮，不影响回答
+            info["reason"] = f"save_failed:{exc}"
+    else:
+        info["summarized"] = True
+    return _rows_to_messages(recent, (0, from_msg, to_msg, merged, 0)), info
+
+
+def _rows_to_messages(
+    rows: list[tuple[int, str, str]],
+    summary: tuple[int, int, int, str, int] | None,
+) -> list[dict[str, Any]]:
+    """行 → 消息；有摘要时把它并于首条 user（或单独成条）。"""
+    messages = [{"role": row[1], "content": row[2]} for row in rows]
+    if summary is None:
+        return messages
+    first_user = None
+    start = 0
+    if messages and messages[0]["role"] == "user":
+        first_user = messages[0]["content"]
+        start = 1
+    return [_summary_message(summary[3], first_user), *messages[start:]]
 
 
 def assert_invariants(messages: list[dict[str, Any]]) -> None:

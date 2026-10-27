@@ -52,7 +52,7 @@
 | A13 | 截图工具只回路径字符串，`Agent` 未构造图像消息块，模型收不到图 | 源码 | `tools/browser/tools.py`、`tools/android/tools.py`、`core/agent.py` | D15 | 源码发现 |
 | A14 | 技能更新锁只覆盖最终 `write`，读改写不原子；版本号递增但无历史快照 | 已修复 | 整段读改写进跨进程锁；`expected_hash`/`_seen` 做 CAS；`memory/revisions.py` 保存每版内容（作者/来源/时间/摘要/附件清单）；回滚产生新修订；`tests/test_skills_history.py` 18 例（含两进程同指纹只有一个成功、落盘失败原文件不变、junction 写入被拒） | D08 | 已修复；编辑 UI 与差异展示留 D18 |
 | A15 | `profile_edit` 未重跑总额度校验；常驻防注入规则未覆盖 review/skill 等全部学习入口 | 源码 | `memory/store.py::profile_edit`、`core/review.py` | D12 | 源码发现 |
-| A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 源码 | `core/review.py`、`memory/store.py::_init_fts` | D11、D12 | 源码发现 |
+| A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 部分修复 | **索引**：FTS 改由触发器增量维护，`meta` 记分词器/版本/构建时间，只在「首次 / 分词器升级 / 旧库无状态」重建一次（`tests/test_context.py` 5 例，含 3 个连接同时打开不重建）；真机 `data/memory.db` 首次 0.04s 重建、二次 0.02s 不重建 | D11、D12 | 索引已修复；review 的有界队列/去重/累计预算仍属 D12 |
 | A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 部分修复 | `claim_due()` 在单个写事务里推进 `next_run_at` + 写 `job_claims`；4 个真实进程同时 tick 只派发一次（`tests/test_state.py::test_claim_due_is_atomic_across_processes`） | D05、D17 | 领取已修复；并行上限、投递 outbox/去重、`context_from` 绑定 run_id 仍属 D17 |
 | A18 | 服务停止只比对 pid 文件与进程存活，无创建时间/命令行身份绑定，pid 重用有误杀风险 | 源码 | `system/services.py` | D25 | 源码发现 |
 | A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 已修复 | 进程树回收 + "已确认回收/回收状态未知"话术；D09 起工具异常/超时统一记 `side_effect_state=unknown`（`tests/test_runs.py::test_execute_distinguishes_the_four_outcomes`） | D01、D09 | 已修复 |
@@ -79,6 +79,7 @@
 | D08 | 完成 | A09（技能/常驻文件）、A14 | 见第 5 节 | `uv run pytest -q` → 421 passed | 真实 `skills/` 库未用于写测试（一律临时根）；两进程并发是真实子进程，非 mock | 进入 D09 |
 | D09 | 完成 | A19、A20（账本/取消/ToolResult） | 见第 5 节 | `uv run pytest -q` → 439 passed | 真实网关下的取消时延、跨进程取消（返回 409）待 D27 实测 | 进入 D10 |
 | D10 | 完成 | A20（费用预算、流式 usage） | 见第 5 节 | `uv run pytest tests/test_gateway.py tests/test_usage.py -q` → 54 passed；`uv run pytest -q` → 501 passed | 真机 `data/state.db` 已 v2→v5 迁移，账本自检通过（演示流水已清理）；真实供应商 429/超时/流式断连与账单对账未验 | 进入 D11 |
+| D11 | 完成 | A16（FTS 生命周期）、持久摘要 | 见第 5 节 | `uv run pytest tests/test_context.py -q` → 13 passed；`uv run pytest -q` → 514 passed | 真机 `data/memory.db` 一次性升级（legacy rebuild 0.04s），二次打开不再重建（0.02s），16 个会话与检索不变 | 进入 D12 |
 | D10–D12 | 待开始 | A15、A16、A20（token/费用预算） | — | — | — | 依赖 D09 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
@@ -86,6 +87,54 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D11（持久摘要与索引生命周期）
+
+- **改了什么**：
+  - `memory/store.py`：`memory.db` 增加 `summaries`（`session_id / from_msg_id / to_msg_id /
+    content / source / model / version / created_at / superseded_by`，
+    `UNIQUE(session_id, to_msg_id)`）与 `meta` 表；
+  - FTS 生命周期重写：索引改由**触发器**增量维护（`facts_ai/ad/au`、`messages_ai/ad/au`），
+    `meta.fts` 记 `version/tokenizer/triggers/built_at`；只有「首次建表 / 分词器升级 /
+    旧库无状态记录」才 `rebuild` 一次——此前**每开一个连接**就重建全库（review 每轮一次、
+    心跳每周期一次、工作台每请求一个连接）；
+  - 关闭压缩时索引不再被反复重建；`fts_rebuilt / fts_reason / fts_tokenizer` 作为可观测字段暴露；
+  - 新增 `recent_messages_ex()`（带消息 id）、`message_count()`、`active_summary()`、
+    `save_summary()`（同一区间幂等）、`summary_history()`；
+  - `core/compress.py` 新增 `assemble_context()`：先取当前有效摘要，再取**未被摘要覆盖**的消息，
+    超阈值时只把更老的一段折进摘要，并把摘要连同区间落库；摘要失败原样返回、不写半截摘要；
+  - `core/agent.py`：回合开始时走 `_assemble_body()`（摘要 + 未覆盖消息），
+    产生新摘要时记 `context_summary` 事件；`compression.enabled=false` 时不再产生新摘要，
+    但**已有摘要仍进上下文**（否则等于静默丢历史）；
+  - `system/backup.py`：清单补记 `summaries` 行数。
+- **关闭了什么**：A16 的索引部分（review 队列部分仍属 D12）。
+- **跑了什么**：`uv run pytest tests/test_context.py -q` → 13 passed；
+  `uv run pytest -q` → **514 passed, 1 warning**。
+- **真机证据**：`data/memory.db` 首次打开按 `legacy` 一次性重建（0.04s，16 个会话保持），
+  第二次打开 `fts_rebuilt=False`（0.02s）；`summaries` 表建好、为空（还没触发过压缩）。
+- **没测什么**：真实长对话（上千条消息）的压缩质量与摘要成本；trigram 不可用的机器
+  （只有 `unicode61` 路径的降级行为用代码分支覆盖，没有真机环境）；多进程同时首次升级
+  （两个进程同时 `rebuild` 未演练，理论上后到者会重复重建一次）。
+- **行为变化**：
+  1. 历史消息的上下文不再每条都进 prompt：超出阈值后旧的一段被持久摘要替代，
+     `recent_messages` 的调用方（检索、工作台列表）不受影响；
+  2. 摘要以 user 消息并入保留窗第一条用户消息，维持严格角色交替；
+  3. `memory.db` 首次升级会做一次全量索引重建（一次性成本）。
+- **剩余限制（明确记录）**：
+  1. **中途压缩仍只在内存里**：一次回合内工具输出把上下文顶爆时，`compress_if_needed`
+     仍做无 id 的临时压缩，不落库（回合结束即失效）。理由是回合内的工具消息本来就不落库，
+     给它们编造 id 只会让"摘要覆盖了哪些消息"变成假账；
+  2. 摘要只保留最近 N 条（默认 20），更老的摘要被取代后仍可查但不进上下文；
+  3. 摘要质量取决于摘要模型；本层只保证"不篡改事实、不丢区间、失败可降级"；
+  4. 没有做基于 token 的精确预算，`trigger_chars` 仍是字符阈值（与 D10 的 `estimate_tokens` 未统一）。
+- **过程记录**：
+  1. 触发器与手写 `INSERT INTO fts(rowid)` 会**双写**（索引出现重复行）。改成"能建触发器就不手写"，
+     老 SQLite 建不了触发器时才回退手写；
+  2. 首次实现忘了 `summaries` 的 `UNIQUE(session_id, to_msg_id)` 会被重复压缩撞上，
+     改成先查后插并返回 `created=False`——同一段历史重压一次不再花钱，也不会版本号乱跳；
+  3. 测试里"2 字查询"最初的断言是「喝什么」应命中「用户喜欢喝拿铁」——这不是降级链的能力，
+     是我想当然。改成断言真正存在的片段（拿铁/喜欢），并把不命中写成断言，避免以后有人
+     为了让测试变绿去伪造检索结果。
 
 ### 2026-10-28 · D10（网关能力、流式、有界重试与费用预算）
 

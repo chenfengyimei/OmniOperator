@@ -30,7 +30,7 @@
 | `config.py` | 加载 .env 密钥与 config.yaml 配置 | 不含任何业务逻辑 | `config.py` |
 | `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/run.py`、`core/session.py`、`core/review.py`、`core/cron.py`、`core/compress.py` |
 | `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、能力声明与调用前校验、结构化超时、有界重试、错误分类与脱敏、流式事件、usage 与费用预留/结算 | 不做记忆、不管理会话、不碰 SQLite（账本由 `memory/usage.py` 实现、bootstrap 注入） | `llm/gateway.py`、`llm/errors.py`、`llm/usage.py`、`llm/budget.py` |
-| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 模型调用流水与费用账 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py` |
+| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 模型调用流水与费用账 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；持久摘要（按消息区间覆盖、版本链、失败降级）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py` |
 | `tools/` | Registry（注册/查找/规格生成/派发/结构化 `ToolResult`）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/result.py`、`tools/runctx.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
 | `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台（含内置终端 ConPTY）/ QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal.py`、`channels/qq.py`、`channels/heartbeat.py` |
@@ -164,6 +164,23 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 
 明确不做：不替供应商宣布"免费"（只有本机 provider 与显式声明才算 0）；不改用户正在用的模型配置；
 不承诺任意 OpenAI 兼容接口都支持相同的多模态与工具能力——所以能力必须声明，未声明就拒绝。
+
+### 3.10 持久上下文与索引生命周期（D11）
+
+上下文不可能永远整段塞进 prompt，索引也不该每开一次连接就重建一次——两件事都在这一层解决。
+
+| 契约 | 位置 | 必须满足 |
+| --- | --- | --- |
+| 摘要覆盖区间 | `memory.db` 的 `summaries` | 每条摘要记录 `from_msg_id / to_msg_id`，`UNIQUE(session_id, to_msg_id)`：同一段历史重压是幂等操作，不会重复花钱 |
+| 上下文组装 | `core/compress.assemble_context` | 先取有效摘要，再取 `id > to_msg_id` 的消息；超阈值只把更老的一段折进摘要；新摘要继承旧摘要起点并 `version+1`，旧摘要标 `superseded_by` |
+| 失败降级 | 同上 | 摘要调用失败/为空 → **原样返回原始消息**，不写半截摘要（摘要只影响体积，不影响事实） |
+| 摘要注入形态 | 同上 | 以 user 消息进入上下文，紧跟用户消息时并进首条（维持严格角色交替，不产生连续 user） |
+| 索引增量 | `memory/store._FTS_TRIGGERS` | 触发器维护外部内容 FTS 表；手写 `INSERT INTO fts(rowid)` 只在建不了触发器的老库使用（否则双写） |
+| 索引重建 | `memory/store._init_fts` | 只在「首次 / 分词器升级 / 旧库无 `meta` 状态」重建一次；状态含 `version/tokenizer/triggers/built_at` |
+| 降级链 | `search_facts / search_messages` | FTS（trigram）→ 全词 AND → 全词 OR → 中文 2-gram；FTS5 不可用时全程 LIKE |
+
+明确不做：回合内的临时压缩（工具输出顶爆上下文那次）不落库——回合内工具消息本来不持久化，
+给它们编 id 会把"摘要覆盖了哪些消息"变成假账；摘要不做语义校验（那是 review 的事）。
 
 ## 4. 设计模式落位
 

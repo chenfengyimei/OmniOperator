@@ -6,8 +6,10 @@
   可重入锁（ @_locked ），本地单用户场景足够（回顾线程用的是独立连接）；
 - 全文检索用 FTS5 trigram tokenizer（对中文原生友好，2字以上可查）；
   FTS5 不可用时自动降级到 LIKE 三级链，功能不缺失只损失排序质量；
-- facts/messages 写入时同步进 FTS 索引，每次打开 'rebuild' 一次
-  补齐旧数据（当前数据量小，重建成本可忽略）；
+- FTS 索引由**触发器**维护，打开连接时不再 rebuild 全库（D11/A16）：
+  以前每开一个连接（review 每次一轮、心跳每个周期）就重建一遍索引，数据量一大
+  就成了启动风暴；现在只有"首次建表 / 分词器升级 / 旧库没有状态记录"才重建一次，
+  状态写在 `meta` 表里；
 - 用户档案限长（PROFILE_MAX_CHARS）：写满时返回错误+当前档案+剩余额度，
   逼调用方在当轮合并——这是 Hermes 验证过的"限额+报错=自整理"协议
   （xuexi/NOTES.md §1.3）；
@@ -69,6 +71,24 @@ CREATE TABLE IF NOT EXISTS todos (
     content TEXT NOT NULL,
     done INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS summaries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    from_msg_id INTEGER NOT NULL,
+    to_msg_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'compress',
+    model TEXT NOT NULL DEFAULT '',
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    superseded_by INTEGER,
+    UNIQUE(session_id, to_msg_id)
+);
+CREATE INDEX IF NOT EXISTS idx_summaries_session ON summaries(session_id, id);
+CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
 
 _FTS_SCHEMA = """
@@ -79,6 +99,34 @@ CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
     content, content='messages', content_rowid='id', tokenize='{tokenize}'
 );
 """
+
+# 索引由触发器维护（D11）：外部内容表的增删改都必须同步发给索引，
+# 否则"原文进库了、搜不到"这种偏差只能靠全量 rebuild 掩盖。
+_FTS_TRIGGERS = """
+CREATE TRIGGER IF NOT EXISTS facts_ai AFTER INSERT ON facts BEGIN
+    INSERT INTO facts_fts(rowid, content) VALUES (new.id, new.content);
+END;
+CREATE TRIGGER IF NOT EXISTS facts_ad AFTER DELETE ON facts BEGIN
+    INSERT INTO facts_fts(facts_fts, rowid, content) VALUES ('delete', old.id, old.content);
+END;
+CREATE TRIGGER IF NOT EXISTS facts_au AFTER UPDATE ON facts BEGIN
+    INSERT INTO facts_fts(facts_fts, rowid, content) VALUES ('delete', old.id, old.content);
+    INSERT INTO facts_fts(rowid, content) VALUES (new.id, new.content);
+END;
+CREATE TRIGGER IF NOT EXISTS messages_ai AFTER INSERT ON messages BEGIN
+    INSERT INTO messages_fts(rowid, content) VALUES (new.id, new.content);
+END;
+CREATE TRIGGER IF NOT EXISTS messages_ad AFTER DELETE ON messages BEGIN
+    INSERT INTO messages_fts(messages_fts, rowid, content) VALUES ('delete', old.id, old.content);
+END;
+CREATE TRIGGER IF NOT EXISTS messages_au AFTER UPDATE ON messages BEGIN
+    INSERT INTO messages_fts(messages_fts, rowid, content) VALUES ('delete', old.id, old.content);
+    INSERT INTO messages_fts(rowid, content) VALUES (new.id, new.content);
+END;
+"""
+
+FTS_META_KEY = "fts"
+FTS_VERSION = 2
 
 PROFILE_MAX_CHARS = 2000
 
@@ -117,26 +165,109 @@ class MemoryStore:
         self._conn = sqlite3.connect(path, check_same_thread=False)
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA busy_timeout=5000")
+        self._fts_triggers = False
         self._conn.executescript(_SCHEMA)
         self._init_fts()
         self._conn.commit()
 
     def _init_fts(self) -> None:
-        """优先 trigram（中文友好）；不可用时逐级退到 unicode61 / 无 FTS。"""
+        """建/升级 FTS 索引，只在**真的需要**时重建全库（D11/A16）。
+
+        判定顺序：
+        1. 已有索引且分词器已是 trigram、`meta` 记录与本版本一致 → 什么都不做；
+        2. 旧库（有索引但没状态记录）/ 分词器要升级 / 索引缺失 → 建一次并 `rebuild` 一次；
+        3. FTS5 不可用 → `fts_enabled=False`，检索退到 LIKE 链（功能不缺失，只损失排序）。
+        """
         self.fts_enabled = False
-        for tokenize in ("trigram", "unicode61"):
+        self.fts_rebuilt = False
+        self.fts_reason = ""
+        self.fts_tokenizer = ""
+        state = self._meta_json(FTS_META_KEY) or {}
+        existing = self._fts_table_sql("messages_fts")
+        current = "trigram" if "trigram" in (existing or "") else (
+            "unicode61" if "unicode61" in (existing or "") else ""
+        )
+        fresh = not existing
+        upgraded = bool(existing) and current != "trigram"
+        legacy = bool(existing) and not state
+
+        tokenizer = current or "trigram"
+        created = False
+        while tokenizer:
             try:
-                self._conn.executescript(_FTS_SCHEMA.format(tokenize=tokenize))
+                if (fresh or upgraded) and existing:
+                    # 分词器要换：旧表与新表不能同名共存，先删（下一步会重建并回填）
+                    self._conn.execute("DROP TABLE IF EXISTS facts_fts")
+                    self._conn.execute("DROP TABLE IF EXISTS messages_fts")
+                    existing = ""
+                self._conn.executescript(_FTS_SCHEMA.format(tokenize=tokenizer))
+                created = True
+                break
             except sqlite3.OperationalError:
-                continue
-            # 'rebuild' 重建补齐既有行（外部内容表）
+                if tokenizer == "trigram":
+                    tokenizer = "unicode61"
+                    continue
+                tokenizer = ""
+        if not created:
+            self.fts_reason = "no_fts5"  # 本机 SQLite 不带 FTS5：退到 LIKE
+            return
+
+        need_rebuild = fresh or upgraded or legacy or state.get("version") != FTS_VERSION
+        if need_rebuild:
             try:
                 self._conn.execute("INSERT INTO facts_fts(facts_fts) VALUES ('rebuild')")
                 self._conn.execute("INSERT INTO messages_fts(messages_fts) VALUES ('rebuild')")
-            except sqlite3.OperationalError:
-                continue
-            self.fts_enabled = True
-            return
+                self.fts_rebuilt = True
+                self.fts_reason = (
+                    "fresh" if fresh else "tokenizer_upgrade" if upgraded else "legacy"
+                )
+            except sqlite3.OperationalError as exc:
+                self.fts_reason = f"rebuild_failed:{exc}"
+                return
+        try:
+            self._conn.executescript(_FTS_TRIGGERS)
+            self._fts_triggers = True
+        except sqlite3.OperationalError:
+            self._fts_triggers = False  # 老 SQLite 建不了触发器：退回手写同步
+        self._set_meta(
+            FTS_META_KEY,
+            {
+                "version": FTS_VERSION,
+                "tokenizer": tokenizer,
+                "triggers": self._fts_triggers,
+                "built_at": _now(),
+            },
+        )
+        self.fts_enabled = True
+        self.fts_tokenizer = tokenizer
+
+    def _fts_table_sql(self, name: str) -> str:
+        row = self._conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", (name,)
+        ).fetchone()
+        return str(row[0] or "") if row else ""
+
+    def _meta_json(self, key: str) -> dict:
+        row = self._conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
+        if not row:
+            return {}
+        try:
+            import json
+
+            value = json.loads(row[0])
+        except (TypeError, ValueError):
+            return {}
+        return value if isinstance(value, dict) else {}
+
+    def _set_meta(self, key: str, value: dict) -> None:
+        import json
+
+        self._conn.execute(
+            "INSERT INTO meta(key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (key, json.dumps(value, ensure_ascii=False, sort_keys=True)),
+        )
+        self._conn.commit()
 
     # ---------- 会话 ----------
 
@@ -249,7 +380,8 @@ class MemoryStore:
             "INSERT INTO messages(session_id, role, content, created_at) VALUES (?, ?, ?, ?)",
             (session_id, role, content, _now()),
         )
-        if self.fts_enabled:
+        if self.fts_enabled and not self._fts_triggers:
+            # 触发器能用的库由索引自己同步；只有建不了触发器的老库才手写
             self._conn.execute(
                 "INSERT INTO messages_fts(rowid) VALUES (?)", (int(cur.lastrowid),)
             )
@@ -269,6 +401,117 @@ class MemoryStore:
             (session_id, limit),
         ).fetchall()
         return [(str(r[0]), str(r[1])) for r in reversed(rows)]
+
+    @_locked
+    def recent_messages_ex(self, session_id: int, limit: int) -> list[tuple[int, str, str]]:
+        """带消息 id 的历史（D11）：摘要要按**消息区间**记覆盖范围，没 id 就对不上账。"""
+        rows = self._conn.execute(
+            "SELECT id, role, content FROM messages WHERE session_id = ? "
+            "ORDER BY id DESC LIMIT ?",
+            (session_id, limit),
+        ).fetchall()
+        return [(int(r[0]), str(r[1]), str(r[2])) for r in reversed(rows)]
+
+    @_locked
+    def message_count(self, session_id: int) -> int:
+        row = self._conn.execute(
+            "SELECT COUNT(*) FROM messages WHERE session_id = ?", (session_id,)
+        ).fetchone()
+        return int(row[0]) if row else 0
+
+    # ---------- 摘要（D11：持久上下文） ----------
+
+    @_locked
+    def active_summary(self, session_id: int) -> tuple[int, int, int, str, int] | None:
+        """当前有效的摘要：`(id, from_msg_id, to_msg_id, content, version)`。
+
+        只认**没有被取代**的最近一条：被取代的摘要留着做审计，不再进上下文。
+        """
+        row = self._conn.execute(
+            "SELECT id, from_msg_id, to_msg_id, content, version FROM summaries "
+            "WHERE session_id = ? AND superseded_by IS NULL ORDER BY id DESC LIMIT 1",
+            (session_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return (int(row[0]), int(row[1]), int(row[2]), str(row[3]), int(row[4]))
+
+    @_locked
+    def save_summary(
+        self,
+        session_id: int,
+        *,
+        from_msg_id: int,
+        to_msg_id: int,
+        content: str,
+        source: str = "compress",
+        model: str = "",
+        supersedes: int | None = None,
+    ) -> tuple[int, int, bool]:
+        """写一条摘要，返回 `(id, version, 是否新建)`。
+
+        幂等：同一 `(session_id, to_msg_id)` 只会有一条——重复压缩同一段就返回原记录，
+        不会因为重试把摘要堆成好几份（也保证版本号不会乱跳）。
+        """
+        existing = self._conn.execute(
+            "SELECT id, version FROM summaries WHERE session_id = ? AND to_msg_id = ?",
+            (session_id, to_msg_id),
+        ).fetchone()
+        if existing is not None:
+            return int(existing[0]), int(existing[1]), False
+        version = 1
+        if supersedes is not None:
+            row = self._conn.execute(
+                "SELECT version FROM summaries WHERE id = ?", (supersedes,)
+            ).fetchone()
+            if row is not None:
+                version = int(row[0]) + 1
+        cur = self._conn.execute(
+            "INSERT INTO summaries(session_id, from_msg_id, to_msg_id, content, source,"
+            " model, version, created_at) VALUES (?,?,?,?,?,?,?,?)",
+            (
+                session_id,
+                int(from_msg_id),
+                int(to_msg_id),
+                content,
+                source,
+                model,
+                version,
+                _now(),
+            ),
+        )
+        new_id = int(cur.lastrowid)
+        if supersedes is not None:
+            self._conn.execute(
+                "UPDATE summaries SET superseded_by = ? WHERE id = ? AND superseded_by IS NULL",
+                (new_id, int(supersedes)),
+            )
+        self._conn.commit()
+        return new_id, version, True
+
+    @_locked
+    def summary_history(self, session_id: int, limit: int = 20) -> list[dict]:
+        """摘要版本链（工作台/排查用）：谁覆盖了哪段消息、被谁取代。"""
+        rows = self._conn.execute(
+            "SELECT id, from_msg_id, to_msg_id, version, source, model, created_at,"
+            " superseded_by, length(content) FROM summaries WHERE session_id = ?"
+            " ORDER BY id DESC LIMIT ?",
+            (session_id, max(1, limit)),
+        ).fetchall()
+        return [
+            {
+                "id": int(r[0]),
+                "from_msg_id": int(r[1]),
+                "to_msg_id": int(r[2]),
+                "version": int(r[3]),
+                "source": str(r[4]),
+                "model": str(r[5]),
+                "created_at": str(r[6]),
+                "superseded_by": int(r[7]) if r[7] is not None else None,
+                "chars": int(r[8] or 0),
+            }
+            for r in rows
+        ]
 
     @_locked
     def list_messages(
@@ -331,7 +574,7 @@ class MemoryStore:
         cur = self._conn.execute(
             "INSERT INTO facts(content, created_at) VALUES (?, ?)", (content, _now())
         )
-        if self.fts_enabled:
+        if self.fts_enabled and not self._fts_triggers:
             self._conn.execute(
                 "INSERT INTO facts_fts(rowid) VALUES (?)", (int(cur.lastrowid),)
             )
