@@ -7,9 +7,10 @@
 from __future__ import annotations
 
 import asyncio
+import os
 
 from ..bootstrap import build_runtime
-from ..config import load_env
+from ..config import DATA_DIR, load_env
 from ..core.cron import CronScheduler, make_runtime_deliver, make_runtime_executor
 from ..safety.gates import DenyApprover
 
@@ -34,11 +35,14 @@ async def _serve(runtime) -> None:
 
 def main() -> None:
     load_env()
-    runtime = build_runtime(approver=DenyApprover())  # 无人值守：fail-closed
+    pid_file = DATA_DIR / "run" / "omni-heartbeat.pid"
+    pid_file.parent.mkdir(parents=True, exist_ok=True)
+    pid_file.write_text(str(os.getpid()), encoding="utf-8")  # 工作台状态探测用
     try:
+        runtime = build_runtime(approver=DenyApprover())  # 无人值守：fail-closed
         asyncio.run(_serve(runtime))
-    except KeyboardInterrupt:
-        print("\n[心跳] 再见。", flush=True)
+    finally:
+        pid_file.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

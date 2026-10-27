@@ -44,10 +44,10 @@ asr:
   compute_type: int8
 
 qq:
-  enabled: false              # QQ 通道总开关（需先启动 NapCat，见 docs/QQ_SETUP.md）
+  enabled: true               # QQ 通道总开关（NapCat 已部署在 D:\tools\napcat）
   ws_url: "ws://127.0.0.1:3001"   # NapCat 正向 WebSocket 地址
   access_token: ""            # 与 NapCat 网络配置里的一致（可留空）
-  allowed_users: []           # 私聊白名单：填你的 QQ 号，如 [123456789]（空=不响应任何人）
+  allowed_users: [10000000001]     # 私聊白名单：用户大号（机器人小号 10000000002）
   allowed_groups: []          # 群白名单：群号列表（群里还需 @机器人 才响应）
   reply_delay_s: [1.0, 3.0]   # 拟人回复延迟区间（秒）
 
@@ -56,3 +56,6 @@ browser:
   slow_mo_ms: 120             # 动作慢放（拟人节奏 + 稳定性）
   max_writes_per_day: 50      # 每日写操作预算（click/type 合计，防失控）
   approval_timeout_s: 180     # 写操作确认等待上限（秒），超时自动拒绝
+
+system:
+  napcat_dir: "D:/tools/napcat"   # NapCat Shell 目录（含 napcat.bat），工作台由此管理启停/扫码

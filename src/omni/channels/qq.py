@@ -11,10 +11,11 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import random
 
 from ..bootstrap import Runtime, build_runtime
-from ..config import load_env
+from ..config import DATA_DIR, load_env
 from ..llm.gateway import GatewayError
 from ..safety.gates import DenyApprover
 from ..tools.qq.client import OneBotClient, clean_cq_message
@@ -83,18 +84,21 @@ async def _serve(runtime: Runtime) -> None:
 
 def main() -> None:
     load_env()
-    runtime = build_runtime(approver=DenyApprover())
-    if runtime.qq is None:
-        raise SystemExit(
-            "QQ 未启用：在 config/config.yaml 设置 qq.enabled: true，"
-            "并按 docs/QQ_SETUP.md 启动 NapCat。"
-        )
-    if not runtime.config.qq.allowed_users:
-        print("[QQ] 警告：allowed_users 为空，将不响应任何私聊（先配置你的 QQ 号）", flush=True)
+    pid_file = DATA_DIR / "run" / "omni-qq.pid"
+    pid_file.parent.mkdir(parents=True, exist_ok=True)
+    pid_file.write_text(str(os.getpid()), encoding="utf-8")  # 工作台状态探测用
     try:
+        runtime = build_runtime(approver=DenyApprover())
+        if runtime.qq is None:
+            raise SystemExit(
+                "QQ 未启用：在 config/config.yaml 设置 qq.enabled: true，"
+                "并按 docs/QQ_SETUP.md 启动 NapCat。"
+            )
+        if not runtime.config.qq.allowed_users:
+            print("[QQ] 警告：allowed_users 为空，将不响应任何私聊（先配置你的 QQ 号）", flush=True)
         asyncio.run(_serve(runtime))
-    except KeyboardInterrupt:
-        print("\n[QQ] 再见。", flush=True)
+    finally:
+        pid_file.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

@@ -35,6 +35,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "BrowserDriver",
     "WriteBudget",
     "ApprovalBroker",
+    "ServiceManager",
 }
 
 

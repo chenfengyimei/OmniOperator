@@ -76,6 +76,28 @@ ul{list-style:none;overflow-y:auto}
 #approval-banner .ab-actions button{flex:1;border:none;border-radius:6px;padding:6px 0;font-weight:700;cursor:pointer}
 .ab-allow{background:#16a34a;color:#fff}
 .ab-deny{background:#7f1d1d;color:#fecaca}
+#services{padding:6px 10px;overflow-y:auto}
+.svc-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.svc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:#6b7280}
+.svc-dot.ok{background:#34d399}
+.svc-main{flex:1;min-width:0}
+.svc-name{color:var(--text)}
+.svc-detail{color:var(--dim);font-size:11px}
+.svc-btn{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:2px 8px;font-size:11.5px;cursor:pointer;flex-shrink:0}
+.svc-btn:hover{border-color:var(--accent)}
+.svc-btn.warn{color:#fbbf24;border-color:#b45309}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
+.modal.hidden{display:none}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;width:min(440px,92vw);max-height:88vh;overflow-y:auto}
+.modal-title{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:10px}
+.modal-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px}
+.qr-img{display:block;width:240px;height:240px;margin:10px auto;background:#fff;border-radius:8px}
+.qr-hint{font-size:12px;color:var(--dim);margin-bottom:10px;text-align:center}
+.qr-status{font-size:12.5px;color:#fbbf24;text-align:center;margin-bottom:6px;min-height:1.2em}
+.form-row{margin:8px 0;font-size:12.5px;color:var(--text)}
+.form-row label{display:flex;flex-direction:column;gap:4px}
+.form-row input[type=text],.form-row input[type=number],.form-row select{background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font:inherit}
+.form-row input[type=checkbox]{margin-right:6px;transform:translateY(1px)}
 .empty{color:var(--dim);text-align:center;padding:24px 10px;font-size:12.5px}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 @media (max-width:1000px){main{grid-template-columns:1fr;overflow-y:auto}aside,section{max-height:45vh}}
@@ -95,6 +117,10 @@ ul{list-style:none;overflow-y:auto}
     <div class="panel" style="flex:1">
       <div class="panel-title"><span>状态</span></div>
       <div id="status"></div>
+    </div>
+    <div class="panel" style="flex:1">
+      <div class="panel-title"><span>服务</span><button id="open-settings">⚙ 设置</button></div>
+      <div id="services"></div>
     </div>
   </aside>
   <section id="chat">
@@ -127,6 +153,29 @@ ul{list-style:none;overflow-y:auto}
   </aside>
 </main>
 <div id="approval-banner" class="hidden"></div>
+<div id="qr-modal" class="modal hidden" onclick="if(event.target===this)closeModal('qr-modal')">
+  <div class="modal-box">
+    <div class="modal-title"><span>QQ 扫码登录</span><button class="modal-x" onclick="closeModal('qr-modal')">✕</button></div>
+    <div id="qr-status" class="qr-status"></div>
+    <img id="qr-img" class="qr-img" alt="登录二维码">
+    <div class="qr-hint">用手机 QQ（机器人小号）扫码并确认登录。<br>二维码约 2 分钟自动刷新，弹窗每 5 秒自动取最新。</div>
+    <button class="svc-btn" style="width:100%;padding:6px" onclick="loadQR()">立即刷新</button>
+  </div>
+</div>
+<div id="settings-modal" class="modal hidden" onclick="if(event.target===this)closeModal('settings-modal')">
+  <div class="modal-box">
+    <div class="modal-title"><span>设置</span><button class="modal-x" onclick="closeModal('settings-modal')">✕</button></div>
+    <div class="form-row"><label><span><input type="checkbox" id="cfg-qq-enabled"> QQ 通道启用</span></label></div>
+    <div class="form-row"><label>私聊白名单（QQ 号，逗号分隔）<input type="text" id="cfg-qq-users" placeholder="123456, 234567"></label></div>
+    <div class="form-row"><label>拟人回复延迟（秒，小 到 大）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"></label></div>
+    <div class="form-row"><label><span><input type="checkbox" id="cfg-browser-headless"> 浏览器无头模式（关=能看到它在干什么）</span></label></div>
+    <div class="form-row"><label>每日浏览器写预算<input type="number" id="cfg-browser-budget"></label></div>
+    <div class="form-row"><label><span><input type="checkbox" id="cfg-review-enabled"> 回合后自动记忆整理</span></label></div>
+    <div class="form-row"><label>ASR 转写模型<select id="cfg-asr-model"><option>tiny</option><option>base</option><option>small</option><option>medium</option></select></label></div>
+    <button class="svc-btn" style="width:100%;padding:6px;margin-top:10px" onclick="saveSettings()">保存（运行中的服务需重启生效）</button>
+    <div id="settings-msg" class="qr-status"></div>
+  </div>
+</div>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -266,13 +315,93 @@ $('#new-session').onclick=async()=>{
 };
 $('#fact-q').addEventListener('input',loadFacts);
 
+// ---------- 系统控制台（服务/扫码/设置） ----------
+let QR_TIMER=null;
+function closeModal(id){
+  $('#'+id).classList.add('hidden');
+  if(id==='qr-modal'&&QR_TIMER){clearInterval(QR_TIMER);QR_TIMER=null}
+}
+window.closeModal=closeModal;
+
+async function loadServices(){
+  try{
+    const d=await api('/api/system/overview');
+    $('#services').innerHTML=d.services.map(s=>
+      `<div class="svc-row"><span class="svc-dot ${s.running?'ok':''}"></span>`+
+      `<span class="svc-main"><span class="svc-name">${esc(s.label)}</span>${s.detail?`<div class="svc-detail">${esc(s.detail)}</div>`:''}</span>`+
+      `<button class="svc-btn" onclick="svcAction('${s.name}','${s.running?'stop':'start'}')">${s.running?'停止':'启动'}</button>`+
+      (s.name==='napcat'&&!d.napcat.logged_in?`<button class="svc-btn warn" onclick="openQR()">扫码</button>`:'')+
+      `</div>`).join('');
+  }catch(e){$('#services').innerHTML='<div class="empty">状态获取失败</div>'}
+}
+window.svcAction=async(name,action)=>{
+  try{
+    const body=(action==='start'&&name==='napcat')?{qq:''}:{};
+    await api(`/api/system/services/${name}/${action}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    setTimeout(loadServices,800);
+  }catch(e){alert(e.message)}
+};
+window.openQR=()=>{
+  $('#qr-modal').classList.remove('hidden');
+  loadQR();
+  if(!QR_TIMER)QR_TIMER=setInterval(loadQR,5000);
+};
+window.loadQR=async()=>{
+  try{
+    const d=await api('/api/system/napcat/qr');
+    if(d.logged_in){
+      $('#qr-status').textContent='✅ 已登录'+(d.uin?('（'+d.uin+'）'):'');
+      setTimeout(()=>closeModal('qr-modal'),1500);
+      loadServices();
+      return;
+    }
+    if(d.available){$('#qr-status').textContent='等待扫码…';$('#qr-img').src=d.image}
+    else{$('#qr-status').textContent='二维码还没生成（NapCat 可能未启动，先在服务面板启动它）'}
+  }catch(e){$('#qr-status').textContent='获取失败：'+e.message}
+};
+window.openSettings=async()=>{
+  $('#settings-modal').classList.remove('hidden');
+  try{
+    const d=await api('/api/system/config');
+    $('#cfg-qq-enabled').checked=d.qq.enabled;
+    $('#cfg-qq-users').value=d.qq.allowed_users.join(', ');
+    $('#cfg-qq-delay').value=d.qq.reply_delay_s.join(', ');
+    $('#cfg-browser-headless').checked=d.browser.headless;
+    $('#cfg-browser-budget').value=d.browser.max_writes_per_day;
+    $('#cfg-review-enabled').checked=d.review.enabled;
+    $('#cfg-asr-model').value=d.asr.model;
+    $('#settings-msg').textContent='';
+  }catch(e){$('#settings-msg').textContent=e.message}
+};
+window.saveSettings=async()=>{
+  const users=$('#cfg-qq-users').value.split(/[,，\s]+/).map(x=>parseInt(x)).filter(x=>Number.isInteger(x));
+  const delay=$('#cfg-qq-delay').value.split(/[,，\s]+/).map(parseFloat).filter(x=>!isNaN(x));
+  const updates={
+    qq:{enabled:$('#cfg-qq-enabled').checked,allowed_users:users,reply_delay_s:delay},
+    browser:{headless:$('#cfg-browser-headless').checked,
+             max_writes_per_day:parseInt($('#cfg-browser-budget').value)||50},
+    review:{enabled:$('#cfg-review-enabled').checked},
+    asr:{model:$('#cfg-asr-model').value}
+  };
+  try{
+    await api('/api/system/config',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({updates})});
+    $('#settings-msg').style.color='#34d399';
+    $('#settings-msg').textContent='✅ 已保存（运行中的服务到服务面板重启生效）';
+  }catch(e){$('#settings-msg').style.color='#f87171';$('#settings-msg').textContent=e.message}
+};
+
 (async function init(){
   try{await loadState();await loadSessions();await loadMessages();refreshMemory()}
   catch(e){console.error(e)}
   setInterval(()=>{loadSessions();loadReviews()},10000);
   pollApprovals();
   setInterval(pollApprovals,2000);
+  loadServices();
+  setInterval(loadServices,5000);
 })();
+$('#open-settings').onclick=openSettings;
 </script>
 </body>
 </html>

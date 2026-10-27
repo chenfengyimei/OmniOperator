@@ -17,10 +17,12 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ..bootstrap import Runtime, build_runtime
-from ..config import load_env
+from ..config import CONFIG_PATH, load_env
 from ..llm.gateway import GatewayError
 from ..memory.store import PROFILE_MAX_CHARS
 from ..safety.gates import WebApprover
+from ..system.config_io import EDITABLE, ConfigEditError, apply_updates, safe_write
+from ..system.services import ServiceError
 
 _STATIC_DIR = Path(__file__).parent / "web_static"
 
@@ -33,6 +35,14 @@ class ChatIn(BaseModel):
 class ResolveIn(BaseModel):
     allowed: bool
     reason: str = ""
+
+
+class NapCatStartIn(BaseModel):
+    qq: str = ""  # 可选：快速登录的 QQ 号
+
+
+class ConfigUpdateIn(BaseModel):
+    updates: dict[str, dict[str, Any]]
 
 
 def create_app(runtime: Runtime) -> FastAPI:
@@ -171,6 +181,71 @@ def create_app(runtime: Runtime) -> FastAPI:
             approval_id, payload.allowed, payload.reason
         )
         return {"ok": ok}
+
+    # ---------- 系统控制台（本地服务 / 配置，可视化运维） ----------
+
+    @app.get("/api/system/overview")
+    def system_overview() -> dict[str, Any]:
+        return runtime.services.overview()
+
+    @app.post("/api/system/services/{name}/start")
+    def system_service_start(
+        name: str, payload: NapCatStartIn | None = None
+    ) -> dict[str, Any]:
+        try:
+            return runtime.services.start(name, qq=(payload.qq if payload else ""))
+        except ServiceError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+
+    @app.post("/api/system/services/{name}/stop")
+    def system_service_stop(name: str) -> dict[str, Any]:
+        try:
+            return runtime.services.stop(name)
+        except ServiceError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+
+    @app.get("/api/system/napcat/qr")
+    def system_napcat_qr() -> dict[str, Any]:
+        return runtime.services.napcat_qr()
+
+    @app.get("/api/system/logs/{name}")
+    def system_logs(name: str, lines: int = 80) -> dict[str, Any]:
+        return {"log": runtime.services.log_tail(name, min(lines, 300))}
+
+    @app.get("/api/system/config")
+    def system_config() -> dict[str, Any]:
+        cfg = runtime.config
+        return {
+            "qq": {
+                "enabled": cfg.qq.enabled,
+                "allowed_users": cfg.qq.allowed_users,
+                "reply_delay_s": cfg.qq.reply_delay_s,
+            },
+            "browser": {
+                "headless": cfg.browser.headless,
+                "slow_mo_ms": cfg.browser.slow_mo_ms,
+                "max_writes_per_day": cfg.browser.max_writes_per_day,
+            },
+            "review": {
+                "enabled": cfg.review.enabled,
+                "max_messages": cfg.review.max_messages,
+            },
+            "asr": {"model": cfg.asr.model},
+            "editable": sorted(f"{s}.{k}" for s, k in EDITABLE),
+        }
+
+    @app.post("/api/system/config")
+    def system_config_save(payload: ConfigUpdateIn) -> dict[str, Any]:
+        try:
+            text = CONFIG_PATH.read_text(encoding="utf-8")
+            new_text = apply_updates(text, payload.updates)
+            safe_write(CONFIG_PATH, new_text)
+        except (ConfigEditError, OSError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        return {
+            "ok": True,
+            "hint": "已写入 config.yaml；正在运行的服务重启后生效（见服务面板）",
+        }
 
     app.mount("/", StaticFiles(directory=str(_STATIC_DIR), html=True), name="ui")
     return app

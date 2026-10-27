@@ -91,6 +91,12 @@ class Browser(BaseModel):
     approval_timeout_s: float = 180.0  # 确认等待上限，超时自动拒绝
 
 
+class System(BaseModel):
+    """本地系统控制台（服务管理/配置）。"""
+
+    napcat_dir: str = "D:/tools/napcat"  # NapCat Shell 目录（含 napcat.bat）
+
+
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
@@ -99,6 +105,7 @@ class AppConfig(BaseModel):
     asr: Asr = Field(default_factory=Asr)
     qq: QQ = Field(default_factory=QQ)
     browser: Browser = Field(default_factory=Browser)
+    system: System = Field(default_factory=System)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

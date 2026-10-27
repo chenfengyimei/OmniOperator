@@ -19,6 +19,7 @@ from .memory.skills import SkillStore
 from .memory.store import MemoryStore
 from .safety.broker import ApprovalBroker
 from .safety.gates import Approver
+from .system.services import ServiceManager
 from .tools.bilibili.api import BiliAPI
 from .tools.bilibili.tools import register_bilibili_tools
 from .tools.browser.budget import WriteBudget
@@ -34,6 +35,7 @@ from .tools.registry import ToolRegistry
 from .tools.qq.client import OneBotClient
 from .tools.qq.tools import register_qq_tools
 from .tools.skill_tools import register_skill_tools
+from .tools.system_tools import register_system_tools
 
 
 @dataclass
@@ -49,6 +51,7 @@ class Runtime:
     browser: BrowserDriver
     write_budget: WriteBudget
     approvals: ApprovalBroker
+    services: ServiceManager
     agent: Agent
     reviewer: TurnEndReviewer | None = None
     qq: OneBotClient | None = None
@@ -96,6 +99,10 @@ def build_runtime(
     write_budget = WriteBudget(max_per_day=config.browser.max_writes_per_day)
     register_browser_tools(registry, browser, write_budget)
     approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
+    services = ServiceManager(
+        napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None
+    )
+    register_system_tools(registry, services)
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
@@ -133,6 +140,7 @@ def build_runtime(
         browser=browser,
         write_budget=write_budget,
         approvals=approvals,
+        services=services,
         agent=agent,
         reviewer=reviewer,
         qq=qq_client,
