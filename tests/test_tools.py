@@ -74,12 +74,27 @@ def test_dispatch_approval_gate(tmp_path):
     assert "未获批准" in denied and "测试拒绝" in denied
     # 放行
     assert registry.dispatch("send_msg", "{}", approver=_Allow()) == "已发送"
-    # 不给 approver：不设闸（调用方决定策略），工具直通
-    assert registry.dispatch("send_msg", "{}") == "已发送"
+    # 不给 approver 必须 fail-closed，不能变成写操作的逃逸通道。
+    assert "未获批准" in registry.dispatch("send_msg", "{}")
     # 按 toolset 过滤
     assert "send_msg" not in registry.names(toolsets={"core"})
     assert "send_msg" in registry.names(toolsets={"core", "test"})
     store.close()
+
+
+def test_dispatch_rejects_non_object_and_approval_errors():
+    calls = []
+    registry = ToolRegistry()
+    registry.register(Tool("write", "写入", {}, lambda args: calls.append(args) or "done", risk=Risk.CONFIRM))
+
+    class BrokenApprover:
+        def check(self, tool, arguments=None):
+            raise RuntimeError("broken")
+
+    for arguments in ("[]", "null", "42", '"text"'):
+        assert "JSON 对象" in registry.dispatch("write", arguments, approver=_Allow())
+    assert "审批失败" in registry.dispatch("write", {}, approver=BrokenApprover())
+    assert calls == []
 
 
 def test_daily_digest_dispatch(tmp_path):

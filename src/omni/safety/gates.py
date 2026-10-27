@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import abc
+import json
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -32,6 +33,8 @@ class Approver(abc.ABC):
     横幅/终端问询也能展示实际参数。
     """
 
+    allows_auto_approval: bool = True
+
     @abc.abstractmethod
     def check(self, tool: Any, arguments: Any = None) -> Decision: ...
 
@@ -45,6 +48,8 @@ class AllowAllApprover(Approver):
 
 class DenyApprover(Approver):
     """无人值守上下文（cron/心跳，P5）：非 safe 一律拒绝（fail-closed）。"""
+
+    allows_auto_approval = False
 
     def check(self, tool: Any, arguments: Any = None) -> Decision:
         if getattr(tool, "risk", Risk.SAFE) == Risk.SAFE:
@@ -92,4 +97,6 @@ class WebApprover(Approver):
             return Decision(True)
         if risk == Risk.DANGEROUS:
             return Decision(False, "dangerous 级操作在当前版本一律拒绝")
-        return self._broker.request(tool)
+        return self._broker.request(
+            tool, detail=json.dumps(arguments or {}, ensure_ascii=False, indent=2)
+        )

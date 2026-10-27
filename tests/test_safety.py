@@ -6,6 +6,7 @@ from omni.safety.gates import (
     Risk,
 )
 from omni.tools.registry import Tool
+import pytest
 
 
 def _tool(risk: Risk) -> Tool:
@@ -82,7 +83,7 @@ def _confirm_tool() -> Tool:
 
 def test_smart_allows_obvious_safe_operation():
     ask = _ask_factory("ALLOW")
-    approver = SmartApprover(base=DenyApprover(), ask_model=ask)
+    approver = SmartApprover(base=ConsoleApprover(FakeConsole("n")), ask_model=ask)
     decision = approver.check(_confirm_tool(), {"command": "uv run pytest"})
     assert decision.allowed and "smart" in decision.reason
     # 裁决 prompt：参数包在 tool-call 定界符里 + 系统提示词声明不可信
@@ -92,7 +93,7 @@ def test_smart_allows_obvious_safe_operation():
 
 
 def test_smart_denies_dangerous_operation():
-    approver = SmartApprover(base=DenyApprover(), ask_model=_ask_factory("DENY"))
+    approver = SmartApprover(base=ConsoleApprover(FakeConsole("n")), ask_model=_ask_factory("DENY"))
     decision = approver.check(_confirm_tool(), {"command": "del C:\\Users"})
     assert not decision.allowed and "smart" in decision.reason
 
@@ -104,11 +105,11 @@ def test_smart_escalates_to_base_approver():
 
 
 def test_smart_failure_falls_back_to_base():
-    approver = SmartApprover(base=DenyApprover(), ask_model=_ask_factory(fail=True))
+    approver = SmartApprover(base=ConsoleApprover(FakeConsole("n")), ask_model=_ask_factory(fail=True))
     decision = approver.check(_confirm_tool(), {"command": "x"})
     assert not decision.allowed  # 回退 base（fail-safe，绝不自动放行）
     # 不可解析输出同样回退
-    decision2 = SmartApprover(DenyApprover(), _ask_factory("我觉得可以吧")).check(
+    decision2 = SmartApprover(ConsoleApprover(FakeConsole("n")), _ask_factory("我觉得可以吧")).check(
         _confirm_tool(), None
     )
     assert not decision2.allowed
@@ -119,3 +120,40 @@ def test_smart_safe_tool_skips_verdict():
     approver = SmartApprover(base=AllowAllApprover(), ask_model=ask)
     assert approver.check(_tool(Risk.SAFE), {"q": "x"}).allowed
     assert ask.calls == []  # SAFE 不花裁决调用
+
+
+@pytest.mark.parametrize("text", ["ALLOW DENY", "ALLOW: safe", "ALLOWED", "do not ALLOW", "DENY ALLOW", "```ALLOW```"])
+def test_smart_requires_exact_verdict(text):
+    approver = SmartApprover(ConsoleApprover(FakeConsole("n")), _ask_factory(text))
+    assert not approver.check(_confirm_tool(), {"command": "test"}).allowed
+
+
+def test_smart_never_bypasses_dangerous_unattended_or_human():
+    ask = _ask_factory("ALLOW")
+    assert not SmartApprover(AllowAllApprover(), ask).check(_tool(Risk.DANGEROUS)).allowed
+    assert not SmartApprover(DenyApprover(), ask).check(_confirm_tool()).allowed
+    tool = _confirm_tool()
+    tool.requires_human = True
+    assert not SmartApprover(ConsoleApprover(FakeConsole("n")), ask).check(tool).allowed
+    assert SmartApprover(ConsoleApprover(FakeConsole("y")), ask).check(tool).allowed
+    assert ask.calls == []
+
+
+def test_smart_does_not_approve_truncated_arguments():
+    ask = _ask_factory("ALLOW")
+    approver = SmartApprover(ConsoleApprover(FakeConsole("n")), ask)
+    assert not approver.check(_confirm_tool(), {"text": "x" * 9000}).allowed
+    assert ask.calls == []
+
+
+def test_generic_writes_require_human_even_in_smart_mode(tmp_path):
+    from omni.bootstrap import build_runtime
+    runtime = build_runtime(db_path=tmp_path / "memory.db", data_dir=tmp_path, skills_root=tmp_path / "skills")
+    ask = _ask_factory("ALLOW")
+    approver = SmartApprover(ConsoleApprover(FakeConsole("n")), ask)
+    for name in ("run_command", "browser_click", "browser_type", "android_tap_element", "android_tap_coords", "android_swipe", "android_key", "android_type"):
+        tool = runtime.registry.get(name)
+        assert tool.requires_human
+        assert not approver.check(tool, {}).allowed
+    assert ask.calls == []
+    runtime.store.close()

@@ -20,7 +20,7 @@ def register_qq_tools(
             user_id = int(args["user_id"])
         except (TypeError, ValueError):
             return "错误：user_id 必须是 QQ 号数字"
-        if allowed_users and user_id not in allowed_users:
+        if user_id not in allowed_users:
             return f"错误：只能给白名单用户发消息（{user_id} 不在白名单内）"
         text = str(args.get("text", "")).strip()
         if not text:

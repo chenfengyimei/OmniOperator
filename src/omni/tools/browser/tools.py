@@ -114,6 +114,7 @@ def register_browser_tools(
             func=browser_click,
             toolset="browser",
             risk=Risk.CONFIRM,
+            requires_human=True,
         )
     )
     registry.register(
@@ -133,5 +134,6 @@ def register_browser_tools(
             func=browser_type,
             toolset="browser",
             risk=Risk.CONFIRM,
+            requires_human=True,
         )
     )

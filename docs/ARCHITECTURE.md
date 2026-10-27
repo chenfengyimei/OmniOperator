@@ -55,6 +55,7 @@
 
 ### 3.3 错误传递约定
 - **工具执行错误 / 审批拒绝**：以字符串回传给 LLM（让它自行换路径），不在循环里抛异常中断
+- **审批默认值**：未注入审批器按 DenyApprover 处理；通用写工具声明 `requires_human=True`，smart 不可代替人工；DANGEROUS 始终拒绝，smart 不覆盖无人值守策略；只有完整的一词裁决有效
 - **LLM 调用失败**：Gateway 包装成 `GatewayError` 抛给通道层
 - **通道层**：只捕获 `GatewayError`，不感知 litellm 原始异常
 

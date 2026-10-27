@@ -12,6 +12,7 @@ from omni.tools.android.adb import (
 )
 from omni.tools.android.driver import AndroidDriver
 from omni.tools.android.ui import parse_elements, render_tree
+from omni.safety.gates import AllowAllApprover
 from omni.tools.registry import ToolRegistry
 
 
@@ -412,4 +413,4 @@ def test_android_tools_dispatch(tmp_path):
     out = registry.dispatch("android_status", "{}")
     assert "EMU1" in out
     # 写操作错误以字符串回传（离线环境无真实设备树时的降级提示）
-    assert registry.dispatch("android_type", {"text": ""}).startswith("错误")
+    assert registry.dispatch("android_type", {"text": ""}, approver=AllowAllApprover()).startswith("错误")

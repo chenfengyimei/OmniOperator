@@ -13,7 +13,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **194 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
+- 测试：`uv run pytest`（当前 **205 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
 
 ## 2. 五分钟上手
 
@@ -86,6 +86,9 @@ uv run omni-heartbeat              # 心跳调度（cron）
 - 上下文策略：CLI 控制台问询、Web 横幅确认（阻塞+超时拒）、cron/心跳 DenyApprover
 - **smart 审批档**（`config approval.mode=smart`）：辅助模型一词裁决 ALLOW/DENY/ESCALATE，
   参数视为不可信输入包 `<tool-call>` 定界符，ESCALATE/失败回退人工
+- 审批加固：仅接受完整的一词裁决；DANGEROUS 硬拒绝、DenyApprover 不被 smart 绕过；
+  浏览器/安卓写入与任意 shell 命令带 `requires_human`，smart 直接转人工；缺省审批器拒绝非 SAFE；
+  Web 确认框展示完整参数；QQ 空白名单拒绝全部主动投递
 - 硬黑名单（shell）/ 常驻记忆防注入扫描 / QQ 白名单
 
 ### 4.5 Hermes 对标进度

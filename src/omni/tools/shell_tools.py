@@ -202,5 +202,6 @@ def register_shell_tools(
             func=run_command,
             toolset="shell",
             risk=Risk.CONFIRM,
+            requires_human=True,
         )
     )

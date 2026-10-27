@@ -14,7 +14,7 @@ import threading
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from ..safety.gates import Approver, Risk
+from ..safety.gates import Approver, DenyApprover, Risk
 
 
 class SessionRef:
@@ -42,6 +42,7 @@ class Tool:
     func: Callable[[dict[str, Any]], str]
     toolset: str = "core"       # 能力组：core / bilibili / qq / android …
     risk: Risk = Risk.SAFE      # safe / confirm / dangerous
+    requires_human: bool = False  # 通用写工具可发布/支付，smart 不得替人批准
 
 
 class ToolRegistry:
@@ -89,12 +90,16 @@ class ToolRegistry:
                 arguments = json.loads(arguments or "{}")
             except json.JSONDecodeError as exc:
                 return f"错误：工具参数不是合法 JSON（{exc}）"
-        if approver is not None:
-            # 参数先解析再送审：smart 档与确认横幅都能看到实际参数
-            decision = approver.check(tool, arguments)
-            if not decision.allowed:
-                reason = decision.reason or "审批拒绝"
-                return f"工具 {name} 未获批准：{reason}。请改用不需要该操作的方式，或向用户说明需要授权。"
+        if not isinstance(arguments, dict):
+            return "错误：工具参数必须是 JSON 对象"
+        # 缺省策略与无人值守一致；审批器故障也不能绕过闸门。
+        try:
+            decision = (approver or DenyApprover()).check(tool, arguments)
+        except Exception:  # noqa: BLE001
+            return f"工具 {name} 未获批准：审批失败，已拒绝执行"
+        if not decision.allowed:
+            reason = decision.reason or "审批拒绝"
+            return f"工具 {name} 未获批准：{reason}。请改用不需要该操作的方式，或向用户说明需要授权。"
         try:
             return tool.func(arguments or {})
         except Exception as exc:  # noqa: BLE001 —— 回传错误让 LLM 自行调整

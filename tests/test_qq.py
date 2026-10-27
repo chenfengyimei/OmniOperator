@@ -122,3 +122,9 @@ def test_agent_session_override(tmp_path):
     assert len(store.recent_messages(sid_a, 10)) == 4  # A：两轮问答
     assert len(store.recent_messages(sid_b, 10)) == 2  # B：一轮问答
     store.close()
+
+
+def test_qq_empty_allowlist_denies_all_sends():
+    registry = ToolRegistry()
+    register_qq_tools(registry, OneBotClient("ws://x"), allowed_users=[])
+    assert "白名单" in registry.dispatch("qq_send_message", {"user_id": 10001, "text": "hi"})

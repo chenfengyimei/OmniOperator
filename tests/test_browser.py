@@ -5,7 +5,7 @@ import time
 from types import SimpleNamespace
 
 from omni.safety.broker import ApprovalBroker
-from omni.safety.gates import Risk, WebApprover
+from omni.safety.gates import AllowAllApprover, Risk, WebApprover
 from omni.tools.browser.budget import WriteBudget
 from omni.tools.browser.driver import BrowserError
 from omni.tools.browser.tools import register_browser_tools
@@ -93,12 +93,13 @@ def test_web_approver_risk_routing():
     result = {}
 
     def run():
-        result["d"] = approver.check(confirm)
+        result["d"] = approver.check(confirm, {"target": "发布", "text": "完整消息"})
 
     threading.Thread(target=run).start()
     time.sleep(0.2)
     pending = broker.list_pending()
     assert pending and pending[0]["risk"] == "confirm"
+    assert "发布" in pending[0]["detail"] and "完整消息" in pending[0]["detail"]
     broker.resolve(pending[0]["id"], True)
     time.sleep(0.2)
     assert result["d"].allowed is True
@@ -148,11 +149,11 @@ def test_browser_tools_write_consumes_budget(tmp_path):
     driver = FakeDriver()
     budget = WriteBudget(tmp_path / "b.json", max_per_day=1)
     registry = _registry(driver, budget)
-    out = registry.dispatch("browser_click", {"target": "text=登录"})
+    out = registry.dispatch("browser_click", {"target": "text=登录"}, approver=AllowAllApprover())
     assert "已点击" in out and driver.clicked == ["text=登录"]
     assert "操作后页面" in out  # 写后回读验证附带
     # 预算耗尽：第二次被拒，且不触达驱动
-    out2 = registry.dispatch("browser_click", {"target": "text=发布"})
+    out2 = registry.dispatch("browser_click", {"target": "text=发布"}, approver=AllowAllApprover())
     assert "额度已用完" in out2 and driver.clicked == ["text=登录"]
     # 驱动报错以字符串回传
     class BoomDriver(FakeDriver):
@@ -160,4 +161,4 @@ def test_browser_tools_write_consumes_budget(tmp_path):
             raise BrowserError("元素找不到")
 
     registry2 = _registry(BoomDriver(), WriteBudget(tmp_path / "b2.json", max_per_day=5))
-    assert "错误：元素找不到" in registry2.dispatch("browser_click", {"target": "text=x"})
+    assert "错误：元素找不到" in registry2.dispatch("browser_click", {"target": "text=x"}, approver=AllowAllApprover())

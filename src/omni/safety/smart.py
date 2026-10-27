@@ -40,7 +40,14 @@ class SmartApprover(Approver):
         self._ask_model = ask_model
 
     def check(self, tool: Any, arguments: Any = None) -> Decision:
-        if getattr(tool, "risk", Risk.SAFE) == Risk.SAFE:
+        risk = getattr(tool, "risk", Risk.SAFE)
+        if risk == Risk.DANGEROUS:
+            return Decision(False, "dangerous 级操作在当前版本一律拒绝")
+        if (
+            risk == Risk.SAFE
+            or getattr(tool, "requires_human", False)
+            or not self._base.allows_auto_approval
+        ):
             return self._base.check(tool, arguments)
         verdict, reason = self._verdict(tool, arguments)
         if verdict == "ALLOW":
@@ -58,7 +65,9 @@ class SmartApprover(Approver):
                 args_text = json.dumps(arguments, ensure_ascii=False)
             except (TypeError, ValueError):
                 args_text = str(arguments)
-            args_text = args_text[:1500]
+            if len(args_text) > 8000:
+                # 不能截掉尾部再判安全；看不完整的调用必须交人工。
+                return "ESCALATE", "参数过长，需完整人工确认"
         user_msg = (
             f"<tool-call>\n工具：{tool.name}\n说明：{tool.description}\n"
             f"参数：{args_text or '（无）'}\n</tool-call>\n"
@@ -68,8 +77,6 @@ class SmartApprover(Approver):
             text = (self._ask_model(SMART_SYSTEM_PROMPT, user_msg) or "").strip().upper()
         except Exception:  # noqa: BLE001 —— 裁决失败回退人工，绝不自动放行
             return "ESCALATE", "裁决模型不可用"
-        for word in ("ALLOW", "DENY", "ESCALATE"):
-            if text.startswith(word) or word in text.split():
-                reason = text.replace(word, "", 1).strip(" :：.,，。-—")[:120]
-                return word, reason or "（未给出理由）"
+        if text in {"ALLOW", "DENY", "ESCALATE"}:
+            return text, "一词裁决"
         return "ESCALATE", f"裁决输出不可解析：{text[:80]}"

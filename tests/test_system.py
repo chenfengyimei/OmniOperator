@@ -148,20 +148,21 @@ def test_start_without_install_errors(tmp_path):
 # ---------- agent 系统工具 ----------
 
 def test_system_tools_dispatch(tmp_path):
+    from omni.safety.gates import AllowAllApprover
     registry = ToolRegistry()
     register_system_tools(registry, _isolated_manager(tmp_path / "nope", tmp_path))
     out = registry.dispatch("system_status", "{}")
     assert "NapCat" in out and ("未安装" in out or "未登录" in out)
     # 参数校验
     assert "错误" in registry.dispatch(
-        "system_service", {"action": "reboot", "service": "napcat"}
+        "system_service", {"action": "reboot", "service": "napcat"}, approver=AllowAllApprover()
     )
     assert "错误" in registry.dispatch(
-        "system_service", {"action": "start", "service": "everything"}
+        "system_service", {"action": "start", "service": "everything"}, approver=AllowAllApprover()
     )
     # 未安装时启动 → 友好错误
     assert "错误" in registry.dispatch(
-        "system_service", {"action": "start", "service": "napcat"}
+        "system_service", {"action": "start", "service": "napcat"}, approver=AllowAllApprover()
     )
 
 

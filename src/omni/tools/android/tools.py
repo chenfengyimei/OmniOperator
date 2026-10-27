@@ -129,6 +129,7 @@ def register_android_tools(registry: ToolRegistry, driver: AndroidDriver) -> Non
             func=android_tap_element,
             toolset="android",
             risk=Risk.CONFIRM,
+            requires_human=True,
         )
     )
     registry.register(
@@ -146,6 +147,7 @@ def register_android_tools(registry: ToolRegistry, driver: AndroidDriver) -> Non
             func=android_tap_coords,
             toolset="android",
             risk=Risk.CONFIRM,
+            requires_human=True,
         )
     )
     registry.register(
@@ -162,6 +164,7 @@ def register_android_tools(registry: ToolRegistry, driver: AndroidDriver) -> Non
             func=android_swipe,
             toolset="android",
             risk=Risk.CONFIRM,
+            requires_human=True,
         )
     )
     registry.register(
@@ -178,6 +181,7 @@ def register_android_tools(registry: ToolRegistry, driver: AndroidDriver) -> Non
             func=android_key,
             toolset="android",
             risk=Risk.CONFIRM,
+            requires_human=True,
         )
     )
     registry.register(
@@ -195,5 +199,6 @@ def register_android_tools(registry: ToolRegistry, driver: AndroidDriver) -> Non
             func=android_type,
             toolset="android",
             risk=Risk.CONFIRM,
+            requires_human=True,
         )
     )

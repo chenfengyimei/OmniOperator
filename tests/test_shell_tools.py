@@ -3,6 +3,7 @@ import subprocess
 
 import pytest
 
+from omni.safety.gates import AllowAllApprover
 from omni.tools.registry import ToolRegistry
 from omni.tools.shell_tools import decode_output, register_shell_tools
 
@@ -47,7 +48,7 @@ def test_run_command_formats_output(tmp_path):
         return 3, b"line1\nline2", b"warn"
 
     registry = _registry(runner)
-    out = registry.dispatch("run_command", {"command": "whatever"})
+    out = registry.dispatch("run_command", {"command": "whatever"}, approver=AllowAllApprover())
     assert "退出码 3" in out
     assert "[输出]\nline1\nline2" in out
     assert "[错误输出]\nwarn" in out
@@ -58,11 +59,11 @@ def test_run_command_timeout_and_empty(tmp_path):
         raise subprocess.TimeoutExpired(cmd, timeout_s)
 
     registry = _registry(timeout_runner)
-    out = registry.dispatch("run_command", {"command": "ping 127.0.0.1 -n 999"})
+    out = registry.dispatch("run_command", {"command": "ping 127.0.0.1 -n 999"}, approver=AllowAllApprover())
     assert "超时" in out
 
     registry2 = _registry(lambda cmd, t: (0, b"", b""))
-    out = registry2.dispatch("run_command", {"command": "cls"})
+    out = registry2.dispatch("run_command", {"command": "cls"}, approver=AllowAllApprover())
     assert "无输出" in out
 
 
@@ -71,7 +72,7 @@ def test_run_command_clips_long_output(tmp_path):
         return 0, ("x" * 20000).encode(), b""
 
     registry = _registry(runner)
-    out = registry.dispatch("run_command", {"command": "type big.log"})
+    out = registry.dispatch("run_command", {"command": "type big.log"}, approver=AllowAllApprover())
     assert len(out) < 9000 and "仅保留末尾" in out
 
 
@@ -105,7 +106,7 @@ def test_hard_blacklist_blocks_even_with_confirmation(tmp_path):
         "type C:\\Users\\me\\.ssh\\id_rsa",
     ]
     for cmd in disasters:
-        out = registry.dispatch("run_command", {"command": cmd})
+        out = registry.dispatch("run_command", {"command": cmd}, approver=AllowAllApprover())
         assert "硬性安全黑名单" in out, f"{cmd} 应被硬黑名单拦截"
     assert executed == []  # 一条都没真正执行
 
@@ -120,5 +121,5 @@ def test_hard_blacklist_does_not_touch_normal_dev_commands(tmp_path):
         "uv run pytest",
         "npm install",
     ):
-        out = registry.dispatch("run_command", {"command": cmd})
+        out = registry.dispatch("run_command", {"command": cmd}, approver=AllowAllApprover())
         assert "硬性安全黑名单" not in out, f"{cmd} 不应被拦"
