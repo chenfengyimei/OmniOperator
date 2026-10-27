@@ -12,6 +12,8 @@ import datetime as dt
 import json
 import os
 from io import BytesIO
+from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
@@ -116,7 +118,14 @@ class ResidentUpdateIn(BaseModel):
 
 def create_app(runtime: Runtime) -> FastAPI:
     """把 Runtime 暴露成 REST + 静态工作台（测试用 TestClient 直接调）。"""
-    app = FastAPI(title="OmniOperator Workbench")
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        try:
+            yield
+        finally:
+            await asyncio.to_thread(runtime.close_mcp)
+
+    app = FastAPI(title="OmniOperator Workbench", lifespan=lifespan)
     terminal_manager = TerminalManager()
 
     @app.get("/api/state")

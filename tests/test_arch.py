@@ -36,6 +36,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "WriteBudget",
     "ApprovalBroker",
     "ServiceManager",
+    "MCPManager",
 }
 
 

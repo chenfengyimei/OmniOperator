@@ -7,6 +7,7 @@ ToolRegistry / Agent——依赖关系只允许在本文件发生
 """
 from __future__ import annotations
 
+import atexit
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -45,6 +46,8 @@ from .tools.qq.tools import register_qq_tools
 from .tools.shell_tools import register_shell_tools
 from .tools.skill_tools import register_skill_tools
 from .tools.system_tools import register_system_tools
+from .tools.mcp.client import MCPManager
+from .tools.mcp.tools import register_mcp_tools
 
 
 @dataclass
@@ -65,8 +68,14 @@ class Runtime:
     services: ServiceManager
     agent: Agent
     android: AndroidDriver
+    mcp: MCPManager
     reviewer: TurnEndReviewer | None = None
     qq: OneBotClient | None = None
+
+    def close_mcp(self) -> None:
+        """入口关闭时回收本 Runtime 的 MCP 子进程；不干扰其它服务。"""
+        self.mcp.close()
+        atexit.unregister(self.mcp.close)
 
     def new_session(self) -> int:
         """新开会话并把 agent 切过去。"""
@@ -97,10 +106,11 @@ def build_runtime(
     data_dir: Path | None = None,
 ) -> Runtime:
     config = load_config(config_path)
-    store = MemoryStore(db_path)
+    data_root = Path(data_dir) if data_dir else DATA_DIR
+    memory_path = db_path if db_path is not None else data_root / "memory.db"
+    store = MemoryStore(memory_path)
     gateway = Gateway(config.models)
     skills = SkillStore(skills_root)
-    data_root = Path(data_dir) if data_dir else DATA_DIR  # 测试注入 tmp，隔离真机运行态
     registry = ToolRegistry()
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
     resident = ResidentMemory(
@@ -114,18 +124,24 @@ def build_runtime(
     register_delegate_tools(registry, store, agent_holder)
     register_shell_tools(registry)
     register_skill_tools(registry, skills)
+    mcp = MCPManager(config.mcp, log_dir=data_root / "mcp_logs")
+    register_mcp_tools(registry, mcp)
+    if mcp.servers():
+        atexit.register(mcp.close)
     register_bilibili_tools(registry, BiliAPI(), config.asr)
     cron_jobs = JobStore(data_root / "cron_jobs.json")
     cron_ledger = ExecutionLog(data_root / "cron_executions.json")
     register_cron_tools(registry, cron_jobs, config.qq.allowed_users)
     browser = BrowserDriver(
-        headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms
+        headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms,
+        profile_dir=data_root / "browser_profile", shots_dir=data_root / "browser_shots",
     )
-    write_budget = WriteBudget(max_per_day=config.browser.max_writes_per_day)
+    write_budget = WriteBudget(data_root / "browser_budget.json", max_per_day=config.browser.max_writes_per_day)
     register_browser_tools(registry, browser, write_budget)
     approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
     services = ServiceManager(
-        napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None
+        napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None,
+        run_dir=data_root / "run", log_dir=data_root / "system_logs",
     )
     register_system_tools(registry, services)
     android_driver = AndroidDriver(cache_path=data_root / "android_cache" / "tree.json")
@@ -156,7 +172,7 @@ def build_runtime(
         TurnEndReviewer(
             config,
             gateway,
-            lambda: MemoryStore(db_path),
+            lambda: MemoryStore(memory_path),
             _review_registry,
         )
         if config.review.enabled
@@ -177,6 +193,7 @@ def build_runtime(
         services=services,
         agent=agent,
         android=android_driver,
+        mcp=mcp,
         reviewer=reviewer,
         qq=qq_client,
     )

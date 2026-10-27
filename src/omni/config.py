@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = PROJECT_ROOT / "config" / "config.yaml"
@@ -117,6 +117,47 @@ class Approval(BaseModel):
     mode: str = "manual"  # manual | smart
 
 
+class MCPServerConfig(BaseModel):
+    """仅用户配置可声明本地 stdio 服务；模型不能修改命令或权限。"""
+
+    model_config = ConfigDict(extra="forbid")
+    command: str = Field(min_length=1)
+    args: list[str] = Field(default_factory=list)
+    env: dict[str, str] = Field(default_factory=dict)  # 值可用 ${ENV_NAME} 引用 .env
+    cwd: str | None = None
+    enabled: bool = True
+    timeout_s: float = Field(default=30, ge=0.1, le=120)
+    allowed_tools: list[str] | None = None  # None=全部可申请人工批准，[]=禁用全部
+    read_only_tools: list[str] = Field(default_factory=list)  # 用户审核的无副作用工具
+
+    @field_validator("command")
+    @classmethod
+    def nonblank_command(cls, value: str) -> str:
+        if not value.strip() or "\x00" in value:
+            raise ValueError("MCP command 必须是可执行文件；参数放 args")
+        return value.strip()
+
+    @model_validator(mode="after")
+    def readonly_subset(self) -> MCPServerConfig:
+        if self.allowed_tools is not None and not set(self.read_only_tools) <= set(self.allowed_tools):
+            raise ValueError("MCP read_only_tools 必须包含在 allowed_tools 中")
+        return self
+
+
+class MCPConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    servers: dict[str, MCPServerConfig] = Field(default_factory=dict)
+
+    @field_validator("servers")
+    @classmethod
+    def server_names(cls, value: dict[str, MCPServerConfig]) -> dict[str, MCPServerConfig]:
+        import re
+
+        if any(re.fullmatch(r"[a-z][a-z0-9_-]{0,39}", name) is None for name in value):
+            raise ValueError("MCP 服务名须为 1–40 位小写字母、数字、下划线或连字符，字母开头")
+        return value
+
+
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
@@ -128,6 +169,7 @@ class AppConfig(BaseModel):
     browser: Browser = Field(default_factory=Browser)
     system: System = Field(default_factory=System)
     approval: Approval = Field(default_factory=Approval)
+    mcp: MCPConfig = Field(default_factory=MCPConfig)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

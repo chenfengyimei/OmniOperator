@@ -49,7 +49,7 @@
 - `safety` / `config`（叶子）→ 不允许 import 任何内部模块
 
 ### 3.2 组装根规则
-`Gateway`、`MemoryStore`、`SkillStore`、`JobStore`、`ToolRegistry`、`Agent`、`TurnEndReviewer`、`BrowserDriver`、`WriteBudget`、`ApprovalBroker` 十个类的**构造调用只允许出现在 `bootstrap.py`**（tests 除外）。通道与内核通过构造函数注入持有引用。
+`Gateway`、`MemoryStore`、`SkillStore`、`JobStore`、`ToolRegistry`、`Agent`、`TurnEndReviewer`、`BrowserDriver`、`WriteBudget`、`ApprovalBroker`、`ServiceManager`、`MCPManager` 的**构造调用只允许出现在 `bootstrap.py`**（tests 除外）。通道与内核通过构造函数注入持有引用。
 
 好处：换实现（如 P1 记忆升级向量库）只动 bootstrap 一处；全部依赖关系在构造处一眼可见；工具集以 `register_xxx_tools(registry, deps)` 模式注册进唯一注册表，多能力域无冲突合并。
 
@@ -96,6 +96,14 @@
 `SkillStore` 负责 `references/` 路径校验、目录清单与有限文本读取；工具层通过
 `skill_view(name, path=...)` 渐进披露，不执行附件。绝对路径、目录穿越、符号链接、
 Windows junction/ADS 均拒绝，单文件上限 64 KiB；已有 `skills_root` 注入覆盖全部参考路径。
+
+### 5.5 MCP 外部工具
+`tools/mcp/client.py` 负责显式配置的 stdio 服务、会话所有者线程和子进程生命周期；
+`tools/mcp/tools.py` 仅将发现、只读调用、人工调用注册到现有 Registry。MCPManager 在
+bootstrap 构造，日志目录来自 `data_dir`。外部服务标注不授予 SAFE 权限，只读工具名单
+来自用户配置；其它调用要求人工确认，smart 不代批，无人值守拒绝。SDK 不获得 sampling、
+roots 或 elicitation 回调，故不能借服务器反向调用模型或扩大权限。
+正常退出通过 `Runtime.close_mcp` / Web lifespan / atexit 收尾；超时封闭连接，不重放调用。
 
 ## 6. Phase 架构演进预告
 

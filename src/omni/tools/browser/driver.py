@@ -29,11 +29,12 @@ class BrowserDriver:
         headless: bool = False,
         slow_mo_ms: int = 120,
         profile_dir: Path | None = None,
+        shots_dir: Path | None = None,
     ) -> None:
         self._headless = headless
         self._slow_mo = slow_mo_ms
         self._profile_dir = profile_dir or (DATA_DIR / "browser_profile")
-        self._shots_dir = DATA_DIR / "browser_shots"
+        self._shots_dir = shots_dir or (DATA_DIR / "browser_shots")
         self._lock = threading.RLock()
         self._pw: Any = None
         self._context: Any = None

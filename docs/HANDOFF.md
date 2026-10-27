@@ -13,7 +13,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **220 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
+- 测试：`uv run pytest`（当前 **233 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
 
 ## 2. 五分钟上手
 
@@ -63,6 +63,7 @@ uv run omni-heartbeat              # 心跳调度（cron）
 | browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流 |
 | android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM |
 | system | system_status（SAFE）/ system_service（CONFIRM） | NapCat/omni-qq/心跳 启停与状态 |
+| mcp | mcp_list_tools / mcp_read_tool / mcp_call_tool | 本地 stdio 服务，渐进发现、用户只读白名单、人工确认；配置见 `docs/MCP.md` |
 
 ### 4.2 Agent 内核（`core/`）
 - 工具循环 + 步数预算（8）+ grace call 强制收敛
@@ -97,7 +98,7 @@ uv run omni-heartbeat              # 心跳调度（cron）
 delegate_task、工具自注册+toolset 分组。
 **未做**：cron script/预采集脚本、provider 覆盖、suggestions（主动建议）、
 记忆向量检索（sqlite-vec）、computer-use 桌面控制（Hermes 经 MCP 接 cua-driver）、
-MCP 客户端支持、技能安装扫描。技能 references 已支持：主文列路径、三级按需读；限制 UTF-8 文本 64 KiB，禁越界/符号链接/junction/Windows ADS；目录最多列 60 项。
+MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（见 `docs/MCP.md`）。技能 references 已支持：主文列路径、三级按需读；限制 UTF-8 文本 64 KiB，禁越界/符号链接/junction/Windows ADS；目录最多列 60 项。
 
 ## 5. 平台坑清单（血泪，别再踩）
 
@@ -113,6 +114,8 @@ MCP 客户端支持、技能安装扫描。技能 references 已支持：主文�
 10. **NapCat 快速登录 `-q`** 会触发风控要求扫码；扫码文件在 `napcat/napcat/cache/qrcode.png`
 11. **MJPEG 帧**：screencap 每次 0.5-2s，别提高帧率；已用 Pillow 转半分辨率 JPEG q40；点屏继续携带实际帧尺寸，只在后端换算一次
 12. **pytest.raises match 中文** 在 GBK 控制台显示乱码但断言本身正常，别被吓到
+13. **MCP Windows 进程收尾**：使用 AnyIO CancelScope，不能用原生 task.cancel 打断 SDK 的 shield 清理；Python 服务默认 PYTHONUTF8=1；超时后结果未知，不自动重放
+14. **data_dir 完整隔离**：除 jobs/常驻/安卓，memory.db（含 review）、浏览器 profile/截图/预算、服务 pid/日志、MCP 日志也统一注入；skills 仍由 skills_root 单独控制
 
 ## 6. 未完成事项（按优先级）
 
@@ -127,7 +130,7 @@ MCP 客户端支持、技能安装扫描。技能 references 已支持：主文�
 3. **cron 任务编辑**：目前只能删了重建；补 PUT 编辑 prompt/schedule
 4. **记忆向量检索**（sqlite-vec）：事实层语义搜索，替代纯 FTS
 5. **computer-use 桌面**：Windows UIAutomation + SendInput（后台不抢焦点），对标 Hermes cua-driver
-6. **MCP 客户端**：接外部 MCP 服务器（Hermes 的生态入口）
+6. **MCP 客户端（stdio 已完成）**：懒连接、持久会话、发现分页、只读白名单与人工确认、超时及进程回收；通过真实离线子进程验证，外部生产服务联调与 HTTP/OAuth 待做（见 `docs/MCP.md`）
 7. **QQ 群聊**：@ 触发 + 群白名单已就绪，缺群场景的拟人节奏与话题管理
 8. **B 站写操作**（P3）：评论/私信走浏览器 UI，复用现有预算+审批+回读
 9. **日报模板 + context_from 实测**：夜间整理 → 早报链路端到端跑一次
@@ -169,6 +172,7 @@ src/omni/
   tools/android/         ADB 协议 + UI 树 + 语义驱动
   tools/qq/              OneBot v11 客户端与工具
   tools/system_tools.py  服务管理工具
+  tools/mcp/             MCP stdio 客户端、生命周期与三项工具适配
   system/services.py     服务启停（分离进程、pid、日志）
   system/config_io.py    config.yaml 白名单键定向修改（保留注释）
   channels/web.py        工作台 REST + WS（终端）+ MJPEG
