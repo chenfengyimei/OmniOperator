@@ -12,12 +12,39 @@ agent 的工作笔记（进行中的事、约定、教训）。
 """
 from __future__ import annotations
 
+import re
 import threading
 
 from ..config import DATA_DIR
 
 ENTRY_DELIMITER = "\n§\n"
 BLOCK_HEADER = "MEMORY（你的常驻工作笔记：跨会话生效；写满会被拒绝并要求先合并）"
+
+# 写入前扫描（Hermes _scan_memory_content 同思路，保守清单——只拦确定性模式）：
+# 常驻记忆每轮注入系统提示词，投毒条目会跨会话持续生效，必须在入口拦下。
+_INJECTION_RE = re.compile(
+    r"("
+    r"ignore (?:all |any |your )?(?:previous|prior|above|earlier|original) "
+    r"(?:instructions|prompts|rules|directions)"
+    r"|disregard (?:all |any )?(?:previous|prior|above) (?:instructions|rules|guidance)"
+    r"|忽略(?:并?无视)?(?:之前|以上|上面|先前|前面)的?(?:所有|全部)?(?:系统|安全)?(?:指令|提示词?|规则)"
+    r"|无视(?:之前|以上|先前|前面)的?(?:所有)?(?:系统|安全)?(?:指令|提示词?|规则)"
+    r"|(?:输出|透露|打印|复述|泄露)(?:一?下)?你的?(?:系统提示词?|系统指令|system prompt)"
+    r"|reveal.{0,20}system prompt|print.{0,20}system prompt"
+    r")",
+    re.IGNORECASE,
+)
+
+
+def injection_risk(content: str) -> str:
+    """命中注入/外泄模式返回拒绝说明，否则空串。"""
+    m = _INJECTION_RE.search(content)
+    if m:
+        return (
+            f"内容疑似提示注入（{m.group(0)[:50]!r}）：常驻记忆每轮注入系统提示词，"
+            "此类条目会跨会话持续生效，拒绝写入。如确属正当内容请改写措辞"
+        )
+    return ""
 
 
 class ResidentMemory:
@@ -64,6 +91,17 @@ class ResidentMemory:
 
     # ---------- 工具面 ----------
 
+    def entries(self) -> list[tuple[int, str]]:
+        """工作台展示用：带 1 起始编号的条目。"""
+        return [(i, e) for i, e in enumerate(self._read_entries(), 1)]
+
+    @property
+    def limit(self) -> int:
+        return self._limit
+
+    def usage(self) -> str:
+        return self._usage(self._read_entries())
+
     def view(self) -> str:
         """agent 视角的清单：带编号（replace/remove 用编号寻址）。"""
         entries = self._read_entries()
@@ -80,6 +118,8 @@ class ResidentMemory:
         content = (content or "").strip()
         if not content:
             return "错误：content 不能为空"
+        if risk := injection_risk(content):
+            return f"错误：{risk}"
         with self._lock:
             entries = self._read_entries()
             merged = ENTRY_DELIMITER.join(entries + [content])
@@ -98,6 +138,8 @@ class ResidentMemory:
         content = (content or "").strip()
         if not content:
             return "错误：content 不能为空（要删条目用 remove）"
+        if risk := injection_risk(content):
+            return f"错误：{risk}"
         with self._lock:
             entries = self._read_entries()
             if not (1 <= entry_id <= len(entries)):

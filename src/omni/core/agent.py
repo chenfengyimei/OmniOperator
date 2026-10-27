@@ -39,6 +39,11 @@ class Agent:
         review_model = config.models.review.strip()
         self._summary_model = review_model if review_model else self.model
 
+    @property
+    def session_ref(self) -> SessionRef | None:
+        """会话引用（delegate_task 等需要临时切换/还原会话指向的工具用）。"""
+        return self._session_ref
+
     def _system_prompt(self) -> str:
         now = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %A")
         prompt = self.config.persona.system_prompt.replace("{now}", now)

@@ -64,6 +64,8 @@ ul{list-style:none;overflow-y:auto}
 #tools li{padding:6px 12px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border)}
 .tool-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tool-set{color:var(--dim);font-size:11px;flex-shrink:0}
+.line-btn{cursor:pointer;text-decoration:none;font-size:11.5px;margin-left:4px}
+.line-btn:hover{filter:brightness(1.3)}
 .header-spacer{flex:1}
 #open-terminal,#open-phone{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 16px;font-size:12.5px;cursor:pointer}
 #open-terminal:hover,#open-phone:hover{border-color:var(--accent);color:var(--accent)}
@@ -182,6 +184,7 @@ ul{list-style:none;overflow-y:auto}
       <div class="tabs">
         <button data-tab="facts" class="active">记忆</button>
         <button data-tab="profile">档案</button>
+        <button data-tab="resident">常驻</button>
         <button data-tab="todos">待办</button>
         <button data-tab="reviews">Review</button>
         <button data-tab="skills">技能</button>
@@ -191,6 +194,14 @@ ul{list-style:none;overflow-y:auto}
         <ul id="facts-list"></ul>
       </div>
       <div id="tab-profile" class="tab-body hidden"><div id="profile-usage"></div><ul id="profile-list"></ul></div>
+      <div id="tab-resident" class="tab-body hidden">
+        <div id="resident-usage" style="padding:8px 12px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--border)"></div>
+        <div style="display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border)">
+          <input id="resident-new" placeholder="新增一条常驻笔记…" style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12.5px">
+          <button class="svc-btn" onclick="addResident()">添加</button>
+        </div>
+        <ul id="resident-list"></ul>
+      </div>
       <div id="tab-todos" class="tab-body hidden"><ul id="todos-list"></ul></div>
       <div id="tab-reviews" class="tab-body hidden"><ul id="reviews-list"></ul></div>
       <div id="tab-skills" class="tab-body hidden"><ul id="skills-list"></ul></div>
@@ -290,6 +301,12 @@ ul{list-style:none;overflow-y:auto}
           <div class="field"><label>review 重放消息数</label><input type="number" id="cfg-review-max-messages"></div>
           <div class="field"><label>review 步数预算</label><input type="number" id="cfg-review-steps"></div>
         </div>
+        <div class="field"><label>写操作审批策略</label>
+          <select id="cfg-approval-mode">
+            <option value="manual">manual：每次都问我</option>
+            <option value="smart">smart：辅助模型预筛（明显安全放行，拿不准仍问我）</option>
+          </select>
+        </div>
       </div>
       <div class="hub-card" id="sec-media">
         <h3>B站与转写</h3>
@@ -327,7 +344,21 @@ ul{list-style:none;overflow-y:auto}
       </div>
       <div class="hub-card" id="sec-cron">
         <h3>定时任务</h3>
-        <div class="hint">到点自动执行并投递；对小鱼说"每天早上八点给我发B站日报"即可新增。心跳进程（omni-heartbeat）需在运行。</div>
+        <div class="hint">到点自动执行并投递；也可以直接对小鱼说"每天早上八点给我发B站日报"。心跳进程（omni-heartbeat）需在运行。</div>
+        <div class="field-row">
+          <div class="field"><label>任务名（英文连字符）<input type="text" id="cronf-name" placeholder="morning-report"></label></div>
+          <div class="field"><label>每天定时 HH:MM<input type="text" id="cronf-daily" placeholder="08:30（与间隔二选一）"></label></div>
+          <div class="field"><label>或间隔分钟<input type="number" id="cronf-every" placeholder="≥30"></label></div>
+        </div>
+        <div class="field"><label>到点执行的指令（自包含）<textarea id="cronf-prompt" style="min-height:70px" placeholder="例：看B站热门榜前 10，挑 3 条我可能感兴趣的写一份简报"></textarea></label></div>
+        <div class="field-row">
+          <div class="field"><label>投递 QQ（可选，须在白名单）<input type="text" id="cronf-qq" placeholder="10000000001"></label></div>
+          <div class="field"><label>注入技能（逗号分隔，可选）<input type="text" id="cronf-skills" placeholder="nightly-tidy"></label></div>
+          <div class="field"><label>输入来自任务（可选）<input type="text" id="cronf-ctx" placeholder="nightly-tidy"></label></div>
+        </div>
+        <button class="tiny-btn" onclick="createCron()">创建任务</button>
+        <div id="cronf-msg" class="test-out"></div>
+        <h3 style="margin-top:18px">任务列表</h3>
         <div id="cron-list"></div>
         <h3 style="margin-top:18px">执行历史</h3>
         <div class="hint">最近的任务执行记录（成功与失败都记账，滚动保留 200 条）。</div>
@@ -416,9 +447,68 @@ async function loadFacts(){
 }
 async function loadProfile(){
   const d=await api('/api/profile');
-  $('#profile-usage').innerHTML=`用户档案：<b>${d.usage}/${d.max}</b> 字符（由 agent 用 profile_manage 维护）`;
-  $('#profile-list').innerHTML=d.lines.length?d.lines.map(l=>`<li><b>[${l.id}]</b>${esc(l.content)}</li>`).join(''):'<li class="empty">档案还是空的</li>';
+  window._profileLines=d.lines;
+  $('#profile-usage').innerHTML=`用户档案：<b>${d.usage}/${d.max}</b> 字符（小鱼用 profile_manage 维护，也可直接编辑）`;
+  $('#profile-list').innerHTML=d.lines.length?d.lines.map(l=>
+    `<li><b>[${l.id}]</b>${esc(l.content)}`+
+    `<span style="float:right"><a class="line-btn" onclick="editProfileLine(${l.id})">✏️</a> <a class="line-btn" onclick="delProfileLine(${l.id})">🗑</a></span></li>`).join('')
+    :'<li class="empty">档案还是空的</li>';
 }
+window.editProfileLine=async(id)=>{
+  const cur=(window._profileLines||[]).find(l=>l.id===id);
+  const text=prompt('修改档案行：',cur?cur.content:'');
+  if(text===null)return;
+  if(!text.trim()){alert('内容不能为空');return}
+  try{
+    await api('/api/profile/line',{method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({line_id:id,content:text.trim()})});
+    loadProfile();
+  }catch(e){alert(e.message)}
+};
+window.delProfileLine=async(id)=>{
+  if(!confirm('删除这条档案行？'))return;
+  try{
+    await api(`/api/profile/line/${id}`,{method:'DELETE'});
+    loadProfile();
+  }catch(e){alert(e.message)}
+};
+async function loadResident(){
+  try{
+    const d=await api('/api/resident');
+    $('#resident-usage').innerHTML=`常驻工作笔记：<b>${esc(d.usage)}</b>（每轮注入小鱼的系统提示词）`;
+    $('#resident-list').innerHTML=d.entries.length?d.entries.map(en=>
+      `<li style="padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px;line-height:1.55"><b style="color:var(--accent);margin-right:6px">[${en.id}]</b>${esc(en.content)}`+
+      `<span style="float:right"><a class="line-btn" onclick="editResident(${en.id})">✏️</a> <a class="line-btn" onclick="delResident(${en.id})">🗑</a></span></li>`).join('')
+      :'<li class="empty">常驻记忆为空</li>';
+  }catch(e){$('#resident-list').innerHTML='<li class="empty">'+esc(e.message)+'</li>'}
+}
+window.addResident=async()=>{
+  const box=$('#resident-new'),text=box.value.trim();
+  if(!text)return;
+  try{
+    await api('/api/resident/update',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({operation:'add',content:text})});
+    box.value='';loadResident();
+  }catch(e){alert(e.message)}
+};
+window.editResident=async(id)=>{
+  const cur=(await api('/api/resident')).entries.find(en=>en.id===id);
+  const text=prompt('修改常驻笔记：',cur?cur.content:'');
+  if(text===null||!text.trim())return;
+  try{
+    await api('/api/resident/update',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({operation:'replace',id,content:text.trim()})});
+    loadResident();
+  }catch(e){alert(e.message)}
+};
+window.delResident=async(id)=>{
+  if(!confirm('删除这条常驻笔记？'))return;
+  try{
+    await api('/api/resident/update',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({operation:'remove',id})});
+    loadResident();
+  }catch(e){alert(e.message)}
+};
 async function loadReviews(){
   const d=await api('/api/reviews');
   $('#reviews-list').innerHTML=d.reviews.length?d.reviews.map(r=>
@@ -454,7 +544,7 @@ window.toggleTodo=async(id,done)=>{
       body:JSON.stringify({session_id:currentSession,todo_id:id,done})});
   }catch(e){loadTodos()}
 };
-function refreshMemory(){loadFacts();loadProfile();loadReviews();loadSkills();loadTodos()}
+function refreshMemory(){loadFacts();loadProfile();loadResident();loadTodos();loadReviews();loadSkills()}
 
 async function pollApprovals(){
   try{
@@ -484,7 +574,7 @@ window.resolveApproval=async(id,allowed)=>{
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  ['facts','profile','todos','reviews','skills'].forEach(t=>$('#tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));
+  ['facts','profile','resident','todos','reviews','skills'].forEach(t=>$('#tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));
 });
 $('#send').onclick=sendMessage;
 $('#input').addEventListener('keydown',e=>{
@@ -569,6 +659,7 @@ async function loadHubConfig(){
   $('#cfg-review-enabled').checked=d.review.enabled;
   $('#cfg-review-max-messages').value=d.review.max_messages;
   $('#cfg-review-steps').value=d.review.steps;
+  $('#cfg-approval-mode').value=d.approval.mode;
   $('#cfg-asr-model').value=d.asr.model;
   $('#cfg-asr-device').value=d.asr.device;
   $('#cfg-asr-compute-type').value=d.asr.compute_type;
@@ -628,6 +719,25 @@ async function loadCron(){
       :'<div class="empty">还没有执行记录</div>';
   }catch(e){$('#cron-history').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
+window.createCron=async()=>{
+  const body={
+    name:$('#cronf-name').value.trim(),
+    prompt:$('#cronf-prompt').value.trim(),
+    skills:$('#cronf-skills').value.split(/[,，\s]+/).filter(Boolean),
+  };
+  const daily=$('#cronf-daily').value.trim(),every=parseInt($('#cronf-every').value);
+  const deliver=$('#cronf-qq').value.trim(),ctx=$('#cronf-ctx').value.trim();
+  if(daily)body.daily_at=daily;
+  if(every)body.every_minutes=every;
+  if(deliver)body.deliver_to_qq=parseInt(deliver);
+  if(ctx)body.context_from=ctx;
+  try{
+    const d=await api('/api/system/cron/create',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)});
+    $('#cronf-msg').textContent='✅ 已创建 '+d.name+'（下次运行 '+d.next_run_at+'）';
+    loadCron();
+  }catch(e){$('#cronf-msg').textContent='❌ '+e.message}
+};
 window.cronToggle=async(name,enabled)=>{
   try{await api('/api/system/cron/toggle',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name,enabled})});loadCron()}catch(e){alert(e.message)}
@@ -647,6 +757,7 @@ window.saveHub=async()=>{
     review:{enabled:$('#cfg-review-enabled').checked,
             max_messages:parseInt($('#cfg-review-max-messages').value)||12,
             steps:parseInt($('#cfg-review-steps').value)||4},
+    approval:{mode:$('#cfg-approval-mode').value},
     asr:{model:$('#cfg-asr-model').value,device:$('#cfg-asr-device').value,
          compute_type:$('#cfg-asr-compute-type').value},
     qq:{enabled:$('#cfg-qq-enabled').checked,ws_url:$('#cfg-qq-ws-url').value,

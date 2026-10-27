@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from ..bootstrap import Runtime, build_runtime
 from ..config import BILI_COOKIES_PATH, CONFIG_PATH, load_env
 from ..llm.gateway import GatewayError
-from ..memory.cron import compute_next_run, to_iso
+from ..memory.cron import CronError, Job, compute_next_run, to_iso
 from ..memory.store import PROFILE_MAX_CHARS
 from ..safety.gates import WebApprover
 from ..system.config_io import EDITABLE, ConfigEditError, apply_updates, safe_write
@@ -70,6 +70,16 @@ class CronToggleIn(BaseModel):
     enabled: bool
 
 
+class CronCreateIn(BaseModel):
+    name: str
+    prompt: str
+    every_minutes: int | None = None
+    daily_at: str | None = None
+    deliver_to_qq: int | None = None
+    skills: list[str] = []
+    context_from: str | None = None
+
+
 class TodoToggleIn(BaseModel):
     session_id: int
     todo_id: int
@@ -89,6 +99,17 @@ class AndroidElementIn(BaseModel):
 
 class AndroidKeyIn(BaseModel):
     keycode: str
+
+
+class ProfileLineIn(BaseModel):
+    line_id: int
+    content: str
+
+
+class ResidentUpdateIn(BaseModel):
+    operation: str  # add | replace | remove
+    id: int | None = None
+    content: str = ""
 
 
 def create_app(runtime: Runtime) -> FastAPI:
@@ -202,6 +223,47 @@ def create_app(runtime: Runtime) -> FastAPI:
             "max": PROFILE_MAX_CHARS,
         }
 
+    @app.put("/api/profile/line")
+    def profile_line_update(payload: ProfileLineIn) -> dict[str, Any]:
+        content = payload.content.strip()
+        if not content:
+            raise HTTPException(status_code=400, detail="内容不能为空")
+        if not runtime.store.profile_edit(payload.line_id, content):
+            raise HTTPException(status_code=404, detail="档案行不存在")
+        return {"ok": True}
+
+    @app.delete("/api/profile/line/{line_id}")
+    def profile_line_delete(line_id: int) -> dict[str, Any]:
+        if not runtime.store.profile_delete(line_id):
+            raise HTTPException(status_code=404, detail="档案行不存在")
+        return {"ok": True}
+
+    @app.get("/api/resident")
+    def get_resident() -> dict[str, Any]:
+        return {
+            "usage": runtime.resident.usage(),
+            "limit": runtime.resident.limit,
+            "entries": [
+                {"id": i, "content": c} for i, c in runtime.resident.entries()
+            ],
+        }
+
+    @app.post("/api/resident/update")
+    def resident_update(payload: ResidentUpdateIn) -> dict[str, Any]:
+        op = payload.operation
+        if op == "add":
+            message = runtime.resident.add(payload.content)
+        elif op == "replace":
+            message = runtime.resident.replace(int(payload.id or 0), payload.content)
+        elif op == "remove":
+            message = runtime.resident.remove(int(payload.id or 0))
+        else:
+            raise HTTPException(status_code=400, detail=f"未知操作 {op}")
+        if message.startswith("错误"):
+            # 限额/注入/编号错误原样回显（含合并指引，前端展示给用户）
+            raise HTTPException(status_code=400, detail=message)
+        return {"ok": True, "message": message}
+
     @app.get("/api/reviews")
     def get_reviews(limit: int = 20) -> dict[str, Any]:
         rows = runtime.store.list_all_reviews(min(limit, 100))
@@ -298,6 +360,7 @@ def create_app(runtime: Runtime) -> FastAPI:
                 "max_messages": cfg.review.max_messages,
                 "steps": cfg.review.steps,
             },
+            "approval": {"mode": cfg.approval.mode},
             "asr": {
                 "model": cfg.asr.model,
                 "device": cfg.asr.device,
@@ -379,6 +442,33 @@ def create_app(runtime: Runtime) -> FastAPI:
         return {"ok": True, "reply": reply.text[:120]}
 
     # ---------- 心跳任务管理（可视化） ----------
+
+    @app.post("/api/system/cron/create")
+    def cron_create(payload: CronCreateIn) -> dict[str, Any]:
+        """工作台直建任务：与 agent 的 cron_add 走同一套 JobStore 校验。"""
+        job = Job(
+            name=payload.name.strip(),
+            prompt=payload.prompt.strip(),
+            every_minutes=payload.every_minutes,
+            daily_at=(payload.daily_at.strip() if payload.daily_at else None),
+            deliver_to_qq=payload.deliver_to_qq,
+            skills=[s.strip() for s in payload.skills if s.strip()],
+            context_from=(
+                payload.context_from.strip() if payload.context_from else None
+            ),
+        )
+        try:
+            job.validate()
+            if job.deliver_to_qq is not None and runtime.config.qq.allowed_users:
+                if int(job.deliver_to_qq) not in runtime.config.qq.allowed_users:
+                    raise CronError("deliver_to_qq 必须是白名单里的 QQ 号")
+            job.next_run_at = to_iso(
+                compute_next_run(job, dt.datetime.now().astimezone())
+            )
+            runtime.cron_jobs.upsert(job)  # 含 context_from 源存在校验
+        except CronError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        return {"ok": True, "name": job.name, "next_run_at": job.next_run_at}
 
     @app.get("/api/system/cron")
     def cron_list() -> dict[str, Any]:

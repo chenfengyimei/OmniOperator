@@ -34,6 +34,7 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("browser", "slow_mo_ms"): "int",
     ("browser", "max_writes_per_day"): "int",
     ("browser", "approval_timeout_s"): "float",
+    ("approval", "mode"): "choice:manual,smart",
 }
 
 
@@ -62,6 +63,11 @@ def render_value(kind: str, value: Any) -> str:
         if not isinstance(value, str):
             raise ConfigEditError(f"需要字符串，得到 {value!r}")
         return '"' + value.replace('"', '\\"') + '"'
+    if kind.startswith("choice:"):
+        allowed = kind.split(":", 1)[1].split(",")
+        if value not in allowed:
+            raise ConfigEditError(f"需要 {'/'.join(allowed)} 之一，得到 {value!r}")
+        return '"' + str(value) + '"'
     if kind == "int_list":
         if not isinstance(value, list) or not all(
             isinstance(x, int) and not isinstance(x, bool) for x in value

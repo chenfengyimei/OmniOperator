@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
-from .config import AppConfig, load_config
+from .config import DATA_DIR, AppConfig, load_config
 from .core.agent import Agent
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
@@ -35,6 +36,7 @@ from .tools.builtin import (
     register_todo_tools,
 )
 from .tools.cron_tools import register_cron_tools
+from .tools.delegate_tools import register_delegate_tools
 from .tools.registry import SessionRef, ToolRegistry
 from .tools.android.driver import AndroidDriver
 from .tools.android.tools import register_android_tools
@@ -56,6 +58,7 @@ class Runtime:
     skills: SkillStore
     cron_jobs: JobStore
     cron_ledger: ExecutionLog
+    resident: ResidentMemory
     browser: BrowserDriver
     write_budget: WriteBudget
     approvals: ApprovalBroker
@@ -91,23 +94,29 @@ def build_runtime(
     db_path: Path | None = None,
     config_path: Path | None = None,
     skills_root: Path | None = None,
+    data_dir: Path | None = None,
 ) -> Runtime:
     config = load_config(config_path)
     store = MemoryStore(db_path)
     gateway = Gateway(config.models)
     skills = SkillStore(skills_root)
+    data_root = Path(data_dir) if data_dir else DATA_DIR  # 测试注入 tmp，隔离真机运行态
     registry = ToolRegistry()
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
-    resident = ResidentMemory(char_limit=config.limits.resident_memory_chars)
+    resident = ResidentMemory(
+        data_root / "MEMORY.md", char_limit=config.limits.resident_memory_chars
+    )
     register_core_tools(registry, store)
     register_digest_tool(registry, store)
     register_todo_tools(registry, store, session_ref)
     register_resident_tools(registry, resident)
+    agent_holder: dict[str, Any] = {}  # Agent 构造在后，delegate 工具运行期取用
+    register_delegate_tools(registry, store, agent_holder)
     register_shell_tools(registry)
     register_skill_tools(registry, skills)
     register_bilibili_tools(registry, BiliAPI(), config.asr)
-    cron_jobs = JobStore()
-    cron_ledger = ExecutionLog()
+    cron_jobs = JobStore(data_root / "cron_jobs.json")
+    cron_ledger = ExecutionLog(data_root / "cron_executions.json")
     register_cron_tools(registry, cron_jobs, config.qq.allowed_users)
     browser = BrowserDriver(
         headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms
@@ -119,7 +128,7 @@ def build_runtime(
         napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None
     )
     register_system_tools(registry, services)
-    android_driver = AndroidDriver()
+    android_driver = AndroidDriver(cache_path=data_root / "android_cache" / "tree.json")
     register_android_tools(registry, android_driver)
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
@@ -130,6 +139,7 @@ def build_runtime(
         config, gateway, store, registry, session_id,
         approver=approver, session_ref=session_ref, resident=resident,
     )
+    agent_holder["agent"] = agent
 
     # 回合后 review：白名单（最小权限：记忆/档案/常驻笔记/技能）在这里定义，
     # 属策略接线；store/registry 工厂保证每次 review 用独立连接与注册表
@@ -160,6 +170,7 @@ def build_runtime(
         skills=skills,
         cron_jobs=cron_jobs,
         cron_ledger=cron_ledger,
+        resident=resident,
         browser=browser,
         write_budget=write_budget,
         approvals=approvals,
