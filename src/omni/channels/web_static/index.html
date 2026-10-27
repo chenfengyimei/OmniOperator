@@ -98,7 +98,7 @@ ul{list-style:none;overflow-y:auto}
 .form-row label{display:flex;flex-direction:column;gap:4px}
 .form-row input[type=text],.form-row input[type=number],.form-row select{background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font:inherit}
 .form-row input[type=checkbox]{margin-right:6px;transform:translateY(1px)}
-/* ---- 小鱼大脑（设置中心） ---- */
+/* ---- 设置中心 ---- */
 #hub{position:fixed;inset:0;z-index:300;background:var(--bg);display:flex;flex-direction:column}
 #hub.hidden{display:none}
 .hub-header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--panel)}
@@ -153,7 +153,7 @@ ul{list-style:none;overflow-y:auto}
       <div id="status"></div>
     </div>
     <div class="panel" style="flex:1">
-      <div class="panel-title"><span>服务</span><button id="open-settings">🧠 大脑</button></div>
+      <div class="panel-title"><span>服务</span><button id="open-settings">设置中心</button></div>
       <div id="services"></div>
     </div>
   </aside>
@@ -196,12 +196,12 @@ ul{list-style:none;overflow-y:auto}
     <button class="svc-btn" style="width:100%;padding:6px" onclick="loadQR()">立即刷新</button>
   </div>
 </div>
-<!-- ============ 小鱼大脑（设置中心） ============ -->
+<!-- ============ 设置中心 ============ -->
 <div id="hub" class="hidden">
   <div class="hub-header">
     <div>
-      <div class="title">🧠 <span>小鱼大脑</span></div>
-      <div class="sub">神经中枢 · 设置中心 —— 昵称、人设、模型、记忆、能力，都从这里长出来</div>
+      <div class="title"><span>设置中心</span></div>
+      <div class="sub">昵称、人设、模型、记忆、能力，都从这里调整</div>
     </div>
     <div class="spacer"></div>
     <div id="hub-msg" style="font-size:12.5px;color:#34d399;min-height:1em;margin-right:8px"></div>
@@ -210,31 +210,31 @@ ul{list-style:none;overflow-y:auto}
   </div>
   <div class="hub-layout">
     <nav class="hub-nav">
-      <a data-go="sec-persona" class="active">灵格 · 人设</a>
-      <a data-go="sec-models">神识 · 模型</a>
-      <a data-go="sec-memory">记性 · 记忆</a>
-      <a data-go="sec-media">视听 · B站与转写</a>
-      <a data-go="sec-browser">手脚 · 浏览器</a>
-      <a data-go="sec-qq">声息 · QQ</a>
-      <a data-go="sec-cron">心律 · 定时任务</a>
+      <a data-go="sec-persona" class="active">人设</a>
+      <a data-go="sec-models">模型</a>
+      <a data-go="sec-memory">记忆</a>
+      <a data-go="sec-media">B站与转写</a>
+      <a data-go="sec-browser">浏览器</a>
+      <a data-go="sec-qq">QQ</a>
+      <a data-go="sec-cron">定时任务</a>
       <a data-go="sec-about">关于</a>
     </nav>
     <div class="hub-body">
       <div class="hub-card" id="sec-persona">
-        <h3>灵格 · 人设</h3>
-        <div class="hint">小鱼的"灵魂"：昵称与世界观的设定。改完保存，新对话即刻生效。</div>
+        <h3>人设</h3>
+        <div class="hint">昵称与行为设定。改完保存，新对话即刻生效。</div>
         <div class="field"><label>昵称</label><input type="text" id="cfg-persona-name"></div>
         <div class="field"><label>人设提示词（{now} 会被替换为当前时间）</label><textarea id="cfg-persona-prompt"></textarea></div>
       </div>
       <div class="hub-card" id="sec-models">
-        <h3>神识 · 模型</h3>
-        <div class="hint">LiteLLM 模型串（provider/model）。右侧「测试」按钮会真实调用一次验证连通性。</div>
+        <h3>模型</h3>
+        <div class="hint">LiteLLM 模型串（provider/model）。「测试」按钮会真实调用一次验证连通性。</div>
         <div class="field"><label>日常对话（便宜量大）<button class="tiny-btn" onclick="testModel('chat')">测试</button><div class="test-out" id="test-out-chat"></div></label><input type="text" id="cfg-model-chat"></div>
         <div class="field"><label>视觉 / UI 定位（强视觉）<button class="tiny-btn" onclick="testModel('vision')">测试</button><div class="test-out" id="test-out-vision"></div></label><input type="text" id="cfg-model-vision"></div>
         <div class="field"><label>回合后 Review（留空跟随对话模型）<button class="tiny-btn" onclick="testModel('review')">测试</button><div class="test-out" id="test-out-review"></div></label><input type="text" id="cfg-model-review" placeholder="留空跟随对话模型"></div>
       </div>
       <div class="hub-card" id="sec-memory">
-        <h3>记性 · 记忆与自省</h3>
+        <h3>记忆与自省</h3>
         <div class="hint">记忆的容量与节奏：历史送多少、工具循环几轮、review 的强度。</div>
         <div class="field-row">
           <div class="field"><label>历史消息条数上限</label><input type="number" id="cfg-limits-history"></div>
@@ -247,7 +247,7 @@ ul{list-style:none;overflow-y:auto}
         </div>
       </div>
       <div class="hub-card" id="sec-media">
-        <h3>视听 · B站与转写</h3>
+        <h3>B站与转写</h3>
         <div class="hint">B站 Cookie 决定字幕/音频流能否拿到；ASR 负责无字幕视频的语音转写。</div>
         <div class="field"><label>B站 Cookie 状态</label><div id="bili-cookie-status" class="test-out"></div></div>
         <div class="field"><label>SESSDATA<input type="text" id="cfg-bili-sessdata" placeholder="粘贴浏览器里的 SESSDATA 值"></label></div>
@@ -261,7 +261,7 @@ ul{list-style:none;overflow-y:auto}
         </div>
       </div>
       <div class="hub-card" id="sec-browser">
-        <h3>手脚 · 浏览器</h3>
+        <h3>浏览器</h3>
         <div class="hint">写操作（点击/输入）全部走确认流 + 每日写预算，防失控。</div>
         <div class="field"><label><span><input type="checkbox" id="cfg-browser-headless" style="accent-color:var(--accent)"> 无头模式（关=你能看到它在干什么，推荐）</span></label></div>
         <div class="field-row">
@@ -271,7 +271,7 @@ ul{list-style:none;overflow-y:auto}
         </div>
       </div>
       <div class="hub-card" id="sec-qq">
-        <h3>声息 · QQ</h3>
+        <h3>QQ</h3>
         <div class="hint">白名单外静默忽略；群里必须被 @ 才回应。改完到服务面板重启 QQ 通道生效。</div>
         <div class="field"><label><span><input type="checkbox" id="cfg-qq-enabled" style="accent-color:var(--accent)"> QQ 通道启用（NapCat 需在运行）</span></label></div>
         <div class="field"><label>NapCat 正向 WS 地址<input type="text" id="cfg-qq-ws-url"></label></div>
@@ -281,7 +281,7 @@ ul{list-style:none;overflow-y:auto}
         <div class="field"><label>拟人回复延迟（秒，小 到 大）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"></label></div>
       </div>
       <div class="hub-card" id="sec-cron">
-        <h3>心律 · 定时任务</h3>
+        <h3>定时任务</h3>
         <div class="hint">到点自动执行并投递；对小鱼说"每天早上八点给我发B站日报"即可新增。心跳进程（omni-heartbeat）需在运行。</div>
         <div id="cron-list"></div>
       </div>
@@ -479,7 +479,7 @@ window.loadQR=async()=>{
   }catch(e){$('#qr-status').textContent='获取失败：'+e.message}
 };
 
-// ---------- 小鱼大脑（设置中心） ----------
+// ---------- 设置中心 ----------
 window.openHub=async()=>{
   $('#hub').classList.remove('hidden');
   try{await loadHubConfig();loadCookies();loadCron()}catch(e){$('#hub-msg').textContent=e.message}
