@@ -90,6 +90,10 @@ def compress_if_needed(
     trigger_chars: int,
     keep_recent: int = 12,
     min_messages: int = 16,
+    run_id: str | None = None,
+    session_id: int | None = None,
+    run_budget: Any = None,
+    cancel: Any = None,
 ) -> list[dict[str, Any]]:
     """超阈值时把旧块压缩成摘要；绝大多数调用原样返回（先查体量再动手）。"""
     if len(messages) < min_messages or context_chars(messages) <= trigger_chars:
@@ -119,6 +123,11 @@ def compress_if_needed(
             ],
             model=model,
             tools=None,
+            purpose="compress",
+            run_id=run_id,
+            session_id=session_id,
+            run_budget=run_budget,
+            cancel=cancel,
         )
         summary = reply.text.strip()
     except Exception:  # noqa: BLE001 —— 降级：宁可不压也不能让会话中断

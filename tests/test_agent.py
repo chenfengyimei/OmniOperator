@@ -25,7 +25,7 @@ class ScriptedGateway:
     def resolve(self, route: str) -> str:
         return "fake/model"
 
-    def complete(self, messages, *, model, tools=None):
+    def complete(self, messages, *, model, tools=None, **kwargs):
         self.calls.append([dict(m) for m in messages])
         if self._step == 0:
             self._step = 1
@@ -84,7 +84,7 @@ def test_multiple_tool_calls_reach_normal_or_grace_answer(tmp_path, max_steps):
     registry.register(Tool("echo", "回显", {}, lambda args: calls.append(args["n"]) or str(args["n"])))
 
     class BatchGateway(ScriptedGateway):
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             self.calls.append([dict(m) for m in messages])
             if len(self.calls) == 1:
                 return SimpleNamespace(text="", tool_calls=[SimpleNamespace(id=f"c{i}", function=SimpleNamespace(name="echo", arguments=f'{{"n":{i}}}')) for i in (1, 2)])
@@ -112,7 +112,7 @@ def test_agent_always_restores_callers_session_context(tmp_path, fail):
     ref.set(999)
 
     class Gateway(ScriptedGateway):
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             assert ref.get() == sid
             if fail:
                 raise RuntimeError("模拟故障")
@@ -156,7 +156,7 @@ def test_group_scope_hides_profile_resident_and_memory_tools(tmp_path):
         def resolve(self, route: str) -> str:
             return "fake/model"
 
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             self.messages = [dict(m) for m in messages]
             self.tool_names = [t["function"]["name"] for t in (tools or [])]
             return SimpleNamespace(text="我只回答群里的问题", tool_calls=[])
@@ -186,3 +186,66 @@ def test_group_scope_hides_profile_resident_and_memory_tools(tmp_path):
         assert "秘密花园" not in out
     finally:
         store.close()
+
+
+# ---------- D10：流式增量与父子预算 ----------
+
+
+class _StreamGateway:
+    """只实现流式接口的假网关：验证 Agent 真的按增量转发，而不是等整段返回。"""
+
+    def __init__(self, chunks):
+        self.chunks = list(chunks)
+        self.seen: list[str] = []
+
+    def resolve(self, route: str) -> str:
+        return "fake/model"
+
+    def complete(self, *args, **kwargs):  # pragma: no cover - 不该走到同步接口
+        raise AssertionError("给了 on_delta 就应该走流式")
+
+    def stream(self, messages, *, on_event=None, **kwargs):
+        from omni.llm.gateway import Reply, StreamEvent
+
+        self.seen = [dict(m) for m in messages]
+        for chunk in self.chunks:
+            if on_event is not None:
+                on_event(StreamEvent("delta", text=chunk))
+        return Reply(text="".join(self.chunks))
+
+
+def test_on_delta_streams_incrementally_and_still_returns_full_answer(tmp_path):
+    store = MemoryStore(tmp_path / "m.db")
+    sid = store.new_session()
+    gateway = _StreamGateway(["边想", "边", "说"])
+    agent = Agent(AppConfig(), gateway, store, _core_registry(store), sid)
+    deltas: list[str] = []
+
+    turn = agent.run_turn("讲个故事", on_delta=deltas.append)
+
+    assert deltas == ["边想", "边", "说"]
+    assert turn.answer == "边想边说" and turn.status == "done"
+    assert store.recent_messages(sid, 4)[-1][1] == "边想边说"
+    store.close()
+
+
+def test_child_run_shares_the_parent_budget(tmp_path):
+    """委派子运行只能缩小步数，花的是同一份钱：预算对象必须是同一个。"""
+    store = MemoryStore(tmp_path / "m.db")
+    sid = store.new_session()
+    config = AppConfig(llm=AppConfig().llm.model_copy(deep=True))
+    config.llm.budget.per_run_usd = 0.5
+    agent = Agent(config, ScriptedGateway(), store, _core_registry(store), sid)
+
+    parent = agent._start_run(
+        sid, channel="cli", principal="owner", personal_context=True, parent=None
+    )
+    parent.consume_step()
+    child = agent._start_run(
+        sid, channel="cli", principal="owner", personal_context=True, parent=parent
+    )
+
+    assert child.budget is parent.budget
+    assert parent.budget.limit_micro == 500_000
+    assert child.max_steps <= parent.steps_left
+    store.close()

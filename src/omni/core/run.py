@@ -19,6 +19,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..llm.budget import RunBudget
 from ..memory.runs import Run, RunStore
 
 
@@ -28,6 +29,14 @@ class RunCancelled(RuntimeError):
     def __init__(self, reason: str = "用户取消") -> None:
         self.reason = reason
         super().__init__(reason)
+
+
+class RunBudgetExceeded(RuntimeError):
+    """费用预算拦住了这次调用（**没有**发出新的模型请求）。"""
+
+    def __init__(self, code: str, message: str) -> None:
+        self.code = code
+        super().__init__(message)
 
 
 @dataclass(frozen=True)
@@ -108,6 +117,8 @@ class RunContext:
     max_steps: int
     cancel_token: CancelToken = field(default_factory=CancelToken)
     steps_used: int = 0
+    # 费用预算：父子 run 共享同一个 RunBudget 实例（子多花 = 父少花）
+    budget: RunBudget = field(default_factory=RunBudget)
 
     # ---------- RunHandle ----------
 
@@ -176,6 +187,8 @@ class TurnResult:
     run_id: str
     status: str
     error_code: str = ""
+    cost_micro: int | None = None
+    budget: dict[str, Any] = field(default_factory=dict)
 
 
 class ActiveRuns:

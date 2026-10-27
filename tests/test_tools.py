@@ -185,7 +185,7 @@ def test_agent_chat_binds_session_ref(tmp_path):
         def resolve(self, route: str) -> str:
             return "fake/model"
 
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             self.step += 1
             if self.step % 2 == 1:
                 call = SimpleNamespace(

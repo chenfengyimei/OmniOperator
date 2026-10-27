@@ -12,6 +12,7 @@ Host/Origin/Sec-Fetch-Site 三级校验挡住跨站与 DNS rebinding；终端 WS
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import functools
 import datetime as dt
 import json
@@ -33,6 +34,7 @@ from ..bootstrap import Runtime, build_runtime
 from ..config import load_env
 from ..core.session import SessionBusy
 from ..llm.gateway import GatewayError
+from ..llm.usage import MICRO
 from ..memory.cron import CronError, Job, compute_next_run, to_iso
 from ..memory.store import PROFILE_MAX_CHARS
 from ..safety.gates import WebApprover, private_target_allowed
@@ -392,7 +394,97 @@ def create_app(runtime: Runtime) -> FastAPI:
             "session_id": sid,
             "run_id": turn.run_id,
             "status": turn.status,
+            "error_code": turn.error_code,
+            "cost_micro": turn.cost_micro,
+            "budget": turn.budget,
         }
+
+    @app.post("/api/chat/stream")
+    async def chat_stream(payload: ChatIn, request: Request) -> StreamingResponse:
+        """同 /api/chat，但把增量文本按 SSE 推给浏览器（D10）。
+
+        纪律与一次性接口一致：会话由请求固定、同会话串行、跨进程租约；
+        另外多一条——**浏览器断开就取消这次运行**，不让页面关了还在后台烧钱。
+        """
+        sid = payload.session_id if payload.session_id is not None else runtime.agent.session_id
+        if not runtime.store.session_exists(sid):
+            raise HTTPException(status_code=404, detail="会话不存在")
+        queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
+        loop = asyncio.get_running_loop()
+
+        def on_delta(text: str) -> None:
+            loop.call_soon_threadsafe(queue.put_nowait, {"type": "delta", "text": text})
+
+        async def worker() -> None:
+            try:
+                async with runtime.session_gate.turn(sid):
+                    with runtime.session_leases.hold(sid):
+                        turn = await asyncio.to_thread(
+                            functools.partial(
+                                runtime.agent.run_turn,
+                                payload.message,
+                                session_id=sid,
+                                channel="web",
+                                principal="owner",
+                                on_delta=on_delta,
+                            )
+                        )
+                runtime.spawn_review(sid)
+                await queue.put(
+                    {
+                        "type": "done",
+                        "run_id": turn.run_id,
+                        "status": turn.status,
+                        "error_code": turn.error_code,
+                        "answer": turn.answer,
+                        "cost_micro": turn.cost_micro,
+                    }
+                )
+            except SessionBusy as exc:
+                await queue.put({"type": "error", "code": "session_busy", "message": str(exc)})
+            except GatewayError as exc:
+                await queue.put({"type": "error", "code": exc.code, "message": str(exc)})
+            except Exception as exc:  # noqa: BLE001 —— 流已经开了，只能用事件报错
+                await queue.put(
+                    {"type": "error", "code": "internal", "message": str(exc)[:300]}
+                )
+            finally:
+                await queue.put(None)
+
+        async def frames() -> AsyncIterator[bytes]:
+            task = asyncio.create_task(worker())
+            try:
+                while True:
+                    try:
+                        item = await asyncio.wait_for(queue.get(), timeout=0.5)
+                    except asyncio.TimeoutError:
+                        if await request.is_disconnected():
+                            break
+                        yield b": keep-alive\n\n"  # 心跳：让代理与浏览器知道流还活着
+                        continue
+                    if item is None:
+                        break
+                    yield f"data: {json.dumps(item, ensure_ascii=False)}\n\n".encode()
+                    if item.get("type") == "error":
+                        break
+            finally:
+                if await request.is_disconnected():
+                    # 页面关了：取消本会话在本进程内的运行（协作式，不杀线程）
+                    for record in runtime.active_runs.snapshot():
+                        if record.session_id == sid and not record.finished:
+                            runtime.active_runs.cancel(
+                                record.run_id, "浏览器断开，取消本回合"
+                            )
+                if not task.done():
+                    task.cancel()
+                with contextlib.suppress(BaseException):
+                    await task
+
+        return StreamingResponse(
+            frames(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+        )
 
     # ---------------------------------------------------------------- 运行（D09）
 
@@ -415,6 +507,8 @@ def create_app(runtime: Runtime) -> FastAPI:
             "status": turn.status,
             "answer": turn.answer,
             "error_code": turn.error_code,
+            "cost_micro": turn.cost_micro,
+            "budget": turn.budget,
         }
 
     @app.get("/api/runs")
@@ -465,6 +559,42 @@ def create_app(runtime: Runtime) -> FastAPI:
             status_code=409,
             detail="该运行不在本进程内（可能由其它进程执行），本进程无法取消",
         )
+
+    # ---------------------------------------------------------------- 费用（D10）
+
+    @app.get("/api/llm/usage")
+    def llm_usage(days: int = 7, limit: int = 20) -> dict[str, Any]:
+        """今日费用 + 按用途汇总 + 最近调用流水。
+
+        `limit_micro` 为 null 表示**未设上限**（只记账不拦截），不是"上限为 0"。
+        `cost_micro` 为 null 表示这笔钱算不出来（单价未知），不是免费。
+        """
+        try:
+            summary = runtime.usage.summary(days=max(1, min(days, 90)))
+            today = dt.date.today().isoformat()
+            day = runtime.usage.day_total(today)
+            calls = [record.brief() for record in runtime.usage.recent(limit)]
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        budget = runtime.config.llm.budget
+        daily_limit = int(round(budget.daily_usd * MICRO))
+        return {
+            "today": {
+                "date": today,
+                **day,
+                "limit_micro": daily_limit or None,
+                "remaining_micro": max(0, daily_limit - day["used_micro"])
+                if daily_limit
+                else None,
+            },
+            "per_run_limit_micro": int(round(budget.per_run_usd * MICRO)) or None,
+            "summary": summary,
+            "calls": calls,
+            "models": {
+                model: cap.model_dump()
+                for model, cap in runtime.config.llm.capabilities.items()
+            },
+        }
 
     @app.get("/api/facts")
     def get_facts(q: str = "", limit: int = 50) -> dict[str, Any]:
@@ -707,14 +837,33 @@ def create_app(runtime: Runtime) -> FastAPI:
 
     @app.post("/api/system/model-test")
     def model_test(payload: ModelTestIn) -> dict[str, Any]:
+        """连通性测试：错误码映射成可分辨的 HTTP 状态，错误文本已脱敏。"""
         try:
             reply = runtime.gateway.complete(
                 [{"role": "user", "content": "这是一次连通性测试，请只回复：OK"}],
                 model=payload.model,
+                purpose="test",
             )
         except GatewayError as exc:
-            raise HTTPException(status_code=400, detail=str(exc))
-        return {"ok": True, "reply": reply.text[:120]}
+            status = {
+                "auth": 401,
+                "permission": 403,
+                "rate_limit": 429,
+                "budget_exhausted": 402,
+                "price_unknown": 400,
+                "unsupported_capability": 400,
+                "cancelled": 409,
+            }.get(exc.code, 400)
+            raise HTTPException(
+                status_code=status,
+                detail={"code": exc.code, "message": str(exc), "hint": exc.hint},
+            )
+        return {
+            "ok": True,
+            "reply": reply.text[:120],
+            "cost_micro": reply.cost_micro,
+            "cost_source": reply.cost_source,
+        }
 
     # ---------- 心跳任务管理（可视化） ----------
 

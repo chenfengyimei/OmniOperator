@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -157,7 +157,43 @@ CREATE TABLE IF NOT EXISTS run_events (
 );
 """
 
-_MIGRATIONS: dict[int, str] = {1: _SCHEMA_V1, 2: _SCHEMA_V2, 3: _SCHEMA_V3, 4: _SCHEMA_V4}
+# v5：模型调用流水与当日费用账（D10）。金额一律用**微美元整数**：
+# 浮点累加会在几十万次调用后出现"账不平"，而账不平的预算等于没有预算。
+# `cost_micro` 允许 NULL —— NULL 是"不知道多少钱"，0 是"确定免费"，两者不能混。
+_SCHEMA_V5 = """
+CREATE TABLE IF NOT EXISTS llm_calls (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT,
+    session_id INTEGER,
+    purpose TEXT NOT NULL DEFAULT '',
+    model TEXT NOT NULL DEFAULT '',
+    prompt_tokens INTEGER,
+    completion_tokens INTEGER,
+    cost_micro INTEGER,
+    cost_source TEXT NOT NULL DEFAULT 'unknown',
+    outcome TEXT NOT NULL DEFAULT 'ok',
+    error_code TEXT NOT NULL DEFAULT '',
+    attempts INTEGER NOT NULL DEFAULT 1,
+    duration_ms INTEGER NOT NULL DEFAULT 0,
+    started_at TEXT NOT NULL,
+    detail TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_started ON llm_calls(started_at);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_run ON llm_calls(run_id, id);
+CREATE TABLE IF NOT EXISTS llm_budget (
+    day TEXT PRIMARY KEY,
+    reserved_micro INTEGER NOT NULL DEFAULT 0,
+    spent_micro INTEGER NOT NULL DEFAULT 0
+);
+"""
+
+_MIGRATIONS: dict[int, str] = {
+    1: _SCHEMA_V1,
+    2: _SCHEMA_V2,
+    3: _SCHEMA_V3,
+    4: _SCHEMA_V4,
+    5: _SCHEMA_V5,
+}
 
 SESSION_RESOURCE = "session:{}"
 

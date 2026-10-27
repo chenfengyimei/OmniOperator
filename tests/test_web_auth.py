@@ -29,6 +29,7 @@ SENSITIVE_GETS = (
     "/api/system/config",
     "/api/system/cron",
     "/api/android/state",
+    "/api/llm/usage",
 )
 
 
@@ -85,6 +86,7 @@ def test_unpaired_cannot_change_config_or_services(tmp_path, monkeypatch):
     assert client.post("/api/system/services/omni-qq/stop").status_code == 401
     assert client.post("/api/approvals/abc/resolve", json={"allowed": True}).status_code == 401
     assert client.post("/api/chat", json={"message": "hi"}).status_code == 401
+    assert client.post("/api/chat/stream", json={"message": "hi"}).status_code == 401
     assert config_path.read_bytes() == before
     assert calls == []
 

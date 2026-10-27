@@ -29,6 +29,33 @@ models:
   local: ollama/qwen2.5:7b                # 本地零成本任务
   review: ""                               # 回合后 review 用；留空跟随 chat
 
+llm:
+  # 模型调用层：超时 / 有界重试 / 费用上限 / 能力声明（见 docs/DEVELOPMENT_STATUS.md D10）
+  request_timeout_s: 90       # 单次请求超时；超时会计入"可能已计费"
+  max_output_tokens: 1024     # 预留费用时按此上界估算输出（不是硬截断）
+  retry:
+    max_attempts: 3           # 只对限流/超时/连接/5xx 重试，认证与参数错误立即失败
+    total_deadline_s: 120     # 重试总时限：到点就放弃，不无限退避
+    backoff_s: 0.5            # 指数退避起点（0.5 → 1 → 2 → 4，上限 8 秒）
+  budget:
+    daily_usd: 0              # 0 = 未设上限（只记账不拦截）；设置后是硬拦截
+    per_run_usd: 0            # 单次运行（含委派子运行累计）上限；0 = 不限
+  # 能力与单价声明。没声明的模型：默认支持工具、不支持视觉、单价查 LiteLLM 本地表。
+  # vision 必须显式打开——否则含图片的请求会在调用前被拒（而不是让模型瞎猜）。
+  capabilities:
+    deepseek/deepseek-chat:
+      tools: true
+      vision: false
+      context_tokens: 65536
+    anthropic/claude-sonnet-4-5:
+      tools: true
+      vision: true
+      context_tokens: 200000
+    ollama/qwen2.5:7b:
+      tools: true
+      vision: false
+      context_tokens: 32768
+
 limits:
   max_history_messages: 40    # 每次送入 LLM 的历史消息条数上限
   max_agent_steps: 8          # 单条消息内最多工具循环轮数

@@ -139,7 +139,7 @@ def test_real_delegate_inherits_approval_and_restores_parent(tmp_path):
         def resolve(self, route):
             return "fake/model"
 
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             seen.append(ref.get())
             if messages[-1]["role"] == "tool":
                 return SimpleNamespace(text=messages[-1]["content"], tool_calls=[])

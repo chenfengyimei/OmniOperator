@@ -29,8 +29,8 @@
 |---|---|---|---|
 | `config.py` | 加载 .env 密钥与 config.yaml 配置 | 不含任何业务逻辑 | `config.py` |
 | `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/run.py`、`core/session.py`、`core/review.py`、`core/cron.py`、`core/compress.py` |
-| `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、错误包装 | 不做记忆、不管理会话 | `llm/gateway.py` |
-| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py` |
+| `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、能力声明与调用前校验、结构化超时、有界重试、错误分类与脱敏、流式事件、usage 与费用预留/结算 | 不做记忆、不管理会话、不碰 SQLite（账本由 `memory/usage.py` 实现、bootstrap 注入） | `llm/gateway.py`、`llm/errors.py`、`llm/usage.py`、`llm/budget.py` |
+| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 模型调用流水与费用账 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py` |
 | `tools/` | Registry（注册/查找/规格生成/派发/结构化 `ToolResult`）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/result.py`、`tools/runctx.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
 | `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台（含内置终端 ConPTY）/ QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal.py`、`channels/qq.py`、`channels/heartbeat.py` |
@@ -56,8 +56,8 @@
 ### 3.3 错误传递约定
 - **工具执行错误 / 审批拒绝**：以字符串回传给 LLM（让它自行换路径），不在循环里抛异常中断
 - **审批默认值**：未注入审批器按 DenyApprover 处理；通用写工具声明 `requires_human=True`，smart 不可代替人工；DANGEROUS 始终拒绝，smart 不覆盖无人值守策略；只有完整的一词裁决有效
-- **LLM 调用失败**：Gateway 包装成 `GatewayError` 抛给通道层
-- **通道层**：只捕获 `GatewayError`，不感知 litellm 原始异常
+- **LLM 调用失败**：Gateway 包装成 `GatewayError`（带稳定 `code` / `retryable` / `hint` / 已脱敏 `message`）抛给内核
+- **通道层**：只捕获 `GatewayError`，不感知 litellm 原始异常；按 `code` 映射 HTTP 状态，绝不回显原始异常文本
 
 ### 3.4 共享状态与迁移契约（D05）
 
@@ -145,6 +145,25 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 明确不做：不做抢占式取消（不杀线程、不发信号）；工具执行中途无法中断，只能在下一个检查点停；
 跨进程取消返回 409 并说明"该运行不在本进程内"；`tool_call_id` 只是本次记录身份，不代表外部系统
 支持幂等——所以"结果未知"的写操作一律不自动重试。
+
+### 3.9 模型调用的能力、重试与费用（D10）
+
+模型调用只有一个出口（`llm/gateway.py`）：内核、压缩、review、模型测试都走同一条路。
+理由很实际——预算、能力、超时、脱敏任何一项放到调用点去做，都一定会有一个地方漏掉。
+
+| 契约 | 位置 | 必须满足 |
+| --- | --- | --- |
+| 能力声明 | `config.llm.capabilities` + `Gateway._precheck` | 默认支持工具、**不支持视觉**；请求含图片或工具而模型未声明时，**发请求前**拒绝并说明怎么改配置；声明了 `context_tokens` 就先在本地算一遍 |
+| 错误码 | `llm/errors.py` | 按异常类名 + HTTP 状态码分类（不依赖 LiteLLM 内部字段）；认证/参数/上下文超限不重试；限流/超时/连接/5xx 才重试；错误文本先脱敏再出门 |
+| 有界重试 | `llm.retry` | 次数 + 总时限 + 指数退避三者同时约束；`num_retries=0` 关掉 LiteLLM 自带重试（否则 3×3 次）；**永远打同一个 model**，不偷偷换供应商 |
+| 预留 | `Gateway._reserve` | 按"输入估算 + `max_output_tokens` 上界"算钱，先在 run 预算与当日账本里预留；预留不成功就**不发请求** |
+| 结算 | `Gateway._settle` | 有 usage 有单价=实付；有 usage 无单价=**NULL（未知）**；无 usage 有预留=按预留保守保留；限流/认证这类"确定没计费"的失败退回预留 |
+| 父子预算 | `core/run.RunContext.budget` | 子 run 复用父的 `RunBudget` **实例**（不是副本），累计限制才成立 |
+| 账本 | `state.db` 的 `llm_budget` | 微美元整数；`UPDATE ... WHERE reserved + spent + ? <= limit` 的 rowcount 即判据；跨天结算也不丢账 |
+| 流水 | `state.db` 的 `llm_calls` | 谁（run/session）、什么用途（chat/compress/review/finalize/test）、多少 token、多少钱、钱从哪来（reported/estimated/reserved/unknown/not_billed） |
+
+明确不做：不替供应商宣布"免费"（只有本机 provider 与显式声明才算 0）；不改用户正在用的模型配置；
+不承诺任意 OpenAI 兼容接口都支持相同的多模态与工具能力——所以能力必须声明，未声明就拒绝。
 
 ## 4. 设计模式落位
 

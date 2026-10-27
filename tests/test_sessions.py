@@ -262,7 +262,7 @@ class _Gateway:
     def resolve(self, _route: str) -> str:
         return "fake/model"
 
-    def complete(self, messages, *, model, tools=None):
+    def complete(self, messages, *, model, tools=None, **kwargs):
         user = [m for m in messages if m["role"] == "user"][-1]["content"]
         with self._lock:
             self.active += 1
@@ -379,7 +379,7 @@ def test_web_turn_holds_a_cross_process_lease(web):
     seen: list[object] = []
 
     class _LeaseSpy(_Gateway):
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             seen.append(runtime.state.session_lease(sid))
             return super().complete(messages, model=model, tools=tools)
 
@@ -432,7 +432,7 @@ def test_tool_calls_stay_in_the_request_session(web):
         def resolve(self, _route: str) -> str:
             return "fake/model"
 
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             self.turns += 1
             if self.turns == 1:
                 call = SimpleNamespace(
@@ -469,7 +469,7 @@ def test_failed_turn_releases_only_its_own_lease(web):
     theirs = runtime.state.acquire_session_lease(other, "pid:999999", ttl_s=300)
 
     class _Boom(_Gateway):
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             raise RuntimeError("模型炸了")
 
     runtime.agent.gateway = _Boom()

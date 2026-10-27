@@ -89,7 +89,7 @@ class TurnEndReviewer:
             outcome = ""
             for _ in range(max(self._config.review.steps, 1)):
                 reply = self._gateway.complete(
-                    messages, model=self._model, tools=registry.specs()
+                    messages, model=self._model, tools=registry.specs(), purpose="review"
                 )
                 if not reply.tool_calls:
                     outcome = reply.text.strip() or "无需变更"

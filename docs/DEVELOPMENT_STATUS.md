@@ -56,7 +56,7 @@
 | A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 部分修复 | `claim_due()` 在单个写事务里推进 `next_run_at` + 写 `job_claims`；4 个真实进程同时 tick 只派发一次（`tests/test_state.py::test_claim_due_is_atomic_across_processes`） | D05、D17 | 领取已修复；并行上限、投递 outbox/去重、`context_from` 绑定 run_id 仍属 D17 |
 | A18 | 服务停止只比对 pid 文件与进程存活，无创建时间/命令行身份绑定，pid 重用有误杀风险 | 源码 | `system/services.py` | D25 | 源码发现 |
 | A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 已修复 | 进程树回收 + "已确认回收/回收状态未知"话术；D09 起工具异常/超时统一记 `side_effect_state=unknown`（`tests/test_runs.py::test_execute_distinguishes_the_four_outcomes`） | D01、D09 | 已修复 |
-| A20 | 无运行账本/取消/token 与费用硬预算/统一 `ToolResult` 状态（工具回的是字符串） | 部分修复 | 运行账本 + 事件流 + 协作式取消 + `ToolResult` 已落地（`memory/runs.py`、`core/run.py`、`tools/result.py`，18 例）；**token/费用预算与流式 usage 仍属 D10** | D09、D10 | 账本/取消/结果契约已修复；预算未做 |
+| A20 | 无运行账本/取消/token 与费用硬预算/统一 `ToolResult` 状态（工具回的是字符串） | 已修复 | 账本/事件流/协作式取消/`ToolResult`（D09，`memory/runs.py`、`core/run.py`、`tools/result.py`）；费用：调用前预留 + 调用后结算，日额度与父子运行共享，未知计价记 NULL 而不是 0（D10，`llm/budget.py`、`memory/usage.py`、`tests/test_usage.py` 18 例）；流式 usage 与半途断连（`llm/gateway.py::stream`、`tests/test_gateway.py` 7 例） | D09、D10 | 已修复（真实供应商账单对账待真实验收） |
 
 补充观察（D00 新增登记，尚未编号为 A 项，供后续任务核对）：
 
@@ -78,6 +78,7 @@
 | D07 | 完成 | A11 | 见第 5 节 | `uv run pytest -q` → 403 passed（含真实 Chromium 用例） | 真实登录 profile（B站）未用于自动测试；桌面/无头差异待 D23 实站验收 | 进入 D08 |
 | D08 | 完成 | A09（技能/常驻文件）、A14 | 见第 5 节 | `uv run pytest -q` → 421 passed | 真实 `skills/` 库未用于写测试（一律临时根）；两进程并发是真实子进程，非 mock | 进入 D09 |
 | D09 | 完成 | A19、A20（账本/取消/ToolResult） | 见第 5 节 | `uv run pytest -q` → 439 passed | 真实网关下的取消时延、跨进程取消（返回 409）待 D27 实测 | 进入 D10 |
+| D10 | 完成 | A20（费用预算、流式 usage） | 见第 5 节 | `uv run pytest tests/test_gateway.py tests/test_usage.py -q` → 54 passed；`uv run pytest -q` → 501 passed | 真机 `data/state.db` 已 v2→v5 迁移，账本自检通过（演示流水已清理）；真实供应商 429/超时/流式断连与账单对账未验 | 进入 D11 |
 | D10–D12 | 待开始 | A15、A16、A20（token/费用预算） | — | — | — | 依赖 D09 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
@@ -85,6 +86,78 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D10（网关能力、流式、有界重试与费用预算）
+
+- **改了什么**：
+  - `config.py` 新增 `llm` 段：`request_timeout_s`、`max_output_tokens`（预留上界）、
+    `retry`（次数 / 总时限 / 退避）、`budget`（日额度 / 单次运行额度）、
+    `capabilities`（每模型 `tools`/`vision`/`stream`/`context_tokens`/单价）；
+  - 新增 `llm/errors.py`：稳定错误码（auth/permission/rate_limit/timeout/connection/server/
+    bad_request/context_length/unsupported_capability/budget_exhausted/price_unknown/
+    cancelled/stream_interrupted/unknown）、按**异常类名 + HTTP 状态码**分类（不依赖 LiteLLM
+    内部字段）、可重试判定、"可能已计费"标记、`sanitize()` 脱敏；
+  - `llm/gateway.py` 重写：调用前能力校验（工具 / 视觉 / 上下文）→ 预留 → 调用 → 结算；
+    结构化 timeout；有界重试（指数退避 + 总时限，`num_retries=0` 关掉 LiteLLM 自己的重试）；
+    **重试永远打同一个 model**，不切换供应商；`Reply` 带 usage / 费用 / 尝试次数 / 不完整标记；
+    新增 `stream()`（增量事件、工具调用分片按 index 累加、半途断连保留已收内容并保守记账）；
+  - 新增 `llm/usage.py`：`Usage`（`reported` 标记）、`resolve_price`（配置 → LiteLLM 本地价格表 →
+    本地免费 / 未知）、`estimate_tokens`、微美元整数换算；**导入 LiteLLM 前**
+    设置 `LITELLM_LOCAL_MODEL_COST_MAP=True`；
+  - 新增 `llm/budget.py`：`Quote` / `Reservation` / `Ledger` 协议 / `RunBudget`（父子共享
+    **同一个实例**）/ `settle_amount`（有 usage 有单价=实付；有 usage 无单价=未知 NULL；
+    无 usage 有预留=按预留保守保留）；
+  - `memory/state.py` 升 **v5**：`llm_calls`（调用流水，`cost_micro` 可为 NULL）与
+    `llm_budget`（当日 `reserved_micro` / `spent_micro`，整数微美元）；
+  - 新增 `memory/usage.py`：`reserve`（`BEGIN IMMEDIATE` 里的条件更新，rowcount 即判据）/
+    `settle`（跨天也不丢账）/ `record` / `recent` / `summary` / `prune`；
+  - `core/run.py`：`RunContext.budget`、`TurnResult.cost_micro` 与 `budget`、`RunBudgetExceeded`；
+  - `core/agent.py`：所有模型调用收口到 `_model_call()`（预算与取消的翻译只做一次）；
+    压缩也带 run 与预算（不再绕开本轮上限）；`on_delta` 走流式；回合末记 `budget` 事件；
+    预算拦截返回**可解释的 `status=failed`**（不是抛异常，也不是假装成功）；
+  - 工作台：新增 `GET /api/llm/usage`（今日 / 按用途汇总 / 最近流水 / 模型能力），
+    `POST /api/chat/stream`（SSE；浏览器断开即取消本会话运行）；`/api/chat`、`/api/runs`
+    返回 `cost_micro` 与 `budget`；模型测试接口按错误码映射 HTTP 状态；
+  - `system/backup.py`：清单补记 `llm_calls` / `llm_budget` 行数。
+- **关闭了什么**：A20（token / 费用硬预算、流式 usage）。
+- **跑了什么**：`uv run pytest tests/test_gateway.py tests/test_usage.py -q` → 54 passed；
+  `uv run pytest -q` → **501 passed, 1 warning**（2026-10-28，基线 439）。
+- **真机证据**：`data/state.db` 原本停在 v2（D06 之后没再启动过服务），本次逐级迁到 **v5**
+  （v2→v3→v4→v5）；迁移前已备份到 `data/backups/pre-d10`（4 项，state.db sha256 `9dac6ee2…`）；
+  迁移后 `health().degraded` 为空，`llm_calls`/`llm_budget` 建表成功；自检写入的演示流水已删除
+  （两表 0 行），没有把测试数据混进真账。
+- **没测什么**：真实供应商的 429 / 超时 / 认证失败（全部用假异常与假 `_completion`）；
+  真实流式的首字时延与浏览器断连（TestClient 一次收完整个流，断连分支未走真实 socket）；
+  跨进程同时抢额度的真实双进程演练（用同一 DB 的两个连接验证了条件更新）；
+  单价快照与供应商真实账单是否一致（未对账）。
+- **行为变化**：
+  1. 带图片的请求若模型没声明 `vision`，**调用前**就拒绝（以前是把图片丢掉照常提问）；
+  2. 未配置 `llm.budget` 时只记账不拦截，接口与事件里显示"未设上限"，不是"上限为 0"；
+  3. 配了上限后超额会在**发请求前**被拦，界面得到的是解释而不是异常堆栈；
+  4. `/api/chat` 响应多了 `cost_micro` / `budget`；模型测试接口的错误响应体变成
+     `{code, message, hint}` 且状态码按错误类型区分。
+- **剩余限制（明确记录）**：
+  1. **默认不设上限**是现状延续（避免升级后突然中断用户正在做的事），代价是"忘记配置"时
+     没有硬约束；这是取舍，不是已完成的安全能力；
+  2. 单价来自 LiteLLM 随包快照，可能与供应商最新价目不同；配了上限时建议在
+     `llm.capabilities` 里写死单价；
+  3. 预留按 `max_output_tokens` 上界估算，实际用量小的时候只是**暂时占用**，结算即退回；
+     极端并发下可能短暂拒绝；
+  4. 供应商没报 usage 时按预留保守记账，账面会略高于真实花费（宁高不低）；
+  5. 压缩 / review / 委派已计入同一账本，embedding 尚未接入（D24 时按同一账本接）；
+  6. `stream()` 的用量只在供应商支持 `include_usage` 时才有；否则落"保守保留"。
+- **过程记录**：
+  1. LiteLLM 在 **import 期**就去 GitHub 拉 `model_prices_and_context_window.json`（失败还重试
+     2 次，实测多花 2–3 秒）。离线测试因此会联网，改在导入前设 `LITELLM_LOCAL_MODEL_COST_MAP=True`。
+  2. `cost_per_token` 对 ollama 返回 `(0, 0)`、对未知 provider 直接抛异常。把 0 一律当"免费"
+     会把未知报价记成零费用，所以按 provider 区分 `local_free` 与 `unknown`。
+  3. `num_retries` 最初只写在 `_completion` 内部：测试替换该函数后观察不到，且 LiteLLM 自己的
+     3 次重试会和我们的 3 次叠成 9 次。移到调用点后既可断言也真正生效。
+  4. `class Foo(Exception): __name__ = "Timeout"` 造异常无效（`type(x).__name__` 读的是类名，
+     不是类属性），测试改用 `type("Timeout", (Exception,), {})`。
+  5. **heredoc 再次把 `"persona:\n  name: x"` 写成 `"persona:/n  name: x"`**，YAML 报
+     `mapping values are not allowed here`。含转义的文本一律用编辑工具写，不用 heredoc
+     （这是第二次踩，已升级为硬规则）。
 
 ### 2026-10-27 · D09（运行、取消、ToolResult 与委派）
 

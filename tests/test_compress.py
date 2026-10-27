@@ -149,7 +149,7 @@ class SummaryGateway:
     def resolve(self, route: str) -> str:
         return "fake/model"
 
-    def complete(self, messages, *, model, tools=None):
+    def complete(self, messages, *, model, tools=None, **kwargs):
         self.calls.append([dict(m) for m in messages])
         if self.fail:
             raise RuntimeError("模型超时")
@@ -238,7 +238,7 @@ def test_agent_compresses_long_history(tmp_path):
         def resolve(self, route: str) -> str:
             return "fake/model"
 
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             if tools is None:  # 压缩摘要调用
                 return SimpleNamespace(text="摘要：聊了很多长内容。", tool_calls=[])
             self.chat_messages.append([dict(m) for m in messages])

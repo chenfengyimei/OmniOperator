@@ -105,7 +105,7 @@ class FixedGateway:
     def resolve(self, route: str) -> str:
         return "fake/model"
 
-    def complete(self, messages, *, model, tools=None):
+    def complete(self, messages, *, model, tools=None, **kwargs):
         self.n += 1
         return SimpleNamespace(text=f"回复{self.n}", tool_calls=[])
 

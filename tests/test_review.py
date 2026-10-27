@@ -40,7 +40,7 @@ class ReviewGateway:
     def __init__(self) -> None:
         self._step = 0
 
-    def complete(self, messages, *, model, tools=None):
+    def complete(self, messages, *, model, tools=None, **kwargs):
         if self._step == 0:
             self._step = 1
             call = SimpleNamespace(
@@ -54,7 +54,7 @@ class ReviewGateway:
 
 
 class NoopGateway:
-    def complete(self, messages, *, model, tools=None):
+    def complete(self, messages, *, model, tools=None, **kwargs):
         return SimpleNamespace(text="无需变更", tool_calls=[])
 
 
@@ -64,7 +64,7 @@ class SkillGateway:
     def __init__(self) -> None:
         self._step = 0
 
-    def complete(self, messages, *, model, tools=None):
+    def complete(self, messages, *, model, tools=None, **kwargs):
         if self._step == 0:
             self._step = 1
             call = SimpleNamespace(

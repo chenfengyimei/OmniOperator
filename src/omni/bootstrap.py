@@ -30,6 +30,7 @@ from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
 from .memory.runs import RunStore
 from .memory.state import ExecutionLog, JobStore, StateStore
+from .memory.usage import UsageLedger
 from .memory.resident import ResidentMemory
 from .memory.skills import SkillStore
 from .memory.store import MemoryStore
@@ -89,6 +90,7 @@ class Runtime:
     registry: ToolRegistry
     skills: SkillStore
     state: StateStore          # 共享状态库（任务/账本/额度/迁移/运行）
+    usage: UsageLedger         # 模型调用流水与当日费用账（D10）
     runs: RunStore             # 运行记录与事件流
     active_runs: ActiveRuns    # 本进程内可取消的运行
     session_gate: SessionGate  # 进程内：同会话串行 + 排队有界
@@ -162,7 +164,6 @@ def build_runtime(
     paths = RuntimePaths.create(data_root, config_path=config_path, skills_root=skills_root)
     memory_path = db_path if db_path is not None else data_root / "memory.db"
     store = MemoryStore(memory_path)
-    gateway = Gateway(config.models)
     # 技能与常驻记忆共用一份修订存储：写入前先落历史，改坏了能回滚（D08）
     skills = SkillStore(
         paths.skills, history_root=paths.history, owner=f"pid:{os.getpid()}:skills"
@@ -171,6 +172,15 @@ def build_runtime(
     # 缺失/合法空/损坏分别处理；损坏时只停用对应能力，绝不把已用额度归零。
     state = StateStore(paths.state)
     state.migrate_legacy(paths.data)
+    # 模型费用账本（D10）：预留/结算走 state.db，跨进程共享同一份当日额度
+    usage = UsageLedger(state)
+    gateway = Gateway(config.models, llm=config.llm, ledger=usage)
+    try:
+        pruned = usage.prune(keep_days=180)
+        if pruned and not (data_dir is not None):
+            print(f"[额度] 清理了 {pruned} 条过老的调用流水", flush=True)
+    except Exception:  # noqa: BLE001 —— 清理失败不影响启动
+        pass
     session_gate = SessionGate(capacity=config.limits.session_queue_depth)
     session_leases = SessionLeases(
         state, ttl_s=config.limits.session_lease_ttl_s
@@ -282,6 +292,7 @@ def build_runtime(
         registry=registry,
         skills=skills,
         state=state,
+        usage=usage,
         runs=runs,
         active_runs=active_runs,
         session_gate=session_gate,

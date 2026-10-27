@@ -30,7 +30,7 @@ MANIFEST_VERSION = 1
 
 # 备份清单里记录行数的表（缺失即跳过，不当作错误）
 COUNTED_TABLES = {
-    "state.db": ("jobs", "executions", "budgets", "migrations"),
+    "state.db": ("jobs", "executions", "budgets", "migrations", "llm_calls", "llm_budget"),
     "memory.db": ("sessions", "messages", "facts", "profile"),
 }
 

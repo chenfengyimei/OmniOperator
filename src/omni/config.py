@@ -107,6 +107,57 @@ class Models(BaseModel):
     review: str = ""  # 回合后 review 用的模型；留空则跟随 chat
 
 
+class ModelCapability(BaseModel):
+    """某个模型**声明**的能力与单价（D10）。
+
+    为什么必须显式声明：模型串长得像并不等于能力相同。"支持工具"和"支持图片"
+    都是要花钱调一次才知道的事，而一旦供应商默默忽略 tools 参数，agent 会以为
+    自己在用工具、实际在瞎猜。所以默认 `tools=True`（本项目所有在用模型都支持），
+    而 `vision=False`——没声明就是没声明，调用前拒绝，并给出可执行的提示。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    tools: bool = True
+    vision: bool = False
+    stream: bool = True
+    context_tokens: int = Field(default=0, ge=0)  # 0 = 未声明
+    input_usd_per_m: float | None = Field(default=None, ge=0)   # 每百万输入 token
+    output_usd_per_m: float | None = Field(default=None, ge=0)  # 每百万输出 token
+
+
+class Retry(BaseModel):
+    """有界重试：次数 + 总时限 + 指数退避，三者同时约束。"""
+
+    max_attempts: int = Field(default=3, ge=1, le=5)
+    total_deadline_s: float = Field(default=120.0, gt=0, le=900)
+    backoff_s: float = Field(default=0.5, ge=0, le=30)
+
+
+class LLMBudget(BaseModel):
+    """费用上限（美元）。0 = 未设上限：只记账、不拦截。
+
+    为什么不给一个"默认上限"：拍一个数字会在用户不知情时中断正在做的事。
+    未设上限是现状的延续，但界面与事件里会明确显示"未设上限"，
+    并且**一旦配置就是硬拦截**（调用前预留，超额直接不发请求）。
+    """
+
+    daily_usd: float = Field(default=0.0, ge=0)
+    per_run_usd: float = Field(default=0.0, ge=0)  # 单次运行（含子运行累计）上限
+
+
+class LLM(BaseModel):
+    """模型调用层：超时、重试、预算与能力声明。"""
+
+    request_timeout_s: float = Field(default=90.0, gt=0, le=600)
+    max_output_tokens: int = Field(default=1024, ge=1)  # 预留费用时按此上界估算
+    retry: Retry = Field(default_factory=Retry)
+    budget: LLMBudget = Field(default_factory=LLMBudget)
+    capabilities: dict[str, ModelCapability] = Field(default_factory=dict)
+
+    def capability(self, model: str) -> ModelCapability:
+        return self.capabilities.get(model) or ModelCapability()
+
+
 class Limits(BaseModel):
     max_history_messages: int = 40
     max_agent_steps: int = 8
@@ -220,6 +271,7 @@ class MCPConfig(BaseModel):
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
+    llm: LLM = Field(default_factory=LLM)
     limits: Limits = Field(default_factory=Limits)
     review: Review = Field(default_factory=Review)
     compression: Compression = Field(default_factory=Compression)

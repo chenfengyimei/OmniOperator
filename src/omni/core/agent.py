@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
-from typing import Any
+from typing import Any, Callable
 
 from ..config import AppConfig
-from ..llm.gateway import Gateway, to_openai_tool_call
+from ..llm import errors as llm_errors
+from ..llm.budget import RunBudget
+from ..llm.gateway import Gateway, Reply, StreamEvent, to_openai_tool_call
 from ..memory.resident import ResidentMemory
 from ..memory.runs import RunStore
 from ..memory.store import MemoryStore
@@ -14,7 +16,15 @@ from ..safety.gates import Approver
 from ..tools.registry import SessionRef, ToolRegistry
 from ..tools.runctx import RunRef
 from .compress import assert_invariants, compress_if_needed
-from .run import ActiveRuns, CancelToken, RunCancelled, RunContext, RunIdentity, TurnResult
+from .run import (
+    ActiveRuns,
+    CancelToken,
+    RunBudgetExceeded,
+    RunCancelled,
+    RunContext,
+    RunIdentity,
+    TurnResult,
+)
 
 # 群聊作用域下不提供的工具：会读全局个人数据或跨会话历史（D12/D22 会换成正式的作用域策略）
 GROUP_DENIED_TOOLS = frozenset(
@@ -111,8 +121,18 @@ class Agent:
             prompt = f"{prompt}\n\n{profile_block}"
         return prompt
 
-    def _maybe_compress(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """长会话防膨胀：超阈值时压旧块成摘要（Hermes compression 最小版）。"""
+    def _maybe_compress(
+        self,
+        messages: list[dict[str, Any]],
+        *,
+        run: RunContext | None = None,
+        sid: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """长会话防膨胀：超阈值时压旧块成摘要（Hermes compression 最小版）。
+
+        压缩本身也是一次付费模型调用，所以必须带上 run 与预算：否则压缩
+        会绕开"本次运行最多花多少"的限制（D10）。
+        """
         comp = self.config.compression
         if not comp.enabled:
             return messages
@@ -123,6 +143,10 @@ class Agent:
             trigger_chars=comp.trigger_chars,
             keep_recent=comp.keep_recent,
             min_messages=comp.min_messages,
+            run_id=run.run_id if run is not None else None,
+            session_id=sid,
+            run_budget=run.budget if run is not None else None,
+            cancel=run.cancel_token if run is not None else None,
         )
 
     # ---------------------------------------------------------------- 回合入口
@@ -161,12 +185,16 @@ class Agent:
         channel: str = "cli",
         principal: str = "owner",
         parent: RunContext | None = None,
+        on_delta: Callable[[str], None] | None = None,
     ) -> TurnResult:
         """跑一个完整回合并记录 run（状态、阶段、事件）。
 
         返回值里带 run_id：通道用它查事件流、界面用它显示进度。
         取消不会抛给调用方——被取消的回合返回 `status="cancelled"` 的回答文本，
         让通道决定怎么展示（网页刷新历史时也能看到"这轮被取消了"）。
+
+        `on_delta` 非空时走流式：每收到一段文本就回调一次（通道自己决定
+        怎么送到浏览器），最终仍然返回完整回答。
         """
         sid = session_id if session_id is not None else self.session_id
         run = self._start_run(
@@ -186,18 +214,52 @@ class Agent:
                 if self._run_ref is not None:
                     stack.enter_context(self._run_ref.bind(run))
                 answer = self._chat(
-                    user_text, sid, personal_context=personal_context, run=run
+                    user_text,
+                    sid,
+                    personal_context=personal_context,
+                    run=run,
+                    on_delta=on_delta,
                 )
+            # 先记这轮花了多少，再记回答：事件流的最后一条始终是"这一轮的结果"
+            run.event("budget", **run.budget.brief())
             run.event("answer", chars=len(answer))
             run.finish("done")
-            return TurnResult(answer=answer, run_id=run.run_id, status="done")
+            return TurnResult(
+                answer=answer,
+                run_id=run.run_id,
+                status="done",
+                cost_micro=run.budget.spent_micro or None,
+                budget=run.budget.brief(),
+            )
         except RunCancelled as exc:
             note = f"（已取消：{exc.reason}。本轮未继续执行后续步骤；已发生的操作不会回滚）"
             self.store.append_message(sid, "assistant", note, auto_title=False)
             run.event("cancelled", reason=exc.reason)
             run.finish("cancelled", error_code="run_cancelled", error_text=exc.reason)
             return TurnResult(
-                answer=note, run_id=run.run_id, status="cancelled", error_code="run_cancelled"
+                answer=note,
+                run_id=run.run_id,
+                status="cancelled",
+                error_code="run_cancelled",
+                cost_micro=run.budget.spent_micro or None,
+                budget=run.budget.brief(),
+            )
+        except RunBudgetExceeded as exc:
+            # 预算是确定性拦截：没有发出新的模型请求，也不该记成"异常"
+            note = (
+                f"（本轮已停止：{exc}。这是费用上限的代码拦截，未发出新的模型请求。"
+                "可在 config 的 llm.budget 里调整 daily_usd / per_run_usd。）"
+            )
+            self.store.append_message(sid, "assistant", note, auto_title=False)
+            run.event("budget_blocked", code=exc.code, message=str(exc)[:300])
+            run.finish("failed", error_code=exc.code, error_text=str(exc)[:300])
+            return TurnResult(
+                answer=note,
+                run_id=run.run_id,
+                status="failed",
+                error_code=exc.code,
+                cost_micro=run.budget.spent_micro or None,
+                budget=run.budget.brief(),
             )
         except Exception as exc:  # noqa: BLE001 —— 状态要留痕，异常照旧上抛
             run.event("failed", error=str(exc)[:300])
@@ -229,8 +291,17 @@ class Agent:
             parent_run_id=parent.run_id if parent is not None else None,
             scope="private" if personal_context else "group",
         )
+        # 费用预算：子 run 直接复用父的 RunBudget 实例（累计限制才成立）
+        if parent is not None:
+            budget = parent.budget
+        else:
+            budget = RunBudget(
+                limit_micro=int(round(self.config.llm.budget.per_run_usd * 1_000_000))
+            )
         if self._runs is None:
-            run = RunContext(identity=identity, store=_NullRunStore(), max_steps=steps)
+            run = RunContext(
+                identity=identity, store=_NullRunStore(), max_steps=steps, budget=budget
+            )
         else:
             self._runs.create(
                 run_id=identity.run_id,
@@ -241,7 +312,9 @@ class Agent:
                 parent_run_id=identity.parent_run_id,
                 status="running",
             )
-            run = RunContext(identity=identity, store=self._runs, max_steps=steps)
+            run = RunContext(
+                identity=identity, store=self._runs, max_steps=steps, budget=budget
+            )
         run.event(
             "run_started",
             channel=channel,
@@ -249,6 +322,7 @@ class Agent:
             scope=identity.scope,
             parent_run_id=identity.parent_run_id,
             max_steps=steps,
+            run_budget_limit_micro=budget.limit_micro or None,
         )
         if self._active_runs is not None:
             self._active_runs.register(run)
@@ -263,6 +337,7 @@ class Agent:
         *,
         personal_context: bool = True,
         run: RunContext | None = None,
+        on_delta: Callable[[str], None] | None = None,
     ) -> str:
         """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。"""
         denied = frozenset() if personal_context else GROUP_DENIED_TOOLS
@@ -277,7 +352,7 @@ class Agent:
             }
         ]
         messages += [{"role": role, "content": content} for role, content in history]
-        messages = self._maybe_compress(messages)
+        messages = self._maybe_compress(messages, run=run, sid=sid)
         cancel = run.cancel_token if run is not None else None
 
         for _ in range(self.config.limits.max_agent_steps):
@@ -287,21 +362,24 @@ class Agent:
                     break  # 步数预算用完 → 走下面的收敛调用
                 run.phase("model")
                 run.event("model_start", step=run.steps_used)
-            messages = self._maybe_compress(messages)
+            messages = self._maybe_compress(messages, run=run, sid=sid)
             assert_invariants(messages)
-            reply = self.gateway.complete(
-                messages, model=self.model, tools=self.registry.specs(exclude=denied)
+            reply = self._model_call(
+                messages,
+                sid,
+                run=run,
+                tools=self.registry.specs(exclude=denied),
+                purpose="chat",
+                on_delta=on_delta,
             )
             if run is not None:
                 # 取消不能杀线程：模型请求会照常返回，这里再决定是否继续
                 run.check()
-                run.event(
-                    "model_end",
-                    text_chars=len(reply.text or ""),
-                    tool_calls=[c.function.name for c in reply.tool_calls],
-                )
+                run.event("model_end", step=run.steps_used, **_reply_brief(reply))
             if not reply.tool_calls:
                 answer = reply.text.strip() or "（模型没有返回内容）"
+                if getattr(reply, "incomplete", False):
+                    answer += "\n\n（注意：这条回答在生成过程中连接中断，内容可能不完整。）"
                 self.store.append_message(sid, "assistant", answer, auto_title=False)
                 return answer
             # 有工具调用：执行并把结果回填，继续循环
@@ -340,9 +418,78 @@ class Agent:
             run.phase("final")
             run.event("final_call", reason="step_budget")
         # 步数预算耗尽：一次无工具的 grace call，强制收敛出最终回答
-        messages = self._maybe_compress(messages)
+        messages = self._maybe_compress(messages, run=run, sid=sid)
         assert_invariants(messages)
-        reply = self.gateway.complete(messages, model=self.model, tools=None)
+        reply = self._model_call(
+            messages, sid, run=run, tools=None, purpose="finalize", on_delta=on_delta
+        )
         answer = reply.text.strip() or "（达到工具调用轮数上限，先停在这里）"
+        if getattr(reply, "incomplete", False):
+            answer += "\n\n（注意：这条回答在生成过程中连接中断，内容可能不完整。）"
         self.store.append_message(sid, "assistant", answer, auto_title=False)
         return answer
+
+    def _model_call(
+        self,
+        messages: list[dict[str, Any]],
+        sid: int,
+        *,
+        run: RunContext | None,
+        tools: list[dict[str, Any]] | None,
+        purpose: str,
+        on_delta: Callable[[str], None] | None = None,
+    ) -> Reply:
+        """唯一的模型调用出口：把网关错误翻译成内核语义（预算/取消）。
+
+        为什么集中在这里：Agent 有 3 个调用点（主循环、收敛调用、压缩），
+        任何一处漏了预算或漏了取消翻译，都会出现"界面显示失败但已经扣费"
+        或"用户点了取消却继续花钱"。
+        """
+        kwargs: dict[str, Any] = {
+            "model": self.model,
+            "tools": tools,
+            "purpose": purpose,
+            "run_id": run.run_id if run is not None else None,
+            "session_id": sid,
+            "run_budget": run.budget if run is not None else None,
+            "cancel": run.cancel_token if run is not None else None,
+        }
+        try:
+            if on_delta is not None and hasattr(self.gateway, "stream"):
+                return self.gateway.stream(
+                    messages, on_event=lambda event: _forward_delta(event, on_delta), **kwargs
+                )
+            return self.gateway.complete(messages, **kwargs)
+        except llm_errors.GatewayError as exc:
+            if exc.code == llm_errors.CANCELLED:
+                raise RunCancelled(exc.message) from exc
+            if exc.code in {llm_errors.BUDGET, llm_errors.PRICE_UNKNOWN}:
+                raise RunBudgetExceeded(exc.code, exc.message) from exc
+            raise
+
+
+def _forward_delta(event: StreamEvent, on_delta: Callable[[str], None]) -> None:
+    if event.type == "delta" and event.text:
+        on_delta(event.text)
+
+
+def _reply_brief(reply: Any) -> dict[str, Any]:
+    """兼容两种回复对象：真的 Reply（带 usage/费用）与测试里的极简假对象。"""
+    brief: dict[str, Any] = {
+        "text_chars": len(getattr(reply, "text", "") or ""),
+        "tool_calls": [
+            getattr(getattr(call, "function", None), "name", "")
+            for call in getattr(reply, "tool_calls", []) or []
+        ],
+    }
+    usage = getattr(reply, "usage", None)
+    if usage is not None:
+        brief.update(usage.brief())
+    cost = getattr(reply, "cost_micro", None)
+    if cost is not None:
+        brief["cost_micro"] = cost
+    if getattr(reply, "cost_source", None):
+        brief["cost_source"] = reply.cost_source
+    if getattr(reply, "incomplete", False):
+        brief["incomplete"] = True
+    return brief

@@ -73,7 +73,7 @@ class _Scripted:
     def resolve(self, _route: str) -> str:
         return "fake/model"
 
-    def complete(self, messages, *, model, tools=None):
+    def complete(self, messages, *, model, tools=None, **kwargs):
         self.calls += 1
         self.seen_tools.append([t["function"]["name"] for t in (tools or [])])
         step = self.script.pop(0) if self.script else "好的"
@@ -217,7 +217,7 @@ def test_cancel_after_model_returns_stops_the_turn(tmp_path):
         def resolve(self, _route):
             return "fake/model"
 
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             Gateway.calls += 1
             rt.active_runs.cancel(_run_id_of(rt, sid), "用户在网页点了停止")
             return SimpleNamespace(text="这段回答不该被采纳", tool_calls=[])
@@ -321,7 +321,7 @@ def test_failed_turn_is_recorded_as_failed(tmp_path):
         def resolve(self, _route):
             return "fake/model"
 
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             raise RuntimeError("网关挂了")
 
     rt.agent.gateway = Boom()
@@ -484,7 +484,7 @@ def test_cancel_is_cooperative_and_does_not_fake_stopped(tmp_path):
         def resolve(self, _route):
             return "fake/model"
 
-        def complete(self, messages, *, model, tools=None):
+        def complete(self, messages, *, model, tools=None, **kwargs):
             assert gate.wait(10)  # 模拟一个很慢的模型请求
             return SimpleNamespace(text="慢慢答完了", tool_calls=[])
 

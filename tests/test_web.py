@@ -468,3 +468,116 @@ def test_cron_endpoints_report_unavailable_state(tmp_path):
     assert created.status_code == 503
     health = client.get("/api/system/state").json()
     assert health["migrations"] and health["degraded"]["jobs"]
+
+
+# ---------- D10：流式回答、费用展示与预算拦截 ----------
+
+
+class _StreamingGateway:
+    """流式假网关：把预设分片通过 on_event 推出去，最终返回拼好的回答。"""
+
+    def __init__(self, chunks, *, error=None):
+        self.chunks = list(chunks)
+        self.error = error
+        self.calls = 0
+
+    def resolve(self, route: str) -> str:
+        return "fake/model"
+
+    def complete(self, *args, **kwargs):  # pragma: no cover - 流式路径不该走这里
+        raise AssertionError("流式请求不应退回同步接口")
+
+    def stream(self, messages, *, on_event=None, **kwargs):
+        from omni.llm.errors import GatewayError
+
+        self.calls += 1
+        if self.error is not None:
+            raise self.error
+        from omni.llm.gateway import Reply, StreamEvent
+
+        for chunk in self.chunks:
+            if on_event is not None:
+                on_event(StreamEvent("delta", text=chunk))
+        return Reply(text="".join(self.chunks))
+
+
+def _sse_frames(body: str) -> list[dict]:
+    frames = []
+    for line in body.splitlines():
+        if line.startswith("data: "):
+            frames.append(json.loads(line[len("data: "):]))
+    return frames
+
+
+def test_chat_stream_emits_deltas_then_done(tmp_path):
+    client, runtime = _client(tmp_path)
+    sid = runtime.store.new_session("s")
+    runtime.agent.gateway = _StreamingGateway(["今天", "也", "在"])
+
+    response = client.post("/api/chat/stream", json={"message": "hi", "session_id": sid})
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    frames = _sse_frames(response.text)
+    assert [f["type"] for f in frames[:-1]] == ["delta", "delta", "delta"]
+    assert "".join(f["text"] for f in frames if f["type"] == "delta") == "今天也在"
+    done = frames[-1]
+    assert done["type"] == "done" and done["status"] == "done"
+    assert done["answer"] == "今天也在" and done["run_id"]
+    # 增量只是传输方式：完整回答仍然落库
+    assert runtime.store.recent_messages(sid, 4)[-1][1] == "今天也在"
+
+
+def test_chat_stream_reports_gateway_error_as_event(tmp_path):
+    from omni.llm.errors import AUTH, GatewayError
+
+    client, runtime = _client(tmp_path)
+    sid = runtime.store.new_session("s")
+    runtime.agent.gateway = _StreamingGateway([], error=GatewayError(code=AUTH, message="密钥无效"))
+
+    response = client.post("/api/chat/stream", json={"message": "hi", "session_id": sid})
+    frames = _sse_frames(response.text)
+    assert frames[-1]["type"] == "error"
+    assert frames[-1]["code"] == AUTH and "密钥无效" in frames[-1]["message"]
+
+
+def test_llm_usage_endpoint_reports_unset_limit_and_unknown_cost(tmp_path):
+    client, runtime = _client(tmp_path, config_text="persona:\n  name: x\n")
+    runtime.usage.record(purpose="chat", model="m", cost_micro=None, cost_source="unknown")
+    runtime.usage.record(purpose="chat", model="m", cost_micro=120)
+
+    body = client.get("/api/llm/usage").json()
+    # 未配置上限时是 null（未设上限），不是 0（上限为零 = 一句都不许说）
+    assert body["today"]["limit_micro"] is None
+    assert body["today"]["remaining_micro"] is None
+    assert body["summary"]["calls"] == 2
+    assert body["summary"]["unknown_cost"] == 1
+    assert body["calls"][0]["cost_known"] is True
+
+
+def test_llm_usage_endpoint_shows_configured_limit(tmp_path):
+    client, _runtime = _client(
+        tmp_path,
+        config_text=(
+            "persona:\n  name: x\nllm:\n  budget:\n    daily_usd: 2.5\n"
+            "    per_run_usd: 0.5\n"
+        ),
+    )
+    body = client.get("/api/llm/usage").json()
+    assert body["today"]["limit_micro"] == 2_500_000
+    assert body["today"]["remaining_micro"] == 2_500_000
+    assert body["per_run_limit_micro"] == 500_000
+
+
+def test_model_test_maps_auth_error_to_401(tmp_path):
+    from omni.llm.errors import AUTH, GatewayError
+
+    client, runtime = _client(tmp_path)
+
+    def _fail(*_args, **_kwargs):
+        raise GatewayError(code=AUTH, message="密钥无效 <已隐藏>")
+
+    runtime.gateway.complete = _fail  # type: ignore[method-assign]
+    response = client.post("/api/system/model-test", json={"model": "deepseek/deepseek-chat"})
+    assert response.status_code == 401
+    detail = response.json()["detail"]
+    assert detail["code"] == AUTH and detail["hint"]
