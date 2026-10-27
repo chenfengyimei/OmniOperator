@@ -241,6 +241,79 @@ def test_executor_injects_context_from_source(tmp_path):
     store.close()
 
 
+# ---------- 执行账本 ----------
+
+def test_execution_log_records_and_caps(tmp_path):
+    from omni.memory.cron import ExecutionLog
+
+    log = ExecutionLog(tmp_path / "exec.json", keep=3)
+    for i in range(5):
+        log.record(
+            f"job-{i}", f"2026-10-27T10:0{i}:00", 1.5, ok=True, result=f"r{i}", delivery="d"
+        )
+    rows = log.recent(10)
+    assert len(rows) == 3  # 滚动保留
+    assert rows[0]["job"] == "job-4"  # 新的在前
+    assert rows[0]["ok"] is True and rows[0]["duration_s"] == 1.5
+    assert log.recent(2) == rows[:2]
+
+
+def test_scheduler_writes_ledger(tmp_path):
+    from omni.memory.cron import ExecutionLog
+
+    store = JobStore(tmp_path / "jobs.json")
+    log = ExecutionLog(tmp_path / "exec.json")
+    now = dt.datetime(2026, 10, 27, 12, 0, 0)
+    job = _job(name="ledgered", every_minutes=60)
+    job.next_run_at = to_iso(now - dt.timedelta(seconds=1))
+    store.upsert(job, validate=False)
+
+    async def executor(j: Job) -> str:
+        return "结果内容"
+
+    async def deliver(j: Job, r: str) -> str:
+        return "已投递 QQ"
+
+    async def scenario():
+        scheduler = CronScheduler(
+            store, executor, deliver, clock=lambda: now.timestamp(), ledger=log
+        )
+        await scheduler.tick()
+        await asyncio.sleep(0.05)
+        rows = log.recent(5)
+        assert rows and rows[0]["job"] == "ledgered" and rows[0]["ok"] is True
+        assert "结果内容" in rows[0]["result"] and "已投递" in rows[0]["delivery"]
+        # 记账的 started_at 是真实时钟的 ISO 串（调度用假时钟，记账用真时钟）
+        assert len(rows[0]["started_at"]) >= 19 and "T" in rows[0]["started_at"]
+
+    asyncio.run(scenario())
+
+
+def test_scheduler_ledger_records_failure(tmp_path):
+    from omni.memory.cron import ExecutionLog
+
+    store = JobStore(tmp_path / "jobs.json")
+    log = ExecutionLog(tmp_path / "exec.json")
+    now = dt.datetime.now().astimezone()
+    job = _job(name="boom2", every_minutes=60)
+    job.next_run_at = to_iso(now - dt.timedelta(seconds=1))
+    store.upsert(job, validate=False)
+
+    async def boom(_job: Job) -> str:
+        raise RuntimeError("炸了")
+
+    async def scenario():
+        scheduler = CronScheduler(
+            store, boom, None, clock=lambda: now.timestamp(), ledger=log
+        )
+        await scheduler.tick()
+        await asyncio.sleep(0.05)
+        rows = log.recent(5)
+        assert rows and rows[0]["ok"] is False and "炸了" in rows[0]["result"]
+
+    asyncio.run(scenario())
+
+
 # ---------- 工具 ----------
 
 def test_cron_tools_dispatch(tmp_path):

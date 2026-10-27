@@ -16,6 +16,7 @@ from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -73,6 +74,21 @@ class TodoToggleIn(BaseModel):
     session_id: int
     todo_id: int
     done: bool
+
+
+class AndroidTapIn(BaseModel):
+    x: int
+    y: int
+    stream_w: int
+    stream_h: int
+
+
+class AndroidElementIn(BaseModel):
+    idx: int
+
+
+class AndroidKeyIn(BaseModel):
+    keycode: str
 
 
 def create_app(runtime: Runtime) -> FastAPI:
@@ -402,6 +418,97 @@ def create_app(runtime: Runtime) -> FastAPI:
     def cron_delete(payload: CronNameIn) -> dict[str, Any]:
         return {"ok": runtime.cron_jobs.remove(payload.name)}
 
+    @app.get("/api/system/cron/history")
+    def cron_history(limit: int = 50) -> dict[str, Any]:
+        """执行账本：成功与失败都记账，新的在前。"""
+        return {"history": runtime.cron_ledger.recent(min(limit, 100))}
+
+    # ---------- 安卓工作台（MJPEG 看屏 + UI 树 + 点击下发，NOTES §2.3 最低成本方案） ----------
+
+    @app.get("/api/android/state")
+    def android_state() -> dict[str, Any]:
+        try:
+            serial = runtime.android._adb.require_device()
+            w, h = runtime.android.screen_size()
+            return {"connected": True, "serial": serial, "width": w, "height": h}
+        except Exception as exc:  # noqa: BLE001 —— adb 缺失/无设备/未授权都归为未连接
+            return {"connected": False, "detail": str(exc)[:200]}
+
+    @app.get("/api/android/tree")
+    def android_tree() -> dict[str, Any]:
+        try:
+            tree = runtime.android.refresh_tree()
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(status_code=409, detail=str(exc))
+        return {
+            "tree": tree,
+            "elements": [
+                {
+                    "idx": e["idx"],
+                    "label": e["text"] or e["content_desc"] or e["resource_id"],
+                    "clickable": e["clickable"],
+                }
+                for e in runtime.android.elements()
+            ],
+        }
+
+    @app.post("/api/android/tap")
+    def android_tap(payload: AndroidTapIn) -> dict[str, Any]:
+        """用户在看屏上点了一下：帧内坐标+帧尺寸 → wm size 反算 → adb tap。
+
+        与 agent 的 CONFIRM 工具不同：这里的操作者就是用户本人（自己的点屏）。
+        """
+        try:
+            return {
+                "ok": True,
+                "detail": runtime.android.tap_scaled(
+                    payload.x, payload.y, payload.stream_w, payload.stream_h
+                ),
+            }
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(status_code=409, detail=str(exc))
+
+    @app.post("/api/android/element")
+    def android_element(payload: AndroidElementIn) -> dict[str, Any]:
+        try:
+            return {"ok": True, "detail": runtime.android.tap_element(payload.idx)}
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(status_code=409, detail=str(exc))
+
+    @app.post("/api/android/key")
+    def android_key(payload: AndroidKeyIn) -> dict[str, Any]:
+        try:
+            return {"ok": True, "detail": runtime.android.key(payload.keycode)}
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(status_code=409, detail=str(exc))
+
+    @app.get("/api/android/stream")
+    def android_stream() -> StreamingResponse:
+        """MJPEG：screencap 循环出 PNG 帧（multipart/x-mixed-replace）。
+
+        设备掉线即断流（前端 onerror 提示重开）；断开连接由 StreamingResponse 收尾。
+        """
+        import time as _time
+
+        def _frames():
+            while True:
+                try:
+                    png = runtime.android.screenshot_bytes()
+                except Exception:  # noqa: BLE001
+                    break
+                yield (
+                    b"--frame\r\nContent-Type: image/png\r\nContent-Length: "
+                    + str(len(png)).encode()
+                    + b"\r\n\r\n"
+                    + png
+                    + b"\r\n"
+                )
+                _time.sleep(0.6)
+
+        return StreamingResponse(
+            _frames(), media_type="multipart/x-mixed-replace; boundary=frame"
+        )
+
     # ---------- 内置终端（ConPTY，Windows；仅本机 127.0.0.1） ----------
 
     @app.websocket("/api/terminal/ws")
@@ -468,8 +575,27 @@ def create_app(runtime: Runtime) -> FastAPI:
 def main() -> None:
     load_env()
     runtime = build_runtime()
-    # Web 上下文的确认流：confirm 工具 → 工作台横幅（agent 线程阻塞等待用户点击）
-    runtime.agent.approver = WebApprover(runtime.approvals)
+    # Web 上下文的确认流：confirm 工具 → 工作台横幅（agent 线程阻塞等待用户点击）。
+    # approval.mode=smart 时先经辅助模型预筛（明显安全放行/明显危险拒），拿不准仍走横幅。
+    approver: Any = WebApprover(runtime.approvals)
+    if runtime.config.approval.mode == "smart":
+        from ..safety.smart import SmartApprover
+
+        review_model = runtime.config.models.review.strip() or runtime.agent.model
+
+        def _ask(system: str, user: str) -> str:
+            reply = runtime.gateway.complete(
+                [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                model=review_model,
+                tools=None,
+            )
+            return reply.text
+
+        approver = SmartApprover(base=approver, ask_model=_ask)
+    runtime.agent.approver = approver
     app = create_app(runtime)
     host = os.environ.get("OMNI_WEB_HOST", "127.0.0.1")
     port = int(os.environ.get("OMNI_WEB_PORT", "8000"))

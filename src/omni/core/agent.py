@@ -6,6 +6,7 @@ from typing import Any
 
 from ..config import AppConfig
 from ..llm.gateway import Gateway, to_openai_tool_call
+from ..memory.resident import ResidentMemory
 from ..memory.store import MemoryStore
 from ..safety.gates import Approver
 from ..tools.registry import SessionRef, ToolRegistry
@@ -23,6 +24,7 @@ class Agent:
         *,
         approver: Approver | None = None,
         session_ref: SessionRef | None = None,
+        resident: ResidentMemory | None = None,
     ) -> None:
         self.config = config
         self.gateway = gateway
@@ -32,6 +34,7 @@ class Agent:
         self.session_id = session_id
         self.model = gateway.resolve("chat")
         self._session_ref = session_ref
+        self._resident = resident
         # 压缩摘要用廉价模型（同回合后 review 的选型逻辑）
         review_model = config.models.review.strip()
         self._summary_model = review_model if review_model else self.model
@@ -39,6 +42,11 @@ class Agent:
     def _system_prompt(self) -> str:
         now = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %A")
         prompt = self.config.persona.system_prompt.replace("{now}", now)
+        # 常驻小记忆冻结快照（本轮内字节稳定；中途写入只落盘，下一轮生效）
+        if self._resident is not None:
+            memory_block = self._resident.block()
+            if memory_block:
+                prompt = f"{prompt}\n\n{memory_block}"
         profile_block = self.store.profile_block()  # 人物档案快照（有内容才注入）
         if profile_block:
             prompt = f"{prompt}\n\n{profile_block}"

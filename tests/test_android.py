@@ -351,6 +351,44 @@ def test_corrupted_cache_is_tolerated(tmp_path):
     assert "已点击 [0]" in out
 
 
+# ---------- 工作台点屏（坐标换算唯一入口） ----------
+
+def test_scale_coords():
+    from omni.tools.android.adb import AdbError
+    from omni.tools.android.driver import scale_coords
+
+    assert scale_coords(100, 200, 500, 1000, 1080, 2400) == (216, 480)
+    assert scale_coords(0, 0, 100, 100, 1080, 2400) == (0, 0)
+    with pytest.raises(AdbError):
+        scale_coords(1, 1, 0, 100, 1080, 2400)  # 非法帧尺寸
+
+
+def test_driver_tap_scaled(tmp_path):
+    runner = FakeRunner()
+    runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
+    runner.expect("wm size", "Physical size: 1080x2400\n")
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=tmp_path / "tree.json",
+    )
+    out = driver.tap_scaled(100, 200, 500, 1000)
+    assert "(216,480)" in out
+    assert any("input tap 216 480" in " ".join(c) for c in runner.calls)
+
+
+def test_driver_screenshot_bytes(tmp_path):
+    runner = FakeRunner()
+    runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
+    runner.expect("screencap", b"\x89PNG\r\n\x1a\n" + b"data")
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=tmp_path / "tree.json",
+    )
+    assert driver.screenshot_bytes().startswith(b"\x89PNG")
+
+
 # ---------- 工具派发 ----------
 
 def test_android_tools_dispatch(tmp_path):

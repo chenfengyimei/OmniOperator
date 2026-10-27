@@ -16,13 +16,18 @@ _SKILL_BODY = (
 )
 
 
-def _review_registry_factory(skills_root):
-    """复刻 bootstrap 的最小权限白名单（记忆 + 档案 + 技能）。"""
+def _review_registry_factory(skills_root, tmp_path=None):
+    """复刻 bootstrap 的最小权限白名单（记忆 + 档案 + 常驻笔记 + 技能）。"""
 
     def factory(store: MemoryStore) -> ToolRegistry:
         registry = ToolRegistry()
         register_memory_tools(registry, store)
         register_profile_tools(registry, store)
+        from omni.memory.resident import ResidentMemory
+        from omni.tools.builtin import register_resident_tools
+
+        base = tmp_path if tmp_path is not None else skills_root
+        register_resident_tools(registry, ResidentMemory(base / "MEMORY.md"))
         register_skill_tools(registry, SkillStore(skills_root))
         return registry
 

@@ -27,11 +27,13 @@ class CronScheduler:
         deliver: Callable[[Job, str], Awaitable[str]] | None = None,
         *,
         clock: Callable[[], float] = time.time,
+        ledger: Any | None = None,
     ) -> None:
         self._store = store
         self._executor = executor
         self._deliver = deliver
         self._clock = clock
+        self._ledger = ledger  # ExecutionLog（可选）：成功与失败都记账
         self._job_locks: dict[str, asyncio.Lock] = {}
 
     async def run(self) -> None:
@@ -85,6 +87,8 @@ class CronScheduler:
         lock = self._job_locks.setdefault(job.name, asyncio.Lock())
         async with lock:
             now_dt = dt.datetime.now().astimezone()
+            started_at = to_iso(now_dt)
+            started = time.monotonic()
             try:
                 result = await self._executor(job)
             except Exception as exc:  # noqa: BLE001
@@ -95,6 +99,15 @@ class CronScheduler:
                     delivery = await self._deliver(job, result)
                 except Exception as exc:  # noqa: BLE001
                     delivery = f"投递失败：{exc}"
+            if self._ledger is not None:
+                self._ledger.record(
+                    job=job.name,
+                    started_at=started_at,
+                    duration_s=time.monotonic() - started,
+                    ok=not result.startswith("执行失败"),
+                    result=result,
+                    delivery=delivery,
+                )
             fresh = self._store.get(job.name)
             if fresh is not None:
                 fresh.last_run_at = to_iso(now_dt)

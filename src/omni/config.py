@@ -53,6 +53,7 @@ class Models(BaseModel):
 class Limits(BaseModel):
     max_history_messages: int = 40
     max_agent_steps: int = 8
+    resident_memory_chars: int = 2200  # 常驻小记忆（MEMORY.md 式）整文件限额
 
 
 class Review(BaseModel):
@@ -106,6 +107,16 @@ class System(BaseModel):
     napcat_dir: str = "D:/tools/napcat"  # NapCat Shell 目录（含 napcat.bat）
 
 
+class Approval(BaseModel):
+    """审批策略档（Hermes approvals.mode）。
+
+    manual=CONFIRM 一律问人（现状默认）；smart=辅助模型先判风险，
+    明显安全自动放行/明显危险直接拒/拿不准仍问人（QQ 与无人值守保持 fail-closed）。
+    """
+
+    mode: str = "manual"  # manual | smart
+
+
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
@@ -116,6 +127,7 @@ class AppConfig(BaseModel):
     qq: QQ = Field(default_factory=QQ)
     browser: Browser = Field(default_factory=Browser)
     system: System = Field(default_factory=System)
+    approval: Approval = Field(default_factory=Approval)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

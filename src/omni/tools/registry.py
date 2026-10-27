@@ -84,16 +84,17 @@ class ToolRegistry:
         tool = self._tools.get(name)
         if tool is None:
             return f"错误：没有名为 {name} 的工具"
-        if approver is not None:
-            decision = approver.check(tool)
-            if not decision.allowed:
-                reason = decision.reason or "审批拒绝"
-                return f"工具 {name} 未获批准：{reason}。请改用不需要该操作的方式，或向用户说明需要授权。"
         if isinstance(arguments, str):
             try:
                 arguments = json.loads(arguments or "{}")
             except json.JSONDecodeError as exc:
                 return f"错误：工具参数不是合法 JSON（{exc}）"
+        if approver is not None:
+            # 参数先解析再送审：smart 档与确认横幅都能看到实际参数
+            decision = approver.check(tool, arguments)
+            if not decision.allowed:
+                reason = decision.reason or "审批拒绝"
+                return f"工具 {name} 未获批准：{reason}。请改用不需要该操作的方式，或向用户说明需要授权。"
         try:
             return tool.func(arguments or {})
         except Exception as exc:  # noqa: BLE001 —— 回传错误让 LLM 自行调整

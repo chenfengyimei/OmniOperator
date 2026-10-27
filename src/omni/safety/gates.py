@@ -26,23 +26,27 @@ class Decision:
 
 
 class Approver(abc.ABC):
-    """审批策略接口：给定工具，决定是否放行。"""
+    """审批策略接口：给定工具与本次调用参数，决定是否放行。
+
+    arguments 可为 None（旧式调用）；smart 档需要看参数才能判风险，
+    横幅/终端问询也能展示实际参数。
+    """
 
     @abc.abstractmethod
-    def check(self, tool: Any) -> Decision: ...
+    def check(self, tool: Any, arguments: Any = None) -> Decision: ...
 
 
 class AllowAllApprover(Approver):
     """测试/受控场景：全部放行。"""
 
-    def check(self, tool: Any) -> Decision:
+    def check(self, tool: Any, arguments: Any = None) -> Decision:
         return Decision(True)
 
 
 class DenyApprover(Approver):
     """无人值守上下文（cron/心跳，P5）：非 safe 一律拒绝（fail-closed）。"""
 
-    def check(self, tool: Any) -> Decision:
+    def check(self, tool: Any, arguments: Any = None) -> Decision:
         if getattr(tool, "risk", Risk.SAFE) == Risk.SAFE:
             return Decision(True)
         return Decision(False, "无人值守上下文默认拒绝非 safe 工具")
@@ -54,14 +58,22 @@ class ConsoleApprover(Approver):
     def __init__(self, console: Any) -> None:
         self._console = console
 
-    def check(self, tool: Any) -> Decision:
+    def check(self, tool: Any, arguments: Any = None) -> Decision:
         risk = getattr(tool, "risk", Risk.SAFE)
         if risk == Risk.SAFE:
             return Decision(True)
         if risk == Risk.DANGEROUS:
             return Decision(False, "dangerous 工具需要 P3 的显式授权机制，当前一律拒绝")
+        args_text = ""
+        if arguments:
+            import json as _json
+
+            try:
+                args_text = _json.dumps(arguments, ensure_ascii=False)[:300]
+            except (TypeError, ValueError):
+                args_text = str(arguments)[:300]
         answer = self._console.input(
-            f"[bold yellow]即将执行工具 {tool.name}（{tool.description}），允许? [y/N][/] "
+            f"[bold yellow]即将执行工具 {tool.name} {args_text}（{tool.description}），允许? [y/N][/] "
         ).strip().lower()
         if answer in ("y", "yes"):
             return Decision(True)
@@ -74,7 +86,7 @@ class WebApprover(Approver):
     def __init__(self, broker: Any) -> None:
         self._broker = broker
 
-    def check(self, tool: Any) -> Decision:
+    def check(self, tool: Any, arguments: Any = None) -> Decision:
         risk = getattr(tool, "risk", Risk.SAFE)
         if risk == Risk.SAFE:
             return Decision(True)

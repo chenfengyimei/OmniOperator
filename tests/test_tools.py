@@ -47,12 +47,12 @@ def test_dispatch_bad_json_and_empty_text(tmp_path):
 
 
 class _Allow:
-    def check(self, tool):
+    def check(self, tool, arguments=None):
         return Decision(True)
 
 
 class _Deny:
-    def check(self, tool):
+    def check(self, tool, arguments=None):
         return Decision(False, "测试拒绝")
 
 

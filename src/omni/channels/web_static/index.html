@@ -65,8 +65,8 @@ ul{list-style:none;overflow-y:auto}
 .tool-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tool-set{color:var(--dim);font-size:11px;flex-shrink:0}
 .header-spacer{flex:1}
-#open-terminal{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 16px;font-size:12.5px;cursor:pointer}
-#open-terminal:hover{border-color:var(--accent);color:var(--accent)}
+#open-terminal,#open-phone{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 16px;font-size:12.5px;cursor:pointer}
+#open-terminal:hover,#open-phone:hover{border-color:var(--accent);color:var(--accent)}
 #term-modal .modal-box{width:min(980px,96vw);height:min(660px,92vh);display:flex;flex-direction:column}
 #terminal{flex:1;min-height:0;background:#0e1116;border-radius:8px;overflow:hidden}
 #terminal .xterm{height:100%}
@@ -153,6 +153,7 @@ ul{list-style:none;overflow-y:auto}
   <div id="chips"></div>
   <div class="header-spacer"></div>
   <button id="open-terminal" title="内置终端（PowerShell）：不用再开 Windows 终端窗口">⌨ 终端</button>
+  <button id="open-phone" title="安卓手机：看屏 + 点击 + UI 树">📱 手机</button>
 </header>
 <main>
   <aside>
@@ -216,6 +217,28 @@ ul{list-style:none;overflow-y:auto}
     <div class="modal-title"><span>内置终端（PowerShell）</span><button class="modal-x" onclick="closeTerminal()">✕</button></div>
     <div id="terminal"></div>
     <div class="qr-hint">每个终端按钮会开一个独立会话；关闭弹窗即结束该会话。</div>
+  </div>
+</div>
+<!-- ============ 安卓手机 ============ -->
+<div id="phone-modal" class="modal hidden" onclick="if(event.target===this)closePhone()">
+  <div class="modal-box" style="width:min(1040px,96vw);height:min(740px,94vh)">
+    <div class="modal-title"><span>安卓手机（看屏 + 点击）</span><button class="modal-x" onclick="closePhone()">✕</button></div>
+    <div style="display:flex;gap:12px;flex:1;min-height:0">
+      <div style="flex:1.2;min-width:0;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="svc-btn" onclick="androidKey('KEYCODE_BACK')">← 返回</button>
+          <button class="svc-btn" onclick="androidKey('KEYCODE_HOME')">主屏</button>
+          <button class="svc-btn" onclick="loadAndroidTree()">刷新树</button>
+          <span id="android-state" style="font-size:11.5px;color:var(--dim)"></span>
+        </div>
+        <img id="android-stream" alt="手机屏幕" style="flex:1;min-height:0;object-fit:contain;background:#000;border-radius:8px;cursor:crosshair;min-width:0">
+        <div class="qr-hint">点击屏幕任意位置即下发点击（自动换算真实分辨率）。</div>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+        <div class="hint">UI 树（观察用；小鱼用 tap_element 走的同一份索引）</div>
+        <pre id="android-tree" style="flex:1;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11px/1.6 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
+      </div>
+    </div>
   </div>
 </div>
 <!-- ============ 设置中心 ============ -->
@@ -306,6 +329,9 @@ ul{list-style:none;overflow-y:auto}
         <h3>定时任务</h3>
         <div class="hint">到点自动执行并投递；对小鱼说"每天早上八点给我发B站日报"即可新增。心跳进程（omni-heartbeat）需在运行。</div>
         <div id="cron-list"></div>
+        <h3 style="margin-top:18px">执行历史</h3>
+        <div class="hint">最近的任务执行记录（成功与失败都记账，滚动保留 200 条）。</div>
+        <div id="cron-history"></div>
       </div>
       <div class="hub-card" id="sec-about">
         <h3>关于</h3>
@@ -593,6 +619,14 @@ async function loadCron(){
       `<button class="svc-btn" onclick="cronToggle('${esc(j.name)}',${!j.enabled})">${j.enabled?'停用':'启用'}</button>`+
       `<button class="svc-btn" onclick="cronDelete('${esc(j.name)}')">删除</button></div>`).join(''):'<div class="empty">还没有定时任务</div>';
   }catch(e){$('#cron-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+  try{
+    const h=await api('/api/system/cron/history');
+    $('#cron-history').innerHTML=h.history.length?h.history.map(x=>
+      `<div class="cron-row"><span class="c-name">${esc(x.job)}</span>`+
+      `<span class="c-sched">${esc((x.started_at||'').slice(5,16))} · ${x.duration_s}s · ${x.ok?'✅':'❌'}</span>`+
+      `<span style="color:var(--dim);font-size:11.5px;flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((x.result||'').slice(0,60))}</span></div>`).join('')
+      :'<div class="empty">还没有执行记录</div>';
+  }catch(e){$('#cron-history').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
 window.cronToggle=async(name,enabled)=>{
   try{await api('/api/system/cron/toggle',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -672,6 +706,46 @@ function initTerminal(){
 }
 window.addEventListener('resize',()=>{if(termSessionOpen&&termFit){try{termFit.fit()}catch(e){}}});
 $('#open-terminal').onclick=openTerminal;
+
+// ---------- 安卓手机（MJPEG 看屏 + 点击下发） ----------
+window.openPhone=async()=>{
+  $('#phone-modal').classList.remove('hidden');
+  $('#android-stream').src='/api/android/stream?'+Date.now();
+  let st;
+  try{st=await api('/api/android/state')}catch(e){st={connected:false,detail:e.message}}
+  $('#android-state').textContent=st.connected
+    ?`已连接 ${st.serial}（${st.width}x${st.height}）`
+    :'未连接：'+(st.detail||'装 adb 并插上手机');
+  if(st.connected)loadAndroidTree();
+};
+window.closePhone=()=>{
+  $('#phone-modal').classList.add('hidden');
+  $('#android-stream').removeAttribute('src');
+};
+window.loadAndroidTree=async()=>{
+  try{
+    const d=await api('/api/android/tree');
+    $('#android-tree').textContent=d.tree;
+  }catch(e){$('#android-tree').textContent='获取失败：'+e.message}
+};
+window.androidKey=async code=>{
+  try{
+    await api('/api/android/key',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({keycode:code})});
+    setTimeout(loadAndroidTree,900);
+  }catch(e){$('#android-state').textContent='失败：'+e.message}
+};
+$('#android-stream').addEventListener('click',async e=>{
+  const img=e.target,r=img.getBoundingClientRect();
+  if(!r.width)return;
+  try{
+    await api('/api/android/tap',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top),
+        stream_w:Math.round(r.width),stream_h:Math.round(r.height)})});
+    setTimeout(loadAndroidTree,900);
+  }catch(err){$('#android-state').textContent='点击失败：'+err.message}
+});
+$('#open-phone').onclick=openPhone;
 
 (async function init(){
   try{await loadState();await loadSessions();await loadMessages();refreshMemory()}

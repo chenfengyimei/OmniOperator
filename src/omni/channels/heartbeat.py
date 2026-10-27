@@ -20,6 +20,7 @@ async def _serve(runtime) -> None:
         runtime.cron_jobs,
         make_runtime_executor(runtime),
         make_runtime_deliver(runtime),
+        ledger=runtime.cron_ledger,
     )
 
     async def _ignore_event(_event: dict) -> None:

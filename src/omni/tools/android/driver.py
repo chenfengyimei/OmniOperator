@@ -24,6 +24,19 @@ from .ui import parse_elements, render_tree
 DEFAULT_FRESH_TTL_S = 600.0  # 缓存树超过 10 分钟即视为陈旧（屏幕可能已锁屏/跳转）
 
 
+def scale_coords(
+    x: int, y: int, stream_w: int, stream_h: int, real_w: int, real_h: int
+) -> tuple[int, int]:
+    """帧内坐标 → 真实屏幕坐标（NOTES §2.3：换算只在唯一入口做一次）。
+
+    stream_w/h 是前端展示帧的尺寸，real_w/h 来自 wm size；两者可不同
+    （后端将来做半分辨率压缩也只改这里）。
+    """
+    if not stream_w or not stream_h:
+        raise AdbError("stream_w/stream_h 必须为正（前端须上传展示帧尺寸）")
+    return round(x * real_w / stream_w), round(y * real_h / stream_h)
+
+
 class AndroidDriver:
     def __init__(
         self,
@@ -126,12 +139,25 @@ class AndroidDriver:
         path.write_bytes(png)
         return path
 
+    def screenshot_bytes(self) -> bytes:
+        """当前屏幕 PNG（不落盘）——工作台 MJPEG 流每帧调用。"""
+        serial = self._adb.require_device()
+        return self._adb.screencap(serial)
+
     def screen_size(self) -> tuple[int, int]:
         if self._screen is None:
             serial = self._adb.require_device()
             self._screen = self._adb.screen_size(serial)
             self._save_cache()
         return self._screen
+
+    def tap_scaled(self, x: int, y: int, stream_w: int, stream_h: int) -> str:
+        """工作台点屏：帧内坐标 + 帧尺寸 → wm size 反算真实坐标后点击。"""
+        serial = self._adb.require_device()
+        w, h = self._adb.screen_size(serial)
+        rx, ry = scale_coords(int(x), int(y), int(stream_w), int(stream_h), w, h)
+        self._adb.tap(serial, rx, ry)
+        return f"已点击 ({rx},{ry})"
 
     # ---------- 动作（CONFIRM 级，每轮只做一个） ----------
 

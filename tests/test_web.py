@@ -229,7 +229,58 @@ def test_cron_endpoints(tmp_path):
     assert client.post("/api/system/cron/delete", json={"name": "nope"}).json()["ok"] is False
 
 
+def test_cron_history_endpoint(tmp_path, monkeypatch):
+    client, runtime = _client(tmp_path)
+    # 账本默认落 data/（真机运行态），测试必须指向 tmp 防污染
+    monkeypatch.setattr(runtime.cron_ledger, "_path", tmp_path / "exec.json")
+    assert client.get("/api/system/cron/history").json()["history"] == []
+    runtime.cron_ledger.record(
+        "j1", "2026-10-27T10:00:00", 2.0, ok=True, result="结果", delivery=""
+    )
+    rows = client.get("/api/system/cron/history").json()["history"]
+    assert rows and rows[0]["job"] == "j1" and rows[0]["ok"] is True
+    # 新的在前
+    runtime.cron_ledger.record("j2", "2026-10-27T11:00:00", 1.0, ok=False, result="炸了")
+    rows = client.get("/api/system/cron/history").json()["history"]
+    assert [r["job"] for r in rows] == ["j2", "j1"]
+
+
 def test_model_test_endpoint_rejects_bad_model(tmp_path):
     client, _rt = _client(tmp_path)
     resp = client.post("/api/system/model-test", json={"model": "nonexistent/model-xyz"})
     assert resp.status_code == 400
+
+
+def test_android_endpoints_without_device(tmp_path, monkeypatch):
+    """无设备时安卓端点全部降级为 409/未连接（不猜、不阻塞）。"""
+    client, runtime = _client(tmp_path)
+    from omni.tools.android.adb import AdbError
+
+    def boom(*a, **k):
+        raise AdbError("没有已授权的安卓设备")
+
+    monkeypatch.setattr(runtime.android._adb, "require_device", boom)
+    state = client.get("/api/android/state").json()
+    assert state["connected"] is False and state["detail"]
+    assert client.get("/api/android/tree").status_code == 409
+    assert (
+        client.post(
+            "/api/android/tap", json={"x": 1, "y": 2, "stream_w": 10, "stream_h": 20}
+        ).status_code
+        == 409
+    )
+    assert client.post("/api/android/element", json={"idx": 0}).status_code == 409
+    assert (
+        client.post("/api/android/key", json={"keycode": "KEYCODE_BACK"}).status_code
+        == 409
+    )
+
+
+def test_android_state_connected(tmp_path, monkeypatch):
+    client, runtime = _client(tmp_path)
+    monkeypatch.setattr(runtime.android._adb, "require_device", lambda: "EMU1")
+    monkeypatch.setattr(
+        runtime.android._adb, "screen_size", lambda serial: (1080, 2400)
+    )
+    state = client.get("/api/android/state").json()
+    assert state == {"connected": True, "serial": "EMU1", "width": 1080, "height": 2400}

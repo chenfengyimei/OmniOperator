@@ -30,6 +30,24 @@ def main() -> None:
     console = Console()
     runtime = build_runtime(approver=ConsoleApprover(console))
     agent = runtime.agent
+    # approval.mode=smart：CONFIRM 先经辅助模型预筛，拿不准仍回到终端问询
+    if runtime.config.approval.mode == "smart":
+        from ..safety.smart import SmartApprover
+
+        review_model = runtime.config.models.review.strip() or agent.model
+
+        def _ask(system: str, user: str) -> str:
+            reply = runtime.gateway.complete(
+                [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                model=review_model,
+                tools=None,
+            )
+            return reply.text
+
+        agent.approver = SmartApprover(base=ConsoleApprover(console), ask_model=_ask)
 
     console.print(
         Panel.fit(

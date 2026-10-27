@@ -14,7 +14,8 @@ from .config import AppConfig, load_config
 from .core.agent import Agent
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
-from .memory.cron import JobStore
+from .memory.cron import ExecutionLog, JobStore
+from .memory.resident import ResidentMemory
 from .memory.skills import SkillStore
 from .memory.store import MemoryStore
 from .safety.broker import ApprovalBroker
@@ -30,6 +31,7 @@ from .tools.builtin import (
     register_digest_tool,
     register_memory_tools,
     register_profile_tools,
+    register_resident_tools,
     register_todo_tools,
 )
 from .tools.cron_tools import register_cron_tools
@@ -53,11 +55,13 @@ class Runtime:
     registry: ToolRegistry
     skills: SkillStore
     cron_jobs: JobStore
+    cron_ledger: ExecutionLog
     browser: BrowserDriver
     write_budget: WriteBudget
     approvals: ApprovalBroker
     services: ServiceManager
     agent: Agent
+    android: AndroidDriver
     reviewer: TurnEndReviewer | None = None
     qq: OneBotClient | None = None
 
@@ -94,13 +98,16 @@ def build_runtime(
     skills = SkillStore(skills_root)
     registry = ToolRegistry()
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
+    resident = ResidentMemory(char_limit=config.limits.resident_memory_chars)
     register_core_tools(registry, store)
     register_digest_tool(registry, store)
     register_todo_tools(registry, store, session_ref)
+    register_resident_tools(registry, resident)
     register_shell_tools(registry)
     register_skill_tools(registry, skills)
     register_bilibili_tools(registry, BiliAPI(), config.asr)
     cron_jobs = JobStore()
+    cron_ledger = ExecutionLog()
     register_cron_tools(registry, cron_jobs, config.qq.allowed_users)
     browser = BrowserDriver(
         headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms
@@ -121,16 +128,17 @@ def build_runtime(
     session_id = store.latest_session_id() or store.new_session()
     agent = Agent(
         config, gateway, store, registry, session_id,
-        approver=approver, session_ref=session_ref,
+        approver=approver, session_ref=session_ref, resident=resident,
     )
 
-    # 回合后 review：白名单（最小权限：记忆/档案/技能）在这里定义，
+    # 回合后 review：白名单（最小权限：记忆/档案/常驻笔记/技能）在这里定义，
     # 属策略接线；store/registry 工厂保证每次 review 用独立连接与注册表
-    # （技能是文件存储，SkillStore 实例线程安全，可直接共享）。
+    # （技能是文件存储、常驻记忆自带锁，实例线程安全，可直接共享）。
     def _review_registry(review_store: MemoryStore) -> ToolRegistry:
         review_registry = ToolRegistry()
         register_memory_tools(review_registry, review_store)
         register_profile_tools(review_registry, review_store)
+        register_resident_tools(review_registry, resident)
         register_skill_tools(review_registry, skills)
         return review_registry
 
@@ -151,11 +159,13 @@ def build_runtime(
         registry=registry,
         skills=skills,
         cron_jobs=cron_jobs,
+        cron_ledger=cron_ledger,
         browser=browser,
         write_budget=write_budget,
         approvals=approvals,
         services=services,
         agent=agent,
+        android=android_driver,
         reviewer=reviewer,
         qq=qq_client,
     )

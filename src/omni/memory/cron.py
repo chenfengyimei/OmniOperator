@@ -85,6 +85,61 @@ def to_iso(value: dt.datetime) -> str:
     return value.astimezone().isoformat(timespec="seconds")
 
 
+class ExecutionLog:
+    """执行账本（Hermes executions ledger 最小版）：滚动保留最近 keep 条。
+
+    成功与失败都记账（结果摘要 + 投递摘要），跨进程共享同一文件
+    （心跳进程写、工作台 API 读），写加锁 + tmp+os.replace 原子替换。
+    """
+
+    def __init__(self, path: Path | None = None, keep: int = 200) -> None:
+        self._path = path or (DATA_DIR / "cron_executions.json")
+        self._keep = keep
+        self._lock = threading.Lock()
+
+    def record(
+        self,
+        job: str,
+        started_at: str,
+        duration_s: float,
+        ok: bool,
+        result: str = "",
+        delivery: str = "",
+    ) -> None:
+        entry = {
+            "job": job,
+            "started_at": started_at,
+            "duration_s": round(duration_s, 2),
+            "ok": ok,
+            "result": result[:300],
+            "delivery": delivery[:200],
+        }
+        with self._lock:
+            rows = self._load()
+            rows.append(entry)
+            self._save(rows[-self._keep :])
+
+    def recent(self, limit: int = 50) -> list[dict]:
+        with self._lock:
+            rows = self._load()
+        return list(reversed(rows[-limit:]))
+
+    def _load(self) -> list[dict]:
+        try:
+            data = json.loads(self._path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return []
+        return data if isinstance(data, list) else []
+
+    def _save(self, rows: list[dict]) -> None:
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self._path.with_suffix(".tmp")
+        tmp.write_text(
+            json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8"
+        )
+        os.replace(tmp, self._path)
+
+
 class JobStore:
     _lock = threading.Lock()  # 类级锁：工具进程与调度器并发读写同一文件
 
