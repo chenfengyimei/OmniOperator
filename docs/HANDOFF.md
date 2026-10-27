@@ -22,14 +22,14 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **246 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
+- 测试：`uv run pytest`（当前 **339 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
 
 ## 2. 五分钟上手
 
 ```powershell
 cd D:\xm\OmniOperator
 uv run pytest                      # 全量测试（必须全绿再提交）
-uv run omni-web                    # 工作台 http://127.0.0.1:8000
+uv run omni-web                    # 工作台 http://127.0.0.1:8000（控制台会打印配对链接，点开才可操作）
 uv run omni-cli                    # 终端 REPL
 uv run omni-qq                     # QQ 通道（需 NapCat 运行）
 uv run omni-heartbeat              # 心跳调度（cron）
@@ -88,6 +88,8 @@ uv run omni-heartbeat              # 心跳调度（cron）
   会话 / 聊天 / 右侧六页（记忆·档案·常驻·待办·Review·技能）/ 工具列表 / 服务面板 / 扫码弹窗 /
   设置中心（人设·模型·记忆·B站与转写·浏览器·QQ·定时任务（含新建表单+执行历史）·关于）/
   **内置终端**（xterm.js + ConPTY，header「⌨ 终端」）/ **安卓手机页**（MJPEG 看屏 + 点屏下发 + UI 树）
+  / **配对身份**（`channels/web_auth.py`：控制台配对链接 → HttpOnly 会话 cookie；Host/Origin/CSRF 三级校验；
+  终端 WS 握手鉴权；设置接口只回「密钥是否已配置」）
 - CLI（rich REPL，`/new /list /use /switch /tools /memory /skills /help`）
 - QQ（OneBot v11 正向 WS，白名单 + 拟人延迟 + 长消息分段）：
   空白名单不响应任何人；私聊 `dm:<qq>` 与群聊 `group:<群号>` 各自一条历史；

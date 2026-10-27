@@ -140,8 +140,24 @@ roots 或 elicitation 回调，故不能借服务器反向调用模型或扩大�
 不注入档案/常驻笔记，并把 `core.agent.GROUP_DENIED_TOOLS` 从工具规格与派发两处同时剔除。
 D12/D22 会把这里换成正式的记忆作用域策略，本节的 API 形状保持不变。
 
-## 6. Phase 架构演进预告
-| Phase | 新增 | 结构原则 |
+### 5.8 工作台身份（channels/web_auth.py，D03）
+
+`WebAuth` 是工作台唯一的身份判定，`channels/web.py` 只在中间件与两处握手点调用它：
+
+- **配对**：启动时在控制台打印 `http://127.0.0.1:8000/pair/<码>`，点开即设 HttpOnly + SameSite=Strict
+  的签名会话 cookie（`sid.exp.hmac`，密钥在 `data/web_secret`）；码 15 分钟有效、
+  连续 5 次错误即更换并重新打印。删除 `web_secret` 等于让所有已配对浏览器失效。
+- **三级校验**：Host 必须是本地主机名（挡 DNS rebinding）→ 写方法校验 Origin 与 `Sec-Fetch-Site`（挡 CSRF）
+  → 除 `/api/auth/*` 外一律要求会话。终端 WS 握手同样要 Host+Origin+会话，缺一即 `close(1008)`。
+- **不启用 CORS**：CORS 不是认证；这里既不发 CORS 头，也不依赖它。
+- **密钥不回显**：`/api/system/config` 对 `qq.access_token` 只回 `access_token_configured`；
+  保存接口三态——缺省/空串保留旧值、`null` 清除、非空替换；含密钥字段的错误信息不回显值。
+- **监听**：`_validate_bind_host` 只放行回环地址，非回环需 `OMNI_WEB_ALLOW_REMOTE=1`（默认失败关闭）。
+
+新增接口时：路由只要在 `/api/` 下就自动受保护（中间件统一拦截），**不要**为某个接口单独放宽
+`PUBLIC_PATHS`；前端不需要改，配对链接由浏览器导航完成。
+
+## 6. Phase 架构演进预告| Phase | 新增 | 结构原则 |
 |---|---|---|
 | P1 | `tools/bilibili/`（读 API + WBI 签名）、memory 向量检索（sqlite-vec）、回合后 review 线程、`skills/` 技能系统 | api 层不知道 LLM；review 是 Gateway 的独立消费者（换廉价模型跑） |
 | P2 | `channels/qq.py`（NapCat OneBot v11）、`core/events.py` 事件总线 | 通道把平台消息归一成 Event 投给总线；P5 心跳复用同一条总线 |

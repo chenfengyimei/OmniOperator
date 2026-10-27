@@ -4,6 +4,10 @@
 领域操作全部通过 bootstrap.Runtime 门面，不构造核心对象。
 审批策略：WebApprover——safe 直通，confirm 弹工作台确认横幅（阻塞等待，
 超时自动拒绝），dangerous 一律拒绝。
+
+身份（A07）：除配对接口外，所有 `/api/*` 都要求配对后下发的 HttpOnly 会话 cookie；
+Host/Origin/Sec-Fetch-Site 三级校验挡住跨站与 DNS rebinding；终端 WS 握手同样要会话。
+默认只监听回环地址，非回环必须显式开启（`OMNI_WEB_ALLOW_REMOTE=1`）。
 """
 from __future__ import annotations
 
@@ -18,8 +22,8 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, WebSocket
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from PIL import Image
@@ -33,8 +37,12 @@ from ..safety.gates import WebApprover, private_target_allowed
 from ..system.config_io import EDITABLE, ConfigEditError, apply_updates, safe_write
 from ..system.services import ServiceError
 from .terminal import TerminalManager
+from .web_auth import COOKIE_NAME, LOOPBACK_HOSTS, WebAuth
 
 _STATIC_DIR = Path(__file__).parent / "web_static"
+
+# 只回"是否已配置"的密钥字段：接口不回显明文（A07）
+_SECRET_KEYS = {("qq", "access_token")}
 
 
 class ChatIn(BaseModel):
@@ -116,6 +124,54 @@ class ResidentUpdateIn(BaseModel):
     content: str = ""
 
 
+class PairIn(BaseModel):
+    code: str
+
+
+def _set_session_cookie(response, value: str, max_age: int):
+    response.set_cookie(
+        COOKIE_NAME,
+        value,
+        max_age=max_age,
+        httponly=True,  # 前端脚本读不到，XSS 也偷不走
+        samesite="strict",  # 跨站请求不携带 → CSRF 第一层
+        path="/",
+    )
+    return response
+
+
+def _create_auth(runtime: Runtime) -> WebAuth:
+    environ_host = os.environ.get("OMNI_WEB_HOST", "127.0.0.1")
+    port = int(os.environ.get("OMNI_WEB_PORT", "8000"))
+    return WebAuth(runtime.data_dir, bind_host=environ_host, port=port)
+
+
+def _normalize_secret_updates(
+    updates: dict[str, dict[str, Any]]
+) -> tuple[dict[str, dict[str, Any]], bool]:
+    """密钥字段三态归一，返回 (过滤后的更新, 是否触及密钥字段)。
+
+    - 键缺省 / 空串 → 保留旧值（前端拿到的是掩码，空值不能等于"清空"）
+    - `null` → 显式清除（写空串）
+    - 非空字符串 → 显式替换
+    """
+    cleaned: dict[str, dict[str, Any]] = {}
+    touched = False
+    for section, keys in (updates or {}).items():
+        for key, value in (keys or {}).items():
+            if (section, key) not in _SECRET_KEYS:
+                cleaned.setdefault(section, {})[key] = value
+                continue
+            touched = True
+            if value is None:
+                cleaned.setdefault(section, {})[key] = ""
+            elif isinstance(value, str) and not value.strip():
+                continue  # 保留旧值
+            else:
+                cleaned.setdefault(section, {})[key] = value
+    return {s: k for s, k in cleaned.items() if k}, touched
+
+
 def create_app(runtime: Runtime) -> FastAPI:
     """把 Runtime 暴露成 REST + 静态工作台（测试用 TestClient 直接调）。"""
     @asynccontextmanager
@@ -127,6 +183,85 @@ def create_app(runtime: Runtime) -> FastAPI:
 
     app = FastAPI(title="OmniOperator Workbench", lifespan=lifespan)
     terminal_manager = TerminalManager()
+    auth = _create_auth(runtime)
+    app.state.web_auth = auth  # 供启动脚本打印配对链接 / 测试读取配对码
+
+    @app.middleware("http")
+    async def identity_guard(request: Request, call_next):
+        """统一身份闸门：Host → CSRF → 会话。静态资源不走这里。"""
+        path = request.url.path
+        if not path.startswith("/api/"):
+            if not auth.host_ok(request.headers.get("host")):
+                return JSONResponse({"detail": "Host 不被允许"}, status_code=400)
+            return await call_next(request)
+        rejection = auth.check_request(
+            method=request.method,
+            path=path,
+            host=request.headers.get("host"),
+            origin=request.headers.get("origin"),
+            fetch_site=request.headers.get("sec-fetch-site"),
+            cookie=request.cookies.get(COOKIE_NAME),
+        )
+        if rejection is not None:
+            status = 401 if rejection.code == "auth_required" else 403
+            return JSONResponse(
+                {"detail": rejection.detail, "code": rejection.code}, status_code=status
+            )
+        return await call_next(request)
+
+    # ---------- 配对（唯一无需会话的写接口，本身也拒绝跨站） ----------
+
+    @app.get("/api/auth/status")
+    def auth_status(request: Request) -> dict[str, Any]:
+        return {
+            "auth_required": True,
+            "paired": auth.verify_session(request.cookies.get(COOKIE_NAME)),
+            "session_days": auth.session_ttl // 86400,
+        }
+
+    @app.post("/api/auth/pair")
+    def auth_pair(payload: PairIn, request: Request) -> JSONResponse:
+        # 身份建立接口自己不能允许跨站配对：Origin 必须是本机
+        if not auth.origin_ok(request.headers.get("origin")):
+            return JSONResponse(
+                {"detail": "拒绝跨站配对", "code": "origin_rejected"}, status_code=403
+            )
+        result = auth.pair(payload.code)
+        if not isinstance(result, str):
+            return JSONResponse(
+                {"detail": result.detail, "code": result.code}, status_code=403
+            )
+        response = JSONResponse({"ok": True, "session_days": auth.session_ttl // 86400})
+        return _set_session_cookie(response, result, auth.session_ttl)
+
+    @app.post("/api/auth/logout")
+    def auth_logout() -> JSONResponse:
+        response = JSONResponse({"ok": True})
+        response.delete_cookie(COOKIE_NAME, path="/")
+        return response
+
+    @app.get("/pair/{code}")
+    def pair_link(code: str, request: Request):
+        """控制台配对链接：设置会话 cookie 后跳回工作台（前端不需要改）。
+
+        拒绝跨站导航（`Sec-Fetch-Site: cross-site`）——否则恶意页面可以把用户
+        "导航"到这个链接来帮忙完成配对。
+        """
+        fetch_site = (request.headers.get("sec-fetch-site") or "").strip().lower()
+        if fetch_site and fetch_site not in ("same-origin", "none"):
+            return HTMLResponse(
+                "<h3>拒绝跨站配对</h3><p>请直接打开控制台输出的配对链接。</p>",
+                status_code=403,
+            )
+        result = auth.pair(code)
+        if not isinstance(result, str):
+            return HTMLResponse(
+                f"<h3>配对失败</h3><p>{result.detail}</p>"
+                "<p>配对链接在控制台（omni-web 窗口）里，重新打开即可。</p>",
+                status_code=403,
+            )
+        response = RedirectResponse("/", status_code=303)
+        return _set_session_cookie(response, result, auth.session_ttl)
 
     @app.get("/api/state")
     def get_state() -> dict[str, Any]:
@@ -383,7 +518,9 @@ def create_app(runtime: Runtime) -> FastAPI:
             "qq": {
                 "enabled": cfg.qq.enabled,
                 "ws_url": cfg.qq.ws_url,
-                "access_token": cfg.qq.access_token,
+                # 不回显明文：前端只能知道"是否已配置"，修改见 system_config_save 的三态规则
+                "access_token": "",
+                "access_token_configured": bool(cfg.qq.access_token),
                 "allowed_users": cfg.qq.allowed_users,
                 "allowed_groups": cfg.qq.allowed_groups,
                 "reply_delay_s": cfg.qq.reply_delay_s,
@@ -399,12 +536,16 @@ def create_app(runtime: Runtime) -> FastAPI:
 
     @app.post("/api/system/config")
     def system_config_save(payload: ConfigUpdateIn) -> dict[str, Any]:
+        """改配置：密钥字段三态——缺省/空串=保留旧值，null=显式清除，非空=替换。"""
+        updates, touched_secret = _normalize_secret_updates(payload.updates)
         try:
             text = CONFIG_PATH.read_text(encoding="utf-8")
-            new_text = apply_updates(text, payload.updates)
+            new_text = apply_updates(text, updates)
             safe_write(CONFIG_PATH, new_text)
         except (ConfigEditError, OSError) as exc:
-            raise HTTPException(status_code=400, detail=str(exc))
+            # 含密钥字段时只回笼统原因，避免把密钥值回显到错误信息/日志里
+            detail = "配置更新被拒绝（含密钥字段，详情已省略）" if touched_secret else str(exc)
+            raise HTTPException(status_code=400, detail=detail)
         return {
             "ok": True,
             "hint": "已写入 config.yaml；正在运行的服务重启后生效（见服务面板）",
@@ -629,6 +770,15 @@ def create_app(runtime: Runtime) -> FastAPI:
 
     @app.websocket("/api/terminal/ws")
     async def terminal_ws(ws: WebSocket) -> None:
+        # 握手前先验身份：未配对的连接直接拒绝（accept 之前 close = 403 握手失败）
+        rejection = auth.check_websocket(
+            host=ws.headers.get("host"),
+            origin=ws.headers.get("origin"),
+            cookie=ws.cookies.get(COOKIE_NAME),
+        )
+        if rejection is not None:
+            await ws.close(code=1008)
+            return
         await ws.accept()
         if not terminal_manager.available:
             await ws.send_text(
@@ -688,8 +838,25 @@ def create_app(runtime: Runtime) -> FastAPI:
     return app
 
 
+def _validate_bind_host(host: str) -> str:
+    """默认只允许回环监听；非回环必须显式开启（`OMNI_WEB_ALLOW_REMOTE=1`）。"""
+    if host in LOOPBACK_HOSTS:
+        return host
+    if os.environ.get("OMNI_WEB_ALLOW_REMOTE") == "1":
+        return host
+    raise SystemExit(
+        f"拒绝在非回环地址 {host} 监听：工作台是本地单所有者工具，没有公网认证。"
+        "确需远程访问请设 OMNI_WEB_ALLOW_REMOTE=1，并自行承担风险（建议走 SSH 隧道）"
+    )
+
+
 def main() -> None:
     load_env()
+    host = (os.environ.get("OMNI_WEB_HOST") or "127.0.0.1").strip()
+    port = int(os.environ.get("OMNI_WEB_PORT", "8000"))
+    if host not in LOOPBACK_HOSTS:
+        _validate_bind_host(host)  # 未显式开启会 SystemExit
+        print(f"[工作台] 警告：正在非回环地址 {host} 监听（已由 OMNI_WEB_ALLOW_REMOTE=1 显式开启）")
     runtime = build_runtime()
     # Web 上下文的确认流：confirm 工具 → 工作台横幅（agent 线程阻塞等待用户点击）。
     # approval.mode=smart 时先经辅助模型预筛（明显安全放行/明显危险拒），拿不准仍走横幅。
@@ -713,9 +880,9 @@ def main() -> None:
         approver = SmartApprover(base=approver, ask_model=_ask)
     runtime.agent.approver = approver
     app = create_app(runtime)
-    host = os.environ.get("OMNI_WEB_HOST", "127.0.0.1")
-    port = int(os.environ.get("OMNI_WEB_PORT", "8000"))
+    auth = app.state.web_auth
     print(f"OmniOperator 工作台已启动：http://{host}:{port}  （Ctrl+C 退出）")
+    auth.announce_pairing()
     uvicorn.run(app, host=host, port=port, log_level="warning")
 
 

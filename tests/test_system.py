@@ -169,12 +169,21 @@ def test_system_tools_dispatch(tmp_path):
 # ---------- Web 端点 ----------
 
 def test_system_endpoints(tmp_path, monkeypatch):
+    config_path = tmp_path / "boot.yaml"
+    config_path.write_text("persona:\n  name: 测试小鱼\n", encoding="utf-8")
     runtime = build_runtime(
         approver=DenyApprover(),
         db_path=tmp_path / "m.db",
+        config_path=config_path,
         skills_root=tmp_path / "skills",
+        data_dir=tmp_path / "data",
     )
-    client = TestClient(create_app(runtime))
+    app = create_app(runtime)
+    client = TestClient(app, base_url="http://127.0.0.1")
+    # 工作台身份：先配对（Host 必须是本地主机名）
+    assert client.post(
+        "/api/auth/pair", json={"code": app.state.web_auth.pairing_code}
+    ).status_code == 200
 
     overview = client.get("/api/system/overview").json()
     assert {s["name"] for s in overview["services"]} == {

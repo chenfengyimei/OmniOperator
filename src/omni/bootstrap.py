@@ -72,6 +72,7 @@ class Runtime:
     reviewer: TurnEndReviewer | None = None
     qq: OneBotClient | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
+    data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
 
     def qq_policy(self) -> QQ:
         """当前 QQ 授权策略：每次从配置源重读，撤销白名单不必重启进程。"""
@@ -208,4 +209,5 @@ def build_runtime(
         reviewer=reviewer,
         qq=qq_client,
         config_path=config_path,
+        data_dir=data_root,
     )

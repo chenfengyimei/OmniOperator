@@ -43,7 +43,7 @@
 | A04 | `make_runtime_deliver` 用 `if allowed and ...`：空白名单 = 不限，cron 可发给任意 QQ；工作台建任务 `cron_create` 同款判断 | 复现→已修复 | `test_a04_*` 翻转；`test_cron.py::test_runtime_deliver_guards` 覆盖空白名单/撤销；`test_web.py` 覆盖建任务校验与撤销 | D02、D17 | 已修复；投递 outbox 与去重仍属 D17 |
 | A05 | 私聊与各群共用 `get_or_create_binding("qq", str(user_id))`，历史跨场景混合 | 复现→已修复 | 绑定键改为 `dm:<qq>` / `group:<群号>`；`test_a05_*`；旧键只迁给私聊；群聊 `personal_context=False` 并有 `GROUP_DENIED_TOOLS` | D02、D06、D22 | 已修复（记忆作用域完整策略仍待 D12/D22） |
 | A06 | Web `/api/chat` 先改共享 `runtime.agent.session_id` 再 `chat()`，响应与 review 也读共享值；并发请求会串话 | 源码 | `channels/web.py:210-220` | D06 | 源码发现 |
-| A07 | 全套 API 无身份校验、无 Origin/Host 校验；`/api/terminal/ws` 直接 `accept()`；`/api/system/config` 回显 `qq.access_token` 明文 | 源码 | `channels/web.py:358-398`、`626-628`、`712`（`OMNI_WEB_HOST` 可任意） | D03 | 源码发现 |
+| A07 | 全套 API 无身份校验、无 Origin/Host 校验；`/api/terminal/ws` 直接 `accept()`；`/api/system/config` 回显 `qq.access_token` 明文 | 源码→已修复 | `tests/test_web_auth.py` 31 例：12 个敏感 GET 未配对即 401、写接口/服务/审批/WS 全拒、跨站 POST 无副作用、Host 伪造、过期/篡改会话、密钥不回显与三态修改、非回环监听默认拒绝 | D03 | 已修复（真实浏览器跨站尝试与 PTY 会话待手动验收） |
 | A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码 | `tools/android/driver.py:136`、`channels/web.py:28,403,419,439`、`bootstrap.py:131` | D04 | 源码发现 |
 | A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换：`JobStore`/`ExecutionLog`/`WriteBudget`/`ResidentMemory` | 源码 | `memory/cron.py`、`tools/browser/budget.py:33-58` | D05、D08 | 源码发现 |
 | A10 | 损坏/不可读状态一律当空数据：`WriteBudget._load` 返回 `{}` → 当日额度被重置；`JobStore` 读失败降级 | 源码 | `tools/browser/budget.py:44-50` | D05、D25 | 源码发现 |
@@ -71,7 +71,7 @@
 | D00 | 完成 | 本文件 + `tests/test_r0_repro.py`（A01–A05 复现） | `3fbf762` | `uv run pytest -q` → 254 passed（246 基线 + 8 复现） | 不适用 | 进入 D01 |
 | D01 | 完成 | A01、A02（命令面）、A19（进程边界） | 见第 5 节 | `uv run pytest -q` → 297 passed | 真实命令面（中文输出、带空格路径）已由本机 `git status` 用例覆盖；真实危险命令不做验收 | 进入 D02 |
 | D02 | 完成 | A03、A04、A05 | 见第 5 节 | `uv run pytest -q` → 308 passed | QQ 真实收发未验（需 NapCat 扫码登录） | 进入 D03 |
-| D03 | 待开始 | A07 | — | — | 浏览器真实跨站尝试待验 | — |
+| D03 | 完成 | A07 | 见第 5 节 | `uv run pytest -q` → 339 passed | 真实浏览器跨站请求、真实 ConPTY 会话待手动验收；前端设置页对 `access_token` 的展示需跟随（见第 5 节遗留项） | 进入 D04 |
 | D04 | 待开始 | A08 | — | — | 真机目录 canary 待验 | — |
 | D05–D08 | 待开始 | A09、A10、A14、A17 | — | — | — | 依赖 D04 |
 | D09–D12 | 待开始 | A06、A15、A16、A19、A20 | — | — | — | 依赖 R1 |
@@ -81,6 +81,30 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D03（工作台与终端身份保护）
+
+- **改了什么**：
+  - 新增 `channels/web_auth.py`：配对码 → HttpOnly + SameSite=Strict 的 HMAC 签名会话
+    （`sid.exp.sig`，密钥 `data/web_secret`）；15 分钟配对码、连续 5 次失败即更换并在控制台重打链接；
+  - 新增 `GET /pair/<码>`：控制台打印这条链接，浏览器点开即完成配对并 303 跳回工作台——
+    **前端零改动**（`index.html` 是另一项未提交的前端工作，本次一行未动）；
+  - `channels/web.py` 加统一中间件：Host 必须是本地主机名（挡 DNS rebinding）→ 写方法校验
+    Origin 与 `Sec-Fetch-Site`（挡 CSRF）→ 除 `/api/auth/*` 外一律要求会话；错误带机器码
+    `host_rejected/csrf_rejected/auth_required`；
+  - 终端 WS 在 `accept()` 之前校验 Host+Origin+会话，缺一即 `close(1008)`；
+  - `/api/system/config` 不再回显 `qq.access_token`，改为 `access_token_configured` 布尔；
+    保存接口三态：缺省/空串=保留、`null`=清除、非空=替换；含密钥字段的错误信息不回显值；
+  - `_validate_bind_host`：非回环监听默认 `SystemExit`，需 `OMNI_WEB_ALLOW_REMOTE=1`；
+  - `Runtime` 增加 `data_dir`（工作台密钥落 `data_dir`，测试用临时根）。
+- **关闭了什么**：A07（身份、Origin/Host、CSRF、终端 WS、密钥回显、默认监听）。
+- **跑了什么**：`uv run pytest tests/test_web_auth.py -q` → 31 passed；
+  `uv run pytest -q` → **339 passed, 1 warning**。
+- **没测什么**：真实浏览器发起的跨站尝试（用 TestClient 模拟 Origin/Sec-Fetch-Site，不是真浏览器）；
+  真实 ConPTY 终端会话（只验了握手闸门矩阵，PTY 侧留待手动）；HTTPS/反代场景不在首版范围。
+- **遗留（交给前端 WIP 的所有者）**：设置中心「QQ access_token」输入框现在会读到空值——
+  这是刻意的（不回显明文）。空值保存 = 保留旧值，需要清除时请用 `null` 或专门的「清除」按钮。
+- **下一任务**：D04（全路径与外部依赖隔离）。
 
 ### 2026-10-27 · D02（QQ/cron 身份与投递边界）
 

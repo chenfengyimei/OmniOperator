@@ -16,8 +16,11 @@ from omni.memory.cron import Job, to_iso
 from omni.safety.gates import DenyApprover, Risk
 
 
-def _client(tmp_path, skills_root=None, config_text=None):
-    """临时配置 + 临时库：不读真机 config.yaml（QQ 白名单属真实授权，测试不能借用）。"""
+def _client(tmp_path, skills_root=None, config_text=None, pair=True):
+    """临时配置 + 临时库 + 真实配对：不读真机 config.yaml，也不绕过身份。
+
+    base_url 必须是 127.0.0.1——Host 校验会拒掉 TestClient 默认的 testserver。
+    """
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
         config_text if config_text is not None else "persona:\n  name: 测试小鱼\n",
@@ -30,7 +33,12 @@ def _client(tmp_path, skills_root=None, config_text=None):
         skills_root=skills_root,
         data_dir=tmp_path / "data",  # 隔离真机运行态（jobs/账本/常驻记忆/安卓缓存）
     )
-    return TestClient(create_app(runtime)), runtime
+    app = create_app(runtime)
+    client = TestClient(app, base_url="http://127.0.0.1")
+    if pair:
+        code = app.state.web_auth.pairing_code
+        assert client.post("/api/auth/pair", json={"code": code}).status_code == 200
+    return client, runtime
 
 
 @pytest.mark.parametrize("mode,size", [("RGB", (1080, 2400)), ("RGBA", (241, 121)), ("L", (1, 1))])
