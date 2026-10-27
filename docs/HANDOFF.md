@@ -13,7 +13,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **190 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
+- 测试：`uv run pytest`（当前 **194 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
 
 ## 2. 五分钟上手
 
@@ -108,7 +108,7 @@ MCP 客户端支持、技能 references 目录与安装扫描。
 8. **naive/aware datetime**：比较前统一 `astimezone()`
 9. **ConPTY 终端**：读取是阻塞的，必须在线程池跑；输出是带 VT 序列的碎块，判断内容别用短前缀
 10. **NapCat 快速登录 `-q`** 会触发风控要求扫码；扫码文件在 `napcat/napcat/cache/qrcode.png`
-11. **MJPEG 帧**：screencap 每次 0.5-2s，别提高帧率；PNG 帧浏览器可播，JPEG 压缩需 Pillow（未装）
+11. **MJPEG 帧**：screencap 每次 0.5-2s，别提高帧率；已用 Pillow 转半分辨率 JPEG q40；点屏继续携带实际帧尺寸，只在后端换算一次
 12. **pytest.raises match 中文** 在 GBK 控制台显示乱码但断言本身正常，别被吓到
 
 ## 6. 未完成事项（按优先级）
@@ -119,7 +119,7 @@ MCP 客户端支持、技能 references 目录与安装扫描。
 - 安卓真机：开 USB 调试插上 + 装 ADBKeyboard.apk → P4 联调（工作台「📱 手机」页已可用）
 
 ### 建议的下一步开发（按价值排序）
-1. **MJPEG 优化**：装 Pillow，半分辨率 + JPEG q40（NOTES §2.2 建议），带宽降 5-10 倍
+1. **MJPEG 优化（已完成）**：Pillow，半分辨率 + JPEG q40，坏帧/设备离线断流；已验证 RGB/RGBA/灰度与坐标换算，实际带宽与清晰度待安卓真机验收
 2. **技能工作台编辑**：目前只能看；加代码编辑器（右侧面板或弹窗）直改 SKILL.md + 版本回滚
 3. **cron 任务编辑**：目前只能删了重建；补 PUT 编辑 prompt/schedule
 4. **记忆向量检索**（sqlite-vec）：事实层语义搜索，替代纯 FTS

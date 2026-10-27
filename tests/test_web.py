@@ -3,9 +3,12 @@ import datetime as dt
 import json
 import threading
 import time
+from io import BytesIO
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
+from PIL import Image
+import pytest
 
 from omni.bootstrap import build_runtime
 from omni.channels.web import create_app
@@ -21,6 +24,35 @@ def _client(tmp_path, skills_root=None):
         data_dir=tmp_path / "data",  # 隔离真机运行态（jobs/账本/常驻记忆/安卓缓存）
     )
     return TestClient(create_app(runtime)), runtime
+
+
+@pytest.mark.parametrize("mode,size", [("RGB", (1080, 2400)), ("RGBA", (241, 121)), ("L", (1, 1))])
+def test_android_stream_encodes_half_size_jpeg(tmp_path, monkeypatch, mode, size):
+    client, runtime = _client(tmp_path)
+    png = BytesIO()
+    Image.new(mode, size).save(png, format="PNG")
+    frames = iter([png.getvalue()])
+    monkeypatch.setattr(runtime.android, "screenshot_bytes", lambda: next(frames))
+    response = client.get("/api/android/stream")
+    assert response.headers["content-type"] == "multipart/x-mixed-replace; boundary=frame"
+    assert response.headers["cache-control"] == "no-store"
+    header, data = response.content.split(b"\r\n\r\n", 1)
+    jpeg = data[:-2]
+    assert b"Content-Type: image/jpeg" in header
+    assert f"Content-Length: {len(jpeg)}".encode() in header
+    with Image.open(BytesIO(jpeg)) as decoded:
+        assert decoded.format == "JPEG" and decoded.mode == "RGB"
+        assert decoded.size == (max(1, size[0] // 2), max(1, size[1] // 2))
+        decoded.load()
+    # 看屏帧尺寸随请求上传，后端仍只做一次到真实分辨率的换算。
+    from omni.tools.android.driver import scale_coords
+    assert scale_coords(270, 600, 540, 1200, 1080, 2400) == (540, 1200)
+
+
+def test_android_stream_bad_capture_ends_without_invalid_frame(tmp_path, monkeypatch):
+    client, runtime = _client(tmp_path)
+    monkeypatch.setattr(runtime.android, "screenshot_bytes", lambda: b"bad screenshot")
+    assert client.get("/api/android/stream").content == b""
 
 
 def test_state_shape(tmp_path):

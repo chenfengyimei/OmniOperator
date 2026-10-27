@@ -11,6 +11,7 @@ import asyncio
 import datetime as dt
 import json
 import os
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,7 @@ from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from PIL import Image
 
 from ..bootstrap import Runtime, build_runtime
 from ..config import BILI_COOKIES_PATH, CONFIG_PATH, load_env
@@ -574,7 +576,7 @@ def create_app(runtime: Runtime) -> FastAPI:
 
     @app.get("/api/android/stream")
     def android_stream() -> StreamingResponse:
-        """MJPEG：screencap 循环出 PNG 帧（multipart/x-mixed-replace）。
+        """MJPEG：原始截图转半分辨率 JPEG q40，降低本机看屏带宽。
 
         设备掉线即断流（前端 onerror 提示重开）；断开连接由 StreamingResponse 收尾。
         """
@@ -584,19 +586,27 @@ def create_app(runtime: Runtime) -> FastAPI:
             while True:
                 try:
                     png = runtime.android.screenshot_bytes()
+                    with Image.open(BytesIO(png)) as source:
+                        size = (max(1, source.width // 2), max(1, source.height // 2))
+                        with source.convert("RGB") as rgb:
+                            with rgb.resize(size, Image.Resampling.BILINEAR) as frame:
+                                output = BytesIO()
+                                frame.save(output, format="JPEG", quality=40)
+                                jpeg = output.getvalue()
                 except Exception:  # noqa: BLE001
                     break
                 yield (
-                    b"--frame\r\nContent-Type: image/png\r\nContent-Length: "
-                    + str(len(png)).encode()
+                    b"--frame\r\nContent-Type: image/jpeg\r\nContent-Length: "
+                    + str(len(jpeg)).encode()
                     + b"\r\n\r\n"
-                    + png
+                    + jpeg
                     + b"\r\n"
                 )
                 _time.sleep(0.6)
 
         return StreamingResponse(
-            _frames(), media_type="multipart/x-mixed-replace; boundary=frame"
+            _frames(), media_type="multipart/x-mixed-replace; boundary=frame",
+            headers={"Cache-Control": "no-store"},
         )
 
     # ---------- 内置终端（ConPTY，Windows；仅本机 127.0.0.1） ----------
