@@ -106,7 +106,12 @@
 - **行为变化（前端需知）**：`/api/chat` 不再顺便把"当前会话"切到请求里的 `session_id`。
   需要切换请在会话列表里点选（`POST /api/sessions/{id}/select`），响应里仍带 `session_id`。
 - **过程记录**：为让 `uv run` 能重建（用户已授权重启旧服务），先停掉了旧代码的 `omni-web`/`omni-qq`；
-  之后所有测试回到普通 `uv run pytest`。
+  之后所有测试回到普通 `uv run pytest`。真机 `data/state.db` 已实际走过 v1→v2 增量迁移
+  （`schema_version=2`、`session_leases` 已建），不是只在测试里验过。
+- **运维备注（交接必读）**：本会话结束前 `omni-web`/`omni-qq` 处于**停止**状态——从工具会话里
+  拉起的分离进程会被回收，无法替用户常驻。请在终端自行启动：
+  `uv run omni-web`（控制台会打印新的配对链接，旧的 15 分钟后失效）、`uv run omni-qq`
+  （需 NapCat 在 3001 监听；本机 NapCat 当前未监听，启动后要扫码登录）。
 
 ### 2026-10-27 · D05（事务状态与可恢复迁移）
 
