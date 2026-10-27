@@ -65,7 +65,7 @@ uv run omni-heartbeat              # 心跳调度（cron）
 | core | daily_digest | 过去 N 小时活动摘要（夜间整理素材） |
 | core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite | 技能（SKILL.md，渐进披露，patch 按节省 token）；skill_view(name, path="references/guide.md") 按需读参考文本 |
 | core | delegate_task | 子任务委派到 UUID 独立会话（同标签并发也不串历史，thread-local 防嵌套，会话引用自动还原） |
-| shell | peek_command（SAFE，只读白名单）/ run_command（CONFIRM） | 本机命令；含硬黑名单（灾难级即使确认也不执行） |
+| shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
 | qq | qq_send_message | 主动私聊（限白名单） |
 | cron | cron_list / cron_add / cron_remove | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链） |
@@ -125,7 +125,9 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 11. **MJPEG 帧**：screencap 每次 0.5-2s，别提高帧率；已用 Pillow 转半分辨率 JPEG q40；点屏继续携带实际帧尺寸，只在后端换算一次
 12. **pytest.raises match 中文** 在 GBK 控制台显示乱码但断言本身正常，别被吓到
 13. **MCP Windows 进程收尾**：使用 AnyIO CancelScope，不能用原生 task.cancel 打断 SDK 的 shield 清理；Python 服务默认 PYTHONUTF8=1；超时后结果未知，不自动重放
-14. **data_dir 完整隔离**：除 jobs/常驻/安卓，memory.db（含 review）、浏览器 profile/截图/预算、服务 pid/日志、MCP 日志也统一注入；skills 仍由 skills_root 单独控制
+14. **data_dir 完整隔离**：除 jobs/常驻/安卓，memory.db（含 review）、浏览器 profile/截图/预算、服务 pid/日志、MCP 日志也统一注入；skills 仍由 skills_root 单独控制（仍有遗漏，见 DEVELOPMENT_STATUS 的 A08/D04）
+15. **SAFE 命令不要用 shell**：`shell=True` 下前缀白名单等于没有白名单（`git status & 任意命令`）。改成 argv + `shell=False` 后，参数形态也要逐条校验——`git branch <name>`、`git show HEAD:.env` 都能借只读子命令读写
+16. **`git status` 会写 index**：观察类 git 必须带 `GIT_OPTIONAL_LOCKS=0`，否则 SAFE 观察也会改仓库状态；超时用 `taskkill /F /T` 收进程树，不能只 kill 直接子进程
 
 ## 6. 未完成事项（按优先级）
 
@@ -173,7 +175,7 @@ src/omni/
   safety/broker.py       跨线程确认（Web 横幅）
   tools/registry.py      Registry + SessionRef
   tools/builtin.py       core 工具（记忆/档案/待办/常驻/摘要）
-  tools/shell_tools.py   命令执行 + 硬黑名单
+  tools/shell/           SAFE 结构化命令（spec/process/danger/tools）+ 兼容薄层 shell_tools.py
   tools/delegate_tools.py 子任务委派
   tools/skill_tools.py   技能工具
   tools/cron_tools.py    定时任务工具

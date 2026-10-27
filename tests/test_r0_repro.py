@@ -1,9 +1,9 @@
-"""R0 复现证据（D00）：固定 A01–A05 在当前 HEAD 的失效行为。
+"""R0 复现证据：A01–A05 的失效行为与关闭状态。
 
-**这些用例断言的是"问题存在"，不是期望行为。** 它们存在的意义是：
-1. 证明计划里登记的风险确实能在当前代码上触发（不是照抄文档）；
-2. 修复任务（D01/D02）把对应用例**翻转**成负例（必须在假执行器/假客户端之前拒绝），
-   翻转过程记录在 `docs/DEVELOPMENT_STATUS.md`，不删除本文件。
+**这些用例记录问题的生命周期，不是期望行为的最终定义。**
+- `test_a01_*` / `test_a02_*`：D01 已翻转——现在断言"在假执行器之前拒绝"；
+- `test_a03_*` / `test_a04_*` / `test_a05_*`：仍是当前 HEAD 的失效行为，
+  D02 修复后同样翻转为负例。翻转过程记录在 `docs/DEVELOPMENT_STATUS.md`。
 
 全部使用假执行器 / 假模型 / 假发送器：不触碰真实命令、真实账号、真实 QQ 连接。
 """
@@ -18,18 +18,19 @@ from omni.config import AppConfig
 from omni.core.cron import make_runtime_deliver
 from omni.memory.cron import Job
 from omni.tools.registry import ToolRegistry
+from omni.tools.shell.process import ProcResult
 from omni.tools.shell_tools import register_shell_tools
 
 
 class _RecordingRunner:
-    """假执行器：只记录被要求执行的命令，不执行任何真实进程。"""
+    """假执行器：只记录被要求执行的 argv，不执行任何真实进程。"""
 
     def __init__(self) -> None:
         self.commands: list[str] = []
 
-    def __call__(self, cmd: str, timeout_s: float) -> tuple[int, bytes, bytes]:
-        self.commands.append(cmd)
-        return 0, b"audit-canary", b""
+    def __call__(self, argv: list[str], timeout_s: float) -> ProcResult:
+        self.commands.append(" ".join(argv))
+        return ProcResult(0, b"audit-canary", b"")
 
 
 def _peek_registry() -> tuple[ToolRegistry, _RecordingRunner]:
@@ -39,48 +40,47 @@ def _peek_registry() -> tuple[ToolRegistry, _RecordingRunner]:
     return registry, runner
 
 
-# ---------- A01：SAFE 闸门被复合命令穿过 ----------
+# ---------- A01：SAFE 闸门被复合命令穿过（D01 已关闭） ----------
 
 
-def test_a01_safe_peek_reaches_runner_for_compound_command():
-    """`git status & echo ...` 前缀匹配通过，整串交给 shell —— SAFE 级实测可执行任意命令。"""
+def test_a01_compound_command_never_reaches_runner():
+    """D00 时 `git status & echo x` 会到执行器；D01 后必须在解析阶段就拒绝。"""
     registry, runner = _peek_registry()
-    registry.dispatch("peek_command", {"command": "git status & echo audit-canary"})
-    assert runner.commands == ["git status & echo audit-canary"]  # 已到达执行器
+    out = registry.dispatch("peek_command", {"command": "git status & echo audit-canary"})
+    assert "shell 元字符" in out
+    assert runner.commands == []
 
 
-def test_a01_safe_peek_reaches_runner_for_redirection():
-    """重定向同样不在白名单校验范围内：观察类命令可以改写文件。"""
+def test_a01_redirection_never_reaches_runner():
     registry, runner = _peek_registry()
-    registry.dispatch("peek_command", {"command": "tasklist > audit-canary.txt"})
-    assert runner.commands == ["tasklist > audit-canary.txt"]
+    out = registry.dispatch("peek_command", {"command": "tasklist > audit-canary.txt"})
+    assert "shell 元字符" in out
+    assert runner.commands == []
 
 
-def test_a01_safe_peek_reaches_runner_for_command_chaining():
+def test_a01_command_chaining_never_reaches_runner():
     registry, runner = _peek_registry()
-    registry.dispatch("peek_command", {"command": "tasklist && del audit-canary.txt"})
-    assert runner.commands == ["tasklist && del audit-canary.txt"]
+    out = registry.dispatch("peek_command", {"command": "tasklist && del audit-canary.txt"})
+    assert "错误" in out
+    assert runner.commands == []
 
 
-# ---------- A02：只读命令的写参数与敏感文件 ----------
+# ---------- A02：只读命令的写参数与敏感文件（D01 已关闭） ----------
 
 
-def test_a02_safe_peek_accepts_git_write_subcommands():
-    """`git branch <name>` / `git remote add` 都是写操作，但子命令名在只读名单里。"""
+def test_a02_git_write_subcommands_are_rejected():
     registry, runner = _peek_registry()
-    registry.dispatch("peek_command", {"command": "git branch audit-canary"})
-    registry.dispatch("peek_command", {"command": "git remote add audit http://example.invalid/x"})
-    assert runner.commands == [
-        "git branch audit-canary",
-        "git remote add audit http://example.invalid/x",
-    ]
+    for command in ("git branch audit-canary", "git remote add audit http://example.invalid/x"):
+        out = registry.dispatch("peek_command", {"command": command})
+        assert "错误" in out, command
+    assert runner.commands == []
 
 
-def test_a02_safe_peek_reads_secret_file():
-    """`type .env` 命中白名单里的 type —— 真实密钥会进入模型上下文。"""
+def test_a02_secret_file_is_not_readable_through_safe():
     registry, runner = _peek_registry()
-    registry.dispatch("peek_command", {"command": "type .env"})
-    assert runner.commands == ["type .env"]
+    out = registry.dispatch("peek_command", {"command": "type .env"})
+    assert "只读白名单" in out  # type/get-content 已整体移出 SAFE（读文件属 D13 文件域）
+    assert runner.commands == []
 
 
 # ---------- A03：QQ 私聊空白名单仍响应 ----------

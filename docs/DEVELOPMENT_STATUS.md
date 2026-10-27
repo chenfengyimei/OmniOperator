@@ -37,8 +37,8 @@
 
 | 编号 | 当前结论（D00 审核） | 证据等级 | 证据位置 | 关闭任务 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| A01 | `peek_command` 前缀正则 + `shell=True`，复合命令/重定向/`&&` 全部穿过 SAFE | 复现 | `tests/test_r0_repro.py::test_a01_*`（3 例，假 runner 收到整串） | D01 | 已复现 |
-| A02 | 只读名单含写子命令与敏感文件：`git branch <name>`、`git remote add`、`type .env` 均到执行器 | 复现 | `test_a02_*`（2 例） | D01、D13 | 已复现 |
+| A01 | `peek_command` 前缀正则 + `shell=True`，复合命令/重定向/`&&` 全部穿过 SAFE | 复现→已修复 | `test_a01_*` 已翻转为负例；`test_shell_tools.py` 另有 10 种复合/重定向形态 | D01 | 已修复（待真实验收：真实命令面） |
+| A02 | 只读名单含写子命令与敏感文件：`git branch <name>`、`git remote add`、`type .env` 均到执行器 | 复现→已修复（命令面） | `test_a02_*` 翻转 + 14 种 git 写参数/泄密参数负例 + 8 种敏感路径负例；`type`/`get-content` 已移出 SAFE | D01、D13 | 命令面已修复；文件域仍待 D13 |
 | A03 | 私聊判断 `if cfg.allowed_users and ...`：空白名单 = 不限，任何人私聊都被回复 | 复现 | `test_a03_*`（假 agent 被调用、假 client 已发送） | D02 | 已复现 |
 | A04 | `make_runtime_deliver` 用 `if allowed and ...`：空白名单 = 不限，cron 可发给任意 QQ；工作台建任务 `cron_create` 同款判断 | 复现 | `test_a04_*`；`core/cron.py:170`、`channels/web.py:476` | D02、D17 | 已复现 |
 | A05 | 私聊与各群共用 `get_or_create_binding("qq", str(user_id))`，历史跨场景混合 | 复现 | `test_a05_*`（三场景同一键 `10001`） | D02、D06、D22 | 已复现 |
@@ -55,7 +55,7 @@
 | A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 源码 | `core/review.py`、`memory/store.py::_init_fts` | D11、D12 | 源码发现 |
 | A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 源码 | `core/cron.py:76`、`_latest_source_output` | D05、D17 | 源码发现 |
 | A18 | 服务停止只比对 pid 文件与进程存活，无创建时间/命令行身份绑定，pid 重用有误杀风险 | 源码 | `system/services.py` | D25 | 源码发现 |
-| A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 源码 | `tools/shell_tools.py:113-135` | D01、D09 | 源码发现 |
+| A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 复现→已修复 | `test_process_boundary_reclaims_child_process_tree`（真实父子进程，孙进程 pid 已消失）；超时话术区分"已确认回收/回收状态未知" | D01、D09 | 进程边界已修复；统一 ToolResult 在 D09 |
 | A20 | 无运行账本/取消/token 与费用硬预算/统一 `ToolResult` 状态（工具回的是字符串） | 源码 | `core/agent.py`、`llm/gateway.py`、`tools/registry.py` | D09、D10 | 源码发现 |
 
 补充观察（D00 新增登记，尚未编号为 A 项，供后续任务核对）：
@@ -68,8 +68,8 @@
 
 | 任务 | 状态 | 关闭的证据 | 改动/commit | 测试证据 | 真实验收 | 下一步/阻塞 |
 | --- | --- | --- | --- | --- | --- | --- |
-| D00 | 完成 | 本文件 + `tests/test_r0_repro.py`（A01–A05 复现） | 见第 5 节 | `uv run pytest -q` → 254 passed（246 基线 + 8 复现） | 不适用 | 进入 D01 |
-| D01 | 待开始 | A01、A02、A19 | — | — | — | — |
+| D00 | 完成 | 本文件 + `tests/test_r0_repro.py`（A01–A05 复现） | `3fbf762` | `uv run pytest -q` → 254 passed（246 基线 + 8 复现） | 不适用 | 进入 D01 |
+| D01 | 完成 | A01、A02（命令面）、A19（进程边界） | 见第 5 节 | `uv run pytest -q` → 297 passed | 真实命令面（中文输出、带空格路径）已由本机 `git status` 用例覆盖；真实危险命令不做验收 | 进入 D02 |
 | D02 | 待开始 | A03、A04、A05 | — | — | QQ 真实收发待用户登录后可验 | — |
 | D03 | 待开始 | A07 | — | — | 浏览器真实跨站尝试待验 | — |
 | D04 | 待开始 | A08 | — | — | 真机目录 canary 待验 | — |
@@ -81,6 +81,25 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D01（结构化 SAFE 命令与进程边界）
+
+- **改了什么**：
+  - 新增 `src/omni/tools/shell/`：`spec.py`（命令串 → 受控 argv；先拒 shell 元字符，再按"已知命令 + 有限参数"解析）、
+    `process.py`（`shell=False` spawn、256 KiB/流有界读取、超时杀整棵进程树、SAFE 最小环境）、
+    `danger.py`（硬黑名单原样迁入）、`tools.py`（工具契约与结果呈现）；
+  - `tools/shell_tools.py` 退化为转发薄层（导入路径不变）；`bootstrap.py` 无需改动；
+  - `dir` 改 Python 实现（遮蔽 `.env`/`*.db`/`cookies` 等条目，200 条上限）；`type`/`get-content` 整体移出 SAFE；
+  - git 只做参数级校验：禁 `-c`/`-C`/`--exec-path`/`--upload-pack`/`--git-dir`/`--work-tree`、
+    禁 `--ext-diff`/`--textconv`/`--no-index`/`--output`/`-O`、禁 `HEAD:.env` 这类带冒号的 rev；
+    `branch` 只允许列举形态，`remote` 只允许 `-v`；
+  - 超时话术区分"已确认终止进程树（可重试）"与"回收状态未知（不可自动重试，副作用未知）"。
+- **关闭了什么**：A01（复合命令/管道/重定向/命令替换全部在解析阶段拒绝）、
+  A02 的命令面（写参数与密钥路径）、A19（进程树回收 + 未知副作用话术）。
+- **跑了什么**：`uv run pytest tests/test_shell_tools.py -q` → 52 passed；
+  `uv run pytest -q` → **297 passed, 1 warning**（基线 246 + 8 复现 + 43 新增，含真实父子进程回收用例与真实 `git status` 用例）。
+- **没测什么**：真实危险命令（不拿真机当靶子）；非 Windows 分支的 `killpg` 走查；`adb` 真机观察留待 D16。
+- **下一任务**：D02（QQ/cron 身份与投递边界）。
 
 ### 2026-10-27 · D00（基线、证据、记录）
 

@@ -31,7 +31,7 @@
 | `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/review.py`、`core/cron.py`、`core/compress.py` |
 | `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、错误包装 | 不做记忆、不管理会话 | `llm/gateway.py` |
 | `memory/` | SQLite 仓储：会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办；常驻小记忆（MEMORY.md 式快照注入+限额合并协议）；技能存储（SKILL.md+linter，patch/rewrite 版本化）；定时任务存储（jobs + 执行账本，原子写） | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/resident.py`、`memory/skills.py`、`memory/cron.py` |
-| `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：命令执行（只读白名单 SAFE + 任意 CONFIRM + 硬黑名单）；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/shell_tools.py`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
+| `tools/` | Registry（注册/查找/规格生成/派发）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM；android：读 SAFE + 写 CONFIRM） | 能力域之间互不 import | `tools/registry.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
 | `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台（含内置终端 ConPTY）/ QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal.py`、`channels/qq.py`、`channels/heartbeat.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
@@ -108,6 +108,21 @@ bootstrap 构造，日志目录来自 `data_dir`。外部服务标注不授予 S
 来自用户配置；其它调用要求人工确认，smart 不代批，无人值守拒绝。SDK 不获得 sampling、
 roots 或 elicitation 回调，故不能借服务器反向调用模型或扩大权限。
 正常退出通过 `Runtime.close_mcp` / Web lifespan / atexit 收尾；超时封闭连接，不重放调用。
+
+### 5.6 shell 能力域（结构化 SAFE）
+`tools/shell/` 四层分工，**旧的 `tools/shell_tools.py` 只是转发薄层**（不得再长出逻辑）：
+
+| 模块 | 职责 | 明确不做 |
+|---|---|---|
+| `spec.py` | 命令串 → 受控 argv：先拒绝 shell 元字符，再按"已知命令 + 有限参数"解析；`dir` 用 Python 实现；路径限定工作区且遮蔽密钥/个人数据 | 不解析通配符、不做变量展开、不支持管道/重定向/串联 |
+| `process.py` | spawn（`shell=False`）、有界读取（256 KiB/流）、超时杀整棵进程树、SAFE 最小环境 | 不做沙箱与权限降级 |
+| `danger.py` | 灾难级硬黑名单（确认也不执行） | 不参与"哪些能免确认"的判断 |
+| `tools.py` | 工具契约与结果呈现；超时按"已确认回收 / 回收状态未知"分别话术 | 不判断命令是否安全 |
+
+两条不变量：**SAFE 的执行器只接受 argv 列表**（没有 shell，就没有前缀绕过）；**未知参数一律拒绝**——
+新增白名单命令要连参数形态一起写进 `_SPECS` 并补负例，不能只加一个前缀正则。
+`register_shell_tools(registry, runner=..., shell_runner=..., cwd=..., root=...)` 的
+两个 runner 都可注入，安全测试一律用假执行器并断言"调用次数为零"。
 
 ## 6. Phase 架构演进预告
 
