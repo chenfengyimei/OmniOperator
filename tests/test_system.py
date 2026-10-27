@@ -169,8 +169,9 @@ def test_system_tools_dispatch(tmp_path):
 # ---------- Web 端点 ----------
 
 def test_system_endpoints(tmp_path, monkeypatch):
+    # 用带注释的样例配置启动：写回要验"保留注释"，且必须落在临时文件上
     config_path = tmp_path / "boot.yaml"
-    config_path.write_text("persona:\n  name: 测试小鱼\n", encoding="utf-8")
+    config_path.write_text(SAMPLE_YAML, encoding="utf-8")
     runtime = build_runtime(
         approver=DenyApprover(),
         db_path=tmp_path / "m.db",
@@ -193,12 +194,9 @@ def test_system_endpoints(tmp_path, monkeypatch):
     cfg = client.get("/api/system/config").json()
     assert "qq" in cfg and "editable" in cfg
 
-    # 写配置：monkeypatch 到临时 yaml，避免动真实文件
-    import omni.channels.web as web_mod
-
-    tmp_cfg = tmp_path / "config.yaml"
-    tmp_cfg.write_text(SAMPLE_YAML, encoding="utf-8")
-    monkeypatch.setattr(web_mod, "CONFIG_PATH", tmp_cfg)
+    # 写配置：必须落在注入的配置源上（runtime.paths.config），不碰真实 config.yaml
+    tmp_cfg = runtime.paths.config
+    assert tmp_cfg == config_path
     resp = client.post(
         "/api/system/config",
         json={"updates": {"qq": {"enabled": True, "allowed_users": [42]}}},

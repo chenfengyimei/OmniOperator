@@ -18,7 +18,7 @@ import os
 import random
 
 from ..bootstrap import Runtime, build_runtime
-from ..config import DATA_DIR, load_env
+from ..config import load_env
 from ..llm.gateway import GatewayError
 from ..safety.gates import DenyApprover, private_target_allowed
 from ..tools.qq.client import OneBotClient, clean_cq_message
@@ -126,11 +126,12 @@ async def _serve(runtime: Runtime) -> None:
 
 def main() -> None:
     load_env()
-    pid_file = DATA_DIR / "run" / "omni-qq.pid"
+    runtime = build_runtime(approver=DenyApprover())
+    # pid 目录来自 RuntimePaths：与运行数据根同源，不再另拼全局路径
+    pid_file = runtime.paths.run / "omni-qq.pid"
     pid_file.parent.mkdir(parents=True, exist_ok=True)
     pid_file.write_text(str(os.getpid()), encoding="utf-8")  # 工作台状态探测用
     try:
-        runtime = build_runtime(approver=DenyApprover())
         if runtime.qq is None:
             raise SystemExit(
                 "QQ 未启用：在 config/config.yaml 设置 qq.enabled: true，"

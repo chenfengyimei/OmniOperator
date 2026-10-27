@@ -1,7 +1,8 @@
-"""配置加载：.env 密钥 + config.yaml 主配置。"""
+"""配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。"""
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -13,6 +14,56 @@ ENV_PATH = PROJECT_ROOT / ".env"
 DATA_DIR = PROJECT_ROOT / "data"
 SKILLS_DIR = PROJECT_ROOT / "skills"  # 程序性记忆：skills/<name>/SKILL.md
 BILI_COOKIES_PATH = DATA_DIR / "bili_cookies.json"  # B站登录态（浏览器 Cookie，gitignore）
+
+
+@dataclass(frozen=True)
+class RuntimePaths:
+    """运行期所有可写路径的唯一声明处（A08）。
+
+    为什么要有：以前各模块自己拼 `DATA_DIR / ...`，于是 `build_runtime(data_dir=tmp)`
+    只隔离了一部分——安卓截图、B站 Cookie、配置写入仍然打到真机目录。
+    现在路径只在这里定义一次，由 bootstrap 装配后传给每个使用者；测试换一个 `data`
+    就等于换掉全部写入位置。
+
+    明确不做：不创建目录（缺目录由使用者按需 mkdir），不读取配置内容。
+    """
+
+    data: Path
+    config: Path          # 配置源（读 + 工作台写回同一个文件）
+    cookies: Path         # B站登录态
+    skills: Path          # 技能库（与 data 独立，可单独注入）
+    cache: Path           # 可再生的缓存（ASR 等）
+    android_shots: Path
+    android_cache: Path
+    browser_profile: Path
+    browser_shots: Path
+    run: Path             # 服务 pid
+    logs: Path
+    mcp_logs: Path
+
+    @classmethod
+    def create(
+        cls,
+        data_dir: Path,
+        *,
+        config_path: Path | None = None,
+        skills_root: Path | None = None,
+    ) -> RuntimePaths:
+        data = Path(data_dir)
+        return cls(
+            data=data,
+            config=Path(config_path) if config_path is not None else CONFIG_PATH,
+            cookies=data / "bili_cookies.json",
+            skills=Path(skills_root) if skills_root is not None else SKILLS_DIR,
+            cache=data / "cache",
+            android_shots=data / "android_shots",
+            android_cache=data / "android_cache",
+            browser_profile=data / "browser_profile",
+            browser_shots=data / "browser_shots",
+            run=data / "run",
+            logs=data / "system_logs",
+            mcp_logs=data / "mcp_logs",
+        )
 
 
 def load_env(env_path: Path | None = None) -> None:

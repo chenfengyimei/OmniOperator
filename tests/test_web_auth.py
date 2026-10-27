@@ -67,12 +67,8 @@ def test_unpaired_cannot_read_any_api(path, tmp_path):
 
 
 def test_unpaired_cannot_change_config_or_services(tmp_path, monkeypatch):
-    import omni.channels.web as web_mod
-
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text("persona:\n  name: 测试小鱼\n", encoding="utf-8")
-    monkeypatch.setattr(web_mod, "CONFIG_PATH", config_path)
     app, runtime = _app(tmp_path)
+    config_path = runtime.paths.config  # 注入路径：与 bootstrap 读取的是同一个文件
     client = TestClient(app, base_url="http://127.0.0.1")
 
     calls: list[str] = []
@@ -175,13 +171,9 @@ def test_foreign_host_header_is_rejected(tmp_path):
     assert response.json()["code"] == "host_rejected"
 
 
-def test_cross_site_post_is_rejected_and_has_no_side_effect(tmp_path, monkeypatch):
-    import omni.channels.web as web_mod
-
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text("persona:\n  name: 测试小鱼\n", encoding="utf-8")
-    monkeypatch.setattr(web_mod, "CONFIG_PATH", config_path)
-    client, _runtime, _app_ = _paired(tmp_path)
+def test_cross_site_post_is_rejected_and_has_no_side_effect(tmp_path):
+    client, runtime, _app_ = _paired(tmp_path)
+    config_path = runtime.paths.config
     before = config_path.read_bytes()
 
     for headers in (
@@ -199,13 +191,9 @@ def test_cross_site_post_is_rejected_and_has_no_side_effect(tmp_path, monkeypatc
     assert config_path.read_bytes() == before, "跨站请求产生了副作用"
 
 
-def test_same_origin_post_is_allowed(tmp_path, monkeypatch):
-    import omni.channels.web as web_mod
-
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text("persona:\n  name: 测试小鱼\n", encoding="utf-8")
-    monkeypatch.setattr(web_mod, "CONFIG_PATH", config_path)
-    client, _runtime, _app_ = _paired(tmp_path)
+def test_same_origin_post_is_allowed(tmp_path):
+    client, runtime, _app_ = _paired(tmp_path)
+    config_path = runtime.paths.config
     response = client.post(
         "/api/system/config",
         json={"updates": {"persona": {"name": "本地改名"}}},
@@ -241,18 +229,11 @@ def test_logout_clears_session(tmp_path):
 # ---------------------------------------------------------------- 密钥不回显
 
 
-def test_access_token_is_never_echoed(tmp_path, monkeypatch):
-    import omni.channels.web as web_mod
-
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(
-        'persona:\n  name: 测试小鱼\nqq:\n  access_token: "s3cret-token"\n',
-        encoding="utf-8",
-    )
-    monkeypatch.setattr(web_mod, "CONFIG_PATH", config_path)
+def test_access_token_is_never_echoed(tmp_path):
     client, runtime, _app_ = _paired(
         tmp_path, config_text='persona:\n  name: 测试小鱼\nqq:\n  access_token: "s3cret-token"\n'
     )
+    config_path = runtime.paths.config
 
     payload = client.get("/api/system/config").json()
     assert "s3cret-token" not in str(payload)
@@ -278,12 +259,7 @@ def test_access_token_is_never_echoed(tmp_path, monkeypatch):
     assert "new-token" in config_path.read_text(encoding="utf-8")
 
 
-def test_secret_error_message_does_not_echo_value(tmp_path, monkeypatch):
-    import omni.channels.web as web_mod
-
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text("persona:\n  name: 测试小鱼\n", encoding="utf-8")
-    monkeypatch.setattr(web_mod, "CONFIG_PATH", config_path)
+def test_secret_error_message_does_not_echo_value(tmp_path):
     client, _runtime, _app_ = _paired(tmp_path)
     # 非字符串密钥值 → 被拒，但错误信息里不能出现该值
     response = client.post(

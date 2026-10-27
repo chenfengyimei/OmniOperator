@@ -12,7 +12,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .config import CONFIG_PATH, DATA_DIR, AppConfig, QQ, load_config, load_qq_policy
+from .config import (
+    CONFIG_PATH,
+    DATA_DIR,
+    AppConfig,
+    QQ,
+    RuntimePaths,
+    load_config,
+    load_qq_policy,
+)
 from .core.agent import Agent
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
@@ -50,6 +58,20 @@ from .tools.mcp.client import MCPManager
 from .tools.mcp.tools import register_mcp_tools
 
 
+def _no_port_probe(_port: int, _state: str) -> list[int]:
+    """隔离实例不做端口探测：发现真机进程就等于把测试指向真实服务。"""
+    return []
+
+
+def _no_kill(_pid: int) -> None:
+    # 用 RuntimeError 而不是 SystemExit：后者会穿透工具层直接退掉进程
+    raise RuntimeError("隔离实例不允许终止本机进程")
+
+
+def _no_spawn(*_args, **_kwargs) -> int:
+    raise RuntimeError("隔离实例不允许启动本机服务")
+
+
 @dataclass
 class Runtime:
     """面向通道的门面（Facade）：通道只碰它，不碰内部对象的构造。"""
@@ -73,6 +95,7 @@ class Runtime:
     qq: OneBotClient | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
+    paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
 
     def qq_policy(self) -> QQ:
         """当前 QQ 授权策略：每次从配置源重读，撤销白名单不必重启进程。"""
@@ -115,10 +138,11 @@ def build_runtime(
     config_path = Path(config_path) if config_path else CONFIG_PATH
     config = load_config(config_path)
     data_root = Path(data_dir) if data_dir else DATA_DIR
+    paths = RuntimePaths.create(data_root, config_path=config_path, skills_root=skills_root)
     memory_path = db_path if db_path is not None else data_root / "memory.db"
     store = MemoryStore(memory_path)
     gateway = Gateway(config.models)
-    skills = SkillStore(skills_root)
+    skills = SkillStore(paths.skills)
     registry = ToolRegistry()
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
     resident = ResidentMemory(
@@ -132,11 +156,12 @@ def build_runtime(
     register_delegate_tools(registry, store, agent_holder)
     register_shell_tools(registry)
     register_skill_tools(registry, skills)
-    mcp = MCPManager(config.mcp, log_dir=data_root / "mcp_logs")
+    mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs)
     register_mcp_tools(registry, mcp)
     if mcp.servers():
         atexit.register(mcp.close)
-    register_bilibili_tools(registry, BiliAPI(), config.asr)
+    # Cookie 路径必须注入：否则临时实例会读到真机的 B 站登录态
+    register_bilibili_tools(registry, BiliAPI(cookies_path=paths.cookies), config.asr)
     cron_jobs = JobStore(data_root / "cron_jobs.json")
     cron_ledger = ExecutionLog(data_root / "cron_executions.json")
     # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照
@@ -146,17 +171,26 @@ def build_runtime(
     register_cron_tools(registry, cron_jobs, _allowed_qq_users)
     browser = BrowserDriver(
         headless=config.browser.headless, slow_mo_ms=config.browser.slow_mo_ms,
-        profile_dir=data_root / "browser_profile", shots_dir=data_root / "browser_shots",
+        profile_dir=paths.browser_profile, shots_dir=paths.browser_shots,
     )
-    write_budget = WriteBudget(data_root / "browser_budget.json", max_per_day=config.browser.max_writes_per_day)
+    write_budget = WriteBudget(
+        data_root / "browser_budget.json", max_per_day=config.browser.max_writes_per_day
+    )
     register_browser_tools(registry, browser, write_budget)
     approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
+    # 隔离实例（注入了 data_dir）不探测也不终止真机进程：否则测试可能把真 NapCat 当残留杀掉
+    isolated = data_dir is not None
     services = ServiceManager(
         napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None,
-        run_dir=data_root / "run", log_dir=data_root / "system_logs",
+        run_dir=paths.run, log_dir=paths.logs,
+        port_prober=None if not isolated else _no_port_probe,
+        killer=None if not isolated else _no_kill,
+        spawner=None if not isolated else _no_spawn,
     )
     register_system_tools(registry, services)
-    android_driver = AndroidDriver(cache_path=data_root / "android_cache" / "tree.json")
+    android_driver = AndroidDriver(
+        cache_path=paths.android_cache / "tree.json", shots_dir=paths.android_shots
+    )
     register_android_tools(registry, android_driver)
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
@@ -210,4 +244,5 @@ def build_runtime(
         qq=qq_client,
         config_path=config_path,
         data_dir=data_root,
+        paths=paths,
     )

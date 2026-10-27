@@ -44,7 +44,7 @@
 | A05 | 私聊与各群共用 `get_or_create_binding("qq", str(user_id))`，历史跨场景混合 | 复现→已修复 | 绑定键改为 `dm:<qq>` / `group:<群号>`；`test_a05_*`；旧键只迁给私聊；群聊 `personal_context=False` 并有 `GROUP_DENIED_TOOLS` | D02、D06、D22 | 已修复（记忆作用域完整策略仍待 D12/D22） |
 | A06 | Web `/api/chat` 先改共享 `runtime.agent.session_id` 再 `chat()`，响应与 review 也读共享值；并发请求会串话 | 源码 | `channels/web.py:210-220` | D06 | 源码发现 |
 | A07 | 全套 API 无身份校验、无 Origin/Host 校验；`/api/terminal/ws` 直接 `accept()`；`/api/system/config` 回显 `qq.access_token` 明文 | 源码→已修复 | `tests/test_web_auth.py` 31 例：12 个敏感 GET 未配对即 401、写接口/服务/审批/WS 全拒、跨站 POST 无副作用、Host 伪造、过期/篡改会话、密钥不回显与三态修改、非回环监听默认拒绝 | D03 | 已修复（真实浏览器跨站尝试与 PTY 会话待手动验收） |
-| A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码 | `tools/android/driver.py:136`、`channels/web.py:28,403,419,439`、`bootstrap.py:131` | D04 | 源码发现 |
+| A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码→已修复 | `config.RuntimePaths` 统一声明 12 个路径；`tests/test_paths.py` 10 例：路径派生、安卓截图、Cookie 读取、Web 写配置/Cookie、隔离实例不探测/不启停真机进程、真实 `data/` 目录 canary 全量快照不变 | D04 | 已修复（真机目录 canary 用 mtime 快照验证；跨盘符/junction 场景留待 D13 文件域） |
 | A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换：`JobStore`/`ExecutionLog`/`WriteBudget`/`ResidentMemory` | 源码 | `memory/cron.py`、`tools/browser/budget.py:33-58` | D05、D08 | 源码发现 |
 | A10 | 损坏/不可读状态一律当空数据：`WriteBudget._load` 返回 `{}` → 当日额度被重置；`JobStore` 读失败降级 | 源码 | `tools/browser/budget.py:44-50` | D05、D25 | 源码发现 |
 | A11 | 同步 Playwright 实例跨线程复用，`RLock` 只串行化、不改变线程归属；同 profile 无跨进程占用协议 | 源码 | `tools/browser/driver.py` | D07 | 源码发现 |
@@ -72,7 +72,7 @@
 | D01 | 完成 | A01、A02（命令面）、A19（进程边界） | 见第 5 节 | `uv run pytest -q` → 297 passed | 真实命令面（中文输出、带空格路径）已由本机 `git status` 用例覆盖；真实危险命令不做验收 | 进入 D02 |
 | D02 | 完成 | A03、A04、A05 | 见第 5 节 | `uv run pytest -q` → 308 passed | QQ 真实收发未验（需 NapCat 扫码登录） | 进入 D03 |
 | D03 | 完成 | A07 | 见第 5 节 | `uv run pytest -q` → 339 passed | 真实浏览器跨站请求、真实 ConPTY 会话待手动验收；前端设置页对 `access_token` 的展示需跟随（见第 5 节遗留项） | 进入 D04 |
-| D04 | 待开始 | A08 | — | — | 真机目录 canary 待验 | — |
+| D04 | 完成 | A08 | 见第 5 节 | `uv run pytest -q` → 349 passed | 真机 `data/` canary 已用快照验证未被写；跨设备/跨盘符路径与 junction 留待 D13 | R0 收口，进入 R1（D05） |
 | D05–D08 | 待开始 | A09、A10、A14、A17 | — | — | — | 依赖 D04 |
 | D09–D12 | 待开始 | A06、A15、A16、A19、A20 | — | — | — | 依赖 R1 |
 | D13–D16 | 待开始 | A02（文件域）、A12、A13 | — | — | 安卓真机待插设备 | — |
@@ -81,6 +81,25 @@
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-27 · D04（全路径与外部依赖隔离）
+
+- **改了什么**：
+  - `config.RuntimePaths` 成为可写路径的唯一声明（data/config/cookies/skills/cache/android_shots/
+    android_cache/browser_profile/browser_shots/run/logs/mcp_logs），`build_runtime` 造好后逐个注入；
+  - 补齐遗漏：安卓截图（`AndroidDriver.shots_dir`）、B 站 Cookie（`BiliAPI(cookies_path=...)`）、
+    Web 的配置读写与 Cookie 路由（改用 `runtime.paths`，不再引用模块级 `CONFIG_PATH`/`BILI_COOKIES_PATH`）；
+    两个常驻入口的 pid 文件也改从 `runtime.paths.run` 取；
+  - `ServiceManager` 的端口探测/终止/启动都改成可注入；**注入 `data_dir` 的隔离实例默认三件套全禁**
+    （探测返回空、终止与启动抛 `RuntimeError`），避免测试把真机 NapCat 当残留杀掉；
+  - `Runtime` 增加 `paths` 字段；测试改用 `runtime.paths` 断言，不再 monkeypatch 模块常量。
+- **关闭了什么**：A08。
+- **跑了什么**：`uv run pytest tests/test_paths.py -q` → 10 passed；
+  `uv run pytest -q` → **349 passed, 1 warning**。
+- **没测什么**：真机上其它盘符/junction 下的路径变体（D13 文件域会补）；ASR 临时音频仍走系统临时目录
+  （自动清理、不属于持久化路径）。
+- **过程记录**：写审计用例最初包含一次 `/api/chat` 调用，虽然测试进程不加载 `.env`（不会真的计费），
+  但这属于"靠环境侥幸"，已替换为只读接口。后续 D26 会加"测试不得触达模型"的守卫。
 
 ### 2026-10-27 · D03（工作台与终端身份保护）
 
@@ -161,3 +180,43 @@
 | 受信 MCP 服务 | D19 生产联调 | 未提供 |
 | 桌面目标应用 | D20/D21 桌面读写 | 未提供 |
 | 模型预算授权 | D10 付费推理上限 | 未提供（当前只用离线假模型跑测试） |
+
+## 7 第一轮小结（D00–D04，2026-10-27）
+
+### 7.1 关闭了什么
+
+| 证据编号 | 问题 | 关闭方式 | 提交 |
+| --- | --- | --- | --- |
+| A01 | SAFE 前缀白名单可被复合命令穿过 | 结构化 argv + `shell=False`，先拒 shell 元字符 | `b17cdc1` |
+| A02 | 只读命令的写参数与密钥文件 | git 参数级校验；`type`/`get-content` 移出 SAFE；路径限定工作区并遮蔽密钥 | `b17cdc1` |
+| A19 | 超时只处理直接子进程 | 进程树回收 + "已确认回收/回收状态未知"话术 | `b17cdc1` |
+| A03 | QQ 空白名单放行入站 | 统一判定 `private_target_allowed`，空白名单 = 谁都不许 | `42617ef` |
+| A04 | cron/建任务空白名单放行投递 | 同上，四条路径共用；策略热读，撤销立即生效 | `42617ef` |
+| A05 | 私聊/群聊共用绑定键 | `dm:` / `group:` 分场景绑定，旧键只迁私聊；群聊不带私人上下文 | `42617ef` |
+| A07 | 工作台无身份、密钥明文回显 | 配对 + HttpOnly 会话 + Host/Origin/CSRF + WS 握手鉴权 + 密钥三态 | `7742a61` |
+| A08 | `data_dir` 隔离有遗漏 | `RuntimePaths` 统一声明 + 隔离实例不碰真机进程 | 见本次提交 |
+
+测试从 246 → **349**（新增 103 条，其中安全负例 60+ 条；所有负例的判据是"假执行器调用次数为零"）。
+
+### 7.2 仍未关闭（R0 之外，按计划顺序）
+
+A06（Web 共享 `agent.session_id` 串话）、A09/A10（JSON 锁与损坏降级）、A11（Playwright 线程归属）、
+A12（安卓旧 idx）、A13（截图只回路径）、A14/A15/A16（技能原子性与 review 治理）、
+A17（cron 跨进程领取/积压）、A18（pid 身份）、A20（Run/ToolResult/预算）。
+
+### 7.3 真实环境待验收（缺外部前提，不能算完成）
+
+- QQ 真实收发与空白名单行为（需 NapCat 扫码登录）；
+- 工作台在真实浏览器里的配对、跨站尝试、ConPTY 终端会话；
+- 安卓真机截图/动作（需设备 + ADBKeyboard）；
+- B 站 Cookie 生效与字幕/转写链路。
+
+### 7.4 进入 D05–D08 的建议
+
+1. **D05 先做最小备份**：`state.db` 之前必须有一个能对 SQLite 做一致快照的备份命令，
+   否则迁移失败就没有回头路；顺带把 `WriteBudget._load` 的"损坏当空"改成 fail-closed（A10）。
+2. **D06 的会话路由**是 A06 的正解，也会让 D02 的 `personal_context` 变成"作用域策略"的一部分；
+   建议先定 `SessionScope` 契约再动 Web/QQ/CLI。
+3. **D07 浏览器所有权**独立性强，可与 D05/D06 并行设计，但必须先有 profile 跨进程租约协议。
+4. **D08 技能 CAS** 与 D12 的 review 写入共享同一把锁语义，建议 D08 就把
+   `expected_hash + 历史快照` 做成仓储 API，D18 再做 UI。

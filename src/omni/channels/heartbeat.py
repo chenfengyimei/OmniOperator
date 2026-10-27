@@ -10,7 +10,7 @@ import asyncio
 import os
 
 from ..bootstrap import build_runtime
-from ..config import DATA_DIR, load_env
+from ..config import load_env
 from ..core.cron import CronScheduler, make_runtime_deliver, make_runtime_executor
 from ..safety.gates import DenyApprover
 
@@ -36,11 +36,12 @@ async def _serve(runtime) -> None:
 
 def main() -> None:
     load_env()
-    pid_file = DATA_DIR / "run" / "omni-heartbeat.pid"
+    runtime = build_runtime(approver=DenyApprover())  # 无人值守：fail-closed
+    # pid 目录来自 RuntimePaths（与真实运行数据根一起注入，不另拼全局路径）
+    pid_file = runtime.paths.run / "omni-heartbeat.pid"
     pid_file.parent.mkdir(parents=True, exist_ok=True)
     pid_file.write_text(str(os.getpid()), encoding="utf-8")  # 工作台状态探测用
     try:
-        runtime = build_runtime(approver=DenyApprover())  # 无人值守：fail-closed
         asyncio.run(_serve(runtime))
     finally:
         pid_file.unlink(missing_ok=True)

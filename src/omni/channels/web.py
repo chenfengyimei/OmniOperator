@@ -29,7 +29,7 @@ from pydantic import BaseModel
 from PIL import Image
 
 from ..bootstrap import Runtime, build_runtime
-from ..config import BILI_COOKIES_PATH, CONFIG_PATH, load_env
+from ..config import load_env
 from ..llm.gateway import GatewayError
 from ..memory.cron import CronError, Job, compute_next_run, to_iso
 from ..memory.store import PROFILE_MAX_CHARS
@@ -539,9 +539,10 @@ def create_app(runtime: Runtime) -> FastAPI:
         """改配置：密钥字段三态——缺省/空串=保留旧值，null=显式清除，非空=替换。"""
         updates, touched_secret = _normalize_secret_updates(payload.updates)
         try:
-            text = CONFIG_PATH.read_text(encoding="utf-8")
+            config_file = runtime.paths.config  # 与 bootstrap 读取的是同一个文件
+            text = config_file.read_text(encoding="utf-8")
             new_text = apply_updates(text, updates)
-            safe_write(CONFIG_PATH, new_text)
+            safe_write(config_file, new_text)
         except (ConfigEditError, OSError) as exc:
             # 含密钥字段时只回笼统原因，避免把密钥值回显到错误信息/日志里
             detail = "配置更新被拒绝（含密钥字段，详情已省略）" if touched_secret else str(exc)
@@ -556,13 +557,14 @@ def create_app(runtime: Runtime) -> FastAPI:
     @app.get("/api/system/bili-cookies")
     def bili_cookies_status() -> dict[str, Any]:
         keys = {"SESSDATA": False, "bili_jct": False, "buvid3": False}
+        cookies_path = runtime.paths.cookies  # 注入路径：不碰真机 data/
         try:
-            data = json.loads(BILI_COOKIES_PATH.read_text(encoding="utf-8"))
+            data = json.loads(cookies_path.read_text(encoding="utf-8"))
             for k in keys:
                 keys[k] = bool(str(data.get(k, "")).strip())
         except (OSError, json.JSONDecodeError):
             pass
-        return {"configured": any(keys.values()), "keys": keys, "path": str(BILI_COOKIES_PATH)}
+        return {"configured": any(keys.values()), "keys": keys, "path": str(cookies_path)}
 
     @app.post("/api/system/bili-cookies")
     def save_bili_cookies(payload: BiliCookiesIn) -> dict[str, Any]:
@@ -577,11 +579,12 @@ def create_app(runtime: Runtime) -> FastAPI:
                 data[name] = value
         if not data:
             raise HTTPException(status_code=400, detail="至少要填一项 Cookie")
-        BILI_COOKIES_PATH.parent.mkdir(parents=True, exist_ok=True)
-        BILI_COOKIES_PATH.write_text(
+        cookies_path = runtime.paths.cookies
+        cookies_path.parent.mkdir(parents=True, exist_ok=True)
+        cookies_path.write_text(
             json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-        return {"ok": True, "saved": list(data), "path": str(BILI_COOKIES_PATH)}
+        return {"ok": True, "saved": list(data), "path": str(cookies_path)}
 
     # ---------- 模型连通性测试 ----------
 

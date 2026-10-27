@@ -44,10 +44,13 @@ class AndroidDriver:
         serial: str | None = None,
         *,
         cache_path: Path | None = None,
+        shots_dir: Path | None = None,
         fresh_ttl_s: float = DEFAULT_FRESH_TTL_S,
     ) -> None:
         self._adb = adb or AdbDevice(serial=serial)
         self._cache_path = cache_path or (DATA_DIR / "android_cache" / "tree.json")
+        # 截图目录可注入：否则临时实例会把截图写到真机 data/android_shots（A08）
+        self._shots_dir = Path(shots_dir) if shots_dir else (DATA_DIR / "android_shots")
         self._fresh_ttl_s = fresh_ttl_s
         self._elements: list[dict[str, Any]] = []
         self._tree_text = ""
@@ -133,7 +136,7 @@ class AndroidDriver:
     def screenshot(self) -> Path:
         serial = self._adb.require_device()
         png = self._adb.screencap(serial)
-        shots = DATA_DIR / "android_shots"
+        shots = self._shots_dir
         shots.mkdir(parents=True, exist_ok=True)
         path = shots / "latest.png"
         path.write_bytes(png)

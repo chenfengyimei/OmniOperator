@@ -22,7 +22,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **339 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
+- 测试：`uv run pytest`（当前 **349 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规
 
 ## 2. 五分钟上手
 
@@ -129,7 +129,7 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 11. **MJPEG 帧**：screencap 每次 0.5-2s，别提高帧率；已用 Pillow 转半分辨率 JPEG q40；点屏继续携带实际帧尺寸，只在后端换算一次
 12. **pytest.raises match 中文** 在 GBK 控制台显示乱码但断言本身正常，别被吓到
 13. **MCP Windows 进程收尾**：使用 AnyIO CancelScope，不能用原生 task.cancel 打断 SDK 的 shield 清理；Python 服务默认 PYTHONUTF8=1；超时后结果未知，不自动重放
-14. **data_dir 完整隔离**：除 jobs/常驻/安卓，memory.db（含 review）、浏览器 profile/截图/预算、服务 pid/日志、MCP 日志也统一注入；skills 仍由 skills_root 单独控制（仍有遗漏，见 DEVELOPMENT_STATUS 的 A08/D04）
+14. **data_dir 完整隔离**：所有可写路径都在 `config.RuntimePaths` 里声明一次，由 bootstrap 注入（jobs/常驻/记忆/浏览器/安卓截图与缓存/服务 pid 与日志/MCP 日志/工作台密钥/B站 Cookie/配置读写）；skills 仍由 skills_root 单独控制。注入 `data_dir` 的实例**不探测也不启停真机进程**——`stop()` 的端口兜底曾把用户真服务当过残留
 15. **SAFE 命令不要用 shell**：`shell=True` 下前缀白名单等于没有白名单（`git status & 任意命令`）。改成 argv + `shell=False` 后，参数形态也要逐条校验——`git branch <name>`、`git show HEAD:.env` 都能借只读子命令读写
 16. **`git status` 会写 index**：观察类 git 必须带 `GIT_OPTIONAL_LOCKS=0`，否则 SAFE 观察也会改仓库状态；超时用 `taskkill /F /T` 收进程树，不能只 kill 直接子进程
 17. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
@@ -165,7 +165,7 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 ```
 src/omni/
   bootstrap.py           组装根（唯一构造核心对象处）
-  config.py              .env + config.yaml（AppConfig）
+  config.py              .env + config.yaml（AppConfig）+ RuntimePaths（全部可写路径的唯一声明）
   core/agent.py          工具循环 + 系统提示词组装
   core/compress.py       上下文压缩 + 消息不变量
   core/review.py         回合后异步记忆整理

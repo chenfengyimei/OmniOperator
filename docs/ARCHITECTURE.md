@@ -157,6 +157,24 @@ D12/D22 会把这里换成正式的记忆作用域策略，本节的 API 形状�
 新增接口时：路由只要在 `/api/` 下就自动受保护（中间件统一拦截），**不要**为某个接口单独放宽
 `PUBLIC_PATHS`；前端不需要改，配对链接由浏览器导航完成。
 
+### 5.9 路径与外部依赖隔离（config.RuntimePaths，D04）
+
+`config.RuntimePaths` 是**唯一**声明可写路径的地方（data/config/cookies/skills/cache/
+android_shots/android_cache/browser_profile/browser_shots/run/logs/mcp_logs）；
+`bootstrap.build_runtime` 用 `RuntimePaths.create(data_root, config_path=..., skills_root=...)`
+造出实例后逐个注入，模块内保留的 `DATA_DIR / ...` 只是"没注入时的默认值"，测试路径不走它。
+
+两条不变量：
+
+1. **`build_runtime(data_dir=...)` 即隔离**：注入的 data 根换掉全部写入位置，工作台的配置读写与
+   B 站 Cookie 也走 `runtime.paths`，不再引用模块级 `CONFIG_PATH` / `BILI_COOKIES_PATH`。
+   `skills_root` 仍独立注入；`config_path` 可指向别处（配置源与运行数据不必同根）。
+2. **隔离实例不碰真机进程**：`data_dir` 一旦注入，`ServiceManager` 的端口探测返回空、
+   终止与启动直接抛 `RuntimeError`——否则 `stop()` 的端口兜底会把用户正在跑的真服务杀掉。
+
+依赖替换清单（都可注入）：shell runner、设备/ADB、HTTP client、模型网关、时钟、
+服务探测/终止/启动、路径。新增能力时若需要外部副作用，先想清楚"测试里它从哪儿来"。
+
 ## 6. Phase 架构演进预告| Phase | 新增 | 结构原则 |
 |---|---|---|
 | P1 | `tools/bilibili/`（读 API + WBI 签名）、memory 向量检索（sqlite-vec）、回合后 review 线程、`skills/` 技能系统 | api 层不知道 LLM；review 是 Gateway 的独立消费者（换廉价模型跑） |

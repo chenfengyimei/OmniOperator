@@ -23,6 +23,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from collections.abc import Callable
+
 from ..config import DATA_DIR, PROJECT_ROOT
 
 RUN_DIR = DATA_DIR / "run"
@@ -167,10 +169,18 @@ class ServiceManager:
         napcat_webui_port: int = 6099,
         run_dir: Path | None = None,
         log_dir: Path | None = None,
+        port_prober: Callable[[int, str], list[int]] | None = None,
+        killer: Callable[[int], None] | None = None,
+        spawner: Callable[[list[str], Path, Path], int] | None = None,
     ) -> None:
         self._napcat_dir = Path(napcat_dir) if napcat_dir else None
         self._ws_port = napcat_ws_port
         self._webui_port = napcat_webui_port
+        # 探测/终止/启动都可替换：隔离实例必须给出"不碰真机进程"的实现，
+        # 否则 `stop()` 的端口回退会把用户正在跑的真服务杀掉
+        self._port_pids = port_prober or _netstat_pids
+        self._kill = killer or _tree_kill
+        self._spawn = spawner or _spawn
         # pid/日志目录可注入：测试必须与真机的 data/run 隔离，
         # 否则"未安装"类测试会读到真实 pid，甚至把真服务当测试残留杀掉
         self._run_dir = Path(run_dir) if run_dir else RUN_DIR
@@ -187,7 +197,7 @@ class ServiceManager:
         return None
 
     def _napcat_pid(self) -> int | None:
-        for pid in _netstat_pids(self._ws_port, "LISTEN") or _netstat_pids(
+        for pid in self._port_pids(self._ws_port, "LISTEN") or self._port_pids(
             self._webui_port, "LISTEN"
         ):
             return pid
@@ -202,7 +212,7 @@ class ServiceManager:
         argv = ["cmd", "/c", str(napcat_dir / "napcat.bat")]
         if qq.strip():
             argv += ["-q", qq.strip()]
-        pid = _spawn(argv, cwd=napcat_dir, log_path=self._log_dir / "napcat.log")
+        pid = self._spawn(argv, cwd=napcat_dir, log_path=self._log_dir / "napcat.log")
         self._write_pid("napcat", pid)
         return {"name": "napcat", "pid": pid, "started": True}
 
@@ -211,7 +221,7 @@ class ServiceManager:
         if not pid or not _pid_alive(pid):
             self._clear_pid("napcat")
             raise ServiceError("NapCat 未在运行")
-        _tree_kill(pid)
+        self._kill(pid)
         self._clear_pid("napcat")
         return {"name": "napcat", "stopped": True}
 
@@ -259,7 +269,7 @@ class ServiceManager:
         if self._omni_pid(name):
             raise ServiceError(f"{name} 已在运行")
         argv, cwd = self._omni_argv(name)
-        pid = _spawn(argv, cwd=cwd, log_path=self._log_dir / f"{name}.log")
+        pid = self._spawn(argv, cwd=cwd, log_path=self._log_dir / f"{name}.log")
         self._write_pid(name, pid)
         return {"name": name, "pid": pid, "started": True}
 
@@ -268,7 +278,7 @@ class ServiceManager:
         if not pid or not _pid_alive(pid):
             self._clear_pid(name)
             raise ServiceError(f"{name} 未在运行")
-        _tree_kill(pid)
+        self._kill(pid)
         self._clear_pid(name)
         return {"name": name, "stopped": True}
 
@@ -279,8 +289,8 @@ class ServiceManager:
         if name != "omni-qq":
             return None  # netstat 兜底只对 WS 客户端 omni-qq 有意义
         # 兜底：到 NapCat WS 端口的 ESTABLISHED 连接里找 python 进程（omni-qq）
-        listeners = set(_netstat_pids(self._ws_port, "LISTEN"))
-        for pid in _netstat_pids(self._ws_port, "ESTABLISHED"):
+        listeners = set(self._port_pids(self._ws_port, "LISTEN"))
+        for pid in self._port_pids(self._ws_port, "ESTABLISHED"):
             if pid in listeners or pid == os.getpid():
                 continue
             if "python" in _process_name(pid).lower():

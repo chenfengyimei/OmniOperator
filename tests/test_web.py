@@ -238,12 +238,9 @@ def test_config_endpoints_extended_shape(tmp_path):
     assert {"chat", "vision", "review"} <= set(cfg["models"])
 
 
-def test_bili_cookies_endpoints(tmp_path, monkeypatch):
-    import omni.channels.web as web_mod
-
-    fake = tmp_path / "bili_cookies.json"
-    monkeypatch.setattr(web_mod, "BILI_COOKIES_PATH", fake)
-    client, _rt = _client(tmp_path)
+def test_bili_cookies_endpoints(tmp_path):
+    client, runtime = _client(tmp_path)
+    fake = runtime.paths.cookies  # 注入路径：不再打真机 data/bili_cookies.json
     # 未配置
     status = client.get("/api/system/bili-cookies").json()
     assert status["configured"] is False
