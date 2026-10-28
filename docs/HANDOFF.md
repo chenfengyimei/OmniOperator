@@ -23,7 +23,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`；`57ed080` 台账记录 **605 全绿**，工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH，需在 D26 消除环境依赖，详见完整计划 §0。
+- 测试：`uv run pytest`；`3a1c536` 台账记录 **614 全绿**，工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH（本机需 `D:\tools\platform-tools` 在 PATH 上，否则 `test_safe_allows_known_readonly_commands` 一例环境性失败），需在 D26 消除环境依赖，详见完整计划 §0。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
