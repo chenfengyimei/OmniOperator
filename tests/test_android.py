@@ -179,9 +179,34 @@ def test_render_tree_format():
     assert "上滑" in tree or "可滚动" not in tree.split("\n")[0]
 
 
-# ---------- 驱动（tap_element 依赖缓存树） ----------
+# ---------- 驱动（观察绑定点击，D16/A12） ----------
 
-def test_driver_tap_element_uses_cached_tree(tmp_path):
+SAMPLE_XML_2 = (
+    '<hierarchy rotation="0">'
+    '<node class="android.widget.TextView" text="删除" bounds="[100,200][300,260]" clickable="true"/>'
+    "</hierarchy>"
+)
+
+
+def _obs_of(tree_output: str) -> str:
+    """从 refresh_tree 输出头部抠出 obs=<id>（模型就是从这里抄给 tap 的）。"""
+    import re
+
+    m = re.search(r"obs=([0-9a-f]{8})", tree_output)
+    assert m, "观察输出必须带 obs 身份"
+    return m.group(1)
+
+
+def test_observation_id_binds_serial_and_content():
+    """观察身份 = 设备 + 树内容：同界面稳定，换设备/换内容必变。"""
+    from omni.tools.android.driver import observation_id
+
+    assert observation_id("EMU1", "tree") == observation_id("EMU1", "tree")
+    assert observation_id("EMU1", "tree") != observation_id("EMU1", "tree2")
+    assert observation_id("EMU1", "tree") != observation_id("EMU2", "tree")
+
+
+def test_driver_tap_element_verifies_and_reports_after(tmp_path):
     runner = FakeRunner()
     runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
     runner.expect("uiautomator dump", "")
@@ -191,13 +216,32 @@ def test_driver_tap_element_uses_cached_tree(tmp_path):
     driver = AndroidDriver(adb=adb, serial="EMU1", cache_path=tmp_path / "tree.json")
 
     tree = driver.refresh_tree()
-    assert '"登录"' in tree
-    out = driver.tap_element(0)
+    assert "obs=" in tree and '"登录"' in tree
+    out = driver.tap_element(0, _obs_of(tree))
     assert "已点击 [0]" in out
     assert any("input tap 200 230" in " ".join(c) for c in runner.calls)
+    # 点击后强制复检：同界面 → "未变化" + 点击后的新观察（省一次 screen_tree）
+    assert "界面未变化" in out and "点击后观察" in out and "obs=" in out
+    # 三次 dump：观察、点击前复核、点击后复检——A12 修复就是靠点击前那次复核
+    assert len(runner.calls_matching("uiautomator")) == 3
 
 
-def test_driver_tap_element_refreshes_when_stale(tmp_path):
+def test_tap_without_observation_is_refused(tmp_path):
+    """A12 的门：不带观察身份的索引点击直接拒绝，且不碰设备。"""
+    runner = FakeRunner()
+    runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=tmp_path / "tree.json",
+    )
+    with pytest.raises(AdbError, match="observation"):
+        driver.tap_element(0)
+    assert runner.calls == []  # 拒绝发生在任何设备调用之前
+
+
+def test_tap_refuses_when_screen_changed_since_observation(tmp_path):
+    """A12 核心：观察之后界面变了（同 idx 已指向别的元素）→ 不点，返回新观察。"""
     runner = FakeRunner()
     runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
     runner.expect("uiautomator dump", "")
@@ -208,9 +252,59 @@ def test_driver_tap_element_refreshes_when_stale(tmp_path):
         serial="EMU1",
         cache_path=tmp_path / "tree.json",
     )
-    # 缓存为空时 tap_element 自动刷新树后能命中
-    out = driver.tap_element(0)
-    assert "已点击 [0]" in out
+    first = driver.refresh_tree()
+    # 审批等待期间屏幕换页：cat 现在返回另一棵树（后注册的 expect 优先）
+    runner.expect("cat /sdcard/omni_uidump.xml", SAMPLE_XML_2)
+    out = driver.tap_element(0, _obs_of(first))
+    assert out.startswith("未点击") and "不一致" in out
+    assert '"删除"' in out and "obs=" in out  # 返回新观察让模型重新选
+    assert not any("input tap" in " ".join(c) for c in runner.calls)
+
+
+def test_tap_post_verify_failure_reports_unknown(tmp_path):
+    """点击成功但复核观察失败：如实报"状态未知"，不假装完成。"""
+
+    class FlakyCatRunner(FakeRunner):
+        def __init__(self) -> None:
+            super().__init__()
+            self.taps = 0
+
+        def __call__(self, argv, timeout):
+            if any(a.startswith("input tap") for a in argv):
+                self.taps += 1
+            # 第一次点击之后 cat 开始返回坏数据（模拟点完设备瞬间掉线）
+            if self.taps >= 1 and any(a.startswith("cat ") for a in argv):
+                return b"<broken"
+            return super().__call__(argv, timeout)
+
+    runner = FlakyCatRunner()
+    runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
+    runner.expect("uiautomator dump", "")
+    runner.expect("cat /sdcard/omni_uidump.xml", SAMPLE_XML)
+    runner.expect("rm /sdcard/omni_uidump.xml", "")
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=tmp_path / "tree.json",
+    )
+    first = driver.refresh_tree()
+    out = driver.tap_element(0, _obs_of(first))
+    assert out.startswith("已点击 [0]")
+    assert "复核观察失败" in out and "状态未知" in out
+    assert any("input tap 200 230" in " ".join(c) for c in runner.calls)
+
+
+def test_tap_idx_missing_in_verified_tree(tmp_path):
+    runner = _dump_runner()
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner),
+        serial="EMU1",
+        cache_path=tmp_path / "tree.json",
+    )
+    first = driver.refresh_tree()
+    with pytest.raises(AdbError, match="不在当前 UI 树"):
+        driver.tap_element(99, _obs_of(first))
+    assert not any("input tap" in " ".join(c) for c in runner.calls)
 
 
 def test_driver_screenshot(tmp_path):
@@ -226,7 +320,7 @@ def test_driver_screenshot(tmp_path):
     assert path.exists() and path.read_bytes().startswith(b"\x89PNG")
 
 
-# ---------- 缓存持久化（跨进程恢复 + 陈旧防御） ----------
+# ---------- 缓存持久化（跨进程恢复；点击不再依赖缓存新鲜度，见上方观察绑定） ----------
 
 def _dump_runner() -> FakeRunner:
     runner = FakeRunner()
@@ -259,46 +353,19 @@ def test_driver_persists_and_restores_tree(tmp_path):
     )
     assert '"登录"' in driver2.tree()
     assert len(driver2.elements()) == 2
+    # 观察身份也一并恢复：重启后旧观察仍可用于点击前复核比对
+    assert driver2.observation_id == driver.observation_id
 
 
-def test_tap_on_fresh_restored_cache_skips_dump(tmp_path):
+def test_tap_on_restored_cache_still_reverifies(tmp_path):
+    """旧优化"新鲜缓存跳过 dump"已刻意移除：点击前必须复核（A12 的根因就是它）。"""
     cache = tmp_path / "tree.json"
     first = AndroidDriver(
         adb=AdbDevice(adb_path="adb", runner=_dump_runner()),
         serial="EMU1",
         cache_path=cache,
     )
-    first.refresh_tree()
-
-    runner = FakeRunner()
-    runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
-    second = AndroidDriver(
-        adb=AdbDevice(adb_path="adb", runner=runner),
-        serial="EMU1",
-        cache_path=cache,
-    )
-    out = second.tap_element(0)
-    assert "已点击 [0]" in out
-    assert not runner.calls_matching("uiautomator")  # 新鲜缓存直接点，不重新 dump
-
-
-def test_tap_on_stale_cache_refreshes_first(tmp_path):
-    import datetime as dt
-    import json
-
-    cache = tmp_path / "tree.json"
-    first = AndroidDriver(
-        adb=AdbDevice(adb_path="adb", runner=_dump_runner()),
-        serial="EMU1",
-        cache_path=cache,
-    )
-    first.refresh_tree()
-    # 把缓存时间改到 2 小时前（模拟长时间空闲后重启）
-    raw = json.loads(cache.read_text(encoding="utf-8"))
-    raw["captured_at"] = (
-        dt.datetime.now().astimezone() - dt.timedelta(hours=2)
-    ).isoformat(timespec="seconds")
-    cache.write_text(json.dumps(raw, ensure_ascii=False), encoding="utf-8")
+    first_output = first.refresh_tree()
 
     runner = _dump_runner()
     second = AndroidDriver(
@@ -306,37 +373,32 @@ def test_tap_on_stale_cache_refreshes_first(tmp_path):
         serial="EMU1",
         cache_path=cache,
     )
-    out = second.tap_element(0)
+    out = second.tap_element(0, _obs_of(first_output))
     assert "已点击 [0]" in out
-    assert runner.calls_matching("uiautomator")  # 陈旧缓存：先重新观察再点
+    # 哪怕缓存是刚写的：点击前仍然 dump 复核 + 点击后复检
+    assert len(runner.calls_matching("uiautomator")) == 2
 
 
-def test_tap_on_serial_mismatch_refreshes_first(tmp_path):
-    """缓存属于 EMU1、当前解析到另一台设备时必须重新观察（防点错屏幕）。"""
+def test_tap_on_restored_cache_refuses_if_screen_moved_on(tmp_path):
+    """重启恢复后界面已经换页：旧观察直接失效，不点。"""
     cache = tmp_path / "tree.json"
     first = AndroidDriver(
         adb=AdbDevice(adb_path="adb", runner=_dump_runner()),
         serial="EMU1",
         cache_path=cache,
     )
-    first.refresh_tree()
+    first_output = first.refresh_tree()
 
     runner = _dump_runner()
+    runner.expect("cat /sdcard/omni_uidump.xml", SAMPLE_XML_2)  # 屏幕已是另一页
     second = AndroidDriver(
         adb=AdbDevice(adb_path="adb", runner=runner),
         serial="EMU1",
         cache_path=cache,
     )
-    # 偷换缓存 serial 模拟"这份树是别的设备观察来的"
-    import json
-
-    raw = json.loads(cache.read_text(encoding="utf-8"))
-    raw["serial"] = "OTHER"
-    cache.write_text(json.dumps(raw, ensure_ascii=False), encoding="utf-8")
-    second._load_cache()
-    out = second.tap_element(0)
-    assert "已点击 [0]" in out
-    assert runner.calls_matching("uiautomator")
+    out = second.tap_element(0, _obs_of(first_output))
+    assert out.startswith("未点击") and '"删除"' in out
+    assert not any("input tap" in " ".join(c) for c in runner.calls)
 
 
 def test_corrupted_cache_is_tolerated(tmp_path):
@@ -348,8 +410,11 @@ def test_corrupted_cache_is_tolerated(tmp_path):
         cache_path=cache,
     )
     assert driver.tree() == ""
-    out = driver.tap_element(0)  # 空缓存 → 自动刷新后命中
-    assert "已点击 [0]" in out
+    # 空缓存：不带 observation 拒绝；带了走正常 dump→复核→点击
+    with pytest.raises(AdbError, match="observation"):
+        driver.tap_element(0)
+    first = driver.refresh_tree()
+    assert "已点击 [0]" in driver.tap_element(0, _obs_of(first))
 
 
 # ---------- 工作台点屏（坐标换算唯一入口） ----------
@@ -412,5 +477,8 @@ def test_android_tools_dispatch(tmp_path):
     # SAFE 读操作直通
     out = registry.dispatch("android_status", "{}")
     assert "EMU1" in out
+    # 观察绑定：不带 observation 的点击在工具层就被拒（A12 的门，不碰设备）
+    out = registry.dispatch("android_tap_element", {"idx": 0}, approver=AllowAllApprover())
+    assert out.startswith("错误") and "observation" in out
     # 写操作错误以字符串回传（离线环境无真实设备树时的降级提示）
     assert registry.dispatch("android_type", {"text": ""}, approver=AllowAllApprover()).startswith("错误")

@@ -84,12 +84,61 @@
 | D13 | 完成 | A02（文件域）、路径与写入边界 | 见第 5 节 | `uv run pytest tests/test_files.py -q` → 29 passed；`uv run pytest -q` → 564 passed（无 F/E） | 真机仓库只读冒烟：`src/omni` 列表、`config.py` 前 3 行 + 指纹、`.env`/`data/` 被拒、`C:/Windows/win.ini` 越根被拒、`data/file_history` 未被创建；junction 逃逸与只读盘在临时目录验证；真实编辑器并发写入待 D27 | 进入 R3（D14 通用网页读取） |
 | D14 | 完成 | 新能力：通用网页读取（无对应 A 项，防的是 SSRF/注入/凭据外带） | 见第 5 节 | `uv run pytest tests/test_web_fetch.py -q` → 25 passed；`uv run pytest -q` → 589 passed（无 F/E） | 真实公网：`https://example.com/` 200 + 正文提取；`https://www.baidu.com/` 返回空壳页并被如实说明（需 JS）；发往本机假服务的超大流/重定向/429/超时/登录页/注入用例全绿 | 进入 R3（D15 产物与视觉输入） |
 | D15 | 完成 | A13 | 见第 5 节 | `uv run pytest tests/test_artifacts.py -q` → 13 passed；`uv run pytest -q` → **605 passed（无 F/E）** | 真实 Chromium 冒烟通过（见第 5 节真机证据）；真实安卓截图待 D16 插真机；真实视觉模型的看图效果需用户配置 `vision.send_to_cloud` 后实测 | 进入 D16（A12 离线修复） |
-| D16 | 待开始 | A12 | — | — | 安卓真机待插设备 | A12 离线修复进行中（观察绑定点击） |
+| D16 | 完成 | A12 | 见第 5 节 | `uv run pytest tests/test_android.py -q` → 29 passed；关联批次 `tests/test_web.py test_arch.py test_agent.py test_cron.py` → 58 passed（2026-10-28） | 安卓真机待插设备：观察绑定点击的真机闭环（两设备交错/旋转/ADB 断连复检/中文输入恢复）待插真机验收 | 进入 D17（cron 编辑与可靠投递） |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D16（安卓观察—动作—验证：A12）
+
+- **改了什么**：
+  - `tools/android/driver.py`：新增**观察身份** `observation_id = sha256(设备序列号 + 树内容)[:8]`
+    （时间不进哈希——同一界面两次观察 id 相同，点击前复核才有"界面没变"的可比性）；
+    `refresh_tree()` 输出头部带 `观察 obs=<id>（设备 …，时间…）`；缓存持久化带上 observation_id；
+    **删除了"新鲜缓存跳过 dump"的陈旧 TTL 机制**（`fresh_ttl_s`/`_cache_is_stale`）——
+    缓存"新鲜"只说明我们最近 dump 过，不代表屏幕没变（弹窗/旋转/跳转不会通知我们），
+    这个优化正是 A12 的根因；
+  - `tap_element(idx, observation)` 重写为观察绑定点击：不带 observation 直接拒绝（零设备调用）；
+    点击前**重新 dump**，内容哈希与模型引用的观察一致才点；不一致**绝不盲点**，
+    返回新观察让模型重新选择；点击后**强制复检**并返回点击后的新观察（复检失败如实报
+    "界面状态未知"，不假装完成）；
+  - `tools/android/tools.py`：`android_tap_element` 增加 required 参数 `observation`；
+    `android_screen_tree` 描述改为"把 obs 原样传给 tap"；模块 docstring 更新为观察绑定纪律；
+  - 工作台 `/api/android/element` 同一套复核（面板传 observation，缺省用当前缓存身份）；
+    `/api/android/tree` 响应补结构化 `observation` 字段。
+- **关闭了什么**：A12（tap_element 在树刷新后用同一个 idx 找元素可能点到别的东西；
+  动作后无强制复检）。
+- **跑了什么**：`uv run pytest tests/test_android.py -q` → **29 passed**（旧契约 6 例重写 +
+  新增 6 例：无观察拒绝且零设备调用 / 换屏拒绝返回新观察 / 点击前复核三次 dump /
+  点击后复检失败报未知 / 观察身份绑定设备与内容 / 重启恢复后仍复核）；
+  关联批次 `uv run pytest tests/test_web.py tests/test_arch.py tests/test_agent.py tests/test_cron.py -q`
+  → 58 passed（2026-10-28）。
+- **没测什么**：真实安卓设备的任何操作（FakeRunner 假执行器，断言"未点击时 input tap 调用次数为零"）；
+  两台真机交错的实机行为（观察身份含序列号，行为上换设备必然 observation 不一致 → 拒绝，
+  但未在真机复现）；旋转/弹窗的真机触发（离线用"cat 返回另一棵树"等价模拟）；
+  `tap_coords`/`swipe`/`key`/`type_text` 的观察绑定（大纲 D16 全量绑定留待真机阶段，
+  本轮按 A12 范围只做 idx 点击——裸坐标/全局键的风险面不同，且全部 CONFIRM 人工把关）。
+- **行为变化**：
+  1. 模型点击前必须先 `android_screen_tree` 拿到 obs；不带 obs 的点击直接被拒；
+  2. 审批等待期间屏幕变了（换页/弹窗/锁屏）→ **不点**，返回新观察——多花一次 dump
+    （0.5-2s），换掉的是"点错元素"这类不可逆错误；
+  3. 点击后工具直接返回新界面观察，模型不必再调 screen_tree 核对；
+  4. 工作台「UI 树」面板显示观察身份行。
+- **剩余限制（明确记录）**：
+  1. 每次点击固定三次 dump（观察/复核/复检），真机上比旧实现慢 1-4s——刻意的取舍；
+  2. 观察身份只看**树内容**：纯视觉变化（视频帧、动画、同结构同文案的换图）不会改变 obs，
+     复核不能发现——这类场景归截图工作流（D15 产物），不归 UI 树；
+  3. `uiautomator dump` 本身可能超时/被设备拒绝，复检失败按"状态未知"处理，不自动重试写动作。
+- **过程记录**：
+  1. 旧测试 `test_tap_on_fresh_restored_cache_skips_dump` 断言的正是被移除的优化——
+     重写为 `test_tap_on_restored_cache_still_reverifies`，注释写明"该优化是 A12 根因"；
+  2. 复检失败用例需要"点击之后 cat 才开始坏"的时序：FakeRunner 按子串匹配没有调用计数，
+     写了个数 taps 的 `FlakyCatRunner` 子类——第一次 `input tap` 之后 cat 返回坏 XML，
+     正好模拟"点完瞬间设备掉线"；
+  3. adb 的 shell/exec-out 都是**单串命令元素**（`["-s", serial, "shell", "input tap 200 230"]`），
+     子类里检测用 `startswith("input tap")`，第一次写成了拆开的 argv 元素匹配。
 
 ### 2026-10-28 · D15（产物存储与视觉输入：A13）
 

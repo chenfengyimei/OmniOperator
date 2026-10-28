@@ -1,8 +1,10 @@
 """安卓工具集（toolset=android）：观察 SAFE，动作 CONFIRM。
 
 使用纪律（范凯 skill 的核心，xuexi/NOTES.md §3.1）：
-- 每轮只做一个改变设备的动作，动作后必须重新观察（refresh_tree）再决定下一步；
-- 首选 tap_element(idx)（索引），裸坐标是兜底；
+- 观察绑定动作：screen_tree 返回观察身份 obs=<id>，tap_element 必须带它；
+  点击前自动复核界面，不一致就不点（A12：旧 idx 绝不点新元素）；
+- 每轮只做一个改变设备的动作；tap 后工具直接返回点击后的新观察；
+- 首选 tap_element(idx, observation)（索引），裸坐标是兜底；
 - 中文输入走 ADBKeyboard 广播，底层保证恢复原输入法。
 """
 from __future__ import annotations
@@ -47,8 +49,14 @@ def register_android_tools(
             idx = int(args["idx"])
         except (KeyError, TypeError, ValueError):
             return "错误：idx 必须是整数（从 screen_tree 输出里取 [idx]）"
+        observation = str(args.get("observation") or "").strip()
+        if not observation:
+            return (
+                "错误：必须带 observation（android_screen_tree 输出第一行的 obs=…）。"
+                "点击前会复核界面：界面变了就不点，并返回新观察让你重新选择"
+            )
         try:
-            return driver.tap_element(idx)
+            return driver.tap_element(idx, observation)
         except Exception as exc:  # noqa: BLE001
             return f"错误：{exc}"
 
@@ -113,8 +121,10 @@ def register_android_tools(
         Tool(
             name="android_screen_tree",
             description=(
-                "观察安卓手机当前界面：返回带 [idx] 索引的可交互元素树。"
-                "点击前必须先调用它；动作后也必须再调一次核对结果"
+                "观察安卓手机当前界面：返回带 [idx] 索引的可交互元素树，"
+                "第一行是观察身份 obs=<id>。点击元素时必须把 obs 原样传给"
+                " android_tap_element（它靠这个判断界面有没有变）；"
+                "动作后它会返回新观察，不必重复调用本工具"
             ),
             parameters={"type": "object", "properties": {}, "required": []},
             func=android_tree,
@@ -136,13 +146,20 @@ def register_android_tools(
         Tool(
             name="android_tap_element",
             description=(
-                "点击界面上第 idx 号元素（索引来自 android_screen_tree）。"
-                "改变设备状态的操作：每轮只做一个，做完必须重新观察核对"
+                "点击界面上第 idx 号元素（idx 和 observation 都来自 android_screen_tree 的输出）。"
+                "点击前会复核界面：与观察不一致（审批等待/弹窗/跳转）就不点，"
+                "返回新观察让你重新选择。改变设备状态：每轮只做一个"
             ),
             parameters={
                 "type": "object",
-                "properties": {"idx": {"type": "integer", "description": "screen_tree 里的 [idx]"}},
-                "required": ["idx"],
+                "properties": {
+                    "idx": {"type": "integer", "description": "screen_tree 里的 [idx]"},
+                    "observation": {
+                        "type": "string",
+                        "description": "screen_tree 输出第一行的 obs=…（观察身份）",
+                    },
+                },
+                "required": ["idx", "observation"],
             },
             func=android_tap_element,
             toolset="android",

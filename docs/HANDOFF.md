@@ -1,16 +1,17 @@
 # OmniOperator 交接文档（给后续开发者 / AI）
 
-> 生成于 2026-10-27。本文是跨会话接手的唯一入口：先读本文，再读 `docs/ARCHITECTURE.md`（模块职责唯一权威）。
+> 生成于 2026-10-27，交接核对更新于 2026-10-28。本文是跨会话接手的唯一入口：先读本文，再读 `docs/ARCHITECTURE.md`（模块职责唯一权威）。
 > 学习资料在 `xuexi/`（已 gitignore，不入库）：`NOTES.md` 是四个参考项目的深度提炼，本项目的对标路线全部出自它。
 
 ## 0 接手顺序（R0–R7 开发轮次）
 
 1. 本文（能力清单 + 平台坑）
 2. `docs/ARCHITECTURE.md`（分层与组装根唯一权威）
-3. `docs/DEVELOPMENT_STATUS.md`（**当前进度、A01–A20 阻断项证据、谁在哪个 commit 关了什么**）
-4. `docs/LOCAL_AGENT_PLAN.md`（完整评估与路线）→ `docs/DEEPSEEK_DEVELOPMENT_OUTLINE.md`（任务卡与验收）
+3. [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)（**当前进度、A01–A20 阻断项证据、谁在哪个 commit 关了什么**）
+4. [LOCAL_AGENT_PLAN.md](LOCAL_AGENT_PLAN.md)（完整评估、续接快照与路线）→ [DEEPSEEK_DEVELOPMENT_OUTLINE.md](DEEPSEEK_DEVELOPMENT_OUTLINE.md)（任务卡、验收与可复制续接指令）
 
-任何"已完成"的宣称只认 `DEVELOPMENT_STATUS.md` 里的证据列：源码发现 ≠ 已复现 ≠ 已修复 ≠ 真实验收完成。
+任何"已完成"的宣称须核对台账证据、实际代码和测试：源码发现 ≠ 已复现 ≠ 已修复 ≠ 真实验收完成。
+续接核对至 `57ed080`：D00–D15 已有实现提交；当前从 D16 推进至 D19，先读已有差异接续。若台账已更新，继续下一个未完成子项。任务行写“完成”不能代替其剩余限制和真实验收。
 
 ---
 
@@ -22,7 +23,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **605 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
+- 测试：`uv run pytest`；`57ed080` 台账记录 **605 全绿**，工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH，需在 D26 消除环境依赖，详见完整计划 §0。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -73,7 +74,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 | qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
 | cron | cron_list / cron_add / cron_remove | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链） |
 | browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流；截图存为产物 [artifact:id]（开 vision 后模型可直接看图） |
-| android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM；截图同样入产物库 |
+| android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM；截图同样入产物库；tap_element 观察绑定（D16/A12）：点击前复核界面、不一致不点、点后强制复检 |
 | system | system_status（SAFE）/ system_service（CONFIRM） | NapCat/omni-qq/心跳 启停与状态 |
 | mcp | mcp_list_tools / mcp_read_tool / mcp_call_tool | 本地 stdio 服务，渐进发现、用户只读白名单、人工确认；配置见 `docs/MCP.md` |
 
@@ -82,12 +83,14 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 - **产物 → 图像块（D15/A13）**：截图统一入产物库（sha256/归属/保留期），
   工具结果带 `[artifact:id]` 标记；开 `vision.send_to_cloud` 且有视觉模型时转成图像块
   （缩放 + JPEG 重编码 + 坐标口径说明），任一门没过就**如实降级**说"看不到图"
-- **上下文压缩**（`core/compress.py`）：超 24k 字符把旧块压摘要（工具调用对不拆开），失败降级
+- **上下文压缩**（`core/compress.py`）：按消息区间持久摘要，FTS 增量维护；回合内工具输出临时压缩仍在内存，字符阈值和摘要质量待继续收口
 - **消息不变量断言**：system 唯一首位 / 一批 tool_calls 后允许连续多项结果，每个调用 id 必须恰好匹配一项结果，不能漏回、重复或插入其它消息
 - **回合作用域**：SessionRef.bind 在正常返回和异常时均恢复调用者会话；delegate 保持父审批链，无需放宽权限
 - 系统提示词 = 人设 + 常驻记忆快照（用量头）+ 档案块，单轮内字节稳定
-- 回合后异步 review（`core/review.py`，白名单：记忆/档案/常驻/技能）
-- 心跳调度（`core/cron.py`）：tick 30s，先推进 next_run 再派发（至多一次），错过半周期跳过，执行账本
+- review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，候选变更/差异确认待 D18
+- 运行账本、事件续读、协作式取消与 ToolResult 已接入；旧字符串工具仍有兼容适配，跨进程取消和在途操作限制见台账
+- 模型能力、超时、有界重试、usage/费用预留结算已有实现；**预算默认未设上限**，无人值守付费推理需明确授权与限额
+- 心跳调度：tick 30s，state.db 原子领取同一到期时刻并推进 next_run；积压策略、投递 outbox/未知结果和 context_from 产物绑定待 D17
 
 ### 4.3 通道与界面
 - **Web 工作台**（`channels/web.py` + `web_static/index.html` 单文件前端）：
@@ -114,12 +117,10 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 - 硬黑名单（shell）/ 常驻记忆防注入扫描 / QQ 白名单
 
 ### 4.5 Hermes 对标进度
-已抄完（NOTES §1）：多入口单内核、grace call、todo、压缩+不变量、记忆三层（档案/事实/常驻快照）、
-回合后 review、技能 patch、cron 一等任务（skills/context_from/账本）、审批矩阵（含 smart）、
-delegate_task、工具自注册+toolset 分组。
-**未做**：cron script/预采集脚本、provider 覆盖、suggestions（主动建议）、
-记忆向量检索（sqlite-vec）、computer-use 桌面控制（Hermes 经 MCP 接 cua-driver）、
-MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（见 `docs/MCP.md`）。技能 references 已支持：主文列路径、三级按需读；限制 UTF-8 文本 64 KiB，禁越界/符号链接/junction/Windows ADS；目录最多列 60 项。
+已借鉴并实现多入口内核、grace call、todo、消息不变量、三层记忆、review、技能 patch、cron、审批、受限委派和工具注册；后续补了运行/取消、预算、持久摘要、文件/网页读取和产物/图像消息。
+这不表示 Hermes 对标已完成。设备闭环、调度投递、技能治理、MCP 管理、运维评测和真实验收仍有缺口；完整比较与门槛见 [完整计划](LOCAL_AGENT_PLAN.md)。没有同模型同任务评测，不能断言实际效果相当。
+
+MCP stdio 已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。技能 references、历史/CAS 底座已有，工作台编辑/回滚与安装扫描待 D18。桌面、受控主动性和向量记忆属于后续扩展，不能替代安全和稳定性收口。
 
 ## 5. 平台坑清单（血泪，别再踩）
 
@@ -152,25 +153,21 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 
 ## 6. 未完成事项（按优先级）
 
-### 等用户动手（代码已就绪）
+### 真实验收的外部前提
 - QQ 北极星实测：工作台扫码登录 NapCat → 大号 10000000001 给小号 10000000002 发 B 站链接
 - B 站小号 Cookie：工作台设置中心贴 SESSDATA → 解锁字幕/音频流 → 才能做 P3 发视频实操
 - 安卓真机：开 USB 调试插上 + 装 ADBKeyboard.apk → P4 联调（工作台「📱 手机」页已可用）
 
-### 建议的下一步开发（按价值排序）
-1. **产物与视觉输入（已完成，D15）**：截图统一入产物库（sha256/归属会话/7 天保留/总量上限），
-   工具结果带 `[artifact:id]`；`vision.send_to_cloud`（默认关，隐私闸门）打开且模型声明 vision 能力时
-   附真实图像块（缩放/JPEG/坐标口径），否则如实降级；工作台已有「产物」面板与手动清理；
-   真实视觉模型效果待用户配置后实测
-2. **MJPEG 优化（已完成）**：Pillow，半分辨率 + JPEG q40，坏帧/设备离线断流；已验证 RGB/RGBA/灰度与坐标换算，实际带宽与清晰度待安卓真机验收
-3. **技能工作台编辑**：目前只能看；加代码编辑器（右侧面板或弹窗）直改 SKILL.md + 版本回滚
-4. **cron 任务编辑**：目前只能删了重建；补 PUT 编辑 prompt/schedule
-5. **记忆向量检索**（sqlite-vec）：事实层语义搜索，替代纯 FTS
-6. **computer-use 桌面**：Windows UIAutomation + SendInput（后台不抢焦点），对标 Hermes cua-driver
-7. **MCP 客户端（stdio 已完成）**：懒连接、持久会话、发现分页、只读白名单与人工确认、超时及进程回收；通过真实离线子进程验证，外部生产服务联调与 HTTP/OAuth 待做（见 `docs/MCP.md`）
-8. **QQ 群聊**：@ 触发 + 群白名单已就绪，缺群场景的拟人节奏与话题管理
-9. **B 站写操作**（P3）：评论/私信走浏览器 UI，复用现有预算+审批+回读
-10. **日报模板 + context_from 实测**：夜间整理 → 早报链路端到端跑一次
+### 当前开发顺序（以最新台账与工作区为准）
+
+1. **D16 安卓闭环**：设备/观察版本绑定，旧 idx 失效拒绝，动作后新观察与验证。D15 图像消息、MJPEG 半分辨率 JPEG q40 已有，真实视觉效果和安卓联调仍待验。
+2. **D17 cron**：revision 编辑、积压治理、run/产物依赖、投递账本与去重；unknown 不能自动重发。夜间整理→早报列为真实验收。
+3. **D18 技能工作台**：沿用历史/CAS，补编辑、差异、回滚、候选变更与隔离安装。
+4. **D19 MCP 管理**：stdio 状态、schema/权限漂移、生产验证；远程 HTTP/OAuth 可独立后置。
+5. **D25/D26 运维与回归持续推进**：进程身份、备份恢复、CI/任务评测及内核剩余项；D27 完成必要真实验收与 72 小时常驻。
+6. **R5/R6 扩展**：桌面逐应用验证后台/前台能力、QQ 受控主动性、B 站人工批准 UI 写、FTS+向量混合检索。不要承诺 SendInput 对所有软件后台不抢焦点，也不直接用向量替代 FTS。
+
+完整 D00–D27 任务卡、依赖和验收见 [开发大纲](DEEPSEEK_DEVELOPMENT_OUTLINE.md)，其中 §12 可直接交给 DeepSeek 4.1f 续接。
 
 ## 7. 代码约定
 

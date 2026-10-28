@@ -113,6 +113,7 @@ class AndroidTapIn(BaseModel):
 
 class AndroidElementIn(BaseModel):
     idx: int
+    observation: str = ""  # 面板树的观察身份；缺省用当前缓存（点屏者自己在看屏）
 
 
 class AndroidKeyIn(BaseModel):
@@ -1089,6 +1090,7 @@ def create_app(runtime: Runtime) -> FastAPI:
             raise HTTPException(status_code=409, detail=str(exc))
         return {
             "tree": tree,
+            "observation": runtime.android.observation_id or "",
             "elements": [
                 {
                     "idx": e["idx"],
@@ -1117,8 +1119,10 @@ def create_app(runtime: Runtime) -> FastAPI:
 
     @app.post("/api/android/element")
     def android_element(payload: AndroidElementIn) -> dict[str, Any]:
+        """按 idx 点元素：与 agent 工具同一套观察绑定复核（界面变了就拒绝）。"""
         try:
-            return {"ok": True, "detail": runtime.android.tap_element(payload.idx)}
+            observation = payload.observation.strip() or (runtime.android.observation_id or "")
+            return {"ok": True, "detail": runtime.android.tap_element(payload.idx, observation)}
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(status_code=409, detail=str(exc))
 

@@ -1,7 +1,7 @@
 """UI 树解析（纯函数）：uiautomator XML → 结构化元素 → 文本树。
 
 输出对齐 ghost-in-the-droid 的 get_screen_tree 风格：
-- 元素带 [idx] 索引（agent 点 tap_element(idx) 用索引而非裸坐标，更鲁棒）；
+- 元素带 [idx] 索引（agent 点 tap_element(idx, observation)，索引比裸坐标鲁棒）；
 - 只保留有信息量的节点（有文字/描述，或可点击/可滚动）；
 - 超过 max_nodes 截断；末尾提示可滚动。
 """
