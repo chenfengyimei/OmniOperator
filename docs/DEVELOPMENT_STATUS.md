@@ -93,6 +93,25 @@
 
 ## 5 变更记录
 
+### 2026-10-28 · 修复（重复定义清理：产物保引用曾静默失效）
+
+- **发现方式**：D18 收尾时用 AST 扫同名重复定义（`tests/`+`src/`），共 7 处，全部是误粘贴的副本。
+- **改了什么**：
+  - **`core/run.py`（生产代码，真缺陷）**：`ActiveRuns` 曾有**两个 `snapshot()`**——旧的返回库内
+    `Run` 记录（web 断线取消用），D15 新增的返回活 `RunContext`（产物保引用用），**后者覆盖前者**。
+    结果：`_sweep_artifacts()` 拿到的每项都没有 `_attached_image_ids` → keep 集合恒空，
+    「清理跳过仍在使用的产物」**静默失效**。修复：新增的改为 `contexts()`（docstring 写明与
+    `snapshot()` 的形状区别），`agent._sweep_artifacts` 改调它；web 的 `snapshot()` 调用点不变。
+  - 测试副本（逐字节相同，删除后者）：`tests/test_backup.py::_rows`、
+    `tests/test_files.py::test_web_approval_detail_is_truncated_for_huge_writes`、
+    `tests/test_web_auth.py` 的 4 个（pairing cookie/redirect、cross-site、expired rotation、
+    websocket gate matrix）、`tests/test_state.py::test_v2_to_v3_migration_keeps_session_leases`。
+- **补了什么**：`tests/test_artifacts.py` 新增回归用例——钉住 `contexts()`/`snapshot()` 两种形状，
+  并**真正覆盖**保引用路径：过期产物被活跃 run 引用时清理不删、引用清掉后下回合收走。
+- **跑了什么**：`uv run pytest tests/test_artifacts.py tests/test_state.py tests/test_backup.py tests/test_files.py tests/test_web_auth.py -q`
+  → **109 passed**；重复定义扫描 → **0**；全量见提交信息。
+- **行为变化**：产物清理真正遵守"活跃 run 仍引用的不删"；测试数量不变（删的都是从未执行过的影子副本）。
+
 ### 2026-10-28 · D18 第二批（候选变更审阅队列：agent 自动改技能可见可回滚）
 
 - **改了什么**：

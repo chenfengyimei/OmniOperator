@@ -317,7 +317,8 @@ class Agent:
         if self._artifacts is None:
             return
         keep: set[str] = set()
-        for active in (self._active_runs.snapshot() if self._active_runs else []):
+        # 用 contexts()（活对象）而不是 snapshot()（库内记录）：已附图 id 只在活对象上
+        for active in (self._active_runs.contexts() if self._active_runs else []):
             keep.update(getattr(active, "_attached_image_ids", None) or set())
         try:
             self._artifacts.cleanup(keep_ids=keep)

@@ -333,63 +333,6 @@ def test_expired_pairing_code_rotates_and_reports(tmp_path, capsys):
 # ---------------------------------------------------------------- 控制台配对链接
 
 
-def test_pairing_link_sets_cookie_and_redirects(tmp_path):
-    """控制台链接点开即配对：浏览器正常打开工作台，前端不需要配合。"""
-    app, _runtime = _app(tmp_path)
-    auth = app.state.web_auth
-    client = TestClient(app, base_url="http://127.0.0.1")
-
-    response = client.get(f"/pair/{auth.pairing_code}", follow_redirects=False)
-    assert response.status_code == 303
-    assert response.headers["location"] == "/"
-    assert COOKIE_NAME in response.cookies
-    assert client.get("/api/state").status_code == 200
-
-
-def test_pairing_link_rejects_cross_site_navigation(tmp_path):
-    app, _runtime = _app(tmp_path)
-    auth = app.state.web_auth
-    client = TestClient(app, base_url="http://127.0.0.1")
-
-    response = client.get(
-        f"/pair/{auth.pairing_code}",
-        headers={"sec-fetch-site": "cross-site"},
-        follow_redirects=False,
-    )
-    assert response.status_code == 403
-    assert client.get("/api/state").status_code == 401
-
-
-def test_expired_pairing_code_rotates_and_reports(tmp_path, capsys):
-    app, _runtime = _app(tmp_path)
-    auth = app.state.web_auth
-    old_code = auth.pairing_code
-    auth._pair_deadline = 0  # 模拟过期
-
-    client = TestClient(app, base_url="http://127.0.0.1")
-    assert client.post("/api/auth/pair", json={"code": old_code}).status_code == 403
-    assert auth.pairing_code != old_code
-    assert "配对链接" in capsys.readouterr().out  # 新链接打到控制台
-    assert client.post("/api/auth/pair", json={"code": auth.pairing_code}).status_code == 200
-
-
-def test_websocket_gate_matrix(tmp_path):
-    """WS 握手闸门：Host/Origin/会话三者都过才放行（真实 PTY 留待手动验收）。"""
-    app, _runtime = _app(tmp_path)
-    auth = app.state.web_auth
-    session = auth.issue_session()
-
-    ok = auth.check_websocket(host="127.0.0.1:8000", origin="http://127.0.0.1:8000", cookie=session)
-    assert ok is None
-    assert auth.check_websocket(host="127.0.0.1:8000", origin=None, cookie=session) is None
-
-    assert auth.check_websocket(host="evil.example:8000", origin=None, cookie=session).code == "host_rejected"
-    assert auth.check_websocket(
-        host="127.0.0.1:8000", origin="https://evil.example", cookie=session
-    ).code == "origin_rejected"
-    assert auth.check_websocket(host="127.0.0.1:8000", origin=None, cookie=None).code == "auth_required"
-
-
 def test_websocket_gate_matrix(tmp_path):
     """WS 握手闸门：Host/Origin/会话三者都过才放行（真实 PTY 留待手动验收）。"""
     app, _runtime = _app(tmp_path)

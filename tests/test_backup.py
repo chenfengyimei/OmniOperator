@@ -27,14 +27,6 @@ def _rows(path):
         conn.close()
 
 
-def _rows(path):
-    conn = sqlite3.connect(str(path))
-    try:
-        return [row[0] for row in conn.execute("SELECT body FROM notes ORDER BY id")]
-    finally:
-        conn.close()
-
-
 def _db_with_row(path, text="已提交的一行"):
     conn = sqlite3.connect(str(path))
     conn.execute("PRAGMA journal_mode=WAL")

@@ -457,43 +457,6 @@ def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
     assert "session_leases" not in tables and "resource_leases" in tables
 
 
-def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
-    """v3 把 session_leases 合并进 resource_leases：升级后仍在有效期内的租约不能丢。"""
-    db = tmp_path / "state.db"
-    state = _state(tmp_path)
-    state.close()
-
-    # 手工退回 v2 的形态：session_leases 表 + 一条活跃租约
-    conn = sqlite3.connect(str(db), isolation_level=None)
-    try:
-        conn.execute("DROP TABLE resource_leases")
-        conn.execute(
-            "CREATE TABLE session_leases (session_id INTEGER PRIMARY KEY, owner TEXT NOT NULL, "
-            "token TEXT NOT NULL, acquired_at TEXT NOT NULL, expires_at REAL NOT NULL)"
-        )
-        conn.execute(
-            "INSERT INTO session_leases VALUES (7, 'pid:123', 'tok-abc', '2026-10-27T23:00:00+08:00', ?)",
-            (time.time() + 600,),
-        )
-        conn.execute("UPDATE meta SET value = '2' WHERE key = 'schema_version'")
-    finally:
-        conn.close()
-
-    upgraded = _state(tmp_path)
-    # 从 v2 一步升到当前版本（v3 合并租约表、v4 建运行表）
-    assert upgraded.health()["schema_version"] == SCHEMA_VERSION
-    lease = upgraded.session_lease(7)
-    assert lease is not None and lease.owner == "pid:123" and lease.token == "tok-abc"
-    assert lease.session_id == 7
-    # 旧的 session_leases 已合并，不再存在
-    conn = sqlite3.connect(str(db))
-    try:
-        tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-    finally:
-        conn.close()
-    assert "session_leases" not in tables and "resource_leases" in tables
-
-
 def test_skill_ack_store_only_advances(tmp_path):
     """技能已读标记只前进：旧标记不会把已读改回未读（D18）。"""
     from omni.memory.state import SkillAckStore

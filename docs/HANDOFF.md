@@ -23,7 +23,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`；台账记录 **634 全绿**（2026-10-28 D18 审阅队列批次），工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH（本机需 `D:\tools\platform-tools` 在 PATH 上，否则 `test_safe_allows_known_readonly_commands` 一例环境性失败），需在 D26 消除环境依赖，详见完整计划 §0。**另注**：`tests/test_state.py` 里 `test_v2_to_v3_migration_keeps_session_leases` 被重复定义两次（后者覆盖前者，前一份从未执行）——属既有问题，修复时保留两份内容中更完整的那份。
+- 测试：`uv run pytest`；台账记录 **634 全绿**（2026-10-28 D18 审阅队列批次），工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH（本机需 `D:\tools\platform-tools` 在 PATH 上，否则 `test_safe_allows_known_readonly_commands` 一例环境性失败），需在 D26 消除环境依赖，详见完整计划 §0。**已修（2026-10-28）**：7 处同名重复定义的误粘贴副本已清理（含 `ActiveRuns` 两个 `snapshot()` 互相覆盖、产物保引用静默失效的生产缺陷；现为 `contexts()` 活对象 / `snapshot()` 库内记录两种形状，各有回归用例）。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手

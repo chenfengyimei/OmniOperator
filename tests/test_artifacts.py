@@ -481,3 +481,53 @@ class _QuietGateway:
 
     def complete(self, messages, *, model, tools=None, **kwargs):
         return SimpleNamespace(text="你好。", tool_calls=[])
+
+
+def test_active_runs_contexts_vs_snapshot_and_sweep_keeps_referenced(tmp_path):
+    """回归（曾同名互相覆盖）：snapshot() 返回库内记录、contexts() 返回活对象。
+
+    D15 的产物清理依赖 contexts() 上的 `_attached_image_ids`——拿错形状时
+    "保住使用中产物"会**静默失效**，这里直接覆盖这条路径。
+    """
+    from types import SimpleNamespace
+
+    from omni.config import AppConfig
+    from omni.core.run import ActiveRuns, RunContext, RunIdentity
+    from omni.memory.runs import RunStore
+
+    memory, state, artifacts, sid = _make_store(tmp_path)
+    runs = RunStore(state)
+    active = ActiveRuns()
+    ctx = RunContext(identity=RunIdentity.new(session_id=sid), store=runs, max_steps=8)
+    active.register(ctx)
+    # 两种形状必须分开：contexts() 是活对象，snapshot() 是库内记录（这里没建记录 → 空）
+    assert active.contexts() == [ctx]
+    assert active.snapshot() == []
+
+    agent = Agent(
+        AppConfig(), SimpleNamespace(resolve=lambda route: "fake/chat"), memory,
+        ToolRegistry(), sid,
+        artifacts=artifacts, active_runs=active,
+    )
+    art = artifacts.save_image(
+        _png(), "image/png", session_id=sid, run_id=ctx.run_id,
+        kind="screenshot", source="snap", width=32, height=20,
+    )
+    with state._tx() as conn:  # 改成已过期：清理应当删它——除非它仍被活跃 run 引用
+        conn.execute(
+            "UPDATE artifacts SET expires_at = '2000-01-01T00:00:00' WHERE artifact_id = ?",
+            (art.artifact_id,),
+        )
+    ctx._attached_image_ids = {art.artifact_id}  # 本回合已把这张图发给模型
+    agent._sweep_artifacts()
+    assert (artifacts.root / f"{art.artifact_id}.png").exists()
+    assert artifacts.get(art.artifact_id, session_id=sid, allow_expired=True)
+
+    # 引用清掉后，同样的过期产物会被下回合清理收走
+    ctx._attached_image_ids = set()
+    agent._sweep_artifacts()
+    with pytest.raises(ArtifactError):
+        artifacts.get(art.artifact_id, session_id=sid)
+    assert not (artifacts.root / f"{art.artifact_id}.png").exists()
+    state.close()
+    memory.close()

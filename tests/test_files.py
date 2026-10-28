@@ -544,28 +544,6 @@ def test_web_approval_detail_is_truncated_for_huge_writes(env):
     assert "已截断" in broker.detail and "a.txt" in broker.detail
 
 
-def test_web_approval_detail_is_truncated_for_huge_writes(env):
-    """确认框里塞 2MB 内容等于没有确认：超长参数必须截断并说明。"""
-    from omni.safety.gates import Decision, WebApprover
-
-    registry, _root, _ = env
-    tool = registry.get("files_write")
-
-    class _Broker:
-        def __init__(self) -> None:
-            self.detail = ""
-
-        def request(self, _tool, detail: str = "", **_kwargs):
-            self.detail = detail
-            return Decision(True)
-
-    broker = _Broker()
-    approver = WebApprover(broker)
-    approver.check(tool, {"path": "a.txt", "content": "x" * 30000})
-    assert len(broker.detail) <= approver.MAX_DETAIL_CHARS + 100
-    assert "已截断" in broker.detail and "a.txt" in broker.detail
-
-
 def test_windows_path_case_is_case_insensitive(env):
     """Windows 上 `README.md` 与 `readme.md` 是同一个文件：不能因为大小写就判越界。"""
     if os.name != "nt":

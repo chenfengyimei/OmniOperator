@@ -214,8 +214,12 @@ class ActiveRuns:
         with self._lock:
             return self._runs.get(run_id)
 
-    def snapshot(self) -> list[RunContext]:
-        """当前在跑的 run（产物清理要保住它们还在引用的图像，D15）。"""
+    def contexts(self) -> list[RunContext]:
+        """本进程活着的 RunContext（含回合内临时状态，如已附图 id；D15 产物清理用）。
+
+        与 `snapshot()` 刻意分开：那个返回**库内 `Run` 记录**给界面看，
+        这个返回活对象——同名曾导致后者覆盖前者、产物保引用静默失效。
+        """
         with self._lock:
             return list(self._runs.values())
 
