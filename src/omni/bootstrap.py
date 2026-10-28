@@ -30,7 +30,7 @@ from .core.session import ResourceLeases, SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
 from .memory.runs import RunStore
-from .memory.state import ExecutionLog, JobStore, StateStore
+from .memory.state import ExecutionLog, JobStore, OutboxStore, StateStore
 from .memory.artifacts import ArtifactStore
 from .memory.usage import UsageLedger
 from .memory.guard import MemoryGuard
@@ -120,6 +120,7 @@ class Runtime:
     workspace: Workspace | None = None        # 文件工具的允许根与敏感项边界（D13）
     file_history: FileHistory | None = None   # 工作区文件的写入备份（D13）
     artifacts: ArtifactStore | None = None    # 产物存储（D15）
+    outbox: OutboxStore | None = None         # 投递 outbox：QQ 掉线不丢心跳结果（D17）
     qq: OneBotClient | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
@@ -200,6 +201,8 @@ def build_runtime(
         retention_days=config.artifacts.retention_days,
         max_total_bytes=config.artifacts.max_total_mb * 1024 * 1024,
     )
+    # 投递 outbox（D17）：QQ 掉线时任务结果入队，恢复后由心跳进程补投
+    outbox = OutboxStore(state)
     gateway = Gateway(config.models, llm=config.llm, ledger=usage)
     try:
         pruned = usage.prune(keep_days=180)
@@ -391,6 +394,7 @@ def build_runtime(
         state=state,
         usage=usage,
         artifacts=artifacts,
+        outbox=outbox,
         runs=runs,
         active_runs=active_runs,
         session_gate=session_gate,

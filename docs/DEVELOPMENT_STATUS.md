@@ -85,13 +85,70 @@
 | D14 | 完成 | 新能力：通用网页读取（无对应 A 项，防的是 SSRF/注入/凭据外带） | 见第 5 节 | `uv run pytest tests/test_web_fetch.py -q` → 25 passed；`uv run pytest -q` → 589 passed（无 F/E） | 真实公网：`https://example.com/` 200 + 正文提取；`https://www.baidu.com/` 返回空壳页并被如实说明（需 JS）；发往本机假服务的超大流/重定向/429/超时/登录页/注入用例全绿 | 进入 R3（D15 产物与视觉输入） |
 | D15 | 完成 | A13 | 见第 5 节 | `uv run pytest tests/test_artifacts.py -q` → 13 passed；`uv run pytest -q` → **605 passed（无 F/E）** | 真实 Chromium 冒烟通过（见第 5 节真机证据）；真实安卓截图待 D16 插真机；真实视觉模型的看图效果需用户配置 `vision.send_to_cloud` 后实测 | 进入 D16（A12 离线修复） |
 | D16 | 完成 | A12 | 见第 5 节 | `uv run pytest tests/test_android.py -q` → 29 passed；关联批次 `tests/test_web.py test_arch.py test_agent.py test_cron.py` → 58 passed（2026-10-28） | 安卓真机待插设备：观察绑定点击的真机闭环（两设备交错/旋转/ADB 断连复检/中文输入恢复）待插真机验收 | 进入 D17（cron 编辑与可靠投递） |
-| D17 | 开发中 | A04（编辑校验）、A17（部分） | 见第 5 节：任务编辑（Web+工具）+ 成败判定去前缀化 + 列表暴露 revision | `uv run pytest tests/test_cron.py tests/test_web.py -q` → 51 passed；新增 5 例（编辑部分更新/null 清除/白名单/冲突 409/前缀判定负例/失败回合不进 review） | 真实心跳进程下编辑与到期交错的实机行为未演练 | **剩余**：投递 outbox 与去重、`context_from` 绑定具体 run、并行上限与积压策略——按大纲原范围留待续做；进入 D18（技能工作台编辑） |
+| D17 | 完成 | A04（编辑校验）、A17（投递 outbox 与去重） | 见第 5 节两批：①任务编辑 + 成败判定去前缀化；②投递 outbox——QQ 掉线入队恢复补投、unknown 不自动重发、白名单撤销即丢、3 次成死信 | ①`tests/test_cron.py tests/test_web.py` → 51 passed；②`uv run pytest tests/test_outbox.py -q` → **12 passed**（去重/终态释放/容量/分类/补投/死信/端点） | 真机 `data/state.db` 已 v6→v7（备份 `data/backups/pre-d17-outbox`，degraded 空、重开幂等）；**真实 QQ 掉线→补投闭环待 NapCat 扫码后实测** | **剩余**：`context_from` 绑定具体成功 run、并行上限与积压策略、显式时区（原大纲细项）；心跳进程未运行（工作台可启动） |
 | D18 | 开发中 | A14（编辑 UI 部分） | 见第 5 节：技能工作台编辑（保存 CAS / 历史 / 差异 / 回滚） | `uv run pytest tests/test_skills_history.py tests/test_skills.py tests/test_web.py tests/test_arch.py tests/test_agent.py -q` → 86 passed；新增 save_raw 全文保存（CAS/结构校验/来源可追溯）+ 编辑器端点 1 例 | 浏览器内编辑器 UX 无自动化（接口契约由 TestClient 验）；真实技能库的手工编辑演练待用户使用 | **剩余**：候选变更/差异确认队列（D12 转入）、外来包隔离安装（隔离区+清单检查+不执行 postinstall）——大纲原范围留待续做；进入收尾 |
 | D19 | 开发中 | MCP 管理面板（第一批） | 见第 5 节：状态纯派生 + 工具目录带授权标记 + 工作台面板 | `uv run pytest tests/test_mcp.py -q` → 15 passed（新增 2 例：状态纯派生含停用/失败态、面板端点真实 stdio 发现 + 409/404）；关联批次 web+arch+mcp → 53 passed | 真实受信 MCP 生产服务联调待用户提供；schema/权限漂移的指纹复核未做 | **剩余**：schema 指纹漂移检测（改动后重新检查只读授权）、连接/健康细节、Streamable HTTP/OAuth——按大纲留待续做 |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D17 第二批（投递 outbox：掉线不丢、恢复补投、unknown 不自动重发）
+
+- **改了什么**：
+  - `memory/state.py` 升 **v7**：`outbox` 表（job/target/content_hash/status/attempts/last_error/
+    时间戳）；**去重只在活跃期生效**——`(target_qq, content_hash)` 在 pending/unknown 期间唯一
+    （部分唯一索引），进入 sent/discarded/dead 终态后同内容可重新入队；`OutboxStore` 门面
+    （bootstrap 构造）：enqueue（重复→None、超 50 条活跃→ValueError）/ list（活跃在前）/
+    pending（attempts < 预算）/ mark（sent 带 sent_at）/ attempt / retry（unknown/dead/discarded
+    → pending 且 attempts 清零）/ discard（sent 不可丢）；
+  - `core/cron.py`：
+    - `make_runtime_deliver` 投递分类——QQ 未连接 → **入队 pending**（"已入待投递队列"）；
+      白名单撤销 → **不入队**（撤销是用户意图，恢复后也不许把被拒消息发出去）；
+      发送中途抛异常 → **入队 unknown**（"可能已发出一部分，不自动重发"）；QQ 未启用 → 不入队；
+      入队失败（状态库降级/队列满）如实说明，结果本身已落会话不丢；
+    - `make_outbox_drainer` + `outbox_drain_loop`：补投只处理 pending——重查白名单
+      （撤销→discarded）、`ConnectionError`（没写到 socket）→ 记尝试保持 pending、其它异常 →
+      unknown 停止自动补投、尝试满 3 次 → dead；单轮异常不杀循环；
+  - `channels/heartbeat.py`：心跳进程挂载 `outbox_drain_loop`（每 60s），启动横幅说明补投行为；
+  - 工作台：`GET /api/system/cron/outbox`（活跃在前，正文只回 80 字预览）、
+    `POST .../retry`（手动重排，unknown 也允许——风险在面板写明）、`POST .../discard`；
+    设置中心「定时任务」新增「待投递」面板：状态徽章（待自动补投/结果未知/已投递/已丢弃/
+    补投耗尽）、已试次数、错误、重新排队/丢弃按钮（confirm 里写明 unknown 的重复发送风险）。
+- **关闭了什么**：A17 的投递部分（outbox、去重、unknown 不自动重发、授权频次独立判定——
+  补投前逐条重查白名单）。D17 核心范围完成。
+- **跑了什么**：`uv run pytest tests/test_outbox.py -q` → **12 passed**（活跃去重/终态释放名额/
+  容量上限与腾位/尝试预算与死信/retry-discard 状态机/四类投递分类/补投 no-op-撤销-上限-
+  unknown/工作台端点含 sent 保护与 404）；关联批次 cron+state+web+arch → 88 passed；全量见提交。
+- **真机证据**：`data/state.db` 实际走过 v6→v7（迁移前备份 `data/backups/pre-d17-outbox`，
+  含 state.db sha256）；迁移后 `health().degraded` 为空、outbox 表可用、二次打开版本仍为 7
+  （幂等）。
+- **没测什么**：真实 QQ 掉线→心跳补投的端到端（需 NapCat 扫码登录后人为断连实测）；
+  长报告分片发送中途中断的部分重复场景（`send_private` 按片循环，第二片失败时第一片已发出——
+  该场景归入 unknown 由人决定，未在真机复现）；两个心跳进程同时补投（与任务领取不同，
+  outbox 补投没有跨进程互斥——见剩余限制 3）。
+- **行为变化**：
+  1. QQ 掉线期间心跳任务照跑，结果不再只躺在账本里"未投递"——进入待投递队列，
+     QQ 恢复后一分钟内自动补投；
+  2. 发送结果未知的消息**宁可漏发也不自动重发**（重复发送比漏发半条更糟），
+     面板上由人决定；
+  3. 白名单撤销对队列里的待投递同样生效（补投前逐条重查，撤销即丢弃）。
+- **剩余限制（明确记录）**：
+  1. 补投周期固定 60s，不做指数退避（本地单所有者场景，3 次上限已足够保守）；
+  2. 队列只保留最近 50 条终态记录供查看（滚动视 `list(limit=50)` 而定，无清理任务——
+     表本身不删行，需要时手工清理或等 D26 运维批）；
+  3. **两个心跳进程同时跑时补投可能双发**（任务领取有 claim 互斥，outbox 补投没有：
+     `pending()` 读取与 `mark(sent)` 之间没有条件更新护栏）——单心跳进程部署下不触发；
+     多进程部署前需要把补投也改成条件领取。此为已知限制，登记待 D26；
+  4. `context_from` 仍绑定"源任务绑定会话的最后一条 assistant 输出"，未绑定具体成功 run。
+- **过程记录**：
+  1. 去重键选 `(target_qq, content_hash)` 而不是 `(job, content_hash)`：同一条消息发两次
+     的判定不该看它来自哪个任务——两个任务产出相同文本时，对方仍然只该收到一条；
+  2. 补投的异常分类第一版想按异常类型细分（websockets 异常 vs 其它），但 core 层不该
+     import websockets——改成语义分类：`ConnectionError`（client 自己的"没连接"前置检查）
+     = 明确没发；其它 = unknown。简单且不引依赖；
+  3. 测试第一版断言"不自动重发"失败——补投路径的文案写的是"已停止自动重发"。
+     文案统一与否不影响行为，但断言逼着两处文案对齐了。
 
 ### 2026-10-28 · 工作台可视化批次（运行进度 + 用量面板 + D19 MCP 面板第一批）
 

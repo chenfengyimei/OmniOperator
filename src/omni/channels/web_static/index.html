@@ -413,6 +413,9 @@ ul{list-style:none;overflow-y:auto}
         <h3 style="margin-top:18px">执行历史</h3>
         <div class="hint">最近的任务执行记录（成功与失败都记账，滚动保留 200 条）。</div>
         <div id="cron-history"></div>
+        <h3 style="margin-top:18px">待投递（QQ 掉线时任务结果不丢）</h3>
+        <div class="hint">QQ 未连接时任务结果进入队列，心跳恢复后每分钟自动补投；「发送结果未知」的条目<b>不会自动重发</b>——手动重试有重复发送风险，先确认对方没收到再点。</div>
+        <div id="cron-outbox"></div>
       </div>
       <div class="hub-card" id="sec-usage">
         <h3>模型用量与费用</h3>
@@ -1048,7 +1051,30 @@ async function loadCron(){
       `<span style="color:var(--dim);font-size:11.5px;flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((x.result||'').slice(0,60))}</span></div>`).join('')
       :'<div class="empty">还没有执行记录</div>';
   }catch(e){$('#cron-history').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+  try{
+    const b=await api('/api/system/cron/outbox');
+    $('#cron-outbox').innerHTML=b.items.length?b.items.map(x=>
+      `<div class="cron-row"><span class="c-name">${esc(x.job)} → QQ ${x.target_qq}</span>`+
+      `<span class="c-sched">${outboxStateText(x)} · ${esc((x.updated_at||'').slice(5,16))}${x.attempts?` · 已试 ${x.attempts} 次`:''}</span>`+
+      (x.status==='sent'?'':`<button class="svc-btn" onclick="outboxRetry(${x.id})">重新排队</button>`+
+      `<button class="svc-btn" onclick="outboxDiscard(${x.id})">丢弃</button>`)+
+      `</div>`+
+      (x.preview||x.last_error?`<div class="hint" style="margin:2px 0 8px">${esc(x.preview||'')}${x.last_error?` <span style="color:#f87171">${esc(x.last_error.slice(0,100))}</span>`:''}</div>`:'')).join('')
+      :'<div class="empty">队列是空的（QQ 在线时消息直接投递，不进队列）</div>';
+  }catch(e){$('#cron-outbox').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
+const outboxStateText=x=>x.status==='pending'?'<span style="color:#fbbf24">待自动补投</span>':
+  x.status==='unknown'?'<span style="color:#f87171">发送结果未知（不自动重发）</span>':
+  x.status==='dead'?'<span style="color:#f87171">自动补投已耗尽</span>':
+  x.status==='discarded'?'<span style="color:var(--dim)">已丢弃</span>':'<span style="color:#34d399">已投递</span>';
+window.outboxRetry=async(id)=>{
+  if(!confirm('重新排队这条消息？「发送结果未知」的条目有重复发送风险——先确认对方没收到。'))return;
+  try{await api(`/api/system/cron/outbox/${id}/retry`,{method:'POST'});loadCron()}catch(e){alert(e.message)}
+};
+window.outboxDiscard=async(id)=>{
+  if(!confirm('丢弃这条待投递消息？丢弃后不会发送（任务结果仍保留在会话里）。'))return;
+  try{await api(`/api/system/cron/outbox/${id}/discard`,{method:'POST'});loadCron()}catch(e){alert(e.message)}
+};
 let cronEditing=null; // 编辑中的任务（null=创建模式）；保存带 revision 防旧表单覆盖
 window.cronEdit=(name)=>{
   const j=cronJobs.find(x=>x.name===name);

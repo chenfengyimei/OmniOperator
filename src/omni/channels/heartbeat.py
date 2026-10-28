@@ -11,7 +11,12 @@ import os
 
 from ..bootstrap import build_runtime
 from ..config import load_env
-from ..core.cron import CronScheduler, make_runtime_deliver, make_runtime_executor
+from ..core.cron import (
+    CronScheduler,
+    make_runtime_deliver,
+    make_runtime_executor,
+    outbox_drain_loop,
+)
 from ..memory.state import StateUnavailable
 from ..safety.gates import DenyApprover
 
@@ -36,10 +41,14 @@ async def _serve(runtime) -> None:
         make_runtime_deliver(runtime),
         ledger=runtime.cron_ledger,
     )
-    tasks = [scheduler.run()]
+    tasks = [scheduler.run(), outbox_drain_loop(runtime)]
     if runtime.qq is not None:
         tasks.append(runtime.qq.run(_ignore_event))
-    print(f"[心跳] 调度器已启动：{len(jobs)} 个任务（Ctrl+C 退出）", flush=True)
+    print(
+        f"[心跳] 调度器已启动：{len(jobs)} 个任务（Ctrl+C 退出）；"
+        "QQ 掉线期间的任务结果进入待投递队列，恢复后每分钟自动补投",
+        flush=True,
+    )
     await asyncio.gather(*tasks)
 
 

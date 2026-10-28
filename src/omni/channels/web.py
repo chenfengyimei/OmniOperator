@@ -1278,6 +1278,46 @@ def create_app(runtime: Runtime) -> FastAPI:
         except StateUnavailable as exc:
             raise HTTPException(status_code=503, detail=str(exc))
 
+    # ---------- 投递 outbox（D17：QQ 掉线不丢任务结果） ----------
+
+    @app.get("/api/system/cron/outbox")
+    def cron_outbox() -> dict[str, Any]:
+        """待投递队列：活跃（待补投/结果未知）在前，终态最近记录在后。"""
+        if runtime.outbox is None:
+            raise HTTPException(status_code=503, detail="投递队列不可用")
+        try:
+            items = runtime.outbox.list(limit=50)
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        for item in items:
+            # 完整内容已在会话里；面板只给预览，避免一屏刷满长报告
+            item["preview"] = (item.pop("content") or "")[:80]
+        return {"items": items}
+
+    @app.post("/api/system/cron/outbox/{entry_id}/retry")
+    def cron_outbox_retry(entry_id: int) -> dict[str, Any]:
+        """手动重排（unknown/dead/discarded → pending）：心跳下一轮补投。"""
+        if runtime.outbox is None:
+            raise HTTPException(status_code=503, detail="投递队列不可用")
+        try:
+            if not runtime.outbox.retry(entry_id):
+                raise HTTPException(status_code=404, detail="条目不存在或已投递")
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        return {"ok": True, "message": "已重新排队，QQ 连接时由心跳自动补投"}
+
+    @app.post("/api/system/cron/outbox/{entry_id}/discard")
+    def cron_outbox_discard(entry_id: int) -> dict[str, Any]:
+        """丢弃一条待投递（已投递的不能丢——那就是历史了）。"""
+        if runtime.outbox is None:
+            raise HTTPException(status_code=503, detail="投递队列不可用")
+        try:
+            if not runtime.outbox.discard(entry_id):
+                raise HTTPException(status_code=404, detail="条目不存在或已投递")
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        return {"ok": True}
+
     @app.get("/api/system/state")
     def system_state() -> dict[str, Any]:
         """共享状态库自检：版本、完整性、迁移记录、被停用的能力（doctor 的雏形）。"""
