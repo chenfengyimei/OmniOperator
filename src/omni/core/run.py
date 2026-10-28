@@ -237,13 +237,17 @@ class ActiveRuns:
         run = self.get(run_id)
         if run is None:
             return False
-        # 先在库里标记"正在取消"，再置信号：界面立刻能看到状态变化
+        # **先翻转信号、再落库"cancelling"**（顺序是正确性要求，不是风格）：
+        # phase() 以 token 为准跳写并在写后复查自愈。若先落库再翻转，worker 的
+        # phase() 可能在"库已写、token 未翻"的窗口里完成两次检查——"model"覆写
+        # "cancelling"且自愈不触发（并发负载下真实发生过两次）。
+        flipped = run.cancel_token.cancel(reason)
+        run.event("cancel_requested", reason=reason)
         try:
             run.store.touch(run_id, phase="cancelling")
         except Exception:  # noqa: BLE001
             pass
-        run.event("cancel_requested", reason=reason)
-        return run.cancel_token.cancel(reason)
+        return flipped
 
     def cancel_all(self, reason: str = "进程退出") -> int:
         with self._lock:
