@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..memory.skill_inbox import SkillInbox
 from ..memory.skills import SkillStore
 from .registry import Risk, Tool, ToolRegistry
 
@@ -277,6 +278,121 @@ def register_skill_tools(
                 "required": ["name", "rev"],
             },
             func=skill_rollback,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+
+
+def register_skill_inbox_tools(registry: ToolRegistry, inbox: SkillInbox) -> None:
+    """外来技能包工具（D18 后置项）：导入到隔离区 → 审阅 → 人工确认激活。
+
+    风险分级即审批边界：导入/丢弃只动隔离区（对正式技能库不可见），
+    SAFE 级；**激活把内容放进正式技能库，是 CONFIRM + requires_human**——
+    审批流里那个人工确认就是"用户激活"这一步，无人值守（DenyApprover）
+    永远激活不了外来包。
+    """
+
+    def skill_import(args: dict[str, Any]) -> str:
+        ok, msg = inbox.import_package(str(args.get("package", "")))
+        return msg
+
+    def skill_pending(_: dict[str, Any]) -> str:
+        zips = inbox.inbox_files()
+        pending = inbox.pending()
+        lines = []
+        if zips:
+            lines.append("inbox 里待导入的压缩包（用 skill_import(package=文件名) 导入）：")
+            lines += [f"- {z['name']}（{z['bytes']} B）" for z in zips]
+        if not pending:
+            lines.append("隔离区没有待激活的技能。" if not zips else "隔离区当前为空。")
+            return "\n".join(lines)
+        lines.append("隔离区待激活的技能（skills_list 暂不可见，确认后用 skill_activate 激活）：")
+        for item in pending:
+            files = "、".join(f"{f['path']}({f['bytes']}B)" for f in item["files"]) or "（清单缺失）"
+            warn = "　⚠ 清单缺失：激活前先核对包内容" if item["manifest_missing"] else ""
+            lines.append(
+                f"- {item['name']}（v{item['version']}）：{item['description']}"
+                f"　来源 zip：{item['source_zip'] or '未知'}　导入于 {item['imported_at'] or '未知'}{warn}"
+            )
+            lines.append(f"  文件清单：{files}")
+        return "\n".join(lines)
+
+    def skill_activate(args: dict[str, Any]) -> str:
+        _ok, msg = inbox.activate(str(args.get("name", "")))
+        return msg
+
+    def skill_discard(args: dict[str, Any]) -> str:
+        _ok, msg = inbox.discard(str(args.get("name", "")))
+        return msg
+
+    registry.register(
+        Tool(
+            name="skill_import",
+            description=(
+                "从 skills/.inbox/ 导入一个外来技能包 zip 到隔离区（数据化解包，"
+                "绝不执行包内任何脚本；只接受 SKILL.md 与 references 文本，"
+                "路径越界/脚本/二进制整包拒绝）。导入后用 skill_pending 审阅清单，"
+                "由用户确认后 skill_activate 激活"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "package": {
+                        "type": "string",
+                        "description": "skills/.inbox/ 里的 zip 文件名（不带路径）",
+                    }
+                },
+                "required": ["package"],
+            },
+            func=skill_import,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+    registry.register(
+        Tool(
+            name="skill_pending",
+            description="查看技能包收件箱与隔离区：inbox 里待导入的 zip、隔离区待激活的技能与完整文件清单",
+            parameters={"type": "object", "properties": {}, "required": []},
+            func=skill_pending,
+            toolset="core",
+            risk=Risk.SAFE,
+            read_only=True,
+        )
+    )
+    registry.register(
+        Tool(
+            name="skill_activate",
+            description=(
+                "把隔离区里的外来技能包激活进正式技能库（需用户确认）。"
+                "激活前请先 skill_pending 展示文件清单给用户看"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "隔离区里的技能名（skill_pending 里有）"}
+                },
+                "required": ["name"],
+            },
+            func=skill_activate,
+            toolset="core",
+            risk=Risk.CONFIRM,
+            requires_human=True,
+        )
+    )
+    registry.register(
+        Tool(
+            name="skill_discard",
+            description="丢弃隔离区里的一个待激活技能包（只删隔离区，不碰正式技能库）",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "隔离区里的技能名（skill_pending 里有）"}
+                },
+                "required": ["name"],
+            },
+            func=skill_discard,
             toolset="core",
             risk=Risk.SAFE,
         )

@@ -234,7 +234,13 @@ MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待
    历史/差异/回滚（回滚产生新修订）、修订里 author/source 可区分用户手改与 agent 修改；
    ②**候选变更审阅队列**——agent/review 自动改的修订进"待审阅"横幅（作者=user/external 不进），
    每条可看"这次改了什么"（相对上一版 diff）、一键回滚到变更前、标记已读（只前进）。
-   **剩余**：外来包隔离安装（当前无导入通道，无导入攻击面）。
+   ③**外来技能包隔离安装（2026-10-29）**——`memory/skill_inbox.py`：zip 放 `skills/.inbox/`，
+   `skill_import` 数据化解包进 `.quarantine/`（**绝不执行包内任何脚本**；类型白名单=SKILL.md
+   +references 文本，zip-slip/盘符/ADS/保留名/重名条目整包拒绝；体积与数量上限；
+   清单带逐文件 sha256）；`skill_pending` 透明展示清单；`skill_activate`（CONFIRM+requires_human，
+   人工确认即"用户激活"）落正式技能库——激活前对隔离区做**防篡改复核**（逐文件 sha256 全等比对）、
+   与技能编辑共用同一把跨进程文件锁、来源记进修订历史（source=skill_import）；
+   `skill_discard` 丢隔离区。无人值守（DenyApprover）永远激活不了外来包。
 4. **D19 MCP 管理（已完成）**：工作台「MCP」页——服务状态（idle/握手/已连接/失败/停用，
    纯派生不启动服务）、工具目录与授权标记（只读白名单 🟢 / 需确认 🟡，只认用户配置）、
    **schema 漂移检测**（发现时登记指纹；服务升级换参数形态 → ⚠ 提醒复查只读授权，

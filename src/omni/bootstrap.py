@@ -50,6 +50,7 @@ from .memory.usage import UsageLedger
 from .memory.guard import MemoryGuard
 from .memory.resident import ResidentMemory
 from .memory.skills import SkillStore
+from .memory.skill_inbox import SkillInbox
 from .memory.store import MemoryStore
 from .safety.broker import ApprovalBroker
 from .safety.gates import Approver
@@ -87,7 +88,7 @@ from .tools.desktop.tools import register_desktop_tools
 from .tools.qq.client import OneBotClient
 from .tools.qq.tools import register_qq_tools
 from .tools.shell_tools import register_shell_tools
-from .tools.skill_tools import register_skill_tools
+from .tools.skill_tools import register_skill_inbox_tools, register_skill_tools
 from .tools.system_tools import register_system_tools
 from .tools.mcp.client import MCPManager
 from .tools.mcp.tools import register_mcp_tools
@@ -419,6 +420,8 @@ def build_runtime(
         default_max_links=config.web.max_links,
     )
     register_skill_tools(registry, skills, guard=memory_guard)
+    # 外来技能包：导入只进隔离区（SAFE），激活是 CONFIRM——审批流里的人工确认就是"用户激活"
+    register_skill_inbox_tools(registry, SkillInbox(skills))
     mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs, schema_store=mcp_schemas)
     register_mcp_tools(registry, mcp)
     if mcp.servers():

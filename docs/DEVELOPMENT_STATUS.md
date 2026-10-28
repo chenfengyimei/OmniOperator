@@ -7,6 +7,54 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · D18 收口：外来技能包隔离安装
+
+- **需求来源**：Hermes 对标缺口之"外来技能包安装"。此前刻意后置的原因是
+  "无导入通道即无导入攻击面"；本批开放通道，同时把攻击面收在门口。
+- **实现（既定边界：先隔离区 → 清单检查 → 用户激活，绝不执行脚本）**：
+  - 新模块 `memory/skill_inbox.py::SkillInbox`（都在技能根的隐藏目录下，
+    随 skills_root 自动隔离，不动 config/RuntimePaths）：
+    - `.inbox/` 收 zip（用户手动放入）；`skill_import`（SAFE）数据化解包进
+      `.quarantine/<name>/`——**没有任何 postinstall/脚本执行环节**，
+      "安装"只是移动文本文件；支持"包一层顶层目录"与平铺两种打包格式
+      （先剥公共顶层目录再校验形状，剥前先过名字安全检查）；
+    - **类型白名单 = SKILL.md + references 文本**（与 SkillStore 阅读边界
+      同源）：可执行/脚本/二进制在导入时就整包拒绝，而不是进来再扫；
+      拒绝面：zip-slip（`..`/盘符/ADS `:`/Windows 保留名/绝对路径，
+      Windows 与 POSIX 语法各查一遍）、条目重名、NUL 二进制伪装、
+      非 UTF-8；上限：zip ≤4 MiB、解包总量 ≤16 MiB、条目 ≤200、
+      SKILL.md ≤128 KiB、参考文件 ≤64 KiB、references ≤60 个；
+    - SKILL.md 过与 skill_create **完全相同的 linter**（结构/name 规则/
+      description ≤60/正文 50–24000），外来包与自建技能同一质量门槛；
+    - 清单透明：导入结果与 `skill_pending`（SAFE，read_only）都列出
+      逐文件大小与 sha256，用户激活前看得见包里到底有什么；
+    - `skill_activate`（**CONFIRM + requires_human**——审批流里的人工确认
+      就是"用户激活"这一步，无人值守 DenyApprover 永远激活不了）：
+      激活前做**防篡改复核**（隔离区当前内容与导入清单逐文件 sha256 全等
+      比对，改动/新增/缺失/清单损坏一律拒绝）；与技能编辑共用同一把
+      跨进程文件锁（锁内复核同名碰撞）；激活把来源记入修订历史
+      （`source=skill_import`，summary 带来源 zip 名）——provenance 可审计；
+    - `skill_discard`（SAFE）只删隔离区，不碰正式技能库。
+  - `memory/skills.py` 两个最小公共口：`root` 属性、`adopt()`（外来内容
+    落位后的来源登记）；`tools/skill_tools.py` 新增
+    `register_skill_inbox_tools`（4 工具）；`bootstrap.py` 在主注册表接线
+    （review 白名单注册表不加——外来包激活不属于回合后整理）。
+- **没做什么**：不扫描 SKILL.md/references 的**文字内容**里的"危险措辞"——
+  技能正文本来就合法描述如何运行命令（Procedure 节），扫措辞只会误伤；
+  安全边界靠类型白名单+不执行+人工确认三道闸。工作台收件箱面板未做
+  （web.py 由并行前端批持有），当前经 agent 工具与目录操作可用。
+- **新增 21 项测试**（`tests/test_skill_inbox.py`）：全流程导入→隔离→激活
+  （隔离期 skills_list 不可见、来源入修订史）、平铺布局、package 参数
+  路径攻击、9 类不安全/白名单外条目整包拒绝、重名条目、4 类坏 SKILL.md、
+  二进制/非 UTF-8、体积与数量上限×4、激活防篡改（改动/新增/清单损坏）、
+  同名碰撞（导入与激活两处）、丢弃与重复导入替换、工具层审批边界
+  （DenyApprover 拒激活/AllowAllApprover 通过）、pending 双清单展示。
+- `uv run --no-sync pytest tests/test_skill_inbox.py -q` → **21 passed**；
+  `uv run --no-sync pytest tests/test_skills.py tests/test_arch.py
+  tests/test_tools.py tests/test_skill_inbox.py tests/test_resident.py -q`
+  → **80 passed**；全量 `uv run --no-sync pytest -q` → **920 passed**
+  （2026-10-29；= 899 + 本批 21，无失败与跳过）。
+
 ### 2026-10-29 · 新能力：批内多工具并发执行（只读并发 + 写栅栏）
 
 - **需求来源**：Hermes 对标缺口之"多工具并发"——模型一批发出多个只读调用

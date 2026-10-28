@@ -105,6 +105,11 @@ class SkillStore:
 
     # ---------------------------------------------------------------- 读
 
+    @property
+    def root(self) -> Path:
+        """技能根目录（外来包隔离安装等外部路径复用同一棵树的入口）。"""
+        return self._root
+
     def list(self) -> list[dict[str, Any]]:
         """渐进披露第一级：只给名字/描述/版本。"""
         out: list[dict[str, Any]] = []
@@ -478,6 +483,45 @@ class SkillStore:
         )
 
     # ---------------------------------------------------------------- 写路径内部
+
+    def adopt(
+        self,
+        name: str,
+        *,
+        author: str,
+        source: str,
+        summary: str,
+    ) -> tuple[bool, str]:
+        """外来包激活后的来源登记：把**已落位**的技能内容记入历史。
+
+        调用方（skill_inbox）负责目录移动与技能锁；这里只做登记，读不到或
+        格式坏时如实失败——技能本体已就位，历史可由下一次写入的
+        detected-change 快照兜底，不假装登记成功。
+        """
+        path = self._safe_path(name)
+        if path is None or not path.is_file():
+            return False, f"错误：技能 {name} 没有就位的 SKILL.md，无法登记来源"
+        try:
+            data = path.read_bytes()
+            text = data.decode("utf-8")
+        except (OSError, UnicodeError) as exc:
+            return False, f"错误：读取激活内容失败（{exc}）；技能已就位，历史暂未登记"
+        version: int | None = None
+        parsed = parse_skill_text(text)
+        if parsed is not None:
+            with contextlib.suppress(TypeError, ValueError):
+                version = int(parsed["meta"].get("version", 1))
+        rev = self._history.commit(
+            self._key(name),
+            text,
+            author=author,
+            source=source,
+            summary=summary,
+            version=version,
+            references=self._refs_manifest(name),
+        )
+        self._remember(name, _digest(data))
+        return True, f"来源已登记（rev {rev.rev}）"
 
     def _load_for_write(
         self, name: str, expected_hash: str | None
