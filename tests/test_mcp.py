@@ -566,3 +566,125 @@ def test_mcp_missing_trust_store_denies_read_permission(setup_mcp):
     manager._schemas = None
     with pytest.raises(MCPError, match="授权记录不可用"):
         manager.call("demo", "echo", {}, readonly=True)
+
+
+# ---------- D19 第三批：失败服务有界自动重连 ----------
+
+# 启动时读 marker：存在 → 进程立刻退出（握手失败）；不存在 → 正常服务
+FLAKY_SERVER = r'''
+import json, os, sys
+from pathlib import Path
+if Path(os.environ["BROKEN_FILE"]).exists():
+    sys.stderr.write("startup failure\n")
+    sys.exit(1)
+for line in sys.stdin:
+    message = json.loads(line)
+    if "id" not in message:
+        continue
+    method = message["method"]
+    params = message.get("params", {})
+    error = None
+    if method == "initialize":
+        result = {"protocolVersion": params["protocolVersion"], "capabilities": {"tools": {}},
+                  "serverInfo": {"name": "flaky-fixture", "version": "1"}}
+    elif method == "tools/list":
+        result = {"tools": [{"name": "echo", "description": "fixture",
+                             "inputSchema": {"type": "object"}}]}
+    elif method == "tools/call":
+        result = {"content": [{"type": "text", "text": "ok"}]}
+    else:
+        error = {"code": -32601, "message": "Method not found"}
+    response = {"jsonrpc": "2.0", "id": message["id"]}
+    response["error" if error else "result"] = error or result
+    print(json.dumps(response), flush=True)
+'''
+
+
+def _flaky_manager(tmp_path: Path, *, broken: bool) -> MCPManager:
+    script = tmp_path / "flaky_server.py"
+    if not script.exists():
+        script.write_text(FLAKY_SERVER, encoding="utf-8")
+    marker = tmp_path / "broken"
+    if broken and not marker.exists():
+        marker.write_text("on", encoding="utf-8")
+    cfg = MCPConfig(servers={"flaky": MCPServerConfig(
+        command=sys.executable, args=["-u", str(script)],
+        env={"BROKEN_FILE": str(marker)}, read_only_tools=["echo"],
+    )})
+    return MCPManager(cfg, tmp_path / "logs")
+
+
+def test_failed_service_auto_reconnects_when_marker_removed(tmp_path):
+    """坏服务修好后：到点的下一次显式调用自动重连，成功即清零计数。"""
+    manager = _flaky_manager(tmp_path, broken=True)
+    manager.RECONNECT_BASE_DELAY_S = 0.0  # 测试注入：退避清零，不等真实间隔
+    try:
+        with pytest.raises(MCPError):
+            manager.list_tools("flaky")  # 第一次失败：登记退避
+        first = manager._connections["flaky"]
+        with pytest.raises(MCPError):
+            manager.list_tools("flaky")  # 到点 → 换新连接（进程仍坏 → 再失败）
+        assert manager._connections["flaky"] is not first
+        (tmp_path / "broken").unlink()  # 服务修好
+        assert [t["name"] for t in manager.list_tools("flaky")] == ["echo"]
+        assert manager.status()[0]["state"] == "ready"
+        assert "flaky" not in manager._reconnect_info  # 成功清零
+    finally:
+        manager.close()
+
+
+def test_auto_reconnect_is_bounded_and_manual_reset_rearms(tmp_path):
+    """指数预算用尽即停手；人工重连清零预算，重新给满自动重连。"""
+    manager = MCPManager(
+        MCPConfig(servers={"dead": MCPServerConfig(command=str(tmp_path / "missing.exe"))}),
+        tmp_path / "logs",
+    )
+    manager.RECONNECT_BASE_DELAY_S = 0.0
+    try:
+        with pytest.raises(MCPError):
+            manager.list_tools("dead")
+        seen = manager._connections["dead"]
+        for _ in range(MCPManager.RECONNECT_MAX_ATTEMPTS):
+            with pytest.raises(MCPError):
+                manager.list_tools("dead")  # 每次到点都换新连接
+            assert manager._connections["dead"] is not seen
+            seen = manager._connections["dead"]
+        # 预算用尽：连接对象不再更换，如实报失败等人工
+        with pytest.raises(MCPError):
+            manager.list_tools("dead")
+        exhausted = manager._connections["dead"]
+        with pytest.raises(MCPError):
+            manager.list_tools("dead")
+        assert manager._connections["dead"] is exhausted
+        row = manager.status()[0]
+        assert row["state"] == "failed" and row["last_error"]
+        assert row["auto_reconnect_attempts"] == MCPManager.RECONNECT_MAX_ATTEMPTS
+        # 人工重连（面板按钮语义）：清零预算
+        manager.reset("dead")
+        with pytest.raises(MCPError):
+            manager.list_tools("dead")
+        assert manager._connections["dead"] is not exhausted
+        assert manager.status()[0]["auto_reconnect_attempts"] == 0
+    finally:
+        manager.close()
+
+
+def test_status_stays_pure_and_backoff_window_blocks_rebuild(tmp_path):
+    """GET 状态零副作用；退避窗口内显式调用也不重建（默认 5s 间隔生效）。"""
+    manager = _flaky_manager(tmp_path, broken=True)
+    try:
+        with pytest.raises(MCPError):
+            manager.list_tools("flaky")
+        first = manager._connections["flaky"]
+        rows = []
+        for _ in range(10):
+            rows = manager.status()  # 纯派生：看多少次都不触发重连
+        assert rows[0]["state"] == "failed"
+        assert rows[0]["auto_reconnect_attempts"] == 0
+        assert rows[0]["auto_reconnect_next_in_s"] > 0
+        assert manager._connections["flaky"] is first
+        with pytest.raises(MCPError):
+            manager.list_tools("flaky")  # 仍在退避窗口内
+        assert manager._connections["flaky"] is first
+    finally:
+        manager.close()

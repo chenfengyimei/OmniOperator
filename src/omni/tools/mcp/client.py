@@ -278,7 +278,18 @@ def render_result(result: dict[str, Any], limit: int = 12000) -> str:
 
 
 class MCPManager:
-    """管理显式配置的服务；读白名单由用户配置决定，不相信服务自报的安全标注。"""
+    """管理显式配置的服务；读白名单由用户配置决定，不相信服务自报的安全标注。
+
+    失败服务的自动重连（D19 剩余项收口）：只在**显式调用路径**（list_tools/call）
+    触发——status() 保持纯派生，GET 状态没有启动副作用；指数退避、次数有界，
+    用尽后停手等人工 reset（reset 同时清零计数）；closed（入口收尾）永不重连；
+    触发失败的那次调用**不重放**（错误照常上抛，重连只惠及之后的调用）。
+    """
+
+    # 退避节奏：5s → 10s → 20s → 40s → 80s，5 次用尽（测试注入用实例属性覆盖）
+    RECONNECT_BASE_DELAY_S = 5.0
+    RECONNECT_BACKOFF_FACTOR = 2.0
+    RECONNECT_MAX_ATTEMPTS = 5
 
     def __init__(
         self, config: MCPConfig, log_dir: Path, *, schema_store: CatalogTrust | None = None,
@@ -287,6 +298,8 @@ class MCPManager:
         self._schemas = schema_store
         self._connections = {name: MCPConnection(name, cfg, log_dir, self._guard(name))
                              for name, cfg in config.servers.items() if cfg.enabled}
+        self._reconnect_lock = threading.Lock()
+        self._reconnect_info: dict[str, dict[str, float]] = {}
 
     def _guard(self, server: str) -> Callable[[MCPServerConfig, list[dict[str, Any]]], bool]:
         def check(config: MCPServerConfig, rows: list[dict[str, Any]]) -> bool:
@@ -329,7 +342,16 @@ class MCPManager:
         for name in sorted(self._config.servers):
             conn = self._connections.get(name)
             if conn is not None:
-                rows.append(conn.status())
+                row = conn.status()
+                with self._reconnect_lock:
+                    info = self._reconnect_info.get(name)
+                if info is not None:
+                    row["auto_reconnect_attempts"] = int(info["attempts"])
+                    row["auto_reconnect_max"] = self.RECONNECT_MAX_ATTEMPTS
+                    row["auto_reconnect_next_in_s"] = max(
+                        0.0, round(info["next_at"] - time.monotonic(), 1)
+                    )
+                rows.append(row)
                 continue
             cfg = self._config.servers[name]
             rows.append({
@@ -349,8 +371,15 @@ class MCPManager:
         """重建一个失败/已关闭的连接（面板手动重连，D19）。
 
         配置不变，只是给一次干净的握手；失败连接本身已封闭（close 幂等）。
+        手动重连同时清零自动重连计数（人已经看过面板，重新给满自动预算）。
         未配置的服务拒绝。
         """
+        with self._reconnect_lock:
+            self._reconnect_info.pop(server, None)
+            return self._rebuild(server).status()
+
+    def _rebuild(self, server: str) -> MCPConnection:
+        """同目录重建连接对象；调用方负责重连计数的锁与清零。"""
         conn = self._connections.get(server)
         if conn is None:
             raise MCPError("MCP 服务未配置或未启用；先由用户修改 config.yaml")
@@ -359,7 +388,46 @@ class MCPManager:
         cfg = self._config.servers[server]
         fresh = MCPConnection(server, cfg, log_dir, self._guard(server))
         self._connections[server] = fresh
-        return fresh.status()
+        return fresh
+
+    def _live(self, server: str) -> MCPConnection:
+        """显式调用路径的连接入口：failed 且到点则换新连接（有界退避）。"""
+        connection = self._connection(server)
+        if connection.status()["state"] != "failed":
+            return connection
+        now = time.monotonic()
+        with self._reconnect_lock:
+            info = self._reconnect_info.get(server)
+            # 没有失败登记（理论上失败后必有；防御）→ 先记一个基础间隔再谈重连
+            if info is None:
+                self._reconnect_info[server] = {
+                    "attempts": 0, "next_at": now + self.RECONNECT_BASE_DELAY_S,
+                }
+                return connection
+            if info["attempts"] >= self.RECONNECT_MAX_ATTEMPTS or now < info["next_at"]:
+                return connection  # 未到点 / 预算用尽：停手，等人工 reset
+            info["attempts"] += 1
+            return self._rebuild(server)
+
+    def _note_request_failure(self, server: str, conn: MCPConnection) -> None:
+        """请求失败后按连接是否封闭登记退避：单次调用错误不算连接失败。"""
+        if conn.status()["state"] != "failed":
+            return
+        now = time.monotonic()
+        with self._reconnect_lock:
+            info = self._reconnect_info.get(server)
+            delay = self.RECONNECT_BASE_DELAY_S * (
+                self.RECONNECT_BACKOFF_FACTOR ** (info["attempts"] if info else 0)
+            )
+            if info is None:
+                self._reconnect_info[server] = {"attempts": 0, "next_at": now + delay}
+            else:
+                info["next_at"] = now + delay
+
+    def _note_success(self, server: str) -> None:
+        """成功一次就清零：服务恢复了，下次失败重新给满自动预算。"""
+        with self._reconnect_lock:
+            self._reconnect_info.pop(server, None)
 
     def _connection(self, server: str) -> MCPConnection:
         if server not in self._connections:
@@ -367,14 +435,19 @@ class MCPManager:
         return self._connections[server]
 
     def list_tools(self, server: str) -> list[dict[str, Any]]:
-        connection = self._connection(server)
-        rows = connection.request("list", {})
+        connection = self._live(server)
+        try:
+            rows = connection.request("list", {})
+        except MCPError:
+            self._note_request_failure(server, connection)
+            raise
+        self._note_success(server)
         allowed = connection.config.allowed_tools
         return [{**row, "approval": "safe" if connection.catalog_approved and row["name"] in connection.config.read_only_tools else "human"}
                 for row in rows if allowed is None or row["name"] in allowed]
 
     def call(self, server: str, name: str, arguments: dict[str, Any], *, readonly: bool) -> str:
-        connection = self._connection(server)
+        connection = self._live(server)
         allowed = connection.config.allowed_tools
         if allowed is not None and name not in allowed:
             raise MCPError("MCP 工具不在 allowed_tools 白名单中")
@@ -382,7 +455,12 @@ class MCPManager:
             raise MCPError("MCP 工具未获用户只读授权；请使用 mcp_call_tool 申请人工确认")
         if not name or not isinstance(arguments, dict):
             raise MCPError("MCP name 不能为空且 arguments 必须为对象")
-        result = connection.request("call", {"name": name, "arguments": arguments, "readonly": readonly})
+        try:
+            result = connection.request("call", {"name": name, "arguments": arguments, "readonly": readonly})
+        except MCPError:
+            self._note_request_failure(server, connection)
+            raise
+        self._note_success(server)
         return render_result(result)
 
     def close(self, wait_s: float = 10) -> bool:
