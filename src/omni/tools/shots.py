@@ -40,6 +40,10 @@ def save_screenshot(
     can_view: bool,
 ) -> str:
     """存产物并生成工具结果文本。`artifacts` 为 None 时降级为旧行为（路径模式由调用方处理）。"""
+    if artifacts is None:
+        # 生产装配总是有产物库；这个分支保护嵌入式/测试用法里漏了守卫的调用方，
+        # 把 AttributeError 崩溃换成一句可解释的错误，而不是半截结果
+        return "错误：产物库不可用，截图未保存（嵌入式装配需注入 artifacts）"
     width, height = _dims(data)
     try:
         artifact = artifacts.save_image(

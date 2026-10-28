@@ -164,8 +164,9 @@ class OneBotClient:
             await asyncio.gather(consumer, return_exceptions=True)
 
     async def _dispatch(
-        self, raw: str, on_event: Callable[[dict], Awaitable[None]]
+        self, raw: str | bytes, on_event: Callable[[dict], Awaitable[None]]
     ) -> None:
+        # websockets 的帧可能是 str 或 bytes；json.loads 两者都收（bytes 自动识别编码）
         try:
             event = json.loads(raw)
         except json.JSONDecodeError:

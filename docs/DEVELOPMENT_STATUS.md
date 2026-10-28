@@ -7,6 +7,38 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 项目收尾批（重复定义扫描 / 类型检查基线 / 真机自检）
+
+- **做了什么**（不依赖并行会话与外部资源的收尾三件套）：
+  - **全仓重复定义 AST 扫描落地为常驻工具** `scripts/scan_duplicates.py`
+    （历史教训登记项：同名函数/类在同一作用域静默覆盖，曾致 ActiveRuns
+    snapshot 双定义、产物保引用静默失效）。扫描结果：**src/omni 全干净**；
+    `tests/test_web_model_key.py` 有 3 处重复定义——该文件是并行前端批的
+    未提交文件，按纪律不动，**留给该批修复**（条目已在交接总结中注明）。
+  - **严格类型检查基线建立**（D26 渐进项启动）：`uvx pyright --pythonpath
+    .venv\Scripts\python.exe src/omni`（uvx 临时环境，不碰被 omni-web 占用的
+    .venv）；落地常驻工具 `scripts/run_pyright.py`（UTF-8 落盘，绕开
+    PowerShell 重定向的 UTF-16 坑）。基线 84 errors → 修复后 **81 errors**，
+    修的三处：`llm/budget.py` Ledger Protocol 桩补 `...`、`tools/qq/client.py`
+    `_dispatch` 注解放宽为 `str | bytes`（json.loads 本就两者都收，注解写窄
+    了）、`tools/shots.py` save_screenshot 补 None 守卫（AttributeError 崩溃
+    → 一句可解释错误，新增回归测试）。**如实记录**：剩余 81 条全部为类型
+    噪声而非运行缺陷——结构化鸭子类型（_NullRunStore/RunHandle/UsageLedger
+    协议形态）、sqlite lastrowid Optional 的 `int()` 收窄、裸 Callable 类型
+    不认关键字调用（services._spawn）、soak.py 同键相关性判断、动态属性
+    （Agent.closing/RunContext._attached_image_ids 设计如此）。**不声称
+    类型检查完成**；这 81 条是后续渐进收窄的诚实起点。
+  - **真机运维自检**：`python -m omni.channels.doctor` → state.db（schema 13）
+    与 memory.db 健康（42 消息/6 事实/3 档案行），napcat/omni-qq 未运行与
+    adb 无设备为预期 warning；收尾前真实备份
+    `data/backups/pre-wrapup-20261029`（5 项、行数与 sha256 校验通过、
+    凭据不打包；MEMORY.md/history/file_history 本机尚不存在，如实跳过）。
+- **新增 1 项测试**：`test_save_screenshot_without_artifacts_reports_cleanly`
+  （产物库未注入时的干净报错）。
+- `uv run --no-sync pytest tests/test_artifacts.py tests/test_usage.py -q` →
+  **33 passed**；全量 `uv run --no-sync pytest -q` → **967 passed**
+  （2026-10-29；= 966 + 本批 1，无失败与跳过）。
+
 ### 2026-10-29 · 新能力：插件社区（参考服务器 + 客户端，待所有者提供机器部署）
 
 - **需求来源**：用户要求"做好插件系统与插件社区……社区服务器我到时候可以

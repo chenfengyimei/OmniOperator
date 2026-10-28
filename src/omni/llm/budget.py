@@ -61,12 +61,15 @@ class Ledger(Protocol):
 
     def reserve(self, *, day: str, micro: int, limit_micro: int) -> tuple[bool, int]:
         """尝试预留；返回 (是否成功, 今日已预留+已花费)。"""
+        ...
 
     def settle(self, *, day: str, reserved_micro: int, charged_micro: int) -> None:
         """结算：退回预留，把实际花费计入。"""
+        ...
 
     def record(self, **fields: object) -> None:
         """记一条调用流水（只用于观测，失败不影响对话）。"""
+        ...
 
 
 class NullLedger:

@@ -531,3 +531,12 @@ def test_active_runs_contexts_vs_snapshot_and_sweep_keeps_referenced(tmp_path):
     assert not (artifacts.root / f"{art.artifact_id}.png").exists()
     state.close()
     memory.close()
+
+
+def test_save_screenshot_without_artifacts_reports_cleanly():
+    """产物库未注入时：一句可解释的错误，而不是 AttributeError 崩溃。"""
+    from omni.tools.shots import save_screenshot
+
+    out = save_screenshot(None, b"", session_id=None, run_id=None,
+                          kind="screenshot", source="test", can_view=False)
+    assert "产物库不可用" in out
