@@ -404,6 +404,31 @@ def _prune_terminal(outbox: Any) -> None:
         print(f"[心跳] outbox 终态清理失败（下轮重试）：{exc}", flush=True)
 
 
+async def artifacts_sweep_loop(runtime: Any, interval_s: float = 3600.0) -> None:
+    """周期清理过期产物（D15 剩余限制 3 收口）。
+
+    此前清理只在 Web 回合结束触发——心跳/QQ 长期运行、不产生图像的部署里，
+    过期产物要等到下一次 Web 回合或重启才被清。这里让心跳进程也定期扫一遍，
+    keep 集合与 `Agent._sweep_artifacts` 同一语义（本进程活跃 run 引用的不删）。
+    单轮异常不杀循环。
+    """
+    while True:
+        await asyncio.sleep(interval_s)
+        try:
+            artifacts = getattr(runtime, "artifacts", None)
+            active_runs = getattr(runtime, "active_runs", None)
+            if artifacts is None:
+                continue
+            keep: set[str] = set()
+            for active in (active_runs.contexts() if active_runs else []):
+                keep.update(getattr(active, "_attached_image_ids", None) or set())
+            removed = artifacts.cleanup(keep_ids=keep)
+            if removed.get("removed"):
+                print(f"[心跳] 产物清理：{removed}", flush=True)
+        except Exception as exc:  # noqa: BLE001 —— 清理失败下轮再试
+            print(f"[心跳] 过期产物清理失败（下轮重试）：{exc}", flush=True)
+
+
 async def outbox_drain_loop(runtime: Any, interval_s: float = 60.0) -> None:
     """周期补投（心跳进程挂载）。单轮异常（状态库瞬时不可用等）不杀循环。"""
     drain = make_outbox_drainer(runtime)

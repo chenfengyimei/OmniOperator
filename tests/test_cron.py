@@ -569,3 +569,84 @@ def test_runtime_executor_fails_on_non_done_turn(tmp_path):
         asyncio.run(executor(_job(name="budget-job", prompt="跑一个")))
     assert reviewed == [], "失败回合不应进 review 队列"
     store.close()
+
+
+def test_artifacts_sweep_loop_cleans_and_keeps_active_refs(tmp_path):
+    """心跳挂载的产物清理（D15 剩余限制 3）：过期的清、活跃引用保、异常不杀循环。"""
+    from io import BytesIO
+
+    from PIL import Image
+
+    from omni.core.cron import artifacts_sweep_loop
+    from omni.memory.artifacts import ArtifactStore, ArtifactError
+    from omni.memory.state import StateStore
+
+    def _png() -> bytes:
+        buf = BytesIO()
+        Image.new("RGB", (32, 20), "red").save(buf, format="PNG")
+        return buf.getvalue()
+
+    state = StateStore(tmp_path / "state.db")
+    artifacts = ArtifactStore(
+        state, tmp_path / "artifacts", retention_days=7, max_total_bytes=10 * 1024 * 1024
+    )
+    stale = artifacts.save_image(_png(), "image/png", session_id=None, run_id=None,
+                                 kind="screenshot", source="t", width=32, height=20)
+    with state._tx() as conn:
+        conn.execute(
+            "UPDATE artifacts SET expires_at = '2000-01-01T00:00:00' WHERE artifact_id = ?",
+            (stale.artifact_id,),
+        )
+
+    class _Ctx:
+        _attached_image_ids = {stale.artifact_id}
+
+    class _Runs:
+        @staticmethod
+        def contexts():
+            return [_Ctx()]
+
+    runtime = SimpleNamespace(artifacts=artifacts, active_runs=_Runs())
+
+    async def scenario():
+        task = asyncio.create_task(artifacts_sweep_loop(runtime, interval_s=0.01))
+        await asyncio.sleep(0.15)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    asyncio.run(scenario())
+    # 活跃 run 引用着的过期产物：不删
+    assert artifacts.get(stale.artifact_id, allow_expired=True)
+    # 解除引用后再扫一轮：删掉
+    runtime.active_runs = SimpleNamespace(contexts=lambda: [])
+    asyncio.run(scenario())
+    with pytest.raises(ArtifactError):
+        artifacts.get(stale.artifact_id)
+
+    # cleanup 抛异常不杀循环（再跑一轮仍活着并恢复工作）
+    class _Boom:
+        calls = 0
+
+        def cleanup(self, *, keep_ids=()):
+            _Boom.calls += 1
+            if _Boom.calls == 1:
+                raise RuntimeError("db busy")
+            return {"removed": 1}
+
+    runtime2 = SimpleNamespace(artifacts=_Boom(), active_runs=None)
+
+    async def scenario2():
+        task = asyncio.create_task(artifacts_sweep_loop(runtime2, interval_s=0.01))
+        await asyncio.sleep(0.15)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    asyncio.run(scenario2())
+    assert _Boom.calls >= 3, "第一轮抛异常后循环必须继续"
+    state.close()
