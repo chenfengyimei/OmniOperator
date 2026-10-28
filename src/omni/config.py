@@ -14,7 +14,7 @@ ENV_PATH = PROJECT_ROOT / ".env"
 DATA_DIR = PROJECT_ROOT / "data"
 SKILLS_DIR = PROJECT_ROOT / "skills"  # 程序性记忆：skills/<name>/SKILL.md
 BILI_COOKIES_PATH = DATA_DIR / "bili_cookies.json"  # B站登录态（浏览器 Cookie，gitignore）
-STATE_SCHEMA_VERSION = 12  # 存储兼容上限；迁移实现仍归 memory/state.py。
+STATE_SCHEMA_VERSION = 13  # 存储兼容上限；迁移实现仍归 memory/state.py。
 
 
 @dataclass(frozen=True)
@@ -318,6 +318,40 @@ class Browser(BaseModel):
     approval_timeout_s: float = 180.0  # 确认等待上限，超时自动拒绝
 
 
+class UIFormSelectors(BaseModel):
+    """用户核验过的页面控件描述；不从模型输入接受选择器或脚本。"""
+    model_config = ConfigDict(extra="forbid")
+    account: str
+    account_attr: str = "data-mid"
+    target: str
+    target_attr: str = "data-id"
+    editor: str
+    submit: str
+    records: str
+    record_id_attr: str = "data-id"
+    record_text: str
+    record_author: str
+    record_author_attr: str = "data-mid"
+    challenge: str
+    logged_out: str
+
+
+class BilibiliWrite(BaseModel):
+    enabled: bool = False
+    forms: dict[str, UIFormSelectors] = Field(default_factory=dict)
+    draft_ttl_s: int = Field(default=600, ge=30, le=3600)
+    max_content_chars: int = Field(default=1000, ge=1, le=2000)
+
+    @model_validator(mode="after")
+    def check_forms(self):
+        if set(self.forms) - {"comment", "private_message"}:
+            raise ValueError("B站写表单仅支持 comment/private_message")
+        for profile in self.forms.values():
+            if any(not value.strip() or len(value) > 500 for value in profile.model_dump().values()):
+                raise ValueError("B站表单选择器/属性不能为空或过长")
+        return self
+
+
 class System(BaseModel):
     """本地系统控制台（服务管理/配置）。"""
 
@@ -450,6 +484,7 @@ class AppConfig(BaseModel):
     asr: Asr = Field(default_factory=Asr)
     qq: QQ = Field(default_factory=QQ)
     browser: Browser = Field(default_factory=Browser)
+    bilibili_write: BilibiliWrite = Field(default_factory=BilibiliWrite)
     system: System = Field(default_factory=System)
     approval: Approval = Field(default_factory=Approval)
     mcp: MCPConfig = Field(default_factory=MCPConfig)

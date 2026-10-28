@@ -102,9 +102,16 @@ class ConsoleApprover(Approver):
             import json as _json
 
             try:
-                args_text = _json.dumps(arguments, ensure_ascii=False)[:300]
+                args_text = _json.dumps(arguments, ensure_ascii=False)
+                if getattr(tool, "requires_human", False):
+                    if len(args_text) > 20000:
+                        return Decision(False, "参数过长，无法完整展示人工审批内容")
+                else:
+                    args_text = args_text[:300]
             except (TypeError, ValueError):
-                args_text = str(arguments)[:300]
+                return Decision(False, "无法完整展示审批参数")
+        from rich.markup import escape
+        args_text = escape(args_text)
         answer = self._console.input(
             f"[bold yellow]即将执行工具 {tool.name} {args_text}（{tool.description}），允许? [y/N][/] "
         ).strip().lower()

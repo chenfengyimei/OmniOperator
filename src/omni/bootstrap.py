@@ -36,6 +36,7 @@ from .llm.embedding import EmbeddingProvider
 from .memory.vectors import VectorIndex
 from .memory.runs import RunStore
 from .memory.qq import QQMessageStore
+from .memory.publications import PublicationStore
 from .memory.state import (
     ExecutionLog,
     JobStore,
@@ -57,8 +58,11 @@ from .system.doctor import diagnose
 from .system.backup import backup_runtime
 from .tools.bilibili.api import BiliAPI
 from .tools.bilibili.tools import register_bilibili_tools
+from .tools.bilibili.write_tools import register_bilibili_write_tools
+from .tools.bilibili.publishing import BilibiliPublisher
 from .tools.browser.budget import WriteBudget
 from .tools.browser.driver import BrowserDriver
+from .tools.browser.forms import BrowserForms
 from .tools.browser.tools import register_browser_tools
 from .tools.builtin import (
     register_core_tools,
@@ -153,6 +157,7 @@ class Runtime:
     retrieval: HybridMemory | None = None
     desktop: DesktopDriver | None = None
     qq_messages: QQMessageStore | None = None
+    publications: PublicationStore | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
@@ -309,6 +314,7 @@ def build_runtime(
     # 投递 outbox（D17）：QQ 掉线时任务结果入队，恢复后由心跳进程补投
     outbox = OutboxStore(state)
     qq_messages = QQMessageStore(state)
+    publications = PublicationStore(state)
     # MCP 工具目录指纹（D19）：服务升级换 schema 后提醒复查只读授权
     mcp_schemas = MCPSchemaStore(state)
     # 技能变更已读标记（D18）：agent/review 自动改技能进待审阅队列
@@ -426,6 +432,9 @@ def build_runtime(
         lease_owner=f"pid:{os.getpid()}:browser",
     )
     write_budget = WriteBudget(state, max_per_day=config.browser.max_writes_per_day)
+    publication_forms = BrowserForms(browser, config.bilibili_write.forms)
+    publisher = BilibiliPublisher(config.bilibili_write, publications, publication_forms, write_budget)
+    register_bilibili_write_tools(registry, publisher, session_ref, run_ref)
     # can_view = 截图文本能否声称"模型看得到"：隐私开关 + 至少一个视觉模型可用
     _vision_route = ""
     try:
@@ -523,6 +532,7 @@ def build_runtime(
         artifacts=artifacts,
         outbox=outbox,
         qq_messages=qq_messages,
+        publications=publications,
         mcp_schemas=mcp_schemas,
         skill_acks=skill_acks,
         runs=runs,

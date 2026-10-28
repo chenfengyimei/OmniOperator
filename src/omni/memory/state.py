@@ -275,6 +275,18 @@ CREATE TABLE qq_sent (
 );
 """
 
+_SCHEMA_V13 = """
+CREATE TABLE publication_drafts (
+    id TEXT PRIMARY KEY, session_id INTEGER NOT NULL, kind TEXT NOT NULL,
+    target TEXT NOT NULL, account TEXT NOT NULL, content TEXT NOT NULL, content_hash TEXT NOT NULL,
+    observation TEXT NOT NULL, created_at REAL NOT NULL, updated_at REAL NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft', attempt_token TEXT, evidence TEXT NOT NULL DEFAULT '',
+    error TEXT NOT NULL DEFAULT ''
+);
+CREATE UNIQUE INDEX uq_publication_sent ON publication_drafts(kind,target,account,content_hash)
+    WHERE status IN ('sending','unknown','sent');
+"""
+
 _MIGRATIONS: dict[int, str] = {
     1: _SCHEMA_V1,
     2: _SCHEMA_V2,
@@ -288,6 +300,7 @@ _MIGRATIONS: dict[int, str] = {
     10: _SCHEMA_V10,
     11: _SCHEMA_V11,
     12: _SCHEMA_V12,
+    13: _SCHEMA_V13,
 }
 
 SESSION_RESOURCE = "session:{}"

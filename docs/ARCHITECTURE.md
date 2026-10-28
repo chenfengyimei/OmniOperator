@@ -64,6 +64,11 @@ desktop_write 预算由组装根注入，不 import browser/core。截图共用 
 好处：换实现（如 P1 记忆升级向量库）只动 bootstrap 一处；全部依赖关系在构造处一眼可见；工具集以 `register_xxx_tools(registry, deps)` 模式注册进唯一注册表，多能力域无冲突合并。
 
 ### 3.3 错误传递约定
+
+D23：`PublicationStore`（memory）、`BrowserForms`（browser 域）和
+`BilibiliPublisher`（bilibili 域）只在 bootstrap 构造。发布器经 FormPort 协议消费
+浏览器能力，不跨域 import；工具与工作台共用注入的 state.db 草稿账本。发送需人工审批，
+unknown 不自动重发，工作台人工核查入口不提供直接发布接口。
 - **工具执行错误 / 审批拒绝**：以字符串回传给 LLM（让它自行换路径），不在循环里抛异常中断
 - **审批默认值**：未注入审批器按 DenyApprover 处理；通用写工具声明 `requires_human=True`，smart 不可代替人工；DANGEROUS 始终拒绝，smart 不覆盖无人值守策略；只有完整的一词裁决有效
 - **LLM 调用失败**：Gateway 包装成 `GatewayError`（带稳定 `code` / `retryable` / `hint` / 已脱敏 `message`）抛给内核

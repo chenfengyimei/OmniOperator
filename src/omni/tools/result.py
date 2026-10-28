@@ -89,6 +89,11 @@ class ToolResult:
         return cls(status=DENIED, text=text, error_code=error_code)
 
     @classmethod
+    def unknown(cls, text: str, *, error_code: str = "side_effect_unknown", **kwargs: Any) -> ToolResult:
+        return cls(status=UNKNOWN, text=text, error_code=error_code, retryable=False,
+                   side_effect_state=SIDE_EFFECT_UNKNOWN, **kwargs)
+
+    @classmethod
     def cancelled(cls, text: str) -> ToolResult:
         return cls(
             status=CANCELLED, text=text, error_code="run_cancelled", side_effect_state=SIDE_EFFECT_NONE

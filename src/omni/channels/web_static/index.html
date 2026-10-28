@@ -57,7 +57,7 @@ ul{list-style:none;overflow-y:auto}
 #input:focus{outline:none;border-color:var(--accent)}
 #send{background:var(--accent);border:none;color:#03202a;border-radius:8px;padding:0 22px;font-weight:700;cursor:pointer}
 #send:disabled{opacity:.5;cursor:not-allowed;background:var(--panel2);color:var(--dim)}
-.tabs{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--border)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px;border-bottom:1px solid var(--border)}
 .tabs button{flex:1;background:transparent;border:none;color:var(--dim);padding:5px;border-radius:6px;cursor:pointer;font-size:12.5px}
 .tabs button.active{background:var(--panel2);color:var(--text)}
 .tab-body{display:flex;flex-direction:column;min-height:0;flex:1}
@@ -65,6 +65,7 @@ ul{list-style:none;overflow-y:auto}
 #fact-q{margin:8px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12.5px}
 #fact-q:focus{outline:none;border-color:var(--accent)}
 #facts-list,#profile-list,#reviews-list,#skills-list,#tools{flex:1;overflow-y:auto}
+#publication-list,#desktop-tree{min-height:0;overflow-y:auto}
 #artifacts-grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:10px;align-content:start}
 .art-card{position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;background:var(--panel2)}
 .art-card img{width:100%;height:92px;object-fit:cover;display:block;background:#000}
@@ -212,11 +213,17 @@ ul{list-style:none;overflow-y:auto}
         <button data-tab="skills">技能</button>
         <button data-tab="artifacts">产物</button>
         <button data-tab="desktop">桌面</button>
+        <button data-tab="publications">发布草稿</button>
       </div>
       <div id="tab-facts" class="tab-body">
         <input id="fact-q" placeholder="搜索事实记忆…">
         <div id="retrieval-state" class="hint" style="padding:6px 10px"></div>
         <ul id="facts-list"></ul>
+      </div>
+      <div id="tab-publications" class="tab-body hidden">
+        <button class="svc-btn" onclick="loadPublications()">刷新草稿</button>
+        <div class="hint">在聊天中准备草稿；发送前会展示完整内容并请求确认。结果未知时，请先到网站核查。</div>
+        <div id="publication-list"></div>
       </div>
       <div id="tab-desktop" class="tab-body hidden">
         <button class="svc-btn" onclick="loadDesktop()">刷新允许的窗口</button>
@@ -701,6 +708,30 @@ async function loadFacts(){
   const d=await api('/api/facts?q='+encodeURIComponent(q));
   $('#facts-list').innerHTML=d.facts.length?d.facts.map(f=>`<li>${esc(f)}</li>`).join(''):'<li class="empty">暂无记忆</li>';
 }
+let publicationRows=new Map();
+window.loadPublications=async()=>{
+  try{
+    const d=await api('/api/publications');publicationRows=new Map(d.items.map(x=>[x.id,x]));
+    const labels={draft:'待审批',sending:'发送中或中断待查',unknown:'结果未知',sent:'已发送',not_sent:'人工确认未发送',blocked:'已阻止',discarded:'已丢弃'};
+    $('#publication-list').innerHTML=(!d.enabled?'<div class="hint">B站写操作未启用；可查看和整理已有草稿。</div>':'')+d.items.map(x=>
+      `<div class="card" style="padding:10px;border-bottom:1px solid var(--border)"><div>${esc(x.kind==='comment'?'评论':'私信')} · 账号 ${esc(x.account)} · ${esc(labels[x.status]||x.status)}</div>`+
+      `<div style="overflow-wrap:anywhere">${esc(x.target)}</div><textarea id="pub-${esc(x.id)}" style="width:100%;min-height:90px" ${x.status==='draft'?'':'readonly'}>${esc(x.content)}</textarea>`+
+      (x.status==='draft'?`<button class="svc-btn" onclick="editPublication('${x.id}')">保存修改</button>`:'')+
+      (['draft','blocked','not_sent'].includes(x.status)?`<button class="svc-btn" onclick="resolvePublication('${x.id}','discarded')">丢弃</button>`:'')+
+      (['unknown','sending'].includes(x.status)?`<button class="svc-btn" onclick="resolvePublication('${x.id}','sent')">已核实发送成功</button><button class="svc-btn" onclick="resolvePublication('${x.id}','not_sent')">已核实未发送</button>`:'')+
+      `<div class="hint">${esc(x.error||'')}${x.evidence?'<br>'+esc(x.evidence):''}</div></div>`).join('');
+  }catch(e){$('#publication-list').textContent=e.message}
+};
+window.editPublication=async(id)=>{
+  const row=publicationRows.get(id);
+  try{await api(`/api/publications/${id}/edit`,{method:'POST',body:JSON.stringify({expected_hash:row.content_hash,content:$('#pub-'+id).value})});await loadPublications()}catch(e){alert(e.message)}
+};
+window.resolvePublication=async(id,verdict)=>{
+  const row=publicationRows.get(id);
+  const prompt=verdict==='discarded'?'丢弃此草稿？':verdict==='sent'?'已在目标网站核实该账号发布了此内容？':'已在目标网站核实该账号没有发布此内容？如需重发，必须重新准备草稿并审批。';
+  if(!confirm(prompt+'\n账号：'+row.account+'\n目标：'+row.target+'\n内容：'+row.content))return;
+  try{await api(`/api/publications/${id}/resolve`,{method:'POST',body:JSON.stringify({expected_hash:row.content_hash,verdict})});await loadPublications()}catch(e){alert(e.message)}
+};
 window.loadDesktop=async()=>{
   try{
     const d=await api('/api/desktop/windows');
@@ -983,7 +1014,9 @@ window.resolveApproval=async(id,allowed)=>{
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  ['facts','profile','resident','todos','reviews','skills','artifacts'].forEach(t=>$('#tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));
+  document.querySelectorAll('.tab-body').forEach(x=>x.classList.toggle('hidden',x.id!=='tab-'+b.dataset.tab));
+  if(b.dataset.tab==='desktop')loadDesktop();
+  if(b.dataset.tab==='publications')loadPublications();
 });
 $('#send').onclick=sendMessage;
 $('#input').addEventListener('keydown',e=>{

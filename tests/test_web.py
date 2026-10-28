@@ -79,6 +79,32 @@ def test_doctor_and_backup_are_paired_and_restore_to_injected_directory(tmp_path
     assert runtime.close()["complete"]
 
 
+def test_publication_drafts_pairing_edit_conflict_and_manual_resolution(tmp_path):
+    client, runtime = _client(tmp_path, pair=False)
+    try:
+        assert client.get('/api/publications').status_code == 401
+        assert client.post('/api/publications/none/resolve', json={}).status_code == 401
+        client.post('/api/auth/pair', json={'code': client.app.state.web_auth.pairing_code})
+        row = runtime.publications.create(session_id=1, kind='comment', target='https://www.bilibili.com/video/BV1xx411c7mD',
+                                          account='42', content='修改前', observation={'private': 'hidden'})
+        path = '/api/publications/' + row['id']
+        listing = client.get('/api/publications').json()
+        assert not listing['enabled'] and 'observation' not in listing['items'][0]
+        body = {'expected_hash': row['content_hash'], 'content': '修改后'}
+        edited = client.post(path + '/edit', json=body)
+        assert edited.status_code == 200 and edited.json()['content'] == '修改后'
+        assert client.post(path + '/edit', json=body).status_code == 409
+        updated = edited.json()
+        assert client.post(path + '/resolve', json={'expected_hash': updated['content_hash'], 'verdict': 'not_sent'}).status_code == 409
+        claim = runtime.publications.claim(row['id'], session_id=1, expected_hash=updated['content_hash'], ttl_s=600)
+        runtime.publications.finish(row['id'], claim['attempt_token'], 'unknown')
+        assert client.post(path + '/edit', json={'expected_hash': updated['content_hash'], 'content': '覆盖未知'}).status_code == 409
+        assert client.post(path + '/resolve', json={'expected_hash': updated['content_hash'], 'verdict': 'not_sent'}).status_code == 200
+        assert runtime.publications.get(row['id'])['status'] == 'not_sent'
+    finally:
+        assert runtime.close()['complete']
+
+
 @pytest.mark.parametrize("mode,size", [("RGB", (1080, 2400)), ("RGBA", (241, 121)), ("L", (1, 1))])
 def test_android_stream_encodes_half_size_jpeg(tmp_path, monkeypatch, mode, size):
     client, runtime = _client(tmp_path)
