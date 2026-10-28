@@ -18,6 +18,7 @@ from typing import Any
 
 from ..pathpolicy import is_protected_name, protected_dir
 from ..registry import Risk, Tool, ToolRegistry
+from ..result import SIDE_EFFECT_APPLIED, SIDE_EFFECT_UNKNOWN, ToolResult
 from ...system.atomic import atomic_write_bytes
 from ...system.filelock import FileLock, LockTimeout
 from . import io as fio
@@ -218,66 +219,77 @@ def register_file_tools(
 
     # ------------------------------------------------------------ 写
 
-    def files_write(args: dict[str, Any]) -> str:
+    def files_write(args: dict[str, Any]) -> ToolResult:
         mode = str(args.get("mode", "overwrite"))
         try:
             target = workspace.resolve(str(args.get("path", "")), for_write=True)
         except PathRejected as exc:
-            return f"错误：{exc}"
+            return ToolResult.fail(f"错误：{exc}", error_code="path_rejected")
         parent = target.path.parent
         if not parent.is_dir():
             if not bool(args.get("create_dirs", False)):
-                return (
-                    f"错误：父目录 {parent.name}/ 不存在。确实需要新建目录时传 create_dirs=true"
+                return ToolResult.fail(
+                    f"错误：父目录 {parent.name}/ 不存在。确实需要新建目录时传 create_dirs=true",
+                    error_code="parent_dir_missing",
                 )
             try:
                 parent.mkdir(parents=True, exist_ok=True)
             except OSError as exc:
-                return f"错误：无法创建目录（{exc}）"
+                return ToolResult.fail(f"错误：无法创建目录（{exc}）", error_code="mkdir_failed")
         try:
             with _file_lock(lock_dir, target):
                 return _write_locked(target, args, mode)
         except LockTimeout as exc:
-            return f"错误：{exc}"
+            return ToolResult.fail(f"错误：{exc}", error_code="lock_timeout")
 
-    def _write_locked(target: Resolved, args: dict[str, Any], mode: str) -> str:
+    def _write_locked(target: Resolved, args: dict[str, Any], mode: str) -> ToolResult:
+        """写入的每条退出路径都带精确状态：可能已落盘的回读/落点分支必须是 unknown。"""
         try:
             current, raw = _read_current(target)
         except (PathRejected, OSError) as exc:
-            return f"错误：读取 {target.display()} 失败（{exc}）"
+            return ToolResult.fail(f"错误：读取 {target.display()} 失败（{exc}）", error_code="read_failed")
         existed = raw is not None
         if mode == "create" and existed:
-            return (
+            return ToolResult.fail(
                 f"错误：{target.display()} 已存在（create 只用于新建）。"
-                "改已有文件请用 overwrite，并带上当前指纹"
+                "改已有文件请用 overwrite，并带上当前指纹",
+                error_code="target_exists",
             )
         if mode in {"overwrite", "replace"} and not existed:
-            return (
+            return ToolResult.fail(
                 f"错误：{target.display()} 不存在（overwrite 不创建新文件）。"
-                "新建请用 mode=create"
+                "新建请用 mode=create",
+                error_code="target_missing",
             )
         current_hash = fio.sha256_hex(raw) if raw is not None else ""
         if existed:
             expected = str(args.get("expected_hash", "") or "").strip()
             if not expected:
-                return (
+                return ToolResult.fail(
                     "错误：缺少 expected_hash。写入前先用 files_read 或 files_diff 取得当前指纹"
-                    f"（当前为 {current_hash[:12]}），确认内容没变后再写入"
+                    f"（当前为 {current_hash[:12]}），确认内容没变后再写入",
+                    error_code="expected_hash_missing",
                 )
             if not fio.hash_matches(expected, current_hash):
-                return (
+                return ToolResult.fail(
                     f"错误：内容已被修改，拒绝覆盖。当前指纹 {current_hash[:12]}，"
-                    f"与你给的 {expected[:12]} 不一致。请重新读取后再改——本次没有写入任何内容"
+                    f"与你给的 {expected[:12]} 不一致。请重新读取后再改——本次没有写入任何内容",
+                    error_code="hash_conflict",
                 )
         try:
             new_text = _compose(current, args, mode)
             new_bytes = _encode_with(new_text, raw)
         except ValueError as exc:
-            return f"错误：{exc}"
+            return ToolResult.fail(f"错误：{exc}", error_code="invalid_content")
         if len(new_bytes) > MAX_WRITE_BYTES:
-            return f"错误：写入内容 {len(new_bytes)} 字节，超过上限 {MAX_WRITE_BYTES} 字节"
+            return ToolResult.fail(
+                f"错误：写入内容 {len(new_bytes)} 字节，超过上限 {MAX_WRITE_BYTES} 字节",
+                error_code="too_large",
+            )
         if existed and new_text == current:
-            return f"{target.display()} 内容没有变化，未写入（指纹 {current_hash[:12]}）。"
+            return ToolResult.ok(
+                f"{target.display()} 内容没有变化，未写入（指纹 {current_hash[:12]}）。"
+            )
 
         # 先备份再写：备份失败就不写，避免"改了但回不去"
         backup_note = "（原文件不存在，无需备份）"
@@ -291,33 +303,48 @@ def register_file_tools(
                 )
                 backup_note = f"备份 rev {snap.rev}"
             except SnapshotTooLarge as exc:
-                return f"错误：{exc}"
+                return ToolResult.fail(f"错误：{exc}", error_code="backup_too_large")
             except OSError as exc:
-                return f"错误：写入前备份失败，本次没有修改文件（{exc}）"
+                return ToolResult.fail(
+                    f"错误：写入前备份失败，本次没有修改文件（{exc}）", error_code="backup_failed"
+                )
         try:
             workspace.assert_unchanged(target)  # 落盘前最后确认一次路径没被换掉
             atomic_write_bytes(target.path, new_bytes)
         except PathRejected as exc:
-            return f"错误：{exc}；原文件未改动，{backup_note}"
+            return ToolResult.fail(
+                f"错误：{exc}；原文件未改动，{backup_note}", error_code="path_changed"
+            )
         except OSError as exc:
-            return f"错误：写入失败（{exc}）；原文件未改动，{backup_note}"
+            # atomic_write_bytes 失败时删临时文件且不动原文件（system/atomic 契约）
+            return ToolResult.fail(
+                f"错误：写入失败（{exc}）；原文件未改动，{backup_note}", error_code="write_failed"
+            )
         # 回读校验：指纹不一致说明有别的进程/同步盘插了一脚
         try:
             written = target.path.read_bytes()
         except OSError as exc:
-            return f"错误：写入后回读失败（{exc}）；{backup_note}，请重新读取确认"
+            return ToolResult.fail(
+                f"错误：写入后回读失败（{exc}）；{backup_note}，请重新读取确认",
+                error_code="readback_failed",
+                side_effect_state=SIDE_EFFECT_UNKNOWN,  # 文件可能已写入
+            )
         new_hash = fio.sha256_hex(new_bytes)
         try:
             workspace.assert_unchanged(target)
         except PathRejected as exc:
-            return (
+            return ToolResult.fail(
                 f"错误：写入过程中路径被改变（{exc}）。文件内容已是新内容，"
-                f"{backup_note}；请重新读取确认落点"
+                f"{backup_note}；请重新读取确认落点",
+                error_code="path_changed_after_write",
+                side_effect_state=SIDE_EFFECT_UNKNOWN,  # 内容已落盘，落点不确定
             )
         if fio.sha256_hex(written) != new_hash:
-            return (
+            return ToolResult.fail(
                 f"错误：写入后回读校验不通过（磁盘内容与预期不一致）。{backup_note}；"
-                "请重新读取确认，不要假设已经保存成功"
+                "请重新读取确认，不要假设已经保存成功",
+                error_code="readback_mismatch",
+                side_effect_state=SIDE_EFFECT_UNKNOWN,  # 磁盘上已有别的写入
             )
         diff, total = fio.unified_diff(
             current, new_text, name=target.display(), max_lines=WRITE_DIFF_LINES
@@ -326,7 +353,11 @@ def register_file_tools(
             f"已写入 {target.display()}：{len(new_bytes)} 字节，指纹 {new_hash[:12]}"
             f"（{backup_note}，回读校验通过）"
         )
-        return f"{head}\n{diff or '（仅编码/行尾变化）'}\n（差异共 {total} 行）"
+        return ToolResult.ok(
+            f"{head}\n{diff or '（仅编码/行尾变化）'}\n（差异共 {total} 行）",
+            side_effect_state=SIDE_EFFECT_APPLIED,
+            verification=f"回读校验通过，指纹 {new_hash[:12]}",
+        )
 
     # ------------------------------------------------------------ 历史与回滚
 
@@ -342,24 +373,28 @@ def register_file_tools(
             f"  {item.brief()}" for item in items
         )
 
-    def files_restore(args: dict[str, Any]) -> str:
+    def files_restore(args: dict[str, Any]) -> ToolResult:
         try:
             target = workspace.resolve(str(args.get("path", "")), for_write=True)
         except PathRejected as exc:
-            return f"错误：{exc}"
+            return ToolResult.fail(f"错误：{exc}", error_code="path_rejected")
         rev = _int(args.get("rev"), 0, 1, 1_000_000)
         payload = history.read(target.display(), rev)
         if payload is None:
-            return f"错误：{target.display()} 没有 rev {rev} 的备份（用 files_history 查看）"
+            return ToolResult.fail(
+                f"错误：{target.display()} 没有 rev {rev} 的备份（用 files_history 查看）",
+                error_code="rev_missing",
+            )
         try:
             with _file_lock(lock_dir, target):
                 current, raw = _read_current(target)
                 current_hash = fio.sha256_hex(raw) if raw is not None else ""
                 expected = str(args.get("expected_hash", "") or "").strip()
                 if raw is not None and not fio.hash_matches(expected, current_hash):
-                    return (
+                    return ToolResult.fail(
                         f"错误：内容已被修改，拒绝回滚。当前指纹 {current_hash[:12]}，"
-                        f"你给的 {expected[:12] or '（未提供）'} 不一致；本次没有写入"
+                        f"你给的 {expected[:12] or '（未提供）'} 不一致；本次没有写入",
+                        error_code="hash_conflict",
                     )
                 if raw is not None:
                     history.commit(target.display(), raw, summary=f"回滚到 rev {rev} 前的自动备份")
@@ -367,14 +402,25 @@ def register_file_tools(
                 atomic_write_bytes(target.path, payload)
                 written = target.path.read_bytes()
         except LockTimeout as exc:
-            return f"错误：{exc}"
+            return ToolResult.fail(f"错误：{exc}", error_code="lock_timeout")
         except (PathRejected, OSError, SnapshotTooLarge) as exc:
-            return f"错误：回滚失败（{exc}）；如已改动，可再用 files_history 找上一版"
+            # 文案本身就在对冲"如已改动"：按副作用未知处理，不假设没有写入
+            return ToolResult.fail(
+                f"错误：回滚失败（{exc}）；如已改动，可再用 files_history 找上一版",
+                error_code="restore_failed",
+                side_effect_state=SIDE_EFFECT_UNKNOWN,
+            )
         if fio.sha256_hex(written) != fio.sha256_hex(payload):
-            return "错误：回滚后回读校验不通过，请重新读取确认（不要假设已恢复）"
-        return (
+            return ToolResult.fail(
+                "错误：回滚后回读校验不通过，请重新读取确认（不要假设已恢复）",
+                error_code="readback_mismatch",
+                side_effect_state=SIDE_EFFECT_UNKNOWN,
+            )
+        return ToolResult.ok(
             f"已把 {target.display()} 恢复到 rev {rev}"
-            f"（{len(payload)} 字节，指纹 {fio.sha256_hex(payload)[:12]}，回读校验通过）"
+            f"（{len(payload)} 字节，指纹 {fio.sha256_hex(payload)[:12]}，回读校验通过）",
+            side_effect_state=SIDE_EFFECT_APPLIED,
+            verification=f"回读校验通过，指纹 {fio.sha256_hex(payload)[:12]}",
         )
 
     # ------------------------------------------------------------ 注册

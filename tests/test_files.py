@@ -515,6 +515,82 @@ def test_readback_mismatch_is_reported(env, monkeypatch):
     assert "回读校验不通过" in result and "不要假设已经保存成功" in result
 
 
+def test_files_write_structured_results(env, monkeypatch):
+    """写成功=applied（回读指纹进 verification）；哈希冲突=确定未写；回读不一致=未知。"""
+    from omni.safety.gates import AllowAllApprover
+
+    registry, root, _ = env
+    target = root / "s.txt"
+    target.write_text("old\n", encoding="utf-8")
+    body = run(registry, "files_read", path="s.txt")
+
+    ok = registry.execute(
+        "files_write",
+        {"path": "s.txt", "content": "new\n", "expected_hash": _fingerprint(body)},
+        approver=AllowAllApprover(),
+    )
+    assert ok.status == "ok" and ok.side_effect_state == "applied" and ok.legacy is False
+    assert "回读校验通过" in ok.verification
+
+    # 哈希冲突：确定没有写入任何内容
+    conflict = registry.execute(
+        "files_write",
+        {"path": "s.txt", "content": "x\n", "expected_hash": "0" * 12},
+        approver=AllowAllApprover(),
+    )
+    assert conflict.status == "error" and conflict.error_code == "hash_conflict"
+    assert conflict.side_effect_state == "none"
+    assert target.read_text(encoding="utf-8") == "new\n"
+
+    # 回读校验失败：磁盘可能已被写入/替换——副作用未知（旧推断曾记成 none）
+    from omni.tools.files import tools as file_tools
+
+    monkeypatch.setattr(
+        file_tools, "atomic_write_bytes", lambda path, data: path.write_bytes(b"half")
+    )
+    after = run(registry, "files_read", path="s.txt")
+    mismatch = registry.execute(
+        "files_write",
+        {"path": "s.txt", "content": "v3\n", "expected_hash": _fingerprint(after)},
+        approver=AllowAllApprover(),
+    )
+    assert mismatch.status == "error" and mismatch.error_code == "readback_mismatch"
+    assert mismatch.side_effect_state == "unknown"
+
+
+def test_files_restore_structured_results(env):
+    """回滚成功=applied；指纹冲突=确定未动；回读不一致=未知（不假设已恢复）。"""
+    from omni.safety.gates import AllowAllApprover
+
+    registry, root, _ = env
+    target = root / "r.txt"
+    target.write_text("v1\n", encoding="utf-8")
+    first = _fingerprint(run(registry, "files_read", path="r.txt"))
+    registry.execute(
+        "files_write", {"path": "r.txt", "content": "v2\n", "expected_hash": first},
+        approver=AllowAllApprover(),
+    )
+    after = _fingerprint(run(registry, "files_read", path="r.txt"))
+
+    restored = registry.execute(
+        "files_restore", {"path": "r.txt", "rev": 1, "expected_hash": after},
+        approver=AllowAllApprover(),
+    )
+    assert restored.status == "ok" and restored.side_effect_state == "applied"
+    assert "回读校验通过" in restored.verification
+    assert target.read_text(encoding="utf-8") == "v1\n"
+
+    # 指纹冲突（文件又被改过）：确定没有写入
+    target.write_text("用户改的\n", encoding="utf-8")
+    stale = registry.execute(
+        "files_restore", {"path": "r.txt", "rev": 1, "expected_hash": after},
+        approver=AllowAllApprover(),
+    )
+    assert stale.status == "error" and stale.error_code == "hash_conflict"
+    assert stale.side_effect_state == "none"
+    assert target.read_text(encoding="utf-8") == "用户改的\n"
+
+
 # ---------------------------------------------------------------- 历史与回滚
 
 

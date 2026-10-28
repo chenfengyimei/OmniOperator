@@ -7,6 +7,27 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · D09 收口第三批：files 写路径结构化（收口完成）
+
+- **关闭第 5 批登记的"第三批待做"**：`files_write`/`files_restore` 迁 `ToolResult`——
+  写成功=applied（**回读指纹进 verification 字段**）；哈希冲突/前置校验失败/备份失败/
+  写入失败=确定未写 none（写入失败依据 `system/atomic` 契约：失败删临时文件且不动
+  原文件）；**回读校验不通过/回读失败/写后路径变更=side unknown**——磁盘可能已被
+  写入或替换，这是本轮修掉的最后一个副作用误分类（旧推断曾记成 none，等于告诉
+  模型"什么都没发生"）。回滚同理：整体失败分支的文案本身就在对冲"如已改动"，
+  按未知处理；成功=applied 带指纹验证。
+- **至本批，副作用敏感域（shell/QQ/系统/browser/MCP/files 写 + 此前已是结构化的
+  android 写/desktop/bilibili 写）全部迁移完成**。剩余仍走 `from_legacy` 的是纯读与
+  额度闸门内的内部记忆写（builtin/cron/skill/delegate/web/android 读/bilibili 读/
+  files 读）——推断对这些域是**正确的**（读=ok/none、错=error/none，无未知歧义），
+  `from_legacy` 保留为它们的文档化适配层；LOCAL_AGENT_PLAN §0.2 收口项 1 的
+  "副作用不可信"风险面就此关闭。
+- **新增 2 项测试**：写成功/哈希冲突/回读不一致三态断言（含磁盘内容字节级验证）；
+  回滚成功/指纹冲突两态断言。既有 dispatch 字符串断言零改动（text 逐字不变）。
+- `uv run --no-sync pytest tests/test_files.py -q` → **35 passed**；
+  全量 `uv run --no-sync pytest -q` → **861 passed**（2026-10-29；含并行会话未提交的
+  16 项 web 模型密钥测试，与本批文件无交集）。
+
 ### 2026-10-29 · 取消标记竞态补丁：cancel() 先翻转信号再落库
 
 - 第 1 批修复（`phase()` 取消后 no-op + 写后复查自愈）留下了最后一个交错窗口：
