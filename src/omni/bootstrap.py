@@ -53,6 +53,7 @@ from .memory.resident import ResidentMemory
 from .memory.skills import SkillStore
 from .memory.skill_inbox import SkillInbox
 from .plugins import PluginHost
+from .plugins.community import CommunityClient, register_community_tools
 from .plugins.tools import register_plugin_tools
 from .memory.store import MemoryStore
 from .safety.broker import ApprovalBroker
@@ -443,6 +444,14 @@ def build_runtime(
     for _failure in plugin_host.load_installed():
         print(f"[插件装载失败] {_failure}", file=sys.stderr, flush=True)
     register_plugin_tools(registry, plugin_host)
+    # 插件社区客户端：查询/安装 SAFE，发布 CONFIRM+人工确认（发布红线）；
+    # 配置存 data/plugins/community.json（server_url/token），刻意不进 config.yaml
+    community_client = CommunityClient(
+        paths.data / "plugins" / "community.json",
+        plugin_host,
+        resolve_dir=_resolve_plugin_dir,
+    )
+    register_community_tools(registry, community_client)
     mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs, schema_store=mcp_schemas)
     register_mcp_tools(registry, mcp)
     if mcp.servers():

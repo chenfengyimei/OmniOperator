@@ -1,0 +1,426 @@
+"""插件社区客户端：搜索 / 详情 / 安装 / 发布。
+
+本地配置存 `data/plugins/community.json`（server_url + token）——刻意不进
+config.yaml：社区接入点属于用户级偏好而非运行配置，且 config.py 由并行
+前端批持有；换社区服务器 = 换一个 URL，一行配置的事。
+
+信任定位：社区只做索引与分发（https + sha256 校验），**不背书插件安全性**
+——下载下来的包仍要走本机的隔离安装 → 人工确认激活链，谁也绕不过去。
+
+发布是项目红线之一（"发布需人工确认"）：`community_publish` 是
+CONFIRM + requires_human——审批流里的人工确认就是"用户同意公开"这一步。
+"""
+from __future__ import annotations
+
+import hashlib
+import io
+import json
+import zipfile
+from pathlib import Path
+from typing import Any, Callable
+
+import httpx
+
+from ..plugins.host import MAX_ZIP_BYTES, PluginHost
+from ..tools.registry import Risk, Tool, ToolRegistry
+
+CONFIG_NAME = "community.json"
+MAX_PUBLISH_BYTES = 4 * 1024 * 1024   # 发布侧：客户端不传超过安装侧上限的包
+MAX_PUBLISH_ENTRIES = 50
+HTTP_TIMEOUT_S = 30.0
+
+
+def _digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+class CommunityClient:
+    """社区客户端。`transport` 供测试注入 ASGI 直连；生产默认真实 HTTP。"""
+
+    def __init__(
+        self,
+        config_path: Path,
+        host: PluginHost,
+        *,
+        resolve_dir: Callable[[str], Path | None] | None = None,
+        transport: httpx.BaseTransport | None = None,
+    ) -> None:
+        self._config_path = Path(config_path)
+        self._host = host
+        self._resolve_dir = resolve_dir
+        self._transport = transport
+
+    # ---------------------------------------------------------------- 配置
+
+    def config(self) -> dict[str, str]:
+        try:
+            data = json.loads(self._config_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {"server_url": "", "token": ""}
+        if not isinstance(data, dict):
+            return {"server_url": "", "token": ""}
+        return {
+            "server_url": str(data.get("server_url", "")),
+            "token": str(data.get("token", "")),
+        }
+
+    def configure(self, *, server_url: str | None = None, token: str | None = None) -> tuple[bool, str]:
+        """None=保持不变；传值=设置；传空串=清除。"""
+        current = self.config()
+        merged = dict(current)
+        if server_url is not None:
+            server_url = server_url.strip()
+            if server_url and not (
+                server_url.startswith("http://") or server_url.startswith("https://")
+            ):
+                return False, "错误：server_url 必须以 http:// 或 https:// 开头"
+            merged["server_url"] = server_url
+        if token is not None:
+            merged["token"] = token.strip()
+        self._config_path.parent.mkdir(parents=True, exist_ok=True)
+        self._config_path.write_text(
+            json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        masked = "已配置" if merged["token"] else "未配置"
+        return True, f"社区配置已保存：server={merged['server_url'] or '（未设置）'}，token {masked}"
+
+    def _http(self) -> httpx.Client:
+        server_url = self.config()["server_url"]
+        return httpx.Client(
+            base_url=server_url.rstrip("/") + "/",
+            timeout=HTTP_TIMEOUT_S,
+            transport=self._transport,
+            follow_redirects=True,
+        )
+
+    def _require_server(self) -> str:
+        server_url = self.config()["server_url"]
+        if not server_url:
+            return (
+                "错误：社区服务器未配置。先用 community_config(server_url=…) 设置"
+                "（格式 http(s)://host:port）"
+            )
+        return ""
+
+    @staticmethod
+    def _fail(resp: httpx.Response) -> str:
+        try:
+            detail = resp.json().get("detail", resp.text[:200])
+        except Exception:  # noqa: BLE001
+            detail = resp.text[:200]
+        return f"错误：社区服务器返回 {resp.status_code}（{detail}）"
+
+    # ---------------------------------------------------------------- 查询与安装
+
+    def search(self, query: str, limit: int = 10) -> tuple[bool, str]:
+        problem = self._require_server()
+        if problem:
+            return False, problem
+        try:
+            with self._http() as client:
+                resp = client.get("/api/plugins", params={"query": query, "limit": limit})
+        except httpx.HTTPError as exc:
+            return False, f"错误：连接社区服务器失败（{exc}）"
+        if resp.status_code != 200:
+            return False, self._fail(resp)
+        data = resp.json()
+        items = data.get("items", [])
+        if not items:
+            return True, f"社区里没有匹配「{query}」的插件（共索引 {data.get('total', 0)} 个）。"
+        lines = [f"社区插件（匹配「{query}」，{data.get('total', 0)} 个中前 {len(items)} 个）："]
+        for item in items:
+            lines.append(
+                f"- {item.get('id')} v{item.get('latest_version')}：{item.get('description')}"
+                f"（作者 {item.get('author') or '未知'}，下载 {item.get('downloads', 0)} 次）"
+            )
+        lines.append("详情 community_info(id=…)；安装 community_install(id=…)（下载后仍需人工确认激活）")
+        return True, "\n".join(lines)
+
+    def info(self, plugin_id: str) -> tuple[bool, str]:
+        problem = self._require_server()
+        if problem:
+            return False, problem
+        try:
+            with self._http() as client:
+                resp = client.get(f"/api/plugins/{plugin_id}")
+        except httpx.HTTPError as exc:
+            return False, f"错误：连接社区服务器失败（{exc}）"
+        if resp.status_code != 200:
+            return False, self._fail(resp)
+        item = resp.json()
+        lines = [
+            f"{item.get('id')} v{item.get('latest_version')}：{item.get('description')}",
+            f"作者：{item.get('author') or '未知'}　主页：{item.get('homepage') or '无'}",
+            f"版本：{'、'.join(item.get('versions', []))}　下载 {item.get('downloads', 0)} 次",
+            f"最新包：{item.get('latest_size', 0)} B，sha256 {str(item.get('latest_sha256', ''))[:16]}",
+        ]
+        lines.append("安装 community_install(id=…)；下载后仍要走隔离安装与人工确认激活")
+        return True, "\n".join(lines)
+
+    def install(self, plugin_id: str, version: str = "") -> tuple[bool, str]:
+        """下载 zip → 校验 sha256 → 落 inbox → 走既有隔离安装链。"""
+        problem = self._require_server()
+        if problem:
+            return False, problem
+        plugin_id = (plugin_id or "").strip()
+        version = (version or "").strip()
+        try:
+            with self._http() as client:
+                resp = client.get(f"/api/plugins/{plugin_id}")
+                if resp.status_code != 200:
+                    return False, self._fail(resp)
+                item = resp.json()
+                if not version:
+                    version = str(item.get("latest_version", ""))
+                resp = client.get(f"/api/download/{plugin_id}", params={"version": version})
+        except httpx.HTTPError as exc:
+            return False, f"错误：下载失败（{exc}）"
+        if resp.status_code != 200:
+            return False, self._fail(resp)
+        data = resp.content
+        if not data:
+            return False, "错误：下载内容为空"
+        if len(data) > MAX_ZIP_BYTES:
+            return False, f"错误：下载包超过 {MAX_ZIP_BYTES // (1024 * 1024)} MiB 安装上限，拒绝落盘"
+        expected = str(resp.headers.get("X-Plugin-Sha256", "")).strip().lower()
+        actual = _digest(data)
+        if expected and actual != expected:
+            return False, (
+                f"错误：下载内容与服务器指纹不符（期望 {expected[:16]}，实际 {actual[:16]}），"
+                "已丢弃，不入收件箱"
+            )
+        filename = f"{plugin_id}-{version}.zip"
+        target = self._host.inbox_dir / filename
+        if target.exists():
+            return False, (
+                f"错误：inbox 里已有 {filename}（先处理掉再下载：装它或删掉）。"
+                "同一版本重复下载没有意义"
+            )
+        target.write_bytes(data)
+        ok, msg = self._host.install_package(filename)
+        if not ok:
+            target.unlink(missing_ok=True)  # 安装被拒：不留垃圾在收件箱
+            return False, msg
+        target.unlink(missing_ok=True)  # 已入隔离区（含内容+导入记录）：收件箱只做传输落点
+        return True, msg + f"\n（来源：社区 {self.config()['server_url']}，sha256 {actual[:16]}）"
+
+    # ---------------------------------------------------------------- 发布
+
+    def publish_from_directory(self, rel_path: str) -> tuple[bool, str]:
+        """把工作区插件目录打包发布到社区（发布走 CONFIRM——用户确认即同意公开）。"""
+        problem = self._require_server()
+        if problem:
+            return False, problem
+        if self._resolve_dir is None:
+            return False, "错误：本入口未接线工作区目录解析（嵌入式用法）"
+        source_dir = self._resolve_dir(str(rel_path or "").strip())
+        if source_dir is None or not source_dir.is_dir():
+            return False, f"错误：工作区里没有目录 {rel_path or '（空）'}"
+        try:
+            data = self._zip_directory(source_dir)
+        except ValueError as exc:
+            return False, f"错误：{exc}"
+        return self._publish(data, f"{rel_path}")
+
+    def publish_zip(self, package: str) -> tuple[bool, str]:
+        """把 inbox 里的 zip 原样发布到社区。"""
+        problem = self._require_server()
+        if problem:
+            return False, problem
+        package = (package or "").strip()
+        if not package or package != Path(package).name:
+            return False, "错误：package 必须是 data/plugins/.inbox/ 里的 zip 文件名，不带路径"
+        path = self._host.inbox_dir / package
+        if not path.is_file():
+            return False, f"错误：inbox 里没有 {package}"
+        try:
+            data = path.read_bytes()
+        except OSError as exc:
+            return False, f"错误：读取 {package} 失败（{exc}）"
+        if len(data) > MAX_PUBLISH_BYTES:
+            return False, f"错误：包超过 {MAX_PUBLISH_BYTES // (1024 * 1024)} MiB 发布上限"
+        return self._publish(data, package)
+
+    def _zip_directory(self, source_dir: Path) -> bytes:
+        files: dict[str, bytes] = {}
+        total = 0
+        for path in sorted(source_dir.rglob("*")):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(source_dir).as_posix()
+            if rel.split("/")[0] == "__pycache__":
+                continue  # 字节码缓存不属于包内容
+            if len(files) >= MAX_PUBLISH_ENTRIES:
+                raise ValueError(f"目录条目超过 {MAX_PUBLISH_ENTRIES} 个上限")
+            data = path.read_bytes()
+            total += len(data)
+            if total > MAX_PUBLISH_BYTES:
+                raise ValueError(f"内容总量超过 {MAX_PUBLISH_BYTES // (1024 * 1024)} MiB 上限")
+            files[rel] = data
+        if not files:
+            raise ValueError("目录是空的")
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as zf:
+            for rel, data in sorted(files.items()):
+                zf.writestr(rel, data)
+        return buffer.getvalue()
+
+    def _publish(self, data: bytes, source: str) -> tuple[bool, str]:
+        problem = self._require_server()
+        if problem:
+            return False, problem
+        token = self.config()["token"]
+        try:
+            with self._http() as client:
+                resp = client.post(
+                    "/api/publish",
+                    files={"file": ("plugin.zip", data, "application/zip")},
+                    data={"token": token},
+                )
+        except httpx.HTTPError as exc:
+            return False, f"错误：上传失败（{exc}）"
+        if resp.status_code != 200:
+            return False, self._fail(resp)
+        record = resp.json()
+        return True, (
+            f"已发布到社区：{record.get('id')} v{record.get('version')}"
+            f"（{record.get('size', len(data))} B，sha256 {str(record.get('sha256', ''))[:16]}，"
+            f"来源 {source}）。其它机器即可 community_install 下载"
+        )
+
+
+def register_community_tools(registry: ToolRegistry, client: CommunityClient) -> None:
+    """社区工具。搜索/详情/安装 SAFE（安装只落收件箱+隔离区）；发布 CONFIRM+人工确认。"""
+
+    def community_config(args: dict[str, Any]) -> str:
+        has_url = "server_url" in args
+        has_token = "token" in args
+        if not has_url and not has_token:
+            current = client.config()
+            return (
+                f"当前社区配置：server={current['server_url'] or '（未设置）'}，"
+                f"token {'已配置' if current['token'] else '未配置'}。"
+                "用 community_config(server_url=…, token=…) 设置"
+            )
+        ok, msg = client.configure(
+            server_url=str(args.get("server_url", "")) if has_url else None,
+            token=str(args.get("token", "")) if has_token else None,
+        )
+        return msg
+
+    def community_search(args: dict[str, Any]) -> str:
+        _ok, msg = client.search(
+            str(args.get("query", "")), max(1, min(int(args.get("limit") or 10), 50))
+        )
+        return msg
+
+    def community_info(args: dict[str, Any]) -> str:
+        _ok, msg = client.info(str(args.get("id", "")))
+        return msg
+
+    def community_install(args: dict[str, Any]) -> str:
+        _ok, msg = client.install(
+            str(args.get("id", "")), str(args.get("version", "") or "")
+        )
+        return msg
+
+    def community_publish(args: dict[str, Any]) -> str:
+        path = str(args.get("path", "") or "").strip()
+        package = str(args.get("package", "") or "").strip()
+        if bool(path) == bool(package):
+            return "错误：path（工作区插件目录）与 package（inbox 里的 zip）必须二选一"
+        if path:
+            _ok, msg = client.publish_from_directory(path)
+        else:
+            _ok, msg = client.publish_zip(package)
+        return msg
+
+    registry.register(
+        Tool(
+            name="community_config",
+            description="查看/设置插件社区服务器（server_url 与发布 token；传空串清除）",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "server_url": {"type": "string", "description": "社区服务器 http(s)://host:port"},
+                    "token": {"type": "string", "description": "发布 token（发布需要；查询与安装不需要）"},
+                },
+            },
+            func=community_config,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+    registry.register(
+        Tool(
+            name="community_search",
+            description="搜索插件社区里的插件（按 id/名称/描述/作者匹配）",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "搜索关键词"},
+                    "limit": {"type": "integer", "description": "最多返回几条（默认 10）"},
+                },
+                "required": ["query"],
+            },
+            func=community_search,
+            toolset="core",
+            risk=Risk.SAFE,
+            read_only=True,
+        )
+    )
+    registry.register(
+        Tool(
+            name="community_info",
+            description="查看社区里某个插件的详情（版本列表/下载量/最新包指纹）",
+            parameters={
+                "type": "object",
+                "properties": {"id": {"type": "string", "description": "插件 id"}},
+                "required": ["id"],
+            },
+            func=community_info,
+            toolset="core",
+            risk=Risk.SAFE,
+            read_only=True,
+        )
+    )
+    registry.register(
+        Tool(
+            name="community_install",
+            description=(
+                "从社区下载插件包到收件箱并走隔离安装（sha256 校验；"
+                "激活仍需人工确认，社区不背书安全性）"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string", "description": "社区里的插件 id"},
+                    "version": {"type": "string", "description": "版本号（默认最新）"},
+                },
+                "required": ["id"],
+            },
+            func=community_install,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+    registry.register(
+        Tool(
+            name="community_publish",
+            description=(
+                "把插件发布到社区（需用户确认——发布是项目红线）：path=工作区插件目录"
+                "（自动打包，跳过 __pycache__）或 package=inbox 里的 zip"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string", "description": "工作区里的插件目录（与 package 二选一）"},
+                    "package": {"type": "string", "description": "inbox 里的 zip 文件名（与 path 二选一）"},
+                },
+            },
+            func=community_publish,
+            toolset="core",
+            risk=Risk.CONFIRM,
+            requires_human=True,
+        )
+    )

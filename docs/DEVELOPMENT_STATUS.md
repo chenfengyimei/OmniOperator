@@ -7,6 +7,49 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 新能力：插件社区（参考服务器 + 客户端，待所有者提供机器部署）
+
+- **需求来源**：用户要求"做好插件系统与插件社区……社区服务器我到时候可以
+  提供给你部署"。本批交付社区两端；部署待机器到位后按
+  [PLUGIN_SYSTEM.md §5.1](PLUGIN_SYSTEM.md) 执行。
+- **参考服务器 `plugins/server.py`**（FastAPI + 文件存储，单 owner）：
+  - 存储 = `index.json` + `packages/<id>/<version>.zip` + `meta.json`（版本记录），
+    无数据库，备份即复制目录；`python -m omni.plugins.server --root … --token …`；
+  - API v1：health / 搜索（id/名称/描述/作者子串）/ 详情（版本列表+最新指纹）/
+    下载（`X-Plugin-Sha256` 头；**存储指纹与索引不符时 503 拒发**）/ 发布
+    （multipart+token，`hmac.compare_digest` 恒时比较；401 拒 token、
+    400 拒坏包、**409 版本不可变**——同 id+version 重复发布拒绝，升级只能加版本号）；
+  - 服务端只做**纯数据校验**（zip 内合法 manifest.json 且入口在包内）——
+    深度校验仍在每台机器安装时做；索引写入带进程内锁 + 发布带跨进程文件锁。
+- **客户端 `plugins/community.py`**：`CommunityClient` + 五个 agent 工具；
+  本地配置存 `data/plugins/community.json`（server_url/token，None=不动、
+  传值=设置、空串=清除）——**刻意不进 config.yaml**（config.py 被并行前端批
+  持有，且社区接入点属于用户级偏好）：
+  - `community_search` / `community_info`（SAFE，read_only）；
+  - `community_install`（SAFE）：详情 → 下载（≤4 MiB）→ **sha256 与响应头
+    校验**（不符即丢弃不落盘）→ inbox → 走既有隔离安装链（激活仍需人工确认，
+    **社区不背书安全性**）；成功入隔离区后清理收件箱 zip；
+  - `community_publish`（**CONFIRM+requires_human——"发布"是项目红线**）：
+    `path=` 工作区插件目录自动打包（跳 `__pycache__`，≤4MiB/50 条目），
+    或 `package=` inbox zip 原样上传；
+  - bootstrap 接线（复用插件宿主的 workspace 目录解析）。
+- **新增 6 项测试**（`tests/test_plugin_community.py`）：服务器全往返
+  （token 门/manifest 校验/版本不可变/搜索详情下载/新版本 latest 切换/
+  旧版本可取/**存储被篡改 503 拒发**/404）、客户端搜索-详情-安装-激活
+  全链路（隔离区可见、激活前零注册、收件箱清理、重复安装拒绝）、
+  篡改下载内容拒绝落盘、工作区目录发布→安装→激活全链路（__pycache__ 不进包）、
+  未配置社区的如实报错、工具审批门（查询/安装 SAFE 无人值守可用、
+  发布被 DenyApprover 拒绝）。
+- **平台坑（新）**：httpx 0.28 起 `ASGITransport` 只实现
+  `handle_async_request`（仅 AsyncClient 可用）——同步 `httpx.Client` 的
+  测试需自建同步桥接（`SyncASGITransport`：专用事件循环线程 +
+  `run_coroutine_threadsafe`）；生产客户端走真实 URL 不受影响。
+- `uv run --no-sync pytest tests/test_plugin_community.py -q` → **6 passed**；
+  `tests/test_arch.py + test_plugin_community.py -q` → **28 passed**（架构
+  守卫确认新模块合规）；全量 `uv run --no-sync pytest -q` →
+  **966 passed**（2026-10-29；= 956 + 本批 6 + 并行前端批未提交 web 测试
+  同期新增 4 项，均绿）。
+
 ### 2026-10-29 · 新能力：插件系统核心（本地生命周期，agent/用户自开发功能接入）
 
 - **需求来源**（用户原话）：做好插件系统与插件社区，让用户以及项目内的 agent

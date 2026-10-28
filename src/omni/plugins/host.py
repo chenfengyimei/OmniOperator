@@ -203,6 +203,11 @@ class PluginHost:
         for path in (self._root, self._inbox, self._quarantine, self._data):
             path.mkdir(parents=True, exist_ok=True)
 
+    @property
+    def inbox_dir(self) -> Path:
+        """收件箱目录（社区客户端下载落包用）。"""
+        return self._inbox
+
     # ---------------------------------------------------------------- 导入（数据化，零执行）
 
     def install_package(self, package: str) -> tuple[bool, str]:

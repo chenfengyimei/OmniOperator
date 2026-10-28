@@ -129,20 +129,66 @@ agent 用工作区文件工具（写 `.py`/`.json` 本身就要过确认）开�
 然后 `plugin_install(path="my-plugin")` → `plugin_list` 把文件清单给用户看 →
 用户确认 `plugin_activate`。全程没有"agent 绕过人给自己装代码"的路径。
 
-## 5. 插件社区（待服务器部署）
+## 5. 插件社区（已交付客户端与参考服务器，待所有者提供机器部署）
 
-服务器由项目所有者提供后部署。客户端与**参考服务器实现**（job 15）交付后，
-本节将补充为完整部署指南。契约要点（v1，见 `omni/plugins/community.py` 的
-docstring 与 `docs/PLUGIN_SYSTEM.md` §5 的最终版）：
+三个部件（2026-10-29 交付）：
 
-- 索引查询：`GET /api/plugins?query=&limit=&offset=`；
-- 详情与版本：`GET /api/plugins/{id}`；
-- 下载：`GET /api/download/{id}/{version}`（zip，sha256 与索引一致才落 inbox）；
-- 发布：`POST /api/publish`（带 owner token；发布走 CONFIRM+requires_human——
-  "发布"是项目红线之一）。
+- **参考服务器** `omni/plugins/server.py`（FastAPI + 文件存储，单 owner 部署）；
+- **客户端** `omni/plugins/community.py`（`CommunityClient` + agent 工具）；
+- **本地配置** `data/plugins/community.json`（`server_url` + `token`）——刻意不进
+  config.yaml：社区接入点属于用户级偏好，且 config.py 由并行前端批持有。
 
-社区服务的信任定位：它只做**索引与分发**（https + sha256 校验），
-不背书插件安全性——激活前的人工审阅仍在每台机器上发生。
+### 5.1 部署（所有者提供服务器后）
+
+```bash
+# 服务器上（clone 仓库后）：
+uv sync
+uv run python -m omni.plugins.server --root /srv/omni-community \
+    --token "$COMMUNITY_TOKEN" --host 0.0.0.0 --port 8080
+```
+
+- 存储布局：`<root>/index.json`（索引）+ `<root>/packages/<id>/<version>.zip` +
+  `<root>/packages/<id>/meta.json`（版本记录）。无数据库，备份 = 复制目录。
+- `--token` 为空 = 允许匿名发布（不推荐）；发布 token 只用于发布，
+  查询与下载无需 token。
+- 建议前置反代做 TLS 与限流；服务本身只做索引与分发。
+
+客户端配置（对 agent 说"配置插件社区"，或直接编辑文件）：
+
+```json
+{"server_url": "https://community.example.com", "token": "发布 token（可空）"}
+```
+
+### 5.2 API 契约（v1）
+
+| 方法与路径 | 语义 |
+| --- | --- |
+| `GET /api/health` | 存活与索引数量 |
+| `GET /api/plugins?query=&limit=&offset=` | 搜索（id/名称/描述/作者子串匹配），按 id 排序 |
+| `GET /api/plugins/{id}` | 详情：latest_version、versions 列表、latest_sha256、下载量 |
+| `GET /api/download/{id}?version=` | zip 字节；`X-Plugin-Sha256` 响应头；存储指纹不符时 503 拒发 |
+| `POST /api/publish` | multipart：`file`=zip + `token`；401 拒 token、400 拒坏包、409 拒重复版本 |
+
+服务端纪律：发布只做**纯数据校验**（zip 内必须有合法 manifest.json 且入口
+在包内）——深度校验（类型白名单/上限/防篡改）仍在每台机器安装时做；
+**版本不可变**（同 id+version 重复发布 409，升级只能加版本号）。
+
+### 5.3 客户端行为
+
+- `community_search` / `community_info`（SAFE，read_only）：查询展示；
+- `community_install`（SAFE）：详情 → 下载（≤4 MiB）→ **sha256 与响应头
+  校验**（不符即丢弃、不落收件箱）→ 落 inbox → 走既有隔离安装链
+  （激活仍需人工确认——**社区不背书安全性**）；成功入隔离区后清理收件箱 zip；
+- `community_publish`（**CONFIRM + requires_human**——"发布"是项目红线）：
+  `path=` 工作区插件目录自动打包（跳 `__pycache__`，≤4MiB/50 条目）上传，
+  或 `package=` inbox 里的 zip 原样上传；服务器响应带 sha256。
+
+### 5.4 未做（如实）
+
+- 无评分/评论/统计页面、无多 owner 鉴权（单 token 即全权发布）；
+- 无"社区有新版本"的主动提醒（本地 list 不拉索引比对）；
+- 客户端只信任**https + sha256**，不校验作者签名——激活前的人工审阅
+  仍是最终防线。
 
 ## 6. 平台坑与实现记录
 
@@ -157,3 +203,7 @@ docstring 与 `docs/PLUGIN_SYSTEM.md` §5 的最终版）：
    "组装根唯一构造"规则约束宿主不在插件包内构造 Gateway/MemoryStore 等；
    插件代码本身是外部文件，不属于 omni 模块图，不受分层规则约束——这正是
    它必须经人工确认才能进进程的原因。
+6. **httpx ≥0.28 的 `ASGITransport` 只实现 `handle_async_request`**（只能配
+   AsyncClient）：同步 `httpx.Client` 的测试需要自建同步桥接
+   （`tests/test_plugin_community.py::SyncASGITransport`——专用事件循环线程 +
+   `run_coroutine_threadsafe`）。生产客户端走真实 URL，不受影响。

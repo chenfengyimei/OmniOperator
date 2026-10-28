@@ -120,6 +120,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 | core | session_refine | 手动触发对当前会话的记忆整理（Hermes /refine 等价物，2026-10-29）：与自动 review 共用同一有界队列/消息区间去重/review 模型账本；作用域=当前会话（不收 session_id 参数），群聊作用域禁用；review 关闭或后台 worker 未启用时不注册 |
 | core | skill_import / skill_pending / skill_activate / skill_discard | 外来技能包隔离安装（2026-10-29）：inbox 收 zip 数据化解包进隔离区（类型白名单拒脚本、zip-slip 全防、清单逐文件 sha256）；activate 为 CONFIRM+人工确认且激活前防篡改复核、来源记入修订史 |
 | core | plugin_list / plugin_install / plugin_activate / plugin_enable / plugin_disable / plugin_remove | **插件系统（2026-10-29，设计见 docs/PLUGIN_SYSTEM.md）**：用户与 agent 自开发功能的接入通道——manifest+plugin.py 注册工具（PluginContext 强制 `<id>-` 前缀防影子覆盖、toolset=plugin:\<id\>、风险声明照常走审批链）；install 收 inbox zip 或工作区目录进隔离区（校验零执行）；activate CONFIRM+人工确认（激活即同意执行）；启用前内容指纹复核；启停/卸载反注册工具；群聊作用域自动禁用插件工具 |
+| core | community_config / community_search / community_info / community_install / community_publish | **插件社区（2026-10-29）**：参考服务器 `python -m omni.plugins.server`（FastAPI+文件存储；token 门、版本不可变、指纹不符拒发）+ 客户端；search/info read_only、install=下载 sha256 校验后走隔离安装链（激活仍人工确认）、**publish CONFIRM+requires_human（发布红线）**；配置存 data/plugins/community.json；服务器部署待所有者提供机器（部署指南 PLUGIN_SYSTEM.md §5） |
 | shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
 | qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
