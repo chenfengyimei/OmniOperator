@@ -688,3 +688,59 @@ def test_status_stays_pure_and_backoff_window_blocks_rebuild(tmp_path):
         assert manager._connections["flaky"] is first
     finally:
         manager.close()
+
+
+# ---------- D09 收口：MCP 工具结构化结果（uncertain 区分"在途"与"未发出"） ----------
+
+
+def test_mcp_tool_results_are_structured(setup_mcp):
+    """远端成功=applied；远端 isError=已执行但部分生效不可知；入队前拒绝=确定未发出。"""
+    manager, registry, _ = setup_mcp
+    denied = registry.execute("mcp_read_tool", {"server": "demo", "name": "write", "arguments": {}})
+    assert denied.status == "error" and denied.side_effect_state == "none"
+    assert denied.error_code == "mcp_refused" and "只读授权" in denied.text
+
+    remote_error = registry.execute(
+        "mcp_call_tool", {"server": "demo", "name": "fail", "arguments": {}},
+        approver=AllowAllApprover(),
+    )
+    assert remote_error.status == "error" and remote_error.side_effect_state == "unknown"
+    assert remote_error.error_code == "mcp_remote_error"
+    assert remote_error.text.startswith("错误：外部工具执行失败")
+
+    ok = registry.execute(
+        "mcp_call_tool", {"server": "demo", "name": "echo", "arguments": {"text": "x"}},
+        approver=AllowAllApprover(),
+    )
+    assert ok.status == "ok" and ok.side_effect_state == "applied" and ok.legacy is False
+
+
+def test_mcp_tool_timeout_and_crash_are_uncertain(setup_mcp):
+    """在途超时/服务中途回收：调用可能已到达服务器 → unknown；封闭后的新调用=确定未发出。"""
+    manager, registry, _ = setup_mcp
+    manager._connections["demo"].config.timeout_s = 0.3
+    unknown = registry.execute(
+        "mcp_call_tool", {"server": "demo", "name": "hang", "arguments": {}},
+        approver=AllowAllApprover(),
+    )
+    assert unknown.status == "unknown" and unknown.error_code == "mcp_uncertain"
+    assert unknown.side_effect_state == "unknown" and "未知" in unknown.text
+    # 连接已封闭：下一次调用在入队前被拒，确定没有发出
+    sealed = registry.execute(
+        "mcp_call_tool", {"server": "demo", "name": "echo", "arguments": {}},
+        approver=AllowAllApprover(),
+    )
+    assert sealed.status == "error" and sealed.side_effect_state == "none"
+    assert sealed.error_code == "mcp_refused"
+
+
+def test_mcp_tool_crash_mid_call_is_uncertain(setup_mcp):
+    """服务在处理调用时 os._exit：请求已到达服务器，副作用未知（不是普通错误）。"""
+    manager, registry, _ = setup_mcp
+    manager.list_tools("demo")  # 建立会话
+    unknown = registry.execute(
+        "mcp_call_tool", {"server": "demo", "name": "crash", "arguments": {}},
+        approver=AllowAllApprover(),
+    )
+    assert unknown.status == "unknown" and unknown.error_code == "mcp_uncertain"
+    assert unknown.side_effect_state == "unknown" and unknown.retryable is False

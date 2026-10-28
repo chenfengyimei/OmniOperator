@@ -174,3 +174,54 @@ def test_browser_tools_write_consumes_budget(tmp_path):
 
     registry2 = _registry(BoomDriver(), WriteBudget(_state(tmp_path, "s2"), max_per_day=5))
     assert "错误：元素找不到" in registry2.dispatch("browser_click", {"target": "text=x"}, approver=AllowAllApprover())
+
+
+# ---------------------------------------------------------------- 结构化结果（D09 收口）
+
+
+class RaisingDriver(FakeDriver):
+    """按注入的异常类型模拟写失败路径。"""
+
+    def __init__(self, exc: Exception) -> None:
+        super().__init__()
+        self._exc = exc
+
+    def click(self, target):
+        raise self._exc
+
+    def type_text(self, target, text):
+        raise self._exc
+
+
+def test_browser_write_structured_results(tmp_path):
+    """写成功=applied（带回读验证）；Busy=可重试未执行；异常=副作用未知。"""
+    from omni.tools.browser.driver import BrowserBusy, BrowserUnknown
+
+    driver = FakeDriver()
+    registry = _registry(driver, WriteBudget(_state(tmp_path), max_per_day=10))
+    ok = registry.execute("browser_click", {"target": "text=登录"}, approver=AllowAllApprover())
+    assert ok.status == "ok" and ok.side_effect_state == "applied" and ok.legacy is False
+    assert "操作后页面" in ok.verification  # 写后回读进 verification
+
+    # 动作内异常（元素找不到/点击后等待失败分不开）：副作用未知，不盲目重试
+    registry2 = _registry(RaisingDriver(BrowserError("元素找不到")), WriteBudget(_state(tmp_path, "s2"), max_per_day=10))
+    failed = registry2.execute("browser_click", {"target": "text=x"}, approver=AllowAllApprover())
+    assert failed.status == "unknown" and failed.side_effect_state == "unknown"
+    assert failed.error_code == "browser_action_unknown" and "元素找不到" in failed.text
+
+    # 所有者线程超时：动作可能仍在执行
+    registry3 = _registry(RaisingDriver(BrowserUnknown("等待所有者线程超时，动作可能仍在执行")), WriteBudget(_state(tmp_path, "s3"), max_per_day=10))
+    unknown = registry3.execute("browser_type", {"target": "text=x", "text": "hi"}, approver=AllowAllApprover())
+    assert unknown.status == "unknown" and unknown.error_code == "browser_unknown"
+
+    # 排队被拒：从未进入所有者线程，可重试
+    registry4 = _registry(RaisingDriver(BrowserBusy("浏览器忙：请求排队已满")), WriteBudget(_state(tmp_path, "s4"), max_per_day=10))
+    busy = registry4.execute("browser_click", {"target": "text=x"}, approver=AllowAllApprover())
+    assert busy.status == "error" and busy.retryable is True and busy.side_effect_state == "none"
+
+    # 预算耗尽：确定未执行
+    registry5 = _registry(FakeDriver(), WriteBudget(_state(tmp_path, "s5"), max_per_day=1))
+    assert registry5.execute("browser_click", {"target": "text=a"}, approver=AllowAllApprover()).status == "ok"
+    exhausted = registry5.execute("browser_click", {"target": "text=b"}, approver=AllowAllApprover())
+    assert exhausted.status == "error" and exhausted.error_code == "budget_exhausted"
+    assert exhausted.side_effect_state == "none" and driver.clicked == ["text=登录"]

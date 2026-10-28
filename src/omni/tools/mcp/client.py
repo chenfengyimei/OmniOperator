@@ -23,7 +23,15 @@ from ...config import MCPConfig, MCPServerConfig, PROJECT_ROOT
 
 
 class MCPError(RuntimeError):
-    """MCP 配置、连接或调用失败；错误中不回显环境变量与原始协议载荷。"""
+    """MCP 配置、连接或调用失败；错误中不回显环境变量与原始协议载荷。
+
+    `uncertain=True` 表示调用可能已到达服务器（在途超时/连接死亡），副作用未知；
+    缺省 False 表示确定没有发出（入队前拒绝、参数校验等）。
+    """
+
+    def __init__(self, message: str, *, uncertain: bool = False) -> None:
+        super().__init__(message)
+        self.uncertain = uncertain
 
 
 class CatalogTrust(Protocol):
@@ -85,7 +93,8 @@ class MCPConnection:
                 with self._state_lock:
                     self._failure = "MCP 超时；执行结果未知，连接已停用。请先核实实际状态，勿直接重试"
                 self._cancel()
-                raise MCPError(self._failure) from exc
+                # 在途超时：请求可能已到达服务器，副作用未知
+                raise MCPError(self._failure, uncertain=True) from exc
 
     def _signal(self) -> None:
         with self._state_lock:
@@ -182,14 +191,15 @@ class MCPConnection:
                 self._ready = False
             error = MCPError(self._failure or "MCP 连接已关闭")
             if active is not None and not active.done():
-                active.set_exception(error)
+                # 在途调用可能已到达服务器：副作用未知（与"从未派发"区分开）
+                active.set_exception(MCPError(str(error), uncertain=True))
             while True:
                 try:
                     pending = self._queue.get_nowait()
                 except queue.Empty:
                     break
                 if pending is not None and not pending[2].done():
-                    pending[2].set_exception(error)
+                    pending[2].set_exception(error)  # 还在队列里：确定没有发出
 
     def status(self) -> dict[str, Any]:
         """面板可读状态；纯派生，**不触发连接**——GET 状态不得有启动副作用。
@@ -447,6 +457,17 @@ class MCPManager:
                 for row in rows if allowed is None or row["name"] in allowed]
 
     def call(self, server: str, name: str, arguments: dict[str, Any], *, readonly: bool) -> str:
+        """兼容入口：只回渲染文本（旧调用点与测试零改动）。"""
+        return self.call_outcome(server, name, arguments, readonly=readonly)[0]
+
+    def call_outcome(
+        self, server: str, name: str, arguments: dict[str, Any], *, readonly: bool
+    ) -> tuple[str, bool]:
+        """调用一次外部工具：返回 (渲染文本, 远端是否报错)。
+
+        协议走完 isError=True 的调用**确实执行了**（副作用已发生），
+        与"没发出去/结果未知"是三件不同的事，由调用方分别标注。
+        """
         connection = self._live(server)
         allowed = connection.config.allowed_tools
         if allowed is not None and name not in allowed:
@@ -461,7 +482,7 @@ class MCPManager:
             self._note_request_failure(server, connection)
             raise
         self._note_success(server)
-        return render_result(result)
+        return render_result(result), bool(result.get("isError"))
 
     def close(self, wait_s: float = 10) -> bool:
         deadline = time.monotonic() + max(0, wait_s)

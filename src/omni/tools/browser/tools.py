@@ -5,6 +5,11 @@
 - 写操作（click/type）CONFIRM——过审批闸（CLI 问终端、Web 弹横幅、无人值守拒）
   且先扣每日写预算（WriteBudget），两道闸都过才执行；
 - 写后自动回读页面片段（driver 层内置），agent 拿到的结果里带验证信息。
+
+结果契约（D09 收口）：写成功=applied（写后回读进 verification）；
+BrowserUnknown 与动作内的 BrowserError=unknown——点击后 load-state 等待失败时
+**点击可能已发出**，无法从异常区分，诚实按副作用未知处理，不盲目重试；
+BrowserBusy（入队前）/预算拒绝=确定未执行。
 """
 from __future__ import annotations
 
@@ -12,10 +17,11 @@ from typing import Any
 
 from ...config import Asr  # noqa: F401 —— 保持导入结构与其它能力域一致（占位）
 from ..registry import Risk, SessionRef, Tool, ToolRegistry
+from ..result import SIDE_EFFECT_APPLIED, ToolResult
 from ..runctx import RunRef
 from ..shots import save_screenshot
 from .budget import WriteBudget
-from .driver import BrowserDriver, BrowserError
+from .driver import BrowserBusy, BrowserDriver, BrowserError, BrowserUnknown
 
 
 def register_browser_tools(
@@ -33,57 +39,93 @@ def register_browser_tools(
         "裸文字等同于 text="
     )
 
-    def browser_navigate(args: dict[str, Any]) -> str:
+    def browser_navigate(args: dict[str, Any]) -> ToolResult:
         url = str(args.get("url", "")).strip()
         if not url:
-            return "错误：url 不能为空"
-        title = driver.navigate(url)
-        return f"已打开：{url}\n页面标题：{title}"
+            return ToolResult.fail("错误：url 不能为空", error_code="bad_arguments")
+        try:
+            title = driver.navigate(url)
+        except BrowserUnknown as exc:
+            return ToolResult.unknown(f"错误：{exc}", error_code="browser_unknown")
+        except BrowserBusy as exc:
+            return ToolResult.fail(f"错误：{exc}", error_code="browser_busy", retryable=True)
+        except BrowserError as exc:
+            return ToolResult.fail(f"错误：{exc}", error_code="browser_failed")
+        return ToolResult.ok(f"已打开：{url}\n页面标题：{title}")
 
-    def browser_read(_args: dict[str, Any]) -> str:
-        return driver.read()
+    def browser_read(_args: dict[str, Any]) -> ToolResult:
+        try:
+            return ToolResult.ok(driver.read())
+        except BrowserUnknown as exc:
+            return ToolResult.unknown(f"错误：{exc}", error_code="browser_unknown")
+        except BrowserBusy as exc:
+            return ToolResult.fail(f"错误：{exc}", error_code="browser_busy", retryable=True)
+        except BrowserError as exc:
+            return ToolResult.fail(f"错误：{exc}", error_code="browser_failed")
 
-    def browser_screenshot(_args: dict[str, Any]) -> str:
+    def browser_screenshot(_args: dict[str, Any]) -> ToolResult:
         if artifacts is not None:
             try:
                 data = driver.screenshot_bytes()
+            except BrowserUnknown as exc:
+                return ToolResult.unknown(f"错误：{exc}", error_code="browser_unknown")
+            except BrowserBusy as exc:
+                return ToolResult.fail(f"错误：{exc}", error_code="browser_busy", retryable=True)
             except BrowserError as exc:
-                return f"错误：{exc}"
-            return save_screenshot(
+                return ToolResult.fail(f"错误：{exc}", error_code="browser_failed")
+            return ToolResult.ok(save_screenshot(
                 artifacts, data,
                 session_id=(session_ref.get() if session_ref else None),
                 run_id=(run_ref.get().run_id if run_ref is not None and run_ref.get() else None),
                 kind="screenshot", source="browser_screenshot", can_view=can_view,
-            )
+            ))
         path = driver.screenshot()
-        return f"截图已保存：{path}（当前无法直接看图，可让用户打开检查，或用 read 读文本）"
+        return ToolResult.ok(f"截图已保存：{path}（当前无法直接看图，可让用户打开检查，或用 read 读文本）")
 
-    def browser_click(args: dict[str, Any]) -> str:
+    def browser_click(args: dict[str, Any]) -> ToolResult:
         target = str(args.get("target", "")).strip()
         if not target:
-            return "错误：target 不能为空"
+            return ToolResult.fail("错误：target 不能为空", error_code="bad_arguments")
         ok, quota = budget.try_consume()
         if not ok:
-            return f"错误：{quota}"
+            return ToolResult.fail(f"错误：{quota}", error_code="budget_exhausted")
         try:
             verify = driver.click(target)
-            return f"已点击「{target}」（{quota}）。\n{verify}"
+        except BrowserUnknown as exc:
+            return ToolResult.unknown(f"错误：{exc}", error_code="browser_unknown")
+        except BrowserBusy as exc:
+            # 排队被拒：动作从未进入所有者线程，预算不回滚但副作用确定未发生
+            return ToolResult.fail(f"错误：{exc}", error_code="browser_busy", retryable=True)
         except BrowserError as exc:
-            return f"错误：{exc}"
+            # 定位失败与"点击后等待失败"在这里分不开：一律按副作用未知，不盲目重试
+            return ToolResult.unknown(f"错误：{exc}", error_code="browser_action_unknown")
+        return ToolResult.ok(
+            f"已点击「{target}」（{quota}）。\n{verify}",
+            side_effect_state=SIDE_EFFECT_APPLIED,
+            verification=verify,
+        )
 
-    def browser_type(args: dict[str, Any]) -> str:
+    def browser_type(args: dict[str, Any]) -> ToolResult:
         target = str(args.get("target", "")).strip()
         text = str(args.get("text", ""))
         if not target:
-            return "错误：target 不能为空"
+            return ToolResult.fail("错误：target 不能为空", error_code="bad_arguments")
         ok, quota = budget.try_consume()
         if not ok:
-            return f"错误：{quota}"
+            return ToolResult.fail(f"错误：{quota}", error_code="budget_exhausted")
         try:
             verify = driver.type_text(target, text)
-            return f"已向「{target}」输入内容（{quota}）。\n{verify}"
+        except BrowserUnknown as exc:
+            return ToolResult.unknown(f"错误：{exc}", error_code="browser_unknown")
+        except BrowserBusy as exc:
+            return ToolResult.fail(f"错误：{exc}", error_code="browser_busy", retryable=True)
         except BrowserError as exc:
-            return f"错误：{exc}"
+            return ToolResult.unknown(f"错误：{exc}", error_code="browser_action_unknown")
+        return ToolResult.ok(
+            f"已向「{target}」输入内容（{quota}）。\n{verify}",
+            side_effect_state=SIDE_EFFECT_APPLIED,
+            verification=verify,
+        )
 
     registry.register(
         Tool(

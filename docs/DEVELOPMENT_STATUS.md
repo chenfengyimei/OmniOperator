@@ -7,6 +7,48 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 取消标记竞态补丁：cancel() 先翻转信号再落库
+
+- 第 1 批修复（`phase()` 取消后 no-op + 写后复查自愈）留下了最后一个交错窗口：
+  `ActiveRuns.cancel()` 原实现**先落库"cancelling"再翻转 token**——worker 的
+  `phase()` 若恰在"库已写、token 未翻"的窗口里完成两次 token 检查，"model"
+  会覆写"cancelling"且自愈不触发。第 5 批全量（858 passed / 1 failed）再次命中
+  该用例（第 1 批修复前也发生过一次，均为高负载下偶发）。
+- 修复：`cancel()` 改为**先翻转 token、再写库**（顺序是正确性要求）。按构造
+  闭合全部交错：worker 在翻转前写 phase → cancel 的落库覆盖为"cancelling"；
+  翻转后 → `phase()` 跳过不写；夹在中间 → `phase()` 写后复查自愈。
+  返回值语义不变（首次翻转返回 True）。
+- `uv run --no-sync pytest tests/test_runs.py -q` → **19 passed**；取消用例连跑
+  3 次通过；全量与第 5 批同树验证（见下条提交）。
+
+### 2026-10-29 · D09 收口第二批：browser/MCP 工具结构化
+
+- **浏览器域（`tools/browser/tools.py`）**：五个工具迁 `ToolResult`——写成功=applied
+  （**写后回读片段进 verification 字段**，与 ARCHITECTURE §3.6 的"写后回读"契约对齐）；
+  `BrowserUnknown`（所有者线程超时）=unknown（动作可能仍在执行）；**动作内
+  `BrowserError`=unknown**——"定位失败"与"点击后 load-state 等待失败"在异常层分不开，
+  一律按副作用未知处理，不盲目重试（宁可保守，不假装知道）；`BrowserBusy`
+  （入队前排队被拒）=可重试且确定未执行；预算耗尽=确定未执行。读操作错误=none。
+- **MCP 域（`tools/mcp/`）**：`MCPError` 增加 `uncertain` 标记——在途超时（FutureTimeout）
+  与"服务中途死亡时**正在执行**的调用"置 True；还在队列里、从未派发的排队项置 False。
+  `MCPManager.call_outcome` 返回 (渲染文本, 远端是否 isError)，`call()` 保持字符串兼容。
+  工具映射：uncertain=unknown（调用可能已到达服务器）/ 入队前拒绝（白名单、未授权、
+  参数错、封闭连接）=确定未发出 / **远端 isError=已执行但报告失败**（是否部分生效
+  客户端不可知，按 unknown 保守处理）→ 错误码 mcp_refused/mcp_uncertain/mcp_remote_error。
+- **顺带修正的误分类**：远端 isError 的文本以"错误：外部工具执行失败"开头且无
+  "超时/未知"字样——旧 `from_legacy` 推断成 side=none，等于告诉模型"没发生任何事，
+  可以直接重试"；实际调用已在外部执行。
+- **新增 3 项测试**（browser 1 项覆盖五类路径 / mcp 2 项：远端成功-applied、
+  isError-unknown、入队前拒绝-none、在途超时-uncertain、封闭后调用-none、
+  服务中途 os._exit-uncertain）。既有 dispatch 字符串断言零改动。
+- **剩余（第三批待做）**：files_write/restore 的回读校验失败仍是字符串
+  （"写入后回读校验不通过"被推断成 side=none——文件**可能已被写入**，是同类误分类）；
+  builtin/cron/skill/delegate/web/android 读等低风险域仍走 `from_legacy`。
+- `uv run --no-sync pytest tests/test_mcp.py tests/test_browser.py tests/test_bilibili_publishing.py -q`
+  → **53 passed**；全量 `uv run --no-sync pytest -q` → **859 passed**（2026-10-29，含上条取消
+  窗口补丁与并行会话未提交的 16 项 web 模型密钥测试；同树未打补丁时该用例
+  858 passed / 1 failed 复现过一次竞态）。
+
 ### 2026-10-29 · D13 收口：文件工具支持带 BOM 的 UTF-16
 
 - **关闭 D13 剩余限制 3**（原话"UTF-16 文本会被判为二进制（NUL 字节），需要时另加编码探测"）：
