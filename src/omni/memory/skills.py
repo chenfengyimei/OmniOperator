@@ -402,6 +402,36 @@ class SkillStore:
             return False, f"错误：{exc}"
         return True, f"已更新技能 {name}（v{version}，rev {rev.rev}）"
 
+    def save_raw(
+        self,
+        name: str,
+        text: str,
+        *,
+        expected_hash: str | None = None,
+        author: str = "user",
+        source: str = "workbench",
+    ) -> tuple[bool, str]:
+        """工作台编辑器保存**全文**：先按 SKILL.md 结构解析拆出 meta/正文，
+        再走与 rewrite 完全相同的加锁-CAS-linter-修订路径。
+
+        解析放在这一层而不是 Web 层：结构规则（YAML 头 + 四节）是技能存储的
+        私有知识。编辑器里的文本是权威内容——它在临界区外解析没有竞态问题，
+        真正的 CAS 在 rewrite 的锁内做。
+        """
+        parsed = parse_skill_text(text or "")
+        if parsed is None:
+            return False, "错误：内容不符合 SKILL.md 结构（YAML 头 + 四节固定正文）"
+        description = str(parsed["meta"].get("description") or "").strip()
+        body = str(parsed["body"]).strip()
+        return self.rewrite(
+            name,
+            description,
+            body,
+            expected_hash=expected_hash,
+            author=author,
+            source=source,
+        )
+
     def rollback(
         self,
         name: str,

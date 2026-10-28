@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import difflib
 import functools
 import datetime as dt
 import json
@@ -147,6 +148,18 @@ class ResidentUpdateIn(BaseModel):
 
 class PairIn(BaseModel):
     code: str
+
+
+class SkillSaveIn(BaseModel):
+    """技能编辑器保存：全文 + 读取时的指纹（别人改过就 409，不覆盖）。"""
+
+    content: str
+    expected_hash: str | None = None
+
+
+class SkillRollbackIn(BaseModel):
+    rev: int
+    expected_hash: str | None = None
 
 
 def _artifact_status(code: str) -> int:
@@ -746,12 +759,116 @@ def create_app(runtime: Runtime) -> FastAPI:
     @app.get("/api/skills/{name}")
     def get_skill(name: str, path: str | None = None) -> dict[str, Any]:
         try:
+            if path is None:
+                loaded = runtime.skills.read(name)  # 原文 + 指纹（编辑器 CAS 用）
+                if loaded is None:
+                    raise HTTPException(status_code=404, detail="技能不存在")
+                content, digest = loaded
+                return {
+                    "content": content,
+                    "hash": digest,
+                    "references": runtime.skills.references(name),
+                }
             content = runtime.skills.view(name, path)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
         if content is None:
             raise HTTPException(status_code=404, detail="技能不存在")
-        return {"content": content, "references": runtime.skills.references(name) if path is None else []}
+        return {"content": content, "references": []}
+
+    # ---------- 技能编辑器（D18）：保存 CAS / 历史 / 差异 / 回滚 ----------
+
+    @app.post("/api/skills/{name}/save")
+    def skill_save(name: str, payload: SkillSaveIn) -> dict[str, Any]:
+        """保存编辑器全文。存的是同一把跨进程锁 + CAS：与 agent 的
+        skill_patch/skill_rewrite 抢同一个临界区，两边并发不会互相覆盖。"""
+        ok, message = runtime.skills.save_raw(
+            name,
+            payload.content,
+            expected_hash=payload.expected_hash,
+            author="user",
+            source="workbench",
+        )
+        if not ok:
+            # "被改动过"是存储层自己的确定性话术（非模型文本），按它区分冲突与校验失败
+            status = 409 if "被改动过" in message else 400
+            raise HTTPException(status_code=status, detail=message)
+        loaded = runtime.skills.read(name)
+        return {
+            "ok": True,
+            "message": message,
+            "hash": loaded[1] if loaded else None,
+        }
+
+    @app.get("/api/skills/{name}/history")
+    def skill_history(name: str, limit: int = 30) -> dict[str, Any]:
+        if not runtime.skills.exists(name):
+            raise HTTPException(status_code=404, detail="技能不存在")
+        revisions = runtime.skills.history(name, limit=max(1, min(limit, 100)))
+        return {
+            "revisions": [
+                {
+                    "rev": r.rev,
+                    "version": r.version,
+                    "created_at": r.created_at,
+                    "author": r.author,
+                    "source": r.source,
+                    "summary": r.summary,
+                    "size": r.size,
+                }
+                for r in revisions
+            ]
+        }
+
+    @app.get("/api/skills/{name}/revision/{rev}")
+    def skill_revision(name: str, rev: int) -> dict[str, Any]:
+        found = runtime.skills.revision(name, rev)
+        if found is None:
+            raise HTTPException(status_code=404, detail=f"没有 rev {rev}")
+        return {"content": found[1], "meta": {
+            "author": found[0].author, "created_at": found[0].created_at,
+            "summary": found[0].summary, "version": found[0].version,
+        }}
+
+    @app.get("/api/skills/{name}/diff")
+    def skill_diff(name: str, rev: int) -> dict[str, Any]:
+        """历史修订 → 当前内容 的 unified diff（行数有上限，不回无限大的差异）。"""
+        found = runtime.skills.revision(name, rev)
+        if found is None:
+            raise HTTPException(status_code=404, detail=f"没有 rev {rev}")
+        loaded = runtime.skills.read(name)
+        if loaded is None:
+            raise HTTPException(status_code=404, detail="技能不存在")
+        lines = list(
+            difflib.unified_diff(
+                found[1].splitlines(),
+                loaded[0].splitlines(),
+                fromfile=f"rev {rev}",
+                tofile="当前",
+                lineterm="",
+            )
+        )
+        return {"diff": "\n".join(lines[:400]), "truncated": len(lines) > 400}
+
+    @app.post("/api/skills/{name}/rollback")
+    def skill_rollback(name: str, payload: SkillRollbackIn) -> dict[str, Any]:
+        """回滚到历史修订：产生新修订（旧内容也保进历史，回错了还能再回）。"""
+        ok, message = runtime.skills.rollback(
+            name,
+            payload.rev,
+            expected_hash=payload.expected_hash,
+            author="user",
+            source="workbench",
+        )
+        if not ok:
+            status = 409 if "被改动过" in message else 400
+            raise HTTPException(status_code=status, detail=message)
+        loaded = runtime.skills.read(name)
+        return {
+            "ok": True,
+            "message": message,
+            "hash": loaded[1] if loaded else None,
+        }
 
     # ---------- 产物（截图/导出，D15：模型与用户共用同一份登记） ----------
 

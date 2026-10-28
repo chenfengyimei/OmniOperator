@@ -86,11 +86,52 @@
 | D15 | 完成 | A13 | 见第 5 节 | `uv run pytest tests/test_artifacts.py -q` → 13 passed；`uv run pytest -q` → **605 passed（无 F/E）** | 真实 Chromium 冒烟通过（见第 5 节真机证据）；真实安卓截图待 D16 插真机；真实视觉模型的看图效果需用户配置 `vision.send_to_cloud` 后实测 | 进入 D16（A12 离线修复） |
 | D16 | 完成 | A12 | 见第 5 节 | `uv run pytest tests/test_android.py -q` → 29 passed；关联批次 `tests/test_web.py test_arch.py test_agent.py test_cron.py` → 58 passed（2026-10-28） | 安卓真机待插设备：观察绑定点击的真机闭环（两设备交错/旋转/ADB 断连复检/中文输入恢复）待插真机验收 | 进入 D17（cron 编辑与可靠投递） |
 | D17 | 开发中 | A04（编辑校验）、A17（部分） | 见第 5 节：任务编辑（Web+工具）+ 成败判定去前缀化 + 列表暴露 revision | `uv run pytest tests/test_cron.py tests/test_web.py -q` → 51 passed；新增 5 例（编辑部分更新/null 清除/白名单/冲突 409/前缀判定负例/失败回合不进 review） | 真实心跳进程下编辑与到期交错的实机行为未演练 | **剩余**：投递 outbox 与去重、`context_from` 绑定具体 run、并行上限与积压策略——按大纲原范围留待续做；进入 D18（技能工作台编辑） |
-| D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
+| D18 | 开发中 | A14（编辑 UI 部分） | 见第 5 节：技能工作台编辑（保存 CAS / 历史 / 差异 / 回滚） | `uv run pytest tests/test_skills_history.py tests/test_skills.py tests/test_web.py tests/test_arch.py tests/test_agent.py -q` → 86 passed；新增 save_raw 全文保存（CAS/结构校验/来源可追溯）+ 编辑器端点 1 例 | 浏览器内编辑器 UX 无自动化（接口契约由 TestClient 验）；真实技能库的手工编辑演练待用户使用 | **剩余**：候选变更/差异确认队列（D12 转入）、外来包隔离安装（隔离区+清单检查+不执行 postinstall）——大纲原范围留待续做；进入收尾 |
+| D19 | 待开始 | MCP 管理与权限漂移 | — | — | 受信 MCP 生产服务待用户提供 | stdio 客户端已完成（见 `docs/MCP.md`）；连接管理面板/HTTP/OAuth 待做 |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D18 第一批（技能工作台编辑：保存 CAS / 历史 / 差异 / 回滚）
+
+- **改了什么**：
+  - `memory/skills.py` 新增 `save_raw(name, text, expected_hash, author, source)`：编辑器
+    **全文**保存——先按 SKILL.md 结构解析拆 meta/正文（结构规则是存储层的私有知识，
+    不上移到 Web 层），再走与 `rewrite` 完全相同的加锁-CAS-linter-修订路径；
+  - `channels/web.py`：`GET /api/skills/{name}` 主文改走 `read()` 并返回**内容指纹**
+    （编辑器 CAS 用）；新增 `POST /api/skills/{name}/save`（指纹冲突 409、结构/校验
+    失败 400、成功返回新指纹）、`GET /api/skills/{name}/history`（修订元数据列表）、
+    `GET /api/skills/{name}/revision/{rev}`（历史全文）、`GET /api/skills/{name}/diff?rev=`
+    （历史 → 当前的 unified diff，400 行截断并标注 truncated）、`POST /api/skills/{name}/rollback`
+    （带指纹 CAS，回滚产生**新修订**）；
+  - 前端：技能列表加「查看/编辑」按钮；编辑器弹窗（全文 textarea、保存带指纹、
+    冲突提示后可一键重新加载、历史列表、差异预览、回滚二次确认）。
+- **关闭了什么**：HANDOFF §6 建议第 3 条（技能只能看不能改）；A14 的编辑 UI 部分
+  （D08 只交付了仓储 API，本轮补上界面承载）。
+- **跑了什么**：`uv run pytest tests/test_skills_history.py tests/test_skills.py tests/test_web.py tests/test_arch.py tests/test_agent.py -q`
+  → **86 passed**（2026-10-28；新增 save_raw 单测 1 例 + 编辑器端到端 1 例：
+  错指纹 409 不覆盖 → 正指纹保存 → 历史来源 workbench → diff 含增删行 → 回滚产生新修订）。
+- **没测什么**：浏览器里的真实编辑器交互（无前端测试基建）；与 agent 的 skill_patch 在
+  真实双进程下的同时编辑（临界区语义与 D08 的跨进程锁用例同源，未重演练）；
+  超大技能文本（受 MAX_BODY 上限约束，未做 UI 端长度提示）。
+- **行为变化**：
+  1. 工作台「技能」页从只读变为可编辑：改动过 linter、产生修订、指纹冲突会拒绝；
+  2. 技能的全部历史在面板可见（作者/来源/时间/摘要），可看任意两版差异、可回滚；
+  3. 用户手改与 agent 修改在修订历史里可区分（author=user/source=workbench）。
+- **剩余限制（明确记录）**：
+  1. D12 转入的**候选变更/差异确认队列**未做（review/agent 的敏感技能改动仍直接生效，
+     依赖额度与 linter 约束——治理增强需界面承载 diff 审批，留下一批）；
+  2. **外来包隔离安装**未做（大纲 D18 的隔离区/清单检查/不执行 postinstall）——
+     当前技能只能在本机创建/编辑，没有导入通道，也就没有导入攻击面；
+  3. references/ 附件仍是只读（列表与按需文本读取），主文编辑不改动附件。
+- **过程记录**：
+  1. `save_raw` 先在临界区外解析、再进 `rewrite` 的锁内做真正 CAS——编辑器文本是
+     权威内容，解析早一点没有竞态；若解析放进锁内，`rewrite` 还要再解析一遍纯浪费；
+  2. `GET /api/skills/{name}` 从 `view()` 换成 `read()` 取主文——`view` 的按字节 `_remember`
+     行为 `read` 也有，隐式基线语义不丢；references 分支维持 `view` 不变；
+  3. 冲突与校验失败按存储层自己的确定性话术区分（"被改动过"→409）——这是代码生成的
+     消息不是模型文本，与 D17 刚修掉的"前缀判成败"不是同一类问题。
 
 ### 2026-10-28 · D17 第一批（cron 任务编辑 + 成败判定去前缀化）
 

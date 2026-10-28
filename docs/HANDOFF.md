@@ -67,7 +67,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 | core | resident_memory | 常驻工作笔记（2200 限额，每轮注入系统提示词，带防注入扫描） |
 | core | todo | 会话级多步清单（SessionRef thread-local 注入当前会话） |
 | core | daily_digest | 过去 N 小时活动摘要（夜间整理素材） |
-| core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite | 技能（SKILL.md，渐进披露，patch 按节省 token）；skill_view(name, path="references/guide.md") 按需读参考文本 |
+| core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite / skill_history / skill_rollback | 技能（SKILL.md，渐进披露，patch 按节省 token，expected_hash CAS + 修订历史）；skill_view(name, path="references/guide.md") 按需读参考文本；工作台技能页可编辑（保存 CAS/差异/回滚，D18） |
 | core | delegate_task | 子任务委派到 UUID 独立会话（同标签并发也不串历史，thread-local 防嵌套，会话引用自动还原） |
 | shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
@@ -167,7 +167,9 @@ MCP stdio 已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。
    "没传=不改、null=清除"，expected_revision 乐观并发）；成败判定去前缀化（只看执行器是否
    抛异常，run_turn 结构化状态，失败回合不进 review）。**剩余**：积压治理、投递 outbox/去重
    （unknown 不自动重发）、context_from 绑定具体 run/产物、显式时区。夜间整理→早报列为真实验收。
-3. **D18 技能工作台**：沿用历史/CAS，补编辑、差异、回滚、候选变更与隔离安装。
+3. **D18 技能工作台（第一批已完成）**：技能页可编辑——保存带指纹 CAS（冲突拒绝）、
+   历史/差异/回滚（回滚产生新修订）、修订里 author/source 可区分用户手改与 agent 修改。
+   **剩余**：候选变更/差异确认队列（D12 转入）、外来包隔离安装。
 4. **D19 MCP 管理**：stdio 状态、schema/权限漂移、生产验证；远程 HTTP/OAuth 可独立后置。
 5. **D25/D26 运维与回归持续推进**：进程身份、备份恢复、CI/任务评测及内核剩余项；D27 完成必要真实验收与 72 小时常驻。
 6. **R5/R6 扩展**：桌面逐应用验证后台/前台能力、QQ 受控主动性、B 站人工批准 UI 写、FTS+向量混合检索。不要承诺 SendInput 对所有软件后台不抢焦点，也不直接用向量替代 FTS。

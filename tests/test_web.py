@@ -713,3 +713,67 @@ def test_cron_update_endpoint_edits_and_conflicts(tmp_path):
         client.post("/api/system/cron/update", json={"name": "demo-edit", "every_minutes": 1}).status_code
         == 400
     )
+
+
+# ---------- D18：技能编辑器（保存 CAS / 历史 / 差异 / 回滚） ----------
+
+
+def _skill_body(marker: str) -> str:
+    return (
+        f"# 演示技能\n\n## When to Use\n{marker}。\n\n## Procedure\n1. 第一步；\n2. 第二步。\n\n"
+        "## Pitfalls\n无。\n\n## Verification\n跑通即成功。"
+    )
+
+
+def test_skill_editor_save_history_diff_rollback(tmp_path):
+    client, runtime = _client(tmp_path, skills_root=tmp_path / "skills")
+    runtime.skills.create("editor-demo", "编辑器技能", _skill_body("第一版"))
+
+    loaded = client.get("/api/skills/editor-demo").json()
+    assert loaded["hash"] and "第一版" in loaded["content"]
+
+    edited = loaded["content"].replace("第一版", "第二版")
+    # 错误指纹：409，内容不覆盖（编辑器两开或外部手改场景）
+    conflict = client.post(
+        "/api/skills/editor-demo/save",
+        json={"content": edited, "expected_hash": "deadbeefdeadbeef"},
+    )
+    assert conflict.status_code == 409
+    assert "第一版" in client.get("/api/skills/editor-demo").json()["content"]
+
+    # 正确指纹：保存成功并返回新指纹
+    saved = client.post(
+        "/api/skills/editor-demo/save",
+        json={"content": edited, "expected_hash": loaded["hash"]},
+    )
+    assert saved.status_code == 200 and saved.json()["hash"]
+    assert "第二版" in client.get("/api/skills/editor-demo").json()["content"]
+
+    # 历史：新保存的在最前，来源是 workbench
+    history = client.get("/api/skills/editor-demo/history").json()["revisions"]
+    assert len(history) >= 2 and history[0]["source"] == "workbench"
+
+    # 差异：最早修订 → 当前，unified diff 有增删行
+    earliest = history[-1]["rev"]
+    revision = client.get(f"/api/skills/editor-demo/revision/{earliest}")
+    assert revision.status_code == 200 and "第一版" in revision.json()["content"]
+    diff = client.get("/api/skills/editor-demo/diff", params={"rev": earliest}).json()
+    assert "---" in diff["diff"] and "第二版" in diff["diff"] and "第一版" in diff["diff"]
+
+    # 回滚到最早修订：产生新修订、内容回到第一版；随后还能再回滚回来
+    rb = client.post(
+        "/api/skills/editor-demo/rollback",
+        json={"rev": earliest, "expected_hash": saved.json()["hash"]},
+    )
+    assert rb.status_code == 200
+    assert "第一版" in client.get("/api/skills/editor-demo").json()["content"]
+    after = client.get("/api/skills/editor-demo/history").json()["revisions"]
+    assert after[0]["rev"] > earliest  # 回滚是新增修订，不是把整数改小
+
+    # 404 / 校验失败
+    assert client.get("/api/skills/ghost/history").status_code == 404
+    assert client.get("/api/skills/editor-demo/diff", params={"rev": 999}).status_code == 404
+    bad = client.post(
+        "/api/skills/editor-demo/save", json={"content": "没有结构的纯文本"}
+    )
+    assert bad.status_code == 400

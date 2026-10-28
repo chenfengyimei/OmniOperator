@@ -38,6 +38,41 @@ def _store(tmp_path) -> SkillStore:
     return SkillStore(tmp_path / "skills", history_root=tmp_path / "history")
 
 
+# ---------------------------------------------------------------- 工作台全文保存（D18）
+
+
+def test_save_raw_roundtrip_cas_and_validation(tmp_path):
+    """编辑器全文保存：解析在存储层、CAS 同 rewrite、坏结构直接拒绝。"""
+    store = _store(tmp_path)
+    ok, msg = store.create("editor-skill", "编辑器技能", _body("第一版"))
+    assert ok, msg
+    text, digest = store.read("editor-skill")
+
+    edited = text.replace("第一版", "第二版（编辑器改的）")
+    ok, msg = store.save_raw(
+        "editor-skill", edited, expected_hash=digest, author="user", source="workbench"
+    )
+    assert ok, msg
+    new_text, new_digest = store.read("editor-skill")
+    assert "编辑器改的" in new_text and new_digest != digest
+    newest = store.history("editor-skill")[0]
+    assert newest.source == "workbench" and newest.author == "user"
+
+    # 旧指纹再保存：冲突拒绝，文件不被覆盖
+    ok2, msg2 = store.save_raw("editor-skill", edited, expected_hash=digest)
+    assert not ok2 and "被改动过" in msg2
+    assert store.read("editor-skill")[0] == new_text
+
+    # 结构破坏（没有四节正文）：解析层拒绝
+    ok3, msg3 = store.save_raw("editor-skill", "没有结构的纯文本", expected_hash=new_digest)
+    assert not ok3 and "结构" in msg3
+    # 不存在 / 空内容
+    ok4, msg4 = store.save_raw("ghost-skill", _body(), expected_hash=None)
+    assert not ok4
+    ok5, msg5 = store.save_raw("editor-skill", "", expected_hash=new_digest)
+    assert not ok5
+
+
 def _run_children(code: str, argsets: list[list[str]], go: Path) -> list[str]:
     """同时起多个独立进程，等全部就绪后靠 go 文件一起放行。"""
     env = dict(os.environ, PYTHONPATH=str(ROOT / "src"))
