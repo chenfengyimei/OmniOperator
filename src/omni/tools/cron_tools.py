@@ -192,6 +192,7 @@ def register_cron_tools(
             func=cron_list,
             toolset="cron",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(

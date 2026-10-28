@@ -135,6 +135,7 @@ def register_web_tools(
             func=web_read,
             toolset="web",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
 

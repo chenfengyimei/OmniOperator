@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Callable
 
 from ..config import AppConfig
@@ -14,8 +15,9 @@ from ..memory.resident import ResidentMemory
 from ..memory.runs import RunStore
 from ..memory.store import MemoryStore
 from .vision import coordinate_note, image_part, prepare_image
-from ..safety.gates import Approver
+from ..safety.gates import Approver, Risk
 from ..tools.registry import SessionRef, ToolRegistry
+from ..tools.result import ToolResult
 from ..tools.runctx import RunRef
 from .compress import assemble_context, assert_invariants, compress_if_needed
 from .run import (
@@ -58,6 +60,11 @@ GROUP_DENIED_TOOLS = frozenset(
         "desktop_windows", "desktop_observe", "desktop_screenshot", "desktop_action",
     }
 )
+
+# 批内并发上限：同批 read_only 工具进线程池的最大并发数。刻意是内核常量
+# 而不是用户配置——它约束的是"agent 对外发起的瞬时并发"，调大对本地单用户
+# 没有收益，反而放大对远端 API 的突发压力（B站读取的拟人防风控考虑）。
+MAX_CONCURRENT_TOOLS = 4
 
 
 class _NullRunStore:
@@ -463,28 +470,14 @@ class Agent:
                     "tool_calls": [to_openai_tool_call(c) for c in reply.tool_calls],
                 }
             )
-            for call in reply.tool_calls:
-                if run is not None:
-                    run.check()  # 每个工具调用前的检查点
-                    run.phase("tool")
-                result = self.registry.execute(
-                    call.function.name,
-                    call.function.arguments,
-                    approver=self.approver,
-                    denied_tools=denied,
-                    cancel=cancel,
-                )
-                if run is not None:
-                    run.event(
-                        "tool", name=call.function.name, **result.brief()
-                    )
-                messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": call.id,
-                        "content": result.to_message(),
-                    }
-                )
+            self._execute_tool_calls(
+                reply.tool_calls,
+                messages,
+                sid=sid,
+                run=run,
+                denied=denied,
+                cancel=cancel,
+            )
             # D15：本批工具结果里的产物标记 → 图像块（隐私开关、能力、数量都过了才发）
             self._attach_images(messages, sid, run=run)
 
@@ -503,6 +496,151 @@ class Agent:
             answer += "\n\n（注意：这条回答在生成过程中连接中断，内容可能不完整。）"
         self.store.append_message(sid, "assistant", answer, auto_title=False)
         return answer
+
+    # ---------------------------------------------------------------- 工具执行（批内并发）
+
+    def _execute_tool_calls(
+        self,
+        calls: list[Any],
+        messages: list[dict[str, Any]],
+        *,
+        sid: int,
+        run: RunContext | None,
+        denied: frozenset[str],
+        cancel: CancelToken | None,
+    ) -> None:
+        """执行一批工具调用，按**原始调用顺序**回填 tool 消息与事件。
+
+        并发规则（顺序语义优先于速度）：
+        - 只有显式标注 `read_only` 的工具进线程池（上限 MAX_CONCURRENT_TOOLS）。
+          risk=SAFE 不自动并发：remember/todo/skill_create 这类"SAFE 但写状态"
+          的工具不标注，保持串行，同批"先写后读"的相对顺序不会被并发打乱。
+        - 未标注的工具（CONFIRM/requires_human/未知名/本回合禁用）是**栅栏**：
+          先等在途的并发调用全部落地，再串行执行——交互式审批永远一次只弹
+          一个，"先读后写"与旧串行实现等价。
+        - 消息与事件都按原始顺序产生：tool_call_id 顺序不变量不因并发改变，
+          事件流顺序确定（工作台回放可复现）。
+        - 取消：串行调用前 run.check()（与旧实现一致）；并发段提交前检查
+          一次，段内由 registry.execute 的 cancel 检查兜底（取消后入池的调用
+          直接返回 cancelled 结果、不执行工具本体），下一轮模型调用前的
+          检查点照旧拦住整个回合。
+        - 异常隔离：registry.execute 契约上不抛；这里再兜一层，单个工具的
+          意外 bug 变成它自己的 fail 结果（副作用按 unknown 处理），
+          不吞掉同批其它工具的结果、也不打断回合。
+        """
+
+        def emit(call: Any, result: ToolResult) -> None:
+            if run is not None:
+                run.event("tool", name=call.function.name, **result.brief())
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": call.id,
+                    "content": result.to_message(),
+                }
+            )
+
+        eligible = [c for c in calls if self._pool_eligible(c.function.name, denied)]
+        if not eligible:
+            # 全串行：与旧实现逐调用等价的路径（大多数批次只有一个工具）
+            for call in calls:
+                if run is not None:
+                    run.check()  # 每个工具调用前的检查点
+                    run.phase("tool")
+                emit(
+                    call,
+                    self._execute_one(call, sid=sid, run=run, denied=denied, cancel=cancel),
+                )
+            return
+
+        pending: list[tuple[Any, Future[ToolResult]]] = []
+
+        def drain() -> None:
+            # 按提交顺序落地：消息顺序 = 调用顺序（不变量），事件顺序随之确定
+            for call, future in pending:
+                emit(call, future.result())
+            pending.clear()
+
+        with ThreadPoolExecutor(
+            max_workers=min(MAX_CONCURRENT_TOOLS, len(eligible)),
+            thread_name_prefix="omni-tool",
+        ) as pool:
+            for call in calls:
+                if self._pool_eligible(call.function.name, denied):
+                    if run is not None and not pending:
+                        run.check()  # 并发段提交前的检查点（段内由 execute 兜底）
+                        run.phase("tool")
+                    pending.append(
+                        (
+                            call,
+                            pool.submit(
+                                self._execute_one,
+                                call,
+                                sid=sid,
+                                run=run,
+                                denied=denied,
+                                cancel=cancel,
+                            ),
+                        )
+                    )
+                    continue
+                # 栅栏：非只读工具先等在途结果落地，再按旧语义串行执行
+                drain()
+                if run is not None:
+                    run.check()
+                    run.phase("tool")
+                emit(
+                    call,
+                    self._execute_one(call, sid=sid, run=run, denied=denied, cancel=cancel),
+                )
+            drain()
+
+    def _pool_eligible(self, name: str, denied: frozenset[str]) -> bool:
+        """该调用能否进并发池：显式 read_only + SAFE + 不需人工 + 本回合可用。"""
+        tool = self.registry.get(name)
+        return (
+            tool is not None
+            and name not in denied
+            and tool.read_only
+            and tool.risk is Risk.SAFE
+            and not tool.requires_human
+        )
+
+    def _execute_one(
+        self,
+        call: Any,
+        *,
+        sid: int,
+        run: RunContext | None,
+        denied: frozenset[str],
+        cancel: CancelToken | None,
+    ) -> ToolResult:
+        """执行单个调用（主线程与池内 worker 共用一条路径）。
+
+        worker 线程里 thread-local 的 SessionRef/RunRef 是空的：进池执行前
+        必须按本回合的 sid/run 重新绑定，todo/草稿这类按会话取数的工具才不会
+        "会话上下文缺失"。主线程重复绑定同一值是无害的幂等操作。
+        """
+        with contextlib.ExitStack() as stack:
+            if self._session_ref is not None:
+                stack.enter_context(self._session_ref.bind(sid))
+            if self._run_ref is not None and run is not None:
+                stack.enter_context(self._run_ref.bind(run))
+            try:
+                return self.registry.execute(
+                    call.function.name,
+                    call.function.arguments,
+                    approver=self.approver,
+                    denied_tools=denied,
+                    cancel=cancel,
+                )
+            except Exception as exc:  # noqa: BLE001 —— 同批其它工具不受影响
+                return ToolResult.fail(
+                    f"工具 {call.function.name} 执行出错: {exc}",
+                    error_code="tool_exception",
+                    retryable=False,
+                    side_effect_state="unknown",
+                )
 
     def _model_call(
         self,

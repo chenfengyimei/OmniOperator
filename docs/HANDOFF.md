@@ -133,6 +133,14 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
   （缩放 + JPEG 重编码 + 坐标口径说明），任一门没过就**如实降级**说"看不到图"
 - **上下文压缩**（`core/compress.py`）：按消息区间持久摘要，FTS 增量维护；阈值已统一为 D10 的 token 口径（trigger_chars/2 折算，消息开销与工具载荷计入，2026-10-29）；回合内工具输出临时压缩仍在内存（刻意不落库），摘要质量待真实模型验收
 - **消息不变量断言**：system 唯一首位 / 一批 tool_calls 后允许连续多项结果，每个调用 id 必须恰好匹配一项结果，不能漏回、重复或插入其它消息
+- **批内多工具并发（2026-10-29）**：同批工具调用里**显式标注 `read_only`** 的只读工具进线程池
+  并发执行（上限 `MAX_CONCURRENT_TOOLS=4`）；未标注的工具（CONFIRM/requires_human/
+  未知名/本回合禁用）是**栅栏**——先等在途并发结果落地再串行执行，同批"先读后写"
+  的相对顺序与串行实现等价；消息与事件严格按原始调用顺序回填（不变量不因并发改变）；
+  worker 线程内按本回合重新绑定 SessionRef/RunRef（thread-local 不丢）；单个工具的
+  意外异常隔离成它自己的 fail 结果（副作用 unknown），不吞同批同伴、不打断回合。
+  **SAFE ≠ read_only**：remember/todo/skill_create/cron_add/delegate_task 这类
+  "SAFE 但写状态"的工具保持串行；browser 共用同一张活动页面，整个 toolset 不标
 - **回合作用域**：SessionRef.bind 在正常返回和异常时均恢复调用者会话；delegate 保持父审批链，无需放宽权限
 - 系统提示词 = 人设 + 常驻记忆快照（用量头）+ 档案块，单轮内字节稳定
 - review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，D18 候选变更/差异确认已交付

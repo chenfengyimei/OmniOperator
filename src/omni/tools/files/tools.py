@@ -439,6 +439,7 @@ def register_file_tools(
             func=files_list,
             toolset="files",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -460,6 +461,7 @@ def register_file_tools(
             func=files_search,
             toolset="files",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -478,6 +480,7 @@ def register_file_tools(
             func=files_read,
             toolset="files",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -504,6 +507,7 @@ def register_file_tools(
             func=files_diff,
             toolset="files",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -563,6 +567,7 @@ def register_file_tools(
             func=files_history,
             toolset="files",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(

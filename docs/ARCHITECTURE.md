@@ -332,7 +332,7 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 
 ### 5.1 加一个工具（例：P1 的 B站"看视频"）
 1. 新建能力域包 `tools/bilibili/`：`api.py`（纯 HTTP 封装，**不知道 LLM 存在**）+ `tools.py`（薄包装成 Tool，**不知道 HTTP 细节**）
-2. 每个 Tool 声明 `toolset`（如 `"bilibili"`）与 `risk`（读=SAFE；私信/发布=CONFIRM；支付/删除=DANGEROUS）
+2. 每个 Tool 声明 `toolset`（如 `"bilibili"`）与 `risk`（读=SAFE；私信/发布=CONFIRM；支付/删除=DANGEROUS）；纯读且无共享可变状态的工具另加 `read_only=True`——只有显式标注的工具才会在同一批工具调用里并发执行（上限 `MAX_CONCURRENT_TOOLS`，未标注的工具是栅栏：先落地在途结果再串行执行；browser 共用同一张活动页面，整个 toolset 都不标）
 3. 写 `register_bilibili_tools(registry, deps...)`，照抄 `tools/builtin.py` 的模式
 4. 在 `bootstrap.build_runtime` 接线（唯一需要改的既有文件）
 5. 单测：api 层用假响应、tools 层用假 store；`uv run pytest` 全绿（架构守卫会自动检查新代码）

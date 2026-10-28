@@ -7,6 +7,50 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 新能力：批内多工具并发执行（只读并发 + 写栅栏）
+
+- **需求来源**：Hermes 对标缺口之"多工具并发"——模型一批发出多个只读调用
+  （读三个文件 + 搜一条记忆 + 看网页）时逐个串行等待是主要时延浪费。
+- **实现（顺序语义优先于速度）**：
+  - `tools/registry.py`：`Tool` 新增显式 `read_only` 标记（默认 False=串行）。
+    **SAFE ≠ read_only**：remember/todo/skill_create/cron_add/qq_send_message/
+    delegate_task 这类"SAFE 但写状态"的工具不标注，同批"先写后读"的相对顺序
+    不被并发打乱；browser 共用同一张活动页面（navigate/read/screenshot 有
+    顺序语义），整个 toolset 刻意不标；android/desktop 驱动锁本就串行化、
+    无并发收益，同样不标。
+  - `core/agent.py`：工具循环改走 `_execute_tool_calls`——同批 `read_only`
+    工具进线程池（上限 `MAX_CONCURRENT_TOOLS=4`，内核常量而非用户配置：
+    它约束的是 agent 对外的瞬时并发，调大对本地单用户没有收益、只放大对
+    远端 API 的突发压力，B站读取有拟人防风控考虑）；未标注工具
+    （CONFIRM/requires_human/未知名/本回合禁用）是**栅栏**：先等在途并发
+    结果落地再串行执行，交互式审批永远一次只弹一个；消息与事件严格按
+    **原始调用顺序**回填（tool_call_id 不变量不因并发改变、事件流顺序确定）；
+    worker 线程内按本回合重新绑定 SessionRef/RunRef（thread-local 不丢失，
+    todo/草稿这类按会话取数的工具不会"会话上下文缺失"）；单个工具意外异常
+    隔离成它自己的 fail 结果（副作用 unknown），不吞同批同伴、不打断回合；
+    取消路径不变（串行调用前与段提交前 run.check、段内由 registry.execute
+    的 cancel 检查兜底、下一轮模型调用前检查点拦住回合）。
+  - 已标注 24 个只读工具：get_time/recall/search_history/daily_digest、
+    skills_list/skill_view/skill_history、files 五读（list/search/read/diff/
+    history）、web_read、bilibili 四读 + drafts、peek_command、cron_list、
+    mcp_list_tools/mcp_read_tool、system_status。
+  - 顺手修复：`tools/builtin.py` 里 remember/recall 的**重复注册块**（粘贴
+    残留，两处逐字相同）——不删它，第二次 register 会把带 read_only 的定义
+    覆盖回无标记版本，对本批是正确性问题而非单纯清理。
+- **没做什么**：未对每个工具做线程安全逐一审计——进池工具按"纯读且无共享
+  可变状态"挑选，共享驱动（browser/android/desktop/MCP 连接）全部留在串行侧；
+  并发段的事件按调用顺序在段落地时批量产生，不展示实时完成交错（事件流
+  顺序确定性优先于实时性）；并发上限暂不开放为配置。
+- **新增 12 项测试**（`tests/test_parallel_tools.py`）：真并发+顺序回填、
+  并发上限受约束、写栅栏（在途读先落地、写完成后读才提交）、SAFE-无标记
+  工具保持串行、全写批次旧序、双层异常隔离（工具异常/execute 自身崩溃）、
+  两种取消路径（并发段内取消在栅栏前拦截、批首取消后续调用不执行）、
+  worker 的 SessionRef/RunRef 重绑定、未注入 SessionRef 如实报错不崩、
+  群聊禁用名单与 read_only 的交互（禁用工具不进池、照常回拒绝结果）。
+- `uv run --no-sync pytest tests/test_parallel_tools.py -q` → **12 passed**；
+  全量 `uv run --no-sync pytest -q` → **899 passed**（2026-10-29；= 887 +
+  本批 12，无失败与跳过；不含并行前端批未提交的 web 测试文件）。
+
 ### 2026-10-29 · 新能力：一次性定时触发（闹钟）
 
 - **用户需求**：agent 本地"定闹钟"——指定时间自动触发一次（执行 prompt/给自己

@@ -87,6 +87,7 @@ def register_system_tools(registry: ToolRegistry, services: ServiceManager) -> N
             func=system_status,
             toolset="system",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(

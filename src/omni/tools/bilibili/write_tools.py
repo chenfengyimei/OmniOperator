@@ -43,7 +43,7 @@ def register_bilibili_write_tools(registry: ToolRegistry, publisher: BilibiliPub
     registry.register(Tool("bilibili_prepare_write", "观察当前 B站表单并保存评论/私信草稿；不填写、不发送。页面控件须已由用户配置。",
                            {"type": "object", "properties": fields, "required": list(fields)}, prepare, toolset="bilibili", risk=Risk.SAFE))
     registry.register(Tool("bilibili_drafts", "查看本会话 B站草稿、内容 hash 和发送状态；unknown 必须由人核查。",
-                           {"type": "object", "properties": {}}, drafts, toolset="bilibili", risk=Risk.SAFE))
+                           {"type": "object", "properties": {}}, drafts, toolset="bilibili", risk=Risk.SAFE, read_only=True))
     submit_fields = {**fields, "draft_id": {"type": "string"}, "content_hash": {"type": "string"}}
     registry.register(Tool("bilibili_submit_draft", "人工批准这一个账号/目标/完整内容后，通过页面仅提交一次草稿并回读新增记录；未知结果不能重试。",
                            {"type": "object", "properties": submit_fields, "required": list(submit_fields)},

@@ -236,6 +236,7 @@ def register_shell_tools(
             func=peek_command,
             toolset="shell",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(

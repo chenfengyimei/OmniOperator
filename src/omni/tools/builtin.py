@@ -31,6 +31,7 @@ def register_time_tool(registry: ToolRegistry) -> None:
             func=get_time,
             toolset="core",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
 
@@ -153,6 +154,7 @@ def register_memory_tools(
             func=recall,
             toolset="core",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -190,44 +192,6 @@ def register_memory_tools(
 
     registry.register(
         Tool(
-            name="remember",
-            description="把重要信息写入长期记忆（用户偏好、约定、结论等），跨会话保存",
-            parameters={
-                "type": "object",
-                "properties": {
-                    "text": {
-                        "type": "string",
-                        "description": "要记住的内容，一句自包含的话",
-                    }
-                },
-                "required": ["text"],
-            },
-            func=remember,
-            toolset="core",
-            risk=Risk.SAFE,
-        )
-    )
-    registry.register(
-        Tool(
-            name="recall",
-            description=(
-                "从长期记忆里检索相关信息。query 建议用简短关键词"
-                "（如'猫 名字'、'拿铁'），也支持整句提问"
-            ),
-            parameters={
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "检索关键词或问题，尽量简短"}
-                },
-                "required": ["query"],
-            },
-            func=recall,
-            toolset="core",
-            risk=Risk.SAFE,
-        )
-    )
-    registry.register(
-        Tool(
             name="search_history",
             description="搜索过去的对话记录（哪怕没有显式记住过的内容也能找到）",
             parameters={
@@ -240,6 +204,7 @@ def register_memory_tools(
             func=search_history,
             toolset="core",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
 
@@ -380,6 +345,7 @@ def register_digest_tool(registry: ToolRegistry, store: MemoryStore) -> None:
             func=daily_digest,
             toolset="core",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
 

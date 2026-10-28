@@ -61,6 +61,13 @@ class Tool:
     toolset: str = "core"       # 能力组：core / bilibili / qq / android …
     risk: Risk = Risk.SAFE      # safe / confirm / dangerous
     requires_human: bool = False  # 通用写工具可发布/支付，smart 不得替人批准
+    # 批内并发（agent 工具循环）：只有**显式声明只读**的工具才会与同批
+    # 其它只读工具并行执行。SAFE 不自动等于 read_only——remember/todo/
+    # skill_create 这类"SAFE 但写状态"的工具必须保持默认 False（串行），
+    # 否则同批"先写后读"的相对顺序会被并发打乱。声明前先核实：无共享可变
+    # 状态、无"必须先于同批后续工具完成"的顺序语义（browser 共用同一活动
+    # 页面，故整个 toolset 都不标）。
+    read_only: bool = False
 
 
 class ToolRegistry:

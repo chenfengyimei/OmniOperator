@@ -145,6 +145,7 @@ def register_skill_tools(
             func=skills_list,
             toolset="core",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -162,6 +163,7 @@ def register_skill_tools(
             func=skill_view,
             toolset="core",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -255,6 +257,7 @@ def register_skill_tools(
             func=skill_history,
             toolset="core",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(

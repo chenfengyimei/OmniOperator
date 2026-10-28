@@ -106,6 +106,7 @@ def register_bilibili_tools(
             func=video_info,
             toolset="bilibili",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -123,6 +124,7 @@ def register_bilibili_tools(
             func=video_comments,
             toolset="bilibili",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -139,6 +141,7 @@ def register_bilibili_tools(
             func=video_subtitle,
             toolset="bilibili",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
     registry.register(
@@ -159,5 +162,6 @@ def register_bilibili_tools(
             func=video_transcript,
             toolset="bilibili",
             risk=Risk.SAFE,
+            read_only=True,
         )
     )
