@@ -7,6 +7,56 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 新能力：插件系统核心（本地生命周期，agent/用户自开发功能接入）
+
+- **需求来源**（用户原话）：做好插件系统与插件社区，让用户以及项目内的 agent
+  可以自己开发功能自己扩展更多功能；社区服务器将由用户提供后部署。
+  本批交付**本地核心**；社区（客户端+参考服务器）是下一批（job 15）。
+- **实现（新顶层包 `plugins/`，与 channels 同级不设限，架构守卫通过）**：
+  - `plugins/manifest.py`：manifest.json 纯数据校验（id/version/entry/
+    permissions；v1 permissions 只允许 `["tools"]`），零执行；
+  - `plugins/host.py::PluginHost`：生命周期 = inbox 收包（zip 或**工作区目录**
+    ——agent 自开发闭环）→ `.quarantine/` 数据化校验（类型白名单：manifest +
+    唯一顶层入口 .py + README + references 文本；zip-slip/盘符/ADS/保留名/
+    重名全防；zip≤4MiB、解包≤8MiB、条目≤50、入口≤128KiB；支持"包一层顶层
+    目录"的常见 zip 形态）→ **`plugin_activate`（CONFIRM+requires_human，
+    激活即同意执行）**：激活前对隔离区逐文件 sha256 防篡改比对、跨进程文件
+    锁、锁内复核同名碰撞 → 装载（`spec_from_file_location` 导入 entry，调用
+    `register(ctx)`）→ 启停/卸载（反注册工具）→ 启动恢复（`load_installed`，
+    装载失败只报 stderr 不阻断启动）；
+  - **受限注册面 `PluginContext`**：工具名强制 `<id>-` 前缀（结构上不可能
+    影子覆盖内置工具）、`toolset=plugin:<id>`（可归因；群聊作用域因许可名单
+    机制自动禁用）、风险等级作者声明并照常走既有审批链（无人值守拒绝一切
+    非 SAFE——含插件声明的）；插件私有数据目录 `ctx.data_dir`；
+  - `plugins/tools.py`：六个 agent 工具（plugin_list read_only；install/enable/
+    disable SAFE；**activate/remove CONFIRM+requires_human**——无人值守永远
+    激活/卸载不了插件）；
+  - `tools/registry.py` 新增 `unregister`（禁用/卸载反注册）；`bootstrap.py`
+    接线（宿主 + workspace 目录解析 + 启动恢复）；状态存文件
+    （`<id>.plugin.json` + FileLock），**刻意不进 state.db**——schema 版本
+    常量在 config.py（并行前端批持有），且插件元数据天然与包文件同生共死。
+- **信任模型（docs/PLUGIN_SYSTEM.md 全文，如实声明）**：校验零执行、
+  **激活即同意执行**（人工确认就是"用户激活"这一步；Python 进程内无可靠
+  沙箱，不假装有；不可信来源走 MCP）；内容指纹钉死激活字节，改过必须重走
+  「卸载→安装→人工确认激活」链，enable 洗不了白；disable/remove 反注册工具
+  但已导入模块代码无法从进程卸载（重启才彻底清除）——消息如实写明。
+- **新增 20 项测试**（`tests/test_plugins.py`）：隔离安装零执行、包装目录 zip、
+  9 类坏包整包拒绝（含 zip-slip/脚本附件/白名单外/入口不匹配/两个 py/未知
+  能力）、manifest 字段校验、激活注册+派发、审批门（DenyApprover 拒激活与
+  卸载、插件 CONFIRM 工具被拦）、启停往返、隔离区/已安装两侧防篡改、
+  卸载删包删数据、导入即炸被关在插件内+正规恢复链、部分注册回滚、
+  注册契约违例（无前缀/影子覆盖内置工具/未知风险）、工作区目录安装、
+  重启恢复（停用不恢复）。
+- **平台坑（新）**：①导入插件时解释器在包目录写 `__pycache__`，会把内容
+  指纹打花——读包/指纹/防篡改一律跳过 `__pycache__`（工作区开发目录同理）；
+  ②`relative import` 层级：plugins/tools.py 引 registry 是 `..tools.registry`
+  不是 `.registry`（首跑 ModuleNotFoundError 抓出）。
+- `uv run --no-sync pytest tests/test_plugins.py -q` → **20 passed**；
+  `tests/test_arch.py + test_plugins + test_tools + test_skills -q` → **70 passed**
+  （架构守卫确认新包合规）；全量 `uv run --no-sync pytest -q` →
+  **956 passed**（2026-10-29；= 934 + 本批 20 + 并行前端批未提交 web 测试
+  同期新增 2 项，均绿）。
+
 ### 2026-10-29 · 新能力：session_refine 手动触发记忆整理（Hermes /refine 对标）
 
 - **需求来源**：Hermes 对标缺口之"/refine 手动整理"——用户说"整理一下这轮对话"

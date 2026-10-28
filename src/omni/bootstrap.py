@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import atexit
 import os
+import sys
 import uuid
 import time
 import threading
@@ -51,6 +52,8 @@ from .memory.guard import MemoryGuard
 from .memory.resident import ResidentMemory
 from .memory.skills import SkillStore
 from .memory.skill_inbox import SkillInbox
+from .plugins import PluginHost
+from .plugins.tools import register_plugin_tools
 from .memory.store import MemoryStore
 from .safety.broker import ApprovalBroker
 from .safety.gates import Approver
@@ -423,6 +426,23 @@ def build_runtime(
     register_skill_tools(registry, skills, guard=memory_guard)
     # 外来技能包：导入只进隔离区（SAFE），激活是 CONFIRM——审批流里的人工确认就是"用户激活"
     register_skill_inbox_tools(registry, SkillInbox(skills))
+    # 插件系统：收包校验零执行；激活（CONFIRM+人工确认）即同意执行插件代码。
+    # 宿主在这里恢复已激活插件的工具注册；装载失败只报 stderr，不阻断启动。
+    def _resolve_plugin_dir(rel: str) -> Path | None:
+        from .tools.files.paths import PathRejected
+
+        try:
+            resolved = workspace.resolve(rel, must_exist=True)
+        except PathRejected:
+            return None
+        return resolved.path if resolved.is_dir else None
+
+    plugin_host = PluginHost(
+        paths.data / "plugins", registry, resolve_dir=_resolve_plugin_dir
+    )
+    for _failure in plugin_host.load_installed():
+        print(f"[插件装载失败] {_failure}", file=sys.stderr, flush=True)
+    register_plugin_tools(registry, plugin_host)
     mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs, schema_store=mcp_schemas)
     register_mcp_tools(registry, mcp)
     if mcp.servers():
