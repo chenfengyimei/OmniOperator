@@ -1448,6 +1448,25 @@ class OutboxStore:
             )
             return cursor.rowcount > 0
 
+    # 终态滚动保留条数：工作台可查、审计可回溯；更旧的由补投周期清理
+    PRUNE_KEEP = 200
+
+    def prune_terminal(self, *, keep: int | None = None) -> int:
+        """删除较旧的终态行（sent/discarded/dead），保留最近 keep 条。
+
+        D17 登记项：表此前只增不减。活跃行（pending/sending/unknown）绝不删——
+        它们是待补投/待人工处理的欠账，不是历史。
+        """
+        limit = self.PRUNE_KEEP if keep is None else max(0, int(keep))
+        with self._state._tx() as conn:
+            cursor = conn.execute(
+                "DELETE FROM outbox WHERE status IN ('sent','discarded','dead') AND id NOT IN ("
+                " SELECT id FROM outbox WHERE status IN ('sent','discarded','dead')"
+                " ORDER BY updated_at DESC, id DESC LIMIT ?)",
+                (limit,),
+            )
+            return cursor.rowcount
+
     @staticmethod
     def _row(r: Iterable) -> dict:
         row = list(r)

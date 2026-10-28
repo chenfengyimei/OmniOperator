@@ -365,6 +365,7 @@ async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
 def make_outbox_drainer(runtime: Any) -> Callable[[], Awaitable[dict[str, int]]]:
     """补投 pending：QQ 连接恢复后由心跳进程周期调用。
 
+    - 每轮先滚动清理较旧终态行（保留最近 `OutboxStore.PRUNE_KEEP` 条）——表只增不减是 D17 登记的欠账；
     - 白名单已撤销的条目直接丢弃（撤销 = 用户意图，恢复后也不许发）；
     - 发送抛 `DeliveryNotStarted`（明确没发）→ 记一次尝试，保持 pending；
     - 其它异常 → 标 unknown，**停止自动补投**（可能已发出一部分，重发更糟）；
@@ -375,7 +376,10 @@ def make_outbox_drainer(runtime: Any) -> Callable[[], Awaitable[dict[str, int]]]
         stats = {"sent": 0, "discarded": 0, "retry": 0, "unknown": 0, "dead": 0, "deferred": 0}
         qq = runtime.qq
         outbox = runtime.outbox
-        if qq is None or outbox is None or not qq.connected:
+        if outbox is None:
+            return stats
+        _prune_terminal(outbox)  # 终态滚动清理与连接状态无关：表不能只增不减
+        if qq is None or not qq.connected:
             return stats  # 通道没恢复就不动队列
         # 每轮只处理起始时的待投递数量，失败重新排队也留到下轮，避免紧循环。
         seen: list[int] = []
@@ -388,6 +392,16 @@ def make_outbox_drainer(runtime: Any) -> Callable[[], Awaitable[dict[str, int]]]
         return stats
 
     return drain
+
+
+def _prune_terminal(outbox: Any) -> None:
+    """滚动清理终态行（D17 登记项）；失败不杀补投循环，下轮再试。"""
+    try:
+        pruned = outbox.prune_terminal()
+        if pruned:
+            print(f"[心跳] outbox 清理了 {pruned} 条较旧终态记录", flush=True)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[心跳] outbox 终态清理失败（下轮重试）：{exc}", flush=True)
 
 
 async def outbox_drain_loop(runtime: Any, interval_s: float = 60.0) -> None:

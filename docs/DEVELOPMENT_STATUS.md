@@ -7,6 +7,25 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · D17 收口：outbox 终态滚动清理
+
+- **关闭 D17 剩余限制 2**（原话"表本身不删行，需要时手工清理或等 D26 运维批"，D26
+  已过未做）：`OutboxStore.prune_terminal(keep=200)`——按 `updated_at DESC, id DESC`
+  保留最近 `PRUNE_KEEP` 条终态行（sent/discarded/dead），更旧的删除；
+  **活跃行（pending/sending/unknown）绝不删**——它们是待补投/待人工处理的欠账。
+- **接线**：`core/cron.py` 补投循环每轮**先**清理再补投，且与 QQ 连接状态无关
+  （掉线期间表也不能无限增长）；清理失败只打印不杀循环（下轮再试），
+  清理了行数>0 时打印一条日志。被清掉的行再人工重排安全返回 False（行已不存在）。
+- **新增 3 项测试**：保留边界与活跃保护（keep=2 清最旧 1 条终态、pending/unknown
+  不动）/ keep=0 全清且 retry 对已删行返回 False / 掉线状态下 drain 照样按保留
+  条数清理（monkeypatch PRUNE_KEEP=1 验证）。
+- **没测什么**：真实心跳进程长时间运行的清理节奏（逻辑是幂等 DELETE，无状态）；
+  保留条数未做配置化（`PRUNE_KEEP` 类常量与 `MAX_LIVE`/`MAX_ATTEMPTS` 同风格，
+  需要时再提配置）。
+- `uv run --no-sync pytest tests/test_outbox.py -q` → **23 passed**；
+  全量 `uv run --no-sync pytest -q` → **848 passed**（2026-10-29；含并行会话未提交
+  的 16 项 web 模型密钥测试，与本批文件无交集）。
+
 ### 2026-10-29 · D09 收口第一批（副作用敏感工具结构化）+ 取消标记竞态修复
 
 - **取消标记竞态（`core/run.py`，既有缺陷被本批并发跑测暴露）**：`ActiveRuns.cancel()`

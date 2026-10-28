@@ -129,6 +129,57 @@ def test_enqueue_dedup_and_release_after_terminal(tmp_path):
     state.close()
 
 
+def test_prune_terminal_keeps_recent_and_never_touches_active(tmp_path):
+    """D17 登记项：终态行滚动清理——只删最旧的终态，活跃欠账一行不动。"""
+    state, outbox = _store(tmp_path)
+    old = outbox.enqueue(job="j", target_qq=10001, content="旧终态")
+    active = outbox.enqueue(job="j", target_qq=10001, content="活跃")
+    mid = outbox.enqueue(job="j", target_qq=10001, content="中终态")
+    new = outbox.enqueue(job="j", target_qq=10002, content="新终态")
+    unknown = outbox.enqueue(job="j", target_qq=10002, content="未知态", status="unknown")
+    assert None not in (old, active, mid, new, unknown)
+    assert outbox.mark(old, "sent")
+    assert outbox.mark(mid, "dead")
+    assert outbox.mark(new, "discarded")
+    assert outbox.prune_terminal(keep=2) == 1  # 最旧的终态被清
+    statuses = {r["content"]: r["status"] for r in outbox.list()}
+    assert set(statuses) == {"活跃", "中终态", "新终态", "未知态"}
+    assert statuses["活跃"] == "pending" and statuses["未知态"] == "unknown"
+    state.close()
+
+
+def test_prune_terminal_keep_zero_removes_all_terminal(tmp_path):
+    state, outbox = _store(tmp_path)
+    done = outbox.enqueue(job="j", target_qq=10001, content="A")
+    active = outbox.enqueue(job="j", target_qq=10001, content="P")
+    assert outbox.mark(done, "sent")
+    assert outbox.prune_terminal(keep=0) == 1
+    assert [r["content"] for r in outbox.list()] == ["P"]
+    # 清掉的行不能再被人工重排（行已不存在，安全返回 False）
+    assert not outbox.retry(done)
+    state.close()
+
+
+def test_drain_prunes_terminal_even_when_disconnected(tmp_path, monkeypatch):
+    """清理与连接状态无关：QQ 掉线期间表也不能无限增长。"""
+    monkeypatch.setattr(OutboxStore, "PRUNE_KEEP", 1)
+    rt, outbox, state = _runtime(tmp_path, FakeQQ(connected=False))
+    done1 = outbox.enqueue(job="j", target_qq=10001, content="已投递1")
+    assert done1 is not None
+    assert outbox.enqueue(job="j", target_qq=10001, content="待投递") is not None
+    done2 = outbox.enqueue(job="j", target_qq=10002, content="已投递2")
+    assert done2 is not None
+    assert outbox.mark(done1, "sent")
+    assert outbox.mark(done2, "sent")
+    stats = asyncio.run(make_outbox_drainer(rt)())
+    assert stats == {"sent": 0, "discarded": 0, "retry": 0, "unknown": 0, "dead": 0, "deferred": 0}
+    rows = outbox.list()
+    # 掉线时 pending 不动；终态按保留条数只留最新一条
+    assert [r["status"] for r in rows] == ["pending", "sent"]
+    assert rows[1]["content"] == "已投递2"
+    state.close()
+
+
 def test_pending_respects_attempts_and_retry_discard(tmp_path):
     state, outbox = _store(tmp_path)
     entry = outbox.enqueue(job="j", target_qq=10001, content="报告")
