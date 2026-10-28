@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "scope": "extended-local-agent",
+  "source": "REPLACE_WITH_FROZEN_CAMPAIGN_SOURCE",
+  "blocking_issues": [
+    "待逐项复核并关闭本版安全与数据阻断项"
+  ],
+  "cases": [
+    {
+      "id": "northstar_a",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "northstar_b",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "northstar_c",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "northstar_d",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "northstar_e",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "desktop_notepad",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "desktop_second_app",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "desktop_edge_cases",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "qq_group_isolation",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "bilibili_write",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "embedding_local",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "embedding_api",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "backup_restore",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "fault_restart_cancel",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    },
+    {
+      "id": "offline_regression",
+      "status": "pending",
+      "confirmed_real": false,
+      "verified_by": "",
+      "observed_at": "",
+      "source": "",
+      "evidence": "",
+      "sha256": ""
+    }
+  ]
+}

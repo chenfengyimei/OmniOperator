@@ -1,0 +1,10 @@
+{
+  "max_private_bytes": 2147483648,
+  "max_handles": 10000,
+  "max_private_growth_bytes": 536870912,
+  "max_cost_micro": 1000000,
+  "max_log_bytes": 100000000,
+  "calibration_sha256": null,
+  "calibration_seconds": 0,
+  "note": "仅为预热示例，不是已验证资源基线。费用单位是百万分之一美元；本工具只观察，不花费。正式 72 小时前用 calibrate 冻结基线并检查上限。"
+}

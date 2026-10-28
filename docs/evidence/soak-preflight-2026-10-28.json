@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "source": "d27460b8ddfcfd09e4e37c587b9ea53d82ebdbf1c062dca92a3dc7a4401952b5",
+  "manifest_sha256": "af45a152f7656693390276039617e7293dc75d21b47b43c07962843ab2679035",
+  "samples": 3,
+  "elapsed_hours": 0.0014975000000009054,
+  "required_hours": 72,
+  "soak_passed": false,
+  "blockers": [
+    "不足 72 小时",
+    "存在未核验的服务样本，需重新完成连续验收",
+    "缺少实际任务或定时执行记录，空闲常驻不能代替验收",
+    "缺少至少 30 分钟的资源预热基线"
+  ],
+  "private_bytes_peak": {},
+  "incidents": [
+    {
+      "sample": 0,
+      "service": "omni-qq",
+      "state": "unverified"
+    },
+    {
+      "sample": 0,
+      "service": "omni-heartbeat",
+      "state": "unverified"
+    },
+    {
+      "sample": 1,
+      "service": "omni-qq",
+      "state": "unverified"
+    },
+    {
+      "sample": 1,
+      "service": "omni-heartbeat",
+      "state": "unverified"
+    },
+    {
+      "sample": 2,
+      "service": "omni-qq",
+      "state": "unverified"
+    },
+    {
+      "sample": 2,
+      "service": "omni-heartbeat",
+      "state": "unverified"
+    }
+  ],
+  "incident_count": 6,
+  "last_hash": "e2cab2e7c015952e07795e69fc2baf675b3dcc52ce7e74222003f87caf4c7db1",
+  "publishing_authorized": false
+}

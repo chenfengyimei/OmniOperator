@@ -53,6 +53,11 @@ D26 明确平台基础设施边界：`system` 只可依赖 `config` 和 system �
 不能借 system 绕层。`AndroidDriver`、`EventLog` 加入组装根守卫。
 RunStore 的结构化日志经 event_sink 注入，memory 不依赖日志实现；日志路径由 RuntimePaths 注入。
 
+D27：system/soak 和 release_gate 只读平台状态与证据，不依赖 memory/core，不构造 Runtime。
+副本恢复的命令脚本从 bootstrap.build_runtime 组装隔离实例，路径全部显式注入且后台 worker
+关闭；真实目录不迁移。source_fingerprint 不读取配置、密钥、对话；服务启动记录与子进程
+自确认共同约束常驻样本版本。采样/证据目录由命令参数注入，不在默认 data 下产生测试文件。
+
 ### 3.2 组装根规则
 
 D24 新增组装根对象：`EmbeddingProvider`（llm 出口与费用协议）、`VectorIndex`（memory
@@ -119,7 +124,7 @@ cron_outputs 保存最新一次执行的 run_id/状态/结果/结束时间，任
 | 工具作用域 | `tools/registry.SessionRef` | 回合内工具（todo 等）写入请求会话，与进程级当前会话无关 |
 
 明确不做：不用一把全局锁把不同会话也串起来——那只是把并发问题换成了响应变慢。
-QQ 通道已有的按会话 `asyncio.Lock` 保留；QQ 侧接入跨进程租约留给 D22。
+QQ 通道已有的按会话 `asyncio.Lock` 保留；D22 已接入跨进程租约与持久事件去重。
 
 ### 3.6 浏览器所有权（D07）
 

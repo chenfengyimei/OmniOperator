@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "recorded_date": "2026-10-29",
+  "scope": "isolated staged source export and fresh Windows venv; no real accounts, devices, models or resident services",
+  "source_tree": "78fb3f69b82785c28dbae61df4b4284e91d646e3",
+  "source_fingerprint": "ee14b198b85a306bc412ade0e7c7ec1b3b7d28d5d4e6bbc30e9655b9f8a2c511",
+  "git_directory_present": false,
+  "python": "3.12.14",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "dependency_install": "uv sync --frozen --offline --python 3.12; 99 locked packages",
+  "full_command": "uv run --no-sync pytest -q --strict-markers --junitxml=.pytest_cache/d27-clean.xml",
+  "tests": 817,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "junit_seconds": 148.56,
+  "junit_sha256": "410691a88a3efcf78e1289b9c0c04a24167cfe4a5cb37ce7abfc727e060623fc",
+  "core_report_sha256": "df99f3d4997b83aed835b57287b33ce3c91292f8780a0441f35517f511bd05b3",
+  "model": "scripted-fixtures-v1",
+  "dataset_sha256": "577054f5cd6429506cba1ebaff1e4e0314e0f9333470ae4ffe65dd312a6fe575",
+  "actual_model_calls": 0,
+  "core_rounds": [
+    {
+      "index": 0,
+      "warmup": true,
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "index": 1,
+      "warmup": false,
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "index": 2,
+      "warmup": false,
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "index": 3,
+      "warmup": false,
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "scenario_seconds": {
+    "median": 0.07,
+    "p95": 1.092,
+    "max": 4.107
+  },
+  "real_model_task_success_rate": null,
+  "soak_passed": false,
+  "publishing_authorized": false
+}

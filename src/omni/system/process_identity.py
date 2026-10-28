@@ -107,6 +107,45 @@ def process_parents() -> dict[int, int]:
     return parents
 
 
+class _MemoryCounters(ctypes.Structure):
+    _fields_ = [('cb', wt.DWORD), ('faults', wt.DWORD)] + [(name, ctypes.c_size_t) for name in (
+        'peak_working_set', 'working_set', 'peak_paged', 'paged', 'peak_nonpaged', 'nonpaged',
+        'pagefile', 'peak_pagefile', 'private_bytes')]
+
+
+def sample_process(identity: ProcessIdentity) -> dict:
+    """同一只读句柄核验身份并采集资源；没有终止或注入权限。"""
+    if os.name != 'nt':
+        raise ProcessIdentityError('资源采样后端目前只验证 Windows')
+    api = _kernel()
+    api.GetProcessHandleCount.argtypes = [wt.HANDLE, ctypes.POINTER(wt.DWORD)]
+    api.GetProcessHandleCount.restype = wt.BOOL
+    psapi = ctypes.WinDLL('psapi', use_last_error=True)
+    psapi.GetProcessMemoryInfo.argtypes = [wt.HANDLE, ctypes.POINTER(_MemoryCounters), wt.DWORD]
+    psapi.GetProcessMemoryInfo.restype = wt.BOOL
+    handle = api.OpenProcess(0x1000, False, identity.pid)
+    if not handle:
+        raise ProcessIdentityError('无法打开资源采样句柄')
+    try:
+        if _identity_from_handle(api, handle, identity.pid) != identity:
+            raise ProcessIdentityError('采样进程身份已变化')
+        memory, handles = _MemoryCounters(), wt.DWORD()
+        memory.cb = ctypes.sizeof(memory)
+        created, exited, kernel, user = (wt.FILETIME() for _ in range(4))
+        if not (psapi.GetProcessMemoryInfo(handle, ctypes.byref(memory), memory.cb)
+                and api.GetProcessHandleCount(handle, ctypes.byref(handles))
+                and api.GetProcessTimes(handle, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel), ctypes.byref(user))):
+            raise ProcessIdentityError('进程资源采样失败')
+        if _identity_from_handle(api, handle, identity.pid) != identity:
+            raise ProcessIdentityError('采样期间进程退出')
+        ticks = lambda value: (int(value.dwHighDateTime) << 32) | int(value.dwLowDateTime)
+        return {'pid': identity.pid, 'created': identity.created, 'working_set': int(memory.working_set),
+                'private_bytes': int(memory.private_bytes), 'peak_working_set': int(memory.peak_working_set),
+                'handles': int(handles.value), 'cpu_seconds': (ticks(kernel) + ticks(user)) / 10_000_000}
+    finally:
+        api.CloseHandle(handle)
+
+
 def confirmed_exited(identity: ProcessIdentity) -> bool:
     """不能把查询权限不足误报成已退出。"""
     if os.name != "nt":

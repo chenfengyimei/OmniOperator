@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-28T14:55:37.047252+00:00",
+  "platform": "Windows",
+  "scope": "script-owned temporary Python parent and child; no resident service",
+  "identities_captured": true,
+  "parent_exit_confirmed": true,
+  "child_exit_confirmed": true,
+  "passed": true
+}

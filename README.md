@@ -1,87 +1,80 @@
-# OmniOperator
+# OmniOperator · 小鱼
 
-像人一样生活在平台里的具身个人 agent：B站（看视频/发视频/私信）、QQ 收发、ADB 控安卓真机、长期记忆，Windows / macOS 通用。
+运行在 Windows 上的个人 agent，QQ / Web 工作台 / CLI / 心跳共用内核。
+Python 3.12+、uv、LiteLLM 网关、SQLite 记忆和运行账本。本地运行不表示模型请求不出机。
 
-当前阶段：**P2/P3/P5 地基就绪** —— B站读四件套（信息/热评/字幕/**转写**）+ 记忆系统 + **Web 工作台** + **技能系统** + **QQ 通道**（待接 NapCat）+ **定时任务心跳** + **浏览器写操作**（Playwright 持久登录态 + 工作台确认横幅 + 每日写预算）已完成。
+**2026-10-29 状态：受控内测，817 项测试通过。** 核心能力与 D27 验收工具已交付，
+真实账号/设备/模型闭环和 72 小时常驻仍未全部通过；尚未发布稳定版。
+macOS/Linux 全功能、通用桌面接管、视频上传均不属于已验证交付。
 
-## 快速开始
+开发接手先读 [HANDOFF](docs/HANDOFF.md)，再读唯一架构权威 [ARCHITECTURE](docs/ARCHITECTURE.md)。
+当前证据与剩余项见 [开发台账](docs/DEVELOPMENT_STATUS.md)，详细任务见
+[完整计划](docs/LOCAL_AGENT_PLAN.md) 和 [开发大纲](docs/DEEPSEEK_DEVELOPMENT_OUTLINE.md)。
 
-```bash
-# 1. 安装依赖（Python 3.12+；uv 自动创建 .venv）
-uv sync
+## 开始使用
 
-# 2. 配密钥：复制 .env.example 为 .env，填至少一家 API key
-#    （用本地 Ollama 则免 key：把 config/config.yaml 的 chat 改成 ollama/<模型名>）
+```powershell
+# 首次安装；现有常驻服务占用 .venv 入口时，先按运维手册安排维护窗口。
+uv sync --frozen
+# 使用浏览器能力时安装 Chromium。
+uv run python -m playwright install chromium
 
-# 3.（可选，推荐）B站 Cookie：浏览器登录B站 → F12 → Network 任一请求 →
-#    复制 Cookie 里的 SESSDATA / bili_jct / buvid3，存成 data/bili_cookies.json：
-#    {"SESSDATA": "...", "bili_jct": "...", "buvid3": "..."}
-#    不配也能用（视频信息/评论匿名可读），但字幕与部分音频流需要登录态
+# 复制 .env.example 为 .env，配置实际要用的供应商密钥；
+# 或在 config/config.yaml 选择已安装的本地 Ollama 模型。
+# 启用付费/无人值守前，明确配置模型预算和所需权限。
+uv run omni-web
+# 使用控制台打印的配对链接进入工作台，密钥在设置中心填写。
 
-# 4. 启动终端版（自动续接上一次会话）
-uv run omni
-
-# 5. 启动 Web 工作台（会话 / 聊天 / 记忆 / 档案 / Review / 技能可视化）
-uv run omni-web            # 打开 http://127.0.0.1:8000
-
-# 6.（可选）QQ 通道：NapCat 已装在 D:\tools\napcat（扫码见工作台「服务」面板）
-uv run omni-qq             # 在 QQ 上跟它聊（白名单外的消息会被忽略）
-
-# 7.（可选）心跳/定时任务常驻：对它说"每天早上八点给我发B站日报"即可排程
-uv run omni-heartbeat      # 结果可投递到 QQ；无人值守上下文 fail-closed
-
-# 8.（可选）安卓真机：手机开 USB 调试插上电脑（需 adb 在 PATH）
-#    工具会自动出现在小欧的工具列表
+uv run omni                # CLI
+uv run omni-qq             # 需 NapCat 登录、配置 WS 与白名单
+uv run omni-heartbeat      # 调度已配置的任务；写操作仍受审批约束
 ```
 
-## CLI 命令
+常驻主环境需要避免 uv 同步时，按 [运维手册](docs/OPERATIONS.md) 使用 `uv run --no-sync …`。
+不要为了跑测试停止用户服务。`uv run omni` 是实际 CLI 入口名称。
 
-| 命令 | 作用 |
+QQ 私聊和群分别隔离，空白名单拒绝访问。主动 QQ 提醒默认关闭，需所有者明确启用并设置
+额度与安静时段。B站 Cookie 可在工作台设置；安卓需 USB 调试、adb 和中文输入适配。
+桌面先以应用白名单内的记事本临时内容试用。付费、发布、群发、加好友必须人工确认；
+无人值守 fail-closed，结果未知的写操作不自动重试。
+
+## 已交付能力与使用边界
+
+| 能力 | 当前实现与说明 |
 |---|---|
-| 直接输入 | 与 agent 对话 |
-| `/new` | 新开会话 |
-| `/list` | 列出最近会话 |
-| `/use <id>` | 切换到指定会话 |
-| `/switch <model>` | 切换模型（LiteLLM 串，如 `deepseek/deepseek-chat`） |
-| `/model` | 查看当前模型 |
-| `/help` | 帮助 |
-| `/quit` | 退出 |
+| 内核 | 工具循环/grace call、todo、运行事件、取消、受限委派、持久摘要、费用预留与结算；[架构](docs/ARCHITECTURE.md) |
+| 记忆和技能 | 事实/档案/常驻记忆、作用域/额度/遗忘、异步 review、技能 CAS/历史/回滚与待审阅差异 |
+| 本机与网页 | 受限文件读写、只读 shell 白名单与人工确认命令、公开网页抓取、产物与有隐私开关的图像输入 |
+| 调度与 QQ | cron 编辑/时区/成功运行依赖/并行限制、持久 outbox 与回执、群场景隔离；[QQ 场景](docs/QQ_SCENARIOS.md) |
+| 浏览器与 B站 | Playwright 所有者线程、预算与审批；B站读四件套、评论/私信草稿与受控 UI 发送；[B站写入](docs/BILIBILI_WRITING.md)（默认关闭，实站选择器待核验） |
+| 安卓 | 观察绑定动作、锁帧坐标、设备互斥、焦点核验/输入法恢复、MJPEG；[安卓手册](docs/ANDROID.md)（真机待验） |
+| Windows 桌面 | 原生 UIAutomation、观察令牌、窗口租约、后台语义动作；[桌面手册](docs/DESKTOP.md)（记事本首个真实闭环通过，第二应用待验） |
+| MCP | stdio、管理面板、schema 漂移撤权、人工确认；[MCP 手册](docs/MCP.md)（HTTP/OAuth 后置） |
+| 混合检索 | Ollama/API embedding 双接口、sqlite-vec + FTS、异步索引与删除联动；[检索手册](docs/RETRIEVAL.md)（默认关闭，实际效果待评测） |
+| 运维与验证 | 进程身份、有界关闭、只读 doctor、备份恢复、日志轮转、离线测试、证据与常驻检查；[运维](docs/OPERATIONS.md)、[验证](docs/VALIDATION.md)、[验收](docs/ACCEPTANCE.md) |
 
-## 测试
+CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/memory`、
+`/skills`、`/doctor`、`/help`、`/quit`。工作台提供会话、进度与停止、审批、产物、技能编辑、
+任务与待投递、服务、设备、用量和设置。
 
-```bash
-uv run pytest
+## 数据与验证
+
+配置在 `config/config.yaml`，凭据在 `.env` 或专用本地配置；
+`data/memory.db` 保存会话与记忆，`data/state.db`（v13）保存任务、额度、运行和迁移账本。
+`data/run` 是服务启动身份，`data/system_logs` 是诊断日志；路径均可注入。
+备份含私人记忆，默认不含 Cookie/.env/浏览器 profile，不应提交到仓库。
+
+```powershell
+uv run --no-sync pytest -q
+uv run --no-sync python -m omni.channels.doctor
+uv run --no-sync python scripts/rehearse_upgrade.py --run --output <不存在的私有副本目录>
 ```
 
-## 架构
+默认测试使用隔离数据与离线模型，禁止真实付费、社交消息和设备动作。
+Windows CI 入口为 `scripts/ci.ps1`，Jenkins 配置已提供，托管 CI 尚未接入。
+固定 24 场景三轮通过是软件契约验证，不是模型任务完成率或 Hermes 效果对比。
+正式验收按 [ACCEPTANCE.md](docs/ACCEPTANCE.md) 完成 15 项证据、30 分钟预热及 72 小时常驻；
+发布闸门通过也仍需所有者明确批准对外发布。
 
-六层分包 + 组装根，依赖单向（`tests/test_arch.py` 用 AST 强制，详见 `docs/ARCHITECTURE.md`）：
-
-```
-src/omni/
-├── config.py          # .env + config.yaml 加载（叶子层）
-├── bootstrap.py       # 组装根：唯一构造核心对象的地方，暴露 Runtime 门面
-├── core/agent.py      # Agent 编排循环（纯内核：上下文 → LLM → 工具 → 回答）
-├── core/review.py     # 回合后异步记忆整理（自进化，最小权限白名单）
-├── llm/gateway.py     # LiteLLM 统一网关（Adapter：海外/国产/Ollama 一套格式）
-├── memory/store.py    # SQLite 仓储（会话/消息/事实/用户档案 + FTS5 全文检索）
-├── memory/skills.py   # 技能存储（程序性记忆，skills/<name>/SKILL.md）
-├── memory/store.py    # SQLite 仓储（会话/消息/事实/用户档案 + FTS5 全文检索）
-├── memory/skills.py   # 技能存储（程序性记忆，skills/<name>/SKILL.md）
-├── memory/cron.py     # 定时任务存储（cron_jobs.json 原子写）
-├── tools/             # Registry + 工具集：builtin（core）、skill_tools、bilibili（读）、browser（读+写）、android（安卓）
-├── safety/gates.py    # 审批闸门（Risk 分级 + 上下文审批策略）
-├── system/services.py # 本地服务管理（NapCat/omni-qq/心跳 启停+状态+日志）
-├── system/config_io.py# config.yaml 白名单键定向修改（保留注释）
-├── channels/cli.py    # 终端 REPL（只碰 Runtime，不构造任何对象）
-├── channels/web.py    # Web 工作台（FastAPI + 静态前端，uv run omni-web）
-└── channels/qq.py     # QQ 通道（OneBot v11 正向 WS，uv run omni-qq）
-```
-
-## 路线图
-
-P0 本地闭环 → P1 B站读 + 记忆成型 → P2 QQ（NapCat）→ P3 浏览器写操作 → P4 安卓（ADB）→ P5 像人化（心跳/夜间整理/Web 面板）。
-
-**进度：P0-P3 完成 ✅ · P2 已上线（NapCat 部署于 D:\tools\napcat）✅ · P5 心跳完成 ✅ · P4 安卓协议层完成（真机联调待用户插机）🔧**
-
-参考项目在 `xuexi/`（仅学习用，不入库）：Hermes Agent、ghost-in-the-droid/android-agent、dsh-bili-whale、android-adb-control。研究笔记见 `xuexi/NOTES.md`。
+学习资料在 `xuexi/`（不入库），包括 Hermes Agent 等；历史评估保留在完整计划中，
+不能用最初的差距表覆盖最新交付状态。

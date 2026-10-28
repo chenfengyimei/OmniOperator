@@ -28,6 +28,7 @@ from collections.abc import Callable
 from ..config import DATA_DIR, PROJECT_ROOT
 from .atomic import atomic_write_text
 from .filelock import FileLock
+from .provenance import source_fingerprint
 from .process_identity import ProcessIdentity, ProcessIdentityError, inspect_process, terminate_verified_tree, confirmed_exited
 
 RUN_DIR = DATA_DIR / "run"
@@ -373,6 +374,9 @@ class ServiceManager:
         if identity is None:
             raise ServiceError(f"进程已启动但身份不可核验 pid={pid}；未登记可停止权限，请人工核查")
         record = {"version": 1, "service": name, "launch_id": uuid.uuid4().hex, **asdict(identity)}
+        if name in OMNI_SERVICES:
+            record['source_fingerprint'] = source_fingerprint()
+            record['source_confirmed'] = pid == os.getpid()
         atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
         return record
 
@@ -431,6 +435,12 @@ class ServiceManager:
             record = self._read_record(name)
             identity = self._inspect(os.getpid())
             if identity is not None and self._record_identity(record) == identity:
+                if name in OMNI_SERVICES:
+                    current_source = source_fingerprint()
+                    if record.get('source_fingerprint') != current_source:
+                        raise ServiceError('启动期间源码变化，请固定版本后重新启动；不登记验收身份')
+                    record['source_confirmed'] = True
+                    atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
                 return record["launch_id"]
             self._check_start(name)
             return self._write_pid(name, os.getpid())["launch_id"]

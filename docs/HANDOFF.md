@@ -1,6 +1,6 @@
 # OmniOperator 交接文档（给后续开发者 / AI）
 
-> 生成于 2026-10-27，交接核对更新于 2026-10-28。本文是跨会话接手的唯一入口：先读本文，再读 `docs/ARCHITECTURE.md`（模块职责唯一权威）。
+> 生成于 2026-10-27，交接核对更新于 2026-10-29。本文是跨会话接手的唯一入口：先读本文，再读 `docs/ARCHITECTURE.md`（模块职责唯一权威）。
 > 学习资料在 `xuexi/`（已 gitignore，不入库）：`NOTES.md` 是四个参考项目的深度提炼，本项目的对标路线全部出自它。
 
 ## 0 接手顺序（R0–R7 开发轮次）
@@ -12,7 +12,9 @@
 
 任何"已完成"的宣称须核对台账证据、实际代码和测试：源码发现 ≠ 已复现 ≠ 已修复 ≠ 真实验收完成。
 
-2026-10-28 最新续接批次：基线 `453485b` 的 635 项测试已复核；MCP 漂移强制撤销 SAFE、
+**当前：D27 验收准备，817 项回归通过；现场备份源库 v13，真实闭环/72 小时/对外发布未完成。** 详细操作见 [ACCEPTANCE.md](ACCEPTANCE.md)。
+
+以下为 2026-10-28 各批次历史，测试数与现场库版本仅表示当时证据：基线 `453485b` 的 635 项测试已复核；MCP 漂移强制撤销 SAFE、
 outbox 跨进程领取与 OneBot 回执确认后 **644 单测全绿**。state.db 新版为 v10，真机库尚未
 升级；升级前备份，MCP 旧指纹需在面板重新确认。ADB 假执行器测试已隔离 PATH。
 用户选择记事本临时内容作为桌面首个验收目标；embedding 要本地和 API 两种方案。
@@ -51,7 +53,13 @@ D26 代码与本地验证已到 **789 单测全绿**：架构绕过负例、Pyth
 24 场景三轮离线评测、轮转诊断日志、Windows CI 入口与 Jenkins 配置。
 独立源码目录+全新 venv 已按锁文件离线安装并复跑测试；托管 CI 未接通，真实模型任务率未知。
 详见 [VALIDATION.md](VALIDATION.md)。继续 D27 真实闭环与 72 小时验收准备，不能提前标发布完成。
-续接核对至 `57ed080`：D00–D15 已有实现提交；当前从 D16 推进至 D19，先读已有差异接续。若台账已更新，继续下一个未完成子项。任务行写“完成”不能代替其剩余限制和真实验收。
+D27 验收工具已到 **817 单测全绿**：真实数据副本恢复、只读资源/账本采样、预热阈值、
+72 小时连续性与证据校验，见 [ACCEPTANCE.md](ACCEPTANCE.md)。实际备份时现场库已是 v13，
+恢复副本两次打开通过；历史 v9→v13 用非空任务/预算的隔离用例验证，未切换或停止真实服务。
+短采样明确未通过，未跑满 72 小时、未对外发布。下一步按验收手册完成账号/设备/模型闭环；
+通用前台接管、远程 MCP、外部技能安装仍有明确范围限制，不将全计划标为完成。
+本批以 D26 `56ce482` 为开发基线；D27 精确暂存源码在全新 venv 中再次 **817 全绿**，
+24 场景三轮全部通过，证据和提交见台账。并行前端修改与 prototype-html 不得覆盖或混入本批。
 
 ---
 
@@ -63,7 +71,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`；台账记录 **634 全绿**（2026-10-28 D18 审阅队列批次），工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH（本机需 `D:\tools\platform-tools` 在 PATH 上，否则 `test_safe_allows_known_readonly_commands` 一例环境性失败），需在 D26 消除环境依赖，详见完整计划 §0。**已修（2026-10-28）**：7 处同名重复定义的误粘贴副本已清理（含 `ActiveRuns` 两个 `snapshot()` 互相覆盖、产物保引用静默失效的生产缺陷；现为 `contexts()` 活对象 / `snapshot()` 库内记录两种形状，各有回归用例）。
+- 测试：`uv run pytest`；D27 当前 **817 全绿**，工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。假 ADB runner 的 PATH 依赖已消除，默认套件阻止真实模型调用与 Python 外网访问。历史同名定义误粘贴已清理，现为 `contexts()` 活对象 / `snapshot()` 库内记录两种形状，各有回归用例。详细记录见台账。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -72,7 +80,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 cd D:\xm\OmniOperator
 uv run pytest                      # 全量测试（必须全绿再提交）
 uv run omni-web                    # 工作台 http://127.0.0.1:8000（控制台会打印配对链接，点开才可操作）
-uv run omni-cli                    # 终端 REPL
+uv run omni                    # 终端 REPL
 uv run omni-qq                     # QQ 通道（需 NapCat 运行）
 uv run omni-heartbeat              # 心跳调度（cron）
 uv run python -m omni.system.backup --to data/backups/2026-10-27   # 离线备份（先备份再升级）
@@ -98,7 +106,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 
 ## 4. 当前能力清单（已交付）
 
-### 4.1 工具面（`uv run omni-cli` 里 `/tools` 可看全部）
+### 4.1 工具面（`uv run omni` 里 `/tools` 可看全部）
 
 | 域 | 工具 | 说明 |
 |---|---|---|
@@ -127,10 +135,10 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 - **消息不变量断言**：system 唯一首位 / 一批 tool_calls 后允许连续多项结果，每个调用 id 必须恰好匹配一项结果，不能漏回、重复或插入其它消息
 - **回合作用域**：SessionRef.bind 在正常返回和异常时均恢复调用者会话；delegate 保持父审批链，无需放宽权限
 - 系统提示词 = 人设 + 常驻记忆快照（用量头）+ 档案块，单轮内字节稳定
-- review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，候选变更/差异确认待 D18
+- review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，D18 候选变更/差异确认已交付
 - 运行账本、事件续读、协作式取消与 ToolResult 已接入；旧字符串工具仍有兼容适配，跨进程取消和在途操作限制见台账
 - 模型能力、超时、有界重试、usage/费用预留结算已有实现；**预算默认未设上限**，无人值守付费推理需明确授权与限额
-- 心跳调度：tick 30s，state.db 原子领取同一到期时刻并推进 next_run；任务可编辑（乐观 revision）；成败只看执行器是否抛异常（run_turn 结构化状态）；投递 outbox 已上线（掉线入队/恢复补投/unknown 不自动重发）；`context_from` 绑定具体 run 与并行上限留待后续
+- 心跳调度：tick 30s，state.db 原子领取同一到期时刻并推进 next_run；任务可编辑（乐观 revision）；成败取 run_turn 结构化状态；投递 outbox 原子领取/回执确认/unknown 不自动重发；`context_from` 绑定有效期内成功 run，并行上限默认 2、积压合并、显式 IANA 时区已交付
 
 ### 4.3 通道与界面
 - **Web 工作台**（`channels/web.py` + `web_static/index.html` 单文件前端）：
@@ -165,7 +173,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 已借鉴并实现多入口内核、grace call、todo、消息不变量、三层记忆、review、技能 patch、cron、审批、受限委派和工具注册；后续补了运行/取消、预算、持久摘要、文件/网页读取和产物/图像消息。
 这不表示 Hermes 对标已完成。设备闭环、调度投递、技能治理、MCP 管理、运维评测和真实验收仍有缺口；完整比较与门槛见 [完整计划](LOCAL_AGENT_PLAN.md)。没有同模型同任务评测，不能断言实际效果相当。
 
-MCP stdio 已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。技能 references、历史/CAS 底座已有，工作台编辑/回滚与安装扫描待 D18。桌面、受控主动性和向量记忆属于后续扩展，不能替代安全和稳定性收口。
+MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。技能 references、历史/CAS、工作台编辑/回滚与候选队列已交付；外部安装通道未开放。桌面、受控主动性和双接口向量记忆已有受限实现，真实扩展验收不能替代安全和稳定性收口。
 
 ## 5. 平台坑清单（血泪，别再踩）
 

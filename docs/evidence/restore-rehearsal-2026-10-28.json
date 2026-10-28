@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "source": "d27460b8ddfcfd09e4e37c587b9ea53d82ebdbf1c062dca92a3dc7a4401952b5",
+  "original_schema": 13,
+  "target_schema": 13,
+  "opens": [
+    {
+      "schema": 13,
+      "degraded": []
+    },
+    {
+      "schema": 13,
+      "degraded": []
+    }
+  ],
+  "tables": [
+    {
+      "database": "state.db",
+      "table": "jobs",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true
+    },
+    {
+      "database": "state.db",
+      "table": "executions",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true
+    },
+    {
+      "database": "state.db",
+      "table": "budgets",
+      "before_rows": 0,
+      "after_rows": 0,
+      "preserved": true
+    },
+    {
+      "database": "memory.db",
+      "table": "sessions",
+      "before_rows": 16,
+      "after_rows": 16,
+      "preserved": true
+    },
+    {
+      "database": "memory.db",
+      "table": "messages",
+      "before_rows": 42,
+      "after_rows": 42,
+      "preserved": true
+    },
+    {
+      "database": "memory.db",
+      "table": "facts",
+      "before_rows": 6,
+      "after_rows": 6,
+      "preserved": true
+    },
+    {
+      "database": "memory.db",
+      "table": "profile",
+      "before_rows": 3,
+      "after_rows": 3,
+      "preserved": true
+    }
+  ],
+  "databases_integrity": {
+    "state.db": "ok",
+    "memory.db": "ok"
+  },
+  "source_mutated_by_script": false,
+  "real_services_started_or_stopped": false,
+  "credential_copy": false,
+  "backup_entries": 5,
+  "passed": true
+}

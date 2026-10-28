@@ -79,6 +79,22 @@ def test_atomic_record_and_name_validation(tmp_path):
     assert not list((tmp_path / "run").glob("*.tmp"))
 
 
+def test_child_confirms_source_and_startup_drift_is_rejected(tmp_path, monkeypatch):
+    from omni.system import services as module
+    service, live, killed, identity = manager(tmp_path)
+    monkeypatch.setattr(module, 'source_fingerprint', lambda: 'a'*64)
+    service._write_pid('omni-qq', 123)
+    assert service._read_record('omni-qq')['source_confirmed'] is False
+    monkeypatch.setattr(module.os, 'getpid', lambda: 123)
+    service.register_current('omni-qq')
+    assert service._read_record('omni-qq')['source_confirmed'] is True
+    monkeypatch.setattr(module, 'source_fingerprint', lambda: 'b'*64)
+    with pytest.raises(ServiceError, match='源码变化'):
+        service.register_current('omni-qq')
+    assert service._read_record('omni-qq')['source_fingerprint'] == 'a'*64
+    assert not killed
+
+
 def test_inspect_current_process_is_stable_readonly():
     first = inspect_process(os.getpid())
     assert first is not None and first.pid == os.getpid()

@@ -7,6 +7,28 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-28 · D27 副本恢复、常驻采样与验收闸门
+
+- 在 D26 `56ce482` 基础上新增只读采样与发布材料检查，默认覆盖 QQ/心跳服务树；
+  绑定源码、子进程确认的启动身份和 data 路径，哈希链发现证据改动；30 分钟预热后冻结阈值。
+  72 小时不足、漏采/时钟跳变、身份失效、观察过的旧进程残留、资源超限、未知费用/投递、
+  账本计数回退、没有实际任务增量均拒绝放行。检查不会启动任务、调用模型或发布。
+- 真实数据副本恢复与两次打开通过。**实际源库已为 v13**（与早先只读 v9 证据不是同一时点），
+  16 会话/42 消息/6 事实/3 档案逐行保持，两库完整性正常；未切换真实服务。
+  v9→v13 的非空任务/执行/预算保留另外使用隔离 SQLite 用例验证。
+- 第一轮定向测试为 61 通过/1 失败：脚本被同名外部 scripts 包遮蔽；改为按绝对路径载入。
+  代码复查修正新插入函数造成的进程树返回值错位，增加原生只读检查，并复跑脚本自建父子进程
+  的真实回收，两者退出确认。未将真实常驻服务用于终止测试。
+- `uv run --no-sync pytest -q --tb=short --junitxml=.pytest_cache/d27-full.xml` → **817 passed，176.09s**。
+  含新增 28 项验收/证据/源版本回归；模型与出网闸门仍启用。
+- 2026-10-29 补验：精确暂存源码导出到独立目录、全新 Python 3.12.14 venv，按锁文件离线安装
+  99 包；完整测试 **817 passed，148.60s，零跳过**，24 场景预热后 3 轮全部通过。
+  [独立环境证据](evidence/clean-windows-d27.json) 记录源码树、JUnit/评测 SHA256 与环境。
+  该源码不含并行前端修改；没有调用真实模型，也没有模拟长测后宣称 72 小时成功。
+- 操作手册、15 项验收清单、阈值模板见 [ACCEPTANCE.md](ACCEPTANCE.md)。短时真实只读采样
+  因时长、服务身份、预热、实际任务缺失而明确未通过。**72 小时与真实账号/设备/模型闭环未完成，
+  没有发布稳定版**。并行 index.html 与 prototype-html 保留、不纳入本批提交。
+
 ### 2026-10-28 · D26 架构、离线回归与可观察性
 
 - 扩展 AST 守卫：别名/模块属性/getattr 构造、常量动态导入、不可解析动态执行、工具域与平台层规则、
@@ -173,20 +195,20 @@
 | A01 | `peek_command` 前缀正则 + `shell=True`，复合命令/重定向/`&&` 全部穿过 SAFE | 复现→已修复 | `test_a01_*` 已翻转为负例；`test_shell_tools.py` 另有 10 种复合/重定向形态 | D01 | 已修复（待真实验收：真实命令面） |
 | A02 | 只读名单含写子命令与敏感文件：`git branch <name>`、`git remote add`、`type .env` 均到执行器 | 完成 | 命令面：`test_a02_*` 翻转 + 14 种 git 写参数/泄密参数负例 + 8 种敏感路径负例；`type`/`get-content` 已移出 SAFE（`b17cdc1`）。文件域：敏感名单收口到 `tools/pathpolicy.py` 由 shell 与 `files_*` 共用；`files_read/search/list` 在打开文件前拒绝 `.env`/`id_rsa`/`data/`，搜索不返回命中片段（`tests/test_files.py` 26 例） | D01、D13 | 已修复（命令面 + 文件域） |
 | A03 | 私聊判断 `if cfg.allowed_users and ...`：空白名单 = 不限，任何人私聊都被回复 | 复现→已修复 | `test_a03_*` 翻转；`tests/test_qq_scope.py` 7 例（空白名单/名单外/正常私聊/撤销即时生效） | D02 | 已修复（真实 QQ 收发待验收） |
-| A04 | `make_runtime_deliver` 用 `if allowed and ...`：空白名单 = 不限，cron 可发给任意 QQ；工作台建任务 `cron_create` 同款判断 | 复现→已修复 | `test_a04_*` 翻转；`test_cron.py::test_runtime_deliver_guards` 覆盖空白名单/撤销；`test_web.py` 覆盖建任务校验与撤销 | D02、D17 | 已修复；投递 outbox 与去重仍属 D17 |
-| A05 | 私聊与各群共用 `get_or_create_binding("qq", str(user_id))`，历史跨场景混合 | 复现→已修复 | 绑定键改为 `dm:<qq>` / `group:<群号>`；`test_a05_*`；旧键只迁给私聊；群聊 `personal_context=False` 并有 `GROUP_DENIED_TOOLS` | D02、D06、D22 | 已修复（记忆作用域完整策略仍待 D12/D22） |
-| A06 | Web `/api/chat` 先改共享 `runtime.agent.session_id` 再 `chat()`，响应与 review 也读共享值；并发请求会串话 | 已修复 | 会话 id 由请求固定；进程内闸门（同会话串行/异会话并行/队列满 429）+ `state.db` 跨进程租约；review 显式带 sid；`tests/test_sessions.py` 14 例（含两个请求真并行、同会话不交错、工具写入正确会话、异常回合释放自己的租约） | D06 | 已修复（QQ 侧接入租约留 D22） |
+| A04 | QQ/cron 空白名单放行风险 | 已修复 | 统一空名单拒绝；a52f0ec 补投原子领取与 OneBot 回执；未知不重发 | D02、D17 | 代码关闭，真实掉线补投待验 |
+| A05 | QQ 私聊与各群历史混合 | 已修复 | dm/group 分场景、群个人上下文与工具隔离，81893be 事件去重/撤回与租约 | D02、D06、D22 | 代码关闭，真实两群隔离待验 |
+| A06 | Web 并发切换共享会话造成串话 | 已修复 | 请求固定 sid、会话闸门与数据库租约、review 显式 sid；D22 QQ 同样接入 | D06、D22 | 回归通过，真实多入口并发待验 |
 | A07 | 全套 API 无身份校验、无 Origin/Host 校验；`/api/terminal/ws` 直接 `accept()`；`/api/system/config` 回显 `qq.access_token` 明文 | 源码→已修复 | `tests/test_web_auth.py` 31 例：12 个敏感 GET 未配对即 401、写接口/服务/审批/WS 全拒、跨站 POST 无副作用、Host 伪造、过期/篡改会话、密钥不回显与三态修改、非回环监听默认拒绝 | D03 | 已修复（真实浏览器跨站尝试与 PTY 会话待手动验收） |
 | A08 | `data_dir` 隔离有遗漏：安卓截图写全局 `DATA_DIR/android_shots`；Web 的 Cookie/配置路由用全局 `BILI_COOKIES_PATH`/`CONFIG_PATH`；`bootstrap` 构造 `BiliAPI()` 未注入 Cookie 路径（测试会读真机 Cookie） | 源码→已修复 | `config.RuntimePaths` 统一声明 12 个路径；`tests/test_paths.py` 10 例：路径派生、安卓截图、Cookie 读取、Web 写配置/Cookie、隔离实例不探测/不启停真机进程、真实 `data/` 目录 canary 全量快照不变 | D04 | 已修复（真机目录 canary 用 mtime 快照验证；跨盘符/junction 场景留待 D13 文件域） |
 | A09 | 共享 JSON 只用 `threading.Lock`（锁不跨进程）、固定 `.tmp` 名字、无原子替换 | 已修复 | 任务/账本/额度迁入 `data/state.db`（跨进程事务 + 唯一键 + 条件更新）；技能与常驻记忆的**文件**读改写改用 `system/filelock` 跨进程锁 + `system/atomic` 唯一临时文件原子替换；`tests/test_state.py`、`tests/test_skills_history.py` 各用真实子进程验证「不丢写」 | D05、D08 | 已修复 |
 | A10 | 损坏/不可读状态一律当空数据：`WriteBudget._load` 返回 `{}` → 当日额度被重置；`JobStore` 读失败降级 | 已修复 | 迁移区分 缺失/合法空/0 字节/损坏；损坏且库内无可用数据时**停用能力**（budget 一律停用），预算显示满额而非 0；工作台返回 503 而不是空列表；心跳不启动调度器 | D05、D25 | 已修复（历史用量确实无法恢复时在 detail 里写明） |
 | A11 | 同步 Playwright 实例跨线程复用，`RLock` 只串行化、不改变线程归属；同 profile 无跨进程占用协议 | 已修复 | 专用所有者线程 + 有界队列 + `BrowserUnknown` 超时语义；profile 走 `resource_leases`（v3）；`tests/test_browser_owner.py` 8 例，含真实 Chromium 多线程用例与跨进程租约 | D07 | 已修复（真实登录 profile 未用于测试，符合边界） |
-| A12 | `tap_element` 在陈旧/换设备时先 `refresh_tree()` 再用**同一个 idx** 在新树里找元素 → 可能点到别的东西；动作后无强制复检 | 源码 | `tools/android/driver.py:168-185` | D16 | 源码发现 |
-| A13 | 截图工具只回路径字符串，`Agent` 未构造图像消息块，模型收不到图 | 源码 | `tools/browser/tools.py`、`tools/android/tools.py`、`core/agent.py` | D15 | 源码发现 |
-| A14 | 技能更新锁只覆盖最终 `write`，读改写不原子；版本号递增但无历史快照 | 已修复 | 整段读改写进跨进程锁；`expected_hash`/`_seen` 做 CAS；`memory/revisions.py` 保存每版内容（作者/来源/时间/摘要/附件清单）；回滚产生新修订；`tests/test_skills_history.py` 18 例（含两进程同指纹只有一个成功、落盘失败原文件不变、junction 写入被拒） | D08 | 已修复；编辑 UI 与差异展示留 D18 |
-| A15 | `profile_edit` 未重跑总额度校验；常驻防注入规则未覆盖 review/skill 等全部学习入口 | 已修复 | `profile_edit_checked` 重算总额并拒绝超限（`test_profile_edit_cannot_exceed_total`）；事实/档案/技能/回滚统一走 `MemoryGuard`（输入检查 + 共用当日额度 + 遗忘检查），review 与手动写入同一闸门（`tests/test_memory_governance.py` 18 例） | D12 | 已修复（"候选队列/差异确认"未做，见第 5 节剩余限制） |
+| A12 | 旧观察在刷新后重解释 idx，可能误点；动作无复检 | 已修复 | `88d1c47` 全动作观察绑定、单次令牌、树/像素/设备复核和动作后观察；负例零执行 | D16 | 离线已关闭，真设备闭环待验 |
+| A13 | 截图只回路径，模型收不到图 | 已修复 | D15 产物归属/指纹和图像消息链，隐私门未开启如实降级；605 项批次证据见历史 | D15 | 图像链已交付，真实视觉模型质量待验 |
+| A14 | 技能读改写不原子、缺少可恢复历史 | 已修复 | 跨进程锁、CAS、修订与回滚；D18 工作台全文/历史/差异/待审阅队列已交付 | D08、D18 | 代码关闭，持续使用体验待验 |
+| A15 | 档案编辑总额度与学习入口检查不一致 | 已修复 | MemoryGuard 共用额度/遗忘/输入检查；D18 技能修订候选审阅与差异已交付 | D12、D18 | 代码关闭；审阅不是提升工具权限的门禁 |
 | A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 已修复 | **索引**：FTS 改由触发器增量维护，只在「首次 / 分词器升级 / 旧库无状态」重建一次（`tests/test_context.py` 5 例）；**review**：单 worker + 有界队列 + 按消息区间认领去重，队列满返回 `full`（`test_review_queue_is_bounded`、`test_review_is_deduplicated_by_message_range`）；模型消耗计入 D10 账本（`purpose=review`） | D11、D12 | 已修复（真实多进程并发 review 未演练） |
-| A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 部分修复 | `claim_due()` 在单个写事务里推进 `next_run_at` + 写 `job_claims`；4 个真实进程同时 tick 只派发一次（`tests/test_state.py::test_claim_due_is_atomic_across_processes`） | D05、D17 | 领取已修复；并行上限、投递 outbox/去重、`context_from` 绑定 run_id 仍属 D17 |
+| A17 | cron 并行无上限、领取/依赖/投递不可靠 | 已修复 | 0c59902 数据库上限 2、续约/积压合并、成功 run+TTL/时区；a52f0ec outbox 原子领取与回执 | D05、D17 | 代码关闭，真实调度重启/掉线补投待验 |
 | A18 | 服务停止裸 PID 可能误杀复用进程 | 已修复 | D25 创建时间/exe/nonce、保留句柄终止；PID 变化假终止器零调用；临时父子进程真机退出证据 | D25 | 旧真实服务迁移待用户参与 |
 | A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 已修复 | 进程树回收 + "已确认回收/回收状态未知"话术；D09 起工具异常/超时统一记 `side_effect_state=unknown`（`tests/test_runs.py::test_execute_distinguishes_the_four_outcomes`） | D01、D09 | 已修复 |
 | A20 | 无运行账本/取消/token 与费用硬预算/统一 `ToolResult` 状态（工具回的是字符串） | 已修复 | 账本/事件流/协作式取消/`ToolResult`（D09，`memory/runs.py`、`core/run.py`、`tools/result.py`）；费用：调用前预留 + 调用后结算，日额度与父子运行共享，未知计价记 NULL 而不是 0（D10，`llm/budget.py`、`memory/usage.py`、`tests/test_usage.py` 18 例）；流式 usage 与半途断连（`llm/gateway.py::stream`、`tests/test_gateway.py` 7 例） | D09、D10 | 已修复（真实供应商账单对账待真实验收） |
@@ -217,17 +239,17 @@
 | D13 | 完成 | A02（文件域）、路径与写入边界 | 见第 5 节 | `uv run pytest tests/test_files.py -q` → 29 passed；`uv run pytest -q` → 564 passed（无 F/E） | 真机仓库只读冒烟：`src/omni` 列表、`config.py` 前 3 行 + 指纹、`.env`/`data/` 被拒、`C:/Windows/win.ini` 越根被拒、`data/file_history` 未被创建；junction 逃逸与只读盘在临时目录验证；真实编辑器并发写入待 D27 | 进入 R3（D14 通用网页读取） |
 | D14 | 完成 | 新能力：通用网页读取（无对应 A 项，防的是 SSRF/注入/凭据外带） | 见第 5 节 | `uv run pytest tests/test_web_fetch.py -q` → 25 passed；`uv run pytest -q` → 589 passed（无 F/E） | 真实公网：`https://example.com/` 200 + 正文提取；`https://www.baidu.com/` 返回空壳页并被如实说明（需 JS）；发往本机假服务的超大流/重定向/429/超时/登录页/注入用例全绿 | 进入 R3（D15 产物与视觉输入） |
 | D15 | 完成 | A13 | 见第 5 节 | `uv run pytest tests/test_artifacts.py -q` → 13 passed；`uv run pytest -q` → **605 passed（无 F/E）** | 真实 Chromium 冒烟通过（见第 5 节真机证据）；真实安卓截图待 D16 插真机；真实视觉模型的看图效果需用户配置 `vision.send_to_cloud` 后实测 | 进入 D16（A12 离线修复） |
-| D16 | 完成 | A12 | 见第 5 节 | `uv run pytest tests/test_android.py -q` → 29 passed；关联批次 `tests/test_web.py test_arch.py test_agent.py test_cron.py` → 58 passed（2026-10-28） | 安卓真机待插设备：观察绑定点击的真机闭环（两设备交错/旋转/ADB 断连复检/中文输入恢复）待插真机验收 | 进入 D17（cron 编辑与可靠投递） |
-| D17 | 完成 | A04（编辑校验）、A17（投递 outbox 与去重） | 见第 5 节两批：①任务编辑 + 成败判定去前缀化；②投递 outbox——QQ 掉线入队恢复补投、unknown 不自动重发、白名单撤销即丢、3 次成死信 | ①`tests/test_cron.py tests/test_web.py` → 51 passed；②`uv run pytest tests/test_outbox.py -q` → **12 passed**（去重/终态释放/容量/分类/补投/死信/端点） | 真机 `data/state.db` 已 v6→v7（备份 `data/backups/pre-d17-outbox`，degraded 空、重开幂等）；**真实 QQ 掉线→补投闭环待 NapCat 扫码后实测** | **剩余**：`context_from` 绑定具体成功 run、并行上限与积压策略、显式时区（原大纲细项）；心跳进程未运行（工作台可启动） |
-| D18 | 完成 | A14（编辑 UI 与审阅队列） | 见第 5 节两批：①技能工作台编辑（保存 CAS / 历史 / 差异 / 回滚）；②候选变更审阅队列（agent/review 自动改的修订可见、可 diff、可回滚、可标记已读） | ①`tests/test_skills_history.py tests/test_skills.py tests/test_web.py tests/test_arch.py tests/test_agent.py` → 86 passed；②`tests/test_web.py -k pending` → 2 passed + `tests/test_state.py` → 23 passed（已读标记只前进） | 真机 `data/state.db` 已 v8→v9（备份 `data/backups/pre-d18-queue`，degraded 空、重开幂等、冒烟行已清理）；**真实 agent 自进化产生技能变更后的审阅体验待用户实际使用** | **剩余**：外来包隔离安装（隔离区+清单检查+不执行 postinstall）——当前没有导入通道，也就没有导入攻击面 |
-| D19 | 完成 | MCP 管理（两批） | 见第 5 节两批：①状态纯派生 + 工具目录带授权标记 + 面板；②schema 漂移检测（指纹登记/变化提醒/复查确认）+ 面板手动重连 | ①`tests/test_mcp.py -q` → 15 passed；②`tests/test_mcp.py -q` → **18 passed**（新增 3 例：指纹存储语义、指纹规则（忽略描述/跟踪形态）、真实 stdio 服务改 schema → 漂移提醒 → 确认清除 → 失败重连） | 真机 `data/state.db` 已 v7→v8（备份 `data/backups/pre-d19-drift`，degraded 空、重开幂等）；**真实受信 MCP 生产服务联调待用户提供** | **剩余**：连接/健康细节（重连只给一次干净握手，无自动退避重连）、Streamable HTTP/OAuth（大纲允许独立后置） |
+| D16 | 待真实验收 | A12 全动作观察绑定 | 88d1c47 | 763 passed；锁帧/焦点/输入法/重放/互斥回归 | 未连接真机，多设备/旋转/断连/MJPEG/输入法待验 | ACCEPTANCE 北极星 D |
+| D17 | 待真实验收 | A04/A17 调度与可靠投递 | a52f0ec、0c59902 | 644/648 项批次全绿，含跨进程领取/回执/并行/时区/依赖 | 真实 QQ 掉线补投与重启未闭环 | ACCEPTANCE 北极星 C |
+| D18 | 待真实验收 | A14 技能编辑/审阅 | 3a1c536、03ede8f | CAS/历史/回滚/差异和已读递进测试通过 | 真实 agent 修订后的审阅体验待验；无外部导入通道，隔离安装后置 | 监督使用并记录证据 |
+| D19 | 待真实验收 | MCP stdio 管理/权限漂移 | a52f0ec 及前序批次 | 真实离线 stdio 子进程、漂移撤权/人工复核/重连回归 | 生产受信服务未提供；HTTP/OAuth 后置 | ACCEPTANCE 北极星 E |
 | D20/D21 | 待真实验收 | R5 桌面 | 见最新桌面批次 | 676 passed；记事本真机读/写/截图通过 | 第二应用、多屏、锁屏、管理员窗口未验；无通用前台接管 | 按应用扩展验收 |
 | D22 | 待真实验收 | QQ 场景/主动性 | 见最新 D22 批次 | 692 passed，含四进程去重与工作台停止 | 真实 QQ 登录、群/重连/撤回待验 | 用户扫码后验证 |
 | D23 | 待真实验收 | B站 UI 写 | 见最新 D23 批次 | 741 passed；真实 Chromium 离线页面 | 默认关闭，实站账号/选择器/一次明确发布待用户参与 | 核验实站控件后单次人工批准 |
 | D24 | 待真实验收 | 混合检索 | `bb05219` | 662 passed；20 样本 FTS 基线 | 双接口已交付，真实模型收益未验，默认关闭 | 配置模型后评测 |
 | D25 | 待真实验收 | A10、A18、运维恢复 | 见最新 D25 批次 | 718 passed；临时父子进程真实停止；doctor 真机只读 | 旧服务身份迁移、登录 profile 与多次启停待验 | D27 验收 |
 | D26 | 待真实验收 | 架构/CI/任务评测 | 见最新 D26 批次 | 789 passed；24×3 离线场景；独立环境复现 | 真实模型任务率、生产资源阈值和托管 CI 接入待验 | D27 采样与真实任务 |
-| D27 | 待开始 | 真实验收/常驻/发布 | — | 尚无 72 小时证据 | 账号/设备/模型与常驻时间需真实提供 | 不提前标完成 |
+| D27 | 待真实验收 | 副本恢复/常驻/证据/发布 | 见最新 D27 批次 | 817 passed；实际 v13 副本恢复、原生采样与临时进程回收 | 72 小时未跑满；15 项真实证据未齐；无发布授权 | 按 ACCEPTANCE.md 逐项验收 |
 
 ## 5 变更记录
 
@@ -1195,8 +1217,8 @@
 | A02 | 只读命令的写参数与密钥文件 | git 参数级校验；`type`/`get-content` 移出 SAFE；路径限定工作区并遮蔽密钥 | `b17cdc1` |
 | A19 | 超时只处理直接子进程 | 进程树回收 + "已确认回收/回收状态未知"话术 | `b17cdc1` |
 | A03 | QQ 空白名单放行入站 | 统一判定 `private_target_allowed`，空白名单 = 谁都不许 | `42617ef` |
-| A04 | cron/建任务空白名单放行投递 | 同上，四条路径共用；策略热读，撤销立即生效 | `42617ef` |
-| A05 | 私聊/群聊共用绑定键 | `dm:` / `group:` 分场景绑定，旧键只迁私聊；群聊不带私人上下文 | `42617ef` |
+| A04 | QQ/cron 空白名单放行风险 | 已修复 | 统一空名单拒绝；a52f0ec 补投原子领取与 OneBot 回执；未知不重发 | D02、D17 | 代码关闭，真实掉线补投待验 |
+| A05 | QQ 私聊与各群历史混合 | 已修复 | dm/group 分场景、群个人上下文与工具隔离，81893be 事件去重/撤回与租约 | D02、D06、D22 | 代码关闭，真实两群隔离待验 |
 | A07 | 工作台无身份、密钥明文回显 | 配对 + HttpOnly 会话 + Host/Origin/CSRF + WS 握手鉴权 + 密钥三态 | `7742a61` |
 | A08 | `data_dir` 隔离有遗漏 | `RuntimePaths` 统一声明 + 隔离实例不碰真机进程 | 见本次提交 |
 

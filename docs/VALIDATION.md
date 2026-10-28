@@ -1,5 +1,10 @@
 # Windows 验证与离线评测（D26）
 
+2026-10-29 收尾状态：完整回归 **817 passed**，全新 venv/精确暂存源码导出再次通过，
+24 场景预热+3 轮全部通过（0 次真实模型调用），见 [D27 独立环境证据](evidence/clean-windows-d27.json)。
+新增采样/迁移/证据检查见 [ACCEPTANCE.md](ACCEPTANCE.md)。下文首轮样本数值是 D26
+历史基线；任何离线回归都不能作为真实模型质量或 72 小时通过证明。
+
 默认 `uv run pytest` 全离线。`tests/conftest.py` 禁止未替换的模型/embedding 传输，
 Python TCP/UDP 连接只允许回环，非本地 DNS 查询拒绝。Python 子进程继承 sitecustomize；
 闸门命中写入本轮临时证据，即使业务捕获异常也让测试失败。此机制防止测试意外出网，
