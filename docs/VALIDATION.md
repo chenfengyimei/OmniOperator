@@ -1,5 +1,12 @@
 # Windows 验证与离线评测（D26）
 
+第二批 Web 领域重构：最终提交源码独立环境 **952 passed**、工作区 **999 passed**，
+47 项并行未提交测试另计；见 [验证摘要](evidence/web-api-refactor-2026-10-29.json)。
+新增已发布版 HTTP 合同、12 组路由鉴权、应用隔离和手机 API 表格回归；
+`channels/web_api` 目标类型检查零错误，索引检查通过。后续重构顺序见 [REFACTORING.md](REFACTORING.md)。
+
+以下为各历史批次的验证记录，不能把不同源码范围的测试数直接作增减比较。
+
 2026-10-29 模块结构批：工作区 981 项通过；实际提交源码独立环境 **934 项全绿**，
 47 项并行未提交测试另计，见 [结构批验证摘要](evidence/project-structure-2026-10-29.json)。
 Windows CI 已加入 `scripts/project_index.py --check`，源码变更后需重新生成索引；

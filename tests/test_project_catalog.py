@@ -146,9 +146,13 @@ def test_real_browser_project_navigation_search_details_and_mobile(workbench, tm
         page.locator('#close-detail').click();page.locator('#search').fill('')
         page.locator('[data-view="apis"]').click()
         assert page.locator('.flow').count()>=6
+        page.locator('#category').select_option('module:http-conversation')
+        assert sorted(page.locator('tbody .link-button').all_text_contents()) == ['/api/chat','/api/chat/stream','/api/runs']
         page.locator('#search').fill('/api/chat/stream');page.locator('tbody .link-button').click()
         assert page.locator('#detail-title').inner_text()=='POST /api/chat/stream'
         assert page.locator('#detail-body').get_by_text('ChatIn',exact=True).is_visible()
+        page.get_by_role('button',name='查看所属模块与依赖',exact=True).click()
+        assert page.locator('#detail-title').inner_text() == '对话与流式 API'
         page.locator('#close-detail').click();page.locator('#search').fill('')
         page.locator('[data-view="tools"]').click();page.locator('#search').fill('get_time')
         page.locator('.card').get_by_role('heading',name='get_time',exact=True).click()
@@ -161,6 +165,11 @@ def test_real_browser_project_navigation_search_details_and_mobile(workbench, tm
         page.locator('#close-detail').click()
         page.set_viewport_size({'width':390,'height':844})
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+        page.locator('[data-view="apis"]').click()
+        page.locator('#category').select_option('module:http-memory')
+        assert page.locator('tbody .link-button').count()>=8
+        assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+        assert page.locator('tbody tr').first.bounding_box()['height'] < 120
         page.screenshot(path=str(tmp_path/'project-mobile.png'),full_page=True)
         assert not errors
     try:

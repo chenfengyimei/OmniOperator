@@ -7,7 +7,7 @@
 ## 1 三种索引入口
 
 - **可视化**：`uv run --no-sync omni-web`，配对后点顶栏“项目与能力”，或打开 `/project/`。
-  可搜索模块、路径、符号、接口、工具；查看请求字段、审批等级、注册状态、扩展契约和源码位置。
+  可搜索模块、路径、符号、接口、工具；查看请求字段、审批等级、注册状态、扩展契约和源码位置；API 支持按所属模块筛选，并可从接口详情跳到模块与依赖。
   文档可在页面直接阅读。该页不执行工具、不连接 MCP 或社区、不激活插件。
 - **文件导航**：[index/MODULES.md](index/MODULES.md) 按模块列出源码、职责、测试和说明文档；
   [index/API.md](index/API.md) 列出 HTTP/WS、请求模型、关键调用链和静态工具声明。
@@ -71,7 +71,22 @@ src/omni/
     server.py               旧启动命令兼容层
   channels/
     cli.py / qq.py / heartbeat.py   三类入口适配
-    web.py / web_auth.py     工作台业务 HTTP、统一鉴权与静态挂载
+    web.py / web_auth.py     应用生命周期、统一鉴权、配对/设置与静态挂载
+    web_api/
+      __init__.py           领域路由聚合，显式注入同一 Runtime
+      schemas.py            共享请求模型；web.py 保留旧名称转发
+      sessions.py           会话、历史、状态与待办
+      conversation.py       普通/流式对话、显式运行入口
+      runs.py               运行/事件/取消与费用
+      memory.py             事实、档案、常驻、review 与检索状态
+      skills.py             技能编辑/修订/差异/回滚/审阅
+      artifacts.py          产物查询、指纹回读与清理
+      approvals.py          待审批查询与人工决定
+      mcp.py                MCP 状态/发现/权限复核/重连
+      operations.py         系统、服务、doctor、备份与日志
+      automation.py         任务与 outbox
+      publications.py       草稿编辑与未知结果核查
+      devices.py            桌面与安卓观察/动作/视频流
     terminal/
       backend.py            ConPTY 平台可用性与创建
       session.py            一条 PTY 的读/写/调整/退出
@@ -161,7 +176,8 @@ MCP 的远端目录只有用户显式发现后才读取；索引页不会为了�
 1. 找到职责模块与已有公开契约。新本机能力放 `tools/<域>/`；插件/MCP/技能按上表选入口。
 2. 驱动/API、工具包装、存储分别放领域底层、`tools.py`、`memory/`，通过 bootstrap 注入。
    不在工具中构造 Agent/Gateway，不跨工具域 import，不从 memory/safety 倒挂插件宿主。
-3. 新 Web 专题在 `channels/<专题>/routes.py` 导出 `create_xxx_router(deps)`；在 web.py
+3. 核心业务 Web 接口在 `channels/web_api/<领域>.py` 导出 `create_xxx_router(runtime)`，在
+   web_api/__init__.py 聚合；独立工作台专题沿用 `channels/<专题>/routes.py`。在 web.py
    include_router，继承 `/api/` 统一鉴权。新前端专题使用独立目录和 HTML/CSS/JS。
 4. 需要持久化先扩展 RuntimePaths/注入路径；默认套件只用临时数据和假外部依赖。
 5. 更新 `system/catalog/schema.py` 的分类、相关测试与文档；需要时补关键调用链定位。
@@ -170,3 +186,10 @@ MCP 的远端目录只有用户显式发现后才读取；索引页不会为了�
 索引解析 AST 和受限文本资源，不导入待索引模块。它不是 Python 动态执行的数据流证明，
 也不以源码行数或工具数量判定产品完成。真实设备/账号/模型和稳定版门槛仍见
 [ACCEPTANCE.md](ACCEPTANCE.md)。
+
+## 6 重构与兼容验证
+
+最新路线与本批边界见 [REFACTORING.md](REFACTORING.md)。
+`tests/fixtures/web_api_v1.json` 从已发布 934618f 的隔离源码提取，冻结 90 个 HTTP 操作和
+23 个 OpenAPI schema；方法/路径、参数、请求/响应与 operationId 必须兼容，分组 tags 可调整。
+共享请求模型和路由聚合分别拥有索引分类，避免把装配依赖与数据契约合成表面循环。

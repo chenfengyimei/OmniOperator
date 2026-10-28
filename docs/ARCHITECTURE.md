@@ -35,7 +35,7 @@ config.py 提供声明配置、路径与兼容版本，不承担业务编排。
 | `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 模型调用流水与费用账 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；持久摘要（按消息区间覆盖、版本链、失败降级）；事实记忆带来源/作用域与遗忘墓碑（写入额度闸门）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；外来技能包隔离安装（`memory/skill_inbox.py`：inbox 收 zip → 类型白名单数据化解包进隔离区 → 清单逐文件 sha256 → 人工确认激活（防篡改复核+跨进程技能锁+来源记入修订史），绝不执行包内脚本）；产物登记（截图/导出：sha256 指纹、归属会话、保留期与总量上限，跨会话读取拒绝）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py`、`memory/artifacts.py` |
 | `tools/` | Registry（注册/查找/规格生成/派发/结构化 `ToolResult`）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM；两者截图经 `tools/shots.py` 统一登记为产物；files：工作区 list/search/read/diff SAFE + 写/回滚 CONFIRM（路径与敏感项由 `tools/pathpolicy.py` 单点定义）；web：公开网页有界抓取 + 正文提取 SAFE（协议/目标网络/每跳重定向/大小/超时受控）） | 能力域之间互不 import | `tools/registry.py`、`tools/result.py`、`tools/runctx.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/`、`tools/files/`、`tools/web/`、`tools/pathpolicy.py` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
-| `channels/` | 入口适配：展示、输入解析、调 Runtime；CLI/QQ/心跳适配与 Web 入口；终端按 backend/session/pool/routes 归包，新工作台专题用独立 APIRouter | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal/`、`channels/qq.py`、`channels/heartbeat.py` |
+| `channels/` | 入口适配：展示、输入解析、调 Runtime；CLI/QQ/心跳适配与 Web 应用入口；Web 业务按 web_api 领域拆分；终端按 backend/session/pool/routes 归包，新工作台专题用独立 APIRouter | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal/`、`channels/qq.py`、`channels/heartbeat.py` |
 | `plugins/` | 插件子系统（顶层包，与 channels 同级）：manifest 校验（纯数据零执行）；宿主生命周期（inbox 收 zip/工作区目录 → 隔离区数据化校验 → **人工确认激活** → 装载注册 → 启停/卸载/启动恢复）；受限注册面 `PluginContext`（工具名强制 `<id>-` 前缀防影子覆盖、`toolset=plugin:<id>` 可归因、风险声明照常走既有审批链）；面向 agent 的生命周期工具。信任模型：校验零执行、**激活即同意执行**（不假装沙箱；不可信来源走 MCP）——全文见 [PLUGIN_SYSTEM.md](PLUGIN_SYSTEM.md) | 不构造 Gateway/MemoryStore 等组装根对象；不加载未激活的代码 | `plugins/manifest.py`、`plugins/host.py`、`plugins/tools.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
 
@@ -424,6 +424,15 @@ android_shots/android_cache/browser_profile/browser_shots/run/logs/mcp_logs）�
 服务探测/终止/启动、路径。新增能力时若需要外部副作用，先想清楚"测试里它从哪儿来"。
 
 ## 6. 目录分类与 HTTP 边界
+
+- `channels/web.py` 负责应用生命周期、统一鉴权、配对/设置与静态挂载；业务 HTTP 适配
+  位于 `channels/web_api/` 的 12 个领域文件。每个 create_xxx_router 只消费注入 Runtime，
+  聚合器显式挂载同一实例，不能在路由内构造核心对象或导入 web.py 造成反向循环。
+- `web_api/schemas.py` 只承载请求声明；允许标准库、Pydantic 和声明配置类型，不依赖
+  Runtime/core/memory/tools。旧 web.ChatIn 等公开模型名继续显式转发。请求契约与路由
+  聚合分开索引，跨应用不得共享捕获 Runtime 的全局路由单例。
+- 本批保持既有 HTTP/WS 路径、状态与校验字段。技能 pending 等静态路由先于变量路由；
+  以发布版 HTTP 合同、既有行为测试、应用隔离与域鉴权测试检查。模型构造/费用/权限仍归原层。
 
 - `tools/personal/` 按 clock/facts/profile/resident/todos/digest/refine 拆分；
   skills/scheduling/delegation/system 与设备、文件、shell 等域平级。

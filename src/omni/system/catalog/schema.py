@@ -25,6 +25,20 @@ MODULES = (
     Module('terminal', '内置终端', '交互与终端', ('channels/terminal/',), 'ConPTY 后端、会话、会话池、WebSocket 四层；与 agent shell 工具分工。', ('ARCHITECTURE.md',), ('test_terminal.py', 'test_doctor_lifecycle.py')),
     Module('workbench', '项目与能力工作台', '交互与终端', ('channels/workbench/', 'channels/web_static/project/'), '项目索引、API、已注册工具和扩展状态的只读 HTTP 适配。', ('PROJECT_INDEX.md',), ('test_project_catalog.py',)),
     Module('web-ui', 'Web 界面与身份', '交互与终端', ('channels/web.py', 'channels/web_auth.py', 'channels/web_static/'), '工作台业务路由、统一鉴权与静态界面；新专题使用独立 APIRouter。', ('ARCHITECTURE.md',), ('test_web.py', 'test_web_auth.py')),
+    Module('http-sessions', '会话与待办 API', 'Web 接口', ('channels/web_api/sessions.py',), '会话选择、历史、状态和待办；消费注入 Runtime。', ('PROJECT_INDEX.md',), ('test_web_api.py', 'test_sessions.py')),
+    Module('http-conversation', '对话与流式 API', 'Web 接口', ('channels/web_api/conversation.py',), '普通/流式对话、显式运行入口；共用会话闸门、租约和取消。', ('PROJECT_INDEX.md',), ('test_web_api.py', 'test_web.py')),
+    Module('http-runs', '运行与用量 API', 'Web 接口', ('channels/web_api/runs.py',), '运行查询、事件续读、协作取消和费用视图。', ('PROJECT_INDEX.md',), ('test_web.py',)),
+    Module('http-memory', '记忆与档案 API', 'Web 接口', ('channels/web_api/memory.py',), '事实、档案、常驻、review 和检索状态。', ('PROJECT_INDEX.md',), ('test_web.py',)),
+    Module('http-skills', '技能与审阅 API', 'Web 接口', ('channels/web_api/skills.py',), '技能编辑/修订/差异/回滚和待审阅状态，保留静态路由优先级。', ('PROJECT_INDEX.md',), ('test_web_api.py', 'test_skills_history.py')),
+    Module('http-artifacts', '产物 API', 'Web 接口', ('channels/web_api/artifacts.py',), '产物列表、指纹验证读取和清理，统一领域错误映射。', ('PROJECT_INDEX.md',), ('test_artifacts.py',)),
+    Module('http-approvals', '审批 API', 'Web 接口', ('channels/web_api/approvals.py',), '待批准事项和人工决定；不构造或绕过审批器。', ('ARCHITECTURE.md',), ('test_web_auth.py',)),
+    Module('http-mcp', 'MCP 管理 API', 'Web 接口', ('channels/web_api/mcp.py',), '只读状态、显式发现、目录复核和重连。', ('MCP.md',), ('test_mcp.py',)),
+    Module('http-operations', '服务与诊断 API', 'Web 接口', ('channels/web_api/operations.py',), '系统概览、doctor、备份、服务启停和日志。', ('OPERATIONS.md',), ('test_web.py',)),
+    Module('http-automation', '调度与投递 API', 'Web 接口', ('channels/web_api/automation.py',), '任务创建/编辑/启停、历史和 outbox 人工处理。', ('PROJECT_INDEX.md',), ('test_cron.py',)),
+    Module('http-publications', '发布草稿 API', 'Web 接口', ('channels/web_api/publications.py',), '草稿查询、乐观编辑和未知结果核查，不直接发布。', ('BILIBILI_WRITING.md',), ('test_bilibili_publishing.py',)),
+    Module('http-devices', '桌面与安卓 API', 'Web 接口', ('channels/web_api/devices.py',), '窗口观察、设备树/锁帧、受观察约束的手动动作和 MJPEG。', ('ANDROID.md', 'DESKTOP.md'), ('test_web.py', 'test_web_api.py')),
+    Module('http-contracts', 'HTTP 请求契约', 'Web 接口', ('channels/web_api/schemas.py',), '公共请求模型；只承载数据声明，旧 web 模型名继续显式转发。', ('PROJECT_INDEX.md',), ('test_web_api.py',)),
+    Module('http-routing', 'HTTP 路由装配', 'Web 接口', ('channels/web_api/',), '聚合注入 Runtime 的领域路由，由应用入口统一挂载；不与请求契约合并为同一职责。', ('PROJECT_INDEX.md', 'REFACTORING.md'), ('test_web_api.py',)),
     Module('cli', 'CLI 入口', '交互与终端', ('channels/cli.py', '__main__.py'), '终端对话命令与 Runtime 适配。', ('HANDOFF.md',)),
     Module('qq-channel', 'QQ 入口', '交互与终端', ('channels/qq.py',), 'QQ 场景队列、事件去重和消息收发适配。', ('QQ_SCENARIOS.md',), ('test_qq.py', 'test_qq_scope.py')),
     Module('heartbeat', '心跳入口', '交互与终端', ('channels/heartbeat.py',), '定时领取、执行、投递与周期清理。', ('OPERATIONS.md',), ('test_cron.py',)),
@@ -60,13 +74,13 @@ def classify(relative: str) -> Module | None:
 
 FLOWS = (
     ('chat', '对话与模型', 'Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记账。', (
-        ('channels/web.py', 'create_app.chat'),
+        ('channels/web_api/conversation.py', 'create_conversation_router.chat'),
         ('core/agent.py', 'Agent.run_turn'), ('core/agent.py', 'Agent._chat'), ('llm/gateway.py', 'Gateway.complete'))),
     ('tools', '模型调用工具', '模型工具调用经统一注册表和审批；结果按原调用顺序回填。', (
         ('core/agent.py', 'Agent._execute_tool_calls'), ('tools/registry.py', 'ToolRegistry.execute'),
         ('safety/gates.py', 'WebApprover'), ('tools/result.py', 'ToolResult'))),
     ('stream', '流式与取消', '流式响应和持久运行事件是两条接口；停止通过协作取消传播。', (
-        ('channels/web.py', 'create_app.chat_stream'), ('core/agent.py', 'Agent.run_turn'),
+        ('channels/web_api/conversation.py', 'create_conversation_router.chat_stream'), ('core/agent.py', 'Agent.run_turn'),
         ('llm/gateway.py', 'Gateway.stream'), ('memory/runs.py', 'RunStore'))),
     ('terminal', '交互式终端', 'WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查退出。', (
         ('channels/terminal/routes.py', 'create_terminal_router.terminal_ws'),

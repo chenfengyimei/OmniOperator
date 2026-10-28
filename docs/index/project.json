@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7d31d720dec51f5290b73f07c7e4572740c769d452e0ef4d677f06c5ac5bd88f",
+  "source_sha256": "cd7df5e36429250a6c457ff65bfc239f660417d68b2de491d3c1c1e7ad742ab4",
   "modules": [
     {
       "id": "assembly",
@@ -245,7 +245,7 @@
         "src/omni/channels/workbench/__init__.py",
         "src/omni/channels/workbench/routes.py"
       ],
-      "lines": 313,
+      "lines": 315,
       "dependencies": [
         "assembly",
         "catalog",
@@ -277,19 +277,364 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 3528,
+      "lines": 2167,
       "dependencies": [
         "assembly",
-        "bilibili",
         "config",
         "engine",
-        "mcp",
+        "http-contracts",
+        "http-routing",
         "models",
         "platform",
         "safety",
-        "storage",
         "terminal",
         "workbench"
+      ]
+    },
+    {
+      "id": "http-sessions",
+      "title": "会话与待办 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/sessions.py"
+      ],
+      "purpose": "会话选择、历史、状态和待办；消费注入 Runtime。",
+      "docs": [
+        "docs/PROJECT_INDEX.md"
+      ],
+      "tests": [
+        "tests/test_web_api.py",
+        "tests/test_sessions.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/sessions.py"
+      ],
+      "lines": 97,
+      "dependencies": [
+        "assembly",
+        "http-contracts",
+        "storage"
+      ]
+    },
+    {
+      "id": "http-conversation",
+      "title": "对话与流式 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/conversation.py"
+      ],
+      "purpose": "普通/流式对话、显式运行入口；共用会话闸门、租约和取消。",
+      "docs": [
+        "docs/PROJECT_INDEX.md"
+      ],
+      "tests": [
+        "tests/test_web_api.py",
+        "tests/test_web.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/conversation.py"
+      ],
+      "lines": 183,
+      "dependencies": [
+        "assembly",
+        "engine",
+        "http-contracts",
+        "models"
+      ]
+    },
+    {
+      "id": "http-runs",
+      "title": "运行与用量 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/runs.py"
+      ],
+      "purpose": "运行查询、事件续读、协作取消和费用视图。",
+      "docs": [
+        "docs/PROJECT_INDEX.md"
+      ],
+      "tests": [
+        "tests/test_web.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/runs.py"
+      ],
+      "lines": 102,
+      "dependencies": [
+        "assembly",
+        "models",
+        "storage"
+      ]
+    },
+    {
+      "id": "http-memory",
+      "title": "记忆与档案 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/memory.py"
+      ],
+      "purpose": "事实、档案、常驻、review 和检索状态。",
+      "docs": [
+        "docs/PROJECT_INDEX.md"
+      ],
+      "tests": [
+        "tests/test_web.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/memory.py"
+      ],
+      "lines": 130,
+      "dependencies": [
+        "assembly",
+        "http-contracts",
+        "storage"
+      ]
+    },
+    {
+      "id": "http-skills",
+      "title": "技能与审阅 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/skills.py"
+      ],
+      "purpose": "技能编辑/修订/差异/回滚和待审阅状态，保留静态路由优先级。",
+      "docs": [
+        "docs/PROJECT_INDEX.md"
+      ],
+      "tests": [
+        "tests/test_web_api.py",
+        "tests/test_skills_history.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/skills.py"
+      ],
+      "lines": 230,
+      "dependencies": [
+        "assembly",
+        "http-contracts"
+      ]
+    },
+    {
+      "id": "http-artifacts",
+      "title": "产物 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/artifacts.py"
+      ],
+      "purpose": "产物列表、指纹验证读取和清理，统一领域错误映射。",
+      "docs": [
+        "docs/PROJECT_INDEX.md"
+      ],
+      "tests": [
+        "tests/test_artifacts.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/artifacts.py"
+      ],
+      "lines": 84,
+      "dependencies": [
+        "assembly",
+        "storage"
+      ]
+    },
+    {
+      "id": "http-approvals",
+      "title": "审批 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/approvals.py"
+      ],
+      "purpose": "待批准事项和人工决定；不构造或绕过审批器。",
+      "docs": [
+        "docs/ARCHITECTURE.md"
+      ],
+      "tests": [
+        "tests/test_web_auth.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/approvals.py"
+      ],
+      "lines": 32,
+      "dependencies": [
+        "assembly",
+        "http-contracts"
+      ]
+    },
+    {
+      "id": "http-mcp",
+      "title": "MCP 管理 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/mcp.py"
+      ],
+      "purpose": "只读状态、显式发现、目录复核和重连。",
+      "docs": [
+        "docs/MCP.md"
+      ],
+      "tests": [
+        "tests/test_mcp.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/mcp.py"
+      ],
+      "lines": 102,
+      "dependencies": [
+        "assembly",
+        "http-contracts",
+        "mcp"
+      ]
+    },
+    {
+      "id": "http-operations",
+      "title": "服务与诊断 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/operations.py"
+      ],
+      "purpose": "系统概览、doctor、备份、服务启停和日志。",
+      "docs": [
+        "docs/OPERATIONS.md"
+      ],
+      "tests": [
+        "tests/test_web.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/operations.py"
+      ],
+      "lines": 63,
+      "dependencies": [
+        "assembly",
+        "http-contracts",
+        "platform"
+      ]
+    },
+    {
+      "id": "http-automation",
+      "title": "调度与投递 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/automation.py"
+      ],
+      "purpose": "任务创建/编辑/启停、历史和 outbox 人工处理。",
+      "docs": [
+        "docs/PROJECT_INDEX.md"
+      ],
+      "tests": [
+        "tests/test_cron.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/automation.py"
+      ],
+      "lines": 212,
+      "dependencies": [
+        "assembly",
+        "http-contracts",
+        "safety",
+        "storage"
+      ]
+    },
+    {
+      "id": "http-publications",
+      "title": "发布草稿 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/publications.py"
+      ],
+      "purpose": "草稿查询、乐观编辑和未知结果核查，不直接发布。",
+      "docs": [
+        "docs/BILIBILI_WRITING.md"
+      ],
+      "tests": [
+        "tests/test_bilibili_publishing.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/publications.py"
+      ],
+      "lines": 52,
+      "dependencies": [
+        "assembly",
+        "bilibili",
+        "storage"
+      ]
+    },
+    {
+      "id": "http-devices",
+      "title": "桌面与安卓 API",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/devices.py"
+      ],
+      "purpose": "窗口观察、设备树/锁帧、受观察约束的手动动作和 MJPEG。",
+      "docs": [
+        "docs/ANDROID.md",
+        "docs/DESKTOP.md"
+      ],
+      "tests": [
+        "tests/test_web.py",
+        "tests/test_web_api.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/devices.py"
+      ],
+      "lines": 151,
+      "dependencies": [
+        "assembly",
+        "http-contracts"
+      ]
+    },
+    {
+      "id": "http-contracts",
+      "title": "HTTP 请求契约",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/schemas.py"
+      ],
+      "purpose": "公共请求模型；只承载数据声明，旧 web 模型名继续显式转发。",
+      "docs": [
+        "docs/PROJECT_INDEX.md"
+      ],
+      "tests": [
+        "tests/test_web_api.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/schemas.py"
+      ],
+      "lines": 132,
+      "dependencies": []
+    },
+    {
+      "id": "http-routing",
+      "title": "HTTP 路由装配",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/"
+      ],
+      "purpose": "聚合注入 Runtime 的领域路由，由应用入口统一挂载；不与请求契约合并为同一职责。",
+      "docs": [
+        "docs/PROJECT_INDEX.md",
+        "docs/REFACTORING.md"
+      ],
+      "tests": [
+        "tests/test_web_api.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/__init__.py"
+      ],
+      "lines": 41,
+      "dependencies": [
+        "assembly",
+        "http-approvals",
+        "http-artifacts",
+        "http-automation",
+        "http-conversation",
+        "http-devices",
+        "http-mcp",
+        "http-memory",
+        "http-operations",
+        "http-publications",
+        "http-runs",
+        "http-sessions",
+        "http-skills"
       ]
     },
     {
@@ -892,7 +1237,7 @@
         "src/omni/system/catalog/scan.py",
         "src/omni/system/catalog/schema.py"
       ],
-      "lines": 299,
+      "lines": 313,
       "dependencies": [
         "config"
       ]
@@ -1910,151 +2255,26 @@
       "path": "src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 1766,
+      "lines": 405,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
         "omni.channels.terminal.routes",
+        "omni.channels.web_api",
+        "omni.channels.web_api.schemas",
         "omni.channels.web_auth",
         "omni.channels.workbench",
         "omni.config",
         "omni.core.qq_policy",
-        "omni.core.session",
         "omni.llm.gateway",
-        "omni.llm.usage",
-        "omni.memory.artifacts",
-        "omni.memory.cron",
-        "omni.memory.publications",
-        "omni.memory.state",
-        "omni.memory.store",
         "omni.safety.gates",
         "omni.safety.smart",
-        "omni.system.backup",
-        "omni.system.config_io",
-        "omni.system.services",
-        "omni.tools.bilibili.publishing",
-        "omni.tools.mcp.client"
+        "omni.system.config_io"
       ],
       "symbols": [
         {
-          "name": "ChatIn",
-          "line": 59,
-          "kind": "class"
-        },
-        {
-          "name": "ResolveIn",
-          "line": 64,
-          "kind": "class"
-        },
-        {
-          "name": "NapCatStartIn",
-          "line": 69,
-          "kind": "class"
-        },
-        {
-          "name": "ConfigUpdateIn",
-          "line": 73,
-          "kind": "class"
-        },
-        {
-          "name": "ModelTestIn",
-          "line": 77,
-          "kind": "class"
-        },
-        {
-          "name": "MCPSchemaConfirmIn",
-          "line": 81,
-          "kind": "class"
-        },
-        {
-          "name": "BiliCookiesIn",
-          "line": 85,
-          "kind": "class"
-        },
-        {
-          "name": "CronNameIn",
-          "line": 91,
-          "kind": "class"
-        },
-        {
-          "name": "CronToggleIn",
-          "line": 95,
-          "kind": "class"
-        },
-        {
-          "name": "CronCreateIn",
-          "line": 100,
-          "kind": "class"
-        },
-        {
-          "name": "CronUpdateIn",
-          "line": 112,
-          "kind": "class"
-        },
-        {
-          "name": "TodoToggleIn",
-          "line": 128,
-          "kind": "class"
-        },
-        {
-          "name": "AndroidTapIn",
-          "line": 134,
-          "kind": "class"
-        },
-        {
-          "name": "AndroidElementIn",
-          "line": 142,
-          "kind": "class"
-        },
-        {
-          "name": "AndroidKeyIn",
-          "line": 147,
-          "kind": "class"
-        },
-        {
-          "name": "ProfileLineIn",
-          "line": 152,
-          "kind": "class"
-        },
-        {
-          "name": "ResidentUpdateIn",
-          "line": 157,
-          "kind": "class"
-        },
-        {
-          "name": "PairIn",
-          "line": 163,
-          "kind": "class"
-        },
-        {
-          "name": "SkillSaveIn",
-          "line": 167,
-          "kind": "class"
-        },
-        {
-          "name": "SkillRollbackIn",
-          "line": 174,
-          "kind": "class"
-        },
-        {
-          "name": "SkillAckIn",
-          "line": 179,
-          "kind": "class"
-        },
-        {
-          "name": "_artifact_status",
-          "line": 185,
-          "kind": "function",
-          "parameters": [
-            "code"
-          ],
-          "annotations": {
-            "code": "str"
-          }
-        },
-        {
           "name": "_set_session_cookie",
-          "line": 197,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "response",
@@ -2068,7 +2288,7 @@
         },
         {
           "name": "_create_auth",
-          "line": 209,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -2079,7 +2299,7 @@
         },
         {
           "name": "_normalize_secret_updates",
-          "line": 215,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "updates"
@@ -2090,7 +2310,7 @@
         },
         {
           "name": "create_app",
-          "line": 241,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -2101,7 +2321,7 @@
         },
         {
           "name": "create_app.lifespan",
-          "line": 244,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "_app"
@@ -2112,7 +2332,7 @@
         },
         {
           "name": "create_app.identity_guard",
-          "line": 259,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "request",
@@ -2124,7 +2344,7 @@
         },
         {
           "name": "create_app.auth_status",
-          "line": 284,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "request"
@@ -2135,7 +2355,7 @@
         },
         {
           "name": "create_app.auth_pair",
-          "line": 292,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "payload",
@@ -2148,14 +2368,14 @@
         },
         {
           "name": "create_app.auth_logout",
-          "line": 307,
+          "line": 172,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.pair_link",
-          "line": 313,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "code",
@@ -2167,148 +2387,201 @@
           }
         },
         {
-          "name": "create_app.get_state",
-          "line": 336,
+          "name": "create_app.system_config",
+          "line": 203,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_app.get_sessions",
-          "line": 359,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.create_session",
-          "line": 373,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.select_session",
-          "line": 377,
-          "kind": "function",
-          "parameters": [
-            "session_id"
-          ],
-          "annotations": {
-            "session_id": "int"
-          }
-        },
-        {
-          "name": "create_app.get_messages",
-          "line": 383,
-          "kind": "function",
-          "parameters": [
-            "session_id",
-            "limit"
-          ],
-          "annotations": {
-            "session_id": "int",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.get_todos",
-          "line": 395,
-          "kind": "function",
-          "parameters": [
-            "session_id"
-          ],
-          "annotations": {
-            "session_id": "int"
-          }
-        },
-        {
-          "name": "create_app.toggle_todo",
-          "line": 407,
+          "name": "create_app.system_config_save",
+          "line": 249,
           "kind": "function",
           "parameters": [
             "payload"
           ],
           "annotations": {
-            "payload": "TodoToggleIn"
+            "payload": "ConfigUpdateIn"
           }
         },
         {
-          "name": "create_app._run_turn",
-          "line": 414,
-          "kind": "function",
-          "parameters": [
-            "sid",
-            "message"
-          ],
-          "annotations": {
-            "sid": "int",
-            "message": "str"
-          }
-        },
-        {
-          "name": "create_app.chat",
-          "line": 432,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "ChatIn"
-          }
-        },
-        {
-          "name": "create_app.chat_stream",
-          "line": 463,
-          "kind": "function",
-          "parameters": [
-            "payload",
-            "request"
-          ],
-          "annotations": {
-            "payload": "ChatIn",
-            "request": "Request"
-          }
-        },
-        {
-          "name": "create_app.chat_stream.on_delta",
-          "line": 475,
-          "kind": "function",
-          "parameters": [
-            "text"
-          ],
-          "annotations": {
-            "text": "str"
-          }
-        },
-        {
-          "name": "create_app.chat_stream.worker",
-          "line": 478,
+          "name": "create_app.qq_policy_status",
+          "line": 269,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_app.chat_stream.frames",
-          "line": 514,
+          "name": "create_app.qq_policy_stop",
+          "line": 280,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_app.run_create",
-          "line": 552,
+          "name": "create_app.bili_cookies_status",
+          "line": 288,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_app.save_bili_cookies",
+          "line": 300,
           "kind": "function",
           "parameters": [
             "payload"
           ],
           "annotations": {
-            "payload": "ChatIn"
+            "payload": "BiliCookiesIn"
           }
         },
         {
-          "name": "create_app.run_list",
-          "line": 575,
+          "name": "create_app.model_test",
+          "line": 320,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "ModelTestIn"
+          }
+        },
+        {
+          "name": "_validate_bind_host",
+          "line": 358,
+          "kind": "function",
+          "parameters": [
+            "host"
+          ],
+          "annotations": {
+            "host": "str"
+          }
+        },
+        {
+          "name": "main",
+          "line": 369,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。"
+    },
+    {
+      "path": "src/omni/channels/web_api/__init__.py",
+      "module": "http-routing",
+      "python_module": "omni.channels.web_api",
+      "lines": 41,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.approvals",
+        "omni.channels.web_api.artifacts",
+        "omni.channels.web_api.automation",
+        "omni.channels.web_api.conversation",
+        "omni.channels.web_api.devices",
+        "omni.channels.web_api.mcp",
+        "omni.channels.web_api.memory",
+        "omni.channels.web_api.operations",
+        "omni.channels.web_api.publications",
+        "omni.channels.web_api.runs",
+        "omni.channels.web_api.sessions",
+        "omni.channels.web_api.skills"
+      ],
+      "symbols": [
+        {
+          "name": "create_api_routers",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        }
+      ],
+      "summary": "工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。"
+    },
+    {
+      "path": "src/omni/channels/web_api/approvals.py",
+      "module": "http-approvals",
+      "python_module": "omni.channels.web_api.approvals",
+      "lines": 32,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas"
+      ],
+      "symbols": [
+        {
+          "name": "create_approvals_router",
+          "line": 14,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_approvals_router.get_approvals",
+          "line": 18,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_approvals_router.resolve_approval",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "approval_id",
+            "payload"
+          ],
+          "annotations": {
+            "approval_id": "str",
+            "payload": "ResolveIn"
+          }
+        }
+      ],
+      "summary": "人工审批 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/artifacts.py",
+      "module": "http-artifacts",
+      "python_module": "omni.channels.web_api.artifacts",
+      "lines": 84,
+      "imports": [
+        "omni.bootstrap",
+        "omni.memory.artifacts"
+      ],
+      "symbols": [
+        {
+          "name": "_artifact_status",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "create_artifacts_router",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_artifacts_router.list_artifacts",
+          "line": 31,
           "kind": "function",
           "parameters": [
             "session_id",
@@ -2320,8 +2593,768 @@
           }
         },
         {
-          "name": "create_app.run_get",
-          "line": 583,
+          "name": "create_artifacts_router.artifact_image",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "artifact_id"
+          ],
+          "annotations": {
+            "artifact_id": "str"
+          }
+        },
+        {
+          "name": "create_artifacts_router.delete_artifact",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "artifact_id"
+          ],
+          "annotations": {
+            "artifact_id": "str"
+          }
+        }
+      ],
+      "summary": "产物 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/automation.py",
+      "module": "http-automation",
+      "python_module": "omni.channels.web_api.automation",
+      "lines": 212,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas",
+        "omni.memory.cron",
+        "omni.memory.state",
+        "omni.safety.gates"
+      ],
+      "symbols": [
+        {
+          "name": "create_automation_router",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_automation_router.cron_create",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "CronCreateIn"
+          }
+        },
+        {
+          "name": "create_automation_router.cron_list",
+          "line": 59,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_automation_router.cron_update",
+          "line": 93,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "CronUpdateIn"
+          }
+        },
+        {
+          "name": "create_automation_router.cron_toggle",
+          "line": 143,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "CronToggleIn"
+          }
+        },
+        {
+          "name": "create_automation_router.cron_delete",
+          "line": 159,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "CronNameIn"
+          }
+        },
+        {
+          "name": "create_automation_router.cron_history",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "limit"
+          ],
+          "annotations": {
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_automation_router.cron_outbox",
+          "line": 174,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_automation_router.cron_outbox_retry",
+          "line": 189,
+          "kind": "function",
+          "parameters": [
+            "entry_id"
+          ],
+          "annotations": {
+            "entry_id": "int"
+          }
+        },
+        {
+          "name": "create_automation_router.cron_outbox_discard",
+          "line": 201,
+          "kind": "function",
+          "parameters": [
+            "entry_id"
+          ],
+          "annotations": {
+            "entry_id": "int"
+          }
+        }
+      ],
+      "summary": "调度与可靠投递 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/conversation.py",
+      "module": "http-conversation",
+      "python_module": "omni.channels.web_api.conversation",
+      "lines": 183,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas",
+        "omni.core.session",
+        "omni.llm.gateway"
+      ],
+      "symbols": [
+        {
+          "name": "create_conversation_router",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_conversation_router._run_turn",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "sid",
+            "message"
+          ],
+          "annotations": {
+            "sid": "int",
+            "message": "str"
+          }
+        },
+        {
+          "name": "create_conversation_router.chat",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "ChatIn"
+          }
+        },
+        {
+          "name": "create_conversation_router.chat_stream",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "payload",
+            "request"
+          ],
+          "annotations": {
+            "payload": "ChatIn",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "create_conversation_router.chat_stream.on_delta",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "create_conversation_router.chat_stream.worker",
+          "line": 89,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_conversation_router.chat_stream.frames",
+          "line": 125,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_conversation_router.run_create",
+          "line": 161,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "ChatIn"
+          }
+        }
+      ],
+      "summary": "对话与流式 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/devices.py",
+      "module": "http-devices",
+      "python_module": "omni.channels.web_api.devices",
+      "lines": 151,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas"
+      ],
+      "symbols": [
+        {
+          "name": "create_devices_router",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_devices_router.desktop_windows",
+          "line": 21,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_devices_router.desktop_observe",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "window",
+            "session_id"
+          ],
+          "annotations": {
+            "window": "int",
+            "session_id": "int | None"
+          }
+        },
+        {
+          "name": "create_devices_router.android_state",
+          "line": 39,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_devices_router.android_tree",
+          "line": 48,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_devices_router.android_snapshot",
+          "line": 67,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_devices_router.android_action",
+          "line": 76,
+          "kind": "function",
+          "parameters": [
+            "action",
+            "observation",
+            "**params"
+          ],
+          "annotations": {
+            "action": "str",
+            "observation": "str"
+          }
+        },
+        {
+          "name": "create_devices_router.android_tap",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "AndroidTapIn"
+          }
+        },
+        {
+          "name": "create_devices_router.android_element",
+          "line": 98,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "AndroidElementIn"
+          }
+        },
+        {
+          "name": "create_devices_router.android_key",
+          "line": 108,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "AndroidKeyIn"
+          }
+        },
+        {
+          "name": "create_devices_router.android_stream",
+          "line": 117,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_devices_router.android_stream._frames",
+          "line": 124,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "桌面与安卓 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/mcp.py",
+      "module": "http-mcp",
+      "python_module": "omni.channels.web_api.mcp",
+      "lines": 102,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas",
+        "omni.tools.mcp.client"
+      ],
+      "symbols": [
+        {
+          "name": "create_mcp_router",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_mcp_router.mcp_overview",
+          "line": 19,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_mcp_router.mcp_tools",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "server",
+            "limit"
+          ],
+          "annotations": {
+            "server": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_mcp_router.mcp_confirm_schema",
+          "line": 75,
+          "kind": "function",
+          "parameters": [
+            "server",
+            "payload"
+          ],
+          "annotations": {
+            "server": "str",
+            "payload": "MCPSchemaConfirmIn"
+          }
+        },
+        {
+          "name": "create_mcp_router.mcp_reset",
+          "line": 91,
+          "kind": "function",
+          "parameters": [
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        }
+      ],
+      "summary": "MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/memory.py",
+      "module": "http-memory",
+      "python_module": "omni.channels.web_api.memory",
+      "lines": 130,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas",
+        "omni.memory.store"
+      ],
+      "symbols": [
+        {
+          "name": "create_memory_router",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_memory_router.get_facts",
+          "line": 19,
+          "kind": "function",
+          "parameters": [
+            "q",
+            "limit"
+          ],
+          "annotations": {
+            "q": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_memory_router.get_facts_detail",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "limit"
+          ],
+          "annotations": {
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_memory_router.delete_fact",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "fact_id"
+          ],
+          "annotations": {
+            "fact_id": "int"
+          }
+        },
+        {
+          "name": "create_memory_router.memory_status",
+          "line": 35,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_memory_router.get_profile",
+          "line": 58,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_memory_router.profile_line_update",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "ProfileLineIn"
+          }
+        },
+        {
+          "name": "create_memory_router.profile_line_delete",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "line_id"
+          ],
+          "annotations": {
+            "line_id": "int"
+          }
+        },
+        {
+          "name": "create_memory_router.get_resident",
+          "line": 84,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_memory_router.resident_update",
+          "line": 94,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "ResidentUpdateIn"
+          }
+        },
+        {
+          "name": "create_memory_router.get_reviews",
+          "line": 115,
+          "kind": "function",
+          "parameters": [
+            "limit"
+          ],
+          "annotations": {
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_memory_router.retrieval_status",
+          "line": 125,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "记忆与档案 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/operations.py",
+      "module": "http-operations",
+      "python_module": "omni.channels.web_api.operations",
+      "lines": 63,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas",
+        "omni.system.backup",
+        "omni.system.services"
+      ],
+      "symbols": [
+        {
+          "name": "create_operations_router",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_operations_router.system_overview",
+          "line": 19,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_operations_router.system_doctor",
+          "line": 23,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_operations_router.system_backup",
+          "line": 27,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_operations_router.system_service_start",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "name",
+            "payload"
+          ],
+          "annotations": {
+            "name": "str",
+            "payload": "NapCatStartIn | None"
+          }
+        },
+        {
+          "name": "create_operations_router.system_service_stop",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "create_operations_router.system_napcat_qr",
+          "line": 51,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_operations_router.system_logs",
+          "line": 55,
+          "kind": "function",
+          "parameters": [
+            "name",
+            "lines"
+          ],
+          "annotations": {
+            "name": "str",
+            "lines": "int"
+          }
+        },
+        {
+          "name": "create_operations_router.system_state",
+          "line": 59,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "服务与诊断 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/publications.py",
+      "module": "http-publications",
+      "python_module": "omni.channels.web_api.publications",
+      "lines": 52,
+      "imports": [
+        "omni.bootstrap",
+        "omni.memory.publications",
+        "omni.tools.bilibili.publishing"
+      ],
+      "symbols": [
+        {
+          "name": "create_publications_router",
+          "line": 12,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_publications_router.publications",
+          "line": 16,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_publications_router.publication_edit",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "identity",
+            "body"
+          ],
+          "annotations": {
+            "identity": "str",
+            "body": "dict[str, Any]"
+          }
+        },
+        {
+          "name": "create_publications_router.publication_resolve",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "identity",
+            "body"
+          ],
+          "annotations": {
+            "identity": "str",
+            "body": "dict[str, Any]"
+          }
+        }
+      ],
+      "summary": "发布草稿 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/runs.py",
+      "module": "http-runs",
+      "python_module": "omni.channels.web_api.runs",
+      "lines": 102,
+      "imports": [
+        "omni.bootstrap",
+        "omni.llm.usage",
+        "omni.memory.state"
+      ],
+      "symbols": [
+        {
+          "name": "create_runs_router",
+          "line": 16,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_runs_router.run_list",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "session_id",
+            "limit"
+          ],
+          "annotations": {
+            "session_id": "int | None",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_runs_router.run_get",
+          "line": 28,
           "kind": "function",
           "parameters": [
             "run_id"
@@ -2331,8 +3364,8 @@
           }
         },
         {
-          "name": "create_app.run_events",
-          "line": 590,
+          "name": "create_runs_router.run_events",
+          "line": 35,
           "kind": "function",
           "parameters": [
             "run_id",
@@ -2346,8 +3379,8 @@
           }
         },
         {
-          "name": "create_app.run_cancel",
-          "line": 602,
+          "name": "create_runs_router.run_cancel",
+          "line": 47,
           "kind": "function",
           "parameters": [
             "run_id"
@@ -2357,8 +3390,8 @@
           }
         },
         {
-          "name": "create_app.llm_usage",
-          "line": 626,
+          "name": "create_runs_router.llm_usage",
+          "line": 69,
           "kind": "function",
           "parameters": [
             "days",
@@ -2368,131 +3401,262 @@
             "days": "int",
             "limit": "int"
           }
+        }
+      ],
+      "summary": "运行与用量 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/schemas.py",
+      "module": "http-contracts",
+      "python_module": "omni.channels.web_api.schemas",
+      "lines": 132,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "ChatIn",
+          "line": 9,
+          "kind": "class"
         },
         {
-          "name": "create_app.get_facts",
-          "line": 660,
+          "name": "ResolveIn",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "NapCatStartIn",
+          "line": 19,
+          "kind": "class"
+        },
+        {
+          "name": "ConfigUpdateIn",
+          "line": 23,
+          "kind": "class"
+        },
+        {
+          "name": "ModelTestIn",
+          "line": 27,
+          "kind": "class"
+        },
+        {
+          "name": "MCPSchemaConfirmIn",
+          "line": 31,
+          "kind": "class"
+        },
+        {
+          "name": "BiliCookiesIn",
+          "line": 35,
+          "kind": "class"
+        },
+        {
+          "name": "CronNameIn",
+          "line": 41,
+          "kind": "class"
+        },
+        {
+          "name": "CronToggleIn",
+          "line": 45,
+          "kind": "class"
+        },
+        {
+          "name": "CronCreateIn",
+          "line": 50,
+          "kind": "class"
+        },
+        {
+          "name": "CronUpdateIn",
+          "line": 62,
+          "kind": "class"
+        },
+        {
+          "name": "TodoToggleIn",
+          "line": 78,
+          "kind": "class"
+        },
+        {
+          "name": "AndroidTapIn",
+          "line": 84,
+          "kind": "class"
+        },
+        {
+          "name": "AndroidElementIn",
+          "line": 92,
+          "kind": "class"
+        },
+        {
+          "name": "AndroidKeyIn",
+          "line": 97,
+          "kind": "class"
+        },
+        {
+          "name": "ProfileLineIn",
+          "line": 102,
+          "kind": "class"
+        },
+        {
+          "name": "ResidentUpdateIn",
+          "line": 107,
+          "kind": "class"
+        },
+        {
+          "name": "PairIn",
+          "line": 113,
+          "kind": "class"
+        },
+        {
+          "name": "SkillSaveIn",
+          "line": 117,
+          "kind": "class"
+        },
+        {
+          "name": "SkillRollbackIn",
+          "line": 124,
+          "kind": "class"
+        },
+        {
+          "name": "SkillAckIn",
+          "line": 129,
+          "kind": "class"
+        }
+      ],
+      "summary": "工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。"
+    },
+    {
+      "path": "src/omni/channels/web_api/sessions.py",
+      "module": "http-sessions",
+      "python_module": "omni.channels.web_api.sessions",
+      "lines": 97,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas",
+        "omni.memory.store"
+      ],
+      "symbols": [
+        {
+          "name": "create_sessions_router",
+          "line": 15,
           "kind": "function",
           "parameters": [
-            "q",
-            "limit"
+            "runtime"
           ],
           "annotations": {
-            "q": "str",
-            "limit": "int"
+            "runtime": "Runtime"
           }
         },
         {
-          "name": "create_app.get_facts_detail",
-          "line": 664,
-          "kind": "function",
-          "parameters": [
-            "limit"
-          ],
-          "annotations": {
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.delete_fact",
-          "line": 669,
-          "kind": "function",
-          "parameters": [
-            "fact_id"
-          ],
-          "annotations": {
-            "fact_id": "int"
-          }
-        },
-        {
-          "name": "create_app.memory_status",
-          "line": 676,
+          "name": "create_sessions_router.get_state",
+          "line": 19,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_app.get_profile",
-          "line": 699,
+          "name": "create_sessions_router.get_sessions",
+          "line": 42,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_app.profile_line_update",
-          "line": 710,
+          "name": "create_sessions_router.create_session",
+          "line": 56,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_sessions_router.select_session",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "session_id"
+          ],
+          "annotations": {
+            "session_id": "int"
+          }
+        },
+        {
+          "name": "create_sessions_router.get_messages",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "session_id",
+            "limit"
+          ],
+          "annotations": {
+            "session_id": "int",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_sessions_router.get_todos",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "session_id"
+          ],
+          "annotations": {
+            "session_id": "int"
+          }
+        },
+        {
+          "name": "create_sessions_router.toggle_todo",
+          "line": 90,
           "kind": "function",
           "parameters": [
             "payload"
           ],
           "annotations": {
-            "payload": "ProfileLineIn"
+            "payload": "TodoToggleIn"
           }
-        },
+        }
+      ],
+      "summary": "会话与待办 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/skills.py",
+      "module": "http-skills",
+      "python_module": "omni.channels.web_api.skills",
+      "lines": 230,
+      "imports": [
+        "omni.bootstrap",
+        "omni.channels.web_api.schemas"
+      ],
+      "symbols": [
         {
-          "name": "create_app.profile_line_delete",
-          "line": 719,
+          "name": "create_skills_router",
+          "line": 15,
           "kind": "function",
           "parameters": [
-            "line_id"
+            "runtime"
           ],
           "annotations": {
-            "line_id": "int"
+            "runtime": "Runtime"
           }
         },
         {
-          "name": "create_app.get_resident",
-          "line": 725,
+          "name": "create_skills_router.get_skills",
+          "line": 19,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_app.resident_update",
-          "line": 735,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "ResidentUpdateIn"
-          }
-        },
-        {
-          "name": "create_app.get_reviews",
-          "line": 756,
-          "kind": "function",
-          "parameters": [
-            "limit"
-          ],
-          "annotations": {
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.get_skills",
-          "line": 766,
+          "name": "create_skills_router.skills_pending",
+          "line": 32,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_app.skills_pending",
-          "line": 782,
+          "name": "create_skills_router.skills_ack_all",
+          "line": 71,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_app.skills_ack_all",
-          "line": 821,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.skill_ack",
-          "line": 836,
+          "name": "create_skills_router.skill_ack",
+          "line": 86,
           "kind": "function",
           "parameters": [
             "name",
@@ -2504,8 +3668,8 @@
           }
         },
         {
-          "name": "create_app.skill_pending_diff",
-          "line": 845,
+          "name": "create_skills_router.skill_pending_diff",
+          "line": 95,
           "kind": "function",
           "parameters": [
             "name",
@@ -2517,8 +3681,8 @@
           }
         },
         {
-          "name": "create_app.get_skill",
-          "line": 869,
+          "name": "create_skills_router.get_skill",
+          "line": 119,
           "kind": "function",
           "parameters": [
             "name",
@@ -2530,8 +3694,8 @@
           }
         },
         {
-          "name": "create_app.skill_save",
-          "line": 891,
+          "name": "create_skills_router.skill_save",
+          "line": 139,
           "kind": "function",
           "parameters": [
             "name",
@@ -2543,8 +3707,8 @@
           }
         },
         {
-          "name": "create_app.skill_history",
-          "line": 913,
+          "name": "create_skills_router.skill_history",
+          "line": 161,
           "kind": "function",
           "parameters": [
             "name",
@@ -2556,8 +3720,8 @@
           }
         },
         {
-          "name": "create_app.skill_revision",
-          "line": 933,
+          "name": "create_skills_router.skill_revision",
+          "line": 181,
           "kind": "function",
           "parameters": [
             "name",
@@ -2569,8 +3733,8 @@
           }
         },
         {
-          "name": "create_app.skill_diff",
-          "line": 943,
+          "name": "create_skills_router.skill_diff",
+          "line": 191,
           "kind": "function",
           "parameters": [
             "name",
@@ -2582,8 +3746,8 @@
           }
         },
         {
-          "name": "create_app.skill_rollback",
-          "line": 963,
+          "name": "create_skills_router.skill_rollback",
+          "line": 211,
           "kind": "function",
           "parameters": [
             "name",
@@ -2593,492 +3757,9 @@
             "name": "str",
             "payload": "SkillRollbackIn"
           }
-        },
-        {
-          "name": "create_app.list_artifacts",
-          "line": 985,
-          "kind": "function",
-          "parameters": [
-            "session_id",
-            "limit"
-          ],
-          "annotations": {
-            "session_id": "int | None",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.artifact_image",
-          "line": 1014,
-          "kind": "function",
-          "parameters": [
-            "artifact_id"
-          ],
-          "annotations": {
-            "artifact_id": "str"
-          }
-        },
-        {
-          "name": "create_app.delete_artifact",
-          "line": 1027,
-          "kind": "function",
-          "parameters": [
-            "artifact_id"
-          ],
-          "annotations": {
-            "artifact_id": "str"
-          }
-        },
-        {
-          "name": "create_app.get_approvals",
-          "line": 1041,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.resolve_approval",
-          "line": 1049,
-          "kind": "function",
-          "parameters": [
-            "approval_id",
-            "payload"
-          ],
-          "annotations": {
-            "approval_id": "str",
-            "payload": "ResolveIn"
-          }
-        },
-        {
-          "name": "create_app.mcp_overview",
-          "line": 1060,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.mcp_tools",
-          "line": 1085,
-          "kind": "function",
-          "parameters": [
-            "server",
-            "limit"
-          ],
-          "annotations": {
-            "server": "str",
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.mcp_confirm_schema",
-          "line": 1116,
-          "kind": "function",
-          "parameters": [
-            "server",
-            "payload"
-          ],
-          "annotations": {
-            "server": "str",
-            "payload": "MCPSchemaConfirmIn"
-          }
-        },
-        {
-          "name": "create_app.mcp_reset",
-          "line": 1132,
-          "kind": "function",
-          "parameters": [
-            "server"
-          ],
-          "annotations": {
-            "server": "str"
-          }
-        },
-        {
-          "name": "create_app.system_overview",
-          "line": 1144,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.system_doctor",
-          "line": 1148,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.system_backup",
-          "line": 1152,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.system_service_start",
-          "line": 1160,
-          "kind": "function",
-          "parameters": [
-            "name",
-            "payload"
-          ],
-          "annotations": {
-            "name": "str",
-            "payload": "NapCatStartIn | None"
-          }
-        },
-        {
-          "name": "create_app.system_service_stop",
-          "line": 1169,
-          "kind": "function",
-          "parameters": [
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "create_app.system_napcat_qr",
-          "line": 1176,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.system_logs",
-          "line": 1180,
-          "kind": "function",
-          "parameters": [
-            "name",
-            "lines"
-          ],
-          "annotations": {
-            "name": "str",
-            "lines": "int"
-          }
-        },
-        {
-          "name": "create_app.system_config",
-          "line": 1184,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.system_config_save",
-          "line": 1230,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "ConfigUpdateIn"
-          }
-        },
-        {
-          "name": "create_app.qq_policy_status",
-          "line": 1250,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.qq_policy_stop",
-          "line": 1261,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.bili_cookies_status",
-          "line": 1271,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.save_bili_cookies",
-          "line": 1283,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "BiliCookiesIn"
-          }
-        },
-        {
-          "name": "create_app.model_test",
-          "line": 1305,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "ModelTestIn"
-          }
-        },
-        {
-          "name": "create_app.cron_create",
-          "line": 1337,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "CronCreateIn"
-          }
-        },
-        {
-          "name": "create_app.cron_list",
-          "line": 1374,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.cron_update",
-          "line": 1408,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "CronUpdateIn"
-          }
-        },
-        {
-          "name": "create_app.cron_toggle",
-          "line": 1458,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "CronToggleIn"
-          }
-        },
-        {
-          "name": "create_app.cron_delete",
-          "line": 1474,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "CronNameIn"
-          }
-        },
-        {
-          "name": "create_app.cron_history",
-          "line": 1481,
-          "kind": "function",
-          "parameters": [
-            "limit"
-          ],
-          "annotations": {
-            "limit": "int"
-          }
-        },
-        {
-          "name": "create_app.cron_outbox",
-          "line": 1491,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.cron_outbox_retry",
-          "line": 1506,
-          "kind": "function",
-          "parameters": [
-            "entry_id"
-          ],
-          "annotations": {
-            "entry_id": "int"
-          }
-        },
-        {
-          "name": "create_app.cron_outbox_discard",
-          "line": 1518,
-          "kind": "function",
-          "parameters": [
-            "entry_id"
-          ],
-          "annotations": {
-            "entry_id": "int"
-          }
-        },
-        {
-          "name": "create_app.publications",
-          "line": 1530,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.publication_edit",
-          "line": 1538,
-          "kind": "function",
-          "parameters": [
-            "identity",
-            "body"
-          ],
-          "annotations": {
-            "identity": "str",
-            "body": "dict[str, Any]"
-          }
-        },
-        {
-          "name": "create_app.publication_resolve",
-          "line": 1552,
-          "kind": "function",
-          "parameters": [
-            "identity",
-            "body"
-          ],
-          "annotations": {
-            "identity": "str",
-            "body": "dict[str, Any]"
-          }
-        },
-        {
-          "name": "create_app.system_state",
-          "line": 1567,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.retrieval_status",
-          "line": 1572,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.desktop_windows",
-          "line": 1578,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.desktop_observe",
-          "line": 1587,
-          "kind": "function",
-          "parameters": [
-            "window",
-            "session_id"
-          ],
-          "annotations": {
-            "window": "int",
-            "session_id": "int | None"
-          }
-        },
-        {
-          "name": "create_app.android_state",
-          "line": 1598,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.android_tree",
-          "line": 1607,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.android_snapshot",
-          "line": 1626,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.android_action",
-          "line": 1635,
-          "kind": "function",
-          "parameters": [
-            "action",
-            "observation",
-            "**params"
-          ],
-          "annotations": {
-            "action": "str",
-            "observation": "str"
-          }
-        },
-        {
-          "name": "create_app.android_tap",
-          "line": 1643,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "AndroidTapIn"
-          }
-        },
-        {
-          "name": "create_app.android_element",
-          "line": 1657,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "AndroidElementIn"
-          }
-        },
-        {
-          "name": "create_app.android_key",
-          "line": 1667,
-          "kind": "function",
-          "parameters": [
-            "payload"
-          ],
-          "annotations": {
-            "payload": "AndroidKeyIn"
-          }
-        },
-        {
-          "name": "create_app.android_stream",
-          "line": 1676,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.android_stream._frames",
-          "line": 1683,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "_validate_bind_host",
-          "line": 1717,
-          "kind": "function",
-          "parameters": [
-            "host"
-          ],
-          "annotations": {
-            "host": "str"
-          }
-        },
-        {
-          "name": "main",
-          "line": 1729,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
         }
       ],
-      "summary": "Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。"
+      "summary": "技能与审阅 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
     },
     {
       "path": "src/omni/channels/web_auth.py",
@@ -3324,7 +4005,7 @@
       "path": "src/omni/channels/web_static/project/index.html",
       "module": "workbench",
       "python_module": null,
-      "lines": 34,
+      "lines": 35,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -3344,7 +4025,7 @@
       "path": "src/omni/channels/web_static/project/project.js",
       "module": "workbench",
       "python_module": null,
-      "lines": 109,
+      "lines": 110,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -12956,7 +13637,7 @@
       "path": "src/omni/system/catalog/schema.py",
       "module": "catalog",
       "python_module": "omni.system.catalog.schema",
-      "lines": 84,
+      "lines": 98,
       "imports": [],
       "symbols": [
         {
@@ -12966,7 +13647,7 @@
         },
         {
           "name": "classify",
-          "line": 55,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "relative"
@@ -21330,10 +22011,10 @@
     {
       "method": "POST",
       "path": "/api/android/element",
-      "source": "src/omni/channels/web.py",
-      "line": 1657,
-      "handler": "create_app.android_element",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 98,
+      "handler": "create_devices_router.android_element",
+      "module": "http-devices",
       "parameters": [
         "payload"
       ],
@@ -21345,10 +22026,10 @@
     {
       "method": "POST",
       "path": "/api/android/key",
-      "source": "src/omni/channels/web.py",
-      "line": 1667,
-      "handler": "create_app.android_key",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 108,
+      "handler": "create_devices_router.android_key",
+      "module": "http-devices",
       "parameters": [
         "payload"
       ],
@@ -21360,10 +22041,10 @@
     {
       "method": "GET",
       "path": "/api/android/snapshot",
-      "source": "src/omni/channels/web.py",
-      "line": 1626,
-      "handler": "create_app.android_snapshot",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 67,
+      "handler": "create_devices_router.android_snapshot",
+      "module": "http-devices",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21371,10 +22052,10 @@
     {
       "method": "GET",
       "path": "/api/android/state",
-      "source": "src/omni/channels/web.py",
-      "line": 1598,
-      "handler": "create_app.android_state",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 39,
+      "handler": "create_devices_router.android_state",
+      "module": "http-devices",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21382,10 +22063,10 @@
     {
       "method": "GET",
       "path": "/api/android/stream",
-      "source": "src/omni/channels/web.py",
-      "line": 1676,
-      "handler": "create_app.android_stream",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 117,
+      "handler": "create_devices_router.android_stream",
+      "module": "http-devices",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21393,10 +22074,10 @@
     {
       "method": "POST",
       "path": "/api/android/tap",
-      "source": "src/omni/channels/web.py",
-      "line": 1643,
-      "handler": "create_app.android_tap",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 84,
+      "handler": "create_devices_router.android_tap",
+      "module": "http-devices",
       "parameters": [
         "payload"
       ],
@@ -21408,10 +22089,10 @@
     {
       "method": "GET",
       "path": "/api/android/tree",
-      "source": "src/omni/channels/web.py",
-      "line": 1607,
-      "handler": "create_app.android_tree",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 48,
+      "handler": "create_devices_router.android_tree",
+      "module": "http-devices",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21419,10 +22100,10 @@
     {
       "method": "GET",
       "path": "/api/approvals",
-      "source": "src/omni/channels/web.py",
-      "line": 1041,
-      "handler": "create_app.get_approvals",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/approvals.py",
+      "line": 18,
+      "handler": "create_approvals_router.get_approvals",
+      "module": "http-approvals",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21430,10 +22111,10 @@
     {
       "method": "POST",
       "path": "/api/approvals/{approval_id}/resolve",
-      "source": "src/omni/channels/web.py",
-      "line": 1049,
-      "handler": "create_app.resolve_approval",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/approvals.py",
+      "line": 26,
+      "handler": "create_approvals_router.resolve_approval",
+      "module": "http-approvals",
       "parameters": [
         "approval_id",
         "payload"
@@ -21447,10 +22128,10 @@
     {
       "method": "GET",
       "path": "/api/artifacts",
-      "source": "src/omni/channels/web.py",
-      "line": 985,
-      "handler": "create_app.list_artifacts",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/artifacts.py",
+      "line": 31,
+      "handler": "create_artifacts_router.list_artifacts",
+      "module": "http-artifacts",
       "parameters": [
         "session_id",
         "limit"
@@ -21464,10 +22145,10 @@
     {
       "method": "DELETE",
       "path": "/api/artifacts/{artifact_id}",
-      "source": "src/omni/channels/web.py",
-      "line": 1027,
-      "handler": "create_app.delete_artifact",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/artifacts.py",
+      "line": 73,
+      "handler": "create_artifacts_router.delete_artifact",
+      "module": "http-artifacts",
       "parameters": [
         "artifact_id"
       ],
@@ -21479,10 +22160,10 @@
     {
       "method": "GET",
       "path": "/api/artifacts/{artifact_id}/image",
-      "source": "src/omni/channels/web.py",
-      "line": 1014,
-      "handler": "create_app.artifact_image",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/artifacts.py",
+      "line": 60,
+      "handler": "create_artifacts_router.artifact_image",
+      "module": "http-artifacts",
       "parameters": [
         "artifact_id"
       ],
@@ -21495,7 +22176,7 @@
       "method": "POST",
       "path": "/api/auth/logout",
       "source": "src/omni/channels/web.py",
-      "line": 307,
+      "line": 172,
       "handler": "create_app.auth_logout",
       "module": "web-ui",
       "parameters": [],
@@ -21506,7 +22187,7 @@
       "method": "POST",
       "path": "/api/auth/pair",
       "source": "src/omni/channels/web.py",
-      "line": 292,
+      "line": 157,
       "handler": "create_app.auth_pair",
       "module": "web-ui",
       "parameters": [
@@ -21523,7 +22204,7 @@
       "method": "GET",
       "path": "/api/auth/status",
       "source": "src/omni/channels/web.py",
-      "line": 284,
+      "line": 149,
       "handler": "create_app.auth_status",
       "module": "web-ui",
       "parameters": [
@@ -21537,10 +22218,10 @@
     {
       "method": "POST",
       "path": "/api/chat",
-      "source": "src/omni/channels/web.py",
-      "line": 432,
-      "handler": "create_app.chat",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/conversation.py",
+      "line": 43,
+      "handler": "create_conversation_router.chat",
+      "module": "http-conversation",
       "parameters": [
         "payload"
       ],
@@ -21552,10 +22233,10 @@
     {
       "method": "POST",
       "path": "/api/chat/stream",
-      "source": "src/omni/channels/web.py",
-      "line": 463,
-      "handler": "create_app.chat_stream",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/conversation.py",
+      "line": 74,
+      "handler": "create_conversation_router.chat_stream",
+      "module": "http-conversation",
       "parameters": [
         "payload",
         "request"
@@ -21569,10 +22250,10 @@
     {
       "method": "GET",
       "path": "/api/desktop/observe/{window}",
-      "source": "src/omni/channels/web.py",
-      "line": 1587,
-      "handler": "create_app.desktop_observe",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 30,
+      "handler": "create_devices_router.desktop_observe",
+      "module": "http-devices",
       "parameters": [
         "window",
         "session_id"
@@ -21586,10 +22267,10 @@
     {
       "method": "GET",
       "path": "/api/desktop/windows",
-      "source": "src/omni/channels/web.py",
-      "line": 1578,
-      "handler": "create_app.desktop_windows",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/devices.py",
+      "line": 21,
+      "handler": "create_devices_router.desktop_windows",
+      "module": "http-devices",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21597,10 +22278,10 @@
     {
       "method": "GET",
       "path": "/api/facts",
-      "source": "src/omni/channels/web.py",
-      "line": 660,
-      "handler": "create_app.get_facts",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 19,
+      "handler": "create_memory_router.get_facts",
+      "module": "http-memory",
       "parameters": [
         "q",
         "limit"
@@ -21614,10 +22295,10 @@
     {
       "method": "GET",
       "path": "/api/facts/detail",
-      "source": "src/omni/channels/web.py",
-      "line": 664,
-      "handler": "create_app.get_facts_detail",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 23,
+      "handler": "create_memory_router.get_facts_detail",
+      "module": "http-memory",
       "parameters": [
         "limit"
       ],
@@ -21629,10 +22310,10 @@
     {
       "method": "DELETE",
       "path": "/api/facts/{fact_id}",
-      "source": "src/omni/channels/web.py",
-      "line": 669,
-      "handler": "create_app.delete_fact",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 28,
+      "handler": "create_memory_router.delete_fact",
+      "module": "http-memory",
       "parameters": [
         "fact_id"
       ],
@@ -21644,10 +22325,10 @@
     {
       "method": "GET",
       "path": "/api/llm/usage",
-      "source": "src/omni/channels/web.py",
-      "line": 626,
-      "handler": "create_app.llm_usage",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/runs.py",
+      "line": 69,
+      "handler": "create_runs_router.llm_usage",
+      "module": "http-runs",
       "parameters": [
         "days",
         "limit"
@@ -21661,10 +22342,10 @@
     {
       "method": "GET",
       "path": "/api/mcp/overview",
-      "source": "src/omni/channels/web.py",
-      "line": 1060,
-      "handler": "create_app.mcp_overview",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 19,
+      "handler": "create_mcp_router.mcp_overview",
+      "module": "http-mcp",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21672,10 +22353,10 @@
     {
       "method": "POST",
       "path": "/api/mcp/{server}/confirm-schema",
-      "source": "src/omni/channels/web.py",
-      "line": 1116,
-      "handler": "create_app.mcp_confirm_schema",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 75,
+      "handler": "create_mcp_router.mcp_confirm_schema",
+      "module": "http-mcp",
       "parameters": [
         "server",
         "payload"
@@ -21689,10 +22370,10 @@
     {
       "method": "POST",
       "path": "/api/mcp/{server}/reset",
-      "source": "src/omni/channels/web.py",
-      "line": 1132,
-      "handler": "create_app.mcp_reset",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 91,
+      "handler": "create_mcp_router.mcp_reset",
+      "module": "http-mcp",
       "parameters": [
         "server"
       ],
@@ -21704,10 +22385,10 @@
     {
       "method": "GET",
       "path": "/api/mcp/{server}/tools",
-      "source": "src/omni/channels/web.py",
-      "line": 1085,
-      "handler": "create_app.mcp_tools",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 44,
+      "handler": "create_mcp_router.mcp_tools",
+      "module": "http-mcp",
       "parameters": [
         "server",
         "limit"
@@ -21721,10 +22402,10 @@
     {
       "method": "GET",
       "path": "/api/memory/retrieval",
-      "source": "src/omni/channels/web.py",
-      "line": 1572,
-      "handler": "create_app.retrieval_status",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 125,
+      "handler": "create_memory_router.retrieval_status",
+      "module": "http-memory",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21732,10 +22413,10 @@
     {
       "method": "GET",
       "path": "/api/memory/status",
-      "source": "src/omni/channels/web.py",
-      "line": 676,
-      "handler": "create_app.memory_status",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 35,
+      "handler": "create_memory_router.memory_status",
+      "module": "http-memory",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21743,10 +22424,10 @@
     {
       "method": "GET",
       "path": "/api/profile",
-      "source": "src/omni/channels/web.py",
-      "line": 699,
-      "handler": "create_app.get_profile",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 58,
+      "handler": "create_memory_router.get_profile",
+      "module": "http-memory",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21754,10 +22435,10 @@
     {
       "method": "PUT",
       "path": "/api/profile/line",
-      "source": "src/omni/channels/web.py",
-      "line": 710,
-      "handler": "create_app.profile_line_update",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 69,
+      "handler": "create_memory_router.profile_line_update",
+      "module": "http-memory",
       "parameters": [
         "payload"
       ],
@@ -21769,10 +22450,10 @@
     {
       "method": "DELETE",
       "path": "/api/profile/line/{line_id}",
-      "source": "src/omni/channels/web.py",
-      "line": 719,
-      "handler": "create_app.profile_line_delete",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 78,
+      "handler": "create_memory_router.profile_line_delete",
+      "module": "http-memory",
       "parameters": [
         "line_id"
       ],
@@ -21784,10 +22465,10 @@
     {
       "method": "GET",
       "path": "/api/publications",
-      "source": "src/omni/channels/web.py",
-      "line": 1530,
-      "handler": "create_app.publications",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/publications.py",
+      "line": 16,
+      "handler": "create_publications_router.publications",
+      "module": "http-publications",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21795,10 +22476,10 @@
     {
       "method": "POST",
       "path": "/api/publications/{identity}/edit",
-      "source": "src/omni/channels/web.py",
-      "line": 1538,
-      "handler": "create_app.publication_edit",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/publications.py",
+      "line": 24,
+      "handler": "create_publications_router.publication_edit",
+      "module": "http-publications",
       "parameters": [
         "identity",
         "body"
@@ -21812,10 +22493,10 @@
     {
       "method": "POST",
       "path": "/api/publications/{identity}/resolve",
-      "source": "src/omni/channels/web.py",
-      "line": 1552,
-      "handler": "create_app.publication_resolve",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/publications.py",
+      "line": 38,
+      "handler": "create_publications_router.publication_resolve",
+      "module": "http-publications",
       "parameters": [
         "identity",
         "body"
@@ -21829,10 +22510,10 @@
     {
       "method": "GET",
       "path": "/api/resident",
-      "source": "src/omni/channels/web.py",
-      "line": 725,
-      "handler": "create_app.get_resident",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 84,
+      "handler": "create_memory_router.get_resident",
+      "module": "http-memory",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21840,10 +22521,10 @@
     {
       "method": "POST",
       "path": "/api/resident/update",
-      "source": "src/omni/channels/web.py",
-      "line": 735,
-      "handler": "create_app.resident_update",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 94,
+      "handler": "create_memory_router.resident_update",
+      "module": "http-memory",
       "parameters": [
         "payload"
       ],
@@ -21855,10 +22536,10 @@
     {
       "method": "GET",
       "path": "/api/reviews",
-      "source": "src/omni/channels/web.py",
-      "line": 756,
-      "handler": "create_app.get_reviews",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/memory.py",
+      "line": 115,
+      "handler": "create_memory_router.get_reviews",
+      "module": "http-memory",
       "parameters": [
         "limit"
       ],
@@ -21870,10 +22551,10 @@
     {
       "method": "GET",
       "path": "/api/runs",
-      "source": "src/omni/channels/web.py",
-      "line": 575,
-      "handler": "create_app.run_list",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/runs.py",
+      "line": 20,
+      "handler": "create_runs_router.run_list",
+      "module": "http-runs",
       "parameters": [
         "session_id",
         "limit"
@@ -21887,10 +22568,10 @@
     {
       "method": "POST",
       "path": "/api/runs",
-      "source": "src/omni/channels/web.py",
-      "line": 552,
-      "handler": "create_app.run_create",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/conversation.py",
+      "line": 161,
+      "handler": "create_conversation_router.run_create",
+      "module": "http-conversation",
       "parameters": [
         "payload"
       ],
@@ -21902,10 +22583,10 @@
     {
       "method": "GET",
       "path": "/api/runs/{run_id}",
-      "source": "src/omni/channels/web.py",
-      "line": 583,
-      "handler": "create_app.run_get",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/runs.py",
+      "line": 28,
+      "handler": "create_runs_router.run_get",
+      "module": "http-runs",
       "parameters": [
         "run_id"
       ],
@@ -21917,10 +22598,10 @@
     {
       "method": "POST",
       "path": "/api/runs/{run_id}/cancel",
-      "source": "src/omni/channels/web.py",
-      "line": 602,
-      "handler": "create_app.run_cancel",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/runs.py",
+      "line": 47,
+      "handler": "create_runs_router.run_cancel",
+      "module": "http-runs",
       "parameters": [
         "run_id"
       ],
@@ -21932,10 +22613,10 @@
     {
       "method": "GET",
       "path": "/api/runs/{run_id}/events",
-      "source": "src/omni/channels/web.py",
-      "line": 590,
-      "handler": "create_app.run_events",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/runs.py",
+      "line": 35,
+      "handler": "create_runs_router.run_events",
+      "module": "http-runs",
       "parameters": [
         "run_id",
         "after",
@@ -21951,10 +22632,10 @@
     {
       "method": "GET",
       "path": "/api/sessions",
-      "source": "src/omni/channels/web.py",
-      "line": 359,
-      "handler": "create_app.get_sessions",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/sessions.py",
+      "line": 42,
+      "handler": "create_sessions_router.get_sessions",
+      "module": "http-sessions",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21962,10 +22643,10 @@
     {
       "method": "POST",
       "path": "/api/sessions",
-      "source": "src/omni/channels/web.py",
-      "line": 373,
-      "handler": "create_app.create_session",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/sessions.py",
+      "line": 56,
+      "handler": "create_sessions_router.create_session",
+      "module": "http-sessions",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -21973,10 +22654,10 @@
     {
       "method": "GET",
       "path": "/api/sessions/{session_id}/messages",
-      "source": "src/omni/channels/web.py",
-      "line": 383,
-      "handler": "create_app.get_messages",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/sessions.py",
+      "line": 66,
+      "handler": "create_sessions_router.get_messages",
+      "module": "http-sessions",
       "parameters": [
         "session_id",
         "limit"
@@ -21990,10 +22671,10 @@
     {
       "method": "POST",
       "path": "/api/sessions/{session_id}/select",
-      "source": "src/omni/channels/web.py",
-      "line": 377,
-      "handler": "create_app.select_session",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/sessions.py",
+      "line": 60,
+      "handler": "create_sessions_router.select_session",
+      "module": "http-sessions",
       "parameters": [
         "session_id"
       ],
@@ -22005,10 +22686,10 @@
     {
       "method": "GET",
       "path": "/api/sessions/{session_id}/todos",
-      "source": "src/omni/channels/web.py",
-      "line": 395,
-      "handler": "create_app.get_todos",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/sessions.py",
+      "line": 78,
+      "handler": "create_sessions_router.get_todos",
+      "module": "http-sessions",
       "parameters": [
         "session_id"
       ],
@@ -22020,10 +22701,10 @@
     {
       "method": "GET",
       "path": "/api/skills",
-      "source": "src/omni/channels/web.py",
-      "line": 766,
-      "handler": "create_app.get_skills",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 19,
+      "handler": "create_skills_router.get_skills",
+      "module": "http-skills",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22031,10 +22712,10 @@
     {
       "method": "POST",
       "path": "/api/skills/ack-all",
-      "source": "src/omni/channels/web.py",
-      "line": 821,
-      "handler": "create_app.skills_ack_all",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 71,
+      "handler": "create_skills_router.skills_ack_all",
+      "module": "http-skills",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22042,10 +22723,10 @@
     {
       "method": "GET",
       "path": "/api/skills/pending",
-      "source": "src/omni/channels/web.py",
-      "line": 782,
-      "handler": "create_app.skills_pending",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 32,
+      "handler": "create_skills_router.skills_pending",
+      "module": "http-skills",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22053,10 +22734,10 @@
     {
       "method": "GET",
       "path": "/api/skills/pending/{name}/diff",
-      "source": "src/omni/channels/web.py",
-      "line": 845,
-      "handler": "create_app.skill_pending_diff",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 95,
+      "handler": "create_skills_router.skill_pending_diff",
+      "module": "http-skills",
       "parameters": [
         "name",
         "rev"
@@ -22070,10 +22751,10 @@
     {
       "method": "GET",
       "path": "/api/skills/{name}",
-      "source": "src/omni/channels/web.py",
-      "line": 869,
-      "handler": "create_app.get_skill",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 119,
+      "handler": "create_skills_router.get_skill",
+      "module": "http-skills",
       "parameters": [
         "name",
         "path"
@@ -22087,10 +22768,10 @@
     {
       "method": "POST",
       "path": "/api/skills/{name}/ack",
-      "source": "src/omni/channels/web.py",
-      "line": 836,
-      "handler": "create_app.skill_ack",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 86,
+      "handler": "create_skills_router.skill_ack",
+      "module": "http-skills",
       "parameters": [
         "name",
         "payload"
@@ -22104,10 +22785,10 @@
     {
       "method": "GET",
       "path": "/api/skills/{name}/diff",
-      "source": "src/omni/channels/web.py",
-      "line": 943,
-      "handler": "create_app.skill_diff",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 191,
+      "handler": "create_skills_router.skill_diff",
+      "module": "http-skills",
       "parameters": [
         "name",
         "rev"
@@ -22121,10 +22802,10 @@
     {
       "method": "GET",
       "path": "/api/skills/{name}/history",
-      "source": "src/omni/channels/web.py",
-      "line": 913,
-      "handler": "create_app.skill_history",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 161,
+      "handler": "create_skills_router.skill_history",
+      "module": "http-skills",
       "parameters": [
         "name",
         "limit"
@@ -22138,10 +22819,10 @@
     {
       "method": "GET",
       "path": "/api/skills/{name}/revision/{rev}",
-      "source": "src/omni/channels/web.py",
-      "line": 933,
-      "handler": "create_app.skill_revision",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 181,
+      "handler": "create_skills_router.skill_revision",
+      "module": "http-skills",
       "parameters": [
         "name",
         "rev"
@@ -22155,10 +22836,10 @@
     {
       "method": "POST",
       "path": "/api/skills/{name}/rollback",
-      "source": "src/omni/channels/web.py",
-      "line": 963,
-      "handler": "create_app.skill_rollback",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 211,
+      "handler": "create_skills_router.skill_rollback",
+      "module": "http-skills",
       "parameters": [
         "name",
         "payload"
@@ -22172,10 +22853,10 @@
     {
       "method": "POST",
       "path": "/api/skills/{name}/save",
-      "source": "src/omni/channels/web.py",
-      "line": 891,
-      "handler": "create_app.skill_save",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/skills.py",
+      "line": 139,
+      "handler": "create_skills_router.skill_save",
+      "module": "http-skills",
       "parameters": [
         "name",
         "payload"
@@ -22189,10 +22870,10 @@
     {
       "method": "GET",
       "path": "/api/state",
-      "source": "src/omni/channels/web.py",
-      "line": 336,
-      "handler": "create_app.get_state",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/sessions.py",
+      "line": 19,
+      "handler": "create_sessions_router.get_state",
+      "module": "http-sessions",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22200,10 +22881,10 @@
     {
       "method": "POST",
       "path": "/api/system/backup",
-      "source": "src/omni/channels/web.py",
-      "line": 1152,
-      "handler": "create_app.system_backup",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/operations.py",
+      "line": 27,
+      "handler": "create_operations_router.system_backup",
+      "module": "http-operations",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22212,7 +22893,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "src/omni/channels/web.py",
-      "line": 1271,
+      "line": 288,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -22223,7 +22904,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "src/omni/channels/web.py",
-      "line": 1283,
+      "line": 300,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -22238,7 +22919,7 @@
       "method": "GET",
       "path": "/api/system/config",
       "source": "src/omni/channels/web.py",
-      "line": 1184,
+      "line": 203,
       "handler": "create_app.system_config",
       "module": "web-ui",
       "parameters": [],
@@ -22249,7 +22930,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "src/omni/channels/web.py",
-      "line": 1230,
+      "line": 249,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -22263,10 +22944,10 @@
     {
       "method": "GET",
       "path": "/api/system/cron",
-      "source": "src/omni/channels/web.py",
-      "line": 1374,
-      "handler": "create_app.cron_list",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 59,
+      "handler": "create_automation_router.cron_list",
+      "module": "http-automation",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22274,10 +22955,10 @@
     {
       "method": "POST",
       "path": "/api/system/cron/create",
-      "source": "src/omni/channels/web.py",
-      "line": 1337,
-      "handler": "create_app.cron_create",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 22,
+      "handler": "create_automation_router.cron_create",
+      "module": "http-automation",
       "parameters": [
         "payload"
       ],
@@ -22289,10 +22970,10 @@
     {
       "method": "POST",
       "path": "/api/system/cron/delete",
-      "source": "src/omni/channels/web.py",
-      "line": 1474,
-      "handler": "create_app.cron_delete",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 159,
+      "handler": "create_automation_router.cron_delete",
+      "module": "http-automation",
       "parameters": [
         "payload"
       ],
@@ -22304,10 +22985,10 @@
     {
       "method": "GET",
       "path": "/api/system/cron/history",
-      "source": "src/omni/channels/web.py",
-      "line": 1481,
-      "handler": "create_app.cron_history",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 166,
+      "handler": "create_automation_router.cron_history",
+      "module": "http-automation",
       "parameters": [
         "limit"
       ],
@@ -22319,10 +23000,10 @@
     {
       "method": "GET",
       "path": "/api/system/cron/outbox",
-      "source": "src/omni/channels/web.py",
-      "line": 1491,
-      "handler": "create_app.cron_outbox",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 174,
+      "handler": "create_automation_router.cron_outbox",
+      "module": "http-automation",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22330,10 +23011,10 @@
     {
       "method": "POST",
       "path": "/api/system/cron/outbox/{entry_id}/discard",
-      "source": "src/omni/channels/web.py",
-      "line": 1518,
-      "handler": "create_app.cron_outbox_discard",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 201,
+      "handler": "create_automation_router.cron_outbox_discard",
+      "module": "http-automation",
       "parameters": [
         "entry_id"
       ],
@@ -22345,10 +23026,10 @@
     {
       "method": "POST",
       "path": "/api/system/cron/outbox/{entry_id}/retry",
-      "source": "src/omni/channels/web.py",
-      "line": 1506,
-      "handler": "create_app.cron_outbox_retry",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 189,
+      "handler": "create_automation_router.cron_outbox_retry",
+      "module": "http-automation",
       "parameters": [
         "entry_id"
       ],
@@ -22360,10 +23041,10 @@
     {
       "method": "POST",
       "path": "/api/system/cron/toggle",
-      "source": "src/omni/channels/web.py",
-      "line": 1458,
-      "handler": "create_app.cron_toggle",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 143,
+      "handler": "create_automation_router.cron_toggle",
+      "module": "http-automation",
       "parameters": [
         "payload"
       ],
@@ -22375,10 +23056,10 @@
     {
       "method": "POST",
       "path": "/api/system/cron/update",
-      "source": "src/omni/channels/web.py",
-      "line": 1408,
-      "handler": "create_app.cron_update",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/automation.py",
+      "line": 93,
+      "handler": "create_automation_router.cron_update",
+      "module": "http-automation",
       "parameters": [
         "payload"
       ],
@@ -22390,10 +23071,10 @@
     {
       "method": "GET",
       "path": "/api/system/doctor",
-      "source": "src/omni/channels/web.py",
-      "line": 1148,
-      "handler": "create_app.system_doctor",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/operations.py",
+      "line": 23,
+      "handler": "create_operations_router.system_doctor",
+      "module": "http-operations",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22401,10 +23082,10 @@
     {
       "method": "GET",
       "path": "/api/system/logs/{name}",
-      "source": "src/omni/channels/web.py",
-      "line": 1180,
-      "handler": "create_app.system_logs",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/operations.py",
+      "line": 55,
+      "handler": "create_operations_router.system_logs",
+      "module": "http-operations",
       "parameters": [
         "name",
         "lines"
@@ -22419,7 +23100,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "src/omni/channels/web.py",
-      "line": 1305,
+      "line": 320,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -22433,10 +23114,10 @@
     {
       "method": "GET",
       "path": "/api/system/napcat/qr",
-      "source": "src/omni/channels/web.py",
-      "line": 1176,
-      "handler": "create_app.system_napcat_qr",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/operations.py",
+      "line": 51,
+      "handler": "create_operations_router.system_napcat_qr",
+      "module": "http-operations",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22444,10 +23125,10 @@
     {
       "method": "GET",
       "path": "/api/system/overview",
-      "source": "src/omni/channels/web.py",
-      "line": 1144,
-      "handler": "create_app.system_overview",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/operations.py",
+      "line": 19,
+      "handler": "create_operations_router.system_overview",
+      "module": "http-operations",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22456,7 +23137,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "src/omni/channels/web.py",
-      "line": 1250,
+      "line": 269,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -22467,7 +23148,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "src/omni/channels/web.py",
-      "line": 1261,
+      "line": 280,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -22477,10 +23158,10 @@
     {
       "method": "POST",
       "path": "/api/system/services/{name}/start",
-      "source": "src/omni/channels/web.py",
-      "line": 1160,
-      "handler": "create_app.system_service_start",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/operations.py",
+      "line": 35,
+      "handler": "create_operations_router.system_service_start",
+      "module": "http-operations",
       "parameters": [
         "name",
         "payload"
@@ -22494,10 +23175,10 @@
     {
       "method": "POST",
       "path": "/api/system/services/{name}/stop",
-      "source": "src/omni/channels/web.py",
-      "line": 1169,
-      "handler": "create_app.system_service_stop",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/operations.py",
+      "line": 44,
+      "handler": "create_operations_router.system_service_stop",
+      "module": "http-operations",
       "parameters": [
         "name"
       ],
@@ -22509,10 +23190,10 @@
     {
       "method": "GET",
       "path": "/api/system/state",
-      "source": "src/omni/channels/web.py",
-      "line": 1567,
-      "handler": "create_app.system_state",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/operations.py",
+      "line": 59,
+      "handler": "create_operations_router.system_state",
+      "module": "http-operations",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -22535,10 +23216,10 @@
     {
       "method": "POST",
       "path": "/api/todos/toggle",
-      "source": "src/omni/channels/web.py",
-      "line": 407,
-      "handler": "create_app.toggle_todo",
-      "module": "web-ui",
+      "source": "src/omni/channels/web_api/sessions.py",
+      "line": 90,
+      "handler": "create_sessions_router.toggle_todo",
+      "module": "http-sessions",
       "parameters": [
         "payload"
       ],
@@ -22599,7 +23280,7 @@
       "method": "GET",
       "path": "/pair/{code}",
       "source": "src/omni/channels/web.py",
-      "line": 313,
+      "line": 178,
       "handler": "create_app.pair_link",
       "module": "web-ui",
       "parameters": [
@@ -23261,9 +23942,9 @@
       "summary": "Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记账。",
       "steps": [
         {
-          "source": "src/omni/channels/web.py",
-          "symbol": "create_app.chat",
-          "line": 432
+          "source": "src/omni/channels/web_api/conversation.py",
+          "symbol": "create_conversation_router.chat",
+          "line": 43
         },
         {
           "source": "src/omni/core/agent.py",
@@ -23315,9 +23996,9 @@
       "summary": "流式响应和持久运行事件是两条接口；停止通过协作取消传播。",
       "steps": [
         {
-          "source": "src/omni/channels/web.py",
-          "symbol": "create_app.chat_stream",
-          "line": 463
+          "source": "src/omni/channels/web_api/conversation.py",
+          "symbol": "create_conversation_router.chat_stream",
+          "line": 74
         },
         {
           "source": "src/omni/core/agent.py",
@@ -23448,8 +24129,8 @@
   "request_models": [
     {
       "name": "ChatIn",
-      "source": "src/omni/channels/web.py",
-      "line": 59,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 9,
       "fields": [
         {
           "name": "message",
@@ -23465,8 +24146,8 @@
     },
     {
       "name": "ResolveIn",
-      "source": "src/omni/channels/web.py",
-      "line": 64,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 14,
       "fields": [
         {
           "name": "allowed",
@@ -23482,8 +24163,8 @@
     },
     {
       "name": "NapCatStartIn",
-      "source": "src/omni/channels/web.py",
-      "line": 69,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 19,
       "fields": [
         {
           "name": "qq",
@@ -23494,8 +24175,8 @@
     },
     {
       "name": "ConfigUpdateIn",
-      "source": "src/omni/channels/web.py",
-      "line": 73,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 23,
       "fields": [
         {
           "name": "updates",
@@ -23506,8 +24187,8 @@
     },
     {
       "name": "ModelTestIn",
-      "source": "src/omni/channels/web.py",
-      "line": 77,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 27,
       "fields": [
         {
           "name": "model",
@@ -23518,8 +24199,8 @@
     },
     {
       "name": "MCPSchemaConfirmIn",
-      "source": "src/omni/channels/web.py",
-      "line": 81,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 31,
       "fields": [
         {
           "name": "fingerprint",
@@ -23530,8 +24211,8 @@
     },
     {
       "name": "BiliCookiesIn",
-      "source": "src/omni/channels/web.py",
-      "line": 85,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 35,
       "fields": [
         {
           "name": "sessdata",
@@ -23552,8 +24233,8 @@
     },
     {
       "name": "CronNameIn",
-      "source": "src/omni/channels/web.py",
-      "line": 91,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 41,
       "fields": [
         {
           "name": "name",
@@ -23564,8 +24245,8 @@
     },
     {
       "name": "CronToggleIn",
-      "source": "src/omni/channels/web.py",
-      "line": 95,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 45,
       "fields": [
         {
           "name": "name",
@@ -23581,8 +24262,8 @@
     },
     {
       "name": "CronCreateIn",
-      "source": "src/omni/channels/web.py",
-      "line": 100,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 50,
       "fields": [
         {
           "name": "name",
@@ -23633,8 +24314,8 @@
     },
     {
       "name": "CronUpdateIn",
-      "source": "src/omni/channels/web.py",
-      "line": 112,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 62,
       "fields": [
         {
           "name": "name",
@@ -23695,8 +24376,8 @@
     },
     {
       "name": "TodoToggleIn",
-      "source": "src/omni/channels/web.py",
-      "line": 128,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 78,
       "fields": [
         {
           "name": "session_id",
@@ -23717,8 +24398,8 @@
     },
     {
       "name": "AndroidTapIn",
-      "source": "src/omni/channels/web.py",
-      "line": 134,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 84,
       "fields": [
         {
           "name": "x",
@@ -23749,8 +24430,8 @@
     },
     {
       "name": "AndroidElementIn",
-      "source": "src/omni/channels/web.py",
-      "line": 142,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 92,
       "fields": [
         {
           "name": "idx",
@@ -23766,8 +24447,8 @@
     },
     {
       "name": "AndroidKeyIn",
-      "source": "src/omni/channels/web.py",
-      "line": 147,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 97,
       "fields": [
         {
           "name": "keycode",
@@ -23783,8 +24464,8 @@
     },
     {
       "name": "ProfileLineIn",
-      "source": "src/omni/channels/web.py",
-      "line": 152,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 102,
       "fields": [
         {
           "name": "line_id",
@@ -23800,8 +24481,8 @@
     },
     {
       "name": "ResidentUpdateIn",
-      "source": "src/omni/channels/web.py",
-      "line": 157,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 107,
       "fields": [
         {
           "name": "operation",
@@ -23822,8 +24503,8 @@
     },
     {
       "name": "PairIn",
-      "source": "src/omni/channels/web.py",
-      "line": 163,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 113,
       "fields": [
         {
           "name": "code",
@@ -23834,8 +24515,8 @@
     },
     {
       "name": "SkillSaveIn",
-      "source": "src/omni/channels/web.py",
-      "line": 167,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 117,
       "fields": [
         {
           "name": "content",
@@ -23851,8 +24532,8 @@
     },
     {
       "name": "SkillRollbackIn",
-      "source": "src/omni/channels/web.py",
-      "line": 174,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 124,
       "fields": [
         {
           "name": "rev",
@@ -23868,8 +24549,8 @@
     },
     {
       "name": "SkillAckIn",
-      "source": "src/omni/channels/web.py",
-      "line": 179,
+      "source": "src/omni/channels/web_api/schemas.py",
+      "line": 129,
       "fields": [
         {
           "name": "rev",

@@ -1,0 +1,3566 @@
+{
+  "schema": 1,
+  "base_commit": "934618f",
+  "scope": "published workbench HTTP compatibility; grouping tags intentionally excluded",
+  "operations": {
+    "GET /api/auth/status": {
+      "operationId": "auth_status_api_auth_status_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Auth Status Api Auth Status Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/auth/pair": {
+      "operationId": "auth_pair_api_auth_pair_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PairIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/auth/logout": {
+      "operationId": "auth_logout_api_auth_logout_post",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    },
+    "GET /pair/{code}": {
+      "operationId": "pair_link_pair__code__get",
+      "parameters": [
+        {
+          "name": "code",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Code"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/state": {
+      "operationId": "get_state_api_state_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Get State Api State Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/sessions": {
+      "operationId": "get_sessions_api_sessions_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Get Sessions Api Sessions Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/sessions": {
+      "operationId": "create_session_api_sessions_post",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Create Session Api Sessions Post"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/sessions/{session_id}/select": {
+      "operationId": "select_session_api_sessions__session_id__select_post",
+      "parameters": [
+        {
+          "name": "session_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Session Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Select Session Api Sessions  Session Id  Select Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/sessions/{session_id}/messages": {
+      "operationId": "get_messages_api_sessions__session_id__messages_get",
+      "parameters": [
+        {
+          "name": "session_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Session Id"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 300,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Get Messages Api Sessions  Session Id  Messages Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/sessions/{session_id}/todos": {
+      "operationId": "get_todos_api_sessions__session_id__todos_get",
+      "parameters": [
+        {
+          "name": "session_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Session Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Get Todos Api Sessions  Session Id  Todos Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/todos/toggle": {
+      "operationId": "toggle_todo_api_todos_toggle_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TodoToggleIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Toggle Todo Api Todos Toggle Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/chat": {
+      "operationId": "chat_api_chat_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ChatIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Chat Api Chat Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/chat/stream": {
+      "operationId": "chat_stream_api_chat_stream_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ChatIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/runs": {
+      "operationId": "run_create_api_runs_post",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ChatIn"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Run Create Api Runs Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/runs": {
+      "operationId": "run_list_api_runs_get",
+      "parameters": [
+        {
+          "name": "session_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 20,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Run List Api Runs Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/runs/{run_id}": {
+      "operationId": "run_get_api_runs__run_id__get",
+      "parameters": [
+        {
+          "name": "run_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Run Get Api Runs  Run Id  Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/runs/{run_id}/events": {
+      "operationId": "run_events_api_runs__run_id__events_get",
+      "parameters": [
+        {
+          "name": "run_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        },
+        {
+          "name": "after",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 0,
+            "title": "After"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 200,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Run Events Api Runs  Run Id  Events Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/runs/{run_id}/cancel": {
+      "operationId": "run_cancel_api_runs__run_id__cancel_post",
+      "parameters": [
+        {
+          "name": "run_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Run Cancel Api Runs  Run Id  Cancel Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/llm/usage": {
+      "operationId": "llm_usage_api_llm_usage_get",
+      "parameters": [
+        {
+          "name": "days",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 7,
+            "title": "Days"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 20,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Llm Usage Api Llm Usage Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/facts": {
+      "operationId": "get_facts_api_facts_get",
+      "parameters": [
+        {
+          "name": "q",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "default": "",
+            "title": "Q"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 50,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Get Facts Api Facts Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/facts/detail": {
+      "operationId": "get_facts_detail_api_facts_detail_get",
+      "parameters": [
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 200,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Get Facts Detail Api Facts Detail Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "DELETE /api/facts/{fact_id}": {
+      "operationId": "delete_fact_api_facts__fact_id__delete",
+      "parameters": [
+        {
+          "name": "fact_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Fact Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Delete Fact Api Facts  Fact Id  Delete"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/memory/status": {
+      "operationId": "memory_status_api_memory_status_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Memory Status Api Memory Status Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/profile": {
+      "operationId": "get_profile_api_profile_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Get Profile Api Profile Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "PUT /api/profile/line": {
+      "operationId": "profile_line_update_api_profile_line_put",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProfileLineIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Profile Line Update Api Profile Line Put"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "DELETE /api/profile/line/{line_id}": {
+      "operationId": "profile_line_delete_api_profile_line__line_id__delete",
+      "parameters": [
+        {
+          "name": "line_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Line Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Profile Line Delete Api Profile Line  Line Id  Delete"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/resident": {
+      "operationId": "get_resident_api_resident_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Get Resident Api Resident Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/resident/update": {
+      "operationId": "resident_update_api_resident_update_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ResidentUpdateIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Resident Update Api Resident Update Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/reviews": {
+      "operationId": "get_reviews_api_reviews_get",
+      "parameters": [
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 20,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Get Reviews Api Reviews Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/skills": {
+      "operationId": "get_skills_api_skills_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Get Skills Api Skills Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/skills/pending": {
+      "operationId": "skills_pending_api_skills_pending_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Skills Pending Api Skills Pending Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/skills/ack-all": {
+      "operationId": "skills_ack_all_api_skills_ack_all_post",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Skills Ack All Api Skills Ack All Post"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/skills/{name}/ack": {
+      "operationId": "skill_ack_api_skills__name__ack_post",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SkillAckIn"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Skill Ack Api Skills  Name  Ack Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/skills/pending/{name}/diff": {
+      "operationId": "skill_pending_diff_api_skills_pending__name__diff_get",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        {
+          "name": "rev",
+          "in": "query",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Rev"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Skill Pending Diff Api Skills Pending  Name  Diff Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/skills/{name}": {
+      "operationId": "get_skill_api_skills__name__get",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        {
+          "name": "path",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Get Skill Api Skills  Name  Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/skills/{name}/save": {
+      "operationId": "skill_save_api_skills__name__save_post",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SkillSaveIn"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Skill Save Api Skills  Name  Save Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/skills/{name}/history": {
+      "operationId": "skill_history_api_skills__name__history_get",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 30,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Skill History Api Skills  Name  History Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/skills/{name}/revision/{rev}": {
+      "operationId": "skill_revision_api_skills__name__revision__rev__get",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        {
+          "name": "rev",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Rev"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Skill Revision Api Skills  Name  Revision  Rev  Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/skills/{name}/diff": {
+      "operationId": "skill_diff_api_skills__name__diff_get",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        {
+          "name": "rev",
+          "in": "query",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Rev"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Skill Diff Api Skills  Name  Diff Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/skills/{name}/rollback": {
+      "operationId": "skill_rollback_api_skills__name__rollback_post",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SkillRollbackIn"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Skill Rollback Api Skills  Name  Rollback Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/artifacts": {
+      "operationId": "list_artifacts_api_artifacts_get",
+      "parameters": [
+        {
+          "name": "session_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 60,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response List Artifacts Api Artifacts Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/artifacts/{artifact_id}/image": {
+      "operationId": "artifact_image_api_artifacts__artifact_id__image_get",
+      "parameters": [
+        {
+          "name": "artifact_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Artifact Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "DELETE /api/artifacts/{artifact_id}": {
+      "operationId": "delete_artifact_api_artifacts__artifact_id__delete",
+      "parameters": [
+        {
+          "name": "artifact_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Artifact Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Delete Artifact Api Artifacts  Artifact Id  Delete"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/approvals": {
+      "operationId": "get_approvals_api_approvals_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Get Approvals Api Approvals Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/approvals/{approval_id}/resolve": {
+      "operationId": "resolve_approval_api_approvals__approval_id__resolve_post",
+      "parameters": [
+        {
+          "name": "approval_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Approval Id"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ResolveIn"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Resolve Approval Api Approvals  Approval Id  Resolve Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/mcp/overview": {
+      "operationId": "mcp_overview_api_mcp_overview_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Mcp Overview Api Mcp Overview Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/mcp/{server}/tools": {
+      "operationId": "mcp_tools_api_mcp__server__tools_get",
+      "parameters": [
+        {
+          "name": "server",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Server"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 50,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Mcp Tools Api Mcp  Server  Tools Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/mcp/{server}/confirm-schema": {
+      "operationId": "mcp_confirm_schema_api_mcp__server__confirm_schema_post",
+      "parameters": [
+        {
+          "name": "server",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Server"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MCPSchemaConfirmIn"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Mcp Confirm Schema Api Mcp  Server  Confirm Schema Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/mcp/{server}/reset": {
+      "operationId": "mcp_reset_api_mcp__server__reset_post",
+      "parameters": [
+        {
+          "name": "server",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Server"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Mcp Reset Api Mcp  Server  Reset Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/overview": {
+      "operationId": "system_overview_api_system_overview_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response System Overview Api System Overview Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/doctor": {
+      "operationId": "system_doctor_api_system_doctor_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response System Doctor Api System Doctor Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/backup": {
+      "operationId": "system_backup_api_system_backup_post",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response System Backup Api System Backup Post"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/services/{name}/start": {
+      "operationId": "system_service_start_api_system_services__name__start_post",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/NapCatStartIn"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Payload"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response System Service Start Api System Services  Name  Start Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/services/{name}/stop": {
+      "operationId": "system_service_stop_api_system_services__name__stop_post",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response System Service Stop Api System Services  Name  Stop Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/napcat/qr": {
+      "operationId": "system_napcat_qr_api_system_napcat_qr_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response System Napcat Qr Api System Napcat Qr Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/logs/{name}": {
+      "operationId": "system_logs_api_system_logs__name__get",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        {
+          "name": "lines",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 80,
+            "title": "Lines"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response System Logs Api System Logs  Name  Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/config": {
+      "operationId": "system_config_api_system_config_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response System Config Api System Config Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/config": {
+      "operationId": "system_config_save_api_system_config_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ConfigUpdateIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response System Config Save Api System Config Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/qq-policy": {
+      "operationId": "qq_policy_status_api_system_qq_policy_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Qq Policy Status Api System Qq Policy Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/qq-policy/stop": {
+      "operationId": "qq_policy_stop_api_system_qq_policy_stop_post",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Qq Policy Stop Api System Qq Policy Stop Post"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/bili-cookies": {
+      "operationId": "bili_cookies_status_api_system_bili_cookies_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Bili Cookies Status Api System Bili Cookies Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/bili-cookies": {
+      "operationId": "save_bili_cookies_api_system_bili_cookies_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BiliCookiesIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Save Bili Cookies Api System Bili Cookies Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/model-test": {
+      "operationId": "model_test_api_system_model_test_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ModelTestIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Model Test Api System Model Test Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/cron/create": {
+      "operationId": "cron_create_api_system_cron_create_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CronCreateIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Cron Create Api System Cron Create Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/cron": {
+      "operationId": "cron_list_api_system_cron_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Cron List Api System Cron Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/cron/update": {
+      "operationId": "cron_update_api_system_cron_update_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CronUpdateIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Cron Update Api System Cron Update Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/cron/toggle": {
+      "operationId": "cron_toggle_api_system_cron_toggle_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CronToggleIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Cron Toggle Api System Cron Toggle Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/cron/delete": {
+      "operationId": "cron_delete_api_system_cron_delete_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CronNameIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Cron Delete Api System Cron Delete Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/cron/history": {
+      "operationId": "cron_history_api_system_cron_history_get",
+      "parameters": [
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "default": 50,
+            "title": "Limit"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Cron History Api System Cron History Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/cron/outbox": {
+      "operationId": "cron_outbox_api_system_cron_outbox_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Cron Outbox Api System Cron Outbox Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/cron/outbox/{entry_id}/retry": {
+      "operationId": "cron_outbox_retry_api_system_cron_outbox__entry_id__retry_post",
+      "parameters": [
+        {
+          "name": "entry_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Entry Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Cron Outbox Retry Api System Cron Outbox  Entry Id  Retry Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/system/cron/outbox/{entry_id}/discard": {
+      "operationId": "cron_outbox_discard_api_system_cron_outbox__entry_id__discard_post",
+      "parameters": [
+        {
+          "name": "entry_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Entry Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Cron Outbox Discard Api System Cron Outbox  Entry Id  Discard Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/publications": {
+      "operationId": "publications_api_publications_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Publications Api Publications Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/publications/{identity}/edit": {
+      "operationId": "publication_edit_api_publications__identity__edit_post",
+      "parameters": [
+        {
+          "name": "identity",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Identity"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": true,
+              "title": "Body"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Publication Edit Api Publications  Identity  Edit Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/publications/{identity}/resolve": {
+      "operationId": "publication_resolve_api_publications__identity__resolve_post",
+      "parameters": [
+        {
+          "name": "identity",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Identity"
+          }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": true,
+              "title": "Body"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Publication Resolve Api Publications  Identity  Resolve Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/system/state": {
+      "operationId": "system_state_api_system_state_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response System State Api System State Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/memory/retrieval": {
+      "operationId": "retrieval_status_api_memory_retrieval_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Retrieval Status Api Memory Retrieval Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/desktop/windows": {
+      "operationId": "desktop_windows_api_desktop_windows_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Desktop Windows Api Desktop Windows Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/desktop/observe/{window}": {
+      "operationId": "desktop_observe_api_desktop_observe__window__get",
+      "parameters": [
+        {
+          "name": "window",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "title": "Window"
+          }
+        },
+        {
+          "name": "session_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Desktop Observe Api Desktop Observe  Window  Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/android/state": {
+      "operationId": "android_state_api_android_state_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Android State Api Android State Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/android/tree": {
+      "operationId": "android_tree_api_android_tree_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Android Tree Api Android Tree Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/android/snapshot": {
+      "operationId": "android_snapshot_api_android_snapshot_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Android Snapshot Api Android Snapshot Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/android/tap": {
+      "operationId": "android_tap_api_android_tap_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AndroidTapIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Android Tap Api Android Tap Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/android/element": {
+      "operationId": "android_element_api_android_element_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AndroidElementIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Android Element Api Android Element Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "POST /api/android/key": {
+      "operationId": "android_key_api_android_key_post",
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AndroidKeyIn"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Android Key Api Android Key Post"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/android/stream": {
+      "operationId": "android_stream_api_android_stream_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    },
+    "GET /api/workbench/project": {
+      "operationId": "project_api_workbench_project_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Project Api Workbench Project Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/workbench/docs/{name}": {
+      "operationId": "document_api_workbench_docs__name__get",
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "title": "Name"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Response Document Api Workbench Docs  Name  Get"
+              }
+            }
+          }
+        },
+        "422": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HTTPValidationError"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/workbench/tools": {
+      "operationId": "tools_api_workbench_tools_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Tools Api Workbench Tools Get"
+              }
+            }
+          }
+        }
+      }
+    },
+    "GET /api/workbench/extensions": {
+      "operationId": "extensions_api_workbench_extensions_get",
+      "responses": {
+        "200": {
+          "description": "Successful Response",
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Response Extensions Api Workbench Extensions Get"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "schemas": {
+    "AndroidElementIn": {
+      "properties": {
+        "idx": {
+          "type": "integer",
+          "title": "Idx"
+        },
+        "observation": {
+          "type": "string",
+          "title": "Observation",
+          "default": ""
+        }
+      },
+      "type": "object",
+      "required": [
+        "idx"
+      ],
+      "title": "AndroidElementIn"
+    },
+    "AndroidKeyIn": {
+      "properties": {
+        "keycode": {
+          "type": "string",
+          "title": "Keycode"
+        },
+        "observation": {
+          "type": "string",
+          "title": "Observation",
+          "default": ""
+        }
+      },
+      "type": "object",
+      "required": [
+        "keycode"
+      ],
+      "title": "AndroidKeyIn"
+    },
+    "AndroidTapIn": {
+      "properties": {
+        "x": {
+          "type": "integer",
+          "title": "X"
+        },
+        "y": {
+          "type": "integer",
+          "title": "Y"
+        },
+        "stream_w": {
+          "type": "integer",
+          "title": "Stream W"
+        },
+        "stream_h": {
+          "type": "integer",
+          "title": "Stream H"
+        },
+        "observation": {
+          "type": "string",
+          "title": "Observation",
+          "default": ""
+        }
+      },
+      "type": "object",
+      "required": [
+        "x",
+        "y",
+        "stream_w",
+        "stream_h"
+      ],
+      "title": "AndroidTapIn"
+    },
+    "BiliCookiesIn": {
+      "properties": {
+        "sessdata": {
+          "type": "string",
+          "title": "Sessdata",
+          "default": ""
+        },
+        "bili_jct": {
+          "type": "string",
+          "title": "Bili Jct",
+          "default": ""
+        },
+        "buvid3": {
+          "type": "string",
+          "title": "Buvid3",
+          "default": ""
+        }
+      },
+      "type": "object",
+      "title": "BiliCookiesIn"
+    },
+    "ChatIn": {
+      "properties": {
+        "message": {
+          "type": "string",
+          "title": "Message"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Session Id"
+        }
+      },
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "title": "ChatIn"
+    },
+    "ConfigUpdateIn": {
+      "properties": {
+        "updates": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "object",
+          "title": "Updates"
+        }
+      },
+      "type": "object",
+      "required": [
+        "updates"
+      ],
+      "title": "ConfigUpdateIn"
+    },
+    "CronCreateIn": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt"
+        },
+        "every_minutes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Every Minutes"
+        },
+        "daily_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Daily At"
+        },
+        "deliver_to_qq": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Deliver To Qq"
+        },
+        "skills": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Skills",
+          "default": []
+        },
+        "context_from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Context From"
+        },
+        "timezone": {
+          "type": "string",
+          "title": "Timezone",
+          "default": "local"
+        },
+        "context_max_age_minutes": {
+          "type": "integer",
+          "title": "Context Max Age Minutes",
+          "default": 1440
+        }
+      },
+      "type": "object",
+      "required": [
+        "name",
+        "prompt"
+      ],
+      "title": "CronCreateIn"
+    },
+    "CronNameIn": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        }
+      },
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "title": "CronNameIn"
+    },
+    "CronToggleIn": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        },
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled"
+        }
+      },
+      "type": "object",
+      "required": [
+        "name",
+        "enabled"
+      ],
+      "title": "CronToggleIn"
+    },
+    "CronUpdateIn": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        },
+        "prompt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Prompt"
+        },
+        "every_minutes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Every Minutes"
+        },
+        "daily_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Daily At"
+        },
+        "deliver_to_qq": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Deliver To Qq"
+        },
+        "skills": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Skills"
+        },
+        "context_from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Context From"
+        },
+        "enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Enabled"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Revision"
+        },
+        "timezone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Timezone"
+        },
+        "context_max_age_minutes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Context Max Age Minutes"
+        }
+      },
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "title": "CronUpdateIn",
+      "description": "编辑任务：只传要改的字段（None=不改）；expected_revision 做乐观并发。"
+    },
+    "HTTPValidationError": {
+      "properties": {
+        "detail": {
+          "items": {
+            "$ref": "#/components/schemas/ValidationError"
+          },
+          "type": "array",
+          "title": "Detail"
+        }
+      },
+      "type": "object",
+      "title": "HTTPValidationError"
+    },
+    "MCPSchemaConfirmIn": {
+      "properties": {
+        "fingerprint": {
+          "type": "string",
+          "title": "Fingerprint"
+        }
+      },
+      "type": "object",
+      "required": [
+        "fingerprint"
+      ],
+      "title": "MCPSchemaConfirmIn"
+    },
+    "ModelTestIn": {
+      "properties": {
+        "model": {
+          "type": "string",
+          "title": "Model"
+        }
+      },
+      "type": "object",
+      "required": [
+        "model"
+      ],
+      "title": "ModelTestIn"
+    },
+    "NapCatStartIn": {
+      "properties": {
+        "qq": {
+          "type": "string",
+          "title": "Qq",
+          "default": ""
+        }
+      },
+      "type": "object",
+      "title": "NapCatStartIn"
+    },
+    "PairIn": {
+      "properties": {
+        "code": {
+          "type": "string",
+          "title": "Code"
+        }
+      },
+      "type": "object",
+      "required": [
+        "code"
+      ],
+      "title": "PairIn"
+    },
+    "ProfileLineIn": {
+      "properties": {
+        "line_id": {
+          "type": "integer",
+          "title": "Line Id"
+        },
+        "content": {
+          "type": "string",
+          "title": "Content"
+        }
+      },
+      "type": "object",
+      "required": [
+        "line_id",
+        "content"
+      ],
+      "title": "ProfileLineIn"
+    },
+    "ResidentUpdateIn": {
+      "properties": {
+        "operation": {
+          "type": "string",
+          "title": "Operation"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Id"
+        },
+        "content": {
+          "type": "string",
+          "title": "Content",
+          "default": ""
+        }
+      },
+      "type": "object",
+      "required": [
+        "operation"
+      ],
+      "title": "ResidentUpdateIn"
+    },
+    "ResolveIn": {
+      "properties": {
+        "allowed": {
+          "type": "boolean",
+          "title": "Allowed"
+        },
+        "reason": {
+          "type": "string",
+          "title": "Reason",
+          "default": ""
+        }
+      },
+      "type": "object",
+      "required": [
+        "allowed"
+      ],
+      "title": "ResolveIn"
+    },
+    "SkillAckIn": {
+      "properties": {
+        "rev": {
+          "type": "integer",
+          "title": "Rev"
+        }
+      },
+      "type": "object",
+      "required": [
+        "rev"
+      ],
+      "title": "SkillAckIn",
+      "description": "技能变更已读标记：标到 rev（只前进）。"
+    },
+    "SkillRollbackIn": {
+      "properties": {
+        "rev": {
+          "type": "integer",
+          "title": "Rev"
+        },
+        "expected_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Hash"
+        }
+      },
+      "type": "object",
+      "required": [
+        "rev"
+      ],
+      "title": "SkillRollbackIn"
+    },
+    "SkillSaveIn": {
+      "properties": {
+        "content": {
+          "type": "string",
+          "title": "Content"
+        },
+        "expected_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Hash"
+        }
+      },
+      "type": "object",
+      "required": [
+        "content"
+      ],
+      "title": "SkillSaveIn",
+      "description": "技能编辑器保存：全文 + 读取时的指纹（别人改过就 409，不覆盖）。"
+    },
+    "TodoToggleIn": {
+      "properties": {
+        "session_id": {
+          "type": "integer",
+          "title": "Session Id"
+        },
+        "todo_id": {
+          "type": "integer",
+          "title": "Todo Id"
+        },
+        "done": {
+          "type": "boolean",
+          "title": "Done"
+        }
+      },
+      "type": "object",
+      "required": [
+        "session_id",
+        "todo_id",
+        "done"
+      ],
+      "title": "TodoToggleIn"
+    },
+    "ValidationError": {
+      "properties": {
+        "loc": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "type": "array",
+          "title": "Location"
+        },
+        "msg": {
+          "type": "string",
+          "title": "Message"
+        },
+        "type": {
+          "type": "string",
+          "title": "Error Type"
+        },
+        "input": {
+          "title": "Input"
+        },
+        "ctx": {
+          "type": "object",
+          "title": "Context"
+        }
+      },
+      "type": "object",
+      "required": [
+        "loc",
+        "msg",
+        "type"
+      ],
+      "title": "ValidationError"
+    }
+  }
+}

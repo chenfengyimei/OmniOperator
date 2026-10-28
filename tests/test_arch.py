@@ -112,6 +112,10 @@ def violations(source: str, rel: str) -> list[str]:
             continue
         target_parts = target.split(".")
         target_layer = target_parts[1]
+        if rel.startswith('channels/web_api/') and target == 'omni.channels.web':
+            issues.append('领域路由不得反向依赖 Web 应用入口')
+        if rel == 'channels/web_api/schemas.py' and target_layer != 'config':
+            issues.append('HTTP 请求契约只允许声明配置类型，不依赖运行态')
         if target_layer == 'plugins' and layer not in {'bootstrap', 'channels', 'plugins'}:
             issues.append(f'插件宿主倒挂：{layer} -> plugins')
         if layer == 'plugins' and target_layer in {'bootstrap', 'channels', 'core', 'llm'}:
@@ -179,6 +183,8 @@ import pytest
     ("memory/x.py", "from omni.plugins.host import PluginHost"),
     ("plugins/x.py", "from omni.core.agent import Agent"),
     ("plugins/x.py", "from omni.llm.gateway import Gateway"),
+    ("channels/web_api/conversation.py", "from omni.channels.web import create_app"),
+    ("channels/web_api/schemas.py", "from omni.memory.store import MemoryStore"),
 ])
 def test_architecture_guard_catches_bypasses(rel, source):
     assert violations(source, rel)

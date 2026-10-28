@@ -44,7 +44,8 @@ function renderModules() {
   rows.forEach(item=>{ const card=button('',()=>moduleDetail(item),'card'); card.append(badge(item.category),node('h3',item.title),node('p',item.purpose),node('div',`${item.files.length} 文件 · ${item.lines.toLocaleString()} 行`,'meta')); grid.append(card); }); $('#content').append(grid);
 }
 function apiDetail(api) {
-  const box=node('div'); box.append(badge(api.method),badge(api.scope==='community'?'插件社区服务器':'工作台'),node('pre',`${api.method} ${api.path}\n${api.handler}\n${api.source}:${api.line}`));
+  const box=node('div'), owner=state.project.modules.find(module=>module.id===api.module); box.append(badge(api.method),badge(api.scope==='community'?'插件社区服务器':'工作台'),badge(owner?.title||api.module),node('pre',`${api.method} ${api.path}\n${api.handler}\n${api.source}:${api.line}`));
+  if(owner)box.append(button('查看所属模块与依赖',()=>moduleDetail(owner)));
   const annotations=api.annotations||{}; const models=state.project.request_models.filter(model=>Object.values(annotations).some(type=>type.includes(model.name)));
   if(models.length)models.forEach(model=>box.append(node('h3',model.name,'section-title'),node('pre',JSON.stringify(model.fields,null,2))));
   else box.append(node('pre',JSON.stringify(annotations,null,2)));
@@ -54,11 +55,11 @@ function apiDetail(api) {
 function renderApis() {
   const flows=state.project.flows.filter(matches);
   if(!state.category||state.category==='flows')flows.forEach(flow=>{const row=node('section',undefined,'flow'); row.append(node('h3',flow.title),node('p',flow.summary)); const steps=node('div',undefined,'steps'); flow.steps.forEach((step,index)=>{if(index)steps.append(node('span','→','arrow')); const b=button(step.symbol,()=>copy(`${step.source}:${step.line}`),'step'); b.title=`${step.source}:${step.line}`;steps.append(b);});row.append(steps);$('#content').append(row);});
-  const rows=state.project.endpoints.filter(item=>(!state.category||state.category===item.scope)&&matches(item));
+  const rows=state.project.endpoints.filter(item=>(!state.category||state.category===item.scope||state.category==='module:'+item.module)&&matches(item));
   if(!rows.length) {if(!$('#content').children.length)empty();return;}
   $('#content').append(node('h3',`接口目录 · ${rows.length}`,'section-title'));
-  const wrap=node('div',undefined,'table-wrap'), table=node('table'), head=node('thead'), header=node('tr'); ['方法','路径','处理函数 / 源码','服务'].forEach(text=>header.append(node('th',text)));head.append(header);table.append(head);const body=node('tbody');
-  rows.forEach(api=>{const row=node('tr'), method=node('td'), path=node('td'), handler=node('td');method.append(badge(api.method));path.append(button(api.path,()=>apiDetail(api),'link-button'));handler.append(node('div',api.handler),node('small',`${api.source}:${api.line}`));row.append(method,path,handler,node('td',api.scope==='community'?'插件社区':'工作台'));body.append(row);});table.append(body);wrap.append(table);$('#content').append(wrap);
+  const wrap=node('div',undefined,'table-wrap'), table=node('table'), head=node('thead'), header=node('tr'); ['方法','路径','处理函数 / 源码','所属模块'].forEach(text=>header.append(node('th',text)));head.append(header);table.append(head);const body=node('tbody');
+  rows.forEach(api=>{const row=node('tr'), method=node('td'), path=node('td'), handler=node('td');method.append(badge(api.method));path.append(button(api.path,()=>apiDetail(api),'link-button'));handler.append(node('div',api.handler),node('small',`${api.source}:${api.line}`));const owner=state.project.modules.find(module=>module.id===api.module);row.append(method,path,handler,node('td',owner?.title||api.module));body.append(row);});table.append(body);wrap.append(table);$('#content').append(wrap);
 }
 function toolDetail(tool) {
   const box=node('div'); box.append(node('p',tool.description),badge(tool.toolset),badge(tool.risk,tool.risk),badge(tool.requires_human?'必须人工批准':'按审批策略执行'),badge(tool.read_only?'可并发只读':'保持执行顺序'));
@@ -88,7 +89,7 @@ function render() {
 }
 function choose(view) {
   state.view=view;state.category='';document.querySelectorAll('[data-view]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.view===view)));
-  const options=view==='modules'?[...new Set(state.project?.modules.map(item=>item.category)||[])].map(value=>[value,value]):view==='tools'?[...new Set(state.tools.map(item=>item.toolset))].map(value=>[value,value]):view==='apis'?[['flows','调用链'],['workbench','工作台接口'],['community','插件社区接口']]:state.extensions?.contracts.map(item=>[item.kind,item.title])||[];
+  const options=view==='modules'?[...new Set(state.project?.modules.map(item=>item.category)||[])].map(value=>[value,value]):view==='tools'?[...new Set(state.tools.map(item=>item.toolset))].map(value=>[value,value]):view==='apis'?[['flows','调用链'],['workbench','工作台接口'],['community','插件社区接口'],...state.project.modules.filter(module=>state.project.endpoints.some(api=>api.module===module.id)).map(module=>['module:'+module.id,module.title])]:state.extensions?.contracts.map(item=>[item.kind,item.title])||[];
   $('#category').replaceChildren(new Option('全部分类',''),...options.map(([value,label])=>new Option(label,value)));render();
 }
 async function load() {

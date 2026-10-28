@@ -7,6 +7,31 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 第二批结构重构：Web 领域路由与 HTTP 兼容合同
+
+- 在 `934618f` 上继续按职责拆分，已发布 `channels/web.py` 从 **1766→405 行**，
+  工作区（另含并行设置/密钥改动）从 1816→453 行。生命周期、统一鉴权、配对/设置和静态挂载仍归应用入口。
+  `web_api/` 按 sessions/conversation/runs/memory/skills/artifacts/approvals/mcp/operations/
+  automation/publications/devices 拆为 **12 组 APIRouter**，只消费同一个注入 Runtime。
+- 21 个原有请求模型集中到 schemas.py，旧 web.ChatIn 等显式转发。聚合器和请求契约分别
+  归类，避免分类图把装配和数据协议合成表面循环。AST 守卫新增路由反向依赖与 DTO 叶子边界负例。
+- 从匹配已发布 934618f 的隔离源码提取 HTTP 合同：**90 操作、23 schema**，冻结方法/路径、
+  operationId、参数、requestBody、responses 和模型定义；允许分组 tags 调整与新增接口。
+  独立应用不串 Runtime/会话，技能静态路由优先级保留；旧业务行为继续跑原套件。
+- 项目索引现为 **47 模块、174 源码/界面文件、96 接口、71 静态工具声明**；
+  API 页支持按所属模块筛选、从详情跳到模块/依赖，新增重构记录入口。文件/机器索引由精确提交源码生成。
+- 测试过程保留：首轮新鉴权断言误把读取方法也要求 Origin 拒绝，按原规则修为各方法 Host 检查、
+  写方法 Origin/CSRF；没有更改权限实现。技能测试初始正文未满足既有 linter，改成合法四节正文。
+  完整回归发现 390px API 表格撑开页面：首次工作区 998 passed/1 failed、隔离 951 passed/1 failed。
+  修正 Grid 最小宽度和表格最小宽度，保留手机页宽与行高回归，失败未被跳过。
+- 最终 `uv run --no-sync pytest -q --tb=short`：**工作区 999 passed，176.27s**；
+  精确暂存源码导出 + 全新 Python 3.12.14 venv，锁文件离线装 99 包，**952 passed，169.61s，零跳过**。
+  差额 47 项为并行未提交测试，未混入；本批新增 16 项领域 API/合同/隔离测试和 2 项架构负例。
+  `channels/web_api` pyright **0 errors/0 warnings**，索引 --check 与文档链接检查通过。
+- [重构记录与后续顺序](REFACTORING.md)、[验证摘要](evidence/web-api-refactor-2026-10-29.json)
+  记录合同/索引/JUnit 指纹。src/tests/scripts 与复验目录逐文件核对（CRLF 规范化）。
+  并行配对、设置、主前端和配置改动保留；只提交本批路由拆分。真实服务未重启，账号/设备/模型与 72 小时验收仍独立进行。
+
 ### 2026-10-29 · 模块归包、项目/API 索引与可视化工作台
 
 - 基于 `f6c83d3` 核实源码、注册入口和 Web/终端/插件调用；没有按过时计划重复实现已有功能。

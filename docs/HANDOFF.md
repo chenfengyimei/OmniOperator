@@ -9,11 +9,12 @@
 2. `docs/ARCHITECTURE.md`（分层与组装根唯一权威）
 3. [PROJECT_INDEX.md](PROJECT_INDEX.md)（模块、目录、内部调用、API、工具与可视化索引）
 4. [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)（**当前进度、A01–A20 阻断项证据、谁在哪个 commit 关了什么**）
-5. [LOCAL_AGENT_PLAN.md](LOCAL_AGENT_PLAN.md)（完整评估、续接快照与路线）→ [DEEPSEEK_DEVELOPMENT_OUTLINE.md](DEEPSEEK_DEVELOPMENT_OUTLINE.md)（任务卡、验收与可复制续接指令）
+5. [REFACTORING.md](REFACTORING.md)（已落地重构、兼容合同和下一批边界）
+6. [LOCAL_AGENT_PLAN.md](LOCAL_AGENT_PLAN.md)（完整评估、续接快照与路线）→ [DEEPSEEK_DEVELOPMENT_OUTLINE.md](DEEPSEEK_DEVELOPMENT_OUTLINE.md)（任务卡、验收与可复制续接指令）
 
 任何"已完成"的宣称须核对台账证据、实际代码和测试：源码发现 ≠ 已复现 ≠ 已修复 ≠ 真实验收完成。
 
-**当前：已在 f6c83d3 基线上完成模块归包、项目/API/工具索引与可视化目录。已提交源码独立环境 934 项全绿，工作区全量 981 项通过（另含并行未提交的 47 项）。真实账号/设备/模型与 72 小时仍待验收。** 详细操作见 [ACCEPTANCE.md](ACCEPTANCE.md)。
+**当前：在 934618f 上继续完成第二批 Web 领域重构，12 组路由与 21 个公共请求模型已归包，已发布入口 1766→405 行；47 个模块的索引、API 按模块查询与重构记录已接入。提交源码独立 952 项、工作区 999 项全绿（47 项并行未提交测试另计），真实账号/设备/模型及 72 小时仍待验收。** 详细操作见 [ACCEPTANCE.md](ACCEPTANCE.md)。
 
 以下为 2026-10-28 各批次历史，测试数与现场库版本仅表示当时证据：基线 `453485b` 的 635 项测试已复核；MCP 漂移强制撤销 SAFE、
 outbox 跨进程领取与 OneBot 回执确认后 **644 单测全绿**。state.db 新版为 v10，真机库尚未
@@ -72,7 +73,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`；结构批已提交源码 **934 全绿**，工作区 **981 全绿**（并行未提交 47 项另计），工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。假 ADB runner 的 PATH 依赖已消除，默认套件阻止真实模型调用与 Python 外网访问。历史同名定义误粘贴已清理，现为 `contexts()` 活对象 / `snapshot()` 库内记录两种形状，各有回归用例。详细记录见台账。
+- 测试：`uv run pytest`；第二批已提交源码 **952 全绿**，工作区 **999 全绿**（并行未提交 47 项另计），工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。假 ADB runner 的 PATH 依赖已消除，默认套件阻止真实模型调用与 Python 外网访问。历史同名定义误粘贴已清理，现为 `contexts()` 活对象 / `snapshot()` 库内记录两种形状，各有回归用例。详细记录见台账。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -107,7 +108,8 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 
 ## 4. 当前能力清单（已交付）
 
-2026-10-29 结构批：工具实现在 tools/personal、skills、scheduling、delegation、system；
+2026-10-29 两批结构改造：领域 HTTP 位于 channels/web_api，各 create_xxx_router 只消费注入 Runtime；
+schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tools/personal、skills、scheduling、delegation、system；
 旧 builtin/*_tools 仅兼容转发。终端在 channels/terminal，社区在 plugins/community。
 专题 Web 路由使用 APIRouter；新页面 `/project/`，数据接口 `/api/workbench/*` 受原鉴权保护。
 索引只解析源码和读取已注册元数据，不执行工具、不激活插件。详见 PROJECT_INDEX.md。

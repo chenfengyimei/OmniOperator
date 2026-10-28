@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7d31d720dec51f5290b73f07c7e4572740c769d452e0ef4d677f06c5ac5bd88f`。包含 33 个职责模块、160 个源码/界面文件。
+源码指纹：`cd7df5e36429250a6c457ff65bfc239f660417d68b2de491d3c1c1e7ad742ab4`。包含 47 个职责模块、174 个源码/界面文件。
 
 ## 运行时组装 · assembly
 
@@ -145,9 +145,9 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 34 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 35 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/project/project.css](../../src/omni/channels/web_static/project/project.css) | 95 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/project/project.js](../../src/omni/channels/web_static/project/project.js) | 109 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/project/project.js](../../src/omni/channels/web_static/project/project.js) | 110 | 平台脚本或界面资源 |
 | [src/omni/channels/workbench/__init__.py](../../src/omni/channels/workbench/__init__.py) | 4 | 专题工作台路由；只消费注入的 Runtime，不在通道构造核心对象。 |
 | [src/omni/channels/workbench/routes.py](../../src/omni/channels/workbench/routes.py) | 71 | 只读项目目录、接口与实时能力；由 web.py 的统一鉴权中间件保护。 |
 
@@ -163,7 +163,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web.py](../../src/omni/channels/web.py) | 1766 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
+| [src/omni/channels/web.py](../../src/omni/channels/web.py) | 405 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 232 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
 | [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1514 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm-addon-fit.js](../../src/omni/channels/web_static/vendor/xterm-addon-fit.js) | 2 | 平台脚本或界面资源 |
@@ -174,7 +174,203 @@
 
 测试：[tests/test_web.py](../../tests/test_web.py)、[tests/test_web_auth.py](../../tests/test_web_auth.py)
 
-直接静态依赖：`assembly`、`bilibili`、`config`、`engine`、`mcp`、`models`、`platform`、`safety`、`storage`、`terminal`、`workbench`
+直接静态依赖：`assembly`、`config`、`engine`、`http-contracts`、`http-routing`、`models`、`platform`、`safety`、`terminal`、`workbench`
+
+## 会话与待办 API · http-sessions
+
+分类：Web 接口。会话选择、历史、状态和待办；消费注入 Runtime。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py) | 97 | 会话与待办 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+
+测试：[tests/test_web_api.py](../../tests/test_web_api.py)、[tests/test_sessions.py](../../tests/test_sessions.py)
+
+直接静态依赖：`assembly`、`http-contracts`、`storage`
+
+## 对话与流式 API · http-conversation
+
+分类：Web 接口。普通/流式对话、显式运行入口；共用会话闸门、租约和取消。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py) | 183 | 对话与流式 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+
+测试：[tests/test_web_api.py](../../tests/test_web_api.py)、[tests/test_web.py](../../tests/test_web.py)
+
+直接静态依赖：`assembly`、`engine`、`http-contracts`、`models`
+
+## 运行与用量 API · http-runs
+
+分类：Web 接口。运行查询、事件续读、协作取消和费用视图。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/runs.py](../../src/omni/channels/web_api/runs.py) | 102 | 运行与用量 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+
+测试：[tests/test_web.py](../../tests/test_web.py)
+
+直接静态依赖：`assembly`、`models`、`storage`
+
+## 记忆与档案 API · http-memory
+
+分类：Web 接口。事实、档案、常驻、review 和检索状态。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/memory.py](../../src/omni/channels/web_api/memory.py) | 130 | 记忆与档案 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+
+测试：[tests/test_web.py](../../tests/test_web.py)
+
+直接静态依赖：`assembly`、`http-contracts`、`storage`
+
+## 技能与审阅 API · http-skills
+
+分类：Web 接口。技能编辑/修订/差异/回滚和待审阅状态，保留静态路由优先级。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py) | 230 | 技能与审阅 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+
+测试：[tests/test_web_api.py](../../tests/test_web_api.py)、[tests/test_skills_history.py](../../tests/test_skills_history.py)
+
+直接静态依赖：`assembly`、`http-contracts`
+
+## 产物 API · http-artifacts
+
+分类：Web 接口。产物列表、指纹验证读取和清理，统一领域错误映射。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/artifacts.py](../../src/omni/channels/web_api/artifacts.py) | 84 | 产物 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+
+测试：[tests/test_artifacts.py](../../tests/test_artifacts.py)
+
+直接静态依赖：`assembly`、`storage`
+
+## 审批 API · http-approvals
+
+分类：Web 接口。待批准事项和人工决定；不构造或绕过审批器。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/approvals.py](../../src/omni/channels/web_api/approvals.py) | 32 | 人工审批 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+
+测试：[tests/test_web_auth.py](../../tests/test_web_auth.py)
+
+直接静态依赖：`assembly`、`http-contracts`
+
+## MCP 管理 API · http-mcp
+
+分类：Web 接口。只读状态、显式发现、目录复核和重连。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py) | 102 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/MCP.md](../../docs/MCP.md)
+
+测试：[tests/test_mcp.py](../../tests/test_mcp.py)
+
+直接静态依赖：`assembly`、`http-contracts`、`mcp`
+
+## 服务与诊断 API · http-operations
+
+分类：Web 接口。系统概览、doctor、备份、服务启停和日志。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py) | 63 | 服务与诊断 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
+
+测试：[tests/test_web.py](../../tests/test_web.py)
+
+直接静态依赖：`assembly`、`http-contracts`、`platform`
+
+## 调度与投递 API · http-automation
+
+分类：Web 接口。任务创建/编辑/启停、历史和 outbox 人工处理。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/automation.py](../../src/omni/channels/web_api/automation.py) | 212 | 调度与可靠投递 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+
+测试：[tests/test_cron.py](../../tests/test_cron.py)
+
+直接静态依赖：`assembly`、`http-contracts`、`safety`、`storage`
+
+## 发布草稿 API · http-publications
+
+分类：Web 接口。草稿查询、乐观编辑和未知结果核查，不直接发布。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/publications.py](../../src/omni/channels/web_api/publications.py) | 52 | 发布草稿 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/BILIBILI_WRITING.md](../../docs/BILIBILI_WRITING.md)
+
+测试：[tests/test_bilibili_publishing.py](../../tests/test_bilibili_publishing.py)
+
+直接静态依赖：`assembly`、`bilibili`、`storage`
+
+## 桌面与安卓 API · http-devices
+
+分类：Web 接口。窗口观察、设备树/锁帧、受观察约束的手动动作和 MJPEG。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/devices.py](../../src/omni/channels/web_api/devices.py) | 151 | 桌面与安卓 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+
+文档：[docs/ANDROID.md](../../docs/ANDROID.md)、[docs/DESKTOP.md](../../docs/DESKTOP.md)
+
+测试：[tests/test_web.py](../../tests/test_web.py)、[tests/test_web_api.py](../../tests/test_web_api.py)
+
+直接静态依赖：`assembly`、`http-contracts`
+
+## HTTP 请求契约 · http-contracts
+
+分类：Web 接口。公共请求模型；只承载数据声明，旧 web 模型名继续显式转发。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/schemas.py](../../src/omni/channels/web_api/schemas.py) | 132 | 工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
+
+测试：[tests/test_web_api.py](../../tests/test_web_api.py)
+
+直接静态依赖：无内部模块依赖
+
+## HTTP 路由装配 · http-routing
+
+分类：Web 接口。聚合注入 Runtime 的领域路由，由应用入口统一挂载；不与请求契约合并为同一职责。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/__init__.py](../../src/omni/channels/web_api/__init__.py) | 41 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
+
+文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)、[docs/REFACTORING.md](../../docs/REFACTORING.md)
+
+测试：[tests/test_web_api.py](../../tests/test_web_api.py)
+
+直接静态依赖：`assembly`、`http-approvals`、`http-artifacts`、`http-automation`、`http-conversation`、`http-devices`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`
 
 ## CLI 入口 · cli
 
@@ -546,7 +742,7 @@
 | [src/omni/system/catalog/__init__.py](../../src/omni/system/catalog/__init__.py) | 4 | 项目索引：只解析源码与显式分类，不导入被索引模块、不接触运行数据。 |
 | [src/omni/system/catalog/render.py](../../src/omni/system/catalog/render.py) | 46 | 索引输出：从同一结构生成模块表、API 表和可机器查询的 JSON。 |
 | [src/omni/system/catalog/scan.py](../../src/omni/system/catalog/scan.py) | 165 | 静态源码索引；扫描范围固定为注入根的 src/omni，不读取 config/data/.env。 |
-| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 84 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
+| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 98 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
