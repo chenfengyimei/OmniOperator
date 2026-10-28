@@ -16,8 +16,19 @@ import json
 from typing import Any
 
 from ..llm.gateway import Gateway
+from ..llm.usage import estimate_tokens
 
 SUMMARY_HEADER = "（以下是此前对话的压缩摘要，细节可用 search_history 工具找回）"
+
+
+def _over_threshold(messages: list[dict[str, Any]], trigger_chars: int) -> bool:
+    """压缩阈值与 D10 费用预算同一把尺（D11 收口）。
+
+    `trigger_chars` 仍以字符配置（兼容既有配置面），内部按 `estimate_tokens`
+    的 2 字符/token 折算成 token 预算再比较——工具调用序列化、多模态文本块
+    与每条消息的包装开销都计入体量，与网关预留额度口径一致。
+    """
+    return estimate_tokens(messages) > max(1, trigger_chars // 2)
 
 _COMPRESS_SYSTEM = (
     "你是 OmniOperator 的上下文压缩器。把旧对话压缩成要点摘要，供 agent 延续"
@@ -65,8 +76,9 @@ def assemble_context(
     uncovered = [
         row for row in rows if summary is None or row[0] > summary[2]
     ]
-    total_chars = sum(len(row[2]) for row in uncovered)
-    if len(uncovered) < min_messages or total_chars <= trigger_chars:
+    if len(uncovered) < min_messages or not _over_threshold(
+        _rows_to_messages(uncovered, None), trigger_chars
+    ):
         return _rows_to_messages(uncovered, summary), info
 
     old = uncovered[:-keep_recent] if keep_recent > 0 else uncovered
@@ -206,7 +218,11 @@ def _text_of(content: Any) -> str:
 
 
 def context_chars(messages: list[dict[str, Any]]) -> int:
-    """粗算上下文体量：content 字符 + tool_calls 的 JSON（近似 token）。"""
+    """粗算上下文体量（字符口径）：content 字符 + tool_calls 的 JSON。
+
+    压缩阈值自 D11 收口后按 `estimate_tokens` 的 **token 口径**比较（见
+    `_over_threshold`）；本函数保留给诊断/测试用字符视图。
+    """
     total = 0
     for m in messages:
         total += len(_text_of(m.get("content")))
@@ -229,7 +245,7 @@ def compress_if_needed(
     cancel: Any = None,
 ) -> list[dict[str, Any]]:
     """超阈值时把旧块压缩成摘要；绝大多数调用原样返回（先查体量再动手）。"""
-    if len(messages) < min_messages or context_chars(messages) <= trigger_chars:
+    if len(messages) < min_messages or not _over_threshold(messages, trigger_chars):
         return messages
     system, body = messages[0], messages[1:]
     blocks = atomic_blocks(body)

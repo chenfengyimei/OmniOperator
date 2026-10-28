@@ -214,6 +214,29 @@ def test_context_chars_counts_tool_payload():
     assert context_chars(msgs) > 500
 
 
+def test_threshold_uses_d10_token_estimate():
+    """D11 收口：阈值按 estimate_tokens 的 token 口径折算（trigger_chars/2）。
+
+    消息包装开销与工具调用序列化计入体量——短消息堆积在字符口径下"很小"，
+    在 token 口径下会超预算触发压缩（旧字符口径不会）。
+    """
+    gw = SummaryGateway()
+    many = [{"role": "system", "content": "s"}]
+    for i in range(260):
+        many.append({"role": "user" if i % 2 == 0 else "assistant", "content": f"m{i}"})
+    assert len("".join(str(m.get("content")) for m in many)) < 4000  # 字符口径在阈值之下
+    out = compress_if_needed(many, gateway=gw, model="m", trigger_chars=4000, keep_recent=6)
+    assert out is not many and gw.calls, "消息开销应计入 token 预算（统一口径的行为变化）"
+
+    # 既有量级下触发行为保持稳定：长内容远超阈值 → 压缩；远低于阈值 → 不压缩
+    gw2 = SummaryGateway()
+    long_msgs = _long_history(20)  # ~16200 字 / ~8600 token
+    assert compress_if_needed(long_msgs, gateway=gw2, model="m", trigger_chars=16000, keep_recent=6) is not long_msgs
+    gw3 = SummaryGateway()
+    assert compress_if_needed(long_msgs, gateway=gw3, model="m", trigger_chars=32000, keep_recent=6) is long_msgs
+    assert gw3.calls == []
+
+
 def test_agent_compresses_long_history(tmp_path):
     """端到端：store 里的长历史在进入模型前被压缩（落库内容不受影响）。"""
     store = MemoryStore(tmp_path / "m.db")

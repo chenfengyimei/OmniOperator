@@ -7,6 +7,37 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · D11 收口：压缩阈值统一为 token 口径
+
+- **关闭 D11 剩余限制 4**（原话"没有做基于 token 的精确预算，trigger_chars 仍是字符
+  阈值（与 D10 的 estimate_tokens 未统一）"）：`compress.py` 新增 `_over_threshold`
+  ——阈值比较改用 `llm.usage.estimate_tokens`（**与网关预留额度同一把尺**），
+  `trigger_chars` 配置面不变（兼容既有配置），内部按 2 字符/token 折算为
+  `trigger_chars // 2` 的 token 预算。`assemble_context`（持久摘要路径）与
+  `compress_if_needed`（回合内临时压缩）两个决策点都切换；`context_chars`
+  保留为诊断/测试的字符视图。
+- **行为变化（有意，测试钉住）**：工具调用序列化、多模态文本块与每条消息的包装
+  开销现在计入体量——短消息堆积（如 260 条 m0/m1…）在旧字符口径下"很小"不触发，
+  token 口径下超预算触发压缩。既有量级（长内容远超/远低于阈值）行为不变，
+  全部既有压缩测试零改动通过。
+- **没做什么**：回合内临时压缩仍不落库（D11 既定设计——工具消息本不持久化，
+  编造 id 会把覆盖区间变成假账）；摘要质量仍依赖摘要模型（需真实模型验收）。
+- `uv run --no-sync pytest tests/test_compress.py tests/test_context.py tests/test_agent.py -q`
+  → **40 passed**；全量 `uv run --no-sync pytest -q` → **877 passed**（2026-10-29，
+  = 861 + 本两批 2 项 + 并行会话未提交 web 测试新增约 14 项，均绿、文件无交集）。
+
+### 2026-10-29 · D15 收口：心跳挂过期产物周期清理
+
+- **关闭 D15 剩余限制 3**（原话"清理只在回合结束触发（CLI/心跳不产生图像时，
+  过期产物会在下次 Web 回合或重启时清）"）：新增 `core/cron.artifacts_sweep_loop`
+  挂到心跳进程（每小时一轮）——`ArtifactStore.cleanup(keep_ids=活跃 run 的
+  _attached_image_ids)`，与 `Agent._sweep_artifacts` 同一 keep 语义；单轮异常
+  打印后下轮再试，不杀心跳循环。心跳/QQ 长期运行、不产生图像的部署不再积压
+  过期产物。
+- **新增 1 项测试**：过期未引用被清、活跃引用保留（解除引用后下一轮清走）、
+  cleanup 首轮抛异常循环继续（Boom 计数 ≥3）。
+- `uv run --no-sync pytest tests/test_cron.py -q` → **20 passed**；全量见提交信息。
+
 ### 2026-10-29 · D09 收口第三批：files 写路径结构化（收口完成）
 
 - **关闭第 5 批登记的"第三批待做"**：`files_write`/`files_restore` 迁 `ToolResult`——
