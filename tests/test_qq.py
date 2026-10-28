@@ -157,6 +157,57 @@ def test_qq_send_message_tool_guards():
     )
 
 
+def test_qq_send_message_tool_structured_results():
+    """发送按回执分三类：已发送(applied)/结果未知(unknown)/确定未发出(可重试)。"""
+    from omni.tools.qq.client import DeliveryNotStarted, DeliveryUnknown, QQNotConnected
+
+    class FakeClient:
+        def __init__(self, exc=None, ids=(11, 22)):
+            self._exc = exc
+            self._ids = list(ids)
+
+        def send_private_outcome(self, user_id, text, timeout=15.0):
+            if self._exc is not None:
+                raise self._exc
+            return self._ids
+
+    def build(exc=None, ids=(11, 22)):
+        registry = ToolRegistry()
+        register_qq_tools(registry, FakeClient(exc, ids), allowed_users=[10001])
+        return registry
+
+    ok = build().execute("qq_send_message", {"user_id": 10001, "text": "hi"})
+    assert ok.status == "ok" and ok.side_effect_state == "applied"
+    assert ok.text == "已发送" and ok.data["message_ids"] == [11, 22]
+
+    unknown = build(DeliveryUnknown("QQ 回执超时，禁止自动重发")).execute(
+        "qq_send_message", {"user_id": 10001, "text": "hi"}
+    )
+    # 旧字符串时代这条会被前缀推断误判成 ok（不以"错误"开头）
+    assert unknown.status == "unknown" and unknown.side_effect_state == "unknown"
+    assert "不要自动重试" in unknown.text and unknown.legacy is False
+
+    refused = build(DeliveryNotStarted("QQ 接口拒绝（retcode=100）")).execute(
+        "qq_send_message", {"user_id": 10001, "text": "hi"}
+    )
+    assert refused.status == "error" and refused.retryable is True
+    assert refused.side_effect_state == "none" and "未发出" in refused.text
+
+    offline = ToolRegistry()
+    register_qq_tools(offline, OneBotClient("ws://x"), allowed_users=[10001])
+    result = offline.execute("qq_send_message", {"user_id": 10001, "text": "hi"})
+    assert result.status == "error" and result.error_code == "qq_not_connected"
+    assert result.text.startswith("错误：QQ 未连接") and result.side_effect_state == "none"
+    assert isinstance(QQNotConnected("x"), RuntimeError)
+
+
+def test_qq_send_message_sync_wrappers_keep_legacy_strings():
+    """兼容入口的文本逐字不变：旧调用点与既有断言零改动。"""
+    client = OneBotClient("ws://x")
+    assert client.send_private_sync(123, "hi").startswith("错误")
+    assert client.send_private_sync(123, "hi") == "错误：QQ 未连接（NapCat 未启动或通道未启用）"
+
+
 class FixedGateway:
     """固定回复的假模型。"""
 

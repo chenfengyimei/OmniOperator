@@ -25,6 +25,10 @@ class DeliveryNotStarted(ConnectionError):
 class DeliveryUnknown(RuntimeError):
     """可能已发送或部分发送，不能自动重放。"""
 
+
+class QQNotConnected(RuntimeError):
+    """通道未连接：发送动作确定没有发生（与"结果未知"严格区分）。"""
+
 _CQ_RE = re.compile(r"\[CQ:(\w+)(?:,([^\]]*))?\]")
 _CQ_TEXT = {
     "image": "[图片]",
@@ -233,20 +237,39 @@ class OneBotClient:
 
     # ---------- 发送（同步线程用：agent 工具在 asyncio.to_thread 里） ----------
 
-    def send_private_sync(self, user_id: int, text: str, timeout: float = 15.0) -> str:
-        return self._sync(self.send_private(user_id, text), timeout)
+    def send_private_outcome(self, user_id: int, text: str, timeout: float = 15.0) -> list[int]:
+        """同步私聊发送：成功返回回执 message_id 列表，失败抛类型化异常。"""
+        return self._send_threadsafe(self.send_private(user_id, text), timeout)
 
-    def send_group_sync(self, group_id: int, text: str, timeout: float = 15.0) -> str:
-        return self._sync(self.send_group(group_id, text), timeout)
+    def send_group_outcome(self, group_id: int, text: str, timeout: float = 15.0) -> list[int]:
+        return self._send_threadsafe(self.send_group(group_id, text), timeout)
 
-    def _sync(self, coro: Awaitable[list[int]], timeout: float) -> str:
+    def _send_threadsafe(self, coro: Awaitable[list[int]], timeout: float) -> list[int]:
         if not self.connected or self._loop is None:
             coro.close()  # 释放未投递的协程，避免 RuntimeWarning
-            return "错误：QQ 未连接（NapCat 未启动或通道未启用）"
+            raise QQNotConnected("QQ 未连接（NapCat 未启动或通道未启用）")
         future = asyncio.run_coroutine_threadsafe(coro, self._loop)
         try:
-            future.result(timeout=timeout)
-        except Exception as exc:  # noqa: BLE001 —— 发送失败回传给 LLM
+            return future.result(timeout=timeout)
+        except Exception:
             future.cancel()
+            raise
+
+    def send_private_sync(self, user_id: int, text: str, timeout: float = 15.0) -> str:
+        """兼容入口：文本结果与历史版本逐字一致（新代码用 send_private_outcome）。"""
+        try:
+            self.send_private_outcome(user_id, text, timeout)
+        except QQNotConnected as exc:
+            return f"错误：{exc}"
+        except Exception as exc:  # noqa: BLE001 —— 失败按旧契约回传文本
+            return f"发送未确认（不要自动重试）：{exc}"
+        return "已发送"
+
+    def send_group_sync(self, group_id: int, text: str, timeout: float = 15.0) -> str:
+        try:
+            self.send_group_outcome(group_id, text, timeout)
+        except QQNotConnected as exc:
+            return f"错误：{exc}"
+        except Exception as exc:  # noqa: BLE001
             return f"发送未确认（不要自动重试）：{exc}"
         return "已发送"

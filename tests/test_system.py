@@ -166,6 +166,57 @@ def test_system_tools_dispatch(tmp_path):
     )
 
 
+def test_system_service_structured_results():
+    """启停成功=applied；ServiceError.uncertain=副作用未知；其余错误=确定未生效。"""
+    from omni.safety.gates import AllowAllApprover
+    from omni.system.services import ServiceError
+
+    class FakeServices:
+        def __init__(self, exc=None):
+            self._exc = exc
+
+        def overview(self):  # 结构化测试不触达真实管理器
+            return {"services": [], "napcat": {"installed": False, "logged_in": False, "uin": None,
+                                               "qr_available": False}}
+
+        def start(self, name, qq=""):
+            if self._exc is not None:
+                raise self._exc
+            return {"name": name, "pid": 4321, "started": True}
+
+        def stop(self, name):
+            if self._exc is not None:
+                raise self._exc
+            return {"name": name, "stopped": True, "graceful": True}
+
+    def build(exc=None):
+        registry = ToolRegistry()
+        register_system_tools(registry, FakeServices(exc))
+        return registry
+
+    ok = build().execute(
+        "system_service", {"action": "start", "service": "omni-qq"}, approver=AllowAllApprover()
+    )
+    assert ok.status == "ok" and ok.side_effect_state == "applied"
+    assert ok.text.startswith("已启动 omni-qq") and ok.legacy is False
+
+    uncertain = build(ServiceError("omni-qq 停止未确认：x", uncertain=True)).execute(
+        "system_service", {"action": "stop", "service": "omni-qq"}, approver=AllowAllApprover()
+    )
+    assert uncertain.status == "error" and uncertain.side_effect_state == "unknown"
+    assert uncertain.error_code == "service_error"
+
+    definite = build(ServiceError("未找到 NapCat（检查 config.yaml system.napcat_dir 指向 napcat.bat 所在目录）")).execute(
+        "system_service", {"action": "start", "service": "omni-qq"}, approver=AllowAllApprover()
+    )
+    assert definite.status == "error" and definite.side_effect_state == "none"
+
+    bad_action = build().execute(
+        "system_service", {"action": "reboot", "service": "omni-qq"}, approver=AllowAllApprover()
+    )
+    assert bad_action.error_code == "bad_arguments"
+
+
 # ---------- Web 端点 ----------
 
 def test_system_endpoints(tmp_path, monkeypatch):

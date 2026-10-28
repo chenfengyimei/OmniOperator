@@ -5,7 +5,10 @@
   灾难级黑名单在 `danger.py`；
 - SAFE 观察走 argv + shell=False + 最小环境；任意命令保留 shell 语义但同样受
   超时、输出上限和进程树回收约束；
-- 拒绝理由必须可定位（哪一条规则、哪个参数），不回显敏感内容。
+- 拒绝理由必须可定位（哪一条规则、哪个参数），不回显敏感内容；
+- 返回结构化 `ToolResult`（D09 收口）：观察完成即 ok（退出码是数据，
+  `git diff --exit-code` 有差异时退出码为 1）；超时按"已确认回收/回收未知"
+  区分副作用状态，不再依赖文本前缀推断。
 """
 from __future__ import annotations
 
@@ -14,6 +17,7 @@ from pathlib import Path
 
 from ...config import PROJECT_ROOT
 from ..registry import Risk, Tool, ToolRegistry
+from ..result import SIDE_EFFECT_APPLIED, SIDE_EFFECT_NONE, SIDE_EFFECT_UNKNOWN, ToolResult
 from .danger import hard_blocked_reason
 from .process import (
     MAX_READ_BYTES,
@@ -90,12 +94,32 @@ def _timeout_text(timeout_s: float, reclaimed: bool, *, safe: bool) -> str:
     )
 
 
-def _list_dir(path: Path) -> str:
+def _timeout_result(timeout_s: float, reclaimed: bool, *, safe: bool) -> ToolResult:
+    """超时的结构化结果：区分"已确认回收"与"可能还在跑"，副作用状态如实。"""
+    text = _timeout_text(timeout_s, reclaimed, safe=safe)
+    if safe:
+        # SAFE 是只读观察：树已确认回收则无外部影响；回收未知则可能有残留进程
+        return ToolResult.fail(
+            text,
+            error_code="command_timeout",
+            retryable=reclaimed,
+            side_effect_state=SIDE_EFFECT_NONE if reclaimed else SIDE_EFFECT_UNKNOWN,
+        )
+    # 任意命令超时：无论回收与否，副作用都可能已发生
+    return ToolResult.fail(
+        text,
+        error_code="command_timeout",
+        retryable=False,
+        side_effect_state=SIDE_EFFECT_UNKNOWN,
+    )
+
+
+def _list_dir(path: Path) -> ToolResult:
     """`dir` 的受控实现：只列名称/类型/大小，遮蔽密钥类条目，有条数上限。"""
     try:
         entries = sorted(path.iterdir(), key=lambda p: (p.is_file(), p.name.lower()))
     except OSError as exc:
-        return f"错误：无法列出目录：{exc}"
+        return ToolResult.fail(f"错误：无法列出目录：{exc}", error_code="dir_failed")
     lines = [f"目录 {path}（共 {len(entries)} 项，按名称排序）"]
     hidden = 0
     shown = 0
@@ -117,7 +141,7 @@ def _list_dir(path: Path) -> str:
         shown += 1
     if hidden:
         lines.append(f"（另有 {hidden} 项密钥/个人数据类条目未列出）")
-    return "\n".join(lines)
+    return ToolResult.ok("\n".join(lines))
 
 
 def register_shell_tools(
@@ -151,35 +175,40 @@ def register_shell_tools(
         except (TypeError, ValueError):
             return default
 
-    def _dispatch_safe(parsed: SafeCommand, timeout_s: float) -> str:
+    def _dispatch_safe(parsed: SafeCommand, timeout_s: float) -> ToolResult:
         if parsed.argv[0] == "__dir__":
             return _list_dir(Path(parsed.argv[1]))
         result = execute_safe(list(parsed.argv), timeout_s)
         if result.timed_out:
-            return _timeout_text(timeout_s, result.reclaimed, safe=True)
-        return _format_result(result.code, result.stdout, result.stderr)
+            return _timeout_result(timeout_s, result.reclaimed, safe=True)
+        # 观察完成即 ok：退出码是数据（git diff --exit-code 有差异时退出码为 1）
+        return ToolResult.ok(_format_result(result.code, result.stdout, result.stderr))
 
-    def peek_command(args: dict) -> str:
+    def peek_command(args: dict) -> ToolResult:
         command = str(args.get("command", "")).strip()
         if not command:
-            return "错误：command 不能为空"
+            return ToolResult.fail("错误：command 不能为空", error_code="bad_arguments")
         parsed = parse_safe_command(command, root=safe_root)
         if isinstance(parsed, Rejected):
-            return f"错误：{parsed.reason}"
+            return ToolResult.fail(f"错误：{parsed.reason}", error_code="safe_rejected")
         return _dispatch_safe(parsed, _parse_timeout(args, SAFE_DEFAULT_TIMEOUT_S, SAFE_MAX_TIMEOUT_S))
 
-    def run_command(args: dict) -> str:
+    def run_command(args: dict) -> ToolResult:
         command = str(args.get("command", "")).strip()
         if not command:
-            return "错误：command 不能为空"
+            return ToolResult.fail("错误：command 不能为空", error_code="bad_arguments")
         blocked = hard_blocked_reason(command)
         if blocked:
-            return f"错误：{blocked}"
+            return ToolResult.fail(f"错误：{blocked}", error_code="hard_blocked")
         timeout_s = _parse_timeout(args, DEFAULT_TIMEOUT_S, MAX_TIMEOUT_S)
         result = execute_shell(command, timeout_s)
         if result.timed_out:
-            return _timeout_text(timeout_s, result.reclaimed, safe=False)
-        return _format_result(result.code, result.stdout, result.stderr)
+            return _timeout_result(timeout_s, result.reclaimed, safe=False)
+        # 命令跑完了：副作用按"已执行"计；退出码（含非 0）是数据不是工具失败
+        return ToolResult.ok(
+            _format_result(result.code, result.stdout, result.stderr),
+            side_effect_state=SIDE_EFFECT_APPLIED,
+        )
 
     registry.register(
         Tool(

@@ -45,7 +45,15 @@ _SERVICE_LABELS = {
 
 
 class ServiceError(RuntimeError):
-    """服务操作失败（未安装/已在运行/停止失败等，信息自包含）。"""
+    """服务操作失败（未安装/已在运行/停止失败等，信息自包含）。
+
+    `uncertain=True` 表示操作可能已部分生效（进程可能已启动、停止结果未确认），
+    消费方必须按"副作用未知"处理；缺省 False 表示确定没有改变任何状态。
+    """
+
+    def __init__(self, message: str, *, uncertain: bool = False) -> None:
+        super().__init__(message)
+        self.uncertain = uncertain
 
 
 # ---------- 进程 / 端口工具 ----------
@@ -372,7 +380,11 @@ class ServiceManager:
     def _write_pid(self, name: str, pid: int) -> dict:
         identity = self._inspect(pid)
         if identity is None:
-            raise ServiceError(f"进程已启动但身份不可核验 pid={pid}；未登记可停止权限，请人工核查")
+            # 进程已经起了，但拿不到可信身份：它是活的、不受管理——状态已改变
+            raise ServiceError(
+                f"进程已启动但身份不可核验 pid={pid}；未登记可停止权限，请人工核查",
+                uncertain=True,
+            )
         record = {"version": 1, "service": name, "launch_id": uuid.uuid4().hex, **asdict(identity)}
         if name in OMNI_SERVICES:
             record['source_fingerprint'] = source_fingerprint()
@@ -417,9 +429,13 @@ class ServiceManager:
             try:
                 self._kill(identity)
             except (ProcessIdentityError, OSError) as exc:
-                raise ServiceError(f"{name} 停止未确认：{exc}") from exc
+                # 终止信号已发出/发出失败都无法确认最终状态
+                raise ServiceError(f"{name} 停止未确认：{exc}", uncertain=True) from exc
             if not self._exited(identity):
-                raise ServiceError(f"{name} 停止后仍存活或无法确认退出，保留启动记录")
+                # 强停信号已发但进程仍存活或无法确认退出
+                raise ServiceError(
+                    f"{name} 停止后仍存活或无法确认退出，保留启动记录", uncertain=True
+                )
             self._clear_pid(name, expected=record["launch_id"])
             return {"name": name, "stopped": True, "graceful": False}
 

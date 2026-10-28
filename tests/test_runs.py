@@ -515,3 +515,44 @@ def test_cancel_is_cooperative_and_does_not_fake_stopped(tmp_path):
     assert after.status == "cancelled" and after.ended_at
     assert result["turn"].status == "cancelled"
     rt.close_state()
+
+
+def test_phase_never_overwrites_cancelling_marker():
+    """取消已请求后 phase() 不覆写"cancelling"。
+
+    背景：cancel() 先写"cancelling"再翻转 token；若取消恰好落在
+    register→首次 phase("model") 的组装窗口内、或 phase 写入的瞬间，
+    后续阶段写入曾把"正在取消"覆写回"model"（并发负载下
+    test_cancel_is_cooperative 偶发红）。这里强制两种交错，负例是
+    "model/tool 出现在 cancelling 之后"。
+    """
+    from omni.core.run import RunContext, RunIdentity
+
+    class TouchLogStore:
+        """记录 phase 写入；on_write 回调模拟"写入期间取消落地"。"""
+
+        def __init__(self, on_write=None):
+            self.phases: list[str] = []
+            self._on_write = on_write
+
+        def touch(self, run_id, phase=None, **_kwargs):
+            if phase is not None:
+                self.phases.append(phase)
+                if self._on_write is not None:
+                    self._on_write()
+            return True
+
+    # 交错一：取消先落地，phase 后到 → 完全不写（cancelling 不被覆盖）
+    store = TouchLogStore()
+    run = RunContext(identity=RunIdentity.new(), store=store, max_steps=8)
+    run.cancel_token.cancel("用户点了停止")
+    run.phase("model")
+    run.phase("tool")
+    assert store.phases == [], "取消后的 phase 写入不得出现 model/tool"
+
+    # 交错二：phase 写入期间取消落地 → 补写 cancelling 自愈，不留 model 收尾
+    store2 = TouchLogStore(on_write=lambda: run2.cancel_token.cancel("并发取消"))
+    run2 = RunContext(identity=RunIdentity.new(), store=store2, max_steps=8)
+    run2.phase("model")
+    run2.phase("tool")
+    assert store2.phases == ["model", "cancelling"]

@@ -7,6 +7,46 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · D09 收口第一批（副作用敏感工具结构化）+ 取消标记竞态修复
+
+- **取消标记竞态（`core/run.py`，既有缺陷被本批并发跑测暴露）**：`ActiveRuns.cancel()`
+  先写 `phase="cancelling"` 再翻转 token；若取消恰落在 `register → 首次
+  phase("model")` 的组装窗口、或 phase 写入的瞬间，后续阶段写入会把"正在取消"
+  覆写回"model"——并发负载下 `test_cancel_is_cooperative_and_does_not_fake_stopped`
+  偶发红（单跑 5/5 通过、120 项同进程并发时复现一次）。修复：
+  `RunContext.phase()` 在取消已请求后为 no-op；写入后复查 token，取消在写入期间
+  落地则补写 `cancelling` 自愈。新增确定性回归 `test_phase_never_overwrites_cancelling_marker`
+  （两种交错：取消先到零写入 / 写入期间取消落地补写自愈），不再依赖偶发时序。
+- **副作用敏感工具迁移结构化 ToolResult（LOCAL_AGENT_PLAN §0.2 收口项 1 第一批）**：
+  - `tools/shell/`：peek/run 不再靠 `from_legacy` 中文前缀推断——SAFE 观察完成即
+    ok（**退出码是数据**，`git diff --exit-code` 有差异时退出码为 1，不是工具失败）；
+    超时按"已确认回收（retryable，观察无副作用）/回收未知（unknown，可能有残留进程）"
+    精确区分；run_command 完成=applied、超时=unknown 不可盲目重试；拒绝带稳定
+    error_code（bad_arguments/safe_rejected/hard_blocked/command_timeout/dir_failed）。
+  - `tools/qq/`：客户端拆出 `send_private_outcome`（返回回执 message_id 列表、
+    失败抛类型化异常），`send_*_sync` 兼容入口文本逐字不变；工具按回执分三类——
+    `已发送`=applied（data 带 message_ids）、`DeliveryUnknown`=unknown
+    （**旧推断曾把"发送未确认"误判成 ok**——该文本不以"错误"开头，是本批发现的
+    真实误分类）、`DeliveryNotStarted`=可重试错误（文案由"不要自动重试"修正为
+    "未发出，可稍后重试或换方式"，与 D17 outbox 的 ConnectionError 分类语义对齐）、
+    未连接=qq_not_connected。
+  - `tools/system_tools.py`：启停成功=applied；`ServiceError` 新增 `uncertain`
+    标记（进程已启动但身份不可核验 / 停止未确认 / 停止后仍存活或无法确认退出
+    三处置 True）→ side_effect_state=unknown，其余服务错误（未安装/参数错等）
+    =确定未生效 none。
+  - `tools/registry.py`：`Tool.func` 类型标注改为 `str | ToolResult`（真实契约）。
+  - 精确状态经 `result.brief()` 直接进入运行事件流，工作台运行进度/事件续读
+    不再依赖文本猜测。
+- **新增 12 项测试**：shell 结构化 8 项、qq 2 项（含兼容字符串钉死）、system 1 项、
+  取消竞态回归 1 项；既有 dispatch() 字符串断言零改动（text 除 DeliveryNotStarted
+  一处语义修正外逐字不变）。
+- **剩余（第二批待做）**：builtin/cron/skill/delegate/files/browser/web/mcp/
+  bilibili 读/android 读仍走 `from_legacy` 适配；`from_legacy` 本身保留给旧调用方，
+  不在本批删除。
+- `uv run --no-sync pytest -q` → **845 passed**（2026-10-29；= 817 基线 + 本批 12 项
+  + 并行会话未提交的 `tests/test_web_model_key.py` 16 项。并行 WIP 改 web.py/config.py/
+  config_io.py/index.html，与本批文件无交集）。
+
 ### 2026-10-28 · D27 副本恢复、常驻采样与验收闸门
 
 - 在 D26 `56ce482` 基础上新增只读采样与发布材料检查，默认覆盖 QQ/心跳服务树；

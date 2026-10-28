@@ -57,7 +57,7 @@ class Tool:
     name: str
     description: str
     parameters: dict[str, Any]  # JSON Schema
-    func: Callable[[dict[str, Any]], str]
+    func: Callable[[dict[str, Any]], str | ToolResult]  # 新工具一律返回 ToolResult（D09 收口）
     toolset: str = "core"       # 能力组：core / bilibili / qq / android …
     risk: Risk = Risk.SAFE      # safe / confirm / dangerous
     requires_human: bool = False  # 通用写工具可发布/支付，smart 不得替人批准

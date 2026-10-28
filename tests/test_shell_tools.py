@@ -351,3 +351,86 @@ def test_real_git_status_runs_through_default_executor(tmp_path):
     assert "错误" not in out
     assert "退出码" in out
     assert 'observation.txt' in out
+
+
+# ---------------------------------------------------------------- 结构化结果（D09 收口：不再靠前缀推断）
+
+
+def test_peek_rejection_is_structured_and_executes_nothing(tmp_path):
+    registry, safe, _ = _registry(root=tmp_path)
+    result = registry.execute("peek_command", {"command": "git status & del x"})
+    assert result.status == "error" and result.error_code == "safe_rejected"
+    assert result.side_effect_state == "none" and result.legacy is False
+    assert safe.argv_calls == []
+
+
+def test_peek_empty_command_is_bad_arguments():
+    registry, _, _ = _registry()
+    result = registry.execute("peek_command", {"command": "  "})
+    assert result.status == "error" and result.error_code == "bad_arguments"
+
+
+def _patch_executables(monkeypatch, tmp_path):
+    """测试机不要求预装 adb/git：可执行文件解析指向临时路径（与 D26 约定一致）。"""
+    from omni.tools.shell import spec
+
+    trusted = tmp_path.parent / "fixture-bin"
+    monkeypatch.setattr(spec.shutil, "which", lambda name: str(trusted / f"{name}.exe"))
+
+
+def test_peek_timeout_reclaimed_is_retryable_without_side_effects(tmp_path, monkeypatch):
+    _patch_executables(monkeypatch, tmp_path)
+    safe = RecordingSafe(ProcResult(0, b"", b"", timed_out=True, reclaimed=True))
+    registry, _, _ = _registry(root=tmp_path, safe=safe)
+    result = registry.execute("peek_command", {"command": "adb devices"})
+    assert result.status == "error" and result.error_code == "command_timeout"
+    assert result.retryable is True and result.side_effect_state == "none"
+
+
+def test_peek_timeout_unreclaimed_has_unknown_side_effects(tmp_path, monkeypatch):
+    _patch_executables(monkeypatch, tmp_path)
+    safe = RecordingSafe(ProcResult(0, b"", b"", timed_out=True, reclaimed=False))
+    registry, _, _ = _registry(root=tmp_path, safe=safe)
+    result = registry.execute("peek_command", {"command": "adb devices"})
+    assert result.status == "error" and result.error_code == "command_timeout"
+    assert result.retryable is False and result.side_effect_state == "unknown"
+
+
+def test_peek_completed_exit_code_is_data_not_failure(tmp_path, monkeypatch):
+    """退出码 1 不是观察失败：git diff --exit-code 有差异时就是退出码 1。"""
+    _patch_executables(monkeypatch, tmp_path)
+    safe = RecordingSafe(ProcResult(1, b"", b"boom"))
+    registry, _, _ = _registry(root=tmp_path, safe=safe)
+    result = registry.execute("peek_command", {"command": "git diff"})
+    assert result.status == "ok" and result.side_effect_state == "none"
+    assert "退出码 1" in result.text
+
+
+def test_run_command_hard_block_refused_before_execution():
+    registry, _, shell = _registry()
+    result = registry.execute(
+        "run_command", {"command": "format c: /y"}, approver=AllowAllApprover()
+    )
+    assert result.status == "error" and result.error_code == "hard_blocked"
+    assert result.side_effect_state == "none"
+    assert shell.calls == []
+
+
+def test_run_command_timeout_side_effects_unknown_even_if_reclaimed(tmp_path):
+    shell = RecordingShell(ProcResult(0, b"", b"", timed_out=True, reclaimed=True))
+    registry, _, _ = _registry(shell=shell)
+    result = registry.execute(
+        "run_command", {"command": "python --version"}, approver=AllowAllApprover()
+    )
+    assert result.status == "error" and result.error_code == "command_timeout"
+    assert result.side_effect_state == "unknown" and result.retryable is False
+
+
+def test_run_command_completed_reports_applied():
+    shell = RecordingShell(ProcResult(0, b"ok", b""))
+    registry, _, _ = _registry(shell=shell)
+    result = registry.execute(
+        "run_command", {"command": "python --version"}, approver=AllowAllApprover()
+    )
+    assert result.status == "ok" and result.side_effect_state == "applied"
+    assert result.legacy is False

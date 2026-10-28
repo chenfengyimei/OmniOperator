@@ -5,6 +5,9 @@
   （如"请打开工作台 xxx 扫码"），把"操作权"交还给人；
 - system_service：CONFIRM——启停属于本地系统变更，须用户确认
   （QQ/心跳等无人值守上下文会被 DenyApprover 直接拒绝，符合 fail-closed）。
+
+结果契约（D09 收口）：启停成功记 side_effect_state=applied；
+ServiceError.uncertain=True（进程可能已启动/停止未确认）记 unknown，其余错误记 none。
 """
 from __future__ import annotations
 
@@ -12,11 +15,21 @@ from typing import Any
 
 from ..system.services import ALL_SERVICES, ServiceError, ServiceManager
 from .registry import Risk, Tool, ToolRegistry
+from .result import SIDE_EFFECT_APPLIED, SIDE_EFFECT_NONE, SIDE_EFFECT_UNKNOWN, ToolResult
+
+
+def _service_error(exc: ServiceError) -> ToolResult:
+    """ServiceError → 结构化结果：uncertain 表示状态可能已部分改变（人工核查）。"""
+    return ToolResult.fail(
+        f"错误：{exc}",
+        error_code="service_error",
+        side_effect_state=SIDE_EFFECT_UNKNOWN if exc.uncertain else SIDE_EFFECT_NONE,
+    )
 
 
 def register_system_tools(registry: ToolRegistry, services: ServiceManager) -> None:
 
-    def system_status(_args: dict[str, Any]) -> str:
+    def system_status(_args: dict[str, Any]) -> ToolResult:
         overview = services.overview()
         lines = ["本地服务状态："]
         for svc in overview["services"]:
@@ -31,34 +44,40 @@ def register_system_tools(registry: ToolRegistry, services: ServiceManager) -> N
                 "⚠ QQ 机器人未登录：请用户打开 Web 工作台（http://127.0.0.1:8000）"
                 "的「服务」面板，点击「扫码登录」用手机 QQ（小号）扫码"
             )
-        return "\n".join(lines)
+        return ToolResult.ok("\n".join(lines))
 
-    def system_service(args: dict[str, Any]) -> str:
+    def system_service(args: dict[str, Any]) -> ToolResult:
         action = str(args.get("action", "")).strip()
         name = str(args.get("service", "")).strip()
         if action not in ("start", "stop"):
-            return "错误：action 只支持 start / stop"
+            return ToolResult.fail("错误：action 只支持 start / stop", error_code="bad_arguments")
         if name not in ALL_SERVICES:
-            return f"错误：service 只支持 {', '.join(ALL_SERVICES)}"
+            return ToolResult.fail(
+                f"错误：service 只支持 {', '.join(ALL_SERVICES)}", error_code="bad_arguments"
+            )
         if action == "start" and name == "napcat" and args.get("qq"):
             qq = str(args["qq"]).strip()
             if not (qq.isdigit() and len(qq) <= 12):
-                return "错误：qq 必须是 QQ 号数字"
+                return ToolResult.fail("错误：qq 必须是 QQ 号数字", error_code="bad_arguments")
             try:
                 result = services.start(name, qq=qq)
             except ServiceError as exc:
-                return f"错误：{exc}"
-            return (
+                return _service_error(exc)
+            return ToolResult.ok(
                 f"已启动 {name}（pid {result['pid']}）。若是首次登录或快速登录被风控，"
-                "会进入扫码模式：请让用户打开 Web 工作台「服务」面板扫码"
+                "会进入扫码模式：请让用户打开 Web 工作台「服务」面板扫码",
+                side_effect_state=SIDE_EFFECT_APPLIED,
             )
         try:
             result = services.start(name) if action == "start" else services.stop(name)
         except ServiceError as exc:
-            return f"错误：{exc}"
+            return _service_error(exc)
         verb = "已启动" if action == "start" else "已停止"
         pid = result.get("pid", "")
-        return f"{verb} {name}" + (f"（pid {pid}）" if pid else "")
+        return ToolResult.ok(
+            f"{verb} {name}" + (f"（pid {pid}）" if pid else ""),
+            side_effect_state=SIDE_EFFECT_APPLIED,
+        )
 
     registry.register(
         Tool(

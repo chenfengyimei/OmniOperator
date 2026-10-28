@@ -165,8 +165,18 @@ class RunContext:
             return -1
 
     def phase(self, name: str) -> None:
+        """更新运行阶段；取消已请求后是 no-op，绝不覆写"cancelling"。
+
+        竞态背景：cancel() 先写"cancelling"再翻转 token；若取消恰落在
+        register→首次 phase("model") 的组装窗口、或 phase 写入的瞬间，
+        后续阶段写入会把"正在取消"覆写回"model"——界面就看不到正在取消了。
+        写入后复查一次 token：取消在写入期间落地就补写"cancelling"自愈。
+        """
         try:
-            self.store.touch(self.run_id, phase=name)
+            if not self.cancel_token.cancelled:
+                self.store.touch(self.run_id, phase=name)
+                if self.cancel_token.cancelled:
+                    self.store.touch(self.run_id, phase="cancelling")
         except Exception:  # noqa: BLE001
             pass
 
