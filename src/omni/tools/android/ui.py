@@ -39,6 +39,9 @@ def parse_elements(xml_text: str, max_nodes: int = MAX_NODES) -> list[dict[str, 
         text = (attrib.get("text") or "").strip()
         desc = (attrib.get("content-desc") or "").strip()
         rid = (attrib.get("resource-id") or "").strip()
+        password = attrib.get('password') == 'true'
+        if password:
+            text, desc = '[密码框已隐藏]', ''
         clickable = attrib.get("clickable") == "true"
         scrollable = attrib.get("scrollable") == "true"
         if not (text or desc or rid or clickable or scrollable):
@@ -57,6 +60,8 @@ def parse_elements(xml_text: str, max_nodes: int = MAX_NODES) -> list[dict[str, 
                 "center": center,
                 "clickable": clickable,
                 "scrollable": scrollable,
+                "password": password,
+                "enabled": attrib.get('enabled') != 'false',
             }
         )
         if len(elements) >= max_nodes:

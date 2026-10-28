@@ -21,7 +21,7 @@ class FakeRunner:
 
     def __init__(self) -> None:
         self.calls: list[list[str]] = []
-        self.script: list[tuple[str, bytes]] = []
+        self.script: list[tuple[str, bytes]] = [('wm size', b'Physical size: 1080x2400\n')]
 
     def expect(self, pattern: str, out) -> None:
         self.script.append((pattern, out if isinstance(out, bytes) else out.encode("utf-8")))
@@ -192,7 +192,7 @@ def _obs_of(tree_output: str) -> str:
     """从 refresh_tree 输出头部抠出 obs=<id>（模型就是从这里抄给 tap 的）。"""
     import re
 
-    m = re.search(r"obs=([0-9a-f]{8})", tree_output)
+    m = re.search(r"obs=([0-9a-f]{32})", tree_output)
     assert m, "观察输出必须带 obs 身份"
     return m.group(1)
 
@@ -289,7 +289,7 @@ def test_tap_post_verify_failure_reports_unknown(tmp_path):
     )
     first = driver.refresh_tree()
     out = driver.tap_element(0, _obs_of(first))
-    assert out.startswith("已点击 [0]")
+    assert "状态未知" in out
     assert "复核观察失败" in out and "状态未知" in out
     assert any("input tap 200 230" in " ".join(c) for c in runner.calls)
 
@@ -302,8 +302,7 @@ def test_tap_idx_missing_in_verified_tree(tmp_path):
         cache_path=tmp_path / "tree.json",
     )
     first = driver.refresh_tree()
-    with pytest.raises(AdbError, match="不在当前 UI 树"):
-        driver.tap_element(99, _obs_of(first))
+    assert '不在当前 UI 树' in driver.tap_element(99, _obs_of(first))
     assert not any("input tap" in " ".join(c) for c in runner.calls)
 
 
@@ -353,8 +352,8 @@ def test_driver_persists_and_restores_tree(tmp_path):
     )
     assert '"登录"' in driver2.tree()
     assert len(driver2.elements()) == 2
-    # 观察身份也一并恢复：重启后旧观察仍可用于点击前复核比对
-    assert driver2.observation_id == driver.observation_id
+    # 缓存只恢复展示，不能把旧进程观察当成新进程动作授权。
+    assert driver2.observation_id is None
 
 
 def test_tap_on_restored_cache_still_reverifies(tmp_path):
@@ -374,9 +373,10 @@ def test_tap_on_restored_cache_still_reverifies(tmp_path):
         cache_path=cache,
     )
     out = second.tap_element(0, _obs_of(first_output))
-    assert "已点击 [0]" in out
-    # 哪怕缓存是刚写的：点击前仍然 dump 复核 + 点击后复检
-    assert len(runner.calls_matching("uiautomator")) == 2
+    assert 'observation' in out and not runner.calls
+    fresh = second.refresh_tree()
+    assert '已点击 [0]' in second.tap_element(0, _obs_of(fresh))
+    assert len(runner.calls_matching('uiautomator')) == 3
 
 
 def test_tap_on_restored_cache_refuses_if_screen_moved_on(tmp_path):
@@ -397,7 +397,8 @@ def test_tap_on_restored_cache_refuses_if_screen_moved_on(tmp_path):
         cache_path=cache,
     )
     out = second.tap_element(0, _obs_of(first_output))
-    assert out.startswith("未点击") and '"删除"' in out
+    assert 'observation' in out and not runner.calls
+    assert '"删除"' in second.refresh_tree()
     assert not any("input tap" in " ".join(c) for c in runner.calls)
 
 
@@ -430,7 +431,12 @@ def test_scale_coords():
 
 
 def test_driver_tap_scaled(tmp_path):
-    runner = FakeRunner()
+    from io import BytesIO
+    from PIL import Image
+    runner = _dump_runner()
+    image = BytesIO()
+    Image.new('RGB', (1080, 2400)).save(image, format='PNG')
+    runner.expect('screencap', image.getvalue())
     runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
     runner.expect("wm size", "Physical size: 1080x2400\n")
     driver = AndroidDriver(
@@ -438,7 +444,8 @@ def test_driver_tap_scaled(tmp_path):
         serial="EMU1",
         cache_path=tmp_path / "tree.json",
     )
-    out = driver.tap_scaled(100, 200, 500, 1000)
+    _png, observation, _size = driver.snapshot()
+    out = driver.tap_scaled(100, 200, 500, 1000, observation)
     assert "(216,480)" in out
     assert any("input tap 216 480" in " ".join(c) for c in runner.calls)
 

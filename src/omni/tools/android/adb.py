@@ -127,10 +127,10 @@ class AdbDevice:
 
     def screen_size(self, serial: str) -> tuple[int, int]:
         out = self._device_shell(serial, "wm size").strip()
-        m = re.search(r"(\d+)x(\d+)", out)
-        if not m:
+        matches = re.findall(r"(\d+)x(\d+)", out)
+        if not matches:
             raise AdbError(f"wm size 解析失败: {out}")
-        return int(m.group(1)), int(m.group(2))
+        return int(matches[-1][0]), int(matches[-1][1])
 
     # ---------- 输入 ----------
 
@@ -160,7 +160,7 @@ class AdbDevice:
             raise AdbError("含非 ASCII 字符：中文请走 ADBKeyboard（type_unicode）")
         self._device_shell(serial, f"input text {quote_input_text(text)}")
 
-    def type_unicode(self, serial: str, text: str) -> None:
+    def type_unicode(self, serial: str, text: str, *, before_input=None) -> None:
         """中文/Emoji 输入：ADBKeyboard 广播，结束后恢复原输入法（必须配对）。
 
         前提：设备上已安装 ADBKeyboard.apk（范凯 skill 同款方案）。
@@ -168,11 +168,15 @@ class AdbDevice:
         original = self._device_shell(
             serial, "settings get secure default_input_method"
         ).strip()
-        if not original:
+        if not re.fullmatch(r'[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+', original):
             raise AdbError("拿不到当前输入法（settings get 失败），中止以免锁死输入法")
-        self._device_shell(serial, f"ime enable {_ADB_KEYBOARD_IME}")
-        self._device_shell(serial, f"ime set {_ADB_KEYBOARD_IME}")
+        enabled = self._device_shell(serial, 'settings get secure enabled_input_methods').strip().split(':')
+        was_enabled = any(item.split(';')[0] == _ADB_KEYBOARD_IME for item in enabled) or original == _ADB_KEYBOARD_IME
         try:
+            self._device_shell(serial, f"ime enable {_ADB_KEYBOARD_IME}")
+            self._device_shell(serial, f"ime set {_ADB_KEYBOARD_IME}")
+            if before_input is not None:
+                before_input()
             b64 = adb_keyboard_b64(text)
             self._device_shell(
                 serial, f"am broadcast -a ADB_INPUT_B64 --es msg {b64}"
@@ -180,7 +184,8 @@ class AdbDevice:
         finally:
             # 范凯纪律：必须恢复原输入法，绝不 ime reset 猜默认值
             self._device_shell(serial, f"ime set {original}")
-            self._device_shell(serial, f"ime disable {_ADB_KEYBOARD_IME}")
+            if not was_enabled:
+                self._device_shell(serial, f"ime disable {_ADB_KEYBOARD_IME}")
 
     # ---------- 捕获 ----------
 

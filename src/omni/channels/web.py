@@ -134,15 +134,17 @@ class AndroidTapIn(BaseModel):
     y: int
     stream_w: int
     stream_h: int
+    observation: str = ''
 
 
 class AndroidElementIn(BaseModel):
     idx: int
-    observation: str = ""  # 面板树的观察身份；缺省用当前缓存（点屏者自己在看屏）
+    observation: str = ''
 
 
 class AndroidKeyIn(BaseModel):
     keycode: str
+    observation: str = ''
 
 
 class ProfileLineIn(BaseModel):
@@ -1602,21 +1604,38 @@ def create_app(runtime: Runtime) -> FastAPI:
     @app.get("/api/android/tree")
     def android_tree() -> dict[str, Any]:
         try:
-            tree = runtime.android.refresh_tree()
+            observed = runtime.android.observe(session_id='web-manual')
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(status_code=409, detail=str(exc))
         return {
-            "tree": tree,
-            "observation": runtime.android.observation_id or "",
+            "tree": observed['tree'],
+            "observation": observed['observation'],
             "elements": [
                 {
                     "idx": e["idx"],
                     "label": e["text"] or e["content_desc"] or e["resource_id"],
                     "clickable": e["clickable"],
                 }
-                for e in runtime.android.elements()
+                for e in observed['elements']
             ],
         }
+
+    @app.get('/api/android/snapshot')
+    def android_snapshot() -> dict[str, Any]:
+        import base64
+        try:
+            data, observation, (width, height) = runtime.android.snapshot(session_id='web-manual')
+            return {'image': 'data:image/png;base64,' + base64.b64encode(data).decode('ascii'),
+                    'observation': observation, 'width': width, 'height': height}
+        except Exception as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+
+    def android_action(action: str, observation: str, **params) -> dict:
+        result = runtime.android.execute_action(action, observation, session_id='web-manual', **params)
+        if result.status == 'error':
+            raise HTTPException(status_code=409, detail=result.text)
+        return {'ok': result.status == 'ok', 'status': result.status, 'detail': result.text,
+                'side_effect_state': result.side_effect_state, **result.data}
 
     @app.post("/api/android/tap")
     def android_tap(payload: AndroidTapIn) -> dict[str, Any]:
@@ -1625,12 +1644,10 @@ def create_app(runtime: Runtime) -> FastAPI:
         与 agent 的 CONFIRM 工具不同：这里的操作者就是用户本人（自己的点屏）。
         """
         try:
-            return {
-                "ok": True,
-                "detail": runtime.android.tap_scaled(
-                    payload.x, payload.y, payload.stream_w, payload.stream_h
-                ),
-            }
+            return android_action('tap_scaled', payload.observation, x=payload.x, y=payload.y,
+                                  stream_w=payload.stream_w, stream_h=payload.stream_h)
+        except HTTPException:
+            raise
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(status_code=409, detail=str(exc))
 
@@ -1638,15 +1655,18 @@ def create_app(runtime: Runtime) -> FastAPI:
     def android_element(payload: AndroidElementIn) -> dict[str, Any]:
         """按 idx 点元素：与 agent 工具同一套观察绑定复核（界面变了就拒绝）。"""
         try:
-            observation = payload.observation.strip() or (runtime.android.observation_id or "")
-            return {"ok": True, "detail": runtime.android.tap_element(payload.idx, observation)}
+            return android_action('tap_element', payload.observation, idx=payload.idx)
+        except HTTPException:
+            raise
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(status_code=409, detail=str(exc))
 
     @app.post("/api/android/key")
     def android_key(payload: AndroidKeyIn) -> dict[str, Any]:
         try:
-            return {"ok": True, "detail": runtime.android.key(payload.keycode)}
+            return android_action('key', payload.observation, keycode=payload.keycode)
+        except HTTPException:
+            raise
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(status_code=409, detail=str(exc))
 

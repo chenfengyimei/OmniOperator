@@ -40,63 +40,38 @@ def register_android_tools(
 
     def android_tree(_args: dict[str, Any]) -> str:
         try:
-            return driver.refresh_tree()
+            return driver.refresh_tree(session_id=session_ref.get() if session_ref else None)
         except Exception as exc:  # noqa: BLE001
             return f"错误：{exc}"
 
-    def android_tap_element(args: dict[str, Any]) -> str:
-        try:
-            idx = int(args["idx"])
-        except (KeyError, TypeError, ValueError):
-            return "错误：idx 必须是整数（从 screen_tree 输出里取 [idx]）"
-        observation = str(args.get("observation") or "").strip()
-        if not observation:
-            return (
-                "错误：必须带 observation（android_screen_tree 输出第一行的 obs=…）。"
-                "点击前会复核界面：界面变了就不点，并返回新观察让你重新选择"
-            )
-        try:
-            return driver.tap_element(idx, observation)
-        except Exception as exc:  # noqa: BLE001
-            return f"错误：{exc}"
+    def _action(name, args):
+        run = run_ref.get() if run_ref else None
+        params = dict(args)
+        observation = params.pop("observation", "")
+        return driver.execute_action(name, observation,
+                                     session_id=session_ref.get() if session_ref else None,
+                                     cancel=run.cancel_token if run else None, **params)
 
-    def android_tap_coords(args: dict[str, Any]) -> str:
-        try:
-            x, y = int(args["x"]), int(args["y"])
-        except (KeyError, TypeError, ValueError):
-            return "错误：x/y 必须是整数"
-        try:
-            return driver.tap_coords(x, y)
-        except Exception as exc:  # noqa: BLE001
-            return f"错误：{exc}"
+    def android_tap_element(args):
+        return _action("tap_element", args)
 
-    def android_swipe(args: dict[str, Any]) -> str:
-        direction = str(args.get("direction", "up")).strip().lower()
-        try:
-            return driver.swipe(direction)
-        except Exception as exc:  # noqa: BLE001
-            return f"错误：{exc}"
+    def android_tap_coords(args):
+        return _action("tap_coords", args)
 
-    def android_key(args: dict[str, Any]) -> str:
-        try:
-            return driver.key(str(args["keycode"]).strip().upper())
-        except Exception as exc:  # noqa: BLE001
-            return f"错误：{exc}"
+    def android_swipe(args):
+        return _action("swipe", args)
 
-    def android_type(args: dict[str, Any]) -> str:
-        text = str(args.get("text", ""))
-        if not text:
-            return "错误：text 不能为空"
-        try:
-            return driver.type_text(text)
-        except Exception as exc:  # noqa: BLE001
-            return f"错误：{exc}"
+    def android_key(args):
+        return _action("key", args)
+
+    def android_type(args):
+        return _action("type_text", args)
 
     def android_screenshot(_args: dict[str, Any]) -> str:
         try:
             if artifacts is not None:
-                data = driver.screenshot_bytes()
-                return save_screenshot(
+                data, observation, _size = driver.snapshot(session_id=session_ref.get() if session_ref else None)
+                return f"观察 obs={observation}（坐标动作引用本帧，单次有效）\n" + save_screenshot(
                     artifacts, data,
                     session_id=(session_ref.get() if session_ref else None),
                     run_id=(run_ref.get().run_id if run_ref is not None and run_ref.get() else None),
@@ -237,3 +212,10 @@ def register_android_tools(
             requires_human=True,
         )
     )
+    # 每个设备动作都必须引用观察；不接受服务端替调用者挑选最新观察。
+    for name in ("android_tap_coords", "android_swipe", "android_key", "android_type"):
+        tool = registry.get(name)
+        tool.parameters["properties"]["observation"] = {"type": "string", "description": "本会话观察的 obs；坐标点击须用 screenshot 返回的 obs"}
+        tool.parameters["required"].append("observation")
+        tool.description += " 必须携带 observation，动作前复核，动作后返回新观察；未知结果禁止盲重试。"
+

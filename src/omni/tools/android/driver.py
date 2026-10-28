@@ -1,145 +1,134 @@
-"""高层语义驱动：把 adb 原语包装成 agent 友好的语义操作。
-
-- refresh_tree()：观察（UI 树 → 结构化元素），输出头部带**观察身份**
-  `obs=<id>`（设备序列号 + 树内容的短哈希）；持久化到
-  data/android_cache/tree.json，进程重启后仍能看到上次观察的树；
-- tap_element(idx, observation)：观察绑定点击（D16/A12）——点击前重新
-  观察，内容哈希与模型看到的观察一致才点；不一致只返回新观察，绝不按
-  旧 idx 点新元素；点击后强制复检并返回点击后的新观察；
-- type_text：自动分流 ASCII/中文（ADBKeyboard），底层保证恢复输入法；
-- screenshot：截图存档 data/android_shots/latest.png。
-
-为什么 tap 前必须重新观察：缓存的"新鲜"只说明**我们**最近 dump 过，
-不代表屏幕没变——弹窗、旋转、跳转都不会通知我们。模型看到的观察和
-点击瞬间的屏幕之间隔着一次人工审批（可能几分钟），这期间界面完全可以
-换掉。只有"点击前 dump 的内容哈希 == 模型引用的观察"才能保证 idx
-仍然指向模型选的那个元素。
-"""
+"""Android 观察令牌、单设备互斥、一次动作与回读。磁盘缓存仅用于展示。"""
 from __future__ import annotations
 
 import datetime as dt
 import hashlib
 import json
 import os
-import sys
+import threading
+import time
+import uuid
+import xml.etree.ElementTree as ET
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
+from PIL import Image
+
 from ...config import DATA_DIR
+from ...system.filelock import FileLock
+from ..result import ToolResult
 from .adb import AdbDevice, AdbError
 from .ui import parse_elements, render_tree
 
 
 def observation_id(serial: str, tree_text: str) -> str:
-    """观察身份：设备序列号 + 树内容的短哈希。
-
-    时间**不进哈希**：同一界面两次观察 id 相同——点击前的复核才有
-    "界面没变"的可比性；界面内容或设备一变，id 必变。
-    """
-    digest = hashlib.sha256(f"{serial}\n{tree_text}".encode("utf-8")).hexdigest()
-    return digest[:8]
+    return hashlib.sha256(f'{serial}\n{tree_text}'.encode('utf-8')).hexdigest()
 
 
-def scale_coords(
-    x: int, y: int, stream_w: int, stream_h: int, real_w: int, real_h: int
-) -> tuple[int, int]:
-    """帧内坐标 → 真实屏幕坐标（NOTES §2.3：换算只在唯一入口做一次）。
+def scale_coords(x: int, y: int, stream_w: int, stream_h: int, real_w: int, real_h: int) -> tuple[int, int]:
+    if min(stream_w, stream_h, real_w, real_h) <= 0 or not 0 <= x < stream_w or not 0 <= y < stream_h:
+        raise AdbError('帧尺寸必须为正，坐标必须位于帧内')
+    return min(real_w - 1, round(x * real_w / stream_w)), min(real_h - 1, round(y * real_h / stream_h))
 
-    stream_w/h 是前端展示帧的尺寸，real_w/h 来自 wm size；两者可不同
-    （后端将来做半分辨率压缩也只改这里）。
-    """
-    if not stream_w or not stream_h:
-        raise AdbError("stream_w/stream_h 必须为正（前端须上传展示帧尺寸）")
-    return round(x * real_w / stream_w), round(y * real_h / stream_h)
+
+def _pixels(png: bytes) -> tuple[str, tuple[int, int]]:
+    with Image.open(BytesIO(png)) as image:
+        if image.width * image.height > 32_000_000:
+            raise AdbError('屏幕图像过大')
+        with image.convert('RGB') as rgb:
+            return hashlib.sha256(rgb.tobytes()).hexdigest(), rgb.size
 
 
 class AndroidDriver:
-    def __init__(
-        self,
-        adb: AdbDevice | None = None,
-        serial: str | None = None,
-        *,
-        cache_path: Path | None = None,
-        shots_dir: Path | None = None,
-    ) -> None:
+    def __init__(self, adb: AdbDevice | None = None, serial: str | None = None, *,
+                 cache_path: Path | None = None, shots_dir: Path | None = None,
+                 observation_ttl_s: float = 120, clock=time.monotonic) -> None:
         self._adb = adb or AdbDevice(serial=serial)
-        self._cache_path = cache_path or (DATA_DIR / "android_cache" / "tree.json")
-        # 截图目录可注入：否则临时实例会把截图写到真机 data/android_shots（A08）
-        self._shots_dir = Path(shots_dir) if shots_dir else (DATA_DIR / "android_shots")
-        self._elements: list[dict[str, Any]] = []
-        self._tree_text: str = ""
-        self._screen: tuple[int, int] | None = None
-        self._captured_at: str | None = None
-        self._cache_serial: str | None = None
-        self._observation_id: str | None = None
-        self._load_cache()
-
-    # ---------- 缓存持久化（原子写，参照 JobStore 的 tmp+os.replace） ----------
-
-    @staticmethod
-    def _now_iso() -> str:
-        return dt.datetime.now().astimezone().isoformat(timespec="seconds")
-
-    def _load_cache(self) -> None:
-        """启动时恢复上次观察结果；文件缺失/损坏一律按空缓存处理（不影响设备操作）。"""
+        self._cache_path = Path(cache_path or DATA_DIR / 'android_cache/tree.json')
+        self._shots_dir = Path(shots_dir or self._cache_path.parent / 'shots')
+        self._ttl, self._clock = observation_ttl_s, clock
+        self._lock = threading.RLock()
+        self._observations: dict[str, dict] = {}
+        self._elements, self._tree_text = [], ''
+        self._screen = self._cache_serial = self._captured_at = self._observation_id = None
         try:
-            raw = json.loads(self._cache_path.read_text(encoding="utf-8"))
-            elements = raw["elements"]
-            if not isinstance(elements, list):
-                raise ValueError("elements 必须是列表")
-            self._elements = elements
-            self._tree_text = str(raw.get("tree_text", ""))
-            self._captured_at = raw.get("captured_at")
-            self._cache_serial = raw.get("serial")
-            self._observation_id = raw.get("observation_id")
-            screen = raw.get("screen")
-            if isinstance(screen, list) and len(screen) == 2:
-                self._screen = (int(screen[0]), int(screen[1]))
-        except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+            raw = json.loads(self._cache_path.read_text(encoding='utf-8'))
+            self._elements, self._tree_text = raw['elements'], raw['tree_text']
+            self._cache_serial, self._captured_at = raw['serial'], raw['captured_at']
+        except (OSError, ValueError, KeyError, TypeError):
             pass
 
-    def _save_cache(self) -> None:
-        """持久化最新观察结果；纯尽力而为——盘写不进去也不能影响设备操作。"""
+    def _device_lock(self, serial: str):
+        name = hashlib.sha256(serial.encode()).hexdigest()[:24]
+        return FileLock(self._cache_path.parent / f'device-{name}.lock', timeout_s=2)
+
+    def _capture(self, serial: str, *, pixels: bool = False) -> dict:
+        xml = self._adb.dump_ui(serial)
+        if len(xml) > 2_000_000:
+            raise AdbError('UI 树过大')
+        root = ET.fromstring(xml)
+        nodes = list(root.iter('node'))
+        if not nodes or len(nodes) > 3000:
+            raise AdbError('UI 树为空或过大，无法核验界面')
+        rotation = int(root.attrib.get('rotation', '0'))
+        if rotation not in (0, 1, 2, 3):
+            raise AdbError('屏幕方向无法核验')
+        width, height = self._adb.screen_size(serial)
+        size = (height, width) if rotation % 2 else (width, height)
+        raw = ET.tostring(root, encoding='unicode')
+        state = {'serial': serial, 'fingerprint': observation_id(serial, raw + repr(size)),
+                 'size': size, 'elements': parse_elements(xml), 'nodes': [dict(n.attrib) for n in nodes]}
+        if pixels:
+            png = self._adb.screencap(serial)
+            state['pixels'], actual_size = _pixels(png)
+            if actual_size != size:
+                raise AdbError('屏幕截图与方向/尺寸不一致，拒绝坐标操作')
+            if ET.tostring(ET.fromstring(self._adb.dump_ui(serial)), encoding='unicode') != raw:
+                raise AdbError('截图期间界面已变化，请重新观察')
+            state['png'] = png
+        return state
+
+    def _remember(self, state: dict, session_id=None) -> str:
+        token = uuid.uuid4().hex
+        while len(self._observations) >= 32:
+            self._observations.pop(next(iter(self._observations)))
+        self._observations[token] = {**{k: v for k, v in state.items() if k != 'png'}, 'session': session_id, 'at': self._clock()}
+        self._elements, self._tree_text = state['elements'], render_tree(state['elements'])
+        self._screen, self._cache_serial = state['size'], state['serial']
+        self._captured_at = dt.datetime.now().astimezone().isoformat(timespec='seconds')
+        self._observation_id = token
         try:
             self._cache_path.parent.mkdir(parents=True, exist_ok=True)
-            tmp = self._cache_path.with_suffix(".tmp")
-            tmp.write_text(
-                json.dumps(
-                    {
-                        "serial": self._cache_serial,
-                        "captured_at": self._captured_at,
-                        "observation_id": self._observation_id,
-                        "screen": list(self._screen) if self._screen else None,
-                        "tree_text": self._tree_text,
-                        "elements": self._elements,
-                    },
-                    ensure_ascii=False,
-                ),
-                encoding="utf-8",
-            )
-            os.replace(tmp, self._cache_path)
-        except OSError as exc:
-            print(f"[android] 缓存写盘失败（忽略）：{exc}", file=sys.stderr, flush=True)
+            temporary = self._cache_path.with_name(f'.{uuid.uuid4().hex}.tmp')
+            temporary.write_text(json.dumps({'serial': self._cache_serial, 'captured_at': self._captured_at,
+                                             'elements': self._elements, 'tree_text': self._tree_text}, ensure_ascii=False), encoding='utf-8')
+            os.replace(temporary, self._cache_path)
+        except OSError:
+            pass
+        return self.observation_header() + '\n' + self._tree_text
 
-    # ---------- 观察 ----------
+    def refresh_tree(self, *, session_id=None) -> str:
+        with self._lock:
+            serial = self._adb.require_device()
+            with self._device_lock(serial):
+                return self._remember(self._capture(serial), session_id)
 
-    def refresh_tree(self) -> str:
-        """观察界面：刷新 UI 树并缓存元素；输出头部带观察身份 obs=<id>。"""
-        serial = self._adb.require_device()
-        xml = self._adb.dump_ui(serial)
-        self._elements = parse_elements(xml)
-        self._tree_text = render_tree(self._elements)
-        self._captured_at = self._now_iso()
-        self._cache_serial = serial
-        self._observation_id = observation_id(serial, self._tree_text)
-        self._save_cache()
-        return self.observation_header() + "\n" + self._tree_text
+    def snapshot(self, *, session_id=None) -> tuple[bytes, str, tuple[int, int]]:
+        with self._lock:
+            serial = self._adb.require_device()
+            with self._device_lock(serial):
+                state = self._capture(serial, pixels=True)
+                self._remember(state, session_id)
+                return state['png'], self._observation_id, state['size']
+
+    def observe(self, *, session_id=None) -> dict:
+        with self._lock:
+            tree = self.refresh_tree(session_id=session_id)
+            return {'tree': tree, 'observation': self._observation_id, 'elements': self.elements()}
 
     def observation_header(self) -> str:
-        """观察头：模型引用它把"我选的 idx"绑定到"我看到的那份界面"。"""
-        if not self._observation_id:
-            return "观察 obs=（还没有观察记录，先 screen_tree）"
-        return f"观察 obs={self._observation_id}（设备 {self._cache_serial}，{self._captured_at}）"
+        return f'观察 obs={self._observation_id or "无效，请重新观察"}（设备 {self._cache_serial}，{self._captured_at}；单次有效）'
 
     @property
     def observation_id(self) -> str | None:
@@ -152,112 +141,121 @@ class AndroidDriver:
         return list(self._elements)
 
     def screenshot(self) -> Path:
-        serial = self._adb.require_device()
-        png = self._adb.screencap(serial)
-        shots = self._shots_dir
-        shots.mkdir(parents=True, exist_ok=True)
-        path = shots / "latest.png"
-        path.write_bytes(png)
-        return path
+        data = self.screenshot_bytes()
+        self._shots_dir.mkdir(parents=True, exist_ok=True)
+        target = self._shots_dir / 'latest.png'
+        target.write_bytes(data)
+        return target
 
     def screenshot_bytes(self) -> bytes:
-        """当前屏幕 PNG（不落盘）——工作台 MJPEG 流每帧调用。"""
-        serial = self._adb.require_device()
-        return self._adb.screencap(serial)
+        return self._adb.screencap(self._adb.require_device())
 
     def screen_size(self) -> tuple[int, int]:
-        if self._screen is None:
-            serial = self._adb.require_device()
-            self._screen = self._adb.screen_size(serial)
-            self._save_cache()
-        return self._screen
+        return self._adb.screen_size(self._adb.require_device())
 
-    def tap_scaled(self, x: int, y: int, stream_w: int, stream_h: int) -> str:
-        """工作台点屏：帧内坐标 + 帧尺寸 → wm size 反算真实坐标后点击。"""
-        serial = self._adb.require_device()
-        w, h = self._adb.screen_size(serial)
-        rx, ry = scale_coords(int(x), int(y), int(stream_w), int(stream_h), w, h)
-        self._adb.tap(serial, rx, ry)
-        return f"已点击 ({rx},{ry})"
-
-    # ---------- 动作（CONFIRM 级，每轮只做一个） ----------
+    def execute_action(self, action: str, observation: str, *, session_id=None, cancel=None, **args) -> ToolResult:
+        attempted = False
+        with self._lock:
+            try:
+                expected = self._observations.get(observation)
+                if not expected or expected['session'] != session_id or self._clock() - expected['at'] > self._ttl:
+                    raise AdbError('observation 缺失、过期、已使用或不属于本会话；请重新观察')
+                if action not in {'tap_element', 'tap_coords', 'tap_scaled', 'swipe', 'key', 'type_text'}:
+                    raise AdbError('未知安卓动作')
+                if getattr(cancel, 'cancelled', False):
+                    return ToolResult.cancelled('安卓动作已取消，未执行')
+                serial = self._adb.require_device()
+                with self._device_lock(serial):
+                    coordinate = action in {'tap_coords', 'tap_scaled'}
+                    if coordinate and 'pixels' not in expected:
+                        raise AdbError('坐标动作必须引用 android_screenshot 或工作台锁定帧的 observation')
+                    current = self._capture(serial, pixels=coordinate)
+                    if current['fingerprint'] != expected['fingerprint'] or (coordinate and current['pixels'] != expected['pixels']):
+                        self._observations.pop(observation, None)
+                        latest = self._remember(current, session_id)
+                        return ToolResult.fail('未点击/未执行：设备、界面或帧与观察不一致。\n' + latest, error_code='android_stale')
+                    width, height = current['size']
+                    if action == 'tap_element':
+                        element = next((e for e in current['elements'] if e['idx'] == args['idx']), None)
+                        if not element:
+                            raise AdbError('索引不在当前 UI 树里')
+                        if element.get('password') or not element.get('enabled', True):
+                            raise AdbError('密码/禁用元素不允许操作')
+                        x, y = element['center']
+                        label = f"已点击 [{element['idx']}]"
+                        command = lambda: self._adb.tap(serial, x, y)
+                    elif coordinate:
+                        x, y = int(args['x']), int(args['y'])
+                        if action == 'tap_scaled':
+                            x, y = scale_coords(x, y, int(args['stream_w']), int(args['stream_h']), width, height)
+                        label, command = f'已点击 ({x},{y})', lambda: self._adb.tap(serial, x, y)
+                    elif action == 'swipe':
+                        direction = args['direction']
+                        if direction not in {'up', 'down', 'back'}:
+                            raise AdbError('direction 必须为 up/down/back')
+                        start, end = ((.7, .3) if direction == 'up' else (.3, .7))
+                        command = (lambda: self._adb.key(serial, 'KEYCODE_BACK')) if direction == 'back' else (
+                            lambda: self._adb.swipe(serial, width // 2, int(height * start), width // 2, int(height * end), 400))
+                        label = f'已下发 {direction}'
+                    elif action == 'key':
+                        from .adb import ADB_KEYCODE_RE
+                        code = str(args['keycode']).strip().upper()
+                        if not ADB_KEYCODE_RE.fullmatch(code):
+                            raise AdbError('keycode 非法')
+                        label, command = f'已按键 {code}', lambda: self._adb.key(serial, code)
+                    else:
+                        text = args['text']
+                        focused = [n for n in current['nodes'] if n.get('focused') == 'true']
+                        if not isinstance(text, str) or not text or len(text) > 2000 or any(ord(c) < 32 for c in text):
+                            raise AdbError('输入内容为空、过长或含控制字符')
+                        if len(focused) != 1 or focused[0].get('password') == 'true' or 'EditText' not in focused[0].get('class', ''):
+                            raise AdbError('未能核验唯一非密码输入焦点')
+                        if focused[0].get('enabled') == 'false':
+                            raise AdbError('输入框已禁用')
+                        unicode_input = any(ord(c) > 127 for c in text) or "'" in text or '%s' in text
+                        def before_input():
+                            if getattr(cancel, 'cancelled', False):
+                                raise AdbError('输入法切换后运行已取消')
+                            focused_now = [n for n in self._capture(serial)['nodes'] if n.get('focused') == 'true']
+                            if focused_now != focused:
+                                raise AdbError('输入法切换后焦点已变化，未发送文本')
+                        command = (lambda: self._adb.type_unicode(serial, text, before_input=before_input)) if unicode_input else (lambda: self._adb.type_ascii(serial, text))
+                        label = '已下发输入'
+                    if action.startswith('tap') and not (0 <= x < width and 0 <= y < height):
+                        raise AdbError('坐标越界，未执行')
+                    if getattr(cancel, 'cancelled', False):
+                        return ToolResult.cancelled('安卓动作已取消，未执行')
+                    self._observations.pop(observation)
+                    attempted = True
+                    command()
+                    after = self._capture(serial)
+                    latest = self._remember(after, session_id)
+                    changed = after['fingerprint'] != expected['fingerprint']
+                    note = '界面有变化' if changed else '界面未变化'
+                    # 树变化不等于业务目标达成；不把 ADB 返回码当成发送/购买成功。
+                    return ToolResult.unknown(f'{label}；{note}。点击后观察/动作后观察：\n{latest}\n动作已下发，目标效果需核查，禁止重复旧动作。',
+                                              error_code='android_effect_unverified', data={'observation': self._observation_id})
+            except Exception as exc:
+                if attempted:
+                    return ToolResult.unknown(f'复核观察失败或动作返回异常（{type(exc).__name__}）；状态未知，禁止重放', error_code='android_unknown')
+                return ToolResult.fail(f'错误：{exc}', error_code='android_rejected')
 
     def tap_element(self, idx: int, observation: str | None = None) -> str:
-        """观察绑定点击（D16/A12）：界面和观察不一致就不点，只返回新观察。
+        if not observation:
+            raise AdbError('tap_element 需要 observation')
+        return self.execute_action('tap_element', observation, idx=idx).text
 
-        - `observation` 必须来自 screen_tree 输出头部的 `obs=<id>`——
-          它把"模型选的 idx"绑定到"模型看到的那份界面"上；
-        - 点击前重新 dump：内容哈希一致才说明界面没变，idx 仍指向模型
-          选的那个元素；否则**绝不盲点**，返回新观察让模型重新选择；
-        - 点击后强制复检：返回点击后的新观察（失败则如实说状态未知）。
-        """
-        expected = str(observation or "").strip()
-        if not expected:
-            raise AdbError(
-                "tap_element 需要 observation 参数（android_screen_tree 输出第一行的 obs=…）。"
-                "不带观察身份的索引点击已禁用：界面变化后旧 idx 会点错元素"
-            )
-        self.refresh_tree()
-        if self._observation_id != expected:
-            return (
-                f"未点击：界面与观察 obs={expected} 不一致（设备或界面已经变了，"
-                "审批/等待期间屏幕可能切换）。下面是当前界面的新观察，"
-                "请基于它重新选择元素：\n\n"
-                + self.observation_header() + "\n" + self._tree_text
-            )
-        el = next((e for e in self._elements if e["idx"] == idx), None)
-        if el is None:
-            raise AdbError(f"索引 {idx} 不在当前 UI 树里（先 screen_tree 再试）")
-        cx, cy = el["center"]
-        serial = self._cache_serial or self._adb.require_device()
-        self._adb.tap(serial, cx, cy)
-        label = el["text"] or el["content_desc"] or el["resource_id"] or ""
-        clicked = f"已点击 [{idx}] {label} @({cx},{cy})"
-        try:
-            after = self.refresh_tree()
-        except Exception as exc:  # noqa: BLE001 —— 点上了但复核失败：如实报未知
-            return (
-                f"{clicked}；复核观察失败（{exc}）——界面状态未知，"
-                "先 screen_tree 重新观察再决定下一步"
-            )
-        changed = self._observation_id != expected
-        note = "界面有变化" if changed else "界面未变化"
-        return f"{clicked}；{note}。点击后观察：\n\n{after}"
+    def tap_coords(self, x: int, y: int, observation: str = '') -> str:
+        return self.execute_action('tap_coords', observation, x=x, y=y).text
 
-    def tap_coords(self, x: int, y: int) -> str:
-        serial = self._adb.require_device()
-        self._adb.tap(serial, x, y)
-        return f"已点击坐标 ({x},{y})"
+    def tap_scaled(self, x: int, y: int, stream_w: int, stream_h: int, observation: str = '') -> str:
+        return self.execute_action('tap_scaled', observation, x=x, y=y, stream_w=stream_w, stream_h=stream_h).text
 
-    def swipe(self, direction: str) -> str:
-        """上滑/下滑/返回。方向名比坐标对 agent 更稳。"""
-        serial = self._adb.require_device()
-        direction = (direction or "").strip().lower()
-        if direction == "back":
-            self._adb.key(serial, "KEYCODE_BACK")
-            return "已按返回"
-        w, h = self.screen_size()
-        cx = w // 2
-        moves = {
-            "up": (cx, int(h * 0.7), cx, int(h * 0.3)),    # 内容上移=看更多
-            "down": (cx, int(h * 0.3), cx, int(h * 0.7)),
-        }
-        if direction not in moves:
-            raise AdbError(f"未知滑动方向 {direction}（up/down/back）")
-        x1, y1, x2, y2 = moves[direction]
-        self._adb.swipe(serial, x1, y1, x2, y2, 400)
-        return f"已{direction}滑动"
+    def swipe(self, direction: str, observation: str = '') -> str:
+        return self.execute_action('swipe', observation, direction=direction).text
 
-    def type_text(self, text: str) -> str:
-        """智能输入：纯 ASCII 走 input text，含中文走 ADBKeyboard 广播。"""
-        serial = self._adb.require_device()
-        if any(ord(ch) > 127 for ch in text):
-            self._adb.type_unicode(serial, text)
-            return f"已通过 ADBKeyboard 输入中文：{text[:50]}"
-        self._adb.type_ascii(serial, text)
-        return f"已输入：{text[:50]}"
+    def key(self, keycode: str, observation: str = '') -> str:
+        return self.execute_action('key', observation, keycode=keycode).text
 
-    def key(self, keycode: str) -> str:
-        serial = self._adb.require_device()
-        self._adb.key(serial, keycode)
-        return f"已按键 {keycode}"
+    def type_text(self, text: str, observation: str = '') -> str:
+        return self.execute_action('type_text', observation, text=text).text
