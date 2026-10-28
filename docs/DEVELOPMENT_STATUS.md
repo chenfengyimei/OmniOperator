@@ -87,11 +87,58 @@
 | D16 | 完成 | A12 | 见第 5 节 | `uv run pytest tests/test_android.py -q` → 29 passed；关联批次 `tests/test_web.py test_arch.py test_agent.py test_cron.py` → 58 passed（2026-10-28） | 安卓真机待插设备：观察绑定点击的真机闭环（两设备交错/旋转/ADB 断连复检/中文输入恢复）待插真机验收 | 进入 D17（cron 编辑与可靠投递） |
 | D17 | 完成 | A04（编辑校验）、A17（投递 outbox 与去重） | 见第 5 节两批：①任务编辑 + 成败判定去前缀化；②投递 outbox——QQ 掉线入队恢复补投、unknown 不自动重发、白名单撤销即丢、3 次成死信 | ①`tests/test_cron.py tests/test_web.py` → 51 passed；②`uv run pytest tests/test_outbox.py -q` → **12 passed**（去重/终态释放/容量/分类/补投/死信/端点） | 真机 `data/state.db` 已 v6→v7（备份 `data/backups/pre-d17-outbox`，degraded 空、重开幂等）；**真实 QQ 掉线→补投闭环待 NapCat 扫码后实测** | **剩余**：`context_from` 绑定具体成功 run、并行上限与积压策略、显式时区（原大纲细项）；心跳进程未运行（工作台可启动） |
 | D18 | 开发中 | A14（编辑 UI 部分） | 见第 5 节：技能工作台编辑（保存 CAS / 历史 / 差异 / 回滚） | `uv run pytest tests/test_skills_history.py tests/test_skills.py tests/test_web.py tests/test_arch.py tests/test_agent.py -q` → 86 passed；新增 save_raw 全文保存（CAS/结构校验/来源可追溯）+ 编辑器端点 1 例 | 浏览器内编辑器 UX 无自动化（接口契约由 TestClient 验）；真实技能库的手工编辑演练待用户使用 | **剩余**：候选变更/差异确认队列（D12 转入）、外来包隔离安装（隔离区+清单检查+不执行 postinstall）——大纲原范围留待续做；进入收尾 |
-| D19 | 开发中 | MCP 管理面板（第一批） | 见第 5 节：状态纯派生 + 工具目录带授权标记 + 工作台面板 | `uv run pytest tests/test_mcp.py -q` → 15 passed（新增 2 例：状态纯派生含停用/失败态、面板端点真实 stdio 发现 + 409/404）；关联批次 web+arch+mcp → 53 passed | 真实受信 MCP 生产服务联调待用户提供；schema/权限漂移的指纹复核未做 | **剩余**：schema 指纹漂移检测（改动后重新检查只读授权）、连接/健康细节、Streamable HTTP/OAuth——按大纲留待续做 |
+| D19 | 完成 | MCP 管理（两批） | 见第 5 节两批：①状态纯派生 + 工具目录带授权标记 + 面板；②schema 漂移检测（指纹登记/变化提醒/复查确认）+ 面板手动重连 | ①`tests/test_mcp.py -q` → 15 passed；②`tests/test_mcp.py -q` → **18 passed**（新增 3 例：指纹存储语义、指纹规则（忽略描述/跟踪形态）、真实 stdio 服务改 schema → 漂移提醒 → 确认清除 → 失败重连） | 真机 `data/state.db` 已 v7→v8（备份 `data/backups/pre-d19-drift`，degraded 空、重开幂等）；**真实受信 MCP 生产服务联调待用户提供** | **剩余**：连接/健康细节（重连只给一次干净握手，无自动退避重连）、Streamable HTTP/OAuth（大纲允许独立后置） |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D19 第二批（MCP schema 漂移检测 + 面板手动重连）
+
+- **改了什么**：
+  - `memory/state.py` 升 **v8**：`mcp_schemas` 表（server/fingerprint/tool_count/
+    confirmed_at/seen_at）+ `MCPSchemaStore`：`observe()` 首次登记即确认、指纹变化**清空
+    confirmed_at 并返回旧指纹**、`confirm()` 只认当前指纹（指纹又变了就拒绝——确认的必须是
+    看到的那份）、`status()`；
+  - `tools/mcp/client.py`：`MCPManager.fingerprint(tools)`——名称 + `inputSchema` 规范化序列的
+    短哈希；**description 不进指纹**（改文案不该触发授权复查，改参数形态才该）；`reset(server)`
+    ——同一日志目录重建连接（失败连接已封闭，close 幂等），未配置服务拒绝；
+  - `channels/web.py`：`GET /api/mcp/overview` 带 `schema_state`（absent / confirmed / drifted）
+    与指纹；`GET /api/mcp/{server}/tools` 发现时登记指纹，漂移则在响应带 `drift` 提醒；
+    新增 `POST /api/mcp/{server}/confirm-schema`（用户复查后确认）与
+    `POST /api/mcp/{server}/reset`（手动重连，返回新状态）；
+  - 工作台「MCP」页：指纹状态行（目录已确认 / ⚠ 工具目录已变化请复查只读授权 / 未登记）、
+    漂移时出现「复查后确认」按钮、failed/closed 状态出现「重连」按钮、查看工具后自动刷新状态行。
+- **关闭了什么**：大纲 D19 的「命令/参数/服务身份/schema 指纹变化后重新检查只读授权」条目
+  ——指纹变化可见、必须人工复查确认后才清除提醒。
+- **跑了什么**：`uv run pytest tests/test_mcp.py -q` → **18 passed**（新增 3 例：
+  指纹存储状态机——首次登记即确认/未变化无提醒/漂移返回旧指纹且清空确认/旧指纹确认被拒；
+  指纹规则——description 变化不触发、参数形态变化触发；真实 stdio 服务端到端——发现登记 →
+  服务改 schema → 漂移提醒 → 确认清除 → 失败服务重连回 idle → 未配置服务 404）。
+- **真机证据**：`data/state.db` 实际走过 v7→v8（迁移前备份 `data/backups/pre-d19-drift`）；
+  迁移后 `health().degraded` 为空、outbox 与 mcp_schemas 表可用、二次打开版本仍为 8（幂等）。
+- **没测什么**：真实受信 MCP 生产服务的联调（用户提供后按 `docs/MCP.md` 配置）；
+  重连后的自动退避（本批只做手动重连）；
+  服务端"同名工具语义变化但 schema 不变"的情况（指纹看不出来，只能靠人读描述——
+  面板如实展示上级提醒文案，不假装能自动识别）。
+- **行为变化**：
+  1. 服务升级换工具参数形态后，面板出现「⚠ 工具目录已变化，请复查只读授权」，
+     不再静默沿用旧授权判定；
+  2. 用户复查确认后提醒清除；确认的指纹再变会重新出现提醒；
+  3. 连接失败的服务可以在面板上点「重连」得到一次干净握手（配置不变）。
+- **剩余限制（明确记录）**：
+  1. 指纹只看 name + inputSchema——工具**语义**变化（同名同参但行为变了）无法检测；
+  2. 漂移提醒不**阻断**只读调用（`mcp_read_tool` 仍按用户配置的白名单放行）——
+     这是"提醒"不是"门禁"，与 D18 候选队列同性质；真正阻断需要用户把工具从白名单删掉；
+  3. 重连没有自动退避重试（失败即 failed，等人点按钮），避免反复拉起坏服务；
+  4. 没有 MCP resources/prompts 的指纹（本批只做 tools 目录）。
+- **过程记录**：
+  1. 漂移测试的服务端脚本按请求现读 marker 文件（而不是进程启动时读）——连接是长活的，
+     启动时读一次会让"服务升级"永远测不出来；
+  2. `MCPSchemaStore.observe()` 首次登记就写 `confirmed_at`：用户点「查看工具」看到目录
+     这一刻就是复查动作，首次不该报警；
+  3. 指纹取 `[:16]`（64 位）够用且面板可读；测试断言"指纹变了"而不是"等于某个固定值"，
+     避免把实现细节钉死在测试里。
 
 ### 2026-10-28 · D17 第二批（投递 outbox：掉线不丢、恢复补投、unknown 不自动重发）
 

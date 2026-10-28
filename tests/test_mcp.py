@@ -391,3 +391,140 @@ def test_mcp_web_panel_overview_and_tools(tmp_path, monkeypatch):
     finally:
         runtime.close_mcp()
         runtime.store.close()
+
+
+# ---------- D19 第二批：schema 漂移检测与面板重连 ----------
+
+# 服务升级模拟：工具参数形态由 marker 文件决定（每个请求现读，不需要重连）
+DRIFT_SERVER = r'''
+import json, os, sys
+from pathlib import Path
+for line in sys.stdin:
+    message = json.loads(line)
+    if "id" not in message:
+        continue
+    method = message["method"]
+    params = message.get("params", {})
+    error = None
+    if method == "initialize":
+        result = {"protocolVersion": params["protocolVersion"], "capabilities": {"tools": {}},
+                  "serverInfo": {"name": "drift-fixture", "version": "1"}}
+    elif method == "tools/list":
+        schema = {"type": "object", "properties": {"q": {"type": "string"}}}
+        if Path(os.environ["DRIFT_FILE"]).exists():
+            schema["properties"]["limit"] = {"type": "integer"}
+        result = {"tools": [{"name": "search", "description": "drift fixture", "inputSchema": schema}]}
+    elif method == "tools/call":
+        result = {"content": [{"type": "text", "text": "ok"}]}
+    else:
+        error = {"code": -32601, "message": "Method not found"}
+    response = {"jsonrpc": "2.0", "id": message["id"]}
+    response["error" if error else "result"] = error or result
+    print(json.dumps(response), flush=True)
+'''
+
+
+def test_mcp_schema_store_semantics(tmp_path):
+    from omni.memory.state import MCPSchemaStore, StateStore
+
+    state = StateStore(tmp_path / "state.db")
+    store = MCPSchemaStore(state)
+    try:
+        assert store.status("s") is None
+        assert store.observe("s", "aaaa", 2) is None  # 首次登记（看到即是确认）
+        stored = store.status("s")
+        assert stored["fingerprint"] == "aaaa" and stored["confirmed_at"]
+        assert store.observe("s", "aaaa", 2) is None  # 未变化
+        assert store.observe("s", "bbbb", 3) == "aaaa"  # 漂移：返回旧指纹
+        assert store.status("s")["confirmed_at"] is None  # 确认被清空，等复查
+        assert store.confirm("s", "aaaa") is False  # 旧指纹不能确认
+        assert store.confirm("s", "bbbb") is True
+        assert store.status("s")["confirmed_at"]
+    finally:
+        state.close()
+
+
+def test_mcp_fingerprint_ignores_description_but_tracks_schema():
+    from omni.tools.mcp.client import MCPManager
+
+    base = [{"name": "a", "description": "x", "inputSchema": {"type": "object"}}]
+    same_shape = [{"name": "a", "description": "y", "inputSchema": {"type": "object"}}]
+    changed_shape = [
+        {"name": "a", "description": "x",
+         "inputSchema": {"type": "object", "required": ["q"]}}
+    ]
+    assert MCPManager.fingerprint(base) == MCPManager.fingerprint(same_shape)
+    assert MCPManager.fingerprint(base) != MCPManager.fingerprint(changed_shape)
+
+
+def test_mcp_schema_drift_confirm_and_reset(tmp_path):
+    """服务升级换参数形态 → 面板出现漂移提醒 → 复查确认 → 清除；失败连接可手动重连。"""
+    from fastapi.testclient import TestClient
+
+    from omni.channels.web import create_app
+
+    script = tmp_path / "drift_server.py"
+    script.write_text(DRIFT_SERVER, encoding="utf-8")
+    marker = tmp_path / "drift-on"
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        "persona:\n  name: drift\n"
+        "mcp:\n  servers:\n"
+        "    demo:\n"
+        f"      command: {json.dumps(sys.executable)}\n"
+        f"      args: [{json.dumps('-u')}, {json.dumps(str(script))}]\n"
+        "      env:\n"
+        f"        DRIFT_FILE: {json.dumps(str(marker))}\n"
+        '      read_only_tools: ["search"]\n'
+        "    broken:\n"
+        "      command: must-not-exist-xyz\n",
+        encoding="utf-8",
+    )
+    runtime = build_runtime(
+        approver=DenyApprover(),
+        db_path=tmp_path / "m.db",
+        config_path=config_path,
+        skills_root=tmp_path / "skills",
+        data_dir=tmp_path / "data",
+    )
+    try:
+        app = create_app(runtime)
+        client = TestClient(app, base_url="http://127.0.0.1")
+        assert client.post(
+            "/api/auth/pair", json={"code": app.state.web_auth.pairing_code}
+        ).status_code == 200
+
+        # 首次发现：登记指纹，无漂移提醒
+        first = client.get("/api/mcp/demo/tools").json()
+        assert first["drift"] == "" and first["total"] == 1
+        overview = {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}
+        assert overview["demo"]["schema_state"] == "confirmed"
+        fingerprint = overview["demo"]["schema_fingerprint"]
+        assert fingerprint
+
+        # 服务升级（参数形态变化）→ 再次发现出现漂移提醒
+        marker.write_text("on", encoding="utf-8")
+        second = client.get("/api/mcp/demo/tools").json()
+        assert second["drift"] and "复查" in second["drift"]
+        overview = {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}
+        assert overview["demo"]["schema_state"] == "drifted"
+        assert overview["demo"]["schema_fingerprint"] != fingerprint
+
+        # 用户复查后确认 → 漂移清除
+        assert client.post("/api/mcp/demo/confirm-schema").json()["ok"] is True
+        overview = {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}
+        assert overview["demo"]["schema_state"] == "confirmed"
+
+        # 没有目录记录的服务不能确认
+        assert client.post("/api/mcp/broken/confirm-schema").status_code == 404
+
+        # 失败连接：tools 409 → 重连（新连接回到 idle）→ 仍失败则再次 409
+        assert client.get("/api/mcp/broken/tools").status_code == 409
+        reset = client.post("/api/mcp/broken/reset").json()
+        assert reset["ok"] is True and reset["state"] == "idle"
+        assert client.get("/api/mcp/broken/tools").status_code == 409
+        # 未配置的服务重连 404
+        assert client.post("/api/mcp/ghost/reset").status_code == 404
+    finally:
+        runtime.close_mcp()
+        runtime.store.close()

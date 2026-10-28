@@ -953,8 +953,25 @@ def create_app(runtime: Runtime) -> FastAPI:
         """全部已配置 MCP 服务的状态：纯派生，**不启动任何服务**。
 
         停用的服务也在这里可见（面板能看到"配置过但停了"，而不是查无此人）。
+        带上 schema 指纹状态：`schema_state` = absent（还没发现过工具）/
+        confirmed（当前指纹已确认）/ drifted（指纹变了，只读授权该复查）。
         """
-        return {"servers": runtime.mcp.status()}
+        servers = runtime.mcp.status()
+        for row in servers:
+            schema = (
+                runtime.mcp_schemas.status(row["name"])
+                if runtime.mcp_schemas is not None
+                else None
+            )
+            if schema is None:
+                row["schema_state"] = "absent"
+                row["schema_fingerprint"] = ""
+            else:
+                row["schema_fingerprint"] = schema["fingerprint"]
+                row["schema_state"] = (
+                    "confirmed" if schema["confirmed_at"] else "drifted"
+                )
+        return {"servers": servers}
 
     @app.get("/api/mcp/{server}/tools")
     def mcp_tools(server: str, limit: int = 50) -> dict[str, Any]:
@@ -962,6 +979,7 @@ def create_app(runtime: Runtime) -> FastAPI:
 
         返回的 approval 标记用户配置的白名单判定：safe=只读白名单（模型直调），
         human=需要人工确认；服务自报的 readOnlyHint 不参与授权。
+        发现时顺带登记 schema 指纹（D19 漂移检测）：变了就在响应里带 drift 提醒。
         """
         try:
             rows = runtime.mcp.list_tools(server)
@@ -970,7 +988,46 @@ def create_app(runtime: Runtime) -> FastAPI:
             if "未配置" in message or "未启用" in message:
                 raise HTTPException(status_code=404, detail=message)
             raise HTTPException(status_code=409, detail=message)
-        return {"server": server, "total": len(rows), "tools": rows[: max(1, min(limit, 100))]}
+        drift = ""
+        if runtime.mcp_schemas is not None:
+            previous = runtime.mcp_schemas.observe(
+                server, runtime.mcp.fingerprint(rows), len(rows)
+            )
+            if previous:
+                drift = (
+                    f"工具目录与上次确认时不一样（旧指纹 {previous[:8]}）："
+                    "同名工具的参数形态可能变了，请复查只读白名单是否仍然适用"
+                )
+        return {
+            "server": server,
+            "total": len(rows),
+            "tools": rows[: max(1, min(limit, 100))],
+            "drift": drift,
+        }
+
+    @app.post("/api/mcp/{server}/confirm-schema")
+    def mcp_confirm_schema(server: str) -> dict[str, Any]:
+        """用户复查后确认当前工具目录：清除漂移提醒（确认的就是当前这份）。"""
+        if runtime.mcp_schemas is None:
+            raise HTTPException(status_code=503, detail="schema 记录不可用")
+        schema = runtime.mcp_schemas.status(server)
+        if schema is None:
+            raise HTTPException(status_code=404, detail="该服务还没有工具目录记录（先「查看工具」）")
+        if not runtime.mcp_schemas.confirm(server, schema["fingerprint"]):
+            raise HTTPException(status_code=409, detail="指纹又变了，请重新「查看工具」后再确认")
+        return {"ok": True}
+
+    @app.post("/api/mcp/{server}/reset")
+    def mcp_reset(server: str) -> dict[str, Any]:
+        """手动重连：失败/已关闭的连接给一次干净的握手（配置不变）。"""
+        try:
+            status = runtime.mcp.reset(server)
+        except MCPError as exc:
+            message = str(exc)
+            if "未配置" in message or "未启用" in message:
+                raise HTTPException(status_code=404, detail=message)
+            raise HTTPException(status_code=409, detail=message)
+        return {"ok": True, "state": status["state"]}
 
     @app.get("/api/system/overview")
     def system_overview() -> dict[str, Any]:

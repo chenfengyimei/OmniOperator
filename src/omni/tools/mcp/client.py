@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import queue
@@ -261,6 +262,22 @@ class MCPManager:
     def servers(self) -> list[str]:
         return sorted(self._connections)
 
+    @staticmethod
+    def fingerprint(tools: list[dict[str, Any]]) -> str:
+        """工具目录指纹：名字 + inputSchema 的规范化序列哈希（D19 漂移检测）。
+
+        只取授权相关的形态字段（名称与参数 schema），不含 description——
+        服务改文案不该触发授权复查，改参数形态才该。
+        """
+        material = json.dumps(
+            [
+                {"name": t.get("name", ""), "inputSchema": t.get("inputSchema", {})}
+                for t in sorted(tools, key=lambda t: str(t.get("name", "")))
+            ],
+            ensure_ascii=False, sort_keys=True,
+        )
+        return hashlib.sha256(material.encode("utf-8")).hexdigest()[:16]
+
     def status(self) -> list[dict[str, Any]]:
         """全部已配置服务（含 enabled=false 的）：停用条目纯配置展示，不建连接。"""
         rows: list[dict[str, Any]] = []
@@ -282,6 +299,22 @@ class MCPManager:
                 "last_error": "",
             })
         return rows
+
+    def reset(self, server: str) -> dict[str, Any]:
+        """重建一个失败/已关闭的连接（面板手动重连，D19）。
+
+        配置不变，只是给一次干净的握手；失败连接本身已封闭（close 幂等）。
+        未配置的服务拒绝。
+        """
+        conn = self._connections.get(server)
+        if conn is None:
+            raise MCPError("MCP 服务未配置或未启用；先由用户修改 config.yaml")
+        log_dir = conn._log_dir  # noqa: SLF001 —— 同目录重建，日志不换地方
+        conn.close()
+        cfg = self._config.servers[server]
+        fresh = MCPConnection(server, cfg, log_dir)
+        self._connections[server] = fresh
+        return fresh.status()
 
     def _connection(self, server: str) -> MCPConnection:
         if server not in self._connections:

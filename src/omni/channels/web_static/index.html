@@ -939,6 +939,11 @@ const mcpStateText=s=>s.state==='ready'?'<span style="color:#34d399">已连接</
   s.state==='starting'?'<span style="color:#fbbf24">握手中…</span>':
   s.state==='failed'?'<span style="color:#f87171">失败（已停用）</span>':
   s.state==='closed'?'已关闭':s.state==='disabled'?'<span style="color:var(--dim)">已停用</span>':'未启动';
+const mcpSchemaText=s=>s.schema_state==='drifted'
+  ?'<span style="color:#f87171" title="工具目录与上次确认时不一样：同名工具的参数形态可能变了">⚠ 工具目录已变化，请复查只读授权</span>'
+  :s.schema_state==='confirmed'
+  ?'<span style="color:#34d399" title="当前工具目录已由你确认">目录已确认</span>'
+  :'<span style="color:var(--dim)">目录未登记（点「查看工具」发现）</span>';
 async function loadMcp(){
   try{
     const d=await api('/api/mcp/overview');
@@ -948,8 +953,13 @@ async function loadMcp(){
       `<span class="c-sched">${mcpStateText(s)} · 超时 ${s.timeout_s}s · 只读白名单 ${s.read_only_count} 个`+
       `${s.allowed_count!=null?' · 工具白名单 '+s.allowed_count+' 个':' · 发现不限（逐个确认）'}</span>`+
       (s.state==='disabled'?'':`<button class="svc-btn" onclick="mcpTools('${esc(s.name)}')">查看工具</button>`)+
+      (s.state==='failed'||s.state==='closed'
+        ?`<button class="svc-btn" onclick="mcpReset('${esc(s.name)}')">重连</button>`:'')+
+      (s.schema_state==='drifted'
+        ?`<button class="svc-btn" onclick="mcpConfirmSchema('${esc(s.name)}')">复查后确认</button>`:'')+
       `</div>`+
       `<div class="hint" style="margin-top:4px">${esc(s.command)}${(s.args||[]).length?' '+esc(s.args.join(' ')):''}</div>`+
+      `<div class="hint" style="margin-top:2px">${mcpSchemaText(s)}${s.schema_fingerprint?'（指纹 '+esc(s.schema_fingerprint.slice(0,8))+'）':''}</div>`+
       (s.last_error?`<div class="hint" style="color:#f87171;margin-top:2px">${esc(s.last_error)}</div>`:'')+
       `<div id="mcp-tools-${esc(s.name)}"></div></div>`).join('')
       :'<div class="empty">还没有配置 MCP 服务（docs/MCP.md · config.yaml 的 mcp.servers 段）</div>';
@@ -961,12 +971,26 @@ window.mcpTools=async(name)=>{
   box.innerHTML='<div class="hint">发现中…（首次会启动该服务，可能要几秒）</div>';
   try{
     const d=await api('/api/mcp/'+encodeURIComponent(name)+'/tools');
-    box.innerHTML=d.tools.length?d.tools.map(t=>
+    box.innerHTML=(d.drift?`<div class="hint" style="color:#f87171;margin:4px 0">⚠ ${esc(d.drift)}</div>`:'')+
+      (d.tools.length?d.tools.map(t=>
       `<div class="cron-row"><span class="c-name" style="flex:0 0 auto">${t.approval==='safe'?'🟢':'🟡'}</span>`+
       `<span class="c-sched">${esc(t.name)}${t.description?' · '+esc(String(t.description).slice(0,90)):''}</span>`+
       `<span style="color:var(--dim);font-size:11px">${t.approval==='safe'?'只读白名单':'调用需人工确认'}</span></div>`).join('')
-      :'<div class="hint">该服务没有声明工具</div>';
+      :'<div class="hint">该服务没有声明工具</div>');
+    loadMcp(); // 指纹状态可能刚变化（首次登记 / 漂移），刷新状态行
   }catch(e){box.innerHTML='<div class="hint" style="color:#f87171">'+esc(e.message)+'</div>'}
+};
+window.mcpConfirmSchema=async(name)=>{
+  if(!confirm('确认已复查 '+name+' 的工具目录与只读白名单仍然适用？此操作会清除漂移提醒。'))return;
+  try{await api('/api/mcp/'+encodeURIComponent(name)+'/confirm-schema',{method:'POST'});loadMcp()}
+  catch(e){alert(e.message)}
+};
+window.mcpReset=async(name)=>{
+  if(!confirm('重连 '+name+'？会给一次干净的握手（配置不变），失败原因可看日志。'))return;
+  try{
+    const d=await api('/api/mcp/'+encodeURIComponent(name)+'/reset',{method:'POST'});
+    loadMcp();alert('已重置（状态：'+d.state+'），点「查看工具」验证连接');
+  }catch(e){alert(e.message)}
 };
 function closeHub(){$('#hub').classList.add('hidden')}
 window.closeHub=closeHub;

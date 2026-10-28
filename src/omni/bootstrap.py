@@ -30,7 +30,7 @@ from .core.session import ResourceLeases, SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
 from .memory.runs import RunStore
-from .memory.state import ExecutionLog, JobStore, OutboxStore, StateStore
+from .memory.state import ExecutionLog, JobStore, MCPSchemaStore, OutboxStore, StateStore
 from .memory.artifacts import ArtifactStore
 from .memory.usage import UsageLedger
 from .memory.guard import MemoryGuard
@@ -121,6 +121,7 @@ class Runtime:
     file_history: FileHistory | None = None   # 工作区文件的写入备份（D13）
     artifacts: ArtifactStore | None = None    # 产物存储（D15）
     outbox: OutboxStore | None = None         # 投递 outbox：QQ 掉线不丢心跳结果（D17）
+    mcp_schemas: MCPSchemaStore | None = None # MCP 工具目录指纹：漂移提醒（D19）
     qq: OneBotClient | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
@@ -203,6 +204,8 @@ def build_runtime(
     )
     # 投递 outbox（D17）：QQ 掉线时任务结果入队，恢复后由心跳进程补投
     outbox = OutboxStore(state)
+    # MCP 工具目录指纹（D19）：服务升级换 schema 后提醒复查只读授权
+    mcp_schemas = MCPSchemaStore(state)
     gateway = Gateway(config.models, llm=config.llm, ledger=usage)
     try:
         pruned = usage.prune(keep_days=180)
@@ -395,6 +398,7 @@ def build_runtime(
         usage=usage,
         artifacts=artifacts,
         outbox=outbox,
+        mcp_schemas=mcp_schemas,
         runs=runs,
         active_runs=active_runs,
         session_gate=session_gate,

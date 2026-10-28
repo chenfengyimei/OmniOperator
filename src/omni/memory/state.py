@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -227,6 +227,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_outbox_live
 CREATE INDEX IF NOT EXISTS idx_outbox_status ON outbox(status, updated_at);
 """
 
+_SCHEMA_V8 = """
+CREATE TABLE IF NOT EXISTS mcp_schemas (
+    server TEXT PRIMARY KEY,
+    fingerprint TEXT NOT NULL,
+    tool_count INTEGER NOT NULL DEFAULT 0,
+    confirmed_at TEXT,
+    seen_at TEXT NOT NULL
+);
+"""
+
 _MIGRATIONS: dict[int, str] = {
     1: _SCHEMA_V1,
     2: _SCHEMA_V2,
@@ -235,6 +245,7 @@ _MIGRATIONS: dict[int, str] = {
     5: _SCHEMA_V5,
     6: _SCHEMA_V6,
     7: _SCHEMA_V7,
+    8: _SCHEMA_V8,
 }
 
 SESSION_RESOURCE = "session:{}"
@@ -1282,3 +1293,72 @@ class OutboxStore:
         out["target_qq"] = int(out["target_qq"])
         out["attempts"] = int(out["attempts"])
         return out
+
+
+class MCPSchemaStore:
+    """MCP 工具目录指纹（D19）：服务升级换 schema 后，旧只读授权要重新检查。
+
+    只读授权是用户按**当时的**工具与参数形态给的；服务升级后同名工具可能
+    完全换了解释。指纹不判断"变好还是变坏"——变化即提醒，复查是人做的事。
+    """
+
+    def __init__(self, state: StateStore) -> None:
+        self._state = state
+
+    def observe(self, server: str, fingerprint: str, tool_count: int) -> str | None:
+        """记录当前观察到的指纹；与存量不一致时返回旧指纹（= 漂移提醒），首次返回 None。"""
+        now = to_iso(dt.datetime.now().astimezone())
+        rows = self._state._read(
+            "SELECT fingerprint, confirmed_at FROM mcp_schemas WHERE server = ?",
+            (server,),
+        )
+        if not rows:
+            with self._state._tx() as conn:
+                conn.execute(
+                    "INSERT INTO mcp_schemas(server, fingerprint, tool_count,"
+                    " confirmed_at, seen_at) VALUES (?,?,?,?,?)",
+                    (server, fingerprint, int(tool_count), now, now),
+                )
+            return None  # 首次登记：用户第一次看到这个服务，谈不上"漂移"
+        stored, confirmed_at = str(rows[0][0]), rows[0][1]
+        with self._state._tx() as conn:
+            conn.execute(
+                "UPDATE mcp_schemas SET fingerprint = ?, tool_count = ?, seen_at = ?"
+                " WHERE server = ?",
+                (fingerprint, int(tool_count), now, server),
+            )
+        if stored != fingerprint:
+            # 漂移后确认时间清空，直到用户复查重新确认
+            with self._state._tx() as conn:
+                conn.execute(
+                    "UPDATE mcp_schemas SET confirmed_at = NULL WHERE server = ?",
+                    (server,),
+                )
+            return stored
+        return None
+
+    def confirm(self, server: str, fingerprint: str) -> bool:
+        """用户复查后确认当前指纹（清除漂移提醒）。指纹又变了就拒绝——确认的必须是看到的那份。"""
+        now = to_iso(dt.datetime.now().astimezone())
+        with self._state._tx() as conn:
+            cursor = conn.execute(
+                "UPDATE mcp_schemas SET confirmed_at = ? WHERE server = ?"
+                " AND fingerprint = ?",
+                (now, server, fingerprint),
+            )
+            return cursor.rowcount > 0
+
+    def status(self, server: str) -> dict | None:
+        rows = self._state._read(
+            "SELECT fingerprint, tool_count, confirmed_at, seen_at FROM mcp_schemas"
+            " WHERE server = ?",
+            (server,),
+        )
+        if not rows:
+            return None
+        return {
+            "fingerprint": str(rows[0][0]),
+            "tool_count": int(rows[0][1]),
+            "confirmed_at": rows[0][2],
+            "seen_at": rows[0][3],
+        }
