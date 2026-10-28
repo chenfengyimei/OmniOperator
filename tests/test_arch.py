@@ -25,7 +25,7 @@ FORBIDDEN_IMPORTS: dict[str, set[str]] = {
 
 # 只允许在 bootstrap.py 构造的类型（组装根）
 CONSTRUCT_ONLY_IN_BOOTSTRAP = {
-    "QQMessageStore",
+    "QQMessageStore", "EventLog",
     "PublicationStore", "BilibiliPublisher", "BrowserForms",
     "Gateway",
     "MemoryStore",
@@ -40,70 +40,142 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "ServiceManager",
     "MCPManager",
     "EmbeddingProvider", "VectorIndex", "HybridMemory",
-    "DesktopDriver", "WindowsDesktopBackend",
+    "DesktopDriver", "WindowsDesktopBackend", "AndroidDriver",
 }
 
 
-def _layer_of(rel: Path) -> str:
-    """模块所属层：包名（嵌套文件）或根模块名。"""
-    parts = rel.parts
-    return parts[0] if len(parts) > 1 else parts[0].removesuffix(".py")
 
-
-def _package_of(rel: Path) -> str:
-    """文件的 python 包路径（相对导入解析基准），如 omni.core / omni。"""
-    module_parts = rel.with_suffix("").parts
-    if len(module_parts) > 1:
-        return "omni." + ".".join(module_parts[:-1])
-    return "omni"
-
-
-def _imported_layers(tree: ast.Module, package: str) -> set[str]:
-    """收集本文件 import 的 omni 内部顶层模块名。"""
-    layers: set[str] = set()
+def violations(source: str, rel: str) -> list[str]:
+    """保守静态检查；不执行待检查源码，无法确定的动态导入直接拒绝。"""
+    from importlib.util import resolve_name
+    tree = ast.parse(source)
+    parts = Path(rel).with_suffix("").parts
+    layer = parts[0]
+    package = ".".join(("omni", *parts[:-1]))
+    aliases, imports, issues = {}, set(), []
+    domains = {p.name for p in (SRC / "tools").iterdir() if p.is_dir() and (p / "__init__.py").exists()}
+    def name(node):
+        if isinstance(node, ast.Name):
+            return aliases.get(node.id, node.id)
+        if isinstance(node, ast.Attribute):
+            base = name(node.value)
+            return base + "." + node.attr if base else ""
+        if isinstance(node, ast.Call):
+            function = name(node.func)
+            if function in {"getattr", "builtins.getattr"} and len(node.args) >= 2 and isinstance(node.args[1], ast.Constant):
+                return name(node.args[0]) + "." + str(node.args[1].value)
+            if function in {"importlib.import_module", "__import__", "builtins.__import__"} and node.args and isinstance(node.args[0], ast.Constant):
+                value = node.args[0].value
+                if isinstance(value, str):
+                    return resolve_name(value, package) if value.startswith(".") else value
+        return ""
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            for alias in node.names:
-                if alias.name.startswith("omni."):
-                    layers.add(alias.name.split(".")[1])
+            for item in node.names:
+                aliases[item.asname or item.name.split(".")[0]] = item.name if item.asname else item.name.split(".")[0]
+                imports.add(item.name)
         elif isinstance(node, ast.ImportFrom):
-            module = node.module or ""
-            if node.level and node.level > 0:
-                base = package.split(".")
-                # level=1 指当前包，每多一级向上退一层
-                base = base[: len(base) - (node.level - 1)]
-                module = ".".join(base + (module.split(".") if module else []))
-            if module.startswith("omni"):
-                layers.add(module.split(".")[1])
-    return layers
-
-
-def test_layer_import_rules():
-    violations: list[str] = []
-    for path in sorted(SRC.rglob("*.py")):
-        rel = path.relative_to(SRC)
-        layer = _layer_of(rel)
-        if layer not in FORBIDDEN_IMPORTS:
-            continue
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for target in _imported_layers(tree, _package_of(rel)):
-            if target in FORBIDDEN_IMPORTS[layer]:
-                violations.append(f"{rel}: {layer} 层不允许 import {target}")
-    assert not violations, "分层依赖被破坏：\n" + "\n".join(violations)
-
-
-def test_construction_only_in_bootstrap():
-    violations: list[str] = []
-    for path in sorted(SRC.rglob("*.py")):
-        rel = path.relative_to(SRC)
-        if str(rel) == "bootstrap.py":
-            continue
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            module = resolve_name("." * node.level + (node.module or ""), package) if node.level else node.module or ""
+            imports.add(module)
+            for item in node.names:
+                if item.name == "*":
+                    issues.append("禁止星号导入")
+                aliases[item.asname or item.name] = module + "." + item.name
+                imports.add(module + "." + item.name)
+    # 覆盖 G=Gateway、loader=importlib.import_module 等简单别名。
+    for _ in range(3):
         for node in ast.walk(tree):
-            if (
-                isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Name)
-                and node.func.id in CONSTRUCT_ONLY_IN_BOOTSTRAP
-            ):
-                violations.append(f"{rel}: 直接构造了 {node.func.id}（只允许在 bootstrap.py）")
-    assert not violations, "组装根规则被破坏：\n" + "\n".join(violations)
+            if isinstance(node, ast.Assign):
+                value = name(node.value)
+                if value:
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            aliases[target.id] = value
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute):
+            imports.add(name(node))
+        if isinstance(node, ast.Call):
+            function = name(node.func)
+            if function in {"eval", "exec", "builtins.eval", "builtins.exec"}:
+                issues.append("禁止动态执行绕过架构检查")
+            if function in {"importlib.import_module", "__import__", "builtins.__import__"}:
+                target = name(node)
+                if not target:
+                    issues.append("动态导入必须使用可静态解析的模块常量")
+                else:
+                    imports.add(target)
+            if rel != "bootstrap.py" and function.rsplit(".", 1)[-1] in CONSTRUCT_ONLY_IN_BOOTSTRAP:
+                issues.append("组装根：" + function)
+    for target in imports:
+        if not target.startswith("omni."):
+            continue
+        target_parts = target.split(".")
+        target_layer = target_parts[1]
+        forbidden = FORBIDDEN_IMPORTS.get(layer, set())
+        if target_layer in forbidden:
+            issues.append(f"分层：{layer} -> {target_layer}")
+        if layer in {"config", "safety", "llm"} and target_layer == "system":
+            issues.append(f"分层：{layer} -> system")
+        if layer == "system" and target_layer not in {"system", "config"}:
+            issues.append(f"平台基础设施倒挂：{target}")
+        if layer == "memory" and target_layer == "system" and len(target_parts) >= 3 and target_parts[2] not in {"atomic", "filelock"}:
+            issues.append(f"memory 只允许共享原子文件/锁：{target}")
+        if layer == "tools" and len(parts) > 2 and parts[1] in domains and target.startswith("omni.tools.") and len(target_parts) > 2:
+            domain = target_parts[2]
+            if domain in domains and domain != parts[1]:
+                issues.append(f"能力域互相引用：{parts[1]} -> {domain}")
+    for scope in ast.walk(tree):
+        if not isinstance(scope, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        seen = set()
+        for node in scope.body:
+            if not isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            decorators = [name(d) for d in node.decorator_list]
+            exempt = any(d.endswith((".setter", ".deleter", ".getter", "overload")) for d in decorators)
+            if node.name in seen and not exempt:
+                issues.append("重复定义：" + node.name)
+            seen.add(node.name)
+    return sorted(set(issues))
+
+
+def test_source_architecture():
+    found = []
+    for path in sorted(SRC.rglob("*.py")):
+        rel = path.relative_to(SRC).as_posix()
+        found.extend(f"{rel}: {item}" for item in violations(path.read_text(encoding="utf-8"), rel))
+    assert not found, "\n".join(found)
+
+
+import pytest
+
+
+@pytest.mark.parametrize("rel,source", [
+    ("safety/x.py", "from omni import llm"),
+    ("safety/x.py", "import importlib as i; i.import_module('omni.llm.gateway')"),
+    ("safety/x.py", "from importlib import import_module as load; load('omni.llm.gateway')"),
+    ("safety/x.py", "__import__('omni.llm.gateway')"),
+    ("safety/x.py", "from ..llm import gateway"),
+    ("memory/x.py", "import omni.core.agent"),
+    ("llm/x.py", "from omni.memory.store import MemoryStore"),
+    ("tools/bilibili/x.py", "from ..browser.driver import BrowserDriver"),
+    ("tools/browser/x.py", "import omni.tools.bilibili.api"),
+    ("channels/x.py", "from omni.llm.gateway import Gateway as G; G(None)"),
+    ("channels/x.py", "import omni.llm.gateway as g; g.Gateway(None)"),
+    ("channels/x.py", "from omni.llm.gateway import Gateway; G=Gateway; G(None)"),
+    ("channels/x.py", "import omni.llm.gateway as g; getattr(g,'Gateway')(None)"),
+    ("channels/x.py", "import importlib; importlib.import_module('omni.llm.gateway').Gateway(None)"),
+    ("tools/x.py", "import importlib; importlib.import_module(some_name)"),
+    ("memory/x.py", "from omni.system import services"),
+    ("system/x.py", "from omni.core.agent import Agent"),
+    ("tools/x.py", "exec(source)"),
+    ("tools/x.py", "from omni.config import *"),
+    ("core/x.py", "def f(): pass\ndef f(): pass"),
+])
+def test_architecture_guard_catches_bypasses(rel, source):
+    assert violations(source, rel)
+
+
+def test_guard_allows_injected_protocols_and_bootstrap_construction():
+    assert not violations("from omni.tools.browser.driver import BrowserDriver\nx=BrowserDriver()", "bootstrap.py")
+    assert not violations("from typing import Protocol\nfrom ..result import ToolResult\nclass Port(Protocol): pass", "tools/bilibili/x.py")

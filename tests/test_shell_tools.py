@@ -342,8 +342,12 @@ def test_process_boundary_reclaims_child_process_tree(tmp_path):
 @pytest.mark.skipif(shutil.which("git") is None, reason="环境里没有 git")
 def test_real_git_status_runs_through_default_executor(tmp_path):
     """默认执行器端到端：受控 git 观察真的能跑（只读、不写 index）。"""
+    import subprocess
+    subprocess.run(['git', 'init', '--quiet', str(tmp_path)], check=True, capture_output=True)
+    (tmp_path / 'observation.txt').write_text('isolated fixture', encoding='utf-8')
     registry = ToolRegistry()
-    register_shell_tools(registry)  # 不注入 runner：走真实 argv 执行器
+    register_shell_tools(registry, cwd=tmp_path)  # 真实执行器，只观察自己的临时 Git 仓库。
     out = registry.dispatch("peek_command", {"command": "git status --short"})
     assert "错误" not in out
     assert "退出码" in out
+    assert 'observation.txt' in out

@@ -279,6 +279,8 @@ async def _serve(runtime: Runtime) -> None:
 
 
 def main() -> None:
+    from ..system.observability import configure_service_logging
+    configure_service_logging()
     load_env()
     runtime = build_runtime(approver=DenyApprover(), owner_kind="qq")
     # pid 目录来自 RuntimePaths：与运行数据根同源，不再另拼全局路径

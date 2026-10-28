@@ -1,0 +1,25 @@
+{
+  "source_tree": "2374ffdb394d13ce2b1220311cd3e8b71675eff1",
+  "mode": "clean-source-export-and-fresh-venv",
+  "python": "3.12.14",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "uv": "0.13.5",
+  "install": "uv sync --frozen --offline --python 3.12",
+  "packages_installed": 99,
+  "entrypoint": "powershell -File scripts/ci.ps1 -SkipSync",
+  "passed": 789,
+  "failed": 0,
+  "skipped": 0,
+  "junit_sha256": "c9304b1bdc6a1ee9405f93d6e41b128c87a99b32febce9e4ff07dce7a04a4884",
+  "core_report_sha256": "9fa8b11317c952d48dc1ea07696f63bf1829c5852bc0fc87696271579ae2b6b8",
+  "core_repeats": 3,
+  "core_case_count": 24,
+  "core_complete": true,
+  "core_seconds": {
+    "median": 0.1205,
+    "p95": 1.428,
+    "max": 4.224
+  },
+  "hosted_ci_executed": false,
+  "prior_failure": "Initial source export: git observation test assumed .git in source directory; replaced with a temporary test-owned git repository."
+}

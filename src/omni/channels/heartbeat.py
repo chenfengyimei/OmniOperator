@@ -59,6 +59,8 @@ async def _serve(runtime) -> None:
 
 
 def main() -> None:
+    from ..system.observability import configure_service_logging
+    configure_service_logging()
     load_env()
     runtime = build_runtime(approver=DenyApprover(), owner_kind="heartbeat")  # 无人值守：fail-closed
     # pid 目录来自 RuntimePaths（与真实运行数据根一起注入，不另拼全局路径）

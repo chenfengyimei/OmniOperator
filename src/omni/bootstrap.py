@@ -79,6 +79,7 @@ from .tools.web import FetchPolicy, register_web_tools
 from .tools.registry import SessionRef, ToolRegistry
 from .tools.runctx import RunRef
 from .tools.android.driver import AndroidDriver
+from .system.observability import BoundedLog, EventLog
 from .tools.android.tools import register_android_tools
 from .tools.desktop.driver import DesktopDriver
 from .tools.desktop.native import WindowsDesktopBackend
@@ -158,6 +159,7 @@ class Runtime:
     desktop: DesktopDriver | None = None
     qq_messages: QQMessageStore | None = None
     publications: PublicationStore | None = None
+    event_log: EventLog | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
@@ -183,6 +185,11 @@ class Runtime:
                              "approval_waiting": len(self.approvals.list_pending()),
                              "review_queue": self.reviewer.queue_depth if self.reviewer else 0,
                              "closing": getattr(self.agent, "closing", False)}
+        try:
+            report['metrics'] = self.runs.metrics()
+            report['metrics']['log_dropped'] = self.event_log.log.dropped if self.event_log else 0
+        except Exception as exc:
+            report['metrics'] = {'unavailable': type(exc).__name__}
         return report
 
     def backup(self) -> dict:
@@ -333,7 +340,8 @@ def build_runtime(
     cron_jobs = JobStore(state)
     cron_ledger = ExecutionLog(state)
     # 运行记录：owner 记"本类进程的哪一次启动"，重启时据此对账（见 RunStore.interrupt_stale）
-    runs = RunStore(state)
+    event_log = EventLog(BoundedLog(paths.logs / 'events.jsonl'))
+    runs = RunStore(state, event_sink=event_log.emit)
     active_runs = ActiveRuns()
     run_ref = RunRef()
     owner = f"{owner_kind}:{os.getpid()}:{uuid.uuid4().hex[:6]}"
@@ -518,7 +526,7 @@ def build_runtime(
             lambda: MemoryStore(memory_path),
             _review_registry,
         )
-        if config.review.enabled
+        if config.review.enabled and start_background_workers
         else None
     )
     return Runtime(
@@ -533,6 +541,7 @@ def build_runtime(
         outbox=outbox,
         qq_messages=qq_messages,
         publications=publications,
+        event_log=event_log,
         mcp_schemas=mcp_schemas,
         skill_acks=skill_acks,
         runs=runs,

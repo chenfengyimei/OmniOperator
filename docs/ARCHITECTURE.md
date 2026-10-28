@@ -48,6 +48,11 @@
 - `memory` → 只依赖 `config`
 - `safety` / `config`（叶子）→ 不允许 import 任何内部模块
 
+D26 明确平台基础设施边界：`system` 只可依赖 `config` 和 system 内部；memory 可引用
+`system.atomic/filelock`（§3.5 的共享文件事务原语），不能依赖服务管理。llm/safety/config
+不能借 system 绕层。`AndroidDriver`、`EventLog` 加入组装根守卫。
+RunStore 的结构化日志经 event_sink 注入，memory 不依赖日志实现；日志路径由 RuntimePaths 注入。
+
 ### 3.2 组装根规则
 
 D24 新增组装根对象：`EmbeddingProvider`（llm 出口与费用协议）、`VectorIndex`（memory

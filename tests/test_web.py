@@ -32,6 +32,7 @@ def _client(tmp_path, skills_root=None, config_text=None, pair=True):
         config_path=config_path,
         skills_root=skills_root,
         data_dir=tmp_path / "data",  # 隔离真机运行态（jobs/账本/常驻记忆/安卓缓存）
+        start_background_workers=False,
     )
     app = create_app(runtime)
     client = TestClient(app, base_url="http://127.0.0.1")
@@ -470,8 +471,12 @@ def test_cron_history_endpoint(tmp_path):
     assert [r["job"] for r in rows] == ["j2", "j1"]
 
 
-def test_model_test_endpoint_rejects_bad_model(tmp_path):
+def test_model_test_endpoint_rejects_bad_model(tmp_path, monkeypatch):
     client, _rt = _client(tmp_path)
+    from omni.llm.errors import GatewayError
+    def reject(*args, **kwargs):
+        raise GatewayError(message='模型不可用', code='unsupported_capability', retryable=False)
+    monkeypatch.setattr(_rt.gateway, 'complete', reject)
     resp = client.post("/api/system/model-test", json={"model": "nonexistent/model-xyz"})
     assert resp.status_code == 400
 
@@ -666,7 +671,7 @@ def test_fact_provenance_delete_and_memory_status(tmp_path):
 
     status = client.get("/api/memory/status").json()
     assert status["writes"]["limit"] == 200
-    assert status["review"]["enabled"] is True
+    assert status["review"]["enabled"] is False  # 此测试实例显式关闭后台 worker。
     assert status["review"]["queue_depth"] == 0
 
 

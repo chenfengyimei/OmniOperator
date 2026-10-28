@@ -139,7 +139,7 @@ def test_api_privacy_budget_and_usage(components):
     assert record[0]["purpose"] == "embedding" and record[0]["cost_micro"] == 5
 
 
-def test_ollama_real_loopback_http_contract(components):
+def test_ollama_real_loopback_http_contract(components, offline_model_gate):
     _, _, provider, _, _, _ = components
     requests = []
     class Handler(BaseHTTPRequestHandler):
@@ -157,7 +157,7 @@ def test_ollama_real_loopback_http_contract(components):
     thread.start()
     try:
         config = provider.config.model_copy(update={"endpoint": f"http://127.0.0.1:{server.server_port}"})
-        local = EmbeddingProvider(config, provider._ledger)
+        local = EmbeddingProvider(config, provider._ledger, transport=offline_model_gate['local'])
         assert local.embed(["中文查询"]) == [[0.2, 0.3]]
         assert requests[0][0] == "/api/embed"
         assert requests[0][1] == {"model": "fixture-v1", "input": ["中文查询"], "truncate": False}
@@ -172,7 +172,7 @@ def test_local_provider_cannot_point_at_remote_server():
         Embedding(endpoint="https://example.test")
 
 
-def test_litellm_embedding_adapter_orders_indexes_and_passes_config(components, monkeypatch):
+def test_litellm_embedding_adapter_orders_indexes_and_passes_config(components, monkeypatch, offline_model_gate):
     from types import SimpleNamespace
     import litellm
     _, _, provider, _, _, _ = components
@@ -186,7 +186,7 @@ def test_litellm_embedding_adapter_orders_indexes_and_passes_config(components, 
     config = Embedding(enabled=True, provider="api", model="openai/fixture", endpoint="https://example.test/v1",
                        api_key_env="TEST_EMBEDDING_KEY", send_to_cloud=True, dimensions=2,
                        daily_usd=0.01, input_usd_per_m=1)
-    cloud = EmbeddingProvider(config, provider._ledger)
+    cloud = EmbeddingProvider(config, provider._ledger, transport=offline_model_gate['api'])
     assert cloud.embed(["a", "b"]) == [[1., 0.], [0., 1.]]
     assert called[0]["num_retries"] == 0
     assert called[0]["api_key"] == "fixture-only"

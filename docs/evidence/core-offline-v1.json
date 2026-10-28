@@ -1,0 +1,1026 @@
+{
+  "schema": 1,
+  "mode": "offline-contract",
+  "model": "scripted-fixtures-v1",
+  "dataset_sha256": "0bc1abdf56fe7c43f4537f5fbe22e410b03882bec4cd07d779da197393f61d75",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.14",
+  "at": "2026-10-28T14:03:09.098692+00:00",
+  "repeats": 3,
+  "actual_model_calls": 0,
+  "tokens": null,
+  "cost_usd": null,
+  "usage_note": "工具和预算测试使用固定模型响应/模拟 usage；不代表供应商账单或真实任务效果",
+  "rounds": [
+    {
+      "iteration": 0,
+      "warmup": true,
+      "exit_code": 0,
+      "seconds": 14.53100000001723,
+      "cases": [
+        {
+          "id": "C01",
+          "title": "记住事实并继续回答",
+          "node": "tests/test_agent.py::test_tool_loop_persists_fact_and_answer",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.117
+        },
+        {
+          "id": "C02",
+          "title": "多轮历史连续",
+          "node": "tests/test_agent.py::test_history_grows_across_turns",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.113
+        },
+        {
+          "id": "C03",
+          "title": "工具步数耗尽收敛",
+          "node": "tests/test_agent.py::test_multiple_tool_calls_reach_normal_or_grace_answer",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 2,
+          "seconds": 0.198
+        },
+        {
+          "id": "C04",
+          "title": "两个会话并行不串历史",
+          "node": "tests/test_sessions.py::test_two_web_sessions_run_in_parallel_and_keep_their_own_history",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.417
+        },
+        {
+          "id": "C05",
+          "title": "群聊隔离个人记忆",
+          "node": "tests/test_agent.py::test_group_scope_hides_profile_resident_and_memory_tools",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.145
+        },
+        {
+          "id": "C06",
+          "title": "群模型伪造新工具调用",
+          "node": "tests/test_agent.py::test_group_default_denies_new_safe_tool_even_when_model_forges_call",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.097
+        },
+        {
+          "id": "C07",
+          "title": "取消后不继续后续工具",
+          "node": "tests/test_runs.py::test_cancel_between_tool_calls_skips_the_remaining_ones",
+          "expected_outcome": "cancelled",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.258
+        },
+        {
+          "id": "C08",
+          "title": "审批等待可取消",
+          "node": "tests/test_runs.py::test_approval_wait_is_revoked_by_cancel",
+          "expected_outcome": "cancelled",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.112
+        },
+        {
+          "id": "C09",
+          "title": "委派共享父任务预算",
+          "node": "tests/test_agent.py::test_child_run_shares_the_parent_budget",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.092
+        },
+        {
+          "id": "C10",
+          "title": "预算不足不调用模型",
+          "node": "tests/test_usage.py::test_budget_blocks_before_any_call",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.087
+        },
+        {
+          "id": "C11",
+          "title": "模型超时保留费用预留",
+          "node": "tests/test_usage.py::test_timeout_keeps_the_reservation_conservatively",
+          "expected_outcome": "unknown",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.075
+        },
+        {
+          "id": "C12",
+          "title": "压缩失败可退回历史",
+          "node": "tests/test_context.py::test_summary_failure_degrades_without_writing",
+          "expected_outcome": "error",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.122
+        },
+        {
+          "id": "C13",
+          "title": "约束在重启后保留",
+          "node": "tests/test_context.py::test_constraint_survives_restart",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.128
+        },
+        {
+          "id": "C14",
+          "title": "用户改文件后拒绝旧版本覆盖",
+          "node": "tests/test_files.py::test_write_conflict_does_not_overwrite_user_changes",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.009
+        },
+        {
+          "id": "C15",
+          "title": "路径链接越界拒绝",
+          "node": "tests/test_files.py::test_link_escaping_root_is_rejected",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.006
+        },
+        {
+          "id": "C16",
+          "title": "技能回滚生成新版本",
+          "node": "tests/test_skills_history.py::test_rollback_restores_content_without_rewinding_version",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.07
+        },
+        {
+          "id": "C17",
+          "title": "cron 跨进程并行上限",
+          "node": "tests/test_state.py::test_job_capacity_shared_by_independent_processes",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.707
+        },
+        {
+          "id": "C18",
+          "title": "投递断连结果未知不重发",
+          "node": "tests/test_outbox.py::test_deliver_send_failure_is_unknown_not_auto_resent",
+          "expected_outcome": "unknown",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.08
+        },
+        {
+          "id": "C19",
+          "title": "MCP schema 漂移撤销权限",
+          "node": "tests/test_mcp.py::test_mcp_schema_drift_confirm_and_reset",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 1.127
+        },
+        {
+          "id": "C20",
+          "title": "安卓观察变化不写设备",
+          "node": "tests/test_android_observations.py::test_changed_context_never_writes",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 9,
+          "seconds": 0.361
+        },
+        {
+          "id": "C21",
+          "title": "B站发布确认丢失",
+          "node": "tests/test_bilibili_publishing.py::test_real_browser_missing_confirmation_is_unknown",
+          "expected_outcome": "unknown",
+          "human_required": true,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 4.174
+        },
+        {
+          "id": "C22",
+          "title": "桌面预览与应用一致",
+          "node": "tests/test_desktop.py::test_approval_preview_must_match_observed_application",
+          "expected_outcome": "denied",
+          "human_required": true,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.071
+        },
+        {
+          "id": "C23",
+          "title": "遗忘与向量同步删除",
+          "node": "tests/test_retrieval.py::test_forget_clears_vector_in_same_transaction_and_pending_cannot_resurrect",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.268
+        },
+        {
+          "id": "C24",
+          "title": "恢复前核验全部文件",
+          "node": "tests/test_backup.py::test_all_file_checksums_verified_before_restore",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 2,
+          "seconds": 0.091
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "warmup": false,
+      "exit_code": 0,
+      "seconds": 13.702999999979511,
+      "cases": [
+        {
+          "id": "C01",
+          "title": "记住事实并继续回答",
+          "node": "tests/test_agent.py::test_tool_loop_persists_fact_and_answer",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.119
+        },
+        {
+          "id": "C02",
+          "title": "多轮历史连续",
+          "node": "tests/test_agent.py::test_history_grows_across_turns",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.107
+        },
+        {
+          "id": "C03",
+          "title": "工具步数耗尽收敛",
+          "node": "tests/test_agent.py::test_multiple_tool_calls_reach_normal_or_grace_answer",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 2,
+          "seconds": 0.194
+        },
+        {
+          "id": "C04",
+          "title": "两个会话并行不串历史",
+          "node": "tests/test_sessions.py::test_two_web_sessions_run_in_parallel_and_keep_their_own_history",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.405
+        },
+        {
+          "id": "C05",
+          "title": "群聊隔离个人记忆",
+          "node": "tests/test_agent.py::test_group_scope_hides_profile_resident_and_memory_tools",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.122
+        },
+        {
+          "id": "C06",
+          "title": "群模型伪造新工具调用",
+          "node": "tests/test_agent.py::test_group_default_denies_new_safe_tool_even_when_model_forges_call",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.1
+        },
+        {
+          "id": "C07",
+          "title": "取消后不继续后续工具",
+          "node": "tests/test_runs.py::test_cancel_between_tool_calls_skips_the_remaining_ones",
+          "expected_outcome": "cancelled",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.248
+        },
+        {
+          "id": "C08",
+          "title": "审批等待可取消",
+          "node": "tests/test_runs.py::test_approval_wait_is_revoked_by_cancel",
+          "expected_outcome": "cancelled",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.117
+        },
+        {
+          "id": "C09",
+          "title": "委派共享父任务预算",
+          "node": "tests/test_agent.py::test_child_run_shares_the_parent_budget",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.102
+        },
+        {
+          "id": "C10",
+          "title": "预算不足不调用模型",
+          "node": "tests/test_usage.py::test_budget_blocks_before_any_call",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.089
+        },
+        {
+          "id": "C11",
+          "title": "模型超时保留费用预留",
+          "node": "tests/test_usage.py::test_timeout_keeps_the_reservation_conservatively",
+          "expected_outcome": "unknown",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.074
+        },
+        {
+          "id": "C12",
+          "title": "压缩失败可退回历史",
+          "node": "tests/test_context.py::test_summary_failure_degrades_without_writing",
+          "expected_outcome": "error",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.122
+        },
+        {
+          "id": "C13",
+          "title": "约束在重启后保留",
+          "node": "tests/test_context.py::test_constraint_survives_restart",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.126
+        },
+        {
+          "id": "C14",
+          "title": "用户改文件后拒绝旧版本覆盖",
+          "node": "tests/test_files.py::test_write_conflict_does_not_overwrite_user_changes",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.01
+        },
+        {
+          "id": "C15",
+          "title": "路径链接越界拒绝",
+          "node": "tests/test_files.py::test_link_escaping_root_is_rejected",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.006
+        },
+        {
+          "id": "C16",
+          "title": "技能回滚生成新版本",
+          "node": "tests/test_skills_history.py::test_rollback_restores_content_without_rewinding_version",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.071
+        },
+        {
+          "id": "C17",
+          "title": "cron 跨进程并行上限",
+          "node": "tests/test_state.py::test_job_capacity_shared_by_independent_processes",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.657
+        },
+        {
+          "id": "C18",
+          "title": "投递断连结果未知不重发",
+          "node": "tests/test_outbox.py::test_deliver_send_failure_is_unknown_not_auto_resent",
+          "expected_outcome": "unknown",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.081
+        },
+        {
+          "id": "C19",
+          "title": "MCP schema 漂移撤销权限",
+          "node": "tests/test_mcp.py::test_mcp_schema_drift_confirm_and_reset",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 1.104
+        },
+        {
+          "id": "C20",
+          "title": "安卓观察变化不写设备",
+          "node": "tests/test_android_observations.py::test_changed_context_never_writes",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 9,
+          "seconds": 0.374
+        },
+        {
+          "id": "C21",
+          "title": "B站发布确认丢失",
+          "node": "tests/test_bilibili_publishing.py::test_real_browser_missing_confirmation_is_unknown",
+          "expected_outcome": "unknown",
+          "human_required": true,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 3.982
+        },
+        {
+          "id": "C22",
+          "title": "桌面预览与应用一致",
+          "node": "tests/test_desktop.py::test_approval_preview_must_match_observed_application",
+          "expected_outcome": "denied",
+          "human_required": true,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.071
+        },
+        {
+          "id": "C23",
+          "title": "遗忘与向量同步删除",
+          "node": "tests/test_retrieval.py::test_forget_clears_vector_in_same_transaction_and_pending_cannot_resurrect",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.25
+        },
+        {
+          "id": "C24",
+          "title": "恢复前核验全部文件",
+          "node": "tests/test_backup.py::test_all_file_checksums_verified_before_restore",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 2,
+          "seconds": 0.09
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "warmup": false,
+      "exit_code": 0,
+      "seconds": 13.65600000001723,
+      "cases": [
+        {
+          "id": "C01",
+          "title": "记住事实并继续回答",
+          "node": "tests/test_agent.py::test_tool_loop_persists_fact_and_answer",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.14
+        },
+        {
+          "id": "C02",
+          "title": "多轮历史连续",
+          "node": "tests/test_agent.py::test_history_grows_across_turns",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.106
+        },
+        {
+          "id": "C03",
+          "title": "工具步数耗尽收敛",
+          "node": "tests/test_agent.py::test_multiple_tool_calls_reach_normal_or_grace_answer",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 2,
+          "seconds": 0.198
+        },
+        {
+          "id": "C04",
+          "title": "两个会话并行不串历史",
+          "node": "tests/test_sessions.py::test_two_web_sessions_run_in_parallel_and_keep_their_own_history",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.42
+        },
+        {
+          "id": "C05",
+          "title": "群聊隔离个人记忆",
+          "node": "tests/test_agent.py::test_group_scope_hides_profile_resident_and_memory_tools",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.125
+        },
+        {
+          "id": "C06",
+          "title": "群模型伪造新工具调用",
+          "node": "tests/test_agent.py::test_group_default_denies_new_safe_tool_even_when_model_forges_call",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.098
+        },
+        {
+          "id": "C07",
+          "title": "取消后不继续后续工具",
+          "node": "tests/test_runs.py::test_cancel_between_tool_calls_skips_the_remaining_ones",
+          "expected_outcome": "cancelled",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.255
+        },
+        {
+          "id": "C08",
+          "title": "审批等待可取消",
+          "node": "tests/test_runs.py::test_approval_wait_is_revoked_by_cancel",
+          "expected_outcome": "cancelled",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.104
+        },
+        {
+          "id": "C09",
+          "title": "委派共享父任务预算",
+          "node": "tests/test_agent.py::test_child_run_shares_the_parent_budget",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.103
+        },
+        {
+          "id": "C10",
+          "title": "预算不足不调用模型",
+          "node": "tests/test_usage.py::test_budget_blocks_before_any_call",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.093
+        },
+        {
+          "id": "C11",
+          "title": "模型超时保留费用预留",
+          "node": "tests/test_usage.py::test_timeout_keeps_the_reservation_conservatively",
+          "expected_outcome": "unknown",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.073
+        },
+        {
+          "id": "C12",
+          "title": "压缩失败可退回历史",
+          "node": "tests/test_context.py::test_summary_failure_degrades_without_writing",
+          "expected_outcome": "error",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.122
+        },
+        {
+          "id": "C13",
+          "title": "约束在重启后保留",
+          "node": "tests/test_context.py::test_constraint_survives_restart",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.132
+        },
+        {
+          "id": "C14",
+          "title": "用户改文件后拒绝旧版本覆盖",
+          "node": "tests/test_files.py::test_write_conflict_does_not_overwrite_user_changes",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.009
+        },
+        {
+          "id": "C15",
+          "title": "路径链接越界拒绝",
+          "node": "tests/test_files.py::test_link_escaping_root_is_rejected",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.006
+        },
+        {
+          "id": "C16",
+          "title": "技能回滚生成新版本",
+          "node": "tests/test_skills_history.py::test_rollback_restores_content_without_rewinding_version",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.074
+        },
+        {
+          "id": "C17",
+          "title": "cron 跨进程并行上限",
+          "node": "tests/test_state.py::test_job_capacity_shared_by_independent_processes",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.635
+        },
+        {
+          "id": "C18",
+          "title": "投递断连结果未知不重发",
+          "node": "tests/test_outbox.py::test_deliver_send_failure_is_unknown_not_auto_resent",
+          "expected_outcome": "unknown",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.076
+        },
+        {
+          "id": "C19",
+          "title": "MCP schema 漂移撤销权限",
+          "node": "tests/test_mcp.py::test_mcp_schema_drift_confirm_and_reset",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 1.083
+        },
+        {
+          "id": "C20",
+          "title": "安卓观察变化不写设备",
+          "node": "tests/test_android_observations.py::test_changed_context_never_writes",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 9,
+          "seconds": 0.375
+        },
+        {
+          "id": "C21",
+          "title": "B站发布确认丢失",
+          "node": "tests/test_bilibili_publishing.py::test_real_browser_missing_confirmation_is_unknown",
+          "expected_outcome": "unknown",
+          "human_required": true,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 4.022
+        },
+        {
+          "id": "C22",
+          "title": "桌面预览与应用一致",
+          "node": "tests/test_desktop.py::test_approval_preview_must_match_observed_application",
+          "expected_outcome": "denied",
+          "human_required": true,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.084
+        },
+        {
+          "id": "C23",
+          "title": "遗忘与向量同步删除",
+          "node": "tests/test_retrieval.py::test_forget_clears_vector_in_same_transaction_and_pending_cannot_resurrect",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.248
+        },
+        {
+          "id": "C24",
+          "title": "恢复前核验全部文件",
+          "node": "tests/test_backup.py::test_all_file_checksums_verified_before_restore",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 2,
+          "seconds": 0.087
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "warmup": false,
+      "exit_code": 0,
+      "seconds": 13.812999999965541,
+      "cases": [
+        {
+          "id": "C01",
+          "title": "记住事实并继续回答",
+          "node": "tests/test_agent.py::test_tool_loop_persists_fact_and_answer",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.114
+        },
+        {
+          "id": "C02",
+          "title": "多轮历史连续",
+          "node": "tests/test_agent.py::test_history_grows_across_turns",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.106
+        },
+        {
+          "id": "C03",
+          "title": "工具步数耗尽收敛",
+          "node": "tests/test_agent.py::test_multiple_tool_calls_reach_normal_or_grace_answer",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 2,
+          "seconds": 0.196
+        },
+        {
+          "id": "C04",
+          "title": "两个会话并行不串历史",
+          "node": "tests/test_sessions.py::test_two_web_sessions_run_in_parallel_and_keep_their_own_history",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.441
+        },
+        {
+          "id": "C05",
+          "title": "群聊隔离个人记忆",
+          "node": "tests/test_agent.py::test_group_scope_hides_profile_resident_and_memory_tools",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.131
+        },
+        {
+          "id": "C06",
+          "title": "群模型伪造新工具调用",
+          "node": "tests/test_agent.py::test_group_default_denies_new_safe_tool_even_when_model_forges_call",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.094
+        },
+        {
+          "id": "C07",
+          "title": "取消后不继续后续工具",
+          "node": "tests/test_runs.py::test_cancel_between_tool_calls_skips_the_remaining_ones",
+          "expected_outcome": "cancelled",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.255
+        },
+        {
+          "id": "C08",
+          "title": "审批等待可取消",
+          "node": "tests/test_runs.py::test_approval_wait_is_revoked_by_cancel",
+          "expected_outcome": "cancelled",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.103
+        },
+        {
+          "id": "C09",
+          "title": "委派共享父任务预算",
+          "node": "tests/test_agent.py::test_child_run_shares_the_parent_budget",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.09
+        },
+        {
+          "id": "C10",
+          "title": "预算不足不调用模型",
+          "node": "tests/test_usage.py::test_budget_blocks_before_any_call",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.09
+        },
+        {
+          "id": "C11",
+          "title": "模型超时保留费用预留",
+          "node": "tests/test_usage.py::test_timeout_keeps_the_reservation_conservatively",
+          "expected_outcome": "unknown",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.072
+        },
+        {
+          "id": "C12",
+          "title": "压缩失败可退回历史",
+          "node": "tests/test_context.py::test_summary_failure_degrades_without_writing",
+          "expected_outcome": "error",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.12
+        },
+        {
+          "id": "C13",
+          "title": "约束在重启后保留",
+          "node": "tests/test_context.py::test_constraint_survives_restart",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.128
+        },
+        {
+          "id": "C14",
+          "title": "用户改文件后拒绝旧版本覆盖",
+          "node": "tests/test_files.py::test_write_conflict_does_not_overwrite_user_changes",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.01
+        },
+        {
+          "id": "C15",
+          "title": "路径链接越界拒绝",
+          "node": "tests/test_files.py::test_link_escaping_root_is_rejected",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.008
+        },
+        {
+          "id": "C16",
+          "title": "技能回滚生成新版本",
+          "node": "tests/test_skills_history.py::test_rollback_restores_content_without_rewinding_version",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.083
+        },
+        {
+          "id": "C17",
+          "title": "cron 跨进程并行上限",
+          "node": "tests/test_state.py::test_job_capacity_shared_by_independent_processes",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.673
+        },
+        {
+          "id": "C18",
+          "title": "投递断连结果未知不重发",
+          "node": "tests/test_outbox.py::test_deliver_send_failure_is_unknown_not_auto_resent",
+          "expected_outcome": "unknown",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.078
+        },
+        {
+          "id": "C19",
+          "title": "MCP schema 漂移撤销权限",
+          "node": "tests/test_mcp.py::test_mcp_schema_drift_confirm_and_reset",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 1.076
+        },
+        {
+          "id": "C20",
+          "title": "安卓观察变化不写设备",
+          "node": "tests/test_android_observations.py::test_changed_context_never_writes",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 9,
+          "seconds": 0.373
+        },
+        {
+          "id": "C21",
+          "title": "B站发布确认丢失",
+          "node": "tests/test_bilibili_publishing.py::test_real_browser_missing_confirmation_is_unknown",
+          "expected_outcome": "unknown",
+          "human_required": true,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 4.027
+        },
+        {
+          "id": "C22",
+          "title": "桌面预览与应用一致",
+          "node": "tests/test_desktop.py::test_approval_preview_must_match_observed_application",
+          "expected_outcome": "denied",
+          "human_required": true,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.076
+        },
+        {
+          "id": "C23",
+          "title": "遗忘与向量同步删除",
+          "node": "tests/test_retrieval.py::test_forget_clears_vector_in_same_transaction_and_pending_cannot_resurrect",
+          "expected_outcome": "ok",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 1,
+          "seconds": 0.258
+        },
+        {
+          "id": "C24",
+          "title": "恢复前核验全部文件",
+          "node": "tests/test_backup.py::test_all_file_checksums_verified_before_restore",
+          "expected_outcome": "denied",
+          "human_required": false,
+          "contract_result": "passed",
+          "checks": 2,
+          "seconds": 0.092
+        }
+      ]
+    }
+  ],
+  "complete": true,
+  "source_commit": "88d1c4784232a6112e202e4ee34eadbc7978f93d",
+  "source_dirty": true,
+  "contract_pass_rate": 1.0,
+  "scenario_seconds": {
+    "median": 0.1155,
+    "p95": 1.104,
+    "max": 4.027
+  },
+  "validated_expected_outcomes": {
+    "ok": 24,
+    "error": 3,
+    "unknown": 9,
+    "denied": 30,
+    "cancelled": 6
+  },
+  "manual_approval_scenarios": 2,
+  "real_model_task_success_rate": null
+}

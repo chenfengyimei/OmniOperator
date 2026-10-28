@@ -114,12 +114,19 @@ def _spawn(argv: list[str], cwd: Path, log_path: Path) -> int:
     """分离进程启动，stdout/stderr 落日志文件；返回 pid。"""
     env = dict(os.environ)
     env.setdefault("PYTHONUTF8", "1")
+    bounded_python = any(part in ('omni.channels.qq', 'omni.channels.heartbeat') for part in argv)
+    if bounded_python:
+        env['OMNI_SERVICE_LOG'] = str(log_path.resolve())
     kwargs: dict[str, Any] = {}
     if platform.system() == "Windows":
         kwargs["creationflags"] = 0x00000008 | 0x00000200  # DETACHED | NEW_PROCESS_GROUP
     else:
         kwargs["start_new_session"] = True
     log_path.parent.mkdir(parents=True, exist_ok=True)
+    if bounded_python:
+        # 子进程自行开关/轮转日志；父进程不传递长期占用该文件的 Windows 句柄。
+        return subprocess.Popen(argv, cwd=str(cwd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                stdin=subprocess.DEVNULL, env=env, shell=False, **kwargs).pid
     with log_path.open("ab") as log_file:
         proc = subprocess.Popen(
             argv, cwd=str(cwd), stdout=log_file, stderr=subprocess.STDOUT,

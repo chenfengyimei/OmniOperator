@@ -87,8 +87,10 @@ class RunEvent:
 class RunStore:
     """run 与事件的仓储。只做持久化，不知道 Agent/LLM 的存在。"""
 
-    def __init__(self, state: StateStore) -> None:
+    def __init__(self, state: StateStore, *, event_sink=None) -> None:
         self._state = state
+        self._event_sink = event_sink
+        self.log_dropped = 0
 
     # ---------------------------------------------------------------- 写
 
@@ -146,14 +148,45 @@ class RunStore:
             if cur.rowcount == 0:
                 raise StateError(f"运行 {run_id} 不存在，无法记录事件")
             row = conn.execute(
-                "SELECT last_seq FROM runs WHERE run_id = ?", (run_id,)
+                "SELECT last_seq, session_id FROM runs WHERE run_id = ?", (run_id,)
             ).fetchone()
             seq = int(row["last_seq"])
             conn.execute(
                 "INSERT INTO run_events(run_id, seq, at, kind, data) VALUES (?,?,?,?,?)",
                 (run_id, seq, stamp, kind, payload),
             )
+        if self._event_sink is not None:
+            try:
+                result = merged.get('result') if isinstance(merged.get('result'), dict) else merged
+                self._event_sink({'run_id': run_id, 'session_id': row['session_id'], 'event_id': f'{run_id}:{seq}',
+                                  'kind': kind, 'tool': merged.get('tool', merged.get('name', '')),
+                                  'status': result.get('status', ''), 'error_code': result.get('error_code', '')})
+            except Exception:
+                self.log_dropped += 1  # DB 是权威账本，日志失败不能伪造执行失败。
         return seq
+
+    def metrics(self) -> dict:
+        """有界窗口聚合，不导出 data/正文/principal。"""
+        runs = self._state._read('SELECT status,error_code FROM runs ORDER BY rowid DESC LIMIT 1000')
+        events = self._state._read('SELECT kind,substr(data,1,12000) AS data FROM run_events ORDER BY rowid DESC LIMIT 2000')
+        statuses, errors, outcomes = {}, {}, {}
+        for row in runs:
+            statuses[row['status']] = statuses.get(row['status'], 0) + 1
+            if row['error_code']:
+                code = str(row['error_code'])[:80]
+                errors[code] = errors.get(code, 0) + 1
+        for row in events:
+            try:
+                data = json.loads(row['data'])
+                result = data.get('result', data)
+                status = result.get('status') if isinstance(result, dict) else None
+                if status in {'ok', 'error', 'denied', 'unknown', 'cancelled'}:
+                    outcomes[status] = outcomes.get(status, 0) + 1
+            except (ValueError, TypeError, AttributeError):
+                pass
+        return {'window_runs': len(runs), 'window_events': len(events), 'runs': statuses,
+                'error_codes': dict(sorted(errors.items(), key=lambda x: -x[1])[:20]), 'tool_outcomes': outcomes,
+                'log_sink_failures': self.log_dropped}
 
     def touch(
         self,
