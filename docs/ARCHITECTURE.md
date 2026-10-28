@@ -79,6 +79,10 @@
 outbox 发送同样先原子领取：pending → sending（不可复用 token）→ sent/pending/unknown/dead。
 发送前持久登记，只有持有 token 的调用方可结算；超时在途恢复为 unknown，不自动重发。
 QQ 成功以 OneBot echo 回执为准，WebSocket 写入成功本身不是投递成功。
+
+cron 的并行上限在共享 job_claims 事务内约束；活跃任务再次到期只合并排程，不覆盖 token。
+cron_outputs 保存最新一次执行的 run_id/状态/结果/结束时间，任务链只消费有效期内的成功
+结果；聊天最后一条 assistant 文本不能作为任务成功证据。时区解析在 memory/jobs.py。
 只重试 `BEGIN`（此前没有任何语句执行过），**绝不重试事务体**。
 
 ### 3.5 会话作用域（D06）

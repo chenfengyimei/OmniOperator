@@ -471,3 +471,25 @@ def test_skill_ack_store_only_advances(tmp_path):
         assert acks.acked_all() == {"s": 5, "t": 2}
     finally:
         state.close()
+
+
+def test_job_capacity_shared_by_independent_processes(tmp_path):
+    state = _state(tmp_path)
+    now = dt.datetime.now().astimezone()
+    for index in range(4):
+        state.upsert_job(_job(name=f"parallel-{index}", next_run_at=(now - dt.timedelta(seconds=1)).isoformat()))
+    code = """
+import sys,time,datetime as dt
+from pathlib import Path
+from omni.memory.state import StateStore
+db,go=sys.argv[1:]
+while not Path(go).exists(): time.sleep(0.01)
+state=StateStore(db)
+claim=state.claim_due(dt.datetime.now().astimezone(),max_running=2)
+print(claim.job.name if claim else 'none')
+state.close()
+"""
+    outputs = _run_parallel(code, [[str(state.path), "{go}"] for _ in range(4)], tmp_path / "go")
+    assert outputs.count("none") == 2
+    assert len(set(x for x in outputs if x != "none")) == 2
+    state.close()

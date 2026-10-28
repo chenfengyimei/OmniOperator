@@ -413,6 +413,7 @@ ul{list-style:none;overflow-y:auto}
         <div class="field-row">
           <div class="field"><label>任务名（英文连字符）<input type="text" id="cronf-name" placeholder="morning-report"></label></div>
           <div class="field"><label>每天定时 HH:MM<input type="text" id="cronf-daily" placeholder="08:30（与间隔二选一）"></label></div>
+          <div class="field"><label>时区<input type="text" id="cronf-zone" value="local" placeholder="Asia/Shanghai；local 为机器时区"></label></div>
           <div class="field"><label>或间隔分钟<input type="number" id="cronf-every" placeholder="≥30"></label></div>
         </div>
         <div class="field"><label>到点执行的指令（自包含）<textarea id="cronf-prompt" style="min-height:70px" placeholder="例：看B站热门榜前 10，挑 3 条我可能感兴趣的写一份简报"></textarea></label></div>
@@ -420,6 +421,7 @@ ul{list-style:none;overflow-y:auto}
           <div class="field"><label>投递 QQ（可选，须在白名单）<input type="text" id="cronf-qq" placeholder="10000000001"></label></div>
           <div class="field"><label>注入技能（逗号分隔，可选）<input type="text" id="cronf-skills" placeholder="nightly-tidy"></label></div>
           <div class="field"><label>输入来自任务（可选）<input type="text" id="cronf-ctx" placeholder="nightly-tidy"></label></div>
+          <div class="field"><label>源结果有效期（分钟）<input type="number" id="cronf-age" value="1440" min="1" max="10080"></label></div>
         </div>
         <button class="tiny-btn" id="cron-create-btn" onclick="createCron()">创建任务</button>
         <button class="tiny-btn hidden" id="cron-cancel-edit" onclick="cronCancelEdit()">取消编辑</button>
@@ -1183,6 +1185,8 @@ window.cronEdit=(name)=>{
   $('#cronf-qq').value=j.deliver_to_qq||'';
   $('#cronf-skills').value=(j.skills||[]).join(',');
   $('#cronf-ctx').value=j.context_from||'';
+  $('#cronf-zone').value=j.timezone||'local';
+  $('#cronf-age').value=j.context_max_age_minutes||1440;
   $('#cron-create-btn').textContent='保存修改';
   $('#cron-cancel-edit').classList.remove('hidden');
   $('#cronf-name').disabled=true; // 任务名是主键，编辑模式不给改
@@ -1193,6 +1197,7 @@ window.cronCancelEdit=()=>{
   ['cronf-name','cronf-prompt','cronf-daily','cronf-every','cronf-qq','cronf-skills','cronf-ctx']
     .forEach(id=>$('#'+id).value='');
   $('#cronf-name').disabled=false;
+  $('#cronf-zone').value='local';$('#cronf-age').value=1440;
   $('#cron-create-btn').textContent='创建任务';
   $('#cron-cancel-edit').classList.add('hidden');
   $('#cronf-msg').textContent='';
@@ -1204,6 +1209,7 @@ window.createCron=async()=>{
     const deliver=$('#cronf-qq').value.trim(),ctx=$('#cronf-ctx').value.trim();
     const body={
       name:cronEditing.name,expected_revision:cronEditing.revision,
+      timezone:$('#cronf-zone').value.trim(),context_max_age_minutes:Number($('#cronf-age').value),
       prompt:$('#cronf-prompt').value.trim(),
       skills:$('#cronf-skills').value.split(/[,，\s]+/).filter(Boolean),
       enabled:cronEditing.enabled,
@@ -1220,6 +1226,7 @@ window.createCron=async()=>{
   }
   const body={
     name:$('#cronf-name').value.trim(),
+    timezone:$('#cronf-zone').value.trim(),context_max_age_minutes:Number($('#cronf-age').value),
     prompt:$('#cronf-prompt').value.trim(),
     skills:$('#cronf-skills').value.split(/[,，\s]+/).filter(Boolean),
   };

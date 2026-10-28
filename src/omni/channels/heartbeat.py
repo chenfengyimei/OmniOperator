@@ -40,6 +40,7 @@ async def _serve(runtime) -> None:
         make_runtime_executor(runtime),
         make_runtime_deliver(runtime),
         ledger=runtime.cron_ledger,
+        max_running=runtime.config.cron.max_running,
     )
     tasks = [scheduler.run(), outbox_drain_loop(runtime)]
     if runtime.qq is not None:
@@ -49,7 +50,11 @@ async def _serve(runtime) -> None:
         "QQ 掉线期间的任务结果进入待投递队列，恢复后每分钟自动补投",
         flush=True,
     )
-    await asyncio.gather(*tasks)
+    try:
+        await asyncio.gather(*tasks)
+    finally:
+        if not await scheduler.close():
+            print("[心跳] 仍有在途任务，未宣称关闭完成", flush=True)
 
 
 def main() -> None:

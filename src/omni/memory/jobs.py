@@ -11,6 +11,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 from dataclasses import dataclass, field
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{2,39}$")
 DAILY_RE = re.compile(r"^([01]?\d|2[0-3]):([0-5]\d)$")
@@ -37,8 +38,19 @@ class Job:
     # 用户可见定义的版本号：只在「定义」被改写时递增，调度器推进 next_run_at 不算。
     # 前端提交时可带上它做乐观并发（旧表单不会静默覆盖后台更新）。
     revision: int = 0
+    timezone: str = "local"  # local 保留旧任务机器时区；新任务可显式指定 IANA 名称
+    context_max_age_minutes: int = 1440
 
     def validate(self) -> None:
+        if not self.timezone:
+            raise CronError("timezone 不能为空；使用 local 或 IANA 时区")
+        if self.timezone != "local":
+            try:
+                ZoneInfo(self.timezone)
+            except (ZoneInfoNotFoundError, ValueError, TypeError) as exc:
+                raise CronError("未知 timezone；使用 Asia/Shanghai 等 IANA 时区") from exc
+        if not isinstance(self.context_max_age_minutes, int) or not 1 <= self.context_max_age_minutes <= 10080:
+            raise CronError("context_max_age_minutes 必须为 1–10080 分钟")
         if not NAME_RE.match(self.name or ""):
             raise CronError("任务名需为 3-40 位小写字母/数字/连字符（如 morning-report）")
         if not (self.prompt or "").strip():
@@ -62,17 +74,23 @@ class Job:
 
 def compute_next_run(job: Job, from_dt: dt.datetime) -> dt.datetime:
     """下一次运行时刻（本地时区）。"""
-    from_dt = from_dt.astimezone()
+    from_dt = from_dt.astimezone() if job.timezone == "local" else from_dt.astimezone(ZoneInfo(job.timezone))
     if job.every_minutes is not None:
-        return from_dt + dt.timedelta(minutes=int(job.every_minutes))
+        return (from_dt.astimezone(dt.timezone.utc) + dt.timedelta(minutes=int(job.every_minutes))).astimezone(from_dt.tzinfo)
     match = DAILY_RE.match(job.daily_at or "")
     if not match:
         raise CronError(f"daily_at 非法: {job.daily_at}")
     hour, minute = int(match.group(1)), int(match.group(2))
-    candidate = from_dt.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    if candidate <= from_dt:
-        candidate += dt.timedelta(days=1)
-    return candidate
+    # DST 跳过的墙钟时间当天不执行；重复时刻只取第一次，避免一天两次副作用。
+    for offset in range(3):
+        day = from_dt.date() + dt.timedelta(days=offset)
+        candidate = dt.datetime.combine(day, dt.time(hour, minute), from_dt.tzinfo)
+        normalized = candidate.astimezone(dt.timezone.utc).astimezone(from_dt.tzinfo)
+        if normalized.replace(tzinfo=None) != candidate.replace(tzinfo=None):
+            continue
+        if candidate.timestamp() > from_dt.timestamp():
+            return candidate
+    raise CronError("无法计算下次有效调度时间")
 
 
 def parse_iso(text: str) -> dt.datetime:

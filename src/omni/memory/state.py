@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -252,6 +252,15 @@ CREATE UNIQUE INDEX uq_outbox_live ON outbox(target_qq, content_hash)
     WHERE status IN ('pending', 'sending', 'unknown');
 """
 
+_SCHEMA_V11 = """
+ALTER TABLE jobs ADD COLUMN timezone TEXT NOT NULL DEFAULT 'local';
+ALTER TABLE jobs ADD COLUMN context_max_age_minutes INTEGER NOT NULL DEFAULT 1440;
+CREATE TABLE cron_outputs (
+    job TEXT PRIMARY KEY, run_id TEXT NOT NULL, status TEXT NOT NULL,
+    result TEXT NOT NULL, finished_at TEXT NOT NULL
+);
+"""
+
 _MIGRATIONS: dict[int, str] = {
     1: _SCHEMA_V1,
     2: _SCHEMA_V2,
@@ -263,6 +272,7 @@ _MIGRATIONS: dict[int, str] = {
     8: _SCHEMA_V8,
     9: _SCHEMA_V9,
     10: _SCHEMA_V10,
+    11: _SCHEMA_V11,
 }
 
 SESSION_RESOURCE = "session:{}"
@@ -373,6 +383,8 @@ def _row_to_job(row: sqlite3.Row) -> Job:
         last_run_at=row["last_run_at"],
         last_result=row["last_result"],
         revision=int(row["revision"]),
+        timezone=str(row["timezone"]),
+        context_max_age_minutes=int(row["context_max_age_minutes"]),
     )
 
 
@@ -390,6 +402,8 @@ def _job_params(job: Job) -> tuple:
         job.last_run_at,
         job.last_result,
         _now(),
+        job.timezone,
+        job.context_max_age_minutes,
     )
 
 
@@ -602,6 +616,14 @@ class StateStore:
                     raise CronError(
                         f"context_from 指向的任务 {job.context_from} 不存在（先创建它）"
                     )
+                visited = {job.name}
+                source = job.context_from
+                while source:
+                    if source in visited:
+                        raise CronError("context_from 不能形成依赖环")
+                    visited.add(source)
+                    parent = conn.execute("SELECT context_from FROM jobs WHERE name=?", (source,)).fetchone()
+                    source = parent[0] if parent else None
             current = conn.execute(
                 "SELECT revision FROM jobs WHERE name = ?", (job.name,)
             ).fetchone()
@@ -613,7 +635,7 @@ class StateStore:
                 conn.execute(
                     "INSERT INTO jobs(name, prompt, every_minutes, daily_at, deliver_to_qq, "
                     "skills, context_from, enabled, next_run_at, last_run_at, last_result, "
-                    "updated_at, revision) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+                    "updated_at, timezone, context_max_age_minutes, revision) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
                     _job_params(job),
                 )
                 job.revision = 1
@@ -628,6 +650,7 @@ class StateStore:
                 "UPDATE jobs SET prompt = ?, every_minutes = ?, daily_at = ?, "
                 "deliver_to_qq = ?, skills = ?, context_from = ?, enabled = ?, "
                 "next_run_at = ?, last_run_at = ?, last_result = ?, updated_at = ?, "
+                "timezone = ?, context_max_age_minutes = ?, "
                 "revision = revision + 1 WHERE name = ?",
                 (*_job_params(job)[1:], job.name),
             )
@@ -656,7 +679,8 @@ class StateStore:
     def remove_job(self, name: str) -> bool:
         self._require("jobs")
         with self._tx() as conn:
-            conn.execute("DELETE FROM job_claims WHERE job = ?", (name,))
+            # 运行中删除不释放已有 claim：否则同名重建会与旧执行重叠。
+            conn.execute("DELETE FROM cron_outputs WHERE job = ?", (name,))
             return conn.execute("DELETE FROM jobs WHERE name = ?", (name,)).rowcount > 0
 
     def claim_due(
@@ -665,6 +689,7 @@ class StateStore:
         *,
         token: str | None = None,
         ttl_s: float = 3600.0,
+        max_running: int = 2,
     ) -> Claim | None:
         """原子领取一个到期任务：同一个到期时刻只会有一个进程拿到。
 
@@ -672,10 +697,12 @@ class StateStore:
         两个调度进程同时调用时，后到的那次读到的已经是推进后的时刻，因此不会重复触发。
         """
         self._require("jobs")
-        self._require("jobs")
         token = token or uuid.uuid4().hex
         now = now.astimezone()
         with self._tx() as conn:
+            stamp = time.time()
+            conn.execute("DELETE FROM job_claims WHERE expires_at < ?", (stamp,))
+            active = {r[0] for r in conn.execute("SELECT job FROM job_claims")}
             due: list[tuple[dt.datetime, Job]] = []
             for row in conn.execute(
                 "SELECT * FROM jobs WHERE enabled = 1 AND next_run_at IS NOT NULL"
@@ -688,7 +715,14 @@ class StateStore:
                 if due_dt.tzinfo is None:
                     due_dt = due_dt.astimezone()
                 if now >= due_dt:
-                    due.append((due_dt, _row_to_job(row)))
+                    candidate = _row_to_job(row)
+                    if candidate.name in active:
+                        conn.execute("UPDATE jobs SET next_run_at=?, last_result=? WHERE name=?",
+                                     (to_iso(compute_next_run(candidate, now)), "运行中再次到期：已合并，不积压", candidate.name))
+                    else:
+                        due.append((due_dt, candidate))
+            if len(active) >= max(1, max_running):
+                return None  # 未领取的任务留在数据库，无内存排队
             if not due:
                 return None
             due.sort(key=lambda item: item[0])
@@ -697,12 +731,8 @@ class StateStore:
             conn.execute(
                 "UPDATE jobs SET next_run_at = ? WHERE name = ?", (job.next_run_at, job.name)
             )
-            stamp = time.time()
-            conn.execute("DELETE FROM job_claims WHERE job = ? AND expires_at < ?", (job.name, stamp))
             conn.execute(
-                "INSERT INTO job_claims(job, token, claimed_at, expires_at) VALUES (?, ?, ?, ?) "
-                "ON CONFLICT(job) DO UPDATE SET token = excluded.token, "
-                "claimed_at = excluded.claimed_at, expires_at = excluded.expires_at",
+                "INSERT INTO job_claims(job, token, claimed_at, expires_at) VALUES (?, ?, ?, ?)",
                 (job.name, token, _now(), stamp + float(ttl_s)),
             )
         return Claim(job=job, token=token, overdue_s=(now - due_dt).total_seconds())
@@ -710,6 +740,12 @@ class StateStore:
     def release_claim(self, token: str) -> bool:
         with self._tx() as conn:
             return conn.execute("DELETE FROM job_claims WHERE token = ?", (token,)).rowcount > 0
+
+    def renew_job_claim(self, token: str, ttl_s: float = 3600) -> bool:
+        with self._tx() as conn:
+            now = time.time()
+            return conn.execute("UPDATE job_claims SET expires_at=? WHERE token=? AND expires_at>?",
+                                (now + ttl_s, token, now)).rowcount == 1
 
     # ---------------------------------------------------------------- 租约
 
@@ -1020,8 +1056,8 @@ class StateStore:
                 continue
             cur = conn.execute(
                 "INSERT INTO jobs(name, prompt, every_minutes, daily_at, deliver_to_qq, skills, "
-                "context_from, enabled, next_run_at, last_run_at, last_result, updated_at, revision) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) ON CONFLICT(name) DO NOTHING",
+                "context_from, enabled, next_run_at, last_run_at, last_result, updated_at, timezone, context_max_age_minutes, revision) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) ON CONFLICT(name) DO NOTHING",
                 _job_params(job),
             )
             imported += cur.rowcount
@@ -1138,6 +1174,9 @@ class JobStore:
     def release_claim(self, token: str) -> bool:
         return self._state.release_claim(token)
 
+    def renew_claim(self, token: str, ttl_s: float = 3600) -> bool:
+        return self._state.renew_job_claim(token, ttl_s)
+
     def update_run_state(self, name: str, **fields) -> bool:
         return self._state.update_run_state(name, **fields)
 
@@ -1170,6 +1209,23 @@ class ExecutionLog:
 
     def recent(self, limit: int = 50) -> list[dict]:
         return self._state.recent_executions(limit)
+
+    def output(self, job: str, run_id: str, status: str, result: str = "", *, finished_at: str | None = None) -> None:
+        with self._state._tx() as conn:
+            conn.execute("INSERT INTO cron_outputs(job,run_id,status,result,finished_at) VALUES (?,?,?,?,?) "
+                         "ON CONFLICT(job) DO UPDATE SET run_id=excluded.run_id,status=excluded.status,"
+                         "result=excluded.result,finished_at=excluded.finished_at",
+                         (job, run_id, status, result[:4000], finished_at or _now()))
+
+    def source(self, job: str, max_age_minutes: int) -> dict:
+        rows = self._state._read("SELECT * FROM cron_outputs WHERE job=?", (job,))
+        if not rows or rows[0]["status"] != "done":
+            raise CronError(f"依赖任务 {job} 没有最近成功结果（未完成或失败），本次停止")
+        result = dict(rows[0])
+        age = dt.datetime.now().astimezone() - parse_iso(result["finished_at"]).astimezone()
+        if not 0 <= age.total_seconds() <= max_age_minutes * 60:
+            raise CronError(f"依赖任务 {job} 的结果已过期，本次停止")
+        return result
 
 
 class OutboxStore:

@@ -343,6 +343,11 @@ class MCPConfig(BaseModel):
         return value
 
 
+class Cron(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    max_running: int = Field(default=2, ge=1, le=8)
+
+
 class AppConfig(BaseModel):
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
@@ -361,6 +366,7 @@ class AppConfig(BaseModel):
     system: System = Field(default_factory=System)
     approval: Approval = Field(default_factory=Approval)
     mcp: MCPConfig = Field(default_factory=MCPConfig)
+    cron: Cron = Field(default_factory=Cron)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

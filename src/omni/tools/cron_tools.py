@@ -47,6 +47,8 @@ def register_cron_tools(
                 prompt=str(args.get("prompt", "")),
                 every_minutes=args.get("every_minutes"),
                 daily_at=str(args["daily_at"]) if args.get("daily_at") else None,
+                timezone=str(args.get("timezone", "local")),
+                context_max_age_minutes=args.get("context_max_age_minutes", 1440),
                 deliver_to_qq=args.get("deliver_to_qq"),
                 skills=[str(s) for s in (args.get("skills") or [])],
                 context_from=(
@@ -80,6 +82,10 @@ def register_cron_tools(
         if job is None:
             return f"错误：没有任务 {name}"
         try:
+            expected_revision = job.revision
+            for field in ("timezone", "context_max_age_minutes"):
+                if field in args:
+                    setattr(job, field, args[field])
             if "prompt" in args:
                 job.prompt = str(args.get("prompt") or "")
             if "every_minutes" in args:
@@ -103,13 +109,13 @@ def register_cron_tools(
             job.validate()
             # 调度字段或启用状态变了才重算下次运行；纯改 prompt 不动排程
             schedule_changed = any(
-                k in args for k in ("every_minutes", "daily_at", "enabled")
+                k in args for k in ("every_minutes", "daily_at", "enabled", "timezone")
             )
             if schedule_changed and job.enabled:
                 job.next_run_at = to_iso(
                     compute_next_run(job, dt.datetime.now().astimezone())
                 )
-            store.upsert(job)  # 含 context_from 源存在校验
+            store.upsert(job, expected_revision=expected_revision)
         except (CronError, TypeError, ValueError) as exc:
             return f"错误：{exc}"
         state = "启用" if job.enabled else "停用"
@@ -138,6 +144,8 @@ def register_cron_tools(
                 "type": "object",
                 "properties": {
                     "name": {"type": "string", "description": "任务名，如 morning-report"},
+                    "timezone": {"type": "string", "description": "IANA 时区，如 Asia/Shanghai；local 为机器时区"},
+                    "context_max_age_minutes": {"type": "integer", "minimum": 1, "maximum": 10080},
                     "prompt": {"type": "string", "description": "到点执行的指令（自包含）"},
                     "every_minutes": {"type": "integer", "description": "周期分钟数（≥10），与 daily_at 二选一"},
                     "daily_at": {"type": "string", "description": "每天定时 HH:MM（如 08:30），与 every_minutes 二选一"},
@@ -188,6 +196,8 @@ def register_cron_tools(
                 "type": "object",
                 "properties": {
                     "name": {"type": "string", "description": "要修改的任务名"},
+                    "timezone": {"type": "string", "description": "IANA 时区，如 Asia/Shanghai；local 为机器时区"},
+                    "context_max_age_minutes": {"type": "integer", "minimum": 1, "maximum": 10080},
                     "prompt": {"type": "string", "description": "新的到点执行指令"},
                     "every_minutes": {"type": "integer", "description": "新的周期分钟数（与 daily_at 二选一）"},
                     "daily_at": {"type": "string", "description": "新的每日定时 HH:MM"},

@@ -102,6 +102,8 @@ class CronCreateIn(BaseModel):
     deliver_to_qq: int | None = None
     skills: list[str] = []
     context_from: str | None = None
+    timezone: str = "local"
+    context_max_age_minutes: int = 1440
 
 
 class CronUpdateIn(BaseModel):
@@ -116,6 +118,8 @@ class CronUpdateIn(BaseModel):
     context_from: str | None = None
     enabled: bool | None = None
     expected_revision: int | None = None
+    timezone: str | None = None
+    context_max_age_minutes: int | None = None
 
 
 class TodoToggleIn(BaseModel):
@@ -1298,6 +1302,8 @@ def create_app(runtime: Runtime) -> FastAPI:
             prompt=payload.prompt.strip(),
             every_minutes=payload.every_minutes,
             daily_at=(payload.daily_at.strip() if payload.daily_at else None),
+            timezone=payload.timezone,
+            context_max_age_minutes=payload.context_max_age_minutes,
             deliver_to_qq=payload.deliver_to_qq,
             skills=[s.strip() for s in payload.skills if s.strip()],
             context_from=(
@@ -1345,6 +1351,8 @@ def create_app(runtime: Runtime) -> FastAPI:
                     ),
                     "every_minutes": j.every_minutes,
                     "daily_at": j.daily_at,
+                    "timezone": j.timezone,
+                    "context_max_age_minutes": j.context_max_age_minutes,
                     "deliver_to_qq": j.deliver_to_qq,
                     "context_from": j.context_from,
                     "skills": j.skills,
@@ -1385,7 +1393,7 @@ def create_app(runtime: Runtime) -> FastAPI:
                     raise CronError(f"deliver_to_qq 不可用（{decision.reason}）")
             job.validate()
             schedule_changed = any(
-                k in touched for k in ("every_minutes", "daily_at", "enabled")
+                k in touched for k in ("every_minutes", "daily_at", "enabled", "timezone")
             )
             if schedule_changed and job.enabled:
                 job.next_run_at = to_iso(

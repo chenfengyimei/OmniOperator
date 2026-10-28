@@ -235,6 +235,8 @@ def test_context_from_validation(tmp_path):
 
 def test_executor_injects_context_from_source(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
+    state = StateStore(tmp_path / "state.db")
+    ledger = ExecutionLog(state)
     seen_prompts: list[str] = []
 
     class FakeAgent:
@@ -249,7 +251,7 @@ def test_executor_injects_context_from_source(tmp_path):
             )
 
     runtime = SimpleNamespace(
-        store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None
+        store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None, cron_ledger=ledger
     )
     executor = make_runtime_executor(runtime)
     # 先跑源任务产出输出
@@ -262,13 +264,75 @@ def test_executor_injects_context_from_source(tmp_path):
     )
     assert "nightly-tidy" in seen_prompts[1]
     assert "输出@0" in seen_prompts[1] and "写早报" in seen_prompts[1]
+    assert "run_id=r1" in seen_prompts[1]
     assert result == "输出@1"
-    # 源任务从未跑过 → 不注入也不虚构
-    asyncio.run(
-        executor(_job(name="fresh", prompt="直接干", context_from="never-ran"))
-    )
-    assert seen_prompts[2] == "直接干"
+    # 缺失、过期、最近运行失败：停止依赖任务，不能拿历史聊天冒充成功结果。
+    with pytest.raises(CronError, match="没有最近成功"):
+        asyncio.run(executor(_job(name="fresh", prompt="直接干", context_from="never-ran")))
+    ledger.output("nightly-tidy", "stale-run", "done", "旧结果",
+                  finished_at=to_iso(dt.datetime.now().astimezone() - dt.timedelta(days=2)))
+    with pytest.raises(CronError, match="过期"):
+        asyncio.run(executor(_job(context_from="nightly-tidy")))
+    ledger.output("nightly-tidy", "failed-run", "failed")
+    with pytest.raises(CronError, match="没有最近成功"):
+        asyncio.run(executor(_job(context_from="nightly-tidy")))
+    assert len(seen_prompts) == 2
     store.close()
+    state.close()
+
+
+def test_job_dependency_cycle_and_timezone_roundtrip(tmp_path):
+    store = _job_store(tmp_path)
+    store.upsert(_job(name="source", timezone="Asia/Shanghai", context_max_age_minutes=60))
+    store.upsert(_job(name="middle", context_from="source"))
+    store.upsert(_job(name="target", context_from="middle"))
+    with pytest.raises(CronError, match="依赖环"):
+        store.upsert(_job(name="source", context_from="target"))
+    assert store.get("source").timezone == "Asia/Shanghai"
+    assert store.get("source").context_max_age_minutes == 60
+    with pytest.raises(CronError, match="timezone"):
+        _job(timezone="Moon/Base").validate()
+
+
+def test_daily_timezone_dst_gap_and_fold():
+    from zoneinfo import ZoneInfo
+    ny = ZoneInfo("America/New_York")
+    job = _job(every_minutes=None, daily_at="02:30", timezone="America/New_York")
+    next_run = compute_next_run(job, dt.datetime(2026, 3, 8, 0, tzinfo=ny))
+    assert (next_run.day, next_run.hour) == (9, 2)  # 跳过不存在的 02:30
+    job.daily_at = "01:30"
+    next_run = compute_next_run(job, dt.datetime(2026, 11, 1, 1, 45, tzinfo=ny, fold=0))
+    assert next_run.day == 2  # 不执行第二个 01:30
+
+
+def test_scheduler_has_global_capacity_and_coalesces_running_job(tmp_path):
+    state = StateStore(tmp_path / "state.db")
+    store = JobStore(state)
+    second = JobStore(StateStore(tmp_path / "state.db"))
+    now = dt.datetime.now().astimezone()
+    for name in ("first", "second", "third"):
+        store.upsert(_job(name=name, next_run_at=to_iso(now - dt.timedelta(seconds=1))))
+    async def scenario():
+        unblock = asyncio.Event()
+        async def executor(job):
+            await unblock.wait()
+            return "done"
+        scheduler = CronScheduler(store, executor, max_running=1)
+        assert await scheduler.tick(now.timestamp()) == ["first"]
+        assert scheduler.active_count == 1
+        assert second.claim_due(now, max_running=1) is None
+        # 任务运行超过周期：下一次到期合并，不覆盖原 token，不另建等待任务。
+        token = state._read("SELECT token FROM job_claims")[0][0]
+        assert await scheduler.tick((now + dt.timedelta(minutes=31)).timestamp()) == []
+        assert state._read("SELECT token FROM job_claims")[0][0] == token
+        assert "已合并" in store.get("first").last_result
+        assert not await scheduler.close(wait_s=0.01)
+        unblock.set()
+        assert await scheduler.close(wait_s=2)
+        assert state._read("SELECT * FROM job_claims") == []
+    asyncio.run(scenario())
+    state.close()
+    second._state.close()
 
 
 # ---------- 执行账本 ----------
