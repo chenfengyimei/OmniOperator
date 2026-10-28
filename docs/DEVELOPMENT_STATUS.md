@@ -85,11 +85,57 @@
 | D14 | 完成 | 新能力：通用网页读取（无对应 A 项，防的是 SSRF/注入/凭据外带） | 见第 5 节 | `uv run pytest tests/test_web_fetch.py -q` → 25 passed；`uv run pytest -q` → 589 passed（无 F/E） | 真实公网：`https://example.com/` 200 + 正文提取；`https://www.baidu.com/` 返回空壳页并被如实说明（需 JS）；发往本机假服务的超大流/重定向/429/超时/登录页/注入用例全绿 | 进入 R3（D15 产物与视觉输入） |
 | D15 | 完成 | A13 | 见第 5 节 | `uv run pytest tests/test_artifacts.py -q` → 13 passed；`uv run pytest -q` → **605 passed（无 F/E）** | 真实 Chromium 冒烟通过（见第 5 节真机证据）；真实安卓截图待 D16 插真机；真实视觉模型的看图效果需用户配置 `vision.send_to_cloud` 后实测 | 进入 D16（A12 离线修复） |
 | D16 | 完成 | A12 | 见第 5 节 | `uv run pytest tests/test_android.py -q` → 29 passed；关联批次 `tests/test_web.py test_arch.py test_agent.py test_cron.py` → 58 passed（2026-10-28） | 安卓真机待插设备：观察绑定点击的真机闭环（两设备交错/旋转/ADB 断连复检/中文输入恢复）待插真机验收 | 进入 D17（cron 编辑与可靠投递） |
+| D17 | 开发中 | A04（编辑校验）、A17（部分） | 见第 5 节：任务编辑（Web+工具）+ 成败判定去前缀化 + 列表暴露 revision | `uv run pytest tests/test_cron.py tests/test_web.py -q` → 51 passed；新增 5 例（编辑部分更新/null 清除/白名单/冲突 409/前缀判定负例/失败回合不进 review） | 真实心跳进程下编辑与到期交错的实机行为未演练 | **剩余**：投递 outbox 与去重、`context_from` 绑定具体 run、并行上限与积压策略——按大纲原范围留待续做；进入 D18（技能工作台编辑） |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D17 第一批（cron 任务编辑 + 成败判定去前缀化）
+
+- **改了什么**：
+  - `channels/web.py`：新增 `POST /api/system/cron/update`——编辑已存在任务，与创建同一套
+    `Job.validate()`/白名单/context_from 源校验；字段语义按**是否出现在请求里**区分
+    （没传 = 不改，显式 `null` = 清除，前端编辑表单把空输入框提交成 null 才能删掉
+    deliver_to_qq/context_from）；`expected_revision` 乐观并发（旧表单 409，不静默覆盖）；
+    调度字段或 enabled 变化自动重算 `next_run_at`；`GET /api/system/cron` 补 `revision`/
+    `every_minutes`/`daily_at`/`skills` 字段（编辑表单回填要用）；
+  - `tools/cron_tools.py`：新增 `cron_edit` 工具（SAFE，与 add/remove 同级）——只传要改的
+    字段、显式 null 清除、白名单与校验同 create、调度变化才重算下次运行；
+  - `core/cron.py`：**成败判定去前缀化**——`_run_job_safely` 的 `ok` 只看执行器是否抛异常，
+    不再看 `result.startswith("执行失败")`（模型对"总结失败任务"类指令的正当回答会以这四个字
+    开头，被误记失败）；`make_runtime_executor` 改用 `agent.run_turn` 的结构化状态：
+    `status != done`（取消/预算拦截/失败）抛给调度器记失败，**失败回合不进 review 队列**；
+  - `memory/state.py`：顺手删掉 `upsert_job` 里重复一行的 `self._require("jobs")`（无害赘行）；
+  - 前端：任务行加「编辑」按钮，创建表单复用为编辑表单（回填全量字段、任务名锁定、
+    保存带 revision、取消编辑还原）。
+- **关闭了什么**：HANDOFF §6 建议第 4 条（cron 只能删了重建）；
+  LOCAL_AGENT_PLAN §0 收口项 1 的"cron 按中文前缀判成功"。
+- **跑了什么**：`uv run pytest tests/test_cron.py tests/test_web.py -q` → **51 passed**
+  （2026-10-28；新增：编辑部分更新/换调度 null 清除/白名单拒绝不动定义/任务不存在/校验失败、
+  答案以"执行失败"开头仍记成功、失败回合抛异常且不触发 review、Web 编辑 happy path + 409 + 404 + 400）。
+- **没测什么**：真实心跳进程运行中通过工作台编辑任务、编辑与到期领取交错的实机行为；
+  前端编辑表单（无浏览器测试基建，靠 TestClient 验接口契约）；投递 outbox（本批未做）。
+- **行为变化**：
+  1. 定时任务可以原地编辑（prompt/调度/投递/技能/链/启停），不用删了重建丢执行历史；
+  2. 模型的回答文本不再参与成败判定——执行器正常返回就是成功，抛异常才失败；
+  3. 回合被预算拦截或取消时，账本如实记失败（含 error_code），不再把"预算已拦截"的解释文本当成功结果。
+- **剩余限制（明确记录）**：
+  1. 大纲 D17 的**投递 outbox/去重、`context_from` 绑定具体成功 run、并行上限与积压策略**
+     仍未做——本批只交付"编辑"与"判定收口"两个明确欠账，不冒充 D17 完成；
+  2. 编辑与调度器推进并发：定义变更走 `expected_revision`，但**没有**"正在执行的任务用编辑前
+     定义跑完"的快照语义（执行器拿的是领取时的 Job 对象，领取后编辑不影响本次执行——
+     这是现状描述，不是承诺的原子性）；
+  3. 时区仍是本地时区（`daily_at` 按机器时区），显式 timezone 属大纲 D17 剩余项。
+- **过程记录**：
+  1. Web 端点第一版用「值非 None」判断"字段是否提供"——前端清空输入框想删掉 deliver_to_qq
+     时根本发不出"清除"语义。改成 `payload.model_fields_set`（Pydantic 记录哪些键真的出现在
+     请求里），"没传"与"传 null"才分得开；
+  2. 换调度方式（every_minutes → daily_at）必须同时把另一个字段显式置 null，否则触发
+     "二选一"校验——测试第一版就漏了，正好证明字段级语义是必要的；
+  3. 假 Agent 从 `chat` 换成 `run_turn` 后，失败回合测试顺手验证了"不进 review"——
+     原实现失败时也会 spawn review，等于对半截对话做记忆整理。
 
 ### 2026-10-28 · D16（安卓观察—动作—验证：A12）
 

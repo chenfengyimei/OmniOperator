@@ -98,6 +98,20 @@ class CronCreateIn(BaseModel):
     context_from: str | None = None
 
 
+class CronUpdateIn(BaseModel):
+    """编辑任务：只传要改的字段（None=不改）；expected_revision 做乐观并发。"""
+
+    name: str
+    prompt: str | None = None
+    every_minutes: int | None = None
+    daily_at: str | None = None
+    deliver_to_qq: int | None = None
+    skills: list[str] | None = None
+    context_from: str | None = None
+    enabled: bool | None = None
+    expected_revision: int | None = None
+
+
 class TodoToggleIn(BaseModel):
     session_id: int
     todo_id: int
@@ -1025,15 +1039,69 @@ def create_app(runtime: Runtime) -> FastAPI:
                         if j.every_minutes
                         else f"每天 {j.daily_at}"
                     ),
+                    "every_minutes": j.every_minutes,
+                    "daily_at": j.daily_at,
                     "deliver_to_qq": j.deliver_to_qq,
                     "context_from": j.context_from,
+                    "skills": j.skills,
                     "enabled": j.enabled,
+                    "revision": j.revision,
                     "next_run_at": j.next_run_at,
                     "last_run_at": j.last_run_at,
                     "last_result": j.last_result,
                 }
             )
         return {"jobs": jobs}
+
+    @app.post("/api/system/cron/update")
+    def cron_update(payload: CronUpdateIn) -> dict[str, Any]:
+        """编辑任务定义：与创建同一套校验；expected_revision 旧表单提交返回 409。
+
+        字段语义用「是否出现在请求里」区分：没传 = 不改；显式 null = 清除
+        （前端编辑表单把空输入框提交成 null，才能把 deliver_to_qq 等可选项删掉）。
+        """
+        try:
+            job = runtime.cron_jobs.get(payload.name)
+            if job is None:
+                raise HTTPException(status_code=404, detail="任务不存在")
+            fields = payload.model_dump(exclude={"name", "expected_revision"})
+            touched = {
+                k: v for k, v in fields.items() if k in payload.model_fields_set
+            }
+            if not touched:
+                raise HTTPException(status_code=400, detail="没有要修改的字段")
+            for key, value in touched.items():
+                setattr(job, key, value)
+            if job.deliver_to_qq is not None:
+                # 与创建/工具/投递同一判定：空白名单不是"不限"
+                decision = private_target_allowed(
+                    runtime.qq_policy().allowed_users, job.deliver_to_qq
+                )
+                if not decision.allowed:
+                    raise CronError(f"deliver_to_qq 不可用（{decision.reason}）")
+            job.validate()
+            schedule_changed = any(
+                k in touched for k in ("every_minutes", "daily_at", "enabled")
+            )
+            if schedule_changed and job.enabled:
+                job.next_run_at = to_iso(
+                    compute_next_run(job, dt.datetime.now().astimezone())
+                )
+            runtime.cron_jobs.upsert(
+                job, expected_revision=payload.expected_revision
+            )
+        except CronError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        except StateConflict as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+        except StateUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        return {
+            "ok": True,
+            "name": job.name,
+            "enabled": job.enabled,
+            "next_run_at": job.next_run_at,
+        }
 
     @app.post("/api/system/cron/toggle")
     def cron_toggle(payload: CronToggleIn) -> dict[str, Any]:

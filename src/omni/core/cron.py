@@ -17,7 +17,7 @@ import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from ..memory.cron import Job, JobStore, to_iso
+from ..memory.cron import CronError, Job, JobStore, to_iso
 from ..safety.gates import private_target_allowed
 
 TICK_SECONDS = 30
@@ -81,7 +81,11 @@ class CronScheduler:
         return 86400.0
 
     async def _run_job_safely(self, job: Job, claim_token: str | None = None) -> None:
-        """同一任务串行执行；失败记账不崩调度器；结束时释放领取记录。"""
+        """同一任务串行执行；失败记账不崩调度器；结束时释放领取记录。
+
+        成败判定只看**执行器是否抛异常**，不看返回文本前缀——返回文本是
+        模型生成的，任务恰好让它从"执行失败"开头就会被误判（D17 收口项）。
+        """
         lock = self._job_locks.setdefault(job.name, asyncio.Lock())
         async with lock:
             now_dt = dt.datetime.now().astimezone()
@@ -89,8 +93,10 @@ class CronScheduler:
             started = time.monotonic()
             try:
                 result = await self._executor(job)
+                ok = True
             except Exception as exc:  # noqa: BLE001
                 result = f"执行失败：{exc}"
+                ok = False
             delivery = ""
             if self._deliver is not None:
                 try:
@@ -102,7 +108,7 @@ class CronScheduler:
                     job=job.name,
                     started_at=started_at,
                     duration_s=time.monotonic() - started,
-                    ok=not result.startswith("执行失败"),
+                    ok=ok,
                     result=result,
                     delivery=delivery,
                 )
@@ -133,6 +139,9 @@ def make_runtime_executor(runtime: Any) -> Callable[[Job], Awaitable[str]]:
     runtime 参数是 bootstrap.Runtime（duck typing，避免 core→bootstrap 依赖倒挂）。
     context_from 任务链（Hermes 同款）：源任务的最新输出注入本次 prompt 头部，
     串起"夜间整理 → 早报"这类先整理再汇报的流水线。
+
+    成败来自 `run_turn` 的结构化状态：未正常完成（取消/预算拦截/失败）就抛给
+    调度器记"执行失败"——**不**再对模型生成的回答文本做前缀判断。
     """
 
     async def executor(job: Job) -> str:
@@ -148,11 +157,16 @@ def make_runtime_executor(runtime: Any) -> Callable[[Job], Awaitable[str]]:
                     f"以下是定时任务「{job.context_from}」的最新输出，"
                     f"作为本次工作的输入：\n\n{context}\n\n---\n{prompt}"
                 )
-        answer = await asyncio.to_thread(
-            runtime.agent.chat, prompt, session_id=session_id
+        turn = await asyncio.to_thread(
+            runtime.agent.run_turn, prompt, session_id=session_id
         )
+        if turn.status != "done":
+            raise CronError(
+                f"回合未完成（status={turn.status}"
+                f"{'，' + turn.error_code if turn.error_code else ''}）：{turn.answer[:200]}"
+            )
         runtime.spawn_review(session_id)
-        return answer
+        return turn.answer
 
     return executor
 

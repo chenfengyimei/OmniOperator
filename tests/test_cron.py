@@ -150,12 +150,14 @@ def test_runtime_executor_binds_session_and_injects_skills(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
 
     class FakeAgent:
-        def chat(self, text: str, *, session_id=None):
+        def run_turn(self, text: str, *, session_id=None):
             assert session_id is not None
             # 模拟真 Agent 的落库行为
             store.append_message(session_id, "user", text)
             store.append_message(session_id, "assistant", "回复", auto_title=False)
-            return f"回复:{text[:40]}"
+            return SimpleNamespace(
+                answer=f"回复:{text[:40]}", status="done", run_id="r1", error_code=""
+            )
 
     runtime = SimpleNamespace(
         store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None
@@ -232,13 +234,15 @@ def test_executor_injects_context_from_source(tmp_path):
     seen_prompts: list[str] = []
 
     class FakeAgent:
-        def chat(self, text: str, *, session_id=None):
+        def run_turn(self, text: str, *, session_id=None):
             store.append_message(session_id, "user", text)
             store.append_message(
                 session_id, "assistant", f"输出@{len(seen_prompts)}", auto_title=False
             )
             seen_prompts.append(text)
-            return f"输出@{len(seen_prompts) - 1}"
+            return SimpleNamespace(
+                answer=f"输出@{len(seen_prompts) - 1}", status="done", run_id="r1", error_code=""
+            )
 
     runtime = SimpleNamespace(
         store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None
@@ -386,3 +390,111 @@ def test_cron_tools_dispatch(tmp_path):
     assert "← chain-src" in registry.dispatch("cron_list", "{}")
     assert "已删除" in registry.dispatch("cron_remove", json.dumps({"name": "morning-report"}))
     assert "没有任务" in registry.dispatch("cron_remove", json.dumps({"name": "nope"}))
+
+
+# ---------- D17：编辑工具 + 成败判定去前缀化 ----------
+
+
+def test_cron_edit_tool_partial_updates(tmp_path):
+    registry = ToolRegistry()
+    store = _job_store(tmp_path)
+    register_cron_tools(registry, store, allowed_qq_users=[10001])
+    registry.dispatch(
+        "cron_add",
+        json.dumps(
+            {"name": "daily-brief", "prompt": "旧指令", "daily_at": "08:30", "deliver_to_qq": 10001}
+        ),
+    )
+
+    # 只改 prompt：调度与投递不动
+    out = registry.dispatch(
+        "cron_edit", json.dumps({"name": "daily-brief", "prompt": "新指令"})
+    )
+    assert "已更新" in out
+    job = store.get("daily-brief")
+    assert job.prompt == "新指令" and job.daily_at == "08:30" and job.deliver_to_qq == 10001
+
+    # 换调度方式（daily_at 显式 null 清除）：重算下次运行
+    out = registry.dispatch(
+        "cron_edit",
+        json.dumps({"name": "daily-brief", "every_minutes": 30, "daily_at": None}),
+    )
+    assert "已更新" in out
+    job = store.get("daily-brief")
+    assert job.every_minutes == 30 and job.daily_at is None
+
+    # 显式 null 清除投递目标并停用
+    out = registry.dispatch(
+        "cron_edit",
+        json.dumps({"name": "daily-brief", "deliver_to_qq": None, "enabled": False}),
+    )
+    assert "停用" in out
+    job = store.get("daily-brief")
+    assert job.deliver_to_qq is None and job.enabled is False
+
+    # 投递目标改动仍要过白名单；被拒时任务定义不变
+    bad = registry.dispatch(
+        "cron_edit",
+        json.dumps({"name": "daily-brief", "enabled": True, "deliver_to_qq": 999}),
+    )
+    assert "白名单" in bad
+    job = store.get("daily-brief")
+    assert job.enabled is False and job.deliver_to_qq is None
+
+    # 任务不存在 / 校验失败（every 太小）
+    assert "错误" in registry.dispatch(
+        "cron_edit", json.dumps({"name": "ghost", "prompt": "x"})
+    )
+    assert "错误" in registry.dispatch(
+        "cron_edit", json.dumps({"name": "daily-brief", "every_minutes": 1})
+    )
+
+
+def test_scheduler_success_not_judged_by_answer_prefix(tmp_path):
+    """答案文本以「执行失败」开头不算失败：成败只看执行器是否抛异常（D17 收口项）。"""
+    store = _job_store(tmp_path)
+    log = ExecutionLog(StateStore(tmp_path / "state.db"))
+    now = dt.datetime.now().astimezone()
+    job = _job(name="summary-job", every_minutes=60)
+    job.next_run_at = to_iso(now - dt.timedelta(seconds=1))
+    store.upsert(job, validate=False)
+
+    async def executor(_job: Job) -> str:
+        # 模型对"总结今天哪些任务失败"这类任务的正当回答
+        return "执行失败的任务共有 3 个，详见下文分析。"
+
+    async def scenario():
+        scheduler = CronScheduler(
+            store, executor, None, clock=lambda: now.timestamp(), ledger=log
+        )
+        await scheduler.tick()
+        await asyncio.sleep(0.05)
+
+    asyncio.run(scenario())
+    rows = log.recent(5)
+    assert rows and rows[0]["ok"] is True, "文本前缀不得参与成败判定"
+
+
+def test_runtime_executor_fails_on_non_done_turn(tmp_path):
+    """回合未正常完成（预算拦截/取消/失败）→ 抛给调度器记失败，且不触发 review。"""
+    store = MemoryStore(tmp_path / "m.db")
+    reviewed: list[int] = []
+
+    class BudgetBlockedAgent:
+        def run_turn(self, text: str, *, session_id=None):
+            store.append_message(session_id, "user", text)
+            return SimpleNamespace(
+                answer="本次运行已超出预算，未执行。",
+                status="failed",
+                run_id="r1",
+                error_code="budget_exhausted",
+            )
+
+    runtime = SimpleNamespace(
+        store=store, agent=BudgetBlockedAgent(), spawn_review=reviewed.append
+    )
+    executor = make_runtime_executor(runtime)
+    with pytest.raises(Exception, match="budget_exhausted"):
+        asyncio.run(executor(_job(name="budget-job", prompt="跑一个")))
+    assert reviewed == [], "失败回合不应进 review 队列"
+    store.close()

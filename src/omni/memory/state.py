@@ -541,7 +541,6 @@ class StateStore:
         而不是静默覆盖后台（比如调度器/另一标签页）已经改过的内容。
         """
         self._require("jobs")  # 状态未知时连写也停：否则"能建不能读"更难解释
-        self._require("jobs")  # 状态未知时连写也停：否则"能建不能读"更难解释
         if validate:
             job.validate()
         with self._tx() as conn:

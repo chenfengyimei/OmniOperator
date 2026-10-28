@@ -664,3 +664,52 @@ def test_artifact_endpoints_require_pairing(tmp_path):
     assert client.get("/api/artifacts").status_code == 401
     assert client.get("/api/artifacts/00000000deadbeef/image").status_code == 401
     assert client.delete("/api/artifacts/00000000deadbeef").status_code == 401
+
+
+# ---------- D17：cron 编辑端点（乐观并发 + 字段级区分"不改/清除"） ----------
+
+
+def test_cron_update_endpoint_edits_and_conflicts(tmp_path):
+    client, runtime = _client(tmp_path)
+    created = client.post(
+        "/api/system/cron/create",
+        json={"name": "demo-edit", "prompt": "旧指令", "every_minutes": 30},
+    )
+    assert created.status_code == 200
+    first = client.get("/api/system/cron").json()["jobs"][0]
+    assert first["revision"] >= 1
+
+    # 只改 prompt：调度不动，revision 递增
+    updated = client.post(
+        "/api/system/cron/update", json={"name": "demo-edit", "prompt": "新指令"}
+    )
+    assert updated.status_code == 200
+    second = client.get("/api/system/cron").json()["jobs"][0]
+    assert second["prompt"] == "新指令" and second["every_minutes"] == 30
+    assert second["revision"] > first["revision"]
+
+    # 换调度：daily_at 置新值、every_minutes 显式 null 清除（「没传=不改、null=清除」）
+    rescheduled = client.post(
+        "/api/system/cron/update",
+        json={"name": "demo-edit", "daily_at": "07:00", "every_minutes": None},
+    )
+    assert rescheduled.status_code == 200
+    third = client.get("/api/system/cron").json()["jobs"][0]
+    assert third["daily_at"] == "07:00" and third["every_minutes"] is None
+    assert third["next_run_at"]
+
+    # 旧 revision 提交 → 409（别人已改过，不静默覆盖）
+    stale = client.post(
+        "/api/system/cron/update",
+        json={"name": "demo-edit", "prompt": "旧表单内容", "expected_revision": first["revision"]},
+    )
+    assert stale.status_code == 409
+    assert runtime.cron_jobs.get("demo-edit").prompt == "新指令"
+
+    # 404 / 没有可改字段 / 校验失败
+    assert client.post("/api/system/cron/update", json={"name": "ghost", "prompt": "x"}).status_code == 404
+    assert client.post("/api/system/cron/update", json={"name": "demo-edit"}).status_code == 400
+    assert (
+        client.post("/api/system/cron/update", json={"name": "demo-edit", "every_minutes": 1}).status_code
+        == 400
+    )

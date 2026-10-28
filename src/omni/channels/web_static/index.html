@@ -279,6 +279,21 @@ ul{list-style:none;overflow-y:auto}
     <div class="qr-hint" id="img-hint"></div>
   </div>
 </div>
+<!-- ============ 技能编辑器 ============ -->
+<div id="skill-modal" class="modal hidden" onclick="if(event.target===this)closeModal('skill-modal')">
+  <div class="modal-box" style="width:min(920px,95vw);height:min(780px,94vh);display:flex;flex-direction:column;gap:8px">
+    <div class="modal-title"><span id="skill-editor-title">编辑技能</span><button class="modal-x" onclick="closeModal('skill-modal')">✕</button></div>
+    <textarea id="skill-editor" spellcheck="false" style="flex:1;min-height:180px;resize:none;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);font:12.5px/1.6 Consolas,monospace;padding:10px"></textarea>
+    <div id="skill-msg" style="min-height:1.2em;font-size:12px;color:#34d399"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="svc-btn" onclick="saveSkill()">保存（指纹冲突会拒绝）</button>
+      <button class="svc-btn" onclick="reloadSkill()">重新加载最新</button>
+      <button class="svc-btn" onclick="loadSkillHistory()">历史 / 差异 / 回滚</button>
+    </div>
+    <div id="skill-history" style="max-height:170px;overflow:auto"></div>
+    <pre id="skill-diff" style="max-height:190px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
+  </div>
+</div>
 <!-- ============ 设置中心 ============ -->
 <div id="hub" class="hidden">
   <div class="hub-header">
@@ -383,7 +398,8 @@ ul{list-style:none;overflow-y:auto}
           <div class="field"><label>注入技能（逗号分隔，可选）<input type="text" id="cronf-skills" placeholder="nightly-tidy"></label></div>
           <div class="field"><label>输入来自任务（可选）<input type="text" id="cronf-ctx" placeholder="nightly-tidy"></label></div>
         </div>
-        <button class="tiny-btn" onclick="createCron()">创建任务</button>
+        <button class="tiny-btn" id="cron-create-btn" onclick="createCron()">创建任务</button>
+        <button class="tiny-btn hidden" id="cron-cancel-edit" onclick="cronCancelEdit()">取消编辑</button>
         <div id="cronf-msg" class="test-out"></div>
         <h3 style="margin-top:18px">任务列表</h3>
         <div id="cron-list"></div>
@@ -555,7 +571,10 @@ async function loadReviews(){
 async function loadSkills(){
   const d=await api('/api/skills');
   $('#skills-list').innerHTML=d.skills.length?d.skills.map(s=>
-    `<li class="skill-item" data-open="0" onclick="toggleSkill('${esc(s.name)}',this)"><b>${esc(s.name)}</b> <span class="s-id">v${esc(s.version)}</span><div class="skill-desc">${esc(s.description)}</div></li>`).join(''):'<li class="empty">还没有技能（agent 完成多步任务后会自动沉淀）</li>';
+    `<li class="skill-item" data-open="0"><b>${esc(s.name)}</b> <span class="s-id">v${esc(s.version)}</span>`+
+    `<button class="svc-btn" style="margin-left:6px" onclick="toggleSkill('${esc(s.name)}',this.closest('li'))">查看</button>`+
+    `<button class="svc-btn" onclick="editSkill('${esc(s.name)}')">编辑</button>`+
+    `<div class="skill-desc">${esc(s.description)}</div></li>`).join(''):'<li class="empty">还没有技能（agent 完成多步任务后会自动沉淀）</li>';
 }
 window.toggleSkill=async(name,el)=>{
   const body=el.querySelector('.skill-body');
@@ -565,6 +584,62 @@ window.toggleSkill=async(name,el)=>{
     const pre=document.createElement('div');pre.className='skill-body';pre.textContent=d.content;
     el.appendChild(pre);el.dataset.open='1';
   }catch(e){alert(e.message)}
+};
+// ---------- 技能编辑器（D18）：读原文带指纹 → 保存 CAS → 历史/差异/回滚 ----------
+let skillEditing=null; // {name, hash}：保存必须带读取时的指纹，别人改过就 409
+window.editSkill=async(name)=>{
+  try{
+    const d=await api('/api/skills/'+encodeURIComponent(name));
+    skillEditing={name,hash:d.hash};
+    $('#skill-editor').value=d.content;
+    $('#skill-editor-title').textContent='编辑技能：'+name+'（'+(d.references||[]).length+' 个参考文件不受影响）';
+    $('#skill-msg').textContent='';$('#skill-msg').style.color='#34d399';
+    $('#skill-history').innerHTML='';$('#skill-diff').textContent='';
+    $('#skill-modal').classList.remove('hidden');
+  }catch(e){alert(e.message)}
+};
+window.saveSkill=async()=>{
+  if(!skillEditing)return;
+  try{
+    const d=await api('/api/skills/'+encodeURIComponent(skillEditing.name)+'/save',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({content:$('#skill-editor').value,expected_hash:skillEditing.hash})});
+    skillEditing.hash=d.hash; // 保存成功后指纹更新，可继续编辑
+    $('#skill-msg').textContent='✅ '+d.message;
+    loadSkills();
+  }catch(e){$('#skill-msg').style.color='#f87171';$('#skill-msg').textContent='❌ '+e.message}
+};
+window.reloadSkill=()=>{if(skillEditing)editSkill(skillEditing.name)};
+window.loadSkillHistory=async()=>{
+  if(!skillEditing)return;
+  try{
+    const d=await api('/api/skills/'+encodeURIComponent(skillEditing.name)+'/history');
+    $('#skill-history').innerHTML=d.revisions.length?d.revisions.map(r=>
+      `<div class="cron-row"><span class="c-name">rev ${r.rev}</span>`+
+      `<span class="c-sched">v${r.version==null?'—':r.version} · ${esc(r.summary||'无摘要')} · ${esc((r.created_at||'').slice(5,16))} · ${esc(r.author||'?')}</span>`+
+      `<button class="svc-btn" onclick="skillDiff(${r.rev})">差异</button>`+
+      `<button class="svc-btn" onclick="skillRollback(${r.rev})">回滚</button></div>`).join('')
+      :'<div class="empty">还没有历史修订</div>';
+  }catch(e){alert(e.message)}
+};
+window.skillDiff=async(rev)=>{
+  if(!skillEditing)return;
+  try{
+    const d=await api(`/api/skills/${encodeURIComponent(skillEditing.name)}/diff?rev=${rev}`);
+    $('#skill-diff').textContent=d.diff||'（与当前内容没有差异）';
+  }catch(e){alert(e.message)}
+};
+window.skillRollback=async(rev)=>{
+  if(!skillEditing)return;
+  if(!confirm('回滚到 rev '+rev+'？当前内容会先存进历史，回滚是产生新修订，还能再回滚回来。'))return;
+  try{
+    const d=await api('/api/skills/'+encodeURIComponent(skillEditing.name)+'/rollback',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({rev,expected_hash:skillEditing.hash})});
+    $('#skill-msg').style.color='#34d399';$('#skill-msg').textContent='✅ '+d.message;
+    await editSkill(skillEditing.name); // 内容与指纹都变了，重载编辑器
+    loadSkillHistory();loadSkills();
+  }catch(e){$('#skill-msg').style.color='#f87171';$('#skill-msg').textContent='❌ '+e.message}
 };
 async function loadArtifacts(){
   try{
@@ -763,13 +838,16 @@ window.testModel=async(kind)=>{
     out.textContent='✅ 连通：'+(d.reply||'（空回复）');
   }catch(e){out.textContent='❌ '+(e.message||'失败')}
 };
+let cronJobs=[]; // 任务列表缓存（编辑表单要回填 revision 与全量字段）
 async function loadCron(){
   try{
     const d=await api('/api/system/cron');
+    cronJobs=d.jobs;
     $('#cron-list').innerHTML=d.jobs.length?d.jobs.map(j=>
       `<div class="cron-row"><span class="c-name">${esc(j.name)}</span>`+
       `<span class="c-sched">${esc(j.schedule)} · 下次 ${esc((j.next_run_at||'—').slice(5,16))}</span>`+
-      `<span>${j.enabled?'✅':'⛔'}</span>`+
+      `<span>${j.enabled?'启':'停'}</span>`+
+      `<button class="svc-btn" onclick="cronEdit('${esc(j.name)}')">编辑</button>`+
       `<button class="svc-btn" onclick="cronToggle('${esc(j.name)}',${!j.enabled})">${j.enabled?'停用':'启用'}</button>`+
       `<button class="svc-btn" onclick="cronDelete('${esc(j.name)}')">删除</button></div>`).join(''):'<div class="empty">还没有定时任务</div>';
   }catch(e){$('#cron-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
@@ -782,7 +860,53 @@ async function loadCron(){
       :'<div class="empty">还没有执行记录</div>';
   }catch(e){$('#cron-history').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
+let cronEditing=null; // 编辑中的任务（null=创建模式）；保存带 revision 防旧表单覆盖
+window.cronEdit=(name)=>{
+  const j=cronJobs.find(x=>x.name===name);
+  if(!j)return;
+  cronEditing=j;
+  $('#cronf-name').value=j.name;
+  $('#cronf-prompt').value=j.prompt||'';
+  $('#cronf-daily').value=j.daily_at||'';
+  $('#cronf-every').value=j.every_minutes||'';
+  $('#cronf-qq').value=j.deliver_to_qq||'';
+  $('#cronf-skills').value=(j.skills||[]).join(',');
+  $('#cronf-ctx').value=j.context_from||'';
+  $('#cron-create-btn').textContent='保存修改';
+  $('#cron-cancel-edit').classList.remove('hidden');
+  $('#cronf-name').disabled=true; // 任务名是主键，编辑模式不给改
+  $('#cronf-msg').textContent='正在编辑 '+name+'（保存时校验版本，别人改过会提示冲突）';
+};
+window.cronCancelEdit=()=>{
+  cronEditing=null;
+  ['cronf-name','cronf-prompt','cronf-daily','cronf-every','cronf-qq','cronf-skills','cronf-ctx']
+    .forEach(id=>$('#'+id).value='');
+  $('#cronf-name').disabled=false;
+  $('#cron-create-btn').textContent='创建任务';
+  $('#cron-cancel-edit').classList.add('hidden');
+  $('#cronf-msg').textContent='';
+};
 window.createCron=async()=>{
+  if(cronEditing){
+    // 编辑模式：全量提交，空输入显式 null（后端按"字段是否出现"区分不改/清除）
+    const daily=$('#cronf-daily').value.trim(),every=parseInt($('#cronf-every').value);
+    const deliver=$('#cronf-qq').value.trim(),ctx=$('#cronf-ctx').value.trim();
+    const body={
+      name:cronEditing.name,expected_revision:cronEditing.revision,
+      prompt:$('#cronf-prompt').value.trim(),
+      skills:$('#cronf-skills').value.split(/[,，\s]+/).filter(Boolean),
+      enabled:cronEditing.enabled,
+      daily_at:daily||null,every_minutes:every||null,
+      deliver_to_qq:deliver?parseInt(deliver):null,context_from:ctx||null,
+    };
+    try{
+      const d=await api('/api/system/cron/update',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)});
+      $('#cronf-msg').textContent='✅ 已更新 '+d.name+(d.enabled?'（下次运行 '+d.next_run_at+'）':'（已停用）');
+      cronCancelEdit();loadCron();
+    }catch(e){$('#cronf-msg').textContent='❌ '+e.message}
+    return;
+  }
   const body={
     name:$('#cronf-name').value.trim(),
     prompt:$('#cronf-prompt').value.trim(),

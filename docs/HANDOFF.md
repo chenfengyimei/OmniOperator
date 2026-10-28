@@ -72,7 +72,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 | shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
 | qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
-| cron | cron_list / cron_add / cron_remove | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链） |
+| cron | cron_list / cron_add / cron_edit / cron_remove | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链；edit 只改传入字段、显式 null 清除） |
 | browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流；截图存为产物 [artifact:id]（开 vision 后模型可直接看图） |
 | android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM；截图同样入产物库；tap_element 观察绑定（D16/A12）：点击前复核界面、不一致不点、点后强制复检 |
 | system | system_status（SAFE）/ system_service（CONFIRM） | NapCat/omni-qq/心跳 启停与状态 |
@@ -90,7 +90,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 - review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，候选变更/差异确认待 D18
 - 运行账本、事件续读、协作式取消与 ToolResult 已接入；旧字符串工具仍有兼容适配，跨进程取消和在途操作限制见台账
 - 模型能力、超时、有界重试、usage/费用预留结算已有实现；**预算默认未设上限**，无人值守付费推理需明确授权与限额
-- 心跳调度：tick 30s，state.db 原子领取同一到期时刻并推进 next_run；积压策略、投递 outbox/未知结果和 context_from 产物绑定待 D17
+- 心跳调度：tick 30s，state.db 原子领取同一到期时刻并推进 next_run；任务可编辑（乐观 revision）；成败只看执行器是否抛异常（run_turn 结构化状态）；积压策略、投递 outbox/未知结果和 context_from 产物绑定待 D17 续做
 
 ### 4.3 通道与界面
 - **Web 工作台**（`channels/web.py` + `web_static/index.html` 单文件前端）：
@@ -160,8 +160,13 @@ MCP stdio 已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。
 
 ### 当前开发顺序（以最新台账与工作区为准）
 
-1. **D16 安卓闭环**：设备/观察版本绑定，旧 idx 失效拒绝，动作后新观察与验证。D15 图像消息、MJPEG 半分辨率 JPEG q40 已有，真实视觉效果和安卓联调仍待验。
-2. **D17 cron**：revision 编辑、积压治理、run/产物依赖、投递账本与去重；unknown 不能自动重发。夜间整理→早报列为真实验收。
+1. **D16 安卓闭环（离线部分已完成）**：观察绑定点击已交付——tap_element 必须带 screen_tree 的
+   `obs=<id>`，点击前复核界面、不一致不点、点后强制复检；旧 idx 绝不点新元素（A12 关闭）。
+   两设备交错/旋转/ADB 断连复检/中文输入恢复待**插真机**验收；真实视觉效果和 MJPEG 带宽同。
+2. **D17 cron（第一批已完成）**：任务编辑（工作台「编辑」按钮 + `cron_edit` 工具，字段级
+   "没传=不改、null=清除"，expected_revision 乐观并发）；成败判定去前缀化（只看执行器是否
+   抛异常，run_turn 结构化状态，失败回合不进 review）。**剩余**：积压治理、投递 outbox/去重
+   （unknown 不自动重发）、context_from 绑定具体 run/产物、显式时区。夜间整理→早报列为真实验收。
 3. **D18 技能工作台**：沿用历史/CAS，补编辑、差异、回滚、候选变更与隔离安装。
 4. **D19 MCP 管理**：stdio 状态、schema/权限漂移、生产验证；远程 HTTP/OAuth 可独立后置。
 5. **D25/D26 运维与回归持续推进**：进程身份、备份恢复、CI/任务评测及内核剩余项；D27 完成必要真实验收与 72 小时常驻。
