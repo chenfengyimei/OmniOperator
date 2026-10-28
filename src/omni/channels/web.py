@@ -38,6 +38,7 @@ from ..llm.gateway import GatewayError
 from ..llm.usage import MICRO
 from ..memory.cron import CronError, Job, compute_next_run, to_iso
 from ..memory.artifacts import ArtifactError
+from ..tools.mcp.client import MCPError
 from ..memory.store import PROFILE_MAX_CHARS
 from ..safety.gates import WebApprover, private_target_allowed
 from ..memory.state import StateConflict, StateUnavailable
@@ -944,6 +945,32 @@ def create_app(runtime: Runtime) -> FastAPI:
         return {"ok": ok}
 
     # ---------- 系统控制台（本地服务 / 配置，可视化运维） ----------
+
+    # ---------- MCP 外部工具面板（D19：状态只读，工具目录才是用户触发的发现） ----------
+
+    @app.get("/api/mcp/overview")
+    def mcp_overview() -> dict[str, Any]:
+        """全部已配置 MCP 服务的状态：纯派生，**不启动任何服务**。
+
+        停用的服务也在这里可见（面板能看到"配置过但停了"，而不是查无此人）。
+        """
+        return {"servers": runtime.mcp.status()}
+
+    @app.get("/api/mcp/{server}/tools")
+    def mcp_tools(server: str, limit: int = 50) -> dict[str, Any]:
+        """工具目录：会**真实启动该服务**做一次只读发现（用户点了按钮才算数）。
+
+        返回的 approval 标记用户配置的白名单判定：safe=只读白名单（模型直调），
+        human=需要人工确认；服务自报的 readOnlyHint 不参与授权。
+        """
+        try:
+            rows = runtime.mcp.list_tools(server)
+        except MCPError as exc:
+            message = str(exc)
+            if "未配置" in message or "未启用" in message:
+                raise HTTPException(status_code=404, detail=message)
+            raise HTTPException(status_code=409, detail=message)
+        return {"server": server, "total": len(rows), "tools": rows[: max(1, min(limit, 100))]}
 
     @app.get("/api/system/overview")
     def system_overview() -> dict[str, Any]:

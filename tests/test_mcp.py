@@ -268,3 +268,126 @@ def test_runtime_isolates_all_data_and_mcp_logs(tmp_path):
     finally:
         runtime.close_mcp()
         runtime.store.close()
+
+
+# ---------- D19 第一批：状态面板（纯派生，不启动服务） ----------
+
+
+def test_mcp_status_is_pure_and_includes_disabled(tmp_path, monkeypatch):
+    script = tmp_path / "server.py"
+    script.write_text(SERVER, encoding="utf-8")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "x")
+    pid_file = tmp_path / "child.pid"
+    cfg = MCPConfig(servers={
+        "demo": MCPServerConfig(
+            command=sys.executable, args=["-u", str(script)],
+            env={"PID_FILE": str(pid_file), "MARKER": str(tmp_path / "writes.txt")},
+            read_only_tools=["echo"],
+        ),
+        "off": MCPServerConfig(command="must-not-start", enabled=False),
+    })
+    manager = MCPManager(cfg, tmp_path / "logs")
+    try:
+        rows = manager.status()
+        by_name = {r["name"]: r for r in rows}
+        assert set(by_name) == {"demo", "off"}
+        assert by_name["demo"]["state"] == "idle" and by_name["demo"]["enabled"] is True
+        assert by_name["demo"]["read_only_count"] == 1 and by_name["demo"]["allowed_count"] is None
+        assert by_name["off"]["state"] == "disabled" and by_name["off"]["enabled"] is False
+        # idle 状态必须是纯派生：没有起任何子进程
+        assert not pid_file.exists()
+
+        # 真实发现后 → ready；只读标记按用户白名单判定（fixture 里工具全部自报 readOnlyHint）
+        tools = manager.list_tools("demo")
+        assert {t["name"] for t in tools} >= {"echo", "write"}
+        marks = {t["name"]: t["approval"] for t in tools}
+        assert marks["echo"] == "safe" and marks["write"] == "human"
+        assert manager.status()[0]["state"] == "ready"
+
+        # 失败后 → failed，错误可见（missing.exe 起不来）
+        bad = MCPManager(
+            MCPConfig(servers={"broken": MCPServerConfig(command=str(tmp_path / "missing.exe"))}),
+            tmp_path / "logs",
+        )
+        try:
+            with pytest.raises(MCPError):
+                bad.list_tools("broken")
+            assert bad.status()[0]["state"] == "failed"
+            assert bad.status()[0]["last_error"]
+        finally:
+            bad.close()
+    finally:
+        manager.close()
+
+
+def test_mcp_web_panel_overview_and_tools(tmp_path, monkeypatch):
+    """面板端点：overview 纯只读（不启动服务）；tools 是用户触发的真实发现。"""
+    from fastapi.testclient import TestClient
+
+    from omni.channels.web import create_app
+
+    script = tmp_path / "server.py"
+    script.write_text(SERVER, encoding="utf-8")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "x")
+    pid_file = tmp_path / "child.pid"
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        "persona:\n  name: panel\n"
+        "mcp:\n  servers:\n"
+        "    demo:\n"
+        f"      command: {json.dumps(sys.executable)}\n"
+        f"      args: [{json.dumps('-u')}, {json.dumps(str(script))}]\n"
+        "      env:\n"
+        f"        PID_FILE: {json.dumps(str(pid_file))}\n"
+        f"        MARKER: {json.dumps(str(tmp_path / 'writes.txt'))}\n"
+        '      read_only_tools: ["echo"]\n'
+        "    broken:\n"
+        "      command: must-not-exist-xyz\n"
+        '    "off":\n'  # YAML1.1 里裸 off 是布尔，服务名必须带引号
+        "      command: must-not-start\n"
+        "      enabled: false\n",
+        encoding="utf-8",
+    )
+    runtime = build_runtime(
+        approver=DenyApprover(),
+        db_path=tmp_path / "m.db",
+        config_path=config_path,
+        skills_root=tmp_path / "skills",
+        data_dir=tmp_path / "data",
+    )
+    try:
+        app = create_app(runtime)
+        client = TestClient(app, base_url="http://127.0.0.1")
+        assert client.post(
+            "/api/auth/pair", json={"code": app.state.web_auth.pairing_code}
+        ).status_code == 200
+
+        # overview：三个服务都在（含停用与坏命令），状态纯派生
+        rows = client.get("/api/mcp/overview").json()["servers"]
+        by_name = {s["name"]: s for s in rows}
+        assert set(by_name) == {"demo", "broken", "off"}
+        assert by_name["demo"]["state"] == "idle"
+        assert by_name["off"]["state"] == "disabled"
+        assert by_name["broken"]["command"] == "must-not-exist-xyz"
+        assert not pid_file.exists()  # GET 状态没有任何启动副作用
+
+        # tools：真实 stdio 发现；授权标记来自用户白名单，不来自服务自报
+        payload = client.get("/api/mcp/demo/tools").json()
+        assert payload["total"] >= 2
+        marks = {t["name"]: t["approval"] for t in payload["tools"]}
+        assert marks["echo"] == "safe" and marks["write"] == "human"
+        # 发现之后 overview 反映 ready
+        assert {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}[
+            "demo"
+        ]["state"] == "ready"
+
+        # 坏命令：如实 409 + 状态变 failed；未知服务 404；停用服务不参与发现
+        assert client.get("/api/mcp/broken/tools").status_code == 409
+        assert {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}[
+            "broken"
+        ]["state"] == "failed"
+        assert client.get("/api/mcp/ghost/tools").status_code == 404
+        assert client.get("/api/mcp/off/tools").status_code == 404
+    finally:
+        runtime.close_mcp()
+        runtime.store.close()

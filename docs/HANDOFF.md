@@ -23,7 +23,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`；`3a1c536` 台账记录 **614 全绿**，工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH（本机需 `D:\tools\platform-tools` 在 PATH 上，否则 `test_safe_allows_known_readonly_commands` 一例环境性失败），需在 D26 消除环境依赖，详见完整计划 §0。
+- 测试：`uv run pytest`；台账记录 **616 全绿**（2026-10-28 可视化批次），工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH（本机需 `D:\tools\platform-tools` 在 PATH 上，否则 `test_safe_allows_known_readonly_commands` 一例环境性失败），需在 D26 消除环境依赖，详见完整计划 §0。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -94,8 +94,11 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 
 ### 4.3 通道与界面
 - **Web 工作台**（`channels/web.py` + `web_static/index.html` 单文件前端）：
-  会话 / 聊天 / 右侧七页（记忆·档案·常驻·待办·Review·技能·产物）/ 工具列表 / 服务面板 / 扫码弹窗 /
-  设置中心（人设·模型·记忆·B站与转写·浏览器·QQ·定时任务（含新建表单+执行历史）·关于）/
+  会话 / 聊天（**运行进度实时可视化**：等待期间显示每步模型调用与工具执行、可一键停止本回合，回复带费用标签）/
+  右侧七页（记忆·档案·常驻·待办·Review·技能·产物）/ 工具列表 / 服务面板 / 扫码弹窗 /
+  设置中心（人设·模型·记忆·B站与转写·浏览器·QQ·定时任务（含编辑表单+执行历史）·
+  **用量**（今日花费/剩余额度/用途汇总/调用流水/模型能力）·
+  **MCP**（服务状态/工具目录/只读与需确认授权标记，D19 第一批）·关于）/
   **内置终端**（xterm.js + ConPTY，header「⌨ 终端」）/ **安卓手机页**（MJPEG 看屏 + 点屏下发 + UI 树）
   / **配对身份**（`channels/web_auth.py`：控制台配对链接 → HttpOnly 会话 cookie；Host/Origin/CSRF 三级校验；
   终端 WS 握手鉴权；设置接口只回「密钥是否已配置」）/ **产物面板**（缩略图 + 大图 + 手动清理；
@@ -170,7 +173,10 @@ MCP stdio 已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。
 3. **D18 技能工作台（第一批已完成）**：技能页可编辑——保存带指纹 CAS（冲突拒绝）、
    历史/差异/回滚（回滚产生新修订）、修订里 author/source 可区分用户手改与 agent 修改。
    **剩余**：候选变更/差异确认队列（D12 转入）、外来包隔离安装。
-4. **D19 MCP 管理**：stdio 状态、schema/权限漂移、生产验证；远程 HTTP/OAuth 可独立后置。
+4. **D19 MCP 管理（第一批已完成）**：工作台「MCP」页——服务状态（idle/握手/已连接/失败/停用，
+   纯派生不启动服务）、工具目录与授权标记（只读白名单 🟢 / 需确认 🟡，只认用户配置）。
+   **剩余**：schema 指纹漂移检测（服务升级后重新检查只读授权）、面板手动重连、生产服务联调；
+   远程 HTTP/OAuth 可独立后置。
 5. **D25/D26 运维与回归持续推进**：进程身份、备份恢复、CI/任务评测及内核剩余项；D27 完成必要真实验收与 72 小时常驻。
 6. **R5/R6 扩展**：桌面逐应用验证后台/前台能力、QQ 受控主动性、B 站人工批准 UI 写、FTS+向量混合检索。不要承诺 SendInput 对所有软件后台不抢焦点，也不直接用向量替代 FTS。
 

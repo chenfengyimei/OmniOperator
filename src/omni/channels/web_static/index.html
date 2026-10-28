@@ -47,6 +47,11 @@ ul{list-style:none;overflow-y:auto}
 .copy-msg{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;opacity:0;transition:opacity .15s;align-self:center;padding:2px 7px;margin:0 2px}
 .msg:hover .copy-msg{opacity:1}
 .copy-msg:hover{color:var(--accent)}
+.run-feed{max-height:170px;overflow-y:auto;font-size:12px;line-height:1.75;margin-top:8px;display:flex;flex-direction:column;gap:1px}
+.run-feed.hidden{display:none}
+.feed-line{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-line:last-child{color:var(--text)}
+.cost-tag{font-size:10.5px;color:var(--dim);margin-top:4px;opacity:.85;user-select:none}
 #composer{display:flex;gap:10px;padding:12px;border-top:1px solid var(--border)}
 #input{flex:1;resize:none;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font:inherit;max-height:140px}
 #input:focus{outline:none;border-color:var(--accent)}
@@ -315,6 +320,8 @@ ul{list-style:none;overflow-y:auto}
       <a data-go="sec-browser">浏览器</a>
       <a data-go="sec-qq">QQ</a>
       <a data-go="sec-cron">定时任务</a>
+      <a data-go="sec-usage">用量</a>
+      <a data-go="sec-mcp">MCP</a>
       <a data-go="sec-about">关于</a>
     </nav>
     <div class="hub-body">
@@ -407,6 +414,22 @@ ul{list-style:none;overflow-y:auto}
         <div class="hint">最近的任务执行记录（成功与失败都记账，滚动保留 200 条）。</div>
         <div id="cron-history"></div>
       </div>
+      <div class="hub-card" id="sec-usage">
+        <h3>模型用量与费用</h3>
+        <div class="hint">每日额度保护钱包：超限会在发请求前被拦。金额为 0 或 null 不是一回事——null 表示这笔算不出来（单价未知），按保守记账。</div>
+        <div id="usage-today" style="margin-top:10px"></div>
+        <h4 style="margin-top:16px">按用途汇总（最近 7 天）</h4>
+        <div id="usage-purpose"></div>
+        <h4 style="margin-top:16px">最近调用流水</h4>
+        <div id="usage-calls"></div>
+        <h4 style="margin-top:16px">模型能力声明（能力不声明就不放行）</h4>
+        <div id="usage-models"></div>
+      </div>
+      <div class="hub-card" id="sec-mcp">
+        <h3>MCP 外部工具</h3>
+        <div class="hint">本地 stdio 服务接入的外部工具：用户配置的只读白名单自动放行，其余一律人工确认——服务自报的"安全"标注不作数。「查看工具」会真实启动该服务做一次只读发现。配置方法见 docs/MCP.md（config.yaml 的 mcp 段）。</div>
+        <div id="mcp-list" style="margin-top:10px"></div>
+      </div>
       <div class="hub-card" id="sec-about">
         <h3>关于</h3>
         <div class="hint">OmniOperator · 像人一样生活在平台里的具身智能体。架构与红线见 docs/ARCHITECTURE.md；<br>一切花钱/发布/群发/加好友操作必须经你确认后才执行。</div>
@@ -434,8 +457,10 @@ async function api(path,opts){
 async function loadState(){
   const s=await api('/api/state');currentSession=s.session_id;
   $('#chips').innerHTML=`<span class="chip">${esc(s.persona)}</span><span class="chip">${esc(s.model)}</span>`+
+    `<span class="chip" id="cost-chip" title="今日模型花费（点设置中心「用量」看明细）">…</span>`+
     (s.fts_enabled?'<span class="chip ok">FTS5</span>':'<span class="chip">FTS ✗</span>')+
     (s.review_enabled?'<span class="chip ok">自进化 Review</span>':'');
+  updateCostChip();
   $('#status').innerHTML=`当前模型<br><b>${esc(s.model)}</b><br>能力域<br><b>${esc(s.toolsets.join(' / '))}</b><br>用户档案 <b>${s.profile.used}/${s.profile.max}</b> 字符`;
   $('#tools').innerHTML=s.tools.map(t=>
     `<li><span class="tool-name" title="${esc(t.description||t.name)}">${esc(t.name)}</span><span class="tool-set">${esc(t.toolset)}·${esc(t.risk)}</span></li>`).join('');
@@ -470,14 +495,128 @@ $('#messages').addEventListener('click',async e=>{
 });
 function scrollChat(){const el=$('#messages');el.scrollTop=el.scrollHeight}
 
+// ---------- 模型用量（D10 账本的可视化；金额单位是微美元，1e6 = $1） ----------
+const usd=m=>m==null?'—':(m>=1e6?`$${(m/1e6).toFixed(2)}`:`$${(m/1e6).toFixed(4)}`);
+window.updateCostChip=async()=>{
+  const chip=$('#cost-chip');if(!chip)return;
+  try{
+    const d=await api('/api/llm/usage?limit=1');
+    const used=d.today.used_micro||0;
+    chip.textContent=d.today.limit_micro!=null
+      ?`今日 ${usd(used)} / ${usd(d.today.limit_micro)}`
+      :`今日 ${usd(used)}（未设上限）`;
+    if(d.today.limit_micro!=null&&d.today.remaining_micro!=null&&d.today.remaining_micro<=0){
+      chip.style.color='#f87171';
+    }else if(d.today.limit_micro!=null&&d.today.remaining_micro!=null
+             &&d.today.remaining_micro<d.today.limit_micro*0.1){
+      chip.style.color='#fbbf24';
+    }else{chip.style.color=''}
+  }catch(e){chip.textContent='今日 ？'}
+};
+
+async function loadUsage(){
+  const d=await api('/api/llm/usage?days=7&limit=15');
+  const t=d.today;
+  const failures=(d.summary.by_purpose||[]).reduce((s,p)=>s+(p.failures||0),0);
+  $('#usage-today').innerHTML=
+    `<div class="cron-row"><span class="c-name">今日 ${usd(t.used_micro)}</span>`+
+    `<span class="c-sched">${d.summary.calls||0} 次（7 天）${d.summary.unknown_cost?' · '+d.summary.unknown_cost+' 笔算不出费用':''}${failures?' · '+failures+' 次失败':''}</span>`+
+    `<span>${t.limit_micro!=null?'剩余 '+usd(t.remaining_micro):'未设上限（只记账不拦截）'}</span></div>`+
+    (d.per_run_limit_micro?`<div class="hint" style="margin-top:6px">单回合上限 ${usd(d.per_run_limit_micro)}（父子运行共享）</div>`:'');
+  $('#usage-purpose').innerHTML=d.summary.by_purpose.length?d.summary.by_purpose.map(p=>
+    `<div class="cron-row"><span class="c-name">${esc(p.purpose)}</span>`+
+    `<span class="c-sched">${p.calls} 次 · ${p.failures?p.failures+' 失败 · ':''}${p.unknown_cost?p.unknown_cost+' 笔未知价 · ':''}${usd(p.cost_micro)}</span>`+
+    `</div>`).join(''):'<div class="empty">最近 7 天没有调用</div>';
+  $('#usage-calls').innerHTML=d.calls.length?d.calls.map(c=>
+    `<div class="cron-row"><span class="c-name" style="flex:0 0 auto">${c.outcome==='ok'?'✅':'❌'}</span>`+
+    `<span class="c-sched">${esc((c.model||'').split('/').pop())} · ${esc(c.purpose)} · ${(c.prompt_tokens||0)+(c.completion_tokens||0)} tok${c.attempts>1?' · 重试'+c.attempts:''}</span>`+
+    `<span style="color:var(--dim);font-size:11.5px">${c.cost_known?usd(c.cost_micro):'价格未知'}</span></div>`).join('')
+    :'<div class="empty">还没有调用记录</div>';
+  const models=Object.entries(d.models||{});
+  $('#usage-models').innerHTML=models.length?models.map(([name,cap])=>
+    `<div class="cron-row"><span class="c-name" style="overflow:hidden;text-overflow:ellipsis">${esc(name)}</span>`+
+    `<span class="c-sched">${cap.vision?'视觉 ':''}${cap.tools?'工具 ':''}${cap.stream?'流式 ':''}${cap.context_tokens?cap.context_tokens+' ctx':''}</span>`+
+    `<span>${cap.input_usd_per_m!=null?'$'+cap.input_usd_per_m+'/M in':''}</span></div>`).join('')
+    :'<div class="empty">没有能力声明（默认：支持工具、不支持视觉）</div>';
+}
+
+// ---------- 运行进度可视化：等待回复期间轮询本会话进行中的 run（D09 端点，只读） ----------
+let runWatch=null; // {timer, runId, seq, polling}：轮询器；chat 返回/出错即停
+
+function renderRunEvent(ev){
+  const d=ev.data||{};
+  switch(ev.kind){
+    case 'model_start':return `🧠 调用模型（第 ${d.step} 步）`;
+    case 'model_end':return d.model?`🧠 ${d.model} 返回`:'🧠 模型返回';
+    case 'tool':return `🔧 ${d.name}${d.status&&d.status!=='ok'?' · '+d.status:''}`;
+    case 'context_summary':return '📜 旧历史已压缩为摘要';
+    case 'image_attached':return `🖼 已把截图发给模型（${d.width}x${d.height}）`;
+    case 'final_call':return '🏁 步数预算用尽，收敛最终回答';
+    case 'budget':return d.cost_micro!=null?`💰 本回合 $${(d.cost_micro/1e6).toFixed(4)}`:'💰 已记账';
+    case 'answer':return '✅ 回答完成';
+    case 'cancelled':return '✋ 已取消';
+    case 'budget_blocked':return `⛔ 预算拦截：${d.message||''}`;
+    case 'failed':return `❌ ${d.error||'失败'}`;
+    default:return `· ${ev.kind}`;
+  }
+}
+
+function stopRunWatch(){
+  if(runWatch&&runWatch.timer)clearInterval(runWatch.timer);
+  runWatch=null;
+  const stop=$('#run-stop');if(stop)stop.classList.add('hidden');
+}
+
+async function pollRunProgress(sid){
+  if(!runWatch||runWatch.polling)return; // 响应慢于 1s 时不叠加重叠请求，避免事件重复渲染
+  runWatch.polling=true;
+  try{
+    const d=await api(`/api/runs?session_id=${sid}&limit=5`);
+    const active=d.runs.find(r=>['queued','running','waiting_approval','cancelling'].includes(r.status));
+    const feed=$('#run-feed');
+    if(!feed)return;
+    if(active){
+      runWatch.runId=active.run_id;
+      const stop=$('#run-stop');
+      if(stop)stop.classList.remove('hidden');
+      const ev=await api(`/api/runs/${active.run_id}/events?after=${runWatch.seq}`);
+      if(ev.events.length)feed.classList.remove('hidden');
+      for(const e of ev.events){
+        runWatch.seq=e.seq;
+        const line=document.createElement('div');
+        line.className='feed-line';
+        line.textContent=renderRunEvent(e);
+        feed.appendChild(line);
+      }
+      feed.scrollTop=feed.scrollHeight;
+    }
+  }catch(e){/* 轮询失败不影响聊天本身，下一轮再试 */}
+  finally{if(runWatch)runWatch.polling=false}
+}
+
+window.cancelCurrentRun=async()=>{
+  if(!runWatch||!runWatch.runId)return;
+  if(!confirm('停止当前回合？正在等待的模型请求会在返回后停下；已经发生的工具副作用不会被撤销。'))return;
+  try{await api(`/api/runs/${runWatch.runId}/cancel`,{method:'POST'})}catch(e){alert(e.message)}
+};
+
 async function sendMessage(){
   const box=$('#input'),text=box.value.trim();
   if(!text||busy)return;
   busy=true;$('#send').disabled=true;$('#send').textContent='思考中…';box.value='';
   $('#messages').insertAdjacentHTML('beforeend',
     `<div class="msg user"><div class="bubble">${esc(text)}</div></div>`+
-    `<div class="msg assistant" id="thinking"><div class="bubble thinking">思考中<span class="dot">·</span><span class="dot">·</span><span class="dot">·</span></div></div>`);
+    `<div class="msg assistant" id="thinking"><div class="bubble thinking">`+
+    `思考中<span class="dot">·</span><span class="dot">·</span><span class="dot">·</span>`+
+    `<div id="run-feed" class="run-feed hidden"></div>`+
+    `<button id="run-stop" class="svc-btn hidden" style="margin-top:6px" onclick="cancelCurrentRun()">■ 停止本回合</button>`+
+    `</div></div>`);
   scrollChat();
+  // 已知会话才轮询（首条消息的会话 id 要等响应回来才知道）
+  if(currentSession!=null){
+    runWatch={timer:setInterval(()=>pollRunProgress(currentSession),1000),runId:null,seq:0};
+    pollRunProgress(currentSession);
+  }
   try{
     const d=await api('/api/chat',{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -485,12 +624,27 @@ async function sendMessage(){
     });
     currentSession=d.session_id;
     await loadMessages();refreshMemory();loadSessions();
+    // 回合状态与费用直接标在最后一条回复上（loadMessages 拿不到这些）
+    const bubbles=[...document.querySelectorAll('#messages .msg.assistant .bubble')];
+    const last=bubbles[bubbles.length-1];
+    if(last){
+      if(d.status==='cancelled'){
+        const n=document.createElement('div');n.className='cost-tag';n.textContent='（本回合已停止）';last.appendChild(n);
+      }else if(d.status==='failed'){
+        const n=document.createElement('div');n.className='cost-tag';n.textContent=`（回合失败${d.error_code?'：'+d.error_code:''}）`;last.appendChild(n);
+      }
+      if(d.cost_micro!=null&&d.cost_micro>0){
+        const n=document.createElement('div');n.className='cost-tag';n.textContent=`$${(d.cost_micro/1e6).toFixed(4)}`;last.appendChild(n);
+      }
+      scrollChat();
+    }
   }catch(e){
     const t=$('#thinking');if(t)t.remove();
     $('#messages').insertAdjacentHTML('beforeend',
       `<div class="msg assistant"><div class="bubble">⚠ ${esc(e.message)}</div></div>`);
     scrollChat();
   }
+  stopRunWatch();
   busy=false;$('#send').disabled=false;$('#send').textContent='发送';box.focus()
 }
 
@@ -681,7 +835,7 @@ window.toggleTodo=async(id,done)=>{
       body:JSON.stringify({session_id:currentSession,todo_id:id,done})});
   }catch(e){loadTodos()}
 };
-function refreshMemory(){loadFacts();loadProfile();loadResident();loadTodos();loadReviews();loadSkills();loadArtifacts()}
+function refreshMemory(){loadFacts();loadProfile();loadResident();loadTodos();loadReviews();loadSkills();loadArtifacts();updateCostChip()}
 
 async function pollApprovals(){
   try{
@@ -774,7 +928,42 @@ window.loadQR=async()=>{
 // ---------- 设置中心 ----------
 window.openHub=async()=>{
   $('#hub').classList.remove('hidden');
-  try{await loadHubConfig();loadCookies();loadCron()}catch(e){$('#hub-msg').textContent=e.message}
+  try{await loadHubConfig();loadCookies();loadCron();loadUsage();loadMcp()}catch(e){$('#hub-msg').textContent=e.message}
+};
+
+// ---------- MCP 面板（D19）：状态纯只读；「查看工具」才触发真实发现 ----------
+const mcpStateText=s=>s.state==='ready'?'<span style="color:#34d399">已连接</span>':
+  s.state==='starting'?'<span style="color:#fbbf24">握手中…</span>':
+  s.state==='failed'?'<span style="color:#f87171">失败（已停用）</span>':
+  s.state==='closed'?'已关闭':s.state==='disabled'?'<span style="color:var(--dim)">已停用</span>':'未启动';
+async function loadMcp(){
+  try{
+    const d=await api('/api/mcp/overview');
+    $('#mcp-list').innerHTML=d.servers.length?d.servers.map(s=>
+      `<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:8px">`+
+      `<div class="cron-row"><span class="c-name">${esc(s.name)}</span>`+
+      `<span class="c-sched">${mcpStateText(s)} · 超时 ${s.timeout_s}s · 只读白名单 ${s.read_only_count} 个`+
+      `${s.allowed_count!=null?' · 工具白名单 '+s.allowed_count+' 个':' · 发现不限（逐个确认）'}</span>`+
+      (s.state==='disabled'?'':`<button class="svc-btn" onclick="mcpTools('${esc(s.name)}')">查看工具</button>`)+
+      `</div>`+
+      `<div class="hint" style="margin-top:4px">${esc(s.command)}${(s.args||[]).length?' '+esc(s.args.join(' ')):''}</div>`+
+      (s.last_error?`<div class="hint" style="color:#f87171;margin-top:2px">${esc(s.last_error)}</div>`:'')+
+      `<div id="mcp-tools-${esc(s.name)}"></div></div>`).join('')
+      :'<div class="empty">还没有配置 MCP 服务（docs/MCP.md · config.yaml 的 mcp.servers 段）</div>';
+  }catch(e){$('#mcp-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+}
+window.mcpTools=async(name)=>{
+  const box=document.getElementById('mcp-tools-'+name);
+  if(!box)return;
+  box.innerHTML='<div class="hint">发现中…（首次会启动该服务，可能要几秒）</div>';
+  try{
+    const d=await api('/api/mcp/'+encodeURIComponent(name)+'/tools');
+    box.innerHTML=d.tools.length?d.tools.map(t=>
+      `<div class="cron-row"><span class="c-name" style="flex:0 0 auto">${t.approval==='safe'?'🟢':'🟡'}</span>`+
+      `<span class="c-sched">${esc(t.name)}${t.description?' · '+esc(String(t.description).slice(0,90)):''}</span>`+
+      `<span style="color:var(--dim);font-size:11px">${t.approval==='safe'?'只读白名单':'调用需人工确认'}</span></div>`).join('')
+      :'<div class="hint">该服务没有声明工具</div>';
+  }catch(e){box.innerHTML='<div class="hint" style="color:#f87171">'+esc(e.message)+'</div>'}
 };
 function closeHub(){$('#hub').classList.add('hidden')}
 window.closeHub=closeHub;

@@ -52,6 +52,7 @@ class MCPConnection:
         self._wakeup: asyncio.Event | None = None
         self._failure = ""
         self._closed = False
+        self._ready = False  # 会话握手完成（面板把"启动中"和"已连接"分开说）
 
     def request(self, operation: str, arguments: dict[str, Any]) -> Any:
         with self._call_lock:
@@ -119,6 +120,8 @@ class MCPConnection:
                 self._log_dir.mkdir(parents=True, exist_ok=True)
                 with (self._log_dir / f"{self.name}.log").open("a", encoding="utf-8") as log:
                     async with Client(stdio_client(params, errlog=log), read_timeout_seconds=self.config.timeout_s) as client:
+                        with self._state_lock:
+                            self._ready = True
                         while True:
                             try:
                                 item = self._queue.get_nowait()
@@ -151,6 +154,8 @@ class MCPConnection:
                     "执行结果可能未知，请检查本地 MCP 日志及实际状态后重启入口"
                 )
         finally:
+            with self._state_lock:
+                self._ready = False
             error = MCPError(self._failure or "MCP 连接已关闭")
             if active is not None and not active.done():
                 active.set_exception(error)
@@ -161,6 +166,34 @@ class MCPConnection:
                     break
                 if pending is not None and not pending[2].done():
                     pending[2].set_exception(error)
+
+    def status(self) -> dict[str, Any]:
+        """面板可读状态；纯派生，**不触发连接**——GET 状态不得有启动副作用。
+
+        state 取值：idle（从未启动）/ starting（握手中）/ ready（会话可用）/
+        failed（失败停用，见 last_error）/ closed（入口关闭时主动收尾）。
+        """
+        with self._state_lock:
+            state = (
+                "closed" if self._closed
+                else "failed" if self._failure
+                else "ready" if self._ready
+                else "starting" if self._thread is not None
+                else "idle"
+            )
+            failure = self._failure
+        cfg = self.config
+        return {
+            "name": self.name,
+            "enabled": True,
+            "state": state,
+            "command": cfg.command,
+            "args": list(cfg.args),
+            "timeout_s": cfg.timeout_s,
+            "allowed_count": None if cfg.allowed_tools is None else len(cfg.allowed_tools),
+            "read_only_count": len(cfg.read_only_tools),
+            "last_error": failure or "",
+        }
 
     @staticmethod
     async def _catalog(client: Any) -> list[dict[str, Any]]:
@@ -221,11 +254,34 @@ class MCPManager:
     """管理显式配置的服务；读白名单由用户配置决定，不相信服务自报的安全标注。"""
 
     def __init__(self, config: MCPConfig, log_dir: Path) -> None:
+        self._config = config  # 停用的服务也要在面板可见（不是"配置了却查无此人"）
         self._connections = {name: MCPConnection(name, cfg, log_dir)
                              for name, cfg in config.servers.items() if cfg.enabled}
 
     def servers(self) -> list[str]:
         return sorted(self._connections)
+
+    def status(self) -> list[dict[str, Any]]:
+        """全部已配置服务（含 enabled=false 的）：停用条目纯配置展示，不建连接。"""
+        rows: list[dict[str, Any]] = []
+        for name in sorted(self._config.servers):
+            conn = self._connections.get(name)
+            if conn is not None:
+                rows.append(conn.status())
+                continue
+            cfg = self._config.servers[name]
+            rows.append({
+                "name": name,
+                "enabled": False,
+                "state": "disabled",
+                "command": cfg.command,
+                "args": list(cfg.args),
+                "timeout_s": cfg.timeout_s,
+                "allowed_count": None if cfg.allowed_tools is None else len(cfg.allowed_tools),
+                "read_only_count": len(cfg.read_only_tools),
+                "last_error": "",
+            })
+        return rows
 
     def _connection(self, server: str) -> MCPConnection:
         if server not in self._connections:
