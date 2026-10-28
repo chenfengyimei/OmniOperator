@@ -208,11 +208,17 @@ ul{list-style:none;overflow-y:auto}
         <button data-tab="reviews">Review</button>
         <button data-tab="skills">技能</button>
         <button data-tab="artifacts">产物</button>
+        <button data-tab="desktop">桌面</button>
       </div>
       <div id="tab-facts" class="tab-body">
         <input id="fact-q" placeholder="搜索事实记忆…">
         <div id="retrieval-state" class="hint" style="padding:6px 10px"></div>
         <ul id="facts-list"></ul>
+      </div>
+      <div id="tab-desktop" class="tab-body hidden">
+        <button class="svc-btn" onclick="loadDesktop()">刷新允许的窗口</button>
+        <div class="hint">先观察，再在聊天中请求编辑；每次桌面写入都需要确认。</div>
+        <div id="desktop-windows"></div><div id="desktop-tree"></div>
       </div>
       <div id="tab-profile" class="tab-body hidden"><div id="profile-usage"></div><ul id="profile-list"></ul></div>
       <div id="tab-resident" class="tab-body hidden">
@@ -679,6 +685,20 @@ async function loadFacts(){
   const d=await api('/api/facts?q='+encodeURIComponent(q));
   $('#facts-list').innerHTML=d.facts.length?d.facts.map(f=>`<li>${esc(f)}</li>`).join(''):'<li class="empty">暂无记忆</li>';
 }
+window.loadDesktop=async()=>{
+  try{
+    const d=await api('/api/desktop/windows');
+    $('#desktop-windows').innerHTML=!d.enabled?'<div class="empty">桌面未启用。请配置 desktop.enabled 与 allowed_apps（完整应用路径）。</div>':
+      d.windows.map(w=>`<div class="cron-row"><span>${esc(w.title)}</span><button class="svc-btn" onclick="observeDesktop(${Number(w.hwnd)})">观察</button></div>`).join('')||'<div class="empty">未找到允许的窗口</div>';
+  }catch(e){$('#desktop-windows').textContent=e.message}
+};
+window.observeDesktop=async(windowId)=>{
+  try{
+    const d=await api('/api/desktop/observe/'+windowId);
+    $('#desktop-tree').innerHTML=`<div class="hint">${esc(d.state.identity.title)} · ${d.state.dpi} DPI${d.state.minimized?' · 已最小化':''}</div>`+
+      d.state.nodes.filter(n=>n.name||n.value).map(n=>`<div style="padding:6px;border-bottom:1px solid var(--border)"><b>${esc(n.name||n.role)}</b>${n.set_value?' · 可受控编辑':''}<div style="white-space:pre-wrap">${esc(n.value||'')}</div></div>`).join('');
+  }catch(e){$('#desktop-tree').textContent=e.message}
+};
 async function loadProfile(){
   const d=await api('/api/profile');
   window._profileLines=d.lines;

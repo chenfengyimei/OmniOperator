@@ -1499,6 +1499,24 @@ def create_app(runtime: Runtime) -> FastAPI:
             return {"enabled": False, "mode": "fts"}
         return {"enabled": True, "mode": "hybrid", **runtime.retrieval.status()}
 
+    @app.get("/api/desktop/windows")
+    def desktop_windows() -> dict[str, Any]:
+        if runtime.desktop is None or not runtime.config.desktop.enabled:
+            return {"enabled": False, "windows": []}
+        try:
+            return {"enabled": True, **runtime.desktop.windows()}
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+
+    @app.get("/api/desktop/observe/{window}")
+    def desktop_observe(window: int, session_id: int | None = None) -> dict[str, Any]:
+        if runtime.desktop is None:
+            raise HTTPException(status_code=503, detail="桌面能力不可用")
+        try:
+            return runtime.desktop.observe(window, session_id=session_id)
+        except Exception as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+
     # ---------- 安卓工作台（MJPEG 看屏 + UI 树 + 点击下发，NOTES §2.3 最低成本方案） ----------
 
     @app.get("/api/android/state")

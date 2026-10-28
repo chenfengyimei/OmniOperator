@@ -54,6 +54,11 @@ D24 新增组装根对象：`EmbeddingProvider`（llm 出口与费用协议）�
 派生索引）、`HybridMemory`（core 检索融合与索引 worker），同样只在 bootstrap 构造。
 tools 接收检索回调，不 import core/llm。向量与原事实同库，删除触发器不依赖扩展加载；
 sqlite-vec 加载权限只在初始化短暂开放。数据路径沿用注入的 memory_path。
+
+D20/D21：tools/desktop 拥有 UIAutomation 后端、观察缓存与动作验证。
+`WindowsDesktopBackend`/`DesktopDriver` 只在 bootstrap 构造；跨进程租约和独立
+desktop_write 预算由组装根注入，不 import browser/core。截图共用 tools/shots；
+观察缓存最多 32 条，按会话和 TTL 隔离，不新增全局 data 路径。群聊不可用桌面能力。
 `Gateway`、`MemoryStore`、`SkillStore`、`JobStore`、`ToolRegistry`、`Agent`、`TurnEndReviewer`、`BrowserDriver`、`WriteBudget`、`ApprovalBroker`、`ServiceManager`、`MCPManager` 的**构造调用只允许出现在 `bootstrap.py`**（tests 除外）。通道与内核通过构造函数注入持有引用。
 
 好处：换实现（如 P1 记忆升级向量库）只动 bootstrap 一处；全部依赖关系在构造处一眼可见；工具集以 `register_xxx_tools(registry, deps)` 模式注册进唯一注册表，多能力域无冲突合并。

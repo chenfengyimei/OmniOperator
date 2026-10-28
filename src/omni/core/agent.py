@@ -53,6 +53,7 @@ GROUP_DENIED_TOOLS = frozenset(
         "files_write",
         "files_history",
         "files_restore",
+        "desktop_windows", "desktop_observe", "desktop_screenshot", "desktop_action",
     }
 )
 

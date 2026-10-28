@@ -38,6 +38,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "ServiceManager",
     "MCPManager",
     "EmbeddingProvider", "VectorIndex", "HybridMemory",
+    "DesktopDriver", "WindowsDesktopBackend",
 }
 
 

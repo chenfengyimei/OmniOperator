@@ -71,6 +71,9 @@ from .tools.registry import SessionRef, ToolRegistry
 from .tools.runctx import RunRef
 from .tools.android.driver import AndroidDriver
 from .tools.android.tools import register_android_tools
+from .tools.desktop.driver import DesktopDriver
+from .tools.desktop.native import WindowsDesktopBackend
+from .tools.desktop.tools import register_desktop_tools
 from .tools.qq.client import OneBotClient
 from .tools.qq.tools import register_qq_tools
 from .tools.shell_tools import register_shell_tools
@@ -135,6 +138,7 @@ class Runtime:
     skill_acks: SkillAckStore | None = None   # 技能变更已读标记：待审阅队列（D18）
     qq: OneBotClient | None = None
     retrieval: HybridMemory | None = None
+    desktop: DesktopDriver | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
@@ -360,6 +364,11 @@ def build_runtime(
         registry, browser, write_budget,
         artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view,
     )
+    desktop = DesktopDriver(config.desktop,
+                            WindowsDesktopBackend(timeout_s=config.desktop.timeout_s, max_nodes=config.desktop.max_nodes),
+                            ResourceLeases(state),
+                            WriteBudget(state, max_per_day=config.desktop.max_writes_per_day, scope="desktop_write"))
+    register_desktop_tools(registry, desktop, artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view)
     approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
     # 隔离实例（注入了 data_dir）不探测也不终止真机进程：否则测试可能把真 NapCat 当残留杀掉
     isolated = data_dir is not None
@@ -454,6 +463,7 @@ def build_runtime(
         file_history=file_history,
         qq=qq_client,
         retrieval=retrieval,
+        desktop=desktop,
         config_path=config_path,
         data_dir=data_root,
         paths=paths,

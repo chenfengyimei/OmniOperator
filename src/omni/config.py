@@ -343,6 +343,23 @@ class MCPConfig(BaseModel):
         return value
 
 
+class Desktop(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    enabled: bool = False
+    allowed_apps: list[str] = Field(default_factory=list)  # 完整 exe 路径；空列表全拒
+    max_nodes: int = Field(default=100, ge=1, le=300)
+    timeout_s: float = Field(default=15, ge=1, le=60)
+    observation_ttl_s: float = Field(default=120, ge=1, le=600)
+    max_writes_per_day: int = Field(default=30, ge=0, le=500)
+
+    @field_validator("allowed_apps")
+    @classmethod
+    def absolute_apps(cls, values):
+        if any(not Path(value).is_absolute() for value in values):
+            raise ValueError("desktop.allowed_apps 必须使用完整 exe 路径")
+        return values
+
+
 class Embedding(BaseModel):
     model_config = ConfigDict(extra="forbid")
     enabled: bool = False
@@ -406,6 +423,7 @@ class AppConfig(BaseModel):
     mcp: MCPConfig = Field(default_factory=MCPConfig)
     cron: Cron = Field(default_factory=Cron)
     embedding: Embedding = Field(default_factory=Embedding)
+    desktop: Desktop = Field(default_factory=Desktop)
 
 
 def load_config(path: Path | None = None) -> AppConfig:
