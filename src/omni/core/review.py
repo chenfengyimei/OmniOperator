@@ -129,6 +129,8 @@ class TurnEndReviewer:
 
     def _work(self) -> None:
         while True:
+            if self._closed and self._queue.empty():
+                return
             session_id = self._queue.get()
             try:
                 if session_id is None:

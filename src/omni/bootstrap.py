@@ -10,7 +10,9 @@ from __future__ import annotations
 import atexit
 import os
 import uuid
-from dataclasses import dataclass
+import time
+import threading
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -51,6 +53,8 @@ from .memory.store import MemoryStore
 from .safety.broker import ApprovalBroker
 from .safety.gates import Approver
 from .system.services import ServiceManager
+from .system.doctor import diagnose
+from .system.backup import backup_runtime
 from .tools.bilibili.api import BiliAPI
 from .tools.bilibili.tools import register_bilibili_tools
 from .tools.browser.budget import WriteBudget
@@ -92,6 +96,14 @@ def _no_port_probe(_port: int, _state: str) -> list[int]:
 def _no_kill(_pid: int) -> None:
     # 用 RuntimeError 而不是 SystemExit：后者会穿透工具层直接退掉进程
     raise RuntimeError("隔离实例不允许终止本机进程")
+
+
+def _no_process_probe(_pid: int):
+    return None
+
+
+def _no_tcp_probe(_port: int) -> bool:
+    return False
 
 
 def _no_spawn(*_args, **_kwargs) -> int:
@@ -144,15 +156,79 @@ class Runtime:
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
+    _close_threads: dict = field(default_factory=dict, repr=False)
+    _close_results: dict = field(default_factory=dict, repr=False)
+    _close_lock: object = field(default_factory=threading.Lock, repr=False)
+    _fully_closed: bool = field(default=False, repr=False)
 
     def qq_policy(self) -> QQ:
         """当前 QQ 授权策略：每次从配置源重读，撤销白名单不必重启进程。"""
         return load_qq_policy(self.config_path)
 
-    def close_mcp(self) -> None:
+    def close_mcp(self, wait_s: float = 10) -> bool:
         """入口关闭时回收本 Runtime 的 MCP 子进程；不干扰其它服务。"""
-        self.mcp.close()
-        atexit.unregister(self.mcp.close)
+        done = self.mcp.close(wait_s)
+        if done:
+            atexit.unregister(self.mcp.close)
+        return done
+
+    def doctor(self) -> dict:
+        report = diagnose(self.paths, inspector=self.services._inspect)
+        report["runtime"] = {"active_runs": len(self.active_runs.contexts()),
+                             "approval_waiting": len(self.approvals.list_pending()),
+                             "review_queue": self.reviewer.queue_depth if self.reviewer else 0,
+                             "closing": getattr(self.agent, "closing", False)}
+        return report
+
+    def backup(self) -> dict:
+        """显式用户动作生成新目录备份；默认脱敏配置凭据，不切换运行数据。"""
+        name = time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8]
+        return backup_runtime(self.paths, self.paths.backups / name).to_dict()
+
+    def close(self, wait_s: float = 10) -> dict:
+        """有界统一关闭；残留 worker 未结束时保留数据库，允许稍后再次核验。"""
+        deadline = time.monotonic() + max(0, wait_s)
+        if not self._close_lock.acquire(timeout=max(0, wait_s)):
+            return {"complete": False, "residual": ["close_in_progress"]}
+        try:
+            if self._fully_closed:
+                return {"complete": True, "residual": []}
+            self.agent.closing = True
+            self.active_runs.cancel_all("运行态关闭")
+            self.approvals.close()
+            remaining = lambda: max(0, deadline - time.monotonic())
+            def browser_done():
+                result = self.close_browser(wait_s=remaining())
+                return "已关闭" in result or "未启动" in result
+            actions = {"review": lambda: self.close_reviewer(remaining()),
+                       "retrieval": lambda: self.close_retrieval(remaining()),
+                       "mcp": lambda: self.close_mcp(remaining()), "browser": browser_done}
+            def perform(name, action):
+                try:
+                    self._close_results[name] = bool(action())
+                except Exception:
+                    self._close_results[name] = False
+            for name, action in actions.items():
+                thread = self._close_threads.get(name)
+                if self._close_results.get(name) or thread and thread.is_alive():
+                    continue
+                thread = threading.Thread(target=perform, args=(name, action), name=f"close-{name}", daemon=True)
+                self._close_threads[name] = thread
+                thread.start()
+            for thread in self._close_threads.values():
+                thread.join(remaining())
+            while self.active_runs.contexts() and remaining() > 0:
+                time.sleep(min(0.02, remaining()))
+            residual = [name for name in actions if not self._close_results.get(name) or self._close_threads[name].is_alive()]
+            if self.active_runs.contexts():
+                residual.append("active_runs")
+            if not residual:
+                self.store.close()
+                self.state.close()
+                self._fully_closed = True
+            return {"complete": not residual, "residual": residual}
+        finally:
+            self._close_lock.release()
 
     def close_reviewer(self, wait_s: float = 5.0) -> bool:
         """停掉 review worker（有界队列，最多等 wait_s）；返回是否在时限内结束。"""
@@ -211,8 +287,8 @@ def build_runtime(
     config_path = Path(config_path) if config_path else CONFIG_PATH
     config = load_config(config_path)
     data_root = Path(data_dir) if data_dir else DATA_DIR
-    paths = RuntimePaths.create(data_root, config_path=config_path, skills_root=skills_root)
-    memory_path = db_path if db_path is not None else data_root / "memory.db"
+    paths = RuntimePaths.create(data_root, config_path=config_path, skills_root=skills_root, memory_path=db_path)
+    memory_path = paths.memory
     store = MemoryStore(memory_path)
     # 技能与常驻记忆共用一份修订存储：写入前先落历史，改坏了能回滚（D08）
     skills = SkillStore(
@@ -387,6 +463,8 @@ def build_runtime(
         port_prober=None if not isolated else _no_port_probe,
         killer=None if not isolated else _no_kill,
         spawner=None if not isolated else _no_spawn,
+        inspector=None if not isolated else _no_process_probe,
+        tcp_probe=None if not isolated else _no_tcp_probe,
     )
     register_system_tools(registry, services)
     android_driver = AndroidDriver(

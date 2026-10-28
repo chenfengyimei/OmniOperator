@@ -164,3 +164,63 @@ def test_verify_database_reports_corruption(tmp_path):
     bad.write_bytes(b"not sqlite at all")
     with pytest.raises(BackupError):
         verify_database(bad)
+
+
+def test_snapshot_refuses_self_and_existing_dest_without_mutation(tmp_path):
+    source = tmp_path / "source.db"
+    _db_with_row(source).close()
+    before = source.read_bytes()
+    with pytest.raises(BackupError, match="拒绝覆盖"):
+        snapshot_sqlite(source, source)
+    dest = tmp_path / "keep.db"
+    dest.write_bytes(b"keep-me")
+    with pytest.raises(BackupError, match="拒绝覆盖"):
+        snapshot_sqlite(source, dest)
+    assert source.read_bytes() == before and dest.read_bytes() == b"keep-me"
+
+
+@pytest.mark.parametrize("rel", ["config.yaml", "skills/demo/SKILL.md"])
+def test_all_file_checksums_verified_before_restore(tmp_path, rel):
+    paths = RuntimePaths.create(tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills")
+    paths.config.write_text("qq:\n  access_token: secret\n", encoding="utf-8")
+    (paths.skills / "demo").mkdir(parents=True)
+    (paths.skills / "demo" / "SKILL.md").write_text("original")
+    backup_runtime(paths, tmp_path / "backup")
+    (tmp_path / "backup" / rel).write_text("changed")
+    with pytest.raises(BackupError, match="校验和"):
+        restore_into(tmp_path / "backup", tmp_path / "restore")
+    assert not (tmp_path / "restore").exists()
+
+
+def test_credentials_redacted_by_default_and_backup_cannot_overwrite(tmp_path):
+    paths = RuntimePaths.create(tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills")
+    paths.config.write_text("qq:\n  access_token: SECRET-A\n  ws_url: 'ws://user:SECRET-B@localhost:3001?token=SECRET-C'\nmcp:\n  servers:\n    demo:\n      args: [SECRET-D]\n      env: {KEY: SECRET-E}\n", encoding="utf-8")
+    backup_runtime(paths, tmp_path / "backup")
+    text = (tmp_path / "backup/config.yaml").read_text(encoding="utf-8")
+    assert "SECRET-" not in text
+    with pytest.raises(BackupError, match="拒绝覆盖"):
+        backup_runtime(paths, tmp_path / "backup")
+    backup_runtime(paths, tmp_path / "private-backup", include_credentials=True)
+    assert "SECRET-A" in (tmp_path / "private-backup/config.yaml").read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("path", ["skills/../../escape", "skills\\..\\..\\escape", "C:relative", "memory.db:stream"])
+def test_manifest_internal_traversal_and_streams_rejected(tmp_path, path):
+    backup = tmp_path / "backup"
+    backup.mkdir()
+    (backup / MANIFEST_NAME).write_text(json.dumps({"version": 1, "entries": [{"rel": path, "kind": "file"}]}))
+    with pytest.raises(BackupError, match="非法路径"):
+        restore_into(backup, tmp_path / "target")
+
+
+def test_future_state_version_refused_before_any_restore(tmp_path):
+    from omni.memory.state import StateStore, SCHEMA_VERSION
+    paths = RuntimePaths.create(tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills")
+    state = StateStore(paths.state)
+    with state._tx() as conn:
+        conn.execute("UPDATE meta SET value=? WHERE key='schema_version'", (str(SCHEMA_VERSION + 1),))
+    state.close()
+    backup_runtime(paths, tmp_path / "backup")
+    with pytest.raises(BackupError, match="版本不兼容"):
+        restore_into(tmp_path / "backup", tmp_path / "restore")
+    assert not (tmp_path / "restore").exists()

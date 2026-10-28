@@ -204,6 +204,7 @@ class BrowserDriver:
 
     def _shutdown_here(self) -> None:
         """在所有者线程里执行真正的关闭（Playwright 的对象只能在自己线程里关）。"""
+        failures = []
         for closer in (
             getattr(self._context, "close", None),
             getattr(self._pw, "stop", None),
@@ -211,8 +212,10 @@ class BrowserDriver:
             if closer:
                 try:
                     closer()
-                except Exception:  # noqa: BLE001 —— 关闭失败不影响退出
-                    pass
+                except Exception as exc:
+                    failures.append(type(exc).__name__)
+        if failures:
+            raise BrowserError("浏览器退出未确认：" + ",".join(failures))
         self._page = self._context = self._pw = None
         self._release_lease()
 

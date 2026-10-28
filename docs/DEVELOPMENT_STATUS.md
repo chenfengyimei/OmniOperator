@@ -7,6 +7,25 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-28 · D25 运维与恢复（账号服务升级待真实验收）
+
+- 接续 `81893be`：服务记录绑定 PID/FILETIME/exe/启动 nonce；启动操作跨进程锁，
+  协作停止后才回退经核验的 Windows 保留句柄终止；旧 PID/端口不授权终止。
+- doctor CLI/工作台只读、不组装运行态；显式 Runtime.close 统一取消审批/回合，
+  并行有界等待 review/检索/MCP/浏览器；失败保留数据库与身份记录，终端追踪残留。
+  关闭中的浏览器异常不再被吞为成功，ConPTY 阻塞读不再阻塞写。
+- 备份覆盖注入记忆库/状态库、配置、常驻、技能/修订/文件历史/产物；默认配置凭据
+  脱敏。拒绝覆盖、自覆盖、穿越/ADS/junction、重复条目、未来 schema；全体校验后
+  恢复到新目录，进度标记与恢复清单区分未完成。工作台配对后可显式创建备份。
+- `uv run --no-sync pytest -q` → **718 passed, 1 已知 warning，117.04s**；JS 语法检查通过。
+  期间备份端点测试发现独立 db_path 漏备份，修正 RuntimePaths.memory 后 29 项定向
+  及全量通过。早期全量 716 通过；新增端点/关闭测试后的最终基线是 718。
+- 真机手动隔离脚本仅创建短寿命 Python 父子进程，两个都确认退出；证据
+  `docs/evidence/process-tree-2026-10-28.json`。只读 doctor 证据确认 state v9 未迁移，
+  旧 NapCat/QQ 身份未核验；没有停止真实服务、没有调用模型或发送消息。
+- 在线备份为各库独立一致，并非跨库全局事务；严格业务时点应停写后备份。
+  真实登录 profile/服务升级、多次启停、72 小时与用户场景仍留 D27。
+
 ### 2026-10-28 · D22 QQ 场景与受控主动性（待真实账号验收）
 
 - 接续 `08c1566`；state v12 只登记事件身份/状态，四进程同事件仅一份领取；
@@ -126,7 +145,7 @@
 | A15 | `profile_edit` 未重跑总额度校验；常驻防注入规则未覆盖 review/skill 等全部学习入口 | 已修复 | `profile_edit_checked` 重算总额并拒绝超限（`test_profile_edit_cannot_exceed_total`）；事实/档案/技能/回滚统一走 `MemoryGuard`（输入检查 + 共用当日额度 + 遗忘检查），review 与手动写入同一闸门（`tests/test_memory_governance.py` 18 例） | D12 | 已修复（"候选队列/差异确认"未做，见第 5 节剩余限制） |
 | A16 | 每次 review 起 daemon thread（无队列上限/去重/累计预算）；每个新连接重建 FTS | 已修复 | **索引**：FTS 改由触发器增量维护，只在「首次 / 分词器升级 / 旧库无状态」重建一次（`tests/test_context.py` 5 例）；**review**：单 worker + 有界队列 + 按消息区间认领去重，队列满返回 `full`（`test_review_queue_is_bounded`、`test_review_is_deduplicated_by_message_range`）；模型消耗计入 D10 账本（`purpose=review`） | D11、D12 | 已修复（真实多进程并发 review 未演练） |
 | A17 | 每个到期任务 `create_task` 无上限；同任务锁只让任务排队；多调度进程无统一领取；`context_from` 取"最后一条 assistant 文本"且可陈旧 | 部分修复 | `claim_due()` 在单个写事务里推进 `next_run_at` + 写 `job_claims`；4 个真实进程同时 tick 只派发一次（`tests/test_state.py::test_claim_due_is_atomic_across_processes`） | D05、D17 | 领取已修复；并行上限、投递 outbox/去重、`context_from` 绑定 run_id 仍属 D17 |
-| A18 | 服务停止只比对 pid 文件与进程存活，无创建时间/命令行身份绑定，pid 重用有误杀风险 | 源码 | `system/services.py` | D25 | 源码发现 |
+| A18 | 服务停止裸 PID 可能误杀复用进程 | 已修复 | D25 创建时间/exe/nonce、保留句柄终止；PID 变化假终止器零调用；临时父子进程真机退出证据 | D25 | 旧真实服务迁移待用户参与 |
 | A19 | shell 超时只依赖 `subprocess.run` 对直接子进程的处理；Windows 后代进程与"副作用是否已发生"未区分 | 已修复 | 进程树回收 + "已确认回收/回收状态未知"话术；D09 起工具异常/超时统一记 `side_effect_state=unknown`（`tests/test_runs.py::test_execute_distinguishes_the_four_outcomes`） | D01、D09 | 已修复 |
 | A20 | 无运行账本/取消/token 与费用硬预算/统一 `ToolResult` 状态（工具回的是字符串） | 已修复 | 账本/事件流/协作式取消/`ToolResult`（D09，`memory/runs.py`、`core/run.py`、`tools/result.py`）；费用：调用前预留 + 调用后结算，日额度与父子运行共享，未知计价记 NULL 而不是 0（D10，`llm/budget.py`、`memory/usage.py`、`tests/test_usage.py` 18 例）；流式 usage 与半途断连（`llm/gateway.py::stream`、`tests/test_gateway.py` 7 例） | D09、D10 | 已修复（真实供应商账单对账待真实验收） |
 
@@ -164,7 +183,9 @@
 | D22 | 待真实验收 | QQ 场景/主动性 | 见最新 D22 批次 | 692 passed，含四进程去重与工作台停止 | 真实 QQ 登录、群/重连/撤回待验 | 用户扫码后验证 |
 | D23 | 待开始 | B站 UI 写 | — | — | B站测试账号待用户参与 | 开发离线闭环 |
 | D24 | 待真实验收 | 混合检索 | `bb05219` | 662 passed；20 样本 FTS 基线 | 双接口已交付，真实模型收益未验，默认关闭 | 配置模型后评测 |
-| D25–D27 | 待开始 | A10、A18、R7 | — | — | 72 小时常驻待发布前执行 | — |
+| D25 | 待真实验收 | A10、A18、运维恢复 | 见最新 D25 批次 | 718 passed；临时父子进程真实停止；doctor 真机只读 | 旧服务身份迁移、登录 profile 与多次启停待验 | D27 验收 |
+| D26 | 待开始 | 架构/CI/任务评测 | — | FTS 20 样本已提前冻结 | 核心场景与干净 checkout 尚未验证 | 继续实现 |
+| D27 | 待开始 | 真实验收/常驻/发布 | — | 尚无 72 小时证据 | 账号/设备/模型与常驻时间需真实提供 | 不提前标完成 |
 
 ## 5 变更记录
 

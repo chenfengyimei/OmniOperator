@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from ..bootstrap import build_runtime
+from ..bootstrap import Runtime, build_runtime
 from ..config import load_env
 from ..llm.gateway import GatewayError
 from ..safety.gates import ConsoleApprover
@@ -20,6 +20,7 @@ HELP = """\
 /use <id>         切换到指定会话
 /switch <model>   切换模型（LiteLLM 串，如 deepseek/deepseek-chat）
 /model            查看当前模型与工具
+/doctor           只读诊断（不调用模型）
 /help             本帮助
 /quit             退出
 其余输入都作为对话发给 agent。"""
@@ -29,6 +30,15 @@ def main() -> None:
     load_env()
     console = Console()
     runtime = build_runtime(approver=ConsoleApprover(console))
+    try:
+        _run_console(runtime, console)
+    finally:
+        result = runtime.close()
+        if not result["complete"]:
+            console.print(f"[yellow]关闭尚有残留：{result['residual']}[/]")
+
+
+def _run_console(runtime: Runtime, console: Console) -> None:
     agent = runtime.agent
     # approval.mode=smart：CONFIRM 先经辅助模型预筛，拿不准仍回到终端问询
     if runtime.config.approval.mode == "smart":
@@ -67,6 +77,9 @@ def main() -> None:
         if not text:
             continue
 
+        if text == "/doctor":
+            console.print(runtime.doctor())
+            continue
         if text.startswith("/"):
             cmd, _, arg = text.partition(" ")
             arg = arg.strip()
@@ -114,9 +127,6 @@ def main() -> None:
             Panel(answer, title=f"[bold cyan]{runtime.config.persona.name}", border_style="cyan")
         )
         runtime.spawn_review()  # 回合后异步记忆整理，不阻塞对话
-
-    runtime.store.close()
-
 
 if __name__ == "__main__":
     main()

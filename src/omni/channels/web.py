@@ -241,12 +241,10 @@ def create_app(runtime: Runtime) -> FastAPI:
         try:
             yield
         finally:
-            # 先收浏览器（有界等待：它可能正卡在一个动作上），再收 MCP 子进程
-            note = await asyncio.to_thread(runtime.close_browser, wait_s=8.0)
-            if "已关闭" not in note and "未启动" not in note:
-                print(f"[工作台] 关闭浏览器：{note}", flush=True)
-            await asyncio.to_thread(runtime.close_mcp)
-            await asyncio.to_thread(runtime.close_retrieval)
+            terminal_result = await asyncio.to_thread(terminal_manager.close_all)
+            result = await asyncio.to_thread(runtime.close)
+            if not terminal_result["complete"] or not result["complete"]:
+                print(f"[工作台] 关闭残留：runtime={result['residual']} terminals={terminal_result['residual']}", flush=True)
 
     app = FastAPI(title="OmniOperator Workbench", lifespan=lifespan)
     terminal_manager = TerminalManager()
@@ -1141,6 +1139,18 @@ def create_app(runtime: Runtime) -> FastAPI:
     @app.get("/api/system/overview")
     def system_overview() -> dict[str, Any]:
         return runtime.services.overview()
+
+    @app.get("/api/system/doctor")
+    def system_doctor() -> dict[str, Any]:
+        return runtime.doctor()
+
+    @app.post("/api/system/backup")
+    def system_backup() -> dict[str, Any]:
+        from ..system.backup import BackupError
+        try:
+            return runtime.backup()
+        except (BackupError, OSError) as exc:
+            raise HTTPException(status_code=409, detail=f"备份未完成：{type(exc).__name__}") from exc
 
     @app.post("/api/system/services/{name}/start")
     def system_service_start(

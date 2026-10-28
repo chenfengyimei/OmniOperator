@@ -25,6 +25,7 @@ from ..core.session import SessionBusy
 from ..llm.gateway import GatewayError
 from ..safety.gates import DenyApprover, private_target_allowed
 from ..tools.qq.client import OneBotClient, clean_cq_message, chunk_message, cq_values
+from .lifecycle import serve_until_stop
 
 
 def _event_id(event: dict) -> str | None:
@@ -281,9 +282,7 @@ def main() -> None:
     load_env()
     runtime = build_runtime(approver=DenyApprover(), owner_kind="qq")
     # pid 目录来自 RuntimePaths：与运行数据根同源，不再另拼全局路径
-    pid_file = runtime.paths.run / "omni-qq.pid"
-    pid_file.parent.mkdir(parents=True, exist_ok=True)
-    pid_file.write_text(str(os.getpid()), encoding="utf-8")  # 工作台状态探测用
+    launch_id = runtime.services.register_current("omni-qq")
     try:
         if runtime.qq is None:
             raise SystemExit(
@@ -302,9 +301,13 @@ def main() -> None:
                 f"[QQ] 已授权群 {policy.allowed_groups}：按 @/回复策略响应，不注入个人档案",
                 flush=True,
             )
-        asyncio.run(_serve(runtime))
+        asyncio.run(serve_until_stop(runtime, "omni-qq", launch_id, _serve(runtime)))
     finally:
-        pid_file.unlink(missing_ok=True)
+        result = runtime.close()
+        if not result["complete"]:
+            print(f"[QQ] 关闭残留：{result['residual']}", flush=True)
+        if result["complete"]:
+            runtime.services.unregister_current("omni-qq", launch_id)
 
 
 if __name__ == "__main__":

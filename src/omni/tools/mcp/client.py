@@ -12,6 +12,7 @@ import os
 import queue
 import re
 import threading
+import time
 
 import anyio
 from concurrent.futures import Future, TimeoutError as FutureTimeout
@@ -236,17 +237,20 @@ class MCPConnection:
             seen.add(cursor)
         raise MCPError("MCP 工具目录分页循环或超过 16 页")
 
-    def close(self) -> None:
+    def close(self, wait_s: float = 10) -> bool:
+        deadline = time.monotonic() + max(0, wait_s)
         with self._state_lock:
             self._closed = True
             worker = self._thread
         self._queue.put(None)
         self._signal()
         if worker is not None:
-            worker.join(timeout=2)
+            worker.join(timeout=min(2, max(0, wait_s)))
             if worker.is_alive():
                 self._cancel()
-                worker.join(timeout=8)
+                worker.join(timeout=max(0, deadline - time.monotonic()))
+            return not worker.is_alive()
+        return True
 
 
 def render_result(result: dict[str, Any], limit: int = 12000) -> str:
@@ -381,6 +385,9 @@ class MCPManager:
         result = connection.request("call", {"name": name, "arguments": arguments, "readonly": readonly})
         return render_result(result)
 
-    def close(self) -> None:
+    def close(self, wait_s: float = 10) -> bool:
+        deadline = time.monotonic() + max(0, wait_s)
+        done = True
         for connection in self._connections.values():
-            connection.close()
+            done = connection.close(max(0, deadline - time.monotonic())) and done
+        return done

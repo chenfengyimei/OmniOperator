@@ -243,6 +243,8 @@ class Agent:
         怎么送到浏览器），最终仍然返回完整回答。
         """
         sid = session_id if session_id is not None else self.session_id
+        if getattr(self, "closing", False):
+            raise RuntimeError("运行态正在关闭，不再接受新回合")
         run = self._start_run(
             sid,
             channel=channel,
@@ -251,6 +253,8 @@ class Agent:
             parent=parent,
             context_scope=context_scope,
         )
+        if getattr(self, "closing", False):
+            run.cancel_token.cancel("运行态正在关闭")
         if parent is not None:
             parent.cancel_token.link_child(run.cancel_token)
         try:

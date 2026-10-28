@@ -56,6 +56,8 @@ class ApprovalBroker:
             detail=detail,
         )
         with self._lock:
+            if getattr(self, "_closed", False):
+                return Decision(False, "运行态正在关闭")
             self._pending[pending.id] = pending
         remaining = float(timeout if timeout is not None else self._timeout)
         answered = False
@@ -103,3 +105,12 @@ class ApprovalBroker:
                 }
                 for p in self._pending.values()
             ]
+
+    def close(self) -> None:
+        """唤醒全部待审批请求并拒绝；关闭后的新请求同样不等待。"""
+        with self._lock:
+            self._closed = True
+            for pending in self._pending.values():
+                pending.allowed = False
+                pending.reason = "运行态正在关闭"
+                pending.event.set()

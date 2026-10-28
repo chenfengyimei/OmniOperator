@@ -32,8 +32,9 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
+from ..config import STATE_SCHEMA_VERSION
 
-SCHEMA_VERSION = 12
+SCHEMA_VERSION = STATE_SCHEMA_VERSION
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待

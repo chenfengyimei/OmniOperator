@@ -14,6 +14,7 @@ ENV_PATH = PROJECT_ROOT / ".env"
 DATA_DIR = PROJECT_ROOT / "data"
 SKILLS_DIR = PROJECT_ROOT / "skills"  # 程序性记忆：skills/<name>/SKILL.md
 BILI_COOKIES_PATH = DATA_DIR / "bili_cookies.json"  # B站登录态（浏览器 Cookie，gitignore）
+STATE_SCHEMA_VERSION = 12  # 存储兼容上限；迁移实现仍归 memory/state.py。
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,7 @@ class RuntimePaths:
     data: Path
     config: Path          # 配置源（读 + 工作台写回同一个文件）
     state: Path           # 共享运行状态（任务/执行账本/额度/迁移记录，SQLite）
+    memory: Path          # 可独立注入的记忆库；诊断与备份必须读同一路径。
     resident: Path        # 常驻工作笔记（MEMORY.md）
     history: Path         # 技能与常驻内容的修订快照（可回滚）
     file_history: Path    # 工作区文件的写入备份与回滚（D13）
@@ -45,6 +47,7 @@ class RuntimePaths:
     run: Path             # 服务 pid
     logs: Path
     mcp_logs: Path
+    backups: Path
 
     @classmethod
     def create(
@@ -53,12 +56,14 @@ class RuntimePaths:
         *,
         config_path: Path | None = None,
         skills_root: Path | None = None,
+        memory_path: Path | None = None,
     ) -> RuntimePaths:
         data = Path(data_dir)
         return cls(
             data=data,
             config=Path(config_path) if config_path is not None else CONFIG_PATH,
             state=data / "state.db",
+            memory=Path(memory_path) if memory_path is not None else data / "memory.db",
             resident=data / "MEMORY.md",
             history=data / "history",
             file_history=data / "file_history",
@@ -73,6 +78,7 @@ class RuntimePaths:
             run=data / "run",
             logs=data / "system_logs",
             mcp_logs=data / "mcp_logs",
+            backups=data / "backups",
         )
 
 

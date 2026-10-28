@@ -5,27 +5,30 @@
 - 端口探活（NapCat 3001/6099）：外部拉起的兜底；
 - omni-qq 连接探测：到 3001 的 ESTABLISHED 连接里非监听方的 python 进程。
 
-停止一律进程树杀（Windows taskkill /T；POSIX killpg）——napcat.bat → node.exe、
-uv run → python.exe 都是父子链。
+停止只接受完整启动记录，核验创建时间/路径后由保留句柄终止已观察的进程树。
+旧裸 PID 与外部端口仅用于提示，不授权终止；启动/停止/登记按服务跨进程互斥。
 """
 from __future__ import annotations
 
 import base64
-import ctypes
 import json
 import os
 import platform
-import signal
 import socket
 import subprocess
 import sys
 import time
+import uuid
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 from collections.abc import Callable
 
 from ..config import DATA_DIR, PROJECT_ROOT
+from .atomic import atomic_write_text
+from .filelock import FileLock
+from .process_identity import ProcessIdentity, ProcessIdentityError, inspect_process, terminate_verified_tree, confirmed_exited
 
 RUN_DIR = DATA_DIR / "run"
 LOG_DIR = DATA_DIR / "system_logs"
@@ -48,27 +51,7 @@ class ServiceError(RuntimeError):
 
 
 def _pid_alive(pid: int) -> bool:
-    if not pid or pid <= 0:
-        return False
-    if platform.system() == "Windows":
-        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-        STILL_ACTIVE = 259
-        kernel32 = ctypes.windll.kernel32
-        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, int(pid))
-        if not handle:
-            return False
-        try:
-            code = ctypes.c_ulong()
-            if kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
-                return code.value == STILL_ACTIVE
-            return False
-        finally:
-            kernel32.CloseHandle(handle)
-    try:
-        os.kill(int(pid), 0)
-        return True
-    except OSError:
-        return False
+    return inspect_process(pid) is not None
 
 
 def _port_listening(port: int, host: str = "127.0.0.1") -> bool:
@@ -127,18 +110,6 @@ def _process_name(pid: int) -> str:
         return ""
 
 
-def _tree_kill(pid: int) -> None:
-    if platform.system() == "Windows":
-        subprocess.run(
-            ["taskkill", "/T", "/F", "/PID", str(pid)], capture_output=True, timeout=20
-        )
-    else:
-        try:
-            os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
-        except OSError:
-            pass
-
-
 def _spawn(argv: list[str], cwd: Path, log_path: Path) -> int:
     """分离进程启动，stdout/stderr 落日志文件；返回 pid。"""
     env = dict(os.environ)
@@ -170,8 +141,12 @@ class ServiceManager:
         run_dir: Path | None = None,
         log_dir: Path | None = None,
         port_prober: Callable[[int, str], list[int]] | None = None,
-        killer: Callable[[int], None] | None = None,
+        killer: Callable[[ProcessIdentity], None] | None = None,
         spawner: Callable[[list[str], Path, Path], int] | None = None,
+        inspector: Callable[[int], ProcessIdentity | None] | None = None,
+        tcp_probe: Callable[[int], bool] | None = None,
+        stop_wait_s: float = 12,
+        exit_checker: Callable[[ProcessIdentity], bool] | None = None,
     ) -> None:
         self._napcat_dir = Path(napcat_dir) if napcat_dir else None
         self._ws_port = napcat_ws_port
@@ -179,7 +154,11 @@ class ServiceManager:
         # 探测/终止/启动都可替换：隔离实例必须给出"不碰真机进程"的实现，
         # 否则 `stop()` 的端口回退会把用户正在跑的真服务杀掉
         self._port_pids = port_prober or _netstat_pids
-        self._kill = killer or _tree_kill
+        self._kill = killer or terminate_verified_tree
+        self._inspect = inspector or inspect_process
+        self._exited = exit_checker or (confirmed_exited if inspector is None else lambda identity: inspector(identity.pid) != identity)
+        self._tcp_probe = tcp_probe or _port_listening
+        self._stop_wait_s = max(0, float(stop_wait_s))
         self._spawn = spawner or _spawn
         # pid/日志目录可注入：测试必须与真机的 data/run 隔离，
         # 否则"未安装"类测试会读到真实 pid，甚至把真服务当测试残留杀掉
@@ -207,27 +186,25 @@ class ServiceManager:
         napcat_dir = self.napcat_dir
         if napcat_dir is None:
             raise ServiceError("未找到 NapCat（检查 config.yaml system.napcat_dir 指向 napcat.bat 所在目录）")
-        if self._napcat_pid():
-            raise ServiceError("NapCat 已在运行")
-        argv = ["cmd", "/c", str(napcat_dir / "napcat.bat")]
-        if qq.strip():
-            argv += ["-q", qq.strip()]
-        pid = self._spawn(argv, cwd=napcat_dir, log_path=self._log_dir / "napcat.log")
-        self._write_pid("napcat", pid)
-        return {"name": "napcat", "pid": pid, "started": True}
+        with self._lock("napcat"):
+            self._check_start("napcat")
+            if self._napcat_pid():
+                raise ServiceError("NapCat 端口已有外部进程；未接管其停止权限")
+            argv = [str(Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32/cmd.exe"), "/c", str(napcat_dir / "napcat.bat")]
+            if qq.strip():
+                if not qq.strip().isdigit() or len(qq.strip()) > 12:
+                    raise ServiceError("QQ 号必须为数字")
+                argv += ["-q", qq.strip()]
+            pid = self._spawn(argv, cwd=napcat_dir, log_path=self._log_dir / "napcat.log")
+            self._write_pid("napcat", pid)
+            return {"name": "napcat", "pid": pid, "started": True}
 
     def napcat_stop(self) -> dict[str, Any]:
-        pid = self._read_pid("napcat") or self._napcat_pid()
-        if not pid or not _pid_alive(pid):
-            self._clear_pid("napcat")
-            raise ServiceError("NapCat 未在运行")
-        self._kill(pid)
-        self._clear_pid("napcat")
-        return {"name": "napcat", "stopped": True}
+        return self._stop_verified("napcat")
 
     def napcat_qr(self) -> dict[str, Any]:
         """扫码登录所需：二维码图片（base64）+ 登录状态。"""
-        logged_in = bool(self._napcat_uin()) and _port_listening(self._ws_port)
+        logged_in = bool(self._napcat_uin()) and self._tcp_probe(self._ws_port)
         payload: dict[str, Any] = {"logged_in": logged_in, "available": False,
                                    "image": "", "uin": self._napcat_uin()}
         napcat_dir = self.napcat_dir
@@ -260,55 +237,45 @@ class ServiceManager:
     def _omni_argv(self, name: str) -> tuple[list[str], Path]:
         if name not in OMNI_SERVICES:
             raise ServiceError(f"未知服务 {name}")
-        script = PROJECT_ROOT / ".venv" / ("Scripts" if platform.system() == "Windows" else "bin") / name
-        if script.exists():
-            return [str(script)], PROJECT_ROOT
-        return ["uv", "run", name], PROJECT_ROOT
+        module = "omni.channels.qq" if name == "omni-qq" else "omni.channels.heartbeat"
+        return [sys.executable, "-m", module], PROJECT_ROOT
 
     def omni_start(self, name: str) -> dict[str, Any]:
-        if self._omni_pid(name):
-            raise ServiceError(f"{name} 已在运行")
-        argv, cwd = self._omni_argv(name)
-        pid = self._spawn(argv, cwd=cwd, log_path=self._log_dir / f"{name}.log")
-        self._write_pid(name, pid)
-        return {"name": name, "pid": pid, "started": True}
+        with self._lock(name):
+            self._check_start(name)
+            argv, cwd = self._omni_argv(name)
+            pid = self._spawn(argv, cwd=cwd, log_path=self._log_dir / f"{name}.log")
+            self._write_pid(name, pid)
+            return {"name": name, "pid": pid, "started": True}
 
     def omni_stop(self, name: str) -> dict[str, Any]:
-        pid = self._read_pid(name)
-        if not pid or not _pid_alive(pid):
-            self._clear_pid(name)
-            raise ServiceError(f"{name} 未在运行")
-        self._kill(pid)
-        self._clear_pid(name)
-        return {"name": name, "stopped": True}
+        return self._stop_verified(name)
 
     def _omni_pid(self, name: str) -> int | None:
         pid = self._read_pid(name)
-        if pid and _pid_alive(pid):
+        if pid and self._inspect(pid):
             return pid
-        if name != "omni-qq":
-            return None  # netstat 兜底只对 WS 客户端 omni-qq 有意义
-        # 兜底：到 NapCat WS 端口的 ESTABLISHED 连接里找 python 进程（omni-qq）
-        listeners = set(self._port_pids(self._ws_port, "LISTEN"))
-        for pid in self._port_pids(self._ws_port, "ESTABLISHED"):
-            if pid in listeners or pid == os.getpid():
-                continue
-            if "python" in _process_name(pid).lower():
-                return pid
         return None
 
     # ---------- 统一入口 ----------
 
     def status(self, name: str) -> dict[str, Any]:
+        self._validate_name(name)
+        record = self._read_record(name)
+        identity = self._record_identity(record)
+        verified = identity is not None and self._inspect(identity.pid) == identity
         if name == "napcat":
             pid = self._read_pid("napcat") or self._napcat_pid()
-            running = (pid is not None and _pid_alive(pid)) or bool(self._napcat_pid())
+            running = (pid is not None and self._inspect(pid) is not None) or bool(self._napcat_pid())
             detail = f"已登录 {self._napcat_uin()}" if self._napcat_uin() else "未登录（需扫码）"
             return {"name": name, "label": _SERVICE_LABELS[name], "running": running,
-                    "pid": pid, "detail": detail}
+                    "pid": pid, "detail": detail + ("；身份未核验，不可停止" if running and not verified else ""),
+                    "identity_verified": verified, "can_stop": verified}
         pid = self._omni_pid(name)
         return {"name": name, "label": _SERVICE_LABELS[name],
-                "running": pid is not None, "pid": pid, "detail": ""}
+                "running": pid is not None, "pid": pid,
+                "detail": "身份未核验，不可停止" if pid and not verified else "",
+                "identity_verified": verified, "can_stop": verified}
 
     def overview(self) -> dict[str, Any]:
         services = [self.status(n) for n in ALL_SERVICES]
@@ -332,28 +299,146 @@ class ServiceManager:
         return self.omni_stop(name)
 
     def log_tail(self, name: str, lines: int = 80) -> str:
+        self._validate_name(name)
         path = self._log_dir / f"{name}.log"
         if not path.exists():
             return f"（{name} 暂无工作台侧日志；外部启动的进程日志见其自身终端）"
         try:
-            content = path.read_text(encoding="utf-8", errors="replace")
+            with path.open("rb") as handle:
+                handle.seek(max(0, path.stat().st_size - 65536))
+                content = handle.read(65536).decode("utf-8", errors="replace")
         except OSError:
             return "（日志读取失败）"
-        return "\n".join(content.splitlines()[-lines:])
+        return "\n".join(content.splitlines()[-max(1, min(int(lines), 500)):])
 
     # ---------- pid 文件 ----------
 
     def _pid_path(self, name: str) -> Path:
+        self._validate_name(name)
         return self._run_dir / f"{name}.pid"
 
     def _read_pid(self, name: str) -> int | None:
+        record = self._read_record(name)
+        if record:
+            return record["pid"]
         try:
             return int(self._pid_path(name).read_text(encoding="utf-8").strip())
         except (OSError, ValueError):
             return None
 
-    def _write_pid(self, name: str, pid: int) -> None:
-        self._pid_path(name).write_text(str(pid), encoding="utf-8")
+    @staticmethod
+    def _validate_name(name: str) -> None:
+        if name not in ALL_SERVICES:
+            raise ServiceError(f"未知服务 {name}")
 
-    def _clear_pid(self, name: str) -> None:
-        self._pid_path(name).unlink(missing_ok=True)
+    def _lock(self, name: str) -> FileLock:
+        return FileLock(self._pid_path(name).with_suffix(".lock"), timeout_s=5)
+
+    def _read_record(self, name: str) -> dict | None:
+        try:
+            raw = self._pid_path(name).read_text(encoding="utf-8")
+            if len(raw) > 8192:
+                return None
+            data = json.loads(raw)
+            if (not isinstance(data, dict) or data.get("version") != 1 or data.get("service") != name or
+                    not isinstance(data.get("launch_id"), str) or len(data["launch_id"]) != 32):
+                return None
+            return data if self._record_identity(data) is not None else None
+        except (OSError, ValueError, TypeError):
+            return None
+
+    @staticmethod
+    def _record_identity(record: dict | None) -> ProcessIdentity | None:
+        if record is None:
+            return None
+        try:
+            pid = record["pid"]
+            created, executable = record["created"], record["executable"]
+            if (type(pid) is not int or pid <= 0 or not isinstance(created, str) or not created.isdigit() or
+                    not isinstance(executable, str) or not Path(executable).is_absolute()):
+                return None
+            return ProcessIdentity(pid, created, executable)
+        except KeyError:
+            return None
+
+    def _write_pid(self, name: str, pid: int) -> dict:
+        identity = self._inspect(pid)
+        if identity is None:
+            raise ServiceError(f"进程已启动但身份不可核验 pid={pid}；未登记可停止权限，请人工核查")
+        record = {"version": 1, "service": name, "launch_id": uuid.uuid4().hex, **asdict(identity)}
+        atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
+        return record
+
+    def _check_start(self, name: str) -> None:
+        pid = self._read_pid(name)
+        if pid and self._inspect(pid):
+            raise ServiceError(f"{name} 记录指向运行中的进程，请先核验并停止")
+        if self._pid_path(name).exists() and self._read_record(name) is None:
+            raise ServiceError(f"{name} 是旧版/损坏 PID 记录，需人工核对后清理；不会自动接管")
+
+    def _stop_verified(self, name: str) -> dict[str, Any]:
+        with self._lock(name):
+            record = self._read_record(name)
+            identity = self._record_identity(record)
+            if identity is None:
+                raise ServiceError(f"{name} 未在运行或缺少可信启动记录；旧 PID/端口不授权终止")
+            if self._inspect(identity.pid) != identity:
+                raise ServiceError(f"{name} 进程身份不匹配或不可核验，未终止任何进程")
+            if name in OMNI_SERVICES:
+                atomic_write_text(self._pid_path(name).with_suffix(".stop"), record["launch_id"])
+        # 不持服务文件锁等待退出：入口清理需要同一把锁。
+        if name in OMNI_SERVICES:
+            deadline = time.monotonic() + self._stop_wait_s
+            while time.monotonic() < deadline:
+                if self._exited(identity):
+                    with self._lock(name):
+                        self._clear_pid(name, expected=record["launch_id"])
+                    return {"name": name, "stopped": True, "graceful": True}
+                time.sleep(0.05)
+        with self._lock(name):
+            current = self._read_record(name)
+            if current is None or current["launch_id"] != record["launch_id"]:
+                if self._exited(identity):
+                    return {"name": name, "stopped": True, "graceful": True}
+                raise ServiceError("启动记录已变化，未执行强制停止")
+            if self._inspect(identity.pid) != identity:
+                raise ServiceError("停止等待期间进程身份变化，未执行强制停止")
+            try:
+                self._kill(identity)
+            except (ProcessIdentityError, OSError) as exc:
+                raise ServiceError(f"{name} 停止未确认：{exc}") from exc
+            if not self._exited(identity):
+                raise ServiceError(f"{name} 停止后仍存活或无法确认退出，保留启动记录")
+            self._clear_pid(name, expected=record["launch_id"])
+            return {"name": name, "stopped": True, "graceful": False}
+
+    def stop_requested(self, name: str, launch_id: str) -> bool:
+        try:
+            return self._pid_path(name).with_suffix(".stop").read_text(encoding="utf-8") == launch_id
+        except OSError:
+            return False
+
+    def register_current(self, name: str) -> str:
+        """入口自行登记当前身份；复用管理器已写的启动记录，不能覆盖另一个活进程。"""
+        with self._lock(name):
+            record = self._read_record(name)
+            identity = self._inspect(os.getpid())
+            if identity is not None and self._record_identity(record) == identity:
+                return record["launch_id"]
+            self._check_start(name)
+            return self._write_pid(name, os.getpid())["launch_id"]
+
+    def unregister_current(self, name: str, launch_id: str) -> None:
+        with self._lock(name):
+            self._clear_pid(name, expected=launch_id)
+
+    def _clear_pid(self, name: str, *, expected: str) -> None:
+        record = self._read_record(name)
+        if record and record["launch_id"] == expected:
+            self._pid_path(name).unlink(missing_ok=True)
+        stop_path = self._pid_path(name).with_suffix(".stop")
+        try:
+            if stop_path.read_text(encoding="utf-8") == expected:
+                stop_path.unlink(missing_ok=True)
+        except OSError:
+            pass

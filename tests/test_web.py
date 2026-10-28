@@ -60,6 +60,25 @@ def test_qq_proactive_settings_validate_append_and_stop(tmp_path):
         runtime.state.close()
 
 
+def test_doctor_and_backup_are_paired_and_restore_to_injected_directory(tmp_path):
+    from pathlib import Path
+    from omni.system.backup import restore_into
+    client, runtime = _client(tmp_path, pair=False)
+    assert client.get("/api/system/doctor").status_code == 401
+    assert client.post("/api/system/backup").status_code == 401
+    assert not runtime.paths.backups.exists()
+    client.post("/api/auth/pair", json={"code": client.app.state.web_auth.pairing_code})
+    report = client.get("/api/system/doctor").json()
+    assert report["read_only"] and report["runtime"]["active_runs"] == 0
+    backup = client.post("/api/system/backup")
+    assert backup.status_code == 200
+    destination = Path(backup.json()["dest"])
+    assert destination.is_relative_to(tmp_path)
+    restored = restore_into(destination, tmp_path / "restored")
+    assert {entry.rel for entry in restored} >= {"memory.db", "state.db", "config.yaml"}
+    assert runtime.close()["complete"]
+
+
 @pytest.mark.parametrize("mode,size", [("RGB", (1080, 2400)), ("RGBA", (241, 121)), ("L", (1, 1))])
 def test_android_stream_encodes_half_size_jpeg(tmp_path, monkeypatch, mode, size):
     client, runtime = _client(tmp_path)

@@ -19,6 +19,7 @@ from ..core.cron import (
 )
 from ..memory.state import StateUnavailable
 from ..safety.gates import DenyApprover
+from .lifecycle import serve_until_stop
 
 
 async def _serve(runtime) -> None:
@@ -61,13 +62,15 @@ def main() -> None:
     load_env()
     runtime = build_runtime(approver=DenyApprover(), owner_kind="heartbeat")  # 无人值守：fail-closed
     # pid 目录来自 RuntimePaths（与真实运行数据根一起注入，不另拼全局路径）
-    pid_file = runtime.paths.run / "omni-heartbeat.pid"
-    pid_file.parent.mkdir(parents=True, exist_ok=True)
-    pid_file.write_text(str(os.getpid()), encoding="utf-8")  # 工作台状态探测用
+    launch_id = runtime.services.register_current("omni-heartbeat")
     try:
-        asyncio.run(_serve(runtime))
+        asyncio.run(serve_until_stop(runtime, "omni-heartbeat", launch_id, _serve(runtime)))
     finally:
-        pid_file.unlink(missing_ok=True)
+        result = runtime.close()
+        if not result["complete"]:
+            print(f"[心跳] 关闭残留：{result['residual']}", flush=True)
+        if result["complete"]:
+            runtime.services.unregister_current("omni-heartbeat", launch_id)
 
 
 if __name__ == "__main__":

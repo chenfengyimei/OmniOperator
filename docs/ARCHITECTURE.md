@@ -421,6 +421,12 @@ android_shots/android_cache/browser_profile/browser_shots/run/logs/mcp_logs）�
 
 ## 7. 编码约定
 
+D25：system/process_identity 仅提供 OS 身份/保留句柄操作，ServiceManager 仍在 bootstrap
+构造；终止器、身份探测、端口探测均可注入。system/doctor 不组装 Runtime，不触发迁移。
+STATE_SCHEMA_VERSION 作为兼容上限由 config 提供，实际迁移归 memory/state。
+RuntimePaths 声明 memory（独立 db_path）与 backups，诊断/备份复用同一路径。
+运行态关闭统一由 Runtime.close 协调；channels/lifecycle 仅转发绑定启动 nonce 的停止请求。
+
 D22：`memory/qq.py` 的 QQMessageStore 仅由 bootstrap 构造，复用注入 state.db；
 通道负责有界场景队列，core/qq_policy 负责主动提醒决策，memory 层不依赖通道或策略。
 群聊工具采用显式许可名单，新增工具默认不开放；群聊不触发个人 review。

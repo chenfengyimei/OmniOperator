@@ -20,10 +20,13 @@ import json
 import shutil
 import sqlite3
 import sys
+import os
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from ..config import DATA_DIR, RuntimePaths
+from ..config import DATA_DIR, RuntimePaths, STATE_SCHEMA_VERSION
+from .atomic import atomic_write_text
 
 MANIFEST_NAME = "backup.json"
 MANIFEST_VERSION = 1
@@ -113,20 +116,29 @@ def snapshot_sqlite(src: Path, dest: Path) -> Entry:
     dest = Path(dest)
     if not src.is_file():
         raise BackupError(f"数据库不存在：{src}")
+    _reject_links(src)
+    _reject_links(dest)
+    if src.resolve() == dest.resolve():
+        raise BackupError("快照源与目标相同，拒绝覆盖")
     dest.parent.mkdir(parents=True, exist_ok=True)
     if dest.exists():
-        dest.unlink()  # 只覆盖本次自己的目标文件
+        raise BackupError("快照目标已存在，拒绝覆盖")
+    dest.touch(exist_ok=False)
     try:
-        source = sqlite3.connect(str(src))
+        source = sqlite3.connect(src.resolve().as_uri() + "?mode=ro", uri=True)
         try:
             target = sqlite3.connect(str(dest))
             try:
-                source.backup(target)
+                deadline = time.monotonic() + 30
+                def progress(*_):
+                    if time.monotonic() > deadline:
+                        raise BackupError("数据库快照超时，未产生完整备份")
+                source.backup(target, pages=256, progress=progress, sleep=0.01)
             finally:
                 target.close()
         finally:
             source.close()
-    except sqlite3.DatabaseError as exc:
+    except (sqlite3.DatabaseError, BackupError) as exc:
         dest.unlink(missing_ok=True)
         raise BackupError(f"快照失败（{src.name}）：{exc}") from exc
 
@@ -154,6 +166,8 @@ def snapshot_sqlite(src: Path, dest: Path) -> Entry:
 
 
 def _copy_entry(src: Path, dest: Path, rel: str) -> Entry:
+    _reject_links(src)
+    _reject_links(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest)
     return Entry(
@@ -165,20 +179,51 @@ def _copy_entry(src: Path, dest: Path, rel: str) -> Entry:
     )
 
 
-def _copy_tree(src: Path, dest: Path, rel: str) -> Entry:
-    shutil.copytree(src, dest, dirs_exist_ok=True)
-    files = [p for p in dest.rglob("*") if p.is_file()]
+def _reject_links(path: Path) -> None:
+    for part in [path.absolute(), *path.absolute().parents]:
+        if part.is_symlink() or part.is_junction():
+            raise BackupError(f"拒绝链接/junction 路径：{path.name}")
+
+
+def _tree_files(root: Path) -> list[Path]:
+    _reject_links(root)
+    files = []
+    for directory, dirs, names in os.walk(root, followlinks=False):
+        for name in dirs + names:
+            path = Path(directory) / name
+            _reject_links(path)
+            if path.is_file():
+                files.append(path)
+            if len(files) > 20000:
+                raise BackupError("技能树超过 20000 文件，停止备份/校验")
+    return sorted(files)
+
+
+def _tree_digest(root: Path) -> tuple[str, int, int]:
+    files = _tree_files(root)
     # 目录级摘要：把所有文件的 rel+sha 串起来再取一次 sha256（可复算）
     joined = "\n".join(
-        f"{p.relative_to(dest).as_posix()}:{sha256_file(p)}" for p in sorted(files)
+        f"{p.relative_to(root).as_posix()}:{sha256_file(p)}" for p in files
     )
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest(), sum(p.stat().st_size for p in files), len(files)
+
+
+def _copy_tree(src: Path, dest: Path, rel: str) -> Entry:
+    files = _tree_files(src)
+    _reject_links(dest)
+    dest.mkdir(parents=True, exist_ok=False)
+    for source in files:
+        target = dest / source.relative_to(src)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        _copy_entry(source, target, target.name)
+    digest, size, count = _tree_digest(dest)
     return Entry(
         rel=rel,
         kind="tree",
         source=str(src),
-        size=sum(p.stat().st_size for p in files),
-        sha256=hashlib.sha256(joined.encode("utf-8")).hexdigest(),
-        files=len(files),
+        size=size,
+        sha256=digest,
+        files=count,
     )
 
 
@@ -187,18 +232,30 @@ def backup_runtime(
     dest_dir: Path,
     *,
     include_skills: bool = True,
+    include_credentials: bool = False,
 ) -> BackupReport:
     """备份运行态到 dest_dir：两个数据库 + 配置 + 常驻笔记 + 技能库。
 
     缺失项进 `skipped`，不让"没这个文件"变成备份失败——但也绝不假装备份了。
     """
     dest_dir = Path(dest_dir)
+    _reject_links(dest_dir)
+    destination = dest_dir.resolve()
+    if (destination == paths.data.resolve() or paths.data.resolve().is_relative_to(destination) or
+            destination == paths.skills.resolve() or destination.is_relative_to(paths.skills.resolve())):
+        raise BackupError("备份目标与运行数据/技能源重叠")
+    if dest_dir.exists() and any(dest_dir.iterdir()):
+        raise BackupError("备份目标非空，拒绝覆盖")
     dest_dir.mkdir(parents=True, exist_ok=True)
+    marker = dest_dir / "BACKUP_IN_PROGRESS"
+    try:
+        marker.touch(exist_ok=False)
+    except FileExistsError as exc:
+        raise BackupError("已有备份正在写入该目录") from exc
     entries: list[Entry] = []
     skipped: list[str] = []
 
-    for name in ("state.db", "memory.db"):
-        src = paths.data / name
+    for name, src in (("state.db", paths.state), ("memory.db", paths.memory)):
         if src.is_file():
             entry = snapshot_sqlite(src, dest_dir / name)
             entries.append(entry)
@@ -207,7 +264,31 @@ def backup_runtime(
 
     for rel, src in (("config.yaml", paths.config), ("MEMORY.md", paths.data / "MEMORY.md")):
         if src.is_file():
-            entries.append(_copy_entry(src, dest_dir / rel, rel))
+            if rel == "config.yaml" and not include_credentials:
+                import yaml
+                _reject_links(src)
+                data = yaml.safe_load(src.read_text(encoding="utf-8")) or {}
+                def redact(value):
+                    if isinstance(value, dict):
+                        return {key: ({} if str(key).lower() in {"env", "headers", "credentials"} else [] if str(key).lower() == "args" else "")
+                                if str(key).lower() in {"env", "headers", "credentials", "args", "authorization", "api_key", "access_token", "password", "secret", "token", "cookie", "cookies"}
+                                or str(key).lower().endswith(("_password", "_secret", "_token", "_api_key"))
+                                else redact(item) for key, item in value.items()}
+                    if isinstance(value, list):
+                        return [redact(item) for item in value]
+                    if isinstance(value, str) and "://" in value:
+                        from urllib.parse import urlsplit, urlunsplit
+                        url = urlsplit(value)
+                        if url.hostname and (url.username or url.password or url.query or url.fragment):
+                            host = f"[{url.hostname}]" if ":" in url.hostname else url.hostname
+                            return urlunsplit((url.scheme, host + (f":{url.port}" if url.port else ""), url.path, "", ""))
+                    return value
+                target = dest_dir / rel
+                atomic_write_text(target, yaml.safe_dump(redact(data), allow_unicode=True, sort_keys=False))
+                entries.append(Entry(rel, "file", str(src), target.stat().st_size, sha256_file(target)))
+                skipped.append("配置凭据已脱敏；恢复后需重新配置密钥（不含 .env/Cookie/profile）")
+            else:
+                entries.append(_copy_entry(src, dest_dir / rel, rel))
         else:
             skipped.append(f"{rel}（不存在）")
 
@@ -216,18 +297,29 @@ def backup_runtime(
             entries.append(_copy_tree(paths.skills, dest_dir / "skills", "skills"))
         else:
             skipped.append("skills/（不存在）")
+    for rel, source in (("history", paths.history), ("file_history", paths.file_history), ("artifacts", paths.artifacts)):
+        if source.is_dir():
+            entries.append(_copy_tree(source, dest_dir / rel, rel))
+        else:
+            skipped.append(f"{rel}/（不存在）")
 
     report = BackupReport(dest=dest_dir, created_at=_now(), entries=entries, skipped=skipped)
     (dest_dir / MANIFEST_NAME).write_text(
         json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    marker.unlink()
     return report
 
 
 def read_manifest(backup_dir: Path) -> dict:
     path = Path(backup_dir) / MANIFEST_NAME
+    _reject_links(path)
     if not path.is_file():
         raise BackupError(f"不是备份目录（缺 {MANIFEST_NAME}）：{backup_dir}")
+    if (Path(backup_dir) / "BACKUP_IN_PROGRESS").exists():
+        raise BackupError("备份尚未完整结束，拒绝恢复")
+    if path.stat().st_size > 1_000_000:
+        raise BackupError("备份清单过大")
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -242,7 +334,8 @@ def verify_database(path: Path) -> str:
     path = Path(path)
     if not path.is_file():
         raise BackupError(f"数据库不存在：{path}")
-    conn = sqlite3.connect(str(path))
+    _reject_links(path)
+    conn = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
     try:
         row = conn.execute("PRAGMA integrity_check").fetchone()
     except sqlite3.DatabaseError as exc:
@@ -263,17 +356,70 @@ def restore_into(backup_dir: Path, target_dir: Path, *, overwrite: bool = False)
     manifest = read_manifest(backup_dir)
     backup_dir = Path(backup_dir)
     target_dir = Path(target_dir)
+    _reject_links(backup_dir)
+    _reject_links(target_dir)
+    if overwrite:
+        raise BackupError("恢复只允许新目录，拒绝覆盖；请校验后人工选择切换")
+    if target_dir.exists() and any(target_dir.iterdir()):
+        raise BackupError("恢复目标非空，拒绝覆盖")
+    if target_dir.resolve().is_relative_to(backup_dir.resolve()) or backup_dir.resolve().is_relative_to(target_dir.resolve()):
+        raise BackupError("恢复目标与备份源重叠")
     restored: list[Entry] = []
-    for raw in manifest.get("entries") or []:
+    entries = manifest.get("entries")
+    if not isinstance(entries, list) or len(entries) > 20:
+        raise BackupError("备份清单 entries 非法")
+    seen = set()
+    # 全部源验证通过后才写目标，不让“最后一项坏了”遗留看似可用的前半份恢复。
+    allowed = {"state.db": "database", "memory.db": "database", "config.yaml": "file", "MEMORY.md": "file", "skills": "tree",
+               "history": "tree", "file_history": "tree", "artifacts": "tree"}
+    for raw in entries:
+        if not isinstance(raw, dict):
+            raise BackupError("备份条目必须为对象")
         rel = str(raw.get("rel") or "")
-        if not rel or rel.startswith("..") or Path(rel).is_absolute():
+        if rel not in allowed or rel in seen or raw.get("kind") != allowed[rel]:
             raise BackupError(f"清单里有非法路径：{rel!r}")
+        seen.add(rel)
         src = backup_dir / rel
-        dest = target_dir / rel
+        _reject_links(src)
         if not src.exists():
             raise BackupError(f"备份不完整，缺少 {rel}")
-        if dest.exists() and not overwrite:
-            raise BackupError(f"目标已存在，拒绝覆盖：{dest}")
+        if raw["kind"] == "tree":
+            if not src.is_dir():
+                raise BackupError(f"备份树类型错误：{rel}")
+            digest, size, count = _tree_digest(src)
+            if count != raw.get("files"):
+                raise BackupError(f"备份树文件数变化：{rel}")
+        else:
+            if not src.is_file():
+                raise BackupError(f"备份文件类型错误：{rel}")
+            digest, size = sha256_file(src), src.stat().st_size
+        if digest != raw.get("sha256") or size != raw.get("size"):
+            raise BackupError(f"备份校验和/大小不一致：{rel}")
+        if raw["kind"] == "database":
+            verify_database(src)
+            if rel == "state.db":
+                connection = sqlite3.connect(src.resolve().as_uri() + "?mode=ro", uri=True)
+                try:
+                    row = connection.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()
+                    if row is None or not 1 <= int(row[0]) <= STATE_SCHEMA_VERSION:
+                        raise BackupError("state.db 版本不兼容，禁止用当前程序恢复")
+                except (sqlite3.DatabaseError, ValueError) as exc:
+                    raise BackupError("state.db 版本不可核验") from exc
+                finally:
+                    connection.close()
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    marker = target_dir / "RESTORE_IN_PROGRESS"
+    try:
+        marker.touch(exist_ok=False)
+    except FileExistsError as exc:
+        raise BackupError("已有恢复正在写入该目录") from exc
+    for raw in entries:
+        rel = raw["rel"]
+        src, dest = backup_dir / rel, target_dir / rel
+        _reject_links(dest)
+        if dest.exists():
+            raise BackupError("恢复目标被其它进程占用，拒绝覆盖")
         if raw.get("kind") == "database":
             verify_database(src)
             dest.parent.mkdir(parents=True, exist_ok=True)
@@ -298,27 +444,17 @@ def restore_into(backup_dir: Path, target_dir: Path, *, overwrite: bool = False)
                 )
             )
         elif raw.get("kind") == "tree":
-            partial = dest.with_name(dest.name + ".partial")
-            shutil.rmtree(partial, ignore_errors=True)
-            try:
-                entry = _copy_tree(src, partial, rel)
-            except OSError:
-                shutil.rmtree(partial, ignore_errors=True)
-                raise
-            dest.unlink(missing_ok=True)
-            shutil.rmtree(dest, ignore_errors=True)
-            partial.replace(dest)
+            entry = _copy_tree(src, dest, rel)
+            if entry.sha256 != raw["sha256"]:
+                raise BackupError("技能树在恢复中变化，恢复未完成；请弃用该临时目标目录")
             restored.append(entry)
         else:
-            partial = dest.with_name(dest.name + ".partial")
-            partial.unlink(missing_ok=True)
-            try:
-                entry = _copy_entry(src, partial, rel)
-            except OSError:
-                partial.unlink(missing_ok=True)
-                raise
-            partial.replace(dest)
+            entry = _copy_entry(src, dest, rel)
+            if entry.sha256 != raw["sha256"]:
+                raise BackupError("文件在恢复中变化，恢复未完成；请弃用该临时目标目录")
             restored.append(entry)
+    atomic_write_text(target_dir / "RESTORED.json", json.dumps({"complete": True, "entries": [asdict(e) for e in restored]}, ensure_ascii=False))
+    marker.unlink()
     return restored
 
 
@@ -330,11 +466,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--data-dir", default=str(DATA_DIR), help="运行数据根（默认 data/）")
     parser.add_argument("--config", default=None, help="配置源路径")
     parser.add_argument("--skills", default=None, help="技能库路径")
-    parser.add_argument("--overwrite", action="store_true", help="恢复时允许覆盖目标文件")
+    parser.add_argument("--memory-db", default=None, help="记忆库独立路径")
+    parser.add_argument("--overwrite", action="store_true", help="旧参数，现已拒绝；只允许恢复至新目录")
+    parser.add_argument("--include-credentials", action="store_true", help="显式包含配置内凭据（仍不打包 .env/Cookie/profile）")
     parser.add_argument("--no-skills", action="store_true", help="备份时不包含技能库")
     args = parser.parse_args(argv)
 
-    paths = RuntimePaths.create(Path(args.data_dir), config_path=args.config, skills_root=args.skills)
+    paths = RuntimePaths.create(Path(args.data_dir), config_path=args.config, skills_root=args.skills, memory_path=args.memory_db)
     try:
         if args.restore:
             if not args.into:
@@ -346,7 +484,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if not args.to:
             parser.error("需要 --to（备份）或 --restore + --into（恢复）")
-        report = backup_runtime(paths, Path(args.to), include_skills=not args.no_skills)
+        report = backup_runtime(paths, Path(args.to), include_skills=not args.no_skills,
+                                include_credentials=args.include_credentials)
     except BackupError as exc:
         print(f"失败：{exc}", file=sys.stderr)
         return 2
