@@ -3,8 +3,11 @@
 几条刻意的取舍：
 - **不猜二进制**：前 8KB 出现 NUL 就按二进制拒绝，不尝试"尽力解码"——
   把 xlsx/db 解成乱码再喂给模型，只会浪费上下文并泄露片段；
+  例外是**带 BOM 的 UTF-16**（记事本「Unicode」/PowerShell 5.1 `Out-File` 的默认
+  存档）：NUL 高频是编码本身，不是二进制特征。无 BOM 的 UTF-16 与真二进制
+  区分不开，维持拒绝（fail-closed）；
 - **保留原有编码与换行**：GBK 文件读出来写回去还是 GBK，CRLF 不会因为一次编辑变成 LF，
-  否则每次改一行都会在 git 里显示整文件重写；
+  UTF-16 连字节序（LE/BE）都原样写回，否则每次改一行都会在 git 里显示整文件重写；
 - **检查后不变**：打开文件后用 `fstat(fd)` 与 `stat(path)` 比对文件身份，
   防止"校验时是普通文件、写入时已换成链接"的竞态。
 """
@@ -25,6 +28,9 @@ from .paths import PathRejected
 BINARY_SNIFF_BYTES = 8192
 MAX_LINE_CHARS = 2000
 MIN_HASH_PREFIX = 8
+
+# UTF-16 只认显式 BOM；编码名带上字节序，写回时不会静默换端序
+UTF16_ENCODINGS = ("utf-16-le", "utf-16-be")
 
 
 def sha256_hex(data: bytes) -> str:
@@ -54,19 +60,38 @@ class Decoded:
     newline: str
 
 
-def newline_of_bytes(data: bytes) -> str:
-    """按原始字节判断换行风格：CRLF 占多数就按 CRLF 写回。"""
-    crlf = data.count(b"\r\n")
-    lf = data.count(b"\n") - crlf
+def newline_of_bytes(data: bytes, encoding: str = "") -> str:
+    """按原始字节判断换行风格：CRLF 占多数就按 CRLF 写回（UTF-16 按其字节形态计数）。"""
+    if encoding == "utf-16-le":
+        crlf = data.count(b"\r\x00\n\x00")
+        lf = data.count(b"\n\x00") - crlf
+    elif encoding == "utf-16-be":
+        crlf = data.count(b"\x00\r\x00\n")
+        lf = data.count(b"\x00\n") - crlf
+    else:
+        crlf = data.count(b"\r\n")
+        lf = data.count(b"\n") - crlf
     return "\r\n" if crlf and crlf >= lf else "\n"
 
 
 def is_binary(data: bytes) -> bool:
-    return b"\x00" in data[:BINARY_SNIFF_BYTES]
+    head = data[:BINARY_SNIFF_BYTES]
+    # UTF-16 带 BOM 是明确的文本：NUL 高频是编码本身；无 BOM 的 UTF-16不猜
+    if head.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        return False
+    return b"\x00" in head
 
 
 def detect_encoding(sample: bytes) -> tuple[str, bool]:
-    """返回 (编码, 是否有 BOM)；识别不了就按 UTF-8 替换解码（不抛异常）。"""
+    """返回 (编码, 是否有 BOM)；识别不了就按 UTF-8 替换解码（不抛异常）。
+
+    UTF-16 只认显式 BOM，且 LE/BE 分别成编码名——写回保持原字节序；
+    无 BOM 的 UTF-16 与二进制区分不开，按二进制拒绝。
+    """
+    if sample.startswith(codecs.BOM_UTF16_LE):
+        return "utf-16-le", True
+    if sample.startswith(codecs.BOM_UTF16_BE):
+        return "utf-16-be", True
     if sample.startswith(codecs.BOM_UTF8):
         return "utf-8", True
     try:
@@ -84,6 +109,16 @@ def detect_encoding(sample: bytes) -> tuple[str, bool]:
 
 def decode_bytes(data: bytes) -> Decoded:
     encoding, bom = detect_encoding(data[:BINARY_SNIFF_BYTES])
+    newline = newline_of_bytes(data, encoding)
+    if encoding in UTF16_ENCODINGS:
+        # BOM 由本层显式剥离/写回：utf-16-le/be 编码名不会自动吞 BOM
+        text = (data[2:] if bom else data).decode(encoding, errors="replace")
+        return Decoded(
+            text=text.replace("\r\n", "\n").replace("\r", "\n"),
+            encoding=encoding,
+            bom=bom,
+            newline=newline,
+        )
     codec = "utf-8-sig" if bom else encoding
     try:
         text = data.decode(codec)
@@ -93,7 +128,7 @@ def decode_bytes(data: bytes) -> Decoded:
         text=text.replace("\r\n", "\n").replace("\r", "\n"),
         encoding=encoding,
         bom=bom,
-        newline=newline_of_bytes(data),
+        newline=newline,
     )
 
 
@@ -106,7 +141,11 @@ def encode_text(text: str, *, encoding: str, bom: bool, newline: str) -> bytes:
     except UnicodeEncodeError:
         # 原文件是 GBK，新内容里有 GBK 装不下的字：改存 UTF-8 而不是丢字
         payload = normalized.encode("utf-8")
-        bom = False
+        encoding, bom = "utf-8", False
+    if encoding == "utf-16-le":
+        return (codecs.BOM_UTF16_LE + payload) if bom else payload
+    if encoding == "utf-16-be":
+        return (codecs.BOM_UTF16_BE + payload) if bom else payload
     return (codecs.BOM_UTF8 + payload) if bom else payload
 
 
@@ -205,8 +244,13 @@ def read_window(
                 )
             encoding, bom = detect_encoding(sample)
             raw.seek(0)
+            if bom and encoding in UTF16_ENCODINGS:
+                raw.read(2)  # UTF-16 的 BOM 由本层剥离，流式解码不再看到 U+FEFF
             text = io.TextIOWrapper(
-                raw, encoding=("utf-8-sig" if bom else encoding), errors="replace", newline=""
+                raw,
+                encoding=("utf-8-sig" if bom and encoding == "utf-8" else encoding),
+                errors="replace",
+                newline="",
             )
             lines = []
             clipped = 0

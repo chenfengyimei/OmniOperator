@@ -7,6 +7,30 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · D13 收口：文件工具支持带 BOM 的 UTF-16
+
+- **关闭 D13 剩余限制 3**（原话"UTF-16 文本会被判为二进制（NUL 字节），需要时另加编码探测"）：
+  记事本「Unicode」与 PowerShell 5.1 `Out-File` 的默认存档都是带 BOM 的 UTF-16，
+  此前一律按二进制拒绝。现在 `tools/files/io.py` 编码识别链加入
+  UTF-16 LE/BE——**只认显式 BOM**，且 LE/BE 分别成编码名（写回保持原字节序，
+  不静默换端序）；BOM 由 io 层显式剥离/写回（`utf-16-le/be` 编码名不会自动吞 BOM）；
+  `is_binary` 对带 BOM 的 UTF-16 放行（NUL 高频是编码本身），无 BOM 的 UTF-16
+  **不猜**——与真二进制区分不开，维持 fail-closed。
+- **换行风格**：`newline_of_bytes` 增加按 UTF-16 字节形态计数 CRLF/LF
+  （LE=0D 00 0A 00，BE=00 0D 00 0A），UTF-16 文件的 CRLF 写回不再悄悄变 LF。
+- **全链路自动生效**：files_read/files_write/files_diff/files_search 与历史快照共用
+  `decode_bytes`/`encode_text`/`is_binary` 单点——写入按原编码/BOM/换行回写，
+  回滚直接写原始字节快照；大文件流式读取路径（`read_window`）同样跳 BOM。
+- **新增 4 项测试**：LE/BE 参数化读写往返（字节级断言原样回写）/ 无 BOM 含 NUL
+  维持二进制拒绝 + 纯 CJK 无 NUL 走 GB18030 误读的**既有边界如实钉住** /
+  search-diff-write 全链路不误判二进制。既有 29 项（UTF-8/GBK/BOM/二进制）零改动。
+- **明确边界**：纯 CJK 内容的无 BOM UTF-16 恰好不含 NUL 字节（如「中文」= 2D 4E 87 65），
+  仍按 GB18030 误读——这是改动前就存在的既有降级行为，不在本批宣称修复；
+  无 BOM 场景不做 UTF-16 猜测正是为了避免把 GB18030 文本误判成 UTF-16。
+- `uv run --no-sync pytest tests/test_files.py -q` → **33 passed**；
+  全量 `uv run --no-sync pytest -q` → **855 passed**（2026-10-29；含并行会话未提交的
+  16 项 web 模型密钥测试，与本批文件无交集）。
+
 ### 2026-10-29 · D19 第三批：失败服务有界自动重连
 
 - **关闭 D19 剩余限制 3**（HANDOFF §6 原话"无自动退避重连——失败即 failed，等人点按钮，

@@ -130,6 +130,76 @@ def test_bom_is_preserved(env):
     assert target.read_bytes().startswith(codecs.BOM_UTF8)
 
 
+@pytest.mark.parametrize("bom,label", [(codecs.BOM_UTF16_LE, "utf-16-le"), (codecs.BOM_UTF16_BE, "utf-16-be")])
+def test_utf16_with_bom_round_trip(env, bom, label):
+    """D13 剩余限制 3 收口：记事本「Unicode」/PS 5.1 Out-File 存档的 UTF-16 可读写。
+
+    编码与字节序原样写回；CRLF 在 UTF-16 字节形态下计数正确。
+    无 BOM 的 UTF-16 与二进制区分不开，继续按二进制拒绝（fail-closed）。
+    """
+    registry, root, _ = env
+    target = root / "unicode.txt"
+    payload = "中文内容\r\n第二行\r\n"
+    target.write_bytes(bom + payload.encode(label))
+
+    body = run(registry, "files_read", path="unicode.txt")
+    assert label in body and "中文内容" in body and "第二行" in body
+
+    new_payload = "中文内容\r\n改过的行\r\n"
+    written = run(
+        registry,
+        "files_write",
+        path="unicode.txt",
+        content=new_payload,
+        expected_hash=_fingerprint(body),
+    )
+    assert "已写入" in written
+    assert target.read_bytes() == bom + new_payload.encode(label)
+
+
+def test_utf16_without_bom_stays_binary(env):
+    """无 BOM 的 UTF-16 不猜：含 NUL 的（ASCII 为主）维持二进制拒绝。
+
+    边界如实钉住：纯 CJK 内容的无 BOM UTF-16 恰好没有 NUL 字节
+    （如「中文」= 2D 4E 87 65），会按 GB18030 误读——这是既有行为，
+    与本批改动无关；无 BOM 场景不做 UTF-16 猜测正是为了避免这类误判。
+    """
+    registry, root, _ = env
+    target = root / "no-bom-utf16.txt"
+    target.write_bytes("ascii content".encode("utf-16-le"))
+    assert "二进制" in run(registry, "files_read", path="no-bom-utf16.txt")
+    assert "二进制" in run(
+        registry, "files_write", path="no-bom-utf16.txt", content="x", mode="overwrite"
+    )
+    # 纯 CJK 无 BOM 无 NUL：按 GB18030 读（既有降级行为，不假装能识别）
+    cjk = root / "cjk-no-bom.txt"
+    cjk.write_bytes("中文".encode("utf-16-le"))
+    body = run(registry, "files_read", path="cjk-no-bom.txt")
+    assert "gb18030" in body and "二进制" not in body
+
+
+def test_utf16_bom_is_not_reported_as_binary_anywhere(env):
+    """UTF-16 全链路生效：写、diff、搜索都不再把带 BOM 的 UTF-16 当二进制。"""
+    registry, root, _ = env
+    target = root / "notes.txt"
+    target.write_bytes(codecs.BOM_UTF16_LE + "线索：钥匙在抽屉\r\n".encode("utf-16-le"))
+    found = run(registry, "files_search", query="钥匙")
+    assert "notes.txt" in found and "线索：钥匙在抽屉" in found
+    diff = run(registry, "files_diff", path="notes.txt", content="线索：钥匙在花盆\r\n")
+    assert "花盆" in diff and "抽屉" in diff
+    written = run(
+        registry,
+        "files_write",
+        path="notes.txt",
+        mode="replace",
+        old_text="钥匙在抽屉",
+        content="钥匙在花盆",
+        expected_hash=_fingerprint(run(registry, "files_read", path="notes.txt")),
+    )
+    assert "已写入" in written
+    assert target.read_bytes() == codecs.BOM_UTF16_LE + "线索：钥匙在花盆\r\n".encode("utf-16-le")
+
+
 def test_binary_file_is_refused(env):
     registry, root, _ = env
     (root / "blob.bin").write_bytes(b"\x00\x01\x02PK\x03\x04")
