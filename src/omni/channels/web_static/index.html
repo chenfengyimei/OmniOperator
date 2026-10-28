@@ -211,6 +211,7 @@ ul{list-style:none;overflow-y:auto}
       </div>
       <div id="tab-facts" class="tab-body">
         <input id="fact-q" placeholder="搜索事实记忆…">
+        <div id="retrieval-state" class="hint" style="padding:6px 10px"></div>
         <ul id="facts-list"></ul>
       </div>
       <div id="tab-profile" class="tab-body hidden"><div id="profile-usage"></div><ul id="profile-list"></ul></div>
@@ -670,6 +671,10 @@ async function sendMessage(){
 }
 
 async function loadFacts(){
+  try{
+    const r=await api('/api/memory/retrieval');
+    $('#retrieval-state').textContent=r.enabled?`recall 混合检索：${r.provider} / ${r.model} · ${r.indexed} 条已索引${r.pending?' · 待索引':''}${r.last_error?' · '+r.last_error:''}`:'recall 使用关键词检索（向量未启用）';
+  }catch(e){$('#retrieval-state').textContent='检索状态暂不可用'}
   const q=$('#fact-q').value.trim();
   const d=await api('/api/facts?q='+encodeURIComponent(q));
   $('#facts-list').innerHTML=d.facts.length?d.facts.map(f=>`<li>${esc(f)}</li>`).join(''):'<li class="empty">暂无记忆</li>';

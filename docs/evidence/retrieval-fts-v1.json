@@ -1,0 +1,584 @@
+{
+  "k": 5,
+  "repeats": 3,
+  "samples": 20,
+  "recall_at_k": 0.7777777777777778,
+  "mrr": 0.7777777777777778,
+  "latency_median_ms": 0.09614997543394566,
+  "cases": [
+    {
+      "id": "exact-cn",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟喜欢无糖拿铁"
+      ],
+      "latency_ms": 0.3861000295728445
+    },
+    {
+      "id": "name",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻",
+        "合成用户林舟喜欢无糖拿铁"
+      ],
+      "latency_ms": 0.17529999604448676
+    },
+    {
+      "id": "short-cn",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻"
+      ],
+      "latency_ms": 0.12579996837303042
+    },
+    {
+      "id": "pet-name",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻"
+      ],
+      "latency_ms": 0.10880001354962587
+    },
+    {
+      "id": "number",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成项目星河的端口是 8217"
+      ],
+      "latency_ms": 0.1406000228598714
+    },
+    {
+      "id": "project",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成项目星河的端口是 8217"
+      ],
+      "latency_ms": 0.13080000644549727
+    },
+    {
+      "id": "time",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成会议定于周四下午三点"
+      ],
+      "latency_ms": 0.07479998748749495
+    },
+    {
+      "id": "english",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成任务使用 SQLite WAL 模式保存运行账本"
+      ],
+      "latency_ms": 0.10850001126527786
+    },
+    {
+      "id": "mixed",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成任务使用 SQLite WAL 模式保存运行账本"
+      ],
+      "latency_ms": 0.06339995888993144
+    },
+    {
+      "id": "city",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成旅行目的地是成都"
+      ],
+      "latency_ms": 0.058100034948438406
+    },
+    {
+      "id": "alias",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成工作区别名为 Aurora workspace"
+      ],
+      "latency_ms": 0.10750000365078449
+    },
+    {
+      "id": "hyphen",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成服务 nightly-report 每晚生成日报"
+      ],
+      "latency_ms": 0.24399999529123306
+    },
+    {
+      "id": "person-cn",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成联系人顾澄负责测试"
+      ],
+      "latency_ms": 0.06629998097196221
+    },
+    {
+      "id": "semantic-drink",
+      "repeat": 1,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.18079997971653938
+    },
+    {
+      "id": "semantic-sport",
+      "repeat": 1,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.18339999951422215
+    },
+    {
+      "id": "semantic-owner",
+      "repeat": 1,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.16629998572170734
+    },
+    {
+      "id": "semantic-location",
+      "repeat": 1,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.15849998453631997
+    },
+    {
+      "id": "group-own",
+      "repeat": 1,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成群一的约定暗号是蓝鲸"
+      ],
+      "latency_ms": 0.06059999577701092
+    },
+    {
+      "id": "private-isolation",
+      "repeat": 1,
+      "rank": null,
+      "passed": true,
+      "retrieved": [],
+      "latency_ms": 0.12909999350085855
+    },
+    {
+      "id": "group-isolation",
+      "repeat": 1,
+      "rank": null,
+      "passed": true,
+      "retrieved": [],
+      "latency_ms": 0.09759998647496104
+    },
+    {
+      "id": "exact-cn",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟喜欢无糖拿铁"
+      ],
+      "latency_ms": 0.07339997682720423
+    },
+    {
+      "id": "name",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻",
+        "合成用户林舟喜欢无糖拿铁"
+      ],
+      "latency_ms": 0.05929998587816954
+    },
+    {
+      "id": "short-cn",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻"
+      ],
+      "latency_ms": 0.063000014051795
+    },
+    {
+      "id": "pet-name",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻"
+      ],
+      "latency_ms": 0.049099966417998075
+    },
+    {
+      "id": "number",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成项目星河的端口是 8217"
+      ],
+      "latency_ms": 0.06970000686123967
+    },
+    {
+      "id": "project",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成项目星河的端口是 8217"
+      ],
+      "latency_ms": 0.06079999729990959
+    },
+    {
+      "id": "time",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成会议定于周四下午三点"
+      ],
+      "latency_ms": 0.053099996875971556
+    },
+    {
+      "id": "english",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成任务使用 SQLite WAL 模式保存运行账本"
+      ],
+      "latency_ms": 0.09450002107769251
+    },
+    {
+      "id": "mixed",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成任务使用 SQLite WAL 模式保存运行账本"
+      ],
+      "latency_ms": 0.05889998283237219
+    },
+    {
+      "id": "city",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成旅行目的地是成都"
+      ],
+      "latency_ms": 0.054800009820610285
+    },
+    {
+      "id": "alias",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成工作区别名为 Aurora workspace"
+      ],
+      "latency_ms": 0.0974999857135117
+    },
+    {
+      "id": "hyphen",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成服务 nightly-report 每晚生成日报"
+      ],
+      "latency_ms": 0.21189998369663954
+    },
+    {
+      "id": "person-cn",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成联系人顾澄负责测试"
+      ],
+      "latency_ms": 0.060699996538460255
+    },
+    {
+      "id": "semantic-drink",
+      "repeat": 2,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.14810002176091075
+    },
+    {
+      "id": "semantic-sport",
+      "repeat": 2,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.1677999971434474
+    },
+    {
+      "id": "semantic-owner",
+      "repeat": 2,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.17119996482506394
+    },
+    {
+      "id": "semantic-location",
+      "repeat": 2,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.15380000695586205
+    },
+    {
+      "id": "group-own",
+      "repeat": 2,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成群一的约定暗号是蓝鲸"
+      ],
+      "latency_ms": 0.05099998088553548
+    },
+    {
+      "id": "private-isolation",
+      "repeat": 2,
+      "rank": null,
+      "passed": true,
+      "retrieved": [],
+      "latency_ms": 0.11379999341443181
+    },
+    {
+      "id": "group-isolation",
+      "repeat": 2,
+      "rank": null,
+      "passed": true,
+      "retrieved": [],
+      "latency_ms": 0.09669997962191701
+    },
+    {
+      "id": "exact-cn",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟喜欢无糖拿铁"
+      ],
+      "latency_ms": 0.08209998486563563
+    },
+    {
+      "id": "name",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻",
+        "合成用户林舟喜欢无糖拿铁"
+      ],
+      "latency_ms": 0.055500015150755644
+    },
+    {
+      "id": "short-cn",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻"
+      ],
+      "latency_ms": 0.048799964133650064
+    },
+    {
+      "id": "pet-name",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成用户林舟的猫叫芝麻"
+      ],
+      "latency_ms": 0.049600028432905674
+    },
+    {
+      "id": "number",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成项目星河的端口是 8217"
+      ],
+      "latency_ms": 0.06589997792616487
+    },
+    {
+      "id": "project",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成项目星河的端口是 8217"
+      ],
+      "latency_ms": 0.05889998283237219
+    },
+    {
+      "id": "time",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成会议定于周四下午三点"
+      ],
+      "latency_ms": 0.048900023102760315
+    },
+    {
+      "id": "english",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成任务使用 SQLite WAL 模式保存运行账本"
+      ],
+      "latency_ms": 0.11409999569877982
+    },
+    {
+      "id": "mixed",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成任务使用 SQLite WAL 模式保存运行账本"
+      ],
+      "latency_ms": 0.0597000471316278
+    },
+    {
+      "id": "city",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成旅行目的地是成都"
+      ],
+      "latency_ms": 0.05360000068321824
+    },
+    {
+      "id": "alias",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成工作区别名为 Aurora workspace"
+      ],
+      "latency_ms": 0.09550002869218588
+    },
+    {
+      "id": "hyphen",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成服务 nightly-report 每晚生成日报"
+      ],
+      "latency_ms": 0.21130003733560443
+    },
+    {
+      "id": "person-cn",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成联系人顾澄负责测试"
+      ],
+      "latency_ms": 0.05929998587816954
+    },
+    {
+      "id": "semantic-drink",
+      "repeat": 3,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.1453000004403293
+    },
+    {
+      "id": "semantic-sport",
+      "repeat": 3,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.16380002489313483
+    },
+    {
+      "id": "semantic-owner",
+      "repeat": 3,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.15899998834356666
+    },
+    {
+      "id": "semantic-location",
+      "repeat": 3,
+      "rank": null,
+      "passed": false,
+      "retrieved": [],
+      "latency_ms": 0.1517999917268753
+    },
+    {
+      "id": "group-own",
+      "repeat": 3,
+      "rank": 1,
+      "passed": true,
+      "retrieved": [
+        "合成群一的约定暗号是蓝鲸"
+      ],
+      "latency_ms": 0.050799979362636805
+    },
+    {
+      "id": "private-isolation",
+      "repeat": 3,
+      "rank": null,
+      "passed": true,
+      "retrieved": [],
+      "latency_ms": 0.1142999972216785
+    },
+    {
+      "id": "group-isolation",
+      "repeat": 3,
+      "rank": null,
+      "passed": true,
+      "retrieved": [],
+      "latency_ms": 0.0955999712459743
+    }
+  ],
+  "mode": "fts",
+  "dataset_version": "retrieval-v1",
+  "python_peak_bytes": 49965,
+  "valid_comparison": true,
+  "dataset_sha256": "5ed7972d27b2fa54c5755f9d8d6e033656b6701a0fa0cfcb12c166bad2eef862",
+  "retrieval": null,
+  "usage": []
+}

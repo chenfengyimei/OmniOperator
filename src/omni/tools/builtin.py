@@ -44,6 +44,7 @@ def register_memory_tools(
     session_ref: Any = None,
     recall_prefix: bool = False,
     source: str = "chat",
+    retriever: Any = None,
 ) -> None:
     """记忆读写工具。`guard` 是写入闸门（D12）：有它就走额度与遗忘检查。
 
@@ -81,7 +82,8 @@ def register_memory_tools(
 
     def recall(args: dict[str, Any]) -> str:
         query = str(args.get("query", "")).strip()
-        hits = store.search_facts(query, limit=8, scope=_scope())
+        search = retriever or store.search_facts
+        hits = search(query, limit=8, scope=_scope())
         if not hits:
             return "没有找到相关记忆。"
         body = "\n".join(f"- {h}" for h in hits)
@@ -526,6 +528,7 @@ def register_core_tools(
     session_ref: Any = None,
     recall_prefix: bool = False,
     source: str = "chat",
+    retriever: Any = None,
 ) -> None:
     """core 工具集总入口：组装根（bootstrap）持有唯一 ToolRegistry。"""
     register_time_tool(registry)
@@ -537,5 +540,6 @@ def register_core_tools(
         session_ref=session_ref,
         recall_prefix=recall_prefix,
         source=source,
+        retriever=retriever,
     )
     register_profile_tools(registry, store, guard=guard, source=source)

@@ -343,6 +343,44 @@ class MCPConfig(BaseModel):
         return value
 
 
+class Embedding(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    enabled: bool = False
+    provider: str = "local"  # local=已有 Ollama；api=LiteLLM
+    model: str = ""
+    revision: str = "1"  # 同名模型更新后由用户递增，避免新旧向量混用
+    dimensions: int = Field(default=768, ge=1, le=4096)
+    endpoint: str = "http://127.0.0.1:11434"
+    api_key_env: str = ""
+    send_to_cloud: bool = False
+    daily_usd: float = Field(default=0, ge=0)
+    input_usd_per_m: float = Field(default=0, ge=0)
+    timeout_s: float = Field(default=15, ge=1, le=60)
+    batch_size: int = Field(default=8, ge=1, le=32)
+    max_text_chars: int = Field(default=4000, ge=1, le=16000)
+    scopes: list[str] = Field(default_factory=lambda: ["private"])
+
+    @model_validator(mode="after")
+    def validate_provider(self):
+        from urllib.parse import urlsplit
+        if self.provider not in {"local", "api"}:
+            raise ValueError("embedding.provider 必须是 local 或 api")
+        url = urlsplit(self.endpoint)
+        if url.username or url.password or url.query or url.fragment:
+            raise ValueError("embedding.endpoint 不能包含凭据、查询或片段")
+        if self.provider == "local" and (url.scheme != "http" or url.hostname not in {"127.0.0.1", "localhost", "::1"}):
+            raise ValueError("本地 embedding 仅允许回环 HTTP 地址")
+        if self.provider == "local" and (self.model.endswith(":cloud") or self.model.endswith("-cloud")):
+            raise ValueError("本地 embedding 不能选择 Ollama 云端模型")
+        if self.provider == "api" and url.scheme != "https":
+            raise ValueError("API embedding 必须配置 HTTPS endpoint")
+        if self.enabled and not self.model.strip():
+            raise ValueError("启用 embedding 前必须配置已有模型")
+        if self.enabled and self.provider == "api" and not (self.send_to_cloud and self.daily_usd > 0 and self.input_usd_per_m > 0):
+            raise ValueError("API embedding 需要显式 send_to_cloud、每日预算和输入单价")
+        return self
+
+
 class Cron(BaseModel):
     model_config = ConfigDict(extra="forbid")
     max_running: int = Field(default=2, ge=1, le=8)
@@ -367,6 +405,7 @@ class AppConfig(BaseModel):
     approval: Approval = Field(default_factory=Approval)
     mcp: MCPConfig = Field(default_factory=MCPConfig)
     cron: Cron = Field(default_factory=Cron)
+    embedding: Embedding = Field(default_factory=Embedding)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

@@ -1,0 +1,40 @@
+{
+  "version": "retrieval-v1",
+  "notice": "人工合成事实，不包含真实个人数据；质量比较需使用真实已授权模型。",
+  "facts": [
+    {"text": "合成用户林舟喜欢无糖拿铁", "scope": "private"},
+    {"text": "合成用户林舟的猫叫芝麻", "scope": "private"},
+    {"text": "合成项目星河的端口是 8217", "scope": "private"},
+    {"text": "合成会议定于周四下午三点", "scope": "private"},
+    {"text": "合成任务使用 SQLite WAL 模式保存运行账本", "scope": "private"},
+    {"text": "合成旅行目的地是成都", "scope": "private"},
+    {"text": "合成工作区别名为 Aurora workspace", "scope": "private"},
+    {"text": "合成用户周末喜欢骑自行车", "scope": "private"},
+    {"text": "合成联系人顾澄负责测试", "scope": "private"},
+    {"text": "合成服务 nightly-report 每晚生成日报", "scope": "private"},
+    {"text": "合成群一的约定暗号是蓝鲸", "scope": "group:1"},
+    {"text": "合成群二的约定暗号是银杏", "scope": "group:2"}
+  ],
+  "cases": [
+    {"id":"exact-cn", "query":"无糖拿铁", "expected":"合成用户林舟喜欢无糖拿铁", "scope":"private"},
+    {"id":"name", "query":"林舟", "expected":"合成用户林舟的猫叫芝麻", "scope":"private"},
+    {"id":"short-cn", "query":"猫", "expected":"合成用户林舟的猫叫芝麻", "scope":"private"},
+    {"id":"pet-name", "query":"芝麻", "expected":"合成用户林舟的猫叫芝麻", "scope":"private"},
+    {"id":"number", "query":"8217", "expected":"合成项目星河的端口是 8217", "scope":"private"},
+    {"id":"project", "query":"星河 端口", "expected":"合成项目星河的端口是 8217", "scope":"private"},
+    {"id":"time", "query":"周四", "expected":"合成会议定于周四下午三点", "scope":"private"},
+    {"id":"english", "query":"SQLite", "expected":"合成任务使用 SQLite WAL 模式保存运行账本", "scope":"private"},
+    {"id":"mixed", "query":"WAL 账本", "expected":"合成任务使用 SQLite WAL 模式保存运行账本", "scope":"private"},
+    {"id":"city", "query":"成都", "expected":"合成旅行目的地是成都", "scope":"private"},
+    {"id":"alias", "query":"Aurora", "expected":"合成工作区别名为 Aurora workspace", "scope":"private"},
+    {"id":"hyphen", "query":"nightly-report", "expected":"合成服务 nightly-report 每晚生成日报", "scope":"private"},
+    {"id":"person-cn", "query":"顾澄", "expected":"合成联系人顾澄负责测试", "scope":"private"},
+    {"id":"semantic-drink", "query":"爱喝什么咖啡", "expected":"合成用户林舟喜欢无糖拿铁", "scope":"private"},
+    {"id":"semantic-sport", "query":"休息日的运动爱好", "expected":"合成用户周末喜欢骑自行车", "scope":"private"},
+    {"id":"semantic-owner", "query":"谁来检查软件质量", "expected":"合成联系人顾澄负责测试", "scope":"private"},
+    {"id":"semantic-location", "query":"旅游要去哪个城市", "expected":"合成旅行目的地是成都", "scope":"private"},
+    {"id":"group-own", "query":"蓝鲸", "expected":"合成群一的约定暗号是蓝鲸", "scope":"group:1"},
+    {"id":"private-isolation", "query":"林舟 芝麻", "expected":null, "scope":"group:2"},
+    {"id":"group-isolation", "query":"蓝鲸", "expected":null, "scope":"group:2"}
+  ]
+}

@@ -852,6 +852,16 @@ class MemoryStore:
             for r in rows
         ]
 
+    @_locked
+    def filter_facts(self, candidates: list[str], *, scope: str) -> list[str]:
+        """派生检索结果回源校验：网络期间删除/纠错的事实不返回。"""
+        if not candidates:
+            return []
+        marks = ",".join("?" for _ in candidates)
+        found = {r[0] for r in self._conn.execute(
+            f"SELECT content FROM facts WHERE scope=? AND content IN ({marks})", [scope, *candidates])}
+        return [text for text in candidates if text in found]
+
     # ---------- 用户档案（USER.md 式，限额+报错驱动自整理） ----------
 
     @_locked

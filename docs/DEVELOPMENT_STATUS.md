@@ -7,6 +7,20 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-28 · D24 双 embedding 与混合检索（待真实模型验收）
+
+- 接续 `0c59902`：本地 Ollama / LiteLLM API 两种出口、同一费用账本预留结算、云端显式
+  开关与预算；sqlite-vec 增量索引、RRF 融合、模型版本/维度隔离、scope 过滤与同步遗忘。
+- 数据路径注入原 memory.db；网络请求不占写事务；跨进程索引租约、有界批次、模型失败
+  回退 FTS；默认不开启。工具、bootstrap、工作台状态、关闭生命周期均接线。
+- `uv run --no-sync pytest -q` → **662 passed, 1 已知 warning，120.83s**。
+  新用例覆盖真实回环 HTTP 协议、LiteLLM 参数/索引顺序、费用拒绝、扩展加载关闭、
+  缺失扩展回退、非法向量、跨 scope、查询中遗忘、索引途中遗忘与版本切换续建。
+- 冻结 20 个合成检索样本，三次重复，FTS Recall@5/MRR=0.7778，证据在
+  `docs/evidence/retrieval-fts-v1.json`；评测命令与两种配置在 `docs/RETRIEVAL.md`。
+- `Get-Command ollama` 未找到命令；未下载模型、未调用付费 API。真实模型混合检索收益
+  尚待供应商/模型配置验证；接口与离线契约完成不等于质量评测或 Hermes 对照评测完成。
+
 ### 2026-10-28 · D17 调度与任务链收口
 
 - 接续 `a52f0ec`，state v11：任务时区/源结果有效期、独立 cron_outputs（run_id、状态、结束时间、结果）。

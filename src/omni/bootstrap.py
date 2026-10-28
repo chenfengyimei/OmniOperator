@@ -28,7 +28,10 @@ from .core.agent import Agent
 from .core.run import ActiveRuns
 from .core.session import ResourceLeases, SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
+from .core.retrieval import HybridMemory
 from .llm.gateway import Gateway
+from .llm.embedding import EmbeddingProvider
+from .memory.vectors import VectorIndex
 from .memory.runs import RunStore
 from .memory.state import (
     ExecutionLog,
@@ -131,6 +134,7 @@ class Runtime:
     mcp_schemas: MCPSchemaStore | None = None # MCP 工具目录指纹：漂移提醒（D19）
     skill_acks: SkillAckStore | None = None   # 技能变更已读标记：待审阅队列（D18）
     qq: OneBotClient | None = None
+    retrieval: HybridMemory | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
@@ -153,6 +157,15 @@ class Runtime:
     def close_state(self) -> None:
         """关闭共享状态库连接（测试与一次性命令用；常驻进程退出时由 OS 收尾）。"""
         self.state.close()
+
+    def close_retrieval(self, wait_s: float = 5) -> bool:
+        if self.retrieval is None:
+            return True
+        done = self.retrieval.close(wait_s)
+        if done:
+            atexit.unregister(self.retrieval.close)
+            self.retrieval = None
+        return done
 
     def close_browser(self, *, wait_s: float | None = None) -> str:
         """关闭浏览器并在有界时间内回收线程与 profile 租约；返回可读结论。"""
@@ -186,6 +199,7 @@ def build_runtime(
     skills_root: Path | None = None,
     data_dir: Path | None = None,
     owner_kind: str = "cli",
+    start_background_workers: bool = True,
 ) -> Runtime:
     # 记住实际读取的配置源：策略热读必须命中同一个文件，否则会读到真机配置
     config_path = Path(config_path) if config_path else CONFIG_PATH
@@ -237,6 +251,15 @@ def build_runtime(
     interrupted = runs.interrupt_stale(owner_kind=owner_kind, current_owner=owner)
     registry = ToolRegistry()
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
+    retrieval = None
+    if config.embedding.enabled:
+        embedding = EmbeddingProvider(config.embedding, usage, daily_limit_usd=config.llm.budget.daily_usd)
+        vector_index = VectorIndex(memory_path, model=embedding.fingerprint,
+                                   dimensions=config.embedding.dimensions, scopes=config.embedding.scopes)
+        retrieval = HybridMemory(store, vector_index, embedding, ResourceLeases(state), run_ref=run_ref)
+        if start_background_workers:
+            retrieval.start()
+        atexit.register(retrieval.close)
     resident = ResidentMemory(
         paths.resident,
         char_limit=config.limits.resident_memory_chars,
@@ -256,6 +279,7 @@ def build_runtime(
         run_ref=run_ref,
         session_ref=session_ref,
         recall_prefix=config.memory.recall_prefix,
+        retriever=retrieval.search if retrieval is not None else None,
     )
     register_digest_tool(registry, store)
     register_todo_tools(registry, store, session_ref)
@@ -429,6 +453,7 @@ def build_runtime(
         workspace=workspace,
         file_history=file_history,
         qq=qq_client,
+        retrieval=retrieval,
         config_path=config_path,
         data_dir=data_root,
         paths=paths,

@@ -245,6 +245,7 @@ def create_app(runtime: Runtime) -> FastAPI:
             if "已关闭" not in note and "未启动" not in note:
                 print(f"[工作台] 关闭浏览器：{note}", flush=True)
             await asyncio.to_thread(runtime.close_mcp)
+            await asyncio.to_thread(runtime.close_retrieval)
 
     app = FastAPI(title="OmniOperator Workbench", lifespan=lifespan)
     terminal_manager = TerminalManager()
@@ -1491,6 +1492,12 @@ def create_app(runtime: Runtime) -> FastAPI:
     def system_state() -> dict[str, Any]:
         """共享状态库自检：版本、完整性、迁移记录、被停用的能力（doctor 的雏形）。"""
         return runtime.state.health()
+
+    @app.get("/api/memory/retrieval")
+    def retrieval_status() -> dict[str, Any]:
+        if runtime.retrieval is None:
+            return {"enabled": False, "mode": "fts"}
+        return {"enabled": True, "mode": "hybrid", **runtime.retrieval.status()}
 
     # ---------- 安卓工作台（MJPEG 看屏 + UI 树 + 点击下发，NOTES §2.3 最低成本方案） ----------
 

@@ -37,6 +37,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "ApprovalBroker",
     "ServiceManager",
     "MCPManager",
+    "EmbeddingProvider", "VectorIndex", "HybridMemory",
 }
 
 
