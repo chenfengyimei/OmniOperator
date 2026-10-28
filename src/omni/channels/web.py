@@ -75,6 +75,10 @@ class ModelTestIn(BaseModel):
     model: str
 
 
+class MCPSchemaConfirmIn(BaseModel):
+    fingerprint: str
+
+
 class BiliCookiesIn(BaseModel):
     sessdata: str = ""
     bili_jct: str = ""
@@ -1085,31 +1089,34 @@ def create_app(runtime: Runtime) -> FastAPI:
                 raise HTTPException(status_code=404, detail=message)
             raise HTTPException(status_code=409, detail=message)
         drift = ""
-        if runtime.mcp_schemas is not None:
-            previous = runtime.mcp_schemas.observe(
-                server, runtime.mcp.fingerprint(rows), len(rows)
-            )
-            if previous:
+        schema = runtime.mcp_schemas.status(server) if runtime.mcp_schemas else None
+        if schema is not None:
+            if not schema["confirmed_at"]:
                 drift = (
-                    f"工具目录与上次确认时不一样（旧指纹 {previous[:8]}）："
-                    "同名工具的参数形态可能变了，请复查只读白名单是否仍然适用"
+                    "工具目录或连接身份已变化：只读调用已暂停。"
+                    "请复查当前目录与只读白名单后确认"
                 )
         return {
             "server": server,
             "total": len(rows),
             "tools": rows[: max(1, min(limit, 100))],
             "drift": drift,
+            "fingerprint": schema["fingerprint"] if schema else "",
         }
 
     @app.post("/api/mcp/{server}/confirm-schema")
-    def mcp_confirm_schema(server: str) -> dict[str, Any]:
+    def mcp_confirm_schema(server: str, payload: MCPSchemaConfirmIn) -> dict[str, Any]:
         """用户复查后确认当前工具目录：清除漂移提醒（确认的就是当前这份）。"""
         if runtime.mcp_schemas is None:
             raise HTTPException(status_code=503, detail="schema 记录不可用")
         schema = runtime.mcp_schemas.status(server)
         if schema is None:
             raise HTTPException(status_code=404, detail="该服务还没有工具目录记录（先「查看工具」）")
-        if not runtime.mcp_schemas.confirm(server, schema["fingerprint"]):
+        try:
+            runtime.mcp.list_tools(server)  # 复查期间若再次升级，旧页面的确认必须失败。
+        except MCPError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        if not runtime.mcp_schemas.confirm(server, payload.fingerprint):
             raise HTTPException(status_code=409, detail="指纹又变了，请重新「查看工具」后再确认")
         return {"ok": True}
 
@@ -1445,6 +1452,7 @@ def create_app(runtime: Runtime) -> FastAPI:
         for item in items:
             # 完整内容已在会话里；面板只给预览，避免一屏刷满长报告
             item["preview"] = (item.pop("content") or "")[:80]
+            item.pop("claim_token", None)
         return {"items": items}
 
     @app.post("/api/system/cron/outbox/{entry_id}/retry")

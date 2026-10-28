@@ -12,6 +12,7 @@ from pydantic import ValidationError
 
 from omni.bootstrap import build_runtime
 from omni.config import MCPConfig, MCPServerConfig
+from omni.memory.state import MCPSchemaStore, StateStore
 from omni.safety.gates import AllowAllApprover, DenyApprover
 from omni.safety.smart import SmartApprover
 from omni.tools.mcp.client import MCPError, MCPManager, render_result, resolve_env
@@ -74,13 +75,15 @@ def setup_mcp(tmp_path, monkeypatch):
         env={"PID_FILE": str(tmp_path / "child.pid"), "MARKER": str(tmp_path / "writes.txt"),
              "PERMITTED": "${MCP_TEST_ALLOWED}"}, read_only_tools=["echo"],
     )})
-    manager = MCPManager(cfg, tmp_path / "logs")
+    state = StateStore(tmp_path / "trust.db")
+    manager = MCPManager(cfg, tmp_path / "logs", schema_store=MCPSchemaStore(state))
     registry = ToolRegistry()
     register_mcp_tools(registry, manager)
     try:
         yield manager, registry, cfg
     finally:
         manager.close()
+        state.close()
 
 
 def test_stdio_roundtrip_paging_environment_and_session_reuse(setup_mcp, tmp_path):
@@ -286,7 +289,8 @@ def test_mcp_status_is_pure_and_includes_disabled(tmp_path, monkeypatch):
         ),
         "off": MCPServerConfig(command="must-not-start", enabled=False),
     })
-    manager = MCPManager(cfg, tmp_path / "logs")
+    state = StateStore(tmp_path / "trust.db")
+    manager = MCPManager(cfg, tmp_path / "logs", schema_store=MCPSchemaStore(state))
     try:
         rows = manager.status()
         by_name = {r["name"]: r for r in rows}
@@ -415,6 +419,8 @@ for line in sys.stdin:
             schema["properties"]["limit"] = {"type": "integer"}
         result = {"tools": [{"name": "search", "description": "drift fixture", "inputSchema": schema}]}
     elif method == "tools/call":
+        with Path(os.environ["DRIFT_FILE"] + ".calls").open("a") as calls:
+            calls.write("called\n")
         result = {"content": [{"type": "text", "text": "ok"}]}
     else:
         error = {"code": -32601, "message": "Method not found"}
@@ -501,22 +507,33 @@ def test_mcp_schema_drift_confirm_and_reset(tmp_path):
         assert overview["demo"]["schema_state"] == "confirmed"
         fingerprint = overview["demo"]["schema_fingerprint"]
         assert fingerprint
+        assert "ok" in runtime.mcp.call("demo", "search", {}, readonly=True)
+        calls = Path(str(marker) + ".calls")
+        assert calls.read_text().splitlines() == ["called"]
 
         # 服务升级（参数形态变化）→ 再次发现出现漂移提醒
         marker.write_text("on", encoding="utf-8")
+        # 模型可以绕过面板直接调用，因此门禁必须位于真正调用前。
+        with pytest.raises(MCPError, match="只读调用已停止"):
+            runtime.mcp.call("demo", "search", {}, readonly=True)
+        assert calls.read_text().splitlines() == ["called"]
         second = client.get("/api/mcp/demo/tools").json()
         assert second["drift"] and "复查" in second["drift"]
+        assert second["tools"][0]["approval"] == "human"
+        assert client.get("/api/mcp/demo/tools").json()["drift"]  # 重看不能自动恢复授权
         overview = {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}
         assert overview["demo"]["schema_state"] == "drifted"
         assert overview["demo"]["schema_fingerprint"] != fingerprint
 
         # 用户复查后确认 → 漂移清除
-        assert client.post("/api/mcp/demo/confirm-schema").json()["ok"] is True
+        assert client.post("/api/mcp/demo/confirm-schema", json={"fingerprint": fingerprint}).status_code == 409
+        assert client.post("/api/mcp/demo/confirm-schema", json={"fingerprint": second["fingerprint"]}).json()["ok"] is True
+        assert "ok" in runtime.mcp.call("demo", "search", {}, readonly=True)
         overview = {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}
         assert overview["demo"]["schema_state"] == "confirmed"
 
         # 没有目录记录的服务不能确认
-        assert client.post("/api/mcp/broken/confirm-schema").status_code == 404
+        assert client.post("/api/mcp/broken/confirm-schema", json={"fingerprint": "unused"}).status_code == 404
 
         # 失败连接：tools 409 → 重连（新连接回到 idle）→ 仍失败则再次 409
         assert client.get("/api/mcp/broken/tools").status_code == 409
@@ -528,3 +545,24 @@ def test_mcp_schema_drift_confirm_and_reset(tmp_path):
     finally:
         runtime.close_mcp()
         runtime.store.close()
+
+
+def test_mcp_changed_connection_identity_revokes_read_permission(setup_mcp):
+    manager, _, config = setup_mcp
+    manager.call("demo", "echo", {}, readonly=True)
+    config.servers["demo"].env["PERMITTED"] = "changed-endpoint-identity"
+    manager.reset("demo")
+    with pytest.raises(MCPError, match="只读调用已停止"):
+        manager.call("demo", "echo", {}, readonly=True)
+    assert manager._schemas.status("demo")["confirmed_at"] is None
+    # 本次人工授权仍可执行，但不恢复未来 SAFE 权限。
+    assert "changed-endpoint-identity" in manager.call("demo", "echo", {}, readonly=False)
+    with pytest.raises(MCPError, match="只读调用已停止"):
+        manager.call("demo", "echo", {}, readonly=True)
+
+
+def test_mcp_missing_trust_store_denies_read_permission(setup_mcp):
+    manager, _, _ = setup_mcp
+    manager._schemas = None
+    with pytest.raises(MCPError, match="授权记录不可用"):
+        manager.call("demo", "echo", {}, readonly=True)

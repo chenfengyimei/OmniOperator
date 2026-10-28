@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -245,6 +245,13 @@ CREATE TABLE IF NOT EXISTS skill_acks (
 );
 """
 
+_SCHEMA_V10 = """
+ALTER TABLE outbox ADD COLUMN claim_token TEXT;
+DROP INDEX uq_outbox_live;
+CREATE UNIQUE INDEX uq_outbox_live ON outbox(target_qq, content_hash)
+    WHERE status IN ('pending', 'sending', 'unknown');
+"""
+
 _MIGRATIONS: dict[int, str] = {
     1: _SCHEMA_V1,
     2: _SCHEMA_V2,
@@ -255,6 +262,7 @@ _MIGRATIONS: dict[int, str] = {
     7: _SCHEMA_V7,
     8: _SCHEMA_V8,
     9: _SCHEMA_V9,
+    10: _SCHEMA_V10,
 }
 
 SESSION_RESOURCE = "session:{}"
@@ -1177,7 +1185,7 @@ class OutboxStore:
     同一条消息不会排两次队；进入终态后同样的内容可以重新入队。
     """
 
-    LIVE_STATUSES = ("pending", "unknown")
+    LIVE_STATUSES = ("pending", "sending", "unknown")
     MAX_LIVE = 50
     MAX_ATTEMPTS = 3
 
@@ -1198,12 +1206,14 @@ class OutboxStore:
         error: str = "",
     ) -> int | None:
         """入队返回条目 id；活跃重复返回 None（不是错误）；队列满抛 ValueError。"""
+        if status not in {"pending", "unknown"}:
+            raise ValueError("新投递只能是 pending 或 unknown")
         content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
         now = self._now()
         try:
             with self._state._tx() as conn:
                 live = conn.execute(
-                    "SELECT COUNT(*) FROM outbox WHERE status IN ('pending','unknown')"
+                    "SELECT COUNT(*) FROM outbox WHERE status IN ('pending','sending','unknown')"
                 ).fetchone()[0]
                 if int(live) >= self.MAX_LIVE:
                     raise ValueError(
@@ -1222,7 +1232,7 @@ class OutboxStore:
     def list(self, *, limit: int = 100) -> list[dict]:
         rows = self._state._read(
             "SELECT * FROM outbox"
-            " ORDER BY CASE WHEN status IN ('pending','unknown') THEN 0 ELSE 1 END,"
+            " ORDER BY CASE WHEN status IN ('pending','sending','unknown') THEN 0 ELSE 1 END,"
             " updated_at DESC LIMIT ?",
             (max(1, int(limit)),),
         )
@@ -1248,10 +1258,56 @@ class OutboxStore:
         with self._state._tx() as conn:
             cursor = conn.execute(
                 "UPDATE outbox SET status = ?, last_error = ?, updated_at = ?,"
-                " sent_at = COALESCE(?, sent_at) WHERE id = ?",
+                " sent_at = COALESCE(?, sent_at) WHERE id = ? AND status != 'sending'",
                 (status, error, now, sent_at, int(entry_id)),
             )
             return cursor.rowcount > 0
+
+    def claim_next(self, *, now: dt.datetime | None = None, stale_after_s: float = 300,
+                   only_id: int | None = None, exclude_ids: tuple[int, ...] = ()) -> dict | None:
+        """原子领取一次发送；过期在途记录变 unknown，绝不恢复为可重试。"""
+        instant = now or dt.datetime.now().astimezone()
+        stamp = to_iso(instant)
+        cutoff = to_iso(instant - dt.timedelta(seconds=max(60, stale_after_s)))
+        with self._state._tx() as conn:
+            conn.execute(
+                "UPDATE outbox SET status='unknown', claim_token=NULL, updated_at=?,"
+                " last_error='发送进程中断或超时，结果未知，禁止自动重发'"
+                " WHERE status='sending' AND julianday(updated_at) < julianday(?)",
+                (stamp, cutoff),
+            )
+            filters = "" if only_id is None else " AND id=?"
+            params = [self.MAX_ATTEMPTS] + ([] if only_id is None else [int(only_id)])
+            if exclude_ids:
+                filters += " AND id NOT IN (" + ",".join("?" for _ in exclude_ids) + ")"
+                params.extend(exclude_ids)
+            row = conn.execute(
+                "SELECT id FROM outbox WHERE status='pending' AND attempts < ?"
+                + filters + " ORDER BY created_at,id LIMIT 1", params,
+            ).fetchone()
+            if row is None:
+                return None
+            token = uuid.uuid4().hex
+            conn.execute(
+                "UPDATE outbox SET status='sending', claim_token=?, updated_at=?,"
+                " attempts=attempts+1 WHERE id=? AND status='pending'",
+                (token, stamp, row[0]),
+            )
+            return self._row(conn.execute("SELECT * FROM outbox WHERE id=?", (row[0],)).fetchone())
+
+    def finish_claim(self, entry_id: int, token: str, status: str, *, error: str = "") -> bool:
+        """只有仍持有本次发送身份的调用方能结算；旧进程不能覆盖人工处理结果。"""
+        if status not in {"pending", "sent", "unknown", "dead", "discarded"}:
+            raise ValueError("非法投递结果")
+        now = self._now()
+        with self._state._tx() as conn:
+            cursor = conn.execute(
+                "UPDATE outbox SET status=?, claim_token=NULL, last_error=?, updated_at=?,"
+                " sent_at=CASE WHEN ?='sent' THEN ? ELSE sent_at END"
+                " WHERE id=? AND status='sending' AND claim_token=?",
+                (status, error, now, status, now, int(entry_id), token),
+            )
+            return cursor.rowcount == 1
 
     def attempt(self, entry_id: int, *, error: str = "") -> int:
         """记一次失败尝试并返回累计次数（调用方据此决定是否成死信）。"""
@@ -1285,7 +1341,7 @@ class OutboxStore:
         with self._state._tx() as conn:
             cursor = conn.execute(
                 "UPDATE outbox SET status = 'discarded', last_error = ?, updated_at = ?"
-                " WHERE id = ? AND status != 'sent'",
+                " WHERE id = ? AND status IN ('pending','unknown','dead','discarded')",
                 (note, now, int(entry_id)),
             )
             return cursor.rowcount > 0
@@ -1295,7 +1351,7 @@ class OutboxStore:
         row = list(r)
         keys = (
             "id", "job", "target_qq", "content", "content_hash", "status",
-            "attempts", "last_error", "created_at", "updated_at", "sent_at",
+            "attempts", "last_error", "created_at", "updated_at", "sent_at", "claim_token",
         )
         out = {k: v for k, v in zip(keys, row)}
         out["id"] = int(out["id"])
@@ -1317,34 +1373,27 @@ class MCPSchemaStore:
     def observe(self, server: str, fingerprint: str, tool_count: int) -> str | None:
         """记录当前观察到的指纹；与存量不一致时返回旧指纹（= 漂移提醒），首次返回 None。"""
         now = to_iso(dt.datetime.now().astimezone())
-        rows = self._state._read(
-            "SELECT fingerprint, confirmed_at FROM mcp_schemas WHERE server = ?",
-            (server,),
-        )
-        if not rows:
-            with self._state._tx() as conn:
+        # 首次登记和漂移撤权在同一事务，不能让并发观察看到新指纹配旧确认。
+        with self._state._tx() as conn:
+            row = conn.execute(
+                "SELECT fingerprint, confirmed_at FROM mcp_schemas WHERE server = ?",
+                (server,),
+            ).fetchone()
+            if row is None:
                 conn.execute(
                     "INSERT INTO mcp_schemas(server, fingerprint, tool_count,"
                     " confirmed_at, seen_at) VALUES (?,?,?,?,?)",
                     (server, fingerprint, int(tool_count), now, now),
                 )
-            return None  # 首次登记：用户第一次看到这个服务，谈不上"漂移"
-        stored, confirmed_at = str(rows[0][0]), rows[0][1]
-        with self._state._tx() as conn:
+                return None  # 首次使用显式配置的只读名单，后续变化必须复查。
+            stored = str(row[0])
             conn.execute(
-                "UPDATE mcp_schemas SET fingerprint = ?, tool_count = ?, seen_at = ?"
+                "UPDATE mcp_schemas SET fingerprint = ?, tool_count = ?, seen_at = ?,"
+                " confirmed_at = CASE WHEN fingerprint = ? THEN confirmed_at ELSE NULL END"
                 " WHERE server = ?",
-                (fingerprint, int(tool_count), now, server),
+                (fingerprint, int(tool_count), now, fingerprint, server),
             )
-        if stored != fingerprint:
-            # 漂移后确认时间清空，直到用户复查重新确认
-            with self._state._tx() as conn:
-                conn.execute(
-                    "UPDATE mcp_schemas SET confirmed_at = NULL WHERE server = ?",
-                    (server,),
-                )
-            return stored
-        return None
+            return stored if stored != fingerprint else None
 
     def confirm(self, server: str, fingerprint: str) -> bool:
         """用户复查后确认当前指纹（清除漂移提醒）。指纹又变了就拒绝——确认的必须是看到的那份。"""

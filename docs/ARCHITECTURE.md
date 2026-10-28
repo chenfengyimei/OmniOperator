@@ -75,6 +75,10 @@
 | 降级 | `degraded` | 旧文件损坏且库内没有可用数据时**停用该能力**（`jobs`/`budget`），不是当成空数据；错误必须能被界面/心跳看到 |
 
 事务纪律：只包数据库操作，不把模型调用、人工审批、网络请求放进写事务。
+
+outbox 发送同样先原子领取：pending → sending（不可复用 token）→ sent/pending/unknown/dead。
+发送前持久登记，只有持有 token 的调用方可结算；超时在途恢复为 unknown，不自动重发。
+QQ 成功以 OneBot echo 回执为准，WebSocket 写入成功本身不是投递成功。
 只重试 `BEGIN`（此前没有任何语句执行过），**绝不重试事务体**。
 
 ### 3.5 会话作用域（D06）

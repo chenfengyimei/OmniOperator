@@ -16,13 +16,20 @@ import threading
 import anyio
 from concurrent.futures import Future, TimeoutError as FutureTimeout
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Protocol
 
 from ...config import MCPConfig, MCPServerConfig, PROJECT_ROOT
 
 
 class MCPError(RuntimeError):
     """MCP 配置、连接或调用失败；错误中不回显环境变量与原始协议载荷。"""
+
+
+class CatalogTrust(Protocol):
+    """持久授权记录由组装根注入，协议层不构造仓储。"""
+
+    def observe(self, server: str, fingerprint: str, tool_count: int) -> str | None: ...
+    def status(self, server: str) -> dict[str, Any] | None: ...
 
 
 def resolve_env(values: dict[str, str]) -> dict[str, str]:
@@ -40,7 +47,10 @@ def resolve_env(values: dict[str, str]) -> dict[str, str]:
 class MCPConnection:
     """单服务串行会话；失败即封闭，不自动重连或重放写调用。"""
 
-    def __init__(self, name: str, config: MCPServerConfig, log_dir: Path) -> None:
+    def __init__(
+        self, name: str, config: MCPServerConfig, log_dir: Path,
+        catalog_guard: Callable[[MCPServerConfig, list[dict[str, Any]]], bool] | None = None,
+    ) -> None:
         self.name = name
         self.config = config.model_copy(deep=True)
         self._log_dir = log_dir
@@ -54,6 +64,8 @@ class MCPConnection:
         self._failure = ""
         self._closed = False
         self._ready = False  # 会话握手完成（面板把"启动中"和"已连接"分开说）
+        self._catalog_guard = catalog_guard
+        self.catalog_approved = False
 
     def request(self, operation: str, arguments: dict[str, Any]) -> Any:
         with self._call_lock:
@@ -135,9 +147,19 @@ class MCPConnection:
                             operation, arguments, active = item
                             with anyio.fail_after(self.config.timeout_s):
                                 tools = await self._catalog(client)
+                                self.catalog_approved = bool(
+                                    self._catalog_guard and self._catalog_guard(self.config, tools)
+                                )
                                 if operation == "list":
                                     result = tools
                                 else:
+                                    if arguments.get("readonly") and not self.catalog_approved:
+                                        active.set_exception(MCPError(
+                                            "MCP 目录或连接身份变化，或授权记录不可用；只读调用已停止，"
+                                            "请在工作台复查当前指纹后确认，或对本次调用申请人工确认"
+                                        ))
+                                        active = None
+                                        continue
                                     if arguments["name"] not in {tool["name"] for tool in tools}:
                                         active.set_exception(MCPError("MCP 工具未在服务目录中声明"))
                                         active = None
@@ -254,10 +276,29 @@ def render_result(result: dict[str, Any], limit: int = 12000) -> str:
 class MCPManager:
     """管理显式配置的服务；读白名单由用户配置决定，不相信服务自报的安全标注。"""
 
-    def __init__(self, config: MCPConfig, log_dir: Path) -> None:
+    def __init__(
+        self, config: MCPConfig, log_dir: Path, *, schema_store: CatalogTrust | None = None,
+    ) -> None:
         self._config = config  # 停用的服务也要在面板可见（不是"配置了却查无此人"）
-        self._connections = {name: MCPConnection(name, cfg, log_dir)
+        self._schemas = schema_store
+        self._connections = {name: MCPConnection(name, cfg, log_dir, self._guard(name))
                              for name, cfg in config.servers.items() if cfg.enabled}
+
+    def _guard(self, server: str) -> Callable[[MCPServerConfig, list[dict[str, Any]]], bool]:
+        def check(config: MCPServerConfig, rows: list[dict[str, Any]]) -> bool:
+            if self._schemas is None:
+                return False
+            # 命令、参数、工作目录和显式环境属于连接身份；只保存哈希，不泄露密钥。
+            identity = config.model_dump(exclude={"timeout_s", "enabled"})
+            material = json.dumps(
+                {"identity": identity, "catalog": self.fingerprint(rows)},
+                sort_keys=True, ensure_ascii=False,
+            )
+            fingerprint = hashlib.sha256(material.encode("utf-8")).hexdigest()
+            self._schemas.observe(server, fingerprint, len(rows))
+            state = self._schemas.status(server)
+            return bool(state and state["fingerprint"] == fingerprint and state["confirmed_at"])
+        return check
 
     def servers(self) -> list[str]:
         return sorted(self._connections)
@@ -312,7 +353,7 @@ class MCPManager:
         log_dir = conn._log_dir  # noqa: SLF001 —— 同目录重建，日志不换地方
         conn.close()
         cfg = self._config.servers[server]
-        fresh = MCPConnection(server, cfg, log_dir)
+        fresh = MCPConnection(server, cfg, log_dir, self._guard(server))
         self._connections[server] = fresh
         return fresh.status()
 
@@ -325,7 +366,7 @@ class MCPManager:
         connection = self._connection(server)
         rows = connection.request("list", {})
         allowed = connection.config.allowed_tools
-        return [{**row, "approval": "safe" if row["name"] in connection.config.read_only_tools else "human"}
+        return [{**row, "approval": "safe" if connection.catalog_approved and row["name"] in connection.config.read_only_tools else "human"}
                 for row in rows if allowed is None or row["name"] in allowed]
 
     def call(self, server: str, name: str, arguments: dict[str, Any], *, readonly: bool) -> str:
@@ -337,7 +378,7 @@ class MCPManager:
             raise MCPError("MCP 工具未获用户只读授权；请使用 mcp_call_tool 申请人工确认")
         if not name or not isinstance(arguments, dict):
             raise MCPError("MCP name 不能为空且 arguments 必须为对象")
-        result = connection.request("call", {"name": name, "arguments": arguments})
+        result = connection.request("call", {"name": name, "arguments": arguments, "readonly": readonly})
         return render_result(result)
 
     def close(self) -> None:

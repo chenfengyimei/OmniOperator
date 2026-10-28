@@ -20,6 +20,7 @@ from typing import Any
 from ..memory.cron import CronError, Job, JobStore, to_iso
 from ..memory.state import StateUnavailable
 from ..safety.gates import private_target_allowed
+from ..tools.qq.client import DeliveryNotStarted
 
 TICK_SECONDS = 30
 DAILY_MISS_SKIP_SECONDS = 2 * 3600
@@ -224,20 +225,59 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
             return _enqueue_or_note(
                 runtime, job.name, target, result, "QQ 未连接（NapCat 未启动？）", "pending"
             )
+        # 在线也先持久登记，再领取发送。崩溃留下 sending，恢复时转 unknown。
+        outbox = runtime.outbox
+        if outbox is None:
+            return "未投递：outbox 不可用"
         try:
-            await qq.send_private(int(target), result)
-        except Exception as exc:  # noqa: BLE001 —— 发送中途失败：可能已发出一部分
-            return _enqueue_or_note(runtime, job.name, target, result, str(exc), "unknown")
-        return f"已投递 QQ {target}"
+            entry_id = outbox.enqueue(job=job.name, target_qq=int(target), content=result)
+        except (StateUnavailable, ValueError) as exc:
+            return f"未投递：入队失败（{exc}）"
+        if entry_id is None:
+            return "未投递：同内容已登记，去重不重复发送"
+        entry = outbox.claim_next(only_id=entry_id)
+        if entry is None:
+            return "已入待投递队列（由补投进程处理）"
+        status = await _send_outbox_entry(runtime, entry)
+        if status == "sent":
+            return f"已投递 QQ {target}"
+        if status == "unknown":
+            return "发送结果未知：已记录待人工处理，不自动重发"
+        return "已入待投递队列（确认未发送，恢复后有界补投）"
 
     return deliver
+
+
+async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
+    outbox = runtime.outbox
+
+    def finish(status: str, error: str = "") -> str:
+        if outbox.finish_claim(entry["id"], entry["claim_token"], status, error=error):
+            return "retry" if status == "pending" else status
+        return "unknown"
+
+    decision = private_target_allowed(runtime.qq_policy().allowed_users, entry["target_qq"])
+    if not decision.allowed:
+        return finish("discarded", f"白名单撤销：{decision.reason}")
+    try:
+        await asyncio.wait_for(runtime.qq.send_private(int(entry["target_qq"]), entry["content"]), 45)
+        return finish("sent")
+    except DeliveryNotStarted as exc:
+        attempts = entry["attempts"]
+        return finish("dead" if attempts >= outbox.MAX_ATTEMPTS else "pending",
+                      f"确认未发送，已尝试 {attempts} 次：{exc}")
+    except asyncio.CancelledError:
+        finish("unknown", "发送中断，结果未知，禁止自动重发")
+        raise
+    except Exception as exc:
+        return finish("unknown", f"补投结果未知，已停止自动重发：{type(exc).__name__}")
 
 
 def make_outbox_drainer(runtime: Any) -> Callable[[], Awaitable[dict[str, int]]]:
     """补投 pending：QQ 连接恢复后由心跳进程周期调用。
 
     - 白名单已撤销的条目直接丢弃（撤销 = 用户意图，恢复后也不许发）；
-    - 发送抛 `ConnectionError`（还没写到 socket，明确没发）→ 记一次尝试，保持 pending；
+    - 发送抛 `DeliveryNotStarted`（明确没发）→ 记一次尝试，保持 pending；
     - 其它异常 → 标 unknown，**停止自动补投**（可能已发出一部分，重发更糟）；
     - 尝试满 `OutboxStore.MAX_ATTEMPTS` 次 → dead（终态；面板可手动重试）。
     """
@@ -248,34 +288,14 @@ def make_outbox_drainer(runtime: Any) -> Callable[[], Awaitable[dict[str, int]]]
         outbox = runtime.outbox
         if qq is None or outbox is None or not qq.connected:
             return stats  # 通道没恢复就不动队列
-        for entry in outbox.pending():
-            decision = private_target_allowed(
-                runtime.qq_policy().allowed_users, entry["target_qq"]
-            )
-            if not decision.allowed:
-                outbox.mark(
-                    entry["id"], "discarded", error=f"白名单撤销：{decision.reason}"
-                )
-                stats["discarded"] += 1
-                continue
-            try:
-                await qq.send_private(int(entry["target_qq"]), entry["content"])
-                outbox.mark(entry["id"], "sent")
-                stats["sent"] += 1
-            except ConnectionError as exc:
-                attempts = outbox.attempt(entry["id"], error=f"补投失败：{exc}")
-                if attempts >= outbox.MAX_ATTEMPTS:
-                    outbox.mark(entry["id"], "dead", error=f"补投失败 {attempts} 次：{exc}")
-                    stats["dead"] += 1
-                else:
-                    stats["retry"] += 1
-            except Exception as exc:  # noqa: BLE001
-                outbox.mark(
-                    entry["id"],
-                    "unknown",
-                    error=f"补投结果未知，已停止自动重发：{exc}",
-                )
-                stats["unknown"] += 1
+        # 每轮只处理起始时的待投递数量，失败重新排队也留到下轮，避免紧循环。
+        seen: list[int] = []
+        for _ in range(max(1, len(outbox.pending()))):
+            entry = outbox.claim_next(exclude_ids=tuple(seen))
+            if entry is None:
+                break
+            seen.append(entry["id"])
+            stats[await _send_outbox_entry(runtime, entry)] += 1
         return stats
 
     return drain

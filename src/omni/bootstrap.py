@@ -298,7 +298,7 @@ def build_runtime(
         default_max_links=config.web.max_links,
     )
     register_skill_tools(registry, skills, guard=memory_guard)
-    mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs)
+    mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs, schema_store=mcp_schemas)
     register_mcp_tools(registry, mcp)
     if mcp.servers():
         atexit.register(mcp.close)

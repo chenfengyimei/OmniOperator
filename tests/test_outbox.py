@@ -10,6 +10,9 @@
 from __future__ import annotations
 
 import asyncio
+import datetime as dt
+import subprocess
+import sys
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
@@ -20,6 +23,69 @@ from omni.core.cron import make_outbox_drainer, make_runtime_deliver
 from omni.memory.cron import Job
 from omni.memory.state import OutboxStore, StateStore
 from omni.safety.gates import DenyApprover
+from omni.tools.qq.client import DeliveryNotStarted
+
+
+def test_atomic_claim_across_processes_and_stale_owner(tmp_path):
+    state, outbox = _store(tmp_path)
+    entry_id = outbox.enqueue(job="j", target_qq=10001, content="一次发送")
+    code = """
+import sys
+from omni.memory.state import StateStore, OutboxStore
+s = StateStore(sys.argv[1])
+item = OutboxStore(s).claim_next()
+print(item['id'] if item else 0)
+s.close()
+"""
+    processes = [subprocess.Popen([sys.executable, "-c", code, str(tmp_path / "state.db")],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                 for _ in range(4)]
+    claims = []
+    for process in processes:
+        output, error = process.communicate(timeout=30)
+        assert process.returncode == 0, error
+        claims.append(int(output.strip()))
+    assert claims.count(entry_id) == 1
+    row = outbox.get(entry_id)
+    assert not outbox.retry(entry_id) and not outbox.discard(entry_id)
+    assert not outbox.finish_claim(entry_id, "wrong-token", "sent")
+    assert outbox.claim_next(now=dt.datetime.now().astimezone() + dt.timedelta(minutes=6)) is None
+    assert outbox.get(entry_id)["status"] == "unknown"
+    assert not outbox.finish_claim(entry_id, row["claim_token"], "sent")
+    assert outbox.pending() == []
+    state.close()
+
+
+def test_drain_does_not_retry_same_message_within_tick(tmp_path):
+    rt, outbox, state = _runtime(tmp_path, FakeQQ(fail_with=DeliveryNotStarted("offline")))
+    for content in ("first", "second", "third"):
+        outbox.enqueue(job="j", target_qq=10001, content=content)
+    stats = asyncio.run(make_outbox_drainer(rt)())
+    assert stats["retry"] == 3
+    assert [r["attempts"] for r in outbox.list()] == [1, 1, 1]
+    state.close()
+
+
+def test_raw_connection_error_is_unknown(tmp_path):
+    rt, outbox, state = _runtime(tmp_path, FakeQQ(fail_with=ConnectionError("partial write")))
+    outbox.enqueue(job="j", target_qq=10001, content="hello")
+    assert asyncio.run(make_outbox_drainer(rt)())["unknown"] == 1
+    assert not outbox.pending()
+    state.close()
+
+
+def test_online_send_has_claim_before_network_and_cancel_is_unknown(tmp_path):
+    rt, outbox, state = _runtime(tmp_path, FakeQQ())
+    async def send(target, content):
+        row = outbox.list()[0]
+        assert row["status"] == "sending" and row["claim_token"]
+        raise asyncio.CancelledError()
+    rt.qq.send_private = send
+    import pytest
+    with pytest.raises(asyncio.CancelledError):
+        asyncio.run(make_runtime_deliver(rt)(_job(), "content"))
+    assert outbox.list()[0]["status"] == "unknown"
+    state.close()
 
 
 def _store(tmp_path) -> tuple[StateStore, OutboxStore]:
@@ -178,13 +244,14 @@ def test_deliver_send_failure_is_unknown_not_auto_resent(tmp_path):
     state.close()
 
 
-def test_deliver_success_still_direct(tmp_path):
+def test_deliver_success_is_persisted_before_sending(tmp_path):
     qq = FakeQQ(connected=True)
     rt, outbox, state = _runtime(tmp_path, qq)
     detail = asyncio.run(make_runtime_deliver(rt)(_job(), "报告"))
     assert detail == "已投递 QQ 10001"
     assert qq.sent == [(10001, "报告")]
-    assert outbox.list() == []  # 成功不进队列
+    assert outbox.list()[0]["status"] == "sent"
+    assert outbox.list()[0]["attempts"] == 1
     state.close()
 
 
@@ -216,7 +283,7 @@ def test_drain_sends_revokes_and_caps(tmp_path):
 
 
 def test_drain_connection_error_retries_then_dead(tmp_path):
-    qq = FakeQQ(connected=True, fail_with=ConnectionError("ws 没了"))
+    qq = FakeQQ(connected=True, fail_with=DeliveryNotStarted("ws 没了"))
     rt, outbox, state = _runtime(tmp_path, qq)
     entry = outbox.enqueue(job="j", target_qq=10001, content="报告")
     drain = make_outbox_drainer(rt)

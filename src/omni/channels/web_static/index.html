@@ -1027,7 +1027,7 @@ async function loadMcp(){
       (s.state==='failed'||s.state==='closed'
         ?`<button class="svc-btn" onclick="mcpReset('${esc(s.name)}')">重连</button>`:'')+
       (s.schema_state==='drifted'
-        ?`<button class="svc-btn" onclick="mcpConfirmSchema('${esc(s.name)}')">复查后确认</button>`:'')+
+        ?`<button class="svc-btn" onclick="mcpConfirmSchema('${esc(s.name)}','${esc(s.schema_fingerprint)}')">复查后确认</button>`:'')+
       `</div>`+
       `<div class="hint" style="margin-top:4px">${esc(s.command)}${(s.args||[]).length?' '+esc(s.args.join(' ')):''}</div>`+
       `<div class="hint" style="margin-top:2px">${mcpSchemaText(s)}${s.schema_fingerprint?'（指纹 '+esc(s.schema_fingerprint.slice(0,8))+'）':''}</div>`+
@@ -1042,18 +1042,18 @@ window.mcpTools=async(name)=>{
   box.innerHTML='<div class="hint">发现中…（首次会启动该服务，可能要几秒）</div>';
   try{
     const d=await api('/api/mcp/'+encodeURIComponent(name)+'/tools');
-    box.innerHTML=(d.drift?`<div class="hint" style="color:#f87171;margin:4px 0">⚠ ${esc(d.drift)}</div>`:'')+
+    box.innerHTML=(d.drift?`<div class="hint" style="color:#f87171;margin:4px 0">⚠ ${esc(d.drift)}</div><button class="svc-btn" onclick="mcpConfirmSchema('${esc(name)}','${esc(d.fingerprint)}')">复查本页参数后恢复只读授权</button>`:'')+
       (d.tools.length?d.tools.map(t=>
       `<div class="cron-row"><span class="c-name" style="flex:0 0 auto">${t.approval==='safe'?'🟢':'🟡'}</span>`+
       `<span class="c-sched">${esc(t.name)}${t.description?' · '+esc(String(t.description).slice(0,90)):''}</span>`+
-      `<span style="color:var(--dim);font-size:11px">${t.approval==='safe'?'只读白名单':'调用需人工确认'}</span></div>`).join('')
+      `<span style="color:var(--dim);font-size:11px">${t.approval==='safe'?'只读白名单':'调用需人工确认'}</span></div><details><summary>参数结构</summary><pre>${esc(JSON.stringify(t.inputSchema,null,2))}</pre></details>`).join('')
       :'<div class="hint">该服务没有声明工具</div>');
-    loadMcp(); // 指纹状态可能刚变化（首次登记 / 漂移），刷新状态行
+    // 保留刚发现的目录供用户复查；确认后再刷新整个面板。
   }catch(e){box.innerHTML='<div class="hint" style="color:#f87171">'+esc(e.message)+'</div>'}
 };
-window.mcpConfirmSchema=async(name)=>{
+window.mcpConfirmSchema=async(name,fingerprint)=>{
   if(!confirm('确认已复查 '+name+' 的工具目录与只读白名单仍然适用？此操作会清除漂移提醒。'))return;
-  try{await api('/api/mcp/'+encodeURIComponent(name)+'/confirm-schema',{method:'POST'});loadMcp()}
+  try{await api('/api/mcp/'+encodeURIComponent(name)+'/confirm-schema',{method:'POST',body:JSON.stringify({fingerprint})});loadMcp()}
   catch(e){alert(e.message)}
 };
 window.mcpReset=async(name)=>{
@@ -1151,14 +1151,15 @@ async function loadCron(){
     $('#cron-outbox').innerHTML=b.items.length?b.items.map(x=>
       `<div class="cron-row"><span class="c-name">${esc(x.job)} → QQ ${x.target_qq}</span>`+
       `<span class="c-sched">${outboxStateText(x)} · ${esc((x.updated_at||'').slice(5,16))}${x.attempts?` · 已试 ${x.attempts} 次`:''}</span>`+
-      (x.status==='sent'?'':`<button class="svc-btn" onclick="outboxRetry(${x.id})">重新排队</button>`+
-      `<button class="svc-btn" onclick="outboxDiscard(${x.id})">丢弃</button>`)+
+      (['unknown','dead','discarded'].includes(x.status)?`<button class="svc-btn" onclick="outboxRetry(${x.id})">重新排队</button>`:'')+
+      (['pending','unknown','dead'].includes(x.status)?`<button class="svc-btn" onclick="outboxDiscard(${x.id})">丢弃</button>`:'')+
       `</div>`+
       (x.preview||x.last_error?`<div class="hint" style="margin:2px 0 8px">${esc(x.preview||'')}${x.last_error?` <span style="color:#f87171">${esc(x.last_error.slice(0,100))}</span>`:''}</div>`:'')).join('')
-      :'<div class="empty">队列是空的（QQ 在线时消息直接投递，不进队列）</div>';
+      :'<div class="empty">还没有投递记录</div>';
   }catch(e){$('#cron-outbox').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
 const outboxStateText=x=>x.status==='pending'?'<span style="color:#fbbf24">待自动补投</span>':
+  x.status==='sending'?'<span style="color:#fbbf24">发送中，等待回执</span>':
   x.status==='unknown'?'<span style="color:#f87171">发送结果未知（不自动重发）</span>':
   x.status==='dead'?'<span style="color:#f87171">自动补投已耗尽</span>':
   x.status==='discarded'?'<span style="color:var(--dim)">已丢弃</span>':'<span style="color:#34d399">已投递</span>';

@@ -423,22 +423,18 @@ def test_removing_corrupt_file_releases_the_degraded_capability(tmp_path):
 def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
     """v3 把 session_leases 合并进 resource_leases：升级后仍在有效期内的租约不能丢。"""
     db = tmp_path / "state.db"
-    state = _state(tmp_path)
-    state.close()
-
-    # 手工退回 v2 的形态：session_leases 表 + 一条活跃租约
+    # 从真实 v2 脚本建库，不能改新库版本号伪装旧库（后续 ALTER 会重复）。
+    from omni.memory.state import _MIGRATIONS
     conn = sqlite3.connect(str(db), isolation_level=None)
     try:
-        conn.execute("DROP TABLE resource_leases")
-        conn.execute(
-            "CREATE TABLE session_leases (session_id INTEGER PRIMARY KEY, owner TEXT NOT NULL, "
-            "token TEXT NOT NULL, acquired_at TEXT NOT NULL, expires_at REAL NOT NULL)"
-        )
+        conn.executescript(_MIGRATIONS[1])
+        conn.executescript(_MIGRATIONS[2])
+        conn.execute("CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
         conn.execute(
             "INSERT INTO session_leases VALUES (7, 'pid:123', 'tok-abc', '2026-10-27T23:00:00+08:00', ?)",
             (time.time() + 600,),
         )
-        conn.execute("UPDATE meta SET value = '2' WHERE key = 'schema_version'")
+        conn.execute("INSERT OR REPLACE INTO meta(key,value) VALUES ('schema_version','2')")
     finally:
         conn.close()
 

@@ -17,6 +17,14 @@ from collections.abc import Awaitable, Callable
 # QQ 单条消息安全长度（经验值，留余量防风控）
 CHUNK_LIMIT = 2800
 
+
+class DeliveryNotStarted(ConnectionError):
+    """可证明本次整条消息未发送，允许有界重试。"""
+
+
+class DeliveryUnknown(RuntimeError):
+    """可能已发送或部分发送，不能自动重放。"""
+
 _CQ_RE = re.compile(r"\[CQ:(\w+)(?:,([^\]]*))?\]")
 _CQ_TEXT = {
     "image": "[图片]",
@@ -71,12 +79,14 @@ def chunk_message(text: str, limit: int = CHUNK_LIMIT) -> list[str]:
 
 
 class OneBotClient:
-    def __init__(self, ws_url: str, access_token: str = "") -> None:
+    def __init__(self, ws_url: str, access_token: str = "", *, response_timeout_s: float = 10) -> None:
         self._ws_url = ws_url
         self._token = access_token
         self._ws: object | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
         self._echo = itertools.count(1)
+        self._pending: dict[int, asyncio.Future[dict]] = {}
+        self._response_timeout_s = response_timeout_s
         self.self_id: int | None = None  # 机器人自己的 QQ 号（群 @ 识别用）
 
     @property
@@ -89,25 +99,52 @@ class OneBotClient:
 
         headers = {"Authorization": f"Bearer {self._token}"} if self._token else {}
         backoff = 2.0
-        while True:
+        events: asyncio.Queue[dict] = asyncio.Queue(maxsize=64)
+
+        async def enqueue(event: dict) -> None:
             try:
-                async with websockets.connect(
-                    self._ws_url, additional_headers=headers, max_size=2**22
-                ) as ws:
-                    self._ws = ws
-                    self._loop = asyncio.get_running_loop()
-                    backoff = 2.0
-                    print(f"[QQ] 已连接 {self._ws_url}", flush=True)
-                    async for raw in ws:
-                        await self._dispatch(raw, on_event)
-            except asyncio.CancelledError:
-                raise
-            except Exception as exc:  # noqa: BLE001 —— 网络抖动一律重连
-                print(f"[QQ] 连接断开（{exc}），{backoff:.0f}s 后重连…", flush=True)
-            finally:
-                self._ws = None
-            await asyncio.sleep(backoff)
-            backoff = min(backoff * 1.7, 60.0)
+                events.put_nowait(event)
+            except asyncio.QueueFull:
+                print("[QQ] 入站队列已满，本条事件未接收", flush=True)
+
+        async def consume() -> None:
+            while True:
+                event = await events.get()
+                try:
+                    await on_event(event)
+                except Exception as exc:
+                    print(f"[QQ] 事件处理失败（{type(exc).__name__}）", flush=True)
+                finally:
+                    events.task_done()
+
+        # 接收循环必须持续读取 API 回执；不能被正在等待回执的聊天处理器阻塞。
+        consumer = asyncio.create_task(consume())
+        try:
+            while True:
+                try:
+                    async with websockets.connect(
+                        self._ws_url, additional_headers=headers, max_size=2**22
+                    ) as ws:
+                        self._ws = ws
+                        self._loop = asyncio.get_running_loop()
+                        backoff = 2.0
+                        print(f"[QQ] 已连接 {self._ws_url}", flush=True)
+                        async for raw in ws:
+                            await self._dispatch(raw, enqueue)
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    print(f"[QQ] 连接断开（{type(exc).__name__}），{backoff:.0f}s 后重连…", flush=True)
+                finally:
+                    self._ws = None
+                    for future in list(self._pending.values()):
+                        if not future.done():
+                            future.set_exception(DeliveryUnknown("QQ 断线，回执未知"))
+                await asyncio.sleep(backoff)
+                backoff = min(backoff * 1.7, 60.0)
+        finally:
+            consumer.cancel()
+            await asyncio.gather(consumer, return_exceptions=True)
 
     async def _dispatch(
         self, raw: str, on_event: Callable[[dict], Awaitable[None]]
@@ -117,6 +154,19 @@ class OneBotClient:
         except json.JSONDecodeError:
             return
         if not isinstance(event, dict):
+            return
+        if "echo" in event and "post_type" not in event:
+            try:
+                future = self._pending.get(int(event["echo"]))
+            except (TypeError, ValueError):
+                return
+            if future is not None and not future.done():
+                if event.get("status") == "ok" and event.get("retcode") == 0:
+                    future.set_result(event.get("data") or {})
+                elif event.get("status") == "failed":
+                    future.set_exception(DeliveryNotStarted(f"QQ 接口拒绝（retcode={event.get('retcode')}）"))
+                else:
+                    future.set_exception(DeliveryUnknown("QQ 未返回确定成功的回执"))
             return
         if event.get("post_type") == "meta_event":
             # lifecycle 事件带机器人自身 QQ 号
@@ -128,20 +178,41 @@ class OneBotClient:
 
     # ---------- 发送（async 上下文用） ----------
 
-    async def call(self, action: str, params: dict) -> None:
+    async def call(self, action: str, params: dict) -> dict:
         ws = self._ws
         if ws is None:
-            raise ConnectionError("QQ 未连接（NapCat 未启动？）")
-        payload = {"action": action, "params": params, "echo": next(self._echo)}
-        await ws.send(json.dumps(payload, ensure_ascii=False))
+            raise DeliveryNotStarted("QQ 未连接（NapCat 未启动？）")
+        echo = next(self._echo)
+        future = asyncio.get_running_loop().create_future()
+        self._pending[echo] = future
+        try:
+            try:
+                await ws.send(json.dumps({"action": action, "params": params, "echo": echo}, ensure_ascii=False))
+            except Exception as exc:
+                raise DeliveryUnknown("QQ 写入连接时失败，是否发送未知") from exc
+            try:
+                return await asyncio.wait_for(asyncio.shield(future), self._response_timeout_s)
+            except TimeoutError as exc:
+                raise DeliveryUnknown("QQ 回执超时，禁止自动重发") from exc
+        finally:
+            self._pending.pop(echo, None)
+            if not future.done():
+                future.cancel()
+
+    async def _send_chunks(self, action: str, target_key: str, target: int, text: str) -> None:
+        for index, chunk in enumerate(chunk_message(text)):
+            try:
+                await self.call(action, {target_key: int(target), "message": chunk})
+            except DeliveryNotStarted as exc:
+                if index:
+                    raise DeliveryUnknown("已有分段发送成功，后续失败；不能重发整条消息") from exc
+                raise
 
     async def send_private(self, user_id: int, text: str) -> None:
-        for chunk in chunk_message(text):
-            await self.call("send_private_msg", {"user_id": int(user_id), "message": chunk})
+        await self._send_chunks("send_private_msg", "user_id", user_id, text)
 
     async def send_group(self, group_id: int, text: str) -> None:
-        for chunk in chunk_message(text):
-            await self.call("send_group_msg", {"group_id": int(group_id), "message": chunk})
+        await self._send_chunks("send_group_msg", "group_id", group_id, text)
 
     # ---------- 发送（同步线程用：agent 工具在 asyncio.to_thread 里） ----------
 
@@ -159,5 +230,6 @@ class OneBotClient:
         try:
             future.result(timeout=timeout)
         except Exception as exc:  # noqa: BLE001 —— 发送失败回传给 LLM
-            return f"发送失败：{exc}"
+            future.cancel()
+            return f"发送未确认（不要自动重试）：{exc}"
         return "已发送"

@@ -174,7 +174,9 @@ def test_runtime_executor_binds_session_and_injects_skills(tmp_path):
     store.close()
 
 
-def test_runtime_deliver_guards():
+def test_runtime_deliver_guards(tmp_path):
+    from omni.memory.state import OutboxStore
+    delivery_state = StateStore(tmp_path / "deliver.db")
     class FakeQQ:
         connected = True
 
@@ -188,7 +190,8 @@ def test_runtime_deliver_guards():
     # 策略是热读的：每次投递都问 qq_policy()，所以用可变容器模拟"配置被改"
     state = {"allowed": [10001]}
     rt = SimpleNamespace(
-        qq=qq, qq_policy=lambda: SimpleNamespace(allowed_users=state["allowed"])
+        qq=qq, qq_policy=lambda: SimpleNamespace(allowed_users=state["allowed"]),
+        outbox=OutboxStore(delivery_state),
     )
     deliver = make_runtime_deliver(rt)
     assert asyncio.run(deliver(_job(deliver_to_qq=10001), "hi")) == "已投递 QQ 10001"
@@ -211,6 +214,7 @@ def test_runtime_deliver_guards():
     assert "未启用" in asyncio.run(make_runtime_deliver(rt_none)(_job(deliver_to_qq=1), "hi"))
     # 无投递目标 → 空串（只落会话）
     assert asyncio.run(deliver(_job(deliver_to_qq=None), "hi")) == ""
+    delivery_state.close()
 
 
 # ---------- 任务链 context_from ----------

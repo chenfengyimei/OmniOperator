@@ -60,7 +60,12 @@ def test_decode_output_prefers_utf8_then_gbk():
 # ---------------------------------------------------------------- 正常放行
 
 
-def test_safe_allows_known_readonly_commands(tmp_path):
+def test_safe_allows_known_readonly_commands(tmp_path, monkeypatch):
+    # 假执行器的契约测试不依赖机器恰好安装 adb/git；缺失工具另测拒绝分支。
+    from omni.tools.shell import spec
+
+    trusted = tmp_path.parent / "fixture-bin"
+    monkeypatch.setattr(spec.shutil, "which", lambda name: str(trusted / f"{name}.exe"))
     registry, safe, _ = _registry(root=tmp_path)
     for command in (
         "adb devices",
@@ -77,6 +82,13 @@ def test_safe_allows_known_readonly_commands(tmp_path):
     # 结构化的关键：交给执行器的是 argv，不是拼好的命令行
     assert all(isinstance(argv, list) and argv for argv in safe.argv_calls)
     assert safe.argv_calls[0][1:] == ["devices"]
+
+
+def test_safe_missing_adb_never_reaches_executor(tmp_path, monkeypatch):
+    monkeypatch.setattr("omni.tools.shell.spec.shutil.which", lambda _: None)
+    registry, safe, _ = _registry(root=tmp_path)
+    assert "找不到命令 adb" in registry.dispatch("peek_command", {"command": "adb devices"})
+    assert not safe.argv_calls
 
 
 def test_safe_git_argv_keeps_quoted_filter_as_single_token(tmp_path):

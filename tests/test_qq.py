@@ -62,7 +62,9 @@ def test_client_send_chunks_via_fake_ws():
 
     class FakeWS:
         async def send(self, data):
-            sent.append(json.loads(data))
+            payload = json.loads(data)
+            sent.append(payload)
+            await client._dispatch(json.dumps({"echo": payload["echo"], "status": "ok", "retcode": 0, "data": {"message_id": 1}}), lambda _: None)
 
     async def scenario():
         client._ws = FakeWS()
@@ -77,6 +79,65 @@ def test_client_send_chunks_via_fake_ws():
     assert sent[0]["params"]["message"] == "短消息"
     assert len(sent) > 2  # 长消息自动分段
     assert all(len(s["params"]["message"]) <= 2800 for s in sent)
+
+
+def test_api_receipt_timeout_failure_and_partial_delivery():
+    import pytest
+    from omni.tools.qq.client import DeliveryNotStarted, DeliveryUnknown
+
+    async def scenario():
+        client = OneBotClient("ws://test", response_timeout_s=0.02)
+        sent = []
+        class SilentWS:
+            async def send(self, raw):
+                sent.append(json.loads(raw))
+        client._ws = SilentWS()
+        with pytest.raises(DeliveryUnknown, match="回执超时"):
+            await client.send_private(1, "hello")
+        assert len(sent) == 1 and not client._pending
+
+        class RejectedWS:
+            async def send(self, raw):
+                request = json.loads(raw)
+                await client._dispatch(json.dumps({"echo": request["echo"], "status": "failed", "retcode": 100}), None)
+        client._ws = RejectedWS()
+        with pytest.raises(DeliveryNotStarted):
+            await client.send_private(1, "hello")
+
+        class PartialWS:
+            async def send(self, raw):
+                request = json.loads(raw)
+                await client._dispatch(json.dumps({"echo": request["echo"], "status": "ok", "retcode": 0}), None)
+                client._ws = None
+        client._ws = PartialWS()
+        with pytest.raises(DeliveryUnknown, match="分段"):
+            await client.send_private(1, "a" * 2900)
+    asyncio.run(scenario())
+
+
+def test_receiver_reads_receipt_while_event_handler_waits():
+    import websockets
+    async def scenario():
+        replied = asyncio.Event()
+        async def server(ws):
+            await ws.send(json.dumps({"post_type": "message", "raw_message": "hello"}))
+            request = json.loads(await ws.recv())
+            await ws.send(json.dumps({"echo": request["echo"], "status": "ok", "retcode": 0, "data": {"message_id": 10}}))
+            await replied.wait()
+        async with websockets.serve(server, "127.0.0.1", 0) as listener:
+            port = listener.sockets[0].getsockname()[1]
+            client = OneBotClient(f"ws://127.0.0.1:{port}", response_timeout_s=2)
+            async def handler(event):
+                await client.send_private(1, "reply")
+                replied.set()
+            task = asyncio.create_task(client.run(handler))
+            try:
+                await asyncio.wait_for(replied.wait(), 5)
+                assert not client._pending
+            finally:
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+    asyncio.run(scenario())
 
 
 def test_qq_send_message_tool_guards():
