@@ -18,6 +18,8 @@ from types import SimpleNamespace
 from fastapi.testclient import TestClient
 
 from omni.bootstrap import build_runtime
+from omni.config import QQ
+from omni.core.qq_policy import proactive_decision
 from omni.channels.web import create_app
 from omni.core.cron import make_outbox_drainer, make_runtime_deliver
 from omni.memory.cron import Job
@@ -195,12 +197,68 @@ def _runtime(tmp_path, qq, allowed=(10001,)):
     return (
         SimpleNamespace(
             qq=qq,
-            qq_policy=lambda: SimpleNamespace(allowed_users=list(allowed)),
+            qq_policy=lambda: QQ(allowed_users=list(allowed), proactive_enabled=True, owner_qq=10001,
+                                 quiet_start="00:00", quiet_end="00:00", proactive_daily_limit=50),
+            state=state,
             outbox=outbox,
         ),
         outbox,
         state,
     )
+
+
+def test_proactive_requires_opt_in_owner_and_quiet_hours():
+    policy = QQ(allowed_users=[1, 2], owner_qq=1)
+    noon = dt.datetime(2026, 10, 28, 4, tzinfo=dt.timezone.utc)
+    assert proactive_decision(policy, 1, now=noon).state == "deny"
+    policy.proactive_enabled = True
+    assert proactive_decision(policy, 2, now=noon).state == "deny"
+    assert proactive_decision(policy, 1, now=noon).state == "allow"
+    assert proactive_decision(policy, 1, now=noon + dt.timedelta(hours=10)).state == "defer"
+    assert proactive_decision(policy, 1, now=noon - dt.timedelta(hours=5)).state == "defer"
+    policy.timezone = "Moon/Base"
+    assert proactive_decision(policy, 1, now=noon).state == "deny"
+
+
+def test_daily_budget_defers_without_spending_network_attempts(tmp_path):
+    rt, outbox, state = _runtime(tmp_path, FakeQQ())
+    policy = rt.qq_policy()
+    policy.proactive_daily_limit = 1
+    rt.qq_policy = lambda: policy
+    for text in ("first", "second"):
+        outbox.enqueue(job="nightly", target_qq=10001, content=text)
+    stats = asyncio.run(make_outbox_drainer(rt)())
+    assert stats["sent"] == 1 and stats["deferred"] == 1
+    assert outbox.pending()[0]["attempts"] == 0
+    assert asyncio.run(make_outbox_drainer(rt)())["deferred"] == 1
+    assert outbox.pending()[0]["attempts"] == 0 and len(rt.qq.sent) == 1
+    policy.proactive_enabled = False
+    assert asyncio.run(make_outbox_drainer(rt)())["discarded"] == 1
+    state.close()
+
+
+def test_revocation_between_chunks_stops_with_unknown(tmp_path):
+    rt, outbox, state = _runtime(tmp_path, FakeQQ())
+    policy = rt.qq_policy()
+    rt.qq_policy = lambda: policy
+    sent = []
+    async def send(target, text):
+        sent.append(text)
+        policy.proactive_enabled = False
+    rt.qq.send_private = send
+    result = asyncio.run(make_runtime_deliver(rt)(_job(), "x" * 4000))
+    assert "未知" in result and len(sent) == 1
+    assert outbox.list()[0]["status"] == "unknown"
+    state.close()
+
+
+def test_manual_retry_conflicting_live_content_is_refused(tmp_path):
+    state, outbox = _store(tmp_path)
+    old = outbox.enqueue(job="j", target_qq=1, content="same")
+    assert outbox.discard(old)
+    outbox.enqueue(job="j", target_qq=1, content="same")
+    assert not outbox.retry(old)
+    state.close()
 
 
 def test_deliver_offline_enqueues_pending(tmp_path):
@@ -275,7 +333,7 @@ def test_drain_sends_revokes_and_caps(tmp_path):
 
     stats = asyncio.run(make_outbox_drainer(rt)())
     # 10001 在白名单 → 已投递；10002 不在 → 白名单撤销直接丢弃
-    assert stats == {"sent": 1, "discarded": 1, "retry": 0, "unknown": 0, "dead": 0}
+    assert stats == {"sent": 1, "discarded": 1, "retry": 0, "unknown": 0, "dead": 0, "deferred": 0}
     assert qq.sent == [(10001, "报告A")]
     assert outbox.get(ok_id)["status"] == "sent"
     assert "白名单撤销" in outbox.get(revoked_id)["last_error"]

@@ -413,6 +413,14 @@ ul{list-style:none;overflow-y:auto}
         <div class="field"><label>私聊白名单（QQ 号，逗号分隔）<input type="text" id="cfg-qq-users" placeholder="10000000001"></label></div>
         <div class="field"><label>群白名单（逗号分隔群号）<input type="text" id="cfg-qq-groups" placeholder="可选"></label></div>
         <div class="field"><label>拟人回复延迟（秒，小 到 大）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"></label></div>
+        <div class="field"><label><input type="checkbox" id="cfg-qq-reply"> 群内回复近期机器人消息也可触发（仍需群白名单）</label></div>
+        <div class="field"><label><input type="checkbox" id="cfg-qq-proactive"> 启用所有者定时提醒（默认关闭，保存后立即生效）</label></div>
+        <div class="field"><label>所有者 QQ（须在私聊白名单内）<input type="number" id="cfg-qq-owner" min="0"></label></div>
+        <div class="field"><label>每日提醒尝试上限<input type="number" id="cfg-qq-limit" min="0" max="50"></label></div>
+        <div class="field"><label>安静时段起点<input type="time" id="cfg-qq-quiet-start"></label></div>
+        <div class="field"><label>安静时段终点（与起点相同表示不设安静时段）<input type="time" id="cfg-qq-quiet-end"></label></div>
+        <div class="field"><label>提醒时区<input type="text" id="cfg-qq-timezone" placeholder="Asia/Shanghai"></label></div>
+        <div class="muted" id="qq-policy-status"></div><button type="button" id="qq-proactive-stop">立即停止主动提醒</button>
       </div>
       <div class="hub-card" id="sec-cron">
         <h3>定时任务</h3>
@@ -481,6 +489,11 @@ async function api(path,opts){
     throw new Error(d||r.statusText)}
   return r.json();
 }
+$('#qq-proactive-stop').onclick=async()=>{
+  try{const r=await api('/api/system/qq-policy/stop',{method:'POST'});
+    $('#cfg-qq-proactive').checked=false;$('#qq-policy-status').textContent=r.hint;
+  }catch(e){$('#qq-policy-status').textContent=e.message;}
+};
 
 async function loadState(){
   const s=await api('/api/state');currentSession=s.session_id;
@@ -1120,6 +1133,14 @@ async function loadHubConfig(){
   $('#cfg-qq-users').value=d.qq.allowed_users.join(', ');
   $('#cfg-qq-groups').value=d.qq.allowed_groups.join(', ');
   $('#cfg-qq-delay').value=d.qq.reply_delay_s.join(', ');
+  $('#cfg-qq-reply').checked=d.qq.group_reply_to_bot;
+  $('#cfg-qq-proactive').checked=d.qq.proactive_enabled;
+  $('#cfg-qq-owner').value=d.qq.owner_qq;
+  $('#cfg-qq-limit').value=d.qq.proactive_daily_limit;
+  $('#cfg-qq-quiet-start').value=d.qq.quiet_start;
+  $('#cfg-qq-quiet-end').value=d.qq.quiet_end;
+  $('#cfg-qq-timezone').value=d.qq.timezone;
+  try{const p=await api('/api/system/qq-policy');$('#qq-policy-status').textContent=p.reason+'；今日尝试 '+(p.used??'—')+'/'+p.limit;}catch(e){$('#qq-policy-status').textContent=e.message;}
   $('#cfg-browser-headless').checked=d.browser.headless;
   $('#cfg-browser-slowmo').value=d.browser.slow_mo_ms;
   $('#cfg-browser-budget').value=d.browser.max_writes_per_day;
@@ -1294,7 +1315,10 @@ window.saveHub=async()=>{
         access_token:$('#cfg-qq-token').value,
         allowed_users:$('#cfg-qq-users').value.split(/[,，\s]+/).map(x=>parseInt(x)).filter(Number.isInteger),
         allowed_groups:$('#cfg-qq-groups').value.split(/[,，\s]+/).map(x=>parseInt(x)).filter(Number.isInteger),
-        reply_delay_s:$('#cfg-qq-delay').value.split(/[,，\s]+/).map(parseFloat).filter(x=>!isNaN(x))},
+        reply_delay_s:$('#cfg-qq-delay').value.split(/[,，\s]+/).map(parseFloat).filter(x=>!isNaN(x)),
+        group_reply_to_bot:$('#cfg-qq-reply').checked,proactive_enabled:$('#cfg-qq-proactive').checked,
+        owner_qq:Number($('#cfg-qq-owner').value),proactive_daily_limit:Number($('#cfg-qq-limit').value),
+        quiet_start:$('#cfg-qq-quiet-start').value,quiet_end:$('#cfg-qq-quiet-end').value,timezone:$('#cfg-qq-timezone').value},
     browser:{headless:$('#cfg-browser-headless').checked,
              slow_mo_ms:parseInt($('#cfg-browser-slowmo').value)||120,
              max_writes_per_day:parseInt($('#cfg-browser-budget').value)||50,

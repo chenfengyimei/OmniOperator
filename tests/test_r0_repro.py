@@ -11,6 +11,8 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
+import pytest
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -18,6 +20,9 @@ from omni.channels.qq import _handle_message
 from omni.config import AppConfig
 from omni.core.cron import make_runtime_deliver
 from omni.memory.cron import Job
+from omni.memory.state import StateStore
+from omni.memory.qq import QQMessageStore
+from omni.core.session import SessionLeases
 from omni.tools.registry import ToolRegistry
 from omni.tools.shell.process import ProcResult
 from omni.tools.shell_tools import register_shell_tools
@@ -87,9 +92,13 @@ def test_a02_secret_file_is_not_readable_through_safe():
 # ---------- A03：QQ 私聊空白名单仍响应 ----------
 
 
+_IDS = itertools.count(1)
+
+
 def _private_event(user_id: int, text: str = "帮我看看 b 站") -> dict[str, Any]:
     return {
         "post_type": "message",
+        "message_id": next(_IDS),
         "message_type": "private",
         "user_id": user_id,
         "raw_message": text,
@@ -100,6 +109,7 @@ def _private_event(user_id: int, text: str = "帮我看看 b 站") -> dict[str, 
 def _group_event(user_id: int, group_id: int, self_id: int, text: str = "在吗") -> dict[str, Any]:
     return {
         "post_type": "message",
+        "message_id": next(_IDS),
         "message_type": "group",
         "user_id": user_id,
         "group_id": group_id,
@@ -113,7 +123,7 @@ class _FakeAgent:
         self.calls: list[tuple[str, int | None, bool]] = []
 
     def chat(
-        self, text: str, session_id: int | None = None, *, personal_context: bool = True
+        self, text: str, session_id: int | None = None, *, personal_context: bool = True, **kwargs
     ) -> str:
         self.calls.append((text, session_id, personal_context))
         return "好的"
@@ -177,8 +187,18 @@ def test_a03_empty_allowlist_rejects_private_message():
     assert runtime.store.binding_calls == []
 
 
-def test_a03_allowlisted_private_message_still_answered():
+@pytest.fixture
+def qq_runtime(tmp_path):
     runtime = _FakeRuntime()
+    runtime.state = StateStore(tmp_path / "qq-state.db")
+    runtime.qq_messages = QQMessageStore(runtime.state)
+    runtime.session_leases = SessionLeases(runtime.state)
+    yield runtime
+    runtime.state.close()
+
+
+def test_a03_allowlisted_private_message_still_answered(qq_runtime):
+    runtime = qq_runtime
     runtime.config.qq.allowed_users = [10001]
     runtime.config.qq.reply_delay_s = [0.0, 0.0]
     client = _FakeQQClient()
@@ -226,9 +246,9 @@ def test_a04_cron_delivery_with_empty_allowlist_is_refused():
 # ---------- A05：私聊与群聊共用同一把绑定键 ----------
 
 
-def test_a05_private_and_group_bindings_are_separate():
+def test_a05_private_and_group_bindings_are_separate(qq_runtime):
     """私聊 `dm:<uid>`、群聊 `group:<gid>`：同一发送者跨场景不再共用历史。"""
-    runtime = _FakeRuntime()
+    runtime = qq_runtime
     runtime.config.qq.allowed_users = [10001]
     runtime.config.qq.allowed_groups = [200, 300]
     runtime.config.qq.reply_delay_s = [0.0, 0.0]

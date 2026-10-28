@@ -421,6 +421,10 @@ android_shots/android_cache/browser_profile/browser_shots/run/logs/mcp_logs）�
 
 ## 7. 编码约定
 
+D22：`memory/qq.py` 的 QQMessageStore 仅由 bootstrap 构造，复用注入 state.db；
+通道负责有界场景队列，core/qq_policy 负责主动提醒决策，memory 层不依赖通道或策略。
+群聊工具采用显式许可名单，新增工具默认不开放；群聊不触发个人 review。
+
 - Python 3.12+，全量类型标注，`from __future__ import annotations`
 - 跨平台：只用 pathlib / 纯 Python，Windows 与 macOS 都要能跑；平台差异隔离在能力域内部
 - 注释写"为什么"不写"是什么"；每个模块 docstring 写清「职责 + 明确不做」

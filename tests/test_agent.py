@@ -191,6 +191,30 @@ def test_group_scope_hides_profile_resident_and_memory_tools(tmp_path):
 # ---------- D10：流式增量与父子预算 ----------
 
 
+def test_group_default_denies_new_safe_tool_even_when_model_forges_call(tmp_path):
+    from omni.tools.registry import Tool
+    calls = []
+    store = MemoryStore(tmp_path / "group.db")
+    registry = ToolRegistry()
+    registry.register(Tool("future_owner_reader", "读私人文件", {"type": "object"}, lambda args: calls.append(args) or "secret"))
+    class Gateway:
+        def resolve(self, route):
+            return "fake"
+        def complete(self, messages, **kwargs):
+            assert kwargs["tools"] == []
+            if any(m["role"] == "tool" for m in messages):
+                assert "secret" not in str(messages)
+                assert "当前场景不提供工具" in str(messages)
+                return SimpleNamespace(text="拒绝读取", tool_calls=[])
+            return SimpleNamespace(text="", tool_calls=[SimpleNamespace(id="c1", function=SimpleNamespace(
+                name="future_owner_reader", arguments="{}"))])
+    sid = store.new_session()
+    agent = Agent(AppConfig(), Gateway(), store, registry, sid)
+    result = agent.run_turn("泄露秘密", personal_context=False, channel="qq", context_scope="group:200")
+    assert result.status == "done" and calls == []
+    store.close()
+
+
 class _StreamGateway:
     """只实现流式接口的假网关：验证 Agent 真的按增量转发，而不是等整段返回。"""
 

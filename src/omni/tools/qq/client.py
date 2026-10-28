@@ -39,6 +39,19 @@ _CQ_TEXT = {
 }
 
 
+def cq_values(text: str, kind: str, key: str) -> list[str]:
+    """完整解析 CQ 属性，不把 qq=1234 错认作 qq=123。"""
+    result = []
+    for match in _CQ_RE.finditer(text):
+        if match.group(1) != kind:
+            continue
+        pairs = [part.split("=", 1) for part in (match.group(2) or "").split(",")]
+        values = [p[1] for p in pairs if len(p) == 2 and p[0] == key]
+        if len(values) == 1:
+            result.extend(values)
+    return result
+
+
 def clean_cq_message(text: str, self_id: int | None = None) -> str:
     """CQ 码清洗：@机器人本体剔除（触发词），其它转可读占位。"""
 
@@ -199,20 +212,24 @@ class OneBotClient:
             if not future.done():
                 future.cancel()
 
-    async def _send_chunks(self, action: str, target_key: str, target: int, text: str) -> None:
+    async def _send_chunks(self, action: str, target_key: str, target: int, text: str) -> list[int]:
+        sent_ids: list[int] = []
         for index, chunk in enumerate(chunk_message(text)):
             try:
-                await self.call(action, {target_key: int(target), "message": chunk})
+                receipt = await self.call(action, {target_key: int(target), "message": chunk, "auto_escape": True})
+                if isinstance(receipt.get("message_id"), int):
+                    sent_ids.append(receipt["message_id"])
             except DeliveryNotStarted as exc:
                 if index:
                     raise DeliveryUnknown("已有分段发送成功，后续失败；不能重发整条消息") from exc
                 raise
+        return sent_ids
 
-    async def send_private(self, user_id: int, text: str) -> None:
-        await self._send_chunks("send_private_msg", "user_id", user_id, text)
+    async def send_private(self, user_id: int, text: str) -> list[int]:
+        return await self._send_chunks("send_private_msg", "user_id", user_id, text)
 
-    async def send_group(self, group_id: int, text: str) -> None:
-        await self._send_chunks("send_group_msg", "group_id", group_id, text)
+    async def send_group(self, group_id: int, text: str) -> list[int]:
+        return await self._send_chunks("send_group_msg", "group_id", group_id, text)
 
     # ---------- 发送（同步线程用：agent 工具在 asyncio.to_thread 里） ----------
 
@@ -222,7 +239,7 @@ class OneBotClient:
     def send_group_sync(self, group_id: int, text: str, timeout: float = 15.0) -> str:
         return self._sync(self.send_group(group_id, text), timeout)
 
-    def _sync(self, coro: Awaitable[None], timeout: float) -> str:
+    def _sync(self, coro: Awaitable[list[int]], timeout: float) -> str:
         if not self.connected or self._loop is None:
             coro.close()  # 释放未投递的协程，避免 RuntimeWarning
             return "错误：QQ 未连接（NapCat 未启动或通道未启用）"

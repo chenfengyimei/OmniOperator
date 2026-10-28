@@ -33,6 +33,7 @@ from .llm.gateway import Gateway
 from .llm.embedding import EmbeddingProvider
 from .memory.vectors import VectorIndex
 from .memory.runs import RunStore
+from .memory.qq import QQMessageStore
 from .memory.state import (
     ExecutionLog,
     JobStore,
@@ -139,6 +140,7 @@ class Runtime:
     qq: OneBotClient | None = None
     retrieval: HybridMemory | None = None
     desktop: DesktopDriver | None = None
+    qq_messages: QQMessageStore | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
@@ -230,6 +232,7 @@ def build_runtime(
     )
     # 投递 outbox（D17）：QQ 掉线时任务结果入队，恢复后由心跳进程补投
     outbox = OutboxStore(state)
+    qq_messages = QQMessageStore(state)
     # MCP 工具目录指纹（D19）：服务升级换 schema 后提醒复查只读授权
     mcp_schemas = MCPSchemaStore(state)
     # 技能变更已读标记（D18）：agent/review 自动改技能进待审阅队列
@@ -441,6 +444,7 @@ def build_runtime(
         usage=usage,
         artifacts=artifacts,
         outbox=outbox,
+        qq_messages=qq_messages,
         mcp_schemas=mcp_schemas,
         skill_acks=skill_acks,
         runs=runs,

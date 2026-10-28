@@ -41,6 +41,25 @@ def _client(tmp_path, skills_root=None, config_text=None, pair=True):
     return client, runtime
 
 
+def test_qq_proactive_settings_validate_append_and_stop(tmp_path):
+    client, runtime = _client(tmp_path, config_text="qq:\n  allowed_users: [10001] # 保留\n")
+    try:
+        updates = {"qq": {"proactive_enabled": True, "owner_qq": 10001, "proactive_daily_limit": 2,
+                          "quiet_start": "00:00", "quiet_end": "00:00", "timezone": "Asia/Shanghai"}}
+        assert client.post("/api/system/config", json={"updates": updates}).status_code == 200
+        assert "# 保留" in runtime.paths.config.read_text(encoding="utf-8")
+        status = client.get("/api/system/qq-policy").json()
+        assert status["enabled"] and status["decision"] == "allow" and status["used"] == 0
+        entry = runtime.outbox.enqueue(job="j", target_qq=10001, content="提醒")
+        assert client.post("/api/system/config", json={"updates": {"qq": {"timezone": "bad/zone"}}}).status_code == 400
+        assert client.post("/api/system/qq-policy/stop").status_code == 200
+        assert not runtime.qq_policy().proactive_enabled
+        assert runtime.outbox.get(entry)["status"] == "discarded"
+    finally:
+        runtime.store.close()
+        runtime.state.close()
+
+
 @pytest.mark.parametrize("mode,size", [("RGB", (1080, 2400)), ("RGBA", (241, 121)), ("L", (1, 1))])
 def test_android_stream_encodes_half_size_jpeg(tmp_path, monkeypatch, mode, size):
     client, runtime = _client(tmp_path)

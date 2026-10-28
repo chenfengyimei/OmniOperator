@@ -20,7 +20,6 @@ from typing import Any
 
 from ..memory.cron import CronError, Job, JobStore, to_iso
 from ..memory.state import StateUnavailable
-from ..safety.gates import private_target_allowed
 from ..tools.qq.client import DeliveryNotStarted
 
 TICK_SECONDS = 30
@@ -286,9 +285,12 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
         qq = runtime.qq
         if qq is None:
             return "未投递：QQ 未启用"
-        decision = private_target_allowed(runtime.qq_policy().allowed_users, target)
-        if not decision.allowed:
+        from .qq_policy import proactive_decision
+        decision = proactive_decision(runtime.qq_policy(), target)
+        if decision.state == "deny":
             return f"未投递：{decision.reason}"
+        if decision.state == "defer":
+            return _enqueue_or_note(runtime, job.name, target, result, decision.reason, "pending")
         if not qq.connected:
             return _enqueue_or_note(
                 runtime, job.name, target, result, "QQ 未连接（NapCat 未启动？）", "pending"
@@ -317,6 +319,8 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
 
 
 async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
+    from .qq_policy import proactive_decision
+    from ..tools.qq.client import chunk_message
     outbox = runtime.outbox
 
     def finish(status: str, error: str = "") -> str:
@@ -324,13 +328,30 @@ async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
             return "retry" if status == "pending" else status
         return "unknown"
 
-    decision = private_target_allowed(runtime.qq_policy().allowed_users, entry["target_qq"])
-    if not decision.allowed:
-        return finish("discarded", f"白名单撤销：{decision.reason}")
+    def defer(reason: str) -> str:
+        return "deferred" if outbox.defer_claim(entry["id"], entry["claim_token"], reason=reason) else "unknown"
+
+    decision = proactive_decision(runtime.qq_policy(), entry["target_qq"])
+    if decision.state == "deny":
+        return finish("discarded", decision.reason)
+    if decision.state == "defer":
+        return defer(decision.reason)
+    if not runtime.state.consume_budget("qq_proactive", decision.day, decision.limit).ok:
+        return defer("主动提醒今日额度已用完")
+    sent = False
     try:
-        await asyncio.wait_for(runtime.qq.send_private(int(entry["target_qq"]), entry["content"]), 45)
+        for chunk in chunk_message(entry["content"]):
+            current = proactive_decision(runtime.qq_policy(), entry["target_qq"])
+            if current.state != "allow":
+                if sent:
+                    return finish("unknown", "部分分段发送后策略变化，停止后续发送")
+                return defer(current.reason) if current.state == "defer" else finish("discarded", current.reason)
+            await asyncio.wait_for(runtime.qq.send_private(int(entry["target_qq"]), chunk), 45)
+            sent = True
         return finish("sent")
     except DeliveryNotStarted as exc:
+        if sent:
+            return finish("unknown", "已有部分分段成功，后续确认未发送，不能重放整条")
         attempts = entry["attempts"]
         return finish("dead" if attempts >= outbox.MAX_ATTEMPTS else "pending",
                       f"确认未发送，已尝试 {attempts} 次：{exc}")
@@ -351,7 +372,7 @@ def make_outbox_drainer(runtime: Any) -> Callable[[], Awaitable[dict[str, int]]]
     """
 
     async def drain() -> dict[str, int]:
-        stats = {"sent": 0, "discarded": 0, "retry": 0, "unknown": 0, "dead": 0}
+        stats = {"sent": 0, "discarded": 0, "retry": 0, "unknown": 0, "dead": 0, "deferred": 0}
         qq = runtime.qq
         outbox = runtime.outbox
         if qq is None or outbox is None or not qq.connected:

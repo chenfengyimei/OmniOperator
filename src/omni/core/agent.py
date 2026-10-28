@@ -28,7 +28,9 @@ from .run import (
     TurnResult,
 )
 
-# 群聊作用域下不提供的工具：会读全局个人数据或跨会话历史（D12/D22 会换成正式的作用域策略）
+# 群聊默认拒绝新工具：只显式开放公开网络读取及会话内待办。
+GROUP_ALLOWED_TOOLS = frozenset({"get_time", "web_read", "todo"})
+# 兼容外部调用者的旧禁用清单；回合中以许可名单为准。
 GROUP_DENIED_TOOLS = frozenset(
     {
         "recall",
@@ -200,6 +202,7 @@ class Agent:
         personal_context: bool = True,
         channel: str = "cli",
         principal: str = "owner",
+        context_scope: str | None = None,
     ) -> str:
         """处理一条用户消息，返回最终回答（中间工具循环不落库）。
 
@@ -215,6 +218,7 @@ class Agent:
             personal_context=personal_context,
             channel=channel,
             principal=principal,
+            context_scope=context_scope,
         ).answer
 
     def run_turn(
@@ -225,6 +229,7 @@ class Agent:
         personal_context: bool = True,
         channel: str = "cli",
         principal: str = "owner",
+        context_scope: str | None = None,
         parent: RunContext | None = None,
         on_delta: Callable[[str], None] | None = None,
     ) -> TurnResult:
@@ -244,6 +249,7 @@ class Agent:
             principal=principal,
             personal_context=personal_context,
             parent=parent,
+            context_scope=context_scope,
         )
         if parent is not None:
             parent.cancel_token.link_child(run.cancel_token)
@@ -334,6 +340,7 @@ class Agent:
         principal: str,
         personal_context: bool,
         parent: RunContext | None,
+        context_scope: str | None = None,
     ) -> RunContext:
         steps = max(1, int(self.config.limits.max_agent_steps))
         if parent is not None:
@@ -344,7 +351,8 @@ class Agent:
             channel=channel,
             principal=principal,
             parent_run_id=parent.run_id if parent is not None else None,
-            scope="private" if personal_context else "group",
+            scope=(parent.identity.scope if parent is not None else
+                   ("private" if personal_context else context_scope or f"group:session:{sid}")),
         )
         # 费用预算：子 run 直接复用父的 RunBudget 实例（累计限制才成立）
         if parent is not None:
@@ -395,7 +403,7 @@ class Agent:
         on_delta: Callable[[str], None] | None = None,
     ) -> str:
         """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。"""
-        denied = frozenset() if personal_context else GROUP_DENIED_TOOLS
+        denied = frozenset() if personal_context else frozenset(self.registry.names()) - GROUP_ALLOWED_TOOLS
         self.store.append_message(sid, "user", user_text)
         messages: list[dict[str, Any]] = [
             {

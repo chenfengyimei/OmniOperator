@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 12
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -261,6 +261,19 @@ CREATE TABLE cron_outputs (
 );
 """
 
+_SCHEMA_V12 = """
+CREATE TABLE qq_messages (
+    bot INTEGER NOT NULL, scene TEXT NOT NULL, message_id TEXT NOT NULL,
+    status TEXT NOT NULL, created_at REAL NOT NULL,
+    PRIMARY KEY(bot, scene, message_id)
+);
+CREATE INDEX idx_qq_messages_created ON qq_messages(created_at);
+CREATE TABLE qq_sent (
+    bot INTEGER NOT NULL, scene TEXT NOT NULL, message_id TEXT NOT NULL,
+    created_at REAL NOT NULL, PRIMARY KEY(bot, scene, message_id)
+);
+"""
+
 _MIGRATIONS: dict[int, str] = {
     1: _SCHEMA_V1,
     2: _SCHEMA_V2,
@@ -273,6 +286,7 @@ _MIGRATIONS: dict[int, str] = {
     9: _SCHEMA_V9,
     10: _SCHEMA_V10,
     11: _SCHEMA_V11,
+    12: _SCHEMA_V12,
 }
 
 SESSION_RESOURCE = "session:{}"
@@ -1365,6 +1379,14 @@ class OutboxStore:
             )
             return cursor.rowcount == 1
 
+    def defer_claim(self, entry_id: int, token: str, *, reason: str) -> bool:
+        """发送尚未开始的策略等待不计网络尝试；仍需当前领取身份。"""
+        with self._state._tx() as conn:
+            return conn.execute(
+                "UPDATE outbox SET status='pending', claim_token=NULL, attempts=MAX(0,attempts-1),"
+                " last_error=?, updated_at=? WHERE id=? AND status='sending' AND claim_token=?",
+                (reason, self._now(), entry_id, token)).rowcount == 1
+
     def attempt(self, entry_id: int, *, error: str = "") -> int:
         """记一次失败尝试并返回累计次数（调用方据此决定是否成死信）。"""
         now = self._now()
@@ -1385,6 +1407,16 @@ class OutboxStore:
         """unknown/dead/discarded → 重新排队（attempts 清零，给满额重试预算）。"""
         now = self._now()
         with self._state._tx() as conn:
+            # 活跃内容唯一约束同样适用于人工重排，冲突应返回拒绝而非 500。
+            row = conn.execute("SELECT target_qq,content_hash,status FROM outbox WHERE id=?", (entry_id,)).fetchone()
+            if row is None or conn.execute(
+                "SELECT 1 FROM outbox WHERE id<>? AND target_qq=? AND content_hash=? AND status IN ('pending','sending','unknown')",
+                (entry_id, row[0], row[1])).fetchone():
+                return False
+            if row[2] not in self.LIVE_STATUSES and conn.execute(
+                "SELECT COUNT(*) FROM outbox WHERE status IN ('pending','sending','unknown')"
+            ).fetchone()[0] >= self.MAX_LIVE:
+                return False
             cursor = conn.execute(
                 "UPDATE outbox SET status = 'pending', attempts = 0, last_error = ?,"
                 " updated_at = ? WHERE id = ? AND status IN ('unknown','dead','discarded')",

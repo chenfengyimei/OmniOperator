@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import re
+import json
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +33,13 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("qq", "allowed_users"): "int_list",
     ("qq", "allowed_groups"): "int_list",
     ("qq", "reply_delay_s"): "float_list",
+    ("qq", "group_reply_to_bot"): "bool",
+    ("qq", "proactive_enabled"): "bool",
+    ("qq", "owner_qq"): "int",
+    ("qq", "proactive_daily_limit"): "int",
+    ("qq", "quiet_start"): "str",
+    ("qq", "quiet_end"): "str",
+    ("qq", "timezone"): "str",
     ("browser", "headless"): "bool",
     ("browser", "slow_mo_ms"): "int",
     ("browser", "max_writes_per_day"): "int",
@@ -60,11 +68,11 @@ def render_value(kind: str, value: Any) -> str:
     if kind == "str":
         if not isinstance(value, str) or not value.strip():
             raise ConfigEditError(f"需要非空字符串，得到 {value!r}")
-        return '"' + value.replace('"', '\\"') + '"'
+        return json.dumps(value, ensure_ascii=False)
     if kind == "str_or_empty":
         if not isinstance(value, str):
             raise ConfigEditError(f"需要字符串，得到 {value!r}")
-        return '"' + value.replace('"', '\\"') + '"'
+        return json.dumps(value, ensure_ascii=False)
     if kind.startswith("choice:"):
         allowed = kind.split(":", 1)[1].split(",")
         if value not in allowed:
@@ -166,7 +174,20 @@ def apply_updates(text: str, updates: dict[str, dict[str, Any]]) -> str:
             text = _replace_multiline_block(text, section, key, value)
             del pending[(section, key)]
 
-    text, changed = _scalar_updates(text, pending)
+    # 新增策略键允许补进既有 qq 节；旧键仍遵守“找不到则拒绝”的原契约。
+    appendable = {"group_reply_to_bot", "proactive_enabled", "owner_qq", "proactive_daily_limit",
+                  "quiet_start", "quiet_end", "timezone"}
+    lines = text.splitlines()
+    for (section, key), value in pending.items():
+        if section != "qq" or key not in appendable:
+            continue
+        start = next((i for i, line in enumerate(lines) if re.match(r"^qq:\s*(#.*)?$", line)), None)
+        if start is None:
+            continue
+        end = next((i for i in range(start + 1, len(lines)) if re.match(r"^[A-Za-z_]\w*:", lines[i])), len(lines))
+        if not any(re.match(rf"^  {re.escape(key)}:", line) for line in lines[start + 1:end]):
+            lines.insert(end, f"  {key}: {render_value(EDITABLE[(section, key)], value)}")
+    text, changed = _scalar_updates("\n".join(lines) + "\n", pending)
 
     missed = len(pending) - changed
     if missed:

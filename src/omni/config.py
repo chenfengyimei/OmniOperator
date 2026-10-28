@@ -275,6 +275,32 @@ class QQ(BaseModel):
     allowed_users: list[int] = Field(default_factory=list)   # 私聊白名单（空=拒绝所有人）
     allowed_groups: list[int] = Field(default_factory=list)  # 群白名单（群里还需 @机器人）
     reply_delay_s: list[float] = Field(default_factory=lambda: [1.0, 3.0])  # 拟人回复延迟
+    group_reply_to_bot: bool = False
+    merge_window_s: float = Field(default=0.3, ge=0, le=3)
+    max_pending: int = Field(default=64, ge=1, le=256)
+    max_concurrent: int = Field(default=4, ge=1, le=8)
+    proactive_enabled: bool = False
+    owner_qq: int = Field(default=0, ge=0)
+    proactive_daily_limit: int = Field(default=5, ge=0, le=50)
+    quiet_start: str = "22:00"
+    quiet_end: str = "08:00"
+    timezone: str = "Asia/Shanghai"
+
+    @model_validator(mode="after")
+    def check_qq_policy(self):
+        import datetime as dt
+        from zoneinfo import ZoneInfo
+        try:
+            ZoneInfo(self.timezone)
+        except (KeyError, ValueError) as exc:
+            raise ValueError("QQ timezone 必须为有效 IANA 时区") from exc
+        for value in (self.quiet_start, self.quiet_end):
+            parsed = dt.datetime.strptime(value, "%H:%M")
+            if parsed.strftime("%H:%M") != value:
+                raise ValueError("安静时段格式必须为 HH:MM")
+        if len(self.reply_delay_s) != 2 or not 0 <= self.reply_delay_s[0] <= self.reply_delay_s[1] <= 30:
+            raise ValueError("reply_delay_s 必须为 0–30 秒的有序上下限")
+        return self
 
 
 class Browser(BaseModel):

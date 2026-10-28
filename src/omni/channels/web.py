@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
+import yaml
 from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -1199,6 +1200,8 @@ def create_app(runtime: Runtime) -> FastAPI:
                 "allowed_users": cfg.qq.allowed_users,
                 "allowed_groups": cfg.qq.allowed_groups,
                 "reply_delay_s": cfg.qq.reply_delay_s,
+                **{key: getattr(cfg.qq, key) for key in ("proactive_enabled", "owner_qq", "proactive_daily_limit",
+                                                         "quiet_start", "quiet_end", "timezone", "group_reply_to_bot")},
             },
             "browser": {
                 "headless": cfg.browser.headless,
@@ -1217,8 +1220,10 @@ def create_app(runtime: Runtime) -> FastAPI:
             config_file = runtime.paths.config  # 与 bootstrap 读取的是同一个文件
             text = config_file.read_text(encoding="utf-8")
             new_text = apply_updates(text, updates)
+            from ..config import AppConfig
+            AppConfig.model_validate(yaml.safe_load(new_text) or {})
             safe_write(config_file, new_text)
-        except (ConfigEditError, OSError) as exc:
+        except (ValueError, OSError, yaml.YAMLError) as exc:
             # 含密钥字段时只回笼统原因，避免把密钥值回显到错误信息/日志里
             detail = "配置更新被拒绝（含密钥字段，详情已省略）" if touched_secret else str(exc)
             raise HTTPException(status_code=400, detail=detail)
@@ -1226,6 +1231,25 @@ def create_app(runtime: Runtime) -> FastAPI:
             "ok": True,
             "hint": "已写入 config.yaml；正在运行的服务重启后生效（见服务面板）",
         }
+
+    @app.get("/api/system/qq-policy")
+    def qq_policy_status() -> dict[str, Any]:
+        from ..core.qq_policy import proactive_decision
+        policy = runtime.qq_policy()
+        decision = proactive_decision(policy, policy.owner_qq)
+        return {"enabled": policy.proactive_enabled, "owner_qq": policy.owner_qq,
+                "decision": decision.state, "reason": decision.reason,
+                "used": runtime.state.budget_used("qq_proactive", decision.day) if decision.day else None,
+                "limit": policy.proactive_daily_limit,
+                "events": runtime.qq_messages.status() if runtime.qq_messages else {}}
+
+    @app.post("/api/system/qq-policy/stop")
+    def qq_policy_stop() -> dict[str, Any]:
+        system_config_save(ConfigUpdateIn(updates={"qq": {"proactive_enabled": False}}))
+        if runtime.outbox:
+            for item in runtime.outbox.pending():
+                runtime.outbox.discard(item["id"], note="用户一键停止主动提醒")
+        return {"ok": True, "hint": "主动提醒已停用，尚未开始的投递已丢弃"}
 
     # ---------- B站 Cookie（字幕/音频流需要登录态） ----------
 

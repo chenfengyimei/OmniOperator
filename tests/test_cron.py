@@ -175,6 +175,7 @@ def test_runtime_executor_binds_session_and_injects_skills(tmp_path):
 
 
 def test_runtime_deliver_guards(tmp_path):
+    from omni.config import QQ
     from omni.memory.state import OutboxStore
     delivery_state = StateStore(tmp_path / "deliver.db")
     class FakeQQ:
@@ -190,7 +191,9 @@ def test_runtime_deliver_guards(tmp_path):
     # 策略是热读的：每次投递都问 qq_policy()，所以用可变容器模拟"配置被改"
     state = {"allowed": [10001]}
     rt = SimpleNamespace(
-        qq=qq, qq_policy=lambda: SimpleNamespace(allowed_users=state["allowed"]),
+        qq=qq, qq_policy=lambda: QQ(allowed_users=state["allowed"], proactive_enabled=True, owner_qq=10001,
+                                  quiet_start="00:00", quiet_end="00:00"),
+        state=delivery_state,
         outbox=OutboxStore(delivery_state),
     )
     deliver = make_runtime_deliver(rt)

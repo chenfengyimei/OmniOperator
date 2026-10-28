@@ -1,12 +1,12 @@
 """QQ 通道入口：uv run omni-qq（需先启动 NapCat 并在 config.yaml 开启 qq）。
 
-职责纪律：只做「事件路由 + 白名单过滤 + 会话绑定 + 拟人延迟 + 回发」；
+职责纪律：只做「事件路由 + 白名单过滤 + 有界合并 + 会话绑定 + 回发」；
 领域操作全部经 Runtime 门面。安装 NapCat 见 docs/QQ_SETUP.md。
 
 安全边界（A03/A05 修复后的语义）：
 - 私聊：`allowed_users` **为空时谁都不回**（空名单不等于不限）；名单外静默忽略（不暴露存在）；
-- 群聊：`allowed_groups` 内的群 + 消息里 @机器人 才生效；群聊**不注入**所有者档案/常驻笔记，
-  并禁用个人记忆类工具（他人可见的上下文不该带出私人信息）；
+- 群聊：白名单内精确 @，或显式启用的回复机器人策略；群聊无个人资料、无个人 review，
+  工具采用许可名单，新增工具默认不开放；
 - 会话按场景分开绑定：私聊 `dm:<user>`、群聊 `group:<group>`，同一发送者在两个群不会串历史；
 - 策略每次从配置源重读：撤销白名单在下一条消息就生效，不必重启进程；
 - 工具：QQ 上下文 DenyApprover（fail-closed），safe 级直通。
@@ -16,12 +16,23 @@ from __future__ import annotations
 import asyncio
 import os
 import random
+import time
+from collections import deque
 
 from ..bootstrap import Runtime, build_runtime
 from ..config import load_env
+from ..core.session import SessionBusy
 from ..llm.gateway import GatewayError
 from ..safety.gates import DenyApprover, private_target_allowed
-from ..tools.qq.client import OneBotClient, clean_cq_message
+from ..tools.qq.client import OneBotClient, clean_cq_message, chunk_message, cq_values
+
+
+def _event_id(event: dict) -> str | None:
+    value = event.get("message_id")
+    # OneBot message_id 为有符号整数，不能用 > 0 判断，也不能用缺失 ID 合成去重键。
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return str(value)
 
 
 def _resolve_scope(
@@ -33,7 +44,13 @@ def _resolve_scope(
     """
     policy = runtime.qq_policy()
     message_type = event.get("message_type")
-    user_id = int(event.get("user_id") or 0)
+    try:
+        user_id = int(event.get("user_id") or 0)
+        bot = int(event.get("self_id") or client.self_id or 0)
+    except (TypeError, ValueError):
+        return None
+    if bot <= 0 or (client.self_id is not None and bot != client.self_id):
+        return None
     if user_id <= 0:
         return None  # 伪造/异常事件
     if message_type == "private":
@@ -41,12 +58,19 @@ def _resolve_scope(
             return None
         return "dm", user_id, True
     if message_type == "group":
-        group_id = int(event.get("group_id") or 0)
+        try:
+            group_id = int(event.get("group_id") or 0)
+        except (TypeError, ValueError):
+            return None
         if group_id <= 0 or group_id not in set(policy.allowed_groups):
             return None
         raw = str(event.get("raw_message") or "")
-        if client.self_id is None or f"[CQ:at,qq={client.self_id}" not in raw:
-            return None  # 群里只回应被 @ 的消息
+        mentioned = str(bot) in cq_values(raw, "at", "qq")
+        inbox = getattr(runtime, "qq_messages", None)
+        replied = (getattr(policy, "group_reply_to_bot", False) and inbox is not None and
+                   any(inbox.is_reply(bot, f"group:{group_id}", mid) for mid in cq_values(raw, "reply", "id")))
+        if not mentioned and not replied:
+            return None
         return "group", group_id, False
     return None
 
@@ -69,59 +93,188 @@ def _session_for(runtime: Runtime, scope: str, key: int) -> int:
 async def _handle_message(
     runtime: Runtime, client: OneBotClient, event: dict, locks: dict[str, asyncio.Lock]
 ) -> None:
+    """单事件入口；生产 dispatcher 在同一场景内合并后调用相同处理器。"""
     scope = _resolve_scope(runtime, client, event)
-    if scope is None:
+    inbox = getattr(runtime, "qq_messages", None)
+    mid = _event_id(event)
+    if scope is None or inbox is None or mid is None:
         return
-    scope_name, target_id, personal_context = scope
-    raw = str(event.get("raw_message") or "")
-    text = clean_cq_message(raw, self_id=client.self_id)
-    if not text:
+    bot = int(event.get("self_id") or client.self_id)
+    scene = f"{scope[0]}:{scope[1]}"
+    if not inbox.claim(bot, scene, mid):
         return
-
-    user_id = int(event.get("user_id") or 0)
-    sender = (event.get("sender") or {}).get("nickname") or str(user_id)
-    session_id = _session_for(runtime, scope_name, target_id)
-    lock_key = f"{scope_name}:{target_id}"
-    lock = locks.setdefault(lock_key, asyncio.Lock())  # 同一会话串行，防历史交叉
-    cfg = runtime.config.qq
+    lock = locks.setdefault(scene, asyncio.Lock())
     async with lock:
-        lo, hi = (cfg.reply_delay_s + [1.0, 3.0])[:2]
-        await asyncio.sleep(random.uniform(float(lo), float(hi)))  # 拟人：不秒回
-        try:
-            answer = await asyncio.to_thread(
-                runtime.agent.chat,
-                text,
-                session_id=session_id,
-                personal_context=personal_context,
-            )
-        except GatewayError as exc:
-            answer = f"（模型调用失败：{exc}）"
-        runtime.spawn_review(session_id)  # QQ 的回合也进记忆自整理
+        await _handle_batch(runtime, client, scope, [event])
 
-    where = f"群{target_id}" if scope_name == "group" else "私聊"
-    print(
-        f"[QQ] {where} {sender}({user_id}): {text[:40]} → 回复 {len(answer)} 字", flush=True
-    )
-    if scope_name == "dm":
-        await client.send_private(target_id, answer)
-    else:
-        await client.send_group(target_id, answer)
+
+def _cancel_session(runtime: Runtime, session_id: int, reason: str) -> None:
+    active = getattr(runtime, "active_runs", None)
+    if active is not None:
+        for run in active.contexts():
+            if run.identity.channel == "qq" and run.identity.session_id == session_id:
+                run.cancel_token.cancel(reason)
+
+
+async def _handle_batch(runtime: Runtime, client: OneBotClient,
+                        scope: tuple[str, int, bool], events: list[dict]) -> None:
+    scope_name, target_id, personal = scope
+    scene = f"{scope_name}:{target_id}"
+    bot = int(events[0].get("self_id") or client.self_id)
+    inbox = runtime.qq_messages
+    status = "suppressed"
+
+    def valid(event: dict) -> bool:
+        return (_resolve_scope(runtime, client, event) == scope and
+                inbox.active(bot, scene, _event_id(event)))
+
+    try:
+        lo, hi = runtime.config.qq.reply_delay_s
+        await asyncio.sleep(random.uniform(lo, hi))
+        selected = [e for e in events if valid(e)]
+        if not selected:
+            return
+        texts = [clean_cq_message(str(e.get("raw_message") or ""), self_id=bot) for e in selected]
+        text = "\n".join(t for t in texts if t)
+        if not text or len(text) > 16000:
+            return
+        sid = _session_for(runtime, scope_name, target_id)
+        # 身份由可信通道提供，群话题历史与待办均绑定该场景的 session。
+        def chat() -> str:
+            return runtime.agent.chat(text, session_id=sid, personal_context=personal,
+                                      channel="qq", principal=f"qq:{selected[0]['user_id']}",
+                                      context_scope="private" if personal else scene)
+
+        # 租约覆盖模型、回写与发送；线程真正结束前不能释放给另一进程。
+        with runtime.session_leases.hold(sid) as token:
+            worker = asyncio.create_task(asyncio.to_thread(chat))
+            next_renew = time.monotonic() + runtime.session_leases.ttl_s / 3
+            revoked = False
+            try:
+                while not worker.done():
+                    await asyncio.wait({worker}, timeout=0.1)
+                    if not all(valid(e) for e in selected):
+                        revoked = True
+                        _cancel_session(runtime, sid, "QQ 消息撤回或授权撤销")
+                    if time.monotonic() >= next_renew:
+                        if not runtime.state.renew_session_lease(token, ttl_s=runtime.session_leases.ttl_s):
+                            revoked = True
+                            _cancel_session(runtime, sid, "QQ 会话租约失效")
+                        next_renew = time.monotonic() + runtime.session_leases.ttl_s / 3
+                answer = await worker
+            except asyncio.CancelledError:
+                _cancel_session(runtime, sid, "QQ 通道关闭")
+                await asyncio.shield(worker)
+                raise
+            except GatewayError:
+                answer = "（模型调用失败，请稍后再试）"
+            if revoked or not all(valid(e) for e in selected):
+                return
+            # 群消息不能作为所有者个人记忆的 review 输入。
+            if personal:
+                runtime.spawn_review(sid)
+            for chunk in chunk_message(answer):
+                if not all(valid(e) for e in selected):
+                    return
+                status = "unknown"  # 发送前登记语义，抛错也不能重放整批。
+                ids = await (client.send_private(target_id, chunk) if personal else client.send_group(target_id, chunk))
+                inbox.remember_sent(bot, scene, ids or [])
+            status = "done"
+            print(f"[QQ] scene={scene} session={sid} events={len(selected)} replied_chars={len(answer)}", flush=True)
+    except SessionBusy:
+        return  # 另一进程在处理该话题，不偷偷并发或自动重放。
+    finally:
+        for event in events:
+            inbox.finish(bot, scene, _event_id(event), status)
+
+
+class QQDispatcher:
+    """有界分场景队列；同一发送者短消息合并，撤回事件不等待模型。"""
+
+    def __init__(self, runtime: Runtime, client: OneBotClient) -> None:
+        self.runtime, self.client = runtime, client
+        self.queues: dict[str, deque] = {}
+        self.tasks: dict[str, asyncio.Task] = {}
+        self.limit = asyncio.Semaphore(runtime.config.qq.max_concurrent)
+        self.pending = 0
+        self.closed = False
+
+    async def on_event(self, event: dict) -> None:
+        if self.closed:
+            return
+        inbox = self.runtime.qq_messages
+        mid = _event_id(event)
+        if inbox is None or mid is None:
+            return
+        try:
+            bot = int(event.get("self_id") or self.client.self_id or 0)
+            if bot <= 0 or (self.client.self_id is not None and bot != self.client.self_id):
+                return
+            if event.get("post_type") == "notice" and event.get("notice_type") in {"group_recall", "friend_recall"}:
+                group = event["notice_type"] == "group_recall"
+                key = int(event.get("group_id" if group else "user_id") or 0)
+                policy = self.runtime.qq_policy()
+                if key not in (policy.allowed_groups if group else policy.allowed_users):
+                    return
+                inbox.recall(bot, f"{'group' if group else 'dm'}:{key}", mid)
+                return
+            if event.get("post_type") != "message":
+                return
+            scope = _resolve_scope(self.runtime, self.client, event)
+            if scope is None or len(str(event.get("raw_message") or "")) > 16000:
+                return
+            scene = f"{scope[0]}:{scope[1]}"
+            if self.pending >= self.runtime.config.qq.max_pending or len(self.tasks) >= 32 and scene not in self.tasks:
+                print("[QQ] 场景队列已满，未接收新消息", flush=True)
+                return
+            if not inbox.claim(bot, scene, mid):
+                return
+            self.queues.setdefault(scene, deque()).append(event)
+            self.pending += 1
+            if scene not in self.tasks:
+                self.tasks[scene] = asyncio.create_task(self._work(scene, scope))
+        except (TypeError, ValueError):
+            return
+
+    async def _work(self, scene: str, scope: tuple[str, int, bool]) -> None:
+        try:
+            while self.queues[scene]:
+                await asyncio.sleep(self.runtime.config.qq.merge_window_s)
+                async with self.limit:
+                    queue = self.queues[scene]
+                    batch = [queue.popleft()]
+                    size = len(str(batch[0].get("raw_message") or ""))
+                    while (queue and len(batch) < 8 and queue[0]["user_id"] == batch[0]["user_id"] and
+                           size + len(str(queue[0].get("raw_message") or "")) + 1 <= 16000):
+                        batch.append(queue.popleft())
+                        size += len(str(batch[-1].get("raw_message") or "")) + 1
+                    try:
+                        await _handle_batch(self.runtime, self.client, scope, batch)
+                    except Exception as exc:
+                        print(f"[QQ] 场景处理失败 scene={scene} type={type(exc).__name__}", flush=True)
+                    finally:
+                        self.pending -= len(batch)
+        finally:
+            queue = self.queues.pop(scene, deque())
+            self.pending -= len(queue)
+            self.tasks.pop(scene, None)
+
+    async def close(self) -> None:
+        self.closed = True
+        tasks = list(self.tasks.values())
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
 
 
 async def _serve(runtime: Runtime) -> None:
     client = runtime.qq
     assert client is not None  # main() 已检查
-    locks: dict[str, asyncio.Lock] = {}
-
-    async def on_event(event: dict) -> None:
-        if event.get("post_type") != "message":
-            return
-        try:
-            await _handle_message(runtime, client, event, locks)
-        except Exception as exc:  # noqa: BLE001 —— 单条消息失败不拖垮通道
-            print(f"[QQ] 处理消息失败: {exc}", flush=True)
-
-    await client.run(on_event)
+    dispatcher = QQDispatcher(runtime, client)
+    try:
+        await client.run(dispatcher.on_event)
+    finally:
+        await dispatcher.close()
 
 
 def main() -> None:
@@ -146,7 +299,7 @@ def main() -> None:
             )
         if policy.allowed_groups:
             print(
-                f"[QQ] 已授权群 {policy.allowed_groups}：仅在被 @ 时回复，且不注入个人档案",
+                f"[QQ] 已授权群 {policy.allowed_groups}：按 @/回复策略响应，不注入个人档案",
                 flush=True,
             )
         asyncio.run(_serve(runtime))
