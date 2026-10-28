@@ -7,6 +7,34 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 新能力：session_refine 手动触发记忆整理（Hermes /refine 对标）
+
+- **需求来源**：Hermes 对标缺口之"/refine 手动整理"——用户说"整理一下这轮对话"
+  时，模型此前没有可按的按钮，只能等通道的自动回合后 review。
+- **实现（不新开执行路径）**：
+  - `tools/builtin.py::register_refine_tool`：新工具 `session_refine`（SAFE）——
+    调既有 `TurnEndReviewer.submit(sid)`，与自动 review 共用同一有界队列、
+    同一消息区间去重、同一 review 模型账本（purpose=review 计费）；
+    `submit` 的五种判定（queued/duplicate/full/closed/failed）逐条映射成
+    如实的中立话术（排队深度满 = "宁可少整理一轮，不堆积待办"）；
+  - **刻意不收 session_id 参数**：作用域取 SessionRef 的当前会话，模型不能
+    指定整理别的会话；群聊作用域下与个人记忆工具一样被 GROUP 名单禁用；
+  - `bootstrap.py`：仅在 `reviewer is not None`（config.review.enabled 且
+    start_background_workers）时注册——review 关闭的实例不出现这颗按钮；
+    注册发生在 reviewer 构造之后（registry 每轮动态取 specs，对已构造的
+    Agent 依然可见）。
+- **新增 7 项测试**（tests/test_review.py）：五种 submit 判定映射（含提交的
+  必是当前会话）、缺会话上下文如实报错、真实链路端到端（工具提交 → 后台
+  worker 真的跑完一次整理并落 review 日志）、工具旗标（SAFE/非
+  read_only/无 session_id 参数/群聊名单禁用）。
+- `uv run --no-sync pytest tests/test_review.py -q` → **11 passed**；
+  全量 `uv run --no-sync pytest -q` → **934 passed**（2026-10-29；= 920 +
+  本批 7 + 并行前端批在其未提交 web 测试里同期新增的 7 项，均绿）。
+  过程记录：第一次全量出现 `test_system.py` 两项红（config apply 200≠400），
+  单独复跑全绿、全量复跑全绿——两处失败点均在并行会话**正在重写**的
+  `system/config_io.py` 校验区（该文件 233 行未提交改动、持续变动中），
+  属其编辑中间态的瞬态，与本批无关（本批未触碰 system/web 域）。
+
 ### 2026-10-29 · D18 收口：外来技能包隔离安装
 
 - **需求来源**：Hermes 对标缺口之"外来技能包安装"。此前刻意后置的原因是

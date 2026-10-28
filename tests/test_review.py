@@ -2,12 +2,14 @@
 import json
 from types import SimpleNamespace
 
+import pytest
+
 from omni.config import AppConfig
 from omni.core.review import TurnEndReviewer
 from omni.memory.skills import SkillStore
 from omni.memory.store import MemoryStore
 from omni.tools.builtin import register_memory_tools, register_profile_tools
-from omni.tools.registry import ToolRegistry
+from omni.tools.registry import SessionRef, ToolRegistry
 from omni.tools.skill_tools import register_skill_tools
 
 _SKILL_BODY = (
@@ -172,3 +174,95 @@ def test_review_skips_short_history(tmp_path):
         _review_registry_factory(tmp_path / "skills"),
     )
     assert "跳过" in reviewer.review_recent(sid)
+
+
+# ---------- 手动触发整理（session_refine，Hermes /refine 的等价物） ----------
+
+
+class FakeReviewer:
+    """只回固定判定值的假 reviewer：验证工具层对 submit 结果的映射。"""
+
+    def __init__(self, verdict: str) -> None:
+        self._verdict = verdict
+        self.submitted: list[int] = []
+
+    def submit(self, session_id: int) -> str:
+        self.submitted.append(session_id)
+        return self._verdict
+
+
+@pytest.mark.parametrize(
+    "verdict,phrase",
+    [
+        ("queued", "已提交整理请求"),
+        ("duplicate", "没有需要整理的新内容"),
+        ("full", "队列已满"),
+        ("closed", "正在关闭"),
+        ("failed", "提交失败"),
+    ],
+)
+def test_refine_tool_maps_reviewer_verdicts(verdict, phrase):
+    from omni.core.agent import GROUP_ALLOWED_TOOLS
+    from omni.safety.gates import Risk
+    from omni.tools.builtin import register_refine_tool
+
+    fake = FakeReviewer(verdict)
+    registry = ToolRegistry()
+    ref = SessionRef()
+    register_refine_tool(registry, fake, ref)
+
+    tool = registry.get("session_refine")
+    assert tool.risk is Risk.SAFE
+    assert tool.read_only is False              # 会入队并动计数：保持串行
+    assert tool.parameters["properties"] == {}  # 刻意不收 session_id：作用域=当前会话
+    assert "session_refine" not in GROUP_ALLOWED_TOOLS  # 群聊作用域同样禁用
+
+    sid = 4321
+    with ref.bind(sid):
+        out = registry.dispatch("session_refine", {})
+    assert phrase in out
+    assert fake.submitted == [sid]  # 提交的是当前会话，不是模型编的参数
+
+
+def test_refine_tool_requires_session_context():
+    from omni.tools.builtin import register_refine_tool
+
+    fake = FakeReviewer("queued")
+    registry = ToolRegistry()
+    ref = SessionRef()  # 从未绑定
+    register_refine_tool(registry, fake, ref)
+    out = registry.dispatch("session_refine", {})
+    assert "会话上下文缺失" in out
+    assert fake.submitted == []
+
+
+def test_refine_tool_end_to_end_runs_real_review(tmp_path):
+    """真实链路：工具提交 → 有界队列 → 后台 worker 用 review 模型整理本会话。"""
+    from omni.tools.builtin import register_refine_tool
+
+    db = tmp_path / "m.db"
+    seed = MemoryStore(db)
+    sid = seed.new_session()
+    seed.append_message(sid, "user", "我平时主要写 Python，做游戏开发")
+    seed.append_message(sid, "assistant", "收到，了解你的技术栈了。", auto_title=False)
+    seed.close()
+
+    reviewer = TurnEndReviewer(
+        AppConfig(),
+        NoopGateway(),
+        lambda: MemoryStore(db),
+        _review_registry_factory(tmp_path / "skills"),
+    )
+    registry = ToolRegistry()
+    ref = SessionRef()
+    register_refine_tool(registry, reviewer, ref)
+
+    with ref.bind(sid):
+        out = registry.dispatch("session_refine", {})
+    assert "已提交整理请求" in out
+    assert reviewer.stats["queued"] == 1
+
+    assert reviewer.close(wait_s=10)  # 等后台 worker 把队列跑完
+    check = MemoryStore(db)
+    assert check.list_reviews(sid) == ["无需变更"]  # 手动触发真的跑完了一次整理
+    check.close()

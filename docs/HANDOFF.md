@@ -117,6 +117,8 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 | core | daily_digest | 过去 N 小时活动摘要（夜间整理素材） |
 | core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite / skill_history / skill_rollback | 技能（SKILL.md，渐进披露，patch 按节省 token，expected_hash CAS + 修订历史）；skill_view(name, path="references/guide.md") 按需读参考文本；工作台技能页可编辑（保存 CAS/差异/回滚，D18） |
 | core | delegate_task | 子任务委派到 UUID 独立会话（同标签并发也不串历史，thread-local 防嵌套，会话引用自动还原） |
+| core | session_refine | 手动触发对当前会话的记忆整理（Hermes /refine 等价物，2026-10-29）：与自动 review 共用同一有界队列/消息区间去重/review 模型账本；作用域=当前会话（不收 session_id 参数），群聊作用域禁用；review 关闭或后台 worker 未启用时不注册 |
+| core | skill_import / skill_pending / skill_activate / skill_discard | 外来技能包隔离安装（2026-10-29）：inbox 收 zip 数据化解包进隔离区（类型白名单拒脚本、zip-slip 全防、清单逐文件 sha256）；activate 为 CONFIRM+人工确认且激活前防篡改复核、来源记入修订史 |
 | shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
 | qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
@@ -143,7 +145,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
   "SAFE 但写状态"的工具保持串行；browser 共用同一张活动页面，整个 toolset 不标
 - **回合作用域**：SessionRef.bind 在正常返回和异常时均恢复调用者会话；delegate 保持父审批链，无需放宽权限
 - 系统提示词 = 人设 + 常驻记忆快照（用量头）+ 档案块，单轮内字节稳定
-- review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，D18 候选变更/差异确认已交付
+- review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，D18 候选变更/差异确认已交付；**手动触发工具 session_refine（2026-10-29）**：模型说"整理一下这轮对话"即可把当前会话入队到同一 worker（不收 session_id、群聊禁用、review 未启用时不注册）
 - 运行账本、事件续读、协作式取消与 ToolResult 已接入；**副作用敏感域已全部迁结构化 ToolResult**（2026-10-29：shell/QQ/系统/browser/MCP/files 写，android 写/desktop/B站写此前已是；files 回读失败、MCP 在途/远端报错、浏览器写失败均如实记 unknown）。纯读与额度闸门内的内部记忆写（builtin/cron/skill/delegate 等）保留 from_legacy 文档化适配——推断对这些域是正确的；跨进程取消和在途操作限制见台账
 - 模型能力、超时、有界重试、usage/费用预留结算已有实现；**预算默认未设上限**，无人值守付费推理需明确授权与限额
 - 心跳调度：tick 30s，state.db 原子领取同一到期时刻并推进 next_run；任务可编辑（乐观 revision）；成败取 run_turn 结构化状态；投递 outbox 原子领取/回执确认/unknown 不自动重发；`context_from` 绑定有效期内成功 run，并行上限默认 2、积压合并、显式 IANA 时区已交付

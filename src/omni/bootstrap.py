@@ -70,6 +70,7 @@ from .tools.builtin import (
     register_digest_tool,
     register_memory_tools,
     register_profile_tools,
+    register_refine_tool,
     register_resident_tools,
     register_todo_tools,
 )
@@ -532,6 +533,10 @@ def build_runtime(
         if config.review.enabled and start_background_workers
         else None
     )
+    if reviewer is not None:
+        # 手动触发整理（session_refine，SAFE，作用域=当前会话）：与自动 review
+        # 共用同一个有界队列与消息区间去重；registry 每轮动态取 specs，晚注册对 Agent 可见
+        register_refine_tool(registry, reviewer, session_ref)
     return Runtime(
         config=config,
         store=store,
