@@ -337,6 +337,18 @@ class BrowserDriver:
 
         return self._run(action)
 
+    def screenshot_bytes(self) -> bytes:
+        """当前页面 PNG 字节（D15：产物存 ArtifactStore，不再只落一个路径）。"""
+
+        def action() -> bytes:
+            page = self._ensure_page()
+            try:
+                return page.screenshot()  # 不给 path → 返回 PNG bytes
+            except Exception as exc:  # noqa: BLE001
+                raise BrowserError(f"截图失败：{exc}") from exc
+
+        return self._run(action)
+
     # ---------- 写操作（CONFIRM 级，工具层还会过审批与预算） ----------
 
     def click(self, target: str) -> str:

@@ -22,7 +22,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`（当前 **439 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
+- 测试：`uv run pytest`（当前 **605 全绿**）；架构守卫 `tests/test_arch.py` 会拦分层违规。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -72,13 +72,16 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
 | qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
 | cron | cron_list / cron_add / cron_remove | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链） |
-| browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流 |
-| android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM |
+| browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流；截图存为产物 [artifact:id]（开 vision 后模型可直接看图） |
+| android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM；截图同样入产物库 |
 | system | system_status（SAFE）/ system_service（CONFIRM） | NapCat/omni-qq/心跳 启停与状态 |
 | mcp | mcp_list_tools / mcp_read_tool / mcp_call_tool | 本地 stdio 服务，渐进发现、用户只读白名单、人工确认；配置见 `docs/MCP.md` |
 
 ### 4.2 Agent 内核（`core/`）
 - 工具循环 + 步数预算（8）+ grace call 强制收敛
+- **产物 → 图像块（D15/A13）**：截图统一入产物库（sha256/归属/保留期），
+  工具结果带 `[artifact:id]` 标记；开 `vision.send_to_cloud` 且有视觉模型时转成图像块
+  （缩放 + JPEG 重编码 + 坐标口径说明），任一门没过就**如实降级**说"看不到图"
 - **上下文压缩**（`core/compress.py`）：超 24k 字符把旧块压摘要（工具调用对不拆开），失败降级
 - **消息不变量断言**：system 唯一首位 / 一批 tool_calls 后允许连续多项结果，每个调用 id 必须恰好匹配一项结果，不能漏回、重复或插入其它消息
 - **回合作用域**：SessionRef.bind 在正常返回和异常时均恢复调用者会话；delegate 保持父审批链，无需放宽权限
@@ -88,11 +91,12 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 
 ### 4.3 通道与界面
 - **Web 工作台**（`channels/web.py` + `web_static/index.html` 单文件前端）：
-  会话 / 聊天 / 右侧六页（记忆·档案·常驻·待办·Review·技能）/ 工具列表 / 服务面板 / 扫码弹窗 /
+  会话 / 聊天 / 右侧七页（记忆·档案·常驻·待办·Review·技能·产物）/ 工具列表 / 服务面板 / 扫码弹窗 /
   设置中心（人设·模型·记忆·B站与转写·浏览器·QQ·定时任务（含新建表单+执行历史）·关于）/
   **内置终端**（xterm.js + ConPTY，header「⌨ 终端」）/ **安卓手机页**（MJPEG 看屏 + 点屏下发 + UI 树）
   / **配对身份**（`channels/web_auth.py`：控制台配对链接 → HttpOnly 会话 cookie；Host/Origin/CSRF 三级校验；
-  终端 WS 握手鉴权；设置接口只回「密钥是否已配置」）
+  终端 WS 握手鉴权；设置接口只回「密钥是否已配置」）/ **产物面板**（缩略图 + 大图 + 手动清理；
+  聊天正文里的产物标记渲染成内联图，`/api/artifacts*` 带归属与指纹校验）
 - CLI（rich REPL，`/new /list /use /switch /tools /memory /skills /help`）
 - QQ（OneBot v11 正向 WS，白名单 + 拟人延迟 + 长消息分段）：
   空白名单不响应任何人；私聊 `dm:<qq>` 与群聊 `group:<群号>` 各自一条历史；
@@ -154,15 +158,19 @@ MCP HTTP/OAuth 等扩展、技能安装扫描。MCP stdio 客户端已支持（�
 - 安卓真机：开 USB 调试插上 + 装 ADBKeyboard.apk → P4 联调（工作台「📱 手机」页已可用）
 
 ### 建议的下一步开发（按价值排序）
-1. **MJPEG 优化（已完成）**：Pillow，半分辨率 + JPEG q40，坏帧/设备离线断流；已验证 RGB/RGBA/灰度与坐标换算，实际带宽与清晰度待安卓真机验收
-2. **技能工作台编辑**：目前只能看；加代码编辑器（右侧面板或弹窗）直改 SKILL.md + 版本回滚
-3. **cron 任务编辑**：目前只能删了重建；补 PUT 编辑 prompt/schedule
-4. **记忆向量检索**（sqlite-vec）：事实层语义搜索，替代纯 FTS
-5. **computer-use 桌面**：Windows UIAutomation + SendInput（后台不抢焦点），对标 Hermes cua-driver
-6. **MCP 客户端（stdio 已完成）**：懒连接、持久会话、发现分页、只读白名单与人工确认、超时及进程回收；通过真实离线子进程验证，外部生产服务联调与 HTTP/OAuth 待做（见 `docs/MCP.md`）
-7. **QQ 群聊**：@ 触发 + 群白名单已就绪，缺群场景的拟人节奏与话题管理
-8. **B 站写操作**（P3）：评论/私信走浏览器 UI，复用现有预算+审批+回读
-9. **日报模板 + context_from 实测**：夜间整理 → 早报链路端到端跑一次
+1. **产物与视觉输入（已完成，D15）**：截图统一入产物库（sha256/归属会话/7 天保留/总量上限），
+   工具结果带 `[artifact:id]`；`vision.send_to_cloud`（默认关，隐私闸门）打开且模型声明 vision 能力时
+   附真实图像块（缩放/JPEG/坐标口径），否则如实降级；工作台已有「产物」面板与手动清理；
+   真实视觉模型效果待用户配置后实测
+2. **MJPEG 优化（已完成）**：Pillow，半分辨率 + JPEG q40，坏帧/设备离线断流；已验证 RGB/RGBA/灰度与坐标换算，实际带宽与清晰度待安卓真机验收
+3. **技能工作台编辑**：目前只能看；加代码编辑器（右侧面板或弹窗）直改 SKILL.md + 版本回滚
+4. **cron 任务编辑**：目前只能删了重建；补 PUT 编辑 prompt/schedule
+5. **记忆向量检索**（sqlite-vec）：事实层语义搜索，替代纯 FTS
+6. **computer-use 桌面**：Windows UIAutomation + SendInput（后台不抢焦点），对标 Hermes cua-driver
+7. **MCP 客户端（stdio 已完成）**：懒连接、持久会话、发现分页、只读白名单与人工确认、超时及进程回收；通过真实离线子进程验证，外部生产服务联调与 HTTP/OAuth 待做（见 `docs/MCP.md`）
+8. **QQ 群聊**：@ 触发 + 群白名单已就绪，缺群场景的拟人节奏与话题管理
+9. **B 站写操作**（P3）：评论/私信走浏览器 UI，复用现有预算+审批+回读
+10. **日报模板 + context_from 实测**：夜间整理 → 早报链路端到端跑一次
 
 ## 7. 代码约定
 
@@ -188,6 +196,9 @@ src/omni/
   memory/store.py        SQLite 仓储（会话/消息/事实/档案/review/绑定/待办/摘要）
   memory/resident.py     常驻小记忆（MEMORY.md 式，限额+防注入）
   memory/skills.py       SKILL.md 技能库（create/patch/rewrite）
+  memory/artifacts.py    产物登记（截图/导出：sha256/归属/保留期/总量上限，D15）
+  core/vision.py         产物字节 → 模型图像块（缩放/JPEG/坐标口径，D15）
+  tools/shots.py         browser/android 截图 → 产物库 的共用桥（D15）
   memory/jobs.py         Job 模型 + 校验 + 调度时间（纯数据/纯函数）
   memory/state.py        data/state.db：任务/执行账本/写额度/迁移记录（事务、原子领取、revision）
   memory/revisions.py    内容修订快照（技能/常驻的回滚底座）

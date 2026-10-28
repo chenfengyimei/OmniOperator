@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -187,12 +187,32 @@ CREATE TABLE IF NOT EXISTS llm_budget (
 );
 """
 
+_SCHEMA_V6 = """
+CREATE TABLE IF NOT EXISTS artifacts (
+    artifact_id TEXT PRIMARY KEY,
+    session_id INTEGER,
+    run_id TEXT,
+    scope TEXT NOT NULL DEFAULT 'private',
+    kind TEXT NOT NULL DEFAULT 'image',
+    source TEXT NOT NULL DEFAULT '',
+    mime TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    width INTEGER,
+    height INTEGER,
+    sha256 TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    expires_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_artifacts_session ON artifacts(session_id, created_at);
+"""
+
 _MIGRATIONS: dict[int, str] = {
     1: _SCHEMA_V1,
     2: _SCHEMA_V2,
     3: _SCHEMA_V3,
     4: _SCHEMA_V4,
     5: _SCHEMA_V5,
+    6: _SCHEMA_V6,
 }
 
 SESSION_RESOURCE = "session:{}"

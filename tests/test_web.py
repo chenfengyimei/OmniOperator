@@ -604,3 +604,63 @@ def test_fact_provenance_delete_and_memory_status(tmp_path):
     assert status["writes"]["limit"] == 200
     assert status["review"]["enabled"] is True
     assert status["review"]["queue_depth"] == 0
+
+
+# ---------- D15：工作台产物端点（列表 / 原图 / 手动清理） ----------
+
+
+def _png_bytes(color: str = "red") -> bytes:
+    buf = BytesIO()
+    Image.new("RGB", (32, 20), color).save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def test_artifacts_endpoints_list_image_delete(tmp_path):
+    client, runtime = _client(tmp_path)
+    art = runtime.artifacts.save_image(
+        _png_bytes(), "image/png", session_id=None, run_id=None,
+        kind="screenshot", source="browser_screenshot", width=32, height=20,
+    )
+    listed = client.get("/api/artifacts").json()["artifacts"]
+    assert [a["artifact_id"] for a in listed] == [art.artifact_id]
+    meta = listed[0]
+    assert meta["mime"] == "image/png" and meta["width"] == 32 and meta["source"] == "browser_screenshot"
+    assert meta["expires_at"]  # 有保留期（7 天）
+
+    image = client.get(f"/api/artifacts/{art.artifact_id}/image")
+    assert image.status_code == 200
+    assert image.headers["content-type"].startswith("image/png")
+    assert image.content == _png_bytes()
+
+    assert client.delete(f"/api/artifacts/{art.artifact_id}").status_code == 200
+    assert client.get("/api/artifacts").json()["artifacts"] == []
+    assert client.get(f"/api/artifacts/{art.artifact_id}/image").status_code == 404
+    # 文件真的删掉了，不留孤儿
+    assert not (runtime.artifacts.root / f"{art.artifact_id}.png").exists()
+
+
+def test_artifact_endpoint_error_statuses(tmp_path):
+    client, runtime = _client(tmp_path)
+    assert client.get("/api/artifacts/../etc/passwd/image").status_code in (400, 404)
+    assert client.get("/api/artifacts/00000000deadbeef/image").status_code == 404
+    art = runtime.artifacts.save_image(
+        _png_bytes(), "image/png", session_id=None, run_id=None,
+        kind="screenshot", source="t", width=32, height=20,
+    )
+    # 磁盘文件被换过 → 指纹不符如实 409，绝不拿旧图顶替
+    (runtime.artifacts.root / f"{art.artifact_id}.png").write_bytes(_png_bytes("blue"))
+    assert client.get(f"/api/artifacts/{art.artifact_id}/image").status_code == 409
+    # 过期 → 410（列表仍然能看到条目，图打不开）
+    with runtime.state._tx() as conn:
+        conn.execute(
+            "UPDATE artifacts SET expires_at = '2000-01-01T00:00:00' WHERE artifact_id = ?",
+            (art.artifact_id,),
+        )
+    assert client.get(f"/api/artifacts/{art.artifact_id}/image").status_code == 410
+
+
+def test_artifact_endpoints_require_pairing(tmp_path):
+    client, _runtime = _client(tmp_path, pair=False)
+    assert client.get("/api/artifacts").status_code == 401
+    assert client.get("/api/artifacts/00000000deadbeef/image").status_code == 401
+    assert client.delete("/api/artifacts/00000000deadbeef").status_code == 401

@@ -183,11 +183,33 @@ def atomic_blocks(messages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
     return blocks
 
 
+def _text_of(content: Any) -> str:
+    """content 可能是 str，也可能是多部件列表（D15 的图像消息）。
+
+    图像部件按"已发送图像"占位计入体量/转写——base64 绝不能进压缩 prompt：
+    一张 1MB 的截图编码后是 1.3MB 文本，会把"压缩上下文"变成"复制巨无霸"。
+    """
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for part in content:
+            if isinstance(part, dict):
+                if part.get("type") == "text" and isinstance(part.get("text"), str):
+                    parts.append(part["text"])
+                elif part.get("type") in {"image_url", "image", "input_image"}:
+                    parts.append("（此处已向模型发送一张图像）")
+            else:
+                parts.append(str(part))
+        return "\n".join(parts)
+    return str(content or "")
+
+
 def context_chars(messages: list[dict[str, Any]]) -> int:
     """粗算上下文体量：content 字符 + tool_calls 的 JSON（近似 token）。"""
     total = 0
     for m in messages:
-        total += len(m.get("content") or "")
+        total += len(_text_of(m.get("content")))
         for tc in m.get("tool_calls") or []:
             total += len(json.dumps(tc, ensure_ascii=False))
     return total
@@ -224,7 +246,7 @@ def compress_if_needed(
 
     old = [m for block in blocks for m in block]
     transcript = "\n".join(
-        f"[{m['role']}] {str(m.get('content') or '')[:400]}" for m in old
+        f"[{m['role']}] {_text_of(m.get('content'))[:400]}" for m in old
     )
     try:
         reply = gateway.complete(

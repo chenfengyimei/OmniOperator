@@ -11,13 +11,22 @@ from __future__ import annotations
 from typing import Any
 
 from ...config import Asr  # noqa: F401 —— 保持导入结构与其它能力域一致（占位）
-from ..registry import Risk, Tool, ToolRegistry
+from ..registry import Risk, SessionRef, Tool, ToolRegistry
+from ..runctx import RunRef
+from ..shots import save_screenshot
 from .budget import WriteBudget
 from .driver import BrowserDriver, BrowserError
 
 
 def register_browser_tools(
-    registry: ToolRegistry, driver: BrowserDriver, budget: WriteBudget
+    registry: ToolRegistry,
+    driver: BrowserDriver,
+    budget: WriteBudget,
+    *,
+    artifacts: Any = None,
+    session_ref: SessionRef | None = None,
+    run_ref: RunRef | None = None,
+    can_view: bool = False,
 ) -> None:
     _TARGET_DESC = (
         "元素定位：'text=登录' 按可见文字找；'css=#submit' 按选择器找；"
@@ -35,6 +44,17 @@ def register_browser_tools(
         return driver.read()
 
     def browser_screenshot(_args: dict[str, Any]) -> str:
+        if artifacts is not None:
+            try:
+                data = driver.screenshot_bytes()
+            except BrowserError as exc:
+                return f"错误：{exc}"
+            return save_screenshot(
+                artifacts, data,
+                session_id=(session_ref.get() if session_ref else None),
+                run_id=(run_ref.get().run_id if run_ref is not None and run_ref.get() else None),
+                kind="screenshot", source="browser_screenshot", can_view=can_view,
+            )
         path = driver.screenshot()
         return f"截图已保存：{path}（当前无法直接看图，可让用户打开检查，或用 read 读文本）"
 
@@ -92,7 +112,7 @@ def register_browser_tools(
     registry.register(
         Tool(
             name="browser_screenshot",
-            description="截取当前页面截图保存到 data/browser_shots/latest.png",
+            description="截取当前页面截图，存为产物 [artifact:id]（开启 vision 后模型可直接看图）",
             parameters={"type": "object", "properties": {}, "required": []},
             func=browser_screenshot,
             toolset="browser",

@@ -28,10 +28,10 @@
 | 模块 | 职责 | 明确不做 | 关键文件 |
 |---|---|---|---|
 | `config.py` | 加载 .env 密钥与 config.yaml 配置 | 不含任何业务逻辑 | `config.py` |
-| `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/run.py`、`core/session.py`、`core/review.py`、`core/cron.py`、`core/compress.py` |
+| `core/` | Agent 编排循环：上下文组装（超限自动压缩为摘要，工具调用对不拆开）→ 不变量断言 → LLM → 工具 → 回答；步数预算 + grace call；工具产物标记 → 模型图像块（隐私闸门 + 缩放 + 坐标口径）；回合后异步 review（记忆自进化）；心跳调度器（先推进再派发/至多一次）+ 任务链 context_from | 不实现具体工具、不感知通道存在；review 的工具白名单与执行器由 bootstrap 注入 | `core/agent.py`、`core/run.py`、`core/session.py`、`core/review.py`、`core/cron.py`、`core/compress.py`、`core/vision.py` |
 | `llm/` | LiteLLM 适配：多供应商归一、模型路由（chat/vision/local/review）、能力声明与调用前校验、结构化超时、有界重试、错误分类与脱敏、流式事件、usage 与费用预留/结算 | 不做记忆、不管理会话、不碰 SQLite（账本由 `memory/usage.py` 实现、bootstrap 注入） | `llm/gateway.py`、`llm/errors.py`、`llm/usage.py`、`llm/budget.py` |
-| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 模型调用流水与费用账 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；持久摘要（按消息区间覆盖、版本链、失败降级）；事实记忆带来源/作用域与遗忘墓碑（写入额度闸门）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py` |
-| `tools/` | Registry（注册/查找/规格生成/派发/结构化 `ToolResult`）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM；files：工作区 list/search/read/diff SAFE + 写/回滚 CONFIRM（路径与敏感项由 `tools/pathpolicy.py` 单点定义）；web：公开网页有界抓取 + 正文提取 SAFE（协议/目标网络/每跳重定向/大小/超时受控）） | 能力域之间互不 import | `tools/registry.py`、`tools/result.py`、`tools/runctx.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/`、`tools/files/`、`tools/web/`、`tools/pathpolicy.py` |
+| `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 模型调用流水与费用账 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；持久摘要（按消息区间覆盖、版本链、失败降级）；事实记忆带来源/作用域与遗忘墓碑（写入额度闸门）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；产物登记（截图/导出：sha256 指纹、归属会话、保留期与总量上限，跨会话读取拒绝）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py`、`memory/artifacts.py` |
+| `tools/` | Registry（注册/查找/规格生成/派发/结构化 `ToolResult`）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM；两者截图经 `tools/shots.py` 统一登记为产物；files：工作区 list/search/read/diff SAFE + 写/回滚 CONFIRM（路径与敏感项由 `tools/pathpolicy.py` 单点定义）；web：公开网页有界抓取 + 正文提取 SAFE（协议/目标网络/每跳重定向/大小/超时受控）） | 能力域之间互不 import | `tools/registry.py`、`tools/result.py`、`tools/runctx.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/`、`tools/files/`、`tools/web/`、`tools/pathpolicy.py` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
 | `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台（含内置终端 ConPTY）/ QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal.py`、`channels/qq.py`、`channels/heartbeat.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
@@ -237,6 +237,27 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 
 明确不做：不执行页面脚本、不保存 Cookie、不跟 meta refresh/JS 跳转；不做反爬绕过与登录；
 不做搜索聚合（将来加搜索提供商，必须先定凭据与费用授权，且不能伪造结果）。
+
+### 3.14 产物与视觉输入（D15 / A13）
+
+截图以前只回一个路径字符串：模型从没"看"过像素，而路径本身就是一台任意读文件的后门。
+现在产物（截图/导出）统一进 `ArtifactStore`，图像是否发给云端模型由隐私闸门决定。
+
+| 契约 | 位置 | 必须满足 |
+| --- | --- | --- |
+| 产物登记 | `memory/artifacts.ArtifactStore`（state.db v6 `artifacts` 表） | 字节由代码写入 `data/artifacts/<id>.<ext>`；元数据记 sha256/大小/宽高/来源/归属会话/过期时间；**消费方拿到的永远是 id，不是路径** |
+| 指纹校验 | `ArtifactStore.read_bytes()` | 读回时校验 sha256；磁盘上被换过的文件判损坏，不当新数据用 |
+| 归属 | `get(session_id=…)` | 会话 A 的截图不进会话 B 的上下文（跨会话读取拒绝）；登记时无归属的旧产物任何会话可读 |
+| 隐私闸门 | `config.vision.send_to_cloud`（默认关） | 纯本地存图 ≠ 云端上传许可；没开开关时工具文本明确说"模型看不到这张图"，不假装看过 |
+| 图像块 | `core/agent._attach_images` | 工具结果文本里的 `[artifact:id]` 标记 → 缩放重编码为 JPEG → 以 user 消息图像块附加（OpenAI 工具消息的 content 不收图像部件）；带图消息自动切 `models.vision` 路由（chat 自带视觉能力也可） |
+| 门禁顺序 | 同上 | 开关 → 有声明 vision 能力的模型 → 产物存在/未过期/归属/指纹 → 单回合附图数与单图大小；任一没过就**如实降级**（标记留在文本里） |
+| 坐标口径 | `core/vision.coordinate_note` | 模型看的是缩放图；坐标换算说明放在文本里，模型报坐标按原图口径校正 |
+| 保留与清理 | `ArtifactStore.cleanup(keep_ids=…)` | 过期只删登记在案的文件；活跃 run 还引用着的不删；总量超上限拒绝**新**保存，不悄悄删旧的；回合结束顺手清理 |
+| 压缩体量 | `core/compress._text_of` | 多部件消息按文本转写，base64 绝不进压缩 prompt（占位"已向模型发送一张图像"） |
+| 工作台 | `/api/artifacts*` | 列表/原图/手动清理都要配对会话；错误码映射 404/410/409；聊天正文里的标记渲染成内联图 |
+
+明确不做：不做 OCR 与图像内容审核（内容审核是审批器职责）；动图不缩放重编码（丢帧），
+超限直接不给；不做"发任意本机文件给模型"——产物只能由工具产生。
 
 ## 4. 设计模式落位
 

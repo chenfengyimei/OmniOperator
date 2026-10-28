@@ -31,6 +31,7 @@ from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
 from .memory.runs import RunStore
 from .memory.state import ExecutionLog, JobStore, StateStore
+from .memory.artifacts import ArtifactStore
 from .memory.usage import UsageLedger
 from .memory.guard import MemoryGuard
 from .memory.resident import ResidentMemory
@@ -118,6 +119,7 @@ class Runtime:
     memory_guard: MemoryGuard | None = None  # 记忆写入额度与输入检查（D12）
     workspace: Workspace | None = None        # 文件工具的允许根与敏感项边界（D13）
     file_history: FileHistory | None = None   # 工作区文件的写入备份（D13）
+    artifacts: ArtifactStore | None = None    # 产物存储（D15）
     qq: OneBotClient | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
@@ -192,6 +194,12 @@ def build_runtime(
     state.migrate_legacy(paths.data)
     # 模型费用账本（D10）：预留/结算走 state.db，跨进程共享同一份当日额度
     usage = UsageLedger(state)
+    # 产物存储（D15）：截图/导出统一登记，元数据在 state.db（v6）
+    artifacts = ArtifactStore(
+        state, paths.artifacts,
+        retention_days=config.artifacts.retention_days,
+        max_total_bytes=config.artifacts.max_total_mb * 1024 * 1024,
+    )
     gateway = Gateway(config.models, llm=config.llm, ledger=usage)
     try:
         pruned = usage.prune(keep_days=180)
@@ -295,7 +303,23 @@ def build_runtime(
         lease_owner=f"pid:{os.getpid()}:browser",
     )
     write_budget = WriteBudget(state, max_per_day=config.browser.max_writes_per_day)
-    register_browser_tools(registry, browser, write_budget)
+    # can_view = 截图文本能否声称"模型看得到"：隐私开关 + 至少一个视觉模型可用
+    _vision_route = ""
+    try:
+        _vision_route = gateway.resolve("vision")
+    except Exception:  # noqa: BLE001 —— 未配置 vision 路由
+        _vision_route = ""
+    can_view = bool(
+        config.vision.send_to_cloud
+        and (
+            config.llm.capability(_vision_route).vision
+            or config.llm.capability(config.models.chat).vision
+        )
+    )
+    register_browser_tools(
+        registry, browser, write_budget,
+        artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view,
+    )
     approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
     # 隔离实例（注入了 data_dir）不探测也不终止真机进程：否则测试可能把真 NapCat 当残留杀掉
     isolated = data_dir is not None
@@ -316,7 +340,10 @@ def build_runtime(
     android_driver = AndroidDriver(
         cache_path=paths.android_cache / "tree.json", shots_dir=paths.android_shots
     )
-    register_android_tools(registry, android_driver)
+    register_android_tools(
+        registry, android_driver,
+        artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view,
+    )
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
@@ -326,6 +353,7 @@ def build_runtime(
         config, gateway, store, registry, session_id,
         approver=approver, session_ref=session_ref, resident=resident,
         runs=runs, active_runs=active_runs, run_ref=run_ref, owner=owner,
+        artifacts=artifacts,
     )
     agent_holder["agent"] = agent
 
@@ -362,6 +390,7 @@ def build_runtime(
         skills=skills,
         state=state,
         usage=usage,
+        artifacts=artifacts,
         runs=runs,
         active_runs=active_runs,
         session_gate=session_gate,

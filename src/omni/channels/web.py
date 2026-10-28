@@ -25,7 +25,7 @@ from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, WebSocket
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from PIL import Image
@@ -36,6 +36,7 @@ from ..core.session import SessionBusy
 from ..llm.gateway import GatewayError
 from ..llm.usage import MICRO
 from ..memory.cron import CronError, Job, compute_next_run, to_iso
+from ..memory.artifacts import ArtifactError
 from ..memory.store import PROFILE_MAX_CHARS
 from ..safety.gates import WebApprover, private_target_allowed
 from ..memory.state import StateConflict, StateUnavailable
@@ -131,6 +132,18 @@ class ResidentUpdateIn(BaseModel):
 
 class PairIn(BaseModel):
     code: str
+
+
+def _artifact_status(code: str) -> int:
+    """产物错误码 → HTTP 状态：缺失 404、过期 410、被改动 409、其余 400。"""
+    return {
+        "not_found": 404,
+        "file_missing": 404,
+        "expired": 410,
+        "hash_mismatch": 409,
+        "cross_session": 403,
+        "bad_id": 400,
+    }.get(code, 400)
 
 
 def _set_session_cookie(response, value: str, max_age: int):
@@ -724,6 +737,62 @@ def create_app(runtime: Runtime) -> FastAPI:
         if content is None:
             raise HTTPException(status_code=404, detail="技能不存在")
         return {"content": content, "references": runtime.skills.references(name) if path is None else []}
+
+    # ---------- 产物（截图/导出，D15：模型与用户共用同一份登记） ----------
+
+    @app.get("/api/artifacts")
+    def list_artifacts(session_id: int | None = None, limit: int = 60) -> dict[str, Any]:
+        store = runtime.artifacts
+        if store is None:  # 状态层不可用时 fail-closed，不返回空列表假装没事
+            raise HTTPException(status_code=503, detail="产物存储不可用")
+        capped = max(1, min(limit, 200))
+        arts = (
+            store.list_for_session(session_id, limit=capped)
+            if session_id is not None
+            else store.list_all(limit=capped)
+        )
+        return {
+            "artifacts": [
+                {
+                    "artifact_id": a.artifact_id,
+                    "session_id": a.session_id,
+                    "kind": a.kind,
+                    "source": a.source,
+                    "mime": a.mime,
+                    "size": a.size,
+                    "width": a.width,
+                    "height": a.height,
+                    "created_at": a.created_at,
+                    "expires_at": a.expires_at,
+                }
+                for a in arts
+            ]
+        }
+
+    @app.get("/api/artifacts/{artifact_id}/image")
+    def artifact_image(artifact_id: str):
+        """产物原图字节。指纹不符/缺失如实报错，绝不拿旧图顶替。"""
+        store = runtime.artifacts
+        if store is None:
+            raise HTTPException(status_code=503, detail="产物存储不可用")
+        try:
+            artifact = store.get(artifact_id)
+            data = store.read_bytes(artifact)
+        except ArtifactError as exc:
+            raise HTTPException(status_code=_artifact_status(exc.code), detail=str(exc))
+        return Response(content=data, media_type=artifact.mime)
+
+    @app.delete("/api/artifacts/{artifact_id}")
+    def delete_artifact(artifact_id: str) -> dict[str, Any]:
+        """手动清理单个产物（配额告警里让用户来面板清旧的）。"""
+        store = runtime.artifacts
+        if store is None:
+            raise HTTPException(status_code=503, detail="产物存储不可用")
+        try:
+            removed = store.delete(artifact_id)
+        except ArtifactError as exc:
+            raise HTTPException(status_code=_artifact_status(exc.code), detail=str(exc))
+        return {"ok": True, "removed": removed.artifact_id}
 
     # ---------- 确认流（confirm 级工具的人工审批） ----------
 

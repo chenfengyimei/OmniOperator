@@ -9,11 +9,21 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..registry import Risk, Tool, ToolRegistry
+from ..registry import Risk, SessionRef, Tool, ToolRegistry
+from ..runctx import RunRef
+from ..shots import save_screenshot
 from .driver import AndroidDriver
 
 
-def register_android_tools(registry: ToolRegistry, driver: AndroidDriver) -> None:
+def register_android_tools(
+    registry: ToolRegistry,
+    driver: AndroidDriver,
+    *,
+    artifacts: Any = None,
+    session_ref: SessionRef | None = None,
+    run_ref: RunRef | None = None,
+    can_view: bool = False,
+) -> None:
 
     def android_status(_args: dict[str, Any]) -> str:
         try:
@@ -76,6 +86,14 @@ def register_android_tools(registry: ToolRegistry, driver: AndroidDriver) -> Non
 
     def android_screenshot(_args: dict[str, Any]) -> str:
         try:
+            if artifacts is not None:
+                data = driver.screenshot_bytes()
+                return save_screenshot(
+                    artifacts, data,
+                    session_id=(session_ref.get() if session_ref else None),
+                    run_id=(run_ref.get().run_id if run_ref is not None and run_ref.get() else None),
+                    kind="screenshot", source="android_screenshot", can_view=can_view,
+                )
             path = driver.screenshot()
             return f"截图已保存：{path}"
         except Exception as exc:  # noqa: BLE001

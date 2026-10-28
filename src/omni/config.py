@@ -41,6 +41,7 @@ class RuntimePaths:
     android_cache: Path
     browser_profile: Path
     browser_shots: Path
+    artifacts: Path      # 产物文件（截图/导出，D15）
     run: Path             # 服务 pid
     logs: Path
     mcp_logs: Path
@@ -68,6 +69,7 @@ class RuntimePaths:
             android_cache=data / "android_cache",
             browser_profile=data / "browser_profile",
             browser_shots=data / "browser_shots",
+            artifacts=data / "artifacts",
             run=data / "run",
             logs=data / "system_logs",
             mcp_logs=data / "mcp_logs",
@@ -145,6 +147,28 @@ class LLMBudget(BaseModel):
 
     daily_usd: float = Field(default=0.0, ge=0)
     per_run_usd: float = Field(default=0.0, ge=0)  # 单次运行（含子运行累计）上限
+
+
+class Vision(BaseModel):
+    """截图等图像发给云端模型看（D15/A13 的隐私闸门）。
+
+    `send_to_cloud` 默认关：截图可能含聊天记录、邮箱、文件名等敏感内容，
+    **纯本地存图不等于已获云端上传许可**——要看图必须显式打开这个开关。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    send_to_cloud: bool = False
+    max_image_bytes: int = Field(default=4_000_000, gt=0)   # 单图上限（字节）
+    max_images_per_turn: int = Field(default=4, ge=1)        # 单回合最多附图数
+    max_edge_px: int = Field(default=1568, ge=64)            # 长边超此值先缩放再发
+
+
+class Artifacts(BaseModel):
+    """产物（截图/导出）的保留与容量。"""
+
+    model_config = ConfigDict(extra="forbid")
+    retention_days: int = Field(default=7, ge=0)   # 0 = 永不过期（不推荐）
+    max_total_mb: int = Field(default=500, ge=1)   # 总量上限，超了拒绝保存新产物
 
 
 class LLM(BaseModel):
@@ -327,6 +351,8 @@ class AppConfig(BaseModel):
     review: Review = Field(default_factory=Review)
     files: Files = Field(default_factory=Files)
     web: Web = Field(default_factory=Web)
+    vision: Vision = Field(default_factory=Vision)
+    artifacts: Artifacts = Field(default_factory=Artifacts)
     memory: Memory = Field(default_factory=Memory)
     compression: Compression = Field(default_factory=Compression)
     asr: Asr = Field(default_factory=Asr)

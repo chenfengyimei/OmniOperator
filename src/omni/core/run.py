@@ -214,6 +214,11 @@ class ActiveRuns:
         with self._lock:
             return self._runs.get(run_id)
 
+    def snapshot(self) -> list[RunContext]:
+        """当前在跑的 run（产物清理要保住它们还在引用的图像，D15）。"""
+        with self._lock:
+            return list(self._runs.values())
+
     def cancel(self, run_id: str, reason: str = "用户取消") -> bool:
         run = self.get(run_id)
         if run is None:

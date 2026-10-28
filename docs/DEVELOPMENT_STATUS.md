@@ -83,12 +83,74 @@
 | D12 | 完成 | A15、A16（review 队列/去重） | 见第 5 节 | `uv run pytest tests/test_memory_governance.py -q` → 18 passed；`uv run pytest -q` → 535 passed | 真机库未做写入压力测试；"候选队列/差异确认"按当前风险面评估未做（见第 5 节剩余限制） | 进入 R3（D13 结构化文件工具） |
 | D13 | 完成 | A02（文件域）、路径与写入边界 | 见第 5 节 | `uv run pytest tests/test_files.py -q` → 29 passed；`uv run pytest -q` → 564 passed（无 F/E） | 真机仓库只读冒烟：`src/omni` 列表、`config.py` 前 3 行 + 指纹、`.env`/`data/` 被拒、`C:/Windows/win.ini` 越根被拒、`data/file_history` 未被创建；junction 逃逸与只读盘在临时目录验证；真实编辑器并发写入待 D27 | 进入 R3（D14 通用网页读取） |
 | D14 | 完成 | 新能力：通用网页读取（无对应 A 项，防的是 SSRF/注入/凭据外带） | 见第 5 节 | `uv run pytest tests/test_web_fetch.py -q` → 25 passed；`uv run pytest -q` → 589 passed（无 F/E） | 真实公网：`https://example.com/` 200 + 正文提取；`https://www.baidu.com/` 返回空壳页并被如实说明（需 JS）；发往本机假服务的超大流/重定向/429/超时/登录页/注入用例全绿 | 进入 R3（D15 产物与视觉输入） |
-| D15–D16 | 待开始 | A12、A13 | — | — | 安卓真机待插设备 | — |
+| D15 | 完成 | A13 | 见第 5 节 | `uv run pytest tests/test_artifacts.py -q` → 13 passed；`uv run pytest -q` → **605 passed（无 F/E）** | 真实 Chromium 冒烟通过（见第 5 节真机证据）；真实安卓截图待 D16 插真机；真实视觉模型的看图效果需用户配置 `vision.send_to_cloud` 后实测 | 进入 D16（A12 离线修复） |
+| D16 | 待开始 | A12 | — | — | 安卓真机待插设备 | A12 离线修复进行中（观察绑定点击） |
 | D17–D19 | 待开始 | A04、A17、A14 | — | — | 受信 MCP 生产服务待用户提供 | — |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D15（产物存储与视觉输入：A13）
+
+- **改了什么**：
+  - 新增 `memory/artifacts.py`：产物统一登记（`state.db` 升 **v6**，`artifacts` 表：sha256/大小/宽高/
+    来源/归属会话/run/过期时间）。字节由代码写入 `data/artifacts/<id>.<ext>`，消费方拿到的永远是
+    id 不是路径——想读文件只能走 `ArtifactStore`，而它只认自己登记过的行；读回校验指纹，磁盘上
+    被换过的产物判损坏；跨会话读取拒绝；过期清理只删登记在案的文件且**跳过活跃 run 仍引用着的**；
+    总量超上限拒绝新保存（老的还在）；配额报错里让用户去产物面板清理。
+  - 新增 `core/vision.py`：产物字节 → 模型图像块。长边超 `max_edge_px` 先缩放、重编码 JPEG q88
+    （截图场景 PNG 无意义）、超 `max_image_bytes` 不给；坐标换算说明放文本里（模型报坐标按原图口径）。
+  - 新增 `tools/shots.py`：browser/android 截图共用桥——字节 → 登记 → 工具结果文本。
+    文本带 `[artifact:<id>]` 标记；未开 `vision.send_to_cloud` 时明确写"模型看不到这张图"，
+    不让模型误以为看过（A13 的另一半）。
+  - `core/agent.py`：本批工具结果里的标记 → 图像块（`_attach_images`），门禁顺序为
+    隐私开关 → vision 路由/能力 → 归属/指纹/过期 → 单回合附图数与单图大小，任一没过**如实降级**
+    （标记留文本，附"未附加：原因"）；带图消息自动切 `models.vision`（chat 自带视觉也行，
+    都没有就不发——供应商对带图请求的失败方式不可预测，"默默丢图继续答"最危险）；
+    回合结束 `_sweep_artifacts()` 顺手清过期产物（活跃 run 引用的不删）。
+  - `config.py` 新增 `vision`（`send_to_cloud` 默认**关**：纯本地存图 ≠ 云端上传许可、
+    `max_image_bytes`/`max_images_per_turn`/`max_edge_px`）与 `artifacts`（保留天数/总量上限）两段；
+    `RuntimePaths` 增加 `artifacts`。
+  - `bootstrap`：构造 `ArtifactStore` 并注入 browser/android 工具与 Agent；`can_view` 只在
+    "隐私开关开 且 有视觉模型可用"时为真。
+  - `core/compress.py`：多部件消息按文本转写进压缩体量（base64 绝不进压缩 prompt）；
+    `core/run.py`：`ActiveRuns.snapshot()`（清理保引用用）；`system/backup.py`：清单补记 `artifacts`。
+  - 工作台：`GET /api/artifacts`（列表）、`GET /api/artifacts/{id}/image`（原图字节，缺失 404/
+    过期 410/指纹不符 409）、`DELETE /api/artifacts/{id}`（手动清理）；右侧新增「产物」页签
+    （缩略图网格 + 大图弹窗 + 删除）；聊天正文里的 `[artifact:id]` 渲染成内联图。
+  - 顺带（前端微调，与 D15 同文件）：消息悬浮复制按钮、发送等待动画。
+- **关闭了什么**：A13（截图只回路径、模型收不到图、路径即任意读后门）。
+- **跑了什么**：`uv run pytest tests/test_artifacts.py -q` → **13 passed**；
+  `uv run pytest tests/test_web.py -k artifact -q` → 3 passed；`uv run pytest -q` → **605 passed**（2026-10-28）。
+- **真机证据**：真实 headless Chromium 冒烟——`browser_screenshot` 拿到 1280x800 真实 PNG
+  （4714B），登记为 `[artifact:3cbe0a4e…]`；`get/read_bytes` 指纹校验通过；`list_all` 1 条；
+  手动删除后文件与行都消失；浏览器正常关闭。产物截图归属会话为空（冒烟不在聊天回合内，符合设计）。
+- **没测什么**：真实安卓设备截图（待 D16 真机）；真实视觉模型"看图答话"的效果（需用户开
+  `vision.send_to_cloud` 配真实模型）；JPEG 体积与供应商收图上限的组合（4MB 默认值来自
+  OpenAI 兼容接口的通行上限，未逐一验证各家）；GIF 动图（直接拒绝，未找真实动图样本）。
+- **行为变化**：
+  1. 截图不再落 `data/browser_shots/latest.png`（互相覆盖、无保留期），产物带 id、7 天保留、
+     总量 500MB 上限；
+  2. 默认配置下模型**仍看不到图**（隐私闸门关）——想让它看需在 config.yaml 开
+     `vision.send_to_cloud` 且模型声明 vision 能力；
+  3. 工作台多一个「产物」页签；聊天里模型提到产物标记会显示成内联图。
+- **剩余限制（明确记录）**：
+  1. `vision.send_to_cloud` 是全局开关，没有按应用/区域的细粒度选择（大纲 D15 的"按应用/区域"
+     留待真机使用反馈后再细化）；
+  2. 图像块以 user 消息附加在 tool 结果之后——OpenAI 兼容接口的最稳位置，个别严格供应商
+    若拒绝该形态，表现为该回合模型报错（如实降级路径已有，不会假装成功）；
+  3. 清理只在回合结束触发（CLI/心跳不产生图像时，过期产物会在下次 Web 回合或重启时清）；
+  4. 手动删除产物后，聊天历史里的旧消息引用将显示"已过期或被清理"占位（如实，不掩盖）。
+- **过程记录**：
+  1. 产物 id 上限 16 字节 hex（32 位）——`MARKER_RE` 与 `get()` 校验共用一份正则；
+     "孤儿文件"清理只认合法 id 文件名，认不出的文件名绝不删（宁可留着也不误删用户的东西）；
+  2. 过期判定统一 `_as_dt`（naive 补本地时区）：过期时间可能来自不同写法，naive/aware 直接比
+     会抛 TypeError，读产物整个挂掉比"比错"更糟；
+  3. `save_image` 登记失败时删掉已写文件（不留孤儿），但**不**在写文件前先登记（先登记后写，
+     写失败会留一条指向空文件的行，更难解释）；
+  4. 工作台图像路由不走跨会话校验（配对会话=本机所有者，面板列全部产物是刻意的）；
+     模型侧的 `get(session_id=sid)` 才是跨会话防线。
 
 ### 2026-10-28 · D14（通用网页读取：有界抓取与不可信内容）
 
