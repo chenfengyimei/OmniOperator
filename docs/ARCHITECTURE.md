@@ -4,24 +4,26 @@
 
 ## 1. 分层总览
 
+```text
+channels/入口与工作台 ──→ bootstrap.py（唯一组装根）
+                             │
+                             ▼
+                        core/ 编排
+                             │
+               ┌─────────────┼─────────────┐
+               ▼             ▼             ▼
+             tools/        llm/        memory/
+               │                           │
+               ▼                           ▼
+             safety/             system.atomic/filelock
+
+plugins/ 由 bootstrap 组装，负责扩展注册，使用 tools/ 的公开协议；
+下层不得依赖 plugins。system/ 只依赖平台内部和 config。
+config.py 提供声明配置、路径与兼容版本，不承担业务编排。
 ```
-              ┌─────────────────────────────────────┐
-              │         入口层 channels/            │  cli.py（P2: qq.py  P5: web/）
-              │  职责：界面展示 + 输入解析 + 调门面   │
-              └──────────────────┬──────────────────┘
-                                 │ 只碰 Runtime 门面
-              ┌──────────────────▼──────────────────┐
-              │        bootstrap.py 组装根            │  唯一允许构造
-              │                                     │  Gateway / MemoryStore /
-              └──────────────────┬──────────────────┘  ToolRegistry / Agent
-        ┌───────────┬───────────┼───────────┬────────────┐
-        ▼           ▼           ▼           ▼            ▼
-     core/        llm/       memory/      tools/       safety/
-     Agent 编排    Gateway    Store        Registry      Approver
-     （内核循环）  （LiteLLM） （SQLite）   + builtin      （风险审批）
-                                                  ↑
-        config.py（.env + config.yaml，叶子层）────┘ 被所有层引用
-```
+
+目录、源码行、API 和工具的可查询索引见 [PROJECT_INDEX.md](PROJECT_INDEX.md)。
+该文档导航到本规则，不另立一套分层。自动生成索引与可视化 `/project/` 共用数据结构。
 
 ## 2. 模块职责表
 
@@ -33,7 +35,7 @@
 | `memory/` | 两个 SQLite 库：`memory.db`（会话 / 消息 / 事实 / 用户档案（限额+报错逼合并）/ FTS5 全文检索 / review 日志 / 通道绑定 / 会话待办）与 `state.db`（定时任务 + 执行账本 + 写额度 + 运行记录与事件流 + 模型调用流水与费用账 + 迁移记录，schema_version/唯一键/短事务/原子领取/revision/单调事件序号）；持久摘要（按消息区间覆盖、版本链、失败降级）；事实记忆带来源/作用域与遗忘墓碑（写入额度闸门）；常驻小记忆（MEMORY.md 式快照注入+限额合并协议+跨进程锁）；技能存储（SKILL.md+linter，patch/rewrite 版本化，CAS+修订历史+回滚）；外来技能包隔离安装（`memory/skill_inbox.py`：inbox 收 zip → 类型白名单数据化解包进隔离区 → 清单逐文件 sha256 → 人工确认激活（防篡改复核+跨进程技能锁+来源记入修订史），绝不执行包内脚本）；产物登记（截图/导出：sha256 指纹、归属会话、保留期与总量上限，跨会话读取拒绝）；`memory/revisions.py` 提供两者的内容快照 | 不知道 LLM 与工具的存在 | `memory/store.py`、`memory/state.py`、`memory/jobs.py`、`memory/cron.py`（兼容再导出）、`memory/runs.py`、`memory/resident.py`、`memory/skills.py`、`memory/revisions.py`、`memory/artifacts.py` |
 | `tools/` | Registry（注册/查找/规格生成/派发/结构化 `ToolResult`）+ 工具集（core：时间/记忆/档案/技能/活动摘要/待办/常驻笔记/子任务委派；shell：结构化只读观察 SAFE + 任意命令 CONFIRM + 硬黑名单 + 进程树回收；bilibili：读；qq：主动消息；cron：定时任务管理；browser：读 SAFE + 写 CONFIRM（单一所有者线程 + profile 跨进程租约）；android：读 SAFE + 写 CONFIRM；两者截图经 `tools/shots.py` 统一登记为产物；files：工作区 list/search/read/diff SAFE + 写/回滚 CONFIRM（路径与敏感项由 `tools/pathpolicy.py` 单点定义）；web：公开网页有界抓取 + 正文提取 SAFE（协议/目标网络/每跳重定向/大小/超时受控）） | 能力域之间互不 import | `tools/registry.py`、`tools/result.py`、`tools/runctx.py`、`tools/builtin.py`、`tools/shell/`、`tools/delegate_tools.py`、`tools/skill_tools.py`、`tools/cron_tools.py`、`tools/bilibili/`、`tools/qq/`、`tools/browser/`、`tools/android/`、`tools/files/`、`tools/web/`、`tools/pathpolicy.py` |
 | `safety/` | 风险分级（SAFE/CONFIRM/DANGEROUS）+ 按上下文审批策略（含 smart 档：辅助模型预筛，参数视为不可信输入）+ 跨线程确认代理（Web 横幅确认流） | 不实现工具、不知道通道细节；模型调用经注入的 ask_model（保持叶子层纯净） | `safety/gates.py`、`safety/smart.py`、`safety/broker.py` |
-| `channels/` | 入口适配：展示、输入解析、调 Runtime；每通道一个文件（CLI / Web 工作台（含内置终端 ConPTY）/ QQ / 心跳） | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal.py`、`channels/qq.py`、`channels/heartbeat.py` |
+| `channels/` | 入口适配：展示、输入解析、调 Runtime；CLI/QQ/心跳适配与 Web 入口；终端按 backend/session/pool/routes 归包，新工作台专题用独立 APIRouter | 不构造任何核心对象 | `channels/cli.py`、`channels/web.py`、`channels/terminal/`、`channels/qq.py`、`channels/heartbeat.py` |
 | `plugins/` | 插件子系统（顶层包，与 channels 同级）：manifest 校验（纯数据零执行）；宿主生命周期（inbox 收 zip/工作区目录 → 隔离区数据化校验 → **人工确认激活** → 装载注册 → 启停/卸载/启动恢复）；受限注册面 `PluginContext`（工具名强制 `<id>-` 前缀防影子覆盖、`toolset=plugin:<id>` 可归因、风险声明照常走既有审批链）；面向 agent 的生命周期工具。信任模型：校验零执行、**激活即同意执行**（不假装沙箱；不可信来源走 MCP）——全文见 [PLUGIN_SYSTEM.md](PLUGIN_SYSTEM.md) | 不构造 Gateway/MemoryStore 等组装根对象；不加载未激活的代码 | `plugins/manifest.py`、`plugins/host.py`、`plugins/tools.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
 
@@ -43,6 +45,8 @@
 依赖方向**自上而下**，禁止倒挂：
 
 - `channels` / `bootstrap`（顶层）→ 可依赖一切
+- `plugins` → 可依赖 tools/memory/safety/config/system；禁止依赖 core/llm/channels/bootstrap
+- core/tools/llm/memory/safety/config/system 禁止依赖 plugins，扩展回调经 bootstrap 注入
 - `core` → 可依赖 `llm` / `memory` / `tools` / `safety` / `config`，禁止依赖 `channels` / `bootstrap`
 - `tools` → 可依赖 `memory` / `safety` / `config`，禁止依赖 `core` / `llm` / `channels` / `bootstrap`
 - `llm` → 只依赖 `config`
@@ -71,6 +75,7 @@ D20/D21：tools/desktop 拥有 UIAutomation 后端、观察缓存与动作验证
 desktop_write 预算由组装根注入，不 import browser/core。截图共用 tools/shots；
 观察缓存最多 32 条，按会话和 TTL 隔离，不新增全局 data 路径。群聊不可用桌面能力。
 `Gateway`、`MemoryStore`、`SkillStore`、`JobStore`、`ToolRegistry`、`Agent`、`TurnEndReviewer`、`BrowserDriver`、`WriteBudget`、`ApprovalBroker`、`ServiceManager`、`MCPManager` 的**构造调用只允许出现在 `bootstrap.py`**（tests 除外）。通道与内核通过构造函数注入持有引用。
+PluginHost、CommunityClient、SkillInbox 同样纳入组装根守卫；Runtime 只暴露已注入插件宿主的只读状态。
 
 好处：换实现（如 P1 记忆升级向量库）只动 bootstrap 一处；全部依赖关系在构造处一眼可见；工具集以 `register_xxx_tools(registry, deps)` 模式注册进唯一注册表，多能力域无冲突合并。
 
@@ -295,21 +300,12 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 
 ### 3.15 安卓观察绑定（D16 / A12）
 
-索引点击的失败模式是"模型看到的界面"和"点击瞬间的界面"不是同一份——
-审批等待几分钟期间弹窗/旋转/跳转都不会通知我们。所以 idx 必须绑定一份**观察身份**：
-
-| 契约 | 位置 | 必须满足 |
-| --- | --- | --- |
-| 观察身份 | `tools/android/driver.observation_id` | `sha256(序列号 + 树内容)[:8]`；时间**不进哈希**（同一界面两次观察 id 相同，复核才有可比性）；换设备/换界面必变 |
-| 观察输出 | `refresh_tree()` | 输出头部带 `观察 obs=<id>`；模型把 obs 原样传给 tap |
-| 点击前复核 | `tap_element(idx, observation)` | **每次点击都重新 dump**，内容哈希与观察一致才点；"缓存新鲜"不代表屏幕没变——那个优化是 A12 的根因，已删除 |
-| 不一致不点 | 同上 | 界面变了**绝不按旧 idx 点新元素**，返回新观察让模型重新选择（未点击时设备零调用） |
-| 点击后复检 | 同上 | 点击后强制 dump 并返回新观察（省一次 screen_tree）；复检失败如实报"界面状态未知"，不假装完成 |
-| 工作台 | `/api/android/element` | 与 agent 工具同一套复核；面板缺省用当前缓存的观察身份 |
-
-明确不做：树内容一致但纯视觉变化（视频帧/动画）复核不出——那归截图工作流；
-`tap_coords`/`swipe`/`key`/`type_text` 不做观察绑定（裸坐标/全局键风险面不同，全部 CONFIRM 人工把关）；
-不做两台真机交错的实机复现（观察身份含序列号，换设备必然不一致 → 拒绝）。
+AndroidDriver 仅在 bootstrap 构造，缓存/截图/锁路径从 RuntimePaths 注入。
+观察令牌为随机单次值，最多 32 条、120 秒过期，绑定会话、设备、完整 XML、方向与尺寸。
+磁盘缓存只恢复展示，不恢复授权。坐标动作另绑定截图像素；输入绑定唯一非密码焦点。
+点击/滑动/按键/输入均在设备锁内复核，旧观察拒绝；写后重新观察，ADB 返回成功不冒充业务成功。
+Unicode 输入切换输入法后再检查焦点，异常和取消也恢复原输入法；不误禁用原先启用的 ADBKeyboard。
+工作台点屏先锁帧，不能把 MJPEG 慢帧当作当前点击授权。完整契约与真机剩余项见 [ANDROID.md](ANDROID.md)。
 
 ## 4. 设计模式落位
 
@@ -334,7 +330,7 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 ### 5.1 加一个工具（例：P1 的 B站"看视频"）
 1. 新建能力域包 `tools/bilibili/`：`api.py`（纯 HTTP 封装，**不知道 LLM 存在**）+ `tools.py`（薄包装成 Tool，**不知道 HTTP 细节**）
 2. 每个 Tool 声明 `toolset`（如 `"bilibili"`）与 `risk`（读=SAFE；私信/发布=CONFIRM；支付/删除=DANGEROUS）；纯读且无共享可变状态的工具另加 `read_only=True`——只有显式标注的工具才会在同一批工具调用里并发执行（上限 `MAX_CONCURRENT_TOOLS`，未标注的工具是栅栏：先落地在途结果再串行执行；browser 共用同一张活动页面，整个 toolset 都不标）
-3. 写 `register_bilibili_tools(registry, deps...)`，照抄 `tools/builtin.py` 的模式
+3. 写 `register_bilibili_tools(registry, deps...)`，参考 `tools/personal/` 或现有域的 `tools.py` 模式（builtin.py 仅兼容转发）
 4. 在 `bootstrap.build_runtime` 接线（唯一需要改的既有文件）
 5. 单测：api 层用假响应、tools 层用假 store；`uv run pytest` 全绿（架构守卫会自动检查新代码）
 
@@ -342,7 +338,7 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 1. 新建 `channels/qq.py`：实现「收消息 → `runtime.agent.chat` → 发回消息」
 2. 只从 `bootstrap.build_runtime(approver=...)` 拿 Runtime；审批策略按上下文选择，QQ 触发的写操作默认从严
 3. 不 import litellm/memory 内部实现（test_arch 会拦截）
-4. P2 同时引入 `core/events.py` 事件总线（见 §6）
+4. 生命周期沿用 channels/lifecycle；运行事件沿用 RunStore/RunContext，不另建未实现的 events.py 总线。
 
 ### 5.3 加一种记忆（例：P1 人物档案）
 1. 在 `memory/store.py` 加表与方法（上层不感知 SQL）
@@ -427,13 +423,26 @@ android_shots/android_cache/browser_profile/browser_shots/run/logs/mcp_logs）�
 依赖替换清单（都可注入）：shell runner、设备/ADB、HTTP client、模型网关、时钟、
 服务探测/终止/启动、路径。新增能力时若需要外部副作用，先想清楚"测试里它从哪儿来"。
 
-## 6. Phase 架构演进预告| Phase | 新增 | 结构原则 |
-|---|---|---|
-| P1 | `tools/bilibili/`（读 API + WBI 签名）、memory 向量检索（sqlite-vec）、回合后 review 线程、`skills/` 技能系统 | api 层不知道 LLM；review 是 Gateway 的独立消费者（换廉价模型跑） |
-| P2 | `channels/qq.py`（NapCat OneBot v11）、`core/events.py` 事件总线 | 通道把平台消息归一成 Event 投给总线；P5 心跳复用同一条总线 |
-| P3 | `tools/browser/`（Playwright 持久 profile）、DANGEROUS 显式授权机制 | 写操作全走审批；拟人节奏做在工具层（pacing），不散落在循环里 |
-| P4 | `tools/android/`（AdbDevice + uiautomator2 + ADBKeyboard） | 设备驱动独立模块，agent 只见语义工具（ui_tree / click / type） |
-| P5 | `core/cron.py`（心跳）、Web 面板 | cron 一律 DenyApprover（fail-closed）；夜间整理 = 批量 review |
+## 6. 目录分类与 HTTP 边界
+
+- `tools/personal/` 按 clock/facts/profile/resident/todos/digest/refine 拆分；
+  skills/scheduling/delegation/system 与设备、文件、shell 等域平级。
+  根目录 builtin/*_tools 是兼容 re-export，不再增长业务代码。toolset 名和工具名保持兼容。
+- `channels/terminal/`：backend 只接 ConPTY，session 只管单会话，pool 限流与回收，
+  routes 只做 WS 适配；公开 TerminalManager/TerminalSession 的 import 保持不变。
+  交互式终端与模型 shell 工具是不同入口，不能共享含用户输入的 PTY 作为 SAFE 执行器。
+- `plugins/community/`：client 做 HTTP，tools 做注册，server 做独立分发服务；
+  `plugins/server.py` 保留旧启动命令。插件宿主、技能数据和 MCP 不共用虚构的扩展执行器。
+- `channels/workbench/routes.py` 接收 Runtime，提供只读项目、工具、插件状态及限定文档。
+  新专题 APIRouter 在 web.py 的静态 mount 之前 include，沿用统一 `/api/` 身份闸门；
+  不额外放宽 CORS、Origin、Host 或配对。终端路由自行执行 WS 身份校验。
+- `web_static/project/` 的 HTML/CSS/JS 分别维护，使用相同配对 cookie；元数据通过
+  textContent 渲染，查看与复制规格不会派发工具。激活、发布等动作仍走原有审批链。
+- `system/catalog/` 只解析受限源码与界面文件，输出分类、符号、import、路由、请求模型和
+  静态工具声明；不导入源码，不查 data/config/.env，不构造 Runtime。源码根和索引输出可注入。
+  静态声明与运行时能力分开：Registry.describe 返回元数据副本，不导出 callable，也不执行工具。
+- 分类表与关键链路在 schema.py；生成文档位于 docs/index，手写开发导航在 PROJECT_INDEX.md。
+  新模块补分类/文档/测试，运行 project_index.py 和 --check；AST 守卫仍裁决依赖方向。
 
 ## 7. 编码约定
 
@@ -448,6 +457,6 @@ D22：`memory/qq.py` 的 QQMessageStore 仅由 bootstrap 构造，复用注入 s
 群聊工具采用显式许可名单，新增工具默认不开放；群聊不触发个人 review。
 
 - Python 3.12+，全量类型标注，`from __future__ import annotations`
-- 跨平台：只用 pathlib / 纯 Python，Windows 与 macOS 都要能跑；平台差异隔离在能力域内部
+- Windows 为当前验收平台；通用逻辑使用 pathlib/可替换协议，平台差异隔离在能力域内部，不把未验证平台写为已支持
 - 注释写"为什么"不写"是什么"；每个模块 docstring 写清「职责 + 明确不做」
 - 每个新模块必须有单测；架构改动必须过 `tests/test_arch.py` 的两条守卫

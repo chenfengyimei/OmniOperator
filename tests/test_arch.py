@@ -41,6 +41,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "MCPManager",
     "EmbeddingProvider", "VectorIndex", "HybridMemory",
     "DesktopDriver", "WindowsDesktopBackend", "AndroidDriver",
+    "PluginHost", "CommunityClient", "SkillInbox",
 }
 
 
@@ -111,6 +112,10 @@ def violations(source: str, rel: str) -> list[str]:
             continue
         target_parts = target.split(".")
         target_layer = target_parts[1]
+        if target_layer == 'plugins' and layer not in {'bootstrap', 'channels', 'plugins'}:
+            issues.append(f'插件宿主倒挂：{layer} -> plugins')
+        if layer == 'plugins' and target_layer in {'bootstrap', 'channels', 'core', 'llm'}:
+            issues.append(f'插件模块不得编排入口/内核/模型：{target}')
         forbidden = FORBIDDEN_IMPORTS.get(layer, set())
         if target_layer in forbidden:
             issues.append(f"分层：{layer} -> {target_layer}")
@@ -171,6 +176,9 @@ import pytest
     ("tools/x.py", "exec(source)"),
     ("tools/x.py", "from omni.config import *"),
     ("core/x.py", "def f(): pass\ndef f(): pass"),
+    ("memory/x.py", "from omni.plugins.host import PluginHost"),
+    ("plugins/x.py", "from omni.core.agent import Agent"),
+    ("plugins/x.py", "from omni.llm.gateway import Gateway"),
 ])
 def test_architecture_guard_catches_bypasses(rel, source):
     assert violations(source, rel)

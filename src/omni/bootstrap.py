@@ -69,7 +69,7 @@ from .tools.browser.budget import WriteBudget
 from .tools.browser.driver import BrowserDriver
 from .tools.browser.forms import BrowserForms
 from .tools.browser.tools import register_browser_tools
-from .tools.builtin import (
+from .tools.personal import (
     register_core_tools,
     register_digest_tool,
     register_memory_tools,
@@ -78,8 +78,8 @@ from .tools.builtin import (
     register_resident_tools,
     register_todo_tools,
 )
-from .tools.cron_tools import register_cron_tools
-from .tools.delegate_tools import register_delegate_tools
+from .tools.scheduling import register_cron_tools
+from .tools.delegation import register_delegate_tools
 from .tools.files import FileHistory, Workspace, register_file_tools
 from .tools.web import FetchPolicy, register_web_tools
 from .tools.registry import SessionRef, ToolRegistry
@@ -92,9 +92,9 @@ from .tools.desktop.native import WindowsDesktopBackend
 from .tools.desktop.tools import register_desktop_tools
 from .tools.qq.client import OneBotClient
 from .tools.qq.tools import register_qq_tools
-from .tools.shell_tools import register_shell_tools
-from .tools.skill_tools import register_skill_inbox_tools, register_skill_tools
-from .tools.system_tools import register_system_tools
+from .tools.shell import register_shell_tools
+from .tools.skills import register_skill_inbox_tools, register_skill_tools
+from .tools.system import register_system_tools
 from .tools.mcp.client import MCPManager
 from .tools.mcp.tools import register_mcp_tools
 
@@ -166,6 +166,7 @@ class Runtime:
     qq_messages: QQMessageStore | None = None
     publications: PublicationStore | None = None
     event_log: EventLog | None = None
+    plugins: PluginHost | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
@@ -579,6 +580,7 @@ def build_runtime(
         qq_messages=qq_messages,
         publications=publications,
         event_log=event_log,
+        plugins=plugin_host,
         mcp_schemas=mcp_schemas,
         skill_acks=skill_acks,
         runs=runs,

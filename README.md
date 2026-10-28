@@ -3,13 +3,22 @@
 运行在 Windows 上的个人 agent，QQ / Web 工作台 / CLI / 心跳共用内核。
 Python 3.12+、uv、LiteLLM 网关、SQLite 记忆和运行账本。本地运行不表示模型请求不出机。
 
-**2026-10-29 状态：受控内测，817 项测试通过。** 核心能力与 D27 验收工具已交付，
+**2026-10-29 状态：受控内测，精确提交源码 934 项全绿，工作区 981 项全绿。** 核心能力与 D27 验收工具已交付，
 真实账号/设备/模型闭环和 72 小时常驻仍未全部通过；尚未发布稳定版。
 macOS/Linux 全功能、通用桌面接管、视频上传均不属于已验证交付。
 
 开发接手先读 [HANDOFF](docs/HANDOFF.md)，再读唯一架构权威 [ARCHITECTURE](docs/ARCHITECTURE.md)。
 当前证据与剩余项见 [开发台账](docs/DEVELOPMENT_STATUS.md)，详细任务见
 [完整计划](docs/LOCAL_AGENT_PLAN.md) 和 [开发大纲](docs/DEEPSEEK_DEVELOPMENT_OUTLINE.md)。
+
+## 项目与模块导航
+
+工作台顶栏 **项目与能力** 打开 `/project/`：模块分类、源码/符号/依赖、API 请求字段与调用链、
+当前注册工具及参数、插件隔离/启用状态均可搜索查看。目录和调用约定见
+[项目导航](docs/PROJECT_INDEX.md)、[模块索引](docs/index/MODULES.md)、[API 索引](docs/index/API.md)。
+`uv run --no-sync python scripts/project_index.py --check` 检查生成索引是否过期。
+工具按域归包；交互终端拆为 backend/session/pool/routes；插件社区拆为 client/tools/server。
+旧 import 和启动命令保留兼容，分层规则仍只有 ARCHITECTURE 一份权威。
 
 ## 开始使用
 
@@ -49,6 +58,7 @@ QQ 私聊和群分别隔离，空白名单拒绝访问。主动 QQ 提醒默认�
 | 浏览器与 B站 | Playwright 所有者线程、预算与审批；B站读四件套、评论/私信草稿与受控 UI 发送；[B站写入](docs/BILIBILI_WRITING.md)（默认关闭，实站选择器待核验） |
 | 安卓 | 观察绑定动作、锁帧坐标、设备互斥、焦点核验/输入法恢复、MJPEG；[安卓手册](docs/ANDROID.md)（真机待验） |
 | Windows 桌面 | 原生 UIAutomation、观察令牌、窗口租约、后台语义动作；[桌面手册](docs/DESKTOP.md)（记事本首个真实闭环通过，第二应用待验） |
+| 插件与社区 | manifest/隔离/人工激活、命名空间工具注册、启停卸载、社区客户端与参考服务器；[插件手册](docs/PLUGIN_SYSTEM.md)（实际部署待提供机器） |
 | MCP | stdio、管理面板、schema 漂移撤权、人工确认；[MCP 手册](docs/MCP.md)（HTTP/OAuth 后置） |
 | 混合检索 | Ollama/API embedding 双接口、sqlite-vec + FTS、异步索引与删除联动；[检索手册](docs/RETRIEVAL.md)（默认关闭，实际效果待评测） |
 | 运维与验证 | 进程身份、有界关闭、只读 doctor、备份恢复、日志轮转、离线测试、证据与常驻检查；[运维](docs/OPERATIONS.md)、[验证](docs/VALIDATION.md)、[验收](docs/ACCEPTANCE.md) |

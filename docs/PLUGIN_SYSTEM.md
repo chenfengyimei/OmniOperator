@@ -2,6 +2,10 @@
 
 状态：插件系统核心已交付（2026-10-29）；插件社区（客户端 + 参考服务器）见 §5，
 服务器部署待项目所有者提供机器后进行。
+实现现按 `plugins/community/client.py`、`tools.py`、`server.py` 分开；
+`omni.plugins.community` 的公共 import 和 `python -m omni.plugins.server` 启动方式保持兼容。
+工作台“项目与能力 → 插件与扩展”可查看隔离与启用状态，实际激活仍走现有人工确认。
+
 本文是插件子系统的**唯一设计权威**；分层与模块职责仍以 [ARCHITECTURE.md](ARCHITECTURE.md) 为准。
 
 ## 1. 目标与定位

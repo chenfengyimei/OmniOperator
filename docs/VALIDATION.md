@@ -1,5 +1,12 @@
 # Windows 验证与离线评测（D26）
 
+2026-10-29 模块结构批：工作区 981 项通过；实际提交源码独立环境 **934 项全绿**，
+47 项并行未提交测试另计，见 [结构批验证摘要](evidence/project-structure-2026-10-29.json)。
+Windows CI 已加入 `scripts/project_index.py --check`，源码变更后需重新生成索引；
+索引导航和可视化说明见 [PROJECT_INDEX.md](PROJECT_INDEX.md)。
+
+以下 D27 的 817 项与 D26 的数字是历史验证时点，当前以最新台账和具体提交为准。
+
 2026-10-29 收尾状态：完整回归 **817 passed**，全新 venv/精确暂存源码导出再次通过，
 24 场景预热+3 轮全部通过（0 次真实模型调用），见 [D27 独立环境证据](evidence/clean-windows-d27.json)。
 新增采样/迁移/证据检查见 [ACCEPTANCE.md](ACCEPTANCE.md)。下文首轮样本数值是 D26

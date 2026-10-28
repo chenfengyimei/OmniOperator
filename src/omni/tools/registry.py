@@ -84,6 +84,16 @@ class ToolRegistry:
     def get(self, name: str) -> Tool | None:
         return self._tools.get(name)
 
+    def describe(self) -> list[dict[str, Any]]:
+        """当前注册元数据快照；不调用工具，不导出 callable 或会话/模型配置。"""
+        snapshot = list(self._tools.values())
+        return [
+            {"name": tool.name, "description": tool.description, "toolset": tool.toolset,
+             "risk": tool.risk.value, "requires_human": tool.requires_human, "read_only": tool.read_only,
+             "parameters": json.loads(json.dumps(tool.parameters, ensure_ascii=False))}
+            for tool in sorted(snapshot, key=lambda tool: (tool.toolset, tool.name))
+        ]
+
     def names(self, toolsets: set[str] | None = None) -> list[str]:
         return [t.name for t in self._iter(toolsets)]
 

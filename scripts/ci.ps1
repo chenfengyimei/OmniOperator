@@ -11,6 +11,7 @@ if (-not $SkipSync) { Checked { uv sync --frozen --python $Python } }
 Checked { uv run --no-sync python -m playwright install chromium }
 New-Item -ItemType Directory -Force -Path $EvidenceDir | Out-Null
 Checked { uv run --no-sync python -m compileall -q src }
+Checked { uv run --no-sync python scripts/project_index.py --check }
 Checked { uv run --no-sync pytest -q --strict-markers --junitxml "$EvidenceDir/pytest.xml" }
 $evaluationDirectory = Join-Path $EvidenceDir ('core-' + [guid]::NewGuid().ToString('N'))
 Checked { uv run --no-sync python scripts/eval_core.py --output $evaluationDirectory }

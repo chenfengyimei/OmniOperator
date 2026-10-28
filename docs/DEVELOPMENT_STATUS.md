@@ -7,6 +7,35 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 模块归包、项目/API 索引与可视化工作台
+
+- 基于 `f6c83d3` 核实源码、注册入口和 Web/终端/插件调用；没有按过时计划重复实现已有功能。
+  工具实现归入 personal/skills/scheduling/delegation/system，个人能力按事实/档案/常驻/todo/
+  摘要/时钟/refine 分文件；旧 builtin/*_tools 保留明确 re-export，bootstrap 改用正式包入口。
+- 终端拆为 backend/session/pool/routes，保留 TerminalManager/TerminalSession 公共 import
+  和 `/api/terminal/ws`，原鉴权与关闭语义不变。插件社区拆为 client/tools/server，
+  保留旧 public import 和 `python -m omni.plugins.server`。这些是职责归位，不修改既有工具名/审批等级。
+- `system/catalog` 静态解析源码和界面资源；33 职责模块、160 文件、96 HTTP/WS 声明、71 静态工具，
+  关键调用链定位完整。输出 MODULES.md/API.md/project.json；脚本支持生成和 --check，CI 接入过期检查。
+  索引不读取 config/data/.env，不导入待索引模块；Registry.describe 另提供真实注册状态的只读副本。
+- 新增 `channels/workbench` APIRouter 和独立 `web_static/project` HTML/CSS/JS，顶栏“项目与能力”：
+  模块/符号/内部依赖、API 请求字段/调用链、实时工具参数/审批等级、插件隔离/启用状态、限定文档阅读。
+  元数据使用 textContent；查询不执行工具、不发现远端 MCP、不激活插件。所有 API 继承原工作台鉴权。
+- 架构守卫补插件上下层边界、PluginHost/CommunityClient/SkillInbox 组装根约束；
+  [PROJECT_INDEX.md](PROJECT_INDEX.md) 是导航，ARCHITECTURE 仍是依赖和职责唯一权威。
+- 验证：工作区全量 **981 passed，155.94s**；精确暂存代码导出到独立目录，全新 Python 3.12.14 venv
+  按锁文件离线安装 99 包，最终全量 **934 passed，141.71s，零失败/零跳过**。差额 **47 项**属于
+  并行未提交测试，未混入本批；本批新增 11 项索引/API/真实 Chromium 验证和 3 项架构负例。
+  导出目录 src/tests/scripts 逐文件与暂存代码核对一致（CRLF 规范化）。
+- 首轮新测试出现 5 项断言失败：把既有 Host 拒绝错写成 400（实际 403），路由比对漏计 `/pair/{code}`；
+  修正测试口径，没有放宽鉴权。类型检查发现终端后端可能未绑定 PtyProcess，补不可用分支后
+  新 catalog/workbench/terminal/community/personal 目录检查 **0 errors / 0 warnings**；全仓旧类型基线仍单独保留。
+- 真实 Chromium 验证模块搜索/详情、API 请求字段、工具规格、扩展状态、文档阅读及 390px 布局，
+  没有 JS 异常或横向溢出。新增 API 未配对 401、恶意 Host 403；隔离插件查询不执行代码。
+  [验证摘要](evidence/project-structure-2026-10-29.json) 保存源码树、索引/JUnit 指纹与范围。
+- 并行配置、人设/密钥、配对及前端改动均保留；web.py 只提交终端/索引路由接线，index.html 只提交导航链接。
+  实际工作台重启后生效。本批没有重启真实服务，也不代表 72 小时或真实模型任务质量验收完成。
+
 ### 2026-10-29 · 项目收尾批（重复定义扫描 / 类型检查基线 / 真机自检）
 
 - **做了什么**（不依赖并行会话与外部资源的收尾三件套）：

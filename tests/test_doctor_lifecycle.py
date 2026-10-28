@@ -75,8 +75,8 @@ def test_terminal_blocking_read_does_not_block_write_and_failed_close_is_visible
         def terminate(self, force):
             raise RuntimeError("拒绝退出")
     pty = Pty()
-    monkeypatch.setattr(terminal, "_AVAILABLE", True)
-    monkeypatch.setattr(terminal, "PtyProcess", SimpleNamespace(spawn=lambda *args, **kwargs: pty))
+    monkeypatch.setattr(terminal.backend, "AVAILABLE", True)
+    monkeypatch.setattr(terminal.backend, "PtyProcess", SimpleNamespace(spawn=lambda *args, **kwargs: pty))
     manager = terminal.TerminalManager()
     session = manager.open()
     reader = threading.Thread(target=session.read, daemon=True)
