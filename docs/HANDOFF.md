@@ -120,7 +120,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 | shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
 | bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
 | qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
-| cron | cron_list / cron_add / cron_edit / cron_remove | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链；edit 只改传入字段、显式 null 清除） |
+| cron | cron_list / cron_add / cron_edit / cron_remove / cron_once | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链；edit 只改传入字段、显式 null 清除）；**cron_once 一次性触发（闹钟）**：run_at 绝对时间或 delay_minutes 二选一，到点执行一次后自动停用、错过宽限不补发（2026-10-29；工作台表单接线待前端批） |
 | browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流；截图存为产物 [artifact:id]（开 vision 后模型可直接看图） |
 | android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM；截图同样入产物库；tap_element 观察绑定（D16/A12）：点击前复核界面、不一致不点、点后强制复检 |
 | system | system_status（SAFE）/ system_service（CONFIRM） | NapCat/omni-qq/心跳 启停与状态 |

@@ -7,6 +7,41 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-29 · 新能力：一次性定时触发（闹钟）
+
+- **用户需求**：agent 本地"定闹钟"——指定时间自动触发一次（执行 prompt/给自己
+  发消息）。核查现有 cron 只有周期模式（`every_minutes≥10` / `daily_at` 每日
+  重复）——"10 分钟后提醒我"用 every_minutes=10 会永远重复，一次性原语缺失。
+- **实现（零迁移方案）**：一次性任务 = `every_minutes` 与 `daily_at` 皆空 +
+  触发时刻记在 `next_run_at`。刻意不加独立列：schema 版本常量在 config.py
+  （当前由并行前端批持有该文件未提交改动，任何编辑都可能被其 git add 卷入
+  提交），且既有校验下"无周期字段"只能由一次性入口产生，语义无歧义。
+  - `memory/jobs.py`：validate 改为"周期字段至多一个；皆空必须有触发时刻
+    （一次性）"；新增 `parse_run_at`（naive 按任务时区解释，支持
+    YYYY-MM-DD HH:MM[:SS] 与带偏移 ISO）；`compute_next_run` 对一次性返回
+    自身时刻——未感知一次性语义的旧调用方（工作台启停切换重算）不炸、行为不变。
+  - `memory/state.py::claim_due`：一次性**领取即在同一事务停用**
+    （at-most-once：执行器中途崩溃只留 unknown 账本，绝不重触发——与
+    unknown 不重放纪律一致）；错过触发超过 10 分钟宽限（如停机期间）**不补发**，
+    停用并留痕"错过触发时间…未执行已停用"（迟到太久的闹钟没有意义）；
+    运行中到期不合并（一次性没有"下一次"）。
+  - `tools/cron_tools.py`：新工具 `cron_once`（SAFE）——`run_at`（绝对时间，
+    timezone 参数解释 naive）或 `delay_minutes`（1–10080）二选一 + prompt +
+    可选 `deliver_to_qq`（走既有白名单/outbox 投递链路，掉线入队补投）；
+    创建时校验未来性（≥30 秒后）。`cron_edit` 支持 `run_at` 改触发时刻
+    （周期任务拒绝该参数）；一次性任务启停切换不参与周期重算；
+    `cron_list` 展示"一次性 <时刻>"。
+- **边界（如实记录）**：工作台表单未接线（web.py/index.html 由并行前端批持有）——
+  一次性任务在 cron 列表显示"每天 None"、创建表单仍只有周期字段；启停切换与
+  prompt 编辑可用（setattr 语义保留 next_run_at，重算返回原时刻）。
+  agent 工具路径完整可用；触发仍需 omni-heartbeat 进程在运行（既有约束）。
+- **新增 6 项测试**：validate/parse/compute 语义、领取即停用 at-most-once、
+  错过宽限不补发、宽限内正常触发、工具契约（相对/绝对/过去拒绝/二选一/
+  白名单/列表展示）、编辑路径与模式守卫。
+- `uv run --no-sync pytest tests/test_cron.py tests/test_state.py tests/test_web.py -q`
+  → **91 passed**；全量 `uv run --no-sync pytest -q` → **887 passed**（2026-10-29；
+  = 877 + 本批 6 项 + 并行会话 web 测试新增 4 项，均绿、文件无交集）。
+
 ### 2026-10-29 · D11 收口：压缩阈值统一为 token 口径
 
 - **关闭 D11 剩余限制 4**（原话"没有做基于 token 的精确预算，trigger_chars 仍是字符

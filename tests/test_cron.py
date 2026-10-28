@@ -650,3 +650,133 @@ def test_artifacts_sweep_loop_cleans_and_keeps_active_refs(tmp_path):
     asyncio.run(scenario2())
     assert _Boom.calls >= 3, "第一轮抛异常后循环必须继续"
     state.close()
+
+
+# ---------- 一次性任务（闹钟）：到点触发一次后自动停用 ----------
+
+
+def test_one_shot_validation_and_parse():
+    from omni.memory.jobs import parse_run_at
+
+    # 既无周期也无触发时刻 → 拒绝（一次性入口必须带触发时刻）
+    with pytest.raises(CronError, match="缺少调度方式"):
+        Job(name="alarm-test", prompt="提醒").validate()
+    # 周期与每日同时给 → 拒绝（既有语义保留）
+    with pytest.raises(CronError, match="至多一个"):
+        Job(name="alarm-test", prompt="p", every_minutes=10, daily_at="08:00").validate()
+    # 一次性：触发时刻记在 next_run_at；validate 认它
+    once = Job(name="alarm-test", prompt="p", next_run_at="2030-01-01T09:00:00+08:00")
+    once.validate()
+    # compute_next_run 对一次性返回自身时刻（旧调用方重算不炸、行为不变）
+    assert compute_next_run(once, dt.datetime.now().astimezone()).isoformat().startswith(
+        "2030-01-01T09:00:00"
+    )
+    # parse_run_at：naive 按时区解释
+    aware = parse_run_at("2030-01-01 09:00", "Asia/Shanghai")
+    assert aware.tzinfo is not None and (aware.hour, aware.minute) == (9, 0)
+    assert parse_run_at("2030-01-01 09:00").tzinfo is not None
+    with pytest.raises(CronError):
+        parse_run_at("明天上午九点", "local")
+
+
+def test_one_shot_claim_disables_at_most_once(tmp_path):
+    """领取即在同一事务停用：执行器中途崩溃也只留 unknown，绝不重触发。"""
+    store = _job_store(tmp_path)
+    now = dt.datetime.now().astimezone()
+    job = Job(name="alarm-once", prompt="叫我", next_run_at=to_iso(now + dt.timedelta(minutes=1)))
+    job.validate()
+    store.upsert(job)
+    claim = store.claim_due(now + dt.timedelta(minutes=2))
+    assert claim is not None and claim.job.name == "alarm-once"
+    stored = store.get("alarm-once")
+    assert stored.enabled is False, "一次性任务领取后必须立刻停用"
+    assert store.claim_due(now + dt.timedelta(minutes=3)) is None
+
+
+def test_one_shot_missed_beyond_grace_skips_not_replays(tmp_path):
+    """停机期间错过的一次性触发：超过宽限不补发，停用并留痕。"""
+    store = _job_store(tmp_path)
+    now = dt.datetime.now().astimezone()
+    job = Job(
+        name="alarm-late", prompt="叫我",
+        next_run_at=to_iso(now - dt.timedelta(minutes=30)),
+    )
+    job.validate()
+    store.upsert(job)
+    assert store.claim_due(now) is None, "迟到超过宽限不得补发"
+    stored = store.get("alarm-late")
+    assert stored.enabled is False and "错过" in (stored.last_result or "")
+
+
+def test_one_shot_within_grace_still_fires(tmp_path):
+    store = _job_store(tmp_path)
+    now = dt.datetime.now().astimezone()
+    job = Job(name="alarm-soon", prompt="叫我", next_run_at=to_iso(now - dt.timedelta(minutes=3)))
+    job.validate()
+    store.upsert(job)
+    assert store.claim_due(now) is not None
+    assert store.get("alarm-soon").enabled is False
+
+
+def test_cron_once_tool_contract(tmp_path):
+    registry = ToolRegistry()
+    store = _job_store(tmp_path)
+    register_cron_tools(registry, store, [10001])
+
+    # delay_minutes 相对时间
+    out = registry.dispatch(
+        "cron_once", {"name": "alarm-drink", "prompt": "提醒用户喝水", "delay_minutes": 5}
+    )
+    assert "已设置一次性任务" in out and "自动停用" in out
+    job = store.get("alarm-drink")
+    assert job.every_minutes is None and job.daily_at is None and job.enabled is True
+    assert job.next_run_at and dt.datetime.fromisoformat(job.next_run_at) > dt.datetime.now().astimezone()
+
+    # 绝对时间（IANA 时区解释 naive）
+    ok = registry.dispatch(
+        "cron_once",
+        {"name": "alarm-abs", "prompt": "开会", "run_at": "2030-01-01 09:00",
+         "timezone": "Asia/Shanghai"},
+    )
+    assert "已设置一次性任务 alarm-abs" in ok
+
+    # 过去时间 / 二选一 / 白名单外投递
+    assert "错误" in registry.dispatch(
+        "cron_once", {"name": "alarm-past", "prompt": "x", "run_at": "2000-01-01 09:00"}
+    )
+    assert "错误" in registry.dispatch(
+        "cron_once", {"name": "alarm-both", "prompt": "x", "run_at": "2030-01-01 09:00", "delay_minutes": 5}
+    )
+    assert "错误" in registry.dispatch("cron_once", {"name": "alarm-none", "prompt": "x"})
+    assert "不可用" in registry.dispatch(
+        "cron_once", {"name": "alarm-q", "prompt": "x", "delay_minutes": 5, "deliver_to_qq": 999}
+    )
+    assert "已设置" in registry.dispatch(
+        "cron_once", {"name": "alarm-ok", "prompt": "x", "delay_minutes": 5, "deliver_to_qq": 10001}
+    )
+    # cron_list 展示一次性
+    assert "一次性" in registry.dispatch("cron_list", {})
+
+
+def test_cron_edit_one_shot_and_mode_guard(tmp_path):
+    registry = ToolRegistry()
+    store = _job_store(tmp_path)
+    register_cron_tools(registry, store, [10001])
+    registry.dispatch("cron_once", {"name": "alarm-edit", "prompt": "提醒", "delay_minutes": 5})
+
+    # 改触发时间：直接更新 next_run_at
+    out = registry.dispatch(
+        "cron_edit", {"name": "alarm-edit", "run_at": "2030-06-01 08:30"}
+    )
+    assert "已更新" in out
+    assert store.get("alarm-edit").next_run_at.startswith("2030-06-01T08:30")
+    # 启停切换不报错（一次性不参与周期重算）
+    assert "已更新" in registry.dispatch(
+        "cron_edit", {"name": "alarm-edit", "enabled": False}
+    )
+    assert store.get("alarm-edit").enabled is False
+    # 周期任务不接受 run_at
+    registry.dispatch("cron_add", {"name": "repeat-job", "prompt": "报", "every_minutes": 30})
+    assert "错误" in registry.dispatch(
+        "cron_edit", {"name": "repeat-job", "run_at": "2030-06-01 08:30"}
+    )

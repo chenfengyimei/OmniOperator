@@ -20,6 +20,7 @@ from .jobs import (
     Job,
     compute_next_run,
     parse_iso,
+    parse_run_at,
     to_iso,
 )
 from .state import (
@@ -55,5 +56,6 @@ __all__ = [
     "StateUnavailable",
     "compute_next_run",
     "parse_iso",
+    "parse_run_at",
     "to_iso",
 ]

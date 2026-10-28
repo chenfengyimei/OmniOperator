@@ -35,6 +35,9 @@ from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 from ..config import STATE_SCHEMA_VERSION
 
 SCHEMA_VERSION = STATE_SCHEMA_VERSION
+# 一次性任务（无 every/daily 的闹钟）错过触发时间的宽限：超过即停用不补发——
+# 迟到太久的闹钟没有意义，账本里留下"错过"的记录即可。
+ONE_SHOT_MISSED_GRACE_S = 600
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -744,6 +747,21 @@ class StateStore:
                     due_dt = due_dt.astimezone()
                 if now >= due_dt:
                     candidate = _row_to_job(row)
+                    is_once = candidate.every_minutes is None and not candidate.daily_at
+                    if is_once:
+                        # 一次性任务（闹钟）：迟到超过宽限（停机期间错过）不补发——
+                        # 停用并留痕；宽限内的正常触发走下面的领取路径
+                        if (now - due_dt).total_seconds() > ONE_SHOT_MISSED_GRACE_S:
+                            conn.execute(
+                                "UPDATE jobs SET enabled = 0, last_result = ? WHERE name = ?",
+                                (
+                                    f"错过触发时间 {raw}（超过 {ONE_SHOT_MISSED_GRACE_S // 60} 分钟宽限），未执行已停用",
+                                    candidate.name,
+                                ),
+                            )
+                        elif candidate.name not in active:
+                            due.append((due_dt, candidate))
+                        continue
                     if candidate.name in active:
                         conn.execute("UPDATE jobs SET next_run_at=?, last_result=? WHERE name=?",
                                      (to_iso(compute_next_run(candidate, now)), "运行中再次到期：已合并，不积压", candidate.name))
@@ -755,10 +773,17 @@ class StateStore:
                 return None
             due.sort(key=lambda item: item[0])
             due_dt, job = due[0]
-            job.next_run_at = to_iso(compute_next_run(job, from_dt=now))
-            conn.execute(
-                "UPDATE jobs SET next_run_at = ? WHERE name = ?", (job.next_run_at, job.name)
-            )
+            if job.every_minutes is None and not job.daily_at:
+                # 一次性任务领取即在**同一事务**停用（at-most-once）：执行器中途崩溃
+                # 只留下"结果未知"的账本记录，绝不重触发——与 unknown 不重放纪律一致
+                conn.execute(
+                    "UPDATE jobs SET enabled = 0 WHERE name = ?", (job.name,)
+                )
+            else:
+                job.next_run_at = to_iso(compute_next_run(job, from_dt=now))
+                conn.execute(
+                    "UPDATE jobs SET next_run_at = ? WHERE name = ?", (job.next_run_at, job.name)
+                )
             conn.execute(
                 "INSERT INTO job_claims(job, token, claimed_at, expires_at) VALUES (?, ?, ?, ?)",
                 (job.name, token, _now(), stamp + float(ttl_s)),
