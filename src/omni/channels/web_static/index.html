@@ -224,7 +224,10 @@ ul{list-style:none;overflow-y:auto}
       </div>
       <div id="tab-todos" class="tab-body hidden"><ul id="todos-list"></ul></div>
       <div id="tab-reviews" class="tab-body hidden"><ul id="reviews-list"></ul></div>
-      <div id="tab-skills" class="tab-body hidden"><ul id="skills-list"></ul></div>
+      <div id="tab-skills" class="tab-body hidden">
+        <div id="skill-pending-bar" class="hidden" style="margin:8px 10px;padding:6px 10px;border:1px solid #fbbf24;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:8px"></div>
+        <ul id="skills-list"></ul>
+      </div>
       <div id="tab-artifacts" class="tab-body hidden">
         <div id="artifacts-usage" style="padding:8px 12px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--border)"></div>
         <div id="artifacts-grid"></div>
@@ -297,6 +300,19 @@ ul{list-style:none;overflow-y:auto}
     </div>
     <div id="skill-history" style="max-height:170px;overflow:auto"></div>
     <pre id="skill-diff" style="max-height:190px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
+  </div>
+</div>
+<!-- ============ 技能变更审阅（D18：agent/review 自动改的修订） ============ -->
+<div id="review-modal" class="modal hidden" onclick="if(event.target===this)closeModal('review-modal')">
+  <div class="modal-box" style="width:min(960px,95vw);height:min(740px,92vh);display:flex;flex-direction:column;gap:8px">
+    <div class="modal-title"><span>技能变更待审阅</span><button class="modal-x" onclick="closeModal('review-modal')">✕</button></div>
+    <div class="hint">这里是小鱼（对话/自进化 review/定时任务）自动改过的技能修订。技能改动不会改变风险等级或工具权限，但值得看一眼；不满意可回滚到变更前，回滚会产生新修订、可再撤销。</div>
+    <div style="display:flex;gap:6px">
+      <button class="svc-btn" onclick="reviewAckAll()">全部标记已读</button>
+      <button class="svc-btn" onclick="openReview()">刷新</button>
+    </div>
+    <div id="review-list" style="flex:1;overflow:auto"></div>
+    <pre id="review-diff" style="max-height:220px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
   </div>
 </div>
 <!-- ============ 设置中心 ============ -->
@@ -732,7 +748,62 @@ async function loadSkills(){
     `<button class="svc-btn" style="margin-left:6px" onclick="toggleSkill('${esc(s.name)}',this.closest('li'))">查看</button>`+
     `<button class="svc-btn" onclick="editSkill('${esc(s.name)}')">编辑</button>`+
     `<div class="skill-desc">${esc(s.description)}</div></li>`).join(''):'<li class="empty">还没有技能（agent 完成多步任务后会自动沉淀）</li>';
+  loadSkillPending();
 }
+// ---------- 技能变更待审阅（D18）：agent/review 自动改的修订 ----------
+async function loadSkillPending(){
+  try{
+    const d=await api('/api/skills/pending');
+    const bar=$('#skill-pending-bar');if(!bar)return;
+    if(!d.count){bar.classList.add('hidden');bar.innerHTML='';return}
+    bar.classList.remove('hidden');
+    bar.innerHTML=`<span>⚠ <b>${d.count}</b> 条技能变更待审阅（小鱼自动改的）</span>`+
+      `<span style="flex:1"></span><button class="svc-btn" onclick="openReview()">审阅</button>`;
+  }catch(e){/* 旁路信息，不打断技能页 */}
+}
+window.openReview=async()=>{
+  $('#review-modal').classList.remove('hidden');
+  $('#review-diff').textContent='';
+  try{
+    const d=await api('/api/skills/pending');
+    $('#review-list').innerHTML=d.items.length?d.items.map(it=>
+      `<div class="cron-row"><span class="c-name">${esc(it.name)} · rev ${it.rev}</span>`+
+      `<span class="c-sched">v${it.version==null?'—':it.version} · ${esc(it.summary||'无摘要')} · ${esc((it.created_at||'').slice(5,16))} · ${esc(it.author)}${it.applied?'':'（未落盘）'}</span>`+
+      `<button class="svc-btn" onclick="reviewDiff('${esc(it.name)}',${it.rev})">差异</button>`+
+      (it.base_rev!=null?`<button class="svc-btn" onclick="reviewRollback('${esc(it.name)}',${it.rev},${it.base_rev})">回滚这条</button>`:'')+
+      `<button class="svc-btn" onclick="reviewAck('${esc(it.name)}',${it.rev})">知道了</button></div>`).join('')
+      :'<div class="empty">没有待审阅的变更</div>';
+  }catch(e){$('#review-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+};
+window.reviewDiff=async(name,rev)=>{
+  try{
+    const d=await api(`/api/skills/pending/${encodeURIComponent(name)}/diff?rev=${rev}`);
+    $('#review-diff').textContent=(d.diff||'（无差异）')+(d.truncated?'\n…（差异过长已截断）':'');
+  }catch(e){alert(e.message)}
+};
+window.reviewAck=async(name,rev)=>{
+  try{
+    await api('/api/skills/'+encodeURIComponent(name)+'/ack',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({rev})});
+    openReview();loadSkillPending();
+  }catch(e){alert(e.message)}
+};
+window.reviewAckAll=async()=>{
+  try{await api('/api/skills/ack-all',{method:'POST'});openReview();loadSkillPending()}
+  catch(e){alert(e.message)}
+};
+window.reviewRollback=async(name,rev,baseRev)=>{
+  if(!confirm(`回滚「${name}」到 rev ${baseRev}（撤销 rev ${rev} 这次修改）？当前内容会先存进历史，回滚是新修订、可再撤销。`))return;
+  try{
+    const cur=await api('/api/skills/'+encodeURIComponent(name)); // 现指纹：冲突就拒绝，不覆盖
+    await api('/api/skills/'+encodeURIComponent(name)+'/rollback',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({rev:baseRev,expected_hash:cur.hash})});
+    await api('/api/skills/'+encodeURIComponent(name)+'/ack',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({rev})});
+    openReview();loadSkills();
+  }catch(e){alert(e.message)}
+};
 window.toggleSkill=async(name,el)=>{
   const body=el.querySelector('.skill-body');
   if(body){body.remove();el.dataset.open='0';return}

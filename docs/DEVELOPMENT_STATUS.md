@@ -86,12 +86,56 @@
 | D15 | 完成 | A13 | 见第 5 节 | `uv run pytest tests/test_artifacts.py -q` → 13 passed；`uv run pytest -q` → **605 passed（无 F/E）** | 真实 Chromium 冒烟通过（见第 5 节真机证据）；真实安卓截图待 D16 插真机；真实视觉模型的看图效果需用户配置 `vision.send_to_cloud` 后实测 | 进入 D16（A12 离线修复） |
 | D16 | 完成 | A12 | 见第 5 节 | `uv run pytest tests/test_android.py -q` → 29 passed；关联批次 `tests/test_web.py test_arch.py test_agent.py test_cron.py` → 58 passed（2026-10-28） | 安卓真机待插设备：观察绑定点击的真机闭环（两设备交错/旋转/ADB 断连复检/中文输入恢复）待插真机验收 | 进入 D17（cron 编辑与可靠投递） |
 | D17 | 完成 | A04（编辑校验）、A17（投递 outbox 与去重） | 见第 5 节两批：①任务编辑 + 成败判定去前缀化；②投递 outbox——QQ 掉线入队恢复补投、unknown 不自动重发、白名单撤销即丢、3 次成死信 | ①`tests/test_cron.py tests/test_web.py` → 51 passed；②`uv run pytest tests/test_outbox.py -q` → **12 passed**（去重/终态释放/容量/分类/补投/死信/端点） | 真机 `data/state.db` 已 v6→v7（备份 `data/backups/pre-d17-outbox`，degraded 空、重开幂等）；**真实 QQ 掉线→补投闭环待 NapCat 扫码后实测** | **剩余**：`context_from` 绑定具体成功 run、并行上限与积压策略、显式时区（原大纲细项）；心跳进程未运行（工作台可启动） |
-| D18 | 开发中 | A14（编辑 UI 部分） | 见第 5 节：技能工作台编辑（保存 CAS / 历史 / 差异 / 回滚） | `uv run pytest tests/test_skills_history.py tests/test_skills.py tests/test_web.py tests/test_arch.py tests/test_agent.py -q` → 86 passed；新增 save_raw 全文保存（CAS/结构校验/来源可追溯）+ 编辑器端点 1 例 | 浏览器内编辑器 UX 无自动化（接口契约由 TestClient 验）；真实技能库的手工编辑演练待用户使用 | **剩余**：候选变更/差异确认队列（D12 转入）、外来包隔离安装（隔离区+清单检查+不执行 postinstall）——大纲原范围留待续做；进入收尾 |
+| D18 | 完成 | A14（编辑 UI 与审阅队列） | 见第 5 节两批：①技能工作台编辑（保存 CAS / 历史 / 差异 / 回滚）；②候选变更审阅队列（agent/review 自动改的修订可见、可 diff、可回滚、可标记已读） | ①`tests/test_skills_history.py tests/test_skills.py tests/test_web.py tests/test_arch.py tests/test_agent.py` → 86 passed；②`tests/test_web.py -k pending` → 2 passed + `tests/test_state.py` → 23 passed（已读标记只前进） | 真机 `data/state.db` 已 v8→v9（备份 `data/backups/pre-d18-queue`，degraded 空、重开幂等、冒烟行已清理）；**真实 agent 自进化产生技能变更后的审阅体验待用户实际使用** | **剩余**：外来包隔离安装（隔离区+清单检查+不执行 postinstall）——当前没有导入通道，也就没有导入攻击面 |
 | D19 | 完成 | MCP 管理（两批） | 见第 5 节两批：①状态纯派生 + 工具目录带授权标记 + 面板；②schema 漂移检测（指纹登记/变化提醒/复查确认）+ 面板手动重连 | ①`tests/test_mcp.py -q` → 15 passed；②`tests/test_mcp.py -q` → **18 passed**（新增 3 例：指纹存储语义、指纹规则（忽略描述/跟踪形态）、真实 stdio 服务改 schema → 漂移提醒 → 确认清除 → 失败重连） | 真机 `data/state.db` 已 v7→v8（备份 `data/backups/pre-d19-drift`，degraded 空、重开幂等）；**真实受信 MCP 生产服务联调待用户提供** | **剩余**：连接/健康细节（重连只给一次干净握手，无自动退避重连）、Streamable HTTP/OAuth（大纲允许独立后置） |
 | D20–D23 | 待开始 | R5 能力 | — | — | 桌面目标应用/QQ 群/B站测试账号均待用户参与 | — |
 | D24–D27 | 待开始 | A10、A18、R6/R7 | — | — | 72 小时常驻待发布前执行 | — |
 
 ## 5 变更记录
+
+### 2026-10-28 · D18 第二批（候选变更审阅队列：agent 自动改技能可见可回滚）
+
+- **改了什么**：
+  - `memory/state.py` 升 **v9**：`skill_acks(skill, rev, acked_at)` + `SkillAckStore`——
+    `ack()` 用 `MAX` 只前进（刷新页面不会把已读变回未读）、`acked()` / `acked_all()`；
+  - `channels/web.py`（注意：`/api/skills/pending` 必须声明在 `/api/skills/{name}` 之前，
+    否则 "pending" 会被当成技能名）：
+    - `GET /api/skills/pending`：逐技能读最近 50 条修订，**author 不是 user（工作台编辑）
+      也不是 external（磁盘外部改动快照）**且 rev 大于已读标记的才算待审阅；
+      每条带 `base_rev`（有上一版才给"回滚这条"入口，历史被裁剪时为 null）；
+    - `POST /api/skills/{name}/ack`（标到 rev）、`POST /api/skills/ack-all`（全部已读）；
+    - `GET /api/skills/pending/{name}/diff?rev=`：修订 rev 相对**上一版**的 unified diff
+      （没有上一版就从空开始）——审阅要看的是"这次改了什么"，不是"和现在差多少"；
+  - 工作台技能页：待审阅时出现黄色横幅「⚠ N 条技能变更待审阅（小鱼自动改的）→ 审阅」；
+    审阅弹窗列出每条变更（版本/摘要/时间/作者）、差异、回滚这条、知道了、
+    全部标记已读；回滚走既有 CAS 端点（现取指纹，冲突即拒绝）成功后自动 ack 该条。
+- **关闭了什么**：D12 转入的「候选变更队列/差异确认」（技能域）——agent/review 的自动改动
+  第一次有了"待审阅"清单、单条 diff 与一键撤销；A14 的 UI 部分补全。
+- **跑了什么**：`uv run pytest tests/test_web.py -k pending -q` → 2 passed；
+  `uv run pytest tests/test_state.py -q` → 23 passed（新增 1 例：已读标记只前进、多技能独立）；
+  关联批次 web+skills+skills_history+arch → 79 passed；全量见提交信息。
+- **真机证据**：`data/state.db` 实际走过 v8→v9（迁移前备份 `data/backups/pre-d18-queue`）；
+  迁移后 `degraded` 空、`skill_acks` 表可用、二次打开版本仍为 9；冒烟写入的行已清理。
+- **没测什么**：真实 agent 自进化（review 改技能）后横幅出现→审阅→回滚的用户体验
+  （接口契约已验，界面无自动化）；多标签页同时审阅（ack 只前进，天然幂等）。
+- **行为变化**：
+  1. 小鱼自动沉淀/修订技能后，技能页出现"待审阅"横幅；看过的可以标已读；
+  2. 每条变更能看"这次改了什么"（相对上一版），不满意可一键回滚到变更前
+     （产生新修订，可再撤销）；
+  3. 用户自己的工作台编辑与磁盘外部改动不进队列——那是用户自己做的。
+- **剩余限制（明确记录）**：
+  1. 这是**可审阅**清单，不是审批门禁：agent 的技能改动仍立即生效（技能内容不改变风险等级/
+     工具权限，这条底线由风险分级与审批器保证），队列负责"让人看见+可撤销"；
+  2. 只看最近 50 条修订/技能（历史本身即保留 50 条）；被裁剪的旧修订不会出现在队列；
+  3. references/ 附件的变更单独记录在修订清单里，队列只审主文 diff（附件不进 diff）；
+  4. 没有通知推送（QQ/桌面提醒）——横幅在下次打开工作台时可见。
+- **过程记录**：
+  1. 待审阅判定排除 `external`（磁盘外部改动快照，由 `_snapshot_unversioned` 写入）——
+     那是用户在记事本里改的，不该被当成"agent 的变更"；
+  2. diff 取"上一版→这一版"而不是"这一版→当前"：后者会把之后的所有改动混进来，
+     审阅时看不清"这次到底改了什么"；
+  3. ack 用 `MAX` 而不是覆盖：多标签页/先后审阅时旧标记不能把已读退回去；
+  4. 回滚入口依赖 `base_rev` 是否存在（历史裁剪后没有上一版内容，按钮就不出现）。
 
 ### 2026-10-28 · D19 第二批（MCP schema 漂移检测 + 面板手动重连）
 

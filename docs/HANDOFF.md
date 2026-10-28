@@ -23,7 +23,7 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
 - 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
-- 测试：`uv run pytest`；台账记录 **631 全绿**（2026-10-28 收尾批次），工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH（本机需 `D:\tools\platform-tools` 在 PATH 上，否则 `test_safe_allows_known_readonly_commands` 一例环境性失败），需在 D26 消除环境依赖，详见完整计划 §0。
+- 测试：`uv run pytest`；台账记录 **634 全绿**（2026-10-28 D18 审阅队列批次），工作区与当前环境应另行重跑；架构守卫见 `tests/test_arch.py`。续接时发现假 runner 测试依赖 ADB PATH（本机需 `D:\tools\platform-tools` 在 PATH 上，否则 `test_safe_allows_known_readonly_commands` 一例环境性失败），需在 D26 消除环境依赖，详见完整计划 §0。**另注**：`tests/test_state.py` 里 `test_v2_to_v3_migration_keeps_session_leases` 被重复定义两次（后者覆盖前者，前一份从未执行）——属既有问题，修复时保留两份内容中更完整的那份。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
@@ -174,9 +174,11 @@ MCP stdio 已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。
    unknown 不自动重发（面板人工决定）、白名单撤销即丢、同内容活跃期去重；
    工作台「定时任务 → 待投递」面板。**剩余细项**：`context_from` 绑定具体成功 run、
    并行上限、显式时区。夜间整理→早报列为真实验收。
-3. **D18 技能工作台（第一批已完成）**：技能页可编辑——保存带指纹 CAS（冲突拒绝）、
-   历史/差异/回滚（回滚产生新修订）、修订里 author/source 可区分用户手改与 agent 修改。
-   **剩余**：候选变更/差异确认队列（D12 转入）、外来包隔离安装。
+3. **D18 技能工作台（已完成）**：①技能页可编辑——保存带指纹 CAS（冲突拒绝）、
+   历史/差异/回滚（回滚产生新修订）、修订里 author/source 可区分用户手改与 agent 修改；
+   ②**候选变更审阅队列**——agent/review 自动改的修订进"待审阅"横幅（作者=user/external 不进），
+   每条可看"这次改了什么"（相对上一版 diff）、一键回滚到变更前、标记已读（只前进）。
+   **剩余**：外来包隔离安装（当前无导入通道，无导入攻击面）。
 4. **D19 MCP 管理（已完成）**：工作台「MCP」页——服务状态（idle/握手/已连接/失败/停用，
    纯派生不启动服务）、工具目录与授权标记（只读白名单 🟢 / 需确认 🟡，只认用户配置）、
    **schema 漂移检测**（发现时登记指纹；服务升级换参数形态 → ⚠ 提醒复查只读授权，

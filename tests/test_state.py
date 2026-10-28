@@ -492,3 +492,23 @@ def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
     finally:
         conn.close()
     assert "session_leases" not in tables and "resource_leases" in tables
+
+
+def test_skill_ack_store_only_advances(tmp_path):
+    """技能已读标记只前进：旧标记不会把已读改回未读（D18）。"""
+    from omni.memory.state import SkillAckStore
+
+    state = _state(tmp_path)
+    try:
+        acks = SkillAckStore(state)
+        assert acks.acked("s") == 0
+        assert acks.ack("s", 3) == 3
+        assert acks.ack("s", 1) == 3  # 不回退
+        assert acks.acked("s") == 3
+        assert acks.ack("s", 5) == 5
+        assert acks.acked_all() == {"s": 5}
+        # 多个技能各自独立
+        assert acks.ack("t", 2) == 2
+        assert acks.acked_all() == {"s": 5, "t": 2}
+    finally:
+        state.close()

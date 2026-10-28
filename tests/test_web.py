@@ -777,3 +777,82 @@ def test_skill_editor_save_history_diff_rollback(tmp_path):
         "/api/skills/editor-demo/save", json={"content": "没有结构的纯文本"}
     )
     assert bad.status_code == 400
+
+
+# ---------- D18 第二批：技能变更待审阅队列 ----------
+
+
+def test_skill_pending_review_queue(tmp_path):
+    client, runtime = _client(tmp_path, skills_root=tmp_path / "skills")
+    # agent 创建（author=agent）→ 进待审阅
+    runtime.skills.create("agent-skill", "自动技能", _skill_body("第一版"))
+    pending = client.get("/api/skills/pending").json()
+    assert pending["count"] == 1
+    item = pending["items"][0]
+    assert item["name"] == "agent-skill" and item["author"] == "agent"
+    assert item["base_rev"] is None  # rev 1 没有上一版，不给"回滚这条"
+
+    # 用户在工作台保存（author=user）→ 不进队列
+    loaded = client.get("/api/skills/agent-skill").json()
+    client.post(
+        "/api/skills/agent-skill/save",
+        json={
+            "content": loaded["content"].replace("第一版", "第二版"),
+            "expected_hash": loaded["hash"],
+        },
+    )
+    assert client.get("/api/skills/pending").json()["count"] == 1  # 仍只有 agent 那条
+
+    # 差异：rev1 无上一版 → 从空开始
+    diff = client.get(
+        "/api/skills/pending/agent-skill/diff", params={"rev": item["rev"]}
+    ).json()
+    assert diff["has_parent"] is False and "第一版" in diff["diff"]
+
+    # 知道了 → 队列清空；标记只前进（旧 rev 不会把已读改回去）
+    assert client.post("/api/skills/agent-skill/ack", json={"rev": item["rev"]}).json()["ok"]
+    assert client.get("/api/skills/pending").json()["count"] == 0
+    assert (
+        client.post("/api/skills/agent-skill/ack", json={"rev": 1}).json()["acked"]
+        == item["rev"]
+    )
+
+
+def test_skill_pending_diff_ack_all_and_rollback_entry(tmp_path):
+    client, runtime = _client(tmp_path, skills_root=tmp_path / "skills")
+    runtime.skills.create("agent-skill", "技能", _skill_body("原始"))
+    ok, message = runtime.skills.patch("agent-skill", "Pitfalls", "agent 补的坑")
+    assert ok, message
+
+    items = client.get("/api/skills/pending").json()["items"]
+    assert len(items) == 2  # 创建 + patch 都是 agent 写的
+    latest = max(items, key=lambda i: i["rev"])
+    assert latest["base_rev"] is not None
+
+    # 单条变更差异：rev vs rev-1，只含 agent 补的那一行
+    d = client.get(
+        "/api/skills/pending/agent-skill/diff", params={"rev": latest["rev"]}
+    ).json()
+    assert (
+        d["has_parent"]
+        and "agent 补的坑" in d["diff"]
+        and d["base_rev"] == latest["rev"] - 1
+    )
+
+    # 全部标记已读
+    assert client.post("/api/skills/ack-all").json()["ok"] is True
+    assert client.get("/api/skills/pending").json()["count"] == 0
+
+    # 再来一次 agent 改写 → 重新出现（标记不会吞掉未来的修订）
+    ok, message = runtime.skills.patch("agent-skill", "Pitfalls", "第二次补坑")
+    assert ok, message
+    assert client.get("/api/skills/pending").json()["count"] == 1
+
+    # 回滚这条变更走既有 rollback 端点（前端用它 + ack 组合）
+    loaded = client.get("/api/skills/agent-skill").json()
+    rb = client.post(
+        "/api/skills/agent-skill/rollback",
+        json={"rev": latest["rev"] - 1, "expected_hash": loaded["hash"]},
+    )
+    assert rb.status_code == 200
+    assert "agent 补的坑" not in client.get("/api/skills/agent-skill").json()["content"]

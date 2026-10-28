@@ -30,7 +30,14 @@ from .core.session import ResourceLeases, SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
 from .llm.gateway import Gateway
 from .memory.runs import RunStore
-from .memory.state import ExecutionLog, JobStore, MCPSchemaStore, OutboxStore, StateStore
+from .memory.state import (
+    ExecutionLog,
+    JobStore,
+    MCPSchemaStore,
+    OutboxStore,
+    SkillAckStore,
+    StateStore,
+)
 from .memory.artifacts import ArtifactStore
 from .memory.usage import UsageLedger
 from .memory.guard import MemoryGuard
@@ -122,6 +129,7 @@ class Runtime:
     artifacts: ArtifactStore | None = None    # 产物存储（D15）
     outbox: OutboxStore | None = None         # 投递 outbox：QQ 掉线不丢心跳结果（D17）
     mcp_schemas: MCPSchemaStore | None = None # MCP 工具目录指纹：漂移提醒（D19）
+    skill_acks: SkillAckStore | None = None   # 技能变更已读标记：待审阅队列（D18）
     qq: OneBotClient | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
@@ -206,6 +214,8 @@ def build_runtime(
     outbox = OutboxStore(state)
     # MCP 工具目录指纹（D19）：服务升级换 schema 后提醒复查只读授权
     mcp_schemas = MCPSchemaStore(state)
+    # 技能变更已读标记（D18）：agent/review 自动改技能进待审阅队列
+    skill_acks = SkillAckStore(state)
     gateway = Gateway(config.models, llm=config.llm, ledger=usage)
     try:
         pruned = usage.prune(keep_days=180)
@@ -399,6 +409,7 @@ def build_runtime(
         artifacts=artifacts,
         outbox=outbox,
         mcp_schemas=mcp_schemas,
+        skill_acks=skill_acks,
         runs=runs,
         active_runs=active_runs,
         session_gate=session_gate,

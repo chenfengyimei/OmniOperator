@@ -33,7 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -237,6 +237,14 @@ CREATE TABLE IF NOT EXISTS mcp_schemas (
 );
 """
 
+_SCHEMA_V9 = """
+CREATE TABLE IF NOT EXISTS skill_acks (
+    skill TEXT PRIMARY KEY,
+    rev INTEGER NOT NULL,
+    acked_at TEXT NOT NULL
+);
+"""
+
 _MIGRATIONS: dict[int, str] = {
     1: _SCHEMA_V1,
     2: _SCHEMA_V2,
@@ -246,6 +254,7 @@ _MIGRATIONS: dict[int, str] = {
     6: _SCHEMA_V6,
     7: _SCHEMA_V7,
     8: _SCHEMA_V8,
+    9: _SCHEMA_V9,
 }
 
 SESSION_RESOURCE = "session:{}"
@@ -1362,3 +1371,40 @@ class MCPSchemaStore:
             "confirmed_at": rows[0][2],
             "seen_at": rows[0][3],
         }
+
+
+class SkillAckStore:
+    """技能变更的「已读」标记（D18）：待审阅 = 标记之后由 agent/review 写下的修订。
+
+    标记只前进不后退（`MAX`），刷新页面不会把已读变回未读；
+    用户自己的编辑器保存（author=user）与磁盘外部改动的快照（author=external）
+    本来就不进待审阅队列，标记也不因它们变化。
+    """
+
+    def __init__(self, state: StateStore) -> None:
+        self._state = state
+
+    def ack(self, skill: str, rev: int) -> int:
+        """标记已读到 rev（只前进）；返回标记后的值。"""
+        now = to_iso(dt.datetime.now().astimezone())
+        with self._state._tx() as conn:
+            conn.execute(
+                "INSERT INTO skill_acks(skill, rev, acked_at) VALUES (?,?,?)"
+                " ON CONFLICT(skill) DO UPDATE SET"
+                " rev = MAX(skill_acks.rev, excluded.rev), acked_at = excluded.acked_at",
+                (skill, max(0, int(rev)), now),
+            )
+            row = conn.execute(
+                "SELECT rev FROM skill_acks WHERE skill = ?", (skill,)
+            ).fetchone()
+            return int(row[0])
+
+    def acked(self, skill: str) -> int:
+        rows = self._state._read(
+            "SELECT rev FROM skill_acks WHERE skill = ?", (skill,)
+        )
+        return int(rows[0][0]) if rows else 0
+
+    def acked_all(self) -> dict[str, int]:
+        rows = self._state._read("SELECT skill, rev FROM skill_acks")
+        return {str(r[0]): int(r[1]) for r in rows}
