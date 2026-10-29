@@ -34,7 +34,7 @@ MODULES = (
     Module('http-skills', '技能与审阅 API', 'Web 接口', ('channels/web_api/skills.py',), '技能编辑/修订/差异/回滚和待审阅状态，保留静态路由优先级。', ('PROJECT_INDEX.md',), ('test_web_api.py', 'test_skills_history.py')),
     Module('http-artifacts', '产物 API', 'Web 接口', ('channels/web_api/artifacts.py',), '产物列表、指纹验证读取和清理，统一领域错误映射。', ('PROJECT_INDEX.md',), ('test_artifacts.py',)),
     Module('http-approvals', '审批 API', 'Web 接口', ('channels/web_api/approvals.py',), '待批准事项和人工决定；不构造或绕过审批器。', ('ARCHITECTURE.md',), ('test_web_auth.py',)),
-    Module('http-mcp', 'MCP 管理 API', 'Web 接口', ('channels/web_api/mcp.py',), '只读状态、显式发现、目录复核和重连。', ('MCP.md',), ('test_mcp.py',)),
+    Module('http-mcp', 'MCP 管理 API', 'Web 接口', ('channels/web_api/mcp.py', 'channels/web_static/mcp/'), '只读状态、显式发现、目录复核和重连。', ('MCP.md',), ('test_mcp.py',)),
     Module('http-operations', '服务与诊断 API', 'Web 接口', ('channels/web_api/operations.py',), '系统概览、doctor、备份、服务启停和日志。', ('OPERATIONS.md',), ('test_web.py',)),
     Module('http-automation', '调度与投递 API', 'Web 接口', ('channels/web_api/automation.py',), '任务创建/编辑/启停、历史和 outbox 人工处理。', ('PROJECT_INDEX.md',), ('test_cron.py',)),
     Module('http-publications', '发布草稿 API', 'Web 接口', ('channels/web_api/publications.py',), '草稿查询、乐观编辑和未知结果核查，不直接发布。', ('BILIBILI_WRITING.md',), ('test_bilibili_publishing.py',)),

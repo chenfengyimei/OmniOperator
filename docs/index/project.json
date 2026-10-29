@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "332962f6ae014ffc06666043093d6981a3d5ecf8f5f78068090c537f9bde47c0",
+  "source_sha256": "c6cc1f94527c5261f5b340e2c03e6755ca6a9f805ebf54ed420940b712304bb3",
   "modules": [
     {
       "id": "assembly",
@@ -19,7 +19,7 @@
       "files": [
         "src/omni/bootstrap.py"
       ],
-      "lines": 620,
+      "lines": 621,
       "dependencies": [
         "android",
         "bilibili",
@@ -64,7 +64,7 @@
       "files": [
         "src/omni/config.py"
       ],
-      "lines": 535,
+      "lines": 538,
       "dependencies": []
     },
     {
@@ -289,7 +289,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2133,
+      "lines": 2134,
       "dependencies": [
         "assembly",
         "config",
@@ -533,7 +533,8 @@
       "title": "MCP 管理 API",
       "category": "Web 接口",
       "prefixes": [
-        "channels/web_api/mcp.py"
+        "channels/web_api/mcp.py",
+        "channels/web_static/mcp/"
       ],
       "purpose": "只读状态、显式发现、目录复核和重连。",
       "docs": [
@@ -543,9 +544,12 @@
         "tests/test_mcp.py"
       ],
       "files": [
-        "src/omni/channels/web_api/mcp.py"
+        "src/omni/channels/web_api/mcp.py",
+        "src/omni/channels/web_static/mcp/index.html",
+        "src/omni/channels/web_static/mcp/mcp.css",
+        "src/omni/channels/web_static/mcp/mcp.js"
       ],
-      "lines": 102,
+      "lines": 145,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -1185,9 +1189,10 @@
         "src/omni/tools/mcp/client.py",
         "src/omni/tools/mcp/tools.py"
       ],
-      "lines": 588,
+      "lines": 607,
       "dependencies": [
         "config",
+        "platform",
         "toolkit"
       ]
     },
@@ -1339,9 +1344,10 @@
         "src/omni/system/provenance.py",
         "src/omni/system/release_gate.py",
         "src/omni/system/services.py",
-        "src/omni/system/soak.py"
+        "src/omni/system/soak.py",
+        "src/omni/system/stderr_log.py"
       ],
-      "lines": 2160,
+      "lines": 2216,
       "dependencies": [
         "config"
       ]
@@ -1388,7 +1394,7 @@
       "path": "src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 620,
+      "lines": 621,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1689,14 +1695,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 472,
+          "line": 473,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 553,
+          "line": 554,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -3393,7 +3399,7 @@
       "path": "src/omni/channels/web_api/mcp.py",
       "module": "http-mcp",
       "python_module": "omni.channels.web_api.mcp",
-      "lines": 102,
+      "lines": 135,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.schemas",
@@ -3412,15 +3418,74 @@
           }
         },
         {
-          "name": "create_mcp_router.mcp_overview",
+          "name": "create_mcp_router.mcp_health",
           "line": 19,
+          "kind": "function",
+          "parameters": [
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "create_mcp_router.mcp_logs",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "create_mcp_router.mcp_connect",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "create_mcp_router.mcp_disconnect",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "create_mcp_router.mcp_catalog",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "server",
+            "offset",
+            "limit"
+          ],
+          "annotations": {
+            "server": "str",
+            "offset": "int",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_mcp_router.mcp_overview",
+          "line": 52,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_mcp_router.mcp_tools",
-          "line": 44,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "server",
@@ -3433,7 +3498,7 @@
         },
         {
           "name": "create_mcp_router.mcp_confirm_schema",
-          "line": 75,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "server",
@@ -3446,7 +3511,7 @@
         },
         {
           "name": "create_mcp_router.mcp_reset",
-          "line": 91,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "server"
@@ -4424,7 +4489,7 @@
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 1479,
+      "lines": 1480,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4453,6 +4518,36 @@
     {
       "path": "src/omni/channels/web_static/jobs/jobs.js",
       "module": "command-jobs",
+      "python_module": null,
+      "lines": 6,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/mcp/index.html",
+      "module": "http-mcp",
+      "python_module": null,
+      "lines": 3,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/mcp/mcp.css",
+      "module": "http-mcp",
+      "python_module": null,
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/mcp/mcp.js",
+      "module": "http-mcp",
       "python_module": null,
       "lines": 6,
       "imports": [],
@@ -4642,7 +4737,7 @@
       "path": "src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 535,
+      "lines": 538,
       "imports": [],
       "symbols": [
         {
@@ -4821,7 +4916,7 @@
         },
         {
           "name": "MCPServerConfig.nonblank_command",
-          "line": 388,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "cls",
@@ -4833,7 +4928,7 @@
         },
         {
           "name": "MCPServerConfig.readonly_subset",
-          "line": 394,
+          "line": 397,
           "kind": "function",
           "parameters": [
             "self"
@@ -4842,12 +4937,12 @@
         },
         {
           "name": "MCPConfig",
-          "line": 400,
+          "line": 403,
           "kind": "class"
         },
         {
           "name": "MCPConfig.server_names",
-          "line": 406,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "cls",
@@ -4859,12 +4954,12 @@
         },
         {
           "name": "Desktop",
-          "line": 414,
+          "line": 417,
           "kind": "class"
         },
         {
           "name": "Desktop.absolute_apps",
-          "line": 425,
+          "line": 428,
           "kind": "function",
           "parameters": [
             "cls",
@@ -4874,12 +4969,12 @@
         },
         {
           "name": "Embedding",
-          "line": 431,
+          "line": 434,
           "kind": "class"
         },
         {
           "name": "Embedding.validate_provider",
-          "line": 449,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self"
@@ -4888,27 +4983,27 @@
         },
         {
           "name": "Cron",
-          "line": 469,
+          "line": 472,
           "kind": "class"
         },
         {
           "name": "CommandJobsConfig",
-          "line": 474,
+          "line": 477,
           "kind": "class"
         },
         {
           "name": "TerminalConfig",
-          "line": 484,
+          "line": 487,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 492,
+          "line": 495,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 518,
+          "line": 521,
           "kind": "function",
           "parameters": [
             "path"
@@ -4919,7 +5014,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 526,
+          "line": 529,
           "kind": "function",
           "parameters": [
             "path"
@@ -15513,6 +15608,65 @@
       "summary": "只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。"
     },
     {
+      "path": "src/omni/system/stderr_log.py",
+      "module": "platform",
+      "python_module": "omni.system.stderr_log",
+      "lines": 56,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "StderrLog",
+          "line": 10,
+          "kind": "class"
+        },
+        {
+          "name": "StderrLog.__init__",
+          "line": 11,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path",
+            "secrets",
+            "max_bytes",
+            "segments"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "StderrLog._emit",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "text"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "StderrLog._pump",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "StderrLog.close",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "wait_s"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。"
+    },
+    {
       "path": "src/omni/tools/__init__.py",
       "module": "toolkit",
       "python_module": "omni.tools",
@@ -19021,19 +19175,20 @@
       "path": "src/omni/tools/mcp/client.py",
       "module": "mcp",
       "python_module": "omni.tools.mcp.client",
-      "lines": 511,
+      "lines": 529,
       "imports": [
-        "omni.config"
+        "omni.config",
+        "omni.system.stderr_log"
       ],
       "symbols": [
         {
           "name": "MCPError",
-          "line": 25,
+          "line": 28,
           "kind": "class"
         },
         {
           "name": "MCPError.__init__",
-          "line": 32,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self",
@@ -19047,12 +19202,12 @@
         },
         {
           "name": "CatalogTrust",
-          "line": 37,
+          "line": 40,
           "kind": "class"
         },
         {
           "name": "CatalogTrust.observe",
-          "line": 40,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "self",
@@ -19068,7 +19223,7 @@
         },
         {
           "name": "CatalogTrust.status",
-          "line": 41,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self",
@@ -19080,7 +19235,7 @@
         },
         {
           "name": "resolve_env",
-          "line": 44,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "values"
@@ -19091,7 +19246,7 @@
         },
         {
           "name": "resolve_env.replace",
-          "line": 46,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "match"
@@ -19101,13 +19256,18 @@
           }
         },
         {
+          "name": "PendingRequest",
+          "line": 60,
+          "kind": "class"
+        },
+        {
           "name": "MCPConnection",
-          "line": 56,
+          "line": 68,
           "kind": "class"
         },
         {
           "name": "MCPConnection.__init__",
-          "line": 59,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -19116,12 +19276,7 @@
             "log_dir",
             "catalog_guard"
           ],
-          "annotations": {
-            "name": "str",
-            "config": "MCPServerConfig",
-            "log_dir": "Path",
-            "catalog_guard": "Callable[[MCPServerConfig, list[dict[str, Any]]], bool] | None"
-          }
+          "annotations": {}
         },
         {
           "name": "MCPConnection.request",
@@ -19130,16 +19285,14 @@
           "parameters": [
             "self",
             "operation",
-            "arguments"
+            "arguments",
+            "cancel"
           ],
-          "annotations": {
-            "operation": "str",
-            "arguments": "dict[str, Any]"
-          }
+          "annotations": {}
         },
         {
           "name": "MCPConnection._signal",
-          "line": 99,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "self"
@@ -19148,7 +19301,7 @@
         },
         {
           "name": "MCPConnection._cancel",
-          "line": 108,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self"
@@ -19157,7 +19310,7 @@
         },
         {
           "name": "MCPConnection._run",
-          "line": 118,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self"
@@ -19166,7 +19319,7 @@
         },
         {
           "name": "MCPConnection._serve",
-          "line": 121,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self"
@@ -19175,7 +19328,7 @@
         },
         {
           "name": "MCPConnection.status",
-          "line": 204,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self"
@@ -19184,18 +19337,16 @@
         },
         {
           "name": "MCPConnection._catalog",
-          "line": 233,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "client"
           ],
-          "annotations": {
-            "client": "Any"
-          }
+          "annotations": {}
         },
         {
           "name": "MCPConnection.close",
-          "line": 250,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -19207,7 +19358,7 @@
         },
         {
           "name": "render_result",
-          "line": 266,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "result",
@@ -19220,18 +19371,19 @@
         },
         {
           "name": "MCPManager",
-          "line": 290,
+          "line": 252,
           "kind": "class"
         },
         {
           "name": "MCPManager.__init__",
-          "line": 304,
+          "line": 266,
           "kind": "function",
           "parameters": [
             "self",
             "config",
             "log_dir",
-            "schema_store"
+            "schema_store",
+            "config_provider"
           ],
           "annotations": {
             "config": "MCPConfig",
@@ -19241,7 +19393,7 @@
         },
         {
           "name": "MCPManager._guard",
-          "line": 315,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self",
@@ -19253,7 +19405,7 @@
         },
         {
           "name": "MCPManager._guard.check",
-          "line": 316,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "config",
@@ -19266,7 +19418,7 @@
         },
         {
           "name": "MCPManager.servers",
-          "line": 331,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self"
@@ -19275,7 +19427,7 @@
         },
         {
           "name": "MCPManager.fingerprint",
-          "line": 335,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "tools"
@@ -19286,7 +19438,7 @@
         },
         {
           "name": "MCPManager.status",
-          "line": 350,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self"
@@ -19295,7 +19447,7 @@
         },
         {
           "name": "MCPManager.reset",
-          "line": 381,
+          "line": 349,
           "kind": "function",
           "parameters": [
             "self",
@@ -19307,7 +19459,7 @@
         },
         {
           "name": "MCPManager._rebuild",
-          "line": 394,
+          "line": 362,
           "kind": "function",
           "parameters": [
             "self",
@@ -19319,7 +19471,7 @@
         },
         {
           "name": "MCPManager._live",
-          "line": 409,
+          "line": 378,
           "kind": "function",
           "parameters": [
             "self",
@@ -19331,7 +19483,7 @@
         },
         {
           "name": "MCPManager._live_locked",
-          "line": 413,
+          "line": 382,
           "kind": "function",
           "parameters": [
             "self",
@@ -19343,7 +19495,7 @@
         },
         {
           "name": "MCPManager._note_request_failure",
-          "line": 432,
+          "line": 403,
           "kind": "function",
           "parameters": [
             "self",
@@ -19357,19 +19509,21 @@
         },
         {
           "name": "MCPManager._note_success",
-          "line": 447,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "self",
-            "server"
+            "server",
+            "conn"
           ],
           "annotations": {
-            "server": "str"
+            "server": "str",
+            "conn": "MCPConnection"
           }
         },
         {
           "name": "MCPManager._connection",
-          "line": 452,
+          "line": 426,
           "kind": "function",
           "parameters": [
             "self",
@@ -19381,11 +19535,12 @@
         },
         {
           "name": "MCPManager.list_tools",
-          "line": 459,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "self",
-            "server"
+            "server",
+            "cancel"
           ],
           "annotations": {
             "server": "str"
@@ -19393,7 +19548,7 @@
         },
         {
           "name": "MCPManager.call",
-          "line": 471,
+          "line": 445,
           "kind": "function",
           "parameters": [
             "self",
@@ -19411,14 +19566,15 @@
         },
         {
           "name": "MCPManager.call_outcome",
-          "line": 475,
+          "line": 449,
           "kind": "function",
           "parameters": [
             "self",
             "server",
             "name",
             "arguments",
-            "readonly"
+            "readonly",
+            "cancel"
           ],
           "annotations": {
             "server": "str",
@@ -19428,8 +19584,53 @@
           }
         },
         {
+          "name": "MCPManager.disconnect",
+          "line": 473,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "MCPManager.configuration_matches",
+          "line": 481,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MCPManager.health",
+          "line": 486,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "MCPManager.logs",
+          "line": 501,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
           "name": "MCPManager.close",
-          "line": 499,
+          "line": 517,
           "kind": "function",
           "parameters": [
             "self",
@@ -19446,7 +19647,7 @@
       "path": "src/omni/tools/mcp/tools.py",
       "module": "mcp",
       "python_module": "omni.tools.mcp.tools",
-      "lines": 76,
+      "lines": 77,
       "imports": [
         "omni.tools.mcp.client",
         "omni.tools.registry",
@@ -19459,7 +19660,8 @@
           "kind": "function",
           "parameters": [
             "registry",
-            "manager"
+            "manager",
+            "run_ref"
           ],
           "annotations": {
             "registry": "ToolRegistry",
@@ -23270,7 +23472,7 @@
       "method": "GET",
       "path": "/api/mcp/overview",
       "source": "src/omni/channels/web_api/mcp.py",
-      "line": 19,
+      "line": 52,
       "handler": "create_mcp_router.mcp_overview",
       "module": "http-mcp",
       "parameters": [],
@@ -23278,10 +23480,29 @@
       "scope": "workbench"
     },
     {
+      "method": "GET",
+      "path": "/api/mcp/{server}/catalog",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 42,
+      "handler": "create_mcp_router.mcp_catalog",
+      "module": "http-mcp",
+      "parameters": [
+        "server",
+        "offset",
+        "limit"
+      ],
+      "annotations": {
+        "server": "str",
+        "offset": "int",
+        "limit": "int"
+      },
+      "scope": "workbench"
+    },
+    {
       "method": "POST",
       "path": "/api/mcp/{server}/confirm-schema",
       "source": "src/omni/channels/web_api/mcp.py",
-      "line": 75,
+      "line": 108,
       "handler": "create_mcp_router.mcp_confirm_schema",
       "module": "http-mcp",
       "parameters": [
@@ -23296,9 +23517,69 @@
     },
     {
       "method": "POST",
+      "path": "/api/mcp/{server}/connect",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 30,
+      "handler": "create_mcp_router.mcp_connect",
+      "module": "http-mcp",
+      "parameters": [
+        "server"
+      ],
+      "annotations": {
+        "server": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/mcp/{server}/disconnect",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 37,
+      "handler": "create_mcp_router.mcp_disconnect",
+      "module": "http-mcp",
+      "parameters": [
+        "server"
+      ],
+      "annotations": {
+        "server": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/mcp/{server}/health",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 19,
+      "handler": "create_mcp_router.mcp_health",
+      "module": "http-mcp",
+      "parameters": [
+        "server"
+      ],
+      "annotations": {
+        "server": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/mcp/{server}/logs",
+      "source": "src/omni/channels/web_api/mcp.py",
+      "line": 25,
+      "handler": "create_mcp_router.mcp_logs",
+      "module": "http-mcp",
+      "parameters": [
+        "server"
+      ],
+      "annotations": {
+        "server": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
       "path": "/api/mcp/{server}/reset",
       "source": "src/omni/channels/web_api/mcp.py",
-      "line": 91,
+      "line": 124,
       "handler": "create_mcp_router.mcp_reset",
       "module": "http-mcp",
       "parameters": [
@@ -23313,7 +23594,7 @@
       "method": "GET",
       "path": "/api/mcp/{server}/tools",
       "source": "src/omni/channels/web_api/mcp.py",
-      "line": 44,
+      "line": 77,
       "handler": "create_mcp_router.mcp_tools",
       "module": "http-mcp",
       "parameters": [
@@ -24663,7 +24944,7 @@
     {
       "name": "mcp_call_tool",
       "source": "src/omni/tools/mcp/tools.py",
-      "line": 72,
+      "line": 73,
       "module": "mcp",
       "risk": "confirm",
       "requires_human": true,
@@ -24681,7 +24962,7 @@
     {
       "name": "mcp_read_tool",
       "source": "src/omni/tools/mcp/tools.py",
-      "line": 68,
+      "line": 69,
       "module": "mcp",
       "risk": "safe",
       "requires_human": false,
@@ -25139,7 +25420,7 @@
         {
           "source": "src/omni/tools/mcp/client.py",
           "symbol": "MCPManager",
-          "line": 290
+          "line": 252
         },
         {
           "source": "src/omni/memory/state.py",
@@ -26329,6 +26610,21 @@
           "required": false
         },
         {
+          "name": "max_waiting",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "log_bytes",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "log_segments",
+          "type": "int",
+          "required": false
+        },
+        {
           "name": "read_only_tools",
           "type": "list[str]",
           "required": false
@@ -26338,7 +26634,7 @@
     {
       "name": "MCPConfig",
       "source": "src/omni/config.py",
-      "line": 400,
+      "line": 403,
       "fields": [
         {
           "name": "servers",
@@ -26350,7 +26646,7 @@
     {
       "name": "Desktop",
       "source": "src/omni/config.py",
-      "line": 414,
+      "line": 417,
       "fields": [
         {
           "name": "enabled",
@@ -26387,7 +26683,7 @@
     {
       "name": "Embedding",
       "source": "src/omni/config.py",
-      "line": 431,
+      "line": 434,
       "fields": [
         {
           "name": "enabled",
@@ -26464,7 +26760,7 @@
     {
       "name": "Cron",
       "source": "src/omni/config.py",
-      "line": 469,
+      "line": 472,
       "fields": [
         {
           "name": "max_running",
@@ -26476,7 +26772,7 @@
     {
       "name": "CommandJobsConfig",
       "source": "src/omni/config.py",
-      "line": 474,
+      "line": 477,
       "fields": [
         {
           "name": "max_running",
@@ -26513,7 +26809,7 @@
     {
       "name": "TerminalConfig",
       "source": "src/omni/config.py",
-      "line": 484,
+      "line": 487,
       "fields": [
         {
           "name": "max_sessions",
@@ -26540,7 +26836,7 @@
     {
       "name": "AppConfig",
       "source": "src/omni/config.py",
-      "line": 492,
+      "line": 495,
       "fields": [
         {
           "name": "command_jobs",

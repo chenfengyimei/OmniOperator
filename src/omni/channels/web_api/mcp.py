@@ -15,6 +15,39 @@ if TYPE_CHECKING:
 def create_mcp_router(runtime: Runtime) -> APIRouter:
     router = APIRouter(tags=["mcp"])
 
+    @router.get('/api/mcp/{server}/health')
+    def mcp_health(server: str):
+        try:
+            return {**runtime.mcp.health(server),'configuration_matches':runtime.mcp.configuration_matches()}
+        except MCPError as exc:raise HTTPException(404,str(exc)) from exc
+
+    @router.get('/api/mcp/{server}/logs')
+    def mcp_logs(server: str):
+        try:return runtime.mcp.logs(server)
+        except (MCPError,OSError) as exc:raise HTTPException(409,str(exc)) from exc
+
+    @router.post('/api/mcp/{server}/connect')
+    def mcp_connect(server: str):
+        try:
+            tools=runtime.mcp.list_tools(server)
+            return {'state':'ready','tool_count':len(tools)}
+        except MCPError as exc:raise HTTPException(409,str(exc)) from exc
+
+    @router.post('/api/mcp/{server}/disconnect')
+    def mcp_disconnect(server: str):
+        try:return runtime.mcp.disconnect(server)
+        except MCPError as exc:raise HTTPException(409,str(exc)) from exc
+
+    @router.get('/api/mcp/{server}/catalog')
+    def mcp_catalog(server: str, offset: int = 0, limit: int = 20):
+        if offset<0 or not 1<=limit<=50:raise HTTPException(422,'目录分页范围非法')
+        try:rows=runtime.mcp.list_tools(server)
+        except MCPError as exc:raise HTTPException(409,str(exc)) from exc
+        schema=runtime.mcp_schemas.status(server) if runtime.mcp_schemas else None
+        return {'tools':rows[offset:offset+limit],'total':len(rows),'offset':offset,
+                'fingerprint':schema['fingerprint'] if schema else '',
+                'confirmed':bool(schema and schema['confirmed_at'])}
+
     @router.get("/api/mcp/overview")
     def mcp_overview() -> dict[str, Any]:
         """全部已配置 MCP 服务的状态：纯派生，**不启动任何服务**。

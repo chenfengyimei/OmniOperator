@@ -44,7 +44,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 渐进发现与授权校验后调用外部进程；结果未知不重放写操作。
 
-`register_mcp_tools`（[src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L18)） → `MCPManager`（[src/omni/tools/mcp/client.py](../../src/omni/tools/mcp/client.py#L290)） → `MCPSchemaStore`（[src/omni/memory/state.py](../../src/omni/memory/state.py#L1511)）
+`register_mcp_tools`（[src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L18)） → `MCPManager`（[src/omni/tools/mcp/client.py](../../src/omni/tools/mcp/client.py#L252)） → `MCPSchemaStore`（[src/omni/memory/state.py](../../src/omni/memory/state.py#L1511)）
 
 ## 声明路由
 
@@ -81,10 +81,15 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/facts/detail` | `create_memory_router.get_facts_detail` | [src/omni/channels/web_api/memory.py](../../src/omni/channels/web_api/memory.py#L23) |
 | workbench | DELETE | `/api/facts/{fact_id}` | `create_memory_router.delete_fact` | [src/omni/channels/web_api/memory.py](../../src/omni/channels/web_api/memory.py#L28) |
 | workbench | GET | `/api/llm/usage` | `create_runs_router.llm_usage` | [src/omni/channels/web_api/runs.py](../../src/omni/channels/web_api/runs.py#L69) |
-| workbench | GET | `/api/mcp/overview` | `create_mcp_router.mcp_overview` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L19) |
-| workbench | POST | `/api/mcp/{server}/confirm-schema` | `create_mcp_router.mcp_confirm_schema` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L75) |
-| workbench | POST | `/api/mcp/{server}/reset` | `create_mcp_router.mcp_reset` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L91) |
-| workbench | GET | `/api/mcp/{server}/tools` | `create_mcp_router.mcp_tools` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L44) |
+| workbench | GET | `/api/mcp/overview` | `create_mcp_router.mcp_overview` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L52) |
+| workbench | GET | `/api/mcp/{server}/catalog` | `create_mcp_router.mcp_catalog` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L42) |
+| workbench | POST | `/api/mcp/{server}/confirm-schema` | `create_mcp_router.mcp_confirm_schema` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L108) |
+| workbench | POST | `/api/mcp/{server}/connect` | `create_mcp_router.mcp_connect` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L30) |
+| workbench | POST | `/api/mcp/{server}/disconnect` | `create_mcp_router.mcp_disconnect` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L37) |
+| workbench | GET | `/api/mcp/{server}/health` | `create_mcp_router.mcp_health` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L19) |
+| workbench | GET | `/api/mcp/{server}/logs` | `create_mcp_router.mcp_logs` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L25) |
+| workbench | POST | `/api/mcp/{server}/reset` | `create_mcp_router.mcp_reset` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L124) |
+| workbench | GET | `/api/mcp/{server}/tools` | `create_mcp_router.mcp_tools` | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py#L77) |
 | workbench | GET | `/api/memory/retrieval` | `create_memory_router.retrieval_status` | [src/omni/channels/web_api/memory.py](../../src/omni/channels/web_api/memory.py#L125) |
 | workbench | GET | `/api/memory/status` | `create_memory_router.memory_status` | [src/omni/channels/web_api/memory.py](../../src/omni/channels/web_api/memory.py#L35) |
 | workbench | GET | `/api/profile` | `create_memory_router.get_profile` | [src/omni/channels/web_api/memory.py](../../src/omni/channels/web_api/memory.py#L58) |
@@ -645,11 +650,14 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | enabled | `bool` | 否 |
 | timeout_s | `float` | 否 |
 | allowed_tools | `list[str] \| None` | 否 |
+| max_waiting | `int` | 否 |
+| log_bytes | `int` | 否 |
+| log_segments | `int` | 否 |
 | read_only_tools | `list[str]` | 否 |
 
 ### MCPConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L400)。
+定位：[src/omni/config.py](../../src/omni/config.py#L403)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -657,7 +665,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Desktop
 
-定位：[src/omni/config.py](../../src/omni/config.py#L414)。
+定位：[src/omni/config.py](../../src/omni/config.py#L417)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -670,7 +678,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Embedding
 
-定位：[src/omni/config.py](../../src/omni/config.py#L431)。
+定位：[src/omni/config.py](../../src/omni/config.py#L434)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -691,7 +699,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Cron
 
-定位：[src/omni/config.py](../../src/omni/config.py#L469)。
+定位：[src/omni/config.py](../../src/omni/config.py#L472)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -699,7 +707,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### CommandJobsConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L474)。
+定位：[src/omni/config.py](../../src/omni/config.py#L477)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -712,7 +720,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### TerminalConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L484)。
+定位：[src/omni/config.py](../../src/omni/config.py#L487)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -723,7 +731,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### AppConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L492)。
+定位：[src/omni/config.py](../../src/omni/config.py#L495)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -795,9 +803,9 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `files_write` | confirm | True | False | files | [src/omni/tools/files/tools.py](../../src/omni/tools/files/tools.py#L514) |
 | `forget` | confirm | False | False | personal | [src/omni/tools/personal/facts.py](../../src/omni/tools/personal/facts.py#L136) |
 | `get_time` | safe | False | True | personal | [src/omni/tools/personal/clock.py](../../src/omni/tools/personal/clock.py#L14) |
-| `mcp_call_tool` | confirm | True | False | mcp | [src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L72) |
+| `mcp_call_tool` | confirm | True | False | mcp | [src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L73) |
 | `mcp_list_tools` | safe | False | True | mcp | [src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L41) |
-| `mcp_read_tool` | safe | False | True | mcp | [src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L68) |
+| `mcp_read_tool` | safe | False | True | mcp | [src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L69) |
 | `peek_command` | safe | False | True | shell | [src/omni/tools/shell/tools.py](../../src/omni/tools/shell/tools.py#L214) |
 | `plugin_activate` | confirm | True | False | plugins | [src/omni/plugins/tools.py](../../src/omni/plugins/tools.py#L116) |
 | `plugin_disable` | safe | False | False | plugins | [src/omni/plugins/tools.py](../../src/omni/plugins/tools.py#L151) |

@@ -15,7 +15,7 @@ from ..result import ToolResult
 from .client import MCPError, MCPManager
 
 
-def register_mcp_tools(registry: ToolRegistry, manager: MCPManager) -> None:
+def register_mcp_tools(registry: ToolRegistry, manager: MCPManager, *, run_ref=None) -> None:
     def list_tools(args: dict[str, Any]) -> ToolResult:
         server = str(args.get("server", "")).strip()
         if not server:
@@ -26,7 +26,7 @@ def register_mcp_tools(registry: ToolRegistry, manager: MCPManager) -> None:
                 "错误：offset 不能为负，limit 必须为 1–50", error_code="bad_arguments"
             )
         try:
-            rows = manager.list_tools(server)
+            rows = manager.list_tools(server, cancel=run_ref.get() if run_ref else None)
         except MCPError as exc:
             if exc.uncertain:
                 return ToolResult.unknown(f"错误：{exc}", error_code="mcp_uncertain")
@@ -55,6 +55,7 @@ def register_mcp_tools(registry: ToolRegistry, manager: MCPManager) -> None:
             text, remote_error = manager.call_outcome(
                 str(args.get("server", "")), str(args.get("name", "")),
                 args.get("arguments", {}), readonly=readonly,
+                cancel=run_ref.get() if run_ref else None,
             )
         except MCPError as exc:
             if exc.uncertain:

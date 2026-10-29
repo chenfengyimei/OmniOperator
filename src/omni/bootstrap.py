@@ -462,8 +462,9 @@ def build_runtime(
         resolve_dir=_resolve_plugin_dir,
     )
     register_community_tools(registry, community_client)
-    mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs, schema_store=mcp_schemas)
-    register_mcp_tools(registry, mcp)
+    mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs, schema_store=mcp_schemas,
+                     config_provider=lambda: load_config(paths.config).mcp)
+    register_mcp_tools(registry, mcp, run_ref=run_ref)
     if mcp.servers():
         atexit.register(mcp.close)
     # Cookie 路径必须注入：否则临时实例会读到真机的 B 站登录态

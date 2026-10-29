@@ -69,3 +69,22 @@ stderr 日志在 `data/mcp_logs/<服务名>.log`；`build_runtime(data_dir=...)`
 
 实现依据：[官方 Python SDK](https://github.com/modelcontextprotocol/python-sdk)、
 [MCP 工具协议](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)。
+
+## C04 本地 stdio 完善
+
+独立页面 `/mcp/` 提供被动状态/诊断、显式连接检查、断开、reset、完整分页目录、
+目录指纹复查及有限日志。只读授权只由用户白名单与当前指纹决定；配置仍在 YAML，
+配置与当前实例不一致时停止新调用，需从原入口重启，不热修改命令或权限。
+
+每服务 max_waiting 默认 8；等待与握手/发现/调用共用请求总预算。
+排队超时/取消保证不派发工具调用，不能取消同服务正在执行的另一请求；在途取消/超时
+封闭连接并报告 unknown，不自动重放。服务代际拒绝旧目录授权和旧成功回调覆盖新状态。
+父回合取消从注入 RunRef 传递，协议层不引用 core。
+
+SDK stderr 通过持续排空的管道落有限轮转文件：log_bytes 默认 5MiB，log_segments 默认 3。
+显式环境值跨块脱敏；超长/多行凭据时抑制日志正文；磁盘写入失败仍排空，面板显示 log_error。
+日志接口最多读取当前文件末尾 32KiB，不提供任意路径。环境解析失败时不展示旧日志。
+本批授权身份增加解析后环境的哈希，升级后旧 SAFE 指纹需用户重新复查一次。
+
+新增 health/logs/connect/disconnect/catalog 接口均受原鉴权；status/health 不启动程序。
+本轮不做远程传输、OAuth、在线命令/密钥编辑或自动安装。独立源码先 983 项全绿，合入安装器基线后再验证 990 项全绿；未连接生产服务。

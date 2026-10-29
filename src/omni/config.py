@@ -381,6 +381,9 @@ class MCPServerConfig(BaseModel):
     enabled: bool = True
     timeout_s: float = Field(default=30, ge=0.1, le=120)
     allowed_tools: list[str] | None = None  # None=全部可申请人工批准，[]=禁用全部
+    max_waiting: int = Field(default=8, ge=1, le=32)
+    log_bytes: int = Field(default=5242880, ge=16384, le=16777216)
+    log_segments: int = Field(default=3, ge=1, le=5)
     read_only_tools: list[str] = Field(default_factory=list)  # 用户审核的无副作用工具
 
     @field_validator("command")

@@ -488,3 +488,9 @@ CommandJobStore/CommandJobManager 只在 bootstrap 构造；纯迁移声明在 m
 state v14 仓储只管理数据，tools.shell.jobs 管理独立非交互进程，不引用 channels.terminal。
 父运行取消经注入 RunHandle 观察，不反向 import core；Runtime.close 在关闭 DB 前等待任务。
 新 command_logs 路径由 RuntimePaths 注入；模型 list/read 只能消费绑定会话，HTTP 不能直接启动。
+
+### 本地 MCP C04
+
+stdio 所有者任务保持唯一；等待请求有界且共享总 deadline，未派发与在途未知分别返回。
+连接代际约束授权回调/成功状态；system.stderr_log 只提供平台管道排空、脱敏与轮转，不引用工具。
+配置提供者经 bootstrap 注入，变化后停止新调用；被动状态与诊断不启动外部程序。

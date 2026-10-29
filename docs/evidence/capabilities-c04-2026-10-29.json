@@ -1,0 +1,12 @@
+{
+  "base": "282647f",
+  "tests": 990,
+  "seconds": 180.95,
+  "isolated": true,
+  "modules": 49,
+  "source_files": 192,
+  "route_declarations": 110,
+  "pyright_errors": 0,
+  "production_mcp": false,
+  "git_index": "isolated"
+}

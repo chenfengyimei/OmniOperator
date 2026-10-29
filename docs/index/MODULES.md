@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`332962f6ae014ffc06666043093d6981a3d5ecf8f5f78068090c537f9bde47c0`。包含 49 个职责模块、188 个源码/界面文件。
+源码指纹：`c6cc1f94527c5261f5b340e2c03e6755ca6a9f805ebf54ed420940b712304bb3`。包含 49 个职责模块、192 个源码/界面文件。
 
 ## 运行时组装 · assembly
 
@@ -10,7 +10,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/bootstrap.py](../../src/omni/bootstrap.py) | 620 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [src/omni/bootstrap.py](../../src/omni/bootstrap.py) | 621 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -24,7 +24,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/config.py](../../src/omni/config.py) | 535 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [src/omni/config.py](../../src/omni/config.py) | 538 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -171,7 +171,7 @@
 |---|---:|---|
 | [src/omni/channels/web.py](../../src/omni/channels/web.py) | 406 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 232 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1479 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1480 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm-addon-fit.js](../../src/omni/channels/web_static/vendor/xterm-addon-fit.js) | 2 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.js](../../src/omni/channels/web_static/vendor/xterm.js) | 6 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.min.css](../../src/omni/channels/web_static/vendor/xterm.min.css) | 8 | 平台脚本或界面资源 |
@@ -320,7 +320,10 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py) | 102 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+| [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py) | 135 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+| [src/omni/channels/web_static/mcp/index.html](../../src/omni/channels/web_static/mcp/index.html) | 3 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/mcp.css](../../src/omni/channels/web_static/mcp/mcp.css) | 1 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/mcp.js](../../src/omni/channels/web_static/mcp/mcp.js) | 6 | 平台脚本或界面资源 |
 
 文档：[docs/MCP.md](../../docs/MCP.md)
 
@@ -704,14 +707,14 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/tools/mcp/__init__.py](../../src/omni/tools/mcp/__init__.py) | 1 | 外部 MCP 能力域：本地 stdio 客户端与工具适配；不依赖 LLM 或内核。 |
-| [src/omni/tools/mcp/client.py](../../src/omni/tools/mcp/client.py) | 511 | 同步 agent 到异步 MCP 的桥接：每服务一个会话所有者线程。 |
-| [src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py) | 76 | MCP 工具适配：渐进发现、用户审核只读调用、人工确认调用；不决定传输细节。 |
+| [src/omni/tools/mcp/client.py](../../src/omni/tools/mcp/client.py) | 529 | 同步 agent 到异步 MCP 的桥接：每服务一个会话所有者线程。 |
+| [src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py) | 77 | MCP 工具适配：渐进发现、用户审核只读调用、人工确认调用；不决定传输细节。 |
 
 文档：[docs/MCP.md](../../docs/MCP.md)
 
 测试：[tests/test_mcp.py](../../tests/test_mcp.py)
 
-直接静态依赖：`config`、`toolkit`
+直接静态依赖：`config`、`platform`、`toolkit`
 
 ## 工具公共协议与兼容层 · toolkit
 
@@ -808,6 +811,7 @@
 | [src/omni/system/release_gate.py](../../src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
 | [src/omni/system/services.py](../../src/omni/system/services.py) | 477 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [src/omni/system/soak.py](../../src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
+| [src/omni/system/stderr_log.py](../../src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/ACCEPTANCE.md](../../docs/ACCEPTANCE.md)
 
