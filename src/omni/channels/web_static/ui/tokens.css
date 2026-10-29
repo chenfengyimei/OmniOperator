@@ -1,0 +1,109 @@
+/* ==========================================================================
+   OmniOperator 设计 token——全站唯一 token 源（UI_DESIGN_SYSTEM.md §3）
+   三层结构：种子（唯一允许色值处）→ 派生（组件只准用这层）→ 兼容别名（迁移期）。
+   任何其它 CSS 文件禁止定义 --seed-* / --ui-* / --shell-*（守卫：test_ui_design_tokens）。
+   加载位置：所有页面的第一个样式（先于 base.css）。
+   ========================================================================== */
+
+:root{
+  /* ---- 第 1 层：种子 ---- */
+  --seed-accent:#3ddbd9;
+  --seed-accent2:#7c8cf8;
+  --seed-bg:#070809;
+  --seed-fg:#eae7e2;
+
+  /* ---- 第 2 层：派生表面/文本/边线（color-mix 计算） ---- */
+  --surface-0:var(--seed-bg);
+  --surface-1:color-mix(in oklab,var(--seed-bg) 94%,var(--seed-fg) 6%);
+  --surface-2:color-mix(in oklab,var(--surface-1) 88%,var(--seed-fg) 12%);
+  --surface-3:color-mix(in oklab,var(--surface-2) 85%,var(--seed-fg) 15%);
+  --surface-accent:color-mix(in oklab,var(--surface-2) 86%,var(--seed-accent) 14%);
+  --surface-inset:color-mix(in oklab,var(--surface-0) 62%,transparent);
+
+  --text-1:color-mix(in srgb,var(--seed-fg) 96%,transparent);
+  --text-2:color-mix(in srgb,var(--seed-fg) 71%,transparent);
+  --text-3:color-mix(in srgb,var(--seed-fg) 49%,transparent);
+  --text-4:color-mix(in srgb,var(--seed-fg) 32%,transparent);
+
+  --line-1:color-mix(in srgb,var(--seed-fg) 16%,transparent);
+  --line-2:color-mix(in srgb,var(--seed-fg) 9.5%,transparent);
+  --line-3:color-mix(in srgb,var(--seed-fg) 5.5%,transparent);
+  --line-accent:color-mix(in srgb,var(--seed-accent) 38%,transparent);
+
+  /* 语义状态色：全站只准用这三支 + 派生底/边 */
+  --ok:#4ade80;
+  --warn:#fbbf24;
+  --danger:#f87171;
+  --ok-bg:color-mix(in srgb,var(--ok) 14%,transparent);
+  --ok-bd:color-mix(in srgb,var(--ok) 34%,transparent);
+  --warn-bg:color-mix(in srgb,var(--warn) 14%,transparent);
+  --warn-bd:color-mix(in srgb,var(--warn) 34%,transparent);
+  --danger-bg:color-mix(in srgb,var(--danger) 12%,transparent);
+  --danger-bd:color-mix(in srgb,var(--danger) 36%,transparent);
+
+  /* 渐变/阴影/字体/圆角/动效 */
+  --grad:linear-gradient(135deg,var(--seed-accent),var(--seed-accent2));
+  --sh-1:0 1px 2px color-mix(in srgb,#000 42%,transparent);
+  --sh-2:0 2px 4px -1px color-mix(in srgb,#000 40%,transparent),0 8px 18px -6px color-mix(in srgb,#000 36%,transparent);
+  --sh-3:0 4px 8px -2px color-mix(in srgb,#000 46%,transparent),0 18px 36px -12px color-mix(in srgb,#000 42%,transparent),0 36px 72px -24px color-mix(in srgb,#000 36%,transparent);
+  --font-sans:'Segoe UI Variable Text','Segoe UI',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','Cascadia Code','SF Mono',Consolas,'Courier New',monospace;
+  --r-sm:6px; --r-md:8px; --r-card:12px; --r-lg:16px; --r-full:999px;
+  --rail-w:54px;      /* 工作台左侧图标栏宽 */
+  --app-rail-w:62px;  /* 子站左侧图标栏宽（Phase 2 与工作台合一） */
+  --ease-out:cubic-bezier(.2,.8,.2,1);
+
+  /* 排版刻度（UI_DESIGN_SYSTEM.md §4；下限 10px） */
+  --fs-body:13px; --fs-secondary:12px; --fs-small:11px; --fs-caption:10.5px;
+
+  /* ---- 第 3 层：兼容别名（迁移期唯一别名表，Phase 7 评估删除） ---- */
+  /* 工作台旧变量名（index.html 内联结构样式与 base.css 时代的选择器仍在用） */
+  --bg:var(--surface-0);
+  --panel:var(--surface-1);
+  --panel2:var(--surface-2);
+  --border:var(--line-2);
+  --text:var(--text-1);
+  --dim:var(--text-3);
+  --accent:var(--seed-accent);
+  --accent2:var(--seed-accent2);
+  --user:color-mix(in srgb,var(--seed-accent) 20%,var(--surface-2));
+  --assistant:var(--surface-2);
+  --shadow-card:var(--sh-2);
+  --shadow-pop:var(--sh-3);
+
+  /* base.css 旧变量名（--ui-* 体系） */
+  --ui-bg:var(--surface-0);
+  --ui-panel:var(--surface-1);
+  --ui-border:var(--line-2);
+  --ui-muted:var(--text-3);
+  --ui-accent:var(--seed-accent);
+  --ui-text:var(--text-1);
+
+  /* shell.css 旧变量名（--shell-* 体系，子站应用壳） */
+  --shell-bg:var(--surface-0);
+  --shell-bg-soft:var(--surface-1);
+  --shell-surface:var(--surface-1);
+  --shell-surface-2:var(--surface-2);
+  --shell-surface-3:var(--surface-3);
+  --shell-line:var(--line-2);
+  --shell-line-strong:var(--line-1);
+  --shell-text:var(--text-1);
+  --shell-text-2:var(--text-2);
+  --shell-text-3:var(--text-3);
+  --shell-accent:var(--seed-accent);
+  --shell-accent-2:var(--seed-accent2);
+  --shell-accent-soft:color-mix(in srgb,var(--seed-accent) 11%,transparent);
+  --shell-danger:var(--danger);
+  --shell-warning:var(--warn);
+  --shell-success:var(--ok);
+  --shell-radius-sm:var(--r-md);
+  --shell-radius:var(--r-card);
+  --shell-radius-lg:var(--r-lg);
+  --shell-shadow:var(--sh-2);
+  --shell-font:var(--font-sans);
+  --shell-mono:var(--font-mono);
+
+  /* project.css 旧变量名 */
+  --line:var(--line-2);
+  --muted:var(--text-3);
+}

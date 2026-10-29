@@ -1,11 +1,13 @@
-"""UI 迁移契约守卫：新视觉（rail 骨架 + skin.css 皮肤）不能破坏 JS 依赖。
+"""UI 契约守卫：Phase 1 token 统一后的接线纪律（docs/UI_DESIGN_SYSTEM.md）。
 
-背景：index.html 有约 100 处内联事件绑定和 120+ 个 JS 引用 id，前端没有自动化测试；
-scripts/check_ui_contract.py 是迁移期的静态门禁（id 命中 / 内联函数有定义 / 无重复 id），
-这里把它钉进 pytest，并固化三条接线纪律：
-- 素材是唯一来源：skin.css 由 docs/ui-migration/tokens.css + override.css 生成，勿手改产物；
-- 覆盖层必须最后加载：base.css -> icons.css -> skin.css，顺序错了皮肤会被压掉；
-- rail 的 4 个子站入口必须新标签打开（当前页聊天不能被顶掉）。
+历史：这组守卫始于 UI 迁移期（skin.css 由素材拼接 + 加载顺序），Phase 1 起
+素材拼接纪律由「token 单源」取代——token 唯一源守卫在 test_ui_design_tokens.py。
+这里钉住的是页面接线纪律：
+- 每个页面（8 页）都必须先加载 tokens.css，再 base/icons/frame，最后页面专属层；
+- 工作台不得再回归内联 <style>（结构/视觉/壳段一律进 ui/workbench.css）；
+- 自产资源必须带 ?v= 版本串（缓存防错配）；
+- rail 的 4 个子站入口新标签打开（不能把工作台顶掉）；
+- Material Icons 字体必须内联（离线可用）。
 """
 from __future__ import annotations
 
@@ -15,12 +17,22 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INDEX = ROOT / "src" / "omni" / "channels" / "web_static" / "index.html"
+STATIC = ROOT / "src" / "omni" / "channels" / "web_static"
+INDEX = STATIC / "index.html"
 GATE = ROOT / "scripts" / "check_ui_contract.py"
-TOKENS = ROOT / "docs" / "ui-migration" / "tokens.css"
-OVERRIDE = ROOT / "docs" / "ui-migration" / "override.css"
-SKIN = ROOT / "src" / "omni" / "channels" / "web_static" / "ui" / "skin.css"
-ICONS = ROOT / "src" / "omni" / "channels" / "web_static" / "ui" / "icons.css"
+ICONS = STATIC / "ui" / "icons.css"
+
+# 页面 → 专属样式（最后加载的页面层）
+PAGE_SHEETS = {
+    "index.html": "/ui/workbench.css",
+    "capabilities/index.html": "/capabilities/capabilities.css",
+    "jobs/index.html": "/jobs/jobs.css",
+    "mcp/index.html": "/mcp/mcp.css",
+    "terminal/index.html": "/terminal/terminal.css",
+    "android/index.html": "/android/android.css",
+    "storage/index.html": "/storage/storage.css",
+    "project/index.html": "/project/project.css",
+}
 
 
 def test_ui_contract_gate_passes():
@@ -33,30 +45,34 @@ def test_ui_contract_gate_passes():
     assert result.returncode == 0, "UI 契约门禁未通过：\n" + result.stdout + result.stderr
 
 
-def test_skin_css_is_generated_from_migration_materials():
-    """素材是唯一来源：skin.css 必须完整包含 tokens + override 两份素材，且 token 在前。"""
-    skin = SKIN.read_text(encoding="utf-8")
-    tokens = TOKENS.read_text(encoding="utf-8").strip()
-    override = OVERRIDE.read_text(encoding="utf-8").strip()
-    assert tokens in skin, "skin.css 缺少 tokens.css 素材内容——请由素材重新生成，勿手改产物"
-    assert override in skin, "skin.css 缺少 override.css 素材内容——请由素材重新生成，勿手改产物"
-    assert skin.index(tokens) < skin.index(override), "token 定义必须排在覆盖层之前"
+def test_every_page_loads_tokens_before_components_and_page_layer():
+    """8 页统一加载链：tokens → base → icons → frame →（工作台 workbench / 子站页面 css）。"""
+    for page, page_sheet in PAGE_SHEETS.items():
+        html = (STATIC / page).read_text(encoding="utf-8")
+        order = {name: html.index(f'href="{name}') for name in (
+            "/ui/tokens.css", "/ui/base.css", "/ui/icons.css", "/ui/frame.css", page_sheet,
+        )}
+        assert sorted(order, key=order.get) == list(order), f"{page} 资源加载顺序错误：{order}"
+        assert "/ui/skin.css" not in html and "/ui/shell.css" not in html, f"{page} 仍引用已解构的 skin/shell"
 
 
-def test_skin_loads_after_base_css():
-    """覆盖层必须最后加载：base.css -> icons.css -> skin.css（?v= 版本串不影响顺序）。"""
+def test_workbench_has_no_inline_style():
+    """工作台样式全部外置：index.html 不允许再出现 <style> 块（结构层已并入 workbench.css）。"""
     html = INDEX.read_text(encoding="utf-8")
-    base = html.index('href="/ui/base.css')
-    icons = html.index('href="/ui/icons.css')
-    skin = html.index('href="/ui/skin.css')
-    assert base < icons < skin
+    assert "<style>" not in html and "</style>" not in html, "index.html 出现内联样式，须并入 ui/workbench.css"
 
 
 def test_ui_assets_carry_cache_busting_versions():
     """自产资源必须带 ?v=：防浏览器把新版标记与旧版皮肤/字体/渲染器缓存错配。"""
     html = INDEX.read_text(encoding="utf-8")
-    for href in ('href="/ui/icons.css?v=', 'href="/ui/skin.css?v=', 'src="/ui/markdown.js?v='):
-        assert href in html, f"缺少缓存版本参数：{href}"
+    for href in ("href=\"/ui/tokens.css?v=", "href=\"/ui/frame.css?v=", "href=\"/ui/workbench.css?v=",
+                 "href=\"/ui/icons.css?v=", "src=\"/ui/markdown.js?v="):
+        assert href in html, f"index.html 缺少缓存版本参数：{href}"
+    for page in PAGE_SHEETS:
+        if page == "index.html":
+            continue
+        body = (STATIC / page).read_text(encoding="utf-8")
+        assert "href=\"/ui/frame.css?v=" in body, f"{page} 的 frame.css 缺少 ?v="
 
 
 def test_rail_subpages_open_in_new_tab():

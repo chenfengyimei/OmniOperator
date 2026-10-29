@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`5dffd2ca174eba5df6dca0e7031ff3d91230adf2942c1da687f638a9dbfae3ac`。包含 54 个职责模块、212 个源码/界面文件。
+源码指纹：`901db5ba54ee4f6b6b573fb1f2c169181fefc499f303fdc7fd19df7b18758135`。包含 54 个职责模块、217 个源码/界面文件。
 
 ## Agent 空间与目录 · agent-directories
 
@@ -27,8 +27,8 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py) | 157 | Agent 目录设置和当前公开文件区；只消费组装根注入的目录与路径策略。 |
-| [src/omni/channels/web_static/storage/index.html](../../src/omni/channels/web_static/storage/index.html) | 8 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/storage/storage.css](../../src/omni/channels/web_static/storage/storage.css) | 1 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/storage/index.html](../../src/omni/channels/web_static/storage/index.html) | 63 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/storage/storage.css](../../src/omni/channels/web_static/storage/storage.css) | 130 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/storage/storage.js](../../src/omni/channels/web_static/storage/storage.js) | 78 | 平台脚本或界面资源 |
 
 文档：[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
@@ -57,7 +57,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/config.py](../../src/omni/config.py) | 569 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [src/omni/config.py](../../src/omni/config.py) | 576 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -72,7 +72,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/core/__init__.py](../../src/omni/core/__init__.py) | 1 | Agent 核心：编排循环。工具注册表在 tools 包，审批在 safety 包。 |
-| [src/omni/core/agent.py](../../src/omni/core/agent.py) | 822 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
+| [src/omni/core/agent.py](../../src/omni/core/agent.py) | 844 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
 | [src/omni/core/compress.py](../../src/omni/core/compress.py) | 299 | 上下文压缩 + 消息不变量（Hermes compression_facade 的最小版，NOTES §1.2）。 |
 | [src/omni/core/cron.py](../../src/omni/core/cron.py) | 440 | 心跳调度器：tick 循环 + 至多一次派发 + 任务执行/投递（Hermes cron 最小版）。 |
 | [src/omni/core/evaluation.py](../../src/omni/core/evaluation.py) | 24 | 固定样本检索评测；不把 mock 模型的排序表现当成真实语义收益。 |
@@ -168,9 +168,9 @@
 | [src/omni/channels/terminal/routes.py](../../src/omni/channels/terminal/routes.py) | 77 | 内置终端 WebSocket 适配；复用工作台身份及注入的会话池。 |
 | [src/omni/channels/terminal/session.py](../../src/omni/channels/terminal/session.py) | 42 | 单终端会话的读、写、窗口尺寸和退出确认。 |
 | [src/omni/channels/terminal/sessions.py](../../src/omni/channels/terminal/sessions.py) | 138 | 人工终端 v2：身份归属、结构化消息及只回放输出。旧 WS 独立兼容。 |
-| [src/omni/channels/web_static/terminal/index.html](../../src/omni/channels/web_static/terminal/index.html) | 9 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/terminal/terminal.css](../../src/omni/channels/web_static/terminal/terminal.css) | 3 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/terminal/terminal.js](../../src/omni/channels/web_static/terminal/terminal.js) | 90 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/terminal/index.html](../../src/omni/channels/web_static/terminal/index.html) | 62 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/terminal/terminal.css](../../src/omni/channels/web_static/terminal/terminal.css) | 106 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/terminal/terminal.js](../../src/omni/channels/web_static/terminal/terminal.js) | 93 | 平台脚本或界面资源 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/TERMINAL.md](../../docs/TERMINAL.md)
 
@@ -184,8 +184,8 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 36 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/project/project.css](../../src/omni/channels/web_static/project/project.css) | 95 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 52 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/project/project.css](../../src/omni/channels/web_static/project/project.css) | 142 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/project/project.js](../../src/omni/channels/web_static/project/project.js) | 110 | 平台脚本或界面资源 |
 | [src/omni/channels/workbench/__init__.py](../../src/omni/channels/workbench/__init__.py) | 4 | 专题工作台路由；只消费注入的 Runtime，不在通道构造核心对象。 |
 | [src/omni/channels/workbench/routes.py](../../src/omni/channels/workbench/routes.py) | 71 | 只读项目目录、接口与实时能力；由 web.py 的统一鉴权中间件保护。 |
@@ -203,7 +203,12 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_static/ui/base.css](../../src/omni/channels/web_static/ui/base.css) | 14 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 83 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/frame.css](../../src/omni/channels/web_static/ui/frame.css) | 521 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/icons.css](../../src/omni/channels/web_static/ui/icons.css) | 9 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/markdown.js](../../src/omni/channels/web_static/ui/markdown.js) | 116 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 162 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/tokens.css](../../src/omni/channels/web_static/ui/tokens.css) | 109 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/workbench.css](../../src/omni/channels/web_static/ui/workbench.css) | 1034 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -217,9 +222,9 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web.py](../../src/omni/channels/web.py) | 410 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
-| [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 232 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1437 | 平台脚本或界面资源 |
+| [src/omni/channels/web.py](../../src/omni/channels/web.py) | 458 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
+| [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
+| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 2149 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm-addon-fit.js](../../src/omni/channels/web_static/vendor/xterm-addon-fit.js) | 2 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.js](../../src/omni/channels/web_static/vendor/xterm.js) | 6 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.min.css](../../src/omni/channels/web_static/vendor/xterm.min.css) | 8 | 平台脚本或界面资源 |
@@ -236,7 +241,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py) | 97 | 会话与待办 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+| [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py) | 139 | 会话与待办 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
@@ -279,9 +284,9 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py) | 23 | 后台命令管理适配；不提供绕过 Registry 审批的启动接口。 |
-| [src/omni/channels/web_static/jobs/index.html](../../src/omni/channels/web_static/jobs/index.html) | 5 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/jobs/jobs.css](../../src/omni/channels/web_static/jobs/jobs.css) | 1 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/jobs/jobs.js](../../src/omni/channels/web_static/jobs/jobs.js) | 56 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/jobs/index.html](../../src/omni/channels/web_static/jobs/index.html) | 52 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/jobs/jobs.css](../../src/omni/channels/web_static/jobs/jobs.css) | 75 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/jobs/jobs.js](../../src/omni/channels/web_static/jobs/jobs.js) | 66 | 平台脚本或界面资源 |
 | [src/omni/tools/shell/job_logs.py](../../src/omni/tools/shell/job_logs.py) | 44 | 命令输出的有界 JSONL 环：序号续读、跨流串行、最近日志与缺口标记。 |
 | [src/omni/tools/shell/job_tools.py](../../src/omni/tools/shell/job_tools.py) | 51 | 后台任务的 Registry 适配；不复用人工 PTY，不接受外部会话身份。 |
 | [src/omni/tools/shell/jobs.py](../../src/omni/tools/shell/jobs.py) | 230 | 独立后台命令执行器：审批后入队、有界进程/日志、会话归属与诚实回收。 |
@@ -369,9 +374,9 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py) | 135 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
-| [src/omni/channels/web_static/mcp/index.html](../../src/omni/channels/web_static/mcp/index.html) | 4 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/mcp/mcp.css](../../src/omni/channels/web_static/mcp/mcp.css) | 1 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/mcp/mcp.js](../../src/omni/channels/web_static/mcp/mcp.js) | 75 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/index.html](../../src/omni/channels/web_static/mcp/index.html) | 46 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/mcp.css](../../src/omni/channels/web_static/mcp/mcp.css) | 63 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/mcp.js](../../src/omni/channels/web_static/mcp/mcp.js) | 114 | 平台脚本或界面资源 |
 
 文档：[docs/MCP.md](../../docs/MCP.md)
 
@@ -428,9 +433,9 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_api/capabilities.py](../../src/omni/channels/web_api/capabilities.py) | 24 | 能力与诊断只读聚合：不连接 MCP、不访问手机、不启动终端/服务。 |
-| [src/omni/channels/web_static/capabilities/capabilities.css](../../src/omni/channels/web_static/capabilities/capabilities.css) | 3 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/capabilities/capabilities.js](../../src/omni/channels/web_static/capabilities/capabilities.js) | 23 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/capabilities/index.html](../../src/omni/channels/web_static/capabilities/index.html) | 5 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/capabilities/capabilities.css](../../src/omni/channels/web_static/capabilities/capabilities.css) | 91 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/capabilities/capabilities.js](../../src/omni/channels/web_static/capabilities/capabilities.js) | 53 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/capabilities/index.html](../../src/omni/channels/web_static/capabilities/index.html) | 60 | 平台脚本或界面资源 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
@@ -446,9 +451,9 @@
 |---|---:|---|
 | [src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py) | 77 | 按设备寻址的人工安卓适配；归属取已验配对身份，动作仍需单次观察。 |
 | [src/omni/channels/web_api/android_stream.py](../../src/omni/channels/web_api/android_stream.py) | 23 | MJPEG 适配：订阅共享帧，异步取消及时归还连接，不给预览帧授权令牌。 |
-| [src/omni/channels/web_static/android/android.css](../../src/omni/channels/web_static/android/android.css) | 3 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/android/android.js](../../src/omni/channels/web_static/android/android.js) | 90 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/android/index.html](../../src/omni/channels/web_static/android/index.html) | 6 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/android/android.css](../../src/omni/channels/web_static/android/android.css) | 84 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/android/android.js](../../src/omni/channels/web_static/android/android.js) | 104 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/android/index.html](../../src/omni/channels/web_static/android/index.html) | 84 | 平台脚本或界面资源 |
 
 文档：[docs/ANDROID.md](../../docs/ANDROID.md)
 
@@ -887,7 +892,7 @@
 | [src/omni/system/__init__.py](../../src/omni/system/__init__.py) | 5 | 本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。 |
 | [src/omni/system/atomic.py](../../src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
 | [src/omni/system/backup.py](../../src/omni/system/backup.py) | 507 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
-| [src/omni/system/config_io.py](../../src/omni/system/config_io.py) | 200 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
+| [src/omni/system/config_io.py](../../src/omni/system/config_io.py) | 396 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
 | [src/omni/system/doctor.py](../../src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [src/omni/system/filelock.py](../../src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
 | [src/omni/system/observability.py](../../src/omni/system/observability.py) | 102 | 有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。 |

@@ -20,12 +20,21 @@ VENDOR = STATIC / "vendor"
 # 子站目录：对它们从一开始就是零容忍（现状就是 0，保持 0）
 SUBPAGES = ["capabilities", "jobs", "mcp", "terminal", "android", "storage", "project"]
 
-# --seed-* 值定义当前仅允许出现在这两个过渡文件里（Phase 1 落 tokens.css 后本名单只剩 ui/tokens.css）
-SEED_TOKEN_ALLOWLIST = {"ui/skin.css", "ui/shell.css", "ui/tokens.css"}
+# --seed-* 值定义唯一允许的文件（Phase 1 起仅 tokens.css）
+SEED_TOKEN_ALLOWLIST = {"ui/tokens.css"}
 SEED_DEFINE = re.compile(r"--seed-(?:accent|accent2|bg|fg)\s*:")
 
-# font-size < 10px 的现存违规配额（Phase 6 清零后删除条目）
-FONT_FLOOR_QUOTA = {"ui/skin.css": 9, "ui/shell.css": 33, "storage/storage.css": 11}
+# font-size < 10px 的现存违规配额（Phase 6 清零后删除条目；Phase 1 拆分后按新文件重计）
+FONT_FLOOR_QUOTA = {
+    "ui/workbench.css": 15,
+    "ui/frame.css": 3,
+    "storage/storage.css": 11,
+    "capabilities/capabilities.css": 5,
+    "mcp/mcp.css": 5,
+    "terminal/terminal.css": 6,
+    "android/android.css": 6,
+    "jobs/jobs.css": 1,
+}
 FONT_SIZE = re.compile(r"font-size\s*:\s*([0-9]+(?:\.[0-9]+)?)px")
 
 # index.html 历史存量的单调递减上限（Phase 3/4 清零）

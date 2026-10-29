@@ -1,3 +1,106 @@
+/* ==========================================================================
+   人工终端页 ——本页布局样式（UI_DESIGN_SYSTEM.md §2/§6）
+   只写本页布局与页面专属外观；控件基样一律来自 ui/frame.css（+ 未来的 components.css）。
+   token 只从 ui/tokens.css 取。加载位置：frame.css 之后（最后一个样式）。
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Terminal
+   -------------------------------------------------------------------------- */
+body[data-ui-page="terminal"]{height:100dvh;overflow:hidden}
+body[data-ui-page="terminal"] > form{
+  padding:9px;border:1px solid var(--shell-line);border-radius:var(--shell-radius);
+  background:rgba(17,24,36,.7);
+}
+body[data-ui-page="terminal"] #tabs{padding:1px 0}
+body[data-ui-page="terminal"] #tabs button{
+  border-radius:8px;background:var(--shell-surface);border-color:var(--shell-line);
+}
+body[data-ui-page="terminal"] #tabs button.active{
+  color:var(--shell-accent);border-color:color-mix(in srgb,var(--seed-accent) 42%,transparent);background:var(--shell-accent-soft);
+}
+body[data-ui-page="terminal"] main{border:1px solid var(--shell-line);box-shadow:var(--shell-shadow)}
+body[data-ui-page="terminal"] footer{padding-bottom:6px}
+body[data-ui-page="terminal"] #end{margin-left:auto}
+body[data-ui-page="terminal"] #state{
+  padding:6px 10px;color:var(--shell-text-2);background:rgba(17,24,36,.7);
+  border:1px solid var(--shell-line);border-radius:var(--shell-radius-sm);
+}
+
+
+/* Terminal */
+body[data-ui-page="terminal"]{height:100dvh;overflow:hidden}
+body[data-ui-page="terminal"]>.terminal-layout{
+  display:grid;grid-template-columns:255px minmax(0,1fr);gap:12px;
+  width:min(calc(100% - 44px),1480px);height:calc(100dvh - 185px);min-height:440px;margin:12px auto 0;
+}
+body[data-ui-page="terminal"] .terminal-side,
+body[data-ui-page="terminal"] .terminal-core{
+  min-width:0;min-height:0;border:1px solid var(--line-2);border-radius:12px;
+  background:var(--surface-1);box-shadow:0 12px 34px rgba(0,0,0,.18);overflow:hidden;
+}
+body[data-ui-page="terminal"] .terminal-side{display:flex;flex-direction:column;padding:12px}
+body[data-ui-page="terminal"] #state{padding:7px 9px;margin:0 0 8px;font-size:9.5px;line-height:1.55;color:var(--text-3);border:1px solid var(--line-2);border-radius:7px;background:rgba(2,6,10,.42)}
+body[data-ui-page="terminal"] #tabs{display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;margin-bottom:8px}
+body[data-ui-page="terminal"] #tabs button{width:100%;min-height:31px;height:auto;padding:6px 9px;text-align:left;border-radius:7px;background:rgba(255,255,255,.02);font-size:10.5px}
+body[data-ui-page="terminal"] #tabs button.active{color:var(--seed-accent);border-color:color-mix(in srgb,var(--seed-accent) 35%,transparent);background:color-mix(in srgb,var(--seed-accent) 8%,transparent);box-shadow:inset 2px 0 0 var(--seed-accent)}
+body[data-ui-page="terminal"] #empty{flex:1;min-height:130px;padding:16px 10px;margin:0 0 8px}
+body[data-ui-page="terminal"] #empty h3{font-size:11px}
+body[data-ui-page="terminal"] #empty p{font-size:9.5px!important}
+body[data-ui-page="terminal"] #create{display:flex;flex-direction:column;gap:7px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line-3)}
+body[data-ui-page="terminal"] .form-title{display:flex;align-items:center;gap:5px;color:var(--text-2);font-size:10.5px}
+body[data-ui-page="terminal"] .form-title .material-icons{font-size:14px;color:var(--seed-accent)}
+body[data-ui-page="terminal"] #create label{display:flex;flex-direction:column;align-items:stretch;gap:3px;font-size:9px;color:var(--text-4);width:100%}
+body[data-ui-page="terminal"] #create :is(input,select){width:100%;height:29px;min-height:29px;padding:4px 8px;font-size:10.5px}
+body[data-ui-page="terminal"] #create button{width:100%;height:31px;min-height:31px;margin-top:2px;color:#04121a;border-color:transparent;background:var(--grad);font-weight:700}
+body[data-ui-page="terminal"] .terminal-core{display:flex;flex-direction:column}
+body[data-ui-page="terminal"] .terminal-core-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line-3);flex-shrink:0}
+body[data-ui-page="terminal"] .terminal-core-head h2{font-size:12px;margin:1px 0 0;color:var(--text-2)}
+body[data-ui-page="terminal"] .terminal-hint{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;color:var(--text-4)}
+body[data-ui-page="terminal"] .status-dot{width:5px;height:5px;border-radius:50%;background:var(--ok);box-shadow:0 0 7px var(--ok)}
+body[data-ui-page="terminal"] #screens{position:relative;flex:1;min-height:0;background:#03060a;padding:0;overflow:hidden}
+body[data-ui-page="terminal"] .screen{height:100%;padding:7px;min-width:0}
+body[data-ui-page="terminal"] #screens:empty::after{
+  content:"选择或新建终端后在此显示交互会话";position:absolute;inset:0;display:grid;place-items:center;color:var(--text-4);font-size:10.5px;
+}
+body[data-ui-page="terminal"] .terminal-welcome{
+  height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;
+  background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--seed-accent) 6%,transparent),transparent 42%);
+}
+body[data-ui-page="terminal"] .terminal-welcome-icon{
+  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:var(--seed-accent);
+  background:color-mix(in srgb,var(--seed-accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 18%,transparent);font-size:25px!important;margin-bottom:10px;
+}
+body[data-ui-page="terminal"] .terminal-welcome h3{margin:0;font-size:14px;color:var(--text-2)}
+body[data-ui-page="terminal"] .terminal-welcome p{max-width:430px;margin:6px 0 14px!important;padding:0!important;border:0!important;background:none!important;color:var(--text-4)!important;font-size:10.5px!important;line-height:1.7!important}
+body[data-ui-page="terminal"] .terminal-shortcuts{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+body[data-ui-page="terminal"] .terminal-shortcuts span{padding:5px 8px;border:1px solid var(--line-3);border-radius:6px;background:rgba(255,255,255,.025);color:var(--text-4);font-size:9px}
+body[data-ui-page="terminal"] kbd{padding:0 3px;border:1px solid var(--line-2);border-radius:3px;background:rgba(255,255,255,.05);font:8.5px var(--font-mono);color:var(--text-3)}
+body[data-ui-page="terminal"] footer{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:8px 10px;border-top:1px solid var(--line-3);background:rgba(8,13,20,.6);flex-shrink:0}
+body[data-ui-page="terminal"] footer button{display:inline-flex;align-items:center;gap:4px;min-height:27px;height:27px;padding:0 8px;font-size:9.5px;border-radius:6px}
+body[data-ui-page="terminal"] footer button .material-icons{font-size:12px}
+body[data-ui-page="terminal"] #end{margin-left:auto}
+body[data-ui-page="terminal"] .xterm{height:100%}
+
+
+
+/* ---- 旧版遗留（仍生效的独立规则；Phase 3 组件统一批清理） ---- */
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#10151d;color:#dbe7ee}*{box-sizing:border-box}body{margin:0;padding:16px;display:flex;flex-direction:column;height:100dvh;gap:12px;min-width:0}header,form,footer,nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap}header h1{font-size:18px;margin:0}header span,#state{font-size:12px;color:#9eafbf}a{color:#6edbd1}button,input,select{background:#1c2734;color:inherit;border:1px solid #374758;border-radius:6px;padding:7px 10px}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}label{display:flex;gap:8px;align-items:center}.directory{flex:1;min-width:180px}input{width:100%;min-width:0}nav button.active{border-color:#58d5be;color:#58d5be}main{position:relative;flex:1;min-height:180px;min-width:0;background:#0e1116;overflow:hidden;border-radius:8px}.screen{height:100%;padding:8px;min-width:0}.screen[hidden]{display:none}#end{margin-left:auto;border-color:#ae5961}@media(max-width:600px){body{padding:8px;gap:8px}header span{width:100%}.directory{flex-basis:100%}footer{gap:6px}button{padding:7px}#state{overflow-wrap:anywhere}}
 
 label{white-space:nowrap}.directory input{flex:1;width:0;min-width:0}
+
+/* ---- 响应式覆盖（从 frame.css 迁回） ---- */
+@media(max-width:1120px){
+  body[data-ui-page="terminal"]>.terminal-layout{grid-template-columns:230px minmax(0,1fr)}
+}
+@media(max-width:760px){
+  body[data-ui-page="terminal"]{height:auto;min-height:100dvh;overflow:auto}
+  body[data-ui-page="terminal"]>.terminal-layout{grid-template-columns:minmax(0,1fr);height:auto;min-height:0;margin-bottom:20px}
+  body[data-ui-page="terminal"] .terminal-side{max-height:none}
+  body[data-ui-page="terminal"] .terminal-core{min-height:450px}
+  body[data-ui-page="terminal"] #tabs{max-height:130px}
+  body[data-ui-page="terminal"] footer{gap:4px}
+}
+@media(max-width:600px){
+  body[data-ui-page="terminal"] > form{padding:7px}
+}

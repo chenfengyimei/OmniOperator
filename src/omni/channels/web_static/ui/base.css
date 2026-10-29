@@ -1,4 +1,4 @@
-:root{--ui-bg:#0d1420;--ui-panel:#152131;--ui-border:#2a3b50;--ui-muted:#9cafc5;--ui-accent:#63dfc7;--ui-text:#e4edf6;color-scheme:dark}
+/* 色板已并入 ui/tokens.css（--ui-* 别名层）；本文件只保留 OmniUI chrome 与响应式骨架。 */
 body[data-ui-page]{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif}body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]){background:radial-gradient(ellipse at 100% 0,#172d3a55,transparent 50%),var(--ui-bg);color:var(--ui-text);margin:0 auto;max-width:1500px;padding:22px;line-height:1.6}
 body .ui-global-nav{display:flex;flex-wrap:nowrap;gap:6px;align-items:center;flex:none;min-width:0;max-width:100%;overflow-x:auto;padding:7px 0;margin:0 0 16px;border-bottom:1px solid var(--ui-border);scrollbar-width:thin}
 body .ui-global-nav a{white-space:nowrap;color:var(--ui-muted);font-size:12px;text-decoration:none;padding:7px 12px;border:1px solid transparent;border-radius:7px;flex:none}

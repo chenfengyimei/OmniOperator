@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5dffd2ca174eba5df6dca0e7031ff3d91230adf2942c1da687f638a9dbfae3ac",
+  "source_sha256": "901db5ba54ee4f6b6b573fb1f2c169181fefc499f303fdc7fd19df7b18758135",
   "modules": [
     {
       "id": "agent-directories",
@@ -48,7 +48,7 @@
         "src/omni/channels/web_static/storage/storage.css",
         "src/omni/channels/web_static/storage/storage.js"
       ],
-      "lines": 244,
+      "lines": 428,
       "dependencies": [
         "agent-directories",
         "assembly",
@@ -120,7 +120,7 @@
       "files": [
         "src/omni/config.py"
       ],
-      "lines": 569,
+      "lines": 576,
       "dependencies": []
     },
     {
@@ -152,7 +152,7 @@
         "src/omni/core/session.py",
         "src/omni/core/vision.py"
       ],
-      "lines": 2446,
+      "lines": 2468,
       "dependencies": [
         "config",
         "models",
@@ -285,7 +285,7 @@
         "src/omni/channels/web_static/terminal/terminal.css",
         "src/omni/channels/web_static/terminal/terminal.js"
       ],
-      "lines": 606,
+      "lines": 765,
       "dependencies": [
         "config",
         "web-ui"
@@ -313,7 +313,7 @@
         "src/omni/channels/workbench/__init__.py",
         "src/omni/channels/workbench/routes.py"
       ],
-      "lines": 316,
+      "lines": 379,
       "dependencies": [
         "assembly",
         "catalog",
@@ -336,9 +336,14 @@
       ],
       "files": [
         "src/omni/channels/web_static/ui/base.css",
-        "src/omni/channels/web_static/ui/shared.js"
+        "src/omni/channels/web_static/ui/frame.css",
+        "src/omni/channels/web_static/ui/icons.css",
+        "src/omni/channels/web_static/ui/markdown.js",
+        "src/omni/channels/web_static/ui/shared.js",
+        "src/omni/channels/web_static/ui/tokens.css",
+        "src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 97,
+      "lines": 1965,
       "dependencies": []
     },
     {
@@ -368,7 +373,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2095,
+      "lines": 2964,
       "dependencies": [
         "assembly",
         "config",
@@ -401,7 +406,7 @@
       "files": [
         "src/omni/channels/web_api/sessions.py"
       ],
-      "lines": 97,
+      "lines": 139,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -481,7 +486,7 @@
         "src/omni/tools/shell/job_tools.py",
         "src/omni/tools/shell/jobs.py"
       ],
-      "lines": 410,
+      "lines": 541,
       "dependencies": [
         "config",
         "platform",
@@ -629,7 +634,7 @@
         "src/omni/channels/web_static/mcp/mcp.css",
         "src/omni/channels/web_static/mcp/mcp.js"
       ],
-      "lines": 215,
+      "lines": 358,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -730,7 +735,7 @@
         "src/omni/channels/web_static/capabilities/capabilities.js",
         "src/omni/channels/web_static/capabilities/index.html"
       ],
-      "lines": 55,
+      "lines": 228,
       "dependencies": []
     },
     {
@@ -756,7 +761,7 @@
         "src/omni/channels/web_static/android/android.js",
         "src/omni/channels/web_static/android/index.html"
       ],
-      "lines": 199,
+      "lines": 372,
       "dependencies": [
         "web-ui"
       ]
@@ -1484,7 +1489,7 @@
         "src/omni/system/soak.py",
         "src/omni/system/stderr_log.py"
       ],
-      "lines": 2224,
+      "lines": 2420,
       "dependencies": [
         "config"
       ]
@@ -2787,7 +2792,7 @@
       "path": "src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 410,
+      "lines": 458,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -2806,8 +2811,13 @@
       ],
       "symbols": [
         {
+          "name": "ModelKeyIn",
+          "line": 77,
+          "kind": "class"
+        },
+        {
           "name": "_set_session_cookie",
-          "line": 68,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "response",
@@ -2821,7 +2831,7 @@
         },
         {
           "name": "_create_auth",
-          "line": 79,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -2832,7 +2842,7 @@
         },
         {
           "name": "_normalize_secret_updates",
-          "line": 84,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "updates"
@@ -2843,7 +2853,7 @@
         },
         {
           "name": "create_app",
-          "line": 109,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -2854,7 +2864,7 @@
         },
         {
           "name": "create_app.lifespan",
-          "line": 112,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "_app"
@@ -2865,7 +2875,7 @@
         },
         {
           "name": "create_app.identity_guard",
-          "line": 131,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "request",
@@ -2877,7 +2887,7 @@
         },
         {
           "name": "create_app.auth_status",
-          "line": 154,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "request"
@@ -2888,7 +2898,7 @@
         },
         {
           "name": "create_app.auth_pair",
-          "line": 162,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "payload",
@@ -2901,14 +2911,14 @@
         },
         {
           "name": "create_app.auth_logout",
-          "line": 177,
+          "line": 196,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.pair_link",
-          "line": 183,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "code",
@@ -2921,14 +2931,14 @@
         },
         {
           "name": "create_app.system_config",
-          "line": 208,
+          "line": 234,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.system_config_save",
-          "line": 254,
+          "line": 280,
           "kind": "function",
           "parameters": [
             "payload"
@@ -2939,28 +2949,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 274,
+          "line": 300,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 285,
+          "line": 311,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.bili_cookies_status",
-          "line": 293,
+          "line": 319,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.save_bili_cookies",
-          "line": 305,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "payload"
@@ -2970,8 +2980,26 @@
           }
         },
         {
+          "name": "create_app.model_keys",
+          "line": 351,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_app.model_key_set",
+          "line": 356,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "ModelKeyIn"
+          }
+        },
+        {
           "name": "create_app.model_test",
-          "line": 325,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "payload"
@@ -2982,7 +3010,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 363,
+          "line": 411,
           "kind": "function",
           "parameters": [
             "host"
@@ -2993,7 +3021,7 @@
         },
         {
           "name": "main",
-          "line": 374,
+          "line": 422,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -4340,7 +4368,7 @@
       "path": "src/omni/channels/web_api/sessions.py",
       "module": "http-sessions",
       "python_module": "omni.channels.web_api.sessions",
-      "lines": 97,
+      "lines": 139,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.schemas",
@@ -4349,7 +4377,7 @@
       "symbols": [
         {
           "name": "create_sessions_router",
-          "line": 15,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -4360,28 +4388,39 @@
         },
         {
           "name": "create_sessions_router.get_state",
-          "line": 19,
+          "line": 22,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
+          "name": "create_sessions_router.get_state.estimate",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
           "name": "create_sessions_router.get_sessions",
-          "line": 42,
+          "line": 84,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_sessions_router.create_session",
-          "line": 56,
+          "line": 98,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_sessions_router.select_session",
-          "line": 60,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "session_id"
@@ -4392,7 +4431,7 @@
         },
         {
           "name": "create_sessions_router.get_messages",
-          "line": 66,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "session_id",
@@ -4405,7 +4444,7 @@
         },
         {
           "name": "create_sessions_router.get_todos",
-          "line": 78,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "session_id"
@@ -4416,7 +4455,7 @@
         },
         {
           "name": "create_sessions_router.toggle_todo",
-          "line": 90,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4728,17 +4767,17 @@
       "path": "src/omni/channels/web_auth.py",
       "module": "web-ui",
       "python_module": "omni.channels.web_auth",
-      "lines": 232,
+      "lines": 341,
       "imports": [],
       "symbols": [
         {
           "name": "Rejection",
-          "line": 36,
+          "line": 43,
           "kind": "class"
         },
         {
           "name": "_split_host",
-          "line": 43,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "value"
@@ -4749,7 +4788,7 @@
         },
         {
           "name": "_split_origin",
-          "line": 52,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "origin"
@@ -4760,12 +4799,12 @@
         },
         {
           "name": "WebAuth",
-          "line": 66,
+          "line": 73,
           "kind": "class"
         },
         {
           "name": "WebAuth.__init__",
-          "line": 69,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -4773,19 +4812,21 @@
             "bind_host",
             "port",
             "extra_hosts",
-            "session_days"
+            "session_days",
+            "pair_ttl_s"
           ],
           "annotations": {
             "data_dir": "Path",
             "bind_host": "str",
             "port": "int",
             "extra_hosts": "set[str] | None",
-            "session_days": "int"
+            "session_days": "int",
+            "pair_ttl_s": "float"
           }
         },
         {
           "name": "WebAuth._load_or_create_secret",
-          "line": 93,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "self"
@@ -4794,7 +4835,7 @@
         },
         {
           "name": "WebAuth._sign",
-          "line": 109,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -4806,7 +4847,7 @@
         },
         {
           "name": "WebAuth.issue_session",
-          "line": 112,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self"
@@ -4815,7 +4856,7 @@
         },
         {
           "name": "WebAuth.verify_session",
-          "line": 119,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -4827,7 +4868,16 @@
         },
         {
           "name": "WebAuth._new_code",
-          "line": 134,
+          "line": 149,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WebAuth.pair_deadline_epoch",
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self"
@@ -4836,7 +4886,25 @@
         },
         {
           "name": "WebAuth._rotate_code",
-          "line": 137,
+          "line": 161,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WebAuth._load_pair_state",
+          "line": 172,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "WebAuth._ttl_text",
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self"
@@ -4845,7 +4913,7 @@
         },
         {
           "name": "WebAuth.pairing_url",
-          "line": 143,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "self"
@@ -4854,7 +4922,7 @@
         },
         {
           "name": "WebAuth.announce_pairing",
-          "line": 150,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self"
@@ -4862,8 +4930,20 @@
           "annotations": {}
         },
         {
+          "name": "WebAuth._dump_pair_url",
+          "line": 213,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "url"
+          ],
+          "annotations": {
+            "url": "str"
+          }
+        },
+        {
           "name": "WebAuth.pair",
-          "line": 156,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self",
@@ -4874,8 +4954,17 @@
           }
         },
         {
+          "name": "WebAuth._reject",
+          "line": 270,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "WebAuth.host_ok",
-          "line": 174,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "self",
@@ -4887,7 +4976,7 @@
         },
         {
           "name": "WebAuth.origin_ok",
-          "line": 178,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self",
@@ -4899,7 +4988,7 @@
         },
         {
           "name": "WebAuth.csrf_ok",
-          "line": 188,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self",
@@ -4915,7 +5004,7 @@
         },
         {
           "name": "WebAuth.check_request",
-          "line": 197,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "self",
@@ -4937,7 +5026,7 @@
         },
         {
           "name": "WebAuth.check_websocket",
-          "line": 218,
+          "line": 327,
           "kind": "function",
           "parameters": [
             "self",
@@ -4958,7 +5047,7 @@
       "path": "src/omni/channels/web_static/android/android.css",
       "module": "http-android",
       "python_module": null,
-      "lines": 3,
+      "lines": 84,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4968,7 +5057,7 @@
       "path": "src/omni/channels/web_static/android/android.js",
       "module": "http-android",
       "python_module": null,
-      "lines": 90,
+      "lines": 104,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4978,7 +5067,7 @@
       "path": "src/omni/channels/web_static/android/index.html",
       "module": "http-android",
       "python_module": null,
-      "lines": 6,
+      "lines": 84,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4988,7 +5077,7 @@
       "path": "src/omni/channels/web_static/capabilities/capabilities.css",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 3,
+      "lines": 91,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4998,7 +5087,7 @@
       "path": "src/omni/channels/web_static/capabilities/capabilities.js",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 23,
+      "lines": 53,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5008,7 +5097,7 @@
       "path": "src/omni/channels/web_static/capabilities/index.html",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 5,
+      "lines": 60,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5018,7 +5107,7 @@
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 1437,
+      "lines": 2149,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5028,7 +5117,7 @@
       "path": "src/omni/channels/web_static/jobs/index.html",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 5,
+      "lines": 52,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5038,7 +5127,7 @@
       "path": "src/omni/channels/web_static/jobs/jobs.css",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 1,
+      "lines": 75,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5048,7 +5137,7 @@
       "path": "src/omni/channels/web_static/jobs/jobs.js",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 56,
+      "lines": 66,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5058,7 +5147,7 @@
       "path": "src/omni/channels/web_static/mcp/index.html",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 4,
+      "lines": 46,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5068,7 +5157,7 @@
       "path": "src/omni/channels/web_static/mcp/mcp.css",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 1,
+      "lines": 63,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5078,7 +5167,7 @@
       "path": "src/omni/channels/web_static/mcp/mcp.js",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 75,
+      "lines": 114,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5088,7 +5177,7 @@
       "path": "src/omni/channels/web_static/project/index.html",
       "module": "workbench",
       "python_module": null,
-      "lines": 36,
+      "lines": 52,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5098,7 +5187,7 @@
       "path": "src/omni/channels/web_static/project/project.css",
       "module": "workbench",
       "python_module": null,
-      "lines": 95,
+      "lines": 142,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5118,7 +5207,7 @@
       "path": "src/omni/channels/web_static/storage/index.html",
       "module": "http-storage",
       "python_module": null,
-      "lines": 8,
+      "lines": 63,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5128,7 +5217,7 @@
       "path": "src/omni/channels/web_static/storage/storage.css",
       "module": "http-storage",
       "python_module": null,
-      "lines": 1,
+      "lines": 130,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5148,7 +5237,7 @@
       "path": "src/omni/channels/web_static/terminal/index.html",
       "module": "terminal",
       "python_module": null,
-      "lines": 9,
+      "lines": 62,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5158,7 +5247,7 @@
       "path": "src/omni/channels/web_static/terminal/terminal.css",
       "module": "terminal",
       "python_module": null,
-      "lines": 3,
+      "lines": 106,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5168,7 +5257,7 @@
       "path": "src/omni/channels/web_static/terminal/terminal.js",
       "module": "terminal",
       "python_module": null,
-      "lines": 90,
+      "lines": 93,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5185,10 +5274,60 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "src/omni/channels/web_static/ui/frame.css",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 521,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/icons.css",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 9,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/markdown.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 116,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "src/omni/channels/web_static/ui/shared.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 83,
+      "lines": 162,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/tokens.css",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 109,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/workbench.css",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 1034,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5316,7 +5455,7 @@
       "path": "src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 569,
+      "lines": 576,
       "imports": [],
       "symbols": [
         {
@@ -5326,7 +5465,7 @@
         },
         {
           "name": "RuntimePaths.create",
-          "line": 60,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5344,7 +5483,7 @@
         },
         {
           "name": "load_env",
-          "line": 98,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "env_path"
@@ -5355,47 +5494,47 @@
         },
         {
           "name": "Persona",
-          "line": 119,
-          "kind": "class"
-        },
-        {
-          "name": "Models",
           "line": 126,
           "kind": "class"
         },
         {
-          "name": "ModelCapability",
+          "name": "Models",
           "line": 133,
           "kind": "class"
         },
         {
+          "name": "ModelCapability",
+          "line": 140,
+          "kind": "class"
+        },
+        {
           "name": "Retry",
-          "line": 151,
+          "line": 158,
           "kind": "class"
         },
         {
           "name": "LLMBudget",
-          "line": 159,
+          "line": 166,
           "kind": "class"
         },
         {
           "name": "Vision",
-          "line": 171,
+          "line": 178,
           "kind": "class"
         },
         {
           "name": "Artifacts",
-          "line": 185,
+          "line": 192,
           "kind": "class"
         },
         {
           "name": "LLM",
-          "line": 193,
+          "line": 200,
           "kind": "class"
         },
         {
           "name": "LLM.capability",
-          "line": 202,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -5407,47 +5546,47 @@
         },
         {
           "name": "Limits",
-          "line": 206,
+          "line": 213,
           "kind": "class"
         },
         {
           "name": "Review",
-          "line": 214,
+          "line": 221,
           "kind": "class"
         },
         {
           "name": "Memory",
-          "line": 224,
+          "line": 231,
           "kind": "class"
         },
         {
           "name": "Web",
-          "line": 236,
+          "line": 243,
           "kind": "class"
         },
         {
           "name": "Files",
-          "line": 253,
+          "line": 260,
           "kind": "class"
         },
         {
           "name": "Compression",
-          "line": 271,
+          "line": 278,
           "kind": "class"
         },
         {
           "name": "Asr",
-          "line": 280,
+          "line": 287,
           "kind": "class"
         },
         {
           "name": "QQ",
-          "line": 288,
+          "line": 295,
           "kind": "class"
         },
         {
           "name": "QQ.check_qq_policy",
-          "line": 309,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self"
@@ -5456,22 +5595,22 @@
         },
         {
           "name": "Browser",
-          "line": 325,
+          "line": 332,
           "kind": "class"
         },
         {
           "name": "UIFormSelectors",
-          "line": 334,
+          "line": 341,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite",
-          "line": 352,
+          "line": 359,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite.check_forms",
-          "line": 359,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "self"
@@ -5480,22 +5619,22 @@
         },
         {
           "name": "System",
-          "line": 368,
+          "line": 375,
           "kind": "class"
         },
         {
           "name": "Approval",
-          "line": 374,
+          "line": 381,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig",
-          "line": 384,
+          "line": 391,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig.nonblank_command",
-          "line": 402,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5507,7 +5646,7 @@
         },
         {
           "name": "MCPServerConfig.readonly_subset",
-          "line": 408,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "self"
@@ -5516,12 +5655,12 @@
         },
         {
           "name": "MCPConfig",
-          "line": 414,
+          "line": 421,
           "kind": "class"
         },
         {
           "name": "MCPConfig.server_names",
-          "line": 420,
+          "line": 427,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5533,12 +5672,12 @@
         },
         {
           "name": "Desktop",
-          "line": 428,
+          "line": 435,
           "kind": "class"
         },
         {
           "name": "Desktop.absolute_apps",
-          "line": 439,
+          "line": 446,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5548,12 +5687,12 @@
         },
         {
           "name": "Embedding",
-          "line": 445,
+          "line": 452,
           "kind": "class"
         },
         {
           "name": "Embedding.validate_provider",
-          "line": 463,
+          "line": 470,
           "kind": "function",
           "parameters": [
             "self"
@@ -5562,17 +5701,17 @@
         },
         {
           "name": "Cron",
-          "line": 483,
+          "line": 490,
           "kind": "class"
         },
         {
           "name": "AndroidConfig",
-          "line": 488,
+          "line": 495,
           "kind": "class"
         },
         {
           "name": "AndroidConfig.packages",
-          "line": 500,
+          "line": 507,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5582,22 +5721,22 @@
         },
         {
           "name": "CommandJobsConfig",
-          "line": 507,
+          "line": 514,
           "kind": "class"
         },
         {
           "name": "TerminalConfig",
-          "line": 517,
+          "line": 524,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 525,
+          "line": 532,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 552,
+          "line": 559,
           "kind": "function",
           "parameters": [
             "path"
@@ -5608,7 +5747,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 560,
+          "line": 567,
           "kind": "function",
           "parameters": [
             "path"
@@ -5633,7 +5772,7 @@
       "path": "src/omni/core/agent.py",
       "module": "engine",
       "python_module": "omni.core.agent",
-      "lines": 822,
+      "lines": 844,
       "imports": [
         "omni.config",
         "omni.core.compress",
@@ -5654,12 +5793,12 @@
       "symbols": [
         {
           "name": "_NullRunStore",
-          "line": 70,
+          "line": 71,
           "kind": "class"
         },
         {
           "name": "_NullRunStore.append_event",
-          "line": 73,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self",
@@ -5675,7 +5814,7 @@
         },
         {
           "name": "_NullRunStore.touch",
-          "line": 76,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self",
@@ -5688,7 +5827,7 @@
         },
         {
           "name": "_NullRunStore.finish",
-          "line": 79,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "self",
@@ -5703,7 +5842,7 @@
         },
         {
           "name": "_NullRunStore.get",
-          "line": 82,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "self",
@@ -5715,12 +5854,12 @@
         },
         {
           "name": "Agent",
-          "line": 86,
+          "line": 87,
           "kind": "class"
         },
         {
           "name": "Agent.__init__",
-          "line": 87,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -5756,7 +5895,7 @@
         },
         {
           "name": "Agent.session_ref",
-          "line": 123,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self"
@@ -5765,7 +5904,7 @@
         },
         {
           "name": "Agent._system_prompt",
-          "line": 127,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self",
@@ -5777,7 +5916,7 @@
         },
         {
           "name": "Agent._maybe_compress",
-          "line": 146,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -5793,7 +5932,7 @@
         },
         {
           "name": "Agent._assemble_body",
-          "line": 174,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self",
@@ -5807,7 +5946,7 @@
         },
         {
           "name": "Agent.chat",
-          "line": 204,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -5829,7 +5968,7 @@
         },
         {
           "name": "Agent.run_turn",
-          "line": 231,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self",
@@ -5855,7 +5994,7 @@
         },
         {
           "name": "Agent._sweep_artifacts",
-          "line": 333,
+          "line": 334,
           "kind": "function",
           "parameters": [
             "self"
@@ -5864,7 +6003,7 @@
         },
         {
           "name": "Agent._start_run",
-          "line": 346,
+          "line": 347,
           "kind": "function",
           "parameters": [
             "self",
@@ -5886,7 +6025,7 @@
         },
         {
           "name": "Agent._chat",
-          "line": 407,
+          "line": 408,
           "kind": "function",
           "parameters": [
             "self",
@@ -5906,7 +6045,7 @@
         },
         {
           "name": "Agent._execute_tool_calls",
-          "line": 502,
+          "line": 503,
           "kind": "function",
           "parameters": [
             "self",
@@ -5927,8 +6066,19 @@
           }
         },
         {
+          "name": "Agent._execute_tool_calls.timed",
+          "line": 536,
+          "kind": "function",
+          "parameters": [
+            "call"
+          ],
+          "annotations": {
+            "call": "Any"
+          }
+        },
+        {
           "name": "Agent._execute_tool_calls.emit",
-          "line": 532,
+          "line": 543,
           "kind": "function",
           "parameters": [
             "call",
@@ -5941,14 +6091,14 @@
         },
         {
           "name": "Agent._execute_tool_calls.drain",
-          "line": 558,
+          "line": 574,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "Agent._pool_eligible",
-          "line": 598,
+          "line": 604,
           "kind": "function",
           "parameters": [
             "self",
@@ -5962,7 +6112,7 @@
         },
         {
           "name": "Agent._execute_one",
-          "line": 609,
+          "line": 615,
           "kind": "function",
           "parameters": [
             "self",
@@ -5982,7 +6132,7 @@
         },
         {
           "name": "Agent._model_call",
-          "line": 645,
+          "line": 651,
           "kind": "function",
           "parameters": [
             "self",
@@ -6004,7 +6154,7 @@
         },
         {
           "name": "Agent._vision_route_model",
-          "line": 690,
+          "line": 696,
           "kind": "function",
           "parameters": [
             "self"
@@ -6013,7 +6163,7 @@
         },
         {
           "name": "Agent._attach_images",
-          "line": 706,
+          "line": 712,
           "kind": "function",
           "parameters": [
             "self",
@@ -6029,7 +6179,7 @@
         },
         {
           "name": "_has_image_parts",
-          "line": 785,
+          "line": 791,
           "kind": "function",
           "parameters": [
             "messages"
@@ -6040,7 +6190,7 @@
         },
         {
           "name": "_forward_delta",
-          "line": 798,
+          "line": 804,
           "kind": "function",
           "parameters": [
             "event",
@@ -6052,8 +6202,30 @@
           }
         },
         {
+          "name": "_args_excerpt",
+          "line": 809,
+          "kind": "function",
+          "parameters": [
+            "call"
+          ],
+          "annotations": {
+            "call": "Any"
+          }
+        },
+        {
+          "name": "_result_excerpt",
+          "line": 819,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
           "name": "_reply_brief",
-          "line": 803,
+          "line": 825,
           "kind": "function",
           "parameters": [
             "reply"
@@ -15170,19 +15342,19 @@
       "path": "src/omni/system/config_io.py",
       "module": "platform",
       "python_module": "omni.system.config_io",
-      "lines": 200,
+      "lines": 396,
       "imports": [
         "omni.system.atomic"
       ],
       "symbols": [
         {
           "name": "ConfigEditError",
-          "line": 51,
+          "line": 52,
           "kind": "class"
         },
         {
           "name": "render_value",
-          "line": 55,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "kind",
@@ -15195,7 +15367,7 @@
         },
         {
           "name": "_scalar_updates",
-          "line": 96,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "text",
@@ -15207,8 +15379,87 @@
           }
         },
         {
+          "name": "_find_multiline_block",
+          "line": 123,
+          "kind": "function",
+          "parameters": [
+            "lines",
+            "section",
+            "key"
+          ],
+          "annotations": {
+            "lines": "list[str]",
+            "section": "str",
+            "key": "str"
+          }
+        },
+        {
           "name": "_replace_multiline_block",
-          "line": 121,
+          "line": 153,
+          "kind": "function",
+          "parameters": [
+            "text",
+            "section",
+            "key",
+            "value_lines"
+          ],
+          "annotations": {
+            "text": "str",
+            "section": "str",
+            "key": "str",
+            "value_lines": "list[str]"
+          }
+        },
+        {
+          "name": "_section_bounds",
+          "line": 171,
+          "kind": "function",
+          "parameters": [
+            "lines",
+            "section"
+          ],
+          "annotations": {
+            "lines": "list[str]",
+            "section": "str"
+          }
+        },
+        {
+          "name": "_has_key",
+          "line": 184,
+          "kind": "function",
+          "parameters": [
+            "lines",
+            "start",
+            "end",
+            "key"
+          ],
+          "annotations": {
+            "lines": "list[str]",
+            "start": "int",
+            "end": "int",
+            "key": "str"
+          }
+        },
+        {
+          "name": "_append_key",
+          "line": 189,
+          "kind": "function",
+          "parameters": [
+            "lines",
+            "section",
+            "key",
+            "rendered"
+          ],
+          "annotations": {
+            "lines": "list[str]",
+            "section": "str",
+            "key": "str",
+            "rendered": "str"
+          }
+        },
+        {
+          "name": "_append_multiline_block",
+          "line": 213,
           "kind": "function",
           "parameters": [
             "text",
@@ -15225,7 +15476,7 @@
         },
         {
           "name": "apply_updates",
-          "line": 152,
+          "line": 234,
           "kind": "function",
           "parameters": [
             "text",
@@ -15237,8 +15488,19 @@
           }
         },
         {
+          "name": "read_config_text",
+          "line": 283,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
           "name": "safe_write",
-          "line": 198,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "path",
@@ -15247,6 +15509,54 @@
           "annotations": {
             "path": "Path",
             "new_text": "str"
+          }
+        },
+        {
+          "name": "mask_secret",
+          "line": 313,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
+          "name": "_env_name_ok",
+          "line": 323,
+          "kind": "function",
+          "parameters": [
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "read_env_secrets",
+          "line": 327,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "set_env_secret",
+          "line": 350,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "name",
+            "value"
+          ],
+          "annotations": {
+            "path": "Path",
+            "name": "str",
+            "value": "str | None"
           }
         }
       ],
@@ -24516,7 +24826,7 @@
       "method": "POST",
       "path": "/api/auth/logout",
       "source": "src/omni/channels/web.py",
-      "line": 177,
+      "line": 196,
       "handler": "create_app.auth_logout",
       "module": "web-ui",
       "parameters": [],
@@ -24527,7 +24837,7 @@
       "method": "POST",
       "path": "/api/auth/pair",
       "source": "src/omni/channels/web.py",
-      "line": 162,
+      "line": 181,
       "handler": "create_app.auth_pair",
       "module": "web-ui",
       "parameters": [
@@ -24544,7 +24854,7 @@
       "method": "GET",
       "path": "/api/auth/status",
       "source": "src/omni/channels/web.py",
-      "line": 154,
+      "line": 173,
       "handler": "create_app.auth_status",
       "module": "web-ui",
       "parameters": [
@@ -25110,7 +25420,7 @@
       "method": "GET",
       "path": "/api/sessions",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 42,
+      "line": 84,
       "handler": "create_sessions_router.get_sessions",
       "module": "http-sessions",
       "parameters": [],
@@ -25121,7 +25431,7 @@
       "method": "POST",
       "path": "/api/sessions",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 56,
+      "line": 98,
       "handler": "create_sessions_router.create_session",
       "module": "http-sessions",
       "parameters": [],
@@ -25132,7 +25442,7 @@
       "method": "GET",
       "path": "/api/sessions/{session_id}/messages",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 66,
+      "line": 108,
       "handler": "create_sessions_router.get_messages",
       "module": "http-sessions",
       "parameters": [
@@ -25149,7 +25459,7 @@
       "method": "POST",
       "path": "/api/sessions/{session_id}/select",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 60,
+      "line": 102,
       "handler": "create_sessions_router.select_session",
       "module": "http-sessions",
       "parameters": [
@@ -25164,7 +25474,7 @@
       "method": "GET",
       "path": "/api/sessions/{session_id}/todos",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 78,
+      "line": 120,
       "handler": "create_sessions_router.get_todos",
       "module": "http-sessions",
       "parameters": [
@@ -25348,7 +25658,7 @@
       "method": "GET",
       "path": "/api/state",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 19,
+      "line": 22,
       "handler": "create_sessions_router.get_state",
       "module": "http-sessions",
       "parameters": [],
@@ -25481,7 +25791,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "src/omni/channels/web.py",
-      "line": 293,
+      "line": 319,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -25492,7 +25802,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "src/omni/channels/web.py",
-      "line": 305,
+      "line": 331,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -25507,7 +25817,7 @@
       "method": "GET",
       "path": "/api/system/config",
       "source": "src/omni/channels/web.py",
-      "line": 208,
+      "line": 234,
       "handler": "create_app.system_config",
       "module": "web-ui",
       "parameters": [],
@@ -25518,7 +25828,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "src/omni/channels/web.py",
-      "line": 254,
+      "line": 280,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -25686,9 +25996,35 @@
     },
     {
       "method": "POST",
+      "path": "/api/system/model-key",
+      "source": "src/omni/channels/web.py",
+      "line": 356,
+      "handler": "create_app.model_key_set",
+      "module": "web-ui",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "ModelKeyIn"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/model-keys",
+      "source": "src/omni/channels/web.py",
+      "line": 351,
+      "handler": "create_app.model_keys",
+      "module": "web-ui",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
       "path": "/api/system/model-test",
       "source": "src/omni/channels/web.py",
-      "line": 325,
+      "line": 373,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -25725,7 +26061,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "src/omni/channels/web.py",
-      "line": 274,
+      "line": 300,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -25736,7 +26072,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "src/omni/channels/web.py",
-      "line": 285,
+      "line": 311,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -25901,7 +26237,7 @@
       "method": "POST",
       "path": "/api/todos/toggle",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 90,
+      "line": 132,
       "handler": "create_sessions_router.toggle_todo",
       "module": "http-sessions",
       "parameters": [
@@ -25964,7 +26300,7 @@
       "method": "GET",
       "path": "/pair/{code}",
       "source": "src/omni/channels/web.py",
-      "line": 183,
+      "line": 202,
       "handler": "create_app.pair_link",
       "module": "web-ui",
       "parameters": [
@@ -26696,12 +27032,12 @@
         {
           "source": "src/omni/core/agent.py",
           "symbol": "Agent.run_turn",
-          "line": 231
+          "line": 232
         },
         {
           "source": "src/omni/core/agent.py",
           "symbol": "Agent._chat",
-          "line": 407
+          "line": 408
         },
         {
           "source": "src/omni/llm/gateway.py",
@@ -26718,7 +27054,7 @@
         {
           "source": "src/omni/core/agent.py",
           "symbol": "Agent._execute_tool_calls",
-          "line": 502
+          "line": 503
         },
         {
           "source": "src/omni/tools/registry.py",
@@ -26750,7 +27086,7 @@
         {
           "source": "src/omni/core/agent.py",
           "symbol": "Agent.run_turn",
-          "line": 231
+          "line": 232
         },
         {
           "source": "src/omni/llm/gateway.py",
@@ -26777,7 +27113,7 @@
         {
           "source": "src/omni/channels/web_auth.py",
           "symbol": "WebAuth.check_websocket",
-          "line": 218
+          "line": 327
         },
         {
           "source": "src/omni/channels/terminal/pool.py",
@@ -26909,6 +27245,23 @@
         {
           "name": "label",
           "type": "str",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "ModelKeyIn",
+      "source": "src/omni/channels/web.py",
+      "line": 77,
+      "fields": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "str | None",
           "required": false
         }
       ]
@@ -27454,7 +27807,7 @@
     {
       "name": "Persona",
       "source": "src/omni/config.py",
-      "line": 119,
+      "line": 126,
       "fields": [
         {
           "name": "name",
@@ -27471,7 +27824,7 @@
     {
       "name": "Models",
       "source": "src/omni/config.py",
-      "line": 126,
+      "line": 133,
       "fields": [
         {
           "name": "chat",
@@ -27498,7 +27851,7 @@
     {
       "name": "ModelCapability",
       "source": "src/omni/config.py",
-      "line": 133,
+      "line": 140,
       "fields": [
         {
           "name": "tools",
@@ -27535,7 +27888,7 @@
     {
       "name": "Retry",
       "source": "src/omni/config.py",
-      "line": 151,
+      "line": 158,
       "fields": [
         {
           "name": "max_attempts",
@@ -27557,7 +27910,7 @@
     {
       "name": "LLMBudget",
       "source": "src/omni/config.py",
-      "line": 159,
+      "line": 166,
       "fields": [
         {
           "name": "daily_usd",
@@ -27574,7 +27927,7 @@
     {
       "name": "Vision",
       "source": "src/omni/config.py",
-      "line": 171,
+      "line": 178,
       "fields": [
         {
           "name": "send_to_cloud",
@@ -27601,7 +27954,7 @@
     {
       "name": "Artifacts",
       "source": "src/omni/config.py",
-      "line": 185,
+      "line": 192,
       "fields": [
         {
           "name": "retention_days",
@@ -27618,7 +27971,7 @@
     {
       "name": "LLM",
       "source": "src/omni/config.py",
-      "line": 193,
+      "line": 200,
       "fields": [
         {
           "name": "request_timeout_s",
@@ -27650,7 +28003,7 @@
     {
       "name": "Limits",
       "source": "src/omni/config.py",
-      "line": 206,
+      "line": 213,
       "fields": [
         {
           "name": "max_history_messages",
@@ -27682,7 +28035,7 @@
     {
       "name": "Review",
       "source": "src/omni/config.py",
-      "line": 214,
+      "line": 221,
       "fields": [
         {
           "name": "enabled",
@@ -27714,7 +28067,7 @@
     {
       "name": "Memory",
       "source": "src/omni/config.py",
-      "line": 224,
+      "line": 231,
       "fields": [
         {
           "name": "max_writes_per_day",
@@ -27736,7 +28089,7 @@
     {
       "name": "Web",
       "source": "src/omni/config.py",
-      "line": 236,
+      "line": 243,
       "fields": [
         {
           "name": "max_bytes",
@@ -27783,7 +28136,7 @@
     {
       "name": "Files",
       "source": "src/omni/config.py",
-      "line": 253,
+      "line": 260,
       "fields": [
         {
           "name": "root",
@@ -27835,7 +28188,7 @@
     {
       "name": "Compression",
       "source": "src/omni/config.py",
-      "line": 271,
+      "line": 278,
       "fields": [
         {
           "name": "enabled",
@@ -27862,7 +28215,7 @@
     {
       "name": "Asr",
       "source": "src/omni/config.py",
-      "line": 280,
+      "line": 287,
       "fields": [
         {
           "name": "model",
@@ -27884,7 +28237,7 @@
     {
       "name": "QQ",
       "source": "src/omni/config.py",
-      "line": 288,
+      "line": 295,
       "fields": [
         {
           "name": "enabled",
@@ -27971,7 +28324,7 @@
     {
       "name": "Browser",
       "source": "src/omni/config.py",
-      "line": 325,
+      "line": 332,
       "fields": [
         {
           "name": "headless",
@@ -27998,7 +28351,7 @@
     {
       "name": "UIFormSelectors",
       "source": "src/omni/config.py",
-      "line": 334,
+      "line": 341,
       "fields": [
         {
           "name": "account",
@@ -28070,7 +28423,7 @@
     {
       "name": "BilibiliWrite",
       "source": "src/omni/config.py",
-      "line": 352,
+      "line": 359,
       "fields": [
         {
           "name": "enabled",
@@ -28097,7 +28450,7 @@
     {
       "name": "System",
       "source": "src/omni/config.py",
-      "line": 368,
+      "line": 375,
       "fields": [
         {
           "name": "napcat_dir",
@@ -28109,7 +28462,7 @@
     {
       "name": "Approval",
       "source": "src/omni/config.py",
-      "line": 374,
+      "line": 381,
       "fields": [
         {
           "name": "mode",
@@ -28121,7 +28474,7 @@
     {
       "name": "MCPServerConfig",
       "source": "src/omni/config.py",
-      "line": 384,
+      "line": 391,
       "fields": [
         {
           "name": "command",
@@ -28183,7 +28536,7 @@
     {
       "name": "MCPConfig",
       "source": "src/omni/config.py",
-      "line": 414,
+      "line": 421,
       "fields": [
         {
           "name": "servers",
@@ -28195,7 +28548,7 @@
     {
       "name": "Desktop",
       "source": "src/omni/config.py",
-      "line": 428,
+      "line": 435,
       "fields": [
         {
           "name": "enabled",
@@ -28232,7 +28585,7 @@
     {
       "name": "Embedding",
       "source": "src/omni/config.py",
-      "line": 445,
+      "line": 452,
       "fields": [
         {
           "name": "enabled",
@@ -28309,7 +28662,7 @@
     {
       "name": "Cron",
       "source": "src/omni/config.py",
-      "line": 483,
+      "line": 490,
       "fields": [
         {
           "name": "max_running",
@@ -28321,7 +28674,7 @@
     {
       "name": "AndroidConfig",
       "source": "src/omni/config.py",
-      "line": 488,
+      "line": 495,
       "fields": [
         {
           "name": "allowed_apps",
@@ -28363,7 +28716,7 @@
     {
       "name": "CommandJobsConfig",
       "source": "src/omni/config.py",
-      "line": 507,
+      "line": 514,
       "fields": [
         {
           "name": "max_running",
@@ -28400,7 +28753,7 @@
     {
       "name": "TerminalConfig",
       "source": "src/omni/config.py",
-      "line": 517,
+      "line": 524,
       "fields": [
         {
           "name": "max_sessions",
@@ -28427,7 +28780,7 @@
     {
       "name": "AppConfig",
       "source": "src/omni/config.py",
-      "line": 525,
+      "line": 532,
       "fields": [
         {
           "name": "android",
