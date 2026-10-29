@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`cd7df5e36429250a6c457ff65bfc239f660417d68b2de491d3c1c1e7ad742ab4`。包含 47 个职责模块、174 个源码/界面文件。
+源码指纹：`37f0cf839b07aab2b74c0b492f119703e92d878c238510e48b4bea87f5870eea`。包含 47 个职责模块、174 个源码/界面文件。
 
 ## 运行时组装 · assembly
 
@@ -165,7 +165,7 @@
 |---|---:|---|
 | [src/omni/channels/web.py](../../src/omni/channels/web.py) | 405 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 232 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1514 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1517 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm-addon-fit.js](../../src/omni/channels/web_static/vendor/xterm-addon-fit.js) | 2 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.js](../../src/omni/channels/web_static/vendor/xterm.js) | 6 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.min.css](../../src/omni/channels/web_static/vendor/xterm.min.css) | 8 | 平台脚本或界面资源 |
@@ -592,7 +592,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/tools/android/__init__.py](../../src/omni/tools/android/__init__.py) | 7 | 安卓能力域（P4 地基）：纯 ADB 协议层 + 高层语义驱动 + 工具。 |
-| [src/omni/tools/android/adb.py](../../src/omni/tools/android/adb.py) | 203 | 纯 ADB 协议层：设备无关的 adb 命令封装（不知道 LLM 与语义）。 |
+| [src/omni/tools/android/adb.py](../../src/omni/tools/android/adb.py) | 201 | 纯 ADB 协议层：设备无关的 adb 命令封装（不知道 LLM 与语义）。 |
 | [src/omni/tools/android/driver.py](../../src/omni/tools/android/driver.py) | 261 | Android 观察令牌、单设备互斥、一次动作与回读。磁盘缓存仅用于展示。 |
 | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py) | 221 | 安卓工具集（toolset=android）：观察 SAFE，动作 CONFIRM。 |
 | [src/omni/tools/android/ui.py](../../src/omni/tools/android/ui.py) | 89 | UI 树解析（纯函数）：uiautomator XML → 结构化元素 → 文本树。 |
@@ -664,7 +664,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/tools/mcp/__init__.py](../../src/omni/tools/mcp/__init__.py) | 1 | 外部 MCP 能力域：本地 stdio 客户端与工具适配；不依赖 LLM 或内核。 |
-| [src/omni/tools/mcp/client.py](../../src/omni/tools/mcp/client.py) | 492 | 同步 agent 到异步 MCP 的桥接：每服务一个会话所有者线程。 |
+| [src/omni/tools/mcp/client.py](../../src/omni/tools/mcp/client.py) | 511 | 同步 agent 到异步 MCP 的桥接：每服务一个会话所有者线程。 |
 | [src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py) | 76 | MCP 工具适配：渐进发现、用户审核只读调用、人工确认调用；不决定传输细节。 |
 
 文档：[docs/MCP.md](../../docs/MCP.md)

@@ -61,8 +61,6 @@ class AdbDevice:
 
     def _argv(self, args: list[str]) -> list[str]:
         argv = [self._adb]
-        if self._serial:
-            argv += ["-s", self._serial]
         return argv + [str(a) for a in args]
 
     def _run(self, args: list[str], *, timeout: float = 15.0, binary: bool = False):

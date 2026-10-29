@@ -1406,7 +1406,10 @@ window.openTerminal=()=>{
   $('#term-modal').classList.remove('hidden');
   termSessionOpen=true;
   if(!term)initTerminal();
-  else if(termFit)setTimeout(()=>{try{termFit.fit()}catch(e){}},60);
+  else {
+    if(!termWS||termWS.readyState>1)connectTerminal();
+    if(termFit)setTimeout(()=>{try{termFit.fit()}catch(e){}},60);
+  }
 };
 window.closeTerminal=()=>{
   $('#term-modal').classList.add('hidden');
@@ -1426,7 +1429,9 @@ function initTerminal(){
   term.onResize(({cols,rows})=>{
     if(termWS&&termWS.readyState===1)termWS.send(JSON.stringify({resize:[cols,rows]}))
   });
-  const connect=()=>{
+  connectTerminal();
+}
+function connectTerminal(){
     const proto=location.protocol==='https:'?'wss':'ws';
     termWS=new WebSocket(`${proto}://${location.host}/api/terminal/ws`);
     termWS.onmessage=e=>term.write(e.data);
@@ -1434,8 +1439,6 @@ function initTerminal(){
       if(termSessionOpen)term.writeln('\r\n\x1b[33m—— 会话已结束（重新打开弹窗可再开一个）——\x1b[0m');
     };
     setTimeout(()=>{try{termFit.fit();termWS.send(JSON.stringify({resize:[term.cols,term.rows]}))}catch(e){}},100);
-  };
-  connect();
 }
 window.addEventListener('resize',()=>{if(termSessionOpen&&termFit){try{termFit.fit()}catch(e){}}});
 $('#open-terminal').onclick=openTerminal;

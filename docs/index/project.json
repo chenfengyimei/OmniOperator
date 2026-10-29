@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "cd7df5e36429250a6c457ff65bfc239f660417d68b2de491d3c1c1e7ad742ab4",
+  "source_sha256": "37f0cf839b07aab2b74c0b492f119703e92d878c238510e48b4bea87f5870eea",
   "modules": [
     {
       "id": "assembly",
@@ -277,7 +277,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2167,
+      "lines": 2170,
       "dependencies": [
         "assembly",
         "config",
@@ -1007,7 +1007,7 @@
         "src/omni/tools/android/tools.py",
         "src/omni/tools/android/ui.py"
       ],
-      "lines": 781,
+      "lines": 779,
       "dependencies": [
         "config",
         "platform",
@@ -1116,7 +1116,7 @@
         "src/omni/tools/mcp/client.py",
         "src/omni/tools/mcp/tools.py"
       ],
-      "lines": 569,
+      "lines": 588,
       "dependencies": [
         "config",
         "toolkit"
@@ -3995,7 +3995,7 @@
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 1514,
+      "lines": 1517,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -14934,7 +14934,7 @@
       "path": "src/omni/tools/android/adb.py",
       "module": "android",
       "python_module": "omni.tools.android.adb",
-      "lines": 203,
+      "lines": 201,
       "imports": [],
       "symbols": [
         {
@@ -15010,7 +15010,7 @@
         },
         {
           "name": "AdbDevice._run",
-          "line": 68,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "self",
@@ -15026,7 +15026,7 @@
         },
         {
           "name": "AdbDevice._device_shell",
-          "line": 86,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -15042,7 +15042,7 @@
         },
         {
           "name": "AdbDevice._device_exec_out",
-          "line": 91,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -15058,7 +15058,7 @@
         },
         {
           "name": "AdbDevice.devices",
-          "line": 98,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self"
@@ -15067,7 +15067,7 @@
         },
         {
           "name": "AdbDevice.require_device",
-          "line": 111,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self"
@@ -15076,7 +15076,7 @@
         },
         {
           "name": "AdbDevice.screen_size",
-          "line": 128,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -15088,7 +15088,7 @@
         },
         {
           "name": "AdbDevice.tap",
-          "line": 137,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -15104,7 +15104,7 @@
         },
         {
           "name": "AdbDevice.swipe",
-          "line": 142,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "self",
@@ -15126,7 +15126,7 @@
         },
         {
           "name": "AdbDevice.key",
-          "line": 150,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -15140,7 +15140,7 @@
         },
         {
           "name": "AdbDevice.type_ascii",
-          "line": 157,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self",
@@ -15154,7 +15154,7 @@
         },
         {
           "name": "AdbDevice.type_unicode",
-          "line": 163,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
@@ -15169,7 +15169,7 @@
         },
         {
           "name": "AdbDevice.screencap",
-          "line": 192,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -15181,7 +15181,7 @@
         },
         {
           "name": "AdbDevice.dump_ui",
-          "line": 197,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -18419,7 +18419,7 @@
       "path": "src/omni/tools/mcp/client.py",
       "module": "mcp",
       "python_module": "omni.tools.mcp.client",
-      "lines": 492,
+      "lines": 511,
       "imports": [
         "omni.config"
       ],
@@ -18639,7 +18639,7 @@
         },
         {
           "name": "MCPManager._guard",
-          "line": 314,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -18651,7 +18651,7 @@
         },
         {
           "name": "MCPManager._guard.check",
-          "line": 315,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "config",
@@ -18664,7 +18664,7 @@
         },
         {
           "name": "MCPManager.servers",
-          "line": 330,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "self"
@@ -18673,7 +18673,7 @@
         },
         {
           "name": "MCPManager.fingerprint",
-          "line": 334,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "tools"
@@ -18684,7 +18684,7 @@
         },
         {
           "name": "MCPManager.status",
-          "line": 349,
+          "line": 350,
           "kind": "function",
           "parameters": [
             "self"
@@ -18693,7 +18693,7 @@
         },
         {
           "name": "MCPManager.reset",
-          "line": 380,
+          "line": 381,
           "kind": "function",
           "parameters": [
             "self",
@@ -18705,7 +18705,7 @@
         },
         {
           "name": "MCPManager._rebuild",
-          "line": 391,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self",
@@ -18717,7 +18717,19 @@
         },
         {
           "name": "MCPManager._live",
-          "line": 403,
+          "line": 409,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "MCPManager._live_locked",
+          "line": 413,
           "kind": "function",
           "parameters": [
             "self",
@@ -18729,7 +18741,7 @@
         },
         {
           "name": "MCPManager._note_request_failure",
-          "line": 422,
+          "line": 432,
           "kind": "function",
           "parameters": [
             "self",
@@ -18743,30 +18755,6 @@
         },
         {
           "name": "MCPManager._note_success",
-          "line": 437,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "server"
-          ],
-          "annotations": {
-            "server": "str"
-          }
-        },
-        {
-          "name": "MCPManager._connection",
-          "line": 442,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "server"
-          ],
-          "annotations": {
-            "server": "str"
-          }
-        },
-        {
-          "name": "MCPManager.list_tools",
           "line": 447,
           "kind": "function",
           "parameters": [
@@ -18778,8 +18766,32 @@
           }
         },
         {
-          "name": "MCPManager.call",
+          "name": "MCPManager._connection",
+          "line": 452,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "MCPManager.list_tools",
           "line": 459,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        },
+        {
+          "name": "MCPManager.call",
+          "line": 471,
           "kind": "function",
           "parameters": [
             "self",
@@ -18797,7 +18809,7 @@
         },
         {
           "name": "MCPManager.call_outcome",
-          "line": 463,
+          "line": 475,
           "kind": "function",
           "parameters": [
             "self",
@@ -18815,7 +18827,7 @@
         },
         {
           "name": "MCPManager.close",
-          "line": 487,
+          "line": 499,
           "kind": "function",
           "parameters": [
             "self",

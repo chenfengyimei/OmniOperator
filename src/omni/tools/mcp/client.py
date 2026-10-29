@@ -308,7 +308,8 @@ class MCPManager:
         self._schemas = schema_store
         self._connections = {name: MCPConnection(name, cfg, log_dir, self._guard(name))
                              for name, cfg in config.servers.items() if cfg.enabled}
-        self._reconnect_lock = threading.Lock()
+        self._reconnect_lock = threading.RLock()
+        self._closed = False
         self._reconnect_info: dict[str, dict[str, float]] = {}
 
     def _guard(self, server: str) -> Callable[[MCPServerConfig, list[dict[str, Any]]], bool]:
@@ -385,6 +386,8 @@ class MCPManager:
         未配置的服务拒绝。
         """
         with self._reconnect_lock:
+            if self._closed:
+                raise MCPError("MCP 管理器正在关闭，拒绝重连")
             self._reconnect_info.pop(server, None)
             return self._rebuild(server).status()
 
@@ -394,13 +397,20 @@ class MCPManager:
         if conn is None:
             raise MCPError("MCP 服务未配置或未启用；先由用户修改 config.yaml")
         log_dir = conn._log_dir  # noqa: SLF001 —— 同目录重建，日志不换地方
-        conn.close()
+        if not conn.close():
+            raise MCPError("MCP 旧连接尚未完成关闭，禁止建立替代连接；请核查残留")
+        if self._closed:
+            raise MCPError("MCP 管理器正在关闭，拒绝建立连接")
         cfg = self._config.servers[server]
         fresh = MCPConnection(server, cfg, log_dir, self._guard(server))
         self._connections[server] = fresh
         return fresh
 
     def _live(self, server: str) -> MCPConnection:
+        with self._reconnect_lock:
+            return self._live_locked(server)
+
+    def _live_locked(self, server: str) -> MCPConnection:
         """显式调用路径的连接入口：failed 且到点则换新连接（有界退避）。"""
         connection = self._connection(server)
         if connection.status()["state"] != "failed":
@@ -440,6 +450,8 @@ class MCPManager:
             self._reconnect_info.pop(server, None)
 
     def _connection(self, server: str) -> MCPConnection:
+        if self._closed:
+            raise MCPError("MCP 管理器正在关闭，拒绝新请求")
         if server not in self._connections:
             raise MCPError("MCP 服务未配置或未启用；先由用户修改 config.yaml")
         return self._connections[server]
@@ -486,7 +498,14 @@ class MCPManager:
 
     def close(self, wait_s: float = 10) -> bool:
         deadline = time.monotonic() + max(0, wait_s)
+        self._closed = True
+        if not self._reconnect_lock.acquire(timeout=max(0, wait_s)):
+            return False
+        try:
+            connections = list(self._connections.values())
+        finally:
+            self._reconnect_lock.release()
         done = True
-        for connection in self._connections.values():
+        for connection in connections:
             done = connection.close(max(0, deadline - time.monotonic())) and done
         return done
