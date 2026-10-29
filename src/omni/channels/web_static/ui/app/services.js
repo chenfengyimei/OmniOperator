@@ -1,7 +1,7 @@
 // 系统控制台：服务面板（启停/状态）+ NapCat 扫码弹窗（含轮询定时器生命周期）+ 诊断/备份。
-import {$,esc} from './dom.js?v=20261030d';
-import {api} from './api.js?v=20261030d';
-import {openModal,closeModal,registerCloseHook} from './modals.js?v=20261030d';
+import {$,esc} from './dom.js?v=20261030f';
+import {api} from './api.js?v=20261030f';
+import {openModal,closeModal,registerCloseHook} from './modals.js?v=20261030f';
 
 let QR_TIMER=null;
 
@@ -16,8 +16,8 @@ export async function loadServices(){
       return `<div class="svc">`+
         `<span class="svc-dot ${s.running?'on':(s.name==='napcat'&&!d.napcat.logged_in?'warn':'')}"></span>`+
         `<span class="svc-body"><span class="svc-name" title="${esc(s.label)}">${esc(shortName)}</span><span class="svc-detail" title="${esc(detail)}">${esc(detail)}</span></span>`+
-        `<button class="svc-act ${s.running?'':'warn'}" ${s.running&&!s.can_stop?'disabled title="这个不是小鱼自己启动的，不敢替你关"':''} onclick="svcAction('${s.name}','${s.running?'stop':'start'}')">${s.running?'停止':'启动'}</button>`+
-        (s.name==='napcat'&&!d.napcat.logged_in?`<button class="svc-act warn" onclick="openQR()">扫码</button>`:'')+
+        `<button class="svc-act ${s.running?'':'warn'}" ${s.running&&!s.can_stop?'disabled title="这个不是小鱼自己启动的，不敢替你关"':''} data-action="services:toggle" data-name="${esc(s.name)}" data-op="${s.running?'stop':'start'}">${s.running?'停止':'启动'}</button>`+
+        (s.name==='napcat'&&!d.napcat.logged_in?`<button class="svc-act warn" data-action="services:qr-open">扫码</button>`:'')+
         `</div>`;
     }).join(''):'<div class="empty">没有可管理的服务</div>';
   }catch(e){$('#service-summary').textContent='读取失败';$('#services').innerHTML='<div class="empty">状态获取失败</div>'}
@@ -64,3 +64,12 @@ window.loadQR=async()=>{
 const clearQRTimer=()=>{if(QR_TIMER){clearInterval(QR_TIMER);QR_TIMER=null}};
 registerCloseHook('qr-modal',clearQRTimer);
 $('#qr-modal').addEventListener('close',clearQRTimer);
+
+// data-action 注册表（main.js 合并后统一分发）
+export const actions={
+  'services:toggle':el=>svcAction(el.dataset.name,el.dataset.op),
+  'services:qr-open':()=>openQR(),
+  'services:qr-refresh':()=>loadQR(),
+  'services:doctor':()=>showDoctor(),
+  'services:backup':()=>createBackup(),
+};

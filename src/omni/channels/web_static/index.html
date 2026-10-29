@@ -15,14 +15,14 @@
      shared.js 往 body>header 注入导航/面板切换的挂载假设不受影响（注入导航由 workbench.css 隐藏）。 -->
 <nav class="rail" aria-label="主导航">
   <div class="rail-brand" data-tip="OmniOperator"><span class="material-icons">smart_toy</span></div>
-  <button class="rail-btn active" data-tip="对话工作台" onclick="railGo(this)"><span class="material-icons">forum</span></button>
-  <button class="rail-btn" data-tip="记忆库" onclick="railTab(this,'facts')"><span class="material-icons">psychology</span></button>
-  <button class="rail-btn" data-tip="技能库" onclick="railTab(this,'skills')"><span class="material-icons">auto_awesome</span></button>
-  <button class="rail-btn" data-tip="定时任务" onclick="railCron()"><span class="material-icons">schedule</span></button>
+  <button class="rail-btn active" data-tip="对话工作台" data-action="rail:go"><span class="material-icons">forum</span></button>
+  <button class="rail-btn" data-tip="记忆库" data-action="rail:tab" data-target="facts"><span class="material-icons">psychology</span></button>
+  <button class="rail-btn" data-tip="技能库" data-action="rail:tab" data-target="skills"><span class="material-icons">auto_awesome</span></button>
+  <button class="rail-btn" data-tip="定时任务" data-action="rail:cron"><span class="material-icons">schedule</span></button>
   <div class="rail-sep"></div>
-  <button class="rail-btn" data-tip="内置终端" onclick="openTerminal()"><span class="material-icons">terminal</span></button>
-  <button class="rail-btn" data-tip="安卓手机" onclick="openPhone()"><span class="material-icons">smartphone</span></button>
-  <button class="rail-btn" data-tip="审批队列" onclick="railApprovals()"><span class="material-icons">gpp_maybe</span></button>
+  <button class="rail-btn" data-tip="内置终端" data-action="rail:terminal"><span class="material-icons">terminal</span></button>
+  <button class="rail-btn" data-tip="安卓手机" data-action="rail:phone"><span class="material-icons">smartphone</span></button>
+  <button class="rail-btn" data-tip="审批队列" data-action="rail:approvals"><span class="material-icons">gpp_maybe</span></button>
   <div class="rail-sep"></div>
   <!-- 4 个独立子站：新标签打开，别把工作台顶掉（与 shared.js 注入导航在 workbench 上的行为一致） -->
   <a class="rail-btn" id="open-project" href="/project/" target="_blank" rel="noopener" data-tip="项目与能力" title="模块、API、工具与扩展索引"><span class="material-icons">account_tree</span></a>
@@ -30,7 +30,7 @@
   <a class="rail-btn" id="open-mcp-services" href="/mcp/" target="_blank" rel="noopener" data-tip="MCP 服务"><span class="material-icons">network_check</span></a>
   <a class="rail-btn" id="open-capabilities" href="/capabilities/" target="_blank" rel="noopener" data-tip="能力诊断"><span class="material-icons">fact_check</span></a>
   <div class="rail-foot">
-    <button class="rail-btn" data-tip="设置中心" onclick="openHub()"><span class="material-icons">settings</span></button>
+    <button class="rail-btn" data-tip="设置中心" data-action="hub:open"><span class="material-icons">settings</span></button>
   </div>
 </nav>
 <header>
@@ -47,7 +47,7 @@
        视觉入口已收进 rail，base.css 的 .ui-ready 规则会继续把 header 里这两个藏起来 -->
   <button id="open-terminal" title="内置终端（PowerShell）：不用再开 Windows 终端窗口">⌨ 终端</button>
   <button id="open-phone" title="安卓手机：看屏 + 点击 + UI 树">📱 手机</button>
-  <button class="hub-open" onclick="openHub()"><span class="material-icons">tune</span>设置中心</button>
+  <button class="hub-open" data-action="hub:open"><span class="material-icons">tune</span>设置中心</button>
 </header>
 <main>
   <aside class="workbench-side">
@@ -106,12 +106,12 @@
         <ul id="facts-list"></ul>
       </div>
       <div id="tab-publications" class="tab-body hidden">
-        <button class="svc-btn" onclick="loadPublications()">刷新草稿</button>
+        <button class="svc-btn" data-action="publications:refresh">刷新草稿</button>
         <div class="hint">在聊天中准备草稿；发送前会展示完整内容并请求确认。结果未知时，请先到网站核查。</div>
         <div id="publication-list"></div>
       </div>
       <div id="tab-desktop" class="tab-body hidden">
-        <button class="svc-btn" onclick="loadDesktop()">刷新允许的窗口</button>
+        <button class="svc-btn" data-action="desktop:refresh">刷新允许的窗口</button>
         <div class="hint">先观察，再在聊天中请求编辑；每次桌面写入都需要确认。</div>
         <div id="desktop-windows"></div><div id="desktop-tree"></div>
       </div>
@@ -120,7 +120,7 @@
         <div id="resident-usage" style="padding:8px 12px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--border)"></div>
         <div style="display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border)">
           <input id="resident-new" placeholder="新增一条常驻笔记…" style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12.5px">
-          <button class="svc-btn" onclick="addResident()">添加</button>
+          <button class="svc-btn" data-action="memory:resident-add">添加</button>
         </div>
         <ul id="resident-list"></ul>
       </div>
@@ -144,48 +144,48 @@
 <div id="approval-banner" class="hidden"></div>
 <!-- rail 图标提示浮层：position:fixed 顶层，避开层叠上下文与 overflow 裁剪；JS 在文件尾接线 -->
 <div id="tip-layer"></div>
-<dialog id="qr-modal" class="modal" onclick="if(event.target===this)closeModal('qr-modal')">
+<dialog id="qr-modal" class="modal" data-action="modals:backdrop-close" data-id="qr-modal">
   <div class="modal-box">
-    <div class="modal-title"><span>QQ 扫码登录</span><button class="modal-x" onclick="closeModal('qr-modal')">✕</button></div>
+    <div class="modal-title"><span>QQ 扫码登录</span><button class="modal-x" data-action="modals:close" data-id="qr-modal">✕</button></div>
     <div id="qr-status" class="qr-status"></div>
     <img id="qr-img" class="qr-img" alt="登录二维码">
     <div class="qr-hint">用手机 QQ（机器人小号）扫码并确认登录。<br>二维码约 2 分钟自动刷新，弹窗每 5 秒自动取最新。</div>
-    <button class="svc-btn" style="width:100%;padding:6px" onclick="loadQR()">立即刷新</button>
+    <button class="svc-btn" style="width:100%;padding:6px" data-action="services:qr-refresh">立即刷新</button>
   </div>
 </dialog>
 <!-- ============ 内置终端 ============ -->
 <!-- ============ 安卓手机 ============ -->
 <!-- ============ 产物大图 ============ -->
-<dialog id="img-modal" class="modal" onclick="if(event.target===this)closeModal('img-modal')">
+<dialog id="img-modal" class="modal" data-action="modals:backdrop-close" data-id="img-modal">
   <div class="modal-box" style="width:min(1040px,96vw)">
-    <div class="modal-title"><span id="img-title">产物</span><button class="modal-x" onclick="closeModal('img-modal')">✕</button></div>
+    <div class="modal-title"><span id="img-title">产物</span><button class="modal-x" data-action="modals:close" data-id="img-modal">✕</button></div>
     <img id="img-view" alt="产物大图">
     <div class="qr-hint" id="img-hint"></div>
   </div>
 </dialog>
 <!-- ============ 技能编辑器 ============ -->
-<dialog id="skill-modal" class="modal" onclick="if(event.target===this)closeModal('skill-modal')">
+<dialog id="skill-modal" class="modal" data-action="modals:backdrop-close" data-id="skill-modal">
   <div class="modal-box" style="width:min(920px,95vw);height:min(780px,94vh);display:flex;flex-direction:column;gap:8px">
-    <div class="modal-title"><span id="skill-editor-title">编辑技能</span><button class="modal-x" onclick="closeModal('skill-modal')">✕</button></div>
+    <div class="modal-title"><span id="skill-editor-title">编辑技能</span><button class="modal-x" data-action="modals:close" data-id="skill-modal">✕</button></div>
     <textarea id="skill-editor" spellcheck="false" style="flex:1;min-height:180px;resize:none;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);font:12.5px/1.6 Consolas,monospace;padding:10px"></textarea>
     <div id="skill-msg" style="min-height:1.2em;font-size:12px;color:#34d399"></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="svc-btn" onclick="saveSkill()">保存（指纹冲突会拒绝）</button>
-      <button class="svc-btn" onclick="reloadSkill()">重新加载最新</button>
-      <button class="svc-btn" onclick="loadSkillHistory()">历史 / 差异 / 回滚</button>
+      <button class="svc-btn" data-action="skills:save">保存（指纹冲突会拒绝）</button>
+      <button class="svc-btn" data-action="skills:reload">重新加载最新</button>
+      <button class="svc-btn" data-action="skills:history">历史 / 差异 / 回滚</button>
     </div>
     <div id="skill-history" style="max-height:170px;overflow:auto"></div>
     <pre id="skill-diff" style="max-height:190px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
   </div>
 </dialog>
 <!-- ============ 技能变更审阅（D18：agent/review 自动改的修订） ============ -->
-<dialog id="review-modal" class="modal" onclick="if(event.target===this)closeModal('review-modal')">
+<dialog id="review-modal" class="modal" data-action="modals:backdrop-close" data-id="review-modal">
   <div class="modal-box" style="width:min(960px,95vw);height:min(740px,92vh);display:flex;flex-direction:column;gap:8px">
-    <div class="modal-title"><span>技能变更待审阅</span><button class="modal-x" onclick="closeModal('review-modal')">✕</button></div>
+    <div class="modal-title"><span>技能变更待审阅</span><button class="modal-x" data-action="modals:close" data-id="review-modal">✕</button></div>
     <div class="hint">这里是小鱼（对话/自进化 review/定时任务）自动改过的技能修订。技能改动不会改变风险等级或工具权限，但值得看一眼；不满意可回滚到变更前，回滚会产生新修订、可再撤销。</div>
     <div style="display:flex;gap:6px">
-      <button class="svc-btn" onclick="reviewAckAll()">全部标记已读</button>
-      <button class="svc-btn" onclick="openReview()">刷新</button>
+      <button class="svc-btn" data-action="skills:review-ack-all">全部标记已读</button>
+      <button class="svc-btn" data-action="skills:review-open">刷新</button>
     </div>
     <div id="review-list" style="flex:1;overflow:auto"></div>
     <pre id="review-diff" style="max-height:220px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
@@ -194,7 +194,7 @@
 <!-- ============ 设置中心 ============ -->
 <div id="hub" class="hidden" role="dialog" aria-modal="true" aria-label="设置中心" aria-hidden="true">
   <div class="hub-header">
-    <button class="hub-back" type="button" onclick="closeHub()" title="返回工作台" aria-label="返回工作台"><span class="material-icons">arrow_back</span></button>
+    <button class="hub-back" type="button" data-action="hub:close" title="返回工作台" aria-label="返回工作台"><span class="material-icons">arrow_back</span></button>
     <div class="hub-title">
       <div class="hub-mark"><span class="material-icons">tune</span></div>
       <div>
@@ -232,8 +232,8 @@
         <div class="field">
           <label>你存的几套设定</label>
           <div style="display:flex;gap:8px;margin-bottom:8px">
-            <button class="tiny-btn" onclick="saveCurrentAsPreset()">把现在这套存下来</button>
-            <button class="tiny-btn" onclick="newPreset()">新建一套</button>
+            <button class="tiny-btn" data-action="persona:preset-save-current">把现在这套存下来</button>
+            <button class="tiny-btn" data-action="persona:preset-new">新建一套</button>
             <span id="preset-tip" class="test-out"></span>
           </div>
           <div id="persona-presets"></div>
@@ -242,7 +242,7 @@
           🔮 以后这里会有更多现成的设定可以直接拿来用——比如某些角色说话的味道、整套性格包之类。还没做，先占个位置。
         </div>
         <div class="card-actions">
-          <button class="save-btn" onclick="saveHub('persona',this)">保存人设</button>
+          <button class="save-btn" data-action="hub:save" data-scope="persona">保存人设</button>
           <span class="save-msg" id="save-msg-persona"></span>
         </div>
       </div>
@@ -252,7 +252,7 @@
         <div id="model-slots" class="slot-grid"></div>
         <div id="model-wizard"></div>
         <div class="card-actions">
-          <button class="save-btn" onclick="saveHub('models',this)">保存模型设置</button>
+          <button class="save-btn" data-action="hub:save" data-scope="models">保存模型设置</button>
           <span class="save-msg" id="save-msg-models"></span>
         </div>
       </div>
@@ -275,7 +275,7 @@
           </select>
         </div>
         <div class="card-actions">
-          <button class="save-btn" onclick="saveHub('memory',this)">保存记忆设置</button>
+          <button class="save-btn" data-action="hub:save" data-scope="memory">保存记忆设置</button>
           <span class="save-msg" id="save-msg-memory"></span>
         </div>
       </div>
@@ -290,7 +290,7 @@
         <div class="field"><label>SESSDATA（必需）<input type="text" id="cfg-bili-sessdata" placeholder="粘贴浏览器里的 SESSDATA 值"></label></div>
         <div class="field"><label>bili_jct（可选，用来点赞/发评论）<input type="text" id="cfg-bili-jct" placeholder="（可留空）"></label></div>
         <div class="field"><label>buvid3（可选，设备标识）<input type="text" id="cfg-bili-buvid3" placeholder="（可留空）"></label></div>
-        <button class="tiny-btn" onclick="saveBiliCookies()">保存凭证</button>
+        <button class="tiny-btn" data-action="hub:bili-cookies-save">保存凭证</button>
         <h4>语音转文字</h4>
         <div class="hint">视频没有字幕时，小鱼会把声音转成文字再理解。模型越大越准，也越慢越吃内存。</div>
         <div class="field"><label>用多大的模型</label><select id="cfg-asr-model"><option>tiny</option><option>base</option><option>small</option><option>medium</option></select></div>
@@ -299,7 +299,7 @@
           <div class="field"><label>精度（低一点更快更省）</label><select id="cfg-asr-compute-type"><option>int8</option><option>float16</option></select></div>
         </div>
         <div class="card-actions">
-          <button class="save-btn" onclick="saveHub('media',this)">保存转写设置</button>
+          <button class="save-btn" data-action="hub:save" data-scope="media">保存转写设置</button>
           <span class="save-msg" id="save-msg-media"></span>
         </div>
       </div>
@@ -313,7 +313,7 @@
           <div class="field"><label>等你确认最多等几秒</label><input type="number" id="cfg-browser-approval-timeout"></div>
         </div>
         <div class="card-actions">
-          <button class="save-btn" onclick="saveHub('browser',this)">保存浏览器设置</button>
+          <button class="save-btn" data-action="hub:save" data-scope="browser">保存浏览器设置</button>
           <span class="save-msg" id="save-msg-browser"></span>
         </div>
       </div>
@@ -335,7 +335,7 @@
         <div class="field"><label>按哪个时区算（默认跟这台电脑一致）<input type="text" id="cfg-qq-timezone" placeholder="Asia/Shanghai"></label></div>
         <div class="muted" id="qq-policy-status"></div><button type="button" id="qq-proactive-stop">马上停止提醒</button>
         <div class="card-actions">
-          <button class="save-btn" onclick="saveHub('qq',this)">保存 QQ 设置</button>
+          <button class="save-btn" data-action="hub:save" data-scope="qq">保存 QQ 设置</button>
           <span class="save-msg" id="save-msg-qq"></span>
         </div>
       </div>
@@ -355,8 +355,8 @@
           <div class="field"><label>接着上一个任务的结果做（可留空）<input type="text" id="cronf-ctx" placeholder="nightly-tidy"></label></div>
           <div class="field"><label>上一步结果最多留多久（分钟）<input type="number" id="cronf-age" value="1440" min="1" max="10080"></label></div>
         </div>
-        <button class="tiny-btn" id="cron-create-btn" onclick="createCron()">创建任务</button>
-        <button class="tiny-btn hidden" id="cron-cancel-edit" onclick="cronCancelEdit()">取消编辑</button>
+        <button class="tiny-btn" id="cron-create-btn" data-action="cron:create">创建任务</button>
+        <button class="tiny-btn hidden" id="cron-cancel-edit" data-action="cron:cancel-edit">取消编辑</button>
         <div id="cronf-msg" class="test-out"></div>
         <h4>已建的任务</h4>
         <div id="cron-list"></div>
@@ -416,8 +416,8 @@
         <h4>维护与数据</h4>
         <div class="hint">诊断只读取状态，不启动服务。备份会包含私人记忆；配置中的密钥会被脱敏，浏览器登录态不会包含。</div>
         <div class="maintenance-actions">
-          <button class="tiny-btn" onclick="showDoctor()">只读诊断</button>
-          <button class="tiny-btn" onclick="createBackup()">创建备份（含私人记忆）</button>
+          <button class="tiny-btn" data-action="services:doctor">只读诊断</button>
+          <button class="tiny-btn" data-action="services:backup">创建备份（含私人记忆）</button>
         </div>
         <pre id="doctor-result" class="muted maintenance-output" style="max-height:260px;overflow:auto;white-space:pre-wrap"></pre>
         <div id="test-run-out" class="test-out" style="margin-top:8px"></div>
@@ -425,7 +425,7 @@
     </div>
   </div>
 </div>
-<script type="module" src="/ui/app/main.js?v=20261030d"></script>
+<script type="module" src="/ui/app/main.js?v=20261030f"></script>
 <script src="/vendor/xterm.js"></script>
 <script src="/vendor/xterm-addon-fit.js"></script>
 </body>

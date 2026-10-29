@@ -1,16 +1,16 @@
 // 技能面板：列表 + 变更待审阅（D18）+ 编辑器（读原文带指纹 → 保存 CAS → 历史/差异/回滚）。
-import {$,esc} from './dom.js?v=20261030d';
-import {api} from './api.js?v=20261030d';
-import {openModal} from './modals.js?v=20261030d';
-import {setTabBadge} from './tabs.js?v=20261030d';
+import {$,esc} from './dom.js?v=20261030f';
+import {api} from './api.js?v=20261030f';
+import {openModal} from './modals.js?v=20261030f';
+import {setTabBadge} from './tabs.js?v=20261030f';
 
 export async function loadSkills(){
   const d=await api('/api/skills');
   setTabBadge('skills',d.skills.length);
   $('#skills-list').innerHTML=d.skills.length?d.skills.map(s=>
     `<li class="skill-item" data-open="0"><b>${esc(s.name)}</b> <span class="s-id">v${esc(s.version)}</span>`+
-    `<button class="svc-btn" style="margin-left:6px" onclick="toggleSkill('${esc(s.name)}',this.closest('li'))">查看</button>`+
-    `<button class="svc-btn" onclick="editSkill('${esc(s.name)}')">编辑</button>`+
+    `<button class="svc-btn" style="margin-left:6px" data-action="skills:toggle" data-name="${esc(s.name)}">查看</button>`+
+    `<button class="svc-btn" data-action="skills:edit" data-name="${esc(s.name)}">编辑</button>`+
     `<div class="skill-desc">${esc(s.description)}</div></li>`).join(''):'<li class="empty">还没有技能（agent 完成多步任务后会自动沉淀）</li>';
   loadSkillPending();
 }
@@ -22,7 +22,7 @@ async function loadSkillPending(){
     if(!d.count){bar.classList.add('hidden');bar.innerHTML='';return}
     bar.classList.remove('hidden');
     bar.innerHTML=`<span>⚠ <b>${d.count}</b> 条技能变更待审阅（小鱼自动改的）</span>`+
-      `<span style="flex:1"></span><button class="svc-btn" onclick="openReview()">审阅</button>`;
+      `<span style="flex:1"></span><button class="svc-btn" data-action="skills:review-open">审阅</button>`;
   }catch(e){/* 旁路信息，不打断技能页 */}
 }
 window.openReview=async()=>{
@@ -33,9 +33,9 @@ window.openReview=async()=>{
     $('#review-list').innerHTML=d.items.length?d.items.map(it=>
       `<div class="cron-row"><span class="c-name">${esc(it.name)} · rev ${it.rev}</span>`+
       `<span class="c-sched">v${it.version==null?'—':it.version} · ${esc(it.summary||'无摘要')} · ${esc((it.created_at||'').slice(5,16))} · ${esc(it.author)}${it.applied?'':'（未落盘）'}</span>`+
-      `<button class="svc-btn" onclick="reviewDiff('${esc(it.name)}',${it.rev})">差异</button>`+
-      (it.base_rev!=null?`<button class="svc-btn" onclick="reviewRollback('${esc(it.name)}',${it.rev},${it.base_rev})">回滚这条</button>`:'')+
-      `<button class="svc-btn" onclick="reviewAck('${esc(it.name)}',${it.rev})">知道了</button></div>`).join('')
+      `<button class="svc-btn" data-action="skills:review-diff" data-name="${esc(it.name)}" data-rev="${it.rev}">差异</button>`+
+      (it.base_rev!=null?`<button class="svc-btn" data-action="skills:review-rollback" data-name="${esc(it.name)}" data-rev="${it.rev}" data-base="${it.base_rev}">回滚这条</button>`:'')+
+      `<button class="svc-btn" data-action="skills:review-ack" data-name="${esc(it.name)}" data-rev="${it.rev}">知道了</button></div>`).join('')
       :'<div class="empty">没有待审阅的变更</div>';
   }catch(e){$('#review-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 };
@@ -110,8 +110,8 @@ window.loadSkillHistory=async()=>{
     $('#skill-history').innerHTML=d.revisions.length?d.revisions.map(r=>
       `<div class="cron-row"><span class="c-name">rev ${r.rev}</span>`+
       `<span class="c-sched">v${r.version==null?'—':r.version} · ${esc(r.summary||'无摘要')} · ${esc((r.created_at||'').slice(5,16))} · ${esc(r.author||'?')}</span>`+
-      `<button class="svc-btn" onclick="skillDiff(${r.rev})">差异</button>`+
-      `<button class="svc-btn" onclick="skillRollback(${r.rev})">回滚</button></div>`).join('')
+      `<button class="svc-btn" data-action="skills:diff" data-rev="${r.rev}">差异</button>`+
+      `<button class="svc-btn" data-action="skills:rollback" data-rev="${r.rev}">回滚</button></div>`).join('')
       :'<div class="empty">还没有历史修订</div>';
   }catch(e){OmniUI.notify(e.message,'error')}
 };
@@ -133,4 +133,20 @@ window.skillRollback=async(rev)=>{
     await editSkill(skillEditing.name); // 内容与指纹都变了，重载编辑器
     loadSkillHistory();loadSkills();
   }catch(e){$('#skill-msg').style.color='#f87171';$('#skill-msg').textContent='❌ '+e.message}
+};
+
+// data-action 注册表（main.js 合并后统一分发；markup 与模板串共用同一命名空间）
+export const actions={
+  'skills:save':()=>saveSkill(),
+  'skills:reload':()=>reloadSkill(),
+  'skills:history':()=>loadSkillHistory(),
+  'skills:review-ack-all':()=>reviewAckAll(),
+  'skills:review-open':()=>openReview(),
+  'skills:toggle':el=>toggleSkill(el.dataset.name,el.closest('li')),
+  'skills:edit':el=>editSkill(el.dataset.name),
+  'skills:review-diff':el=>reviewDiff(el.dataset.name,Number(el.dataset.rev)),
+  'skills:review-ack':el=>reviewAck(el.dataset.name,Number(el.dataset.rev)),
+  'skills:review-rollback':el=>reviewRollback(el.dataset.name,Number(el.dataset.rev),Number(el.dataset.base)),
+  'skills:diff':el=>skillDiff(Number(el.dataset.rev)),
+  'skills:rollback':el=>skillRollback(Number(el.dataset.rev)),
 };

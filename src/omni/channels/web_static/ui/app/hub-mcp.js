@@ -1,6 +1,6 @@
 // MCP 面板（D19）：状态纯只读；「查看工具」才触发真实发现。
-import {$,esc} from './dom.js?v=20261030d';
-import {api} from './api.js?v=20261030d';
+import {$,esc} from './dom.js?v=20261030f';
+import {api} from './api.js?v=20261030f';
 
 const mcpStateText=s=>s.state==='ready'?'<span style="color:#34d399">已连上</span>':
   s.state==='starting'?'<span style="color:#fbbf24">正在连接…</span>':
@@ -19,11 +19,11 @@ export async function loadMcp(){
       `<div class="mcp-item">`+
       `<div class="cron-row"><span class="c-name">${esc(s.name)}</span>`+
       `<span class="c-sched">${mcpStateText(s)} · 提供 ${s.read_only_count} 项只读能力${s.allowed_count!=null?' · 另有 '+s.allowed_count+' 项需确认':''}</span>`+
-      (s.state==='disabled'?'':`<button class="svc-btn" onclick="mcpTools('${esc(s.name)}')">看看能做什么</button>`)+
+      (s.state==='disabled'?'':`<button class="svc-btn" data-action="mcp:tools" data-name="${esc(s.name)}">看看能做什么</button>`)+
       (s.state==='failed'||s.state==='closed'
-        ?`<button class="svc-btn" onclick="mcpReset('${esc(s.name)}')">重连一次</button>`:'')+
+        ?`<button class="svc-btn" data-action="mcp:reset" data-name="${esc(s.name)}">重连一次</button>`:'')+
       (s.schema_state==='drifted'
-        ?`<button class="svc-btn warn" onclick="mcpConfirmSchema('${esc(s.name)}','${esc(s.schema_fingerprint)}')">重新核对</button>`:'')+
+        ?`<button class="svc-btn warn" data-action="mcp:confirm-schema" data-name="${esc(s.name)}" data-fingerprint="${esc(s.schema_fingerprint)}">重新核对</button>`:'')+
       `</div>`+
       `<div class="hint" style="margin-top:4px">${mcpSchemaText(s)}</div>`+
       (s.last_error?`<div class="hint" style="color:#f87171;margin-top:2px">上次出错：${esc(s.last_error)}</div>`:'')+
@@ -37,7 +37,7 @@ window.mcpTools=async(name)=>{
   box.innerHTML='<div class="hint">正在问它能做什么…（第一次会把它启动起来，可能要几秒）</div>';
   try{
     const d=await api('/api/mcp/'+encodeURIComponent(name)+'/tools');
-    box.innerHTML=(d.drift?`<div class="hint" style="color:#fbbf24;margin:4px 0">⚠ ${esc(d.drift)}</div><button class="svc-btn warn" onclick="mcpConfirmSchema('${esc(name)}','${esc(d.fingerprint)}')">我看过了，恢复自动放行</button>`:'')+
+    box.innerHTML=(d.drift?`<div class="hint" style="color:#fbbf24;margin:4px 0">⚠ ${esc(d.drift)}</div><button class="svc-btn warn" data-action="mcp:confirm-schema" data-name="${esc(name)}" data-fingerprint="${esc(d.fingerprint)}">我看过了，恢复自动放行</button>`:'')+
       (d.tools.length?d.tools.map(t=>
       `<div class="mcp-cap"><span class="cap-dot" style="background:${t.approval==='safe'?'#34d399':'#fbbf24'}"></span>`+
       `<div class="cap-main"><div class="cap-name">${esc(t.name)}</div>`+
@@ -58,4 +58,11 @@ window.mcpReset=async(name)=>{
     const d=await api('/api/mcp/'+encodeURIComponent(name)+'/reset',{method:'POST'});
     loadMcp();OmniUI.notify('已经重连过了，点「看看能做什么」确认一下能不能用');
   }catch(e){OmniUI.notify(e.message,'error')}
+};
+
+// data-action 注册表（main.js 合并后统一分发）
+export const actions={
+  'mcp:tools':el=>mcpTools(el.dataset.name),
+  'mcp:reset':el=>mcpReset(el.dataset.name),
+  'mcp:confirm-schema':el=>mcpConfirmSchema(el.dataset.name,el.dataset.fingerprint),
 };

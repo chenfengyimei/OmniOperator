@@ -1,15 +1,15 @@
 // 聊天主流程：渲染轮次（助手带头像、用户渐变气泡）、发送回合、失败草稿保留、复制消息。
 // 版本代数（S.selectionVersion / S.messagesVersion）保证迟到的响应绝不写进别的会话。
-import {$,esc,fmtTime} from './dom.js?v=20261030d';
-import {api} from './api.js?v=20261030d';
-import {S} from './state.js?v=20261030d';
-import {refreshContextUsage} from './header.js?v=20261030d';
-import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261030d';
-import {loadSessions} from './sessions.js?v=20261030d';
-import {refreshMemory} from './memory.js?v=20261030d';
+import {$,esc,fmtTime} from './dom.js?v=20261030f';
+import {api} from './api.js?v=20261030f';
+import {S} from './state.js?v=20261030f';
+import {refreshContextUsage} from './header.js?v=20261030f';
+import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261030f';
+import {loadSessions} from './sessions.js?v=20261030f';
+import {refreshMemory} from './memory.js?v=20261030f';
 
 // 消息正文：先转义，再把 [artifact:id] 标记渲染成内联图（加载失败即显示 alt 占位）
-const renderArtifact=(m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" onclick="viewArtifact('${id}')">`;
+const renderArtifact=(m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" data-action="artifacts:view" data-id="${id}">`;
 // 消息正文：md=true（助手回复）走轻量 Markdown（内部先整体转义，XSS 安全）；
 // 用户消息保持逐字转义，避免把用户打的星号/下划线当格式。最后统一渲染 [artifact:id] 内联图。
 const renderContent=(s,md)=>{
@@ -27,7 +27,7 @@ const CHAT_SUGGESTIONS=[
 ];
 function chatEmptyHTML(){
   const cards=CHAT_SUGGESTIONS.map(([label,prompt],i)=>
-    `<button type="button" class="chat-suggestion" onclick="${prompt?`fillSuggestion(${i})`:`openHub()`}">`+
+    `<button type="button" class="chat-suggestion" data-action="${prompt?'chat:suggestion':'hub:open'}" data-i="${i}">`+
     `<span class="material-icons">${['auto_awesome','schedule','fact_check','tune'][i]}</span>`+
     `<span><b>${esc(label)}</b><small>${prompt?'填入一条示例指令':'配置人设、模型与通道'}</small></span></button>`).join('');
   return `<div class="chat-empty"><div class="chat-empty-mark"><span class="material-icons">forum</span></div>`+
@@ -71,7 +71,7 @@ export async function sendMessage(){
     `<div class="msg assistant" id="thinking">${aHead('进行中')}<div class="bubble thinking">`+
     `思考中<span class="dot">·</span><span class="dot">·</span><span class="dot">·</span>`+
     `<div id="run-feed" class="run-feed scaffolds open hidden"></div>`+
-    `<button id="run-stop" class="svc-btn hidden" style="margin-top:6px" onclick="cancelCurrentRun()">■ 停止本回合</button></div></div>`);
+    `<button id="run-stop" class="svc-btn hidden" style="margin-top:6px" data-action="runs:cancel">■ 停止本回合</button></div></div>`);
   scrollChat();
   if(sid!=null)startRunWatch(sid);
   try{
@@ -101,3 +101,8 @@ $('#send').onclick=sendMessage;
 $('#input').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();sendMessage()}
 });
+
+// data-action 注册表（main.js 合并后统一分发）
+export const actions={
+  'chat:suggestion':el=>fillSuggestion(Number(el.dataset.i)),
+};

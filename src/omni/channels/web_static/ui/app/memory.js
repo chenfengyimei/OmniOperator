@@ -1,12 +1,12 @@
 // 记忆面板五件套：事实检索 / 用户档案 / 常驻笔记 / 复盘记录 / 会话待办。
 // refreshMemory 是右栏多面板一起刷的总入口（发完消息、初始化时调用）。
-import {$,esc} from './dom.js?v=20261030d';
-import {api} from './api.js?v=20261030d';
-import {S} from './state.js?v=20261030d';
-import {setTabBadge} from './tabs.js?v=20261030d';
-import {loadSkills} from './skills.js?v=20261030d';
-import {loadArtifacts} from './artifacts.js?v=20261030d';
-import {updateCostChip} from './header.js?v=20261030d';
+import {$,esc} from './dom.js?v=20261030f';
+import {api} from './api.js?v=20261030f';
+import {S} from './state.js?v=20261030f';
+import {setTabBadge} from './tabs.js?v=20261030f';
+import {loadSkills} from './skills.js?v=20261030f';
+import {loadArtifacts} from './artifacts.js?v=20261030f';
+import {updateCostChip} from './header.js?v=20261030f';
 
 export async function loadFacts(){
   try{
@@ -26,7 +26,7 @@ async function loadProfile(){
   $('#profile-usage').innerHTML=`用户档案：<b>${d.usage}/${d.max}</b> 字符（小鱼用 profile_manage 维护，也可直接编辑）`;
   $('#profile-list').innerHTML=d.lines.length?d.lines.map(l=>
     `<li><b>[${l.id}]</b>${esc(l.content)}`+
-    `<span style="float:right"><a class="line-btn" onclick="editProfileLine(${l.id})">✏️</a> <a class="line-btn" onclick="delProfileLine(${l.id})">🗑</a></span></li>`).join('')
+    `<span style="float:right"><a class="line-btn" data-action="memory:profile-edit" data-id="${l.id}">✏️</a> <a class="line-btn" data-action="memory:profile-del" data-id="${l.id}">🗑</a></span></li>`).join('')
     :'<li class="empty">档案还是空的</li>';
 }
 window.editProfileLine=async(id)=>{
@@ -54,7 +54,7 @@ async function loadResident(){
     $('#resident-usage').innerHTML=`常驻工作笔记：<b>${esc(d.usage)}</b>（每轮注入小鱼的系统提示词）`;
     $('#resident-list').innerHTML=d.entries.length?d.entries.map(en=>
       `<li style="padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px;line-height:1.55"><b style="color:var(--accent);margin-right:6px">[${en.id}]</b>${esc(en.content)}`+
-      `<span style="float:right"><a class="line-btn" onclick="editResident(${en.id})">✏️</a> <a class="line-btn" onclick="delResident(${en.id})">🗑</a></span></li>`).join('')
+      `<span style="float:right"><a class="line-btn" data-action="memory:resident-edit" data-id="${en.id}">✏️</a> <a class="line-btn" data-action="memory:resident-del" data-id="${en.id}">🗑</a></span></li>`).join('')
       :'<li class="empty">常驻记忆为空</li>';
   }catch(e){$('#resident-list').innerHTML='<li class="empty">'+esc(e.message)+'</li>'}
 }
@@ -99,7 +99,7 @@ export async function loadTodos(){
     const d=await api(`/api/sessions/${sid}/todos`);if(sid!==S.currentSession)return;
     setTabBadge('todos',d.todos.filter(t=>!t.done).length);
     $('#todos-list').innerHTML=d.todos.length?d.todos.map(t=>
-      `<li><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id},this.checked)">`+
+      `<li><input type="checkbox" ${t.done?'checked':''} data-action="memory:todo-toggle" data-id="${t.id}">`+
       `<span class="${t.done?'todo-done':''}">${esc(t.content)}</span></li>`).join('')
       :'<li class="empty">暂无待办（多步任务小鱼会用 todo 工具自动维护）</li>';
   }catch(e){if(sid===S.currentSession)$('#todos-list').innerHTML='<li class="empty">'+esc(e.message)+'</li>'}
@@ -112,3 +112,13 @@ window.toggleTodo=async(id,done)=>{
 };
 
 export function refreshMemory(){loadFacts();loadProfile();loadResident();loadTodos();loadReviews();loadSkills();loadArtifacts();updateCostChip()}
+
+// data-action 注册表（main.js 合并后统一分发）
+export const actions={
+  'memory:resident-add':()=>addResident(),
+  'memory:profile-edit':el=>editProfileLine(Number(el.dataset.id)),
+  'memory:profile-del':el=>delProfileLine(Number(el.dataset.id)),
+  'memory:resident-edit':el=>editResident(Number(el.dataset.id)),
+  'memory:resident-del':el=>delResident(Number(el.dataset.id)),
+  'memory:todo-toggle':el=>toggleTodo(Number(el.dataset.id),el.checked),
+};

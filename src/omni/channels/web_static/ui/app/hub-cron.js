@@ -1,6 +1,6 @@
 // 定时任务面板：任务列表/执行历史/待投递 outbox + 编辑表单（带 revision 乐观锁）。
-import {$,esc} from './dom.js?v=20261030d';
-import {api} from './api.js?v=20261030d';
+import {$,esc} from './dom.js?v=20261030f';
+import {api} from './api.js?v=20261030f';
 
 let cronJobs=[]; // 任务列表缓存（编辑表单要回填 revision 与全量字段）
 export async function loadCron(){
@@ -12,9 +12,9 @@ export async function loadCron(){
       `<span class="c-sched">${esc(j.schedule)} · 下次 ${esc((j.next_run_at||'待排').slice(5,16))}`+
       `${j.deliver_to_qq?' · 发到 QQ '+esc(String(j.deliver_to_qq)):''}</span>`+
       `<span style="color:${j.enabled?'#34d399':'var(--dim)'};font-size:11.5px">${j.enabled?'在跑':'已停'}</span>`+
-      `<button class="svc-btn" onclick="cronEdit('${esc(j.name)}')">改一改</button>`+
-      `<button class="svc-btn" onclick="cronToggle('${esc(j.name)}',${!j.enabled})">${j.enabled?'先停掉':'开起来'}</button>`+
-      `<button class="svc-btn" onclick="cronDelete('${esc(j.name)}')">删掉</button></div>`).join(''):'<div class="empty">还没有定时任务。想让小鱼每天定点干活，上面填一下就行，或者直接跟它说。</div>';
+      `<button class="svc-btn" data-action="cron:edit" data-name="${esc(j.name)}">改一改</button>`+
+      `<button class="svc-btn" data-action="cron:toggle" data-name="${esc(j.name)}" data-enabled="${!j.enabled}">${j.enabled?'先停掉':'开起来'}</button>`+
+      `<button class="svc-btn" data-action="cron:delete" data-name="${esc(j.name)}">删掉</button></div>`).join(''):'<div class="empty">还没有定时任务。想让小鱼每天定点干活，上面填一下就行，或者直接跟它说。</div>';
   }catch(e){$('#cron-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
   try{
     const h=await api('/api/system/cron/history');
@@ -29,8 +29,8 @@ export async function loadCron(){
     $('#cron-outbox').innerHTML=b.items.length?b.items.map(x=>
       `<div class="cron-row"><span class="c-name">${esc(x.job)} → QQ ${x.target_qq}</span>`+
       `<span class="c-sched">${outboxStateText(x)} · ${esc((x.updated_at||'').slice(5,16))}${x.attempts?` · 已试 ${x.attempts} 次`:''}</span>`+
-      (['unknown','dead','discarded'].includes(x.status)?`<button class="svc-btn" onclick="outboxRetry(${x.id})">重新排队</button>`:'')+
-      (['pending','unknown','dead'].includes(x.status)?`<button class="svc-btn" onclick="outboxDiscard(${x.id})">丢弃</button>`:'')+
+      (['unknown','dead','discarded'].includes(x.status)?`<button class="svc-btn" data-action="cron:outbox-retry" data-id="${x.id}">重新排队</button>`:'')+
+      (['pending','unknown','dead'].includes(x.status)?`<button class="svc-btn" data-action="cron:outbox-discard" data-id="${x.id}">丢弃</button>`:'')+
       `</div>`+
       (x.preview||x.last_error?`<div class="hint" style="margin:2px 0 8px">${esc(x.preview||'')}${x.last_error?` <span style="color:#f87171">${esc(x.last_error.slice(0,100))}</span>`:''}</div>`:'')).join('')
       :'<div class="empty">还没有投递记录</div>';
@@ -126,4 +126,15 @@ window.cronToggle=async(name,enabled)=>{
 window.cronDelete=async(name)=>{
   try{await api('/api/system/cron/delete',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name})});loadCron()}catch(e){OmniUI.notify(e.message,'error')}
+};
+
+// data-action 注册表（main.js 合并后统一分发）
+export const actions={
+  'cron:edit':el=>cronEdit(el.dataset.name),
+  'cron:toggle':el=>cronToggle(el.dataset.name,el.dataset.enabled==='true'),
+  'cron:delete':el=>cronDelete(el.dataset.name),
+  'cron:create':()=>createCron(),
+  'cron:cancel-edit':()=>cronCancelEdit(),
+  'cron:outbox-retry':el=>outboxRetry(Number(el.dataset.id)),
+  'cron:outbox-discard':el=>outboxDiscard(Number(el.dataset.id)),
 };

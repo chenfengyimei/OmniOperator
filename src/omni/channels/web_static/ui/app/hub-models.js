@@ -3,8 +3,8 @@
 // - 供应商/模型用卡片而不是下拉框：一眼看清"哪家有 Key、哪个模型贵、哪个能看图"。
 // - Key 不存浏览器，直接写后端 .env（/api/system/model-key），填完就能测。
 // - getModelSlotValue() 仍是 saveHub 的唯一取值口，返回 `${prefix}/${model}`。
-import {$,esc} from './dom.js?v=20261030d';
-import {api} from './api.js?v=20261030d';
+import {$,esc} from './dom.js?v=20261030f';
+import {api} from './api.js?v=20261030f';
 
 const MODEL_SLOTS=[
   {kind:'chat',title:'日常对话',desc:'平时跟它说话用这个，便宜量大',vision:false},
@@ -104,7 +104,7 @@ function renderSlotCards(){
     const badge=slotBadge(slot.kind), foot=slotFoot(slot.kind);
     const title=prov?prov.label:(st.custom&&st.modelStr?'自定义':'还没选供应商');
     const sub=model?`${model.label} · ${model.desc}`:(st.custom&&st.modelStr?st.modelStr:slot.desc);
-    return `<div class="slot-card ${slot.kind===activeSlot?'active':''}" onclick="selectModelSlot('${slot.kind}')">`+
+    return `<div class="slot-card ${slot.kind===activeSlot?'active':''}" data-action="models:select-slot" data-kind="${slot.kind}">`+
       `<div class="sc-head"><span class="sc-name">${esc(slot.title)}</span>`+
       `<span class="sc-badge ${badge.cls}">${badge.text}</span></div>`+
       `<div class="sc-provider">${esc(title)}</div>`+
@@ -132,7 +132,7 @@ function renderWizard(){
       sub=`${p.models.length} 个模型 · `+(k&&k.configured?('Key 已填 '+k.masked):'还没填 Key');
       if(k&&k.configured)tone='ok';
     }
-    return `<div class="prov-card ${p.id===st.providerId?'active':''}" onclick="pickProvider('${p.id}')">`+
+    return `<div class="prov-card ${p.id===st.providerId?'active':''}" data-action="models:pick-provider" data-prov="${p.id}">`+
       `<div class="prov-logo" style="background:${p.color}"></div>`+
       `<div class="prov-meta"><div class="prov-name">${esc(p.label)}</div>`+
       `<div class="prov-sub ${tone}">${esc(sub)}</div></div></div>`;
@@ -143,13 +143,13 @@ function renderWizard(){
     modelHtml=`<div class="wiz-sec"><div class="wiz-sec-head"><span class="ws-title">自己填模型</span>`+
       `<span class="ws-note">要写成「供应商/型号」，比如 openai/gpt-4o</span></div>`+
       `<div class="key-row"><div class="key-box"><input id="mk-custom" type="text" autocomplete="off" `+
-      `placeholder="供应商/型号" value="${esc(st.modelStr||'')}" oninput="setCustomModel(this.value)"></div></div></div>`;
+      `placeholder="供应商/型号" value="${esc(st.modelStr||'')}" data-action="models:set-custom"></div></div></div>`;
   }else if(prov){
     modelHtml=`<div class="wiz-sec"><div class="wiz-sec-head"><span class="ws-title">用哪个模型干活</span>`+
       `<span class="ws-note">选完就是这张卡以后用的模型</span></div><div class="model-list">`+
       prov.models.map(m=>{
         const tag=m.tag?`<span class="mc-tag ${m.tone||'gray'}">${esc(m.tag)}</span>`:'';
-        return `<div class="model-card ${m.id===st.modelId?'active':''}" onclick="pickModel('${m.id}')">`+
+        return `<div class="model-card ${m.id===st.modelId?'active':''}" data-action="models:pick-model" data-model="${m.id}">`+
           `<div class="mc-main"><div class="mc-name">${esc(m.label)}</div>`+
           `<div class="mc-desc">${esc(m.desc)}</div></div>${tag}</div>`;
       }).join('')+`</div></div>`;
@@ -169,9 +169,9 @@ function renderWizard(){
       `<span class="ws-note">只存在这台电脑上，保存后立刻生效，不会上传到任何地方</span></div>`+
       `<div class="key-row"><div class="key-box"><span class="kb-icon">${KEY_ICON}</span>`+
       `<input id="mk-input" type="${keyEyeOn?'text':'password'}" autocomplete="off" placeholder="${esc(placeholder)}">`+
-      `<button class="kb-eye" onclick="toggleKeyEye()">${keyEyeOn?'隐藏':'显示'}</button></div>`+
-      `<button class="key-btn" onclick="pasteModelKey()">粘贴</button>`+
-      `<button class="key-btn primary" onclick="saveModelKey()">保存并生效</button></div>`+
+      `<button class="kb-eye" data-action="models:key-eye">${keyEyeOn?'隐藏':'显示'}</button></div>`+
+      `<button class="key-btn" data-action="models:key-paste">粘贴</button>`+
+      `<button class="key-btn primary" data-action="models:key-save">保存并生效</button></div>`+
       `<div class="key-note"><span id="mk-state">${stateHtml}</span>`+
       (prov.docs?`<a href="${prov.docs}" target="_blank" rel="noopener">没有 Key？去官网申请</a>`:'')+
       `<span>填一次就行，别的槽位选同一家会自动沿用</span></div></div>`;
@@ -191,7 +191,7 @@ function renderWizard(){
     modelHtml+keyHtml+
     `<div class="model-footer"><span class="mf-label">当前在用</span>`+
     `<code id="mk-model">${esc(st.modelStr||'（还没选）')}</code><span style="flex:1"></span>`+
-    `<button class="key-btn" onclick="testModelSlot()">测一下通不通</button>`+
+    `<button class="key-btn" data-action="models:test">测一下通不通</button>`+
     `<div class="mf-out" id="mk-out"></div>`+
     `<div class="key-note" style="margin-top:0"><span>选好之后点下面「保存模型设置」，改动才会真正生效。</span></div></div>`+
   `</div>`;
@@ -295,3 +295,15 @@ export async function loadEnvKeys(){
     envKeys=(d&&d.keys)||{};
   }catch(e){envKeys={}}
 }
+
+// data-action 注册表（main.js 合并后统一分发；set-custom 是文本输入，走 input 事件）
+export const actions={
+  'models:select-slot':el=>selectModelSlot(el.dataset.kind),
+  'models:pick-provider':el=>pickProvider(el.dataset.prov),
+  'models:pick-model':el=>pickModel(el.dataset.model),
+  'models:set-custom':el=>setCustomModel(el.value),
+  'models:key-eye':()=>toggleKeyEye(),
+  'models:key-paste':()=>pasteModelKey(),
+  'models:key-save':()=>saveModelKey(),
+  'models:test':()=>testModelSlot(),
+};

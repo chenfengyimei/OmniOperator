@@ -174,7 +174,8 @@ ui/app/
              hub / hub-models / hub-persona / hub-cron / hub-usage / hub-mcp
 ```
 
-- **绑定方式**：markup 用 `data-action="域:动作"`，main.js 每域注册一个委托监听器。**禁止内联 `onclick=` 属性**（迁移期除外，收尾清零）。
+- **绑定方式（Phase 4 第二批已落地）**：markup 与模板串一律 `data-action="域:动作"`；各域模块自带 `export const actions={}` 注册表，main.js 合并后挂**一个** document 级委托分发器（click/change/input 按类型路由：表单控件上的 click 不分发；checkbox/radio 只认 change、文本输入只认 input——防连发双触发）。**全站禁止内联 `on*=` 属性**（工作台 markup 与 app 模板已清零，守卫钉死）。
+- **data-action 参数约定**：参数走 `data-*` 属性（`data-id`/`data-name`/`data-rev`…）；dataset 值一律是字符串，数字/布尔参数必须在 handler 里显式转换（`Number(el.dataset.id)`、`==='true'`），漏转换会让 `x.id===S.currentSession` 这类严格比较静默失效。
 - **import 清单闭合**：main.js 的 import 闭包必须覆盖 `ui/app/` 下全部模块——不被引用的模块不会求值，其 window 导出与事件绑定全部落空（契约门禁按文件扫描发现不了 import 图断链）。守卫：`test_app_modules_are_all_reachable_from_entry`。
 - **渲染**：innerHTML 模板必须过 `esc()`（dom.js 唯一实现，禁止各文件重复定义）；动态 id 一律走 dataset/查找，不拼字符串选择器。
 - **全局**：app 模块不挂 `window.*`（迁移期临时挂、Phase 4 第三批删除）；跨页共享只经 `window.OmniUI`。

@@ -1,5 +1,5 @@
 // 人设预设方案（localStorage 持久化，可增删改；后续接入社区扩展包）。
-import {$,esc} from './dom.js?v=20261030d';
+import {$,esc} from './dom.js?v=20261030f';
 
 const PRESET_KEY='omni_persona_presets';
 const SEED_PRESETS=[
@@ -50,9 +50,9 @@ export function renderPersonaPresets(activeName){
       `<span class="p-name">${esc(p.name)}</span>`+
       `<span class="p-desc" title="${esc(p.desc)}">${esc(p.desc)}</span>`+
       `<span class="p-actions">`+
-      `<button class="p-btn" onclick="applyPreset('${p.id}')">应用</button>`+
-      `<button class="p-btn" onclick="editPreset('${p.id}')">编辑</button>`+
-      `<button class="p-btn del" onclick="deletePreset('${p.id}')">删除</button>`+
+      `<button class="p-btn" data-action="persona:preset-apply" data-id="${p.id}">应用</button>`+
+      `<button class="p-btn" data-action="persona:preset-edit" data-id="${p.id}">编辑</button>`+
+      `<button class="p-btn del" data-action="persona:preset-del" data-id="${p.id}">删除</button>`+
       `</span></div>`;
   }).join('');
 }
@@ -96,14 +96,14 @@ function openPresetEditor(preset){
   const box=document.createElement('dialog');
   box.className='modal';
   box.innerHTML=`<div class="modal-box" style="width:min(620px,94vw)">
-    <div class="modal-title"><span>${isEdit?'编辑预设':'新建预设'}</span><button class="modal-x" onclick="this.closest('dialog').close()">✕</button></div>
+    <div class="modal-title"><span>${isEdit?'编辑预设':'新建预设'}</span><button class="modal-x" data-action="persona:dialog-close">✕</button></div>
     <div class="form-row"><label>名称<input type="text" id="pe-name" value="${esc(preset?preset.name:'')}"></label></div>
     <div class="form-row"><label>描述<input type="text" id="pe-desc" value="${esc(preset?preset.desc:'')}"></label></div>
     <div class="form-row"><label>行为设定（{now} 会被替换为当前时间）<textarea id="pe-prompt" style="min-height:220px;font:12px/1.6 Consolas,monospace;white-space:pre-wrap">${esc(preset?preset.prompt:'')}</textarea></label></div>
     <div id="pe-msg" class="test-out" style="min-height:1.2em"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="hub-save" style="padding:7px 20px;font-size:13px" onclick="confirmPresetEdit('${preset?preset.id:''}',${isEdit})">${isEdit?'保存修改':'创建'}</button>
-      <button class="hub-close" style="padding:7px 16px;font-size:13px" onclick="this.closest('dialog').close()">取消</button>
+      <button class="hub-save" style="padding:7px 20px;font-size:13px" data-action="persona:preset-confirm" data-id="${esc(preset?preset.id:'')}" data-edit="${isEdit}">${isEdit?'保存修改':'创建'}</button>
+      <button class="hub-close" style="padding:7px 16px;font-size:13px" data-action="persona:dialog-close">取消</button>
     </div></div>`;
   document.body.appendChild(box);
   box.showModal();
@@ -128,4 +128,15 @@ window.confirmPresetEdit=(id,isEdit)=>{
   document.querySelector('dialog.modal[open]')?.close();
   renderPersonaPresets($('#cfg-persona-name').value);
   presetTip(isEdit?'已更新「'+name+'」':'已创建「'+name+'」');
+};
+
+// data-action 注册表（main.js 合并后统一分发）
+export const actions={
+  'persona:preset-apply':el=>applyPreset(el.dataset.id),
+  'persona:preset-edit':el=>editPreset(el.dataset.id),
+  'persona:preset-del':el=>deletePreset(el.dataset.id),
+  'persona:preset-new':()=>newPreset(),
+  'persona:preset-save-current':()=>saveCurrentAsPreset(),
+  'persona:dialog-close':el=>el.closest('dialog').close(),
+  'persona:preset-confirm':el=>confirmPresetEdit(el.dataset.id,el.dataset.edit==='true'),
 };

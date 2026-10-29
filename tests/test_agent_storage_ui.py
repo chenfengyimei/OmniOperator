@@ -38,7 +38,7 @@ def test_file_upload_browse_and_preview(ui):
 
 def test_settings_entry_opens_independent_agent_page(ui):
     page,_,_,errors=ui
-    page.goto('http://127.0.0.1/');page.locator('.ui-settings:visible,button[onclick="openHub()"]:visible').first.click()
+    page.goto('http://127.0.0.1/');page.locator('.ui-settings:visible,button.hub-open:visible').first.click()
     link=page.locator('.hub-nav a[href="/storage/"]')
     link.wait_for()
     assert link.is_visible() and link.get_attribute('target')=='_blank'

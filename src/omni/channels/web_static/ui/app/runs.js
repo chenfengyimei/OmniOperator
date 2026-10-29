@@ -1,9 +1,9 @@
 // 运行进度可视化：等待回复期间轮询本会话进行中的 run（D09 端点，只读）。
 // 历史挂链把每个 run 的调用链卡片挂到它开始后出现的第一条助手消息上（事件持久化在服务端，随时回放）。
-import {$,esc} from './dom.js?v=20261030d';
-import {api} from './api.js?v=20261030d';
-import {S} from './state.js?v=20261030d';
-import {selectSession} from './sessions.js?v=20261030d';
+import {$,esc} from './dom.js?v=20261030f';
+import {api} from './api.js?v=20261030f';
+import {S} from './state.js?v=20261030f';
+import {selectSession} from './sessions.js?v=20261030f';
 
 let runWatch=null; // {timer, runId, seq, polling}：轮询器；chat 返回/出错即停
 
@@ -16,7 +16,7 @@ function scaffoldHTML(events,opts={}){
   // 开关行：链的折叠/展开由容器 .scaffolds.open 控制（运行中默认展开，历史默认折叠）
   const steps=events.filter(e=>e.kind==='model_end').length;
   const tools=events.filter(e=>e.kind==='tool').length;
-  rows.push(`<div class="scaf-toggle" onclick="toggleChain(this)"><span class="material-icons">${live?'manage_history':'manage_search'}</span><b>调用过程</b><span class="scaf-toggle-meta">· ${steps||'…'} 步${tools?` · ${tools} 个工具`:''}</span><span class="chev"><span class="material-icons">chevron_right</span></span></div>`);
+  rows.push(`<div class="scaf-toggle" data-action="runs:toggle-chain"><span class="material-icons">${live?'manage_history':'manage_search'}</span><b>调用过程</b><span class="scaf-toggle-meta">· ${steps||'…'} 步${tools?` · ${tools} 个工具`:''}</span><span class="chev"><span class="material-icons">chevron_right</span></span></div>`);
   for(let i=0;i<events.length;i++){
     const ev=events[i],d=ev.data||{};
     if(ev.kind==='model_start'){
@@ -27,7 +27,7 @@ function scaffoldHTML(events,opts={}){
       if(info.cost_micro!=null)out.push('$'+(info.cost_micro/1e6).toFixed(4));
       if(Array.isArray(info.tool_calls)&&info.tool_calls.length)out.push('决定调用：'+info.tool_calls.join('、'));
       const open=openSet&&openSet.has('m'+ev.seq)?' open':'';
-      rows.push(`<div class="scaf ${live&&!end?'run':'done'}${open}" data-k="m${ev.seq}" onclick="toggleScaf(this)"><span class="scaf-glyph"><span class="material-icons">${live&&!end?'progress_activity':'check'}</span></span><span class="scaf-label">模型调用<b>第 ${d.step||'?'} 步</b></span><span class="scaf-arg">${end?'返回 '+(info.text_chars||0)+' 字':'思考中…'}</span><span class="scaf-chev"><span class="material-icons">chevron_right</span></span></div>`);
+      rows.push(`<div class="scaf ${live&&!end?'run':'done'}${open}" data-k="m${ev.seq}" data-action="runs:toggle-scaf"><span class="scaf-glyph"><span class="material-icons">${live&&!end?'progress_activity':'check'}</span></span><span class="scaf-label">模型调用<b>第 ${d.step||'?'} 步</b></span><span class="scaf-arg">${end?'返回 '+(info.text_chars||0)+' 字':'思考中…'}</span><span class="scaf-chev"><span class="material-icons">chevron_right</span></span></div>`);
       if(end||!live)rows.push(`<div class="scaf-out">${esc(out.join('\n'))}</div>`);
       continue;
     }
@@ -42,7 +42,7 @@ function scaffoldHTML(events,opts={}){
       if(d.side_effect_state&&d.side_effect_state!=='none')out.push('副作用状态：'+d.side_effect_state);
       if(d.artifacts&&d.artifacts.length)out.push('产物：'+d.artifacts.join('、'));
       const open=openSet&&openSet.has('t'+ev.seq)?' open':'';
-      rows.push(`<div class="scaf ${st==='ok'?'done':'fail'}${open}" data-k="t${ev.seq}" onclick="toggleScaf(this)"><span class="scaf-glyph"><span class="material-icons">${glyph}</span></span><span class="scaf-label"><b>${esc(d.name||'?')}</b></span><span class="scaf-arg">${esc(d.args||'')}</span><span class="scaf-time">${scafDur(d.elapsed_ms)}</span><span class="scaf-chev"><span class="material-icons">chevron_right</span></span></div>`);
+      rows.push(`<div class="scaf ${st==='ok'?'done':'fail'}${open}" data-k="t${ev.seq}" data-action="runs:toggle-scaf"><span class="scaf-glyph"><span class="material-icons">${glyph}</span></span><span class="scaf-label"><b>${esc(d.name||'?')}</b></span><span class="scaf-arg">${esc(d.args||'')}</span><span class="scaf-time">${scafDur(d.elapsed_ms)}</span><span class="scaf-chev"><span class="material-icons">chevron_right</span></span></div>`);
       rows.push(`<div class="scaf-out">${esc(out.join('\n'))}</div>`);
       continue;
     }
@@ -155,4 +155,11 @@ window.cancelCurrentRun=async()=>{
   if(!await OmniUI.ask({title:'停止会话 #'+watch.sid+' 的回合',message:'模型请求返回后会停下；已发生的工具副作用不会撤销。',confirmLabel:'停止回合',danger:true}))return;
   if(runWatch!==watch)return;
   try{await api(`/api/runs/${id}/cancel`,{method:'POST'});OmniUI.notify('已提交停止请求，请等待最终状态')}catch(e){OmniUI.notify(e.message,'error')}
+};
+
+// data-action 注册表（main.js 合并后统一分发）
+export const actions={
+  'runs:toggle-chain':el=>toggleChain(el),
+  'runs:toggle-scaf':el=>toggleScaf(el),
+  'runs:cancel':()=>cancelCurrentRun(),
 };

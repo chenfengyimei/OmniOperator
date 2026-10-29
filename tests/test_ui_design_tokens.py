@@ -37,8 +37,8 @@ FONT_FLOOR_QUOTA = {
 }
 FONT_SIZE = re.compile(r"font-size\s*:\s*([0-9]+(?:\.[0-9]+)?)px")
 
-# index.html 历史存量的单调递减上限（Phase 3/4 清零）
-MAX_INDEX_INLINE_HANDLERS = 104
+# index.html 内联事件：Phase 4 第二批已清零，从此一刀切保持 0
+MAX_INDEX_INLINE_HANDLERS = 0
 MAX_INDEX_NATIVE_DIALOGS = 43
 INLINE_HANDLER = re.compile(r'on(?:click|input|change|keydown)="')
 NATIVE_DIALOG = re.compile(r"\b(?:alert|confirm|prompt)\(")
@@ -81,9 +81,16 @@ def test_font_size_floor_ten_px():
 
 
 def test_index_inline_handlers_do_not_grow():
-    """§9 内联事件只许递减：index.html ≤ 历史基线 104（Phase 4 清零）。"""
+    """§9 内联事件：Phase 4 第二批起工作台 index.html 必须为 0（绑定一律走 data-action 委托）。"""
     count = len(INLINE_HANDLER.findall(INDEX.read_text(encoding="utf-8")))
     assert count <= MAX_INDEX_INLINE_HANDLERS, f"内联事件 {count} > 基线 {MAX_INDEX_INLINE_HANDLERS}，只许减少"
+
+
+def test_app_module_templates_have_no_inline_handlers():
+    """§9 app 模块模板零内联事件：动态生成的 HTML 也一律 data-action，禁止模板串拼 onclick=。"""
+    for path in sorted((STATIC / "ui" / "app").glob("*.js")):
+        n = len(INLINE_HANDLER.findall(path.read_text(encoding="utf-8")))
+        assert n == 0, f"ui/app/{path.name} 模板串出现 {n} 处内联事件属性，一律改 data-action"
 
 
 def test_subpages_have_no_inline_handlers():
