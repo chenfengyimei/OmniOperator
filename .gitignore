@@ -23,3 +23,6 @@ skills/.history/
 # 本机 Agent 空间与目录选择（不提交个人绝对路径）
 config/agents.json
 config/agents.lock
+
+# 官网设计稿（独立静态站，不入库；见 website/README.md）
+/website/
