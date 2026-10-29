@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 from fastapi.testclient import TestClient
 import pytest
 from playwright.sync_api import sync_playwright
+from starlette.websockets import WebSocketDisconnect
 
 from omni.bootstrap import build_runtime
 from omni.channels.web import create_app
@@ -63,6 +64,11 @@ def test_detach_resume_and_typed_keyboard_data(env):
         output=ws.receive_json();assert 'keyboard text' in output['data']
         seq=output['seq']
     assert processes[0].alive
+    import time
+    deadline=time.monotonic()+2
+    while client.get('/api/terminal/sessions').json()['sessions'][0]['connected'] and time.monotonic()<deadline:
+        time.sleep(.01)
+    assert not client.get('/api/terminal/sessions').json()['sessions'][0]['connected']
     processes[0].chunks.put('中文后续输出')
     with client.websocket_connect('ws://127.0.0.1'+path+'?after='+str(seq),headers={'origin':'http://127.0.0.1:8000'}) as ws:
         assert ws.receive_json()['data']=='中文后续输出'
@@ -77,8 +83,9 @@ def test_terminal_owner_and_single_writer(env):
     assert other.get('/api/terminal/sessions').json()['sessions']==[]
     assert other.delete(path).status_code==404
     with client.websocket_connect('ws://127.0.0.1'+path+'/ws',headers={'origin':'http://127.0.0.1:8000'}):
-        with pytest.raises(Exception):
+        with pytest.raises(WebSocketDisconnect) as rejected:
             with client.websocket_connect('ws://127.0.0.1'+path+'/ws',headers={'origin':'http://127.0.0.1:8000'}) as ws: ws.receive_json()
+        assert rejected.value.code==1008
     other.close()
 
 
@@ -104,7 +111,7 @@ def test_buffer_gap_and_rename(env):
     assert client.patch('/api/terminal/sessions/'+row['id'],json={'label':'中文终端'}).json()['label']=='中文终端'
 
 
-def test_real_browser_terminal_tabs_reload_and_mobile(env):
+def test_real_browser_terminal_tabs_reload_and_mobile(env,tmp_path):
     client,_=env
     with sync_playwright() as p:
         browser=p.chromium.launch()
@@ -127,6 +134,7 @@ def test_real_browser_terminal_tabs_reload_and_mobile(env):
             page.reload();page.wait_for_function('document.querySelectorAll("#tabs button").length===2')
             page.set_viewport_size({'width':390,'height':844})
             assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+            page.screenshot(path=str(tmp_path/'terminal-mobile.png'),full_page=True)
             assert not errors
         finally: browser.close()
 
@@ -136,7 +144,8 @@ def test_invalid_resize_disconnects_without_replaying_input(env):
     with client.websocket_connect('ws://127.0.0.1/api/terminal/sessions/'+row['id']+'/ws',headers={'origin':'http://127.0.0.1'}) as ws:
         ws.receive_json()
         ws.send_json({'v':2,'type':'resize','cols':999999,'rows':30})
-        with pytest.raises(Exception): ws.receive_json()
+        assert ws.receive_json()['type']=='error'
+        with pytest.raises(WebSocketDisconnect): ws.receive_json()
     assert not hasattr(processes[0],'size') and not processes[0].inputs
 
 

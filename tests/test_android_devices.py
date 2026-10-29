@@ -151,11 +151,14 @@ def test_real_browser_device_choice_actions_and_mobile(env,tmp_path):
                 page.locator('#status').get_by_text('已长按',exact=False).wait_for()
                 assert len(writes(env[1]))==1
                 page.locator('#devices').select_option('B')
+                assert page.locator('#tree').inner_text()=='已切换设备，请重新观察。'
+                assert page.locator('#screen').is_hidden()
                 page.locator('#text').fill('不应在设备切换后直接输入');page.locator('#type').click()
                 page.locator('#status').get_by_text('请先刷新树',exact=False).wait_for()
                 assert len(writes(env[1]))==1
                 page.set_viewport_size({'width':390,'height':844})
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+                page.screenshot(path=str(tmp_path/'android-mobile.png'),full_page=True)
                 assert not errors
             finally:browser.close()
     finally:assert runtime.close()['complete'];client.close()

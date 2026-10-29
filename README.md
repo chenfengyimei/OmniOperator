@@ -97,3 +97,6 @@ Windows CI 入口为 `scripts/ci.ps1`，Jenkins 配置已提供，托管 CI 尚�
 
 学习资料在 `xuexi/`（不入库），包括 Hermes Agent 等；历史评估保留在完整计划中，
 不能用最初的差距表覆盖最新交付状态。
+
+能力专题：工作台可进入人工终端、后台命令、本地 MCP、安卓控制和能力诊断。
+本轮路线、验证与限制见 [能力完善记录](docs/CAPABILITIES_PLAN.md)。真实设备/账号及常驻验收仍单独进行。

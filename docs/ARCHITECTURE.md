@@ -426,7 +426,7 @@ android_shots/android_cache/browser_profile/browser_shots/run/logs/mcp_logs）�
 ## 6. 目录分类与 HTTP 边界
 
 - `channels/web.py` 负责应用生命周期、统一鉴权、配对/设置与静态挂载；业务 HTTP 适配
-  位于 `channels/web_api/` 的 12 个领域文件。每个 create_xxx_router 只消费注入 Runtime，
+  按职责位于 `channels/web_api/` 的领域文件。每个 create_xxx_router 只消费注入 Runtime，
   聚合器显式挂载同一实例，不能在路由内构造核心对象或导入 web.py 造成反向循环。
 - `web_api/schemas.py` 只承载请求声明；允许标准库、Pydantic 和声明配置类型，不依赖
   Runtime/core/memory/tools。旧 web.ChatIn 等公开模型名继续显式转发。请求契约与路由
@@ -501,3 +501,11 @@ AndroidDriver 保持唯一 bootstrap 构造；每次请求固定设备，观察/
 工具与按设备 HTTP 复用同一驱动；新 HTTP 人工观察绑定已验配对身份，不以客户端传入会话授权。
 ADB 的有界客户端执行器归 android 域，不跨域引用 shell；输入法/临时文件清理有独立短预算。
 允许应用来自声明配置，启动组件复核和写后观察不能被 UI/工具绕过。
+
+### 共享预览与能力诊断 C06
+
+AndroidFrameHub 只在 bootstrap 构造，接收 capture 回调，不引入 core/通道依赖。
+每 Runtime 每设备一个最新帧生产者，客户端不积压；预览不进入观察授权缓存。
+人工动作与预览共用设备锁，预览让位；Runtime.close 将采集残留纳入关闭门槛。
+Web lifespan 的终端与 Runtime 收尾共用 10 秒总预算；未确认回收时不关闭仍使用的数据库。
+capabilities HTTP 只聚合公开状态和 doctor，不构造对象、不启动外部依赖、不返回私密载荷。

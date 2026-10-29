@@ -112,7 +112,8 @@ def test_android_stream_encodes_half_size_jpeg(tmp_path, monkeypatch, mode, size
     png = BytesIO()
     Image.new(mode, size).save(png, format="PNG")
     frames = iter([png.getvalue()])
-    monkeypatch.setattr(runtime.android, "screenshot_bytes", lambda: next(frames))
+    monkeypatch.setattr(runtime.android, "_require_device", lambda serial=None: "fixture")
+    monkeypatch.setattr(runtime.android, "screenshot_bytes", lambda **kwargs: next(frames))
     response = client.get("/api/android/stream")
     assert response.headers["content-type"] == "multipart/x-mixed-replace; boundary=frame"
     assert response.headers["cache-control"] == "no-store"
@@ -131,7 +132,8 @@ def test_android_stream_encodes_half_size_jpeg(tmp_path, monkeypatch, mode, size
 
 def test_android_stream_bad_capture_ends_without_invalid_frame(tmp_path, monkeypatch):
     client, runtime = _client(tmp_path)
-    monkeypatch.setattr(runtime.android, "screenshot_bytes", lambda: b"bad screenshot")
+    monkeypatch.setattr(runtime.android, "_require_device", lambda serial=None: "fixture")
+    monkeypatch.setattr(runtime.android, "screenshot_bytes", lambda **kwargs: b"bad screenshot")
     assert client.get("/api/android/stream").content == b""
 
 

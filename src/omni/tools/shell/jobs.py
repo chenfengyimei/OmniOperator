@@ -91,6 +91,8 @@ class CommandJobManager:
         if not 1<=timeout<=7200:raise ValueError('超时必须为 1–7200 秒')
         with self._lock:
             if self._closed:raise RuntimeError('命令管理器正在关闭')
+            if self._has_residual():
+                raise RuntimeError('存在回收未知的命令或输出线程，先核查残留，禁止继续启动')
             if getattr(parent,'cancelled',False):raise RuntimeError('所属运行已取消，未创建任务')
             if self._queue.full():raise RuntimeError('后台任务等待队列已满')
             self._cleanup_logs()
@@ -109,6 +111,11 @@ class CommandJobManager:
                     self._workers.append(thread);thread.start()
             return self.public(row)
 
+    def _has_residual(self):
+        return any((task['done'].is_set() or task.get('uncertain',False)) and
+                   ((task.get('process') is not None and task['process'].poll() is None) or
+                    any(thread.is_alive() for thread in task.get('readers',[]))) for task in self._tasks.values())
+
     @staticmethod
     def public(row):
         return {key:value for key,value in row.items() if key not in {'owner','owner_identity','process_identity'}}
@@ -121,6 +128,7 @@ class CommandJobManager:
                 continue
             try:self._execute(task)
             except Exception:
+                task['uncertain']=True
                 self.store.update(task['row']['job_id'],self.owner,status='unknown',side_effect_state='unknown',error_code='worker_failure')
             finally:
                 task['done'].set();self._queue.task_done()
@@ -134,6 +142,8 @@ class CommandJobManager:
             with self._lock:
                 if self._cancelled(task) or self.store.get(identifier)['status']=='cancelled':
                     self.store.update(identifier,self.owner,status='cancelled');return
+                if self._has_residual():
+                    self.store.update(identifier,self.owner,status='cancelled',error_code='process_residual_guard');return
                 proc=self._spawn(row['command'],row['shell'],row['cwd'])
                 identity=self._inspect(proc.pid)
                 task['process'],task['identity']=proc,identity
@@ -171,10 +181,12 @@ class CommandJobManager:
             if any(reader.is_alive() for reader in readers):reclaimed=False
             status=reason or ('succeeded' if proc.poll()==0 else 'failed')
             if not reclaimed:status='unknown'
+            task['uncertain']=not reclaimed
             self.store.update(identifier,self.owner,status=status,exit_code=proc.poll(),
                               side_effect_state='unknown' if reason or not reclaimed else 'applied',
                               error_code='process_residual' if not reclaimed else ('log_incomplete' if read_errors else ''))
         except Exception:
+            task['uncertain']=proc is not None
             if proc is not None:
                 try:
                     identity=task.get('identity')
@@ -214,4 +226,5 @@ class CommandJobManager:
         residual=[task['row']['job_id'] for task in tasks if not task['done'].is_set() or
                   (task.get('process') is not None and task['process'].poll() is None) or
                   any(thread.is_alive() for thread in task.get('readers',[]))]
+        if any(thread.is_alive() for thread in self._workers):residual.append('command_workers')
         return {'complete':not residual,'residual':residual}

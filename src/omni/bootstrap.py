@@ -85,6 +85,7 @@ from .tools.web import FetchPolicy, register_web_tools
 from .tools.registry import SessionRef, ToolRegistry
 from .tools.runctx import RunRef
 from .tools.android.driver import AndroidDriver
+from .tools.android.stream import AndroidFrameHub
 from .system.observability import BoundedLog, EventLog
 from .tools.android.tools import register_android_tools
 from .tools.desktop.driver import DesktopDriver
@@ -169,6 +170,7 @@ class Runtime:
     qq_messages: QQMessageStore | None = None
     publications: PublicationStore | None = None
     event_log: EventLog | None = None
+    android_streams: AndroidFrameHub | None = None
     command_jobs: CommandJobManager | None = None
     plugins: PluginHost | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
@@ -226,7 +228,8 @@ class Runtime:
             actions = {"review": lambda: self.close_reviewer(remaining()),
                        "retrieval": lambda: self.close_retrieval(remaining()),
                        "mcp": lambda: self.close_mcp(remaining()), "browser": browser_done,
-                       "command_jobs": lambda: self.command_jobs.close(remaining())["complete"] if self.command_jobs else True}
+                       "command_jobs": lambda: self.command_jobs.close(remaining())["complete"] if self.command_jobs else True,
+                       "android_streams": lambda: self.android_streams.close(remaining())["complete"] if self.android_streams else True}
             def perform(name, action):
                 try:
                     self._close_results[name] = bool(action())
@@ -533,6 +536,9 @@ def build_runtime(
         allowed_apps=config.android.allowed_apps, observation_ttl_s=config.android.observation_ttl_s,
         operation_timeout_s=config.android.operation_timeout_s, max_devices=config.android.max_devices
     )
+    android_streams = AndroidFrameHub(lambda serial: android_driver.screenshot_bytes(serial=serial, preview=True),
+                                     fps=config.android.preview_fps, max_clients=config.android.preview_clients,
+                                     idle_s=config.android.preview_idle_s, max_devices=config.android.max_devices)
     register_android_tools(
         registry, android_driver,
         artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view,
@@ -609,6 +615,7 @@ def build_runtime(
         services=services,
         agent=agent,
         android=android_driver,
+        android_streams=android_streams,
         mcp=mcp,
         reviewer=reviewer,
         memory_guard=memory_guard,

@@ -65,4 +65,13 @@ def create_android_router(runtime):
         result=runtime.android.execute_action(kind,token,serial=serial,session_id=manual_scope(request),**data)
         if result.status in {'error','denied'}:raise HTTPException(409,result.text)
         return {'status':result.status,'detail':result.text,'side_effect_state':result.side_effect_state,**result.data}
+    @router.get('/api/android/devices/{serial}/stream')
+    def stream(serial: str):
+        from .android_stream import preview_response
+        return preview_response(runtime,serial)
+
+    @router.get('/api/android/devices/{serial}/stream-state')
+    def stream_state(serial: str):
+        rows=runtime.android_streams.status(serial)
+        return rows[0] if rows else {'serial':serial,'active':False,'clients':0,'seq':0}
     return router

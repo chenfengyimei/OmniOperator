@@ -3,7 +3,7 @@
 const $=s=>document.querySelector(s), views=new Map();let active='',leaving=false;
 async function api(path,options={}){const r=await fetch(path,{...options,headers:{'Content-Type':'application/json',...options.headers}});const d=await r.json();if(!r.ok)throw Error(typeof d.detail==='string'?d.detail:'请求失败');return d}
 function status(text){$('#state').textContent=text}
-function send(message){const v=views.get(active);if(v&&v.ws&&v.ws.readyState===1)v.ws.send(JSON.stringify({v:2,...message}))}
+function send(message){const v=views.get(active),text=JSON.stringify({v:2,...message});if(new TextEncoder().encode(text).length>16384){status('单次输入超过 16 KiB，请分段粘贴');return}if(v&&v.ws&&v.ws.readyState===1)v.ws.send(text)}
 function fit(v){try{v.fit.fit()}catch(e){status('终端尺寸调整失败')}}
 function select(id){active=id;sessionStorage.setItem('omni-terminal-active',id);for(const [key,v]of views){v.screen.hidden=key!==id;v.button.classList.toggle('active',key===id)}const v=views.get(id);if(v){fit(v);v.term.focus();status(v.row.label+' · '+v.row.status)}}
 function connect(v){
@@ -11,7 +11,7 @@ function connect(v){
   const protocol=location.protocol==='https:'?'wss':'ws';
   v.ws=new WebSocket(`${protocol}://${location.host}/api/terminal/sessions/${v.row.id}/ws?after=${v.after}`);
   v.ws.onopen=()=>{if(active===v.row.id)status('已连接 · 输入会立即在本机执行');fit(v)};
-  v.ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='output'){if(m.seq>v.after){v.term.write(m.data);v.after=m.seq}}else if(m.type==='gap')v.term.writeln('\r\n[较早输出已超过缓存，存在缺失]');else if(m.type==='exit'){v.stopped=true;v.row.status=m.status;v.term.writeln(`\r\n[${m.status} · 退出码 ${m.exit_code??'未知'}]`);if(active===v.row.id)status('终端已结束，可新建会话')}};
+  v.ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='output'){if(m.seq>v.after){v.term.write(m.data);v.after=m.seq}}else if(m.type==='gap')v.term.writeln('\r\n[较早输出已超过缓存，存在缺失]');else if(m.type==='error'){v.stopped=true;if(active===v.row.id)status(m.message)}else if(m.type==='exit'){v.stopped=true;v.row.status=m.status;v.term.writeln(`\r\n[${m.status} · 退出码 ${m.exit_code??'未知'}]`);if(active===v.row.id)status('终端已结束，可新建会话')}};
   v.ws.onclose=()=>{if(!v.stopped&&!leaving){if(active===v.row.id)status('连接断开，正在恢复；输入不会重发');v.timer=setTimeout(()=>connect(v),1500)}};
 }
 function add(row){

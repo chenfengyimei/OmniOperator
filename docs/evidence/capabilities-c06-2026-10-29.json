@@ -1,0 +1,58 @@
+{
+  "base": "ec64e06",
+  "date": "2026-10-29",
+  "code_batches_completed": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06"
+  ],
+  "isolated": {
+    "tests": 1014,
+    "seconds": 194.09,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "workspace": {
+    "tests": 1061,
+    "seconds": 199.79,
+    "uncommitted_parallel_test_difference": 47,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "verified_code_files": 292,
+  "normalized_code_sha256": "3796b8b8bd041beea4f74bc959f216c62dc72e5b8374f8678ac509717f0a45d4",
+  "catalog": {
+    "modules": 51,
+    "source_files": 203,
+    "route_declarations": 118,
+    "static_tools": 78
+  },
+  "pyright_errors": 0,
+  "openapi_compatibility": {
+    "frozen_operations": 90,
+    "frozen_schemas": 23
+  },
+  "checks": [
+    "shared-device-producer",
+    "slow-client-skip",
+    "disconnect-release",
+    "no-preview-action-token",
+    "passive-capabilities",
+    "closing-residual-preserves-database",
+    "unknown-command-blocks-new-and-queued-work",
+    "websocket-cancellation-owner-release",
+    "atomic-test-child-pid",
+    "chromium-mobile-visual-review"
+  ],
+  "real_android": false,
+  "production_mcp": false,
+  "real_model_calls": false,
+  "resident_service_restarts": false,
+  "live_data_migration": false,
+  "soak_72h": false
+}

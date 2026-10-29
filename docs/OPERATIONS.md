@@ -81,3 +81,18 @@ D27。证据中的临时 Python 进程成功不等于这些场景已经通过。
 实现依据：[GetProcessTimes](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes)、
 [PROCESSENTRY32W](https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/ns-tlhelp32-processentry32w)、
 [TerminateProcess](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess)。
+
+## 能力与诊断（C06）
+
+`/capabilities/` 汇总工具组、人工终端、最近后台命令、MCP、安卓预览和现有 doctor 检查。
+默认 GET `/api/capabilities` 不启动终端/MCP/ADB，不探测设备或服务端口，不返回命令正文、
+MCP 参数/环境值、会话 Cookie、图像或对话。明确点击检查手机才访问 ADB；MCP 连接检查
+在服务页面单独执行。未知、未配置、运行中与残留分别呈现，不把“已安装”说成已验收。
+
+关闭时先停止新请求与在途操作，各组件共享预算；采集/命令残留会阻止提前关闭数据库。
+state v14 新增命令账本；升级真实实例前按原手册备份，再从原启动入口重启；本轮未自动
+迁移或停止真实服务。备份包括命令账本和已落盘命令日志，恢复只进新目录且不会重跑命令。
+
+人工验收：终端中文回显、两个标签、刷新续读、Ctrl+C 与明确结束；安卓系统设置或用户
+指定测试应用的选择设备/锁帧/长按/输入/旋转/拔插/输入法恢复；MCP 只接自己审核的程序。
+生产账号、模型效果和 72 小时仍按 ACCEPTANCE.md 验收，不由 pytest 数量替代。

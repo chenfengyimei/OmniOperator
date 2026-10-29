@@ -1,10 +1,8 @@
 """桌面与安卓 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
 from __future__ import annotations
 
-from io import BytesIO
 from typing import Any, TYPE_CHECKING
 
-from PIL import Image
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
@@ -119,33 +117,7 @@ def create_devices_router(runtime: Runtime) -> APIRouter:
 
         设备掉线即断流（前端 onerror 提示重开）；断开连接由 StreamingResponse 收尾。
         """
-        import time as _time
-
-        def _frames():
-            while True:
-                try:
-                    png = runtime.android.screenshot_bytes()
-                    with Image.open(BytesIO(png)) as source:
-                        size = (max(1, source.width // 2), max(1, source.height // 2))
-                        with source.convert("RGB") as rgb:
-                            with rgb.resize(size, Image.Resampling.BILINEAR) as frame:
-                                output = BytesIO()
-                                frame.save(output, format="JPEG", quality=40)
-                                jpeg = output.getvalue()
-                except Exception:  # noqa: BLE001
-                    break
-                yield (
-                    b"--frame\r\nContent-Type: image/jpeg\r\nContent-Length: "
-                    + str(len(jpeg)).encode()
-                    + b"\r\n\r\n"
-                    + jpeg
-                    + b"\r\n"
-                )
-                _time.sleep(0.6)
-
-        return StreamingResponse(
-            _frames(), media_type="multipart/x-mixed-replace; boundary=frame",
-            headers={"Cache-Control": "no-store"},
-        )
+        from .android_stream import preview_response
+        return preview_response(runtime)
 
     return router

@@ -193,3 +193,11 @@ MCP 的远端目录只有用户显式发现后才读取；索引页不会为了�
 `tests/fixtures/web_api_v1.json` 从已发布 934618f 的隔离源码提取，冻结 90 个 HTTP 操作和
 23 个 OpenAPI schema；方法/路径、参数、请求/响应与 operationId 必须兼容，分组 tags 可调整。
 共享请求模型和路由聚合分别拥有索引分类，避免把装配依赖与数据契约合成表面循环。
+
+## 能力专题入口（C01–C06）
+
+- /terminal/：人工 PTY，会话与配对身份归属；/jobs/：可审批后台命令。
+- /mcp/：本地 stdio 状态、完整目录、人工复查与日志。
+- /android/：设备选择、观察、应用动作与共享预览；/capabilities/：被动诊断。
+- 工具/HTTP/迁移声明/平台管道按实际职责分类；源索引会定位 shell_job 四工具及新增接口。
+- 详细限制与真实验收缺口见 CAPABILITIES_PLAN.md、TERMINAL.md、MCP.md、ANDROID.md。

@@ -17,7 +17,7 @@ from typing import Any
 from PIL import Image
 
 from ...config import DATA_DIR
-from ...system.filelock import FileLock
+from ...system.filelock import FileLock, LockTimeout
 from ..result import ToolResult
 from .adb import AdbDevice, AdbError
 from .ui import parse_elements, render_tree
@@ -82,7 +82,7 @@ class AndroidDriver:
                 if len(self._device_mutexes)>=self._max_devices:raise AdbError('设备上下文上限已达，请重启入口释放旧上下文')
                 self._device_mutexes[serial]=threading.RLock()
             lock=self._device_mutexes[serial]
-            if preview and self._pending.get(serial,0):raise AdbError('交互操作优先，跳过预览帧')
+            if preview and self._pending.get(serial,0):raise AdbError('交互操作优先，跳过预览帧',code='device_busy')
             if not preview:self._pending[serial]=self._pending.get(serial,0)+1
         acquired=False
         try:
@@ -90,6 +90,9 @@ class AndroidDriver:
             if not acquired:raise AdbError('设备忙，请稍后重新观察',code='device_busy')
             file_lock=FileLock(self._cache_path.parent / ('device-'+hashlib.sha256(serial.encode()).hexdigest()[:24]+'.lock'),timeout_s=0 if preview else 2)
             with file_lock, self._adb.deadline(5 if preview else self._operation_timeout):yield
+        except LockTimeout as exc:
+            if preview:raise AdbError('其它入口正在操作，跳过预览帧',code='device_busy') from exc
+            raise
         finally:
             if acquired:lock.release()
             if not preview:
@@ -97,6 +100,11 @@ class AndroidDriver:
 
     def devices(self):
         return self._adb.devices()
+
+    def status_passive(self):
+        with self._lock:
+            return {'contexts':len(self._device_mutexes),'observations':len(self._observations),
+                    'allowed_app_count':len(self.allowed_apps),'waiting':sum(self._pending.values())}
 
     def _capture(self, serial: str, *, pixels: bool = False) -> dict:
         xml = self._adb.dump_ui(serial)
@@ -186,7 +194,7 @@ class AndroidDriver:
         return target
 
     def screenshot_bytes(self, *, serial=None, preview=False) -> bytes:
-        serial=self._require_device(serial)
+        serial=serial if preview and serial else self._require_device(serial)
         with self._operation(serial,preview=preview):return self._adb.screencap(serial)
 
     def screen_size(self, *, serial=None) -> tuple[int,int]:

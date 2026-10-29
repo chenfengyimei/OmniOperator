@@ -105,6 +105,7 @@ def create_sessions_router(manager, auth):
                     if len(raw.encode('utf-8')) > 16384:
                         raise ValueError('输入消息超过 16 KiB')
                     message = json.loads(raw)
+                    if not isinstance(message,dict):raise ValueError('终端消息必须为对象')
                     if message.get('v') != 2:
                         raise ValueError('协议版本无效')
                     if message.get('type') == 'input' and isinstance(message.get('data'), str):
@@ -117,12 +118,19 @@ def create_sessions_router(manager, auth):
                     else:
                         raise ValueError('未知终端消息')
             tasks = [asyncio.create_task(output()), asyncio.create_task(input_())]
-            await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            done,pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            for task in pending:task.cancel()
+            if any(not task.cancelled() and task.exception() is not None for task in done):
+                try:
+                    await ws.send_json({'v':2,'type':'error','code':'bad_message','message':'终端连接输入无效或传输失败，连接结束；终端暂时保留'})
+                except Exception:
+                    pass  # 客户端已经断开时仍必须执行下方的所有权归还。
         finally:
             for task in tasks:
                 task.cancel()
-            await asyncio.gather(*tasks, return_exceptions=True)
+            # 所有权归还不能放在可被二次取消打断的 await 后面。
             item.detach()
+            await asyncio.gather(*tasks, return_exceptions=True)
             try:
                 await ws.close()
             except Exception:

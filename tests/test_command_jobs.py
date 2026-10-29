@@ -130,7 +130,7 @@ def test_queue_cancel_and_close_budget(env):
 def test_cancel_reclaims_owned_child_process(env):
     from omni.system.process_identity import inspect_process
     create,_,root=env
-    code="import subprocess,sys,time;from pathlib import Path;p=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)']);Path('child.pid').write_text(str(p.pid));time.sleep(30)"
+    code="import subprocess,sys,time;from pathlib import Path;p=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)']);Path('child.pid.tmp').write_text(str(p.pid));Path('child.pid.tmp').replace('child.pid');time.sleep(30)"
     host=create(code);identifier=start(host)
     deadline=time.monotonic()+5
     while not (root/'child.pid').exists() and time.monotonic()<deadline:time.sleep(.02)
@@ -139,6 +139,28 @@ def test_cancel_reclaims_owned_child_process(env):
     host.cancel(identifier)
     assert wait(host,identifier)['status']=='cancelled'
     assert inspect_process(child) is None
+
+
+@pytest.mark.skipif(os.name!='nt',reason='Windows 临时进程回收核查')
+def test_unknown_process_blocks_new_starts_until_owned_residual_is_reclaimed(env):
+    create,_,_=env;host=create('import time;time.sleep(30)',max_running=1)
+    original=host._terminate
+    def refused(*args,**kwargs):raise RuntimeError('fixture denied termination')
+    host._terminate=refused
+    identifier=start(host,timeout_s=1)
+    wait(host,identifier,status='running')
+    queued=start(host)
+    try:
+        assert wait(host,identifier)['status']=='unknown'
+        assert wait(host,queued)['status']=='cancelled'
+        assert host.store.get(queued)['process_identity']==''
+        with pytest.raises(RuntimeError,match='残留'):start(host)
+        assert not host.close(0)['complete']
+    finally:
+        host._terminate=original
+        identity=host._tasks[identifier]['identity']
+        original(identity,timeout_s=3)
+        assert host.close(5)['complete']
 
 
 def test_schema_13_upgrade_preserves_budget_and_adds_command_ledger(tmp_path):

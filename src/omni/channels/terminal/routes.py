@@ -70,7 +70,7 @@ def create_terminal_router(terminal_manager: TerminalManager, auth: WebAuth) -> 
         finally:
             pump_task.cancel()
             writer_task.cancel()
-            await asyncio.to_thread(terminal_manager.close, session)
+            await asyncio.shield(asyncio.to_thread(terminal_manager.close, session))
             await asyncio.gather(pump_task, writer_task, return_exceptions=True)
 
     router.include_router(create_sessions_router(terminal_manager, auth))

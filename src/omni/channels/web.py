@@ -31,6 +31,7 @@ from ..llm.gateway import GatewayError
 from ..safety.gates import WebApprover
 from ..system.config_io import EDITABLE, apply_updates, safe_write
 from .web_api import create_api_routers
+from .web_api.capabilities import create_capabilities_router
 from .web_api.schemas import (
     ChatIn,
     ResolveIn,
@@ -112,14 +113,17 @@ def create_app(runtime: Runtime) -> FastAPI:
         try:
             yield
         finally:
-            terminal_result = await asyncio.to_thread(terminal_manager.close_all)
-            result = await asyncio.to_thread(runtime.close)
+            loop = asyncio.get_running_loop()
+            deadline = loop.time() + 10
+            terminal_result = await asyncio.to_thread(terminal_manager.close_all, wait_s=max(0,deadline-loop.time()))
+            result = await asyncio.to_thread(runtime.close, wait_s=max(0,deadline-loop.time()))
             if not terminal_result["complete"] or not result["complete"]:
                 print(f"[工作台] 关闭残留：runtime={result['residual']} terminals={terminal_result['residual']}", flush=True)
 
     app = FastAPI(title="OmniOperator Workbench", lifespan=lifespan)
     terminal_manager = TerminalManager(**runtime.config.terminal.model_dump())
     app.state.terminal_manager = terminal_manager
+    app.include_router(create_capabilities_router(runtime, terminal_manager))
     auth = _create_auth(runtime)
     app.state.web_auth = auth  # 供启动脚本打印配对链接 / 测试读取配对码
 

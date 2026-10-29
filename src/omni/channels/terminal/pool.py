@@ -48,6 +48,12 @@ class TerminalManager:
                 'roots':[str(p) for p in self._roots], 'max_sessions':self._max,
                 'detach_ttl_s':self._detach_ttl}
 
+    def snapshot(self):
+        with self._lock:
+            return {'available':self.available,'active':self._count,'limit':self._max,
+                    'retained':len(self._managed),'closing':self._closed,
+                    'readers':sum(item.worker.is_alive() for item in self._managed.values())}
+
     def create(self, owner, *, shell='powershell', cwd=None, cols=120, rows=30):
         root = Path(cwd or self._roots[0])
         if not root.is_absolute():
@@ -116,6 +122,9 @@ class TerminalManager:
             worker.join(max(0, deadline - time.monotonic()))
         for item in list(self._managed.values()):
             item.worker.join(max(0, deadline - time.monotonic()))
+        if self._reaper is not None:
+            self._reaper.join(max(0,deadline-time.monotonic()))
         with self._lock:
             residual = max(len(self._sessions), sum(item.worker.is_alive() for item in self._managed.values()))
+            if self._reaper is not None and self._reaper.is_alive():residual+=1
             return {"complete": not residual, "residual": residual}

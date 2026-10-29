@@ -480,6 +480,9 @@ class AndroidConfig(BaseModel):
     observation_ttl_s: float = Field(default=120, ge=1, le=600)
     operation_timeout_s: float = Field(default=30, ge=5, le=120)
     max_devices: int = Field(default=8, ge=1, le=16)
+    preview_fps: float = Field(default=2, ge=0.2, le=2)
+    preview_clients: int = Field(default=2, ge=1, le=4)
+    preview_idle_s: float = Field(default=5, ge=0.2, le=30)
 
     @field_validator("allowed_apps")
     @classmethod
