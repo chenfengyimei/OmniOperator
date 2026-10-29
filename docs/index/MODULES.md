@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`3276cf4759d8aac406308ac3d410020dbe78d7a502edc33f3995873e0f6a39e1`。包含 54 个职责模块、245 个源码/界面文件。
+源码指纹：`a783f74766494364c63ec2dfd6d3cdc98a20136276776086ab9c66b539f44162`。包含 54 个职责模块、245 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -188,7 +188,7 @@
 |---|---:|---|
 | [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 41 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/project/project.css](../../src/omni/channels/web_static/project/project.css) | 137 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/project/project.js](../../src/omni/channels/web_static/project/project.js) | 110 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/project/project.js](../../src/omni/channels/web_static/project/project.js) | 108 | 平台脚本或界面资源 |
 | [src/omni/channels/workbench/__init__.py](../../src/omni/channels/workbench/__init__.py) | 4 | 专题工作台路由；只消费注入的 Runtime，不在通道构造核心对象。 |
 | [src/omni/channels/workbench/routes.py](../../src/omni/channels/workbench/routes.py) | 71 | 只读项目目录、接口与实时能力；由 web.py 的统一鉴权中间件保护。 |
 
@@ -314,7 +314,7 @@
 | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py) | 23 | 后台命令管理适配；不提供绕过 Registry 审批的启动接口。 |
 | [src/omni/channels/web_static/jobs/index.html](../../src/omni/channels/web_static/jobs/index.html) | 41 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/jobs/jobs.css](../../src/omni/channels/web_static/jobs/jobs.css) | 75 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/jobs/jobs.js](../../src/omni/channels/web_static/jobs/jobs.js) | 66 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/jobs/jobs.js](../../src/omni/channels/web_static/jobs/jobs.js) | 65 | 平台脚本或界面资源 |
 | [src/omni/tools/shell/job_logs.py](../../src/omni/tools/shell/job_logs.py) | 44 | 命令输出的有界 JSONL 环：序号续读、跨流串行、最近日志与缺口标记。 |
 | [src/omni/tools/shell/job_tools.py](../../src/omni/tools/shell/job_tools.py) | 51 | 后台任务的 Registry 适配；不复用人工 PTY，不接受外部会话身份。 |
 | [src/omni/tools/shell/jobs.py](../../src/omni/tools/shell/jobs.py) | 230 | 独立后台命令执行器：审批后入队、有界进程/日志、会话归属与诚实回收。 |
@@ -404,7 +404,7 @@
 | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py) | 135 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 | [src/omni/channels/web_static/mcp/index.html](../../src/omni/channels/web_static/mcp/index.html) | 35 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/mcp/mcp.css](../../src/omni/channels/web_static/mcp/mcp.css) | 63 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/mcp/mcp.js](../../src/omni/channels/web_static/mcp/mcp.js) | 114 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/mcp.js](../../src/omni/channels/web_static/mcp/mcp.js) | 113 | 平台脚本或界面资源 |
 
 文档：[docs/MCP.md](../../docs/MCP.md)
 
@@ -462,7 +462,7 @@
 |---|---:|---|
 | [src/omni/channels/web_api/capabilities.py](../../src/omni/channels/web_api/capabilities.py) | 24 | 能力与诊断只读聚合：不连接 MCP、不访问手机、不启动终端/服务。 |
 | [src/omni/channels/web_static/capabilities/capabilities.css](../../src/omni/channels/web_static/capabilities/capabilities.css) | 91 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/capabilities/capabilities.js](../../src/omni/channels/web_static/capabilities/capabilities.js) | 53 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/capabilities/capabilities.js](../../src/omni/channels/web_static/capabilities/capabilities.js) | 52 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/capabilities/index.html](../../src/omni/channels/web_static/capabilities/index.html) | 49 | 平台脚本或界面资源 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)

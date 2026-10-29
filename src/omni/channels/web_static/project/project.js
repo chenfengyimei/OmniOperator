@@ -1,5 +1,4 @@
-'use strict';
-const $ = selector => document.querySelector(selector);
+import {$} from '/ui/app/dom.js?v=20261030f';
 const state = {project:null, tools:[], extensions:null, view:'modules', query:'', category:''};
 const views = {
   modules:['浏览整个 Agent','按职责查找模块、源码、测试和说明文档。'],
@@ -13,10 +12,9 @@ function button(text, action, cls='outline') { const el=node('button',text,cls);
 function matches(value) { return !state.query || JSON.stringify(value).toLowerCase().includes(state.query); }
 function empty(text='没有匹配项，试试其他搜索词或分类。') { $('#content').append(node('div',text,'empty')); }
 async function get(url) {
-  const response=await fetch(url,{credentials:'same-origin',cache:'no-store'});
-  if(response.status===401) throw new Error('请先返回对话工作台，用配对链接登录后再打开此页。');
-  if(!response.ok) throw new Error(`读取失败（${response.status}），请稍后刷新。`);
-  return response.json();
+  // 401 文案保留本页语义：此页常被单独打开，提示用户回工作台配对后再来
+  try { return await window.OmniUI.request(url); }
+  catch(error) { if(error.status===401) throw new Error('请先返回对话工作台，用配对链接登录后再打开此页。'); throw error; }
 }
 function show(title, content) { $('#detail-title').textContent=title; $('#detail-body').replaceChildren(content); if(!$('#detail').open)$('#detail').showModal(); }
 async function copy(text) { try { await navigator.clipboard.writeText(text); $('#status').textContent='已复制到剪贴板。'; } catch { show('复制内容',node('pre',text)); } }

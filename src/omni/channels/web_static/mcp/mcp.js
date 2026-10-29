@@ -1,8 +1,7 @@
-'use strict';
-const $=s=>document.querySelector(s),UI=window.OmniUI,pending=new Set();
+import {$,esc} from '/ui/app/dom.js?v=20261030f';
+const UI=window.OmniUI,pending=new Set();
 let servers=[],version=0,reading=null,loading=false,activeName='';
 const api=UI.request;
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function markActive(name){
   activeName=name;
   document.querySelectorAll('.server').forEach(card=>card.classList.toggle('active',card.dataset.name===name));
@@ -33,7 +32,7 @@ function render(){
   renderStats();
   $('#servers').replaceChildren();
   if(!servers.length){
-    const empty=UI.element('div',null,'rich-empty');
+    const empty=UI.element('div',null,'empty-rich');
     empty.innerHTML='<span class="material-icons">extension_off</span><h3>还没有配置 MCP 服务</h3><p>在 <code>config.yaml</code> 的 <code>mcp.servers</code> 中配置可信服务、环境变量引用与工具权限，重启后即可在这里查看连接和授权状态。</p><a href="/project/">打开项目索引</a>';
     $('#servers').append(empty);return;
   }
@@ -65,7 +64,7 @@ function render(){
 async function load(){
   if(loading)return;loading=true;$('#refresh').disabled=true;
   try{const data=await api('/api/mcp/overview');servers=data.servers;render();$('#status').textContent=`${servers.length} 个配置服务 · 状态读取不会启动服务`}
-  catch(error){$('#status').textContent=error.message;$('#servers').innerHTML='<div class="rich-empty"><span class="material-icons">cloud_off</span><h3>服务状态读取失败</h3><p>请检查工作台配对、服务进程与配置后重试。</p></div>'}
+  catch(error){$('#status').textContent=error.message;$('#servers').innerHTML='<div class="empty-rich"><span class="material-icons">cloud_off</span><h3>服务状态读取失败</h3><p>请检查工作台配对、服务进程与配置后重试。</p></div>'}
   finally{loading=false;$('#refresh').disabled=false}
 }
 async function operate(name,action,method){
@@ -95,7 +94,7 @@ async function catalog(name){
       heading.innerHTML=`<span class="catalog-tool-name">${esc(tool.name)}</span><span class="material-icons">expand_more</span>`;
       item.append(heading,UI.element('p',tool.description||'没有描述'),UI.element('pre',JSON.stringify(tool,null,2)));$('#catalog').append(item);
     }
-    if(!rows.length)$('#catalog').append(UI.element('p','此服务未提供工具。','ui-empty'));
+    if(!rows.length)$('#catalog').append(UI.element('p','此服务未提供工具。','empty'));
     if(!confirmed&&fingerprint){
       const button=UI.element('button','已复查完整目录及只读白名单，确认当前指纹','ui-primary');button.id='confirm';$('#catalog').append(button);
       button.onclick=async()=>{

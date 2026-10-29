@@ -164,6 +164,42 @@ def test_app_modules_import_what_they_use():
     assert not problems, f"app 模块存在漏 import 的共享符号（运行时 ReferenceError）：{sorted(problems)}"
 
 
+SUBPAGES = ["capabilities", "jobs", "mcp", "terminal", "android", "storage", "project"]
+
+
+def test_substation_scripts_are_modules_with_deduped_helpers():
+    """子站 JS 模式统一（Phase 5）：页面脚本必须是 ES 模块，且不得本地重定义 $/esc/relTime。
+
+    为什么：七站各自抄一份 $/esc 是三套历史实现的开端；统一 import ui/app/dom.js
+    后，页面脚本标签必须是 type=module（经典脚本里 import 是语法错误）。
+    """
+    local_def = re.compile(r"(?:const|let|var)\s+(?:\$|esc|relTime)\s*=")
+    for page in SUBPAGES:
+        html = (STATIC / page / "index.html").read_text(encoding="utf-8")
+        own = re.findall(rf'<script([^>]*src="/{page}/{page}\.js[^"]*"[^>]*)>', html)
+        assert own, f"{page}/index.html 找不到本页脚本标签"
+        for tag in own:
+            assert 'type="module"' in tag, f"{page} 页面脚本必须是 ES 模块：{tag}"
+            assert "?v=" in tag, f"{page} 页面脚本缺 ?v= 缓存版本串：{tag}"
+        js = (STATIC / page / f"{page}.js").read_text(encoding="utf-8")
+        assert not local_def.search(js), f"{page}/{page}.js 本地重定义了 $/esc/relTime（应 import ui/app/dom.js）"
+
+
+def test_substation_app_module_refs_match_group_version():
+    """子站引用 /ui/app/*.js 的版本串必须与 app 组一致（原子递增纪律覆盖子站）。"""
+    html = INDEX.read_text(encoding="utf-8")
+    entry = re.search(r'src="/ui/app/main\.js\?v=([0-9a-z]+)"', html)
+    assert entry, "index.html 的 main.js 入口缺 ?v= 版本串"
+    group = {entry.group(1)}
+    ref = re.compile(r"/ui/app/([A-Za-z0-9-]+\.js)\?v=([0-9a-z]+)")
+    for page in SUBPAGES:
+        for text in [(STATIC / page / "index.html").read_text(encoding="utf-8"),
+                     (STATIC / page / f"{page}.js").read_text(encoding="utf-8")]:
+            for match in ref.finditer(text):
+                group.add(match.group(2))
+    assert len(group) == 1, f"子站引用的 app 模块版本与主组不一致：{sorted(group)}"
+
+
 def test_rail_subpages_open_in_new_tab():
     """rail 的 4 个子站入口有且只有一个，且新标签打开（不能把工作台顶掉）。"""
     html = INDEX.read_text(encoding="utf-8")

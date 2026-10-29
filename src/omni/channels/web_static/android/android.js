@@ -1,5 +1,5 @@
-'use strict';
-const $=s=>document.querySelector(s),UI=window.OmniUI;let serial='',token='',frozen=false,epoch=0,busy=false,live=false,detecting=false,previewReading=false;
+import {$} from '/ui/app/dom.js?v=20261030f';
+const UI=window.OmniUI;let serial='',token='',frozen=false,epoch=0,busy=false,live=false,detecting=false,previewReading=false;
 const api=UI.request;
 function status(text){$('#status').textContent=text}
 function renderDeviceStats(){

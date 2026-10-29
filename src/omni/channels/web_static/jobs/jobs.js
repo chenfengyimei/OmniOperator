@@ -1,8 +1,7 @@
-'use strict';
-const $=s=>document.querySelector(s), UI=window.OmniUI;
+import {$,esc} from '/ui/app/dom.js?v=20261030f';
+const UI=window.OmniUI;
 let jobs=[],selected='',after=0,version=0,listBusy=false,reading=null,leaving=false,cancelling=false;
 const finalStates=new Set(['succeeded','failed','cancelled','timed_out','unknown']);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function renderStats(){
   const active=jobs.filter(j=>!finalStates.has(j.status)).length;
   const succeeded=jobs.filter(j=>j.status==='succeeded').length;
@@ -23,7 +22,7 @@ function renderList(){
     button.dataset.status=row.status;button.append(UI.badge(row.status),UI.element('strong',row.command),UI.element('small','会话 '+row.session_id+' · '+UI.date(row.created_at)));
     button.onclick=()=>selectJob(row.job_id);$('#jobs').append(button);
   }
-  if(!visible.length){const empty=UI.element('div',null,'rich-empty');empty.innerHTML=jobs.length?'<span class="material-icons">filter_alt_off</span><h3>没有符合筛选的任务</h3><p>调整搜索词或状态筛选后再试。</p>':'<span class="material-icons">add_task</span><h3>暂无后台命令</h3><p>在对话中提交需要继续运行的后台命令，经人工审批后会显示在这里。</p>';$('#jobs').append(empty)}
+  if(!visible.length){const empty=UI.element('div',null,'empty-rich');empty.innerHTML=jobs.length?'<span class="material-icons">filter_alt_off</span><h3>没有符合筛选的任务</h3><p>调整搜索词或状态筛选后再试。</p>':'<span class="material-icons">add_task</span><h3>暂无后台命令</h3><p>在对话中提交需要继续运行的后台命令，经人工审批后会显示在这里。</p>';$('#jobs').append(empty)}
 }
 function showDetail(row){
   $('#job-title').textContent=row.command;const list=UI.element('dl');

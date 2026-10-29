@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3276cf4759d8aac406308ac3d410020dbe78d7a502edc33f3995873e0f6a39e1",
+  "source_sha256": "a783f74766494364c63ec2dfd6d3cdc98a20136276776086ab9c66b539f44162",
   "modules": [
     {
       "id": "agent-directories",
@@ -320,7 +320,7 @@
         "src/omni/channels/workbench/__init__.py",
         "src/omni/channels/workbench/routes.py"
       ],
-      "lines": 363,
+      "lines": 361,
       "dependencies": [
         "assembly",
         "catalog",
@@ -519,7 +519,7 @@
         "src/omni/tools/shell/job_tools.py",
         "src/omni/tools/shell/jobs.py"
       ],
-      "lines": 530,
+      "lines": 529,
       "dependencies": [
         "config",
         "platform",
@@ -667,7 +667,7 @@
         "src/omni/channels/web_static/mcp/mcp.css",
         "src/omni/channels/web_static/mcp/mcp.js"
       ],
-      "lines": 347,
+      "lines": 346,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -768,7 +768,7 @@
         "src/omni/channels/web_static/capabilities/capabilities.js",
         "src/omni/channels/web_static/capabilities/index.html"
       ],
-      "lines": 217,
+      "lines": 216,
       "dependencies": []
     },
     {
@@ -5124,7 +5124,7 @@
       "path": "src/omni/channels/web_static/capabilities/capabilities.js",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 53,
+      "lines": 52,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5174,7 +5174,7 @@
       "path": "src/omni/channels/web_static/jobs/jobs.js",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 66,
+      "lines": 65,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5204,7 +5204,7 @@
       "path": "src/omni/channels/web_static/mcp/mcp.js",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 114,
+      "lines": 113,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5234,7 +5234,7 @@
       "path": "src/omni/channels/web_static/project/project.js",
       "module": "workbench",
       "python_module": null,
-      "lines": 110,
+      "lines": 108,
       "imports": [],
       "symbols": [],
       "kind": "asset",

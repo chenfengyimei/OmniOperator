@@ -1,5 +1,5 @@
-'use strict';
-const $=s=>document.querySelector(s),UI=window.OmniUI;
+import {$} from '/ui/app/dom.js?v=20261030f';
+const UI=window.OmniUI;
 const labels={workspace:'工作目录',files:'文件目录',documents:'资料目录（模型只读）',memory:'长期记忆与档案目录',skills:'技能目录',artifacts:'产物与截图',cache:'缓存目录',logs:'日志目录',backups:'备份目录'};
 const appLabels={data_root:'全局业务存储根',workspace:'默认工作目录',agents_root:'Agent 空间池',source_root:'程序源码（固定）',catalog:'目录配置（固定）',run:'服务身份（固定）',service_logs:'服务启动日志（固定）'};
 const appKeys=['data_root','workspace','agents_root'];
@@ -66,10 +66,10 @@ async function loadFiles(more=false){
   if(!more){$('#file-list').replaceChildren();nextOffset=null}breadcrumbs();$('#file-status').textContent='读取目录…';
   try{
     const data=await UI.request('/api/storage/files?'+new URLSearchParams({scope,path:here,offset:more?nextOffset||0:0}));if(version!==viewVersion||scope!==$('#scope').value||here!==path)return;
-    $('#file-list .ui-empty')?.remove();
+    $('#file-list .empty')?.remove();
     for(const row of data.entries){const button=UI.element('button',null,'file-row'),target=(here?here+'/':'')+row.name;button.append(UI.element('span',row.directory?'▸':'·'),UI.element('strong',row.name),UI.element('small',row.directory?'文件夹':row.size+' B'));button.onclick=()=>{if(fileBusy)return;if(row.directory){path=target;viewVersion++;loadFiles()}else showFile(scope,target)};$('#file-list').append(button)}
     nextOffset=data.next_offset;$('#more').hidden=nextOffset==null;$('#file-status').textContent=(data.missing?'目录尚未创建，可上传文件或新建目录':$('#file-list').children.length+' 项已显示')+' · '+state.public_roots[scope];
-    if(!$('#file-list').children.length)$('#file-list').append(UI.element('div','当前目录为空','ui-empty'));
+    if(!$('#file-list').children.length)$('#file-list').append(UI.element('div','当前目录为空','empty'));
   }catch(error){if(version===viewVersion)$('#file-status').textContent=error.message}finally{listing=false;fileControls();if(version!==viewVersion)loadFiles()}
 }
 async function showFile(scope,target){

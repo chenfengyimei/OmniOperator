@@ -1,8 +1,7 @@
-'use strict';
-const $=s=>document.querySelector(s),UI=window.OmniUI;
+import {$,esc} from '/ui/app/dom.js?v=20261030f';
+const UI=window.OmniUI;
 const api=UI.request;
 const states={ok:'通过',warning:'需检查',error:'错误',info:'信息'};
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let busy=false;
 function toneFor(state){return state==='ready'?'ready':state==='warning'?'warning':'failed'}
 function stateLabel(state){return state==='ready'?'可用':state==='warning'?'需检查':'不可用'}
@@ -36,10 +35,10 @@ async function load(){
         `<span class="check-indicator"><span class="material-icons">${check.state==='ok'?'check_circle':check.state==='warning'?'warning':'error'}</span></span>`+
         `<div><strong>${esc(check.name)}</strong><p>${esc(check.detail)}</p></div>`+
         `<span class="check-label">${esc(states[check.state]||check.state)}</span>`+
-      `</div>`).join(''):'<div class="ui-empty">没有返回检查项</div>';
+      `</div>`).join(''):'<div class="empty">没有返回检查项</div>';
   }catch(e){
     $('#status').textContent=e.message;
-    $('#cards').innerHTML='<div class="ui-empty rich-empty"><span class="material-icons">cloud_off</span><h3>能力快照读取失败</h3><p>请检查工作台配对与服务状态后重试。</p></div>';
+    $('#cards').innerHTML='<div class="empty-rich"><span class="material-icons">cloud_off</span><h3>能力快照读取失败</h3><p>请检查工作台配对与服务状态后重试。</p></div>';
   }finally{busy=false;$('#refresh').disabled=false}
 }
 $('#refresh').onclick=load;
