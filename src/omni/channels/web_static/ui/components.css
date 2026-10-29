@@ -1,0 +1,189 @@
+/* ==========================================================================
+   OmniOperator 共享组件库（components）——UI_DESIGN_SYSTEM.md §6
+   类名即契约：canonical 类 + 旧类名过渡别名（别名在 Phase 7 收尾批评估删除）。
+   只放跨页面组件（按钮/输入/开关/卡片/度量/列表行/空态/徽章/提示/区块标题）；
+   应用壳（rail/顶栏/画布）归 frame.css；页面专属布局归页面 css。
+   加载顺序：tokens → base → icons → components → frame → 页面层。
+   ========================================================================== */
+
+/* ---------- 按钮：canonical .btn，旧名 .svc-btn/.p-btn/.tiny-btn/.key-btn 并组 ---------- */
+.btn,.svc-btn,.p-btn,.tiny-btn,.key-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:28px;padding:0 12px;border-radius:var(--r-sm);
+  border:1px solid var(--line-2);
+  background:color-mix(in oklab,var(--surface-2) 60%,transparent);
+  color:var(--text-2);font:inherit;font-size:12px;font-weight:600;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:border-color .15s,color .15s,background .15s,transform .12s;
+}
+.btn:hover,.svc-btn:hover,.p-btn:hover,.tiny-btn:hover,.key-btn:hover{
+  border-color:var(--line-accent);color:var(--text-1);background:var(--surface-accent);
+}
+.btn:active,.svc-btn:active,.p-btn:active,.tiny-btn:active,.key-btn:active{transform:translateY(1px)}
+.btn:disabled,.svc-btn:disabled,.p-btn:disabled,.tiny-btn:disabled,.key-btn:disabled{
+  opacity:.42;cursor:not-allowed;filter:saturate(.45);
+}
+.btn.small,.tiny-btn{height:24px;padding:0 9px;font-size:11px}
+/* 主操作：渐变实心，每屏最多一个 */
+.btn.primary,.key-btn.primary{
+  background:var(--grad);border:none;color:#04121a;font-weight:700;
+  box-shadow:0 2px 12px -3px color-mix(in srgb,var(--seed-accent) 62%,transparent);
+}
+.btn.primary:hover,.key-btn.primary:hover{filter:brightness(1.08);background:var(--grad);color:#04121a}
+/* 危险操作必须配确认 */
+.btn.danger,.p-btn.del{
+  color:var(--danger);border-color:var(--danger-bd);background:transparent;
+}
+.btn.danger:hover,.p-btn.del:hover{
+  background:var(--danger-bg);color:#fca5a5;border-color:var(--danger-bd);
+}
+.btn.warn,.svc-btn.warn{color:var(--warn);border-color:var(--warn-bd)}
+.btn.warn:hover,.svc-btn.warn:hover{background:var(--warn-bg)}
+
+/* ---------- 表单：.field 竖排标签 + 统一控件基样 ---------- */
+.field{margin:0 0 12px;min-width:0}
+.field>label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--text-3);font-weight:500;line-height:1.55}
+.field input[type=text],.field input[type=number],.field input[type=time],.field textarea,.field select{
+  width:100%;min-width:0;background:var(--surface-inset);
+  border:1px solid var(--line-2);border-radius:var(--r-sm);
+  color:var(--text-1);padding:8px 12px;font:inherit;font-size:13px;
+  transition:border-color .15s,box-shadow .15s;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:none;border-color:var(--line-accent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--seed-accent) 12%,transparent);
+}
+.field textarea{min-height:150px;resize:vertical;font:12.5px/1.65 var(--font-mono);white-space:pre-wrap}
+.field input[type=number],.field input[type=time]{max-width:260px}
+.field-row{display:flex;gap:12px;flex-wrap:wrap}
+.field-row .field{flex:1;min-width:170px}
+/* .field>label 是竖排，会把开关行也带成 column；开关行必须显式改回横排 */
+.field>.check-row{flex-direction:row;align-items:center;gap:10px}
+
+/* ---------- 开关：checkbox 皮肤化，保留原生 input 供 JS 读取 .checked ---------- */
+.switch{position:relative;display:inline-flex;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:#3a4356;transition:background .18s}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text-1);transition:transform .18s}
+input:checked + .switch{background:var(--seed-accent)}
+input:checked + .switch::after{transform:translateX(16px);background:#04121a}
+.check-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-1);cursor:pointer;user-select:none;font-size:13px;line-height:1.5;transition:border-color .15s}
+.check-row:hover{border-color:var(--line-1)}
+.check-row input{position:absolute;opacity:0;width:0;height:0}
+.check-row input:focus-visible + .switch{box-shadow:0 0 0 3px color-mix(in srgb,var(--seed-accent) 30%,transparent)}
+.switch-text{flex:1;min-width:0}
+
+/* ---------- 空态：一个组件两个变体（虚线盒 / 图文富空态） ---------- */
+.empty,.ui-empty{
+  padding:18px 12px;text-align:center;color:var(--text-4);font-size:12px;
+  border:1px dashed var(--line-2);border-radius:var(--r-md);
+  background:transparent;line-height:1.8;
+}
+.empty-rich,.rich-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  min-height:180px;padding:24px 20px;
+  border:1px dashed var(--line-1);border-radius:12px;
+  color:var(--text-4);background:color-mix(in srgb,var(--seed-fg) 1.6%,transparent);
+}
+.empty-rich>.material-icons,.rich-empty>.material-icons{font-size:30px;color:var(--text-4);margin-bottom:8px}
+.empty-rich h3,.rich-empty h3{margin:0;font-size:13px;color:var(--text-2)}
+.empty-rich p,.rich-empty p{max-width:440px;margin:6px 0 0;padding:0;border:0;background:none;font-size:11px;line-height:1.7;color:var(--text-4)}
+.empty-rich a,.rich-empty a{margin-top:10px;font-size:11px;color:var(--seed-accent);text-decoration:none}
+
+/* ---------- 徽章与胶囊 ---------- */
+.chip{
+  display:inline-flex;align-items:center;gap:5px;height:21px;padding:0 8px;
+  border:1px solid var(--line-2);border-radius:999px;
+  background:color-mix(in oklab,var(--surface-2) 55%,transparent);
+  font-size:10.5px;color:var(--text-3);white-space:nowrap;
+}
+.chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.tag{
+  flex-shrink:0;font-size:11px;border-radius:999px;padding:2px 9px;white-space:nowrap;
+  color:var(--text-3);background:color-mix(in srgb,var(--seed-fg) 6%,transparent);
+}
+.tag.ok{color:var(--ok);background:var(--ok-bg)}
+.tag.warn{color:var(--warn);background:var(--warn-bg)}
+.tag.violet{color:var(--accent2);background:color-mix(in srgb,var(--seed-accent2) 16%,transparent)}
+.tag.off{color:var(--text-4);background:color-mix(in srgb,var(--seed-fg) 5%,transparent)}
+
+/* ---------- 提示与说明 ---------- */
+.hint{color:var(--text-3);font-size:11.5px;line-height:1.7}
+.muted{color:var(--text-3);font-size:12px}
+.note-box{border:1px solid var(--line-2);border-left:3px solid var(--seed-accent);border-radius:var(--r-md);background:color-mix(in srgb,var(--seed-accent) 5%,transparent);padding:11px 14px;margin:2px 0 4px}
+.note-box .nb-title{font-size:12.5px;font-weight:700;color:var(--text-1);margin-bottom:5px}
+.note-box .nb-body{font-size:12px;color:var(--text-3);line-height:1.75}
+.note-box .nb-body b{color:var(--text-2);font-weight:600}
+
+/* ---------- 通用列表行（cron/preset/svc/file 等的基样） ---------- */
+.row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-1);margin-bottom:8px;transition:border-color .15s,background .15s}
+.row:hover{border-color:var(--line-1)}
+.row.active{border-color:var(--line-accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--seed-accent) 30%,transparent)}
+.row .r-main{flex:1;min-width:0}
+.row .r-title{font-size:13px;font-weight:600;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .r-sub{font-size:11.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+
+/* ---------- 区块标题（运营页/子站） ---------- */
+.section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:2px 0 10px}
+.section-heading.compact{align-items:center;margin:0 0 10px}
+.section-heading h2,.section-heading h3{margin:1px 0 0;font-size:15px;line-height:1.3;color:var(--text-1)}
+.section-heading .material-icons{font-size:19px;color:var(--text-4)}
+.eyebrow{display:block;color:var(--text-4);font:650 8.5px/1.4 var(--font-mono);letter-spacing:.13em;text-transform:uppercase}
+.section-meta{color:var(--text-4);font:600 9.5px/1.4 var(--font-mono);white-space:nowrap}
+.page-note{margin:0 0 10px;color:var(--text-4);font-size:10.5px;line-height:1.65;padding:0;border:0;background:none}
+.page-note code{font-family:var(--font-mono);color:var(--text-2);background:color-mix(in srgb,var(--seed-fg) 4%,transparent);padding:1px 4px;border-radius:4px}
+
+/* ---------- 工具条与搜索 ---------- */
+.header-action{
+  display:inline-flex;flex-shrink:0;white-space:nowrap;align-items:center;gap:6px;min-height:30px;padding:0 10px;
+  color:var(--text-2);text-decoration:none;font-size:11.5px;font-weight:600;
+  border:1px solid var(--line-2);border-radius:8px;background:color-mix(in srgb,var(--seed-fg) 2.5%,transparent);
+}
+.header-action:hover{color:var(--seed-accent);border-color:color-mix(in srgb,var(--seed-accent) 32%,transparent)}
+.header-action .material-icons{font-size:14px}
+.console-toolbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 12px;border:1px solid var(--line-2);border-radius:11px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--seed-fg) 2.5%,transparent),transparent),var(--surface-1);
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+}
+.toolbar-copy{display:flex;flex-direction:column;gap:2px;flex:1;min-width:220px}
+.toolbar-copy strong{font-size:11.5px;color:var(--text-1)}
+.toolbar-copy span{font-size:10.5px;color:var(--text-4);line-height:1.55}
+.toolbar-note{font-size:9px;color:var(--text-4);font-weight:500}
+.search-field{display:flex;align-items:center;gap:8px;flex:1;min-width:220px;height:34px;padding:0 11px;border:1px solid var(--line-2);border-radius:8px;background:rgba(5,9,14,.58)}
+.search-field .material-icons{font-size:15px;color:var(--text-4)}
+.search-field input{height:auto;min-height:0;padding:0;border:0;background:transparent;box-shadow:none;flex:1;min-width:0}
+
+/* ---------- 度量卡 ---------- */
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px}
+.metric-grid:empty::before{
+  content:"正在读取运行概览…";grid-column:1/-1;display:flex;align-items:center;justify-content:center;
+  min-height:55px;border:1px dashed var(--line-1);border-radius:10px;
+  color:var(--text-4);font-size:10px;background:color-mix(in srgb,var(--seed-fg) 1.5%,transparent);
+  animation:omni-placeholder-pulse 1.4s ease-in-out infinite;
+}
+.metric-card{
+  display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;
+  border:1px solid var(--line-2);border-radius:10px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--seed-fg) 2.5%,transparent),transparent),var(--surface-1);
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+}
+.metric-icon{
+  width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;
+  color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 18%,transparent);
+}
+.metric-icon .material-icons{font-size:16px}
+.metric-card>div{display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:8px;min-width:0;width:100%}
+.metric-card>div>span{font-size:9px;color:var(--text-4);text-transform:uppercase;letter-spacing:.04em}
+.metric-card .metric-icon,.metric-card .metric-icon *{text-transform:none;letter-spacing:normal}
+.metric-card b{font:700 20px/1.1 var(--font-mono);color:var(--text-1);justify-self:end}
+.metric-card small{grid-column:1/-1;margin-top:2px;font-size:9px;color:var(--text-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.metric-card.is-on .metric-icon{color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,transparent);border-color:color-mix(in srgb,var(--ok) 20%,transparent)}
+
+/* ---------- 卡片基样（面板内通用卡） ---------- */
+.card{
+  min-width:0;border:1px solid var(--line-2);border-radius:var(--r-card);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--seed-fg) 2.5%,transparent),transparent 32%),var(--surface-1);
+  box-shadow:var(--sh-2);
+  transition:border-color .18s,transform .18s,box-shadow .18s;
+}
+.card:hover{border-color:color-mix(in srgb,var(--seed-accent) 24%,transparent);transform:translateY(-1px)}

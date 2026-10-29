@@ -27,7 +27,7 @@ SEED_DEFINE = re.compile(r"--seed-(?:accent|accent2|bg|fg)\s*:")
 # font-size < 10px 的现存违规配额（Phase 6 清零后删除条目；Phase 1 拆分后按新文件重计）
 FONT_FLOOR_QUOTA = {
     "ui/workbench.css": 15,
-    "ui/frame.css": 3,
+    "ui/components.css": 3,   # 构件段自 frame 迁入（Phase 6 修）
     "storage/storage.css": 11,
     "capabilities/capabilities.css": 5,
     "mcp/mcp.css": 5,

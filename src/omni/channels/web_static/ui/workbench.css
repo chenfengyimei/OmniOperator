@@ -16,8 +16,6 @@ header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:
 .brand{font-weight:700;font-size:15px}
 .brand em{color:var(--accent);font-style:normal}
 #chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{background:var(--panel2);border:1px solid var(--border);border-radius:999px;padding:1px 10px;font-size:12px;color:var(--dim)}
-.chip.ok{color:#34d399;border-color:#14532d}
 main{flex:1;display:grid;grid-template-columns:230px minmax(0,1fr) 300px;gap:12px;padding:12px;min-height:0}
 aside,section{min-height:0;display:flex;flex-direction:column;gap:12px}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
@@ -112,12 +110,6 @@ ul{list-style:none;overflow-y:auto}
 .svc-main{flex:1;min-width:0}
 .svc-name{color:var(--text)}
 .svc-detail{color:var(--dim);font-size:11px}
-.svc-btn,.p-btn,.tiny-btn,.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:border-color .15s,color .15s,background .15s}
-.svc-btn:hover,.p-btn:hover,.tiny-btn:hover,.btn:hover{border-color:var(--accent);color:var(--accent)}
-.svc-btn:active,.p-btn:active,.tiny-btn:active,.btn:active{transform:translateY(1px)}
-.svc-btn.warn{color:var(--warn);border-color:var(--warn-bd)}
-.p-btn.del,.btn.danger{color:var(--danger);border-color:var(--danger-bd)}
-.p-btn.del:hover,.btn.danger:hover{background:var(--danger-bg);color:#fca5a5}
 .tiny-btn{margin:6px 4px 0 0}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
 .modal.hidden{display:none}
@@ -162,8 +154,6 @@ ul{list-style:none;overflow-y:auto}
 .hub-card h4::before{content:'';width:2px;height:11px;border-radius:2px;background:var(--accent);opacity:.75;flex-shrink:0}
 .hub-card h4 + .hint{margin-top:-4px}
 .hub-card .hint{font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:14px}
-/* 说明框：讲"为什么这样"而不是"怎么配"，用于把安全规则/使用建议说清楚 */
-.note-box{border:1px solid #2b3947;border-left:3px solid var(--accent);border-radius:var(--r-md);background:rgba(34,211,238,.05);padding:11px 14px;margin:2px 0 4px}
 /* 每页独立保存条：只提交当前页的配置，改坏一页不会连累其它页 */
 .card-actions{display:flex;align-items:center;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
 .save-btn{flex-shrink:0;height:34px;padding:0 18px;border:none;border-radius:var(--r-sm);background:linear-gradient(135deg,#22d3ee,#38bdf8);color:#06202a;font-size:13px;font-weight:700;cursor:pointer;transition:filter .15s,transform .1s}
@@ -172,9 +162,6 @@ ul{list-style:none;overflow-y:auto}
 .save-msg{flex:1;min-width:0;font-size:12px;color:var(--dim);line-height:1.5}
 .save-msg.ok{color:var(--ok)}
 .save-msg.err{color:var(--danger)}
-.note-box .nb-title{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:5px}
-.note-box .nb-body{font-size:12px;color:var(--dim);line-height:1.75}
-.note-box .nb-body b{color:#c7d2e0;font-weight:600}
 /* 扩展条目：一个扩展一张小卡，避免整页挤成一大坨文字 */
 .mcp-item{border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px;margin-bottom:10px;background:var(--panel)}
 .mcp-item:hover{border-color:#3a465a}
@@ -185,25 +172,6 @@ ul{list-style:none;overflow-y:auto}
 .mcp-cap .cap-name{color:var(--text);font-weight:600;font-size:12.5px}
 .mcp-cap .cap-desc{color:var(--dim);margin-top:1px}
 .mcp-cap .cap-tag{flex-shrink:0;font-size:11px;color:var(--dim);white-space:nowrap;padding-top:1px}
-.muted{font-size:12px;color:var(--dim)}
-/* 通用行：所有列表条目共用一套节奏，避免各区块各写一份 */
-.row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--panel);margin-bottom:8px;transition:border-color .15s,background .15s}
-.row:hover{border-color:#3a465a}
-.row.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px rgba(34,211,238,.3)}
-.row .r-main{flex:1;min-width:0}
-.row .r-title{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row .r-sub{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-/* 开关：checkbox 皮肤化，保留原生 input 供 JS 读取 .checked */
-.switch{position:relative;display:inline-flex;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:#3a4356;transition:background .18s}
-.switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#dbe2ea;transition:transform .18s}
-input:checked + .switch{background:var(--accent)}
-input:checked + .switch::after{transform:translateX(16px);background:#06202a}
-.check-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--panel);cursor:pointer;user-select:none;font-size:13px;line-height:1.5;transition:border-color .15s}
-/* .field>label 是竖排表单标签，会把开关行也带成 column；这里必须显式改回横排 */
-.field>.check-row{flex-direction:row;align-items:center;gap:10px}
-.check-row:hover{border-color:#3a465a}
-.check-row input{position:absolute;opacity:0;width:0;height:0}
-.check-row input:focus-visible + .switch{box-shadow:0 0 0 3px rgba(34,211,238,.3)}
 .preset-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--panel);margin-bottom:8px;transition:border-color .15s}
 .preset-row:hover{border-color:var(--accent)}
 .preset-row.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
@@ -277,7 +245,6 @@ input:checked + .switch::after{transform:translateX(16px);background:#06202a}
 .key-box .kb-eye:hover{color:var(--accent)}
 .key-btn{flex-shrink:0;height:42px;padding:0 14px;border:1px solid var(--border);border-radius:9px;background:var(--panel2);color:var(--text);font-size:12.5px;cursor:pointer;white-space:nowrap}
 .key-btn:hover{border-color:var(--accent)}
-.key-btn.primary{background:var(--accent);border-color:var(--accent);color:#06202a;font-weight:700}
 .key-note{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:11.5px;color:var(--dim)}
 .key-note a{color:var(--accent);text-decoration:none}
 .key-note a:hover{text-decoration:underline}
@@ -290,22 +257,12 @@ input:checked + .switch::after{transform:translateX(16px);background:#06202a}
 .model-footer .mf-out.ok{color:#34d399}
 .model-footer .mf-out.err{color:#f87171}
 @media (max-width:760px){.key-row{flex-wrap:wrap}.key-btn{flex:1}}
-.field{margin:0 0 12px;min-width:0}
-.field>label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--dim);font-weight:500;line-height:1.55}
-.field input[type=text],.field input[type=number],.field input[type=time],.field textarea,.field select{width:100%;min-width:0;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);padding:9px 12px;font:inherit;font-size:13px;transition:border-color .15s,box-shadow .15s}
-.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(34,211,238,.14)}
-.field textarea{min-height:150px;resize:vertical;font:12.5px/1.65 Consolas,monospace;white-space:pre-wrap}
 #cfg-persona-prompt{min-height:210px}
-.field input[type=number],.field input[type=time]{max-width:260px}
-.field-row{display:flex;gap:12px;flex-wrap:wrap}
-.field-row .field{flex:1;min-width:170px}
-/* 按钮体系见上方「通用行」段：.svc-btn / .p-btn / .tiny-btn / .btn 共用一套皮肤 */
 .test-out{font-size:12px;color:var(--dim);margin-top:4px;min-height:1em;white-space:pre-wrap;word-break:break-all}
 .cron-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
 .cron-row .c-name{color:var(--text);font-weight:600;min-width:130px}
 .cron-row .c-sched{color:var(--dim);flex:1}
 .cron-row .svc-btn{flex-shrink:0}
-.empty{color:var(--dim);text-align:center;padding:24px 10px;font-size:12.5px}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 @media (max-width:1000px){main{grid-template-columns:1fr;overflow-y:auto}aside,section{max-height:45vh}}
 /* 设置中心窄屏：左侧导航变成顶部横向条，内容单列 */
@@ -321,23 +278,10 @@ input:checked + .switch::after{transform:translateX(16px);background:#06202a}
   .hub-card{padding:16px 16px;max-width:none}
   .slot-grid{grid-template-columns:1fr}
 }
-/* ---- 列表行与开关：放最后统一覆盖各区块的零散定义 ---- */
 .cron-row,.preset-row,.svc-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:8px;transition:border-color .15s}
 .cron-row:hover,.preset-row:hover,.svc-row:hover{border-color:#3a465a}
 .cron-row .c-name,.preset-row .p-name{min-width:96px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--text)}
 .cron-row .c-sched,.preset-row .p-desc{flex:1;min-width:0;font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.switch{position:relative;display:inline-flex;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:#3a4356;transition:background .18s}
-.switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#dbe2ea;transition:transform .18s}
-input:checked + .switch{background:var(--accent)}
-input:checked + .switch::after{transform:translateX(16px);background:#06202a}
-.check-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--panel);cursor:pointer;user-select:none;font-size:13px;line-height:1.5;transition:border-color .15s}
-/* .field>label 是竖排表单标签，会把开关行也带成 column；这里必须显式改回横排 */
-.field>.check-row{flex-direction:row;align-items:center;gap:10px}
-.check-row:hover{border-color:#3a465a}
-.check-row input{position:absolute;opacity:0;width:0;height:0}
-.check-row input:focus-visible + .switch{box-shadow:0 0 0 3px rgba(34,211,238,.3)}
-.switch-text{flex:1;min-width:0}
-.empty{padding:18px 12px;text-align:center;color:var(--dim);font-size:12px;border:1px dashed var(--border);border-radius:var(--r-md);background:var(--panel2)}
 
 /* ██████ B. 视觉层（原 skin.css，token 已抽离至 ui/tokens.css） ██████ */
 
@@ -384,13 +328,6 @@ body>header{
 .brand-title{font-size:13px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
 .brand-sub{font-size:10px;color:var(--text-4);white-space:nowrap;margin-top:1px}
 #chips{gap:5px}
-.chip{
-  display:inline-flex;align-items:center;gap:5px;height:21px;padding:0 8px;
-  border:1px solid var(--line-2);border-radius:999px;
-  background:color-mix(in oklab,var(--surface-2) 55%,transparent);
-  font-size:10.5px;color:var(--text-3);white-space:nowrap;
-}
-.chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
 .hub-open{
   display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 13px;flex-shrink:0;
   border:none;border-radius:8px;background:var(--grad);color:#04121a;
@@ -685,17 +622,6 @@ aside,section{gap:11px}
 .svc-dot.ok{background:var(--ok)}
 
 /* ---------------- 按钮与控件统一皮肤 ---------------- */
-.svc-btn,.p-btn,.tiny-btn,.btn{
-  height:26px;padding:0 11px;border-radius:6px;font-size:11.5px;
-  background:color-mix(in oklab,var(--surface-2) 60%,transparent);
-  border-color:var(--line-2);color:var(--text-2);
-}
-.svc-btn:hover,.p-btn:hover,.tiny-btn:hover,.btn:hover{
-  border-color:var(--line-accent);color:var(--text-1);background:var(--surface-accent);
-}
-.empty{border:1px dashed var(--line-2);background:transparent;color:var(--text-4);border-radius:8px}
-.hint{color:var(--text-3)}
-.muted{color:var(--text-3)}
 input[type=checkbox]{accent-color:var(--seed-accent)}
 
 /* ---------------- 弹窗与审批 ---------------- */
@@ -746,12 +672,6 @@ input[type=checkbox]{accent-color:var(--seed-accent)}
 .hub-card:hover{border-color:var(--line-1)}
 .hub-card h3::before{background:var(--grad)}
 .hub-card .hint{color:var(--text-3)}
-.note-box{border-color:var(--line-2);border-left-color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 5%,transparent)}
-.field input:focus,.field textarea:focus,.field select:focus{
-  border-color:var(--line-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--seed-accent) 12%,transparent);
-}
-input:checked + .switch{background:var(--seed-accent)}
-input:checked + .switch::after{background:#04121a}
 /* 桌面尺寸的 hub 布局：≥861px 才覆盖，≤860px 的折叠式导航沿用内联移动端规则 */
 @media (min-width:861px){
   .hub-header{padding:0 24px;gap:14px}
@@ -794,7 +714,6 @@ input:checked + .switch::after{background:#04121a}
   .hub-card .hint{font-size:11.5px;line-height:1.7}
   .card-actions{border-top-color:var(--line-3)}
 }
-.key-btn.primary{background:var(--seed-accent);border-color:var(--seed-accent);color:#04121a}
 .slot-card.active,.prov-card.active,.model-card.active{border-color:var(--line-accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--seed-accent) 28%,transparent)}
 .step.active{color:var(--seed-accent);border-color:var(--line-accent)}
 .mcp-item,.row,.check-row,.preset-row,.cron-row{border-color:var(--line-2)}

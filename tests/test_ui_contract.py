@@ -65,7 +65,7 @@ def test_workbench_has_no_inline_style():
 def test_ui_assets_carry_cache_busting_versions():
     """自产资源必须带 ?v=：防浏览器把新版标记与旧版皮肤/字体/渲染器缓存错配。"""
     html = INDEX.read_text(encoding="utf-8")
-    for href in ("href=\"/ui/tokens.css?v=", "href=\"/ui/frame.css?v=", "href=\"/ui/workbench.css?v=",
+    for href in ("href=\"/ui/tokens.css?v=", "href=\"/ui/components.css?v=", "href=\"/ui/frame.css?v=", "href=\"/ui/workbench.css?v=",
                  "href=\"/ui/icons.css?v=", "src=\"/ui/markdown.js?v="):
         assert href in html, f"index.html 缺少缓存版本参数：{href}"
     for page in PAGE_SHEETS:

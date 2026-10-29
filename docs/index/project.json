@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1c2b9395428d07d1e34a1c5398e74cfdb915b3606f7331d3328d83326985322f",
+  "source_sha256": "31bb6bf929786068231fae7a085ab0859191abeb214ba57a4cf27b9cf7085508",
   "modules": [
     {
       "id": "agent-directories",
@@ -19,9 +19,10 @@
       "files": [
         "src/omni/system/agent_spaces/__init__.py",
         "src/omni/system/agent_spaces/catalog.py",
+        "src/omni/system/agent_spaces/inventory.py",
         "src/omni/system/agent_spaces/layout.py"
       ],
-      "lines": 204,
+      "lines": 239,
       "dependencies": [
         "config",
         "platform"
@@ -48,7 +49,7 @@
         "src/omni/channels/web_static/storage/storage.css",
         "src/omni/channels/web_static/storage/storage.js"
       ],
-      "lines": 428,
+      "lines": 433,
       "dependencies": [
         "agent-directories",
         "assembly",
@@ -336,6 +337,7 @@
       ],
       "files": [
         "src/omni/channels/web_static/ui/base.css",
+        "src/omni/channels/web_static/ui/components.css",
         "src/omni/channels/web_static/ui/frame.css",
         "src/omni/channels/web_static/ui/icons.css",
         "src/omni/channels/web_static/ui/markdown.js",
@@ -343,7 +345,7 @@
         "src/omni/channels/web_static/ui/tokens.css",
         "src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 1910,
+      "lines": 1952,
       "dependencies": []
     },
     {
@@ -4620,10 +4622,11 @@
       "path": "src/omni/channels/web_api/storage.py",
       "module": "http-storage",
       "python_module": "omni.channels.web_api.storage",
-      "lines": 157,
+      "lines": 162,
       "imports": [
         "omni.bootstrap",
         "omni.system.agent_spaces",
+        "omni.system.agent_spaces.inventory",
         "omni.system.filelock",
         "omni.tools.files.io",
         "omni.tools.files.paths",
@@ -4632,17 +4635,17 @@
       "symbols": [
         {
           "name": "DirectoryUpdate",
-          "line": 26,
+          "line": 27,
           "kind": "class"
         },
         {
           "name": "FolderCreate",
-          "line": 33,
+          "line": 34,
           "kind": "class"
         },
         {
           "name": "create_storage_router",
-          "line": 39,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -4653,21 +4656,21 @@
         },
         {
           "name": "create_storage_router.snapshot",
-          "line": 42,
+          "line": 43,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_storage_router.overview",
-          "line": 53,
+          "line": 57,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_storage_router.preview",
-          "line": 58,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4678,7 +4681,7 @@
         },
         {
           "name": "create_storage_router.update",
-          "line": 63,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4689,7 +4692,7 @@
         },
         {
           "name": "create_storage_router.target",
-          "line": 71,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "scope",
@@ -4701,7 +4704,7 @@
         },
         {
           "name": "create_storage_router.files",
-          "line": 85,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "scope",
@@ -4716,7 +4719,7 @@
         },
         {
           "name": "create_storage_router.preview_file",
-          "line": 110,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "scope",
@@ -4729,7 +4732,7 @@
         },
         {
           "name": "create_storage_router.create_folder",
-          "line": 126,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4740,7 +4743,7 @@
         },
         {
           "name": "create_storage_router.upload",
-          "line": 136,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "request",
@@ -4755,7 +4758,7 @@
         },
         {
           "name": "create_storage_router.upload.persist",
-          "line": 145,
+          "line": 150,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -5274,10 +5277,20 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "src/omni/channels/web_static/ui/components.css",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 189,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "src/omni/channels/web_static/ui/frame.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 491,
+      "lines": 425,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5327,7 +5340,7 @@
       "path": "src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1004,
+      "lines": 923,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -14815,6 +14828,29 @@
         }
       ],
       "summary": "配置注册表：有界读取、CAS、跨进程互斥、原子写；不搬运用户数据。"
+    },
+    {
+      "path": "src/omni/system/agent_spaces/inventory.py",
+      "module": "agent-directories",
+      "python_module": "omni.system.agent_spaces.inventory",
+      "lines": 35,
+      "imports": [
+        "omni.config"
+      ],
+      "symbols": [
+        {
+          "name": "storage_inventory",
+          "line": 7,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "RuntimePaths"
+          }
+        }
+      ],
+      "summary": "路径用途索引：纯声明，不扫描磁盘或读取记忆、凭据内容。"
     },
     {
       "path": "src/omni/system/agent_spaces/layout.py",
@@ -25669,7 +25705,7 @@
       "method": "GET",
       "path": "/api/storage",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 53,
+      "line": 57,
       "handler": "create_storage_router.overview",
       "module": "http-storage",
       "parameters": [],
@@ -25680,7 +25716,7 @@
       "method": "PUT",
       "path": "/api/storage",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 63,
+      "line": 68,
       "handler": "create_storage_router.update",
       "module": "http-storage",
       "parameters": [
@@ -25695,7 +25731,7 @@
       "method": "GET",
       "path": "/api/storage/files",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 85,
+      "line": 90,
       "handler": "create_storage_router.files",
       "module": "http-storage",
       "parameters": [
@@ -25714,7 +25750,7 @@
       "method": "POST",
       "path": "/api/storage/folders",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 126,
+      "line": 131,
       "handler": "create_storage_router.create_folder",
       "module": "http-storage",
       "parameters": [
@@ -25729,7 +25765,7 @@
       "method": "POST",
       "path": "/api/storage/preview",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 58,
+      "line": 62,
       "handler": "create_storage_router.preview",
       "module": "http-storage",
       "parameters": [
@@ -25744,7 +25780,7 @@
       "method": "GET",
       "path": "/api/storage/preview-file",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 110,
+      "line": 115,
       "handler": "create_storage_router.preview_file",
       "module": "http-storage",
       "parameters": [
@@ -25761,7 +25797,7 @@
       "method": "POST",
       "path": "/api/storage/upload",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 136,
+      "line": 141,
       "handler": "create_storage_router.upload",
       "module": "http-storage",
       "parameters": [
@@ -27768,7 +27804,7 @@
     {
       "name": "DirectoryUpdate",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 26,
+      "line": 27,
       "fields": [
         {
           "name": "revision",
@@ -27790,7 +27826,7 @@
     {
       "name": "FolderCreate",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 33,
+      "line": 34,
       "fields": [
         {
           "name": "scope",
