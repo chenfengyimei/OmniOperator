@@ -467,7 +467,7 @@ def test_driver_screenshot_bytes(tmp_path):
 def test_android_tools_dispatch(tmp_path):
     runner = FakeRunner()
     runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
-    driver = AndroidDriver(adb=AdbDevice(adb_path="adb", runner=runner), serial="EMU1")
+    driver = AndroidDriver(adb=AdbDevice(adb_path="adb", runner=runner), serial="EMU1", cache_path=tmp_path/'tree.json')
     registry = ToolRegistry()
     from omni.tools.android.tools import register_android_tools
 

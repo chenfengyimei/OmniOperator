@@ -529,7 +529,9 @@ def build_runtime(
     )
     register_system_tools(registry, services)
     android_driver = AndroidDriver(
-        cache_path=paths.android_cache / "tree.json", shots_dir=paths.android_shots
+        cache_path=paths.android_cache / "tree.json", shots_dir=paths.android_shots,
+        allowed_apps=config.android.allowed_apps, observation_ttl_s=config.android.observation_ttl_s,
+        operation_timeout_s=config.android.operation_timeout_s, max_devices=config.android.max_devices
     )
     register_android_tools(
         registry, android_driver,

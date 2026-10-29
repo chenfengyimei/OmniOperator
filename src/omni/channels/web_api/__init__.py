@@ -1,6 +1,7 @@
 """工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。"""
 from __future__ import annotations
 from .command_jobs import create_command_jobs_router
+from .android import create_android_router
 
 from typing import TYPE_CHECKING
 
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
 
 
 def create_api_routers(runtime: Runtime) -> tuple[APIRouter, ...]:
-    return (create_command_jobs_router(runtime),
+    return (create_android_router(runtime), create_command_jobs_router(runtime),
         create_sessions_router(runtime),
         create_conversation_router(runtime),
         create_runs_router(runtime),

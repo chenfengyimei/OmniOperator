@@ -13,7 +13,11 @@ import base64
 import re
 import shutil
 import subprocess
-from typing import Any
+import threading
+import time
+from contextlib import contextmanager
+from typing import Any, Literal, overload
+from .process import run_adb
 
 ADB_KEYCODE_RE = re.compile(r"^KEYCODE_[A-Z0-9_]+$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -22,6 +26,9 @@ _ADB_KEYBOARD_IME = "com.android.adbkeyboard/.AdbIME"
 
 class AdbError(RuntimeError):
     """adb 交互失败（无设备/超时/命令错误/注入尝试）。"""
+    def __init__(self, message, *, code='adb_rejected'):
+        super().__init__(message)
+        self.code=code
 
 
 def strip_to_png(data: bytes) -> bytes:
@@ -56,6 +63,15 @@ class AdbDevice:
         self._serial = (serial or "").strip() or None
         self._adb = adb_path or shutil.which("adb") or "adb"
         self._runner = runner
+        self._local = threading.local()
+
+    @contextmanager
+    def deadline(self, seconds, *, override=False):
+        previous=getattr(self._local,'deadline',None)
+        until=time.monotonic()+seconds
+        self._local.deadline=until if previous is None or override else min(previous,until)
+        try:yield
+        finally:self._local.deadline=previous
 
     # ---------- 底层 ----------
 
@@ -63,32 +79,42 @@ class AdbDevice:
         argv = [self._adb]
         return argv + [str(a) for a in args]
 
-    def _run(self, args: list[str], *, timeout: float = 15.0, binary: bool = False):
+    @overload
+    def _run(self, args: list[str], *, timeout: float = 15.0, binary: Literal[True]) -> bytes: ...
+
+    @overload
+    def _run(self, args: list[str], *, timeout: float = 15.0, binary: Literal[False] = False) -> str: ...
+
+    def _run(self, args: list[str], *, timeout: float = 15.0, binary: bool = False) -> Any:
+        until=getattr(self._local,'deadline',None)
+        if until is not None:
+            timeout=min(timeout,until-time.monotonic())
+            if timeout<=0:raise AdbError('安卓操作总时限已用尽，未重复执行',code='adb_timeout')
         argv = self._argv(args)
         if self._runner is not None:
             out = self._runner(argv, timeout)
+            if len(out)>16777216:raise AdbError('ADB 输出超过上限',code='adb_output_limit')
             return out if binary else out.decode("utf-8", errors="replace")
         try:
-            proc = subprocess.run(
-                argv, capture_output=True, timeout=timeout, shell=False
-            )
+            code,out,err=run_adb(argv,timeout)
         except FileNotFoundError as exc:
-            raise AdbError("adb 不在 PATH（先安装 Android Platform-Tools）") from exc
+            raise AdbError("adb 不在 PATH（先安装 Android Platform-Tools）",code='adb_missing') from exc
         except subprocess.TimeoutExpired as exc:
-            raise AdbError(f"adb 命令超时: {args}") from exc
-        if proc.returncode != 0:
-            stderr = proc.stderr.decode("utf-8", errors="replace").strip()
-            raise AdbError(f"adb {' '.join(map(str, args))} 失败: {stderr}")
-        return proc.stdout if binary else proc.stdout.decode("utf-8", errors="replace")
+            raise AdbError('adb 客户端超时，设备操作可能仍在进行',code='adb_timeout') from exc
+        except OverflowError as exc:
+            raise AdbError('ADB 输出过大或读取未完成',code='adb_output_limit') from exc
+        if code != 0:
+            raise AdbError(f'adb 调用失败（退出码 {code}）',code='adb_failed')
+        return out if binary else out.decode('utf-8',errors='replace')
 
     def _device_shell(self, serial: str, command: str, *, timeout: float = 15.0) -> str:
         return self._run(
             ["-s", serial, "shell", command], timeout=timeout
         )
 
-    def _device_exec_out(self, serial: str, command: str, *, binary: bool = False):
+    def _device_exec_out(self, serial: str, command: str, *, binary: bool = False) -> Any:
         return self._run(
-            ["-s", serial, "exec-out", command], timeout=20.0, binary=True
+            ["-s", serial, "exec-out", command], timeout=20.0, binary=binary
         )
 
     # ---------- 设备 ----------
@@ -106,17 +132,18 @@ class AdbDevice:
                 rows.append({"serial": parts[0], "state": parts[1]})
         return rows
 
-    def require_device(self) -> str:
+    def require_device(self, serial: str | None = None) -> str:
         rows = [r for r in self.devices() if r["state"] == "device"]
         if not rows:
             raise AdbError(
                 "没有已授权的安卓设备（手机开 USB 调试、屏幕上点允许授权）"
             )
-        if self._serial:
+        target=serial or self._serial
+        if target:
             for r in rows:
-                if r["serial"] == self._serial:
-                    return self._serial
-            raise AdbError(f"指定设备 {self._serial} 未连接")
+                if r["serial"] == target:
+                    return target
+            raise AdbError(f"指定设备 {target} 未连接或未授权",code='device_unavailable')
         if len(rows) > 1:
             raise AdbError(
                 f"连接了多台设备 {[r['serial'] for r in rows]}，请指定 serial"
@@ -177,13 +204,14 @@ class AdbDevice:
                 before_input()
             b64 = adb_keyboard_b64(text)
             self._device_shell(
-                serial, f"am broadcast -a ADB_INPUT_B64 --es msg {b64}"
+                serial, f"am broadcast -p com.android.adbkeyboard -a ADB_INPUT_B64 --es msg {b64}"
             )
         finally:
             # 范凯纪律：必须恢复原输入法，绝不 ime reset 猜默认值
-            self._device_shell(serial, f"ime set {original}")
-            if not was_enabled:
-                self._device_shell(serial, f"ime disable {_ADB_KEYBOARD_IME}")
+            with self.deadline(5,override=True):
+                self._device_shell(serial, f"ime set {original}")
+                if not was_enabled:
+                    self._device_shell(serial, f"ime disable {_ADB_KEYBOARD_IME}")
 
     # ---------- 捕获 ----------
 
@@ -195,7 +223,22 @@ class AdbDevice:
     def dump_ui(self, serial: str) -> str:
         """UI 树 XML：dump 到临时文件再 cat 回读，用完即删（范凯纪律：精确 rm）。"""
         tmp = "/sdcard/omni_uidump.xml"
-        self._device_shell(serial, f"uiautomator dump {tmp}")
-        xml = self._device_exec_out(serial, f"cat {tmp}")
-        self._device_shell(serial, f"rm {tmp}")
-        return xml
+        try:
+            self._device_shell(serial, f"uiautomator dump {tmp}")
+            return self._device_exec_out(serial, f"cat {tmp}")
+        finally:
+            with self.deadline(3,override=True):
+                self._device_shell(serial, f"rm {tmp}")
+
+    def resolve_app(self, serial: str, package: str) -> str:
+        if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+',package):
+            raise AdbError('应用包名非法')
+        out=self._device_shell(serial,f'cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER {package}')
+        component=out.strip().splitlines()[-1] if out.strip() else ''
+        if not re.fullmatch(re.escape(package)+r'/[A-Za-z0-9_.$]+',component):
+            raise AdbError('无法核验该应用的启动组件')
+        return component
+
+    def launch_app(self, serial: str, component: str):
+        if not re.fullmatch(r'[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+',component):raise AdbError('启动组件非法')
+        self._device_shell(serial,f'am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -n {component}')

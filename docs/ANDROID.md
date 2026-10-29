@@ -26,3 +26,30 @@ ADB 的观察和输入是两次设备调用，无法保证期间外部应用或�
 离线测试不能替代真机适配结论。
 
 C01：全局 devices 命令不加 -s，显式设备命令只组装一次 -s；多设备按指定 serial 查找，避免重复目标参数。
+
+## C05 多设备与应用控制
+
+工作台手机入口打开 `/android/`；用户点击检测后列出 device/unauthorized/offline。
+单个已授权设备可自动选定，多设备必须明确选择；每次 API/工具调用固定 serial，
+不修改共享的“当前设备”。切换设备立即撤销界面令牌，迟到响应不会覆盖新设备状态。
+
+观察、缓存视图和线程/文件锁按设备隔离；默认最多 8 个设备上下文、每设备 32 个单次观察。
+屏幕读取和动作在设备互斥内完成，预览让位于交互操作。新按设备 API 的人工观察绑定配对
+cookie 身份；agent 绑定 SessionRef，观察不能跨设备或对话使用。
+
+工具增加 android_list_apps、android_launch_app、android_long_press；已有工具支持 serial，
+滑动增加 left/right。长按元素 200–2000ms（默认 600）；启动应用需人工确认且在用户
+android.allowed_apps 白名单内（默认空），只解析 MAIN/LAUNCHER 组件，不接任意 Intent/URL。
+工作台提供元素点击、长按、滑动、中文输入、返回/主屏、白名单应用启动及锁帧坐标点击。
+
+配置 android：allowed_apps、observation_ttl_s（默认 120）、operation_timeout_s（默认 30）、
+max_devices。ADB 客户端输出有界（stdout 16MiB/stderr 64KiB），操作内多条命令共享 deadline；
+清理与恢复输入法另给短预算。错误带稳定 code，不回显失败命令里的输入文字或 stderr。
+UI dump 在失败时也清理固定临时文件；由同设备文件锁协调。ADBKeyboard 广播限定目标包。
+只注入 shots_dir 时缓存/锁也派生到其父目录，避免测试污染真实 data。
+
+新接口在 `/api/android/devices` 下按 serial 提供 observe/snapshot/apps/actions。
+旧单设备 HTTP 路径/请求模型仍保留；多设备旧客户端会收到明确选择提示。
+动作回读仍是 unknown，不把 UI 变化当作业务成功；仍不支持游戏/画布盲操作。
+
+独立源码 1004 项全绿，目标类型检查 0 错误，Chromium 多设备选择/长按/切换撤权/手机布局已验证；没有真实手机的新增验收证据。共享实时预览在 C06 交付。

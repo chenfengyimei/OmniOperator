@@ -78,6 +78,10 @@ def test_runtime_exposes_the_same_paths(tmp_path):
 
 
 class _FakeAdb:
+    def deadline(self, seconds):
+        from contextlib import nullcontext
+        return nullcontext()
+
     def __init__(self, png: bytes) -> None:
         self._png = png
 

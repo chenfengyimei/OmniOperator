@@ -1406,61 +1406,8 @@ window.saveHub=async()=>{
 window.openTerminal=()=>window.open('/terminal/','omni-terminal');
 $('#open-terminal').onclick=openTerminal;
 
-// ---------- 安卓手机（MJPEG 看屏 + 点击下发） ----------
-let androidObservation='',androidFrozen=false;
-window.liveAndroid=()=>{androidFrozen=false;androidObservation='';$('#android-stream').src='/api/android/stream?'+Date.now();$('#android-state').textContent='实时看屏；点击前请锁定当前帧。'};
-window.freezeAndroid=async()=>{
-  androidFrozen=false;androidObservation='';
-  try{const d=await api('/api/android/snapshot');$('#android-stream').src=d.image;androidObservation=d.observation;androidFrozen=true;
-    $('#android-state').textContent='已锁定画面，单次有效。若画面变化，操作会被拒绝。';
-  }catch(e){$('#android-state').textContent=e.message}
-};
-window.openPhone=async()=>{
-  $('#phone-modal').classList.remove('hidden');
-  liveAndroid();
-  let st;
-  try{st=await api('/api/android/state')}catch(e){st={connected:false,detail:e.message}}
-  $('#android-state').textContent=st.connected
-    ?`已连接 ${st.serial}（${st.width}x${st.height}）`
-    :'未连接：'+(st.detail||'装 adb 并插上手机');
-  if(st.connected)loadAndroidTree();
-};
-window.closePhone=()=>{
-  androidObservation='';androidFrozen=false;
-  $('#phone-modal').classList.add('hidden');
-  $('#android-stream').removeAttribute('src');
-};
-window.loadAndroidTree=async()=>{
-  try{
-    const d=await api('/api/android/tree');
-    $('#android-tree').textContent=d.tree;
-    if(!androidFrozen)androidObservation=d.observation;
-  }catch(e){$('#android-tree').textContent='获取失败：'+e.message}
-};
-window.androidKey=async code=>{
-  if(!androidObservation){$('#android-state').textContent='请先刷新树或锁定画面。';return}
-  const observation=androidObservation;androidObservation='';androidFrozen=false;
-  try{
-    const d=await api('/api/android/key',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({keycode:code,observation})});$('#android-state').textContent=d.detail;
-    setTimeout(loadAndroidTree,900);
-  }catch(e){$('#android-state').textContent='失败：'+e.message}
-};
-$('#android-stream').addEventListener('click',async e=>{
-  const img=e.target,r=img.getBoundingClientRect();
-  if(!androidFrozen||!androidObservation){$('#android-state').textContent='请先锁定当前帧，再点击画面。';return}
-  if(!r.width||!img.naturalWidth)return;
-  const scale=Math.min(r.width/img.naturalWidth,r.height/img.naturalHeight),w=img.naturalWidth*scale,h=img.naturalHeight*scale;
-  const x=e.clientX-r.left-(r.width-w)/2,y=e.clientY-r.top-(r.height-h)/2;
-  if(x<0||y<0||x>=w||y>=h)return;
-  const observation=androidObservation;androidObservation='';androidFrozen=false;
-  try{
-    const d=await api('/api/android/tap',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({x:Math.floor(x/scale),y:Math.floor(y/scale),observation,
-        stream_w:img.naturalWidth,stream_h:img.naturalHeight})});$('#android-state').textContent=d.detail;
-    setTimeout(loadAndroidTree,900);
-  }catch(err){$('#android-state').textContent='点击失败：'+err.message}
-});
+// 安卓专题页面：设备与观察状态独立维护。
+window.openPhone=()=>window.open('/android/','omni-android');
 $('#open-phone').onclick=openPhone;
 
 (async function init(){

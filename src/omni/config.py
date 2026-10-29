@@ -474,6 +474,22 @@ class Cron(BaseModel):
     max_running: int = Field(default=2, ge=1, le=8)
 
 
+class AndroidConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    allowed_apps: list[str] = Field(default_factory=list, max_length=32)
+    observation_ttl_s: float = Field(default=120, ge=1, le=600)
+    operation_timeout_s: float = Field(default=30, ge=5, le=120)
+    max_devices: int = Field(default=8, ge=1, le=16)
+
+    @field_validator("allowed_apps")
+    @classmethod
+    def packages(cls, values):
+        import re
+        if any(not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+",value) for value in values):
+            raise ValueError("android.allowed_apps 只接受包名，不接受命令或 Intent")
+        return values
+
+
 class CommandJobsConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     max_running: int = Field(default=2, ge=1, le=8)
@@ -493,6 +509,7 @@ class TerminalConfig(BaseModel):
 
 
 class AppConfig(BaseModel):
+    android: AndroidConfig = Field(default_factory=AndroidConfig)
     command_jobs: CommandJobsConfig = Field(default_factory=CommandJobsConfig)
     terminal: TerminalConfig = Field(default_factory=TerminalConfig)
     persona: Persona = Field(default_factory=Persona)

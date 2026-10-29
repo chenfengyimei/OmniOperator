@@ -141,11 +141,20 @@ def violations(source: str, rel: str) -> list[str]:
             if not isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
             decorators = [name(d) for d in node.decorator_list]
-            exempt = any(d.endswith((".setter", ".deleter", ".getter", "overload")) for d in decorators)
+            # 标准 overload 是类型声明，不占用实现名；第二个真实实现仍必须报错。
+            if any(d in {'typing.overload','typing_extensions.overload'} for d in decorators):
+                continue
+            exempt = any(d.endswith((".setter", ".deleter", ".getter")) for d in decorators)
             if node.name in seen and not exempt:
                 issues.append("重复定义：" + node.name)
             seen.add(node.name)
     return sorted(set(issues))
+
+
+def test_guard_accepts_overload_declarations_but_rejects_duplicate_implementation():
+    declarations='from typing import overload\n@overload\ndef f(x: int) -> int: ...\n@overload\ndef f(x: str) -> str: ...\ndef f(x): return x\n'
+    assert not violations(declarations,'tools/android/protocol.py')
+    assert any('重复定义' in item for item in violations(declarations+'def f(x): return x\n','tools/android/protocol.py'))
 
 
 def test_source_architecture():

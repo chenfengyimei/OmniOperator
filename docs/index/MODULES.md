@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c6cc1f94527c5261f5b340e2c03e6755ca6a9f805ebf54ed420940b712304bb3`。包含 49 个职责模块、192 个源码/界面文件。
+源码指纹：`9a011408b1703657d5c1d0b6367c7cd244597c1e934eef50ce377ab80b6c0e48`。包含 50 个职责模块、197 个源码/界面文件。
 
 ## 运行时组装 · assembly
 
@@ -10,7 +10,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/bootstrap.py](../../src/omni/bootstrap.py) | 621 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [src/omni/bootstrap.py](../../src/omni/bootstrap.py) | 623 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -24,7 +24,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/config.py](../../src/omni/config.py) | 538 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [src/omni/config.py](../../src/omni/config.py) | 555 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -171,7 +171,7 @@
 |---|---:|---|
 | [src/omni/channels/web.py](../../src/omni/channels/web.py) | 406 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 232 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1480 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1427 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm-addon-fit.js](../../src/omni/channels/web_static/vendor/xterm-addon-fit.js) | 2 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.js](../../src/omni/channels/web_static/vendor/xterm.js) | 6 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.min.css](../../src/omni/channels/web_static/vendor/xterm.min.css) | 8 | 平台脚本或界面资源 |
@@ -373,6 +373,23 @@
 
 直接静态依赖：`assembly`、`bilibili`、`storage`
 
+## 安卓设备 API 与面板 · http-android
+
+分类：Web 接口。按设备固定目标、配对归属的观察与受控应用操作。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py) | 68 | 按设备寻址的人工安卓适配；归属取已验配对身份，动作仍需单次观察。 |
+| [src/omni/channels/web_static/android/android.css](../../src/omni/channels/web_static/android/android.css) | 1 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/android/android.js](../../src/omni/channels/web_static/android/android.js) | 17 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/android/index.html](../../src/omni/channels/web_static/android/index.html) | 5 | 平台脚本或界面资源 |
+
+文档：[docs/ANDROID.md](../../docs/ANDROID.md)
+
+测试：[tests/test_android_devices.py](../../tests/test_android_devices.py)
+
+直接静态依赖：`web-ui`
+
 ## 桌面与安卓 API · http-devices
 
 分类：Web 接口。窗口观察、设备树/锁帧、受观察约束的手动动作和 MJPEG。
@@ -407,13 +424,13 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_api/__init__.py](../../src/omni/channels/web_api/__init__.py) | 42 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
+| [src/omni/channels/web_api/__init__.py](../../src/omni/channels/web_api/__init__.py) | 43 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)、[docs/REFACTORING.md](../../docs/REFACTORING.md)
 
 测试：[tests/test_web_api.py](../../tests/test_web_api.py)
 
-直接静态依赖：`assembly`、`command-jobs`、`http-approvals`、`http-artifacts`、`http-automation`、`http-conversation`、`http-devices`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`
+直接静态依赖：`assembly`、`command-jobs`、`http-android`、`http-approvals`、`http-artifacts`、`http-automation`、`http-conversation`、`http-devices`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`
 
 ## CLI 入口 · cli
 
@@ -635,9 +652,10 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/tools/android/__init__.py](../../src/omni/tools/android/__init__.py) | 7 | 安卓能力域（P4 地基）：纯 ADB 协议层 + 高层语义驱动 + 工具。 |
-| [src/omni/tools/android/adb.py](../../src/omni/tools/android/adb.py) | 201 | 纯 ADB 协议层：设备无关的 adb 命令封装（不知道 LLM 与语义）。 |
-| [src/omni/tools/android/driver.py](../../src/omni/tools/android/driver.py) | 261 | Android 观察令牌、单设备互斥、一次动作与回读。磁盘缓存仅用于展示。 |
-| [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py) | 221 | 安卓工具集（toolset=android）：观察 SAFE，动作 CONFIRM。 |
+| [src/omni/tools/android/adb.py](../../src/omni/tools/android/adb.py) | 244 | 纯 ADB 协议层：设备无关的 adb 命令封装（不知道 LLM 与语义）。 |
+| [src/omni/tools/android/driver.py](../../src/omni/tools/android/driver.py) | 330 | Android 观察令牌、单设备互斥、一次动作与回读。磁盘缓存仅用于展示。 |
+| [src/omni/tools/android/process.py](../../src/omni/tools/android/process.py) | 29 | ADB 客户端的有界读取与超时；不把客户端退出当作设备操作已撤销。 |
+| [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py) | 237 | 安卓工具集（toolset=android）：观察 SAFE，动作 CONFIRM。 |
 | [src/omni/tools/android/ui.py](../../src/omni/tools/android/ui.py) | 89 | UI 树解析（纯函数）：uiautomator XML → 结构化元素 → 文本树。 |
 
 文档：[docs/ANDROID.md](../../docs/ANDROID.md)
@@ -785,7 +803,7 @@
 | [src/omni/system/catalog/__init__.py](../../src/omni/system/catalog/__init__.py) | 4 | 项目索引：只解析源码与显式分类，不导入被索引模块、不接触运行数据。 |
 | [src/omni/system/catalog/render.py](../../src/omni/system/catalog/render.py) | 46 | 索引输出：从同一结构生成模块表、API 表和可机器查询的 JSON。 |
 | [src/omni/system/catalog/scan.py](../../src/omni/system/catalog/scan.py) | 165 | 静态源码索引；扫描范围固定为注入根的 src/omni，不读取 config/data/.env。 |
-| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 100 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
+| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 101 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 

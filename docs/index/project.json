@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c6cc1f94527c5261f5b340e2c03e6755ca6a9f805ebf54ed420940b712304bb3",
+  "source_sha256": "9a011408b1703657d5c1d0b6367c7cd244597c1e934eef50ce377ab80b6c0e48",
   "modules": [
     {
       "id": "assembly",
@@ -19,7 +19,7 @@
       "files": [
         "src/omni/bootstrap.py"
       ],
-      "lines": 621,
+      "lines": 623,
       "dependencies": [
         "android",
         "bilibili",
@@ -64,7 +64,7 @@
       "files": [
         "src/omni/config.py"
       ],
-      "lines": 538,
+      "lines": 555,
       "dependencies": []
     },
     {
@@ -289,7 +289,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2134,
+      "lines": 2081,
       "dependencies": [
         "assembly",
         "config",
@@ -630,6 +630,32 @@
       ]
     },
     {
+      "id": "http-android",
+      "title": "安卓设备 API 与面板",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/android.py",
+        "channels/web_static/android/"
+      ],
+      "purpose": "按设备固定目标、配对归属的观察与受控应用操作。",
+      "docs": [
+        "docs/ANDROID.md"
+      ],
+      "tests": [
+        "tests/test_android_devices.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/android.py",
+        "src/omni/channels/web_static/android/android.css",
+        "src/omni/channels/web_static/android/android.js",
+        "src/omni/channels/web_static/android/index.html"
+      ],
+      "lines": 91,
+      "dependencies": [
+        "web-ui"
+      ]
+    },
+    {
       "id": "http-devices",
       "title": "桌面与安卓 API",
       "category": "Web 接口",
@@ -692,10 +718,11 @@
       "files": [
         "src/omni/channels/web_api/__init__.py"
       ],
-      "lines": 42,
+      "lines": 43,
       "dependencies": [
         "assembly",
         "command-jobs",
+        "http-android",
         "http-approvals",
         "http-artifacts",
         "http-automation",
@@ -1077,10 +1104,11 @@
         "src/omni/tools/android/__init__.py",
         "src/omni/tools/android/adb.py",
         "src/omni/tools/android/driver.py",
+        "src/omni/tools/android/process.py",
         "src/omni/tools/android/tools.py",
         "src/omni/tools/android/ui.py"
       ],
-      "lines": 779,
+      "lines": 936,
       "dependencies": [
         "config",
         "platform",
@@ -1311,7 +1339,7 @@
         "src/omni/system/catalog/scan.py",
         "src/omni/system/catalog/schema.py"
       ],
-      "lines": 315,
+      "lines": 316,
       "dependencies": [
         "config"
       ]
@@ -1394,7 +1422,7 @@
       "path": "src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 621,
+      "lines": 623,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1702,7 +1730,7 @@
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 554,
+          "line": 556,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -2852,9 +2880,10 @@
       "path": "src/omni/channels/web_api/__init__.py",
       "module": "http-routing",
       "python_module": "omni.channels.web_api",
-      "lines": 42,
+      "lines": 43,
       "imports": [
         "omni.bootstrap",
+        "omni.channels.web_api.android",
         "omni.channels.web_api.approvals",
         "omni.channels.web_api.artifacts",
         "omni.channels.web_api.automation",
@@ -2872,7 +2901,7 @@
       "symbols": [
         {
           "name": "create_api_routers",
-          "line": 26,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -2883,6 +2912,102 @@
         }
       ],
       "summary": "工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。"
+    },
+    {
+      "path": "src/omni/channels/web_api/android.py",
+      "module": "http-android",
+      "python_module": "omni.channels.web_api.android",
+      "lines": 68,
+      "imports": [
+        "omni.channels.web_auth"
+      ],
+      "symbols": [
+        {
+          "name": "AndroidActionIn",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "manual_scope",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "request"
+          ],
+          "annotations": {
+            "request": "Request"
+          }
+        },
+        {
+          "name": "create_android_router",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_android_router.devices",
+          "line": 40,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_android_router.observe",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "serial",
+            "request"
+          ],
+          "annotations": {
+            "serial": "str",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "create_android_router.snapshot",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "serial",
+            "request"
+          ],
+          "annotations": {
+            "serial": "str",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "create_android_router.apps",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "serial"
+          ],
+          "annotations": {
+            "serial": "str"
+          }
+        },
+        {
+          "name": "create_android_router.action",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "serial",
+            "request",
+            "payload"
+          ],
+          "annotations": {
+            "serial": "str",
+            "request": "Request",
+            "payload": "AndroidActionIn"
+          }
+        }
+      ],
+      "summary": "按设备寻址的人工安卓适配；归属取已验配对身份，动作仍需单次观察。"
     },
     {
       "path": "src/omni/channels/web_api/approvals.py",
@@ -4486,10 +4611,40 @@
       "summary": "工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。"
     },
     {
+      "path": "src/omni/channels/web_static/android/android.css",
+      "module": "http-android",
+      "python_module": null,
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/android/android.js",
+      "module": "http-android",
+      "python_module": null,
+      "lines": 17,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/android/index.html",
+      "module": "http-android",
+      "python_module": null,
+      "lines": 5,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 1480,
+      "lines": 1427,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4737,7 +4892,7 @@
       "path": "src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 538,
+      "lines": 555,
       "imports": [],
       "symbols": [
         {
@@ -4987,23 +5142,38 @@
           "kind": "class"
         },
         {
-          "name": "CommandJobsConfig",
+          "name": "AndroidConfig",
           "line": 477,
           "kind": "class"
         },
         {
+          "name": "AndroidConfig.packages",
+          "line": 486,
+          "kind": "function",
+          "parameters": [
+            "cls",
+            "values"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobsConfig",
+          "line": 493,
+          "kind": "class"
+        },
+        {
           "name": "TerminalConfig",
-          "line": 487,
+          "line": 503,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 495,
+          "line": 511,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 521,
+          "line": 538,
           "kind": "function",
           "parameters": [
             "path"
@@ -5014,7 +5184,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 529,
+          "line": 546,
           "kind": "function",
           "parameters": [
             "path"
@@ -14334,7 +14504,7 @@
       "path": "src/omni/system/catalog/schema.py",
       "module": "catalog",
       "python_module": "omni.system.catalog.schema",
-      "lines": 100,
+      "lines": 101,
       "imports": [],
       "symbols": [
         {
@@ -14344,7 +14514,7 @@
         },
         {
           "name": "classify",
-          "line": 71,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "relative"
@@ -15690,17 +15860,30 @@
       "path": "src/omni/tools/android/adb.py",
       "module": "android",
       "python_module": "omni.tools.android.adb",
-      "lines": 201,
-      "imports": [],
+      "lines": 244,
+      "imports": [
+        "omni.tools.android.process"
+      ],
       "symbols": [
         {
           "name": "AdbError",
-          "line": 23,
+          "line": 27,
           "kind": "class"
         },
         {
+          "name": "AdbError.__init__",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "message",
+            "code"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "strip_to_png",
-          "line": 27,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "data"
@@ -15711,7 +15894,7 @@
         },
         {
           "name": "quote_input_text",
-          "line": 35,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "text"
@@ -15722,7 +15905,7 @@
         },
         {
           "name": "adb_keyboard_b64",
-          "line": 41,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "text"
@@ -15733,12 +15916,12 @@
         },
         {
           "name": "AdbDevice",
-          "line": 46,
+          "line": 53,
           "kind": "class"
         },
         {
           "name": "AdbDevice.__init__",
-          "line": 49,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -15753,8 +15936,19 @@
           }
         },
         {
+          "name": "AdbDevice.deadline",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "seconds",
+            "override"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "AdbDevice._argv",
-          "line": 62,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self",
@@ -15766,7 +15960,39 @@
         },
         {
           "name": "AdbDevice._run",
-          "line": 66,
+          "line": 83,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "args",
+            "timeout",
+            "binary"
+          ],
+          "annotations": {
+            "args": "list[str]",
+            "timeout": "float",
+            "binary": "Literal[True]"
+          }
+        },
+        {
+          "name": "AdbDevice._run",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "args",
+            "timeout",
+            "binary"
+          ],
+          "annotations": {
+            "args": "list[str]",
+            "timeout": "float",
+            "binary": "Literal[False]"
+          }
+        },
+        {
+          "name": "AdbDevice._run",
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -15782,7 +16008,7 @@
         },
         {
           "name": "AdbDevice._device_shell",
-          "line": 84,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -15798,7 +16024,7 @@
         },
         {
           "name": "AdbDevice._device_exec_out",
-          "line": 89,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "self",
@@ -15814,7 +16040,7 @@
         },
         {
           "name": "AdbDevice.devices",
-          "line": 96,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self"
@@ -15823,16 +16049,19 @@
         },
         {
           "name": "AdbDevice.require_device",
-          "line": 109,
+          "line": 135,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "serial"
           ],
-          "annotations": {}
+          "annotations": {
+            "serial": "str | None"
+          }
         },
         {
           "name": "AdbDevice.screen_size",
-          "line": 126,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self",
@@ -15844,7 +16073,7 @@
         },
         {
           "name": "AdbDevice.tap",
-          "line": 135,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "self",
@@ -15860,7 +16089,7 @@
         },
         {
           "name": "AdbDevice.swipe",
-          "line": 140,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self",
@@ -15882,7 +16111,7 @@
         },
         {
           "name": "AdbDevice.key",
-          "line": 148,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self",
@@ -15896,7 +16125,7 @@
         },
         {
           "name": "AdbDevice.type_ascii",
-          "line": 155,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self",
@@ -15910,7 +16139,7 @@
         },
         {
           "name": "AdbDevice.type_unicode",
-          "line": 161,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -15925,7 +16154,7 @@
         },
         {
           "name": "AdbDevice.screencap",
-          "line": 190,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "self",
@@ -15937,7 +16166,7 @@
         },
         {
           "name": "AdbDevice.dump_ui",
-          "line": 195,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "self",
@@ -15945,6 +16174,34 @@
           ],
           "annotations": {
             "serial": "str"
+          }
+        },
+        {
+          "name": "AdbDevice.resolve_app",
+          "line": 233,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "serial",
+            "package"
+          ],
+          "annotations": {
+            "serial": "str",
+            "package": "str"
+          }
+        },
+        {
+          "name": "AdbDevice.launch_app",
+          "line": 242,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "serial",
+            "component"
+          ],
+          "annotations": {
+            "serial": "str",
+            "component": "str"
           }
         }
       ],
@@ -15954,7 +16211,7 @@
       "path": "src/omni/tools/android/driver.py",
       "module": "android",
       "python_module": "omni.tools.android.driver",
-      "lines": 261,
+      "lines": 330,
       "imports": [
         "omni.config",
         "omni.system.filelock",
@@ -15965,7 +16222,7 @@
       "symbols": [
         {
           "name": "observation_id",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "serial",
@@ -15978,7 +16235,7 @@
         },
         {
           "name": "scale_coords",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "x",
@@ -15999,7 +16256,7 @@
         },
         {
           "name": "_pixels",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "png"
@@ -16010,12 +16267,12 @@
         },
         {
           "name": "AndroidDriver",
-          "line": 43,
+          "line": 44,
           "kind": "class"
         },
         {
           "name": "AndroidDriver.__init__",
-          "line": 44,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self",
@@ -16024,7 +16281,10 @@
             "cache_path",
             "shots_dir",
             "observation_ttl_s",
-            "clock"
+            "clock",
+            "allowed_apps",
+            "operation_timeout_s",
+            "max_devices"
           ],
           "annotations": {
             "adb": "AdbDevice | None",
@@ -16036,7 +16296,7 @@
         },
         {
           "name": "AndroidDriver._device_lock",
-          "line": 62,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -16047,8 +16307,38 @@
           }
         },
         {
+          "name": "AndroidDriver._require_device",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "serial"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AndroidDriver._operation",
+          "line": 79,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "serial",
+            "preview"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AndroidDriver.devices",
+          "line": 98,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "AndroidDriver._capture",
-          "line": 66,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self",
@@ -16062,7 +16352,7 @@
         },
         {
           "name": "AndroidDriver._remember",
-          "line": 92,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self",
@@ -16074,38 +16364,53 @@
           }
         },
         {
-          "name": "AndroidDriver.refresh_tree",
-          "line": 111,
+          "name": "AndroidDriver._observe",
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",
-            "session_id"
+            "serial",
+            "session_id",
+            "pixels"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AndroidDriver.refresh_tree",
+          "line": 157,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "session_id",
+            "serial"
           ],
           "annotations": {}
         },
         {
           "name": "AndroidDriver.snapshot",
-          "line": 117,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self",
-            "session_id"
+            "session_id",
+            "serial"
           ],
           "annotations": {}
         },
         {
           "name": "AndroidDriver.observe",
-          "line": 125,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
-            "session_id"
+            "session_id",
+            "serial"
           ],
           "annotations": {}
         },
         {
           "name": "AndroidDriver.observation_header",
-          "line": 130,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self"
@@ -16114,7 +16419,7 @@
         },
         {
           "name": "AndroidDriver.observation_id",
-          "line": 134,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self"
@@ -16123,7 +16428,7 @@
         },
         {
           "name": "AndroidDriver.tree",
-          "line": 137,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self"
@@ -16132,7 +16437,7 @@
         },
         {
           "name": "AndroidDriver.elements",
-          "line": 140,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self"
@@ -16141,34 +16446,48 @@
         },
         {
           "name": "AndroidDriver.screenshot",
-          "line": 143,
+          "line": 181,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "serial"
           ],
           "annotations": {}
         },
         {
           "name": "AndroidDriver.screenshot_bytes",
-          "line": 150,
+          "line": 188,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "serial",
+            "preview"
           ],
           "annotations": {}
         },
         {
           "name": "AndroidDriver.screen_size",
-          "line": 153,
+          "line": 192,
           "kind": "function",
           "parameters": [
-            "self"
+            "self",
+            "serial"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AndroidDriver.list_apps",
+          "line": 196,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "serial"
           ],
           "annotations": {}
         },
         {
           "name": "AndroidDriver.execute_action",
-          "line": 156,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -16176,6 +16495,7 @@
             "observation",
             "session_id",
             "cancel",
+            "serial",
             "**args"
           ],
           "annotations": {
@@ -16185,7 +16505,7 @@
         },
         {
           "name": "AndroidDriver.tap_element",
-          "line": 243,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self",
@@ -16199,7 +16519,7 @@
         },
         {
           "name": "AndroidDriver.tap_coords",
-          "line": 248,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "self",
@@ -16215,7 +16535,7 @@
         },
         {
           "name": "AndroidDriver.tap_scaled",
-          "line": 251,
+          "line": 320,
           "kind": "function",
           "parameters": [
             "self",
@@ -16235,7 +16555,7 @@
         },
         {
           "name": "AndroidDriver.swipe",
-          "line": 254,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -16249,7 +16569,7 @@
         },
         {
           "name": "AndroidDriver.key",
-          "line": 257,
+          "line": 326,
           "kind": "function",
           "parameters": [
             "self",
@@ -16263,7 +16583,7 @@
         },
         {
           "name": "AndroidDriver.type_text",
-          "line": 260,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "self",
@@ -16279,13 +16599,46 @@
       "summary": "Android 观察令牌、单设备互斥、一次动作与回读。磁盘缓存仅用于展示。"
     },
     {
+      "path": "src/omni/tools/android/process.py",
+      "module": "android",
+      "python_module": "omni.tools.android.process",
+      "lines": 29,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "run_adb",
+          "line": 7,
+          "kind": "function",
+          "parameters": [
+            "argv",
+            "timeout",
+            "limit"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "run_adb.drain",
+          "line": 11,
+          "kind": "function",
+          "parameters": [
+            "pipe",
+            "target",
+            "maximum"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "ADB 客户端的有界读取与超时；不把客户端退出当作设备操作已撤销。"
+    },
+    {
       "path": "src/omni/tools/android/tools.py",
       "module": "android",
       "python_module": "omni.tools.android.tools",
-      "lines": 221,
+      "lines": 237,
       "imports": [
         "omni.tools.android.driver",
         "omni.tools.registry",
+        "omni.tools.result",
         "omni.tools.runctx",
         "omni.tools.shots"
       ],
@@ -16398,6 +16751,15 @@
           "annotations": {
             "_args": "dict[str, Any]"
           }
+        },
+        {
+          "name": "register_android_tools.list_apps",
+          "line": 226,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {}
         }
       ],
       "summary": "安卓工具集（toolset=android）：观察 SAFE，动作 CONFIRM。"
@@ -23091,6 +23453,85 @@
       "scope": "community"
     },
     {
+      "method": "GET",
+      "path": "/api/android/devices",
+      "source": "src/omni/channels/web_api/android.py",
+      "line": 40,
+      "handler": "create_android_router.devices",
+      "module": "http-android",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/android/devices/{serial}/actions",
+      "source": "src/omni/channels/web_api/android.py",
+      "line": 63,
+      "handler": "create_android_router.action",
+      "module": "http-android",
+      "parameters": [
+        "serial",
+        "request",
+        "payload"
+      ],
+      "annotations": {
+        "serial": "str",
+        "request": "Request",
+        "payload": "AndroidActionIn"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/android/devices/{serial}/apps",
+      "source": "src/omni/channels/web_api/android.py",
+      "line": 58,
+      "handler": "create_android_router.apps",
+      "module": "http-android",
+      "parameters": [
+        "serial"
+      ],
+      "annotations": {
+        "serial": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/android/devices/{serial}/observe",
+      "source": "src/omni/channels/web_api/android.py",
+      "line": 45,
+      "handler": "create_android_router.observe",
+      "module": "http-android",
+      "parameters": [
+        "serial",
+        "request"
+      ],
+      "annotations": {
+        "serial": "str",
+        "request": "Request"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/android/devices/{serial}/snapshot",
+      "source": "src/omni/channels/web_api/android.py",
+      "line": 50,
+      "handler": "create_android_router.snapshot",
+      "module": "http-android",
+      "parameters": [
+        "serial",
+        "request"
+      ],
+      "annotations": {
+        "serial": "str",
+        "request": "Request"
+      },
+      "scope": "workbench"
+    },
+    {
       "method": "POST",
       "path": "/api/android/element",
       "source": "src/omni/channels/web_api/devices.py",
@@ -24602,7 +25043,34 @@
     {
       "name": "android_key",
       "source": "src/omni/tools/android/tools.py",
-      "line": 181,
+      "line": 182,
+      "module": "android",
+      "risk": "confirm",
+      "requires_human": true,
+      "read_only": false
+    },
+    {
+      "name": "android_launch_app",
+      "source": "src/omni/tools/android/tools.py",
+      "line": 232,
+      "module": "android",
+      "risk": "confirm",
+      "requires_human": true,
+      "read_only": false
+    },
+    {
+      "name": "android_list_apps",
+      "source": "src/omni/tools/android/tools.py",
+      "line": 230,
+      "module": "android",
+      "risk": "safe",
+      "requires_human": false,
+      "read_only": true
+    },
+    {
+      "name": "android_long_press",
+      "source": "src/omni/tools/android/tools.py",
+      "line": 235,
       "module": "android",
       "risk": "confirm",
       "requires_human": true,
@@ -24611,7 +25079,7 @@
     {
       "name": "android_screen_tree",
       "source": "src/omni/tools/android/tools.py",
-      "line": 96,
+      "line": 97,
       "module": "android",
       "risk": "safe",
       "requires_human": false,
@@ -24620,7 +25088,7 @@
     {
       "name": "android_screenshot",
       "source": "src/omni/tools/android/tools.py",
-      "line": 111,
+      "line": 112,
       "module": "android",
       "risk": "safe",
       "requires_human": false,
@@ -24629,7 +25097,7 @@
     {
       "name": "android_status",
       "source": "src/omni/tools/android/tools.py",
-      "line": 86,
+      "line": 87,
       "module": "android",
       "risk": "safe",
       "requires_human": false,
@@ -24638,7 +25106,7 @@
     {
       "name": "android_swipe",
       "source": "src/omni/tools/android/tools.py",
-      "line": 164,
+      "line": 165,
       "module": "android",
       "risk": "confirm",
       "requires_human": true,
@@ -24647,7 +25115,7 @@
     {
       "name": "android_tap_coords",
       "source": "src/omni/tools/android/tools.py",
-      "line": 146,
+      "line": 147,
       "module": "android",
       "risk": "confirm",
       "requires_human": true,
@@ -24656,7 +25124,7 @@
     {
       "name": "android_tap_element",
       "source": "src/omni/tools/android/tools.py",
-      "line": 121,
+      "line": 122,
       "module": "android",
       "risk": "confirm",
       "requires_human": true,
@@ -24665,7 +25133,7 @@
     {
       "name": "android_type",
       "source": "src/omni/tools/android/tools.py",
-      "line": 198,
+      "line": 199,
       "module": "android",
       "risk": "confirm",
       "requires_human": true,
@@ -25466,6 +25934,73 @@
         {
           "name": "label",
           "type": "str",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "AndroidActionIn",
+      "source": "src/omni/channels/web_api/android.py",
+      "line": 14,
+      "fields": [
+        {
+          "name": "action",
+          "type": "Literal['tap_element', 'tap_coords', 'tap_scaled', 'swipe', 'key', 'type_text', 'long_press', 'launch_app']",
+          "required": true
+        },
+        {
+          "name": "observation",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "idx",
+          "type": "int | None",
+          "required": false
+        },
+        {
+          "name": "x",
+          "type": "int | None",
+          "required": false
+        },
+        {
+          "name": "y",
+          "type": "int | None",
+          "required": false
+        },
+        {
+          "name": "stream_w",
+          "type": "int | None",
+          "required": false
+        },
+        {
+          "name": "stream_h",
+          "type": "int | None",
+          "required": false
+        },
+        {
+          "name": "direction",
+          "type": "Literal['up', 'down', 'left', 'right', 'back'] | None",
+          "required": false
+        },
+        {
+          "name": "keycode",
+          "type": "str | None",
+          "required": false
+        },
+        {
+          "name": "text",
+          "type": "str | None",
+          "required": false
+        },
+        {
+          "name": "package",
+          "type": "str | None",
+          "required": false
+        },
+        {
+          "name": "duration_ms",
+          "type": "int | None",
           "required": false
         }
       ]
@@ -26770,9 +27305,36 @@
       ]
     },
     {
-      "name": "CommandJobsConfig",
+      "name": "AndroidConfig",
       "source": "src/omni/config.py",
       "line": 477,
+      "fields": [
+        {
+          "name": "allowed_apps",
+          "type": "list[str]",
+          "required": false
+        },
+        {
+          "name": "observation_ttl_s",
+          "type": "float",
+          "required": false
+        },
+        {
+          "name": "operation_timeout_s",
+          "type": "float",
+          "required": false
+        },
+        {
+          "name": "max_devices",
+          "type": "int",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "CommandJobsConfig",
+      "source": "src/omni/config.py",
+      "line": 493,
       "fields": [
         {
           "name": "max_running",
@@ -26809,7 +27371,7 @@
     {
       "name": "TerminalConfig",
       "source": "src/omni/config.py",
-      "line": 487,
+      "line": 503,
       "fields": [
         {
           "name": "max_sessions",
@@ -26836,8 +27398,13 @@
     {
       "name": "AppConfig",
       "source": "src/omni/config.py",
-      "line": 495,
+      "line": 511,
       "fields": [
+        {
+          "name": "android",
+          "type": "AndroidConfig",
+          "required": false
+        },
         {
           "name": "command_jobs",
           "type": "CommandJobsConfig",

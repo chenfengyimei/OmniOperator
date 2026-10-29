@@ -55,6 +55,11 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | community | GET | `/api/plugins` | `create_app.search_plugins` | [src/omni/plugins/community/server.py](../../src/omni/plugins/community/server.py#L116) |
 | community | GET | `/api/plugins/{plugin_id}` | `create_app.plugin_detail` | [src/omni/plugins/community/server.py](../../src/omni/plugins/community/server.py#L135) |
 | community | POST | `/api/publish` | `create_app.publish` | [src/omni/plugins/community/server.py](../../src/omni/plugins/community/server.py#L174) |
+| workbench | GET | `/api/android/devices` | `create_android_router.devices` | [src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py#L40) |
+| workbench | POST | `/api/android/devices/{serial}/actions` | `create_android_router.action` | [src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py#L63) |
+| workbench | GET | `/api/android/devices/{serial}/apps` | `create_android_router.apps` | [src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py#L58) |
+| workbench | GET | `/api/android/devices/{serial}/observe` | `create_android_router.observe` | [src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py#L45) |
+| workbench | GET | `/api/android/devices/{serial}/snapshot` | `create_android_router.snapshot` | [src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py#L50) |
 | workbench | POST | `/api/android/element` | `create_devices_router.android_element` | [src/omni/channels/web_api/devices.py](../../src/omni/channels/web_api/devices.py#L98) |
 | workbench | POST | `/api/android/key` | `create_devices_router.android_key` | [src/omni/channels/web_api/devices.py](../../src/omni/channels/web_api/devices.py#L108) |
 | workbench | GET | `/api/android/snapshot` | `create_devices_router.android_snapshot` | [src/omni/channels/web_api/devices.py](../../src/omni/channels/web_api/devices.py#L67) |
@@ -181,6 +186,25 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | 字段 | 类型 | 必填 |
 |---|---|---|
 | label | `str` | 否 |
+
+### AndroidActionIn
+
+定位：[src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py#L14)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| action | `Literal['tap_element', 'tap_coords', 'tap_scaled', 'swipe', 'key', 'type_text', 'long_press', 'launch_app']` | 是 |
+| observation | `str` | 否 |
+| idx | `int \| None` | 否 |
+| x | `int \| None` | 否 |
+| y | `int \| None` | 否 |
+| stream_w | `int \| None` | 否 |
+| stream_h | `int \| None` | 否 |
+| direction | `Literal['up', 'down', 'left', 'right', 'back'] \| None` | 否 |
+| keycode | `str \| None` | 否 |
+| text | `str \| None` | 否 |
+| package | `str \| None` | 否 |
+| duration_ms | `int \| None` | 否 |
 
 ### ChatIn
 
@@ -705,9 +729,20 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 |---|---|---|
 | max_running | `int` | 否 |
 
-### CommandJobsConfig
+### AndroidConfig
 
 定位：[src/omni/config.py](../../src/omni/config.py#L477)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| allowed_apps | `list[str]` | 否 |
+| observation_ttl_s | `float` | 否 |
+| operation_timeout_s | `float` | 否 |
+| max_devices | `int` | 否 |
+
+### CommandJobsConfig
+
+定位：[src/omni/config.py](../../src/omni/config.py#L493)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -720,7 +755,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### TerminalConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L487)。
+定位：[src/omni/config.py](../../src/omni/config.py#L503)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -731,10 +766,11 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### AppConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L495)。
+定位：[src/omni/config.py](../../src/omni/config.py#L511)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
+| android | `AndroidConfig` | 否 |
 | command_jobs | `CommandJobsConfig` | 否 |
 | terminal | `TerminalConfig` | 否 |
 | persona | `Persona` | 否 |
@@ -765,14 +801,17 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 | 工具 | 审批等级 | 强制人工 | 并发只读 | 模块 | 定位 |
 |---|---|---|---|---|---|
-| `android_key` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L181) |
-| `android_screen_tree` | safe | False | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L96) |
-| `android_screenshot` | safe | False | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L111) |
-| `android_status` | safe | False | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L86) |
-| `android_swipe` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L164) |
-| `android_tap_coords` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L146) |
-| `android_tap_element` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L121) |
-| `android_type` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L198) |
+| `android_key` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L182) |
+| `android_launch_app` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L232) |
+| `android_list_apps` | safe | False | True | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L230) |
+| `android_long_press` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L235) |
+| `android_screen_tree` | safe | False | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L97) |
+| `android_screenshot` | safe | False | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L112) |
+| `android_status` | safe | False | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L87) |
+| `android_swipe` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L165) |
+| `android_tap_coords` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L147) |
+| `android_tap_element` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L122) |
+| `android_type` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L199) |
 | `bilibili_video_comments` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L113) |
 | `bilibili_video_info` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L93) |
 | `bilibili_video_subtitle` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L131) |
