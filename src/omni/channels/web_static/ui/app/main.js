@@ -1,25 +1,25 @@
 // 工作台入口：import 清单即模块清单；集中合并各域 actions 装一个委托分发器；
 // 全局输入绑定与启动序列也在这里。任何不被这里（直接或间接）引用的模块都不会求值。
-import {$} from './dom.js?v=20261030f';
-import {loadState} from './header.js?v=20261030f';
-import {loadSessions,renderSessions,newSession,actions as sessionsActions} from './sessions.js?v=20261030f';
-import {loadMessages,actions as chatActions} from './chat.js?v=20261030f';
-import {actions as runsActions} from './runs.js?v=20261030f';
-import {refreshMemory,loadFacts,loadReviews,actions as memoryActions} from './memory.js?v=20261030f';
-import {actions as skillsActions} from './skills.js?v=20261030f';
-import {actions as artifactsActions} from './artifacts.js?v=20261030f';
-import {actions as publicationsActions} from './publications.js?v=20261030f';
-import {actions as desktopActions} from './desktop.js?v=20261030f';
-import {pollApprovals,actions as approvalsActions} from './approvals.js?v=20261030f';
-import {loadServices,actions as servicesActions} from './services.js?v=20261030f';
-import {actions as modalsActions} from './modals.js?v=20261030f';
-import {actions as hubActions} from './hub.js?v=20261030f';
-import {actions as hubModelActions} from './hub-models.js?v=20261030f';
-import {actions as hubPersonaActions} from './hub-persona.js?v=20261030f';
-import {actions as hubCronActions} from './hub-cron.js?v=20261030f';
-import {actions as hubMcpActions} from './hub-mcp.js?v=20261030f';
-import {actions as railActions} from './rail.js?v=20261030f';
-import './tips.js?v=20261030f';
+import {$} from './dom.js?v=20261030g';
+import {loadState} from './header.js?v=20261030g';
+import {loadSessions,renderSessions,newSession,actions as sessionsActions} from './sessions.js?v=20261030g';
+import {loadMessages,actions as chatActions} from './chat.js?v=20261030g';
+import {actions as runsActions} from './runs.js?v=20261030g';
+import {refreshMemory,loadFacts,loadReviews,actions as memoryActions} from './memory.js?v=20261030g';
+import {actions as skillsActions} from './skills.js?v=20261030g';
+import {actions as artifactsActions} from './artifacts.js?v=20261030g';
+import {actions as publicationsActions} from './publications.js?v=20261030g';
+import {actions as desktopActions} from './desktop.js?v=20261030g';
+import {pollApprovals,actions as approvalsActions} from './approvals.js?v=20261030g';
+import {loadServices,actions as servicesActions} from './services.js?v=20261030g';
+import {actions as modalsActions} from './modals.js?v=20261030g';
+import {actions as hubActions} from './hub.js?v=20261030g';
+import {actions as hubModelActions} from './hub-models.js?v=20261030g';
+import {actions as hubPersonaActions} from './hub-persona.js?v=20261030g';
+import {actions as hubCronActions} from './hub-cron.js?v=20261030g';
+import {actions as hubMcpActions} from './hub-mcp.js?v=20261030g';
+import {actions as railActions} from './rail.js?v=20261030g';
+import './tips.js?v=20261030g';
 
 // data-action 委托分发（§9）：一个 document 级监听器按事件类型路由，替代全部内联属性。
 // 事件路由规则与原生 on*= 语义一致：

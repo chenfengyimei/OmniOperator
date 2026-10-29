@@ -1,8 +1,8 @@
 // 顶栏状态区：/api/state 聚合出 chips（人设/模型/费用/FTS/review）与工具清单，
 // 上下文 tokens 用量条（按字符估算的可视化）。
-import {$,esc,usd} from './dom.js?v=20261030f';
-import {api} from './api.js?v=20261030f';
-import {S} from './state.js?v=20261030f';
+import {$,esc,usd} from './dom.js?v=20261030g';
+import {api} from './api.js?v=20261030g';
+import {S} from './state.js?v=20261030g';
 
 const CTX_COLORS={system:'var(--seed-accent)',tools:'var(--seed-accent2)',memory:'#fcd34d',conversation:'var(--ok)'};
 const fmtTokens=n=>{
@@ -47,6 +47,10 @@ export async function loadState(){
   renderContextUsage(s.context,s.model);
   $('#tools').innerHTML=s.tools.map(t=>
     `<li><span class="tool-name" title="${esc(t.description||t.name)}">${esc(t.name)}</span><span class="tool-set">${esc(t.toolset)}·${esc(t.risk)}</span></li>`).join('');
+  // 风险档位图例：工具行的 toolset·risk 后缀不看说明读不懂（loadState 会多次调用，先清旧的）
+  document.querySelector('.tool-legend')?.remove();
+  $('#tools').insertAdjacentHTML('beforebegin',
+    `<div class="hint tool-legend">风险档：<b>safe</b>=只读可自动执行 · <b>confirm</b>=每次需人工确认 · <b>dangerous</b>=高危人工确认</div>`);
 }
 
 // ---------- 模型用量（D10 账本的可视化；金额单位是微美元，1e6 = $1） ----------

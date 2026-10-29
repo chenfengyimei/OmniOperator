@@ -22,8 +22,10 @@
 
   --text-1:color-mix(in srgb,var(--seed-fg) 96%,transparent);
   --text-2:color-mix(in srgb,var(--seed-fg) 71%,transparent);
-  --text-3:color-mix(in srgb,var(--seed-fg) 49%,transparent);
-  --text-4:color-mix(in srgb,var(--seed-fg) 32%,transparent);
+  --text-3:color-mix(in srgb,var(--seed-fg) 60%,transparent);
+  --text-4:color-mix(in srgb,var(--seed-fg) 56%,transparent);
+  /* 对比度（Phase 6 a11y 实测）：text-4 在 surface-0/1 上 ≥4.5:1（WCAG AA 正文线）；
+     旧值 32%/49% 实测仅 2.45:1/4.35:1 不达标——全站最小字号文本都在用这两档 */
 
   --line-1:color-mix(in srgb,var(--seed-fg) 16%,transparent);
   --line-2:color-mix(in srgb,var(--seed-fg) 9.5%,transparent);

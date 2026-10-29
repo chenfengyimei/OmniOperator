@@ -1,4 +1,4 @@
-import {$} from '/ui/app/dom.js?v=20261030f';
+import {$} from '/ui/app/dom.js?v=20261030g';
 const UI=window.OmniUI;let serial='',token='',frozen=false,epoch=0,busy=false,live=false,detecting=false,previewReading=false;
 const api=UI.request;
 function status(text){$('#status').textContent=text}

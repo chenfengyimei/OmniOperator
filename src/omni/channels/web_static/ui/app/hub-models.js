@@ -3,8 +3,8 @@
 // - 供应商/模型用卡片而不是下拉框：一眼看清"哪家有 Key、哪个模型贵、哪个能看图"。
 // - Key 不存浏览器，直接写后端 .env（/api/system/model-key），填完就能测。
 // - getModelSlotValue() 仍是 saveHub 的唯一取值口，返回 `${prefix}/${model}`。
-import {$,esc} from './dom.js?v=20261030f';
-import {api} from './api.js?v=20261030f';
+import {$,esc} from './dom.js?v=20261030g';
+import {api} from './api.js?v=20261030g';
 
 const MODEL_SLOTS=[
   {kind:'chat',title:'日常对话',desc:'平时跟它说话用这个，便宜量大',vision:false},

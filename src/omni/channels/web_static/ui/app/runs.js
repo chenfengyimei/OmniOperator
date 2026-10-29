@@ -1,9 +1,9 @@
 // 运行进度可视化：等待回复期间轮询本会话进行中的 run（D09 端点，只读）。
 // 历史挂链把每个 run 的调用链卡片挂到它开始后出现的第一条助手消息上（事件持久化在服务端，随时回放）。
-import {$,esc} from './dom.js?v=20261030f';
-import {api} from './api.js?v=20261030f';
-import {S} from './state.js?v=20261030f';
-import {selectSession} from './sessions.js?v=20261030f';
+import {$,esc} from './dom.js?v=20261030g';
+import {api} from './api.js?v=20261030g';
+import {S} from './state.js?v=20261030g';
+import {selectSession} from './sessions.js?v=20261030g';
 
 let runWatch=null; // {timer, runId, seq, polling}：轮询器；chat 返回/出错即停
 

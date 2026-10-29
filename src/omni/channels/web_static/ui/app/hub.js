@@ -1,14 +1,14 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261030f';
-import {api} from './api.js?v=20261030f';
-import {loadState} from './header.js?v=20261030f';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261030f';
-import {renderPersonaPresets} from './hub-persona.js?v=20261030f';
-import {loadCron} from './hub-cron.js?v=20261030f';
-import {loadUsage} from './hub-usage.js?v=20261030f';
-import {loadMcp} from './hub-mcp.js?v=20261030f';
+import {$,esc} from './dom.js?v=20261030g';
+import {api} from './api.js?v=20261030g';
+import {loadState} from './header.js?v=20261030g';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261030g';
+import {renderPersonaPresets} from './hub-persona.js?v=20261030g';
+import {loadCron} from './hub-cron.js?v=20261030g';
+import {loadUsage} from './hub-usage.js?v=20261030g';
+import {loadMcp} from './hub-mcp.js?v=20261030g';
 
 export async function openHub(){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');

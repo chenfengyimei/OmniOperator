@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a783f74766494364c63ec2dfd6d3cdc98a20136276776086ab9c66b539f44162",
+  "source_sha256": "782572258c12823f28476551116bd13e097ad4346e3e1ddcf480699b87ec08df",
   "modules": [
     {
       "id": "agent-directories",
@@ -376,7 +376,7 @@
         "src/omni/channels/web_static/ui/tokens.css",
         "src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 3973,
+      "lines": 4012,
       "dependencies": []
     },
     {
@@ -5314,7 +5314,7 @@
       "path": "src/omni/channels/web_static/ui/app/approvals.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 34,
+      "lines": 45,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5364,7 +5364,7 @@
       "path": "src/omni/channels/web_static/ui/app/header.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 69,
+      "lines": 73,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5494,7 +5494,7 @@
       "path": "src/omni/channels/web_static/ui/app/services.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 75,
+      "lines": 78,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5614,7 +5614,7 @@
       "path": "src/omni/channels/web_static/ui/tokens.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 109,
+      "lines": 111,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5624,7 +5624,7 @@
       "path": "src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 928,
+      "lines": 947,
       "imports": [],
       "symbols": [],
       "kind": "asset",

@@ -1,7 +1,7 @@
 // 右栏 9 页签：aria 状态同步、进入动效、tab 徽标（只显示真实计数，0 就摘掉徽标）。
-import {$} from './dom.js?v=20261030f';
-import {loadDesktop} from './desktop.js?v=20261030f';
-import {loadPublications} from './publications.js?v=20261030f';
+import {$} from './dom.js?v=20261030g';
+import {loadDesktop} from './desktop.js?v=20261030g';
+import {loadPublications} from './publications.js?v=20261030g';
 
 export function setTabBadge(tab,n){
   const b=document.querySelector(`.tabs button[data-tab="${tab}"]`);if(!b)return;

@@ -24,18 +24,11 @@ SUBPAGES = ["capabilities", "jobs", "mcp", "terminal", "android", "storage", "pr
 SEED_TOKEN_ALLOWLIST = {"ui/tokens.css"}
 SEED_DEFINE = re.compile(r"--seed-(?:accent|accent2|bg|fg)\s*:")
 
-# font-size < 10px 的现存违规配额（Phase 6 清零后删除条目；Phase 1 拆分后按新文件重计）
-FONT_FLOOR_QUOTA = {
-    "ui/workbench.css": 15,
-    "ui/components.css": 3,   # 构件段自 frame 迁入（Phase 6 修）
-    "storage/storage.css": 11,
-    "capabilities/capabilities.css": 5,
-    "mcp/mcp.css": 5,
-    "terminal/terminal.css": 6,
-    "android/android.css": 6,
-    "jobs/jobs.css": 1,
-}
-FONT_SIZE = re.compile(r"font-size\s*:\s*([0-9]+(?:\.[0-9]+)?)px")
+# font-size < 10px 的现存违规配额——Phase 6 已全站清零，从此零容忍（storage 的 11 处由并行批先行修复）
+FONT_FLOOR_QUOTA = {}
+# 字号下限扫描必须同时覆盖 font-size:9.5px 与 font:600 9.5px/1.4 两种形式——
+# 只盯 font-size: 会让 font: 简写成为 10px 地板的永久后门（Phase 6 实测漏过 13 处）
+FONT_SIZE = re.compile(r"font(?:-size)?\s*:\s*(?:[0-9]{3}\s+)?([0-9.]+)px")
 
 # index.html 内联事件：Phase 4 第二批已清零，从此一刀切保持 0
 MAX_INDEX_INLINE_HANDLERS = 0

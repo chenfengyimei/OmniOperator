@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`a783f74766494364c63ec2dfd6d3cdc98a20136276776086ab9c66b539f44162`。包含 54 个职责模块、245 个源码/界面文件。
+源码指纹：`782572258c12823f28476551116bd13e097ad4346e3e1ddcf480699b87ec08df`。包含 54 个职责模块、245 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -205,12 +205,12 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_static/ui/app/api.js](../../src/omni/channels/web_static/ui/app/api.js) | 9 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/app/approvals.js](../../src/omni/channels/web_static/ui/app/approvals.js) | 34 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/approvals.js](../../src/omni/channels/web_static/ui/app/approvals.js) | 45 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/artifacts.js](../../src/omni/channels/web_static/ui/app/artifacts.js) | 37 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/chat.js](../../src/omni/channels/web_static/ui/app/chat.js) | 108 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/desktop.js](../../src/omni/channels/web_static/ui/app/desktop.js) | 25 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/dom.js](../../src/omni/channels/web_static/ui/app/dom.js) | 18 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/app/header.js](../../src/omni/channels/web_static/ui/app/header.js) | 69 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/header.js](../../src/omni/channels/web_static/ui/app/header.js) | 73 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/hub-cron.js](../../src/omni/channels/web_static/ui/app/hub-cron.js) | 140 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/hub-mcp.js](../../src/omni/channels/web_static/ui/app/hub-mcp.js) | 68 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/hub-models.js](../../src/omni/channels/web_static/ui/app/hub-models.js) | 309 | 平台脚本或界面资源 |
@@ -223,7 +223,7 @@
 | [src/omni/channels/web_static/ui/app/publications.js](../../src/omni/channels/web_static/ui/app/publications.js) | 36 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/rail.js](../../src/omni/channels/web_static/ui/app/rail.js) | 37 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/runs.js](../../src/omni/channels/web_static/ui/app/runs.js) | 165 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/app/services.js](../../src/omni/channels/web_static/ui/app/services.js) | 75 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/services.js](../../src/omni/channels/web_static/ui/app/services.js) | 78 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/sessions.js](../../src/omni/channels/web_static/ui/app/sessions.js) | 52 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/skills.js](../../src/omni/channels/web_static/ui/app/skills.js) | 152 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/app/state.js](../../src/omni/channels/web_static/ui/app/state.js) | 11 | 平台脚本或界面资源 |
@@ -235,8 +235,8 @@
 | [src/omni/channels/web_static/ui/icons.css](../../src/omni/channels/web_static/ui/icons.css) | 9 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/markdown.js](../../src/omni/channels/web_static/ui/markdown.js) | 116 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 170 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/tokens.css](../../src/omni/channels/web_static/ui/tokens.css) | 109 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/workbench.css](../../src/omni/channels/web_static/ui/workbench.css) | 928 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/tokens.css](../../src/omni/channels/web_static/ui/tokens.css) | 111 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/workbench.css](../../src/omni/channels/web_static/ui/workbench.css) | 947 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 

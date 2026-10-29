@@ -31,11 +31,11 @@ body[data-ui-page="android"] #tree{background:rgba(2,6,10,.72);border-color:var(
 body[data-ui-page="android"] .status-strip{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:12px}
 body[data-ui-page="android"] .status-strip #status{flex:1;min-width:260px;margin:0!important;padding:9px 12px!important;border:1px solid var(--line-2)!important;border-radius:8px!important;background:rgba(17,24,36,.7)!important;font-size:10.5px!important}
 body[data-ui-page="android"] #observation-state{margin:0!important;padding:4px 9px!important}
-body[data-ui-page="android"] .device-meta{font:9.5px/1.5 var(--font-mono);color:var(--text-4);white-space:nowrap}
+body[data-ui-page="android"] .device-meta{font:10.5px/1.5 var(--font-mono);color:var(--text-4);white-space:nowrap}
 body[data-ui-page="android"] .android-toolbar{margin-top:12px;justify-content:space-between}
 .toolbar-group{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.toolbar-label{font-size:8.5px;color:var(--text-4);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
-body[data-ui-page="android"] .android-toolbar button{height:29px;min-height:29px;padding:0 9px;font-size:9.5px;border-radius:6px}
+.toolbar-label{font-size:10px;color:var(--text-4);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+body[data-ui-page="android"] .android-toolbar button{height:29px;min-height:29px;padding:0 9px;font-size:10.5px;border-radius:6px}
 body[data-ui-page="android"] .android-toolbar button .material-icons{font-size:12px}
 body[data-ui-page="android"] .android-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);gap:14px;margin-top:14px;align-items:start}
 body[data-ui-page="android"] .android-preview,
@@ -50,18 +50,18 @@ body[data-ui-page="android"] .screen img:not([hidden]) + .screen-placeholder{dis
 .screen-placeholder{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--text-4);text-align:center;pointer-events:none}
 .screen-placeholder .material-icons{font-size:34px;opacity:.5;margin-bottom:5px}
 .screen-placeholder strong{font-size:11.5px;color:var(--text-3)}
-.screen-placeholder small{font-size:9.5px;color:var(--text-4)}
-body[data-ui-page="android"] #frame-info{font-size:9px;color:var(--text-4);max-width:240px;text-align:right;line-height:1.5}
+.screen-placeholder small{font-size:10.5px;color:var(--text-4)}
+body[data-ui-page="android"] #frame-info{font-size:10px;color:var(--text-4);max-width:240px;text-align:right;line-height:1.5}
 body[data-ui-page="android"] .controls{display:flex;flex-direction:column;gap:0}
 .control-group{padding:10px 0;border-top:1px solid var(--line-3)}
 .control-group:first-of-type{border-top:0;padding-top:2px}
 .control-group h3{margin:0 0 7px;font-size:10px;color:var(--text-3);font-weight:650;letter-spacing:.01em}
 body[data-ui-page="android"] .control-group :is(select,input){width:100%;height:31px;min-height:31px;font-size:10.5px;padding:4px 8px}
-body[data-ui-page="android"] .control-group button{height:30px;min-height:30px;padding:0 9px;font-size:9.5px;border-radius:6px}
+body[data-ui-page="android"] .control-group button{height:30px;min-height:30px;padding:0 9px;font-size:10.5px;border-radius:6px}
 body[data-ui-page="android"] .control-group button .material-icons{font-size:12px}
 .button-row{display:flex;flex-wrap:wrap;gap:5px}
 body[data-ui-page="android"] .tree-group{flex:1;min-height:130px;display:flex;flex-direction:column;border-bottom:0}
-body[data-ui-page="android"] #tree{flex:1;min-height:120px;max-height:220px;margin:0;font-size:9.5px;line-height:1.6}
+body[data-ui-page="android"] #tree{flex:1;min-height:120px;max-height:220px;margin:0;font-size:10.5px;line-height:1.6}
 
 
 

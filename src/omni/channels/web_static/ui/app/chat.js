@@ -1,12 +1,12 @@
 // 聊天主流程：渲染轮次（助手带头像、用户渐变气泡）、发送回合、失败草稿保留、复制消息。
 // 版本代数（S.selectionVersion / S.messagesVersion）保证迟到的响应绝不写进别的会话。
-import {$,esc,fmtTime} from './dom.js?v=20261030f';
-import {api} from './api.js?v=20261030f';
-import {S} from './state.js?v=20261030f';
-import {refreshContextUsage} from './header.js?v=20261030f';
-import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261030f';
-import {loadSessions} from './sessions.js?v=20261030f';
-import {refreshMemory} from './memory.js?v=20261030f';
+import {$,esc,fmtTime} from './dom.js?v=20261030g';
+import {api} from './api.js?v=20261030g';
+import {S} from './state.js?v=20261030g';
+import {refreshContextUsage} from './header.js?v=20261030g';
+import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261030g';
+import {loadSessions} from './sessions.js?v=20261030g';
+import {refreshMemory} from './memory.js?v=20261030g';
 
 // 消息正文：先转义，再把 [artifact:id] 标记渲染成内联图（加载失败即显示 alt 占位）
 const renderArtifact=(m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" data-action="artifacts:view" data-id="${id}">`;

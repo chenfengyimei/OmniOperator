@@ -1,11 +1,22 @@
 // 审批横幅：2 秒轮询 pending；允许/拒绝走同一个 resolve 端点。
-import {$,esc} from './dom.js?v=20261030f';
-import {api} from './api.js?v=20261030f';
+// rail 上的「审批队列」按钮同步挂计数徽章——有待确认项时不用点进去才知道。
+import {$,esc} from './dom.js?v=20261030g';
+import {api} from './api.js?v=20261030g';
+
+function setRailBadge(n){
+  const btn=document.querySelector('.rail-btn[data-action="rail:approvals"]');
+  if(!btn)return;
+  let tag=btn.querySelector('.rail-badge');
+  if(!n){if(tag)tag.remove();return}
+  if(!tag){tag=document.createElement('span');tag.className='rail-badge';btn.append(tag)}
+  tag.textContent=n>99?'99+':n;
+}
 
 export async function pollApprovals(){
   try{
     const d=await api('/api/approvals');
     const banner=$('#approval-banner');
+    setRailBadge(d.pending.length);
     if(!d.pending.length){banner.classList.add('hidden');banner.innerHTML='';return}
     banner.innerHTML=d.pending.map(p=>
       `<div class="ab-title">⚠ 需要确认：${esc(p.tool_name)}（agent 正在等待）</div>`+

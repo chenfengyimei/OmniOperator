@@ -1,8 +1,8 @@
 // 左侧 rail：跨页入口（终端/安卓）+ 工作台内快捷动作（记忆库/技能库/定时任务/审批队列）。
 // 函数只做转发，不新增业务逻辑。
-import {$} from './dom.js?v=20261030f';
-import {openHub,switchHub} from './hub.js?v=20261030f';
-import {pollApprovals} from './approvals.js?v=20261030f';
+import {$} from './dom.js?v=20261030g';
+import {openHub,switchHub} from './hub.js?v=20261030g';
+import {pollApprovals} from './approvals.js?v=20261030g';
 
 // ---------- 内置终端 / 安卓专题页：新标签打开，别把工作台顶掉 ----------
 window.openTerminal=()=>window.open('/terminal/','omni-terminal');

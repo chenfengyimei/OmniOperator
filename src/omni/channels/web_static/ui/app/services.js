@@ -1,7 +1,7 @@
 // 系统控制台：服务面板（启停/状态）+ NapCat 扫码弹窗（含轮询定时器生命周期）+ 诊断/备份。
-import {$,esc} from './dom.js?v=20261030f';
-import {api} from './api.js?v=20261030f';
-import {openModal,closeModal,registerCloseHook} from './modals.js?v=20261030f';
+import {$,esc} from './dom.js?v=20261030g';
+import {api} from './api.js?v=20261030g';
+import {openModal,closeModal,registerCloseHook} from './modals.js?v=20261030g';
 
 let QR_TIMER=null;
 
@@ -11,7 +11,10 @@ export async function loadServices(){
     const running=d.services.filter(s=>s.running).length;
     $('#service-summary').textContent=d.services.length?`${running}/${d.services.length} 运行中`:'无可管理服务';
     $('#services').innerHTML=d.services.length?d.services.map(s=>{
-      const detail=s.detail||(s.running?'运行中':'未启动');
+      // 状态词前置：detail 可能是「已登录 uin」这类与进程无关的持久化凭据信息，
+      // 不带运行中/未启动前缀时会与摘要「0/3 运行中」互相打架
+      const stateText=s.running?'运行中':'未启动';
+      const detail=s.detail?`${stateText} · ${s.detail}`:stateText;
       const shortName=String(s.label||s.name).replace(/（[^）]*）/g,'').trim();
       return `<div class="svc">`+
         `<span class="svc-dot ${s.running?'on':(s.name==='napcat'&&!d.napcat.logged_in?'warn':'')}"></span>`+

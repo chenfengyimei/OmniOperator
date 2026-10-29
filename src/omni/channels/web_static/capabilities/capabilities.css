@@ -41,17 +41,17 @@ body[data-ui-page="capabilities"] .cap-card{
 .cap-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
 .cap-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 19%,transparent)}
 .cap-icon .material-icons{font-size:18px}
-.cap-state{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.035);font-size:9px;color:var(--text-3);border:1px solid var(--line-2)}
+.cap-state{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.035);font-size:10px;color:var(--text-3);border:1px solid var(--line-2)}
 .cap-state i{width:5px;height:5px;border-radius:50%;background:var(--ok);box-shadow:0 0 7px var(--ok)}
 .cap-card[data-state="warning"] .cap-state i{background:var(--warn);box-shadow:0 0 7px var(--warn)}
 .cap-card[data-state="failed"] .cap-state i{background:var(--danger);box-shadow:0 0 7px var(--danger)}
 .cap-card h3{margin:0 0 6px;font-size:13px;font-weight:680;color:var(--text-2)}
 .cap-metric{display:flex;align-items:baseline;gap:7px;margin-bottom:7px}
 .cap-metric b{font:700 24px/1 var(--font-mono);color:var(--text-1);letter-spacing:-.04em}
-.cap-metric span{font-size:9.5px;color:var(--text-4)}
+.cap-metric span{font-size:10.5px;color:var(--text-4)}
 .cap-card p{margin:0 0 12px!important;padding:0!important;border:0!important;background:none!important;color:var(--text-4)!important;font-size:10.5px!important;line-height:1.65!important;max-width:none!important}
 .cap-card details{margin-top:auto;border-top:1px solid var(--line-3);padding-top:9px}
-.cap-card summary{display:flex;align-items:center;gap:5px;color:var(--text-3);font-size:9.5px;cursor:pointer;list-style:none}
+.cap-card summary{display:flex;align-items:center;gap:5px;color:var(--text-3);font-size:10.5px;cursor:pointer;list-style:none}
 .cap-card summary::-webkit-details-marker{display:none}
 .cap-card summary .material-icons{font-size:12px;color:var(--seed-accent)}
 .cap-card pre{max-height:220px;overflow:auto;margin:8px 0 0;font-size:10px}
@@ -68,8 +68,8 @@ body[data-ui-page="capabilities"] .console-card{padding:14px;border:1px solid va
 .check-row-item[data-state="error"] .check-indicator{color:var(--danger)}
 .check-row-item>div{flex:1;min-width:0}
 .check-row-item strong{display:block;font-size:10.5px;color:var(--text-2);font-weight:620}
-.check-row-item p{margin:1px 0 0!important;padding:0!important;border:0!important;background:none!important;color:var(--text-4)!important;font-size:9.5px!important;line-height:1.55!important}
-.check-label{font-size:8.5px;color:var(--text-4);white-space:nowrap}
+.check-row-item p{margin:1px 0 0!important;padding:0!important;border:0!important;background:none!important;color:var(--text-4)!important;font-size:10.5px!important;line-height:1.55!important}
+.check-label{font-size:10px;color:var(--text-4);white-space:nowrap}
 
 
 

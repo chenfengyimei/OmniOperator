@@ -32,14 +32,14 @@ body[data-ui-page="mcp"] .server.active{border-color:color-mix(in srgb,var(--see
 .server-icon .material-icons{font-size:16px}
 .server-title{flex:1;min-width:0}
 .server-title h2{margin:0;font-size:12px;font-weight:680;color:var(--text-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.server-title p{margin:1px 0 0!important;padding:0!important;border:0!important;background:none!important;color:var(--text-4)!important;font-size:9px!important;line-height:1.5!important}
+.server-title p{margin:1px 0 0!important;padding:0!important;border:0!important;background:none!important;color:var(--text-4)!important;font-size:10px!important;line-height:1.5!important}
 .server-meta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:9px}
-.server-meta>span{display:inline-flex;align-items:center;gap:3px;font:9px/1.5 var(--font-mono);color:var(--text-4)}
+.server-meta>span{display:inline-flex;align-items:center;gap:3px;font:10px/1.5 var(--font-mono);color:var(--text-4)}
 .server-meta .material-icons{font-family:"Material Icons"!important;font-size:10px!important;line-height:1!important}
 .server-meta .material-icons{font-size:10px}
-.server-warning{font-size:9.5px!important;line-height:1.5!important;color:var(--warn)!important;margin:5px 0!important;padding:6px 8px!important;background:rgba(247,201,107,.07)!important;border:1px solid rgba(247,201,107,.16)!important;border-radius:6px!important;white-space:normal!important}
+.server-warning{font-size:10.5px!important;line-height:1.5!important;color:var(--warn)!important;margin:5px 0!important;padding:6px 8px!important;background:rgba(247,201,107,.07)!important;border:1px solid rgba(247,201,107,.16)!important;border-radius:6px!important;white-space:normal!important}
 body[data-ui-page="mcp"] .server-actions{display:flex;flex-wrap:wrap;gap:5px;margin:0!important}
-body[data-ui-page="mcp"] .server-actions button{min-height:25px;height:25px;padding:0 8px;font-size:9.5px;border-radius:6px;background:rgba(255,255,255,.035)}
+body[data-ui-page="mcp"] .server-actions button{min-height:25px;height:25px;padding:0 8px;font-size:10.5px;border-radius:6px;background:rgba(255,255,255,.035)}
 body[data-ui-page="mcp"] .server-actions .primary-action{color:var(--seed-accent);border-color:color-mix(in srgb,var(--seed-accent) 28%,transparent);background:color-mix(in srgb,var(--seed-accent) 8%,transparent)}
 body[data-ui-page="mcp"] #detail{min-height:170px;max-height:330px;margin:0 0 10px!important;font-size:10.5px!important}
 body[data-ui-page="mcp"] #catalog{display:flex;flex-direction:column;gap:7px;max-height:320px;overflow-y:auto}
@@ -48,8 +48,8 @@ body[data-ui-page="mcp"] #catalog{display:flex;flex-direction:column;gap:7px;max
 .catalog-tool summary::-webkit-details-marker{display:none}
 .catalog-tool-name{font:600 10.5px/1.5 var(--font-mono);color:var(--text-2)}
 .catalog-tool summary .material-icons{font-size:13px;color:var(--text-4)}
-.catalog-tool p{font-size:9.5px!important;color:var(--text-4)!important;margin:5px 0!important;line-height:1.55!important}
-.catalog-tool pre{max-height:170px;margin:7px 0 0!important;font-size:9.5px!important}
+.catalog-tool p{font-size:10.5px!important;color:var(--text-4)!important;margin:5px 0!important;line-height:1.55!important}
+.catalog-tool pre{max-height:170px;margin:7px 0 0!important;font-size:10.5px!important}
 
 
 

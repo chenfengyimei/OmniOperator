@@ -104,7 +104,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]) > header select{
   display:inline-flex;align-items:center;gap:6px;margin-left:2px;
   padding:3px 9px;border:1px solid color-mix(in srgb,var(--seed-accent) 22%,transparent);border-radius:999px;
   color:var(--shell-accent);background:var(--shell-accent-soft);
-  font:600 9.5px/1.5 var(--shell-mono);letter-spacing:.08em;white-space:nowrap;
+  font:600 10.5px/1.5 var(--shell-mono);letter-spacing:.08em;white-space:nowrap;
 }
 .ui-env::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--shell-success);box-shadow:0 0 8px var(--shell-success)}
 body[data-ui-page]:not([data-ui-page="workbench"]) > header .ui-env{margin-left:auto}
