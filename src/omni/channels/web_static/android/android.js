@@ -2,6 +2,19 @@
 const $=s=>document.querySelector(s),UI=window.OmniUI;let serial='',token='',frozen=false,epoch=0,busy=false,live=false,detecting=false,previewReading=false;
 const api=UI.request;
 function status(text){$('#status').textContent=text}
+function renderDeviceStats(){
+  const cells=[
+    ['设备连接',serial?'已选择':'未选择',serial?'smartphone':'phonelink_off',serial||'先检测并选择目标设备',!!serial],
+    ['观察令牌',token?(frozen?'已锁帧':'有效'):'未取得',token?'verified':'shield',token?'单次有效，动作后失效':'刷新 UI 树或锁定操作帧',!!token],
+    ['实时预览',live?'连接中':'未开启',live?'live_tv':'videocam_off',live?'预览不授权动作':'实时画面只读',live],
+    ['操作状态',busy?'执行中':'空闲',busy?'hourglass_top':'check_circle',busy?'等待设备回读':'不会自动重试动作',!busy]
+  ];
+  const stats=document.getElementById('android-stats');
+  if(stats)stats.innerHTML=cells.map(([label,value,icon,note,on])=>
+    `<div class="metric-card ${on?'is-on':''}"><span class="metric-icon"><span class="material-icons">${icon}</span></span><div><span>${label}</span><b>${value}</b><small>${note}</small></div></div>`).join('');
+  const meta=document.getElementById('device-meta');
+  if(meta)meta.textContent=serial?`目标设备 · ${serial}`:'未选择设备';
+}
 function controls(){
   const ready=!!serial&&!busy&&!detecting,observed=ready&&!!token;
   for(const id of ['live','snapshot','observe','apps'])$('#'+id).disabled=!ready;
@@ -10,6 +23,7 @@ function controls(){
   $('#type').disabled=!observed||!$('#text').value;$('#launch').disabled=!observed||!$('#packages').value;
   $('#detect').disabled=detecting||busy;$('#devices').disabled=busy||detecting;$('#stop-live').disabled=!live;
   $('#observation-state').textContent=busy?'操作中…':token?(frozen?'完整帧观察 · 单次有效':'UI 树观察 · 单次有效'):live?'实时预览 · 只读':'未取得有效观察';
+  renderDeviceStats();
 }
 function base(){if(!serial)throw Error('请先选择已授权设备');return '/api/android/devices/'+encodeURIComponent(serial)}
 function invalidate(){token='';frozen=false;controls()}

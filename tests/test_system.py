@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import pytest
+import yaml
 from fastapi.testclient import TestClient
 
 from omni.bootstrap import build_runtime
@@ -35,7 +36,7 @@ def test_render_value():
     assert render_value("bool", True) == "true"
     assert render_value("int", 12) == "12"
     assert render_value("int_list", [1, 2]) == "[1, 2]"
-    assert render_value("float_list", [0.5, 2]) == "[0.5, 2]"
+    assert render_value("float_list", [0.5, 2]) == "[0.5, 2.0]"  # 小数形态要保持
     assert render_value("str", "small") == '"small"'
     for bad in [(True,), ("x",)]:
         with pytest.raises(ConfigEditError):
@@ -57,13 +58,57 @@ def test_apply_updates_preserves_comments():
     assert out.startswith("# 顶部说明注释")
 
 
-def test_apply_updates_rejects_unknown_and_missing():
-    # 未知 section/键：直接拒绝
+def test_apply_updates_rejects_unknown_key():
+    # 未知 section/键：直接拒绝（白名单是唯一入口，拼错的键进不来）
     with pytest.raises(ConfigEditError, match="不允许修改"):
         apply_updates(SAMPLE_YAML, {"bogus": {"x": 1}})
-    # 白名单内但 yaml 里不存在的键 → 未做破坏性改动
-    with pytest.raises(ConfigEditError, match="没找到"):
-        apply_updates(SAMPLE_YAML, {"review": {"enabled": True}})
+    with pytest.raises(ConfigEditError, match="不允许修改"):
+        apply_updates(SAMPLE_YAML, {"qq": {"no_such_key": 1}})
+
+
+def test_apply_updates_appends_missing_key():
+    """白名单内但 yaml 里没有的键要**补进去**，不能整次保存失败。
+
+    真实事故：config.yaml 缺 approval 节，而界面每次都提交 approval.mode，
+    于是"保存全部设置"永远 400，用户只看到一句与原因无关的脱敏报错。
+    """
+    out = apply_updates(SAMPLE_YAML, {"qq": {"timezone": "Asia/Shanghai"}})
+    assert 'timezone: "Asia/Shanghai"' in out
+    # 补在 qq 节里，不能跑到 browser 节下面
+    assert out.index("timezone:") < out.index("browser:")
+    # 原有注释与值不受影响
+    assert "enabled: false              # 开关注释要保留" in out
+    # 再存一次不该再多写一行
+    assert apply_updates(out, {"qq": {"timezone": "Asia/Shanghai"}}) == out
+
+
+def test_apply_updates_creates_missing_section():
+    """整节都不存在时新建一节（按顶层缩进 2 空格），且幂等。"""
+    out = apply_updates(SAMPLE_YAML, {"approval": {"mode": "smart"}})
+    assert "approval:" in out and 'mode: "smart"' in out
+    assert out.rstrip().endswith('mode: "smart"')
+    assert apply_updates(out, {"approval": {"mode": "smart"}}) == out
+
+
+def test_apply_updates_multiline_does_not_duplicate_key():
+    """多行块替换曾把 `key: |` 写两遍——每保存一次人设就多一行空块。
+
+    判据：替换后 YAML 只有一处 system_prompt，且二次保存字节不变。
+    """
+    src = "persona:\n  name: x\n  system_prompt: |\n    旧一\n    旧二\n\nmodels:\n  chat: a\n"
+    once = apply_updates(src, {"persona": {"system_prompt": ["新一", "新二"]}})
+    yaml.safe_load(once)  # 必须仍是合法 YAML（重复键会让结构悄悄变形）
+    assert once.count("system_prompt:") == 1
+    assert "新一" in once and "旧一" not in once
+    assert apply_updates(once, {"persona": {"system_prompt": ["新一", "新二"]}}) == once
+
+
+def test_apply_updates_multiline_appends_when_block_missing():
+    """多行块不存在时不能静默丢内容，要补一块。"""
+    out = apply_updates(SAMPLE_YAML, {"persona": {"system_prompt": ["只有一行"]}})
+    assert "persona:" in out and "system_prompt: |" in out
+    assert "    只有一行" in out
+    assert yaml.safe_load(out)["persona"]["system_prompt"].strip() == "只有一行"
 
 
 def test_safe_write_atomic(tmp_path):
@@ -258,14 +303,48 @@ def test_system_endpoints(tmp_path, monkeypatch):
     text = tmp_cfg.read_text(encoding="utf-8")
     assert "enabled: true" in text and "# 开关注释要保留" in text
     assert "allowed_users: [42]" in text
-    # 非法更新被 400 拒
+    # 白名单外的键被 400 拒（白名单是唯一入口）
     resp_bad = client.post(
-        "/api/system/config", json={"updates": {"models": {"chat": "x"}}}
+        "/api/system/config", json={"updates": {"models": {"nope": "x"}}}
     )
     assert resp_bad.status_code == 400
+    # 白名单内但 yaml 里缺这一节：补进去并成功（以前这里会 400，把整次保存打死）
+    resp_fill = client.post(
+        "/api/system/config", json={"updates": {"approval": {"mode": "smart"}}}
+    )
+    assert resp_fill.status_code == 200
+    assert 'mode: "smart"' in tmp_cfg.read_text(encoding="utf-8")
     # 启动未安装的 napcat → 409
     monkeypatch.setattr(
         runtime.services, "_napcat_dir", tmp_path / "nope", raising=False
     )
     resp_start = client.post("/api/system/services/napcat/start", json={"qq": ""})
     assert resp_start.status_code == 409
+
+
+def test_apply_updates_preserves_crlf():
+    """Windows 上 config.yaml 是 CRLF；保存不能把整个文件改成 LF。
+
+    否则每存一次 git diff 就显示"全文件都改了"，等于把版本管理搞废。
+    """
+    src = SAMPLE_YAML.replace("\n", "\r\n")
+    out = apply_updates(src, {"qq": {"enabled": True}})
+    assert "\r\n" in out
+    assert out.count("\r\n") == out.count("\n")  # 没有混入裸 LF
+    assert "enabled: true" in out
+    # 原本是 LF 的文件不该被改成 CRLF
+    assert "\r\n" not in apply_updates(SAMPLE_YAML, {"qq": {"enabled": True}})
+
+
+def test_read_config_text_preserves_crlf(tmp_path):
+    """read_config_text 必须保住 CRLF。
+
+    `Path.read_text()` 的通用换行模式会在读的时候就把 CRLF 变成 LF，
+    于是"行尾还原"逻辑永远不触发——这条锁住真正的入口。
+    """
+    from omni.system.config_io import read_config_text
+
+    target = tmp_path / "config.yaml"
+    target.write_bytes("a: 1\r\nb: 2\r\n".encode("utf-8"))
+    assert read_config_text(target) == "a: 1\r\nb: 2\r\n"
+    assert "\r\n" in read_config_text(target)

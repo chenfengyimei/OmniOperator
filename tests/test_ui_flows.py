@@ -168,7 +168,7 @@ def test_capability_pages_have_mobile_navigation_and_safe_initial_state(ui,path)
     page,_,_,errors=ui
     page.set_viewport_size({'width':390,'height':844});page.goto(f'http://127.0.0.1/{path}/')
     page.locator('.ui-global-nav').wait_for()
-    assert page.locator('.ui-global-nav a').count()==7
+    assert page.locator('.ui-global-nav a').count()==8
     assert page.locator('.ui-global-nav a[aria-current]').count()==1
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     if path=='android':

@@ -25,6 +25,7 @@ FORBIDDEN_IMPORTS: dict[str, set[str]] = {
 
 # 只允许在 bootstrap.py 构造的类型（组装根）
 CONSTRUCT_ONLY_IN_BOOTSTRAP = {
+    'AgentDirectoryStore',
     "QQMessageStore", "EventLog",
     "PublicationStore", "BilibiliPublisher", "BrowserForms",
     "Gateway",

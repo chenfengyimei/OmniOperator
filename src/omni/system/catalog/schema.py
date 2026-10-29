@@ -16,6 +16,8 @@ class Module:
 
 
 MODULES = (
+    Module('agent-directories', 'Agent 空间与目录', '平台与数据', ('system/agent_spaces/',), '独立空间注册、目录校验、修订并发控制与有效路径解析；不构造执行对象或搬移数据。', ('AGENT_STORAGE.md',), ('test_agent_storage.py',)),
+    Module('http-storage', 'Agent 设置与文件管理', 'Web 接口', ('channels/web_api/storage.py','channels/web_static/storage/'), '目录设置、待重启差异与当前空间公开文件区的有界浏览和人工上传。', ('AGENT_STORAGE.md',), ('test_agent_storage.py',)),
     Module('assembly', '运行时组装', '内核与模型', ('bootstrap.py',), '唯一组装根，构造依赖并暴露 Runtime 门面。', ('ARCHITECTURE.md',), ('test_paths.py',)),
     Module('config', '配置与路径契约', '平台与数据', ('config.py',), '配置模型、加载与 RuntimePaths；不包含业务编排。', ('ARCHITECTURE.md',), ('test_config.py',)),
     Module('engine', 'Agent 内核', '内核与模型', ('core/',), '回合、上下文、工具循环、取消、委派约束、review 与调度。', ('ARCHITECTURE.md',), ('test_agent.py', 'test_runs.py', 'test_parallel_tools.py')),

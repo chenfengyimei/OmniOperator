@@ -2,7 +2,17 @@
 const $=s=>document.querySelector(s), UI=window.OmniUI;
 let jobs=[],selected='',after=0,version=0,listBusy=false,reading=null,leaving=false,cancelling=false;
 const finalStates=new Set(['succeeded','failed','cancelled','timed_out','unknown']);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function renderStats(){
+  const active=jobs.filter(j=>!finalStates.has(j.status)).length;
+  const succeeded=jobs.filter(j=>j.status==='succeeded').length;
+  const failed=jobs.filter(j=>['failed','timed_out','unknown'].includes(j.status)).length;
+  const cells=[['全部任务',jobs.length,'inventory_2','当前保留的记录'],['执行中',active,'pending','仍在运行或停止中'],['已完成',succeeded,'task_alt','进程正常结束'],['需核查',failed,'report_problem','失败、超时或结果未知']];
+  $('#job-stats').innerHTML=cells.map(([label,value,icon,note])=>
+    `<div class="metric-card"><span class="metric-icon"><span class="material-icons">${icon}</span></span><div><span>${label}</span><b>${value}</b><small>${note}</small></div></div>`).join('');
+}
 function renderList(){
+  renderStats();
   const query=$('#job-search').value.trim().toLowerCase(),filter=$('#job-filter').value;
   const visible=jobs.filter(row=>(!query||`${row.command} ${row.job_id} ${row.session_id}`.toLowerCase().includes(query))&&(!filter||(filter==='active'?!finalStates.has(row.status):finalStates.has(row.status))));
   $('#job-count').textContent=`${visible.length} / ${jobs.length} 个任务`;
@@ -10,10 +20,10 @@ function renderList(){
   $('#jobs').dataset.signature=signature;$('#jobs').replaceChildren();
   for(const row of visible){
     const button=UI.element('button');button.type='button';button.classList.toggle('active',row.job_id===selected);button.setAttribute('aria-pressed',String(row.job_id===selected));
-    button.append(UI.badge(row.status),UI.element('strong',row.command),UI.element('small','会话 '+row.session_id+' · '+UI.date(row.created_at)));
+    button.dataset.status=row.status;button.append(UI.badge(row.status),UI.element('strong',row.command),UI.element('small','会话 '+row.session_id+' · '+UI.date(row.created_at)));
     button.onclick=()=>selectJob(row.job_id);$('#jobs').append(button);
   }
-  if(!visible.length)$('#jobs').append(UI.element('p',jobs.length?'没有符合筛选的任务':'暂无后台命令。在对话中提交后台命令，经人工审批后会显示在这里。','ui-empty'));
+  if(!visible.length){const empty=UI.element('div',null,'rich-empty');empty.innerHTML=jobs.length?'<span class="material-icons">filter_alt_off</span><h3>没有符合筛选的任务</h3><p>调整搜索词或状态筛选后再试。</p>':'<span class="material-icons">add_task</span><h3>暂无后台命令</h3><p>在对话中提交需要继续运行的后台命令，经人工审批后会显示在这里。</p>';$('#jobs').append(empty)}
 }
 function showDetail(row){
   $('#job-title').textContent=row.command;const list=UI.element('dl');

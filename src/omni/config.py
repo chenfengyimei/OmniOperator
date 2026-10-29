@@ -31,6 +31,7 @@ class RuntimePaths:
 
     data: Path
     config: Path          # 配置源（读 + 工作台写回同一个文件）
+    env: Path             # 密钥文件（.env）：与 config 同一棵树，迁移时一起搬
     state: Path           # 共享运行状态（任务/执行账本/额度/迁移记录，SQLite）
     memory: Path          # 可独立注入的记忆库；诊断与备份必须读同一路径。
     resident: Path        # 常驻工作笔记（MEMORY.md）
@@ -49,6 +50,12 @@ class RuntimePaths:
     command_logs: Path
     mcp_logs: Path
     backups: Path
+    workspace: Path | None = None
+    files: Path | None = None
+    documents: Path | None = None
+    service_logs: Path | None = None
+    agent_id: str = "default"
+    catalog: Path | None = None
 
     @classmethod
     def create(
@@ -60,9 +67,15 @@ class RuntimePaths:
         memory_path: Path | None = None,
     ) -> RuntimePaths:
         data = Path(data_dir)
+        config_file = Path(config_path) if config_path is not None else CONFIG_PATH
         return cls(
             data=data,
-            config=Path(config_path) if config_path is not None else CONFIG_PATH,
+            config=config_file,
+            env=(
+                config_file.parent.parent / ".env"
+                if config_path is not None
+                else ENV_PATH
+            ),
             state=data / "state.db",
             memory=Path(memory_path) if memory_path is not None else data / "memory.db",
             resident=data / "MEMORY.md",
@@ -81,6 +94,11 @@ class RuntimePaths:
             command_logs=data / "command_logs",
             mcp_logs=data / "mcp_logs",
             backups=data / "backups",
+            workspace=PROJECT_ROOT,
+            files=data / "files",
+            documents=data / "documents",
+            service_logs=data / "system_logs",
+            catalog=data / "control" / "agents.json",
         )
 
 

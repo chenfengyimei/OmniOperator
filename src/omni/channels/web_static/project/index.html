@@ -5,9 +5,21 @@
   <title>项目与能力 · OmniOperator</title>
   <link rel="stylesheet" href="/project/project.css">
   <script src="/project/project.js" defer></script>
-<link rel="stylesheet" href="/ui/base.css"><script src="/ui/shared.js"></script>
+<link rel="stylesheet" href="/ui/base.css"><link rel="stylesheet" href="/ui/icons.css?v=20261030e"><link rel="stylesheet" href="/ui/shell.css?v=20261030e"><script src="/ui/shared.js?v=20261030e"></script>
 </head>
-<body>
+<body data-ui-page="project">
+<nav class="ui-global-nav ui-app-rail" aria-label="工作台功能导航">
+<span class="ui-rail-brand" aria-hidden="true"><span class="material-icons">smart_toy</span></span>
+  <a href="/" title="对话工作台" aria-label="对话工作台"><span class="material-icons" aria-hidden="true">forum</span><span class="ui-nav-label">对话工作台</span></a>
+  <a href="/capabilities/" title="能力总览" aria-label="能力总览"><span class="material-icons" aria-hidden="true">fact_check</span><span class="ui-nav-label">能力总览</span></a>
+  <a href="/terminal/" title="人工终端" aria-label="人工终端"><span class="material-icons" aria-hidden="true">terminal</span><span class="ui-nav-label">人工终端</span></a>
+  <a href="/jobs/" title="后台任务" aria-label="后台任务"><span class="material-icons" aria-hidden="true">checklist</span><span class="ui-nav-label">后台任务</span></a>
+  <a href="/mcp/" title="MCP 服务" aria-label="MCP 服务"><span class="material-icons" aria-hidden="true">network_check</span><span class="ui-nav-label">MCP 服务</span></a>
+  <a href="/android/" title="安卓控制" aria-label="安卓控制"><span class="material-icons" aria-hidden="true">smartphone</span><span class="ui-nav-label">安卓控制</span></a>
+  <a href="/project/" aria-current="page" title="项目索引" aria-label="项目索引"><span class="material-icons" aria-hidden="true">account_tree</span><span class="ui-nav-label">项目索引</span></a>
+  <a href="/?settings=1" title="设置中心" aria-label="设置中心"><span class="material-icons" aria-hidden="true">settings</span><span class="ui-nav-label">设置中心</span></a>
+</nav>
+
   <header><a class="brand" href="/">Omni<span>Operator</span></a><span class="separator">/</span><h1>项目与能力</h1><a class="back" href="/">返回对话工作台 ↗</a></header>
   <main>
     <aside>
@@ -34,3 +46,8 @@
   <dialog id="detail"><div class="dialog-heading"><h2 id="detail-title"></h2><button id="close-detail" aria-label="关闭详情">✕</button></div><div id="detail-body"></div></dialog>
 </body>
 </html>
+
+
+
+
+

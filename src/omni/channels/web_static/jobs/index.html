@@ -1,5 +1,52 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小鱼 · 后台命令</title><link rel="stylesheet" href="/jobs/jobs.css"><link rel="stylesheet" href="/ui/base.css"><script src="/ui/shared.js"></script>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小鱼 · 后台命令</title><link rel="stylesheet" href="/jobs/jobs.css"><link rel="stylesheet" href="/ui/base.css"><link rel="stylesheet" href="/ui/icons.css?v=20261030e"><link rel="stylesheet" href="/ui/shell.css?v=20261030e"><script src="/ui/shared.js?v=20261030e"></script>
 </head>
-<body><header><a href="/">← 工作台</a><h1>agent 后台命令</h1><a href="/terminal/">人工终端</a></header><p>正常回答结束后任务可继续；停止所属回合会取消任务。服务退出时回收，重启不自动重跑。</p>
-<div class="toolbar"><input id="job-search" type="search" aria-label="搜索任务" placeholder="搜索命令、任务或会话"><select id="job-filter" aria-label="任务状态"><option value="">所有状态</option><option value="active">执行中</option><option value="ended">已结束 / 待核查</option></select><button id="refresh">刷新列表</button><span id="job-count" class="ui-muted"></span></div>
-<div id="status" role="status">读取任务…</div><main><nav id="jobs" aria-label="任务列表"></nav><section><h2 id="job-title">选择任务</h2><div id="detail" class="ui-muted">选择左侧任务查看状态和增量输出。</div><button id="cancel" class="ui-danger" disabled>取消任务</button><div class="output-tools"><strong>执行输出</strong><button id="reload-output" disabled>读取最新</button><button id="copy-output" disabled>复制输出</button><label><input id="follow-output" type="checkbox" checked> 跟随输出</label></div><pre id="output" tabindex="0" aria-label="任务输出"></pre></section></main><script src="/jobs/jobs.js"></script></body></html>
+<body data-ui-page="jobs">
+<nav class="ui-global-nav ui-app-rail" aria-label="工作台功能导航">
+<span class="ui-rail-brand" aria-hidden="true"><span class="material-icons">smart_toy</span></span>
+  <a href="/" title="对话工作台" aria-label="对话工作台"><span class="material-icons" aria-hidden="true">forum</span><span class="ui-nav-label">对话工作台</span></a>
+  <a href="/capabilities/" title="能力总览" aria-label="能力总览"><span class="material-icons" aria-hidden="true">fact_check</span><span class="ui-nav-label">能力总览</span></a>
+  <a href="/terminal/" title="人工终端" aria-label="人工终端"><span class="material-icons" aria-hidden="true">terminal</span><span class="ui-nav-label">人工终端</span></a>
+  <a href="/jobs/" aria-current="page" title="后台任务" aria-label="后台任务"><span class="material-icons" aria-hidden="true">checklist</span><span class="ui-nav-label">后台任务</span></a>
+  <a href="/mcp/" title="MCP 服务" aria-label="MCP 服务"><span class="material-icons" aria-hidden="true">network_check</span><span class="ui-nav-label">MCP 服务</span></a>
+  <a href="/android/" title="安卓控制" aria-label="安卓控制"><span class="material-icons" aria-hidden="true">smartphone</span><span class="ui-nav-label">安卓控制</span></a>
+  <a href="/project/" title="项目索引" aria-label="项目索引"><span class="material-icons" aria-hidden="true">account_tree</span><span class="ui-nav-label">项目索引</span></a>
+  <a href="/?settings=1" title="设置中心" aria-label="设置中心"><span class="material-icons" aria-hidden="true">settings</span><span class="ui-nav-label">设置中心</span></a>
+</nav>
+<header>
+  <a href="/">← 工作台</a>
+  <h1>后台命令</h1>
+  <a class="header-action" href="/terminal/"><span class="material-icons">terminal</span>人工终端</a>
+</header>
+<p>追踪 agent 启动的后台命令、增量输出和副作用状态。任务在正常回答结束后仍可继续；服务退出时回收，重启不会自动重跑。</p>
+<section class="console-toolbar jobs-toolbar">
+  <div class="search-field"><span class="material-icons">search</span><input id="job-search" type="search" aria-label="搜索任务" placeholder="搜索命令、任务或会话"></div>
+  <select id="job-filter" aria-label="任务状态"><option value="">所有状态</option><option value="active">执行中</option><option value="ended">已结束 / 待核查</option></select>
+  <button id="refresh"><span class="material-icons">refresh</span>刷新</button>
+</section>
+<div id="status" role="status">读取任务…</div>
+<div id="job-stats" class="metric-grid" aria-label="任务概览"></div>
+<main class="jobs-layout">
+  <section class="jobs-list-pane">
+    <div class="section-heading">
+      <div><span class="eyebrow">COMMAND QUEUE</span><h2>任务队列</h2></div>
+      <span id="job-count" class="section-meta">0 / 0</span>
+    </div>
+    <nav id="jobs" aria-label="任务列表"><div class="ui-empty">正在读取任务…</div></nav>
+  </section>
+  <section class="jobs-detail-pane">
+    <div class="section-heading compact">
+      <div><span class="eyebrow">RUN INSPECTOR</span><h2 id="job-title">选择任务</h2></div>
+      <span class="material-icons">terminal</span>
+    </div>
+    <div id="detail" class="ui-muted">选择左侧任务查看状态和增量输出。</div>
+    <div class="detail-actions"><button id="cancel" class="ui-danger" disabled><span class="material-icons">stop_circle</span>取消任务</button></div>
+    <div class="output-tools"><strong><span class="material-icons">subject</span>执行输出</strong><button id="reload-output" disabled>读取最新</button><button id="copy-output" disabled>复制输出</button><label><input id="follow-output" type="checkbox" checked> 跟随输出</label></div>
+    <pre id="output" tabindex="0" aria-label="任务输出">选择任务后在此查看增量输出。</pre>
+  </section>
+</main>
+<script src="/jobs/jobs.js"></script></body></html>
+
+
+
+
+

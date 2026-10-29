@@ -2,7 +2,40 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`bf6fe97ac9106ba034b6e8a35a08875a6ee20ef1e3b885f58bd6cafa7131a999`。包含 52 个职责模块、205 个源码/界面文件。
+源码指纹：`5dffd2ca174eba5df6dca0e7031ff3d91230adf2942c1da687f638a9dbfae3ac`。包含 54 个职责模块、212 个源码/界面文件。
+
+## Agent 空间与目录 · agent-directories
+
+分类：平台与数据。独立空间注册、目录校验、修订并发控制与有效路径解析；不构造执行对象或搬移数据。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/system/agent_spaces/__init__.py](../../src/omni/system/agent_spaces/__init__.py) | 5 | Agent 目录注册与纯路径解析；执行对象仍由 bootstrap 构造。 |
+| [src/omni/system/agent_spaces/catalog.py](../../src/omni/system/agent_spaces/catalog.py) | 80 | 配置注册表：有界读取、CAS、跨进程互斥、原子写；不搬运用户数据。 |
+| [src/omni/system/agent_spaces/layout.py](../../src/omni/system/agent_spaces/layout.py) | 119 | 本机 Agent 布局的声明与校验，不创建目录或打开数据。 |
+
+文档：[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
+
+测试：[tests/test_agent_storage.py](../../tests/test_agent_storage.py)
+
+直接静态依赖：`config`、`platform`
+
+## Agent 设置与文件管理 · http-storage
+
+分类：Web 接口。目录设置、待重启差异与当前空间公开文件区的有界浏览和人工上传。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py) | 157 | Agent 目录设置和当前公开文件区；只消费组装根注入的目录与路径策略。 |
+| [src/omni/channels/web_static/storage/index.html](../../src/omni/channels/web_static/storage/index.html) | 8 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/storage/storage.css](../../src/omni/channels/web_static/storage/storage.css) | 1 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/storage/storage.js](../../src/omni/channels/web_static/storage/storage.js) | 78 | 平台脚本或界面资源 |
+
+文档：[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
+
+测试：[tests/test_agent_storage.py](../../tests/test_agent_storage.py)
+
+直接静态依赖：`agent-directories`、`assembly`、`files`、`platform`、`toolkit`
 
 ## 运行时组装 · assembly
 
@@ -10,13 +43,13 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/bootstrap.py](../../src/omni/bootstrap.py) | 630 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [src/omni/bootstrap.py](../../src/omni/bootstrap.py) | 662 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
 测试：[tests/test_paths.py](../../tests/test_paths.py)
 
-直接静态依赖：`android`、`bilibili`、`browser`、`command-jobs`、`community`、`config`、`delegation`、`desktop`、`engine`、`files`、`mcp`、`models`、`personal`、`platform`、`plugins`、`qq-tools`、`safety`、`scheduling`、`shell`、`skills`、`storage`、`system-tools`、`toolkit`、`web-fetch`
+直接静态依赖：`agent-directories`、`android`、`bilibili`、`browser`、`command-jobs`、`community`、`config`、`delegation`、`desktop`、`engine`、`files`、`mcp`、`models`、`personal`、`platform`、`plugins`、`qq-tools`、`safety`、`scheduling`、`shell`、`skills`、`storage`、`system-tools`、`toolkit`、`web-fetch`
 
 ## 配置与路径契约 · config
 
@@ -24,7 +57,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/config.py](../../src/omni/config.py) | 558 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [src/omni/config.py](../../src/omni/config.py) | 569 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -170,7 +203,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_static/ui/base.css](../../src/omni/channels/web_static/ui/base.css) | 14 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 76 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 83 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -457,13 +490,13 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_api/__init__.py](../../src/omni/channels/web_api/__init__.py) | 43 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
+| [src/omni/channels/web_api/__init__.py](../../src/omni/channels/web_api/__init__.py) | 44 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)、[docs/REFACTORING.md](../../docs/REFACTORING.md)
 
 测试：[tests/test_web_api.py](../../tests/test_web_api.py)
 
-直接静态依赖：`assembly`、`command-jobs`、`http-android`、`http-approvals`、`http-artifacts`、`http-automation`、`http-conversation`、`http-devices`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`
+直接静态依赖：`assembly`、`command-jobs`、`http-android`、`http-approvals`、`http-artifacts`、`http-automation`、`http-conversation`、`http-devices`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`、`http-storage`
 
 ## CLI 入口 · cli
 
@@ -615,7 +648,7 @@
 | [src/omni/tools/shell/__init__.py](../../src/omni/tools/shell/__init__.py) | 36 | shell 能力域：SAFE 观察（结构化 argv）与 CONFIRM 执行（shell 语义）。 |
 | [src/omni/tools/shell/danger.py](../../src/omni/tools/shell/danger.py) | 45 | 硬性安全黑名单：灾难级操作命中即拒——即便用户已确认也不执行。 |
 | [src/omni/tools/shell/process.py](../../src/omni/tools/shell/process.py) | 181 | 进程边界：argv 执行、输出上限、超时后的进程树回收与"副作用是否已知"。 |
-| [src/omni/tools/shell/spec.py](../../src/omni/tools/shell/spec.py) | 504 | SAFE 命令解析：把命令串解析成**受控 argv**，解析不出来就拒绝。 |
+| [src/omni/tools/shell/spec.py](../../src/omni/tools/shell/spec.py) | 506 | SAFE 命令解析：把命令串解析成**受控 argv**，解析不出来就拒绝。 |
 | [src/omni/tools/shell/tools.py](../../src/omni/tools/shell/tools.py) | 263 | shell 工具集（toolset=shell）：peek_command（SAFE 观察）与 run_command（CONFIRM 执行）。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
@@ -633,7 +666,7 @@
 | [src/omni/tools/files/__init__.py](../../src/omni/tools/files/__init__.py) | 19 | 结构化文件工具域（D13）：工作区内的有界读写、差异预览与回滚。 |
 | [src/omni/tools/files/history.py](../../src/omni/tools/files/history.py) | 161 | 工作区文件的修订快照（D13）：写前备份、可回滚。 |
 | [src/omni/tools/files/io.py](../../src/omni/tools/files/io.py) | 324 | 文本读写的有界实现（D13）：编码识别、二进制拒绝、窗口读取、原子替换。 |
-| [src/omni/tools/files/paths.py](../../src/omni/tools/files/paths.py) | 279 | 工作区路径边界（D13）：规范化、根校验、敏感项与"检查后不变"。 |
+| [src/omni/tools/files/paths.py](../../src/omni/tools/files/paths.py) | 282 | 工作区路径边界（D13）：规范化、根校验、敏感项与"检查后不变"。 |
 | [src/omni/tools/files/search.py](../../src/omni/tools/files/search.py) | 169 | 有界目录遍历与内容搜索（D13）。 |
 | [src/omni/tools/files/tools.py](../../src/omni/tools/files/tools.py) | 703 | 结构化文件工具（D13，toolset=files）。 |
 
@@ -837,7 +870,7 @@
 | [src/omni/system/catalog/__init__.py](../../src/omni/system/catalog/__init__.py) | 4 | 项目索引：只解析源码与显式分类，不导入被索引模块、不接触运行数据。 |
 | [src/omni/system/catalog/render.py](../../src/omni/system/catalog/render.py) | 46 | 索引输出：从同一结构生成模块表、API 表和可机器查询的 JSON。 |
 | [src/omni/system/catalog/scan.py](../../src/omni/system/catalog/scan.py) | 165 | 静态源码索引；扫描范围固定为注入根的 src/omni，不读取 config/data/.env。 |
-| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 103 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
+| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 105 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
@@ -853,7 +886,7 @@
 |---|---:|---|
 | [src/omni/system/__init__.py](../../src/omni/system/__init__.py) | 5 | 本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。 |
 | [src/omni/system/atomic.py](../../src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
-| [src/omni/system/backup.py](../../src/omni/system/backup.py) | 502 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
+| [src/omni/system/backup.py](../../src/omni/system/backup.py) | 507 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
 | [src/omni/system/config_io.py](../../src/omni/system/config_io.py) | 200 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
 | [src/omni/system/doctor.py](../../src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [src/omni/system/filelock.py](../../src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
@@ -861,7 +894,7 @@
 | [src/omni/system/process_identity.py](../../src/omni/system/process_identity.py) | 231 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
 | [src/omni/system/provenance.py](../../src/omni/system/provenance.py) | 27 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [src/omni/system/release_gate.py](../../src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
-| [src/omni/system/services.py](../../src/omni/system/services.py) | 477 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
+| [src/omni/system/services.py](../../src/omni/system/services.py) | 480 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [src/omni/system/soak.py](../../src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [src/omni/system/stderr_log.py](../../src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
 

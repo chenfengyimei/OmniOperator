@@ -241,6 +241,10 @@ def backup_runtime(
     dest_dir = Path(dest_dir)
     _reject_links(dest_dir)
     destination = dest_dir.resolve()
+    public_trees=[path for path in (paths.files,paths.documents) if path is not None]
+    source_trees=[paths.skills,paths.history,paths.file_history,paths.artifacts,paths.command_logs,*public_trees]
+    if any(destination==source.resolve() or destination.is_relative_to(source.resolve()) for source in source_trees):
+        raise BackupError('备份目标不能位于被备份的目录树内')
     if (destination == paths.data.resolve() or paths.data.resolve().is_relative_to(destination) or
             destination == paths.skills.resolve() or destination.is_relative_to(paths.skills.resolve())):
         raise BackupError("备份目标与运行数据/技能源重叠")
@@ -262,7 +266,7 @@ def backup_runtime(
         else:
             skipped.append(f"{name}（不存在）")
 
-    for rel, src in (("config.yaml", paths.config), ("MEMORY.md", paths.data / "MEMORY.md")):
+    for rel, src in (("config.yaml", paths.config), ("MEMORY.md", paths.resident)):
         if src.is_file():
             if rel == "config.yaml" and not include_credentials:
                 import yaml
@@ -297,7 +301,8 @@ def backup_runtime(
             entries.append(_copy_tree(paths.skills, dest_dir / "skills", "skills"))
         else:
             skipped.append("skills/（不存在）")
-    for rel, source in (("history", paths.history), ("file_history", paths.file_history), ("artifacts", paths.artifacts), ("command_logs", paths.command_logs)):
+    for rel, source in (("history", paths.history), ("file_history", paths.file_history), ("artifacts", paths.artifacts), ("command_logs", paths.command_logs),('files',paths.files),('documents',paths.documents)):
+        if source is None:continue
         if source.is_dir():
             entries.append(_copy_tree(source, dest_dir / rel, rel))
         else:
@@ -371,7 +376,7 @@ def restore_into(backup_dir: Path, target_dir: Path, *, overwrite: bool = False)
     seen = set()
     # 全部源验证通过后才写目标，不让“最后一项坏了”遗留看似可用的前半份恢复。
     allowed = {"state.db": "database", "memory.db": "database", "config.yaml": "file", "MEMORY.md": "file", "skills": "tree",
-               "history": "tree", "file_history": "tree", "artifacts": "tree", "command_logs": "tree"}
+               "history": "tree", "file_history": "tree", "artifacts": "tree", "command_logs": "tree",'files':'tree','documents':'tree'}
     for raw in entries:
         if not isinstance(raw, dict):
             raise BackupError("备份条目必须为对象")

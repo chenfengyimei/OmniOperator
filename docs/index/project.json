@@ -1,7 +1,62 @@
 {
   "schema": 1,
-  "source_sha256": "bf6fe97ac9106ba034b6e8a35a08875a6ee20ef1e3b885f58bd6cafa7131a999",
+  "source_sha256": "5dffd2ca174eba5df6dca0e7031ff3d91230adf2942c1da687f638a9dbfae3ac",
   "modules": [
+    {
+      "id": "agent-directories",
+      "title": "Agent 空间与目录",
+      "category": "平台与数据",
+      "prefixes": [
+        "system/agent_spaces/"
+      ],
+      "purpose": "独立空间注册、目录校验、修订并发控制与有效路径解析；不构造执行对象或搬移数据。",
+      "docs": [
+        "docs/AGENT_STORAGE.md"
+      ],
+      "tests": [
+        "tests/test_agent_storage.py"
+      ],
+      "files": [
+        "src/omni/system/agent_spaces/__init__.py",
+        "src/omni/system/agent_spaces/catalog.py",
+        "src/omni/system/agent_spaces/layout.py"
+      ],
+      "lines": 204,
+      "dependencies": [
+        "config",
+        "platform"
+      ]
+    },
+    {
+      "id": "http-storage",
+      "title": "Agent 设置与文件管理",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/storage.py",
+        "channels/web_static/storage/"
+      ],
+      "purpose": "目录设置、待重启差异与当前空间公开文件区的有界浏览和人工上传。",
+      "docs": [
+        "docs/AGENT_STORAGE.md"
+      ],
+      "tests": [
+        "tests/test_agent_storage.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/storage.py",
+        "src/omni/channels/web_static/storage/index.html",
+        "src/omni/channels/web_static/storage/storage.css",
+        "src/omni/channels/web_static/storage/storage.js"
+      ],
+      "lines": 244,
+      "dependencies": [
+        "agent-directories",
+        "assembly",
+        "files",
+        "platform",
+        "toolkit"
+      ]
+    },
     {
       "id": "assembly",
       "title": "运行时组装",
@@ -19,8 +74,9 @@
       "files": [
         "src/omni/bootstrap.py"
       ],
-      "lines": 630,
+      "lines": 662,
       "dependencies": [
+        "agent-directories",
         "android",
         "bilibili",
         "browser",
@@ -64,7 +120,7 @@
       "files": [
         "src/omni/config.py"
       ],
-      "lines": 558,
+      "lines": 569,
       "dependencies": []
     },
     {
@@ -282,7 +338,7 @@
         "src/omni/channels/web_static/ui/base.css",
         "src/omni/channels/web_static/ui/shared.js"
       ],
-      "lines": 90,
+      "lines": 97,
       "dependencies": []
     },
     {
@@ -769,7 +825,7 @@
       "files": [
         "src/omni/channels/web_api/__init__.py"
       ],
-      "lines": 43,
+      "lines": 44,
       "dependencies": [
         "assembly",
         "command-jobs",
@@ -785,7 +841,8 @@
         "http-publications",
         "http-runs",
         "http-sessions",
-        "http-skills"
+        "http-skills",
+        "http-storage"
       ]
     },
     {
@@ -1048,7 +1105,7 @@
         "src/omni/tools/shell/spec.py",
         "src/omni/tools/shell/tools.py"
       ],
-      "lines": 1029,
+      "lines": 1031,
       "dependencies": [
         "config",
         "toolkit"
@@ -1076,7 +1133,7 @@
         "src/omni/tools/files/search.py",
         "src/omni/tools/files/tools.py"
       ],
-      "lines": 1655,
+      "lines": 1658,
       "dependencies": [
         "platform",
         "toolkit"
@@ -1391,7 +1448,7 @@
         "src/omni/system/catalog/scan.py",
         "src/omni/system/catalog/schema.py"
       ],
-      "lines": 318,
+      "lines": 320,
       "dependencies": [
         "config"
       ]
@@ -1427,7 +1484,7 @@
         "src/omni/system/soak.py",
         "src/omni/system/stderr_log.py"
       ],
-      "lines": 2216,
+      "lines": 2224,
       "dependencies": [
         "config"
       ]
@@ -1474,7 +1531,7 @@
       "path": "src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 630,
+      "lines": 662,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1502,6 +1559,7 @@
         "omni.plugins.tools",
         "omni.safety.broker",
         "omni.safety.gates",
+        "omni.system.agent_spaces",
         "omni.system.backup",
         "omni.system.doctor",
         "omni.system.observability",
@@ -1541,7 +1599,7 @@
       "symbols": [
         {
           "name": "_no_port_probe",
-          "line": 106,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "_port",
@@ -1554,7 +1612,7 @@
         },
         {
           "name": "_no_kill",
-          "line": 111,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1565,7 +1623,7 @@
         },
         {
           "name": "_no_process_probe",
-          "line": 116,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1576,7 +1634,7 @@
         },
         {
           "name": "_no_tcp_probe",
-          "line": 120,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "_port"
@@ -1587,7 +1645,7 @@
         },
         {
           "name": "_no_spawn",
-          "line": 124,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "*_args",
@@ -1597,7 +1655,7 @@
         },
         {
           "name": "_resolve_root",
-          "line": 128,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "value"
@@ -1608,12 +1666,12 @@
         },
         {
           "name": "Runtime",
-          "line": 135,
+          "line": 136,
           "kind": "class"
         },
         {
           "name": "Runtime.qq_policy",
-          "line": 184,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self"
@@ -1622,7 +1680,7 @@
         },
         {
           "name": "Runtime.close_mcp",
-          "line": 188,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",
@@ -1634,7 +1692,7 @@
         },
         {
           "name": "Runtime.doctor",
-          "line": 195,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "self"
@@ -1643,7 +1701,7 @@
         },
         {
           "name": "Runtime.backup",
-          "line": 208,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self"
@@ -1652,7 +1710,7 @@
         },
         {
           "name": "Runtime.close",
-          "line": 213,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self",
@@ -1664,7 +1722,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 260,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "self",
@@ -1676,7 +1734,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 266,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "self"
@@ -1685,7 +1743,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 270,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "self",
@@ -1697,7 +1755,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 279,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "self",
@@ -1709,7 +1767,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 283,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self"
@@ -1718,7 +1776,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 288,
+          "line": 292,
           "kind": "function",
           "parameters": [
             "self",
@@ -1730,7 +1788,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 295,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "self",
@@ -1742,7 +1800,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 303,
+          "line": 307,
           "kind": "function",
           "parameters": [
             "approver",
@@ -1751,7 +1809,9 @@
             "skills_root",
             "data_dir",
             "owner_kind",
-            "start_background_workers"
+            "start_background_workers",
+            "agent_id",
+            "directory_catalog"
           ],
           "annotations": {
             "approver": "Approver | None",
@@ -1760,12 +1820,14 @@
             "skills_root": "Path | None",
             "data_dir": "Path | None",
             "owner_kind": "str",
-            "start_background_workers": "bool"
+            "start_background_workers": "bool",
+            "agent_id": "str | None",
+            "directory_catalog": "Path | None"
           }
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 445,
+          "line": 472,
           "kind": "function",
           "parameters": [
             "rel"
@@ -1776,14 +1838,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 476,
+          "line": 503,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 562,
+          "line": 591,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -2943,7 +3005,7 @@
       "path": "src/omni/channels/web_api/__init__.py",
       "module": "http-routing",
       "python_module": "omni.channels.web_api",
-      "lines": 43,
+      "lines": 44,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.android",
@@ -2959,12 +3021,13 @@
         "omni.channels.web_api.publications",
         "omni.channels.web_api.runs",
         "omni.channels.web_api.sessions",
-        "omni.channels.web_api.skills"
+        "omni.channels.web_api.skills",
+        "omni.channels.web_api.storage"
       ],
       "symbols": [
         {
           "name": "create_api_routers",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -4515,6 +4578,153 @@
       "summary": "技能与审阅 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
     },
     {
+      "path": "src/omni/channels/web_api/storage.py",
+      "module": "http-storage",
+      "python_module": "omni.channels.web_api.storage",
+      "lines": 157,
+      "imports": [
+        "omni.bootstrap",
+        "omni.system.agent_spaces",
+        "omni.system.filelock",
+        "omni.tools.files.io",
+        "omni.tools.files.paths",
+        "omni.tools.pathpolicy"
+      ],
+      "symbols": [
+        {
+          "name": "DirectoryUpdate",
+          "line": 26,
+          "kind": "class"
+        },
+        {
+          "name": "FolderCreate",
+          "line": 33,
+          "kind": "class"
+        },
+        {
+          "name": "create_storage_router",
+          "line": 39,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_storage_router.snapshot",
+          "line": 42,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_storage_router.overview",
+          "line": 53,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_storage_router.preview",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "DirectoryUpdate"
+          }
+        },
+        {
+          "name": "create_storage_router.update",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "DirectoryUpdate"
+          }
+        },
+        {
+          "name": "create_storage_router.target",
+          "line": 71,
+          "kind": "function",
+          "parameters": [
+            "scope",
+            "path",
+            "exists",
+            "write"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_storage_router.files",
+          "line": 85,
+          "kind": "function",
+          "parameters": [
+            "scope",
+            "path",
+            "offset"
+          ],
+          "annotations": {
+            "scope": "str",
+            "path": "str",
+            "offset": "int"
+          }
+        },
+        {
+          "name": "create_storage_router.preview_file",
+          "line": 110,
+          "kind": "function",
+          "parameters": [
+            "scope",
+            "path"
+          ],
+          "annotations": {
+            "scope": "str",
+            "path": "str"
+          }
+        },
+        {
+          "name": "create_storage_router.create_folder",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "FolderCreate"
+          }
+        },
+        {
+          "name": "create_storage_router.upload",
+          "line": 136,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "scope",
+            "path"
+          ],
+          "annotations": {
+            "request": "Request",
+            "scope": "str",
+            "path": "str"
+          }
+        },
+        {
+          "name": "create_storage_router.upload.persist",
+          "line": 145,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "Agent 目录设置和当前公开文件区；只消费组装根注入的目录与路径策略。"
+    },
+    {
       "path": "src/omni/channels/web_auth.py",
       "module": "web-ui",
       "python_module": "omni.channels.web_auth",
@@ -4905,6 +5115,36 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "src/omni/channels/web_static/storage/index.html",
+      "module": "http-storage",
+      "python_module": null,
+      "lines": 8,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/storage/storage.css",
+      "module": "http-storage",
+      "python_module": null,
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/storage/storage.js",
+      "module": "http-storage",
+      "python_module": null,
+      "lines": 78,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "src/omni/channels/web_static/terminal/index.html",
       "module": "terminal",
       "python_module": null,
@@ -4948,7 +5188,7 @@
       "path": "src/omni/channels/web_static/ui/shared.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 76,
+      "lines": 83,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5076,7 +5316,7 @@
       "path": "src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 558,
+      "lines": 569,
       "imports": [],
       "symbols": [
         {
@@ -5086,7 +5326,7 @@
         },
         {
           "name": "RuntimePaths.create",
-          "line": 54,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5104,7 +5344,7 @@
         },
         {
           "name": "load_env",
-          "line": 87,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "env_path"
@@ -5115,47 +5355,47 @@
         },
         {
           "name": "Persona",
-          "line": 108,
+          "line": 119,
           "kind": "class"
         },
         {
           "name": "Models",
-          "line": 115,
+          "line": 126,
           "kind": "class"
         },
         {
           "name": "ModelCapability",
-          "line": 122,
+          "line": 133,
           "kind": "class"
         },
         {
           "name": "Retry",
-          "line": 140,
+          "line": 151,
           "kind": "class"
         },
         {
           "name": "LLMBudget",
-          "line": 148,
+          "line": 159,
           "kind": "class"
         },
         {
           "name": "Vision",
-          "line": 160,
+          "line": 171,
           "kind": "class"
         },
         {
           "name": "Artifacts",
-          "line": 174,
+          "line": 185,
           "kind": "class"
         },
         {
           "name": "LLM",
-          "line": 182,
+          "line": 193,
           "kind": "class"
         },
         {
           "name": "LLM.capability",
-          "line": 191,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self",
@@ -5167,47 +5407,47 @@
         },
         {
           "name": "Limits",
-          "line": 195,
+          "line": 206,
           "kind": "class"
         },
         {
           "name": "Review",
-          "line": 203,
+          "line": 214,
           "kind": "class"
         },
         {
           "name": "Memory",
-          "line": 213,
+          "line": 224,
           "kind": "class"
         },
         {
           "name": "Web",
-          "line": 225,
+          "line": 236,
           "kind": "class"
         },
         {
           "name": "Files",
-          "line": 242,
+          "line": 253,
           "kind": "class"
         },
         {
           "name": "Compression",
-          "line": 260,
+          "line": 271,
           "kind": "class"
         },
         {
           "name": "Asr",
-          "line": 269,
+          "line": 280,
           "kind": "class"
         },
         {
           "name": "QQ",
-          "line": 277,
+          "line": 288,
           "kind": "class"
         },
         {
           "name": "QQ.check_qq_policy",
-          "line": 298,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "self"
@@ -5216,22 +5456,22 @@
         },
         {
           "name": "Browser",
-          "line": 314,
+          "line": 325,
           "kind": "class"
         },
         {
           "name": "UIFormSelectors",
-          "line": 323,
+          "line": 334,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite",
-          "line": 341,
+          "line": 352,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite.check_forms",
-          "line": 348,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "self"
@@ -5240,22 +5480,22 @@
         },
         {
           "name": "System",
-          "line": 357,
+          "line": 368,
           "kind": "class"
         },
         {
           "name": "Approval",
-          "line": 363,
+          "line": 374,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig",
-          "line": 373,
+          "line": 384,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig.nonblank_command",
-          "line": 391,
+          "line": 402,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5267,7 +5507,7 @@
         },
         {
           "name": "MCPServerConfig.readonly_subset",
-          "line": 397,
+          "line": 408,
           "kind": "function",
           "parameters": [
             "self"
@@ -5276,12 +5516,12 @@
         },
         {
           "name": "MCPConfig",
-          "line": 403,
+          "line": 414,
           "kind": "class"
         },
         {
           "name": "MCPConfig.server_names",
-          "line": 409,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5293,12 +5533,12 @@
         },
         {
           "name": "Desktop",
-          "line": 417,
+          "line": 428,
           "kind": "class"
         },
         {
           "name": "Desktop.absolute_apps",
-          "line": 428,
+          "line": 439,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5308,12 +5548,12 @@
         },
         {
           "name": "Embedding",
-          "line": 434,
+          "line": 445,
           "kind": "class"
         },
         {
           "name": "Embedding.validate_provider",
-          "line": 452,
+          "line": 463,
           "kind": "function",
           "parameters": [
             "self"
@@ -5322,17 +5562,17 @@
         },
         {
           "name": "Cron",
-          "line": 472,
+          "line": 483,
           "kind": "class"
         },
         {
           "name": "AndroidConfig",
-          "line": 477,
+          "line": 488,
           "kind": "class"
         },
         {
           "name": "AndroidConfig.packages",
-          "line": 489,
+          "line": 500,
           "kind": "function",
           "parameters": [
             "cls",
@@ -5342,22 +5582,22 @@
         },
         {
           "name": "CommandJobsConfig",
-          "line": 496,
+          "line": 507,
           "kind": "class"
         },
         {
           "name": "TerminalConfig",
-          "line": 506,
+          "line": 517,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 514,
+          "line": 525,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 541,
+          "line": 552,
           "kind": "function",
           "parameters": [
             "path"
@@ -5368,7 +5608,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 549,
+          "line": 560,
           "kind": "function",
           "parameters": [
             "path"
@@ -14267,6 +14507,222 @@
       "summary": "本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。"
     },
     {
+      "path": "src/omni/system/agent_spaces/__init__.py",
+      "module": "agent-directories",
+      "python_module": "omni.system.agent_spaces",
+      "lines": 5,
+      "imports": [
+        "omni.system.agent_spaces.catalog",
+        "omni.system.agent_spaces.layout"
+      ],
+      "symbols": [],
+      "summary": "Agent 目录注册与纯路径解析；执行对象仍由 bootstrap 构造。"
+    },
+    {
+      "path": "src/omni/system/agent_spaces/catalog.py",
+      "module": "agent-directories",
+      "python_module": "omni.system.agent_spaces.catalog",
+      "lines": 80,
+      "imports": [
+        "omni.config",
+        "omni.system.agent_spaces.layout",
+        "omni.system.atomic",
+        "omni.system.filelock"
+      ],
+      "symbols": [
+        {
+          "name": "DirectoryConflict",
+          "line": 16,
+          "kind": "class"
+        },
+        {
+          "name": "Catalog",
+          "line": 19,
+          "kind": "class"
+        },
+        {
+          "name": "AgentDirectoryStore",
+          "line": 26,
+          "kind": "class"
+        },
+        {
+          "name": "AgentDirectoryStore.__init__",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path",
+            "legacy",
+            "isolated"
+          ],
+          "annotations": {
+            "path": "Path",
+            "legacy": "RuntimePaths"
+          }
+        },
+        {
+          "name": "AgentDirectoryStore._read",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AgentDirectoryStore.validate",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data"
+          ],
+          "annotations": {
+            "data": "Catalog"
+          }
+        },
+        {
+          "name": "AgentDirectoryStore.validate.owned",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "layout"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AgentDirectoryStore.layout",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "profile"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AgentDirectoryStore.snapshot",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AgentDirectoryStore.selected",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identifier"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AgentDirectoryStore.preview",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AgentDirectoryStore.save",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data",
+            "revision",
+            "acknowledge"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "配置注册表：有界读取、CAS、跨进程互斥、原子写；不搬运用户数据。"
+    },
+    {
+      "path": "src/omni/system/agent_spaces/layout.py",
+      "module": "agent-directories",
+      "python_module": "omni.system.agent_spaces.layout",
+      "lines": 119,
+      "imports": [
+        "omni.config"
+      ],
+      "symbols": [
+        {
+          "name": "DirectoryOverrides",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "AgentProfile",
+          "line": 30,
+          "kind": "class"
+        },
+        {
+          "name": "local_path",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "base"
+          ],
+          "annotations": {
+            "value": "str | Path",
+            "base": "Path"
+          }
+        },
+        {
+          "name": "overlap",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "a",
+            "b"
+          ],
+          "annotations": {
+            "a": "Path",
+            "b": "Path"
+          }
+        },
+        {
+          "name": "AgentLayout",
+          "line": 65,
+          "kind": "class"
+        },
+        {
+          "name": "AgentLayout.describe",
+          "line": 71,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "resolve_layout",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "profile",
+            "legacy",
+            "catalog",
+            "isolated"
+          ],
+          "annotations": {
+            "profile": "AgentProfile",
+            "legacy": "RuntimePaths",
+            "catalog": "Path"
+          }
+        }
+      ],
+      "summary": "本机 Agent 布局的声明与校验，不创建目录或打开数据。"
+    },
+    {
       "path": "src/omni/system/atomic.py",
       "module": "platform",
       "python_module": "omni.system.atomic",
@@ -14308,7 +14764,7 @@
       "path": "src/omni/system/backup.py",
       "module": "platform",
       "python_module": "omni.system.backup",
-      "lines": 502,
+      "lines": 507,
       "imports": [
         "omni.config",
         "omni.system.atomic"
@@ -14476,7 +14932,7 @@
         },
         {
           "name": "read_manifest",
-          "line": 314,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "backup_dir"
@@ -14487,7 +14943,7 @@
         },
         {
           "name": "verify_database",
-          "line": 332,
+          "line": 337,
           "kind": "function",
           "parameters": [
             "path"
@@ -14498,7 +14954,7 @@
         },
         {
           "name": "restore_into",
-          "line": 351,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "backup_dir",
@@ -14513,7 +14969,7 @@
         },
         {
           "name": "main",
-          "line": 461,
+          "line": 466,
           "kind": "function",
           "parameters": [
             "argv"
@@ -14688,7 +15144,7 @@
       "path": "src/omni/system/catalog/schema.py",
       "module": "catalog",
       "python_module": "omni.system.catalog.schema",
-      "lines": 103,
+      "lines": 105,
       "imports": [],
       "symbols": [
         {
@@ -14698,7 +15154,7 @@
         },
         {
           "name": "classify",
-          "line": 74,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "relative"
@@ -15317,7 +15773,7 @@
       "path": "src/omni/system/services.py",
       "module": "platform",
       "python_module": "omni.system.services",
-      "lines": 477,
+      "lines": 480,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -15400,22 +15856,24 @@
           "parameters": [
             "argv",
             "cwd",
-            "log_path"
+            "log_path",
+            "environment"
           ],
           "annotations": {
             "argv": "list[str]",
             "cwd": "Path",
-            "log_path": "Path"
+            "log_path": "Path",
+            "environment": "dict[str, str] | None"
           }
         },
         {
           "name": "ServiceManager",
-          "line": 150,
+          "line": 151,
           "kind": "class"
         },
         {
           "name": "ServiceManager.__init__",
-          "line": 151,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
@@ -15430,7 +15888,8 @@
             "inspector",
             "tcp_probe",
             "stop_wait_s",
-            "exit_checker"
+            "exit_checker",
+            "environment"
           ],
           "annotations": {
             "napcat_dir": "Path | None",
@@ -15444,12 +15903,13 @@
             "inspector": "Callable[[int], ProcessIdentity | None] | None",
             "tcp_probe": "Callable[[int], bool] | None",
             "stop_wait_s": "float",
-            "exit_checker": "Callable[[ProcessIdentity], bool] | None"
+            "exit_checker": "Callable[[ProcessIdentity], bool] | None",
+            "environment": "dict[str, str] | None"
           }
         },
         {
           "name": "ServiceManager.napcat_dir",
-          "line": 189,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self"
@@ -15458,7 +15918,7 @@
         },
         {
           "name": "ServiceManager._napcat_pid",
-          "line": 194,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "self"
@@ -15467,7 +15927,7 @@
         },
         {
           "name": "ServiceManager.napcat_start",
-          "line": 201,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
@@ -15479,15 +15939,6 @@
         },
         {
           "name": "ServiceManager.napcat_stop",
-          "line": 218,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "ServiceManager.napcat_qr",
           "line": 221,
           "kind": "function",
           "parameters": [
@@ -15496,8 +15947,17 @@
           "annotations": {}
         },
         {
+          "name": "ServiceManager.napcat_qr",
+          "line": 224,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "ServiceManager._napcat_uin",
-          "line": 241,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "self"
@@ -15506,7 +15966,7 @@
         },
         {
           "name": "ServiceManager._omni_argv",
-          "line": 253,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self",
@@ -15518,7 +15978,7 @@
         },
         {
           "name": "ServiceManager.omni_start",
-          "line": 259,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "self",
@@ -15530,18 +15990,6 @@
         },
         {
           "name": "ServiceManager.omni_stop",
-          "line": 267,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ServiceManager._omni_pid",
           "line": 270,
           "kind": "function",
           "parameters": [
@@ -15553,8 +16001,20 @@
           }
         },
         {
+          "name": "ServiceManager._omni_pid",
+          "line": 273,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
           "name": "ServiceManager.status",
-          "line": 278,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "self",
@@ -15566,7 +16026,7 @@
         },
         {
           "name": "ServiceManager.overview",
-          "line": 296,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "self"
@@ -15575,7 +16035,7 @@
         },
         {
           "name": "ServiceManager.start",
-          "line": 307,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "self",
@@ -15589,7 +16049,7 @@
         },
         {
           "name": "ServiceManager.stop",
-          "line": 312,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -15601,7 +16061,7 @@
         },
         {
           "name": "ServiceManager.log_tail",
-          "line": 317,
+          "line": 320,
           "kind": "function",
           "parameters": [
             "self",
@@ -15615,7 +16075,7 @@
         },
         {
           "name": "ServiceManager._pid_path",
-          "line": 332,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self",
@@ -15627,7 +16087,7 @@
         },
         {
           "name": "ServiceManager._read_pid",
-          "line": 336,
+          "line": 339,
           "kind": "function",
           "parameters": [
             "self",
@@ -15639,7 +16099,7 @@
         },
         {
           "name": "ServiceManager._validate_name",
-          "line": 346,
+          "line": 349,
           "kind": "function",
           "parameters": [
             "name"
@@ -15650,18 +16110,6 @@
         },
         {
           "name": "ServiceManager._lock",
-          "line": 350,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ServiceManager._read_record",
           "line": 353,
           "kind": "function",
           "parameters": [
@@ -15673,8 +16121,20 @@
           }
         },
         {
+          "name": "ServiceManager._read_record",
+          "line": 356,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
           "name": "ServiceManager._record_identity",
-          "line": 367,
+          "line": 370,
           "kind": "function",
           "parameters": [
             "record"
@@ -15685,7 +16145,7 @@
         },
         {
           "name": "ServiceManager._write_pid",
-          "line": 380,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "self",
@@ -15699,7 +16159,7 @@
         },
         {
           "name": "ServiceManager._check_start",
-          "line": 395,
+          "line": 398,
           "kind": "function",
           "parameters": [
             "self",
@@ -15711,7 +16171,7 @@
         },
         {
           "name": "ServiceManager._stop_verified",
-          "line": 402,
+          "line": 405,
           "kind": "function",
           "parameters": [
             "self",
@@ -15723,7 +16183,7 @@
         },
         {
           "name": "ServiceManager.stop_requested",
-          "line": 442,
+          "line": 445,
           "kind": "function",
           "parameters": [
             "self",
@@ -15737,7 +16197,7 @@
         },
         {
           "name": "ServiceManager.register_current",
-          "line": 448,
+          "line": 451,
           "kind": "function",
           "parameters": [
             "self",
@@ -15749,7 +16209,7 @@
         },
         {
           "name": "ServiceManager.unregister_current",
-          "line": 464,
+          "line": 467,
           "kind": "function",
           "parameters": [
             "self",
@@ -15763,7 +16223,7 @@
         },
         {
           "name": "ServiceManager._clear_pid",
-          "line": 468,
+          "line": 471,
           "kind": "function",
           "parameters": [
             "self",
@@ -19308,7 +19768,7 @@
       "path": "src/omni/tools/files/paths.py",
       "module": "files",
       "python_module": "omni.tools.files.paths",
-      "lines": 279,
+      "lines": 282,
       "imports": [
         "omni.tools.pathpolicy"
       ],
@@ -19358,7 +19818,7 @@
         },
         {
           "name": "Workspace.__post_init__",
-          "line": 81,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self"
@@ -19367,7 +19827,7 @@
         },
         {
           "name": "Workspace.roots",
-          "line": 110,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self"
@@ -19376,7 +19836,7 @@
         },
         {
           "name": "Workspace.describe",
-          "line": 113,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self"
@@ -19385,7 +19845,7 @@
         },
         {
           "name": "Workspace.assert_unchanged",
-          "line": 120,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -19397,7 +19857,7 @@
         },
         {
           "name": "Workspace.resolve",
-          "line": 134,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -19413,7 +19873,7 @@
         },
         {
           "name": "Workspace._locate",
-          "line": 157,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -19425,7 +19885,7 @@
         },
         {
           "name": "Workspace._check_policy",
-          "line": 168,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self",
@@ -19441,7 +19901,7 @@
         },
         {
           "name": "Workspace._prefix_reason",
-          "line": 201,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "rel",
@@ -19456,7 +19916,7 @@
         },
         {
           "name": "_clean",
-          "line": 215,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "raw"
@@ -19467,7 +19927,7 @@
         },
         {
           "name": "_canonical",
-          "line": 253,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "path"
@@ -19478,7 +19938,7 @@
         },
         {
           "name": "_relative_under",
-          "line": 262,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "root",
@@ -19491,7 +19951,7 @@
         },
         {
           "name": "_glob_reason",
-          "line": 274,
+          "line": 277,
           "kind": "function",
           "parameters": [
             "rel",
@@ -22152,7 +22612,7 @@
       "path": "src/omni/tools/shell/spec.py",
       "module": "shell",
       "python_module": "omni.tools.shell.spec",
-      "lines": 504,
+      "lines": 506,
       "imports": [
         "omni.tools.pathpolicy"
       ],
@@ -22261,7 +22721,7 @@
         },
         {
           "name": "_spec_dir",
-          "line": 196,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "tokens",
@@ -22274,7 +22734,7 @@
         },
         {
           "name": "_spec_tasklist",
-          "line": 214,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "tokens"
@@ -22285,7 +22745,7 @@
         },
         {
           "name": "_spec_netstat",
-          "line": 240,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "tokens"
@@ -22296,7 +22756,7 @@
         },
         {
           "name": "_spec_where",
-          "line": 262,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "tokens"
@@ -22307,7 +22767,7 @@
         },
         {
           "name": "_spec_ipconfig",
-          "line": 272,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "tokens"
@@ -22318,7 +22778,7 @@
         },
         {
           "name": "_spec_systeminfo",
-          "line": 279,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "tokens"
@@ -22329,7 +22789,7 @@
         },
         {
           "name": "_spec_adb",
-          "line": 288,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "tokens"
@@ -22340,7 +22800,7 @@
         },
         {
           "name": "_git_arg_is_denied",
-          "line": 295,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "arg"
@@ -22351,7 +22811,7 @@
         },
         {
           "name": "_git_status",
-          "line": 308,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "args"
@@ -22362,7 +22822,7 @@
         },
         {
           "name": "_git_log",
-          "line": 320,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "args"
@@ -22373,7 +22833,7 @@
         },
         {
           "name": "_git_diff_like",
-          "line": 354,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "name",
@@ -22386,7 +22846,7 @@
         },
         {
           "name": "_git_show",
-          "line": 383,
+          "line": 385,
           "kind": "function",
           "parameters": [
             "args"
@@ -22397,7 +22857,7 @@
         },
         {
           "name": "_git_branch",
-          "line": 394,
+          "line": 396,
           "kind": "function",
           "parameters": [
             "args"
@@ -22408,7 +22868,7 @@
         },
         {
           "name": "_git_remote",
-          "line": 406,
+          "line": 408,
           "kind": "function",
           "parameters": [
             "args"
@@ -22419,7 +22879,7 @@
         },
         {
           "name": "_spec_git",
-          "line": 423,
+          "line": 425,
           "kind": "function",
           "parameters": [
             "tokens",
@@ -22432,7 +22892,7 @@
         },
         {
           "name": "_spec_system",
-          "line": 447,
+          "line": 449,
           "kind": "function",
           "parameters": [
             "name",
@@ -22444,7 +22904,7 @@
         },
         {
           "name": "_spec_system.spec",
-          "line": 448,
+          "line": 450,
           "kind": "function",
           "parameters": [
             "tokens",
@@ -22457,7 +22917,7 @@
         },
         {
           "name": "_spec_adb_wrapped",
-          "line": 460,
+          "line": 462,
           "kind": "function",
           "parameters": [
             "tokens",
@@ -22470,7 +22930,7 @@
         },
         {
           "name": "parse_safe_command",
-          "line": 482,
+          "line": 484,
           "kind": "function",
           "parameters": [
             "command",
@@ -24896,6 +25356,117 @@
       "scope": "workbench"
     },
     {
+      "method": "GET",
+      "path": "/api/storage",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 53,
+      "handler": "create_storage_router.overview",
+      "module": "http-storage",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/storage",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 63,
+      "handler": "create_storage_router.update",
+      "module": "http-storage",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "DirectoryUpdate"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/storage/files",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 85,
+      "handler": "create_storage_router.files",
+      "module": "http-storage",
+      "parameters": [
+        "scope",
+        "path",
+        "offset"
+      ],
+      "annotations": {
+        "scope": "str",
+        "path": "str",
+        "offset": "int"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/storage/folders",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 126,
+      "handler": "create_storage_router.create_folder",
+      "module": "http-storage",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "FolderCreate"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/storage/preview",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 58,
+      "handler": "create_storage_router.preview",
+      "module": "http-storage",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "DirectoryUpdate"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/storage/preview-file",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 110,
+      "handler": "create_storage_router.preview_file",
+      "module": "http-storage",
+      "parameters": [
+        "scope",
+        "path"
+      ],
+      "annotations": {
+        "scope": "str",
+        "path": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/storage/upload",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 136,
+      "handler": "create_storage_router.upload",
+      "module": "http-storage",
+      "parameters": [
+        "request",
+        "scope",
+        "path"
+      ],
+      "annotations": {
+        "request": "Request",
+        "scope": "str",
+        "path": "str"
+      },
+      "scope": "workbench"
+    },
+    {
       "method": "POST",
       "path": "/api/system/backup",
       "source": "src/omni/channels/web_api/operations.py",
@@ -26842,9 +27413,48 @@
       ]
     },
     {
+      "name": "DirectoryUpdate",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 26,
+      "fields": [
+        {
+          "name": "revision",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "catalog",
+          "type": "dict",
+          "required": true
+        },
+        {
+          "name": "acknowledge",
+          "type": "bool",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "FolderCreate",
+      "source": "src/omni/channels/web_api/storage.py",
+      "line": 33,
+      "fields": [
+        {
+          "name": "scope",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "path",
+          "type": "str",
+          "required": false
+        }
+      ]
+    },
+    {
       "name": "Persona",
       "source": "src/omni/config.py",
-      "line": 108,
+      "line": 119,
       "fields": [
         {
           "name": "name",
@@ -26861,7 +27471,7 @@
     {
       "name": "Models",
       "source": "src/omni/config.py",
-      "line": 115,
+      "line": 126,
       "fields": [
         {
           "name": "chat",
@@ -26888,7 +27498,7 @@
     {
       "name": "ModelCapability",
       "source": "src/omni/config.py",
-      "line": 122,
+      "line": 133,
       "fields": [
         {
           "name": "tools",
@@ -26925,7 +27535,7 @@
     {
       "name": "Retry",
       "source": "src/omni/config.py",
-      "line": 140,
+      "line": 151,
       "fields": [
         {
           "name": "max_attempts",
@@ -26947,7 +27557,7 @@
     {
       "name": "LLMBudget",
       "source": "src/omni/config.py",
-      "line": 148,
+      "line": 159,
       "fields": [
         {
           "name": "daily_usd",
@@ -26964,7 +27574,7 @@
     {
       "name": "Vision",
       "source": "src/omni/config.py",
-      "line": 160,
+      "line": 171,
       "fields": [
         {
           "name": "send_to_cloud",
@@ -26991,7 +27601,7 @@
     {
       "name": "Artifacts",
       "source": "src/omni/config.py",
-      "line": 174,
+      "line": 185,
       "fields": [
         {
           "name": "retention_days",
@@ -27008,7 +27618,7 @@
     {
       "name": "LLM",
       "source": "src/omni/config.py",
-      "line": 182,
+      "line": 193,
       "fields": [
         {
           "name": "request_timeout_s",
@@ -27040,7 +27650,7 @@
     {
       "name": "Limits",
       "source": "src/omni/config.py",
-      "line": 195,
+      "line": 206,
       "fields": [
         {
           "name": "max_history_messages",
@@ -27072,7 +27682,7 @@
     {
       "name": "Review",
       "source": "src/omni/config.py",
-      "line": 203,
+      "line": 214,
       "fields": [
         {
           "name": "enabled",
@@ -27104,7 +27714,7 @@
     {
       "name": "Memory",
       "source": "src/omni/config.py",
-      "line": 213,
+      "line": 224,
       "fields": [
         {
           "name": "max_writes_per_day",
@@ -27126,7 +27736,7 @@
     {
       "name": "Web",
       "source": "src/omni/config.py",
-      "line": 225,
+      "line": 236,
       "fields": [
         {
           "name": "max_bytes",
@@ -27173,7 +27783,7 @@
     {
       "name": "Files",
       "source": "src/omni/config.py",
-      "line": 242,
+      "line": 253,
       "fields": [
         {
           "name": "root",
@@ -27225,7 +27835,7 @@
     {
       "name": "Compression",
       "source": "src/omni/config.py",
-      "line": 260,
+      "line": 271,
       "fields": [
         {
           "name": "enabled",
@@ -27252,7 +27862,7 @@
     {
       "name": "Asr",
       "source": "src/omni/config.py",
-      "line": 269,
+      "line": 280,
       "fields": [
         {
           "name": "model",
@@ -27274,7 +27884,7 @@
     {
       "name": "QQ",
       "source": "src/omni/config.py",
-      "line": 277,
+      "line": 288,
       "fields": [
         {
           "name": "enabled",
@@ -27361,7 +27971,7 @@
     {
       "name": "Browser",
       "source": "src/omni/config.py",
-      "line": 314,
+      "line": 325,
       "fields": [
         {
           "name": "headless",
@@ -27388,7 +27998,7 @@
     {
       "name": "UIFormSelectors",
       "source": "src/omni/config.py",
-      "line": 323,
+      "line": 334,
       "fields": [
         {
           "name": "account",
@@ -27460,7 +28070,7 @@
     {
       "name": "BilibiliWrite",
       "source": "src/omni/config.py",
-      "line": 341,
+      "line": 352,
       "fields": [
         {
           "name": "enabled",
@@ -27487,7 +28097,7 @@
     {
       "name": "System",
       "source": "src/omni/config.py",
-      "line": 357,
+      "line": 368,
       "fields": [
         {
           "name": "napcat_dir",
@@ -27499,7 +28109,7 @@
     {
       "name": "Approval",
       "source": "src/omni/config.py",
-      "line": 363,
+      "line": 374,
       "fields": [
         {
           "name": "mode",
@@ -27511,7 +28121,7 @@
     {
       "name": "MCPServerConfig",
       "source": "src/omni/config.py",
-      "line": 373,
+      "line": 384,
       "fields": [
         {
           "name": "command",
@@ -27573,7 +28183,7 @@
     {
       "name": "MCPConfig",
       "source": "src/omni/config.py",
-      "line": 403,
+      "line": 414,
       "fields": [
         {
           "name": "servers",
@@ -27585,7 +28195,7 @@
     {
       "name": "Desktop",
       "source": "src/omni/config.py",
-      "line": 417,
+      "line": 428,
       "fields": [
         {
           "name": "enabled",
@@ -27622,7 +28232,7 @@
     {
       "name": "Embedding",
       "source": "src/omni/config.py",
-      "line": 434,
+      "line": 445,
       "fields": [
         {
           "name": "enabled",
@@ -27699,7 +28309,7 @@
     {
       "name": "Cron",
       "source": "src/omni/config.py",
-      "line": 472,
+      "line": 483,
       "fields": [
         {
           "name": "max_running",
@@ -27711,7 +28321,7 @@
     {
       "name": "AndroidConfig",
       "source": "src/omni/config.py",
-      "line": 477,
+      "line": 488,
       "fields": [
         {
           "name": "allowed_apps",
@@ -27753,7 +28363,7 @@
     {
       "name": "CommandJobsConfig",
       "source": "src/omni/config.py",
-      "line": 496,
+      "line": 507,
       "fields": [
         {
           "name": "max_running",
@@ -27790,7 +28400,7 @@
     {
       "name": "TerminalConfig",
       "source": "src/omni/config.py",
-      "line": 506,
+      "line": 517,
       "fields": [
         {
           "name": "max_sessions",
@@ -27817,7 +28427,7 @@
     {
       "name": "AppConfig",
       "source": "src/omni/config.py",
-      "line": 514,
+      "line": 525,
       "fields": [
         {
           "name": "android",
@@ -27937,6 +28547,107 @@
         {
           "name": "desktop",
           "type": "Desktop",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "source": "src/omni/system/agent_spaces/catalog.py",
+      "line": 19,
+      "fields": [
+        {
+          "name": "version",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "active",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "agents",
+          "type": "list[AgentProfile]",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "DirectoryOverrides",
+      "source": "src/omni/system/agent_spaces/layout.py",
+      "line": 17,
+      "fields": [
+        {
+          "name": "workspace",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "files",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "documents",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "memory",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "skills",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "artifacts",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "cache",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "logs",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "backups",
+          "type": "str",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "AgentProfile",
+      "source": "src/omni/system/agent_spaces/layout.py",
+      "line": 30,
+      "fields": [
+        {
+          "name": "id",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "home",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "directories",
+          "type": "DirectoryOverrides",
           "required": false
         }
       ]

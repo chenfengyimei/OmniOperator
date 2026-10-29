@@ -76,6 +76,7 @@ class Workspace:
     extra_roots: list[Path] = field(default_factory=list)
     deny_globs: tuple[str, ...] = ()
     write_deny_globs: tuple[str, ...] = ()
+    read_only_roots: list[Path] = field(default_factory=list)
     _roots: list[Root] = field(init=False, repr=False, default_factory=list)
 
     def __post_init__(self) -> None:
@@ -155,7 +156,7 @@ class Workspace:
         return resolved
 
     def _locate(self, canonical: Path) -> tuple[Root, str]:
-        for root in self._roots:
+        for root in sorted(self._roots,key=lambda item:len(item.path.parts),reverse=True):
             rel = _relative_under(root.path, canonical)
             if rel is not None:
                 return root, rel
@@ -179,6 +180,8 @@ class Workspace:
             raise PathRejected(reason, code="sensitive_path")
 
         if for_write:
+            if any(resolved.root.path==_canonical(path) for path in self.read_only_roots):
+                raise PathRejected('资料目录对模型只读；请用户通过文件管理添加资料',code='read_only_root')
             if resolved.is_symlink:
                 raise PathRejected(
                     "目标是符号链接/快捷方式：拒绝顺着链接写文件（可能改到工作区外）",

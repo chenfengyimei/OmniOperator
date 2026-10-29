@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import json
 import time
 
 import pytest
@@ -13,7 +14,7 @@ from starlette.websockets import WebSocketDisconnect
 
 from omni.bootstrap import build_runtime
 from omni.channels.web import _validate_bind_host, create_app
-from omni.channels.web_auth import COOKIE_NAME, WebAuth
+from omni.channels.web_auth import COOKIE_NAME, PAIR_TTL_S, WebAuth
 from omni.safety.gates import DenyApprover
 
 SENSITIVE_GETS = (
@@ -348,3 +349,191 @@ def test_websocket_gate_matrix(tmp_path):
         host="127.0.0.1:8000", origin="https://evil.example", cookie=session
     ).code == "origin_rejected"
     assert auth.check_websocket(host="127.0.0.1:8000", origin=None, cookie=None).code == "auth_required"
+
+
+# ------------------------------------------------- 异常输入不能打成 500
+
+# `/pair/{code}` 谁都能敲：中文路径、空值、超长都不能让身份接口 500，
+# 否则就是本地给自己留了一个"一键刷错误日志"的口子。
+BAD_PAIR_CODES = ("配对码", "１２３４５６７８", "sk-模型", "%E9%85%8D", "abcdefgh", "   ")
+
+
+@pytest.mark.parametrize("code", BAD_PAIR_CODES)
+def test_pair_link_bad_code_is_not_500(tmp_path, code):
+    """异常配对码：一律按失败处理（403），不抛 TypeError。"""
+    app, _runtime = _app(tmp_path)
+    client = TestClient(app, base_url="http://127.0.0.1")
+    response = client.get(f"/pair/{code}")
+    assert response.status_code == 403
+    assert "配对" in response.text
+
+
+@pytest.mark.parametrize("code", [c for c in BAD_PAIR_CODES if c.strip()])
+def test_pair_api_bad_code_is_not_500(tmp_path, code):
+    """配对接口同样：非法输入按拒绝处理，不打 500。"""
+    app, _runtime = _app(tmp_path)
+    client = TestClient(app, base_url="http://127.0.0.1")
+    response = client.post("/api/auth/pair", json={"code": code})
+    assert response.status_code in (400, 403)
+
+
+def test_pair_non_ascii_is_rejection_not_exception(tmp_path):
+    """WebAuth.pair：非 ASCII 输入返回 Rejection，且失败计数照常推进。"""
+    auth = WebAuth(tmp_path / "data")
+    result = auth.pair("中文码")
+    assert not isinstance(result, str)
+    assert result.code in ("pair_rejected", "pair_locked")
+    assert auth._pair_failures >= 1
+
+
+# ------------------------------------------------- 配对链接落盘
+
+# 为什么：配对码只在控制台打印一次、15 分钟就换，助手想再拿就得重启服务，
+# 而重启又会换码 —— "想拿链接"和"保持链接有效"互相打架。落盘后随时可读。
+def test_pair_url_dumped_to_run_dir(tmp_path, capsys):
+    auth = WebAuth(tmp_path / "data")
+    url = auth.announce_pairing()
+    target = tmp_path / "data" / "run" / "pair_url.txt"
+    assert target.exists()
+    assert target.read_text(encoding="utf-8").strip() == auth.pairing_url()
+
+
+def test_pair_url_dump_refreshed_after_rotate(tmp_path, capsys):
+    auth = WebAuth(tmp_path / "data")
+    auth.announce_pairing()  # 先落一次盘，再验证换码会同步刷新
+    capsys.readouterr()
+    target = tmp_path / "data" / "run" / "pair_url.txt"
+    before = target.read_text(encoding="utf-8").strip()
+    auth._rotate_code()
+    after = target.read_text(encoding="utf-8").strip()
+    assert after == auth.pairing_url()
+    assert after != before
+
+
+def test_pair_url_json_carries_expiry(tmp_path, capsys):
+    """落盘的 json 必须带到期时刻：读码方先查它，才能判断手里的码还能不能用。"""
+    import json
+    import time
+
+    auth = WebAuth(tmp_path / "data")
+    auth.announce_pairing()
+    capsys.readouterr()
+    data = json.loads((tmp_path / "data" / "run" / "pair_url.json").read_text(encoding="utf-8"))
+    assert data["code"] == auth.pairing_code
+    assert data["url"] == auth.pairing_url()
+    assert data["port"] == auth._display_port
+    # 到期时刻应落在 TTL 附近（允许几秒误差），不能是过去
+    remaining = data["expires_at"] - time.time()
+    assert 0 < remaining <= PAIR_TTL_S + 2  # 允许两次取时刻之间的几毫秒漂移
+    assert abs(remaining - data["expires_in_s"]) < 5
+
+
+def test_pair_url_json_refreshed_on_rotate(tmp_path, capsys):
+    """换码后 json 里的码与到期时刻都要跟着变，否则等于留下一条死链。"""
+    import json
+
+    auth = WebAuth(tmp_path / "data")
+    auth.announce_pairing()
+    capsys.readouterr()
+    target = tmp_path / "data" / "run" / "pair_url.json"
+    before = json.loads(target.read_text(encoding="utf-8"))
+    auth._rotate_code()
+    after = json.loads(target.read_text(encoding="utf-8"))
+    assert after["code"] == auth.pairing_code
+    assert after["code"] != before["code"]
+    assert after["url"] == auth.pairing_url()
+
+
+def test_pair_deadline_epoch_tracks_rotation(tmp_path):
+    """_pair_deadline 是 monotonic，pair_deadline_epoch 要如实换算成墙上时钟。
+
+    注意它不是单调递增的：换码后仍是「此刻 + TTL」，所以只能比对与当前时刻的差值。
+    """
+    auth = WebAuth(tmp_path / "data")
+    assert auth.pair_deadline_epoch - time.time() == pytest.approx(PAIR_TTL_S, abs=3)
+
+    auth._pair_deadline = time.monotonic() - 100  # 人为判成已过期
+    assert auth.pair_deadline_epoch - time.time() < 0
+
+    auth._rotate_code()
+    assert auth.pair_deadline_epoch - time.time() == pytest.approx(PAIR_TTL_S, abs=3)
+
+
+def test_expired_pair_rotates_and_rewrites_dump(tmp_path, capsys):
+    """过期分支：换码 + 重打链接，落盘文件必须同步刷新成新的。"""
+    auth = WebAuth(tmp_path / "data")
+    auth.announce_pairing()
+    capsys.readouterr()
+    target = tmp_path / "data" / "run" / "pair_url.txt"
+
+    old_code, old_url = auth.pairing_code, auth.pairing_url()
+    auth._pair_deadline = time.monotonic() - 1  # 人为判过期
+
+    result = auth.pair(old_code)
+    assert not isinstance(result, str)
+    assert result.code == "pair_expired"
+    # 关键：文件里不能还是那条已经作废的链接
+    assert target.read_text(encoding="utf-8").strip() != old_url
+    assert target.read_text(encoding="utf-8").strip() == auth.pairing_url()
+    assert auth.pairing_code != old_code
+
+
+# ---------- 链接寿命：重启不换码、旧链接单独归类 ----------
+#
+# 用户连续几轮反馈"配对码不正确"，根因不是他点错，而是设计：
+# 15 分钟自动换码 + 每次重启换码，发出去的链接必然常死。
+# 下面三条锁住新的语义。
+
+
+def test_code_survives_restart(tmp_path):
+    """重启后要续用盘上未过期的码——否则我每改一次代码就作废一条链接。"""
+    first = WebAuth(tmp_path / "data")
+    first.announce_pairing()
+    code = first.pairing_code
+
+    second = WebAuth(tmp_path / "data")
+    assert second.pairing_code == code
+    assert second.pair_deadline_epoch - time.time() == pytest.approx(PAIR_TTL_S, abs=5)
+    # 续用的码必须真能用
+    assert isinstance(second.pair(code), str)
+
+
+def test_expired_dump_is_not_reused(tmp_path):
+    """盘上的码快过期/已过期时不能续用，要换新的（别递一条随时会断的链接）。"""
+    auth = WebAuth(tmp_path / "data")
+    auth.announce_pairing()
+    dump = tmp_path / "data" / "run" / "pair_url.json"
+    data = json.loads(dump.read_text(encoding="utf-8"))
+    data["expires_at"] = time.time() - 1
+    dump.write_text(json.dumps(data), encoding="utf-8")
+
+    fresh = WebAuth(tmp_path / "data")
+    assert fresh.pairing_code != auth.pairing_code
+
+
+def test_stale_code_is_its_own_rejection_and_does_not_count(tmp_path, capsys):
+    """点旧链接要报"这条是早前的"，而且不能记成暴力枚举失败。
+
+    否则自己人点几下聊天记录里的旧链接，就把当前有效的码锁掉了。
+    """
+    auth = WebAuth(tmp_path / "data")
+    old_code = auth.pairing_code
+    auth._rotate_code()
+    capsys.readouterr()
+
+    result = auth.pair(old_code)
+    assert not isinstance(result, str)
+    assert result.code == "pair_stale"
+    assert auth._pair_failures == 0
+    # 当前码仍然有效，没被旧链接连带打掉
+    assert isinstance(auth.pair(auth.pairing_code), str)
+
+
+def test_stale_history_is_bounded(tmp_path):
+    """记住的旧码有上限，不会无限攒。"""
+    from omni.channels.web_auth import RETIRED_KEEP
+
+    auth = WebAuth(tmp_path / "data")
+    for _ in range(RETIRED_KEEP + 5):
+        auth._rotate_code()
+    assert len(auth._retired) == RETIRED_KEEP

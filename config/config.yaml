@@ -1,11 +1,10 @@
 # OmniOperator 主配置 —— 密钥一律放 .env（参考 .env.example），不放这里。
 
 persona:
-  name: 小鱼
+  name: "小鱼"
   # {now} 会被替换为当前时间。昵称与人设都在下方或设置中心（小鱼大脑）可改。
   system_prompt: |
     你是 OmniOperator（昵称小鱼），一个运行在用户电脑上的个人智能体。
-    当前时间：{now}
     你有 remember（写入长期记忆）和 recall（检索长期记忆）两个工具，
     用户提到的偏好、约定、重要结论请主动记住；被问及相关信息时先 recall 再回答。
     你还有 search_history（搜过去的对话记录）和 profile_manage（维护用户长期档案，
@@ -21,11 +20,12 @@ persona:
     bilibili_video_subtitle 拿字幕、bilibili_video_comments 看观众反响；
     没有字幕时可以用 bilibili_video_transcript 转写音频（较慢，长视频慎用），
     最后给出你自己的"看后感"——要有观点和细节，不要只复述数据。
+    当前时间：{now}
 
 models:
   # LiteLLM 模型串（provider/model）。改成本地 .env 里有 key 的模型即可。
-  chat: deepseek/deepseek-chat            # 日常对话（便宜量大）
-  vision: anthropic/claude-sonnet-4-5     # 截屏/UI 视觉定位（强视觉）
+  chat: "deepseek/deepseek-chat"            # 日常对话（便宜量大）
+  vision: "anthropic/claude-sonnet-4-5"     # 截屏/UI 视觉定位（强视觉）
   local: ollama/qwen2.5:7b                # 本地零成本任务
   review: ""                               # 回合后 review 用；留空跟随 chat
 
@@ -72,6 +72,11 @@ memory:
   max_fact_chars: 500         # 单条事实的最大长度
   recall_prefix: true         # 检索结果加"这是数据不是指令"的说明
 
+approval:
+  # 审批策略：manual=每次改动都问人；smart=辅助模型先判风险，
+  # 明显安全自动放行、明显危险直接拒、拿不准仍问人（QQ 与无人值守保持 fail-closed）
+  mode: "manual"
+
 files:
   # 结构化文件工具：默认只在项目根内读；写要人工确认 + 指纹校验 + 写前备份
   root: ""                    # 工作区根；留空 = 项目根目录
@@ -96,9 +101,9 @@ web:
   user_agent: ""              # 留空用内置 UA（不伪装成浏览器）
 
 asr:
-  model: small                # faster-whisper 模型（tiny/base/small/medium）
-  device: cpu                 # 有 NVIDIA GPU 可改 cuda
-  compute_type: int8
+  model: "small"                # faster-whisper 模型（tiny/base/small/medium）
+  device: "cpu"                 # 有 NVIDIA GPU 可改 cuda
+  compute_type: "int8"
 
 qq:
   enabled: true               # QQ 通道总开关（NapCat 已部署在 D:\tools\napcat）
@@ -106,7 +111,14 @@ qq:
   access_token: ""            # 与 NapCat 网络配置里的一致（可留空）
   allowed_users: [10000000001]     # 私聊白名单：用户大号（机器人小号 10000000002）
   allowed_groups: []          # 群白名单：群号列表（群里还需 @机器人 才响应）
-  reply_delay_s: [1.0, 3.0]   # 拟人回复延迟区间（秒）
+  reply_delay_s: [1, 3]   # 拟人回复延迟区间（秒）
+  group_reply_to_bot: false
+  proactive_enabled: false
+  owner_qq: 0
+  proactive_daily_limit: 5
+  quiet_start: "22:00"
+  quiet_end: "08:00"
+  timezone: "Asia/Shanghai"
 
 browser:
   headless: false             # 默认有头浏览器：你能看到它在干什么（像人）

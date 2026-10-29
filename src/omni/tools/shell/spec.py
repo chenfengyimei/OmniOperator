@@ -178,7 +178,9 @@ def _protected_reason(path: Path, root: Path) -> str:
     """命中敏感文件/目录返回理由，否则空串。"""
     if is_protected_name(path.name):
         return f"{path.name} 属于密钥/凭据/个人数据类文件，SAFE 观察不读取"
-    parts = {p.lower() for p in path.parts}
+    parts = {p.lower() for p in (path.relative_to(root).parts if _is_within(path,root) else path.parts)}
+    parts.update(p.lower() for p in root.parts if p.lower() in _PROTECTED_DIR_NAMES and p.lower()!='data')
+    if root.name.lower() in _PROTECTED_DIR_NAMES:parts.add(root.name.lower())
     for name in _PROTECTED_DIR_NAMES:
         if name in parts:
             return f"路径包含受保护目录 {name}/（密钥、个人数据或浏览器登录态）"

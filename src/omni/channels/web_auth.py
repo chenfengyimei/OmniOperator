@@ -18,15 +18,22 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import secrets
 import time
+from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 
 COOKIE_NAME = "omni_session"
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
-PAIR_TTL_S = 15 * 60
+# 本地单用户工具：码长命。15 分钟一换的代价是"发出去的链接随时会死"，
+# 收益几乎为零——防暴力枚举靠的是 MAX_PAIR_FAILURES 换码，不是靠短 TTL。
+PAIR_TTL_S = 24 * 3600
 MAX_PAIR_FAILURES = 5
+# 记住最近几个换掉的码：用户常去点聊天记录里更早那条，要能说清"这条是旧的"，
+# 而不是判成"码错了"再记一次失败（点几次就把自己锁出去）。
+RETIRED_KEEP = 8
 SESSION_DAYS = 30
 _UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 _SAFE_FETCH_SITES = frozenset({"same-origin", "none"})
@@ -74,7 +81,9 @@ class WebAuth:
         port: int = 8000,
         extra_hosts: set[str] | None = None,
         session_days: int = SESSION_DAYS,
+        pair_ttl_s: float = PAIR_TTL_S,
     ) -> None:
+        self._data_dir = Path(data_dir)
         self._secret_path = Path(data_dir) / "web_secret"
         self._secret = self._load_or_create_secret()
         self.session_ttl = int(session_days * 86400)
@@ -84,8 +93,14 @@ class WebAuth:
         self.allowed_hosts = frozenset(h for h in hosts if h)
         self._display_host = bind_host
         self._display_port = port
-        self.pairing_code = self._new_code()
-        self._pair_deadline = time.monotonic() + PAIR_TTL_S
+        self._pair_ttl = float(pair_ttl_s)
+        self._retired: deque[str] = deque(maxlen=RETIRED_KEEP)
+        restored = self._load_pair_state()
+        if restored is None:
+            self.pairing_code = self._new_code()
+            self._pair_deadline = time.monotonic() + self._pair_ttl
+        else:
+            self.pairing_code, self._pair_deadline = restored
         self._pair_failures = 0
 
     # ---------- 密钥与会话 ----------
@@ -134,11 +149,52 @@ class WebAuth:
     def _new_code(self) -> str:
         return f"{secrets.randbelow(10**8):08d}"
 
+    @property
+    def pair_deadline_epoch(self) -> float:
+        """配对码的到期时刻（墙上时钟）。monotonic 只能算差值，落盘要给人看必须用墙上时钟。
+
+        已过期时返回一个过去的时间点（不做 0 钳制）——读码方靠这个判断"手里这条还能不能用"，
+        钳成"此刻"会让人误以为还剩 0 秒，等于没说。
+        """
+        return time.time() + (self._pair_deadline - time.monotonic())
+
     def _rotate_code(self) -> str:
+        previous = getattr(self, "pairing_code", None)
+        if previous:
+            self._retired.append(previous)
         self.pairing_code = self._new_code()
-        self._pair_deadline = time.monotonic() + PAIR_TTL_S
+        self._pair_deadline = time.monotonic() + getattr(self, "_pair_ttl", PAIR_TTL_S)
         self._pair_failures = 0
+        # 旧码此刻已失效，落盘文件必须同步刷新，否则留下的就是一条死链
+        self._dump_pair_url(self.pairing_url())
         return self.pairing_code
+
+    def _load_pair_state(self) -> tuple[str, float] | None:
+        """续用盘上还没过期的码，返回 (码, monotonic 截止时刻)。
+
+        重启服务不该让用户手里的链接失效。配对码一旦落盘就已经是"本机可读"的
+        东西，重启时复用它不扩大任何暴露面，却能省掉整轮
+        「发链接 → 你点开是死的 → 我再重启」的往返。
+        """
+        try:
+            raw = (self._data_dir / "run" / "pair_url.json").read_text(encoding="utf-8")
+            data = json.loads(raw)
+            code = str(data.get("code") or "").strip()
+            expires_at = float(data.get("expires_at") or 0)
+        except (OSError, ValueError, TypeError):
+            return None
+        if not code or not code.isascii():
+            return None
+        remaining = expires_at - time.time()
+        if remaining <= 60:  # 快断气的码不值得再递出去，直接换新的
+            return None
+        return code, time.monotonic() + remaining
+
+    def _ttl_text(self) -> str:
+        ttl = getattr(self, "_pair_ttl", PAIR_TTL_S)
+        if ttl >= 5400:
+            return f"{ttl / 3600:.0f} 小时"
+        return f"{ttl / 60:.0f} 分钟"
 
     def pairing_url(self) -> str:
         """控制台打印的配对链接：点开即完成配对（浏览器不需要前端配合）。"""
@@ -150,24 +206,77 @@ class WebAuth:
     def announce_pairing(self) -> str:
         """把当前配对链接打到控制台并返回该链接（唯一的码泄露渠道就是这里）。"""
         url = self.pairing_url()
-        print(f"[工作台] 配对链接（{PAIR_TTL_S // 60} 分钟内有效）：{url}", flush=True)
+        print(f"[工作台] 配对链接（{self._ttl_text()}内有效）：{url}", flush=True)
+        self._dump_pair_url(url)
         return url
 
+    def _dump_pair_url(self, url: str) -> None:
+        """顺手把链接写进 data/run/，供助手/脚本读取，免去重启取码。
+
+        两个文件：
+        - `pair_url.txt`：只一行 URL，给人看。
+        - `pair_url.json`：多了 `expires_at`（墙上时钟秒）。读码的一方必须先查这个
+          字段——TTL 到点后服务会自动换码，而文件只在换码那一刻刷新，所以文件
+          里的码**可能已经失效**。没有时间戳就无从判断，只能把死链递给用户。
+        写失败无所谓：控制台输出仍是权威渠道。
+        """
+        try:
+            run_dir = self._data_dir / "run"
+            run_dir.mkdir(parents=True, exist_ok=True)
+            (run_dir / "pair_url.txt").write_text(url + "\n", encoding="utf-8")
+            (run_dir / "pair_url.json").write_text(
+                json.dumps(
+                    {
+                        "url": url,
+                        "code": self.pairing_code,
+                        "expires_at": round(self.pair_deadline_epoch, 3),
+                        "expires_in_s": round(self.pair_deadline_epoch - time.time(), 1),
+                        "ttl_s": round(getattr(self, "_pair_ttl", PAIR_TTL_S), 1),
+                        "port": self._display_port,
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        except OSError:
+            pass
+
     def pair(self, code: str) -> str | Rejection:
-        """校验配对码：成功返回会话 cookie 值，失败返回拒绝原因。"""
+        """校验配对码：成功返回会话 cookie 值，失败返回拒绝原因。
+
+        输入一律先规整：空值与非 ASCII 都按"配对失败"处理，绝不抛异常——
+        `hmac.compare_digest` 比较含非 ASCII 的 str 会抛 TypeError，而
+        `/pair/{code}` 是任意人都能敲的路径，不能让它打成 500。
+        """
         if time.monotonic() > self._pair_deadline:
             self._rotate_code()
             self.announce_pairing()
-            return Rejection("pair_expired", "配对码已过期，已在控制台输出新的配对链接")
-        if not hmac.compare_digest((code or "").strip(), self.pairing_code):
-            self._pair_failures += 1
-            if self._pair_failures >= MAX_PAIR_FAILURES:
-                self._rotate_code()
-                self.announce_pairing()
-                return Rejection("pair_locked", "配对失败次数过多，配对码已更换，请看控制台")
-            return Rejection("pair_rejected", "配对码不正确")
-        self._pair_failures = 0
-        return self.issue_session()
+            return Rejection(
+                "pair_expired", f"配对链接已过期，新的链接（{self._ttl_text()}有效）在工作台窗口里"
+            )
+        candidate = (code or "").strip()
+        if not candidate or not candidate.isascii():
+            return self._reject()
+        if hmac.compare_digest(candidate, self.pairing_code):
+            self._pair_failures = 0
+            return self.issue_session()
+        if candidate in self._retired:
+            # 点的是聊天记录里更早那条。这不是暴力枚举，别记失败——
+            # 否则自己人点几下旧链接就把当前的码锁掉了。
+            return Rejection("pair_stale", "这条链接是早前的，已经换过码了")
+        return self._reject()
+
+    def _reject(self) -> Rejection:
+        """记一次失败；超过阈值就换码，防暴力枚举。"""
+        self._pair_failures += 1
+        if self._pair_failures >= MAX_PAIR_FAILURES:
+            self._rotate_code()
+            self.announce_pairing()
+            return Rejection(
+                "pair_locked", "配对失败次数过多，已换码，最新链接在工作台窗口里"
+            )
+        return Rejection("pair_rejected", "配对码不正确")
 
     # ---------- Host / Origin / CSRF ----------
 

@@ -119,9 +119,10 @@ def _process_name(pid: int) -> str:
         return ""
 
 
-def _spawn(argv: list[str], cwd: Path, log_path: Path) -> int:
+def _spawn(argv: list[str], cwd: Path, log_path: Path, *, environment: dict[str,str] | None = None) -> int:
     """分离进程启动，stdout/stderr 落日志文件；返回 pid。"""
     env = dict(os.environ)
+    if environment:env.update(environment)
     env.setdefault("PYTHONUTF8", "1")
     bounded_python = any(part in ('omni.channels.qq', 'omni.channels.heartbeat') for part in argv)
     if bounded_python:
@@ -163,6 +164,7 @@ class ServiceManager:
         tcp_probe: Callable[[int], bool] | None = None,
         stop_wait_s: float = 12,
         exit_checker: Callable[[ProcessIdentity], bool] | None = None,
+        environment: dict[str,str] | None = None,
     ) -> None:
         self._napcat_dir = Path(napcat_dir) if napcat_dir else None
         self._ws_port = napcat_ws_port
@@ -175,7 +177,8 @@ class ServiceManager:
         self._exited = exit_checker or (confirmed_exited if inspector is None else lambda identity: inspector(identity.pid) != identity)
         self._tcp_probe = tcp_probe or _port_listening
         self._stop_wait_s = max(0, float(stop_wait_s))
-        self._spawn = spawner or _spawn
+        from functools import partial
+        self._spawn = spawner or (partial(_spawn,environment=environment) if environment else _spawn)
         # pid/日志目录可注入：测试必须与真机的 data/run 隔离，
         # 否则"未安装"类测试会读到真实 pid，甚至把真服务当测试残留杀掉
         self._run_dir = Path(run_dir) if run_dir else RUN_DIR

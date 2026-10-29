@@ -4,6 +4,7 @@ const $=s=>document.querySelector(s),UI=window.OmniUI,views=new Map();let active
 const api=UI.request;
 function status(text){$('#state').textContent=text}
 function controls(){
+  const count=document.getElementById('terminal-count');if(count)count.textContent=String(views.size);
   const v=views.get(active),connected=v?.ws?.readyState===1&&!v.stopped&&v.row.status==='running';
   for(const id of ['interrupt','paste'])$('#'+id).disabled=!connected;
   for(const id of ['copy','clear','rename'])$('#'+id).disabled=!v;
@@ -49,6 +50,7 @@ async function paste(v,socket,data){
 }
 function add(row){
   if(views.has(row.id))return;
+  document.querySelector('.terminal-welcome')?.remove();
   const screen=UI.element('div',null,'screen');screen.hidden=true;$('#screens').append(screen);
   const button=UI.element('button',row.label);button.type='button';button.setAttribute('role','tab');button.onclick=()=>select(row.id);$('#tabs').append(button);
   const term=new Terminal({fontFamily:'Consolas, monospace',fontSize:13,scrollback:4000,theme:{background:'#0e1116',foreground:'#dbe7ee'}}),fitAddon=new FitAddon.FitAddon();term.loadAddon(fitAddon);term.open(screen);
@@ -78,6 +80,7 @@ $('#end').onclick=async()=>{
 };
 $('#reconnect').onclick=()=>{const v=views.get(active);if(v){v.attempt=0;connect(v)}};
 window.addEventListener('resize',()=>{const v=views.get(active);if(v)fit(v)});
+document.addEventListener('keydown',event=>{if(event.ctrlKey&&event.shiftKey&&event.key.toLowerCase()==='t'){event.preventDefault();document.querySelector('#create button')?.click()}});
 window.addEventListener('beforeunload',()=>{leaving=true;for(const v of views.values()){clearTimeout(v.timer);v.ws?.close()}});
 (async()=>{
   controls();try{

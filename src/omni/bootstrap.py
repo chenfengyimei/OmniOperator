@@ -13,7 +13,7 @@ import sys
 import uuid
 import time
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -60,6 +60,7 @@ from .safety.broker import ApprovalBroker
 from .safety.gates import Approver
 from .system.services import ServiceManager
 from .system.doctor import diagnose
+from .system.agent_spaces import AgentDirectoryStore
 from .system.backup import backup_runtime
 from .tools.bilibili.api import BiliAPI
 from .tools.bilibili.tools import register_bilibili_tools
@@ -176,6 +177,9 @@ class Runtime:
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
+    directories: AgentDirectoryStore | None = None
+    public_workspaces: dict[str, Workspace] = field(default_factory=dict)
+    agent_layout: Any = None
     _close_threads: dict = field(default_factory=dict, repr=False)
     _close_results: dict = field(default_factory=dict, repr=False)
     _close_lock: object = field(default_factory=threading.Lock, repr=False)
@@ -309,12 +313,33 @@ def build_runtime(
     data_dir: Path | None = None,
     owner_kind: str = "cli",
     start_background_workers: bool = True,
+    agent_id: str | None = None,
+    directory_catalog: Path | None = None,
 ) -> Runtime:
     # 记住实际读取的配置源：策略热读必须命中同一个文件，否则会读到真机配置
-    config_path = Path(config_path) if config_path else CONFIG_PATH
+    config_path = Path(config_path or (os.environ.get('OMNI_CONFIG_PATH') if data_dir is None else '') or CONFIG_PATH)
+    config_path=config_path.resolve()
     config = load_config(config_path)
-    data_root = Path(data_dir) if data_dir else DATA_DIR
+    data_root = Path(data_dir or os.environ.get('OMNI_STORAGE_BASE') or DATA_DIR)
+    data_root=data_root.resolve()
     paths = RuntimePaths.create(data_root, config_path=config_path, skills_root=skills_root, memory_path=db_path)
+    paths=replace(paths,workspace=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT)
+    catalog_path=Path(directory_catalog or (data_root/'control'/'agents.json' if data_dir is not None else os.environ.get('OMNI_AGENT_CATALOG') or config_path.with_name('agents.json')))
+    directories=AgentDirectoryStore(catalog_path,paths,isolated=data_dir is not None)
+    layout=directories.selected(agent_id or (os.environ.get('OMNI_AGENT_ID') if data_dir is None else None))
+    paths=layout.paths
+    if db_path is not None:paths=replace(paths,memory=Path(db_path))
+    if skills_root is not None:paths=replace(paths,skills=Path(skills_root))
+    if not config.terminal.roots:config.terminal.roots=[str(paths.workspace)]
+    if layout.profile.id!='default':
+        config.persona.name=layout.profile.name
+        config.files.root=str(paths.workspace)
+        config.files.extra_roots=[str(paths.files),str(paths.documents)]
+        config.terminal.roots=[str(paths.workspace)]
+        for directory in (paths.workspace,paths.files,paths.documents):directory.mkdir(parents=True,exist_ok=True)
+    elif layout.profile.directories.workspace:
+        config.files.root=str(paths.workspace);config.terminal.roots=[str(paths.workspace)]
+        paths.workspace.mkdir(parents=True,exist_ok=True)
     memory_path = paths.memory
     store = MemoryStore(memory_path)
     # 技能与常驻记忆共用一份修订存储：写入前先落历史，改坏了能回滚（D08）
@@ -364,7 +389,7 @@ def build_runtime(
     registry = ToolRegistry()
     command_job_store = CommandJobStore(state)
     command_jobs = CommandJobManager(command_job_store, paths.command_logs,
-                                    root=Path(config.files.root or PROJECT_ROOT), config=config.command_jobs)
+                                    root=paths.workspace, config=config.command_jobs)
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
     register_command_job_tools(registry, command_jobs, session_ref=session_ref, run_ref=run_ref)
     retrieval = None
@@ -402,15 +427,17 @@ def build_runtime(
     register_resident_tools(registry, resident)
     agent_holder: dict[str, Any] = {}  # Agent 构造在后，delegate 工具运行期取用
     register_delegate_tools(registry, store, agent_holder, run_ref)
-    register_shell_tools(registry)
+    register_shell_tools(registry,cwd=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT)
     # 工作区文件工具（D13）：允许的根只来自配置；写需人工确认 + 指纹 CAS + 写前备份。
     # 模型侧没有任何"再加一个根"的参数——路径参数只做相对定位。
     workspace = Workspace(
         root=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT,
-        extra_roots=[_resolve_root(item) for item in config.files.extra_roots],
+        extra_roots=[_resolve_root(item) for item in config.files.extra_roots]+[paths.files,paths.documents],
         deny_globs=tuple(config.files.deny_globs),
         write_deny_globs=tuple(config.files.write_deny_globs),
+        read_only_roots=[paths.documents],
     )
+    public_workspaces={name:Workspace(root=path) for name,path in [('workspace',workspace.root),('files',paths.files),('documents',paths.documents)] if path is not None}
     file_history = FileHistory(paths.file_history)
     register_file_tools(
         registry,
@@ -523,7 +550,9 @@ def build_runtime(
         )
     services = ServiceManager(
         napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None,
-        run_dir=paths.run, log_dir=paths.logs,
+        run_dir=paths.run, log_dir=paths.service_logs or paths.logs,
+        environment={'OMNI_AGENT_ID':paths.agent_id,'OMNI_AGENT_CATALOG':str(catalog_path.resolve()),
+                     'OMNI_CONFIG_PATH':str(config_path.resolve()),'OMNI_STORAGE_BASE':str(data_root.resolve())},
         port_prober=None if not isolated else _no_port_probe,
         killer=None if not isolated else _no_kill,
         spawner=None if not isolated else _no_spawn,
@@ -627,4 +656,7 @@ def build_runtime(
         config_path=config_path,
         data_dir=data_root,
         paths=paths,
+        directories=directories,
+        public_workspaces=public_workspaces,
+        agent_layout=layout,
     )

@@ -2,6 +2,7 @@
 from __future__ import annotations
 from .command_jobs import create_command_jobs_router
 from .android import create_android_router
+from .storage import create_storage_router
 
 from typing import TYPE_CHECKING
 
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
 
 
 def create_api_routers(runtime: Runtime) -> tuple[APIRouter, ...]:
-    return (create_android_router(runtime), create_command_jobs_router(runtime),
+    return (create_storage_router(runtime), create_android_router(runtime), create_command_jobs_router(runtime),
         create_sessions_router(runtime),
         create_conversation_router(runtime),
         create_runs_router(runtime),

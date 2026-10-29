@@ -24,12 +24,21 @@ import yaml
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from ..bootstrap import Runtime, build_runtime
 from ..config import load_env
 from ..llm.gateway import GatewayError
 from ..safety.gates import WebApprover
-from ..system.config_io import EDITABLE, apply_updates, safe_write
+from ..system.config_io import (
+    EDITABLE,
+    ConfigEditError,
+    apply_updates,
+    read_config_text,
+    read_env_secrets,
+    safe_write,
+    set_env_secret,
+)
 from .web_api import create_api_routers
 from .web_api.capabilities import create_capabilities_router
 from .web_api.schemas import (
@@ -65,6 +74,12 @@ _STATIC_DIR = Path(__file__).parent / "web_static"
 # 只回"是否已配置"的密钥字段：接口不回显明文（A07）
 _SECRET_KEYS = {("qq", "access_token")}
 
+class ModelKeyIn(BaseModel):
+    """填 Key：`value` 为 None/空串表示清除该行，非空则替换。"""
+
+    name: str
+    value: str | None = None
+
 def _set_session_cookie(response, value: str, max_age: int):
     response.set_cookie(
         COOKIE_NAME,
@@ -84,11 +99,15 @@ def _create_auth(runtime: Runtime) -> WebAuth:
 def _normalize_secret_updates(
     updates: dict[str, dict[str, Any]]
 ) -> tuple[dict[str, dict[str, Any]], bool]:
-    """密钥字段三态归一，返回 (过滤后的更新, 是否触及密钥字段)。
+    """密钥字段三态归一，返回 (过滤后的更新, 是否真的写入密钥明文)。
 
     - 键缺省 / 空串 → 保留旧值（前端拿到的是掩码，空值不能等于"清空"）
     - `null` → 显式清除（写空串）
     - 非空字符串 → 显式替换
+
+    `touched` 只在**要写入非空明文**时为真：只有这种情形错误信息才可能带出密钥。
+    以前只要请求里出现密钥键就置真，而前端每次都带一个空串的 `qq.access_token`，
+    于是任何校验失败都被替换成"含密钥字段，详情已省略"，把真实原因彻底藏住。
     """
     cleaned: dict[str, dict[str, Any]] = {}
     touched = False
@@ -97,13 +116,13 @@ def _normalize_secret_updates(
             if (section, key) not in _SECRET_KEYS:
                 cleaned.setdefault(section, {})[key] = value
                 continue
-            touched = True
             if value is None:
-                cleaned.setdefault(section, {})[key] = ""
+                cleaned.setdefault(section, {})[key] = ""  # 清除，写的是空串，不含明文
             elif isinstance(value, str) and not value.strip():
                 continue  # 保留旧值
             else:
                 cleaned.setdefault(section, {})[key] = value
+                touched = True
     return {s: k for s, k in cleaned.items() if k}, touched
 
 def create_app(runtime: Runtime) -> FastAPI:
@@ -194,9 +213,16 @@ def create_app(runtime: Runtime) -> FastAPI:
             )
         result = auth.pair(code)
         if not isinstance(result, str):
+            # 旧链接和真·码不对要说清区别：前者只是点了聊天记录里更早那条，
+            # 后者才可能是别人在猜。混成一句话只会让人以为"链接又坏了"。
+            if result.code == "pair_stale":
+                tip = "这条链接是之前那版，已经被换掉了。工作台窗口里有当前可用的那条。"
+            elif result.code == "pair_expired":
+                tip = "链接超时了。工作台窗口里打印了新的那条，直接打开即可。"
+            else:
+                tip = "这条不是当前有效的配对链接。工作台窗口里打印了当前那条。"
             return HTMLResponse(
-                f"<h3>配对失败</h3><p>{result.detail}</p>"
-                "<p>配对链接在控制台（omni-web 窗口）里，重新打开即可。</p>",
+                f"<h3>配对失败</h3><p>{result.detail}</p><p>{tip}</p>",
                 status_code=403,
             )
         response = RedirectResponse("/", status_code=303)
@@ -256,7 +282,7 @@ def create_app(runtime: Runtime) -> FastAPI:
         updates, touched_secret = _normalize_secret_updates(payload.updates)
         try:
             config_file = runtime.paths.config  # 与 bootstrap 读取的是同一个文件
-            text = config_file.read_text(encoding="utf-8")
+            text = read_config_text(config_file)  # 保留原换行，避免整文件行尾被改写
             new_text = apply_updates(text, updates)
             from ..config import AppConfig
             AppConfig.model_validate(yaml.safe_load(new_text) or {})
@@ -320,6 +346,28 @@ def create_app(runtime: Runtime) -> FastAPI:
             json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         return {"ok": True, "saved": list(data), "path": str(cookies_path)}
+
+    @app.get("/api/system/model-keys")
+    def model_keys() -> dict[str, Any]:
+        """各供应商密钥是否已配置 + 脱敏值；前端只用来显示"已填 / 未填"。"""
+        return {"keys": read_env_secrets(runtime.paths.env)}
+
+    @app.post("/api/system/model-key")
+    def model_key_set(payload: ModelKeyIn) -> dict[str, Any]:
+        """写一个密钥进 .env 并注入当前进程环境；空值等于清除该行。"""
+        try:
+            masked = set_env_secret(runtime.paths.env, payload.name, payload.value)
+        except ConfigEditError as exc:
+            # 只有配置类错误才回具体原因；这里不涉及密钥值本身
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except OSError as exc:
+            raise HTTPException(status_code=500, detail=f"写入 .env 失败：{exc}") from exc
+        return {
+            "ok": True,
+            "name": payload.name,
+            "masked": masked,
+            "configured": bool(masked),
+        }
 
     @app.post("/api/system/model-test")
     def model_test(payload: ModelTestIn) -> dict[str, Any]:

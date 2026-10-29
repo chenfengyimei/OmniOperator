@@ -1,4 +1,46 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小鱼 · 本地 MCP</title><link rel="stylesheet" href="/mcp/mcp.css"><link rel="stylesheet" href="/ui/base.css"><script src="/ui/shared.js"></script>
-</head><body>
-<header><a href="/">← 工作台</a><h1>本地 MCP 服务</h1><button id="refresh">刷新状态</button></header><p>状态检查不会启动服务。连接检查和工具目录会运行已配置程序；环境隔离不是系统沙箱。</p>
-<p>命令、参数、环境变量引用和权限在 config.yaml 修改，重启原入口生效；配置不一致时本实例停止新调用。</p><div id="status" role="status"></div><main id="servers"></main><section><h2 id="detail-title">服务详情</h2><pre id="detail" tabindex="0">选择诊断、日志或工具目录。诊断不建立连接；检查连接和读取目录需要显式操作。</pre><div id="catalog"></div></section><script src="/mcp/mcp.js"></script></body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小鱼 · 本地 MCP</title><link rel="stylesheet" href="/mcp/mcp.css"><link rel="stylesheet" href="/ui/base.css"><link rel="stylesheet" href="/ui/icons.css?v=20261030e"><link rel="stylesheet" href="/ui/shell.css?v=20261030e"><script src="/ui/shared.js?v=20261030e"></script>
+</head><body data-ui-page="mcp">
+<nav class="ui-global-nav ui-app-rail" aria-label="工作台功能导航">
+<span class="ui-rail-brand" aria-hidden="true"><span class="material-icons">smart_toy</span></span>
+  <a href="/" title="对话工作台" aria-label="对话工作台"><span class="material-icons" aria-hidden="true">forum</span><span class="ui-nav-label">对话工作台</span></a>
+  <a href="/capabilities/" title="能力总览" aria-label="能力总览"><span class="material-icons" aria-hidden="true">fact_check</span><span class="ui-nav-label">能力总览</span></a>
+  <a href="/terminal/" title="人工终端" aria-label="人工终端"><span class="material-icons" aria-hidden="true">terminal</span><span class="ui-nav-label">人工终端</span></a>
+  <a href="/jobs/" title="后台任务" aria-label="后台任务"><span class="material-icons" aria-hidden="true">checklist</span><span class="ui-nav-label">后台任务</span></a>
+  <a href="/mcp/" aria-current="page" title="MCP 服务" aria-label="MCP 服务"><span class="material-icons" aria-hidden="true">network_check</span><span class="ui-nav-label">MCP 服务</span></a>
+  <a href="/android/" title="安卓控制" aria-label="安卓控制"><span class="material-icons" aria-hidden="true">smartphone</span><span class="ui-nav-label">安卓控制</span></a>
+  <a href="/project/" title="项目索引" aria-label="项目索引"><span class="material-icons" aria-hidden="true">account_tree</span><span class="ui-nav-label">项目索引</span></a>
+  <a href="/?settings=1" title="设置中心" aria-label="设置中心"><span class="material-icons" aria-hidden="true">settings</span><span class="ui-nav-label">设置中心</span></a>
+</nav>
+
+<header>
+  <a href="/">← 工作台</a>
+  <h1>本地 MCP 服务</h1>
+  <button id="refresh"><span class="material-icons">refresh</span>刷新状态</button>
+</header>
+<p>统一查看本地 MCP 扩展的连接状态、工具目录和授权边界。刷新只读取状态，不会自动启动外部程序。</p>
+<div id="status" role="status">正在读取服务状态…</div>
+<div id="mcp-stats" class="metric-grid" aria-label="MCP 概览"></div>
+<div class="mcp-layout">
+  <section class="mcp-list-pane">
+    <div class="section-heading">
+      <div><span class="eyebrow">EXTENSIONS</span><h2>已配置服务</h2></div>
+      <span id="mcp-count" class="section-meta">—</span>
+    </div>
+    <main id="servers"></main>
+  </section>
+  <section class="mcp-detail-pane">
+    <div class="section-heading compact">
+      <div><span class="eyebrow">INSPECTOR</span><h2 id="detail-title">服务详情</h2></div>
+      <span class="material-icons">manage_search</span>
+    </div>
+    <p class="page-note">命令、参数、环境变量引用和权限在 <code>config.yaml</code> 修改，重启原入口生效；配置不一致时本实例停止新调用。</p>
+    <pre id="detail" tabindex="0">选择诊断、日志或工具目录。诊断不建立连接；检查连接和读取目录需要显式操作。</pre>
+    <div id="catalog"></div>
+  </section>
+</div>
+<script src="/mcp/mcp.js"></script></body></html>
+
+
+
+
+
