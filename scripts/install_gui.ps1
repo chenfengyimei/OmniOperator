@@ -245,7 +245,7 @@ $timer.Add_Tick({
                 }
             } else {
                 if ($result -eq 'ok') {
-                    $statusLabel.Text = '工作台已启动：浏览器应已打开；没打开就看日志里的配对链接。'
+                    $statusLabel.Text = '工作台已启动：浏览器应已打开；新开的服务窗口请保持开启（关闭即停止工作台）。'
                     $statusLabel.ForeColor = [System.Drawing.Color]::Green
                 } else {
                     $statusLabel.Text = '启动失败：看上方日志（常见：安装未完成、端口被占用）。'
