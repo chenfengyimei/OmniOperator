@@ -14,7 +14,7 @@ ENV_PATH = PROJECT_ROOT / ".env"
 DATA_DIR = PROJECT_ROOT / "data"
 SKILLS_DIR = PROJECT_ROOT / "skills"  # 程序性记忆：skills/<name>/SKILL.md
 BILI_COOKIES_PATH = DATA_DIR / "bili_cookies.json"  # B站登录态（浏览器 Cookie，gitignore）
-STATE_SCHEMA_VERSION = 13  # 存储兼容上限；迁移实现仍归 memory/state.py。
+STATE_SCHEMA_VERSION = 14  # 存储兼容上限；迁移实现仍归 memory/state.py。
 
 
 @dataclass(frozen=True)
@@ -46,6 +46,7 @@ class RuntimePaths:
     artifacts: Path      # 产物文件（截图/导出，D15）
     run: Path             # 服务 pid
     logs: Path
+    command_logs: Path
     mcp_logs: Path
     backups: Path
 
@@ -77,6 +78,7 @@ class RuntimePaths:
             artifacts=data / "artifacts",
             run=data / "run",
             logs=data / "system_logs",
+            command_logs=data / "command_logs",
             mcp_logs=data / "mcp_logs",
             backups=data / "backups",
         )
@@ -469,6 +471,16 @@ class Cron(BaseModel):
     max_running: int = Field(default=2, ge=1, le=8)
 
 
+class CommandJobsConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    max_running: int = Field(default=2, ge=1, le=8)
+    max_waiting: int = Field(default=4, ge=1, le=32)
+    default_timeout_s: float = Field(default=1800, ge=1, le=7200)
+    log_bytes: int = Field(default=2097152, ge=16384, le=8388608)
+    retention_days: int = Field(default=7, ge=1, le=30)
+    total_log_bytes: int = Field(default=67108864, ge=16777216, le=536870912)
+
+
 class TerminalConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     max_sessions: int = Field(default=4, ge=1, le=16)
@@ -478,6 +490,7 @@ class TerminalConfig(BaseModel):
 
 
 class AppConfig(BaseModel):
+    command_jobs: CommandJobsConfig = Field(default_factory=CommandJobsConfig)
     terminal: TerminalConfig = Field(default_factory=TerminalConfig)
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)

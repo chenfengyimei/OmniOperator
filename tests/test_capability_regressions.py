@@ -81,5 +81,3 @@ def test_mcp_close_during_reset_never_constructs_replacement(tmp_path, monkeypat
         with pytest.raises(MCPError, match='关闭'): future.result(timeout=2)
     assert host._connections['demo'] is original
     assert host.close()
-
-

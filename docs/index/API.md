@@ -44,7 +44,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 渐进发现与授权校验后调用外部进程；结果未知不重放写操作。
 
-`register_mcp_tools`（[src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L18)） → `MCPManager`（[src/omni/tools/mcp/client.py](../../src/omni/tools/mcp/client.py#L290)） → `MCPSchemaStore`（[src/omni/memory/state.py](../../src/omni/memory/state.py#L1509)）
+`register_mcp_tools`（[src/omni/tools/mcp/tools.py](../../src/omni/tools/mcp/tools.py#L18)） → `MCPManager`（[src/omni/tools/mcp/client.py](../../src/omni/tools/mcp/client.py#L290)） → `MCPSchemaStore`（[src/omni/memory/state.py](../../src/omni/memory/state.py#L1511)）
 
 ## 声明路由
 
@@ -72,6 +72,9 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/auth/status` | `create_app.auth_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L150) |
 | workbench | POST | `/api/chat` | `create_conversation_router.chat` | [src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L43) |
 | workbench | POST | `/api/chat/stream` | `create_conversation_router.chat_stream` | [src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L74) |
+| workbench | GET | `/api/command-jobs` | `create_command_jobs_router.list_jobs` | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py#L9) |
+| workbench | GET | `/api/command-jobs/{identifier}` | `create_command_jobs_router.read_job` | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py#L13) |
+| workbench | POST | `/api/command-jobs/{identifier}/cancel` | `create_command_jobs_router.cancel_job` | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py#L19) |
 | workbench | GET | `/api/desktop/observe/{window}` | `create_devices_router.desktop_observe` | [src/omni/channels/web_api/devices.py](../../src/omni/channels/web_api/devices.py#L30) |
 | workbench | GET | `/api/desktop/windows` | `create_devices_router.desktop_windows` | [src/omni/channels/web_api/devices.py](../../src/omni/channels/web_api/devices.py#L21) |
 | workbench | GET | `/api/facts` | `create_memory_router.get_facts` | [src/omni/channels/web_api/memory.py](../../src/omni/channels/web_api/memory.py#L19) |
@@ -380,7 +383,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Persona
 
-定位：[src/omni/config.py](../../src/omni/config.py#L106)。
+定位：[src/omni/config.py](../../src/omni/config.py#L108)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -389,7 +392,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Models
 
-定位：[src/omni/config.py](../../src/omni/config.py#L113)。
+定位：[src/omni/config.py](../../src/omni/config.py#L115)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -400,7 +403,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### ModelCapability
 
-定位：[src/omni/config.py](../../src/omni/config.py#L120)。
+定位：[src/omni/config.py](../../src/omni/config.py#L122)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -413,7 +416,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Retry
 
-定位：[src/omni/config.py](../../src/omni/config.py#L138)。
+定位：[src/omni/config.py](../../src/omni/config.py#L140)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -423,7 +426,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### LLMBudget
 
-定位：[src/omni/config.py](../../src/omni/config.py#L146)。
+定位：[src/omni/config.py](../../src/omni/config.py#L148)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -432,7 +435,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Vision
 
-定位：[src/omni/config.py](../../src/omni/config.py#L158)。
+定位：[src/omni/config.py](../../src/omni/config.py#L160)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -443,7 +446,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Artifacts
 
-定位：[src/omni/config.py](../../src/omni/config.py#L172)。
+定位：[src/omni/config.py](../../src/omni/config.py#L174)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -452,7 +455,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### LLM
 
-定位：[src/omni/config.py](../../src/omni/config.py#L180)。
+定位：[src/omni/config.py](../../src/omni/config.py#L182)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -464,7 +467,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Limits
 
-定位：[src/omni/config.py](../../src/omni/config.py#L193)。
+定位：[src/omni/config.py](../../src/omni/config.py#L195)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -476,7 +479,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Review
 
-定位：[src/omni/config.py](../../src/omni/config.py#L201)。
+定位：[src/omni/config.py](../../src/omni/config.py#L203)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -488,7 +491,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Memory
 
-定位：[src/omni/config.py](../../src/omni/config.py#L211)。
+定位：[src/omni/config.py](../../src/omni/config.py#L213)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -498,7 +501,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Web
 
-定位：[src/omni/config.py](../../src/omni/config.py#L223)。
+定位：[src/omni/config.py](../../src/omni/config.py#L225)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -513,7 +516,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Files
 
-定位：[src/omni/config.py](../../src/omni/config.py#L240)。
+定位：[src/omni/config.py](../../src/omni/config.py#L242)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -529,7 +532,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Compression
 
-定位：[src/omni/config.py](../../src/omni/config.py#L258)。
+定位：[src/omni/config.py](../../src/omni/config.py#L260)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -540,7 +543,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Asr
 
-定位：[src/omni/config.py](../../src/omni/config.py#L267)。
+定位：[src/omni/config.py](../../src/omni/config.py#L269)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -550,7 +553,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### QQ
 
-定位：[src/omni/config.py](../../src/omni/config.py#L275)。
+定位：[src/omni/config.py](../../src/omni/config.py#L277)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -573,7 +576,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Browser
 
-定位：[src/omni/config.py](../../src/omni/config.py#L312)。
+定位：[src/omni/config.py](../../src/omni/config.py#L314)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -584,7 +587,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### UIFormSelectors
 
-定位：[src/omni/config.py](../../src/omni/config.py#L321)。
+定位：[src/omni/config.py](../../src/omni/config.py#L323)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -604,7 +607,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### BilibiliWrite
 
-定位：[src/omni/config.py](../../src/omni/config.py#L339)。
+定位：[src/omni/config.py](../../src/omni/config.py#L341)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -615,7 +618,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### System
 
-定位：[src/omni/config.py](../../src/omni/config.py#L355)。
+定位：[src/omni/config.py](../../src/omni/config.py#L357)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -623,7 +626,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Approval
 
-定位：[src/omni/config.py](../../src/omni/config.py#L361)。
+定位：[src/omni/config.py](../../src/omni/config.py#L363)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -631,7 +634,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### MCPServerConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L371)。
+定位：[src/omni/config.py](../../src/omni/config.py#L373)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -646,7 +649,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### MCPConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L398)。
+定位：[src/omni/config.py](../../src/omni/config.py#L400)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -654,7 +657,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Desktop
 
-定位：[src/omni/config.py](../../src/omni/config.py#L412)。
+定位：[src/omni/config.py](../../src/omni/config.py#L414)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -667,7 +670,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Embedding
 
-定位：[src/omni/config.py](../../src/omni/config.py#L429)。
+定位：[src/omni/config.py](../../src/omni/config.py#L431)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -688,15 +691,28 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Cron
 
-定位：[src/omni/config.py](../../src/omni/config.py#L467)。
+定位：[src/omni/config.py](../../src/omni/config.py#L469)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
 | max_running | `int` | 否 |
 
+### CommandJobsConfig
+
+定位：[src/omni/config.py](../../src/omni/config.py#L474)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| max_running | `int` | 否 |
+| max_waiting | `int` | 否 |
+| default_timeout_s | `float` | 否 |
+| log_bytes | `int` | 否 |
+| retention_days | `int` | 否 |
+| total_log_bytes | `int` | 否 |
+
 ### TerminalConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L472)。
+定位：[src/omni/config.py](../../src/omni/config.py#L484)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -707,10 +723,11 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### AppConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L480)。
+定位：[src/omni/config.py](../../src/omni/config.py#L492)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
+| command_jobs | `CommandJobsConfig` | 否 |
 | terminal | `TerminalConfig` | 否 |
 | persona | `Persona` | 否 |
 | models | `Models` | 否 |

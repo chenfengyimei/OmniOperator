@@ -34,7 +34,7 @@ MANIFEST_VERSION = 1
 # 备份清单里记录行数的表（缺失即跳过，不当作错误）
 COUNTED_TABLES = {
     "state.db": ("jobs", "executions", "budgets", "migrations", "llm_calls", "llm_budget",
-                 "artifacts"),
+                 "artifacts", "command_jobs"),
     "memory.db": ("sessions", "messages", "facts", "profile", "summaries"),
 }
 
@@ -297,7 +297,7 @@ def backup_runtime(
             entries.append(_copy_tree(paths.skills, dest_dir / "skills", "skills"))
         else:
             skipped.append("skills/（不存在）")
-    for rel, source in (("history", paths.history), ("file_history", paths.file_history), ("artifacts", paths.artifacts)):
+    for rel, source in (("history", paths.history), ("file_history", paths.file_history), ("artifacts", paths.artifacts), ("command_logs", paths.command_logs)):
         if source.is_dir():
             entries.append(_copy_tree(source, dest_dir / rel, rel))
         else:
@@ -371,7 +371,7 @@ def restore_into(backup_dir: Path, target_dir: Path, *, overwrite: bool = False)
     seen = set()
     # 全部源验证通过后才写目标，不让“最后一项坏了”遗留看似可用的前半份恢复。
     allowed = {"state.db": "database", "memory.db": "database", "config.yaml": "file", "MEMORY.md": "file", "skills": "tree",
-               "history": "tree", "file_history": "tree", "artifacts": "tree"}
+               "history": "tree", "file_history": "tree", "artifacts": "tree", "command_logs": "tree"}
     for raw in entries:
         if not isinstance(raw, dict):
             raise BackupError("备份条目必须为对象")

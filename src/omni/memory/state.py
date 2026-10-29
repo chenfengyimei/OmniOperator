@@ -33,6 +33,7 @@ from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 from ..config import STATE_SCHEMA_VERSION
+from .command_schema import COMMAND_JOBS_SCHEMA
 
 SCHEMA_VERSION = STATE_SCHEMA_VERSION
 # 一次性任务（无 every/daily 的闹钟）错过触发时间的宽限：超过即停用不补发——
@@ -304,6 +305,7 @@ _MIGRATIONS: dict[int, str] = {
     11: _SCHEMA_V11,
     12: _SCHEMA_V12,
     13: _SCHEMA_V13,
+    14: COMMAND_JOBS_SCHEMA,
 }
 
 SESSION_RESOURCE = "session:{}"

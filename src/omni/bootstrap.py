@@ -95,6 +95,9 @@ from .tools.qq.tools import register_qq_tools
 from .tools.shell import register_shell_tools
 from .tools.skills import register_skill_inbox_tools, register_skill_tools
 from .tools.system import register_system_tools
+from .memory.command_jobs import CommandJobStore
+from .tools.shell.jobs import CommandJobManager
+from .tools.shell.job_tools import register_command_job_tools
 from .tools.mcp.client import MCPManager
 from .tools.mcp.tools import register_mcp_tools
 
@@ -166,6 +169,7 @@ class Runtime:
     qq_messages: QQMessageStore | None = None
     publications: PublicationStore | None = None
     event_log: EventLog | None = None
+    command_jobs: CommandJobManager | None = None
     plugins: PluginHost | None = None
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
@@ -221,7 +225,8 @@ class Runtime:
                 return "已关闭" in result or "未启动" in result
             actions = {"review": lambda: self.close_reviewer(remaining()),
                        "retrieval": lambda: self.close_retrieval(remaining()),
-                       "mcp": lambda: self.close_mcp(remaining()), "browser": browser_done}
+                       "mcp": lambda: self.close_mcp(remaining()), "browser": browser_done,
+                       "command_jobs": lambda: self.command_jobs.close(remaining())["complete"] if self.command_jobs else True}
             def perform(name, action):
                 try:
                     self._close_results[name] = bool(action())
@@ -354,7 +359,11 @@ def build_runtime(
     owner = f"{owner_kind}:{os.getpid()}:{uuid.uuid4().hex[:6]}"
     interrupted = runs.interrupt_stale(owner_kind=owner_kind, current_owner=owner)
     registry = ToolRegistry()
+    command_job_store = CommandJobStore(state)
+    command_jobs = CommandJobManager(command_job_store, paths.command_logs,
+                                    root=Path(config.files.root or PROJECT_ROOT), config=config.command_jobs)
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
+    register_command_job_tools(registry, command_jobs, session_ref=session_ref, run_ref=run_ref)
     retrieval = None
     if config.embedding.enabled:
         embedding = EmbeddingProvider(config.embedding, usage, daily_limit_usd=config.llm.budget.daily_usd)
@@ -581,6 +590,7 @@ def build_runtime(
         publications=publications,
         event_log=event_log,
         plugins=plugin_host,
+        command_jobs=command_jobs,
         mcp_schemas=mcp_schemas,
         skill_acks=skill_acks,
         runs=runs,

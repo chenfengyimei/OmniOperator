@@ -481,3 +481,10 @@ ADB 全局命令不绑定设备，设备调用恰好一个显式 serial；设备
 channels/terminal 的 managed 持续排空与有限回放独立于连接；sessions 负责 v2 路由。
 会话归属绑定已验配对 cookie 的不可逆身份，单写者；不向 tools/core 导出 PTY。
 终端池由 Web 应用持有/关闭，目录与容量来自声明配置，关闭残留包含读线程。
+
+### 后台命令 C03
+
+CommandJobStore/CommandJobManager 只在 bootstrap 构造；纯迁移声明在 memory.command_schema，
+state v14 仓储只管理数据，tools.shell.jobs 管理独立非交互进程，不引用 channels.terminal。
+父运行取消经注入 RunHandle 观察，不反向 import core；Runtime.close 在关闭 DB 前等待任务。
+新 command_logs 路径由 RuntimePaths 注入；模型 list/read 只能消费绑定会话，HTTP 不能直接启动。

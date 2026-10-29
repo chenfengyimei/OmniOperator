@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8e956549042442a12cfc3f48feda08161dfbfdf3b22e1e5121ce98becb2ed820",
+  "source_sha256": "332962f6ae014ffc06666043093d6981a3d5ecf8f5f78068090c537f9bde47c0",
   "modules": [
     {
       "id": "assembly",
@@ -19,11 +19,12 @@
       "files": [
         "src/omni/bootstrap.py"
       ],
-      "lines": 610,
+      "lines": 620,
       "dependencies": [
         "android",
         "bilibili",
         "browser",
+        "command-jobs",
         "community",
         "config",
         "delegation",
@@ -63,7 +64,7 @@
       "files": [
         "src/omni/config.py"
       ],
-      "lines": 522,
+      "lines": 535,
       "dependencies": []
     },
     {
@@ -175,6 +176,7 @@
       "files": [
         "src/omni/memory/__init__.py",
         "src/omni/memory/artifacts.py",
+        "src/omni/memory/command_jobs.py",
         "src/omni/memory/cron.py",
         "src/omni/memory/guard.py",
         "src/omni/memory/jobs.py",
@@ -190,8 +192,9 @@
         "src/omni/memory/usage.py",
         "src/omni/memory/vectors.py"
       ],
-      "lines": 5948,
+      "lines": 5995,
       "dependencies": [
+        "command-contracts",
         "config",
         "platform"
       ]
@@ -286,7 +289,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2132,
+      "lines": 2133,
       "dependencies": [
         "assembly",
         "config",
@@ -349,6 +352,62 @@
         "engine",
         "http-contracts",
         "models"
+      ]
+    },
+    {
+      "id": "command-contracts",
+      "title": "命令账本声明",
+      "category": "平台与数据",
+      "prefixes": [
+        "memory/command_schema.py"
+      ],
+      "purpose": "state.db 命令账本的纯迁移声明，不导入仓储或执行器。",
+      "docs": [
+        "docs/TERMINAL.md"
+      ],
+      "tests": [
+        "tests/test_command_jobs.py"
+      ],
+      "files": [
+        "src/omni/memory/command_schema.py"
+      ],
+      "lines": 22,
+      "dependencies": []
+    },
+    {
+      "id": "command-jobs",
+      "title": "后台命令任务",
+      "category": "工具能力",
+      "prefixes": [
+        "tools/shell/jobs.py",
+        "tools/shell/job_logs.py",
+        "tools/shell/job_tools.py",
+        "channels/web_api/command_jobs.py",
+        "channels/web_static/jobs/"
+      ],
+      "purpose": "审批后的独立命令任务、状态仓储、有限日志、会话隔离与取消；不复用人工 PTY。",
+      "docs": [
+        "docs/TERMINAL.md"
+      ],
+      "tests": [
+        "tests/test_command_jobs.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/command_jobs.py",
+        "src/omni/channels/web_static/jobs/index.html",
+        "src/omni/channels/web_static/jobs/jobs.css",
+        "src/omni/channels/web_static/jobs/jobs.js",
+        "src/omni/tools/shell/job_logs.py",
+        "src/omni/tools/shell/job_tools.py",
+        "src/omni/tools/shell/jobs.py"
+      ],
+      "lines": 338,
+      "dependencies": [
+        "config",
+        "platform",
+        "shell",
+        "storage",
+        "toolkit"
       ]
     },
     {
@@ -629,9 +688,10 @@
       "files": [
         "src/omni/channels/web_api/__init__.py"
       ],
-      "lines": 41,
+      "lines": 42,
       "dependencies": [
         "assembly",
+        "command-jobs",
         "http-approvals",
         "http-artifacts",
         "http-automation",
@@ -1246,7 +1306,7 @@
         "src/omni/system/catalog/scan.py",
         "src/omni/system/catalog/schema.py"
       ],
-      "lines": 313,
+      "lines": 315,
       "dependencies": [
         "config"
       ]
@@ -1328,7 +1388,7 @@
       "path": "src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 610,
+      "lines": 620,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1339,6 +1399,7 @@
         "omni.llm.embedding",
         "omni.llm.gateway",
         "omni.memory.artifacts",
+        "omni.memory.command_jobs",
         "omni.memory.guard",
         "omni.memory.publications",
         "omni.memory.qq",
@@ -1384,6 +1445,8 @@
         "omni.tools.runctx",
         "omni.tools.scheduling",
         "omni.tools.shell",
+        "omni.tools.shell.job_tools",
+        "omni.tools.shell.jobs",
         "omni.tools.skills",
         "omni.tools.system",
         "omni.tools.web"
@@ -1391,7 +1454,7 @@
       "symbols": [
         {
           "name": "_no_port_probe",
-          "line": 102,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "_port",
@@ -1404,7 +1467,7 @@
         },
         {
           "name": "_no_kill",
-          "line": 107,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1415,7 +1478,7 @@
         },
         {
           "name": "_no_process_probe",
-          "line": 112,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1426,7 +1489,7 @@
         },
         {
           "name": "_no_tcp_probe",
-          "line": 116,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "_port"
@@ -1437,7 +1500,7 @@
         },
         {
           "name": "_no_spawn",
-          "line": 120,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "*_args",
@@ -1447,7 +1510,7 @@
         },
         {
           "name": "_resolve_root",
-          "line": 124,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "value"
@@ -1458,12 +1521,12 @@
         },
         {
           "name": "Runtime",
-          "line": 131,
+          "line": 134,
           "kind": "class"
         },
         {
           "name": "Runtime.qq_policy",
-          "line": 178,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self"
@@ -1472,7 +1535,7 @@
         },
         {
           "name": "Runtime.close_mcp",
-          "line": 182,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self",
@@ -1484,7 +1547,7 @@
         },
         {
           "name": "Runtime.doctor",
-          "line": 189,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self"
@@ -1493,7 +1556,7 @@
         },
         {
           "name": "Runtime.backup",
-          "line": 202,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self"
@@ -1502,7 +1565,7 @@
         },
         {
           "name": "Runtime.close",
-          "line": 207,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self",
@@ -1514,7 +1577,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 252,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "self",
@@ -1526,7 +1589,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 258,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "self"
@@ -1535,7 +1598,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 262,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self",
@@ -1547,7 +1610,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 271,
+          "line": 276,
           "kind": "function",
           "parameters": [
             "self",
@@ -1559,7 +1622,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 275,
+          "line": 280,
           "kind": "function",
           "parameters": [
             "self"
@@ -1568,7 +1631,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 280,
+          "line": 285,
           "kind": "function",
           "parameters": [
             "self",
@@ -1580,7 +1643,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 287,
+          "line": 292,
           "kind": "function",
           "parameters": [
             "self",
@@ -1592,7 +1655,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 295,
+          "line": 300,
           "kind": "function",
           "parameters": [
             "approver",
@@ -1615,7 +1678,7 @@
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 433,
+          "line": 442,
           "kind": "function",
           "parameters": [
             "rel"
@@ -1626,14 +1689,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 463,
+          "line": 472,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 544,
+          "line": 553,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -2783,12 +2846,13 @@
       "path": "src/omni/channels/web_api/__init__.py",
       "module": "http-routing",
       "python_module": "omni.channels.web_api",
-      "lines": 41,
+      "lines": 42,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.approvals",
         "omni.channels.web_api.artifacts",
         "omni.channels.web_api.automation",
+        "omni.channels.web_api.command_jobs",
         "omni.channels.web_api.conversation",
         "omni.channels.web_api.devices",
         "omni.channels.web_api.mcp",
@@ -2802,7 +2866,7 @@
       "symbols": [
         {
           "name": "create_api_routers",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -3045,6 +3109,60 @@
         }
       ],
       "summary": "调度与可靠投递 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "src/omni/channels/web_api/command_jobs.py",
+      "module": "command-jobs",
+      "python_module": "omni.channels.web_api.command_jobs",
+      "lines": 23,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "create_command_jobs_router",
+          "line": 5,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_command_jobs_router.list_jobs",
+          "line": 9,
+          "kind": "function",
+          "parameters": [
+            "session_id"
+          ],
+          "annotations": {
+            "session_id": "int | None"
+          }
+        },
+        {
+          "name": "create_command_jobs_router.read_job",
+          "line": 13,
+          "kind": "function",
+          "parameters": [
+            "identifier",
+            "after"
+          ],
+          "annotations": {
+            "identifier": "str",
+            "after": "int"
+          }
+        },
+        {
+          "name": "create_command_jobs_router.cancel_job",
+          "line": 19,
+          "kind": "function",
+          "parameters": [
+            "identifier"
+          ],
+          "annotations": {
+            "identifier": "str"
+          }
+        }
+      ],
+      "summary": "后台命令管理适配；不提供绕过 Registry 审批的启动接口。"
     },
     {
       "path": "src/omni/channels/web_api/conversation.py",
@@ -4306,7 +4424,37 @@
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 1478,
+      "lines": 1479,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/jobs/index.html",
+      "module": "command-jobs",
+      "python_module": null,
+      "lines": 3,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/jobs/jobs.css",
+      "module": "command-jobs",
+      "python_module": null,
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/jobs/jobs.js",
+      "module": "command-jobs",
+      "python_module": null,
+      "lines": 6,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4494,7 +4642,7 @@
       "path": "src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 522,
+      "lines": 535,
       "imports": [],
       "symbols": [
         {
@@ -4504,7 +4652,7 @@
         },
         {
           "name": "RuntimePaths.create",
-          "line": 53,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "cls",
@@ -4522,7 +4670,7 @@
         },
         {
           "name": "load_env",
-          "line": 85,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "env_path"
@@ -4533,47 +4681,47 @@
         },
         {
           "name": "Persona",
-          "line": 106,
+          "line": 108,
           "kind": "class"
         },
         {
           "name": "Models",
-          "line": 113,
+          "line": 115,
           "kind": "class"
         },
         {
           "name": "ModelCapability",
-          "line": 120,
+          "line": 122,
           "kind": "class"
         },
         {
           "name": "Retry",
-          "line": 138,
+          "line": 140,
           "kind": "class"
         },
         {
           "name": "LLMBudget",
-          "line": 146,
+          "line": 148,
           "kind": "class"
         },
         {
           "name": "Vision",
-          "line": 158,
+          "line": 160,
           "kind": "class"
         },
         {
           "name": "Artifacts",
-          "line": 172,
+          "line": 174,
           "kind": "class"
         },
         {
           "name": "LLM",
-          "line": 180,
+          "line": 182,
           "kind": "class"
         },
         {
           "name": "LLM.capability",
-          "line": 189,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self",
@@ -4585,47 +4733,47 @@
         },
         {
           "name": "Limits",
-          "line": 193,
+          "line": 195,
           "kind": "class"
         },
         {
           "name": "Review",
-          "line": 201,
+          "line": 203,
           "kind": "class"
         },
         {
           "name": "Memory",
-          "line": 211,
+          "line": 213,
           "kind": "class"
         },
         {
           "name": "Web",
-          "line": 223,
+          "line": 225,
           "kind": "class"
         },
         {
           "name": "Files",
-          "line": 240,
+          "line": 242,
           "kind": "class"
         },
         {
           "name": "Compression",
-          "line": 258,
+          "line": 260,
           "kind": "class"
         },
         {
           "name": "Asr",
-          "line": 267,
+          "line": 269,
           "kind": "class"
         },
         {
           "name": "QQ",
-          "line": 275,
+          "line": 277,
           "kind": "class"
         },
         {
           "name": "QQ.check_qq_policy",
-          "line": 296,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self"
@@ -4634,22 +4782,22 @@
         },
         {
           "name": "Browser",
-          "line": 312,
+          "line": 314,
           "kind": "class"
         },
         {
           "name": "UIFormSelectors",
-          "line": 321,
+          "line": 323,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite",
-          "line": 339,
+          "line": 341,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite.check_forms",
-          "line": 346,
+          "line": 348,
           "kind": "function",
           "parameters": [
             "self"
@@ -4658,22 +4806,22 @@
         },
         {
           "name": "System",
-          "line": 355,
+          "line": 357,
           "kind": "class"
         },
         {
           "name": "Approval",
-          "line": 361,
+          "line": 363,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig",
-          "line": 371,
+          "line": 373,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig.nonblank_command",
-          "line": 386,
+          "line": 388,
           "kind": "function",
           "parameters": [
             "cls",
@@ -4685,7 +4833,7 @@
         },
         {
           "name": "MCPServerConfig.readonly_subset",
-          "line": 392,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self"
@@ -4694,12 +4842,12 @@
         },
         {
           "name": "MCPConfig",
-          "line": 398,
+          "line": 400,
           "kind": "class"
         },
         {
           "name": "MCPConfig.server_names",
-          "line": 404,
+          "line": 406,
           "kind": "function",
           "parameters": [
             "cls",
@@ -4711,12 +4859,12 @@
         },
         {
           "name": "Desktop",
-          "line": 412,
+          "line": 414,
           "kind": "class"
         },
         {
           "name": "Desktop.absolute_apps",
-          "line": 423,
+          "line": 425,
           "kind": "function",
           "parameters": [
             "cls",
@@ -4726,12 +4874,12 @@
         },
         {
           "name": "Embedding",
-          "line": 429,
+          "line": 431,
           "kind": "class"
         },
         {
           "name": "Embedding.validate_provider",
-          "line": 447,
+          "line": 449,
           "kind": "function",
           "parameters": [
             "self"
@@ -4740,22 +4888,27 @@
         },
         {
           "name": "Cron",
-          "line": 467,
+          "line": 469,
+          "kind": "class"
+        },
+        {
+          "name": "CommandJobsConfig",
+          "line": 474,
           "kind": "class"
         },
         {
           "name": "TerminalConfig",
-          "line": 472,
+          "line": 484,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 480,
+          "line": 492,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 505,
+          "line": 518,
           "kind": "function",
           "parameters": [
             "path"
@@ -4766,7 +4919,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 513,
+          "line": 526,
           "kind": "function",
           "parameters": [
             "path"
@@ -7822,6 +7975,108 @@
       "summary": "产物存储（D15 / A13）：截图、文件、报告统一按 artifact_id 管理。"
     },
     {
+      "path": "src/omni/memory/command_jobs.py",
+      "module": "storage",
+      "python_module": "omni.memory.command_jobs",
+      "lines": 45,
+      "imports": [
+        "omni.memory.state"
+      ],
+      "symbols": [
+        {
+          "name": "CommandJobStore",
+          "line": 11,
+          "kind": "class"
+        },
+        {
+          "name": "CommandJobStore.__init__",
+          "line": 12,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state"
+          ],
+          "annotations": {
+            "state": "StateStore"
+          }
+        },
+        {
+          "name": "CommandJobStore.create",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "session_id",
+            "run_id",
+            "owner",
+            "owner_identity",
+            "command",
+            "shell",
+            "cwd",
+            "timeout_s"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobStore.get",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identifier",
+            "session_id"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobStore.list",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "session_id",
+            "limit"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobStore.update",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identifier",
+            "owner",
+            "status",
+            "process_identity",
+            "exit_code",
+            "side_effect_state",
+            "error_code"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobStore.unfinished",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "命令任务元数据仓储；不执行或终止操作系统进程。"
+    },
+    {
+      "path": "src/omni/memory/command_schema.py",
+      "module": "command-contracts",
+      "python_module": "omni.memory.command_schema",
+      "lines": 22,
+      "imports": [],
+      "symbols": [],
+      "summary": "后台命令账本的迁移声明；不连接数据库、不启动进程。"
+    },
+    {
       "path": "src/omni/memory/cron.py",
       "module": "storage",
       "python_module": "omni.memory.cron",
@@ -9850,50 +10105,51 @@
       "path": "src/omni/memory/state.py",
       "module": "storage",
       "python_module": "omni.memory.state",
-      "lines": 1605,
+      "lines": 1607,
       "imports": [
         "omni.config",
+        "omni.memory.command_schema",
         "omni.memory.jobs"
       ],
       "symbols": [
         {
           "name": "StateError",
-          "line": 314,
+          "line": 316,
           "kind": "class"
         },
         {
           "name": "StateUnavailable",
-          "line": 318,
+          "line": 320,
           "kind": "class"
         },
         {
           "name": "StateConflict",
-          "line": 322,
+          "line": 324,
           "kind": "class"
         },
         {
           "name": "StateBusy",
-          "line": 326,
+          "line": 328,
           "kind": "class"
         },
         {
           "name": "BudgetHit",
-          "line": 331,
+          "line": 333,
           "kind": "class"
         },
         {
           "name": "Claim",
-          "line": 339,
+          "line": 341,
           "kind": "class"
         },
         {
           "name": "Lease",
-          "line": 346,
+          "line": 348,
           "kind": "class"
         },
         {
           "name": "Lease.session_id",
-          "line": 356,
+          "line": 358,
           "kind": "function",
           "parameters": [
             "self"
@@ -9902,12 +10158,12 @@
         },
         {
           "name": "MigrationRecord",
-          "line": 366,
+          "line": 368,
           "kind": "class"
         },
         {
           "name": "_statements",
-          "line": 375,
+          "line": 377,
           "kind": "function",
           "parameters": [
             "sql"
@@ -9918,14 +10174,14 @@
         },
         {
           "name": "_now",
-          "line": 380,
+          "line": 382,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_translate_operational",
-          "line": 384,
+          "line": 386,
           "kind": "function",
           "parameters": [
             "exc"
@@ -9936,7 +10192,7 @@
         },
         {
           "name": "_row_to_job",
-          "line": 399,
+          "line": 401,
           "kind": "function",
           "parameters": [
             "row"
@@ -9947,7 +10203,7 @@
         },
         {
           "name": "_job_params",
-          "line": 422,
+          "line": 424,
           "kind": "function",
           "parameters": [
             "job"
@@ -9958,12 +10214,12 @@
         },
         {
           "name": "StateStore",
-          "line": 441,
+          "line": 443,
           "kind": "class"
         },
         {
           "name": "StateStore.__init__",
-          "line": 444,
+          "line": 446,
           "kind": "function",
           "parameters": [
             "self",
@@ -9979,7 +10235,7 @@
         },
         {
           "name": "StateStore._current_version",
-          "line": 482,
+          "line": 484,
           "kind": "function",
           "parameters": [
             "self"
@@ -9988,7 +10244,7 @@
         },
         {
           "name": "StateStore._apply_schema",
-          "line": 493,
+          "line": 495,
           "kind": "function",
           "parameters": [
             "self"
@@ -9997,7 +10253,7 @@
         },
         {
           "name": "StateStore.schema_version",
-          "line": 537,
+          "line": 539,
           "kind": "function",
           "parameters": [
             "self"
@@ -10006,7 +10262,7 @@
         },
         {
           "name": "StateStore._tx",
-          "line": 543,
+          "line": 545,
           "kind": "function",
           "parameters": [
             "self"
@@ -10015,7 +10271,7 @@
         },
         {
           "name": "StateStore._begin",
-          "line": 568,
+          "line": 570,
           "kind": "function",
           "parameters": [
             "self"
@@ -10024,7 +10280,7 @@
         },
         {
           "name": "StateStore._read",
-          "line": 590,
+          "line": 592,
           "kind": "function",
           "parameters": [
             "self",
@@ -10038,7 +10294,7 @@
         },
         {
           "name": "StateStore._table_empty",
-          "line": 597,
+          "line": 599,
           "kind": "function",
           "parameters": [
             "self",
@@ -10050,7 +10306,7 @@
         },
         {
           "name": "StateStore.degraded_reason",
-          "line": 601,
+          "line": 603,
           "kind": "function",
           "parameters": [
             "self",
@@ -10062,7 +10318,7 @@
         },
         {
           "name": "StateStore._require",
-          "line": 604,
+          "line": 606,
           "kind": "function",
           "parameters": [
             "self",
@@ -10074,7 +10330,7 @@
         },
         {
           "name": "StateStore.close",
-          "line": 609,
+          "line": 611,
           "kind": "function",
           "parameters": [
             "self"
@@ -10083,7 +10339,7 @@
         },
         {
           "name": "StateStore.list_jobs",
-          "line": 616,
+          "line": 618,
           "kind": "function",
           "parameters": [
             "self"
@@ -10092,7 +10348,7 @@
         },
         {
           "name": "StateStore.get_job",
-          "line": 621,
+          "line": 623,
           "kind": "function",
           "parameters": [
             "self",
@@ -10104,7 +10360,7 @@
         },
         {
           "name": "StateStore.upsert_job",
-          "line": 626,
+          "line": 628,
           "kind": "function",
           "parameters": [
             "self",
@@ -10120,7 +10376,7 @@
         },
         {
           "name": "StateStore.update_run_state",
-          "line": 691,
+          "line": 693,
           "kind": "function",
           "parameters": [
             "self",
@@ -10138,7 +10394,7 @@
         },
         {
           "name": "StateStore.remove_job",
-          "line": 710,
+          "line": 712,
           "kind": "function",
           "parameters": [
             "self",
@@ -10150,7 +10406,7 @@
         },
         {
           "name": "StateStore.claim_due",
-          "line": 717,
+          "line": 719,
           "kind": "function",
           "parameters": [
             "self",
@@ -10168,7 +10424,7 @@
         },
         {
           "name": "StateStore.release_claim",
-          "line": 793,
+          "line": 795,
           "kind": "function",
           "parameters": [
             "self",
@@ -10180,7 +10436,7 @@
         },
         {
           "name": "StateStore.renew_job_claim",
-          "line": 797,
+          "line": 799,
           "kind": "function",
           "parameters": [
             "self",
@@ -10194,7 +10450,7 @@
         },
         {
           "name": "StateStore.lease",
-          "line": 805,
+          "line": 807,
           "kind": "function",
           "parameters": [
             "self",
@@ -10206,7 +10462,7 @@
         },
         {
           "name": "StateStore.acquire_lease",
-          "line": 818,
+          "line": 820,
           "kind": "function",
           "parameters": [
             "self",
@@ -10226,7 +10482,7 @@
         },
         {
           "name": "StateStore.renew_lease",
-          "line": 855,
+          "line": 857,
           "kind": "function",
           "parameters": [
             "self",
@@ -10242,7 +10498,7 @@
         },
         {
           "name": "StateStore.release_lease",
-          "line": 866,
+          "line": 868,
           "kind": "function",
           "parameters": [
             "self",
@@ -10254,7 +10510,7 @@
         },
         {
           "name": "StateStore.session_lease",
-          "line": 874,
+          "line": 876,
           "kind": "function",
           "parameters": [
             "self",
@@ -10266,7 +10522,7 @@
         },
         {
           "name": "StateStore.acquire_session_lease",
-          "line": 877,
+          "line": 879,
           "kind": "function",
           "parameters": [
             "self",
@@ -10286,7 +10542,7 @@
         },
         {
           "name": "StateStore.renew_session_lease",
-          "line": 894,
+          "line": 896,
           "kind": "function",
           "parameters": [
             "self",
@@ -10302,7 +10558,7 @@
         },
         {
           "name": "StateStore.release_session_lease",
-          "line": 899,
+          "line": 901,
           "kind": "function",
           "parameters": [
             "self",
@@ -10314,7 +10570,7 @@
         },
         {
           "name": "StateStore.record_execution",
-          "line": 904,
+          "line": 906,
           "kind": "function",
           "parameters": [
             "self",
@@ -10338,7 +10594,7 @@
         },
         {
           "name": "StateStore.recent_executions",
-          "line": 929,
+          "line": 931,
           "kind": "function",
           "parameters": [
             "self",
@@ -10350,7 +10606,7 @@
         },
         {
           "name": "StateStore.consume_budget",
-          "line": 949,
+          "line": 951,
           "kind": "function",
           "parameters": [
             "self",
@@ -10366,7 +10622,7 @@
         },
         {
           "name": "StateStore.budget_used",
-          "line": 972,
+          "line": 974,
           "kind": "function",
           "parameters": [
             "self",
@@ -10380,7 +10636,7 @@
         },
         {
           "name": "StateStore._migration",
-          "line": 980,
+          "line": 982,
           "kind": "function",
           "parameters": [
             "self",
@@ -10392,7 +10648,7 @@
         },
         {
           "name": "StateStore._write_migration",
-          "line": 994,
+          "line": 996,
           "kind": "function",
           "parameters": [
             "self",
@@ -10414,7 +10670,7 @@
         },
         {
           "name": "StateStore.migrate_legacy",
-          "line": 1013,
+          "line": 1015,
           "kind": "function",
           "parameters": [
             "self",
@@ -10426,7 +10682,7 @@
         },
         {
           "name": "StateStore._migrate_file",
-          "line": 1022,
+          "line": 1024,
           "kind": "function",
           "parameters": [
             "self",
@@ -10442,7 +10698,7 @@
         },
         {
           "name": "StateStore._mark_corrupt",
-          "line": 1060,
+          "line": 1062,
           "kind": "function",
           "parameters": [
             "self",
@@ -10460,7 +10716,7 @@
         },
         {
           "name": "StateStore._import_rows",
-          "line": 1075,
+          "line": 1077,
           "kind": "function",
           "parameters": [
             "self",
@@ -10476,7 +10732,7 @@
         },
         {
           "name": "StateStore._import_jobs",
-          "line": 1084,
+          "line": 1086,
           "kind": "function",
           "parameters": [
             "self",
@@ -10490,7 +10746,7 @@
         },
         {
           "name": "StateStore._import_executions",
-          "line": 1119,
+          "line": 1121,
           "kind": "function",
           "parameters": [
             "self",
@@ -10504,7 +10760,7 @@
         },
         {
           "name": "StateStore._import_budget",
-          "line": 1144,
+          "line": 1146,
           "kind": "function",
           "parameters": [
             "self",
@@ -10518,7 +10774,7 @@
         },
         {
           "name": "StateStore.health",
-          "line": 1161,
+          "line": 1163,
           "kind": "function",
           "parameters": [
             "self"
@@ -10527,12 +10783,12 @@
         },
         {
           "name": "JobStore",
-          "line": 1198,
+          "line": 1200,
           "kind": "class"
         },
         {
           "name": "JobStore.__init__",
-          "line": 1201,
+          "line": 1203,
           "kind": "function",
           "parameters": [
             "self",
@@ -10544,7 +10800,7 @@
         },
         {
           "name": "JobStore.state",
-          "line": 1205,
+          "line": 1207,
           "kind": "function",
           "parameters": [
             "self"
@@ -10553,7 +10809,7 @@
         },
         {
           "name": "JobStore.list",
-          "line": 1208,
+          "line": 1210,
           "kind": "function",
           "parameters": [
             "self"
@@ -10562,7 +10818,7 @@
         },
         {
           "name": "JobStore.get",
-          "line": 1211,
+          "line": 1213,
           "kind": "function",
           "parameters": [
             "self",
@@ -10574,7 +10830,7 @@
         },
         {
           "name": "JobStore.upsert",
-          "line": 1214,
+          "line": 1216,
           "kind": "function",
           "parameters": [
             "self",
@@ -10590,7 +10846,7 @@
         },
         {
           "name": "JobStore.remove",
-          "line": 1221,
+          "line": 1223,
           "kind": "function",
           "parameters": [
             "self",
@@ -10602,7 +10858,7 @@
         },
         {
           "name": "JobStore.claim_due",
-          "line": 1224,
+          "line": 1226,
           "kind": "function",
           "parameters": [
             "self",
@@ -10615,7 +10871,7 @@
         },
         {
           "name": "JobStore.release_claim",
-          "line": 1227,
+          "line": 1229,
           "kind": "function",
           "parameters": [
             "self",
@@ -10627,7 +10883,7 @@
         },
         {
           "name": "JobStore.renew_claim",
-          "line": 1230,
+          "line": 1232,
           "kind": "function",
           "parameters": [
             "self",
@@ -10641,7 +10897,7 @@
         },
         {
           "name": "JobStore.update_run_state",
-          "line": 1233,
+          "line": 1235,
           "kind": "function",
           "parameters": [
             "self",
@@ -10654,12 +10910,12 @@
         },
         {
           "name": "ExecutionLog",
-          "line": 1237,
+          "line": 1239,
           "kind": "class"
         },
         {
           "name": "ExecutionLog.__init__",
-          "line": 1240,
+          "line": 1242,
           "kind": "function",
           "parameters": [
             "self",
@@ -10673,7 +10929,7 @@
         },
         {
           "name": "ExecutionLog.record",
-          "line": 1244,
+          "line": 1246,
           "kind": "function",
           "parameters": [
             "self",
@@ -10695,7 +10951,7 @@
         },
         {
           "name": "ExecutionLog.recent",
-          "line": 1263,
+          "line": 1265,
           "kind": "function",
           "parameters": [
             "self",
@@ -10707,7 +10963,7 @@
         },
         {
           "name": "ExecutionLog.output",
-          "line": 1266,
+          "line": 1268,
           "kind": "function",
           "parameters": [
             "self",
@@ -10727,7 +10983,7 @@
         },
         {
           "name": "ExecutionLog.source",
-          "line": 1273,
+          "line": 1275,
           "kind": "function",
           "parameters": [
             "self",
@@ -10741,12 +10997,12 @@
         },
         {
           "name": "OutboxStore",
-          "line": 1284,
+          "line": 1286,
           "kind": "class"
         },
         {
           "name": "OutboxStore.__init__",
-          "line": 1301,
+          "line": 1303,
           "kind": "function",
           "parameters": [
             "self",
@@ -10758,14 +11014,14 @@
         },
         {
           "name": "OutboxStore._now",
-          "line": 1305,
+          "line": 1307,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "OutboxStore.enqueue",
-          "line": 1308,
+          "line": 1310,
           "kind": "function",
           "parameters": [
             "self",
@@ -10785,7 +11041,7 @@
         },
         {
           "name": "OutboxStore.list",
-          "line": 1341,
+          "line": 1343,
           "kind": "function",
           "parameters": [
             "self",
@@ -10797,7 +11053,7 @@
         },
         {
           "name": "OutboxStore.get",
-          "line": 1350,
+          "line": 1352,
           "kind": "function",
           "parameters": [
             "self",
@@ -10809,7 +11065,7 @@
         },
         {
           "name": "OutboxStore.pending",
-          "line": 1354,
+          "line": 1356,
           "kind": "function",
           "parameters": [
             "self",
@@ -10821,7 +11077,7 @@
         },
         {
           "name": "OutboxStore.mark",
-          "line": 1363,
+          "line": 1365,
           "kind": "function",
           "parameters": [
             "self",
@@ -10837,7 +11093,7 @@
         },
         {
           "name": "OutboxStore.claim_next",
-          "line": 1375,
+          "line": 1377,
           "kind": "function",
           "parameters": [
             "self",
@@ -10855,7 +11111,7 @@
         },
         {
           "name": "OutboxStore.finish_claim",
-          "line": 1407,
+          "line": 1409,
           "kind": "function",
           "parameters": [
             "self",
@@ -10873,7 +11129,7 @@
         },
         {
           "name": "OutboxStore.defer_claim",
-          "line": 1421,
+          "line": 1423,
           "kind": "function",
           "parameters": [
             "self",
@@ -10889,7 +11145,7 @@
         },
         {
           "name": "OutboxStore.attempt",
-          "line": 1429,
+          "line": 1431,
           "kind": "function",
           "parameters": [
             "self",
@@ -10903,7 +11159,7 @@
         },
         {
           "name": "OutboxStore.retry",
-          "line": 1445,
+          "line": 1447,
           "kind": "function",
           "parameters": [
             "self",
@@ -10917,7 +11173,7 @@
         },
         {
           "name": "OutboxStore.discard",
-          "line": 1466,
+          "line": 1468,
           "kind": "function",
           "parameters": [
             "self",
@@ -10931,7 +11187,7 @@
         },
         {
           "name": "OutboxStore.prune_terminal",
-          "line": 1479,
+          "line": 1481,
           "kind": "function",
           "parameters": [
             "self",
@@ -10943,7 +11199,7 @@
         },
         {
           "name": "OutboxStore._row",
-          "line": 1496,
+          "line": 1498,
           "kind": "function",
           "parameters": [
             "r"
@@ -10954,12 +11210,12 @@
         },
         {
           "name": "MCPSchemaStore",
-          "line": 1509,
+          "line": 1511,
           "kind": "class"
         },
         {
           "name": "MCPSchemaStore.__init__",
-          "line": 1516,
+          "line": 1518,
           "kind": "function",
           "parameters": [
             "self",
@@ -10971,7 +11227,7 @@
         },
         {
           "name": "MCPSchemaStore.observe",
-          "line": 1519,
+          "line": 1521,
           "kind": "function",
           "parameters": [
             "self",
@@ -10987,7 +11243,7 @@
         },
         {
           "name": "MCPSchemaStore.confirm",
-          "line": 1544,
+          "line": 1546,
           "kind": "function",
           "parameters": [
             "self",
@@ -11001,7 +11257,7 @@
         },
         {
           "name": "MCPSchemaStore.status",
-          "line": 1555,
+          "line": 1557,
           "kind": "function",
           "parameters": [
             "self",
@@ -11013,12 +11269,12 @@
         },
         {
           "name": "SkillAckStore",
-          "line": 1571,
+          "line": 1573,
           "kind": "class"
         },
         {
           "name": "SkillAckStore.__init__",
-          "line": 1579,
+          "line": 1581,
           "kind": "function",
           "parameters": [
             "self",
@@ -11030,7 +11286,7 @@
         },
         {
           "name": "SkillAckStore.ack",
-          "line": 1582,
+          "line": 1584,
           "kind": "function",
           "parameters": [
             "self",
@@ -11044,7 +11300,7 @@
         },
         {
           "name": "SkillAckStore.acked",
-          "line": 1597,
+          "line": 1599,
           "kind": "function",
           "parameters": [
             "self",
@@ -11056,7 +11312,7 @@
         },
         {
           "name": "SkillAckStore.acked_all",
-          "line": 1603,
+          "line": 1605,
           "kind": "function",
           "parameters": [
             "self"
@@ -13983,7 +14239,7 @@
       "path": "src/omni/system/catalog/schema.py",
       "module": "catalog",
       "python_module": "omni.system.catalog.schema",
-      "lines": 98,
+      "lines": 100,
       "imports": [],
       "symbols": [
         {
@@ -13993,7 +14249,7 @@
         },
         {
           "name": "classify",
-          "line": 69,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "relative"
@@ -20631,6 +20887,272 @@
       "summary": "硬性安全黑名单：灾难级操作命中即拒——即便用户已确认也不执行。"
     },
     {
+      "path": "src/omni/tools/shell/job_logs.py",
+      "module": "command-jobs",
+      "python_module": "omni.tools.shell.job_logs",
+      "lines": 44,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "CommandLog",
+          "line": 9,
+          "kind": "class"
+        },
+        {
+          "name": "CommandLog.__init__",
+          "line": 10,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "directory",
+            "identifier",
+            "limit"
+          ],
+          "annotations": {
+            "directory": "Path",
+            "identifier": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "CommandLog.append",
+          "line": 16,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "stream",
+            "text"
+          ],
+          "annotations": {
+            "stream": "str",
+            "text": "str"
+          }
+        },
+        {
+          "name": "CommandLog.read",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "after",
+            "limit"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "命令输出的有界 JSONL 环：序号续读、跨流串行、最近日志与缺口标记。"
+    },
+    {
+      "path": "src/omni/tools/shell/job_tools.py",
+      "module": "command-jobs",
+      "python_module": "omni.tools.shell.job_tools",
+      "lines": 44,
+      "imports": [
+        "omni.tools.registry",
+        "omni.tools.result"
+      ],
+      "symbols": [
+        {
+          "name": "register_command_job_tools",
+          "line": 9,
+          "kind": "function",
+          "parameters": [
+            "registry",
+            "manager",
+            "session_ref",
+            "run_ref"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "register_command_job_tools.invoke",
+          "line": 10,
+          "kind": "function",
+          "parameters": [
+            "action",
+            "args"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "后台任务的 Registry 适配；不复用人工 PTY，不接受外部会话身份。"
+    },
+    {
+      "path": "src/omni/tools/shell/jobs.py",
+      "module": "command-jobs",
+      "python_module": "omni.tools.shell.jobs",
+      "lines": 217,
+      "imports": [
+        "omni.config",
+        "omni.memory.command_jobs",
+        "omni.system.process_identity",
+        "omni.tools.shell.danger",
+        "omni.tools.shell.job_logs",
+        "omni.tools.shell.process"
+      ],
+      "symbols": [
+        {
+          "name": "_spawn",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "command",
+            "shell",
+            "cwd"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager",
+          "line": 40,
+          "kind": "class"
+        },
+        {
+          "name": "CommandJobManager.__init__",
+          "line": 41,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "store",
+            "log_dir",
+            "root",
+            "config",
+            "spawner",
+            "inspector",
+            "terminator",
+            "exited"
+          ],
+          "annotations": {
+            "store": "CommandJobStore",
+            "log_dir": "Path",
+            "root": "Path",
+            "config": "CommandJobsConfig"
+          }
+        },
+        {
+          "name": "CommandJobManager._recover",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager._cleanup_logs",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager.start",
+          "line": 83,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "command",
+            "session_id",
+            "run_id",
+            "shell",
+            "cwd",
+            "timeout_s",
+            "parent"
+          ],
+          "annotations": {
+            "command": "str",
+            "session_id": "int",
+            "run_id": "str"
+          }
+        },
+        {
+          "name": "CommandJobManager.public",
+          "line": 113,
+          "kind": "function",
+          "parameters": [
+            "row"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager._worker",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager._cancelled",
+          "line": 128,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "task"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager._execute",
+          "line": 131,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "task"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager.list",
+          "line": 186,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "session_id"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager.read",
+          "line": 189,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identifier",
+            "session_id",
+            "after",
+            "limit"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager.cancel",
+          "line": 196,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "identifier",
+            "session_id"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "CommandJobManager.close",
+          "line": 207,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "wait_s"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "独立后台命令执行器：审批后入队、有界进程/日志、会话归属与诚实回收。"
+    },
+    {
       "path": "src/omni/tools/shell/process.py",
       "module": "shell",
       "python_module": "omni.tools.shell.process",
@@ -22607,6 +23129,53 @@
     },
     {
       "method": "GET",
+      "path": "/api/command-jobs",
+      "source": "src/omni/channels/web_api/command_jobs.py",
+      "line": 9,
+      "handler": "create_command_jobs_router.list_jobs",
+      "module": "command-jobs",
+      "parameters": [
+        "session_id"
+      ],
+      "annotations": {
+        "session_id": "int | None"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/command-jobs/{identifier}",
+      "source": "src/omni/channels/web_api/command_jobs.py",
+      "line": 13,
+      "handler": "create_command_jobs_router.read_job",
+      "module": "command-jobs",
+      "parameters": [
+        "identifier",
+        "after"
+      ],
+      "annotations": {
+        "identifier": "str",
+        "after": "int"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/command-jobs/{identifier}/cancel",
+      "source": "src/omni/channels/web_api/command_jobs.py",
+      "line": 19,
+      "handler": "create_command_jobs_router.cancel_job",
+      "module": "command-jobs",
+      "parameters": [
+        "identifier"
+      ],
+      "annotations": {
+        "identifier": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
       "path": "/api/desktop/observe/{window}",
       "source": "src/omni/channels/web_api/devices.py",
       "line": 30,
@@ -24575,7 +25144,7 @@
         {
           "source": "src/omni/memory/state.py",
           "symbol": "MCPSchemaStore",
-          "line": 1509
+          "line": 1511
         }
       ]
     }
@@ -25055,7 +25624,7 @@
     {
       "name": "Persona",
       "source": "src/omni/config.py",
-      "line": 106,
+      "line": 108,
       "fields": [
         {
           "name": "name",
@@ -25072,7 +25641,7 @@
     {
       "name": "Models",
       "source": "src/omni/config.py",
-      "line": 113,
+      "line": 115,
       "fields": [
         {
           "name": "chat",
@@ -25099,7 +25668,7 @@
     {
       "name": "ModelCapability",
       "source": "src/omni/config.py",
-      "line": 120,
+      "line": 122,
       "fields": [
         {
           "name": "tools",
@@ -25136,7 +25705,7 @@
     {
       "name": "Retry",
       "source": "src/omni/config.py",
-      "line": 138,
+      "line": 140,
       "fields": [
         {
           "name": "max_attempts",
@@ -25158,7 +25727,7 @@
     {
       "name": "LLMBudget",
       "source": "src/omni/config.py",
-      "line": 146,
+      "line": 148,
       "fields": [
         {
           "name": "daily_usd",
@@ -25175,7 +25744,7 @@
     {
       "name": "Vision",
       "source": "src/omni/config.py",
-      "line": 158,
+      "line": 160,
       "fields": [
         {
           "name": "send_to_cloud",
@@ -25202,7 +25771,7 @@
     {
       "name": "Artifacts",
       "source": "src/omni/config.py",
-      "line": 172,
+      "line": 174,
       "fields": [
         {
           "name": "retention_days",
@@ -25219,7 +25788,7 @@
     {
       "name": "LLM",
       "source": "src/omni/config.py",
-      "line": 180,
+      "line": 182,
       "fields": [
         {
           "name": "request_timeout_s",
@@ -25251,7 +25820,7 @@
     {
       "name": "Limits",
       "source": "src/omni/config.py",
-      "line": 193,
+      "line": 195,
       "fields": [
         {
           "name": "max_history_messages",
@@ -25283,7 +25852,7 @@
     {
       "name": "Review",
       "source": "src/omni/config.py",
-      "line": 201,
+      "line": 203,
       "fields": [
         {
           "name": "enabled",
@@ -25315,7 +25884,7 @@
     {
       "name": "Memory",
       "source": "src/omni/config.py",
-      "line": 211,
+      "line": 213,
       "fields": [
         {
           "name": "max_writes_per_day",
@@ -25337,7 +25906,7 @@
     {
       "name": "Web",
       "source": "src/omni/config.py",
-      "line": 223,
+      "line": 225,
       "fields": [
         {
           "name": "max_bytes",
@@ -25384,7 +25953,7 @@
     {
       "name": "Files",
       "source": "src/omni/config.py",
-      "line": 240,
+      "line": 242,
       "fields": [
         {
           "name": "root",
@@ -25436,7 +26005,7 @@
     {
       "name": "Compression",
       "source": "src/omni/config.py",
-      "line": 258,
+      "line": 260,
       "fields": [
         {
           "name": "enabled",
@@ -25463,7 +26032,7 @@
     {
       "name": "Asr",
       "source": "src/omni/config.py",
-      "line": 267,
+      "line": 269,
       "fields": [
         {
           "name": "model",
@@ -25485,7 +26054,7 @@
     {
       "name": "QQ",
       "source": "src/omni/config.py",
-      "line": 275,
+      "line": 277,
       "fields": [
         {
           "name": "enabled",
@@ -25572,7 +26141,7 @@
     {
       "name": "Browser",
       "source": "src/omni/config.py",
-      "line": 312,
+      "line": 314,
       "fields": [
         {
           "name": "headless",
@@ -25599,7 +26168,7 @@
     {
       "name": "UIFormSelectors",
       "source": "src/omni/config.py",
-      "line": 321,
+      "line": 323,
       "fields": [
         {
           "name": "account",
@@ -25671,7 +26240,7 @@
     {
       "name": "BilibiliWrite",
       "source": "src/omni/config.py",
-      "line": 339,
+      "line": 341,
       "fields": [
         {
           "name": "enabled",
@@ -25698,7 +26267,7 @@
     {
       "name": "System",
       "source": "src/omni/config.py",
-      "line": 355,
+      "line": 357,
       "fields": [
         {
           "name": "napcat_dir",
@@ -25710,7 +26279,7 @@
     {
       "name": "Approval",
       "source": "src/omni/config.py",
-      "line": 361,
+      "line": 363,
       "fields": [
         {
           "name": "mode",
@@ -25722,7 +26291,7 @@
     {
       "name": "MCPServerConfig",
       "source": "src/omni/config.py",
-      "line": 371,
+      "line": 373,
       "fields": [
         {
           "name": "command",
@@ -25769,7 +26338,7 @@
     {
       "name": "MCPConfig",
       "source": "src/omni/config.py",
-      "line": 398,
+      "line": 400,
       "fields": [
         {
           "name": "servers",
@@ -25781,7 +26350,7 @@
     {
       "name": "Desktop",
       "source": "src/omni/config.py",
-      "line": 412,
+      "line": 414,
       "fields": [
         {
           "name": "enabled",
@@ -25818,7 +26387,7 @@
     {
       "name": "Embedding",
       "source": "src/omni/config.py",
-      "line": 429,
+      "line": 431,
       "fields": [
         {
           "name": "enabled",
@@ -25895,7 +26464,7 @@
     {
       "name": "Cron",
       "source": "src/omni/config.py",
-      "line": 467,
+      "line": 469,
       "fields": [
         {
           "name": "max_running",
@@ -25905,9 +26474,46 @@
       ]
     },
     {
+      "name": "CommandJobsConfig",
+      "source": "src/omni/config.py",
+      "line": 474,
+      "fields": [
+        {
+          "name": "max_running",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "max_waiting",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "default_timeout_s",
+          "type": "float",
+          "required": false
+        },
+        {
+          "name": "log_bytes",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "retention_days",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "total_log_bytes",
+          "type": "int",
+          "required": false
+        }
+      ]
+    },
+    {
       "name": "TerminalConfig",
       "source": "src/omni/config.py",
-      "line": 472,
+      "line": 484,
       "fields": [
         {
           "name": "max_sessions",
@@ -25934,8 +26540,13 @@
     {
       "name": "AppConfig",
       "source": "src/omni/config.py",
-      "line": 480,
+      "line": 492,
       "fields": [
+        {
+          "name": "command_jobs",
+          "type": "CommandJobsConfig",
+          "required": false
+        },
         {
           "name": "terminal",
           "type": "TerminalConfig",
