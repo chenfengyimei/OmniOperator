@@ -2,38 +2,40 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`337d11c278b826ad1f293226180eb46908fb138bbc7ba01644cff2cc21677d17`。包含 54 个职责模块、243 个源码/界面文件。
+源码指纹：`a8b485a6b2c71bff845de493d0c239c61e4a440ef16f68b776d2a2fd148fb4e8`。包含 54 个职责模块、245 个源码/界面文件。
 
-## Agent 空间与目录 · agent-directories
+## 项目存储与 Agent 目录 · agent-directories
 
-分类：平台与数据。独立空间注册、目录校验、修订并发控制与有效路径解析；不构造执行对象或搬移数据。
+分类：平台与数据。全局与独立空间目录解析、CAS 配置、运维路径解析与用途索引；不构造执行对象或搬移数据。
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/system/agent_spaces/__init__.py](../../src/omni/system/agent_spaces/__init__.py) | 5 | Agent 目录注册与纯路径解析；执行对象仍由 bootstrap 构造。 |
-| [src/omni/system/agent_spaces/catalog.py](../../src/omni/system/agent_spaces/catalog.py) | 80 | 配置注册表：有界读取、CAS、跨进程互斥、原子写；不搬运用户数据。 |
-| [src/omni/system/agent_spaces/layout.py](../../src/omni/system/agent_spaces/layout.py) | 119 | 本机 Agent 布局的声明与校验，不创建目录或打开数据。 |
+| [src/omni/system/agent_spaces/__init__.py](../../src/omni/system/agent_spaces/__init__.py) | 6 | Agent 目录注册与纯路径解析；执行对象仍由 bootstrap 构造。 |
+| [src/omni/system/agent_spaces/catalog.py](../../src/omni/system/agent_spaces/catalog.py) | 129 | 配置注册表：有界读取、CAS、跨进程互斥、原子写；不搬运用户数据。 |
+| [src/omni/system/agent_spaces/inspection.py](../../src/omni/system/agent_spaces/inspection.py) | 50 | 只读运维入口共用的路径选择，不组装服务、不建库、不创建目录。 |
+| [src/omni/system/agent_spaces/inventory.py](../../src/omni/system/agent_spaces/inventory.py) | 43 | 路径用途索引：纯声明，不扫描磁盘或读取记忆、凭据内容。 |
+| [src/omni/system/agent_spaces/layout.py](../../src/omni/system/agent_spaces/layout.py) | 216 | 本机 Agent 布局的声明与校验，不创建目录或打开数据。 |
 
-文档：[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
+文档：[docs/STORAGE.md](../../docs/STORAGE.md)、[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
 
-测试：[tests/test_agent_storage.py](../../tests/test_agent_storage.py)
+测试：[tests/test_agent_storage.py](../../tests/test_agent_storage.py)、[tests/test_storage_cli.py](../../tests/test_storage_cli.py)、[tests/test_application_storage.py](../../tests/test_application_storage.py)
 
 直接静态依赖：`config`、`platform`
 
-## Agent 设置与文件管理 · http-storage
+## 项目目录与文件管理 · http-storage
 
-分类：Web 接口。目录设置、待重启差异与当前空间公开文件区的有界浏览和人工上传。
+分类：Web 接口。全局与 Agent 目录设置、运行与待重启路径、用途索引及当前空间公开文件区的有界浏览和人工上传。
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py) | 157 | Agent 目录设置和当前公开文件区；只消费组装根注入的目录与路径策略。 |
-| [src/omni/channels/web_static/storage/index.html](../../src/omni/channels/web_static/storage/index.html) | 63 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/storage/storage.css](../../src/omni/channels/web_static/storage/storage.css) | 130 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/storage/storage.js](../../src/omni/channels/web_static/storage/storage.js) | 78 | 平台脚本或界面资源 |
+| [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py) | 162 | Agent 目录设置和当前公开文件区；只消费组装根注入的目录与路径策略。 |
+| [src/omni/channels/web_static/storage/index.html](../../src/omni/channels/web_static/storage/index.html) | 82 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/storage/storage.css](../../src/omni/channels/web_static/storage/storage.css) | 144 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/storage/storage.js](../../src/omni/channels/web_static/storage/storage.js) | 89 | 平台脚本或界面资源 |
 
-文档：[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
+文档：[docs/STORAGE.md](../../docs/STORAGE.md)、[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
 
-测试：[tests/test_agent_storage.py](../../tests/test_agent_storage.py)
+测试：[tests/test_storage_settings.py](../../tests/test_storage_settings.py)、[tests/test_agent_storage_ui.py](../../tests/test_agent_storage_ui.py)
 
 直接静态依赖：`agent-directories`、`assembly`、`files`、`platform`、`toolkit`
 
@@ -43,7 +45,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/bootstrap.py](../../src/omni/bootstrap.py) | 662 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [src/omni/bootstrap.py](../../src/omni/bootstrap.py) | 666 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -57,7 +59,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/config.py](../../src/omni/config.py) | 576 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [src/omni/config.py](../../src/omni/config.py) | 577 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -579,7 +581,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/__init__.py](../../src/omni/channels/__init__.py) | 1 | 入口层：QQ(NapCat)、CLI、Web（P0 只有 CLI）。 |
-| [src/omni/channels/doctor.py](../../src/omni/channels/doctor.py) | 31 | 只读 doctor 命令；不组装运行态，以免诊断触发建库、迁移或后台任务。 |
+| [src/omni/channels/doctor.py](../../src/omni/channels/doctor.py) | 42 | 只读 doctor 命令；不组装运行态，以免诊断触发建库、迁移或后台任务。 |
 | [src/omni/channels/eval_retrieval.py](../../src/omni/channels/eval_retrieval.py) | 75 | 在临时数据库评测合成样本；hybrid 模式须显式传配置，默认完全离线。 |
 | [src/omni/channels/lifecycle.py](../../src/omni/channels/lifecycle.py) | 22 | 常驻入口响应本次启动的停止请求；不构造运行态、不自行终止其它进程。 |
 
@@ -587,7 +589,7 @@
 
 测试：关联模块集成验证
 
-直接静态依赖：`assembly`、`config`、`engine`、`platform`
+直接静态依赖：`agent-directories`、`assembly`、`config`、`engine`、`platform`
 
 ## 个人记忆工具 · personal
 
@@ -697,7 +699,7 @@
 | [src/omni/tools/files/__init__.py](../../src/omni/tools/files/__init__.py) | 19 | 结构化文件工具域（D13）：工作区内的有界读写、差异预览与回滚。 |
 | [src/omni/tools/files/history.py](../../src/omni/tools/files/history.py) | 161 | 工作区文件的修订快照（D13）：写前备份、可回滚。 |
 | [src/omni/tools/files/io.py](../../src/omni/tools/files/io.py) | 324 | 文本读写的有界实现（D13）：编码识别、二进制拒绝、窗口读取、原子替换。 |
-| [src/omni/tools/files/paths.py](../../src/omni/tools/files/paths.py) | 282 | 工作区路径边界（D13）：规范化、根校验、敏感项与"检查后不变"。 |
+| [src/omni/tools/files/paths.py](../../src/omni/tools/files/paths.py) | 287 | 工作区路径边界（D13）：规范化、根校验、敏感项与"检查后不变"。 |
 | [src/omni/tools/files/search.py](../../src/omni/tools/files/search.py) | 169 | 有界目录遍历与内容搜索（D13）。 |
 | [src/omni/tools/files/tools.py](../../src/omni/tools/files/tools.py) | 703 | 结构化文件工具（D13，toolset=files）。 |
 
@@ -788,9 +790,9 @@
 |---|---:|---|
 | [src/omni/tools/bilibili/__init__.py](../../src/omni/tools/bilibili/__init__.py) | 1 | B站能力域（P1：只读）。api 层不知道 LLM，tools 层不知道 HTTP 细节。 |
 | [src/omni/tools/bilibili/api.py](../../src/omni/tools/bilibili/api.py) | 256 | B站读 API 封装：只读端点 + 目标归一化 + WBI 签名。 |
-| [src/omni/tools/bilibili/asr.py](../../src/omni/tools/bilibili/asr.py) | 96 | 无字幕视频的 ASR 兜底（faster-whisper，本地转写）。 |
+| [src/omni/tools/bilibili/asr.py](../../src/omni/tools/bilibili/asr.py) | 100 | 无字幕视频的 ASR 兜底（faster-whisper，本地转写）。 |
 | [src/omni/tools/bilibili/publishing.py](../../src/omni/tools/bilibili/publishing.py) | 126 | B站草稿→人工批准→一次 UI 提交→记录回读；浏览器能力通过协议注入。 |
-| [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py) | 167 | B站读工具集（toolset=bilibili，全部 SAFE 只读）。 |
+| [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py) | 172 | B站读工具集（toolset=bilibili，全部 SAFE 只读）。 |
 | [src/omni/tools/bilibili/wbi.py](../../src/omni/tools/bilibili/wbi.py) | 43 | B站 WBI 签名（纯算法，无网络依赖）。 |
 | [src/omni/tools/bilibili/write_tools.py](../../src/omni/tools/bilibili/write_tools.py) | 50 | B站草稿工具及逐次人工发布审批；所有浏览器依赖由组装根注入。 |
 
@@ -917,7 +919,7 @@
 |---|---:|---|
 | [src/omni/system/__init__.py](../../src/omni/system/__init__.py) | 5 | 本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。 |
 | [src/omni/system/atomic.py](../../src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
-| [src/omni/system/backup.py](../../src/omni/system/backup.py) | 507 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
+| [src/omni/system/backup.py](../../src/omni/system/backup.py) | 515 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
 | [src/omni/system/config_io.py](../../src/omni/system/config_io.py) | 396 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
 | [src/omni/system/doctor.py](../../src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [src/omni/system/filelock.py](../../src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
@@ -933,7 +935,7 @@
 
 测试：[tests/test_backup.py](../../tests/test_backup.py)、[tests/test_process_identity.py](../../tests/test_process_identity.py)
 
-直接静态依赖：`config`
+直接静态依赖：`agent-directories`、`config`
 
 ## Python 包入口 · package
 

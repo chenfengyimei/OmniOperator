@@ -4,6 +4,11 @@
 职责和组装根规则的唯一权威。本文回答“功能在哪里、怎么调用、加功能去哪个文件夹”。
 当前目录来自实际源码扫描，不把未实现功能画成现有模块。
 
+项目数据位置与源码模块位置分别索引：`/project/` 查询代码、调用和 API，`/storage/`
+设置全局/Agent 目录并查看记忆、档案、文件、资料、日志等当前实际位置。
+路径声明与用途索引在 `system/agent_spaces/`，UI/HTTP 在 `channels/web_static/storage/`
+和 `channels/web_api/storage.py`；完整布局与运维入口见 [STORAGE.md](STORAGE.md)。
+
 ## 1 三种索引入口
 
 统一功能导航和手机区域切换由 `channels/web_static/ui/` 提供；终端、任务、MCP、安卓

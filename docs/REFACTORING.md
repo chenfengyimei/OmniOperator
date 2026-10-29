@@ -4,6 +4,11 @@
 [PROJECT_INDEX.md](PROJECT_INDEX.md)，具体提交与验证见 [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)。
 重构逐批落地，每批包含兼容验证、索引和文档，不以搬文件数量判定完成。
 
+2026-10-30 存储基础层：`system/agent_spaces` 按 layout（纯解析）、catalog（CAS 配置）、
+inspection（只读运维选择）、inventory（用途声明）分类，统一全项目和 Agent 路径。
+Runtime/CLI 共用解析，HTTP 不构造仓储，文件工具按实际私有路径保护；记忆和档案仍共用现有数据库真值。
+本批不搬动源码、真实数据库或服务控制文件；详细结构与兼容约定见 [STORAGE.md](STORAGE.md)。
+
 ## 已落地的职责边界
 
 | 批次 | 具体改动 | 兼容边界 |

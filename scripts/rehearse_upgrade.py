@@ -12,10 +12,11 @@ import sqlite3
 os.environ.setdefault('LITELLM_LOCAL_MODEL_COST_MAP', 'True')
 
 from omni.bootstrap import build_runtime
-from omni.config import DATA_DIR, RuntimePaths, STATE_SCHEMA_VERSION
+from omni.config import RuntimePaths, STATE_SCHEMA_VERSION
 from omni.safety.gates import DenyApprover
 from omni.system.backup import backup_runtime, restore_into, verify_database
 from omni.system.provenance import source_fingerprint
+from omni.system.agent_spaces.inspection import load_runtime_paths
 
 
 TABLES = {'state.db': ('jobs', 'executions', 'budgets'), 'memory.db': ('sessions', 'messages', 'facts', 'profile')}
@@ -78,17 +79,22 @@ def rehearse(paths: RuntimePaths, output: Path) -> dict:
     return outcome
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--run', action='store_true', help='显式创建含私人数据的本地副本')
-    parser.add_argument('--data-dir', type=Path, default=DATA_DIR)
+    parser.add_argument('--data-dir', type=Path, help='控制数据根；省略时沿用启动入口配置')
     parser.add_argument('--config', type=Path)
     parser.add_argument('--skills', type=Path)
     parser.add_argument('--memory-db', type=Path)
+    parser.add_argument('--agent', help='指定 Agent，省略使用环境或注册表默认选择')
+    parser.add_argument('--directory-catalog', type=Path)
     parser.add_argument('--output', type=Path, required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if not args.run: parser.error('需要 --run 明确执行副本演练')
-    result = rehearse(RuntimePaths.create(args.data_dir, config_path=args.config, skills_root=args.skills, memory_path=args.memory_db), args.output)
+    paths = load_runtime_paths(data_dir=args.data_dir, config_path=args.config,
+                               skills_root=args.skills, memory_path=args.memory_db,
+                               agent_id=args.agent, directory_catalog=args.directory_catalog)
+    result = rehearse(paths, args.output)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result['passed'] else 1)
 

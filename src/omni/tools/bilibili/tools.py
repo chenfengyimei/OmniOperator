@@ -17,7 +17,8 @@ from .api import BiliAPI
 
 
 def register_bilibili_tools(
-    registry: ToolRegistry, api: BiliAPI, asr_config: Asr | None = None
+    registry: ToolRegistry, api: BiliAPI, asr_config: Asr | None = None,
+    *, cache_root: Path | None = None,
 ) -> None:
 
     def _fmt_duration(seconds: Any) -> str:
@@ -79,7 +80,10 @@ def register_bilibili_tools(
         cfg = asr_config or Asr()
         target = str(args["target"])
         audio_url = api.audio_stream(target)
-        with tempfile.TemporaryDirectory(prefix="omni-asr-") as tmp:
+        temporary = cache_root / 'audio' if cache_root is not None else None
+        if temporary is not None:
+            temporary.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="omni-asr-", dir=temporary) as tmp:
             audio = Path(tmp) / "audio.m4s"
             api.download_binary(audio_url, audio)
             return asr.transcribe(
@@ -87,6 +91,7 @@ def register_bilibili_tools(
                 model_name=cfg.model,
                 device=cfg.device,
                 compute_type=cfg.compute_type,
+                **({'download_root': cache_root / 'models'} if cache_root is not None else {}),
             )
 
     registry.register(

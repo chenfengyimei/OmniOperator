@@ -131,13 +131,13 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | POST | `/api/skills/{name}/rollback` | `create_skills_router.skill_rollback` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L211) |
 | workbench | POST | `/api/skills/{name}/save` | `create_skills_router.skill_save` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L139) |
 | workbench | GET | `/api/state` | `create_sessions_router.get_state` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L22) |
-| workbench | GET | `/api/storage` | `create_storage_router.overview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L53) |
-| workbench | PUT | `/api/storage` | `create_storage_router.update` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L63) |
-| workbench | GET | `/api/storage/files` | `create_storage_router.files` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L85) |
-| workbench | POST | `/api/storage/folders` | `create_storage_router.create_folder` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L126) |
-| workbench | POST | `/api/storage/preview` | `create_storage_router.preview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L58) |
-| workbench | GET | `/api/storage/preview-file` | `create_storage_router.preview_file` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L110) |
-| workbench | POST | `/api/storage/upload` | `create_storage_router.upload` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L136) |
+| workbench | GET | `/api/storage` | `create_storage_router.overview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L57) |
+| workbench | PUT | `/api/storage` | `create_storage_router.update` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L68) |
+| workbench | GET | `/api/storage/files` | `create_storage_router.files` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L90) |
+| workbench | POST | `/api/storage/folders` | `create_storage_router.create_folder` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L131) |
+| workbench | POST | `/api/storage/preview` | `create_storage_router.preview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L62) |
+| workbench | GET | `/api/storage/preview-file` | `create_storage_router.preview_file` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L115) |
+| workbench | POST | `/api/storage/upload` | `create_storage_router.upload` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L141) |
 | workbench | POST | `/api/system/backup` | `create_operations_router.system_backup` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L27) |
 | workbench | GET | `/api/system/bili-cookies` | `create_app.bili_cookies_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L319) |
 | workbench | POST | `/api/system/bili-cookies` | `create_app.save_bili_cookies` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L331) |
@@ -433,7 +433,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### DirectoryUpdate
 
-定位：[src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L26)。
+定位：[src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L27)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -443,7 +443,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### FolderCreate
 
-定位：[src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L33)。
+定位：[src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L34)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -452,7 +452,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Persona
 
-定位：[src/omni/config.py](../../src/omni/config.py#L126)。
+定位：[src/omni/config.py](../../src/omni/config.py#L127)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -461,7 +461,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Models
 
-定位：[src/omni/config.py](../../src/omni/config.py#L133)。
+定位：[src/omni/config.py](../../src/omni/config.py#L134)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -472,7 +472,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### ModelCapability
 
-定位：[src/omni/config.py](../../src/omni/config.py#L140)。
+定位：[src/omni/config.py](../../src/omni/config.py#L141)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -485,7 +485,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Retry
 
-定位：[src/omni/config.py](../../src/omni/config.py#L158)。
+定位：[src/omni/config.py](../../src/omni/config.py#L159)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -495,7 +495,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### LLMBudget
 
-定位：[src/omni/config.py](../../src/omni/config.py#L166)。
+定位：[src/omni/config.py](../../src/omni/config.py#L167)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -504,7 +504,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Vision
 
-定位：[src/omni/config.py](../../src/omni/config.py#L178)。
+定位：[src/omni/config.py](../../src/omni/config.py#L179)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -515,7 +515,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Artifacts
 
-定位：[src/omni/config.py](../../src/omni/config.py#L192)。
+定位：[src/omni/config.py](../../src/omni/config.py#L193)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -524,7 +524,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### LLM
 
-定位：[src/omni/config.py](../../src/omni/config.py#L200)。
+定位：[src/omni/config.py](../../src/omni/config.py#L201)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -536,7 +536,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Limits
 
-定位：[src/omni/config.py](../../src/omni/config.py#L213)。
+定位：[src/omni/config.py](../../src/omni/config.py#L214)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -548,7 +548,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Review
 
-定位：[src/omni/config.py](../../src/omni/config.py#L221)。
+定位：[src/omni/config.py](../../src/omni/config.py#L222)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -560,7 +560,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Memory
 
-定位：[src/omni/config.py](../../src/omni/config.py#L231)。
+定位：[src/omni/config.py](../../src/omni/config.py#L232)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -570,7 +570,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Web
 
-定位：[src/omni/config.py](../../src/omni/config.py#L243)。
+定位：[src/omni/config.py](../../src/omni/config.py#L244)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -585,7 +585,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Files
 
-定位：[src/omni/config.py](../../src/omni/config.py#L260)。
+定位：[src/omni/config.py](../../src/omni/config.py#L261)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -601,7 +601,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Compression
 
-定位：[src/omni/config.py](../../src/omni/config.py#L278)。
+定位：[src/omni/config.py](../../src/omni/config.py#L279)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -612,7 +612,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Asr
 
-定位：[src/omni/config.py](../../src/omni/config.py#L287)。
+定位：[src/omni/config.py](../../src/omni/config.py#L288)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -622,7 +622,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### QQ
 
-定位：[src/omni/config.py](../../src/omni/config.py#L295)。
+定位：[src/omni/config.py](../../src/omni/config.py#L296)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -645,7 +645,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Browser
 
-定位：[src/omni/config.py](../../src/omni/config.py#L332)。
+定位：[src/omni/config.py](../../src/omni/config.py#L333)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -656,7 +656,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### UIFormSelectors
 
-定位：[src/omni/config.py](../../src/omni/config.py#L341)。
+定位：[src/omni/config.py](../../src/omni/config.py#L342)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -676,7 +676,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### BilibiliWrite
 
-定位：[src/omni/config.py](../../src/omni/config.py#L359)。
+定位：[src/omni/config.py](../../src/omni/config.py#L360)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -687,7 +687,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### System
 
-定位：[src/omni/config.py](../../src/omni/config.py#L375)。
+定位：[src/omni/config.py](../../src/omni/config.py#L376)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -695,7 +695,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Approval
 
-定位：[src/omni/config.py](../../src/omni/config.py#L381)。
+定位：[src/omni/config.py](../../src/omni/config.py#L382)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -703,7 +703,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### MCPServerConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L391)。
+定位：[src/omni/config.py](../../src/omni/config.py#L392)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -721,7 +721,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### MCPConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L421)。
+定位：[src/omni/config.py](../../src/omni/config.py#L422)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -729,7 +729,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Desktop
 
-定位：[src/omni/config.py](../../src/omni/config.py#L435)。
+定位：[src/omni/config.py](../../src/omni/config.py#L436)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -742,7 +742,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Embedding
 
-定位：[src/omni/config.py](../../src/omni/config.py#L452)。
+定位：[src/omni/config.py](../../src/omni/config.py#L453)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -763,7 +763,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Cron
 
-定位：[src/omni/config.py](../../src/omni/config.py#L490)。
+定位：[src/omni/config.py](../../src/omni/config.py#L491)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -771,7 +771,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### AndroidConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L495)。
+定位：[src/omni/config.py](../../src/omni/config.py#L496)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -785,7 +785,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### CommandJobsConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L514)。
+定位：[src/omni/config.py](../../src/omni/config.py#L515)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -798,7 +798,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### TerminalConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L524)。
+定位：[src/omni/config.py](../../src/omni/config.py#L525)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -809,7 +809,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### AppConfig
 
-定位：[src/omni/config.py](../../src/omni/config.py#L532)。
+定位：[src/omni/config.py](../../src/omni/config.py#L533)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -846,6 +846,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 |---|---|---|
 | version | `int` | 否 |
 | active | `str` | 否 |
+| application | `ApplicationDirectories` | 否 |
 | agents | `list[AgentProfile]` | 否 |
 
 ### DirectoryOverrides
@@ -875,6 +876,16 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | home | `str` | 否 |
 | directories | `DirectoryOverrides` | 否 |
 
+### ApplicationDirectories
+
+定位：[src/omni/system/agent_spaces/layout.py](../../src/omni/system/agent_spaces/layout.py#L38)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| data_root | `str` | 否 |
+| workspace | `str` | 否 |
+| agents_root | `str` | 否 |
+
 ## 静态工具声明
 
 不是启用清单；条件注册和插件工具以 `/api/workbench/tools` 的本进程快照为准。SAFE 不等于 read_only。
@@ -892,10 +903,10 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `android_tap_coords` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L147) |
 | `android_tap_element` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L122) |
 | `android_type` | confirm | True | False | android | [src/omni/tools/android/tools.py](../../src/omni/tools/android/tools.py#L199) |
-| `bilibili_video_comments` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L113) |
-| `bilibili_video_info` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L93) |
-| `bilibili_video_subtitle` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L131) |
-| `bilibili_video_transcript` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L148) |
+| `bilibili_video_comments` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L118) |
+| `bilibili_video_info` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L98) |
+| `bilibili_video_subtitle` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L136) |
+| `bilibili_video_transcript` | safe | False | True | bilibili | [src/omni/tools/bilibili/tools.py](../../src/omni/tools/bilibili/tools.py#L153) |
 | `browser_click` | confirm | True | False | browser | [src/omni/tools/browser/tools.py](../../src/omni/tools/browser/tools.py#L165) |
 | `browser_navigate` | safe | False | False | browser | [src/omni/tools/browser/tools.py](../../src/omni/tools/browser/tools.py#L131) |
 | `browser_read` | safe | False | False | browser | [src/omni/tools/browser/tools.py](../../src/omni/tools/browser/tools.py#L145) |

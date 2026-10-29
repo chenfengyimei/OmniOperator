@@ -77,6 +77,7 @@ class Workspace:
     deny_globs: tuple[str, ...] = ()
     write_deny_globs: tuple[str, ...] = ()
     read_only_roots: list[Path] = field(default_factory=list)
+    private_paths: list[Path] = field(default_factory=list)
     _roots: list[Root] = field(init=False, repr=False, default_factory=list)
 
     def __post_init__(self) -> None:
@@ -140,6 +141,9 @@ class Workspace:
         if not candidate.is_absolute():
             candidate = self._roots[0].path / text
         canonical = _canonical(candidate)
+        if any(canonical == _canonical(path) or canonical.is_relative_to(_canonical(path))
+               for path in self.private_paths):
+            raise PathRejected('目标属于运行态私有数据，请使用对应模块入口', code='private_path')
         root, rel = self._locate(canonical)
         exists = canonical.exists()
         is_dir = canonical.is_dir() if exists else False
@@ -180,7 +184,8 @@ class Workspace:
             raise PathRejected(reason, code="sensitive_path")
 
         if for_write:
-            if any(resolved.root.path==_canonical(path) for path in self.read_only_roots):
+            if any(resolved.path==_canonical(path) or resolved.path.is_relative_to(_canonical(path))
+                   for path in self.read_only_roots):
                 raise PathRejected('资料目录对模型只读；请用户通过文件管理添加资料',code='read_only_root')
             if resolved.is_symlink:
                 raise PathRejected(

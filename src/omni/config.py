@@ -109,7 +109,8 @@ def load_env(env_path: Path | None = None) -> None:
     缺失或为空的变量用 .env 填充——机器里可能残留空值变量（本次踩坑：
     空的 DEEPSEEK_API_KEY 曾导致 Authorization: "Bearer " 非法）。
     """
-    path = env_path or ENV_PATH
+    selected_config = os.environ.get('OMNI_CONFIG_PATH')
+    path = env_path or (Path(selected_config).resolve().parent.parent / '.env' if selected_config else ENV_PATH)
     if not path.exists():
         return
     for line in path.read_text(encoding="utf-8").splitlines():

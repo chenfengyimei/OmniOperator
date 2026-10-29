@@ -1,5 +1,12 @@
 # 运维、诊断与恢复
 
+2026-10-30：运维入口已跟随全局目录设置和所选 Agent。`omni-doctor`、备份、
+`scripts/rehearse_upgrade.py` 和 `scripts/soak_monitor.py` 使用相同的只读路径解析，
+支持 `--agent` / `--directory-catalog`；不再默认检查或备份旧 data 库。
+显式 `--data-dir` 用于隔离控制根，不继承机器上的 Agent/config/catalog 选择。
+路径优先级、固定控制区和新分类布局见 [STORAGE.md](STORAGE.md)。
+恢复仍输出新的兼容平铺副本，不自动搬移运行数据或重新启用插件/登录态。
+
 ## 只读诊断
 
 ```powershell

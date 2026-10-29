@@ -10,30 +10,33 @@ from __future__ import annotations
 
 import io
 from pathlib import Path
+from threading import Lock
 from typing import Any, Iterable
 
 MAX_OUTPUT_CHARS = 12000
 WINDOW_SECONDS = 60
 
 _MODEL: Any = None
-_MODEL_KEY: tuple[str, str, str] | None = None
+_MODEL_KEY: tuple[str, str, str, str | None] | None = None
+_MODEL_LOCK = Lock()
 
 
-def _get_model(model_name: str, device: str, compute_type: str) -> Any:
+def _get_model(model_name: str, device: str, compute_type: str, *, download_root: Path | None = None) -> Any:
     global _MODEL, _MODEL_KEY
-    key = (model_name, device, compute_type)
-    if _MODEL is None or _MODEL_KEY != key:
-        from faster_whisper import WhisperModel  # 懒导入：未装依赖时报错更友好
-
-        try:
-            _MODEL = WhisperModel(model_name, device=device, compute_type=compute_type)
-        except Exception as exc:  # noqa: BLE001 —— 下载/加载失败给出可操作提示
-            raise RuntimeError(
-                f"ASR 模型加载失败（{exc}）。若卡在下载：确认网络可达 HuggingFace，"
-                "或在 .env 配 HF_ENDPOINT=https://hf-mirror.com 后重试"
-            ) from exc
-        _MODEL_KEY = key
-    return _MODEL
+    location = str(download_root.resolve()) if download_root is not None else None
+    key = (model_name, device, compute_type, location)
+    with _MODEL_LOCK:
+        if _MODEL is None or _MODEL_KEY != key:
+            from faster_whisper import WhisperModel  # 懒导入；配置目录不触发下载
+            try:
+                model = WhisperModel(model_name, device=device, compute_type=compute_type, download_root=location)
+            except Exception as exc:  # noqa: BLE001
+                raise RuntimeError(
+                    f"ASR 模型加载失败（{exc}）。若卡在下载：确认网络可达 HuggingFace，"
+                    "或在 .env 配 HF_ENDPOINT=https://hf-mirror.com 后重试"
+                ) from exc
+            _MODEL, _MODEL_KEY = model, key
+        return _MODEL
 
 
 def format_segments(segments: Iterable[tuple[float, str]]) -> str:
@@ -78,13 +81,14 @@ def transcribe(
     model_name: str = "small",
     device: str = "cpu",
     compute_type: str = "int8",
+    download_root: Path | None = None,
 ) -> str:
     """本地转写音频文件；语言自动检测。
 
     VAD 先行（跳过静音，纯语音内容更快）；VAD 把内容全滤光时
     （音乐/歌声会被 Silero 误判为非语音）自动去掉 VAD 重试。
     """
-    model = _get_model(model_name, device, compute_type)
+    model = _get_model(model_name, device, compute_type, download_root=download_root)
     audio_array = _decode_audio_16k_mono(audio_path)
     segments_iter, _info = model.transcribe(audio_array, vad_filter=True, beam_size=5)
     segments = list(segments_iter)

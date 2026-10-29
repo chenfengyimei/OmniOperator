@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...system.agent_spaces import DirectoryConflict
+from ...system.agent_spaces.inventory import storage_inventory
 from ...system.filelock import FileLock
 from ...tools.files.io import decode_bytes, is_binary
 from ...tools.files.paths import PathRejected
@@ -42,11 +43,14 @@ def create_storage_router(runtime: Runtime):
     def snapshot():
         catalog=runtime.directories.snapshot()
         running=runtime.agent_layout.describe()
+        application=runtime.application_layout.describe()
         configured=next((p for p in catalog['resolved'] if p['id']==running['id']),None)
-        return {**catalog,'running':running,'restart_required':catalog['active']!=running['id'] or configured!=running,
+        return {**catalog,'running':running,'running_application':application,
+                'restart_required':catalog['active']!=running['id'] or configured!=running or catalog['application_resolved']!=application,
                 'catalog_path':str(runtime.directories.path),
                 'public_roots':{name:str(workspace.root) for name,workspace in runtime.public_workspaces.items()},
                 'runtime_paths':{name:str(getattr(runtime.paths,name)) for name in ('memory','resident','state','skills','workspace','files','documents','artifacts','cache','logs','command_logs','mcp_logs','backups','run','service_logs')},
+                'inventory':storage_inventory(runtime.paths),
                 'max_upload_bytes':MAX_UPLOAD,'max_preview_bytes':MAX_PREVIEW}
 
     @router.get('/api/storage')
@@ -56,7 +60,8 @@ def create_storage_router(runtime: Runtime):
 
     @router.post('/api/storage/preview')
     def preview(payload: DirectoryUpdate):
-        try:return {'resolved':runtime.directories.preview(payload.catalog)}
+        try:return {'resolved':runtime.directories.preview(payload.catalog),
+                    'application_resolved':runtime.directories.preview_application(payload.catalog)}
         except (OSError,ValueError) as exc:raise HTTPException(422,str(exc)) from exc
 
     @router.put('/api/storage')

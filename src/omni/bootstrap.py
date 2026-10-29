@@ -60,7 +60,8 @@ from .safety.broker import ApprovalBroker
 from .safety.gates import Approver
 from .system.services import ServiceManager
 from .system.doctor import diagnose
-from .system.agent_spaces import AgentDirectoryStore
+from .system.agent_spaces import AgentDirectoryStore, ApplicationLayout
+from .system.agent_spaces.inventory import private_paths
 from .system.backup import backup_runtime
 from .tools.bilibili.api import BiliAPI
 from .tools.bilibili.tools import register_bilibili_tools
@@ -180,6 +181,7 @@ class Runtime:
     directories: AgentDirectoryStore | None = None
     public_workspaces: dict[str, Workspace] = field(default_factory=dict)
     agent_layout: Any = None
+    application_layout: ApplicationLayout | None = None
     _close_threads: dict = field(default_factory=dict, repr=False)
     _close_results: dict = field(default_factory=dict, repr=False)
     _close_lock: object = field(default_factory=threading.Lock, repr=False)
@@ -326,7 +328,7 @@ def build_runtime(
     paths=replace(paths,workspace=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT)
     catalog_path=Path(directory_catalog or (data_root/'control'/'agents.json' if data_dir is not None else os.environ.get('OMNI_AGENT_CATALOG') or config_path.with_name('agents.json')))
     directories=AgentDirectoryStore(catalog_path,paths,isolated=data_dir is not None)
-    layout=directories.selected(agent_id or (os.environ.get('OMNI_AGENT_ID') if data_dir is None else None))
+    application_layout,layout=directories.select_runtime(agent_id or (os.environ.get('OMNI_AGENT_ID') if data_dir is None else None))
     paths=layout.paths
     if db_path is not None:paths=replace(paths,memory=Path(db_path))
     if skills_root is not None:paths=replace(paths,skills=Path(skills_root))
@@ -337,7 +339,7 @@ def build_runtime(
         config.files.extra_roots=[str(paths.files),str(paths.documents)]
         config.terminal.roots=[str(paths.workspace)]
         for directory in (paths.workspace,paths.files,paths.documents):directory.mkdir(parents=True,exist_ok=True)
-    elif layout.profile.directories.workspace:
+    elif layout.profile.directories.workspace or application_layout.settings.workspace:
         config.files.root=str(paths.workspace);config.terminal.roots=[str(paths.workspace)]
         paths.workspace.mkdir(parents=True,exist_ok=True)
     memory_path = paths.memory
@@ -436,8 +438,9 @@ def build_runtime(
         deny_globs=tuple(config.files.deny_globs),
         write_deny_globs=tuple(config.files.write_deny_globs),
         read_only_roots=[paths.documents],
+        private_paths=private_paths(paths),
     )
-    public_workspaces={name:Workspace(root=path) for name,path in [('workspace',workspace.root),('files',paths.files),('documents',paths.documents)] if path is not None}
+    public_workspaces={name:Workspace(root=path,private_paths=private_paths(paths)) for name,path in [('workspace',workspace.root),('files',paths.files),('documents',paths.documents)] if path is not None}
     file_history = FileHistory(paths.file_history)
     register_file_tools(
         registry,
@@ -498,7 +501,7 @@ def build_runtime(
     if mcp.servers():
         atexit.register(mcp.close)
     # Cookie 路径必须注入：否则临时实例会读到真机的 B 站登录态
-    register_bilibili_tools(registry, BiliAPI(cookies_path=paths.cookies), config.asr)
+    register_bilibili_tools(registry, BiliAPI(cookies_path=paths.cookies), config.asr, cache_root=paths.cache/'asr')
     # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照
     def _allowed_qq_users() -> list[int]:
         return load_qq_policy(config_path).allowed_users
@@ -659,4 +662,5 @@ def build_runtime(
         directories=directories,
         public_workspaces=public_workspaces,
         agent_layout=layout,
+        application_layout=application_layout,
     )

@@ -430,6 +430,28 @@ android_shots/android_cache/browser_profile/browser_shots/run/logs/mcp_logs）�
 
 ## 6. 目录分类与 HTTP 边界
 
+### 全项目存储与 Agent 空间（2026-10-30）
+
+`system/agent_spaces` 管理目录声明与纯解析；`AgentDirectoryStore` 只在 bootstrap 构造。
+目录按“固定安装/控制区 → 全局业务根 → Agent 根 → 模块路径”分层。`Catalog.application`
+声明 data_root/workspace/agents_root，Agent 九类业务目录可覆盖；未配置的旧安装保持原布局。
+`RuntimePaths` 仍是唯一可写路径协议，bootstrap 从同一份注册表快照冻结 ApplicationLayout
+和 AgentLayout，逐模块注入。HTTP 保存只改变下次启动设置，不热换数据库、终端或文件根。
+
+记忆、档案、会话、摘要与检索索引仍同属 memory.db；常驻笔记与修订分别使用 resident/history。
+不为目录展示再建第二份档案真值。文件与资料归公开区，状态库、记忆、登录态、插件状态归内部区。
+公开路径必须与内部路径及其他 Agent 持久目录隔离；Workspace 额外使用冻结 private_paths，
+防止旧 extra_roots 恰好覆盖新存储位置。资料只读检查按实际路径执行，不能借更窄的额外根绕过。
+
+控制注册表、配置、环境密钥、Web 身份、服务 run/service_logs 不随业务根移动，避免失去运行进程身份。
+服务子进程继承原控制根和选定 Agent。ASR 模型缓存、音频临时文件经 paths.cache 注入，按需创建；
+实例加载缓存键包含保存位置，音频在异常时也清理，不修改第三方全局缓存环境。
+
+`inspection.load_runtime_paths` 供 doctor、backup、升级副本演练与常驻采样纯读取；复用 catalog/layout
+校验，不构造 Runtime 或存储对象。`inventory` 只输出用途和冻结路径，不读取私密内容。
+配置保存使用 CAS/跨进程锁/原子替换；损坏和路径冲突 fail-closed。相对路径、优先级、备份范围、
+恢复限制、API 与用户操作说明集中在 [STORAGE.md](STORAGE.md)。不把设置保存描述为数据迁移。
+
 - `channels/web.py` 负责应用生命周期、统一鉴权、配对/设置与静态挂载；业务 HTTP 适配
   按职责位于 `channels/web_api/` 的领域文件。每个 create_xxx_router 只消费注入 Runtime，
   聚合器显式挂载同一实例，不能在路由内构造核心对象或导入 web.py 造成反向循环。

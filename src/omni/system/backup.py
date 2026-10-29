@@ -25,7 +25,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from ..config import DATA_DIR, RuntimePaths, STATE_SCHEMA_VERSION
+from ..config import RuntimePaths, STATE_SCHEMA_VERSION
 from .atomic import atomic_write_text
 
 MANIFEST_NAME = "backup.json"
@@ -468,16 +468,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--to", help="备份输出目录")
     parser.add_argument("--restore", help="要恢复的备份目录")
     parser.add_argument("--into", help="恢复到哪个新目录（必须为空或不存在）")
-    parser.add_argument("--data-dir", default=str(DATA_DIR), help="运行数据根（默认 data/）")
+    parser.add_argument("--data-dir", help="控制数据根；省略时使用启动入口的环境配置")
     parser.add_argument("--config", default=None, help="配置源路径")
     parser.add_argument("--skills", default=None, help="技能库路径")
     parser.add_argument("--memory-db", default=None, help="记忆库独立路径")
+    parser.add_argument("--agent", help="指定 Agent；省略时使用环境或注册表默认选择")
+    parser.add_argument("--directory-catalog", help="目录注册表路径")
     parser.add_argument("--overwrite", action="store_true", help="旧参数，现已拒绝；只允许恢复至新目录")
     parser.add_argument("--include-credentials", action="store_true", help="显式包含配置内凭据（仍不打包 .env/Cookie/profile）")
     parser.add_argument("--no-skills", action="store_true", help="备份时不包含技能库")
     args = parser.parse_args(argv)
 
-    paths = RuntimePaths.create(Path(args.data_dir), config_path=args.config, skills_root=args.skills, memory_path=args.memory_db)
     try:
         if args.restore:
             if not args.into:
@@ -489,10 +490,17 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if not args.to:
             parser.error("需要 --to（备份）或 --restore + --into（恢复）")
+        from .agent_spaces.inspection import load_runtime_paths
+        paths = load_runtime_paths(data_dir=args.data_dir, config_path=args.config,
+                                   skills_root=args.skills, memory_path=args.memory_db,
+                                   agent_id=args.agent, directory_catalog=args.directory_catalog)
         report = backup_runtime(paths, Path(args.to), include_skills=not args.no_skills,
                                 include_credentials=args.include_credentials)
     except BackupError as exc:
         print(f"失败：{exc}", file=sys.stderr)
+        return 2
+    except (OSError, ValueError) as exc:
+        print(f"失败：目录配置或文件不可用（{type(exc).__name__}）；未回退到其它数据目录", file=sys.stderr)
         return 2
     print(f"已备份到 {report.dest}：{len(report.entries)} 项")
     for e in report.entries:

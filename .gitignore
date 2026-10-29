@@ -14,7 +14,7 @@ data/
 xuexi/
 
 # 一键安装器下载的本地组件（NapCat / platform-tools），见 scripts/install.ps1
-tools/
+/tools/
 
 # 技能编辑锁与本地历史（运行时生成，不进库）
 skills/.locks/
