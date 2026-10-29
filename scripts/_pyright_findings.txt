@@ -1,0 +1,82 @@
+summary: 81 errors / 0 warnings / 0 infos
+E omni/bootstrap.py:171 reportAssignmentType Type "None" is not assignable to declared type "RuntimePaths"   "None" is not assignable to "RuntimePaths"
+E omni/bootstrap.py:209 reportAttributeAccessIssue Cannot access attribute "acquire" for class "object"   Attribute "acquire" is unknown
+E omni/bootstrap.py:214 reportAttributeAccessIssue Cannot assign to attribute "closing" for class "Agent"   Attribute "closing" is unknown
+E omni/bootstrap.py:249 reportAttributeAccessIssue Cannot access attribute "release" for class "object"   Attribute "release" is unknown
+E omni/bootstrap.py:264 reportArgumentType Argument of type "float" cannot be assigned to parameter "wait_s" of type "int" in function "close"   "float" is not assignable to "int"
+E omni/bootstrap.py:335 reportArgumentType Argument of type "UsageLedger" cannot be assigned to parameter "ledger" of type "Ledger | None" in function "__init__"   Type "UsageLedger" is not assignable to type "Ledger | None"     "UsageLedger" 
+E omni/bootstrap.py:359 reportArgumentType Argument of type "UsageLedger" cannot be assigned to parameter "ledger" of type "Ledger" in function "__init__"   "UsageLedger" is incompatible with protocol "Ledger"     "record" is an incompatible t
+E omni/bootstrap.py:514 reportArgumentType Argument of type "((_pid: int) -> None) | None" cannot be assigned to parameter "killer" of type "((ProcessIdentity) -> None) | None" in function "__init__"   Type "((_pid: int) -> None) | None" is no
+E omni/channels/lifecycle.py:9 reportArgumentType Argument of type "Awaitable[Unknown]" cannot be assigned to parameter "coro" of type "_CoroutineLike[_T@create_task]" in function "create_task"   "Awaitable[Unknown]" is not assignable to "Coroutine[A
+E omni/channels/qq.py:103 reportArgumentType Argument of type "Unknown | int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "Unknown | int | None" is not assignable to type "ConvertibleToInt" 
+E omni/channels/qq.py:103 reportArgumentType Argument of type "Unknown | int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "Unknown | int | None" is not assignable to type "ConvertibleToInt" 
+E omni/channels/qq.py:124 reportArgumentType Argument of type "Unknown | int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "Unknown | int | None" is not assignable to type "ConvertibleToInt" 
+E omni/channels/qq.py:124 reportArgumentType Argument of type "Unknown | int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "Unknown | int | None" is not assignable to type "ConvertibleToInt" 
+E omni/channels/qq.py:130 reportOptionalMemberAccess "active" is not a known attribute of "None"
+E omni/channels/qq.py:130 reportArgumentType Argument of type "str | None" cannot be assigned to parameter "message_id" of type "str" in function "active"   Type "str | None" is not assignable to type "str"     "None" is not assignable to "str"
+E omni/channels/qq.py:182 reportOptionalMemberAccess "remember_sent" is not a known attribute of "None"
+E omni/channels/qq.py:189 reportOptionalMemberAccess "finish" is not a known attribute of "None"
+E omni/channels/qq.py:189 reportArgumentType Argument of type "str | None" cannot be assigned to parameter "message_id" of type "str" in function "finish"   Type "str | None" is not assignable to type "str"     "None" is not assignable to "str"
+E omni/channels/terminal.py:36 reportPossiblyUnboundVariable "PtyProcess" is possibly unbound
+E omni/core/agent.py:273 reportArgumentType Argument of type "RunContext" cannot be assigned to parameter "handle" of type "RunHandle | None"   Type "RunContext" is not assignable to type "RunHandle | None"     "RunContext" is incompatible with
+E omni/core/agent.py:377 reportArgumentType Argument of type "_NullRunStore" cannot be assigned to parameter "store" of type "RunStore" in function "__init__"   "_NullRunStore" is not assignable to "RunStore"
+E omni/core/agent.py:628 reportArgumentType Argument of type "RunContext" cannot be assigned to parameter "handle" of type "RunHandle | None"   Type "RunContext" is not assignable to type "RunHandle | None"     "RunContext" is incompatible with
+E omni/core/agent.py:782 reportAttributeAccessIssue Cannot assign to attribute "_attached_image_ids" for class "RunContext"   Attribute "_attached_image_ids" is unknown
+E omni/core/review.py:208 reportArgumentType Argument of type "dict[str, str | list[dict[str, Any]]]" cannot be assigned to parameter "object" of type "dict[str, str]" in function "append"   "list[dict[str, Any]]" is not assignable to "str"
+E omni/llm/embedding.py:47 reportAttributeAccessIssue Cannot access attribute "data" for class "Coroutine[object, object, EmbeddingResponse]"   Attribute "data" is unknown
+E omni/memory/jobs.py:66 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/jobs.py:66 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/jobs.py:112 reportArgumentType Argument of type "str | None" cannot be assigned to parameter "text" of type "str" in function "parse_iso"   Type "str | None" is not assignable to type "str"     "None" is not assignable to "str"
+E omni/memory/publications.py:32 reportReturnType Type "dict[Unknown, Unknown] | None" is not assignable to return type "dict[Unknown, Unknown]"   Type "dict[Unknown, Unknown] | None" is not assignable to type "dict[Unknown, Unknown]"     "None" is n
+E omni/memory/publications.py:48 reportReturnType Type "dict[Unknown, Unknown] | None" is not assignable to return type "dict[Unknown, Unknown]"   Type "dict[Unknown, Unknown] | None" is not assignable to type "dict[Unknown, Unknown]"     "None" is n
+E omni/memory/publications.py:64 reportReturnType Type "dict[Unknown, Unknown] | None" is not assignable to return type "dict[Unknown, Unknown]"   Type "dict[Unknown, Unknown] | None" is not assignable to type "dict[Unknown, Unknown]"     "None" is n
+E omni/memory/runs.py:163 reportOptionalMemberAccess "get" is not a known attribute of "None"
+E omni/memory/runs.py:163 reportOptionalMemberAccess "get" is not a known attribute of "None"
+E omni/memory/store.py:338 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:338 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:396 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:396 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:444 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:444 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:597 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:597 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:710 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:710 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:713 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:713 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:1042 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/memory/store.py:1042 reportArgumentType Argument of type "int | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "int | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/safety/smart.py:42 reportIncompatibleMethodOverride Method "check" overrides class "Approver" in an incompatible manner   Parameter "cancel" is missing in override
+E omni/system/observability.py:64 reportArgumentType Argument of type "Unknown | None" cannot be assigned to parameter "value" of type "str" in function "__setitem__"   Type "Unknown | None" is not assignable to type "str"     "None" is not assignable t
+E omni/system/observability.py:74 reportIncompatibleVariableOverride "encoding" overrides symbol of same name in class "_TextIOBase"   "property" is not assignable to "str"
+E omni/system/services.py:214 reportCallIssue Expected 2 more positional arguments
+E omni/system/services.py:263 reportCallIssue Expected 2 more positional arguments
+E omni/system/services.py:411 reportOptionalSubscript Object of type "None" is not subscriptable
+E omni/system/services.py:418 reportOptionalSubscript Object of type "None" is not subscriptable
+E omni/system/services.py:423 reportOptionalSubscript Object of type "None" is not subscriptable
+E omni/system/services.py:439 reportOptionalSubscript Object of type "None" is not subscriptable
+E omni/system/services.py:456 reportOptionalMemberAccess "get" is not a known attribute of "None"
+E omni/system/services.py:458 reportOptionalSubscript Object of type "None" is not subscriptable
+E omni/system/services.py:460 reportOptionalSubscript Object of type "None" is not subscriptable
+E omni/system/soak.py:37 reportArgumentType Argument of type "Unknown | None" cannot be assigned to parameter "x" of type "_SupportsFloatOrIndex" in function "isfinite"   Type "Unknown | None" is not assignable to type "_SupportsFloatOrIndex"  
+E omni/system/soak.py:37 reportOptionalOperand Operator "<=" not supported for "None"
+E omni/tools/android/adb.py:87 reportReturnType Type "Any | bytes | str" is not assignable to return type "str"   Type "Any | bytes | str" is not assignable to type "str"     "bytes" is not assignable to "str"
+E omni/tools/android/adb.py:104 reportArgumentType Argument of type "Literal['List of devices']" cannot be assigned to parameter "prefix" of type "ReadableBuffer | tuple[ReadableBuffer, ...]" in function "startswith"   Type "Literal['List of devices']
+E omni/tools/android/adb.py:203 reportReturnType Type "Any | bytes | str" is not assignable to return type "str"   Type "Any | bytes | str" is not assignable to type "str"     "bytes" is not assignable to "str"
+E omni/tools/android/driver.py:123 reportReturnType Type "tuple[Unknown, str | None, Unknown]" is not assignable to return type "tuple[bytes, str, tuple[int, int]]"   Type "str | None" is not assignable to type "str"     "None" is not assignable to "st
+E omni/tools/android/driver.py:224 reportPossiblyUnboundVariable "x" is possibly unbound
+E omni/tools/android/driver.py:224 reportPossiblyUnboundVariable "y" is possibly unbound
+E omni/tools/android/tools.py:53 reportAttributeAccessIssue Cannot access attribute "cancel_token" for class "RunHandle"   Attribute "cancel_token" is unknown
+E omni/tools/android/tools.py:77 reportOptionalMemberAccess "run_id" is not a known attribute of "None"
+E omni/tools/android/tools.py:218 reportOptionalMemberAccess "parameters" is not a known attribute of "None"
+E omni/tools/android/tools.py:219 reportOptionalMemberAccess "parameters" is not a known attribute of "None"
+E omni/tools/android/tools.py:220 reportOptionalMemberAccess "description" is not a known attribute of "None"
+E omni/tools/bilibili/write_tools.py:35 reportAttributeAccessIssue Cannot access attribute "cancel_token" for class "RunHandle"   Attribute "cancel_token" is unknown
+E omni/tools/browser/tools.py:79 reportOptionalMemberAccess "run_id" is not a known attribute of "None"
+E omni/tools/qq/client.py:208 reportAttributeAccessIssue Cannot access attribute "send" for class "object"   Attribute "send" is unknown
+E omni/tools/qq/client.py:250 reportAttributeAccessIssue Cannot access attribute "close" for class "Awaitable[list[int]]"   Attribute "close" is unknown
+E omni/tools/qq/client.py:252 reportArgumentType Argument of type "Awaitable[list[int]]" cannot be assigned to parameter "coro" of type "Coroutine[Any, Any, _T@run_coroutine_threadsafe]" in function "run_coroutine_threadsafe"   "Awaitable[list[int]]
+E omni/tools/skill_tools.py:133 reportArgumentType Argument of type "Any | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "Any | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/tools/skill_tools.py:133 reportArgumentType Argument of type "Any | None" cannot be assigned to parameter "x" of type "ConvertibleToInt" in function "__new__"   Type "Any | None" is not assignable to type "ConvertibleToInt"     Type "None" is n
+E omni/tools/web/net.py:192 reportArgumentType Argument of type "str | int" cannot be assigned to parameter "object" of type "str" in function "append"   Type "str | int" is not assignable to type "str"     "int" is not assignable to "str"
+E omni/tools/web/net.py:238 reportAttributeAccessIssue Cannot access attribute "_context" for class "_PinnedHTTPS*"   Attribute "_context" is unknown
