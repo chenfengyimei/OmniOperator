@@ -475,3 +475,9 @@ D22：`memory/qq.py` 的 QQMessageStore 仅由 bootstrap 构造，复用注入 s
 MCP 管理器关闭后拒绝新请求与重连；替换连接必须确认旧所有者已退出，无法确认时报告残留。
 ADB 全局命令不绑定设备，设备调用恰好一个显式 serial；设备选择不靠环境变量。
 人工终端重开重新连接，不改变模型 shell 的执行或审批边界。路线见 CAPABILITIES_PLAN.md。
+
+### 人工终端 C02
+
+channels/terminal 的 managed 持续排空与有限回放独立于连接；sessions 负责 v2 路由。
+会话归属绑定已验配对 cookie 的不可逆身份，单写者；不向 tools/core 导出 PTY。
+终端池由 Web 应用持有/关闭，目录与容量来自声明配置，关闭残留包含读线程。

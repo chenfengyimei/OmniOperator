@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`37f0cf839b07aab2b74c0b492f119703e92d878c238510e48b4bea87f5870eea`。包含 47 个职责模块、174 个源码/界面文件。
+源码指纹：`8e956549042442a12cfc3f48feda08161dfbfdf3b22e1e5121ce98becb2ed820`。包含 47 个职责模块、179 个源码/界面文件。
 
 ## 运行时组装 · assembly
 
@@ -24,7 +24,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/config.py](../../src/omni/config.py) | 513 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [src/omni/config.py](../../src/omni/config.py) | 522 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -128,16 +128,21 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/terminal/__init__.py](../../src/omni/channels/terminal/__init__.py) | 6 | 工作台终端公共入口；平台适配、会话、会话池和 WS 路由分别维护。 |
-| [src/omni/channels/terminal/backend.py](../../src/omni/channels/terminal/backend.py) | 21 | ConPTY 平台适配：检测可用性与创建进程；不管理会话池或 HTTP。 |
-| [src/omni/channels/terminal/pool.py](../../src/omni/channels/terminal/pool.py) | 58 | 终端会话池：并发上限、关闭预算和残留报告。 |
-| [src/omni/channels/terminal/routes.py](../../src/omni/channels/terminal/routes.py) | 79 | 内置终端 WebSocket 适配；复用工作台身份及注入的会话池。 |
-| [src/omni/channels/terminal/session.py](../../src/omni/channels/terminal/session.py) | 38 | 单终端会话的读、写、窗口尺寸和退出确认。 |
+| [src/omni/channels/terminal/backend.py](../../src/omni/channels/terminal/backend.py) | 36 | ConPTY 平台适配：检测可用性与创建进程；不管理会话池或 HTTP。 |
+| [src/omni/channels/terminal/managed.py](../../src/omni/channels/terminal/managed.py) | 75 | 可恢复的人类终端：持续排空、有限输出环与单写者；不向模型暴露。 |
+| [src/omni/channels/terminal/pool.py](../../src/omni/channels/terminal/pool.py) | 121 | 终端会话池：并发上限、关闭预算和残留报告。 |
+| [src/omni/channels/terminal/routes.py](../../src/omni/channels/terminal/routes.py) | 77 | 内置终端 WebSocket 适配；复用工作台身份及注入的会话池。 |
+| [src/omni/channels/terminal/session.py](../../src/omni/channels/terminal/session.py) | 42 | 单终端会话的读、写、窗口尺寸和退出确认。 |
+| [src/omni/channels/terminal/sessions.py](../../src/omni/channels/terminal/sessions.py) | 130 | 人工终端 v2：身份归属、结构化消息及只回放输出。旧 WS 独立兼容。 |
+| [src/omni/channels/web_static/terminal/index.html](../../src/omni/channels/web_static/terminal/index.html) | 8 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/terminal/terminal.css](../../src/omni/channels/web_static/terminal/terminal.css) | 1 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/terminal/terminal.js](../../src/omni/channels/web_static/terminal/terminal.js) | 37 | 平台脚本或界面资源 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/TERMINAL.md](../../docs/TERMINAL.md)
 
-测试：[tests/test_terminal.py](../../tests/test_terminal.py)、[tests/test_doctor_lifecycle.py](../../tests/test_doctor_lifecycle.py)
+测试：[tests/test_terminal.py](../../tests/test_terminal.py)、[tests/test_terminal_managed.py](../../tests/test_terminal_managed.py)、[tests/test_doctor_lifecycle.py](../../tests/test_doctor_lifecycle.py)
 
-直接静态依赖：`web-ui`
+直接静态依赖：`config`、`web-ui`
 
 ## 项目与能力工作台 · workbench
 
@@ -163,9 +168,9 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web.py](../../src/omni/channels/web.py) | 405 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
+| [src/omni/channels/web.py](../../src/omni/channels/web.py) | 406 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 232 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1517 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1478 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm-addon-fit.js](../../src/omni/channels/web_static/vendor/xterm-addon-fit.js) | 2 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.js](../../src/omni/channels/web_static/vendor/xterm.js) | 6 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.min.css](../../src/omni/channels/web_static/vendor/xterm.min.css) | 8 | 平台脚本或界面资源 |

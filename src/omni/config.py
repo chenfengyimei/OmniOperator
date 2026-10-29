@@ -469,7 +469,16 @@ class Cron(BaseModel):
     max_running: int = Field(default=2, ge=1, le=8)
 
 
+class TerminalConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    max_sessions: int = Field(default=4, ge=1, le=16)
+    roots: list[str] = Field(default_factory=list)
+    buffer_bytes: int = Field(default=1048576, ge=16384, le=8388608)
+    detach_ttl_s: float = Field(default=600, ge=1, le=86400)
+
+
 class AppConfig(BaseModel):
+    terminal: TerminalConfig = Field(default_factory=TerminalConfig)
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
     llm: LLM = Field(default_factory=LLM)

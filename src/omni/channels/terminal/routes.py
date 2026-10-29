@@ -5,6 +5,7 @@ import json
 from fastapi import APIRouter, WebSocket
 from ..web_auth import COOKIE_NAME, WebAuth
 from .pool import TerminalManager
+from .sessions import create_sessions_router
 
 
 def create_terminal_router(terminal_manager: TerminalManager, auth: WebAuth) -> APIRouter:
@@ -29,7 +30,7 @@ def create_terminal_router(terminal_manager: TerminalManager, auth: WebAuth) -> 
             await ws.close()
             return
         try:
-            session = terminal_manager.open()
+            session = await asyncio.to_thread(terminal_manager.open)
         except RuntimeError as exc:
             await ws.send_text(f"无法打开终端：{exc}")
             await ws.close()
@@ -54,26 +55,23 @@ def create_terminal_router(terminal_manager: TerminalManager, auth: WebAuth) -> 
                     if msg.startswith('{"resize"'):
                         try:
                             cols, rows = json.loads(msg)["resize"]
-                            session.resize(int(cols), int(rows))
+                            await asyncio.to_thread(session.resize, int(cols), int(rows))
                         except (ValueError, TypeError, KeyError):
                             pass
                         continue
-                    session.write(msg)
+                    await asyncio.to_thread(session.write, msg)
             except Exception:  # noqa: BLE001
                 pass
 
         pump_task = asyncio.create_task(pump())
         writer_task = asyncio.create_task(writer())
-        done, pending = await asyncio.wait(
-            {pump_task, writer_task}, return_when=asyncio.FIRST_COMPLETED
-        )
-        for task in pending:
-            task.cancel()
-        terminal_manager.close(session)  # 杀 PTY 会解除阻塞中的 read 线程
-        for task in pending:
-            try:
-                await task
-            except (asyncio.CancelledError, Exception):  # noqa: BLE001
-                pass
+        try:
+            await asyncio.wait({pump_task, writer_task}, return_when=asyncio.FIRST_COMPLETED)
+        finally:
+            pump_task.cancel()
+            writer_task.cancel()
+            await asyncio.to_thread(terminal_manager.close, session)
+            await asyncio.gather(pump_task, writer_task, return_exceptions=True)
 
+    router.include_router(create_sessions_router(terminal_manager, auth))
     return router

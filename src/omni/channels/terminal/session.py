@@ -8,8 +8,8 @@ from .backend import DEFAULT_COLS, DEFAULT_ROWS
 class TerminalSession:
     """单个终端会话：ConPTY 包一个 PowerShell 进程（读写需串行，加锁）。"""
 
-    def __init__(self, cols: int = DEFAULT_COLS, rows: int = DEFAULT_ROWS) -> None:
-        self._pty = backend.open_process(rows, cols)
+    def __init__(self, cols: int = DEFAULT_COLS, rows: int = DEFAULT_ROWS, *, shell=None, cwd=None) -> None:
+        self._pty = backend.open_process(rows, cols, **({'shell':shell, 'cwd':cwd} if shell else {}))
         self._lock = threading.Lock()
         self._read_lock = threading.Lock()
 
@@ -23,6 +23,8 @@ class TerminalSession:
             self._pty.write(data)
 
     def resize(self, cols: int, rows: int) -> None:
+        if not 20 <= cols <= 500 or not 5 <= rows <= 200:
+            raise ValueError('终端尺寸超限')
         with self._lock:
             self._pty.setwinsize(int(rows), int(cols))
 
@@ -33,6 +35,8 @@ class TerminalSession:
         try:
             if self._pty.isalive():
                 self._pty.terminate(force=True)
+            if not self._pty.isalive() and callable(getattr(self._pty, 'close', None)):
+                self._pty.close(force=True)
             return not self._pty.isalive()
         except Exception:
             return False

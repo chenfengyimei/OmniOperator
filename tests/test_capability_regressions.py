@@ -83,26 +83,3 @@ def test_mcp_close_during_reset_never_constructs_replacement(tmp_path, monkeypat
     assert host.close()
 
 
-def test_terminal_reopens_after_close_and_socket_failure():
-    source = (PROJECT_ROOT/'src/omni/channels/web_static/index.html').read_text(encoding='utf-8')
-    start = source.index('let term=null,termWS=null,termFit=null,termSessionOpen=false;')
-    end = source.index('// ---------- 安卓手机', start)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
-        try:
-            page = browser.new_page()
-            page.set_content('<div id="term-modal"><div id="terminal"></div></div><button id="open-terminal"></button>')
-            page.evaluate('''() => {
-                window.$=s=>document.querySelector(s);window.sockets=[];
-                window.Terminal=class {constructor(){this.cols=100;this.rows=30}loadAddon(){}open(){}onData(){}onResize(){}write(){}writeln(){}};
-                window.FitAddon={FitAddon:class {fit(){}}};
-                window.WebSocket=class {constructor(){this.readyState=1;sockets.push(this)}send(){}close(){this.readyState=3}};
-            }''')
-            page.add_script_tag(content=source[start:end])
-            assert page.evaluate('''() => {
-                for(let i=0;i<20;i++){openTerminal();closeTerminal()}
-                openTerminal();sockets.at(-1).readyState=3;openTerminal();
-                return sockets.length;
-            }''') == 22
-        finally:
-            browser.close()

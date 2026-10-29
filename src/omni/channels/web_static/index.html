@@ -1401,46 +1401,7 @@ window.saveHub=async()=>{
 };
 
 // ---------- 内置终端（xterm.js + ConPTY） ----------
-let term=null,termWS=null,termFit=null,termSessionOpen=false;
-window.openTerminal=()=>{
-  $('#term-modal').classList.remove('hidden');
-  termSessionOpen=true;
-  if(!term)initTerminal();
-  else {
-    if(!termWS||termWS.readyState>1)connectTerminal();
-    if(termFit)setTimeout(()=>{try{termFit.fit()}catch(e){}},60);
-  }
-};
-window.closeTerminal=()=>{
-  $('#term-modal').classList.add('hidden');
-  termSessionOpen=false;
-  if(termWS){termWS.close();termWS=null}
-};
-function initTerminal(){
-  term=new window.Terminal({
-    fontFamily:'Consolas, "Cascadia Mono", "Microsoft YaHei Mono", monospace',
-    fontSize:13,cursorBlink:true,scrollback:4000,
-    theme:{background:'#0e1116',foreground:'#dbe2ea',cursor:'#22d3ee'}
-  });
-  termFit=new window.FitAddon.FitAddon();
-  term.loadAddon(termFit);
-  term.open($('#terminal'));
-  term.onData(d=>{if(termWS&&termWS.readyState===1)termWS.send(d)});
-  term.onResize(({cols,rows})=>{
-    if(termWS&&termWS.readyState===1)termWS.send(JSON.stringify({resize:[cols,rows]}))
-  });
-  connectTerminal();
-}
-function connectTerminal(){
-    const proto=location.protocol==='https:'?'wss':'ws';
-    termWS=new WebSocket(`${proto}://${location.host}/api/terminal/ws`);
-    termWS.onmessage=e=>term.write(e.data);
-    termWS.onclose=()=>{
-      if(termSessionOpen)term.writeln('\r\n\x1b[33m—— 会话已结束（重新打开弹窗可再开一个）——\x1b[0m');
-    };
-    setTimeout(()=>{try{termFit.fit();termWS.send(JSON.stringify({resize:[term.cols,term.rows]}))}catch(e){}},100);
-}
-window.addEventListener('resize',()=>{if(termSessionOpen&&termFit){try{termFit.fit()}catch(e){}}});
+window.openTerminal=()=>window.open('/terminal/','omni-terminal');
 $('#open-terminal').onclick=openTerminal;
 
 // ---------- 安卓手机（MJPEG 看屏 + 点击下发） ----------

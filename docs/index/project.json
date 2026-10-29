@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "37f0cf839b07aab2b74c0b492f119703e92d878c238510e48b4bea87f5870eea",
+  "source_sha256": "8e956549042442a12cfc3f48feda08161dfbfdf3b22e1e5121ce98becb2ed820",
   "modules": [
     {
       "id": "assembly",
@@ -63,7 +63,7 @@
       "files": [
         "src/omni/config.py"
       ],
-      "lines": 513,
+      "lines": 522,
       "dependencies": []
     },
     {
@@ -201,25 +201,34 @@
       "title": "内置终端",
       "category": "交互与终端",
       "prefixes": [
-        "channels/terminal/"
+        "channels/terminal/",
+        "channels/web_static/terminal/"
       ],
       "purpose": "ConPTY 后端、会话、会话池、WebSocket 四层；与 agent shell 工具分工。",
       "docs": [
-        "docs/ARCHITECTURE.md"
+        "docs/ARCHITECTURE.md",
+        "docs/TERMINAL.md"
       ],
       "tests": [
         "tests/test_terminal.py",
+        "tests/test_terminal_managed.py",
         "tests/test_doctor_lifecycle.py"
       ],
       "files": [
         "src/omni/channels/terminal/__init__.py",
         "src/omni/channels/terminal/backend.py",
+        "src/omni/channels/terminal/managed.py",
         "src/omni/channels/terminal/pool.py",
         "src/omni/channels/terminal/routes.py",
-        "src/omni/channels/terminal/session.py"
+        "src/omni/channels/terminal/session.py",
+        "src/omni/channels/terminal/sessions.py",
+        "src/omni/channels/web_static/terminal/index.html",
+        "src/omni/channels/web_static/terminal/terminal.css",
+        "src/omni/channels/web_static/terminal/terminal.js"
       ],
-      "lines": 202,
+      "lines": 533,
       "dependencies": [
+        "config",
         "web-ui"
       ]
     },
@@ -277,7 +286,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2170,
+      "lines": 2132,
       "dependencies": [
         "assembly",
         "config",
@@ -2006,48 +2015,159 @@
       "path": "src/omni/channels/terminal/backend.py",
       "module": "terminal",
       "python_module": "omni.channels.terminal.backend",
-      "lines": 21,
+      "lines": 36,
       "imports": [],
       "symbols": [
         {
+          "name": "shell_options",
+          "line": 19,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "open_process",
-          "line": 18,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "rows",
-            "cols"
+            "cols",
+            "shell",
+            "cwd"
           ],
           "annotations": {
             "rows": "int",
-            "cols": "int"
+            "cols": "int",
+            "shell": "str | None"
           }
         }
       ],
       "summary": "ConPTY 平台适配：检测可用性与创建进程；不管理会话池或 HTTP。"
     },
     {
+      "path": "src/omni/channels/terminal/managed.py",
+      "module": "terminal",
+      "python_module": "omni.channels.terminal.managed",
+      "lines": 75,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "ManagedTerminal",
+          "line": 10,
+          "kind": "class"
+        },
+        {
+          "name": "ManagedTerminal.__init__",
+          "line": 11,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "session",
+            "owner",
+            "shell",
+            "cwd",
+            "buffer_bytes",
+            "on_exit",
+            "clock"
+          ],
+          "annotations": {
+            "owner": "str",
+            "shell": "str",
+            "cwd": "str",
+            "buffer_bytes": "int"
+          }
+        },
+        {
+          "name": "ManagedTerminal._read",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ManagedTerminal.brief",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ManagedTerminal.attach",
+          "line": 56,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ManagedTerminal.detach",
+          "line": 62,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ManagedTerminal.replay",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "after"
+          ],
+          "annotations": {
+            "after": "int"
+          }
+        },
+        {
+          "name": "ManagedTerminal.expired",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "ttl"
+          ],
+          "annotations": {
+            "ttl": "float"
+          }
+        }
+      ],
+      "summary": "可恢复的人类终端：持续排空、有限输出环与单写者；不向模型暴露。"
+    },
+    {
       "path": "src/omni/channels/terminal/pool.py",
       "module": "terminal",
       "python_module": "omni.channels.terminal.pool",
-      "lines": 58,
+      "lines": 121,
       "imports": [
         "omni.channels.terminal",
         "omni.channels.terminal.backend",
-        "omni.channels.terminal.session"
+        "omni.channels.terminal.managed",
+        "omni.channels.terminal.session",
+        "omni.config"
       ],
       "symbols": [
         {
           "name": "TerminalManager",
-          "line": 9,
+          "line": 12,
           "kind": "class"
         },
         {
           "name": "TerminalManager.__init__",
-          "line": 12,
+          "line": 15,
           "kind": "function",
           "parameters": [
             "self",
-            "max_sessions"
+            "max_sessions",
+            "roots",
+            "buffer_bytes",
+            "detach_ttl_s"
           ],
           "annotations": {
             "max_sessions": "int"
@@ -2055,7 +2175,7 @@
         },
         {
           "name": "TerminalManager.available",
-          "line": 20,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "self"
@@ -2064,7 +2184,7 @@
         },
         {
           "name": "TerminalManager.unavailable_reason",
-          "line": 24,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "self"
@@ -2073,12 +2193,14 @@
         },
         {
           "name": "TerminalManager.open",
-          "line": 27,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self",
             "cols",
-            "rows"
+            "rows",
+            "shell",
+            "cwd"
           ],
           "annotations": {
             "cols": "int",
@@ -2086,8 +2208,71 @@
           }
         },
         {
+          "name": "TerminalManager.options",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalManager.create",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "owner",
+            "shell",
+            "cwd",
+            "cols",
+            "rows"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalManager.close_later",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "session"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalManager.get",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "owner",
+            "identifier"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalManager.list_owned",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "owner"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalManager._reap",
+          "line": 89,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "TerminalManager.close",
-          "line": 38,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -2099,7 +2284,7 @@
         },
         {
           "name": "TerminalManager.close_all",
-          "line": 46,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
@@ -2116,15 +2301,16 @@
       "path": "src/omni/channels/terminal/routes.py",
       "module": "terminal",
       "python_module": "omni.channels.terminal.routes",
-      "lines": 79,
+      "lines": 77,
       "imports": [
         "omni.channels.terminal.pool",
+        "omni.channels.terminal.sessions",
         "omni.channels.web_auth"
       ],
       "symbols": [
         {
           "name": "create_terminal_router",
-          "line": 10,
+          "line": 11,
           "kind": "function",
           "parameters": [
             "terminal_manager",
@@ -2137,7 +2323,7 @@
         },
         {
           "name": "create_terminal_router.terminal_ws",
-          "line": 14,
+          "line": 15,
           "kind": "function",
           "parameters": [
             "ws"
@@ -2148,14 +2334,14 @@
         },
         {
           "name": "create_terminal_router.terminal_ws.pump",
-          "line": 38,
+          "line": 39,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_terminal_router.terminal_ws.writer",
-          "line": 49,
+          "line": 50,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -2167,7 +2353,7 @@
       "path": "src/omni/channels/terminal/session.py",
       "module": "terminal",
       "python_module": "omni.channels.terminal.session",
-      "lines": 38,
+      "lines": 42,
       "imports": [
         "omni.channels.terminal",
         "omni.channels.terminal.backend"
@@ -2185,7 +2371,9 @@
           "parameters": [
             "self",
             "cols",
-            "rows"
+            "rows",
+            "shell",
+            "cwd"
           ],
           "annotations": {
             "cols": "int",
@@ -2232,7 +2420,7 @@
         },
         {
           "name": "TerminalSession.isalive",
-          "line": 29,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "self"
@@ -2241,7 +2429,7 @@
         },
         {
           "name": "TerminalSession.kill",
-          "line": 32,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "self"
@@ -2252,10 +2440,133 @@
       "summary": "单终端会话的读、写、窗口尺寸和退出确认。"
     },
     {
+      "path": "src/omni/channels/terminal/sessions.py",
+      "module": "terminal",
+      "python_module": "omni.channels.terminal.sessions",
+      "lines": 130,
+      "imports": [
+        "omni.channels.web_auth"
+      ],
+      "symbols": [
+        {
+          "name": "TerminalCreateIn",
+          "line": 15,
+          "kind": "class"
+        },
+        {
+          "name": "TerminalRenameIn",
+          "line": 22,
+          "kind": "class"
+        },
+        {
+          "name": "create_sessions_router",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "manager",
+            "auth"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_sessions_router.owner",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "cookie"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_sessions_router.owned",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "cookie",
+            "identifier"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_sessions_router.options",
+          "line": 41,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_sessions_router.sessions",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "request"
+          ],
+          "annotations": {
+            "request": "Request"
+          }
+        },
+        {
+          "name": "create_sessions_router.create",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "payload"
+          ],
+          "annotations": {
+            "request": "Request",
+            "payload": "TerminalCreateIn"
+          }
+        },
+        {
+          "name": "create_sessions_router.rename",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "identifier",
+            "request",
+            "payload"
+          ],
+          "annotations": {
+            "identifier": "str",
+            "request": "Request",
+            "payload": "TerminalRenameIn"
+          }
+        },
+        {
+          "name": "create_sessions_router.end",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "identifier",
+            "request"
+          ],
+          "annotations": {
+            "identifier": "str",
+            "request": "Request"
+          }
+        },
+        {
+          "name": "create_sessions_router.connect",
+          "line": 71,
+          "kind": "function",
+          "parameters": [
+            "ws",
+            "identifier"
+          ],
+          "annotations": {
+            "ws": "WebSocket",
+            "identifier": "str"
+          }
+        }
+      ],
+      "summary": "人工终端 v2：身份归属、结构化消息及只回放输出。旧 WS 独立兼容。"
+    },
+    {
       "path": "src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 405,
+      "lines": 406,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -2332,7 +2643,7 @@
         },
         {
           "name": "create_app.identity_guard",
-          "line": 126,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "request",
@@ -2344,7 +2655,7 @@
         },
         {
           "name": "create_app.auth_status",
-          "line": 149,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "request"
@@ -2355,7 +2666,7 @@
         },
         {
           "name": "create_app.auth_pair",
-          "line": 157,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "payload",
@@ -2368,14 +2679,14 @@
         },
         {
           "name": "create_app.auth_logout",
-          "line": 172,
+          "line": 173,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.pair_link",
-          "line": 178,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "code",
@@ -2388,14 +2699,14 @@
         },
         {
           "name": "create_app.system_config",
-          "line": 203,
+          "line": 204,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.system_config_save",
-          "line": 249,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "payload"
@@ -2406,28 +2717,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 269,
+          "line": 270,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 280,
+          "line": 281,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.bili_cookies_status",
-          "line": 288,
+          "line": 289,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.save_bili_cookies",
-          "line": 300,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "payload"
@@ -2438,7 +2749,7 @@
         },
         {
           "name": "create_app.model_test",
-          "line": 320,
+          "line": 321,
           "kind": "function",
           "parameters": [
             "payload"
@@ -2449,7 +2760,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 358,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "host"
@@ -2460,7 +2771,7 @@
         },
         {
           "name": "main",
-          "line": 369,
+          "line": 370,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -3995,7 +4306,7 @@
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 1517,
+      "lines": 1478,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4026,6 +4337,36 @@
       "module": "workbench",
       "python_module": null,
       "lines": 110,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/terminal/index.html",
+      "module": "terminal",
+      "python_module": null,
+      "lines": 8,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/terminal/terminal.css",
+      "module": "terminal",
+      "python_module": null,
+      "lines": 1,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/terminal/terminal.js",
+      "module": "terminal",
+      "python_module": null,
+      "lines": 37,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4153,7 +4494,7 @@
       "path": "src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 513,
+      "lines": 522,
       "imports": [],
       "symbols": [
         {
@@ -4403,13 +4744,18 @@
           "kind": "class"
         },
         {
-          "name": "AppConfig",
+          "name": "TerminalConfig",
           "line": 472,
           "kind": "class"
         },
         {
+          "name": "AppConfig",
+          "line": 480,
+          "kind": "class"
+        },
+        {
           "name": "load_config",
-          "line": 496,
+          "line": 505,
           "kind": "function",
           "parameters": [
             "path"
@@ -4420,7 +4766,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 504,
+          "line": 513,
           "kind": "function",
           "parameters": [
             "path"
@@ -22188,7 +22534,7 @@
       "method": "POST",
       "path": "/api/auth/logout",
       "source": "src/omni/channels/web.py",
-      "line": 172,
+      "line": 173,
       "handler": "create_app.auth_logout",
       "module": "web-ui",
       "parameters": [],
@@ -22199,7 +22545,7 @@
       "method": "POST",
       "path": "/api/auth/pair",
       "source": "src/omni/channels/web.py",
-      "line": 157,
+      "line": 158,
       "handler": "create_app.auth_pair",
       "module": "web-ui",
       "parameters": [
@@ -22216,7 +22562,7 @@
       "method": "GET",
       "path": "/api/auth/status",
       "source": "src/omni/channels/web.py",
-      "line": 149,
+      "line": 150,
       "handler": "create_app.auth_status",
       "module": "web-ui",
       "parameters": [
@@ -22905,7 +23251,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "src/omni/channels/web.py",
-      "line": 288,
+      "line": 289,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -22916,7 +23262,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "src/omni/channels/web.py",
-      "line": 300,
+      "line": 301,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -22931,7 +23277,7 @@
       "method": "GET",
       "path": "/api/system/config",
       "source": "src/omni/channels/web.py",
-      "line": 203,
+      "line": 204,
       "handler": "create_app.system_config",
       "module": "web-ui",
       "parameters": [],
@@ -22942,7 +23288,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "src/omni/channels/web.py",
-      "line": 249,
+      "line": 250,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -23112,7 +23458,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "src/omni/channels/web.py",
-      "line": 320,
+      "line": 321,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -23149,7 +23495,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "src/omni/channels/web.py",
-      "line": 269,
+      "line": 270,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -23160,7 +23506,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "src/omni/channels/web.py",
-      "line": 280,
+      "line": 281,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -23211,10 +23557,106 @@
       "scope": "workbench"
     },
     {
+      "method": "GET",
+      "path": "/api/terminal/options",
+      "source": "src/omni/channels/terminal/sessions.py",
+      "line": 41,
+      "handler": "create_sessions_router.options",
+      "module": "terminal",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/terminal/sessions",
+      "source": "src/omni/channels/terminal/sessions.py",
+      "line": 45,
+      "handler": "create_sessions_router.sessions",
+      "module": "terminal",
+      "parameters": [
+        "request"
+      ],
+      "annotations": {
+        "request": "Request"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/terminal/sessions",
+      "source": "src/omni/channels/terminal/sessions.py",
+      "line": 49,
+      "handler": "create_sessions_router.create",
+      "module": "terminal",
+      "parameters": [
+        "request",
+        "payload"
+      ],
+      "annotations": {
+        "request": "Request",
+        "payload": "TerminalCreateIn"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/terminal/sessions/{identifier}",
+      "source": "src/omni/channels/terminal/sessions.py",
+      "line": 63,
+      "handler": "create_sessions_router.end",
+      "module": "terminal",
+      "parameters": [
+        "identifier",
+        "request"
+      ],
+      "annotations": {
+        "identifier": "str",
+        "request": "Request"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/terminal/sessions/{identifier}",
+      "source": "src/omni/channels/terminal/sessions.py",
+      "line": 57,
+      "handler": "create_sessions_router.rename",
+      "module": "terminal",
+      "parameters": [
+        "identifier",
+        "request",
+        "payload"
+      ],
+      "annotations": {
+        "identifier": "str",
+        "request": "Request",
+        "payload": "TerminalRenameIn"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "WEBSOCKET",
+      "path": "/api/terminal/sessions/{identifier}/ws",
+      "source": "src/omni/channels/terminal/sessions.py",
+      "line": 71,
+      "handler": "create_sessions_router.connect",
+      "module": "terminal",
+      "parameters": [
+        "ws",
+        "identifier"
+      ],
+      "annotations": {
+        "ws": "WebSocket",
+        "identifier": "str"
+      },
+      "scope": "workbench"
+    },
+    {
       "method": "WEBSOCKET",
       "path": "/api/terminal/ws",
       "source": "src/omni/channels/terminal/routes.py",
-      "line": 14,
+      "line": 15,
       "handler": "create_terminal_router.terminal_ws",
       "module": "terminal",
       "parameters": [
@@ -23292,7 +23734,7 @@
       "method": "GET",
       "path": "/pair/{code}",
       "source": "src/omni/channels/web.py",
-      "line": 178,
+      "line": 179,
       "handler": "create_app.pair_link",
       "module": "web-ui",
       "parameters": [
@@ -24037,7 +24479,7 @@
         {
           "source": "src/omni/channels/terminal/routes.py",
           "symbol": "create_terminal_router.terminal_ws",
-          "line": 14
+          "line": 15
         },
         {
           "source": "src/omni/channels/web_auth.py",
@@ -24047,7 +24489,7 @@
         {
           "source": "src/omni/channels/terminal/pool.py",
           "symbol": "TerminalManager.open",
-          "line": 27
+          "line": 35
         },
         {
           "source": "src/omni/channels/terminal/session.py",
@@ -24057,7 +24499,7 @@
         {
           "source": "src/omni/channels/terminal/backend.py",
           "symbol": "open_process",
-          "line": 18
+          "line": 26
         }
       ]
     },
@@ -24139,6 +24581,45 @@
     }
   ],
   "request_models": [
+    {
+      "name": "TerminalCreateIn",
+      "source": "src/omni/channels/terminal/sessions.py",
+      "line": 15,
+      "fields": [
+        {
+          "name": "shell",
+          "type": "Literal['powershell', 'pwsh', 'cmd']",
+          "required": false
+        },
+        {
+          "name": "cwd",
+          "type": "str | None",
+          "required": false
+        },
+        {
+          "name": "cols",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "rows",
+          "type": "int",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "TerminalRenameIn",
+      "source": "src/omni/channels/terminal/sessions.py",
+      "line": 22,
+      "fields": [
+        {
+          "name": "label",
+          "type": "str",
+          "required": false
+        }
+      ]
+    },
     {
       "name": "ChatIn",
       "source": "src/omni/channels/web_api/schemas.py",
@@ -25424,10 +25905,42 @@
       ]
     },
     {
-      "name": "AppConfig",
+      "name": "TerminalConfig",
       "source": "src/omni/config.py",
       "line": 472,
       "fields": [
+        {
+          "name": "max_sessions",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "roots",
+          "type": "list[str]",
+          "required": false
+        },
+        {
+          "name": "buffer_bytes",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "detach_ttl_s",
+          "type": "float",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "AppConfig",
+      "source": "src/omni/config.py",
+      "line": 480,
+      "fields": [
+        {
+          "name": "terminal",
+          "type": "TerminalConfig",
+          "required": false
+        },
         {
           "name": "persona",
           "type": "Persona",

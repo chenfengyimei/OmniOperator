@@ -22,7 +22,7 @@ MODULES = (
     Module('models', '模型网关与 embedding', '内核与模型', ('llm/',), '模型路由、能力、重试、流式、预算与 embedding 传输。', ('RETRIEVAL.md',), ('test_gateway.py', 'test_usage.py')),
     Module('safety', '审批与权限', '内核与模型', ('safety/',), '风险分级、人工审批与无人值守拒绝。', ('ARCHITECTURE.md',), ('test_safety.py',)),
     Module('storage', '记忆与运行账本', '平台与数据', ('memory/',), '会话/事实/技能/产物及 state.db 事务、迁移、额度、投递。', ('OPERATIONS.md', 'RETRIEVAL.md'), ('test_state.py', 'test_memory.py')),
-    Module('terminal', '内置终端', '交互与终端', ('channels/terminal/',), 'ConPTY 后端、会话、会话池、WebSocket 四层；与 agent shell 工具分工。', ('ARCHITECTURE.md',), ('test_terminal.py', 'test_doctor_lifecycle.py')),
+    Module('terminal', '内置终端', '交互与终端', ('channels/terminal/', 'channels/web_static/terminal/'), 'ConPTY 后端、会话、会话池、WebSocket 四层；与 agent shell 工具分工。', ('ARCHITECTURE.md', 'TERMINAL.md'), ('test_terminal.py', 'test_terminal_managed.py', 'test_doctor_lifecycle.py')),
     Module('workbench', '项目与能力工作台', '交互与终端', ('channels/workbench/', 'channels/web_static/project/'), '项目索引、API、已注册工具和扩展状态的只读 HTTP 适配。', ('PROJECT_INDEX.md',), ('test_project_catalog.py',)),
     Module('web-ui', 'Web 界面与身份', '交互与终端', ('channels/web.py', 'channels/web_auth.py', 'channels/web_static/'), '工作台业务路由、统一鉴权与静态界面；新专题使用独立 APIRouter。', ('ARCHITECTURE.md',), ('test_web.py', 'test_web_auth.py')),
     Module('http-sessions', '会话与待办 API', 'Web 接口', ('channels/web_api/sessions.py',), '会话选择、历史、状态和待办；消费注入 Runtime。', ('PROJECT_INDEX.md',), ('test_web_api.py', 'test_sessions.py')),

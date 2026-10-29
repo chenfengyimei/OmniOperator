@@ -118,7 +118,8 @@ def create_app(runtime: Runtime) -> FastAPI:
                 print(f"[工作台] 关闭残留：runtime={result['residual']} terminals={terminal_result['residual']}", flush=True)
 
     app = FastAPI(title="OmniOperator Workbench", lifespan=lifespan)
-    terminal_manager = TerminalManager()
+    terminal_manager = TerminalManager(**runtime.config.terminal.model_dump())
+    app.state.terminal_manager = terminal_manager
     auth = _create_auth(runtime)
     app.state.web_auth = auth  # 供启动脚本打印配对链接 / 测试读取配对码
 

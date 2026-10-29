@@ -100,6 +100,7 @@ def test_api_index_matches_real_workbench_routes_and_request_models(workbench):
         if path.startswith('/api/') or path == '/pair/{code}':
             actual.update((path,method.upper()) for method in methods if method.upper() in {'GET','POST','PUT','PATCH','DELETE','OPTIONS','HEAD'})
     actual.add(('/api/terminal/ws','WEBSOCKET'))
+    actual.add(('/api/terminal/sessions/{identifier}/ws','WEBSOCKET'))
     assert declared == actual
     model = next(row for row in index['request_models'] if row['name']=='ChatIn')
     assert any(field['name']=='message' and field['required'] for field in model['fields'])
