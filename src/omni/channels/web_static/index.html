@@ -171,6 +171,7 @@ ul{list-style:none;overflow-y:auto}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 @media (max-width:1000px){main{grid-template-columns:1fr;overflow-y:auto}aside,section{max-height:45vh}}
 </style>
+<link rel="stylesheet" href="/ui/base.css"><script src="/ui/shared.js"></script>
 </head>
 <body>
 <header>
@@ -503,9 +504,17 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 // 消息正文：先转义，再把 [artifact:id] 标记渲染成内联图（加载失败即显示 alt 占位）
 const renderContent=s=>esc(s).replace(/\[artifact:([0-9a-f]{8,32})\]/g,
   (m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" onclick="viewArtifact('${id}')">`);
-let currentSession=null,busy=false;
+let currentSession=null,busy=false,selectionVersion=0,messagesVersion=0;
+const drafts=new Map();
+function showSession(id){
+  drafts.set(currentSession,$('#input').value);currentSession=id;
+  $('#input').value=drafts.get(id)||'';
+  $('#messages').innerHTML='<div class="empty">读取会话…</div>';syncActiveRun();
+  if(window.matchMedia('(max-width:760px)').matches)document.querySelector('[data-pane="chat"]')?.click();
+}
 
 async function api(path,opts){
+  if(window.OmniUI)return OmniUI.request(path,{...opts,...(path==='/api/chat'?{timeoutMs:0}:{})});
   const r=await fetch(path,opts);
   if(!r.ok){let d='';try{d=(await r.json()).detail||''}catch(e){}
     throw new Error(d||r.statusText)}
@@ -518,7 +527,7 @@ $('#qq-proactive-stop').onclick=async()=>{
 };
 
 async function loadState(){
-  const s=await api('/api/state');currentSession=s.session_id;
+  const s=await api('/api/state');if(currentSession==null)currentSession=s.session_id;
   $('#chips').innerHTML=`<span class="chip">${esc(s.persona)}</span><span class="chip">${esc(s.model)}</span>`+
     `<span class="chip" id="cost-chip" title="今日模型花费（点设置中心「用量」看明细）">…</span>`+
     (s.fts_enabled?'<span class="chip ok">FTS5</span>':'<span class="chip">FTS ✗</span>')+
@@ -535,15 +544,19 @@ async function loadSessions(){
     `<li class="${x.id===currentSession?'active':''}" onclick="selectSession(${x.id})"><span class="s-title">${esc(x.title)}</span><span class="s-id">#${x.id}</span></li>`).join('');
 }
 window.selectSession=async id=>{
+  const version=++selectionVersion;
   try{
     await api(`/api/sessions/${id}/select`,{method:'POST'});
-    currentSession=id;await loadSessions();await loadMessages();loadTodos();
-  }catch(e){alert(e.message)}
+    if(version!==selectionVersion)return;
+    showSession(id);await loadSessions();await loadMessages();loadTodos();
+  }catch(e){if(version===selectionVersion)OmniUI.notify(e.message,'error')}
 };
 
 async function loadMessages(){
   if(currentSession==null)return;
-  const d=await api(`/api/sessions/${currentSession}/messages`);
+  const sid=currentSession,version=++messagesVersion;
+  const d=await api(`/api/sessions/${sid}/messages`);
+  if(sid!==currentSession||version!==messagesVersion)return;
   $('#messages').innerHTML=d.messages.length?d.messages.map(m=>
     `<div class="msg ${m.role}"><div class="bubble">${renderContent(m.content)}</div>`+
     `<button class="copy-msg" data-copy="1" title="复制这条消息">⧉</button></div>`).join(''):'<div class="empty">这个会话还没有消息</div>';
@@ -624,91 +637,85 @@ function renderRunEvent(ev){
   }
 }
 
+function syncActiveRun(){
+  let panel=$('#active-run');
+  if(!panel){
+    panel=document.createElement('div');panel.id='active-run';panel.setAttribute('role','status');
+    const text=document.createElement('span'),view=document.createElement('button'),stop=document.createElement('button');
+    text.className='active-run-text';view.textContent='查看会话';stop.textContent='停止此回合';stop.className='ui-danger';
+    view.onclick=()=>{if(runWatch)selectSession(runWatch.sid)};stop.onclick=()=>cancelCurrentRun();
+    panel.append(text,view,stop);$('#composer').before(panel);
+  }
+  panel.hidden=!runWatch||!busy;if(panel.hidden)return;
+  panel.querySelector('span').textContent='会话 #'+runWatch.sid+' 正在运行，切换页面区域不会停止回合';
+  panel.querySelector('button:last-child').disabled=!runWatch.runId;
+}
 function stopRunWatch(){
   if(runWatch&&runWatch.timer)clearInterval(runWatch.timer);
-  runWatch=null;
+  runWatch=null;syncActiveRun();
   const stop=$('#run-stop');if(stop)stop.classList.add('hidden');
 }
 
-async function pollRunProgress(sid){
-  if(!runWatch||runWatch.polling)return; // 响应慢于 1s 时不叠加重叠请求，避免事件重复渲染
-  runWatch.polling=true;
+async function pollRunProgress(watch){
+  if(runWatch!==watch||watch.polling)return;
+  watch.polling=true;
   try{
-    const d=await api(`/api/runs?session_id=${sid}&limit=5`);
+    const d=await api(`/api/runs?session_id=${watch.sid}&limit=5`);
+    if(runWatch!==watch)return;
     const active=d.runs.find(r=>['queued','running','waiting_approval','cancelling'].includes(r.status));
-    const feed=$('#run-feed');
-    if(!feed)return;
-    if(active){
-      runWatch.runId=active.run_id;
-      const stop=$('#run-stop');
-      if(stop)stop.classList.remove('hidden');
-      const ev=await api(`/api/runs/${active.run_id}/events?after=${runWatch.seq}`);
-      if(ev.events.length)feed.classList.remove('hidden');
-      for(const e of ev.events){
-        runWatch.seq=e.seq;
-        const line=document.createElement('div');
-        line.className='feed-line';
-        line.textContent=renderRunEvent(e);
-        feed.appendChild(line);
-      }
-      feed.scrollTop=feed.scrollHeight;
-    }
-  }catch(e){/* 轮询失败不影响聊天本身，下一轮再试 */}
-  finally{if(runWatch)runWatch.polling=false}
+    if(!active)return;
+    watch.runId=active.run_id;syncActiveRun();
+    if(currentSession!==watch.sid)return;
+    const feed=$('#run-feed'),stop=$('#run-stop');if(!feed)return;
+    stop?.classList.remove('hidden');
+    const ev=await api(`/api/runs/${active.run_id}/events?after=${watch.seq}`);
+    if(runWatch!==watch||currentSession!==watch.sid||!feed.isConnected)return;
+    if(ev.events.length)feed.classList.remove('hidden');
+    for(const e of ev.events){watch.seq=e.seq;const line=document.createElement('div');line.className='feed-line';line.textContent=renderRunEvent(e);feed.appendChild(line)}
+    feed.scrollTop=feed.scrollHeight;
+  }catch(e){/* 进度读取不重放模型请求。 */}finally{watch.polling=false}
 }
 
 window.cancelCurrentRun=async()=>{
-  if(!runWatch||!runWatch.runId)return;
-  if(!confirm('停止当前回合？正在等待的模型请求会在返回后停下；已经发生的工具副作用不会被撤销。'))return;
-  try{await api(`/api/runs/${runWatch.runId}/cancel`,{method:'POST'})}catch(e){alert(e.message)}
+  const watch=runWatch,id=watch?.runId;if(!id)return;
+  if(!await OmniUI.ask({title:'停止会话 #'+watch.sid+' 的回合',message:'模型请求返回后会停下；已发生的工具副作用不会撤销。',confirmLabel:'停止回合',danger:true}))return;
+  if(runWatch!==watch)return;
+  try{await api(`/api/runs/${id}/cancel`,{method:'POST'});OmniUI.notify('已提交停止请求，请等待最终状态')}catch(e){OmniUI.notify(e.message,'error')}
 };
 
 async function sendMessage(){
-  const box=$('#input'),text=box.value.trim();
-  if(!text||busy)return;
-  busy=true;$('#send').disabled=true;$('#send').textContent='思考中…';box.value='';
+  const box=$('#input'),text=box.value.trim();if(!text||busy)return;
+  const sid=currentSession,version=selectionVersion;messagesVersion++;
+  busy=true;$('#send').disabled=true;$('#send').textContent='思考中…';box.value='';drafts.delete(sid);
   $('#messages').insertAdjacentHTML('beforeend',
     `<div class="msg user"><div class="bubble">${esc(text)}</div></div>`+
     `<div class="msg assistant" id="thinking"><div class="bubble thinking">`+
     `思考中<span class="dot">·</span><span class="dot">·</span><span class="dot">·</span>`+
     `<div id="run-feed" class="run-feed hidden"></div>`+
-    `<button id="run-stop" class="svc-btn hidden" style="margin-top:6px" onclick="cancelCurrentRun()">■ 停止本回合</button>`+
-    `</div></div>`);
+    `<button id="run-stop" class="svc-btn hidden" style="margin-top:6px" onclick="cancelCurrentRun()">■ 停止本回合</button></div></div>`);
   scrollChat();
-  // 已知会话才轮询（首条消息的会话 id 要等响应回来才知道）
-  if(currentSession!=null){
-    runWatch={timer:setInterval(()=>pollRunProgress(currentSession),1000),runId:null,seq:0};
-    pollRunProgress(currentSession);
-  }
+  if(sid!=null){const watch={sid,runId:null,seq:0,polling:false};runWatch=watch;watch.timer=setInterval(()=>pollRunProgress(watch),1000);pollRunProgress(watch);syncActiveRun()}
   try{
-    const d=await api('/api/chat',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:text,session_id:currentSession})
-    });
-    currentSession=d.session_id;
-    await loadMessages();refreshMemory();loadSessions();
-    // 回合状态与费用直接标在最后一条回复上（loadMessages 拿不到这些）
-    const bubbles=[...document.querySelectorAll('#messages .msg.assistant .bubble')];
-    const last=bubbles[bubbles.length-1];
-    if(last){
-      if(d.status==='cancelled'){
-        const n=document.createElement('div');n.className='cost-tag';n.textContent='（本回合已停止）';last.appendChild(n);
-      }else if(d.status==='failed'){
-        const n=document.createElement('div');n.className='cost-tag';n.textContent=`（回合失败${d.error_code?'：'+d.error_code:''}）`;last.appendChild(n);
+    const d=await api('/api/chat',{method:'POST',body:JSON.stringify({message:text,session_id:sid})});
+    if(currentSession===sid&&selectionVersion===version){
+      currentSession=d.session_id;await loadMessages();
+      if(currentSession===d.session_id&&selectionVersion===version){
+        const bubbles=[...document.querySelectorAll('#messages .msg.assistant .bubble')],last=bubbles[bubbles.length-1];
+        if(last){
+          const notes=[];if(d.status==='cancelled')notes.push('本回合已停止');
+          if(d.status==='failed')notes.push('回合失败'+(d.error_code?'：'+d.error_code:''));
+          if(d.cost_micro>0)notes.push('$'+(d.cost_micro/1e6).toFixed(4));
+          if(notes.length){const note=document.createElement('div');note.className='cost-tag';note.textContent=notes.join(' · ');last.append(note)}scrollChat();
+        }
       }
-      if(d.cost_micro!=null&&d.cost_micro>0){
-        const n=document.createElement('div');n.className='cost-tag';n.textContent=`$${(d.cost_micro/1e6).toFixed(4)}`;last.appendChild(n);
-      }
-      scrollChat();
-    }
-  }catch(e){
-    const t=$('#thinking');if(t)t.remove();
-    $('#messages').insertAdjacentHTML('beforeend',
-      `<div class="msg assistant"><div class="bubble">⚠ ${esc(e.message)}</div></div>`);
-    scrollChat();
-  }
-  stopRunWatch();
-  busy=false;$('#send').disabled=false;$('#send').textContent='发送';box.focus()
+    }else OmniUI.notify('会话 #'+d.session_id+' 的回合已结束，可切回查看');
+    refreshMemory();loadSessions();
+  }catch(error){
+    if(currentSession===sid&&selectionVersion===version){
+      $('#thinking')?.remove();$('#messages').insertAdjacentHTML('beforeend',`<div class="msg assistant"><div class="bubble">⚠ ${esc(error.message)}。请求可能已经执行，请核查会话记录后再发送。</div></div>`);
+      if(!box.value)box.value=text;scrollChat();
+    }else{if(!drafts.get(sid))drafts.set(sid,text);OmniUI.notify('会话 #'+sid+'：'+error.message+'；请核查执行结果','error')}
+  }finally{stopRunWatch();busy=false;$('#send').disabled=false;$('#send').textContent='发送';if(currentSession===sid&&selectionVersion===version)box.focus()}
 }
 
 async function loadFacts(){
@@ -981,13 +988,14 @@ window.delArtifact=async(id)=>{
 };
 async function loadTodos(){
   if(currentSession==null)return;
+  const sid=currentSession;
   try{
-    const d=await api(`/api/sessions/${currentSession}/todos`);
+    const d=await api(`/api/sessions/${sid}/todos`);if(sid!==currentSession)return;
     $('#todos-list').innerHTML=d.todos.length?d.todos.map(t=>
       `<li><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id},this.checked)">`+
       `<span class="${t.done?'todo-done':''}">${esc(t.content)}</span></li>`).join('')
       :'<li class="empty">暂无待办（多步任务小鱼会用 todo 工具自动维护）</li>';
-  }catch(e){$('#todos-list').innerHTML='<li class="empty">'+esc(e.message)+'</li>'}
+  }catch(e){if(sid===currentSession)$('#todos-list').innerHTML='<li class="empty">'+esc(e.message)+'</li>'}
 }
 window.toggleTodo=async(id,done)=>{
   try{
@@ -1032,12 +1040,13 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
 });
 $('#send').onclick=sendMessage;
 $('#input').addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}
+  if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();sendMessage()}
 });
 $('#new-session').onclick=async()=>{
-  try{const d=await api('/api/sessions',{method:'POST'});
-    currentSession=d.session_id;await loadSessions();await loadMessages();loadTodos();
-  }catch(e){alert(e.message)}
+  const version=++selectionVersion;$('#new-session').disabled=true;
+  try{const d=await api('/api/sessions',{method:'POST'});if(version!==selectionVersion)return;
+    showSession(d.session_id);await loadSessions();await loadMessages();loadTodos();
+  }catch(e){OmniUI.notify(e.message,'error')}finally{$('#new-session').disabled=false}
 };
 $('#fact-q').addEventListener('input',loadFacts);
 

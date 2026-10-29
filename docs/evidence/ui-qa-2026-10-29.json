@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-29",
+  "base": "ce074ff",
+  "isolated": {
+    "tests": 1032,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 251.77
+  },
+  "workspace": {
+    "tests": 1079,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 248.46,
+    "uncommitted_parallel_test_difference": 47
+  },
+  "new_chromium_cases": 18,
+  "catalog": {
+    "modules": 52,
+    "source_files": 205,
+    "route_declarations": 118,
+    "static_tools": 78
+  },
+  "verified_code_files": 295,
+  "normalized_code_sha256": "1205854dc71e281c85ab39de6067acbf1a30088cda2898111ec2fda3ab273e15",
+  "chromium": {
+    "pages": 7,
+    "widths": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "page_errors": 0,
+    "model_and_network": "intercepted; temporary Runtime and fake devices"
+  },
+  "regressions": [
+    "late-job-output-selection",
+    "clipboard-terminal-target",
+    "late-chat-response",
+    "IME-enter",
+    "MCP-catalog-selection",
+    "mobile-workbench-panes",
+    "chat-draft-preservation",
+    "run-cancellation-target",
+    "exited-terminal-output",
+    "bounded-reconnect",
+    "side-effect-state-rendering"
+  ],
+  "frozen_openapi_operations": 90,
+  "frozen_openapi_schemas": 23,
+  "real_android": false,
+  "production_mcp": false,
+  "real_model_calls": false,
+  "resident_service_restarts": false,
+  "live_data_migration": false,
+  "soak_72h": false
+}

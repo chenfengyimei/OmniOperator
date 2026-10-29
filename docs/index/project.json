@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c99e3b42c3d2e73b7d2b795687653f9fb67a5c9aea933803bdeed74b2f54c3b9",
+  "source_sha256": "bf6fe97ac9106ba034b6e8a35a08875a6ee20ef1e3b885f58bd6cafa7131a999",
   "modules": [
     {
       "id": "assembly",
@@ -229,7 +229,7 @@
         "src/omni/channels/web_static/terminal/terminal.css",
         "src/omni/channels/web_static/terminal/terminal.js"
       ],
-      "lines": 552,
+      "lines": 606,
       "dependencies": [
         "config",
         "web-ui"
@@ -257,12 +257,33 @@
         "src/omni/channels/workbench/__init__.py",
         "src/omni/channels/workbench/routes.py"
       ],
-      "lines": 315,
+      "lines": 316,
       "dependencies": [
         "assembly",
         "catalog",
         "config"
       ]
+    },
+    {
+      "id": "ui-shared",
+      "title": "界面公共交互",
+      "category": "交互与终端",
+      "prefixes": [
+        "channels/web_static/ui/"
+      ],
+      "purpose": "统一导航、移动区域切换、有界请求、反馈和确认框；不执行工具或自动启动依赖。",
+      "docs": [
+        "docs/UI_QA.md"
+      ],
+      "tests": [
+        "tests/test_ui_flows.py"
+      ],
+      "files": [
+        "src/omni/channels/web_static/ui/base.css",
+        "src/omni/channels/web_static/ui/shared.js"
+      ],
+      "lines": 90,
+      "dependencies": []
     },
     {
       "id": "web-ui",
@@ -275,11 +296,13 @@
       ],
       "purpose": "工作台业务路由、统一鉴权与静态界面；新专题使用独立 APIRouter。",
       "docs": [
-        "docs/ARCHITECTURE.md"
+        "docs/ARCHITECTURE.md",
+        "docs/UI_QA.md"
       ],
       "tests": [
         "tests/test_web.py",
-        "tests/test_web_auth.py"
+        "tests/test_web_auth.py",
+        "tests/test_ui_flows.py"
       ],
       "files": [
         "src/omni/channels/web.py",
@@ -289,7 +312,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2086,
+      "lines": 2095,
       "dependencies": [
         "assembly",
         "config",
@@ -402,7 +425,7 @@
         "src/omni/tools/shell/job_tools.py",
         "src/omni/tools/shell/jobs.py"
       ],
-      "lines": 358,
+      "lines": 410,
       "dependencies": [
         "config",
         "platform",
@@ -550,7 +573,7 @@
         "src/omni/channels/web_static/mcp/mcp.css",
         "src/omni/channels/web_static/mcp/mcp.js"
       ],
-      "lines": 145,
+      "lines": 215,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -651,7 +674,7 @@
         "src/omni/channels/web_static/capabilities/capabilities.js",
         "src/omni/channels/web_static/capabilities/index.html"
       ],
-      "lines": 54,
+      "lines": 55,
       "dependencies": []
     },
     {
@@ -677,7 +700,7 @@
         "src/omni/channels/web_static/android/android.js",
         "src/omni/channels/web_static/android/index.html"
       ],
-      "lines": 131,
+      "lines": 199,
       "dependencies": [
         "web-ui"
       ]
@@ -1368,7 +1391,7 @@
         "src/omni/system/catalog/scan.py",
         "src/omni/system/catalog/schema.py"
       ],
-      "lines": 317,
+      "lines": 318,
       "dependencies": [
         "config"
       ]
@@ -4735,7 +4758,7 @@
       "path": "src/omni/channels/web_static/android/android.js",
       "module": "http-android",
       "python_module": null,
-      "lines": 23,
+      "lines": 90,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4745,7 +4768,7 @@
       "path": "src/omni/channels/web_static/android/index.html",
       "module": "http-android",
       "python_module": null,
-      "lines": 5,
+      "lines": 6,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4775,7 +4798,7 @@
       "path": "src/omni/channels/web_static/capabilities/index.html",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 4,
+      "lines": 5,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4785,7 +4808,7 @@
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 1428,
+      "lines": 1437,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4795,7 +4818,7 @@
       "path": "src/omni/channels/web_static/jobs/index.html",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 3,
+      "lines": 5,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4815,7 +4838,7 @@
       "path": "src/omni/channels/web_static/jobs/jobs.js",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 6,
+      "lines": 56,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4825,7 +4848,7 @@
       "path": "src/omni/channels/web_static/mcp/index.html",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 3,
+      "lines": 4,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4845,7 +4868,7 @@
       "path": "src/omni/channels/web_static/mcp/mcp.js",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 6,
+      "lines": 75,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4855,7 +4878,7 @@
       "path": "src/omni/channels/web_static/project/index.html",
       "module": "workbench",
       "python_module": null,
-      "lines": 35,
+      "lines": 36,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4885,7 +4908,7 @@
       "path": "src/omni/channels/web_static/terminal/index.html",
       "module": "terminal",
       "python_module": null,
-      "lines": 8,
+      "lines": 9,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -4905,7 +4928,27 @@
       "path": "src/omni/channels/web_static/terminal/terminal.js",
       "module": "terminal",
       "python_module": null,
-      "lines": 37,
+      "lines": 90,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/base.css",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 14,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/shared.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 76,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -14645,7 +14688,7 @@
       "path": "src/omni/system/catalog/schema.py",
       "module": "catalog",
       "python_module": "omni.system.catalog.schema",
-      "lines": 102,
+      "lines": 103,
       "imports": [],
       "symbols": [
         {
@@ -14655,7 +14698,7 @@
         },
         {
           "name": "classify",
-          "line": 73,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "relative"

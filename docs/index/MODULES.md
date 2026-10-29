@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c99e3b42c3d2e73b7d2b795687653f9fb67a5c9aea933803bdeed74b2f54c3b9`。包含 51 个职责模块、203 个源码/界面文件。
+源码指纹：`bf6fe97ac9106ba034b6e8a35a08875a6ee20ef1e3b885f58bd6cafa7131a999`。包含 52 个职责模块、205 个源码/界面文件。
 
 ## 运行时组装 · assembly
 
@@ -135,9 +135,9 @@
 | [src/omni/channels/terminal/routes.py](../../src/omni/channels/terminal/routes.py) | 77 | 内置终端 WebSocket 适配；复用工作台身份及注入的会话池。 |
 | [src/omni/channels/terminal/session.py](../../src/omni/channels/terminal/session.py) | 42 | 单终端会话的读、写、窗口尺寸和退出确认。 |
 | [src/omni/channels/terminal/sessions.py](../../src/omni/channels/terminal/sessions.py) | 138 | 人工终端 v2：身份归属、结构化消息及只回放输出。旧 WS 独立兼容。 |
-| [src/omni/channels/web_static/terminal/index.html](../../src/omni/channels/web_static/terminal/index.html) | 8 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/terminal/index.html](../../src/omni/channels/web_static/terminal/index.html) | 9 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/terminal/terminal.css](../../src/omni/channels/web_static/terminal/terminal.css) | 3 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/terminal/terminal.js](../../src/omni/channels/web_static/terminal/terminal.js) | 37 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/terminal/terminal.js](../../src/omni/channels/web_static/terminal/terminal.js) | 90 | 平台脚本或界面资源 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/TERMINAL.md](../../docs/TERMINAL.md)
 
@@ -151,7 +151,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 35 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 36 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/project/project.css](../../src/omni/channels/web_static/project/project.css) | 95 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/project/project.js](../../src/omni/channels/web_static/project/project.js) | 110 | 平台脚本或界面资源 |
 | [src/omni/channels/workbench/__init__.py](../../src/omni/channels/workbench/__init__.py) | 4 | 专题工作台路由；只消费注入的 Runtime，不在通道构造核心对象。 |
@@ -163,6 +163,21 @@
 
 直接静态依赖：`assembly`、`catalog`、`config`
 
+## 界面公共交互 · ui-shared
+
+分类：交互与终端。统一导航、移动区域切换、有界请求、反馈和确认框；不执行工具或自动启动依赖。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/channels/web_static/ui/base.css](../../src/omni/channels/web_static/ui/base.css) | 14 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 76 | 平台脚本或界面资源 |
+
+文档：[docs/UI_QA.md](../../docs/UI_QA.md)
+
+测试：[tests/test_ui_flows.py](../../tests/test_ui_flows.py)
+
+直接静态依赖：无内部模块依赖
+
 ## Web 界面与身份 · web-ui
 
 分类：交互与终端。工作台业务路由、统一鉴权与静态界面；新专题使用独立 APIRouter。
@@ -171,14 +186,14 @@
 |---|---:|---|
 | [src/omni/channels/web.py](../../src/omni/channels/web.py) | 410 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 232 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1428 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 1437 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm-addon-fit.js](../../src/omni/channels/web_static/vendor/xterm-addon-fit.js) | 2 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.js](../../src/omni/channels/web_static/vendor/xterm.js) | 6 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.min.css](../../src/omni/channels/web_static/vendor/xterm.min.css) | 8 | 平台脚本或界面资源 |
 
-文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/UI_QA.md](../../docs/UI_QA.md)
 
-测试：[tests/test_web.py](../../tests/test_web.py)、[tests/test_web_auth.py](../../tests/test_web_auth.py)
+测试：[tests/test_web.py](../../tests/test_web.py)、[tests/test_web_auth.py](../../tests/test_web_auth.py)、[tests/test_ui_flows.py](../../tests/test_ui_flows.py)
 
 直接静态依赖：`assembly`、`config`、`engine`、`http-capabilities`、`http-contracts`、`http-routing`、`models`、`platform`、`safety`、`terminal`、`workbench`
 
@@ -231,9 +246,9 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py) | 23 | 后台命令管理适配；不提供绕过 Registry 审批的启动接口。 |
-| [src/omni/channels/web_static/jobs/index.html](../../src/omni/channels/web_static/jobs/index.html) | 3 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/jobs/index.html](../../src/omni/channels/web_static/jobs/index.html) | 5 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/jobs/jobs.css](../../src/omni/channels/web_static/jobs/jobs.css) | 1 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/jobs/jobs.js](../../src/omni/channels/web_static/jobs/jobs.js) | 6 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/jobs/jobs.js](../../src/omni/channels/web_static/jobs/jobs.js) | 56 | 平台脚本或界面资源 |
 | [src/omni/tools/shell/job_logs.py](../../src/omni/tools/shell/job_logs.py) | 44 | 命令输出的有界 JSONL 环：序号续读、跨流串行、最近日志与缺口标记。 |
 | [src/omni/tools/shell/job_tools.py](../../src/omni/tools/shell/job_tools.py) | 51 | 后台任务的 Registry 适配；不复用人工 PTY，不接受外部会话身份。 |
 | [src/omni/tools/shell/jobs.py](../../src/omni/tools/shell/jobs.py) | 230 | 独立后台命令执行器：审批后入队、有界进程/日志、会话归属与诚实回收。 |
@@ -321,9 +336,9 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py) | 135 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
-| [src/omni/channels/web_static/mcp/index.html](../../src/omni/channels/web_static/mcp/index.html) | 3 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/index.html](../../src/omni/channels/web_static/mcp/index.html) | 4 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/mcp/mcp.css](../../src/omni/channels/web_static/mcp/mcp.css) | 1 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/mcp/mcp.js](../../src/omni/channels/web_static/mcp/mcp.js) | 6 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/mcp.js](../../src/omni/channels/web_static/mcp/mcp.js) | 75 | 平台脚本或界面资源 |
 
 文档：[docs/MCP.md](../../docs/MCP.md)
 
@@ -382,7 +397,7 @@
 | [src/omni/channels/web_api/capabilities.py](../../src/omni/channels/web_api/capabilities.py) | 24 | 能力与诊断只读聚合：不连接 MCP、不访问手机、不启动终端/服务。 |
 | [src/omni/channels/web_static/capabilities/capabilities.css](../../src/omni/channels/web_static/capabilities/capabilities.css) | 3 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/capabilities/capabilities.js](../../src/omni/channels/web_static/capabilities/capabilities.js) | 23 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/capabilities/index.html](../../src/omni/channels/web_static/capabilities/index.html) | 4 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/capabilities/index.html](../../src/omni/channels/web_static/capabilities/index.html) | 5 | 平台脚本或界面资源 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
@@ -399,8 +414,8 @@
 | [src/omni/channels/web_api/android.py](../../src/omni/channels/web_api/android.py) | 77 | 按设备寻址的人工安卓适配；归属取已验配对身份，动作仍需单次观察。 |
 | [src/omni/channels/web_api/android_stream.py](../../src/omni/channels/web_api/android_stream.py) | 23 | MJPEG 适配：订阅共享帧，异步取消及时归还连接，不给预览帧授权令牌。 |
 | [src/omni/channels/web_static/android/android.css](../../src/omni/channels/web_static/android/android.css) | 3 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/android/android.js](../../src/omni/channels/web_static/android/android.js) | 23 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/android/index.html](../../src/omni/channels/web_static/android/index.html) | 5 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/android/android.js](../../src/omni/channels/web_static/android/android.js) | 90 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/android/index.html](../../src/omni/channels/web_static/android/index.html) | 6 | 平台脚本或界面资源 |
 
 文档：[docs/ANDROID.md](../../docs/ANDROID.md)
 
@@ -822,7 +837,7 @@
 | [src/omni/system/catalog/__init__.py](../../src/omni/system/catalog/__init__.py) | 4 | 项目索引：只解析源码与显式分类，不导入被索引模块、不接触运行数据。 |
 | [src/omni/system/catalog/render.py](../../src/omni/system/catalog/render.py) | 46 | 索引输出：从同一结构生成模块表、API 表和可机器查询的 JSON。 |
 | [src/omni/system/catalog/scan.py](../../src/omni/system/catalog/scan.py) | 165 | 静态源码索引；扫描范围固定为注入根的 src/omni，不读取 config/data/.env。 |
-| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 102 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
+| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 103 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 

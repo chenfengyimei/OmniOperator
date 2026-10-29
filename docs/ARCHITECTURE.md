@@ -39,6 +39,11 @@ config.py 提供声明配置、路径与兼容版本，不承担业务编排。
 | `plugins/` | 插件子系统（顶层包，与 channels 同级）：manifest 校验（纯数据零执行）；宿主生命周期（inbox 收 zip/工作区目录 → 隔离区数据化校验 → **人工确认激活** → 装载注册 → 启停/卸载/启动恢复）；受限注册面 `PluginContext`（工具名强制 `<id>-` 前缀防影子覆盖、`toolset=plugin:<id>` 可归因、风险声明照常走既有审批链）；面向 agent 的生命周期工具。信任模型：校验零执行、**激活即同意执行**（不假装沙箱；不可信来源走 MCP）——全文见 [PLUGIN_SYSTEM.md](PLUGIN_SYSTEM.md) | 不构造 Gateway/MemoryStore 等组装根对象；不加载未激活的代码 | `plugins/manifest.py`、`plugins/host.py`、`plugins/tools.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
 
+工作台公共界面资源归 `channels/web_static/ui/`：统一导航、小屏区域切换、请求错误适配、
+反馈与确认框。终端、后台命令、MCP、安卓和项目索引仍各自归包；公共 UI 不承载工具执行、
+不自动连接依赖、不替代服务器鉴权/审批/观察校验。异步页面结果按请求目标和选择版本隔离，
+输入和取消绑定原终端/会话/运行 ID。实现与浏览器验证见 [UI_QA.md](UI_QA.md)。
+
 ## 3. 依赖规则（`tests/test_arch.py` 强制）
 
 ### 3.1 import 分层

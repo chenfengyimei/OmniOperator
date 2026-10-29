@@ -221,6 +221,7 @@ def test_command_job_http_auth_and_real_browser_panel(tmp_path):
                 page.route('**/*',route);page.goto('http://127.0.0.1/jobs/')
                 page.locator('#jobs button').click()
                 page.locator('#output').get_by_text('中文测试输出',exact=False).wait_for()
+                assert '命令已执行，业务结果需另行核实' in page.locator('#detail').inner_text()
                 assert page.locator('#cancel').is_disabled()
                 page.set_viewport_size({'width':390,'height':844})
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')

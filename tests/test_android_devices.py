@@ -153,7 +153,8 @@ def test_real_browser_device_choice_actions_and_mobile(env,tmp_path):
                 page.locator('#devices').select_option('B')
                 assert page.locator('#tree').inner_text()=='已切换设备，请重新观察。'
                 assert page.locator('#screen').is_hidden()
-                page.locator('#text').fill('不应在设备切换后直接输入');page.locator('#type').click()
+                page.locator('#text').fill('不应在设备切换后直接输入')
+                assert page.locator('#type').is_disabled()
                 page.locator('#status').get_by_text('请先刷新树',exact=False).wait_for()
                 assert len(writes(env[1]))==1
                 page.set_viewport_size({'width':390,'height':844})

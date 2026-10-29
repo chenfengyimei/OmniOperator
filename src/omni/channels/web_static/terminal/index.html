@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>小鱼 · 人工终端</title><link rel="stylesheet" href="/vendor/xterm.min.css"><link rel="stylesheet" href="/terminal/terminal.css"></head>
+<title>小鱼 · 人工终端</title><link rel="stylesheet" href="/vendor/xterm.min.css"><link rel="stylesheet" href="/terminal/terminal.css"><link rel="stylesheet" href="/ui/base.css"><script src="/ui/shared.js"></script>
+</head>
 <body><header><a href="/">← 工作台</a><h1>人工终端</h1><a href="/jobs/">后台命令</a><span>与 agent 命令隔离 · 关闭页面后暂存 10 分钟</span></header>
 <form id="create"><label>Shell <select id="shell"></select></label><label class="directory">目录 <input id="cwd" autocomplete="off"></label><button>新建终端</button></form>
-<nav id="tabs" aria-label="终端会话"></nav><div id="state" role="status">正在读取会话…</div>
-<main id="screens"></main><footer><button id="interrupt">Ctrl+C</button><button id="copy">复制选区</button><button id="paste">粘贴</button><button id="clear">清屏</button><button id="rename">重命名</button><button id="end">结束终端</button></footer>
+<nav id="tabs" role="tablist" aria-label="终端会话"></nav><div id="state" role="status">正在读取会话…</div>
+<div id="empty" class="ui-empty">暂无人工终端。选择工作区目录后新建，每个标签拥有独立会话。<br>后台命令可在“后台任务”查看。</div><main id="screens"></main><footer><button id="interrupt">Ctrl+C</button><button id="copy">复制选区</button><button id="paste">粘贴</button><button id="clear">清屏</button><button id="rename">重命名</button><button id="reconnect">重新连接</button><button id="end" class="ui-danger">结束终端</button></footer>
 <script src="/vendor/xterm.js"></script><script src="/vendor/xterm-addon-fit.js"></script><script src="/terminal/terminal.js"></script></body></html>

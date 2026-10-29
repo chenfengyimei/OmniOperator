@@ -1,6 +1,56 @@
 'use strict';
-const $=s=>document.querySelector(s);let selected='',after=0,busy=false,leaving=false;
-async function api(path,options={}){const response=await fetch(path,options),data=await response.json();if(!response.ok)throw Error(data.detail||'请求失败');return data}
-async function refresh(){if(busy||leaving)return;busy=true;try{const data=await api('/api/command-jobs');$('#jobs').replaceChildren();for(const row of data.jobs){const button=document.createElement('button');button.textContent=`${row.status} · ${row.command.slice(0,60)}`;button.classList.toggle('active',row.job_id===selected);button.onclick=()=>{selected=row.job_id;after=0;$('#output').textContent='';refresh()};$('#jobs').append(button)}$('#status').textContent=`${data.jobs.length} 个最近任务 · 进程完成状态不代表外部业务目标完成`;if(selected){const output=await api(`/api/command-jobs/${selected}?after=${after}`);$('#detail').textContent=JSON.stringify(output.job,null,2);$('#cancel').disabled=!['queued','running','cancelling'].includes(output.job.status);if(output.gap)$('#output').textContent+='\n[较早日志已缺失]\n';for(const row of output.records)$('#output').textContent+=`[${row.stream}] ${row.text}`;after=output.next_after;$('#output').textContent=$('#output').textContent.slice(-2097152)}}catch(error){$('#status').textContent=error.message}finally{busy=false}}
-$('#cancel').onclick=async()=>{if(!selected||!confirm('取消此命令任务？取消前可能已经产生副作用。'))return;try{await api(`/api/command-jobs/${selected}/cancel`,{method:'POST'});refresh()}catch(e){$('#status').textContent=e.message}};
-const timer=setInterval(refresh,1500);window.addEventListener('beforeunload',()=>{leaving=true;clearInterval(timer)});refresh();
+const $=s=>document.querySelector(s), UI=window.OmniUI;
+let jobs=[],selected='',after=0,version=0,listBusy=false,reading=null,leaving=false,cancelling=false;
+const finalStates=new Set(['succeeded','failed','cancelled','timed_out','unknown']);
+function renderList(){
+  const query=$('#job-search').value.trim().toLowerCase(),filter=$('#job-filter').value;
+  const visible=jobs.filter(row=>(!query||`${row.command} ${row.job_id} ${row.session_id}`.toLowerCase().includes(query))&&(!filter||(filter==='active'?!finalStates.has(row.status):finalStates.has(row.status))));
+  $('#job-count').textContent=`${visible.length} / ${jobs.length} 个任务`;
+  const signature=JSON.stringify([selected,visible]);if($('#jobs').dataset.signature===signature)return;
+  $('#jobs').dataset.signature=signature;$('#jobs').replaceChildren();
+  for(const row of visible){
+    const button=UI.element('button');button.type='button';button.classList.toggle('active',row.job_id===selected);button.setAttribute('aria-pressed',String(row.job_id===selected));
+    button.append(UI.badge(row.status),UI.element('strong',row.command),UI.element('small','会话 '+row.session_id+' · '+UI.date(row.created_at)));
+    button.onclick=()=>selectJob(row.job_id);$('#jobs').append(button);
+  }
+  if(!visible.length)$('#jobs').append(UI.element('p',jobs.length?'没有符合筛选的任务':'暂无后台命令。在对话中提交后台命令，经人工审批后会显示在这里。','ui-empty'));
+}
+function showDetail(row){
+  $('#job-title').textContent=row.command;const list=UI.element('dl');
+  const effects={none:'未派发命令',applied:'命令已执行，业务结果需另行核实',unknown:'结果未知，请人工核查'};
+  for(const [label,value]of [['任务',row.job_id],['会话',row.session_id],['命令',row.command],['目录',row.cwd],['Shell',row.shell],['创建时间',UI.date(row.created_at)],['退出码',row.exit_code??'—'],['副作用状态',effects[row.side_effect_state]||row.side_effect_state||'未取得状态'],['错误代码',row.error_code||'—']])list.append(UI.element('dt',label),UI.element('dd',String(value??'—')));
+  $('#detail').replaceChildren(UI.badge(row.status),list);$('#cancel').disabled=cancelling||finalStates.has(row.status);$('#reload-output').disabled=false;
+}
+function selectJob(id){
+  version++;reading?.controller.abort();reading=null;selected=id;after=0;$('#output').textContent='';$('#cancel').disabled=true;$('#copy-output').disabled=true;renderList();readOutput();
+}
+async function readOutput(){
+  if(!selected||leaving||reading?.version===version)return;
+  const id=selected,current=version,controller=new AbortController(),request={controller,version:current};reading=request;
+  try{
+    const data=await UI.request('/api/command-jobs/'+id+'?after='+after,{signal:controller.signal});
+    if(current!==version||id!==selected)return;
+    showDetail(data.job);const output=$('#output'),follow=$('#follow-output').checked;
+    if(data.gap)output.textContent+='\n[较早日志已超出保留范围，存在缺失]\n';
+    for(const row of data.records)output.textContent+='['+row.stream+'] '+row.text;
+    output.textContent=output.textContent.slice(-2097152);after=data.next_after;$('#copy-output').disabled=!output.textContent;
+    if(follow)output.scrollTop=output.scrollHeight;
+  }catch(error){if(current===version&&error.name!=='AbortError')$('#status').textContent=error.message}
+  finally{if(reading===request)reading=null}
+}
+async function refresh(){
+  if(listBusy||leaving)return;listBusy=true;$('#refresh').disabled=true;
+  try{const data=await UI.request('/api/command-jobs');jobs=data.jobs;renderList();$('#status').textContent='进程完成状态不代表外部业务目标完成。输出持续更新。';await readOutput()}
+  catch(error){$('#status').textContent=error.message}finally{listBusy=false;$('#refresh').disabled=false}
+}
+$('#cancel').onclick=async()=>{
+  const id=selected,current=version;if(!id||cancelling)return;
+  if(!await UI.ask({title:'取消后台命令',message:'取消前可能已经产生副作用。请核对当前任务，取消后仍需检查执行结果。',confirmLabel:'取消任务',danger:true})||current!==version)return;
+  cancelling=true;$('#cancel').disabled=true;
+  try{await UI.request('/api/command-jobs/'+id+'/cancel',{method:'POST'});UI.notify('已提交取消请求，请查看最终状态');await refresh()}
+  catch(error){UI.notify(error.message,'error')}finally{cancelling=false;await readOutput()}
+};
+$('#job-search').oninput=renderList;$('#job-filter').onchange=renderList;$('#refresh').onclick=refresh;$('#reload-output').onclick=readOutput;
+$('#copy-output').onclick=async()=>{try{await navigator.clipboard.writeText($('#output').textContent);UI.notify('已复制当前保留的输出')}catch{UI.notify('无法访问剪贴板，请选中输出后复制','error')}};
+const timer=setInterval(()=>{if(!document.hidden)refresh()},1500);
+window.addEventListener('beforeunload',()=>{leaving=true;reading?.controller.abort();clearInterval(timer)});refresh();
