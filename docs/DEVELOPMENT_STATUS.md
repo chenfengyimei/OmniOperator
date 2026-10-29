@@ -1859,3 +1859,27 @@ C04–C06 仍未交付，真实手机/生产 MCP/72 小时不作为本批完成�
 详见 [界面说明](UI_QA.md) 与 [验证证据](evidence/ui-qa-2026-10-29.json)。
 未混入配对/密钥/设置、prototype-html 和 UI_REDESIGN_MIGRATION_PLAN.md 等并行内容；没有重启常驻服务或迁移真实数据。
 真实手机/生产 MCP/真实模型与 72 小时验收仍未完成，不据此宣称整个项目稳定发布。
+
+## 2026-10-30 前端统一改造（Phase 0-7，基线 1121 → 1168 全绿）
+
+七阶段把「四套 token、三种视觉、导航五处定义、2493 行单文件工作台」改造为「一套规范 + 一套 token + 一套组件库 + 模块化前端」。
+交付：设计系统规范（docs/UI_DESIGN_SYSTEM.md 唯一权威）+ token 单源（青 #3ddbd9 / 紫 #7c8cf8 渐变全站唯一；
+`--ui-*`/`--shell-*` 兼容别名层经 Phase 7 评估**长期保留**——子站 css 大量引用，删除需全量改写子站、零收益高风险）
++ 导航单源（NAV_ITEMS 9 项 + renderRail，子站零复制粘贴）+ 组件库（components.css canonical；
+`.svc-btn/.p-btn/.tiny-btn/.key-btn/.ui-empty/.rich-empty` 过渡别名 Phase 7b 全站清零）
++ 工作台 JS 模块化（1690 行内联脚本 → `ui/app/` 25 个原生 ES 模块、`main.js` 唯一入口；
+内联 onclick 全站清零转 data-action 委托；`window.*` 兼容桥 Phase 7a 退役为纯 ES 导出 + actions 注册表）
++ 子站 JS 统一（七站转 ES 模块 + dom.js 去重 + 空态归一）
++ 可用性精修（54 处亚 10px 字号双形式清零、text-3/4 对比度达 WCAG AA 4.5:1、pointer:coarse 触屏键帽隐藏、
+服务面板状态词前缀、工具风险档图例、审批 rail 计数徽章）
++ 守卫体系（契约门禁 Phase 7b 起转**绝对模式**：缺失 id/重复 id/未定义函数/未注册 data-action 零容忍，
+`docs/ui-migration/baseline-index.html` 退役为素材与回滚源；`?v=` 版本串原子递增纪律入守卫——
+app 组现为 20261030i，共享 css 变更必须八页全 bump）。
+icons.css 子集化经评估**不做**（本地盘加载零网络成本、动态注入图标静态扫描易漏丢字形）。
+
+最终验收：隔离 worktree（HEAD 42ecb6c，与主树唯一差异为并行会话在途后端文件）全量 pytest
+**1168 passed**（307.65s，exit 0）；UI 专项 44 项（test_ui_flows 18 / test_ui_contract 11 /
+test_ui_design_tokens 6 / test_ui_markdown 7 / test_ui_runs 1 / test_workbench_ui 1）；
+实机 8000 端口冒烟 6 项 PASS（window 导出清零 / 九页签 DOM 切换 / rail:tab 委托 / hub 开合 /
+会话切换 / 全程零 JS 错误）；8 页 × 4 视口（390/760/1024/1440）截图包 32 张、全站零 pageerror，
+待所有者评审。并行在途后端文件（core/agent.py 等）未卷入本改造任何提交。

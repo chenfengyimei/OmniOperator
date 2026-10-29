@@ -27,7 +27,7 @@ web_static/
   ui/
     tokens.css              ★唯一 token 源（三层，§3）
     base.css                OmniUI 基础 chrome：通知/对话框/面板切换/徽章/焦点环（不含色板）
-    icons.css               Material Icons 内联字体（base64，离线）
+    icons.css               Material Icons 内联字体（base64，离线；Phase 7 评估结论：不做子集化——本地盘加载零网络成本，动态注入图标的静态扫描易漏丢字形）
     components.css          ★共享组件库（§6 全部组件类）
     frame.css               ★应用壳：rail、子站顶栏、内容节奏、移动端折叠
     workbench.css           工作台专属：聊天轮次/调用链/输入坞/会话列表/设置中心
@@ -35,7 +35,7 @@ web_static/
     markdown.js             安全 Markdown 渲染器（经典 script）
     app/                    工作台 ES 模块（§9）：main.js 唯一入口
   vendor/                   xterm（不动）
-docs/ui-migration/          迁移素材与基线快照（历史资产，skin 时代的来源纪律已被本文接管）
+docs/ui-migration/          迁移素材与历史快照（差分基线职责已于 Phase 7b 退役，仅作素材与回滚源）
 ```
 
 加载顺序（全部页面）：`tokens.css → base.css → icons.css → components.css → frame.css →（工作台）workbench.css /（子站）<page>.css`。
@@ -60,7 +60,8 @@ docs/ui-migration/          迁移素材与基线快照（历史资产，skin �
 --ease-out:cubic-bezier(.2,.8,.2,1)
 --fs-body:13px --fs-secondary:12px --fs-small:11px --fs-caption:10.5px
 
-/* 第 3 层：兼容别名（迁移期唯一别名表，Phase 7 评估删除） */
+/* 第 3 层：兼容别名（Phase 7 评估结论：长期保留——子站 css 大量引用，
+   删除需全量改写子站、零收益高风险；除 tokens.css 外任何文件仍禁止定义这些变量） */
 --bg/--panel/--panel2/--border/--text/--dim/--accent/--accent2/--user/--assistant…
 --ui-bg/--ui-panel/--ui-border/--ui-muted/--ui-accent/--ui-text…
 --shell-bg/--shell-surface…/--shell-accent…
@@ -106,7 +107,7 @@ docs/ui-migration/          迁移素材与基线快照（历史资产，skin �
 
 | 组件 | 类名 | 变体 | 取代的旧实现 |
 |---|---|---|---|
-| 按钮 | `.btn` | `.primary`（渐变实心）/`.danger`/`.ghost`/`.small` | `.svc-btn .p-btn .tiny-btn .key-btn .header-action .outline .doc-button`（旧名做别名至 Phase 7） |
+| 按钮 | `.btn` | `.primary`（渐变实心）/`.danger`/`.ghost`/`.small` | `.svc-btn .p-btn .tiny-btn .key-btn .header-action .outline .doc-button`（旧名已于 Phase 7b 清零，别名选择器删除、使用面全站归一） |
 | 输入 | `.field>label>input/select/textarea` + `.search-field` | — | 三套表单样式合一 |
 | 开关 | `.switch`（checkbox 皮肤）+ `.check-row` | — | index.html 两处重复定义合一 |
 | 卡片 | `.card`（+`.card-head`） | — | `.hub-card .console-card .storage-panel .cap-card .stat .flow .mcp-item .slot-card` |
@@ -239,6 +240,6 @@ ui/app/
 | `ui/skin.css`（素材拼接产物） | Phase 1 重构为 `ui/workbench.css`，来源纪律改为 token 单源 + 守卫 |
 | `ui/shell.css` | Phase 1 解构：token 重定义删除；应用壳 → `frame.css`；页面段 → 各子站 css |
 | 子站旧 css（jobs/mcp/capabilities/terminal/android.css） | 重写为本页布局样式（现为被覆盖的死代码） |
-| `docs/ui-migration/` | 保留为历史素材与基线；`baseline-index.html` 仍是契约检查器的差分基线，直至白名单清空 |
+| `docs/ui-migration/` | 保留为历史素材与回滚源；`baseline-index.html` 的契约差分基线职责已于 Phase 7b 退役（门禁转绝对模式，任何缺失/重复/未注册即失败） |
 | `UI_REDESIGN_MIGRATION_PLAN.md` | 顶部标注由本文接管，仅留作历史记录 |
 | index.html 内联 `<style>`/`<script>` | Phase 1/4 分别清零（样式入 workbench.css，JS 入 ui/app/） |

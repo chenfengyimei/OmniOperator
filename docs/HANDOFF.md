@@ -167,7 +167,7 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 - 心跳调度：tick 30s，state.db 原子领取同一到期时刻并推进 next_run；任务可编辑（乐观 revision）；成败取 run_turn 结构化状态；投递 outbox 原子领取/回执确认/unknown 不自动重发；`context_from` 绑定有效期内成功 run，并行上限默认 2、积压合并、显式 IANA 时区已交付
 
 ### 4.3 通道与界面
-- **Web 工作台**（`channels/web.py` + `web_static/index.html` 单文件前端）：
+- **Web 工作台**（`channels/web.py` + `web_static/` 前端：工作台 `index.html` 为纯 markup，逻辑在 `ui/app/` 下 25 个原生 ES 模块、入口 `main.js`；子站七页各自 module + 共享 `ui/` 层）：
   会话 / 聊天（**运行进度实时可视化**：等待期间显示每步模型调用与工具执行、可一键停止本回合，回复带费用标签）/
   右侧七页（记忆·档案·常驻·待办·Review·技能·产物）/ 工具列表 / 服务面板 / 扫码弹窗 /
   设置中心（人设·模型·记忆·B站与转写·浏览器·QQ·定时任务（含编辑表单+执行历史）·
@@ -278,7 +278,7 @@ MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待
 - 注释写"为什么"不写"是什么"
 - 每个模块必须有单测；提交前 `uv run pytest` 全绿
 - 提交信息：中文，`领域：要点——细节（N 单测全绿）`，一条 commit 一个完整交付
-- 前端是单文件 `web_static/index.html`（无构建），xterm 资源在 `vendor/` 本地化，不依赖 CDN
+- 前端无构建原生 ES 模块：工作台逻辑在 `web_static/ui/app/*.js`（`main.js` 唯一入口，data-action 委托分发）；CSS 分层 tokens→base→icons→components→frame→页面层；所有资源带 `?v=` 版本串防缓存错配；唯一权威规范 docs/UI_DESIGN_SYSTEM.md；xterm 资源在 `vendor/` 本地化，不依赖 CDN
 
 ## 8. 关键文件地图
 
@@ -329,7 +329,7 @@ src/omni/
   channels/web.py        工作台 REST + WS（终端）+ MJPEG
   channels/terminal.py   ConPTY 终端会话池
   channels/cli.py / qq.py / heartbeat.py
-  channels/web_static/index.html  单文件前端
+  channels/web_static/index.html  工作台 markup（脚本已外置 ui/app/）
 data/                    SQLite、jobs、账本、MEMORY.md、截图、pid、日志（gitignore）
 skills/                  种子技能（bilibili-watch / self-check / nightly-tidy）
 ```

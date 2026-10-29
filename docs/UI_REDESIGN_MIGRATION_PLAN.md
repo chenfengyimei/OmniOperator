@@ -1,5 +1,9 @@
 # UI 重设计迁移方案
 
+> ⚠ 本文自 2026-10-30 UI 统一改造（Phase 0-7）起为**历史档案**。
+> token/组件/导航/JS 架构的现行规范与守卫由 docs/UI_DESIGN_SYSTEM.md 唯一接管；
+> 本文的接线记录仅作过程回溯与素材来源参考。
+
 > 目标：把 `prototype-html/prototype-workbench-redesign.html`（设计稿）的视觉落地到
 > `src/omni/channels/web_static/index.html`（真实应用），**功能零回归、JS 业务逻辑零重写**。
 >
