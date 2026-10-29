@@ -163,16 +163,19 @@ NAV_ITEMS = [
 
 ```
 ui/app/
-  main.js          入口：import 各域模块、注册委托监听、初始化顺序唯一编排处
-  dom.js           $ / esc / fmtTime / relTime / element（子站也 import）
+  main.js          入口：import 清单即模块清单；全局输入绑定与初始化顺序唯一编排处
+  dom.js           $ / esc / fmtTime / relTime / usd（子站也 import）
   api.js           api(path, opts)：OmniUI.request 包装 + 超时策略单一出口
-  state.js         currentSession / busy / 版本计数 / drafts / PERSONA_NAME
+  state.js         S：currentSession / busy / 版本计数 / drafts / personaName
+  modals.js        原生 dialog 开合 + 关闭钩子注册（qr 轮询清理走钩子）
+  header.js        顶栏状态：/api/state 聚合 chips/工具清单/上下文用量/费用徽章
   其余按域拆：chat / runs / sessions / tabs / memory / skills / artifacts /
-             publications / desktop / approvals / rail / tips /
-             hub / hub-models / hub-persona / hub-cron / hub-usage / hub-mcp / hub-system
+             publications / desktop / approvals / services / rail / tips /
+             hub / hub-models / hub-persona / hub-cron / hub-usage / hub-mcp
 ```
 
 - **绑定方式**：markup 用 `data-action="域:动作"`，main.js 每域注册一个委托监听器。**禁止内联 `onclick=` 属性**（迁移期除外，收尾清零）。
+- **import 清单闭合**：main.js 的 import 闭包必须覆盖 `ui/app/` 下全部模块——不被引用的模块不会求值，其 window 导出与事件绑定全部落空（契约门禁按文件扫描发现不了 import 图断链）。守卫：`test_app_modules_are_all_reachable_from_entry`。
 - **渲染**：innerHTML 模板必须过 `esc()`（dom.js 唯一实现，禁止各文件重复定义）；动态 id 一律走 dataset/查找，不拼字符串选择器。
 - **全局**：app 模块不挂 `window.*`（迁移期临时挂、Phase 4 第三批删除）；跨页共享只经 `window.OmniUI`。
 - **状态**：会话归属判断永远带版本号（selectionVersion/messagesVersion 模式）；轮询器必须可停止（beforeunload/页面隐藏）。
@@ -182,6 +185,8 @@ ui/app/
 ## 10. `?v=` 缓存纪律（防错配事故重演）
 
 任何 `tokens/base/icons/components/frame/workbench/shared.js/markdown.js` 与子站自产 css/js 改动，必须同步递增引用处的 `?v=` 版本串（统一日期+序号格式 `20261030a`）。守卫：`test_ui_assets_carry_cache_busting_versions`。**素材与产物分离的旧纪律（skin.css 由 docs/ui-migration 生成）自本文生效起由「token 单源 + 守卫」取代**。
+
+`ui/app/` 模块组是**整组原子递增**：任一模块改动，全组 import 说明符与 index.html 入口标签的 `?v=` 一起换新（一次搜索替换）。ES 模块按 URL 确定实例身份，同一文件两个版本串会实例化两份（状态分裂、事件双绑），守卫：`test_app_module_import_versions_are_atomic`。
 
 ## 11. 可访问性
 

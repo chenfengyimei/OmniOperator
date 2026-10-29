@@ -131,13 +131,13 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | POST | `/api/skills/{name}/rollback` | `create_skills_router.skill_rollback` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L211) |
 | workbench | POST | `/api/skills/{name}/save` | `create_skills_router.skill_save` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L139) |
 | workbench | GET | `/api/state` | `create_sessions_router.get_state` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L22) |
-| workbench | GET | `/api/storage` | `create_storage_router.overview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L57) |
-| workbench | PUT | `/api/storage` | `create_storage_router.update` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L68) |
-| workbench | GET | `/api/storage/files` | `create_storage_router.files` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L90) |
-| workbench | POST | `/api/storage/folders` | `create_storage_router.create_folder` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L131) |
-| workbench | POST | `/api/storage/preview` | `create_storage_router.preview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L62) |
-| workbench | GET | `/api/storage/preview-file` | `create_storage_router.preview_file` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L115) |
-| workbench | POST | `/api/storage/upload` | `create_storage_router.upload` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L141) |
+| workbench | GET | `/api/storage` | `create_storage_router.overview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L53) |
+| workbench | PUT | `/api/storage` | `create_storage_router.update` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L63) |
+| workbench | GET | `/api/storage/files` | `create_storage_router.files` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L85) |
+| workbench | POST | `/api/storage/folders` | `create_storage_router.create_folder` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L126) |
+| workbench | POST | `/api/storage/preview` | `create_storage_router.preview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L58) |
+| workbench | GET | `/api/storage/preview-file` | `create_storage_router.preview_file` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L110) |
+| workbench | POST | `/api/storage/upload` | `create_storage_router.upload` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L136) |
 | workbench | POST | `/api/system/backup` | `create_operations_router.system_backup` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L27) |
 | workbench | GET | `/api/system/bili-cookies` | `create_app.bili_cookies_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L319) |
 | workbench | POST | `/api/system/bili-cookies` | `create_app.save_bili_cookies` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L331) |
@@ -433,7 +433,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### DirectoryUpdate
 
-定位：[src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L27)。
+定位：[src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L26)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -443,7 +443,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### FolderCreate
 
-定位：[src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L34)。
+定位：[src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L33)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|

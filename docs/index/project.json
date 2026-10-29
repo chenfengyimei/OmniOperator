@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "31bb6bf929786068231fae7a085ab0859191abeb214ba57a4cf27b9cf7085508",
+  "source_sha256": "337d11c278b826ad1f293226180eb46908fb138bbc7ba01644cff2cc21677d17",
   "modules": [
     {
       "id": "agent-directories",
@@ -19,10 +19,9 @@
       "files": [
         "src/omni/system/agent_spaces/__init__.py",
         "src/omni/system/agent_spaces/catalog.py",
-        "src/omni/system/agent_spaces/inventory.py",
         "src/omni/system/agent_spaces/layout.py"
       ],
-      "lines": 239,
+      "lines": 204,
       "dependencies": [
         "config",
         "platform"
@@ -49,7 +48,7 @@
         "src/omni/channels/web_static/storage/storage.css",
         "src/omni/channels/web_static/storage/storage.js"
       ],
-      "lines": 433,
+      "lines": 428,
       "dependencies": [
         "agent-directories",
         "assembly",
@@ -336,6 +335,31 @@
         "tests/test_ui_flows.py"
       ],
       "files": [
+        "src/omni/channels/web_static/ui/app/api.js",
+        "src/omni/channels/web_static/ui/app/approvals.js",
+        "src/omni/channels/web_static/ui/app/artifacts.js",
+        "src/omni/channels/web_static/ui/app/chat.js",
+        "src/omni/channels/web_static/ui/app/desktop.js",
+        "src/omni/channels/web_static/ui/app/dom.js",
+        "src/omni/channels/web_static/ui/app/header.js",
+        "src/omni/channels/web_static/ui/app/hub-cron.js",
+        "src/omni/channels/web_static/ui/app/hub-mcp.js",
+        "src/omni/channels/web_static/ui/app/hub-models.js",
+        "src/omni/channels/web_static/ui/app/hub-persona.js",
+        "src/omni/channels/web_static/ui/app/hub-usage.js",
+        "src/omni/channels/web_static/ui/app/hub.js",
+        "src/omni/channels/web_static/ui/app/main.js",
+        "src/omni/channels/web_static/ui/app/memory.js",
+        "src/omni/channels/web_static/ui/app/modals.js",
+        "src/omni/channels/web_static/ui/app/publications.js",
+        "src/omni/channels/web_static/ui/app/rail.js",
+        "src/omni/channels/web_static/ui/app/runs.js",
+        "src/omni/channels/web_static/ui/app/services.js",
+        "src/omni/channels/web_static/ui/app/sessions.js",
+        "src/omni/channels/web_static/ui/app/skills.js",
+        "src/omni/channels/web_static/ui/app/state.js",
+        "src/omni/channels/web_static/ui/app/tabs.js",
+        "src/omni/channels/web_static/ui/app/tips.js",
         "src/omni/channels/web_static/ui/base.css",
         "src/omni/channels/web_static/ui/components.css",
         "src/omni/channels/web_static/ui/frame.css",
@@ -345,7 +369,7 @@
         "src/omni/channels/web_static/ui/tokens.css",
         "src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 1952,
+      "lines": 3796,
       "dependencies": []
     },
     {
@@ -375,7 +399,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2964,
+      "lines": 1254,
       "dependencies": [
         "assembly",
         "config",
@@ -4622,11 +4646,10 @@
       "path": "src/omni/channels/web_api/storage.py",
       "module": "http-storage",
       "python_module": "omni.channels.web_api.storage",
-      "lines": 162,
+      "lines": 157,
       "imports": [
         "omni.bootstrap",
         "omni.system.agent_spaces",
-        "omni.system.agent_spaces.inventory",
         "omni.system.filelock",
         "omni.tools.files.io",
         "omni.tools.files.paths",
@@ -4635,17 +4658,17 @@
       "symbols": [
         {
           "name": "DirectoryUpdate",
-          "line": 27,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "FolderCreate",
-          "line": 34,
+          "line": 33,
           "kind": "class"
         },
         {
           "name": "create_storage_router",
-          "line": 40,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -4656,21 +4679,21 @@
         },
         {
           "name": "create_storage_router.snapshot",
-          "line": 43,
+          "line": 42,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_storage_router.overview",
-          "line": 57,
+          "line": 53,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_storage_router.preview",
-          "line": 62,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4681,7 +4704,7 @@
         },
         {
           "name": "create_storage_router.update",
-          "line": 68,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4692,7 +4715,7 @@
         },
         {
           "name": "create_storage_router.target",
-          "line": 76,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "scope",
@@ -4704,7 +4727,7 @@
         },
         {
           "name": "create_storage_router.files",
-          "line": 90,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "scope",
@@ -4719,7 +4742,7 @@
         },
         {
           "name": "create_storage_router.preview_file",
-          "line": 115,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "scope",
@@ -4732,7 +4755,7 @@
         },
         {
           "name": "create_storage_router.create_folder",
-          "line": 131,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4743,7 +4766,7 @@
         },
         {
           "name": "create_storage_router.upload",
-          "line": 141,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "request",
@@ -4758,7 +4781,7 @@
         },
         {
           "name": "create_storage_router.upload.persist",
-          "line": 150,
+          "line": 145,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -5110,7 +5133,7 @@
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 2149,
+      "lines": 439,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5267,6 +5290,256 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "src/omni/channels/web_static/ui/app/api.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 9,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/approvals.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 29,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/artifacts.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 31,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/chat.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 103,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/desktop.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 19,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/dom.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 18,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/header.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 69,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/hub-cron.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 129,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/hub-mcp.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 61,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/hub-models.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 297,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/hub-persona.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 131,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/hub-usage.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 34,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/hub.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 220,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/main.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 27,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/memory.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 114,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/modals.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 18,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/publications.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 29,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/rail.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 26,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/runs.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 158,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/services.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 66,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/sessions.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 47,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/skills.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 136,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/state.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 11,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/tabs.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 38,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "src/omni/channels/web_static/ui/app/tips.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 19,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "src/omni/channels/web_static/ui/base.css",
       "module": "ui-shared",
       "python_module": null,
@@ -5340,7 +5613,7 @@
       "path": "src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 923,
+      "lines": 928,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -14828,29 +15101,6 @@
         }
       ],
       "summary": "配置注册表：有界读取、CAS、跨进程互斥、原子写；不搬运用户数据。"
-    },
-    {
-      "path": "src/omni/system/agent_spaces/inventory.py",
-      "module": "agent-directories",
-      "python_module": "omni.system.agent_spaces.inventory",
-      "lines": 35,
-      "imports": [
-        "omni.config"
-      ],
-      "symbols": [
-        {
-          "name": "storage_inventory",
-          "line": 7,
-          "kind": "function",
-          "parameters": [
-            "paths"
-          ],
-          "annotations": {
-            "paths": "RuntimePaths"
-          }
-        }
-      ],
-      "summary": "路径用途索引：纯声明，不扫描磁盘或读取记忆、凭据内容。"
     },
     {
       "path": "src/omni/system/agent_spaces/layout.py",
@@ -25705,7 +25955,7 @@
       "method": "GET",
       "path": "/api/storage",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 57,
+      "line": 53,
       "handler": "create_storage_router.overview",
       "module": "http-storage",
       "parameters": [],
@@ -25716,7 +25966,7 @@
       "method": "PUT",
       "path": "/api/storage",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 68,
+      "line": 63,
       "handler": "create_storage_router.update",
       "module": "http-storage",
       "parameters": [
@@ -25731,7 +25981,7 @@
       "method": "GET",
       "path": "/api/storage/files",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 90,
+      "line": 85,
       "handler": "create_storage_router.files",
       "module": "http-storage",
       "parameters": [
@@ -25750,7 +26000,7 @@
       "method": "POST",
       "path": "/api/storage/folders",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 131,
+      "line": 126,
       "handler": "create_storage_router.create_folder",
       "module": "http-storage",
       "parameters": [
@@ -25765,7 +26015,7 @@
       "method": "POST",
       "path": "/api/storage/preview",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 62,
+      "line": 58,
       "handler": "create_storage_router.preview",
       "module": "http-storage",
       "parameters": [
@@ -25780,7 +26030,7 @@
       "method": "GET",
       "path": "/api/storage/preview-file",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 115,
+      "line": 110,
       "handler": "create_storage_router.preview_file",
       "module": "http-storage",
       "parameters": [
@@ -25797,7 +26047,7 @@
       "method": "POST",
       "path": "/api/storage/upload",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 141,
+      "line": 136,
       "handler": "create_storage_router.upload",
       "module": "http-storage",
       "parameters": [
@@ -27804,7 +28054,7 @@
     {
       "name": "DirectoryUpdate",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 27,
+      "line": 26,
       "fields": [
         {
           "name": "revision",
@@ -27826,7 +28076,7 @@
     {
       "name": "FolderCreate",
       "source": "src/omni/channels/web_api/storage.py",
-      "line": 34,
+      "line": 33,
       "fields": [
         {
           "name": "scope",

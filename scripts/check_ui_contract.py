@@ -67,27 +67,34 @@ def scan_html(html: str) -> dict:
 
 
 def scan_app_js(sources: list[Path]) -> dict:
-    """ES 模块源：函数定义 + id 引用（与 index.html 的计算合并）。"""
+    """ES 模块源：函数定义 + id 引用 + 模板里静态拼出的 id（与 index.html 的计算合并）。
+
+    模板 id（如 sendMessage 里动态建的 #thinking、renderWizard 的 #mk-*）在内联脚本时代
+    就算「页面自有 id」——脚本外置后必须从模块源继续收进来，否则误报缺失。
+    """
     used: set[str] = set()
     defined: set[str] = set()
+    ids: set[str] = set()
     for path in sources:
         text = path.read_text(encoding="utf-8")
         used |= set(re.findall(r"\$\('#([A-Za-z0-9_-]+)'\)", text))
         used |= set(re.findall(r"getElementById\('([A-Za-z0-9_-]+)'\)", text))
+        ids |= {i for i in re.findall(r'\bid="([^"]+)"', text) if "${" not in i}
         # 模块内具名函数与导出函数都算定义；迁移期挂 window.fn= 也算
         defined |= set(re.findall(r"(?:async\s+)?function\s+([A-Za-z_][A-Za-z0-9_]*)", text))
         defined |= set(re.findall(r"window\.([A-Za-z_][A-Za-z0-9_]*)\s*=", text))
         defined |= set(re.findall(r"export\s+(?:async\s+)?function\s+([A-Za-z_][A-Za-z0-9_]*)", text))
-    return {"used": used, "defined": defined}
+    return {"used": used, "defined": defined, "ids": ids}
 
 
 def scan(path: Path) -> dict:
     html_result = scan_html(path.read_text(encoding="utf-8"))
     app_result = scan_app_js(app_sources())
 
-    # 模块引用的 id 也必须在 markup 里存在；模块定义的函数供内联 handler 使用（迁移期）
-    merged_used = set(html_result["used"]) | set(app_result["used"])
-    missing = sorted(m for m in (merged_used - html_result["id_set"]) if "${" not in m)
+    # 模块引用的 id 必须在 markup 或模块模板里存在；模块定义的函数供内联 handler 使用（迁移期）
+    id_pool = set(html_result["id_set"]) | app_result["ids"]
+    merged_used = set(html_result["used"]) | app_result["used"]
+    missing = sorted(m for m in (merged_used - id_pool) if "${" not in m)
     undef = sorted(set(html_result["undef"]) - app_result["defined"])
     return {
         "ids": html_result["ids"],

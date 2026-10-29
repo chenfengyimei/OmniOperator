@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`31bb6bf929786068231fae7a085ab0859191abeb214ba57a4cf27b9cf7085508`。包含 54 个职责模块、219 个源码/界面文件。
+源码指纹：`337d11c278b826ad1f293226180eb46908fb138bbc7ba01644cff2cc21677d17`。包含 54 个职责模块、243 个源码/界面文件。
 
 ## Agent 空间与目录 · agent-directories
 
@@ -12,7 +12,6 @@
 |---|---:|---|
 | [src/omni/system/agent_spaces/__init__.py](../../src/omni/system/agent_spaces/__init__.py) | 5 | Agent 目录注册与纯路径解析；执行对象仍由 bootstrap 构造。 |
 | [src/omni/system/agent_spaces/catalog.py](../../src/omni/system/agent_spaces/catalog.py) | 80 | 配置注册表：有界读取、CAS、跨进程互斥、原子写；不搬运用户数据。 |
-| [src/omni/system/agent_spaces/inventory.py](../../src/omni/system/agent_spaces/inventory.py) | 35 | 路径用途索引：纯声明，不扫描磁盘或读取记忆、凭据内容。 |
 | [src/omni/system/agent_spaces/layout.py](../../src/omni/system/agent_spaces/layout.py) | 119 | 本机 Agent 布局的声明与校验，不创建目录或打开数据。 |
 
 文档：[docs/AGENT_STORAGE.md](../../docs/AGENT_STORAGE.md)
@@ -27,7 +26,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py) | 162 | Agent 目录设置和当前公开文件区；只消费组装根注入的目录与路径策略。 |
+| [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py) | 157 | Agent 目录设置和当前公开文件区；只消费组装根注入的目录与路径策略。 |
 | [src/omni/channels/web_static/storage/index.html](../../src/omni/channels/web_static/storage/index.html) | 63 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/storage/storage.css](../../src/omni/channels/web_static/storage/storage.css) | 130 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/storage/storage.js](../../src/omni/channels/web_static/storage/storage.js) | 78 | 平台脚本或界面资源 |
@@ -203,6 +202,31 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
+| [src/omni/channels/web_static/ui/app/api.js](../../src/omni/channels/web_static/ui/app/api.js) | 9 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/approvals.js](../../src/omni/channels/web_static/ui/app/approvals.js) | 29 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/artifacts.js](../../src/omni/channels/web_static/ui/app/artifacts.js) | 31 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/chat.js](../../src/omni/channels/web_static/ui/app/chat.js) | 103 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/desktop.js](../../src/omni/channels/web_static/ui/app/desktop.js) | 19 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/dom.js](../../src/omni/channels/web_static/ui/app/dom.js) | 18 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/header.js](../../src/omni/channels/web_static/ui/app/header.js) | 69 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/hub-cron.js](../../src/omni/channels/web_static/ui/app/hub-cron.js) | 129 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/hub-mcp.js](../../src/omni/channels/web_static/ui/app/hub-mcp.js) | 61 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/hub-models.js](../../src/omni/channels/web_static/ui/app/hub-models.js) | 297 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/hub-persona.js](../../src/omni/channels/web_static/ui/app/hub-persona.js) | 131 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/hub-usage.js](../../src/omni/channels/web_static/ui/app/hub-usage.js) | 34 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/hub.js](../../src/omni/channels/web_static/ui/app/hub.js) | 220 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/main.js](../../src/omni/channels/web_static/ui/app/main.js) | 27 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/memory.js](../../src/omni/channels/web_static/ui/app/memory.js) | 114 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/modals.js](../../src/omni/channels/web_static/ui/app/modals.js) | 18 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/publications.js](../../src/omni/channels/web_static/ui/app/publications.js) | 29 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/rail.js](../../src/omni/channels/web_static/ui/app/rail.js) | 26 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/runs.js](../../src/omni/channels/web_static/ui/app/runs.js) | 158 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/services.js](../../src/omni/channels/web_static/ui/app/services.js) | 66 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/sessions.js](../../src/omni/channels/web_static/ui/app/sessions.js) | 47 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/skills.js](../../src/omni/channels/web_static/ui/app/skills.js) | 136 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/state.js](../../src/omni/channels/web_static/ui/app/state.js) | 11 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/tabs.js](../../src/omni/channels/web_static/ui/app/tabs.js) | 38 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/app/tips.js](../../src/omni/channels/web_static/ui/app/tips.js) | 19 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/base.css](../../src/omni/channels/web_static/ui/base.css) | 11 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/components.css](../../src/omni/channels/web_static/ui/components.css) | 189 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/frame.css](../../src/omni/channels/web_static/ui/frame.css) | 425 | 平台脚本或界面资源 |
@@ -210,7 +234,7 @@
 | [src/omni/channels/web_static/ui/markdown.js](../../src/omni/channels/web_static/ui/markdown.js) | 116 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 170 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/tokens.css](../../src/omni/channels/web_static/ui/tokens.css) | 109 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/workbench.css](../../src/omni/channels/web_static/ui/workbench.css) | 923 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/workbench.css](../../src/omni/channels/web_static/ui/workbench.css) | 928 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -226,7 +250,7 @@
 |---|---:|---|
 | [src/omni/channels/web.py](../../src/omni/channels/web.py) | 458 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [src/omni/channels/web_auth.py](../../src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 2149 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/index.html](../../src/omni/channels/web_static/index.html) | 439 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm-addon-fit.js](../../src/omni/channels/web_static/vendor/xterm-addon-fit.js) | 2 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.js](../../src/omni/channels/web_static/vendor/xterm.js) | 6 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/vendor/xterm.min.css](../../src/omni/channels/web_static/vendor/xterm.min.css) | 8 | 平台脚本或界面资源 |
