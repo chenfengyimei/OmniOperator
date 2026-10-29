@@ -70,7 +70,8 @@ def test_history_grows_across_turns(tmp_path):
     agent.chat("第二句话")
     # 第二次对话的请求里应携带第一轮的 user/assistant 文本
     contents = [m["content"] for m in gateway.calls[2]]
-    assert "第一句话" in contents and "第二句话" in contents
+    assert any(text.startswith('第一句话') for text in contents)
+    assert any(text.startswith('第二句话') for text in contents)
     store.close()
 
 
@@ -168,12 +169,12 @@ def test_group_scope_hides_profile_resident_and_memory_tools(tmp_path):
         )
         # 私聊：档案与常驻都在
         agent.chat("我叫什么", session_id=sid)
-        private_prompt = gateway.messages[0]["content"]
+        private_prompt = '\n'.join(message['content'] for message in gateway.messages)
         assert "秘密花园" in private_prompt and "讨厌被叫全名" in private_prompt
 
         # 群聊：同一会话也不带私人上下文
         agent.chat("群里问一句", session_id=sid, personal_context=False)
-        group_prompt = gateway.messages[0]["content"]
+        group_prompt = '\n'.join(message['content'] for message in gateway.messages)
         assert "秘密花园" not in group_prompt
         assert "讨厌被叫全名" not in group_prompt
         assert "群聊场景" in group_prompt

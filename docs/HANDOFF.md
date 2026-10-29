@@ -14,6 +14,8 @@
 
 任何"已完成"的宣称须核对台账证据、实际代码和测试：源码发现 ≠ 已复现 ≠ 已修复 ≠ 真实验收完成。
 
+**提示词更新（2026-10-30）：system 只保留稳定人设和规则，时间/常驻笔记/档案移至每轮用户消息末尾。回合快照与原文同事务保存在 memory.db，新轮和重启不重写旧快照；同一窗口内资料去重、压缩后重新锚定，当前请求不可压掉。工具目录排序并在回合内冻结，缓存用量采用供应商实际字段；详见 [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md)。实际缓存命中率尚未用付费模型验收，全量 **1189 项通过**（325.17s），新增提示词回归 21 项；证据见 DEVELOPMENT_STATUS 本轮记录。**
+
 **最新（2026-10-30）：全项目目录管理已接入，不仅限于 Agent。`/storage/` 可设置全局业务存储根、默认工作目录、Agent 空间池及各空间九类目录，并查询记忆/档案/日志/插件等存储用途索引。bootstrap 与离线 doctor/备份/演练/采样共用路径解析；运行态冻结，配置保存仅下次启动生效。固定控制区保持原位，ASR 缓存已纳入注入。目录边界、旧客户端防重置、额外根防绕过及浏览器回归已补；全量 **1165 项通过**（294.77s），样式调整后 16 项 UI 回归通过；40 视图浏览器检查无脚本错误和横向溢出。证据见 DEVELOPMENT_STATUS 本轮记录和 [STORAGE.md](STORAGE.md)。真实数据未搬移，真实服务未重启。以下测试数属于对应历史批次，不代表本轮状态。**
 
 **前批（2026-10-29）：C01–C06 代码侧已全部完成，随后完成 UI 操作与 bug 修复批。精确提交源码 **1032 项全绿（251.77 秒）**，工作区 **1079 项全绿（248.46 秒）**；差额 47 项为原有并行未提交测试。新增 18 项真实 Chromium 离线回归，七页在 390/760/1024/1440px 验证；统一导航、任务筛选/日志、终端粘贴目标隔离、聊天/运行取消归属、MCP 目录复查与安卓按钮前提已完善。索引 52 模块/205 文件/118 路由声明。说明与证据见 [UI_QA.md](UI_QA.md)、[CAPABILITIES_PLAN.md](CAPABILITIES_PLAN.md)。真实手机、生产 MCP、模型效果和 72 小时仍待验收；真实服务未重启、真实数据未迁移。state v14 只在隔离测试验证，启用前先按手册备份。**
@@ -126,7 +128,7 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 |---|---|---|
 | core | get_time / remember / recall / search_history | 时间 + 事实记忆 + FTS 检索 |
 | core | profile_manage | 用户档案（2000 字符限额+报错逼合并） |
-| core | resident_memory | 常驻工作笔记（2200 限额，每轮注入系统提示词，带防注入扫描） |
+| core | resident_memory | 常驻工作笔记（2200 限额，每轮作为末尾上下文快照提供，带防注入扫描） |
 | core | todo | 会话级多步清单（SessionRef thread-local 注入当前会话） |
 | core | daily_digest | 过去 N 小时活动摘要（夜间整理素材） |
 | core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite / skill_history / skill_rollback | 技能（SKILL.md，渐进披露，patch 按节省 token，expected_hash CAS + 修订历史）；skill_view(name, path="references/guide.md") 按需读参考文本；工作台技能页可编辑（保存 CAS/差异/回滚，D18） |
@@ -160,7 +162,7 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
   **SAFE ≠ read_only**：remember/todo/skill_create/cron_add/delegate_task 这类
   "SAFE 但写状态"的工具保持串行；browser 共用同一张活动页面，整个 toolset 不标
 - **回合作用域**：SessionRef.bind 在正常返回和异常时均恢复调用者会话；delegate 保持父审批链，无需放宽权限
-- 系统提示词 = 人设 + 常驻记忆快照（用量头）+ 档案块，单轮内字节稳定
+- 系统提示词为稳定人设与规则；常驻记忆、档案与时间按每轮快照附在用户消息末尾，历史快照不重写，见 PROMPT_CONTEXT.md
 - review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，D18 候选变更/差异确认已交付；**手动触发工具 session_refine（2026-10-29）**：模型说"整理一下这轮对话"即可把当前会话入队到同一 worker（不收 session_id、群聊禁用、review 未启用时不注册）
 - 运行账本、事件续读、协作式取消与 ToolResult 已接入；**副作用敏感域已全部迁结构化 ToolResult**（2026-10-29：shell/QQ/系统/browser/MCP/files 写，android 写/desktop/B站写此前已是；files 回读失败、MCP 在途/远端报错、浏览器写失败均如实记 unknown）。纯读与额度闸门内的内部记忆写（builtin/cron/skill/delegate 等）保留 from_legacy 文档化适配——推断对这些域是正确的；跨进程取消和在途操作限制见台账
 - 模型能力、超时、有界重试、usage/费用预留结算已有实现；**预算默认未设上限**，无人值守付费推理需明确授权与限额

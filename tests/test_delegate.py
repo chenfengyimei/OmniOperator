@@ -143,7 +143,7 @@ def test_real_delegate_inherits_approval_and_restores_parent(tmp_path):
             seen.append(ref.get())
             if messages[-1]["role"] == "tool":
                 return SimpleNamespace(text=messages[-1]["content"], tool_calls=[])
-            main = messages[-1]["content"] == "主任务"
+            main = messages[-1]["content"].startswith("主任务\n\n<omni_runtime_context>")
             call = SimpleNamespace(id="c1", function=SimpleNamespace(
                 name="delegate_task" if main else "write",
                 arguments='{"prompt":"子任务"}' if main else "{}",

@@ -55,6 +55,9 @@ class Usage:
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
     reported: bool = False
+    cached_prompt_tokens: int | None = None
+    cache_creation_tokens: int | None = None
+    cache_miss_tokens: int | None = None
 
     @property
     def total_tokens(self) -> int | None:
@@ -67,6 +70,9 @@ class Usage:
             "prompt_tokens": self.prompt_tokens,
             "completion_tokens": self.completion_tokens,
             "reported": self.reported,
+            "cached_prompt_tokens": self.cached_prompt_tokens,
+            "cache_creation_tokens": self.cache_creation_tokens,
+            "cache_miss_tokens": self.cache_miss_tokens,
         }
 
     @classmethod
@@ -77,10 +83,21 @@ class Usage:
             usage = response.get("usage")
         prompt = _int_or_none(_field(usage, "prompt_tokens"))
         completion = _int_or_none(_field(usage, "completion_tokens"))
+        cached = _nonnegative_int(_field(usage,'prompt_cache_hit_tokens'))
+        if cached is None:
+            cached = _nonnegative_int(_field(_field(usage,'prompt_tokens_details'),'cached_tokens'))
+        if cached is None:
+            cached = _nonnegative_int(_field(usage,'cache_read_input_tokens'))
+        created = _nonnegative_int(_field(usage,'cache_creation_input_tokens'))
+        if created is None:
+            created = _nonnegative_int(_field(_field(usage,'prompt_tokens_details'),'cache_creation_tokens'))
         return cls(
             prompt_tokens=prompt,
             completion_tokens=completion,
             reported=prompt is not None and completion is not None,
+            cached_prompt_tokens=cached,
+            cache_creation_tokens=created,
+            cache_miss_tokens=_nonnegative_int(_field(usage,'prompt_cache_miss_tokens')),
         )
 
 
@@ -94,6 +111,12 @@ def _field(obj: Any, name: str) -> Any:
 
 def _int_or_none(value: Any) -> int | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return int(value)
+
+
+def _nonnegative_int(value: Any) -> int | None:
+    if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value<0:
         return None
     return int(value)
 

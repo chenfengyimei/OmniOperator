@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import contextlib
+import json
 import contextlib
 import datetime as dt
 import functools
@@ -43,6 +44,13 @@ CREATE TABLE IF NOT EXISTS messages (
     created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id, id);
+CREATE TABLE IF NOT EXISTS message_contexts (
+    message_id INTEGER PRIMARY KEY REFERENCES messages(id) ON DELETE CASCADE,
+    payload TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS message_contexts_ad AFTER DELETE ON messages BEGIN
+    DELETE FROM message_contexts WHERE message_id = old.id;
+END;
 CREATE TABLE IF NOT EXISTS facts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     content TEXT NOT NULL,
@@ -433,24 +441,47 @@ class MemoryStore:
         content: str,
         *,
         auto_title: bool = True,
+        prompt_context: dict | None = None,
     ) -> None:
-        cur = self._conn.execute(
-            "INSERT INTO messages(session_id, role, content, created_at) VALUES (?, ?, ?, ?)",
-            (session_id, role, content, _now()),
-        )
-        if self.fts_enabled and not self._fts_triggers:
-            # 触发器能用的库由索引自己同步；只有建不了触发器的老库才手写
-            self._conn.execute(
-                "INSERT INTO messages_fts(rowid) VALUES (?)", (int(cur.lastrowid),)
+        context_json = None
+        if prompt_context is not None:
+            if role != 'user':raise ValueError('只有用户回合可以附带上下文快照')
+            context_json = json.dumps(prompt_context, ensure_ascii=False, sort_keys=True, allow_nan=False)
+            if len(context_json) > 65536:raise ValueError('回合上下文快照超过 65536 字符上限')
+        # 消息、上下文和自动标题同一事务，失败不能留下缺少快照的半个回合。
+        with self._conn:
+            cur = self._conn.execute(
+                "INSERT INTO messages(session_id, role, content, created_at) VALUES (?, ?, ?, ?)",
+                (session_id, role, content, _now()),
             )
-        # 第一条用户消息自动成为会话标题（/list 里好认）
-        if auto_title and role == "user":
-            row = self._conn.execute(
-                "SELECT title FROM sessions WHERE id = ?", (session_id,)
-            ).fetchone()
-            if row and row[0] == DEFAULT_TITLE:
-                self.rename_session(session_id, content[:24])
-        self._conn.commit()
+            if context_json is not None:
+                self._conn.execute('INSERT INTO message_contexts(message_id,payload) VALUES (?,?)',
+                                   (int(cur.lastrowid),context_json))
+            if self.fts_enabled and not self._fts_triggers:
+                self._conn.execute('INSERT INTO messages_fts(rowid) VALUES (?)',(int(cur.lastrowid),))
+            if auto_title and role == 'user':
+                self._conn.execute('UPDATE sessions SET title=? WHERE id=? AND title=?',
+                                   (content[:24], session_id, DEFAULT_TITLE))
+
+    @_locked
+    def prompt_contexts(self, session_id: int, message_ids: list[int]) -> dict[int, dict]:
+        """按会话读取不可变的回合快照，旧消息无快照时保持原样。"""
+        result = {}
+        unique = list(dict.fromkeys(message_ids))
+        for offset in range(0,len(unique),500):
+            identifiers = unique[offset:offset+500]
+            placeholders = ','.join('?' for _ in identifiers)
+            rows = self._conn.execute(
+                'SELECT c.message_id,c.payload FROM message_contexts c JOIN messages m ON m.id=c.message_id '
+                f'WHERE m.session_id=? AND c.message_id IN ({placeholders})',
+                (session_id,*identifiers),
+            )
+            for message_id,raw in rows:
+                if len(raw)>65536:raise ValueError('回合上下文快照超限')
+                data=json.loads(raw)
+                if not isinstance(data,dict):raise ValueError('回合上下文快照无效')
+                result[int(message_id)]=data
+        return result
 
     @_locked
     def recent_messages(self, session_id: int, limit: int) -> list[tuple[str, str]]:

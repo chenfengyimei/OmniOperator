@@ -21,6 +21,7 @@ from ..tools.registry import SessionRef, ToolRegistry
 from ..tools.result import ToolResult
 from ..tools.runctx import RunRef
 from .compress import assemble_context, assert_invariants, compress_if_needed
+from .context import TurnContext, reanchor_current_memory, render_rows, system_prompt
 from .run import (
     ActiveRuns,
     CancelToken,
@@ -101,6 +102,7 @@ class Agent:
         run_ref: RunRef | None = None,
         owner: str = "",
         artifacts: Any = None,
+        clock: Callable[[], dt.datetime] | None = None,
     ) -> None:
         self.config = config
         self.gateway = gateway
@@ -116,6 +118,7 @@ class Agent:
         self._run_ref = run_ref
         self._owner = owner or "cli:0"
         self._artifacts = artifacts  # ArtifactStore | None（D15：图像块与产物清理）
+        self._clock = clock or (lambda: dt.datetime.now().astimezone())
         # 压缩摘要用廉价模型（同回合后 review 的选型逻辑）
         review_model = config.models.review.strip()
         self._summary_model = review_model if review_model else self.model
@@ -126,23 +129,16 @@ class Agent:
         return self._session_ref
 
     def _system_prompt(self, *, include_personal: bool = True) -> str:
-        now = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %A")
-        prompt = self.config.persona.system_prompt.replace("{now}", now)
-        if not include_personal:
-            # 群聊/他人可见场景：只给"它是谁"，不给所有者的私人资料
-            return prompt + (
-                "\n\n（当前是群聊场景：不注入所有者的个人档案、常驻笔记与其它会话历史。"
-                "不要假设自己知道群外信息；涉及私人资料的请求请让用户私下联系。）"
-            )
-        # 常驻小记忆冻结快照（本轮内字节稳定；中途写入只落盘，下一轮生效）
-        if self._resident is not None:
-            memory_block = self._resident.block()
-            if memory_block:
-                prompt = f"{prompt}\n\n{memory_block}"
-        profile_block = self.store.profile_block()  # 人物档案快照（有内容才注入）
-        if profile_block:
-            prompt = f"{prompt}\n\n{profile_block}"
-        return prompt
+        return system_prompt(self.config.persona.system_prompt, include_personal=include_personal)
+
+    def _turn_context(self, *, include_personal: bool = True) -> TurnContext:
+        """本轮只取一次快照；群聊连私人资料的读取都不执行。"""
+        return TurnContext(
+            observed_at=self._clock().isoformat(timespec='seconds'),
+            personal=include_personal,
+            resident=self._resident.block() if include_personal and self._resident is not None else '',
+            profile=self.store.profile_block() if include_personal else '',
+        )
 
     def _maybe_compress(
         self,
@@ -150,6 +146,7 @@ class Agent:
         *,
         run: RunContext | None = None,
         sid: int | None = None,
+        current_context: TurnContext | None = None,
     ) -> list[dict[str, Any]]:
         """长会话防膨胀：超阈值时压旧块成摘要（Hermes compression 最小版）。
 
@@ -159,7 +156,7 @@ class Agent:
         comp = self.config.compression
         if not comp.enabled:
             return messages
-        return compress_if_needed(
+        compressed = compress_if_needed(
             messages,
             gateway=self.gateway,
             model=self._summary_model,
@@ -171,9 +168,12 @@ class Agent:
             run_budget=run.budget if run is not None else None,
             cancel=run.cancel_token if run is not None else None,
         )
+        if compressed is not messages and current_context is not None:
+            return reanchor_current_memory(compressed,current_context)
+        return compressed
 
     def _assemble_body(
-        self, sid: int, *, run: RunContext | None = None
+        self, sid: int, *, run: RunContext | None = None, personal_context: bool = True,
     ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         """组装历史：持久摘要 + 未被摘要覆盖的消息（D11）。
 
@@ -182,8 +182,9 @@ class Agent:
         """
         comp = self.config.compression
         history = self.store.recent_messages_ex(
-            sid, self.config.limits.max_history_messages
+            sid, max(1, self.config.limits.max_history_messages)
         )
+        contexts = self.store.prompt_contexts(sid, [row[0] for row in history])
         return assemble_context(
             history,
             self.store.active_summary(sid),
@@ -199,6 +200,7 @@ class Agent:
             run_budget=run.budget if run is not None else None,
             cancel=run.cancel_token if run is not None else None,
             save=lambda **fields: self.store.save_summary(sid, **fields),
+            render=lambda rows: render_rows(rows, contexts, include_personal=personal_context),
         )
 
     # ---------------------------------------------------------------- 回合入口
@@ -416,14 +418,15 @@ class Agent:
     ) -> str:
         """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。"""
         denied = frozenset() if personal_context else frozenset(self.registry.names()) - GROUP_ALLOWED_TOOLS
-        self.store.append_message(sid, "user", user_text)
+        snapshot = self._turn_context(include_personal=personal_context)
+        self.store.append_message(sid, "user", user_text, prompt_context=snapshot.payload())
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
                 "content": self._system_prompt(include_personal=personal_context),
             }
         ]
-        body, context_info = self._assemble_body(sid, run=run)
+        body, context_info = self._assemble_body(sid, run=run, personal_context=personal_context)
         messages += body
         if run is not None and context_info.get("summarized"):
             run.event(
@@ -433,8 +436,10 @@ class Agent:
                     for key in ("summary_id", "version", "from_msg_id", "to_msg_id")
                 },
             )
-        messages = self._maybe_compress(messages, run=run, sid=sid)
+        messages = self._maybe_compress(messages, run=run, sid=sid, current_context=snapshot)
         cancel = run.cancel_token if run is not None else None
+        # 工具目录本轮冻结；插件启停在下一轮更新规格，执行权限仍实时检查。
+        tool_specs = self.registry.specs(exclude=denied)
 
         for _ in range(self.config.limits.max_agent_steps):
             if run is not None:
@@ -443,13 +448,13 @@ class Agent:
                     break  # 步数预算用完 → 走下面的收敛调用
                 run.phase("model")
                 run.event("model_start", step=run.steps_used)
-            messages = self._maybe_compress(messages, run=run, sid=sid)
+            messages = self._maybe_compress(messages, run=run, sid=sid, current_context=snapshot)
             assert_invariants(messages)
             reply = self._model_call(
                 messages,
                 sid,
                 run=run,
-                tools=self.registry.specs(exclude=denied),
+                tools=tool_specs,
                 purpose="chat",
                 on_delta=on_delta,
             )
@@ -487,7 +492,7 @@ class Agent:
             run.phase("final")
             run.event("final_call", reason="step_budget")
         # 步数预算耗尽：一次无工具的 grace call，强制收敛出最终回答
-        messages = self._maybe_compress(messages, run=run, sid=sid)
+        messages = self._maybe_compress(messages, run=run, sid=sid, current_context=snapshot)
         assert_invariants(messages)
         reply = self._model_call(
             messages, sid, run=run, tools=None, purpose="finalize", on_delta=on_delta

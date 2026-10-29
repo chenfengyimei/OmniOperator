@@ -13,10 +13,11 @@ max_history_messages 的硬截断会无声丢掉旧上下文。压缩 = 上下�
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Callable
 
 from ..llm.gateway import Gateway
 from ..llm.usage import estimate_tokens
+from .context import CONTEXT_HEADER
 
 SUMMARY_HEADER = "（以下是此前对话的压缩摘要，细节可用 search_history 工具找回）"
 
@@ -60,6 +61,7 @@ def assemble_context(
     run_budget: Any = None,
     cancel: Any = None,
     save: Any = None,
+    render: Callable[[list[tuple[int, str, str]]], list[dict[str, Any]]] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """组装"摘要 + 未被摘要覆盖的消息"，需要时把更老的一段折进摘要（D11）。
 
@@ -77,14 +79,18 @@ def assemble_context(
         row for row in rows if summary is None or row[0] > summary[2]
     ]
     if len(uncovered) < min_messages or not _over_threshold(
-        _rows_to_messages(uncovered, None), trigger_chars
+        _rows_to_messages(uncovered, None, render), trigger_chars
     ):
-        return _rows_to_messages(uncovered, summary), info
+        return _rows_to_messages(uncovered, summary, render), info
 
-    old = uncovered[:-keep_recent] if keep_recent > 0 else uncovered
-    recent = uncovered[-keep_recent:] if keep_recent > 0 else []
+    cut = max(0, len(uncovered) - keep_recent) if keep_recent > 0 else len(uncovered)
+    if render is not None:
+        # 当前回合的原始请求和快照不可被摘要替换，keep_recent=0 也一样。
+        current = next((i for i in range(len(uncovered)-1,-1,-1) if uncovered[i][1]=='user'), None)
+        if current is not None:cut=min(cut,current)
+    old, recent = uncovered[:cut], uncovered[cut:]
     if not old:
-        return _rows_to_messages(uncovered, summary), info
+        return _rows_to_messages(uncovered, summary, render), info
 
     transcript = "\n".join(
         f"[{row[1]}] {row[2][:400]}" for row in old
@@ -106,10 +112,10 @@ def assemble_context(
         fresh = reply.text.strip()
     except Exception:  # noqa: BLE001 —— 降级：宁可不压也不能篡改事实或中断会话
         info["reason"] = "summary_failed"
-        return _rows_to_messages(uncovered, summary), info
+        return _rows_to_messages(uncovered, summary, render), info
     if not fresh:
         info["reason"] = "summary_empty"
-        return _rows_to_messages(uncovered, summary), info
+        return _rows_to_messages(uncovered, summary, render), info
 
     merged = f"{summary[3]}\n{fresh}" if summary is not None else fresh
     from_msg = summary[1] if summary is not None else old[0][0]
@@ -130,15 +136,16 @@ def assemble_context(
             info["reason"] = f"save_failed:{exc}"
     else:
         info["summarized"] = True
-    return _rows_to_messages(recent, (0, from_msg, to_msg, merged, 0)), info
+    return _rows_to_messages(recent, (0, from_msg, to_msg, merged, 0), render), info
 
 
 def _rows_to_messages(
     rows: list[tuple[int, str, str]],
     summary: tuple[int, int, int, str, int] | None,
+    render: Callable[[list[tuple[int, str, str]]], list[dict[str, Any]]] | None = None,
 ) -> list[dict[str, Any]]:
     """行 → 消息；有摘要时把它并于首条 user（或单独成条）。"""
-    messages = [{"role": row[1], "content": row[2]} for row in rows]
+    messages = render(rows) if render else [{"role": row[1], "content": row[2]} for row in rows]
     if summary is None:
         return messages
     first_user = None
@@ -257,6 +264,16 @@ def compress_if_needed(
         block = blocks.pop()
         recent.insert(0, block)
         taken += len(block)
+    # 回合内工具输出很多时，保留最新运行快照及它之后的完整原子块。
+    # 只压较早的前缀；不能为压缩而丢掉当前时间、最新档案或用户约束。
+    current_retained = any(block[0].get('role')=='user'
+                           and CONTEXT_HEADER in _text_of(block[0].get('content')) for block in recent)
+    anchor = None if current_retained else next((i for i in range(len(blocks)-1,-1,-1)
+                   if blocks[i][0].get('role')=='user'
+                   and CONTEXT_HEADER in _text_of(blocks[i][0].get('content'))), None)
+    if anchor is not None:
+        recent = blocks[anchor:] + recent
+        blocks = blocks[:anchor]
     if not blocks:  # 全在保留窗内，无需压
         return messages
 

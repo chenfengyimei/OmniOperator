@@ -72,13 +72,16 @@ def test_agent_injects_resident_block(tmp_path):
     registry = ToolRegistry()
     register_core_tools(registry, store)
     agent = Agent(AppConfig(), _ResolveOnlyGateway(), store, registry, sid, resident=rm)
-    prompt = agent._system_prompt()
+    stable = agent._system_prompt()
+    assert '进行中：QQ 北极星实测' not in stable
+    prompt = agent._turn_context().resident
     assert "MEMORY" in prompt and "进行中：QQ 北极星实测" in prompt
     assert "字符）" in prompt  # 用量头
     # 空记忆不注入
     rm2 = ResidentMemory(tmp_path / "empty.md", char_limit=2200)
     agent2 = Agent(AppConfig(), _ResolveOnlyGateway(), store, registry, sid, resident=rm2)
-    assert "MEMORY" not in agent2._system_prompt()
+    assert not agent2._turn_context().resident
+    assert agent2._system_prompt() == stable
     store.close()
 
 

@@ -264,6 +264,8 @@ class _Gateway:
 
     def complete(self, messages, *, model, tools=None, **kwargs):
         user = [m for m in messages if m["role"] == "user"][-1]["content"]
+        # 假模型只回显用户原文；运行快照是新的模型输入协议，不能成为测试答案。
+        user = user.rsplit('\n\n<omni_runtime_context>\n',1)[0]
         with self._lock:
             self.active += 1
             self.peak = max(self.peak, self.active)

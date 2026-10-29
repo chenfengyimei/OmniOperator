@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`11e9df2a8698ed73507b6ab74293288094193c511862662ae2b85a6f7215030e`。包含 54 个职责模块、245 个源码/界面文件。
+源码指纹：`8b44a2297602789440753aa2a803c497b16aea05d70d7a1e7ed0d097c81d49b9`。包含 55 个职责模块、246 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -67,6 +67,21 @@
 
 直接静态依赖：无内部模块依赖
 
+## 提示词与上下文 · prompt-context
+
+分类：内核与模型。稳定系统前缀、回合上下文快照渲染与保留当前请求的摘要边界。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [src/omni/core/compress.py](../../src/omni/core/compress.py) | 316 | 上下文压缩 + 消息不变量（Hermes compression_facade 的最小版，NOTES §1.2）。 |
+| [src/omni/core/context.py](../../src/omni/core/context.py) | 99 | 缓存友好的提示词布局：固定规则在前，每轮快照附于该轮用户正文末尾。 |
+
+文档：[docs/PROMPT_CONTEXT.md](../../docs/PROMPT_CONTEXT.md)、[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
+
+测试：[tests/test_prompt_context.py](../../tests/test_prompt_context.py)、[tests/test_context.py](../../tests/test_context.py)、[tests/test_compress.py](../../tests/test_compress.py)
+
+直接静态依赖：`models`
+
 ## Agent 内核 · engine
 
 分类：内核与模型。回合、上下文、工具循环、取消、委派约束、review 与调度。
@@ -74,8 +89,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/core/__init__.py](../../src/omni/core/__init__.py) | 1 | Agent 核心：编排循环。工具注册表在 tools 包，审批在 safety 包。 |
-| [src/omni/core/agent.py](../../src/omni/core/agent.py) | 844 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
-| [src/omni/core/compress.py](../../src/omni/core/compress.py) | 299 | 上下文压缩 + 消息不变量（Hermes compression_facade 的最小版，NOTES §1.2）。 |
+| [src/omni/core/agent.py](../../src/omni/core/agent.py) | 849 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
 | [src/omni/core/cron.py](../../src/omni/core/cron.py) | 440 | 心跳调度器：tick 循环 + 至多一次派发 + 任务执行/投递（Hermes cron 最小版）。 |
 | [src/omni/core/evaluation.py](../../src/omni/core/evaluation.py) | 24 | 固定样本检索评测；不把 mock 模型的排序表现当成真实语义收益。 |
 | [src/omni/core/qq_policy.py](../../src/omni/core/qq_policy.py) | 37 | 主动提醒策略：显式所有者、安静时段和独立每日额度；不做网络发送。 |
@@ -89,7 +103,7 @@
 
 测试：[tests/test_agent.py](../../tests/test_agent.py)、[tests/test_runs.py](../../tests/test_runs.py)、[tests/test_parallel_tools.py](../../tests/test_parallel_tools.py)
 
-直接静态依赖：`config`、`models`、`qq-tools`、`safety`、`storage`、`toolkit`
+直接静态依赖：`config`、`models`、`prompt-context`、`qq-tools`、`safety`、`storage`、`toolkit`
 
 ## 模型网关与 embedding · models
 
@@ -102,7 +116,7 @@
 | [src/omni/llm/embedding.py](../../src/omni/llm/embedding.py) | 116 | 可切换 embedding 出口：本地 Ollama / LiteLLM API；费用账本从 bootstrap 注入。 |
 | [src/omni/llm/errors.py](../../src/omni/llm/errors.py) | 206 | 模型调用的错误分类与脱敏（D10）。 |
 | [src/omni/llm/gateway.py](../../src/omni/llm/gateway.py) | 676 | LiteLLM 统一网关：一套 OpenAI 格式接所有供应商（海外/国产/本地 Ollama）。 |
-| [src/omni/llm/usage.py](../../src/omni/llm/usage.py) | 185 | 用量（tokens）与价格：把"这次调用大概/实际花了多少"变成可记账的数字。（D10） |
+| [src/omni/llm/usage.py](../../src/omni/llm/usage.py) | 208 | 用量（tokens）与价格：把"这次调用大概/实际花了多少"变成可记账的数字。（D10） |
 
 文档：[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
 
@@ -147,7 +161,7 @@
 | [src/omni/memory/skill_inbox.py](../../src/omni/memory/skill_inbox.py) | 477 | 外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。 |
 | [src/omni/memory/skills.py](../../src/omni/memory/skills.py) | 690 | 技能存储（程序性记忆）：skills/<name>/SKILL.md，agentskills.io 兼容子集。 |
 | [src/omni/memory/state.py](../../src/omni/memory/state.py) | 1607 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
-| [src/omni/memory/store.py](../../src/omni/memory/store.py) | 1081 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
+| [src/omni/memory/store.py](../../src/omni/memory/store.py) | 1112 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
 | [src/omni/memory/usage.py](../../src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
 | [src/omni/memory/vectors.py](../../src/omni/memory/vectors.py) | 93 | sqlite-vec 派生索引。与事实同库；遗忘/纠错触发器只用普通 SQL，无扩展依赖。 |
 
@@ -903,7 +917,7 @@
 | [src/omni/system/catalog/__init__.py](../../src/omni/system/catalog/__init__.py) | 4 | 项目索引：只解析源码与显式分类，不导入被索引模块、不接触运行数据。 |
 | [src/omni/system/catalog/render.py](../../src/omni/system/catalog/render.py) | 46 | 索引输出：从同一结构生成模块表、API 表和可机器查询的 JSON。 |
 | [src/omni/system/catalog/scan.py](../../src/omni/system/catalog/scan.py) | 165 | 静态源码索引；扫描范围固定为注入根的 src/omni，不读取 config/data/.env。 |
-| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 105 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
+| [src/omni/system/catalog/schema.py](../../src/omni/system/catalog/schema.py) | 106 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 

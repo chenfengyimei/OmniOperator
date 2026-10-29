@@ -114,10 +114,10 @@ class ToolRegistry:
                 "function": {
                     "name": t.name,
                     "description": t.description,
-                    "parameters": t.parameters,
+                    "parameters": json.loads(json.dumps(t.parameters, ensure_ascii=False, sort_keys=True)),
                 },
             }
-            for t in self._iter(toolsets)
+            for t in sorted(self._iter(toolsets), key=lambda item: item.name)
             if t.name not in exclude
         ]
 

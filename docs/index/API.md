@@ -8,19 +8,19 @@
 
 Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记账。
 
-`create_conversation_router.chat`（[src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L43)） → `Agent.run_turn`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L232)） → `Agent._chat`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L408)） → `Gateway.complete`（[src/omni/llm/gateway.py](../../src/omni/llm/gateway.py#L339)）
+`create_conversation_router.chat`（[src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L43)） → `Agent.run_turn`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L234)） → `Agent._chat`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L410)） → `Gateway.complete`（[src/omni/llm/gateway.py](../../src/omni/llm/gateway.py#L339)）
 
 ## 模型调用工具
 
 模型工具调用经统一注册表和审批；结果按原调用顺序回填。
 
-`Agent._execute_tool_calls`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L503)） → `ToolRegistry.execute`（[src/omni/tools/registry.py](../../src/omni/tools/registry.py#L142)） → `WebApprover`（[src/omni/safety/gates.py](../../src/omni/safety/gates.py#L123)） → `ToolResult`（[src/omni/tools/result.py](../../src/omni/tools/result.py#L35)）
+`Agent._execute_tool_calls`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L508)） → `ToolRegistry.execute`（[src/omni/tools/registry.py](../../src/omni/tools/registry.py#L142)） → `WebApprover`（[src/omni/safety/gates.py](../../src/omni/safety/gates.py#L123)） → `ToolResult`（[src/omni/tools/result.py](../../src/omni/tools/result.py#L35)）
 
 ## 流式与取消
 
 流式响应和持久运行事件是两条接口；停止通过协作取消传播。
 
-`create_conversation_router.chat_stream`（[src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L74)） → `Agent.run_turn`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L232)） → `Gateway.stream`（[src/omni/llm/gateway.py](../../src/omni/llm/gateway.py#L425)） → `RunStore`（[src/omni/memory/runs.py](../../src/omni/memory/runs.py#L87)）
+`create_conversation_router.chat_stream`（[src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L74)） → `Agent.run_turn`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L234)） → `Gateway.stream`（[src/omni/llm/gateway.py](../../src/omni/llm/gateway.py#L425)） → `RunStore`（[src/omni/memory/runs.py](../../src/omni/memory/runs.py#L87)）
 
 ## 交互式终端
 
