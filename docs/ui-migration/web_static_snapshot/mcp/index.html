@@ -1,0 +1,4 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小鱼 · 本地 MCP</title><link rel="stylesheet" href="/mcp/mcp.css"><link rel="stylesheet" href="/ui/base.css"><script src="/ui/shared.js"></script>
+</head><body>
+<header><a href="/">← 工作台</a><h1>本地 MCP 服务</h1><button id="refresh">刷新状态</button></header><p>状态检查不会启动服务。连接检查和工具目录会运行已配置程序；环境隔离不是系统沙箱。</p>
+<p>命令、参数、环境变量引用和权限在 config.yaml 修改，重启原入口生效；配置不一致时本实例停止新调用。</p><div id="status" role="status"></div><main id="servers"></main><section><h2 id="detail-title">服务详情</h2><pre id="detail" tabindex="0">选择诊断、日志或工具目录。诊断不建立连接；检查连接和读取目录需要显式操作。</pre><div id="catalog"></div></section><script src="/mcp/mcp.js"></script></body></html>

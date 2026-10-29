@@ -313,6 +313,29 @@ def test_run_records_tool_events_with_structured_fields(tmp_path):
     rt.close_state()
 
 
+def test_tool_events_carry_args_excerpt_and_elapsed(tmp_path):
+    """调用链可视化（scaffolds）依赖的三个字段：入参、结果摘录、单工具耗时。
+
+    args/excerpt 只进 state.db 权威账本（模型上下文全文本来就在那）；
+    events.jsonl 观测口是字段白名单，这些文本不会被转发出去（见 test_observability）。
+    """
+    rt = _runtime(tmp_path)
+    sid = rt.store.new_session("s")
+
+    rt.registry.register(_tool("echo", lambda _a: "正文" * 300))
+    rt.agent.gateway = _Scripted([[_call("echo", q="你好", limit=3)], "好了"])
+
+    turn = rt.agent.run_turn("查一下", session_id=sid, channel="web")
+    events = rt.runs.events(turn.run_id)
+    tool_events = [e for e in events if e.kind == "tool"]
+    assert len(tool_events) == 1
+    data = tool_events[0].data
+    assert json.loads(data["args"]) == {"q": "你好", "limit": 3}
+    assert data["excerpt"].startswith("正文") and data["excerpt"].endswith("…")
+    assert isinstance(data["elapsed_ms"], (int, float)) and data["elapsed_ms"] >= 0
+    rt.close_state()
+
+
 def test_failed_turn_is_recorded_as_failed(tmp_path):
     rt = _runtime(tmp_path)
     sid = rt.store.new_session("s")

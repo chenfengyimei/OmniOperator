@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
+import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Callable
 
@@ -529,9 +530,27 @@ class Agent:
           不吞掉同批其它工具的结果、也不打断回合。
         """
 
+        # 单工具耗时（ms）：串行/并发两条路径共用；emit 落事件时按 call.id 取走
+        tool_timings: dict[str, float] = {}
+
+        def timed(call: Any) -> ToolResult:
+            started = time.perf_counter()
+            try:
+                return self._execute_one(call, sid=sid, run=run, denied=denied, cancel=cancel)
+            finally:
+                tool_timings[call.id] = (time.perf_counter() - started) * 1000.0
+
         def emit(call: Any, result: ToolResult) -> None:
             if run is not None:
-                run.event("tool", name=call.function.name, **result.brief())
+                # args/excerpt 只进 state.db（权威账本）；events.jsonl 观测口是字段白名单，不会带出去
+                run.event(
+                    "tool",
+                    name=call.function.name,
+                    args=_args_excerpt(call),
+                    excerpt=_result_excerpt(result.text),
+                    elapsed_ms=round(tool_timings.pop(call.id, 0.0)),
+                    **result.brief(),
+                )
             messages.append(
                 {
                     "role": "tool",
@@ -547,10 +566,7 @@ class Agent:
                 if run is not None:
                     run.check()  # 每个工具调用前的检查点
                     run.phase("tool")
-                emit(
-                    call,
-                    self._execute_one(call, sid=sid, run=run, denied=denied, cancel=cancel),
-                )
+                emit(call, timed(call))
             return
 
         pending: list[tuple[Any, Future[ToolResult]]] = []
@@ -573,14 +589,7 @@ class Agent:
                     pending.append(
                         (
                             call,
-                            pool.submit(
-                                self._execute_one,
-                                call,
-                                sid=sid,
-                                run=run,
-                                denied=denied,
-                                cancel=cancel,
-                            ),
+                            pool.submit(timed, call),
                         )
                     )
                     continue
@@ -589,10 +598,7 @@ class Agent:
                 if run is not None:
                     run.check()
                     run.phase("tool")
-                emit(
-                    call,
-                    self._execute_one(call, sid=sid, run=run, denied=denied, cancel=cancel),
-                )
+                emit(call, timed(call))
             drain()
 
     def _pool_eligible(self, name: str, denied: frozenset[str]) -> bool:
@@ -798,6 +804,22 @@ def _has_image_parts(messages: list[dict[str, Any]]) -> bool:
 def _forward_delta(event: StreamEvent, on_delta: Callable[[str], None]) -> None:
     if event.type == "delta" and event.text:
         on_delta(event.text)
+
+
+def _args_excerpt(call: Any) -> str:
+    """工具入参摘录（调用链可视化用）：原样保留 JSON 文本，过长截断。
+
+    只进 state.db 事件流——那里本来就连模型上下文全文都在，不新增隐私面；
+    观测 jsonl 口是字段白名单，这些文本不会被转发出去。
+    """
+    raw = str(getattr(call.function, "arguments", "") or "")
+    return raw[:240] + ("…" if len(raw) > 240 else "")
+
+
+def _result_excerpt(text: str) -> str:
+    """工具结果摘录：调用链可展开查看，但不把长输出整段塞进事件流。"""
+    raw = str(text or "")
+    return raw[:400] + ("…" if len(raw) > 400 else "")
 
 
 def _reply_brief(reply: Any) -> dict[str, Any]:

@@ -10,6 +10,13 @@
   --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --border:#2a3240;
   --text:#dbe2ea; --dim:#8b95a5; --accent:#22d3ee; --accent2:#818cf8;
   --user:#2563eb; --assistant:#222c3a;
+  /* 语义色：状态只准用这几支，避免到处散落的绿/黄/红 */
+  --ok:#34d399; --ok-bg:rgba(52,211,153,.14); --ok-bd:rgba(52,211,153,.34);
+  --warn:#fbbf24; --warn-bg:rgba(251,191,36,.14); --warn-bd:rgba(251,191,36,.34);
+  --danger:#f87171; --danger-bg:rgba(248,113,113,.12); --danger-bd:rgba(248,113,113,.36);
+  --r-sm:9px; --r-md:10px; --r-card:14px;
+  --shadow-card:0 8px 24px rgba(0,0,0,.24);
+  --shadow-pop:0 18px 50px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font:14px/1.6 "Segoe UI",system-ui,-apple-system,"Microsoft YaHei",sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
@@ -49,8 +56,6 @@ ul{list-style:none;overflow-y:auto}
 .copy-msg:hover{color:var(--accent)}
 .run-feed{max-height:170px;overflow-y:auto;font-size:12px;line-height:1.75;margin-top:8px;display:flex;flex-direction:column;gap:1px}
 .run-feed.hidden{display:none}
-.feed-line{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.feed-line:last-child{color:var(--text)}
 .cost-tag{font-size:10.5px;color:var(--dim);margin-top:4px;opacity:.85;user-select:none}
 #composer{display:flex;gap:10px;padding:12px;border-top:1px solid var(--border)}
 #input{flex:1;resize:none;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font:inherit;max-height:140px}
@@ -115,9 +120,13 @@ ul{list-style:none;overflow-y:auto}
 .svc-main{flex:1;min-width:0}
 .svc-name{color:var(--text)}
 .svc-detail{color:var(--dim);font-size:11px}
-.svc-btn{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:2px 8px;font-size:11.5px;cursor:pointer;flex-shrink:0}
-.svc-btn:hover{border-color:var(--accent)}
-.svc-btn.warn{color:#fbbf24;border-color:#b45309}
+.svc-btn,.p-btn,.tiny-btn,.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:border-color .15s,color .15s,background .15s}
+.svc-btn:hover,.p-btn:hover,.tiny-btn:hover,.btn:hover{border-color:var(--accent);color:var(--accent)}
+.svc-btn:active,.p-btn:active,.tiny-btn:active,.btn:active{transform:translateY(1px)}
+.svc-btn.warn{color:var(--warn);border-color:var(--warn-bd)}
+.p-btn.del,.btn.danger{color:var(--danger);border-color:var(--danger-bd)}
+.p-btn.del:hover,.btn.danger:hover{background:var(--danger-bg);color:#fca5a5}
+.tiny-btn{margin:6px 4px 0 0}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
 .modal.hidden{display:none}
 .modal-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;width:min(440px,92vw);max-height:88vh;overflow-y:auto}
@@ -133,35 +142,172 @@ ul{list-style:none;overflow-y:auto}
 /* ---- 设置中心 ---- */
 #hub{position:fixed;inset:0;z-index:300;background:var(--bg);display:flex;flex-direction:column}
 #hub.hidden{display:none}
-.hub-header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--panel)}
-.hub-header .title{font-size:16px;font-weight:800}
-.hub-header .title span{color:var(--accent)}
-.hub-header .sub{color:var(--dim);font-size:12px}
+.hub-header{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#1b222c,#141922)}
+.hub-header .title{font-size:16.5px;font-weight:800;letter-spacing:.3px}
+.hub-header .title span{background:linear-gradient(135deg,#22d3ee,#818cf8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hub-header .sub{color:var(--dim);font-size:12px;margin-top:1px}
 .hub-header .spacer{flex:1}
-.hub-save{background:linear-gradient(135deg,#22d3ee,#818cf8);border:none;color:#06202a;font-weight:800;border-radius:8px;padding:9px 26px;cursor:pointer;font-size:13.5px}
+.hub-save{background:linear-gradient(135deg,#22d3ee,#818cf8);border:none;color:#06202a;font-weight:800;border-radius:9px;padding:9px 24px;cursor:pointer;font-size:13.5px;box-shadow:0 4px 14px rgba(34,211,238,.2);transition:filter .15s,transform .1s}
 .hub-save:hover{filter:brightness(1.1)}
-.hub-close{background:none;border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:8px 16px;cursor:pointer}
-.hub-layout{flex:1;display:grid;grid-template-columns:190px 1fr;min-height:0}
-.hub-nav{border-right:1px solid var(--border);padding:14px 10px;display:flex;flex-direction:column;gap:2px}
-.hub-group{font-size:11px;color:#5b6575;margin:12px 14px 3px;letter-spacing:.5px;user-select:none}
-.hub-group:first-child{margin-top:2px}
-.hub-nav a{color:var(--dim);text-decoration:none;padding:9px 14px;border-radius:8px;font-size:13.5px;cursor:pointer}
+.hub-save:active{transform:translateY(1px)}
+.hub-close{background:var(--panel2);border:1px solid var(--border);color:var(--dim);border-radius:9px;padding:8px 16px;font-size:13px;cursor:pointer;transition:border-color .15s,color .15s}
+.hub-close:hover{border-color:var(--accent);color:var(--text)}
+.hub-layout{flex:1;display:grid;grid-template-columns:212px 1fr;min-height:0}
+.hub-nav{border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;background:var(--panel)}
+.hub-group{font-size:10.5px;font-weight:700;color:#59637a;letter-spacing:1.1px;user-select:none;margin:16px 12px 5px}
+.hub-group:first-child{margin-top:0}
+.hub-nav a{display:flex;align-items:center;gap:9px;color:var(--dim);text-decoration:none;padding:8px 12px;border-radius:8px;font-size:13.5px;cursor:pointer;transition:background .15s,color .15s}
 .hub-nav a:hover{background:var(--panel2);color:var(--text)}
-.hub-nav a.active{background:var(--panel2);color:var(--accent);font-weight:600}
-.hub-body{overflow-y:auto;padding:20px 26px 90px}
+.hub-nav a.active{background:rgba(34,211,238,.12);color:var(--accent);font-weight:600;box-shadow:inset 2px 0 0 var(--accent)}
+.hub-nav a .ni{width:16px;height:16px;flex-shrink:0;opacity:.85}
+.hub-body{overflow-y:auto;padding:24px 28px 90px}
 .hub-card.hidden{display:none}
-.hub-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px;max-width:780px}
-.hub-card h3{font-size:14.5px;margin-bottom:4px}
-.hub-card .hint{font-size:12px;color:var(--dim);margin-bottom:12px}
-.field{margin:12px 0}
-.field>label{display:block;font-size:12.5px;color:var(--dim);margin-bottom:5px}
-.field input[type=text],.field input[type=number],.field textarea,.field select{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font:inherit}
-.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent)}
-.field textarea{min-height:190px;font:12px/1.6 Consolas,monospace;white-space:pre-wrap}
-.field-row{display:flex;gap:12px}
-.field-row .field{flex:1}
-.tiny-btn{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;margin-left:8px}
-.tiny-btn:hover{border-color:var(--accent)}
+.hub-card{position:relative;background:linear-gradient(180deg,#181e28,#151a22);border:1px solid var(--border);border-radius:var(--r-card);padding:20px 22px;margin-bottom:16px;max-width:940px;box-shadow:var(--shadow-card);transition:border-color .18s}
+.hub-card:hover{border-color:#333d4e}
+.hub-card h3{font-size:15.5px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+.hub-card h3::before{content:'';width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,#22d3ee,#818cf8);flex-shrink:0}
+.hub-card h4{margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--text);letter-spacing:.2px}
+.hub-card h4::before{content:'';width:2px;height:11px;border-radius:2px;background:var(--accent);opacity:.75;flex-shrink:0}
+.hub-card h4 + .hint{margin-top:-4px}
+.hub-card .hint{font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:14px}
+/* 说明框：讲"为什么这样"而不是"怎么配"，用于把安全规则/使用建议说清楚 */
+.note-box{border:1px solid #2b3947;border-left:3px solid var(--accent);border-radius:var(--r-md);background:rgba(34,211,238,.05);padding:11px 14px;margin:2px 0 4px}
+/* 每页独立保存条：只提交当前页的配置，改坏一页不会连累其它页 */
+.card-actions{display:flex;align-items:center;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.save-btn{flex-shrink:0;height:34px;padding:0 18px;border:none;border-radius:var(--r-sm);background:linear-gradient(135deg,#22d3ee,#38bdf8);color:#06202a;font-size:13px;font-weight:700;cursor:pointer;transition:filter .15s,transform .1s}
+.save-btn:hover{filter:brightness(1.12)}
+.save-btn:active{transform:translateY(1px)}
+.save-msg{flex:1;min-width:0;font-size:12px;color:var(--dim);line-height:1.5}
+.save-msg.ok{color:var(--ok)}
+.save-msg.err{color:var(--danger)}
+.note-box .nb-title{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:5px}
+.note-box .nb-body{font-size:12px;color:var(--dim);line-height:1.75}
+.note-box .nb-body b{color:#c7d2e0;font-weight:600}
+/* 扩展条目：一个扩展一张小卡，避免整页挤成一大坨文字 */
+.mcp-item{border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px;margin-bottom:10px;background:var(--panel)}
+.mcp-item:hover{border-color:#3a465a}
+.mcp-cap{display:flex;align-items:flex-start;gap:8px;padding:8px 2px;border-bottom:1px solid rgba(42,50,64,.55);font-size:12px;line-height:1.6}
+.mcp-cap:last-child{border-bottom:none}
+.mcp-cap .cap-dot{flex-shrink:0;width:6px;height:6px;border-radius:50%;margin-top:6px}
+.mcp-cap .cap-main{flex:1;min-width:0}
+.mcp-cap .cap-name{color:var(--text);font-weight:600;font-size:12.5px}
+.mcp-cap .cap-desc{color:var(--dim);margin-top:1px}
+.mcp-cap .cap-tag{flex-shrink:0;font-size:11px;color:var(--dim);white-space:nowrap;padding-top:1px}
+.muted{font-size:12px;color:var(--dim)}
+/* 通用行：所有列表条目共用一套节奏，避免各区块各写一份 */
+.row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--panel);margin-bottom:8px;transition:border-color .15s,background .15s}
+.row:hover{border-color:#3a465a}
+.row.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px rgba(34,211,238,.3)}
+.row .r-main{flex:1;min-width:0}
+.row .r-title{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .r-sub{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+/* 开关：checkbox 皮肤化，保留原生 input 供 JS 读取 .checked */
+.switch{position:relative;display:inline-flex;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:#3a4356;transition:background .18s}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#dbe2ea;transition:transform .18s}
+input:checked + .switch{background:var(--accent)}
+input:checked + .switch::after{transform:translateX(16px);background:#06202a}
+.check-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--panel);cursor:pointer;user-select:none;font-size:13px;line-height:1.5;transition:border-color .15s}
+/* .field>label 是竖排表单标签，会把开关行也带成 column；这里必须显式改回横排 */
+.field>.check-row{flex-direction:row;align-items:center;gap:10px}
+.check-row:hover{border-color:#3a465a}
+.check-row input{position:absolute;opacity:0;width:0;height:0}
+.check-row input:focus-visible + .switch{box-shadow:0 0 0 3px rgba(34,211,238,.3)}
+.preset-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--panel);margin-bottom:8px;transition:border-color .15s}
+.preset-row:hover{border-color:var(--accent)}
+.preset-row.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.preset-row .p-name{font-size:13px;font-weight:600;color:var(--text);min-width:70px;flex-shrink:0}
+.preset-row .p-desc{font-size:11.5px;color:var(--dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preset-row .p-actions{display:flex;gap:4px;flex-shrink:0}
+.preset-row .p-btn{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;transition:border-color .15s,color .15s}
+.preset-row .p-btn:hover{border-color:var(--accent)}
+.preset-row .p-btn.del:hover{border-color:#c0392b;color:#f87171}
+.preset-empty{font-size:12px;color:var(--dim);text-align:center;padding:14px}
+/* ---- 模型页：槽位卡 + 三步向导（选供应商 → 选模型 → 填 Key） ---- */
+#sec-models{max-width:1180px}
+.slot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));grid-auto-rows:1fr;align-items:stretch;gap:12px;margin:2px 0 16px}
+.slot-card{display:flex;flex-direction:column;gap:6px;min-width:0;height:100%;padding:13px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);cursor:pointer;transition:border-color .15s,background .15s}
+.slot-card:hover{border-color:#3a465a}
+.slot-card.active{border-color:var(--accent);background:#152832;box-shadow:inset 0 0 0 1px rgba(34,211,238,.28)}
+.slot-card .sc-head{display:flex;align-items:center;gap:8px;min-width:0}
+.slot-card .sc-name{min-width:0;font-size:12px;font-weight:600;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-card .sc-badge{margin-left:auto;flex-shrink:0;font-size:11px;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.sc-badge.ok{color:#34d399;background:rgba(52,211,153,.14)}
+.sc-badge.warn{color:#fbbf24;background:rgba(251,191,36,.14)}
+.sc-badge.off{color:var(--dim);background:rgba(139,149,165,.14)}
+.slot-card .sc-provider{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-card .sc-model{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-card .sc-foot{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-card .sc-foot.ok{color:#34d399}
+.slot-card .sc-foot.warn{color:#fbbf24}
+.wiz{border:1px solid var(--border);border-radius:12px;background:var(--panel2);padding:16px 18px 18px}
+.wiz-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.wiz-head .wiz-title{font-size:13.5px;font-weight:700;color:var(--text)}
+.wiz-head .wiz-hint{font-size:11.5px;color:var(--dim);margin-left:auto}
+.stepper{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:7px;padding:4px 12px;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--dim);font-size:12px;cursor:pointer}
+.step .step-no{width:16px;height:16px;border-radius:50%;background:var(--border);color:var(--text);display:grid;place-items:center;font-size:10.5px;font-weight:700}
+.step.done{color:#34d399;border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+.step.done .step-no{background:#34d399;color:#06202a}
+.step.active{color:var(--accent);border-color:var(--accent);background:rgba(34,211,238,.1);font-weight:600}
+.step.active .step-no{background:var(--accent);color:#06202a}
+.wiz-sec{margin-bottom:16px}
+.wiz-sec:last-of-type{margin-bottom:0}
+.wiz-sec-head{display:flex;align-items:baseline;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+.wiz-sec-head .ws-title{font-size:12.5px;font-weight:700;color:var(--text)}
+.wiz-sec-head .ws-note{font-size:11.5px;color:var(--dim)}
+.prov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:10px}
+.prov-card{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel);cursor:pointer;transition:border-color .15s}
+.prov-card:hover{border-color:#3a465a}
+.prov-card.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px rgba(34,211,238,.32)}
+.prov-logo{width:30px;height:30px;border-radius:9px;flex-shrink:0}
+.prov-meta{min-width:0;flex:1}
+.prov-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prov-sub{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prov-sub.ok{color:#34d399}
+.prov-sub.warn{color:#fbbf24}
+.model-list{display:flex;flex-direction:column;gap:8px}
+.model-card{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel);cursor:pointer;transition:border-color .15s}
+.model-card:hover{border-color:#3a465a}
+.model-card.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px rgba(34,211,238,.32)}
+.model-card .mc-main{min-width:0;flex:1}
+.model-card .mc-name{font-size:13.5px;font-weight:600;color:var(--text)}
+.model-card .mc-desc{font-size:11.5px;color:var(--dim)}
+.mc-tag{flex-shrink:0;font-size:11px;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.mc-tag.green{color:#34d399;background:rgba(52,211,153,.14)}
+.mc-tag.amber{color:#fbbf24;background:rgba(251,191,36,.14)}
+.mc-tag.violet{color:#a5b4fc;background:rgba(129,140,248,.16)}
+.mc-tag.gray{color:var(--dim);background:rgba(139,149,165,.14)}
+.key-row{display:flex;align-items:center;gap:8px}
+.key-box{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:42px;padding:0 10px;border:1px solid var(--accent);border-radius:9px;background:var(--panel)}
+.key-box input{flex:1;min-width:0;border:none;background:none;outline:none;color:var(--text);font:13px/1.4 Consolas,monospace}
+.key-box .kb-icon{flex-shrink:0;width:16px;height:16px;opacity:.85}
+.key-box .kb-eye{flex-shrink:0;background:none;border:none;color:var(--dim);cursor:pointer;font-size:11.5px;padding:2px 4px}
+.key-box .kb-eye:hover{color:var(--accent)}
+.key-btn{flex-shrink:0;height:42px;padding:0 14px;border:1px solid var(--border);border-radius:9px;background:var(--panel2);color:var(--text);font-size:12.5px;cursor:pointer;white-space:nowrap}
+.key-btn:hover{border-color:var(--accent)}
+.key-btn.primary{background:var(--accent);border-color:var(--accent);color:#06202a;font-weight:700}
+.key-note{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:11.5px;color:var(--dim)}
+.key-note a{color:var(--accent);text-decoration:none}
+.key-note a:hover{text-decoration:underline}
+.key-note .kn-ok{color:#34d399}
+.key-note .kn-warn{color:#fbbf24}
+.model-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:13px;border-top:1px solid var(--border)}
+.model-footer .mf-label{font-size:11.5px;color:var(--dim)}
+.model-footer code{padding:3px 9px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--accent);font-size:11.5px}
+.model-footer .mf-out{flex-basis:100%;min-height:1em;font-size:12px;color:var(--dim);white-space:pre-wrap;word-break:break-all}
+.model-footer .mf-out.ok{color:#34d399}
+.model-footer .mf-out.err{color:#f87171}
+@media (max-width:760px){.key-row{flex-wrap:wrap}.key-btn{flex:1}}
+.field{margin:0 0 12px;min-width:0}
+.field>label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--dim);font-weight:500;line-height:1.55}
+.field input[type=text],.field input[type=number],.field input[type=time],.field textarea,.field select{width:100%;min-width:0;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);padding:9px 12px;font:inherit;font-size:13px;transition:border-color .15s,box-shadow .15s}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(34,211,238,.14)}
+.field textarea{min-height:150px;resize:vertical;font:12.5px/1.65 Consolas,monospace;white-space:pre-wrap}
+#cfg-persona-prompt{min-height:210px}
+.field input[type=number],.field input[type=time]{max-width:260px}
+.field-row{display:flex;gap:12px;flex-wrap:wrap}
+.field-row .field{flex:1;min-width:170px}
+/* 按钮体系见上方「通用行」段：.svc-btn / .p-btn / .tiny-btn / .btn 共用一套皮肤 */
 .test-out{font-size:12px;color:var(--dim);margin-top:4px;min-height:1em;white-space:pre-wrap;word-break:break-all}
 .cron-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
 .cron-row .c-name{color:var(--text);font-weight:600;min-width:130px}
@@ -170,44 +316,118 @@ ul{list-style:none;overflow-y:auto}
 .empty{color:var(--dim);text-align:center;padding:24px 10px;font-size:12.5px}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 @media (max-width:1000px){main{grid-template-columns:1fr;overflow-y:auto}aside,section{max-height:45vh}}
+/* 设置中心窄屏：左侧导航变成顶部横向条，内容单列 */
+@media (max-width:860px){
+  .hub-header{flex-wrap:wrap;gap:8px;padding:10px 16px}
+  .hub-header .spacer{display:none}
+  .hub-layout{grid-template-columns:1fr}
+  .hub-nav{flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--border);padding:10px 12px;gap:6px}
+  .hub-group{width:100%;margin:6px 2px 2px}
+  .hub-group:first-child{margin-top:0}
+  .hub-nav a{padding:6px 11px;font-size:13px}
+  .hub-body{padding:16px 14px 70px}
+  .hub-card{padding:16px 16px;max-width:none}
+  .slot-grid{grid-template-columns:1fr}
+}
+/* ---- 列表行与开关：放最后统一覆盖各区块的零散定义 ---- */
+.cron-row,.preset-row,.svc-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:8px;transition:border-color .15s}
+.cron-row:hover,.preset-row:hover,.svc-row:hover{border-color:#3a465a}
+.cron-row .c-name,.preset-row .p-name{min-width:96px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--text)}
+.cron-row .c-sched,.preset-row .p-desc{flex:1;min-width:0;font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.switch{position:relative;display:inline-flex;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:#3a4356;transition:background .18s}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#dbe2ea;transition:transform .18s}
+input:checked + .switch{background:var(--accent)}
+input:checked + .switch::after{transform:translateX(16px);background:#06202a}
+.check-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--panel);cursor:pointer;user-select:none;font-size:13px;line-height:1.5;transition:border-color .15s}
+/* .field>label 是竖排表单标签，会把开关行也带成 column；这里必须显式改回横排 */
+.field>.check-row{flex-direction:row;align-items:center;gap:10px}
+.check-row:hover{border-color:#3a465a}
+.check-row input{position:absolute;opacity:0;width:0;height:0}
+.check-row input:focus-visible + .switch{box-shadow:0 0 0 3px rgba(34,211,238,.3)}
+.switch-text{flex:1;min-width:0}
+.empty{padding:18px 12px;text-align:center;color:var(--dim);font-size:12px;border:1px dashed var(--border);border-radius:var(--r-md);background:var(--panel2)}
 </style>
-<link rel="stylesheet" href="/ui/base.css"><script src="/ui/shared.js"></script>
+<link rel="stylesheet" href="/ui/base.css">
+<!-- ?v= 版本串是缓存防错配闸：改皮肤/字体/渲染器时必须同步递增，
+     保证浏览器永远不会拿到「新版标记 + 旧版资源」的错配组合（2026-10-29 晚用户实机错乱即此因） -->
+<link rel="stylesheet" href="/ui/icons.css?v=20261029">
+<link rel="stylesheet" href="/ui/skin.css?v=20261029p7"><link rel="stylesheet" href="/ui/shell.css?v=20261030e"><script src="/ui/shared.js?v=20261030e"></script><script src="/ui/markdown.js?v=20261029"></script>
 </head>
-<body>
+<body data-ui-page="workbench">
+<!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
+     shared.js 往 body>header 注入导航/面板切换的挂载假设不受影响（注入导航由 skin.css 隐藏）。 -->
+<nav class="rail" aria-label="主导航">
+  <div class="rail-brand" data-tip="OmniOperator"><span class="material-icons">smart_toy</span></div>
+  <button class="rail-btn active" data-tip="对话工作台" onclick="railGo(this)"><span class="material-icons">forum</span></button>
+  <button class="rail-btn" data-tip="记忆库" onclick="railTab(this,'facts')"><span class="material-icons">psychology</span></button>
+  <button class="rail-btn" data-tip="技能库" onclick="railTab(this,'skills')"><span class="material-icons">auto_awesome</span></button>
+  <button class="rail-btn" data-tip="定时任务" onclick="railCron()"><span class="material-icons">schedule</span></button>
+  <div class="rail-sep"></div>
+  <button class="rail-btn" data-tip="内置终端" onclick="openTerminal()"><span class="material-icons">terminal</span></button>
+  <button class="rail-btn" data-tip="安卓手机" onclick="openPhone()"><span class="material-icons">smartphone</span></button>
+  <button class="rail-btn" data-tip="审批队列" onclick="railApprovals()"><span class="material-icons">gpp_maybe</span></button>
+  <div class="rail-sep"></div>
+  <!-- 4 个独立子站：新标签打开，别把工作台顶掉（与 shared.js 注入导航在 workbench 上的行为一致） -->
+  <a class="rail-btn" id="open-project" href="/project/" target="_blank" rel="noopener" data-tip="项目与能力" title="模块、API、工具与扩展索引"><span class="material-icons">account_tree</span></a>
+  <a class="rail-btn" id="open-command-jobs" href="/jobs/" target="_blank" rel="noopener" data-tip="后台命令"><span class="material-icons">checklist</span></a>
+  <a class="rail-btn" id="open-mcp-services" href="/mcp/" target="_blank" rel="noopener" data-tip="MCP 服务"><span class="material-icons">network_check</span></a>
+  <a class="rail-btn" id="open-capabilities" href="/capabilities/" target="_blank" rel="noopener" data-tip="能力诊断"><span class="material-icons">fact_check</span></a>
+  <div class="rail-foot">
+    <button class="rail-btn" data-tip="设置中心" onclick="openHub()"><span class="material-icons">settings</span></button>
+  </div>
+</nav>
 <header>
-  <div class="brand"><em>Omni</em>Operator 工作台</div>
+  <div class="brand">
+    <span class="brand-mark"><span class="material-icons">smart_toy</span></span>
+    <div class="brand-text">
+      <div class="brand-title"><em>Omni</em>Operator 工作台</div>
+      <div class="brand-sub">本地 Agent · 记忆 · 技能 · 定时任务</div>
+    </div>
+  </div>
   <div id="chips"></div>
   <div class="header-spacer"></div>
-  <a id="open-project" href="/project/" title="模块、API、工具与扩展索引" style="font-size:12.5px;color:var(--accent);white-space:nowrap">项目与能力 ↗</a>
-  <a href="/jobs/" id="open-command-jobs">后台命令</a>
-  <a href="/mcp/" id="open-mcp-services">MCP 服务</a>
-  <a href="/capabilities/" id="open-capabilities">能力诊断</a>
+  <!-- 终端/手机按钮保留：JS 靠这两个 id 绑 .onclick（删元素会在初始化时抛错）；
+       视觉入口已收进 rail，base.css 的 .ui-ready 规则会继续把 header 里这两个藏起来 -->
   <button id="open-terminal" title="内置终端（PowerShell）：不用再开 Windows 终端窗口">⌨ 终端</button>
   <button id="open-phone" title="安卓手机：看屏 + 点击 + UI 树">📱 手机</button>
+  <button class="hub-open" onclick="openHub()"><span class="material-icons">tune</span>设置中心</button>
 </header>
 <main>
-  <aside>
-    <div class="panel" style="flex:1.2">
+  <aside class="workbench-side">
+    <div class="panel session-panel" style="flex:1.2">
       <div class="panel-title"><span>会话</span><button id="new-session">＋ 新会话</button></div>
+      <div class="s-search"><span class="material-icons">search</span><input id="session-q" type="text" placeholder="搜索会话…"></div>
       <ul id="sessions"></ul>
     </div>
-    <div class="panel" style="flex:1">
-      <div class="panel-title"><span>状态</span></div>
-      <div id="status"></div>
+    <div class="panel service-panel">
+      <div class="panel-title"><span>服务</span><span class="panel-meta" id="service-summary">读取中…</span></div>
+      <div id="services" class="svcs"></div>
     </div>
-    <div class="panel" style="flex:1">
-      <div class="panel-title"><span>服务</span><button id="open-settings">设置中心</button></div>
-      <div id="services"></div>
-      <button class="svc-btn" type="button" onclick="showDoctor()">只读诊断</button>
-      <button class="svc-btn" type="button" onclick="createBackup()">创建备份（含私人记忆）</button>
-      <pre id="doctor-result" class="muted" style="max-height:260px;overflow:auto;white-space:pre-wrap"></pre>
+    <div class="panel context-panel">
+      <div class="panel-title"><span>上下文用量</span><span class="panel-meta" id="context-percent">估算中…</span></div>
+      <div id="context-usage" class="ctx">
+        <div class="ctx-head">
+          <span class="ctx-val">—<span> / —</span></span>
+          <span class="ctx-percent">等待会话</span>
+        </div>
+        <div class="ctx-bar" role="img" aria-label="上下文占用分布"></div>
+        <div class="ctx-legend"></div>
+        <div class="ctx-note">读取当前会话后显示系统提示、工具规格、记忆与对话的估算占用。</div>
+      </div>
+      <div id="status" class="ctx-status"></div>
     </div>
   </aside>
   <section id="chat">
-    <div id="messages"><div class="empty">选择左侧会话，或直接开始聊天</div></div>
+    <div id="messages" aria-live="polite" aria-relevant="additions"><div class="empty">选择左侧会话，或直接开始聊天</div></div>
     <div id="composer">
-      <textarea id="input" rows="2" placeholder="给小鱼发消息…（丢B站链接也行）"></textarea>
-      <button id="send">发送</button>
+      <!-- 原型 dock 结构：容器内无边框 textarea + 底部工具条；#composer/#input/#send 三个 id 与绑定不动 -->
+      <div class="dock">
+        <textarea id="input" rows="2" placeholder="给小鱼发消息…（丢 B 站链接、说排程需求都行）"></textarea>
+        <div class="dock-bar">
+          <span class="dock-meta"><kbd>Enter</kbd>发送 <kbd>Shift</kbd>+<kbd>Enter</kbd>换行</span>
+          <button id="send">发送</button>
+        </div>
+      </div>
     </div>
   </section>
   <aside>
@@ -265,6 +485,8 @@ ul{list-style:none;overflow-y:auto}
   </aside>
 </main>
 <div id="approval-banner" class="hidden"></div>
+<!-- rail 图标提示浮层：position:fixed 顶层，避开层叠上下文与 overflow 裁剪；JS 在文件尾接线 -->
+<div id="tip-layer"></div>
 <div id="qr-modal" class="modal hidden" onclick="if(event.target===this)closeModal('qr-modal')">
   <div class="modal-box">
     <div class="modal-title"><span>QQ 扫码登录</span><button class="modal-x" onclick="closeModal('qr-modal')">✕</button></div>
@@ -343,16 +565,18 @@ ul{list-style:none;overflow-y:auto}
   </div>
 </div>
 <!-- ============ 设置中心 ============ -->
-<div id="hub" class="hidden">
+<div id="hub" class="hidden" role="dialog" aria-modal="true" aria-label="设置中心" aria-hidden="true">
   <div class="hub-header">
-    <div>
-      <div class="title"><span>设置中心</span></div>
-      <div class="sub">昵称、人设、模型、记忆、能力，都从这里调整</div>
+    <button class="hub-back" type="button" onclick="closeHub()" title="返回工作台" aria-label="返回工作台"><span class="material-icons">arrow_back</span></button>
+    <div class="hub-title">
+      <div class="hub-mark"><span class="material-icons">tune</span></div>
+      <div>
+        <div class="title"><span>设置中心</span></div>
+        <div class="sub">昵称、人设、模型、记忆、能力与路径，都从这里调整</div>
+      </div>
     </div>
     <div class="spacer"></div>
     <div id="hub-msg" style="font-size:12.5px;color:#34d399;min-height:1em;margin-right:8px"></div>
-    <button class="hub-save" onclick="saveHub()">保存全部设置</button>
-    <button class="hub-close" onclick="closeHub()">返回工作台</button>
   </div>
   <div class="hub-layout">
     <nav class="hub-nav">
@@ -366,133 +590,210 @@ ul{list-style:none;overflow-y:auto}
       <a data-go="sec-qq">QQ</a>
       <a data-go="sec-cron">定时任务</a>
       <div class="hub-group">系统与扩展</div>
-      <a data-go="sec-usage">用量</a>
-      <a data-go="sec-mcp">MCP</a>
+      <a data-go="sec-storage" href="/storage/" target="_blank" rel="noopener">Agent 与文件</a>
+      <a data-go="sec-usage">花费</a>
+      <a data-go="sec-mcp">扩展能力</a>
       <a data-go="sec-about">关于</a>
     </nav>
     <div class="hub-body">
       <div class="hub-card" id="sec-persona">
         <h3>人设</h3>
-        <div class="hint">昵称与行为设定。改完保存，新对话即刻生效。</div>
-        <div class="field"><label>昵称</label><input type="text" id="cfg-persona-name"></div>
-        <div class="field"><label>人设提示词（{now} 会被替换为当前时间）</label><textarea id="cfg-persona-prompt"></textarea></div>
+        <div class="hint">这里决定它叫什么、怎么跟你说话。改完点下面「保存人设」就生效。<br>下面那几套是你存下来的设定，可以随手切换——比如工作用一套、闲聊用另一套。</div>
+        <div class="field"><label>它叫什么</label><input type="text" id="cfg-persona-name" placeholder="例如：小鱼"></div>
+        <div class="field"><label>它是谁、怎么说话（写得越具体，它越像你想要的样子）</label><textarea id="cfg-persona-prompt"></textarea></div>
+        <div class="hint" style="margin-top:-6px">小提示：正文里写 <code>{now}</code> 会自动换成当前时间，方便它知道「现在几点」。</div>
+        <div class="field">
+          <label>你存的几套设定</label>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button class="tiny-btn" onclick="saveCurrentAsPreset()">把现在这套存下来</button>
+            <button class="tiny-btn" onclick="newPreset()">新建一套</button>
+            <span id="preset-tip" class="test-out"></span>
+          </div>
+          <div id="persona-presets"></div>
+        </div>
+        <div class="hint" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
+          🔮 以后这里会有更多现成的设定可以直接拿来用——比如某些角色说话的味道、整套性格包之类。还没做，先占个位置。
+        </div>
+        <div class="card-actions">
+          <button class="save-btn" onclick="saveHub('persona',this)">保存人设</button>
+          <span class="save-msg" id="save-msg-persona"></span>
+        </div>
       </div>
       <div class="hub-card" id="sec-models">
         <h3>模型</h3>
-        <div class="hint">LiteLLM 模型串（provider/model）。「测试」按钮会真实调用一次验证连通性。</div>
-        <div class="field"><label>日常对话（便宜量大）<button class="tiny-btn" onclick="testModel('chat')">测试</button><div class="test-out" id="test-out-chat"></div></label><input type="text" id="cfg-model-chat"></div>
-        <div class="field"><label>视觉 / UI 定位（强视觉）<button class="tiny-btn" onclick="testModel('vision')">测试</button><div class="test-out" id="test-out-vision"></div></label><input type="text" id="cfg-model-vision"></div>
-        <div class="field"><label>回合后 Review（留空跟随对话模型）<button class="tiny-btn" onclick="testModel('review')">测试</button><div class="test-out" id="test-out-review"></div></label><input type="text" id="cfg-model-review" placeholder="留空跟随对话模型"></div>
+        <div class="hint">模型就是它的「脑子」——用哪家的、哪个型号，直接决定它有多聪明、一天花多少钱。<br>先点上面一张卡，再按「选供应商 → 选模型 → 填 Key」走一遍，最后点「测一下通不通」就知道成没成。</div>
+        <div id="model-slots" class="slot-grid"></div>
+        <div id="model-wizard"></div>
+        <div class="card-actions">
+          <button class="save-btn" onclick="saveHub('models',this)">保存模型设置</button>
+          <span class="save-msg" id="save-msg-models"></span>
+        </div>
       </div>
       <div class="hub-card" id="sec-memory">
-        <h3>记忆与自省</h3>
-        <div class="hint">记忆的容量与节奏：历史送多少、工具循环几轮、review 的强度。</div>
+        <h3>记忆</h3>
+        <div class="hint">这里调的是它「记多少、想多细」。默认值已经调好过，不确定就先别动——数字调太大会变慢也变贵。</div>
         <div class="field-row">
-          <div class="field"><label>历史消息条数上限</label><input type="number" id="cfg-limits-history"></div>
-          <div class="field"><label>工具循环轮数上限</label><input type="number" id="cfg-limits-steps"></div>
+          <div class="field"><label>最多记住多少条聊天记录</label><input type="number" id="cfg-limits-history"></div>
+          <div class="field"><label>一件事最多分几步做完</label><input type="number" id="cfg-limits-steps"></div>
         </div>
-        <div class="field"><label><span><input type="checkbox" id="cfg-review-enabled" style="accent-color:var(--accent)"> 回合后自动记忆整理（自进化）</span></label></div>
+        <div class="field"><label class="check-row"><input type="checkbox" id="cfg-review-enabled"><span class="switch"></span><span class="switch-text">聊完自动整理记忆（会越来越懂你，但每次多花一点）</span></label></div>
         <div class="field-row">
-          <div class="field"><label>review 重放消息数</label><input type="number" id="cfg-review-max-messages"></div>
-          <div class="field"><label>review 步数预算</label><input type="number" id="cfg-review-steps"></div>
+          <div class="field"><label>整理时回看多少条消息</label><input type="number" id="cfg-review-max-messages"></div>
+          <div class="field"><label>整理时最多花几步</label><input type="number" id="cfg-review-steps"></div>
         </div>
-        <div class="field"><label>写操作审批策略</label>
+        <div class="field"><label>它要改动东西时</label>
           <select id="cfg-approval-mode">
-            <option value="manual">manual：每次都问我</option>
-            <option value="smart">smart：辅助模型预筛（明显安全放行，拿不准仍问我）</option>
+            <option value="manual">每次都要问我</option>
+            <option value="smart">小事自己判断，拿不准再问我</option>
           </select>
+        </div>
+        <div class="card-actions">
+          <button class="save-btn" onclick="saveHub('memory',this)">保存记忆设置</button>
+          <span class="save-msg" id="save-msg-memory"></span>
         </div>
       </div>
       <div class="hub-card" id="sec-media">
         <h3>B站与转写</h3>
-        <div class="hint">B站 Cookie 决定字幕/音频流能否拿到；ASR 负责无字幕视频的语音转写。</div>
-        <div class="field"><label>B站 Cookie 状态</label><div id="bili-cookie-status" class="test-out"></div></div>
-        <div class="field"><label>SESSDATA<input type="text" id="cfg-bili-sessdata" placeholder="粘贴浏览器里的 SESSDATA 值"></label></div>
-        <div class="field"><label>bili_jct<input type="text" id="cfg-bili-jct" placeholder="（可选）"></label></div>
-        <div class="field"><label>buvid3<input type="text" id="cfg-bili-buvid3" placeholder="（可选）"></label></div>
-        <button class="tiny-btn" onclick="saveBiliCookies()">保存 Cookie</button>
-        <div class="field" style="margin-top:16px"><label>ASR 转写模型</label><select id="cfg-asr-model"><option>tiny</option><option>base</option><option>small</option><option>medium</option></select></div>
+        <div class="hint">想让小鱼帮你搬运 B 站视频，得先给它一个「登录凭证」——就相当于告诉它「这个账号是我」。<br>没有凭证也能用，但只能看到公开内容，字幕和音频大概率拿不到。</div>
+        <div class="note-box">
+          <div class="nb-title">凭证怎么拿</div>
+          <div class="nb-body">先在浏览器里登录 B 站，按 F12 打开开发者工具 → Application（应用）→ Cookies → bilibili.com，找到下面几项，把值复制过来。<br>只有 <b>SESSDATA</b> 是必需的；另外两项留空也能跑，但发评论、点赞之类的操作会失败。</div>
+        </div>
+        <div class="field"><label>当前状态</label><div id="bili-cookie-status" class="test-out"></div></div>
+        <div class="field"><label>SESSDATA（必需）<input type="text" id="cfg-bili-sessdata" placeholder="粘贴浏览器里的 SESSDATA 值"></label></div>
+        <div class="field"><label>bili_jct（可选，用来点赞/发评论）<input type="text" id="cfg-bili-jct" placeholder="（可留空）"></label></div>
+        <div class="field"><label>buvid3（可选，设备标识）<input type="text" id="cfg-bili-buvid3" placeholder="（可留空）"></label></div>
+        <button class="tiny-btn" onclick="saveBiliCookies()">保存凭证</button>
+        <h4>语音转文字</h4>
+        <div class="hint">视频没有字幕时，小鱼会把声音转成文字再理解。模型越大越准，也越慢越吃内存。</div>
+        <div class="field"><label>用多大的模型</label><select id="cfg-asr-model"><option>tiny</option><option>base</option><option>small</option><option>medium</option></select></div>
         <div class="field-row">
-          <div class="field"><label>ASR 设备</label><select id="cfg-asr-device"><option>cpu</option><option>cuda</option></select></div>
-          <div class="field"><label>计算精度</label><select id="cfg-asr-compute-type"><option>int8</option><option>float16</option></select></div>
+          <div class="field"><label>用哪个来算</label><select id="cfg-asr-device"><option>cpu</option><option>cuda</option></select></div>
+          <div class="field"><label>精度（低一点更快更省）</label><select id="cfg-asr-compute-type"><option>int8</option><option>float16</option></select></div>
+        </div>
+        <div class="card-actions">
+          <button class="save-btn" onclick="saveHub('media',this)">保存转写设置</button>
+          <span class="save-msg" id="save-msg-media"></span>
         </div>
       </div>
       <div class="hub-card" id="sec-browser">
         <h3>浏览器</h3>
-        <div class="hint">写操作（点击/输入）全部走确认流 + 每日写预算，防失控。</div>
-        <div class="field"><label><span><input type="checkbox" id="cfg-browser-headless" style="accent-color:var(--accent)"> 无头模式（关=你能看到它在干什么，推荐）</span></label></div>
+        <div class="hint">小鱼用浏览器时，每一下点击、每一次填表都会先问你；每天还有次数上限，防止它一个人点个不停。</div>
+        <div class="field"><label class="check-row"><input type="checkbox" id="cfg-browser-headless"><span class="switch"></span><span class="switch-text">后台运行（建议关掉——开着你能亲眼看见它在点什么）</span></label></div>
         <div class="field-row">
-          <div class="field"><label>动作慢放（毫秒）</label><input type="number" id="cfg-browser-slowmo"></div>
-          <div class="field"><label>每日写操作预算</label><input type="number" id="cfg-browser-budget"></div>
-          <div class="field"><label>确认等待上限（秒）</label><input type="number" id="cfg-browser-approval-timeout"></div>
+          <div class="field"><label>每步之间停多久（毫秒，慢一点更像人）</label><input type="number" id="cfg-browser-slowmo"></div>
+          <div class="field"><label>每天最多点几次</label><input type="number" id="cfg-browser-budget"></div>
+          <div class="field"><label>等你确认最多等几秒</label><input type="number" id="cfg-browser-approval-timeout"></div>
+        </div>
+        <div class="card-actions">
+          <button class="save-btn" onclick="saveHub('browser',this)">保存浏览器设置</button>
+          <span class="save-msg" id="save-msg-browser"></span>
         </div>
       </div>
       <div class="hub-card" id="sec-qq">
         <h3>QQ</h3>
-        <div class="hint">白名单外静默忽略；群里必须被 @ 才回应。改完到服务面板重启 QQ 通道生效。</div>
-        <div class="field"><label><span><input type="checkbox" id="cfg-qq-enabled" style="accent-color:var(--accent)"> QQ 通道启用（NapCat 需在运行）</span></label></div>
-        <div class="field"><label>NapCat 正向 WS 地址<input type="text" id="cfg-qq-ws-url"></label></div>
-        <div class="field"><label>NapCat access_token（可留空）<input type="text" id="cfg-qq-token"></label></div>
-        <div class="field"><label>私聊白名单（QQ 号，逗号分隔）<input type="text" id="cfg-qq-users" placeholder="10000000001"></label></div>
-        <div class="field"><label>群白名单（逗号分隔群号）<input type="text" id="cfg-qq-groups" placeholder="可选"></label></div>
-        <div class="field"><label>拟人回复延迟（秒，小 到 大）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"></label></div>
-        <div class="field"><label><input type="checkbox" id="cfg-qq-reply"> 群内回复近期机器人消息也可触发（仍需群白名单）</label></div>
-        <div class="field"><label><input type="checkbox" id="cfg-qq-proactive"> 启用所有者定时提醒（默认关闭，保存后立即生效）</label></div>
-        <div class="field"><label>所有者 QQ（须在私聊白名单内）<input type="number" id="cfg-qq-owner" min="0"></label></div>
-        <div class="field"><label>每日提醒尝试上限<input type="number" id="cfg-qq-limit" min="0" max="50"></label></div>
-        <div class="field"><label>安静时段起点<input type="time" id="cfg-qq-quiet-start"></label></div>
-        <div class="field"><label>安静时段终点（与起点相同表示不设安静时段）<input type="time" id="cfg-qq-quiet-end"></label></div>
-        <div class="field"><label>提醒时区<input type="text" id="cfg-qq-timezone" placeholder="Asia/Shanghai"></label></div>
-        <div class="muted" id="qq-policy-status"></div><button type="button" id="qq-proactive-stop">立即停止主动提醒</button>
+        <div class="hint">只有名单里的人能跟它说话，陌生人发消息它一律不理；在群里必须 @ 它才回应。<br>改完要去「服务」面板重启一次 QQ 通道才会生效。</div>
+        <div class="field"><label class="check-row"><input type="checkbox" id="cfg-qq-enabled"><span class="switch"></span><span class="switch-text">启用 QQ（需要 NapCat 在运行）</span></label></div>
+        <div class="field"><label>NapCat 连接地址<input type="text" id="cfg-qq-ws-url"></label></div>
+        <div class="field"><label>NapCat 访问令牌（可留空）<input type="text" id="cfg-qq-token"></label></div>
+        <div class="field"><label>允许私聊它的 QQ 号（逗号分隔）<input type="text" id="cfg-qq-users" placeholder="10000000001"></label></div>
+        <div class="field"><label>允许它待在哪些群（逗号分隔群号）<input type="text" id="cfg-qq-groups" placeholder="不填就只在私聊里工作"></label></div>
+        <div class="field"><label>回复间隔（秒，例如 1.0, 3.0——中间会随机）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"></label></div>
+        <div class="field"><label class="check-row"><input type="checkbox" id="cfg-qq-reply"><span class="switch"></span><span class="switch-text">群里别人接它的话，它也能接着说（仍需在上面的群名单里）</span></label></div>
+        <div class="field"><label class="check-row"><input type="checkbox" id="cfg-qq-proactive"><span class="switch"></span><span class="switch-text">让它定时提醒你（默认关闭，保存后立即生效）</span></label></div>
+        <div class="field"><label>你自己的 QQ（必须填在上面的名单里）<input type="number" id="cfg-qq-owner" min="0"></label></div>
+        <div class="field"><label>每天最多提醒几次<input type="number" id="cfg-qq-limit" min="0" max="50"></label></div>
+        <div class="field"><label>安静时段从<input type="time" id="cfg-qq-quiet-start"></label></div>
+        <div class="field"><label>安静时段到（和起点填一样 = 不设安静时段）<input type="time" id="cfg-qq-quiet-end"></label></div>
+        <div class="field"><label>按哪个时区算（默认跟这台电脑一致）<input type="text" id="cfg-qq-timezone" placeholder="Asia/Shanghai"></label></div>
+        <div class="muted" id="qq-policy-status"></div><button type="button" id="qq-proactive-stop">马上停止提醒</button>
+        <div class="card-actions">
+          <button class="save-btn" onclick="saveHub('qq',this)">保存 QQ 设置</button>
+          <span class="save-msg" id="save-msg-qq"></span>
+        </div>
       </div>
       <div class="hub-card" id="sec-cron">
         <h3>定时任务</h3>
-        <div class="hint">到点自动执行并投递；也可以直接对小鱼说"每天早上八点给我发B站日报"。心跳进程（omni-heartbeat）需在运行。</div>
+        <div class="hint">到点自己干活，做完把结果发给你。也可以直接跟小鱼说一句「每天早上八点给我发 B 站日报」，它自己就建好了，不用来这儿填表。</div>
         <div class="field-row">
-          <div class="field"><label>任务名（英文连字符）<input type="text" id="cronf-name" placeholder="morning-report"></label></div>
-          <div class="field"><label>每天定时 HH:MM<input type="text" id="cronf-daily" placeholder="08:30（与间隔二选一）"></label></div>
-          <div class="field"><label>时区<input type="text" id="cronf-zone" value="local" placeholder="Asia/Shanghai；local 为机器时区"></label></div>
-          <div class="field"><label>或间隔分钟<input type="number" id="cronf-every" placeholder="≥30"></label></div>
+          <div class="field"><label>任务名（英文，方便自己认）<input type="text" id="cronf-name" placeholder="morning-report"></label></div>
+          <div class="field"><label>每天几点（HH:MM）<input type="text" id="cronf-daily" placeholder="08:30（和右边二选一）"></label></div>
+          <div class="field"><label>按哪个时区（默认跟这台电脑一致）<input type="text" id="cronf-zone" value="local" placeholder="local"></label></div>
+          <div class="field"><label>或者每隔几分钟<input type="number" id="cronf-every" placeholder="至少 30"></label></div>
         </div>
-        <div class="field"><label>到点执行的指令（自包含）<textarea id="cronf-prompt" style="min-height:70px" placeholder="例：看B站热门榜前 10，挑 3 条我可能感兴趣的写一份简报"></textarea></label></div>
+        <div class="field"><label>到点让它做什么（写得越清楚，它干得越准）<textarea id="cronf-prompt" style="min-height:70px" placeholder="例：看B站热门榜前 10，挑 3 条我可能感兴趣的写一份简报"></textarea></label></div>
         <div class="field-row">
-          <div class="field"><label>投递 QQ（可选，须在白名单）<input type="text" id="cronf-qq" placeholder="10000000001"></label></div>
-          <div class="field"><label>注入技能（逗号分隔，可选）<input type="text" id="cronf-skills" placeholder="nightly-tidy"></label></div>
-          <div class="field"><label>输入来自任务（可选）<input type="text" id="cronf-ctx" placeholder="nightly-tidy"></label></div>
-          <div class="field"><label>源结果有效期（分钟）<input type="number" id="cronf-age" value="1440" min="1" max="10080"></label></div>
+          <div class="field"><label>结果发给哪个 QQ（可留空）<input type="text" id="cronf-qq" placeholder="10000000001"></label></div>
+          <div class="field"><label>用哪个技能（可留空）<input type="text" id="cronf-skills" placeholder="nightly-tidy"></label></div>
+          <div class="field"><label>接着上一个任务的结果做（可留空）<input type="text" id="cronf-ctx" placeholder="nightly-tidy"></label></div>
+          <div class="field"><label>上一步结果最多留多久（分钟）<input type="number" id="cronf-age" value="1440" min="1" max="10080"></label></div>
         </div>
         <button class="tiny-btn" id="cron-create-btn" onclick="createCron()">创建任务</button>
         <button class="tiny-btn hidden" id="cron-cancel-edit" onclick="cronCancelEdit()">取消编辑</button>
         <div id="cronf-msg" class="test-out"></div>
-        <h3 style="margin-top:18px">任务列表</h3>
+        <h4>已建的任务</h4>
         <div id="cron-list"></div>
-        <h3 style="margin-top:18px">执行历史</h3>
-        <div class="hint">最近的任务执行记录（成功与失败都记账，滚动保留 200 条）。</div>
+        <h4>跑过的记录</h4>
+        <div class="hint">成功失败都记，最近的留在上面。</div>
         <div id="cron-history"></div>
-        <h3 style="margin-top:18px">待投递（QQ 掉线时任务结果不丢）</h3>
-        <div class="hint">QQ 未连接时任务结果进入队列，心跳恢复后每分钟自动补投；「发送结果未知」的条目<b>不会自动重发</b>——手动重试有重复发送风险，先确认对方没收到再点。</div>
+        <h4>还没发出去的结果</h4>
+        <div class="hint">QQ 掉线的时候结果不会丢，先存着，等连上自动补发。<br>标着「不知道发没发出去」的那几条<b>不会自动重发</b>——万一对方其实收到了，重发就成了两条。先确认一下再手动点。</div>
         <div id="cron-outbox"></div>
       </div>
       <div class="hub-card" id="sec-usage">
-        <h3>模型用量与费用</h3>
-        <div class="hint">每日额度保护钱包：超限会在发请求前被拦。金额为 0 或 null 不是一回事——null 表示这笔算不出来（单价未知），按保守记账。</div>
+        <h3>花了多少钱</h3>
+        <div class="hint">每次跟模型说话都要花钱，这里能看到明细。设了每日上限的话，超了它就不往下跑了，会先来找你。</div>
         <div id="usage-today" style="margin-top:10px"></div>
-        <h4 style="margin-top:16px">按用途汇总（最近 7 天）</h4>
+        <h4 style="margin-top:16px">这几天都花在哪了（最近 7 天）</h4>
         <div id="usage-purpose"></div>
-        <h4 style="margin-top:16px">最近调用流水</h4>
+        <h4 style="margin-top:16px">最近几十次调用</h4>
         <div id="usage-calls"></div>
-        <h4 style="margin-top:16px">模型能力声明（能力不声明就不放行）</h4>
+        <h4 style="margin-top:16px">各个模型会什么</h4>
+        <div class="hint">没在这张表里登记过的能力，小鱼不会去用——所以如果某个模型明明会看图却不认，多半是这里漏了。</div>
         <div id="usage-models"></div>
       </div>
       <div class="hub-card" id="sec-mcp">
-        <h3>MCP 外部工具</h3>
-        <div class="hint">本地 stdio 服务接入的外部工具：用户配置的只读白名单自动放行，其余一律人工确认——服务自报的"安全"标注不作数。「查看工具」会真实启动该服务做一次只读发现。配置方法见 docs/MCP.md（config.yaml 的 mcp 段）。</div>
-        <div id="mcp-list" style="margin-top:10px"></div>
+        <h3>扩展能力</h3>
+        <div class="hint">
+          扩展是给小鱼「加装新本事」的东西——装上之后它就能用别人做好的工具，比如查资料库、读表格、连你公司里的系统。<br>
+          每个扩展装好会自己连上，你可以随时点「看看能做什么」让它报一遍家底。
+        </div>
+        <div class="note-box">
+          <div class="nb-title">安全规则只有一条</div>
+          <div class="nb-body">只看不改的操作，小鱼自己就能用，不打扰你；<b>凡是会改动东西的，一定先问你</b>。至于哪些算安全，由小鱼按你确认过的清单判断——扩展自己说「我很安全」是不作数的。</div>
+        </div>
+        <div id="mcp-list" style="margin-top:14px"></div>
+      </div>
+      <div class="hub-card" id="sec-storage">
+        <h3>Agent 与文件</h3>
+        <div class="hint">在这里统一管理 Agent 空间根目录、记忆/技能/产物等路径，以及当前公开文件区。目录修改只影响下次启动，旧数据不会自动搬移。</div>
+        <div class="note-box">
+          <div class="nb-title">路径与文件安全</div>
+          <div class="nb-body">文件区只开放当前 Agent 的公开目录；文本预览有大小上限，二进制文件只显示元数据；上传、建目录和备份都需要明确操作。</div>
+        </div>
+        <div class="storage-embed-shell">
+          <iframe id="storage-frame" title="Agent 与文件设置" loading="lazy" data-src="/storage/?embed=1"></iframe>
+        </div>
       </div>
       <div class="hub-card" id="sec-about">
         <h3>关于</h3>
-        <div class="hint">OmniOperator · 像人一样生活在平台里的具身智能体。架构与红线见 docs/ARCHITECTURE.md；<br>一切花钱/发布/群发/加好友操作必须经你确认后才执行。</div>
-        <button class="tiny-btn" onclick="runTests()">运行后端自检（uv run pytest）</button>
+        <div class="hint">OmniOperator · 像人一样生活在平台里的智能体。</div>
+        <div class="note-box">
+          <div class="nb-title">它是什么</div>
+          <div class="nb-body">它住在你这台电脑上，有自己的号码、自己的记忆，会慢慢学会你交代过的事。你说过的话它会记住，下次不用重复；重复的活儿它会自己编成技能，越用越顺。</div>
+        </div>
+        <div class="note-box" style="margin-top:10px">
+          <div class="nb-title">它不会自己做的事</div>
+          <div class="nb-body"><b>花钱、发布、群发、加好友</b>——这四件事它必须经过你点头。就算它觉得再合理，也会停下来等你确认。</div>
+        </div>
+        <h4>维护与数据</h4>
+        <div class="hint">诊断只读取状态，不启动服务。备份会包含私人记忆；配置中的密钥会被脱敏，浏览器登录态不会包含。</div>
+        <div class="maintenance-actions">
+          <button class="tiny-btn" onclick="showDoctor()">只读诊断</button>
+          <button class="tiny-btn" onclick="createBackup()">创建备份（含私人记忆）</button>
+          <button class="tiny-btn" onclick="runTests()">检查运行是否正常</button>
+        </div>
+        <pre id="doctor-result" class="muted maintenance-output" style="max-height:260px;overflow:auto;white-space:pre-wrap"></pre>
         <div id="test-run-out" class="test-out" style="margin-top:8px"></div>
       </div>
     </div>
@@ -502,14 +803,43 @@ ul{list-style:none;overflow-y:auto}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // 消息正文：先转义，再把 [artifact:id] 标记渲染成内联图（加载失败即显示 alt 占位）
-const renderContent=s=>esc(s).replace(/\[artifact:([0-9a-f]{8,32})\]/g,
-  (m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" onclick="viewArtifact('${id}')">`);
+const renderArtifact=(m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" onclick="viewArtifact('${id}')">`;
+// 消息正文：md=true（助手回复）走轻量 Markdown（内部先整体转义，XSS 安全）；
+// 用户消息保持逐字转义，避免把用户打的星号/下划线当格式。最后统一渲染 [artifact:id] 内联图。
+const renderContent=(s,md)=>{
+  const text=String(s);
+  return (md&&window.OmniMarkdown?OmniMarkdown.render(text):esc(text)).replace(/\[artifact:([0-9a-f]{8,32})\]/g,renderArtifact);
+};
+let PERSONA_NAME='小鱼'; // 人设昵称：loadState 时取自 /api/state（与后端默认一致）
+// 消息卡片的头与时间：时间戳来自 messages.created_at（本地时区 ISO），解析失败就不显示
+const fmtTime=s=>{if(!s)return '';const d=new Date(s);return Number.isNaN(d.getTime())?'':d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false})};
+// 会话列表的相对时间（数据来自 sessions.created_at，与原型 meta 行同款式）
+const relTime=iso=>{
+  if(!iso)return '';
+  const d=new Date(iso);if(Number.isNaN(d.getTime()))return '';
+  const s=(Date.now()-d.getTime())/1000;
+  if(s<60)return '刚刚';
+  if(s<3600)return Math.floor(s/60)+' 分钟前';
+  if(s<86400)return Math.floor(s/3600)+' 小时前';
+  if(s<172800)return '昨天';
+  return Math.floor(s/86400)+' 天前';
+};
+const A_AVATAR='<svg viewBox="0 0 24 24" fill="none"><path d="M2.6 12c2.9-4.7 6.7-6.9 10.6-6.9 2.6 0 4.6.9 6.2 2.6-1.7.9-2.7 2.2-2.7 4.3s1 3.4 2.7 4.3c-1.6 1.7-3.6 2.6-6.2 2.6-3.9 0-7.7-2.2-10.6-6.9Z" fill="rgba(4,18,26,.84)"/><circle cx="8.6" cy="10.6" r="1.15" fill="#eafcfb"/></svg>';
+const aHead=meta=>`<div class="a-head"><div class="a-avatar">${A_AVATAR}</div><span class="a-name">${esc(PERSONA_NAME)}</span>`+(meta?`<span class="a-meta">${meta}</span>`:'')+`<div class="spacer"></div><button class="copy-msg" title="复制这条消息">⧉</button></div>`;
+// 右栏 tab 徽标：只显示真实计数（0 就摘掉徽标，不摆假数字）
+function setTabBadge(tab,n){
+  const b=document.querySelector(`.tabs button[data-tab="${tab}"]`);if(!b)return;
+  let tag=b.querySelector('.badge');
+  if(!n){if(tag)tag.remove();return}
+  if(!tag){tag=document.createElement('span');tag.className='badge';b.append(tag)}
+  tag.textContent=n;
+}
 let currentSession=null,busy=false,selectionVersion=0,messagesVersion=0;
 const drafts=new Map();
 function showSession(id){
   drafts.set(currentSession,$('#input').value);currentSession=id;
   $('#input').value=drafts.get(id)||'';
-  $('#messages').innerHTML='<div class="empty">读取会话…</div>';syncActiveRun();
+  $('#messages').innerHTML='<div class="chat-loading"><span></span><span></span><span></span><small>正在读取会话…</small></div>';syncActiveRun();
   if(window.matchMedia('(max-width:760px)').matches)document.querySelector('[data-pane="chat"]')?.click();
 }
 
@@ -526,22 +856,66 @@ $('#qq-proactive-stop').onclick=async()=>{
   }catch(e){$('#qq-policy-status').textContent=e.message;}
 };
 
+const CTX_COLORS={system:'var(--seed-accent)',tools:'var(--seed-accent2)',memory:'#fcd34d',conversation:'var(--ok)'};
+const fmtTokens=n=>{
+  n=Number(n)||0;
+  if(n>=1000)return (n/1000).toFixed(n>=10000?1:1).replace(/\.0$/,'')+'k';
+  return String(n);
+};
+function renderContextUsage(ctx,model){
+  if(!ctx){
+    $('#context-percent').textContent='不可用';
+    $('#context-usage .ctx-val').innerHTML='—<span> / —</span>';
+    $('#context-usage .ctx-note').textContent='没有取得上下文用量信息。';
+    return;
+  }
+  const used=Number(ctx.used_tokens)||0,max=Number(ctx.max_tokens)||0;
+  const pct=max?Math.min(100,used/max*100):null;
+  $('#context-percent').textContent=pct==null?fmtTokens(used)+' tokens':pct.toFixed(pct<10?1:0)+'%';
+  $('#context-usage .ctx-val').innerHTML=`${fmtTokens(used)}<span> / ${max?fmtTokens(max):'未声明'}</span>`;
+  const segments=(ctx.segments||[]).map(seg=>{
+    const tokens=Number(seg.tokens)||0;
+    const width=max?Math.min(100,tokens/max*100):(used?tokens/used*100:0);
+    return `<span class="ctx-seg" data-key="${esc(seg.key)}" style="width:${width.toFixed(2)}%;--c:${CTX_COLORS[seg.key]||'var(--dim)'}" title="${esc(seg.label)} · ${fmtTokens(tokens)} tokens"></span>`;
+  }).join('');
+  $('#context-usage .ctx-bar').innerHTML=segments;
+  $('#context-usage .ctx-bar').setAttribute('aria-label',`上下文已用约 ${fmtTokens(used)}${max?' / '+fmtTokens(max):''} tokens`);
+  $('#context-usage .ctx-legend').innerHTML=(ctx.segments||[]).map(seg=>
+    `<span class="lg" style="--c:${CTX_COLORS[seg.key]||'var(--dim)'}"><i></i>${esc(seg.label)} <b>${fmtTokens(seg.tokens)}</b></span>`).join('');
+  $('#context-usage .ctx-note').textContent=`估算值 · ${ctx.history_count||0}/${ctx.max_history_messages||0} 条历史进入上下文 · 共 ${ctx.message_count||0} 条消息`;
+  $('#status').innerHTML=`模型 <b>${esc(String(model||'—').split('/').pop())}</b>`;$('#status').title='上下文 tokens 按字符估算，实际计费以模型返回为准';
+}
+async function refreshContextUsage(){
+  try{const s=await api('/api/state');renderContextUsage(s.context,s.model)}catch(_){/* 用量读取失败不阻塞聊天 */}
+}
 async function loadState(){
   const s=await api('/api/state');if(currentSession==null)currentSession=s.session_id;
+  if(s.persona)PERSONA_NAME=s.persona;
   $('#chips').innerHTML=`<span class="chip">${esc(s.persona)}</span><span class="chip">${esc(s.model)}</span>`+
     `<span class="chip" id="cost-chip" title="今日模型花费（点设置中心「用量」看明细）">…</span>`+
     (s.fts_enabled?'<span class="chip ok">FTS5</span>':'<span class="chip">FTS ✗</span>')+
     (s.review_enabled?'<span class="chip ok">自进化 Review</span>':'');
   updateCostChip();
-  $('#status').innerHTML=`当前模型<br><b>${esc(s.model)}</b><br>能力域<br><b>${esc(s.toolsets.join(' / '))}</b><br>用户档案 <b>${s.profile.used}/${s.profile.max}</b> 字符`;
+  renderContextUsage(s.context,s.model);
   $('#tools').innerHTML=s.tools.map(t=>
     `<li><span class="tool-name" title="${esc(t.description||t.name)}">${esc(t.name)}</span><span class="tool-set">${esc(t.toolset)}·${esc(t.risk)}</span></li>`).join('');
 }
 
+let sessionsCache=[];
+// 会话行渲染独立出来：搜索框只过滤缓存，不发请求
+function renderSessions(){
+  const q=($('#session-q')?.value||'').trim().toLowerCase();
+  const rows=sessionsCache.filter(x=>!q||String(x.title).toLowerCase().includes(q));
+  $('#sessions').innerHTML=rows.length?rows.map(x=>
+    `<li class="${x.id===currentSession?'active':''}" onclick="selectSession(${x.id})">`+
+    `<div class="sess-main"><div class="s-title">${esc(x.title)}</div>`+
+    `<div class="s-meta"><span class="material-icons">schedule</span>${relTime(x.created_at)}<span class="s-id">#${x.id}</span></div></div></li>`).join('')
+    :'<li class="empty">没有匹配的会话</li>';
+}
 async function loadSessions(){
   const d=await api('/api/sessions');
-  $('#sessions').innerHTML=d.sessions.map(x=>
-    `<li class="${x.id===currentSession?'active':''}" onclick="selectSession(${x.id})"><span class="s-title">${esc(x.title)}</span><span class="s-id">#${x.id}</span></li>`).join('');
+  sessionsCache=d.sessions;
+  renderSessions();
 }
 window.selectSession=async id=>{
   const version=++selectionVersion;
@@ -552,15 +926,38 @@ window.selectSession=async id=>{
   }catch(e){if(version===selectionVersion)OmniUI.notify(e.message,'error')}
 };
 
+const CHAT_SUGGESTIONS=[
+  ['整理今天的记忆','帮我回顾并整理今天的记忆，重要的事记下来。'],
+  ['安排一个定时任务','帮我创建一个每天提醒我检查待办的定时任务。'],
+  ['看看系统能力','现在有哪些能力可用？有哪些需要我注意的限制？'],
+  ['打开设置中心','']
+];
+function chatEmptyHTML(){
+  const cards=CHAT_SUGGESTIONS.map(([label,prompt],i)=>
+    `<button type="button" class="chat-suggestion" onclick="${prompt?`fillSuggestion(${i})`:`openHub()`}">`+
+    `<span class="material-icons">${['auto_awesome','schedule','fact_check','tune'][i]}</span>`+
+    `<span><b>${esc(label)}</b><small>${prompt?'填入一条示例指令':'配置人设、模型与通道'}</small></span></button>`).join('');
+  return `<div class="chat-empty"><div class="chat-empty-mark"><span class="material-icons">forum</span></div>`+
+    `<h2>从这里开始和小鱼对话</h2><p>可以直接描述任务，也可以丢链接、说排程需求。涉及写入、发布和设备操作时，会先请你确认。</p>`+
+    `<div class="chat-suggestions">${cards}</div></div>`;
+}
+window.fillSuggestion=i=>{const row=CHAT_SUGGESTIONS[i];if(!row)return;const input=$('#input');input.value=row[1];input.focus();input.dispatchEvent(new Event('input'))};
+
 async function loadMessages(){
   if(currentSession==null)return;
   const sid=currentSession,version=++messagesVersion;
   const d=await api(`/api/sessions/${sid}/messages`);
   if(sid!==currentSession||version!==messagesVersion)return;
-  $('#messages').innerHTML=d.messages.length?d.messages.map(m=>
-    `<div class="msg ${m.role}"><div class="bubble">${renderContent(m.content)}</div>`+
-    `<button class="copy-msg" data-copy="1" title="复制这条消息">⧉</button></div>`).join(''):'<div class="empty">这个会话还没有消息</div>';
+  $('#messages').innerHTML=d.messages.length?d.messages.map(m=>{
+    const t=fmtTime(m.created_at);
+    return m.role==='assistant'
+      ? `<div class="msg assistant" data-at="${esc(m.created_at||'')}">${aHead(t)}<div class="bubble">${renderContent(m.content,true)}</div></div>`
+      : `<div class="msg user"><div class="bubble">${renderContent(m.content)}</div>`+
+        `<div class="turn-foot">${t?`<span class="ts">${t}</span>`:''}<button class="copy-msg" title="复制这条消息">⧉</button></div></div>`;
+  }).join(''):chatEmptyHTML();
   scrollChat();
+  attachHistoryRuns(sid,version);
+  refreshContextUsage();
 }
 $('#messages').addEventListener('click',async e=>{
   const btn=e.target.closest('.copy-msg');
@@ -590,51 +987,126 @@ window.updateCostChip=async()=>{
   }catch(e){chip.textContent='今日 ？'}
 };
 
+// 用途在账本里是英文键名，界面上必须翻成人话
+const PURPOSE_CN={chat:'聊天',review:'整理记忆',vision:'看图',image:'画图',title:'起标题',
+  summary:'压缩旧对话',approval:'判断要不要问你',cron:'定时任务',embedding:'查记忆',
+  skill:'编技能',subagent:'分头干活',test:'测连通'};
+const purposeCN=p=>PURPOSE_CN[p]||p;
 async function loadUsage(){
   const d=await api('/api/llm/usage?days=7&limit=15');
   const t=d.today;
   const failures=(d.summary.by_purpose||[]).reduce((s,p)=>s+(p.failures||0),0);
   $('#usage-today').innerHTML=
-    `<div class="cron-row"><span class="c-name">今日 ${usd(t.used_micro)}</span>`+
-    `<span class="c-sched">${d.summary.calls||0} 次（7 天）${d.summary.unknown_cost?' · '+d.summary.unknown_cost+' 笔算不出费用':''}${failures?' · '+failures+' 次失败':''}</span>`+
-    `<span>${t.limit_micro!=null?'剩余 '+usd(t.remaining_micro):'未设上限（只记账不拦截）'}</span></div>`+
-    (d.per_run_limit_micro?`<div class="hint" style="margin-top:6px">单回合上限 ${usd(d.per_run_limit_micro)}（父子运行共享）</div>`:'');
+    `<div class="cron-row"><span class="c-name">今天花了 ${usd(t.used_micro)}</span>`+
+    `<span class="c-sched">最近 7 天说了 ${d.summary.calls||0} 次${d.summary.unknown_cost?' · 有 '+d.summary.unknown_cost+' 次算不出钱':''}${failures?' · '+failures+' 次没成功':''}</span>`+
+    `<span>${t.limit_micro!=null?'还能花 '+usd(t.remaining_micro):'没设上限（只记账，不拦你）'}</span></div>`+
+    (d.per_run_limit_micro?`<div class="hint" style="margin-top:6px">一轮对话最多花 ${usd(d.per_run_limit_micro)}，到点就停</div>`:'');
   $('#usage-purpose').innerHTML=d.summary.by_purpose.length?d.summary.by_purpose.map(p=>
-    `<div class="cron-row"><span class="c-name">${esc(p.purpose)}</span>`+
-    `<span class="c-sched">${p.calls} 次 · ${p.failures?p.failures+' 失败 · ':''}${p.unknown_cost?p.unknown_cost+' 笔未知价 · ':''}${usd(p.cost_micro)}</span>`+
-    `</div>`).join(''):'<div class="empty">最近 7 天没有调用</div>';
+    `<div class="cron-row"><span class="c-name">${esc(purposeCN(p.purpose))}</span>`+
+    `<span class="c-sched">${p.calls} 次 · ${p.failures?p.failures+' 次没成功 · ':''}${p.unknown_cost?p.unknown_cost+' 次算不出钱 · ':''}${usd(p.cost_micro)}</span>`+
+    `</div>`).join(''):'<div class="empty">最近 7 天没花过钱</div>';
   $('#usage-calls').innerHTML=d.calls.length?d.calls.map(c=>
     `<div class="cron-row"><span class="c-name" style="flex:0 0 auto">${c.outcome==='ok'?'✅':'❌'}</span>`+
-    `<span class="c-sched">${esc((c.model||'').split('/').pop())} · ${esc(c.purpose)} · ${(c.prompt_tokens||0)+(c.completion_tokens||0)} tok${c.attempts>1?' · 重试'+c.attempts:''}</span>`+
-    `<span style="color:var(--dim);font-size:11.5px">${c.cost_known?usd(c.cost_micro):'价格未知'}</span></div>`).join('')
-    :'<div class="empty">还没有调用记录</div>';
+    `<span class="c-sched">${esc((c.model||'').split('/').pop())} · ${esc(purposeCN(c.purpose))} · 约 ${(c.prompt_tokens||0)+(c.completion_tokens||0)} 字${c.attempts>1?' · 重试了'+c.attempts+'次':''}</span>`+
+    `<span style="color:var(--dim);font-size:11.5px">${c.cost_known?usd(c.cost_micro):'这次算不出钱'}</span></div>`).join('')
+    :'<div class="empty">还没花过钱</div>';
   const models=Object.entries(d.models||{});
   $('#usage-models').innerHTML=models.length?models.map(([name,cap])=>
     `<div class="cron-row"><span class="c-name" style="overflow:hidden;text-overflow:ellipsis">${esc(name)}</span>`+
-    `<span class="c-sched">${cap.vision?'视觉 ':''}${cap.tools?'工具 ':''}${cap.stream?'流式 ':''}${cap.context_tokens?cap.context_tokens+' ctx':''}</span>`+
-    `<span>${cap.input_usd_per_m!=null?'$'+cap.input_usd_per_m+'/M in':''}</span></div>`).join('')
-    :'<div class="empty">没有能力声明（默认：支持工具、不支持视觉）</div>';
+    `<span class="c-sched">${cap.vision?'会看图 ':''}${cap.tools?'会调工具 ':''}${cap.stream?'边打边显示 ':''}${cap.context_tokens?'一次能读 '+cap.context_tokens+' 字':''}</span>`+
+    `<span style="color:var(--dim);font-size:11.5px">${cap.input_usd_per_m!=null?'每百万字 $'+cap.input_usd_per_m:''}</span></div>`).join('')
+    :'<div class="empty">还没登记任何模型（默认：会用工具、不会看图）</div>';
 }
 
 // ---------- 运行进度可视化：等待回复期间轮询本会话进行中的 run（D09 端点，只读） ----------
 let runWatch=null; // {timer, runId, seq, polling}：轮询器；chat 返回/出错即停
 
-function renderRunEvent(ev){
-  const d=ev.data||{};
-  switch(ev.kind){
-    case 'model_start':return `🧠 调用模型（第 ${d.step} 步）`;
-    case 'model_end':return d.model?`🧠 ${d.model} 返回`:'🧠 模型返回';
-    case 'tool':return `🔧 ${d.name}${d.status&&d.status!=='ok'?' · '+d.status:''}`;
-    case 'context_summary':return '📜 旧历史已压缩为摘要';
-    case 'image_attached':return `🖼 已把截图发给模型（${d.width}x${d.height}）`;
-    case 'final_call':return '🏁 步数预算用尽，收敛最终回答';
-    case 'budget':return d.cost_micro!=null?`💰 本回合 $${(d.cost_micro/1e6).toFixed(4)}`:'💰 已记账';
-    case 'answer':return '✅ 回答完成';
-    case 'cancelled':return '✋ 已取消';
-    case 'budget_blocked':return `⛔ 预算拦截：${d.message||''}`;
-    case 'failed':return `❌ ${d.error||'失败'}`;
-    default:return `· ${ev.kind}`;
+// ---------- 运行中间过程（原型 scaffolds）：一次"问—想—做—答"的调用链卡片 ----------
+// model_start/model_end 合并成一行；run_started 不单列。可展开的行后跟 .scaf-out（CSS 相邻选择器）
+const scafDur=ms=>ms==null?'':ms>=1000?(ms/1000).toFixed(1)+'s':Math.round(ms)+'ms';
+const scafNote=(icon,text,cls='done')=>`<div class="scaf ${cls}"><span class="scaf-glyph"><span class="material-icons">${icon}</span></span><span class="scaf-label">${esc(text)}</span></div>`;
+function scaffoldHTML(events,opts={}){
+  const live=!!opts.live,openSet=opts.openSet||null,rows=[];
+  // 开关行：链的折叠/展开由容器 .scaffolds.open 控制（运行中默认展开，历史默认折叠）
+  const steps=events.filter(e=>e.kind==='model_end').length;
+  const tools=events.filter(e=>e.kind==='tool').length;
+  rows.push(`<div class="scaf-toggle" onclick="toggleChain(this)"><span class="material-icons">${live?'manage_history':'manage_search'}</span><b>调用过程</b><span class="scaf-toggle-meta">· ${steps||'…'} 步${tools?` · ${tools} 个工具`:''}</span><span class="chev"><span class="material-icons">chevron_right</span></span></div>`);
+  for(let i=0;i<events.length;i++){
+    const ev=events[i],d=ev.data||{};
+    if(ev.kind==='model_start'){
+      const end=events.slice(i+1).find(e=>e.kind==='model_end');
+      const info=end?(end.data||{}):{};
+      const out=['第 '+(d.step||'?')+' 步模型调用'+(info.model?' · '+(String(info.model).split('/').pop()):'')];
+      if(info.prompt_tokens!=null||info.completion_tokens!=null)out.push('输入 '+(info.prompt_tokens||0)+' / 输出 '+(info.completion_tokens||0)+' 字');
+      if(info.cost_micro!=null)out.push('$'+(info.cost_micro/1e6).toFixed(4));
+      if(Array.isArray(info.tool_calls)&&info.tool_calls.length)out.push('决定调用：'+info.tool_calls.join('、'));
+      const open=openSet&&openSet.has('m'+ev.seq)?' open':'';
+      rows.push(`<div class="scaf ${live&&!end?'run':'done'}${open}" data-k="m${ev.seq}" onclick="toggleScaf(this)"><span class="scaf-glyph"><span class="material-icons">${live&&!end?'progress_activity':'check'}</span></span><span class="scaf-label">模型调用<b>第 ${d.step||'?'} 步</b></span><span class="scaf-arg">${end?'返回 '+(info.text_chars||0)+' 字':'思考中…'}</span><span class="scaf-chev"><span class="material-icons">chevron_right</span></span></div>`);
+      if(end||!live)rows.push(`<div class="scaf-out">${esc(out.join('\n'))}</div>`);
+      continue;
+    }
+    if(ev.kind==='model_end')continue; // 已并入模型调用行
+    if(ev.kind==='tool'){
+      const st=d.status||'ok';
+      const glyph=st==='ok'?'check':st==='error'?'close':st==='denied'?'block':st==='cancelled'?'do_not_disturb':'help';
+      const out=['参数：'+(d.args||'（无）')];
+      if(d.excerpt)out.push('结果：'+d.excerpt);
+      if(d.verification)out.push('回读校验：'+d.verification);
+      if(d.error_code)out.push('错误码：'+d.error_code);
+      if(d.side_effect_state&&d.side_effect_state!=='none')out.push('副作用状态：'+d.side_effect_state);
+      if(d.artifacts&&d.artifacts.length)out.push('产物：'+d.artifacts.join('、'));
+      const open=openSet&&openSet.has('t'+ev.seq)?' open':'';
+      rows.push(`<div class="scaf ${st==='ok'?'done':'fail'}${open}" data-k="t${ev.seq}" onclick="toggleScaf(this)"><span class="scaf-glyph"><span class="material-icons">${glyph}</span></span><span class="scaf-label"><b>${esc(d.name||'?')}</b></span><span class="scaf-arg">${esc(d.args||'')}</span><span class="scaf-time">${scafDur(d.elapsed_ms)}</span><span class="scaf-chev"><span class="material-icons">chevron_right</span></span></div>`);
+      rows.push(`<div class="scaf-out">${esc(out.join('\n'))}</div>`);
+      continue;
+    }
+    switch(ev.kind){
+      case 'context_summary':rows.push(scafNote('compress','旧历史已压缩为摘要'));break;
+      case 'image_attached':rows.push(scafNote('image',`截图已发给模型（${d.width||'?'}x${d.height||'?'}）`));break;
+      case 'final_call':rows.push(scafNote('flag','步数预算用尽，收敛最终回答'));break;
+      case 'budget':rows.push(`<div class="scaf done"><span class="scaf-glyph"><span class="material-icons">savings</span></span><span class="scaf-label">本回合花费</span><span class="scaf-arg">${d.cost_micro!=null?'$'+(d.cost_micro/1e6).toFixed(4):'已记账'}</span></div>`);break;
+      case 'answer':rows.push(scafNote('task_alt','回答完成'));break;
+      case 'cancelled':rows.push(scafNote('do_not_disturb_on','已取消'));break;
+      case 'failed':rows.push(`<div class="scaf fail"><span class="scaf-glyph"><span class="material-icons">error</span></span><span class="scaf-label">回合失败</span><span class="scaf-arg">${esc(d.error||'')}</span></div>`);break;
+      case 'budget_blocked':rows.push(`<div class="scaf fail"><span class="scaf-glyph"><span class="material-icons">block</span></span><span class="scaf-label">预算拦截</span><span class="scaf-arg">${esc(d.message||'')}</span></div>`);break;
+      case 'run_started':break;
+      default:rows.push(scafNote('fiber_manual_record',ev.kind));break;
+    }
   }
+  return rows.join('');
+}
+window.toggleScaf=el=>el.classList.toggle('open');
+window.toggleChain=el=>{const box=el.closest('.scaffolds');if(box)box.classList.toggle('open')};
+// 历史挂链：把每个 run 的调用链挂到它开始后出现的第一条助手消息上（事件持久化在服务端，随时回放）
+const runChainCache=new Map(); // run_id -> events：切会话不重复拉
+async function attachHistoryRuns(sid,version){
+  try{
+    const d=await api(`/api/runs?session_id=${sid}&limit=12`);
+    if(sid!==currentSession||version!==messagesVersion)return;
+    const runs=[...d.runs].sort((a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||'')));
+    const msgs=[...document.querySelectorAll('#messages .msg.assistant')];
+    const claimed=new Set();
+    for(const r of runs){
+      const target=msgs.find(el=>!claimed.has(el)&&el.dataset.at&&el.dataset.at>=(r.created_at||''));
+      if(!target)continue;
+      claimed.add(target);
+      let events=runChainCache.get(r.run_id);
+      if(!events){
+        const ev=await api(`/api/runs/${r.run_id}/events?after=0`);
+        events=ev.events;runChainCache.set(r.run_id,events);
+        if(sid!==currentSession||version!==messagesVersion)return;
+      }
+      const steps=events.filter(e=>e.kind==='model_end').length;
+      const secs=r.created_at&&r.ended_at?Math.max(0,Math.round((new Date(r.ended_at)-new Date(r.created_at))/1000)):null;
+      const stat={done:'',failed:' · ❌ 失败',cancelled:' · ✋ 已取消',interrupted:' · ⚠ 中断'}[r.status]||'';
+      if(steps){const meta=target.querySelector('.a-meta');if(meta)meta.textContent+=` · ${steps} 步${secs!=null?' · '+secs+'s':''}${stat}`}
+      if(events.length){
+        const box=document.createElement('div');box.className='scaffolds';
+        box.innerHTML=scaffoldHTML(events);
+        target.insertBefore(box,target.querySelector('.bubble'));
+      }
+    }
+  }catch(e){/* 调用链是附加信息，拉不到不影响正文 */}
 }
 
 function syncActiveRun(){
@@ -670,9 +1142,17 @@ async function pollRunProgress(watch){
     stop?.classList.remove('hidden');
     const ev=await api(`/api/runs/${active.run_id}/events?after=${watch.seq}`);
     if(runWatch!==watch||currentSession!==watch.sid||!feed.isConnected)return;
-    if(ev.events.length)feed.classList.remove('hidden');
-    for(const e of ev.events){watch.seq=e.seq;const line=document.createElement('div');line.className='feed-line';line.textContent=renderRunEvent(e);feed.appendChild(line)}
-    feed.scrollTop=feed.scrollHeight;
+    if(ev.events.length){
+      watch.events.push(...ev.events);
+      watch.seq=ev.events[ev.events.length-1].seq;
+      feed.classList.remove('hidden');
+      // 实况链每秒整体重建：先把用户展开过的行记下来，重建后回放——
+      // 否则展开状态每秒被清掉，看起来就是"卡住、只显示一半"
+      const openSet=new Set([...feed.querySelectorAll('.scaf.open')].map(el=>el.dataset.k).filter(Boolean));
+      feed.innerHTML=scaffoldHTML(watch.events,{live:true,openSet});
+      // 用户正开着某行看细节时不再强制滚到底，别把人正在读的内容顶走
+      if(!openSet.size)feed.scrollTop=feed.scrollHeight;
+    }
   }catch(e){/* 进度读取不重放模型请求。 */}finally{watch.polling=false}
 }
 
@@ -688,13 +1168,14 @@ async function sendMessage(){
   const sid=currentSession,version=selectionVersion;messagesVersion++;
   busy=true;$('#send').disabled=true;$('#send').textContent='思考中…';box.value='';drafts.delete(sid);
   $('#messages').insertAdjacentHTML('beforeend',
-    `<div class="msg user"><div class="bubble">${esc(text)}</div></div>`+
-    `<div class="msg assistant" id="thinking"><div class="bubble thinking">`+
+    `<div class="msg user"><div class="bubble">${esc(text)}</div>`+
+    `<div class="turn-foot"><span class="ts">${fmtTime(new Date().toISOString())}</span><button class="copy-msg" title="复制这条消息">⧉</button></div></div>`+
+    `<div class="msg assistant" id="thinking">${aHead('进行中')}<div class="bubble thinking">`+
     `思考中<span class="dot">·</span><span class="dot">·</span><span class="dot">·</span>`+
-    `<div id="run-feed" class="run-feed hidden"></div>`+
+    `<div id="run-feed" class="run-feed scaffolds open hidden"></div>`+
     `<button id="run-stop" class="svc-btn hidden" style="margin-top:6px" onclick="cancelCurrentRun()">■ 停止本回合</button></div></div>`);
   scrollChat();
-  if(sid!=null){const watch={sid,runId:null,seq:0,polling:false};runWatch=watch;watch.timer=setInterval(()=>pollRunProgress(watch),1000);pollRunProgress(watch);syncActiveRun()}
+  if(sid!=null){const watch={sid,runId:null,seq:0,events:[],polling:false};runWatch=watch;watch.timer=setInterval(()=>pollRunProgress(watch),1000);pollRunProgress(watch);syncActiveRun()}
   try{
     const d=await api('/api/chat',{method:'POST',body:JSON.stringify({message:text,session_id:sid})});
     if(currentSession===sid&&selectionVersion===version){
@@ -712,7 +1193,7 @@ async function sendMessage(){
     refreshMemory();loadSessions();
   }catch(error){
     if(currentSession===sid&&selectionVersion===version){
-      $('#thinking')?.remove();$('#messages').insertAdjacentHTML('beforeend',`<div class="msg assistant"><div class="bubble">⚠ ${esc(error.message)}。请求可能已经执行，请核查会话记录后再发送。</div></div>`);
+      $('#thinking')?.remove();$('#messages').insertAdjacentHTML('beforeend',`<div class="msg assistant">${aHead('本回合失败')}<div class="bubble">⚠ ${esc(error.message)}。请求可能已经执行，请核查会话记录后再发送。</div></div>`);
       if(!box.value)box.value=text;scrollChat();
     }else{if(!drafts.get(sid))drafts.set(sid,text);OmniUI.notify('会话 #'+sid+'：'+error.message+'；请核查执行结果','error')}
   }finally{stopRunWatch();busy=false;$('#send').disabled=false;$('#send').textContent='发送';if(currentSession===sid&&selectionVersion===version)box.focus()}
@@ -725,6 +1206,7 @@ async function loadFacts(){
   }catch(e){$('#retrieval-state').textContent='检索状态暂不可用'}
   const q=$('#fact-q').value.trim();
   const d=await api('/api/facts?q='+encodeURIComponent(q));
+  setTabBadge('facts',d.facts.length);
   $('#facts-list').innerHTML=d.facts.length?d.facts.map(f=>`<li>${esc(f)}</li>`).join(''):'<li class="empty">暂无记忆</li>';
 }
 let publicationRows=new Map();
@@ -836,6 +1318,7 @@ async function loadReviews(){
 }
 async function loadSkills(){
   const d=await api('/api/skills');
+  setTabBadge('skills',d.skills.length);
   $('#skills-list').innerHTML=d.skills.length?d.skills.map(s=>
     `<li class="skill-item" data-open="0"><b>${esc(s.name)}</b> <span class="s-id">v${esc(s.version)}</span>`+
     `<button class="svc-btn" style="margin-left:6px" onclick="toggleSkill('${esc(s.name)}',this.closest('li'))">查看</button>`+
@@ -965,6 +1448,7 @@ window.skillRollback=async(rev)=>{
 async function loadArtifacts(){
   try{
     const d=await api('/api/artifacts?limit=40');
+    setTabBadge('artifacts',d.artifacts.length);
     const total=d.artifacts.reduce((s,a)=>s+a.size,0);
     $('#artifacts-usage').innerHTML=`截图/导出产物 <b>${d.artifacts.length}</b> 张 · 约 <b>${(total/1048576).toFixed(1)}</b>MB（保留 7 天，过期自动清理）`;
     $('#artifacts-grid').innerHTML=d.artifacts.length?d.artifacts.map(a=>
@@ -991,6 +1475,7 @@ async function loadTodos(){
   const sid=currentSession;
   try{
     const d=await api(`/api/sessions/${sid}/todos`);if(sid!==currentSession)return;
+    setTabBadge('todos',d.todos.filter(t=>!t.done).length);
     $('#todos-list').innerHTML=d.todos.length?d.todos.map(t=>
       `<li><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id},this.checked)">`+
       `<span class="${t.done?'todo-done':''}">${esc(t.content)}</span></li>`).join('')
@@ -1031,13 +1516,31 @@ window.resolveApproval=async(id,allowed)=>{
   }catch(e){alert(e.message)}
 };
 
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');
-  document.querySelectorAll('.tab-body').forEach(x=>x.classList.toggle('hidden',x.id!=='tab-'+b.dataset.tab));
+// 右栏页签：同步 aria 状态，并只对新出现的面板做一次轻量进入动效。
+const tabsRoot=document.querySelector('.tabs');
+if(tabsRoot)tabsRoot.setAttribute('role','tablist');
+document.querySelectorAll('.tabs button').forEach(b=>{
+  b.setAttribute('role','tab');b.setAttribute('aria-controls','tab-'+b.dataset.tab);
+  b.setAttribute('aria-selected',String(b.classList.contains('active')));
+  b.id='tab-btn-'+b.dataset.tab;
+});
+document.querySelectorAll('.tab-body').forEach(panel=>{
+  panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','tab-btn-'+panel.id.replace(/^tab-/,''));
+});
+function activateTab(b){
+  document.querySelectorAll('.tabs button').forEach(x=>{
+    const on=x===b;x.classList.toggle('active',on);x.setAttribute('aria-selected',String(on));
+  });
+  document.querySelectorAll('.tab-body').forEach(x=>{
+    const on=x.id==='tab-'+b.dataset.tab;x.classList.toggle('hidden',!on);
+    if(on&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      x.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'cubic-bezier(.2,.8,.2,1)'});
+    }
+  });
   if(b.dataset.tab==='desktop')loadDesktop();
   if(b.dataset.tab==='publications')loadPublications();
-});
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>activateTab(b));
 $('#send').onclick=sendMessage;
 $('#input').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();sendMessage()}
@@ -1049,6 +1552,7 @@ $('#new-session').onclick=async()=>{
   }catch(e){OmniUI.notify(e.message,'error')}finally{$('#new-session').disabled=false}
 };
 $('#fact-q').addEventListener('input',loadFacts);
+$('#session-q').addEventListener('input',renderSessions);
 
 // ---------- 系统控制台（服务/扫码） ----------
 let QR_TIMER=null;
@@ -1061,13 +1565,19 @@ window.closeModal=closeModal;
 async function loadServices(){
   try{
     const d=await api('/api/system/overview');
-    $('#services').innerHTML=d.services.map(s=>
-      `<div class="svc-row"><span class="svc-dot ${s.running?'ok':''}"></span>`+
-      `<span class="svc-main"><span class="svc-name">${esc(s.label)}</span>${s.detail?`<div class="svc-detail">${esc(s.detail)}</div>`:''}</span>`+
-      `<button class="svc-btn" ${s.running&&!s.can_stop?'disabled title="旧 PID 或外部进程，身份未核验"':''} onclick="svcAction('${s.name}','${s.running?'stop':'start'}')">${s.running?'停止':'启动'}</button>`+
-      (s.name==='napcat'&&!d.napcat.logged_in?`<button class="svc-btn warn" onclick="openQR()">扫码</button>`:'')+
-      `</div>`).join('');
-  }catch(e){$('#services').innerHTML='<div class="empty">状态获取失败</div>'}
+    const running=d.services.filter(s=>s.running).length;
+    $('#service-summary').textContent=d.services.length?`${running}/${d.services.length} 运行中`:'无可管理服务';
+    $('#services').innerHTML=d.services.length?d.services.map(s=>{
+      const detail=s.detail||(s.running?'运行中':'未启动');
+      const shortName=String(s.label||s.name).replace(/（[^）]*）/g,'').trim();
+      return `<div class="svc">`+
+        `<span class="svc-dot ${s.running?'on':(s.name==='napcat'&&!d.napcat.logged_in?'warn':'')}"></span>`+
+        `<span class="svc-body"><span class="svc-name" title="${esc(s.label)}">${esc(shortName)}</span><span class="svc-detail" title="${esc(detail)}">${esc(detail)}</span></span>`+
+        `<button class="svc-act ${s.running?'':'warn'}" ${s.running&&!s.can_stop?'disabled title="这个不是小鱼自己启动的，不敢替你关"':''} onclick="svcAction('${s.name}','${s.running?'stop':'start'}')">${s.running?'停止':'启动'}</button>`+
+        (s.name==='napcat'&&!d.napcat.logged_in?`<button class="svc-act warn" onclick="openQR()">扫码</button>`:'')+
+        `</div>`;
+    }).join(''):'<div class="empty">没有可管理的服务</div>';
+  }catch(e){$('#service-summary').textContent='读取失败';$('#services').innerHTML='<div class="empty">状态获取失败</div>'}
 }
 window.svcAction=async(name,action)=>{
   try{
@@ -1110,95 +1620,555 @@ window.loadQR=async()=>{
 
 // ---------- 设置中心 ----------
 window.openHub=async()=>{
-  $('#hub').classList.remove('hidden');
+  $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
   try{await loadHubConfig();loadCookies();loadCron();loadUsage();loadMcp()}catch(e){$('#hub-msg').textContent=e.message}
   const firstCur=document.querySelector('.hub-nav a.active');
   switchHub(firstCur?firstCur.dataset.go:'sec-persona');
 };
 
 // ---------- MCP 面板（D19）：状态纯只读；「查看工具」才触发真实发现 ----------
-const mcpStateText=s=>s.state==='ready'?'<span style="color:#34d399">已连接</span>':
-  s.state==='starting'?'<span style="color:#fbbf24">握手中…</span>':
-  s.state==='failed'?'<span style="color:#f87171">失败（已停用）</span>':
-  s.state==='closed'?'已关闭':s.state==='disabled'?'<span style="color:var(--dim)">已停用</span>':'未启动';
+const mcpStateText=s=>s.state==='ready'?'<span style="color:#34d399">已连上</span>':
+  s.state==='starting'?'<span style="color:#fbbf24">正在连接…</span>':
+  s.state==='failed'?'<span style="color:#f87171">连不上（已暂停）</span>':
+  s.state==='closed'?'<span style="color:var(--dim)">已断开</span>':s.state==='disabled'?'<span style="color:var(--dim)">已关闭</span>':'<span style="color:var(--dim)">未启动</span>';
+// 只说"能不能放心用"，不提 schema/指纹这类实现细节
 const mcpSchemaText=s=>s.schema_state==='drifted'
-  ?'<span style="color:#f87171" title="工具目录与上次确认时不一样：同名工具的参数形态可能变了">⚠ 工具目录已变化，请复查只读授权</span>'
+  ?'<span style="color:#fbbf24" title="它提供的能力跟上次核对时不一样了">⚠ 能力有变化，建议重新核对</span>'
   :s.schema_state==='confirmed'
-  ?'<span style="color:#34d399" title="当前工具目录已由你确认">目录已确认</span>'
-  :'<span style="color:var(--dim)">目录未登记（点「查看工具」发现）</span>';
+  ?'<span style="color:#34d399">已核对，只读操作可自动放行</span>'
+  :'<span style="color:var(--dim)">还没核对过，点「看看能做什么」开始</span>';
 async function loadMcp(){
   try{
     const d=await api('/api/mcp/overview');
     $('#mcp-list').innerHTML=d.servers.length?d.servers.map(s=>
-      `<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:8px">`+
+      `<div class="mcp-item">`+
       `<div class="cron-row"><span class="c-name">${esc(s.name)}</span>`+
-      `<span class="c-sched">${mcpStateText(s)} · 超时 ${s.timeout_s}s · 只读白名单 ${s.read_only_count} 个`+
-      `${s.allowed_count!=null?' · 工具白名单 '+s.allowed_count+' 个':' · 发现不限（逐个确认）'}</span>`+
-      (s.state==='disabled'?'':`<button class="svc-btn" onclick="mcpTools('${esc(s.name)}')">查看工具</button>`)+
+      `<span class="c-sched">${mcpStateText(s)} · 提供 ${s.read_only_count} 项只读能力${s.allowed_count!=null?' · 另有 '+s.allowed_count+' 项需确认':''}</span>`+
+      (s.state==='disabled'?'':`<button class="svc-btn" onclick="mcpTools('${esc(s.name)}')">看看能做什么</button>`)+
       (s.state==='failed'||s.state==='closed'
-        ?`<button class="svc-btn" onclick="mcpReset('${esc(s.name)}')">重连</button>`:'')+
+        ?`<button class="svc-btn" onclick="mcpReset('${esc(s.name)}')">重连一次</button>`:'')+
       (s.schema_state==='drifted'
-        ?`<button class="svc-btn" onclick="mcpConfirmSchema('${esc(s.name)}','${esc(s.schema_fingerprint)}')">复查后确认</button>`:'')+
+        ?`<button class="svc-btn warn" onclick="mcpConfirmSchema('${esc(s.name)}','${esc(s.schema_fingerprint)}')">重新核对</button>`:'')+
       `</div>`+
-      `<div class="hint" style="margin-top:4px">${esc(s.command)}${(s.args||[]).length?' '+esc(s.args.join(' ')):''}</div>`+
-      `<div class="hint" style="margin-top:2px">${mcpSchemaText(s)}${s.schema_fingerprint?'（指纹 '+esc(s.schema_fingerprint.slice(0,8))+'）':''}</div>`+
-      (s.last_error?`<div class="hint" style="color:#f87171;margin-top:2px">${esc(s.last_error)}</div>`:'')+
+      `<div class="hint" style="margin-top:4px">${mcpSchemaText(s)}</div>`+
+      (s.last_error?`<div class="hint" style="color:#f87171;margin-top:2px">上次出错：${esc(s.last_error)}</div>`:'')+
       `<div id="mcp-tools-${esc(s.name)}"></div></div>`).join('')
-      :'<div class="empty">还没有配置 MCP 服务（docs/MCP.md · config.yaml 的 mcp.servers 段）</div>';
+      :'<div class="empty">还没有装扩展。<br>想要什么新本事，直接跟小鱼说——它会告诉你需要装哪一个，装好就会出现在这里。</div>';
   }catch(e){$('#mcp-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
 window.mcpTools=async(name)=>{
   const box=document.getElementById('mcp-tools-'+name);
   if(!box)return;
-  box.innerHTML='<div class="hint">发现中…（首次会启动该服务，可能要几秒）</div>';
+  box.innerHTML='<div class="hint">正在问它能做什么…（第一次会把它启动起来，可能要几秒）</div>';
   try{
     const d=await api('/api/mcp/'+encodeURIComponent(name)+'/tools');
-    box.innerHTML=(d.drift?`<div class="hint" style="color:#f87171;margin:4px 0">⚠ ${esc(d.drift)}</div><button class="svc-btn" onclick="mcpConfirmSchema('${esc(name)}','${esc(d.fingerprint)}')">复查本页参数后恢复只读授权</button>`:'')+
+    box.innerHTML=(d.drift?`<div class="hint" style="color:#fbbf24;margin:4px 0">⚠ ${esc(d.drift)}</div><button class="svc-btn warn" onclick="mcpConfirmSchema('${esc(name)}','${esc(d.fingerprint)}')">我看过了，恢复自动放行</button>`:'')+
       (d.tools.length?d.tools.map(t=>
-      `<div class="cron-row"><span class="c-name" style="flex:0 0 auto">${t.approval==='safe'?'🟢':'🟡'}</span>`+
-      `<span class="c-sched">${esc(t.name)}${t.description?' · '+esc(String(t.description).slice(0,90)):''}</span>`+
-      `<span style="color:var(--dim);font-size:11px">${t.approval==='safe'?'只读白名单':'调用需人工确认'}</span></div><details><summary>参数结构</summary><pre>${esc(JSON.stringify(t.inputSchema,null,2))}</pre></details>`).join('')
-      :'<div class="hint">该服务没有声明工具</div>');
-    // 保留刚发现的目录供用户复查；确认后再刷新整个面板。
+      `<div class="mcp-cap"><span class="cap-dot" style="background:${t.approval==='safe'?'#34d399':'#fbbf24'}"></span>`+
+      `<div class="cap-main"><div class="cap-name">${esc(t.name)}</div>`+
+      (t.description?`<div class="cap-desc">${esc(String(t.description).slice(0,120))}</div>`:'')+`</div>`+
+      `<span class="cap-tag">${t.approval==='safe'?'不用问你':'要问你'}</span></div>`).join('')
+      :'<div class="hint">这个扩展没说明自己能做什么</div>');
+    // 保留刚发现的能力清单供用户核对；确认后再刷新整个面板。
   }catch(e){box.innerHTML='<div class="hint" style="color:#f87171">'+esc(e.message)+'</div>'}
 };
 window.mcpConfirmSchema=async(name,fingerprint)=>{
-  if(!confirm('确认已复查 '+name+' 的工具目录与只读白名单仍然适用？此操作会清除漂移提醒。'))return;
+  if(!confirm('重新核对「'+name+'」？\n\n核对之后，它提供的那几项只看不改的操作会恢复自动放行，不用你一个个点。'))return;
   try{await api('/api/mcp/'+encodeURIComponent(name)+'/confirm-schema',{method:'POST',body:JSON.stringify({fingerprint})});loadMcp()}
   catch(e){alert(e.message)}
 };
 window.mcpReset=async(name)=>{
-  if(!confirm('重连 '+name+'？会给一次干净的握手（配置不变），失败原因可看日志。'))return;
+  if(!confirm('重新连一次「'+name+'」？\n\n不会改动任何设置，只是重新握个手。连不上的话再告诉我。'))return;
   try{
     const d=await api('/api/mcp/'+encodeURIComponent(name)+'/reset',{method:'POST'});
-    loadMcp();alert('已重置（状态：'+d.state+'），点「查看工具」验证连接');
+    loadMcp();alert('已经重连过了，点「看看能做什么」确认一下能不能用');
   }catch(e){alert(e.message)}
 };
-function closeHub(){$('#hub').classList.add('hidden')}
+function closeHub(){
+  $('#hub').classList.add('hidden');
+  $('#hub').setAttribute('aria-hidden','true');
+  document.querySelector('.hub-open')?.focus?.();
+}
 window.closeHub=closeHub;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('dialog[open]')&&!$('#hub').classList.contains('hidden'))closeHub()});
 function switchHub(go){
-  document.querySelectorAll('.hub-nav a').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.hub-nav a').forEach(x=>{
+    const on=x.dataset.go===go;x.classList.toggle('active',on);
+    if(on)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');
+  });
   document.querySelectorAll('.hub-card').forEach(c=>c.classList.add('hidden'));
   const target=document.querySelector(`.hub-nav a[data-go="${go}"]`);
-  if(target)target.classList.add('active');
   const el=$('#'+go);
   if(el){
     el.classList.remove('hidden');
     if(go==='sec-cron')loadCron();
     if(go==='sec-usage')loadUsage();
     if(go==='sec-mcp')loadMcp();
+    if(go==='sec-storage'){
+      const frame=$('#storage-frame');
+      if(frame&&!frame.getAttribute('src'))frame.src=frame.dataset.src;
+    }
     el.scrollIntoView({behavior:'smooth'});
+    if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      el.animate([{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:200,easing:'cubic-bezier(.2,.8,.2,1)'});
+    }
   }
 }
-document.querySelectorAll('.hub-nav a').forEach(a=>a.onclick=()=>switchHub(a.dataset.go));
+document.querySelectorAll('.hub-nav a').forEach(a=>a.onclick=e=>{e.preventDefault();switchHub(a.dataset.go)});
+// 左侧导航图标：纯装饰，拿不到图标就跳过（不影响点击）
+(function(){
+  const icons={
+    'sec-persona':'<circle cx="12" cy="8.2" r="3.4"/><path d="M5 19.6a7 7 0 0 1 14 0"/>',
+    'sec-models':'<rect x="7.2" y="7.2" width="9.6" height="9.6" rx="2.2"/><path d="M10.2 3.6v3.2M13.8 3.6v3.2M10.2 17.2v3.2M13.8 17.2v3.2M3.6 10.2h3.2M3.6 13.8h3.2M17.2 10.2h3.2M17.2 13.8h3.2"/>',
+    'sec-memory':'<ellipse cx="12" cy="6.2" rx="7" ry="3"/><path d="M5 6.2v5.8c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V6.2M5 12v5.6c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V12"/>',
+    'sec-media':'<circle cx="12" cy="12" r="8.4"/><path d="M10.6 9.2l4 2.8-4 2.8V9.2z"/>',
+    'sec-browser':'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8M12 3.6c2.3 2.3 3.5 5.3 3.5 8.4s-1.2 6.1-3.5 8.4C9.7 18.1 8.5 15.1 8.5 12S9.7 5.7 12 3.6z"/>',
+    'sec-qq':'<path d="M20.4 12c0 3.7-3.7 6.7-8.4 6.7-1 0-1.9-.1-2.8-.3l-3.6 1.4 1.1-3.1C4.6 15.6 3.6 13.9 3.6 12c0-3.7 3.7-6.7 8.4-6.7S20.4 8.3 20.4 12z"/>',
+    'sec-cron':'<circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12h3.3"/>',
+    'sec-storage':'<path d="M3.8 7.4h6l1.8 2h8.6v9.2H3.8z"/><path d="M3.8 7.4V5.6h6l1.8 1.8"/>',
+    'sec-usage':'<path d="M5.4 19.2v-7.6M10.2 19.2V5.8M15 19.2v-5.2M19.8 19.2v-8.4"/>',
+    'sec-mcp':'<circle cx="12" cy="5.6" r="2.2"/><circle cx="6.2" cy="18" r="2.2"/><circle cx="17.8" cy="18" r="2.2"/><path d="M12 7.8v2.6M10.3 12.4l-2.3 3.9M13.7 12.4l2.3 3.9"/>',
+    'sec-about':'<circle cx="12" cy="12" r="8.4"/><path d="M12 11.2v5.2"/><circle cx="12" cy="8.2" r="1.05" fill="currentColor" stroke="none"/>'+'',
+  };
+  document.querySelectorAll('.hub-nav a').forEach(function(a){
+    const id=a.dataset.go, body=icons[id];
+    if(!body)return;
+    a.insertAdjacentHTML('afterbegin',
+      '<svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+body+'</svg>');
+  });
+})();
+
+// ---------- 人设预设方案（localStorage 持久化，可增删改；后续接入社区扩展包） ----------
+const PRESET_KEY='omni_persona_presets';
+const SEED_PRESETS=[
+  {id:'seed-xiaoyu',name:'小鱼',desc:'默认人设，稳重专业',prompt:
+`你是 OmniOperator（昵称小鱼），一个运行在用户电脑上的个人智能体。
+当前时间：{now}
+风格：稳重、专业、简洁。先给结论再展开，不油滑、不废话。
+能用工具核实的事先核实，不编造信息；危险操作先说明再做。
+被问到偏好、约定、重要结论时主动记住（remember），相关提问先回顾记忆（recall）再回答。`},
+  {id:'seed-dafeiyu',name:'大肥鱼',desc:'慵懒幽默的老朋友',prompt:
+`你是 OmniOperator（昵称大肥鱼），一个慵懒又靠谱、爱开玩笑的个人智能体。
+当前时间：{now}
+风格：像老朋友一样轻松幽默，偶尔摸鱼式吐槽，但办事绝不含糊。
+能用工具核实的事先核实，不编造信息；危险操作先说明再做。
+被问到偏好、约定、重要结论时主动记住（remember），相关提问先回顾记忆（recall）再回答。`},
+  {id:'seed-qwen',name:'Qwen 小姐',desc:'温柔耐心的贴心助理',prompt:
+`你是 OmniOperator（昵称Qwen小姐），一个温柔、耐心、细心的智能助理。
+当前时间：{now}
+风格：语气亲切温和，多替用户着想，解释耐心，善用比喻把复杂讲简单。
+能用工具核实的事先核实，不编造信息；危险操作先说明再做。
+被问到偏好、约定、重要结论时主动记住（remember），相关提问先回顾记忆（recall）再回答。`},
+  {id:'seed-worker',name:'办事员',desc:'高效直接的结果导向',prompt:
+`你是 OmniOperator（昵称办事员），一个高效、直接、结果导向的工作型智能体。
+当前时间：{now}
+风格：三句话内给结论，直接给可执行方案；少寒暄、不绕弯。
+能用工具核实的事先核实，不编造信息；危险操作先说明再做。
+被问到偏好、约定、重要结论时主动记住（remember），相关提问先回顾记忆（recall）再回答。`},
+];
+function loadPresets(){
+  try{const raw=localStorage.getItem(PRESET_KEY);
+    if(raw){const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length)return arr;}
+  }catch(e){}
+  localStorage.setItem(PRESET_KEY,JSON.stringify(SEED_PRESETS));
+  return JSON.parse(JSON.stringify(SEED_PRESETS));
+}
+function savePresets(arr){localStorage.setItem(PRESET_KEY,JSON.stringify(arr))}
+function presetTip(msg,ok=true){
+  const t=$('#preset-tip'); if(!t)return;
+  t.textContent=msg; t.style.color=ok?'#34d399':'#f87171';
+}
+function renderPersonaPresets(activeName){
+  const box=$('#persona-presets'); if(!box)return;
+  const presets=loadPresets();
+  if(!presets.length){box.innerHTML='<div class="preset-empty">还没有预设方案，点上方「新建预设」或「存为预设」添加</div>';return}
+  box.innerHTML=presets.map(p=>{
+    const active=p.name===activeName?'active':'';
+    return `<div class="preset-row ${active}">`+
+      `<span class="p-name">${esc(p.name)}</span>`+
+      `<span class="p-desc" title="${esc(p.desc)}">${esc(p.desc)}</span>`+
+      `<span class="p-actions">`+
+      `<button class="p-btn" onclick="applyPreset('${p.id}')">应用</button>`+
+      `<button class="p-btn" onclick="editPreset('${p.id}')">编辑</button>`+
+      `<button class="p-btn del" onclick="deletePreset('${p.id}')">删除</button>`+
+      `</span></div>`;
+  }).join('');
+}
+function findPreset(id){return loadPresets().find(p=>p.id===id)}
+function genPresetId(){return 'p-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+window.applyPreset=id=>{
+  const p=findPreset(id); if(!p)return;
+  $('#cfg-persona-name').value=p.name;
+  $('#cfg-persona-prompt').value=p.prompt.trim();
+  renderPersonaPresets(p.name);
+  presetTip(`已填入「${p.name}」。点下面「保存人设」生效。`);
+};
+window.deletePreset=id=>{
+  const p=findPreset(id); if(!p)return;
+  if(!confirm(`删除预设「${p.name}」？此操作不可撤销。`))return;
+  savePresets(loadPresets().filter(x=>x.id!==id));
+  renderPersonaPresets($('#cfg-persona-name').value);
+  presetTip('已删除「'+p.name+'」');
+};
+window.saveCurrentAsPreset=()=>{
+  const name=$('#cfg-persona-name').value.trim();
+  const prompt=$('#cfg-persona-prompt').value.trim();
+  if(!name||!prompt){presetTip('昵称和提示词都不能为空',false);return}
+  const desc=prompt('给这个预设写一句描述：',`${name}的自定义设定`)||`${name}的自定义设定`;
+  const presets=loadPresets();
+  const existing=presets.find(p=>p.name===name);
+  if(existing){
+    if(!confirm(`已有同名预设「${name}」，是否覆盖？`))return;
+    existing.prompt=prompt; existing.desc=desc;
+  }else{
+    presets.push({id:genPresetId(),name,desc,prompt});
+  }
+  savePresets(presets);
+  renderPersonaPresets(name);
+  presetTip('已存为预设「'+name+'」');
+};
+window.newPreset=()=>openPresetEditor(null);
+window.editPreset=id=>{const p=findPreset(id); if(p)openPresetEditor(p)};
+function openPresetEditor(preset){
+  const isEdit=!!preset;
+  const box=document.createElement('div');
+  box.className='modal'; box.style.display='flex';
+  box.innerHTML=`<div class="modal-box" style="width:min(620px,94vw)">
+    <div class="modal-title"><span>${isEdit?'编辑预设':'新建预设'}</span><button class="modal-x" onclick="this.closest('.modal').remove()">✕</button></div>
+    <div class="form-row"><label>名称<input type="text" id="pe-name" value="${esc(preset?preset.name:'')}"></label></div>
+    <div class="form-row"><label>描述<input type="text" id="pe-desc" value="${esc(preset?preset.desc:'')}"></label></div>
+    <div class="form-row"><label>行为设定（{now} 会被替换为当前时间）<textarea id="pe-prompt" style="min-height:220px;font:12px/1.6 Consolas,monospace;white-space:pre-wrap">${esc(preset?preset.prompt:'')}</textarea></label></div>
+    <div id="pe-msg" class="test-out" style="min-height:1.2em"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="hub-save" style="padding:7px 20px;font-size:13px" onclick="confirmPresetEdit('${preset?preset.id:''}',${isEdit})">${isEdit?'保存修改':'创建'}</button>
+      <button class="hub-close" style="padding:7px 16px;font-size:13px" onclick="this.closest('.modal').remove()">取消</button>
+    </div></div>`;
+  document.body.appendChild(box);
+}
+window.confirmPresetEdit=(id,isEdit)=>{
+  const name=$('#pe-name').value.trim();
+  const desc=$('#pe-desc').value.trim();
+  const prompt=$('#pe-prompt').value.trim();
+  const msg=$('#pe-msg');
+  if(!name){msg.textContent='名称不能为空';msg.style.color='#f87171';return}
+  if(!prompt){msg.textContent='行为设定不能为空';msg.style.color='#f87171';return}
+  const presets=loadPresets();
+  if(!isEdit){
+    if(presets.some(p=>p.name===name)){msg.textContent='已有同名预设，请改名';msg.style.color='#f87171';return}
+    presets.push({id:genPresetId(),name,desc:desc||`${name}的自定义设定`,prompt});
+  }else{
+    const p=presets.find(x=>x.id===id); if(!p){msg.textContent='找不到原预设';msg.style.color='#f87171';return}
+    if(presets.some(x=>x.name===name&&x.id!==id)){msg.textContent='已有同名预设，请改名';msg.style.color='#f87171';return}
+    p.name=name; p.desc=desc||`${name}的自定义设定`; p.prompt=prompt;
+  }
+  savePresets(presets);
+  document.querySelector('.modal:last-of-type')?.remove();
+  renderPersonaPresets($('#cfg-persona-name').value);
+  presetTip(isEdit?'已更新「'+name+'」':'已创建「'+name+'」');
+};
+
+// ---------- 模型配置：槽位卡 + 三步向导（选供应商 → 选模型 → 填 Key） ----------
+// 设计约定：
+// - 供应商/模型用卡片而不是下拉框：一眼看清"哪家有 Key、哪个模型贵、哪个能看图"。
+// - Key 不存浏览器，直接写后端 .env（/api/system/model-key），填完就能测。
+// - getModelSlotValue() 仍是 saveHub 的唯一取值口，返回 `${prefix}/${model}`。
+const MODEL_SLOTS=[
+  {kind:'chat',title:'日常对话',desc:'平时跟它说话用这个，便宜量大',vision:false},
+  {kind:'vision',title:'看截图',desc:'让它看懂图片和界面，要选支持看图的模型',vision:true},
+  {kind:'review',title:'聊完复盘',desc:'留着不动就跟着日常对话走',vision:false,optional:true},
+];
+// color 只用于品牌色块；docs 是申请 Key 的入口；free 表示本机模型不需要 Key
+const PROVIDERS=[
+  {id:'deepseek',label:'DeepSeek',color:'#4D6BFE',envKey:'DEEPSEEK_API_KEY',
+   docs:'https://platform.deepseek.com/api_keys',models:[
+    {id:'deepseek-chat',label:'DeepSeek Chat',desc:'聊天够用、按量便宜',vision:false,tag:'推荐 · 便宜',tone:'green'},
+    {id:'deepseek-reasoner',label:'DeepSeek Reasoner',desc:'会一步步推理，慢一点也贵一点',vision:false,tag:'推理 · 贵一点',tone:'amber'},
+  ]},
+  {id:'qwen',label:'通义千问（阿里）',color:'#7C3AED',envKey:'DASHSCOPE_API_KEY',litellmProvider:'dashscope',
+   docs:'https://bailian.console.aliyun.com/',models:[
+    {id:'qwen-max',label:'Qwen Max',desc:'综合最强的一档',vision:false},
+    {id:'qwen-plus',label:'Qwen Plus',desc:'平衡档，日常够用',vision:false,tag:'便宜',tone:'green'},
+    {id:'qwen-turbo',label:'Qwen Turbo',desc:'最便宜的档位',vision:false},
+    {id:'qwen-vl-max',label:'Qwen VL Max',desc:'能看图的版本',vision:true,tag:'视觉',tone:'violet'},
+  ]},
+  {id:'moonshot',label:'Moonshot Kimi',color:'#2563EB',envKey:'MOONSHOT_API_KEY',
+   docs:'https://platform.moonshot.cn/console/api-keys',models:[
+    {id:'moonshot-v1-8k',label:'Kimi 8K',desc:'短上下文，最便宜',vision:false},
+    {id:'moonshot-v1-32k',label:'Kimi 32K',desc:'长文档友好',vision:false},
+  ]},
+  {id:'anthropic',label:'Anthropic Claude',color:'#D97757',envKey:'ANTHROPIC_API_KEY',
+   docs:'https://console.anthropic.com/settings/keys',models:[
+    {id:'claude-sonnet-4-5',label:'Claude Sonnet 4.5',desc:'视觉和工具都强',vision:true,tag:'视觉',tone:'violet'},
+    {id:'claude-3-5-sonnet',label:'Claude 3.5 Sonnet',desc:'上一代主力',vision:true},
+    {id:'claude-3-haiku',label:'Claude 3 Haiku',desc:'轻快便宜',vision:false},
+  ]},
+  {id:'openai',label:'OpenAI GPT',color:'#10A37F',envKey:'OPENAI_API_KEY',
+   docs:'https://platform.openai.com/api-keys',models:[
+    {id:'gpt-4o',label:'GPT-4o',desc:'视觉 + 工具',vision:true,tag:'视觉',tone:'violet'},
+    {id:'gpt-4o-mini',label:'GPT-4o mini',desc:'便宜档',vision:false,tag:'便宜',tone:'green'},
+    {id:'o3-mini',label:'o3-mini',desc:'推理型',vision:false,tag:'推理',tone:'amber'},
+  ]},
+  {id:'ollama',label:'Ollama（本机跑）',color:'#94A3B8',envKey:'',litellmProvider:'ollama',free:true,models:[
+    {id:'qwen2.5:7b',label:'Qwen2.5 7B',desc:'本机跑得动，不花钱',vision:false,tag:'免费',tone:'green'},
+    {id:'qwen2.5:14b',label:'Qwen2.5 14B',desc:'更强，但更吃内存',vision:false},
+    {id:'llama3.1:8b',label:'Llama 3.1 8B',desc:'英文场景友好',vision:false},
+  ]},
+  {id:'custom',label:'其它 / 中转站',color:'#3B4557',envKey:'',custom:true,models:[]},
+];
+// modelState[kind] = {providerId, modelId, modelStr, custom}
+let modelState={};
+let activeSlot='chat';
+let envKeys={};      // KEY_NAME → {configured, masked}
+let keyEyeOn=false;
+
+function providerById(id){return PROVIDERS.find(p=>p.id===id)}
+function slotByKind(kind){return MODEL_SLOTS.find(s=>s.kind===kind)}
+function parseModelStr(s){
+  const raw=(s||'').trim();
+  if(!raw)return {providerId:'',modelId:'',custom:false};
+  const parts=raw.split('/'), head=parts[0], tail=parts.slice(1).join('/');
+  const prov=PROVIDERS.find(p=>!p.custom&&(p.id===head||(p.litellmProvider&&p.litellmProvider===head)));
+  if(!prov)return {providerId:'',modelId:'',custom:true};
+  const model=prov.models.find(m=>m.id===tail);
+  return {providerId:prov.id,modelId:model?model.id:tail,custom:false};
+}
+function renderModelSlots(currentModels){
+  currentModels=currentModels||{};
+  modelState={};
+  MODEL_SLOTS.forEach(slot=>{
+    const raw=(currentModels[slot.kind]||'').trim();
+    modelState[slot.kind]=Object.assign({modelStr:raw},parseModelStr(raw));
+  });
+  if(!slotByKind(activeSlot))activeSlot=MODEL_SLOTS[0].kind;
+  renderSlotCards();
+  renderWizard();
+}
+function keyConfigured(prov){
+  if(!prov)return false;
+  if(prov.free)return true;
+  return !!(prov.envKey&&envKeys[prov.envKey]&&envKeys[prov.envKey].configured);
+}
+function slotBadge(kind){
+  const slot=slotByKind(kind), st=modelState[kind]||{}, prov=providerById(st.providerId);
+  if(!prov)return {cls:'off',text:st.custom&&st.modelStr?'自定义':(slot.optional?'跟随对话':'未配置')};
+  if(!st.modelStr)return {cls:'warn',text:'没选模型'};
+  return keyConfigured(prov)?{cls:'ok',text:'已就绪'}:{cls:'warn',text:'待填 Key'};
+}
+function slotFoot(kind){
+  const st=modelState[kind]||{}, prov=providerById(st.providerId);
+  if(!prov)return {cls:'',text:st.custom&&st.modelStr?'自己填的模型':'点这张卡开始配置'};
+  if(prov.free)return {cls:'ok',text:'本机运行，不需要 Key'};
+  const k=envKeys[prov.envKey];
+  if(k&&k.configured)return {cls:'ok',text:'Key 已填 '+k.masked};
+  return {cls:'warn',text:'还差一个 Key'};
+}
+function renderSlotCards(){
+  const box=$('#model-slots'); if(!box)return;
+  box.innerHTML=MODEL_SLOTS.map(slot=>{
+    const st=modelState[slot.kind]||{}, prov=providerById(st.providerId);
+    const model=prov&&st.modelId?prov.models.find(m=>m.id===st.modelId):null;
+    const badge=slotBadge(slot.kind), foot=slotFoot(slot.kind);
+    const title=prov?prov.label:(st.custom&&st.modelStr?'自定义':'还没选供应商');
+    const sub=model?`${model.label} · ${model.desc}`:(st.custom&&st.modelStr?st.modelStr:slot.desc);
+    return `<div class="slot-card ${slot.kind===activeSlot?'active':''}" onclick="selectModelSlot('${slot.kind}')">`+
+      `<div class="sc-head"><span class="sc-name">${esc(slot.title)}</span>`+
+      `<span class="sc-badge ${badge.cls}">${badge.text}</span></div>`+
+      `<div class="sc-provider">${esc(title)}</div>`+
+      `<div class="sc-model">${esc(sub)}</div>`+
+      `<div class="sc-foot ${foot.cls}">${esc(foot.text)}</div>`+
+      `</div>`;
+  }).join('');
+}
+const KEY_ICON='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7.5" cy="15" r="3.6" stroke="#8b95a5" stroke-width="1.8"/><path d="M10.1 12.4L19 3.5M16.6 5.9L19.6 8.9M13.9 8.6L16.4 11.1" stroke="#8b95a5" stroke-width="1.8" stroke-linecap="round"/></svg>';
+
+function renderWizard(){
+  const box=$('#model-wizard'); if(!box)return;
+  const slot=slotByKind(activeSlot)||MODEL_SLOTS[0], kind=slot.kind;
+  const st=modelState[kind]||{}, prov=providerById(st.providerId);
+  const ready=keyConfigured(prov)&&!!st.modelId;
+  const cur=!prov?1:(!st.modelId?2:(ready?4:3));
+  const stepCls=n=>n<cur?'done':(n===cur?'active':'');
+
+  const provCards=PROVIDERS.map(p=>{
+    let sub='', tone='';
+    if(p.custom){sub='自己填地址和模型'}
+    else if(p.free){sub=`${p.models.length} 个模型 · 不用 Key`}
+    else{
+      const k=envKeys[p.envKey];
+      sub=`${p.models.length} 个模型 · `+(k&&k.configured?('Key 已填 '+k.masked):'还没填 Key');
+      if(k&&k.configured)tone='ok';
+    }
+    return `<div class="prov-card ${p.id===st.providerId?'active':''}" onclick="pickProvider('${p.id}')">`+
+      `<div class="prov-logo" style="background:${p.color}"></div>`+
+      `<div class="prov-meta"><div class="prov-name">${esc(p.label)}</div>`+
+      `<div class="prov-sub ${tone}">${esc(sub)}</div></div></div>`;
+  }).join('');
+
+  let modelHtml='';
+  if(prov&&prov.custom){
+    modelHtml=`<div class="wiz-sec"><div class="wiz-sec-head"><span class="ws-title">自己填模型</span>`+
+      `<span class="ws-note">要写成「供应商/型号」，比如 openai/gpt-4o</span></div>`+
+      `<div class="key-row"><div class="key-box"><input id="mk-custom" type="text" autocomplete="off" `+
+      `placeholder="供应商/型号" value="${esc(st.modelStr||'')}" oninput="setCustomModel(this.value)"></div></div></div>`;
+  }else if(prov){
+    modelHtml=`<div class="wiz-sec"><div class="wiz-sec-head"><span class="ws-title">用哪个模型干活</span>`+
+      `<span class="ws-note">选完就是这张卡以后用的模型</span></div><div class="model-list">`+
+      prov.models.map(m=>{
+        const tag=m.tag?`<span class="mc-tag ${m.tone||'gray'}">${esc(m.tag)}</span>`:'';
+        return `<div class="model-card ${m.id===st.modelId?'active':''}" onclick="pickModel('${m.id}')">`+
+          `<div class="mc-main"><div class="mc-name">${esc(m.label)}</div>`+
+          `<div class="mc-desc">${esc(m.desc)}</div></div>${tag}</div>`;
+      }).join('')+`</div></div>`;
+  }
+
+  let keyHtml='';
+  if(prov&&prov.free){
+    keyHtml=`<div class="wiz-sec"><div class="wiz-sec-head"><span class="ws-title">不需要 Key</span>`+
+      `<span class="ws-note">本机 Ollama 直接跑，前提是本机已经拉过这个模型</span></div></div>`;
+  }else if(prov&&!prov.custom){
+    const k=envKeys[prov.envKey];
+    const stateHtml=k&&k.configured
+      ?`<span class="kn-ok">已填好 ${esc(k.masked)}</span>`
+      :`<span class="kn-warn">还差一个 Key 才能用</span>`;
+    const placeholder=k&&k.configured?`已填好 ${k.masked}，要换就重新粘贴`:`把 API Key 粘在这里`;
+    keyHtml=`<div class="wiz-sec"><div class="wiz-sec-head"><span class="ws-title">把 Key 粘进来</span>`+
+      `<span class="ws-note">只存在这台电脑上，保存后立刻生效，不会上传到任何地方</span></div>`+
+      `<div class="key-row"><div class="key-box"><span class="kb-icon">${KEY_ICON}</span>`+
+      `<input id="mk-input" type="${keyEyeOn?'text':'password'}" autocomplete="off" placeholder="${esc(placeholder)}">`+
+      `<button class="kb-eye" onclick="toggleKeyEye()">${keyEyeOn?'隐藏':'显示'}</button></div>`+
+      `<button class="key-btn" onclick="pasteModelKey()">粘贴</button>`+
+      `<button class="key-btn primary" onclick="saveModelKey()">保存并生效</button></div>`+
+      `<div class="key-note"><span id="mk-state">${stateHtml}</span>`+
+      (prov.docs?`<a href="${prov.docs}" target="_blank" rel="noopener">没有 Key？去官网申请</a>`:'')+
+      `<span>填一次就行，别的槽位选同一家会自动沿用</span></div></div>`;
+  }
+
+  box.innerHTML=`<div class="wiz">`+
+    `<div class="wiz-head"><span class="wiz-title">配置向导 · ${esc(slot.title)}</span>`+
+    `<span class="wiz-hint">${esc(slot.desc)}</span></div>`+
+    `<div class="stepper">`+
+      `<div class="step ${stepCls(1)}"><span class="step-no">1</span>选供应商</div>`+
+      `<div class="step ${stepCls(2)}"><span class="step-no">2</span>选模型</div>`+
+      `<div class="step ${stepCls(3)}"><span class="step-no">3</span>填 Key</div>`+
+    `</div>`+
+    `<div class="wiz-sec"><div class="wiz-sec-head"><span class="ws-title">选一个供应商</span>`+
+    `<span class="ws-note">拿不准就先用 DeepSeek：便宜、够用、申请就能拿到 Key</span></div>`+
+    `<div class="prov-grid">${provCards}</div></div>`+
+    modelHtml+keyHtml+
+    `<div class="model-footer"><span class="mf-label">当前在用</span>`+
+    `<code id="mk-model">${esc(st.modelStr||'（还没选）')}</code><span style="flex:1"></span>`+
+    `<button class="key-btn" onclick="testModelSlot()">测一下通不通</button>`+
+    `<div class="mf-out" id="mk-out"></div>`+
+    `<div class="key-note" style="margin-top:0"><span>选好之后点下面「保存模型设置」，改动才会真正生效。</span></div></div>`+
+  `</div>`;
+}
+
+window.selectModelSlot=kind=>{
+  activeSlot=kind; keyEyeOn=false;
+  renderSlotCards(); renderWizard();
+};
+window.pickProvider=provId=>{
+  const kind=activeSlot, slot=slotByKind(kind)||MODEL_SLOTS[0], st=modelState[kind]||{};
+  const prov=providerById(provId);
+  if(!prov)return;
+  if(prov.custom){
+    modelState[kind]={providerId:provId,modelId:'',modelStr:st.custom?(st.modelStr||''):'',custom:true};
+  }else{
+    const def=(slot.vision&&prov.models.find(m=>m.vision))||prov.models[0];
+    const prefix=prov.litellmProvider||prov.id;
+    modelState[kind]={providerId:provId,modelId:def?def.id:'',modelStr:def?`${prefix}/${def.id}`:'',custom:false};
+  }
+  keyEyeOn=false;
+  renderSlotCards(); renderWizard();
+};
+window.pickModel=modelId=>{
+  const kind=activeSlot, st=modelState[kind]||{}, prov=providerById(st.providerId);
+  if(!prov)return;
+  const prefix=prov.litellmProvider||prov.id;
+  modelState[kind]=Object.assign({},st,{modelId,modelStr:`${prefix}/${modelId}`,custom:false});
+  renderSlotCards(); renderWizard();
+};
+window.setCustomModel=value=>{
+  const kind=activeSlot;
+  modelState[kind]=Object.assign({},modelState[kind],{modelStr:(value||'').trim(),custom:true});
+  renderSlotCards();
+  const code=$('#mk-model'); if(code)code.textContent=modelState[kind].modelStr||'（未设置）';
+};
+window.toggleKeyEye=()=>{
+  const input=$('#mk-input'); if(!input)return;
+  keyEyeOn=!keyEyeOn;
+  input.type=keyEyeOn?'text':'password';
+  const btn=document.querySelector('.key-box .kb-eye');
+  if(btn)btn.textContent=keyEyeOn?'隐藏':'显示';
+};
+function setKeyState(text,tone){
+  const el=$('#mk-state'); if(!el)return;
+  el.className=tone==='ok'?'kn-ok':(tone==='warn'?'kn-warn':'');
+  el.textContent=text;
+}
+window.pasteModelKey=async()=>{
+  const input=$('#mk-input'); if(!input)return;
+  try{
+    const text=await navigator.clipboard.readText();
+    input.value=(text||'').trim();
+    setKeyState('已粘贴 '+input.value.length+' 个字符，点「保存并生效」','ok');
+  }catch(e){
+    input.focus();
+    setKeyState('浏览器不让读剪贴板，点输入框按 Ctrl+V 粘贴','warn');
+  }
+};
+window.saveModelKey=async()=>{
+  const kind=activeSlot, st=modelState[kind]||{}, prov=providerById(st.providerId);
+  if(!prov||!prov.envKey){setKeyState('这家不需要 Key','warn');return}
+  const input=$('#mk-input');
+  const value=(input&&input.value||'').trim();
+  if(!value){setKeyState('先粘一个 Key 进来','warn');return}
+  setKeyState('保存中…','');
+  try{
+    const d=await api('/api/system/model-key',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:prov.envKey,value})});
+    envKeys[prov.envKey]={configured:!!d.configured,masked:d.masked||''};
+    if(input)input.value='';
+    renderSlotCards(); renderWizard();
+    setKeyState('已存好并立即生效：'+(d.masked||''),'ok');
+  }catch(e){setKeyState('保存失败：'+e.message,'warn')}
+};
+function getModelSlotValue(kind){
+  const st=modelState[kind];
+  return st&&st.modelStr?st.modelStr:'';
+}
+window.testModelSlot=async()=>{
+  const kind=activeSlot, st=modelState[kind]||{};
+  const out=$('#mk-out');
+  if(!st.modelStr){
+    if(out){out.className='mf-out err';out.textContent='先选好供应商和模型'}
+    return;
+  }
+  if(out){out.className='mf-out';out.textContent='测试中…'}
+  try{
+    const d=await api('/api/system/model-test',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:st.modelStr})});
+    const cost=(typeof d.cost_micro==='number'&&d.cost_micro>0)
+      ?`，花销 $${(d.cost_micro/1e6).toFixed(6)}`:'';
+    if(out){out.className='mf-out ok';out.textContent='连通成功'+cost+'：'+(d.reply||'（空回复）')}
+  }catch(e){
+    if(out){out.className='mf-out err';out.textContent='不通：'+(e.message||'未知错误')}
+  }
+};
+async function loadEnvKeys(){
+  try{
+    const d=await api('/api/system/model-keys');
+    envKeys=(d&&d.keys)||{};
+  }catch(e){envKeys={}}
+}
 
 async function loadHubConfig(){
   const d=await api('/api/system/config');
   $('#cfg-persona-name').value=d.persona.name;
   $('#cfg-persona-prompt').value=d.persona.system_prompt;
-  $('#cfg-model-chat').value=d.models.chat;
-  $('#cfg-model-vision').value=d.models.vision;
-  $('#cfg-model-review').value=d.models.review;
+  await loadEnvKeys();  // 先拿密钥状态：模型卡片才知道该显示"已配 / 还没填"
+  renderModelSlots(d.models);
+  try{renderPersonaPresets(d.persona.name)}catch(e){console.warn('人设预设渲染失败',e)}
   $('#cfg-limits-history').value=d.limits.max_history_messages;
   $('#cfg-limits-steps').value=d.limits.max_agent_steps;
   $('#cfg-review-enabled').checked=d.review.enabled;
@@ -1229,29 +2199,20 @@ async function loadHubConfig(){
 async function loadCookies(){
   try{
     const d=await api('/api/system/bili-cookies');
-    $('#bili-cookie-status').innerHTML='SESSDATA '+(d.keys.SESSDATA?'✅':'✗')+
-      ' · bili_jct '+(d.keys.bili_jct?'✅':'✗')+' · buvid3 '+(d.keys.buvid3?'✅':'✗')+
-      (d.configured?'（已配置）':'（未配置：字幕/音频流匿名拿不到）');
+    // 用户只关心「能不能用」和「缺哪一项」，不要一上来就摆三个英文键名
+    $('#bili-cookie-status').innerHTML=d.configured
+      ?'<span style="color:#34d399">✅ 凭证已就绪，可以搬视频了</span>'
+      :'<span style="color:#fbbf24">还没给凭证——现在只能看公开内容，字幕和音频拿不到</span>'+
+       (d.keys.SESSDATA?'':'<br><span style="color:var(--dim)">缺少 SESSDATA（必需）</span>');
   }catch(e){$('#bili-cookie-status').textContent=e.message}
 }
 window.saveBiliCookies=async()=>{
   try{
     const d=await api('/api/system/bili-cookies',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({sessdata:$('#cfg-bili-sessdata').value,bili_jct:$('#cfg-bili-jct').value,buvid3:$('#cfg-bili-buvid3').value})});
-    $('#bili-cookie-status').textContent='✅ 已保存 '+d.saved.join(' / ');
+    $('#bili-cookie-status').textContent='✅ 已保存，正在生效';
     loadCookies();
   }catch(e){alert(e.message)}
-};
-window.testModel=async(kind)=>{
-  const out=$('#test-out-'+kind);
-  const model=$('#cfg-model-'+kind).value.trim();
-  if(!model){out.textContent='⚠ 先填写模型串';return}
-  out.textContent='测试中…';
-  try{
-    const d=await api('/api/system/model-test',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model})});
-    out.textContent='✅ 连通：'+(d.reply||'（空回复）');
-  }catch(e){out.textContent='❌ '+(e.message||'失败')}
 };
 let cronJobs=[]; // 任务列表缓存（编辑表单要回填 revision 与全量字段）
 async function loadCron(){
@@ -1260,19 +2221,20 @@ async function loadCron(){
     cronJobs=d.jobs;
     $('#cron-list').innerHTML=d.jobs.length?d.jobs.map(j=>
       `<div class="cron-row"><span class="c-name">${esc(j.name)}</span>`+
-      `<span class="c-sched">${esc(j.schedule)} · 下次 ${esc((j.next_run_at||'—').slice(5,16))}</span>`+
-      `<span>${j.enabled?'启':'停'}</span>`+
-      `<button class="svc-btn" onclick="cronEdit('${esc(j.name)}')">编辑</button>`+
-      `<button class="svc-btn" onclick="cronToggle('${esc(j.name)}',${!j.enabled})">${j.enabled?'停用':'启用'}</button>`+
-      `<button class="svc-btn" onclick="cronDelete('${esc(j.name)}')">删除</button></div>`).join(''):'<div class="empty">还没有定时任务</div>';
+      `<span class="c-sched">${esc(j.schedule)} · 下次 ${esc((j.next_run_at||'待排').slice(5,16))}`+
+      `${j.deliver_to_qq?' · 发到 QQ '+esc(String(j.deliver_to_qq)):''}</span>`+
+      `<span style="color:${j.enabled?'#34d399':'var(--dim)'};font-size:11.5px">${j.enabled?'在跑':'已停'}</span>`+
+      `<button class="svc-btn" onclick="cronEdit('${esc(j.name)}')">改一改</button>`+
+      `<button class="svc-btn" onclick="cronToggle('${esc(j.name)}',${!j.enabled})">${j.enabled?'先停掉':'开起来'}</button>`+
+      `<button class="svc-btn" onclick="cronDelete('${esc(j.name)}')">删掉</button></div>`).join(''):'<div class="empty">还没有定时任务。想让小鱼每天定点干活，上面填一下就行，或者直接跟它说。</div>';
   }catch(e){$('#cron-list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
   try{
     const h=await api('/api/system/cron/history');
     $('#cron-history').innerHTML=h.history.length?h.history.map(x=>
       `<div class="cron-row"><span class="c-name">${esc(x.job)}</span>`+
-      `<span class="c-sched">${esc((x.started_at||'').slice(5,16))} · ${x.duration_s}s · ${x.ok?'✅':'❌'}</span>`+
+      `<span class="c-sched">${esc((x.started_at||'').slice(5,16))} · 用了 ${x.duration_s} 秒 · ${x.ok?'✅ 成了':'❌ 没成'}</span>`+
       `<span style="color:var(--dim);font-size:11.5px;flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((x.result||'').slice(0,60))}</span></div>`).join('')
-      :'<div class="empty">还没有执行记录</div>';
+      :'<div class="empty">还没跑过</div>';
   }catch(e){$('#cron-history').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
   try{
     const b=await api('/api/system/cron/outbox');
@@ -1286,13 +2248,13 @@ async function loadCron(){
       :'<div class="empty">还没有投递记录</div>';
   }catch(e){$('#cron-outbox').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
-const outboxStateText=x=>x.status==='pending'?'<span style="color:#fbbf24">待自动补投</span>':
-  x.status==='sending'?'<span style="color:#fbbf24">发送中，等待回执</span>':
-  x.status==='unknown'?'<span style="color:#f87171">发送结果未知（不自动重发）</span>':
-  x.status==='dead'?'<span style="color:#f87171">自动补投已耗尽</span>':
-  x.status==='discarded'?'<span style="color:var(--dim)">已丢弃</span>':'<span style="color:#34d399">已投递</span>';
+const outboxStateText=x=>x.status==='pending'?'<span style="color:#fbbf24">等 QQ 连上就发</span>':
+  x.status==='sending'?'<span style="color:#fbbf24">正在发，等对方确认</span>':
+  x.status==='unknown'?'<span style="color:#f87171">不知道发没发出去（不会自动重发）</span>':
+  x.status==='dead'?'<span style="color:#f87171">自动重发次数用完了</span>':
+  x.status==='discarded'?'<span style="color:var(--dim)">已丢弃</span>':'<span style="color:#34d399">已经发出去了</span>';
 window.outboxRetry=async(id)=>{
-  if(!confirm('重新排队这条消息？「发送结果未知」的条目有重复发送风险——先确认对方没收到。'))return;
+  if(!confirm('再发一次这条？\n\n如果上一次其实已经送到了，对方会收到两条。先跟他确认一下更稳。'))return;
   try{await api(`/api/system/cron/outbox/${id}/retry`,{method:'POST'});loadCron()}catch(e){alert(e.message)}
 };
 window.outboxDiscard=async(id)=>{
@@ -1377,12 +2339,28 @@ window.cronDelete=async(name)=>{
   try{await api('/api/system/cron/delete',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name})});loadCron()}catch(e){alert(e.message)}
 };
-window.saveHub=async()=>{
-  const updates={
-    persona:{name:$('#cfg-persona-name').value,
-             system_prompt:$('#cfg-persona-prompt').value.split('\n')},
-    models:{chat:$('#cfg-model-chat').value,vision:$('#cfg-model-vision').value,
-            review:$('#cfg-model-review').value},
+// 每页独立保存：只提交本页涉及的配置段。
+// 为什么：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
+// 用户看到的是"保存失败"却不知道是哪一页的问题。
+const SAVE_SCOPES={
+  persona:['persona'],
+  models:['models'],
+  memory:['limits','review','approval'],
+  media:['asr'],
+  browser:['browser'],
+  qq:['qq'],
+};
+function collectHubUpdates(){
+  // 提示词按行提交前必须去掉尾部空行：textarea 的值通常以换行结尾，
+  // split('\n') 会多出一个空串，写进 YAML 多行块就是一行空白——
+  // 每存一次就多一行，越存越长。
+  const promptLines=$('#cfg-persona-prompt').value.replace(/\r\n/g,'\n').split('\n');
+  while(promptLines.length>1&&!promptLines[promptLines.length-1].trim())promptLines.pop();
+  return {
+    persona:{name:$('#cfg-persona-name').value.trim(),
+             system_prompt:promptLines},
+    models:{chat:getModelSlotValue('chat'),vision:getModelSlotValue('vision'),
+            review:getModelSlotValue('review')},
     limits:{max_history_messages:parseInt($('#cfg-limits-history').value)||40,
             max_agent_steps:parseInt($('#cfg-limits-steps').value)||8},
     review:{enabled:$('#cfg-review-enabled').checked,
@@ -1391,25 +2369,63 @@ window.saveHub=async()=>{
     approval:{mode:$('#cfg-approval-mode').value},
     asr:{model:$('#cfg-asr-model').value,device:$('#cfg-asr-device').value,
          compute_type:$('#cfg-asr-compute-type').value},
-    qq:{enabled:$('#cfg-qq-enabled').checked,ws_url:$('#cfg-qq-ws-url').value,
+    qq:{enabled:$('#cfg-qq-enabled').checked,ws_url:$('#cfg-qq-ws-url').value.trim(),
         access_token:$('#cfg-qq-token').value,
         allowed_users:$('#cfg-qq-users').value.split(/[,，\s]+/).map(x=>parseInt(x)).filter(Number.isInteger),
         allowed_groups:$('#cfg-qq-groups').value.split(/[,，\s]+/).map(x=>parseInt(x)).filter(Number.isInteger),
         reply_delay_s:$('#cfg-qq-delay').value.split(/[,，\s]+/).map(parseFloat).filter(x=>!isNaN(x)),
         group_reply_to_bot:$('#cfg-qq-reply').checked,proactive_enabled:$('#cfg-qq-proactive').checked,
         owner_qq:Number($('#cfg-qq-owner').value),proactive_daily_limit:Number($('#cfg-qq-limit').value),
-        quiet_start:$('#cfg-qq-quiet-start').value,quiet_end:$('#cfg-qq-quiet-end').value,timezone:$('#cfg-qq-timezone').value},
+        quiet_start:$('#cfg-qq-quiet-start').value,quiet_end:$('#cfg-qq-quiet-end').value,
+        timezone:$('#cfg-qq-timezone').value.trim()||'Asia/Shanghai'},
     browser:{headless:$('#cfg-browser-headless').checked,
              slow_mo_ms:parseInt($('#cfg-browser-slowmo').value)||120,
              max_writes_per_day:parseInt($('#cfg-browser-budget').value)||50,
              approval_timeout_s:parseFloat($('#cfg-browser-approval-timeout').value)||180}
   };
+}
+// 提交前先在本地拦住"一看就填错了"的情况，省一次 400 往返和无谓的困惑
+function hubPrecheck(updates){
+  if(updates.persona&&!updates.persona.name)return '「它叫什么」不能空着';
+  if(updates.models&&!updates.models.chat)return '日常对话还没选模型';
+  if(updates.qq){
+    if(!updates.qq.ws_url)return 'QQ 连接地址不能空着';
+    if(updates.qq.reply_delay_s.length!==2)return '回复间隔要填两个数字，比如 1.0, 3.0';
+  }
+  return '';
+}
+function setHubMsg(scope,text,tone){
+  const el=scope?$('#save-msg-'+scope):$('#hub-msg');
+  if(!el)return;
+  el.textContent=text;
+  el.className='save-msg'+(tone?' '+tone:'');
+  if(scope)el.style.color='';
+}
+window.saveHub=async(scope,btn)=>{
+  const all=collectHubUpdates();
+  const keys=SAVE_SCOPES[scope];
+  const updates={};
+  if(keys)keys.forEach(k=>{if(k in all)updates[k]=all[k]});
+  else Object.assign(updates,all);
+  if(!Object.keys(updates).length)return;
+
+  const bad=hubPrecheck(updates);
+  if(bad){setHubMsg(scope,'⚠ '+bad,'err');return}
+
+  const label=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='保存中…'}
+  setHubMsg(scope,'正在保存…','');
   try{
     await api('/api/system/config',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({updates})});
-    $('#hub-msg').textContent='✅ 已保存 '+new Date().toLocaleTimeString()+'（QQ/浏览器等常驻服务需在服务面板重启生效）';
+    const extra=scope==='qq'||scope==='browser'?'（要重启一次对应服务才生效）':'';
+    setHubMsg(scope,'✅ 已保存 '+new Date().toLocaleTimeString()+extra,'ok');
     loadState();
-  }catch(e){$('#hub-msg').textContent='❌ '+e.message;$('#hub-msg').style.color='#f87171'}
+  }catch(e){
+    setHubMsg(scope,'❌ 保存失败：'+(e.message||'未知原因'),'err');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=label}
+  }
 };
 
 // ---------- 内置终端（xterm.js + ConPTY） ----------
@@ -1420,6 +2436,39 @@ $('#open-terminal').onclick=openTerminal;
 window.openPhone=()=>window.open('/android/','omni-android');
 $('#open-phone').onclick=openPhone;
 
+// ---------- 左侧 rail（新视觉骨架）：函数只做转发，不新增业务逻辑 ----------
+function railActive(btn){document.querySelectorAll('.rail-btn').forEach(x=>x.classList.toggle('active',x===btn))}
+window.railGo=btn=>railActive(btn); // 工作台本身就是当前页，只负责把高亮收回来
+window.railTab=(btn,tab)=>{ // 记忆库/技能库 = 右栏对应 tab 的快捷入口
+  railActive(btn);
+  document.querySelector(`.tabs button[data-tab="${tab}"]`)?.click();
+};
+window.railCron=async()=>{ // 定时任务 = 打开设置中心并定位到 sec-cron 分区
+  await openHub();switchHub('sec-cron');
+};
+window.railApprovals=async()=>{ // 审批队列 = 立即拉一次待审批并弹横幅；没有就告诉一声
+  await pollApprovals();
+  if($('#approval-banner').classList.contains('hidden'))OmniUI.notify('现在没有等你确认的操作');
+};
+
+// ---------- rail 图标提示（data-tip → #tip-layer 顶层浮层） ----------
+(function(){
+  const layer=$('#tip-layer');
+  const show=el=>{
+    const text=el.getAttribute('data-tip');if(!text)return;
+    layer.textContent=text;layer.classList.add('on');
+    const r=el.getBoundingClientRect();
+    let x=r.left+r.width/2-layer.offsetWidth/2;
+    x=Math.max(6,Math.min(x,innerWidth-layer.offsetWidth-6));
+    let y=r.bottom+7;
+    if(y+layer.offsetHeight>innerHeight-6)y=r.top-layer.offsetHeight-7;
+    layer.style.transform=`translate(${x}px,${y}px)`;
+  };
+  const hide=()=>layer.classList.remove('on');
+  document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-tip]');el?show(el):hide()});
+  document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]'))hide()});
+})();
+
 (async function init(){
   try{await loadState();await loadSessions();await loadMessages();refreshMemory()}
   catch(e){console.error(e)}
@@ -1429,9 +2478,15 @@ $('#open-phone').onclick=openPhone;
   loadServices();
   setInterval(loadServices,5000);
 })();
-$('#open-settings').onclick=openHub;
 </script>
 <script src="/vendor/xterm.js"></script>
 <script src="/vendor/xterm-addon-fit.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
