@@ -13,6 +13,9 @@ data/
 # 学习用参考项目（不进主仓库）
 xuexi/
 
+# 一键安装器下载的本地组件（NapCat / platform-tools），见 scripts/install.ps1
+tools/
+
 # 技能编辑锁与本地历史（运行时生成，不进库）
 skills/.locks/
 skills/.history/
