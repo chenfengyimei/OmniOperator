@@ -111,8 +111,13 @@ ul{list-style:none;overflow-y:auto}
 .svc-name{color:var(--text)}
 .svc-detail{color:var(--dim);font-size:11px}
 .tiny-btn{margin:6px 4px 0 0}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
-.modal.hidden{display:none}
+dialog.modal{
+  width:100vw;height:100dvh;max-width:none;max-height:none;margin:auto;
+  background:transparent;border:0;padding:0;
+  display:flex;align-items:center;justify-content:center;overflow:visible;
+}
+dialog.modal:not([open]){display:none}
+dialog.modal::backdrop{background:rgba(0,0,0,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .modal-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;width:min(440px,92vw);max-height:88vh;overflow-y:auto}
 .modal-title{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:10px}
 .modal-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px}
@@ -625,7 +630,7 @@ aside,section{gap:11px}
 input[type=checkbox]{accent-color:var(--seed-accent)}
 
 /* ---------------- 弹窗与审批 ---------------- */
-.modal{background:color-mix(in srgb,#000 62%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+dialog.modal::backdrop{background:color-mix(in srgb,#000 62%,transparent)}
 .modal-box{background:var(--surface-1);border:1px solid var(--line-1);border-radius:14px;box-shadow:var(--sh-3)}
 .modal-x{color:var(--text-3)}
 .modal-x:hover{color:var(--text-1)}

@@ -144,7 +144,7 @@
 <div id="approval-banner" class="hidden"></div>
 <!-- rail 图标提示浮层：position:fixed 顶层，避开层叠上下文与 overflow 裁剪；JS 在文件尾接线 -->
 <div id="tip-layer"></div>
-<div id="qr-modal" class="modal hidden" onclick="if(event.target===this)closeModal('qr-modal')">
+<dialog id="qr-modal" class="modal" onclick="if(event.target===this)closeModal('qr-modal')">
   <div class="modal-box">
     <div class="modal-title"><span>QQ 扫码登录</span><button class="modal-x" onclick="closeModal('qr-modal')">✕</button></div>
     <div id="qr-status" class="qr-status"></div>
@@ -152,49 +152,19 @@
     <div class="qr-hint">用手机 QQ（机器人小号）扫码并确认登录。<br>二维码约 2 分钟自动刷新，弹窗每 5 秒自动取最新。</div>
     <button class="svc-btn" style="width:100%;padding:6px" onclick="loadQR()">立即刷新</button>
   </div>
-</div>
+</dialog>
 <!-- ============ 内置终端 ============ -->
-<div id="term-modal" class="modal hidden" onclick="if(event.target===this)closeTerminal()">
-  <div class="modal-box">
-    <div class="modal-title"><span>内置终端（PowerShell）</span><button class="modal-x" onclick="closeTerminal()">✕</button></div>
-    <div id="terminal"></div>
-    <div class="qr-hint">每个终端按钮会开一个独立会话；关闭弹窗即结束该会话。</div>
-  </div>
-</div>
 <!-- ============ 安卓手机 ============ -->
-<div id="phone-modal" class="modal hidden" onclick="if(event.target===this)closePhone()">
-  <div class="modal-box" style="width:min(1040px,96vw);height:min(740px,94vh)">
-    <div class="modal-title"><span>安卓手机（看屏 + 点击）</span><button class="modal-x" onclick="closePhone()">✕</button></div>
-    <div style="display:flex;gap:12px;flex:1;min-height:0">
-      <div style="flex:1.2;min-width:0;display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;gap:6px;align-items:center">
-          <button class="svc-btn" onclick="androidKey('KEYCODE_BACK')">← 返回</button>
-          <button class="svc-btn" onclick="androidKey('KEYCODE_HOME')">主屏</button>
-          <button class="svc-btn" onclick="loadAndroidTree()">刷新树</button>
-          <button class="svc-btn" onclick="freezeAndroid()">锁定当前帧以操作</button>
-          <button class="svc-btn" onclick="liveAndroid()">实时看屏</button>
-          <span id="android-state" style="font-size:11.5px;color:var(--dim)"></span>
-        </div>
-        <img id="android-stream" alt="手机屏幕" style="flex:1;min-height:0;object-fit:contain;background:#000;border-radius:8px;cursor:crosshair;min-width:0">
-        <div class="qr-hint">点击屏幕任意位置即下发点击（自动换算真实分辨率）。</div>
-      </div>
-      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
-        <div class="hint">UI 树（观察用；小鱼用 tap_element 走的同一份索引）</div>
-        <pre id="android-tree" style="flex:1;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11px/1.6 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
-      </div>
-    </div>
-  </div>
-</div>
 <!-- ============ 产物大图 ============ -->
-<div id="img-modal" class="modal hidden" onclick="if(event.target===this)closeModal('img-modal')">
+<dialog id="img-modal" class="modal" onclick="if(event.target===this)closeModal('img-modal')">
   <div class="modal-box" style="width:min(1040px,96vw)">
     <div class="modal-title"><span id="img-title">产物</span><button class="modal-x" onclick="closeModal('img-modal')">✕</button></div>
     <img id="img-view" alt="产物大图">
     <div class="qr-hint" id="img-hint"></div>
   </div>
-</div>
+</dialog>
 <!-- ============ 技能编辑器 ============ -->
-<div id="skill-modal" class="modal hidden" onclick="if(event.target===this)closeModal('skill-modal')">
+<dialog id="skill-modal" class="modal" onclick="if(event.target===this)closeModal('skill-modal')">
   <div class="modal-box" style="width:min(920px,95vw);height:min(780px,94vh);display:flex;flex-direction:column;gap:8px">
     <div class="modal-title"><span id="skill-editor-title">编辑技能</span><button class="modal-x" onclick="closeModal('skill-modal')">✕</button></div>
     <textarea id="skill-editor" spellcheck="false" style="flex:1;min-height:180px;resize:none;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);font:12.5px/1.6 Consolas,monospace;padding:10px"></textarea>
@@ -207,9 +177,9 @@
     <div id="skill-history" style="max-height:170px;overflow:auto"></div>
     <pre id="skill-diff" style="max-height:190px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
   </div>
-</div>
+</dialog>
 <!-- ============ 技能变更审阅（D18：agent/review 自动改的修订） ============ -->
-<div id="review-modal" class="modal hidden" onclick="if(event.target===this)closeModal('review-modal')">
+<dialog id="review-modal" class="modal" onclick="if(event.target===this)closeModal('review-modal')">
   <div class="modal-box" style="width:min(960px,95vw);height:min(740px,92vh);display:flex;flex-direction:column;gap:8px">
     <div class="modal-title"><span>技能变更待审阅</span><button class="modal-x" onclick="closeModal('review-modal')">✕</button></div>
     <div class="hint">这里是小鱼（对话/自进化 review/定时任务）自动改过的技能修订。技能改动不会改变风险等级或工具权限，但值得看一眼；不满意可回滚到变更前，回滚会产生新修订、可再撤销。</div>
@@ -220,7 +190,7 @@
     <div id="review-list" style="flex:1;overflow:auto"></div>
     <pre id="review-diff" style="max-height:220px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
   </div>
-</div>
+</dialog>
 <!-- ============ 设置中心 ============ -->
 <div id="hub" class="hidden" role="dialog" aria-modal="true" aria-label="设置中心" aria-hidden="true">
   <div class="hub-header">
@@ -448,7 +418,6 @@
         <div class="maintenance-actions">
           <button class="tiny-btn" onclick="showDoctor()">只读诊断</button>
           <button class="tiny-btn" onclick="createBackup()">创建备份（含私人记忆）</button>
-          <button class="tiny-btn" onclick="runTests()">检查运行是否正常</button>
         </div>
         <pre id="doctor-result" class="muted maintenance-output" style="max-height:260px;overflow:auto;white-space:pre-wrap"></pre>
         <div id="test-run-out" class="test-out" style="margin-top:8px"></div>
@@ -621,7 +590,7 @@ $('#messages').addEventListener('click',async e=>{
   if(!btn)return;
   const text=btn.closest('.msg').querySelector('.bubble').innerText||'';
   try{await navigator.clipboard.writeText(text);btn.title='已复制';btn.textContent='✓'}
-  catch(err){try{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();btn.title='已复制';btn.textContent='✓'}catch(_){alert('复制失败，请手动选择文本')}}
+  catch(err){try{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();btn.title='已复制';btn.textContent='✓'}catch(_){OmniUI.notify('复制失败，请手动选择文本','error')}}
 });
 function scrollChat(){const el=$('#messages');el.scrollTop=el.scrollHeight}
 
@@ -882,13 +851,13 @@ window.loadPublications=async()=>{
 };
 window.editPublication=async(id)=>{
   const row=publicationRows.get(id);
-  try{await api(`/api/publications/${id}/edit`,{method:'POST',body:JSON.stringify({expected_hash:row.content_hash,content:$('#pub-'+id).value})});await loadPublications()}catch(e){alert(e.message)}
+  try{await api(`/api/publications/${id}/edit`,{method:'POST',body:JSON.stringify({expected_hash:row.content_hash,content:$('#pub-'+id).value})});await loadPublications()}catch(e){OmniUI.notify(e.message,'error')}
 };
 window.resolvePublication=async(id,verdict)=>{
   const row=publicationRows.get(id);
   const prompt=verdict==='discarded'?'丢弃此草稿？':verdict==='sent'?'已在目标网站核实该账号发布了此内容？':'已在目标网站核实该账号没有发布此内容？如需重发，必须重新准备草稿并审批。';
-  if(!confirm(prompt+'\n账号：'+row.account+'\n目标：'+row.target+'\n内容：'+row.content))return;
-  try{await api(`/api/publications/${id}/resolve`,{method:'POST',body:JSON.stringify({expected_hash:row.content_hash,verdict})});await loadPublications()}catch(e){alert(e.message)}
+  if(!await OmniUI.ask({title:'人工核查草稿',message:prompt+'\n账号：'+row.account+'\n目标：'+row.target+'\n内容：'+row.content,confirmLabel:'确认',danger:true}))return;
+  try{await api(`/api/publications/${id}/resolve`,{method:'POST',body:JSON.stringify({expected_hash:row.content_hash,verdict})});await loadPublications()}catch(e){OmniUI.notify(e.message,'error')}
 };
 window.loadDesktop=async()=>{
   try{
@@ -915,21 +884,21 @@ async function loadProfile(){
 }
 window.editProfileLine=async(id)=>{
   const cur=(window._profileLines||[]).find(l=>l.id===id);
-  const text=prompt('修改档案行：',cur?cur.content:'');
+  const text=await OmniUI.ask({title:'修改档案行',input:cur?cur.content:'',inputLabel:'内容',confirmLabel:'保存'});
   if(text===null)return;
-  if(!text.trim()){alert('内容不能为空');return}
+  if(!text){OmniUI.notify('内容不能为空','error');return}
   try{
     await api('/api/profile/line',{method:'PUT',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({line_id:id,content:text.trim()})});
     loadProfile();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.delProfileLine=async(id)=>{
-  if(!confirm('删除这条档案行？'))return;
+  if(!await OmniUI.ask({title:'删除档案行',message:'删除这条档案行？',confirmLabel:'删除',danger:true}))return;
   try{
     await api(`/api/profile/line/${id}`,{method:'DELETE'});
     loadProfile();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 async function loadResident(){
   try{
@@ -948,25 +917,25 @@ window.addResident=async()=>{
     await api('/api/resident/update',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({operation:'add',content:text})});
     box.value='';loadResident();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.editResident=async(id)=>{
   const cur=(await api('/api/resident')).entries.find(en=>en.id===id);
-  const text=prompt('修改常驻笔记：',cur?cur.content:'');
+  const text=await OmniUI.ask({title:'修改常驻笔记',input:cur?cur.content:'',inputLabel:'内容',confirmLabel:'保存'});
   if(text===null||!text.trim())return;
   try{
     await api('/api/resident/update',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({operation:'replace',id,content:text.trim()})});
     loadResident();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.delResident=async(id)=>{
-  if(!confirm('删除这条常驻笔记？'))return;
+  if(!await OmniUI.ask({title:'删除常驻笔记',message:'删除这条常驻笔记？',confirmLabel:'删除',danger:true}))return;
   try{
     await api('/api/resident/update',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({operation:'remove',id})});
     loadResident();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 async function loadReviews(){
   const d=await api('/api/reviews');
@@ -995,7 +964,7 @@ async function loadSkillPending(){
   }catch(e){/* 旁路信息，不打断技能页 */}
 }
 window.openReview=async()=>{
-  $('#review-modal').classList.remove('hidden');
+  openModal('review-modal');
   $('#review-diff').textContent='';
   try{
     const d=await api('/api/skills/pending');
@@ -1012,21 +981,21 @@ window.reviewDiff=async(name,rev)=>{
   try{
     const d=await api(`/api/skills/pending/${encodeURIComponent(name)}/diff?rev=${rev}`);
     $('#review-diff').textContent=(d.diff||'（无差异）')+(d.truncated?'\n…（差异过长已截断）':'');
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.reviewAck=async(name,rev)=>{
   try{
     await api('/api/skills/'+encodeURIComponent(name)+'/ack',{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({rev})});
     openReview();loadSkillPending();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.reviewAckAll=async()=>{
   try{await api('/api/skills/ack-all',{method:'POST'});openReview();loadSkillPending()}
-  catch(e){alert(e.message)}
+  catch(e){OmniUI.notify(e.message,'error')}
 };
 window.reviewRollback=async(name,rev,baseRev)=>{
-  if(!confirm(`回滚「${name}」到 rev ${baseRev}（撤销 rev ${rev} 这次修改）？当前内容会先存进历史，回滚是新修订、可再撤销。`))return;
+  if(!await OmniUI.ask({title:'回滚技能修订',message:`回滚「${name}」到 rev ${baseRev}（撤销 rev ${rev} 这次修改）？当前内容会先存进历史，回滚是新修订、可再撤销。`,confirmLabel:'回滚',danger:true}))return;
   try{
     const cur=await api('/api/skills/'+encodeURIComponent(name)); // 现指纹：冲突就拒绝，不覆盖
     await api('/api/skills/'+encodeURIComponent(name)+'/rollback',{method:'POST',
@@ -1035,7 +1004,7 @@ window.reviewRollback=async(name,rev,baseRev)=>{
     await api('/api/skills/'+encodeURIComponent(name)+'/ack',{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({rev})});
     openReview();loadSkills();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.toggleSkill=async(name,el)=>{
   const body=el.querySelector('.skill-body');
@@ -1044,7 +1013,7 @@ window.toggleSkill=async(name,el)=>{
     const d=await api('/api/skills/'+encodeURIComponent(name));
     const pre=document.createElement('div');pre.className='skill-body';pre.textContent=d.content;
     el.appendChild(pre);el.dataset.open='1';
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 // ---------- 技能编辑器（D18）：读原文带指纹 → 保存 CAS → 历史/差异/回滚 ----------
 let skillEditing=null; // {name, hash}：保存必须带读取时的指纹，别人改过就 409
@@ -1056,8 +1025,8 @@ window.editSkill=async(name)=>{
     $('#skill-editor-title').textContent='编辑技能：'+name+'（'+(d.references||[]).length+' 个参考文件不受影响）';
     $('#skill-msg').textContent='';$('#skill-msg').style.color='#34d399';
     $('#skill-history').innerHTML='';$('#skill-diff').textContent='';
-    $('#skill-modal').classList.remove('hidden');
-  }catch(e){alert(e.message)}
+    openModal('skill-modal');
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.saveSkill=async()=>{
   if(!skillEditing)return;
@@ -1081,18 +1050,18 @@ window.loadSkillHistory=async()=>{
       `<button class="svc-btn" onclick="skillDiff(${r.rev})">差异</button>`+
       `<button class="svc-btn" onclick="skillRollback(${r.rev})">回滚</button></div>`).join('')
       :'<div class="empty">还没有历史修订</div>';
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.skillDiff=async(rev)=>{
   if(!skillEditing)return;
   try{
     const d=await api(`/api/skills/${encodeURIComponent(skillEditing.name)}/diff?rev=${rev}`);
     $('#skill-diff').textContent=d.diff||'（与当前内容没有差异）';
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.skillRollback=async(rev)=>{
   if(!skillEditing)return;
-  if(!confirm('回滚到 rev '+rev+'？当前内容会先存进历史，回滚是产生新修订，还能再回滚回来。'))return;
+  if(!await OmniUI.ask({title:'回滚技能',message:'回滚到 rev '+rev+'？当前内容会先存进历史，回滚是产生新修订，还能再回滚回来。',confirmLabel:'回滚',danger:true}))return;
   try{
     const d=await api('/api/skills/'+encodeURIComponent(skillEditing.name)+'/rollback',{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -1121,11 +1090,11 @@ window.viewArtifact=(id)=>{
   $('#img-view').src='/api/artifacts/'+encodeURIComponent(id)+'/image';
   $('#img-title').textContent='产物 '+id;
   $('#img-hint').textContent='点图外区域关闭；产物保留 7 天，过期自动清理。';
-  $('#img-modal').classList.remove('hidden');
+  openModal('img-modal');
 };
 window.delArtifact=async(id)=>{
-  if(!confirm('删除这个产物？删除后聊天里的引用将不可再显示。'))return;
-  try{await api('/api/artifacts/'+encodeURIComponent(id),{method:'DELETE'});loadArtifacts()}catch(e){alert(e.message)}
+  if(!await OmniUI.ask({title:'删除产物',message:'删除这个产物？删除后聊天里的引用将不可再显示。',confirmLabel:'删除',danger:true}))return;
+  try{await api('/api/artifacts/'+encodeURIComponent(id),{method:'DELETE'});loadArtifacts()}catch(e){OmniUI.notify(e.message,'error')}
 };
 async function loadTodos(){
   if(currentSession==null)return;
@@ -1170,7 +1139,7 @@ window.resolveApproval=async(id,allowed)=>{
       body:JSON.stringify({allowed})
     });
     pollApprovals();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 
 // 右栏页签：同步 aria 状态，并只对新出现的面板做一次轻量进入动效。
@@ -1213,11 +1182,19 @@ $('#session-q').addEventListener('input',renderSessions);
 
 // ---------- 系统控制台（服务/扫码） ----------
 let QR_TIMER=null;
+function openModal(id){
+  const el=$('#'+id);
+  if(el.tagName==='DIALOG'){if(!el.open)el.showModal()}
+  else el.classList.remove('hidden');
+}
 function closeModal(id){
-  $('#'+id).classList.add('hidden');
+  const el=$('#'+id);
+  if(el.tagName==='DIALOG')el.close();else el.classList.add('hidden');
   if(id==='qr-modal'&&QR_TIMER){clearInterval(QR_TIMER);QR_TIMER=null}
 }
-window.closeModal=closeModal;
+window.closeModal=closeModal;window.openModal=openModal;
+// 原生 Esc 关闭 dialog 不会走 closeModal：扫码轮询定时器必须在这里一起清
+$('#qr-modal').addEventListener('close',()=>{if(QR_TIMER){clearInterval(QR_TIMER);QR_TIMER=null}});
 
 async function loadServices(){
   try{
@@ -1242,7 +1219,7 @@ window.svcAction=async(name,action)=>{
     await api(`/api/system/services/${name}/${action}`,{
       method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     setTimeout(loadServices,800);
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 window.showDoctor=async()=>{
   $('#doctor-result').textContent='诊断中…';
@@ -1257,7 +1234,7 @@ window.createBackup=async()=>{
   }catch(e){$('#doctor-result').textContent=e.message;}
 };
 window.openQR=()=>{
-  $('#qr-modal').classList.remove('hidden');
+  openModal('qr-modal');
   loadQR();
   if(!QR_TIMER)QR_TIMER=setInterval(loadQR,5000);
 };
@@ -1330,16 +1307,16 @@ window.mcpTools=async(name)=>{
   }catch(e){box.innerHTML='<div class="hint" style="color:#f87171">'+esc(e.message)+'</div>'}
 };
 window.mcpConfirmSchema=async(name,fingerprint)=>{
-  if(!confirm('重新核对「'+name+'」？\n\n核对之后，它提供的那几项只看不改的操作会恢复自动放行，不用你一个个点。'))return;
+  if(!await OmniUI.ask({title:'重新核对 '+name,message:'重新核对「'+name+'」？\n\n核对之后，它提供的那几项只看不改的操作会恢复自动放行，不用你一个个点。',confirmLabel:'重新核对'}))return;
   try{await api('/api/mcp/'+encodeURIComponent(name)+'/confirm-schema',{method:'POST',body:JSON.stringify({fingerprint})});loadMcp()}
-  catch(e){alert(e.message)}
+  catch(e){OmniUI.notify(e.message,'error')}
 };
 window.mcpReset=async(name)=>{
-  if(!confirm('重新连一次「'+name+'」？\n\n不会改动任何设置，只是重新握个手。连不上的话再告诉我。'))return;
+  if(!await OmniUI.ask({title:'重连 '+name,message:'重新连一次「'+name+'」？\n\n不会改动任何设置，只是重新握个手。连不上的话再告诉我。',confirmLabel:'重连'}))return;
   try{
     const d=await api('/api/mcp/'+encodeURIComponent(name)+'/reset',{method:'POST'});
-    loadMcp();alert('已经重连过了，点「看看能做什么」确认一下能不能用');
-  }catch(e){alert(e.message)}
+    loadMcp();OmniUI.notify('已经重连过了，点「看看能做什么」确认一下能不能用');
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 function closeHub(){
   $('#hub').classList.add('hidden');
@@ -1460,22 +1437,22 @@ window.applyPreset=id=>{
   renderPersonaPresets(p.name);
   presetTip(`已填入「${p.name}」。点下面「保存人设」生效。`);
 };
-window.deletePreset=id=>{
+window.deletePreset=async id=>{
   const p=findPreset(id); if(!p)return;
-  if(!confirm(`删除预设「${p.name}」？此操作不可撤销。`))return;
+  if(!await OmniUI.ask({title:'删除预设',message:`删除预设「${p.name}」？此操作不可撤销。`,confirmLabel:'删除',danger:true}))return;
   savePresets(loadPresets().filter(x=>x.id!==id));
   renderPersonaPresets($('#cfg-persona-name').value);
   presetTip('已删除「'+p.name+'」');
 };
-window.saveCurrentAsPreset=()=>{
+window.saveCurrentAsPreset=async()=>{
   const name=$('#cfg-persona-name').value.trim();
   const prompt=$('#cfg-persona-prompt').value.trim();
   if(!name||!prompt){presetTip('昵称和提示词都不能为空',false);return}
-  const desc=prompt('给这个预设写一句描述：',`${name}的自定义设定`)||`${name}的自定义设定`;
+  const desc=(await OmniUI.ask({title:'预设描述',input:`${name}的自定义设定`,inputLabel:'一句描述',confirmLabel:'确定'}))||`${name}的自定义设定`;
   const presets=loadPresets();
   const existing=presets.find(p=>p.name===name);
   if(existing){
-    if(!confirm(`已有同名预设「${name}」，是否覆盖？`))return;
+    if(!await OmniUI.ask({title:'覆盖同名预设',message:`已有同名预设「${name}」，是否覆盖？`,confirmLabel:'覆盖'}))return;
     existing.prompt=prompt; existing.desc=desc;
   }else{
     presets.push({id:genPresetId(),name,desc,prompt});
@@ -1488,19 +1465,20 @@ window.newPreset=()=>openPresetEditor(null);
 window.editPreset=id=>{const p=findPreset(id); if(p)openPresetEditor(p)};
 function openPresetEditor(preset){
   const isEdit=!!preset;
-  const box=document.createElement('div');
-  box.className='modal'; box.style.display='flex';
+  const box=document.createElement('dialog');
+  box.className='modal';
   box.innerHTML=`<div class="modal-box" style="width:min(620px,94vw)">
-    <div class="modal-title"><span>${isEdit?'编辑预设':'新建预设'}</span><button class="modal-x" onclick="this.closest('.modal').remove()">✕</button></div>
+    <div class="modal-title"><span>${isEdit?'编辑预设':'新建预设'}</span><button class="modal-x" onclick="this.closest('dialog').close()">✕</button></div>
     <div class="form-row"><label>名称<input type="text" id="pe-name" value="${esc(preset?preset.name:'')}"></label></div>
     <div class="form-row"><label>描述<input type="text" id="pe-desc" value="${esc(preset?preset.desc:'')}"></label></div>
     <div class="form-row"><label>行为设定（{now} 会被替换为当前时间）<textarea id="pe-prompt" style="min-height:220px;font:12px/1.6 Consolas,monospace;white-space:pre-wrap">${esc(preset?preset.prompt:'')}</textarea></label></div>
     <div id="pe-msg" class="test-out" style="min-height:1.2em"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="hub-save" style="padding:7px 20px;font-size:13px" onclick="confirmPresetEdit('${preset?preset.id:''}',${isEdit})">${isEdit?'保存修改':'创建'}</button>
-      <button class="hub-close" style="padding:7px 16px;font-size:13px" onclick="this.closest('.modal').remove()">取消</button>
+      <button class="hub-close" style="padding:7px 16px;font-size:13px" onclick="this.closest('dialog').close()">取消</button>
     </div></div>`;
   document.body.appendChild(box);
+  box.showModal();
 }
 window.confirmPresetEdit=(id,isEdit)=>{
   const name=$('#pe-name').value.trim();
@@ -1519,7 +1497,7 @@ window.confirmPresetEdit=(id,isEdit)=>{
     p.name=name; p.desc=desc||`${name}的自定义设定`; p.prompt=prompt;
   }
   savePresets(presets);
-  document.querySelector('.modal:last-of-type')?.remove();
+  document.querySelector('dialog.modal[open]')?.close();
   renderPersonaPresets($('#cfg-persona-name').value);
   presetTip(isEdit?'已更新「'+name+'」':'已创建「'+name+'」');
 };
@@ -1869,7 +1847,7 @@ window.saveBiliCookies=async()=>{
       body:JSON.stringify({sessdata:$('#cfg-bili-sessdata').value,bili_jct:$('#cfg-bili-jct').value,buvid3:$('#cfg-bili-buvid3').value})});
     $('#bili-cookie-status').textContent='✅ 已保存，正在生效';
     loadCookies();
-  }catch(e){alert(e.message)}
+  }catch(e){OmniUI.notify(e.message,'error')}
 };
 let cronJobs=[]; // 任务列表缓存（编辑表单要回填 revision 与全量字段）
 async function loadCron(){
@@ -1911,12 +1889,12 @@ const outboxStateText=x=>x.status==='pending'?'<span style="color:#fbbf24">等 Q
   x.status==='dead'?'<span style="color:#f87171">自动重发次数用完了</span>':
   x.status==='discarded'?'<span style="color:var(--dim)">已丢弃</span>':'<span style="color:#34d399">已经发出去了</span>';
 window.outboxRetry=async(id)=>{
-  if(!confirm('再发一次这条？\n\n如果上一次其实已经送到了，对方会收到两条。先跟他确认一下更稳。'))return;
-  try{await api(`/api/system/cron/outbox/${id}/retry`,{method:'POST'});loadCron()}catch(e){alert(e.message)}
+  if(!await OmniUI.ask({title:'重新排队投递',message:'再发一次这条？\n\n如果上一次其实已经送到了，对方会收到两条。先跟他确认一下更稳。',confirmLabel:'重新排队',danger:true}))return;
+  try{await api(`/api/system/cron/outbox/${id}/retry`,{method:'POST'});loadCron()}catch(e){OmniUI.notify(e.message,'error')}
 };
 window.outboxDiscard=async(id)=>{
-  if(!confirm('丢弃这条待投递消息？丢弃后不会发送（任务结果仍保留在会话里）。'))return;
-  try{await api(`/api/system/cron/outbox/${id}/discard`,{method:'POST'});loadCron()}catch(e){alert(e.message)}
+  if(!await OmniUI.ask({title:'丢弃待投递',message:'丢弃这条待投递消息？丢弃后不会发送（任务结果仍保留在会话里）。',confirmLabel:'丢弃',danger:true}))return;
+  try{await api(`/api/system/cron/outbox/${id}/discard`,{method:'POST'});loadCron()}catch(e){OmniUI.notify(e.message,'error')}
 };
 let cronEditing=null; // 编辑中的任务（null=创建模式）；保存带 revision 防旧表单覆盖
 window.cronEdit=(name)=>{
@@ -1990,11 +1968,11 @@ window.createCron=async()=>{
 };
 window.cronToggle=async(name,enabled)=>{
   try{await api('/api/system/cron/toggle',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name,enabled})});loadCron()}catch(e){alert(e.message)}
+    body:JSON.stringify({name,enabled})});loadCron()}catch(e){OmniUI.notify(e.message,'error')}
 };
 window.cronDelete=async(name)=>{
   try{await api('/api/system/cron/delete',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name})});loadCron()}catch(e){alert(e.message)}
+    body:JSON.stringify({name})});loadCron()}catch(e){OmniUI.notify(e.message,'error')}
 };
 // 每页独立保存：只提交本页涉及的配置段。
 // 为什么：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，

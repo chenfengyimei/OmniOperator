@@ -228,8 +228,8 @@ body[data-ui-page="capabilities"] #cards:empty::after{
 
 
 /* Overlay transitions: short, consistent and cancelled by reduced motion below. */
-body[data-ui-page] .modal:not(.hidden){animation:omni-overlay-in .18s ease both}
-body[data-ui-page] .modal:not(.hidden) .modal-box{animation:omni-modal-in .24s cubic-bezier(.2,.8,.2,1) both}
+body[data-ui-page] dialog.modal[open]{animation:omni-overlay-in .18s ease both}
+body[data-ui-page] dialog.modal[open] .modal-box{animation:omni-modal-in .24s cubic-bezier(.2,.8,.2,1) both}
 body[data-ui-page] #hub:not(.hidden){animation:omni-overlay-in .18s ease both}
 body[data-ui-page] #hub:not(.hidden) .hub-card:not(.hidden){animation:omni-panel-in .2s ease both}
 body[data-ui-page] dialog[open]{animation:omni-modal-in .22s cubic-bezier(.2,.8,.2,1) both}
