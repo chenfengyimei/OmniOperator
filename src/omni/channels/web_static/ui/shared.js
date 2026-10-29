@@ -12,7 +12,19 @@
     storage:{icon:'folder',label:'Agent 与文件'},
     project:{icon:'account_tree',label:'项目索引'},
   };
-  const navItems=[['/','forum','对话工作台'],['/capabilities/','fact_check','能力总览'],['/terminal/','terminal','人工终端'],['/jobs/','checklist','后台任务'],['/mcp/','network_check','MCP 服务'],['/android/','smartphone','安卓控制'],['/project/','account_tree','项目索引']];
+  /* NAV_ITEMS 是全站页面导航的唯一数据源（UI_DESIGN_SYSTEM.md §7）：
+     新增页面只在这里加一行；子站 rail 由 renderRail 渲染，工作台 rail 的链接项与之同源同序。 */
+  const NAV_ITEMS=[
+    ['/','forum','对话工作台'],
+    ['/capabilities/','fact_check','能力总览'],
+    ['/terminal/','terminal','人工终端'],
+    ['/jobs/','checklist','后台任务'],
+    ['/mcp/','network_check','MCP 服务'],
+    ['/android/','smartphone','安卓控制'],
+    ['/project/','account_tree','项目索引'],
+    ['/storage/','folder','Agent 与文件'],
+    ['/?settings=1','settings','设置中心'],
+  ];
   function element(tag,text,className){const node=document.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node}
   function icon(name,className=''){
     const node=element('span',name,('material-icons '+className).trim());
@@ -87,23 +99,21 @@
     }
     header.setAttribute('data-ui-header',page);
   }
-  function decorateNav(nav){
-    for(const link of nav.querySelectorAll('a')){
-      const label=[...link.childNodes].filter(node=>node.nodeType===Node.TEXT_NODE).map(node=>node.textContent).join('').trim();
-      const iconName=navItems.find(([path])=>path===link.getAttribute('href'))?.[1];
-      if(iconName&&!link.querySelector('.material-icons'))link.prepend(icon(iconName));
-      if(label){link.replaceChildren(...link.childNodes.filter(node=>node.nodeType!==Node.TEXT_NODE),element('span',label,'ui-nav-label'));}
+  /* renderRail：子站 rail 的唯一渲染器——子站 markup 不写导航（规范红线），
+     工作台注入的隐藏 rail 也走同一数据。链接统一挂 .rail-btn 与工作台 markup rail 同类。 */
+  function renderRail(nav,page){
+    nav.replaceChildren();
+    const brand=element('span',null,'ui-rail-brand');brand.setAttribute('aria-hidden','true');brand.append(icon('smart_toy'));nav.append(brand);
+    for(const [path,iconName,label] of NAV_ITEMS){
+      const link=element('a');link.href=path;link.title=label;link.className='rail-btn';link.setAttribute('aria-label',label);
+      link.append(icon(iconName),element('span',label,'ui-nav-label'));
+      // 带查询串的深链（设置中心）永远不标「当前页」
+      if(!path.includes('?')&&location.pathname===path)link.setAttribute('aria-current','page');
+      if(page==='workbench'&&path!=='/'){link.target='_blank';link.rel='noopener'}
+      nav.append(link);
     }
   }
-  function addStorageEntry(){
-    const nav=document.querySelector('.ui-global-nav');if(!nav)return;
-    const page=location.pathname.split('/').filter(Boolean)[0]||'workbench';
-    if((page==='workbench'||page==='storage')&&!nav.querySelector('a[href="/storage/"]')){
-      const link=element('a');link.href='/storage/';link.title=page==='storage'?'Agent 与文件':'Agent 与文件';link.setAttribute('aria-label','Agent 与文件');
-      link.append(icon('folder'),element('span','Agent 与文件','ui-nav-label'));
-      if(page==='storage')link.setAttribute('aria-current','page');
-      if(page==='workbench'){link.target='_blank';link.rel='noopener'}nav.append(link);
-    }
+  function ensureHubStorageEntry(){
     const settings=document.querySelector('.hub-nav');
     if(settings&&!settings.querySelector('a[href="/storage/"]')){const entry=element('a','Agent 与目录');entry.href='/storage/';entry.target='_blank';entry.rel='noopener';settings.append(entry)}
   }
@@ -116,13 +126,11 @@
     let nav=document.querySelector('body > .ui-global-nav');
     if(!embedded&&!nav){
       nav=element('nav',null,'ui-global-nav');if(page!=='workbench')nav.classList.add('ui-app-rail');nav.setAttribute('aria-label','工作台功能导航');
-      for(const [path,iconName,label]of navItems){
-        const link=element('a');link.href=path;link.title=label;link.setAttribute('aria-label',label);link.append(icon(iconName),element('span',label,'ui-nav-label'));
-        if(location.pathname===path)link.setAttribute('aria-current','page');
-        if(page==='workbench'&&path!=='/'){link.target='_blank';link.rel='noopener'}nav.append(link);
-      }
+      renderRail(nav,page);
+      // 插在 header 之前：移动端折叠态 rail 是顶部横条（sticky top:0），
+      // header 让位 54px——DOM 顺序决定自然布局位，注入到 header 后面会把折顶搞乱
       const header=document.querySelector('body>header');
-      (header||document.body.firstChild).after(nav);
+      if(header)header.before(nav);else document.body.prepend(nav);
     }
     const header=document.querySelector('body>header');
     if(!embedded)addPageChrome(page);
@@ -138,7 +146,7 @@
     }
     const currentLink=nav?.querySelector('[aria-current="page"]');if(currentLink)requestAnimationFrame(()=>currentLink.scrollIntoView({block:'nearest',inline:'center'}));
     document.body.classList.add('ui-ready');
-    if(!embedded){addStorageEntry();if(new URLSearchParams(location.search).get('settings')==='1')setTimeout(()=>document.querySelector('.hub-open')?.click(),0);}
+    if(!embedded){ensureHubStorageEntry();if(new URLSearchParams(location.search).get('settings')==='1')setTimeout(()=>document.querySelector('.hub-open')?.click(),0);}
     requestAnimationFrame(()=>document.body.classList.add('ui-entered'));
     const progress=element('div');progress.className='ui-route-progress';progress.setAttribute('aria-hidden','true');document.body.append(progress);
     const prefetchFrom=event=>{const link=event.target.closest('a[href]');if(!link||link.target==='_blank')return;try{const url=new URL(link.href,location.href);if(url.origin===location.origin)warm(url.pathname)}catch{}};
@@ -153,7 +161,7 @@
     },{passive:true});
     if(nav)warmAll(nav);
   }
-  window.OmniUI={request,notify,ask,badge,date,element,labels,icon};
+  window.OmniUI={request,notify,ask,badge,date,element,labels,icon,NAV_ITEMS};
   document.addEventListener('omni:auth-required',()=>notify('需要配对：请返回工作台打开控制台提供的配对链接','error'));
   window.addEventListener('offline',()=>notify('本机服务连接已断开，正在等待恢复。','error'));
   window.addEventListener('online',()=>notify('连接已恢复，当前页面可继续操作。'));

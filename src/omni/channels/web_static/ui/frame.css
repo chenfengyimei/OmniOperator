@@ -109,33 +109,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]) > header select{
 .ui-env::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--shell-success);box-shadow:0 0 8px var(--shell-success)}
 body[data-ui-page]:not([data-ui-page="workbench"]) > header .ui-env{margin-left:auto}
 
-/* shared.js creates this nav before the page content. */
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-global-nav{
-  position:sticky;top:66px;z-index:70;
-  width:100%;max-width:none;margin:0;padding:8px clamp(18px,3vw,42px);
-  display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow-x:auto;
-  border-bottom:1px solid var(--shell-line);
-  background:rgba(8,13,20,.78);
-  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  scrollbar-width:none;
-}
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-global-nav::-webkit-scrollbar{display:none}
-.ui-global-nav a{
-  display:inline-flex;align-items:center;gap:7px;flex:none;
-  min-height:32px;padding:0 11px;border-radius:8px;
-  color:var(--shell-text-3);text-decoration:none;font-size:11.5px;font-weight:560;
-  border:1px solid transparent;white-space:nowrap;
-  transition:color .16s,background .16s,border-color .16s,transform .16s;
-}
-.ui-global-nav a .material-icons{font-size:15px!important;opacity:.74}
-.ui-global-nav a:hover{color:var(--shell-text);background:rgba(255,255,255,.045)}
-.ui-global-nav a[aria-current="page"]{
-  color:var(--shell-accent);background:var(--shell-accent-soft);
-  border-color:color-mix(in srgb,var(--seed-accent) 27%,transparent);
-  box-shadow:inset 0 0 18px -11px color-mix(in srgb,var(--seed-accent) 70%,transparent);
-}
-.ui-global-nav a[aria-current="page"] .material-icons{opacity:1}
-.ui-global-nav a:active{transform:translateY(1px)}
+/* 注入导航的样式见上方「统一图标栏」；.ui-global-nav 类名仅作 JS/测试锚点 */
 
 /* --------------------------------------------------------------------------
    Content rhythm, typography and descriptions
@@ -293,9 +267,6 @@ body[data-ui-page] *::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb
   body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > header{
     position:relative;top:auto;min-height:58px;padding-top:8px;padding-bottom:8px;
   }
-  body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-global-nav{
-    position:relative;top:auto;padding-top:6px;padding-bottom:6px;
-  }
   body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > :not(header):not(.ui-global-nav){
     width:calc(100% - 28px);
   }
@@ -308,8 +279,6 @@ body[data-ui-page] *::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb
   }
   body[data-ui-page]:not([data-ui-page="workbench"]) > header{gap:8px;padding-left:10px;padding-right:10px}
   body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child{min-height:28px;padding:0 9px;font-size:11px}
-  body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-global-nav{padding-left:10px;padding-right:10px}
-  .ui-global-nav a{padding:0 9px;font-size:11px}
   body[data-ui-page="jobs"] main>section,
   body[data-ui-page="mcp"] > section,
   body[data-ui-page="capabilities"] > section,
@@ -328,52 +297,53 @@ body[data-ui-page] *::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb
    The same fixed icon rail + topbar + content rhythm as the main workbench.
    ========================================================================== */
 body[data-ui-page]:not([data-ui-page="workbench"]){
-  padding-left:var(--app-rail-w)!important;
+  padding-left:var(--rail-w)!important;
   background:
     radial-gradient(820px 560px at 12% -8%,color-mix(in srgb,var(--seed-accent) 8%,transparent),transparent 58%),
     radial-gradient(780px 540px at 102% -4%,color-mix(in srgb,var(--seed-accent2) 7%,transparent),transparent 60%),
     var(--surface-0)!important;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail{
-  position:fixed;left:0;top:0;bottom:0;z-index:100;
-  width:var(--app-rail-w);height:auto;max-width:none;margin:0;padding:8px 0 10px;
+/* ---- 统一图标栏：工作台 .rail 与子站 .ui-app-rail 共用同一套结构与外观（§5） ---- */
+.rail,.ui-app-rail{
+  position:fixed;left:0;top:0;bottom:0;z-index:100;width:var(--rail-w);
+  max-width:none;margin:0;padding:9px 0 10px;
   display:flex;flex-direction:column;align-items:center;gap:3px;
   border-right:1px solid var(--line-2);border-bottom:0;
-  background:color-mix(in oklab,var(--surface-1) 72%,transparent);
-  backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+  background:color-mix(in oklab,var(--surface-1) 66%,transparent);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   overflow-x:hidden;overflow-y:auto;scrollbar-width:none;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail::-webkit-scrollbar{display:none}
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail::before{display:none}
-body[data-ui-page]:not([data-ui-page="workbench"]) .ui-rail-brand{
-  width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;
-  margin-bottom:10px;color:#04121a;
-  background:linear-gradient(135deg,var(--seed-accent),var(--seed-accent2));
-  box-shadow:0 6px 18px -7px color-mix(in srgb,var(--seed-accent) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.4);
+.rail::-webkit-scrollbar,.ui-app-rail::-webkit-scrollbar{display:none}
+.rail-brand,.ui-rail-brand{
+  width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;
+  margin-bottom:9px;color:#04121a;cursor:default;
+  background:var(--grad);
+  box-shadow:0 2px 12px -3px color-mix(in srgb,var(--seed-accent) 62%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 38%,transparent);
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) .ui-rail-brand .material-icons{font-size:18px;color:#04121a}
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a{
-  position:relative;width:38px;height:36px;min-height:36px;padding:0;margin:0;flex:none;
-  display:grid;place-items:center;border:1px solid transparent;border-radius:8px;
-  color:var(--text-4);background:transparent;box-shadow:none;
+.rail-brand .material-icons,.ui-rail-brand .material-icons{font-size:18px;color:#04121a}
+.rail-btn{
+  position:relative;width:34px;height:32px;min-height:32px;padding:0;margin:0;flex:none;
+  display:grid;place-items:center;border:1px solid transparent;border-radius:7px;
+  color:var(--text-4);background:transparent;box-shadow:none;cursor:pointer;text-decoration:none;
+  transition:color .11s,background .11s,border-color .11s;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a .material-icons{font-size:18px!important;opacity:1}
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a .ui-nav-label{
+.rail-btn .material-icons{font-size:17px}
+/* 子站链接的 .ui-nav-label 是视觉隐藏的可访问文本；工作台按钮用 data-tip 悬浮提示 */
+.rail-btn .ui-nav-label{
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a:hover{
-  color:var(--text-1);background:color-mix(in oklab,var(--surface-3) 76%,transparent);border-color:transparent;
-}
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a[aria-current="page"]{
-  color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 12%,transparent);border-color:color-mix(in srgb,var(--seed-accent) 24%,transparent);
+.rail-btn:hover{color:var(--text-1);background:color-mix(in oklab,var(--surface-3) 76%,transparent);border-color:transparent}
+.rail-btn.active,.rail-btn[aria-current="page"]{
+  color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 13%,transparent);border-color:color-mix(in srgb,var(--seed-accent) 24%,transparent);
   box-shadow:inset 0 0 18px -10px color-mix(in srgb,var(--seed-accent) 75%,transparent);
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a[aria-current="page"]::before{
-  content:"";position:absolute;left:-12px;top:50%;transform:translateY(-50%);
-  width:2.5px;height:16px;border-radius:0 99px 99px 0;
-  background:linear-gradient(180deg,var(--seed-accent),var(--seed-accent2));
-  box-shadow:0 0 9px color-mix(in srgb,var(--seed-accent) 70%,transparent);
+.rail-btn.active::before,.rail-btn[aria-current="page"]::before{
+  content:"";position:absolute;left:-10px;top:50%;transform:translateY(-50%);
+  width:2.5px;height:15px;border-radius:0 99px 99px 0;
+  background:var(--grad);box-shadow:0 0 9px color-mix(in srgb,var(--seed-accent) 80%,transparent);
 }
+.rail-sep{width:20px;height:1px;background:var(--line-2);margin:6px 0;flex-shrink:0}
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:5px}
 body[data-ui-page]:not([data-ui-page="workbench"]) > header{
   position:sticky;top:0;z-index:80;width:100%;max-width:none;min-height:66px;margin:0;
   padding:10px clamp(18px,2.5vw,34px);

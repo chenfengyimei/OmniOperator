@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`901db5ba54ee4f6b6b573fb1f2c169181fefc499f303fdc7fd19df7b18758135`。包含 54 个职责模块、217 个源码/界面文件。
+源码指纹：`1c2b9395428d07d1e34a1c5398e74cfdb915b3606f7331d3328d83326985322f`。包含 54 个职责模块、217 个源码/界面文件。
 
 ## Agent 空间与目录 · agent-directories
 
@@ -168,7 +168,7 @@
 | [src/omni/channels/terminal/routes.py](../../src/omni/channels/terminal/routes.py) | 77 | 内置终端 WebSocket 适配；复用工作台身份及注入的会话池。 |
 | [src/omni/channels/terminal/session.py](../../src/omni/channels/terminal/session.py) | 42 | 单终端会话的读、写、窗口尺寸和退出确认。 |
 | [src/omni/channels/terminal/sessions.py](../../src/omni/channels/terminal/sessions.py) | 138 | 人工终端 v2：身份归属、结构化消息及只回放输出。旧 WS 独立兼容。 |
-| [src/omni/channels/web_static/terminal/index.html](../../src/omni/channels/web_static/terminal/index.html) | 62 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/terminal/index.html](../../src/omni/channels/web_static/terminal/index.html) | 51 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/terminal/terminal.css](../../src/omni/channels/web_static/terminal/terminal.css) | 106 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/terminal/terminal.js](../../src/omni/channels/web_static/terminal/terminal.js) | 93 | 平台脚本或界面资源 |
 
@@ -184,8 +184,8 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 52 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/project/project.css](../../src/omni/channels/web_static/project/project.css) | 142 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/project/index.html](../../src/omni/channels/web_static/project/index.html) | 41 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/project/project.css](../../src/omni/channels/web_static/project/project.css) | 137 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/project/project.js](../../src/omni/channels/web_static/project/project.js) | 110 | 平台脚本或界面资源 |
 | [src/omni/channels/workbench/__init__.py](../../src/omni/channels/workbench/__init__.py) | 4 | 专题工作台路由；只消费注入的 Runtime，不在通道构造核心对象。 |
 | [src/omni/channels/workbench/routes.py](../../src/omni/channels/workbench/routes.py) | 71 | 只读项目目录、接口与实时能力；由 web.py 的统一鉴权中间件保护。 |
@@ -202,13 +202,13 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [src/omni/channels/web_static/ui/base.css](../../src/omni/channels/web_static/ui/base.css) | 14 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/frame.css](../../src/omni/channels/web_static/ui/frame.css) | 521 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/base.css](../../src/omni/channels/web_static/ui/base.css) | 11 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/frame.css](../../src/omni/channels/web_static/ui/frame.css) | 491 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/icons.css](../../src/omni/channels/web_static/ui/icons.css) | 9 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/markdown.js](../../src/omni/channels/web_static/ui/markdown.js) | 116 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 162 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/shared.js](../../src/omni/channels/web_static/ui/shared.js) | 170 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/ui/tokens.css](../../src/omni/channels/web_static/ui/tokens.css) | 109 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/ui/workbench.css](../../src/omni/channels/web_static/ui/workbench.css) | 1034 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/ui/workbench.css](../../src/omni/channels/web_static/ui/workbench.css) | 1004 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -284,7 +284,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py) | 23 | 后台命令管理适配；不提供绕过 Registry 审批的启动接口。 |
-| [src/omni/channels/web_static/jobs/index.html](../../src/omni/channels/web_static/jobs/index.html) | 52 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/jobs/index.html](../../src/omni/channels/web_static/jobs/index.html) | 41 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/jobs/jobs.css](../../src/omni/channels/web_static/jobs/jobs.css) | 75 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/jobs/jobs.js](../../src/omni/channels/web_static/jobs/jobs.js) | 66 | 平台脚本或界面资源 |
 | [src/omni/tools/shell/job_logs.py](../../src/omni/tools/shell/job_logs.py) | 44 | 命令输出的有界 JSONL 环：序号续读、跨流串行、最近日志与缺口标记。 |
@@ -374,7 +374,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [src/omni/channels/web_api/mcp.py](../../src/omni/channels/web_api/mcp.py) | 135 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
-| [src/omni/channels/web_static/mcp/index.html](../../src/omni/channels/web_static/mcp/index.html) | 46 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/mcp/index.html](../../src/omni/channels/web_static/mcp/index.html) | 35 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/mcp/mcp.css](../../src/omni/channels/web_static/mcp/mcp.css) | 63 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/mcp/mcp.js](../../src/omni/channels/web_static/mcp/mcp.js) | 114 | 平台脚本或界面资源 |
 
@@ -435,7 +435,7 @@
 | [src/omni/channels/web_api/capabilities.py](../../src/omni/channels/web_api/capabilities.py) | 24 | 能力与诊断只读聚合：不连接 MCP、不访问手机、不启动终端/服务。 |
 | [src/omni/channels/web_static/capabilities/capabilities.css](../../src/omni/channels/web_static/capabilities/capabilities.css) | 91 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/capabilities/capabilities.js](../../src/omni/channels/web_static/capabilities/capabilities.js) | 53 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/capabilities/index.html](../../src/omni/channels/web_static/capabilities/index.html) | 60 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/capabilities/index.html](../../src/omni/channels/web_static/capabilities/index.html) | 49 | 平台脚本或界面资源 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
@@ -453,7 +453,7 @@
 | [src/omni/channels/web_api/android_stream.py](../../src/omni/channels/web_api/android_stream.py) | 23 | MJPEG 适配：订阅共享帧，异步取消及时归还连接，不给预览帧授权令牌。 |
 | [src/omni/channels/web_static/android/android.css](../../src/omni/channels/web_static/android/android.css) | 84 | 平台脚本或界面资源 |
 | [src/omni/channels/web_static/android/android.js](../../src/omni/channels/web_static/android/android.js) | 104 | 平台脚本或界面资源 |
-| [src/omni/channels/web_static/android/index.html](../../src/omni/channels/web_static/android/index.html) | 84 | 平台脚本或界面资源 |
+| [src/omni/channels/web_static/android/index.html](../../src/omni/channels/web_static/android/index.html) | 73 | 平台脚本或界面资源 |
 
 文档：[docs/ANDROID.md](../../docs/ANDROID.md)
 

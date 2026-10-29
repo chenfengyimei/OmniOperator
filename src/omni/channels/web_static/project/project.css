@@ -108,11 +108,7 @@ body[data-ui-page="project"] > header{
 body[data-ui-page="project"] .brand{color:var(--shell-accent)}
 body[data-ui-page="project"] .brand span{color:var(--shell-text)}
 body[data-ui-page="project"] .back{color:var(--shell-text-3)}
-body[data-ui-page="project"] > .ui-global-nav{
-  position:sticky;top:64px;z-index:70;padding:8px clamp(18px,3vw,38px);
-  border-bottom:1px solid var(--shell-line);background:rgba(8,13,20,.78);
-  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-}
+/* 注入导航样式由 ui/frame.css 的统一图标栏接管（旧壳时代此处为死规则，Phase 1 拆分后曾短暂复活） */
 body[data-ui-page="project"] > main{
   min-height:calc(100vh - 116px);padding-top:0;
 }
@@ -137,6 +133,5 @@ body[data-ui-page="project"] dialog{border-color:var(--shell-line-strong);backgr
 /* ---- 响应式覆盖（从 frame.css 迁回） ---- */
 @media(max-width:900px){
   body[data-ui-page="project"] > header{position:relative;top:auto}
-  body[data-ui-page="project"] > .ui-global-nav{position:relative;top:auto}
   body[data-ui-page="project"] > main{min-height:0}
 }

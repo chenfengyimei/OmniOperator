@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "901db5ba54ee4f6b6b573fb1f2c169181fefc499f303fdc7fd19df7b18758135",
+  "source_sha256": "1c2b9395428d07d1e34a1c5398e74cfdb915b3606f7331d3328d83326985322f",
   "modules": [
     {
       "id": "agent-directories",
@@ -285,7 +285,7 @@
         "src/omni/channels/web_static/terminal/terminal.css",
         "src/omni/channels/web_static/terminal/terminal.js"
       ],
-      "lines": 765,
+      "lines": 754,
       "dependencies": [
         "config",
         "web-ui"
@@ -313,7 +313,7 @@
         "src/omni/channels/workbench/__init__.py",
         "src/omni/channels/workbench/routes.py"
       ],
-      "lines": 379,
+      "lines": 363,
       "dependencies": [
         "assembly",
         "catalog",
@@ -343,7 +343,7 @@
         "src/omni/channels/web_static/ui/tokens.css",
         "src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 1965,
+      "lines": 1910,
       "dependencies": []
     },
     {
@@ -486,7 +486,7 @@
         "src/omni/tools/shell/job_tools.py",
         "src/omni/tools/shell/jobs.py"
       ],
-      "lines": 541,
+      "lines": 530,
       "dependencies": [
         "config",
         "platform",
@@ -634,7 +634,7 @@
         "src/omni/channels/web_static/mcp/mcp.css",
         "src/omni/channels/web_static/mcp/mcp.js"
       ],
-      "lines": 358,
+      "lines": 347,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -735,7 +735,7 @@
         "src/omni/channels/web_static/capabilities/capabilities.js",
         "src/omni/channels/web_static/capabilities/index.html"
       ],
-      "lines": 228,
+      "lines": 217,
       "dependencies": []
     },
     {
@@ -761,7 +761,7 @@
         "src/omni/channels/web_static/android/android.js",
         "src/omni/channels/web_static/android/index.html"
       ],
-      "lines": 372,
+      "lines": 361,
       "dependencies": [
         "web-ui"
       ]
@@ -5067,7 +5067,7 @@
       "path": "src/omni/channels/web_static/android/index.html",
       "module": "http-android",
       "python_module": null,
-      "lines": 84,
+      "lines": 73,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5097,7 +5097,7 @@
       "path": "src/omni/channels/web_static/capabilities/index.html",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 60,
+      "lines": 49,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5117,7 +5117,7 @@
       "path": "src/omni/channels/web_static/jobs/index.html",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 52,
+      "lines": 41,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5147,7 +5147,7 @@
       "path": "src/omni/channels/web_static/mcp/index.html",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 46,
+      "lines": 35,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5177,7 +5177,7 @@
       "path": "src/omni/channels/web_static/project/index.html",
       "module": "workbench",
       "python_module": null,
-      "lines": 52,
+      "lines": 41,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5187,7 +5187,7 @@
       "path": "src/omni/channels/web_static/project/project.css",
       "module": "workbench",
       "python_module": null,
-      "lines": 142,
+      "lines": 137,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5237,7 +5237,7 @@
       "path": "src/omni/channels/web_static/terminal/index.html",
       "module": "terminal",
       "python_module": null,
-      "lines": 62,
+      "lines": 51,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5267,7 +5267,7 @@
       "path": "src/omni/channels/web_static/ui/base.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 14,
+      "lines": 11,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5277,7 +5277,7 @@
       "path": "src/omni/channels/web_static/ui/frame.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 521,
+      "lines": 491,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5307,7 +5307,7 @@
       "path": "src/omni/channels/web_static/ui/shared.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 162,
+      "lines": 170,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5327,7 +5327,7 @@
       "path": "src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1034,
+      "lines": 1004,
       "imports": [],
       "symbols": [],
       "kind": "asset",

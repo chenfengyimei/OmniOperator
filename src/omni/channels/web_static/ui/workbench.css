@@ -363,37 +363,6 @@ body::after{
 }
 body>header,body>main,body>.ui-global-nav{position:relative;z-index:1}
 
-/* ---------------- 左侧图标栏（新增骨架，fixed 定位，不改 body 直接子元素结构） ---------------- */
-.rail{
-  position:fixed;left:0;top:0;bottom:0;width:var(--rail-w);z-index:60;
-  display:flex;flex-direction:column;align-items:center;
-  padding:9px 0 10px;gap:3px;
-  border-right:1px solid var(--line-2);
-  background:color-mix(in oklab,var(--surface-1) 66%,transparent);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-}
-.rail-brand{
-  width:30px;height:30px;border-radius:6px;display:grid;place-items:center;margin-bottom:9px;flex-shrink:0;
-  background:var(--grad);color:#04121a;cursor:default;
-  box-shadow:0 2px 12px -3px color-mix(in srgb,var(--seed-accent) 62%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 38%,transparent);
-}
-.rail-brand .material-icons{font-size:18px}
-.rail-btn{
-  position:relative;width:34px;height:32px;border-radius:6px;display:grid;place-items:center;flex-shrink:0;
-  color:var(--text-4);background:transparent;border:none;cursor:pointer;text-decoration:none;
-  transition:color .11s,background .11s;
-}
-.rail-btn .material-icons{font-size:17px}
-.rail-btn:hover{color:var(--text-1);background:color-mix(in oklab,var(--surface-3) 76%,transparent)}
-.rail-btn.active{color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 13%,transparent)}
-.rail-btn.active::before{
-  content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);
-  width:2.5px;height:15px;border-radius:0 99px 99px 0;
-  background:var(--grad);box-shadow:0 0 9px color-mix(in srgb,var(--seed-accent) 80%,transparent);
-}
-.rail-sep{width:20px;height:1px;background:var(--line-2);margin:6px 0;flex-shrink:0}
-.rail-foot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:5px}
-
 /* ---------------- Header ---------------- */
 body>header{
   /* min-height 而非固定 height：窄屏 header 会换行（base.css flex-wrap），定死高度会让
@@ -872,7 +841,8 @@ body[data-ui-page="workbench"] .tabs{
   padding:8px;border-bottom:1px solid var(--line-2);
 }
 body[data-ui-page="workbench"] .tabs button{
-  min-width:0;min-height:30px;padding:5px 4px;border-radius:7px;
+  min-width:0;min-height:32px;padding:5px 4px;border-radius:7px;
+  font-size:11.5px;
   color:var(--text-3);border:1px solid transparent;transition:color .15s,background .15s,border-color .15s;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
