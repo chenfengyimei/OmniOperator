@@ -1,12 +1,12 @@
 // 聊天主流程：渲染轮次（助手带头像、用户渐变气泡）、发送回合、失败草稿保留、复制消息。
 // 版本代数（S.selectionVersion / S.messagesVersion）保证迟到的响应绝不写进别的会话。
-import {$,esc,fmtTime} from './dom.js?v=20261030g';
-import {api} from './api.js?v=20261030g';
-import {S} from './state.js?v=20261030g';
-import {refreshContextUsage} from './header.js?v=20261030g';
-import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261030g';
-import {loadSessions} from './sessions.js?v=20261030g';
-import {refreshMemory} from './memory.js?v=20261030g';
+import {$,esc,fmtTime} from './dom.js?v=20261030i';
+import {api} from './api.js?v=20261030i';
+import {S} from './state.js?v=20261030i';
+import {refreshContextUsage} from './header.js?v=20261030i';
+import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261030i';
+import {loadSessions} from './sessions.js?v=20261030i';
+import {refreshMemory} from './memory.js?v=20261030i';
 
 // 消息正文：先转义，再把 [artifact:id] 标记渲染成内联图（加载失败即显示 alt 占位）
 const renderArtifact=(m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" data-action="artifacts:view" data-id="${id}">`;
@@ -34,7 +34,7 @@ function chatEmptyHTML(){
     `<h2>从这里开始和小鱼对话</h2><p>可以直接描述任务，也可以丢链接、说排程需求。涉及写入、发布和设备操作时，会先请你确认。</p>`+
     `<div class="chat-suggestions">${cards}</div></div>`;
 }
-window.fillSuggestion=i=>{const row=CHAT_SUGGESTIONS[i];if(!row)return;const input=$('#input');input.value=row[1];input.focus();input.dispatchEvent(new Event('input'))};
+function fillSuggestion(i) {const row=CHAT_SUGGESTIONS[i];if(!row)return;const input=$('#input');input.value=row[1];input.focus();input.dispatchEvent(new Event('input'))}
 
 export async function loadMessages(){
   if(S.currentSession==null)return;
@@ -71,7 +71,7 @@ export async function sendMessage(){
     `<div class="msg assistant" id="thinking">${aHead('进行中')}<div class="bubble thinking">`+
     `思考中<span class="dot">·</span><span class="dot">·</span><span class="dot">·</span>`+
     `<div id="run-feed" class="run-feed scaffolds open hidden"></div>`+
-    `<button id="run-stop" class="svc-btn hidden" style="margin-top:6px" data-action="runs:cancel">■ 停止本回合</button></div></div>`);
+    `<button id="run-stop" class="btn hidden" style="margin-top:6px" data-action="runs:cancel">■ 停止本回合</button></div></div>`);
   scrollChat();
   if(sid!=null)startRunWatch(sid);
   try{

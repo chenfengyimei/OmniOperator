@@ -1,8 +1,8 @@
 // 产物面板（D15）：浏览器/安卓截图落在 state.db，保留 7 天；聊天里的 [artifact:id] 内联图同源。
-import {$,esc} from './dom.js?v=20261030g';
-import {api} from './api.js?v=20261030g';
-import {openModal} from './modals.js?v=20261030g';
-import {setTabBadge} from './tabs.js?v=20261030g';
+import {$,esc} from './dom.js?v=20261030i';
+import {api} from './api.js?v=20261030i';
+import {openModal} from './modals.js?v=20261030i';
+import {setTabBadge} from './tabs.js?v=20261030i';
 
 export async function loadArtifacts(){
   try{
@@ -19,16 +19,16 @@ export async function loadArtifacts(){
       :'<div class="empty" style="grid-column:1/-1;padding:20px;text-align:center;color:var(--dim)">还没有产物（浏览器/安卓截图后出现在这里）</div>';
   }catch(e){$('#artifacts-grid').innerHTML='<div class="empty" style="grid-column:1/-1">'+esc(e.message)+'</div>'}
 }
-window.viewArtifact=(id)=>{
+function viewArtifact(id) {
   $('#img-view').src='/api/artifacts/'+encodeURIComponent(id)+'/image';
   $('#img-title').textContent='产物 '+id;
   $('#img-hint').textContent='点图外区域关闭；产物保留 7 天，过期自动清理。';
   openModal('img-modal');
-};
-window.delArtifact=async(id)=>{
+}
+async function delArtifact(id) {
   if(!await OmniUI.ask({title:'删除产物',message:'删除这个产物？删除后聊天里的引用将不可再显示。',confirmLabel:'删除',danger:true}))return;
   try{await api('/api/artifacts/'+encodeURIComponent(id),{method:'DELETE'});loadArtifacts()}catch(e){OmniUI.notify(e.message,'error')}
-};
+}
 
 // data-action 注册表（main.js 合并后统一分发）
 export const actions={

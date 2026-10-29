@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>小鱼 · 人工终端</title><link rel="stylesheet" href="/vendor/xterm.min.css"><link rel="stylesheet" href="/ui/tokens.css?v=20261030b"><link rel="stylesheet" href="/ui/base.css?v=20261030a"><link rel="stylesheet" href="/ui/icons.css?v=20261029"><link rel="stylesheet" href="/ui/components.css?v=20261030d"><link rel="stylesheet" href="/ui/frame.css?v=20261030d"><link rel="stylesheet" href="/terminal/terminal.css?v=20261030b"><script src="/ui/shared.js?v=20261030b"></script>
+<title>小鱼 · 人工终端</title><link rel="stylesheet" href="/vendor/xterm.min.css"><link rel="stylesheet" href="/ui/tokens.css?v=20261030c"><link rel="stylesheet" href="/ui/base.css?v=20261030b"><link rel="stylesheet" href="/ui/icons.css?v=20261029"><link rel="stylesheet" href="/ui/components.css?v=20261030e"><link rel="stylesheet" href="/ui/frame.css?v=20261030d"><link rel="stylesheet" href="/terminal/terminal.css?v=20261030b"><script src="/ui/shared.js?v=20261030b"></script>
 </head>
 <body data-ui-page="terminal">
 <header>
@@ -18,7 +18,7 @@
     </div>
     <div id="state" role="status">正在读取会话…</div>
     <nav id="tabs" role="tablist" aria-label="终端会话"></nav>
-    <div id="empty" class="rich-empty"><span class="material-icons">terminal</span><h3>还没有终端</h3><p>在下方选择 Shell 和工作目录后新建。每个标签拥有独立会话。</p></div>
+    <div id="empty" class="empty-rich"><span class="material-icons">terminal</span><h3>还没有终端</h3><p>在下方选择 Shell 和工作目录后新建。每个标签拥有独立会话。</p></div>
     <form id="create">
       <div class="form-title"><span class="material-icons">add_box</span><strong>新建终端</strong></div>
       <label>Shell <select id="shell"></select></label>

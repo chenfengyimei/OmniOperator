@@ -1,10 +1,10 @@
 // 会话列表与切换：搜索框只过滤缓存；切换/新建都走「代数守门」防迟到响应串台。
-import {$,esc,relTime} from './dom.js?v=20261030g';
-import {api} from './api.js?v=20261030g';
-import {S} from './state.js?v=20261030g';
-import {syncActiveRun} from './runs.js?v=20261030g';
-import {loadMessages} from './chat.js?v=20261030g';
-import {loadTodos} from './memory.js?v=20261030g';
+import {$,esc,relTime} from './dom.js?v=20261030i';
+import {api} from './api.js?v=20261030i';
+import {S} from './state.js?v=20261030i';
+import {syncActiveRun} from './runs.js?v=20261030i';
+import {loadMessages} from './chat.js?v=20261030i';
+import {loadTodos} from './memory.js?v=20261030i';
 
 export function showSession(id){
   S.drafts.set(S.currentSession,$('#input').value);S.currentSession=id;
@@ -37,7 +37,6 @@ export async function selectSession(id){
     showSession(id);await loadSessions();await loadMessages();loadTodos();
   }catch(e){if(version===S.selectionVersion)OmniUI.notify(e.message,'error')}
 };
-window.selectSession=selectSession;
 
 export async function newSession(){
   const version=++S.selectionVersion;$('#new-session').disabled=true;

@@ -1,9 +1,9 @@
 // 运行进度可视化：等待回复期间轮询本会话进行中的 run（D09 端点，只读）。
 // 历史挂链把每个 run 的调用链卡片挂到它开始后出现的第一条助手消息上（事件持久化在服务端，随时回放）。
-import {$,esc} from './dom.js?v=20261030g';
-import {api} from './api.js?v=20261030g';
-import {S} from './state.js?v=20261030g';
-import {selectSession} from './sessions.js?v=20261030g';
+import {$,esc} from './dom.js?v=20261030i';
+import {api} from './api.js?v=20261030i';
+import {S} from './state.js?v=20261030i';
+import {selectSession} from './sessions.js?v=20261030i';
 
 let runWatch=null; // {timer, runId, seq, polling}：轮询器；chat 返回/出错即停
 
@@ -61,8 +61,8 @@ function scaffoldHTML(events,opts={}){
   }
   return rows.join('');
 }
-window.toggleScaf=el=>el.classList.toggle('open');
-window.toggleChain=el=>{const box=el.closest('.scaffolds');if(box)box.classList.toggle('open')};
+function toggleScaf(el) { return el.classList.toggle('open'); }
+function toggleChain(el) {const box=el.closest('.scaffolds');if(box)box.classList.toggle('open')}
 
 const runChainCache=new Map(); // run_id -> events：切会话不重复拉
 export async function attachHistoryRuns(sid,version){
@@ -98,7 +98,7 @@ export async function attachHistoryRuns(sid,version){
 export function syncActiveRun(){
   let panel=$('#active-run');
   if(!panel){
-    panel=document.createElement('div');panel.id='active-run';panel.setAttribute('role','status');
+    panel=document.createElement('div');panel.id="active-run";panel.setAttribute('role','status');
     const text=document.createElement('span'),view=document.createElement('button'),stop=document.createElement('button');
     text.className='active-run-text';view.textContent='查看会话';stop.textContent='停止此回合';stop.className='ui-danger';
     view.onclick=()=>{if(runWatch)selectSession(runWatch.sid)};stop.onclick=()=>cancelCurrentRun();
@@ -150,12 +150,12 @@ export function startRunWatch(sid){
   pollRunProgress(watch);syncActiveRun();
 }
 
-window.cancelCurrentRun=async()=>{
+async function cancelCurrentRun() {
   const watch=runWatch,id=watch?.runId;if(!id)return;
   if(!await OmniUI.ask({title:'停止会话 #'+watch.sid+' 的回合',message:'模型请求返回后会停下；已发生的工具副作用不会撤销。',confirmLabel:'停止回合',danger:true}))return;
   if(runWatch!==watch)return;
   try{await api(`/api/runs/${id}/cancel`,{method:'POST'});OmniUI.notify('已提交停止请求，请等待最终状态')}catch(e){OmniUI.notify(e.message,'error')}
-};
+}
 
 // data-action 注册表（main.js 合并后统一分发）
 export const actions={

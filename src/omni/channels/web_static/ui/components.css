@@ -1,13 +1,14 @@
 /* ==========================================================================
    OmniOperator 共享组件库（components）——UI_DESIGN_SYSTEM.md §6
-   类名即契约：canonical 类 + 旧类名过渡别名（别名在 Phase 7 收尾批评估删除）。
+   类名即契约：canonical 类（旧别名 .svc-btn/.p-btn/.tiny-btn/.key-btn/.ui-empty/.rich-empty
+   已于 Phase 7 删除，使用面全部归一）。
    只放跨页面组件（按钮/输入/开关/卡片/度量/列表行/空态/徽章/提示/区块标题）；
    应用壳（rail/顶栏/画布）归 frame.css；页面专属布局归页面 css。
    加载顺序：tokens → base → icons → components → frame → 页面层。
    ========================================================================== */
 
-/* ---------- 按钮：canonical .btn，旧名 .svc-btn/.p-btn/.tiny-btn/.key-btn 并组 ---------- */
-.btn,.svc-btn,.p-btn,.tiny-btn,.key-btn{
+/* ---------- 按钮：canonical .btn ---------- */
+.btn{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
   height:28px;padding:0 12px;border-radius:var(--r-sm);
   border:1px solid var(--line-2);
@@ -16,29 +17,29 @@
   cursor:pointer;white-space:nowrap;flex-shrink:0;
   transition:border-color .15s,color .15s,background .15s,transform .12s;
 }
-.btn:hover,.svc-btn:hover,.p-btn:hover,.tiny-btn:hover,.key-btn:hover{
+.btn:hover{
   border-color:var(--line-accent);color:var(--text-1);background:var(--surface-accent);
 }
-.btn:active,.svc-btn:active,.p-btn:active,.tiny-btn:active,.key-btn:active{transform:translateY(1px)}
-.btn:disabled,.svc-btn:disabled,.p-btn:disabled,.tiny-btn:disabled,.key-btn:disabled{
+.btn:active{transform:translateY(1px)}
+.btn:disabled{
   opacity:.42;cursor:not-allowed;filter:saturate(.45);
 }
-.btn.small,.tiny-btn{height:24px;padding:0 9px;font-size:11px}
+.btn.small{height:24px;padding:0 9px;font-size:11px}
 /* 主操作：渐变实心，每屏最多一个 */
-.btn.primary,.key-btn.primary{
+.btn.primary{
   background:var(--grad);border:none;color:#04121a;font-weight:700;
   box-shadow:0 2px 12px -3px color-mix(in srgb,var(--seed-accent) 62%,transparent);
 }
-.btn.primary:hover,.key-btn.primary:hover{filter:brightness(1.08);background:var(--grad);color:#04121a}
+.btn.primary:hover{filter:brightness(1.08);background:var(--grad);color:#04121a}
 /* 危险操作必须配确认 */
-.btn.danger,.p-btn.del{
+.btn.danger{
   color:var(--danger);border-color:var(--danger-bd);background:transparent;
 }
-.btn.danger:hover,.p-btn.del:hover{
+.btn.danger:hover{
   background:var(--danger-bg);color:#fca5a5;border-color:var(--danger-bd);
 }
-.btn.warn,.svc-btn.warn{color:var(--warn);border-color:var(--warn-bd)}
-.btn.warn:hover,.svc-btn.warn:hover{background:var(--warn-bg)}
+.btn.warn{color:var(--warn);border-color:var(--warn-bd)}
+.btn.warn:hover{background:var(--warn-bg)}
 
 /* ---------- 表单：.field 竖排标签 + 统一控件基样 ---------- */
 .field{margin:0 0 12px;min-width:0}
@@ -72,21 +73,21 @@ input:checked + .switch::after{transform:translateX(16px);background:#04121a}
 .switch-text{flex:1;min-width:0}
 
 /* ---------- 空态：一个组件两个变体（虚线盒 / 图文富空态） ---------- */
-.empty,.ui-empty{
+.empty{
   padding:18px 12px;text-align:center;color:var(--text-4);font-size:12px;
   border:1px dashed var(--line-2);border-radius:var(--r-md);
   background:transparent;line-height:1.8;
 }
-.empty-rich,.rich-empty{
+.empty-rich{
   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   min-height:180px;padding:24px 20px;
   border:1px dashed var(--line-1);border-radius:12px;
   color:var(--text-4);background:color-mix(in srgb,var(--seed-fg) 1.6%,transparent);
 }
-.empty-rich>.material-icons,.rich-empty>.material-icons{font-size:30px;color:var(--text-4);margin-bottom:8px}
-.empty-rich h3,.rich-empty h3{margin:0;font-size:13px;color:var(--text-2)}
-.empty-rich p,.rich-empty p{max-width:440px;margin:6px 0 0;padding:0;border:0;background:none;font-size:11px;line-height:1.7;color:var(--text-4)}
-.empty-rich a,.rich-empty a{margin-top:10px;font-size:11px;color:var(--seed-accent);text-decoration:none}
+.empty-rich>.material-icons{font-size:30px;color:var(--text-4);margin-bottom:8px}
+.empty-rich h3{margin:0;font-size:13px;color:var(--text-2)}
+.empty-rich p{max-width:440px;margin:6px 0 0;padding:0;border:0;background:none;font-size:11px;line-height:1.7;color:var(--text-4)}
+.empty-rich a{margin-top:10px;font-size:11px;color:var(--seed-accent);text-decoration:none}
 
 /* ---------- 徽章与胶囊 ---------- */
 .chip{

@@ -1,5 +1,5 @@
 // 人设预设方案（localStorage 持久化，可增删改；后续接入社区扩展包）。
-import {$,esc} from './dom.js?v=20261030g';
+import {$,esc} from './dom.js?v=20261030i';
 
 const PRESET_KEY='omni_persona_presets';
 const SEED_PRESETS=[
@@ -50,29 +50,29 @@ export function renderPersonaPresets(activeName){
       `<span class="p-name">${esc(p.name)}</span>`+
       `<span class="p-desc" title="${esc(p.desc)}">${esc(p.desc)}</span>`+
       `<span class="p-actions">`+
-      `<button class="p-btn" data-action="persona:preset-apply" data-id="${p.id}">应用</button>`+
-      `<button class="p-btn" data-action="persona:preset-edit" data-id="${p.id}">编辑</button>`+
-      `<button class="p-btn del" data-action="persona:preset-del" data-id="${p.id}">删除</button>`+
+      `<button class="btn" data-action="persona:preset-apply" data-id="${p.id}">应用</button>`+
+      `<button class="btn" data-action="persona:preset-edit" data-id="${p.id}">编辑</button>`+
+      `<button class="btn danger" data-action="persona:preset-del" data-id="${p.id}">删除</button>`+
       `</span></div>`;
   }).join('');
 }
 function findPreset(id){return loadPresets().find(p=>p.id===id)}
 function genPresetId(){return 'p-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-window.applyPreset=id=>{
+function applyPreset(id) {
   const p=findPreset(id); if(!p)return;
   $('#cfg-persona-name').value=p.name;
   $('#cfg-persona-prompt').value=p.prompt.trim();
   renderPersonaPresets(p.name);
   presetTip(`已填入「${p.name}」。点下面「保存人设」生效。`);
-};
-window.deletePreset=async id=>{
+}
+async function deletePreset(id) {
   const p=findPreset(id); if(!p)return;
   if(!await OmniUI.ask({title:'删除预设',message:`删除预设「${p.name}」？此操作不可撤销。`,confirmLabel:'删除',danger:true}))return;
   savePresets(loadPresets().filter(x=>x.id!==id));
   renderPersonaPresets($('#cfg-persona-name').value);
   presetTip('已删除「'+p.name+'」');
-};
-window.saveCurrentAsPreset=async()=>{
+}
+async function saveCurrentAsPreset() {
   const name=$('#cfg-persona-name').value.trim();
   const prompt=$('#cfg-persona-prompt').value.trim();
   if(!name||!prompt){presetTip('昵称和提示词都不能为空',false);return}
@@ -88,9 +88,9 @@ window.saveCurrentAsPreset=async()=>{
   savePresets(presets);
   renderPersonaPresets(name);
   presetTip('已存为预设「'+name+'」');
-};
-window.newPreset=()=>openPresetEditor(null);
-window.editPreset=id=>{const p=findPreset(id); if(p)openPresetEditor(p)};
+}
+function newPreset() { return openPresetEditor(null); }
+function editPreset(id) {const p=findPreset(id); if(p)openPresetEditor(p)}
 function openPresetEditor(preset){
   const isEdit=!!preset;
   const box=document.createElement('dialog');
@@ -108,7 +108,7 @@ function openPresetEditor(preset){
   document.body.appendChild(box);
   box.showModal();
 }
-window.confirmPresetEdit=(id,isEdit)=>{
+function confirmPresetEdit(id,isEdit) {
   const name=$('#pe-name').value.trim();
   const desc=$('#pe-desc').value.trim();
   const prompt=$('#pe-prompt').value.trim();
@@ -128,7 +128,7 @@ window.confirmPresetEdit=(id,isEdit)=>{
   document.querySelector('dialog.modal[open]')?.close();
   renderPersonaPresets($('#cfg-persona-name').value);
   presetTip(isEdit?'已更新「'+name+'」':'已创建「'+name+'」');
-};
+}
 
 // data-action 注册表（main.js 合并后统一分发）
 export const actions={

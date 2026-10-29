@@ -1,14 +1,14 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261030g';
-import {api} from './api.js?v=20261030g';
-import {loadState} from './header.js?v=20261030g';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261030g';
-import {renderPersonaPresets} from './hub-persona.js?v=20261030g';
-import {loadCron} from './hub-cron.js?v=20261030g';
-import {loadUsage} from './hub-usage.js?v=20261030g';
-import {loadMcp} from './hub-mcp.js?v=20261030g';
+import {$,esc} from './dom.js?v=20261030i';
+import {api} from './api.js?v=20261030i';
+import {loadState} from './header.js?v=20261030i';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261030i';
+import {renderPersonaPresets} from './hub-persona.js?v=20261030i';
+import {loadCron} from './hub-cron.js?v=20261030i';
+import {loadUsage} from './hub-usage.js?v=20261030i';
+import {loadMcp} from './hub-mcp.js?v=20261030i';
 
 export async function openHub(){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
@@ -16,14 +16,12 @@ export async function openHub(){
   const firstCur=document.querySelector('.hub-nav a.active');
   switchHub(firstCur?firstCur.dataset.go:'sec-persona');
 };
-window.openHub=openHub;
 
 function closeHub(){
   $('#hub').classList.add('hidden');
   $('#hub').setAttribute('aria-hidden','true');
   document.querySelector('.hub-open')?.focus?.();
 }
-window.closeHub=closeHub;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('dialog[open]')&&!$('#hub').classList.contains('hidden'))closeHub()});
 export function switchHub(go){
   document.querySelectorAll('.hub-nav a').forEach(x=>{
@@ -123,14 +121,14 @@ async function loadCookies(){
        (d.keys.SESSDATA?'':'<br><span style="color:var(--dim)">缺少 SESSDATA（必需）</span>');
   }catch(e){$('#bili-cookie-status').textContent=e.message}
 }
-window.saveBiliCookies=async()=>{
+async function saveBiliCookies() {
   try{
     const d=await api('/api/system/bili-cookies',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({sessdata:$('#cfg-bili-sessdata').value,bili_jct:$('#cfg-bili-jct').value,buvid3:$('#cfg-bili-buvid3').value})});
     $('#bili-cookie-status').textContent='✅ 已保存，正在生效';
     loadCookies();
   }catch(e){OmniUI.notify(e.message,'error')}
-};
+}
 
 // 每页独立保存：只提交本页涉及的配置段。
 const SAVE_SCOPES={
@@ -192,7 +190,7 @@ function setHubMsg(scope,text,tone){
   el.className='save-msg'+(tone?' '+tone:'');
   if(scope)el.style.color='';
 }
-window.saveHub=async(scope,btn)=>{
+async function saveHub(scope,btn) {
   const all=collectHubUpdates();
   const keys=SAVE_SCOPES[scope];
   const updates={};
@@ -217,7 +215,7 @@ window.saveHub=async(scope,btn)=>{
   }finally{
     if(btn){btn.disabled=false;btn.textContent=label}
   }
-};
+}
 
 // data-action 注册表（main.js 合并后统一分发）
 export const actions={

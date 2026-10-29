@@ -3,8 +3,8 @@
 // - 供应商/模型用卡片而不是下拉框：一眼看清"哪家有 Key、哪个模型贵、哪个能看图"。
 // - Key 不存浏览器，直接写后端 .env（/api/system/model-key），填完就能测。
 // - getModelSlotValue() 仍是 saveHub 的唯一取值口，返回 `${prefix}/${model}`。
-import {$,esc} from './dom.js?v=20261030g';
-import {api} from './api.js?v=20261030g';
+import {$,esc} from './dom.js?v=20261030i';
+import {api} from './api.js?v=20261030i';
 
 const MODEL_SLOTS=[
   {kind:'chat',title:'日常对话',desc:'平时跟它说话用这个，便宜量大',vision:false},
@@ -170,8 +170,8 @@ function renderWizard(){
       `<div class="key-row"><div class="key-box"><span class="kb-icon">${KEY_ICON}</span>`+
       `<input id="mk-input" type="${keyEyeOn?'text':'password'}" autocomplete="off" placeholder="${esc(placeholder)}">`+
       `<button class="kb-eye" data-action="models:key-eye">${keyEyeOn?'隐藏':'显示'}</button></div>`+
-      `<button class="key-btn" data-action="models:key-paste">粘贴</button>`+
-      `<button class="key-btn primary" data-action="models:key-save">保存并生效</button></div>`+
+      `<button class="btn" data-action="models:key-paste">粘贴</button>`+
+      `<button class="btn primary" data-action="models:key-save">保存并生效</button></div>`+
       `<div class="key-note"><span id="mk-state">${stateHtml}</span>`+
       (prov.docs?`<a href="${prov.docs}" target="_blank" rel="noopener">没有 Key？去官网申请</a>`:'')+
       `<span>填一次就行，别的槽位选同一家会自动沿用</span></div></div>`;
@@ -191,17 +191,17 @@ function renderWizard(){
     modelHtml+keyHtml+
     `<div class="model-footer"><span class="mf-label">当前在用</span>`+
     `<code id="mk-model">${esc(st.modelStr||'（还没选）')}</code><span style="flex:1"></span>`+
-    `<button class="key-btn" data-action="models:test">测一下通不通</button>`+
+    `<button class="btn" data-action="models:test">测一下通不通</button>`+
     `<div class="mf-out" id="mk-out"></div>`+
     `<div class="key-note" style="margin-top:0"><span>选好之后点下面「保存模型设置」，改动才会真正生效。</span></div></div>`+
   `</div>`;
 }
 
-window.selectModelSlot=kind=>{
+function selectModelSlot(kind) {
   activeSlot=kind; keyEyeOn=false;
   renderSlotCards(); renderWizard();
-};
-window.pickProvider=provId=>{
+}
+function pickProvider(provId) {
   const kind=activeSlot, slot=slotByKind(kind)||MODEL_SLOTS[0], st=modelState[kind]||{};
   const prov=providerById(provId);
   if(!prov)return;
@@ -214,33 +214,33 @@ window.pickProvider=provId=>{
   }
   keyEyeOn=false;
   renderSlotCards(); renderWizard();
-};
-window.pickModel=modelId=>{
+}
+function pickModel(modelId) {
   const kind=activeSlot, st=modelState[kind]||{}, prov=providerById(st.providerId);
   if(!prov)return;
   const prefix=prov.litellmProvider||prov.id;
   modelState[kind]=Object.assign({},st,{modelId,modelStr:`${prefix}/${modelId}`,custom:false});
   renderSlotCards(); renderWizard();
-};
-window.setCustomModel=value=>{
+}
+function setCustomModel(value) {
   const kind=activeSlot;
   modelState[kind]=Object.assign({},modelState[kind],{modelStr:(value||'').trim(),custom:true});
   renderSlotCards();
   const code=$('#mk-model'); if(code)code.textContent=modelState[kind].modelStr||'（未设置）';
-};
-window.toggleKeyEye=()=>{
+}
+function toggleKeyEye() {
   const input=$('#mk-input'); if(!input)return;
   keyEyeOn=!keyEyeOn;
   input.type=keyEyeOn?'text':'password';
   const btn=document.querySelector('.key-box .kb-eye');
   if(btn)btn.textContent=keyEyeOn?'隐藏':'显示';
-};
+}
 function setKeyState(text,tone){
   const el=$('#mk-state'); if(!el)return;
   el.className=tone==='ok'?'kn-ok':(tone==='warn'?'kn-warn':'');
   el.textContent=text;
 }
-window.pasteModelKey=async()=>{
+async function pasteModelKey() {
   const input=$('#mk-input'); if(!input)return;
   try{
     const text=await navigator.clipboard.readText();
@@ -250,8 +250,8 @@ window.pasteModelKey=async()=>{
     input.focus();
     setKeyState('浏览器不让读剪贴板，点输入框按 Ctrl+V 粘贴','warn');
   }
-};
-window.saveModelKey=async()=>{
+}
+async function saveModelKey() {
   const kind=activeSlot, st=modelState[kind]||{}, prov=providerById(st.providerId);
   if(!prov||!prov.envKey){setKeyState('这家不需要 Key','warn');return}
   const input=$('#mk-input');
@@ -266,12 +266,12 @@ window.saveModelKey=async()=>{
     renderSlotCards(); renderWizard();
     setKeyState('已存好并立即生效：'+(d.masked||''),'ok');
   }catch(e){setKeyState('保存失败：'+e.message,'warn')}
-};
+}
 export function getModelSlotValue(kind){
   const st=modelState[kind];
   return st&&st.modelStr?st.modelStr:'';
 }
-window.testModelSlot=async()=>{
+async function testModelSlot() {
   const kind=activeSlot, st=modelState[kind]||{};
   const out=$('#mk-out');
   if(!st.modelStr){
@@ -288,7 +288,7 @@ window.testModelSlot=async()=>{
   }catch(e){
     if(out){out.className='mf-out err';out.textContent='不通：'+(e.message||'未知错误')}
   }
-};
+}
 export async function loadEnvKeys(){
   try{
     const d=await api('/api/system/model-keys');

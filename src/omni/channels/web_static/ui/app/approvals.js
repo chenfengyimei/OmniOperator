@@ -1,7 +1,7 @@
 // 审批横幅：2 秒轮询 pending；允许/拒绝走同一个 resolve 端点。
 // rail 上的「审批队列」按钮同步挂计数徽章——有待确认项时不用点进去才知道。
-import {$,esc} from './dom.js?v=20261030g';
-import {api} from './api.js?v=20261030g';
+import {$,esc} from './dom.js?v=20261030i';
+import {api} from './api.js?v=20261030i';
 
 function setRailBadge(n){
   const btn=document.querySelector('.rail-btn[data-action="rail:approvals"]');
@@ -29,7 +29,7 @@ export async function pollApprovals(){
     banner.classList.remove('hidden');
   }catch(e){/* 轮询失败静默，不打扰 */}
 }
-window.resolveApproval=async(id,allowed)=>{
+async function resolveApproval(id,allowed) {
   try{
     await api(`/api/approvals/${id}/resolve`,{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -37,7 +37,7 @@ window.resolveApproval=async(id,allowed)=>{
     });
     pollApprovals();
   }catch(e){OmniUI.notify(e.message,'error')}
-};
+}
 
 // data-action 注册表（main.js 合并后统一分发）
 export const actions={

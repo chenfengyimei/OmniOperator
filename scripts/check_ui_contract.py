@@ -125,25 +125,16 @@ def main() -> int:
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT
     cur = scan(path)
 
-    base = {"missing": [], "dup": [], "undef": []}
-    if BASELINE.exists():
-        base = scan_html(BASELINE.read_text(encoding="utf-8"))
-        base = {k: base[k] for k in ("missing", "dup", "undef")}
-
-    # 只把「相对基线新增」的违规算作失败，历史遗留单独列出
-    new_missing = [x for x in cur["missing"] if x not in base["missing"]]
-    new_dup = [x for x in cur["dup"] if x not in base["dup"]]
-    new_undef = [x for x in cur["undef"] if x not in base["undef"]]
-
+    # 绝对模式（Phase 7 起基线差分退役）：任何缺失 id / 重复 id / 未定义函数 /
+    # 未注册 data-action 都是失败——迁移期历史遗留已在 Phase 0-7 间全部清零，
+    # 基线文件（docs/ui-migration/baseline-index.html）仅作素材与回滚来源保留。
     print(f"文件：{path}")
     print(f"静态 id：{cur['ids']}，JS 引用 id：{cur['used']}，app 模块：{len(app_sources())} 个，data-action：{cur['actions']} 个")
-    print(f"[{'PASS' if not new_missing else 'FAIL'}] 新增缺失 id：{new_missing or '无'}")
-    print(f"[{'PASS' if not new_dup else 'FAIL'}] 新增重复 id：{new_dup or '无'}")
-    print(f"[{'PASS' if not new_undef else 'FAIL'}] 新增未定义函数：{new_undef or '无'}")
+    print(f"[{'PASS' if not cur['missing'] else 'FAIL'}] 缺失 id：{cur['missing'] or '无'}")
+    print(f"[{'PASS' if not cur['dup'] else 'FAIL'}] 重复 id：{cur['dup'] or '无'}")
+    print(f"[{'PASS' if not cur['undef'] else 'FAIL'}] 未定义函数：{cur['undef'] or '无'}")
     print(f"[{'PASS' if not cur['actions_missing'] else 'FAIL'}] 未注册 data-action：{cur['actions_missing'] or '无'}")
-    if base["missing"] or base["undef"]:
-        print(f"（基线遗留，不计失败）缺失 id：{base['missing']}；未定义函数：{base['undef']}")
-    return 1 if (new_missing or new_dup or new_undef or cur["actions_missing"]) else 0
+    return 1 if (cur["missing"] or cur["dup"] or cur["undef"] or cur["actions_missing"]) else 0
 
 
 if __name__ == "__main__":
