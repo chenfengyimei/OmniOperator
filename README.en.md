@@ -14,6 +14,8 @@ an Android phone over ADB, runs shell commands, and maintains its own long-term 
 skills. Python 3.12+ · uv · LiteLLM gateway · SQLite for memory and the run ledger ·
 build-free native ES-module frontend.
 
+![OmniOperator web workbench: chat, expanded tool-call chain and side panels (staged demo data)](docs/assets/workbench.png)
+
 **Status (honest scope)**: controlled internal beta (alpha). The full offline test suite
 passes; real-account / real-device / real-model loops and the 72-hour soak have **not** all
 been validated. Full macOS/Linux support, generic desktop takeover, and video upload are

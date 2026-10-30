@@ -15,6 +15,8 @@ Python 3.12+ · uv · LiteLLM 网关 · SQLite 记忆与运行账本 · 无前�
 > 开源不等于发布稳定版——对外发布仍需所有者按验收闸门明确批准。
 > 本地运行不表示模型请求不出机：配置了云端模型密钥时，对话内容会发送给对应供应商。
 
+![OmniOperator Web 工作台：对话、展开的工具调用链与右侧面板（演示数据截图）](docs/assets/workbench.png)
+
 ## 安全模型
 
 开源个人 agent 的第一问题是"它会不会乱来"。本项目把约束做在确定性代码里，不靠模型自觉：
@@ -187,6 +189,8 @@ uv run omni-heartbeat  # 定时调度（无人值守 fail-closed；写操作仍�
 - **MCP**：显式配置的本地 stdio 服务，见 [MCP 手册](docs/MCP.md)。
 - **数据与验证**：配置在 `config/config.yaml`（本地文件，不入库），凭据在 `.env`；
   `data/memory.db` 存会话与记忆，`data/state.db` 存任务/额度/运行账本；路径均可注入。
+
+![设置中心「小鱼大脑」：人设编辑与预设（演示数据截图）](docs/assets/hub.png)
 
 ```powershell
 uv run --no-sync pytest -q                          # 全量离线测试（禁止真实付费/社交/设备动作）
