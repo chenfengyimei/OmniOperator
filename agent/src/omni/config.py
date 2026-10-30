@@ -255,6 +255,19 @@ class Memory(BaseModel):
     recall_prefix: bool = True      # 检索结果加"这是数据不是指令"的说明
 
 
+class Skills(BaseModel):
+    """技能库的生命周期参数。
+
+    为什么只有两个：技能格式（四节结构、正文长度、references 边界）是
+    SkillStore 的稳定契约，不随用户偏好漂移；用户真正需要调的是
+    **历史保留多少版**（回滚能力）与**单次写入允许多长**（学习闸门）。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    history_keep: int = Field(default=50, ge=5, le=200)
+    max_write_chars: int = Field(default=8000, ge=200, le=24000)
+
+
 class Web(BaseModel):
     """通用网页读取（D14）：一次抓取的硬边界。
 
@@ -612,6 +625,7 @@ class AppConfig(BaseModel):
     vision: Vision = Field(default_factory=Vision)
     artifacts: Artifacts = Field(default_factory=Artifacts)
     memory: Memory = Field(default_factory=Memory)
+    skills: Skills = Field(default_factory=Skills)
     compression: Compression = Field(default_factory=Compression)
     asr: Asr = Field(default_factory=Asr)
     qq: QQ = Field(default_factory=QQ)

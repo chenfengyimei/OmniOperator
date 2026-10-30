@@ -266,8 +266,8 @@ def test_hub_sidebar_groups_core_systems_together():
     )
 
 
-def test_hub_core_nav_labels_match_card_titles():
-    """核心系统三项的导航标签必须与卡片标题一致（上下文系统/技能系统/记忆系统）。
+def test_hub_core_nav_labels_match_destinations():
+    """核心系统标签与原生分区一致；记忆系统不能改成跳转或 iframe。
 
     为什么：导航名与卡片标题是同一个东西的两种写法；不一致时用户点进去会以为
     「怎么换了个名字」，分不清是不是两个东西。
@@ -276,6 +276,11 @@ def test_hub_core_nav_labels_match_card_titles():
     labels = {go: label for _, items in _hub_nav_groups(html) for go, label in items}
     for go, expected in HUB_CORE_SYSTEMS.items():
         assert labels.get(go) == expected, f"{go} 导航标签应为「{expected}」，实得 {labels.get(go)!r}"
+        if go == "sec-memory-system":
+            anchor = re.search(r'<a\b[^>]*data-go="sec-memory-system"[^>]*>', html).group()
+            assert 'href=' not in anchor and 'target=' not in anchor
+            assert 'id="memory-system-frame"' not in html
+            assert 'id="hub-memory-content"' in html
         card = re.search(rf'<div class="hub-card" id="{go}">(.*?)<h3>([^<]+)</h3>', html, re.S)
         assert card, f"index.html 找不到 {go} 卡片"
         assert card.group(2).strip() == expected, f"{go} 卡片标题应为「{expected}」，实得 {card.group(2)!r}"

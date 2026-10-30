@@ -33,6 +33,9 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("memory", "max_writes_per_day"): "int",
     ("memory", "max_fact_chars"): "int",
     ("memory", "recall_prefix"): "bool",
+    # 技能库生命周期（设置中心「技能」页）：历史快照数与单次写入闸门
+    ("skills", "history_keep"): "int",
+    ("skills", "max_write_chars"): "int",
     ("review", "enabled"): "bool",
     ("review", "max_messages"): "int",
     ("review", "steps"): "int",

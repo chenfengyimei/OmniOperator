@@ -11,6 +11,7 @@
     android:{icon:'smartphone',label:'安卓控制'},
     storage:{icon:'folder',label:'Agent 与文件'},
     project:{icon:'account_tree',label:'项目索引'},
+    memory:{icon:'psychology',label:'记忆系统'},
   };
   /* NAV_ITEMS 是全站页面导航的唯一数据源（UI_DESIGN_SYSTEM.md §7）：
      新增页面只在这里加一行；子站 rail 由 renderRail 渲染，工作台 rail 的链接项与之同源同序。 */
@@ -23,6 +24,7 @@
     ['/android/','smartphone','安卓控制'],
     ['/project/','account_tree','项目索引'],
     ['/storage/','folder','Agent 与文件'],
+    ['/?settings=1&section=sec-memory-system','psychology','记忆系统'],
     ['/?settings=1','settings','设置中心'],
   ];
   function element(tag,text,className){const node=document.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node}
@@ -103,13 +105,13 @@
      工作台注入的隐藏 rail 也走同一数据。链接统一挂 .rail-btn 与工作台 markup rail 同类。 */
   function renderRail(nav,page){
     nav.replaceChildren();
-    const brand=element('span',null,'ui-rail-brand');brand.setAttribute('aria-hidden','true');brand.append(icon('smart_toy'));nav.append(brand);
+    const brand=element('span',null,'ui-rail-brand');brand.setAttribute('aria-hidden','true');nav.append(brand);
     for(const [path,iconName,label] of NAV_ITEMS){
       const link=element('a');link.href=path;link.title=label;link.className='rail-btn';link.setAttribute('aria-label',label);
       link.append(icon(iconName),element('span',label,'ui-nav-label'));
       // 带查询串的深链（设置中心）永远不标「当前页」
       if(!path.includes('?')&&location.pathname===path)link.setAttribute('aria-current','page');
-      if(page==='workbench'&&path!=='/'){link.target='_blank';link.rel='noopener'}
+      if(page==='workbench'&&path!=='/'&&!path.includes('section=sec-memory-system')){link.target='_blank';link.rel='noopener'}
       nav.append(link);
     }
   }
@@ -146,7 +148,7 @@
     }
     const currentLink=nav?.querySelector('[aria-current="page"]');if(currentLink)requestAnimationFrame(()=>currentLink.scrollIntoView({block:'nearest',inline:'center'}));
     document.body.classList.add('ui-ready');
-    if(!embedded){ensureHubStorageEntry();if(new URLSearchParams(location.search).get('settings')==='1')setTimeout(()=>document.querySelector('.hub-open')?.click(),0);}
+    if(!embedded){ensureHubStorageEntry();if(new URLSearchParams(location.search).get('settings')==='1')setTimeout(()=>{const button=document.querySelector('.hub-open');if(!button)return;const section=new URLSearchParams(location.search).get('section');if(section==='sec-memory-system')button.dataset.section=section;button.click();if(section==='sec-memory-system')delete button.dataset.section},0);}
     requestAnimationFrame(()=>document.body.classList.add('ui-entered'));
     const progress=element('div');progress.className='ui-route-progress';progress.setAttribute('aria-hidden','true');document.body.append(progress);
     const prefetchFrom=event=>{const link=event.target.closest('a[href]');if(!link||link.target==='_blank')return;try{const url=new URL(link.href,location.href);if(url.origin===location.origin)warm(url.pathname)}catch{}};

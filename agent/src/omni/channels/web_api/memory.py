@@ -48,6 +48,7 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
             "writes": {"used": used, "limit": limit or None},
             "review": {
                 "enabled": reviewer is not None,
+                "active": reviewer.active if reviewer is not None else 0,
                 "queue_depth": reviewer.queue_depth if reviewer is not None else 0,
                 "stats": dict(reviewer.stats) if reviewer is not None else {},
                 "recent": reviews,

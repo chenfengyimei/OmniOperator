@@ -73,6 +73,7 @@ class TurnEndReviewer:
         self._lock = threading.Lock()
         self._worker: threading.Thread | None = None
         self._closed = False
+        self._active = 0
         # 计数给工作台/排查看：排队多少、因为满/重复跳过多少
         self.stats = {"queued": 0, "duplicate": 0, "full": 0, "too_short": 0, "failed": 0}
 
@@ -161,11 +162,19 @@ class TurnEndReviewer:
     def queue_depth(self) -> int:
         return self._queue.qsize()
 
+    @property
+    def active(self) -> int:
+        """正在执行 review 的数量（不含仅排队）；供工作台运行态标签使用。"""
+        with self._lock:
+            return self._active
+
     # ---------------------------------------------------------------- 执行
 
     def review_recent(self, session_id: int) -> str:
         """同步执行一次 review（冒烟/测试直接调这个）；返回结果描述。"""
         store = self._make_store()
+        with self._lock:
+            self._active += 1
         up_to: int | None = None
         try:
             up_to = store.max_message_id(session_id)
@@ -229,6 +238,8 @@ class TurnEndReviewer:
                 pass
             raise
         finally:
+            with self._lock:
+                self._active -= 1
             store.close()
 
     @staticmethod

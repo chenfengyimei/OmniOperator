@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0622efdb61f13cb4d8183727d5953c3431352b5bbace139f322f600e8ed84eec",
+  "source_sha256": "ce56e773d0f60d80f5244f53940deced15297e4b765af32d88fdde72373a21a8",
   "modules": [
     {
       "id": "agent-directories",
@@ -84,7 +84,7 @@
         "agent/src/omni/channels/web_api/context.py",
         "agent/src/omni/channels/web_static/ui/app/hub-context.js"
       ],
-      "lines": 198,
+      "lines": 212,
       "dependencies": [
         "assembly",
         "config",
@@ -111,7 +111,7 @@
       "files": [
         "agent/src/omni/bootstrap.py"
       ],
-      "lines": 734,
+      "lines": 741,
       "dependencies": [
         "agent-directories",
         "android",
@@ -157,7 +157,7 @@
       "files": [
         "agent/src/omni/config.py"
       ],
-      "lines": 648,
+      "lines": 662,
       "dependencies": []
     },
     {
@@ -216,7 +216,7 @@
         "agent/src/omni/core/session.py",
         "agent/src/omni/core/vision.py"
       ],
-      "lines": 2735,
+      "lines": 2746,
       "dependencies": [
         "config",
         "models",
@@ -318,7 +318,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 7812,
+      "lines": 8273,
       "dependencies": [
         "command-contracts",
         "config",
@@ -414,8 +414,10 @@
         "agent/src/omni/channels/web_static/ui/app/header.js",
         "agent/src/omni/channels/web_static/ui/app/hub-cron.js",
         "agent/src/omni/channels/web_static/ui/app/hub-mcp.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-memory.js",
         "agent/src/omni/channels/web_static/ui/app/hub-models.js",
         "agent/src/omni/channels/web_static/ui/app/hub-persona.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-skills.js",
         "agent/src/omni/channels/web_static/ui/app/hub-usage.js",
         "agent/src/omni/channels/web_static/ui/app/hub.js",
         "agent/src/omni/channels/web_static/ui/app/main.js",
@@ -439,7 +441,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 4029,
+      "lines": 4647,
       "dependencies": []
     },
     {
@@ -468,11 +470,13 @@
         "agent/src/omni/channels/web_static/memory/index.html",
         "agent/src/omni/channels/web_static/memory/memory.css",
         "agent/src/omni/channels/web_static/memory/memory.js",
+        "agent/src/omni/channels/web_static/memory/page.js",
+        "agent/src/omni/channels/web_static/memory/panel.html",
         "agent/src/omni/channels/web_static/vendor/xterm-addon-fit.js",
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2125,
+      "lines": 2265,
       "dependencies": [
         "assembly",
         "config",
@@ -635,7 +639,7 @@
       "files": [
         "agent/src/omni/channels/web_api/memory.py"
       ],
-      "lines": 130,
+      "lines": 131,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -660,10 +664,13 @@
       "files": [
         "agent/src/omni/channels/web_api/skills.py"
       ],
-      "lines": 230,
+      "lines": 480,
       "dependencies": [
         "assembly",
-        "http-contracts"
+        "config",
+        "http-contracts",
+        "platform",
+        "storage"
       ]
     },
     {
@@ -908,7 +915,7 @@
       "files": [
         "agent/src/omni/channels/web_api/schemas.py"
       ],
-      "lines": 159,
+      "lines": 181,
       "dependencies": []
     },
     {
@@ -1117,7 +1124,7 @@
         "agent/src/omni/tools/skills/__init__.py",
         "agent/src/omni/tools/skills/tools.py"
       ],
-      "lines": 403,
+      "lines": 470,
       "dependencies": [
         "storage",
         "toolkit"
@@ -1596,7 +1603,7 @@
         "agent/src/omni/system/soak.py",
         "agent/src/omni/system/stderr_log.py"
       ],
-      "lines": 2488,
+      "lines": 2491,
       "dependencies": [
         "agent-directories",
         "config"
@@ -1644,7 +1651,7 @@
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 734,
+      "lines": 741,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1794,7 +1801,7 @@
         },
         {
           "name": "Runtime.qq_policy",
-          "line": 201,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self"
@@ -1803,7 +1810,7 @@
         },
         {
           "name": "Runtime.close_mcp",
-          "line": 205,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self",
@@ -1815,7 +1822,7 @@
         },
         {
           "name": "Runtime.doctor",
-          "line": 212,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self"
@@ -1824,7 +1831,7 @@
         },
         {
           "name": "Runtime.backup",
-          "line": 225,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self"
@@ -1833,7 +1840,7 @@
         },
         {
           "name": "Runtime.close",
-          "line": 230,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "self",
@@ -1845,7 +1852,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 279,
+          "line": 280,
           "kind": "function",
           "parameters": [
             "self",
@@ -1857,7 +1864,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 285,
+          "line": 286,
           "kind": "function",
           "parameters": [
             "self"
@@ -1866,7 +1873,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 289,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self",
@@ -1878,7 +1885,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 298,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "self",
@@ -1890,7 +1897,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 302,
+          "line": 303,
           "kind": "function",
           "parameters": [
             "self"
@@ -1899,7 +1906,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 307,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self",
@@ -1911,7 +1918,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 314,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -1923,7 +1930,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 322,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "approver",
@@ -1950,7 +1957,7 @@
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 514,
+          "line": 520,
           "kind": "function",
           "parameters": [
             "rel"
@@ -1961,14 +1968,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 545,
+          "line": 551,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 635,
+          "line": 641,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -1979,7 +1986,7 @@
         },
         {
           "name": "build_runtime._journal_registry",
-          "line": 664,
+          "line": 670,
           "kind": "function",
           "parameters": [
             "journal_store"
@@ -2922,7 +2929,7 @@
       "path": "agent/src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 480,
+      "lines": 484,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -3069,7 +3076,7 @@
         },
         {
           "name": "create_app.system_config_save",
-          "line": 306,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3080,28 +3087,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 322,
+          "line": 326,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 333,
+          "line": 337,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.bili_cookies_status",
-          "line": 341,
+          "line": 345,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.save_bili_cookies",
-          "line": 353,
+          "line": 357,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3112,14 +3119,14 @@
         },
         {
           "name": "create_app.model_keys",
-          "line": 373,
+          "line": 377,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.model_key_set",
-          "line": 378,
+          "line": 382,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3130,7 +3137,7 @@
         },
         {
           "name": "create_app.model_test",
-          "line": 395,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3141,7 +3148,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 433,
+          "line": 437,
           "kind": "function",
           "parameters": [
             "host"
@@ -3152,7 +3159,7 @@
         },
         {
           "name": "main",
-          "line": 444,
+          "line": 448,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -4089,7 +4096,7 @@
       "path": "agent/src/omni/channels/web_api/memory.py",
       "module": "http-memory",
       "python_module": "omni.channels.web_api.memory",
-      "lines": 130,
+      "lines": 131,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.schemas",
@@ -4151,14 +4158,14 @@
         },
         {
           "name": "create_memory_router.get_profile",
-          "line": 58,
+          "line": 59,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_memory_router.profile_line_update",
-          "line": 69,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4169,7 +4176,7 @@
         },
         {
           "name": "create_memory_router.profile_line_delete",
-          "line": 78,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "line_id"
@@ -4180,14 +4187,14 @@
         },
         {
           "name": "create_memory_router.get_resident",
-          "line": 84,
+          "line": 85,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_memory_router.resident_update",
-          "line": 94,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4198,7 +4205,7 @@
         },
         {
           "name": "create_memory_router.get_reviews",
-          "line": 115,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "limit"
@@ -4209,7 +4216,7 @@
         },
         {
           "name": "create_memory_router.retrieval_status",
-          "line": 125,
+          "line": 126,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -4781,7 +4788,7 @@
       "path": "agent/src/omni/channels/web_api/schemas.py",
       "module": "http-contracts",
       "python_module": "omni.channels.web_api.schemas",
-      "lines": 159,
+      "lines": 181,
       "imports": [],
       "symbols": [
         {
@@ -4880,33 +4887,48 @@
           "kind": "class"
         },
         {
-          "name": "SkillRollbackIn",
+          "name": "SkillCreateIn",
           "line": 124,
           "kind": "class"
         },
         {
+          "name": "SkillArchiveIn",
+          "line": 132,
+          "kind": "class"
+        },
+        {
+          "name": "SkillSettingsIn",
+          "line": 139,
+          "kind": "class"
+        },
+        {
+          "name": "SkillRollbackIn",
+          "line": 146,
+          "kind": "class"
+        },
+        {
           "name": "SkillAckIn",
-          "line": 129,
+          "line": 151,
           "kind": "class"
         },
         {
           "name": "PersonCreateIn",
-          "line": 138,
+          "line": 160,
           "kind": "class"
         },
         {
           "name": "PersonUpdateIn",
-          "line": 144,
+          "line": 166,
           "kind": "class"
         },
         {
           "name": "AccountLinkIn",
-          "line": 150,
+          "line": 172,
           "kind": "class"
         },
         {
           "name": "PersonEntryIn",
-          "line": 156,
+          "line": 178,
           "kind": "class"
         }
       ],
@@ -5008,15 +5030,31 @@
       "path": "agent/src/omni/channels/web_api/skills.py",
       "module": "http-skills",
       "python_module": "omni.channels.web_api.skills",
-      "lines": 230,
+      "lines": 480,
       "imports": [
         "omni.bootstrap",
-        "omni.channels.web_api.schemas"
+        "omni.channels.web_api.schemas",
+        "omni.config",
+        "omni.memory.skill_inbox",
+        "omni.memory.skills",
+        "omni.system.config_io",
+        "omni.system.filelock"
       ],
       "symbols": [
         {
-          "name": "create_skills_router",
-          "line": 15,
+          "name": "_settings",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "config"
+          ],
+          "annotations": {
+            "config": "AppConfig"
+          }
+        },
+        {
+          "name": "_configuration",
+          "line": 50,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -5026,42 +5064,161 @@
           }
         },
         {
-          "name": "create_skills_router.get_skills",
-          "line": 19,
+          "name": "_limits",
+          "line": 69,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
+          "name": "create_skills_router",
+          "line": 80,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_skills_router.pending_items",
+          "line": 83,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_skills_router.inbox",
+          "line": 116,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_skills_router.get_skills",
+          "line": 126,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_skills_router.skills_overview",
+          "line": 140,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_skills_router.skills_settings",
+          "line": 168,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_skills_router.skills_settings_save",
+          "line": 175,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "SkillSettingsIn"
+          }
+        },
+        {
+          "name": "create_skills_router.skill_create",
+          "line": 201,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "SkillCreateIn"
+          }
+        },
+        {
+          "name": "create_skills_router.skills_inbox",
+          "line": 217,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_skills_router.skill_package_upload",
+          "line": 226,
+          "kind": "function",
+          "parameters": [
+            "request",
+            "filename"
+          ],
+          "annotations": {
+            "request": "Request",
+            "filename": "str"
+          }
+        },
+        {
+          "name": "create_skills_router.skill_package_import",
+          "line": 248,
+          "kind": "function",
+          "parameters": [
+            "package"
+          ],
+          "annotations": {
+            "package": "str"
+          }
+        },
+        {
+          "name": "create_skills_router.skill_package_remove",
+          "line": 257,
+          "kind": "function",
+          "parameters": [
+            "package"
+          ],
+          "annotations": {
+            "package": "str"
+          }
+        },
+        {
+          "name": "create_skills_router.skill_package_activate",
+          "line": 265,
+          "kind": "function",
+          "parameters": [
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "create_skills_router.skill_package_discard",
+          "line": 276,
+          "kind": "function",
+          "parameters": [
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
           "name": "create_skills_router.skills_pending",
-          "line": 32,
+          "line": 286,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_skills_router.skills_ack_all",
-          "line": 71,
+          "line": 291,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_skills_router.skill_ack",
-          "line": 86,
-          "kind": "function",
-          "parameters": [
-            "name",
-            "payload"
-          ],
-          "annotations": {
-            "name": "str",
-            "payload": "SkillAckIn"
-          }
-        },
-        {
           "name": "create_skills_router.skill_pending_diff",
-          "line": 95,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "name",
@@ -5073,8 +5230,45 @@
           }
         },
         {
+          "name": "create_skills_router.skill_ack",
+          "line": 330,
+          "kind": "function",
+          "parameters": [
+            "name",
+            "payload"
+          ],
+          "annotations": {
+            "name": "str",
+            "payload": "SkillAckIn"
+          }
+        },
+        {
+          "name": "create_skills_router.skill_archive",
+          "line": 341,
+          "kind": "function",
+          "parameters": [
+            "name",
+            "payload"
+          ],
+          "annotations": {
+            "name": "str",
+            "payload": "SkillArchiveIn"
+          }
+        },
+        {
+          "name": "create_skills_router.skill_restore",
+          "line": 359,
+          "kind": "function",
+          "parameters": [
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
           "name": "create_skills_router.get_skill",
-          "line": 119,
+          "line": 369,
           "kind": "function",
           "parameters": [
             "name",
@@ -5087,7 +5281,7 @@
         },
         {
           "name": "create_skills_router.skill_save",
-          "line": 139,
+          "line": 389,
           "kind": "function",
           "parameters": [
             "name",
@@ -5100,7 +5294,7 @@
         },
         {
           "name": "create_skills_router.skill_history",
-          "line": 161,
+          "line": 411,
           "kind": "function",
           "parameters": [
             "name",
@@ -5113,7 +5307,7 @@
         },
         {
           "name": "create_skills_router.skill_revision",
-          "line": 181,
+          "line": 431,
           "kind": "function",
           "parameters": [
             "name",
@@ -5126,7 +5320,7 @@
         },
         {
           "name": "create_skills_router.skill_diff",
-          "line": 191,
+          "line": 441,
           "kind": "function",
           "parameters": [
             "name",
@@ -5139,7 +5333,7 @@
         },
         {
           "name": "create_skills_router.skill_rollback",
-          "line": 211,
+          "line": 461,
           "kind": "function",
           "parameters": [
             "name",
@@ -5151,7 +5345,7 @@
           }
         }
       ],
-      "summary": "技能与审阅 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+      "summary": "技能 HTTP 适配：编辑/审阅/统计/归档/外来包，全部消费注入 Runtime。"
     },
     {
       "path": "agent/src/omni/channels/web_api/storage.py",
@@ -5645,7 +5839,7 @@
       "path": "agent/src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 483,
+      "lines": 578,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5715,7 +5909,7 @@
       "path": "agent/src/omni/channels/web_static/memory/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 130,
+      "lines": 6,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5725,7 +5919,7 @@
       "path": "agent/src/omni/channels/web_static/memory/memory.css",
       "module": "web-ui",
       "python_module": null,
-      "lines": 137,
+      "lines": 145,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5735,7 +5929,27 @@
       "path": "agent/src/omni/channels/web_static/memory/memory.js",
       "module": "web-ui",
       "python_module": null,
-      "lines": 538,
+      "lines": 567,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/memory/page.js",
+      "module": "web-ui",
+      "python_module": null,
+      "lines": 2,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/memory/panel.html",
+      "module": "web-ui",
+      "python_module": null,
+      "lines": 126,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5865,7 +6079,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/chat.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 108,
+      "lines": 113,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5895,7 +6109,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/header.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 72,
+      "lines": 138,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5905,7 +6119,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub-context.js",
       "module": "http-context",
       "python_module": null,
-      "lines": 120,
+      "lines": 134,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5932,6 +6146,16 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-memory.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 3,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "agent/src/omni/channels/web_static/ui/app/hub-models.js",
       "module": "ui-shared",
       "python_module": null,
@@ -5952,6 +6176,16 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-skills.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 443,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "agent/src/omni/channels/web_static/ui/app/hub-usage.js",
       "module": "ui-shared",
       "python_module": null,
@@ -5965,7 +6199,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 226,
+      "lines": 232,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5975,7 +6209,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/main.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 63,
+      "lines": 66,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5985,7 +6219,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/memory.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 124,
+      "lines": 126,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6025,7 +6259,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/runs.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 165,
+      "lines": 171,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6055,7 +6289,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/skills.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 152,
+      "lines": 153,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6065,7 +6299,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/state.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 11,
+      "lines": 15,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6115,7 +6349,7 @@
       "path": "agent/src/omni/channels/web_static/ui/frame.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 425,
+      "lines": 431,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6145,7 +6379,7 @@
       "path": "agent/src/omni/channels/web_static/ui/shared.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 170,
+      "lines": 172,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6165,7 +6399,7 @@
       "path": "agent/src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 969,
+      "lines": 1040,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6293,7 +6527,7 @@
       "path": "agent/src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 648,
+      "lines": 662,
       "imports": [],
       "symbols": [
         {
@@ -6420,33 +6654,38 @@
           "kind": "class"
         },
         {
-          "name": "Web",
+          "name": "Skills",
           "line": 258,
           "kind": "class"
         },
         {
+          "name": "Web",
+          "line": 271,
+          "kind": "class"
+        },
+        {
           "name": "Files",
-          "line": 275,
+          "line": 288,
           "kind": "class"
         },
         {
           "name": "Compression",
-          "line": 293,
+          "line": 306,
           "kind": "class"
         },
         {
           "name": "Asr",
-          "line": 302,
+          "line": 315,
           "kind": "class"
         },
         {
           "name": "QQ",
-          "line": 310,
+          "line": 323,
           "kind": "class"
         },
         {
           "name": "QQ.check_qq_policy",
-          "line": 331,
+          "line": 344,
           "kind": "function",
           "parameters": [
             "self"
@@ -6455,22 +6694,22 @@
         },
         {
           "name": "Browser",
-          "line": 347,
+          "line": 360,
           "kind": "class"
         },
         {
           "name": "UIFormSelectors",
-          "line": 356,
+          "line": 369,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite",
-          "line": 374,
+          "line": 387,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite.check_forms",
-          "line": 381,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self"
@@ -6479,22 +6718,22 @@
         },
         {
           "name": "System",
-          "line": 390,
+          "line": 403,
           "kind": "class"
         },
         {
           "name": "Approval",
-          "line": 396,
+          "line": 409,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig",
-          "line": 406,
+          "line": 419,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig.nonblank_command",
-          "line": 424,
+          "line": 437,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6506,7 +6745,7 @@
         },
         {
           "name": "MCPServerConfig.readonly_subset",
-          "line": 430,
+          "line": 443,
           "kind": "function",
           "parameters": [
             "self"
@@ -6515,12 +6754,12 @@
         },
         {
           "name": "MCPConfig",
-          "line": 436,
+          "line": 449,
           "kind": "class"
         },
         {
           "name": "MCPConfig.server_names",
-          "line": 442,
+          "line": 455,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6532,12 +6771,12 @@
         },
         {
           "name": "Desktop",
-          "line": 450,
+          "line": 463,
           "kind": "class"
         },
         {
           "name": "Desktop.absolute_apps",
-          "line": 461,
+          "line": 474,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6547,12 +6786,12 @@
         },
         {
           "name": "Embedding",
-          "line": 467,
+          "line": 480,
           "kind": "class"
         },
         {
           "name": "Embedding.validate_provider",
-          "line": 485,
+          "line": 498,
           "kind": "function",
           "parameters": [
             "self"
@@ -6561,17 +6800,17 @@
         },
         {
           "name": "Cron",
-          "line": 505,
+          "line": 518,
           "kind": "class"
         },
         {
           "name": "Journal",
-          "line": 510,
+          "line": 523,
           "kind": "class"
         },
         {
           "name": "Journal.check_daily_time",
-          "line": 530,
+          "line": 543,
           "kind": "function",
           "parameters": [
             "self"
@@ -6580,22 +6819,22 @@
         },
         {
           "name": "Transcript",
-          "line": 539,
+          "line": 552,
           "kind": "class"
         },
         {
           "name": "People",
-          "line": 554,
+          "line": 567,
           "kind": "class"
         },
         {
           "name": "AndroidConfig",
-          "line": 564,
+          "line": 577,
           "kind": "class"
         },
         {
           "name": "AndroidConfig.packages",
-          "line": 576,
+          "line": 589,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6605,22 +6844,22 @@
         },
         {
           "name": "CommandJobsConfig",
-          "line": 583,
+          "line": 596,
           "kind": "class"
         },
         {
           "name": "TerminalConfig",
-          "line": 593,
+          "line": 606,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 601,
+          "line": 614,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 631,
+          "line": 645,
           "kind": "function",
           "parameters": [
             "path"
@@ -6631,7 +6870,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 639,
+          "line": 653,
           "kind": "function",
           "parameters": [
             "path"
@@ -8142,7 +8381,7 @@
       "path": "agent/src/omni/core/review.py",
       "module": "engine",
       "python_module": "omni.core.review",
-      "lines": 236,
+      "lines": 247,
       "imports": [
         "omni.config",
         "omni.llm.gateway",
@@ -8175,7 +8414,7 @@
         },
         {
           "name": "TurnEndReviewer.submit",
-          "line": 81,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -8187,7 +8426,7 @@
         },
         {
           "name": "TurnEndReviewer.review_in_background",
-          "line": 126,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self",
@@ -8199,7 +8438,7 @@
         },
         {
           "name": "TurnEndReviewer._work",
-          "line": 130,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self"
@@ -8208,7 +8447,7 @@
         },
         {
           "name": "TurnEndReviewer.close",
-          "line": 146,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -8220,7 +8459,16 @@
         },
         {
           "name": "TurnEndReviewer.queue_depth",
-          "line": 161,
+          "line": 162,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TurnEndReviewer.active",
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self"
@@ -8229,7 +8477,7 @@
         },
         {
           "name": "TurnEndReviewer.review_recent",
-          "line": 166,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "self",
@@ -8241,7 +8489,7 @@
         },
         {
           "name": "TurnEndReviewer.registry_result",
-          "line": 235,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "registry",
@@ -12873,7 +13121,7 @@
       "path": "agent/src/omni/memory/skill_inbox.py",
       "module": "storage",
       "python_module": "omni.memory.skill_inbox",
-      "lines": 477,
+      "lines": 574,
       "imports": [
         "omni.memory.skills",
         "omni.system.atomic",
@@ -12881,8 +13129,19 @@
       ],
       "symbols": [
         {
-          "name": "_digest",
+          "name": "_package_name",
           "line": 49,
+          "kind": "function",
+          "parameters": [
+            "filename"
+          ],
+          "annotations": {
+            "filename": "str"
+          }
+        },
+        {
+          "name": "_digest",
+          "line": 69,
           "kind": "function",
           "parameters": [
             "data"
@@ -12893,7 +13152,7 @@
         },
         {
           "name": "_safe_parts",
-          "line": 53,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "entry"
@@ -12904,7 +13163,7 @@
         },
         {
           "name": "_entry_shape",
-          "line": 77,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "parts"
@@ -12915,12 +13174,12 @@
         },
         {
           "name": "SkillInbox",
-          "line": 88,
+          "line": 108,
           "kind": "class"
         },
         {
           "name": "SkillInbox.__init__",
-          "line": 91,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
@@ -12938,7 +13197,33 @@
         },
         {
           "name": "SkillInbox.import_package",
-          "line": 108,
+          "line": 128,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "package"
+          ],
+          "annotations": {
+            "package": "str"
+          }
+        },
+        {
+          "name": "SkillInbox.upload",
+          "line": 206,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "filename",
+            "data"
+          ],
+          "annotations": {
+            "filename": "str",
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "SkillInbox.remove_inbox",
+          "line": 233,
           "kind": "function",
           "parameters": [
             "self",
@@ -12950,7 +13235,7 @@
         },
         {
           "name": "SkillInbox._plan_entries",
-          "line": 181,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "self",
@@ -12962,7 +13247,7 @@
         },
         {
           "name": "SkillInbox._strip_common_root",
-          "line": 230,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "raw"
@@ -12973,7 +13258,7 @@
         },
         {
           "name": "SkillInbox._extract",
-          "line": 245,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -12989,7 +13274,7 @@
         },
         {
           "name": "SkillInbox._validate_skill",
-          "line": 275,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "staging"
@@ -13000,7 +13285,7 @@
         },
         {
           "name": "SkillInbox._skill_meta",
-          "line": 302,
+          "line": 371,
           "kind": "function",
           "parameters": [
             "staging"
@@ -13011,7 +13296,7 @@
         },
         {
           "name": "SkillInbox._load_manifest",
-          "line": 313,
+          "line": 386,
           "kind": "function",
           "parameters": [
             "self",
@@ -13023,7 +13308,7 @@
         },
         {
           "name": "SkillInbox.pending",
-          "line": 325,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "self"
@@ -13032,7 +13317,7 @@
         },
         {
           "name": "SkillInbox.inbox_files",
-          "line": 357,
+          "line": 445,
           "kind": "function",
           "parameters": [
             "self"
@@ -13041,7 +13326,7 @@
         },
         {
           "name": "SkillInbox.activate",
-          "line": 374,
+          "line": 468,
           "kind": "function",
           "parameters": [
             "self",
@@ -13053,7 +13338,7 @@
         },
         {
           "name": "SkillInbox._verify_against_manifest",
-          "line": 426,
+          "line": 521,
           "kind": "function",
           "parameters": [
             "self",
@@ -13067,7 +13352,7 @@
         },
         {
           "name": "SkillInbox.discard",
-          "line": 463,
+          "line": 560,
           "kind": "function",
           "parameters": [
             "self",
@@ -13079,7 +13364,7 @@
         },
         {
           "name": "_Reject",
-          "line": 476,
+          "line": 573,
           "kind": "class"
         }
       ],
@@ -13089,7 +13374,7 @@
       "path": "agent/src/omni/memory/skills.py",
       "module": "storage",
       "python_module": "omni.memory.skills",
-      "lines": 690,
+      "lines": 1049,
       "imports": [
         "omni.config",
         "omni.memory.revisions",
@@ -13099,7 +13384,7 @@
       "symbols": [
         {
           "name": "parse_skill_text",
-          "line": 44,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "text"
@@ -13110,7 +13395,7 @@
         },
         {
           "name": "parse_skill_md",
-          "line": 60,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "path"
@@ -13121,7 +13406,7 @@
         },
         {
           "name": "_digest",
-          "line": 69,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "data"
@@ -13132,7 +13417,7 @@
         },
         {
           "name": "hash_matches",
-          "line": 73,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "expected",
@@ -13145,12 +13430,12 @@
         },
         {
           "name": "SkillStore",
-          "line": 81,
+          "line": 84,
           "kind": "class"
         },
         {
           "name": "SkillStore.__init__",
-          "line": 82,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self",
@@ -13170,7 +13455,7 @@
         },
         {
           "name": "SkillStore.root",
-          "line": 109,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "self"
@@ -13179,7 +13464,7 @@
         },
         {
           "name": "SkillStore.list",
-          "line": 113,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self"
@@ -13188,7 +13473,7 @@
         },
         {
           "name": "SkillStore.view",
-          "line": 132,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",
@@ -13202,7 +13487,7 @@
         },
         {
           "name": "SkillStore.read",
-          "line": 157,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self",
@@ -13214,7 +13499,7 @@
         },
         {
           "name": "SkillStore.references",
-          "line": 170,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -13226,7 +13511,7 @@
         },
         {
           "name": "SkillStore._reference_path",
-          "line": 196,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -13240,7 +13525,7 @@
         },
         {
           "name": "SkillStore._read_reference_bytes",
-          "line": 214,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self",
@@ -13252,7 +13537,7 @@
         },
         {
           "name": "SkillStore._contained",
-          "line": 223,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self",
@@ -13264,7 +13549,7 @@
         },
         {
           "name": "SkillStore.exists",
-          "line": 237,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self",
@@ -13276,7 +13561,7 @@
         },
         {
           "name": "SkillStore.history_root",
-          "line": 244,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "self"
@@ -13285,7 +13570,7 @@
         },
         {
           "name": "SkillStore._key",
-          "line": 247,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "self",
@@ -13297,7 +13582,7 @@
         },
         {
           "name": "SkillStore.history",
-          "line": 250,
+          "line": 268,
           "kind": "function",
           "parameters": [
             "self",
@@ -13311,7 +13596,7 @@
         },
         {
           "name": "SkillStore.revision",
-          "line": 256,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "self",
@@ -13325,7 +13610,7 @@
         },
         {
           "name": "SkillStore.reference_drift",
-          "line": 262,
+          "line": 280,
           "kind": "function",
           "parameters": [
             "self",
@@ -13338,8 +13623,89 @@
           }
         },
         {
+          "name": "SkillStore.statistics",
+          "line": 289,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "days"
+          ],
+          "annotations": {
+            "days": "int"
+          }
+        },
+        {
+          "name": "SkillStore._detail_from_md",
+          "line": 358,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "skill_md",
+            "archived"
+          ],
+          "annotations": {
+            "skill_md": "Path",
+            "archived": "bool"
+          }
+        },
+        {
+          "name": "SkillStore._archived_details",
+          "line": 404,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "SkillStore._archive_meta",
+          "line": 415,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "SkillStore._reference_summary",
+          "line": 425,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "base"
+          ],
+          "annotations": {
+            "base": "Path"
+          }
+        },
+        {
+          "name": "SkillStore._iso_mtime",
+          "line": 457,
+          "kind": "function",
+          "parameters": [
+            "timestamp"
+          ],
+          "annotations": {
+            "timestamp": "float"
+          }
+        },
+        {
+          "name": "SkillStore._tree_bytes",
+          "line": 461,
+          "kind": "function",
+          "parameters": [
+            "root"
+          ],
+          "annotations": {
+            "root": "Path"
+          }
+        },
+        {
           "name": "SkillStore.create",
-          "line": 271,
+          "line": 486,
           "kind": "function",
           "parameters": [
             "self",
@@ -13359,7 +13725,7 @@
         },
         {
           "name": "SkillStore.patch",
-          "line": 325,
+          "line": 540,
           "kind": "function",
           "parameters": [
             "self",
@@ -13381,7 +13747,7 @@
         },
         {
           "name": "SkillStore.rewrite",
-          "line": 372,
+          "line": 587,
           "kind": "function",
           "parameters": [
             "self",
@@ -13403,7 +13769,7 @@
         },
         {
           "name": "SkillStore.save_raw",
-          "line": 410,
+          "line": 625,
           "kind": "function",
           "parameters": [
             "self",
@@ -13423,7 +13789,7 @@
         },
         {
           "name": "SkillStore.rollback",
-          "line": 440,
+          "line": 655,
           "kind": "function",
           "parameters": [
             "self",
@@ -13442,8 +13808,55 @@
           }
         },
         {
+          "name": "SkillStore.archive",
+          "line": 700,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "expected_hash",
+            "author",
+            "source",
+            "reason"
+          ],
+          "annotations": {
+            "name": "str",
+            "expected_hash": "str | None",
+            "author": "str",
+            "source": "str",
+            "reason": "str"
+          }
+        },
+        {
+          "name": "SkillStore.restore",
+          "line": 787,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "author",
+            "source"
+          ],
+          "annotations": {
+            "name": "str",
+            "author": "str",
+            "source": "str"
+          }
+        },
+        {
+          "name": "SkillStore._int_version",
+          "line": 837,
+          "kind": "function",
+          "parameters": [
+            "meta"
+          ],
+          "annotations": {
+            "meta": "dict[str, Any]"
+          }
+        },
+        {
           "name": "SkillStore.adopt",
-          "line": 487,
+          "line": 844,
           "kind": "function",
           "parameters": [
             "self",
@@ -13461,7 +13874,7 @@
         },
         {
           "name": "SkillStore._load_for_write",
-          "line": 526,
+          "line": 883,
           "kind": "function",
           "parameters": [
             "self",
@@ -13475,7 +13888,7 @@
         },
         {
           "name": "SkillStore._snapshot_unversioned",
-          "line": 561,
+          "line": 918,
           "kind": "function",
           "parameters": [
             "self",
@@ -13493,7 +13906,7 @@
         },
         {
           "name": "SkillStore._next_meta",
-          "line": 583,
+          "line": 940,
           "kind": "function",
           "parameters": [
             "self",
@@ -13507,7 +13920,7 @@
         },
         {
           "name": "SkillStore._render",
-          "line": 598,
+          "line": 957,
           "kind": "function",
           "parameters": [
             "meta",
@@ -13520,7 +13933,7 @@
         },
         {
           "name": "SkillStore._commit",
-          "line": 607,
+          "line": 966,
           "kind": "function",
           "parameters": [
             "self",
@@ -13544,7 +13957,7 @@
         },
         {
           "name": "SkillStore._refs_manifest",
-          "line": 635,
+          "line": 994,
           "kind": "function",
           "parameters": [
             "self",
@@ -13556,7 +13969,7 @@
         },
         {
           "name": "SkillStore._body_problem",
-          "line": 649,
+          "line": 1008,
           "kind": "function",
           "parameters": [
             "body",
@@ -13569,7 +13982,7 @@
         },
         {
           "name": "SkillStore._remember",
-          "line": 658,
+          "line": 1017,
           "kind": "function",
           "parameters": [
             "self",
@@ -13583,7 +13996,7 @@
         },
         {
           "name": "SkillStore._remembered",
-          "line": 662,
+          "line": 1021,
           "kind": "function",
           "parameters": [
             "self",
@@ -13595,7 +14008,7 @@
         },
         {
           "name": "SkillStore._locked",
-          "line": 667,
+          "line": 1026,
           "kind": "function",
           "parameters": [
             "self",
@@ -13607,7 +14020,7 @@
         },
         {
           "name": "SkillStore._safe_path",
-          "line": 682,
+          "line": 1041,
           "kind": "function",
           "parameters": [
             "self",
@@ -13619,7 +14032,7 @@
         },
         {
           "name": "_Abort",
-          "line": 689,
+          "line": 1048,
           "kind": "class"
         }
       ],
@@ -13629,7 +14042,7 @@
       "path": "agent/src/omni/memory/state.py",
       "module": "storage",
       "python_module": "omni.memory.state",
-      "lines": 1607,
+      "lines": 1612,
       "imports": [
         "omni.config",
         "omni.memory.command_schema",
@@ -14842,6 +15255,18 @@
             "self"
           ],
           "annotations": {}
+        },
+        {
+          "name": "SkillAckStore.forget",
+          "line": 1609,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "skill"
+          ],
+          "annotations": {
+            "skill": "str"
+          }
         }
       ],
       "summary": "共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。"
@@ -18236,7 +18661,7 @@
       "path": "agent/src/omni/system/config_io.py",
       "module": "platform",
       "python_module": "omni.system.config_io",
-      "lines": 453,
+      "lines": 456,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -18245,17 +18670,17 @@
       "symbols": [
         {
           "name": "ConfigEditError",
-          "line": 84,
+          "line": 87,
           "kind": "class"
         },
         {
           "name": "ConfigConflict",
-          "line": 88,
+          "line": 91,
           "kind": "class"
         },
         {
           "name": "render_value",
-          "line": 92,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "kind",
@@ -18268,7 +18693,7 @@
         },
         {
           "name": "_scalar_updates",
-          "line": 134,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "text",
@@ -18281,7 +18706,7 @@
         },
         {
           "name": "_find_multiline_block",
-          "line": 159,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18296,7 +18721,7 @@
         },
         {
           "name": "_replace_multiline_block",
-          "line": 189,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "text",
@@ -18313,7 +18738,7 @@
         },
         {
           "name": "_section_bounds",
-          "line": 207,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18326,7 +18751,7 @@
         },
         {
           "name": "_has_key",
-          "line": 220,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18343,7 +18768,7 @@
         },
         {
           "name": "_append_key",
-          "line": 225,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18360,7 +18785,7 @@
         },
         {
           "name": "_append_multiline_block",
-          "line": 249,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "text",
@@ -18377,7 +18802,7 @@
         },
         {
           "name": "apply_updates",
-          "line": 270,
+          "line": 273,
           "kind": "function",
           "parameters": [
             "text",
@@ -18390,7 +18815,7 @@
         },
         {
           "name": "read_config_text",
-          "line": 319,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "path"
@@ -18401,7 +18826,7 @@
         },
         {
           "name": "safe_write",
-          "line": 330,
+          "line": 333,
           "kind": "function",
           "parameters": [
             "path",
@@ -18414,7 +18839,7 @@
         },
         {
           "name": "read_config_snapshot",
-          "line": 335,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "path"
@@ -18425,7 +18850,7 @@
         },
         {
           "name": "commit_config_updates",
-          "line": 342,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "path",
@@ -18440,7 +18865,7 @@
         },
         {
           "name": "mask_secret",
-          "line": 370,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "value"
@@ -18451,7 +18876,7 @@
         },
         {
           "name": "_env_name_ok",
-          "line": 380,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "name"
@@ -18462,7 +18887,7 @@
         },
         {
           "name": "read_env_secrets",
-          "line": 384,
+          "line": 387,
           "kind": "function",
           "parameters": [
             "path"
@@ -18473,7 +18898,7 @@
         },
         {
           "name": "set_env_secret",
-          "line": 407,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "path",
@@ -26709,7 +27134,7 @@
       "path": "agent/src/omni/tools/skills/tools.py",
       "module": "skills",
       "python_module": "omni.tools.skills.tools",
-      "lines": 399,
+      "lines": 466,
       "imports": [
         "omni.memory.skill_inbox",
         "omni.memory.skills",
@@ -26734,17 +27159,19 @@
           "parameters": [
             "registry",
             "skills",
-            "guard"
+            "guard",
+            "lifecycle"
           ],
           "annotations": {
             "registry": "ToolRegistry",
             "skills": "SkillStore",
-            "guard": "Any"
+            "guard": "Any",
+            "lifecycle": "bool"
           }
         },
         {
           "name": "register_skill_tools._gate",
-          "line": 41,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "content"
@@ -26755,7 +27182,7 @@
         },
         {
           "name": "register_skill_tools.skills_list",
-          "line": 47,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "_"
@@ -26766,7 +27193,7 @@
         },
         {
           "name": "register_skill_tools.skill_view",
-          "line": 55,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "args"
@@ -26777,7 +27204,7 @@
         },
         {
           "name": "register_skill_tools.skill_create",
-          "line": 77,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "args"
@@ -26788,7 +27215,7 @@
         },
         {
           "name": "register_skill_tools.skill_patch",
-          "line": 88,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "args"
@@ -26799,7 +27226,7 @@
         },
         {
           "name": "register_skill_tools.skill_rewrite",
-          "line": 100,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "args"
@@ -26810,7 +27237,7 @@
         },
         {
           "name": "register_skill_tools.skill_history",
-          "line": 112,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "args"
@@ -26821,7 +27248,29 @@
         },
         {
           "name": "register_skill_tools.skill_rollback",
-          "line": 131,
+          "line": 139,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "dict[str, Any]"
+          }
+        },
+        {
+          "name": "register_skill_tools.skill_archive",
+          "line": 149,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "dict[str, Any]"
+          }
+        },
+        {
+          "name": "register_skill_tools.skill_restore",
+          "line": 159,
           "kind": "function",
           "parameters": [
             "args"
@@ -26832,7 +27281,7 @@
         },
         {
           "name": "register_skill_inbox_tools",
-          "line": 287,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "registry",
@@ -26845,7 +27294,7 @@
         },
         {
           "name": "register_skill_inbox_tools.skill_import",
-          "line": 296,
+          "line": 363,
           "kind": "function",
           "parameters": [
             "args"
@@ -26856,7 +27305,7 @@
         },
         {
           "name": "register_skill_inbox_tools.skill_pending",
-          "line": 300,
+          "line": 367,
           "kind": "function",
           "parameters": [
             "_"
@@ -26867,7 +27316,7 @@
         },
         {
           "name": "register_skill_inbox_tools.skill_activate",
-          "line": 321,
+          "line": 388,
           "kind": "function",
           "parameters": [
             "args"
@@ -26878,7 +27327,7 @@
         },
         {
           "name": "register_skill_inbox_tools.skill_discard",
-          "line": 325,
+          "line": 392,
           "kind": "function",
           "parameters": [
             "args"
@@ -28757,7 +29206,7 @@
       "method": "GET",
       "path": "/api/memory/retrieval",
       "source": "agent/src/omni/channels/web_api/memory.py",
-      "line": 125,
+      "line": 126,
       "handler": "create_memory_router.retrieval_status",
       "module": "http-memory",
       "parameters": [],
@@ -28779,7 +29228,7 @@
       "method": "GET",
       "path": "/api/profile",
       "source": "agent/src/omni/channels/web_api/memory.py",
-      "line": 58,
+      "line": 59,
       "handler": "create_memory_router.get_profile",
       "module": "http-memory",
       "parameters": [],
@@ -28790,7 +29239,7 @@
       "method": "PUT",
       "path": "/api/profile/line",
       "source": "agent/src/omni/channels/web_api/memory.py",
-      "line": 69,
+      "line": 70,
       "handler": "create_memory_router.profile_line_update",
       "module": "http-memory",
       "parameters": [
@@ -28805,7 +29254,7 @@
       "method": "DELETE",
       "path": "/api/profile/line/{line_id}",
       "source": "agent/src/omni/channels/web_api/memory.py",
-      "line": 78,
+      "line": 79,
       "handler": "create_memory_router.profile_line_delete",
       "module": "http-memory",
       "parameters": [
@@ -28865,7 +29314,7 @@
       "method": "GET",
       "path": "/api/resident",
       "source": "agent/src/omni/channels/web_api/memory.py",
-      "line": 84,
+      "line": 85,
       "handler": "create_memory_router.get_resident",
       "module": "http-memory",
       "parameters": [],
@@ -28876,7 +29325,7 @@
       "method": "POST",
       "path": "/api/resident/update",
       "source": "agent/src/omni/channels/web_api/memory.py",
-      "line": 94,
+      "line": 95,
       "handler": "create_memory_router.resident_update",
       "module": "http-memory",
       "parameters": [
@@ -28891,7 +29340,7 @@
       "method": "GET",
       "path": "/api/reviews",
       "source": "agent/src/omni/channels/web_api/memory.py",
-      "line": 115,
+      "line": 116,
       "handler": "create_memory_router.get_reviews",
       "module": "http-memory",
       "parameters": [
@@ -29056,7 +29505,7 @@
       "method": "GET",
       "path": "/api/skills",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 19,
+      "line": 126,
       "handler": "create_skills_router.get_skills",
       "module": "http-skills",
       "parameters": [],
@@ -29065,10 +29514,109 @@
     },
     {
       "method": "POST",
+      "path": "/api/skills",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 201,
+      "handler": "create_skills_router.skill_create",
+      "module": "http-skills",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "SkillCreateIn"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
       "path": "/api/skills/ack-all",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 71,
+      "line": 291,
       "handler": "create_skills_router.skills_ack_all",
+      "module": "http-skills",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/skills/archive/{name}/restore",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 359,
+      "handler": "create_skills_router.skill_restore",
+      "module": "http-skills",
+      "parameters": [
+        "name"
+      ],
+      "annotations": {
+        "name": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/skills/inbox",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 217,
+      "handler": "create_skills_router.skills_inbox",
+      "module": "http-skills",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/skills/inbox/upload",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 226,
+      "handler": "create_skills_router.skill_package_upload",
+      "module": "http-skills",
+      "parameters": [
+        "request",
+        "filename"
+      ],
+      "annotations": {
+        "request": "Request",
+        "filename": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/skills/inbox/{package}",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 257,
+      "handler": "create_skills_router.skill_package_remove",
+      "module": "http-skills",
+      "parameters": [
+        "package"
+      ],
+      "annotations": {
+        "package": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/skills/inbox/{package}/import",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 248,
+      "handler": "create_skills_router.skill_package_import",
+      "module": "http-skills",
+      "parameters": [
+        "package"
+      ],
+      "annotations": {
+        "package": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/skills/overview",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 140,
+      "handler": "create_skills_router.skills_overview",
       "module": "http-skills",
       "parameters": [],
       "annotations": {},
@@ -29078,7 +29626,7 @@
       "method": "GET",
       "path": "/api/skills/pending",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 32,
+      "line": 286,
       "handler": "create_skills_router.skills_pending",
       "module": "http-skills",
       "parameters": [],
@@ -29089,7 +29637,7 @@
       "method": "GET",
       "path": "/api/skills/pending/{name}/diff",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 95,
+      "line": 306,
       "handler": "create_skills_router.skill_pending_diff",
       "module": "http-skills",
       "parameters": [
@@ -29103,10 +29651,66 @@
       "scope": "workbench"
     },
     {
+      "method": "POST",
+      "path": "/api/skills/quarantine/{name}/activate",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 265,
+      "handler": "create_skills_router.skill_package_activate",
+      "module": "http-skills",
+      "parameters": [
+        "name"
+      ],
+      "annotations": {
+        "name": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/skills/quarantine/{name}/discard",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 276,
+      "handler": "create_skills_router.skill_package_discard",
+      "module": "http-skills",
+      "parameters": [
+        "name"
+      ],
+      "annotations": {
+        "name": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/skills/settings",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 168,
+      "handler": "create_skills_router.skills_settings",
+      "module": "http-skills",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/skills/settings",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 175,
+      "handler": "create_skills_router.skills_settings_save",
+      "module": "http-skills",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "SkillSettingsIn"
+      },
+      "scope": "workbench"
+    },
+    {
       "method": "GET",
       "path": "/api/skills/{name}",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 119,
+      "line": 369,
       "handler": "create_skills_router.get_skill",
       "module": "http-skills",
       "parameters": [
@@ -29123,7 +29727,7 @@
       "method": "POST",
       "path": "/api/skills/{name}/ack",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 86,
+      "line": 330,
       "handler": "create_skills_router.skill_ack",
       "module": "http-skills",
       "parameters": [
@@ -29137,10 +29741,27 @@
       "scope": "workbench"
     },
     {
+      "method": "POST",
+      "path": "/api/skills/{name}/archive",
+      "source": "agent/src/omni/channels/web_api/skills.py",
+      "line": 341,
+      "handler": "create_skills_router.skill_archive",
+      "module": "http-skills",
+      "parameters": [
+        "name",
+        "payload"
+      ],
+      "annotations": {
+        "name": "str",
+        "payload": "SkillArchiveIn"
+      },
+      "scope": "workbench"
+    },
+    {
       "method": "GET",
       "path": "/api/skills/{name}/diff",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 191,
+      "line": 441,
       "handler": "create_skills_router.skill_diff",
       "module": "http-skills",
       "parameters": [
@@ -29157,7 +29778,7 @@
       "method": "GET",
       "path": "/api/skills/{name}/history",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 161,
+      "line": 411,
       "handler": "create_skills_router.skill_history",
       "module": "http-skills",
       "parameters": [
@@ -29174,7 +29795,7 @@
       "method": "GET",
       "path": "/api/skills/{name}/revision/{rev}",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 181,
+      "line": 431,
       "handler": "create_skills_router.skill_revision",
       "module": "http-skills",
       "parameters": [
@@ -29191,7 +29812,7 @@
       "method": "POST",
       "path": "/api/skills/{name}/rollback",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 211,
+      "line": 461,
       "handler": "create_skills_router.skill_rollback",
       "module": "http-skills",
       "parameters": [
@@ -29208,7 +29829,7 @@
       "method": "POST",
       "path": "/api/skills/{name}/save",
       "source": "agent/src/omni/channels/web_api/skills.py",
-      "line": 139,
+      "line": 389,
       "handler": "create_skills_router.skill_save",
       "module": "http-skills",
       "parameters": [
@@ -29358,7 +29979,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 341,
+      "line": 345,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -29369,7 +29990,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 353,
+      "line": 357,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -29395,7 +30016,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 306,
+      "line": 310,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -29565,7 +30186,7 @@
       "method": "POST",
       "path": "/api/system/model-key",
       "source": "agent/src/omni/channels/web.py",
-      "line": 378,
+      "line": 382,
       "handler": "create_app.model_key_set",
       "module": "web-ui",
       "parameters": [
@@ -29580,7 +30201,7 @@
       "method": "GET",
       "path": "/api/system/model-keys",
       "source": "agent/src/omni/channels/web.py",
-      "line": 373,
+      "line": 377,
       "handler": "create_app.model_keys",
       "module": "web-ui",
       "parameters": [],
@@ -29591,7 +30212,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "agent/src/omni/channels/web.py",
-      "line": 395,
+      "line": 399,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -29628,7 +30249,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "agent/src/omni/channels/web.py",
-      "line": 322,
+      "line": 326,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -29639,7 +30260,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "agent/src/omni/channels/web.py",
-      "line": 333,
+      "line": 337,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -30524,7 +31145,16 @@
     {
       "name": "skill_activate",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 365,
+      "line": 432,
+      "module": "skills",
+      "risk": "confirm",
+      "requires_human": true,
+      "read_only": false
+    },
+    {
+      "name": "skill_archive",
+      "source": "agent/src/omni/tools/skills/tools.py",
+      "line": 312,
       "module": "skills",
       "risk": "confirm",
       "requires_human": true,
@@ -30533,7 +31163,7 @@
     {
       "name": "skill_create",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 171,
+      "line": 195,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30542,7 +31172,7 @@
     {
       "name": "skill_discard",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 385,
+      "line": 452,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30551,7 +31181,7 @@
     {
       "name": "skill_history",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 244,
+      "line": 268,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30560,7 +31190,7 @@
     {
       "name": "skill_import",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 330,
+      "line": 397,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30569,7 +31199,7 @@
     {
       "name": "skill_patch",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 194,
+      "line": 218,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30578,16 +31208,25 @@
     {
       "name": "skill_pending",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 354,
+      "line": 421,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
       "read_only": true
     },
     {
+      "name": "skill_restore",
+      "source": "agent/src/omni/tools/skills/tools.py",
+      "line": 334,
+      "module": "skills",
+      "risk": "safe",
+      "requires_human": false,
+      "read_only": false
+    },
+    {
       "name": "skill_rewrite",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 221,
+      "line": 245,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30596,7 +31235,7 @@
     {
       "name": "skill_rollback",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 265,
+      "line": 289,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30605,7 +31244,7 @@
     {
       "name": "skill_view",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 153,
+      "line": 177,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30614,7 +31253,7 @@
     {
       "name": "skills_list",
       "source": "agent/src/omni/tools/skills/tools.py",
-      "line": 142,
+      "line": 166,
       "module": "skills",
       "risk": "safe",
       "requires_human": false,
@@ -30811,17 +31450,17 @@
         {
           "source": "agent/src/omni/tools/skills/tools.py",
           "symbol": "register_skill_inbox_tools",
-          "line": 287
+          "line": 354
         },
         {
           "source": "agent/src/omni/memory/skill_inbox.py",
           "symbol": "SkillInbox",
-          "line": 88
+          "line": 108
         },
         {
           "source": "agent/src/omni/memory/skills.py",
           "symbol": "SkillStore",
-          "line": 81
+          "line": 84
         }
       ]
     },
@@ -31393,9 +32032,65 @@
       ]
     },
     {
-      "name": "SkillRollbackIn",
+      "name": "SkillCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
       "line": 124,
+      "fields": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "str",
+          "required": true
+        },
+        {
+          "name": "content",
+          "type": "str",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "SkillArchiveIn",
+      "source": "agent/src/omni/channels/web_api/schemas.py",
+      "line": 132,
+      "fields": [
+        {
+          "name": "expected_hash",
+          "type": "str | None",
+          "required": false
+        },
+        {
+          "name": "reason",
+          "type": "str",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "SkillSettingsIn",
+      "source": "agent/src/omni/channels/web_api/schemas.py",
+      "line": 139,
+      "fields": [
+        {
+          "name": "revision",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "updates",
+          "type": "dict[str, dict[str, Any]]",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "SkillRollbackIn",
+      "source": "agent/src/omni/channels/web_api/schemas.py",
+      "line": 146,
       "fields": [
         {
           "name": "rev",
@@ -31412,7 +32107,7 @@
     {
       "name": "SkillAckIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 129,
+      "line": 151,
       "fields": [
         {
           "name": "rev",
@@ -31424,7 +32119,7 @@
     {
       "name": "PersonCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 138,
+      "line": 160,
       "fields": [
         {
           "name": "name",
@@ -31446,7 +32141,7 @@
     {
       "name": "PersonUpdateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 144,
+      "line": 166,
       "fields": [
         {
           "name": "name",
@@ -31468,7 +32163,7 @@
     {
       "name": "AccountLinkIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 150,
+      "line": 172,
       "fields": [
         {
           "name": "channel",
@@ -31490,7 +32185,7 @@
     {
       "name": "PersonEntryIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 156,
+      "line": 178,
       "fields": [
         {
           "name": "entry_kind",
@@ -31831,9 +32526,26 @@
       ]
     },
     {
-      "name": "Web",
+      "name": "Skills",
       "source": "agent/src/omni/config.py",
       "line": 258,
+      "fields": [
+        {
+          "name": "history_keep",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "max_write_chars",
+          "type": "int",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Web",
+      "source": "agent/src/omni/config.py",
+      "line": 271,
       "fields": [
         {
           "name": "max_bytes",
@@ -31880,7 +32592,7 @@
     {
       "name": "Files",
       "source": "agent/src/omni/config.py",
-      "line": 275,
+      "line": 288,
       "fields": [
         {
           "name": "root",
@@ -31932,7 +32644,7 @@
     {
       "name": "Compression",
       "source": "agent/src/omni/config.py",
-      "line": 293,
+      "line": 306,
       "fields": [
         {
           "name": "enabled",
@@ -31959,7 +32671,7 @@
     {
       "name": "Asr",
       "source": "agent/src/omni/config.py",
-      "line": 302,
+      "line": 315,
       "fields": [
         {
           "name": "model",
@@ -31981,7 +32693,7 @@
     {
       "name": "QQ",
       "source": "agent/src/omni/config.py",
-      "line": 310,
+      "line": 323,
       "fields": [
         {
           "name": "enabled",
@@ -32068,7 +32780,7 @@
     {
       "name": "Browser",
       "source": "agent/src/omni/config.py",
-      "line": 347,
+      "line": 360,
       "fields": [
         {
           "name": "headless",
@@ -32095,7 +32807,7 @@
     {
       "name": "UIFormSelectors",
       "source": "agent/src/omni/config.py",
-      "line": 356,
+      "line": 369,
       "fields": [
         {
           "name": "account",
@@ -32167,7 +32879,7 @@
     {
       "name": "BilibiliWrite",
       "source": "agent/src/omni/config.py",
-      "line": 374,
+      "line": 387,
       "fields": [
         {
           "name": "enabled",
@@ -32194,7 +32906,7 @@
     {
       "name": "System",
       "source": "agent/src/omni/config.py",
-      "line": 390,
+      "line": 403,
       "fields": [
         {
           "name": "napcat_dir",
@@ -32206,7 +32918,7 @@
     {
       "name": "Approval",
       "source": "agent/src/omni/config.py",
-      "line": 396,
+      "line": 409,
       "fields": [
         {
           "name": "mode",
@@ -32218,7 +32930,7 @@
     {
       "name": "MCPServerConfig",
       "source": "agent/src/omni/config.py",
-      "line": 406,
+      "line": 419,
       "fields": [
         {
           "name": "command",
@@ -32280,7 +32992,7 @@
     {
       "name": "MCPConfig",
       "source": "agent/src/omni/config.py",
-      "line": 436,
+      "line": 449,
       "fields": [
         {
           "name": "servers",
@@ -32292,7 +33004,7 @@
     {
       "name": "Desktop",
       "source": "agent/src/omni/config.py",
-      "line": 450,
+      "line": 463,
       "fields": [
         {
           "name": "enabled",
@@ -32329,7 +33041,7 @@
     {
       "name": "Embedding",
       "source": "agent/src/omni/config.py",
-      "line": 467,
+      "line": 480,
       "fields": [
         {
           "name": "enabled",
@@ -32406,7 +33118,7 @@
     {
       "name": "Cron",
       "source": "agent/src/omni/config.py",
-      "line": 505,
+      "line": 518,
       "fields": [
         {
           "name": "max_running",
@@ -32418,7 +33130,7 @@
     {
       "name": "Journal",
       "source": "agent/src/omni/config.py",
-      "line": 510,
+      "line": 523,
       "fields": [
         {
           "name": "enabled",
@@ -32470,7 +33182,7 @@
     {
       "name": "Transcript",
       "source": "agent/src/omni/config.py",
-      "line": 539,
+      "line": 552,
       "fields": [
         {
           "name": "max_entry_chars",
@@ -32502,7 +33214,7 @@
     {
       "name": "People",
       "source": "agent/src/omni/config.py",
-      "line": 554,
+      "line": 567,
       "fields": [
         {
           "name": "person_card_chars",
@@ -32529,7 +33241,7 @@
     {
       "name": "AndroidConfig",
       "source": "agent/src/omni/config.py",
-      "line": 564,
+      "line": 577,
       "fields": [
         {
           "name": "allowed_apps",
@@ -32571,7 +33283,7 @@
     {
       "name": "CommandJobsConfig",
       "source": "agent/src/omni/config.py",
-      "line": 583,
+      "line": 596,
       "fields": [
         {
           "name": "max_running",
@@ -32608,7 +33320,7 @@
     {
       "name": "TerminalConfig",
       "source": "agent/src/omni/config.py",
-      "line": 593,
+      "line": 606,
       "fields": [
         {
           "name": "max_sessions",
@@ -32635,7 +33347,7 @@
     {
       "name": "AppConfig",
       "source": "agent/src/omni/config.py",
-      "line": 601,
+      "line": 614,
       "fields": [
         {
           "name": "android",
@@ -32700,6 +33412,11 @@
         {
           "name": "memory",
           "type": "Memory",
+          "required": false
+        },
+        {
+          "name": "skills",
+          "type": "Skills",
           "required": false
         },
         {

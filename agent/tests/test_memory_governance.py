@@ -278,6 +278,24 @@ def test_review_is_deduplicated_by_message_range(tmp_path, store) -> None:
         reviewer.close(wait_s=1)
 
 
+def test_review_exposes_active_while_worker_runs(tmp_path, store) -> None:
+    """工作台运行态标签只能看到真正执行中的 review，排队/结束都不算运行。"""
+    sid = store.new_session()
+    store.append_message(sid, "user", "你好", auto_title=False)
+    reviewer = _reviewer(tmp_path, store, _ReviewGateway(delay=0.25))
+    try:
+        assert reviewer.active == 0
+        assert reviewer.submit(sid) == "queued"
+        deadline = time.time() + 2
+        while reviewer.active == 0 and time.time() < deadline:
+            time.sleep(0.01)
+        assert reviewer.active == 1
+        assert reviewer.close(wait_s=5)
+        assert reviewer.active == 0
+    finally:
+        reviewer.close(wait_s=1)
+
+
 def test_review_queue_is_bounded(tmp_path, store) -> None:
     """队列满时明确返回 full，而不是无限堆线程。"""
     gateway = _ReviewGateway(delay=0.4)

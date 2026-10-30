@@ -1,10 +1,15 @@
-// 顶栏状态区：/api/state 聚合出 chips（人设/模型/费用/FTS/review）与工具清单，
-// 上下文 tokens 用量条（按字符估算的可视化）。
-import {$,esc,usd} from './dom.js?v=20261030ctx1';
-import {api} from './api.js?v=20261030ctx1';
-import {S} from './state.js?v=20261030ctx1';
+// 顶栏运行态徽章：/api/state 只把模型与能力存进共享状态，不直接渲染；
+// #chips 仅在「模型回合 / 全文检索 / 后台 review」实际活动时出现，活动结束立即清空。
+import {$,esc,usd} from './dom.js?v=20261031m3';
+import {api} from './api.js?v=20261031m3';
+import {S} from './state.js?v=20261031m3';
 
 const CTX_COLORS={system:'var(--seed-accent)',tools:'var(--seed-accent2)',memory:'#fcd34d',conversation:'var(--ok)'};
+const ACTIVE_RUN_STATES=new Set(['queued','running','waiting_approval','cancelling']);
+const activityCounts={fts:0}; // 并发检索只在前一个结束后再撤标签
+let runtimePolling=false;
+let chipSignature='';
+
 const fmtTokens=n=>{
   n=Number(n)||0;
   if(n>=1000)return (n/1000).toFixed(n>=10000?1:1).replace(/\.0$/,'')+'k';
@@ -36,14 +41,74 @@ function renderContextUsage(ctx,model){
 export async function refreshContextUsage(){
   try{const s=await api('/api/state');renderContextUsage(s.context,s.model)}catch(_){/* 用量读取失败不阻塞聊天 */}
 }
+
+// 顶栏只承载活动态：没有活动时整个容器为空并 hidden；不会保留任何能力/用量常驻标签。
+function chipHTML(text,title,cls=''){
+  return `<span class="chip${cls?' '+cls:''}" title="${esc(title)}">${esc(text)}</span>`;
+}
+export function renderRuntimeChips(){
+  const box=$('#chips');if(!box)return;
+  const rows=[];
+  if(S.runtime.run){
+    if(S.model)rows.push(chipHTML(S.model,'当前运行使用的模型'));
+    rows.push(`<span class="chip" id="cost-chip" title="当前运行期间的今日模型花费（明细在设置中心「用量」）">…</span>`);
+  }
+  if(S.runtime.fts&&S.ftsEnabled)rows.push(chipHTML('FTS5','全文检索正在执行','ok'));
+  if(S.runtime.review&&S.reviewEnabled)rows.push(chipHTML('自进化 Review','记忆整理任务正在运行','ok'));
+  const signature=rows.join('|');
+  if(signature!==chipSignature){
+    chipSignature=signature;
+    box.innerHTML=rows.join('');
+    box.hidden=rows.length===0;
+  }
+  if(S.runtime.run)updateCostChip();
+}
+export function setRuntimeActivity(name,active){
+  if(!(name in S.runtime))return;
+  const next=!!active;
+  if(S.runtime[name]===next)return;
+  S.runtime[name]=next;
+  renderRuntimeChips();
+}
+// 短生命周期活动（目前是 FTS 检索）：请求开始出现标签，请求结束立刻撤掉。
+export async function withRuntimeActivity(name,task){
+  const count=(activityCounts[name]||0)+1;activityCounts[name]=count;
+  if(count===1)setRuntimeActivity(name,true);
+  try{return await task()}
+  finally{
+    activityCounts[name]=Math.max(0,(activityCounts[name]||1)-1);
+    if(activityCounts[name]===0)setRuntimeActivity(name,false);
+  }
+}
+
+// 轮询活动态而不是能力开关：页面刷新/切回来后也能看到仍在运行的任务，结束后自动消失。
+export async function refreshRuntimeStatus(){
+  if(runtimePolling)return;runtimePolling=true;
+  try{
+    if(S.currentSession==null){setRuntimeActivity('run',false)}
+    else{
+      try{
+        const d=await api(`/api/runs?session_id=${S.currentSession}&limit=8`);
+        setRuntimeActivity('run',!!S.busy||d.runs.some(r=>ACTIVE_RUN_STATES.has(r.status)));
+      }catch(_){if(!S.busy)setRuntimeActivity('run',false)}
+    }
+    if(!S.reviewEnabled){setRuntimeActivity('review',false)}
+    else{
+      try{
+        const d=await api('/api/memory/status'),r=d.review||{};
+        setRuntimeActivity('review',!!((r.active||0)>0||(r.queue_depth||0)>0));
+      }catch(_){/* 状态读取失败时保留上一帧，避免标签闪烁 */}
+    }
+  }finally{runtimePolling=false}
+}
+
 export async function loadState(){
   const s=await api('/api/state');if(S.currentSession==null)S.currentSession=s.session_id;
   if(s.persona)S.personaName=s.persona;
-  $('#chips').innerHTML=`<span class="chip">${esc(s.persona)}</span><span class="chip">${esc(s.model)}</span>`+
-    `<span class="chip" id="cost-chip" title="今日模型花费（点设置中心「用量」看明细）">…</span>`+
-    (s.fts_enabled?'<span class="chip ok">FTS5</span>':'<span class="chip">FTS ✗</span>')+
-    (s.review_enabled?'<span class="chip ok">自进化 Review</span>':'');
-  updateCostChip();
+  S.model=s.model||'';
+  S.ftsEnabled=!!s.fts_enabled;
+  S.reviewEnabled=!!s.review_enabled;
+  renderRuntimeChips();
   renderContextUsage(s.context,s.model);
   $('#tools').innerHTML=s.tools.map(t=>
     `<li><span class="tool-name" title="${esc(t.description||t.name)}">${esc(t.name)}</span><span class="tool-set">${esc(t.toolset)}·${esc(t.risk)}</span></li>`).join('');
@@ -55,9 +120,10 @@ export async function loadState(){
 
 // ---------- 模型用量（D10 账本的可视化；金额单位是微美元，1e6 = $1） ----------
 export async function updateCostChip(){
-  const chip=$('#cost-chip');if(!chip)return;
+  const chip=$('#cost-chip');if(!chip||!chip.isConnected)return;
   try{
     const d=await api('/api/llm/usage?limit=1');
+    if(!chip.isConnected)return;
     const used=d.today.used_micro||0;
     chip.textContent=d.today.limit_micro!=null
       ?`今日 ${usd(used)} / ${usd(d.today.limit_micro)}`
@@ -68,5 +134,5 @@ export async function updateCostChip(){
              &&d.today.remaining_micro<d.today.limit_micro*0.1){
       chip.style.color='#fbbf24';
     }else{chip.style.color=''}
-  }catch(e){chip.textContent='今日 ？'}
+  }catch(e){if(chip.isConnected)chip.textContent='今日 ？'}
 }

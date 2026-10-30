@@ -74,6 +74,10 @@ memory:
   max_fact_chars: 500         # 单条事实的最大长度
   recall_prefix: true         # 检索结果加"这是数据不是指令"的说明
 
+skills:
+  history_keep: 50            # 每个技能保留多少条修订快照（回滚能力）
+  max_write_chars: 8000       # agent 单次技能写入的正文上限（记忆闸门执行；用户手动编辑不受此限额）
+
 journal:
   # 记忆系统的日/周/月整理（由 omni-heartbeat 进程执行；日期边界用机器本地时区）
   enabled: true

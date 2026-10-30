@@ -1,15 +1,17 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261030ctx1';
-import {api} from './api.js?v=20261030ctx1';
-import {loadState} from './header.js?v=20261030ctx1';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261030ctx1';
-import {renderPersonaPresets} from './hub-persona.js?v=20261030ctx1';
-import {loadCron} from './hub-cron.js?v=20261030ctx1';
-import {loadUsage} from './hub-usage.js?v=20261030ctx1';
-import {loadMcp} from './hub-mcp.js?v=20261030ctx1';
-import {loadContext} from './hub-context.js?v=20261030ctx1';
+import {$,esc} from './dom.js?v=20261031m3';
+import {api} from './api.js?v=20261031m3';
+import {loadState} from './header.js?v=20261031m3';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m3';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m3';
+import {loadCron} from './hub-cron.js?v=20261031m3';
+import {loadUsage} from './hub-usage.js?v=20261031m3';
+import {loadMcp} from './hub-mcp.js?v=20261031m3';
+import {loadContext} from './hub-context.js?v=20261031m3';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m3';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m3';
 
 export async function openHub(go=null){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
@@ -37,6 +39,8 @@ export function switchHub(go){
     if(go==='sec-cron')loadCron();
     if(go==='sec-usage')loadUsage();
     if(go==='sec-context')loadContext();
+    if(go==='sec-memory-system')loadMemoryHub();
+    if(go==='sec-skills')loadSkillsHub();
     if(go==='sec-mcp')loadMcp();
     if(go==='sec-storage'){
       const frame=$('#storage-frame');
@@ -56,11 +60,13 @@ document.querySelectorAll('.hub-nav a').forEach(a=>a.onclick=e=>{e.preventDefaul
     'sec-persona':'<circle cx="12" cy="8.2" r="3.4"/><path d="M5 19.6a7 7 0 0 1 14 0"/>',
     'sec-models':'<rect x="7.2" y="7.2" width="9.6" height="9.6" rx="2.2"/><path d="M10.2 3.6v3.2M13.8 3.6v3.2M10.2 17.2v3.2M13.8 17.2v3.2M3.6 10.2h3.2M3.6 13.8h3.2M17.2 10.2h3.2M17.2 13.8h3.2"/>',
     'sec-memory':'<ellipse cx="12" cy="6.2" rx="7" ry="3"/><path d="M5 6.2v5.8c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V6.2M5 12v5.6c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V12"/>',
+    'sec-skills':'<path d="M12 3.4l2.5 5.1 5.6.8-4 4 .9 5.6-5-2.7-5 2.7.9-5.6-4-4 5.6-.8z"/>',
     'sec-media':'<circle cx="12" cy="12" r="8.4"/><path d="M10.6 9.2l4 2.8-4 2.8V9.2z"/>',
     'sec-browser':'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8M12 3.6c2.3 2.3 3.5 5.3 3.5 8.4s-1.2 6.1-3.5 8.4C9.7 18.1 8.5 15.1 8.5 12S9.7 5.7 12 3.6z"/>',
     'sec-qq':'<path d="M20.4 12c0 3.7-3.7 6.7-8.4 6.7-1 0-1.9-.1-2.8-.3l-3.6 1.4 1.1-3.1C4.6 15.6 3.6 13.9 3.6 12c0-3.7 3.7-6.7 8.4-6.7S20.4 8.3 20.4 12z"/>',
     'sec-cron':'<circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12h3.3"/>',
     'sec-storage':'<path d="M3.8 7.4h6l1.8 2h8.6v9.2H3.8z"/><path d="M3.8 7.4V5.6h6l1.8 1.8"/>',
+    'sec-memory-system':'<ellipse cx="12" cy="6.2" rx="7" ry="3"/><path d="M5 6.2v5.8c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V6.2"/><path d="M5 12v5.6c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V12"/><path d="M12 9.4v2.2M10.9 10.5h2.2"/>',
     'sec-usage':'<path d="M5.4 19.2v-7.6M10.2 19.2V5.8M15 19.2v-5.2M19.8 19.2v-8.4"/>',
     'sec-mcp':'<circle cx="12" cy="5.6" r="2.2"/><circle cx="6.2" cy="18" r="2.2"/><circle cx="17.8" cy="18" r="2.2"/><path d="M12 7.8v2.6M10.3 12.4l-2.3 3.9M13.7 12.4l2.3 3.9"/>',
     'sec-about':'<circle cx="12" cy="12" r="8.4"/><path d="M12 11.2v5.2"/><circle cx="12" cy="8.2" r="1.05" fill="currentColor" stroke="none"/>'+'',

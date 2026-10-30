@@ -1,12 +1,12 @@
 // 记忆面板五件套：事实检索 / 用户档案 / 常驻笔记 / 复盘记录 / 会话待办。
 // refreshMemory 是右栏多面板一起刷的总入口（发完消息、初始化时调用）。
-import {$,esc} from './dom.js?v=20261030ctx1';
-import {api} from './api.js?v=20261030ctx1';
-import {S} from './state.js?v=20261030ctx1';
-import {setTabBadge} from './tabs.js?v=20261030ctx1';
-import {loadSkills} from './skills.js?v=20261030ctx1';
-import {loadArtifacts} from './artifacts.js?v=20261030ctx1';
-import {updateCostChip} from './header.js?v=20261030ctx1';
+import {$,esc} from './dom.js?v=20261031m3';
+import {api} from './api.js?v=20261031m3';
+import {S} from './state.js?v=20261031m3';
+import {setTabBadge} from './tabs.js?v=20261031m3';
+import {loadSkills} from './skills.js?v=20261031m3';
+import {loadArtifacts} from './artifacts.js?v=20261031m3';
+import {updateCostChip,withRuntimeActivity} from './header.js?v=20261031m3';
 
 export async function loadFacts(){
   try{
@@ -14,7 +14,9 @@ export async function loadFacts(){
     $('#retrieval-state').textContent=r.enabled?`recall 混合检索：${r.provider} / ${r.model} · ${r.indexed} 条已索引${r.pending?' · 待索引':''}${r.last_error?' · '+r.last_error:''}`:'recall 使用关键词检索（向量未启用）';
   }catch(e){$('#retrieval-state').textContent='检索状态暂不可用'}
   const q=$('#fact-q').value.trim();
-  const d=await api('/api/facts?q='+encodeURIComponent(q));
+  const load=()=>api('/api/facts?q='+encodeURIComponent(q));
+  // 只有真正发起全文检索时才挂 FTS5 标签；请求结束立即撤掉，不在空闲时常驻。
+  const d=q&&S.ftsEnabled?await withRuntimeActivity('fts',load):await load();
   setTabBadge('facts',d.facts.length);
   $('#facts-list').innerHTML=d.facts.length?d.facts.map(f=>`<li>${esc(f)}</li>`).join(''):'<li class="empty">暂无记忆</li>';
 }

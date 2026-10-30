@@ -1605,3 +1605,8 @@ class SkillAckStore:
     def acked_all(self) -> dict[str, int]:
         rows = self._state._read("SELECT skill, rev FROM skill_acks")
         return {str(r[0]): int(r[1]) for r in rows}
+
+    def forget(self, skill: str) -> None:
+        """技能归档时清掉已读标记：同名技能以后重建时不会被旧标记吞掉。"""
+        with self._state._tx() as conn:
+            conn.execute("DELETE FROM skill_acks WHERE skill = ?", (skill,))

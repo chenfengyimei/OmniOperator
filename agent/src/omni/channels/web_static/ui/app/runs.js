@@ -1,9 +1,9 @@
 // 运行进度可视化：等待回复期间轮询本会话进行中的 run（D09 端点，只读）。
 // 历史挂链把每个 run 的调用链卡片挂到它开始后出现的第一条助手消息上（事件持久化在服务端，随时回放）。
-import {$,esc} from './dom.js?v=20261030ctx1';
-import {api} from './api.js?v=20261030ctx1';
-import {S} from './state.js?v=20261030ctx1';
-import {selectSession} from './sessions.js?v=20261030ctx1';
+import {$,esc} from './dom.js?v=20261031m3';
+import {api} from './api.js?v=20261031m3';
+import {S} from './state.js?v=20261031m3';
+import {selectSession} from './sessions.js?v=20261031m3';
 
 let runWatch=null; // {timer, runId, seq, polling}：轮询器；chat 返回/出错即停
 
@@ -62,7 +62,13 @@ function scaffoldHTML(events,opts={}){
   return rows.join('');
 }
 function toggleScaf(el) { return el.classList.toggle('open'); }
-function toggleChain(el) {const box=el.closest('.scaffolds');if(box)box.classList.toggle('open')}
+function toggleChain(el) {
+  const box=el.closest('.scaffolds');if(!box)return;
+  const open=box.classList.toggle('open');
+  // 收起整条链时把内部行一并复位：否则下次展开会带出上一次留下的展开态，
+  // 看起来像「点一下调用过程，里面的工具行也跟着全展开」。
+  if(!open)box.querySelectorAll('.scaf.open').forEach(row=>row.classList.remove('open'));
+}
 
 const runChainCache=new Map(); // run_id -> events：切会话不重复拉
 export async function attachHistoryRuns(sid,version){

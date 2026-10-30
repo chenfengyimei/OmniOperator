@@ -104,10 +104,38 @@ def test_chat_response_does_not_change_the_viewed_conversation(ui):
     assert not errors
 
 
+def test_header_chips_are_runtime_only(ui):
+    """顶栏不常驻模型/费用/能力标签：任务运行时出现，结束立即清空。"""
+    page,_,_,errors=ui
+    page.add_init_script(delay_script("String(url)==='/api/chat'||(String(url).startsWith('/api/facts?q=')&&String(url)!=='/api/facts?q=')"))
+    page.goto('http://127.0.0.1/');page.locator('#input').wait_for()
+    assert page.locator('#chips .chip').count()==0
+    assert page.locator('#chips').is_hidden()
+
+    page.locator('#input').fill('跑一个任务');page.locator('#send').click()
+    page.wait_for_function('window.__pending.length===1')
+    page.locator('#chips').get_by_text('deepseek/deepseek-chat',exact=True).wait_for()
+    page.locator('#cost-chip').wait_for()
+    assert page.locator('#chips').get_by_text('FTS5',exact=True).count()==0
+
+    page.evaluate('(data)=>window.__pending[0].resolve(data)',{'session_id':1,'status':'done','cost_micro':0})
+    page.wait_for_function("document.querySelectorAll('#chips .chip').length===0")
+    assert page.locator('#chips').is_hidden()
+
+    # 全文检索是短生命周期活动：发起查询时挂 FTS5 标签，响应回来即撤掉。
+    page.evaluate('window.__pending=[]')
+    page.locator('#fact-q').fill('测试查询')
+    page.wait_for_function('window.__pending.length===1')
+    page.locator('#chips').get_by_text('FTS5',exact=True).wait_for()
+    page.evaluate('(data)=>window.__pending[0].resolve(data)',{'facts':[]})
+    page.wait_for_function("document.querySelectorAll('#chips .chip').length===0")
+    assert not errors
+
+
 def test_chinese_composition_enter_does_not_send(ui):
     page,_,_,_=ui
     page.add_init_script(delay_script("String(url)==='/api/chat'"))
-    page.goto('http://127.0.0.1/');page.locator('#chips .chip').first.wait_for()
+    page.goto('http://127.0.0.1/');page.locator('#input').wait_for()
     page.locator('#input').fill('中文候选词')
     page.locator('#input').evaluate("el=>el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true,cancelable:true}))")
     assert page.locator('#input').input_value()=='中文候选词'
@@ -117,7 +145,7 @@ def test_chinese_composition_enter_does_not_send(ui):
 def test_main_workbench_has_usable_mobile_panels(ui):
     page,_,_,errors=ui
     page.set_viewport_size({'width':390,'height':844});page.goto('http://127.0.0.1/')
-    page.locator('#chips .chip').first.wait_for()
+    page.locator('#input').wait_for()
     assert page.locator('#chat').bounding_box()['width']>=340
     assert page.locator('[data-pane="sessions"]').is_visible()
     page.locator('[data-pane="sessions"]').click()
@@ -132,7 +160,7 @@ def test_chat_failure_restores_draft_without_automatic_resend(ui):
     page,_,_,errors=ui
     page.add_init_script('''const realFetch=window.fetch;window.__chatCalls=0;
       window.fetch=(url,options)=>{if(String(url)==='/api/chat'){window.__chatCalls++;return Promise.reject(new TypeError('网络断开'))}return realFetch(url,options)};''')
-    page.goto('http://127.0.0.1/');page.locator('#chips .chip').first.wait_for()
+    page.goto('http://127.0.0.1/');page.locator('#input').wait_for()
     page.locator('#input').fill('需要保留的中文草稿');page.locator('#send').click()
     page.locator('#messages').get_by_text('网络断开',exact=False).wait_for()
     assert page.locator('#input').input_value()=='需要保留的中文草稿'
@@ -168,7 +196,7 @@ def test_capability_pages_have_mobile_navigation_and_safe_initial_state(ui,path)
     page,_,_,errors=ui
     page.set_viewport_size({'width':390,'height':844});page.goto(f'http://127.0.0.1/{path}/')
     page.locator('.ui-global-nav').wait_for()
-    assert page.locator('.ui-global-nav a').count()==9
+    assert page.locator('.ui-global-nav a').count()==10  # NAV_ITEMS 单源：记忆系统深链到设置中心
     assert page.locator('.ui-global-nav a[aria-current]').count()==1
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     if path=='android':
@@ -236,7 +264,7 @@ def test_terminal_reconnect_is_bounded_and_manual_retry_is_available(ui):
 def test_settings_and_details_are_reachable_on_mobile(ui):
     page,_,_,errors=ui
     page.set_viewport_size({'width':390,'height':844});page.goto('http://127.0.0.1/')
-    page.locator('#chips .chip').first.wait_for();page.locator('.ui-settings').click()
+    page.locator('#input').wait_for();page.locator('.ui-settings').click()
     assert page.locator('#hub').is_visible()
     assert page.locator('.hub-body').bounding_box()['width']>=330
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
@@ -254,7 +282,7 @@ def test_cancel_after_switch_uses_original_run_and_confirmation_target(ui):
         return realFetch(url,options);
       };''')
     page.add_init_script(delay_script("String(url)==='/api/chat'"))
-    page.goto('http://127.0.0.1/');page.locator('#chips .chip').first.wait_for()
+    page.goto('http://127.0.0.1/');page.locator('#input').wait_for()
     page.locator('#input').fill('A 的运行');page.locator('#send').click()
     page.locator('#active-run button').get_by_text('停止此回合',exact=True).wait_for()
     page.locator('#sessions li').filter(has_text='查看会话 B').click()

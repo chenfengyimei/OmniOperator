@@ -69,7 +69,11 @@
 - Web：`/api/memory-system/*` 天索引→会话→条目三级浏览；笔记列表不带正文；
   人物 CRUD 全套；重试=reopen 排队（心跳执行，409 running/404 missing）。
 - 界面：`/memory/` 子站六页签（总览/对话全量/会话全量/笔记/人物/整理设置），
-  设置中心「记忆系统」hub 卡片内嵌 iframe（`?embed=1` 隐藏自身 chrome）。
+  设置中心「记忆系统」直接挂载原生内容区，保留设置侧栏与外层滚动，不跳转、不使用 iframe。
+  全站导航通过 `/?settings=1&section=sec-memory-system` 直达该分区；`/memory/` 与 `?embed=1` 仅兼容旧书签。
+  `memory/panel.html` 是六页签结构的唯一源，`memory/memory.js` 提供作用域限定的挂载控制器，
+  `ui/app/hub-memory.js` 接入设置中心，`memory/page.js` 适配旧页面。切换分区不重建表单或丢弃草稿。
+  `[hidden]` 必须显式隐藏，仅当前页签可见；原生分区不设内部页面滚动容器。
 
 ## 6. 配置（config.yaml 三段）
 

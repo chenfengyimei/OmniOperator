@@ -204,6 +204,31 @@ def test_settings_context_loading_failure_has_retry(ui):
     assert not errors
 
 
+@pytest.mark.parametrize('status,detail,expected', [
+    (404, 'Not Found', '重启工作台服务'),
+    (404, '会话不存在', '会话不存在'),
+    (503, '临时统计故障', '临时统计故障'),
+])
+def test_context_stats_failure_clears_loaders_and_retry_recovers(ui, status, detail, expected):
+    page, _, _, errors = ui
+    page.add_init_script('''const originalFetch=window.fetch;let failed=false;window.fetch=(url,opts)=>{
+      if(String(url).split('?')[0]==='/api/context'&&!failed){failed=true;return Promise.resolve(new Response(JSON.stringify({detail:%s}),{status:%s,headers:{'Content-Type':'application/json'}}))}
+      return originalFetch(url,opts)};''' % (json.dumps(detail), status))
+    page.goto('http://127.0.0.1/')
+    page.locator('[data-action="hub:open"][data-section="sec-context"]').click()
+    page.locator('#context-stats-status').get_by_text('统计读取失败', exact=False).wait_for()
+    assert expected in page.locator('#context-stats-status').inner_text()
+    for selector in ['#context-session', '#context-metrics', '#context-cache']:
+        assert '正在读取' not in page.locator(selector).inner_text()
+    assert '暂不可用' in page.locator('#context-cache').inner_text()
+    assert page.locator('#context-refresh').is_enabled()
+    page.get_by_role('button', name='重试统计', exact=True).click()
+    page.locator('#context-metrics .metric-card').first.wait_for()
+    assert '已更新' in page.locator('#context-stats-status').inner_text()
+    assert '还没有模型调用样本' in page.locator('#context-cache').inner_text()
+    assert not errors
+
+
 @pytest.mark.parametrize('width',[390,760,1024,1440])
 def test_settings_context_mobile_layout_and_unique_controls(ui,width):
     page,_,_,errors=ui;page.set_viewport_size({'width':width,'height':900})

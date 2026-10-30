@@ -674,6 +674,7 @@ def test_fact_provenance_delete_and_memory_status(tmp_path):
     status = client.get("/api/memory/status").json()
     assert status["writes"]["limit"] == 200
     assert status["review"]["enabled"] is False  # 此测试实例显式关闭后台 worker。
+    assert status["review"]["active"] == 0
     assert status["review"]["queue_depth"] == 0
 
 

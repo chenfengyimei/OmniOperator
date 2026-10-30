@@ -1,5 +1,7 @@
 # 开发状态记录
 
+2026-10-31 记忆设置原生化（工作区）：设置中心「记忆系统」直接挂载六页签，保留设置侧栏与地址，不跳转、不嵌 iframe，内容随外层 `.hub-body` 滚动。`memory/panel.html` 单一结构 + 挂载根内控制器供原生分区与旧书签共享，分区切换保留草稿。修复 CSS 覆盖 `hidden` 导致多页同时显示，以及工作台窄屏通用 section 高度限制导致内容溢出。上下文读取失败不再永久显示加载占位，支持重试并区分接口/会话 404；现场三个上下文相关接口均为 200。专项 **48 项通过**，工作区全量 **1324 项通过（462.67s）**；含其他未提交功能，不能据此声称独立提交全绿。独立提交受到现有 HEAD 技能模板未配套动作注册影响，本批尚未提交或推送，其他工作保留原状。证据见 [记忆设置原生验证](evidence/memory-settings-native-2026-10-31.json)。
+
 2026-10-31 产品目录重构：本地 Agent 源码、测试、配置模板、开发脚本和项目声明统一归 `agent/`；仓库根保留 uv 工作区、交接文档、安装启动与用户运行态。旧命令兼容、默认数据路径保持。结构与开发规则见 [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md)。全量 **1296 项通过（438.32s）**；迁移前专项 121 项、迁移后现场专项 77 项通过。收尾纳入并行记忆子站提交 `60d078f` 的五个新文件，模块引用与产品入口版本对齐后完整复跑。根/产品 uv 命令、离线锁文件、源码/API 索引和包含界面资源的 wheel 已验证。证据见 [目录重构验证](evidence/project-layout-2026-10-31.json)。
 
 > 本文件是 R0–R7 的执行台账：谁在哪个 commit 关了哪个问题、证据是什么、还有哪些**真实环境**没验。
@@ -8,6 +10,48 @@
 > 不得把"测试跳过""仅 mock 通过""接口已存在"记成完成；历史失败不覆写成仿佛没发生。
 
 ## 1 基线（D00，2026-10-27）
+
+### 2026-10-30 · 技能系统收口与设置中心「技能」
+
+- 后端补齐程序性记忆生命周期：`SkillStore.statistics()` 只读汇总技能/归档/修订/附件/体积/
+  14 天活动；`archive/restore` 以 `.archive/<name>/` 保留副本与修订历史，归档允许格式坏技能；
+  `list()` 改为目录名权威并暴露 `meta_name/name_matches`，写入自动修回 frontmatter 名称；
+  `save_raw/read` 对非 UTF-8 内容不再抛 500。`SkillInbox` 增加 `upload/remove_inbox`，
+  收件箱/隔离区清单补 zip 指纹与逐文件 sha256，并拒绝符号链接、损坏清单与非法文件名。
+- 新增配置段 `skills.history_keep`（5–200）与 `skills.max_write_chars`（200–24000）：
+  前者注入 SkillStore 历史保留数，后者注入 MemoryGuard 的 skill 写入闸门；
+  两者经 `config_io` 白名单、文件锁与 revision CAS 保存，重启相应入口生效。
+- 新增 `/api/skills/overview`、`/api/skills/settings` GET/PUT、`POST /api/skills`、
+  `POST /api/skills/{name}/archive`、`POST /api/skills/archive/{name}/restore`、
+  `GET /api/skills/inbox`、上传/导入/移除/激活/丢弃端点。设置中心归档端点会清已读标记，
+  避免同名重建被旧标记吞掉；`Runtime.skill_inbox` 由组装根持有，Web 不另建实例。
+- 工具面新增 `skill_archive`（CONFIRM+requires_human）与 `skill_restore`；review 注册表
+  以 `lifecycle=False` 刻意不注册归档/外来包工具。
+- 设置中心新增「技能」页：六项指标、14 天修订柱状图与来源/作者分布、待审阅摘要、
+  技能库搜索与编辑/归档、已归档恢复、新建技能弹窗、外来包上传/导入/文件清单/激活/丢弃、
+  技能设置表单（运行值/保存值对照与重启提示）。右侧「技能」页保留并新增“技能中心”入口；
+  两处共用同一存储、审阅 API 与编辑器弹窗。样式全部走公共 token/组件，390/760/1024/1440px
+  无横向溢出；app 模块组版本原子递增为 `20261030sk2`。统计接口 404（后端仍是旧进程）时，
+  页面明确提示“关闭工作台服务窗口后重新运行 start.bat”，不再只显示“技能不存在”。
+  真机截图复核发现窄屏下活动区空态被 14 列网格压成 43px 竖排并溢出盖住全页；
+  已让空态 `grid-column:1/-1` 跨满内容区，workbench.css 升至 `sk4`，并新增
+  4 视口断言（空态宽度 ≥260px、高度 <360px）防回归。
+- 测试：新增 `tests/test_skill_center.py` **16 passed**（统计只读、格式坏技能归档、设置
+  CAS/非法值/跨页冲突、创建/归档/恢复、上传/导入/篡改拒绝/丢弃、鉴权、4 视口真实 Chromium）；
+  技能/收件箱/Web API/架构 126 passed；记忆治理/review/系统/应用存储/UI token/UI 流程 93 passed。
+  全量（最终源码）`pytest -q --tb=short -k "not test_memory_station_views_and_flows"` →
+  **1308 passed，1 deselected，439.26s**；包含该用例的全量首跑 1308 passed / 1 failed——失败为
+  并行未提交记忆界面的 `test_memory_station_views_and_flows`：它期望 `GET /api/system/config`
+  立即反映刚保存的 `journal.daily_time`，而该接口按既有设计返回运行配置（重启才生效），
+  与技能改动无关，单独复现同样失败。索引 `--check` stale 为空；本批未调用真实模型、
+  未改真实技能库（测试一律临时根）。交付后真机复核发现运行中的 `omni-web` 仍是 10/30 05:08
+  启动的旧进程，页面新而 API 旧，`/api/skills/overview` 被旧路由当成技能名；
+  已确认无在途 run，重启工作台并实测新进程 `/api/skills/overview` 200、页面 3 个种子技能、
+  技能设置可读、零 pageerror（新配对链接由启动器打印）。缓存版本升到 `sk2` 后
+  `tests/test_skill_center.py + tests/test_ui_contract.py` 复跑 **27 passed**；
+  空格态跨列修复与 `sk4` 缓存版本后，技能中心 + UI 契约 + 设计 token 复跑 **33 passed**。
+  设计、接口与验证证据见 [SKILL_SYSTEM.md](SKILL_SYSTEM.md) 和
+  [skill-center-2026-10-30.json](evidence/skill-center-2026-10-30.json)。
 
 ### 2026-10-30 · 上下文统计与设置中心整合
 

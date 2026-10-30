@@ -276,6 +276,10 @@ def create_app(runtime: Runtime) -> FastAPI:
                 "event_max_chars": cfg.people.event_max_chars,
             },
             "approval": {"mode": cfg.approval.mode},
+            "skills": {
+                "history_keep": cfg.skills.history_keep,
+                "max_write_chars": cfg.skills.max_write_chars,
+            },
             "asr": {
                 "model": cfg.asr.model,
                 "device": cfg.asr.device,

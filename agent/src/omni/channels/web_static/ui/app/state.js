@@ -7,5 +7,9 @@ export const S={
   selectionVersion:0,    // 会话选择代数：并发切换/迟到响应的守门人（++ 先加后比对）
   messagesVersion:0,     // 消息渲染代数：旧会话的渲染不覆盖新会话
   personaName:'小鱼',     // 人设昵称：loadState 时取自 /api/state（与后端默认一致）
+  model:'',              // /api/state 当前模型：只在运行态标签里展示
+  ftsEnabled:false,      // 后端 FTS5 可用性：仅在全文检索执行时显示标签
+  reviewEnabled:false,   // 后台 review 是否启用：仅在整理任务运行时显示标签
+  runtime:{run:false,fts:false,review:false}, // 顶栏活动状态：全为 false 时不渲染任何标签
   drafts:new Map(),      // session_id -> 输入框草稿（切换会话保留未发送文字）
 };

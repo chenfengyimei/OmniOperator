@@ -1,12 +1,12 @@
 // 聊天主流程：渲染轮次（助手带头像、用户渐变气泡）、发送回合、失败草稿保留、复制消息。
 // 版本代数（S.selectionVersion / S.messagesVersion）保证迟到的响应绝不写进别的会话。
-import {$,esc,fmtTime} from './dom.js?v=20261030ctx1';
-import {api} from './api.js?v=20261030ctx1';
-import {S} from './state.js?v=20261030ctx1';
-import {refreshContextUsage} from './header.js?v=20261030ctx1';
-import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261030ctx1';
-import {loadSessions} from './sessions.js?v=20261030ctx1';
-import {refreshMemory} from './memory.js?v=20261030ctx1';
+import {$,esc,fmtTime} from './dom.js?v=20261031m3';
+import {api} from './api.js?v=20261031m3';
+import {S} from './state.js?v=20261031m3';
+import {refreshContextUsage,setRuntimeActivity,refreshRuntimeStatus} from './header.js?v=20261031m3';
+import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261031m3';
+import {loadSessions} from './sessions.js?v=20261031m3';
+import {refreshMemory} from './memory.js?v=20261031m3';
 
 // 消息正文：先转义，再把 [artifact:id] 标记渲染成内联图（加载失败即显示 alt 占位）
 const renderArtifact=(m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" data-action="artifacts:view" data-id="${id}">`;
@@ -64,7 +64,7 @@ function scrollChat(){const el=$('#messages');el.scrollTop=el.scrollHeight}
 export async function sendMessage(){
   const box=$('#input'),text=box.value.trim();if(!text||S.busy)return;
   const sid=S.currentSession,version=S.selectionVersion;S.messagesVersion++;
-  S.busy=true;$('#send').disabled=true;$('#send').textContent='思考中…';box.value='';S.drafts.delete(sid);
+  S.busy=true;setRuntimeActivity('run',true);$('#send').disabled=true;$('#send').textContent='思考中…';box.value='';S.drafts.delete(sid);
   $('#messages').insertAdjacentHTML('beforeend',
     `<div class="msg user"><div class="bubble">${esc(text)}</div>`+
     `<div class="turn-foot"><span class="ts">${fmtTime(new Date().toISOString())}</span><button class="copy-msg" title="复制这条消息">⧉</button></div></div>`+
@@ -94,7 +94,12 @@ export async function sendMessage(){
       $('#thinking')?.remove();$('#messages').insertAdjacentHTML('beforeend',`<div class="msg assistant">${aHead('本回合失败')}<div class="bubble">⚠ ${esc(error.message)}。请求可能已经执行，请核查会话记录后再发送。</div></div>`);
       if(!box.value)box.value=text;scrollChat();
     }else{if(!S.drafts.get(sid))S.drafts.set(sid,text);OmniUI.notify('会话 #'+sid+'：'+error.message+'；请核查执行结果','error')}
-  }finally{stopRunWatch();S.busy=false;$('#send').disabled=false;$('#send').textContent='发送';if(S.currentSession===sid&&S.selectionVersion===version)box.focus()}
+  }finally{
+    stopRunWatch();S.busy=false;setRuntimeActivity('run',false);
+    $('#send').disabled=false;$('#send').textContent='发送';
+    refreshRuntimeStatus();
+    if(S.currentSession===sid&&S.selectionVersion===version)box.focus();
+  }
 }
 
 $('#send').onclick=sendMessage;

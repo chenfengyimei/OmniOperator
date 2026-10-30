@@ -19,7 +19,7 @@ def test_desktop_and_publication_tabs_are_reachable(tmp_path):
             path = urlsplit(url).path
             if url == 'http://127.0.0.1/':
                 request.fulfill(body=html, content_type='text/html')
-            elif path.startswith('/ui/') or path.startswith('/vendor/'):
+            elif path.startswith(('/ui/', '/vendor/', '/memory/')):
                 # 工作台样式/脚本已外置（Phase 1 token 统一）：从磁盘喂真实文件，页签显隐逻辑才成立
                 asset = STATIC / path.lstrip('/')
                 if asset.is_file():

@@ -34,9 +34,17 @@ _EXPECTED_HASH_PARAM = {
 
 
 def register_skill_tools(
-    registry: ToolRegistry, skills: SkillStore, *, guard: Any = None
+    registry: ToolRegistry,
+    skills: SkillStore,
+    *,
+    guard: Any = None,
+    lifecycle: bool = True,
 ) -> None:
-    """技能工具。`guard` 存在时，创建/改写/回滚共用记忆写入额度（D12）。"""
+    """技能工具。`guard` 存在时，创建/改写/回滚共用记忆写入额度（D12）。
+
+    `lifecycle=False` 用于 review 注册表：自动整理可以沉淀/修订技能，
+    但不能归档技能（归档需要用户明确确认，属设置中心/主注册表动作）。
+    """
 
     def _gate(content: str) -> str | None:
         if guard is None:
@@ -135,6 +143,22 @@ def register_skill_tools(
             return "错误：rev 必须是整数（先 skill_history 查看）"
         _ok, msg = skills.rollback(
             str(args.get("name", "")), rev, expected_hash=_hash_arg(args)
+        )
+        return msg
+
+    def skill_archive(args: dict[str, Any]) -> str:
+        _ok, msg = skills.archive(
+            str(args.get("name", "")),
+            expected_hash=_hash_arg(args),
+            author="agent",
+            source="skill_archive",
+            reason=str(args.get("reason", "")),
+        )
+        return msg
+
+    def skill_restore(args: dict[str, Any]) -> str:
+        _ok, msg = skills.restore(
+            str(args.get("name", "")), author="agent", source="skill_restore"
         )
         return msg
 
@@ -278,6 +302,49 @@ def register_skill_tools(
                 "required": ["name", "rev"],
             },
             func=skill_rollback,
+            toolset="core",
+            risk=Risk.SAFE,
+        )
+    )
+    if not lifecycle:
+        return
+    registry.register(
+        Tool(
+            name="skill_archive",
+            description=(
+                "把技能归档出技能库（不再出现在 skills_list，内容与历史保留，可恢复）。"
+                "仅在用户明确要求停用/清理某个技能时使用；这是需要人工确认的动作"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "技能名"},
+                    "reason": {"type": "string", "description": "可选：为什么归档（会记入归档元数据）"},
+                    "expected_hash": _EXPECTED_HASH_PARAM,
+                },
+                "required": ["name"],
+            },
+            func=skill_archive,
+            toolset="core",
+            risk=Risk.CONFIRM,
+            requires_human=True,
+        )
+    )
+    registry.register(
+        Tool(
+            name="skill_restore",
+            description=(
+                "把已归档的技能恢复回技能库；同名技能已存在时拒绝覆盖。"
+                "恢复前可用 skills_list 确认当前技能库"
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "已归档的技能名"},
+                },
+                "required": ["name"],
+            },
+            func=skill_restore,
             toolset="core",
             risk=Risk.SAFE,
         )

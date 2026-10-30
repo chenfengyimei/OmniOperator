@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ChatIn(BaseModel):
@@ -119,6 +119,28 @@ class SkillSaveIn(BaseModel):
 
     content: str
     expected_hash: str | None = None
+
+
+class SkillCreateIn(BaseModel):
+    """工作台直接新建技能：与 agent 的 skill_create 共用 linter 与历史。"""
+
+    name: str
+    description: str
+    content: str
+
+
+class SkillArchiveIn(BaseModel):
+    """归档/恢复的乐观并发：带读取时指纹，技能被别人改过就拒绝。"""
+
+    expected_hash: str | None = None
+    reason: str = ""
+
+
+class SkillSettingsIn(BaseModel):
+    """技能设置保存：完整配置 revision CAS + 白名单段。"""
+
+    revision: str = Field(min_length=64, max_length=64)
+    updates: dict[str, dict[str, Any]]
 
 
 class SkillRollbackIn(BaseModel):

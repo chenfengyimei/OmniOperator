@@ -52,6 +52,9 @@ config.py 提供声明配置、路径与兼容版本，不承担业务编排。
 工作台公共界面资源归 `channels/web_static/ui/`：tokens→base→icons→components→frame 分层样式、
 `shared.js`（OmniUI 运行库 + NAV_ITEMS 单源导航注入）、`markdown.js`、`ui/app/` 工作台 ES 模块群
 （`main.js` 唯一入口 + data-action 委托分发；子站页面脚本同为 ES 模块，统一 import `ui/app/dom.js`）。
+记忆界面复用 `memory/panel.html` 与 `memory/memory.js` 的挂载根控制器：
+`ui/app/hub-memory.js` 将六页签直接挂进设置分区，`memory/page.js` 仅适配旧书签入口。
+不复制业务脚本、不使用 iframe；事件与查询限定在挂载根，内容滚动交给设置中心外层。
 终端、后台命令、MCP、安卓和项目索引仍各自归包；公共 UI 不承载工具执行、
 不自动连接依赖、不替代服务器鉴权/审批/观察校验。异步页面结果按请求目标和选择版本隔离，
 输入和取消绑定原终端/会话/运行 ID。前端纪律以 docs/UI_DESIGN_SYSTEM.md 为唯一权威规范，
@@ -181,6 +184,9 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 | 修订历史 | `memory/revisions.RevisionStore`（`data/history/<key>/<rev>-<sha8>.json`） | 每条修订含作者/来源/时间/摘要/内容/版号/附件清单；写入前先把磁盘现状纳入历史 |
 | 回滚 | `SkillStore.rollback` / `ResidentMemory.rollback` | 回滚 = 取旧修订重新校验并写入，**产生新修订**，版号继续加，旧修订仍可取回 |
 | 附件归属 | 修订里的 `references: {path: sha256}` | 主文修订不复制附件内容，但记录当时清单，`reference_drift()` 能报"附件是否跟着这一版" |
+| 归档/恢复 | `SkillStore.archive/restore` | 归档把目录移到 `.archive/<name>/` 并保留历史，可恢复；同名技能已存在时恢复拒绝覆盖；归档格式坏的技能也允许（否则无法清理） |
+| 统计边界 | `SkillStore.statistics()` / `channels/web_api/skills.overview` | 只读统计技能/修订/附件/体积/活动，不执行技能、不调用模型、不写配置；格式坏的技能以 `valid=false` 显式列出 |
+| 生命周期设置 | `config.skills` + `system/config_io` | `history_keep` 控制修订保留数，`max_write_chars` 进入记忆写入闸门（约束 agent/review 学习写入）；保存后重启相应入口生效，界面同时显示运行值与保存值 |
 
 明确不做：不做多写者合并（冲突就报错让人/模型重新读一遍）；历史只保留最近 N 条（默认 50），
 它是"能回滚"而不是"永久归档"；符号链接/junction 仍按 §3.3 的规则拒绝，写入路径同样受限。
@@ -377,10 +383,13 @@ Unicode 输入切换输入法后再检查焦点，异常和取消也恢复原输
 1. 在 `memory/store.py` 加表与方法（上层不感知 SQL）
 2. 需要暴露给 LLM 的，包装成工具或注入系统提示词——在哪注入由 bootstrap 决定
 
-### 5.4 技能参考文件
+### 5.4 技能参考文件与设置中心
 `SkillStore` 负责 `references/` 路径校验、目录清单与有限文本读取；工具层通过
 `skill_view(name, path=...)` 渐进披露，不执行附件。绝对路径、目录穿越、符号链接、
 Windows junction/ADS 均拒绝，单文件上限 64 KiB；已有 `skills_root` 注入覆盖全部参考路径。
+设置中心「技能」页通过 `channels/web_api/skills.py` 复用同一存储：总览统计只读，
+编辑/归档/恢复/外来包都走既有锁、CAS、linter 与隔离激活链；统计与配置口径见
+[SKILL_SYSTEM.md](SKILL_SYSTEM.md)。
 
 ### 5.5 MCP 外部工具
 `tools/mcp/client.py` 负责显式配置的 stdio 服务、会话所有者线程和子进程生命周期；

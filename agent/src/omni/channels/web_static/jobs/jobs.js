@@ -1,4 +1,4 @@
-import {$,esc} from '/ui/app/dom.js?v=20261030ctx1';
+import {$,esc} from '/ui/app/dom.js?v=20261031m3';
 const UI=window.OmniUI;
 let jobs=[],selected='',after=0,version=0,listBusy=false,reading=null,leaving=false,cancelling=false;
 const finalStates=new Set(['succeeded','failed','cancelled','timed_out','unknown']);

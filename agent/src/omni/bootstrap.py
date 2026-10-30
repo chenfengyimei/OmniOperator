@@ -176,6 +176,7 @@ class Runtime:
     outbox: OutboxStore | None = None         # 投递 outbox：QQ 掉线不丢心跳结果（D17）
     mcp_schemas: MCPSchemaStore | None = None # MCP 工具目录指纹：漂移提醒（D19）
     skill_acks: SkillAckStore | None = None   # 技能变更已读标记：待审阅队列（D18）
+    skill_inbox: SkillInbox | None = None     # 外来技能包收件箱/隔离区（技能中心复用）
     qq: OneBotClient | None = None
     retrieval: HybridMemory | None = None
     memory_system: MemorySystem | None = None  # 记忆系统门面（M1–M6 聚合）
@@ -381,7 +382,10 @@ def build_runtime(
     )
     # 技能与常驻记忆共用一份修订存储：写入前先落历史，改坏了能回滚（D08）
     skills = SkillStore(
-        paths.skills, history_root=paths.history, owner=f"pid:{os.getpid()}:skills"
+        paths.skills,
+        history_root=paths.history,
+        owner=f"pid:{os.getpid()}:skills",
+        history_keep=config.skills.history_keep,
     )
     # 共享状态集中到 state.db（A09 跨进程丢写 / A10 损坏当空）：先迁移旧 JSON，
     # 缺失/合法空/损坏分别处理；损坏时只停用对应能力，绝不把已用额度归零。
@@ -449,6 +453,7 @@ def build_runtime(
         state,
         max_writes_per_day=config.memory.max_writes_per_day,
         max_fact_chars=config.memory.max_fact_chars,
+        max_skill_chars=config.skills.max_write_chars,
     )
     register_core_tools(
         registry,
@@ -508,7 +513,8 @@ def build_runtime(
     )
     register_skill_tools(registry, skills, guard=memory_guard)
     # 外来技能包：导入只进隔离区（SAFE），激活是 CONFIRM——审批流里的人工确认就是"用户激活"
-    register_skill_inbox_tools(registry, SkillInbox(skills))
+    skill_inbox = SkillInbox(skills)
+    register_skill_inbox_tools(registry, skill_inbox)
     # 插件系统：收包校验零执行；激活（CONFIRM+人工确认）即同意执行插件代码。
     # 宿主在这里恢复已激活插件的工具注册；装载失败只报 stderr，不阻断启动。
     def _resolve_plugin_dir(rel: str) -> Path | None:
@@ -641,7 +647,7 @@ def build_runtime(
         )
         register_profile_tools(review_registry, review_store, guard=memory_guard, source="review")
         register_resident_tools(review_registry, resident)
-        register_skill_tools(review_registry, skills, guard=memory_guard)
+        register_skill_tools(review_registry, skills, guard=memory_guard, lifecycle=False)
         return review_registry
 
     reviewer = (
@@ -700,6 +706,7 @@ def build_runtime(
         command_jobs=command_jobs,
         mcp_schemas=mcp_schemas,
         skill_acks=skill_acks,
+        skill_inbox=skill_inbox,
         runs=runs,
         active_runs=active_runs,
         session_gate=session_gate,

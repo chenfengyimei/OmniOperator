@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 44" role="img" aria-label="OmniOperator 小鱼">
+  <path fill="#fff" d="M14 22C20 8 40 5 53 15 56 17.5 57.5 20 58 22 57.5 24 56 26.5 53 29 40 39 20 36 14 22Z"/>
+  <path fill="#fff" d="M13 22 2 10C5.5 15.5 5.5 28.5 2 34Z"/>
+  <circle cx="46" cy="17.5" r="2.6" fill="#070809" fill-opacity=".82"/>
+</svg>

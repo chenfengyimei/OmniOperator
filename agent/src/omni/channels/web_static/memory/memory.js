@@ -1,6 +1,8 @@
-/* 记忆系统子站逻辑：六页签（总览/对话全量/会话全量/笔记/人物/整理设置）。
+/* 记忆系统控制器：设置中心与旧页面共享六页签，查询、事件和状态限定在挂载根内。
    全部数据来自 /api/memory-system/*，读取一律分页；动态文本全部转义。 */
-import {$,esc} from '/ui/app/dom.js?v=20261030ctx1';
+import {esc} from '/ui/app/dom.js?v=20261031m3';
+export function mountMemory(root){
+const $=selector=>root.querySelector(selector);
 const UI=window.OmniUI;
 
 const KIND_LABEL={daily:'每日',weekly:'每周',monthly:'每月'};
@@ -15,14 +17,14 @@ let noteKind='daily',notePeriod=null;
 let selectedPerson=null;
 
 // ---------------- 视图切换 ----------------
-for(const button of document.querySelectorAll('.view-tabs button')){
+for(const button of root.querySelectorAll('.view-tabs button')){
   button.onclick=()=>switchView(button.dataset.view);
 }
 function switchView(next){
   view=next;
-  for(const button of document.querySelectorAll('.view-tabs button'))
+  for(const button of root.querySelectorAll('.view-tabs button'))
     button.setAttribute('aria-selected',String(button.dataset.view===next));
-  for(const node of document.querySelectorAll('.memory-view'))
+  for(const node of root.querySelectorAll('.memory-view'))
     node.hidden=node.id!==next+'-view';
   if(next==='overview')loadOverview();
   else if(next==='dialogue'&&!dialogueLoaded){dialogueLoaded=true;loadDialogueDays();}
@@ -238,10 +240,10 @@ function entryNode(entry){
 }
 
 // ---------------- 笔记（M3–M5） ----------------
-for(const button of document.querySelectorAll('.kind-tabs button')){
+for(const button of root.querySelectorAll('.kind-tabs button')){
   button.onclick=()=>{
     noteKind=button.dataset.kind;
-    for(const node of document.querySelectorAll('.kind-tabs button'))
+    for(const node of root.querySelectorAll('.kind-tabs button'))
       node.setAttribute('aria-selected',String(node.dataset.kind===noteKind));
     loadNotes();
   };
@@ -493,11 +495,11 @@ async function loadSettings(){
 }
 $('#journal-form').onsubmit=async event=>{
   event.preventDefault();
-  const number=id=>Number(document.getElementById(id).value);
+  const number=id=>Number($('#'+id).value);
   // 多行块（压缩规则）按行数组提交——与设置中心人设的保存口径一致；
   // 尾部空行要去掉，否则每存一次 YAML 多行块就多一行空白
   const promptLines=id=>{
-    const lines=document.getElementById(id).value.replace(/\r\n/g,'\n').split('\n');
+    const lines=$('#'+id).value.replace(/\r\n/g,'\n').split('\n');
     while(lines.length>1&&!lines[lines.length-1].trim())lines.pop();
     return lines;
   };
@@ -536,3 +538,30 @@ $('#journal-form').onsubmit=async event=>{
 
 // ---------------- 启动 ----------------
 loadOverview();
+
+return {refresh(){if(view==='overview')loadOverview()}};
+}
+
+// 同一份界面和控制器供设置中心与旧书签页面使用；只在用户进入分区时加载。
+const mounts=new WeakMap();
+export async function loadMemory(root){
+  if(mounts.has(root)){const controller=await mounts.get(root);controller?.refresh();return controller}
+  const request=Promise.resolve().then(async()=>{
+    root.setAttribute('aria-busy','true');
+    root.replaceChildren(window.OmniUI.element('p','正在读取记忆系统…','empty'));
+    try{
+      const response=await fetch('/memory/panel.html?v=20261031m3',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000)});
+      if(!response.ok)throw Error('记忆界面资源读取失败（'+response.status+'），请重试。');
+      const template=document.createElement('template');template.innerHTML=await response.text();
+      if(!template.content.querySelector('.memory-surface .view-tabs'))throw Error('记忆界面资源不完整，请刷新工作台后重试。');
+      root.replaceChildren(template.content);
+      return mountMemory(root);
+    }catch(error){
+      mounts.delete(root);
+      const message=window.OmniUI.element('p','读取失败：'+error.message,'hint');message.setAttribute('role','alert');
+      const retry=window.OmniUI.element('button','重新读取记忆系统','btn');retry.type='button';retry.onclick=()=>loadMemory(root);
+      root.replaceChildren(message,retry);return null;
+    }finally{root.setAttribute('aria-busy','false')}
+  });
+  mounts.set(root,request);return request;
+}

@@ -19,9 +19,12 @@ xuexi/
 # 一键安装器下载的本地组件（NapCat / platform-tools），见 scripts/install.ps1
 /tools/
 
-# 技能编辑锁与本地历史（运行时生成，不进库）
+# 技能编辑锁与本地运行数据（不进库）
 skills/.locks/
 skills/.history/
+skills/.inbox/
+skills/.quarantine/
+skills/.archive/
 
 # 本机 Agent 空间与目录选择（不提交个人绝对路径）
 config/agents.json

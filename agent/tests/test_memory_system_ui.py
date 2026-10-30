@@ -56,9 +56,10 @@ def ui(tmp_path):
             client.close()
 
 
-def test_memory_station_views_and_flows(ui):
+@pytest.mark.parametrize('in_settings', [False, True])
+def test_memory_station_views_and_flows(ui, in_settings):
     page, client, runtime, errors = ui
-    page.goto("http://127.0.0.1/memory/")
+    page.goto("http://127.0.0.1/?settings=1&section=sec-memory-system" if in_settings else "http://127.0.0.1/memory/")
     page.wait_for_selector("#overview-view:not([hidden])")
     page.locator("#overview-metrics .metric-card").nth(3).wait_for()
 
@@ -143,21 +144,49 @@ def test_memory_station_embed_mode_hides_chrome(ui):
     assert errors == []
 
 
-def test_hub_memory_system_iframe_fills_its_shell(ui):
-    """回归：iframe 没有尺寸样式时会退化成浏览器默认的 300×150，内容挤在左上角。
-
-    守卫要求内嵌的 /memory/ 撑满 .storage-embed-shell，且总览卡片在内层真实渲染。
-    """
+@pytest.mark.parametrize("entry,width", [("settings", 1440), ("settings", 390), ("rail", 1440)])
+def test_memory_entry_uses_native_settings_section(ui, entry, width):
+    """进入记忆后保留设置外层及 URL；仅外层滚动，不开 iframe 或新标签。"""
     page, client, runtime, errors = ui
-    page.goto("http://127.0.0.1/")
-    page.click("button.hub-open")
-    page.wait_for_selector("#hub:not(.hidden)")
-    page.click('.hub-nav a[data-go="sec-memory-system"]')
-    frame = page.frame_locator("#memory-system-frame")
-    frame.locator("#overview-metrics .metric-card").first.wait_for(timeout=15000)
-    box = page.locator("#memory-system-frame").bounding_box()
-    assert box is not None
-    assert box["width"] > 320, f"内嵌 iframe 宽度异常：{box}（疑似退化到默认 300px）"
-    assert box["height"] > 200, f"内嵌 iframe 高度异常：{box}（疑似退化到默认 150px）"
-    assert frame.locator("#overview-metrics .metric-card").count() == 4
+    page.set_viewport_size({"width": width, "height": 900})
+    page.goto("http://127.0.0.1/" if entry == "settings" else "http://127.0.0.1/capabilities/")
+    if entry == "settings":
+        page.locator("button.hub-open:visible,button.ui-settings:visible").first.click()
+        page.wait_for_selector("#hub:not(.hidden)")
+        page.click('.hub-nav a[data-go="sec-memory-system"]')
+    else:
+        page.locator('.ui-global-nav a[href="/?settings=1&section=sec-memory-system"]').click()
+    page.locator('#sec-memory-system:not(.hidden)').wait_for()
+    page.locator("#overview-metrics .metric-card").first.wait_for()
+    assert page.locator("#overview-metrics .metric-card").count() == 4
+    assert len(page.context.pages) == 1
+    assert page.locator('#hub').is_visible()
+    assert page.locator('#hub-memory-content iframe').count() == 0
+    assert page.url == ('http://127.0.0.1/' if entry == 'settings' else 'http://127.0.0.1/?settings=1&section=sec-memory-system')
+    assert page.locator('#hub-memory-content .memory-view:visible').count() == 1
+    assert page.locator('#hub-memory-content .memory-view[hidden]:visible').count() == 0
+    assert page.locator('#overview-view').evaluate('(node)=>node.scrollHeight <= node.clientHeight + 1')
+    assert page.locator('#hub-memory-content').evaluate('(node)=>getComputedStyle(node).overflowY') == 'visible'
+    page.locator('.view-tabs button[data-view="settings"]').click()
+    page.locator('#settings-view:not([hidden])').wait_for()
+    assert page.locator('#hub-memory-content .memory-view:visible').count() == 1
+    page.wait_for_function("document.querySelector('#cfg-journal-daily-time').value !== ''")
+    page.locator('#cfg-journal-daily-time').fill('21:03')
+    page.locator('.hub-nav a[data-go="sec-context"]').click()
+    page.locator('.hub-nav a[data-go="sec-memory-system"]').click()
+    assert page.locator('#cfg-journal-daily-time').input_value() == '21:03'
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+    assert errors == []
+
+
+def test_native_memory_resource_failure_can_retry(ui):
+    page, _, _, errors = ui
+    page.add_init_script('''const originalFetch=window.fetch;let failed=false;window.fetch=(url,opts)=>{
+      if(String(url).startsWith('/memory/panel.html')&&!failed){failed=true;return Promise.resolve(new Response('',{status:503}))}
+      return originalFetch(url,opts)};''')
+    page.goto('http://127.0.0.1/?settings=1&section=sec-memory-system')
+    page.get_by_role('button', name='重新读取记忆系统', exact=True).click()
+    page.locator('#overview-metrics .metric-card').first.wait_for()
+    assert page.locator('#hub').is_visible()
+    assert page.locator('#hub-memory-content .memory-view:visible').count() == 1
     assert errors == []

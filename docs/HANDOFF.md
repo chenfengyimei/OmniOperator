@@ -1,5 +1,7 @@
 # OmniOperator 交接文档（给后续开发者 / AI）
 
+2026-10-31 记忆设置原生化（工作区）：设置中心「记忆系统」直接挂载六页签，保留设置侧栏与地址，不跳转、不嵌 iframe，内容随外层 `.hub-body` 滚动。`memory/panel.html` 单一结构 + 挂载根内控制器供原生分区与旧书签共享，分区切换保留草稿。修复 CSS 覆盖 `hidden` 导致多页同时显示，以及工作台窄屏通用 section 高度限制导致内容溢出。上下文读取失败不再永久显示加载占位，支持重试并区分接口/会话 404；现场三个上下文相关接口均为 200。专项 **48 项通过**，工作区全量 **1324 项通过（462.67s）**；含其他未提交功能，不能据此声称独立提交全绿。独立提交受到现有 HEAD 技能模板未配套动作注册影响，本批尚未提交或推送，其他工作保留原状。证据见 [记忆设置原生验证](evidence/memory-settings-native-2026-10-31.json)。
+
 2026-10-31 产品目录重构：本地 Agent 源码、测试、配置模板、开发脚本和项目声明统一归 `agent/`；仓库根保留 uv 工作区、交接文档、安装启动与用户运行态。旧命令兼容、默认数据路径保持。结构与开发规则见 [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md)。全量 **1296 项通过（438.32s）**；迁移前专项 121 项、迁移后现场专项 77 项通过。收尾纳入并行记忆子站提交 `60d078f` 的五个新文件，模块引用与产品入口版本对齐后完整复跑。根/产品 uv 命令、离线锁文件、源码/API 索引和包含界面资源的 wheel 已验证。证据见 [目录重构验证](evidence/project-layout-2026-10-31.json)。
 
 > 生成于 2026-10-27，交接核对更新于 2026-10-31。本文是跨会话接手的唯一入口：先读本文，再读 `docs/ARCHITECTURE.md`（模块职责唯一权威）。
@@ -135,7 +137,7 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 | core | resident_memory | 常驻工作笔记（2200 限额，每轮作为末尾上下文快照提供，带防注入扫描） |
 | core | todo | 会话级多步清单（SessionRef thread-local 注入当前会话） |
 | core | daily_digest | 过去 N 小时活动摘要（夜间整理素材） |
-| core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite / skill_history / skill_rollback | 技能（SKILL.md，渐进披露，patch 按节省 token，expected_hash CAS + 修订历史）；skill_view(name, path="references/guide.md") 按需读参考文本；工作台技能页可编辑（保存 CAS/差异/回滚，D18） |
+| core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite / skill_history / skill_rollback / skill_archive / skill_restore | 技能（SKILL.md，渐进披露，patch 按节省 token，expected_hash CAS + 修订历史）；skill_view(name, path="references/guide.md") 按需读参考文本；工作台技能页与设置中心「技能」共用编辑器/CAS/差异/回滚；归档=移出技能库但保留 .archive 与历史，可恢复（archive 为 CONFIRM+人工确认） |
 | core | delegate_task | 子任务委派到 UUID 独立会话（同标签并发也不串历史，thread-local 防嵌套，会话引用自动还原） |
 | core | session_refine | 手动触发对当前会话的记忆整理（Hermes /refine 等价物，2026-10-29）：与自动 review 共用同一有界队列/消息区间去重/review 模型账本；作用域=当前会话（不收 session_id 参数），群聊作用域禁用；review 关闭或后台 worker 未启用时不注册 |
 | core | skill_import / skill_pending / skill_activate / skill_discard | 外来技能包隔离安装（2026-10-29）：inbox 收 zip 数据化解包进隔离区（类型白名单拒脚本、zip-slip 全防、清单逐文件 sha256）；activate 为 CONFIRM+人工确认且激活前防篡改复核、来源记入修订史 |
@@ -205,7 +207,7 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 已借鉴并实现多入口内核、grace call、todo、消息不变量、三层记忆、review、技能 patch、cron、审批、受限委派和工具注册；后续补了运行/取消、预算、持久摘要、文件/网页读取和产物/图像消息。
 这不表示 Hermes 对标已完成。设备闭环、调度投递、技能治理、MCP 管理、运维评测和真实验收仍有缺口；完整比较与门槛见 [完整计划](LOCAL_AGENT_PLAN.md)。没有同模型同任务评测，不能断言实际效果相当。
 
-MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。技能 references、历史/CAS、工作台编辑/回滚与候选队列已交付；外部安装通道未开放。桌面、受控主动性和双接口向量记忆已有受限实现，真实扩展验收不能替代安全和稳定性收口。
+MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。技能 references、历史/CAS、工作台编辑/回滚、候选队列、归档恢复与设置中心统计/导入/配置已交付；外部安装通道=隔离区导入+人工激活（不执行包内脚本）。桌面、受控主动性和双接口向量记忆已有受限实现，真实扩展验收不能替代安全和稳定性收口。
 
 ## 5. 平台坑清单（血泪，别再踩）
 
@@ -265,6 +267,10 @@ MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待
    人工确认即"用户激活"）落正式技能库——激活前对隔离区做**防篡改复核**（逐文件 sha256 全等比对）、
    与技能编辑共用同一把跨进程文件锁、来源记进修订历史（source=skill_import）；
    `skill_discard` 丢隔离区。无人值守（DenyApprover）永远激活不了外来包。
+   ④**设置中心「技能」与生命周期收口（2026-10-30）**——只读总览（技能/归档/修订/附件/体积/
+   14 天活动/待审阅/隔离区）、技能库搜索与归档恢复、新建技能、外来包上传/导入/激活/丢弃、
+   `skills.history_keep` 与 `skills.max_write_chars` 配置 CAS；`SkillStore.statistics/archive/restore`、
+   `SkillInbox.upload/remove_inbox` 与 `/api/skills/*` 端点；详见 [SKILL_SYSTEM.md](SKILL_SYSTEM.md)。
 4. **D19 MCP 管理（已完成）**：工作台「MCP」页——服务状态（idle/握手/已连接/失败/停用，
    纯派生不启动服务）、工具目录与授权标记（只读白名单 🟢 / 需确认 🟡，只认用户配置）、
    **schema 漂移检测**（发现时登记指纹；服务升级换参数形态 → ⚠ 提醒复查只读授权，

@@ -1,8 +1,8 @@
 // 产物面板（D15）：浏览器/安卓截图落在 state.db，保留 7 天；聊天里的 [artifact:id] 内联图同源。
-import {$,esc} from './dom.js?v=20261030ctx1';
-import {api} from './api.js?v=20261030ctx1';
-import {openModal} from './modals.js?v=20261030ctx1';
-import {setTabBadge} from './tabs.js?v=20261030ctx1';
+import {$,esc} from './dom.js?v=20261031m3';
+import {api} from './api.js?v=20261031m3';
+import {openModal} from './modals.js?v=20261031m3';
+import {setTabBadge} from './tabs.js?v=20261031m3';
 
 export async function loadArtifacts(){
   try{

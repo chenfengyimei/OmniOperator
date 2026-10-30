@@ -41,7 +41,7 @@ Python 3.12+ · uv · LiteLLM 网关 · SQLite 记忆与运行账本 · 无前�
 | 能力 | 当前实现与说明 |
 |---|---|
 | 内核 | 工具循环/grace call、todo、运行事件、取消、受限委派、持久摘要、费用预留与结算 |
-| 记忆和技能 | 事实/档案/常驻记忆、作用域/额度/遗忘、异步 review、技能 CAS/历史/回滚与待审阅差异 |
+| 记忆和技能 | 事实/档案/常驻记忆、作用域/额度/遗忘、异步 review、技能 CAS/历史/回滚、归档恢复、外来包隔离安装与待审阅差异；设置中心「技能」统一统计、导入、归档与配置 |
 | 本机与网页 | 受限文件读写、只读 shell 白名单与人工确认命令、公开网页抓取、产物与有隐私开关的图像输入 |
 | 调度与 QQ | cron 编辑/时区/成功运行依赖/并行限制、持久 outbox 与回执、群场景隔离；[QQ 场景](docs/QQ_SCENARIOS.md) |
 | 浏览器与 B站 | Playwright 所有者线程、预算与审批；B站读四件套、评论/私信草稿与受控 UI 发送；[B站写入](docs/BILIBILI_WRITING.md)（默认关闭，实站选择器待核验） |
@@ -97,7 +97,7 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 |---|---|---|
 | `plugins` | **插件宿主** — manifest、隔离校验、人工激活、插件注册与生命周期 | [PLUGIN_SYSTEM](docs/PLUGIN_SYSTEM.md) |
 | `community` | **插件社区** — 社区客户端、工具适配与独立分发服务器 | [PLUGIN_SYSTEM](docs/PLUGIN_SYSTEM.md) |
-| `skills` | **技能工具** — 技能查询/创建/编辑/回滚与外来技能隔离安装入口 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
+| `skills` | **技能中心** — 技能编辑/历史/回滚、归档恢复、外来包隔离安装、统计与设置 | [SKILL_SYSTEM](docs/SKILL_SYSTEM.md) |
 | `mcp` | **MCP 扩展适配** — 外部 stdio 工具发现、授权、漂移撤权与子进程生命周期 | [MCP](docs/MCP.md) |
 
 ### 交互与终端

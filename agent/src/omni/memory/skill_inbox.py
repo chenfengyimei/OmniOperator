@@ -25,7 +25,7 @@ import zipfile
 from pathlib import Path, PureWindowsPath
 from typing import Any
 
-from ..system.atomic import atomic_write_text
+from ..system.atomic import atomic_write_bytes, atomic_write_text
 from ..system.filelock import FileLock, LockTimeout
 from .skills import (
     MAX_BODY,
@@ -44,6 +44,26 @@ MAX_UNPACKED_BYTES = 16 * 1024 * 1024  # 解包总量 ≤ 16 MiB
 MAX_ENTRIES = 200                      # 条目数上限（含目录记录）
 MAX_SKILL_MD_BYTES = 128 * 1024        # 单个 SKILL.md ≤ 128 KiB
 MAX_REFERENCE_DEPTH = 4                 # references/a/b/file.md 最深四级
+
+
+def _package_name(filename: str) -> str | None:
+    """用户上传/删除的收件箱文件名：必须是裸 .zip，不能带路径、盘符或 ADS。"""
+    raw = filename or ""
+    if raw != raw.strip():
+        return None  # 首尾空格会被 Windows 静默去掉，等于悄悄改名，直接拒绝
+    name = raw.strip()
+    if not name or len(name) > 120 or name != Path(name).name:
+        return None
+    if (
+        PureWindowsPath(name).drive
+        or ":" in name
+        or "\x00" in name
+        or name.endswith((" ", "."))
+        or PureWindowsPath(name).is_reserved()
+        or not name.lower().endswith(".zip")
+    ):
+        return None
+    return name
 
 
 def _digest(data: bytes) -> str:
@@ -108,10 +128,13 @@ class SkillInbox:
     def import_package(self, package: str) -> tuple[bool, str]:
         """把 inbox 里的一个 zip 解包进隔离区（数据化，绝不执行任何内容）。"""
         package = (package or "").strip()
-        if not package or package != Path(package).name:
-            return False, "错误：package 必须是 skills/.inbox/ 里的文件名，不带路径"
+        if not package or package != Path(package).name or _package_name(package) is None:
+            return False, (
+                "错误：package 必须是 skills/.inbox/ 里的文件名（不带路径），"
+                f"且必须是 .zip（当前 {package or '（空）'}）"
+            )
         zip_path = self._inbox / package
-        if not zip_path.is_file():
+        if zip_path.is_symlink() or not zip_path.is_file():
             return False, (
                 f"错误：inbox 里没有 {package or '（空）'}。"
                 "请把技能包 zip 放到 skills/.inbox/ 目录后再导入"
@@ -141,6 +164,8 @@ class SkillInbox:
                     "合并进来，或先删除旧版再导入"
                 )
             target = self._quarantine / name
+            if target.is_symlink():
+                return False, f"错误：隔离区同名路径是链接，拒绝写入 {name}"
             if target.exists():
                 shutil.rmtree(target, ignore_errors=True)
             staging.rename(target)
@@ -177,6 +202,47 @@ class SkillInbox:
             lines.append(f"- {item['path']}（{item['bytes']} B，sha256 {item['sha256'][:12]}）")
         lines.append("隔离区对 skills_list 不可见。确认内容后用 skill_activate 激活，或 skill_discard 丢弃。")
         return True, "\n".join(lines)
+
+    def upload(self, filename: str, data: bytes) -> tuple[bool, str]:
+        """工作台上传技能包 zip 到收件箱（只落文件，不导入、不执行）。
+
+        上传只是把字节放进 `skills/.inbox/`；真正的解包校验仍在
+        `import_package`。这里先做文件名与体积边界，避免一个坏请求
+        把几 GB 内容写进技能根。
+        """
+        name = _package_name(filename)
+        if name is None:
+            return False, "错误：文件名必须是裸 .zip（不能带路径、盘符或冒号）"
+        if not data:
+            return False, "错误：上传内容为空"
+        if len(data) > MAX_ZIP_BYTES:
+            return False, (
+                f"错误：压缩包超过 {MAX_ZIP_BYTES // (1024 * 1024)} MiB 上限"
+                f"（当前 {len(data)} 字节）"
+            )
+        if not data.startswith((b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")):
+            return False, "错误：不是 zip 压缩包（文件头不匹配）"
+        target = self._inbox / name
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_bytes(target, data)
+        except OSError as exc:
+            return False, f"错误：保存上传文件失败（{exc}）"
+        return True, f"已上传 {name} 到技能包收件箱（{len(data)} 字节），可点击「导入」进入隔离区"
+
+    def remove_inbox(self, package: str) -> tuple[bool, str]:
+        """从收件箱移除一个尚未导入的 zip（不碰隔离区与正式技能库）。"""
+        name = _package_name(package)
+        if name is None:
+            return False, "错误：package 必须是收件箱里的裸 .zip 文件名"
+        path = self._inbox / name
+        if path.is_symlink() or not path.is_file():
+            return False, f"错误：收件箱里没有 {name}"
+        try:
+            path.unlink()
+        except OSError as exc:
+            return False, f"错误：移除失败（{exc}）"
+        return True, f"已从收件箱移除 {name}"
 
     def _plan_entries(self, zip_path: Path) -> list[tuple[str, tuple[str, ...], str]]:
         """读 zip 中央目录：先校验名字安全，剥掉公共顶层目录后逐条目做
@@ -277,7 +343,10 @@ class SkillInbox:
         skill_md = staging / "SKILL.md"
         if not skill_md.is_file():
             return "错误：包里没有 SKILL.md（应位于顶层，或唯一顶层目录之内）"
-        text = skill_md.read_text(encoding="utf-8")
+        try:
+            text = skill_md.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            return "错误：SKILL.md 不是可读的 UTF-8 文本"
         parsed = parse_skill_text(text)
         if parsed is None:
             return "错误：SKILL.md 不符合结构（YAML 头 + 四节固定正文）"
@@ -300,7 +369,11 @@ class SkillInbox:
 
     @staticmethod
     def _skill_meta(staging: Path) -> tuple[str, str, str]:
-        parsed = parse_skill_text((staging / "SKILL.md").read_text(encoding="utf-8"))
+        try:
+            text = (staging / "SKILL.md").read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            return "", "", "1"
+        parsed = parse_skill_text(text)
         meta = (parsed or {}).get("meta", {})
         return (
             str(meta.get("name", "")).strip(),
@@ -312,11 +385,12 @@ class SkillInbox:
 
     def _load_manifest(self, name: str) -> dict[str, Any] | None:
         """隔离区清单；缺失/损坏/结构不对一律返回 None（调用方决定口径）。"""
+        path = self._quarantine / f"{name}.manifest.json"
+        if path.is_symlink():
+            return None
         try:
-            data = json.loads(
-                (self._quarantine / f"{name}.manifest.json").read_text(encoding="utf-8")
-            )
-        except (OSError, json.JSONDecodeError):
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
             return None
         if not isinstance(data, dict) or not isinstance(data.get("files"), list):
             return None
@@ -326,7 +400,10 @@ class SkillInbox:
         """待激活清单（隔离区），另附 inbox 里还没导入的 zip。"""
         out: list[dict[str, Any]] = []
         for pkg_dir in sorted(self._quarantine.glob("*")):
-            if not pkg_dir.is_dir() or not (pkg_dir / "SKILL.md").is_file():
+            if pkg_dir.is_symlink() or not pkg_dir.is_dir():
+                continue
+            skill_md = pkg_dir / "SKILL.md"
+            if skill_md.is_symlink() or not skill_md.is_file():
                 continue
             name = pkg_dir.name
             if not NAME_RE.match(name):
@@ -335,36 +412,53 @@ class SkillInbox:
             manifest_missing = manifest is None
             if manifest is None:
                 manifest = {}
-            parsed = parse_skill_text((pkg_dir / "SKILL.md").read_text(encoding="utf-8"))
+            try:
+                parsed = parse_skill_text(skill_md.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError):
+                parsed = None
             meta = (parsed or {}).get("meta", {})
+            files = [
+                {
+                    "path": str(item.get("path", "")),
+                    "bytes": int(item.get("bytes", 0)),
+                    "sha256": str(item.get("sha256", "")),
+                }
+                for item in manifest.get("files", [])
+                if isinstance(item, dict)
+            ]
             out.append(
                 {
                     "name": name,
-                    "description": str(meta.get("description", "")),
-                    "version": str(meta.get("version", "1")),
+                    "description": str(meta.get("description", "")) if parsed is not None else "",
+                    "version": str(meta.get("version", "1")) if parsed is not None else "",
                     "source_zip": str(manifest.get("source_zip", "")),
+                    "zip_sha256": str(manifest.get("zip_sha256", "")),
                     "imported_at": str(manifest.get("imported_at", "")),
-                    "files": [
-                        {"path": str(item.get("path", "")), "bytes": int(item.get("bytes", 0))}
-                        for item in manifest.get("files", [])
-                        if isinstance(item, dict)
-                    ],
+                    "files": files,
                     "manifest_missing": manifest_missing,
+                    "valid": parsed is not None,
+                    "can_activate": bool(not manifest_missing and parsed is not None),
                 }
             )
         return out
 
     def inbox_files(self) -> list[dict[str, Any]]:
-        """inbox 里待导入的 zip（用户手动放进去的）。"""
+        """inbox 里待导入的 zip（用户手动放进去或工作台上传）。"""
         out: list[dict[str, Any]] = []
         try:
             for path in sorted(self._inbox.iterdir()):
-                if path.is_file() and path.suffix.lower() == ".zip":
-                    try:
-                        size = path.stat().st_size
-                    except OSError:
-                        continue
-                    out.append({"name": path.name, "bytes": size})
+                if path.is_symlink() or not path.is_file() or path.suffix.lower() != ".zip":
+                    continue
+                try:
+                    stat = path.stat()
+                except OSError:
+                    continue
+                out.append({
+                    "name": path.name,
+                    "bytes": stat.st_size,
+                    "modified_at": dt.datetime.fromtimestamp(stat.st_mtime)
+                    .astimezone().isoformat(timespec="seconds"),
+                })
         except OSError:
             pass
         return out
@@ -377,7 +471,8 @@ class SkillInbox:
         if not NAME_RE.match(name):
             return False, "错误：技能名需为 3-40 位小写字母/数字/连字符（先 skill_pending 查看）"
         pkg_dir = self._quarantine / name
-        if not (pkg_dir / "SKILL.md").is_file():
+        skill_md = pkg_dir / "SKILL.md"
+        if pkg_dir.is_symlink() or skill_md.is_symlink() or not skill_md.is_file():
             return False, f"错误：隔离区没有待激活的技能 {name}（先 skill_pending 查看）"
         manifest = self._load_manifest(name)
         if manifest is None:
@@ -435,6 +530,8 @@ class SkillInbox:
         actual: dict[str, str] = {}
         try:
             for path in sorted(pkg_dir.rglob("*")):
+                if path.is_symlink():
+                    return "隔离区包含符号链接，拒绝激活；请重新导入"
                 if not path.is_file():
                     continue
                 rel = path.relative_to(pkg_dir).as_posix()
@@ -466,7 +563,7 @@ class SkillInbox:
         if not NAME_RE.match(name):
             return False, "错误：技能名需为 3-40 位小写字母/数字/连字符（先 skill_pending 查看）"
         pkg_dir = self._quarantine / name
-        if not pkg_dir.is_dir():
+        if pkg_dir.is_symlink() or not pkg_dir.is_dir():
             return False, f"错误：隔离区没有 {name}（先 skill_pending 查看）"
         shutil.rmtree(pkg_dir, ignore_errors=True)
         (self._quarantine / f"{name}.manifest.json").unlink(missing_ok=True)

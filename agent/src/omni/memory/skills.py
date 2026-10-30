@@ -15,7 +15,9 @@
 from __future__ import annotations
 
 import contextlib
+import datetime as dt
 import hashlib
+import json
 import os
 import re
 import threading
@@ -39,6 +41,7 @@ REFERENCE_SUFFIXES = {".md", ".txt", ".rst", ".json", ".yaml", ".yml", ".toml", 
 MAX_REFERENCE_BYTES = 64 * 1024
 MAX_REFERENCES = 60
 MIN_HASH_PREFIX = 8  # 允许模型只回传哈希前缀（完整 sha256 太长，容易被截断）
+ARCHIVE_DIR = ".archive"  # 归档技能不参与 skills_list；恢复前对模型不可见
 
 
 def parse_skill_text(text: str) -> dict[str, Any] | None:
@@ -111,20 +114,29 @@ class SkillStore:
         return self._root
 
     def list(self) -> list[dict[str, Any]]:
-        """渐进披露第一级：只给名字/描述/版本。"""
+        """渐进披露第一级：只给名字/描述/版本。
+
+        名字以**目录名**为准：frontmatter 被手工改坏时，如果按 meta.name
+        返回，界面点进去会 404（路径只认目录名）。meta_name 单独带出，
+        让统计页能提示"frontmatter 名字与目录不一致"。
+        """
         out: list[dict[str, Any]] = []
         for skill_md in sorted(self._root.glob("*/SKILL.md")):
-            if self._safe_path(skill_md.parent.name) is None:
+            name = skill_md.parent.name
+            if self._safe_path(name) is None:
                 continue
             parsed = parse_skill_md(skill_md)
             if parsed is None:
                 continue
             meta = parsed["meta"]
+            meta_name = str(meta.get("name") or name)
             out.append(
                 {
-                    "name": str(meta.get("name") or skill_md.parent.name),
+                    "name": name,
                     "description": str(meta.get("description", "")),
                     "version": str(meta.get("version", "1")),
+                    "meta_name": meta_name,
+                    "name_matches": meta_name == name,
                 }
             )
         return out
@@ -137,7 +149,10 @@ class SkillStore:
         if path is None:
             data = skill_md.read_bytes()  # 指纹按字节算：CRLF 文件也要和写路径一致
             self._remember(name.strip(), _digest(data))
-            return data.decode("utf-8")
+            try:
+                return data.decode("utf-8")
+            except UnicodeError:
+                return None
         target = self._reference_path(name, path)
         if target is None:
             raise ValueError("只允许技能 references/ 内的文本文件；禁止绝对路径、越界与链接")
@@ -165,7 +180,10 @@ class SkillStore:
             return None
         digest = _digest(data)
         self._remember(name.strip(), digest)
-        return data.decode("utf-8"), digest
+        try:
+            return data.decode("utf-8"), digest
+        except UnicodeError:
+            return None
 
     def references(self, name: str) -> list[str]:
         """只列文件名，最多 60 个、四级目录；不遍历链接或读取附件正文。"""
@@ -265,6 +283,203 @@ class SkillStore:
         if found is None:
             return []
         return reference_drift(found[0].references, self._refs_manifest(name))
+
+    # ---------------------------------------------------------------- 统计
+
+    def statistics(self, *, days: int = 14) -> dict[str, Any]:
+        """只读总览：技能、修订、附件、体积与最近活动；不执行技能、不调用模型。
+
+        口径：
+        - 技能数含**格式损坏**的目录（valid=False）——它们仍然占着位置，
+          统计页要能看见并允许归档，而不是从列表里凭空消失；
+        - 修订数 = 每个技能最近 history_keep 条快照之和（历史本身有上限）；
+        - 活动按修订 `created_at` 的本地日期聚合，最近 days 天含零值；
+        - 体积分开计 SKILL.md、references 与修订历史，避免把历史算成技能占用。
+        """
+        window = max(1, min(int(days), 90))
+        skills: list[dict[str, Any]] = []
+        for skill_md in sorted(self._root.glob("*/SKILL.md")):
+            detail = self._detail_from_md(skill_md, archived=False)
+            if detail is not None:
+                skills.append(detail)
+        archived = self._archived_details()
+        revisions: list[tuple[str, Revision]] = []
+        for detail in skills + archived:
+            history = self.history(str(detail["name"]))
+            detail["revision_count"] = len(history)
+            latest = history[0] if history else None
+            detail["latest_rev"] = latest.rev if latest is not None else None
+            detail["latest_at"] = latest.created_at if latest is not None else None
+            detail["latest_author"] = latest.author if latest is not None else None
+            detail["latest_source"] = latest.source if latest is not None else None
+            detail["latest_summary"] = latest.summary if latest is not None else None
+            revisions.extend((str(detail["name"]), revision) for revision in history)
+        by_source: dict[str, int] = {}
+        by_author: dict[str, int] = {}
+        counts: dict[str, int] = {}
+        latest_at = ""
+        for _name, revision in revisions:
+            source = revision.source or "未知"
+            author = revision.author or "未知"
+            by_source[source] = by_source.get(source, 0) + 1
+            by_author[author] = by_author.get(author, 0) + 1
+            day = revision.created_at[:10]
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
+                counts[day] = counts.get(day, 0) + 1
+            latest_at = max(latest_at, revision.created_at)
+        today = dt.date.today()
+        activity: list[dict[str, Any]] = []
+        for offset in range(window - 1, -1, -1):
+            day = (today - dt.timedelta(days=offset)).isoformat()
+            activity.append({"date": day, "count": counts.get(day, 0)})
+        return {
+            "skills": skills,
+            "archived": archived,
+            "activity": activity,
+            "revisions": {
+                "total": len(revisions),
+                "latest_at": latest_at,
+                "by_source": dict(sorted(by_source.items(), key=lambda item: (-item[1], item[0]))),
+                "by_author": dict(sorted(by_author.items(), key=lambda item: (-item[1], item[0]))),
+            },
+            "totals": {
+                "skills": len(skills),
+                "archived": len(archived),
+                "invalid": sum(1 for item in skills + archived if not item["valid"]),
+                "references": sum(int(item["references"]) for item in skills + archived),
+                "body_chars": sum(int(item["body_chars"]) for item in skills + archived),
+                "skill_bytes": sum(int(item["bytes"]) for item in skills),
+                "reference_bytes": sum(int(item["reference_bytes"]) for item in skills),
+                "archived_bytes": sum(int(item["bytes"]) + int(item["reference_bytes"]) for item in archived),
+                "history_bytes": self._tree_bytes(self._history.root / "skills"),
+            },
+        }
+
+    def _detail_from_md(self, skill_md: Path, *, archived: bool) -> dict[str, Any] | None:
+        """一个技能的只读元数据；格式坏也返回 valid=False，不静默隐藏。"""
+        name = skill_md.parent.name
+        if not NAME_RE.match(name) or not self._contained(skill_md):
+            return None
+        try:
+            data = skill_md.read_bytes()
+            stat = skill_md.stat()
+        except OSError:
+            return None
+        try:
+            text = data.decode("utf-8")
+        except UnicodeError:
+            text = ""
+        parsed = parse_skill_text(text) if text else None
+        meta = parsed["meta"] if parsed is not None else {}
+        body = str(parsed["body"]) if parsed is not None else ""
+        meta_name = str(meta.get("name") or "") if parsed is not None else ""
+        reference_count, reference_bytes = self._reference_summary(skill_md.parent)
+        detail: dict[str, Any] = {
+            "name": name,
+            "description": str(meta.get("description", "")) if parsed is not None else "",
+            "version": str(meta.get("version", "1")) if parsed is not None else "",
+            "meta_name": meta_name,
+            "name_matches": bool(parsed is not None and meta_name == name),
+            "valid": parsed is not None,
+            "body_chars": len(body),
+            "sections_missing": (
+                [section for section in SECTIONS
+                 if re.search(rf"(?m)^##\s+{re.escape(section)}\b", body) is None]
+                if parsed is not None else list(SECTIONS)
+            ),
+            "bytes": len(data),
+            "hash": _digest(data),
+            "references": reference_count,
+            "reference_bytes": reference_bytes,
+            "updated_at": self._iso_mtime(stat.st_mtime),
+            "archived": archived,
+        }
+        if archived:
+            sidecar = self._archive_meta(name)
+            detail["archived_at"] = str(sidecar.get("archived_at") or detail["updated_at"])
+            detail["archived_by"] = str(sidecar.get("archived_by") or "")
+            detail["archive_reason"] = str(sidecar.get("reason") or "")
+        return detail
+
+    def _archived_details(self) -> list[dict[str, Any]]:
+        root = self._root / ARCHIVE_DIR
+        if not root.is_dir() or not self._contained(root):
+            return []
+        out: list[dict[str, Any]] = []
+        for skill_md in sorted(root.glob("*/SKILL.md")):
+            detail = self._detail_from_md(skill_md, archived=True)
+            if detail is not None:
+                out.append(detail)
+        return out
+
+    def _archive_meta(self, name: str) -> dict[str, Any]:
+        path = self._root / ARCHIVE_DIR / f"{name}.json"
+        if not self._contained(path):
+            return {}
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            return {}
+        return data if isinstance(data, dict) else {}
+
+    def _reference_summary(self, base: Path) -> tuple[int, int]:
+        """references 文件数 + 字节数；不读正文、不跟随链接，最多数 MAX_REFERENCES 个。"""
+        root = base / "references"
+        if not self._contained(root) or not root.is_dir():
+            return 0, 0
+        count = 0
+        size = 0
+        visited = 0
+        for directory, dirs, files in os.walk(root, followlinks=False):
+            visited += 1
+            if visited > 256:
+                break
+            parent = Path(directory)
+            dirs[:] = sorted(
+                d for d in dirs
+                if self._contained(parent / d)
+                and len((parent / d).relative_to(root).parts) < 3
+            )
+            for filename in sorted(files):
+                target = parent / filename
+                if target.suffix.lower() not in REFERENCE_SUFFIXES or not self._contained(target):
+                    continue
+                try:
+                    size += target.stat().st_size
+                except OSError:
+                    continue
+                count += 1
+                if count >= MAX_REFERENCES:
+                    return count, size
+        return count, size
+
+    @staticmethod
+    def _iso_mtime(timestamp: float) -> str:
+        return dt.datetime.fromtimestamp(timestamp).astimezone().isoformat(timespec="seconds")
+
+    @staticmethod
+    def _tree_bytes(root: Path) -> int:
+        """有界统计一棵小目录的字节数；历史坏文件/无权限按 0 计，不抛错。"""
+        total = 0
+        visited = 0
+        try:
+            if not root.is_dir():
+                return 0
+            for directory, _dirs, files in os.walk(root, followlinks=False):
+                visited += 1
+                if visited > 512:
+                    break
+                for filename in files:
+                    target = Path(directory) / filename
+                    if target.is_symlink():
+                        continue
+                    try:
+                        total += target.stat().st_size
+                    except OSError:
+                        continue
+        except OSError:
+            return total
+        return total
 
     # ---------------------------------------------------------------- 写（互斥 + CAS + 版号）
 
@@ -482,6 +697,148 @@ class SkillStore:
             f"新修订 rev {new_rev.rev}；旧修订仍可再取）"
         )
 
+    def archive(
+        self,
+        name: str,
+        *,
+        expected_hash: str | None = None,
+        author: str = "user",
+        source: str = "workbench",
+        reason: str = "",
+    ) -> tuple[bool, str]:
+        """把技能移出正式技能库，保留在 `.archive/` 与修订历史里，可恢复。
+
+        为什么不是硬删除：技能是程序性记忆，直接删目录会连带丢掉"为什么这样
+        做"的经验；归档让它在 skills_list 里消失（模型不再误用），但用户仍能
+        在设置中心看见、恢复或翻历史。格式坏掉的技能也允许归档——否则它会
+        永久卡在技能库里既不能用也不能清理。
+        """
+        name = (name or "").strip()
+        if not NAME_RE.match(name):
+            return False, "错误：技能名不合法，无法归档"
+        archive_root = self._root / ARCHIVE_DIR
+        target = archive_root / name
+        meta: dict[str, Any] = {}
+        try:
+            with self._locked(name):
+                path = self._safe_path(name)
+                if path is None or not path.is_file():
+                    return False, f"错误：技能 {name} 不存在"
+                try:
+                    data = path.read_bytes()
+                except OSError as exc:
+                    return False, f"错误：读取技能失败（{exc}），本次未归档"
+                digest = _digest(data)
+                expected = (expected_hash or "").strip()
+                if len(expected) < MIN_HASH_PREFIX:
+                    expected = self._remembered(name)
+                if expected and not hash_matches(expected, digest):
+                    return False, (
+                        f"错误：技能 {name} 在你读取之后被改动过（当前内容指纹 {digest[:16]}，"
+                        f"期望 {expected[:16]}）。请重新读取后再归档；本次未修改任何内容"
+                    )
+                try:
+                    text = data.decode("utf-8")
+                except UnicodeError:
+                    text = ""
+                if text:
+                    try:
+                        self._snapshot_unversioned(name, text, parse_skill_text(text), digest)
+                    except (OSError, RevisionError):
+                        pass  # 历史落盘失败不阻止归档：技能本体移动仍可完成
+                if not self._contained(archive_root):
+                    return False, "错误：归档目录越出技能根，拒绝写入"
+                try:
+                    archive_root.mkdir(parents=True, exist_ok=True)
+                except OSError as exc:
+                    return False, f"错误：创建归档目录失败（{exc}）"
+                if target.exists() or target.is_symlink():
+                    return False, (
+                        f"错误：归档里已有同名技能 {name}。先恢复或清理旧归档，"
+                        "避免覆盖上一次的内容"
+                    )
+                try:
+                    path.parent.rename(target)
+                except OSError as exc:
+                    return False, f"错误：归档失败（{exc}），技能仍在技能库中"
+                latest = self._history.latest(self._key(name))
+                meta = {
+                    "name": name,
+                    "archived_at": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                    "archived_by": author,
+                    "source": source,
+                    "reason": (reason or "").strip()[:200],
+                    "version": latest.version if latest is not None else None,
+                    "rev": latest.rev if latest is not None else None,
+                }
+                try:
+                    atomic_write_text(
+                        archive_root / f"{name}.json",
+                        json.dumps(meta, ensure_ascii=False, indent=2) + "\n",
+                    )
+                except OSError:
+                    meta = {}
+                self._seen.pop(name, None)
+        except _Abort as exc:
+            return False, f"错误：{exc}"
+        note = "（历史仍可查看）" if meta else "（归档记录写入失败，历史仍可查看）"
+        return True, f"已归档技能 {name}：从技能库移除，内容保留在 .archive/，可随时恢复{note}"
+
+    def restore(self, name: str, *, author: str = "user", source: str = "workbench") -> tuple[bool, str]:
+        """把 `.archive/<name>` 恢复回正式技能库；同名技能已存在时拒绝覆盖。"""
+        name = (name or "").strip()
+        if not NAME_RE.match(name):
+            return False, "错误：技能名不合法，无法恢复"
+        archive = self._root / ARCHIVE_DIR / name
+        skill_md = archive / "SKILL.md"
+        if not skill_md.is_file() or not self._contained(skill_md):
+            return False, f"错误：归档里没有技能 {name}"
+        try:
+            with self._locked(name):
+                target = self._root / name
+                if target.exists() or target.is_symlink():
+                    return False, f"错误：技能库里已有同名技能 {name}，拒绝覆盖"
+                try:
+                    data = skill_md.read_bytes()
+                    text = data.decode("utf-8")
+                except (OSError, UnicodeError) as exc:
+                    return False, f"错误：读取归档内容失败（{exc}），未恢复"
+                parsed = parse_skill_text(text)
+                if parsed is None:
+                    return False, "错误：归档内容结构损坏，无法恢复（可手工修复 .archive 里的 SKILL.md）"
+                description = str(parsed["meta"].get("description") or "").strip()
+                if not description or len(description) > MAX_DESCRIPTION:
+                    return False, "错误：归档内容的 description 不合法，无法恢复"
+                problem = self._body_problem(str(parsed["body"]), minimum=True)
+                if problem:
+                    return False, f"错误：归档内容未通过校验，无法恢复：{problem}"
+                try:
+                    archive.rename(target)
+                except OSError as exc:
+                    return False, f"错误：恢复失败（{exc}），归档保持原样"
+                try:
+                    (self._root / ARCHIVE_DIR / f"{name}.json").unlink(missing_ok=True)
+                except OSError:
+                    pass
+                try:
+                    self._history.commit(
+                        self._key(name), text, author=author, source=source,
+                        summary="从归档恢复", version=self._int_version(parsed["meta"]),
+                        references=self._refs_manifest(name),
+                    )
+                except (OSError, RevisionError):
+                    pass
+                self._remember(name, _digest(text))
+        except _Abort as exc:
+            return False, f"错误：{exc}"
+        return True, f"已恢复技能 {name}：重新出现在技能库与 skills_list 中"
+
+    @staticmethod
+    def _int_version(meta: dict[str, Any]) -> int | None:
+        with contextlib.suppress(TypeError, ValueError):
+            return int(meta.get("version", 1))
+        return None
+
     # ---------------------------------------------------------------- 写路径内部
 
     def adopt(
@@ -590,7 +947,9 @@ class SkillStore:
         version = (current or 0) + 1
         next_meta = dict(meta)
         next_meta["version"] = version
-        next_meta["name"] = str(next_meta.get("name") or name)
+        # 文件名/目录名是权威：外部编辑把 frontmatter 的 name 改坏后，
+        # 任何一次写入都顺手修回目录名，避免 list 与详情路径分叉。
+        next_meta["name"] = name
         next_meta.setdefault("platforms", list(PLATFORMS))
         return next_meta, version
 

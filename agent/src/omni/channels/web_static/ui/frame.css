@@ -320,7 +320,13 @@ body[data-ui-page]:not([data-ui-page="workbench"]){
   background:var(--grad);
   box-shadow:0 2px 12px -3px color-mix(in srgb,var(--seed-accent) 62%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 38%,transparent);
 }
-.rail-brand .material-icons,.ui-rail-brand .material-icons{font-size:18px;color:#04121a}
+/* 品牌标 = 官网同款「小鱼」图形（ui/brand-mark.svg，64×44 视图、白鱼身 + 深色眼）。
+   工作台 .rail-brand 与子站 .ui-rail-brand 共用这一条规则，换标只改 svg 文件；
+   svg 自带 ?v= 查询串，改图时与 frame.css 版本串一起递增，避免浏览器缓存旧图形。 */
+.rail-brand::before,.ui-rail-brand::before{
+  content:"";width:24px;height:17px;flex-shrink:0;
+  background:url("/ui/brand-mark.svg?v=20261030a") center/contain no-repeat;
+}
 .rail-btn{
   position:relative;width:34px;height:32px;min-height:32px;padding:0;margin:0;flex:none;
   display:grid;place-items:center;border:1px solid transparent;border-radius:7px;

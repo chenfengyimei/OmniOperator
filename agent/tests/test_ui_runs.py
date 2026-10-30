@@ -46,4 +46,18 @@ def test_history_message_shows_its_tool_chain(ui):
     page.locator(".scaf", has_text="disk_check").click()
     out = page.locator(".scaf.open + .scaf-out").inner_text()
     assert "剩余 11.6 GB" in out
+
+    # 收起整条链：展开过的详情块必须跟着消失（旧 bug：隐藏规则与 .scaf.open+.scaf-out 同特异性且
+    # 后者在后，链收起后详情块继续露在开关行下面）
+    chain.locator(".scaf-toggle").click()
+    assert "open" not in (chain.get_attribute("class") or "")
+    assert not page.locator(".scaf.open + .scaf-out").first.is_visible()
+    assert not chain.locator(".scaf", has_text="disk_check").is_visible()
+
+    # 再次展开：不继承上一次的内部展开态，工具行回到折叠状态
+    chain.locator(".scaf-toggle").click()
+    tool_row = chain.locator(".scaf", has_text="disk_check")
+    assert tool_row.is_visible()
+    assert "open" not in (tool_row.get_attribute("class") or "")
+    assert not page.locator(".scaf.open + .scaf-out").first.is_visible()
     assert not errors

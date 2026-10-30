@@ -1,7 +1,7 @@
 // 上下文设置：只读统计与配置分开加载；保存只影响下次启动，不触发模型调用。
-import {$,esc} from './dom.js?v=20261030ctx1';
-import {api} from './api.js?v=20261030ctx1';
-import {S} from './state.js?v=20261030ctx1';
+import {$,esc} from './dom.js?v=20261031m3';
+import {api} from './api.js?v=20261031m3';
+import {S} from './state.js?v=20261031m3';
 
 let revision=null,dirty=false,saving=false,settingsLoading=false,statsVersion=0,settingsVersion=0;
 const number=value=>value==null?'未上报':Number(value).toLocaleString('zh-CN');
@@ -18,6 +18,20 @@ const labels={'limits.max_history_messages':'历史窗口','limits.max_agent_ste
 
 function setMessage(text,tone=''){
   const node=$('#context-save-msg');node.textContent=text;node.className='save-msg'+(tone?' '+tone:'');
+}
+function contextError(error){
+  if(error.status===404&&['Not Found','未找到内容或接口，请确认服务已更新'].includes(error.message)){
+    return '当前服务未提供上下文接口。请重启工作台服务，再刷新页面重试。';
+  }
+  return error.message||'请求失败，请重试。';
+}
+function renderStatsError(message){
+  $('#context-session').textContent='当前会话统计暂不可用';
+  $('#context-metrics').innerHTML='<div class="empty-rich" role="alert"><strong>会话统计读取失败</strong><p>'+esc(message)+'</p><button class="btn" data-action="context:refresh">重试统计</button></div>';
+  $('#context-breakdown').replaceChildren();$('#context-estimate-note').textContent='';
+  $('#context-cache').innerHTML='<div class="empty-rich"><strong>缓存统计暂不可用</strong><p>尚未取得缓存统计，重试后更新。本页不会调用模型。</p></div>';
+  $('#context-prefix').textContent='固定前缀信息暂不可用。';
+  $('#context-system-prompt').textContent='当前运行提示词暂不可用。';
 }
 function lock(){
   $('#context-controls').disabled=saving||settingsLoading||revision==null;
@@ -57,7 +71,7 @@ async function loadSettings({force=false}={}){
   try{
     const data=await api('/api/context/settings');if(version!==settingsVersion)return;
     renderSettings(data,true);setMessage('配置已读取；保存后需重启相应入口。');
-  }catch(error){if(version===settingsVersion){setMessage('读取失败：'+error.message,'err');OmniUI.notify(error.message,'error')}}
+  }catch(error){if(version===settingsVersion){const message=contextError(error);setMessage('读取失败：'+message,'err');OmniUI.notify(message,'error')}}
   finally{if(version===settingsVersion){settingsLoading=false;lock()}}
 }
 function metric(label,value,note){return `<div class="metric-card"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></div>`}
@@ -93,7 +107,7 @@ async function loadStats(){
     if(version!==statsVersion)return;
     if(session!==S.currentSession){loadStats();return}
     renderOverview(data);$('#context-stats-status').textContent='已更新 · '+new Date().toLocaleTimeString('zh-CN');
-  }catch(error){if(version===statsVersion){if(session!==S.currentSession){loadStats();return}$('#context-stats-status').textContent='统计读取失败：'+error.message;OmniUI.notify(error.message,'error')}}
+  }catch(error){if(version===statsVersion){if(session!==S.currentSession){loadStats();return}const message=contextError(error);renderStatsError(message);$('#context-stats-status').textContent='统计读取失败：'+message;OmniUI.notify(message,'error')}}
   finally{if(version===statsVersion)$('#context-refresh').disabled=false}
 }
 export function loadContext(){loadStats();loadSettings()}

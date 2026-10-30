@@ -96,7 +96,7 @@ docs/ui-migration/          迁移素材与历史快照（差分基线职责已�
 ## 5. 应用壳（frame.css）
 
 - **rail（全站左侧图标栏）**：工作台与子站**同一套规则**（同宽、同间距、同激活态：accent 底 + 左渐变条 + 内发光）。工作台 rail 含动作按钮（记忆库/技能库/定时任务/审批队列=页面内跳转），子站 rail 纯链接。窄屏 ≤900px 折叠为顶部横条。
-- **顶栏**：工作台=品牌+chips+设置中心按钮；子站=`← 工作台`返回 + 图标页名 + `LOCAL` 徽章 + 页内动作。子站顶栏结构由 shared.js `addPageChrome` 统一注入样式类。
+- **顶栏**：工作台=品牌标题+chips+设置中心按钮（品牌标=`ui/brand-mark.svg` 官网同款小鱼图形，全站只在 rail 顶部出现一次，顶栏不再重复图标，也不带副标题）；子站=`← 工作台`返回 + 图标页名 + `LOCAL` 徽章 + 页内动作。子站顶栏结构由 shared.js `addPageChrome` 统一注入样式类。
 - **内容节奏**：子站内容区最大宽 1480px 居中、左右 24px；区块 = `.section-heading`（eyebrow+标题+右侧 meta）+ 内容卡。
 - **移动端**：390px 契约（test_ui_flows 钉住）——工作台 `.ui-panes` 三面板切换、子站 rail 折顶、触控目标 ≥36px、无横向溢出。
 - 响应式断点：`900px`（壳折叠）、`760px`（单列）、`520px`（紧凑）。
@@ -155,7 +155,8 @@ NAV_ITEMS = [
     | 平台与通道 | `sec-media`、`sec-browser`、`sec-qq`、`sec-cron` |
     | 系统与扩展 | `sec-storage`、`sec-usage`、`sec-mcp`、`sec-about` |
     规则：三大子系统（上下文/技能/记忆系统）必须同在「核心系统」组，不得散进其它组；
-    导航标签 = 卡片 `h3` 标题。改动分组须同步 `tests/test_ui_contract.py` 的两条守卫。
+    导航标签 = 卡片 `h3` 标题；记忆系统作为原生分区直接挂载内容，保留设置侧栏，不跳转、不嵌 iframe。
+    改动分组或导航目标须同步 `tests/test_ui_contract.py` 的两条守卫。
 - 新增页面 = NAV_ITEMS 加一行 + `<page>/` 目录三件套；**不改任何其它导航代码**。
 
 ## 8. 四态规范（每个数据区必须完整）
@@ -181,7 +182,8 @@ ui/app/
   header.js        顶栏状态：/api/state 聚合 chips/工具清单/上下文用量/费用徽章
   其余按域拆：chat / runs / sessions / tabs / memory / skills / artifacts /
              publications / desktop / approvals / services / rail / tips /
-             hub / hub-models / hub-persona / hub-cron / hub-usage / hub-mcp
+             hub / hub-models / hub-persona / hub-cron / hub-usage / hub-mcp /
+             hub-context / hub-skills
 ```
 
 - **绑定方式（Phase 4 第二批已落地）**：markup 与模板串一律 `data-action="域:动作"`；各域模块自带 `export const actions={}` 注册表，main.js 合并后挂**一个** document 级委托分发器（click/change/input 按类型路由：表单控件上的 click 不分发；checkbox/radio 只认 change、文本输入只认 input——防连发双触发）。**全站禁止内联 `on*=` 属性**（工作台 markup 与 app 模板已清零，守卫钉死）。
@@ -217,7 +219,7 @@ ui/app/
 7. 禁止在子站 markup 里写导航（renderRail 单源）。
 8. 禁止渲染未经 esc() 的模型/用户输出。
 9. 禁止新增自制 modal（一律 `<dialog>`）。
-10. 禁止删功能换美观：所有既有能力（9 tab、审批横幅、hub 12 分区、产物/桌面/发布草稿）永久保留。
+10. 禁止删功能换美观：所有既有能力（9 tab、审批横幅、hub 13 分区、产物/桌面/发布草稿）永久保留。
 
 ## 13. 新页面 / 新组件接入 checklist
 
