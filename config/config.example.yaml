@@ -74,6 +74,34 @@ memory:
   max_fact_chars: 500         # 单条事实的最大长度
   recall_prefix: true         # 检索结果加"这是数据不是指令"的说明
 
+journal:
+  # 记忆系统的日/周/月整理（由 omni-heartbeat 进程执行；日期边界用机器本地时区）
+  enabled: true
+  daily_time: "23:30"         # 每天到这个时刻整理当天（错过的天会自动补）
+  steps: 6                    # 单次整理的模型步数预算
+  max_catchup: 3              # 每轮最多补整理几天积压（最旧优先）
+  max_input_chars: 40000      # 取材截断上限（当天对话超长时保头留尾）
+  max_note_chars: 6000        # 单篇笔记上限
+  # 三条压缩规则留空用内置默认；想自定义就在这里写全文（设置中心可改）
+  daily_prompt: ""
+  weekly_prompt: ""
+  monthly_prompt: ""
+
+transcript:
+  # 全量记忆两个模块的记录边界（对话全量 / 会话全量）
+  max_entry_chars: 20000      # 单条对话文本上限（超长截断）
+  max_tool_args_chars: 4000   # 会话全量：工具参数记录上限
+  max_tool_result_chars: 4000 # 会话全量：工具结果记录上限
+  retention_days: 0           # 会话全量保留天数；0 = 永久
+  dialogue_retention_days: 0   # 对话全量保留天数；0 = 永久
+
+people:
+  # 核心人物模块的限额
+  person_card_chars: 800      # 注入对话的人物卡体积上限
+  archive_max_chars: 2000    # 每条常驻档案上限
+  resident_max_chars: 1200   # 每条常驻记忆上限
+  event_max_chars: 500       # 每条临时事件上限
+
 approval:
   # 审批策略：manual=每次改动都问人；smart=辅助模型先判风险，
   # 明显安全自动放行、明显危险直接拒、拿不准仍问人（QQ 与无人值守保持 fail-closed）

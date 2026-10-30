@@ -493,6 +493,60 @@ class Cron(BaseModel):
     max_running: int = Field(default=2, ge=1, le=8)
 
 
+class Journal(BaseModel):
+    """记忆系统的日/周/月整理（M3/M4/M5 的编排参数）。
+
+    `*_prompt` 留空用内置默认规则（压缩规则本身要持久可改——存在配置里，
+    工作台「记忆系统 → 整理设置」可编辑）。日期边界一律用机器本地时区，
+    与全库 `_now()` 的口径一致。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    enabled: bool = True
+    daily_time: str = "23:30"      # 当天整理的触发时刻（HH:MM）
+    steps: int = Field(default=6, ge=1, le=12)          # 单次整理的模型步数预算
+    max_catchup: int = Field(default=3, ge=1, le=10)     # 每轮最多补整理几天积压
+    max_input_chars: int = Field(default=40000, ge=4000, le=200000)  # 取材截断上限
+    max_note_chars: int = Field(default=6000, ge=500, le=20000)      # 单篇笔记上限
+    daily_prompt: str = ""
+    weekly_prompt: str = ""
+    monthly_prompt: str = ""
+
+    @model_validator(mode="after")
+    def check_daily_time(self) -> "Journal":
+        import datetime as dt
+
+        parsed = dt.datetime.strptime(self.daily_time, "%H:%M")
+        if parsed.strftime("%H:%M") != self.daily_time:
+            raise ValueError("journal.daily_time 必须为 HH:MM")
+        return self
+
+
+class Transcript(BaseModel):
+    """全量记忆两个模块（M1/M2）的记录边界。
+
+    保留期 0 = 永久（默认）：全量记忆是"一字不差"的存档，用户明确要求完整保留；
+    设了天数则由整理循环滚动清理日志表（不动 messages）。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    max_entry_chars: int = Field(default=20000, ge=1000, le=200000)
+    max_tool_args_chars: int = Field(default=4000, ge=200, le=50000)
+    max_tool_result_chars: int = Field(default=4000, ge=200, le=50000)
+    retention_days: int = Field(default=0, ge=0, le=3650)          # 会话全量（M2）
+    dialogue_retention_days: int = Field(default=0, ge=0, le=3650)  # 对话全量（M1）
+
+
+class People(BaseModel):
+    """核心人物模块（M6）的限额：每条目上限与注入卡体积。"""
+
+    model_config = ConfigDict(extra="forbid")
+    person_card_chars: int = Field(default=800, ge=200, le=4000)
+    archive_max_chars: int = Field(default=2000, ge=200, le=8000)
+    resident_max_chars: int = Field(default=1200, ge=200, le=4000)
+    event_max_chars: int = Field(default=500, ge=50, le=2000)
+
+
 class AndroidConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     allowed_apps: list[str] = Field(default_factory=list, max_length=32)
@@ -553,6 +607,9 @@ class AppConfig(BaseModel):
     approval: Approval = Field(default_factory=Approval)
     mcp: MCPConfig = Field(default_factory=MCPConfig)
     cron: Cron = Field(default_factory=Cron)
+    journal: Journal = Field(default_factory=Journal)
+    transcript: Transcript = Field(default_factory=Transcript)
+    people: People = Field(default_factory=People)
     embedding: Embedding = Field(default_factory=Embedding)
     desktop: Desktop = Field(default_factory=Desktop)
 
