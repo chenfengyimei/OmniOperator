@@ -199,6 +199,7 @@ def qq_runtime(tmp_path):
 
 def test_a03_allowlisted_private_message_still_answered(qq_runtime):
     runtime = qq_runtime
+    runtime.config.qq.owner_qq = 10001  # 新人物隔离协议：只有已声明的所有者注入个人上下文。
     runtime.config.qq.allowed_users = [10001]
     runtime.config.qq.reply_delay_s = [0.0, 0.0]
     client = _FakeQQClient()
@@ -249,6 +250,7 @@ def test_a04_cron_delivery_with_empty_allowlist_is_refused():
 def test_a05_private_and_group_bindings_are_separate(qq_runtime):
     """私聊 `dm:<uid>`、群聊 `group:<gid>`：同一发送者跨场景不再共用历史。"""
     runtime = qq_runtime
+    runtime.config.qq.owner_qq = 10001
     runtime.config.qq.allowed_users = [10001]
     runtime.config.qq.allowed_groups = [200, 300]
     runtime.config.qq.reply_delay_s = [0.0, 0.0]

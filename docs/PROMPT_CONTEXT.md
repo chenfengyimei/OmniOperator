@@ -2,6 +2,8 @@
 
 本轮把会随时间和资料变化的内容移出 system，保留现有唯一 system、工具调用完整配对、群聊隔离与预算协议。架构裁决仍归 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
+统计与相关配置已整合到工作台设置中心“上下文”，可查看保留窗口、真实缓存上报和保存/运行配置差异。使用说明与 API 见 [CONTEXT_SETTINGS.md](CONTEXT_SETTINGS.md)。
+
 ## 请求顺序与模块职责
 
 ```text

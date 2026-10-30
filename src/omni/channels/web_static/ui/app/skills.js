@@ -1,8 +1,8 @@
 // 技能面板：列表 + 变更待审阅（D18）+ 编辑器（读原文带指纹 → 保存 CAS → 历史/差异/回滚）。
-import {$,esc} from './dom.js?v=20261030i';
-import {api} from './api.js?v=20261030i';
-import {openModal} from './modals.js?v=20261030i';
-import {setTabBadge} from './tabs.js?v=20261030i';
+import {$,esc} from './dom.js?v=20261030ctx1';
+import {api} from './api.js?v=20261030ctx1';
+import {openModal} from './modals.js?v=20261030ctx1';
+import {setTabBadge} from './tabs.js?v=20261030ctx1';
 
 export async function loadSkills(){
   const d=await api('/api/skills');

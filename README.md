@@ -118,6 +118,7 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 | `http-routing` | **HTTP 路由装配** — 聚合注入 Runtime 的领域路由，由应用入口统一挂载 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
 | `http-contracts` | **HTTP 请求契约** — 公共请求模型；只承载数据声明 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
 | `http-sessions` | **会话与待办 API** — 会话选择、历史、状态和待办 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
+| `http-context` | **上下文设置与统计** — 保留窗口、缓存样本、提示词指纹及配置保存 | [CONTEXT_SETTINGS](docs/CONTEXT_SETTINGS.md) |
 | `http-conversation` | **对话与流式 API** — 普通/流式对话、显式运行入口 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
 | `http-runs` | **运行与用量 API** — 运行查询、事件续读、协作取消和费用视图 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
 | `http-memory` | **记忆与档案 API** — 事实、档案、常驻、review 和检索状态 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |

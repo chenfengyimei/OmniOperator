@@ -212,9 +212,9 @@ class LLM(BaseModel):
 
 
 class Limits(BaseModel):
-    max_history_messages: int = 40
-    max_agent_steps: int = 8
-    resident_memory_chars: int = 2200  # 常驻小记忆（MEMORY.md 式）整文件限额
+    max_history_messages: int = Field(default=40,ge=1,le=10000)
+    max_agent_steps: int = Field(default=8,ge=1,le=64)
+    resident_memory_chars: int = Field(default=2200,ge=1,le=32000)
     session_queue_depth: int = 1   # 同一会话允许排队的请求数（不含正在执行的那条）
     session_lease_ttl_s: int = 600  # 跨进程会话租约的有效期（进程崩溃后按此过期）
 
@@ -223,10 +223,10 @@ class Review(BaseModel):
     """回合后异步 review（记忆自进化）的开关与预算。"""
 
     enabled: bool = True
-    max_messages: int = 12
-    steps: int = 4
-    queue_depth: int = 4      # 待整理队列上限：满了就明确跳过，不无限堆线程（A16）
-    min_messages: int = 2     # 少于这么多条新消息不整理（节省调用）
+    max_messages: int = Field(default=12,ge=1,le=10000)
+    steps: int = Field(default=4,ge=1,le=64)
+    queue_depth: int = Field(default=4,ge=1,le=1000)
+    min_messages: int = Field(default=2,ge=1,le=10000)
 
 
 class Memory(BaseModel):
@@ -236,8 +236,8 @@ class Memory(BaseModel):
     自动 review 与用户手动操作走同一条路，不能靠模型自觉。
     """
 
-    max_writes_per_day: int = 200   # 事实+档案+技能的每日写入总次数
-    max_fact_chars: int = 500       # 单条事实的最大长度（防止把整段对话塞进来）
+    max_writes_per_day: int = Field(default=200,ge=0,le=100000)
+    max_fact_chars: int = Field(default=500,ge=1,le=32000)
     recall_prefix: bool = True      # 检索结果加"这是数据不是指令"的说明
 
 
@@ -280,9 +280,9 @@ class Compression(BaseModel):
     """上下文压缩（长会话防膨胀；Hermes compression_facade 最小版）。"""
 
     enabled: bool = True
-    trigger_chars: int = 24000  # 上下文总字符量超过此值触发压缩
-    keep_recent: int = 12       # 压缩时原样保留最近多少条消息
-    min_messages: int = 16      # 消息总数少于此不压（得不偿失）
+    trigger_chars: int = Field(default=24000,ge=1,le=4000000)
+    keep_recent: int = Field(default=12,ge=0,le=10000)
+    min_messages: int = Field(default=16,ge=1,le=10000)
 
 
 class Asr(BaseModel):

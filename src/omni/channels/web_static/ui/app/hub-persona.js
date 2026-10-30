@@ -1,5 +1,5 @@
 // 人设预设方案（localStorage 持久化，可增删改；后续接入社区扩展包）。
-import {$,esc} from './dom.js?v=20261030i';
+import {$,esc} from './dom.js?v=20261030ctx1';
 
 const PRESET_KEY='omni_persona_presets';
 const SEED_PRESETS=[

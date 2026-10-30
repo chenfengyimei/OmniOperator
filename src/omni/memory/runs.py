@@ -335,6 +335,39 @@ class RunStore:
             )
         return out
 
+    def context_cache_usage(self, session_id: int, *, limit: int = 100) -> dict[str, Any]:
+        """聚合最近主对话 model_end 用量；未上报和未命中严格区分。"""
+        limit=max(1,min(int(limit),500))
+        rows=self._state._read(
+            "SELECT e.at,e.data FROM run_events e JOIN runs r ON r.run_id=e.run_id "
+            "WHERE r.session_id=? AND e.kind='model_end' ORDER BY e.at DESC,r.rowid DESC,e.seq DESC LIMIT ?",
+            (int(session_id),limit+1),
+        )
+        more=len(rows)>limit;rows=rows[:limit]
+        def token(value: Any) -> int | None:
+            return value if type(value) is int and value>=0 else None
+        cached=[];created=[];missed=[];ratio_hits=0;ratio_input=0;ratio_samples=0
+        for row in rows:
+            try:data=json.loads(row['data'])
+            except (TypeError,ValueError):continue
+            if not isinstance(data,dict):continue
+            hit=token(data.get('cached_prompt_tokens'));prompt=token(data.get('prompt_tokens'))
+            write=token(data.get('cache_creation_tokens'));miss=token(data.get('cache_miss_tokens'))
+            if hit is not None:
+                cached.append(hit)
+                if prompt and hit<=prompt:
+                    ratio_hits+=hit;ratio_input+=prompt;ratio_samples+=1
+            if write is not None:created.append(write)
+            if miss is not None:missed.append(miss)
+        return {'sample_count':len(rows),'reported_count':len(cached),'ratio_sample_count':ratio_samples,
+                'cached_tokens':sum(cached) if cached else None,
+                'creation_tokens':sum(created) if created else None,
+                'miss_tokens':sum(missed) if missed else None,
+                'hit_percent':round(100*ratio_hits/ratio_input,1) if ratio_input else None,
+                'reported_prompt_tokens':ratio_input if ratio_samples else None,
+                'limit':limit,'has_more':more,'latest_at':rows[0]['at'] if rows else None,
+                'note':'当前会话最近有记录的主对话模型调用；不含压缩/Review，未上报不计为零。'}
+
 
 def _row_to_run(row) -> Run:
     return Run(

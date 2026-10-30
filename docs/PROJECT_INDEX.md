@@ -4,6 +4,10 @@
 职责和组装根规则的唯一权威。本文回答“功能在哪里、怎么调用、加功能去哪个文件夹”。
 当前目录来自实际源码扫描，不把未实现功能画成现有模块。
 
+设置中心“上下文”集中展示窗口统计与配置；HTTP 归 `web_api/context.py`，界面归
+`ui/app/hub-context.js`，只读统计归内核，样本聚合归 RunStore，配置事务归 config_io。
+详细接口和生效规则见 [CONTEXT_SETTINGS.md](CONTEXT_SETTINGS.md)。
+
 提示词与上下文归 `core/context.py` / `core/compress.py`，回合快照存储归 `memory/store.py`，
 工具规格归 `tools/registry.py`，供应商缓存 token 归一化归 `llm/usage.py`。
 索引分类为“提示词与上下文”，设计和缓存边界见 [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md)。

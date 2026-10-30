@@ -214,6 +214,12 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 
 ### 3.10 持久上下文与索引生命周期（D11）
 
+设置中心的上下文统计通过 Agent.context_overview / compress.preview_context 只读渲染，不调用
+模型或写摘要；RunStore 按会话聚合有限 model_end 缓存样本，缺失值不作为零。
+channels/web_api/context 只适配注入 Runtime；system.config_io 的统一锁/CAS/白名单与原子写
+供普通设置和上下文设置共用。保存值与运行值分别展示，重启生效，不热改当前回合。
+相关界面与协议见 [CONTEXT_SETTINGS.md](CONTEXT_SETTINGS.md)。
+
 上下文不可能永远整段塞进 prompt，索引也不该每开一次连接就重建一次——两件事都在这一层解决。
 
 2026-10-30 缓存布局：`core/context.py` 将 system 限定为稳定人设/规则；时间、常驻笔记、

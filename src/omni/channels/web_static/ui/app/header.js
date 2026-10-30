@@ -1,8 +1,8 @@
 // 顶栏状态区：/api/state 聚合出 chips（人设/模型/费用/FTS/review）与工具清单，
 // 上下文 tokens 用量条（按字符估算的可视化）。
-import {$,esc,usd} from './dom.js?v=20261030i';
-import {api} from './api.js?v=20261030i';
-import {S} from './state.js?v=20261030i';
+import {$,esc,usd} from './dom.js?v=20261030ctx1';
+import {api} from './api.js?v=20261030ctx1';
+import {S} from './state.js?v=20261030ctx1';
 
 const CTX_COLORS={system:'var(--seed-accent)',tools:'var(--seed-accent2)',memory:'#fcd34d',conversation:'var(--ok)'};
 const fmtTokens=n=>{

@@ -945,3 +945,25 @@ body[data-ui-page="workbench"] .hub-back .material-icons{font-size:18px}
   #new-session,.svc-act,.tabs button{min-height:36px}
 }
 
+
+/* context-settings: 设置中心上下文统计和配置，组件视觉复用公共 token。 */
+#sec-context .context-heading>div{min-width:0;flex:1}
+#context-session,#context-stats-status{overflow-wrap:anywhere}
+#sec-context .context-heading{display:flex;gap:var(--r-card);align-items:center;justify-content:space-between;flex-wrap:wrap}
+#sec-context .context-heading h3{margin-bottom:4px}
+#sec-context .context-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:12px;margin:12px 0}
+#sec-context .metric-card{min-width:0;display:flex;flex-direction:column;gap:8px;padding:14px}
+#sec-context .metric-card strong{font-size:18px;overflow-wrap:anywhere}
+#sec-context .metric-card small{font-size:var(--fs-small);color:var(--text-3)}
+#sec-context .context-segment{display:grid;grid-template-columns:minmax(100px,1fr) minmax(60px,2fr) minmax(48px,auto);align-items:center;gap:12px;padding:8px 0;font-size:var(--fs-secondary)}
+#sec-context meter{width:100%;accent-color:var(--seed-accent)}
+#sec-context .context-segment b{text-align:right;font-family:var(--font-mono)}
+#sec-context pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto;padding:12px;background:var(--surface-inset);border:1px solid var(--line-2);border-radius:var(--r-md);font:var(--fs-secondary)/1.7 var(--font-mono)}
+#sec-context .context-pipeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding-left:24px}
+#sec-context .context-pipeline li{padding:8px;font-size:var(--fs-secondary);background:var(--surface-2);border-radius:var(--r-sm)}
+#sec-context fieldset{min-width:0;margin:0;padding:0;border:0}
+#sec-context .context-advanced{padding:12px;border:1px solid var(--line-2);border-radius:var(--r-md)}
+#sec-context summary{cursor:pointer;margin:12px 0;font-size:var(--fs-body)}
+#sec-context .context-setting-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;border-bottom:1px solid var(--line-3);padding:8px 0;font-size:var(--fs-secondary)}
+#sec-context .context-related{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+@media(max-width:760px){#sec-context .context-pipeline{grid-template-columns:repeat(2,minmax(0,1fr))}#sec-context .field-row{display:block}#sec-context .context-setting-row{font-size:var(--fs-small)}}

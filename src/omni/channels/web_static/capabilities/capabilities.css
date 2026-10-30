@@ -89,3 +89,8 @@ summary{cursor:pointer;color:#8dd9ca;font-size:12px}#checks [data-state="warning
 @media(max-width:600px){
   body[data-ui-page="capabilities"] .probe-tools{width:calc(100% - 20px)}
 }
+
+/* responsive-panels: 小屏同时折叠主区与诊断区，保留完整卡片宽度。 */
+@media(max-width:760px){
+  body[data-ui-page="capabilities"]>.cap-layout{grid-template-columns:minmax(0,1fr)}
+}

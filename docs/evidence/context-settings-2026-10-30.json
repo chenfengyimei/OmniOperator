@@ -1,0 +1,344 @@
+{
+  "date": "2026-10-30",
+  "scope": "设置中心上下文统计与配置整合",
+  "validation": {
+    "base_commit": "1e81c42c2bf2aff81b79afc92443c0a13d3d86d5",
+    "tested_tree": "1cc3f175106a54c2ac8d771273843a779c34afc6",
+    "source": "HEAD 加本批增量导出的独立源码副本；保留工作区并行未提交记忆/品牌/Review 改动",
+    "command": "python -m pytest -q --tb=short --junitxml=<artifact>",
+    "environment": "原仓库 uv 虚拟环境解释器；cwd 与 PYTHONPATH 指向导出源码，验证 PROJECT_ROOT，未重新安装依赖",
+    "tests": 1289,
+    "passed": 1289,
+    "failed": 0,
+    "skipped": 0,
+    "pytest_reported_seconds": 481.5,
+    "junit_suite_seconds": 481.312,
+    "started_at": "2026-10-30T12:37:13.530488+00:00",
+    "finished_at": "2026-10-30T12:45:19.304009+00:00",
+    "junit_artifact": ".pytest_cache/context-settings/candidate-full.xml",
+    "junit_sha256": "44ebc9d3500e29bdbeb25d6359a8c00c0f7d7aff6a4df7c3a581e0de384cea28",
+    "targeted": "上下文/小屏布局/社区文档/DOM 契约/设计 token 共 57 项通过，58.89 秒",
+    "source_sha256": {
+      "src/omni/channels/web.py": "5037173db1af97ed4fa2fa9ad08d99dad01b538890cebd3ef3b74b7755400b2a",
+      "src/omni/channels/web_api/__init__.py": "43811040ab548ea3ec9b0f162e19a91e4c6f70b641e1ff0cc483de431d3804ed",
+      "src/omni/channels/web_api/context.py": "6dd37b9eae9845d4324a91a434e8bbfba34637670f7f40c3abd70e67741115ca",
+      "src/omni/channels/web_api/sessions.py": "a7844e25d1f34c2ae5b108ca56e0ba0123fcf69fda4bebfff0e5cf5a58a5ca04",
+      "src/omni/channels/web_static/android/android.js": "f4ab36712b793b870078da48bc0fc7f3b20e473dc344da4aa5b4b6911151eefe",
+      "src/omni/channels/web_static/android/index.html": "9d02a7cea8958b9e2f85ac41c58aa2495aeb3ca97945f773348fe5267ea71e72",
+      "src/omni/channels/web_static/capabilities/capabilities.css": "c522ea3d78693bb80995fa886fa7f201f14e3a9cb04499b63d973f13f1cf5efd",
+      "src/omni/channels/web_static/capabilities/capabilities.js": "3b542587c0c6f85b2a754e6550da3f68db6ea949241b4c1b7eb18d6b7eb41909",
+      "src/omni/channels/web_static/capabilities/index.html": "a3829670a05adb9093729bf5bd67eb6415844991cfb0e839cf64c675f8542800",
+      "src/omni/channels/web_static/index.html": "b9d967248f327ead20ec7c9ec066cc2c2f0a11c0442f000a404d750b0ebe6533",
+      "src/omni/channels/web_static/jobs/index.html": "e7ff5ae7fc85bb3f63706dd73693b74aee5e510a1b292f64ae4bb5ed5b54c2d6",
+      "src/omni/channels/web_static/jobs/jobs.js": "ce4fe9455a91eca566b3714e43be6021a8fb6d3029c3c906ac55a83d893c0582",
+      "src/omni/channels/web_static/mcp/index.html": "c435849199f84b8df3a74a7af76f3080f0efa039b0135f696960c0951c95ec35",
+      "src/omni/channels/web_static/mcp/mcp.js": "8ae4166ae901b8a81af0ca2308e23ed88e29a787c859258a321e7d8035fabb84",
+      "src/omni/channels/web_static/project/index.html": "474d429bf051f6b0eacd5e7d22796f2e5aadf5b9b64bfd9013c4b8296a30992a",
+      "src/omni/channels/web_static/project/project.js": "504b7f08814d207adec8d796a554d94041b52267b6aa183c7b8b262ed23597c1",
+      "src/omni/channels/web_static/storage/index.html": "9da8f8dd6e1bc3247eefed708b54098abdca3e22e5edbd6bed2e5ac2ee098751",
+      "src/omni/channels/web_static/storage/storage.js": "f7769e843fe2109ae9c5ee8c9dedd88b0eabe7479c78fcea75447cbf2ff28c2f",
+      "src/omni/channels/web_static/terminal/index.html": "0743c8b7ce7ce2dde13aece009fc6a938eb6fac2d3840f8760aa8aad278855c1",
+      "src/omni/channels/web_static/terminal/terminal.css": "6d56324682d1f85081eef1215f3e8c9ff56345f3350c9b3c5e8815ba489cefac",
+      "src/omni/channels/web_static/terminal/terminal.js": "bab34637ae8741fb345e9bb1bbc90db6b7613b8065a8bac2463c07e46ef93592",
+      "src/omni/channels/web_static/ui/app/approvals.js": "2388f2dd946ad373c733217c2b58fe603958ef7d06933c9094f675260e2edb25",
+      "src/omni/channels/web_static/ui/app/artifacts.js": "179c455a8ea78387652fc5ef3b9f472d8b3315985b5465111cc1598ab489f474",
+      "src/omni/channels/web_static/ui/app/chat.js": "6cfd472fe99eb3cb50b4fd87f7d8de64cff136d2bf0efc5406e3b1c2adfe8a14",
+      "src/omni/channels/web_static/ui/app/desktop.js": "5de98b78223b02ab9927236db2a0fe62b599501bb4f07c12e7eb66d17f06d3c0",
+      "src/omni/channels/web_static/ui/app/header.js": "27f3f2692d919df16e71e6421b9cb02acc011c3c2fa9524e55eaacf1385c613b",
+      "src/omni/channels/web_static/ui/app/hub-context.js": "b0db29db9d0100bc505d0851f8c4a91fe88c07d4fd4ed2c681d4d257ecb89ee1",
+      "src/omni/channels/web_static/ui/app/hub-cron.js": "e53eb8bde52f93eac121f74019dfabfaf42c942868743002a2c5dddd7ae0eab1",
+      "src/omni/channels/web_static/ui/app/hub-mcp.js": "f7aea8ce481dc6ee6a4875fc9b40bbcccce54bde75d9b3fe161a7cb85df72f10",
+      "src/omni/channels/web_static/ui/app/hub-models.js": "abd7e14b052a6d2bc16b22670e55d7de4512645a67b2597fa44e773b773d0012",
+      "src/omni/channels/web_static/ui/app/hub-persona.js": "93b21f90296041782d6c9aec9026ca542853419b7a3e48b32379718814fc56bd",
+      "src/omni/channels/web_static/ui/app/hub-usage.js": "3fd44c38edb5226425012abe4b48f4a27dd883e486f0def4f17c2c6e71a1096b",
+      "src/omni/channels/web_static/ui/app/hub.js": "0089b9bc561f9ddaff89fc8b2650bc23c8616d738812ebb176b12a86f61241ed",
+      "src/omni/channels/web_static/ui/app/main.js": "caf87a16cda9c276b4d38cd2e21849f2cb15085cfbbe217fa9f82393192e4947",
+      "src/omni/channels/web_static/ui/app/memory.js": "2a9ca48e81721c90fb4dc2f56c6377f8491e7a021553489c9c8b54e26bdd4854",
+      "src/omni/channels/web_static/ui/app/modals.js": "c886ca8e4d9e4b5f01af9f0a0860cadf83ebddeb0ca62889ff6000921402c2cd",
+      "src/omni/channels/web_static/ui/app/publications.js": "5b33b741ce9156c147be9908c19c43156b47ba4718865aa18a39b45b95ee7acb",
+      "src/omni/channels/web_static/ui/app/rail.js": "324fe151c9f1f52f26140a20f07c2ee9f7a0d525c21602d745067d41bfa050ae",
+      "src/omni/channels/web_static/ui/app/runs.js": "40e080ed8b210ee871a5ca8afc95cb66c209100d5eaaee16cce48dc197e4bdf2",
+      "src/omni/channels/web_static/ui/app/services.js": "97df833ddc4f7ca659f6789bd66efc3b418e63c72120fe1c571ec95f77c7f572",
+      "src/omni/channels/web_static/ui/app/sessions.js": "4713dde8f796577260fbdf6feec378a02d4f88d7e10ddbdb2717bb038f2c65a9",
+      "src/omni/channels/web_static/ui/app/skills.js": "a9776fd4521f680a0895a837fff9910a6825255ac01006422ef426a7b6a44a86",
+      "src/omni/channels/web_static/ui/app/tabs.js": "23789d9023fe00a8a6e7ee1f215584a05ffb14b714c3d8b4d0f7689c7ec22d9b",
+      "src/omni/channels/web_static/ui/app/tips.js": "fd4f1fa696b1130cff140444adfdafb1b123ab20a77fc1d3e3f518e47e32a80e",
+      "src/omni/channels/web_static/ui/workbench.css": "83e3aeadf2a3d6f4fa598d62fa7bcaaad8efadfd0aedd6e98e86000d502a63d5",
+      "src/omni/config.py": "f3d145a0a215df972abade0f47cffc46ce601918b3f5702bc670a1338111f18a",
+      "src/omni/core/agent.py": "ab5582a7e86f9f5c3546a3599e4e5ddc4c1fc4995f62eccc2b7a8c0aff7a013b",
+      "src/omni/core/compress.py": "379ff1d10d9bbebe05385b3ca106c8361fa80f6335da2ab1edf3834f55dba796",
+      "src/omni/memory/runs.py": "550587c0419a24b99e3eb3fd857130f048727545c97b97680fa0effe2bee26c9",
+      "src/omni/system/catalog/schema.py": "80ae4783c8169fb1a7203199c25c6949a9152e78e4384bc6716f2cc9489435da",
+      "src/omni/system/config_io.py": "2937b8fb170d2b138fad3e8dd1a7db943cd71b3171356f61d95d134783c7568f",
+      "tests/test_context_settings.py": "a2d5e8dee3def54e5fb72fe29c0e60cd40b0e68fa619fe5669f6d524d8b00c26",
+      "tests/test_r0_repro.py": "a9e19c06b25c2768e0064b571de4b97e04db95c9ad826d9a77073791f3012e16",
+      "tests/test_ui_responsive.py": "d6ffa0c10e8eab1342b4ee79461085cb2ee760d5d135aab18df1559cb1a29eff"
+    }
+  },
+  "checks": {
+    "project_index": "56 modules / 258 files / 153 declared routes / 86 declared tools; --check stale=empty",
+    "ui_contract": "173 IDs / 138 JS ID references / 26 app modules / 75 actions; all four guards pass",
+    "screenshots": 40,
+    "viewport_widths": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "page_errors": [],
+    "document_horizontal_overflow": [],
+    "temporary_runtime_closed": true,
+    "visual_review": "八页四视口及上下文统计/展开设置各四视口；修正新页卡片收缩、旧终端目录控件裁切与能力页主区窄列，补逐控件边界回归。",
+    "demo_data": "模型用量为隔离测试写入的示例事件，85% 仅为界面演示，不是真实模型命中率。"
+  },
+  "screenshots": [
+    {
+      "page": "workbench",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/workbench-390.png",
+      "sha256": "c2f6e7d5b0b066c9336530fda7904728a3a7d49bf2b0fcb84b06c70cb5ab3005"
+    },
+    {
+      "page": "capabilities",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/capabilities-390.png",
+      "sha256": "825b55c6a16a00584197480a77a2f6101068e460a98b4277454561c18541a2fc"
+    },
+    {
+      "page": "jobs",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/jobs-390.png",
+      "sha256": "527ad0929661637ecfe3ecc6679318a0953f1385c2d28d94a585151baf5e36b7"
+    },
+    {
+      "page": "mcp",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/mcp-390.png",
+      "sha256": "c8fc1edd60d04fae46587772db5fa61598002d6c9bfb6258507bb279ef1df602"
+    },
+    {
+      "page": "terminal",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/terminal-390.png",
+      "sha256": "a345329b4d91a6cbf48ce7e9deb1d96be96a0da043cb6e8bcf8dee6e1e7ae511"
+    },
+    {
+      "page": "android",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/android-390.png",
+      "sha256": "4300250b539e73843e2069ade198d6fbdf3a32faf9234aac4d28c47908a1def2"
+    },
+    {
+      "page": "project",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/project-390.png",
+      "sha256": "384125d812d6355c917bad92bbcb5cfda649063c167630154add6a0168fedf82"
+    },
+    {
+      "page": "storage",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/storage-390.png",
+      "sha256": "1c9dd291b142b49912cdfaf41cf1782c23651200ac4d3ae917966bf05d612087"
+    },
+    {
+      "page": "context",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/context-390.png",
+      "sha256": "0b7ddbd31b96dd6de17b6bd8cbee4877c023933fc50686a62c63d49dc1578a98"
+    },
+    {
+      "page": "context-settings",
+      "width": 390,
+      "artifact": ".pytest_cache/context-settings/shots/context-settings-390.png",
+      "sha256": "1d3db893f31937efa6404644cb1dbc9efc608bb2a5ea56d1f4f803b478db7870"
+    },
+    {
+      "page": "workbench",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/workbench-760.png",
+      "sha256": "a6998cfbd288a9d5ffd579a95729b0872bddddb73059af5032137ff43dc59857"
+    },
+    {
+      "page": "capabilities",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/capabilities-760.png",
+      "sha256": "7fc385b15c44961c92ecf130af28e4975295aaea2b35759584c1943220b1c487"
+    },
+    {
+      "page": "jobs",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/jobs-760.png",
+      "sha256": "c9413f1e1c941021f1e98188e04ba5da8e46824535121cdeaa468168135694b3"
+    },
+    {
+      "page": "mcp",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/mcp-760.png",
+      "sha256": "eacd21d6194c21b614f557d3c47789eb13062239452f781dd448d2d0a344714d"
+    },
+    {
+      "page": "terminal",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/terminal-760.png",
+      "sha256": "10c692b0e9043a471e10a6d5dfebb93f9f75fc1318d18b1ac57103ef893ce2b3"
+    },
+    {
+      "page": "android",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/android-760.png",
+      "sha256": "8d1a680a919041dfaa718b910b9267a2aa5fa2b382d457c1e580d8aabf0faa31"
+    },
+    {
+      "page": "project",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/project-760.png",
+      "sha256": "c608114f7cf0ce9e9ed6e052b0326d86a7ca973cbf78dd67dbc1654a099ea5c6"
+    },
+    {
+      "page": "storage",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/storage-760.png",
+      "sha256": "26e0e85df65a1433a9688f85114db270b349c7edde396937428a4c17963db04f"
+    },
+    {
+      "page": "context",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/context-760.png",
+      "sha256": "4c915e817c6faf807861de145758f93acd7fd54ab5f7e467ec13feef0a5ac9de"
+    },
+    {
+      "page": "context-settings",
+      "width": 760,
+      "artifact": ".pytest_cache/context-settings/shots/context-settings-760.png",
+      "sha256": "36f9762d00a0a7b733ec8eb13b28f87877789c6c57ab86e56578736bbca4c17a"
+    },
+    {
+      "page": "workbench",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/workbench-1024.png",
+      "sha256": "b6f753f76917e0fb2235772decc0fa78e05f27ca2b531a50360d260c8aaadd14"
+    },
+    {
+      "page": "capabilities",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/capabilities-1024.png",
+      "sha256": "4b044d531dbc6b12d4a389e278546499b52b036151e928c36423b444e34a3dd9"
+    },
+    {
+      "page": "jobs",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/jobs-1024.png",
+      "sha256": "ba19acb9b1cd2beb4f9fad4cb126f390398b6722afd1c5b5f6c9de629dc1267c"
+    },
+    {
+      "page": "mcp",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/mcp-1024.png",
+      "sha256": "418ed29122916f19ec1058109ac436aeb34766b5569942f2f27045363cb7e1b8"
+    },
+    {
+      "page": "terminal",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/terminal-1024.png",
+      "sha256": "76b52be7b067716fa2683a3988cfc802b70fcc71e3601968e560d4f836fae511"
+    },
+    {
+      "page": "android",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/android-1024.png",
+      "sha256": "a909e9d6a4e600c308328d6ad8508604e568526e755199c84b6a8f47ed9c538b"
+    },
+    {
+      "page": "project",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/project-1024.png",
+      "sha256": "79a8fb60698ce5f0621507b8f713787d9634d3b52032a7b7e4a703f9d8a5a891"
+    },
+    {
+      "page": "storage",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/storage-1024.png",
+      "sha256": "f5fb416806b6818fbfa09f3dc9ce948844d09edf2317c721d65f948963413da3"
+    },
+    {
+      "page": "context",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/context-1024.png",
+      "sha256": "62a95f48b1f1c53893e38d49e4c4c68769b4838a341f18f4bb802c9c3292f76e"
+    },
+    {
+      "page": "context-settings",
+      "width": 1024,
+      "artifact": ".pytest_cache/context-settings/shots/context-settings-1024.png",
+      "sha256": "0731a54de0557df5fe23fd45ab17bd4921cf3123e0b1663225d8be635fe009f7"
+    },
+    {
+      "page": "workbench",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/workbench-1440.png",
+      "sha256": "1008866e1513593e812b28ed4abafd06e6555036fb554af687632e70a590cf5a"
+    },
+    {
+      "page": "capabilities",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/capabilities-1440.png",
+      "sha256": "fbddecdda4904e6af636762f32bb7e1869aa5ded6ccdc337d9fde64eb4a53908"
+    },
+    {
+      "page": "jobs",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/jobs-1440.png",
+      "sha256": "bde4cdde661cbfad660ce3d60985089cfb61145048282b2fa48e3ba986f9f38e"
+    },
+    {
+      "page": "mcp",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/mcp-1440.png",
+      "sha256": "47289c8a48782b64f9c3464617a1024b30b11691f69389138371c94355a60114"
+    },
+    {
+      "page": "terminal",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/terminal-1440.png",
+      "sha256": "5da87c6a4886e1f47c66c09b1cacf16bb242a9a5cd090a96582ccc45c406b6e7"
+    },
+    {
+      "page": "android",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/android-1440.png",
+      "sha256": "4b14f72442555b55f35ea9a2c8c7821a51730a1760fd73fe4f467bb9626372cf"
+    },
+    {
+      "page": "project",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/project-1440.png",
+      "sha256": "6b4dece1797555fd580bcf6f57848a5346d58eb99fdb58c0b4efac0f15b29406"
+    },
+    {
+      "page": "storage",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/storage-1440.png",
+      "sha256": "541b99d239c19b19599889a316b13bcf7bd4c080b0c710fd65cda5c93e54455d"
+    },
+    {
+      "page": "context",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/context-1440.png",
+      "sha256": "82c6ca87ee094a8a29dc6e3bb6a897ebecda1d1ab4ed38e89a9d73909d854982"
+    },
+    {
+      "page": "context-settings",
+      "width": 1440,
+      "artifact": ".pytest_cache/context-settings/shots/context-settings-1440.png",
+      "sha256": "45303d64f7cfffb453c900a404af9b31c871d3ea4168d2c8b4ad692350d45720"
+    }
+  ],
+  "limits": [
+    "只读统计不调用模型，不取新回合时间，不写摘要。",
+    "缓存仅聚合当前会话最近 100 条有记录的主对话 model_end，不含压缩/Review。",
+    "配置仅保存文件，重启相应入口后生效；真实服务未重启，未操作真实设备或账号。",
+    "收尾修改的子站入口与两处响应式样式已更新引用版本；无实际人工 PTY 输入或手机动作。",
+    "截图文件与 JUnit 留在本地忽略的测试缓存，仓库仅保存摘要与哈希；不提交登录状态或私人记忆。",
+    "离线通过不替代真实模型缓存效果与 72 小时验收。"
+  ]
+}

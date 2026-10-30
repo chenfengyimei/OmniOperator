@@ -8,19 +8,19 @@
 
 Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记账。
 
-`create_conversation_router.chat`（[src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L43)） → `Agent.run_turn`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L340)） → `Agent._chat`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L522)） → `Gateway.complete`（[src/omni/llm/gateway.py](../../src/omni/llm/gateway.py#L339)）
+`create_conversation_router.chat`（[src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L43)） → `Agent.run_turn`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L383)） → `Agent._chat`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L565)） → `Gateway.complete`（[src/omni/llm/gateway.py](../../src/omni/llm/gateway.py#L339)）
 
 ## 模型调用工具
 
 模型工具调用经统一注册表和审批；结果按原调用顺序回填。
 
-`Agent._execute_tool_calls`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L654)） → `ToolRegistry.execute`（[src/omni/tools/registry.py](../../src/omni/tools/registry.py#L142)） → `WebApprover`（[src/omni/safety/gates.py](../../src/omni/safety/gates.py#L123)） → `ToolResult`（[src/omni/tools/result.py](../../src/omni/tools/result.py#L35)）
+`Agent._execute_tool_calls`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L697)） → `ToolRegistry.execute`（[src/omni/tools/registry.py](../../src/omni/tools/registry.py#L142)） → `WebApprover`（[src/omni/safety/gates.py](../../src/omni/safety/gates.py#L123)） → `ToolResult`（[src/omni/tools/result.py](../../src/omni/tools/result.py#L35)）
 
 ## 流式与取消
 
 流式响应和持久运行事件是两条接口；停止通过协作取消传播。
 
-`create_conversation_router.chat_stream`（[src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L74)） → `Agent.run_turn`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L340)） → `Gateway.stream`（[src/omni/llm/gateway.py](../../src/omni/llm/gateway.py#L425)） → `RunStore`（[src/omni/memory/runs.py](../../src/omni/memory/runs.py#L87)）
+`create_conversation_router.chat_stream`（[src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L74)） → `Agent.run_turn`（[src/omni/core/agent.py](../../src/omni/core/agent.py#L383)） → `Gateway.stream`（[src/omni/llm/gateway.py](../../src/omni/llm/gateway.py#L425)） → `RunStore`（[src/omni/memory/runs.py](../../src/omni/memory/runs.py#L87)）
 
 ## 交互式终端
 
@@ -74,15 +74,18 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/artifacts` | `create_artifacts_router.list_artifacts` | [src/omni/channels/web_api/artifacts.py](../../src/omni/channels/web_api/artifacts.py#L31) |
 | workbench | DELETE | `/api/artifacts/{artifact_id}` | `create_artifacts_router.delete_artifact` | [src/omni/channels/web_api/artifacts.py](../../src/omni/channels/web_api/artifacts.py#L73) |
 | workbench | GET | `/api/artifacts/{artifact_id}/image` | `create_artifacts_router.artifact_image` | [src/omni/channels/web_api/artifacts.py](../../src/omni/channels/web_api/artifacts.py#L60) |
-| workbench | POST | `/api/auth/logout` | `create_app.auth_logout` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L196) |
-| workbench | POST | `/api/auth/pair` | `create_app.auth_pair` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L181) |
-| workbench | GET | `/api/auth/status` | `create_app.auth_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L173) |
+| workbench | POST | `/api/auth/logout` | `create_app.auth_logout` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L198) |
+| workbench | POST | `/api/auth/pair` | `create_app.auth_pair` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L183) |
+| workbench | GET | `/api/auth/status` | `create_app.auth_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L175) |
 | workbench | GET | `/api/capabilities` | `create_capabilities_router.capabilities` | [src/omni/channels/web_api/capabilities.py](../../src/omni/channels/web_api/capabilities.py#L12) |
 | workbench | POST | `/api/chat` | `create_conversation_router.chat` | [src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L43) |
 | workbench | POST | `/api/chat/stream` | `create_conversation_router.chat_stream` | [src/omni/channels/web_api/conversation.py](../../src/omni/channels/web_api/conversation.py#L74) |
 | workbench | GET | `/api/command-jobs` | `create_command_jobs_router.list_jobs` | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py#L9) |
 | workbench | GET | `/api/command-jobs/{identifier}` | `create_command_jobs_router.read_job` | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py#L13) |
 | workbench | POST | `/api/command-jobs/{identifier}/cancel` | `create_command_jobs_router.cancel_job` | [src/omni/channels/web_api/command_jobs.py](../../src/omni/channels/web_api/command_jobs.py#L19) |
+| workbench | GET | `/api/context` | `create_context_router.overview` | [src/omni/channels/web_api/context.py](../../src/omni/channels/web_api/context.py#L49) |
+| workbench | GET | `/api/context/settings` | `create_context_router.get_settings` | [src/omni/channels/web_api/context.py](../../src/omni/channels/web_api/context.py#L60) |
+| workbench | PUT | `/api/context/settings` | `create_context_router.update` | [src/omni/channels/web_api/context.py](../../src/omni/channels/web_api/context.py#L65) |
 | workbench | GET | `/api/desktop/observe/{window}` | `create_devices_router.desktop_observe` | [src/omni/channels/web_api/devices.py](../../src/omni/channels/web_api/devices.py#L28) |
 | workbench | GET | `/api/desktop/windows` | `create_devices_router.desktop_windows` | [src/omni/channels/web_api/devices.py](../../src/omni/channels/web_api/devices.py#L19) |
 | workbench | GET | `/api/facts` | `create_memory_router.get_facts` | [src/omni/channels/web_api/memory.py](../../src/omni/channels/web_api/memory.py#L19) |
@@ -137,11 +140,11 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/runs/{run_id}` | `create_runs_router.run_get` | [src/omni/channels/web_api/runs.py](../../src/omni/channels/web_api/runs.py#L28) |
 | workbench | POST | `/api/runs/{run_id}/cancel` | `create_runs_router.run_cancel` | [src/omni/channels/web_api/runs.py](../../src/omni/channels/web_api/runs.py#L47) |
 | workbench | GET | `/api/runs/{run_id}/events` | `create_runs_router.run_events` | [src/omni/channels/web_api/runs.py](../../src/omni/channels/web_api/runs.py#L35) |
-| workbench | GET | `/api/sessions` | `create_sessions_router.get_sessions` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L84) |
-| workbench | POST | `/api/sessions` | `create_sessions_router.create_session` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L98) |
-| workbench | GET | `/api/sessions/{session_id}/messages` | `create_sessions_router.get_messages` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L108) |
-| workbench | POST | `/api/sessions/{session_id}/select` | `create_sessions_router.select_session` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L102) |
-| workbench | GET | `/api/sessions/{session_id}/todos` | `create_sessions_router.get_todos` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L120) |
+| workbench | GET | `/api/sessions` | `create_sessions_router.get_sessions` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L46) |
+| workbench | POST | `/api/sessions` | `create_sessions_router.create_session` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L60) |
+| workbench | GET | `/api/sessions/{session_id}/messages` | `create_sessions_router.get_messages` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L70) |
+| workbench | POST | `/api/sessions/{session_id}/select` | `create_sessions_router.select_session` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L64) |
+| workbench | GET | `/api/sessions/{session_id}/todos` | `create_sessions_router.get_todos` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L82) |
 | workbench | GET | `/api/skills` | `create_skills_router.get_skills` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L19) |
 | workbench | POST | `/api/skills/ack-all` | `create_skills_router.skills_ack_all` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L71) |
 | workbench | GET | `/api/skills/pending` | `create_skills_router.skills_pending` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L32) |
@@ -153,7 +156,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/skills/{name}/revision/{rev}` | `create_skills_router.skill_revision` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L181) |
 | workbench | POST | `/api/skills/{name}/rollback` | `create_skills_router.skill_rollback` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L211) |
 | workbench | POST | `/api/skills/{name}/save` | `create_skills_router.skill_save` | [src/omni/channels/web_api/skills.py](../../src/omni/channels/web_api/skills.py#L139) |
-| workbench | GET | `/api/state` | `create_sessions_router.get_state` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L22) |
+| workbench | GET | `/api/state` | `create_sessions_router.get_state` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L19) |
 | workbench | GET | `/api/storage` | `create_storage_router.overview` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L57) |
 | workbench | PUT | `/api/storage` | `create_storage_router.update` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L68) |
 | workbench | GET | `/api/storage/files` | `create_storage_router.files` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L90) |
@@ -162,10 +165,10 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/storage/preview-file` | `create_storage_router.preview_file` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L115) |
 | workbench | POST | `/api/storage/upload` | `create_storage_router.upload` | [src/omni/channels/web_api/storage.py](../../src/omni/channels/web_api/storage.py#L141) |
 | workbench | POST | `/api/system/backup` | `create_operations_router.system_backup` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L27) |
-| workbench | GET | `/api/system/bili-cookies` | `create_app.bili_cookies_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L343) |
-| workbench | POST | `/api/system/bili-cookies` | `create_app.save_bili_cookies` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L355) |
-| workbench | GET | `/api/system/config` | `create_app.system_config` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L234) |
-| workbench | POST | `/api/system/config` | `create_app.system_config_save` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L304) |
+| workbench | GET | `/api/system/bili-cookies` | `create_app.bili_cookies_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L341) |
+| workbench | POST | `/api/system/bili-cookies` | `create_app.save_bili_cookies` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L353) |
+| workbench | GET | `/api/system/config` | `create_app.system_config` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L236) |
+| workbench | POST | `/api/system/config` | `create_app.system_config_save` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L306) |
 | workbench | GET | `/api/system/cron` | `create_automation_router.cron_list` | [src/omni/channels/web_api/automation.py](../../src/omni/channels/web_api/automation.py#L59) |
 | workbench | POST | `/api/system/cron/create` | `create_automation_router.cron_create` | [src/omni/channels/web_api/automation.py](../../src/omni/channels/web_api/automation.py#L22) |
 | workbench | POST | `/api/system/cron/delete` | `create_automation_router.cron_delete` | [src/omni/channels/web_api/automation.py](../../src/omni/channels/web_api/automation.py#L159) |
@@ -177,13 +180,13 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | POST | `/api/system/cron/update` | `create_automation_router.cron_update` | [src/omni/channels/web_api/automation.py](../../src/omni/channels/web_api/automation.py#L93) |
 | workbench | GET | `/api/system/doctor` | `create_operations_router.system_doctor` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L23) |
 | workbench | GET | `/api/system/logs/{name}` | `create_operations_router.system_logs` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L55) |
-| workbench | POST | `/api/system/model-key` | `create_app.model_key_set` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L380) |
-| workbench | GET | `/api/system/model-keys` | `create_app.model_keys` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L375) |
-| workbench | POST | `/api/system/model-test` | `create_app.model_test` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L397) |
+| workbench | POST | `/api/system/model-key` | `create_app.model_key_set` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L378) |
+| workbench | GET | `/api/system/model-keys` | `create_app.model_keys` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L373) |
+| workbench | POST | `/api/system/model-test` | `create_app.model_test` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L395) |
 | workbench | GET | `/api/system/napcat/qr` | `create_operations_router.system_napcat_qr` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L51) |
 | workbench | GET | `/api/system/overview` | `create_operations_router.system_overview` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L19) |
-| workbench | GET | `/api/system/qq-policy` | `create_app.qq_policy_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L324) |
-| workbench | POST | `/api/system/qq-policy/stop` | `create_app.qq_policy_stop` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L335) |
+| workbench | GET | `/api/system/qq-policy` | `create_app.qq_policy_status` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L322) |
+| workbench | POST | `/api/system/qq-policy/stop` | `create_app.qq_policy_stop` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L333) |
 | workbench | POST | `/api/system/services/{name}/start` | `create_operations_router.system_service_start` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L35) |
 | workbench | POST | `/api/system/services/{name}/stop` | `create_operations_router.system_service_stop` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L44) |
 | workbench | GET | `/api/system/state` | `create_operations_router.system_state` | [src/omni/channels/web_api/operations.py](../../src/omni/channels/web_api/operations.py#L59) |
@@ -194,12 +197,12 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | PATCH | `/api/terminal/sessions/{identifier}` | `create_sessions_router.rename` | [src/omni/channels/terminal/sessions.py](../../src/omni/channels/terminal/sessions.py#L57) |
 | workbench | WEBSOCKET | `/api/terminal/sessions/{identifier}/ws` | `create_sessions_router.connect` | [src/omni/channels/terminal/sessions.py](../../src/omni/channels/terminal/sessions.py#L71) |
 | workbench | WEBSOCKET | `/api/terminal/ws` | `create_terminal_router.terminal_ws` | [src/omni/channels/terminal/routes.py](../../src/omni/channels/terminal/routes.py#L15) |
-| workbench | POST | `/api/todos/toggle` | `create_sessions_router.toggle_todo` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L132) |
+| workbench | POST | `/api/todos/toggle` | `create_sessions_router.toggle_todo` | [src/omni/channels/web_api/sessions.py](../../src/omni/channels/web_api/sessions.py#L94) |
 | workbench | GET | `/api/workbench/docs/{name}` | `create_workbench_router.document` | [src/omni/channels/workbench/routes.py](../../src/omni/channels/workbench/routes.py#L39) |
 | workbench | GET | `/api/workbench/extensions` | `create_workbench_router.extensions` | [src/omni/channels/workbench/routes.py](../../src/omni/channels/workbench/routes.py#L57) |
 | workbench | GET | `/api/workbench/project` | `create_workbench_router.project` | [src/omni/channels/workbench/routes.py](../../src/omni/channels/workbench/routes.py#L35) |
 | workbench | GET | `/api/workbench/tools` | `create_workbench_router.tools` | [src/omni/channels/workbench/routes.py](../../src/omni/channels/workbench/routes.py#L50) |
-| workbench | GET | `/pair/{code}` | `create_app.pair_link` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L202) |
+| workbench | GET | `/pair/{code}` | `create_app.pair_link` | [src/omni/channels/web.py](../../src/omni/channels/web.py#L204) |
 
 ## 请求模型
 
@@ -224,7 +227,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### ModelKeyIn
 
-定位：[src/omni/channels/web.py](../../src/omni/channels/web.py#L77)。
+定位：[src/omni/channels/web.py](../../src/omni/channels/web.py#L79)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -249,6 +252,15 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | text | `str \| None` | 否 |
 | package | `str \| None` | 否 |
 | duration_ms | `int \| None` | 否 |
+
+### ContextUpdate
+
+定位：[src/omni/channels/web_api/context.py](../../src/omni/channels/web_api/context.py#L25)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| revision | `str` | 否 |
+| updates | `dict[str, dict[str, Any]]` | 是 |
 
 ### ChatIn
 

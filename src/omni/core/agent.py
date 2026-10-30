@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
+import hashlib
+import json
+import math
 import sys
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -23,7 +26,8 @@ from ..safety.gates import Approver, Risk
 from ..tools.registry import SessionRef, ToolRegistry
 from ..tools.result import ToolResult
 from ..tools.runctx import RunRef
-from .compress import assemble_context, assert_invariants, compress_if_needed
+from .compress import assemble_context, assert_invariants, compress_if_needed, preview_context
+from ..llm.usage import estimate_tokens
 from .context import TurnContext, reanchor_current_memory, render_rows, system_prompt
 from .run import (
     ActiveRuns,
@@ -238,6 +242,45 @@ class Agent:
             profile=self.store.profile_block() if include_personal else '',
             person=person,
         )
+
+    def context_overview(self, sid: int) -> dict[str, Any]:
+        """工作台所有者的保留窗口统计；不取新时间、不发模型请求或写入快照。"""
+        limit = max(1, min(self.config.limits.max_history_messages, 10000))
+        history = self.store.recent_messages_ex(sid, limit)
+        summary = self.store.active_summary(sid)
+        uncovered = [row for row in history if summary is None or row[0] > summary[2]]
+        snapshots = self.store.prompt_contexts(sid, [row[0] for row in uncovered])
+        body = preview_context(history, summary, render=lambda rows: render_rows(rows,snapshots,include_personal=True))
+        system = self._system_prompt()
+        specs = json.dumps(self.registry.specs(),ensure_ascii=False,separators=(',',':'))
+        raw_chars = sum(len(row[2]) for row in uncovered) + (len(summary[3]) if summary else 0)
+        rendered_chars = sum(len(message['content']) for message in body)
+        conversation = math.ceil(raw_chars/2)
+        dynamic = math.ceil(max(0,rendered_chars-raw_chars)/2)
+        tools = math.ceil(len(specs)/2)
+        total = estimate_tokens([{'role':'system','content':system},*body]) + tools
+        max_tokens = self.config.llm.capability(self.model).context_tokens
+        return {
+            'estimated':True,'used_tokens':total,'max_tokens':max_tokens,
+            'percent':round(total/max_tokens*100,1) if max_tokens else None,
+            'segments':[
+                {'key':'system','label':'固定提示与消息开销','tokens':max(0,total-tools-conversation-dynamic)},
+                {'key':'tools','label':'工具规格','tokens':tools},
+                {'key':'memory','label':'动态快照','tokens':dynamic},
+                {'key':'conversation','label':'保留对话与摘要','tokens':conversation},
+            ],
+            'message_count':self.store.message_count(sid),'history_count':len(uncovered),
+            'max_history_messages':self.config.limits.max_history_messages,
+            'snapshot_count':len(snapshots),
+            'legacy_user_count':sum(row[1]=='user' and row[0] not in snapshots for row in uncovered),
+            'summary':None if summary is None else {'id':summary[0],'from_msg_id':summary[1],
+                        'to_msg_id':summary[2],'version':summary[4],'chars':len(summary[3])},
+            'stable_prefix':{'system_chars':len(system),'tool_count':len(self.registry.names()),
+                             'system_sha256':hashlib.sha256(system.encode()).hexdigest(),
+                             'tools_sha256':hashlib.sha256(specs.encode()).hexdigest()},
+            'system_prompt':system,
+            'view_note':'工作台保留窗口估算；不含下一条输入、新快照、在途工具结果和图像，不代表实际计费。',
+        }
 
     def _maybe_compress(
         self,

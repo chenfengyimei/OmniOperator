@@ -104,3 +104,9 @@ label{white-space:nowrap}.directory input{flex:1;width:0;min-width:0}
 @media(max-width:600px){
   body[data-ui-page="terminal"] > form{padding:7px}
 }
+
+/* responsive-controls: 避免旧 flex-basis:100% 把目录控件挤到隐藏的下一列。 */
+@media(max-width:600px){
+  body[data-ui-page="terminal"] #create{flex-wrap:nowrap}
+  body[data-ui-page="terminal"] #create .directory{flex:0 0 auto;min-width:0}
+}

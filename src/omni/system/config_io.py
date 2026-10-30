@@ -8,10 +8,13 @@ from __future__ import annotations
 import os
 import re
 import json
+import hashlib
 from pathlib import Path
 from typing import Any
 
 from .atomic import atomic_write_text
+from .filelock import FileLock
+from ..config import AppConfig
 
 # 允许通过接口修改的键：(section, key) → 渲染方式
 EDITABLE: dict[tuple[str, str], str] = {
@@ -22,9 +25,19 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("models", "review"): "str_or_empty",
     ("limits", "max_history_messages"): "int",
     ("limits", "max_agent_steps"): "int",
+    ("limits", "resident_memory_chars"): "int",
+    ("compression", "enabled"): "bool",
+    ("compression", "trigger_chars"): "int",
+    ("compression", "keep_recent"): "int",
+    ("compression", "min_messages"): "int",
+    ("memory", "max_writes_per_day"): "int",
+    ("memory", "max_fact_chars"): "int",
+    ("memory", "recall_prefix"): "bool",
     ("review", "enabled"): "bool",
     ("review", "max_messages"): "int",
     ("review", "steps"): "int",
+    ("review", "queue_depth"): "int",
+    ("review", "min_messages"): "int",
     ("asr", "model"): "str",
     ("asr", "device"): "str",
     ("asr", "compute_type"): "str",
@@ -70,6 +83,10 @@ EDITABLE: dict[tuple[str, str], str] = {
 
 class ConfigEditError(ValueError):
     """配置修改不合法（未知键/值非法/找不到目标行）。"""
+
+
+class ConfigConflict(ConfigEditError):
+    """页面加载后的配置已变化，拒绝覆盖其它页面的更新。"""
 
 
 def render_value(kind: str, value: Any) -> str:
@@ -313,6 +330,27 @@ def read_config_text(path: Path) -> str:
 def safe_write(path: Path, new_text: str) -> None:
     """原子写：同目录唯一临时文件 + fsync + 替换（固定 `.tmp` 名字并发时会互相覆盖）。"""
     atomic_write_text(path, new_text)
+
+
+def read_config_snapshot(path: Path) -> tuple[str, AppConfig, str]:
+    import yaml
+    text=read_config_text(path) if path.exists() else ''
+    config=AppConfig.model_validate(yaml.safe_load(text) or {})
+    return text,config,hashlib.sha256(text.encode('utf-8')).hexdigest()
+
+
+def commit_config_updates(path: Path, updates: dict, *, revision: str | None = None) -> str:
+    """所有 HTTP 配置写入共用锁；有 revision 的页面额外检查 CAS。"""
+    import yaml
+    with FileLock(path.with_name(path.name+'.lock')):
+        text=read_config_text(path) if path.exists() else ''
+        current=hashlib.sha256(text.encode('utf-8')).hexdigest()
+        if revision is not None and revision!=current:
+            raise ConfigConflict('配置已被其它页面修改，请重新读取设置后再保存')
+        new_text=apply_updates(text,updates)
+        AppConfig.model_validate(yaml.safe_load(new_text) or {})
+        safe_write(path,new_text)
+        return hashlib.sha256(new_text.encode('utf-8')).hexdigest()
 
 
 # ---------- .env 密钥：工作台"选供应商 → 填 API Key"的落地点 ----------

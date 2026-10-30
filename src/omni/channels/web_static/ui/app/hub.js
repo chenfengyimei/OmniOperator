@@ -1,20 +1,21 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261030i';
-import {api} from './api.js?v=20261030i';
-import {loadState} from './header.js?v=20261030i';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261030i';
-import {renderPersonaPresets} from './hub-persona.js?v=20261030i';
-import {loadCron} from './hub-cron.js?v=20261030i';
-import {loadUsage} from './hub-usage.js?v=20261030i';
-import {loadMcp} from './hub-mcp.js?v=20261030i';
+import {$,esc} from './dom.js?v=20261030ctx1';
+import {api} from './api.js?v=20261030ctx1';
+import {loadState} from './header.js?v=20261030ctx1';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261030ctx1';
+import {renderPersonaPresets} from './hub-persona.js?v=20261030ctx1';
+import {loadCron} from './hub-cron.js?v=20261030ctx1';
+import {loadUsage} from './hub-usage.js?v=20261030ctx1';
+import {loadMcp} from './hub-mcp.js?v=20261030ctx1';
+import {loadContext} from './hub-context.js?v=20261030ctx1';
 
-export async function openHub(){
+export async function openHub(go=null){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
   try{await loadHubConfig();loadCookies();loadCron();loadUsage();loadMcp()}catch(e){$('#hub-msg').textContent=e.message}
   const firstCur=document.querySelector('.hub-nav a.active');
-  switchHub(firstCur?firstCur.dataset.go:'sec-persona');
+  switchHub(go||(firstCur?firstCur.dataset.go:'sec-persona'));
 };
 
 function closeHub(){
@@ -35,6 +36,7 @@ export function switchHub(go){
     el.classList.remove('hidden');
     if(go==='sec-cron')loadCron();
     if(go==='sec-usage')loadUsage();
+    if(go==='sec-context')loadContext();
     if(go==='sec-mcp')loadMcp();
     if(go==='sec-storage'){
       const frame=$('#storage-frame');
@@ -50,6 +52,7 @@ document.querySelectorAll('.hub-nav a').forEach(a=>a.onclick=e=>{e.preventDefaul
 // 左侧导航图标：纯装饰，拿不到图标就跳过（不影响点击）
 (function(){
   const icons={
+    'sec-context':'<path d="M4 6h16M4 12h16M4 18h16"/>',
     'sec-persona':'<circle cx="12" cy="8.2" r="3.4"/><path d="M5 19.6a7 7 0 0 1 14 0"/>',
     'sec-models':'<rect x="7.2" y="7.2" width="9.6" height="9.6" rx="2.2"/><path d="M10.2 3.6v3.2M13.8 3.6v3.2M10.2 17.2v3.2M13.8 17.2v3.2M3.6 10.2h3.2M3.6 13.8h3.2M17.2 10.2h3.2M17.2 13.8h3.2"/>',
     'sec-memory':'<ellipse cx="12" cy="6.2" rx="7" ry="3"/><path d="M5 6.2v5.8c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V6.2M5 12v5.6c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V12"/>',
@@ -84,8 +87,6 @@ async function loadHubConfig(){
   await loadEnvKeys();  // 先拿密钥状态：模型卡片才知道该显示"已配 / 还没填"
   renderModelSlots(d.models);
   try{renderPersonaPresets(d.persona.name)}catch(e){console.warn('人设预设渲染失败',e)}
-  $('#cfg-limits-history').value=d.limits.max_history_messages;
-  $('#cfg-limits-steps').value=d.limits.max_agent_steps;
   $('#cfg-review-enabled').checked=d.review.enabled;
   $('#cfg-review-max-messages').value=d.review.max_messages;
   $('#cfg-review-steps').value=d.review.steps;
@@ -134,7 +135,7 @@ async function saveBiliCookies() {
 const SAVE_SCOPES={
   persona:['persona'],
   models:['models'],
-  memory:['limits','review','approval'],
+  memory:['review','approval'],
   media:['asr'],
   browser:['browser'],
   qq:['qq'],
@@ -150,8 +151,6 @@ function collectHubUpdates(){
              system_prompt:promptLines},
     models:{chat:getModelSlotValue('chat'),vision:getModelSlotValue('vision'),
             review:getModelSlotValue('review')},
-    limits:{max_history_messages:parseInt($('#cfg-limits-history').value)||40,
-            max_agent_steps:parseInt($('#cfg-limits-steps').value)||8},
     review:{enabled:$('#cfg-review-enabled').checked,
             max_messages:parseInt($('#cfg-review-max-messages').value)||12,
             steps:parseInt($('#cfg-review-steps').value)||4},
@@ -207,7 +206,7 @@ async function saveHub(scope,btn) {
   try{
     await api('/api/system/config',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({updates})});
-    const extra=scope==='qq'||scope==='browser'?'（要重启一次对应服务才生效）':'';
+    const extra='（重启相应入口后生效）';
     setHubMsg(scope,'✅ 已保存 '+new Date().toLocaleTimeString()+extra,'ok');
     loadState();
   }catch(e){
@@ -219,7 +218,8 @@ async function saveHub(scope,btn) {
 
 // data-action 注册表（main.js 合并后统一分发）
 export const actions={
-  'hub:open':()=>openHub(),
+  'hub:open':el=>openHub(el.dataset.section),
+  'hub:section':el=>switchHub(el.dataset.section),
   'hub:close':()=>closeHub(),
   'hub:save':el=>saveHub(el.dataset.scope,el),
   'hub:bili-cookies-save':()=>saveBiliCookies(),

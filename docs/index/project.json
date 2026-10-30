@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "cf058170a75dd9650b02fd8a952cb7044ca1c5b93919feead88a30b898759be4",
+  "source_sha256": "14f4de229e43d82ecd0ac76b6d7cff5b42d8eb1a4c7acd114c91775afd9d0144",
   "modules": [
     {
       "id": "agent-directories",
@@ -62,6 +62,34 @@
         "files",
         "platform",
         "toolkit"
+      ]
+    },
+    {
+      "id": "http-context",
+      "title": "上下文设置与统计",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/context.py",
+        "channels/web_static/ui/app/hub-context.js"
+      ],
+      "purpose": "设置中心的只读窗口统计、供应商缓存样本和带版本检查的配置保存；不触发模型。",
+      "docs": [
+        "docs/CONTEXT_SETTINGS.md",
+        "docs/PROMPT_CONTEXT.md"
+      ],
+      "tests": [
+        "tests/test_context_settings.py"
+      ],
+      "files": [
+        "src/omni/channels/web_api/context.py",
+        "src/omni/channels/web_static/ui/app/hub-context.js"
+      ],
+      "lines": 198,
+      "dependencies": [
+        "assembly",
+        "config",
+        "platform",
+        "storage"
       ]
     },
     {
@@ -152,7 +180,7 @@
         "src/omni/core/compress.py",
         "src/omni/core/context.py"
       ],
-      "lines": 434,
+      "lines": 445,
       "dependencies": [
         "models"
       ]
@@ -186,7 +214,7 @@
         "src/omni/core/session.py",
         "src/omni/core/vision.py"
       ],
-      "lines": 2692,
+      "lines": 2735,
       "dependencies": [
         "config",
         "models",
@@ -288,7 +316,7 @@
         "src/omni/memory/usage.py",
         "src/omni/memory/vectors.py"
       ],
-      "lines": 7779,
+      "lines": 7812,
       "dependencies": [
         "command-contracts",
         "config",
@@ -325,7 +353,7 @@
         "src/omni/channels/web_static/terminal/terminal.css",
         "src/omni/channels/web_static/terminal/terminal.js"
       ],
-      "lines": 754,
+      "lines": 760,
       "dependencies": [
         "config",
         "web-ui"
@@ -409,7 +437,7 @@
         "src/omni/channels/web_static/ui/tokens.css",
         "src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 4006,
+      "lines": 4029,
       "dependencies": []
     },
     {
@@ -439,7 +467,7 @@
         "src/omni/channels/web_static/vendor/xterm.js",
         "src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 1278,
+      "lines": 1320,
       "dependencies": [
         "assembly",
         "config",
@@ -472,7 +500,7 @@
       "files": [
         "src/omni/channels/web_api/sessions.py"
       ],
-      "lines": 139,
+      "lines": 101,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -801,7 +829,7 @@
         "src/omni/channels/web_static/capabilities/capabilities.js",
         "src/omni/channels/web_static/capabilities/index.html"
       ],
-      "lines": 216,
+      "lines": 221,
       "dependencies": []
     },
     {
@@ -897,7 +925,7 @@
         "src/omni/channels/web_api/__init__.py",
         "src/omni/channels/web_api/memory_system.py"
       ],
-      "lines": 275,
+      "lines": 276,
       "dependencies": [
         "assembly",
         "command-jobs",
@@ -905,6 +933,7 @@
         "http-approvals",
         "http-artifacts",
         "http-automation",
+        "http-context",
         "http-contracts",
         "http-conversation",
         "http-devices",
@@ -1526,7 +1555,7 @@
         "src/omni/system/catalog/scan.py",
         "src/omni/system/catalog/schema.py"
       ],
-      "lines": 321,
+      "lines": 322,
       "dependencies": [
         "config"
       ]
@@ -1562,7 +1591,7 @@
         "src/omni/system/soak.py",
         "src/omni/system/stderr_log.py"
       ],
-      "lines": 2447,
+      "lines": 2485,
       "dependencies": [
         "agent-directories",
         "config"
@@ -2888,7 +2917,7 @@
       "path": "src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 482,
+      "lines": 480,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -2903,17 +2932,18 @@
         "omni.llm.gateway",
         "omni.safety.gates",
         "omni.safety.smart",
-        "omni.system.config_io"
+        "omni.system.config_io",
+        "omni.system.filelock"
       ],
       "symbols": [
         {
           "name": "ModelKeyIn",
-          "line": 77,
+          "line": 79,
           "kind": "class"
         },
         {
           "name": "_set_session_cookie",
-          "line": 83,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "response",
@@ -2927,7 +2957,7 @@
         },
         {
           "name": "_create_auth",
-          "line": 94,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -2938,7 +2968,7 @@
         },
         {
           "name": "_normalize_secret_updates",
-          "line": 99,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "updates"
@@ -2949,7 +2979,7 @@
         },
         {
           "name": "create_app",
-          "line": 128,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -2960,7 +2990,7 @@
         },
         {
           "name": "create_app.lifespan",
-          "line": 131,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "_app"
@@ -2971,7 +3001,7 @@
         },
         {
           "name": "create_app.identity_guard",
-          "line": 150,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "request",
@@ -2983,7 +3013,7 @@
         },
         {
           "name": "create_app.auth_status",
-          "line": 173,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "request"
@@ -2994,7 +3024,7 @@
         },
         {
           "name": "create_app.auth_pair",
-          "line": 181,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "payload",
@@ -3007,14 +3037,14 @@
         },
         {
           "name": "create_app.auth_logout",
-          "line": 196,
+          "line": 198,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.pair_link",
-          "line": 202,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "code",
@@ -3027,14 +3057,14 @@
         },
         {
           "name": "create_app.system_config",
-          "line": 234,
+          "line": 236,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.system_config_save",
-          "line": 304,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3045,28 +3075,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 324,
+          "line": 322,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 335,
+          "line": 333,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.bili_cookies_status",
-          "line": 343,
+          "line": 341,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.save_bili_cookies",
-          "line": 355,
+          "line": 353,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3077,14 +3107,14 @@
         },
         {
           "name": "create_app.model_keys",
-          "line": 375,
+          "line": 373,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.model_key_set",
-          "line": 380,
+          "line": 378,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3095,7 +3125,7 @@
         },
         {
           "name": "create_app.model_test",
-          "line": 397,
+          "line": 395,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3106,7 +3136,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 435,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "host"
@@ -3117,7 +3147,7 @@
         },
         {
           "name": "main",
-          "line": 446,
+          "line": 444,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -3129,7 +3159,7 @@
       "path": "src/omni/channels/web_api/__init__.py",
       "module": "http-routing",
       "python_module": "omni.channels.web_api",
-      "lines": 46,
+      "lines": 47,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.android",
@@ -3137,6 +3167,7 @@
         "omni.channels.web_api.artifacts",
         "omni.channels.web_api.automation",
         "omni.channels.web_api.command_jobs",
+        "omni.channels.web_api.context",
         "omni.channels.web_api.conversation",
         "omni.channels.web_api.devices",
         "omni.channels.web_api.mcp",
@@ -3152,7 +3183,7 @@
       "symbols": [
         {
           "name": "create_api_routers",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -3622,6 +3653,85 @@
         }
       ],
       "summary": "后台命令管理适配；不提供绕过 Registry 审批的启动接口。"
+    },
+    {
+      "path": "src/omni/channels/web_api/context.py",
+      "module": "http-context",
+      "python_module": "omni.channels.web_api.context",
+      "lines": 78,
+      "imports": [
+        "omni.bootstrap",
+        "omni.config",
+        "omni.memory.state",
+        "omni.system.config_io",
+        "omni.system.filelock"
+      ],
+      "symbols": [
+        {
+          "name": "ContextUpdate",
+          "line": 25,
+          "kind": "class"
+        },
+        {
+          "name": "settings",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "config"
+          ],
+          "annotations": {
+            "config": "AppConfig"
+          }
+        },
+        {
+          "name": "create_context_router",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_context_router.configuration",
+          "line": 39,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_context_router.overview",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "session_id"
+          ],
+          "annotations": {
+            "session_id": "int | None"
+          }
+        },
+        {
+          "name": "create_context_router.get_settings",
+          "line": 60,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_context_router.update",
+          "line": 65,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "ContextUpdate"
+          }
+        }
+      ],
+      "summary": "上下文设置与只读统计；不调用模型、不构造服务、不修改运行中的配置。"
     },
     {
       "path": "src/omni/channels/web_api/conversation.py",
@@ -4801,7 +4911,7 @@
       "path": "src/omni/channels/web_api/sessions.py",
       "module": "http-sessions",
       "python_module": "omni.channels.web_api.sessions",
-      "lines": 139,
+      "lines": 101,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.schemas",
@@ -4810,7 +4920,7 @@
       "symbols": [
         {
           "name": "create_sessions_router",
-          "line": 18,
+          "line": 15,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -4821,39 +4931,28 @@
         },
         {
           "name": "create_sessions_router.get_state",
-          "line": 22,
+          "line": 19,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_sessions_router.get_state.estimate",
-          "line": 38,
-          "kind": "function",
-          "parameters": [
-            "text"
-          ],
-          "annotations": {
-            "text": "str"
-          }
-        },
-        {
           "name": "create_sessions_router.get_sessions",
-          "line": 84,
+          "line": 46,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_sessions_router.create_session",
-          "line": 98,
+          "line": 60,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_sessions_router.select_session",
-          "line": 102,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "session_id"
@@ -4864,7 +4963,7 @@
         },
         {
           "name": "create_sessions_router.get_messages",
-          "line": 108,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "session_id",
@@ -4877,7 +4976,7 @@
         },
         {
           "name": "create_sessions_router.get_todos",
-          "line": 120,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "session_id"
@@ -4888,7 +4987,7 @@
         },
         {
           "name": "create_sessions_router.toggle_todo",
-          "line": 132,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "payload"
@@ -5511,7 +5610,7 @@
       "path": "src/omni/channels/web_static/capabilities/capabilities.css",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 91,
+      "lines": 96,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5541,7 +5640,7 @@
       "path": "src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 439,
+      "lines": 483,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5681,7 +5780,7 @@
       "path": "src/omni/channels/web_static/terminal/terminal.css",
       "module": "terminal",
       "python_module": null,
-      "lines": 106,
+      "lines": 112,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5768,6 +5867,16 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "src/omni/channels/web_static/ui/app/hub-context.js",
+      "module": "http-context",
+      "python_module": null,
+      "lines": 120,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "src/omni/channels/web_static/ui/app/hub-cron.js",
       "module": "ui-shared",
       "python_module": null,
@@ -5831,7 +5940,7 @@
       "path": "src/omni/channels/web_static/ui/app/main.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 62,
+      "lines": 63,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6021,7 +6130,7 @@
       "path": "src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 947,
+      "lines": 969,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6490,7 +6599,7 @@
       "path": "src/omni/core/agent.py",
       "module": "engine",
       "python_module": "omni.core.agent",
-      "lines": 997,
+      "lines": 1040,
       "imports": [
         "omni.config",
         "omni.core.compress",
@@ -6500,6 +6609,7 @@
         "omni.llm",
         "omni.llm.budget",
         "omni.llm.gateway",
+        "omni.llm.usage",
         "omni.memory.artifacts",
         "omni.memory.dialogue",
         "omni.memory.resident",
@@ -6514,12 +6624,12 @@
       "symbols": [
         {
           "name": "_NullRunStore",
-          "line": 80,
+          "line": 84,
           "kind": "class"
         },
         {
           "name": "_NullRunStore.append_event",
-          "line": 83,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -6535,7 +6645,7 @@
         },
         {
           "name": "_NullRunStore.touch",
-          "line": 86,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self",
@@ -6548,7 +6658,7 @@
         },
         {
           "name": "_NullRunStore.finish",
-          "line": 89,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
@@ -6563,7 +6673,7 @@
         },
         {
           "name": "_NullRunStore.get",
-          "line": 92,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -6575,12 +6685,12 @@
         },
         {
           "name": "Agent",
-          "line": 96,
+          "line": 100,
           "kind": "class"
         },
         {
           "name": "Agent.__init__",
-          "line": 97,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self",
@@ -6624,7 +6734,7 @@
         },
         {
           "name": "Agent._record_dialogue",
-          "line": 145,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -6642,7 +6752,7 @@
         },
         {
           "name": "Agent._record_session_user",
-          "line": 154,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -6660,7 +6770,7 @@
         },
         {
           "name": "Agent._record_session_assistant",
-          "line": 164,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -6678,7 +6788,7 @@
         },
         {
           "name": "Agent._record_session_tool",
-          "line": 177,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self",
@@ -6696,7 +6806,7 @@
         },
         {
           "name": "Agent._record_session_system",
-          "line": 192,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self",
@@ -6712,7 +6822,7 @@
         },
         {
           "name": "Agent.session_ref",
-          "line": 201,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self"
@@ -6721,7 +6831,7 @@
         },
         {
           "name": "Agent._system_prompt",
-          "line": 205,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -6733,7 +6843,7 @@
         },
         {
           "name": "Agent._turn_context",
-          "line": 208,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
@@ -6750,8 +6860,20 @@
           }
         },
         {
+          "name": "Agent.context_overview",
+          "line": 246,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "sid"
+          ],
+          "annotations": {
+            "sid": "int"
+          }
+        },
+        {
           "name": "Agent._maybe_compress",
-          "line": 242,
+          "line": 285,
           "kind": "function",
           "parameters": [
             "self",
@@ -6769,7 +6891,7 @@
         },
         {
           "name": "Agent._assemble_body",
-          "line": 274,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "self",
@@ -6785,7 +6907,7 @@
         },
         {
           "name": "Agent.chat",
-          "line": 313,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "self",
@@ -6807,7 +6929,7 @@
         },
         {
           "name": "Agent.run_turn",
-          "line": 340,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "self",
@@ -6833,7 +6955,7 @@
         },
         {
           "name": "Agent._sweep_artifacts",
-          "line": 448,
+          "line": 491,
           "kind": "function",
           "parameters": [
             "self"
@@ -6842,7 +6964,7 @@
         },
         {
           "name": "Agent._start_run",
-          "line": 461,
+          "line": 504,
           "kind": "function",
           "parameters": [
             "self",
@@ -6864,7 +6986,7 @@
         },
         {
           "name": "Agent._chat",
-          "line": 522,
+          "line": 565,
           "kind": "function",
           "parameters": [
             "self",
@@ -6884,7 +7006,7 @@
         },
         {
           "name": "Agent._execute_tool_calls",
-          "line": 654,
+          "line": 697,
           "kind": "function",
           "parameters": [
             "self",
@@ -6906,7 +7028,7 @@
         },
         {
           "name": "Agent._execute_tool_calls.timed",
-          "line": 687,
+          "line": 730,
           "kind": "function",
           "parameters": [
             "call"
@@ -6917,7 +7039,7 @@
         },
         {
           "name": "Agent._execute_tool_calls.emit",
-          "line": 694,
+          "line": 737,
           "kind": "function",
           "parameters": [
             "call",
@@ -6930,14 +7052,14 @@
         },
         {
           "name": "Agent._execute_tool_calls.drain",
-          "line": 727,
+          "line": 770,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "Agent._pool_eligible",
-          "line": 757,
+          "line": 800,
           "kind": "function",
           "parameters": [
             "self",
@@ -6951,7 +7073,7 @@
         },
         {
           "name": "Agent._execute_one",
-          "line": 768,
+          "line": 811,
           "kind": "function",
           "parameters": [
             "self",
@@ -6971,7 +7093,7 @@
         },
         {
           "name": "Agent._model_call",
-          "line": 804,
+          "line": 847,
           "kind": "function",
           "parameters": [
             "self",
@@ -6993,7 +7115,7 @@
         },
         {
           "name": "Agent._vision_route_model",
-          "line": 849,
+          "line": 892,
           "kind": "function",
           "parameters": [
             "self"
@@ -7002,7 +7124,7 @@
         },
         {
           "name": "Agent._attach_images",
-          "line": 865,
+          "line": 908,
           "kind": "function",
           "parameters": [
             "self",
@@ -7018,7 +7140,7 @@
         },
         {
           "name": "_has_image_parts",
-          "line": 944,
+          "line": 987,
           "kind": "function",
           "parameters": [
             "messages"
@@ -7029,7 +7151,7 @@
         },
         {
           "name": "_forward_delta",
-          "line": 957,
+          "line": 1000,
           "kind": "function",
           "parameters": [
             "event",
@@ -7042,7 +7164,7 @@
         },
         {
           "name": "_args_excerpt",
-          "line": 962,
+          "line": 1005,
           "kind": "function",
           "parameters": [
             "call"
@@ -7053,7 +7175,7 @@
         },
         {
           "name": "_result_excerpt",
-          "line": 972,
+          "line": 1015,
           "kind": "function",
           "parameters": [
             "text"
@@ -7064,7 +7186,7 @@
         },
         {
           "name": "_reply_brief",
-          "line": 978,
+          "line": 1021,
           "kind": "function",
           "parameters": [
             "reply"
@@ -7080,7 +7202,7 @@
       "path": "src/omni/core/compress.py",
       "module": "prompt-context",
       "python_module": "omni.core.compress",
-      "lines": 316,
+      "lines": 327,
       "imports": [
         "omni.core.context",
         "omni.llm.gateway",
@@ -7164,8 +7286,23 @@
           }
         },
         {
-          "name": "assert_invariants",
+          "name": "preview_context",
           "line": 159,
+          "kind": "function",
+          "parameters": [
+            "rows",
+            "summary",
+            "render"
+          ],
+          "annotations": {
+            "rows": "list[tuple[int, str, str]]",
+            "summary": "tuple[int, int, int, str, int] | None",
+            "render": "Callable[[list[tuple[int, str, str]]], list[dict[str, Any]]] | None"
+          }
+        },
+        {
+          "name": "assert_invariants",
+          "line": 170,
           "kind": "function",
           "parameters": [
             "messages"
@@ -7176,7 +7313,7 @@
         },
         {
           "name": "atomic_blocks",
-          "line": 186,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "messages"
@@ -7187,7 +7324,7 @@
         },
         {
           "name": "_text_of",
-          "line": 205,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "content"
@@ -7198,7 +7335,7 @@
         },
         {
           "name": "context_chars",
-          "line": 227,
+          "line": 238,
           "kind": "function",
           "parameters": [
             "messages"
@@ -7209,7 +7346,7 @@
         },
         {
           "name": "compress_if_needed",
-          "line": 241,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "messages",
@@ -12081,7 +12218,7 @@
       "path": "src/omni/memory/runs.py",
       "module": "storage",
       "python_module": "omni.memory.runs",
-      "lines": 355,
+      "lines": 388,
       "imports": [
         "omni.memory.state"
       ],
@@ -12293,8 +12430,33 @@
           }
         },
         {
+          "name": "RunStore.context_cache_usage",
+          "line": 338,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "session_id",
+            "limit"
+          ],
+          "annotations": {
+            "session_id": "int",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "RunStore.context_cache_usage.token",
+          "line": 347,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "Any"
+          }
+        },
+        {
           "name": "_row_to_run",
-          "line": 339,
+          "line": 372,
           "kind": "function",
           "parameters": [
             "row"
@@ -17991,7 +18153,7 @@
       "path": "src/omni/system/catalog/schema.py",
       "module": "catalog",
       "python_module": "omni.system.catalog.schema",
-      "lines": 106,
+      "lines": 107,
       "imports": [],
       "symbols": [
         {
@@ -18001,7 +18163,7 @@
         },
         {
           "name": "classify",
-          "line": 77,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "relative"
@@ -18017,19 +18179,26 @@
       "path": "src/omni/system/config_io.py",
       "module": "platform",
       "python_module": "omni.system.config_io",
-      "lines": 415,
+      "lines": 453,
       "imports": [
-        "omni.system.atomic"
+        "omni.config",
+        "omni.system.atomic",
+        "omni.system.filelock"
       ],
       "symbols": [
         {
           "name": "ConfigEditError",
-          "line": 71,
+          "line": 84,
+          "kind": "class"
+        },
+        {
+          "name": "ConfigConflict",
+          "line": 88,
           "kind": "class"
         },
         {
           "name": "render_value",
-          "line": 75,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "kind",
@@ -18042,7 +18211,7 @@
         },
         {
           "name": "_scalar_updates",
-          "line": 117,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "text",
@@ -18055,7 +18224,7 @@
         },
         {
           "name": "_find_multiline_block",
-          "line": 142,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18070,7 +18239,7 @@
         },
         {
           "name": "_replace_multiline_block",
-          "line": 172,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "text",
@@ -18087,7 +18256,7 @@
         },
         {
           "name": "_section_bounds",
-          "line": 190,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18100,7 +18269,7 @@
         },
         {
           "name": "_has_key",
-          "line": 203,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18117,7 +18286,7 @@
         },
         {
           "name": "_append_key",
-          "line": 208,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18134,7 +18303,7 @@
         },
         {
           "name": "_append_multiline_block",
-          "line": 232,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "text",
@@ -18151,7 +18320,7 @@
         },
         {
           "name": "apply_updates",
-          "line": 253,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "text",
@@ -18164,7 +18333,7 @@
         },
         {
           "name": "read_config_text",
-          "line": 302,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "path"
@@ -18175,7 +18344,7 @@
         },
         {
           "name": "safe_write",
-          "line": 313,
+          "line": 330,
           "kind": "function",
           "parameters": [
             "path",
@@ -18187,8 +18356,34 @@
           }
         },
         {
+          "name": "read_config_snapshot",
+          "line": 335,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "commit_config_updates",
+          "line": 342,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "updates",
+            "revision"
+          ],
+          "annotations": {
+            "path": "Path",
+            "updates": "dict",
+            "revision": "str | None"
+          }
+        },
+        {
           "name": "mask_secret",
-          "line": 332,
+          "line": 370,
           "kind": "function",
           "parameters": [
             "value"
@@ -18199,7 +18394,7 @@
         },
         {
           "name": "_env_name_ok",
-          "line": 342,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "name"
@@ -18210,7 +18405,7 @@
         },
         {
           "name": "read_env_secrets",
-          "line": 346,
+          "line": 384,
           "kind": "function",
           "parameters": [
             "path"
@@ -18221,7 +18416,7 @@
         },
         {
           "name": "set_env_secret",
-          "line": 369,
+          "line": 407,
           "kind": "function",
           "parameters": [
             "path",
@@ -27725,7 +27920,7 @@
       "method": "POST",
       "path": "/api/auth/logout",
       "source": "src/omni/channels/web.py",
-      "line": 196,
+      "line": 198,
       "handler": "create_app.auth_logout",
       "module": "web-ui",
       "parameters": [],
@@ -27736,7 +27931,7 @@
       "method": "POST",
       "path": "/api/auth/pair",
       "source": "src/omni/channels/web.py",
-      "line": 181,
+      "line": 183,
       "handler": "create_app.auth_pair",
       "module": "web-ui",
       "parameters": [
@@ -27753,7 +27948,7 @@
       "method": "GET",
       "path": "/api/auth/status",
       "source": "src/omni/channels/web.py",
-      "line": 173,
+      "line": 175,
       "handler": "create_app.auth_status",
       "module": "web-ui",
       "parameters": [
@@ -27851,6 +28046,47 @@
       ],
       "annotations": {
         "identifier": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/context",
+      "source": "src/omni/channels/web_api/context.py",
+      "line": 49,
+      "handler": "create_context_router.overview",
+      "module": "http-context",
+      "parameters": [
+        "session_id"
+      ],
+      "annotations": {
+        "session_id": "int | None"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/context/settings",
+      "source": "src/omni/channels/web_api/context.py",
+      "line": 60,
+      "handler": "create_context_router.get_settings",
+      "module": "http-context",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/context/settings",
+      "source": "src/omni/channels/web_api/context.py",
+      "line": 65,
+      "handler": "create_context_router.update",
+      "module": "http-context",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "ContextUpdate"
       },
       "scope": "workbench"
     },
@@ -28694,7 +28930,7 @@
       "method": "GET",
       "path": "/api/sessions",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 84,
+      "line": 46,
       "handler": "create_sessions_router.get_sessions",
       "module": "http-sessions",
       "parameters": [],
@@ -28705,7 +28941,7 @@
       "method": "POST",
       "path": "/api/sessions",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 98,
+      "line": 60,
       "handler": "create_sessions_router.create_session",
       "module": "http-sessions",
       "parameters": [],
@@ -28716,7 +28952,7 @@
       "method": "GET",
       "path": "/api/sessions/{session_id}/messages",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 108,
+      "line": 70,
       "handler": "create_sessions_router.get_messages",
       "module": "http-sessions",
       "parameters": [
@@ -28733,7 +28969,7 @@
       "method": "POST",
       "path": "/api/sessions/{session_id}/select",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 102,
+      "line": 64,
       "handler": "create_sessions_router.select_session",
       "module": "http-sessions",
       "parameters": [
@@ -28748,7 +28984,7 @@
       "method": "GET",
       "path": "/api/sessions/{session_id}/todos",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 120,
+      "line": 82,
       "handler": "create_sessions_router.get_todos",
       "module": "http-sessions",
       "parameters": [
@@ -28932,7 +29168,7 @@
       "method": "GET",
       "path": "/api/state",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 22,
+      "line": 19,
       "handler": "create_sessions_router.get_state",
       "module": "http-sessions",
       "parameters": [],
@@ -29065,7 +29301,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "src/omni/channels/web.py",
-      "line": 343,
+      "line": 341,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -29076,7 +29312,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "src/omni/channels/web.py",
-      "line": 355,
+      "line": 353,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -29091,7 +29327,7 @@
       "method": "GET",
       "path": "/api/system/config",
       "source": "src/omni/channels/web.py",
-      "line": 234,
+      "line": 236,
       "handler": "create_app.system_config",
       "module": "web-ui",
       "parameters": [],
@@ -29102,7 +29338,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "src/omni/channels/web.py",
-      "line": 304,
+      "line": 306,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -29272,7 +29508,7 @@
       "method": "POST",
       "path": "/api/system/model-key",
       "source": "src/omni/channels/web.py",
-      "line": 380,
+      "line": 378,
       "handler": "create_app.model_key_set",
       "module": "web-ui",
       "parameters": [
@@ -29287,7 +29523,7 @@
       "method": "GET",
       "path": "/api/system/model-keys",
       "source": "src/omni/channels/web.py",
-      "line": 375,
+      "line": 373,
       "handler": "create_app.model_keys",
       "module": "web-ui",
       "parameters": [],
@@ -29298,7 +29534,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "src/omni/channels/web.py",
-      "line": 397,
+      "line": 395,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -29335,7 +29571,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "src/omni/channels/web.py",
-      "line": 324,
+      "line": 322,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -29346,7 +29582,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "src/omni/channels/web.py",
-      "line": 335,
+      "line": 333,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -29511,7 +29747,7 @@
       "method": "POST",
       "path": "/api/todos/toggle",
       "source": "src/omni/channels/web_api/sessions.py",
-      "line": 132,
+      "line": 94,
       "handler": "create_sessions_router.toggle_todo",
       "module": "http-sessions",
       "parameters": [
@@ -29574,7 +29810,7 @@
       "method": "GET",
       "path": "/pair/{code}",
       "source": "src/omni/channels/web.py",
-      "line": 202,
+      "line": 204,
       "handler": "create_app.pair_link",
       "module": "web-ui",
       "parameters": [
@@ -30378,12 +30614,12 @@
         {
           "source": "src/omni/core/agent.py",
           "symbol": "Agent.run_turn",
-          "line": 340
+          "line": 383
         },
         {
           "source": "src/omni/core/agent.py",
           "symbol": "Agent._chat",
-          "line": 522
+          "line": 565
         },
         {
           "source": "src/omni/llm/gateway.py",
@@ -30400,7 +30636,7 @@
         {
           "source": "src/omni/core/agent.py",
           "symbol": "Agent._execute_tool_calls",
-          "line": 654
+          "line": 697
         },
         {
           "source": "src/omni/tools/registry.py",
@@ -30432,7 +30668,7 @@
         {
           "source": "src/omni/core/agent.py",
           "symbol": "Agent.run_turn",
-          "line": 340
+          "line": 383
         },
         {
           "source": "src/omni/llm/gateway.py",
@@ -30598,7 +30834,7 @@
     {
       "name": "ModelKeyIn",
       "source": "src/omni/channels/web.py",
-      "line": 77,
+      "line": 79,
       "fields": [
         {
           "name": "name",
@@ -30676,6 +30912,23 @@
           "name": "duration_ms",
           "type": "int | None",
           "required": false
+        }
+      ]
+    },
+    {
+      "name": "ContextUpdate",
+      "source": "src/omni/channels/web_api/context.py",
+      "line": 25,
+      "fields": [
+        {
+          "name": "revision",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "updates",
+          "type": "dict[str, dict[str, Any]]",
+          "required": true
         }
       ]
     },

@@ -37,8 +37,10 @@ from ..system.config_io import (
     read_config_text,
     read_env_secrets,
     safe_write,
+    commit_config_updates,
     set_env_secret,
 )
+from ..system.filelock import LockTimeout
 from .web_api import create_api_routers
 from .web_api.capabilities import create_capabilities_router
 from .web_api.schemas import (
@@ -306,12 +308,8 @@ def create_app(runtime: Runtime) -> FastAPI:
         updates, touched_secret = _normalize_secret_updates(payload.updates)
         try:
             config_file = runtime.paths.config  # 与 bootstrap 读取的是同一个文件
-            text = read_config_text(config_file)  # 保留原换行，避免整文件行尾被改写
-            new_text = apply_updates(text, updates)
-            from ..config import AppConfig
-            AppConfig.model_validate(yaml.safe_load(new_text) or {})
-            safe_write(config_file, new_text)
-        except (ValueError, OSError, yaml.YAMLError) as exc:
+            commit_config_updates(config_file, updates)
+        except (ValueError, OSError, yaml.YAMLError, LockTimeout) as exc:
             # 含密钥字段时只回笼统原因，避免把密钥值回显到错误信息/日志里
             detail = "配置更新被拒绝（含密钥字段，详情已省略）" if touched_secret else str(exc)
             raise HTTPException(status_code=400, detail=detail)

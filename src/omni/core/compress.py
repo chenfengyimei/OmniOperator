@@ -156,6 +156,17 @@ def _rows_to_messages(
     return [_summary_message(summary[3], first_user), *messages[start:]]
 
 
+def preview_context(
+    rows: list[tuple[int, str, str]],
+    summary: tuple[int, int, int, str, int] | None,
+    *,
+    render: Callable[[list[tuple[int, str, str]]], list[dict[str, Any]]] | None = None,
+) -> list[dict[str, Any]]:
+    """只读预览保留窗口；不压缩、不调用模型、不保存摘要。"""
+    uncovered = [row for row in rows if summary is None or row[0] > summary[2]]
+    return _rows_to_messages(uncovered, summary, render)
+
+
 def assert_invariants(messages: list[dict[str, Any]]) -> None:
     """消息不变量（Hermes 硬约束）。违反立即 AssertionError——坏请求宁可在
     本地炸掉暴露 bug，也不发给对角色交替敏感的模型。"""

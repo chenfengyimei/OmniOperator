@@ -16,6 +16,7 @@
 | [DESKTOP.md](DESKTOP.md) | Windows 桌面：UIAutomation、观察令牌、窗口租约、应用白名单 |
 | [MCP.md](MCP.md) | 本地 MCP：stdio 配置、工具目录、只读白名单、漂移复查 |
 | [TERMINAL.md](TERMINAL.md) | 内置终端与后台命令任务：ConPTY、会话池、审批后任务 |
+| [CONTEXT_SETTINGS.md](CONTEXT_SETTINGS.md) | 设置中心上下文页：窗口/缓存统计、压缩与记忆配额、配置生效范围 |
 | [RETRIEVAL.md](RETRIEVAL.md) | 混合检索：Ollama/API embedding、sqlite-vec + FTS、评测（默认关闭） |
 | [STORAGE.md](STORAGE.md) | 全局业务根、工作目录与 Agent 空间的目录布局与边界 |
 | [AGENT_STORAGE.md](AGENT_STORAGE.md) | Agent 独立空间：九类业务目录、路径策略与 API 说明 |

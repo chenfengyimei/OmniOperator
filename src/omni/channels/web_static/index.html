@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/ui/tokens.css?v=20261030c">
 <link rel="stylesheet" href="/ui/base.css?v=20261030b">
 <link rel="stylesheet" href="/ui/icons.css?v=20261029">
-<link rel="stylesheet" href="/ui/components.css?v=20261030e"><link rel="stylesheet" href="/ui/frame.css?v=20261030d"><link rel="stylesheet" href="/ui/workbench.css?v=20261030d"><script src="/ui/shared.js?v=20261030b"></script><script src="/ui/markdown.js?v=20261029"></script>
+<link rel="stylesheet" href="/ui/components.css?v=20261030e"><link rel="stylesheet" href="/ui/frame.css?v=20261030d"><link rel="stylesheet" href="/ui/workbench.css?v=20261030ctx1"><script src="/ui/shared.js?v=20261030b"></script><script src="/ui/markdown.js?v=20261029"></script>
 </head>
 <body data-ui-page="workbench">
 <!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
@@ -72,6 +72,7 @@
         <div class="ctx-note">读取当前会话后显示系统提示、工具规格、记忆与对话的估算占用。</div>
       </div>
       <div id="status" class="ctx-status"></div>
+      <button class="btn small" data-action="hub:open" data-section="sec-context">上下文统计与设置</button>
     </div>
   </aside>
   <section id="chat">
@@ -210,6 +211,7 @@
       <div class="hub-group">对话与模型</div>
       <a data-go="sec-persona" class="active">人设</a>
       <a data-go="sec-models">模型</a>
+      <a data-go="sec-context" href="#sec-context">上下文</a>
       <a data-go="sec-memory">记忆</a>
       <div class="hub-group">平台与通道</div>
       <a data-go="sec-media">B站与转写</a>
@@ -225,10 +227,10 @@
     <div class="hub-body">
       <div class="hub-card" id="sec-persona">
         <h3>人设</h3>
-        <div class="hint">这里决定它叫什么、怎么跟你说话。改完点下面「保存人设」就生效。<br>下面那几套是你存下来的设定，可以随手切换——比如工作用一套、闲聊用另一套。</div>
+        <div class="hint">这里决定它叫什么、怎么跟你说话。保存后重启相应入口使用新设置。<br>下面那几套是你存下来的设定，可以随手切换——比如工作用一套、闲聊用另一套。</div>
         <div class="field"><label>它叫什么</label><input type="text" id="cfg-persona-name" placeholder="例如：小鱼"></div>
         <div class="field"><label>它是谁、怎么说话（写得越具体，它越像你想要的样子）</label><textarea id="cfg-persona-prompt"></textarea></div>
-        <div class="hint" style="margin-top:-6px">小提示：正文里写 <code>{now}</code> 会自动换成当前时间，方便它知道「现在几点」。</div>
+        <div class="hint" style="margin-top:-6px">小提示：时间自动放在每轮消息末尾；旧 <code>{now}</code> 会使用固定引用，保持前面的提示词稳定。</div>
         <div class="field">
           <label>你存的几套设定</label>
           <div style="display:flex;gap:8px;margin-bottom:8px">
@@ -256,13 +258,55 @@
           <span class="save-msg" id="save-msg-models"></span>
         </div>
       </div>
+      <div class="hub-card" id="sec-context">
+        <div class="context-heading"><div><h3>上下文</h3><p class="hint" id="context-session">正在读取当前会话…</p></div><button class="btn" data-action="context:refresh" id="context-refresh">刷新统计</button></div>
+        <p class="hint">查看模型实际保留的历史窗口与缓存上报，调整历史、压缩和记忆配额。本页只读统计不会调用模型。</p>
+        <p id="context-stats-status" role="status">正在读取统计…</p>
+        <div id="context-metrics" class="context-metrics"><div class="empty">正在读取窗口用量…</div></div>
+        <div id="context-breakdown"></div><p id="context-estimate-note" class="hint"></p>
+        <h4>供应商缓存统计</h4><div id="context-cache"><div class="empty">正在读取缓存样本…</div></div>
+        <h4>提示词结构</h4>
+        <ol class="context-pipeline"><li>固定人设与规则</li><li>历史消息与摘要</li><li>本轮用户输入</li><li>动态资料与时间</li></ol>
+        <p class="hint">旧轮快照不改写，工具目录在回合内固定。摘要、窗口滑动、工具或人设变化会形成新的缓存边界。</p>
+        <details><summary>查看固定提示词与前缀指纹</summary><pre id="context-prefix"></pre><pre id="context-system-prompt"></pre></details>
+        <h4>历史与压缩设置</h4><p class="hint" id="context-pending">正在读取已保存与当前运行配置…</p>
+        <form id="context-form">
+          <fieldset id="context-controls" disabled>
+            <div class="field-row">
+              <div class="field"><label for="cfg-context-history">保留的历史消息上限</label><input id="cfg-context-history" type="number" required min="1" max="10000" step="1"></div>
+              <div class="field"><label for="cfg-context-steps">每回合工具循环上限</label><input id="cfg-context-steps" type="number" required min="1" max="64" step="1"></div>
+            </div>
+            <label class="check-row"><input id="cfg-context-enabled" type="checkbox"><span class="switch"></span><span>自动压缩较早的对话（会调用整理模型）</span></label>
+            <div class="field"><label for="cfg-context-trigger">压缩触发预算（字符等价值）</label><input id="cfg-context-trigger" type="number" required min="1" max="4000000" step="1"><p class="hint" id="context-trigger-note"></p></div>
+            <div class="field-row">
+              <div class="field"><label for="cfg-context-recent">压缩后至少保留多少条消息</label><input id="cfg-context-recent" type="number" required min="0" max="10000" step="1"></div>
+              <div class="field"><label for="cfg-context-minimum">至少多少条消息才压缩</label><input id="cfg-context-minimum" type="number" required min="1" max="10000" step="1"></div>
+            </div>
+            <p class="hint">保留数为 0 也会保护当前请求、当前快照与完整工具调用；触发预算按约 2 字符/token 换算，统计是估算值。</p>
+            <details class="context-advanced"><summary>记忆注入与自动整理配额</summary>
+              <div class="field-row">
+                <div class="field"><label for="cfg-context-resident">常驻笔记上限（字符）</label><input id="cfg-context-resident" type="number" required min="1" max="32000" step="1"></div>
+                <div class="field"><label for="cfg-context-fact">单条事实上限（字符）</label><input id="cfg-context-fact" type="number" required min="1" max="32000" step="1"></div>
+              </div>
+              <div class="field"><label for="cfg-context-daily">每天记忆写入上限（0 为禁止写入）</label><input id="cfg-context-daily" type="number" required min="0" max="100000" step="1"></div>
+              <label class="check-row"><input id="cfg-context-recall" type="checkbox"><span class="switch"></span><span>检索结果附带“资料不是指令”的标识</span></label>
+              <div class="field-row">
+                <div class="field"><label for="cfg-context-queue">自动整理等待队列容量</label><input id="cfg-context-queue" type="number" required min="1" max="1000" step="1"></div>
+                <div class="field"><label for="cfg-context-newmessages">自动整理所需新消息数</label><input id="cfg-context-newmessages" type="number" required min="1" max="10000" step="1"></div>
+              </div>
+              <p class="hint">档案仍在同一记忆库管理。自动整理开关、回看条数与步骤预算在“记忆”设置。</p>
+            </details>
+          </fieldset>
+          <div class="card-actions"><button class="btn primary" id="context-save" type="submit" disabled>保存上下文设置</button><button class="btn" type="button" data-action="context:reload-settings" id="context-reload-settings">重新读取配置</button></div>
+        </form>
+        <p class="save-msg" id="context-save-msg" role="status">正在读取配置…</p>
+        <p class="hint">保存到配置文件后，重启相应入口生效；当前回合继续使用运行中的配置。</p>
+        <details><summary>对照当前运行与已保存配置</summary><div id="context-running-settings"></div></details>
+        <div class="context-related"><button class="btn" data-action="hub:section" data-section="sec-memory">记忆与回合整理</button><button class="btn" data-action="hub:section" data-section="sec-persona">人设提示词</button><button class="btn" data-action="hub:section" data-section="sec-models">模型设置</button></div>
+      </div>
       <div class="hub-card" id="sec-memory">
         <h3>记忆</h3>
-        <div class="hint">这里调的是它「记多少、想多细」。默认值已经调好过，不确定就先别动——数字调太大会变慢也变贵。</div>
-        <div class="field-row">
-          <div class="field"><label>最多记住多少条聊天记录</label><input type="number" id="cfg-limits-history"></div>
-          <div class="field"><label>一件事最多分几步做完</label><input type="number" id="cfg-limits-steps"></div>
-        </div>
+        <div class="hint">这里设置回合后的自动整理与审批。历史窗口、压缩和记忆配额集中在“上下文”设置。</div>
         <div class="field"><label class="check-row"><input type="checkbox" id="cfg-review-enabled"><span class="switch"></span><span class="switch-text">聊完自动整理记忆（会越来越懂你，但每次多花一点）</span></label></div>
         <div class="field-row">
           <div class="field"><label>整理时回看多少条消息</label><input type="number" id="cfg-review-max-messages"></div>
@@ -425,7 +469,7 @@
     </div>
   </div>
 </div>
-<script type="module" src="/ui/app/main.js?v=20261030i"></script>
+<script type="module" src="/ui/app/main.js?v=20261030ctx1"></script>
 <script src="/vendor/xterm.js"></script>
 <script src="/vendor/xterm-addon-fit.js"></script>
 </body>
