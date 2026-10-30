@@ -18,6 +18,7 @@ from ..core.cron import (
     make_runtime_executor,
     outbox_drain_loop,
 )
+from ..core.journal import journal_loop
 from ..memory.state import StateUnavailable
 from ..safety.gates import DenyApprover
 from .lifecycle import serve_until_stop
@@ -44,13 +45,14 @@ async def _serve(runtime) -> None:
         ledger=runtime.cron_ledger,
         max_running=runtime.config.cron.max_running,
     )
-    tasks = [scheduler.run(), outbox_drain_loop(runtime), artifacts_sweep_loop(runtime)]
+    tasks = [scheduler.run(), outbox_drain_loop(runtime), artifacts_sweep_loop(runtime),
+             journal_loop(runtime)]
     if runtime.qq is not None:
         tasks.append(runtime.qq.run(_ignore_event))
     print(
         f"[心跳] 调度器已启动：{len(jobs)} 个任务（Ctrl+C 退出）；"
         "QQ 掉线期间的任务结果进入待投递队列，恢复后每分钟自动补投；"
-        "每小时清理过期产物",
+        "每小时清理过期产物；每5分钟检查记忆整理（日/周/月笔记）",
         flush=True,
     )
     try:

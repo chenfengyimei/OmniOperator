@@ -88,7 +88,8 @@ def month_end(day: dt.date) -> dt.date:
     return dt.date(day.year, day.month + 1, 1) - dt.timedelta(days=1)
 
 
-def _week_monday(key: str) -> dt.date:
+def week_monday(key: str) -> dt.date:
+    """ISO 周键 → 该周周一（公开给整理编排取材用）。"""
     year, week = key.split("-W")
     return dt.date.fromisocalendar(int(year), int(week), 1)
 
@@ -104,7 +105,7 @@ def month_weeks(days: list[str]) -> dict[str, list[str]]:
         week_keys.add(week_key(dt.date.fromisoformat(day)))
     months: dict[str, set[str]] = {}
     for key in week_keys:
-        monday = _week_monday(key)
+        monday = week_monday(key)
         sunday = week_end(monday)
         for m in {month_key(monday), month_key(sunday)}:
             months.setdefault(m, set()).add(key)
@@ -384,7 +385,7 @@ def due_periods(
 
     # ---- 每月：自然月已过去 + 该月各活动周（跨界周计入）的周记齐了 + 无 done 月记
     for mkey, week_list in sorted(month_weeks(days_with_activity).items()):
-        if month_end(_week_monday(week_list[0]).replace(day=1)) >= today:
+        if month_end(week_monday(week_list[0]).replace(day=1)) >= today:
             continue
         note = monthly_map.get(mkey)
         if note is not None and note["status"] in ("done", "running"):

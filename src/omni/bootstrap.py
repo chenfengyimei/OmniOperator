@@ -31,6 +31,7 @@ from .core.agent import Agent
 from .core.run import ActiveRuns
 from .core.session import ResourceLeases, SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
+from .core.journal import JournalConsolidator
 from .core.retrieval import HybridMemory
 from .llm.gateway import Gateway
 from .llm.embedding import EmbeddingProvider
@@ -164,6 +165,7 @@ class Runtime:
     android: AndroidDriver
     mcp: MCPManager
     reviewer: TurnEndReviewer | None = None
+    journal_consolidator: JournalConsolidator | None = None  # 记忆系统整理 worker（M3–M5）
     memory_guard: MemoryGuard | None = None  # 记忆写入额度与输入检查（D12）
     workspace: Workspace | None = None        # 文件工具的允许根与敏感项边界（D13）
     file_history: FileHistory | None = None   # 工作区文件的写入备份（D13）
@@ -647,6 +649,30 @@ def build_runtime(
         # 手动触发整理（session_refine，SAFE，作用域=当前会话）：与自动 review
         # 共用同一个有界队列与消息区间去重；registry 每轮动态取 specs，晚注册对 Agent 可见
         register_refine_tool(registry, reviewer, session_ref)
+
+    # 记忆系统整理 worker（M3–M5）：白名单=记忆沉淀工具（来源记 journal，额度与
+    # 用户手动写入共享同一份 MemoryGuard）；note_save 工具由 worker 按期注入
+    def _journal_registry(journal_store: MemoryStore) -> ToolRegistry:
+        journal_registry = ToolRegistry()
+        register_memory_tools(
+            journal_registry, journal_store, guard=memory_guard,
+            recall_prefix=config.memory.recall_prefix, source="journal",
+        )
+        register_profile_tools(journal_registry, journal_store, guard=memory_guard, source="journal")
+        register_resident_tools(journal_registry, resident)
+        return journal_registry
+
+    journal_consolidator = (
+        JournalConsolidator(
+            config, gateway,
+            journal=journal_store, dialogue=dialogue_log,
+            make_store=lambda: MemoryStore(memory_path),
+            make_registry=_journal_registry,
+            session_log=session_log, people=people_store,
+        )
+        if config.journal.enabled
+        else None
+    )
     return Runtime(
         config=config,
         store=store,
@@ -680,6 +706,7 @@ def build_runtime(
         android_streams=android_streams,
         mcp=mcp,
         reviewer=reviewer,
+        journal_consolidator=journal_consolidator,
         memory_guard=memory_guard,
         workspace=workspace,
         file_history=file_history,

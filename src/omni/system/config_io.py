@@ -46,6 +46,25 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("browser", "max_writes_per_day"): "int",
     ("browser", "approval_timeout_s"): "float",
     ("approval", "mode"): "choice:manual,smart",
+    # 记忆系统（M3–M6）的整理与限额：界面在「记忆系统 → 整理设置」
+    ("journal", "enabled"): "bool",
+    ("journal", "daily_time"): "str",
+    ("journal", "steps"): "int",
+    ("journal", "max_catchup"): "int",
+    ("journal", "max_input_chars"): "int",
+    ("journal", "max_note_chars"): "int",
+    ("journal", "daily_prompt"): "multiline",
+    ("journal", "weekly_prompt"): "multiline",
+    ("journal", "monthly_prompt"): "multiline",
+    ("transcript", "max_entry_chars"): "int",
+    ("transcript", "max_tool_args_chars"): "int",
+    ("transcript", "max_tool_result_chars"): "int",
+    ("transcript", "retention_days"): "int",
+    ("transcript", "dialogue_retention_days"): "int",
+    ("people", "person_card_chars"): "int",
+    ("people", "archive_max_chars"): "int",
+    ("people", "resident_max_chars"): "int",
+    ("people", "event_max_chars"): "int",
 }
 
 
