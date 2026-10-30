@@ -62,3 +62,13 @@ def test_readme_relative_links_resolve(name: str) -> None:
                if item and not item.startswith(('http://', 'https://', 'mailto:'))
                and not (ROOT / item).is_file()]
     assert not missing, f'{name} 存在死链：{missing}'
+
+
+@pytest.mark.parametrize('name', [
+    'CONTRIBUTING.md', 'SECURITY.md', 'CODE_OF_CONDUCT.md', 'CHANGELOG.md', 'docs/README.md',
+])
+def test_community_files_exist_and_linked_from_readme(name: str) -> None:
+    path = ROOT / name
+    assert path.is_file() and path.stat().st_size > 500, f'{name} 缺失或内容过短'
+    readme = (ROOT / 'README.md').read_text(encoding='utf-8')
+    assert f'({name})' in readme, f'README.md 未链接 {name}'

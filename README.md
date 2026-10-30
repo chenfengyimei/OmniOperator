@@ -30,6 +30,7 @@ Python 3.12+ · uv · LiteLLM 网关 · SQLite 记忆与运行账本 · 无前�
 
 完整契约（会话并发、至多一次领取、浏览器单线程所有权、文件域边界、产物归属……）见
 [架构权威 ARCHITECTURE](docs/ARCHITECTURE.md) §3，由 `tests/test_arch.py` 等测试强制执行。
+安全漏洞请按 [SECURITY](SECURITY.md) 的渠道报告，勿在公开 issue 讨论细节。
 
 ## 能力一览
 
@@ -203,8 +204,12 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
    每个新模块必须有单测，提交信息用中文「领域：要点——细节」，全量测试全绿再提交。
 4. 前端纪律以 [UI_DESIGN_SYSTEM](docs/UI_DESIGN_SYSTEM.md) 为唯一规范；新增/删除文件后跑
    `uv run --no-sync python scripts/project_index.py` 更新索引。
+5. 完整贡献流程见 [CONTRIBUTING](CONTRIBUTING.md)；参与即接受
+   [行为准则](CODE_OF_CONDUCT.md)。
 
 ## 文档地图
+
+完整导航（含每份文档的一句话说明）见 [docs/README.md](docs/README.md)：
 
 - **用户手册**：[安装器](docs/INSTALLER.md) · [QQ 部署](docs/QQ_SETUP.md) · [QQ 场景](docs/QQ_SCENARIOS.md) ·
   [B站写入](docs/BILIBILI_WRITING.md) · [安卓](docs/ANDROID.md) · [桌面](docs/DESKTOP.md) ·
@@ -223,7 +228,8 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 D00–D27 与 C01–C06 代码侧已交付，前端已完成统一改造（一套 token/组件库/ES 模块）。
 **真实账号/设备/模型闭环、72 小时常驻、通用桌面接管、视频上传仍待验收**；已交付能力的
 边界与证据逐项见 [DEVELOPMENT_STATUS](docs/DEVELOPMENT_STATUS.md)，发布闸门见
-[ACCEPTANCE](docs/ACCEPTANCE.md)——发布通过也仍需所有者明确批准。
+[ACCEPTANCE](docs/ACCEPTANCE.md)——发布通过也仍需所有者明确批准。版本级能力记录见
+[CHANGELOG](CHANGELOG.md)。
 
 ## 许可与使用边界
 
