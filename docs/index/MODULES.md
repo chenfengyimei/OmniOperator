@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`8b44a2297602789440753aa2a803c497b16aea05d70d7a1e7ed0d097c81d49b9`。包含 55 个职责模块、246 个源码/界面文件。
+源码指纹：`d86e9005e0a497b79e5043078c2ea9d7e8877e3c6b06771fc330dba41b10acc7`。包含 55 个职责模块、246 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 

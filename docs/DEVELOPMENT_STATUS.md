@@ -7,6 +7,32 @@
 
 ## 1 基线（D00，2026-10-27）
 
+### 2026-10-30 · 开源社区体系与历史脱敏（历史重写声明）
+
+- 交付开源配套全体系：①敏感审计常驻工具 `scripts/audit_sensitive.py`（全历史 blob/提交信息扫描，
+  敏感字面量经仓库外私有文件传入、严禁写进脚本）；②config 模板化防复发——`config/config.yaml`
+  解除跟踪（gitignore + `config.example.yaml` 模板；真实 QQ 白名单只存本地；`load_config`
+  对缺失文件回退 `AppConfig()` 已验证，安装器对缺失 config 有既有降级提示）；③全仓当前文件
+  QQ 号占位化与本机路径通用化；④LICENSE（Apache-2.0）+ pyproject 元数据（SPDX，uv.lock 零差异）；
+  ⑤README 重写——七分类×55 模块地图与 `system/catalog/schema.py` 唯一真源一致，
+  `tests/test_community_docs.py` 守卫（模块地图防漂移/相对链接零死链/LICENSE 样板/社区文件存在且被链接）；
+  ⑥CONTRIBUTING/SECURITY/CODE_OF_CONDUCT/CHANGELOG（0.1.0 受控内测如实口径）+ `docs/README.md`
+  三层文档导航（文件不移动）。
+- **git 历史最小脱敏重写（2026-10-30 执行）**：`git filter-repo --replace-text/--replace-message`
+  （git-filter-repo 2.47，映射文件在仓库外私有目录，QQ 号→数字占位）。重写范围：两枚真实 QQ 号，
+  历史累计 148+131 处 blob 命中 + 1 处提交信息命中（audit_sensitive 实测，无真实密钥，`.env` 从未入库）。
+  **110 个提交全部保留**（数量、提交信息、作者、日期不变）；HEAD 树哈希重写前后逐字节一致
+  （`2bf0d3a…`）；`git push --force origin master` 已完成，远端经 `git ls-remote` 核对仅
+  `refs/heads/master` 且指向重写后 HEAD；全历史 `-S` 复核零命中。
+- **旧 commit 哈希失效声明（如实）**：本次重写使 2026-10-30 之前记录的全部 commit 哈希不再解析
+  （内容变更必然改变哈希）。本台账与各文档中引用的历史哈希（b626eb4、42ecb6c、c95c205、76ebf74 等）
+  **作为历史名词保留，不逐一改写**；如需按哈希取证，使用重写前的私有备份镜像
+  `D:\omni-private-evidence\omni-pre-filter.git`（含完整重写前历史与 refs/codex 本地检查点，
+  不入库、不对外）。
+- 验证：重写前最后全量 `uv run --no-sync pytest -q` → **1198 passed，320.19s**（含新增社区守卫
+  9 项）；重写在镜像副本演练三重校验通过后执行主仓；重写后全量复跑 → **1198 passed，302.06s**，
+  工作树内容与重写前逐字节一致（HEAD 树哈希相同）。
+
 ### 2026-10-30 · 提示词与上下文缓存布局
 
 - `core/context.py` 单点维护稳定 system、动态回合快照与模型历史视图；时间/常驻/档案附在所属轮用户正文后，旧 `{now}` 配置改成固定引用。用户原文、标题、FTS 与 review 不混入快照。
