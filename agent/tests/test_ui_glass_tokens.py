@@ -41,28 +41,15 @@ EXPECTED_GLASS = {f"--glass-{t}-{f}" for t in GLASS_TIERS for f in GLASS_FIELDS}
 LITERAL_BLUR = re.compile(r"backdrop-filter\s*:[^;}]*blur\(\s*[0-9]")
 
 # ---- 棘轮配额：现存违规清单，每批改造后调低直至删空 ----
-# 写死模糊值：frame.css 与 workbench.css 已于批次 3 收敛；余下 project.css 待批次 5
-LITERAL_BLUR_QUOTA = {
-    "project/project.css": 2,
-}
-# 悬空变量：待批次 5（--bg-1/--bg-2/--danger-1）清零；--accent-1 已于批次 4 修正
-DANGLING_QUOTA = {
-    "memory/memory.css": {"--bg-1", "--bg-2", "--danger-1"},
-}
+# 写死模糊值：全部已收敛（批次 3 清 frame.css/workbench.css，批次 5 清 project.css）
+LITERAL_BLUR_QUOTA: dict[str, int] = {}
+# 悬空变量：--bg-1/--bg-2/--danger-1 已于批次 5 清零
+DANGLING_QUOTA: dict[str, set[str]] = {}
 # 断点白名单（UI_DESIGN_SYSTEM.md §5）：只认 900 / 760 / 520。
 # 配额里是尚未收敛的历史断点，每批改造后调低直至删空。
 # 注：workbench 的 min-width:901 / 761 是与 max-width:900 / 760 **成对互补**的
 # （桌面才显示的规则用 min-width 表达），它们不是独立断点，故不在配额里。
-BREAKPOINT_QUOTA = {
-    "ui/frame.css": {600: 1, 1120: 1},
-    "project/project.css": {500: 1},
-    "memory/memory.css": {860: 1},
-    "android/android.css": {700: 1, 1120: 1},
-    "capabilities/capabilities.css": {600: 2, 1120: 1},
-    "jobs/jobs.css": {1120: 1},
-    "mcp/mcp.css": {600: 1, 1120: 1},
-    "terminal/terminal.css": {600: 3, 1120: 1},
-}
+BREAKPOINT_QUOTA: dict[str, dict[int, int]] = {}
 
 
 def rel(path: Path) -> str:

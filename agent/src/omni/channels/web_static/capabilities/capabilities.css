@@ -36,12 +36,12 @@ body[data-ui-page="capabilities"] .cap-main{min-width:0}
 body[data-ui-page="capabilities"] #cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:0!important;padding:0!important}
 body[data-ui-page="capabilities"] .cap-card{
   display:flex;flex-direction:column;padding:16px!important;min-height:210px;
-  background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--surface-1)!important;
+  background:var(--glass-mid-bg)!important;
 }
 .cap-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
-.cap-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 19%,transparent)}
+.cap-icon{width:34px;height:34px;border-radius:var(--r-md);display:grid;place-items:center;color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 19%,transparent)}
 .cap-icon .material-icons{font-size:18px}
-.cap-state{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.035);font-size:10px;color:var(--text-3);border:1px solid var(--line-2)}
+.cap-state{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:var(--r-full);background:var(--glass-weak-bg);font-size:10px;color:var(--text-3);border:1px solid var(--line-2)}
 .cap-state i{width:5px;height:5px;border-radius:50%;background:var(--ok);box-shadow:0 0 7px var(--ok)}
 .cap-card[data-state="warning"] .cap-state i{background:var(--warn);box-shadow:0 0 7px var(--warn)}
 .cap-card[data-state="failed"] .cap-state i{background:var(--danger);box-shadow:0 0 7px var(--danger)}
@@ -56,7 +56,7 @@ body[data-ui-page="capabilities"] .cap-card{
 .cap-card summary .material-icons{font-size:12px;color:var(--seed-accent)}
 .cap-card pre{max-height:220px;overflow:auto;margin:8px 0 0;font-size:10px}
 body[data-ui-page="capabilities"] .cap-side{display:flex;flex-direction:column;gap:12px;min-width:0}
-body[data-ui-page="capabilities"] .console-card{padding:14px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface-1);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+body[data-ui-page="capabilities"] .console-card{padding:14px;border:1px solid var(--glass-mid-line);border-radius:var(--r-card);background:var(--glass-mid-bg);box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen)}
 .card-copy{margin:0 0 9px!important;padding:0!important;border:0!important;background:none!important;color:var(--text-4)!important;font-size:10px!important;line-height:1.65!important}
 #probe{min-height:110px;max-height:230px;margin:0!important;font-size:10px!important}
 #checks{max-height:430px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
@@ -74,19 +74,24 @@ body[data-ui-page="capabilities"] .console-card{padding:14px;border:1px solid va
 
 
 /* ---- 旧版遗留（仍生效的独立规则；Phase 3 组件统一批清理） ---- */
-:root{color-scheme:dark;font:14px system-ui;background:#10151d;color:#dce7ee}*{box-sizing:border-box}body{margin:0;padding:20px;max-width:1300px}header,nav{display:flex;align-items:center;gap:14px;flex-wrap:wrap}h1{font-size:20px}h2{font-size:16px}a{color:#6cdcc3}p,#status{color:#a8bbcc;font-size:12px;line-height:1.7}button{background:#203345;color:inherit;border:1px solid #426078;padding:8px;border-radius:6px;cursor:pointer}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:18px}.card{min-width:0;background:#17232f;padding:14px;border:1px solid #34495c;border-radius:9px}pre{font:12px/1.7 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:380px;overflow:auto}#checks>p{padding:8px;border-bottom:1px solid #2c4153}@media(max-width:600px){body{padding:10px}}
+/* 本页布局与语义。色值一律走 token；控件皮肤由 ui/frame.css 的
+   Unified controls 层提供（子站按钮多数无 .btn 类），此处不重复定义控件外观。 */
+body[data-ui-page="capabilities"] main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:18px}
+body[data-ui-page="capabilities"] .card{min-width:0;padding:14px}
+body[data-ui-page="capabilities"] pre{font:12px/1.7 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:380px;overflow:auto}
+body[data-ui-page="capabilities"] #checks>p{padding:8px;border-bottom:1px solid var(--line-2)}
 
-summary{cursor:pointer;color:#8dd9ca;font-size:12px}#checks [data-state="warning"]{color:#e0c78e}#checks [data-state="error"]{color:#f0a4a4}
+summary{cursor:pointer;color:var(--seed-accent);font-size:12px}#checks [data-state="warning"]{color:var(--warn)}#checks [data-state="error"]{color:var(--danger)}
 
 /* ---- 响应式覆盖（从 frame.css 迁回：与上面页面段同优先级、必须靠后胜出） ---- */
-@media(max-width:1120px){
+@media(max-width:900px){
   body[data-ui-page="capabilities"] #cards{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:760px){
   body[data-ui-page="capabilities"] #cards{grid-template-columns:minmax(0,1fr)}
   body[data-ui-page="capabilities"] .cap-card{min-height:190px}
 }
-@media(max-width:600px){
+@media(max-width:520px){
   body[data-ui-page="capabilities"] .probe-tools{width:calc(100% - 20px)}
 }
 

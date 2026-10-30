@@ -10,11 +10,11 @@
 body[data-ui-page="terminal"]{height:100dvh;overflow:hidden}
 body[data-ui-page="terminal"] > form{
   padding:9px;border:1px solid var(--shell-line);border-radius:var(--shell-radius);
-  background:rgba(17,24,36,.7);
+  background:var(--glass-weak-bg);
 }
 body[data-ui-page="terminal"] #tabs{padding:1px 0}
 body[data-ui-page="terminal"] #tabs button{
-  border-radius:8px;background:var(--shell-surface);border-color:var(--shell-line);
+  border-radius:var(--r-md);background:var(--shell-surface);border-color:var(--shell-line);
 }
 body[data-ui-page="terminal"] #tabs button.active{
   color:var(--shell-accent);border-color:color-mix(in srgb,var(--seed-accent) 42%,transparent);background:var(--shell-accent-soft);
@@ -23,7 +23,7 @@ body[data-ui-page="terminal"] main{border:1px solid var(--shell-line);box-shadow
 body[data-ui-page="terminal"] footer{padding-bottom:6px}
 body[data-ui-page="terminal"] #end{margin-left:auto}
 body[data-ui-page="terminal"] #state{
-  padding:6px 10px;color:var(--shell-text-2);background:rgba(17,24,36,.7);
+  padding:6px 10px;color:var(--shell-text-2);background:var(--glass-weak-bg);
   border:1px solid var(--shell-line);border-radius:var(--shell-radius-sm);
 }
 
@@ -36,13 +36,13 @@ body[data-ui-page="terminal"]>.terminal-layout{
 }
 body[data-ui-page="terminal"] .terminal-side,
 body[data-ui-page="terminal"] .terminal-core{
-  min-width:0;min-height:0;border:1px solid var(--line-2);border-radius:12px;
-  background:var(--surface-1);box-shadow:0 12px 34px rgba(0,0,0,.18);overflow:hidden;
+  min-width:0;min-height:0;border:1px solid var(--line-2);border-radius:var(--r-card);
+  background:var(--glass-mid-bg);box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);overflow:hidden;
 }
 body[data-ui-page="terminal"] .terminal-side{display:flex;flex-direction:column;padding:12px}
-body[data-ui-page="terminal"] #state{padding:7px 9px;margin:0 0 8px;font-size:10.5px;line-height:1.55;color:var(--text-3);border:1px solid var(--line-2);border-radius:7px;background:rgba(2,6,10,.42)}
+body[data-ui-page="terminal"] #state{padding:7px 9px;margin:0 0 8px;font-size:10.5px;line-height:1.55;color:var(--text-3);border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--surface-inset)}
 body[data-ui-page="terminal"] #tabs{display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;margin-bottom:8px}
-body[data-ui-page="terminal"] #tabs button{width:100%;min-height:31px;height:auto;padding:6px 9px;text-align:left;border-radius:7px;background:rgba(255,255,255,.02);font-size:10.5px}
+body[data-ui-page="terminal"] #tabs button{width:100%;min-height:31px;height:auto;padding:6px 9px;text-align:left;border-radius:var(--r-sm);background:var(--glass-weak-bg);font-size:10.5px}
 body[data-ui-page="terminal"] #tabs button.active{color:var(--seed-accent);border-color:color-mix(in srgb,var(--seed-accent) 35%,transparent);background:color-mix(in srgb,var(--seed-accent) 8%,transparent);box-shadow:inset 2px 0 0 var(--seed-accent)}
 body[data-ui-page="terminal"] #empty{flex:1;min-height:130px;padding:16px 10px;margin:0 0 8px}
 body[data-ui-page="terminal"] #empty h3{font-size:11px}
@@ -52,7 +52,7 @@ body[data-ui-page="terminal"] .form-title{display:flex;align-items:center;gap:5p
 body[data-ui-page="terminal"] .form-title .material-icons{font-size:14px;color:var(--seed-accent)}
 body[data-ui-page="terminal"] #create label{display:flex;flex-direction:column;align-items:stretch;gap:3px;font-size:10px;color:var(--text-4);width:100%}
 body[data-ui-page="terminal"] #create :is(input,select){width:100%;height:29px;min-height:29px;padding:4px 8px;font-size:10.5px}
-body[data-ui-page="terminal"] #create button{width:100%;height:31px;min-height:31px;margin-top:2px;color:#04121a;border-color:transparent;background:var(--grad);font-weight:700}
+body[data-ui-page="terminal"] #create button{width:100%;height:31px;min-height:31px;margin-top:2px;color:var(--on-accent);border-color:transparent;background:var(--grad);font-weight:700}
 body[data-ui-page="terminal"] .terminal-core{display:flex;flex-direction:column}
 body[data-ui-page="terminal"] .terminal-core-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line-3);flex-shrink:0}
 body[data-ui-page="terminal"] .terminal-core-head h2{font-size:12px;margin:1px 0 0;color:var(--text-2)}
@@ -68,16 +68,16 @@ body[data-ui-page="terminal"] .terminal-welcome{
   background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--seed-accent) 6%,transparent),transparent 42%);
 }
 body[data-ui-page="terminal"] .terminal-welcome-icon{
-  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:var(--seed-accent);
+  width:48px;height:48px;border-radius:var(--r-card);display:grid;place-items:center;color:var(--seed-accent);
   background:color-mix(in srgb,var(--seed-accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 18%,transparent);font-size:25px!important;margin-bottom:10px;
 }
 body[data-ui-page="terminal"] .terminal-welcome h3{margin:0;font-size:14px;color:var(--text-2)}
 body[data-ui-page="terminal"] .terminal-welcome p{max-width:430px;margin:6px 0 14px!important;padding:0!important;border:0!important;background:none!important;color:var(--text-4)!important;font-size:10.5px!important;line-height:1.7!important}
 body[data-ui-page="terminal"] .terminal-shortcuts{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
-body[data-ui-page="terminal"] .terminal-shortcuts span{padding:5px 8px;border:1px solid var(--line-3);border-radius:6px;background:rgba(255,255,255,.025);color:var(--text-4);font-size:10px}
-body[data-ui-page="terminal"] kbd{padding:0 3px;border:1px solid var(--line-2);border-radius:3px;background:rgba(255,255,255,.05);font:10px var(--font-mono);color:var(--text-3)}
-body[data-ui-page="terminal"] footer{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:8px 10px;border-top:1px solid var(--line-3);background:rgba(8,13,20,.6);flex-shrink:0}
-body[data-ui-page="terminal"] footer button{display:inline-flex;align-items:center;gap:4px;min-height:27px;height:27px;padding:0 8px;font-size:10.5px;border-radius:6px}
+body[data-ui-page="terminal"] .terminal-shortcuts span{padding:5px 8px;border:1px solid var(--line-3);border-radius:var(--r-sm);background:var(--glass-weak-bg);color:var(--text-4);font-size:10px}
+body[data-ui-page="terminal"] kbd{padding:0 3px;border:1px solid var(--line-2);border-radius:3px;background:var(--glass-mid-sheen);font:10px var(--font-mono);color:var(--text-3)}
+body[data-ui-page="terminal"] footer{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:8px 10px;border-top:1px solid var(--line-3);background:var(--glass-strong-bg);flex-shrink:0}
+body[data-ui-page="terminal"] footer button{display:inline-flex;align-items:center;gap:4px;min-height:27px;height:27px;padding:0 8px;font-size:10.5px;border-radius:var(--r-sm)}
 body[data-ui-page="terminal"] footer button .material-icons{font-size:12px}
 body[data-ui-page="terminal"] #end{margin-left:auto}
 body[data-ui-page="terminal"] .xterm{height:100%}
@@ -85,12 +85,26 @@ body[data-ui-page="terminal"] .xterm{height:100%}
 
 
 /* ---- 旧版遗留（仍生效的独立规则；Phase 3 组件统一批清理） ---- */
-:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#10151d;color:#dbe7ee}*{box-sizing:border-box}body{margin:0;padding:16px;display:flex;flex-direction:column;height:100dvh;gap:12px;min-width:0}header,form,footer,nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap}header h1{font-size:18px;margin:0}header span,#state{font-size:12px;color:#9eafbf}a{color:#6edbd1}button,input,select{background:#1c2734;color:inherit;border:1px solid #374758;border-radius:6px;padding:7px 10px}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}label{display:flex;gap:8px;align-items:center}.directory{flex:1;min-width:180px}input{width:100%;min-width:0}nav button.active{border-color:#58d5be;color:#58d5be}main{position:relative;flex:1;min-height:180px;min-width:0;background:#0e1116;overflow:hidden;border-radius:8px}.screen{height:100%;padding:8px;min-width:0}.screen[hidden]{display:none}#end{margin-left:auto;border-color:#ae5961}@media(max-width:600px){body{padding:8px;gap:8px}header span{width:100%}.directory{flex-basis:100%}footer{gap:6px}button{padding:7px}#state{overflow-wrap:anywhere}}
+/* 本页布局与语义。色值一律走 token；控件皮肤由 ui/frame.css 的
+   Unified controls 层提供（子站按钮多数无 .btn 类），此处不重复定义控件外观。 */
+body[data-ui-page="terminal"]{display:flex;flex-direction:column;height:100dvh;gap:12px;min-width:0}
+body[data-ui-page="terminal"] header,body[data-ui-page="terminal"] form,body[data-ui-page="terminal"] footer,body[data-ui-page="terminal"] nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+body[data-ui-page="terminal"] header h1{font-size:18px;margin:0}
+body[data-ui-page="terminal"] header span,body[data-ui-page="terminal"] #state{font-size:var(--fs-secondary);color:var(--text-3)}
+body[data-ui-page="terminal"] label{display:flex;gap:8px;align-items:center}
+body[data-ui-page="terminal"] .directory{flex:1;min-width:180px}
+body[data-ui-page="terminal"] input{width:100%;min-width:0}
+body[data-ui-page="terminal"] nav button.active{border-color:var(--line-accent);color:var(--seed-accent)}
+body[data-ui-page="terminal"] main{position:relative;flex:1;min-height:180px;min-width:0;background:var(--surface-inset);overflow:hidden;border-radius:var(--r-md)}
+body[data-ui-page="terminal"] .screen{height:100%;padding:8px;min-width:0}
+body[data-ui-page="terminal"] .screen[hidden]{display:none}
+body[data-ui-page="terminal"] #end{margin-left:auto;border-color:var(--danger-bd)}
+@media(max-width:520px){body[data-ui-page="terminal"] header span{width:100%}body[data-ui-page="terminal"] .directory{flex-basis:100%}body[data-ui-page="terminal"] footer{gap:6px}body[data-ui-page="terminal"] #state{overflow-wrap:anywhere}}
 
 label{white-space:nowrap}.directory input{flex:1;width:0;min-width:0}
 
 /* ---- 响应式覆盖（从 frame.css 迁回） ---- */
-@media(max-width:1120px){
+@media(max-width:900px){
   body[data-ui-page="terminal"]>.terminal-layout{grid-template-columns:230px minmax(0,1fr)}
 }
 @media(max-width:760px){
@@ -101,12 +115,12 @@ label{white-space:nowrap}.directory input{flex:1;width:0;min-width:0}
   body[data-ui-page="terminal"] #tabs{max-height:130px}
   body[data-ui-page="terminal"] footer{gap:4px}
 }
-@media(max-width:600px){
+@media(max-width:520px){
   body[data-ui-page="terminal"] > form{padding:7px}
 }
 
 /* responsive-controls: 避免旧 flex-basis:100% 把目录控件挤到隐藏的下一列。 */
-@media(max-width:600px){
+@media(max-width:520px){
   body[data-ui-page="terminal"] #create{flex-wrap:nowrap}
   body[data-ui-page="terminal"] #create .directory{flex:0 0 auto;min-width:0}
 }

@@ -10,7 +10,7 @@
 body[data-ui-page="jobs"]{overflow:hidden}
 body[data-ui-page="jobs"] > .toolbar{
   margin-top:16px!important;padding:10px;border:1px solid var(--shell-line);border-radius:var(--shell-radius);
-  background:rgba(17,24,36,.7);
+  background:var(--glass-weak-bg);
 }
 body[data-ui-page="jobs"] > main{
   flex:1;min-height:0;margin-top:12px;margin-bottom:18px!important;
@@ -18,7 +18,7 @@ body[data-ui-page="jobs"] > main{
 }
 body[data-ui-page="jobs"] #jobs{max-height:none;padding-right:2px}
 body[data-ui-page="jobs"] #jobs button{
-  border:1px solid var(--shell-line);border-radius:10px;background:var(--shell-surface);
+  border:1px solid var(--shell-line);border-radius:var(--r-card);background:var(--shell-surface);
   padding:12px!important;box-shadow:none;
 }
 body[data-ui-page="jobs"] #jobs button:hover{border-color:color-mix(in srgb,var(--seed-accent) 28%,transparent);transform:translateY(-1px)}
@@ -30,7 +30,7 @@ body[data-ui-page="jobs"] main>section{
   padding:20px;background:var(--shell-surface);border:1px solid var(--shell-line);
   border-radius:var(--shell-radius);box-shadow:var(--shell-shadow);
 }
-body[data-ui-page="jobs"] #output{background:rgba(2,6,10,.72);border-color:var(--shell-line)}
+body[data-ui-page="jobs"] #output{background:var(--surface-inset);border-color:var(--line-2)}
 body[data-ui-page="jobs"] #detail dl{gap:7px 14px}
 body[data-ui-page="jobs"] #detail dt{color:var(--shell-text-3)}
 
@@ -39,10 +39,10 @@ body[data-ui-page="jobs"] #detail dt{color:var(--shell-text-3)}
 body[data-ui-page="jobs"] .jobs-toolbar{margin-top:12px}
 body[data-ui-page="jobs"] .jobs-layout{display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.42fr);gap:14px;margin:14px auto 26px;align-items:stretch;min-height:0}
 body[data-ui-page="jobs"] .jobs-list-pane,
-body[data-ui-page="jobs"] .jobs-detail-pane{padding:14px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface-1);box-shadow:0 10px 28px rgba(0,0,0,.12);min-width:0}
+body[data-ui-page="jobs"] .jobs-detail-pane{padding:14px;border:1px solid var(--glass-mid-line);border-radius:var(--r-card);background:var(--glass-mid-bg);box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);min-width:0}
 body[data-ui-page="jobs"] .jobs-list-pane{display:flex;flex-direction:column;min-height:0}
 body[data-ui-page="jobs"] #jobs{display:flex;flex-direction:column;gap:7px;max-height:calc(100vh - 340px);overflow-y:auto;padding:1px!important}
-body[data-ui-page="jobs"] #jobs button{padding:10px 11px!important;border-radius:9px!important;background:rgba(255,255,255,.018)!important;gap:6px!important}
+body[data-ui-page="jobs"] #jobs button{padding:10px 11px!important;border-radius:var(--r-md)!important;background:var(--glass-weak-bg)!important;gap:6px!important}
 body[data-ui-page="jobs"] #jobs button strong{font-size:10.5px!important;font-family:var(--font-mono);color:var(--text-2)}
 body[data-ui-page="jobs"] #jobs button small{font-size:10px!important;color:var(--text-4)}
 body[data-ui-page="jobs"] #jobs button.active{background:linear-gradient(135deg,color-mix(in srgb,var(--seed-accent) 8%,transparent),color-mix(in srgb,var(--seed-accent2) 4%,transparent))!important}
@@ -58,7 +58,28 @@ body[data-ui-page="jobs"] #output{flex:1;min-height:360px;max-height:none;margin
 
 
 /* ---- 旧版遗留（仍生效的独立规则；Phase 3 组件统一批清理） ---- */
-*{box-sizing:border-box}body{font:14px/1.6 system-ui;background:#0d1420;color:#dce8f4}header{display:flex;align-items:center;gap:18px;flex-wrap:wrap}h1{font-size:22px;margin:0}a{color:#63dfc7}button,input,select{border:1px solid #39506a;background:#1a2a3e;color:inherit;border-radius:7px;padding:8px 12px}button{cursor:pointer}button:hover{border-color:#63dfc7}p{color:#a9bdd1}main{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;margin-top:16px}main nav{display:flex;flex-direction:column;gap:9px;max-height:72vh;overflow:auto}#jobs button{text-align:left;display:grid;justify-items:start;gap:7px;width:100%}#jobs strong{font:13px/1.5 Consolas,monospace;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#jobs small{color:#9cafc5;font-size:11px}#jobs button.active{background:#1b3b40;border-color:#63dfc7}section{min-width:0;border:1px solid #2a3b50;border-radius:12px;background:#142030;padding:18px}h2{font-size:16px;margin:0 0 12px;overflow-wrap:anywhere}#detail dl{display:grid;grid-template-columns:75px minmax(0,1fr);gap:5px 12px;font-size:12px}dt{color:#9cafc5}dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}#output{min-height:230px;max-height:55vh;overflow:auto;background:#0b131f;border:1px solid #2a3b50;border-radius:8px;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.7 Consolas,monospace}.toolbar,.output-tools{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.toolbar input{flex:1;min-width:180px}.output-tools{margin-top:18px;font-size:12px}.output-tools strong{margin-right:auto}.output-tools button{padding:4px 8px}#status{font-size:12px;color:#a9bdd1;margin-top:10px}@media(max-width:760px){main{grid-template-columns:minmax(0,1fr)}main nav{max-height:250px}section{padding:12px}#output{max-height:55vh}.toolbar input{width:100%}}
+/* 本页布局与语义。色值一律走 token；控件皮肤由 ui/frame.css 的
+   Unified controls 层提供（子站按钮多数无 .btn 类），此处不重复定义控件外观。 */
+body[data-ui-page="jobs"]{color:var(--text-1)}
+body[data-ui-page="jobs"] main{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;margin-top:16px}
+body[data-ui-page="jobs"] main nav{display:flex;flex-direction:column;gap:9px;max-height:72vh;overflow:auto}
+body[data-ui-page="jobs"] #jobs button{text-align:left;display:grid;justify-items:start;gap:7px;width:100%}
+body[data-ui-page="jobs"] #jobs strong{font:13px/1.5 Consolas,monospace;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body[data-ui-page="jobs"] #jobs small{color:var(--text-3);font-size:var(--fs-small)}
+body[data-ui-page="jobs"] #jobs button.active{background:var(--surface-accent);border-color:var(--line-accent)}
+body[data-ui-page="jobs"] section{min-width:0;padding:18px}
+body[data-ui-page="jobs"] h2{font-size:16px;margin:0 0 12px;overflow-wrap:anywhere}
+body[data-ui-page="jobs"] #detail dl{display:grid;grid-template-columns:75px minmax(0,1fr);gap:5px 12px;font-size:var(--fs-secondary)}
+body[data-ui-page="jobs"] dt{color:var(--text-3)}
+body[data-ui-page="jobs"] dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+body[data-ui-page="jobs"] #output{min-height:230px;max-height:55vh;overflow:auto;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.7 Consolas,monospace}
+body[data-ui-page="jobs"] .toolbar,body[data-ui-page="jobs"] .output-tools{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+body[data-ui-page="jobs"] .toolbar input{flex:1;min-width:180px}
+body[data-ui-page="jobs"] .output-tools{margin-top:18px;font-size:var(--fs-secondary)}
+body[data-ui-page="jobs"] .output-tools strong{margin-right:auto}
+body[data-ui-page="jobs"] .output-tools button{padding:4px 8px}
+body[data-ui-page="jobs"] #status{font-size:var(--fs-secondary);color:var(--text-3);margin-top:10px}
+@media(max-width:760px){body[data-ui-page="jobs"] main{grid-template-columns:minmax(0,1fr)}body[data-ui-page="jobs"] main nav{max-height:250px}body[data-ui-page="jobs"] section{padding:12px}body[data-ui-page="jobs"] #output{max-height:55vh}body[data-ui-page="jobs"] .toolbar input{width:100%}}
 
 /* ---- 响应式覆盖（从 frame.css 迁回） ---- */
 @media(max-width:900px){
@@ -66,7 +87,7 @@ body[data-ui-page="jobs"] #output{flex:1;min-height:360px;max-height:none;margin
   body[data-ui-page="jobs"] > main{grid-template-columns:minmax(0,1fr)!important}
   body[data-ui-page="jobs"] #jobs{max-height:260px}
 }
-@media(max-width:1120px){
+@media(max-width:900px){
   body[data-ui-page="jobs"] .jobs-layout{grid-template-columns:minmax(0,1fr)}
 }
 @media(max-width:760px){

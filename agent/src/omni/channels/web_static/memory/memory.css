@@ -19,18 +19,18 @@ body[data-ui-page="memory"]>header{min-height:62px}
   display:flex;gap:6px;padding:10px 22px;border-bottom:1px solid var(--border);flex-wrap:wrap;
 }
 .memory-surface .view-tabs button{
-  display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--bg-1);
-  color:var(--text-2);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:var(--surface-1);
+  color:var(--text-2);border-radius:var(--r-md);padding:7px 12px;font-size:12px;cursor:pointer;
 }
 .memory-surface .view-tabs button[aria-selected="true"]{
-  border-color:var(--accent);color:var(--text-1);background:var(--bg-2);
+  border-color:var(--line-accent);color:var(--text-1);background:var(--surface-accent);
   box-shadow:inset 0 -2px 0 var(--accent);
 }
 .memory-surface .view-tabs button .material-icons{font-size:13px}
 
 .memory-surface .memory-view{display:block;padding:16px 22px 40px;max-width:1440px}
 .memory-surface .memory-panel{
-  border:1px solid var(--border);border-radius:12px;background:var(--bg-1);
+  border:1px solid var(--line-2);border-radius:var(--r-card);background:var(--surface-1);
   padding:14px 16px;margin-bottom:14px;
 }
 .memory-surface .memory-panel .section-heading{margin-bottom:8px}
@@ -43,7 +43,7 @@ body[data-ui-page="memory"]>header{min-height:62px}
 .memory-surface .search-row{display:flex;gap:8px;margin:10px 0}
 .memory-surface .search-row input{flex:1;min-width:0}
 .memory-surface .search-results{
-  border:1px dashed var(--border);border-radius:10px;background:var(--bg-2);
+  border:1px dashed var(--line-2);border-radius:var(--r-card);background:var(--surface-2);
   padding:10px 12px;margin-bottom:10px;max-height:300px;overflow:auto;
 }
 .memory-surface .search-results li{list-style:none;padding:4px 0;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--border)}
@@ -54,23 +54,23 @@ body[data-ui-page="memory"]>header{min-height:62px}
 .memory-surface .memory-columns{display:grid;grid-template-columns:minmax(190px,240px) 1fr;gap:14px;margin-top:10px}
 .memory-surface .day-list{display:flex;flex-direction:column;gap:6px;max-height:640px;overflow:auto;padding-right:2px}
 .memory-surface .day-list button{
-  text-align:left;border:1px solid var(--border);background:var(--bg-1);color:var(--text-2);
-  border-radius:8px;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;
+  text-align:left;border:1px solid var(--line-2);background:var(--surface-1);color:var(--text-2);
+  border-radius:var(--r-md);padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;
 }
 .memory-surface .day-list button strong{font-size:12.5px;color:var(--text-1)}
 .memory-surface .day-list button small{font-size:10.5px;color:var(--text-4)}
-.memory-surface .day-list button.active{border-color:var(--accent);background:var(--bg-2)}
+.memory-surface .day-list button.active{border-color:var(--line-accent);background:var(--surface-accent)}
 
 .memory-surface .reader{min-width:0;display:flex;flex-direction:column;gap:10px}
 .memory-surface .session-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .memory-surface .session-chips input{max-width:260px}
 .memory-surface .session-chips button{
-  border:1px solid var(--border);background:var(--bg-1);border-radius:999px;color:var(--text-2);
+  border:1px solid var(--line-2);background:var(--surface-1);border-radius:var(--r-full);color:var(--text-2);
   padding:4px 11px;font-size:11.5px;cursor:pointer;
 }
-.memory-surface .session-chips button.active{border-color:var(--accent);color:var(--text-1);background:var(--bg-2)}
+.memory-surface .session-chips button.active{border-color:var(--line-accent);color:var(--text-1);background:var(--surface-accent)}
 
-.memory-surface .entry-list{display:flex;flex-direction:column;gap:4px;max-height:620px;overflow:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg-2);padding:10px 12px}
+.memory-surface .entry-list{display:flex;flex-direction:column;gap:4px;max-height:620px;overflow:auto;border:1px solid var(--line-2);border-radius:var(--r-card);background:var(--surface-2);padding:10px 12px}
 .memory-surface .entry{padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-2);line-height:1.55;white-space:pre-wrap;word-break:break-word}
 .memory-surface .entry:last-child{border-bottom:none}
 .memory-surface .entry .entry-head{font-size:10.5px;color:var(--text-4);font-family:var(--font-mono);margin-right:6px}
@@ -85,18 +85,18 @@ body[data-ui-page="memory"]>header{min-height:62px}
 /* ---------- 笔记页 ---------- */
 .memory-surface .kind-tabs{display:flex;gap:6px;margin:10px 0}
 .memory-surface .kind-tabs button{
-  border:1px solid var(--border);background:var(--bg-1);border-radius:8px;color:var(--text-2);
+  border:1px solid var(--line-2);background:var(--surface-1);border-radius:var(--r-md);color:var(--text-2);
   padding:6px 14px;font-size:12px;cursor:pointer;
 }
 .memory-surface .kind-tabs button[aria-selected="true"]{
-  border-color:var(--accent);color:var(--text-1);background:var(--bg-2);box-shadow:inset 0 -2px 0 var(--accent);
+  border-color:var(--line-accent);color:var(--text-1);background:var(--surface-accent);box-shadow:inset 0 -2px 0 var(--seed-accent);
 }
 .memory-surface .note-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-.memory-surface .note-chip{border:1px solid var(--border);border-radius:8px;background:var(--bg-2);padding:6px 10px;font-size:11.5px;color:var(--text-2)}
+.memory-surface .note-chip{border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-2);padding:6px 10px;font-size:11.5px;color:var(--text-2)}
 .memory-surface .note-chip b{display:block;font-size:12px;color:var(--text-1)}
 .memory-surface .note-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .memory-surface .note-content{
-  border:1px solid var(--border);border-radius:10px;background:var(--bg-2);padding:14px 16px;
+  border:1px solid var(--line-2);border-radius:var(--r-card);background:var(--surface-2);padding:14px 16px;
   max-height:560px;overflow:auto;font-size:12.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word;
 }
 .memory-surface .run-list{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow:auto;margin-top:6px}
@@ -107,13 +107,13 @@ body[data-ui-page="memory"]>header{min-height:62px}
 /* ---------- 人物页 ---------- */
 .memory-surface .person-accounts{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
 .memory-surface .person-account{
-  display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:999px;
-  background:var(--bg-2);padding:4px 6px 4px 11px;font-size:11.5px;color:var(--text-2);
+  display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);border-radius:var(--r-full);
+  background:var(--surface-2);padding:4px 6px 4px 11px;font-size:11.5px;color:var(--text-2);
 }
 .memory-surface .person-account button{border:none;background:none;cursor:pointer;color:var(--text-4);display:flex;padding:2px;border-radius:50%}
-.memory-surface .person-account button:hover{color:var(--danger-1,var(--text-2))}
+.memory-surface .person-account button:hover{color:var(--danger)}
 .memory-surface .entry-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:8px}
-.memory-surface .entry-group{border:1px solid var(--border);border-radius:10px;background:var(--bg-2);padding:10px 12px}
+.memory-surface .entry-group{border:1px solid var(--line-2);border-radius:var(--r-card);background:var(--surface-2);padding:10px 12px}
 .memory-surface .entry-group h3{margin:0 0 6px;font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;justify-content:space-between}
 .memory-surface .entry-item{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:var(--text-3);padding:5px 0;border-bottom:1px solid var(--border);line-height:1.5}
 .memory-surface .entry-item:last-child{border-bottom:none}
@@ -130,7 +130,7 @@ body[data-ui-page="memory"]>header{min-height:62px}
 .memory-surface .actions{display:flex;align-items:center;gap:10px}
 
 /* ---------- 窄屏 ---------- */
-@media (max-width: 860px){
+@media (max-width: 760px){
   .memory-surface .memory-columns{grid-template-columns:1fr}
   .memory-surface .day-list{max-height:220px}
   .memory-surface .entry-groups{grid-template-columns:1fr}

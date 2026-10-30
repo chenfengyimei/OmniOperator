@@ -9,7 +9,7 @@
    -------------------------------------------------------------------------- */
 body[data-ui-page="android"] > .toolbar{
   margin-top:14px;padding:10px;border:1px solid var(--shell-line);border-radius:var(--shell-radius);
-  background:rgba(17,24,36,.7);
+  background:var(--glass-weak-bg);
 }
 body[data-ui-page="android"] main{
   margin-top:16px;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr)!important;gap:14px;
@@ -22,30 +22,30 @@ body[data-ui-page="android"] .controls{
   padding:18px;background:var(--shell-surface);border:1px solid var(--shell-line);
   border-radius:var(--shell-radius);box-shadow:var(--shell-shadow);
 }
-body[data-ui-page="android"] #screen{border-radius:10px}
+body[data-ui-page="android"] #screen{border-radius:var(--r-card)}
 body[data-ui-page="android"] #observation-state{margin-top:12px;padding:5px 11px}
-body[data-ui-page="android"] #tree{background:rgba(2,6,10,.72);border-color:var(--shell-line)}
+body[data-ui-page="android"] #tree{background:var(--surface-inset);border-color:var(--shell-line)}
 
 
 /* Android */
 body[data-ui-page="android"] .status-strip{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:12px}
-body[data-ui-page="android"] .status-strip #status{flex:1;min-width:260px;margin:0!important;padding:9px 12px!important;border:1px solid var(--line-2)!important;border-radius:8px!important;background:rgba(17,24,36,.7)!important;font-size:10.5px!important}
+body[data-ui-page="android"] .status-strip #status{flex:1;min-width:260px;margin:0!important;padding:9px 12px!important;border:1px solid var(--line-2)!important;border-radius:var(--r-md)!important;background:var(--glass-weak-bg)!important;font-size:10.5px!important}
 body[data-ui-page="android"] #observation-state{margin:0!important;padding:4px 9px!important}
 body[data-ui-page="android"] .device-meta{font:10.5px/1.5 var(--font-mono);color:var(--text-4);white-space:nowrap}
 body[data-ui-page="android"] .android-toolbar{margin-top:12px;justify-content:space-between}
 .toolbar-group{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .toolbar-label{font-size:10px;color:var(--text-4);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
-body[data-ui-page="android"] .android-toolbar button{height:29px;min-height:29px;padding:0 9px;font-size:10.5px;border-radius:6px}
+body[data-ui-page="android"] .android-toolbar button{height:29px;min-height:29px;padding:0 9px;font-size:10.5px;border-radius:var(--r-sm)}
 body[data-ui-page="android"] .android-toolbar button .material-icons{font-size:12px}
 body[data-ui-page="android"] .android-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);gap:14px;margin-top:14px;align-items:start}
 body[data-ui-page="android"] .android-preview,
-body[data-ui-page="android"] .controls{padding:13px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface-1);box-shadow:0 10px 28px rgba(0,0,0,.14);min-width:0}
+body[data-ui-page="android"] .controls{padding:13px;border:1px solid var(--glass-mid-line);border-radius:var(--r-card);background:var(--glass-mid-bg);box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);min-width:0}
 body[data-ui-page="android"] .screen{
   position:relative;min-height:480px;padding:10px;margin:0!important;display:flex;align-items:center;justify-content:center;
-  border:1px solid var(--line-3);border-radius:10px;background:
+  border:1px solid var(--line-3);border-radius:var(--r-card);background:
     radial-gradient(circle at 50% 10%,color-mix(in srgb,var(--seed-accent) 6%,transparent),transparent 55%),#03060a;
 }
-body[data-ui-page="android"] #screen{width:100%;height:auto;max-height:620px;object-fit:contain;border-radius:8px}
+body[data-ui-page="android"] #screen{width:100%;height:auto;max-height:620px;object-fit:contain;border-radius:var(--r-md)}
 body[data-ui-page="android"] .screen img:not([hidden]) + .screen-placeholder{display:none}
 .screen-placeholder{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--text-4);text-align:center;pointer-events:none}
 .screen-placeholder .material-icons{font-size:34px;opacity:.5;margin-bottom:5px}
@@ -57,7 +57,7 @@ body[data-ui-page="android"] .controls{display:flex;flex-direction:column;gap:0}
 .control-group:first-of-type{border-top:0;padding-top:2px}
 .control-group h3{margin:0 0 7px;font-size:10px;color:var(--text-3);font-weight:650;letter-spacing:.01em}
 body[data-ui-page="android"] .control-group :is(select,input){width:100%;height:31px;min-height:31px;font-size:10.5px;padding:4px 8px}
-body[data-ui-page="android"] .control-group button{height:30px;min-height:30px;padding:0 9px;font-size:10.5px;border-radius:6px}
+body[data-ui-page="android"] .control-group button{height:30px;min-height:30px;padding:0 9px;font-size:10.5px;border-radius:var(--r-sm)}
 body[data-ui-page="android"] .control-group button .material-icons{font-size:12px}
 .button-row{display:flex;flex-wrap:wrap;gap:5px}
 body[data-ui-page="android"] .tree-group{flex:1;min-height:130px;display:flex;flex-direction:column;border-bottom:0}
@@ -66,7 +66,18 @@ body[data-ui-page="android"] #tree{flex:1;min-height:120px;max-height:220px;marg
 
 
 /* ---- 旧版遗留（仍生效的独立规则；Phase 3 组件统一批清理） ---- */
-:root{color-scheme:dark;font:14px system-ui;background:#10151d;color:#dce7ee}*{box-sizing:border-box}body{margin:0;padding:18px}header,.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}h1{font-size:20px}h2{font-size:14px;color:#91c7bc}a{color:#64d7bd}button,input,select{background:#1b2b3b;color:inherit;border:1px solid #3b5267;border-radius:6px;padding:8px;max-width:100%}button{cursor:pointer}button:disabled{opacity:.5}#status,#frame-info{font-size:12px;color:#a8bacb;line-height:1.7;overflow-wrap:anywhere}main{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1fr);gap:16px;min-width:0}.screen{background:#05080c;display:flex;align-items:center;flex-direction:column;min-width:0;border-radius:8px;padding:8px}#screen{width:100%;height:66vh;object-fit:contain;cursor:crosshair}.controls{min-width:0;display:flex;align-items:flex-start;flex-direction:column;gap:10px}#elements,#packages,#text{width:100%}label{width:100%;display:grid;gap:6px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto;width:100%;background:#0b1119;padding:12px;border-radius:8px}@media(max-width:700px){body{padding:9px}main{grid-template-columns:minmax(0,1fr)}#screen{height:50vh}}
+/* 本页布局与语义。色值一律走 token；控件皮肤由 ui/frame.css 的
+   Unified controls 层提供（子站按钮多数无 .btn 类），此处不重复定义控件外观。 */
+body[data-ui-page="android"] main{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1fr);gap:16px;min-width:0}
+body[data-ui-page="android"] h2{font-size:14px;color:var(--text-3)}
+body[data-ui-page="android"] .screen{background:var(--surface-inset);display:flex;align-items:center;flex-direction:column;min-width:0;border-radius:var(--r-md);padding:8px}
+body[data-ui-page="android"] #screen{width:100%;height:66vh;object-fit:contain;cursor:crosshair}
+body[data-ui-page="android"] .controls{min-width:0;display:flex;align-items:flex-start;flex-direction:column;gap:10px}
+body[data-ui-page="android"] #elements,body[data-ui-page="android"] #packages,body[data-ui-page="android"] #text{width:100%}
+body[data-ui-page="android"] label{width:100%;display:grid;gap:6px}
+body[data-ui-page="android"] pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto;width:100%;background:var(--surface-inset);padding:12px;border-radius:var(--r-md)}
+body[data-ui-page="android"] #status,body[data-ui-page="android"] #frame-info{font-size:var(--fs-small);color:var(--text-3);line-height:1.7;overflow-wrap:anywhere}
+@media(max-width:760px){body[data-ui-page="android"] main{grid-template-columns:minmax(0,1fr)}body[data-ui-page="android"] #screen{height:50vh}}
 
 #screen[hidden]{display:none}.screen{min-height:280px;justify-content:center}#status{max-height:180px;overflow:auto}
 
@@ -74,7 +85,7 @@ body[data-ui-page="android"] #tree{flex:1;min-height:120px;max-height:220px;marg
 @media(max-width:900px){
   body[data-ui-page="android"] main{grid-template-columns:minmax(0,1fr)!important}
 }
-@media(max-width:1120px){
+@media(max-width:900px){
   body[data-ui-page="android"] .android-layout{grid-template-columns:minmax(0,1fr)}
 }
 @media(max-width:760px){

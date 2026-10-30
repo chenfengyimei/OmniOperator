@@ -77,7 +77,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]) > header h1{
   margin:0;font-size:18px;line-height:1.25;font-weight:720;letter-spacing:-.015em;color:var(--shell-text);
 }
 .ui-page-icon{
-  width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;flex-shrink:0;
+  width:34px;height:34px;border-radius:var(--r-card);display:inline-grid;place-items:center;flex-shrink:0;
   color:var(--on-accent)!important;background:linear-gradient(135deg,var(--shell-accent),var(--shell-accent-2));
   box-shadow:var(--sh-2),inset 0 1px 0 color-mix(in srgb,#fff 42%,transparent);
   font-size:19px!important;
@@ -120,7 +120,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])
 body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > #status[role="status"]{
   margin-top:14px;padding:9px 13px;color:var(--shell-text-2);
   border:1px solid var(--shell-line);border-radius:var(--shell-radius-sm);
-  background:rgba(17,24,36,.72);font-size:11.5px;
+  background:var(--glass-weak-bg);font-size:11.5px;
 }
 body[data-ui-page] h1,body[data-ui-page] h2,body[data-ui-page] h3{letter-spacing:-.012em}
 body[data-ui-page] p{color:var(--shell-text-3)}
@@ -246,7 +246,7 @@ body[data-ui-page].ui-leaving{cursor:progress}
 body[data-ui-page] *{scrollbar-width:thin;scrollbar-color:rgba(139,162,186,.28) transparent}
 body[data-ui-page] *::-webkit-scrollbar{width:8px;height:8px}
 body[data-ui-page] *::-webkit-scrollbar-track{background:transparent}
-body[data-ui-page] *::-webkit-scrollbar-thumb{background:rgba(139,162,186,.23);border:2px solid transparent;background-clip:padding-box;border-radius:99px}
+body[data-ui-page] *::-webkit-scrollbar-thumb{background:rgba(139,162,186,.23);border:2px solid transparent;background-clip:padding-box;border-radius:var(--r-full)}
 body[data-ui-page] *::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--seed-accent) 38%,transparent);border:2px solid transparent;background-clip:padding-box}
 
 
@@ -265,7 +265,7 @@ body[data-ui-page] *::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb
   body[data-ui-page]:not([data-ui-page="workbench"]) > header h1{font-size:16px}
   .ui-env{display:none}
 }
-@media(max-width:600px){
+@media(max-width:520px){
   body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > :not(header):not(.ui-global-nav){
     width:calc(100% - 20px);
   }
@@ -308,10 +308,10 @@ body[data-ui-page]:not([data-ui-page="workbench"]){
 }
 .rail::-webkit-scrollbar,.ui-app-rail::-webkit-scrollbar{display:none}
 .rail-brand,.ui-rail-brand{
-  width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;
-  margin-bottom:9px;color:#04121a;cursor:default;
+  width:30px;height:30px;border-radius:var(--r-md);display:grid;place-items:center;flex-shrink:0;
+  margin-bottom:9px;color:var(--on-accent);cursor:default;
   background:var(--grad);
-  box-shadow:0 2px 12px -3px color-mix(in srgb,var(--seed-accent) 62%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 38%,transparent);
+  box-shadow:var(--sh-2),inset 0 1px 0 color-mix(in srgb,#fff 38%,transparent);
 }
 /* 品牌标 = 官网同款「小鱼」图形（ui/brand-mark.svg，64×44 视图、白鱼身 + 深色眼）。
    工作台 .rail-brand 与子站 .ui-rail-brand 共用这一条规则，换标只改 svg 文件；
@@ -322,7 +322,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]){
 }
 .rail-btn{
   position:relative;width:34px;height:32px;min-height:32px;padding:0;margin:0;flex:none;
-  display:grid;place-items:center;border:1px solid transparent;border-radius:7px;
+  display:grid;place-items:center;border:1px solid transparent;border-radius:var(--r-sm);
   color:var(--text-4);background:transparent;box-shadow:none;cursor:pointer;text-decoration:none;
   transition:color .11s,background .11s,border-color .11s;
 }
@@ -369,7 +369,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]) > main:last-child{margin-bott
 /* Richer, consistent page intro strip: first descriptive paragraph. */
 body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p:first-of-type{
   position:relative;margin-top:18px;padding:14px 16px 14px 44px;
-  border:1px solid var(--line-2);border-left:1px solid var(--line-2);border-radius:10px;
+  border:1px solid var(--line-2);border-left:1px solid var(--line-2);border-radius:var(--r-card);
   background:linear-gradient(90deg,color-mix(in srgb,var(--seed-accent) 6%,transparent),color-mix(in srgb,var(--seed-accent2) 2%,transparent) 55%,transparent),color-mix(in oklab,var(--surface-1) 58%,transparent);
   color:var(--text-2);
 }
@@ -392,7 +392,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])
   body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail .ui-rail-brand{display:none}
   body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a{width:36px;height:36px;min-height:36px}
   body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a[aria-current="page"]::before{
-    left:50%;top:auto;bottom:-6px;transform:translateX(-50%);width:15px;height:2px;border-radius:99px;
+    left:50%;top:auto;bottom:-6px;transform:translateX(-50%);width:15px;height:2px;border-radius:var(--r-full);
   }
   body[data-ui-page]:not([data-ui-page="workbench"]) > header{
     position:sticky;top:54px;min-height:58px;padding:8px 12px;flex-wrap:wrap;gap:7px;
@@ -412,7 +412,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])
 /* Consistent compact scrollbars for the new panels */
 body[data-ui-page]:not([data-ui-page="workbench"]) :is(#jobs,#catalog,#checks,#tabs,#tree){scrollbar-width:thin}
 
-@media(max-width:1120px){
+@media(max-width:900px){
   body[data-ui-page="capabilities"] .cap-layout,
   body[data-ui-page="mcp"] .mcp-layout,
   body[data-ui-page="jobs"] .jobs-layout,

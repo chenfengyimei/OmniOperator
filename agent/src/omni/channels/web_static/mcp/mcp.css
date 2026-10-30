@@ -15,20 +15,20 @@ body[data-ui-page="mcp"] > section{
   margin-top:18px;padding:20px;border:1px solid var(--shell-line);border-radius:var(--shell-radius);
   background:var(--shell-surface);box-shadow:var(--shell-shadow);
 }
-body[data-ui-page="mcp"] .catalog-tool{background:rgba(255,255,255,.018);border-color:var(--shell-line)}
-body[data-ui-page="mcp"] #status{padding:8px 12px;background:rgba(17,24,36,.7);border:1px solid var(--shell-line);border-radius:var(--shell-radius-sm)}
+body[data-ui-page="mcp"] .catalog-tool{background:var(--glass-weak-bg);border-color:var(--shell-line)}
+body[data-ui-page="mcp"] #status{padding:8px 12px;background:var(--glass-weak-bg);border:1px solid var(--shell-line);border-radius:var(--shell-radius-sm)}
 body[data-ui-page="mcp"] .configuration-warning{color:var(--shell-warning)!important}
 
 
 /* MCP */
 body[data-ui-page="mcp"] .mcp-layout{display:grid;grid-template-columns:minmax(310px,.78fr) minmax(0,1.35fr);gap:14px;margin-top:14px;align-items:start}
 body[data-ui-page="mcp"] .mcp-list-pane,
-body[data-ui-page="mcp"] .mcp-detail-pane{padding:14px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface-1);box-shadow:0 10px 28px rgba(0,0,0,.12);min-width:0}
+body[data-ui-page="mcp"] .mcp-detail-pane{padding:14px;border:1px solid var(--glass-mid-line);border-radius:var(--r-card);background:var(--glass-mid-bg);box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);min-width:0}
 body[data-ui-page="mcp"] #servers{display:flex;flex-direction:column;gap:9px;margin:0!important;padding:0!important}
-body[data-ui-page="mcp"] .server{padding:13px!important;border-radius:10px!important;background:rgba(255,255,255,.018)!important;box-shadow:none!important}
+body[data-ui-page="mcp"] .server{padding:13px!important;border-radius:var(--r-card)!important;background:var(--glass-weak-bg)!important;box-shadow:none!important}
 body[data-ui-page="mcp"] .server.active{border-color:color-mix(in srgb,var(--seed-accent) 42%,transparent)!important;background:linear-gradient(135deg,color-mix(in srgb,var(--seed-accent) 8%,transparent),color-mix(in srgb,var(--seed-accent2) 4%,transparent))!important;box-shadow:inset 2px 0 0 var(--seed-accent)!important}
 .server-head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
-.server-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 9%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 16%,transparent)}
+.server-icon{width:30px;height:30px;border-radius:var(--r-md);display:grid;place-items:center;flex-shrink:0;color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 9%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 16%,transparent)}
 .server-icon .material-icons{font-size:16px}
 .server-title{flex:1;min-width:0}
 .server-title h2{margin:0;font-size:12px;font-weight:680;color:var(--text-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -37,13 +37,13 @@ body[data-ui-page="mcp"] .server.active{border-color:color-mix(in srgb,var(--see
 .server-meta>span{display:inline-flex;align-items:center;gap:3px;font:10px/1.5 var(--font-mono);color:var(--text-4)}
 .server-meta .material-icons{font-family:"Material Icons"!important;font-size:10px!important;line-height:1!important}
 .server-meta .material-icons{font-size:10px}
-.server-warning{font-size:10.5px!important;line-height:1.5!important;color:var(--warn)!important;margin:5px 0!important;padding:6px 8px!important;background:rgba(247,201,107,.07)!important;border:1px solid rgba(247,201,107,.16)!important;border-radius:6px!important;white-space:normal!important}
+.server-warning{font-size:10.5px!important;line-height:1.5!important;color:var(--warn)!important;margin:5px 0!important;padding:6px 8px!important;background:var(--warn-bg)!important;border:1px solid var(--warn-bd)!important;border-radius:var(--r-sm)!important;white-space:normal!important}
 body[data-ui-page="mcp"] .server-actions{display:flex;flex-wrap:wrap;gap:5px;margin:0!important}
-body[data-ui-page="mcp"] .server-actions button{min-height:25px;height:25px;padding:0 8px;font-size:10.5px;border-radius:6px;background:rgba(255,255,255,.035)}
+body[data-ui-page="mcp"] .server-actions button{min-height:25px;height:25px;padding:0 8px;font-size:10.5px;border-radius:var(--r-sm);background:var(--glass-mid-sheen)}
 body[data-ui-page="mcp"] .server-actions .primary-action{color:var(--seed-accent);border-color:color-mix(in srgb,var(--seed-accent) 28%,transparent);background:color-mix(in srgb,var(--seed-accent) 8%,transparent)}
 body[data-ui-page="mcp"] #detail{min-height:170px;max-height:330px;margin:0 0 10px!important;font-size:10.5px!important}
 body[data-ui-page="mcp"] #catalog{display:flex;flex-direction:column;gap:7px;max-height:320px;overflow-y:auto}
-.catalog-tool{padding:9px 10px!important;border-radius:8px!important;background:rgba(255,255,255,.02)!important}
+.catalog-tool{padding:9px 10px!important;border-radius:var(--r-md)!important;background:var(--glass-weak-bg)!important}
 .catalog-tool summary{display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none}
 .catalog-tool summary::-webkit-details-marker{display:none}
 .catalog-tool-name{font:600 10.5px/1.5 var(--font-mono);color:var(--text-2)}
@@ -54,10 +54,23 @@ body[data-ui-page="mcp"] #catalog{display:flex;flex-direction:column;gap:7px;max
 
 
 /* ---- 旧版遗留（仍生效的独立规则；Phase 3 组件统一批清理） ---- */
-:root{color-scheme:dark;font:14px system-ui;background:#10151d;color:#dbe7ee}*{box-sizing:border-box}body{margin:0;padding:20px;max-width:1280px}header{display:flex;align-items:center;gap:18px;flex-wrap:wrap}h1{font-size:20px}h2{font-size:16px}a{color:#65d6c3}p,#status{color:#a8b8c8;font-size:12px;line-height:1.7}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}.server{padding:18px;background:#17222f;border:1px solid #304457;border-radius:12px;min-width:0}.server h2{margin:0 0 12px}.server p{overflow-wrap:anywhere}.server-actions{display:flex;gap:6px;flex-wrap:wrap}button{background:#223445;border:1px solid #426077;color:inherit;padding:7px 10px;margin:0;border-radius:6px;cursor:pointer}button:hover{border-color:#63dfc7}button:disabled{opacity:.5}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:60vh;overflow:auto;background:#0c1118;padding:14px;border-radius:8px}.catalog-tool{border:1px solid #304457;padding:12px;border-radius:8px;margin:8px 0;min-width:0}.catalog-tool summary{cursor:pointer;color:#8fe4d1;overflow-wrap:anywhere}.catalog-tool pre{margin-bottom:0}.configuration-warning{color:#f2c68a!important}#status{padding:6px 0 12px}#confirm{margin-top:12px}@media(max-width:600px){body{padding:10px}}
+/* 本页布局与语义。色值一律走 token；控件皮肤由 ui/frame.css 的
+   Unified controls 层提供（子站按钮多数无 .btn 类），此处不重复定义控件外观。 */
+body[data-ui-page="mcp"] main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+body[data-ui-page="mcp"] .server{padding:18px;min-width:0}
+body[data-ui-page="mcp"] .server h2{margin:0 0 12px}
+body[data-ui-page="mcp"] .server p{overflow-wrap:anywhere}
+body[data-ui-page="mcp"] .server-actions{display:flex;gap:6px;flex-wrap:wrap}
+body[data-ui-page="mcp"] pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:60vh;overflow:auto}
+body[data-ui-page="mcp"] .catalog-tool{border:1px solid var(--line-2);padding:12px;border-radius:var(--r-md);margin:8px 0;min-width:0}
+body[data-ui-page="mcp"] .catalog-tool summary{cursor:pointer;color:var(--seed-accent);overflow-wrap:anywhere}
+body[data-ui-page="mcp"] .catalog-tool pre{margin-bottom:0}
+body[data-ui-page="mcp"] .configuration-warning{color:var(--warn)!important}
+body[data-ui-page="mcp"] #status{padding:6px 0 12px}
+body[data-ui-page="mcp"] #confirm{margin-top:12px}
 
 /* ---- 响应式覆盖（从 frame.css 迁回） ---- */
-@media(max-width:1120px){
+@media(max-width:900px){
   body[data-ui-page="mcp"] .mcp-layout{grid-template-columns:minmax(0,1fr)}
   body[data-ui-page="mcp"] .mcp-detail-pane{position:static}
 }
