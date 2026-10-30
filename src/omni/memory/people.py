@@ -103,6 +103,7 @@ class PersonStore:
         archive_max_chars: int = 2000,
         resident_max_chars: int = 1200,
         event_max_chars: int = 500,
+        card_chars: int = 800,
     ) -> None:
         path = db_path or (DATA_DIR / "memory.db")
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -111,6 +112,7 @@ class PersonStore:
             "resident": int(resident_max_chars),
             "event": int(event_max_chars),
         }
+        self._card_chars = int(card_chars)
         self._lock = threading.RLock()
         self._conn = sqlite3.connect(path, check_same_thread=False)
         self._conn.execute("PRAGMA journal_mode=WAL")
@@ -403,12 +405,12 @@ class PersonStore:
     # ---------------------------------------------------------------- 注入卡
 
     @_locked
-    def card(self, person_id: int, char_limit: int, *, now: dt.datetime | None = None) -> dict | None:
+    def card(self, person_id: int, char_limit: int | None = None, *, now: dt.datetime | None = None) -> dict | None:
         """压缩人物卡：超限从事件裁起——注入提示词的体积必须有硬上限。"""
         person = self.get_person(int(person_id))
         if person is None:
             return None
-        limit = max(50, int(char_limit))
+        limit = max(50, int(char_limit if char_limit is not None else self._card_chars))
         items = self.entries(int(person_id))
         resident = [e["content"] for e in items if e["entry_kind"] == "resident"]
         archive = [e["content"] for e in items if e["entry_kind"] == "archive"]
@@ -446,6 +448,14 @@ class PersonStore:
             budget = max(0, limit - rest)
             card["resident"] = card["resident"][:budget] + ("…" if budget < len(card["resident"]) else "")
         return card
+
+    @_locked
+    def card_for_account(self, channel: str, value: str) -> dict | None:
+        """按账号带出注入卡（agent 的 person_card 回调用）；查无此人返回 None。"""
+        person = self.lookup_account(channel, value)
+        if person is None:
+            return None
+        return self.card(person["id"])
 
     @_locked
     def stats(self) -> dict:

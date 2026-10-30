@@ -370,6 +370,7 @@ def build_runtime(
         archive_max_chars=config.people.archive_max_chars,
         resident_max_chars=config.people.resident_max_chars,
         event_max_chars=config.people.event_max_chars,
+        card_chars=config.people.person_card_chars,
     )
     memory_system = MemorySystem(
         dialogue=dialogue_log, session_log=session_log,
@@ -617,6 +618,7 @@ def build_runtime(
         runs=runs, active_runs=active_runs, run_ref=run_ref, owner=owner,
         artifacts=artifacts,
         dialogue_log=dialogue_log, session_log=session_log,
+        person_card=people_store.card_for_account,
     )
     agent_holder["agent"] = agent
 

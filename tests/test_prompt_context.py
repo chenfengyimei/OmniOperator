@@ -257,3 +257,68 @@ def test_cache_usage_is_only_taken_from_provider_reporting(usage,expected):
     normalized=Usage.from_response({'usage':usage})
     assert (normalized.cached_prompt_tokens,normalized.cache_creation_tokens,normalized.cache_miss_tokens)==expected
     assert normalized.brief()['cached_prompt_tokens']==expected[0]
+
+
+# ---------------------------------------------------------------- 人物卡注入（M6）
+
+_PERSON_CARD={'id':7,'name':'小张','importance':'important','resident':'在准备考研','archive':'喜欢骑车','events':''}
+
+def test_person_card_injected_for_non_owner_dm_and_deduplicated(fixture):
+    agent,gateway,store,resident=fixture
+    card_calls=[]
+    agent._person_card=lambda channel,value:(card_calls.append((channel,value)) or dict(_PERSON_CARD))
+    agent.chat('你好呀',personal_context=False,channel='qq',principal='qq:12345',context_scope='private')
+    first=gateway.calls[-1][0]
+    data=context(first[-1])
+    assert data['person_memory']['name']=='小张' and 'personal_memory' not in data
+    assert card_calls==[('qq','12345')]
+    assert '群聊场景' not in first[0]['content']  # 私聊不是群：不加群提示词
+    # 同一张卡在同一保留窗口只发一次；请求前缀稳定
+    agent.chat('还在吗',personal_context=False,channel='qq',principal='qq:12345',context_scope='private')
+    second=gateway.calls[-1][0]
+    assert second[:len(first)]==first
+    assert 'person_memory' not in context(second[-1])
+    assert json.dumps(second,ensure_ascii=False).count('在准备考研')==1
+
+def test_person_card_changes_resend_full_snapshot(fixture):
+    agent,gateway,store,resident=fixture
+    state={'card':dict(_PERSON_CARD)}
+    agent._person_card=lambda channel,value:state['card']
+    agent.chat('第一轮',personal_context=False,channel='qq',principal='qq:12345',context_scope='private')
+    state['card']={**_PERSON_CARD,'resident':'考研结束了，在准备面试'}
+    agent.chat('第二轮',personal_context=False,channel='qq',principal='qq:12345',context_scope='private')
+    second=gateway.calls[-1][0]
+    assert context(second[-1])['person_memory']['resident']=='考研结束了，在准备面试'
+
+def test_person_card_failure_and_unknown_account_do_not_break_turn(fixture):
+    agent,gateway,store,resident=fixture
+    def boom(channel,value):raise RuntimeError('人物库暂时打不开')
+    agent._person_card=boom
+    agent.chat('在吗',personal_context=False,channel='qq',principal='qq:12345',context_scope='private')
+    assert 'person_memory' not in context(gateway.calls[-1][0][-1])
+    agent._person_card=lambda channel,value:None  # 查无此人
+    agent.chat('还在吗',personal_context=False,channel='qq',principal='qq:12345',context_scope='private')
+    assert 'person_memory' not in context(gateway.calls[-1][0][-1])
+
+def test_group_and_owner_never_get_person_card(fixture):
+    agent,gateway,store,resident=fixture
+    agent._person_card=lambda channel,value:dict(_PERSON_CARD)
+    # 群聊：scope 非 private，不注入（系统提示词里提及 person_memory 协议文字不算）
+    agent.chat('群里说话',personal_context=False,channel='qq',principal='qq:12345',context_scope='group:200')
+    user_msg=gateway.calls[-1][0][-1]['content']
+    assert 'person_memory' not in user_msg and '小张' not in user_msg
+    assert '群聊场景' in gateway.calls[-1][0][0]['content']
+    # 所有者：personal=True 走既有档案/常驻通道，不双份注入人物卡
+    agent.chat('主人说话',personal_context=True,channel='qq',principal='qq:12345',context_scope='private')
+    assert 'person_memory' not in context(gateway.calls[-1][0][-1])
+
+def test_turn_context_payload_person_back_compat():
+    legacy={'version':1,'observed_at':'t','personal':False,'resident':'','profile':''}
+    assert TurnContext.read(legacy).person is None
+    with_person={**legacy,'person':dict(_PERSON_CARD)}
+    assert TurnContext.read(with_person).person['name']=='小张'
+    broken={**legacy,'person':{'name':7,'resident':'','archive':'','events':''}}
+    with pytest.raises(ValueError):TurnContext.read(broken)
+    # 群聊渲染把人物卡连同私人资料一起剔除
+    rendered=render_rows([(1,'user','hi')],{1:with_person},include_personal=False)
+    assert 'person_memory' not in rendered[0]['content'] and '小张' not in rendered[0]['content']

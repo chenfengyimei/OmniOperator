@@ -343,3 +343,58 @@ def test_full_memory_off_by_default_and_broken_store_does_not_break_turn(tmp_pat
     assert stubborn.chat("再聊一句") == "好的，我记住了。"
     assert len(store.recent_messages(sid, 10)) >= 4  # messages 落库不受旁路影响
     store.close()
+
+
+def test_dm_scope_allows_person_tools_but_not_owner_memory(tmp_path):
+    """非所有者私聊（M6）：人物工具可用、所有者私人记忆工具禁用；群聊更严。"""
+    from omni.tools.registry import Risk, Tool
+
+    class DmProbeGateway(ScriptedGateway):
+        def __init__(self):
+            super().__init__()
+            self.tool_specs: list[list[str]] = []
+
+        def complete(self, messages, *, model, tools=None, **kwargs):
+            self.calls.append([dict(m) for m in messages])
+            self.tool_specs.append(
+                [t["function"]["name"] for t in (tools or [])]
+            )
+            if len(self.calls) == 1:
+                call = SimpleNamespace(
+                    id="c1",
+                    function=SimpleNamespace(name="remember", arguments='{"text": "x"}'),
+                )
+                return SimpleNamespace(text="", tool_calls=[call])
+            return SimpleNamespace(text="好的，我记住了。", tool_calls=[])
+
+    store = MemoryStore(tmp_path / "m.db")
+    sid = store.new_session()
+    registry = ToolRegistry()
+    register_core_tools(registry, store)
+    registry.register(Tool("person_lookup", "查人物", {}, lambda args: "ok",
+                           risk=Risk.SAFE, read_only=True))
+    agent = Agent(AppConfig(), DmProbeGateway(), store, registry, sid)
+
+    agent.chat(
+        "帮我记住我喜欢的东西", personal_context=False,
+        channel="qq", principal="qq:12345", context_scope="private",
+    )
+    specs = agent.gateway.tool_specs[0]
+    assert "person_lookup" in specs and "get_time" in specs
+    assert "remember" not in specs and "recall" not in specs and "skills_list" not in specs
+    # 模型伪造调用 remember：执行被拒（denied 结果回填，不炸回合）
+    tool_msgs = [m for m in agent.gateway.calls[-1] if m.get("role") == "tool"]
+    assert tool_msgs and "不提供工具 remember" in tool_msgs[0]["content"]
+    # 私聊不是群：系统提示词不含群场景文案
+    assert "群聊场景" not in agent.gateway.calls[0][0]["content"]
+
+    agent.gateway.calls.clear()
+    agent.gateway.tool_specs.clear()
+    agent.chat(
+        "群里问一句", personal_context=False,
+        channel="qq", principal="qq:12345", context_scope="group:200",
+    )
+    group_specs = agent.gateway.tool_specs[0]
+    assert "person_lookup" not in group_specs  # 群聊连人物工具也不开
+    assert "群聊场景" in agent.gateway.calls[0][0]["content"]
+    store.close()

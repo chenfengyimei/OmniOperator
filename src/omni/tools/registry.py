@@ -157,7 +157,8 @@ class ToolRegistry:
         if name in denied_tools:
             return ToolResult.fail(
                 f"错误：当前场景不提供工具 {name}"
-                "（群聊作用域不读取所有者的个人档案、常驻笔记、跨会话历史与工作区文件）",
+                "（受限作用域不读取所有者的个人档案、常驻笔记、跨会话历史与工作区文件；"
+                "群聊与他人的私聊均属此类，如需处理请让所有者本人来操作）",
                 error_code="tool_not_available",
             )
         if _cancelled(cancel):

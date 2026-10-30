@@ -37,6 +37,11 @@ from .run import (
 
 # 群聊默认拒绝新工具：只显式开放公开网络读取及会话内待办。
 GROUP_ALLOWED_TOOLS = frozenset({"get_time", "web_read", "todo"})
+# 非所有者的 QQ 私聊（M6）：基础工具 + 人物记忆（记录"当前这个人"的资料）；
+# 所有者私人记忆（facts/档案/常驻/历史检索/技能）对非所有者不可用
+DM_ALLOWED_TOOLS = GROUP_ALLOWED_TOOLS | frozenset(
+    {"person_lookup", "person_remember", "person_event"}
+)
 # 兼容外部调用者的旧禁用清单；回合中以许可名单为准。
 GROUP_DENIED_TOOLS = frozenset(
     {
@@ -108,6 +113,7 @@ class Agent:
         clock: Callable[[], dt.datetime] | None = None,
         dialogue_log: DialogueLog | None = None,
         session_log: SessionLog | None = None,
+        person_card: Callable[[str, str], dict | None] | None = None,
     ) -> None:
         self.config = config
         self.gateway = gateway
@@ -128,6 +134,8 @@ class Agent:
         # 记录是旁路账本——写失败只打日志，绝不打断回合
         self._dialogue = dialogue_log
         self._session_log = session_log
+        # 人物卡回调（M6）：非所有者 QQ 私聊时按账号带出对方人物资料；None=不注入
+        self._person_card = person_card
         # 压缩摘要用廉价模型（同回合后 review 的选型逻辑）
         review_model = config.models.review.strip()
         self._summary_model = review_model if review_model else self.model
@@ -197,13 +205,38 @@ class Agent:
     def _system_prompt(self, *, include_personal: bool = True) -> str:
         return system_prompt(self.config.persona.system_prompt, include_personal=include_personal)
 
-    def _turn_context(self, *, include_personal: bool = True) -> TurnContext:
-        """本轮只取一次快照；群聊连私人资料的读取都不执行。"""
+    def _turn_context(
+        self,
+        *,
+        include_personal: bool = True,
+        channel: str = "",
+        principal: str = "",
+        scope: str = "private",
+    ) -> TurnContext:
+        """本轮只取一次快照；群聊连私人资料的读取都不执行。
+
+        人物卡（M6）：仅"非所有者的 QQ 私聊"注入——所有者走既有档案/常驻通道
+        （不双份注入），群聊一律不注入任何人物资料。
+        """
+        person: dict | None = None
+        if (
+            not include_personal
+            and self._person_card is not None
+            and channel == "qq"
+            and scope == "private"
+            and principal.startswith("qq:")
+            and principal[3:].isdigit()
+        ):
+            try:
+                person = self._person_card("qq", principal[3:])
+            except Exception as exc:  # noqa: BLE001 —— 人物卡读不出来就当没有，不影响回合
+                print(f"[人物卡] 读取失败（本轮不注入）：{exc}", file=sys.stderr, flush=True)
         return TurnContext(
             observed_at=self._clock().isoformat(timespec='seconds'),
             personal=include_personal,
             resident=self._resident.block() if include_personal and self._resident is not None else '',
             profile=self.store.profile_block() if include_personal else '',
+            person=person,
         )
 
     def _maybe_compress(
@@ -245,12 +278,19 @@ class Agent:
 
         摘要在库里按消息 id 区间记账，所以重启、换进程、多个 review 连接都不会
         重压同一段；压缩失败时原样返回（不改事实、不写半截摘要）。
+
+        渲染的"私人视图"按**会话形态**判定（scope=private）：非所有者私聊也要渲染
+        其人物卡快照——personal_context 只管"所有者自己的档案/常驻"，不再兼任
+        群聊开关（群聊的判定归 run.identity.scope）。
         """
         comp = self.config.compression
         history = self.store.recent_messages_ex(
             sid, max(1, self.config.limits.max_history_messages)
         )
         contexts = self.store.prompt_contexts(sid, [row[0] for row in history])
+        include_private = personal_context or (
+            run is not None and run.identity.scope == "private"
+        )
         return assemble_context(
             history,
             self.store.active_summary(sid),
@@ -266,7 +306,7 @@ class Agent:
             run_budget=run.budget if run is not None else None,
             cancel=run.cancel_token if run is not None else None,
             save=lambda **fields: self.store.save_summary(sid, **fields),
-            render=lambda rows: render_rows(rows, contexts, include_personal=personal_context),
+            render=lambda rows: render_rows(rows, contexts, include_personal=include_private),
         )
 
     # ---------------------------------------------------------------- 回合入口
@@ -488,9 +528,30 @@ class Agent:
         run: RunContext | None = None,
         on_delta: Callable[[str], None] | None = None,
     ) -> str:
-        """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。"""
-        denied = frozenset() if personal_context else frozenset(self.registry.names()) - GROUP_ALLOWED_TOOLS
-        snapshot = self._turn_context(include_personal=personal_context)
+        """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。
+
+        三档场景由 (personal_context, scope) 共同决定（M6 起 personal_context 不再
+        兼任群聊开关）：
+        - 所有者私聊：personal_context=True → 注入档案/常驻，全工具；
+        - 非所有者私聊：personal_context=False + scope=private → 注入其人物卡，
+          工具限 DM_ALLOWED_TOOLS（人物记忆可用，所有者私人记忆不可用）；
+        - 群聊：personal_context=False + scope=group:* → 群提示词与 GROUP_ALLOWED_TOOLS。
+        """
+        if personal_context:
+            denied = frozenset()
+        elif run is not None and run.identity.scope == "private":
+            denied = frozenset(self.registry.names()) - DM_ALLOWED_TOOLS
+        else:
+            denied = frozenset(self.registry.names()) - GROUP_ALLOWED_TOOLS
+        is_group = not personal_context and not (
+            run is not None and run.identity.scope == "private"
+        )
+        snapshot = self._turn_context(
+            include_personal=personal_context,
+            channel=run.identity.channel if run is not None else "",
+            principal=run.identity.principal if run is not None else "",
+            scope=run.identity.scope if run is not None else "private",
+        )
         self.store.append_message(sid, "user", user_text, prompt_context=snapshot.payload())
         # 全量记忆旁路（M1/M2）：messages 仍是上下文组装的唯一真源，这里只做存档
         channel = run.identity.channel if run is not None else ""
@@ -499,7 +560,7 @@ class Agent:
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
-                "content": self._system_prompt(include_personal=personal_context),
+                "content": self._system_prompt(include_personal=not is_group),
             }
         ]
         body, context_info = self._assemble_body(sid, run=run, personal_context=personal_context)

@@ -49,7 +49,7 @@ class _RecordingClient:
 class _ChanRuntime:
     """与 bootstrap.Runtime 的鸭子类型接口（store/agent/config/qq_policy/spawn_review）。"""
 
-    def __init__(self, store: MemoryStore, users, groups) -> None:
+    def __init__(self, store: MemoryStore, users, groups, owner_qq: int = 0) -> None:
         self.store = store
         self.state = store.test_state
         self.qq_messages = QQMessageStore(self.state)
@@ -57,7 +57,9 @@ class _ChanRuntime:
         self.agent = _RecordingAgent()
         self.config = AppConfig()
         self.config.qq.reply_delay_s = [0.0, 0.0]  # 跳过拟人延迟
-        self.policy = SimpleNamespace(allowed_users=list(users), allowed_groups=list(groups))
+        self.policy = SimpleNamespace(
+            allowed_users=list(users), allowed_groups=list(groups), owner_qq=owner_qq
+        )
         self.reviews: list[int] = []
 
     def qq_policy(self):
@@ -119,15 +121,42 @@ def test_sender_outside_allowlist_is_silently_ignored(store):
 
 
 def test_private_reply_uses_dm_binding(store):
+    """未配置 owner_qq 的私聊：不带所有者个人上下文（fail-closed），但仍是 private 场景。"""
     runtime = _ChanRuntime(store, users=[10001], groups=[])
     client = _RecordingClient()
     asyncio.run(_handle_message(runtime, client, _private(10001), {}))
 
     sid = store.get_binding("qq", "dm:10001")
     assert sid is not None
-    assert runtime.agent.calls == [("在吗", sid, True)]
+    assert runtime.agent.calls == [("在吗", sid, False)]
+    kwargs = runtime.agent.identities[0]
+    assert kwargs["channel"] == "qq" and kwargs["context_scope"] == "private"
+    assert kwargs["principal"] == "qq:10001"
     assert client.sent == [("private", 10001, "好的")]
     assert dict((s, t) for s, t, _ in store.list_sessions(50))[sid] == "qq:dm:10001"
+
+
+def test_owner_dm_gets_personal_context(store):
+    """所有者本人的私聊（owner_qq 配置且匹配）才注入所有者档案/常驻。"""
+    runtime = _ChanRuntime(store, users=[10001], groups=[], owner_qq=10001)
+    client = _RecordingClient()
+    asyncio.run(_handle_message(runtime, client, _private(10001), {}))
+    text, sid, personal = runtime.agent.calls[0]
+    assert personal is True
+    assert runtime.agent.identities[0]["context_scope"] == "private"
+    # 回合后 review 只对个人上下文的会话触发
+    assert runtime.reviews == [sid]
+
+
+def test_non_owner_dm_is_private_but_not_personal(store):
+    """白名单里非所有者的私聊：personal=False，但 scope 仍是 private（人物卡注入的钥匙）。"""
+    runtime = _ChanRuntime(store, users=[10001], groups=[], owner_qq=99999)
+    client = _RecordingClient()
+    asyncio.run(_handle_message(runtime, client, _private(10001), {}))
+    text, sid, personal = runtime.agent.calls[0]
+    assert personal is False
+    assert runtime.agent.identities[0]["context_scope"] == "private"
+    assert runtime.reviews == []  # 非所有者会话不触发个人 review
 
 
 def test_group_needs_whitelist_and_at(store):
@@ -148,6 +177,7 @@ def test_group_reply_carries_no_personal_context(store):
 
     text, sid, personal = runtime.agent.calls[0]
     assert personal is False, "群聊不得注入所有者档案/常驻笔记"
+    assert runtime.agent.identities[0]["context_scope"] == "group:200"
     assert sid == store.get_binding("qq", "group:200")
 
 

@@ -57,7 +57,10 @@ def _resolve_scope(
     if message_type == "private":
         if not private_target_allowed(policy.allowed_users, user_id).allowed:
             return None
-        return "dm", user_id, True
+        # 仅所有者本人的私聊注入所有者档案/常驻（owner_qq 未配置=一律不带，fail-closed）；
+        # 其他白名单用户的私聊由 agent 按其人物卡注入（M6，见 core/context.py）
+        personal = getattr(policy, "owner_qq", 0) > 0 and user_id == policy.owner_qq
+        return "dm", user_id, personal
     if message_type == "group":
         try:
             group_id = int(event.get("group_id") or 0)
@@ -141,10 +144,11 @@ async def _handle_batch(runtime: Runtime, client: OneBotClient,
             return
         sid = _session_for(runtime, scope_name, target_id)
         # 身份由可信通道提供，群话题历史与待办均绑定该场景的 session。
+        # scope：私聊恒为 private（含非所有者——agent 侧据此注入人物卡）；群聊带群号
         def chat() -> str:
             return runtime.agent.chat(text, session_id=sid, personal_context=personal,
                                       channel="qq", principal=f"qq:{selected[0]['user_id']}",
-                                      context_scope="private" if personal else scene)
+                                      context_scope="private" if scope_name == "dm" else scene)
 
         # 租约覆盖模型、回写与发送；线程真正结束前不能释放给另一进程。
         with runtime.session_leases.hold(sid) as token:
@@ -178,7 +182,8 @@ async def _handle_batch(runtime: Runtime, client: OneBotClient,
                 if not all(valid(e) for e in selected):
                     return
                 status = "unknown"  # 发送前登记语义，抛错也不能重放整批。
-                ids = await (client.send_private(target_id, chunk) if personal else client.send_group(target_id, chunk))
+                # 路由按场景而非 personal 标志：非所有者私聊 personal=False，但必须仍发私聊
+                ids = await (client.send_private(target_id, chunk) if scope_name == "dm" else client.send_group(target_id, chunk))
                 inbox.remember_sent(bot, scene, ids or [])
             status = "done"
             print(f"[QQ] scene={scene} session={sid} events={len(selected)} replied_chars={len(answer)}", flush=True)
