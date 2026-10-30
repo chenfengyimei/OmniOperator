@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/ui/tokens.css?v=20261030c">
 <link rel="stylesheet" href="/ui/base.css?v=20261030b">
 <link rel="stylesheet" href="/ui/icons.css?v=20261029">
-<link rel="stylesheet" href="/ui/components.css?v=20261030e"><link rel="stylesheet" href="/ui/frame.css?v=20261030f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m4"><link rel="stylesheet" href="/memory/memory.css?v=20261031m4"><script src="/ui/shared.js?v=20261031m4"></script><script src="/ui/markdown.js?v=20261029"></script>
+<link rel="stylesheet" href="/ui/components.css?v=20261030e"><link rel="stylesheet" href="/ui/frame.css?v=20261030f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m5"><link rel="stylesheet" href="/memory/memory.css?v=20261031m5"><script src="/ui/shared.js?v=20261031m5"></script><script src="/ui/markdown.js?v=20261029"></script>
 </head>
 <body data-ui-page="workbench">
 <!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
@@ -289,7 +289,8 @@
           <legend>能力档位</legend>
           <div class="hint">每个回合先判断用哪一档能力：纯聊天只带少量记忆工具，只读查询带检索工具，
             真正要动手才给完整工具集——少带工具规格就是省 token。<br>
-            升档不影响任何权限：写操作照旧要你确认，群聊仍然拿不到你的文件。</div>
+            升档不影响任何权限：写操作照旧要你确认，群聊仍然拿不到你的文件。<br>
+            档位是服务端行为：<b>改完要重启工作台进程</b>才生效（只刷新浏览器页面不生效）。</div>
           <div class="field"><label>默认档位</label>
             <select id="cfg-mode-default">
               <option value="auto">自动判定（推荐）</option>
@@ -588,7 +589,7 @@
     </div>
   </div>
 </div>
-<script type="module" src="/ui/app/main.js?v=20261031m4"></script>
+<script type="module" src="/ui/app/main.js?v=20261031m5"></script>
 <script src="/vendor/xterm.js"></script>
 <script src="/vendor/xterm-addon-fit.js"></script>
 </body>

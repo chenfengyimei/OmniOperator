@@ -47,15 +47,27 @@
       "agent/tests/test_modes.py",
       "agent/tests/test_mode_escalation.py"
     ],
-    "test_modes": 21,
+    "test_modes": 23,
     "test_mode_escalation": 11,
     "web_mode_endpoint_tests": 2,
+    "ui_contract_tests": 2,
     "targeted_green": 235,
-    "full_suite": "见 DEVELOPMENT_STATUS 本轮记录"
+    "full_suite": "1363 passed / 412.34s（提交后复跑，零失败零跳过）"
   },
+  "live_measurement_2026_10_31": {
+    "note": "重启工作台后对新进程实测：同一条输入「你好」，四种档位的实际 prompt tokens（供应商上报值）。",
+    "auto": {"prompt_tokens": 619, "resolved_mode": "chat", "source": "rule"},
+    "chat": {"prompt_tokens": 645, "resolved_mode": "chat", "source": "manual"},
+    "retrieval": {"prompt_tokens": 1257, "resolved_mode": "retrieval", "source": "manual"},
+    "agent": {"prompt_tokens": 12153, "resolved_mode": "agent", "source": "manual"},
+    "saved_vs_agent": {"auto": 0.949, "chat": 0.947, "retrieval": 0.896},
+    "route_call_in_usage": false,
+    "route_call_note": "「你好」命中确定性寒暄规则，路由未发起模型调用（用量流水里没有 route 条目），因此没有额外成本。"
+  },
+  "operational_note": "档位是服务端行为：**必须重启工作台进程**才会加载新代码；只刷新浏览器页面不生效。重启用法：关闭工作台窗口后重新运行 start.bat。",
   "not_verified": [
-    "真实模型的档位判定准确率（离线只用假网关验证机制）",
-    "真实缓存命中率与端到端 token 净收益（路由本身有一次额外模型调用）",
+    "真实模型的档位判定准确率（离线只用假网关验证机制；「你好」等高置信输入走规则，未触发模型判定）",
+    "真实缓存命中率与端到端 token 净收益（规则未命中时路由会有一次额外模型调用）",
     "真实设备、账号与 72 小时常驻验收"
   ]
 }

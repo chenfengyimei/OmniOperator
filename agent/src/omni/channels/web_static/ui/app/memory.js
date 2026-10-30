@@ -1,12 +1,12 @@
 // 记忆面板五件套：事实检索 / 用户档案 / 常驻笔记 / 复盘记录 / 会话待办。
 // refreshMemory 是右栏多面板一起刷的总入口（发完消息、初始化时调用）。
-import {$,esc} from './dom.js?v=20261031m4';
-import {api} from './api.js?v=20261031m4';
-import {S} from './state.js?v=20261031m4';
-import {setTabBadge} from './tabs.js?v=20261031m4';
-import {loadSkills} from './skills.js?v=20261031m4';
-import {loadArtifacts} from './artifacts.js?v=20261031m4';
-import {updateCostChip,withRuntimeActivity} from './header.js?v=20261031m4';
+import {$,esc} from './dom.js?v=20261031m5';
+import {api} from './api.js?v=20261031m5';
+import {S} from './state.js?v=20261031m5';
+import {setTabBadge} from './tabs.js?v=20261031m5';
+import {loadSkills} from './skills.js?v=20261031m5';
+import {loadArtifacts} from './artifacts.js?v=20261031m5';
+import {updateCostChip,withRuntimeActivity} from './header.js?v=20261031m5';
 
 export async function loadFacts(){
   try{

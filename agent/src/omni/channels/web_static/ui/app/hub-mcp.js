@@ -1,6 +1,6 @@
 // MCP 面板（D19）：状态纯只读；「查看工具」才触发真实发现。
-import {$,esc} from './dom.js?v=20261031m4';
-import {api} from './api.js?v=20261031m4';
+import {$,esc} from './dom.js?v=20261031m5';
+import {api} from './api.js?v=20261031m5';
 
 const mcpStateText=s=>s.state==='ready'?'<span style="color:#34d399">已连上</span>':
   s.state==='starting'?'<span style="color:#fbbf24">正在连接…</span>':
