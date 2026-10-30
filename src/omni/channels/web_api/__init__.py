@@ -15,6 +15,7 @@ from .conversation import create_conversation_router
 from .devices import create_devices_router
 from .mcp import create_mcp_router
 from .memory import create_memory_router
+from .memory_system import create_memory_system_router
 from .operations import create_operations_router
 from .publications import create_publications_router
 from .runs import create_runs_router
@@ -31,6 +32,7 @@ def create_api_routers(runtime: Runtime) -> tuple[APIRouter, ...]:
         create_conversation_router(runtime),
         create_runs_router(runtime),
         create_memory_router(runtime),
+        create_memory_system_router(runtime),
         create_skills_router(runtime),
         create_artifacts_router(runtime),
         create_approvals_router(runtime),

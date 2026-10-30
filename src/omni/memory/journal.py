@@ -220,6 +220,29 @@ class JournalStore:
         return int(cur.rowcount) > 0
 
     @_locked
+    def reopen(self, kind: str, period_key: str, *, reason: str = "用户请求重新整理") -> str:
+        """把 done/failed 的笔记重新标记为待整理；真正的模型整理由心跳 worker 下一轮执行。
+
+        返回 'ok' / 'missing' / 'running'——Web 重试端点据此映射 200/404/409。
+        不在这里跑模型：Web 进程不做整理调用，心跳进程是唯一执行者。
+        """
+        row = self._conn.execute(
+            "SELECT status FROM journal_notes WHERE kind = ? AND period_key = ?",
+            (kind, str(period_key)),
+        ).fetchone()
+        if row is None:
+            return "missing"
+        if str(row[0]) == "running":
+            return "running"
+        self._conn.execute(
+            "UPDATE journal_notes SET status='failed', error=?, finished_at=?"
+            " WHERE kind = ? AND period_key = ?",
+            (reason, _now(), kind, str(period_key)),
+        )
+        self._conn.commit()
+        return "ok"
+
+    @_locked
     def mark_attempt(self, kind: str, period_key: str, *, ok: bool, detail: str = "") -> None:
         """整理流水：每次尝试（成败都）记一笔，观测面板用。"""
         self._conn.execute(

@@ -130,3 +130,30 @@ class SkillAckIn(BaseModel):
     """技能变更已读标记：标到 rev（只前进）。"""
 
     rev: int
+
+
+# ---------------- 记忆系统（M1–M6） ----------------
+
+
+class PersonCreateIn(BaseModel):
+    name: str
+    importance: str = "known"
+    note: str = ""
+
+
+class PersonUpdateIn(BaseModel):
+    name: str | None = None
+    importance: str | None = None
+    note: str | None = None
+
+
+class AccountLinkIn(BaseModel):
+    channel: str
+    value: str
+    label: str = ""
+
+
+class PersonEntryIn(BaseModel):
+    entry_kind: str
+    content: str
+    expires_at: str | None = None
