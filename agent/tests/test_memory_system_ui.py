@@ -141,3 +141,23 @@ def test_memory_station_embed_mode_hides_chrome(ui):
     assert page.evaluate("document.documentElement.classList.contains('ui-embed')")
     assert page.locator("body > header").is_hidden()
     assert errors == []
+
+
+def test_hub_memory_system_iframe_fills_its_shell(ui):
+    """回归：iframe 没有尺寸样式时会退化成浏览器默认的 300×150，内容挤在左上角。
+
+    守卫要求内嵌的 /memory/ 撑满 .storage-embed-shell，且总览卡片在内层真实渲染。
+    """
+    page, client, runtime, errors = ui
+    page.goto("http://127.0.0.1/")
+    page.click("button.hub-open")
+    page.wait_for_selector("#hub:not(.hidden)")
+    page.click('.hub-nav a[data-go="sec-memory-system"]')
+    frame = page.frame_locator("#memory-system-frame")
+    frame.locator("#overview-metrics .metric-card").first.wait_for(timeout=15000)
+    box = page.locator("#memory-system-frame").bounding_box()
+    assert box is not None
+    assert box["width"] > 320, f"内嵌 iframe 宽度异常：{box}（疑似退化到默认 300px）"
+    assert box["height"] > 200, f"内嵌 iframe 高度异常：{box}（疑似退化到默认 150px）"
+    assert frame.locator("#overview-metrics .metric-card").count() == 4
+    assert errors == []

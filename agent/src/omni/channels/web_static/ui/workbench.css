@@ -322,17 +322,11 @@ body>header{
   background:color-mix(in oklab,var(--surface-1) 68%,transparent);
   backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
 }
-.brand{display:flex;align-items:center;gap:9px;min-width:0}
-.brand-mark{
-  width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;
-  background:var(--grad);color:#04121a;
-  box-shadow:0 2px 12px -3px color-mix(in srgb,var(--seed-accent) 62%,transparent);
-}
-.brand-mark .material-icons{font-size:16px}
-.brand-text{min-width:0}
-.brand-title{font-size:13px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
-.brand-sub{font-size:10px;color:var(--text-4);white-space:nowrap;margin-top:1px}
+/* 品牌区只留字号：左上角图标已收进 rail（唯一的品牌标），header 里不再重复图标与副标题 */
+.brand{display:flex;align-items:center;min-width:0}
+.brand-title{font-size:14px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
 #chips{gap:5px}
+#chips[hidden],#chips:empty{display:none}
 .hub-open{
   display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 13px;flex-shrink:0;
   border:none;border-radius:8px;background:var(--grad);color:#04121a;
@@ -539,7 +533,9 @@ aside,section{gap:11px}
   background:var(--surface-inset);font:10.5px/1.68 var(--font-mono);color:var(--text-3);
   white-space:pre-wrap;word-break:break-word;max-height:190px;overflow-y:auto;
 }
-.scaf.open+.scaf-out{display:block;animation:rise .18s ease-out both}
+/* 详情块要「链展开 + 行展开」同时成立才显示：缺了 .scaffolds.open 这一层，
+   整条链收起后详情块会靠这条规则继续露出（与折叠隐藏规则同特异性且在后，实测漏出）。 */
+.scaffolds.open .scaf.open+.scaf-out{display:block;animation:rise .18s ease-out both}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* 输入坞：原型 dock 结构（圆角容器 + 无边框 textarea + 底部工具条），聚焦时流动描边 */
@@ -922,7 +918,7 @@ body[data-ui-page="workbench"] .hub-back .material-icons{font-size:18px}
   margin-top:14px;height:min(720px,calc(100dvh - 230px));min-height:420px;
   border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:#070a0f;
 }
-#storage-frame{display:block;width:100%;height:100%;border:0;background:transparent}
+#storage-frame,#memory-system-frame{display:block;width:100%;height:100%;border:0;background:transparent}
 @media(max-width:760px){
   body[data-ui-page="workbench"] .hub-header{padding:8px 10px;gap:8px}
   body[data-ui-page="workbench"] .hub-back{width:32px;height:32px;min-height:32px}
@@ -967,3 +963,74 @@ body[data-ui-page="workbench"] .hub-back .material-icons{font-size:18px}
 #sec-context .context-setting-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;border-bottom:1px solid var(--line-3);padding:8px 0;font-size:var(--fs-secondary)}
 #sec-context .context-related{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 @media(max-width:760px){#sec-context .context-pipeline{grid-template-columns:repeat(2,minmax(0,1fr))}#sec-context .field-row{display:block}#sec-context .context-setting-row{font-size:var(--fs-small)}}
+
+
+/* skills-center: 设置中心技能统计、库管理、外来包与设置，复用公共 token/组件。 */
+.skill-tab-head{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--border)}
+#sec-skills .skills-heading{display:flex;gap:var(--r-card);align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+#sec-skills .skills-heading>div{min-width:0;flex:1}
+#sec-skills .skills-heading h3{margin-bottom:4px}
+#sec-skills .skills-heading .hint{margin:0}
+/* 介绍段必须是整行块级：Flex/Grid 容器或旧样式误把它当窄项时仍保持可读 */
+#sec-skills > p.hint{display:block;width:100%;min-width:0;max-width:none;flex:1 1 100%;grid-column:1/-1;justify-self:stretch;position:static;float:none;writing-mode:horizontal-tb;margin:0 0 12px;overflow-wrap:anywhere}
+#sec-skills .skills-heading-actions{display:flex;gap:8px;flex-wrap:wrap}
+#sec-skills .skills-hub-metrics{grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));margin:12px 0}
+#sec-skills .metric-card{min-width:0;display:flex;flex-direction:column;gap:6px;padding:12px}
+#sec-skills .metric-card>span{font-size:10px;color:var(--text-4);text-transform:uppercase;letter-spacing:.04em}
+#sec-skills .metric-card strong{font-size:18px;line-height:1.2;overflow-wrap:anywhere}
+#sec-skills .metric-card small{font-size:var(--fs-small);color:var(--text-3)}
+#sec-skills .skills-hub-metrics .empty-rich{grid-column:1/-1}
+#sec-skills .skills-hub-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:12px;margin-bottom:12px}
+#sec-skills .skills-panel{min-width:0;border:1px solid var(--line-2);border-radius:var(--r-card);padding:14px;margin-top:12px;background:linear-gradient(180deg,color-mix(in srgb,var(--seed-fg) 2%,transparent),transparent),var(--surface-1)}
+#sec-skills .skills-hub-grid .skills-panel{margin-top:0}
+#sec-skills .skills-panel h4{margin:0;padding:0;border:0;font-size:13px;color:var(--text-1)}
+#sec-skills .section-heading h4{margin:0}
+#sec-skills .skills-activity{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:5px;align-items:end;height:118px;padding:6px 2px 0;border-bottom:1px solid var(--line-3)}
+#sec-skills .skills-activity-bar{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;min-width:0;position:relative;padding-bottom:14px}
+#sec-skills .skills-activity-bar span{width:100%;min-height:2px;max-height:calc(100% - 14px);border-radius:3px 3px 0 0;background:color-mix(in srgb,var(--seed-accent) 22%,transparent);transition:height .2s var(--ease-out)}
+#sec-skills .skills-activity-bar.has-value span{background:var(--grad)}
+#sec-skills .skills-activity-bar small{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text-4);white-space:nowrap}
+#sec-skills .skills-source-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+#sec-skills .skills-sources .hint{margin:8px 0 0}
+#sec-skills .skills-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+#sec-skills .skills-toolbar input{flex:1;min-width:0;height:34px;padding:0 11px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-inset);color:var(--text-1);font-size:var(--fs-secondary)}
+#sec-skills .skills-toolbar .hint{margin:0}
+#sec-skills .skills-hub-list{display:grid;gap:8px}
+#sec-skills .skills-hub-item{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:11px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface-2);min-width:0}
+#sec-skills .skills-hub-item.has-pending{border-color:color-mix(in srgb,var(--warn) 38%,var(--line-2));box-shadow:inset 2px 0 0 var(--warn)}
+#sec-skills .skills-hub-item.is-archived{opacity:.92}
+#sec-skills .skills-hub-item-main{flex:1;min-width:0}
+#sec-skills .skills-hub-item-title{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
+#sec-skills .skills-hub-item-title>b{font-size:13px;color:var(--text-1);overflow-wrap:anywhere}
+#sec-skills .skills-hub-item p{margin:4px 0 0;font-size:var(--fs-secondary);line-height:1.55;color:var(--text-2);overflow-wrap:anywhere}
+#sec-skills .skills-hub-item-meta{margin-top:5px;font-size:var(--fs-small);color:var(--text-3);overflow-wrap:anywhere}
+#sec-skills .skills-pending-row{padding:8px 0;border-top:1px solid var(--line-3)}
+#sec-skills .skills-pending-row:first-of-type{border-top:0}
+#sec-skills .skills-pending-row b{font-size:var(--fs-secondary);color:var(--text-1)}
+#sec-skills .skills-pending-row p{margin:3px 0 0;font-size:var(--fs-small);color:var(--text-3);overflow-wrap:anywhere}
+#sec-skills .skills-hub-item-actions{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;align-items:center}
+#sec-skills .skills-archive{margin-top:12px}
+#sec-skills summary{cursor:pointer;font-size:var(--fs-secondary);color:var(--text-2)}
+#sec-skills .skills-archive summary{margin-bottom:8px}
+#sec-skills .skills-import-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+#sec-skills .skills-upload{position:relative;cursor:pointer}
+#sec-skills .skills-quarantine-card{margin-top:10px;padding:12px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface-2)}
+#sec-skills .skills-quarantine-card p{margin:4px 0;font-size:var(--fs-secondary);color:var(--text-2);overflow-wrap:anywhere}
+#sec-skills .skills-manifest{margin:8px 0}
+#sec-skills .skills-manifest ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
+#sec-skills .skills-manifest li{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(110px,auto);gap:8px;align-items:center;font-size:var(--fs-small);color:var(--text-3);border-top:1px solid var(--line-3);padding-top:4px}
+#sec-skills .skills-manifest li span,#sec-skills .skills-manifest li small{text-align:right;font-family:var(--font-mono);overflow-wrap:anywhere}
+#sec-skills .skills-setting-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;border-bottom:1px solid var(--line-3);padding:8px 0;font-size:var(--fs-secondary)}
+#sec-skills fieldset{min-width:0;margin:0;padding:0;border:0}
+#sec-skills .skills-related{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+@media(max-width:1000px){#sec-skills .skills-hub-grid{grid-template-columns:1fr}}
+@media(max-width:760px){
+  #sec-skills .skills-heading{flex-direction:column}
+  #sec-skills .skills-hub-item{flex-direction:column}
+  #sec-skills .skills-hub-item-actions{width:100%}
+  #sec-skills .skills-activity-bar small{display:none}
+  #sec-skills .skills-activity{height:96px}
+  #sec-skills .skills-setting-row{grid-template-columns:1fr}
+  #sec-skills .skills-manifest li{grid-template-columns:1fr;text-align:left}
+  #sec-skills .skills-manifest li span,#sec-skills .skills-manifest li small{text-align:left}
+}
