@@ -147,6 +147,15 @@ NAV_ITEMS = [
   - 工作台 rail → 工具子站：**新标签**（`_blank`，不顶掉正在进行的聊天）。
   - 子站 ↔ 子站：**同页跳转**（工作台是会话型页面，工具页之间互跳不损失状态）。
   - 设置中心：工作台内全屏覆盖层（hub）；子站入口经 `/?settings=1` 深链打开；storage 兼作 hub 内嵌 iframe（`?embed=1`）。
+  - **设置中心侧边栏分组**（`index.html` 的 `.hub-nav`，四组固定）：
+    | 分组 | 分区（`data-go`） |
+    |---|---|
+    | 核心系统 | `sec-context` 上下文系统、`sec-skills` 技能系统、`sec-memory-system` 记忆系统 |
+    | 对话与模型 | `sec-persona` 人设、`sec-models` 模型、`sec-memory` 记忆（回合整理与审批） |
+    | 平台与通道 | `sec-media`、`sec-browser`、`sec-qq`、`sec-cron` |
+    | 系统与扩展 | `sec-storage`、`sec-usage`、`sec-mcp`、`sec-about` |
+    规则：三大子系统（上下文/技能/记忆系统）必须同在「核心系统」组，不得散进其它组；
+    导航标签 = 卡片 `h3` 标题。改动分组须同步 `tests/test_ui_contract.py` 的两条守卫。
 - 新增页面 = NAV_ITEMS 加一行 + `<page>/` 目录三件套；**不改任何其它导航代码**。
 
 ## 8. 四态规范（每个数据区必须完整）

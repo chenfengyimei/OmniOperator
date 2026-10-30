@@ -214,3 +214,68 @@ def test_icons_css_embeds_material_font_offline():
     text = ICONS.read_text(encoding="utf-8")
     assert "@font-face" in text and "data:font/woff2;base64" in text
     assert "http://" not in text and "https://" not in text
+
+
+# 设置中心侧边栏的分组骨架：核心系统三项（上下文/技能/记忆系统）必须同在一组。
+HUB_CORE_GROUP = "核心系统"
+HUB_CORE_SYSTEMS = {
+    "sec-context": "上下文系统",
+    "sec-skills": "技能系统",
+    "sec-memory-system": "记忆系统",
+}
+
+
+def _hub_nav_groups(html: str) -> list[tuple[str, list[tuple[str, str]]]]:
+    """解析 .hub-nav：返回 [(分组标题, [(data-go, 标签)])]。
+
+    分组是导航骨架的一部分——条目必须挂在某个 .hub-group 下，游离条目会让
+    「这个分区属于哪一类」无从判断。
+    """
+    block = re.search(r'<nav class="hub-nav">(.*?)</nav>', html, re.S)
+    assert block, "index.html 找不到 .hub-nav 设置中心侧边栏"
+    token = re.compile(r'<div class="hub-group">([^<]+)</div>|<a data-go="([^"]+)"[^>]*>([^<]*)</a>')
+    groups: list[tuple[str, list[tuple[str, str]]]] = []
+    for match in token.finditer(block.group(1)):
+        title, go, label = match.group(1), match.group(2), match.group(3)
+        if title is not None:
+            groups.append((title.strip(), []))
+        else:
+            assert groups, f"侧边栏条目 {go} 不在任何分组下（游离项）"
+            groups[-1][1].append((go, label.strip()))
+    return groups
+
+
+def test_hub_sidebar_groups_core_systems_together():
+    """设置中心侧边栏：上下文系统/技能系统/记忆系统必须同在「核心系统」分组。
+
+    为什么：三个子系统是同一层的东西——它由哪些部分组成。散在「对话与模型」
+    和「系统与扩展」里时用户得跨分组拼全貌。分组是导航骨架，改结构必须同时
+    改这里，防止回退。
+    """
+    groups = _hub_nav_groups(INDEX.read_text(encoding="utf-8"))
+    titles = [title for title, _ in groups]
+    assert len(titles) == len(set(titles)), f"侧边栏分组标题重复：{titles}"
+    assert HUB_CORE_GROUP in titles, f"侧边栏缺少「{HUB_CORE_GROUP}」分组：{titles}"
+    core = dict(groups)[HUB_CORE_GROUP]
+    assert {go for go, _ in core} == set(HUB_CORE_SYSTEMS), (
+        f"「{HUB_CORE_GROUP}」应恰好是三大子系统，实得 {[go for go, _ in core]}"
+    )
+    elsewhere = {go for title, items in groups if title != HUB_CORE_GROUP for go, _ in items}
+    assert not elsewhere & set(HUB_CORE_SYSTEMS), (
+        f"三大子系统还留在别的分组里：{sorted(elsewhere & set(HUB_CORE_SYSTEMS))}"
+    )
+
+
+def test_hub_core_nav_labels_match_card_titles():
+    """核心系统三项的导航标签必须与卡片标题一致（上下文系统/技能系统/记忆系统）。
+
+    为什么：导航名与卡片标题是同一个东西的两种写法；不一致时用户点进去会以为
+    「怎么换了个名字」，分不清是不是两个东西。
+    """
+    html = INDEX.read_text(encoding="utf-8")
+    labels = {go: label for _, items in _hub_nav_groups(html) for go, label in items}
+    for go, expected in HUB_CORE_SYSTEMS.items():
+        assert labels.get(go) == expected, f"{go} 导航标签应为「{expected}」，实得 {labels.get(go)!r}"
+        card = re.search(rf'<div class="hub-card" id="{go}">(.*?)<h3>([^<]+)</h3>', html, re.S)
+        assert card, f"index.html 找不到 {go} 卡片"
+        assert card.group(2).strip() == expected, f"{go} 卡片标题应为「{expected}」，实得 {card.group(2)!r}"

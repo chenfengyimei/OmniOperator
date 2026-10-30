@@ -228,19 +228,20 @@
   </div>
   <div class="hub-layout">
     <nav class="hub-nav">
+      <div class="hub-group">核心系统</div>
+      <a data-go="sec-context" href="#sec-context">上下文系统</a>
+      <a data-go="sec-skills">技能系统</a>
+      <a data-go="sec-memory-system" href="/memory/" target="_blank" rel="noopener">记忆系统</a>
       <div class="hub-group">对话与模型</div>
       <a data-go="sec-persona" class="active">人设</a>
       <a data-go="sec-models">模型</a>
-      <a data-go="sec-context" href="#sec-context">上下文</a>
       <a data-go="sec-memory">记忆</a>
-      <a data-go="sec-skills">技能</a>
       <div class="hub-group">平台与通道</div>
       <a data-go="sec-media">B站与转写</a>
       <a data-go="sec-browser">浏览器</a>
       <a data-go="sec-qq">QQ</a>
       <a data-go="sec-cron">定时任务</a>
       <div class="hub-group">系统与扩展</div>
-      <a data-go="sec-memory-system" href="/memory/" target="_blank" rel="noopener">记忆系统</a>
       <a data-go="sec-storage" href="/storage/" target="_blank" rel="noopener">Agent 与文件</a>
       <a data-go="sec-usage">花费</a>
       <a data-go="sec-mcp">扩展能力</a>
@@ -281,7 +282,7 @@
         </div>
       </div>
       <div class="hub-card" id="sec-context">
-        <div class="context-heading"><div><h3>上下文</h3><p class="hint" id="context-session">正在读取当前会话…</p></div><button class="btn" data-action="context:refresh" id="context-refresh">刷新统计</button></div>
+        <div class="context-heading"><div><h3>上下文系统</h3><p class="hint" id="context-session">正在读取当前会话…</p></div><button class="btn" data-action="context:refresh" id="context-refresh">刷新统计</button></div>
         <p class="hint">查看模型实际保留的历史窗口与缓存上报，调整历史、压缩和记忆配额。本页只读统计不会调用模型。</p>
         <p id="context-stats-status" role="status">正在读取统计…</p>
         <div id="context-metrics" class="context-metrics"><div class="empty">正在读取窗口用量…</div></div>
@@ -328,7 +329,7 @@
       </div>
       <div class="hub-card" id="sec-memory">
         <h3>记忆</h3>
-        <div class="hint">这里设置回合后的自动整理与审批。历史窗口、压缩和记忆配额集中在“上下文”设置。</div>
+        <div class="hint">这里设置回合后的自动整理与审批。历史窗口、压缩和记忆配额集中在“上下文系统”设置。</div>
         <div class="field"><label class="check-row"><input type="checkbox" id="cfg-review-enabled"><span class="switch"></span><span class="switch-text">聊完自动整理记忆（会越来越懂你，但每次多花一点）</span></label></div>
         <div class="field-row">
           <div class="field"><label>整理时回看多少条消息</label><input type="number" id="cfg-review-max-messages"></div>
@@ -348,7 +349,7 @@
       <div class="hub-card" id="sec-skills">
         <div class="skills-heading">
           <div>
-            <h3>技能</h3>
+            <h3>技能系统</h3>
             <p class="hint" id="skills-hub-summary">正在读取技能库…</p>
           </div>
           <div class="skills-heading-actions">
