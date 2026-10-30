@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](docs/INSTALLER.md)
-[![tests](https://img.shields.io/badge/tests-1189%20offline-brightgreen)](docs/DEVELOPMENT_STATUS.md)
+[![tests](https://img.shields.io/badge/tests-1198%20offline-brightgreen)](docs/DEVELOPMENT_STATUS.md)
 [![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
 
 **跑在 Windows 上的常驻具身个人 agent**：QQ / Web 工作台 / CLI / 心跳四个入口共用一个内核——
