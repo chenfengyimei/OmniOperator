@@ -73,6 +73,36 @@ docs/ui-migration/          迁移素材与历史快照（差分基线职责已�
 - 半透明表面统一走 `color-mix`（玻璃质感基准）；扁平色块只允许在 tokens 派生层出现。
 - 守卫：`tests/test_ui_design_tokens.py` 断言 token 单源 + 字号下限。
 
+### 3.5 分层玻璃（glass）
+
+全站视觉主线是**分层毛玻璃**：底层极光、中层卡片、顶层浮层，三档强度。
+
+新增第 2 层 token（`--glass-*`，18 个 + `--on-accent`）：
+
+| 档 | 用途 | 挂 `backdrop-filter`？ |
+|---|---|---|
+| `--glass-strong-*` | rail、顶栏、设置中心覆盖层、浮层、弹窗 | ✅ blur 20px + saturate 165% |
+| `--glass-mid-*` | 卡片、面板容器、度量卡、工具条 | ❌ 靠「半透明底 + 内高光 + 细边线」表达 |
+| `--glass-weak-*` | 列表行、徽章、按钮、页签 | ❌ 同上 |
+
+**硬规则**：
+1. **玻璃的颜色成员必须由 `--surface-*` / `--line-*` / `--seed-fg` 经 `color-mix` 派生**，禁止写 `rgba(255,255,255,x)` 白色薄纱——白纱在浅色主题下等于隐形，这是浅色模式瞎掉的根因。
+2. **`backdrop-filter` 只准挂在壳层**。Chromium 的 Backdrop Root 语义决定：嵌套玻璃互相截断（内层模糊的是外层已模糊的结果，看不到页面），且滚动容器挂 blur 会每帧重算。单页 `backdrop-filter` 元素 **≤ 8 个**。
+3. **凹陷区不走玻璃**：代码块、终端、输出、输入内衬一律用 `--surface-inset` 实色。
+4. `blur` 与 `saturate` 必须同档配套，不得出现 `blur(20px) saturate(145%)` 与 `blur(20px) saturate(150%)` 两套值并存（历史遗留，已在 Phase 8 收敛）。
+5. **浮层必须走顶层**：`.rail` / `.panel` 的 `backdrop-filter` 会生成层叠上下文并成为 `position:fixed` 后代的包含块，`overflow:hidden` 还会裁掉浮层。因此提示浮层一律挂在 `body` 直管的 `#tip-layer`，下拉与悬浮菜单一律用原生 `<dialog>`。
+6. 守卫：`tests/test_ui_glass_tokens.py` 断言 token 单源、三档齐备、无写死 blur、无悬空变量、浅色块不重复定义玻璃。
+
+### 3.6 主题（暗色 / 浅色）
+
+token 三层结构天然支持主题切换：换第 1 层种子，第 2 层派生自动跟随。
+
+- 实际生效值写在 `<html data-theme="dark|light">`；CSS **只认** `[data-theme="light"]`，不写 `@media (prefers-color-scheme)`——避免「跟随系统」与「手动」两套 CSS 分叉。
+- `ui/theme.js` 是**同步阻塞的引导脚本**，必须放在所有 `<link>` 之前：否则浅色用户会先闪一下暗色。
+- 浅色主题块里**不写任何 `--glass-*`**：玻璃三档的颜色成员都指向 `--surface-*` / `--seed-fg`，这两个在浅色块里已被重定义，玻璃因此自动翻面。若浅色块另写一份玻璃，就会出现「玻璃不跟随主题」的第二真源。
+- 浅色下的强调色是**同一色相的压深变体**（`#0e7490` / `#4f46e5`）：原色 `#3ddbd9` 在白底正文上对比度仅约 1.9:1，不可读。
+
+
 ## 4. 排版刻度
 
 | 用途 | 值 | 说明 |
