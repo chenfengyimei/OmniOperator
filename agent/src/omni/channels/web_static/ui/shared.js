@@ -115,9 +115,31 @@
       nav.append(link);
     }
   }
-  function ensureHubStorageEntry(){
-    const settings=document.querySelector('.hub-nav');
-    if(settings&&!settings.querySelector('a[href="/storage/"]')){const entry=element('a','Agent 与目录');entry.href='/storage/';entry.target='_blank';entry.rel='noopener';settings.append(entry)}
+  /* 主题切换按钮：见 mountThemeToggle。挂顶栏而非 rail——rail 有两套来源
+     （工作台是 index.html 静态 markup，子站是 renderRail 生成），放 rail 要改两处，
+     违背「导航单源」精神；顶栏是全站唯一 9 页共有且位置稳定的容器。 */
+  function mountThemeToggle(){
+    const header=document.querySelector('body>header');
+    if(!header||header.querySelector('.theme-toggle'))return;
+    const button=element('button',null,'theme-toggle');
+    button.type='button';
+    button.title='切换主题';
+    button.setAttribute('aria-label','切换主题');
+    button.append(icon('contrast'));
+    const labels={auto:'跟随系统',light:'浅色',dark:'深色'};
+    const sync=()=>{
+      const theme=window.OmniTheme;
+      const effective=theme?theme.effective():'dark';
+      const glyph=button.querySelector('.material-icons');
+      if(glyph)glyph.textContent=effective==='light'?'light_mode':'dark_mode';
+      const current=theme?theme.pref():'auto';
+      button.title='主题：'+(labels[current]||current);
+      button.setAttribute('aria-label','切换主题（当前：'+(labels[current]||current)+'）');
+    };
+    button.addEventListener('click',()=>{if(window.OmniTheme)window.OmniTheme.cycle();sync()});
+    document.addEventListener('omni:theme-change',sync);
+    header.append(button);
+    sync();
   }
   function mount(){
     const page=location.pathname.split('/').filter(Boolean)[0]||'workbench';document.body.dataset.uiPage=page;document.documentElement.dataset.uiPage=page;
@@ -148,7 +170,10 @@
     }
     const currentLink=nav?.querySelector('[aria-current="page"]');if(currentLink)requestAnimationFrame(()=>currentLink.scrollIntoView({block:'nearest',inline:'center'}));
     document.body.classList.add('ui-ready');
-    if(!embedded){ensureHubStorageEntry();if(new URLSearchParams(location.search).get('settings')==='1')setTimeout(()=>{const button=document.querySelector('.hub-open');if(!button)return;const section=new URLSearchParams(location.search).get('section');if(section==='sec-memory-system')button.dataset.section=section;button.click();if(section==='sec-memory-system')delete button.dataset.section},0);}
+    if(!embedded){
+      mountThemeToggle();
+      if(new URLSearchParams(location.search).get('settings')==='1')setTimeout(()=>{const button=document.querySelector('.hub-open');if(!button)return;const section=new URLSearchParams(location.search).get('section');if(section==='sec-memory-system')button.dataset.section=section;button.click();if(section==='sec-memory-system')delete button.dataset.section},0);
+    }
     requestAnimationFrame(()=>document.body.classList.add('ui-entered'));
     const progress=element('div');progress.className='ui-route-progress';progress.setAttribute('aria-hidden','true');document.body.append(progress);
     const prefetchFrom=event=>{const link=event.target.closest('a[href]');if(!link||link.target==='_blank')return;try{const url=new URL(link.href,location.href);if(url.origin===location.origin)warm(url.pathname)}catch{}};

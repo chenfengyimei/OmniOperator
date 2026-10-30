@@ -180,6 +180,16 @@ input:checked + .switch::after{transform:translateX(16px);background:#04121a}
 .metric-card small{grid-column:1/-1;margin-top:2px;font-size:10px;color:var(--text-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .metric-card.is-on .metric-icon{color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,transparent);border-color:color-mix(in srgb,var(--ok) 20%,transparent)}
 
+/* ---------- 主题切换按钮（顶栏，弱玻璃档） ---------- */
+.theme-toggle{
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  width:30px;height:30px;padding:0;border:1px solid var(--line-2);border-radius:var(--r-md);
+  background:var(--glass-weak-bg);color:var(--text-2);cursor:pointer;
+  transition:color .15s,border-color .15s,background .15s;
+}
+.theme-toggle:hover{color:var(--seed-accent);border-color:var(--line-accent);background:var(--surface-accent)}
+.theme-toggle .material-icons{font-size:16px}
+
 /* ---------- 卡片基样（面板内通用卡） ---------- */
 .card{
   min-width:0;border:1px solid var(--line-2);border-radius:var(--r-card);
