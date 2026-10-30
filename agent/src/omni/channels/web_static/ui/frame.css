@@ -4,6 +4,14 @@
    共享表面、运营页构件、覆盖层动效、滚动条、共享断点（含按页面命名的布局微调）。
    加载顺序：tokens.css → base.css → icons.css → frame.css →（页面 css）。
    token 只从 ui/tokens.css 取；本文件禁止定义 --seed-* 与 --ui-* 与 --shell-*。
+
+   结构说明：本文件历史上存在两套壳（前半段「Sub-page canvas / Shared app header」，
+   后半段「Unified console frame」），同选择器重复定义、后者覆盖前者，且 blur 的
+   saturate 值两套并存（145% / 150%）互相打架。已收敛为：
+     · 壳层外观（顶栏/rail/折叠态）只在后半段「统一控制台壳」定义一次；
+     · 前半段只保留不重复的部分（页面图标、返回胶囊、LOCAL 徽标、内容节奏、控件、卡片）；
+     · 玻璃档位见 UI_DESIGN_SYSTEM.md §3.5：壳层强玻璃、卡片中玻璃、列表弱玻璃，
+       backdrop-filter 只挂壳层（Chromium Backdrop Root 会让嵌套玻璃互相截断）。
    ========================================================================== */
 *{box-sizing:border-box}
 /* Some legacy panels use inline display:flex; visibility helpers must win. */
@@ -44,7 +52,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])
 }
 body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])::before{
   content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.32;
-  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-image:linear-gradient(color-mix(in srgb,var(--seed-fg) 3.5%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--seed-fg) 3.5%,transparent) 1px,transparent 1px);
   background-size:40px 40px;
   mask-image:linear-gradient(to bottom,#000,transparent 65%);
 }
@@ -64,30 +72,20 @@ body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])
 /* --------------------------------------------------------------------------
    Shared app header + navigation
    -------------------------------------------------------------------------- */
-body[data-ui-page]:not([data-ui-page="workbench"]) > header{
-  position:sticky;top:0;z-index:80;
-  width:100%;max-width:none;min-height:66px;margin:0;padding:10px clamp(18px,3vw,42px);
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  border-bottom:1px solid var(--shell-line);
-  background:color-mix(in oklab,var(--shell-surface) 76%,transparent);
-  backdrop-filter:blur(20px) saturate(145%);
-  -webkit-backdrop-filter:blur(20px) saturate(145%);
-  box-shadow:0 10px 34px rgba(0,0,0,.18);
-}
 body[data-ui-page]:not([data-ui-page="workbench"]) > header h1{
   display:flex;align-items:center;gap:10px;
   margin:0;font-size:18px;line-height:1.25;font-weight:720;letter-spacing:-.015em;color:var(--shell-text);
 }
 .ui-page-icon{
   width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;flex-shrink:0;
-  color:#04121a!important;background:linear-gradient(135deg,var(--shell-accent),var(--shell-accent-2));
-  box-shadow:0 5px 18px -7px color-mix(in srgb,var(--seed-accent) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.42);
+  color:var(--on-accent)!important;background:linear-gradient(135deg,var(--shell-accent),var(--shell-accent-2));
+  box-shadow:var(--sh-2),inset 0 1px 0 color-mix(in srgb,#fff 42%,transparent);
   font-size:19px!important;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child{
   display:inline-flex;align-items:center;gap:6px;min-height:31px;padding:0 11px;
   color:var(--shell-text-2);text-decoration:none;font-size:12px;font-weight:600;
-  border:1px solid var(--shell-line);border-radius:999px;background:rgba(255,255,255,.025);
+  border:1px solid var(--shell-line);border-radius:var(--r-full);background:var(--glass-strong-bg);
   transition:color .16s,border-color .16s,background .16s;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child:hover{
@@ -102,11 +100,11 @@ body[data-ui-page]:not([data-ui-page="workbench"]) > header select{
 }
 .ui-env{
   display:inline-flex;align-items:center;gap:6px;margin-left:2px;
-  padding:3px 9px;border:1px solid color-mix(in srgb,var(--seed-accent) 22%,transparent);border-radius:999px;
+  padding:3px 9px;border:1px solid color-mix(in srgb,var(--seed-accent) 22%,transparent);border-radius:var(--r-full);
   color:var(--shell-accent);background:var(--shell-accent-soft);
   font:600 10.5px/1.5 var(--shell-mono);letter-spacing:.08em;white-space:nowrap;
 }
-.ui-env::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--shell-success);box-shadow:0 0 8px var(--shell-success)}
+.ui-env::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--shell-success);box-shadow:0 0 0 3px var(--ok-bg)}
 body[data-ui-page]:not([data-ui-page="workbench"]) > header .ui-env{margin-left:auto}
 
 /* 注入导航的样式见上方「统一图标栏」；.ui-global-nav 类名仅作 JS/测试锚点 */
@@ -118,12 +116,6 @@ body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])
   color:var(--shell-text-3);font-size:12.5px;line-height:1.75;margin:18px auto 0;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p + p{margin-top:8px}
-body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p:first-of-type{
-  margin-top:22px;padding:12px 15px;
-  color:var(--shell-text-2);background:rgba(255,255,255,.022);
-  border:1px solid var(--shell-line);border-left:3px solid color-mix(in srgb,var(--seed-accent) 56%,transparent);
-  border-radius:0 var(--shell-radius-sm) var(--shell-radius-sm) 0;
-}
 body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p#status,
 body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > #status[role="status"]{
   margin-top:14px;padding:9px 13px;color:var(--shell-text-2);
@@ -140,40 +132,40 @@ body[data-ui-page] small{color:var(--shell-text-3)}
    -------------------------------------------------------------------------- */
 body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button){
   min-height:34px;padding:7px 13px;
-  border:1px solid var(--shell-line-strong);border-radius:var(--shell-radius-sm);
-  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),var(--shell-surface-2);
+  border:1px solid var(--glass-weak-line);border-radius:var(--shell-radius-sm);
+  background:var(--glass-weak-bg);
   color:var(--shell-text-2);font:600 12px/1.2 var(--shell-font);
-  cursor:pointer;box-shadow:0 1px 0 rgba(255,255,255,.035) inset;
+  cursor:pointer;box-shadow:var(--glass-weak-sheen);
   transition:border-color .16s,color .16s,background .16s,transform .12s,box-shadow .16s;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button):hover:not(:disabled){
   color:var(--shell-text);border-color:color-mix(in srgb,var(--seed-accent) 36%,transparent);
-  background:linear-gradient(180deg,color-mix(in srgb,var(--seed-accent) 10%,transparent),color-mix(in srgb,var(--seed-accent) 2%,transparent)),var(--shell-surface-2);
-  box-shadow:0 5px 18px -12px color-mix(in srgb,var(--seed-accent) 80%,transparent);
+  background:var(--surface-accent);
+  box-shadow:var(--sh-2);
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button):active:not(:disabled){transform:translateY(1px)}
 body[data-ui-page]:not([data-ui-page="workbench"]) button:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.45)}
 body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select,textarea){
   min-height:34px;padding:7px 11px;
-  color:var(--shell-text);background:rgba(5,9,14,.62);
+  color:var(--shell-text);background:var(--surface-inset);
   border:1px solid var(--shell-line-strong);border-radius:var(--shell-radius-sm);
   font:400 12px/1.5 var(--shell-font);outline:none;
   transition:border-color .16s,box-shadow .16s,background .16s;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select,textarea):focus{
-  border-color:color-mix(in srgb,var(--seed-accent) 52%,transparent);background:rgba(5,9,14,.86);
-  box-shadow:0 0 0 3px color-mix(in srgb,var(--seed-accent) 9%,transparent);
+  border-color:color-mix(in srgb,var(--seed-accent) 52%,transparent);background:var(--surface-inset);
+  outline:2px solid color-mix(in srgb,var(--seed-accent) 30%,transparent);outline-offset:1px;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select)::placeholder{color:var(--shell-text-3);opacity:.8}
 body[data-ui-page]:not([data-ui-page="workbench"]) .ui-primary,
 body[data-ui-page]:not([data-ui-page="workbench"]) .ui-primary:hover{
-  color:#04121a;border-color:transparent;
+  color:var(--on-accent);border-color:transparent;
   background:var(--grad);
-  box-shadow:0 6px 22px -10px color-mix(in srgb,var(--seed-accent) 90%,transparent);
+  box-shadow:var(--sh-2),inset 0 1px 0 color-mix(in srgb,#fff 30%,transparent);
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) .ui-danger,
 body[data-ui-page]:not([data-ui-page="workbench"]) .ui-danger:hover{
-  color:#ffd8dd;border-color:rgba(255,102,120,.42);background:rgba(255,102,120,.1);
+  color:var(--danger);border-color:var(--danger-bd);background:var(--danger-bg);
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) button svg{width:14px;height:14px}
 
@@ -185,9 +177,9 @@ body[data-ui-page]:not([data-ui-page="workbench"]) .server,
 body[data-ui-page]:not([data-ui-page="workbench"]) #cards > *,
 body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *{
   min-width:0;
-  border:1px solid var(--shell-line);border-radius:var(--shell-radius);
-  background:linear-gradient(180deg,rgba(255,255,255,.025),transparent 32%),var(--shell-surface);
-  box-shadow:var(--shell-shadow);
+  border:1px solid var(--glass-mid-line);border-radius:var(--shell-radius);
+  background:var(--glass-mid-bg);
+  box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);
   transition:border-color .18s,transform .18s,box-shadow .18s;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) .card:hover,
@@ -195,12 +187,12 @@ body[data-ui-page]:not([data-ui-page="workbench"]) .server:hover,
 body[data-ui-page]:not([data-ui-page="workbench"]) #cards > *:hover,
 body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *:hover{
   border-color:color-mix(in srgb,var(--seed-accent) 24%,transparent);
-  box-shadow:0 18px 48px rgba(0,0,0,.3),0 0 0 1px color-mix(in srgb,var(--seed-accent) 5%,transparent);
+  box-shadow:var(--sh-3),0 0 0 1px color-mix(in srgb,var(--seed-accent) 5%,transparent);
   transform:translateY(-1px);
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) pre{
-  color:var(--shell-text-2);background:rgba(3,7,12,.72);
-  border:1px solid var(--shell-line);border-radius:var(--shell-radius-sm);
+  color:var(--shell-text-2);background:var(--surface-inset);
+  border:1px solid var(--line-3);border-radius:var(--shell-radius-sm);
   font-family:var(--shell-mono);font-size:11.5px;line-height:1.7;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) details{border-color:var(--shell-line)}
@@ -208,7 +200,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]) summary{color:var(--shell-acc
 body[data-ui-page]:not([data-ui-page="workbench"]) .ui-empty{
   padding:28px 18px;color:var(--shell-text-3);
   border:1px dashed var(--shell-line-strong);border-radius:var(--shell-radius);
-  background:rgba(255,255,255,.018);line-height:1.8;
+  background:transparent;line-height:1.8;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) .ui-badge{font-family:var(--shell-font);letter-spacing:.01em}
 
@@ -221,7 +213,7 @@ body[data-ui-page="mcp"] #servers:empty::after,
 body[data-ui-page="capabilities"] #cards:empty::after{
   content:"正在读取本地状态…";display:flex;align-items:center;justify-content:center;
   min-height:120px;border:1px dashed var(--shell-line-strong);border-radius:var(--shell-radius);
-  color:var(--shell-text-3);font-size:12px;background:rgba(255,255,255,.018);
+  color:var(--shell-text-3);font-size:12px;background:var(--glass-weak-bg);
   animation:omni-placeholder-pulse 1.4s ease-in-out infinite;
 }
 @keyframes omni-placeholder-pulse{0%,100%{opacity:.55}50%{opacity:1}}
@@ -309,8 +301,9 @@ body[data-ui-page]:not([data-ui-page="workbench"]){
   max-width:none;margin:0;padding:9px 0 10px;
   display:flex;flex-direction:column;align-items:center;gap:3px;
   border-right:1px solid var(--line-2);border-bottom:0;
-  background:color-mix(in oklab,var(--surface-1) 66%,transparent);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  background:var(--glass-strong-bg);
+  backdrop-filter:blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  -webkit-backdrop-filter:blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
   overflow-x:hidden;overflow-y:auto;scrollbar-width:none;
 }
 .rail::-webkit-scrollbar,.ui-app-rail::-webkit-scrollbar{display:none}
@@ -355,9 +348,10 @@ body[data-ui-page]:not([data-ui-page="workbench"]) > header{
   padding:10px clamp(18px,2.5vw,34px);
   display:flex;align-items:center;gap:11px;flex-wrap:nowrap;
   border-bottom:1px solid var(--line-2);
-  background:color-mix(in oklab,var(--surface-1) 76%,transparent);
-  backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
-  box-shadow:0 10px 32px rgba(0,0,0,.16);
+  background:var(--glass-strong-bg);
+  backdrop-filter:blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  -webkit-backdrop-filter:blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  box-shadow:var(--glass-strong-shadow);
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) > header h1{font-size:17px;white-space:nowrap}
 body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child{flex-shrink:0}
@@ -393,7 +387,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])
     width:100%;height:54px;min-height:54px;padding:6px 9px;
     flex-direction:row;align-items:center;justify-content:flex-start;gap:4px;
     border-right:0;border-bottom:1px solid var(--line-2);
-    background:rgba(8,13,20,.88);overflow-x:auto;overflow-y:hidden;
+    background:var(--glass-strong-bg);overflow-x:auto;overflow-y:hidden;
   }
   body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail .ui-rail-brand{display:none}
   body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a{width:36px;height:36px;min-height:36px}

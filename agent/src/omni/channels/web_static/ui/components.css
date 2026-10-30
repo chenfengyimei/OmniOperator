@@ -11,8 +11,8 @@
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
   height:28px;padding:0 12px;border-radius:var(--r-sm);
-  border:1px solid var(--line-2);
-  background:color-mix(in oklab,var(--surface-2) 60%,transparent);
+  border:1px solid var(--glass-weak-line);
+  background:var(--glass-weak-bg);
   color:var(--text-2);font:inherit;font-size:12px;font-weight:600;
   cursor:pointer;white-space:nowrap;flex-shrink:0;
   transition:border-color .15s,color .15s,background .15s,transform .12s;
@@ -27,10 +27,10 @@
 .btn.small{height:24px;padding:0 9px;font-size:11px}
 /* 主操作：渐变实心，每屏最多一个 */
 .btn.primary{
-  background:var(--grad);border:none;color:#04121a;font-weight:700;
-  box-shadow:0 2px 12px -3px color-mix(in srgb,var(--seed-accent) 62%,transparent);
+  background:var(--grad);border:none;color:var(--on-accent);font-weight:700;
+  box-shadow:var(--sh-2),inset 0 1px 0 color-mix(in srgb,#fff 30%,transparent);
 }
-.btn.primary:hover{filter:brightness(1.08);background:var(--grad);color:#04121a}
+.btn.primary:hover{filter:brightness(1.08);background:var(--grad);color:var(--on-accent)}
 /* 危险操作必须配确认 */
 .btn.danger{
   color:var(--danger);border-color:var(--danger-bd);background:transparent;
@@ -62,11 +62,11 @@
 .field>.check-row{flex-direction:row;align-items:center;gap:10px}
 
 /* ---------- 开关：checkbox 皮肤化，保留原生 input 供 JS 读取 .checked ---------- */
-.switch{position:relative;display:inline-flex;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:#3a4356;transition:background .18s}
+.switch{position:relative;display:inline-flex;flex-shrink:0;width:36px;height:20px;border-radius:var(--r-full);background:color-mix(in srgb,var(--seed-fg) 22%,transparent);transition:background .18s}
 .switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text-1);transition:transform .18s}
 input:checked + .switch{background:var(--seed-accent)}
-input:checked + .switch::after{transform:translateX(16px);background:#04121a}
-.check-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-1);cursor:pointer;user-select:none;font-size:13px;line-height:1.5;transition:border-color .15s}
+input:checked + .switch::after{transform:translateX(16px);background:var(--on-accent)}
+.check-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1px solid var(--glass-weak-line);border-radius:var(--r-md);background:var(--glass-weak-bg);cursor:pointer;user-select:none;font-size:13px;line-height:1.5;transition:border-color .15s}
 .check-row:hover{border-color:var(--line-1)}
 .check-row input{position:absolute;opacity:0;width:0;height:0}
 .check-row input:focus-visible + .switch{box-shadow:0 0 0 3px color-mix(in srgb,var(--seed-accent) 30%,transparent)}
@@ -81,7 +81,7 @@ input:checked + .switch::after{transform:translateX(16px);background:#04121a}
 .empty-rich{
   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   min-height:180px;padding:24px 20px;
-  border:1px dashed var(--line-1);border-radius:12px;
+  border:1px dashed var(--line-1);border-radius:var(--r-card);
   color:var(--text-4);background:color-mix(in srgb,var(--seed-fg) 1.6%,transparent);
 }
 .empty-rich>.material-icons{font-size:30px;color:var(--text-4);margin-bottom:8px}
@@ -92,13 +92,13 @@ input:checked + .switch::after{transform:translateX(16px);background:#04121a}
 /* ---------- 徽章与胶囊 ---------- */
 .chip{
   display:inline-flex;align-items:center;gap:5px;height:21px;padding:0 8px;
-  border:1px solid var(--line-2);border-radius:999px;
-  background:color-mix(in oklab,var(--surface-2) 55%,transparent);
+  border:1px solid var(--glass-weak-line);border-radius:var(--r-full);
+  background:var(--glass-weak-bg);
   font-size:10.5px;color:var(--text-3);white-space:nowrap;
 }
 .chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
 .tag{
-  flex-shrink:0;font-size:11px;border-radius:999px;padding:2px 9px;white-space:nowrap;
+  flex-shrink:0;font-size:11px;border-radius:var(--r-full);padding:2px 9px;white-space:nowrap;
   color:var(--text-3);background:color-mix(in srgb,var(--seed-fg) 6%,transparent);
 }
 .tag.ok{color:var(--ok);background:var(--ok-bg)}
@@ -109,13 +109,13 @@ input:checked + .switch::after{transform:translateX(16px);background:#04121a}
 /* ---------- 提示与说明 ---------- */
 .hint{color:var(--text-3);font-size:11.5px;line-height:1.7}
 .muted{color:var(--text-3);font-size:12px}
-.note-box{border:1px solid var(--line-2);border-left:3px solid var(--seed-accent);border-radius:var(--r-md);background:color-mix(in srgb,var(--seed-accent) 5%,transparent);padding:11px 14px;margin:2px 0 4px}
+.note-box{border:1px solid var(--line-2);border-left:3px solid var(--seed-accent);border-radius:var(--r-md);background:var(--surface-accent);padding:11px 14px;margin:2px 0 4px}
 .note-box .nb-title{font-size:12.5px;font-weight:700;color:var(--text-1);margin-bottom:5px}
 .note-box .nb-body{font-size:12px;color:var(--text-3);line-height:1.75}
 .note-box .nb-body b{color:var(--text-2);font-weight:600}
 
 /* ---------- 通用列表行（cron/preset/svc/file 等的基样） ---------- */
-.row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-1);margin-bottom:8px;transition:border-color .15s,background .15s}
+.row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--glass-weak-line);border-radius:var(--r-md);background:var(--glass-weak-bg);margin-bottom:8px;transition:border-color .15s,background .15s}
 .row:hover{border-color:var(--line-1)}
 .row.active{border-color:var(--line-accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--seed-accent) 30%,transparent)}
 .row .r-main{flex:1;min-width:0}
@@ -130,27 +130,27 @@ input:checked + .switch::after{transform:translateX(16px);background:#04121a}
 .eyebrow{display:block;color:var(--text-4);font:650 10px/1.4 var(--font-mono);letter-spacing:.13em;text-transform:uppercase}
 .section-meta{color:var(--text-4);font:600 10.5px/1.4 var(--font-mono);white-space:nowrap}
 .page-note{margin:0 0 10px;color:var(--text-4);font-size:10.5px;line-height:1.65;padding:0;border:0;background:none}
-.page-note code{font-family:var(--font-mono);color:var(--text-2);background:color-mix(in srgb,var(--seed-fg) 4%,transparent);padding:1px 4px;border-radius:4px}
+.page-note code{font-family:var(--font-mono);color:var(--text-2);background:color-mix(in srgb,var(--seed-fg) 4%,transparent);padding:1px 4px;border-radius:var(--r-sm)}
 
 /* ---------- 工具条与搜索 ---------- */
 .header-action{
   display:inline-flex;flex-shrink:0;white-space:nowrap;align-items:center;gap:6px;min-height:30px;padding:0 10px;
   color:var(--text-2);text-decoration:none;font-size:11.5px;font-weight:600;
-  border:1px solid var(--line-2);border-radius:8px;background:color-mix(in srgb,var(--seed-fg) 2.5%,transparent);
+  border:1px solid var(--glass-weak-line);border-radius:var(--r-md);background:var(--glass-weak-bg);
 }
 .header-action:hover{color:var(--seed-accent);border-color:color-mix(in srgb,var(--seed-accent) 32%,transparent)}
 .header-action .material-icons{font-size:14px}
 .console-toolbar{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  padding:10px 12px;border:1px solid var(--line-2);border-radius:11px;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--seed-fg) 2.5%,transparent),transparent),var(--surface-1);
-  box-shadow:0 10px 28px rgba(0,0,0,.12);
+  padding:10px 12px;border:1px solid var(--glass-mid-line);border-radius:var(--r-card);
+  background:var(--glass-mid-bg);
+  box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);
 }
 .toolbar-copy{display:flex;flex-direction:column;gap:2px;flex:1;min-width:220px}
 .toolbar-copy strong{font-size:11.5px;color:var(--text-1)}
 .toolbar-copy span{font-size:10.5px;color:var(--text-4);line-height:1.55}
 .toolbar-note{font-size:10px;color:var(--text-4);font-weight:500}
-.search-field{display:flex;align-items:center;gap:8px;flex:1;min-width:220px;height:34px;padding:0 11px;border:1px solid var(--line-2);border-radius:8px;background:rgba(5,9,14,.58)}
+.search-field{display:flex;align-items:center;gap:8px;flex:1;min-width:220px;height:34px;padding:0 11px;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-inset)}
 .search-field .material-icons{font-size:15px;color:var(--text-4)}
 .search-field input{height:auto;min-height:0;padding:0;border:0;background:transparent;box-shadow:none;flex:1;min-width:0}
 
@@ -164,12 +164,12 @@ input:checked + .switch::after{transform:translateX(16px);background:#04121a}
 }
 .metric-card{
   display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;
-  border:1px solid var(--line-2);border-radius:10px;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--seed-fg) 2.5%,transparent),transparent),var(--surface-1);
-  box-shadow:0 8px 24px rgba(0,0,0,.12);
+  border:1px solid var(--glass-mid-line);border-radius:var(--r-card);
+  background:var(--glass-mid-bg);
+  box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);
 }
 .metric-icon{
-  width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;
+  width:30px;height:30px;border-radius:var(--r-md);display:grid;place-items:center;flex-shrink:0;
   color:var(--seed-accent);background:color-mix(in srgb,var(--seed-accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--seed-accent) 18%,transparent);
 }
 .metric-icon .material-icons{font-size:16px}
@@ -192,9 +192,14 @@ input:checked + .switch::after{transform:translateX(16px);background:#04121a}
 
 /* ---------- 卡片基样（面板内通用卡） ---------- */
 .card{
-  min-width:0;border:1px solid var(--line-2);border-radius:var(--r-card);
-  background:linear-gradient(180deg,color-mix(in srgb,var(--seed-fg) 2.5%,transparent),transparent 32%),var(--surface-1);
-  box-shadow:var(--sh-2);
+  min-width:0;border:1px solid var(--glass-mid-line);border-radius:var(--r-card);
+  background:var(--glass-mid-bg);
+  box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);
   transition:border-color .18s,transform .18s,box-shadow .18s;
 }
 .card:hover{border-color:color-mix(in srgb,var(--seed-accent) 24%,transparent);transform:translateY(-1px)}
+
+/* ---------- 代码块：凹陷实色（不玻璃化） ---------- */
+.card pre,.md-pre{
+  background:var(--surface-inset);border:1px solid var(--line-3);border-radius:var(--r-sm);
+}

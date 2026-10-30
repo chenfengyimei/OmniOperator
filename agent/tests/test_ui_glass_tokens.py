@@ -41,10 +41,8 @@ EXPECTED_GLASS = {f"--glass-{t}-{f}" for t in GLASS_TIERS for f in GLASS_FIELDS}
 LITERAL_BLUR = re.compile(r"backdrop-filter\s*:[^;}]*blur\(\s*[0-9]")
 
 # ---- 棘轮配额：现存违规清单，每批改造后调低直至删空 ----
-# 写死模糊值：待批次 3（frame.css）/ 批次 4（workbench.css）/ 批次 5（project.css）收敛
+# 写死模糊值：frame.css 与 workbench.css 已于批次 3 收敛；余下 project.css 待批次 5
 LITERAL_BLUR_QUOTA = {
-    "ui/frame.css": 6,
-    "ui/workbench.css": 13,
     "project/project.css": 2,
 }
 # 悬空变量：待批次 4（--accent-1）/ 批次 5（--bg-1/--bg-2/--danger-1）清零
