@@ -284,3 +284,27 @@ def test_hub_core_nav_labels_match_destinations():
         card = re.search(rf'<div class="hub-card" id="{go}">(.*?)<h3>([^<]+)</h3>', html, re.S)
         assert card, f"index.html 找不到 {go} 卡片"
         assert card.group(2).strip() == expected, f"{go} 卡片标题应为「{expected}」，实得 {card.group(2)!r}"
+
+
+def test_mode_picker_and_routing_controls_exist():
+    """能力档位（D28）的三个控件必须都在：发送区下拉 + 设置中心两项。
+
+    为什么：下拉与设置项各管一件事——下拉管"这一条消息"，设置管"默认"。
+    少一个就出现"界面看着能选档位，保存后不生效"这类半截功能。
+    """
+    html = INDEX.read_text(encoding="utf-8")
+    assert 'id="mode-pick"' in html, "工作台缺少档位下拉（id=mode-pick）"
+    for value in ("auto", "chat", "retrieval", "agent"):
+        assert f'value="{value}"' in html, f"档位下拉缺少选项 {value}"
+    assert 'id="cfg-mode-default"' in html, "设置中心缺少默认档位选择"
+    assert 'id="cfg-mode-escalation"' in html, "设置中心缺少「允许升档」开关"
+
+
+def test_mode_picker_value_is_sent_with_the_request():
+    """前端必须把下拉值随请求带上，否则档位选择只是装饰。"""
+    chat_js = (APP_DIR / "chat.js").read_text(encoding="utf-8")
+    assert "#mode-pick" in chat_js, "chat.js 未读取档位下拉"
+    assert "mode" in chat_js, "chat.js 未把档位放进请求体"
+    hub_js = (APP_DIR / "hub.js").read_text(encoding="utf-8")
+    assert "#cfg-mode-default" in hub_js, "hub.js 未回填默认档位"
+    assert "mode_routing" in hub_js, "hub.js 未提交 mode_routing 配置段"

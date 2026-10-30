@@ -44,6 +44,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "DesktopDriver", "WindowsDesktopBackend", "AndroidDriver",
     "PluginHost", "CommunityClient", "SkillInbox",
     "DialogueLog", "SessionLog", "JournalStore", "PersonStore", "MemorySystem",
+    "ModeRouter",
 }
 
 

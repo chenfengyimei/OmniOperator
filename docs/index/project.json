@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ce56e773d0f60d80f5244f53940deced15297e4b765af32d88fdde72373a21a8",
+  "source_sha256": "0a9a9b1596c713701f7442bc668dd40159c5e354cb1d74ebf70c9ef2031d4f5f",
   "modules": [
     {
       "id": "agent-directories",
@@ -111,7 +111,7 @@
       "files": [
         "agent/src/omni/bootstrap.py"
       ],
-      "lines": 741,
+      "lines": 746,
       "dependencies": [
         "agent-directories",
         "android",
@@ -157,7 +157,7 @@
       "files": [
         "agent/src/omni/config.py"
       ],
-      "lines": 662,
+      "lines": 690,
       "dependencies": []
     },
     {
@@ -182,7 +182,7 @@
         "agent/src/omni/core/compress.py",
         "agent/src/omni/core/context.py"
       ],
-      "lines": 445,
+      "lines": 454,
       "dependencies": [
         "models"
       ]
@@ -209,14 +209,16 @@
         "agent/src/omni/core/cron.py",
         "agent/src/omni/core/evaluation.py",
         "agent/src/omni/core/journal.py",
+        "agent/src/omni/core/modes.py",
         "agent/src/omni/core/qq_policy.py",
         "agent/src/omni/core/retrieval.py",
         "agent/src/omni/core/review.py",
+        "agent/src/omni/core/router.py",
         "agent/src/omni/core/run.py",
         "agent/src/omni/core/session.py",
         "agent/src/omni/core/vision.py"
       ],
-      "lines": 2746,
+      "lines": 3425,
       "dependencies": [
         "config",
         "models",
@@ -441,7 +443,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 4647,
+      "lines": 4685,
       "dependencies": []
     },
     {
@@ -476,7 +478,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2265,
+      "lines": 2298,
       "dependencies": [
         "assembly",
         "config",
@@ -534,7 +536,7 @@
       "files": [
         "agent/src/omni/channels/web_api/conversation.py"
       ],
-      "lines": 183,
+      "lines": 197,
       "dependencies": [
         "assembly",
         "engine",
@@ -915,7 +917,7 @@
       "files": [
         "agent/src/omni/channels/web_api/schemas.py"
       ],
-      "lines": 181,
+      "lines": 184,
       "dependencies": []
     },
     {
@@ -977,7 +979,7 @@
         "agent/src/omni/__main__.py",
         "agent/src/omni/channels/cli.py"
       ],
-      "lines": 136,
+      "lines": 156,
       "dependencies": [
         "assembly",
         "config",
@@ -1173,7 +1175,7 @@
         "agent/src/omni/tools/delegation/__init__.py",
         "agent/src/omni/tools/delegation/tools.py"
       ],
-      "lines": 132,
+      "lines": 135,
       "dependencies": [
         "storage",
         "toolkit"
@@ -1603,7 +1605,7 @@
         "agent/src/omni/system/soak.py",
         "agent/src/omni/system/stderr_log.py"
       ],
-      "lines": 2491,
+      "lines": 2498,
       "dependencies": [
         "agent-directories",
         "config"
@@ -1651,13 +1653,14 @@
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 741,
+      "lines": 746,
       "imports": [
         "omni.config",
         "omni.core.agent",
         "omni.core.journal",
         "omni.core.retrieval",
         "omni.core.review",
+        "omni.core.router",
         "omni.core.run",
         "omni.core.session",
         "omni.llm.embedding",
@@ -1729,7 +1732,7 @@
       "symbols": [
         {
           "name": "_no_port_probe",
-          "line": 117,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "_port",
@@ -1742,7 +1745,7 @@
         },
         {
           "name": "_no_kill",
-          "line": 122,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1753,7 +1756,7 @@
         },
         {
           "name": "_no_process_probe",
-          "line": 127,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1764,7 +1767,7 @@
         },
         {
           "name": "_no_tcp_probe",
-          "line": 131,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "_port"
@@ -1775,7 +1778,7 @@
         },
         {
           "name": "_no_spawn",
-          "line": 135,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "*_args",
@@ -1785,7 +1788,7 @@
         },
         {
           "name": "_resolve_root",
-          "line": 139,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "value"
@@ -1796,12 +1799,12 @@
         },
         {
           "name": "Runtime",
-          "line": 146,
+          "line": 147,
           "kind": "class"
         },
         {
           "name": "Runtime.qq_policy",
-          "line": 202,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "self"
@@ -1810,7 +1813,7 @@
         },
         {
           "name": "Runtime.close_mcp",
-          "line": 206,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -1822,7 +1825,7 @@
         },
         {
           "name": "Runtime.doctor",
-          "line": 213,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self"
@@ -1831,7 +1834,7 @@
         },
         {
           "name": "Runtime.backup",
-          "line": 226,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self"
@@ -1840,7 +1843,7 @@
         },
         {
           "name": "Runtime.close",
-          "line": 231,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self",
@@ -1852,7 +1855,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 280,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "self",
@@ -1864,7 +1867,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 286,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self"
@@ -1873,7 +1876,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 290,
+          "line": 291,
           "kind": "function",
           "parameters": [
             "self",
@@ -1885,7 +1888,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 299,
+          "line": 300,
           "kind": "function",
           "parameters": [
             "self",
@@ -1897,7 +1900,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 303,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self"
@@ -1906,7 +1909,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 308,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "self",
@@ -1918,7 +1921,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 315,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -1930,7 +1933,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 323,
+          "line": 324,
           "kind": "function",
           "parameters": [
             "approver",
@@ -1957,7 +1960,7 @@
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 520,
+          "line": 521,
           "kind": "function",
           "parameters": [
             "rel"
@@ -1968,14 +1971,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 551,
+          "line": 552,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 641,
+          "line": 646,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -1986,7 +1989,7 @@
         },
         {
           "name": "build_runtime._journal_registry",
-          "line": 670,
+          "line": 675,
           "kind": "function",
           "parameters": [
             "journal_store"
@@ -2011,7 +2014,7 @@
       "path": "agent/src/omni/channels/cli.py",
       "module": "cli",
       "python_module": "omni.channels.cli",
-      "lines": 132,
+      "lines": 152,
       "imports": [
         "omni.bootstrap",
         "omni.config",
@@ -2022,14 +2025,14 @@
       "symbols": [
         {
           "name": "main",
-          "line": 29,
+          "line": 33,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_run_console",
-          "line": 41,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -2929,7 +2932,7 @@
       "path": "agent/src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 484,
+      "lines": 493,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -3076,7 +3079,7 @@
         },
         {
           "name": "create_app.system_config_save",
-          "line": 310,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3087,28 +3090,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 326,
+          "line": 335,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 337,
+          "line": 346,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.bili_cookies_status",
-          "line": 345,
+          "line": 354,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.save_bili_cookies",
-          "line": 357,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3119,14 +3122,14 @@
         },
         {
           "name": "create_app.model_keys",
-          "line": 377,
+          "line": 386,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.model_key_set",
-          "line": 382,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3137,7 +3140,7 @@
         },
         {
           "name": "create_app.model_test",
-          "line": 399,
+          "line": 408,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3148,7 +3151,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 437,
+          "line": 446,
           "kind": "function",
           "parameters": [
             "host"
@@ -3159,7 +3162,7 @@
         },
         {
           "name": "main",
-          "line": 448,
+          "line": 457,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -3749,7 +3752,7 @@
       "path": "agent/src/omni/channels/web_api/conversation.py",
       "module": "http-conversation",
       "python_module": "omni.channels.web_api.conversation",
-      "lines": 183,
+      "lines": 197,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.schemas",
@@ -3774,16 +3777,18 @@
           "kind": "function",
           "parameters": [
             "sid",
-            "message"
+            "message",
+            "mode"
           ],
           "annotations": {
             "sid": "int",
-            "message": "str"
+            "message": "str",
+            "mode": "str | None"
           }
         },
         {
           "name": "create_conversation_router.chat",
-          "line": 43,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3794,7 +3799,7 @@
         },
         {
           "name": "create_conversation_router.chat_stream",
-          "line": 74,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "payload",
@@ -3807,7 +3812,7 @@
         },
         {
           "name": "create_conversation_router.chat_stream.on_delta",
-          "line": 86,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "text"
@@ -3818,21 +3823,21 @@
         },
         {
           "name": "create_conversation_router.chat_stream.worker",
-          "line": 89,
+          "line": 94,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_conversation_router.chat_stream.frames",
-          "line": 125,
+          "line": 135,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_conversation_router.run_create",
-          "line": 161,
+          "line": 171,
           "kind": "function",
           "parameters": [
             "payload"
@@ -4788,7 +4793,7 @@
       "path": "agent/src/omni/channels/web_api/schemas.py",
       "module": "http-contracts",
       "python_module": "omni.channels.web_api.schemas",
-      "lines": 181,
+      "lines": 184,
       "imports": [],
       "symbols": [
         {
@@ -4798,137 +4803,137 @@
         },
         {
           "name": "ResolveIn",
-          "line": 14,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "NapCatStartIn",
-          "line": 19,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "ConfigUpdateIn",
-          "line": 23,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "ModelTestIn",
-          "line": 27,
+          "line": 30,
           "kind": "class"
         },
         {
           "name": "MCPSchemaConfirmIn",
-          "line": 31,
+          "line": 34,
           "kind": "class"
         },
         {
           "name": "BiliCookiesIn",
-          "line": 35,
+          "line": 38,
           "kind": "class"
         },
         {
           "name": "CronNameIn",
-          "line": 41,
+          "line": 44,
           "kind": "class"
         },
         {
           "name": "CronToggleIn",
-          "line": 45,
+          "line": 48,
           "kind": "class"
         },
         {
           "name": "CronCreateIn",
-          "line": 50,
+          "line": 53,
           "kind": "class"
         },
         {
           "name": "CronUpdateIn",
-          "line": 62,
+          "line": 65,
           "kind": "class"
         },
         {
           "name": "TodoToggleIn",
-          "line": 78,
+          "line": 81,
           "kind": "class"
         },
         {
           "name": "AndroidTapIn",
-          "line": 84,
+          "line": 87,
           "kind": "class"
         },
         {
           "name": "AndroidElementIn",
-          "line": 92,
+          "line": 95,
           "kind": "class"
         },
         {
           "name": "AndroidKeyIn",
-          "line": 97,
+          "line": 100,
           "kind": "class"
         },
         {
           "name": "ProfileLineIn",
-          "line": 102,
+          "line": 105,
           "kind": "class"
         },
         {
           "name": "ResidentUpdateIn",
-          "line": 107,
+          "line": 110,
           "kind": "class"
         },
         {
           "name": "PairIn",
-          "line": 113,
+          "line": 116,
           "kind": "class"
         },
         {
           "name": "SkillSaveIn",
-          "line": 117,
+          "line": 120,
           "kind": "class"
         },
         {
           "name": "SkillCreateIn",
-          "line": 124,
+          "line": 127,
           "kind": "class"
         },
         {
           "name": "SkillArchiveIn",
-          "line": 132,
+          "line": 135,
           "kind": "class"
         },
         {
           "name": "SkillSettingsIn",
-          "line": 139,
+          "line": 142,
           "kind": "class"
         },
         {
           "name": "SkillRollbackIn",
-          "line": 146,
+          "line": 149,
           "kind": "class"
         },
         {
           "name": "SkillAckIn",
-          "line": 151,
+          "line": 154,
           "kind": "class"
         },
         {
           "name": "PersonCreateIn",
-          "line": 160,
+          "line": 163,
           "kind": "class"
         },
         {
           "name": "PersonUpdateIn",
-          "line": 166,
+          "line": 169,
           "kind": "class"
         },
         {
           "name": "AccountLinkIn",
-          "line": 172,
+          "line": 175,
           "kind": "class"
         },
         {
           "name": "PersonEntryIn",
-          "line": 178,
+          "line": 181,
           "kind": "class"
         }
       ],
@@ -5839,7 +5844,7 @@
       "path": "agent/src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 578,
+      "lines": 602,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6079,7 +6084,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/chat.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 113,
+      "lines": 117,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6099,7 +6104,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/dom.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 18,
+      "lines": 20,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6159,7 +6164,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub-models.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 309,
+      "lines": 314,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6199,7 +6204,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 232,
+      "lines": 244,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6259,7 +6264,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/runs.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 171,
+      "lines": 173,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6399,7 +6404,7 @@
       "path": "agent/src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1040,
+      "lines": 1053,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6527,7 +6532,7 @@
       "path": "agent/src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 662,
+      "lines": 690,
       "imports": [],
       "symbols": [
         {
@@ -6597,38 +6602,55 @@
           "kind": "class"
         },
         {
+          "name": "ModeRouting",
+          "line": 161,
+          "kind": "class"
+        },
+        {
+          "name": "ModeRouting.valid_mode",
+          "line": 176,
+          "kind": "function",
+          "parameters": [
+            "cls",
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
           "name": "ModelCapability",
-          "line": 155,
+          "line": 182,
           "kind": "class"
         },
         {
           "name": "Retry",
-          "line": 173,
+          "line": 200,
           "kind": "class"
         },
         {
           "name": "LLMBudget",
-          "line": 181,
+          "line": 208,
           "kind": "class"
         },
         {
           "name": "Vision",
-          "line": 193,
+          "line": 220,
           "kind": "class"
         },
         {
           "name": "Artifacts",
-          "line": 207,
+          "line": 234,
           "kind": "class"
         },
         {
           "name": "LLM",
-          "line": 215,
+          "line": 242,
           "kind": "class"
         },
         {
           "name": "LLM.capability",
-          "line": 224,
+          "line": 251,
           "kind": "function",
           "parameters": [
             "self",
@@ -6640,52 +6662,52 @@
         },
         {
           "name": "Limits",
-          "line": 228,
+          "line": 255,
           "kind": "class"
         },
         {
           "name": "Review",
-          "line": 236,
+          "line": 263,
           "kind": "class"
         },
         {
           "name": "Memory",
-          "line": 246,
+          "line": 273,
           "kind": "class"
         },
         {
           "name": "Skills",
-          "line": 258,
+          "line": 285,
           "kind": "class"
         },
         {
           "name": "Web",
-          "line": 271,
+          "line": 298,
           "kind": "class"
         },
         {
           "name": "Files",
-          "line": 288,
-          "kind": "class"
-        },
-        {
-          "name": "Compression",
-          "line": 306,
-          "kind": "class"
-        },
-        {
-          "name": "Asr",
           "line": 315,
           "kind": "class"
         },
         {
+          "name": "Compression",
+          "line": 333,
+          "kind": "class"
+        },
+        {
+          "name": "Asr",
+          "line": 342,
+          "kind": "class"
+        },
+        {
           "name": "QQ",
-          "line": 323,
+          "line": 350,
           "kind": "class"
         },
         {
           "name": "QQ.check_qq_policy",
-          "line": 344,
+          "line": 371,
           "kind": "function",
           "parameters": [
             "self"
@@ -6694,22 +6716,22 @@
         },
         {
           "name": "Browser",
-          "line": 360,
-          "kind": "class"
-        },
-        {
-          "name": "UIFormSelectors",
-          "line": 369,
-          "kind": "class"
-        },
-        {
-          "name": "BilibiliWrite",
           "line": 387,
           "kind": "class"
         },
         {
+          "name": "UIFormSelectors",
+          "line": 396,
+          "kind": "class"
+        },
+        {
+          "name": "BilibiliWrite",
+          "line": 414,
+          "kind": "class"
+        },
+        {
           "name": "BilibiliWrite.check_forms",
-          "line": 394,
+          "line": 421,
           "kind": "function",
           "parameters": [
             "self"
@@ -6718,22 +6740,22 @@
         },
         {
           "name": "System",
-          "line": 403,
+          "line": 430,
           "kind": "class"
         },
         {
           "name": "Approval",
-          "line": 409,
+          "line": 436,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig",
-          "line": 419,
+          "line": 446,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig.nonblank_command",
-          "line": 437,
+          "line": 464,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6745,7 +6767,7 @@
         },
         {
           "name": "MCPServerConfig.readonly_subset",
-          "line": 443,
+          "line": 470,
           "kind": "function",
           "parameters": [
             "self"
@@ -6754,12 +6776,12 @@
         },
         {
           "name": "MCPConfig",
-          "line": 449,
+          "line": 476,
           "kind": "class"
         },
         {
           "name": "MCPConfig.server_names",
-          "line": 455,
+          "line": 482,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6771,12 +6793,12 @@
         },
         {
           "name": "Desktop",
-          "line": 463,
+          "line": 490,
           "kind": "class"
         },
         {
           "name": "Desktop.absolute_apps",
-          "line": 474,
+          "line": 501,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6786,12 +6808,12 @@
         },
         {
           "name": "Embedding",
-          "line": 480,
+          "line": 507,
           "kind": "class"
         },
         {
           "name": "Embedding.validate_provider",
-          "line": 498,
+          "line": 525,
           "kind": "function",
           "parameters": [
             "self"
@@ -6800,17 +6822,17 @@
         },
         {
           "name": "Cron",
-          "line": 518,
+          "line": 545,
           "kind": "class"
         },
         {
           "name": "Journal",
-          "line": 523,
+          "line": 550,
           "kind": "class"
         },
         {
           "name": "Journal.check_daily_time",
-          "line": 543,
+          "line": 570,
           "kind": "function",
           "parameters": [
             "self"
@@ -6819,22 +6841,22 @@
         },
         {
           "name": "Transcript",
-          "line": 552,
+          "line": 579,
           "kind": "class"
         },
         {
           "name": "People",
-          "line": 567,
+          "line": 594,
           "kind": "class"
         },
         {
           "name": "AndroidConfig",
-          "line": 577,
+          "line": 604,
           "kind": "class"
         },
         {
           "name": "AndroidConfig.packages",
-          "line": 589,
+          "line": 616,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6844,22 +6866,22 @@
         },
         {
           "name": "CommandJobsConfig",
-          "line": 596,
+          "line": 623,
           "kind": "class"
         },
         {
           "name": "TerminalConfig",
-          "line": 606,
+          "line": 633,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 614,
+          "line": 641,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 645,
+          "line": 673,
           "kind": "function",
           "parameters": [
             "path"
@@ -6870,7 +6892,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 653,
+          "line": 681,
           "kind": "function",
           "parameters": [
             "path"
@@ -6895,11 +6917,13 @@
       "path": "agent/src/omni/core/agent.py",
       "module": "engine",
       "python_module": "omni.core.agent",
-      "lines": 1040,
+      "lines": 1343,
       "imports": [
         "omni.config",
         "omni.core.compress",
         "omni.core.context",
+        "omni.core.modes",
+        "omni.core.router",
         "omni.core.run",
         "omni.core.vision",
         "omni.llm",
@@ -6920,12 +6944,12 @@
       "symbols": [
         {
           "name": "_NullRunStore",
-          "line": 84,
+          "line": 97,
           "kind": "class"
         },
         {
           "name": "_NullRunStore.append_event",
-          "line": 87,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -6941,7 +6965,7 @@
         },
         {
           "name": "_NullRunStore.touch",
-          "line": 90,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -6954,7 +6978,7 @@
         },
         {
           "name": "_NullRunStore.finish",
-          "line": 93,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self",
@@ -6969,7 +6993,7 @@
         },
         {
           "name": "_NullRunStore.get",
-          "line": 96,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -6981,12 +7005,12 @@
         },
         {
           "name": "Agent",
-          "line": 100,
+          "line": 113,
           "kind": "class"
         },
         {
           "name": "Agent.__init__",
-          "line": 101,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self",
@@ -7006,7 +7030,8 @@
             "clock",
             "dialogue_log",
             "session_log",
-            "person_card"
+            "person_card",
+            "mode_router"
           ],
           "annotations": {
             "config": "AppConfig",
@@ -7025,12 +7050,13 @@
             "clock": "Callable[[], dt.datetime] | None",
             "dialogue_log": "DialogueLog | None",
             "session_log": "SessionLog | None",
-            "person_card": "Callable[[str, str], dict | None] | None"
+            "person_card": "Callable[[str, str], dict | None] | None",
+            "mode_router": "ModeRouter | None"
           }
         },
         {
           "name": "Agent._record_dialogue",
-          "line": 149,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self",
@@ -7048,7 +7074,7 @@
         },
         {
           "name": "Agent._record_session_user",
-          "line": 158,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self",
@@ -7066,7 +7092,7 @@
         },
         {
           "name": "Agent._record_session_assistant",
-          "line": 168,
+          "line": 185,
           "kind": "function",
           "parameters": [
             "self",
@@ -7084,7 +7110,7 @@
         },
         {
           "name": "Agent._record_session_tool",
-          "line": 181,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self",
@@ -7102,7 +7128,7 @@
         },
         {
           "name": "Agent._record_session_system",
-          "line": 196,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -7118,7 +7144,7 @@
         },
         {
           "name": "Agent.session_ref",
-          "line": 205,
+          "line": 222,
           "kind": "function",
           "parameters": [
             "self"
@@ -7127,7 +7153,7 @@
         },
         {
           "name": "Agent._system_prompt",
-          "line": 209,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -7139,25 +7165,27 @@
         },
         {
           "name": "Agent._turn_context",
-          "line": 212,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
             "include_personal",
             "channel",
             "principal",
-            "scope"
+            "scope",
+            "mode"
           ],
           "annotations": {
             "include_personal": "bool",
             "channel": "str",
             "principal": "str",
-            "scope": "str"
+            "scope": "str",
+            "mode": "str"
           }
         },
         {
           "name": "Agent.context_overview",
-          "line": 246,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "self",
@@ -7169,7 +7197,7 @@
         },
         {
           "name": "Agent._maybe_compress",
-          "line": 285,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -7187,7 +7215,7 @@
         },
         {
           "name": "Agent._assemble_body",
-          "line": 317,
+          "line": 336,
           "kind": "function",
           "parameters": [
             "self",
@@ -7202,8 +7230,73 @@
           }
         },
         {
+          "name": "Agent._requested_mode",
+          "line": 376,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "requested"
+          ],
+          "annotations": {
+            "requested": "str | None"
+          }
+        },
+        {
+          "name": "Agent._mode_model",
+          "line": 386,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "mode"
+          ],
+          "annotations": {
+            "mode": "TurnMode"
+          }
+        },
+        {
+          "name": "Agent._router_model",
+          "line": 395,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Agent._decide_mode",
+          "line": 403,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "user_text",
+            "sid",
+            "requested",
+            "run"
+          ],
+          "annotations": {
+            "user_text": "str",
+            "sid": "int",
+            "requested": "str",
+            "run": "RunContext | None"
+          }
+        },
+        {
+          "name": "Agent._router_messages",
+          "line": 462,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "user_text",
+            "sid"
+          ],
+          "annotations": {
+            "user_text": "str",
+            "sid": "int"
+          }
+        },
+        {
           "name": "Agent.chat",
-          "line": 356,
+          "line": 486,
           "kind": "function",
           "parameters": [
             "self",
@@ -7212,7 +7305,8 @@
             "personal_context",
             "channel",
             "principal",
-            "context_scope"
+            "context_scope",
+            "mode"
           ],
           "annotations": {
             "user_text": "str",
@@ -7220,12 +7314,13 @@
             "personal_context": "bool",
             "channel": "str",
             "principal": "str",
-            "context_scope": "str | None"
+            "context_scope": "str | None",
+            "mode": "str | None"
           }
         },
         {
           "name": "Agent.run_turn",
-          "line": 383,
+          "line": 517,
           "kind": "function",
           "parameters": [
             "self",
@@ -7236,7 +7331,8 @@
             "principal",
             "context_scope",
             "parent",
-            "on_delta"
+            "on_delta",
+            "mode"
           ],
           "annotations": {
             "user_text": "str",
@@ -7246,12 +7342,13 @@
             "principal": "str",
             "context_scope": "str | None",
             "parent": "RunContext | None",
-            "on_delta": "Callable[[str], None] | None"
+            "on_delta": "Callable[[str], None] | None",
+            "mode": "str | None"
           }
         },
         {
           "name": "Agent._sweep_artifacts",
-          "line": 491,
+          "line": 630,
           "kind": "function",
           "parameters": [
             "self"
@@ -7260,7 +7357,7 @@
         },
         {
           "name": "Agent._start_run",
-          "line": 504,
+          "line": 643,
           "kind": "function",
           "parameters": [
             "self",
@@ -7282,7 +7379,7 @@
         },
         {
           "name": "Agent._chat",
-          "line": 565,
+          "line": 704,
           "kind": "function",
           "parameters": [
             "self",
@@ -7290,19 +7387,37 @@
             "sid",
             "personal_context",
             "run",
-            "on_delta"
+            "on_delta",
+            "mode"
           ],
           "annotations": {
             "user_text": "str",
             "sid": "int",
             "personal_context": "bool",
             "run": "RunContext | None",
-            "on_delta": "Callable[[str], None] | None"
+            "on_delta": "Callable[[str], None] | None",
+            "mode": "str | None"
+          }
+        },
+        {
+          "name": "Agent._mode_specs",
+          "line": 884,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state",
+            "frozen_specs",
+            "frozen_names"
+          ],
+          "annotations": {
+            "state": "TurnModeState",
+            "frozen_specs": "list[dict[str, Any]]",
+            "frozen_names": "frozenset[str]"
           }
         },
         {
           "name": "Agent._execute_tool_calls",
-          "line": 697,
+          "line": 904,
           "kind": "function",
           "parameters": [
             "self",
@@ -7311,7 +7426,8 @@
             "sid",
             "run",
             "denied",
-            "cancel"
+            "cancel",
+            "state"
           ],
           "annotations": {
             "calls": "list[Any]",
@@ -7319,12 +7435,13 @@
             "sid": "int",
             "run": "RunContext | None",
             "denied": "frozenset[str]",
-            "cancel": "CancelToken | None"
+            "cancel": "CancelToken | None",
+            "state": "TurnModeState | None"
           }
         },
         {
           "name": "Agent._execute_tool_calls.timed",
-          "line": 730,
+          "line": 941,
           "kind": "function",
           "parameters": [
             "call"
@@ -7335,7 +7452,7 @@
         },
         {
           "name": "Agent._execute_tool_calls.emit",
-          "line": 737,
+          "line": 950,
           "kind": "function",
           "parameters": [
             "call",
@@ -7348,14 +7465,14 @@
         },
         {
           "name": "Agent._execute_tool_calls.drain",
-          "line": 770,
+          "line": 983,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "Agent._pool_eligible",
-          "line": 800,
+          "line": 1013,
           "kind": "function",
           "parameters": [
             "self",
@@ -7368,8 +7485,24 @@
           }
         },
         {
+          "name": "Agent._handle_mode_request",
+          "line": 1024,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "call",
+            "run",
+            "state"
+          ],
+          "annotations": {
+            "call": "Any",
+            "run": "RunContext | None",
+            "state": "TurnModeState"
+          }
+        },
+        {
           "name": "Agent._execute_one",
-          "line": 811,
+          "line": 1090,
           "kind": "function",
           "parameters": [
             "self",
@@ -7377,19 +7510,21 @@
             "sid",
             "run",
             "denied",
-            "cancel"
+            "cancel",
+            "state"
           ],
           "annotations": {
             "call": "Any",
             "sid": "int",
             "run": "RunContext | None",
             "denied": "frozenset[str]",
-            "cancel": "CancelToken | None"
+            "cancel": "CancelToken | None",
+            "state": "TurnModeState | None"
           }
         },
         {
           "name": "Agent._model_call",
-          "line": 847,
+          "line": 1134,
           "kind": "function",
           "parameters": [
             "self",
@@ -7398,7 +7533,8 @@
             "run",
             "tools",
             "purpose",
-            "on_delta"
+            "on_delta",
+            "model"
           ],
           "annotations": {
             "messages": "list[dict[str, Any]]",
@@ -7406,12 +7542,13 @@
             "run": "RunContext | None",
             "tools": "list[dict[str, Any]] | None",
             "purpose": "str",
-            "on_delta": "Callable[[str], None] | None"
+            "on_delta": "Callable[[str], None] | None",
+            "model": "str | None"
           }
         },
         {
           "name": "Agent._vision_route_model",
-          "line": 892,
+          "line": 1183,
           "kind": "function",
           "parameters": [
             "self"
@@ -7420,7 +7557,7 @@
         },
         {
           "name": "Agent._attach_images",
-          "line": 908,
+          "line": 1199,
           "kind": "function",
           "parameters": [
             "self",
@@ -7435,8 +7572,19 @@
           }
         },
         {
+          "name": "_mode_meta",
+          "line": 1278,
+          "kind": "function",
+          "parameters": [
+            "run"
+          ],
+          "annotations": {
+            "run": "RunContext | None"
+          }
+        },
+        {
           "name": "_has_image_parts",
-          "line": 987,
+          "line": 1290,
           "kind": "function",
           "parameters": [
             "messages"
@@ -7447,7 +7595,7 @@
         },
         {
           "name": "_forward_delta",
-          "line": 1000,
+          "line": 1303,
           "kind": "function",
           "parameters": [
             "event",
@@ -7460,7 +7608,7 @@
         },
         {
           "name": "_args_excerpt",
-          "line": 1005,
+          "line": 1308,
           "kind": "function",
           "parameters": [
             "call"
@@ -7471,7 +7619,7 @@
         },
         {
           "name": "_result_excerpt",
-          "line": 1015,
+          "line": 1318,
           "kind": "function",
           "parameters": [
             "text"
@@ -7482,7 +7630,7 @@
         },
         {
           "name": "_reply_brief",
-          "line": 1021,
+          "line": 1324,
           "kind": "function",
           "parameters": [
             "reply"
@@ -7676,7 +7824,7 @@
       "path": "agent/src/omni/core/context.py",
       "module": "prompt-context",
       "python_module": "omni.core.context",
-      "lines": 118,
+      "lines": 127,
       "imports": [],
       "symbols": [
         {
@@ -7699,7 +7847,7 @@
         },
         {
           "name": "TurnContext.payload",
-          "line": 43,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self"
@@ -7708,7 +7856,7 @@
         },
         {
           "name": "TurnContext.attach",
-          "line": 52,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -7722,7 +7870,7 @@
         },
         {
           "name": "TurnContext.read",
-          "line": 62,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "cls",
@@ -7734,7 +7882,7 @@
         },
         {
           "name": "render_rows",
-          "line": 73,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "rows",
@@ -7749,7 +7897,7 @@
         },
         {
           "name": "reanchor_current_memory",
-          "line": 108,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "messages",
@@ -8256,6 +8404,127 @@
       "summary": "记忆系统整理编排：日/周/月笔记的模型整理 worker（与 TurnEndReviewer 同构）。"
     },
     {
+      "path": "agent/src/omni/core/modes.py",
+      "module": "engine",
+      "python_module": "omni.core.modes",
+      "lines": 202,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "TurnMode",
+          "line": 23,
+          "kind": "class"
+        },
+        {
+          "name": "request_mode_spec",
+          "line": 91,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "RouteDecision",
+          "line": 125,
+          "kind": "class"
+        },
+        {
+          "name": "RouteDecision.brief",
+          "line": 134,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TurnModeState",
+          "line": 145,
+          "kind": "class"
+        },
+        {
+          "name": "scope_allowed_names",
+          "line": 157,
+          "kind": "function",
+          "parameters": [
+            "all_names",
+            "personal_context",
+            "scope"
+          ],
+          "annotations": {
+            "all_names": "frozenset[str]",
+            "personal_context": "bool",
+            "scope": "str"
+          }
+        },
+        {
+          "name": "mode_allowed_names",
+          "line": 170,
+          "kind": "function",
+          "parameters": [
+            "mode",
+            "scope_allowed"
+          ],
+          "annotations": {
+            "mode": "TurnMode",
+            "scope_allowed": "frozenset[str]"
+          }
+        },
+        {
+          "name": "denied_names",
+          "line": 178,
+          "kind": "function",
+          "parameters": [
+            "mode",
+            "scope_allowed",
+            "all_names"
+          ],
+          "annotations": {
+            "mode": "TurnMode",
+            "scope_allowed": "frozenset[str]",
+            "all_names": "frozenset[str]"
+          }
+        },
+        {
+          "name": "filter_specs",
+          "line": 185,
+          "kind": "function",
+          "parameters": [
+            "specs",
+            "allowed"
+          ],
+          "annotations": {
+            "specs": "list[dict]",
+            "allowed": "frozenset[str]"
+          }
+        },
+        {
+          "name": "parse_mode",
+          "line": 190,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str | None"
+          }
+        },
+        {
+          "name": "can_escalate",
+          "line": 200,
+          "kind": "function",
+          "parameters": [
+            "current",
+            "target"
+          ],
+          "annotations": {
+            "current": "TurnMode",
+            "target": "TurnMode"
+          }
+        }
+      ],
+      "summary": "按回合能力模式（chat / retrieval / agent）的声明与纯函数。"
+    },
+    {
       "path": "agent/src/omni/core/qq_policy.py",
       "module": "engine",
       "python_module": "omni.core.qq_policy",
@@ -8503,10 +8772,101 @@
       "summary": "回合后异步 review：自进化最小闭环（Hermes background_review 的 P1 简化版，"
     },
     {
+      "path": "agent/src/omni/core/router.py",
+      "module": "engine",
+      "python_module": "omni.core.router",
+      "lines": 164,
+      "imports": [
+        "omni.core.modes"
+      ],
+      "symbols": [
+        {
+          "name": "ModeRouter",
+          "line": 69,
+          "kind": "class"
+        },
+        {
+          "name": "ModeRouter.__init__",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "config"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ModeRouter.rule_decision",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "text",
+            "requested"
+          ],
+          "annotations": {
+            "text": "str",
+            "requested": "str"
+          }
+        },
+        {
+          "name": "ModeRouter._looks_like_action",
+          "line": 109,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "ModeRouter.parse_model_reply",
+          "line": 122,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "ModeRouter.guard",
+          "line": 146,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "mode",
+            "text"
+          ],
+          "annotations": {
+            "mode": "TurnMode",
+            "text": "str"
+          }
+        },
+        {
+          "name": "ModeRouter.fallback",
+          "line": 152,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "text",
+            "requested"
+          ],
+          "annotations": {
+            "text": "str",
+            "requested": "str"
+          }
+        }
+      ],
+      "summary": "回合能力模式路由：先规则、后模型、最后回退。"
+    },
+    {
       "path": "agent/src/omni/core/run.py",
       "module": "engine",
       "python_module": "omni.core.run",
-      "lines": 264,
+      "lines": 274,
       "imports": [
         "omni.llm.budget",
         "omni.memory.runs"
@@ -8650,7 +9010,7 @@
         },
         {
           "name": "RunContext.run_id",
-          "line": 126,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self"
@@ -8659,7 +9019,7 @@
         },
         {
           "name": "RunContext.parent_run_id",
-          "line": 130,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self"
@@ -8668,7 +9028,7 @@
         },
         {
           "name": "RunContext.channel",
-          "line": 134,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self"
@@ -8677,7 +9037,7 @@
         },
         {
           "name": "RunContext.scope",
-          "line": 138,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self"
@@ -8686,7 +9046,7 @@
         },
         {
           "name": "RunContext.cancelled",
-          "line": 142,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self"
@@ -8695,15 +9055,6 @@
         },
         {
           "name": "RunContext.steps_left",
-          "line": 146,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "RunContext.check",
           "line": 151,
           "kind": "function",
           "parameters": [
@@ -8712,8 +9063,17 @@
           "annotations": {}
         },
         {
+          "name": "RunContext.check",
+          "line": 156,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "RunContext.consume_step",
-          "line": 154,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self"
@@ -8722,7 +9082,7 @@
         },
         {
           "name": "RunContext.event",
-          "line": 161,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self",
@@ -8735,7 +9095,7 @@
         },
         {
           "name": "RunContext.phase",
-          "line": 167,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self",
@@ -8747,7 +9107,7 @@
         },
         {
           "name": "RunContext.finish",
-          "line": 183,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -8763,17 +9123,17 @@
         },
         {
           "name": "TurnResult",
-          "line": 193,
+          "line": 198,
           "kind": "class"
         },
         {
           "name": "ActiveRuns",
-          "line": 204,
+          "line": 214,
           "kind": "class"
         },
         {
           "name": "ActiveRuns.__init__",
-          "line": 211,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self"
@@ -8782,7 +9142,7 @@
         },
         {
           "name": "ActiveRuns.register",
-          "line": 215,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "self",
@@ -8794,7 +9154,7 @@
         },
         {
           "name": "ActiveRuns.unregister",
-          "line": 219,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
@@ -8806,7 +9166,7 @@
         },
         {
           "name": "ActiveRuns.get",
-          "line": 223,
+          "line": 233,
           "kind": "function",
           "parameters": [
             "self",
@@ -8818,7 +9178,7 @@
         },
         {
           "name": "ActiveRuns.contexts",
-          "line": 227,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self"
@@ -8827,7 +9187,7 @@
         },
         {
           "name": "ActiveRuns.cancel",
-          "line": 236,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self",
@@ -8841,7 +9201,7 @@
         },
         {
           "name": "ActiveRuns.cancel_all",
-          "line": 252,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "self",
@@ -8853,7 +9213,7 @@
         },
         {
           "name": "ActiveRuns.snapshot",
-          "line": 257,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self"
@@ -18661,7 +19021,7 @@
       "path": "agent/src/omni/system/config_io.py",
       "module": "platform",
       "python_module": "omni.system.config_io",
-      "lines": 456,
+      "lines": 463,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -18670,17 +19030,17 @@
       "symbols": [
         {
           "name": "ConfigEditError",
-          "line": 87,
+          "line": 94,
           "kind": "class"
         },
         {
           "name": "ConfigConflict",
-          "line": 91,
+          "line": 98,
           "kind": "class"
         },
         {
           "name": "render_value",
-          "line": 95,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "kind",
@@ -18693,7 +19053,7 @@
         },
         {
           "name": "_scalar_updates",
-          "line": 137,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "text",
@@ -18706,7 +19066,7 @@
         },
         {
           "name": "_find_multiline_block",
-          "line": 162,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18721,7 +19081,7 @@
         },
         {
           "name": "_replace_multiline_block",
-          "line": 192,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "text",
@@ -18738,7 +19098,7 @@
         },
         {
           "name": "_section_bounds",
-          "line": 210,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18751,7 +19111,7 @@
         },
         {
           "name": "_has_key",
-          "line": 223,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18768,7 +19128,7 @@
         },
         {
           "name": "_append_key",
-          "line": 228,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "lines",
@@ -18785,7 +19145,7 @@
         },
         {
           "name": "_append_multiline_block",
-          "line": 252,
+          "line": 259,
           "kind": "function",
           "parameters": [
             "text",
@@ -18802,7 +19162,7 @@
         },
         {
           "name": "apply_updates",
-          "line": 273,
+          "line": 280,
           "kind": "function",
           "parameters": [
             "text",
@@ -18815,7 +19175,7 @@
         },
         {
           "name": "read_config_text",
-          "line": 322,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "path"
@@ -18826,7 +19186,7 @@
         },
         {
           "name": "safe_write",
-          "line": 333,
+          "line": 340,
           "kind": "function",
           "parameters": [
             "path",
@@ -18839,7 +19199,7 @@
         },
         {
           "name": "read_config_snapshot",
-          "line": 338,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "path"
@@ -18850,7 +19210,7 @@
         },
         {
           "name": "commit_config_updates",
-          "line": 345,
+          "line": 352,
           "kind": "function",
           "parameters": [
             "path",
@@ -18865,7 +19225,7 @@
         },
         {
           "name": "mask_secret",
-          "line": 373,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "value"
@@ -18876,7 +19236,7 @@
         },
         {
           "name": "_env_name_ok",
-          "line": 383,
+          "line": 390,
           "kind": "function",
           "parameters": [
             "name"
@@ -18887,7 +19247,7 @@
         },
         {
           "name": "read_env_secrets",
-          "line": 387,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "path"
@@ -18898,7 +19258,7 @@
         },
         {
           "name": "set_env_secret",
-          "line": 410,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "path",
@@ -22739,7 +23099,7 @@
       "path": "agent/src/omni/tools/delegation/tools.py",
       "module": "delegation",
       "python_module": "omni.tools.delegation.tools",
-      "lines": 128,
+      "lines": 131,
       "imports": [
         "omni.memory.store",
         "omni.tools.registry",
@@ -28480,7 +28840,7 @@
       "method": "POST",
       "path": "/api/chat",
       "source": "agent/src/omni/channels/web_api/conversation.py",
-      "line": 43,
+      "line": 44,
       "handler": "create_conversation_router.chat",
       "module": "http-conversation",
       "parameters": [
@@ -28495,7 +28855,7 @@
       "method": "POST",
       "path": "/api/chat/stream",
       "source": "agent/src/omni/channels/web_api/conversation.py",
-      "line": 74,
+      "line": 79,
       "handler": "create_conversation_router.chat_stream",
       "module": "http-conversation",
       "parameters": [
@@ -29372,7 +29732,7 @@
       "method": "POST",
       "path": "/api/runs",
       "source": "agent/src/omni/channels/web_api/conversation.py",
-      "line": 161,
+      "line": 171,
       "handler": "create_conversation_router.run_create",
       "module": "http-conversation",
       "parameters": [
@@ -29979,7 +30339,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 345,
+      "line": 354,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -29990,7 +30350,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 357,
+      "line": 366,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -30016,7 +30376,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 310,
+      "line": 319,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -30186,7 +30546,7 @@
       "method": "POST",
       "path": "/api/system/model-key",
       "source": "agent/src/omni/channels/web.py",
-      "line": 382,
+      "line": 391,
       "handler": "create_app.model_key_set",
       "module": "web-ui",
       "parameters": [
@@ -30201,7 +30561,7 @@
       "method": "GET",
       "path": "/api/system/model-keys",
       "source": "agent/src/omni/channels/web.py",
-      "line": 377,
+      "line": 386,
       "handler": "create_app.model_keys",
       "module": "web-ui",
       "parameters": [],
@@ -30212,7 +30572,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "agent/src/omni/channels/web.py",
-      "line": 399,
+      "line": 408,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -30249,7 +30609,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "agent/src/omni/channels/web.py",
-      "line": 326,
+      "line": 335,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -30260,7 +30620,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "agent/src/omni/channels/web.py",
-      "line": 337,
+      "line": 346,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -30785,7 +31145,7 @@
     {
       "name": "delegate_task",
       "source": "agent/src/omni/tools/delegation/tools.py",
-      "line": 103,
+      "line": 106,
       "module": "delegation",
       "risk": "safe",
       "requires_human": false,
@@ -31305,17 +31665,17 @@
         {
           "source": "agent/src/omni/channels/web_api/conversation.py",
           "symbol": "create_conversation_router.chat",
-          "line": 43
+          "line": 44
         },
         {
           "source": "agent/src/omni/core/agent.py",
           "symbol": "Agent.run_turn",
-          "line": 383
+          "line": 517
         },
         {
           "source": "agent/src/omni/core/agent.py",
           "symbol": "Agent._chat",
-          "line": 565
+          "line": 704
         },
         {
           "source": "agent/src/omni/llm/gateway.py",
@@ -31332,7 +31692,7 @@
         {
           "source": "agent/src/omni/core/agent.py",
           "symbol": "Agent._execute_tool_calls",
-          "line": 697
+          "line": 904
         },
         {
           "source": "agent/src/omni/tools/registry.py",
@@ -31359,12 +31719,12 @@
         {
           "source": "agent/src/omni/channels/web_api/conversation.py",
           "symbol": "create_conversation_router.chat_stream",
-          "line": 74
+          "line": 79
         },
         {
           "source": "agent/src/omni/core/agent.py",
           "symbol": "Agent.run_turn",
-          "line": 383
+          "line": 517
         },
         {
           "source": "agent/src/omni/llm/gateway.py",
@@ -31642,13 +32002,18 @@
           "name": "session_id",
           "type": "int | None",
           "required": false
+        },
+        {
+          "name": "mode",
+          "type": "Literal['auto', 'chat', 'retrieval', 'agent'] | None",
+          "required": false
         }
       ]
     },
     {
       "name": "ResolveIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 14,
+      "line": 17,
       "fields": [
         {
           "name": "allowed",
@@ -31665,7 +32030,7 @@
     {
       "name": "NapCatStartIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 19,
+      "line": 22,
       "fields": [
         {
           "name": "qq",
@@ -31677,7 +32042,7 @@
     {
       "name": "ConfigUpdateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 23,
+      "line": 26,
       "fields": [
         {
           "name": "updates",
@@ -31689,7 +32054,7 @@
     {
       "name": "ModelTestIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 27,
+      "line": 30,
       "fields": [
         {
           "name": "model",
@@ -31701,7 +32066,7 @@
     {
       "name": "MCPSchemaConfirmIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 31,
+      "line": 34,
       "fields": [
         {
           "name": "fingerprint",
@@ -31713,7 +32078,7 @@
     {
       "name": "BiliCookiesIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 35,
+      "line": 38,
       "fields": [
         {
           "name": "sessdata",
@@ -31735,7 +32100,7 @@
     {
       "name": "CronNameIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 41,
+      "line": 44,
       "fields": [
         {
           "name": "name",
@@ -31747,7 +32112,7 @@
     {
       "name": "CronToggleIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 45,
+      "line": 48,
       "fields": [
         {
           "name": "name",
@@ -31764,7 +32129,7 @@
     {
       "name": "CronCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 50,
+      "line": 53,
       "fields": [
         {
           "name": "name",
@@ -31816,7 +32181,7 @@
     {
       "name": "CronUpdateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 62,
+      "line": 65,
       "fields": [
         {
           "name": "name",
@@ -31878,7 +32243,7 @@
     {
       "name": "TodoToggleIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 78,
+      "line": 81,
       "fields": [
         {
           "name": "session_id",
@@ -31900,7 +32265,7 @@
     {
       "name": "AndroidTapIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 84,
+      "line": 87,
       "fields": [
         {
           "name": "x",
@@ -31932,7 +32297,7 @@
     {
       "name": "AndroidElementIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 92,
+      "line": 95,
       "fields": [
         {
           "name": "idx",
@@ -31949,7 +32314,7 @@
     {
       "name": "AndroidKeyIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 97,
+      "line": 100,
       "fields": [
         {
           "name": "keycode",
@@ -31966,7 +32331,7 @@
     {
       "name": "ProfileLineIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 102,
+      "line": 105,
       "fields": [
         {
           "name": "line_id",
@@ -31983,7 +32348,7 @@
     {
       "name": "ResidentUpdateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 107,
+      "line": 110,
       "fields": [
         {
           "name": "operation",
@@ -32005,7 +32370,7 @@
     {
       "name": "PairIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 113,
+      "line": 116,
       "fields": [
         {
           "name": "code",
@@ -32017,7 +32382,7 @@
     {
       "name": "SkillSaveIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 117,
+      "line": 120,
       "fields": [
         {
           "name": "content",
@@ -32034,7 +32399,7 @@
     {
       "name": "SkillCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 124,
+      "line": 127,
       "fields": [
         {
           "name": "name",
@@ -32056,7 +32421,7 @@
     {
       "name": "SkillArchiveIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 132,
+      "line": 135,
       "fields": [
         {
           "name": "expected_hash",
@@ -32073,7 +32438,7 @@
     {
       "name": "SkillSettingsIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 139,
+      "line": 142,
       "fields": [
         {
           "name": "revision",
@@ -32090,7 +32455,7 @@
     {
       "name": "SkillRollbackIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 146,
+      "line": 149,
       "fields": [
         {
           "name": "rev",
@@ -32107,7 +32472,7 @@
     {
       "name": "SkillAckIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 151,
+      "line": 154,
       "fields": [
         {
           "name": "rev",
@@ -32119,7 +32484,7 @@
     {
       "name": "PersonCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 160,
+      "line": 163,
       "fields": [
         {
           "name": "name",
@@ -32141,7 +32506,7 @@
     {
       "name": "PersonUpdateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 166,
+      "line": 169,
       "fields": [
         {
           "name": "name",
@@ -32163,7 +32528,7 @@
     {
       "name": "AccountLinkIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 172,
+      "line": 175,
       "fields": [
         {
           "name": "channel",
@@ -32185,7 +32550,7 @@
     {
       "name": "PersonEntryIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 178,
+      "line": 181,
       "fields": [
         {
           "name": "entry_kind",
@@ -32284,13 +32649,50 @@
           "name": "review",
           "type": "str",
           "required": false
+        },
+        {
+          "name": "router",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "chat_mode",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "retrieval_mode",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "agent_mode",
+          "type": "str",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "ModeRouting",
+      "source": "agent/src/omni/config.py",
+      "line": 161,
+      "fields": [
+        {
+          "name": "default_mode",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "allow_escalation",
+          "type": "bool",
+          "required": false
         }
       ]
     },
     {
       "name": "ModelCapability",
       "source": "agent/src/omni/config.py",
-      "line": 155,
+      "line": 182,
       "fields": [
         {
           "name": "tools",
@@ -32327,7 +32729,7 @@
     {
       "name": "Retry",
       "source": "agent/src/omni/config.py",
-      "line": 173,
+      "line": 200,
       "fields": [
         {
           "name": "max_attempts",
@@ -32349,7 +32751,7 @@
     {
       "name": "LLMBudget",
       "source": "agent/src/omni/config.py",
-      "line": 181,
+      "line": 208,
       "fields": [
         {
           "name": "daily_usd",
@@ -32366,7 +32768,7 @@
     {
       "name": "Vision",
       "source": "agent/src/omni/config.py",
-      "line": 193,
+      "line": 220,
       "fields": [
         {
           "name": "send_to_cloud",
@@ -32393,7 +32795,7 @@
     {
       "name": "Artifacts",
       "source": "agent/src/omni/config.py",
-      "line": 207,
+      "line": 234,
       "fields": [
         {
           "name": "retention_days",
@@ -32410,7 +32812,7 @@
     {
       "name": "LLM",
       "source": "agent/src/omni/config.py",
-      "line": 215,
+      "line": 242,
       "fields": [
         {
           "name": "request_timeout_s",
@@ -32442,7 +32844,7 @@
     {
       "name": "Limits",
       "source": "agent/src/omni/config.py",
-      "line": 228,
+      "line": 255,
       "fields": [
         {
           "name": "max_history_messages",
@@ -32474,7 +32876,7 @@
     {
       "name": "Review",
       "source": "agent/src/omni/config.py",
-      "line": 236,
+      "line": 263,
       "fields": [
         {
           "name": "enabled",
@@ -32506,7 +32908,7 @@
     {
       "name": "Memory",
       "source": "agent/src/omni/config.py",
-      "line": 246,
+      "line": 273,
       "fields": [
         {
           "name": "max_writes_per_day",
@@ -32528,7 +32930,7 @@
     {
       "name": "Skills",
       "source": "agent/src/omni/config.py",
-      "line": 258,
+      "line": 285,
       "fields": [
         {
           "name": "history_keep",
@@ -32545,7 +32947,7 @@
     {
       "name": "Web",
       "source": "agent/src/omni/config.py",
-      "line": 271,
+      "line": 298,
       "fields": [
         {
           "name": "max_bytes",
@@ -32592,7 +32994,7 @@
     {
       "name": "Files",
       "source": "agent/src/omni/config.py",
-      "line": 288,
+      "line": 315,
       "fields": [
         {
           "name": "root",
@@ -32644,7 +33046,7 @@
     {
       "name": "Compression",
       "source": "agent/src/omni/config.py",
-      "line": 306,
+      "line": 333,
       "fields": [
         {
           "name": "enabled",
@@ -32671,7 +33073,7 @@
     {
       "name": "Asr",
       "source": "agent/src/omni/config.py",
-      "line": 315,
+      "line": 342,
       "fields": [
         {
           "name": "model",
@@ -32693,7 +33095,7 @@
     {
       "name": "QQ",
       "source": "agent/src/omni/config.py",
-      "line": 323,
+      "line": 350,
       "fields": [
         {
           "name": "enabled",
@@ -32780,7 +33182,7 @@
     {
       "name": "Browser",
       "source": "agent/src/omni/config.py",
-      "line": 360,
+      "line": 387,
       "fields": [
         {
           "name": "headless",
@@ -32807,7 +33209,7 @@
     {
       "name": "UIFormSelectors",
       "source": "agent/src/omni/config.py",
-      "line": 369,
+      "line": 396,
       "fields": [
         {
           "name": "account",
@@ -32879,7 +33281,7 @@
     {
       "name": "BilibiliWrite",
       "source": "agent/src/omni/config.py",
-      "line": 387,
+      "line": 414,
       "fields": [
         {
           "name": "enabled",
@@ -32906,7 +33308,7 @@
     {
       "name": "System",
       "source": "agent/src/omni/config.py",
-      "line": 403,
+      "line": 430,
       "fields": [
         {
           "name": "napcat_dir",
@@ -32918,7 +33320,7 @@
     {
       "name": "Approval",
       "source": "agent/src/omni/config.py",
-      "line": 409,
+      "line": 436,
       "fields": [
         {
           "name": "mode",
@@ -32930,7 +33332,7 @@
     {
       "name": "MCPServerConfig",
       "source": "agent/src/omni/config.py",
-      "line": 419,
+      "line": 446,
       "fields": [
         {
           "name": "command",
@@ -32992,7 +33394,7 @@
     {
       "name": "MCPConfig",
       "source": "agent/src/omni/config.py",
-      "line": 449,
+      "line": 476,
       "fields": [
         {
           "name": "servers",
@@ -33004,7 +33406,7 @@
     {
       "name": "Desktop",
       "source": "agent/src/omni/config.py",
-      "line": 463,
+      "line": 490,
       "fields": [
         {
           "name": "enabled",
@@ -33041,7 +33443,7 @@
     {
       "name": "Embedding",
       "source": "agent/src/omni/config.py",
-      "line": 480,
+      "line": 507,
       "fields": [
         {
           "name": "enabled",
@@ -33118,7 +33520,7 @@
     {
       "name": "Cron",
       "source": "agent/src/omni/config.py",
-      "line": 518,
+      "line": 545,
       "fields": [
         {
           "name": "max_running",
@@ -33130,7 +33532,7 @@
     {
       "name": "Journal",
       "source": "agent/src/omni/config.py",
-      "line": 523,
+      "line": 550,
       "fields": [
         {
           "name": "enabled",
@@ -33182,7 +33584,7 @@
     {
       "name": "Transcript",
       "source": "agent/src/omni/config.py",
-      "line": 552,
+      "line": 579,
       "fields": [
         {
           "name": "max_entry_chars",
@@ -33214,7 +33616,7 @@
     {
       "name": "People",
       "source": "agent/src/omni/config.py",
-      "line": 567,
+      "line": 594,
       "fields": [
         {
           "name": "person_card_chars",
@@ -33241,7 +33643,7 @@
     {
       "name": "AndroidConfig",
       "source": "agent/src/omni/config.py",
-      "line": 577,
+      "line": 604,
       "fields": [
         {
           "name": "allowed_apps",
@@ -33283,7 +33685,7 @@
     {
       "name": "CommandJobsConfig",
       "source": "agent/src/omni/config.py",
-      "line": 596,
+      "line": 623,
       "fields": [
         {
           "name": "max_running",
@@ -33320,7 +33722,7 @@
     {
       "name": "TerminalConfig",
       "source": "agent/src/omni/config.py",
-      "line": 606,
+      "line": 633,
       "fields": [
         {
           "name": "max_sessions",
@@ -33347,7 +33749,7 @@
     {
       "name": "AppConfig",
       "source": "agent/src/omni/config.py",
-      "line": 614,
+      "line": 641,
       "fields": [
         {
           "name": "android",
@@ -33487,6 +33889,11 @@
         {
           "name": "desktop",
           "type": "Desktop",
+          "required": false
+        },
+        {
+          "name": "mode_routing",
+          "type": "ModeRouting",
           "required": false
         }
       ]

@@ -1,12 +1,12 @@
 // 聊天主流程：渲染轮次（助手带头像、用户渐变气泡）、发送回合、失败草稿保留、复制消息。
 // 版本代数（S.selectionVersion / S.messagesVersion）保证迟到的响应绝不写进别的会话。
-import {$,esc,fmtTime} from './dom.js?v=20261031m3';
-import {api} from './api.js?v=20261031m3';
-import {S} from './state.js?v=20261031m3';
-import {refreshContextUsage,setRuntimeActivity,refreshRuntimeStatus} from './header.js?v=20261031m3';
-import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261031m3';
-import {loadSessions} from './sessions.js?v=20261031m3';
-import {refreshMemory} from './memory.js?v=20261031m3';
+import {$,esc,fmtTime,modeLabel} from './dom.js?v=20261031m4';
+import {api} from './api.js?v=20261031m4';
+import {S} from './state.js?v=20261031m4';
+import {refreshContextUsage,setRuntimeActivity,refreshRuntimeStatus} from './header.js?v=20261031m4';
+import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261031m4';
+import {loadSessions} from './sessions.js?v=20261031m4';
+import {refreshMemory} from './memory.js?v=20261031m4';
 
 // 消息正文：先转义，再把 [artifact:id] 标记渲染成内联图（加载失败即显示 alt 占位）
 const renderArtifact=(m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" data-action="artifacts:view" data-id="${id}">`;
@@ -64,6 +64,9 @@ function scrollChat(){const el=$('#messages');el.scrollTop=el.scrollHeight}
 export async function sendMessage(){
   const box=$('#input'),text=box.value.trim();if(!text||S.busy)return;
   const sid=S.currentSession,version=S.selectionVersion;S.messagesVersion++;
+  // 能力档位（D28）：下拉选择随请求带上；auto=由内核按输入判定
+  const modeEl=$('#mode-pick');
+  const mode=modeEl?modeEl.value:'auto';
   S.busy=true;setRuntimeActivity('run',true);$('#send').disabled=true;$('#send').textContent='思考中…';box.value='';S.drafts.delete(sid);
   $('#messages').insertAdjacentHTML('beforeend',
     `<div class="msg user"><div class="bubble">${esc(text)}</div>`+
@@ -75,7 +78,7 @@ export async function sendMessage(){
   scrollChat();
   if(sid!=null)startRunWatch(sid);
   try{
-    const d=await api('/api/chat',{method:'POST',body:JSON.stringify({message:text,session_id:sid})});
+    const d=await api('/api/chat',{method:'POST',body:JSON.stringify({message:text,session_id:sid,mode})});
     if(S.currentSession===sid&&S.selectionVersion===version){
       S.currentSession=d.session_id;await loadMessages();
       if(S.currentSession===d.session_id&&S.selectionVersion===version){
@@ -84,6 +87,7 @@ export async function sendMessage(){
           const notes=[];if(d.status==='cancelled')notes.push('本回合已停止');
           if(d.status==='failed')notes.push('回合失败'+(d.error_code?'：'+d.error_code:''));
           if(d.cost_micro>0)notes.push('$'+(d.cost_micro/1e6).toFixed(4));
+          if(d.mode)notes.push('档位 '+modeLabel(d.mode)+(d.escalated?'（已升档）':''));
           if(notes.length){const note=document.createElement('div');note.className='cost-tag';note.textContent=notes.join(' · ');last.append(note)}scrollChat();
         }
       }

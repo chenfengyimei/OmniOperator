@@ -36,6 +36,10 @@ review:
 limits:
   max_agent_steps: 2
   session_queue_depth: 1
+mode_routing:
+  # 本文件专测会话闸门与工具调用的会话归属：固定完整档位，
+  # 避免自动路由额外发一次分类请求打乱脚本化假网关的调用序列。
+  default_mode: agent
 """
 
 

@@ -241,6 +241,15 @@ def create_app(runtime: Runtime) -> FastAPI:
                 "chat": cfg.models.chat,
                 "vision": cfg.models.vision,
                 "review": cfg.models.review,
+                # 能力档位（D28）：各档模型与路由判定模型
+                "router": cfg.models.router,
+                "chat_mode": cfg.models.chat_mode,
+                "retrieval_mode": cfg.models.retrieval_mode,
+                "agent_mode": cfg.models.agent_mode,
+            },
+            "mode_routing": {
+                "default_mode": cfg.mode_routing.default_mode,
+                "allow_escalation": cfg.mode_routing.allow_escalation,
             },
             "limits": {
                 "max_history_messages": cfg.limits.max_history_messages,

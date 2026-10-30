@@ -20,10 +20,14 @@ HELP = """\
 /use <id>         切换到指定会话
 /switch <model>   切换模型（LiteLLM 串，如 deepseek/deepseek-chat）
 /model            查看当前模型与工具
+/mode [档位]      查看或设置能力档位（auto/chat/retrieval/agent）
 /doctor           只读诊断（不调用模型）
 /help             本帮助
 /quit             退出
 其余输入都作为对话发给 agent。"""
+
+# 能力档位（D28）：auto=按输入自动判定；chat=纯聊天；retrieval=只读检索；agent=完整能力。
+MODE_CHOICES = ("auto", "chat", "retrieval", "agent")
 
 
 def main() -> None:
@@ -68,6 +72,9 @@ def _run_console(runtime: Runtime, console: Console) -> None:
     )
     console.print("[dim]输入 /help 查看命令；直接说话开始聊天。Web 工作台：uv run omni-web[/]")
 
+    # 能力档位（D28）：None=按配置默认（默认 auto 自动判定）
+    selected_mode: str | None = None
+
     while True:
         try:
             text = console.input("[bold green]你 >[/] ").strip()
@@ -108,14 +115,27 @@ def _run_console(runtime: Runtime, console: Console) -> None:
             elif cmd == "/model":
                 console.print(
                     f"当前模型: [cyan]{agent.model}[/] · 工具集: "
-                    f"{', '.join(runtime.registry.names())}"
-                )
+                    f"{', '.join(runtime.registry.names())}")
+            elif cmd == "/mode":
+                if not arg:
+                    current = selected_mode or runtime.config.mode_routing.default_mode
+                    console.print(
+                        f"当前档位: [cyan]{current}[/]（auto=按输入自动判定；"
+                        "chat=纯聊天；retrieval=只读检索；agent=完整能力）"
+                    )
+                elif arg in MODE_CHOICES:
+                    selected_mode = arg
+                    console.print(f"[cyan]档位已设为 {arg}[/]")
+                else:
+                    console.print(
+                        f"[yellow]用法: /mode <{'/'.join(MODE_CHOICES)}>[/]"
+                    )
             else:
                 console.print(f"[yellow]未知命令 {cmd}，/help 查看可用命令。[/]")
             continue
 
         try:
-            answer = agent.chat(text)
+            answer = agent.chat(text, mode=selected_mode)
         except GatewayError as exc:
             console.print(f"[red]调用失败：{exc}[/]")
             console.print(

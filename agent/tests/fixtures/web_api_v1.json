@@ -3045,6 +3045,23 @@
             }
           ],
           "title": "Session Id"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "auto",
+                "chat",
+                "retrieval",
+                "agent"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mode"
         }
       },
       "type": "object",

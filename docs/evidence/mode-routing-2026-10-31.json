@@ -1,0 +1,61 @@
+{
+  "feature": "mode-routing-d28",
+  "date": "2026-10-31",
+  "head": "7836f13",
+  "summary": "按回合判定能力档位（chat/retrieval/agent），只给该档需要的工具规格；轻量档位可同回合升档一次。",
+  "tool_spec_token_measurement": {
+    "note": "同一注册表快照下，完整工具规格与两档轻量规格的估算 token（2 字符/token 口径，llm/usage.estimate_tokens）。",
+    "registry_tools": 93,
+    "full_agent": {
+      "tools": 93,
+      "estimated_tokens": 17540,
+      "share_of_full": 1.0
+    },
+    "retrieval": {
+      "tools": 22,
+      "estimated_tokens": 4036,
+      "share_of_full": 0.23,
+      "saved_vs_full": 0.77
+    },
+    "chat": {
+      "tools": 5,
+      "estimated_tokens": 887,
+      "share_of_full": 0.051,
+      "saved_vs_full": 0.949
+    }
+  },
+  "capability_tables": {
+    "chat": ["get_time", "recall", "search_history", "journal_view", "person_lookup"],
+    "retrieval_extra": [
+      "daily_digest", "dialogue_search", "dialogue_read", "session_log_search", "session_log_read",
+      "files_list", "files_search", "files_read", "files_diff", "files_history",
+      "peek_command", "web_read", "system_status",
+      "bilibili_video_info", "bilibili_video_comments", "bilibili_video_subtitle", "bilibili_video_transcript"
+    ],
+    "agent": "场景原有的全部工具（写操作照旧人工确认）"
+  },
+  "security_invariants": [
+    "有效工具 = 档位白名单 ∩ 场景白名单：档位只缩小能力，群聊升到 agent 也拿不到工作区文件与设备工具",
+    "request_mode 是内核专用工具，不注册进 ToolRegistry，无法被外部派发或审批绕过",
+    "升档只切换注入的工具规格，审批链、白名单、路径策略与群聊隔离一律不变",
+    "路由不能把明确动作意图降级成只读回合（模型判定后还有一道副作用守卫）",
+    "委派子任务固定完整档位，不二次路由、不降档",
+    "路由阶段的预算拦截与取消照常上抛，不会被回退逻辑吞掉后再发一次请求"
+  ],
+  "offline_verification": {
+    "new_tests": [
+      "agent/tests/test_modes.py",
+      "agent/tests/test_mode_escalation.py"
+    ],
+    "test_modes": 21,
+    "test_mode_escalation": 11,
+    "web_mode_endpoint_tests": 2,
+    "targeted_green": 235,
+    "full_suite": "见 DEVELOPMENT_STATUS 本轮记录"
+  },
+  "not_verified": [
+    "真实模型的档位判定准确率（离线只用假网关验证机制）",
+    "真实缓存命中率与端到端 token 净收益（路由本身有一次额外模型调用）",
+    "真实设备、账号与 72 小时常驻验收"
+  ]
+}

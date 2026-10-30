@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/ui/tokens.css?v=20261030c">
 <link rel="stylesheet" href="/ui/base.css?v=20261030b">
 <link rel="stylesheet" href="/ui/icons.css?v=20261029">
-<link rel="stylesheet" href="/ui/components.css?v=20261030e"><link rel="stylesheet" href="/ui/frame.css?v=20261030f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m3"><link rel="stylesheet" href="/memory/memory.css?v=20261031m3"><script src="/ui/shared.js?v=20261031m3"></script><script src="/ui/markdown.js?v=20261029"></script>
+<link rel="stylesheet" href="/ui/components.css?v=20261030e"><link rel="stylesheet" href="/ui/frame.css?v=20261030f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m4"><link rel="stylesheet" href="/memory/memory.css?v=20261031m4"><script src="/ui/shared.js?v=20261031m4"></script><script src="/ui/markdown.js?v=20261029"></script>
 </head>
 <body data-ui-page="workbench">
 <!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
@@ -80,6 +80,15 @@
         <textarea id="input" rows="2" placeholder="给小鱼发消息…（丢 B 站链接、说排程需求都行）"></textarea>
         <div class="dock-bar">
           <span class="dock-meta"><kbd>Enter</kbd>发送 <kbd>Shift</kbd>+<kbd>Enter</kbd>换行</span>
+          <label class="mode-pick" title="能力档位：自动判定 / 纯聊天 / 只读检索 / 完整能力">
+            <span class="material-icons" aria-hidden="true">tune</span>
+            <select id="mode-pick" aria-label="能力档位">
+              <option value="auto">自动</option>
+              <option value="chat">聊天</option>
+              <option value="retrieval">检索</option>
+              <option value="agent">完整</option>
+            </select>
+          </label>
           <button id="send">发送</button>
         </div>
       </div>
@@ -276,6 +285,21 @@
         <div class="hint">模型就是它的「脑子」——用哪家的、哪个型号，直接决定它有多聪明、一天花多少钱。<br>先点上面一张卡，再按「选供应商 → 选模型 → 填 Key」走一遍，最后点「测一下通不通」就知道成没成。</div>
         <div id="model-slots" class="slot-grid"></div>
         <div id="model-wizard"></div>
+        <fieldset class="mode-routing">
+          <legend>能力档位</legend>
+          <div class="hint">每个回合先判断用哪一档能力：纯聊天只带少量记忆工具，只读查询带检索工具，
+            真正要动手才给完整工具集——少带工具规格就是省 token。<br>
+            升档不影响任何权限：写操作照旧要你确认，群聊仍然拿不到你的文件。</div>
+          <div class="field"><label>默认档位</label>
+            <select id="cfg-mode-default">
+              <option value="auto">自动判定（推荐）</option>
+              <option value="chat">聊天（纯聊天）</option>
+              <option value="retrieval">检索（只读检索）</option>
+              <option value="agent">完整能力</option>
+            </select>
+          </div>
+          <div class="field"><label class="check-row"><input type="checkbox" id="cfg-mode-escalation"><span class="switch"></span><span class="switch-text">允许轻量档位在本回合升档一次</span></label></div>
+        </fieldset>
         <div class="card-actions">
           <button class="save-btn" data-action="hub:save" data-scope="models">保存模型设置</button>
           <span class="save-msg" id="save-msg-models"></span>
@@ -564,7 +588,7 @@
     </div>
   </div>
 </div>
-<script type="module" src="/ui/app/main.js?v=20261031m3"></script>
+<script type="module" src="/ui/app/main.js?v=20261031m4"></script>
 <script src="/vendor/xterm.js"></script>
 <script src="/vendor/xterm-addon-fit.js"></script>
 </body>

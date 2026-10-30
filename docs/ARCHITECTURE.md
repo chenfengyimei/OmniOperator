@@ -346,6 +346,26 @@ AndroidDriver 仅在 bootstrap 构造，缓存/截图/锁路径从 RuntimePaths 
 Unicode 输入切换输入法后再检查焦点，异常和取消也恢复原输入法；不误禁用原先启用的 ADBKeyboard。
 工作台点屏先锁帧，不能把 MJPEG 慢帧当作当前点击授权。完整契约与真机剩余项见 [ANDROID.md](ANDROID.md)。
 
+### 3.16 能力档位路由（D28）
+
+每个回合先判定用哪一档能力（chat / retrieval / agent），再决定注入哪些工具规格——
+少注入工具规格就是省 token。声明与纯函数在 `core/modes.py`，判定在 `core/router.py`，
+组装根注入 `ModeRouter`。
+
+| 契约 | 位置 | 必须满足 |
+|---|---|---|
+| 档位只缩小能力 | `core/modes.py` | 有效工具 = 档位白名单 ∩ 场景白名单；群聊升到 agent 也拿不到文件与设备工具 |
+| 判定顺序 | `core/router.py` | 显式指定 → 确定性规则 → 模型判定 → 回退完整档位；模型判定失败不得吞掉预算拦截与取消 |
+| 副作用守卫 | `core/router.py` | 明确动作意图不得被降级成只读回合（规则与模型两条路都要过） |
+| 升档控制 | `core/agent.py` | `request_mode` 是内核专用工具，不注册进 Registry；只能向上、每回合最多一次 |
+| 规格冻结 | `core/agent.py` | 回合内冻结一次完整 specs，各档与升档只过滤同一快照；插件新注册的工具不提前出现 |
+| 委派不降档 | `tools/delegation/tools.py` | 子 run 固定完整档位，不再二次路由 |
+| 权限不变 | 全部 | 升档只换"注入哪一档工具规格"；审批链、白名单、路径策略、群聊隔离一律照旧 |
+
+明确不做：路由不是权限系统，也不改变任何审批语义；不做整盘检索、不做第二次升档、
+不为路由单独开网络出口（路由判定走 Gateway 的 `purpose="route"`）。
+完整协议、配置与入口用法见 [MODE_ROUTING.md](MODE_ROUTING.md)。
+
 ## 4. 设计模式落位
 
 | 模式 | 位置 | 解决什么问题 |

@@ -39,14 +39,18 @@ class TurnContext:
     resident: str = ''
     profile: str = ''
     person: dict | None = None  # 非所有者私聊对象的人物卡（M6；群聊恒为 None）
+    mode: str = ''  # 本轮能力档位（D28）；空=未启用路由，读旧快照时同样按空处理
 
     def payload(self) -> dict[str, Any]:
-        data = {'version': 1, 'observed_at': self.observed_at, 'personal': self.personal,
+        data: dict[str, Any] = {'version': 1, 'observed_at': self.observed_at, 'personal': self.personal,
                 'resident': self.resident if self.personal else '',
                 'profile': self.profile if self.personal else ''}
         # person 只在命中时写入：旧快照没有该键，read() 对缺失保持兼容（version 不动）
         if self.person is not None:
             data['person'] = self.person
+        # mode 同理：旧快照没有该键仍可读，缺省按"未分档"处理
+        if self.mode:
+            data['mode'] = self.mode
         return data
 
     def attach(self, text: str, *, include_memory: bool) -> str:
@@ -56,6 +60,8 @@ class TurnContext:
         if self.person is not None and include_memory:
             data['person_memory'] = self.person
         data['observed_at'] = self.observed_at
+        if self.mode:
+            data['mode'] = self.mode
         return text + CONTEXT_HEADER + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + CONTEXT_FOOTER
 
     @classmethod
@@ -67,7 +73,10 @@ class TurnContext:
         if person is not None and (not isinstance(person, dict)
                                    or any(not isinstance(person.get(key), str) for key in ('name', 'resident', 'archive', 'events'))):
             raise ValueError('回合上下文快照格式不兼容')
-        return cls(value['observed_at'], value['personal'], value['resident'], value['profile'], person)
+        mode = value.get('mode')
+        if mode is not None and not isinstance(mode, str):
+            raise ValueError('回合上下文快照格式不兼容')
+        return cls(value['observed_at'], value['personal'], value['resident'], value['profile'], person, mode or '')
 
 
 def render_rows(

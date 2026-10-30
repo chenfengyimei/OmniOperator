@@ -153,6 +153,11 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 | mcp | mcp_list_tools / mcp_read_tool / mcp_call_tool | 本地 stdio 服务，渐进发现、用户只读白名单、人工确认；配置见 `docs/MCP.md` |
 
 ### 4.2 Agent 内核（`core/`）
+- **能力档位路由（D28）**：每回合先判 chat / retrieval / agent，再决定注入哪些工具规格——
+  纯聊天只带约 5 个只读记忆工具，检索约 22 个，复杂任务才给完整工具集。
+  档位只**缩小**能力（档位白名单 ∩ 场景白名单），升档也不放宽任何权限；
+  轻量档位可请求同回合升档一次（内核专用工具，不注册进 Registry、不经审批）。
+  各档模型与路由判定模型可单独配置；路由失败回退完整档位。详见 [MODE_ROUTING.md](MODE_ROUTING.md)
 - 工具循环 + 步数预算（8）+ grace call 强制收敛
 - **产物 → 图像块（D15/A13）**：截图统一入产物库（sha256/归属/保留期），
   工具结果带 `[artifact:id]` 标记；开 `vision.send_to_cloud` 且有视觉模型时转成图像块
@@ -299,6 +304,8 @@ src/omni/
   bootstrap.py           组装根（唯一构造核心对象处）
   config.py              .env + config.yaml（AppConfig）+ RuntimePaths（全部可写路径的唯一声明）
   core/agent.py          工具循环 + 系统提示词组装
+  core/modes.py          能力档位声明（chat/retrieval/agent 白名单 + 场景交集，D28）
+  core/router.py         能力档位判定（规则 → 模型 → 回退，D28）
   core/compress.py       上下文压缩 + 消息不变量
   core/review.py         回合后异步记忆整理
   core/cron.py           心跳调度器 + 任务执行/投递 + 账本记账

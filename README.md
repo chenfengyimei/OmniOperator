@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](docs/INSTALLER.md)
-[![tests](https://img.shields.io/badge/tests-1198%20offline-brightgreen)](docs/DEVELOPMENT_STATUS.md)
+[![tests](https://img.shields.io/badge/tests-1361%20offline-brightgreen)](docs/DEVELOPMENT_STATUS.md)
 [![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
 
 **跑在 Windows 上的常驻具身个人 agent**：QQ / Web 工作台 / CLI / 心跳四个入口共用一个内核——
@@ -40,7 +40,7 @@ Python 3.12+ · uv · LiteLLM 网关 · SQLite 记忆与运行账本 · 无前�
 
 | 能力 | 当前实现与说明 |
 |---|---|
-| 内核 | 工具循环/grace call、todo、运行事件、取消、受限委派、持久摘要、费用预留与结算 |
+| 内核 | 工具循环/grace call、todo、运行事件、取消、受限委派、持久摘要、费用预留与结算；**能力档位路由**（chat/retrieval/agent 按回合判定，少注入工具规格即省 token，见 [档位路由](docs/MODE_ROUTING.md)） |
 | 记忆和技能 | 事实/档案/常驻记忆、作用域/额度/遗忘、异步 review、技能 CAS/历史/回滚、归档恢复、外来包隔离安装与待审阅差异；设置中心「技能」统一统计、导入、归档与配置 |
 | 本机与网页 | 受限文件读写、只读 shell 白名单与人工确认命令、公开网页抓取、产物与有隐私开关的图像输入 |
 | 调度与 QQ | cron 编辑/时区/成功运行依赖/并行限制、持久 outbox 与回执、群场景隔离；[QQ 场景](docs/QQ_SCENARIOS.md) |
@@ -68,7 +68,7 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 |---|---|---|
 | `assembly` | **运行时组装** — 唯一组装根，构造依赖并暴露 Runtime 门面 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
 | `prompt-context` | **提示词与上下文** — 稳定系统前缀、回合快照渲染与保留当前请求的摘要边界 | [PROMPT_CONTEXT](docs/PROMPT_CONTEXT.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) |
-| `engine` | **Agent 内核** — 回合、上下文、工具循环、取消、委派约束、review 与调度 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
+| `engine` | **Agent 内核** — 回合、上下文、工具循环、取消、委派约束、review、调度与**能力档位路由** | [ARCHITECTURE](docs/ARCHITECTURE.md) · [MODE_ROUTING](docs/MODE_ROUTING.md) |
 | `models` | **模型网关与 embedding** — 模型路由、能力、重试、流式、预算与 embedding 传输 | [RETRIEVAL](docs/RETRIEVAL.md) |
 | `safety` | **审批与权限** — 风险分级、人工审批与无人值守拒绝 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
 
@@ -223,7 +223,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
   [MCP](docs/MCP.md) · [终端](docs/TERMINAL.md) · [存储](docs/STORAGE.md) · [检索](docs/RETRIEVAL.md) ·
   [插件系统](docs/PLUGIN_SYSTEM.md)
 - **开发者文档**：[架构权威](docs/ARCHITECTURE.md) · [项目导航](docs/PROJECT_INDEX.md) ·
-  [提示词上下文](docs/PROMPT_CONTEXT.md) · [UI 设计系统](docs/UI_DESIGN_SYSTEM.md) ·
+  [提示词上下文](docs/PROMPT_CONTEXT.md) · [能力档位路由](docs/MODE_ROUTING.md) · [UI 设计系统](docs/UI_DESIGN_SYSTEM.md) ·
   [重构记录](docs/REFACTORING.md) · [运维](docs/OPERATIONS.md) · [验证](docs/VALIDATION.md) · [验收](docs/ACCEPTANCE.md)
 - **内部开发台账**（如实记录，不代表发布状态）：[交接文档](docs/HANDOFF.md) ·
   [开发台账](docs/DEVELOPMENT_STATUS.md) · [完整计划](docs/LOCAL_AGENT_PLAN.md) ·

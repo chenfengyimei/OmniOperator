@@ -1,4 +1,4 @@
-import {$,esc} from '/ui/app/dom.js?v=20261031m3';
+import {$,esc} from '/ui/app/dom.js?v=20261031m4';
 const UI=window.OmniUI;
 const api=UI.request;
 const states={ok:'通过',warning:'需检查',error:'错误',info:'信息'};

@@ -260,6 +260,54 @@ def test_chat_with_bad_session_404(tmp_path):
     assert resp.status_code == 404
 
 
+def test_chat_accepts_mode_and_rejects_unknown_one(tmp_path):
+    """档位可由请求指定；未定义的档位直接 422，不进内核。"""
+    client, runtime = _client(tmp_path)
+    sid = runtime.store.new_session()
+    seen: list[list[str]] = []
+
+    class _Gateway:
+        def resolve(self, _route):
+            return "fake/model"
+
+        def complete(self, messages, *, model, tools=None, **kwargs):
+            seen.append([t["function"]["name"] for t in (tools or [])])
+            return SimpleNamespace(text="好", tool_calls=[])
+
+    runtime.agent.gateway = _Gateway()
+    ok = client.post("/api/chat", json={"message": "你好", "session_id": sid, "mode": "chat"})
+    assert ok.status_code == 200, ok.text
+    body = ok.json()
+    assert body["mode"] == "chat" and body["requested_mode"] == "chat"
+    assert body["mode_source"] == "manual"
+    # chat 档位只带只读记忆工具（外加内核升档工具），不带写工具
+    from omni.core.modes import REQUEST_MODE_TOOL
+
+    sent = set(seen[0]) - {REQUEST_MODE_TOOL}
+    assert "remember" not in sent and "files_write" not in sent
+    bad = client.post("/api/chat", json={"message": "你好", "session_id": sid, "mode": "turbo"})
+    assert bad.status_code == 422
+
+
+def test_chat_without_mode_uses_configured_default(tmp_path):
+    """不传档位时按配置默认；默认 auto 由内核判定。"""
+    client, runtime = _client(
+        tmp_path, config_text="persona:\n  name: 测试小鱼\nmode_routing:\n  default_mode: agent\n"
+    )
+    sid = runtime.store.new_session()
+
+    class _Gateway:
+        def resolve(self, _route):
+            return "fake/model"
+
+        def complete(self, messages, *, model, tools=None, **kwargs):
+            return SimpleNamespace(text="好", tool_calls=[])
+
+    runtime.agent.gateway = _Gateway()
+    body = client.post("/api/chat", json={"message": "你好", "session_id": sid}).json()
+    assert body["mode"] == "agent" and body["requested_mode"] == "agent"
+
+
 def test_approvals_endpoints(tmp_path):
     client, runtime = _client(tmp_path)
     # 空待审 + 预算信息

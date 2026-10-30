@@ -80,6 +80,9 @@ def register_delegate_tools(
                             getattr(parent, "scope", "private") == "private"
                         ),
                         parent=parent,
+                        # 子任务固定完整档位：委派本身就是"多步骤复杂活"，
+                        # 不再重新路由，也不允许降档成轻量回合
+                        mode="agent",
                     )
                     result = turn.answer
                     if turn.status == "cancelled":

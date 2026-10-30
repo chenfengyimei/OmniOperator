@@ -16,3 +16,5 @@ export const relTime=iso=>{
 };
 // 模型用量金额（D10 账本单位是微美元，1e6 = $1）
 export const usd=m=>m==null?'—':(m>=1e6?`$${(m/1e6).toFixed(2)}`:`$${(m/1e6).toFixed(4)}`);
+// 能力档位的中文名（D28）：auto=自动判定，chat=聊天，retrieval=检索，agent=完整
+export const modeLabel=m=>({auto:'自动',chat:'聊天',retrieval:'检索',agent:'完整'}[m]||m||'');

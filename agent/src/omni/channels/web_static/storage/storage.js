@@ -1,4 +1,4 @@
-import {$} from '/ui/app/dom.js?v=20261031m3';
+import {$} from '/ui/app/dom.js?v=20261031m4';
 const UI=window.OmniUI;
 const labels={workspace:'工作目录',files:'文件目录',documents:'资料目录（模型只读）',memory:'长期记忆与档案目录',skills:'技能目录',artifacts:'产物与截图',cache:'缓存目录',logs:'日志目录',backups:'备份目录'};
 const appLabels={data_root:'全局业务存储根',workspace:'默认工作目录',agents_root:'Agent 空间池',source_root:'程序源码（固定）',catalog:'目录配置（固定）',run:'服务身份（固定）',service_logs:'服务启动日志（固定）'};

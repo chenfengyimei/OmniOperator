@@ -150,6 +150,33 @@ class Models(BaseModel):
     vision: str = "anthropic/claude-sonnet-4-5"
     local: str = "ollama/qwen2.5:7b"
     review: str = ""  # 回合后 review 用的模型；留空则跟随 chat
+    # 回合能力档位（chat/retrieval/agent）各自的模型；留空都跟随 chat。
+    # 留空而不是写死，是让"每档用不同模型"成为可选增强，而不是必填负担。
+    router: str = ""          # 能力判定模型；留空跟随 review，再留空跟随 chat
+    chat_mode: str = ""       # chat 档位模型；留空跟随 chat
+    retrieval_mode: str = ""  # retrieval 档位模型；留空跟随 chat
+    agent_mode: str = ""      # agent 档位模型；留空跟随 chat
+
+
+class ModeRouting(BaseModel):
+    """回合能力档位路由（D28）。
+
+    `default_mode=auto` 表示每个回合先判定用哪一档能力：纯聊天只给少量只读记忆工具，
+    只读查询给检索工具，只有真要动手才给完整工具集——少注入工具规格就是省 token。
+
+    刻意不做：不因为路由放宽任何权限。写操作的审批、路径边界、白名单都照旧执行。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    default_mode: str = "auto"    # auto / chat / retrieval / agent
+    allow_escalation: bool = True  # 轻量档位可否在本回合升档一次
+
+    @field_validator("default_mode")
+    @classmethod
+    def valid_mode(cls, value: str) -> str:
+        if value not in {"auto", "chat", "retrieval", "agent"}:
+            raise ValueError("mode_routing.default_mode 必须是 auto/chat/retrieval/agent")
+        return value
 
 
 class ModelCapability(BaseModel):
@@ -640,6 +667,7 @@ class AppConfig(BaseModel):
     people: People = Field(default_factory=People)
     embedding: Embedding = Field(default_factory=Embedding)
     desktop: Desktop = Field(default_factory=Desktop)
+    mode_routing: ModeRouting = Field(default_factory=ModeRouting)
 
 
 def load_config(path: Path | None = None) -> AppConfig:

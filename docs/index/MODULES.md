@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ce56e773d0f60d80f5244f53940deced15297e4b765af32d88fdde72373a21a8`。包含 56 个职责模块、265 个源码/界面文件。
+源码指纹：`0a9a9b1596c713701f7442bc668dd40159c5e354cb1d74ebf70c9ef2031d4f5f`。包含 56 个职责模块、267 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -60,7 +60,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 741 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 746 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../../docs/REPOSITORY_STRUCTURE.md)
 
@@ -74,7 +74,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/config.py](../../agent/src/omni/config.py) | 662 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [agent/src/omni/config.py](../../agent/src/omni/config.py) | 690 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -89,7 +89,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/core/compress.py](../../agent/src/omni/core/compress.py) | 327 | 上下文压缩 + 消息不变量（Hermes compression_facade 的最小版，NOTES §1.2）。 |
-| [agent/src/omni/core/context.py](../../agent/src/omni/core/context.py) | 118 | 缓存友好的提示词布局：固定规则在前，每轮快照附于该轮用户正文末尾。 |
+| [agent/src/omni/core/context.py](../../agent/src/omni/core/context.py) | 127 | 缓存友好的提示词布局：固定规则在前，每轮快照附于该轮用户正文末尾。 |
 
 文档：[docs/PROMPT_CONTEXT.md](../../docs/PROMPT_CONTEXT.md)、[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -104,14 +104,16 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/core/__init__.py](../../agent/src/omni/core/__init__.py) | 1 | Agent 核心：编排循环。工具注册表在 tools 包，审批在 safety 包。 |
-| [agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py) | 1040 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
+| [agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py) | 1343 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
 | [agent/src/omni/core/cron.py](../../agent/src/omni/core/cron.py) | 440 | 心跳调度器：tick 循环 + 至多一次派发 + 任务执行/投递（Hermes cron 最小版）。 |
 | [agent/src/omni/core/evaluation.py](../../agent/src/omni/core/evaluation.py) | 24 | 固定样本检索评测；不把 mock 模型的排序表现当成真实语义收益。 |
 | [agent/src/omni/core/journal.py](../../agent/src/omni/core/journal.py) | 370 | 记忆系统整理编排：日/周/月笔记的模型整理 worker（与 TurnEndReviewer 同构）。 |
+| [agent/src/omni/core/modes.py](../../agent/src/omni/core/modes.py) | 202 | 按回合能力模式（chat / retrieval / agent）的声明与纯函数。 |
 | [agent/src/omni/core/qq_policy.py](../../agent/src/omni/core/qq_policy.py) | 37 | 主动提醒策略：显式所有者、安静时段和独立每日额度；不做网络发送。 |
 | [agent/src/omni/core/retrieval.py](../../agent/src/omni/core/retrieval.py) | 87 | FTS + 向量 RRF 融合；后台有界增量索引，网络请求不占数据库事务。 |
 | [agent/src/omni/core/review.py](../../agent/src/omni/core/review.py) | 247 | 回合后异步 review：自进化最小闭环（Hermes background_review 的 P1 简化版， |
-| [agent/src/omni/core/run.py](../../agent/src/omni/core/run.py) | 264 | 运行（run）的身份、取消信号与上下文（D09）。 |
+| [agent/src/omni/core/router.py](../../agent/src/omni/core/router.py) | 164 | 回合能力模式路由：先规则、后模型、最后回退。 |
+| [agent/src/omni/core/run.py](../../agent/src/omni/core/run.py) | 274 | 运行（run）的身份、取消信号与上下文（D09）。 |
 | [agent/src/omni/core/session.py](../../agent/src/omni/core/session.py) | 147 | 会话作用域：同一会话串行、不同会话并行、排队有界、跨进程有租约。 |
 | [agent/src/omni/core/vision.py](../../agent/src/omni/core/vision.py) | 89 | 工具产物 → 模型图像块（D15/A13）。 |
 
@@ -242,24 +244,24 @@
 | [agent/src/omni/channels/web_static/ui/app/api.js](../../agent/src/omni/channels/web_static/ui/app/api.js) | 9 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/approvals.js](../../agent/src/omni/channels/web_static/ui/app/approvals.js) | 45 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/artifacts.js](../../agent/src/omni/channels/web_static/ui/app/artifacts.js) | 37 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/chat.js](../../agent/src/omni/channels/web_static/ui/app/chat.js) | 113 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/chat.js](../../agent/src/omni/channels/web_static/ui/app/chat.js) | 117 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/desktop.js](../../agent/src/omni/channels/web_static/ui/app/desktop.js) | 24 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/dom.js](../../agent/src/omni/channels/web_static/ui/app/dom.js) | 18 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/dom.js](../../agent/src/omni/channels/web_static/ui/app/dom.js) | 20 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/header.js](../../agent/src/omni/channels/web_static/ui/app/header.js) | 138 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-cron.js](../../agent/src/omni/channels/web_static/ui/app/hub-cron.js) | 140 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-mcp.js](../../agent/src/omni/channels/web_static/ui/app/hub-mcp.js) | 68 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-memory.js](../../agent/src/omni/channels/web_static/ui/app/hub-memory.js) | 3 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/hub-models.js](../../agent/src/omni/channels/web_static/ui/app/hub-models.js) | 309 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub-models.js](../../agent/src/omni/channels/web_static/ui/app/hub-models.js) | 314 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-persona.js](../../agent/src/omni/channels/web_static/ui/app/hub-persona.js) | 142 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-skills.js](../../agent/src/omni/channels/web_static/ui/app/hub-skills.js) | 443 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-usage.js](../../agent/src/omni/channels/web_static/ui/app/hub-usage.js) | 34 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 232 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 244 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/main.js](../../agent/src/omni/channels/web_static/ui/app/main.js) | 66 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/memory.js](../../agent/src/omni/channels/web_static/ui/app/memory.js) | 126 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/modals.js](../../agent/src/omni/channels/web_static/ui/app/modals.js) | 23 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/publications.js](../../agent/src/omni/channels/web_static/ui/app/publications.js) | 35 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/rail.js](../../agent/src/omni/channels/web_static/ui/app/rail.js) | 37 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/runs.js](../../agent/src/omni/channels/web_static/ui/app/runs.js) | 171 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/runs.js](../../agent/src/omni/channels/web_static/ui/app/runs.js) | 173 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/services.js](../../agent/src/omni/channels/web_static/ui/app/services.js) | 78 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/sessions.js](../../agent/src/omni/channels/web_static/ui/app/sessions.js) | 51 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/skills.js](../../agent/src/omni/channels/web_static/ui/app/skills.js) | 153 | 平台脚本或界面资源 |
@@ -273,7 +275,7 @@
 | [agent/src/omni/channels/web_static/ui/markdown.js](../../agent/src/omni/channels/web_static/ui/markdown.js) | 116 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/shared.js](../../agent/src/omni/channels/web_static/ui/shared.js) | 172 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/tokens.css](../../agent/src/omni/channels/web_static/ui/tokens.css) | 111 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1040 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1053 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -287,9 +289,9 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 484 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
+| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 493 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 578 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 602 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/index.html](../../agent/src/omni/channels/web_static/memory/index.html) | 6 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.css](../../agent/src/omni/channels/web_static/memory/memory.css) | 145 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.js](../../agent/src/omni/channels/web_static/memory/memory.js) | 567 | 平台脚本或界面资源 |
@@ -325,7 +327,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py) | 183 | 对话与流式 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+| [agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py) | 197 | 对话与流式 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
@@ -551,7 +553,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web_api/schemas.py](../../agent/src/omni/channels/web_api/schemas.py) | 181 | 工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。 |
+| [agent/src/omni/channels/web_api/schemas.py](../../agent/src/omni/channels/web_api/schemas.py) | 184 | 工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
@@ -581,7 +583,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/__main__.py](../../agent/src/omni/__main__.py) | 4 | python -m omni 入口。 |
-| [agent/src/omni/channels/cli.py](../../agent/src/omni/channels/cli.py) | 132 | 本地终端 REPL 入口：uv run omni。 |
+| [agent/src/omni/channels/cli.py](../../agent/src/omni/channels/cli.py) | 152 | 本地终端 REPL 入口：uv run omni。 |
 
 文档：[docs/HANDOFF.md](../../docs/HANDOFF.md)
 
@@ -695,7 +697,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/tools/delegation/__init__.py](../../agent/src/omni/tools/delegation/__init__.py) | 4 | delegation 能力域注册入口。 |
-| [agent/src/omni/tools/delegation/tools.py](../../agent/src/omni/tools/delegation/tools.py) | 128 | 子任务委派（Hermes delegate_task 同款）：把独立子任务交给一个干净会话去跑。 |
+| [agent/src/omni/tools/delegation/tools.py](../../agent/src/omni/tools/delegation/tools.py) | 131 | 子任务委派（Hermes delegate_task 同款）：把独立子任务交给一个干净会话去跑。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -966,7 +968,7 @@
 | [agent/src/omni/system/__init__.py](../../agent/src/omni/system/__init__.py) | 5 | 本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。 |
 | [agent/src/omni/system/atomic.py](../../agent/src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
 | [agent/src/omni/system/backup.py](../../agent/src/omni/system/backup.py) | 515 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
-| [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 456 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
+| [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 463 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
 | [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [agent/src/omni/system/filelock.py](../../agent/src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
 | [agent/src/omni/system/observability.py](../../agent/src/omni/system/observability.py) | 102 | 有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。 |

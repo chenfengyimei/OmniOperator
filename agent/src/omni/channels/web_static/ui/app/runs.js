@@ -1,9 +1,9 @@
 // 运行进度可视化：等待回复期间轮询本会话进行中的 run（D09 端点，只读）。
 // 历史挂链把每个 run 的调用链卡片挂到它开始后出现的第一条助手消息上（事件持久化在服务端，随时回放）。
-import {$,esc} from './dom.js?v=20261031m3';
-import {api} from './api.js?v=20261031m3';
-import {S} from './state.js?v=20261031m3';
-import {selectSession} from './sessions.js?v=20261031m3';
+import {$,esc,modeLabel} from './dom.js?v=20261031m4';
+import {api} from './api.js?v=20261031m4';
+import {S} from './state.js?v=20261031m4';
+import {selectSession} from './sessions.js?v=20261031m4';
 
 let runWatch=null; // {timer, runId, seq, polling}：轮询器；chat 返回/出错即停
 
@@ -48,6 +48,8 @@ function scaffoldHTML(events,opts={}){
     }
     switch(ev.kind){
       case 'context_summary':rows.push(scafNote('compress','旧历史已压缩为摘要'));break;
+      case 'mode_selected':rows.push(scafNote('tune','能力档位：'+modeLabel(d.selected)+(d.source==='rule'?'（规则判定）':d.source==='router'?'（模型判定）':d.source==='manual'?'（指定）':'')));break;
+      case 'mode_upgraded':rows.push(scafNote('upgrade','已升档到'+modeLabel(d.selected)+(d.reason?'：'+d.reason:'')));break;
       case 'image_attached':rows.push(scafNote('image',`截图已发给模型（${d.width||'?'}x${d.height||'?'}）`));break;
       case 'final_call':rows.push(scafNote('flag','步数预算用尽，收敛最终回答'));break;
       case 'budget':rows.push(`<div class="scaf done"><span class="scaf-glyph"><span class="material-icons">savings</span></span><span class="scaf-label">本回合花费</span><span class="scaf-arg">${d.cost_micro!=null?'$'+(d.cost_micro/1e6).toFixed(4):'已记账'}</span></div>`);break;

@@ -1,8 +1,8 @@
 // 顶栏运行态徽章：/api/state 只把模型与能力存进共享状态，不直接渲染；
 // #chips 仅在「模型回合 / 全文检索 / 后台 review」实际活动时出现，活动结束立即清空。
-import {$,esc,usd} from './dom.js?v=20261031m3';
-import {api} from './api.js?v=20261031m3';
-import {S} from './state.js?v=20261031m3';
+import {$,esc,usd} from './dom.js?v=20261031m4';
+import {api} from './api.js?v=20261031m4';
+import {S} from './state.js?v=20261031m4';
 
 const CTX_COLORS={system:'var(--seed-accent)',tools:'var(--seed-accent2)',memory:'#fcd34d',conversation:'var(--ok)'};
 const ACTIVE_RUN_STATES=new Set(['queued','running','waiting_approval','cancelling']);

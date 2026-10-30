@@ -23,6 +23,13 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("models", "chat"): "str",
     ("models", "vision"): "str",
     ("models", "review"): "str_or_empty",
+    # 能力档位（D28）：路由判定模型与三档各自的模型（留空跟随 chat）
+    ("models", "router"): "str_or_empty",
+    ("models", "chat_mode"): "str_or_empty",
+    ("models", "retrieval_mode"): "str_or_empty",
+    ("models", "agent_mode"): "str_or_empty",
+    ("mode_routing", "default_mode"): "choice:auto,chat,retrieval,agent",
+    ("mode_routing", "allow_escalation"): "bool",
     ("limits", "max_history_messages"): "int",
     ("limits", "max_agent_steps"): "int",
     ("limits", "resident_memory_chars"): "int",

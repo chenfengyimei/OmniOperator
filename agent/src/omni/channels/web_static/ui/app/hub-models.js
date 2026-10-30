@@ -3,13 +3,18 @@
 // - 供应商/模型用卡片而不是下拉框：一眼看清"哪家有 Key、哪个模型贵、哪个能看图"。
 // - Key 不存浏览器，直接写后端 .env（/api/system/model-key），填完就能测。
 // - getModelSlotValue() 仍是 saveHub 的唯一取值口，返回 `${prefix}/${model}`。
-import {$,esc} from './dom.js?v=20261031m3';
-import {api} from './api.js?v=20261031m3';
+import {$,esc} from './dom.js?v=20261031m4';
+import {api} from './api.js?v=20261031m4';
 
 const MODEL_SLOTS=[
   {kind:'chat',title:'日常对话',desc:'平时跟它说话用这个，便宜量大',vision:false},
   {kind:'vision',title:'看截图',desc:'让它看懂图片和界面，要选支持看图的模型',vision:true},
   {kind:'review',title:'聊完复盘',desc:'留着不动就跟着日常对话走',vision:false,optional:true},
+  // 能力档位（D28）：每档可选自己的模型；留空都跟随「日常对话」。
+  {kind:'router',title:'能力判定',desc:'判断这一回合用哪一档能力，只要输出一个 JSON，建议用便宜的小模型',vision:false,optional:true},
+  {kind:'chat_mode',title:'聊天档位',desc:'纯聊天回合用的模型，留空跟随日常对话',vision:false,optional:true},
+  {kind:'retrieval_mode',title:'检索档位',desc:'只读检索回合用的模型，留空跟随日常对话',vision:false,optional:true},
+  {kind:'agent_mode',title:'完整档位',desc:'完整能力回合用的模型，留空跟随日常对话',vision:false,optional:true},
 ];
 // color 只用于品牌色块；docs 是申请 Key 的入口；free 表示本机模型不需要 Key
 const PROVIDERS=[

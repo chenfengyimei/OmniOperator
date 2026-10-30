@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 def create_conversation_router(runtime: Runtime) -> APIRouter:
     router = APIRouter(tags=["conversation"])
 
-    async def _run_turn(sid: int, message: str):
+    async def _run_turn(sid: int, message: str, mode: str | None = None):
         """跑一个回合并返回 TurnResult（run_id 给界面查事件流）。
 
         仍然保留"同一会话串行 + 跨进程租约"：run 是账本，不是并发控制手段。
@@ -36,6 +36,7 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
                         session_id=sid,
                         channel="web",
                         principal="owner",
+                        mode=mode,
                     )
                 )
 
@@ -54,7 +55,7 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
         if not runtime.store.session_exists(sid):
             raise HTTPException(status_code=404, detail="会话不存在")
         try:
-            turn = await _run_turn(sid, payload.message)
+            turn = await _run_turn(sid, payload.message, payload.mode)
         except SessionBusy as exc:
             raise HTTPException(status_code=429, detail=str(exc))
         except GatewayError as exc:
@@ -68,6 +69,10 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
             "error_code": turn.error_code,
             "cost_micro": turn.cost_micro,
             "budget": turn.budget,
+            "requested_mode": turn.requested_mode,
+            "mode": turn.mode,
+            "mode_source": turn.mode_source,
+            "escalated": turn.escalated,
         }
 
     @router.post("/api/chat/stream")
@@ -98,6 +103,7 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
                                 channel="web",
                                 principal="owner",
                                 on_delta=on_delta,
+                                mode=payload.mode,
                             )
                         )
                 runtime.spawn_review(sid)
@@ -109,6 +115,10 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
                         "error_code": turn.error_code,
                         "answer": turn.answer,
                         "cost_micro": turn.cost_micro,
+                        "requested_mode": turn.requested_mode,
+                        "mode": turn.mode,
+                        "mode_source": turn.mode_source,
+                        "escalated": turn.escalated,
                     }
                 )
             except SessionBusy as exc:
@@ -164,7 +174,7 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
         if not runtime.store.session_exists(sid):
             raise HTTPException(status_code=404, detail="会话不存在")
         try:
-            turn = await _run_turn(sid, payload.message)
+            turn = await _run_turn(sid, payload.message, payload.mode)
         except SessionBusy as exc:
             raise HTTPException(status_code=429, detail=str(exc))
         except GatewayError as exc:
@@ -178,6 +188,10 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
             "error_code": turn.error_code,
             "cost_micro": turn.cost_micro,
             "budget": turn.budget,
+            "requested_mode": turn.requested_mode,
+            "mode": turn.mode,
+            "mode_source": turn.mode_source,
+            "escalated": turn.escalated,
         }
 
     return router

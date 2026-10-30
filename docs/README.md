@@ -18,6 +18,7 @@
 | [TERMINAL.md](TERMINAL.md) | 内置终端与后台命令任务：ConPTY、会话池、审批后任务 |
 | [CONTEXT_SETTINGS.md](CONTEXT_SETTINGS.md) | 设置中心上下文页：窗口/缓存统计、压缩与记忆配额、配置生效范围 |
 | [SKILL_SYSTEM.md](SKILL_SYSTEM.md) | 技能系统与设置中心「技能」：生命周期、统计、归档恢复、外来包隔离与配置 |
+| [MODE_ROUTING.md](MODE_ROUTING.md) | 能力档位路由：chat/retrieval/agent 判定、升档协议、模型与配置、入口用法 |
 | [RETRIEVAL.md](RETRIEVAL.md) | 混合检索：Ollama/API embedding、sqlite-vec + FTS、评测（默认关闭） |
 | [STORAGE.md](STORAGE.md) | 全局业务根、工作目录与 Agent 空间的目录布局与边界 |
 | [AGENT_STORAGE.md](AGENT_STORAGE.md) | Agent 独立空间：九类业务目录、路径策略与 API 说明 |

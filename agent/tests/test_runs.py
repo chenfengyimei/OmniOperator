@@ -36,6 +36,10 @@ review:
   enabled: false
 limits:
   max_agent_steps: 3
+mode_routing:
+  # 本文件专测运行账本、取消传染与委派等**完整 Agent** 行为：
+  # 固定完整档位，避免自动路由额外发一次分类请求打乱脚本化假网关的调用序列。
+  default_mode: agent
 """
 
 

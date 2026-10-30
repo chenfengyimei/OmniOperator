@@ -1,7 +1,7 @@
 """工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。"""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -9,6 +9,9 @@ from pydantic import BaseModel, Field
 class ChatIn(BaseModel):
     message: str
     session_id: int | None = None
+    # 能力档位（D28）：不传=按配置默认（默认 auto 自动判定）。
+    # 非法值由 Pydantic 直接拒绝（422），不让未定义的档位进内核。
+    mode: Literal["auto", "chat", "retrieval", "agent"] | None = None
 
 
 class ResolveIn(BaseModel):

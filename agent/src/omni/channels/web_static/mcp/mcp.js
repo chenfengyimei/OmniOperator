@@ -1,4 +1,4 @@
-import {$,esc} from '/ui/app/dom.js?v=20261031m3';
+import {$,esc} from '/ui/app/dom.js?v=20261031m4';
 const UI=window.OmniUI,pending=new Set();
 let servers=[],version=0,reading=null,loading=false,activeName='';
 const api=UI.request;

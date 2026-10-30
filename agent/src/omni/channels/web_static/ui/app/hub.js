@@ -1,17 +1,17 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m3';
-import {api} from './api.js?v=20261031m3';
-import {loadState} from './header.js?v=20261031m3';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m3';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m3';
-import {loadCron} from './hub-cron.js?v=20261031m3';
-import {loadUsage} from './hub-usage.js?v=20261031m3';
-import {loadMcp} from './hub-mcp.js?v=20261031m3';
-import {loadContext} from './hub-context.js?v=20261031m3';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m3';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m3';
+import {$,esc} from './dom.js?v=20261031m4';
+import {api} from './api.js?v=20261031m4';
+import {loadState} from './header.js?v=20261031m4';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m4';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m4';
+import {loadCron} from './hub-cron.js?v=20261031m4';
+import {loadUsage} from './hub-usage.js?v=20261031m4';
+import {loadMcp} from './hub-mcp.js?v=20261031m4';
+import {loadContext} from './hub-context.js?v=20261031m4';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m4';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m4';
 
 export async function openHub(go=null){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
@@ -92,6 +92,11 @@ async function loadHubConfig(){
   $('#cfg-persona-prompt').value=d.persona.system_prompt;
   await loadEnvKeys();  // 先拿密钥状态：模型卡片才知道该显示"已配 / 还没填"
   renderModelSlots(d.models);
+  // 能力档位（D28）：默认档位与是否允许本回合升档
+  if(d.mode_routing){
+    $('#cfg-mode-default').value=d.mode_routing.default_mode||'auto';
+    $('#cfg-mode-escalation').checked=d.mode_routing.allow_escalation!==false;
+  }
   try{renderPersonaPresets(d.persona.name)}catch(e){console.warn('人设预设渲染失败',e)}
   $('#cfg-review-enabled').checked=d.review.enabled;
   $('#cfg-review-max-messages').value=d.review.max_messages;
@@ -140,7 +145,7 @@ async function saveBiliCookies() {
 // 每页独立保存：只提交本页涉及的配置段。
 const SAVE_SCOPES={
   persona:['persona'],
-  models:['models'],
+  models:['models','mode_routing'],
   memory:['review','approval'],
   media:['asr'],
   browser:['browser'],
@@ -156,7 +161,14 @@ function collectHubUpdates(){
     persona:{name:$('#cfg-persona-name').value.trim(),
              system_prompt:promptLines},
     models:{chat:getModelSlotValue('chat'),vision:getModelSlotValue('vision'),
-            review:getModelSlotValue('review')},
+            review:getModelSlotValue('review'),
+            // 能力档位（D28）：各档模型与路由判定模型，留空即跟随日常对话
+            router:getModelSlotValue('router'),
+            chat_mode:getModelSlotValue('chat_mode'),
+            retrieval_mode:getModelSlotValue('retrieval_mode'),
+            agent_mode:getModelSlotValue('agent_mode')},
+    mode_routing:{default_mode:$('#cfg-mode-default').value,
+                  allow_escalation:$('#cfg-mode-escalation').checked},
     review:{enabled:$('#cfg-review-enabled').checked,
             max_messages:parseInt($('#cfg-review-max-messages').value)||12,
             steps:parseInt($('#cfg-review-steps').value)||4},

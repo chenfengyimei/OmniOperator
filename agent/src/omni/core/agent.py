@@ -29,6 +29,21 @@ from ..tools.runctx import RunRef
 from .compress import assemble_context, assert_invariants, compress_if_needed, preview_context
 from ..llm.usage import estimate_tokens
 from .context import TurnContext, reanchor_current_memory, render_rows, system_prompt
+from .modes import (
+    DM_ALLOWED_TOOLS,
+    GROUP_ALLOWED_TOOLS,
+    REQUEST_MODE_TOOL,
+    RouteDecision,
+    TurnMode,
+    TurnModeState,
+    can_escalate,
+    denied_names,
+    filter_specs,
+    mode_allowed_names,
+    request_mode_spec,
+    scope_allowed_names,
+)
+from .router import ROUTER_SYSTEM_PROMPT, ModeRouter
 from .run import (
     ActiveRuns,
     CancelToken,
@@ -39,13 +54,11 @@ from .run import (
     TurnResult,
 )
 
-# 群聊默认拒绝新工具：只显式开放公开网络读取及会话内待办。
-GROUP_ALLOWED_TOOLS = frozenset({"get_time", "web_read", "todo"})
-# 非所有者的 QQ 私聊（M6）：基础工具 + 人物记忆（记录"当前这个人"的资料）；
-# 所有者私人记忆（facts/档案/常驻/历史检索/技能）对非所有者不可用
-DM_ALLOWED_TOOLS = GROUP_ALLOWED_TOOLS | frozenset(
-    {"person_lookup", "person_remember", "person_event"}
-)
+# 群聊与非所有者私聊的场景白名单，其真值在 core/modes.py（模式白名单与
+# 场景白名单必须共用同一份定义，否则两处漂移就会出现越权）。
+# 这里再导出是因为它们是外部调用者已知的公开常量。
+__all__ = ["Agent", "GROUP_ALLOWED_TOOLS", "DM_ALLOWED_TOOLS", "GROUP_DENIED_TOOLS"]
+
 # 兼容外部调用者的旧禁用清单；回合中以许可名单为准。
 GROUP_DENIED_TOOLS = frozenset(
     {
@@ -118,6 +131,7 @@ class Agent:
         dialogue_log: DialogueLog | None = None,
         session_log: SessionLog | None = None,
         person_card: Callable[[str, str], dict | None] | None = None,
+        mode_router: ModeRouter | None = None,
     ) -> None:
         self.config = config
         self.gateway = gateway
@@ -140,6 +154,9 @@ class Agent:
         self._session_log = session_log
         # 人物卡回调（M6）：非所有者 QQ 私聊时按账号带出对方人物资料；None=不注入
         self._person_card = person_card
+        # 能力档位路由（D28）：None=不启用（直接构造 Agent 的老用法保持完整能力），
+        # 由组装根注入；路由只决定本回合注入哪一档工具，不放宽任何权限
+        self._mode_router = mode_router
         # 压缩摘要用廉价模型（同回合后 review 的选型逻辑）
         review_model = config.models.review.strip()
         self._summary_model = review_model if review_model else self.model
@@ -216,6 +233,7 @@ class Agent:
         channel: str = "",
         principal: str = "",
         scope: str = "private",
+        mode: str = "",
     ) -> TurnContext:
         """本轮只取一次快照；群聊连私人资料的读取都不执行。
 
@@ -241,6 +259,7 @@ class Agent:
             resident=self._resident.block() if include_personal and self._resident is not None else '',
             profile=self.store.profile_block() if include_personal else '',
             person=person,
+            mode=mode,
         )
 
     def context_overview(self, sid: int) -> dict[str, Any]:
@@ -352,6 +371,117 @@ class Agent:
             render=lambda rows: render_rows(rows, contexts, include_personal=include_private),
         )
 
+    # ---------------------------------------------------------------- 能力档位（D28）
+
+    def _requested_mode(self, requested: str | None) -> str:
+        """本回合请求的档位：调用方显式指定 > 配置默认 > auto。"""
+        if requested:
+            value = str(requested).strip().lower()
+            if value not in ("auto", "chat", "retrieval", "agent"):
+                raise ValueError(f"未知的能力档位：{requested}")
+            return value
+        default = str(getattr(self.config.mode_routing, "default_mode", "auto") or "auto")
+        return default if default in ("auto", "chat", "retrieval", "agent") else "auto"
+
+    def _mode_model(self, mode: TurnMode) -> str:
+        """该档位使用的模型：档位专属模型 > 运行时当前模型（CLI /switch 可改）。"""
+        configured = {
+            TurnMode.CHAT: self.config.models.chat_mode,
+            TurnMode.RETRIEVAL: self.config.models.retrieval_mode,
+            TurnMode.AGENT: self.config.models.agent_mode,
+        }[mode].strip()
+        return configured or self.model
+
+    def _router_model(self) -> str:
+        """路由判定模型：router > review > 运行时当前模型。"""
+        return (
+            self.config.models.router.strip()
+            or self.config.models.review.strip()
+            or self.model
+        )
+
+    def _decide_mode(
+        self,
+        user_text: str,
+        sid: int,
+        *,
+        requested: str,
+        run: RunContext | None,
+    ) -> RouteDecision:
+        """判定本回合的能力档位。
+
+        规则先行（高置信输入不额外调模型），规则无法判定时才请模型分类；
+        两条路都失败就回退到完整能力——宁可多花 token，也不让用户的事做不成。
+
+        刻意不做：路由失败**不**吞掉预算拦截与取消：这两种是确定性拦截，
+        必须照常上抛（否则会在已被拦截的回合里再发一次请求）。
+        """
+        if requested != "auto":
+            return RouteDecision(requested=requested, mode=TurnMode(requested), source="manual")
+        router = self._mode_router
+        if router is None:
+            # 未注入路由：保持既有完整能力行为（直接构造 Agent 的老用法不变）
+            return RouteDecision(
+                requested=requested, mode=TurnMode.AGENT, source="legacy", reason="未启用能力路由"
+            )
+        decision = router.rule_decision(user_text, requested=requested)
+        if decision is not None:
+            return decision
+        # 规则没把握：请模型分类一次。输入只有当前文本与少量近期原文——
+        # 不含完整历史、工具规格、档案与常驻记忆。
+        try:
+            reply = self._model_call(
+                self._router_messages(user_text, sid),
+                sid,
+                run=run,
+                tools=None,
+                purpose="route",
+                on_delta=None,
+                model=self._router_model(),
+            )
+        except RunCancelled:
+            raise
+        except RunBudgetExceeded:
+            raise
+        except Exception as exc:  # noqa: BLE001 —— 路由失败不是回合失败
+            print(f"[路由] 判定失败，回退完整模式：{exc}", file=sys.stderr, flush=True)
+            return router.fallback(user_text, requested=requested)
+        parsed = router.parse_model_reply(reply.text)
+        if parsed is None:
+            return router.fallback(user_text, requested=requested)
+        mode, reason = parsed
+        mode = router.guard(mode, user_text)
+        return RouteDecision(
+            requested=requested,
+            mode=mode,
+            source="router",
+            reason=reason,
+            model=self._router_model(),
+        )
+
+    def _router_messages(self, user_text: str, sid: int) -> list[dict[str, Any]]:
+        """路由判定用的输入：当前文本 + 至多 4 条近期原文（逐条截断）。"""
+        messages: list[dict[str, Any]] = [
+            {"role": "system", "content": ROUTER_SYSTEM_PROMPT}
+        ]
+        try:
+            recent = self.store.recent_messages(sid, 4)
+        except Exception:  # noqa: BLE001 —— 读不到历史就只用当前文本
+            recent = []
+        if recent:
+            history = "\n".join(
+                f"[{role}] {str(text)[:300]}" for role, text in recent
+            )
+            messages.append(
+                {
+                    "role": "user",
+                    "content": f"近期对话（只作背景）：\n{history}\n\n当前输入：\n{user_text[:4000]}",
+                }
+            )
+        else:
+            messages.append({"role": "user", "content": f"当前输入：\n{user_text[:4000]}"})
+        return messages
+
     # ---------------------------------------------------------------- 回合入口
     def chat(
         self,
@@ -362,6 +492,7 @@ class Agent:
         channel: str = "cli",
         principal: str = "owner",
         context_scope: str | None = None,
+        mode: str | None = None,
     ) -> str:
         """处理一条用户消息，返回最终回答（中间工具循环不落库）。
 
@@ -370,6 +501,8 @@ class Agent:
 
         personal_context=False 用于他人可见的场景（群聊）：不注入档案/常驻笔记，
         并隐藏只服务所有者的个人记忆工具。
+
+        mode 指定能力档位（chat/retrieval/agent/auto）；缺省按配置默认。
         """
         return self.run_turn(
             user_text,
@@ -378,6 +511,7 @@ class Agent:
             channel=channel,
             principal=principal,
             context_scope=context_scope,
+            mode=mode,
         ).answer
 
     def run_turn(
@@ -391,6 +525,7 @@ class Agent:
         context_scope: str | None = None,
         parent: RunContext | None = None,
         on_delta: Callable[[str], None] | None = None,
+        mode: str | None = None,
     ) -> TurnResult:
         """跑一个完整回合并记录 run（状态、阶段、事件）。
 
@@ -429,6 +564,7 @@ class Agent:
                     personal_context=personal_context,
                     run=run,
                     on_delta=on_delta,
+                    mode=mode,
                 )
             # 先记这轮花了多少，再记回答：事件流的最后一条始终是"这一轮的结果"
             run.event("budget", **run.budget.brief())
@@ -440,6 +576,7 @@ class Agent:
                 status="done",
                 cost_micro=run.budget.spent_micro or None,
                 budget=run.budget.brief(),
+                **_mode_meta(run),
             )
         except RunCancelled as exc:
             note = f"（已取消：{exc.reason}。本轮未继续执行后续步骤；已发生的操作不会回滚）"
@@ -456,6 +593,7 @@ class Agent:
                 error_code="run_cancelled",
                 cost_micro=run.budget.spent_micro or None,
                 budget=run.budget.brief(),
+                **_mode_meta(run),
             )
         except RunBudgetExceeded as exc:
             # 预算是确定性拦截：没有发出新的模型请求，也不该记成"异常"
@@ -476,6 +614,7 @@ class Agent:
                 error_code=exc.code,
                 cost_micro=run.budget.spent_micro or None,
                 budget=run.budget.brief(),
+                **_mode_meta(run),
             )
         except Exception as exc:  # noqa: BLE001 —— 状态要留痕，异常照旧上抛
             run.event("failed", error=str(exc)[:300])
@@ -570,6 +709,7 @@ class Agent:
         personal_context: bool = True,
         run: RunContext | None = None,
         on_delta: Callable[[str], None] | None = None,
+        mode: str | None = None,
     ) -> str:
         """在已绑定会话的作用域内执行完整回合，不改变通道选中的 session_id。
 
@@ -579,27 +719,55 @@ class Agent:
         - 非所有者私聊：personal_context=False + scope=private → 注入其人物卡，
           工具限 DM_ALLOWED_TOOLS（人物记忆可用，所有者私人记忆不可用）；
         - 群聊：personal_context=False + scope=group:* → 群提示词与 GROUP_ALLOWED_TOOLS。
+
+        能力档位（D28）在场景之上**再缩小**工具集合：档位白名单与场景白名单求交，
+        因此任何档位都不会扩大权限——群聊即使升到 agent 也拿不到文件与设备工具。
         """
-        if personal_context:
-            denied = frozenset()
-        elif run is not None and run.identity.scope == "private":
-            denied = frozenset(self.registry.names()) - DM_ALLOWED_TOOLS
-        else:
-            denied = frozenset(self.registry.names()) - GROUP_ALLOWED_TOOLS
+        all_names = frozenset(self.registry.names())
+        scope_allowed = scope_allowed_names(
+            all_names,
+            personal_context=personal_context,
+            scope=run.identity.scope if run is not None else "private",
+        )
         is_group = not personal_context and not (
             run is not None and run.identity.scope == "private"
         )
+        # 档位判定：规则 → 模型 → 回退；结果决定本回合注入哪一档工具规格
+        requested = self._requested_mode(mode)
+        decision = self._decide_mode(user_text, sid, requested=requested, run=run)
+        state = TurnModeState(
+            mode=decision.mode,
+            scope_allowed=scope_allowed,
+            all_names=all_names,
+            initial_mode=decision.mode,
+        )
+        state.denied = denied_names(state.mode, scope_allowed, all_names)
+        if run is not None:
+            run.requested_mode = decision.requested
+            run.mode = decision.mode.value
+            run.mode_source = decision.source
         snapshot = self._turn_context(
             include_personal=personal_context,
             channel=run.identity.channel if run is not None else "",
             principal=run.identity.principal if run is not None else "",
             scope=run.identity.scope if run is not None else "private",
+            mode=decision.mode.value,
         )
         self.store.append_message(sid, "user", user_text, prompt_context=snapshot.payload())
         # 全量记忆旁路（M1/M2）：messages 仍是上下文组装的唯一真源，这里只做存档
         channel = run.identity.channel if run is not None else ""
         self._record_dialogue(sid, "user", user_text, channel=channel)
         self._record_session_user(sid, run, user_text, channel=channel)
+        if run is not None:
+            run.event(
+                "mode_selected",
+                requested=decision.requested,
+                selected=decision.mode.value,
+                source=decision.source,
+                reason=decision.reason,
+                router_model=decision.model,
+                tool_count=len(mode_allowed_names(state.mode, scope_allowed)),
+            )
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
@@ -619,7 +787,12 @@ class Agent:
         messages = self._maybe_compress(messages, run=run, sid=sid, current_context=snapshot)
         cancel = run.cancel_token if run is not None else None
         # 工具目录本轮冻结；插件启停在下一轮更新规格，执行权限仍实时检查。
-        tool_specs = self.registry.specs(exclude=denied)
+        # 档位过滤在这份冻结快照上做：升档只是换过滤条件，不会让回合中途新注册的
+        # 插件工具提前出现。
+        frozen_specs = self.registry.specs()
+        frozen_names = frozenset(
+            spec.get("function", {}).get("name", "") for spec in frozen_specs
+        )
 
         for _ in range(self.config.limits.max_agent_steps):
             if run is not None:
@@ -627,9 +800,10 @@ class Agent:
                 if not run.consume_step():
                     break  # 步数预算用完 → 走下面的收敛调用
                 run.phase("model")
-                run.event("model_start", step=run.steps_used)
+                run.event("model_start", step=run.steps_used, mode=state.mode.value)
             messages = self._maybe_compress(messages, run=run, sid=sid, current_context=snapshot)
             assert_invariants(messages)
+            tool_specs = self._mode_specs(state, frozen_specs, frozen_names)
             reply = self._model_call(
                 messages,
                 sid,
@@ -637,11 +811,17 @@ class Agent:
                 tools=tool_specs,
                 purpose="chat",
                 on_delta=on_delta,
+                model=self._mode_model(state.mode),
             )
             if run is not None:
                 # 取消不能杀线程：模型请求会照常返回，这里再决定是否继续
                 run.check()
-                run.event("model_end", step=run.steps_used, **_reply_brief(reply))
+                run.event(
+                    "model_end",
+                    step=run.steps_used,
+                    mode=state.mode.value,
+                    **_reply_brief(reply),
+                )
             if not reply.tool_calls:
                 answer = reply.text.strip() or "（模型没有返回内容）"
                 if getattr(reply, "incomplete", False):
@@ -667,8 +847,9 @@ class Agent:
                 messages,
                 sid=sid,
                 run=run,
-                denied=denied,
+                denied=state.denied,
                 cancel=cancel,
+                state=state,
             )
             # D15：本批工具结果里的产物标记 → 图像块（隐私开关、能力、数量都过了才发）
             self._attach_images(messages, sid, run=run)
@@ -681,7 +862,13 @@ class Agent:
         messages = self._maybe_compress(messages, run=run, sid=sid, current_context=snapshot)
         assert_invariants(messages)
         reply = self._model_call(
-            messages, sid, run=run, tools=None, purpose="finalize", on_delta=on_delta
+            messages,
+            sid,
+            run=run,
+            tools=None,
+            purpose="finalize",
+            on_delta=on_delta,
+            model=self._mode_model(state.mode),
         )
         answer = reply.text.strip() or "（达到工具调用轮数上限，先停在这里）"
         if getattr(reply, "incomplete", False):
@@ -694,6 +881,26 @@ class Agent:
 
     # ---------------------------------------------------------------- 工具执行（批内并发）
 
+    def _mode_specs(
+        self,
+        state: TurnModeState,
+        frozen_specs: list[dict[str, Any]],
+        frozen_names: frozenset[str],
+    ) -> list[dict[str, Any]]:
+        """本回合实际发给模型的工具规格。
+
+        档位白名单 ∩ 场景白名单：档位只缩小能力，绝不放大。
+        轻量档位额外附带一个内核专用升档工具（不注册进 Registry）。
+        """
+        allowed = mode_allowed_names(state.mode, state.scope_allowed)
+        specs = filter_specs(frozen_specs, allowed & frozen_names)
+        if (
+            state.mode is not TurnMode.AGENT
+            and self.config.mode_routing.allow_escalation
+        ):
+            specs = specs + [request_mode_spec()]
+        return specs
+
     def _execute_tool_calls(
         self,
         calls: list[Any],
@@ -703,6 +910,7 @@ class Agent:
         run: RunContext | None,
         denied: frozenset[str],
         cancel: CancelToken | None,
+        state: TurnModeState | None = None,
     ) -> None:
         """执行一批工具调用，按**原始调用顺序**回填 tool 消息与事件。
 
@@ -722,6 +930,9 @@ class Agent:
         - 异常隔离：registry.execute 契约上不抛；这里再兜一层，单个工具的
           意外 bug 变成它自己的 fail 结果（副作用按 unknown 处理），
           不吞掉同批其它工具的结果、也不打断回合。
+        - 升档（D28）：批内出现 request_mode 时，本批其余调用仍按**进入本批时**
+          的 denied 集合判定——模型不能借一次升档顺带放行同批的其它工具。
+          升档效果从下一次模型调用开始生效。
         """
 
         # 单工具耗时（ms）：串行/并发两条路径共用；emit 落事件时按 call.id 取走
@@ -730,7 +941,9 @@ class Agent:
         def timed(call: Any) -> ToolResult:
             started = time.perf_counter()
             try:
-                return self._execute_one(call, sid=sid, run=run, denied=denied, cancel=cancel)
+                return self._execute_one(
+                    call, sid=sid, run=run, denied=denied, cancel=cancel, state=state
+                )
             finally:
                 tool_timings[call.id] = (time.perf_counter() - started) * 1000.0
 
@@ -808,6 +1021,72 @@ class Agent:
             and not tool.requires_human
         )
 
+    def _handle_mode_request(
+        self,
+        call: Any,
+        *,
+        run: RunContext | None,
+        state: TurnModeState,
+    ) -> ToolResult:
+        """内核专用升档工具的处理（不经过 Registry，因此不涉及审批与派发）。
+
+        规则：只能向上升档（chat→retrieval→agent），本回合最多一次；
+        升档只切换"本回合注入哪一档工具"，**不扩大任何权限**——
+        场景白名单仍然生效，群聊升到 agent 也拿不到文件与设备工具。
+        """
+        try:
+            arguments = json.loads(call.function.arguments or "{}")
+        except (ValueError, TypeError):
+            return ToolResult.fail(
+                "升档参数不是合法 JSON", error_code="bad_arguments"
+            )
+        if not isinstance(arguments, dict):
+            return ToolResult.fail(
+                "升档参数必须是 JSON 对象", error_code="bad_arguments"
+            )
+        target_name = str(arguments.get("mode") or "").strip().lower()
+        reason = str(arguments.get("reason") or "").strip()
+        try:
+            target = TurnMode(target_name)
+        except ValueError:
+            return ToolResult.fail(
+                f"升档目标只能是 retrieval 或 agent，收到：{target_name or '空'}",
+                error_code="bad_arguments",
+            )
+        if not self.config.mode_routing.allow_escalation:
+            return ToolResult.fail(
+                "本回合不允许升档（配置 mode_routing.allow_escalation=false）",
+                error_code="escalation_disabled",
+            )
+        if state.escalated:
+            return ToolResult.fail(
+                "本回合已经升档过一次，不能再次升档；请用当前已有的能力完成请求",
+                error_code="escalation_exhausted",
+            )
+        if not can_escalate(state.mode, target):
+            return ToolResult.fail(
+                f"只能向更高能力升档（当前 {state.mode.value}，目标 {target.value}）",
+                error_code="escalation_invalid",
+            )
+        state.mode = target
+        state.escalated = True
+        state.denied = denied_names(target, state.scope_allowed, state.all_names)
+        if run is not None:
+            run.mode = target.value
+            run.escalated = True
+            run.event(
+                "mode_upgraded",
+                previous=state.initial_mode.value,
+                selected=target.value,
+                reason=reason[:200],
+                model=self._mode_model(target),
+                tool_count=len(mode_allowed_names(target, state.scope_allowed)),
+            )
+        return ToolResult.ok(
+            f"已升档到 {target.value}：后续步骤可用该档位的工具。"
+            + (f"原因：{reason}" if reason else "")
+        )
+
     def _execute_one(
         self,
         call: Any,
@@ -816,6 +1095,7 @@ class Agent:
         run: RunContext | None,
         denied: frozenset[str],
         cancel: CancelToken | None,
+        state: TurnModeState | None = None,
     ) -> ToolResult:
         """执行单个调用（主线程与池内 worker 共用一条路径）。
 
@@ -823,6 +1103,13 @@ class Agent:
         必须按本回合的 sid/run 重新绑定，todo/草稿这类按会话取数的工具才不会
         "会话上下文缺失"。主线程重复绑定同一值是无害的幂等操作。
         """
+        if call.function.name == REQUEST_MODE_TOOL:
+            # 升档是编排控制，不是外部动作：不派发、不审批、无副作用
+            if state is None:
+                return ToolResult.fail(
+                    "当前回合不支持升档", error_code="escalation_unavailable"
+                )
+            return self._handle_mode_request(call, run=run, state=state)
         with contextlib.ExitStack() as stack:
             if self._session_ref is not None:
                 stack.enter_context(self._session_ref.bind(sid))
@@ -853,14 +1140,18 @@ class Agent:
         tools: list[dict[str, Any]] | None,
         purpose: str,
         on_delta: Callable[[str], None] | None = None,
+        model: str | None = None,
     ) -> Reply:
         """唯一的模型调用出口：把网关错误翻译成内核语义（预算/取消）。
 
         为什么集中在这里：Agent 有 3 个调用点（主循环、收敛调用、压缩），
         任何一处漏了预算或漏了取消翻译，都会出现"界面显示失败但已经扣费"
         或"用户点了取消却继续花钱"。
+
+        `model` 供能力档位与路由判定使用；缺省沿用运行时当前模型
+        （CLI /switch 改的就是它，档位模型为空时也回落到它）。
         """
-        model = self.model
+        model = model or self.model
         if _has_image_parts(messages):
             vision_model = self._vision_route_model()
             if vision_model:
@@ -982,6 +1273,18 @@ class Agent:
         messages.append({"role": "user", "content": message_content})
         if run is not None:
             run._attached_image_ids = attached_ids  # noqa: SLF001 —— 回合内的临时计数
+
+
+def _mode_meta(run: RunContext | None) -> dict[str, Any]:
+    """回合结束时的能力档位元数据（供通道回显）。"""
+    if run is None:
+        return {}
+    return {
+        "requested_mode": run.requested_mode,
+        "mode": run.mode,
+        "mode_source": run.mode_source,
+        "escalated": run.escalated,
+    }
 
 
 def _has_image_parts(messages: list[dict[str, Any]]) -> bool:

@@ -119,6 +119,11 @@ class RunContext:
     steps_used: int = 0
     # 费用预算：父子 run 共享同一个 RunBudget 实例（子多花 = 父少花）
     budget: RunBudget = field(default_factory=RunBudget)
+    # 能力档位元数据（D28）：由内核在判定后写入，通道据此回显本回合用了哪一档
+    requested_mode: str = ""
+    mode: str = ""
+    mode_source: str = ""
+    escalated: bool = False
 
     # ---------- RunHandle ----------
 
@@ -199,6 +204,11 @@ class TurnResult:
     error_code: str = ""
     cost_micro: int | None = None
     budget: dict[str, Any] = field(default_factory=dict)
+    # 能力档位（D28）：请求的档位与最终生效的档位；未启用路由时为空。
+    requested_mode: str = ""
+    mode: str = ""
+    mode_source: str = ""
+    escalated: bool = False
 
 
 class ActiveRuns:

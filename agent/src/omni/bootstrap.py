@@ -28,6 +28,7 @@ from .config import (
     load_qq_policy,
 )
 from .core.agent import Agent
+from .core.router import ModeRouter
 from .core.run import ActiveRuns
 from .core.session import ResourceLeases, SessionGate, SessionLeases
 from .core.review import TurnEndReviewer
@@ -625,6 +626,9 @@ def build_runtime(
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
         register_qq_tools(registry, qq_client, _allowed_qq_users)
     session_id = store.latest_session_id() or store.new_session()
+    # 能力档位路由（D28）：先判档位再注入工具规格，轻量回合少带一批工具规格。
+    # 路由只决定"发哪些工具规格"，不改变任何审批与作用域边界。
+    mode_router = ModeRouter(config)
     agent = Agent(
         config, gateway, store, registry, session_id,
         approver=approver, session_ref=session_ref, resident=resident,
@@ -632,6 +636,7 @@ def build_runtime(
         artifacts=artifacts,
         dialogue_log=dialogue_log, session_log=session_log,
         person_card=people_store.card_for_account,
+        mode_router=mode_router,
     )
     agent_holder["agent"] = agent
 
