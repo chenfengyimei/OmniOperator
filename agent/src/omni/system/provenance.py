@@ -4,15 +4,18 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from ..config import PROJECT_ROOT
+from ..config import PROJECT_ROOT, application_root, source_root
 
 
 def source_fingerprint(root: Path = PROJECT_ROOT) -> str:
     root = Path(root)
     def inventory():
-        code = sorted(p for p in (root / 'src/omni').rglob('*') if p.is_file()
+        code = sorted(p for p in source_root(root).rglob('*') if p.is_file()
                       and p.suffix in {'.py', '.ps1', '.html', '.js', '.css'} and '__pycache__' not in p.parts)
-        return code + [root / name for name in ('pyproject.toml', 'uv.lock') if (root / name).is_file()]
+        metadata = [root / name for name in ('pyproject.toml', 'uv.lock')]
+        app_project = application_root(root) / 'pyproject.toml'
+        if app_project not in metadata: metadata.append(app_project)
+        return code + [path for path in metadata if path.is_file()]
     files = inventory()
     if not files or len(files) > 2000:
         raise ValueError('源码清单缺失或过大')

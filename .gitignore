@@ -30,3 +30,7 @@ config/agents.lock
 
 # 官网设计稿（独立静态站，不入库；见 website/README.md）
 /website/
+
+# 产品重构后本机可选兼容联接；正式代码与测试只归 agent/
+/src/
+/tests/

@@ -19,7 +19,7 @@ MODULES = (
     Module('agent-directories', '项目存储与 Agent 目录', '平台与数据', ('system/agent_spaces/',), '全局与独立空间目录解析、CAS 配置、运维路径解析与用途索引；不构造执行对象或搬移数据。', ('STORAGE.md','AGENT_STORAGE.md'), ('test_agent_storage.py','test_storage_cli.py','test_application_storage.py')),
     Module('http-storage', '项目目录与文件管理', 'Web 接口', ('channels/web_api/storage.py','channels/web_static/storage/'), '全局与 Agent 目录设置、运行与待重启路径、用途索引及当前空间公开文件区的有界浏览和人工上传。', ('STORAGE.md','AGENT_STORAGE.md'), ('test_storage_settings.py','test_agent_storage_ui.py')),
     Module('http-context', '上下文设置与统计', 'Web 接口', ('channels/web_api/context.py','channels/web_static/ui/app/hub-context.js'), '设置中心的只读窗口统计、供应商缓存样本和带版本检查的配置保存；不触发模型。', ('CONTEXT_SETTINGS.md','PROMPT_CONTEXT.md'), ('test_context_settings.py',)),
-    Module('assembly', '运行时组装', '内核与模型', ('bootstrap.py',), '唯一组装根，构造依赖并暴露 Runtime 门面。', ('ARCHITECTURE.md',), ('test_paths.py',)),
+    Module('assembly', '运行时组装', '内核与模型', ('bootstrap.py',), '唯一组装根，构造依赖并暴露 Runtime 门面。', ('ARCHITECTURE.md','REPOSITORY_STRUCTURE.md'), ('test_paths.py','test_repository_layout.py')),
     Module('config', '配置与路径契约', '平台与数据', ('config.py',), '配置模型、加载与 RuntimePaths；不包含业务编排。', ('ARCHITECTURE.md',), ('test_config.py',)),
     Module('prompt-context', '提示词与上下文', '内核与模型', ('core/context.py','core/compress.py'), '稳定系统前缀、回合上下文快照渲染与保留当前请求的摘要边界。', ('PROMPT_CONTEXT.md','ARCHITECTURE.md'), ('test_prompt_context.py','test_context.py','test_compress.py')),
     Module('engine', 'Agent 内核', '内核与模型', ('core/',), '回合、上下文、工具循环、取消、委派约束、review 与调度。', ('ARCHITECTURE.md',), ('test_agent.py', 'test_runs.py', 'test_parallel_tools.py')),

@@ -27,8 +27,8 @@ uv run --no-sync pytest -q          # 全量离线测试，必须全绿再提交
 - 默认测试套件**离线**：禁止真实付费、真实社交消息、真实设备动作；
 - 测试隔离：任何落盘数据都要支持路径注入（`build_runtime(data_dir=…)`、
   `ServiceManager(run_dir=…, log_dir=…)`），不得污染真实 `data/`；
-- 每个新模块必须有单测；`tests/test_arch.py` 会用 AST 强制分层与组装根规则；
-- `tests/test_community_docs.py` 会校验 README 模块地图与 catalog 分类一致——
+- 每个新模块必须有单测；`agent/tests/test_arch.py` 会用 AST 强制分层与组装根规则；
+- `agent/tests/test_community_docs.py` 会校验 README 模块地图与 catalog 分类一致——
   在 `system/catalog/schema.py` 增删模块后，记得同步 README 模块地图；
 - 新增/删除仓库文件后运行 `uv run --no-sync python scripts/project_index.py` 更新索引。
 

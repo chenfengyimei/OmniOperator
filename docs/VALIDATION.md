@@ -25,7 +25,7 @@ Windows CI 已加入 `scripts/project_index.py --check`，源码变更后需重�
 新增采样/迁移/证据检查见 [ACCEPTANCE.md](ACCEPTANCE.md)。下文首轮样本数值是 D26
 历史基线；任何离线回归都不能作为真实模型质量或 72 小时通过证明。
 
-默认 `uv run pytest` 全离线。`tests/conftest.py` 禁止未替换的模型/embedding 传输，
+默认 `uv run pytest` 全离线。`agent/tests/conftest.py` 禁止未替换的模型/embedding 传输，
 Python TCP/UDP 连接只允许回环，非本地 DNS 查询拒绝。Python 子进程继承 sitecustomize；
 闸门命中写入本轮临时证据，即使业务捕获异常也让测试失败。此机制防止测试意外出网，
 不是恶意代码沙箱；Chromium/其他原生进程需在具体测试中拦截网络（B站与工作台测试均如此）。
@@ -54,7 +54,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ci.ps1 -SkipSync
 
 ## 冻结场景
 
-`tests/fixtures/core_scenarios_v1.json` 固定 24 个场景，每个绑定可执行契约，涵盖记忆、
+`agent/tests/fixtures/core_scenarios_v1.json` 固定 24 个场景，每个绑定可执行契约，涵盖记忆、
 上下文、会话隔离、取消、审批、委派、费用、文件冲突、技能、cron、outbox、MCP、
 安卓、B站、桌面、向量遗忘与恢复校验。
 

@@ -1,5 +1,10 @@
 # 项目导航、模块分类与内部调用
 
+本地 Agent 完整工程归 `agent/`。先读 [产品开发入口](../agent/README.md) 与
+[仓库结构](REPOSITORY_STRUCTURE.md)，再按下列模块索引定位。原 `src/`/`agent/tests/`
+仅可作为迁移机器上的兼容目录联接；新开发与干净检出均使用 `agent/` 的正式位置。
+
+
 接手仍从 [HANDOFF.md](HANDOFF.md) 开始。[ARCHITECTURE.md](ARCHITECTURE.md) 是依赖、
 职责和组装根规则的唯一权威。本文回答“功能在哪里、怎么调用、加功能去哪个文件夹”。
 当前目录来自实际源码扫描，不把未实现功能画成现有模块。
@@ -44,7 +49,7 @@ uv run --no-sync python scripts/project_index.py --check
 ## 2 实际目录与职责
 
 ```text
-src/omni/
+agent/src/omni/
   bootstrap.py              唯一运行时组装根，通道使用 Runtime
   config.py                 配置模型、兼容版本与全部可注入路径
   core/                     编排与上下文：agent/run/session/review/cron/retrieval/vision
@@ -121,7 +126,7 @@ src/omni/
     doctor.py / backup.py   只读诊断、快照与恢复
     soak.py / release_gate.py / provenance.py  验收与版本证据
 
-tests/                      默认离线回归；命名与能力域对应
+agent/tests/                      默认离线回归；命名与能力域对应
 scripts/                    CI、索引、静态扫描、评测和显式手动验收命令
 docs/index/                 自动生成的源码/API/机器索引
 docs/evidence/              可提交的脱敏验证证据
@@ -206,7 +211,7 @@ MCP 的远端目录只有用户显式发现后才读取；索引页不会为了�
 ## 6 重构与兼容验证
 
 最新路线与本批边界见 [REFACTORING.md](REFACTORING.md)。
-`tests/fixtures/web_api_v1.json` 从已发布 934618f 的隔离源码提取，冻结 90 个 HTTP 操作和
+`agent/tests/fixtures/web_api_v1.json` 从已发布 934618f 的隔离源码提取，冻结 90 个 HTTP 操作和
 23 个 OpenAPI schema；方法/路径、参数、请求/响应与 operationId 必须兼容，分组 tags 可调整。
 共享请求模型和路由聚合分别拥有索引分类，避免把装配依赖与数据契约合成表面循环。
 

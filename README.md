@@ -1,5 +1,7 @@
 # OmniOperator · 小鱼
 
+开发者入口：[本地 Agent 工程](agent/README.md) · [全仓目录规则](docs/REPOSITORY_STRUCTURE.md)。
+
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](docs/INSTALLER.md)
@@ -31,7 +33,7 @@ Python 3.12+ · uv · LiteLLM 网关 · SQLite 记忆与运行账本 · 无前�
 | 内容是数据 | 网页/记忆/常驻笔记一律按"不可信数据"处理——里面就算写着指令也不执行；权限始终由工具风险等级与审批器约束 |
 
 完整契约（会话并发、至多一次领取、浏览器单线程所有权、文件域边界、产物归属……）见
-[架构权威 ARCHITECTURE](docs/ARCHITECTURE.md) §3，由 `tests/test_arch.py` 等测试强制执行。
+[架构权威 ARCHITECTURE](docs/ARCHITECTURE.md) §3，由 `agent/tests/test_arch.py` 等测试强制执行。
 安全漏洞请按 [SECURITY](SECURITY.md) 的渠道报告，勿在公开 issue 讨论细节。
 
 ## 能力一览
@@ -56,8 +58,8 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 
 ## 模块地图
 
-以职责模块为单位（与 `src/omni/system/catalog/schema.py` 分类一致，由
-`tests/test_community_docs.py` 守卫防漂移）。可搜索的完整索引见工作台 `/project/` 页与
+以职责模块为单位（与 `agent/src/omni/system/catalog/schema.py` 分类一致，由
+`agent/tests/test_community_docs.py` 守卫防漂移）。可搜索的完整索引见工作台 `/project/` 页与
 [docs/index/MODULES.md](docs/index/MODULES.md)（由 `scripts/project_index.py` 自动生成）。
 
 ### 内核与模型
@@ -202,7 +204,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 ## 开发接手（贡献者入口）
 
 1. 先读 [HANDOFF](docs/HANDOFF.md)（交接入口：能力清单 + 平台坑），再读
-   [ARCHITECTURE](docs/ARCHITECTURE.md)（分层与组装根唯一权威，`tests/test_arch.py` AST 强制）。
+   [ARCHITECTURE](docs/ARCHITECTURE.md)（分层与组装根唯一权威，`agent/tests/test_arch.py` AST 强制）。
 2. 进度与证据以 [DEVELOPMENT_STATUS](docs/DEVELOPMENT_STATUS.md) 台账为准；
    功能导航见 [PROJECT_INDEX](docs/PROJECT_INDEX.md)。
 3. 新能力接入（工具/通道/记忆/插件）按 [ARCHITECTURE §5](docs/ARCHITECTURE.md) checklist 走；
@@ -247,3 +249,7 @@ D00–D27 与 C01–C06 代码侧已交付，前端已完成统一改造（一�
 - 拟人延迟、写预算、人工审批是降低风险的设计，**不是**绕过风控的承诺。
 - 无人值守场景一律 fail-closed；花钱、发布、群发、加好友必须人工确认——请保持这些默认值。
 - 本项目面向个人本地使用与学习研究；请遵守所在地区法律与各平台服务条款。
+
+## 开发目录入口
+
+本地 Agent 的完整工程位于 [agent/](agent/README.md)：源码、测试、配置模板、开发脚本和产品依赖均归该目录。全仓位置规则见 [REPOSITORY_STRUCTURE](docs/REPOSITORY_STRUCTURE.md)。安装与旧命令兼容在根 scripts/；真实配置、记忆、资料和运行日志保持既有路径。

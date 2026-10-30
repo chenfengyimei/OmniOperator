@@ -46,7 +46,7 @@ Full contracts: [ARCHITECTURE](docs/ARCHITECTURE.md) (enforced by `tests/test_ar
 ## Module map
 
 55 responsibility modules in 7 categories (single source of truth:
-`src/omni/system/catalog/schema.py`; searchable index in the workbench `/project/` page and
+`agent/src/omni/system/catalog/schema.py`; searchable index in the workbench `/project/` page and
 [docs/index/MODULES.md](docs/index/MODULES.md)):
 
 | Category | Modules |

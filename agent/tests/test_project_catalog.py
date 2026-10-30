@@ -143,7 +143,7 @@ def test_real_browser_project_navigation_search_details_and_mobile(workbench, tm
         page.screenshot(path=str(tmp_path/'project-desktop.png'),full_page=True)
         page.locator('#search').fill('内置终端')
         page.locator('.card').get_by_role('heading',name='内置终端',exact=True).click()
-        assert page.locator('#detail-body').get_by_text('src/omni/channels/terminal/pool.py',exact=True).is_visible()
+        assert page.locator('#detail-body').get_by_text('agent/src/omni/channels/terminal/pool.py',exact=True).is_visible()
         page.locator('#close-detail').click();page.locator('#search').fill('')
         page.locator('[data-view="apis"]').click()
         assert page.locator('.flow').count()>=6

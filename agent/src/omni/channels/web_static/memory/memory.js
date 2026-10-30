@@ -1,6 +1,6 @@
 /* 记忆系统子站逻辑：六页签（总览/对话全量/会话全量/笔记/人物/整理设置）。
    全部数据来自 /api/memory-system/*，读取一律分页；动态文本全部转义。 */
-import {$,esc} from '/ui/app/dom.js?v=20261030sk1';
+import {$,esc} from '/ui/app/dom.js?v=20261030ctx1';
 const UI=window.OmniUI;
 
 const KIND_LABEL={daily:'每日',weekly:'每周',monthly:'每月'};

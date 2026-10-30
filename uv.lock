@@ -6,6 +6,12 @@ resolution-markers = [
     "python_full_version < '3.14'",
 ]
 
+[manifest]
+members = [
+    "omnioperator",
+    "omnioperator-workspace",
+]
+
 [[package]]
 name = "aiohappyeyeballs"
 version = "2.7.1"
@@ -1628,7 +1634,7 @@ wheels = [
 [[package]]
 name = "omnioperator"
 version = "0.1.0"
-source = { editable = "." }
+source = { editable = "agent" }
 dependencies = [
     { name = "fastapi" },
     { name = "faster-whisper" },
@@ -1670,6 +1676,24 @@ requires-dist = [
     { name = "uvicorn", specifier = ">=0.54.0" },
     { name = "websockets", specifier = ">=17.3" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.3" }]
+
+[[package]]
+name = "omnioperator-workspace"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "omnioperator" },
+]
+
+[package.dev-dependencies]
+dev = [{ name = "pytest" }]
+
+[package.metadata]
+requires-dist = [{ name = "omnioperator", editable = "agent" }]
+
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8.3" }]

@@ -60,6 +60,7 @@ def test_memory_station_views_and_flows(ui):
     page, client, runtime, errors = ui
     page.goto("http://127.0.0.1/memory/")
     page.wait_for_selector("#overview-view:not([hidden])")
+    page.locator("#overview-metrics .metric-card").nth(3).wait_for()
 
     # 总览：四张指标卡 + 整理状态 + 最近笔记（芯片显示元数据）
     assert page.locator("#overview-metrics .metric-card").count() == 4
@@ -71,6 +72,7 @@ def test_memory_station_views_and_flows(ui):
     page.click('.view-tabs button[data-view="dialogue"]')
     page.wait_for_selector("#dialogue-view:not([hidden])")
     page.wait_for_selector("#dialogue-days button.active")
+    page.locator("#dialogue-entries").get_by_text("聊聊记忆系统", exact=False).wait_for()
     body = page.locator("#dialogue-entries").inner_text()
     assert "聊聊记忆系统" in body and "分层的记忆设计" in body
     assert page.locator("#dialogue-more").is_hidden()
@@ -97,6 +99,7 @@ def test_memory_station_views_and_flows(ui):
     page.click('.view-tabs button[data-view="notes"]')
     page.wait_for_selector("#notes-view:not([hidden])")
     page.wait_for_selector("#notes-list button.active")
+    page.locator("#note-content").get_by_text("今天聊了记忆系统的设计", exact=False).wait_for()
     assert "今天聊了记忆系统的设计" in page.locator("#note-content").inner_text()
     assert page.locator("#note-retry").is_visible()
     page.click(".kind-tabs button[data-kind='weekly']")
@@ -107,6 +110,7 @@ def test_memory_station_views_and_flows(ui):
     page.click('.view-tabs button[data-view="people"]')
     page.wait_for_selector("#people-view:not([hidden])")
     page.wait_for_selector("#people-list button.active")
+    page.locator("#person-detail").get_by_text("喜欢骑车", exact=False).wait_for()
     detail = page.locator("#person-detail").inner_text()
     assert "小张" in detail and "qq:12345" in detail and "喜欢骑车" in detail
     page.fill("#person-detail .entry-group:nth-of-type(2) input", "下周出差")
@@ -120,7 +124,7 @@ def test_memory_station_views_and_flows(ui):
     page.wait_for_function("document.getElementById('cfg-journal-daily-time').value==='23:30'")
     page.fill("#cfg-journal-daily-time", "23:45")
     page.click('#journal-form button[type="submit"]')
-    page.wait_for_timeout(500)
+    page.locator("#settings-msg").get_by_text("已写入", exact=False).wait_for()
     assert "已写入" in page.locator("#settings-msg").inner_text()
     # 保存只落配置文件，运行态重启后生效（既有口径）：查文件而非 runtime 内存
     saved = runtime.paths.config.read_text(encoding="utf-8")

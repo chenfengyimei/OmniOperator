@@ -1,4 +1,4 @@
-"""静态源码索引；扫描范围固定为注入根的 src/omni，不读取 config/data/.env。"""
+"""静态源码索引；扫描范围为本地 Agent 的源码包（兼容旧布局），不读取 config/data/.env。"""
 from __future__ import annotations
 
 import ast
@@ -8,7 +8,7 @@ import tomllib
 from importlib.util import resolve_name
 from pathlib import Path
 
-from ...config import PROJECT_ROOT
+from ...config import PROJECT_ROOT, application_root, source_root
 from .schema import FLOWS, MODULES, classify
 
 MAX_FILES = 2000
@@ -17,8 +17,8 @@ METHODS = frozenset({'get', 'post', 'put', 'patch', 'delete', 'head', 'options',
 
 
 def source_files(root: Path) -> list[Path]:
-    source = root / 'src/omni'
-    if source.is_symlink() or source.is_junction():
+    source = source_root(root)
+    if source.is_symlink() or source.is_junction() or not source.resolve().is_relative_to(root.resolve()):
         raise ValueError('源码根不能为链接')
     files = sorted(p for p in source.rglob('*') if p.is_file() and p.suffix in {'.py', '.ps1', '.html', '.js', '.css'} and '__pycache__' not in p.parts)
     if not files or len(files) > MAX_FILES:
@@ -78,7 +78,7 @@ def _routes(tree: ast.AST, path: str, module_id: str, symbols: list[dict]) -> li
                     or not isinstance(decorator.args[0], ast.Constant) or not isinstance(decorator.args[0].value, str)):
                 continue
             url = decorator.args[0].value
-            scope = 'community' if path.startswith('src/omni/plugins/') else 'workbench'
+            scope = 'community' if '/omni/plugins/' in path else 'workbench'
             found.append({'method': decorator.func.attr.upper(), 'path': url, 'source': path,
                           'line': node.lineno, 'handler': by_line[node.lineno]['name'], 'module': module_id,
                           'parameters': by_line[node.lineno].get('parameters', []),
@@ -106,11 +106,15 @@ def _tools(tree: ast.AST, path: str, module_id: str) -> list[dict]:
 
 def build_index(root: Path = PROJECT_ROOT) -> dict:
     root = Path(root).resolve()
+    app = application_root(root)
+    source = source_root(root)
+    source_prefix = source.relative_to(root).as_posix() + '/'
+    test_prefix = (app / 'tests').relative_to(root).as_posix() + '/'
     records, endpoints, declared, warnings, models = [], [], [], [], []
     digest = hashlib.sha256()
     for path in source_files(root):
         relative = path.relative_to(root).as_posix()
-        local = path.relative_to(root / 'src/omni').as_posix()
+        local = path.relative_to(source).as_posix()
         owner = classify(local)
         if owner is None:
             warnings.append('未分类源码：' + relative)
@@ -140,7 +144,7 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
     for identity, title, summary, steps in FLOWS:
         chain = []
         for path, symbol in steps:
-            source = 'src/omni/' + path
+            source = source_prefix + path
             match = next((s for s in by_path.get(source, {}).get('symbols', []) if s['name'] == symbol), None)
             if match is None: warnings.append(f'调用链定位失效：{path}:{symbol}')
             chain.append({'source': source, 'symbol': symbol, 'line': match['line'] if match else None})
@@ -152,11 +156,11 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
         item['files'] = [r['path'] for r in records if r['module'] == spec.id]
         item['lines'] = sum(r['lines'] for r in records if r['module'] == spec.id)
         item['docs'] = ['docs/' + name for name in spec.docs]
-        item['tests'] = ['tests/' + name for name in spec.tests]
+        item['tests'] = [test_prefix + name for name in spec.tests]
         item['dependencies'] = sorted({python_owners[target] for record in records if record['module'] == spec.id
                                        for target in record['imports'] if target in python_owners and python_owners[target] != spec.id})
         modules.append(item)
-    project = root / 'pyproject.toml'
+    project = app / 'pyproject.toml'
     entrypoints = tomllib.loads(project.read_text(encoding='utf-8')).get('project', {}).get('scripts', {}) if project.is_file() else {}
     return {'schema': 1, 'source_sha256': digest.hexdigest(), 'modules': modules, 'files': records,
             'endpoints': sorted(endpoints, key=lambda r: (r['scope'], r['path'], r['method'])),

@@ -1,6 +1,16 @@
 # OmniOperator 架构说明
 
-> 本文是模块职责与依赖规则的唯一权威。**分层与组装根规则由 `tests/test_arch.py` 用 AST 强制执行**——改坏会直接测试红，不靠自觉。
+> 本文是模块职责与依赖规则的唯一权威。**分层与组装根规则由 `agent/tests/test_arch.py` 用 AST 强制执行**——改坏会直接测试红，不靠自觉。
+
+## 0. 产品目录边界
+
+本地 Agent 工程统一在 `agent/`：生产代码 `agent/src/omni/`、测试 `agent/tests/`、
+模板 `agent/config/`、开发脚本 `agent/scripts/`、产品声明 `agent/pyproject.toml`。
+本文下述 core/tools/memory 等逻辑路径均相对于 `agent/src/omni/`，层级规则保持不变。
+仓库根 pyproject 只组装 uv 工作区，安装/启动脚本和全仓文档独立管理。
+APP_ROOT 与 PROJECT_ROOT 分别指产品与仓库；实际 config/data/.env/skills 及默认工作目录
+保留原位置，不能因代码重排改动路径保护或新建第二套用户数据。
+具体目录归属与旧入口兼容见 [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md)。
 
 ## 1. 分层总览
 
@@ -45,9 +55,9 @@ config.py 提供声明配置、路径与兼容版本，不承担业务编排。
 终端、后台命令、MCP、安卓和项目索引仍各自归包；公共 UI 不承载工具执行、
 不自动连接依赖、不替代服务器鉴权/审批/观察校验。异步页面结果按请求目标和选择版本隔离，
 输入和取消绑定原终端/会话/运行 ID。前端纪律以 docs/UI_DESIGN_SYSTEM.md 为唯一权威规范，
-守卫在 tests/test_ui_contract.py 与 tests/test_ui_design_tokens.py。实现与浏览器验证见 [UI_QA.md](UI_QA.md)。
+守卫在 agent/tests/test_ui_contract.py 与 agent/tests/test_ui_design_tokens.py。实现与浏览器验证见 [UI_QA.md](UI_QA.md)。
 
-## 3. 依赖规则（`tests/test_arch.py` 强制）
+## 3. 依赖规则（`agent/tests/test_arch.py` 强制）
 
 ### 3.1 import 分层
 依赖方向**自上而下**，禁止倒挂：
@@ -340,7 +350,7 @@ Unicode 输入切换输入法后再检查焦点，异常和取消也恢复原输
 | Strategy（策略） | `safety/gates.py` | 同一审批接口按上下文换策略：CLI 问人（ConsoleApprover）、无人值守拒绝（DenyApprover）、测试放行（AllowAllApprover） |
 | Facade（门面） | `bootstrap.Runtime` | 通道只见 new/use/chat，不碰内部对象 |
 | Composition Root（组装根） | `bootstrap.py` | 依赖只在一处发生，通道薄、全局可替换 |
-| 依赖注入 | `Agent.__init__` 等全构造注入 | 测试可整体替换假件（见 `tests/test_agent.py` 的 ScriptedGateway） |
+| 依赖注入 | `Agent.__init__` 等全构造注入 | 测试可整体替换假件（见 `agent/tests/test_agent.py` 的 ScriptedGateway） |
 | 会话上下文（thread-local） | `tools/registry.SessionRef` + `core/agent.py` | 会话级工具（todo）在 CLI/Web/QQ/心跳并发下各线程取到自己的当前会话 |
 | Grace call | `core/agent.py` 循环尾部 | 步数预算耗尽仍强制收敛出最终回答，防死循环不粗暴截断 |
 
@@ -513,7 +523,7 @@ D22：`memory/qq.py` 的 QQMessageStore 仅由 bootstrap 构造，复用注入 s
 - Python 3.12+，全量类型标注，`from __future__ import annotations`
 - Windows 为当前验收平台；通用逻辑使用 pathlib/可替换协议，平台差异隔离在能力域内部，不把未验证平台写为已支持
 - 注释写"为什么"不写"是什么"；每个模块 docstring 写清「职责 + 明确不做」
-- 每个新模块必须有单测；架构改动必须过 `tests/test_arch.py` 的两条守卫
+- 每个新模块必须有单测；架构改动必须过 `agent/tests/test_arch.py` 的两条守卫
 
 ### 能力完善 C01
 

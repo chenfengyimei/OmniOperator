@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-31",
+  "base_commit": "60d078f72ad521b7afbcd1083796bac2f2442075",
+  "scope": "本地 Agent 独立产品目录与工作区兼容",
+  "layout": {
+    "product": "agent/",
+    "source": "agent/src/omni/",
+    "tests": "agent/tests/",
+    "templates": "agent/config/",
+    "development_scripts": "agent/scripts/",
+    "shared_docs": "docs/",
+    "runtime_anchor": "仓库根或已配置的 RuntimePaths；真实运行数据不搬移"
+  },
+  "tests": {
+    "candidate_full": 1296,
+    "seconds": 438.32,
+    "failed": 0,
+    "skipped": 0,
+    "command": "原 uv 虚拟环境解释器 python -m pytest -q --tb=short；cwd=无兼容联接的导出副本，PYTHONPATH 指向 agent/src 与 agent/tests",
+    "targeted_before_move": "121 passed, 38.73s",
+    "working_after_move": "77 passed, 72.90s（含已有技能中心在途用例）",
+    "working_baseline": "1308 passed / 1 failed, 424.30s；未提交 test_memory_system_ui 的整理时间表单等待/保存断言失败，未混入本批提交",
+    "concurrent_first_full": "1295 passed / 1 failed, 424.75s；笔记按钮选中不等于正文已加载，改为等待实际正文/保存提示后再断言，最终完整重跑通过。",
+    "junit_sha256": "69279034848714cd4bc0a4080737113ec9d3f01d8190e194c6bbb2bfcab8f087"
+  },
+  "checks": {
+    "uv_lock": "uv lock --check --offline：101 packages，外部依赖条目（版本/URL/hash）逐条与原锁一致",
+    "root_and_product_commands": "uv run --active --no-sync 在仓库根和 agent/ 均解析到同一产品与仓库锚点",
+    "candidate_index": "56 modules / 261 files / 153 routes / 86 declared tools；实际工作区另含并行未提交功能",
+    "working_index": "56 modules / 262 files / 165 routes / 88 declared tools；--check 无过期",
+    "wheel": {
+      "name": "omnioperator-0.1.0-py3-none-any.whl",
+      "files": 266,
+      "sha256": "48c545921417e26c9c2e4e8ff775881e14a3d35e2a25dbd9628f154ed8c30f6e",
+      "entrypoints": "4 个原命令；包含静态界面和许可证，不含运行数据/配置/测试",
+      "build": "离线缺少 hatchling 缓存后，使用 uv 隔离构建环境下载构建依赖；首轮内容检查发现根忽略规则造成空包，修正显式构建范围后离线复验成功，最终全量重跑；未修改活动 .venv"
+    }
+  },
+  "migration": {
+    "moved_tracked_files": 367,
+    "parallel_merge_conflicts": 0,
+    "local_compatibility_junctions": {
+      "src": "agent/src",
+      "tests": "agent/tests"
+    },
+    "junctions_committed": false,
+    "old_script_commands": "转发到产品正式实现，保留参数与退出结果",
+    "development_backup": ".pytest_cache/project-layout/before-move.zip",
+    "concurrent_commit": "60d078f72ad521b7afbcd1083796bac2f2442075",
+    "concurrent_added_files_preserved": [
+      "agent/src/omni/channels/web_static/memory/index.html",
+      "agent/src/omni/channels/web_static/memory/memory.css",
+      "agent/src/omni/channels/web_static/memory/memory.js",
+      "agent/tests/test_memory_system_ui.py",
+      "docs/MEMORY_SYSTEM.md"
+    ]
+  },
+  "limits": [
+    "真实 config/config.yaml、.env、data/、skills/ 及默认工作目录保持原位，未启动模型/设备或重启服务。",
+    "本机兼容联接供已有编辑器/可编辑安装使用；干净检出无需联接，使用根 uv 工作区。",
+    "并行记忆界面、品牌与技能中心改动完整留在工作区；全量计数只对应基线加本批增量。",
+    "旧运行进程保留已导入模块；重启后项目索引和路径常量使用新代码。"
+  ]
+}

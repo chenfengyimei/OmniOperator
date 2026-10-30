@@ -8,7 +8,21 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+# APP_ROOT 是本地 Agent 产品；PROJECT_ROOT 是仓库/运行目录的锚点。
+# 二者必须分开：代码重排不应搬动用户的 config/data/.env/skills。
+APP_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = APP_ROOT.parent if APP_ROOT.name == "agent" else APP_ROOT
+
+
+def application_root(root: Path = PROJECT_ROOT) -> Path:
+    """解析仓库根或产品根；兼容隔离验证中的旧 src/omni 合成项目。"""
+    root = Path(root)
+    return root / "agent" if (root / "agent/src/omni").is_dir() else root
+
+
+def source_root(root: Path = PROJECT_ROOT) -> Path:
+    return application_root(root) / "src/omni"
+
 CONFIG_PATH = PROJECT_ROOT / "config" / "config.yaml"
 ENV_PATH = PROJECT_ROOT / ".env"
 DATA_DIR = PROJECT_ROOT / "data"

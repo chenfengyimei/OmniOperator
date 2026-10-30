@@ -11,7 +11,7 @@ from pathlib import Path
 import yaml
 
 from ..bootstrap import build_runtime
-from ..config import PROJECT_ROOT, load_config, load_env
+from ..config import APP_ROOT, load_config, load_env
 from ..core.evaluation import evaluate_retrieval
 
 
@@ -19,7 +19,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=["fts", "hybrid"], default="fts")
     parser.add_argument("--config", type=Path)
-    parser.add_argument("--dataset", type=Path, default=PROJECT_ROOT / "tests/fixtures/retrieval_v1.json")
+    parser.add_argument("--dataset", type=Path, default=APP_ROOT / "tests/fixtures/retrieval_v1.json")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     dataset = json.loads(args.dataset.read_text(encoding="utf-8"))

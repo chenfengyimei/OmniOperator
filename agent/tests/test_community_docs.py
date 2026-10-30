@@ -13,7 +13,7 @@ import pytest
 
 from omni.system.catalog.schema import MODULES
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_license_is_apache2_boilerplate() -> None:
