@@ -45,10 +45,23 @@ LITERAL_BLUR = re.compile(r"backdrop-filter\s*:[^;}]*blur\(\s*[0-9]")
 LITERAL_BLUR_QUOTA = {
     "project/project.css": 2,
 }
-# 悬空变量：待批次 4（--accent-1）/ 批次 5（--bg-1/--bg-2/--danger-1）清零
+# 悬空变量：待批次 5（--bg-1/--bg-2/--danger-1）清零；--accent-1 已于批次 4 修正
 DANGLING_QUOTA = {
-    "ui/workbench.css": {"--accent-1"},
     "memory/memory.css": {"--bg-1", "--bg-2", "--danger-1"},
+}
+# 断点白名单（UI_DESIGN_SYSTEM.md §5）：只认 900 / 760 / 520。
+# 配额里是尚未收敛的历史断点，每批改造后调低直至删空。
+# 注：workbench 的 min-width:901 / 761 是与 max-width:900 / 760 **成对互补**的
+# （桌面才显示的规则用 min-width 表达），它们不是独立断点，故不在配额里。
+BREAKPOINT_QUOTA = {
+    "ui/frame.css": {600: 1, 1120: 1},
+    "project/project.css": {500: 1},
+    "memory/memory.css": {860: 1},
+    "android/android.css": {700: 1, 1120: 1},
+    "capabilities/capabilities.css": {600: 2, 1120: 1},
+    "jobs/jobs.css": {1120: 1},
+    "mcp/mcp.css": {600: 1, 1120: 1},
+    "terminal/terminal.css": {600: 3, 1120: 1},
 }
 
 
@@ -184,3 +197,26 @@ def test_light_theme_does_not_redefine_glass_tokens():
     text = TOKENS.read_text(encoding="utf-8")
     block = text[text.index(':root[data-theme="light"]') :]
     assert "--glass-" not in block, "浅色主题块不得定义 --glass-*（玻璃必须由 surface/seed-fg 自动翻面）"
+
+
+def test_breakpoints_are_only_900_760_520():
+    """§5 断点白名单：@media 的 max-width/min-width 只允许 900 / 760 / 520。
+
+    非媒体用途的 max-width（如布局宽度 1480px）不计入——只扫 @media 块内的断点值。
+    min-width:901 / 761 是 max-width:900 / 760 的**成对互补**写法（桌面专属规则），
+    视为合法配对，不算违规断点。
+    棘轮：配额里是尚未收敛的历史断点，只许减少。
+    """
+    allowed = {900, 760, 520}
+    # 与白名单成对互补的 min-width（900 的桌面侧写成 901，760 的写成 761）
+    paired = {901, 761}
+    media = re.compile(r"@media[^{]*?\((?:max|min)-width\s*:\s*([0-9]+)px\)")
+    offenders: dict[str, list[int]] = {}
+    for path in all_assets():
+        found = [int(m) for m in media.findall(path.read_text(encoding="utf-8"))]
+        bad = sorted({v for v in found if v not in allowed and v not in paired})
+        quota = BREAKPOINT_QUOTA.get(rel(path), {})
+        over = [v for v in bad if found.count(v) > quota.get(v, 0)]
+        if over:
+            offenders[rel(path)] = over
+    assert not offenders, f"断点超出白名单 {sorted(allowed)}（只许减少，配额见 BREAKPOINT_QUOTA）：{offenders}"
