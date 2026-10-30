@@ -86,6 +86,9 @@ from .tools.personal import (
     register_resident_tools,
     register_todo_tools,
 )
+from .tools.personal.journal import register_journal_tools
+from .tools.personal.people import register_people_tools
+from .tools.personal.transcript import register_transcript_tools
 from .tools.scheduling import register_cron_tools
 from .tools.delegation import register_delegate_tools
 from .tools.files import FileHistory, Workspace, register_file_tools
@@ -459,6 +462,10 @@ def build_runtime(
     register_digest_tool(registry, store)
     register_todo_tools(registry, store, session_ref)
     register_resident_tools(registry, resident)
+    # 记忆系统工具面（M1–M6）：全量检索/精确读取/笔记/人物；全部不进群聊许可名单
+    register_transcript_tools(registry, dialogue_log, session_log)
+    register_journal_tools(registry, journal_store)
+    register_people_tools(registry, people_store, guard=memory_guard)
     agent_holder: dict[str, Any] = {}  # Agent 构造在后，delegate 工具运行期取用
     register_delegate_tools(registry, store, agent_holder, run_ref)
     register_shell_tools(registry,cwd=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT)
@@ -662,6 +669,7 @@ def build_runtime(
         )
         register_profile_tools(journal_registry, journal_store, guard=memory_guard, source="journal")
         register_resident_tools(journal_registry, resident)
+        register_people_tools(journal_registry, people_store, guard=memory_guard, source="journal")
         return journal_registry
 
     journal_consolidator = (
