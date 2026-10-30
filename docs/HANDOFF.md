@@ -78,14 +78,14 @@ QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、�
 红线：**花钱 / 发布 / 群发 / 加好友必须人工确认；无人值守一律 fail-closed；小号试水防风控。**
 
 - 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
-- 本地：`D:\xm\OmniOperator`，Python 3.12 + uv
+- 本地：克隆到任意目录（下称 `<仓库根>`，示例命令自行替换），Python 3.12 + uv
 - 测试：`uv run pytest`；本轮提交源码独立环境 **1014 全绿**，工作区 **1061 全绿**（并行未提交 47 项另计）。默认套件禁止真实模型与 Python 外网调用；设备、服务、路径按注入隔离。架构守卫见 `tests/test_arch.py`，最新证据见 `docs/evidence/capabilities-c06-2026-10-29.json`。历史测试数只代表对应批次。
   **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
 
 ## 2. 五分钟上手
 
 ```powershell
-cd D:\xm\OmniOperator
+cd <仓库根>
 uv run pytest                      # 全量测试（必须全绿再提交）
 uv run omni-web                    # 工作台 http://127.0.0.1:8000（控制台会打印配对链接，点开才可操作）
 uv run omni                    # 终端 REPL
@@ -96,9 +96,9 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 ```
 
 服务管理（工作台"服务"面板或 `omni/system/services.py`）：
-- NapCat：`D:\tools\napcat\napcat.bat`，WS 3001，机器人小号 10000000002（**重启后需工作台扫码登录**）
+- NapCat：`<NapCat 目录>\napcat.bat`，WS 3001，机器人小号 `<机器人QQ号>`（**重启后需工作台扫码登录**；真实 QQ 号只存本地 config.yaml，不入库）
 - 所有服务以分离进程运行（无窗口）：pid 在 `data/run/*.pid`，日志在 `data/system_logs/`
-- adb（Platform-Tools 37.0.1）在 `D:\tools\platform-tools`，已加入用户 PATH
+- adb（Platform-Tools 37.0.1）在 `<platform-tools 目录>`，已加入用户 PATH
 
 ## 3. 架构纪律（改代码前必读）
 
@@ -235,7 +235,7 @@ MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待
 ## 6. 未完成事项（按优先级）
 
 ### 真实验收的外部前提
-- QQ 北极星实测：工作台扫码登录 NapCat → 大号 10000000001 给小号 10000000002 发 B 站链接
+- QQ 北极星实测：工作台扫码登录 NapCat → 所有者大号给机器人小号发 B 站链接（真实 QQ 号见本地 config.yaml，不入库）
 - B 站小号 Cookie：工作台设置中心贴 SESSDATA → 解锁字幕/音频流 → 才能做 P3 发视频实操
 - 安卓真机：开 USB 调试插上 + 装 ADBKeyboard.apk → P4 联调（工作台「📱 手机」页已可用）
 
@@ -339,7 +339,7 @@ skills/                  种子技能（bilibili-watch / self-check / nightly-ti
 ## 9. 给接手者的第一条命令
 
 ```powershell
-cd D:\xm\OmniOperator; uv run pytest -q; git log --oneline -n 10
+cd <仓库根>; uv run pytest -q; git log --oneline -n 10
 ```
 
 测试全绿 + 看过最近提交，就可以开工。改任何文件前先读 `docs/ARCHITECTURE.md`；

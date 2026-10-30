@@ -649,7 +649,7 @@ input:checked + .switch::after{transform:translateX(16px);background:#06202a}
         <div class="field"><label class="check-row"><input type="checkbox" id="cfg-qq-enabled"><span class="switch"></span><span class="switch-text">启用 QQ（需要 NapCat 在运行）</span></label></div>
         <div class="field"><label>NapCat 连接地址<input type="text" id="cfg-qq-ws-url"></label></div>
         <div class="field"><label>NapCat 访问令牌（可留空）<input type="text" id="cfg-qq-token"></label></div>
-        <div class="field"><label>允许私聊它的 QQ 号（逗号分隔）<input type="text" id="cfg-qq-users" placeholder="10000000001"></label></div>
+        <div class="field"><label>允许私聊它的 QQ 号（逗号分隔）<input type="text" id="cfg-qq-users" placeholder="123456789"></label></div>
         <div class="field"><label>允许它待在哪些群（逗号分隔群号）<input type="text" id="cfg-qq-groups" placeholder="不填就只在私聊里工作"></label></div>
         <div class="field"><label>回复间隔（秒，例如 1.0, 3.0——中间会随机）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"></label></div>
         <div class="field"><label class="check-row"><input type="checkbox" id="cfg-qq-reply"><span class="switch"></span><span class="switch-text">群里别人接它的话，它也能接着说（仍需在上面的群名单里）</span></label></div>
@@ -676,7 +676,7 @@ input:checked + .switch::after{transform:translateX(16px);background:#06202a}
         </div>
         <div class="field"><label>到点让它做什么（写得越清楚，它干得越准）<textarea id="cronf-prompt" style="min-height:70px" placeholder="例：看B站热门榜前 10，挑 3 条我可能感兴趣的写一份简报"></textarea></label></div>
         <div class="field-row">
-          <div class="field"><label>结果发给哪个 QQ（可留空）<input type="text" id="cronf-qq" placeholder="10000000001"></label></div>
+          <div class="field"><label>结果发给哪个 QQ（可留空）<input type="text" id="cronf-qq" placeholder="123456789"></label></div>
           <div class="field"><label>用哪个技能（可留空）<input type="text" id="cronf-skills" placeholder="nightly-tidy"></label></div>
           <div class="field"><label>接着上一个任务的结果做（可留空）<input type="text" id="cronf-ctx" placeholder="nightly-tidy"></label></div>
           <div class="field"><label>上一步结果最多留多久（分钟）<input type="number" id="cronf-age" value="1440" min="1" max="10080"></label></div>

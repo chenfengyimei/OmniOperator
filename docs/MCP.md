@@ -10,7 +10,7 @@ OmniOperator 通过已安装的官方 Python MCP SDK 接入 **stdio** 服务。�
 
 ## 配置
 
-在 `config/config.yaml` 加入以下配置，换成自己审核过的服务可执行文件及工具名，然后重启使用它的入口：
+在 `config/config.yaml` 加入以下配置（首次使用先复制模板：`Copy-Item config\config.example.yaml config\config.yaml`），换成自己审核过的服务可执行文件及工具名，然后重启使用它的入口：
 
 ```yaml
 mcp:

@@ -1,4 +1,6 @@
-# OmniOperator 主配置 —— 密钥一律放 .env（参考 .env.example），不放这里。
+# OmniOperator 配置模板 —— 复制为 config.yaml 后按需修改（config.yaml 不入库，可放真实白名单）。
+# 密钥一律放 .env（参考 .env.example），不放这里。所有项也都能在工作台「设置中心」修改。
+# 复制命令：Copy-Item config\config.example.yaml config\config.yaml
 
 persona:
   name: "小鱼"
@@ -84,9 +86,9 @@ files:
   deny_globs: []              # 额外不可读的相对路径，如 ["xuexi/**"]
   write_deny_globs: []        # 额外不可写
   max_read_lines: 200         # 单次读取默认行数
-  max_list_entries: 200       # 单次列目录默认条目
+  max_list_entries: 200       # 单次列目录默认条目数
   max_search_files: 2000      # 搜索最多访问多少文件（大仓库可调大或缩小 path）
-  max_search_results: 80      # 搜索最多返回多少条命中
+  max_search_results: 80      # 搜索最多返回多少命中
   max_search_seconds: 5.0     # 搜索时间上限
 
 web:
@@ -106,10 +108,10 @@ asr:
   compute_type: "int8"
 
 qq:
-  enabled: true               # QQ 通道总开关（NapCat 已部署在 D:\tools\napcat）
+  enabled: true               # QQ 通道总开关（需先部署 NapCat，见 docs/QQ_SETUP.md）
   ws_url: "ws://127.0.0.1:3001"   # NapCat 正向 WebSocket 地址
   access_token: ""            # 与 NapCat 网络配置里的一致（可留空）
-  allowed_users: [10000000001]     # 私聊白名单：用户大号（机器人小号 10000000002）
+  allowed_users: []           # 私聊白名单：允许私聊机器人的 QQ 号列表。留空 = 拒绝所有人（fail-closed）。例：[123456789]
   allowed_groups: []          # 群白名单：群号列表（群里还需 @机器人 才响应）
   reply_delay_s: [1, 3]   # 拟人回复延迟区间（秒）
   group_reply_to_bot: false
@@ -127,4 +129,4 @@ browser:
   approval_timeout_s: 180     # 写操作确认等待上限（秒），超时自动拒绝
 
 system:
-  napcat_dir: "D:/tools/napcat"   # NapCat Shell 目录（含 napcat.bat），工作台由此管理启停/扫码
+  napcat_dir: "D:/tools/napcat"   # NapCat Shell 目录（含 napcat.bat），工作台由此管理启停/扫码；安装器会写为实际解包目录

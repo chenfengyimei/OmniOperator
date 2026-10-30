@@ -1168,7 +1168,7 @@ body.rail-collapse .side-left{opacity:0;pointer-events:none;overflow:hidden}
           <div class="svcs">
             <div class="svc">
               <span class="svc-dot on"></span>
-              <div class="svc-body"><div class="svc-name">NapCat</div><div class="svc-detail">10000000002 · WS 3001</div></div>
+              <div class="svc-body"><div class="svc-name">NapCat</div><div class="svc-detail">9876543210 · WS 3001</div></div>
               <button class="svc-act" onclick="toast('停止 NapCat')">停止</button>
             </div>
             <div class="svc">
@@ -1398,7 +1398,7 @@ body.rail-collapse .side-left{opacity:0;pointer-events:none;overflow:hidden}
                   <button class="row-act" data-tip="编辑" onclick="toast('编辑这条记忆')"><span class="material-icons">edit</span></button>
                   <button class="row-act danger" data-tip="删除" onclick="toast('删除这条记忆')"><span class="material-icons">close</span></button>
                 </div>
-                <span class="row-tag">[11]</span>QQ 大号 10000000001，机器人小号 10000000002，白名单已配置
+                <span class="row-tag">[11]</span>QQ 大号 123456789，机器人小号 9876543210，白名单已配置
                 <span class="row-time">2026-10-26 21:40 · fact</span>
               </div>
               <div class="row">
@@ -1505,7 +1505,7 @@ body.rail-collapse .side-left{opacity:0;pointer-events:none;overflow:hidden}
             <div class="scroll">
               <div class="todo done" onclick="toggleTodo(this)"><span class="cb"><span class="material-icons">check</span></span><span class="todo-text">读取 BV1xx411c7mD 的视频信息与热评</span></div>
               <div class="todo done" onclick="toggleTodo(this)"><span class="cb"><span class="material-icons">check</span></span><span class="todo-text">ASR 转写全文并提取关键时间点</span></div>
-              <div class="todo" onclick="toggleTodo(this)"><span class="cb"><span class="material-icons">check</span></span><span class="todo-text">创建每天 08:00 的推荐任务，投递到 QQ 10000000001</span></div>
+              <div class="todo" onclick="toggleTodo(this)"><span class="cb"><span class="material-icons">check</span></span><span class="todo-text">创建每天 08:00 的推荐任务，投递到 QQ 123456789</span></div>
               <div class="todo" onclick="toggleTodo(this)"><span class="cb"><span class="material-icons">check</span></span><span class="todo-text">验证任务下一次运行时间是否正确</span></div>
               <div class="empty">
                 <div class="empty-glyph"><span class="material-icons">lightbulb</span></div>
@@ -1938,7 +1938,7 @@ version: 3
             <div class="sw-row on" onclick="toggleSwitch(this)">
               <div class="sw-text">
                 <div class="sw-title">启用 QQ 通道</div>
-                <div class="sw-desc">需要 NapCat 在运行且已扫码登录 · 当前机器人小号 10000000002</div>
+                <div class="sw-desc">需要 NapCat 在运行且已扫码登录 · 当前机器人小号 9876543210</div>
               </div>
               <div class="sw on"></div>
             </div>
@@ -1956,7 +1956,7 @@ version: 3
           <div class="grid-2" style="margin-top:var(--s4)">
             <div class="field">
               <div class="field-label">私聊白名单<span class="hint">逗号分隔 QQ 号 · 空 = 拒绝全部主动投递</span></div>
-              <input class="inp mono" type="text" value="10000000001" oninput="markDirty()">
+              <input class="inp mono" type="text" value="123456789" oninput="markDirty()">
             </div>
             <div class="field">
               <div class="field-label">群白名单<span class="hint">可选 · 群里必须被 @</span></div>
@@ -1974,7 +1974,7 @@ version: 3
           <div style="display:flex;gap:8px;margin-top:var(--s5);align-items:center">
             <button class="btn" onclick="toast('已打开扫码登录弹窗')"><span class="material-icons">qr_code_2</span>扫码登录</button>
             <button class="btn" onclick="toast('重启 QQ 通道以应用配置')"><span class="material-icons">restart_alt</span>重启通道</button>
-            <span class="state-pill on"><i></i>已连接 · 10000000002</span>
+            <span class="state-pill on"><i></i>已连接 · 9876543210</span>
           </div>
         </div>
       </section>
@@ -2009,7 +2009,7 @@ version: 3
             <div class="grid-3" style="margin-top:var(--s4)">
               <div class="field">
                 <div class="field-label" style="font-weight:540;font-size:10.5px">投递 QQ<span class="hint">须在白名单</span></div>
-                <input class="inp mono" type="text" placeholder="10000000001">
+                <input class="inp mono" type="text" placeholder="123456789">
               </div>
               <div class="field">
                 <div class="field-label" style="font-weight:540;font-size:10.5px">注入技能<span class="hint">逗号分隔</span></div>
@@ -2033,7 +2033,7 @@ version: 3
                 <span class="t-name"><span class="material-icons">article</span>morning-report</span>
                 <span class="t-sched">每天 08:30</span>
                 <span class="t-next">明天 08:30<small>18 小时后</small></span>
-                <span class="t-sched mono" style="font-size:10px">QQ · 10000000001</span>
+                <span class="t-sched mono" style="font-size:10px">QQ · 123456789</span>
                 <span class="t-acts">
                   <div class="sw on" style="transform:scale(.86)" onclick="event.stopPropagation();toggleSwOnly(this)"></div>
                   <button class="btn sm icon" style="width:24px;padding:0" onclick="toast('编辑 morning-report')"><span class="material-icons">edit</span></button>
@@ -2299,7 +2299,7 @@ version: 3
   <div class="ap-body">
     <div class="ap-desc">小鱼想主动给你的 QQ 大号发一条消息。这是写操作，按红线必须经你确认后才执行。</div>
     <div class="ap-args">{
-  "user_id": 10000000001,
+  "user_id": 123456789,
   "message": "早上好，今天的 B 站推荐（3 条，按你的纪录片口味挑的）：\n1. 【4K】深海鲸落全过程实拍\n2. 天文台之夜：银河拱桥延时\n3. 冰川消融的十二年"
 }</div>
   </div>

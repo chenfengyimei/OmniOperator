@@ -345,7 +345,7 @@
 ```text
 你是 OmniOperator（小鱼）的接手开发者。目标是完善 Windows 常驻个人 agent 的内核与本地工具，不是另起炉灶重写 Hermes。
 
-仓库 D:\xm\OmniOperator，远端 https://gitee.com/chenfengloveyuri/OmniOperator.git，master。
+仓库克隆到任意目录（示例命令自行替换 `<仓库根>`），远端 https://gitee.com/chenfengloveyuri/OmniOperator.git，master。
 2026-10-27 初始评估基线 5d4bddd，246 单测全绿。
 2026-10-28 已推进至 D27；D26 已推送 56ce482，D27 收尾完整回归 817 单测全绿。真正开始时以当前 git、差异、台账和测试为准。
 
@@ -358,7 +358,7 @@
 6. docs/ACCEPTANCE.md（真实场景、恢复、预热/72 小时、证据闸门与剩余范围）
 
 先执行并检查：
-Set-Location D:\xm\OmniOperator
+Set-Location <仓库根>
 git status --short
 git log --oneline -n 10
 uv run pytest -q
