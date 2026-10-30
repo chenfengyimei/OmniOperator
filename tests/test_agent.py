@@ -274,3 +274,72 @@ def test_child_run_shares_the_parent_budget(tmp_path):
     assert parent.budget.limit_micro == 500_000
     assert child.max_steps <= parent.steps_left
     store.close()
+
+
+# ---------------------------------------------------------------- 全量记忆旁路（M1/M2）
+
+
+def test_full_memory_records_turn_and_tool_activity(tmp_path):
+    """完整回合：对话全量记两条文本；会话全量按序记 user→助手(带调用清单)→工具→助手。"""
+    import json
+
+    from omni.memory.dialogue import DialogueLog
+    from omni.memory.session_log import SessionLog
+
+    store = MemoryStore(tmp_path / "m.db")
+    dialogue = DialogueLog(tmp_path / "m.db")
+    slog = SessionLog(tmp_path / "m.db")
+    sid = store.new_session()
+    agent = Agent(
+        AppConfig(), ScriptedGateway(), store, _core_registry(store), sid,
+        dialogue_log=dialogue, session_log=slog,
+    )
+    assert agent.chat("请记住我喜欢拿铁") == "好的，我记住了。"
+
+    d_rows = dialogue.entries(session_id=sid)
+    assert [r["role"] for r in d_rows] == ["user", "assistant"]
+    assert d_rows[0]["channel"] == "cli" and "拿铁" in d_rows[0]["content"]
+    assert d_rows[1]["content"] == "好的，我记住了。"
+
+    s_rows = slog.entries(session_id=sid)
+    assert [r["kind"] for r in s_rows] == ["user", "assistant", "tool", "assistant"]
+    tool = s_rows[2]
+    assert tool["tool_name"] == "remember" and tool["tool_status"] == "ok"
+    assert "拿铁" in tool["tool_result"]
+    assert json.loads(s_rows[1]["tool_args"])[0]["name"] == "remember"
+    assert all(r["run_id"] for r in s_rows)  # 每条都能对回 run（排查用）
+    assert dialogue.days() == [s_rows[0]["day"]]
+    store.close(); dialogue.close(); slog.close()
+
+
+def test_full_memory_off_by_default_and_broken_store_does_not_break_turn(tmp_path):
+    """不注入就不记录；旁路账本坏了回合照常完成——记录失败不等于对话失败。"""
+    store = MemoryStore(tmp_path / "m.db")
+    sid = store.new_session()
+    # 默认（None）：不记录也不炸
+    plain = Agent(AppConfig(), ScriptedGateway(), store, _core_registry(store), sid)
+    assert plain.chat("你好") == "好的，我记住了。"
+
+    class _Broken:
+        def append(self, *args, **kwargs):
+            raise RuntimeError("旁路坏了")
+
+        def append_user(self, *a, **k):
+            raise RuntimeError("旁路坏了")
+
+        def append_assistant(self, *a, **k):
+            raise RuntimeError("旁路坏了")
+
+        def append_tool(self, *a, **k):
+            raise RuntimeError("旁路坏了")
+
+        def append_system(self, *a, **k):
+            raise RuntimeError("旁路坏了")
+
+    stubborn = Agent(
+        AppConfig(), ScriptedGateway(), store, _core_registry(store), sid,
+        dialogue_log=_Broken(), session_log=_Broken(),
+    )
+    assert stubborn.chat("再聊一句") == "好的，我记住了。"
+    assert len(store.recent_messages(sid, 10)) >= 4  # messages 落库不受旁路影响
+    store.close()

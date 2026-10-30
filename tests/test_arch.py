@@ -43,6 +43,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "EmbeddingProvider", "VectorIndex", "HybridMemory",
     "DesktopDriver", "WindowsDesktopBackend", "AndroidDriver",
     "PluginHost", "CommunityClient", "SkillInbox",
+    "DialogueLog", "SessionLog", "JournalStore", "PersonStore", "MemorySystem",
 }
 
 

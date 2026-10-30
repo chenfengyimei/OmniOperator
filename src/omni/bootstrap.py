@@ -50,6 +50,11 @@ from .memory.artifacts import ArtifactStore
 from .memory.usage import UsageLedger
 from .memory.guard import MemoryGuard
 from .memory.resident import ResidentMemory
+from .memory.dialogue import DialogueLog
+from .memory.session_log import SessionLog
+from .memory.journal import JournalStore
+from .memory.people import PersonStore
+from .memory.system import MemorySystem
 from .memory.skills import SkillStore
 from .memory.skill_inbox import SkillInbox
 from .plugins import PluginHost
@@ -168,6 +173,7 @@ class Runtime:
     skill_acks: SkillAckStore | None = None   # 技能变更已读标记：待审阅队列（D18）
     qq: OneBotClient | None = None
     retrieval: HybridMemory | None = None
+    memory_system: MemorySystem | None = None  # 记忆系统门面（M1–M6 聚合）
     desktop: DesktopDriver | None = None
     qq_messages: QQMessageStore | None = None
     publications: PublicationStore | None = None
@@ -257,6 +263,8 @@ class Runtime:
                 residual.append("active_runs")
             if not residual:
                 self.store.close()
+                if self.memory_system is not None:
+                    self.memory_system.close()
                 self.state.close()
                 self._fully_closed = True
             return {"complete": not residual, "residual": residual}
@@ -344,6 +352,27 @@ def build_runtime(
         paths.workspace.mkdir(parents=True,exist_ok=True)
     memory_path = paths.memory
     store = MemoryStore(memory_path)
+    # 记忆系统（M1–M6）：对话全量/会话全量/日周月笔记/核心人物四个记忆单元
+    # 共用 memory.db（各开独立连接，内部加锁）；MemorySystem 只做聚合门面
+    dialogue_log = DialogueLog(
+        memory_path, max_entry_chars=config.transcript.max_entry_chars
+    )
+    session_log = SessionLog(
+        memory_path,
+        max_args_chars=config.transcript.max_tool_args_chars,
+        max_result_chars=config.transcript.max_tool_result_chars,
+    )
+    journal_store = JournalStore(memory_path)
+    people_store = PersonStore(
+        memory_path,
+        archive_max_chars=config.people.archive_max_chars,
+        resident_max_chars=config.people.resident_max_chars,
+        event_max_chars=config.people.event_max_chars,
+    )
+    memory_system = MemorySystem(
+        dialogue=dialogue_log, session_log=session_log,
+        journal=journal_store, people=people_store,
+    )
     # 技能与常驻记忆共用一份修订存储：写入前先落历史，改坏了能回滚（D08）
     skills = SkillStore(
         paths.skills, history_root=paths.history, owner=f"pid:{os.getpid()}:skills"
@@ -585,6 +614,7 @@ def build_runtime(
         approver=approver, session_ref=session_ref, resident=resident,
         runs=runs, active_runs=active_runs, run_ref=run_ref, owner=owner,
         artifacts=artifacts,
+        dialogue_log=dialogue_log, session_log=session_log,
     )
     agent_holder["agent"] = agent
 
@@ -655,6 +685,7 @@ def build_runtime(
         file_history=file_history,
         qq=qq_client,
         retrieval=retrieval,
+        memory_system=memory_system,
         desktop=desktop,
         config_path=config_path,
         data_dir=data_root,

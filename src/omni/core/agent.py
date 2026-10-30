@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
+import sys
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Callable
@@ -12,8 +13,10 @@ from ..llm import errors as llm_errors
 from ..llm.budget import RunBudget
 from ..llm.gateway import Gateway, Reply, StreamEvent, to_openai_tool_call
 from ..memory.artifacts import ArtifactError, MARKER_RE
+from ..memory.dialogue import DialogueLog
 from ..memory.resident import ResidentMemory
 from ..memory.runs import RunStore
+from ..memory.session_log import SessionLog
 from ..memory.store import MemoryStore
 from .vision import coordinate_note, image_part, prepare_image
 from ..safety.gates import Approver, Risk
@@ -103,6 +106,8 @@ class Agent:
         owner: str = "",
         artifacts: Any = None,
         clock: Callable[[], dt.datetime] | None = None,
+        dialogue_log: DialogueLog | None = None,
+        session_log: SessionLog | None = None,
     ) -> None:
         self.config = config
         self.gateway = gateway
@@ -119,9 +124,70 @@ class Agent:
         self._owner = owner or "cli:0"
         self._artifacts = artifacts  # ArtifactStore | None（D15：图像块与产物清理）
         self._clock = clock or (lambda: dt.datetime.now().astimezone())
+        # 全量记忆两个模块（M1/M2）：None=不记录（旧测试直接构造 Agent 不受影响）；
+        # 记录是旁路账本——写失败只打日志，绝不打断回合
+        self._dialogue = dialogue_log
+        self._session_log = session_log
         # 压缩摘要用廉价模型（同回合后 review 的选型逻辑）
         review_model = config.models.review.strip()
         self._summary_model = review_model if review_model else self.model
+
+    # ---------------------------------------------------------------- 全量记忆旁路
+
+    def _record_dialogue(self, sid: int, role: str, content: str, *, channel: str = "") -> None:
+        """对话全量记忆（M1）：只写不读、不进上下文；失败不炸回合。"""
+        if self._dialogue is None:
+            return
+        try:
+            self._dialogue.append(sid, role, content, channel=channel)
+        except Exception as exc:  # noqa: BLE001 —— 旁路账本，记录失败不等于回合失败
+            print(f"[对话全量] 记录失败（不影响回合）：{exc}", file=sys.stderr, flush=True)
+
+    def _record_session_user(self, sid: int, run: RunContext | None, content: str, *, channel: str = "") -> None:
+        if self._session_log is None:
+            return
+        try:
+            self._session_log.append_user(
+                sid, run.run_id if run is not None else "", content, channel=channel
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f"[会话全量] 记录失败（不影响回合）：{exc}", file=sys.stderr, flush=True)
+
+    def _record_session_assistant(
+        self, sid: int, run: RunContext | None, content: str, *, tool_calls: list | None = None
+    ) -> None:
+        if self._session_log is None:
+            return
+        try:
+            self._session_log.append_assistant(
+                sid, run.run_id if run is not None else "", content,
+                tool_calls=tool_calls,
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f"[会话全量] 记录失败（不影响回合）：{exc}", file=sys.stderr, flush=True)
+
+    def _record_session_tool(self, sid: int, run: RunContext | None, call: Any, result: ToolResult) -> None:
+        if self._session_log is None:
+            return
+        try:
+            self._session_log.append_tool(
+                sid,
+                run.run_id if run is not None else "",
+                call.function.name,
+                str(call.function.arguments or ""),
+                result.text,
+                result.status,
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f"[会话全量] 记录失败（不影响回合）：{exc}", file=sys.stderr, flush=True)
+
+    def _record_session_system(self, sid: int, run: RunContext | None, note: str) -> None:
+        if self._session_log is None:
+            return
+        try:
+            self._session_log.append_system(sid, run.run_id if run is not None else "", note)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[会话全量] 记录失败（不影响回合）：{exc}", file=sys.stderr, flush=True)
 
     @property
     def session_ref(self) -> SessionRef | None:
@@ -295,6 +361,9 @@ class Agent:
         except RunCancelled as exc:
             note = f"（已取消：{exc.reason}。本轮未继续执行后续步骤；已发生的操作不会回滚）"
             self.store.append_message(sid, "assistant", note, auto_title=False)
+            self._record_dialogue(sid, "assistant", note, channel=channel)
+            self._record_session_assistant(sid, run, note)
+            self._record_session_system(sid, run, f"回合被取消：{exc.reason}")
             run.event("cancelled", reason=exc.reason)
             run.finish("cancelled", error_code="run_cancelled", error_text=exc.reason)
             return TurnResult(
@@ -312,6 +381,9 @@ class Agent:
                 "可在 config 的 llm.budget 里调整 daily_usd / per_run_usd。）"
             )
             self.store.append_message(sid, "assistant", note, auto_title=False)
+            self._record_dialogue(sid, "assistant", note, channel=channel)
+            self._record_session_assistant(sid, run, note)
+            self._record_session_system(sid, run, f"费用上限拦截：{exc.code}")
             run.event("budget_blocked", code=exc.code, message=str(exc)[:300])
             run.finish("failed", error_code=exc.code, error_text=str(exc)[:300])
             return TurnResult(
@@ -420,6 +492,10 @@ class Agent:
         denied = frozenset() if personal_context else frozenset(self.registry.names()) - GROUP_ALLOWED_TOOLS
         snapshot = self._turn_context(include_personal=personal_context)
         self.store.append_message(sid, "user", user_text, prompt_context=snapshot.payload())
+        # 全量记忆旁路（M1/M2）：messages 仍是上下文组装的唯一真源，这里只做存档
+        channel = run.identity.channel if run is not None else ""
+        self._record_dialogue(sid, "user", user_text, channel=channel)
+        self._record_session_user(sid, run, user_text, channel=channel)
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
@@ -467,6 +543,8 @@ class Agent:
                 if getattr(reply, "incomplete", False):
                     answer += "\n\n（注意：这条回答在生成过程中连接中断，内容可能不完整。）"
                 self.store.append_message(sid, "assistant", answer, auto_title=False)
+                self._record_dialogue(sid, "assistant", answer, channel=channel)
+                self._record_session_assistant(sid, run, answer)
                 return answer
             # 有工具调用：执行并把结果回填，继续循环
             messages.append(
@@ -476,6 +554,10 @@ class Agent:
                     "tool_calls": [to_openai_tool_call(c) for c in reply.tool_calls],
                 }
             )
+            # 会话全量记录发起的调用清单；对话全量只收非空的助手文本
+            self._record_session_assistant(sid, run, reply.text or "", tool_calls=reply.tool_calls)
+            if (reply.text or "").strip():
+                self._record_dialogue(sid, "assistant", reply.text, channel=channel)
             self._execute_tool_calls(
                 reply.tool_calls,
                 messages,
@@ -501,6 +583,9 @@ class Agent:
         if getattr(reply, "incomplete", False):
             answer += "\n\n（注意：这条回答在生成过程中连接中断，内容可能不完整。）"
         self.store.append_message(sid, "assistant", answer, auto_title=False)
+        self._record_dialogue(sid, "assistant", answer, channel=channel)
+        self._record_session_assistant(sid, run, answer)
+        self._record_session_system(sid, run, "步数预算耗尽，走 grace call 收敛")
         return answer
 
     # ---------------------------------------------------------------- 工具执行（批内并发）
@@ -556,6 +641,8 @@ class Agent:
                     elapsed_ms=round(tool_timings.pop(call.id, 0.0)),
                     **result.brief(),
                 )
+            # 会话全量记工具原文（store 内截断）；事件流的摘录口径不变
+            self._record_session_tool(sid, run, call, result)
             messages.append(
                 {
                     "role": "tool",
