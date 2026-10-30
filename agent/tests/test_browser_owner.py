@@ -189,6 +189,24 @@ def test_every_playwright_call_runs_on_one_owner_thread(tmp_path, fake_playwrigh
     assert {"sync_playwright", "start", "launch", "context.close", "pw.stop"} <= set(rec.ops())
 
 
+def test_concurrent_first_calls_share_one_owner_thread(tmp_path, fake_playwright):
+    """并发首调只能建**一条**所有者线程（回归：A11 不变量曾偶发被破坏）。
+
+    为什么：owner 线程的"取或建"若不加锁，多个并发首调会各自建一条线程，
+    Playwright 调用于是分散在多条线程上——浏览器对象会跟着线程走，
+    后续调用在另一条线程上操作就可能炸。实测该竞态约 1/10 概率偶发。
+    """
+    rec, _page = fake_playwright()
+    driver = _driver(tmp_path)
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(lambda _i: driver.navigate("https://example.invalid"), range(8)))
+    driver.close()
+
+    owner_ids = rec.thread_ids()
+    assert len(owner_ids) == 1, f"并发首调建了多条所有者线程：{owner_ids}"
+
+
 def test_queue_is_bounded_and_reports_busy(tmp_path, fake_playwright):
     block = threading.Event()
     fake_playwright(block=block)

@@ -66,11 +66,19 @@ class _OwnerThread:
     def __init__(self, *, queue_size: int = 8, name: str = "browser-owner") -> None:
         self._queue: queue.Queue[Any] = queue.Queue(maxsize=max(1, int(queue_size)))
         self._thread = threading.Thread(target=self._loop, name=name, daemon=True)
+        # 线程 id 必须在**调用方能看见之前**确定：若等到线程体里才赋值，
+        # start() 返回时新线程可能还没跑到那行，此刻的首个调用会误判
+        # "已经在所有者线程"而在调用方线程直接执行 Playwright——A11 的
+        # "所有 Playwright 调用同一条线程"不变量就此被破坏（实测偶发）。
+        # 用启动握手换确定性：线程一启动就报出自己的 id。
+        self._started = threading.Event()
         self.thread_id: int | None = None
         self._thread.start()
+        self._started.wait(timeout=5.0)
 
     def _loop(self) -> None:
         self.thread_id = threading.get_ident()
+        self._started.set()
         while True:
             call = self._queue.get()
             if call is None:  # 停止信号
@@ -146,6 +154,8 @@ class BrowserDriver:
         self._lease_owner = lease_owner or "browser"
         self._lease_token: str | None = None
         self._owner: _OwnerThread | None = None
+        # 保护 owner 线程的"取或建"：并发首调不得各建一条线程（A11 不变量）
+        self._owner_lock = threading.Lock()
         self._closed = False
         self._pw: Any = None
         self._context: Any = None
@@ -178,9 +188,13 @@ class BrowserDriver:
     def _run(self, fn: Callable[[], Any], *, timeout_s: float | None = None) -> Any:
         if self._closed:
             raise BrowserError("浏览器已关闭；请重启工作台或重新打开一次浏览器")
-        owner = self._owner
-        if owner is None or not owner.alive:
-            owner = self._owner = _OwnerThread(queue_size=self._queue_size)
+        # owner 线程的创建必须串行：并发首调时若各自看到 owner is None 就会
+        # **各建一条线程**，Playwright 调用于是分散在多条线程上（A11 不变量被破坏）。
+        # 锁内只做"取或建"，实际调用仍在 owner 线程里排队执行。
+        with self._owner_lock:
+            owner = self._owner
+            if owner is None or not owner.alive:
+                owner = self._owner = _OwnerThread(queue_size=self._queue_size)
         return owner.run(fn, timeout_s=self._action_timeout if timeout_s is None else timeout_s)
 
     def close(self, *, wait_s: float | None = None) -> str:
