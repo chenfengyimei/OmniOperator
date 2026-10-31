@@ -1,5 +1,15 @@
 # 开发状态记录
 
+2026-10-31 StateStore 域方法群 mixin 拆分（工作区）：任务/租约/账本-额度
+三块方法群迁到 `state_mixin_jobs.py` / `state_mixin_leases.py` /
+`state_mixin_ledger.py`；异常类迁 `state_errors.py`、数据形状迁
+`state_records.py`。`StateStore` 通过继承保留全部公开方法名，96 处调用点
+零改动。state.py 行数 **1031 → 559**。新增守卫验证公开域方法名单完整、
+mixin 实现归位。专项
+`uv run --no-sync pytest -q -n 0 agent/tests/test_state.py agent/tests/test_cron.py agent/tests/test_sessions.py agent/tests/test_browser.py agent/tests/test_command_jobs.py agent/tests/test_outbox.py agent/tests/test_mcp.py agent/tests/test_arch.py`
+→ **166 passed（约 45s）**；项目索引与 `test_project_catalog.py` **11 passed**。
+未跑全量；真实数据未迁移、真实服务未重启。
+
 2026-10-31 MCP 指纹与技能已读仓储迁出 state.py（工作区）：`MCPSchemaStore`
 迁到 `memory/mcp_schemas.py`、`SkillAckStore` 迁到 `memory/skill_acks.py`；
 state.py 行数 1354 → 1031。新增守卫验证两个 store 的领域实现唯一；FLOWS

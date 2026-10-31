@@ -1,5 +1,16 @@
 # 架构重构记录与后续顺序
 
+2026-10-31 StateStore 域方法群 mixin 拆分：任务/租约/账本-额度三块方法群
+迁到 `state_mixin_jobs.py` / `state_mixin_leases.py` / `state_mixin_ledger.py`，
+异常与 Claim/Lease/BudgetHit/MigrationRecord 迁到 `state_errors.py` /
+`state_records.py`；`StateStore(JobsMixin, LeasesMixin, LedgerMixin)` 继承，
+公开方法名与 96 处调用点零改动。state.py 行数 **1031 → 559**。
+专项 `test_state+test_cron+test_sessions+test_browser+test_command_jobs+
+test_outbox+test_mcp+test_arch` **166 项通过（约 45s）**，索引与
+`test_project_catalog.py` **11 项通过**；未跑全量。后续候选：jobs/executions
+薄门面（`JobStore`/`ExecutionLog`）迁出 state.py；runs 域已在 `runs.py`
+独立；qq/publications 域迁移评估。
+
 2026-10-31 MCP 指纹与技能已读仓储迁出 state.py：`MCPSchemaStore` 移到
 `memory/mcp_schemas.py`，`SkillAckStore` 移到 `memory/skill_acks.py`，
 两者均为薄门面且调用面窄。`state.py` 行数从 1354 降到 1031；旧 import
@@ -66,7 +77,7 @@ OpenAPI 合同检查接口形状；既有业务用例仍须运行，它不能代
 
 | 顺序 | 代码证据与目标 | 必须保留的验证 |
 |---|---|---|
-| 1 | memory/state.py 约 1031 行：schema/outbox/mcp/技能门面已独立；下一步拆 jobs/executions/budget/leases 与 runs 域。当前每次抽离保持 SQL 与公开 import 兼容 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
+| 1 | memory/state.py 约 559 行：连接/事务/迁移/健康 + 三个域 mixin；下一步迁出 JobStore/ExecutionLog 薄门面，再评估 qq/publications | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
 | 2 | plugins/host.py 约 800 行：包读取/类型校验、隔离状态、受信装载生命周期分别维护 | 校验零执行、激活人工确认、前缀注册、防篡改、失败回滚、原子状态与锁范围 |
 | 3 | Web 配对/设置和主 index.html 有并行工作：合入后再整理独立 settings/auth 适配及前端专题资源 | 配对/密钥三态与脱敏、Host/Origin/cookie、原有操作入口；不能覆盖并行改动 |
 | 4 | Runtime 的生命周期与状态查询继续按真实依赖收窄；组装根保持唯一 | 路径注入、关闭预算与残留、会话作用域、跨入口一致性，不提前增加空接口层 |

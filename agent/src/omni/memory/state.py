@@ -26,8 +26,6 @@ import shutil
 import sqlite3
 import threading
 import time
-import uuid
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -35,16 +33,27 @@ from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
 from .mcp_schemas import MCPSchemaStore
 from .outbox import OutboxStore
 from .skill_acks import SkillAckStore
+from .state_errors import (
+    StateBusy,
+    StateConflict,
+    StateError,
+    StateUnavailable,
+    translate_operational as _translate_operational,
+)
+from .state_mixin_jobs import JobsMixin, _job_params
+from .state_mixin_leases import LeasesMixin
+from .state_mixin_ledger import LedgerMixin
+from .state_records import BudgetHit, Claim, Lease, MigrationRecord, SessionLease
 from .state_schema import MIGRATIONS, SCHEMA_VERSION, _META
 
 # 兼容旧测试/调用对私有迁移表名的引用：声明本体已归 `state_schema.py`
 _MIGRATIONS = MIGRATIONS
 
 # MCPSchemaStore / SkillAckStore / OutboxStore 已迁至各自领域模块；
-# 从 state 再导出以保持 `from omni.memory.state import MCPSchemaStore` 兼容。
-# 一次性任务（无 every/daily 的闹钟）错过触发时间的宽限：超过即停用不补发——
-# 迟到太久的闹钟没有意义，账本里留下"错过"的记录即可。
-ONE_SHOT_MISSED_GRACE_S = 600
+# 异常与 Claim/Lease/BudgetHit/MigrationRecord 已迁至 state_errors/state_records；
+# 从 state 再导出以保持 `from omni.memory.state import MCPSchemaStore` 等旧 import 兼容。
+# 一次性任务错过触发时间的宽限常量本体在 state_mixin_jobs.py
+from .state_mixin_jobs import ONE_SHOT_MISSED_GRACE_S
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待
@@ -55,71 +64,7 @@ LEGACY_JOBS = "cron_jobs.json"
 LEGACY_EXECUTIONS = "cron_executions.json"
 LEGACY_BUDGET = "browser_budget.json"
 
-
-SESSION_RESOURCE = "session:{}"
-
 _CAPABILITY_TABLE = {"jobs": "jobs", "executions": "executions", "budget": "budgets"}
-
-
-class StateError(RuntimeError):
-    """状态库无法给出可信结果。"""
-
-
-class StateUnavailable(StateError):
-    """相关能力必须停用（版本未知 / 旧数据损坏 / 目录只读），不得当成空数据继续。"""
-
-
-class StateConflict(StateError):
-    """revision 冲突：调用方基于旧快照提交。"""
-
-
-class StateBusy(StateError):
-    """数据库忙（另一个进程持有写事务）。忙不是成功，调用方必须如实上报。"""
-
-
-@dataclass(frozen=True)
-class BudgetHit:
-    ok: bool
-    used: int
-    limit: int
-    detail: str = ""
-
-
-@dataclass(frozen=True)
-class Claim:
-    job: Job
-    token: str
-    overdue_s: float
-
-
-@dataclass(frozen=True)
-class Lease:
-    """资源租约：谁占着这个资源（会话 / 浏览器 profile），什么时候自动失效。"""
-
-    resource: str
-    owner: str
-    token: str
-    acquired_at: str
-    expires_at: float
-
-    @property
-    def session_id(self) -> int | None:
-        """`session:<id>` 形态时返回会话 id（其它资源返回 None）。"""
-        prefix, _, rest = self.resource.partition(":")
-        return int(rest) if prefix == "session" and rest.isdigit() else None
-
-
-SessionLease = Lease  # 兼容旧名
-
-
-@dataclass(frozen=True)
-class MigrationRecord:
-    source: str
-    status: str        # missing | empty | ok | corrupt | resolved_missing | failed
-    sha256: str = ""
-    imported: int = 0
-    detail: str = ""
-    applied_at: str = ""
 
 
 def _statements(sql: str) -> list[str]:
@@ -131,65 +76,14 @@ def _now() -> str:
     return dt.datetime.now().astimezone().isoformat(timespec="seconds")
 
 
-def _translate_operational(exc: sqlite3.OperationalError) -> StateError:
-    """把"环境问题"翻译成可解释状态；其它 SQL 错误保持原样（那是代码 bug，不该被吞）。
+class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
+    """`data/state.db` 的读写入口。进程内线程安全，跨进程靠 SQLite 事务。
 
-    只读文件/目录、锁冲突、磁盘错误都不是"没有数据"——调用方必须能分辨并停用能力。
+    职责边界：连接/WAL/事务原语、schema 迁移、旧 JSON 导入与健康检查。
+    任务/租约/账本方法由 JobsMixin/LeasesMixin/LedgerMixin 提供（公开方法
+    名不变，`state.upsert_job(...)` 等调用点零改动）；Outbox/MCP 指纹/
+    技能标记在各自领域模块中，构造时由 bootstrap 注入同一个 StateStore。
     """
-    text = str(exc).lower()
-    if "readonly" in text or "read-only" in text:
-        return StateUnavailable(f"状态库不可写（文件或目录只读）：{exc}")
-    if "locked" in text or "busy" in text:
-        return StateBusy(f"状态库忙（另一个进程正在写）：{exc}")
-    if "disk i/o" in text or "full" in text:
-        return StateUnavailable(f"状态库写入失败（磁盘）：{exc}")
-    return StateError(f"状态库操作失败：{exc}")
-
-
-def _row_to_job(row: sqlite3.Row) -> Job:
-    try:
-        skills = json.loads(row["skills"] or "[]")
-    except json.JSONDecodeError:
-        skills = []
-    return Job(
-        name=str(row["name"]),
-        prompt=str(row["prompt"]),
-        every_minutes=int(row["every_minutes"]) if row["every_minutes"] is not None else None,
-        daily_at=row["daily_at"],
-        deliver_to_qq=int(row["deliver_to_qq"]) if row["deliver_to_qq"] is not None else None,
-        skills=[str(s) for s in skills] if isinstance(skills, list) else [],
-        context_from=row["context_from"],
-        enabled=bool(row["enabled"]),
-        next_run_at=row["next_run_at"],
-        last_run_at=row["last_run_at"],
-        last_result=row["last_result"],
-        revision=int(row["revision"]),
-        timezone=str(row["timezone"]),
-        context_max_age_minutes=int(row["context_max_age_minutes"]),
-    )
-
-
-def _job_params(job: Job) -> tuple:
-    return (
-        job.name,
-        job.prompt,
-        job.every_minutes,
-        job.daily_at,
-        job.deliver_to_qq,
-        json.dumps(list(job.skills or []), ensure_ascii=False),
-        job.context_from,
-        1 if job.enabled else 0,
-        job.next_run_at,
-        job.last_run_at,
-        job.last_result,
-        _now(),
-        job.timezone,
-        job.context_max_age_minutes,
-    )
-
-
-class StateStore:
-    """`data/state.db` 的读写入口。进程内线程安全，跨进程靠 SQLite 事务。"""
 
     def __init__(
         self,
@@ -360,370 +254,6 @@ class StateStore:
         with self._lock:
             with contextlib.suppress(sqlite3.Error):
                 self._conn.close()
-
-    # ---------------------------------------------------------------- 任务
-
-    def list_jobs(self) -> list[Job]:
-        self._require("jobs")
-        rows = self._read("SELECT * FROM jobs ORDER BY name")
-        return [_row_to_job(row) for row in rows]
-
-    def get_job(self, name: str) -> Job | None:
-        self._require("jobs")
-        rows = self._read("SELECT * FROM jobs WHERE name = ?", (name,))
-        return _row_to_job(rows[0]) if rows else None
-
-    def upsert_job(
-        self,
-        job: Job,
-        *,
-        validate: bool = True,
-        expected_revision: int | None = None,
-    ) -> int:
-        """写入任务定义，返回新的 revision。
-
-        `expected_revision` 给了就做乐观并发：前端基于旧表单提交会得到 StateConflict，
-        而不是静默覆盖后台（比如调度器/另一标签页）已经改过的内容。
-        """
-        self._require("jobs")  # 状态未知时连写也停：否则"能建不能读"更难解释
-        if validate:
-            job.validate()
-        with self._tx() as conn:
-            if validate and job.context_from:
-                row = conn.execute(
-                    "SELECT 1 FROM jobs WHERE name = ?", (job.context_from,)
-                ).fetchone()
-                if row is None:
-                    raise CronError(
-                        f"context_from 指向的任务 {job.context_from} 不存在（先创建它）"
-                    )
-                visited = {job.name}
-                source = job.context_from
-                while source:
-                    if source in visited:
-                        raise CronError("context_from 不能形成依赖环")
-                    visited.add(source)
-                    parent = conn.execute("SELECT context_from FROM jobs WHERE name=?", (source,)).fetchone()
-                    source = parent[0] if parent else None
-            current = conn.execute(
-                "SELECT revision FROM jobs WHERE name = ?", (job.name,)
-            ).fetchone()
-            if current is None:
-                if expected_revision not in (None, 0):
-                    raise StateConflict(
-                        f"任务 {job.name} 不存在（你基于 revision {expected_revision} 提交）"
-                    )
-                conn.execute(
-                    "INSERT INTO jobs(name, prompt, every_minutes, daily_at, deliver_to_qq, "
-                    "skills, context_from, enabled, next_run_at, last_run_at, last_result, "
-                    "updated_at, timezone, context_max_age_minutes, revision) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
-                    _job_params(job),
-                )
-                job.revision = 1
-                return 1
-            revision = int(current[0])
-            if expected_revision is not None and int(expected_revision) != revision:
-                raise StateConflict(
-                    f"任务 {job.name} 已被修改（当前 revision {revision}，"
-                    f"你基于 {expected_revision} 提交）；请刷新后再改"
-                )
-            conn.execute(
-                "UPDATE jobs SET prompt = ?, every_minutes = ?, daily_at = ?, "
-                "deliver_to_qq = ?, skills = ?, context_from = ?, enabled = ?, "
-                "next_run_at = ?, last_run_at = ?, last_result = ?, updated_at = ?, "
-                "timezone = ?, context_max_age_minutes = ?, "
-                "revision = revision + 1 WHERE name = ?",
-                (*_job_params(job)[1:], job.name),
-            )
-            job.revision = revision + 1
-            return job.revision
-
-    def update_run_state(
-        self,
-        name: str,
-        *,
-        next_run_at: str | None = None,
-        last_run_at: str | None = None,
-        last_result: str | None = None,
-    ) -> bool:
-        """只更新调度器拥有的字段，**不递增 revision**（否则用户正在编辑的表单永远冲突）。"""
-        self._require("jobs")
-        with self._tx() as conn:
-            cur = conn.execute(
-                "UPDATE jobs SET next_run_at = COALESCE(?, next_run_at), "
-                "last_run_at = COALESCE(?, last_run_at), "
-                "last_result = COALESCE(?, last_result) WHERE name = ?",
-                (next_run_at, last_run_at, last_result, name),
-            )
-            return cur.rowcount > 0
-
-    def remove_job(self, name: str) -> bool:
-        self._require("jobs")
-        with self._tx() as conn:
-            # 运行中删除不释放已有 claim：否则同名重建会与旧执行重叠。
-            conn.execute("DELETE FROM cron_outputs WHERE job = ?", (name,))
-            return conn.execute("DELETE FROM jobs WHERE name = ?", (name,)).rowcount > 0
-
-    def claim_due(
-        self,
-        now: dt.datetime,
-        *,
-        token: str | None = None,
-        ttl_s: float = 3600.0,
-        max_running: int = 2,
-    ) -> Claim | None:
-        """原子领取一个到期任务：同一个到期时刻只会有一个进程拿到。
-
-        在**同一个写事务**里选任务、推进 `next_run_at`（至多一次语义）、写领取记录。
-        两个调度进程同时调用时，后到的那次读到的已经是推进后的时刻，因此不会重复触发。
-        """
-        self._require("jobs")
-        token = token or uuid.uuid4().hex
-        now = now.astimezone()
-        with self._tx() as conn:
-            stamp = time.time()
-            conn.execute("DELETE FROM job_claims WHERE expires_at < ?", (stamp,))
-            active = {r[0] for r in conn.execute("SELECT job FROM job_claims")}
-            due: list[tuple[dt.datetime, Job]] = []
-            for row in conn.execute(
-                "SELECT * FROM jobs WHERE enabled = 1 AND next_run_at IS NOT NULL"
-            ).fetchall():
-                raw = row["next_run_at"]
-                try:
-                    due_dt = parse_iso(str(raw))
-                except (TypeError, ValueError):
-                    continue
-                if due_dt.tzinfo is None:
-                    due_dt = due_dt.astimezone()
-                if now >= due_dt:
-                    candidate = _row_to_job(row)
-                    is_once = candidate.every_minutes is None and not candidate.daily_at
-                    if is_once:
-                        # 一次性任务（闹钟）：迟到超过宽限（停机期间错过）不补发——
-                        # 停用并留痕；宽限内的正常触发走下面的领取路径
-                        if (now - due_dt).total_seconds() > ONE_SHOT_MISSED_GRACE_S:
-                            conn.execute(
-                                "UPDATE jobs SET enabled = 0, last_result = ? WHERE name = ?",
-                                (
-                                    f"错过触发时间 {raw}（超过 {ONE_SHOT_MISSED_GRACE_S // 60} 分钟宽限），未执行已停用",
-                                    candidate.name,
-                                ),
-                            )
-                        elif candidate.name not in active:
-                            due.append((due_dt, candidate))
-                        continue
-                    if candidate.name in active:
-                        conn.execute("UPDATE jobs SET next_run_at=?, last_result=? WHERE name=?",
-                                     (to_iso(compute_next_run(candidate, now)), "运行中再次到期：已合并，不积压", candidate.name))
-                    else:
-                        due.append((due_dt, candidate))
-            if len(active) >= max(1, max_running):
-                return None  # 未领取的任务留在数据库，无内存排队
-            if not due:
-                return None
-            due.sort(key=lambda item: item[0])
-            due_dt, job = due[0]
-            if job.every_minutes is None and not job.daily_at:
-                # 一次性任务领取即在**同一事务**停用（at-most-once）：执行器中途崩溃
-                # 只留下"结果未知"的账本记录，绝不重触发——与 unknown 不重放纪律一致
-                conn.execute(
-                    "UPDATE jobs SET enabled = 0 WHERE name = ?", (job.name,)
-                )
-            else:
-                job.next_run_at = to_iso(compute_next_run(job, from_dt=now))
-                conn.execute(
-                    "UPDATE jobs SET next_run_at = ? WHERE name = ?", (job.next_run_at, job.name)
-                )
-            conn.execute(
-                "INSERT INTO job_claims(job, token, claimed_at, expires_at) VALUES (?, ?, ?, ?)",
-                (job.name, token, _now(), stamp + float(ttl_s)),
-            )
-        return Claim(job=job, token=token, overdue_s=(now - due_dt).total_seconds())
-
-    def release_claim(self, token: str) -> bool:
-        with self._tx() as conn:
-            return conn.execute("DELETE FROM job_claims WHERE token = ?", (token,)).rowcount > 0
-
-    def renew_job_claim(self, token: str, ttl_s: float = 3600) -> bool:
-        with self._tx() as conn:
-            now = time.time()
-            return conn.execute("UPDATE job_claims SET expires_at=? WHERE token=? AND expires_at>?",
-                                (now + ttl_s, token, now)).rowcount == 1
-
-    # ---------------------------------------------------------------- 租约
-
-    def lease(self, resource: str) -> Lease | None:
-        rows = self._read("SELECT * FROM resource_leases WHERE resource = ?", (resource,))
-        if not rows:
-            return None
-        row = rows[0]
-        return Lease(
-            resource=str(row["resource"]),
-            owner=str(row["owner"]),
-            token=str(row["token"]),
-            acquired_at=str(row["acquired_at"]),
-            expires_at=float(row["expires_at"]),
-        )
-
-    def acquire_lease(
-        self,
-        resource: str,
-        owner: str,
-        *,
-        ttl_s: float = 600.0,
-        token: str | None = None,
-        now: float | None = None,
-    ) -> Lease | None:
-        """拿到租约返回 Lease；被别的所有者占着返回 None（不排队、不抢）。"""
-        token = token or uuid.uuid4().hex
-        stamp = time.time() if now is None else float(now)
-        expires = stamp + float(ttl_s)
-        with self._tx() as conn:
-            # 过期租约先清掉：进程崩溃后不需要人工解锁，但要等满 TTL
-            conn.execute(
-                "DELETE FROM resource_leases WHERE resource = ? AND expires_at < ?",
-                (resource, stamp),
-            )
-            held = conn.execute(
-                "SELECT owner FROM resource_leases WHERE resource = ?", (resource,)
-            ).fetchone()
-            if held is not None:
-                return None
-            conn.execute(
-                "INSERT INTO resource_leases(resource, owner, token, acquired_at, expires_at) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (resource, str(owner), token, _now(), expires),
-            )
-        return Lease(
-            resource=resource,
-            owner=str(owner),
-            token=token,
-            acquired_at=_now(),
-            expires_at=expires,
-        )
-
-    def renew_lease(
-        self, token: str, *, ttl_s: float = 600.0, now: float | None = None
-    ) -> bool:
-        stamp = time.time() if now is None else float(now)
-        with self._tx() as conn:
-            cur = conn.execute(
-                "UPDATE resource_leases SET expires_at = ? WHERE token = ? AND expires_at >= ?",
-                (stamp + float(ttl_s), token, stamp),
-            )
-            return cur.rowcount > 0
-
-    def release_lease(self, token: str) -> bool:
-        """只释放自己那把（按 token）：不能顺手释放别人持有的租约。"""
-        with self._tx() as conn:
-            return conn.execute(
-                "DELETE FROM resource_leases WHERE token = ?", (token,)
-            ).rowcount > 0
-
-    # 会话是资源租约的特例（键 `session:<id>`），保留语义化方法给调用方用
-    def session_lease(self, session_id: int) -> Lease | None:
-        return self.lease(SESSION_RESOURCE.format(int(session_id)))
-
-    def acquire_session_lease(
-        self,
-        session_id: int,
-        owner: str,
-        *,
-        ttl_s: float = 600.0,
-        token: str | None = None,
-        now: float | None = None,
-    ) -> Lease | None:
-        return self.acquire_lease(
-            SESSION_RESOURCE.format(int(session_id)),
-            owner,
-            ttl_s=ttl_s,
-            token=token,
-            now=now,
-        )
-
-    def renew_session_lease(
-        self, token: str, *, ttl_s: float = 600.0, now: float | None = None
-    ) -> bool:
-        return self.renew_lease(token, ttl_s=ttl_s, now=now)
-
-    def release_session_lease(self, token: str) -> bool:
-        return self.release_lease(token)
-
-    # ---------------------------------------------------------------- 执行账本
-
-    def record_execution(
-        self,
-        *,
-        job: str,
-        started_at: str,
-        duration_s: float,
-        ok: bool,
-        result: str = "",
-        delivery: str = "",
-        keep: int | None = None,
-    ) -> None:
-        keep = self._keep_executions if keep is None else max(1, int(keep))
-        with self._tx() as conn:
-            conn.execute(
-                "INSERT INTO executions(job, started_at, duration_s, ok, result, delivery) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                (job, started_at, round(float(duration_s), 2), 1 if ok else 0,
-                 str(result)[:300], str(delivery)[:200]),
-            )
-            conn.execute(
-                "DELETE FROM executions WHERE id NOT IN "
-                "(SELECT id FROM executions ORDER BY id DESC LIMIT ?)",
-                (keep,),
-            )
-
-    def recent_executions(self, limit: int = 50) -> list[dict]:
-        rows = self._read(
-            "SELECT job, started_at, duration_s, ok, result, delivery FROM executions "
-            "ORDER BY id DESC LIMIT ?",
-            (max(1, int(limit)),),
-        )
-        return [
-            {
-                "job": str(row["job"]),
-                "started_at": str(row["started_at"]),
-                "duration_s": float(row["duration_s"]),
-                "ok": bool(row["ok"]),
-                "result": str(row["result"]),
-                "delivery": str(row["delivery"]),
-            }
-            for row in rows
-        ]
-
-    # ---------------------------------------------------------------- 额度
-
-    def consume_budget(self, scope: str, day: str, limit: int) -> BudgetHit:
-        """原子消耗一份额度：`UPDATE ... WHERE used < limit` 的 rowcount 就是判据。"""
-        limit = int(limit)
-        if limit <= 0:
-            return BudgetHit(False, 0, max(0, limit), "额度上限为 0：未授权任何写操作")
-        with self._tx() as conn:
-            conn.execute(
-                "INSERT OR IGNORE INTO budgets(scope, day, used) VALUES (?, ?, 0)",
-                (scope, day),
-            )
-            cur = conn.execute(
-                "UPDATE budgets SET used = used + 1 WHERE scope = ? AND day = ? AND used < ?",
-                (scope, day, limit),
-            )
-            used = int(
-                conn.execute(
-                    "SELECT used FROM budgets WHERE scope = ? AND day = ?", (scope, day)
-                ).fetchone()[0]
-            )
-        if cur.rowcount == 1:
-            return BudgetHit(True, used, limit, f"写操作 {used}/{limit}（今日）")
-        return BudgetHit(False, used, limit, f"额度已用完（{used}/{limit}）")
-
-    def budget_used(self, scope: str, day: str) -> int:
-        rows = self._read(
-            "SELECT used FROM budgets WHERE scope = ? AND day = ?", (scope, day)
-        )
-        return int(rows[0][0]) if rows else 0
 
     # ---------------------------------------------------------------- 迁移
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f6718093375348faff88580f5b78d7f4972467cb876ee765849656e3ec2668ff",
+  "source_sha256": "d730b88029971be90b312a2c22917c8173c4a42f97b0d96f17f1196f191b70b2",
   "modules": [
     {
       "id": "agent-directories",
@@ -320,12 +320,17 @@
         "agent/src/omni/memory/skill_inbox.py",
         "agent/src/omni/memory/skills.py",
         "agent/src/omni/memory/state.py",
+        "agent/src/omni/memory/state_errors.py",
+        "agent/src/omni/memory/state_mixin_jobs.py",
+        "agent/src/omni/memory/state_mixin_leases.py",
+        "agent/src/omni/memory/state_mixin_ledger.py",
+        "agent/src/omni/memory/state_records.py",
         "agent/src/omni/memory/store.py",
         "agent/src/omni/memory/system.py",
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8592,
+      "lines": 8688,
       "dependencies": [
         "command-contracts",
         "config",
@@ -15448,67 +15453,23 @@
       "path": "agent/src/omni/memory/state.py",
       "module": "storage",
       "python_module": "omni.memory.state",
-      "lines": 1031,
+      "lines": 561,
       "imports": [
         "omni.memory.jobs",
         "omni.memory.mcp_schemas",
         "omni.memory.outbox",
         "omni.memory.skill_acks",
+        "omni.memory.state_errors",
+        "omni.memory.state_mixin_jobs",
+        "omni.memory.state_mixin_leases",
+        "omni.memory.state_mixin_ledger",
+        "omni.memory.state_records",
         "omni.memory.state_schema"
       ],
       "symbols": [
         {
-          "name": "StateError",
-          "line": 64,
-          "kind": "class"
-        },
-        {
-          "name": "StateUnavailable",
-          "line": 68,
-          "kind": "class"
-        },
-        {
-          "name": "StateConflict",
-          "line": 72,
-          "kind": "class"
-        },
-        {
-          "name": "StateBusy",
-          "line": 76,
-          "kind": "class"
-        },
-        {
-          "name": "BudgetHit",
-          "line": 81,
-          "kind": "class"
-        },
-        {
-          "name": "Claim",
-          "line": 89,
-          "kind": "class"
-        },
-        {
-          "name": "Lease",
-          "line": 96,
-          "kind": "class"
-        },
-        {
-          "name": "Lease.session_id",
-          "line": 106,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "MigrationRecord",
-          "line": 116,
-          "kind": "class"
-        },
-        {
           "name": "_statements",
-          "line": 125,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "sql"
@@ -15519,52 +15480,19 @@
         },
         {
           "name": "_now",
-          "line": 130,
+          "line": 75,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "_translate_operational",
-          "line": 134,
-          "kind": "function",
-          "parameters": [
-            "exc"
-          ],
-          "annotations": {
-            "exc": "sqlite3.OperationalError"
-          }
-        },
-        {
-          "name": "_row_to_job",
-          "line": 149,
-          "kind": "function",
-          "parameters": [
-            "row"
-          ],
-          "annotations": {
-            "row": "sqlite3.Row"
-          }
-        },
-        {
-          "name": "_job_params",
-          "line": 172,
-          "kind": "function",
-          "parameters": [
-            "job"
-          ],
-          "annotations": {
-            "job": "Job"
-          }
-        },
-        {
           "name": "StateStore",
-          "line": 191,
+          "line": 79,
           "kind": "class"
         },
         {
           "name": "StateStore.__init__",
-          "line": 194,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -15580,7 +15508,7 @@
         },
         {
           "name": "StateStore._current_version",
-          "line": 232,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self"
@@ -15589,7 +15517,7 @@
         },
         {
           "name": "StateStore._apply_schema",
-          "line": 243,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self"
@@ -15598,7 +15526,7 @@
         },
         {
           "name": "StateStore.schema_version",
-          "line": 287,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self"
@@ -15607,7 +15535,7 @@
         },
         {
           "name": "StateStore._tx",
-          "line": 293,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self"
@@ -15616,7 +15544,7 @@
         },
         {
           "name": "StateStore._begin",
-          "line": 318,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self"
@@ -15625,7 +15553,7 @@
         },
         {
           "name": "StateStore._read",
-          "line": 340,
+          "line": 234,
           "kind": "function",
           "parameters": [
             "self",
@@ -15639,7 +15567,7 @@
         },
         {
           "name": "StateStore._table_empty",
-          "line": 347,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self",
@@ -15651,7 +15579,7 @@
         },
         {
           "name": "StateStore.degraded_reason",
-          "line": 351,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self",
@@ -15663,7 +15591,7 @@
         },
         {
           "name": "StateStore._require",
-          "line": 354,
+          "line": 248,
           "kind": "function",
           "parameters": [
             "self",
@@ -15675,7 +15603,7 @@
         },
         {
           "name": "StateStore.close",
-          "line": 359,
+          "line": 253,
           "kind": "function",
           "parameters": [
             "self"
@@ -15683,8 +15611,146 @@
           "annotations": {}
         },
         {
-          "name": "StateStore.list_jobs",
-          "line": 366,
+          "name": "StateStore._migration",
+          "line": 260,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source"
+          ],
+          "annotations": {
+            "source": "str"
+          }
+        },
+        {
+          "name": "StateStore._write_migration",
+          "line": 274,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "source",
+            "status",
+            "sha256",
+            "imported",
+            "detail",
+            "conn"
+          ],
+          "annotations": {
+            "source": "str",
+            "status": "str",
+            "sha256": "str",
+            "imported": "int",
+            "detail": "str",
+            "conn": "sqlite3.Connection | None"
+          }
+        },
+        {
+          "name": "StateStore.migrate_legacy",
+          "line": 293,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "data_dir"
+          ],
+          "annotations": {
+            "data_dir": "Path"
+          }
+        },
+        {
+          "name": "StateStore._migrate_file",
+          "line": 302,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path",
+            "capability",
+            "expect"
+          ],
+          "annotations": {
+            "path": "Path",
+            "capability": "str",
+            "expect": "type"
+          }
+        },
+        {
+          "name": "StateStore._mark_corrupt",
+          "line": 340,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path",
+            "capability",
+            "digest",
+            "detail"
+          ],
+          "annotations": {
+            "path": "Path",
+            "capability": "str",
+            "digest": "str",
+            "detail": "str"
+          }
+        },
+        {
+          "name": "StateStore._import_rows",
+          "line": 355,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "conn",
+            "capability",
+            "data"
+          ],
+          "annotations": {
+            "conn": "sqlite3.Connection",
+            "capability": "str",
+            "data": "Any"
+          }
+        },
+        {
+          "name": "StateStore._import_jobs",
+          "line": 364,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "conn",
+            "rows"
+          ],
+          "annotations": {
+            "conn": "sqlite3.Connection",
+            "rows": "list"
+          }
+        },
+        {
+          "name": "StateStore._import_executions",
+          "line": 399,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "conn",
+            "rows"
+          ],
+          "annotations": {
+            "conn": "sqlite3.Connection",
+            "rows": "list"
+          }
+        },
+        {
+          "name": "StateStore._import_budget",
+          "line": 424,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "conn",
+            "data"
+          ],
+          "annotations": {
+            "conn": "sqlite3.Connection",
+            "data": "dict"
+          }
+        },
+        {
+          "name": "StateStore.health",
+          "line": 441,
           "kind": "function",
           "parameters": [
             "self"
@@ -15692,8 +15758,43 @@
           "annotations": {}
         },
         {
-          "name": "StateStore.get_job",
-          "line": 371,
+          "name": "JobStore",
+          "line": 478,
+          "kind": "class"
+        },
+        {
+          "name": "JobStore.__init__",
+          "line": 481,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state"
+          ],
+          "annotations": {
+            "state": "StateStore"
+          }
+        },
+        {
+          "name": "JobStore.state",
+          "line": 485,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "JobStore.list",
+          "line": 488,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "JobStore.get",
+          "line": 491,
           "kind": "function",
           "parameters": [
             "self",
@@ -15704,8 +15805,8 @@
           }
         },
         {
-          "name": "StateStore.upsert_job",
-          "line": 376,
+          "name": "JobStore.upsert",
+          "line": 494,
           "kind": "function",
           "parameters": [
             "self",
@@ -15720,8 +15821,285 @@
           }
         },
         {
-          "name": "StateStore.update_run_state",
-          "line": 441,
+          "name": "JobStore.remove",
+          "line": 501,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "JobStore.claim_due",
+          "line": 504,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "now",
+            "**kwargs"
+          ],
+          "annotations": {
+            "now": "dt.datetime"
+          }
+        },
+        {
+          "name": "JobStore.release_claim",
+          "line": 507,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "token"
+          ],
+          "annotations": {
+            "token": "str"
+          }
+        },
+        {
+          "name": "JobStore.renew_claim",
+          "line": 510,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "token",
+            "ttl_s"
+          ],
+          "annotations": {
+            "token": "str",
+            "ttl_s": "float"
+          }
+        },
+        {
+          "name": "JobStore.update_run_state",
+          "line": 513,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "**fields"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ExecutionLog",
+          "line": 517,
+          "kind": "class"
+        },
+        {
+          "name": "ExecutionLog.__init__",
+          "line": 520,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state",
+            "keep"
+          ],
+          "annotations": {
+            "state": "StateStore",
+            "keep": "int"
+          }
+        },
+        {
+          "name": "ExecutionLog.record",
+          "line": 524,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "job",
+            "started_at",
+            "duration_s",
+            "ok",
+            "result",
+            "delivery"
+          ],
+          "annotations": {
+            "job": "str",
+            "started_at": "str",
+            "duration_s": "float",
+            "ok": "bool",
+            "result": "str",
+            "delivery": "str"
+          }
+        },
+        {
+          "name": "ExecutionLog.recent",
+          "line": 543,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "limit"
+          ],
+          "annotations": {
+            "limit": "int"
+          }
+        },
+        {
+          "name": "ExecutionLog.output",
+          "line": 546,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "job",
+            "run_id",
+            "status",
+            "result",
+            "finished_at"
+          ],
+          "annotations": {
+            "job": "str",
+            "run_id": "str",
+            "status": "str",
+            "result": "str",
+            "finished_at": "str | None"
+          }
+        },
+        {
+          "name": "ExecutionLog.source",
+          "line": 553,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "job",
+            "max_age_minutes"
+          ],
+          "annotations": {
+            "job": "str",
+            "max_age_minutes": "int"
+          }
+        }
+      ],
+      "summary": "共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。"
+    },
+    {
+      "path": "agent/src/omni/memory/state_errors.py",
+      "module": "storage",
+      "python_module": "omni.memory.state_errors",
+      "lines": 43,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "StateError",
+          "line": 15,
+          "kind": "class"
+        },
+        {
+          "name": "StateUnavailable",
+          "line": 19,
+          "kind": "class"
+        },
+        {
+          "name": "StateConflict",
+          "line": 23,
+          "kind": "class"
+        },
+        {
+          "name": "StateBusy",
+          "line": 27,
+          "kind": "class"
+        },
+        {
+          "name": "translate_operational",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "exc"
+          ],
+          "annotations": {
+            "exc": "sqlite3.OperationalError"
+          }
+        }
+      ],
+      "summary": "state.db 的异常语义与错误翻译（唯一来源）。"
+    },
+    {
+      "path": "agent/src/omni/memory/state_mixin_jobs.py",
+      "module": "storage",
+      "python_module": "omni.memory.state_mixin_jobs",
+      "lines": 262,
+      "imports": [
+        "omni.memory.jobs",
+        "omni.memory.state_errors",
+        "omni.memory.state_records"
+      ],
+      "symbols": [
+        {
+          "name": "_jobs_now",
+          "line": 26,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_row_to_job",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "row"
+          ],
+          "annotations": {
+            "row": "sqlite3.Row"
+          }
+        },
+        {
+          "name": "_job_params",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "job"
+          ],
+          "annotations": {
+            "job": "Job"
+          }
+        },
+        {
+          "name": "JobsMixin",
+          "line": 72,
+          "kind": "class"
+        },
+        {
+          "name": "JobsMixin.list_jobs",
+          "line": 75,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "JobsMixin.get_job",
+          "line": 80,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "JobsMixin.upsert_job",
+          "line": 85,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "job",
+            "validate",
+            "expected_revision"
+          ],
+          "annotations": {
+            "job": "Job",
+            "validate": "bool",
+            "expected_revision": "int | None"
+          }
+        },
+        {
+          "name": "JobsMixin.update_run_state",
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",
@@ -15738,8 +16116,8 @@
           }
         },
         {
-          "name": "StateStore.remove_job",
-          "line": 460,
+          "name": "JobsMixin.remove_job",
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self",
@@ -15750,8 +16128,8 @@
           }
         },
         {
-          "name": "StateStore.claim_due",
-          "line": 467,
+          "name": "JobsMixin.claim_due",
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self",
@@ -15768,8 +16146,8 @@
           }
         },
         {
-          "name": "StateStore.release_claim",
-          "line": 543,
+          "name": "JobsMixin.release_claim",
+          "line": 254,
           "kind": "function",
           "parameters": [
             "self",
@@ -15780,8 +16158,8 @@
           }
         },
         {
-          "name": "StateStore.renew_job_claim",
-          "line": 547,
+          "name": "JobsMixin.renew_job_claim",
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self",
@@ -15792,10 +16170,27 @@
             "token": "str",
             "ttl_s": "float"
           }
+        }
+      ],
+      "summary": "定时任务域的 `state.db` 访问 mixin（任务定义 / revision / 原子领取）。"
+    },
+    {
+      "path": "agent/src/omni/memory/state_mixin_leases.py",
+      "module": "storage",
+      "python_module": "omni.memory.state_mixin_leases",
+      "lines": 121,
+      "imports": [
+        "omni.memory.state_records"
+      ],
+      "symbols": [
+        {
+          "name": "LeasesMixin",
+          "line": 17,
+          "kind": "class"
         },
         {
-          "name": "StateStore.lease",
-          "line": 555,
+          "name": "LeasesMixin.lease",
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -15806,8 +16201,8 @@
           }
         },
         {
-          "name": "StateStore.acquire_lease",
-          "line": 568,
+          "name": "LeasesMixin.acquire_lease",
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -15826,8 +16221,8 @@
           }
         },
         {
-          "name": "StateStore.renew_lease",
-          "line": 605,
+          "name": "LeasesMixin.renew_lease",
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -15842,8 +16237,8 @@
           }
         },
         {
-          "name": "StateStore.release_lease",
-          "line": 616,
+          "name": "LeasesMixin.release_lease",
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -15854,8 +16249,8 @@
           }
         },
         {
-          "name": "StateStore.session_lease",
-          "line": 624,
+          "name": "LeasesMixin.session_lease",
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -15866,8 +16261,8 @@
           }
         },
         {
-          "name": "StateStore.acquire_session_lease",
-          "line": 627,
+          "name": "LeasesMixin.acquire_session_lease",
+          "line": 92,
           "kind": "function",
           "parameters": [
             "self",
@@ -15886,8 +16281,8 @@
           }
         },
         {
-          "name": "StateStore.renew_session_lease",
-          "line": 644,
+          "name": "LeasesMixin.renew_session_lease",
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -15902,8 +16297,8 @@
           }
         },
         {
-          "name": "StateStore.release_session_lease",
-          "line": 649,
+          "name": "LeasesMixin.release_session_lease",
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self",
@@ -15914,8 +16309,32 @@
           }
         },
         {
-          "name": "StateStore.record_execution",
-          "line": 654,
+          "name": "_leases_now",
+          "line": 118,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "资源租约域的 `state.db` 访问 mixin（会话/浏览器 profile 等互斥资源）。"
+    },
+    {
+      "path": "agent/src/omni/memory/state_mixin_ledger.py",
+      "module": "storage",
+      "python_module": "omni.memory.state_mixin_ledger",
+      "lines": 85,
+      "imports": [
+        "omni.memory.state_records"
+      ],
+      "symbols": [
+        {
+          "name": "LedgerMixin",
+          "line": 12,
+          "kind": "class"
+        },
+        {
+          "name": "LedgerMixin.record_execution",
+          "line": 15,
           "kind": "function",
           "parameters": [
             "self",
@@ -15938,8 +16357,8 @@
           }
         },
         {
-          "name": "StateStore.recent_executions",
-          "line": 679,
+          "name": "LedgerMixin.recent_executions",
+          "line": 40,
           "kind": "function",
           "parameters": [
             "self",
@@ -15950,8 +16369,8 @@
           }
         },
         {
-          "name": "StateStore.consume_budget",
-          "line": 699,
+          "name": "LedgerMixin.consume_budget",
+          "line": 58,
           "kind": "function",
           "parameters": [
             "self",
@@ -15966,8 +16385,8 @@
           }
         },
         {
-          "name": "StateStore.budget_used",
-          "line": 722,
+          "name": "LedgerMixin.budget_used",
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -15978,370 +16397,50 @@
             "scope": "str",
             "day": "str"
           }
-        },
-        {
-          "name": "StateStore._migration",
-          "line": 730,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "source"
-          ],
-          "annotations": {
-            "source": "str"
-          }
-        },
-        {
-          "name": "StateStore._write_migration",
-          "line": 744,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "source",
-            "status",
-            "sha256",
-            "imported",
-            "detail",
-            "conn"
-          ],
-          "annotations": {
-            "source": "str",
-            "status": "str",
-            "sha256": "str",
-            "imported": "int",
-            "detail": "str",
-            "conn": "sqlite3.Connection | None"
-          }
-        },
-        {
-          "name": "StateStore.migrate_legacy",
-          "line": 763,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "data_dir"
-          ],
-          "annotations": {
-            "data_dir": "Path"
-          }
-        },
-        {
-          "name": "StateStore._migrate_file",
-          "line": 772,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "path",
-            "capability",
-            "expect"
-          ],
-          "annotations": {
-            "path": "Path",
-            "capability": "str",
-            "expect": "type"
-          }
-        },
-        {
-          "name": "StateStore._mark_corrupt",
-          "line": 810,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "path",
-            "capability",
-            "digest",
-            "detail"
-          ],
-          "annotations": {
-            "path": "Path",
-            "capability": "str",
-            "digest": "str",
-            "detail": "str"
-          }
-        },
-        {
-          "name": "StateStore._import_rows",
-          "line": 825,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "conn",
-            "capability",
-            "data"
-          ],
-          "annotations": {
-            "conn": "sqlite3.Connection",
-            "capability": "str",
-            "data": "Any"
-          }
-        },
-        {
-          "name": "StateStore._import_jobs",
-          "line": 834,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "conn",
-            "rows"
-          ],
-          "annotations": {
-            "conn": "sqlite3.Connection",
-            "rows": "list"
-          }
-        },
-        {
-          "name": "StateStore._import_executions",
-          "line": 869,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "conn",
-            "rows"
-          ],
-          "annotations": {
-            "conn": "sqlite3.Connection",
-            "rows": "list"
-          }
-        },
-        {
-          "name": "StateStore._import_budget",
-          "line": 894,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "conn",
-            "data"
-          ],
-          "annotations": {
-            "conn": "sqlite3.Connection",
-            "data": "dict"
-          }
-        },
-        {
-          "name": "StateStore.health",
-          "line": 911,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "JobStore",
-          "line": 948,
-          "kind": "class"
-        },
-        {
-          "name": "JobStore.__init__",
-          "line": 951,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "state"
-          ],
-          "annotations": {
-            "state": "StateStore"
-          }
-        },
-        {
-          "name": "JobStore.state",
-          "line": 955,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "JobStore.list",
-          "line": 958,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "JobStore.get",
-          "line": 961,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "JobStore.upsert",
-          "line": 964,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "job",
-            "validate",
-            "expected_revision"
-          ],
-          "annotations": {
-            "job": "Job",
-            "validate": "bool",
-            "expected_revision": "int | None"
-          }
-        },
-        {
-          "name": "JobStore.remove",
-          "line": 971,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "JobStore.claim_due",
-          "line": 974,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "now",
-            "**kwargs"
-          ],
-          "annotations": {
-            "now": "dt.datetime"
-          }
-        },
-        {
-          "name": "JobStore.release_claim",
-          "line": 977,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "token"
-          ],
-          "annotations": {
-            "token": "str"
-          }
-        },
-        {
-          "name": "JobStore.renew_claim",
-          "line": 980,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "token",
-            "ttl_s"
-          ],
-          "annotations": {
-            "token": "str",
-            "ttl_s": "float"
-          }
-        },
-        {
-          "name": "JobStore.update_run_state",
-          "line": 983,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name",
-            "**fields"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ExecutionLog",
-          "line": 987,
-          "kind": "class"
-        },
-        {
-          "name": "ExecutionLog.__init__",
-          "line": 990,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "state",
-            "keep"
-          ],
-          "annotations": {
-            "state": "StateStore",
-            "keep": "int"
-          }
-        },
-        {
-          "name": "ExecutionLog.record",
-          "line": 994,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "job",
-            "started_at",
-            "duration_s",
-            "ok",
-            "result",
-            "delivery"
-          ],
-          "annotations": {
-            "job": "str",
-            "started_at": "str",
-            "duration_s": "float",
-            "ok": "bool",
-            "result": "str",
-            "delivery": "str"
-          }
-        },
-        {
-          "name": "ExecutionLog.recent",
-          "line": 1013,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "limit"
-          ],
-          "annotations": {
-            "limit": "int"
-          }
-        },
-        {
-          "name": "ExecutionLog.output",
-          "line": 1016,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "job",
-            "run_id",
-            "status",
-            "result",
-            "finished_at"
-          ],
-          "annotations": {
-            "job": "str",
-            "run_id": "str",
-            "status": "str",
-            "result": "str",
-            "finished_at": "str | None"
-          }
-        },
-        {
-          "name": "ExecutionLog.source",
-          "line": 1023,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "job",
-            "max_age_minutes"
-          ],
-          "annotations": {
-            "job": "str",
-            "max_age_minutes": "int"
-          }
         }
       ],
-      "summary": "共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。"
+      "summary": "执行账本与写额度域的 `state.db` 访问 mixin。"
+    },
+    {
+      "path": "agent/src/omni/memory/state_records.py",
+      "module": "storage",
+      "python_module": "omni.memory.state_records",
+      "lines": 55,
+      "imports": [
+        "omni.memory.jobs"
+      ],
+      "symbols": [
+        {
+          "name": "BudgetHit",
+          "line": 14,
+          "kind": "class"
+        },
+        {
+          "name": "Claim",
+          "line": 22,
+          "kind": "class"
+        },
+        {
+          "name": "Lease",
+          "line": 29,
+          "kind": "class"
+        },
+        {
+          "name": "Lease.session_id",
+          "line": 39,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MigrationRecord",
+          "line": 49,
+          "kind": "class"
+        }
+      ],
+      "summary": "state.db 各域仓储返回值的数据形状（唯一来源）。"
     },
     {
       "path": "agent/src/omni/memory/state_schema.py",

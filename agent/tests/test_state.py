@@ -492,6 +492,31 @@ def test_skill_ack_store_has_single_domain_implementation():
     assert SkillAckStore.__module__ == "omni.memory.skill_acks"
 
 
+def test_state_store_domain_apis_survive_mixin_split():
+    """域方法群拆成 mixin 后，StateStore 公开方法名一个都不能少。"""
+    expected = {
+        # 任务域（state_mixin_jobs）
+        "list_jobs", "get_job", "upsert_job", "update_run_state", "remove_job",
+        "claim_due", "release_claim", "renew_job_claim",
+        # 租约域（state_mixin_leases）
+        "lease", "acquire_lease", "renew_lease", "release_lease",
+        "session_lease", "acquire_session_lease", "renew_session_lease", "release_session_lease",
+        # 账本/额度域（state_mixin_ledger）
+        "record_execution", "recent_executions", "consume_budget", "budget_used",
+    }
+    missing = {name for name in expected if not callable(getattr(StateStore, name, None))}
+    assert not missing, f"StateStore 丢失了公开域方法：{sorted(missing)}"
+
+    # mixin 实现确实归位到各自模块（而非仍在 state.py 里）
+    import omni.memory.state_mixin_jobs as jobs_mixin
+    import omni.memory.state_mixin_leases as leases_mixin
+    import omni.memory.state_mixin_ledger as ledger_mixin
+
+    for module in (jobs_mixin, leases_mixin, ledger_mixin):
+        source = module.__file__ or ""
+        assert source.endswith(".py") and "state_mixin" in source
+
+
 def test_skill_ack_store_only_advances(tmp_path):
     """技能已读标记只前进：旧标记不会把已读改回未读（D18）。"""
     from omni.memory.state import SkillAckStore

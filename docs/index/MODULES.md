@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`f6718093375348faff88580f5b78d7f4972467cb876ee765849656e3ec2668ff`。包含 56 个职责模块、284 个源码/界面文件。
+源码指纹：`d730b88029971be90b312a2c22917c8173c4a42f97b0d96f17f1196f191b70b2`。包含 56 个职责模块、289 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -187,7 +187,12 @@
 | [agent/src/omni/memory/skill_acks.py](../../agent/src/omni/memory/skill_acks.py) | 57 | 技能变更「已读」标记仓储（D18，`state.db`）。 |
 | [agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py) | 574 | 外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。 |
 | [agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py) | 1049 | 技能存储（程序性记忆）：skills/<name>/SKILL.md，agentskills.io 兼容子集。 |
-| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 1031 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
+| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 561 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
+| [agent/src/omni/memory/state_errors.py](../../agent/src/omni/memory/state_errors.py) | 43 | state.db 的异常语义与错误翻译（唯一来源）。 |
+| [agent/src/omni/memory/state_mixin_jobs.py](../../agent/src/omni/memory/state_mixin_jobs.py) | 262 | 定时任务域的 `state.db` 访问 mixin（任务定义 / revision / 原子领取）。 |
+| [agent/src/omni/memory/state_mixin_leases.py](../../agent/src/omni/memory/state_mixin_leases.py) | 121 | 资源租约域的 `state.db` 访问 mixin（会话/浏览器 profile 等互斥资源）。 |
+| [agent/src/omni/memory/state_mixin_ledger.py](../../agent/src/omni/memory/state_mixin_ledger.py) | 85 | 执行账本与写额度域的 `state.db` 访问 mixin。 |
+| [agent/src/omni/memory/state_records.py](../../agent/src/omni/memory/state_records.py) | 55 | state.db 各域仓储返回值的数据形状（唯一来源）。 |
 | [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1146 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
 | [agent/src/omni/memory/system.py](../../agent/src/omni/memory/system.py) | 61 | 记忆系统门面：六个记忆模块对外的单点聚合（组合根纪律，无业务逻辑）。 |
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
