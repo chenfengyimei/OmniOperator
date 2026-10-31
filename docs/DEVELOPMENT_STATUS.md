@@ -1,5 +1,15 @@
 # 开发状态记录
 
+2026-11-01 数据模型全景文档与守卫（工作区）：新增 `docs/DATA_MODEL.md`，
+登记两库分工、state.db 全部表（从 `state_schema.py` 动态提取校验）的归属
+模块与生命周期、memory.db 关键表、跨库引用真值方向（session_id 以
+memory.db 为真值、state.db 只存 id 不级联）、金额与 unknown 语义、迁移
+纪律。`agent/tests/test_data_model.py` 3 项守卫防文档漂移。确认
+`memory/qq.py`、`memory/publications.py` 已是独立领域模块，memory 层域
+拆分收尾。专项 `uv run --no-sync pytest -q -n 0 agent/tests/test_data_model.py agent/tests/test_state.py agent/tests/test_cron.py`
+→ **58 passed（12.44s）**；索引更新、目录守卫 11 passed。未跑全量；
+真实数据未迁移。
+
 2026-10-31 cron 门面迁出 state.py（工作区）：`JobStore` / `ExecutionLog`
 迁到新模块 `memory/cron_store.py`；state.py 行数 **559 → 476**。旧 import
 `omni.memory.state.JobStore` 与 `omni.memory.cron.JobStore` 继续指向同一

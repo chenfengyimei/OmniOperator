@@ -21,6 +21,7 @@
 | [MODE_ROUTING.md](MODE_ROUTING.md) | 能力档位路由：chat/retrieval/agent 判定、升档协议、模型与配置、入口用法 |
 | [RETRIEVAL.md](RETRIEVAL.md) | 混合检索：Ollama/API embedding、sqlite-vec + FTS、评测（默认关闭） |
 | [STORAGE.md](STORAGE.md) | 全局业务根、工作目录与 Agent 空间的目录布局与边界 |
+| [DATA_MODEL.md](DATA_MODEL.md) | 两库分工、每张表的归属模块与生命周期、跨库引用与迁移纪律 |
 | [AGENT_STORAGE.md](AGENT_STORAGE.md) | Agent 独立空间：九类业务目录、路径策略与 API 说明 |
 | [PLUGIN_SYSTEM.md](PLUGIN_SYSTEM.md) | 插件系统与社区：manifest、隔离激活、信任模型、部署指南 |
 
