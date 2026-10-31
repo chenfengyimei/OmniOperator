@@ -194,6 +194,63 @@ uv run python -m omni.plugins.server --root /srv/omni-community \
 - 客户端只信任**https + sha256**，不校验作者签名——激活前的人工审阅
   仍是最终防线。
 
+### 5.5 工作台里的市场入口（人设 + 插件，2026-11-01）
+
+设置中心里能直接逛市场，不必让 agent 代劳：
+
+| 入口 | 位置 | 做什么 |
+| --- | --- | --- |
+| 人设市场 | 设置中心 → 人设 → 「看看人设市场」 | 浏览/搜索人设卡、看设定全文、导入进本机预设库并填进表单 |
+| 插件市场 | 设置中心 → 插件 → 「打开插件市场」 | 浏览/搜索插件、装下来（落隔离区）、在分区里确认激活/丢弃/启停/卸载 |
+
+**两端各是什么**
+
+- 官方源 = 仓库根的 `market/`（**不入 git**，内容与站点都在里面）：`content/` 放
+  插件目录与 `persona.json`，`build.py` 生成 `dist/`（含 `catalog.json` 与确定性
+  zip），`server.py` 只读地同时提供插件与人设两套 API（`/api/plugins*`、
+  `/api/personas*`、`/api/download/{id}`）。它和 `omni/plugins/server.py` 那份
+  FastAPI 参考实现**同契约**，差别是内容驱动、标准库、无发布接口（投稿走审核后
+  进 `content/`）。所有者提供机器后把地址配进来即可，客户端一行不用改。
+- 客户端 = `CommunityClient`（`community.py`）：`fetch` 是索引/详情的唯一 HTTP
+  出口，`install` 是唯一的下载入口（sha256 与响应头比对，不符即丢弃）。
+
+**源怎么定**（`community.json` 的 `server_url` 优先，其次环境变量，都没有即"未配置"）
+
+```bash
+# 起本地官方源（另开一个终端）
+python market/build.py && python market/server.py --port 8787
+# 让工作台默认用它（也可在界面上点「换源」填 URL，存进 community.json）
+export OMNI_MARKET_URL=http://127.0.0.1:8787
+```
+
+刻意**不**把某个主机硬编码成默认信任锚：默认源是部署方的选择，界面上也始终
+显示当前生效的地址。
+
+**工作台接口**（`channels/web_api/market.py`，除源写入外全部只读）
+
+| 方法与路径 | 语义 |
+| --- | --- |
+| `GET /api/market/status` | 生效源、是否显式配置、探一次 `/api/health` 的数量 |
+| `PUT /api/market/source` | 写 `server_url`（空串 = 回到默认源）；必须是 http(s) |
+| `GET /api/market/personas?query=` / `.../{id}` | 人设卡（含 `system_prompt`，字段逐项收窄） |
+| `GET /api/market/plugins?query=` / `.../{id}` | 插件索引/详情（作者自填文本一律截断） |
+| `POST /api/market/plugins/{id}/install` | 下载 → 指纹校验 → 隔离安装；**不执行代码**，重复安装 409 |
+| `POST /api/market/quarantine/{id}/activate` / `discard` | 激活（= 同意执行代码）/ 丢弃隔离包 |
+| `GET /api/market/installed` | 已装 + 隔离区 + 收件箱三份清单 |
+| `POST /api/market/plugins/{id}/enable` / `disable`、`DELETE .../{id}` | 启停与卸载 |
+
+**人设卡为什么不做服务端存储**：人设就是 `config.Persona`（名称 + 提示词）两项，
+且本机已经有"预设库"（`localStorage` 的 `omni_persona_presets`）。导入只写预设库
+并把值填进表单，**落盘仍由用户点「保存人设」**——这样"我导入了什么"和"它现在
+是谁"不会混成一步，也不引入第二处配置真相。市场导入的条目用 `market-<id>` 前缀，
+和手写预设区分得开。
+
+**未做（如实）**
+
+- 人设与插件都还没有"有新版本"的提示（索引不落库，本地不比对版本）；
+- 市场站点没有账号、评分、评论；官方源也不接受公开上传（只读）；
+- 插件卡上的工具数取自 manifest 声明，没有在下载前解析包内容。
+
 ## 6. 平台坑与实现记录
 
 1. `__pycache__`：导入插件时解释器会在包目录写字节码缓存，把内容指纹打花

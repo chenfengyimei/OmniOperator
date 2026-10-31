@@ -34,6 +34,9 @@ config/agents.lock
 # 官网设计稿（独立静态站，不入库；见 website/README.md）
 /website/
 
+# 官方社区内容源（插件/人设市场，运营资产不入库；见 market/README.md）
+/market/
+
 # 产品重构后本机可选兼容联接；正式代码与测试只归 agent/
 /src/
 /tests/
