@@ -65,6 +65,28 @@
     "route_call_note": "「你好」命中确定性寒暄规则，路由未发起模型调用（用量流水里没有 route 条目），因此没有额外成本。"
   },
   "operational_note": "档位是服务端行为：**必须重启工作台进程**才会加载新代码；只刷新浏览器页面不生效。重启用法：关闭工作台窗口后重新运行 start.bat。",
+  "escalation_prompt_protocol_2026_10_31": {
+    "note": "用户报障：auto 档把「查询一下当前deepseek剩下多少余额」判为 retrieval，检索档无对应工具时模型直接回答查不到，没有用 request_mode 升档。修复=把升档协议写进模型看得到的每个触点。",
+    "base_head": "70171de",
+    "touchpoints": [
+      "core/context.py CONTEXT_POLICY：固定「能力档位协议」段（三档含义 + 缺工具先升档 + 一次/向上/拿不准选 agent + 够用不升档 + 升档不改场景许可）",
+      "core/modes.py request_mode 描述同口径重写；新增 MODE_LABELS 中文档位名（升档成功/拒绝提示统一用语）",
+      "tools/registry.py execute 新增可选 denied_note 回调；core/agent.py 注入闭包：档位不够（场景许可内、档位白名单外）提示升档，场景不许可（群聊/他人私聊）保留原「受限作用域」文案不误导",
+      "agent 档伪造 request_mode：返回 escalation_unneeded 友好说明（原为错误腔），不消耗升档额度"
+    ],
+    "tests": {
+      "new_cases": [
+        "test_system_prompt_carries_mode_escalation_protocol",
+        "test_mode_denied_tool_hints_escalation",
+        "test_scope_denied_tool_keeps_default_text",
+        "test_agent_mode_forged_request_mode_gets_friendly_reply",
+        "test_retrieval_escalates_to_agent_and_finishes（端到端：拒绝提示→升档→原工具复用→完成）",
+        "test_denied_note_callback_failure_falls_back_to_default_text"
+      ],
+      "test_mode_escalation_total": 17,
+      "full_suite_after": "1438 passed / 161.24s（基线 1432 + 本批 6）"
+    }
+  },
   "not_verified": [
     "真实模型的档位判定准确率（离线只用假网关验证机制；「你好」等高置信输入走规则，未触发模型判定）",
     "真实缓存命中率与端到端 token 净收益（规则未命中时路由会有一次额外模型调用）",

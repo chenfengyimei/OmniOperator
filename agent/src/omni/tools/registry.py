@@ -147,14 +147,26 @@ class ToolRegistry:
         approver: Approver | None = None,
         denied_tools: frozenset[str] = frozenset(),
         cancel: Any = None,
+        denied_note: Callable[[str], str] | None = None,
     ) -> ToolResult:
-        """派发一次工具调用，返回结构化结果（不抛异常：失败也回传给模型）。"""
+        """派发一次工具调用，返回结构化结果（不抛异常：失败也回传给模型）。
+
+        denied_note 是可选的拒绝说明回调（传工具名，返回补充文案或空串）：
+        返回非空时替换默认的"受限作用域"文案——调用方用它区分"档位不够
+        （提示升档）"与"场景不许可（保留原文案，不误导受限场景去升档）"。
+        """
         tool = self._tools.get(name)
         if tool is None:
             return ToolResult.fail(
                 f"错误：没有名为 {name} 的工具", error_code="tool_not_found"
             )
         if name in denied_tools:
+            note = _denied_note_text(denied_note, name)
+            if note:
+                return ToolResult.fail(
+                    f"错误：当前回合未提供工具 {name}。{note}",
+                    error_code="tool_not_available",
+                )
             return ToolResult.fail(
                 f"错误：当前场景不提供工具 {name}"
                 "（受限作用域不读取所有者的个人档案、常驻笔记、跨会话历史与工作区文件；"
@@ -225,6 +237,16 @@ _APPROVE_SIGNATURES: dict[tuple[type, str], bool] = {}
 def _cancelled(cancel: Any) -> bool:
     """取消信号可能是 CancelToken，也可能是 None（不引入 core 的 import）。"""
     return bool(getattr(cancel, "cancelled", False))
+
+
+def _denied_note_text(denied_note: Callable[[str], str] | None, name: str) -> str:
+    """拒绝说明回调的安全求值：空串/异常都回退默认文案，不影响拒绝语义。"""
+    if denied_note is None:
+        return ""
+    try:
+        return str(denied_note(name) or "")
+    except Exception:  # noqa: BLE001 —— 提示生成失败不能改变"工具被拒"这个事实
+        return ""
 
 
 def _accepts_cancel(func: Any) -> bool:

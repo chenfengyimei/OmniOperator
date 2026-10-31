@@ -31,6 +31,7 @@ from .context import TurnContext, reanchor_current_memory, render_rows, system_p
 from .modes import (
     DM_ALLOWED_TOOLS,
     GROUP_ALLOWED_TOOLS,
+    MODE_LABELS,
     REQUEST_MODE_TOOL,
     RouteDecision,
     TurnMode,
@@ -1040,6 +1041,14 @@ class Agent:
         升档只切换"本回合注入哪一档工具"，**不扩大任何权限**——
         场景白名单仍然生效，群聊升到 agent 也拿不到文件与设备工具。
         """
+        if state.mode is TurnMode.AGENT:
+            # 完整档位不发升档工具；走到这里只可能是模型凭系统提示里的协议
+            # 伪造的调用：给一句友好说明，让模型直接用手头工具继续做事。
+            return ToolResult.fail(
+                "当前已是完整能力档位（agent），无需升档：本回合可用的工具都已提供，"
+                "请直接使用现有工具完成用户请求。",
+                error_code="escalation_unneeded",
+            )
         try:
             arguments = json.loads(call.function.arguments or "{}")
         except (ValueError, TypeError):
@@ -1089,9 +1098,40 @@ class Agent:
                 tool_count=len(mode_allowed_names(target, state.scope_allowed)),
             )
         return ToolResult.ok(
-            f"已升档到 {target.value}：后续步骤可用该档位的工具。"
+            f"已升档到 {MODE_LABELS[target]}：后续步骤可用该档位的工具。"
             + (f"原因：{reason}" if reason else "")
         )
+
+    def _denied_note(self, state: TurnModeState | None) -> Callable[[str], str] | None:
+        """档位拒绝说明回调：区分"档位不够"与"场景不许可"。
+
+        档位不够（工具在场景许可集合里，只是不在本回合档位白名单）→
+        提示先调 request_mode 升档，不要直接说做不到；
+        场景不许可（群聊/他人私聊拿不到的工具）→ 返回空串走 registry
+        默认文案——升档不改变场景许可，提示升档只会误导。
+        完整档位没有档位拒绝，无需回调。
+        """
+        if state is None or state.mode is TurnMode.AGENT:
+            return None
+        if not self.config.mode_routing.allow_escalation:
+            return None
+        scope_allowed = state.scope_allowed
+        current = state.mode
+
+        def note(name: str) -> str:
+            if name not in scope_allowed:
+                return ""
+            targets = "/".join(
+                m.value for m in (TurnMode.RETRIEVAL, TurnMode.AGENT)
+                if can_escalate(current, m)
+            )
+            return (
+                f"该工具不在当前能力档位（{MODE_LABELS[current]}）的清单里；"
+                f"若完成用户请求确实需要它，请调用 request_mode 升档到 {targets}"
+                "（本回合最多一次，不能降档），升档后再继续，不要直接回答做不到。"
+            )
+
+        return note
 
     def _execute_one(
         self,
@@ -1128,6 +1168,7 @@ class Agent:
                     approver=self.approver,
                     denied_tools=denied,
                     cancel=cancel,
+                    denied_note=self._denied_note(state),
                 )
             except Exception as exc:  # noqa: BLE001 —— 同批其它工具不受影响
                 return ToolResult.fail(

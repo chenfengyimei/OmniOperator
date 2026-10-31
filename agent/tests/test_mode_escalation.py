@@ -1,11 +1,12 @@
-"""同回合一次升档（D28 第二批）：request_mode 的状态机与权限边界。
+"""同回合一次升档（D28）：request_mode 的状态机、权限边界与升档提示。
 
 核心不变量：
 - 升档只能向上、每回合最多一次；
 - 升档只切换"注入哪一档工具规格"，**不扩大任何权限**：
   群聊升到 agent 也拿不到文件与设备工具；
 - 升档后的写操作照旧走审批链，没人能借升档绕过人工确认；
-- request_mode 是内核专用工具，不在 Registry 里，因此无法被派发或审批绕过。
+- request_mode 是内核专用工具，不在 Registry 里，因此无法被派发或审批绕过；
+- 档位不足时提示升档（提示协议在系统提示与拒绝文案里），场景不许可保持原文案。
 """
 from __future__ import annotations
 
@@ -37,6 +38,7 @@ class _Script:
     def __init__(self, script: list) -> None:
         self.script = list(script)
         self.seen_tools: list[list[str]] = []
+        self.seen_messages: list[list[dict]] = []
         self.calls = 0
 
     def resolve(self, _route: str) -> str:
@@ -45,10 +47,21 @@ class _Script:
     def complete(self, messages, *, model, tools=None, purpose="chat", **kwargs):
         self.calls += 1
         self.seen_tools.append([t["function"]["name"] for t in (tools or [])])
+        # 拷贝快照：调用返回后 agent 还会往同一个列表里追加 tool 消息
+        self.seen_messages.append([dict(m) for m in messages])
         step = self.script.pop(0) if self.script else "已完成。"
         if isinstance(step, str):
             return SimpleNamespace(text=step, tool_calls=[])
         return SimpleNamespace(text="", tool_calls=step)
+
+
+def _tool_contents(script: _Script, call_index: int) -> str:
+    """第 call_index 次模型调用看到的全部 tool 消息（升档/拒绝文案都在里面）。"""
+    return "\n".join(
+        str(m.get("content", ""))
+        for m in script.seen_messages[call_index]
+        if m.get("role") == "tool"
+    )
 
 
 def _agent(tmp_path, gateway, names=(), *, approver=None, router=True, mode="chat"):
@@ -340,3 +353,144 @@ def test_delegate_child_run_is_always_full_agent(tmp_path):
         assert "child" in modes
     finally:
         store.close()
+
+
+# ---------------------------------------------------------------- 升档提示（提示词与拒绝文案）
+
+
+def test_system_prompt_carries_mode_escalation_protocol():
+    """升档协议写在系统提示里：档位含义 + 能力不足先升档，别直接说做不到。"""
+    from omni.core.context import system_prompt
+
+    for text in (system_prompt("人设固定。", include_personal=True),
+                 system_prompt("人设固定。", include_personal=False)):
+        assert "能力档位协议" in text
+        assert "request_mode" in text
+        for name in ("chat", "retrieval", "agent"):
+            assert name in text
+        assert "拿不准目标就选 agent" in text
+        assert "不要在能力不足时直接说做不到" in text
+        # 升档不扩大场景许可：群聊同样看到这条边界
+        assert "升档不改变场景许可" in text
+
+
+def test_mode_denied_tool_hints_escalation(tmp_path):
+    """档位白名单拒绝（工具在场景许可内）：拒绝文案提示先升档。"""
+    gateway = _Script([
+        [_call("web_read", url="https://example.com")],  # chat 档没有 web_read
+        "已经读到了。",
+    ])
+    agent, store, sid = _agent(tmp_path, gateway, names=("get_time", "web_read"))
+    try:
+        agent.chat("看看这个网页", mode="chat")
+        content = _tool_contents(gateway, 1)
+        assert "当前回合未提供工具 web_read" in content
+        assert "request_mode" in content
+        assert "升档" in content
+        # 场景许可内的工具才提示升档：这里没有触发"受限作用域"那套文案
+        assert "受限作用域" not in content
+    finally:
+        store.close()
+
+
+def test_scope_denied_tool_keeps_default_text(tmp_path):
+    """场景不许可（群聊拿所有者资料）：保持原文案，不误导去升档。"""
+    gateway = _Script([
+        [_call("person_lookup", query="某人")],  # 档位允许但群聊作用域不允许
+        "结束。",
+    ])
+    agent, store, sid = _agent(
+        tmp_path, gateway, names=("get_time", "person_lookup")
+    )
+    try:
+        agent.run_turn(
+            "查一下这个人", personal_context=False, channel="qq",
+            context_scope="group:200", mode="retrieval",
+        )
+        content = _tool_contents(gateway, 1)
+        assert "当前场景不提供工具 person_lookup" in content
+        assert "请让所有者本人来操作" in content
+        assert "request_mode" not in content
+    finally:
+        store.close()
+
+
+def test_agent_mode_forged_request_mode_gets_friendly_reply(tmp_path):
+    """完整档位不发升档工具；模型凭系统提示伪造调用时给友好说明而非报错腔。"""
+    gateway = _Script([
+        [_call(REQUEST_MODE_TOOL, mode="agent", reason="试试看")],
+        "结束。",
+    ])
+    agent, store, sid = _agent(tmp_path, gateway, names=("get_time",))
+    try:
+        agent.chat("做点事", mode="agent")
+        content = _tool_contents(gateway, 1)
+        assert "已是完整能力档位" in content
+        assert "无需升档" in content
+        # 完整档位的工具规格里本来就没有升档工具，档位也没有变化
+        assert REQUEST_MODE_TOOL not in gateway.seen_tools[0]
+        assert REQUEST_MODE_TOOL not in gateway.seen_tools[1]
+    finally:
+        store.close()
+
+
+def test_retrieval_escalates_to_agent_and_finishes(tmp_path):
+    """端到端：retrieval 档工具不足 → 拒绝文案提示升档 → request_mode → 完成。"""
+    ran: list[str] = []
+
+    def run_command(args):
+        ran.append(str(args.get("command", "")))
+        return "命令输出"
+
+    gateway = _Script([
+        [_call("run_command", command="dir")],   # retrieval 档没有 run_command
+        [_call(REQUEST_MODE_TOOL, mode="agent", reason="需要执行命令")],
+        [_call("run_command", command="dir")],
+        "已经完成。",
+    ])
+    store = MemoryStore(tmp_path / "m.db")
+    try:
+        sid = store.new_session()
+        registry = ToolRegistry()
+        registry.register(
+            Tool("get_time", "时间", {"type": "object", "properties": {}},
+                 lambda _a: "12:00", toolset="test")
+        )
+        registry.register(
+            Tool("run_command", "跑命令", {"type": "object", "properties": {}},
+                 run_command, toolset="test")
+        )
+        agent = Agent(AppConfig(), gateway, store, registry, sid,
+                      mode_router=ModeRouter(AppConfig()))
+        answer = agent.chat("帮我跑个命令", mode="retrieval")
+        assert answer == "已经完成。"
+        # 第一次被拒（带升档提示），升档后同一工具真实执行且只执行了一次
+        assert ran == ["dir"]
+        denied_content = _tool_contents(gateway, 1)
+        assert "升档" in denied_content
+        upgraded_content = _tool_contents(gateway, 2)
+        assert "已升档到 agent" in upgraded_content
+        # 工具规格随升档变化：前两轮没有 run_command，第三轮出现
+        assert "run_command" not in gateway.seen_tools[0]
+        assert "run_command" not in gateway.seen_tools[1]
+        assert "run_command" in gateway.seen_tools[2]
+        assert REQUEST_MODE_TOOL not in gateway.seen_tools[2]
+    finally:
+        store.close()
+
+
+def test_denied_note_callback_failure_falls_back_to_default_text():
+    """拒绝说明回调抛异常：回退默认文案，拒绝语义不受影响。"""
+    registry = ToolRegistry()
+    registry.register(
+        Tool("secret_read", "私人读", {"type": "object", "properties": {}},
+             lambda _a: "秘密", toolset="test")
+    )
+    result = registry.execute(
+        "secret_read", {},
+        denied_tools=frozenset({"secret_read"}),
+        denied_note=lambda _name: 1 / 0,
+    )
+    assert result.status == "error"
+    assert result.error_code == "tool_not_available"
+    assert "当前场景不提供工具 secret_read" in result.text

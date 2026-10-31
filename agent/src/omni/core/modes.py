@@ -35,6 +35,14 @@ MODE_RANK: dict[TurnMode, int] = {
     TurnMode.AGENT: 2,
 }
 
+# 档位的中文名：升档结果、拒绝提示等面向模型与用户的文案统一从这里取，
+# 避免同一档位在不同提示里被叫成不同的东西。
+MODE_LABELS: dict[TurnMode, str] = {
+    TurnMode.CHAT: "chat（纯聊天与只读记忆）",
+    TurnMode.RETRIEVAL: "retrieval（只读检索）",
+    TurnMode.AGENT: "agent（完整工具与人工审批）",
+}
+
 # 请求值里的 "auto" 表示"按输入自动判定"，不是一种能力档位。
 AUTO_MODE = "auto"
 REQUEST_MODES: tuple[str, ...] = (AUTO_MODE, TurnMode.CHAT.value, TurnMode.RETRIEVAL.value, TurnMode.AGENT.value)
@@ -96,10 +104,11 @@ def request_mode_spec() -> dict:
             "function": {
                 "name": REQUEST_MODE_TOOL,
                 "description": (
-                    "当前回合的能力档位不足以完成用户请求时，用它请求升档。"
+                    "当前档位缺少完成用户请求所需的工具时，先用本工具请求升档，"
+                    "不要直接回答做不到。"
                     "目标只能是 retrieval（更强的只读检索）或 agent（完整工具与人工审批）；"
-                    "本回合最多升档一次，不能降档。"
-                    "不要用它请求与用户诉求无关的能力，也不要用它重复请求当前档位。"
+                    "本回合最多升档一次，不能降档，拿不准目标就选 agent。"
+                    "用现有工具就能完成的请求不要升档，也不要请求与用户诉求无关的能力。"
                 ),
                 "parameters": {
                     "type": "object",
