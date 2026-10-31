@@ -1,5 +1,15 @@
 # 开发状态记录
 
+2026-11-01 全仓重复定义清零（工作区）：常驻工具 `scripts/scan_duplicates.py`
+发现 **5 处测试函数静默覆盖**（`test_memory.py` 1 处、`test_web.py` 1 处、
+`test_web_model_key.py` 3 处，均为整段复制粘贴残留，含重复注释块；被覆盖
+的测试**从未运行过**）。三个文件去重后扫描清零，被释放的 5 个测试首次真正
+执行并全部通过（内容与幸存副本逐字节相同，无行为差异暴露）。专项：
+`test_memory+test_web_model_key+test_arch` **59 passed**、`test_web`
+**44 passed**、`test_config+test_web_api` **19 passed**；未跑全量。
+根因与前例一致（并行会话各写一版同名测试，合并时未去重）；`git add .`
+禁令继续有效。
+
 2026-11-01 路径安全原语统一（工作区）：新增 `system/path_guard.py`，
 `plugins/package_reader.py` 与 `memory/skill_inbox.py` 的重复
 `_safe_parts`/`_digest` 实现收敛为同一共享原语；架构守卫白名单加入
