@@ -14,8 +14,6 @@ import base64
 import json
 import os
 import platform
-import re
-import shutil
 import socket
 import subprocess
 import sys
@@ -73,36 +71,11 @@ def _port_listening(port: int, host: str = "127.0.0.1") -> bool:
         return False
 
 
-_SS_PID_RE = re.compile(r"pid=(\d+)")
-
-
-def _parse_ss_pids(text: str, port: int, state: str) -> list[int]:
-    """解析 `ss -tlnp` / `ss -tnp` 输出；ss 把 ESTABLISHED 缩写成 ESTAB。
-
-    列序：State Recv-Q Send-Q Local-Address:Port Peer-Address:Port Process。
-    只按本地地址列匹配端口，避免 800 命中 :8000。
-    """
-    word = "LISTEN" if state.upper() == "LISTEN" else "ESTAB"
-    pids: list[int] = []
-    for line in text.splitlines():
-        columns = line.split()
-        if len(columns) < 5 or columns[0].upper() != word:
-            continue
-        if columns[3].rsplit(":", 1)[-1] != str(port):
-            continue
-        match = _SS_PID_RE.search(line)
-        if match:
-            pids.append(int(match.group(1)))
-    return pids
-
-
 def _netstat_pids(port: int, state: str) -> list[int]:
-    """按端口找 pid（Windows: netstat -ano；POSIX: lsof，缺 lsof 时回退 ss）。
-    state: LISTEN/ESTABLISHED。
+    """按端口找 pid（Windows: netstat -ano；POSIX: lsof）。state: LISTEN/ESTABLISHED。
 
     注意：中文 Windows 的 netstat 输出是 GBK，必须按字节捕获后容错解码，
     否则读线程 UnicodeDecodeError 会让 stdout 变 None。
-    两者都缺时返回空——端口身份只作观察提示，本来就不授权终止（fail-closed）。
     """
     pids: list[int] = []
     try:
@@ -117,7 +90,7 @@ def _netstat_pids(port: int, state: str) -> list[int]:
                     parts = line.split()
                     if parts and parts[-1].isdigit():
                         pids.append(int(parts[-1]))
-        elif shutil.which("lsof"):
+        else:
             raw = subprocess.run(
                 ["lsof", "-sT", "-i", f":{port}"], capture_output=True, timeout=8
             ).stdout or b""
@@ -126,10 +99,6 @@ def _netstat_pids(port: int, state: str) -> list[int]:
                 parts = line.split()
                 if len(parts) > 1 and parts[1].isdigit():
                     pids.append(int(parts[1]))
-        elif shutil.which("ss"):
-            arguments = ["ss", "-tlnp"] if state.upper() == "LISTEN" else ["ss", "-tnp"]
-            raw = subprocess.run(arguments, capture_output=True, timeout=8).stdout or b""
-            pids.extend(_parse_ss_pids(raw.decode("utf-8", errors="replace"), port, state))
     except (OSError, subprocess.SubprocessError):
         pass
     return list(dict.fromkeys(pids))
@@ -145,14 +114,7 @@ def _process_name(pid: int) -> str:
             ).stdout or b""
             out = raw.decode("utf-8", errors="replace").strip()
             return out.split('","')[0].strip('"') if out else ""
-        comm = Path(f"/proc/{pid}/comm")
-        if comm.is_file():
-            return comm.read_text().strip()
-        # macOS 等 POSIX 无 /proc：ps 兜底（comm 列与 Linux 口径一致）。
-        raw = subprocess.run(
-            ["ps", "-p", str(pid), "-o", "comm="], capture_output=True, timeout=8
-        ).stdout or b""
-        return raw.decode("utf-8", errors="replace").strip()
+        return Path(f"/proc/{pid}/comm").read_text().strip()
     except (OSError, subprocess.SubprocessError):
         return ""
 

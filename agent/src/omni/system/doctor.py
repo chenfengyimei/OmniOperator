@@ -7,7 +7,6 @@ from __future__ import annotations
 import datetime as dt
 import importlib.metadata
 import json
-import os
 import time
 import platform
 import shutil
@@ -36,13 +35,7 @@ def diagnose(paths: RuntimePaths, *, inspector=inspect_process, resolver=shutil.
         record("napcat", "ok" if napcat.is_file() else "warning", "启动文件存在" if napcat.is_file() else "未找到启动文件；未连接端口或登录")
     except Exception as exc:
         record("config", "error", f"配置无法加载：{type(exc).__name__}")
-    # pywinpty 仅 Windows 终端后端需要；POSIX 上跳过检查而不是报“未安装”。
-    dependencies = ("litellm", "mcp", "playwright", "sqlite-vec", "pillow")
-    if os.name == "nt":
-        dependencies += ("pywinpty",)
-    else:
-        record("dependency:pywinpty", "info", "仅 Windows 终端后端需要；本平台跳过")
-    for dependency in dependencies:
+    for dependency in ("litellm", "mcp", "playwright", "sqlite-vec", "pywinpty", "pillow"):
         try:
             record(f"dependency:{dependency}", "ok", "已安装", version=importlib.metadata.version(dependency))
         except importlib.metadata.PackageNotFoundError:

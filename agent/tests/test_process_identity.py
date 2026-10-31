@@ -102,9 +102,8 @@ def test_inspect_current_process_is_stable_readonly():
     assert int(first.created) > 0 and first.executable
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Win32 终止后端内部实现")
 def test_native_termination_uses_retained_identity_handles(tmp_path, monkeypatch):
-    from omni.system import winproc as module
+    from omni.system import process_identity as module
     root = ProcessIdentity(123, "100", str(tmp_path / "root.exe"))
     child = ProcessIdentity(124, "200", str(tmp_path / "child.exe"))
     identities = {123: root, 124: child}
@@ -129,9 +128,8 @@ def test_native_termination_uses_retained_identity_handles(tmp_path, monkeypatch
     assert len(closed) == 2
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Win32 终止后端内部实现")
 def test_native_identity_change_before_retention_prevents_any_termination(tmp_path, monkeypatch):
-    from omni.system import winproc as module
+    from omni.system import process_identity as module
     identity = ProcessIdentity(123, "100", str(tmp_path / "root.exe"))
     killed = []
     monkeypatch.setattr(module, "os", SimpleNamespace(name="nt", getpid=lambda: 1))

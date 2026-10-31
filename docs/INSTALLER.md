@@ -69,7 +69,7 @@ scripts\start.ps1                                               # 启动工作�
 
 - `%USERPROFILE%\.local\bin`：uv.exe（并加入用户 PATH）
 - `<仓库>\tools\napcat`、`<仓库>\tools\platform-tools`：解压组件（platform-tools 加入用户 PATH）
-- `<仓库>\config\config.yaml` 的 `system.napcat_dir` 定向改写为解包目录（保留注释；config.yaml 不入库，首次安装前先复制 `agent\config\config.example.yaml`——模板 tracked 在 `agent\config\`，运行时读仓库根的 `config\config.yaml`）
+- `<仓库>\config\config.yaml` 的 `system.napcat_dir` 定向改写为解包目录（保留注释；config.yaml 不入库，首次安装前先复制 config.example.yaml）
 - `<仓库>\.env`（仅首次，从模板复制）
 
 ## 平台坑（脚本内已处理，改动前先读）
@@ -96,7 +96,7 @@ scripts\start.ps1                                               # 启动工作�
   解压到 `%USERPROFILE%\.local\bin`，重跑安装器。
 - NapCat：从 `https://github.com/NapNeko/NapCatQQ/releases` 下载 `NapCat.Shell.zip`，
   解压到任意目录（含 napcat.bat），把 `config/config.yaml` 的 `system.napcat_dir`
-  指向该目录（config.yaml 首次使用前先从 `agent\config\config.example.yaml` 复制）；需本机先安装 QQ NT 桌面版。
+  指向该目录（config.yaml 首次使用前先从 config.example.yaml 复制）；需本机先安装 QQ NT 桌面版。
 - ADB：从 `https://developer.android.com/tools/releases/platform-tools` 下载，
   解压后把目录加入 PATH，或直接勾选"仅装核心"跳过。
 - Chromium：`uv run --no-sync python -m playwright install chromium`

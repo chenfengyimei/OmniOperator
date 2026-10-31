@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`142543568599d88bd839f0404588f695d22865dbede3a9cc4822f72bbeef3868`。包含 56 个职责模块、282 个源码/界面文件。
+源码指纹：`44dbf4801a9382a9d5815020a5045baa675520c87c221903934d351ec081f1d6`。包含 56 个职责模块、280 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -641,7 +641,7 @@
 | [agent/src/omni/channels/__init__.py](../../agent/src/omni/channels/__init__.py) | 1 | 入口层：QQ(NapCat)、CLI、Web（P0 只有 CLI）。 |
 | [agent/src/omni/channels/doctor.py](../../agent/src/omni/channels/doctor.py) | 42 | 只读 doctor 命令；不组装运行态，以免诊断触发建库、迁移或后台任务。 |
 | [agent/src/omni/channels/eval_retrieval.py](../../agent/src/omni/channels/eval_retrieval.py) | 75 | 在临时数据库评测合成样本；hybrid 模式须显式传配置，默认完全离线。 |
-| [agent/src/omni/channels/lifecycle.py](../../agent/src/omni/channels/lifecycle.py) | 45 | 常驻入口响应本次启动的停止请求；不构造运行态、不自行终止其它进程。 |
+| [agent/src/omni/channels/lifecycle.py](../../agent/src/omni/channels/lifecycle.py) | 22 | 常驻入口响应本次启动的停止请求；不构造运行态、不自行终止其它进程。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
@@ -979,20 +979,18 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/system/__init__.py](../../agent/src/omni/system/__init__.py) | 5 | 本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。 |
-| [agent/src/omni/system/atomic.py](../../agent/src/omni/system/atomic.py) | 54 | 原子写文件（A09 的同源问题）。 |
+| [agent/src/omni/system/atomic.py](../../agent/src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
 | [agent/src/omni/system/backup.py](../../agent/src/omni/system/backup.py) | 515 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
 | [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 463 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
-| [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 100 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
+| [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [agent/src/omni/system/filelock.py](../../agent/src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
 | [agent/src/omni/system/observability.py](../../agent/src/omni/system/observability.py) | 102 | 有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。 |
-| [agent/src/omni/system/posixproc.py](../../agent/src/omni/system/posixproc.py) | 264 | POSIX 进程身份与终止后端：Linux 走 /proc，macOS 走 ps；身份核验通过后才允许终止。 |
-| [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 54 | 进程身份与已验证终止的公共协议与平台分派；不以裸 PID 或端口身份授权终止。 |
+| [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 231 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
 | [agent/src/omni/system/provenance.py](../../agent/src/omni/system/provenance.py) | 30 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
-| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 518 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
+| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 480 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [agent/src/omni/system/soak.py](../../agent/src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [agent/src/omni/system/stderr_log.py](../../agent/src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
-| [agent/src/omni/system/winproc.py](../../agent/src/omni/system/winproc.py) | 199 | Win32 进程身份与句柄终止后端；只在 os.name == "nt" 下被 process_identity 分派导入。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/ACCEPTANCE.md](../../docs/ACCEPTANCE.md)
 
