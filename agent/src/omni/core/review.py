@@ -17,7 +17,7 @@ from __future__ import annotations
 import queue
 import sys
 import threading
-from typing import Callable
+from collections.abc import Callable
 
 from ..config import AppConfig
 from ..llm.gateway import Gateway, to_openai_tool_call

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import codecs
 import os
-from pathlib import Path
 import threading
+from pathlib import Path
 
 
 class StderrLog:

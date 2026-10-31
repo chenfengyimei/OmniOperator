@@ -31,8 +31,10 @@ import json
 import sys
 import threading
 import uuid
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+
 from ..safety.gates import Risk
 from ..system.atomic import atomic_write_text
 from ..system.filelock import FileLock, LockTimeout

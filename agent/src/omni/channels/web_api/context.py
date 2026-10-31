@@ -7,7 +7,11 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...memory.state import StateUnavailable
-from ...system.config_io import ConfigConflict, commit_config_updates, read_config_snapshot
+from ...system.config_io import (
+    ConfigConflict,
+    commit_config_updates,
+    read_config_snapshot,
+)
 from ...system.filelock import LockTimeout
 
 if TYPE_CHECKING:

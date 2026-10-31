@@ -1,8 +1,8 @@
 """Agent 目录设置和当前公开文件区；只消费组装根注入的目录与路径策略。"""
 from __future__ import annotations
 
-import hashlib
 import asyncio
+import hashlib
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING

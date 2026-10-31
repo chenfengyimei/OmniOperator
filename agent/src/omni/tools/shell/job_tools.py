@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import json
-from ..registry import Tool, Risk
+
+from ..registry import Risk, Tool
 from ..result import ToolResult
 
 

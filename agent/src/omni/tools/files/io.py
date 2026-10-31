@@ -17,10 +17,10 @@ import codecs
 import difflib
 import io
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
 from ...system.path_guard import digest as sha256_hex
 from .paths import PathRejected

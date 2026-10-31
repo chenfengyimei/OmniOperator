@@ -7,13 +7,13 @@ from __future__ import annotations
 import datetime as dt
 import importlib.metadata
 import json
-import time
 import platform
 import shutil
 import sqlite3
+import time
 from pathlib import Path
 
-from ..config import RuntimePaths, STATE_SCHEMA_VERSION, load_config
+from ..config import STATE_SCHEMA_VERSION, RuntimePaths, load_config
 from .process_identity import inspect_process
 from .services import ServiceManager
 

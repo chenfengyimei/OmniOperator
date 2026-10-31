@@ -8,8 +8,8 @@ import os
 import threading
 import time
 import uuid
-from contextlib import contextmanager
 import xml.etree.ElementTree as ET
+from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
 from typing import Any

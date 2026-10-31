@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import ast
-from dataclasses import asdict
 import hashlib
 import tomllib
+from dataclasses import asdict
 from importlib.util import resolve_name
 from pathlib import Path
 

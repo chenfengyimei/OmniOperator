@@ -26,7 +26,8 @@ from typing import Any
 
 from ..system.atomic import atomic_write_bytes, atomic_write_text
 from ..system.filelock import FileLock, LockTimeout
-from ..system.path_guard import digest as _digest, safe_parts as _safe_parts
+from ..system.path_guard import digest as _digest
+from ..system.path_guard import safe_parts as _safe_parts
 from .skills import (
     MAX_BODY,
     MAX_DESCRIPTION,

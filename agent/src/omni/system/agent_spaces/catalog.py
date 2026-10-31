@@ -10,7 +10,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from ...config import RuntimePaths
 from ..atomic import atomic_write_text
 from ..filelock import FileLock
-from .layout import AgentProfile, ApplicationDirectories, ApplicationLayout, overlap, resolve_application, resolve_layout
+from .layout import (
+    AgentProfile,
+    ApplicationDirectories,
+    ApplicationLayout,
+    overlap,
+    resolve_application,
+    resolve_layout,
+)
 
 
 class DirectoryConflict(ValueError):pass

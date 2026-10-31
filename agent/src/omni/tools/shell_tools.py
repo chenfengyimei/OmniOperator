@@ -7,9 +7,9 @@ from __future__ import annotations
 
 from .shell import (
     MAX_OUTPUT_CHARS,
+    SAFE_COMMANDS,
     ProcResult,
     Rejected,
-    SAFE_COMMANDS,
     SafeCommand,
     decode_output,
     hard_blocked_reason,

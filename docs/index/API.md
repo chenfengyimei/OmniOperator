@@ -8,43 +8,43 @@
 
 Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记账。
 
-`create_conversation_router.chat`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L44)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L524)） → `Agent._chat`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L711)） → `Gateway.complete`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L338)）
+`create_conversation_router.chat`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L44)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L530)） → `Agent._chat`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L717)） → `Gateway.complete`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L339)）
 
 ## 模型调用工具
 
 模型工具调用经统一注册表和审批；结果按原调用顺序回填。
 
-`Agent._execute_tool_calls`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L911)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)） → `WebApprover`（[agent/src/omni/safety/gates.py](../../agent/src/omni/safety/gates.py#L123)） → `ToolResult`（[agent/src/omni/tools/result.py](../../agent/src/omni/tools/result.py#L35)）
+`Agent._execute_tool_calls`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L917)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)） → `WebApprover`（[agent/src/omni/safety/gates.py](../../agent/src/omni/safety/gates.py#L123)） → `ToolResult`（[agent/src/omni/tools/result.py](../../agent/src/omni/tools/result.py#L35)）
 
 ## 流式与取消
 
 流式响应和持久运行事件是两条接口；停止通过协作取消传播。
 
-`create_conversation_router.chat_stream`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L79)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L524)） → `Gateway.stream`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L424)） → `RunStore`（[agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py#L87)）
+`create_conversation_router.chat_stream`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L79)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L530)） → `Gateway.stream`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L425)） → `RunStore`（[agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py#L87)）
 
 ## 交互式终端
 
 WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查退出。
 
-`create_terminal_router.terminal_ws`（[agent/src/omni/channels/terminal/routes.py](../../agent/src/omni/channels/terminal/routes.py#L15)） → `WebAuth.check_websocket`（[agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py#L327)） → `TerminalManager.open`（[agent/src/omni/channels/terminal/pool.py](../../agent/src/omni/channels/terminal/pool.py#L35)） → `TerminalSession`（[agent/src/omni/channels/terminal/session.py](../../agent/src/omni/channels/terminal/session.py#L8)） → `open_process`（[agent/src/omni/channels/terminal/backend.py](../../agent/src/omni/channels/terminal/backend.py#L26)）
+`create_terminal_router.terminal_ws`（[agent/src/omni/channels/terminal/routes.py](../../agent/src/omni/channels/terminal/routes.py#L18)） → `WebAuth.check_websocket`（[agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py#L327)） → `TerminalManager.open`（[agent/src/omni/channels/terminal/pool.py](../../agent/src/omni/channels/terminal/pool.py#L37)） → `TerminalSession`（[agent/src/omni/channels/terminal/session.py](../../agent/src/omni/channels/terminal/session.py#L10)） → `open_process`（[agent/src/omni/channels/terminal/backend.py](../../agent/src/omni/channels/terminal/backend.py#L27)）
 
 ## 插件扩展接入
 
 下载/收包、隔离校验、人工激活、命名空间注册，最终仍由工具审批链执行。
 
-`CommunityClient.install`（[agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py#L155)） → `PluginHost.install_package`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L161)） → `PluginHost.activate`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L231)） → `PluginContext.add_tool`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L73)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)）
+`CommunityClient.install`（[agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py#L155)） → `PluginHost.install_package`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L163)） → `PluginHost.activate`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L233)） → `PluginContext.add_tool`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L75)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)）
 
 ## 技能数据接入
 
 技能是提示与参考数据；导入不执行脚本，激活需人工确认。
 
-`register_skill_inbox_tools`（[agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py#L354)） → `SkillInbox`（[agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py#L80)） → `SkillStore`（[agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py#L84)）
+`register_skill_inbox_tools`（[agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py#L354)） → `SkillInbox`（[agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py#L81)） → `SkillStore`（[agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py#L85)）
 
 ## 外部 MCP 能力
 
 渐进发现与授权校验后调用外部进程；结果未知不重放写操作。
 
-`register_mcp_tools`（[agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py#L18)） → `MCPManager`（[agent/src/omni/tools/mcp/client.py](../../agent/src/omni/tools/mcp/client.py#L252)） → `MCPSchemaStore`（[agent/src/omni/memory/mcp_schemas.py](../../agent/src/omni/memory/mcp_schemas.py#L22)）
+`register_mcp_tools`（[agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py#L18)） → `MCPManager`（[agent/src/omni/tools/mcp/client.py](../../agent/src/omni/tools/mcp/client.py#L254)） → `MCPSchemaStore`（[agent/src/omni/memory/mcp_schemas.py](../../agent/src/omni/memory/mcp_schemas.py#L22)）
 
 ## 声明路由
 
@@ -83,9 +83,9 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/command-jobs` | `create_command_jobs_router.list_jobs` | [agent/src/omni/channels/web_api/command_jobs.py](../../agent/src/omni/channels/web_api/command_jobs.py#L9) |
 | workbench | GET | `/api/command-jobs/{identifier}` | `create_command_jobs_router.read_job` | [agent/src/omni/channels/web_api/command_jobs.py](../../agent/src/omni/channels/web_api/command_jobs.py#L13) |
 | workbench | POST | `/api/command-jobs/{identifier}/cancel` | `create_command_jobs_router.cancel_job` | [agent/src/omni/channels/web_api/command_jobs.py](../../agent/src/omni/channels/web_api/command_jobs.py#L19) |
-| workbench | GET | `/api/context` | `create_context_router.overview` | [agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py#L49) |
-| workbench | GET | `/api/context/settings` | `create_context_router.get_settings` | [agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py#L60) |
-| workbench | PUT | `/api/context/settings` | `create_context_router.update` | [agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py#L65) |
+| workbench | GET | `/api/context` | `create_context_router.overview` | [agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py#L53) |
+| workbench | GET | `/api/context/settings` | `create_context_router.get_settings` | [agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py#L64) |
+| workbench | PUT | `/api/context/settings` | `create_context_router.update` | [agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py#L69) |
 | workbench | GET | `/api/desktop/observe/{window}` | `create_devices_router.desktop_observe` | [agent/src/omni/channels/web_api/devices.py](../../agent/src/omni/channels/web_api/devices.py#L28) |
 | workbench | GET | `/api/desktop/windows` | `create_devices_router.desktop_windows` | [agent/src/omni/channels/web_api/devices.py](../../agent/src/omni/channels/web_api/devices.py#L19) |
 | workbench | GET | `/api/facts` | `create_memory_router.get_facts` | [agent/src/omni/channels/web_api/memory.py](../../agent/src/omni/channels/web_api/memory.py#L19) |
@@ -148,29 +148,29 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/sessions/{session_id}/messages` | `create_sessions_router.get_messages` | [agent/src/omni/channels/web_api/sessions.py](../../agent/src/omni/channels/web_api/sessions.py#L74) |
 | workbench | POST | `/api/sessions/{session_id}/select` | `create_sessions_router.select_session` | [agent/src/omni/channels/web_api/sessions.py](../../agent/src/omni/channels/web_api/sessions.py#L68) |
 | workbench | GET | `/api/sessions/{session_id}/todos` | `create_sessions_router.get_todos` | [agent/src/omni/channels/web_api/sessions.py](../../agent/src/omni/channels/web_api/sessions.py#L86) |
-| workbench | GET | `/api/skills` | `create_skills_router.get_skills` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L126) |
-| workbench | POST | `/api/skills` | `create_skills_router.skill_create` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L201) |
-| workbench | POST | `/api/skills/ack-all` | `create_skills_router.skills_ack_all` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L291) |
-| workbench | POST | `/api/skills/archive/{name}/restore` | `create_skills_router.skill_restore` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L359) |
-| workbench | GET | `/api/skills/inbox` | `create_skills_router.skills_inbox` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L217) |
-| workbench | POST | `/api/skills/inbox/upload` | `create_skills_router.skill_package_upload` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L226) |
-| workbench | DELETE | `/api/skills/inbox/{package}` | `create_skills_router.skill_package_remove` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L257) |
-| workbench | POST | `/api/skills/inbox/{package}/import` | `create_skills_router.skill_package_import` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L248) |
-| workbench | GET | `/api/skills/overview` | `create_skills_router.skills_overview` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L140) |
-| workbench | GET | `/api/skills/pending` | `create_skills_router.skills_pending` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L286) |
-| workbench | GET | `/api/skills/pending/{name}/diff` | `create_skills_router.skill_pending_diff` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L306) |
-| workbench | POST | `/api/skills/quarantine/{name}/activate` | `create_skills_router.skill_package_activate` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L265) |
-| workbench | POST | `/api/skills/quarantine/{name}/discard` | `create_skills_router.skill_package_discard` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L276) |
-| workbench | GET | `/api/skills/settings` | `create_skills_router.skills_settings` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L168) |
-| workbench | PUT | `/api/skills/settings` | `create_skills_router.skills_settings_save` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L175) |
-| workbench | GET | `/api/skills/{name}` | `create_skills_router.get_skill` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L369) |
-| workbench | POST | `/api/skills/{name}/ack` | `create_skills_router.skill_ack` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L330) |
-| workbench | POST | `/api/skills/{name}/archive` | `create_skills_router.skill_archive` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L341) |
-| workbench | GET | `/api/skills/{name}/diff` | `create_skills_router.skill_diff` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L441) |
-| workbench | GET | `/api/skills/{name}/history` | `create_skills_router.skill_history` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L411) |
-| workbench | GET | `/api/skills/{name}/revision/{rev}` | `create_skills_router.skill_revision` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L431) |
-| workbench | POST | `/api/skills/{name}/rollback` | `create_skills_router.skill_rollback` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L461) |
-| workbench | POST | `/api/skills/{name}/save` | `create_skills_router.skill_save` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L389) |
+| workbench | GET | `/api/skills` | `create_skills_router.get_skills` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L130) |
+| workbench | POST | `/api/skills` | `create_skills_router.skill_create` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L205) |
+| workbench | POST | `/api/skills/ack-all` | `create_skills_router.skills_ack_all` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L295) |
+| workbench | POST | `/api/skills/archive/{name}/restore` | `create_skills_router.skill_restore` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L363) |
+| workbench | GET | `/api/skills/inbox` | `create_skills_router.skills_inbox` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L221) |
+| workbench | POST | `/api/skills/inbox/upload` | `create_skills_router.skill_package_upload` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L230) |
+| workbench | DELETE | `/api/skills/inbox/{package}` | `create_skills_router.skill_package_remove` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L261) |
+| workbench | POST | `/api/skills/inbox/{package}/import` | `create_skills_router.skill_package_import` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L252) |
+| workbench | GET | `/api/skills/overview` | `create_skills_router.skills_overview` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L144) |
+| workbench | GET | `/api/skills/pending` | `create_skills_router.skills_pending` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L290) |
+| workbench | GET | `/api/skills/pending/{name}/diff` | `create_skills_router.skill_pending_diff` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L310) |
+| workbench | POST | `/api/skills/quarantine/{name}/activate` | `create_skills_router.skill_package_activate` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L269) |
+| workbench | POST | `/api/skills/quarantine/{name}/discard` | `create_skills_router.skill_package_discard` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L280) |
+| workbench | GET | `/api/skills/settings` | `create_skills_router.skills_settings` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L172) |
+| workbench | PUT | `/api/skills/settings` | `create_skills_router.skills_settings_save` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L179) |
+| workbench | GET | `/api/skills/{name}` | `create_skills_router.get_skill` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L373) |
+| workbench | POST | `/api/skills/{name}/ack` | `create_skills_router.skill_ack` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L334) |
+| workbench | POST | `/api/skills/{name}/archive` | `create_skills_router.skill_archive` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L345) |
+| workbench | GET | `/api/skills/{name}/diff` | `create_skills_router.skill_diff` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L445) |
+| workbench | GET | `/api/skills/{name}/history` | `create_skills_router.skill_history` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L415) |
+| workbench | GET | `/api/skills/{name}/revision/{rev}` | `create_skills_router.skill_revision` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L435) |
+| workbench | POST | `/api/skills/{name}/rollback` | `create_skills_router.skill_rollback` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L465) |
+| workbench | POST | `/api/skills/{name}/save` | `create_skills_router.skill_save` | [agent/src/omni/channels/web_api/skills.py](../../agent/src/omni/channels/web_api/skills.py#L393) |
 | workbench | GET | `/api/state` | `create_sessions_router.get_state` | [agent/src/omni/channels/web_api/sessions.py](../../agent/src/omni/channels/web_api/sessions.py#L19) |
 | workbench | GET | `/api/storage` | `create_storage_router.overview` | [agent/src/omni/channels/web_api/storage.py](../../agent/src/omni/channels/web_api/storage.py#L57) |
 | workbench | PUT | `/api/storage` | `create_storage_router.update` | [agent/src/omni/channels/web_api/storage.py](../../agent/src/omni/channels/web_api/storage.py#L68) |
@@ -211,7 +211,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | DELETE | `/api/terminal/sessions/{identifier}` | `create_sessions_router.end` | [agent/src/omni/channels/terminal/sessions.py](../../agent/src/omni/channels/terminal/sessions.py#L63) |
 | workbench | PATCH | `/api/terminal/sessions/{identifier}` | `create_sessions_router.rename` | [agent/src/omni/channels/terminal/sessions.py](../../agent/src/omni/channels/terminal/sessions.py#L57) |
 | workbench | WEBSOCKET | `/api/terminal/sessions/{identifier}/ws` | `create_sessions_router.connect` | [agent/src/omni/channels/terminal/sessions.py](../../agent/src/omni/channels/terminal/sessions.py#L71) |
-| workbench | WEBSOCKET | `/api/terminal/ws` | `create_terminal_router.terminal_ws` | [agent/src/omni/channels/terminal/routes.py](../../agent/src/omni/channels/terminal/routes.py#L15) |
+| workbench | WEBSOCKET | `/api/terminal/ws` | `create_terminal_router.terminal_ws` | [agent/src/omni/channels/terminal/routes.py](../../agent/src/omni/channels/terminal/routes.py#L18) |
 | workbench | POST | `/api/todos/toggle` | `create_sessions_router.toggle_todo` | [agent/src/omni/channels/web_api/sessions.py](../../agent/src/omni/channels/web_api/sessions.py#L98) |
 | workbench | GET | `/api/workbench/docs/{name}` | `create_workbench_router.document` | [agent/src/omni/channels/workbench/routes.py](../../agent/src/omni/channels/workbench/routes.py#L39) |
 | workbench | GET | `/api/workbench/extensions` | `create_workbench_router.extensions` | [agent/src/omni/channels/workbench/routes.py](../../agent/src/omni/channels/workbench/routes.py#L57) |
@@ -270,7 +270,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### ContextUpdate
 
-定位：[agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py#L25)。
+定位：[agent/src/omni/channels/web_api/context.py](../../agent/src/omni/channels/web_api/context.py#L29)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -1041,7 +1041,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Catalog
 
-定位：[agent/src/omni/system/agent_spaces/catalog.py](../../agent/src/omni/system/agent_spaces/catalog.py#L19)。
+定位：[agent/src/omni/system/agent_spaces/catalog.py](../../agent/src/omni/system/agent_spaces/catalog.py#L26)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -1113,17 +1113,17 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `browser_read` | safe | False | False | browser | [agent/src/omni/tools/browser/tools.py](../../agent/src/omni/tools/browser/tools.py#L145) |
 | `browser_screenshot` | safe | False | False | browser | [agent/src/omni/tools/browser/tools.py](../../agent/src/omni/tools/browser/tools.py#L155) |
 | `browser_type` | confirm | True | False | browser | [agent/src/omni/tools/browser/tools.py](../../agent/src/omni/tools/browser/tools.py#L183) |
-| `community_config` | safe | False | False | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L55) |
-| `community_info` | safe | False | True | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L89) |
-| `community_install` | safe | False | False | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L104) |
-| `community_publish` | confirm | True | False | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L124) |
-| `community_search` | safe | False | True | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L71) |
-| `cron_add` | safe | False | False | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L199) |
-| `cron_edit` | safe | False | False | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L278) |
-| `cron_list` | safe | False | True | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L188) |
-| `cron_once` | safe | False | False | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L237) |
-| `cron_remove` | safe | False | False | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L264) |
-| `daily_digest` | safe | False | True | personal | [agent/src/omni/tools/personal/digest.py](../../agent/src/omni/tools/personal/digest.py#L54) |
+| `community_config` | safe | False | False | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L57) |
+| `community_info` | safe | False | True | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L91) |
+| `community_install` | safe | False | False | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L106) |
+| `community_publish` | confirm | True | False | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L126) |
+| `community_search` | safe | False | True | community | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py#L73) |
+| `cron_add` | safe | False | False | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L206) |
+| `cron_edit` | safe | False | False | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L285) |
+| `cron_list` | safe | False | True | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L195) |
+| `cron_once` | safe | False | False | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L244) |
+| `cron_remove` | safe | False | False | scheduling | [agent/src/omni/tools/scheduling/tools.py](../../agent/src/omni/tools/scheduling/tools.py#L271) |
+| `daily_digest` | safe | False | True | personal | [agent/src/omni/tools/personal/digest.py](../../agent/src/omni/tools/personal/digest.py#L55) |
 | `delegate_task` | safe | False | False | delegation | [agent/src/omni/tools/delegation/tools.py](../../agent/src/omni/tools/delegation/tools.py#L106) |
 | `dialogue_read` | safe | False | True | personal | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py#L158) |
 | `dialogue_search` | safe | False | True | personal | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py#L137) |
@@ -1134,13 +1134,13 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `files_restore` | confirm | True | False | files | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py#L574) |
 | `files_search` | safe | False | True | files | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py#L446) |
 | `files_write` | confirm | True | False | files | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py#L514) |
-| `forget` | confirm | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L136) |
-| `get_time` | safe | False | True | personal | [agent/src/omni/tools/personal/clock.py](../../agent/src/omni/tools/personal/clock.py#L14) |
+| `forget` | confirm | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L137) |
+| `get_time` | safe | False | True | personal | [agent/src/omni/tools/personal/clock.py](../../agent/src/omni/tools/personal/clock.py#L15) |
 | `journal_view` | safe | False | True | personal | [agent/src/omni/tools/personal/journal.py](../../agent/src/omni/tools/personal/journal.py#L42) |
 | `mcp_call_tool` | confirm | True | False | mcp | [agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py#L73) |
 | `mcp_list_tools` | safe | False | True | mcp | [agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py#L41) |
 | `mcp_read_tool` | safe | False | True | mcp | [agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py#L69) |
-| `peek_command` | safe | False | True | shell | [agent/src/omni/tools/shell/tools.py](../../agent/src/omni/tools/shell/tools.py#L214) |
+| `peek_command` | safe | False | True | shell | [agent/src/omni/tools/shell/tools.py](../../agent/src/omni/tools/shell/tools.py#L219) |
 | `person_event` | safe | False | False | personal | [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py#L192) |
 | `person_lookup` | safe | False | True | personal | [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py#L147) |
 | `person_remember` | safe | False | False | personal | [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py#L169) |
@@ -1150,20 +1150,20 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `plugin_install` | safe | False | False | plugins | [agent/src/omni/plugins/tools.py](../../agent/src/omni/plugins/tools.py#L95) |
 | `plugin_list` | safe | False | True | plugins | [agent/src/omni/plugins/tools.py](../../agent/src/omni/plugins/tools.py#L80) |
 | `plugin_remove` | confirm | True | False | plugins | [agent/src/omni/plugins/tools.py](../../agent/src/omni/plugins/tools.py#L168) |
-| `profile_manage` | safe | False | False | personal | [agent/src/omni/tools/personal/profile.py](../../agent/src/omni/tools/personal/profile.py#L61) |
+| `profile_manage` | safe | False | False | personal | [agent/src/omni/tools/personal/profile.py](../../agent/src/omni/tools/personal/profile.py#L62) |
 | `qq_send_message` | safe | False | False | qq-tools | [agent/src/omni/tools/qq/tools.py](../../agent/src/omni/tools/qq/tools.py#L75) |
-| `recall` | safe | False | True | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L116) |
-| `remember` | safe | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L97) |
-| `resident_memory` | safe | False | False | personal | [agent/src/omni/tools/personal/resident.py](../../agent/src/omni/tools/personal/resident.py#L39) |
-| `run_command` | confirm | True | False | shell | [agent/src/omni/tools/shell/tools.py](../../agent/src/omni/tools/shell/tools.py#L243) |
-| `search_history` | safe | False | True | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L169) |
+| `recall` | safe | False | True | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L117) |
+| `remember` | safe | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L98) |
+| `resident_memory` | safe | False | False | personal | [agent/src/omni/tools/personal/resident.py](../../agent/src/omni/tools/personal/resident.py#L40) |
+| `run_command` | confirm | True | False | shell | [agent/src/omni/tools/shell/tools.py](../../agent/src/omni/tools/shell/tools.py#L248) |
+| `search_history` | safe | False | True | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L170) |
 | `session_log_read` | safe | False | True | personal | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py#L202) |
 | `session_log_search` | safe | False | True | personal | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py#L181) |
-| `session_refine` | safe | False | False | personal | [agent/src/omni/tools/personal/refine.py](../../agent/src/omni/tools/personal/refine.py#L45) |
-| `shell_job_cancel` | confirm | True | False | command-jobs | [agent/src/omni/tools/shell/job_tools.py](../../agent/src/omni/tools/shell/job_tools.py#L50) |
-| `shell_job_list` | safe | False | True | command-jobs | [agent/src/omni/tools/shell/job_tools.py](../../agent/src/omni/tools/shell/job_tools.py#L46) |
-| `shell_job_read` | safe | False | True | command-jobs | [agent/src/omni/tools/shell/job_tools.py](../../agent/src/omni/tools/shell/job_tools.py#L48) |
-| `shell_job_start` | confirm | True | False | command-jobs | [agent/src/omni/tools/shell/job_tools.py](../../agent/src/omni/tools/shell/job_tools.py#L44) |
+| `session_refine` | safe | False | False | personal | [agent/src/omni/tools/personal/refine.py](../../agent/src/omni/tools/personal/refine.py#L46) |
+| `shell_job_cancel` | confirm | True | False | command-jobs | [agent/src/omni/tools/shell/job_tools.py](../../agent/src/omni/tools/shell/job_tools.py#L51) |
+| `shell_job_list` | safe | False | True | command-jobs | [agent/src/omni/tools/shell/job_tools.py](../../agent/src/omni/tools/shell/job_tools.py#L47) |
+| `shell_job_read` | safe | False | True | command-jobs | [agent/src/omni/tools/shell/job_tools.py](../../agent/src/omni/tools/shell/job_tools.py#L49) |
+| `shell_job_start` | confirm | True | False | command-jobs | [agent/src/omni/tools/shell/job_tools.py](../../agent/src/omni/tools/shell/job_tools.py#L45) |
 | `skill_activate` | confirm | True | False | skills | [agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py#L432) |
 | `skill_archive` | confirm | True | False | skills | [agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py#L312) |
 | `skill_create` | safe | False | False | skills | [agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py#L195) |
@@ -1177,7 +1177,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `skill_rollback` | safe | False | False | skills | [agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py#L289) |
 | `skill_view` | safe | False | True | skills | [agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py#L177) |
 | `skills_list` | safe | False | True | skills | [agent/src/omni/tools/skills/tools.py](../../agent/src/omni/tools/skills/tools.py#L166) |
-| `system_service` | confirm | False | False | system-tools | [agent/src/omni/tools/system/tools.py](../../agent/src/omni/tools/system/tools.py#L94) |
-| `system_status` | safe | False | True | system-tools | [agent/src/omni/tools/system/tools.py](../../agent/src/omni/tools/system/tools.py#L83) |
-| `todo` | safe | False | False | personal | [agent/src/omni/tools/personal/todos.py](../../agent/src/omni/tools/personal/todos.py#L60) |
+| `system_service` | confirm | False | False | system-tools | [agent/src/omni/tools/system/tools.py](../../agent/src/omni/tools/system/tools.py#L99) |
+| `system_status` | safe | False | True | system-tools | [agent/src/omni/tools/system/tools.py](../../agent/src/omni/tools/system/tools.py#L88) |
+| `todo` | safe | False | False | personal | [agent/src/omni/tools/personal/todos.py](../../agent/src/omni/tools/personal/todos.py#L61) |
 | `web_read` | safe | False | True | web-fetch | [agent/src/omni/tools/web/tools.py](../../agent/src/omni/tools/web/tools.py#L113) |

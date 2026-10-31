@@ -19,17 +19,22 @@ import subprocess
 import sys
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from collections.abc import Callable
-
 from ..config import DATA_DIR, PROJECT_ROOT
 from .atomic import atomic_write_text
 from .filelock import FileLock
+from .process_identity import (
+    ProcessIdentity,
+    ProcessIdentityError,
+    confirmed_exited,
+    inspect_process,
+    terminate_verified_tree,
+)
 from .provenance import source_fingerprint
-from .process_identity import ProcessIdentity, ProcessIdentityError, inspect_process, terminate_verified_tree, confirmed_exited
 
 RUN_DIR = DATA_DIR / "run"
 LOG_DIR = DATA_DIR / "system_logs"

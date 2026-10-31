@@ -1,12 +1,12 @@
 """服务与诊断 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, HTTPException
 
-from .schemas import NapCatStartIn
 from ...system.services import ServiceError
+from .schemas import NapCatStartIn
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime

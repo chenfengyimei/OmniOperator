@@ -19,7 +19,8 @@ import asyncio
 import contextlib
 import datetime as dt
 import threading
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from ..config import AppConfig
 from ..llm.gateway import Gateway, to_openai_tool_call

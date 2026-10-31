@@ -18,9 +18,9 @@
 from __future__ import annotations
 
 import contextlib
-import json
 import datetime as dt
 import functools
+import json
 import re
 import sqlite3
 import threading
@@ -34,8 +34,12 @@ from .store_schema import (
     FTS_TRIGGERS,
     FTS_VERSION,
     PROFILE_MAX_CHARS,
-    SCHEMA as _SCHEMA,
+)
+from .store_schema import (
     FTS_SCHEMA as _FTS_SCHEMA,
+)
+from .store_schema import (
+    SCHEMA as _SCHEMA,
 )
 
 # 兼容旧私有名引用：声明本体已归 `store_schema.py`

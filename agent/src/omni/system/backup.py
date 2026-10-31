@@ -17,15 +17,15 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 import shutil
 import sqlite3
 import sys
-import os
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from ..config import RuntimePaths, STATE_SCHEMA_VERSION
+from ..config import STATE_SCHEMA_VERSION, RuntimePaths
 from .atomic import atomic_write_text
 
 MANIFEST_NAME = "backup.json"

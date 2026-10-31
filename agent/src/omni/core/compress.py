@@ -13,7 +13,8 @@ max_history_messages 的硬截断会无声丢掉旧上下文。压缩 = 上下�
 from __future__ import annotations
 
 import json
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from ..llm.gateway import Gateway
 from ..llm.usage import estimate_tokens

@@ -1,5 +1,6 @@
 """MJPEG 适配：订阅共享帧，异步取消及时归还连接，不给预览帧授权令牌。"""
 import asyncio
+
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 

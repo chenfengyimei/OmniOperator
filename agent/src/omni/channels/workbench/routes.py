@@ -1,9 +1,9 @@
 """只读项目目录、接口与实时能力；由 web.py 的统一鉴权中间件保护。"""
 from __future__ import annotations
 
-from pathlib import Path
 import threading
 import time
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, HTTPException

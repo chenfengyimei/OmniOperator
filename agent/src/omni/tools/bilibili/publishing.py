@@ -10,7 +10,7 @@ from typing import Protocol
 from urllib.parse import urlsplit
 
 from ...config import BilibiliWrite
-from ...memory.publications import PublicationStore, PublicationError
+from ...memory.publications import PublicationError, PublicationStore
 from ..result import ToolResult
 
 

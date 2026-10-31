@@ -1,12 +1,14 @@
 """终端会话池：并发上限、关闭预算和残留报告。"""
 from __future__ import annotations
+
 import threading
 from pathlib import Path
+
 from ...config import PROJECT_ROOT
 from . import backend
 from .backend import DEFAULT_COLS, DEFAULT_ROWS, MAX_SESSIONS
-from .session import TerminalSession
 from .managed import ManagedTerminal
+from .session import TerminalSession
 
 
 class TerminalManager:

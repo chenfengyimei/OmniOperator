@@ -6,15 +6,15 @@ import hashlib
 import json
 import math
 import os
-from pathlib import Path
 import sqlite3
 import time
+from pathlib import Path
 
-from ..config import DATA_DIR, RuntimePaths, STATE_SCHEMA_VERSION
+from ..config import DATA_DIR, STATE_SCHEMA_VERSION, RuntimePaths
 from .atomic import atomic_write_text
-from .process_identity import inspect_process, sample_process, process_parents
+from .process_identity import inspect_process, process_parents, sample_process
 from .provenance import source_fingerprint
-from .services import ServiceManager, OMNI_SERVICES
+from .services import OMNI_SERVICES, ServiceManager
 
 REQUIRED_SECONDS = 72 * 3600
 

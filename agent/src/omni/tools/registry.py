@@ -16,10 +16,10 @@ from __future__ import annotations
 import inspect
 import json
 import threading
-from dataclasses import dataclass
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from collections.abc import Iterator
-from typing import Any, Callable
+from dataclasses import dataclass
+from typing import Any
 
 from ..safety.gates import Approver, DenyApprover, Risk
 from .result import ToolResult, as_result

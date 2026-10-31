@@ -23,7 +23,7 @@ from ..config import load_env
 from ..core.session import SessionBusy
 from ..llm.gateway import GatewayError
 from ..safety.gates import DenyApprover, private_target_allowed
-from ..tools.qq.client import OneBotClient, clean_cq_message, chunk_message, cq_values
+from ..tools.qq.client import OneBotClient, chunk_message, clean_cq_message, cq_values
 from .lifecycle import serve_until_stop
 
 

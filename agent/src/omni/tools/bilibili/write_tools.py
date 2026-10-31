@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import json
 
-from ..registry import Tool, ToolRegistry, Risk, SessionRef
-from ..runctx import RunRef
+from ..registry import Risk, SessionRef, Tool, ToolRegistry
 from ..result import ToolResult
+from ..runctx import RunRef
 from .publishing import BilibiliPublisher, PublicationError, preview
 
 

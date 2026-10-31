@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 from typing import Any
+
 from ...memory.store import PROFILE_MAX_CHARS, MemoryStore
 from ..registry import Risk, Tool, ToolRegistry
 

@@ -2,18 +2,18 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator
 import contextlib
 import functools
 import json
-from typing import Any, TYPE_CHECKING
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from .schemas import ChatIn
 from ...core.session import SessionBusy
 from ...llm.gateway import GatewayError
+from .schemas import ChatIn
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime

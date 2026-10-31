@@ -1,5 +1,6 @@
 """ConPTY 平台适配：检测可用性与创建进程；不管理会话池或 HTTP。"""
 import shutil
+
 try:
     from winpty import PtyProcess
 

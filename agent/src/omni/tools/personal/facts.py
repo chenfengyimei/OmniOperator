@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any
+
 from ...memory.store import MemoryStore, normalize_text
 from ..registry import Risk, Tool, ToolRegistry
 

@@ -12,9 +12,9 @@ D05：领取改成 `JobStore.claim_due()` —— 选任务、推进 next_run_at�
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import datetime as dt
 import time
-import contextlib
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -319,8 +319,8 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
 
 
 async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
-    from .qq_policy import proactive_decision
     from ..tools.qq.client import chunk_message
+    from .qq_policy import proactive_decision
     outbox = runtime.outbox
 
     def finish(status: str, error: str = "") -> str:

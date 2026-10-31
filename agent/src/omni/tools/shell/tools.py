@@ -17,7 +17,12 @@ from pathlib import Path
 
 from ...config import PROJECT_ROOT
 from ..registry import Risk, Tool, ToolRegistry
-from ..result import SIDE_EFFECT_APPLIED, SIDE_EFFECT_NONE, SIDE_EFFECT_UNKNOWN, ToolResult
+from ..result import (
+    SIDE_EFFECT_APPLIED,
+    SIDE_EFFECT_NONE,
+    SIDE_EFFECT_UNKNOWN,
+    ToolResult,
+)
 from .danger import hard_blocked_reason
 from .process import (
     MAX_READ_BYTES,

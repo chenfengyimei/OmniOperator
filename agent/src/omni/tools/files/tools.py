@@ -16,11 +16,11 @@ import os
 from pathlib import Path
 from typing import Any
 
+from ...system.atomic import atomic_write_bytes
+from ...system.filelock import FileLock, LockTimeout
 from ..pathpolicy import is_protected_name, protected_dir
 from ..registry import Risk, Tool, ToolRegistry
 from ..result import SIDE_EFFECT_APPLIED, SIDE_EFFECT_UNKNOWN, ToolResult
-from ...system.atomic import atomic_write_bytes
-from ...system.filelock import FileLock, LockTimeout
 from . import io as fio
 from .history import FileHistory, SnapshotTooLarge
 from .paths import PathRejected, Resolved, Workspace

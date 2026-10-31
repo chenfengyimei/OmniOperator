@@ -5,16 +5,16 @@
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
-import json
-import hashlib
 from pathlib import Path
 from typing import Any
 
+from ..config import AppConfig
 from .atomic import atomic_write_text
 from .filelock import FileLock
-from ..config import AppConfig
 
 # 允许通过接口修改的键：(section, key) → 渲染方式
 EDITABLE: dict[tuple[str, str], str] = {

@@ -1,17 +1,16 @@
 """工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。"""
 from __future__ import annotations
-from .command_jobs import create_command_jobs_router
-from .android import create_android_router
-from .storage import create_storage_router
-from .context import create_context_router
 
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
 
+from .android import create_android_router
 from .approvals import create_approvals_router
 from .artifacts import create_artifacts_router
 from .automation import create_automation_router
+from .command_jobs import create_command_jobs_router
+from .context import create_context_router
 from .conversation import create_conversation_router
 from .devices import create_devices_router
 from .mcp import create_mcp_router
@@ -22,6 +21,7 @@ from .publications import create_publications_router
 from .runs import create_runs_router
 from .sessions import create_sessions_router
 from .skills import create_skills_router
+from .storage import create_storage_router
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime

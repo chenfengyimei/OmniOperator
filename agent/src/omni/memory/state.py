@@ -26,11 +26,12 @@ import shutil
 import sqlite3
 import threading
 import time
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
-from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso  # noqa: F401  （有意再导出，兼容旧 import）
 from .cron_store import ExecutionLog, JobStore  # noqa: F401  （有意再导出，兼容旧 import）
+from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso  # noqa: F401  （有意再导出，兼容旧 import）
 from .mcp_schemas import MCPSchemaStore  # noqa: F401  （有意再导出，兼容旧 import）
 from .outbox import OutboxStore  # noqa: F401  （有意再导出，兼容旧 import）
 from .skill_acks import SkillAckStore  # noqa: F401  （有意再导出，兼容旧 import）
@@ -39,13 +40,15 @@ from .state_errors import (
     StateConflict,  # noqa: F401  （有意再导出，兼容旧 import）
     StateError,
     StateUnavailable,
+)
+from .state_errors import (
     translate_operational as _translate_operational,
 )
 from .state_mixin_jobs import JobsMixin, _job_params
 from .state_mixin_leases import LeasesMixin
 from .state_mixin_ledger import LedgerMixin
 from .state_records import BudgetHit, Claim, Lease, MigrationRecord, SessionLease  # noqa: F401  （有意再导出，兼容旧 import）
-from .state_schema import MIGRATIONS, SCHEMA_VERSION, _META
+from .state_schema import _META, MIGRATIONS, SCHEMA_VERSION
 
 # 兼容旧测试/调用对私有迁移表名的引用：声明本体已归 `state_schema.py`
 _MIGRATIONS = MIGRATIONS
@@ -55,6 +58,7 @@ _MIGRATIONS = MIGRATIONS
 # 从 state 再导出以保持 `from omni.memory.state import MCPSchemaStore` 等旧 import 兼容。
 # 一次性任务错过触发时间的宽限常量本体在 state_mixin_jobs.py
 from .state_mixin_jobs import ONE_SHOT_MISSED_GRACE_S  # noqa: F401  （有意再导出，兼容旧 import）
+
 BROWSER_WRITE_SCOPE = "browser_write"
 
 # 只有 BEGIN 会重试（见 _begin）；次数与退避都要小，宁可尽快报错也不要长时间静默等待

@@ -14,8 +14,8 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -34,42 +34,42 @@ from ..system.config_io import (
     EDITABLE,
     ConfigEditError,
     apply_updates,  # noqa: F401  （有意再导出，兼容旧 import）
+    commit_config_updates,
     read_config_text,  # noqa: F401  （有意再导出，兼容旧 import）
     read_env_secrets,
     safe_write,  # noqa: F401  （有意再导出，兼容旧 import）
-    commit_config_updates,
     set_env_secret,
 )
 from ..system.filelock import LockTimeout
+from .terminal import TerminalManager
+from .terminal.routes import create_terminal_router
 from .web_api import create_api_routers
 from .web_api.capabilities import create_capabilities_router
 from .web_api.schemas import (
-    ChatIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    ResolveIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    NapCatStartIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    ConfigUpdateIn,
-    ModelTestIn,
-    MCPSchemaConfirmIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    BiliCookiesIn,
-    CronNameIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    CronToggleIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    CronCreateIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    CronUpdateIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    TodoToggleIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    AndroidTapIn,  # noqa: F401  （有意再导出，兼容旧 import）
     AndroidElementIn,  # noqa: F401  （有意再导出，兼容旧 import）
     AndroidKeyIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    AndroidTapIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    BiliCookiesIn,
+    ChatIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    ConfigUpdateIn,
+    CronCreateIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    CronNameIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    CronToggleIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    CronUpdateIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    MCPSchemaConfirmIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    ModelTestIn,
+    NapCatStartIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    PairIn,
     ProfileLineIn,  # noqa: F401  （有意再导出，兼容旧 import）
     ResidentUpdateIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    PairIn,
-    SkillSaveIn,  # noqa: F401  （有意再导出，兼容旧 import）
-    SkillRollbackIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    ResolveIn,  # noqa: F401  （有意再导出，兼容旧 import）
     SkillAckIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    SkillRollbackIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    SkillSaveIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    TodoToggleIn,  # noqa: F401  （有意再导出，兼容旧 import）
 )
-from .terminal import TerminalManager
-from .terminal.routes import create_terminal_router
-from .workbench import create_workbench_router
 from .web_auth import COOKIE_NAME, LOOPBACK_HOSTS, WebAuth
+from .workbench import create_workbench_router
 
 _STATIC_DIR = Path(__file__).parent / "web_static"
 

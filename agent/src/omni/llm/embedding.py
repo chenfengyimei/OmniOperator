@@ -8,7 +8,7 @@ import math
 import os
 import time
 import urllib.request
-from typing import Callable
+from collections.abc import Callable
 
 from ..config import Embedding
 from .budget import Ledger, RunBudget

@@ -9,9 +9,10 @@
 from __future__ import annotations
 
 import io
+from collections.abc import Iterable
 from pathlib import Path
 from threading import Lock
-from typing import Any, Iterable
+from typing import Any
 
 MAX_OUTPUT_CHARS = 12000
 WINDOW_SECONDS = 60

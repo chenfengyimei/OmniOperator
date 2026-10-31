@@ -9,7 +9,14 @@ import datetime as dt
 from collections.abc import Callable
 from typing import Any
 
-from ...memory.cron import CronError, Job, JobStore, compute_next_run, parse_run_at, to_iso
+from ...memory.cron import (
+    CronError,
+    Job,
+    JobStore,
+    compute_next_run,
+    parse_run_at,
+    to_iso,
+)
 from ...safety.gates import private_target_allowed
 from ..registry import Risk, Tool, ToolRegistry
 

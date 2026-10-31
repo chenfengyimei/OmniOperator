@@ -10,10 +10,22 @@ from __future__ import annotations
 
 import datetime as dt
 import difflib
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from ...memory.skill_inbox import (
+    MAX_ENTRIES,
+    MAX_UNPACKED_BYTES,
+    MAX_ZIP_BYTES,
+)
+from ...memory.skills import MAX_BODY, MAX_DESCRIPTION, MAX_REFERENCES
+from ...system.config_io import (
+    ConfigConflict,
+    commit_config_updates,
+    read_config_snapshot,
+)
+from ...system.filelock import LockTimeout
 from .schemas import (
     SkillAckIn,
     SkillArchiveIn,
@@ -22,14 +34,6 @@ from .schemas import (
     SkillSaveIn,
     SkillSettingsIn,
 )
-from ...memory.skill_inbox import (
-    MAX_ENTRIES,
-    MAX_UNPACKED_BYTES,
-    MAX_ZIP_BYTES,
-)
-from ...memory.skills import MAX_BODY, MAX_DESCRIPTION, MAX_REFERENCES
-from ...system.config_io import ConfigConflict, commit_config_updates, read_config_snapshot
-from ...system.filelock import LockTimeout
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime

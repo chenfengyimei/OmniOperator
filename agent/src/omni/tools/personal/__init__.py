@@ -2,15 +2,16 @@
 from __future__ import annotations
 
 from typing import Any
+
 from ...memory.store import MemoryStore
 from ..registry import ToolRegistry
 from .clock import register_time_tool
+from .digest import register_digest_tool
 from .facts import register_memory_tools
 from .profile import register_profile_tools
-from .digest import register_digest_tool
-from .todos import register_todo_tools
-from .resident import register_resident_tools
 from .refine import register_refine_tool
+from .resident import register_resident_tools
+from .todos import register_todo_tools
 
 
 def register_core_tools(

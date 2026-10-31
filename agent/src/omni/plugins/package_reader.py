@@ -18,8 +18,8 @@ from pathlib import Path
 from ..system.path_guard import digest, safe_parts  # 共享原语：与 skill_inbox 同一实现  # noqa: F401  （有意再导出，兼容旧 import）
 from .manifest import (
     MANIFEST_NAME,
-    PluginManifest,
     MAX_MANIFEST_BYTES,
+    PluginManifest,
 )
 
 MAX_ZIP_BYTES = 4 * 1024 * 1024        # 压缩包本身 ≤ 4 MiB

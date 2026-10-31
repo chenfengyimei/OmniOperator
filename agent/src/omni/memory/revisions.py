@@ -17,9 +17,10 @@ import datetime as dt
 import hashlib
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from ..system.atomic import atomic_write_text
 

@@ -1,8 +1,11 @@
 """内置终端 WebSocket 适配；复用工作台身份及注入的会话池。"""
 from __future__ import annotations
+
 import asyncio
 import json
+
 from fastapi import APIRouter, WebSocket
+
 from ..web_auth import COOKIE_NAME, WebAuth
 from .pool import TerminalManager
 from .sessions import create_sessions_router

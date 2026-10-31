@@ -27,9 +27,9 @@ import hashlib
 import re
 import secrets
 import sqlite3
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 from .state import StateStore, StateUnavailable, parse_iso, to_iso
 

@@ -8,25 +8,30 @@ import json
 import math
 import sys
 import time
+from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
-from typing import Any, Callable
+from typing import Any
 
 from ..config import AppConfig
 from ..llm import errors as llm_errors
 from ..llm.budget import RunBudget
 from ..llm.gateway import Gateway, Reply, StreamEvent, to_openai_tool_call
-from ..memory.artifacts import ArtifactError, MARKER_RE
+from ..llm.usage import estimate_tokens
+from ..memory.artifacts import MARKER_RE, ArtifactError
 from ..memory.dialogue import DialogueLog
 from ..memory.runs import RunStore
 from ..memory.session_log import SessionLog
 from ..memory.store import MemoryStore
-from .vision import coordinate_note, image_part, prepare_image
 from ..safety.gates import Approver, Risk
 from ..tools.registry import SessionRef, ToolRegistry
 from ..tools.result import ToolResult
 from ..tools.runctx import RunRef
-from .compress import assemble_context, assert_invariants, compress_if_needed, preview_context
-from ..llm.usage import estimate_tokens
+from .compress import (
+    assemble_context,
+    assert_invariants,
+    compress_if_needed,
+    preview_context,
+)
 from .context import TurnContext, reanchor_current_memory, render_rows, system_prompt
 from .modes import (
     DM_ALLOWED_TOOLS,
@@ -53,6 +58,7 @@ from .run import (
     RunIdentity,
     TurnResult,
 )
+from .vision import coordinate_note, image_part, prepare_image
 
 # 群聊与非所有者私聊的场景白名单，其真值在 core/modes.py（模式白名单与
 # 场景白名单必须共用同一份定义，否则两处漂移就会出现越权）。

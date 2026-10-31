@@ -1,14 +1,14 @@
 """校验真实证据与常驻结果；永不执行发布或代替用户批准。"""
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import json
-import datetime as dt
 from pathlib import Path
 
-from .soak import read, summarize
 from .provenance import source_fingerprint
 from .services import OMNI_SERVICES
+from .soak import read, summarize
 
 REQUIRED_CASES = ('northstar_a', 'northstar_b', 'northstar_c', 'northstar_d', 'northstar_e',
                   'desktop_notepad', 'desktop_second_app', 'desktop_edge_cases', 'qq_group_isolation',

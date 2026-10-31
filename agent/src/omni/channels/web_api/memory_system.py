@@ -12,14 +12,14 @@
 """
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, HTTPException
 
-from .schemas import AccountLinkIn, PersonCreateIn, PersonEntryIn, PersonUpdateIn
 from ...memory.journal import KINDS
 from ...memory.people import PersonError
 from ...memory.store import PROFILE_MAX_CHARS
+from .schemas import AccountLinkIn, PersonCreateIn, PersonEntryIn, PersonUpdateIn
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime

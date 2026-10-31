@@ -10,9 +10,9 @@ from __future__ import annotations
 import atexit
 import os
 import sys
-import uuid
-import time
 import threading
+import time
+import uuid
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
@@ -21,25 +21,35 @@ from .config import (
     CONFIG_PATH,
     DATA_DIR,
     PROJECT_ROOT,
-    AppConfig,
     QQ,
+    AppConfig,
     RuntimePaths,
     load_config,
     load_qq_policy,
 )
 from .core.agent import Agent
+from .core.journal import JournalConsolidator
+from .core.retrieval import HybridMemory
+from .core.review import TurnEndReviewer
 from .core.router import ModeRouter
 from .core.run import ActiveRuns
 from .core.session import ResourceLeases, SessionGate, SessionLeases
-from .core.review import TurnEndReviewer
-from .core.journal import JournalConsolidator
-from .core.retrieval import HybridMemory
-from .llm.gateway import Gateway
 from .llm.embedding import EmbeddingProvider
-from .memory.vectors import VectorIndex
-from .memory.runs import RunStore
-from .memory.qq import QQMessageStore
+from .llm.gateway import Gateway
+from .memory.artifacts import ArtifactStore
+from .memory.command_jobs import CommandJobStore
+from .memory.dialogue import DialogueLog
+from .memory.guard import MemoryGuard
+from .memory.journal import JournalStore
+from .memory.owner import OwnerMemory
+from .memory.owner_migrate import migrate_owner_memory
+from .memory.people import PersonStore
 from .memory.publications import PublicationStore
+from .memory.qq import QQMessageStore
+from .memory.runs import RunStore
+from .memory.session_log import SessionLog
+from .memory.skill_inbox import SkillInbox
+from .memory.skills import SkillStore
 from .memory.state import (
     ExecutionLog,
     JobStore,
@@ -48,37 +58,39 @@ from .memory.state import (
     SkillAckStore,
     StateStore,
 )
-from .memory.artifacts import ArtifactStore
-from .memory.usage import UsageLedger
-from .memory.guard import MemoryGuard
-from .memory.owner import OwnerMemory
-from .memory.owner_migrate import migrate_owner_memory
-from .memory.dialogue import DialogueLog
-from .memory.session_log import SessionLog
-from .memory.journal import JournalStore
-from .memory.people import PersonStore
+from .memory.store import MemoryStore
 from .memory.system import MemorySystem
-from .memory.skills import SkillStore
-from .memory.skill_inbox import SkillInbox
+from .memory.usage import UsageLedger
+from .memory.vectors import VectorIndex
 from .plugins import PluginHost
 from .plugins.community import CommunityClient, register_community_tools
 from .plugins.tools import register_plugin_tools
-from .memory.store import MemoryStore
 from .safety.broker import ApprovalBroker
 from .safety.gates import Approver
-from .system.services import ServiceManager
-from .system.doctor import diagnose
 from .system.agent_spaces import AgentDirectoryStore, ApplicationLayout
 from .system.agent_spaces.inventory import private_paths
 from .system.backup import backup_runtime
+from .system.doctor import diagnose
+from .system.observability import BoundedLog, EventLog
+from .system.services import ServiceManager
+from .tools.android.driver import AndroidDriver
+from .tools.android.stream import AndroidFrameHub
+from .tools.android.tools import register_android_tools
 from .tools.bilibili.api import BiliAPI
+from .tools.bilibili.publishing import BilibiliPublisher
 from .tools.bilibili.tools import register_bilibili_tools
 from .tools.bilibili.write_tools import register_bilibili_write_tools
-from .tools.bilibili.publishing import BilibiliPublisher
 from .tools.browser.budget import WriteBudget
 from .tools.browser.driver import BrowserDriver
 from .tools.browser.forms import BrowserForms
 from .tools.browser.tools import register_browser_tools
+from .tools.delegation import register_delegate_tools
+from .tools.desktop.driver import DesktopDriver
+from .tools.desktop.native import WindowsDesktopBackend
+from .tools.desktop.tools import register_desktop_tools
+from .tools.files import FileHistory, Workspace, register_file_tools
+from .tools.mcp.client import MCPManager
+from .tools.mcp.tools import register_mcp_tools
 from .tools.personal import (
     register_core_tools,
     register_digest_tool,
@@ -91,29 +103,17 @@ from .tools.personal import (
 from .tools.personal.journal import register_journal_tools
 from .tools.personal.people import register_people_tools
 from .tools.personal.transcript import register_transcript_tools
-from .tools.scheduling import register_cron_tools
-from .tools.delegation import register_delegate_tools
-from .tools.files import FileHistory, Workspace, register_file_tools
-from .tools.web import FetchPolicy, register_web_tools
-from .tools.registry import SessionRef, ToolRegistry
-from .tools.runctx import RunRef
-from .tools.android.driver import AndroidDriver
-from .tools.android.stream import AndroidFrameHub
-from .system.observability import BoundedLog, EventLog
-from .tools.android.tools import register_android_tools
-from .tools.desktop.driver import DesktopDriver
-from .tools.desktop.native import WindowsDesktopBackend
-from .tools.desktop.tools import register_desktop_tools
 from .tools.qq.client import OneBotClient
 from .tools.qq.tools import register_qq_tools
+from .tools.registry import SessionRef, ToolRegistry
+from .tools.runctx import RunRef
+from .tools.scheduling import register_cron_tools
 from .tools.shell import register_shell_tools
+from .tools.shell.job_tools import register_command_job_tools
+from .tools.shell.jobs import CommandJobManager
 from .tools.skills import register_skill_inbox_tools, register_skill_tools
 from .tools.system import register_system_tools
-from .memory.command_jobs import CommandJobStore
-from .tools.shell.jobs import CommandJobManager
-from .tools.shell.job_tools import register_command_job_tools
-from .tools.mcp.client import MCPManager
-from .tools.mcp.tools import register_mcp_tools
+from .tools.web import FetchPolicy, register_web_tools
 
 
 def _no_port_probe(_port: int, _state: str) -> list[int]:

@@ -1,6 +1,8 @@
 """单终端会话的读、写、窗口尺寸和退出确认。"""
 from __future__ import annotations
+
 import threading
+
 from . import backend
 from .backend import DEFAULT_COLS, DEFAULT_ROWS
 

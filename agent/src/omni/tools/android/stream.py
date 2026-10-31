@@ -1,11 +1,11 @@
 """按设备共享最新 JPEG；预览不产生观察授权，慢客户端跳过旧帧。"""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from io import BytesIO
 import threading
 import time
 import uuid
+from dataclasses import dataclass
+from io import BytesIO
 
 from PIL import Image
 

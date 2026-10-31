@@ -8,9 +8,9 @@ from __future__ import annotations
 import ctypes
 import os
 import time
+from ctypes import wintypes as wt
 from dataclasses import dataclass
 from pathlib import Path
-from ctypes import wintypes as wt
 
 
 @dataclass(frozen=True)

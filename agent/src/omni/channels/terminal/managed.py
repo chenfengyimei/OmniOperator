@@ -1,10 +1,10 @@
 """可恢复的人类终端：持续排空、有限输出环与单写者；不向模型暴露。"""
 from __future__ import annotations
 
-from collections import deque
 import threading
 import time
 import uuid
+from collections import deque
 
 
 class ManagedTerminal:

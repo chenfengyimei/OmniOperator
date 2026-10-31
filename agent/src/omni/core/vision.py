@@ -22,6 +22,7 @@ from typing import Any
 
 from ..memory.artifacts import Artifact
 
+
 # 发给模型的消息里，图像块的形态（OpenAI 兼容；LiteLLM 会按供应商归一）
 def image_part(data: bytes, mime: str) -> dict[str, Any]:
     encoded = base64.b64encode(data).decode("ascii")

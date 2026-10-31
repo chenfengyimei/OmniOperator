@@ -18,8 +18,9 @@ from __future__ import annotations
 import datetime as dt
 import sys
 import time
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterable, Iterator
+from typing import Any
 
 from ..config import LLM as LLMConfig
 from ..config import Models

@@ -11,18 +11,20 @@ import json
 import os
 import queue
 import re
+import shutil
 import threading
 import time
-import shutil
+from collections.abc import Callable
+from concurrent.futures import Future
+from concurrent.futures import TimeoutError as FutureTimeout
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Protocol
 
 import anyio
-from concurrent.futures import Future, TimeoutError as FutureTimeout
-from pathlib import Path
-from typing import Any, Callable, Protocol
 
-from ...config import MCPConfig, MCPServerConfig, PROJECT_ROOT
+from ...config import PROJECT_ROOT, MCPConfig, MCPServerConfig
 from ...system.stderr_log import StderrLog
-from dataclasses import dataclass, field
 
 
 class MCPError(RuntimeError):

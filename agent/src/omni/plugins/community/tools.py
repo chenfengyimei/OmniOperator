@@ -1,6 +1,8 @@
 """社区工具适配；HTTP/发布逻辑由注入客户端承担。"""
 from __future__ import annotations
+
 from typing import Any
+
 from ...tools.registry import Risk, Tool, ToolRegistry
 from .client import CommunityClient
 

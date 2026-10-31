@@ -1,6 +1,6 @@
 """能力与诊断只读聚合：不连接 MCP、不访问手机、不启动终端/服务。"""
-from collections import Counter
 import shutil
+from collections import Counter
 
 from fastapi import APIRouter
 

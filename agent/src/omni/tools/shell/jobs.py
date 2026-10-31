@@ -2,20 +2,25 @@
 from __future__ import annotations
 
 import codecs
-from dataclasses import asdict
 import json
 import os
-from pathlib import Path
 import queue
 import shutil
 import subprocess
 import threading
 import time
 import uuid
+from dataclasses import asdict
+from pathlib import Path
 
 from ...config import CommandJobsConfig
-from ...memory.command_jobs import CommandJobStore, FINAL
-from ...system.process_identity import ProcessIdentity, inspect_process, confirmed_exited, terminate_verified_tree
+from ...memory.command_jobs import FINAL, CommandJobStore
+from ...system.process_identity import (
+    ProcessIdentity,
+    confirmed_exited,
+    inspect_process,
+    terminate_verified_tree,
+)
 from .danger import hard_blocked_reason
 from .job_logs import CommandLog
 from .process import user_env

@@ -15,7 +15,12 @@ from typing import Any
 
 from ...system.services import ALL_SERVICES, ServiceError, ServiceManager
 from ..registry import Risk, Tool, ToolRegistry
-from ..result import SIDE_EFFECT_APPLIED, SIDE_EFFECT_NONE, SIDE_EFFECT_UNKNOWN, ToolResult
+from ..result import (
+    SIDE_EFFECT_APPLIED,
+    SIDE_EFFECT_NONE,
+    SIDE_EFFECT_UNKNOWN,
+    ToolResult,
+)
 
 
 def _service_error(exc: ServiceError) -> ToolResult:

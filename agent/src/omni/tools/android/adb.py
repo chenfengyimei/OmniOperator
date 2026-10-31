@@ -17,6 +17,7 @@ import threading
 import time
 from contextlib import contextmanager
 from typing import Any, Literal, overload
+
 from .process import run_adb
 
 ADB_KEYCODE_RE = re.compile(r"^KEYCODE_[A-Z0-9_]+$")
