@@ -259,8 +259,13 @@ MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待
    字段级"没传=不改、null=清除"，expected_revision 乐观并发）+ 成败判定去前缀化；
    ②投递 outbox：QQ 掉线任务结果入队、心跳恢复后每 60s 补投（3 次上限成死信）、
    unknown 不自动重发（面板人工决定）、白名单撤销即丢、同内容活跃期去重；
-   工作台「定时任务 → 待投递」面板。**剩余细项**：`context_from` 绑定具体成功 run、
-   并行上限、显式时区。夜间整理→早报列为真实验收。
+   工作台「定时任务 → 待投递」面板。
+   原列「剩余细项」经 2026-11-01 代码与测试核实**均已交付**（`test_cron.py` 27 项全绿）：
+   `context_from` 绑定具体成功 run（prompt 头部注入 `run_id=...`，源输出带新鲜度上限
+   `context_max_age_minutes`，过期/未跑过拒绝执行）；并行上限（`claim_due(max_running=)`
+   原子判据 + `CronScheduler(max_running=)` 默认 2）；显式时区（v11 迁移、IANA 校验、
+   DST gap/fold 边界 `test_daily_timezone_dst_gap_and_fold`）。
+   夜间整理→早报列为真实验收。
 3. **D18 技能工作台（已完成）**：①技能页可编辑——保存带指纹 CAS（冲突拒绝）、
    历史/差异/回滚（回滚产生新修订）、修订里 author/source 可区分用户手改与 agent 修改；
    ②**候选变更审阅队列**——agent/review 自动改的修订进"待审阅"横幅（作者=user/external 不进），

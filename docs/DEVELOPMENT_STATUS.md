@@ -1,5 +1,11 @@
 # 开发状态记录
 
+2026-11-01 D17「剩余细项」核实结案（工作区，只读核查 + 台账更正）：
+`context_from` 绑定具体成功 run（prompt 注入 `run_id`，新鲜度上限）、并行上限
+（`claim_due(max_running=)` + 调度器默认 2）、显式时区（IANA + DST gap/fold）
+在代码与 `test_cron.py`（27 passed）中均已交付——HANDOFF §6 第 2 项的过期
+「剩余细项」已更正，只保留夜间整理→早报为真实验收。
+
 2026-11-01 摘要原语去重第二段（工作区）：`resident.py`/`files/io.py`/
 `community/client.py`/`community/server.py` 四处逐字相同的命名摘要函数
 收敛为 `system/path_guard.digest` 的 import 别名，调用点零改动；守卫
