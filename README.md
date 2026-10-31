@@ -8,7 +8,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
-[![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](docs/INSTALLER.md)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](#六环境要求与安装)
 [![tests](https://img.shields.io/badge/tests-1456%20offline-brightgreen)](docs/DEVELOPMENT_STATUS.md)
 [![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
 
@@ -220,32 +220,91 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 
 ---
 
-## 六、快速开始
+## 六、环境要求与安装
 
-### 一键图形安装器（推荐）
+### 环境要求
 
-双击仓库根目录的 `install.bat` 打开**图形安装器**，点「开始安装」；完成后点「启动工作台」
-（或双击 `start.bat`），浏览器会自动打开配对链接。模型密钥、QQ 白名单、B站 Cookie 等
-全部在工作台「设置中心」完成，安装器不碰任何密钥。镜像选项、失败降级与手动方案见
-[安装器手册](docs/INSTALLER.md)。
+| 项 | 要求 | 说明 |
+|---|---|---|
+| 操作系统 | **Windows 10 / 11（x64）** | 唯一验证过的平台；macOS / Linux 未验证 |
+| Python | **3.12+** | 不用手动装，`uv` 会自动准备并锁定版本 |
+| 包管理器 | **[uv](https://docs.astral.sh/uv/)** | 依赖安装与所有运行入口都走它 |
+| 磁盘 | 约 1.5 GB | 依赖 + 可选 Chromium |
+| 网络 | 能访问 PyPI（或配镜像） | 模型请求另需能访问你所配的供应商 |
+| 模型 | **一家供应商密钥，或本地 Ollama** | 至少配一个；不配只能跑离线工具 |
 
-### 手动安装（等价步骤）
+**可选组件**（按需，缺了只少一项能力，不影响启动）：
+
+| 能力 | 需要什么 |
+|---|---|
+| 浏览器 / B站 | Playwright Chromium（一条命令，见下） |
+| 安卓控制 | ADB + 手机开 USB 调试 + ADBKeyboard 输入法（[安卓手册](docs/ANDROID.md)） |
+| QQ 通道 | NapCat 部署（[QQ 部署](docs/QQ_SETUP.md)） |
+| 语义检索 | 本地 Ollama 向量模型，或云端 embedding 服务（[检索手册](docs/RETRIEVAL.md)） |
+
+### 从源码安装（四步）
+
+**① 安装 uv**
 
 ```powershell
-# 首次安装；常驻服务占用 .venv 入口时，先按运维手册安排维护窗口。
+winget install --id=astral-sh.uv -e
+# 或者官方脚本：irm https://astral.sh/uv/install.ps1 | iex
+# 两者都不用时：pip install uv
+```
+
+**② 克隆仓库并安装依赖**
+
+```powershell
+git clone https://gitee.com/chenfengloveyuri/OmniOperator.git
+cd OmniOperator
 uv sync --frozen
-# 使用浏览器能力时安装 Chromium。
+```
+
+`uv sync --frozen` 会按锁文件创建 `.venv`、拉取依赖，并使用锁定版本的 Python 3.12——
+不需要预先装 Python，也不需要手动建虚拟环境。
+
+**③ 写配置（密钥只留在你本机）**
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item config\config.example.yaml config\config.yaml
+notepad .env                                              # 填模型密钥（至少一家；本地 Ollama 可留空）
+```
+
+**④ 可选：安装浏览器内核**
+
+```powershell
 uv run python -m playwright install chromium
+```
 
-# 复制配置模板并填写：
-Copy-Item .env.example .env                      # 模型密钥（至少配一家，见文件内说明）
-Copy-Item config\config.example.yaml config\config.yaml   # 运行配置（QQ 白名单等，本地文件不入库）
+### 启动
 
+```powershell
 uv run omni-web        # Web 工作台：控制台打印配对链接，点开即完成本机配对
 uv run omni            # CLI（REPL）
 uv run omni-qq         # QQ 通道（需先部署 NapCat，见 docs/QQ_SETUP.md）
 uv run omni-heartbeat  # 定时调度（无人值守 fail-closed；写操作仍受审批约束）
 ```
+
+也可以双击 `start.bat`：它启动工作台，并自动打开尚未过期的配对链接
+（逻辑在 `scripts/start.ps1` → `scripts/installer_lib.ps1`）。
+
+### 装完先自检
+
+```powershell
+uv run --no-sync python -m omni.channels.doctor    # 只读体检：配置 / 依赖 / 数据库 / 设备
+uv run --no-sync pytest -q                          # 全量离线测试（1456 项，约 2.5 分钟）
+```
+
+### 常见问题
+
+| 现象 | 原因与处理 |
+|---|---|
+| `uv sync` 报文件锁 / `os error 32` | 工作台或心跳正在运行，`.venv` 入口被占用。先停服务再装；日常运行一律加 `--no-sync` |
+| 配对链接打不开 | 链接有时效（`data/run/pair_url.json` 的 `expires_at`）。过期就去工作台窗口取最新打印的链接 |
+| 模型不响应 / 一直报预算 | 到工作台「设置中心 → 模型」点测试，确认密钥、端点、预算档位 |
+| QQ 收不到消息 | 空白名单 = 谁都不许；先在工作台扫码登录 NapCat 再配白名单 |
+| 安卓连不上 | `adb devices` 能列出设备、手机已开 USB 调试、已装 ADBKeyboard（中文输入） |
 
 ### 配置要点
 
@@ -300,6 +359,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 | `http-android` | **安卓设备 API 与面板** — 按设备固定目标、配对归属的观察与受控应用操作 | [ANDROID](docs/ANDROID.md) |
 | `http-devices` | **桌面与安卓 API** — 窗口观察、设备树/锁帧、受观察约束的手动动作和 MJPEG | [ANDROID, DESKTOP](docs/ANDROID.md) |
 | `http-contracts` | **HTTP 请求契约** — 公共请求模型 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
+| `http-market` | **市场 API（人设与插件）** — 社区源配置、人设卡与插件索引代理，以及插件的安装/激活/启停/卸载 | [PLUGIN_SYSTEM](docs/PLUGIN_SYSTEM.md) |
 | `http-routing` | **HTTP 路由装配** — 聚合注入 Runtime 的领域路由，由应用入口统一挂载 | [PROJECT_INDEX, REFACTORING](docs/PROJECT_INDEX.md) |
 
 ### 内核与模型
@@ -374,7 +434,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 **核心文档导航**
 
-- **用户手册**：[安装器](docs/INSTALLER.md) · [QQ 部署](docs/QQ_SETUP.md) · [B站写入](docs/BILIBILI_WRITING.md) ·
+- **用户手册**：[环境与安装](#六环境要求与安装) · [QQ 部署](docs/QQ_SETUP.md) · [B站写入](docs/BILIBILI_WRITING.md) ·
   [安卓](docs/ANDROID.md) · [桌面](docs/DESKTOP.md) · [MCP](docs/MCP.md) · [终端](docs/TERMINAL.md) · [检索](docs/RETRIEVAL.md)
 - **设计权威**：[架构](docs/ARCHITECTURE.md) · [记忆系统](docs/MEMORY_SYSTEM.md) · [数据模型](docs/DATA_MODEL.md) ·
   [插件系统](docs/PLUGIN_SYSTEM.md) · [技能系统](docs/SKILL_SYSTEM.md) · [档位路由](docs/MODE_ROUTING.md)

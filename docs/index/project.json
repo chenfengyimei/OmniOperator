@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7929a848618d3f76204a496b63486720653de9f5f30cb912f101ea2c49c3d668",
+  "source_sha256": "2e936c76c7f92b9b5bddeb54e8aecdc32c6907ee491c4c04575eb61036f2e355",
   "modules": [
     {
       "id": "agent-directories",
@@ -430,6 +430,7 @@
         "agent/src/omni/channels/web_static/ui/app/hub-capabilities.js",
         "agent/src/omni/channels/web_static/ui/app/hub-cron.js",
         "agent/src/omni/channels/web_static/ui/app/hub-jobs.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-market.js",
         "agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js",
         "agent/src/omni/channels/web_static/ui/app/hub-mcp.js",
         "agent/src/omni/channels/web_static/ui/app/hub-memory.js",
@@ -463,7 +464,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 5271,
+      "lines": 5657,
       "dependencies": []
     },
     {
@@ -498,7 +499,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2577,
+      "lines": 2601,
       "dependencies": [
         "assembly",
         "config",
@@ -6225,7 +6226,7 @@
       "path": "agent/src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 632,
+      "lines": 656,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6572,6 +6573,16 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-market.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 329,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js",
       "module": "ui-shared",
       "python_module": null,
@@ -6605,7 +6616,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub-models.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 440,
+      "lines": 442,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6615,7 +6626,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub-persona.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 142,
+      "lines": 150,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6655,7 +6666,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 334,
+      "lines": 337,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6665,7 +6676,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/main.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 65,
+      "lines": 66,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6885,7 +6896,7 @@
       "path": "agent/src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1128,
+      "lines": 1171,
       "imports": [],
       "symbols": [],
       "kind": "asset",

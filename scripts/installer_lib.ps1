@@ -1,13 +1,13 @@
 ﻿<#
 共享实现：安装步骤、预检与启动工作台。
-被三个前端 dot-source：
-- scripts/install.ps1     （CLI：Sink 为 scriptblock，立即打印）
-- scripts/install_gui.ps1  （图形界面：Sink 为同步队列，Timer 消费）
+被两个前端 dot-source：
+- scripts/install.ps1     （CLI 安装：Sink 为 scriptblock，立即打印）
 - scripts/start.ps1        （CLI 启动）
+（原图形安装器 install_gui.ps1 已废弃，见 temp/retired-installer-2026-11-01/）
 
 约定：
 - Send-Say 的 $Sink 同时接受 scriptblock（参数：文本, 级别）或 System.Collections.Queue
-  的同步队列（元素为 @{ text; level }），后者用于 GUI 跨线程。
+  的同步队列（元素为 @{ text; level }），后者用于跨线程刷新（保留能力，当前无 GUI 使用）。
 - $Progress 是（可同步的）hashtable：s0..s8 为步骤状态
   （pending/running/ok/warn/fail/skip），result 为 ok/blocked/fail。
 - 全程 PowerShell 5.1 兼容：不使用 PS7 专用的链式 and/or 运算符与三元表达式。

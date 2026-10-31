@@ -1,14 +1,16 @@
-"""安装器脚本守卫：PS 5.1 兼容、BOM、启动纪律与配对文件契约（静态检查，不执行脚本）。
+"""安装脚本守卫：PS 5.1 兼容、BOM、启动纪律与配对文件契约（静态检查，不执行脚本）。
 
-背景：install_gui.ps1 / install.ps1 / start.ps1 / installer_lib.ps1 是给"不会配置
-的用户"用的装机工具，坏了就是装机失败；PowerShell 脚本没有 pytest 之外的测试基建，
-这里至少把已知平台坑钉死：
+背景：install.ps1 / start.ps1 / installer_lib.ps1 是装机与启动的辅助脚本，坏了就是
+装不上/起不来；PowerShell 脚本没有 pytest 之外的测试基建，这里至少把已知平台坑钉死：
 - PowerShell 5.1 不支持 && / ||（本仓库实测过的坑）；
 - PS 5.1 按 ANSI 解析无 BOM 的 .ps1，中文注释会直接把脚本打花——必须带 UTF-8 BOM；
 - 常驻运行必须 --no-sync（HANDOFF：运行时 uv 重建 venv 会失败）；
 - 配对码只认 pair_url.json 且必须校验 expires_at（文件可能滞后于服务换码）；
 - 服务运行中会让 uv sync 死锁，预检必须存在且 blocked 时不得继续；
 - cmd 包装器只允许 ASCII（cmd 代码页随机器变化，中文会乱码甚至执行失败）。
+
+一键图形安装器已于 2026-11-01 废弃（代码在 temp/retired-installer-2026-11-01/），
+本文件不再覆盖 GUI 部分；`installer_lib.ps1` 仍被 start.ps1 启动链依赖，守卫保留。
 """
 from __future__ import annotations
 
@@ -19,7 +21,6 @@ ROOT = Path(__file__).resolve().parents[2]
 PS1_FILES = (
     "scripts/installer_lib.ps1",
     "scripts/install.ps1",
-    "scripts/install_gui.ps1",
     "scripts/start.ps1",
 )
 
@@ -73,11 +74,15 @@ def test_workbench_start_follows_no_sync_and_pair_url_contract():
     assert "expires_at" in text
 
 
-def test_bat_wrappers_are_ascii_only_and_open_the_gui():
-    """cmd 代码页随机器变化：包装器只允许 ASCII；install.bat 必须指向图形安装器。"""
-    for name in ("install.bat", "start.bat"):
-        (ROOT / name).read_bytes().decode("ascii")
-    assert "install_gui.ps1" in (ROOT / "install.bat").read_text(encoding="ascii")
+def test_bat_wrappers_are_ascii_only_and_start_the_workbench():
+    """cmd 代码页随机器变化：包装器只允许 ASCII；start.bat 必须指向 start.ps1（启动链）。
+
+    图形安装器已废弃：install.bat 不再存在，若有人误加回来会被这条断言提醒更新台账。
+    """
+    assert not (ROOT / "install.bat").exists(), "install.bat 已废弃（temp/retired-installer-2026-11-01/）"
+    start_bat = ROOT / "start.bat"
+    start_bat.read_bytes().decode("ascii")
+    assert "start.ps1" in start_bat.read_text(encoding="ascii")
 
 
 def test_gitignore_excludes_installer_downloads():

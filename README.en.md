@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
-[![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](docs/INSTALLER.md)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](#quick-start)
 [![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
 
 > **The Chinese [README.md](README.md) is the authoritative version of this document.**
@@ -61,15 +61,28 @@ Full contracts: [ARCHITECTURE](docs/ARCHITECTURE.md) (enforced by `tests/test_ar
 
 ## Quick start
 
-Preferred: double-click `install.bat` for the GUI installer, then "启动工作台" (start
-workbench); the browser opens the pairing link printed in the console. All secrets (model
-keys, QQ whitelist, Bilibili cookies) are configured in the workbench settings hub. See
-[INSTALLER](docs/INSTALLER.md).
+Requirements: Windows 10/11 (x64), [uv](https://docs.astral.sh/uv/) (it provisions Python
+3.12 itself), ~1.5 GB disk, network access to PyPI, and one model provider key (or local
+Ollama). Optional: Playwright Chromium (browser/Bilibili), ADB + Android phone, NapCat (QQ).
 
-Manual equivalent:
+Install from source:
 
 ```powershell
+git clone https://gitee.com/chenfengloveyuri/OmniOperator.git
+cd OmniOperator
 uv sync --frozen
+uv run python -m playwright install chromium   # optional: browser capability
+```
+
+Configure (secrets stay local):
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item config\config.example.yaml config\config.yaml
+notepad .env
+```
+
+Run:
 uv run python -m playwright install chromium
 Copy-Item .env.example .env                                  # model keys (see .env.example)
 Copy-Item config\config.example.yaml config\config.yaml     # runtime config (local, untracked)

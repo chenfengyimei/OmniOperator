@@ -51,6 +51,14 @@
 - 备份/恢复（SQLite 一致快照 + integrity_check + sha256）、只读 doctor、日志轮转；
 - 进程身份与有界关闭、发布闸门与常驻采样工具、离线验证套件与 Windows CI 入口。
 
+### 已移除（Removed）
+
+- **一键图形安装器**（`install.bat` + `scripts/install_gui.ps1` + `docs/INSTALLER.md`）：
+  2026-11-01 退役，代码归档至 `temp/retired-installer-2026-11-01/`。安装改为标准源码方式
+  （`uv sync --frozen` → 写配置 → 启动），步骤与环境要求见 README「环境要求与安装」。
+  理由：图形安装器替用户下载多个外部组件、可审计性差，与"可控的本地 agent"定位冲突，
+  且界面代码几乎不可单测。`installer_lib.ps1` 因 `start.bat` 启动链依赖而保留。
+
 ### 已知边界（如实）
 
 - 真实 QQ 账号北极星、B 站真实发布、安卓真机、72 小时常驻：**未验收**；

@@ -173,19 +173,30 @@ DDL 单一来源、原语全仓只有一个实现（测试断言是同一函数�
 
 ## 快速开始
 
+环境：Windows 10/11（x64）· [uv](https://docs.astral.sh/uv/)（自动准备 Python 3.12）·
+约 1.5 GB 磁盘 · 能访问 PyPI · 一家模型密钥或本地 Ollama。
+可选：Playwright Chromium（浏览器）、ADB + 安卓机、NapCat（QQ）。
+
 ```powershell
-# 一键图形安装器（推荐）：双击仓库根目录 install.bat
-# 或手动：
-uv sync --frozen
-uv run python -m playwright install chromium
-Copy-Item .env.example .env
+git clone https://gitee.com/chenfengloveyuri/OmniOperator.git
+cd OmniOperator
+uv sync --frozen                                 # 建 .venv、装依赖（Python 3.12 由 uv 提供）
+uv run python -m playwright install chromium     # 可选：浏览器 / B站能力
+
+Copy-Item .env.example .env                      # 填模型密钥（本地 Ollama 可留空）
 Copy-Item config\config.example.yaml config\config.yaml
 
-uv run omni-web        # Web 工作台（控制台打印配对链接）
+uv run omni-web        # Web 工作台（控制台打印配对链接，点开即配对）
 uv run omni            # CLI
 uv run omni-qq         # QQ 通道（需 NapCat）
 uv run omni-heartbeat  # 定时调度
+
+# 装完自检
+uv run --no-sync python -m omni.channels.doctor
 ```
+
+> 一键图形安装器已于 2026-11-01 废弃（代码归档在 `temp/retired-installer-2026-11-01/`），
+> 现在只提供源码安装路径。
 
 ## 如实边界
 

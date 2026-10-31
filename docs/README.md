@@ -8,7 +8,6 @@
 
 | 文档 | 内容 |
 |---|---|
-| [INSTALLER.md](INSTALLER.md) | 一键图形安装器：步骤、网络策略、失败降级与手动方案 |
 | [QQ_SETUP.md](QQ_SETUP.md) | QQ 通道部署：NapCat 安装、正向 WebSocket、扫码登录、风控提醒 |
 | [QQ_SCENARIOS.md](QQ_SCENARIOS.md) | QQ 场景隔离、主动提醒、outbox 补投的配置与验收口径 |
 | [BILIBILI_WRITING.md](BILIBILI_WRITING.md) | B 站写入：草稿/人工审批/一次 UI 提交（默认关闭，实站选择器待核验） |

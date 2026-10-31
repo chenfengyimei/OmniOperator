@@ -3,8 +3,8 @@
   OmniOperator 命令行安装（零依赖引导；Windows PowerShell 5.1 兼容）。
 
 .DESCRIPTION
-  图形界面请用根目录 install.bat（scripts/install_gui.ps1）；本脚本是给
-  命令行 / 远程场景的同一套逻辑（共享 scripts/installer_lib.ps1）。
+  本脚本是命令行 / 远程场景的安装辅助（共享 scripts/installer_lib.ps1）；
+  图形安装器已废弃（temp/retired-installer-2026-11-01/），源码安装步骤见 README。
   在全新 Windows 机器上把 OmniOperator 装到"工作台能打开"为止：
   预检 → uv → Python 3.12 → uv sync → Playwright Chromium → NapCat Shell
   → ADB → .env → 只读 doctor 体检。幂等：重复运行跳过已完成步骤。
@@ -71,7 +71,7 @@ $options = @{
 $progress = @{}
 
 Write-Host '===================================================='
-Write-Host ' OmniOperator 一键安装（命令行；图形界面用 install.bat）'
+Write-Host ' OmniOperator 命令行安装辅助（源码安装步骤见 README「环境要求与安装」）'
 Write-Host (' 仓库目录：' + $script:InstallerRoot)
 if ($Proxy) { Write-Host (' GitHub 代理：' + $Proxy) }
 Write-Host '===================================================='
