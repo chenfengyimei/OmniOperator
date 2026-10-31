@@ -123,7 +123,7 @@ def create_sessions_router(manager, auth):
             if any(not task.cancelled() and task.exception() is not None for task in done):
                 try:
                     await ws.send_json({'v':2,'type':'error','code':'bad_message','message':'终端连接输入无效或传输失败，连接结束；终端暂时保留'})
-                except Exception:
+                except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     pass  # 客户端已经断开时仍必须执行下方的所有权归还。
         finally:
             for task in tasks:
@@ -133,6 +133,6 @@ def create_sessions_router(manager, auth):
             await asyncio.gather(*tasks, return_exceptions=True)
             try:
                 await ws.close()
-            except Exception:
+            except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 pass
     return router

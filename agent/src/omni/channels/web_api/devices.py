@@ -21,7 +21,7 @@ def create_devices_router(runtime: Runtime) -> APIRouter:
             return {"enabled": False, "windows": []}
         try:
             return {"enabled": True, **runtime.desktop.windows()}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             raise HTTPException(status_code=503, detail=str(exc))
 
     @router.get("/api/desktop/observe/{window}")
@@ -30,7 +30,7 @@ def create_devices_router(runtime: Runtime) -> APIRouter:
             raise HTTPException(status_code=503, detail="桌面能力不可用")
         try:
             return runtime.desktop.observe(window, session_id=session_id)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             raise HTTPException(status_code=409, detail=str(exc))
 
     @router.get("/api/android/state")
@@ -68,7 +68,7 @@ def create_devices_router(runtime: Runtime) -> APIRouter:
             data, observation, (width, height) = runtime.android.snapshot(session_id='web-manual')
             return {'image': 'data:image/png;base64,' + base64.b64encode(data).decode('ascii'),
                     'observation': observation, 'width': width, 'height': height}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             raise HTTPException(status_code=409, detail=str(exc))
 
     def android_action(action: str, observation: str, **params) -> dict:

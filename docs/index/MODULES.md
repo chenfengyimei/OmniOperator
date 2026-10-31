@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9345c2d8a92b153cbaa6b3d240512060b38c12575ff9890ff3c817928bd1f50c`。包含 56 个职责模块、294 个源码/界面文件。
+源码指纹：`4745bc45d882d10f80e023c4231d74211da2c311c9e77d1f781d55f1e703d76f`。包含 56 个职责模块、294 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -187,8 +187,8 @@
 | [agent/src/omni/memory/session_log.py](../../agent/src/omni/memory/session_log.py) | 409 | 会话全量记忆（M2）：对话 + 工具过程的完整流水（比 M1 多工具与系统边界事件）。 |
 | [agent/src/omni/memory/skill_acks.py](../../agent/src/omni/memory/skill_acks.py) | 57 | 技能变更「已读」标记仓储（D18，`state.db`）。 |
 | [agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py) | 547 | 外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。 |
-| [agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py) | 1050 | 技能存储（程序性记忆）：skills/<name>/SKILL.md，agentskills.io 兼容子集。 |
-| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 480 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
+| [agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py) | 1049 | 技能存储（程序性记忆）：skills/<name>/SKILL.md，agentskills.io 兼容子集。 |
+| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 479 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
 | [agent/src/omni/memory/state_errors.py](../../agent/src/omni/memory/state_errors.py) | 43 | state.db 的异常语义与错误翻译（唯一来源）。 |
 | [agent/src/omni/memory/state_mixin_jobs.py](../../agent/src/omni/memory/state_mixin_jobs.py) | 262 | 定时任务域的 `state.db` 访问 mixin（任务定义 / revision / 原子领取）。 |
 | [agent/src/omni/memory/state_mixin_leases.py](../../agent/src/omni/memory/state_mixin_leases.py) | 121 | 资源租约域的 `state.db` 访问 mixin（会话/浏览器 profile 等互斥资源）。 |
@@ -295,7 +295,7 @@
 | [agent/src/omni/channels/web_static/ui/terminal-theme.js](../../agent/src/omni/channels/web_static/ui/terminal-theme.js) | 48 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/theme.js](../../agent/src/omni/channels/web_static/ui/theme.js) | 82 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/tokens.css](../../agent/src/omni/channels/web_static/ui/tokens.css) | 200 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1115 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1120 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -311,7 +311,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 493 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 625 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 632 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/index.html](../../agent/src/omni/channels/web_static/memory/index.html) | 6 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.css](../../agent/src/omni/channels/web_static/memory/memory.css) | 153 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.js](../../agent/src/omni/channels/web_static/memory/memory.js) | 738 | 平台脚本或界面资源 |
@@ -467,7 +467,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web_api/mcp.py](../../agent/src/omni/channels/web_api/mcp.py) | 135 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+| [agent/src/omni/channels/web_api/mcp.py](../../agent/src/omni/channels/web_api/mcp.py) | 134 | MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 | [agent/src/omni/channels/web_static/mcp/index.html](../../agent/src/omni/channels/web_static/mcp/index.html) | 10 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/mcp/mcp.css](../../agent/src/omni/channels/web_static/mcp/mcp.css) | 53 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/mcp/mcp.js](../../agent/src/omni/channels/web_static/mcp/mcp.js) | 165 | 平台脚本或界面资源 |
@@ -671,7 +671,7 @@
 | [agent/src/omni/tools/personal/digest.py](../../agent/src/omni/tools/personal/digest.py) | 76 | 个人能力：digest；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py) | 185 | 个人能力：facts；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/journal.py](../../agent/src/omni/tools/personal/journal.py) | 63 | 记忆系统工具（二）：日/周/月笔记的读取（M3/M4/M5）。 |
-| [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py) | 212 | 记忆系统工具（三）：核心人物记忆（M6）——查询、记住与临时事件。 |
+| [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py) | 211 | 记忆系统工具（三）：核心人物记忆（M6）——查询、记住与临时事件。 |
 | [agent/src/omni/tools/personal/profile.py](../../agent/src/omni/tools/personal/profile.py) | 89 | 个人能力：profile；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/refine.py](../../agent/src/omni/tools/personal/refine.py) | 59 | 个人能力：refine；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/resident.py](../../agent/src/omni/tools/personal/resident.py) | 64 | 个人能力：resident；工具仅使用注入依赖，不构造运行时。 |
@@ -788,7 +788,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/tools/web/__init__.py](../../agent/src/omni/tools/web/__init__.py) | 19 | 通用网页读取（D14）：有界 HTTP 抓取 + 正文提取。 |
-| [agent/src/omni/tools/web/extract.py](../../agent/src/omni/tools/web/extract.py) | 226 | 正文提取（D14）：把 HTML 变成"能读的文本"，不执行任何东西。 |
+| [agent/src/omni/tools/web/extract.py](../../agent/src/omni/tools/web/extract.py) | 225 | 正文提取（D14）：把 HTML 变成"能读的文本"，不执行任何东西。 |
 | [agent/src/omni/tools/web/net.py](../../agent/src/omni/tools/web/net.py) | 420 | 有界 HTTP 抓取（D14）：协议、目标网络、重定向、大小、超时全部受控。 |
 | [agent/src/omni/tools/web/tools.py](../../agent/src/omni/tools/web/tools.py) | 200 | 网页读取工具（D14，toolset=web）：`web_read`。 |
 
@@ -826,7 +826,7 @@
 | [agent/src/omni/tools/android/adb.py](../../agent/src/omni/tools/android/adb.py) | 245 | 纯 ADB 协议层：设备无关的 adb 命令封装（不知道 LLM 与语义）。 |
 | [agent/src/omni/tools/android/driver.py](../../agent/src/omni/tools/android/driver.py) | 338 | Android 观察令牌、单设备互斥、一次动作与回读。磁盘缓存仅用于展示。 |
 | [agent/src/omni/tools/android/process.py](../../agent/src/omni/tools/android/process.py) | 29 | ADB 客户端的有界读取与超时；不把客户端退出当作设备操作已撤销。 |
-| [agent/src/omni/tools/android/stream.py](../../agent/src/omni/tools/android/stream.py) | 152 | 按设备共享最新 JPEG；预览不产生观察授权，慢客户端跳过旧帧。 |
+| [agent/src/omni/tools/android/stream.py](../../agent/src/omni/tools/android/stream.py) | 150 | 按设备共享最新 JPEG；预览不产生观察授权，慢客户端跳过旧帧。 |
 | [agent/src/omni/tools/android/tools.py](../../agent/src/omni/tools/android/tools.py) | 237 | 安卓工具集（toolset=android）：观察 SAFE，动作 CONFIRM。 |
 | [agent/src/omni/tools/android/ui.py](../../agent/src/omni/tools/android/ui.py) | 89 | UI 树解析（纯函数）：uiautomator XML → 结构化元素 → 文本树。 |
 
@@ -897,7 +897,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/tools/mcp/__init__.py](../../agent/src/omni/tools/mcp/__init__.py) | 1 | 外部 MCP 能力域：本地 stdio 客户端与工具适配；不依赖 LLM 或内核。 |
-| [agent/src/omni/tools/mcp/client.py](../../agent/src/omni/tools/mcp/client.py) | 531 | 同步 agent 到异步 MCP 的桥接：每服务一个会话所有者线程。 |
+| [agent/src/omni/tools/mcp/client.py](../../agent/src/omni/tools/mcp/client.py) | 530 | 同步 agent 到异步 MCP 的桥接：每服务一个会话所有者线程。 |
 | [agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py) | 77 | MCP 工具适配：渐进发现、用户审核只读调用、人工确认调用；不决定传输细节。 |
 
 文档：[docs/MCP.md](../../docs/MCP.md)
@@ -1002,7 +1002,7 @@
 | [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 231 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
 | [agent/src/omni/system/provenance.py](../../agent/src/omni/system/provenance.py) | 30 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
-| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 485 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
+| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 486 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [agent/src/omni/system/soak.py](../../agent/src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [agent/src/omni/system/stderr_log.py](../../agent/src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
 

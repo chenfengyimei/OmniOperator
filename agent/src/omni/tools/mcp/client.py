@@ -178,7 +178,7 @@ class MCPConnection:
                             active=None
                 finally:
                     self._log.close()
-        except BaseException as exc:
+        except BaseException as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             with self._state_lock:
                 self._failure=self._failure or f'MCP 连接或请求失败（{type(exc).__name__}），已停用；请核查日志及实际状态'
         finally:
@@ -483,17 +483,16 @@ class MCPManager:
     def configuration_matches(self) -> bool:
         if self._config_provider is None:return True
         try:return self._config_provider().model_dump()==self._config.model_dump()
-        except Exception:return False
+        except Exception:return False  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
 
     def health(self, server: str) -> dict[str, Any]:
         cfg = self._config.servers.get(server)
         if cfg is None:
             raise MCPError('MCP 服务未配置')
         try:
-            env = resolve_env(cfg.env)
+            resolve_env(cfg.env)  # 校验失败走 except 分支；返回值不需要
             missing = []
         except MCPError:
-            env = {}
             missing = [name for name,value in cfg.env.items() if '${' in value]
         return {'name':server, 'executable_found':bool(shutil.which(cfg.command)),
                 'environment_ready':not missing, 'environment_names':sorted(cfg.env),

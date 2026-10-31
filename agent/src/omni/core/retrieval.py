@@ -28,7 +28,7 @@ class HybridMemory:
             try:
                 more = self.index_pending()
                 self.last_error = ""
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 more = 0
                 self.last_error = f"索引暂停（{type(exc).__name__}），保留关键词检索"
             self._wake.wait(1 if more else 30)
@@ -57,7 +57,7 @@ class HybridMemory:
                                          session_id=getattr(getattr(handle, "identity", None), "session_id", None),
                                          run_budget=getattr(handle, "budget", None))[0]
             semantic = self.index.search(vector, scope=scope, limit=max(limit * 2, 16))
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             self.last_error = f"向量查询降级（{type(exc).__name__}）"
             return self.store.filter_facts(lexical, scope=scope)[:limit]
         scores: dict[str, float] = {}

@@ -97,7 +97,7 @@ class AdbDevice:
             if len(out)>16777216:raise AdbError('ADB 输出超过上限',code='adb_output_limit')
             return out if binary else out.decode("utf-8", errors="replace")
         try:
-            code,out,err=run_adb(argv,timeout)
+            code,out,_err=run_adb(argv,timeout)
         except FileNotFoundError as exc:
             raise AdbError("adb 不在 PATH（先安装 Android Platform-Tools）",code='adb_missing') from exc
         except subprocess.TimeoutExpired as exc:

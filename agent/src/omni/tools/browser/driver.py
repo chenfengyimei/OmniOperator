@@ -227,7 +227,7 @@ class BrowserDriver:
             if closer:
                 try:
                     closer()
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     failures.append(type(exc).__name__)
         if failures:
             raise BrowserError("浏览器退出未确认：" + ",".join(failures))
@@ -260,7 +260,7 @@ class BrowserDriver:
         if token and self._lease is not None:
             try:
                 self._lease.release(token)
-            except Exception:  # noqa: BLE001 —— 释放失败不该掩盖真正错误
+            except Exception:  # noqa: BLE001, S110  —— 释放失败不该掩盖真正错误
                 pass
 
     # ---------- 页面 ----------

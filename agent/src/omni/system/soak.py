@@ -80,7 +80,7 @@ def collect(paths: RuntimePaths, expected_source: str, services=OMNI_SERVICES, *
                     'private_bytes': sum(r['private_bytes'] for r in resources),
                     'working_set': sum(r['working_set'] for r in resources), 'handles': sum(r['handles'] for r in resources),
                     'cpu_seconds': sum(r['cpu_seconds'] for r in resources), 'children': children}
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 sample['services'][name] = {'verified': False, 'error': type(exc).__name__}
         tracked = {(resource['pid'], resource['created']) for resource in sample['services'].values() if resource.get('verified')}
         tracked |= {(child['pid'], child['created']) for resource in sample['services'].values() for child in resource.get('children', [])}
@@ -109,7 +109,7 @@ def collect(paths: RuntimePaths, expected_source: str, services=OMNI_SERVICES, *
             connection.close()
         logs = [p for p in paths.logs.iterdir() if p.is_file() and not p.is_symlink()] if paths.logs.exists() else []
         sample['log_bytes'] = sum(p.stat().st_size for p in logs)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
         sample['errors'].append(type(exc).__name__)
     return sample
 

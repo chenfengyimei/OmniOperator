@@ -123,7 +123,7 @@ class CronScheduler:
             work.cancel()
             await asyncio.gather(work, return_exceptions=True)
             raise
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             print(f"[心跳] {job.name} 运行异常（{type(exc).__name__}）", flush=True)
         finally:
             heartbeat.cancel()
@@ -358,7 +358,7 @@ async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
     except asyncio.CancelledError:
         finish("unknown", "发送中断，结果未知，禁止自动重发")
         raise
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
         return finish("unknown", f"补投结果未知，已停止自动重发：{type(exc).__name__}")
 
 

@@ -40,5 +40,5 @@ class TerminalSession:
             if not self._pty.isalive() and callable(getattr(self._pty, 'close', None)):
                 self._pty.close(force=True)
             return not self._pty.isalive()
-        except Exception:
+        except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             return False

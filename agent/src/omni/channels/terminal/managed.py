@@ -37,7 +37,7 @@ class ManagedTerminal:
                         self._bytes += size
                         while self._bytes > self._limit and self._chunks:
                             self._bytes -= self._chunks.popleft()[2]
-        except Exception:
+        except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             pass  # EOF 和关闭均进入统一存活核验。
         finally:
             with self._lock:

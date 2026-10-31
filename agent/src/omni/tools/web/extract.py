@@ -65,9 +65,8 @@ class _Extractor(HTMLParser):
             self._link_text = []
         if tag == "input" and values.get("type", "").lower() == "password":
             self.has_password = True
-        if tag == "meta" and not self.description:
-            if values.get("name", "").lower() == "description":
-                self.description = values.get("content", "")
+        if tag == "meta" and not self.description and values.get("name", "").lower() == "description":
+            self.description = values.get("content", "")
 
     def handle_endtag(self, tag: str) -> None:  # type: ignore[override]
         if tag == "title":
@@ -176,7 +175,7 @@ def extract(
     try:
         parser.feed(text)
         parser.close()
-    except Exception:  # noqa: BLE001 —— 畸形 HTML 不该让整次读取失败
+    except Exception:  # noqa: BLE001, S110  —— 畸形 HTML 不该让整次读取失败
         pass
     body_text = parser.text
     page = Page(

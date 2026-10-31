@@ -86,7 +86,7 @@ def register_skill_tools(
         blocked = _gate(str(args.get("content", "")))
         if blocked:
             return blocked
-        ok, msg = skills.create(
+        _ok, msg = skills.create(
             str(args.get("name", "")),
             str(args.get("description", "")),
             str(args.get("content", "")),
@@ -361,7 +361,7 @@ def register_skill_inbox_tools(registry: ToolRegistry, inbox: SkillInbox) -> Non
     """
 
     def skill_import(args: dict[str, Any]) -> str:
-        ok, msg = inbox.import_package(str(args.get("package", "")))
+        _ok, msg = inbox.import_package(str(args.get("package", "")))
         return msg
 
     def skill_pending(_: dict[str, Any]) -> str:

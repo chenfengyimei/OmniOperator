@@ -122,7 +122,7 @@ class DesktopDriver:
             return ToolResult(status="unknown" if exc.unknown else "error", text=str(exc),
                               error_code="desktop_unknown" if exc.unknown else "desktop_rejected",
                               side_effect_state="unknown" if exc.unknown else "none")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             return ToolResult(status="unknown" if dispatched else "error", text=f"桌面操作未确认（{type(exc).__name__}）",
                               side_effect_state="unknown" if dispatched else "none", error_code="desktop_failed")
         finally:

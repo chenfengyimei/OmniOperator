@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9345c2d8a92b153cbaa6b3d240512060b38c12575ff9890ff3c817928bd1f50c",
+  "source_sha256": "4745bc45d882d10f80e023c4231d74211da2c311c9e77d1f781d55f1e703d76f",
   "modules": [
     {
       "id": "agent-directories",
@@ -332,7 +332,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8722,
+      "lines": 8720,
       "dependencies": [
         "command-contracts",
         "config",
@@ -463,7 +463,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 5120,
+      "lines": 5125,
       "dependencies": []
     },
     {
@@ -498,7 +498,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2541,
+      "lines": 2548,
       "dependencies": [
         "assembly",
         "config",
@@ -769,7 +769,7 @@
         "agent/src/omni/channels/web_static/mcp/mcp.js",
         "agent/src/omni/channels/web_static/mcp/panel.html"
       ],
-      "lines": 392,
+      "lines": 391,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -1129,7 +1129,7 @@
         "agent/src/omni/tools/personal/todos.py",
         "agent/src/omni/tools/personal/transcript.py"
       ],
-      "lines": 1131,
+      "lines": 1130,
       "dependencies": [
         "storage",
         "toolkit"
@@ -1308,7 +1308,7 @@
         "agent/src/omni/tools/web/net.py",
         "agent/src/omni/tools/web/tools.py"
       ],
-      "lines": 865,
+      "lines": 864,
       "dependencies": [
         "toolkit"
       ]
@@ -1366,7 +1366,7 @@
         "agent/src/omni/tools/android/tools.py",
         "agent/src/omni/tools/android/ui.py"
       ],
-      "lines": 1097,
+      "lines": 1095,
       "dependencies": [
         "config",
         "platform",
@@ -1475,7 +1475,7 @@
         "agent/src/omni/tools/mcp/client.py",
         "agent/src/omni/tools/mcp/tools.py"
       ],
-      "lines": 609,
+      "lines": 608,
       "dependencies": [
         "config",
         "platform",
@@ -1636,7 +1636,7 @@
         "agent/src/omni/system/soak.py",
         "agent/src/omni/system/stderr_log.py"
       ],
-      "lines": 2548,
+      "lines": 2549,
       "dependencies": [
         "agent-directories",
         "config"
@@ -4005,7 +4005,7 @@
       "path": "agent/src/omni/channels/web_api/mcp.py",
       "module": "http-mcp",
       "python_module": "omni.channels.web_api.mcp",
-      "lines": 135,
+      "lines": 134,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.schemas",
@@ -4104,7 +4104,7 @@
         },
         {
           "name": "create_mcp_router.mcp_confirm_schema",
-          "line": 108,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "server",
@@ -4117,7 +4117,7 @@
         },
         {
           "name": "create_mcp_router.mcp_reset",
-          "line": 124,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "server"
@@ -5932,7 +5932,7 @@
       "path": "agent/src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 625,
+      "lines": 632,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6592,7 +6592,7 @@
       "path": "agent/src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1115,
+      "lines": 1120,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -14989,7 +14989,7 @@
       "path": "agent/src/omni/memory/skills.py",
       "module": "storage",
       "python_module": "omni.memory.skills",
-      "lines": 1050,
+      "lines": 1049,
       "imports": [
         "omni.config",
         "omni.memory.revisions",
@@ -15424,7 +15424,7 @@
         },
         {
           "name": "SkillStore.archive",
-          "line": 701,
+          "line": 700,
           "kind": "function",
           "parameters": [
             "self",
@@ -15444,7 +15444,7 @@
         },
         {
           "name": "SkillStore.restore",
-          "line": 788,
+          "line": 787,
           "kind": "function",
           "parameters": [
             "self",
@@ -15460,7 +15460,7 @@
         },
         {
           "name": "SkillStore._int_version",
-          "line": 838,
+          "line": 837,
           "kind": "function",
           "parameters": [
             "meta"
@@ -15471,7 +15471,7 @@
         },
         {
           "name": "SkillStore.adopt",
-          "line": 845,
+          "line": 844,
           "kind": "function",
           "parameters": [
             "self",
@@ -15489,7 +15489,7 @@
         },
         {
           "name": "SkillStore._load_for_write",
-          "line": 884,
+          "line": 883,
           "kind": "function",
           "parameters": [
             "self",
@@ -15503,7 +15503,7 @@
         },
         {
           "name": "SkillStore._snapshot_unversioned",
-          "line": 919,
+          "line": 918,
           "kind": "function",
           "parameters": [
             "self",
@@ -15521,7 +15521,7 @@
         },
         {
           "name": "SkillStore._next_meta",
-          "line": 941,
+          "line": 940,
           "kind": "function",
           "parameters": [
             "self",
@@ -15535,7 +15535,7 @@
         },
         {
           "name": "SkillStore._render",
-          "line": 958,
+          "line": 957,
           "kind": "function",
           "parameters": [
             "meta",
@@ -15548,7 +15548,7 @@
         },
         {
           "name": "SkillStore._commit",
-          "line": 967,
+          "line": 966,
           "kind": "function",
           "parameters": [
             "self",
@@ -15572,7 +15572,7 @@
         },
         {
           "name": "SkillStore._refs_manifest",
-          "line": 995,
+          "line": 994,
           "kind": "function",
           "parameters": [
             "self",
@@ -15584,7 +15584,7 @@
         },
         {
           "name": "SkillStore._body_problem",
-          "line": 1009,
+          "line": 1008,
           "kind": "function",
           "parameters": [
             "body",
@@ -15597,7 +15597,7 @@
         },
         {
           "name": "SkillStore._remember",
-          "line": 1018,
+          "line": 1017,
           "kind": "function",
           "parameters": [
             "self",
@@ -15611,7 +15611,7 @@
         },
         {
           "name": "SkillStore._remembered",
-          "line": 1022,
+          "line": 1021,
           "kind": "function",
           "parameters": [
             "self",
@@ -15623,7 +15623,7 @@
         },
         {
           "name": "SkillStore._locked",
-          "line": 1027,
+          "line": 1026,
           "kind": "function",
           "parameters": [
             "self",
@@ -15635,7 +15635,7 @@
         },
         {
           "name": "SkillStore._safe_path",
-          "line": 1042,
+          "line": 1041,
           "kind": "function",
           "parameters": [
             "self",
@@ -15647,7 +15647,7 @@
         },
         {
           "name": "_Abort",
-          "line": 1049,
+          "line": 1048,
           "kind": "class"
         }
       ],
@@ -15657,7 +15657,7 @@
       "path": "agent/src/omni/memory/state.py",
       "module": "storage",
       "python_module": "omni.memory.state",
-      "lines": 480,
+      "lines": 479,
       "imports": [
         "omni.memory.cron_store",
         "omni.memory.jobs",
@@ -15817,7 +15817,7 @@
         },
         {
           "name": "StateStore._migration",
-          "line": 265,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "self",
@@ -15829,7 +15829,7 @@
         },
         {
           "name": "StateStore._write_migration",
-          "line": 279,
+          "line": 278,
           "kind": "function",
           "parameters": [
             "self",
@@ -15851,7 +15851,7 @@
         },
         {
           "name": "StateStore.migrate_legacy",
-          "line": 298,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self",
@@ -15863,7 +15863,7 @@
         },
         {
           "name": "StateStore._migrate_file",
-          "line": 307,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "self",
@@ -15879,7 +15879,7 @@
         },
         {
           "name": "StateStore._mark_corrupt",
-          "line": 345,
+          "line": 344,
           "kind": "function",
           "parameters": [
             "self",
@@ -15897,7 +15897,7 @@
         },
         {
           "name": "StateStore._import_rows",
-          "line": 360,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "self",
@@ -15913,7 +15913,7 @@
         },
         {
           "name": "StateStore._import_jobs",
-          "line": 369,
+          "line": 368,
           "kind": "function",
           "parameters": [
             "self",
@@ -15927,7 +15927,7 @@
         },
         {
           "name": "StateStore._import_executions",
-          "line": 404,
+          "line": 403,
           "kind": "function",
           "parameters": [
             "self",
@@ -15941,7 +15941,7 @@
         },
         {
           "name": "StateStore._import_budget",
-          "line": 429,
+          "line": 428,
           "kind": "function",
           "parameters": [
             "self",
@@ -15955,7 +15955,7 @@
         },
         {
           "name": "StateStore.health",
-          "line": 446,
+          "line": 445,
           "kind": "function",
           "parameters": [
             "self"
@@ -20778,7 +20778,7 @@
       "path": "agent/src/omni/system/services.py",
       "module": "platform",
       "python_module": "omni.system.services",
-      "lines": 485,
+      "lines": 486,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -20856,7 +20856,7 @@
         },
         {
           "name": "_spawn",
-          "line": 127,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "argv",
@@ -20873,12 +20873,12 @@
         },
         {
           "name": "ServiceManager",
-          "line": 156,
+          "line": 157,
           "kind": "class"
         },
         {
           "name": "ServiceManager.__init__",
-          "line": 157,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -20914,7 +20914,7 @@
         },
         {
           "name": "ServiceManager.napcat_dir",
-          "line": 197,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self"
@@ -20923,7 +20923,7 @@
         },
         {
           "name": "ServiceManager._napcat_pid",
-          "line": 202,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "self"
@@ -20932,7 +20932,7 @@
         },
         {
           "name": "ServiceManager.napcat_start",
-          "line": 209,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self",
@@ -20944,7 +20944,7 @@
         },
         {
           "name": "ServiceManager.napcat_stop",
-          "line": 226,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self"
@@ -20953,7 +20953,7 @@
         },
         {
           "name": "ServiceManager.napcat_qr",
-          "line": 229,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self"
@@ -20962,7 +20962,7 @@
         },
         {
           "name": "ServiceManager._napcat_uin",
-          "line": 249,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self"
@@ -20971,7 +20971,7 @@
         },
         {
           "name": "ServiceManager._omni_argv",
-          "line": 261,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "self",
@@ -20983,7 +20983,7 @@
         },
         {
           "name": "ServiceManager.omni_start",
-          "line": 267,
+          "line": 268,
           "kind": "function",
           "parameters": [
             "self",
@@ -20995,7 +20995,7 @@
         },
         {
           "name": "ServiceManager.omni_stop",
-          "line": 275,
+          "line": 276,
           "kind": "function",
           "parameters": [
             "self",
@@ -21007,7 +21007,7 @@
         },
         {
           "name": "ServiceManager._omni_pid",
-          "line": 278,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self",
@@ -21019,7 +21019,7 @@
         },
         {
           "name": "ServiceManager.status",
-          "line": 286,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self",
@@ -21031,7 +21031,7 @@
         },
         {
           "name": "ServiceManager.overview",
-          "line": 304,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self"
@@ -21040,7 +21040,7 @@
         },
         {
           "name": "ServiceManager.start",
-          "line": 315,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -21054,7 +21054,7 @@
         },
         {
           "name": "ServiceManager.stop",
-          "line": 320,
+          "line": 321,
           "kind": "function",
           "parameters": [
             "self",
@@ -21066,7 +21066,7 @@
         },
         {
           "name": "ServiceManager.log_tail",
-          "line": 325,
+          "line": 326,
           "kind": "function",
           "parameters": [
             "self",
@@ -21080,7 +21080,7 @@
         },
         {
           "name": "ServiceManager._pid_path",
-          "line": 340,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "self",
@@ -21092,7 +21092,7 @@
         },
         {
           "name": "ServiceManager._read_pid",
-          "line": 344,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "self",
@@ -21104,7 +21104,7 @@
         },
         {
           "name": "ServiceManager._validate_name",
-          "line": 354,
+          "line": 355,
           "kind": "function",
           "parameters": [
             "name"
@@ -21115,7 +21115,7 @@
         },
         {
           "name": "ServiceManager._lock",
-          "line": 358,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "self",
@@ -21127,7 +21127,7 @@
         },
         {
           "name": "ServiceManager._read_record",
-          "line": 361,
+          "line": 362,
           "kind": "function",
           "parameters": [
             "self",
@@ -21139,7 +21139,7 @@
         },
         {
           "name": "ServiceManager._record_identity",
-          "line": 375,
+          "line": 376,
           "kind": "function",
           "parameters": [
             "record"
@@ -21150,7 +21150,7 @@
         },
         {
           "name": "ServiceManager._write_pid",
-          "line": 388,
+          "line": 389,
           "kind": "function",
           "parameters": [
             "self",
@@ -21164,7 +21164,7 @@
         },
         {
           "name": "ServiceManager._check_start",
-          "line": 403,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "self",
@@ -21176,7 +21176,7 @@
         },
         {
           "name": "ServiceManager._stop_verified",
-          "line": 410,
+          "line": 411,
           "kind": "function",
           "parameters": [
             "self",
@@ -21188,7 +21188,7 @@
         },
         {
           "name": "ServiceManager.stop_requested",
-          "line": 450,
+          "line": 451,
           "kind": "function",
           "parameters": [
             "self",
@@ -21202,7 +21202,7 @@
         },
         {
           "name": "ServiceManager.register_current",
-          "line": 456,
+          "line": 457,
           "kind": "function",
           "parameters": [
             "self",
@@ -21214,7 +21214,7 @@
         },
         {
           "name": "ServiceManager.unregister_current",
-          "line": 472,
+          "line": 473,
           "kind": "function",
           "parameters": [
             "self",
@@ -21228,7 +21228,7 @@
         },
         {
           "name": "ServiceManager._clear_pid",
-          "line": 476,
+          "line": 477,
           "kind": "function",
           "parameters": [
             "self",
@@ -22292,7 +22292,7 @@
       "path": "agent/src/omni/tools/android/stream.py",
       "module": "android",
       "python_module": "omni.tools.android.stream",
-      "lines": 152,
+      "lines": 150,
       "imports": [],
       "symbols": [
         {
@@ -22344,7 +22344,7 @@
         },
         {
           "name": "FrameSubscription.close",
-          "line": 50,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self"
@@ -22353,12 +22353,12 @@
         },
         {
           "name": "AndroidFrameHub",
-          "line": 58,
+          "line": 57,
           "kind": "class"
         },
         {
           "name": "AndroidFrameHub.__init__",
-          "line": 59,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "self",
@@ -22372,7 +22372,7 @@
         },
         {
           "name": "AndroidFrameHub.subscribe",
-          "line": 64,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "self",
@@ -22382,7 +22382,7 @@
         },
         {
           "name": "AndroidFrameHub._produce",
-          "line": 87,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self",
@@ -22392,7 +22392,7 @@
         },
         {
           "name": "AndroidFrameHub.status",
-          "line": 129,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self",
@@ -22402,7 +22402,7 @@
         },
         {
           "name": "AndroidFrameHub.close",
-          "line": 144,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "self",
@@ -25315,7 +25315,7 @@
       "path": "agent/src/omni/tools/mcp/client.py",
       "module": "mcp",
       "python_module": "omni.tools.mcp.client",
-      "lines": 531,
+      "lines": 530,
       "imports": [
         "omni.config",
         "omni.system.stderr_log"
@@ -25758,7 +25758,7 @@
         },
         {
           "name": "MCPManager.logs",
-          "line": 503,
+          "line": 502,
           "kind": "function",
           "parameters": [
             "self",
@@ -25770,7 +25770,7 @@
         },
         {
           "name": "MCPManager.close",
-          "line": 519,
+          "line": 518,
           "kind": "function",
           "parameters": [
             "self",
@@ -26160,7 +26160,7 @@
       "path": "agent/src/omni/tools/personal/people.py",
       "module": "personal",
       "python_module": "omni.tools.personal.people",
-      "lines": 212,
+      "lines": 211,
       "imports": [
         "omni.memory.guard",
         "omni.memory.people",
@@ -26232,7 +26232,7 @@
         },
         {
           "name": "register_people_tools.person_remember",
-          "line": 102,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "args"
@@ -26243,7 +26243,7 @@
         },
         {
           "name": "register_people_tools.person_event",
-          "line": 125,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "args"
@@ -28789,7 +28789,7 @@
       "path": "agent/src/omni/tools/web/extract.py",
       "module": "web-fetch",
       "python_module": "omni.tools.web.extract",
-      "lines": 226,
+      "lines": 225,
       "imports": [],
       "symbols": [
         {
@@ -28826,7 +28826,7 @@
         },
         {
           "name": "_Extractor.handle_endtag",
-          "line": 72,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -28838,7 +28838,7 @@
         },
         {
           "name": "_Extractor.handle_data",
-          "line": 85,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -28850,7 +28850,7 @@
         },
         {
           "name": "_Extractor.title",
-          "line": 96,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self"
@@ -28859,7 +28859,7 @@
         },
         {
           "name": "_Extractor.text",
-          "line": 100,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self"
@@ -28868,7 +28868,7 @@
         },
         {
           "name": "_Extractor.links",
-          "line": 104,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self"
@@ -28877,7 +28877,7 @@
         },
         {
           "name": "_normalise",
-          "line": 108,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "text"
@@ -28888,7 +28888,7 @@
         },
         {
           "name": "decode_body",
-          "line": 116,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "body",
@@ -28903,7 +28903,7 @@
         },
         {
           "name": "_normalise_charset",
-          "line": 137,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "name"
@@ -28914,7 +28914,7 @@
         },
         {
           "name": "_meta_charset",
-          "line": 148,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "head"
@@ -28925,7 +28925,7 @@
         },
         {
           "name": "is_html",
-          "line": 153,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "content_type"
@@ -28936,7 +28936,7 @@
         },
         {
           "name": "extract",
-          "line": 158,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "body",
@@ -28957,7 +28957,7 @@
         },
         {
           "name": "_clip",
-          "line": 195,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "text",
@@ -28970,7 +28970,7 @@
         },
         {
           "name": "_looks_like_login",
-          "line": 200,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "parser",
@@ -28983,7 +28983,7 @@
         },
         {
           "name": "_links",
-          "line": 208,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "raw",
@@ -30105,7 +30105,7 @@
       "method": "POST",
       "path": "/api/mcp/{server}/confirm-schema",
       "source": "agent/src/omni/channels/web_api/mcp.py",
-      "line": 108,
+      "line": 107,
       "handler": "create_mcp_router.mcp_confirm_schema",
       "module": "http-mcp",
       "parameters": [
@@ -30182,7 +30182,7 @@
       "method": "POST",
       "path": "/api/mcp/{server}/reset",
       "source": "agent/src/omni/channels/web_api/mcp.py",
-      "line": 124,
+      "line": 123,
       "handler": "create_mcp_router.mcp_reset",
       "module": "http-mcp",
       "parameters": [
@@ -32336,7 +32336,7 @@
     {
       "name": "person_event",
       "source": "agent/src/omni/tools/personal/people.py",
-      "line": 192,
+      "line": 191,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -32345,7 +32345,7 @@
     {
       "name": "person_lookup",
       "source": "agent/src/omni/tools/personal/people.py",
-      "line": 147,
+      "line": 146,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -32354,7 +32354,7 @@
     {
       "name": "person_remember",
       "source": "agent/src/omni/tools/personal/people.py",
-      "line": 169,
+      "line": 168,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,

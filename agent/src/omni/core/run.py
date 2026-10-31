@@ -182,7 +182,7 @@ class RunContext:
                 self.store.touch(self.run_id, phase=name)
                 if self.cancel_token.cancelled:
                     self.store.touch(self.run_id, phase="cancelling")
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
     def finish(self, status: str, *, error_code: str = "", error_text: str = "") -> None:
@@ -190,7 +190,7 @@ class RunContext:
             self.store.finish(
                 self.run_id, status, error_code=error_code, error_text=error_text
             )
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
 
 
@@ -255,7 +255,7 @@ class ActiveRuns:
         run.event("cancel_requested", reason=reason)
         try:
             run.store.touch(run_id, phase="cancelling")
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
         return flipped
 

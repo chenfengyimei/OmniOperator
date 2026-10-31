@@ -1,0 +1,30 @@
+# 静态检查基线（2026-11-01 清零收口）
+#
+# 只启用**已人工甄别并清零**的规则集：改动后复扫必须继续全绿，新增违规即测试红。
+# 想扩大规则集：先在对应域把存量清零、逐条甄别（BLE001/S110 类容错要标 noqa 说明理由），
+# 再把规则追加进 select——不许先开规则后攒存量。
+#
+# 历史批次（见 docs/REFACTORING.md）：
+#   F401/F811 死导入与重复定义 → 4eeecef
+#   I001/UP035 导入排序与过时导入 → 81900cd
+#   F841/RUF059/SIM102/SIM117/PLW1510 死变量与收窄 → 本轮
+#   BLE001/S110 容错甄别标注（意图机器可读）→ 本轮
+#
+# 运行：uvx ruff check agent/src/omni --select F401,F811,F841,I001,UP035,BLE001,S110,RUF059,SIM102,SIM117,PLW1510
+# 或安装 ruff 后：ruff check agent/src/omni（本文件即生效）
+line-length = 120
+
+[lint]
+select = [
+    "F401",   # 未使用导入（有意再导出必须标 # noqa: F401）
+    "F811",   # 重复定义/重复导入
+    "F841",   # 未使用局部变量
+    "I001",   # 导入排序
+    "UP035",  # typing 过时导入（Callable/Iterable/Iterator → collections.abc）
+    "BLE001", # 盲捕获 Exception（有意容错必须标 # noqa: BLE001 并写理由）
+    "S110",   # try-except-pass（同上，必须标 noqa）
+    "RUF059", # 未使用的解包变量（不用的加 _ 前缀）
+    "SIM102", # 可合并的嵌套 if
+    "SIM117", # 可合并的嵌套 with
+    "PLW1510",# subprocess.run 显式 check=False
+]

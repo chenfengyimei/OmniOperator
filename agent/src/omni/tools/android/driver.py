@@ -312,7 +312,7 @@ class AndroidDriver:
                 return ToolResult.unknown(f'{label}；{note}。点击后观察/动作后观察：\n{latest}\n动作已下发，目标效果需核查，禁止重复旧动作。',
                                           error_code='android_effect_unverified', data={'observation': after['observation'], 'serial':serial,
                                               'tree':render_tree(after['elements']), 'elements':after['elements']})
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             if attempted:
                 return ToolResult.unknown(f'复核观察失败或动作返回异常（{type(exc).__name__}）；状态未知，禁止重放', error_code='android_unknown')
             return ToolResult.fail(f'错误：{exc}', error_code=getattr(exc,'code','android_rejected'))

@@ -57,5 +57,5 @@ class MemorySystem:
         for store in (self.dialogue, self.session_log, self.journal, self.people):
             try:
                 store.close()
-            except Exception:  # noqa: BLE001 —— 关闭尽力而为，不互相阻塞
+            except Exception:  # noqa: BLE001, S110  —— 关闭尽力而为，不互相阻塞
                 pass

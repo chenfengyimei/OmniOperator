@@ -565,7 +565,7 @@ class SkillStore:
                 loaded = self._load_for_write(name, expected_hash)
                 if isinstance(loaded, str):
                     return False, loaded
-                path, text, parsed = loaded
+                path, _text, parsed = loaded
                 body = str(parsed["body"])
                 pattern = re.compile(rf"(?ms)^## {re.escape(section)}\s*\n(.*?)(?=^## |\Z)")
                 matched = pattern.search(body)
@@ -675,7 +675,6 @@ class SkillStore:
                     return False, (
                         f"错误：技能 {name} 没有 rev {rev}（先 skill_history 查看可用修订）"
                     )
-                old = found[0]
                 restored = parse_skill_text(found[1])
                 if restored is None:
                     return False, f"错误：rev {rev} 的内容格式损坏，无法作为回滚目标"

@@ -33,7 +33,7 @@ def diagnose(paths: RuntimePaths, *, inspector=inspect_process, resolver=shutil.
         record("mcp", "info", "仅列配置数量，未启动外部服务器", configured=len(config.mcp.servers))
         napcat = Path(config.system.napcat_dir) / "napcat.bat"
         record("napcat", "ok" if napcat.is_file() else "warning", "启动文件存在" if napcat.is_file() else "未找到启动文件；未连接端口或登录")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
         record("config", "error", f"配置无法加载：{type(exc).__name__}")
     for dependency in ("litellm", "mcp", "playwright", "sqlite-vec", "pywinpty", "pillow"):
         try:

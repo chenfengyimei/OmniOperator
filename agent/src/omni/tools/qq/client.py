@@ -129,7 +129,7 @@ class OneBotClient:
                 event = await events.get()
                 try:
                     await on_event(event)
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     print(f"[QQ] 事件处理失败（{type(exc).__name__}）", flush=True)
                 finally:
                     events.task_done()
@@ -150,7 +150,7 @@ class OneBotClient:
                             await self._dispatch(raw, enqueue)
                 except asyncio.CancelledError:
                     raise
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     print(f"[QQ] 连接断开（{type(exc).__name__}），{backoff:.0f}s 后重连…", flush=True)
                 finally:
                     self._ws = None

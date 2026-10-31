@@ -387,7 +387,7 @@ def register_file_tools(
             )
         try:
             with _file_lock(lock_dir, target):
-                current, raw = _read_current(target)
+                _current, raw = _read_current(target)
                 current_hash = fio.sha256_hex(raw) if raw is not None else ""
                 expected = str(args.get("expected_hash", "") or "").strip()
                 if raw is not None and not fio.hash_matches(expected, current_hash):

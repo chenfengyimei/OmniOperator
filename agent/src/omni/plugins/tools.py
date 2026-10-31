@@ -55,9 +55,9 @@ def register_plugin_tools(registry: ToolRegistry, host: PluginHost) -> None:
         if bool(package) == bool(path):
             return "错误：package（inbox 里的 zip 文件名）与 path（工作区插件目录）必须二选一"
         if package:
-            ok, msg = host.install_package(package)
+            _ok, msg = host.install_package(package)
         else:
-            ok, msg = host.install_directory(path)
+            _ok, msg = host.install_directory(path)
         return msg
 
     def plugin_activate(args: dict[str, Any]) -> str:

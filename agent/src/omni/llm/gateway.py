@@ -672,5 +672,5 @@ def _close(chunks: Any) -> None:
     if callable(close):
         try:
             close()
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass

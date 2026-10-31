@@ -650,7 +650,7 @@ class Agent:
             keep.update(getattr(active, "_attached_image_ids", None) or set())
         try:
             self._artifacts.cleanup(keep_ids=keep)
-        except Exception:  # noqa: BLE001 —— 清理失败不影响回合结果，下回合再试
+        except Exception:  # noqa: BLE001, S110  —— 清理失败不影响回合结果，下回合再试
             pass
 
     def _start_run(

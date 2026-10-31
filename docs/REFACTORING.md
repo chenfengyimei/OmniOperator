@@ -1,5 +1,17 @@
 # 架构重构记录与后续顺序
 
+2026-11-01 静态检查剩余基线清零（收口批）：F841 死变量×3、RUF059 未用解包×7
+（不用的加 `_` 前缀）、SIM102 嵌套 if×3、SIM117 嵌套 with×2 合并、PLW1510
+四处 `subprocess.run` 显式 `check=False`（探测类命令非零退出是预期）；
+BLE001×40+S110×18 逐点甄别为**有意容错**（启动降级、生命周期清理、边界
+错误转换——`except Exception` 不阻断主路径是本仓纪律），逐行标注
+`# noqa: BLE001, S110` 并写理由，意图机器可读。新增 `agent/ruff.toml`
+固化清零规则集（只 select 已清零的 11 条，开新规则必须先清存量）。
+至此静态检查全部登记项清零。另修复 `test_terminal_session_echo_roundtrip`
+间歇失败（`_read_until` 次数预算→20s 墙钟截止，空读让出 CPU）。
+专项 12 文件 **267 项通过（59.81s）**；全量回归 **1456/1456 通过**。
+ruff 进 CI 待 `agent/pyproject.toml`/`ci.ps1` 并行工作解冻后一行接线。
+
 2026-11-01 导入卫生收尾（I001+UP035）：78 处导入未排序（91 个文件）与
 20 处 `typing.Callable/Iterable/Iterator` 过时导入（应为 `collections.abc`）
 用 ruff 一次性修复，纯重排/换源零行为变化；复扫 F401/F811/I001/UP035 全绿。

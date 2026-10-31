@@ -47,7 +47,7 @@ def create_terminal_router(terminal_manager: TerminalManager, auth: WebAuth) -> 
                     if not data:
                         break
                     await ws.send_text(data)
-            except Exception:  # noqa: BLE001 —— 断开与退出都是正常结束路径
+            except Exception:  # noqa: BLE001, S110  —— 断开与退出都是正常结束路径
                 pass
 
         async def writer() -> None:
@@ -63,7 +63,7 @@ def create_terminal_router(terminal_manager: TerminalManager, auth: WebAuth) -> 
                             pass
                         continue
                     await asyncio.to_thread(session.write, msg)
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001, S110
                 pass
 
         pump_task = asyncio.create_task(pump())

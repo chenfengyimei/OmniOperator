@@ -26,7 +26,7 @@ class WindowsDesktopBackend:
             result = subprocess.run([str(shell), "-NoProfile", "-NonInteractive", "-File", str(helper)],
                                     input=json.dumps({"command": command, "max_nodes": self.max_nodes, **arguments}, ensure_ascii=False),
                                     text=True, encoding="utf-8", capture_output=True, timeout=self.timeout_s,
-                                    creationflags=subprocess.CREATE_NO_WINDOW, shell=False)
+                                    creationflags=subprocess.CREATE_NO_WINDOW, shell=False, check=False)
         except (OSError, subprocess.TimeoutExpired):
             raise DesktopError("桌面调用超时或辅助程序不可用", unknown=command == "action") from None
         if len(result.stdout) > 8_000_000:

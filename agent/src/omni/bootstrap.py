@@ -222,7 +222,7 @@ class Runtime:
         try:
             report['metrics'] = self.runs.metrics()
             report['metrics']['log_dropped'] = self.event_log.log.dropped if self.event_log else 0
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             report['metrics'] = {'unavailable': type(exc).__name__}
         return report
 
@@ -254,7 +254,7 @@ class Runtime:
             def perform(name, action):
                 try:
                     self._close_results[name] = bool(action())
-                except Exception:
+                except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     self._close_results[name] = False
             for name, action in actions.items():
                 thread = self._close_threads.get(name)
@@ -399,7 +399,7 @@ def build_runtime(
                 people_store.link_account(
                     owner_memory.owner_id(), "qq", str(config.qq.owner_qq), label="所有者"
                 )
-            except Exception:  # noqa: BLE001 —— 已绑定给别的人物等情况不阻断启动
+            except Exception:  # noqa: BLE001, S110  —— 已绑定给别的人物等情况不阻断启动
                 pass
     except Exception as exc:  # noqa: BLE001 —— 迁移失败只打日志：已导入部分生效，下次启动续迁
         print(f"[所有者记忆迁移] 失败（下次启动自动续迁）：{exc}", file=sys.stderr, flush=True)
@@ -435,7 +435,7 @@ def build_runtime(
         pruned = usage.prune(keep_days=180)
         if pruned and not (data_dir is not None):
             print(f"[额度] 清理了 {pruned} 条过老的调用流水", flush=True)
-    except Exception:  # noqa: BLE001 —— 清理失败不影响启动
+    except Exception:  # noqa: BLE001, S110  —— 清理失败不影响启动
         pass
     session_gate = SessionGate(capacity=config.limits.session_queue_depth)
     session_leases = SessionLeases(

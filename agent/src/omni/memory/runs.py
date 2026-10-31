@@ -161,7 +161,7 @@ class RunStore:
                 self._event_sink({'run_id': run_id, 'session_id': row['session_id'], 'event_id': f'{run_id}:{seq}',
                                   'kind': kind, 'tool': merged.get('tool', merged.get('name', '')),
                                   'status': result.get('status', ''), 'error_code': result.get('error_code', '')})
-            except Exception:
+            except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 self.log_dropped += 1  # DB 是权威账本，日志失败不能伪造执行失败。
         return seq
 

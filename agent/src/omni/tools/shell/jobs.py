@@ -132,7 +132,7 @@ class CommandJobManager:
                 if self._closed:return
                 continue
             try:self._execute(task)
-            except Exception:
+            except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 task['uncertain']=True
                 self.store.update(task['row']['job_id'],self.owner,status='unknown',side_effect_state='unknown',error_code='worker_failure')
             finally:
@@ -162,10 +162,10 @@ class CommandJobManager:
                         text=decoder.decode(data)
                         if stream not in read_errors:
                             try:task['log'].append(stream,text)
-                            except Exception:read_errors.append(stream)  # 继续排空，不能让子进程堵住。
+                            except Exception:read_errors.append(stream)  # 继续排空，不能让子进程堵住。  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     tail=decoder.decode(b'',final=True)
                     if tail:task['log'].append(stream,tail)
-                except Exception:read_errors.append(stream)
+                except Exception:read_errors.append(stream)  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 finally:pipe.close()
             for stream in ('stdout','stderr'):
                 worker=threading.Thread(target=drain,args=(getattr(proc,stream),stream),daemon=True)
@@ -181,7 +181,7 @@ class CommandJobManager:
                     if identity is None:raise RuntimeError('进程身份不可核验')
                     self._terminate(identity,timeout_s=3)
                     reclaimed=self._exited(identity)
-                except Exception:reclaimed=False
+                except Exception:reclaimed=False  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             for reader in readers:reader.join(timeout=.5)
             if any(reader.is_alive() for reader in readers):reclaimed=False
             status=reason or ('succeeded' if proc.poll()==0 else 'failed')
@@ -190,13 +190,13 @@ class CommandJobManager:
             self.store.update(identifier,self.owner,status=status,exit_code=proc.poll(),
                               side_effect_state='unknown' if reason or not reclaimed else 'applied',
                               error_code='process_residual' if not reclaimed else ('log_incomplete' if read_errors else ''))
-        except Exception:
+        except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             task['uncertain']=proc is not None
             if proc is not None:
                 try:
                     identity=task.get('identity')
                     if identity:self._terminate(identity,timeout_s=3)
-                except Exception:pass
+                except Exception:pass  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             self.store.update(identifier,self.owner,status='unknown' if proc else 'failed',
                               side_effect_state='unknown' if proc else 'none',error_code='execution_error' if proc else 'spawn_failed')
 

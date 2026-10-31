@@ -82,7 +82,6 @@ def register_people_tools(
         found = _find_person(people, person_key)
         if found is not None:
             return found, ""
-        name = person_key.split(":", 1)[0].strip() if ":" not in person_key else person_key
         # 按账号找不到：若形如 channel:account，自动建人并登记账号；否则按名字建
         if ":" in person_key:
             channel, _, value = person_key.partition(":")

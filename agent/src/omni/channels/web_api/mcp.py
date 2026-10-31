@@ -90,12 +90,11 @@ def create_mcp_router(runtime: Runtime) -> APIRouter:
             raise HTTPException(status_code=409, detail=message)
         drift = ""
         schema = runtime.mcp_schemas.status(server) if runtime.mcp_schemas else None
-        if schema is not None:
-            if not schema["confirmed_at"]:
-                drift = (
-                    "工具目录或连接身份已变化：只读调用已暂停。"
-                    "请复查当前目录与只读白名单后确认"
-                )
+        if schema is not None and not schema["confirmed_at"]:
+            drift = (
+                "工具目录或连接身份已变化：只读调用已暂停。"
+                "请复查当前目录与只读白名单后确认"
+            )
         return {
             "server": server,
             "total": len(rows),

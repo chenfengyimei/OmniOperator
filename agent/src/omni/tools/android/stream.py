@@ -41,8 +41,7 @@ class FrameSubscription:
         with self.feed.condition:
             if self.closed or self.identifier not in self.feed.clients:return False
             self.feed.clients[self.identifier]=time.monotonic()
-            if self.feed.frame is None or self.feed.frame.seq<=after:
-                if not self.feed.finished:self.feed.condition.wait(max(0,wait_s))
+            if (self.feed.frame is None or self.feed.frame.seq<=after) and not self.feed.finished:self.feed.condition.wait(max(0,wait_s))
             frame=self.feed.frame
             if frame and frame.seq>after:return frame
             return False if self.feed.finished else None
@@ -104,16 +103,15 @@ class AndroidFrameHub:
                     with Image.open(BytesIO(png)) as image:
                         if image.width*image.height>32000000:raise ValueError('屏幕过大')
                         size=max(1,image.width//2),max(1,image.height//2)
-                        with image.convert('RGB') as rgb:
-                            with rgb.resize(size,Image.Resampling.BILINEAR) as frame:
-                                output=BytesIO();frame.save(output,format='JPEG',quality=40)
+                        with image.convert('RGB') as rgb, rgb.resize(size,Image.Resampling.BILINEAR) as frame:
+                            output=BytesIO();frame.save(output,format='JPEG',quality=40)
                     jpeg=output.getvalue()
                     if len(jpeg)>2097152:raise ValueError('预览帧过大')
                     seq+=1
                     with feed.condition:
                         feed.frame=PreviewFrame(seq,jpeg,time.time(),round((time.monotonic()-started)*1000,1),*size)
                         feed.condition.notify_all()
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     if getattr(exc,'code','')=='device_busy':
                         pass  # 交互操作优先；只跳过帧，不重放动作。
                     else:

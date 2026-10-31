@@ -116,11 +116,11 @@ class BilibiliPublisher:
             return ToolResult.unknown(result.get("error", "发布结果未知，请人工核查；禁止自动重发"), error_code="publication_unknown")
         except PublicationError as exc:
             return ToolResult.fail(str(exc), error_code="publication_rejected")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             if claimed:
                 try:
                     self.store.finish(draft_id, claimed["attempt_token"], "unknown", error=type(exc).__name__)
-                except Exception:
+                except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     pass  # 原 sending 同样禁止自动重放。
                 return ToolResult.unknown("发布流程异常，结果未知；请人工核查", error_code="publication_exception")
             return ToolResult.fail(f"发布流程未开始：{type(exc).__name__}", error_code="publication_unavailable")

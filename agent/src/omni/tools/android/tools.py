@@ -226,7 +226,7 @@ def register_android_tools(
     def list_apps(args):
         import json
         try:return ToolResult.ok(json.dumps(driver.list_apps(serial=args.get('serial')),ensure_ascii=False))
-        except Exception as exc:return ToolResult.fail(str(exc),error_code='android_apps_unavailable')
+        except Exception as exc:return ToolResult.fail(str(exc),error_code='android_apps_unavailable')  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
     registry.register(Tool(name='android_list_apps',description='列出用户允许启动的应用及可核验组件；不扩大白名单。多设备需 serial。',
         parameters={'type':'object','properties':{'serial':{'type':'string'}}},func=list_apps,toolset='android',risk=Risk.SAFE,read_only=True))
     registry.register(Tool(name='android_launch_app',description='人工确认后启动用户白名单内应用，需当前观察；不接受任意 Intent 或 URL。',

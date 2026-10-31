@@ -255,7 +255,7 @@ class QQDispatcher:
                         size += len(str(batch[-1].get("raw_message") or "")) + 1
                     try:
                         await _handle_batch(self.runtime, self.client, scope, batch)
-                    except Exception as exc:
+                    except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                         print(f"[QQ] 场景处理失败 scene={scene} type={type(exc).__name__}", flush=True)
                     finally:
                         self.pending -= len(batch)

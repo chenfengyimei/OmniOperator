@@ -154,13 +154,13 @@ class BrowserForms:
                         break
                     page.wait_for_timeout(100)
                 return {"state": "unknown", "error": "已触发一次发送，但未获得新增发布记录；禁止自动重发"}
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 return {"state": "unknown" if wrote else "blocked", "error": f"页面流程停止：{type(exc).__name__}"}
         try:
             return self.driver._run(action)
         except BrowserUnknown:
             abandoned.set()
             return {"state": "unknown", "error": "浏览器等待超时，禁止自动重发"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             abandoned.set()
             return {"state": "blocked", "error": f"浏览器拒绝本次请求：{type(exc).__name__}"}

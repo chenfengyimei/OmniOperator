@@ -20,7 +20,7 @@ def register_community_tools(registry: ToolRegistry, client: CommunityClient) ->
                 f"token {'已配置' if current['token'] else '未配置'}。"
                 "用 community_config(server_url=…, token=…) 设置"
             )
-        ok, msg = client.configure(
+        _ok, msg = client.configure(
             server_url=str(args.get("server_url", "")) if has_url else None,
             token=str(args.get("token", "")) if has_token else None,
         )

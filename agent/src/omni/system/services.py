@@ -86,7 +86,7 @@ def _netstat_pids(port: int, state: str) -> list[int]:
     try:
         if platform.system() == "Windows":
             raw = subprocess.run(
-                ["netstat", "-ano", "-p", "tcp"], capture_output=True, timeout=8
+                ["netstat", "-ano", "-p", "tcp"], capture_output=True, timeout=8, check=False
             ).stdout or b""
             out = raw.decode("utf-8", errors="replace")
             for line in out.splitlines():
@@ -97,7 +97,7 @@ def _netstat_pids(port: int, state: str) -> list[int]:
                         pids.append(int(parts[-1]))
         else:
             raw = subprocess.run(
-                ["lsof", "-sT", "-i", f":{port}"], capture_output=True, timeout=8
+                ["lsof", "-sT", "-i", f":{port}"], capture_output=True, timeout=8, check=False
             ).stdout or b""
             out = raw.decode("utf-8", errors="replace")
             for line in out.splitlines():
@@ -116,6 +116,7 @@ def _process_name(pid: int) -> str:
                 ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
                 capture_output=True,
                 timeout=8,
+                check=False,
             ).stdout or b""
             out = raw.decode("utf-8", errors="replace").strip()
             return out.split('","')[0].strip('"') if out else ""

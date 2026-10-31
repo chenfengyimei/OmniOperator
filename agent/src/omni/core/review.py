@@ -233,7 +233,7 @@ class TurnEndReviewer:
             try:
                 if up_to is not None:
                     store.finish_review(session_id, up_to, "error", keep=False)
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001, S110
                 pass
             raise
         finally:

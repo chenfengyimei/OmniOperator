@@ -256,9 +256,8 @@ class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
             raise StateUnavailable(f"{capability} 状态不可用：{reason}")
 
     def close(self) -> None:
-        with self._lock:
-            with contextlib.suppress(sqlite3.Error):
-                self._conn.close()
+        with self._lock, contextlib.suppress(sqlite3.Error):
+            self._conn.close()
 
     # ---------------------------------------------------------------- 迁移
 

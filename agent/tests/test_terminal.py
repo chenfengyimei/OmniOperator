@@ -1,5 +1,6 @@
 """内置终端单测：真开 ConPTY 会话做回显冒烟（仅 Windows）+ 会话池限额。"""
 import sys
+import time
 
 import pytest
 
@@ -8,13 +9,21 @@ from omni.channels.terminal import TerminalManager, TerminalSession
 pytestmark = pytest.mark.skipif(sys.platform != "win32", reason="ConPTY 仅 Windows")
 
 
-def _read_until(session, needle: str, max_chunks: int = 400) -> str:
-    """反复读直到出现目标串（ConPTY 的 VT 序列是碎块，预算要给足）。"""
+def _read_until(session, needle: str, deadline_s: float = 20.0) -> str:
+    """反复读直到出现目标串（ConPTY 的 VT 序列是碎块）。
+
+    按墙钟截止而不是读取次数：winpty.read 短窗口无数据会立即返回空串，
+    全量并行时 PowerShell 启动慢，按次数预算会提前耗尽（曾间歇失败）。
+    """
     got = ""
-    for _ in range(max_chunks):
-        got += session.read()
+    until = time.monotonic() + deadline_s
+    while time.monotonic() < until:
+        chunk = session.read()
+        got += chunk
         if needle in got:
             break
+        if not chunk:
+            time.sleep(0.05)  # 空读时让出 CPU，别把截止时间烧成忙等
     return got
 
 

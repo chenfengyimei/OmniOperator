@@ -22,7 +22,7 @@ def register_bilibili_write_tools(registry: ToolRegistry, publisher: BilibiliPub
         try:
             row = publisher.prepare(session_id=sid, **{key: str(args.get(key, "")) for key in fields})
             return ToolResult.ok("草稿已保存，尚未填写或发布：\n" + json.dumps(row, ensure_ascii=False), data=row)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             return ToolResult.fail(str(exc) if isinstance(exc, PublicationError) else f"页面观察失败：{type(exc).__name__}", error_code="draft_rejected")
 
     def submit(args):

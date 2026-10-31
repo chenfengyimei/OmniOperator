@@ -79,7 +79,7 @@ class EmbeddingProvider:
             raise EmbeddingError("embedding 单次运行预算不足")
         try:
             ok, _ = self._ledger.reserve(day=day, micro=reserved, limit_micro=self._limit_micro)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             if run_budget is not None:
                 run_budget.release(reserved)
             raise EmbeddingError("embedding 费用账本不可用") from None
@@ -103,7 +103,7 @@ class EmbeddingProvider:
             charged = math.ceil(tokens * cfg.input_usd_per_m) if tokens is not None and cfg.provider == "api" else reserved
             outcome = "ok"
             return [[float(v) for v in vector] for vector in vectors]
-        except Exception:
+        except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             raise EmbeddingError("embedding 调用失败或输出不合法，已退回关键词检索") from None
         finally:
             self._ledger.settle(day=day, reserved_micro=reserved, charged_micro=charged)
