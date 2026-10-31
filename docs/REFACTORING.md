@@ -1,5 +1,15 @@
 # 架构重构记录与后续顺序
 
+2026-11-01 跨库引用清单实测（只读分析，无代码改动）：从 `state_schema.py`
+DDL 动态提取，state.db 引用 `session_id` 的表 = runs / llm_calls / artifacts /
+publication_drafts / command_jobs + `resource_leases` 的 `session:<id>` 软引用；
+核实 `MemoryStore` 无会话删除方法（sessions 只增不减，id 永远有真值）；
+**没有一条 SQL 需要跨库 JOIN** → 两库合并评估结论为**不合并**（零收益、
+备份粒度与 WAL 竞争为实代价）。清单与结论登记进 `DATA_MODEL.md` §4，
+`test_data_model.py` 新增 2 项守卫（session_id 表清单、合并结论在档）。
+专项 `test_data_model+test_state+test_cron+test_arch` **88 项通过（14.36s）**，
+目录守卫 11 项通过；未跑全量。
+
 2026-11-01 数据模型全景文档：新增 `docs/DATA_MODEL.md`（两库分工、state.db
 按域的表归属与生命周期、memory.db 表清单、跨库引用真值方向、迁移纪律），
 `agent/tests/test_data_model.py` 守卫文档与 `state_schema.py` 真实 DDL 及
@@ -93,7 +103,7 @@ OpenAPI 合同检查接口形状；既有业务用例仍须运行，它不能代
 
 | 顺序 | 代码证据与目标 | 必须保留的验证 |
 |---|---|---|
-| 1 | memory/state.py 约 476 行：连接/事务/迁移/健康 + 三个域 mixin，门面全部迁出；代码侧拆分收尾。后续演进以 DATA_MODEL.md 为总纲：跨库引用清单 → 评估两库合并、新表按声明→迁移→模块→文档→守卫顺序接入 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
+| 1 | memory/state.py 约 476 行：连接/事务/迁移/健康 + 三个域 mixin，门面全部迁出；代码侧拆分收尾。跨库合并评估已结案（不合并，依据在 DATA_MODEL.md §4）。后续演进按 DATA_MODEL.md §5：新表接入五步顺序；无待拆批次 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
 | 2 | plugins/host.py 约 800 行：包读取/类型校验、隔离状态、受信装载生命周期分别维护 | 校验零执行、激活人工确认、前缀注册、防篡改、失败回滚、原子状态与锁范围 |
 | 3 | Web 配对/设置和主 index.html 有并行工作：合入后再整理独立 settings/auth 适配及前端专题资源 | 配对/密钥三态与脱敏、Host/Origin/cookie、原有操作入口；不能覆盖并行改动 |
 | 4 | Runtime 的生命周期与状态查询继续按真实依赖收窄；组装根保持唯一 | 路径注入、关闭预算与残留、会话作用域、跨入口一致性，不提前增加空接口层 |

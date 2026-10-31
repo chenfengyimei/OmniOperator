@@ -1,5 +1,15 @@
 # 开发状态记录
 
+2026-11-01 跨库引用清单实测与合并评估结案（工作区，只读分析无代码改动）：
+state.db 引用 `session_id` 的表 = runs / llm_calls / artifacts /
+publication_drafts / command_jobs（列引用）+ resource_leases（`session:<id>`
+软引用），从 DDL 动态提取并有守卫校验；`MemoryStore` 无会话删除方法，
+sessions 只增不减，跨库 id 永远有真值；核实无任何 SQL 跨库 JOIN →
+**两库不合并**（零收益，备份粒度/WAL 竞争为实代价），结论与清单登记
+`DATA_MODEL.md` §4。专项
+`uv run --no-sync pytest -q -n 0 agent/tests/test_data_model.py agent/tests/test_state.py agent/tests/test_cron.py agent/tests/test_arch.py`
+→ **88 passed（14.36s）**；目录守卫 11 passed。未跑全量。
+
 2026-11-01 数据模型全景文档与守卫（工作区）：新增 `docs/DATA_MODEL.md`，
 登记两库分工、state.db 全部表（从 `state_schema.py` 动态提取校验）的归属
 模块与生命周期、memory.db 关键表、跨库引用真值方向（session_id 以

@@ -79,11 +79,37 @@ state.db；对话原文、事实、技能、档案等"丢了用户会心疼"的�
 FTS 虚表（`facts_fts` / `messages_fts` / `dialogue_fts` / `session_log_fts`）
 随宿主表在各自模块声明，由触发器维护。
 
-## 4 跨库关系与纪律
+## 4 跨库关系与纪律（2026-11-01 实测清单）
 
-- **真值方向**：`session_id` 在 state.db 的 runs/artifacts/outbox/command_jobs/
-  publication_drafts 中出现，真值是 memory.db 的 `sessions.id`。SQLite 跨库
-  没有外键，约定 state.db 只存 id、不级联——删除会话的清理路径必须显式处理。
+**真值方向**：`session_id` 的真值是 memory.db 的 `sessions.id`；state.db 只存
+id、不存内容、不级联（SQLite 跨库无外键）。**memory.db 的会话只增不减**
+（`MemoryStore` 无会话删除方法），因此这些 id 永远有真值可指，删除清理路径
+问题当前不存在。
+
+state.db 引用 `session_id` 的表（从 DDL 动态提取，守卫测试校验本文不漂移）：
+
+| 表 | 引用形态 | 归属校验点 |
+|---|---|---|
+| `runs` | 列 `session_id` | `RunStore.list_recent(session_id=…)` 过滤 |
+| `llm_calls` | 列 `session_id` | 用量统计按会话聚合（`context_cache_usage` 等） |
+| `artifacts` | 列 `session_id` | `ArtifactStore.get/list` 跨会话读取显式拒绝（`cross_session`） |
+| `publication_drafts` | 列 `session_id` | `claim` 校验会话 + 内容哈希，不匹配拒绝 |
+| `command_jobs` | 列 `session_id` | `CommandJobStore.get/list` 会话过滤，跨会话 404 语义 |
+| `resource_leases` | **软引用**：键 `session:<id>` 字符串 | TTL 到期自动失效，无清理路径 |
+
+其余 state.db 表（outbox 按 target_qq、qq_messages 按 bot+scene、cron_outputs
+按 job）均不引用会话 id，跨库无关。
+
+**是否合并两库（评估结论：不合并）**：
+- 全部跨库消费都是「同一 session_id 分别查两个库」的应用层模式，**没有一条
+  SQL 需要跨库 JOIN**（`grep` 核实各域模块）。
+- 合并的收益（外键、JOIN）为零；代价是单库膨胀、备份粒度变粗（对话记忆与
+  运行账本被迫一起备份/恢复）、WAL 写竞争加剧（心跳高频写 state.db，对话写
+  memory.db）。保持两库。
+- 新表如果将来要存 `session_id`，必须遵守：真值在 memory.db、不级联、写入
+  前后不需要读 memory.db（校验归属靠应用层传入的 id）。
+
+其余纪律：
 - **金额口径**：`llm_calls.cost_micro` 一律微美元整数；`NULL` 是"算不出来"，
   `0` 是"确定免费"，两者不得混用。
 - **状态语义**：`unknown` 永远表示"副作用未知"，不自动重试、不自动当成失败。
@@ -92,9 +118,9 @@ FTS 虚表（`facts_fts` / `messages_fts` / `dialogue_fts` / `session_log_fts`�
 
 ## 5 后续演进
 
-1. 跨库引用清单是评估 memory.db/state.db 合并与否的前提；合并前先回答
-   "哪些表真正需要跨库 JOIN"，不为形式统一而物理搬库。
-2. 新表接入顺序：`state_schema.py` 声明 → 新版本号迁移 → 归属模块实现 →
+1. 新表接入顺序：`state_schema.py` 声明 → 新版本号迁移 → 归属模块实现 →
    本文档登记 → 守卫测试通过。
-3. 守卫测试（`agent/tests/test_data_model.py`）保证本文的 state.db 表清单
-   与真实 DDL 一致；改表必须同步改文档。
+2. 新增含 `session_id` 的表时，§4 清单与 `test_data_model.py` 的守卫会同时
+   校验——漏登记文档会直接测试红。
+3. 守卫测试（`agent/tests/test_data_model.py`）保证本文的 state.db 表清单、
+   session_id 引用清单与真实 DDL 一致；改表必须同步改文档。
