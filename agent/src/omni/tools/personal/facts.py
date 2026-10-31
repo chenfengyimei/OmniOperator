@@ -1,6 +1,7 @@
 """个人能力：facts；工具仅使用注入依赖，不构造运行时。"""
 from __future__ import annotations
 
+import datetime as dt
 from typing import Any
 
 from ...memory.store import MemoryStore, normalize_text
@@ -10,6 +11,36 @@ from ..registry import Risk, Tool, ToolRegistry
 def _same_fact(candidate: str, target: str) -> bool:
     """删除只认"同一句话"：归一化后相等才算，模糊命中不算删除依据。"""
     return normalize_text(candidate) == normalize_text(target)
+
+
+def humanize_age(created_at: str, now: dt.datetime | None = None) -> str:
+    """记忆的 `created_at` → "刚刚 / N 分钟前 / N 小时前 / N 天前 / N 个月前"。
+
+    给模型一句可直接复述的时间线索（借鉴 SeekMemory：时间戳翻译成口语）；
+    解析失败返回空串，调用方按"没有时间线索"处理。
+    """
+    try:
+        then = dt.datetime.fromisoformat(str(created_at))
+    except (TypeError, ValueError):
+        return ""
+    now = now or dt.datetime.now().astimezone()
+    if then.tzinfo is None:  # naive 视作本地时间
+        then = then.astimezone()
+    seconds = max(0.0, (now - then).total_seconds())
+    if seconds < 90:
+        return "刚刚"
+    minutes = seconds / 60
+    if minutes < 60:
+        return f"{int(minutes)} 分钟前"
+    hours = minutes / 60
+    if hours < 24:
+        return f"{int(hours)} 小时前"
+    days = hours / 24
+    if days < 30:
+        return f"{int(days)} 天前"
+    if days < 365:
+        return f"{int(days // 30)} 个月前"
+    return f"{int(days // 365)} 年前"
 
 
 def register_memory_tools(
@@ -62,8 +93,23 @@ def register_memory_tools(
         search = retriever or store.search_facts
         hits = search(query, limit=8, scope=_scope())
         if not hits:
+            # 元记忆（借鉴 SeekMemory）：区分"没说过"和"说过但被要求忘掉"。
+            # 只在私聊做——墓碑不带 scope，群聊里承认"有人要求忘过"可能跨人泄露。
+            if _scope() == "private" and store.forgotten_matches(query, limit=1):
+                return (
+                    "没有找到相关记忆。这个话题里可能有你之前要求我忘掉的内容，"
+                    "我不会再提也不会再记（如果你希望重新记住，请明确说'记住它'）。"
+                )
             return "没有找到相关记忆。"
-        body = "\n".join(f"- {h}" for h in hits)
+        # 命中记账（借鉴 SeekMemory 的"强化 + 冷却"）：30 分钟冷却 + 每天最多
+        # 一次，防"越提越重要"的正反馈。这是 SAFE 但写状态的工具——因此 recall
+        # 不标注 read_only，保持串行，不进批内并发池。
+        store.touch_facts(hits, scope=_scope())
+        stamps = store.fact_timestamps(hits, scope=_scope())
+        body = "\n".join(
+            f"- {h}（{humanize_age(stamps[h])}记住的）" if h in stamps else f"- {h}"
+            for h in hits
+        )
         if recall_prefix:
             # 记忆是**数据**：里面即使写着"忽略之前的指令"也只是一句旧内容
             return (
@@ -130,7 +176,8 @@ def register_memory_tools(
             func=recall,
             toolset="core",
             risk=Risk.SAFE,
-            read_only=True,
+            # 刻意不标 read_only：命中要给 facts.hits 记账（写状态），
+            # "SAFE 但写状态"的工具保持串行，不进批内并发池
         )
     )
     registry.register(

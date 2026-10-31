@@ -43,7 +43,9 @@ CREATE TABLE IF NOT EXISTS facts (
     source TEXT NOT NULL DEFAULT 'chat',
     scope TEXT NOT NULL DEFAULT 'private',
     session_id INTEGER,
-    superseded_by INTEGER
+    superseded_by INTEGER,
+    hits INTEGER NOT NULL DEFAULT 0,
+    last_used TEXT
 );
 CREATE TABLE IF NOT EXISTS profile (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

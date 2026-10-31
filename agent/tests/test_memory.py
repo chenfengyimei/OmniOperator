@@ -1,5 +1,7 @@
 """MemoryStore 单测：会话 / 消息 / 事实 / FTS 全文检索 / 用户档案 / review 日志。"""
-from omni.memory.store import PROFILE_MAX_CHARS, MemoryStore
+import datetime as dt
+
+from omni.memory.store import PROFILE_MAX_CHARS, RECALL_HIT_CAP, MemoryStore
 
 
 def test_message_roundtrip_and_auto_title(tmp_path):
@@ -179,4 +181,83 @@ def test_search_fact_rows_matches_search_facts_order(tmp_path):
         assert store.fact_rows(limit=200)[0]["content"] or True  # fact_rows 仍在用，确保契约未破
         detail = [f for f in store.fact_rows(limit=200) if f["id"] == row["id"]]
         assert detail and detail[0]["content"] == row["content"]
+    store.close()
+
+
+# ---------- 召回强化与命中冷却（借鉴 SeekMemory：防"越提越重要"的正反馈） ----------
+
+
+def _set_last_used(store: MemoryStore, content: str, value: str) -> None:
+    store._conn.execute(
+        "UPDATE facts SET last_used = ? WHERE content = ?", (value, content)
+    )
+    store._conn.commit()
+
+
+def test_touch_facts_counts_once_with_cooldown_and_daily_cap(tmp_path):
+    store = MemoryStore(tmp_path / "m.db")
+    store.save_fact("用户喜欢喝拿铁")
+    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private") == 1
+    row = store.fact_rows(1)[0]
+    assert row["hits"] == 1 and row["last_used"]
+    # 冷却窗口内重复命中不计数
+    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private") == 0
+    assert store.fact_rows(1)[0]["hits"] == 1
+    # 冷却已过但同一天：每天最多计一次
+    now = dt.datetime.now().astimezone()
+    _set_last_used(
+        store, "用户喜欢喝拿铁", (now - dt.timedelta(hours=2)).isoformat(timespec="seconds")
+    )
+    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private") == 0
+    # 昨天计过、冷却已过：今天可以再计
+    _set_last_used(
+        store, "用户喜欢喝拿铁", (now - dt.timedelta(days=1)).isoformat(timespec="seconds")
+    )
+    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private") == 1
+    assert store.fact_rows(1)[0]["hits"] == 2
+    store.close()
+
+
+def test_touch_facts_scope_and_missing_content_isolated(tmp_path):
+    store = MemoryStore(tmp_path / "m.db")
+    store.save_fact("群里的约定", scope="group")
+    assert store.touch_facts(["群里的约定"], scope="private") == 0  # scope 不匹配不计数
+    assert store.touch_facts(["不存在的内容"], scope="private") == 0
+    assert store.touch_facts([], scope="private") == 0
+    assert store.fact_rows(1)[0]["hits"] == 0
+    store.close()
+
+
+def test_rank_fact_rows_bounded_reorder():
+    """强化只重排不扩员：上限 1.5 链位，最多超越一个零命中邻居。"""
+    rows = [
+        {"id": 1, "content": "A", "hits": 0},
+        {"id": 2, "content": "B", "hits": 0},
+        {"id": 3, "content": "C", "hits": 0},
+    ]
+    assert [r["content"] for r in MemoryStore._rank_fact_rows(None, rows, 3)] == ["A", "B", "C"]
+    rows[2]["hits"] = RECALL_HIT_CAP  # C 拉满命中：只前进一个链位
+    assert [r["content"] for r in MemoryStore._rank_fact_rows(None, rows, 3)] == ["A", "C", "B"]
+    rows[2]["hits"] = 999  # 超过上限封顶，不会跳过两个邻居
+    assert [r["content"] for r in MemoryStore._rank_fact_rows(None, rows, 3)] == ["A", "C", "B"]
+
+
+def test_search_applies_reinforcement_and_keeps_rows_contract(tmp_path):
+    """hits 真实参与检索排序；search_facts 与 search_fact_rows 契约不因强化破坏。"""
+    store = MemoryStore(tmp_path / "m.db")
+    store.save_fact("用户喜欢喝拿铁")
+    store.save_fact("用户拿铁只喝冰的")
+    store.save_fact("用户养了一只猫叫煤球")
+    query = "用户 拿铁 煤球"
+    base = [r["content"] for r in store.search_fact_rows(query, limit=10)]
+    assert len(base) >= 2
+    last = base[-1]
+    store._conn.execute("UPDATE facts SET hits = ? WHERE content = ?", (RECALL_HIT_CAP, last))
+    store._conn.commit()
+    ranked = [r["content"] for r in store.search_fact_rows(query, limit=10)]
+    assert ranked != base  # 强化确实参与排序
+    assert ranked.index(last) == base.index(last) - 1  # 但只前进一个链位
+    assert [r["content"] for r in store.search_fact_rows(query, limit=10)] == store.search_facts(
+        query, limit=10
+    )
     store.close()

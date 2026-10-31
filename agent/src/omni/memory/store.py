@@ -69,6 +69,17 @@ def _match_expr(tokens: list[str]) -> str:
     return " OR ".join('"' + t.replace('"', '""') + '"' for t in tokens)
 
 
+# 召回强化参数（借鉴 SeekMemory 的"命中强化 + 冷却"：防"越提越重要"的正反馈）。
+# 强化只参与排序、不做入场券——检索链仍是唯一候选来源；增益上限
+# RECALL_HIT_CAP × RECALL_HIT_BOOST = 1.5 个链位，最多让一条记忆前进一个
+# 链位（超越一个零命中邻居），不会跳过两个。hits=0 时顺序与纯链序完全一致，
+# 冻结检索评测不受影响。
+RECALL_HIT_CAP = 10  # 排序时计入的最大命中次数
+RECALL_HIT_BOOST = 0.15  # 每次命中的排序增益
+TOUCH_COOLDOWN_MINUTES = 30  # 冷却窗口：窗口内重复命中不计数
+RECALL_ROW_LIMIT_FACTOR = 2  # 重排取候选数 = limit × 此系数
+
+
 def _locked(method):
     """公开存储方法统一加可重入锁（web 通道线程池会并发访问同一连接）。"""
 
@@ -107,6 +118,8 @@ class MemoryStore:
                 "scope": "TEXT NOT NULL DEFAULT 'private'",
                 "session_id": "INTEGER",
                 "superseded_by": "INTEGER",
+                "hits": "INTEGER NOT NULL DEFAULT 0",
+                "last_used": "TEXT",
             },
             "summaries": {"invalidated_at": "TEXT"},
         }
@@ -706,36 +719,45 @@ class MemoryStore:
     def _search_fact_rows(
         self, query: str, limit: int, *, scope: str | None = None
     ) -> list[dict]:
-        """检索链的唯一实现：FTS5 → 全词 AND → 全词 OR → 中文 2-gram。"""
+        """检索链的唯一实现：FTS5 → 全词 AND → 全词 OR → 中文 2-gram，末尾强化重排。"""
         tokens = [t for t in query.split() if t]
         where_scope = "" if scope is None else " AND scope = ?"
         scope_params: list[Any] = [] if scope is None else [scope]
+        rows: list[dict]
         if not tokens:  # 空查询：返回最近的记忆
             rows = self._conn.execute(
-                f"SELECT id, content FROM facts WHERE 1=1{where_scope} ORDER BY id DESC LIMIT ?",
-                [*scope_params, limit],
+                "SELECT id, content, hits FROM facts WHERE 1=1"
+                f"{where_scope} ORDER BY id DESC LIMIT ?",
+                [*scope_params, limit * RECALL_ROW_LIMIT_FACTOR],
             ).fetchall()
-            return [{"id": int(r[0]), "content": str(r[1])} for r in rows]
+            return self._rank_fact_rows(
+                [{"id": int(r[0]), "content": str(r[1]), "hits": int(r[2])} for r in rows],
+                limit,
+            )
         if self.fts_enabled:
             try:
                 rows = self._conn.execute(
-                    "SELECT f.id, f.content FROM facts_fts JOIN facts f ON f.id = facts_fts.rowid "
+                    "SELECT f.id, f.content, f.hits FROM facts_fts "
+                    f"JOIN facts f ON f.id = facts_fts.rowid "
                     f"WHERE facts_fts MATCH ?{where_scope.replace('scope', 'f.scope')} "
                     "ORDER BY bm25(facts_fts) LIMIT ?",
-                    (_match_expr(tokens), *scope_params, limit),
+                    (_match_expr(tokens), *scope_params, limit * RECALL_ROW_LIMIT_FACTOR),
                 ).fetchall()
                 if rows:
-                    return [{"id": int(r[0]), "content": str(r[1])} for r in rows]
+                    return self._rank_fact_rows(
+                        [{"id": int(r[0]), "content": str(r[1]), "hits": int(r[2])} for r in rows],
+                        limit,
+                    )
             except sqlite3.OperationalError:
                 pass  # 查询过短等场景，走 LIKE 链
         and_where = " AND ".join("content LIKE ?" for _ in tokens)
-        rows = self._fetch_fact_rows(and_where, [f"%{t}%" for t in tokens], limit, where_scope, scope_params)
+        rows = self._fetch_fact_rows(and_where, [f"%{t}%" for t in tokens], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params)
         if rows:
-            return rows
+            return self._rank_fact_rows(rows, limit)
         or_where = " OR ".join("content LIKE ?" for _ in tokens)
-        rows = self._fetch_fact_rows(or_where, [f"%{t}%" for t in tokens], limit, where_scope, scope_params)
+        rows = self._fetch_fact_rows(or_where, [f"%{t}%" for t in tokens], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params)
         if rows:
-            return rows
+            return self._rank_fact_rows(rows, limit)
         bigrams = sorted(
             {
                 t[i : i + 2]
@@ -746,8 +768,29 @@ class MemoryStore:
         )
         if bigrams:
             where = " OR ".join("content LIKE ?" for _ in bigrams)
-            return self._fetch_fact_rows(where, [f"%{b}%" for b in bigrams], limit, where_scope, scope_params)
+            rows = self._fetch_fact_rows(where, [f"%{b}%" for b in bigrams], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params)
+            if rows:
+                return self._rank_fact_rows(rows, limit)
         return []
+
+    def _rank_fact_rows(self, rows: list[dict], limit: int) -> list[dict]:
+        """链序 + 有界强化重排：强化最多让一条记忆前进一个链位。
+
+        检索链（FTS bm25 / LIKE）是唯一的"入场券"和主导排序；hits 只在近端
+        平局起作用（增益上限 1.5 个链位，只能超越一个零命中邻居）。hits=0 时
+        排序与纯链序完全一致——冻结检索评测与工作台删除契约
+        （search_fact_rows == search_facts 顺序）都不受影响。
+        """
+        keyed = [
+            (
+                pos - min(int(row.get("hits") or 0), RECALL_HIT_CAP) * RECALL_HIT_BOOST,
+                pos,
+                row,
+            )
+            for pos, row in enumerate(rows)
+        ]
+        keyed.sort(key=lambda item: (item[0], item[1]))
+        return [item[2] for item in keyed[: max(1, limit)]]
 
     def _fetch_fact_rows(
         self,
@@ -758,17 +801,17 @@ class MemoryStore:
         scope_params: list[Any] | None = None,
     ) -> list[dict]:
         rows = self._conn.execute(  # 模板由 token 数生成，参数全部绑定
-            f"SELECT id, content FROM facts WHERE ({where}){where_scope} ORDER BY id DESC LIMIT ?",
+            f"SELECT id, content, hits FROM facts WHERE ({where}){where_scope} ORDER BY id DESC LIMIT ?",
             [*params, *(scope_params or []), limit],
         ).fetchall()
-        return [{"id": int(r[0]), "content": str(r[1])} for r in rows]
+        return [{"id": int(r[0]), "content": str(r[1]), "hits": int(r[2])} for r in rows]
 
     @_locked
     def fact_rows(self, limit: int = 200) -> list[dict]:
         """工作台展示用：带来源/作用域/时间，让人能判断"这条是哪来的"。"""
         rows = self._conn.execute(
-            "SELECT id, content, source, scope, session_id, created_at FROM facts"
-            " ORDER BY id DESC LIMIT ?",
+            "SELECT id, content, source, scope, session_id, created_at, hits, last_used"
+            " FROM facts ORDER BY id DESC LIMIT ?",
             (max(1, limit),),
         ).fetchall()
         return [
@@ -779,6 +822,8 @@ class MemoryStore:
                 "scope": str(r[3]),
                 "session_id": int(r[4]) if r[4] is not None else None,
                 "created_at": str(r[5]),
+                "hits": int(r[6] or 0),
+                "last_used": str(r[7]) if r[7] is not None else None,
             }
             for r in rows
         ]
@@ -792,6 +837,83 @@ class MemoryStore:
         found = {r[0] for r in self._conn.execute(
             f"SELECT content FROM facts WHERE scope=? AND content IN ({marks})", [scope, *candidates])}
         return [text for text in candidates if text in found]
+
+    @_locked
+    def touch_facts(
+        self,
+        contents: list[str],
+        *,
+        scope: str,
+        cooldown_minutes: int = TOUCH_COOLDOWN_MINUTES,
+    ) -> int:
+        """召回命中计数：30 分钟冷却 + 每天最多一次（借鉴 SeekMemory 的防正反馈设计）。
+
+        原子条件更新：只有跨过冷却**且**今天还没计过数的行才 `hits+1` 并刷新
+        `last_used`——没跨过就不动行，`rowcount` 之和即本次真正计数的条数。
+        不更新未计数的行，否则"没计数却刷新了时间"会把当天第一次真正该得的
+        计数也堵掉。时间比较用 ISO 字符串的字典序；跨时区偏移变化（如 DST）
+        的边界误差对启发式排序信号可接受。
+        """
+        if not contents:
+            return 0
+        now = dt.datetime.now().astimezone()
+        cutoff = (now - dt.timedelta(minutes=cooldown_minutes)).isoformat(timespec="seconds")
+        today = now.date().isoformat()
+        counted = 0
+        for text in dict.fromkeys(contents):
+            cur = self._conn.execute(
+                "UPDATE facts SET hits = hits + 1, last_used = ? "
+                "WHERE scope = ? AND content = ? "
+                "AND (last_used IS NULL OR (last_used < ? AND substr(last_used, 1, 10) <> ?))",
+                (_now(), scope, text, cutoff, today),
+            )
+            counted += max(0, cur.rowcount)
+        self._conn.commit()
+        return counted
+
+    @_locked
+    def fact_timestamps(self, contents: list[str], *, scope: str) -> dict[str, str]:
+        """按内容回查 `created_at`（recall 输出相对时间用）；不在库的内容无键。"""
+        if not contents:
+            return {}
+        marks = ",".join("?" for _ in contents)
+        rows = self._conn.execute(
+            f"SELECT content, created_at FROM facts WHERE scope = ? AND content IN ({marks})",
+            [scope, *contents],
+        ).fetchall()
+        return {str(r[0]): str(r[1]) for r in rows}
+
+    @_locked
+    def forgotten_matches(self, query: str, limit: int = 1) -> list[str]:
+        """元记忆线索：查询词与哪条遗忘墓碑同话题（LIKE 链，墓碑不建 FTS）。
+
+        只回答"有没有被要求忘过的相关内容"，不展示墓碑原文——墓碑是"不要
+        再记"的标记，详细展示等于变相泄露。中文整句查询靠 2-gram 兜底命中。
+        """
+        tokens = [t for t in query.split() if t]
+        if not tokens:
+            return []
+
+        def _like(needles: list[str]) -> list[str]:
+            where = " OR ".join("normalized LIKE ?" for _ in needles)
+            rows = self._conn.execute(
+                f"SELECT normalized FROM tombstones WHERE {where} ORDER BY id DESC LIMIT ?",
+                [*(f"%{n}%" for n in needles), max(1, limit)],
+            ).fetchall()
+            return [str(r[0]) for r in rows]
+
+        hits = _like(tokens)
+        if hits:
+            return hits
+        bigrams = sorted(
+            {
+                t[i : i + 2]
+                for t in tokens
+                for i in range(len(t) - 1)
+                if _has_cjk(t[i : i + 2])
+            }
+        )
+        return _like(bigrams) if bigrams else []
 
     @_locked
     def facts_count(self) -> int:

@@ -63,7 +63,7 @@ state.db；对话原文、事实、技能、档案等"丢了用户会心疼"的�
 | 表 | 归属模块 | 说明 |
 |---|---|---|
 | `sessions` / `messages` / `message_contexts` | `memory/store.py::MemoryStore` | 会话与消息；回合快照随消息同事务 |
-| `facts` / `tombstones` | `memory/store.py` | 事实与遗忘墓碑；FTS 触发器维护索引 |
+| `facts` / `tombstones` | `memory/store.py` | 事实与遗忘墓碑；FTS 触发器维护索引。`facts.hits/last_used` 是召回命中计数（30 分钟冷却 + 每天最多一次，`touch_facts` 原子条件更新），只参与召回重排、不做入场券 |
 | `profile` | `memory/store.py` | 用户档案（2000 字符限额） |
 | `reviews` / `review_runs` | `memory/store.py` | 回合后整理账本与区间去重 |
 | `bindings` | `memory/store.py` | 通道用户 ↔ 会话绑定（QQ 等） |

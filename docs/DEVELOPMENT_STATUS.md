@@ -1,5 +1,20 @@
 # 开发状态记录
 
+2026-11-01 记忆召回强化与元记忆（借鉴 SeekMemory，工作区）：
+- `facts` 新增 `hits`/`last_used`（store_schema + `_migrate_columns` 只加不改）；
+  `touch_facts` 原子条件更新：30 分钟冷却 + 每天最多一次，防"越提越重要"的正反馈；
+  强化**只参与召回重排、不做入场券**（增益上限 1.5 链位，最多超越一个零命中邻居），
+  hits=0 时顺序与纯链序完全一致——复跑冻结检索评测 Recall@5/MRR **0.7778** 与基线一致。
+- recall 命中后记账并输出"（N 前记住的）"相对时间（`humanize_age`）；无命中且私聊时
+  `forgotten_matches` 查墓碑，区分"说过但被要求忘掉"与"没说过"；群聊不给墓碑线索
+  （防跨人泄露）。recall 因此从 `read_only` 改为"SAFE 但记账写状态"（串行，不进批内并发池）。
+- 专项 **154 项全绿**（memory/governance/retrieval/tools/review/context/modes/
+  agent/compress/memory_tools/ui_facts_delete/memory_system_api）；全量 1465 项
+  **1460 通过**——5 失败均与本次无关：3×test_community_docs 来自并行会话未提交的
+  README 重写，2×（mcp 子进程回收 / outbox 跨进程领取）为并行负载间歇失败、
+  串行复跑通过。真实模型效果与工作台记忆页 UI 未验收。设计出处与边界见
+  [RETRIEVAL.md](RETRIEVAL.md)「召回强化与元记忆」。
+
 2026-11-01 静态检查剩余基线清零 + 间歇失败修复（工作区）：
 - F841 死变量×3、RUF059 未用解包×7、SIM102/SIM117 合并×5、PLW1510
   显式 `check=False`×4；BLE001×40+S110×18 逐点甄别为有意容错（启动降级/
