@@ -5,8 +5,9 @@
 - 写到一半崩溃 → 留下半截临时文件，甚至可能已经替换成功一半；
 - 没有 fsync → 断电后可能拿到"文件存在但内容为空"。
 
-这里做三件事：**同目录唯一临时名**（保证 `os.replace` 是同分区原子重命名）、
-写入后 `flush + fsync`、失败时删除临时文件且**绝不动原文件**。
+这里做四件事：**同目录唯一临时名**（保证 `os.replace` 是同分区原子重命名）、
+写入后 `flush + fsync`、失败时删除临时文件且**绝不动原文件**、
+POSIX 上再同步父目录（掉电后 rename 的目录项也落盘；Windows 无此概念，跳过）。
 """
 from __future__ import annotations
 
@@ -14,6 +15,19 @@ import contextlib
 import os
 import tempfile
 from pathlib import Path
+
+
+def _sync_parent_dir(path: Path) -> None:
+    """rename 后同步父目录项；O_DIRECTORY 不存在的平台（Windows）无操作。"""
+    flags = getattr(os, "O_RDONLY", 0) | getattr(os, "O_DIRECTORY", 0)
+    if not getattr(os, "O_DIRECTORY", 0):
+        return
+    with contextlib.suppress(OSError):
+        fd = os.open(path, flags)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
 
 
 def atomic_write_bytes(path: Path, data: bytes) -> None:
@@ -29,6 +43,7 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(tmp_name, target)
+        _sync_parent_dir(target.parent)
     except BaseException:
         with contextlib.suppress(OSError):
             os.unlink(tmp_name)

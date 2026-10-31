@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "85e407cd38f69f43df608f2074bc02f46fe9bab936ed57d25c91a0f6766cb205",
+  "source_sha256": "142543568599d88bd839f0404588f695d22865dbede3a9cc4822f72bbeef3868",
   "modules": [
     {
       "id": "agent-directories",
@@ -1076,7 +1076,7 @@
         "agent/src/omni/channels/eval_retrieval.py",
         "agent/src/omni/channels/lifecycle.py"
       ],
-      "lines": 140,
+      "lines": 163,
       "dependencies": [
         "agent-directories",
         "assembly",
@@ -1620,7 +1620,7 @@
         "agent/src/omni/system/stderr_log.py",
         "agent/src/omni/system/winproc.py"
       ],
-      "lines": 2574,
+      "lines": 2844,
       "dependencies": [
         "agent-directories",
         "config"
@@ -2157,12 +2157,12 @@
       "path": "agent/src/omni/channels/lifecycle.py",
       "module": "channels",
       "python_module": "omni.channels.lifecycle",
-      "lines": 22,
+      "lines": 45,
       "imports": [],
       "symbols": [
         {
           "name": "serve_until_stop",
-          "line": 8,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -19291,12 +19291,23 @@
       "path": "agent/src/omni/system/atomic.py",
       "module": "platform",
       "python_module": "omni.system.atomic",
-      "lines": 39,
+      "lines": 54,
       "imports": [],
       "symbols": [
         {
+          "name": "_sync_parent_dir",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
           "name": "atomic_write_bytes",
-          "line": 19,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "path",
@@ -19309,7 +19320,7 @@
         },
         {
           "name": "atomic_write_text",
-          "line": 38,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "path",
@@ -20337,14 +20348,76 @@
       "path": "agent/src/omni/system/posixproc.py",
       "module": "platform",
       "python_module": "omni.system.posixproc",
-      "lines": 47,
+      "lines": 264,
       "imports": [
         "omni.system.process_identity"
       ],
       "symbols": [
         {
+          "name": "_is_linux",
+          "line": 30,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_proc_stat_fields",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "content"
+          ],
+          "annotations": {
+            "content": "str"
+          }
+        },
+        {
+          "name": "_ps_lstart_to_epoch",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_parse_ps_parents",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_parse_smaps_private_kb",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_parse_ps_rss_time",
+          "line": 73,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
           "name": "inspect_process",
-          "line": 15,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "pid"
@@ -20355,14 +20428,14 @@
         },
         {
           "name": "process_parents",
-          "line": 26,
+          "line": 106,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "sample_process",
-          "line": 30,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "identity"
@@ -20372,8 +20445,19 @@
           }
         },
         {
+          "name": "_proc_state_is_zombie",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "pid"
+          ],
+          "annotations": {
+            "pid": "int"
+          }
+        },
+        {
           "name": "confirmed_exited",
-          "line": 34,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "identity"
@@ -20384,7 +20468,7 @@
         },
         {
           "name": "terminate_verified_tree",
-          "line": 46,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "root",
@@ -20394,9 +20478,20 @@
             "root": "ProcessIdentity",
             "timeout_s": "float"
           }
+        },
+        {
+          "name": "terminate_verified_tree.reap",
+          "line": 243,
+          "kind": "function",
+          "parameters": [
+            "deadline"
+          ],
+          "annotations": {
+            "deadline": "float"
+          }
         }
       ],
-      "summary": "POSIX 进程身份后端（P0 骨架）：Linux 只读身份走 /proc，身份核验失败一律拒绝授权终止。"
+      "summary": "POSIX 进程身份与终止后端：Linux 走 /proc，macOS 走 ps；身份核验通过后才允许终止。"
     },
     {
       "path": "agent/src/omni/system/process_identity.py",
@@ -20543,7 +20638,7 @@
       "path": "agent/src/omni/system/services.py",
       "module": "platform",
       "python_module": "omni.system.services",
-      "lines": 480,
+      "lines": 518,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -20554,12 +20649,12 @@
       "symbols": [
         {
           "name": "ServiceError",
-          "line": 47,
+          "line": 49,
           "kind": "class"
         },
         {
           "name": "ServiceError.__init__",
-          "line": 54,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -20573,7 +20668,7 @@
         },
         {
           "name": "_pid_alive",
-          "line": 62,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "pid"
@@ -20584,7 +20679,7 @@
         },
         {
           "name": "_port_listening",
-          "line": 66,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "port",
@@ -20596,8 +20691,23 @@
           }
         },
         {
+          "name": "_parse_ss_pids",
+          "line": 79,
+          "kind": "function",
+          "parameters": [
+            "text",
+            "port",
+            "state"
+          ],
+          "annotations": {
+            "text": "str",
+            "port": "int",
+            "state": "str"
+          }
+        },
+        {
           "name": "_netstat_pids",
-          "line": 74,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "port",
@@ -20610,7 +20720,7 @@
         },
         {
           "name": "_process_name",
-          "line": 107,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "pid"
@@ -20621,7 +20731,7 @@
         },
         {
           "name": "_spawn",
-          "line": 122,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "argv",
@@ -20638,12 +20748,12 @@
         },
         {
           "name": "ServiceManager",
-          "line": 151,
+          "line": 189,
           "kind": "class"
         },
         {
           "name": "ServiceManager.__init__",
-          "line": 152,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -20679,7 +20789,7 @@
         },
         {
           "name": "ServiceManager.napcat_dir",
-          "line": 192,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self"
@@ -20688,7 +20798,7 @@
         },
         {
           "name": "ServiceManager._napcat_pid",
-          "line": 197,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self"
@@ -20697,7 +20807,7 @@
         },
         {
           "name": "ServiceManager.napcat_start",
-          "line": 204,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self",
@@ -20709,7 +20819,7 @@
         },
         {
           "name": "ServiceManager.napcat_stop",
-          "line": 221,
+          "line": 259,
           "kind": "function",
           "parameters": [
             "self"
@@ -20718,7 +20828,7 @@
         },
         {
           "name": "ServiceManager.napcat_qr",
-          "line": 224,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "self"
@@ -20727,7 +20837,7 @@
         },
         {
           "name": "ServiceManager._napcat_uin",
-          "line": 244,
+          "line": 282,
           "kind": "function",
           "parameters": [
             "self"
@@ -20736,7 +20846,7 @@
         },
         {
           "name": "ServiceManager._omni_argv",
-          "line": 256,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self",
@@ -20748,7 +20858,7 @@
         },
         {
           "name": "ServiceManager.omni_start",
-          "line": 262,
+          "line": 300,
           "kind": "function",
           "parameters": [
             "self",
@@ -20760,7 +20870,7 @@
         },
         {
           "name": "ServiceManager.omni_stop",
-          "line": 270,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self",
@@ -20772,7 +20882,7 @@
         },
         {
           "name": "ServiceManager._omni_pid",
-          "line": 273,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -20784,7 +20894,7 @@
         },
         {
           "name": "ServiceManager.status",
-          "line": 281,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self",
@@ -20796,7 +20906,7 @@
         },
         {
           "name": "ServiceManager.overview",
-          "line": 299,
+          "line": 337,
           "kind": "function",
           "parameters": [
             "self"
@@ -20805,7 +20915,7 @@
         },
         {
           "name": "ServiceManager.start",
-          "line": 310,
+          "line": 348,
           "kind": "function",
           "parameters": [
             "self",
@@ -20819,7 +20929,7 @@
         },
         {
           "name": "ServiceManager.stop",
-          "line": 315,
+          "line": 353,
           "kind": "function",
           "parameters": [
             "self",
@@ -20831,7 +20941,7 @@
         },
         {
           "name": "ServiceManager.log_tail",
-          "line": 320,
+          "line": 358,
           "kind": "function",
           "parameters": [
             "self",
@@ -20845,7 +20955,7 @@
         },
         {
           "name": "ServiceManager._pid_path",
-          "line": 335,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "self",
@@ -20857,7 +20967,7 @@
         },
         {
           "name": "ServiceManager._read_pid",
-          "line": 339,
+          "line": 377,
           "kind": "function",
           "parameters": [
             "self",
@@ -20869,7 +20979,7 @@
         },
         {
           "name": "ServiceManager._validate_name",
-          "line": 349,
+          "line": 387,
           "kind": "function",
           "parameters": [
             "name"
@@ -20880,7 +20990,7 @@
         },
         {
           "name": "ServiceManager._lock",
-          "line": 353,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "self",
@@ -20892,7 +21002,7 @@
         },
         {
           "name": "ServiceManager._read_record",
-          "line": 356,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self",
@@ -20904,7 +21014,7 @@
         },
         {
           "name": "ServiceManager._record_identity",
-          "line": 370,
+          "line": 408,
           "kind": "function",
           "parameters": [
             "record"
@@ -20915,7 +21025,7 @@
         },
         {
           "name": "ServiceManager._write_pid",
-          "line": 383,
+          "line": 421,
           "kind": "function",
           "parameters": [
             "self",
@@ -20929,7 +21039,7 @@
         },
         {
           "name": "ServiceManager._check_start",
-          "line": 398,
+          "line": 436,
           "kind": "function",
           "parameters": [
             "self",
@@ -20941,7 +21051,7 @@
         },
         {
           "name": "ServiceManager._stop_verified",
-          "line": 405,
+          "line": 443,
           "kind": "function",
           "parameters": [
             "self",
@@ -20953,7 +21063,7 @@
         },
         {
           "name": "ServiceManager.stop_requested",
-          "line": 445,
+          "line": 483,
           "kind": "function",
           "parameters": [
             "self",
@@ -20967,7 +21077,7 @@
         },
         {
           "name": "ServiceManager.register_current",
-          "line": 451,
+          "line": 489,
           "kind": "function",
           "parameters": [
             "self",
@@ -20979,7 +21089,7 @@
         },
         {
           "name": "ServiceManager.unregister_current",
-          "line": 467,
+          "line": 505,
           "kind": "function",
           "parameters": [
             "self",
@@ -20993,7 +21103,7 @@
         },
         {
           "name": "ServiceManager._clear_pid",
-          "line": 471,
+          "line": 509,
           "kind": "function",
           "parameters": [
             "self",
