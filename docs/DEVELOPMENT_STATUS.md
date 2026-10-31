@@ -1,5 +1,15 @@
 # 开发状态记录
 
+2026-11-01 插件宿主职责分层（工作区）：`plugins/host.py` 799 行拆为三层——
+`package_reader.py`（包读取/类型校验/内容指纹，纯数据零执行）、
+`quarantine.py`（隔离区落盘/安装状态/防篡改复核）、`host.py`（418 行，
+受限注册面与受信装载生命周期）。公开方法名、`_inbox/_quarantine/_root/_data`
+兼容属性、构造签名全部保留；新增层边界守卫（host 无读取/指纹实现、
+reader/quarantine 不 import importlib 与注册表）。专项
+`uv run --no-sync pytest -q -n 0 agent/tests/test_plugins.py agent/tests/test_plugin_community.py agent/tests/test_arch.py agent/tests/test_command_jobs.py`
+→ **68 passed（14.35s）**；索引更新、目录守卫 11 passed。未跑全量；
+真实插件数据未迁移。
+
 2026-11-01 跨库引用清单实测与合并评估结案（工作区，只读分析无代码改动）：
 state.db 引用 `session_id` 的表 = runs / llm_calls / artifacts /
 publication_drafts / command_jobs（列引用）+ resource_leases（`session:<id>`

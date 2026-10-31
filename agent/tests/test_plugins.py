@@ -11,6 +11,7 @@
 """
 import json
 import zipfile
+from pathlib import Path
 
 import pytest
 
@@ -63,6 +64,32 @@ def _drop_plugin(host: PluginHost, filename="demo.zip", *, manifest=None, code=N
     with zipfile.ZipFile(host._inbox / filename, "w") as zf:
         for name, data in entries.items():
             zf.writestr(name, data)
+
+
+# ---------------------------------------------------------------- 层边界守卫
+
+
+def test_plugin_host_responsibilities_stay_split():
+    """host / package_reader / quarantine 三层不再次合流：
+
+    - host 只做生命周期编排，不含包读取与指纹实现；
+    - package_reader 零执行：不 import 注册表，不 importlib 装载；
+    - quarantine 只做文件状态：不 importlib、不接触注册表。
+    """
+    src = Path(__file__).resolve().parents[1] / "src" / "omni" / "plugins"
+
+    host_src = (src / "host.py").read_text(encoding="utf-8")
+    for gone in ("def _read_zip", "def _read_directory", "def _validate_files",
+                 "def _finalize_quarantine", "def _content_sha256", "def _compare_manifests"):
+        assert gone not in host_src, f"host.py 不该再承担 {gone}（归 package_reader/quarantine）"
+
+    reader_src = (src / "package_reader.py").read_text(encoding="utf-8")
+    assert "importlib" not in reader_src, "包读取层必须零执行：不得 import importlib"
+    assert "ToolRegistry" not in reader_src, "包读取层不得依赖注册表"
+
+    quarantine_src = (src / "quarantine.py").read_text(encoding="utf-8")
+    assert "importlib" not in quarantine_src, "隔离状态层只做文件读写：不得 import importlib"
+    assert "ToolRegistry" not in quarantine_src, "隔离状态层不得依赖注册表"
 
 
 # ---------------------------------------------------------------- 安装：隔离、零执行

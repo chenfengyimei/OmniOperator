@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2e61d41f1ff7c547c69000db011e4ffef8b761ff0bcae217129898d6abef4c5d",
+  "source_sha256": "abe79f07b0f44e7bb331983af8ef7f633526f350a901c5b3d430b7384882442c",
   "modules": [
     {
       "id": "agent-directories",
@@ -1567,9 +1567,11 @@
         "agent/src/omni/plugins/__init__.py",
         "agent/src/omni/plugins/host.py",
         "agent/src/omni/plugins/manifest.py",
+        "agent/src/omni/plugins/package_reader.py",
+        "agent/src/omni/plugins/quarantine.py",
         "agent/src/omni/plugins/tools.py"
       ],
-      "lines": 1100,
+      "lines": 1211,
       "dependencies": [
         "platform",
         "safety",
@@ -18109,9 +18111,11 @@
       "path": "agent/src/omni/plugins/host.py",
       "module": "plugins",
       "python_module": "omni.plugins.host",
-      "lines": 799,
+      "lines": 418,
       "imports": [
         "omni.plugins.manifest",
+        "omni.plugins.package_reader",
+        "omni.plugins.quarantine",
         "omni.safety.gates",
         "omni.system.atomic",
         "omni.system.filelock",
@@ -18119,67 +18123,18 @@
       ],
       "symbols": [
         {
-          "name": "_Reject",
+          "name": "PluginApiError",
+          "line": 52,
+          "kind": "class"
+        },
+        {
+          "name": "PluginContext",
           "line": 56,
           "kind": "class"
         },
         {
-          "name": "PluginApiError",
-          "line": 60,
-          "kind": "class"
-        },
-        {
-          "name": "_digest",
-          "line": 64,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "_safe_parts",
-          "line": 68,
-          "kind": "function",
-          "parameters": [
-            "entry"
-          ],
-          "annotations": {
-            "entry": "str"
-          }
-        },
-        {
-          "name": "_entry_shape",
-          "line": 88,
-          "kind": "function",
-          "parameters": [
-            "parts"
-          ],
-          "annotations": {
-            "parts": "tuple[str, ...]"
-          }
-        },
-        {
-          "name": "_is_artifact",
-          "line": 103,
-          "kind": "function",
-          "parameters": [
-            "parts"
-          ],
-          "annotations": {
-            "parts": "tuple[str, ...]"
-          }
-        },
-        {
-          "name": "PluginContext",
-          "line": 112,
-          "kind": "class"
-        },
-        {
           "name": "PluginContext.__init__",
-          "line": 119,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "self",
@@ -18195,7 +18150,7 @@
         },
         {
           "name": "PluginContext.registered_tools",
-          "line": 126,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self"
@@ -18204,7 +18159,7 @@
         },
         {
           "name": "PluginContext.add_tool",
-          "line": 129,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -18226,12 +18181,12 @@
         },
         {
           "name": "_Loaded",
-          "line": 174,
+          "line": 118,
           "kind": "class"
         },
         {
           "name": "_Loaded.__init__",
-          "line": 177,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -18247,12 +18202,12 @@
         },
         {
           "name": "PluginHost",
-          "line": 183,
+          "line": 127,
           "kind": "class"
         },
         {
           "name": "PluginHost.__init__",
-          "line": 186,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -18270,7 +18225,7 @@
         },
         {
           "name": "PluginHost.inbox_dir",
-          "line": 207,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self"
@@ -18279,7 +18234,7 @@
         },
         {
           "name": "PluginHost.install_package",
-          "line": 213,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
@@ -18291,7 +18246,7 @@
         },
         {
           "name": "PluginHost.install_directory",
-          "line": 234,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self",
@@ -18302,60 +18257,8 @@
           }
         },
         {
-          "name": "PluginHost._read_zip",
-          "line": 250,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "zip_path"
-          ],
-          "annotations": {
-            "zip_path": "Path"
-          }
-        },
-        {
-          "name": "PluginHost._read_directory",
-          "line": 305,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "source_dir"
-          ],
-          "annotations": {
-            "source_dir": "Path"
-          }
-        },
-        {
-          "name": "PluginHost._validate_files",
-          "line": 343,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "files"
-          ],
-          "annotations": {
-            "files": "dict[str, bytes]"
-          }
-        },
-        {
-          "name": "PluginHost._finalize_quarantine",
-          "line": 365,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "manifest",
-            "files",
-            "source"
-          ],
-          "annotations": {
-            "manifest": "PluginManifest",
-            "files": "dict[str, bytes]",
-            "source": "str"
-          }
-        },
-        {
           "name": "PluginHost.inbox_files",
-          "line": 422,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self"
@@ -18364,7 +18267,7 @@
         },
         {
           "name": "PluginHost.pending",
-          "line": 435,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self"
@@ -18373,7 +18276,7 @@
         },
         {
           "name": "PluginHost.installed",
-          "line": 474,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self"
@@ -18382,7 +18285,7 @@
         },
         {
           "name": "PluginHost.activate",
-          "line": 506,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "self",
@@ -18394,7 +18297,7 @@
         },
         {
           "name": "PluginHost.enable",
-          "line": 562,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self",
@@ -18406,7 +18309,7 @@
         },
         {
           "name": "PluginHost.disable",
-          "line": 580,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self",
@@ -18418,7 +18321,7 @@
         },
         {
           "name": "PluginHost.remove",
-          "line": 594,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "self",
@@ -18430,7 +18333,7 @@
         },
         {
           "name": "PluginHost.load_installed",
-          "line": 615,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "self"
@@ -18439,7 +18342,7 @@
         },
         {
           "name": "PluginHost._load_from_state",
-          "line": 628,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "self",
@@ -18451,7 +18354,7 @@
         },
         {
           "name": "PluginHost._load",
-          "line": 640,
+          "line": 363,
           "kind": "function",
           "parameters": [
             "self",
@@ -18463,7 +18366,7 @@
         },
         {
           "name": "PluginHost._unload",
-          "line": 669,
+          "line": 392,
           "kind": "function",
           "parameters": [
             "self",
@@ -18475,7 +18378,7 @@
         },
         {
           "name": "PluginHost._remove_registrations",
-          "line": 679,
+          "line": 402,
           "kind": "function",
           "parameters": [
             "self",
@@ -18488,109 +18391,8 @@
           }
         },
         {
-          "name": "PluginHost._state_path",
-          "line": 688,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plugin_id"
-          ],
-          "annotations": {
-            "plugin_id": "str"
-          }
-        },
-        {
-          "name": "PluginHost._read_state",
-          "line": 691,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plugin_id"
-          ],
-          "annotations": {
-            "plugin_id": "str"
-          }
-        },
-        {
-          "name": "PluginHost._save_state",
-          "line": 698,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plugin_id",
-            "**updates"
-          ],
-          "annotations": {
-            "plugin_id": "str"
-          }
-        },
-        {
-          "name": "PluginHost._package_record",
-          "line": 705,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plugin_id"
-          ],
-          "annotations": {
-            "plugin_id": "str"
-          }
-        },
-        {
-          "name": "PluginHost._verify_quarantine",
-          "line": 716,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "pkg_dir",
-            "record"
-          ],
-          "annotations": {
-            "pkg_dir": "Path",
-            "record": "dict[str, Any]"
-          }
-        },
-        {
-          "name": "PluginHost._verify_installed_content",
-          "line": 740,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "plugin_id",
-            "state"
-          ],
-          "annotations": {
-            "plugin_id": "str",
-            "state": "dict[str, Any]"
-          }
-        },
-        {
-          "name": "_content_sha256",
-          "line": 754,
-          "kind": "function",
-          "parameters": [
-            "pkg_dir"
-          ],
-          "annotations": {
-            "pkg_dir": "Path"
-          }
-        },
-        {
-          "name": "_compare_manifests",
-          "line": 773,
-          "kind": "function",
-          "parameters": [
-            "recorded",
-            "actual"
-          ],
-          "annotations": {
-            "recorded": "dict[str, str]",
-            "actual": "dict[str, str]"
-          }
-        },
-        {
           "name": "_activation_message",
-          "line": 791,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "manifest",
@@ -18642,6 +18444,323 @@
         }
       ],
       "summary": "插件清单（manifest.json）：插件包的唯一身份与能力声明。"
+    },
+    {
+      "path": "agent/src/omni/plugins/package_reader.py",
+      "module": "plugins",
+      "python_module": "omni.plugins.package_reader",
+      "lines": 237,
+      "imports": [
+        "omni.plugins.manifest"
+      ],
+      "symbols": [
+        {
+          "name": "Reject",
+          "line": 34,
+          "kind": "class"
+        },
+        {
+          "name": "digest",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "safe_parts",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "entry"
+          ],
+          "annotations": {
+            "entry": "str"
+          }
+        },
+        {
+          "name": "entry_shape",
+          "line": 62,
+          "kind": "function",
+          "parameters": [
+            "parts"
+          ],
+          "annotations": {
+            "parts": "tuple[str, ...]"
+          }
+        },
+        {
+          "name": "is_artifact",
+          "line": 77,
+          "kind": "function",
+          "parameters": [
+            "parts"
+          ],
+          "annotations": {
+            "parts": "tuple[str, ...]"
+          }
+        },
+        {
+          "name": "read_zip",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "zip_path"
+          ],
+          "annotations": {
+            "zip_path": "Path"
+          }
+        },
+        {
+          "name": "read_directory",
+          "line": 142,
+          "kind": "function",
+          "parameters": [
+            "source_dir"
+          ],
+          "annotations": {
+            "source_dir": "Path"
+          }
+        },
+        {
+          "name": "validate_files",
+          "line": 180,
+          "kind": "function",
+          "parameters": [
+            "files"
+          ],
+          "annotations": {
+            "files": "dict[str, bytes]"
+          }
+        },
+        {
+          "name": "content_sha256",
+          "line": 203,
+          "kind": "function",
+          "parameters": [
+            "pkg_dir"
+          ],
+          "annotations": {
+            "pkg_dir": "Path"
+          }
+        },
+        {
+          "name": "compare_manifests",
+          "line": 222,
+          "kind": "function",
+          "parameters": [
+            "recorded",
+            "actual"
+          ],
+          "annotations": {
+            "recorded": "dict[str, str]",
+            "actual": "dict[str, str]"
+          }
+        }
+      ],
+      "summary": "插件包读取与类型校验：纯数据检查，**零执行**。"
+    },
+    {
+      "path": "agent/src/omni/plugins/quarantine.py",
+      "module": "plugins",
+      "python_module": "omni.plugins.quarantine",
+      "lines": 255,
+      "imports": [
+        "omni.plugins.manifest",
+        "omni.plugins.package_reader",
+        "omni.system.atomic"
+      ],
+      "symbols": [
+        {
+          "name": "QuarantineStore",
+          "line": 33,
+          "kind": "class"
+        },
+        {
+          "name": "QuarantineStore.__init__",
+          "line": 36,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "root"
+          ],
+          "annotations": {
+            "root": "Path"
+          }
+        },
+        {
+          "name": "QuarantineStore.is_installed",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.finalize",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "manifest",
+            "files",
+            "source"
+          ],
+          "annotations": {
+            "manifest": "PluginManifest",
+            "files": "dict[str, bytes]",
+            "source": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.inbox_files",
+          "line": 106,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "QuarantineStore.pending",
+          "line": 119,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "QuarantineStore.discard_quarantined",
+          "line": 158,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.state_path",
+          "line": 169,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.read_state",
+          "line": 172,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.save_state",
+          "line": 179,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id",
+            "**updates"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.installed_states",
+          "line": 186,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "QuarantineStore.delete_installed",
+          "line": 198,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.package_record",
+          "line": 206,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.clear_package_record",
+          "line": 217,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "QuarantineStore.verify_quarantine",
+          "line": 220,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "pkg_dir",
+            "record"
+          ],
+          "annotations": {
+            "pkg_dir": "Path",
+            "record": "dict[str, Any]"
+          }
+        },
+        {
+          "name": "QuarantineStore.verify_installed_content",
+          "line": 244,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id",
+            "state"
+          ],
+          "annotations": {
+            "plugin_id": "str",
+            "state": "dict[str, Any]"
+          }
+        }
+      ],
+      "summary": "插件隔离区与安装状态的文件层：隔离区落盘、清单记录、防篡改复核。"
     },
     {
       "path": "agent/src/omni/plugins/server.py",
@@ -32741,17 +32860,17 @@
         {
           "source": "agent/src/omni/plugins/host.py",
           "symbol": "PluginHost.install_package",
-          "line": 213
+          "line": 161
         },
         {
           "source": "agent/src/omni/plugins/host.py",
           "symbol": "PluginHost.activate",
-          "line": 506
+          "line": 231
         },
         {
           "source": "agent/src/omni/plugins/host.py",
           "symbol": "PluginContext.add_tool",
-          "line": 129
+          "line": 73
         },
         {
           "source": "agent/src/omni/tools/registry.py",

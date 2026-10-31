@@ -1,5 +1,15 @@
 # 架构重构记录与后续顺序
 
+2026-11-01 插件宿主职责分层：`plugins/host.py` 从 799 行拆为三块——
+`package_reader.py`（237 行，包读取/类型校验/内容指纹，纯数据零执行）、
+`quarantine.py`（255 行，隔离区落盘/安装状态/防篡改复核，只做文件读写）、
+`host.py`（418 行，PluginContext 受限注册面 + 受信装载生命周期编排）。
+公开方法名、`host._inbox/_quarantine/_root/_data` 兼容属性与 `PluginHost`
+构造签名全部保留，调用点零改动。新增层边界守卫（host 不含读取/指纹实现、
+reader 与 quarantine 不 import importlib/注册表——校验零执行在结构上可验证）。
+专项 `test_plugins+test_plugin_community+test_arch+test_command_jobs`
+**68 项通过（14.35s）**，索引与目录守卫 11 项通过；未跑全量。
+
 2026-11-01 跨库引用清单实测（只读分析，无代码改动）：从 `state_schema.py`
 DDL 动态提取，state.db 引用 `session_id` 的表 = runs / llm_calls / artifacts /
 publication_drafts / command_jobs + `resource_leases` 的 `session:<id>` 软引用；
@@ -104,7 +114,7 @@ OpenAPI 合同检查接口形状；既有业务用例仍须运行，它不能代
 | 顺序 | 代码证据与目标 | 必须保留的验证 |
 |---|---|---|
 | 1 | memory/state.py 约 476 行：连接/事务/迁移/健康 + 三个域 mixin，门面全部迁出；代码侧拆分收尾。跨库合并评估已结案（不合并，依据在 DATA_MODEL.md §4）。后续演进按 DATA_MODEL.md §5：新表接入五步顺序；无待拆批次 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
-| 2 | plugins/host.py 约 800 行：包读取/类型校验、隔离状态、受信装载生命周期分别维护 | 校验零执行、激活人工确认、前缀注册、防篡改、失败回滚、原子状态与锁范围 |
+| 2 | plugins/ 三层拆分已完成（host 418 / package_reader 237 / quarantine 255）；剩余候选：社区 client/server 的同类评估、plugins/host.py 装载路径与 PluginContext 的进一步收窄（当前无紧迫问题） | 校验零执行、激活人工确认、前缀注册、防篡改、失败回滚、原子状态与锁范围 |
 | 3 | Web 配对/设置和主 index.html 有并行工作：合入后再整理独立 settings/auth 适配及前端专题资源 | 配对/密钥三态与脱敏、Host/Origin/cookie、原有操作入口；不能覆盖并行改动 |
 | 4 | Runtime 的生命周期与状态查询继续按真实依赖收窄；组装根保持唯一 | 路径注入、关闭预算与残留、会话作用域、跨入口一致性，不提前增加空接口层 |
 

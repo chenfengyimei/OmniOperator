@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2e61d41f1ff7c547c69000db011e4ffef8b761ff0bcae217129898d6abef4c5d`。包含 56 个职责模块、290 个源码/界面文件。
+源码指纹：`abe79f07b0f44e7bb331983af8ef7f633526f350a901c5b3d430b7384882442c`。包含 56 个职责模块、292 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -955,8 +955,10 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/plugins/__init__.py](../../agent/src/omni/plugins/__init__.py) | 16 | 插件子系统（顶层包，与 channels/bootstrap 同级）。 |
-| [agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py) | 799 | 插件宿主：外来功能包的隔离安装、激活、装载与卸载。 |
+| [agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py) | 418 | 插件宿主：外来功能包的隔离安装、激活、装载与卸载。 |
 | [agent/src/omni/plugins/manifest.py](../../agent/src/omni/plugins/manifest.py) | 104 | 插件清单（manifest.json）：插件包的唯一身份与能力声明。 |
+| [agent/src/omni/plugins/package_reader.py](../../agent/src/omni/plugins/package_reader.py) | 237 | 插件包读取与类型校验：纯数据检查，**零执行**。 |
+| [agent/src/omni/plugins/quarantine.py](../../agent/src/omni/plugins/quarantine.py) | 255 | 插件隔离区与安装状态的文件层：隔离区落盘、清单记录、防篡改复核。 |
 | [agent/src/omni/plugins/tools.py](../../agent/src/omni/plugins/tools.py) | 181 | 插件生命周期工具（面向 agent）：安装 → 审阅 → 激活 → 启停 → 卸载。 |
 
 文档：[docs/PLUGIN_SYSTEM.md](../../docs/PLUGIN_SYSTEM.md)
