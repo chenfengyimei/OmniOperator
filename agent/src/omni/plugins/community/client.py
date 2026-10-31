@@ -16,7 +16,7 @@ import io
 import json
 import zipfile
 from pathlib import Path
-from typing import Any, Callable
+from typing import Callable
 
 import httpx
 

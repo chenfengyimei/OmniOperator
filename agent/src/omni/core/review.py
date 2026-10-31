@@ -17,7 +17,6 @@ from __future__ import annotations
 import queue
 import sys
 import threading
-import time
 from typing import Callable
 
 from ..config import AppConfig

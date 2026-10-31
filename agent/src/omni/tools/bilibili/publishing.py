@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Protocol, Any
+from typing import Protocol
 from urllib.parse import urlsplit
 
 from ...config import BilibiliWrite
-from ...memory.publications import PublicationStore, PublicationError, content_hash
+from ...memory.publications import PublicationStore, PublicationError
 from ..result import ToolResult
 
 

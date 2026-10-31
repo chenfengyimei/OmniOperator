@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 
 from ..registry import Risk, Tool, ToolRegistry
-from ..result import ToolResult
 from ..shots import save_screenshot
 
 

@@ -33,10 +33,10 @@ from ..safety.gates import WebApprover
 from ..system.config_io import (
     EDITABLE,
     ConfigEditError,
-    apply_updates,
-    read_config_text,
+    apply_updates,  # noqa: F401  （有意再导出，兼容旧 import）
+    read_config_text,  # noqa: F401  （有意再导出，兼容旧 import）
     read_env_secrets,
-    safe_write,
+    safe_write,  # noqa: F401  （有意再导出，兼容旧 import）
     commit_config_updates,
     set_env_secret,
 )
@@ -44,27 +44,27 @@ from ..system.filelock import LockTimeout
 from .web_api import create_api_routers
 from .web_api.capabilities import create_capabilities_router
 from .web_api.schemas import (
-    ChatIn,
-    ResolveIn,
-    NapCatStartIn,
+    ChatIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    ResolveIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    NapCatStartIn,  # noqa: F401  （有意再导出，兼容旧 import）
     ConfigUpdateIn,
     ModelTestIn,
-    MCPSchemaConfirmIn,
+    MCPSchemaConfirmIn,  # noqa: F401  （有意再导出，兼容旧 import）
     BiliCookiesIn,
-    CronNameIn,
-    CronToggleIn,
-    CronCreateIn,
-    CronUpdateIn,
-    TodoToggleIn,
-    AndroidTapIn,
-    AndroidElementIn,
-    AndroidKeyIn,
-    ProfileLineIn,
-    ResidentUpdateIn,
+    CronNameIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    CronToggleIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    CronCreateIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    CronUpdateIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    TodoToggleIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    AndroidTapIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    AndroidElementIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    AndroidKeyIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    ProfileLineIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    ResidentUpdateIn,  # noqa: F401  （有意再导出，兼容旧 import）
     PairIn,
-    SkillSaveIn,
-    SkillRollbackIn,
-    SkillAckIn,
+    SkillSaveIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    SkillRollbackIn,  # noqa: F401  （有意再导出，兼容旧 import）
+    SkillAckIn,  # noqa: F401  （有意再导出，兼容旧 import）
 )
 from .terminal import TerminalManager
 from .terminal.routes import create_terminal_router

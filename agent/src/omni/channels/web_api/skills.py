@@ -27,7 +27,7 @@ from ...memory.skill_inbox import (
     MAX_UNPACKED_BYTES,
     MAX_ZIP_BYTES,
 )
-from ...memory.skills import MAX_BODY, MAX_DESCRIPTION, MAX_REFERENCES, NAME_RE
+from ...memory.skills import MAX_BODY, MAX_DESCRIPTION, MAX_REFERENCES
 from ...system.config_io import ConfigConflict, commit_config_updates, read_config_snapshot
 from ...system.filelock import LockTimeout
 

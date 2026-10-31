@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 
 from ..bootstrap import build_runtime
 from ..config import load_env

@@ -1,5 +1,10 @@
 # 开发状态记录
 
+2026-11-01 静态检查基线清零 F401/F811（工作区）：删除 12 处真死导入 +
+2 处重复导入行 + 1 处局部遮蔽改名；`web.py`/`state.py` 37 处有意再导出
+标注 `# noqa: F401`。ruff 未进 CI（pyproject 被并行会话占用，解冻后接入）。
+专项 **263 passed（60.27s）**，目录守卫 11 passed。
+
 2026-11-01 D17「剩余细项」核实结案（工作区，只读核查 + 台账更正）：
 `context_from` 绑定具体成功 run（prompt 注入 `run_id`，新鲜度上限）、并行上限
 （`claim_due(max_running=)` + 调度器默认 2）、显式时区（IANA + DST gap/fold）

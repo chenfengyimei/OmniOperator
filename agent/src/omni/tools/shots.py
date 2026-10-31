@@ -9,7 +9,6 @@ browser/android 截图共用这一段：字节 → 产物登记 → 给模型/�
 """
 from __future__ import annotations
 
-from io import BytesIO
 from typing import Any, Protocol
 
 

@@ -1,5 +1,16 @@
 # 架构重构记录与后续顺序
 
+2026-11-01 静态检查基线清零（F401/F811）：用 ruff 只读扫描建立基线——
+47 处未使用导入、2 处重复导入（`store.py` 的 `import contextlib` 写两遍、
+`files/search.py` 的 `deque` 两遍）、1 处局部变量遮蔽模块导入
+（`package_reader.content_sha256` 的 `digest` → 改名 `h`）。甄别后删除
+12 处真死导入；`web.py`（请求契约旧名转发）与 `state.py`（领域门面再导出）
+的 37 处有意再导出逐行标注 `# noqa: F401`，意图机器可读、F401/F811 基线
+归零。**未动** `agent/pyproject.toml`（并行会话在途），ruff 尚未进 CI——
+接入需依赖配置解冻后单独批次。剩余基线：I001 未排序导入 79、UP035 过时
+导入 20、BLE001 宽捕获 40 等，按域渐进收窄。专项 12 文件 **263 项通过
+（60.27s）**，目录守卫 11 项通过；未跑全量。
+
 2026-11-01 摘要原语去重第二段：全仓 `sha256(data).hexdigest()` 命名函数还有
 4 处逐字相同副本（`memory/resident.py` 的 `_digest`、`tools/files/io.py` 的
 `sha256_hex`、`plugins/community/client.py` 与 `server.py` 的 `_digest`），

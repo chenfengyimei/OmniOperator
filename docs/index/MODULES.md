@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`14e58dfe5b559ff7729b32631f3827f2fe87337ff677676abed4eb002f433788`。包含 56 个职责模块、294 个源码/界面文件。
+源码指纹：`e0b6f03d4a23ebc0b79f52e90df707e6e09d47b7c9a93eaf01c3ae1d60ef2ecb`。包含 56 个职责模块、294 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -111,7 +111,7 @@
 | [agent/src/omni/core/modes.py](../../agent/src/omni/core/modes.py) | 211 | 按回合能力模式（chat / retrieval / agent）的声明与纯函数。 |
 | [agent/src/omni/core/qq_policy.py](../../agent/src/omni/core/qq_policy.py) | 37 | 主动提醒策略：显式所有者、安静时段和独立每日额度；不做网络发送。 |
 | [agent/src/omni/core/retrieval.py](../../agent/src/omni/core/retrieval.py) | 87 | FTS + 向量 RRF 融合；后台有界增量索引，网络请求不占数据库事务。 |
-| [agent/src/omni/core/review.py](../../agent/src/omni/core/review.py) | 247 | 回合后异步 review：自进化最小闭环（Hermes background_review 的 P1 简化版， |
+| [agent/src/omni/core/review.py](../../agent/src/omni/core/review.py) | 246 | 回合后异步 review：自进化最小闭环（Hermes background_review 的 P1 简化版， |
 | [agent/src/omni/core/router.py](../../agent/src/omni/core/router.py) | 164 | 回合能力模式路由：先规则、后模型、最后回退。 |
 | [agent/src/omni/core/run.py](../../agent/src/omni/core/run.py) | 274 | 运行（run）的身份、取消信号与上下文（D09）。 |
 | [agent/src/omni/core/session.py](../../agent/src/omni/core/session.py) | 147 | 会话作用域：同一会话串行、不同会话并行、排队有界、跨进程有租约。 |
@@ -133,7 +133,7 @@
 | [agent/src/omni/llm/budget.py](../../agent/src/omni/llm/budget.py) | 174 | 费用预留与结算的契约（D10）。 |
 | [agent/src/omni/llm/embedding.py](../../agent/src/omni/llm/embedding.py) | 116 | 可切换 embedding 出口：本地 Ollama / LiteLLM API；费用账本从 bootstrap 注入。 |
 | [agent/src/omni/llm/errors.py](../../agent/src/omni/llm/errors.py) | 206 | 模型调用的错误分类与脱敏（D10）。 |
-| [agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py) | 676 | LiteLLM 统一网关：一套 OpenAI 格式接所有供应商（海外/国产/本地 Ollama）。 |
+| [agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py) | 675 | LiteLLM 统一网关：一套 OpenAI 格式接所有供应商（海外/国产/本地 Ollama）。 |
 | [agent/src/omni/llm/usage.py](../../agent/src/omni/llm/usage.py) | 208 | 用量（tokens）与价格：把"这次调用大概/实际花了多少"变成可记账的数字。（D10） |
 
 文档：[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
@@ -194,7 +194,7 @@
 | [agent/src/omni/memory/state_mixin_leases.py](../../agent/src/omni/memory/state_mixin_leases.py) | 121 | 资源租约域的 `state.db` 访问 mixin（会话/浏览器 profile 等互斥资源）。 |
 | [agent/src/omni/memory/state_mixin_ledger.py](../../agent/src/omni/memory/state_mixin_ledger.py) | 85 | 执行账本与写额度域的 `state.db` 访问 mixin。 |
 | [agent/src/omni/memory/state_records.py](../../agent/src/omni/memory/state_records.py) | 55 | state.db 各域仓储返回值的数据形状（唯一来源）。 |
-| [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1026 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
+| [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1025 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
 | [agent/src/omni/memory/store_schema.py](../../agent/src/omni/memory/store_schema.py) | 153 | memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。 |
 | [agent/src/omni/memory/system.py](../../agent/src/omni/memory/system.py) | 61 | 记忆系统门面：六个记忆模块对外的单点聚合（组合根纪律，无业务逻辑）。 |
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
@@ -621,7 +621,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/qq.py](../../agent/src/omni/channels/qq.py) | 321 | QQ 通道入口：uv run omni-qq（需先启动 NapCat 并在 config.yaml 开启 qq）。 |
+| [agent/src/omni/channels/qq.py](../../agent/src/omni/channels/qq.py) | 320 | QQ 通道入口：uv run omni-qq（需先启动 NapCat 并在 config.yaml 开启 qq）。 |
 
 文档：[docs/QQ_SCENARIOS.md](../../docs/QQ_SCENARIOS.md)
 
@@ -635,7 +635,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/heartbeat.py](../../agent/src/omni/channels/heartbeat.py) | 83 | 心跳入口：uv run omni-heartbeat（定时任务常驻调度，无人值守 fail-closed）。 |
+| [agent/src/omni/channels/heartbeat.py](../../agent/src/omni/channels/heartbeat.py) | 82 | 心跳入口：uv run omni-heartbeat（定时任务常驻调度，无人值守 fail-closed）。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
@@ -772,7 +772,7 @@
 | [agent/src/omni/tools/files/history.py](../../agent/src/omni/tools/files/history.py) | 161 | 工作区文件的修订快照（D13）：写前备份、可回滚。 |
 | [agent/src/omni/tools/files/io.py](../../agent/src/omni/tools/files/io.py) | 320 | 文本读写的有界实现（D13）：编码识别、二进制拒绝、窗口读取、原子替换。 |
 | [agent/src/omni/tools/files/paths.py](../../agent/src/omni/tools/files/paths.py) | 287 | 工作区路径边界（D13）：规范化、根校验、敏感项与"检查后不变"。 |
-| [agent/src/omni/tools/files/search.py](../../agent/src/omni/tools/files/search.py) | 169 | 有界目录遍历与内容搜索（D13）。 |
+| [agent/src/omni/tools/files/search.py](../../agent/src/omni/tools/files/search.py) | 168 | 有界目录遍历与内容搜索（D13）。 |
 | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py) | 703 | 结构化文件工具（D13，toolset=files）。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
@@ -845,7 +845,7 @@
 | [agent/src/omni/tools/desktop/__init__.py](../../agent/src/omni/tools/desktop/__init__.py) | 1 | Windows 桌面域：观察绑定、语义后台动作、写后回读。 |
 | [agent/src/omni/tools/desktop/driver.py](../../agent/src/omni/tools/desktop/driver.py) | 136 |  |
 | [agent/src/omni/tools/desktop/native.py](../../agent/src/omni/tools/desktop/native.py) | 40 | 静态 UIAutomation 辅助程序。用户参数只经 stdin JSON 传递，不拼接 PowerShell。 |
-| [agent/src/omni/tools/desktop/tools.py](../../agent/src/omni/tools/desktop/tools.py) | 43 |  |
+| [agent/src/omni/tools/desktop/tools.py](../../agent/src/omni/tools/desktop/tools.py) | 42 |  |
 | [agent/src/omni/tools/desktop/uia.ps1](../../agent/src/omni/tools/desktop/uia.ps1) | 178 | 平台脚本或界面资源 |
 
 文档：[docs/DESKTOP.md](../../docs/DESKTOP.md)
@@ -921,7 +921,7 @@
 | [agent/src/omni/tools/result.py](../../agent/src/omni/tools/result.py) | 132 | 工具结果的结构化契约（D09）。 |
 | [agent/src/omni/tools/runctx.py](../../agent/src/omni/tools/runctx.py) | 48 | 低层可见的"当前运行"引用（D09）。 |
 | [agent/src/omni/tools/shell_tools.py](../../agent/src/omni/tools/shell_tools.py) | 38 | 兼容薄层：旧的 `omni.tools.shell_tools` 导入路径继续可用。 |
-| [agent/src/omni/tools/shots.py](../../agent/src/omni/tools/shots.py) | 66 | 截图工具与 ArtifactStore 的桥（D15/A13）。 |
+| [agent/src/omni/tools/shots.py](../../agent/src/omni/tools/shots.py) | 65 | 截图工具与 ArtifactStore 的桥（D15/A13）。 |
 | [agent/src/omni/tools/skill_tools.py](../../agent/src/omni/tools/skill_tools.py) | 4 | 旧导入兼容层；实现位于 tools/skills/。 |
 | [agent/src/omni/tools/system_tools.py](../../agent/src/omni/tools/system_tools.py) | 4 | 旧导入兼容层；实现位于 tools/system/。 |
 

@@ -15,7 +15,7 @@ import json
 import zipfile
 from pathlib import Path
 
-from ..system.path_guard import digest, safe_parts  # 共享原语：与 skill_inbox 同一实现
+from ..system.path_guard import digest, safe_parts  # 共享原语：与 skill_inbox 同一实现  # noqa: F401  （有意再导出，兼容旧 import）
 from .manifest import (
     MANIFEST_NAME,
     PluginManifest,
@@ -179,7 +179,7 @@ def validate_files(files: dict[str, bytes]) -> PluginManifest:
 
 def content_sha256(pkg_dir: Path) -> str:
     """包内容指纹：全部**非生成物**文件按路径序做 sha256（升级/篡改都以它为准）。"""
-    digest = hashlib.sha256()
+    h = hashlib.sha256()
     try:
         for path in sorted(pkg_dir.rglob("*")):
             if not path.is_file():
@@ -187,13 +187,13 @@ def content_sha256(pkg_dir: Path) -> str:
             rel = path.relative_to(pkg_dir).as_posix()
             if rel.split("/")[0] == "__pycache__":
                 continue  # 解释器生成的字节码不属于内容
-            digest.update(rel.encode("utf-8"))
-            digest.update(b"\x00")
-            digest.update(path.read_bytes())
-            digest.update(b"\x00")
+            h.update(rel.encode("utf-8"))
+            h.update(b"\x00")
+            h.update(path.read_bytes())
+            h.update(b"\x00")
     except OSError:
         pass
-    return digest.hexdigest()
+    return h.hexdigest()
 
 
 def compare_manifests(recorded: dict[str, str], actual: dict[str, str]) -> str | None:
