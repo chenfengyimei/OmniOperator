@@ -565,8 +565,9 @@ aside,section{gap:11px}
 .dock-bar{display:flex;align-items:center;gap:5px;padding:5px 7px 6px 11px;border-top:1px solid var(--line-3)}
 .dock-meta{font-size:10.5px;color:var(--text-4);display:flex;align-items:center;gap:6px}
 .dock-meta kbd{font:10px/1 var(--font-mono);padding:2px 4px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--surface-inset);color:var(--text-3)}
-/* 能力档位选择（D28）：轻量控件；margin-left:auto 让它贴住发送键 */
-.mode-pick{display:flex;align-items:center;gap:3px;margin-left:auto;color:var(--text-4)}
+/* 能力档位选择（D28）：锚在工具条最左（键位提示让位右移），发送键独占最右；
+   此前 pick 与 send 双 margin-left:auto 均分剩余空间，档位被夹在正中间很难看 */
+.mode-pick{display:flex;align-items:center;gap:3px;margin-right:12px;color:var(--text-4)}
 .mode-pick .material-icons{font-size:14px}
 .mode-pick select{
   height:26px;padding:0 4px;border:1px solid var(--line-2);border-radius:var(--r-sm);
