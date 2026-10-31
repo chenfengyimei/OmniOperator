@@ -58,6 +58,10 @@ CREATE TABLE IF NOT EXISTS person_entries (
     expires_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_person_entries_person ON person_entries(person_id, entry_kind, id);
+CREATE TABLE IF NOT EXISTS owner_migration (
+    key TEXT PRIMARY KEY,
+    done_at TEXT NOT NULL
+);
 """
 
 
@@ -104,6 +108,8 @@ class PersonStore:
         resident_max_chars: int = 1200,
         event_max_chars: int = 500,
         card_chars: int = 800,
+        owner_archive_total_chars: int = 2000,
+        owner_resident_total_chars: int = 2200,
     ) -> None:
         path = db_path or (DATA_DIR / "memory.db")
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -111,6 +117,11 @@ class PersonStore:
             "archive": int(archive_max_chars),
             "resident": int(resident_max_chars),
             "event": int(event_max_chars),
+        }
+        # 所有者沿用旧档案/常驻的"总量制"协议（总量封顶、逼合并），普通人物是"单条制"
+        self._owner_totals = {
+            "archive": int(owner_archive_total_chars),
+            "resident": int(owner_resident_total_chars),
         }
         self._card_chars = int(card_chars)
         self._lock = threading.RLock()
@@ -130,6 +141,8 @@ class PersonStore:
             raise PersonError("人物名字不能为空且不超过 60 字")
         if importance not in IMPORTANCE:
             raise PersonError(f"重要度必须是 {IMPORTANCE} 之一")
+        if importance == "owner" and self._owner_exists():
+            raise PersonError("所有者人物已存在（全库唯一），不能重复创建")
         if len(note) > 2000:
             raise PersonError("人物备注超过 2000 字上限")
         cur = self._conn.execute(
@@ -212,6 +225,13 @@ class PersonStore:
         if importance is not None:
             if importance not in IMPORTANCE:
                 raise PersonError(f"重要度必须是 {IMPORTANCE} 之一")
+            if importance == "owner":
+                row = self._conn.execute(
+                    "SELECT id FROM people WHERE importance = 'owner' AND id != ? LIMIT 1",
+                    (int(person_id),),
+                ).fetchone()
+                if row:
+                    raise PersonError("所有者人物已存在（全库唯一），不能重复创建")
             sets.append("importance = ?")
             params.append(importance)
         if note is not None:
@@ -289,15 +309,123 @@ class PersonStore:
         ).fetchone()
         return self.get_person(int(row[0])) if row else None
 
+    # ---------------------------------------------------------------- 所有者
+
+    def _owner_exists(self) -> bool:
+        row = self._conn.execute(
+            "SELECT 1 FROM people WHERE importance = 'owner' LIMIT 1"
+        ).fetchone()
+        return row is not None
+
+    @_locked
+    def ensure_owner(self, name: str = "所有者") -> int:
+        """所有者是唯一的一等人物：档案行与常驻笔记并入其后共用同一套条目模型。幂等。"""
+        row = self._conn.execute(
+            "SELECT id FROM people WHERE importance = 'owner' ORDER BY id LIMIT 1"
+        ).fetchone()
+        if row:
+            return int(row[0])
+        return self.create_person(name, importance="owner")
+
+    def _owner_usage(
+        self, person_id: int, entry_kind: str, *, exclude_entry_id: int | None = None
+    ) -> int:
+        row = self._conn.execute(
+            "SELECT COALESCE(SUM(LENGTH(content)), 0) FROM person_entries"
+            " WHERE person_id = ? AND entry_kind = ? AND id != ?",
+            (int(person_id), entry_kind, -1 if exclude_entry_id is None else int(exclude_entry_id)),
+        ).fetchone()
+        return int(row[0])
+
+    def owner_total_limit(self, entry_kind: str) -> int | None:
+        """所有者总量限额（展示面用；写入强制在 _enforce_owner_total）。"""
+        return self._owner_totals.get(entry_kind)
+
+    def _owner_total_error(
+        self, person_id: int, entry_kind: str, content: str, *, used: int, exclude_entry_id: int | None = None
+    ) -> PersonError:
+        """总量超限的报错：档案与常驻各自复刻旧协议文案（含当前条目与合并指引）。"""
+        total = self._owner_totals[entry_kind]
+        rows = self._conn.execute(
+            "SELECT id, content FROM person_entries"
+            " WHERE person_id = ? AND entry_kind = ? AND id != ? ORDER BY id",
+            (int(person_id), entry_kind, -1 if exclude_entry_id is None else int(exclude_entry_id)),
+        ).fetchall()
+        entries = [(int(r[0]), str(r[1])) for r in rows]
+        if entry_kind == "archive":
+            lines = "\n".join(f"[{lid}] {text}" for lid, text in entries)
+            return PersonError(
+                f"档案已满（{used}/{total} 字符，剩余 {total - used}），放不下这条。"
+                f"请先合并或删减现有条目再添加。当前档案：\n{lines}"
+            )
+        pct = min(100, int(used / total * 100)) if total else 0
+        listing = "\n§\n".join(f"[{lid}] {text}" for lid, text in entries)
+        return PersonError(
+            f"错误：常驻记忆已 {pct}% — {used}/{total} 字符；"
+            f"新增这条（{len(content)} 字符）将超出限额 {used + len(content) - total} 字符。"
+            "请先用 replace 合并/精简下面这些旧条目腾出空间，再重试 add——"
+            f"限额按最终结果检查：\n{listing}"
+        )
+
+    def _enforce_owner_total(
+        self, person_id: int, entry_kind: str, content: str, *, exclude_entry_id: int | None = None
+    ) -> None:
+        person = self.get_person(int(person_id))
+        if person is None or person["importance"] != "owner":
+            return
+        if entry_kind not in self._owner_totals:
+            return
+        used = self._owner_usage(person_id, entry_kind, exclude_entry_id=exclude_entry_id)
+        if used + len(content) > self._owner_totals[entry_kind]:
+            raise self._owner_total_error(
+                person_id, entry_kind, content, used=used, exclude_entry_id=exclude_entry_id
+            )
+
+    @_locked
+    def migration_done(self, key: str) -> bool:
+        row = self._conn.execute(
+            "SELECT 1 FROM owner_migration WHERE key = ?", (str(key),)
+        ).fetchone()
+        return row is not None
+
+    @_locked
+    def mark_migration(self, key: str) -> None:
+        self._conn.execute(
+            "INSERT OR REPLACE INTO owner_migration(key, done_at) VALUES (?, ?)",
+            (str(key), _now()),
+        )
+        self._conn.commit()
+
+    @_locked
+    def _import_entry(
+        self, person_id: int, entry_kind: str, content: str, *, source: str = "import"
+    ) -> int:
+        """迁移专用：历史数据如实入账，绕过限额与注入扫描（owner_migrate 调用）。"""
+        cur = self._conn.execute(
+            "INSERT INTO person_entries(person_id, entry_kind, content, source, created_at)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (int(person_id), entry_kind, str(content), str(source), _now()),
+        )
+        self._conn.commit()
+        return int(cur.lastrowid)
+
     # ---------------------------------------------------------------- 条目
 
-    def _check_entry(self, entry_kind: str, content: str) -> str:
+    def _check_entry(self, person_id: int, entry_kind: str, content: str) -> str:
         if entry_kind not in ENTRY_KINDS:
             raise PersonError(f"条目类型必须是 {ENTRY_KINDS} 之一")
         content = str(content or "").strip()
         if not content:
             raise PersonError("条目内容不能为空")
         limit = self._limits[entry_kind]
+        person = self.get_person(int(person_id))
+        if (
+            person is not None
+            and person["importance"] == "owner"
+            and entry_kind in self._owner_totals
+        ):
+            # 所有者沿用"总量制"：单条上限=总量上限（旧档案行/常驻条目没有单条限制）
+            limit = self._owner_totals[entry_kind]
         if len(content) > limit:
             raise PersonError(
                 f"该条目超过 {entry_kind} 限额（{limit} 字，本次 {len(content)} 字）："
@@ -316,7 +444,8 @@ class PersonStore:
     ) -> int:
         if not self.get_person(int(person_id)):
             raise PersonError(f"人物 {person_id} 不存在")
-        content = self._check_entry(entry_kind, content)
+        content = self._check_entry(person_id, entry_kind, content)
+        self._enforce_owner_total(person_id, entry_kind, content)
         if entry_kind == "event" and expires_at is not None:
             try:
                 parsed = dt.datetime.fromisoformat(str(expires_at))
@@ -340,7 +469,11 @@ class PersonStore:
         ).fetchone()
         if not row:
             return False
-        content = self._check_entry(str(row[1]), content)
+        person_id, entry_kind = int(row[0]), str(row[1])
+        content = self._check_entry(person_id, entry_kind, content)
+        self._enforce_owner_total(
+            person_id, entry_kind, content, exclude_entry_id=int(entry_id)
+        )
         self._conn.execute(
             "UPDATE person_entries SET content = ?, updated_at = ? WHERE id = ?",
             (content, _now(), int(entry_id)),

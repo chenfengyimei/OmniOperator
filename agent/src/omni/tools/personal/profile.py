@@ -8,8 +8,9 @@ from ..registry import Risk, Tool, ToolRegistry
 
 def register_profile_tools(
     registry: ToolRegistry,
-    store: MemoryStore,
+    owner,  # OwnerMemory 门面：档案=owner 人物的 archive 条目（profile_lines/... 同形）
     *,
+    store: MemoryStore | None = None,  # 仅供 guard 的遗忘墓碑检查（profile 类不依赖，保持注入形状）
     guard: Any = None,
     source: str = "chat",
 ) -> None:
@@ -22,8 +23,8 @@ def register_profile_tools(
     def profile_manage(args: dict[str, Any]) -> str:
         op = str(args.get("operation", "view"))
         if op == "view":
-            lines = store.profile_lines()
-            usage = store.profile_usage_chars()
+            lines = owner.profile_lines()
+            usage = owner.profile_usage_chars()
             if not lines:
                 return f"用户档案为空（{usage} 字符额度）。用 add 添加第一条。"
             body = "\n".join(f"[{lid}] {text}" for lid, text in lines)
@@ -33,7 +34,7 @@ def register_profile_tools(
             blocked = _gate("profile", content)
             if blocked:
                 return blocked
-            return store.profile_add(content)[1]
+            return owner.profile_add(content, source=source or "manual")[1]
         if op == "edit":
             try:
                 line_id = int(args.get("line_id", 0))
@@ -45,14 +46,14 @@ def register_profile_tools(
             blocked = _gate("profile", content)
             if blocked:
                 return blocked
-            _ok, message = store.profile_edit_checked(line_id, content)
+            _ok, message = owner.profile_edit_checked(line_id, content)
             return message
         if op == "delete":
             try:
                 line_id = int(args.get("line_id", 0))
             except (TypeError, ValueError):
                 return "错误：line_id 必须是整数"
-            ok = store.profile_delete(line_id)
+            ok = owner.profile_delete(line_id)
             return "已删除。" if ok else f"错误：不存在第 {line_id} 条（先 view 查看编号）"
         return f"错误：未知操作 {op}（支持 view/add/edit/delete）"
 

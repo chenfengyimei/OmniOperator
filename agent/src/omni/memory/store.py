@@ -910,7 +910,21 @@ class MemoryStore:
             f"SELECT content FROM facts WHERE scope=? AND content IN ({marks})", [scope, *candidates])}
         return [text for text in candidates if text in found]
 
+    @_locked
+    def facts_count(self) -> int:
+        """事实总数（记忆系统总览用）。"""
+        row = self._conn.execute("SELECT COUNT(*) FROM facts").fetchone()
+        return int(row[0])
+
+    @_locked
+    def reviews_count(self) -> int:
+        """复盘记录总数（记忆系统总览用）。"""
+        row = self._conn.execute("SELECT COUNT(*) FROM reviews").fetchone()
+        return int(row[0])
+
     # ---------- 用户档案（USER.md 式，限额+报错驱动自整理） ----------
+    # 数据层统一后此表只读冻结：档案已迁往 owner 人物的 archive 条目（memory/owner.py），
+    # 这组方法仅剩直接构造 MemoryStore 的老测试与迁移回滚路径使用，生产接线已全部换源。
 
     @_locked
     def profile_lines(self) -> list[tuple[int, str]]:
@@ -924,8 +938,11 @@ class MemoryStore:
         return sum(len(content) for _, content in self.profile_lines())
 
     @_locked
-    def profile_add(self, content: str) -> tuple[bool, str]:
-        """超限时返回 (False, 错误+当前档案+剩余额度)，逼调用方当轮合并。"""
+    def profile_add(self, content: str, *, source: str = "manual") -> tuple[bool, str]:
+        """超限时返回 (False, 错误+当前档案+剩余额度)，逼调用方当轮合并。
+
+        source 形参只为与 OwnerMemory 门面同形（冻结表不记来源），保持忽略。
+        """
         content = content.strip()
         if not content:
             return False, "错误：档案内容不能为空"

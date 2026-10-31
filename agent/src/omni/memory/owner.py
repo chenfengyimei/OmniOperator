@@ -1,0 +1,207 @@
+"""所有者记忆门面：档案行与常驻笔记统一进人物系统后的注入与维护面。
+
+数据层统一（本批）后，"关于用户"的常驻注入记忆不再分两套存储：
+- 旧 `profile` 表（memory.db）→ owner 人物的 archive 条目；
+- 旧 `data/MEMORY.md` 常驻文件 → owner 人物的 resident 条目；
+- 注入块字符串、限额协议（总量制+逼合并报错）、工具/端点响应形状全部保持
+  与旧实现逐字节兼容，调用方（agent 注入、profile_manage / resident_memory
+  工具、web 端点）只换数据源不换契约。
+
+门面刻意实现与 ResidentMemory / MemoryStore.profile_* 相同的方法面：
+Runtime.resident 字段、工具注册、web 端点都是既有的注入点，直接换实例即可。
+作者参数（author）在条目模型里没有对应列，接受但忽略；来源（source）落库。
+"""
+from __future__ import annotations
+
+from .people import PersonError, PersonStore
+from .resident import BLOCK_HEADER, ENTRY_DELIMITER, injection_risk
+
+try:  # 旧档案总量常量（2000）以 store 为准；store 不依赖本模块，无循环 import
+    from .store import PROFILE_MAX_CHARS as _PROFILE_TOTAL
+except ImportError:  # pragma: no cover - 仅在重构期防御
+    _PROFILE_TOTAL = 2000
+
+
+class OwnerMemory:
+    """owner 人物的记忆门面：resident 面（原 ResidentMemory）+ 档案面（原 profile_*）。"""
+
+    def __init__(
+        self,
+        people: PersonStore,
+        *,
+        owner_name: str = "所有者",
+        archive_total: int | None = None,
+        resident_total: int | None = None,
+    ) -> None:
+        self._people = people
+        self._owner_name = owner_name
+        # 总量上限以 PersonStore 的所有者配额为唯一真源（bootstrap 从 config 注入）；
+        # 这里仅用于展示，缺省兜底与旧协议同值
+        self._archive_total = int(
+            archive_total if archive_total is not None
+            else (people.owner_total_limit("archive") or _PROFILE_TOTAL)
+        )
+        self._resident_total = int(
+            resident_total if resident_total is not None
+            else (people.owner_total_limit("resident") or 2200)
+        )
+        self._cached_owner: int | None = None
+
+    # ---------------------------------------------------------------- 所有者解析
+
+    def owner_id(self) -> int:
+        """owner 人物 id（幂等创建；正常路径迁移后已存在，这里只是查询）。"""
+        if self._cached_owner is not None:
+            return self._cached_owner
+        self._cached_owner = self._people.ensure_owner(self._owner_name)
+        return self._cached_owner
+
+    def person(self) -> dict:
+        return self._people.get_person(self.owner_id()) or {}
+
+    # ---------------------------------------------------------------- 查询
+
+    def _entries(self, kind: str) -> list[tuple[int, str]]:
+        return [
+            (int(e["id"]), str(e["content"]))
+            for e in self._people.entries(self.owner_id())
+            if e["entry_kind"] == kind
+        ]
+
+    # ---------------------------------------------------------------- resident 面
+
+    @property
+    def limit(self) -> int:
+        return self._resident_total
+
+    def _resident_usage(self, entries: list[tuple[int, str]]) -> str:
+        used = len(ENTRY_DELIMITER.join(text for _, text in entries))
+        pct = min(100, int(used / self._resident_total * 100)) if self._resident_total else 0
+        return f"{pct}% — {used}/{self._resident_total} 字符"
+
+    def usage(self) -> str:
+        return self._resident_usage(self._entries("resident"))
+
+    def entries(self) -> list[tuple[int, str]]:
+        """工作台展示用：带编号（稳定行号，删除后不重排）。"""
+        return self._entries("resident")
+
+    def block(self) -> str:
+        """系统提示词注入块：空则空串，否则 头+用量+全部条目（§ 分隔）。"""
+        try:
+            entries = self._entries("resident")
+        except Exception as exc:  # noqa: BLE001 —— 注入块读不出来要如实说，不能让记忆"凭空消失"
+            return f"MEMORY（常驻工作笔记读取失败：{exc}）"
+        if not entries:
+            return ""
+        return (
+            f"{BLOCK_HEADER}（{self._resident_usage(entries)}）\n"
+            + ENTRY_DELIMITER.join(text for _, text in entries)
+        )
+
+    def view(self) -> str:
+        """agent 视角的清单：带编号（replace/remove 用编号寻址）。"""
+        entries = self._entries("resident")
+        if not entries:
+            return (
+                f"常驻记忆为空（限额 {self._resident_total} 字符）。"
+                "用 add 记录跨会话仍需要的事：进行中的约定、教训、下一步。"
+            )
+        lines = [f"常驻记忆（{self._resident_usage(entries)}）："]
+        lines += [f"[{i}] {e}" for i, e in entries]
+        return "\n".join(lines)
+
+    def _write(self, op: str, content: str, entry_id: int | None, *, author: str, source: str) -> str:
+        """统一写路径：PersonError 转旧协议的"错误：…"返回串（工具/端点直接回显）。"""
+        try:
+            if op == "add":
+                self._people.add_entry(
+                    self.owner_id(), "resident", content, source=source or "resident_memory"
+                )
+                return f"已写入常驻记忆（{self.usage()}）"
+            if op == "replace":
+                if not self._people.edit_entry(int(entry_id or 0), content):
+                    return f"错误：不存在第 {entry_id} 条（先 view 查看编号）"
+                return f"已更新第 {entry_id} 条（{self.usage()}）"
+            if op == "remove":
+                entries_before = dict(self._entries("resident"))
+                removed = entries_before.get(int(entry_id or 0))
+                if not self._people.remove_entry(int(entry_id or 0)):
+                    return f"错误：不存在第 {entry_id} 条（先 view 查看编号）"
+                shown = (removed or "")[:60]
+                return f"已删除第 {entry_id} 条：{shown}（{self.usage()}）"
+        except PersonError as exc:
+            message = str(exc)
+            return message if message.startswith("错误") else f"错误：{message}"
+        raise ValueError(f"未知常驻写操作 {op}")
+
+    def add(self, content: str, *, author: str = "agent", source: str = "resident_memory") -> str:
+        content = (content or "").strip()
+        if not content:
+            return "错误：content 不能为空"
+        if risk := injection_risk(content):
+            return f"错误：{risk}"
+        return self._write("add", content, None, author=author, source=source)
+
+    def replace(
+        self, entry_id: int, content: str, *, author: str = "agent", source: str = "resident_memory"
+    ) -> str:
+        content = (content or "").strip()
+        if not content:
+            return "错误：content 不能为空（要删条目用 remove）"
+        if risk := injection_risk(content):
+            return f"错误：{risk}"
+        return self._write("replace", content, entry_id, author=author, source=source)
+
+    def remove(self, entry_id: int, *, author: str = "agent", source: str = "resident_memory") -> str:
+        return self._write("remove", "", entry_id, author=author, source=source)
+
+    # ---------------------------------------------------------------- 档案面
+
+    def profile_lines(self) -> list[tuple[int, str]]:
+        return self._entries("archive")
+
+    def profile_usage_chars(self) -> int:
+        return sum(len(text) for _, text in self.profile_lines())
+
+    def profile_add(self, content: str, *, source: str = "manual") -> tuple[bool, str]:
+        """超限时返回 (False, 错误+当前档案+剩余额度)，逼调用方当轮合并。"""
+        content = (content or "").strip()
+        if not content:
+            return False, "错误：档案内容不能为空"
+        try:
+            self._people.add_entry(self.owner_id(), "archive", content, source=source or "manual")
+        except PersonError as exc:
+            return False, str(exc)
+        usage = self.profile_usage_chars()
+        return True, f"已加入档案：{content}（当前 {usage}/{self._archive_total} 字符）"
+
+    def profile_edit_checked(self, line_id: int, content: str) -> tuple[bool, str]:
+        """改一行档案。总量额度在存储层重算（对应旧 A15 修复的口径）。"""
+        text = (content or "").strip()
+        if not text:
+            return False, "错误：档案内容不能为空"
+        try:
+            if not self._people.edit_entry(int(line_id), text):
+                return False, f"错误：不存在第 {line_id} 条（先 view 查看编号）"
+        except PersonError as exc:
+            return False, str(exc)
+        return True, f"已更新（{self.profile_usage_chars()}/{self._archive_total} 字符）。"
+
+    def profile_edit(self, line_id: int, content: str) -> bool:
+        return self.profile_edit_checked(line_id, content)[0]
+
+    def profile_delete(self, line_id: int) -> bool:
+        return self._people.remove_entry(int(line_id))
+
+    def profile_block(self) -> str:
+        """系统提示词注入用的人物档案快照块；空档案返回空串。形状与旧实现一致。"""
+        lines = self.profile_lines()
+        if not lines:
+            return ""
+        usage = self.profile_usage_chars()
+        body = "\n".join(f"- {content}" for _, content in lines)
+        return (
+            f"## 关于用户（长期档案，{usage}/{self._archive_total} 字符，"
+            f"用 profile_manage 工具维护，写满需先合并）\n{body}"
+        )

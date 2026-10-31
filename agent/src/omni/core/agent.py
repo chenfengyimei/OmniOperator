@@ -17,7 +17,6 @@ from ..llm.budget import RunBudget
 from ..llm.gateway import Gateway, Reply, StreamEvent, to_openai_tool_call
 from ..memory.artifacts import ArtifactError, MARKER_RE
 from ..memory.dialogue import DialogueLog
-from ..memory.resident import ResidentMemory
 from ..memory.runs import RunStore
 from ..memory.session_log import SessionLog
 from ..memory.store import MemoryStore
@@ -121,7 +120,7 @@ class Agent:
         *,
         approver: Approver | None = None,
         session_ref: SessionRef | None = None,
-        resident: ResidentMemory | None = None,
+        resident: Any = None,  # ResidentMemory 或 OwnerMemory 门面（block/view/add/... 同形）
         runs: RunStore | None = None,
         active_runs: ActiveRuns | None = None,
         run_ref: RunRef | None = None,
@@ -131,6 +130,7 @@ class Agent:
         dialogue_log: DialogueLog | None = None,
         session_log: SessionLog | None = None,
         person_card: Callable[[str, str], dict | None] | None = None,
+        profile_block: Callable[[], str] | None = None,
         mode_router: ModeRouter | None = None,
     ) -> None:
         self.config = config
@@ -154,6 +154,8 @@ class Agent:
         self._session_log = session_log
         # 人物卡回调（M6）：非所有者 QQ 私聊时按账号带出对方人物资料；None=不注入
         self._person_card = person_card
+        # 所有者档案注入块（数据层统一后由 OwnerMemory 提供）；None=回退旧 store.profile_block
+        self._profile_block = profile_block
         # 能力档位路由（D28）：None=不启用（直接构造 Agent 的老用法保持完整能力），
         # 由组装根注入；路由只决定本回合注入哪一档工具，不放宽任何权限
         self._mode_router = mode_router
@@ -257,7 +259,11 @@ class Agent:
             observed_at=self._clock().isoformat(timespec='seconds'),
             personal=include_personal,
             resident=self._resident.block() if include_personal and self._resident is not None else '',
-            profile=self.store.profile_block() if include_personal else '',
+            profile=(
+                (self._profile_block() if self._profile_block is not None else self.store.profile_block())
+                if include_personal
+                else ''
+            ),
             person=person,
             mode=mode,
         )

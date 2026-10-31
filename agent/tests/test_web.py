@@ -213,7 +213,7 @@ def test_todos_endpoints(tmp_path):
 def test_memory_endpoints(tmp_path):
     client, runtime = _client(tmp_path)
     runtime.store.save_fact("用户喜欢喝拿铁")
-    runtime.store.profile_add("用户是游戏开发者")
+    runtime.owner_memory.profile_add("用户是游戏开发者")
     sid = runtime.store.new_session()
     runtime.store.save_review_log(sid, "无需变更")
 
@@ -404,20 +404,20 @@ def test_cron_endpoints(tmp_path):
 
 def test_profile_line_edit_delete(tmp_path):
     client, runtime = _client(tmp_path)
-    runtime.store.profile_add("用户是资深游戏开发者")
-    lid = runtime.store.profile_lines()[0][0]
+    runtime.owner_memory.profile_add("用户是资深游戏开发者")
+    lid = runtime.owner_memory.profile_lines()[0][0]
     ok = client.put("/api/profile/line", json={"line_id": lid, "content": "用户是全栈工程师"})
     assert ok.status_code == 200
-    assert runtime.store.profile_lines()[0][1] == "用户是全栈工程师"
+    assert runtime.owner_memory.profile_lines()[0][1] == "用户是全栈工程师"
     assert client.put("/api/profile/line", json={"line_id": lid, "content": "  "}).status_code == 400
     assert client.put("/api/profile/line", json={"line_id": 999, "content": "x"}).status_code == 404
     assert client.delete(f"/api/profile/line/{lid}").status_code == 200
     assert client.delete(f"/api/profile/line/{lid}").status_code == 404
 
 
-def test_resident_endpoints(tmp_path, monkeypatch):
+def test_resident_endpoints(tmp_path):
     client, runtime = _client(tmp_path)
-    monkeypatch.setattr(runtime.resident, "_path", tmp_path / "MEMORY.md")
+    # 数据层统一后常驻条目在 memory.db（tmp 隔离 runtime），无需再重定向文件路径
     empty = client.get("/api/resident").json()
     assert empty["entries"] == [] and empty["limit"] > 0
     ok = client.post("/api/resident/update", json={"operation": "add", "content": "进行中的约定"})

@@ -107,6 +107,18 @@ class ProfileLineIn(BaseModel):
     content: str
 
 
+class ProfileLineCreateIn(BaseModel):
+    """工作台新增档案行（与 profile_manage add 同一条存储路径）。"""
+
+    content: str = Field(..., min_length=1, max_length=2000)
+
+
+class FactCreateIn(BaseModel):
+    """工作台手动记一条事实（与 remember 工具同一条存储路径）。"""
+
+    content: str = Field(..., min_length=1, max_length=500)
+
+
 class ResidentUpdateIn(BaseModel):
     operation: str  # add | replace | remove
     id: int | None = None

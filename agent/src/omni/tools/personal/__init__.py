@@ -17,6 +17,7 @@ def register_core_tools(
     registry: ToolRegistry,
     store: MemoryStore,
     *,
+    owner: Any = None,  # OwnerMemory 门面；None 时回退旧 store.profile_*（直接构造的老用法）
     guard: Any = None,
     run_ref: Any = None,
     session_ref: Any = None,
@@ -36,6 +37,12 @@ def register_core_tools(
         source=source,
         retriever=retriever,
     )
-    register_profile_tools(registry, store, guard=guard, source=source)
+    register_profile_tools(
+        registry,
+        owner if owner is not None else store,
+        store=store,
+        guard=guard,
+        source=source,
+    )
 
 __all__ = ['register_time_tool', 'register_memory_tools', 'register_profile_tools', 'register_digest_tool', 'register_todo_tools', 'register_resident_tools', 'register_refine_tool', 'register_core_tools']

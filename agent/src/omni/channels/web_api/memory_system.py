@@ -19,6 +19,7 @@ from fastapi import APIRouter, HTTPException
 from .schemas import AccountLinkIn, PersonCreateIn, PersonEntryIn, PersonUpdateIn
 from ...memory.journal import KINDS
 from ...memory.people import PersonError
+from ...memory.store import PROFILE_MAX_CHARS
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime
@@ -38,6 +39,24 @@ def create_memory_system_router(runtime: Runtime) -> APIRouter:
     @router.get("/api/memory-system/overview")
     def overview() -> dict[str, Any]:
         system = _system()
+        # 全记忆仪表盘：新四单元之外，把所有者记忆（事实/档案/常驻）与复盘一并汇总
+        owner_block: dict[str, Any] = {}
+        owner = runtime.owner_memory
+        if owner is not None:
+            try:
+                owner_block = {
+                    "facts": runtime.store.facts_count(),
+                    "reviews": runtime.store.reviews_count(),
+                    "profile": {"used": owner.profile_usage_chars(), "max": PROFILE_MAX_CHARS},
+                    "resident": {"entries": len(owner.entries()), "usage": owner.usage()},
+                    "retrieval": (
+                        {"enabled": False, "mode": "fts"}
+                        if runtime.retrieval is None
+                        else {"enabled": True, "mode": "hybrid", **runtime.retrieval.status()}
+                    ),
+                }
+            except Exception as exc:  # noqa: BLE001 —— 总览是读面，任何一块坏了不炸整个端点
+                owner_block = {"error": str(exc)}
         return {
             **system.status(),
             "journal_enabled": runtime.journal_consolidator is not None,
@@ -46,6 +65,7 @@ def create_memory_system_router(runtime: Runtime) -> APIRouter:
                 "max_catchup": runtime.config.journal.max_catchup,
                 "steps": runtime.config.journal.steps,
             },
+            "owner": owner_block,
         }
 
     # ---------------------------------------------------------------- 对话全量（M1）

@@ -36,7 +36,11 @@ def create_sessions_router(runtime: Runtime) -> APIRouter:
             "fts_enabled": runtime.store.fts_enabled,
             "review_enabled": runtime.reviewer is not None,
             "profile": {
-                "used": runtime.store.profile_usage_chars(),
+                "used": (
+                    runtime.owner_memory.profile_usage_chars()
+                    if runtime.owner_memory is not None
+                    else runtime.store.profile_usage_chars()
+                ),
                 "max": PROFILE_MAX_CHARS,
             },
             "context": context,

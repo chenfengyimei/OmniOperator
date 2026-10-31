@@ -5,7 +5,7 @@ from typing import Any, TYPE_CHECKING
 
 from fastapi import APIRouter, HTTPException
 
-from .schemas import ProfileLineIn, ResidentUpdateIn
+from .schemas import FactCreateIn, ProfileLineCreateIn, ProfileLineIn, ResidentUpdateIn
 from ...memory.store import PROFILE_MAX_CHARS
 
 if TYPE_CHECKING:
@@ -27,6 +27,17 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
         顺序完全一致；/api/facts 的字符串契约保持不变（既有调用方不受影响）。
         """
         return {"facts": runtime.store.search_fact_rows(q, limit=min(limit, 100))}
+
+    @router.post("/api/facts")
+    def create_fact(payload: FactCreateIn) -> dict[str, Any]:
+        """工作台手动记一条：与 remember 工具同一条存储路径（遗忘墓碑在存储层兜底）。"""
+        content = payload.content.strip()
+        if not content:
+            raise HTTPException(status_code=400, detail="内容不能为空")
+        fact_id = runtime.store.save_fact(content, source="manual", scope="private")
+        if fact_id is None:
+            raise HTTPException(status_code=409, detail="这条内容已被要求遗忘，不会再记录")
+        return {"ok": True, "fact_id": fact_id}
 
     @router.get("/api/facts/detail")
     def get_facts_detail(limit: int = 200) -> dict[str, Any]:
@@ -66,27 +77,40 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
 
     @router.get("/api/profile")
     def get_profile() -> dict[str, Any]:
+        # 数据层统一后档案=owner 人物的 archive 条目；响应形状不变（id=条目行号，删除后留空洞）
+        owner = runtime.owner_memory if runtime.owner_memory is not None else runtime.resident
         return {
             "lines": [
                 {"id": lid, "content": content}
-                for lid, content in runtime.store.profile_lines()
+                for lid, content in owner.profile_lines()
             ],
-            "usage": runtime.store.profile_usage_chars(),
+            "usage": owner.profile_usage_chars(),
             "max": PROFILE_MAX_CHARS,
         }
 
+    @router.post("/api/profile/line")
+    def profile_line_create(payload: ProfileLineCreateIn) -> dict[str, Any]:
+        """工作台新增档案行（原工作台只有改/删；统一管理面补齐新增）。"""
+        owner = runtime.owner_memory if runtime.owner_memory is not None else runtime.resident
+        ok, message = owner.profile_add(payload.content.strip(), source="workbench")
+        if not ok:
+            raise HTTPException(status_code=400, detail=message)
+        return {"ok": True, "message": message}
+
     @router.put("/api/profile/line")
     def profile_line_update(payload: ProfileLineIn) -> dict[str, Any]:
+        owner = runtime.owner_memory if runtime.owner_memory is not None else runtime.resident
         content = payload.content.strip()
         if not content:
             raise HTTPException(status_code=400, detail="内容不能为空")
-        if not runtime.store.profile_edit(payload.line_id, content):
+        if not owner.profile_edit(payload.line_id, content):
             raise HTTPException(status_code=404, detail="档案行不存在")
         return {"ok": True}
 
     @router.delete("/api/profile/line/{line_id}")
     def profile_line_delete(line_id: int) -> dict[str, Any]:
-        if not runtime.store.profile_delete(line_id):
+        owner = runtime.owner_memory if runtime.owner_memory is not None else runtime.resident
+        if not owner.profile_delete(line_id):
             raise HTTPException(status_code=404, detail="档案行不存在")
         return {"ok": True}
 

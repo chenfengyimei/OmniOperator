@@ -51,7 +51,8 @@ from .memory.state import (
 from .memory.artifacts import ArtifactStore
 from .memory.usage import UsageLedger
 from .memory.guard import MemoryGuard
-from .memory.resident import ResidentMemory
+from .memory.owner import OwnerMemory
+from .memory.owner_migrate import migrate_owner_memory
 from .memory.dialogue import DialogueLog
 from .memory.session_log import SessionLog
 from .memory.journal import JournalStore
@@ -160,7 +161,7 @@ class Runtime:
     session_leases: SessionLeases  # 跨进程：同会话同一时刻只有一个进程在跑
     cron_jobs: JobStore
     cron_ledger: ExecutionLog
-    resident: ResidentMemory
+    resident: Any  # OwnerMemory 门面（数据层统一后=owner 人物记忆；block/usage/entries 同形）
     browser: BrowserDriver
     write_budget: WriteBudget
     approvals: ApprovalBroker
@@ -171,6 +172,7 @@ class Runtime:
     reviewer: TurnEndReviewer | None = None
     journal_consolidator: JournalConsolidator | None = None  # 记忆系统整理 worker（M3–M5）
     memory_guard: MemoryGuard | None = None  # 记忆写入额度与输入检查（D12）
+    owner_memory: OwnerMemory | None = None  # 所有者记忆门面（web 端点用；数据层统一）
     workspace: Workspace | None = None        # 文件工具的允许根与敏感项边界（D13）
     file_history: FileHistory | None = None   # 工作区文件的写入备份（D13）
     artifacts: ArtifactStore | None = None    # 产物存储（D15）
@@ -376,11 +378,31 @@ def build_runtime(
         resident_max_chars=config.people.resident_max_chars,
         event_max_chars=config.people.event_max_chars,
         card_chars=config.people.person_card_chars,
+        # 所有者沿用旧协议的总量限额：档案 2000（PROFILE_MAX_CHARS），常驻=原 MEMORY.md 限额配置
+        owner_resident_total_chars=config.limits.resident_memory_chars,
     )
     memory_system = MemorySystem(
         dialogue=dialogue_log, session_log=session_log,
         journal=journal_store, people=people_store,
     )
+    # 所有者记忆门面（数据层统一）：档案行与常驻笔记=owner 人物的 archive/resident
+    # 条目；启动时一次性迁移旧 profile 表与 MEMORY.md（幂等+先备份+按内容去重续迁，
+    # 失败不阻断启动，下次启动自动补齐；旧表与旧文件只冻结不删除）
+    owner_memory = OwnerMemory(people_store)
+    try:
+        migrate_owner_memory(
+            store, people_store, paths.resident,
+            backup_root=paths.backups, memory_db_path=paths.memory,
+        )
+        if config.qq.owner_qq:
+            try:
+                people_store.link_account(
+                    owner_memory.owner_id(), "qq", str(config.qq.owner_qq), label="所有者"
+                )
+            except Exception:  # noqa: BLE001 —— 已绑定给别的人物等情况不阻断启动
+                pass
+    except Exception as exc:  # noqa: BLE001 —— 迁移失败只打日志：已导入部分生效，下次启动续迁
+        print(f"[所有者记忆迁移] 失败（下次启动自动续迁）：{exc}", file=sys.stderr, flush=True)
     # 技能与常驻记忆共用一份修订存储：写入前先落历史，改坏了能回滚（D08）
     skills = SkillStore(
         paths.skills,
@@ -443,12 +465,6 @@ def build_runtime(
         if start_background_workers:
             retrieval.start()
         atexit.register(retrieval.close)
-    resident = ResidentMemory(
-        paths.resident,
-        char_limit=config.limits.resident_memory_chars,
-        history_root=paths.history,
-        owner=f"pid:{os.getpid()}:resident",
-    )
     # 记忆写入闸门（D12）：事实/档案/技能共用一份当日额度，review 走同一个闸门
     memory_guard = MemoryGuard(
         state,
@@ -459,15 +475,16 @@ def build_runtime(
     register_core_tools(
         registry,
         store,
+        owner=owner_memory,
         guard=memory_guard,
         run_ref=run_ref,
         session_ref=session_ref,
         recall_prefix=config.memory.recall_prefix,
         retriever=retrieval.search if retrieval is not None else None,
     )
-    register_digest_tool(registry, store)
+    register_digest_tool(registry, store, profile_usage=owner_memory.profile_usage_chars)
     register_todo_tools(registry, store, session_ref)
-    register_resident_tools(registry, resident)
+    register_resident_tools(registry, owner_memory)
     # 记忆系统工具面（M1–M6）：全量检索/精确读取/笔记/人物；全部不进群聊许可名单
     register_transcript_tools(registry, dialogue_log, session_log)
     register_journal_tools(registry, journal_store)
@@ -631,11 +648,12 @@ def build_runtime(
     mode_router = ModeRouter(config)
     agent = Agent(
         config, gateway, store, registry, session_id,
-        approver=approver, session_ref=session_ref, resident=resident,
+        approver=approver, session_ref=session_ref, resident=owner_memory,
         runs=runs, active_runs=active_runs, run_ref=run_ref, owner=owner,
         artifacts=artifacts,
         dialogue_log=dialogue_log, session_log=session_log,
         person_card=people_store.card_for_account,
+        profile_block=owner_memory.profile_block,
         mode_router=mode_router,
     )
     agent_holder["agent"] = agent
@@ -650,8 +668,8 @@ def build_runtime(
             review_registry, review_store, guard=memory_guard,
             recall_prefix=config.memory.recall_prefix, source="review",
         )
-        register_profile_tools(review_registry, review_store, guard=memory_guard, source="review")
-        register_resident_tools(review_registry, resident)
+        register_profile_tools(review_registry, owner_memory, store=review_store, guard=memory_guard, source="review")
+        register_resident_tools(review_registry, owner_memory)
         register_skill_tools(review_registry, skills, guard=memory_guard, lifecycle=False)
         return review_registry
 
@@ -678,8 +696,8 @@ def build_runtime(
             journal_registry, journal_store, guard=memory_guard,
             recall_prefix=config.memory.recall_prefix, source="journal",
         )
-        register_profile_tools(journal_registry, journal_store, guard=memory_guard, source="journal")
-        register_resident_tools(journal_registry, resident)
+        register_profile_tools(journal_registry, owner_memory, store=journal_store, guard=memory_guard, source="journal")
+        register_resident_tools(journal_registry, owner_memory)
         register_people_tools(journal_registry, people_store, guard=memory_guard, source="journal")
         return journal_registry
 
@@ -718,7 +736,8 @@ def build_runtime(
         session_leases=session_leases,
         cron_jobs=cron_jobs,
         cron_ledger=cron_ledger,
-        resident=resident,
+        resident=owner_memory,
+        owner_memory=owner_memory,
         browser=browser,
         write_budget=write_budget,
         approvals=approvals,

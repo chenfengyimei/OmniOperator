@@ -7,7 +7,12 @@ from ...memory.store import PROFILE_MAX_CHARS, MemoryStore
 from ..registry import Risk, Tool, ToolRegistry
 
 
-def register_digest_tool(registry: ToolRegistry, store: MemoryStore) -> None:
+def register_digest_tool(
+    registry: ToolRegistry,
+    store: MemoryStore,
+    *,
+    profile_usage: Any = None,  # Callable[[], int]：数据层统一后档案用量来自 owner 门面
+) -> None:
     """daily_digest（SAFE）：夜间整理的素材入口（活动统计）。
 
     刻意独立于 register_memory_tools——回合后 review 的白名单保持最小
@@ -24,6 +29,9 @@ def register_digest_tool(registry: ToolRegistry, store: MemoryStore) -> None:
             dt.datetime.now().astimezone() - dt.timedelta(hours=hours)
         ).isoformat(timespec="seconds")
         d = store.digest_since(since)
+        profile_chars = (
+            int(profile_usage()) if callable(profile_usage) else int(d["profile_chars"])
+        )
         if not d["sessions"] and d["facts_new"] == 0 and not d["reviews_recent"]:
             return f"过去 {hours} 小时没有会话、记忆或 review 活动，无需整理。"
         lines = [f"过去 {hours} 小时活动（自 {since[:16]} 起）："]
@@ -37,7 +45,7 @@ def register_digest_tool(registry: ToolRegistry, store: MemoryStore) -> None:
                 "- 最近 review：" + " / ".join(x[:60] for x in d["reviews_recent"])
             )
         lines.append(
-            f"- 用户档案已用 {d['profile_chars']} 字符"
+            f"- 用户档案已用 {profile_chars} 字符"
             f"（额度 {PROFILE_MAX_CHARS}，临近额度应先合并再写）"
         )
         return "\n".join(lines)

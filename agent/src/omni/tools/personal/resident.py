@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 from typing import Any
-from ...memory.resident import ResidentMemory
 from ..registry import Risk, Tool, ToolRegistry
 
 
-def register_resident_tools(registry: ToolRegistry, resident: ResidentMemory) -> None:
+def register_resident_tools(registry: ToolRegistry, resident: Any) -> None:
     """resident_memory（SAFE）：常驻小记忆（Hermes memory 工具的精简版）。
 
+    数据层统一后 `resident` 是 OwnerMemory 门面（常驻条目=owner 人物的
+    resident 条目），view/add/replace/remove 接口与旧 ResidentMemory 同形。
     与 remember（事实检索层）的分工：这条写的是**每轮都进系统提示词**的
     常驻笔记（进行中的约定/教训/下一步），宁少勿多；写超限会被拒绝并
     要求先合并（限额逼自整理，Hermes 同款协议）。
