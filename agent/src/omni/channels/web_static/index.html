@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/ui/tokens.css?v=20261031a">
 <link rel="stylesheet" href="/ui/base.css?v=20261031c">
 <link rel="stylesheet" href="/ui/icons.css?v=20261029">
-<link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m12"><link rel="stylesheet" href="/memory/memory.css?v=20261031m11"><script src="/ui/shared.js?v=20261031m8"></script><script src="/ui/markdown.js?v=20261029"></script>
+<link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m13"><link rel="stylesheet" href="/memory/memory.css?v=20261031m11"><script src="/ui/shared.js?v=20261031m8"></script><script src="/ui/markdown.js?v=20261029"></script>
 </head>
 <body data-ui-page="workbench">
 <!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
@@ -94,7 +94,8 @@
     </div>
   </section>
   <aside>
-    <div class="panel" style="flex:1.4">
+    <!-- 工具目录不再占主界面：完整版（搜索/筛选/参数/审批要求）在设置中心「项目索引」与 /project/ 子站 -->
+    <div class="panel" style="flex:1">
       <div class="tabs">
         <button data-tab="todos" class="active">待办</button>
         <button data-tab="skills">技能</button>
@@ -125,10 +126,6 @@
         <div id="artifacts-usage" style="padding:8px 12px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--border)"></div>
         <div id="artifacts-grid"></div>
       </div>
-    </div>
-    <div class="panel" style="flex:1">
-      <div class="panel-title"><span>工具</span></div>
-      <ul id="tools"></ul>
     </div>
   </aside>
 </main>
@@ -617,7 +614,7 @@
     </div>
   </div>
 </div>
-<script type="module" src="/ui/app/main.js?v=20261031m16"></script>
+<script type="module" src="/ui/app/main.js?v=20261031m17"></script>
 </body>
 </html>
 

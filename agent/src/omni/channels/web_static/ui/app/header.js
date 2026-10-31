@@ -1,8 +1,8 @@
 // 顶栏运行态徽章：/api/state 只把模型与能力存进共享状态，不直接渲染；
 // #chips 仅在「模型回合 / 全文检索 / 后台 review」实际活动时出现，活动结束立即清空。
-import {$,esc,usd} from './dom.js?v=20261031m16';
-import {api} from './api.js?v=20261031m16';
-import {S} from './state.js?v=20261031m16';
+import {$,esc,usd} from './dom.js?v=20261031m17';
+import {api} from './api.js?v=20261031m17';
+import {S} from './state.js?v=20261031m17';
 
 const CTX_COLORS={system:'var(--seed-accent)',tools:'var(--seed-accent2)',memory:'#fcd34d',conversation:'var(--ok)'};
 const ACTIVE_RUN_STATES=new Set(['queued','running','waiting_approval','cancelling']);
@@ -110,12 +110,6 @@ export async function loadState(){
   S.reviewEnabled=!!s.review_enabled;
   renderRuntimeChips();
   renderContextUsage(s.context,s.model);
-  $('#tools').innerHTML=s.tools.map(t=>
-    `<li><span class="tool-name" title="${esc(t.description||t.name)}">${esc(t.name)}</span><span class="tool-set">${esc(t.toolset)}·${esc(t.risk)}</span></li>`).join('');
-  // 风险档位图例：工具行的 toolset·risk 后缀不看说明读不懂（loadState 会多次调用，先清旧的）
-  document.querySelector('.tool-legend')?.remove();
-  $('#tools').insertAdjacentHTML('beforebegin',
-    `<div class="hint tool-legend">风险档：<b>safe</b>=只读可自动执行 · <b>confirm</b>=每次需人工确认 · <b>dangerous</b>=高危人工确认</div>`);
 }
 
 // ---------- 模型用量（D10 账本的可视化；金额单位是微美元，1e6 = $1） ----------

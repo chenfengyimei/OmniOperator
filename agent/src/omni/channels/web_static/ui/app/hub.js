@@ -1,21 +1,21 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m16';
-import {api} from './api.js?v=20261031m16';
-import {loadState} from './header.js?v=20261031m16';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m16';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m16';
-import {loadCron} from './hub-cron.js?v=20261031m16';
-import {loadUsage} from './hub-usage.js?v=20261031m16';
-import {loadMcp} from './hub-mcp.js?v=20261031m16';
-import {loadContext} from './hub-context.js?v=20261031m16';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m16';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m16';
-import {loadJobsHub} from './hub-jobs.js?v=20261031m16';
-import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261031m16';
-import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261031m16';
-import {loadProjectHub} from './hub-project.js?v=20261031m16';
+import {$,esc} from './dom.js?v=20261031m17';
+import {api} from './api.js?v=20261031m17';
+import {loadState} from './header.js?v=20261031m17';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m17';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m17';
+import {loadCron} from './hub-cron.js?v=20261031m17';
+import {loadUsage} from './hub-usage.js?v=20261031m17';
+import {loadMcp} from './hub-mcp.js?v=20261031m17';
+import {loadContext} from './hub-context.js?v=20261031m17';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m17';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m17';
+import {loadJobsHub} from './hub-jobs.js?v=20261031m17';
+import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261031m17';
+import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261031m17';
+import {loadProjectHub} from './hub-project.js?v=20261031m17';
 
 /* 分区加载器表：切到哪个分区要拉什么数据，在这里登记一处。
    逐条 if 散在 switchHub 里，分区一多就容易漏（漏了的表现是分区空白）。 */
