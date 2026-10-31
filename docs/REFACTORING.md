@@ -1,5 +1,13 @@
 # 架构重构记录与后续顺序
 
+2026-10-31 cron 门面迁出 state.py：`JobStore` / `ExecutionLog` 迁到
+`memory/cron_store.py`（只做转发与 cron_outputs 读写，不持有连接）；
+`omni.memory.state` 与 `omni.memory.cron` 的旧 import 继续指向同一对象。
+state.py 行数 **559 → 476**，只剩连接/事务/迁移/健康 + 三个域 mixin 继承。
+专项 `test_cron+test_state+test_sessions+test_arch+test_command_jobs`
+**110 项通过（27.71s）**，索引与 `test_project_catalog.py` **11 项通过**；
+未跑全量。
+
 2026-10-31 StateStore 域方法群 mixin 拆分：任务/租约/账本-额度三块方法群
 迁到 `state_mixin_jobs.py` / `state_mixin_leases.py` / `state_mixin_ledger.py`，
 异常与 Claim/Lease/BudgetHit/MigrationRecord 迁到 `state_errors.py` /
@@ -77,7 +85,7 @@ OpenAPI 合同检查接口形状；既有业务用例仍须运行，它不能代
 
 | 顺序 | 代码证据与目标 | 必须保留的验证 |
 |---|---|---|
-| 1 | memory/state.py 约 559 行：连接/事务/迁移/健康 + 三个域 mixin；下一步迁出 JobStore/ExecutionLog 薄门面，再评估 qq/publications | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
+| 1 | memory/state.py 约 476 行：连接/事务/迁移/健康 + 三个域 mixin；门面已全部迁出（outbox/mcp/skill_acks/cron_store）。剩余候选：qq/publications 域评估、memory.db 与 state.db 统一领域模型 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
 | 2 | plugins/host.py 约 800 行：包读取/类型校验、隔离状态、受信装载生命周期分别维护 | 校验零执行、激活人工确认、前缀注册、防篡改、失败回滚、原子状态与锁范围 |
 | 3 | Web 配对/设置和主 index.html 有并行工作：合入后再整理独立 settings/auth 适配及前端专题资源 | 配对/密钥三态与脱敏、Host/Origin/cookie、原有操作入口；不能覆盖并行改动 |
 | 4 | Runtime 的生命周期与状态查询继续按真实依赖收窄；组装根保持唯一 | 路径注入、关闭预算与残留、会话作用域、跨入口一致性，不提前增加空接口层 |

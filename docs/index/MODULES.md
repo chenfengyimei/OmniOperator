@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d730b88029971be90b312a2c22917c8173c4a42f97b0d96f17f1196f191b70b2`。包含 56 个职责模块、289 个源码/界面文件。
+源码指纹：`2e61d41f1ff7c547c69000db011e4ffef8b761ff0bcae217129898d6abef4c5d`。包含 56 个职责模块、290 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -169,6 +169,7 @@
 | [agent/src/omni/memory/artifacts.py](../../agent/src/omni/memory/artifacts.py) | 296 | 产物存储（D15 / A13）：截图、文件、报告统一按 artifact_id 管理。 |
 | [agent/src/omni/memory/command_jobs.py](../../agent/src/omni/memory/command_jobs.py) | 45 | 命令任务元数据仓储；不执行或终止操作系统进程。 |
 | [agent/src/omni/memory/cron.py](../../agent/src/omni/memory/cron.py) | 61 | 定时任务模型与存储的公开入口（保留旧导入路径）。 |
+| [agent/src/omni/memory/cron_store.py](../../agent/src/omni/memory/cron_store.py) | 106 | 定时任务域的两个门面（`JobStore` / `ExecutionLog`）。 |
 | [agent/src/omni/memory/dialogue.py](../../agent/src/omni/memory/dialogue.py) | 388 | 对话全量记忆（M1）：完整对话文本一字不差的追加型存档。 |
 | [agent/src/omni/memory/guard.py](../../agent/src/omni/memory/guard.py) | 130 | 记忆写入的确定性闸门（D12 / A15）。 |
 | [agent/src/omni/memory/jobs.py](../../agent/src/omni/memory/jobs.py) | 138 | 定时任务模型与调度时间（纯数据 + 纯函数，不碰存储）。 |
@@ -187,7 +188,7 @@
 | [agent/src/omni/memory/skill_acks.py](../../agent/src/omni/memory/skill_acks.py) | 57 | 技能变更「已读」标记仓储（D18，`state.db`）。 |
 | [agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py) | 574 | 外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。 |
 | [agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py) | 1049 | 技能存储（程序性记忆）：skills/<name>/SKILL.md，agentskills.io 兼容子集。 |
-| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 561 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
+| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 476 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
 | [agent/src/omni/memory/state_errors.py](../../agent/src/omni/memory/state_errors.py) | 43 | state.db 的异常语义与错误翻译（唯一来源）。 |
 | [agent/src/omni/memory/state_mixin_jobs.py](../../agent/src/omni/memory/state_mixin_jobs.py) | 262 | 定时任务域的 `state.db` 访问 mixin（任务定义 / revision / 原子领取）。 |
 | [agent/src/omni/memory/state_mixin_leases.py](../../agent/src/omni/memory/state_mixin_leases.py) | 121 | 资源租约域的 `state.db` 访问 mixin（会话/浏览器 profile 等互斥资源）。 |

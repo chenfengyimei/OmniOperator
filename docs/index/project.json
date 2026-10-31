@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d730b88029971be90b312a2c22917c8173c4a42f97b0d96f17f1196f191b70b2",
+  "source_sha256": "2e61d41f1ff7c547c69000db011e4ffef8b761ff0bcae217129898d6abef4c5d",
   "modules": [
     {
       "id": "agent-directories",
@@ -301,6 +301,7 @@
         "agent/src/omni/memory/artifacts.py",
         "agent/src/omni/memory/command_jobs.py",
         "agent/src/omni/memory/cron.py",
+        "agent/src/omni/memory/cron_store.py",
         "agent/src/omni/memory/dialogue.py",
         "agent/src/omni/memory/guard.py",
         "agent/src/omni/memory/jobs.py",
@@ -330,7 +331,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8688,
+      "lines": 8709,
       "dependencies": [
         "command-contracts",
         "config",
@@ -11077,6 +11078,236 @@
       "summary": "定时任务模型与存储的公开入口（保留旧导入路径）。"
     },
     {
+      "path": "agent/src/omni/memory/cron_store.py",
+      "module": "storage",
+      "python_module": "omni.memory.cron_store",
+      "lines": 106,
+      "imports": [
+        "omni.memory.jobs"
+      ],
+      "symbols": [
+        {
+          "name": "JobStore",
+          "line": 18,
+          "kind": "class"
+        },
+        {
+          "name": "JobStore.__init__",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "JobStore.state",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "JobStore.list",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "JobStore.get",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "JobStore.upsert",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "job",
+            "validate",
+            "expected_revision"
+          ],
+          "annotations": {
+            "job": "Job",
+            "validate": "bool",
+            "expected_revision": "int | None"
+          }
+        },
+        {
+          "name": "JobStore.remove",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "JobStore.claim_due",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "now",
+            "**kwargs"
+          ],
+          "annotations": {
+            "now": "dt.datetime"
+          }
+        },
+        {
+          "name": "JobStore.release_claim",
+          "line": 48,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "token"
+          ],
+          "annotations": {
+            "token": "str"
+          }
+        },
+        {
+          "name": "JobStore.renew_claim",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "token",
+            "ttl_s"
+          ],
+          "annotations": {
+            "token": "str",
+            "ttl_s": "float"
+          }
+        },
+        {
+          "name": "JobStore.update_run_state",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "**fields"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ExecutionLog",
+          "line": 58,
+          "kind": "class"
+        },
+        {
+          "name": "ExecutionLog.__init__",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state",
+            "keep"
+          ],
+          "annotations": {
+            "keep": "int"
+          }
+        },
+        {
+          "name": "ExecutionLog.record",
+          "line": 65,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "job",
+            "started_at",
+            "duration_s",
+            "ok",
+            "result",
+            "delivery"
+          ],
+          "annotations": {
+            "job": "str",
+            "started_at": "str",
+            "duration_s": "float",
+            "ok": "bool",
+            "result": "str",
+            "delivery": "str"
+          }
+        },
+        {
+          "name": "ExecutionLog.recent",
+          "line": 84,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "limit"
+          ],
+          "annotations": {
+            "limit": "int"
+          }
+        },
+        {
+          "name": "ExecutionLog.output",
+          "line": 87,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "job",
+            "run_id",
+            "status",
+            "result",
+            "finished_at"
+          ],
+          "annotations": {
+            "job": "str",
+            "run_id": "str",
+            "status": "str",
+            "result": "str",
+            "finished_at": "str | None"
+          }
+        },
+        {
+          "name": "ExecutionLog.source",
+          "line": 94,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "job",
+            "max_age_minutes"
+          ],
+          "annotations": {
+            "job": "str",
+            "max_age_minutes": "int"
+          }
+        },
+        {
+          "name": "_log_now",
+          "line": 105,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "定时任务域的两个门面（`JobStore` / `ExecutionLog`）。"
+    },
+    {
       "path": "agent/src/omni/memory/dialogue.py",
       "module": "storage",
       "python_module": "omni.memory.dialogue",
@@ -15453,8 +15684,9 @@
       "path": "agent/src/omni/memory/state.py",
       "module": "storage",
       "python_module": "omni.memory.state",
-      "lines": 561,
+      "lines": 476,
       "imports": [
+        "omni.memory.cron_store",
         "omni.memory.jobs",
         "omni.memory.mcp_schemas",
         "omni.memory.outbox",
@@ -15469,7 +15701,7 @@
       "symbols": [
         {
           "name": "_statements",
-          "line": 70,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "sql"
@@ -15480,19 +15712,19 @@
         },
         {
           "name": "_now",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "StateStore",
-          "line": 79,
+          "line": 80,
           "kind": "class"
         },
         {
           "name": "StateStore.__init__",
-          "line": 88,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -15508,7 +15740,7 @@
         },
         {
           "name": "StateStore._current_version",
-          "line": 126,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self"
@@ -15517,7 +15749,7 @@
         },
         {
           "name": "StateStore._apply_schema",
-          "line": 137,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self"
@@ -15526,7 +15758,7 @@
         },
         {
           "name": "StateStore.schema_version",
-          "line": 181,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self"
@@ -15535,7 +15767,7 @@
         },
         {
           "name": "StateStore._tx",
-          "line": 187,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self"
@@ -15544,7 +15776,7 @@
         },
         {
           "name": "StateStore._begin",
-          "line": 212,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self"
@@ -15553,7 +15785,7 @@
         },
         {
           "name": "StateStore._read",
-          "line": 234,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self",
@@ -15567,7 +15799,7 @@
         },
         {
           "name": "StateStore._table_empty",
-          "line": 241,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self",
@@ -15579,7 +15811,7 @@
         },
         {
           "name": "StateStore.degraded_reason",
-          "line": 245,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self",
@@ -15591,7 +15823,7 @@
         },
         {
           "name": "StateStore._require",
-          "line": 248,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -15603,7 +15835,7 @@
         },
         {
           "name": "StateStore.close",
-          "line": 253,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "self"
@@ -15612,7 +15844,7 @@
         },
         {
           "name": "StateStore._migration",
-          "line": 260,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "self",
@@ -15624,7 +15856,7 @@
         },
         {
           "name": "StateStore._write_migration",
-          "line": 274,
+          "line": 275,
           "kind": "function",
           "parameters": [
             "self",
@@ -15646,7 +15878,7 @@
         },
         {
           "name": "StateStore.migrate_legacy",
-          "line": 293,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self",
@@ -15658,7 +15890,7 @@
         },
         {
           "name": "StateStore._migrate_file",
-          "line": 302,
+          "line": 303,
           "kind": "function",
           "parameters": [
             "self",
@@ -15674,7 +15906,7 @@
         },
         {
           "name": "StateStore._mark_corrupt",
-          "line": 340,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "self",
@@ -15692,7 +15924,7 @@
         },
         {
           "name": "StateStore._import_rows",
-          "line": 355,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "self",
@@ -15708,7 +15940,7 @@
         },
         {
           "name": "StateStore._import_jobs",
-          "line": 364,
+          "line": 365,
           "kind": "function",
           "parameters": [
             "self",
@@ -15722,7 +15954,7 @@
         },
         {
           "name": "StateStore._import_executions",
-          "line": 399,
+          "line": 400,
           "kind": "function",
           "parameters": [
             "self",
@@ -15736,7 +15968,7 @@
         },
         {
           "name": "StateStore._import_budget",
-          "line": 424,
+          "line": 425,
           "kind": "function",
           "parameters": [
             "self",
@@ -15750,226 +15982,12 @@
         },
         {
           "name": "StateStore.health",
-          "line": 441,
+          "line": 442,
           "kind": "function",
           "parameters": [
             "self"
           ],
           "annotations": {}
-        },
-        {
-          "name": "JobStore",
-          "line": 478,
-          "kind": "class"
-        },
-        {
-          "name": "JobStore.__init__",
-          "line": 481,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "state"
-          ],
-          "annotations": {
-            "state": "StateStore"
-          }
-        },
-        {
-          "name": "JobStore.state",
-          "line": 485,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "JobStore.list",
-          "line": 488,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "JobStore.get",
-          "line": 491,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "JobStore.upsert",
-          "line": 494,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "job",
-            "validate",
-            "expected_revision"
-          ],
-          "annotations": {
-            "job": "Job",
-            "validate": "bool",
-            "expected_revision": "int | None"
-          }
-        },
-        {
-          "name": "JobStore.remove",
-          "line": 501,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "JobStore.claim_due",
-          "line": 504,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "now",
-            "**kwargs"
-          ],
-          "annotations": {
-            "now": "dt.datetime"
-          }
-        },
-        {
-          "name": "JobStore.release_claim",
-          "line": 507,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "token"
-          ],
-          "annotations": {
-            "token": "str"
-          }
-        },
-        {
-          "name": "JobStore.renew_claim",
-          "line": 510,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "token",
-            "ttl_s"
-          ],
-          "annotations": {
-            "token": "str",
-            "ttl_s": "float"
-          }
-        },
-        {
-          "name": "JobStore.update_run_state",
-          "line": 513,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name",
-            "**fields"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ExecutionLog",
-          "line": 517,
-          "kind": "class"
-        },
-        {
-          "name": "ExecutionLog.__init__",
-          "line": 520,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "state",
-            "keep"
-          ],
-          "annotations": {
-            "state": "StateStore",
-            "keep": "int"
-          }
-        },
-        {
-          "name": "ExecutionLog.record",
-          "line": 524,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "job",
-            "started_at",
-            "duration_s",
-            "ok",
-            "result",
-            "delivery"
-          ],
-          "annotations": {
-            "job": "str",
-            "started_at": "str",
-            "duration_s": "float",
-            "ok": "bool",
-            "result": "str",
-            "delivery": "str"
-          }
-        },
-        {
-          "name": "ExecutionLog.recent",
-          "line": 543,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "limit"
-          ],
-          "annotations": {
-            "limit": "int"
-          }
-        },
-        {
-          "name": "ExecutionLog.output",
-          "line": 546,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "job",
-            "run_id",
-            "status",
-            "result",
-            "finished_at"
-          ],
-          "annotations": {
-            "job": "str",
-            "run_id": "str",
-            "status": "str",
-            "result": "str",
-            "finished_at": "str | None"
-          }
-        },
-        {
-          "name": "ExecutionLog.source",
-          "line": 553,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "job",
-            "max_age_minutes"
-          ],
-          "annotations": {
-            "job": "str",
-            "max_age_minutes": "int"
-          }
         }
       ],
       "summary": "共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。"

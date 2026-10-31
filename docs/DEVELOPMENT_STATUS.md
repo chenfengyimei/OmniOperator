@@ -1,5 +1,13 @@
 # 开发状态记录
 
+2026-10-31 cron 门面迁出 state.py（工作区）：`JobStore` / `ExecutionLog`
+迁到新模块 `memory/cron_store.py`；state.py 行数 **559 → 476**。旧 import
+`omni.memory.state.JobStore` 与 `omni.memory.cron.JobStore` 继续指向同一
+对象；新增守卫验证三个 import 路径同一实现。专项
+`uv run --no-sync pytest -q -n 0 agent/tests/test_cron.py agent/tests/test_state.py agent/tests/test_sessions.py agent/tests/test_arch.py agent/tests/test_command_jobs.py`
+→ **110 passed（27.71s）**；项目索引与 `test_project_catalog.py` **11 passed**。
+未跑全量；真实数据未迁移。
+
 2026-10-31 StateStore 域方法群 mixin 拆分（工作区）：任务/租约/账本-额度
 三块方法群迁到 `state_mixin_jobs.py` / `state_mixin_leases.py` /
 `state_mixin_ledger.py`；异常类迁 `state_errors.py`、数据形状迁

@@ -26,6 +26,19 @@ from omni.tools.cron_tools import register_cron_tools
 from omni.tools.registry import ToolRegistry
 
 
+def test_cron_facades_have_single_domain_implementation():
+    """JobStore/ExecutionLog 归 memory/cron_store；state.py 与 memory.cron 仅做兼容转发。"""
+    from omni.memory import cron as cron_module
+    from omni.memory import state as state_module
+    from omni.memory.cron_store import ExecutionLog as DomainExecutionLog
+    from omni.memory.cron_store import JobStore as DomainJobStore
+
+    assert DomainJobStore is JobStore is state_module.JobStore is cron_module.JobStore
+    assert DomainExecutionLog is ExecutionLog is state_module.ExecutionLog is cron_module.ExecutionLog
+    assert JobStore.__module__ == "omni.memory.cron_store"
+    assert ExecutionLog.__module__ == "omni.memory.cron_store"
+
+
 def _job_store(tmp_path) -> JobStore:
     """任务仓储落在临时 state.db：不碰真机 data/。"""
     return JobStore(StateStore(tmp_path / "state.db"))
