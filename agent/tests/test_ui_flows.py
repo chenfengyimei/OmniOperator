@@ -107,7 +107,9 @@ def test_chat_response_does_not_change_the_viewed_conversation(ui):
 def test_header_chips_are_runtime_only(ui):
     """顶栏不常驻模型/费用/能力标签：任务运行时出现，结束立即清空。"""
     page,_,_,errors=ui
-    page.add_init_script(delay_script("String(url)==='/api/chat'||(String(url).startsWith('/api/facts?q=')&&String(url)!=='/api/facts?q=')"))
+    # 拦截非空检索的 /api/facts/rows：空查询（q=）不拦截，否则初始化时的
+    # 空检索也会挂进 pending，测试会等错对象。
+    page.add_init_script(delay_script("String(url)==='/api/chat'||(String(url).startsWith('/api/facts/rows?q=')&&!String(url).startsWith('/api/facts/rows?q=&'))"))
     page.goto('http://127.0.0.1/');page.locator('#input').wait_for()
     assert page.locator('#chips .chip').count()==0
     assert page.locator('#chips').is_hidden()
@@ -123,11 +125,12 @@ def test_header_chips_are_runtime_only(ui):
     assert page.locator('#chips').is_hidden()
 
     # 全文检索是短生命周期活动：发起查询时挂 FTS5 标签，响应回来即撤掉。
+    # 注意 mock 的是 /api/facts/rows 的契约（带 id 的行），不是旧的字符串数组。
     page.evaluate('window.__pending=[]')
     page.locator('#fact-q').fill('测试查询')
     page.wait_for_function('window.__pending.length===1')
     page.locator('#chips').get_by_text('FTS5',exact=True).wait_for()
-    page.evaluate('(data)=>window.__pending[0].resolve(data)',{'facts':[]})
+    page.evaluate('(data)=>window.__pending[0].resolve(data)',{'facts':[{'id':1,'content':'测试查询结果'}]})
     page.wait_for_function("document.querySelectorAll('#chips .chip').length===0")
     assert not errors
 

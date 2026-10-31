@@ -1,6 +1,6 @@
 /* 记忆系统控制器：设置中心与旧页面共享六页签，查询、事件和状态限定在挂载根内。
    全部数据来自 /api/memory-system/*，读取一律分页；动态文本全部转义。 */
-import {esc} from '/ui/app/dom.js?v=20261031m5';
+import {esc} from '/ui/app/dom.js?v=20261031m10';
 export function mountMemory(root){
 const $=selector=>root.querySelector(selector);
 const UI=window.OmniUI;
@@ -550,7 +550,7 @@ export async function loadMemory(root){
     root.setAttribute('aria-busy','true');
     root.replaceChildren(window.OmniUI.element('p','正在读取记忆系统…','empty'));
     try{
-      const response=await fetch('/memory/panel.html?v=20261031m5',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000)});
+      const response=await fetch('/memory/panel.html?v=20261031m10',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000)});
       if(!response.ok)throw Error('记忆界面资源读取失败（'+response.status+'），请重试。');
       const template=document.createElement('template');template.innerHTML=await response.text();
       if(!template.content.querySelector('.memory-surface .view-tabs'))throw Error('记忆界面资源不完整，请刷新工作台后重试。');

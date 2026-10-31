@@ -19,6 +19,15 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
     def get_facts(q: str = "", limit: int = 50) -> dict[str, Any]:
         return {"facts": runtime.store.search_facts(q, limit=min(limit, 100))}
 
+    @router.get("/api/facts/rows")
+    def get_fact_rows(q: str = "", limit: int = 50) -> dict[str, Any]:
+        """带 id 的事实列表（工作台逐条删除用）。
+
+        与 /api/facts 用的是 store 里同一套检索链，因此同 query 下两者的 content
+        顺序完全一致；/api/facts 的字符串契约保持不变（既有调用方不受影响）。
+        """
+        return {"facts": runtime.store.search_fact_rows(q, limit=min(limit, 100))}
+
     @router.get("/api/facts/detail")
     def get_facts_detail(limit: int = 200) -> dict[str, Any]:
         """带来源/作用域/时间的事实列表（D12）：让人能判断"这条是哪来的"。"""

@@ -976,3 +976,53 @@ def test_skill_pending_diff_ack_all_and_rollback_entry(tmp_path):
     )
     assert rb.status_code == 200
     assert "agent 补的坑" not in client.get("/api/skills/agent-skill").json()["content"]
+
+
+def test_fact_rows_endpoint_contract(tmp_path):
+    """/api/facts/rows 返回带 id 的行，且与 /api/facts 的 content 顺序一致。
+
+    工作台用 rows 渲染可删除的事实列表；两者顺序必须一致，否则按 id 删除会删错条。
+    """
+    client, runtime = _client(tmp_path)
+    runtime.store.save_fact("用户喜欢拿铁")
+    runtime.store.save_fact("用户养了一只猫叫煤球")
+    runtime.store.save_fact("项目发布会安排在周五下午三点")
+
+    for q in ("拿铁", "用户 猫", "发布会 周五", ""):
+        facts = client.get("/api/facts", params={"q": q}).json()["facts"]
+        rows = client.get("/api/facts/rows", params={"q": q}).json()["facts"]
+        assert [r["content"] for r in rows] == facts, f"q={q!r} 顺序不一致"
+        assert all(isinstance(r["id"], int) for r in rows)
+
+    # 按 rows 给的 id 删除，删的正是那条
+    rows = client.get("/api/facts/rows", params={"q": "拿铁"}).json()["facts"]
+    assert rows and rows[0]["content"] == "用户喜欢拿铁"
+    assert client.delete(f"/api/facts/{rows[0]['id']}").status_code == 200
+    assert runtime.store.is_forgotten("用户喜欢拿铁")
+    remaining = client.get("/api/facts/rows", params={"q": ""}).json()["facts"]
+    assert all(r["content"] != "用户喜欢拿铁" for r in remaining)
+
+
+def test_fact_rows_endpoint_contract(tmp_path):
+    """/api/facts/rows 返回带 id 的行，且与 /api/facts 的 content 顺序一致。
+
+    工作台用 rows 渲染可删除的事实列表；两者顺序必须一致，否则按 id 删除会删错条。
+    """
+    client, runtime = _client(tmp_path)
+    runtime.store.save_fact("用户喜欢拿铁")
+    runtime.store.save_fact("用户养了一只猫叫煤球")
+    runtime.store.save_fact("项目发布会安排在周五下午三点")
+
+    for q in ("拿铁", "用户 猫", "发布会 周五", ""):
+        facts = client.get("/api/facts", params={"q": q}).json()["facts"]
+        rows = client.get("/api/facts/rows", params={"q": q}).json()["facts"]
+        assert [r["content"] for r in rows] == facts, f"q={q!r} 顺序不一致"
+        assert all(isinstance(r["id"], int) for r in rows)
+
+    # 按 rows 给的 id 删除，删的正是那条
+    rows = client.get("/api/facts/rows", params={"q": "拿铁"}).json()["facts"]
+    assert rows and rows[0]["content"] == "用户喜欢拿铁"
+    assert client.delete(f"/api/facts/{rows[0]['id']}").status_code == 200
+    assert runtime.store.is_forgotten("用户喜欢拿铁")
+    remaining = client.get("/api/facts/rows", params={"q": ""}).json()["facts"]
+    assert all(r["content"] != "用户喜欢拿铁" for r in remaining)

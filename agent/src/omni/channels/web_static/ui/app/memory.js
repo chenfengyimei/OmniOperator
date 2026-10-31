@@ -1,12 +1,12 @@
 // 记忆面板五件套：事实检索 / 用户档案 / 常驻笔记 / 复盘记录 / 会话待办。
 // refreshMemory 是右栏多面板一起刷的总入口（发完消息、初始化时调用）。
-import {$,esc} from './dom.js?v=20261031m5';
-import {api} from './api.js?v=20261031m5';
-import {S} from './state.js?v=20261031m5';
-import {setTabBadge} from './tabs.js?v=20261031m5';
-import {loadSkills} from './skills.js?v=20261031m5';
-import {loadArtifacts} from './artifacts.js?v=20261031m5';
-import {updateCostChip,withRuntimeActivity} from './header.js?v=20261031m5';
+import {$,esc} from './dom.js?v=20261031m10';
+import {api} from './api.js?v=20261031m10';
+import {S} from './state.js?v=20261031m10';
+import {setTabBadge} from './tabs.js?v=20261031m10';
+import {loadSkills} from './skills.js?v=20261031m10';
+import {loadArtifacts} from './artifacts.js?v=20261031m10';
+import {updateCostChip,withRuntimeActivity} from './header.js?v=20261031m10';
 
 export async function loadFacts(){
   try{
@@ -14,11 +14,23 @@ export async function loadFacts(){
     $('#retrieval-state').textContent=r.enabled?`recall 混合检索：${r.provider} / ${r.model} · ${r.indexed} 条已索引${r.pending?' · 待索引':''}${r.last_error?' · '+r.last_error:''}`:'recall 使用关键词检索（向量未启用）';
   }catch(e){$('#retrieval-state').textContent='检索状态暂不可用'}
   const q=$('#fact-q').value.trim();
-  const load=()=>api('/api/facts?q='+encodeURIComponent(q));
+  // 用 /api/facts/rows：与 /api/facts 同一套检索链，但每条带 id，才能逐条删除。
+  const load=()=>api('/api/facts/rows?q='+encodeURIComponent(q)+'&limit=100');
   // 只有真正发起全文检索时才挂 FTS5 标签；请求结束立即撤掉，不在空闲时常驻。
   const d=q&&S.ftsEnabled?await withRuntimeActivity('fts',load):await load();
   setTabBadge('facts',d.facts.length);
-  $('#facts-list').innerHTML=d.facts.length?d.facts.map(f=>`<li>${esc(f)}</li>`).join(''):'<li class="empty">暂无记忆</li>';
+  $('#facts-list').innerHTML=d.facts.length?d.facts.map(f=>
+    `<li><span class="fact-text">${esc(f.content)}</span>`+
+    `<button class="line-btn" data-action="memory:fact-del" data-id="${f.id}"`+
+    ` title="删除这条记忆" aria-label="删除这条记忆">🗑</button></li>`).join('')
+    :'<li class="empty">暂无记忆</li>';
+}
+async function delFact(id) {
+  if(!await OmniUI.ask({title:'删除记忆',message:'删除这条事实记忆？删除后不会再被自动复习回来。',confirmLabel:'删除',danger:true}))return;
+  try{
+    await api(`/api/facts/${id}`,{method:'DELETE'});
+    loadFacts();
+  }catch(e){OmniUI.notify(e.message,'error')}
 }
 
 let profileLines=[];
@@ -123,4 +135,5 @@ export const actions={
   'memory:resident-edit':el=>editResident(Number(el.dataset.id)),
   'memory:resident-del':el=>delResident(Number(el.dataset.id)),
   'memory:todo-toggle':el=>toggleTodo(Number(el.dataset.id),el.checked),
+  'memory:fact-del':el=>delFact(Number(el.dataset.id)),
 };

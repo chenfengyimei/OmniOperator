@@ -1,6 +1,6 @@
 // 桌面观察面板（computer-use 的只读侧）：允许清单里的窗口 + UIA 树观察。
-import {$,esc} from './dom.js?v=20261031m5';
-import {api} from './api.js?v=20261031m5';
+import {$,esc} from './dom.js?v=20261031m10';
+import {api} from './api.js?v=20261031m10';
 
 export async function loadDesktop(){
   try{

@@ -70,6 +70,10 @@ ul{list-style:none;overflow-y:auto}
 .bubble img.art-inline{max-width:100%;max-height:260px;border-radius:var(--r-md);display:block;margin-top:6px;cursor:zoom-in}
 #img-modal img{max-width:92vw;max-height:78vh;border-radius:var(--r-md);display:block}
 #facts-list li,#profile-list li{padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px;line-height:1.55}
+/* 事实行改为横向布局：正文占满，删除按钮靠右（与档案行一致的操作位） */
+#facts-list li{display:flex;align-items:flex-start;gap:8px}
+#facts-list li .fact-text{flex:1;min-width:0;overflow-wrap:anywhere}
+#facts-list li .line-btn{flex-shrink:0;margin-left:auto;align-self:center;background:none;border:none;padding:2px 4px;line-height:1}
 #profile-list li b{color:var(--accent);margin-right:6px}
 #reviews-list li{padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--dim)}
 #reviews-list .r-meta{color:var(--accent);font-size:11px;margin-bottom:2px}

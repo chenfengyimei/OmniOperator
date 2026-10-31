@@ -807,33 +807,50 @@ class MemoryStore:
         `scope` 非空时**先按作用域过滤**：群聊场景只能看到群作用域的事实，
         私人事实连"命中"都不该发生（不是取回来再隐藏）。
         """
+        return [row["content"] for row in self._search_fact_rows(query, limit, scope=scope)]
+
+    @_locked
+    def search_fact_rows(
+        self, query: str, limit: int = 5, *, scope: str | None = None
+    ) -> list[dict]:
+        """search_facts 的行版：同一套降级链，但返回带 id 的行（供工作台逐条删除）。
+
+        与 search_facts **共用同一个实现**（见 _search_fact_rows），因此返回顺序
+        必然一致——前端按 id 删除时不会出现「删错条」的风险。
+        """
+        return self._search_fact_rows(query, limit, scope=scope)
+
+    def _search_fact_rows(
+        self, query: str, limit: int, *, scope: str | None = None
+    ) -> list[dict]:
+        """检索链的唯一实现：FTS5 → 全词 AND → 全词 OR → 中文 2-gram。"""
         tokens = [t for t in query.split() if t]
         where_scope = "" if scope is None else " AND scope = ?"
         scope_params: list[Any] = [] if scope is None else [scope]
         if not tokens:  # 空查询：返回最近的记忆
             rows = self._conn.execute(
-                f"SELECT content FROM facts WHERE 1=1{where_scope} ORDER BY id DESC LIMIT ?",
+                f"SELECT id, content FROM facts WHERE 1=1{where_scope} ORDER BY id DESC LIMIT ?",
                 [*scope_params, limit],
             ).fetchall()
-            return [str(r[0]) for r in rows]
+            return [{"id": int(r[0]), "content": str(r[1])} for r in rows]
         if self.fts_enabled:
             try:
                 rows = self._conn.execute(
-                    "SELECT f.content FROM facts_fts JOIN facts f ON f.id = facts_fts.rowid "
+                    "SELECT f.id, f.content FROM facts_fts JOIN facts f ON f.id = facts_fts.rowid "
                     f"WHERE facts_fts MATCH ?{where_scope.replace('scope', 'f.scope')} "
                     "ORDER BY bm25(facts_fts) LIMIT ?",
                     (_match_expr(tokens), *scope_params, limit),
                 ).fetchall()
                 if rows:
-                    return [str(r[0]) for r in rows]
+                    return [{"id": int(r[0]), "content": str(r[1])} for r in rows]
             except sqlite3.OperationalError:
                 pass  # 查询过短等场景，走 LIKE 链
         and_where = " AND ".join("content LIKE ?" for _ in tokens)
-        rows = self._fetch_facts(and_where, [f"%{t}%" for t in tokens], limit, where_scope, scope_params)
+        rows = self._fetch_fact_rows(and_where, [f"%{t}%" for t in tokens], limit, where_scope, scope_params)
         if rows:
             return rows
         or_where = " OR ".join("content LIKE ?" for _ in tokens)
-        rows = self._fetch_facts(or_where, [f"%{t}%" for t in tokens], limit, where_scope, scope_params)
+        rows = self._fetch_fact_rows(or_where, [f"%{t}%" for t in tokens], limit, where_scope, scope_params)
         if rows:
             return rows
         bigrams = sorted(
@@ -846,22 +863,22 @@ class MemoryStore:
         )
         if bigrams:
             where = " OR ".join("content LIKE ?" for _ in bigrams)
-            return self._fetch_facts(where, [f"%{b}%" for b in bigrams], limit, where_scope, scope_params)
+            return self._fetch_fact_rows(where, [f"%{b}%" for b in bigrams], limit, where_scope, scope_params)
         return []
 
-    def _fetch_facts(
+    def _fetch_fact_rows(
         self,
         where: str,
         params: list[str],
         limit: int,
         where_scope: str = "",
         scope_params: list[Any] | None = None,
-    ) -> list[str]:
+    ) -> list[dict]:
         rows = self._conn.execute(  # 模板由 token 数生成，参数全部绑定
-            f"SELECT content FROM facts WHERE ({where}){where_scope} ORDER BY id DESC LIMIT ?",
+            f"SELECT id, content FROM facts WHERE ({where}){where_scope} ORDER BY id DESC LIMIT ?",
             [*params, *(scope_params or []), limit],
         ).fetchall()
-        return [str(r[0]) for r in rows]
+        return [{"id": int(r[0]), "content": str(r[1])} for r in rows]
 
     @_locked
     def fact_rows(self, limit: int = 200) -> list[dict]:

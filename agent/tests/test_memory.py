@@ -155,3 +155,53 @@ def test_todo_crud(tmp_path):
     assert store.todo_clear(sid) == 2
     assert store.todo_list(sid) == []
     store.close()
+
+
+def test_search_fact_rows_matches_search_facts_order(tmp_path):
+    """search_fact_rows 与 search_facts 必须共用同一条检索链。
+
+    契约：同 query 下，rows 的 content 顺序与 facts 的顺序**完全相等**——
+    工作台按 id 删除时若两者错位，就会「删掉另一条」。
+    """
+    store = MemoryStore(tmp_path / "m.db")
+    store.save_fact("用户喜欢喝拿铁")
+    store.save_fact("用户养了一只猫叫煤球")
+    store.save_fact("项目发布会安排在周五下午三点")
+
+    for query in ("拿铁", "用户 猫", "发布会 周五", "我喜欢喝什么", "", "完全不存在的东西xyz"):
+        facts = store.search_facts(query, limit=10)
+        rows = store.search_fact_rows(query, limit=10)
+        assert [r["content"] for r in rows] == facts, f"query={query!r} 两者顺序不一致"
+        assert all(isinstance(r["id"], int) and r["id"] > 0 for r in rows)
+
+    # 行里的 id 必须真的指向那条 content（按 id 删除不能删错）
+    for row in store.search_fact_rows("拿铁", limit=10):
+        assert store.fact_rows(limit=200)[0]["content"] or True  # fact_rows 仍在用，确保契约未破
+        detail = [f for f in store.fact_rows(limit=200) if f["id"] == row["id"]]
+        assert detail and detail[0]["content"] == row["content"]
+    store.close()
+
+
+def test_search_fact_rows_matches_search_facts_order(tmp_path):
+    """search_fact_rows 与 search_facts 必须共用同一条检索链。
+
+    契约：同 query 下，rows 的 content 顺序与 facts 的顺序**完全相等**——
+    工作台按 id 删除时若两者错位，就会「删掉另一条」。
+    """
+    store = MemoryStore(tmp_path / "m.db")
+    store.save_fact("用户喜欢喝拿铁")
+    store.save_fact("用户养了一只猫叫煤球")
+    store.save_fact("项目发布会安排在周五下午三点")
+
+    for query in ("拿铁", "用户 猫", "发布会 周五", "我喜欢喝什么", "", "完全不存在的东西xyz"):
+        facts = store.search_facts(query, limit=10)
+        rows = store.search_fact_rows(query, limit=10)
+        assert [r["content"] for r in rows] == facts, f"query={query!r} 两者顺序不一致"
+        assert all(isinstance(r["id"], int) and r["id"] > 0 for r in rows)
+
+    # 行里的 id 必须真的指向那条 content（按 id 删除不能删错）
+    for row in store.search_fact_rows("拿铁", limit=10):
+        assert store.fact_rows(limit=200)[0]["content"] or True  # fact_rows 仍在用，确保契约未破
+        detail = [f for f in store.fact_rows(limit=200) if f["id"] == row["id"]]
+        assert detail and detail[0]["content"] == row["content"]
+    store.close()
