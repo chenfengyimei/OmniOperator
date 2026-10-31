@@ -8,19 +8,19 @@
 
 Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记账。
 
-`create_conversation_router.chat`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L44)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L523)） → `Agent._chat`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L710)） → `Gateway.complete`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L339)）
+`create_conversation_router.chat`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L44)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L524)） → `Agent._chat`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L711)） → `Gateway.complete`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L339)）
 
 ## 模型调用工具
 
 模型工具调用经统一注册表和审批；结果按原调用顺序回填。
 
-`Agent._execute_tool_calls`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L910)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)） → `WebApprover`（[agent/src/omni/safety/gates.py](../../agent/src/omni/safety/gates.py#L123)） → `ToolResult`（[agent/src/omni/tools/result.py](../../agent/src/omni/tools/result.py#L35)）
+`Agent._execute_tool_calls`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L911)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)） → `WebApprover`（[agent/src/omni/safety/gates.py](../../agent/src/omni/safety/gates.py#L123)） → `ToolResult`（[agent/src/omni/tools/result.py](../../agent/src/omni/tools/result.py#L35)）
 
 ## 流式与取消
 
 流式响应和持久运行事件是两条接口；停止通过协作取消传播。
 
-`create_conversation_router.chat_stream`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L79)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L523)） → `Gateway.stream`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L425)） → `RunStore`（[agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py#L87)）
+`create_conversation_router.chat_stream`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L79)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L524)） → `Gateway.stream`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L425)） → `RunStore`（[agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py#L87)）
 
 ## 交互式终端
 

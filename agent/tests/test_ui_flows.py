@@ -49,13 +49,13 @@ def test_late_job_output_cannot_overwrite_new_selection(ui):
         rows.append(row)
     page.add_init_script(delay_script(f"String(url).startsWith('/api/command-jobs/{rows[0]['job_id']}?')"))
     page.goto('http://127.0.0.1/jobs/')
-    page.locator('#jobs button').filter(has_text='任务 A').click()
+    page.locator('#jobs-list button').filter(has_text='任务 A').click()
     page.wait_for_function('window.__pending.length===1')
-    page.locator('#jobs button').filter(has_text='任务 B').click()
+    page.locator('#jobs-list button').filter(has_text='任务 B').click()
     page.evaluate('(data)=>window.__pending[0].resolve(data)',{'job':{**rows[0],'status':'succeeded'},'records':[{'seq':20,'stream':'stdout','text':'旧任务 A 的迟到日志'}],'next_after':20,'gap':False})
-    page.locator('#output').get_by_text('任务 B 的日志',exact=False).wait_for()
-    assert '任务 A' not in page.locator('#output').inner_text()
-    assert '任务 B' in page.locator('#detail').inner_text()
+    page.locator('#jobs-output').get_by_text('任务 B 的日志',exact=False).wait_for()
+    assert '任务 A' not in page.locator('#jobs-output').inner_text()
+    assert '任务 B' in page.locator('#jobs-detail').inner_text()
     assert not errors
 
 
@@ -174,12 +174,12 @@ def test_mcp_late_catalog_cannot_offer_wrong_server_approval(ui):
     page.locator('.server').filter(has_text='服务 B').get_by_role('button',name='诊断',exact=True).click()
     page.wait_for_function('window.__pending.length===2')
     page.evaluate("window.__pending[1].resolve({executable_found:false,server:'服务 B'})")
-    page.locator('#detail').get_by_text('服务 B',exact=False).wait_for()
+    page.locator('#mcp-detail').get_by_text('服务 B',exact=False).wait_for()
     page.evaluate("window.__pending[0].resolve({total:1,confirmed:false,fingerprint:'A指纹',tools:[{name:'A工具'}]})")
     page.wait_for_timeout(60)
-    assert page.locator('#detail-title').inner_text()=='服务 B'
+    assert page.locator('#mcp-detail-title').inner_text()=='服务 B'
     assert page.locator('#confirm').count()==0
-    assert 'A工具' not in page.locator('#catalog').inner_text()
+    assert 'A工具' not in page.locator('#mcp-catalog').inner_text()
     assert not errors
 
 
@@ -194,7 +194,7 @@ def test_capability_pages_have_mobile_navigation_and_safe_initial_state(ui,path)
     if path=='android':
         for name in ['tap','type','launch','live','snapshot','observe']:
             assert page.locator('#'+name).is_disabled()
-    if path=='jobs':assert page.locator('#cancel').is_disabled()
+    if path=='jobs':assert page.locator('#jobs-cancel').is_disabled()
     if path=='terminal':assert page.locator('#paste').is_disabled()
     assert not errors
 

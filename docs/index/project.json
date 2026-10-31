@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8eecbdf46edfb28d1dad915e84f3bf0695e49b6bb9c9f9c7ba9ff53dcf8fb6e1",
+  "source_sha256": "2a01eb64cebc8c6c445c04e59ed9535307e2904fe01707c305e1c86a3912e96b",
   "modules": [
     {
       "id": "agent-directories",
@@ -55,7 +55,7 @@
         "agent/src/omni/channels/web_static/storage/storage.css",
         "agent/src/omni/channels/web_static/storage/storage.js"
       ],
-      "lines": 477,
+      "lines": 461,
       "dependencies": [
         "agent-directories",
         "assembly",
@@ -182,7 +182,7 @@
         "agent/src/omni/core/compress.py",
         "agent/src/omni/core/context.py"
       ],
-      "lines": 454,
+      "lines": 460,
       "dependencies": [
         "models"
       ]
@@ -218,7 +218,7 @@
         "agent/src/omni/core/session.py",
         "agent/src/omni/core/vision.py"
       ],
-      "lines": 3431,
+      "lines": 3481,
       "dependencies": [
         "config",
         "models",
@@ -359,7 +359,7 @@
         "agent/src/omni/channels/web_static/terminal/terminal.css",
         "agent/src/omni/channels/web_static/terminal/terminal.js"
       ],
-      "lines": 774,
+      "lines": 796,
       "dependencies": [
         "config",
         "web-ui"
@@ -382,12 +382,13 @@
       ],
       "files": [
         "agent/src/omni/channels/web_static/project/index.html",
+        "agent/src/omni/channels/web_static/project/panel.html",
         "agent/src/omni/channels/web_static/project/project.css",
         "agent/src/omni/channels/web_static/project/project.js",
         "agent/src/omni/channels/workbench/__init__.py",
         "agent/src/omni/channels/workbench/routes.py"
       ],
-      "lines": 362,
+      "lines": 392,
       "dependencies": [
         "assembly",
         "catalog",
@@ -416,11 +417,15 @@
         "agent/src/omni/channels/web_static/ui/app/desktop.js",
         "agent/src/omni/channels/web_static/ui/app/dom.js",
         "agent/src/omni/channels/web_static/ui/app/header.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-capabilities.js",
         "agent/src/omni/channels/web_static/ui/app/hub-cron.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-jobs.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js",
         "agent/src/omni/channels/web_static/ui/app/hub-mcp.js",
         "agent/src/omni/channels/web_static/ui/app/hub-memory.js",
         "agent/src/omni/channels/web_static/ui/app/hub-models.js",
         "agent/src/omni/channels/web_static/ui/app/hub-persona.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-project.js",
         "agent/src/omni/channels/web_static/ui/app/hub-skills.js",
         "agent/src/omni/channels/web_static/ui/app/hub-usage.js",
         "agent/src/omni/channels/web_static/ui/app/hub.js",
@@ -438,15 +443,17 @@
         "agent/src/omni/channels/web_static/ui/app/tips.js",
         "agent/src/omni/channels/web_static/ui/base.css",
         "agent/src/omni/channels/web_static/ui/components.css",
+        "agent/src/omni/channels/web_static/ui/embed-height.js",
         "agent/src/omni/channels/web_static/ui/frame.css",
         "agent/src/omni/channels/web_static/ui/icons.css",
         "agent/src/omni/channels/web_static/ui/markdown.js",
         "agent/src/omni/channels/web_static/ui/shared.js",
+        "agent/src/omni/channels/web_static/ui/terminal-theme.js",
         "agent/src/omni/channels/web_static/ui/theme.js",
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 4809,
+      "lines": 5135,
       "dependencies": []
     },
     {
@@ -481,7 +488,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2490,
+      "lines": 2545,
       "dependencies": [
         "assembly",
         "config",
@@ -590,11 +597,12 @@
         "agent/src/omni/channels/web_static/jobs/index.html",
         "agent/src/omni/channels/web_static/jobs/jobs.css",
         "agent/src/omni/channels/web_static/jobs/jobs.js",
+        "agent/src/omni/channels/web_static/jobs/panel.html",
         "agent/src/omni/tools/shell/job_logs.py",
         "agent/src/omni/tools/shell/job_tools.py",
         "agent/src/omni/tools/shell/jobs.py"
       ],
-      "lines": 550,
+      "lines": 580,
       "dependencies": [
         "config",
         "platform",
@@ -743,9 +751,10 @@
         "agent/src/omni/channels/web_api/mcp.py",
         "agent/src/omni/channels/web_static/mcp/index.html",
         "agent/src/omni/channels/web_static/mcp/mcp.css",
-        "agent/src/omni/channels/web_static/mcp/mcp.js"
+        "agent/src/omni/channels/web_static/mcp/mcp.js",
+        "agent/src/omni/channels/web_static/mcp/panel.html"
       ],
-      "lines": 359,
+      "lines": 392,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -844,9 +853,10 @@
         "agent/src/omni/channels/web_api/capabilities.py",
         "agent/src/omni/channels/web_static/capabilities/capabilities.css",
         "agent/src/omni/channels/web_static/capabilities/capabilities.js",
-        "agent/src/omni/channels/web_static/capabilities/index.html"
+        "agent/src/omni/channels/web_static/capabilities/index.html",
+        "agent/src/omni/channels/web_static/capabilities/panel.html"
       ],
-      "lines": 226,
+      "lines": 231,
       "dependencies": []
     },
     {
@@ -872,7 +882,7 @@
         "agent/src/omni/channels/web_static/android/android.js",
         "agent/src/omni/channels/web_static/android/index.html"
       ],
-      "lines": 372,
+      "lines": 378,
       "dependencies": [
         "web-ui"
       ]
@@ -1485,7 +1495,7 @@
         "agent/src/omni/tools/skill_tools.py",
         "agent/src/omni/tools/system_tools.py"
       ],
-      "lines": 657,
+      "lines": 679,
       "dependencies": [
         "delegation",
         "personal",
@@ -5834,7 +5844,7 @@
       "path": "agent/src/omni/channels/web_static/android/android.css",
       "module": "http-android",
       "python_module": null,
-      "lines": 95,
+      "lines": 101,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5864,7 +5874,7 @@
       "path": "agent/src/omni/channels/web_static/capabilities/capabilities.css",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 101,
+      "lines": 69,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5874,7 +5884,7 @@
       "path": "agent/src/omni/channels/web_static/capabilities/capabilities.js",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 52,
+      "lines": 91,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5884,7 +5894,17 @@
       "path": "agent/src/omni/channels/web_static/capabilities/index.html",
       "module": "http-capabilities",
       "python_module": null,
-      "lines": 49,
+      "lines": 10,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/capabilities/panel.html",
+      "module": "http-capabilities",
+      "python_module": null,
+      "lines": 37,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5894,7 +5914,7 @@
       "path": "agent/src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 584,
+      "lines": 629,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5904,7 +5924,7 @@
       "path": "agent/src/omni/channels/web_static/jobs/index.html",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 41,
+      "lines": 11,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5914,7 +5934,7 @@
       "path": "agent/src/omni/channels/web_static/jobs/jobs.css",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 96,
+      "lines": 88,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5924,7 +5944,17 @@
       "path": "agent/src/omni/channels/web_static/jobs/jobs.js",
       "module": "command-jobs",
       "python_module": null,
-      "lines": 65,
+      "lines": 105,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/jobs/panel.html",
+      "module": "command-jobs",
+      "python_module": null,
+      "lines": 28,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5934,7 +5964,7 @@
       "path": "agent/src/omni/channels/web_static/mcp/index.html",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 35,
+      "lines": 10,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5944,7 +5974,7 @@
       "path": "agent/src/omni/channels/web_static/mcp/mcp.css",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 76,
+      "lines": 53,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5954,7 +5984,17 @@
       "path": "agent/src/omni/channels/web_static/mcp/mcp.js",
       "module": "http-mcp",
       "python_module": null,
-      "lines": 113,
+      "lines": 165,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/mcp/panel.html",
+      "module": "http-mcp",
+      "python_module": null,
+      "lines": 29,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5974,7 +6014,7 @@
       "path": "agent/src/omni/channels/web_static/memory/memory.css",
       "module": "web-ui",
       "python_module": null,
-      "lines": 145,
+      "lines": 153,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -5984,7 +6024,7 @@
       "path": "agent/src/omni/channels/web_static/memory/memory.js",
       "module": "web-ui",
       "python_module": null,
-      "lines": 736,
+      "lines": 738,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6014,7 +6054,17 @@
       "path": "agent/src/omni/channels/web_static/project/index.html",
       "module": "workbench",
       "python_module": null,
-      "lines": 41,
+      "lines": 15,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/project/panel.html",
+      "module": "workbench",
+      "python_module": null,
+      "lines": 25,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6024,7 +6074,7 @@
       "path": "agent/src/omni/channels/web_static/project/project.css",
       "module": "workbench",
       "python_module": null,
-      "lines": 138,
+      "lines": 126,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6034,7 +6084,7 @@
       "path": "agent/src/omni/channels/web_static/project/project.js",
       "module": "workbench",
       "python_module": null,
-      "lines": 108,
+      "lines": 151,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6054,7 +6104,7 @@
       "path": "agent/src/omni/channels/web_static/storage/storage.css",
       "module": "http-storage",
       "python_module": null,
-      "lines": 144,
+      "lines": 128,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6084,7 +6134,7 @@
       "path": "agent/src/omni/channels/web_static/terminal/terminal.css",
       "module": "terminal",
       "python_module": null,
-      "lines": 126,
+      "lines": 139,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6094,7 +6144,7 @@
       "path": "agent/src/omni/channels/web_static/terminal/terminal.js",
       "module": "terminal",
       "python_module": null,
-      "lines": 93,
+      "lines": 102,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6154,7 +6204,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/dom.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 20,
+      "lines": 36,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6165,6 +6215,16 @@
       "module": "ui-shared",
       "python_module": null,
       "lines": 138,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-capabilities.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 10,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6185,6 +6245,26 @@
       "module": "ui-shared",
       "python_module": null,
       "lines": 140,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-jobs.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 9,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 10,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6231,6 +6311,16 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-project.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 9,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "agent/src/omni/channels/web_static/ui/app/hub-skills.js",
       "module": "ui-shared",
       "python_module": null,
@@ -6254,7 +6344,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 246,
+      "lines": 322,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6401,10 +6491,20 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "agent/src/omni/channels/web_static/ui/embed-height.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 25,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "agent/src/omni/channels/web_static/ui/frame.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 425,
+      "lines": 485,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6434,7 +6534,17 @@
       "path": "agent/src/omni/channels/web_static/ui/shared.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 200,
+      "lines": 202,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/terminal-theme.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 48,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6444,7 +6554,7 @@
       "path": "agent/src/omni/channels/web_static/ui/theme.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 59,
+      "lines": 82,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6464,7 +6574,7 @@
       "path": "agent/src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1080,
+      "lines": 1118,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6977,7 +7087,7 @@
       "path": "agent/src/omni/core/agent.py",
       "module": "engine",
       "python_module": "omni.core.agent",
-      "lines": 1349,
+      "lines": 1390,
       "imports": [
         "omni.config",
         "omni.core.compress",
@@ -7003,12 +7113,12 @@
       "symbols": [
         {
           "name": "_NullRunStore",
-          "line": 96,
+          "line": 97,
           "kind": "class"
         },
         {
           "name": "_NullRunStore.append_event",
-          "line": 99,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -7024,7 +7134,7 @@
         },
         {
           "name": "_NullRunStore.touch",
-          "line": 102,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -7037,7 +7147,7 @@
         },
         {
           "name": "_NullRunStore.finish",
-          "line": 105,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self",
@@ -7052,7 +7162,7 @@
         },
         {
           "name": "_NullRunStore.get",
-          "line": 108,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -7064,12 +7174,12 @@
         },
         {
           "name": "Agent",
-          "line": 112,
+          "line": 113,
           "kind": "class"
         },
         {
           "name": "Agent.__init__",
-          "line": 113,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self",
@@ -7117,7 +7227,7 @@
         },
         {
           "name": "Agent._record_dialogue",
-          "line": 168,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self",
@@ -7135,7 +7245,7 @@
         },
         {
           "name": "Agent._record_session_user",
-          "line": 177,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self",
@@ -7153,7 +7263,7 @@
         },
         {
           "name": "Agent._record_session_assistant",
-          "line": 187,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -7171,7 +7281,7 @@
         },
         {
           "name": "Agent._record_session_tool",
-          "line": 200,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -7189,7 +7299,7 @@
         },
         {
           "name": "Agent._record_session_system",
-          "line": 215,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "self",
@@ -7205,7 +7315,7 @@
         },
         {
           "name": "Agent.session_ref",
-          "line": 224,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "self"
@@ -7214,7 +7324,7 @@
         },
         {
           "name": "Agent._system_prompt",
-          "line": 228,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
@@ -7226,7 +7336,7 @@
         },
         {
           "name": "Agent._turn_context",
-          "line": 231,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self",
@@ -7246,7 +7356,7 @@
         },
         {
           "name": "Agent.context_overview",
-          "line": 271,
+          "line": 272,
           "kind": "function",
           "parameters": [
             "self",
@@ -7258,7 +7368,7 @@
         },
         {
           "name": "Agent._maybe_compress",
-          "line": 310,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -7276,7 +7386,7 @@
         },
         {
           "name": "Agent._assemble_body",
-          "line": 342,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "self",
@@ -7292,7 +7402,7 @@
         },
         {
           "name": "Agent._requested_mode",
-          "line": 382,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "self",
@@ -7304,7 +7414,7 @@
         },
         {
           "name": "Agent._mode_model",
-          "line": 392,
+          "line": 393,
           "kind": "function",
           "parameters": [
             "self",
@@ -7316,7 +7426,7 @@
         },
         {
           "name": "Agent._router_model",
-          "line": 401,
+          "line": 402,
           "kind": "function",
           "parameters": [
             "self"
@@ -7325,7 +7435,7 @@
         },
         {
           "name": "Agent._decide_mode",
-          "line": 409,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "self",
@@ -7343,7 +7453,7 @@
         },
         {
           "name": "Agent._router_messages",
-          "line": 468,
+          "line": 469,
           "kind": "function",
           "parameters": [
             "self",
@@ -7357,7 +7467,7 @@
         },
         {
           "name": "Agent.chat",
-          "line": 492,
+          "line": 493,
           "kind": "function",
           "parameters": [
             "self",
@@ -7381,7 +7491,7 @@
         },
         {
           "name": "Agent.run_turn",
-          "line": 523,
+          "line": 524,
           "kind": "function",
           "parameters": [
             "self",
@@ -7409,7 +7519,7 @@
         },
         {
           "name": "Agent._sweep_artifacts",
-          "line": 636,
+          "line": 637,
           "kind": "function",
           "parameters": [
             "self"
@@ -7418,7 +7528,7 @@
         },
         {
           "name": "Agent._start_run",
-          "line": 649,
+          "line": 650,
           "kind": "function",
           "parameters": [
             "self",
@@ -7440,7 +7550,7 @@
         },
         {
           "name": "Agent._chat",
-          "line": 710,
+          "line": 711,
           "kind": "function",
           "parameters": [
             "self",
@@ -7462,7 +7572,7 @@
         },
         {
           "name": "Agent._mode_specs",
-          "line": 890,
+          "line": 891,
           "kind": "function",
           "parameters": [
             "self",
@@ -7478,7 +7588,7 @@
         },
         {
           "name": "Agent._execute_tool_calls",
-          "line": 910,
+          "line": 911,
           "kind": "function",
           "parameters": [
             "self",
@@ -7502,7 +7612,7 @@
         },
         {
           "name": "Agent._execute_tool_calls.timed",
-          "line": 947,
+          "line": 948,
           "kind": "function",
           "parameters": [
             "call"
@@ -7513,7 +7623,7 @@
         },
         {
           "name": "Agent._execute_tool_calls.emit",
-          "line": 956,
+          "line": 957,
           "kind": "function",
           "parameters": [
             "call",
@@ -7526,14 +7636,14 @@
         },
         {
           "name": "Agent._execute_tool_calls.drain",
-          "line": 989,
+          "line": 990,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "Agent._pool_eligible",
-          "line": 1019,
+          "line": 1020,
           "kind": "function",
           "parameters": [
             "self",
@@ -7547,7 +7657,7 @@
         },
         {
           "name": "Agent._handle_mode_request",
-          "line": 1030,
+          "line": 1031,
           "kind": "function",
           "parameters": [
             "self",
@@ -7562,8 +7672,31 @@
           }
         },
         {
+          "name": "Agent._denied_note",
+          "line": 1105,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state"
+          ],
+          "annotations": {
+            "state": "TurnModeState | None"
+          }
+        },
+        {
+          "name": "Agent._denied_note.note",
+          "line": 1121,
+          "kind": "function",
+          "parameters": [
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
           "name": "Agent._execute_one",
-          "line": 1096,
+          "line": 1136,
           "kind": "function",
           "parameters": [
             "self",
@@ -7585,7 +7718,7 @@
         },
         {
           "name": "Agent._model_call",
-          "line": 1140,
+          "line": 1181,
           "kind": "function",
           "parameters": [
             "self",
@@ -7609,7 +7742,7 @@
         },
         {
           "name": "Agent._vision_route_model",
-          "line": 1189,
+          "line": 1230,
           "kind": "function",
           "parameters": [
             "self"
@@ -7618,7 +7751,7 @@
         },
         {
           "name": "Agent._attach_images",
-          "line": 1205,
+          "line": 1246,
           "kind": "function",
           "parameters": [
             "self",
@@ -7634,7 +7767,7 @@
         },
         {
           "name": "_mode_meta",
-          "line": 1284,
+          "line": 1325,
           "kind": "function",
           "parameters": [
             "run"
@@ -7645,7 +7778,7 @@
         },
         {
           "name": "_has_image_parts",
-          "line": 1296,
+          "line": 1337,
           "kind": "function",
           "parameters": [
             "messages"
@@ -7656,7 +7789,7 @@
         },
         {
           "name": "_forward_delta",
-          "line": 1309,
+          "line": 1350,
           "kind": "function",
           "parameters": [
             "event",
@@ -7669,7 +7802,7 @@
         },
         {
           "name": "_args_excerpt",
-          "line": 1314,
+          "line": 1355,
           "kind": "function",
           "parameters": [
             "call"
@@ -7680,7 +7813,7 @@
         },
         {
           "name": "_result_excerpt",
-          "line": 1324,
+          "line": 1365,
           "kind": "function",
           "parameters": [
             "text"
@@ -7691,7 +7824,7 @@
         },
         {
           "name": "_reply_brief",
-          "line": 1330,
+          "line": 1371,
           "kind": "function",
           "parameters": [
             "reply"
@@ -7885,12 +8018,12 @@
       "path": "agent/src/omni/core/context.py",
       "module": "prompt-context",
       "python_module": "omni.core.context",
-      "lines": 127,
+      "lines": 133,
       "imports": [],
       "symbols": [
         {
           "name": "system_prompt",
-          "line": 26,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "persona",
@@ -7903,12 +8036,12 @@
         },
         {
           "name": "TurnContext",
-          "line": 36,
+          "line": 42,
           "kind": "class"
         },
         {
           "name": "TurnContext.payload",
-          "line": 44,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self"
@@ -7917,7 +8050,7 @@
         },
         {
           "name": "TurnContext.attach",
-          "line": 56,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -7931,7 +8064,7 @@
         },
         {
           "name": "TurnContext.read",
-          "line": 68,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "cls",
@@ -7943,7 +8076,7 @@
         },
         {
           "name": "render_rows",
-          "line": 82,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "rows",
@@ -7958,7 +8091,7 @@
         },
         {
           "name": "reanchor_current_memory",
-          "line": 117,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "messages",
@@ -8468,7 +8601,7 @@
       "path": "agent/src/omni/core/modes.py",
       "module": "engine",
       "python_module": "omni.core.modes",
-      "lines": 202,
+      "lines": 211,
       "imports": [],
       "symbols": [
         {
@@ -8478,19 +8611,19 @@
         },
         {
           "name": "request_mode_spec",
-          "line": 91,
+          "line": 99,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "RouteDecision",
-          "line": 125,
+          "line": 134,
           "kind": "class"
         },
         {
           "name": "RouteDecision.brief",
-          "line": 134,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self"
@@ -8499,12 +8632,12 @@
         },
         {
           "name": "TurnModeState",
-          "line": 145,
+          "line": 154,
           "kind": "class"
         },
         {
           "name": "scope_allowed_names",
-          "line": 157,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "all_names",
@@ -8519,7 +8652,7 @@
         },
         {
           "name": "mode_allowed_names",
-          "line": 170,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "mode",
@@ -8532,7 +8665,7 @@
         },
         {
           "name": "denied_names",
-          "line": 178,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "mode",
@@ -8547,7 +8680,7 @@
         },
         {
           "name": "filter_specs",
-          "line": 185,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "specs",
@@ -8560,7 +8693,7 @@
         },
         {
           "name": "parse_mode",
-          "line": 190,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "value"
@@ -8571,7 +8704,7 @@
         },
         {
           "name": "can_escalate",
-          "line": 200,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "current",
@@ -26467,7 +26600,7 @@
       "path": "agent/src/omni/tools/registry.py",
       "module": "toolkit",
       "python_module": "omni.tools.registry",
-      "lines": 254,
+      "lines": 276,
       "imports": [
         "omni.safety.gates",
         "omni.tools.result"
@@ -26649,19 +26782,21 @@
             "arguments",
             "approver",
             "denied_tools",
-            "cancel"
+            "cancel",
+            "denied_note"
           ],
           "annotations": {
             "name": "str",
             "arguments": "str | dict[str, Any]",
             "approver": "Approver | None",
             "denied_tools": "frozenset[str]",
-            "cancel": "Any"
+            "cancel": "Any",
+            "denied_note": "Callable[[str], str] | None"
           }
         },
         {
           "name": "ToolRegistry._iter",
-          "line": 214,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -26673,7 +26808,7 @@
         },
         {
           "name": "_cancelled",
-          "line": 225,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "cancel"
@@ -26683,8 +26818,21 @@
           }
         },
         {
+          "name": "_denied_note_text",
+          "line": 242,
+          "kind": "function",
+          "parameters": [
+            "denied_note",
+            "name"
+          ],
+          "annotations": {
+            "denied_note": "Callable[[str], str] | None",
+            "name": "str"
+          }
+        },
+        {
           "name": "_accepts_cancel",
-          "line": 230,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "func"
@@ -26695,7 +26843,7 @@
         },
         {
           "name": "_approve",
-          "line": 251,
+          "line": 273,
           "kind": "function",
           "parameters": [
             "approver",
@@ -32301,12 +32449,12 @@
         {
           "source": "agent/src/omni/core/agent.py",
           "symbol": "Agent.run_turn",
-          "line": 523
+          "line": 524
         },
         {
           "source": "agent/src/omni/core/agent.py",
           "symbol": "Agent._chat",
-          "line": 710
+          "line": 711
         },
         {
           "source": "agent/src/omni/llm/gateway.py",
@@ -32323,7 +32471,7 @@
         {
           "source": "agent/src/omni/core/agent.py",
           "symbol": "Agent._execute_tool_calls",
-          "line": 910
+          "line": 911
         },
         {
           "source": "agent/src/omni/tools/registry.py",
@@ -32355,7 +32503,7 @@
         {
           "source": "agent/src/omni/core/agent.py",
           "symbol": "Agent.run_turn",
-          "line": 523
+          "line": 524
         },
         {
           "source": "agent/src/omni/llm/gateway.py",

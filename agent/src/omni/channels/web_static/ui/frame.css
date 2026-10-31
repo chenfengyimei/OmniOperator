@@ -130,7 +130,11 @@ body[data-ui-page] small{color:var(--shell-text-3)}
 /* --------------------------------------------------------------------------
    Unified controls
    -------------------------------------------------------------------------- */
-body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button){
+/* 子站独立页（body 作用域）与设置中心内嵌面板（.subpage-panel 作用域）共用同一份皮肤：
+   选择器并列、规则体只有一份。选择器列表必须整行写全——`:is(...)` 中间换行会
+   留下不闭合的括号，解析器会连带丢弃后面的整段规则（这个坑踩过一次）。 */
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button),
+.subpage-panel :is(button,.outline,.doc-button){
   min-height:34px;padding:7px 13px;
   border:1px solid var(--glass-weak-line);border-radius:var(--shell-radius-sm);
   background:var(--glass-weak-bg);
@@ -138,44 +142,59 @@ body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-butt
   cursor:pointer;box-shadow:var(--glass-weak-sheen);
   transition:border-color .16s,color .16s,background .16s,transform .12s,box-shadow .16s;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button):hover:not(:disabled){
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button):hover:not(:disabled),
+.subpage-panel :is(button,.outline,.doc-button):hover:not(:disabled){
   color:var(--shell-text);border-color:color-mix(in srgb,var(--seed-accent) 36%,transparent);
   background:var(--surface-accent);
   box-shadow:var(--sh-2);
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button):active:not(:disabled){transform:translateY(1px)}
-body[data-ui-page]:not([data-ui-page="workbench"]) button:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.45)}
-body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select,textarea){
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(button,.outline,.doc-button):active:not(:disabled),
+.subpage-panel :is(button,.outline,.doc-button):active:not(:disabled){transform:translateY(1px)}
+body[data-ui-page]:not([data-ui-page="workbench"]) button:disabled,
+.subpage-panel button:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.45)}
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select,textarea),
+.subpage-panel :is(input,select,textarea){
   min-height:34px;padding:7px 11px;
   color:var(--shell-text);background:var(--surface-inset);
   border:1px solid var(--shell-line-strong);border-radius:var(--shell-radius-sm);
   font:400 12px/1.5 var(--shell-font);outline:none;
   transition:border-color .16s,box-shadow .16s,background .16s;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select,textarea):focus{
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select,textarea):focus,
+.subpage-panel :is(input,select,textarea):focus{
   border-color:color-mix(in srgb,var(--seed-accent) 52%,transparent);background:var(--surface-inset);
   outline:2px solid color-mix(in srgb,var(--seed-accent) 30%,transparent);outline-offset:1px;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select)::placeholder{color:var(--shell-text-3);opacity:.8}
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(input,select)::placeholder,
+.subpage-panel :is(input,select)::placeholder{color:var(--shell-text-3);opacity:.8}
 body[data-ui-page]:not([data-ui-page="workbench"]) .ui-primary,
-body[data-ui-page]:not([data-ui-page="workbench"]) .ui-primary:hover{
+.subpage-panel .ui-primary,
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-primary:hover,
+.subpage-panel .ui-primary:hover{
   color:var(--on-accent);border-color:transparent;
   background:var(--grad);
   box-shadow:var(--sh-2),inset 0 1px 0 color-mix(in srgb,#fff 30%,transparent);
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) .ui-danger,
-body[data-ui-page]:not([data-ui-page="workbench"]) .ui-danger:hover{
+.subpage-panel .ui-danger,
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-danger:hover,
+.subpage-panel .ui-danger:hover{
   color:var(--danger);border-color:var(--danger-bd);background:var(--danger-bg);
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) button svg{width:14px;height:14px}
+body[data-ui-page]:not([data-ui-page="workbench"]) button svg,
+.subpage-panel button svg{width:14px;height:14px}
 
 /* --------------------------------------------------------------------------
    Shared surfaces / cards
    -------------------------------------------------------------------------- */
 body[data-ui-page]:not([data-ui-page="workbench"]) .card,
+.subpage-panel .card,
 body[data-ui-page]:not([data-ui-page="workbench"]) .server,
+.subpage-panel .server,
 body[data-ui-page]:not([data-ui-page="workbench"]) #cards > *,
-body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *{
+.subpage-panel #cards > *,
+body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *,
+.subpage-panel #servers > *{
   min-width:0;
   border:1px solid var(--glass-mid-line);border-radius:var(--shell-radius);
   background:var(--glass-mid-bg);
@@ -183,26 +202,35 @@ body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *{
   transition:border-color .18s,transform .18s,box-shadow .18s;
 }
 body[data-ui-page]:not([data-ui-page="workbench"]) .card:hover,
+.subpage-panel .card:hover,
 body[data-ui-page]:not([data-ui-page="workbench"]) .server:hover,
+.subpage-panel .server:hover,
 body[data-ui-page]:not([data-ui-page="workbench"]) #cards > *:hover,
-body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *:hover{
+.subpage-panel #cards > *:hover,
+body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *:hover,
+.subpage-panel #servers > *:hover{
   border-color:color-mix(in srgb,var(--seed-accent) 24%,transparent);
   box-shadow:var(--sh-3),0 0 0 1px color-mix(in srgb,var(--seed-accent) 5%,transparent);
   transform:translateY(-1px);
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) pre{
+body[data-ui-page]:not([data-ui-page="workbench"]) pre,
+.subpage-panel pre{
   color:var(--shell-text-2);background:var(--surface-inset);
   border:1px solid var(--line-3);border-radius:var(--shell-radius-sm);
   font-family:var(--shell-mono);font-size:11.5px;line-height:1.7;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) details{border-color:var(--shell-line)}
-body[data-ui-page]:not([data-ui-page="workbench"]) summary{color:var(--shell-accent);font-weight:600}
-body[data-ui-page]:not([data-ui-page="workbench"]) .ui-empty{
+body[data-ui-page]:not([data-ui-page="workbench"]) details,
+.subpage-panel details{border-color:var(--shell-line)}
+body[data-ui-page]:not([data-ui-page="workbench"]) summary,
+.subpage-panel summary{color:var(--shell-accent);font-weight:600}
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-empty,
+.subpage-panel .ui-empty{
   padding:28px 18px;color:var(--shell-text-3);
   border:1px dashed var(--shell-line-strong);border-radius:var(--shell-radius);
   background:transparent;line-height:1.8;
 }
-body[data-ui-page]:not([data-ui-page="workbench"]) .ui-badge{font-family:var(--shell-font);letter-spacing:.01em}
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-badge,
+.subpage-panel .ui-badge{font-family:var(--shell-font);letter-spacing:.01em}
 
 /* Hide accidental horizontal overflow while keeping code/output scrollable. */
 body[data-ui-page]:not([data-ui-page="workbench"]){overflow-x:hidden}
@@ -414,13 +442,19 @@ body[data-ui-page]:not([data-ui-page="workbench"]) :is(#jobs,#catalog,#checks,#t
 
 @media(max-width:900px){
   body[data-ui-page="capabilities"] .cap-layout,
+  .cap-panel .cap-layout,
   body[data-ui-page="mcp"] .mcp-layout,
+  .mcp-panel .mcp-layout,
   body[data-ui-page="jobs"] .jobs-layout,
+  .jobs-panel .jobs-layout,
   body[data-ui-page="android"] .android-layout{grid-template-columns:minmax(0,1fr)}
   body[data-ui-page="mcp"] .mcp-detail-pane{position:static}
 }
 @media(max-width:760px){
-  body[data-ui-page]:not([data-ui-page="workbench"]) .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  /* 面板也能挂进工作台（宿主 body 是 workbench），所以窄屏下的度量卡栅格要并列一份
+     .subpage-panel 作用域——否则四列挤在 390px 里，标签会竖排成一列字 */
+  body[data-ui-page]:not([data-ui-page="workbench"]) .metric-grid,
+  .subpage-panel .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 

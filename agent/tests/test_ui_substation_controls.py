@@ -105,8 +105,8 @@ def test_substation_cards_keep_glass_surface(browser_page):
     """子站卡片要走中玻璃：半透明背景 + 可见边框（不是裸 div）。"""
     page, errors = browser_page
     page.goto("http://127.0.0.1/capabilities/")
-    page.locator("#cards").wait_for(state="attached")
-    card = page.locator("#cards > *").first
+    page.locator("#cap-cards").wait_for(state="attached")
+    card = page.locator("#cap-cards > *").first
     card.wait_for(state="attached")
     style = card.evaluate(
         """e=>{const s=getComputedStyle(e);return {

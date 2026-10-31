@@ -1,5 +1,21 @@
 // DOM 与格式化小工具：模块化后子站也可以 import 复用（Phase 5）。
 export const $=s=>document.querySelector(s);
+// 按需加载样式表：设置中心里的原生面板要带自己的页面布局样式，
+// 但工作台不该为没打开的分区先付这些请求——首次挂载时再插入 <head>（幂等）。
+const stylesLoaded=new Map();
+export function ensureStylesheet(href){
+  const had=stylesLoaded.get(href);
+  if(had)return had;
+  const link=document.createElement('link');
+  link.rel='stylesheet';link.href=href;
+  const ready=new Promise(resolve=>{
+    link.addEventListener('load',resolve,{once:true});
+    link.addEventListener('error',resolve,{once:true});
+  });
+  stylesLoaded.set(href,ready);
+  document.head.append(link);
+  return ready;
+}
 export const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // 消息卡片的头与时间：时间戳来自 messages.created_at（本地时区 ISO），解析失败就不显示
 export const fmtTime=s=>{if(!s)return '';const d=new Date(s);return Number.isNaN(d.getTime())?'':d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false})};

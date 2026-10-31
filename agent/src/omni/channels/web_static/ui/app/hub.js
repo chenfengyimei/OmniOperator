@@ -1,17 +1,36 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m15';
-import {api} from './api.js?v=20261031m15';
-import {loadState} from './header.js?v=20261031m15';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m15';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m15';
-import {loadCron} from './hub-cron.js?v=20261031m15';
-import {loadUsage} from './hub-usage.js?v=20261031m15';
-import {loadMcp} from './hub-mcp.js?v=20261031m15';
-import {loadContext} from './hub-context.js?v=20261031m15';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m15';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m15';
+import {$,esc} from './dom.js?v=20261031m16';
+import {api} from './api.js?v=20261031m16';
+import {loadState} from './header.js?v=20261031m16';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m16';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m16';
+import {loadCron} from './hub-cron.js?v=20261031m16';
+import {loadUsage} from './hub-usage.js?v=20261031m16';
+import {loadMcp} from './hub-mcp.js?v=20261031m16';
+import {loadContext} from './hub-context.js?v=20261031m16';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m16';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m16';
+import {loadJobsHub} from './hub-jobs.js?v=20261031m16';
+import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261031m16';
+import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261031m16';
+import {loadProjectHub} from './hub-project.js?v=20261031m16';
+
+/* 分区加载器表：切到哪个分区要拉什么数据，在这里登记一处。
+   逐条 if 散在 switchHub 里，分区一多就容易漏（漏了的表现是分区空白）。 */
+const PANEL_LOADERS={
+  'sec-context':()=>loadContext(),
+  'sec-skills':()=>loadSkillsHub(),
+  'sec-memory-system':()=>loadMemoryHub(),
+  'sec-cron':()=>loadCron(),
+  'sec-usage':()=>loadUsage(),
+  'sec-mcp':()=>loadMcp(),
+  'sec-jobs':()=>loadJobsHub(),
+  'sec-capabilities':()=>loadCapabilitiesHub(),
+  'sec-mcp-services':()=>loadMcpServicesHub(),
+  'sec-project':()=>loadProjectHub(),
+};
 
 export async function openHub(go=null){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
@@ -58,12 +77,13 @@ export function switchHub(go){
   const el=$('#'+go);
   if(el){
     el.classList.remove('hidden');
-    if(go==='sec-cron')loadCron();
-    if(go==='sec-usage')loadUsage();
-    if(go==='sec-context')loadContext();
-    if(go==='sec-memory-system')loadMemoryHub();
-    if(go==='sec-skills')loadSkillsHub();
-    if(go==='sec-mcp')loadMcp();
+    const loader=PANEL_LOADERS[go];
+    // 加载器可能是 async（页面模块按需 import）：同步异常与 Promise 拒绝都要接住，
+    // 否则一个分区加载失败只会在控制台留 unhandled rejection，用户看到的是空白卡片。
+    if(loader){
+      const fail=e=>{$('#hub-msg').textContent='分区加载失败：'+(e&&e.message||e)};
+      try{const pending=loader();if(pending&&typeof pending.catch==='function')pending.catch(fail)}catch(e){fail(e)}
+    }
     mountEmbed(go);
     el.scrollIntoView({behavior:'smooth'});
     if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){

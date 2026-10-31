@@ -98,6 +98,53 @@ def scan_app_js(sources: list[Path]) -> dict:
             "actions_used": actions_used, "actions_registered": actions_registered}
 
 
+def css_unbalanced(text: str) -> bool:
+    """括号/花括号是否配平（跳过注释与字符串）。
+
+    为什么校验这个：CSS 解析器遇到不闭合的 `:is(` 会把**后面整段规则**一起丢掉，
+    页面表现是「样式全错、位置全乱」而不是某一条规则失效，极难从截图上定位。
+    历史上给选择器批量追加并列项时从多行 `:is(...)` 中间换行，就制造过这种静默失效。
+    """
+    pairs = {"{": "}", "(": ")"}
+    stack: list[str] = []
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+        if ch == "/" and text.startswith("/*", i):
+            end = text.find("*/", i + 2)
+            if end < 0:
+                return True
+            i = end + 2
+            continue
+        if ch in "\"'":
+            quote = ch
+            i += 1
+            while i < n and text[i] != quote:
+                i += 2 if text[i] == "\\" else 1
+            i += 1
+            continue
+        if ch in pairs:
+            stack.append(pairs[ch])
+        elif ch in pairs.values():
+            if not stack or stack.pop() != ch:
+                return True
+        i += 1
+    return bool(stack)
+
+
+def css_sources() -> list[Path]:
+    statics = ROOT / "src/omni/channels/web_static"
+    return sorted(p for p in statics.rglob("*.css") if p.is_file())
+
+
+def scan_css() -> list[str]:
+    broken = []
+    for path in css_sources():
+        if css_unbalanced(path.read_text(encoding="utf-8")):
+            broken.append(str(path.relative_to(ROOT.parent)))
+    return broken
+
+
 def scan(path: Path) -> dict:
     html_result = scan_html(path.read_text(encoding="utf-8"))
     app_result = scan_app_js(app_sources())
@@ -134,7 +181,10 @@ def main() -> int:
     print(f"[{'PASS' if not cur['dup'] else 'FAIL'}] 重复 id：{cur['dup'] or '无'}")
     print(f"[{'PASS' if not cur['undef'] else 'FAIL'}] 未定义函数：{cur['undef'] or '无'}")
     print(f"[{'PASS' if not cur['actions_missing'] else 'FAIL'}] 未注册 data-action：{cur['actions_missing'] or '无'}")
-    return 1 if (cur["missing"] or cur["dup"] or cur["undef"] or cur["actions_missing"]) else 0
+    broken_css = scan_css()
+    print(f"[{'PASS' if not broken_css else 'FAIL'}] CSS 括号配平：{broken_css or '全部通过'}")
+    return 1 if (cur["missing"] or cur["dup"] or cur["undef"] or cur["actions_missing"]
+                 or broken_css) else 0
 
 
 if __name__ == "__main__":

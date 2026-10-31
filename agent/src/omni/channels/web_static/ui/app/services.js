@@ -1,7 +1,7 @@
 // 系统控制台：服务面板（启停/状态）+ NapCat 扫码弹窗（含轮询定时器生命周期）+ 诊断/备份。
-import {$,esc} from './dom.js?v=20261031m15';
-import {api} from './api.js?v=20261031m15';
-import {openModal,closeModal,registerCloseHook} from './modals.js?v=20261031m15';
+import {$,esc} from './dom.js?v=20261031m16';
+import {api} from './api.js?v=20261031m16';
+import {openModal,closeModal,registerCloseHook} from './modals.js?v=20261031m16';
 
 let QR_TIMER=null;
 

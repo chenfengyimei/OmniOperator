@@ -67,7 +67,7 @@ def test_hub_nav_entries_match_cards_exactly():
     """侧栏条目与分区卡片一一对应——多一个条目（点了没反应）或少一个卡片（入口是死的）都是错。"""
     html = INDEX.read_text(encoding="utf-8")
     nav = {go for _, members in _nav_groups(html) for go, _ in members}
-    cards = set(re.findall(r'<div class="hub-card" id="(sec-[a-z-]+)"', html))
+    cards = set(re.findall(r'<div class="hub-card[^"]*" id="(sec-[a-z-]+)"', html))
     assert nav == cards, (
         "侧栏与分区卡片不一致：仅侧栏有 %s，仅卡片有 %s" % (sorted(nav - cards), sorted(cards - nav))
     )
@@ -79,7 +79,7 @@ def test_tool_sections_have_label_and_hint():
     labels = {go: label for _, members in _nav_groups(html) for go, label in members}
     for go, expected in TOOL_SECTIONS.items():
         assert labels.get(go) == expected, "%s 导航标签应为「%s」，实得 %r" % (go, expected, labels.get(go))
-        card = re.search(r'<div class="hub-card" id="%s">(.*?)</div>' % re.escape(go), html, re.S)
+        card = re.search(r'<div class="hub-card[^"]*" id="%s">(.*?)</div>' % re.escape(go), html, re.S)
         assert card, "index.html 找不到 %s 卡片" % go
         body = card.group(1)
         heading = re.search(r"<h3>([^<]+)</h3>", body)

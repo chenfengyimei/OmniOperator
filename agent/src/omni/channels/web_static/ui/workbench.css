@@ -17,12 +17,16 @@ header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:
 .brand em{color:var(--accent);font-style:normal}
 #chips{display:flex;gap:6px;flex-wrap:wrap}
 main{flex:1;display:grid;grid-template-columns:230px minmax(0,1fr) 300px;gap:12px;padding:12px;min-height:0}
-aside,section{min-height:0;display:flex;flex-direction:column;gap:12px}
+/* 三栏壳的列布局只属于工作台自身。裸 `aside,section` 会漏进设置中心注入的原生面板
+   （那些面板里的 <section> 是工具条/分栏，被强制成纵向居中列后整体错位）；
+   技能页的 .skills-panel 是 hub 里的 <section>，同样保留列布局。 */
+main > aside,main > section,.skills-hub-grid > .skills-panel{min-height:0;display:flex;flex-direction:column;gap:12px}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-card);display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .panel-title{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-weight:600;font-size:13px;color:var(--dim);border-bottom:1px solid var(--border)}
 .panel-title button{background:var(--accent);border:none;color:var(--on-accent);border-radius:var(--r-sm);padding:3px 10px;font-size:12px;cursor:pointer;font-weight:600}
 .panel-title button:hover{filter:brightness(1.12)}
-ul{list-style:none;overflow-y:auto}
+/* 同 `main > aside/section`：列表规则只作用于工作台自己的列表，避免给注入面板的 ul 加滚动条 */
+main ul{list-style:none;overflow-y:auto}
 #sessions li{display:flex;justify-content:space-between;gap:8px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px}
 #sessions li:hover{background:var(--panel2)}
 #sessions li.active{background:var(--panel2);box-shadow:inset 3px 0 0 var(--accent)}
@@ -136,7 +140,13 @@ dialog.modal::backdrop{background:color-mix(in srgb,var(--seed-bg) 62%,transpare
 .hub-close{background:var(--panel2);border:1px solid var(--border);color:var(--dim);border-radius:var(--r-md);padding:8px 16px;font-size:13px;cursor:pointer;transition:border-color .15s,color .15s}
 .hub-close:hover{border-color:var(--accent);color:var(--text)}
 .hub-layout{flex:1;display:grid;grid-template-columns:212px 1fr;min-height:0}
-.hub-nav{border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;background:var(--panel)}
+.hub-nav{border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow:hidden;background:var(--panel)}
+/* 侧栏分两层：搜索框固定在顶部，分区列表自己滚。两者放进同一个滚动容器时，
+   滚动会让条目从搜索框缝隙里透出来。
+   列表条目也不许被压缩：20 个分区超过屏高时该滚动，而不是靠 flex-shrink 把每一项
+   压扁（搜索框曾被压到 17px 并与分组标题叠在一起）。 */
+.hub-nav-scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.hub-nav>*,.hub-nav-scroll>*{flex-shrink:0}
 .hub-group{font-size:10.5px;font-weight:700;color:var(--text-3);letter-spacing:1.1px;user-select:none;margin:16px 12px 5px}
 .hub-group:first-child{margin-top:0}
 .hub-nav a{display:flex;align-items:center;gap:9px;color:var(--dim);text-decoration:none;padding:8px 12px;border-radius:var(--r-md);font-size:13.5px;cursor:pointer;transition:background .15s,color .15s}
@@ -147,7 +157,7 @@ dialog.modal::backdrop{background:color-mix(in srgb,var(--seed-bg) 62%,transpare
    过滤时用 hidden 属性而不是移除节点——分区项同时是 switchHub 的 data-go 索引，
    移除会让「当前分区」的高亮跟着丢。 */
 .hub-search{
-  position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;
+  display:flex;align-items:center;gap:6px;
   margin:0 0 10px;padding:0 9px;height:32px;
   border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-inset);
 }
@@ -278,16 +288,19 @@ dialog.modal::backdrop{background:color-mix(in srgb,var(--seed-bg) 62%,transpare
 .cron-row .c-sched{color:var(--dim);flex:1}
 .cron-row .svc-btn{flex-shrink:0}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:var(--r-sm)}
-@media (max-width:900px){main{grid-template-columns:1fr;overflow-y:auto}aside,section{max-height:45vh}}
+@media (max-width:900px){main{grid-template-columns:1fr;overflow-y:auto}main > aside,main > section{max-height:45vh}}
 /* 设置中心窄屏：左侧导航变成顶部横向条，内容单列 */
 @media (max-width:760px){
   .hub-header{flex-wrap:wrap;gap:8px;padding:10px 16px}
   .hub-header .spacer{display:none}
   .hub-layout{grid-template-columns:1fr}
-  .hub-nav{flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--border);padding:10px 12px;gap:6px}
-  /* 窄屏侧栏是横向滚动条，塞不下输入框 */
+  /* 窄屏侧栏改成换行排布的分区条。base.css 给的是 nowrap + 横向滚动，
+     20 个分区在手机上要横向拖近 2000px（大部分分区等于藏起来了）；这里用同等
+     特异性覆盖成 wrap，条目折成两三行，全部可见可点。 */
+  body[data-ui-page="workbench"] .hub-nav{flex-wrap:wrap;overflow:visible;padding:8px 10px;gap:4px 6px;border-bottom:1px solid var(--border)}
   .hub-search{display:none}
-  .hub-group{width:100%;margin:6px 2px 2px}
+  .hub-nav-scroll{display:contents}
+  .hub-group{width:auto;flex:0 0 auto;margin:6px 2px 0;padding:0}
   .hub-group:first-child{margin-top:0}
   .hub-nav a{padding:6px 11px;font-size:13px}
   .hub-body{padding:16px 14px 70px}
@@ -355,7 +368,7 @@ body[data-ui-page="workbench"]>.ui-global-nav{display:none}
 
 /* ---------------- 三栏与面板 ---------------- */
 body>main{gap:11px;padding:11px 16px 12px}
-aside,section{gap:11px}
+main > aside,main > section,.skills-hub-grid > .skills-panel{gap:11px}
 /* 面板是中玻璃档：不挂 backdrop-filter——Chromium 的 Backdrop Root 会让嵌套玻璃
    互相截断，且 .panel 内部滚动，挂 blur 会每帧重算。靠半透明底 + 内高光表达玻璃感。 */
 .panel,#chat{
@@ -701,9 +714,13 @@ dialog.modal::backdrop{background:color-mix(in srgb,#000 62%,transparent)}
   .hub-header{padding:0 24px;gap:14px}
   .hub-layout{position:relative;grid-template-columns:196px minmax(0,1fr)}
   .hub-nav{
-    padding:18px 10px;gap:1px;
+    /* 顶部不留内边距：搜索框是固定头、分区列表是独立滚动区，容器 padding-top 会
+       让标记在列表顶部，视觉上整块下移、和内容区错位。留白改由搜索框自己的 margin 承担。 */
+    padding:0 10px 8px;gap:1px;
     background:color-mix(in oklab,var(--surface-1) 44%,transparent);border-right:1px solid var(--line-2);
   }
+  .hub-search{margin:10px 0}
+  .hub-nav-scroll{gap:1px}
   .hub-group{
     padding:0 9px 7px;margin:14px 0 0;font-size:10px;font-weight:700;
     letter-spacing:.12em;text-transform:uppercase;color:var(--text-4);
@@ -734,6 +751,9 @@ dialog.modal::backdrop{background:color-mix(in srgb,#000 62%,transparent)}
     box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);
     scroll-margin-top:18px;
   }
+  /* 工具面板（后台任务/MCP 服务/能力诊断/项目索引）是双栏或带侧栏的工作台级界面，
+     820px 的表单宽度会把它们挤成单栏并溢出，所以这几张卡片按容器宽度铺满。 */
+  .hub-card.hub-wide{max-width:none}
   .hub-card h3{font-size:14px;margin-bottom:8px}
   .hub-card .hint{font-size:11.5px;line-height:1.7}
   .card-actions{border-top-color:var(--line-3)}

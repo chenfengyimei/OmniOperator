@@ -151,7 +151,12 @@ token 三层结构天然支持主题切换：换第 1 层种子，第 2 层派�
 - **移动端**：390px 契约（test_ui_flows 钉住）——工作台 `.ui-panes` 三面板切换、子站 rail 折顶、触控目标 ≥36px、无横向溢出。
 - 响应式断点：**只有 `900px`（壳折叠）、`760px`（单列）、`520px`（紧凑）**。守卫 `test_breakpoints_are_only_900_760_520` 钉死；`min-width:901`/`761` 是与 max-width 成对互补的桌面写法，不算独立断点。
 - **frame.css 的「Unified controls」层不可删**：子站的 `<button>` 多数只有 `id` 不带 `.btn` 类（capabilities/jobs/mcp/terminal/android/storage/project 的 markup 实测如此），那一层是无类按钮**唯一的皮肤来源**。守卫 `test_ui_substation_controls.py` 用真实 Chromium 读计算样式，钉住「按钮有背景有边框高度不塌陷、输入框有可读底色、卡片有玻璃表面与阴影」。
-- **子站 css 只写布局与语义**（带 `body[data-ui-page="X"]` 前缀），控件外观一律交给 frame.css 的共享层；历史遗留的 `:root{...}` 硬编码块（4 个子站）与 `body{...}` 块（jobs）已逐条重写，**不可整行删**——其中多数规则未被 frame.css 更强选择器覆盖，整行删会丢布局与语义。
+- **子站 css 只写布局与语义**（带 `body[data-ui-page="X"]` 前缀），控件外观一律交给 frame.css 的共享层；历史遗留的 `:root{...}` 硬编码块（4 个子站）与 `body{...}` 块（jobs）已逐条重写，**不可整行删**——其中多数规则未被 frame.css 更强选择器覆盖，整行删会丢布局与语义。上一条的例外是「原生面板」：同一个 `panel.html` + 控制器同时挂独立页与设置中心卡片，页面 css 必须用**面板容器作用域**（`.cap-panel/.jobs-panel/.mcp-panel/.proj-panel`），`body[data-ui-page]` 后代选择器在工作台宿主里整体落空。
+- **原生面板挂两个宿主的接线纪律**（能力诊断/后台任务/MCP 服务/项目索引）：
+  1. 工作台由 `ui/app/hub-*.js` 在**首次切到该分区时**加载页面 css（`ensureStylesheet`）与页面模块（**动态 `import()`**）——页面模块加载失败只让一个分区报错，静态 import 会把整棵 import 图打挂、页签等基础交互一起哑火（发生过）；
+  2. 面板 wrapper 统一 `subpage-panel` 类：frame.css 的 Unified controls / Shared surfaces 层用「`body` 作用域 + `.subpage-panel` 作用域」并列选择器，规则体只有一份；**并列选择器必须整行写全**，在 `:is(...)` 中间换行会留下不闭合括号，解析器会丢弃其后整段规则（门禁 `check_ui_contract.py` 的「CSS 括号配平」项会拦）；
+  3. 工作台脚手架（workbench.css）不得写裸 `aside,section`/`ul` 这类全局标签选择器——它们会漏进注入面板，把工具条 `<section>` 压成纵向居中列（位置错位的典型症状）；
+  4. 双栏/带侧栏的工具面板卡片用 `.hub-card.hub-wide`（取消 820px 表单宽度上限），单列表单类分区继续用默认宽度。
 
 ## 6. 组件库（components.css）
 

@@ -1,0 +1,37 @@
+<div class="cap-panel subpage-panel" data-panel="capabilities">
+  <div id="cap-status" role="status" class="status-line">正在读取只读诊断…</div>
+  <section class="console-toolbar">
+    <div class="toolbar-copy">
+      <strong>运行状态</strong>
+      <span>了解当前能做什么、哪些能力依赖外部连接、哪些操作需要人工确认。</span>
+    </div>
+    <button id="cap-refresh"><span class="material-icons">refresh</span>刷新只读诊断</button>
+    <button id="cap-probe-phone"><span class="material-icons">adb</span>检查手机连接<span class="toolbar-note">访问本地 ADB</span></button>
+  </section>
+  <div class="cap-layout">
+    <section class="cap-main">
+      <div class="section-heading">
+        <div><span class="eyebrow">CAPABILITY MAP</span><h2>能力域</h2></div>
+        <span class="section-meta">实时只读快照</span>
+      </div>
+      <div id="cap-cards"></div>
+    </section>
+    <aside class="cap-side">
+      <section class="console-card probe-card">
+        <div class="section-heading compact">
+          <div><span class="eyebrow">ACTIVE CHECK</span><h3>主动检查</h3></div>
+          <span class="material-icons">sensors</span>
+        </div>
+        <p class="card-copy">ADB 检测会访问本地设备服务，仅在你点击后发生；不会自动重试。</p>
+        <pre id="cap-probe" tabindex="0" aria-label="手机连接检查结果">尚未执行主动检查。</pre>
+      </section>
+      <section class="console-card checks-card">
+        <div class="section-heading compact">
+          <div><span class="eyebrow">HEALTH REPORT</span><h3>检查结果</h3></div>
+          <span id="cap-check-count" class="section-meta">—</span>
+        </div>
+        <div id="cap-checks"></div>
+      </section>
+    </aside>
+  </div>
+</div>

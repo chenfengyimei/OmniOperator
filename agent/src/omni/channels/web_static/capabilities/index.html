@@ -1,49 +1,10 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>能力诊断 · OmniOperator</title><script src="/ui/theme.js?v=20261031b"></script><link rel="stylesheet" href="/ui/tokens.css?v=20261031a"><link rel="stylesheet" href="/ui/base.css?v=20261031c"><link rel="stylesheet" href="/ui/icons.css?v=20261029"><link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031e"><link rel="stylesheet" href="/capabilities/capabilities.css?v=20261031a"><script src="/ui/shared.js?v=20261031m8"></script>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>能力诊断 · OmniOperator</title><script src="/ui/theme.js?v=20261031b"></script><link rel="stylesheet" href="/ui/tokens.css?v=20261031a"><link rel="stylesheet" href="/ui/base.css?v=20261031c"><link rel="stylesheet" href="/ui/icons.css?v=20261029"><link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031f"><link rel="stylesheet" href="/capabilities/capabilities.css?v=20261031a"><script src="/ui/shared.js?v=20261031m8"></script>
 </head><body data-ui-page="capabilities">
 
 <header>
   <a href="/">← 工作台</a>
   <h1>能力诊断</h1>
-  <button id="refresh"><span class="material-icons">refresh</span>刷新只读诊断</button>
 </header>
 <p>只读观察本机能力与运行边界：不会启动终端、MCP、ADB 或常驻服务，主动检查只在点击后执行。</p>
-<div id="status" role="status">正在读取…</div>
-<section class="console-toolbar">
-  <div class="toolbar-copy">
-    <strong>运行状态</strong>
-    <span>了解当前能做什么、哪些能力依赖外部连接、哪些操作需要人工确认。</span>
-  </div>
-  <button id="probe-phone"><span class="material-icons">adb</span>检查手机连接<span class="toolbar-note">访问本地 ADB</span></button>
-</section>
-<div class="cap-layout">
-  <section class="cap-main">
-    <div class="section-heading">
-      <div><span class="eyebrow">CAPABILITY MAP</span><h2>能力域</h2></div>
-      <span class="section-meta">实时只读快照</span>
-    </div>
-    <main id="cards"></main>
-  </section>
-  <aside class="cap-side">
-    <section class="console-card probe-card">
-      <div class="section-heading compact">
-        <div><span class="eyebrow">ACTIVE CHECK</span><h3>主动检查</h3></div>
-        <span class="material-icons">sensors</span>
-      </div>
-      <p class="card-copy">ADB 检测会访问本地设备服务，仅在你点击后发生；不会自动重试。</p>
-      <pre id="probe" tabindex="0" aria-label="手机连接检查结果">尚未执行主动检查。</pre>
-    </section>
-    <section class="console-card checks-card">
-      <div class="section-heading compact">
-        <div><span class="eyebrow">HEALTH REPORT</span><h3>检查结果</h3></div>
-        <span id="check-count" class="section-meta">—</span>
-      </div>
-      <div id="checks"></div>
-    </section>
-  </aside>
-</div>
-<script type="module" src="/capabilities/capabilities.js?v=20261031m15"></script></body></html>
-
-
-
-
-
+<div id="capabilities-root"><p class="empty">正在读取能力诊断…</p></div>
+<script type="module" src="/capabilities/capabilities.js?v=20261031m16"></script></body></html>

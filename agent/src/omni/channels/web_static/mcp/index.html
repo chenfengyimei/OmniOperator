@@ -1,35 +1,10 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MCP 服务 · OmniOperator</title><script src="/ui/theme.js?v=20261031b"></script><link rel="stylesheet" href="/ui/tokens.css?v=20261031a"><link rel="stylesheet" href="/ui/base.css?v=20261031c"><link rel="stylesheet" href="/ui/icons.css?v=20261029"><link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031e"><link rel="stylesheet" href="/mcp/mcp.css?v=20261031a"><script src="/ui/shared.js?v=20261031m8"></script>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MCP 服务 · OmniOperator</title><script src="/ui/theme.js?v=20261031b"></script><link rel="stylesheet" href="/ui/tokens.css?v=20261031a"><link rel="stylesheet" href="/ui/base.css?v=20261031c"><link rel="stylesheet" href="/ui/icons.css?v=20261029"><link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031f"><link rel="stylesheet" href="/mcp/mcp.css?v=20261031a"><script src="/ui/shared.js?v=20261031m8"></script>
 </head><body data-ui-page="mcp">
 
 <header>
   <a href="/">← 工作台</a>
   <h1>MCP 服务</h1>
-  <button id="refresh"><span class="material-icons">refresh</span>刷新状态</button>
 </header>
 <p>统一查看本地 MCP 扩展的连接状态、工具目录和授权边界。刷新只读取状态，不会自动启动外部程序。</p>
-<div id="status" role="status">正在读取服务状态…</div>
-<div id="mcp-stats" class="metric-grid" aria-label="MCP 概览"></div>
-<div class="mcp-layout">
-  <section class="mcp-list-pane">
-    <div class="section-heading">
-      <div><span class="eyebrow">EXTENSIONS</span><h2>已配置服务</h2></div>
-      <span id="mcp-count" class="section-meta">—</span>
-    </div>
-    <main id="servers"></main>
-  </section>
-  <section class="mcp-detail-pane">
-    <div class="section-heading compact">
-      <div><span class="eyebrow">INSPECTOR</span><h2 id="detail-title">服务详情</h2></div>
-      <span class="material-icons">manage_search</span>
-    </div>
-    <p class="page-note">命令、参数、环境变量引用和权限在 <code>config.yaml</code> 修改，重启原入口生效；配置不一致时本实例停止新调用。</p>
-    <pre id="detail" tabindex="0">选择诊断、日志或工具目录。诊断不建立连接；检查连接和读取目录需要显式操作。</pre>
-    <div id="catalog"></div>
-  </section>
-</div>
-<script type="module" src="/mcp/mcp.js?v=20261031m15"></script></body></html>
-
-
-
-
-
+<div id="mcp-root"><p class="empty">正在读取 MCP 服务…</p></div>
+<script type="module" src="/mcp/mcp.js?v=20261031m16"></script></body></html>

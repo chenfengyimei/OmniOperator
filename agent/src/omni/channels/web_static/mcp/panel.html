@@ -1,0 +1,29 @@
+<div class="mcp-panel subpage-panel" data-panel="mcp">
+  <section class="console-toolbar">
+    <div class="toolbar-copy">
+      <strong>服务状态</strong>
+      <span>刷新只读取状态，不会自动启动外部程序。</span>
+    </div>
+    <button id="mcp-refresh"><span class="material-icons">refresh</span>刷新状态</button>
+  </section>
+  <div id="mcp-status" role="status" class="status-line">正在读取服务状态…</div>
+  <div id="mcp-stats" class="metric-grid" aria-label="MCP 概览"></div>
+  <div class="mcp-layout">
+    <section class="mcp-list-pane">
+      <div class="section-heading">
+        <div><span class="eyebrow">EXTENSIONS</span><h2>已配置服务</h2></div>
+        <span id="mcp-count" class="section-meta">—</span>
+      </div>
+      <div id="mcp-servers"></div>
+    </section>
+    <section class="mcp-detail-pane">
+      <div class="section-heading compact">
+        <div><span class="eyebrow">INSPECTOR</span><h2 id="mcp-detail-title">服务详情</h2></div>
+        <span class="material-icons">manage_search</span>
+      </div>
+      <p class="page-note">命令、参数、环境变量引用和权限在 <code>config.yaml</code> 修改，重启原入口生效；配置不一致时本实例停止新调用。</p>
+      <pre id="mcp-detail" tabindex="0">选择诊断、日志或工具目录。诊断不建立连接；检查连接和读取目录需要显式操作。</pre>
+      <div id="mcp-catalog"></div>
+    </section>
+  </div>
+</div>

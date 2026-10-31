@@ -128,6 +128,21 @@ def test_app_modules_are_all_reachable_from_entry():
     assert not orphans, f"这些 app 模块不在 main.js 的 import 闭包内（不会求值）：{orphans}"
 
 
+def test_hub_panel_modules_load_pages_lazily():
+    """设置中心的分区挂载模块必须用动态 import 引入子站页面模块。
+
+    为什么：静态 import 会把子站脚本拉进工作台的模块图——任何一个子站脚本取不到
+    （离线、路径/版本串写错、代理拦截），整棵 import 图都会失败，工作台的页签、
+    设置中心按钮全部哑火，症状看起来像「乱改样式把界面弄坏了」。
+    动态 import 把失败限制在单个分区内（hub.js 的加载器会接住 Promise 拒绝）。
+    """
+    page_module = re.compile(r"^\s*import\s+.*from\s+'/(capabilities|jobs|mcp|project)/", re.M)
+    hub_modules = sorted(APP_DIR.glob("hub-*.js"))
+    assert hub_modules, "ui/app 下应有 hub-*.js 分区挂载模块"
+    offenders = [p.name for p in hub_modules if page_module.search(p.read_text(encoding="utf-8"))]
+    assert not offenders, f"这些分区模块静态 import 了子站脚本（应改为动态 import）：{offenders}"
+
+
 def test_app_modules_import_what_they_use():
     """模块用到的共享符号必须在 import 清单里。
 
@@ -172,8 +187,10 @@ def test_substation_scripts_are_modules_with_deduped_helpers():
 
     为什么：七站各自抄一份 $/esc 是三套历史实现的开端；统一 import ui/app/dom.js
     后，页面脚本标签必须是 type=module（经典脚本里 import 是语法错误）。
+    只禁模块顶层重定义：面板控制器里 `const $=root.querySelector(...)` 是刻意的
+    根作用域查找（同一控制器要能挂独立页与设置中心两处），不是重复实现。
     """
-    local_def = re.compile(r"(?:const|let|var)\s+(?:\$|esc|relTime)\s*=")
+    local_def = re.compile(r"^(?:const|let|var)\s+(?:\$|esc|relTime)\s*=", re.MULTILINE)
     for page in SUBPAGES:
         html = (STATIC / page / "index.html").read_text(encoding="utf-8")
         own = re.findall(rf'<script([^>]*src="/{page}/{page}\.js[^"]*"[^>]*)>', html)
@@ -198,6 +215,27 @@ def test_substation_app_module_refs_match_group_version():
             for match in ref.finditer(text):
                 group.add(match.group(2))
     assert len(group) == 1, f"子站引用的 app 模块版本与主组不一致：{sorted(group)}"
+
+
+def test_hub_panel_stylesheet_versions_match_pages():
+    """分区挂载模块按需加载的页面 css 版本串，必须与独立页 <link> 里的一致。
+
+    同一个 css 有两个入口（独立页 markup、设置中心懒加载）就有两处版本字面量——
+    只递增其中一处会留下「独立页是新的、设置中心还是旧缓存」的半新半旧状态。
+    """
+    pair = re.compile(r"'/(capabilities|jobs|mcp|project)/(\1\.css)\?v=([0-9A-Za-z_-]+)'")
+    checked = 0
+    for path in sorted(APP_DIR.glob("hub-*.js")):
+        text = path.read_text(encoding="utf-8")
+        for page, css_name, hub_version in pair.findall(text):
+            page_html = (STATIC / page / "index.html").read_text(encoding="utf-8")
+            link = re.search(rf"/{page}/{re.escape(css_name)}\?v=([0-9A-Za-z_-]+)", page_html)
+            assert link, f"{page}/index.html 未引用 {css_name}"
+            assert hub_version == link.group(1), (
+                f"{path.name} 里的 {css_name} 版本（{hub_version}）与 {page}/index.html（{link.group(1)}）不一致"
+            )
+            checked += 1
+    assert checked >= 4, f"应至少核对 4 个面板样式入口，实际 {checked} 个"
 
 
 def test_rail_subpages_open_in_new_tab():

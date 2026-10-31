@@ -1,0 +1,28 @@
+<div class="jobs-panel subpage-panel" data-panel="jobs">
+  <section class="console-toolbar jobs-toolbar">
+    <div class="search-field"><span class="material-icons">search</span><input id="jobs-search" type="search" aria-label="搜索任务" placeholder="搜索命令、任务或会话"></div>
+    <select id="jobs-filter" aria-label="任务状态"><option value="">所有状态</option><option value="active">执行中</option><option value="ended">已结束 / 待核查</option></select>
+    <button id="jobs-refresh"><span class="material-icons">refresh</span>刷新</button>
+  </section>
+  <div id="jobs-status" role="status" class="status-line">读取任务…</div>
+  <div id="jobs-stats" class="metric-grid" aria-label="任务概览"></div>
+  <div class="jobs-layout">
+    <section class="jobs-list-pane">
+      <div class="section-heading">
+        <div><span class="eyebrow">COMMAND QUEUE</span><h2>任务队列</h2></div>
+        <span id="jobs-count" class="section-meta">0 / 0</span>
+      </div>
+      <nav id="jobs-list" aria-label="任务列表"><div class="empty">正在读取任务…</div></nav>
+    </section>
+    <section class="jobs-detail-pane">
+      <div class="section-heading compact">
+        <div><span class="eyebrow">RUN INSPECTOR</span><h2 id="jobs-title">选择任务</h2></div>
+        <span class="material-icons">terminal</span>
+      </div>
+      <div id="jobs-detail" class="ui-muted">选择左侧任务查看状态和增量输出。</div>
+      <div class="detail-actions"><button id="jobs-cancel" class="ui-danger" disabled><span class="material-icons">stop_circle</span>取消任务</button></div>
+      <div class="output-tools"><strong><span class="material-icons">subject</span>执行输出</strong><button id="jobs-reload-output" disabled>读取最新</button><button id="jobs-copy-output" disabled>复制输出</button><label><input id="jobs-follow-output" type="checkbox" checked> 跟随输出</label></div>
+      <pre id="jobs-output" tabindex="0" aria-label="任务输出">选择任务后在此查看增量输出。</pre>
+    </section>
+  </div>
+</div>

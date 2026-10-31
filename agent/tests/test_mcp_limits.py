@@ -124,7 +124,7 @@ def test_mcp_page_is_passive_and_mobile(tmp_path):
                 page.locator('.server').wait_for()
                 assert runtime.mcp._connections['missing']._thread is None
                 page.get_by_role('button',name='诊断',exact=True).click()
-                page.locator('#detail').get_by_text('executable_found',exact=False).wait_for()
+                page.locator('#mcp-detail').get_by_text('executable_found',exact=False).wait_for()
                 assert runtime.mcp._connections['missing']._thread is None
                 page.set_viewport_size({'width':390,'height':844})
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
