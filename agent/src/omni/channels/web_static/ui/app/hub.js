@@ -1,17 +1,17 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m13';
-import {api} from './api.js?v=20261031m13';
-import {loadState} from './header.js?v=20261031m13';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m13';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m13';
-import {loadCron} from './hub-cron.js?v=20261031m13';
-import {loadUsage} from './hub-usage.js?v=20261031m13';
-import {loadMcp} from './hub-mcp.js?v=20261031m13';
-import {loadContext} from './hub-context.js?v=20261031m13';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m13';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m13';
+import {$,esc} from './dom.js?v=20261031m14';
+import {api} from './api.js?v=20261031m14';
+import {loadState} from './header.js?v=20261031m14';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m14';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m14';
+import {loadCron} from './hub-cron.js?v=20261031m14';
+import {loadUsage} from './hub-usage.js?v=20261031m14';
+import {loadMcp} from './hub-mcp.js?v=20261031m14';
+import {loadContext} from './hub-context.js?v=20261031m14';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m14';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m14';
 
 export async function openHub(go=null){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
@@ -55,6 +55,36 @@ export function switchHub(go){
 // 只拦截「分区跳转」锚点（带 data-go）；不带 data-go 的是独立页直链（如 /storage/），
 // 走浏览器默认行为新标签打开——此前全拦导致 /storage/ 独立页从工作台永远打不开。
 document.querySelectorAll('.hub-nav a[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();switchHub(a.dataset.go)});
+// 侧栏分区搜索：20 个分区在 768px 高的屏上要滚，输入即筛更省事。
+// 组标题在组内无可见条目时一并隐藏——否则会出现一串空标题，看着像坏了。
+const navSearch=document.querySelector('#hub-nav-search');
+if(navSearch){
+  const navLinks=[...document.querySelectorAll('.hub-nav a[data-go]')];
+  const allLinks=[...document.querySelectorAll('.hub-nav a')];
+  const navGroups=[...document.querySelectorAll('.hub-nav .hub-group')];
+  const empty=document.createElement('div');
+  empty.className='hub-nav-empty';empty.textContent='没有匹配的分区';empty.hidden=true;
+  document.querySelector('.hub-nav').append(empty);
+  navSearch.addEventListener('input',()=>{
+    const q=navSearch.value.trim().toLowerCase();
+    let visible=0;
+    for(const link of allLinks){
+      const hit=!q||link.textContent.toLowerCase().includes(q)||(link.dataset.go||'').toLowerCase().includes(q);
+      link.hidden=!hit;
+      // 独立页直链（无 data-go）不计入分区数——它是快捷方式，不是分区
+      if(hit&&link.hasAttribute('data-go'))visible++;
+    }
+    for(const group of navGroups){
+      let next=group.nextElementSibling,has=false;
+      while(next&&next.tagName!=='DIV'){
+        if(next.matches('a[data-go]')&&!next.hidden)has=true;
+        next=next.nextElementSibling;
+      }
+      group.hidden=!has;
+    }
+    empty.hidden=visible>0;
+  });
+}
 // 左侧导航图标：纯装饰，拿不到图标就跳过（不影响点击）
 (function(){
   const icons={
@@ -72,6 +102,13 @@ document.querySelectorAll('.hub-nav a[data-go]').forEach(a=>a.onclick=e=>{e.prev
     'sec-usage':'<path d="M5.4 19.2v-7.6M10.2 19.2V5.8M15 19.2v-5.2M19.8 19.2v-8.4"/>',
     'sec-mcp':'<circle cx="12" cy="5.6" r="2.2"/><circle cx="6.2" cy="18" r="2.2"/><circle cx="17.8" cy="18" r="2.2"/><path d="M12 7.8v2.6M10.3 12.4l-2.3 3.9M13.7 12.4l2.3 3.9"/>',
     'sec-about':'<circle cx="12" cy="12" r="8.4"/><path d="M12 11.2v5.2"/><circle cx="12" cy="8.2" r="1.05" fill="currentColor" stroke="none"/>'+'',
+    // 工具与设备组：终端/安卓/任务/MCP 服务/能力诊断/项目索引
+    'sec-terminal':'<rect x="3.4" y="4.6" width="17.2" height="14.8" rx="2.2"/><path d="M7.4 9.6l2.8 2.8-2.8 2.8M12.8 15.4h4.2"/>',
+    'sec-android':'<rect x="6.6" y="2.8" width="10.8" height="18.4" rx="2.4"/><path d="M10.2 18.4h3.6"/><path d="M9.4 6.2h5.2"/>',
+    'sec-jobs':'<path d="M3.6 7h10.6M3.6 12h10.6M3.6 17h10.6"/><circle cx="18.4" cy="7" r="1.7"/><circle cx="18.4" cy="12" r="1.7"/><circle cx="18.4" cy="17" r="1.7"/>',
+    'sec-mcp-services':'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.8M12 18.4v2.8M2.8 12h2.8M18.4 12h2.8M5.5 5.5l1.9 1.9M16.6 16.6l1.9 1.9M18.5 5.5l-1.9 1.9M7.4 16.6l-1.9 1.9"/>',
+    'sec-capabilities':'<path d="M4 15.6l4.6-4.6 3 3L20 5.6"/><path d="M15.4 5.6H20v4.6"/>',
+    'sec-project':'<rect x="3.6" y="4.4" width="7" height="7" rx="1.4"/><rect x="13.4" y="4.4" width="7" height="7" rx="1.4"/><rect x="3.6" y="14.4" width="7" height="7" rx="1.4"/><rect x="13.4" y="14.4" width="7" height="7" rx="1.4"/>',
   };
   document.querySelectorAll('.hub-nav a').forEach(function(a){
     const id=a.dataset.go, body=icons[id];

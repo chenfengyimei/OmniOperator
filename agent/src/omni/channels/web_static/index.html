@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/ui/tokens.css?v=20261031a">
 <link rel="stylesheet" href="/ui/base.css?v=20261031c">
 <link rel="stylesheet" href="/ui/icons.css?v=20261029">
-<link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031d"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m9"><link rel="stylesheet" href="/memory/memory.css?v=20261031m10"><script src="/ui/shared.js?v=20261031m7"></script><script src="/ui/markdown.js?v=20261029"></script>
+<link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031d"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m10"><link rel="stylesheet" href="/memory/memory.css?v=20261031m10"><script src="/ui/shared.js?v=20261031m8"></script><script src="/ui/markdown.js?v=20261029"></script>
 </head>
 <body data-ui-page="workbench">
 <!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
@@ -217,6 +217,10 @@
   </div>
   <div class="hub-layout">
     <nav class="hub-nav">
+      <div class="hub-search">
+        <span class="material-icons" aria-hidden="true">search</span>
+        <input id="hub-nav-search" type="search" placeholder="搜索分区…" aria-label="搜索设置分区" maxlength="20">
+      </div>
       <div class="hub-group">核心系统</div>
       <a data-go="sec-context" href="#sec-context">上下文系统</a>
       <a data-go="sec-skills">技能系统</a>
@@ -225,12 +229,19 @@
       <a data-go="sec-persona" class="active">人设</a>
       <a data-go="sec-models">模型</a>
       <a data-go="sec-memory">压缩与复盘</a>
+      <div class="hub-group">工具与设备</div>
+      <a data-go="sec-terminal">人工终端</a>
+      <a data-go="sec-android">安卓控制</a>
+      <a data-go="sec-jobs">后台任务</a>
+      <a data-go="sec-mcp-services">MCP 服务</a>
+      <a data-go="sec-capabilities">能力诊断</a>
+      <a data-go="sec-project">项目索引</a>
       <div class="hub-group">平台与通道</div>
       <a data-go="sec-media">B站与转写</a>
       <a data-go="sec-browser">浏览器</a>
       <a data-go="sec-qq">QQ</a>
       <a data-go="sec-cron">定时任务</a>
-      <div class="hub-group">系统与扩展</div>
+      <div class="hub-group">文件与用量</div>
       <a data-go="sec-storage">Agent 与文件</a>
       <a href="/storage/" target="_blank" rel="noopener">Agent 与目录 ↗</a>
       <a data-go="sec-usage">花费</a>
@@ -419,6 +430,40 @@
           </div>
         </section>
       </div>
+      <div class="hub-card" id="sec-terminal">
+        <h3>人工终端</h3>
+        <div class="hint">在设置中心里直接开终端会话，支持多标签、断线重连与剪贴板。内置的是 PowerShell，会话由后台托管，离开页面也不会丢。</div>
+        <div class="embed-shell">
+          <iframe data-embed-page="terminal" title="人工终端" loading="lazy" data-src="/terminal/?embed=1"></iframe>
+        </div>
+      </div>
+      <div class="hub-card" id="sec-android">
+        <h3>安卓控制</h3>
+        <div class="hint">连上手机后可以看屏幕、点元素、划滑块、输文字，也能拉 UI 树看结构。操作走后台的 adb 通道，不需要一直开着手机。</div>
+        <div class="embed-shell">
+          <iframe data-embed-page="android" title="安卓控制" loading="lazy" data-src="/android/?embed=1"></iframe>
+        </div>
+      </div>
+      <div class="hub-card" id="sec-jobs">
+        <h3>后台任务</h3>
+        <div class="hint">后台命令的队列与执行结果。可以按状态筛选，点开看增量输出，运行中的任务能取消。</div>
+        <div id="hub-jobs-content"><p class="empty">正在读取后台任务…</p></div>
+      </div>
+      <div class="hub-card" id="sec-mcp-services">
+        <h3>MCP 服务</h3>
+        <div class="hint">逐个服务做诊断、看日志、重连，并核对它的工具目录有没有变化。</div>
+        <div id="hub-mcp-services-content"><p class="empty">正在读取 MCP 服务…</p></div>
+      </div>
+      <div class="hub-card" id="sec-capabilities">
+        <h3>能力诊断</h3>
+        <div class="hint">当前能力域的只读快照与体检结果。想知道某个能力是否就绪，看这里。</div>
+        <div id="hub-capabilities-content"><p class="empty">正在读取能力诊断…</p></div>
+      </div>
+      <div class="hub-card" id="sec-project">
+        <h3>项目索引</h3>
+        <div class="hint">这个项目的模块、接口、工具与扩展清单，以及可查阅的开发文档。</div>
+        <div id="hub-project-content"><p class="empty">正在读取项目索引…</p></div>
+      </div>
       <div class="hub-card" id="sec-media">
         <h3>B站与转写</h3>
         <div class="hint">想让小鱼帮你搬运 B 站视频，得先给它一个「登录凭证」——就相当于告诉它「这个账号是我」。<br>没有凭证也能用，但只能看到公开内容，字幕和音频大概率拿不到。</div>
@@ -570,7 +615,7 @@
     </div>
   </div>
 </div>
-<script type="module" src="/ui/app/main.js?v=20261031m13"></script>
+<script type="module" src="/ui/app/main.js?v=20261031m14"></script>
 <script src="/vendor/xterm.js"></script>
 <script src="/vendor/xterm-addon-fit.js"></script>
 </body>

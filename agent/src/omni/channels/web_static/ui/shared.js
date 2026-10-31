@@ -4,7 +4,7 @@
   const labels={queued:'等待执行',running:'运行中',cancelling:'停止中',succeeded:'已完成',failed:'失败',cancelled:'已取消',timed_out:'已超时',unknown:'待核查',idle:'未连接',starting:'连接中',ready:'已连接',closed:'已断开',disabled:'未启用',exited:'已退出',absent:'未发现',confirmed:'已确认',drifted:'需复查'};
   const pageMeta={
     workbench:{icon:'forum',label:'对话工作台'},
-    capabilities:{icon:'fact_check',label:'能力总览'},
+    capabilities:{icon:'fact_check',label:'能力诊断'},
     terminal:{icon:'terminal',label:'人工终端'},
     jobs:{icon:'checklist',label:'后台任务'},
     mcp:{icon:'network_check',label:'MCP 服务'},
@@ -148,8 +148,10 @@
     const page=location.pathname.split('/').filter(Boolean)[0]||'workbench';document.body.dataset.uiPage=page;document.documentElement.dataset.uiPage=page;
     const embedded=new URLSearchParams(location.search).get('embed')==='1';
     document.documentElement.classList.toggle('ui-embed',embedded);document.body.classList.toggle('ui-embedded',embedded);
-    const current=pageMeta[page]||{label:'工作台'};
-    if(page!=='workbench'&&!embedded&&!document.title.includes(current.label))document.title=document.title.replace('小鱼 · ','')+' · '+current.label+' · OmniOperator';
+    const current=pageMeta[page]||{icon:'dashboard',label:'工作台'};
+    // 整体替换而不是追加：追加会产出「人工终端 · 人工终端 · OmniOperator」这种重复后缀
+    // （各页 <title> 原文与 pageMeta.label 说法不同，两边只认一个权威名字）。
+    if(page!=='workbench'&&!embedded)document.title=current.label+' · OmniOperator';
     let nav=document.querySelector('body > .ui-global-nav');
     if(!embedded&&!nav){
       nav=element('nav',null,'ui-global-nav');if(page!=='workbench')nav.classList.add('ui-app-rail');nav.setAttribute('aria-label','工作台功能导航');

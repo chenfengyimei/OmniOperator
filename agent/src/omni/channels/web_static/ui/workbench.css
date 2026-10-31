@@ -143,6 +143,18 @@ dialog.modal::backdrop{background:color-mix(in srgb,var(--seed-bg) 62%,transpare
 .hub-nav a:hover{background:var(--panel2);color:var(--text)}
 .hub-nav a.active{background:var(--surface-accent);color:var(--seed-accent);font-weight:600;box-shadow:inset 2px 0 0 var(--seed-accent)}
 .hub-nav a .ni{width:16px;height:16px;flex-shrink:0;opacity:.85}
+/* 侧栏分区搜索：20 个分区在矮屏上要滚，输入即筛更省事。
+   过滤时用 hidden 属性而不是移除节点——分区项同时是 switchHub 的 data-go 索引，
+   移除会让「当前分区」的高亮跟着丢。 */
+.hub-search{
+  position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;
+  margin:0 0 10px;padding:0 9px;height:32px;
+  border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-inset);
+}
+.hub-search .material-icons{font-size:15px;color:var(--text-4)}
+.hub-search input{height:auto;min-height:0;flex:1;min-width:0;padding:0;border:0;background:transparent;box-shadow:none;font-size:var(--fs-secondary);color:var(--text-1)}
+.hub-nav a[hidden],.hub-group[hidden]{display:none!important}
+.hub-nav-empty{padding:10px 9px;color:var(--text-4);font-size:var(--fs-small)}
 .hub-body{overflow-y:auto;padding:24px 28px 90px}
 .hub-card.hidden{display:none}
 .hub-card{position:relative;background:var(--glass-mid-bg);border:1px solid var(--glass-mid-line);border-radius:var(--r-card);padding:20px 22px;margin-bottom:16px;max-width:940px;box-shadow:var(--glass-mid-shadow),var(--glass-mid-sheen);transition:border-color .18s}
@@ -273,6 +285,8 @@ dialog.modal::backdrop{background:color-mix(in srgb,var(--seed-bg) 62%,transpare
   .hub-header .spacer{display:none}
   .hub-layout{grid-template-columns:1fr}
   .hub-nav{flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--border);padding:10px 12px;gap:6px}
+  /* 窄屏侧栏是横向滚动条，塞不下输入框 */
+  .hub-search{display:none}
   .hub-group{width:100%;margin:6px 2px 2px}
   .hub-group:first-child{margin-top:0}
   .hub-nav a{padding:6px 11px;font-size:13px}

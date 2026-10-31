@@ -1,5 +1,5 @@
 /* 人工终端：恢复只回放输出，任何异步输入始终绑定原标签及连接。 */
-import {$} from '/ui/app/dom.js?v=20261031m13';
+import {$} from '/ui/app/dom.js?v=20261031m14';
 const UI=window.OmniUI,views=new Map();let active='',leaving=false,creating=false,available=false;
 const api=UI.request;
 function status(text){$('#state').textContent=text}
