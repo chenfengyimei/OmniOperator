@@ -1,5 +1,13 @@
 # 开发状态记录
 
+2026-10-31 MCP 指纹与技能已读仓储迁出 state.py（工作区）：`MCPSchemaStore`
+迁到 `memory/mcp_schemas.py`、`SkillAckStore` 迁到 `memory/skill_acks.py`；
+state.py 行数 1354 → 1031。新增守卫验证两个 store 的领域实现唯一；FLOWS
+里 MCPSchemaStore 的定位点改到新模块。专项
+`uv run --no-sync pytest -q -n 0 agent/tests/test_mcp.py agent/tests/test_state.py agent/tests/test_outbox.py agent/tests/test_command_jobs.py agent/tests/test_arch.py`
+→ **119 passed（35.83s）**；项目索引与 `test_project_catalog.py` **11 passed**。
+未跑全量；真实数据未迁移。
+
 2026-10-31 outbox 仓储门面拆分（工作区）：`OutboxStore` 从 `memory/state.py`
 移到新模块 `memory/outbox.py`，只消费注入的 `StateStore` 事务，不新建连接；
 `omni.memory.state.OutboxStore` 旧 import 保持同一对象。新增守卫验证领域实现

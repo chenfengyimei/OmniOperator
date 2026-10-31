@@ -103,5 +103,5 @@ FLOWS = (
         ('memory/skills.py', 'SkillStore'))),
     ('mcp', '外部 MCP 能力', '渐进发现与授权校验后调用外部进程；结果未知不重放写操作。', (
         ('tools/mcp/tools.py', 'register_mcp_tools'), ('tools/mcp/client.py', 'MCPManager'),
-        ('memory/state.py', 'MCPSchemaStore'))),
+        ('memory/mcp_schemas.py', 'MCPSchemaStore'))),
 )

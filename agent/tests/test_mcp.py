@@ -12,6 +12,7 @@ from pydantic import ValidationError
 
 from omni.bootstrap import build_runtime
 from omni.config import MCPConfig, MCPServerConfig
+from omni.memory.mcp_schemas import MCPSchemaStore as DomainMCPSchemaStore
 from omni.memory.state import MCPSchemaStore, StateStore
 from omni.safety.gates import AllowAllApprover, DenyApprover
 from omni.safety.smart import SmartApprover
@@ -428,6 +429,12 @@ for line in sys.stdin:
     response["error" if error else "result"] = error or result
     print(json.dumps(response), flush=True)
 '''
+
+
+def test_mcp_schema_store_has_single_domain_implementation():
+    """MCP 指纹仓储归 memory/mcp_schemas；state.py 仅做旧 import 兼容。"""
+    assert DomainMCPSchemaStore is MCPSchemaStore
+    assert MCPSchemaStore.__module__ == "omni.memory.mcp_schemas"
 
 
 def test_mcp_schema_store_semantics(tmp_path):

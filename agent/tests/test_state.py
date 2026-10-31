@@ -483,6 +483,15 @@ def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
     assert "session_leases" not in tables and "resource_leases" in tables
 
 
+def test_skill_ack_store_has_single_domain_implementation():
+    """已读标记仓储归 memory/skill_acks；state.py 仅做旧 import 兼容。"""
+    from omni.memory.skill_acks import SkillAckStore as DomainSkillAckStore
+    from omni.memory.state import SkillAckStore
+
+    assert DomainSkillAckStore is SkillAckStore
+    assert SkillAckStore.__module__ == "omni.memory.skill_acks"
+
+
 def test_skill_ack_store_only_advances(tmp_path):
     """技能已读标记只前进：旧标记不会把已读改回未读（D18）。"""
     from omni.memory.state import SkillAckStore

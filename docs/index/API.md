@@ -44,7 +44,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 渐进发现与授权校验后调用外部进程；结果未知不重放写操作。
 
-`register_mcp_tools`（[agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py#L18)） → `MCPManager`（[agent/src/omni/tools/mcp/client.py](../../agent/src/omni/tools/mcp/client.py#L252)） → `MCPSchemaStore`（[agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py#L1029)）
+`register_mcp_tools`（[agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py#L18)） → `MCPManager`（[agent/src/omni/tools/mcp/client.py](../../agent/src/omni/tools/mcp/client.py#L252)） → `MCPSchemaStore`（[agent/src/omni/memory/mcp_schemas.py](../../agent/src/omni/memory/mcp_schemas.py#L22)）
 
 ## 声明路由
 

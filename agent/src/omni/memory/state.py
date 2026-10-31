@@ -32,11 +32,16 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .jobs import CronError, Job, compute_next_run, parse_iso, to_iso
+from .mcp_schemas import MCPSchemaStore
 from .outbox import OutboxStore
+from .skill_acks import SkillAckStore
 from .state_schema import MIGRATIONS, SCHEMA_VERSION, _META
 
 # 兼容旧测试/调用对私有迁移表名的引用：声明本体已归 `state_schema.py`
 _MIGRATIONS = MIGRATIONS
+
+# MCPSchemaStore / SkillAckStore / OutboxStore 已迁至各自领域模块；
+# 从 state 再导出以保持 `from omni.memory.state import MCPSchemaStore` 兼容。
 # 一次性任务（无 every/daily 的闹钟）错过触发时间的宽限：超过即停用不补发——
 # 迟到太久的闹钟没有意义，账本里留下"错过"的记录即可。
 ONE_SHOT_MISSED_GRACE_S = 600
@@ -1024,107 +1029,3 @@ class ExecutionLog:
         if not 0 <= age.total_seconds() <= max_age_minutes * 60:
             raise CronError(f"依赖任务 {job} 的结果已过期，本次停止")
         return result
-
-
-class MCPSchemaStore:
-    """MCP 工具目录指纹（D19）：服务升级换 schema 后，旧只读授权要重新检查。
-
-    只读授权是用户按**当时的**工具与参数形态给的；服务升级后同名工具可能
-    完全换了解释。指纹不判断"变好还是变坏"——变化即提醒，复查是人做的事。
-    """
-
-    def __init__(self, state: StateStore) -> None:
-        self._state = state
-
-    def observe(self, server: str, fingerprint: str, tool_count: int) -> str | None:
-        """记录当前观察到的指纹；与存量不一致时返回旧指纹（= 漂移提醒），首次返回 None。"""
-        now = to_iso(dt.datetime.now().astimezone())
-        # 首次登记和漂移撤权在同一事务，不能让并发观察看到新指纹配旧确认。
-        with self._state._tx() as conn:
-            row = conn.execute(
-                "SELECT fingerprint, confirmed_at FROM mcp_schemas WHERE server = ?",
-                (server,),
-            ).fetchone()
-            if row is None:
-                conn.execute(
-                    "INSERT INTO mcp_schemas(server, fingerprint, tool_count,"
-                    " confirmed_at, seen_at) VALUES (?,?,?,?,?)",
-                    (server, fingerprint, int(tool_count), now, now),
-                )
-                return None  # 首次使用显式配置的只读名单，后续变化必须复查。
-            stored = str(row[0])
-            conn.execute(
-                "UPDATE mcp_schemas SET fingerprint = ?, tool_count = ?, seen_at = ?,"
-                " confirmed_at = CASE WHEN fingerprint = ? THEN confirmed_at ELSE NULL END"
-                " WHERE server = ?",
-                (fingerprint, int(tool_count), now, fingerprint, server),
-            )
-            return stored if stored != fingerprint else None
-
-    def confirm(self, server: str, fingerprint: str) -> bool:
-        """用户复查后确认当前指纹（清除漂移提醒）。指纹又变了就拒绝——确认的必须是看到的那份。"""
-        now = to_iso(dt.datetime.now().astimezone())
-        with self._state._tx() as conn:
-            cursor = conn.execute(
-                "UPDATE mcp_schemas SET confirmed_at = ? WHERE server = ?"
-                " AND fingerprint = ?",
-                (now, server, fingerprint),
-            )
-            return cursor.rowcount > 0
-
-    def status(self, server: str) -> dict | None:
-        rows = self._state._read(
-            "SELECT fingerprint, tool_count, confirmed_at, seen_at FROM mcp_schemas"
-            " WHERE server = ?",
-            (server,),
-        )
-        if not rows:
-            return None
-        return {
-            "fingerprint": str(rows[0][0]),
-            "tool_count": int(rows[0][1]),
-            "confirmed_at": rows[0][2],
-            "seen_at": rows[0][3],
-        }
-
-
-class SkillAckStore:
-    """技能变更的「已读」标记（D18）：待审阅 = 标记之后由 agent/review 写下的修订。
-
-    标记只前进不后退（`MAX`），刷新页面不会把已读变回未读；
-    用户自己的编辑器保存（author=user）与磁盘外部改动的快照（author=external）
-    本来就不进待审阅队列，标记也不因它们变化。
-    """
-
-    def __init__(self, state: StateStore) -> None:
-        self._state = state
-
-    def ack(self, skill: str, rev: int) -> int:
-        """标记已读到 rev（只前进）；返回标记后的值。"""
-        now = to_iso(dt.datetime.now().astimezone())
-        with self._state._tx() as conn:
-            conn.execute(
-                "INSERT INTO skill_acks(skill, rev, acked_at) VALUES (?,?,?)"
-                " ON CONFLICT(skill) DO UPDATE SET"
-                " rev = MAX(skill_acks.rev, excluded.rev), acked_at = excluded.acked_at",
-                (skill, max(0, int(rev)), now),
-            )
-            row = conn.execute(
-                "SELECT rev FROM skill_acks WHERE skill = ?", (skill,)
-            ).fetchone()
-            return int(row[0])
-
-    def acked(self, skill: str) -> int:
-        rows = self._state._read(
-            "SELECT rev FROM skill_acks WHERE skill = ?", (skill,)
-        )
-        return int(rows[0][0]) if rows else 0
-
-    def acked_all(self) -> dict[str, int]:
-        rows = self._state._read("SELECT skill, rev FROM skill_acks")
-        return {str(r[0]): int(r[1]) for r in rows}
-
-    def forget(self, skill: str) -> None:
-        """技能归档时清掉已读标记：同名技能以后重建时不会被旧标记吞掉。"""
-        with self._state._tx() as conn:
-            conn.execute("DELETE FROM skill_acks WHERE skill = ?", (skill,))

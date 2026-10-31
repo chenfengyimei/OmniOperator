@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2d0c8ee387c38deb978ea8fc27292b0bf04f0980ed11d1e30960e79760f7be57",
+  "source_sha256": "f6718093375348faff88580f5b78d7f4972467cb876ee765849656e3ec2668ff",
   "modules": [
     {
       "id": "agent-directories",
@@ -305,6 +305,7 @@
         "agent/src/omni/memory/guard.py",
         "agent/src/omni/memory/jobs.py",
         "agent/src/omni/memory/journal.py",
+        "agent/src/omni/memory/mcp_schemas.py",
         "agent/src/omni/memory/outbox.py",
         "agent/src/omni/memory/owner.py",
         "agent/src/omni/memory/owner_migrate.py",
@@ -315,6 +316,7 @@
         "agent/src/omni/memory/revisions.py",
         "agent/src/omni/memory/runs.py",
         "agent/src/omni/memory/session_log.py",
+        "agent/src/omni/memory/skill_acks.py",
         "agent/src/omni/memory/skill_inbox.py",
         "agent/src/omni/memory/skills.py",
         "agent/src/omni/memory/state.py",
@@ -323,7 +325,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8557,
+      "lines": 8592,
       "dependencies": [
         "command-contracts",
         "config",
@@ -11837,6 +11839,78 @@
       "summary": "笔记记忆（M3/M4/M5）：每日/每周/每月笔记的存储与到期判定。"
     },
     {
+      "path": "agent/src/omni/memory/mcp_schemas.py",
+      "module": "storage",
+      "python_module": "omni.memory.mcp_schemas",
+      "lines": 77,
+      "imports": [
+        "omni.memory.jobs",
+        "omni.memory.state"
+      ],
+      "symbols": [
+        {
+          "name": "MCPSchemaStore",
+          "line": 22,
+          "kind": "class"
+        },
+        {
+          "name": "MCPSchemaStore.__init__",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state"
+          ],
+          "annotations": {
+            "state": "StateStore"
+          }
+        },
+        {
+          "name": "MCPSchemaStore.observe",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server",
+            "fingerprint",
+            "tool_count"
+          ],
+          "annotations": {
+            "server": "str",
+            "fingerprint": "str",
+            "tool_count": "int"
+          }
+        },
+        {
+          "name": "MCPSchemaStore.confirm",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server",
+            "fingerprint"
+          ],
+          "annotations": {
+            "server": "str",
+            "fingerprint": "str"
+          }
+        },
+        {
+          "name": "MCPSchemaStore.status",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "server"
+          ],
+          "annotations": {
+            "server": "str"
+          }
+        }
+      ],
+      "summary": "MCP 工具目录指纹仓储（D19，`state.db`）。"
+    },
+    {
       "path": "agent/src/omni/memory/outbox.py",
       "module": "storage",
       "python_module": "omni.memory.outbox",
@@ -14373,6 +14447,83 @@
       "summary": "会话全量记忆（M2）：对话 + 工具过程的完整流水（比 M1 多工具与系统边界事件）。"
     },
     {
+      "path": "agent/src/omni/memory/skill_acks.py",
+      "module": "storage",
+      "python_module": "omni.memory.skill_acks",
+      "lines": 57,
+      "imports": [
+        "omni.memory.jobs",
+        "omni.memory.state"
+      ],
+      "symbols": [
+        {
+          "name": "SkillAckStore",
+          "line": 19,
+          "kind": "class"
+        },
+        {
+          "name": "SkillAckStore.__init__",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "state"
+          ],
+          "annotations": {
+            "state": "StateStore"
+          }
+        },
+        {
+          "name": "SkillAckStore.ack",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "skill",
+            "rev"
+          ],
+          "annotations": {
+            "skill": "str",
+            "rev": "int"
+          }
+        },
+        {
+          "name": "SkillAckStore.acked",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "skill"
+          ],
+          "annotations": {
+            "skill": "str"
+          }
+        },
+        {
+          "name": "SkillAckStore.acked_all",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "SkillAckStore.forget",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "skill"
+          ],
+          "annotations": {
+            "skill": "str"
+          }
+        }
+      ],
+      "summary": "技能变更「已读」标记仓储（D18，`state.db`）。"
+    },
+    {
       "path": "agent/src/omni/memory/skill_inbox.py",
       "module": "storage",
       "python_module": "omni.memory.skill_inbox",
@@ -15297,51 +15448,53 @@
       "path": "agent/src/omni/memory/state.py",
       "module": "storage",
       "python_module": "omni.memory.state",
-      "lines": 1130,
+      "lines": 1031,
       "imports": [
         "omni.memory.jobs",
+        "omni.memory.mcp_schemas",
         "omni.memory.outbox",
+        "omni.memory.skill_acks",
         "omni.memory.state_schema"
       ],
       "symbols": [
         {
           "name": "StateError",
-          "line": 59,
+          "line": 64,
           "kind": "class"
         },
         {
           "name": "StateUnavailable",
-          "line": 63,
+          "line": 68,
           "kind": "class"
         },
         {
           "name": "StateConflict",
-          "line": 67,
+          "line": 72,
           "kind": "class"
         },
         {
           "name": "StateBusy",
-          "line": 71,
-          "kind": "class"
-        },
-        {
-          "name": "BudgetHit",
           "line": 76,
           "kind": "class"
         },
         {
+          "name": "BudgetHit",
+          "line": 81,
+          "kind": "class"
+        },
+        {
           "name": "Claim",
-          "line": 84,
+          "line": 89,
           "kind": "class"
         },
         {
           "name": "Lease",
-          "line": 91,
+          "line": 96,
           "kind": "class"
         },
         {
           "name": "Lease.session_id",
-          "line": 101,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self"
@@ -15350,12 +15503,12 @@
         },
         {
           "name": "MigrationRecord",
-          "line": 111,
+          "line": 116,
           "kind": "class"
         },
         {
           "name": "_statements",
-          "line": 120,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "sql"
@@ -15366,14 +15519,14 @@
         },
         {
           "name": "_now",
-          "line": 125,
+          "line": 130,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_translate_operational",
-          "line": 129,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "exc"
@@ -15384,7 +15537,7 @@
         },
         {
           "name": "_row_to_job",
-          "line": 144,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "row"
@@ -15395,7 +15548,7 @@
         },
         {
           "name": "_job_params",
-          "line": 167,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "job"
@@ -15406,12 +15559,12 @@
         },
         {
           "name": "StateStore",
-          "line": 186,
+          "line": 191,
           "kind": "class"
         },
         {
           "name": "StateStore.__init__",
-          "line": 189,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "self",
@@ -15427,7 +15580,7 @@
         },
         {
           "name": "StateStore._current_version",
-          "line": 227,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self"
@@ -15436,7 +15589,7 @@
         },
         {
           "name": "StateStore._apply_schema",
-          "line": 238,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "self"
@@ -15445,7 +15598,7 @@
         },
         {
           "name": "StateStore.schema_version",
-          "line": 282,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self"
@@ -15454,7 +15607,7 @@
         },
         {
           "name": "StateStore._tx",
-          "line": 288,
+          "line": 293,
           "kind": "function",
           "parameters": [
             "self"
@@ -15463,7 +15616,7 @@
         },
         {
           "name": "StateStore._begin",
-          "line": 313,
+          "line": 318,
           "kind": "function",
           "parameters": [
             "self"
@@ -15472,7 +15625,7 @@
         },
         {
           "name": "StateStore._read",
-          "line": 335,
+          "line": 340,
           "kind": "function",
           "parameters": [
             "self",
@@ -15486,7 +15639,7 @@
         },
         {
           "name": "StateStore._table_empty",
-          "line": 342,
+          "line": 347,
           "kind": "function",
           "parameters": [
             "self",
@@ -15498,7 +15651,7 @@
         },
         {
           "name": "StateStore.degraded_reason",
-          "line": 346,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "self",
@@ -15510,7 +15663,7 @@
         },
         {
           "name": "StateStore._require",
-          "line": 349,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "self",
@@ -15522,7 +15675,7 @@
         },
         {
           "name": "StateStore.close",
-          "line": 354,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "self"
@@ -15531,7 +15684,7 @@
         },
         {
           "name": "StateStore.list_jobs",
-          "line": 361,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "self"
@@ -15540,7 +15693,7 @@
         },
         {
           "name": "StateStore.get_job",
-          "line": 366,
+          "line": 371,
           "kind": "function",
           "parameters": [
             "self",
@@ -15552,7 +15705,7 @@
         },
         {
           "name": "StateStore.upsert_job",
-          "line": 371,
+          "line": 376,
           "kind": "function",
           "parameters": [
             "self",
@@ -15568,7 +15721,7 @@
         },
         {
           "name": "StateStore.update_run_state",
-          "line": 436,
+          "line": 441,
           "kind": "function",
           "parameters": [
             "self",
@@ -15586,7 +15739,7 @@
         },
         {
           "name": "StateStore.remove_job",
-          "line": 455,
+          "line": 460,
           "kind": "function",
           "parameters": [
             "self",
@@ -15598,7 +15751,7 @@
         },
         {
           "name": "StateStore.claim_due",
-          "line": 462,
+          "line": 467,
           "kind": "function",
           "parameters": [
             "self",
@@ -15616,7 +15769,7 @@
         },
         {
           "name": "StateStore.release_claim",
-          "line": 538,
+          "line": 543,
           "kind": "function",
           "parameters": [
             "self",
@@ -15628,7 +15781,7 @@
         },
         {
           "name": "StateStore.renew_job_claim",
-          "line": 542,
+          "line": 547,
           "kind": "function",
           "parameters": [
             "self",
@@ -15642,7 +15795,7 @@
         },
         {
           "name": "StateStore.lease",
-          "line": 550,
+          "line": 555,
           "kind": "function",
           "parameters": [
             "self",
@@ -15654,7 +15807,7 @@
         },
         {
           "name": "StateStore.acquire_lease",
-          "line": 563,
+          "line": 568,
           "kind": "function",
           "parameters": [
             "self",
@@ -15674,7 +15827,7 @@
         },
         {
           "name": "StateStore.renew_lease",
-          "line": 600,
+          "line": 605,
           "kind": "function",
           "parameters": [
             "self",
@@ -15690,7 +15843,7 @@
         },
         {
           "name": "StateStore.release_lease",
-          "line": 611,
+          "line": 616,
           "kind": "function",
           "parameters": [
             "self",
@@ -15702,7 +15855,7 @@
         },
         {
           "name": "StateStore.session_lease",
-          "line": 619,
+          "line": 624,
           "kind": "function",
           "parameters": [
             "self",
@@ -15714,7 +15867,7 @@
         },
         {
           "name": "StateStore.acquire_session_lease",
-          "line": 622,
+          "line": 627,
           "kind": "function",
           "parameters": [
             "self",
@@ -15734,7 +15887,7 @@
         },
         {
           "name": "StateStore.renew_session_lease",
-          "line": 639,
+          "line": 644,
           "kind": "function",
           "parameters": [
             "self",
@@ -15750,7 +15903,7 @@
         },
         {
           "name": "StateStore.release_session_lease",
-          "line": 644,
+          "line": 649,
           "kind": "function",
           "parameters": [
             "self",
@@ -15762,7 +15915,7 @@
         },
         {
           "name": "StateStore.record_execution",
-          "line": 649,
+          "line": 654,
           "kind": "function",
           "parameters": [
             "self",
@@ -15786,7 +15939,7 @@
         },
         {
           "name": "StateStore.recent_executions",
-          "line": 674,
+          "line": 679,
           "kind": "function",
           "parameters": [
             "self",
@@ -15798,7 +15951,7 @@
         },
         {
           "name": "StateStore.consume_budget",
-          "line": 694,
+          "line": 699,
           "kind": "function",
           "parameters": [
             "self",
@@ -15814,7 +15967,7 @@
         },
         {
           "name": "StateStore.budget_used",
-          "line": 717,
+          "line": 722,
           "kind": "function",
           "parameters": [
             "self",
@@ -15828,7 +15981,7 @@
         },
         {
           "name": "StateStore._migration",
-          "line": 725,
+          "line": 730,
           "kind": "function",
           "parameters": [
             "self",
@@ -15840,7 +15993,7 @@
         },
         {
           "name": "StateStore._write_migration",
-          "line": 739,
+          "line": 744,
           "kind": "function",
           "parameters": [
             "self",
@@ -15862,7 +16015,7 @@
         },
         {
           "name": "StateStore.migrate_legacy",
-          "line": 758,
+          "line": 763,
           "kind": "function",
           "parameters": [
             "self",
@@ -15874,7 +16027,7 @@
         },
         {
           "name": "StateStore._migrate_file",
-          "line": 767,
+          "line": 772,
           "kind": "function",
           "parameters": [
             "self",
@@ -15890,7 +16043,7 @@
         },
         {
           "name": "StateStore._mark_corrupt",
-          "line": 805,
+          "line": 810,
           "kind": "function",
           "parameters": [
             "self",
@@ -15908,7 +16061,7 @@
         },
         {
           "name": "StateStore._import_rows",
-          "line": 820,
+          "line": 825,
           "kind": "function",
           "parameters": [
             "self",
@@ -15924,7 +16077,7 @@
         },
         {
           "name": "StateStore._import_jobs",
-          "line": 829,
+          "line": 834,
           "kind": "function",
           "parameters": [
             "self",
@@ -15938,7 +16091,7 @@
         },
         {
           "name": "StateStore._import_executions",
-          "line": 864,
+          "line": 869,
           "kind": "function",
           "parameters": [
             "self",
@@ -15952,7 +16105,7 @@
         },
         {
           "name": "StateStore._import_budget",
-          "line": 889,
+          "line": 894,
           "kind": "function",
           "parameters": [
             "self",
@@ -15966,7 +16119,7 @@
         },
         {
           "name": "StateStore.health",
-          "line": 906,
+          "line": 911,
           "kind": "function",
           "parameters": [
             "self"
@@ -15975,12 +16128,12 @@
         },
         {
           "name": "JobStore",
-          "line": 943,
+          "line": 948,
           "kind": "class"
         },
         {
           "name": "JobStore.__init__",
-          "line": 946,
+          "line": 951,
           "kind": "function",
           "parameters": [
             "self",
@@ -15992,7 +16145,7 @@
         },
         {
           "name": "JobStore.state",
-          "line": 950,
+          "line": 955,
           "kind": "function",
           "parameters": [
             "self"
@@ -16001,7 +16154,7 @@
         },
         {
           "name": "JobStore.list",
-          "line": 953,
+          "line": 958,
           "kind": "function",
           "parameters": [
             "self"
@@ -16010,7 +16163,7 @@
         },
         {
           "name": "JobStore.get",
-          "line": 956,
+          "line": 961,
           "kind": "function",
           "parameters": [
             "self",
@@ -16022,7 +16175,7 @@
         },
         {
           "name": "JobStore.upsert",
-          "line": 959,
+          "line": 964,
           "kind": "function",
           "parameters": [
             "self",
@@ -16038,7 +16191,7 @@
         },
         {
           "name": "JobStore.remove",
-          "line": 966,
+          "line": 971,
           "kind": "function",
           "parameters": [
             "self",
@@ -16050,7 +16203,7 @@
         },
         {
           "name": "JobStore.claim_due",
-          "line": 969,
+          "line": 974,
           "kind": "function",
           "parameters": [
             "self",
@@ -16063,7 +16216,7 @@
         },
         {
           "name": "JobStore.release_claim",
-          "line": 972,
+          "line": 977,
           "kind": "function",
           "parameters": [
             "self",
@@ -16075,7 +16228,7 @@
         },
         {
           "name": "JobStore.renew_claim",
-          "line": 975,
+          "line": 980,
           "kind": "function",
           "parameters": [
             "self",
@@ -16089,7 +16242,7 @@
         },
         {
           "name": "JobStore.update_run_state",
-          "line": 978,
+          "line": 983,
           "kind": "function",
           "parameters": [
             "self",
@@ -16102,12 +16255,12 @@
         },
         {
           "name": "ExecutionLog",
-          "line": 982,
+          "line": 987,
           "kind": "class"
         },
         {
           "name": "ExecutionLog.__init__",
-          "line": 985,
+          "line": 990,
           "kind": "function",
           "parameters": [
             "self",
@@ -16121,7 +16274,7 @@
         },
         {
           "name": "ExecutionLog.record",
-          "line": 989,
+          "line": 994,
           "kind": "function",
           "parameters": [
             "self",
@@ -16143,7 +16296,7 @@
         },
         {
           "name": "ExecutionLog.recent",
-          "line": 1008,
+          "line": 1013,
           "kind": "function",
           "parameters": [
             "self",
@@ -16155,7 +16308,7 @@
         },
         {
           "name": "ExecutionLog.output",
-          "line": 1011,
+          "line": 1016,
           "kind": "function",
           "parameters": [
             "self",
@@ -16175,7 +16328,7 @@
         },
         {
           "name": "ExecutionLog.source",
-          "line": 1018,
+          "line": 1023,
           "kind": "function",
           "parameters": [
             "self",
@@ -16185,129 +16338,6 @@
           "annotations": {
             "job": "str",
             "max_age_minutes": "int"
-          }
-        },
-        {
-          "name": "MCPSchemaStore",
-          "line": 1029,
-          "kind": "class"
-        },
-        {
-          "name": "MCPSchemaStore.__init__",
-          "line": 1036,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "state"
-          ],
-          "annotations": {
-            "state": "StateStore"
-          }
-        },
-        {
-          "name": "MCPSchemaStore.observe",
-          "line": 1039,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "server",
-            "fingerprint",
-            "tool_count"
-          ],
-          "annotations": {
-            "server": "str",
-            "fingerprint": "str",
-            "tool_count": "int"
-          }
-        },
-        {
-          "name": "MCPSchemaStore.confirm",
-          "line": 1064,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "server",
-            "fingerprint"
-          ],
-          "annotations": {
-            "server": "str",
-            "fingerprint": "str"
-          }
-        },
-        {
-          "name": "MCPSchemaStore.status",
-          "line": 1075,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "server"
-          ],
-          "annotations": {
-            "server": "str"
-          }
-        },
-        {
-          "name": "SkillAckStore",
-          "line": 1091,
-          "kind": "class"
-        },
-        {
-          "name": "SkillAckStore.__init__",
-          "line": 1099,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "state"
-          ],
-          "annotations": {
-            "state": "StateStore"
-          }
-        },
-        {
-          "name": "SkillAckStore.ack",
-          "line": 1102,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "skill",
-            "rev"
-          ],
-          "annotations": {
-            "skill": "str",
-            "rev": "int"
-          }
-        },
-        {
-          "name": "SkillAckStore.acked",
-          "line": 1117,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "skill"
-          ],
-          "annotations": {
-            "skill": "str"
-          }
-        },
-        {
-          "name": "SkillAckStore.acked_all",
-          "line": 1123,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "SkillAckStore.forget",
-          "line": 1127,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "skill"
-          ],
-          "annotations": {
-            "skill": "str"
           }
         }
       ],
@@ -32651,9 +32681,9 @@
           "line": 252
         },
         {
-          "source": "agent/src/omni/memory/state.py",
+          "source": "agent/src/omni/memory/mcp_schemas.py",
           "symbol": "MCPSchemaStore",
-          "line": 1029
+          "line": 22
         }
       ]
     }

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2d0c8ee387c38deb978ea8fc27292b0bf04f0980ed11d1e30960e79760f7be57`。包含 56 个职责模块、282 个源码/界面文件。
+源码指纹：`f6718093375348faff88580f5b78d7f4972467cb876ee765849656e3ec2668ff`。包含 56 个职责模块、284 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -173,6 +173,7 @@
 | [agent/src/omni/memory/guard.py](../../agent/src/omni/memory/guard.py) | 130 | 记忆写入的确定性闸门（D12 / A15）。 |
 | [agent/src/omni/memory/jobs.py](../../agent/src/omni/memory/jobs.py) | 138 | 定时任务模型与调度时间（纯数据 + 纯函数，不碰存储）。 |
 | [agent/src/omni/memory/journal.py](../../agent/src/omni/memory/journal.py) | 420 | 笔记记忆（M3/M4/M5）：每日/每周/每月笔记的存储与到期判定。 |
+| [agent/src/omni/memory/mcp_schemas.py](../../agent/src/omni/memory/mcp_schemas.py) | 77 | MCP 工具目录指纹仓储（D19，`state.db`）。 |
 | [agent/src/omni/memory/outbox.py](../../agent/src/omni/memory/outbox.py) | 241 | QQ 投递 outbox 仓储（`state.db`）。 |
 | [agent/src/omni/memory/owner.py](../../agent/src/omni/memory/owner.py) | 207 | 所有者记忆门面：档案行与常驻笔记统一进人物系统后的注入与维护面。 |
 | [agent/src/omni/memory/owner_migrate.py](../../agent/src/omni/memory/owner_migrate.py) | 151 | 所有者记忆一次性迁移：profile 表与 MEMORY.md → owner 人物条目。 |
@@ -183,9 +184,10 @@
 | [agent/src/omni/memory/revisions.py](../../agent/src/omni/memory/revisions.py) | 240 | 内容修订历史（D08）：技能与常驻记忆的"可回滚快照"。 |
 | [agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py) | 388 | 运行记录（run）与事件流（`state.db`）：一次"问—想—做—答"的可查账本。 |
 | [agent/src/omni/memory/session_log.py](../../agent/src/omni/memory/session_log.py) | 409 | 会话全量记忆（M2）：对话 + 工具过程的完整流水（比 M1 多工具与系统边界事件）。 |
+| [agent/src/omni/memory/skill_acks.py](../../agent/src/omni/memory/skill_acks.py) | 57 | 技能变更「已读」标记仓储（D18，`state.db`）。 |
 | [agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py) | 574 | 外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。 |
 | [agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py) | 1049 | 技能存储（程序性记忆）：skills/<name>/SKILL.md，agentskills.io 兼容子集。 |
-| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 1130 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
+| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 1031 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
 | [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1146 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
 | [agent/src/omni/memory/system.py](../../agent/src/omni/memory/system.py) | 61 | 记忆系统门面：六个记忆模块对外的单点聚合（组合根纪律，无业务逻辑）。 |
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
