@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/ui/tokens.css?v=20261031a">
 <link rel="stylesheet" href="/ui/base.css?v=20261031c">
 <link rel="stylesheet" href="/ui/icons.css?v=20261029">
-<link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m13"><link rel="stylesheet" href="/memory/memory.css?v=20261031m11"><script src="/ui/shared.js?v=20261031m8"></script><script src="/ui/markdown.js?v=20261029"></script>
+<link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m14"><link rel="stylesheet" href="/memory/memory.css?v=20261031m11"><script src="/ui/shared.js?v=20261031m8"></script><script src="/ui/markdown.js?v=20261029"></script>
 </head>
 <body data-ui-page="workbench">
 <!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
@@ -232,6 +232,7 @@
       <a data-go="sec-android">安卓控制</a>
       <a data-go="sec-jobs">后台任务</a>
       <a data-go="sec-mcp-services">MCP 服务</a>
+      <a data-go="sec-plugins">插件</a>
       <a data-go="sec-capabilities">能力诊断</a>
       <a data-go="sec-project">项目索引</a>
       <div class="hub-group">平台与通道</div>
@@ -263,8 +264,9 @@
           </div>
           <div id="persona-presets"></div>
         </div>
-        <div class="hint" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
-          🔮 以后这里会有更多现成的设定可以直接拿来用——比如某些角色说话的味道、整套性格包之类。还没做，先占个位置。
+        <div class="hint market-cta" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
+          <span>不想自己写？市场里有别人调好的整套设定——挑一个导入，就等于新建了一套预设（改名、改成自己想要的都行）。</span>
+          <button class="btn small" data-action="market:open" data-kind="persona">看看人设市场</button>
         </div>
         <div class="card-actions">
           <button class="save-btn" data-action="hub:save" data-scope="persona">保存人设</button>
@@ -575,6 +577,26 @@
         </div>
         <div id="mcp-list" style="margin-top:14px"></div>
       </div>
+      <div class="hub-card" id="sec-plugins">
+        <h3>插件</h3>
+        <div class="hint">
+          插件是装在本机进程里的小工具包——装上之后小鱼就多几个能用的工具（比如格式化 JSON、统计字数、换算单位）。<br>
+          它和上面的扩展不是一回事：扩展是外面单独起的一个服务，插件是直接长在它身上的本事。
+        </div>
+        <div class="note-box">
+          <div class="nb-title">装和用是两步</div>
+          <div class="nb-body">「装下来」只是把包装进隔离区，<b>不会运行</b>；你点了「激活」它才会真正加载——激活就等于同意运行这份代码。所以来源不明的插件，别激活。</div>
+        </div>
+        <div class="market-actions">
+          <button class="btn" data-action="market:open" data-kind="plugin">打开插件市场</button>
+          <button class="btn small" data-action="plugins:refresh">刷新本机清单</button>
+          <span id="plugin-market-tip" class="test-out"></span>
+        </div>
+        <h4>已装</h4>
+        <div id="plugin-installed"><p class="empty">正在读取…</p></div>
+        <h4>下载好了，等你确认</h4>
+        <div id="plugin-quarantine"><p class="empty">正在读取…</p></div>
+      </div>
       <div class="hub-card" id="sec-memory-system">
         <h3>记忆系统</h3>
         <p class="hint">对话与会话存档、日周月笔记、核心人物和整理设置。</p>
@@ -614,6 +636,8 @@
     </div>
   </div>
 </div>
+<!-- 市场弹窗：人设与插件共用这个骨架，内容由 hub-market.js 按需渲染（静态 id 供契约门禁核对） -->
+<dialog class="modal market" id="market-modal"></dialog>
 <script type="module" src="/ui/app/main.js?v=20261031m17"></script>
 </body>
 </html>

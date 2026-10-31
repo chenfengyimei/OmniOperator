@@ -1,6 +1,7 @@
 """设置中心分区结构与命名统一的守卫。
 
-背景：7 个工具子站并入设置中心后，侧栏从 14 项涨到 20 项、分区从 4 组涨到 5 组。
+背景：7 个工具子站并入设置中心后，侧栏从 14 项涨到 20 项、分区从 4 组涨到 5 组；
+插件市场并入「工具与设备」后为 21 项。分组仍固定为 5 组。
 「导航名 / 浏览器标题 / 页内 h1」三处说法必须逐字一致——不一致时用户点进去会以为
 换了个东西（本轮统一前实际产出过「人工终端 · 人工终端 · OmniOperator」这种重复后缀）。
 """
@@ -14,7 +15,7 @@ from test_web import _client
 STATIC = Path(__file__).resolve().parents[1] / "src" / "omni" / "channels" / "web_static"
 INDEX = STATIC / "index.html"
 
-# 工具与设备组：7 个工具页里除 storage（已是分区）外新并入的 6 个
+# 工具与设备组：7 个工具页里除 storage（已是分区）外新并入的 6 个，加上插件（市场入口）
 TOOL_SECTIONS = {
     "sec-terminal": "人工终端",
     "sec-android": "安卓控制",
@@ -22,9 +23,10 @@ TOOL_SECTIONS = {
     "sec-mcp-services": "MCP 服务",
     "sec-capabilities": "能力诊断",
     "sec-project": "项目索引",
+    "sec-plugins": "插件",
 }
 
-# 五组固定：核心系统 3 / 对话与模型 3 / 工具与设备 6 / 平台与通道 4 / 文件与用量 4
+# 五组固定：核心系统 3 / 对话与模型 3 / 工具与设备 7 / 平台与通道 4 / 文件与用量 4
 EXPECTED_GROUPS = {
     "核心系统": {"sec-context", "sec-skills", "sec-memory-system"},
     "对话与模型": {"sec-persona", "sec-models", "sec-memory"},
@@ -167,7 +169,7 @@ def test_hub_nav_search_filters_sections(ui):
     search.wait_for(state="visible")
 
     total = page.locator(".hub-nav a[data-go]").count()
-    assert total == 20, "侧栏应有 20 个分区条目，实得 %d" % total
+    assert total == 21, "侧栏应有 21 个分区条目（插件市场并入后 +1），实得 %d" % total
 
     search.fill("终端")
     page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===1")
@@ -183,5 +185,5 @@ def test_hub_nav_search_filters_sections(ui):
     assert page.locator(".hub-nav-empty").is_visible()
 
     search.fill("")
-    page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===20")
+    page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===21")
     assert not errors, "侧栏搜索引发脚本异常：%s" % errors

@@ -1,4 +1,5 @@
-// 人设预设方案（localStorage 持久化，可增删改；后续接入社区扩展包）。
+// 人设预设方案（localStorage 持久化，可增删改；市场导入的整套设定也落在这里，
+// 用 `market-<id>` 前缀区分来源，见 hub-market.js）。
 import {$,esc} from './dom.js?v=20261031m17';
 
 const PRESET_KEY='omni_persona_presets';
@@ -28,15 +29,15 @@ const SEED_PRESETS=[
 能用工具核实的事先核实，不编造信息；危险操作先说明再做。
 被问到偏好、约定、重要结论时主动记住（remember），相关提问先回顾记忆（recall）再回答。`},
 ];
-function loadPresets(){
+export function loadPresets(){
   try{const raw=localStorage.getItem(PRESET_KEY);
     if(raw){const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length)return arr;}
   }catch(e){}
   localStorage.setItem(PRESET_KEY,JSON.stringify(SEED_PRESETS));
   return JSON.parse(JSON.stringify(SEED_PRESETS));
 }
-function savePresets(arr){localStorage.setItem(PRESET_KEY,JSON.stringify(arr))}
-function presetTip(msg,ok=true){
+export function savePresets(arr){localStorage.setItem(PRESET_KEY,JSON.stringify(arr))}
+export function presetTip(msg,ok=true){
   const t=$('#preset-tip'); if(!t)return;
   t.textContent=msg; t.style.color=ok?'#34d399':'#f87171';
 }
@@ -58,11 +59,18 @@ export function renderPersonaPresets(activeName){
 }
 function findPreset(id){return loadPresets().find(p=>p.id===id)}
 function genPresetId(){return 'p-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+// 把一套设定填进表单（预设「应用」与市场「导入」共用这一个落点：
+// 填进去 ≠ 生效，真正写配置仍由用户点「保存人设」）
+export function applyPersonaFields(name,prompt){
+  const nameInput=$('#cfg-persona-name'),promptInput=$('#cfg-persona-prompt');
+  if(!nameInput||!promptInput)return;
+  nameInput.value=name;
+  promptInput.value=String(prompt).trim();
+  renderPersonaPresets(name);
+}
 function applyPreset(id) {
   const p=findPreset(id); if(!p)return;
-  $('#cfg-persona-name').value=p.name;
-  $('#cfg-persona-prompt').value=p.prompt.trim();
-  renderPersonaPresets(p.name);
+  applyPersonaFields(p.name,p.prompt);
   presetTip(`已填入「${p.name}」。点下面「保存人设」生效。`);
 }
 async function deletePreset(id) {

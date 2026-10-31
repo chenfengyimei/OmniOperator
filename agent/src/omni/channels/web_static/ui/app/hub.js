@@ -16,6 +16,7 @@ import {loadJobsHub} from './hub-jobs.js?v=20261031m17';
 import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261031m17';
 import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261031m17';
 import {loadProjectHub} from './hub-project.js?v=20261031m17';
+import {loadPluginsHub} from './hub-market.js?v=20261031m17';
 
 /* 分区加载器表：切到哪个分区要拉什么数据，在这里登记一处。
    逐条 if 散在 switchHub 里，分区一多就容易漏（漏了的表现是分区空白）。 */
@@ -30,6 +31,7 @@ const PANEL_LOADERS={
   'sec-capabilities':()=>loadCapabilitiesHub(),
   'sec-mcp-services':()=>loadMcpServicesHub(),
   'sec-project':()=>loadProjectHub(),
+  'sec-plugins':()=>loadPluginsHub(),
 };
 
 export async function openHub(go=null){
@@ -148,6 +150,7 @@ if(navSearch){
     'sec-mcp-services':'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.8M12 18.4v2.8M2.8 12h2.8M18.4 12h2.8M5.5 5.5l1.9 1.9M16.6 16.6l1.9 1.9M18.5 5.5l-1.9 1.9M7.4 16.6l-1.9 1.9"/>',
     'sec-capabilities':'<path d="M4 15.6l4.6-4.6 3 3L20 5.6"/><path d="M15.4 5.6H20v4.6"/>',
     'sec-project':'<rect x="3.6" y="4.4" width="7" height="7" rx="1.4"/><rect x="13.4" y="4.4" width="7" height="7" rx="1.4"/><rect x="3.6" y="14.4" width="7" height="7" rx="1.4"/><rect x="13.4" y="14.4" width="7" height="7" rx="1.4"/>',
+    'sec-plugins':'<path d="M9.4 3.6h5.2v3.1a2 2 0 0 0 3.1 1.7l1.9 1.2-2.6 4.5-1.6-1a1.4 1.4 0 0 0-2.1 1.2v5.1h-5.2v-5.1a1.4 1.4 0 0 0-2.1-1.2l-1.6 1-2.6-4.5 1.9-1.2a2 2 0 0 0 3.1-1.7z"/>',
   };
   document.querySelectorAll('.hub-nav a').forEach(function(a){
     const id=a.dataset.go, body=icons[id];

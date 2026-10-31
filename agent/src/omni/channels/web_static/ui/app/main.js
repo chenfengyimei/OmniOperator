@@ -20,6 +20,7 @@ import {actions as hubCronActions} from './hub-cron.js?v=20261031m17';
 import {actions as hubMcpActions} from './hub-mcp.js?v=20261031m17';
 import {actions as hubContextActions} from './hub-context.js?v=20261031m17';
 import {actions as hubSkillsActions} from './hub-skills.js?v=20261031m17';
+import {actions as hubMarketActions} from './hub-market.js?v=20261031m17';
 import {actions as railActions} from './rail.js?v=20261031m17';
 import './tips.js?v=20261031m17';
 
@@ -31,7 +32,7 @@ import './tips.js?v=20261031m17';
 const ACTIONS={};
 for(const map of [chatActions,sessionsActions,runsActions,memoryActions,skillsActions,artifactsActions,
                   publicationsActions,desktopActions,approvalsActions,servicesActions,modalsActions,
-                  hubActions,hubModelActions,hubPersonaActions,hubCronActions,hubMcpActions,hubContextActions,hubSkillsActions,railActions])
+                  hubActions,hubModelActions,hubPersonaActions,hubCronActions,hubMcpActions,hubContextActions,hubSkillsActions,hubMarketActions,railActions])
   Object.assign(ACTIONS,map);
 function dispatch(e){
   const el=e.target.closest('[data-action]');
