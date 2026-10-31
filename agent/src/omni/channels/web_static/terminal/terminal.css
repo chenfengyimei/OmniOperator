@@ -124,3 +124,14 @@ label{white-space:nowrap}.directory input{flex:1;width:0;min-width:0}
   body[data-ui-page="terminal"] #create{flex-wrap:nowrap}
   body[data-ui-page="terminal"] #create .directory{flex:0 0 auto;min-width:0}
 }
+
+/* 内嵌进设置中心时，高度交给内容决定（宿主按内容调 iframe 高度）：
+   视口单位在 iframe 里等于 iframe 自身高度，与「高度由内容决定」互相反馈会震荡。 */
+html.ui-embed body[data-ui-page="terminal"],
+body[data-ui-page="terminal"].ui-embedded{
+  height:auto!important;min-height:0!important;overflow:visible!important;
+}
+html.ui-embed body[data-ui-page="terminal"]>.terminal-layout,
+body[data-ui-page="terminal"].ui-embedded>.terminal-layout{
+  height:auto!important;min-height:520px!important;
+}

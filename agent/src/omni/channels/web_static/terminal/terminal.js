@@ -1,5 +1,5 @@
 /* 人工终端：恢复只回放输出，任何异步输入始终绑定原标签及连接。 */
-import {$} from '/ui/app/dom.js?v=20261031m14';
+import {$} from '/ui/app/dom.js?v=20261031m15';
 const UI=window.OmniUI,views=new Map();let active='',leaving=false,creating=false,available=false;
 const api=UI.request;
 function status(text){$('#state').textContent=text}
@@ -53,7 +53,13 @@ function add(row){
   document.querySelector('.terminal-welcome')?.remove();
   const screen=UI.element('div',null,'screen');screen.hidden=true;$('#screens').append(screen);
   const button=UI.element('button',row.label);button.type='button';button.setAttribute('role','tab');button.onclick=()=>select(row.id);$('#tabs').append(button);
-  const term=new Terminal({fontFamily:'Consolas, monospace',fontSize:13,scrollback:4000,theme:{background:'#0e1116',foreground:'#dbe7ee'}}),fitAddon=new FitAddon.FitAddon();term.loadAddon(fitAddon);term.open(screen);
+  const term=new Terminal({
+    fontFamily:getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim()||'Consolas, monospace',
+    fontSize:13,scrollback:4000,theme:window.OmniTerminalTheme.theme()
+  }),fitAddon=new FitAddon.FitAddon();term.loadAddon(fitAddon);term.open(screen);
+  // 终端主题跟随站点深浅色：omni:theme-change 由 theme.js 派发
+  // （iframe 内嵌时靠 localStorage 的 storage 事件跨文档同步）。
+  window.OmniTerminalTheme.watch(term);
   const v={row,screen,button,term,fit:fitAddon,after:0,attempt:0,stopped:false};views.set(row.id,v);
   term.onData(data=>{if(active===row.id)send(v,{type:'input',data})});
   term.onResize(({cols,rows})=>{if(v.ws?.readyState===1&&cols>=20&&rows>=5)v.ws.send(JSON.stringify({v:2,type:'resize',cols:Math.min(500,cols),rows:Math.min(200,rows)}))});
@@ -80,6 +86,9 @@ $('#end').onclick=async()=>{
 };
 $('#reconnect').onclick=()=>{const v=views.get(active);if(v){v.attempt=0;connect(v)}};
 window.addEventListener('resize',()=>{const v=views.get(active);if(v)fit(v)});
+// 容器尺寸变化也要 fit：内嵌进设置中心后，iframe 高度由宿主按内容调整，
+// 窗口没变而容器变了——不加观察器，终端行列数会与实际显示区域对不上。
+if(window.ResizeObserver){const screenObserver=new ResizeObserver(()=>{const v=views.get(active);if(v)fit(v)});screenObserver.observe($('#screens'));window.addEventListener('beforeunload',()=>screenObserver.disconnect())}
 document.addEventListener('keydown',event=>{if(event.ctrlKey&&event.shiftKey&&event.key.toLowerCase()==='t'){event.preventDefault();document.querySelector('#create button')?.click()}});
 window.addEventListener('beforeunload',()=>{leaving=true;for(const v of views.values()){clearTimeout(v.timer);v.ws?.close()}});
 (async()=>{

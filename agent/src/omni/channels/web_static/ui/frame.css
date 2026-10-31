@@ -423,3 +423,29 @@ body[data-ui-page]:not([data-ui-page="workbench"]) :is(#jobs,#catalog,#checks,#t
   body[data-ui-page]:not([data-ui-page="workbench"]) .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
+
+/* --------------------------------------------------------------------------
+   Embed 降级层：子页被 iframe 内嵌进设置中心时，去掉自身 chrome 与页面留白。
+   共享到这一层后，所有内嵌页共用一份规则；页面级 css 不再重复写 embed。
+   双 class 机制：shared.js 同时给 <html>.ui-embed 与 <body>.ui-embedded。
+   html 侧负责背景透明（首帧即生效），body 侧负责布局归零。
+   -------------------------------------------------------------------------- */
+html.ui-embed{background:transparent!important}
+html.ui-embed body[data-ui-page],
+body[data-ui-page].ui-embedded{
+  padding:0!important;margin:0!important;min-height:0!important;
+  background:transparent!important;overflow:auto;
+}
+html.ui-embed body[data-ui-page]::before,
+body[data-ui-page].ui-embedded::before{display:none!important}
+html.ui-embed body[data-ui-page]>header,
+html.ui-embed body[data-ui-page]>.ui-global-nav,
+body[data-ui-page].ui-embedded>header,
+body[data-ui-page].ui-embedded>.ui-global-nav{display:none!important}
+html.ui-embed body[data-ui-page]>:not(header):not(.ui-global-nav),
+body[data-ui-page].ui-embedded>:not(header):not(.ui-global-nav){
+  width:100%!important;max-width:none!important;margin-left:0!important;margin-right:0!important;
+}
+/* 内嵌时页面自己的工具条不再留上边距（外壳已经给过间距了） */
+html.ui-embed body[data-ui-page]>.storage-toolbar,
+body[data-ui-page].ui-embedded>.storage-toolbar{margin-top:0}

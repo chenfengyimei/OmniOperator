@@ -93,3 +93,9 @@ body[data-ui-page="android"] #status,body[data-ui-page="android"] #frame-info{fo
   body[data-ui-page="android"] .android-toolbar{display:block}
   body[data-ui-page="android"] .toolbar-group{margin:5px 0}
 }
+
+/* 内嵌时设备画面改用固定宽高比（不依赖视口高），避免与 iframe 高度互相反馈 */
+html.ui-embed body[data-ui-page="android"] #screen,
+body[data-ui-page="android"].ui-embedded #screen{
+  height:auto!important;aspect-ratio:9/19.5;max-height:none!important;
+}

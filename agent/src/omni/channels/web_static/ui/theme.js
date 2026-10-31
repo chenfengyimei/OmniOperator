@@ -50,10 +50,33 @@
     }
   };
 
-  /* 跟随系统：仅在用户没手动指定过时跟随系统偏好变化 */
+  /* 跟随系统：仅在用户没手动指定过时跟随系统偏好变化。
+     必须补派发 omni:theme-change——否则终端（xterm）这类按事件重绘主题的
+     组件在系统切浅色时不会跟着翻。 */
   if (mq && mq.addEventListener) {
     mq.addEventListener('change', function () {
-      if (pref === 'auto') document.documentElement.setAttribute('data-theme', resolve('auto'));
+      if (pref !== 'auto') return;
+      document.documentElement.setAttribute('data-theme', resolve('auto'));
+      document.dispatchEvent(new CustomEvent('omni:theme-change', {
+        detail: { pref: pref, effective: resolve('auto') }
+      }));
     });
   }
+
+  /* 同源其它文档改了主题偏好，本页同步跟上。
+     为什么必须有：主题切换按钮在工作台，终端页是 iframe 里的独立文档——
+     omni:theme-change 是 document 级事件，跨 document 不传播。
+     localStorage 的 storage 事件在同源其它文档间广播，正好覆盖这个场景
+     （也顺带覆盖「另一个标签页切了主题」）。 */
+  window.addEventListener('storage', function (event) {
+    if (event.key !== KEY || !event.newValue) return;
+    var next = (event.newValue === 'light' || event.newValue === 'dark' || event.newValue === 'auto')
+      ? event.newValue : 'auto';
+    if (next === pref) return;
+    pref = next;
+    document.documentElement.setAttribute('data-theme', resolve(pref));
+    document.dispatchEvent(new CustomEvent('omni:theme-change', {
+      detail: { pref: pref, effective: resolve(pref) }
+    }));
+  });
 })();

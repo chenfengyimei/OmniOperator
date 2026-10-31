@@ -1,10 +1,10 @@
 // 会话列表与切换：搜索框只过滤缓存；切换/新建都走「代数守门」防迟到响应串台。
-import {$,esc,relTime} from './dom.js?v=20261031m14';
-import {api} from './api.js?v=20261031m14';
-import {S} from './state.js?v=20261031m14';
-import {syncActiveRun} from './runs.js?v=20261031m14';
-import {loadMessages} from './chat.js?v=20261031m14';
-import {loadTodos} from './memory.js?v=20261031m14';
+import {$,esc,relTime} from './dom.js?v=20261031m15';
+import {api} from './api.js?v=20261031m15';
+import {S} from './state.js?v=20261031m15';
+import {syncActiveRun} from './runs.js?v=20261031m15';
+import {loadMessages} from './chat.js?v=20261031m15';
+import {loadTodos} from './memory.js?v=20261031m15';
 
 export function showSession(id){
   S.drafts.set(S.currentSession,$('#input').value);S.currentSession=id;

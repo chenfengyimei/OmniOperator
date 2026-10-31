@@ -1,4 +1,4 @@
-import {$} from '/ui/app/dom.js?v=20261031m14';
+import {$} from '/ui/app/dom.js?v=20261031m15';
 const state = {project:null, tools:[], extensions:null, view:'modules', query:'', category:''};
 const views = {
   modules:['浏览整个 Agent','按职责查找模块、源码、测试和说明文档。'],

@@ -940,15 +940,18 @@ body[data-ui-page="workbench"] .hub-back{
 }
 body[data-ui-page="workbench"] .hub-back:hover{color:var(--seed-accent);border-color:var(--line-accent);background:color-mix(in srgb,var(--seed-accent) 8%,transparent)}
 body[data-ui-page="workbench"] .hub-back .material-icons{font-size:18px}
-.storage-embed-shell{
+/* 内嵌分区外壳（terminal / android / storage 三个 iframe 共用）。
+   固定高度是**兜底**——子页会用 postMessage 上报内容高度，宿主据此改 iframe 的 height；
+   收不到消息时（postMessage 不可用）就用这里的固定高度。 */
+.embed-shell{
   margin-top:14px;height:min(720px,calc(100dvh - 230px));min-height:420px;
   border:1px solid var(--line-2);border-radius:var(--r-card);overflow:hidden;background:var(--surface-inset);
 }
-#storage-frame{display:block;width:100%;height:100%;border:0;background:transparent}
+.embed-shell iframe{display:block;width:100%;height:100%;border:0;background:transparent}
 @media(max-width:760px){
   body[data-ui-page="workbench"] .hub-header{padding:8px 10px;gap:8px}
   body[data-ui-page="workbench"] .hub-back{width:32px;height:32px;min-height:32px}
-  .storage-embed-shell{height:calc(100dvh - 210px);min-height:480px}
+  .embed-shell{height:calc(100dvh - 210px);min-height:480px}
 }
 
 /* ---------- 审批队列 rail 徽章（Phase 6）：pending>0 时显示计数，0 即摘除 ---------- */

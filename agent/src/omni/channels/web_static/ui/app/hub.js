@@ -1,17 +1,17 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m14';
-import {api} from './api.js?v=20261031m14';
-import {loadState} from './header.js?v=20261031m14';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m14';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m14';
-import {loadCron} from './hub-cron.js?v=20261031m14';
-import {loadUsage} from './hub-usage.js?v=20261031m14';
-import {loadMcp} from './hub-mcp.js?v=20261031m14';
-import {loadContext} from './hub-context.js?v=20261031m14';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m14';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m14';
+import {$,esc} from './dom.js?v=20261031m15';
+import {api} from './api.js?v=20261031m15';
+import {loadState} from './header.js?v=20261031m15';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m15';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m15';
+import {loadCron} from './hub-cron.js?v=20261031m15';
+import {loadUsage} from './hub-usage.js?v=20261031m15';
+import {loadMcp} from './hub-mcp.js?v=20261031m15';
+import {loadContext} from './hub-context.js?v=20261031m15';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m15';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m15';
 
 export async function openHub(go=null){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
@@ -25,6 +25,28 @@ function closeHub(){
   $('#hub').setAttribute('aria-hidden','true');
   document.querySelector('.hub-open')?.focus?.();
 }
+/* 内嵌分区：首次进入才赋 src（懒加载）——一次性拉起三个 iframe 会同时建起
+   WebSocket 长连与轮询，开页就把后台资源全占上了。 */
+const EMBED_PAGES=['sec-terminal','sec-android','sec-storage'];
+function mountEmbed(go){
+  if(!EMBED_PAGES.includes(go))return;
+  const frame=document.getElementById(go)?.querySelector('iframe[data-embed-page]');
+  if(frame&&!frame.getAttribute('src'))frame.src=frame.dataset.src;
+}
+/* iframe 高度自适应：子页用 postMessage 上报内容高度，宿主据此写 iframe 高度。
+   消息必须校验 origin（只收同源）且带本协议标记，避免被别的 frame 打扰。
+   收不到消息时用 CSS 固定高度兜底（.embed-shell）。 */
+window.addEventListener('message',event=>{
+  if(event.origin!==location.origin)return;
+  const data=event.data;
+  if(!data||data.omni!=='embed-height')return;
+  const frame=document.querySelector('iframe[data-embed-page="'+data.id+'"]');
+  if(!frame)return;
+  const min=Number(frame.dataset.minHeight||360);
+  const max=Number(frame.dataset.maxHeight||1600);
+  const h=Math.min(max,Math.max(min,Number(data.h)||min));
+  frame.style.height=h+'px';
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('dialog[open]')&&!$('#hub').classList.contains('hidden'))closeHub()});
 export function switchHub(go){
   document.querySelectorAll('.hub-nav a').forEach(x=>{
@@ -42,10 +64,7 @@ export function switchHub(go){
     if(go==='sec-memory-system')loadMemoryHub();
     if(go==='sec-skills')loadSkillsHub();
     if(go==='sec-mcp')loadMcp();
-    if(go==='sec-storage'){
-      const frame=$('#storage-frame');
-      if(frame&&!frame.getAttribute('src'))frame.src=frame.dataset.src;
-    }
+    mountEmbed(go);
     el.scrollIntoView({behavior:'smooth'});
     if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
       el.animate([{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:200,easing:'cubic-bezier(.2,.8,.2,1)'});

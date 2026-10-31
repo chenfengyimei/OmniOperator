@@ -1,20 +1,5 @@
 /* Agent 空间与文件：独立页与设置中心内嵌面板共用同一套视觉。 */
-html.ui-embed{background:transparent!important}
 body[data-ui-page="storage"]{margin:0;min-height:calc(100vh - 0px);color:var(--text-1);font-family:var(--font-sans)}
-html.ui-embed body[data-ui-page="storage"],
-body[data-ui-page="storage"].ui-embedded{
-  padding:0!important;margin:0!important;min-height:0!important;background:transparent!important;overflow:auto;
-}
-html.ui-embed body[data-ui-page="storage"]::before,
-body[data-ui-page="storage"].ui-embedded::before{display:none!important}
-html.ui-embed body[data-ui-page="storage"] > header,
-html.ui-embed body[data-ui-page="storage"] > .ui-global-nav,
-body[data-ui-page="storage"].ui-embedded > header,
-body[data-ui-page="storage"].ui-embedded > .ui-global-nav{display:none!important}
-html.ui-embed body[data-ui-page="storage"] > :not(header):not(.ui-global-nav),
-body[data-ui-page="storage"].ui-embedded > :not(header):not(.ui-global-nav){
-  width:100%!important;max-width:none!important;margin-left:0!important;margin-right:0!important;
-}
 
 body[data-ui-page="storage"] > header{min-height:62px}
 body[data-ui-page="storage"] .storage-toolbar,
@@ -22,7 +7,6 @@ body[data-ui-page="storage"] .path-details{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:10px 12px;
   border:1px solid var(--line-2);border-radius:var(--r-card);background:var(--surface-1);
 }
-html.ui-embed body[data-ui-page="storage"] .storage-toolbar{margin-top:0}
 body[data-ui-page="storage"] #status{flex:1;min-width:220px;margin:0;color:var(--text-3);font:10.5px/1.6 var(--font-mono);overflow-wrap:anywhere}
 .storage-toolbar-actions{display:flex;gap:6px;flex-wrap:wrap}
 .storage-toolbar-actions button{height:auto;min-height:36px;padding:0 9px;font-size:var(--fs-secondary);border-radius:var(--r-sm);display:inline-flex;align-items:center;gap:5px}
