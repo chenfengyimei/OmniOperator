@@ -35,7 +35,8 @@ def test_desktop_and_publication_tabs_are_reachable(tmp_path):
                 request.fulfill(status=503, body='{}', content_type='application/json')
         page.route('**/*', route)
         page.goto('http://127.0.0.1/')
-        for name in ('desktop', 'publications', 'facts'):
+        # 信息架构整合后右栏页签为 待办/技能/产物/桌面/发布草稿；facts 已收进记忆系统面板
+        for name in ('desktop', 'publications', 'todos'):
             page.locator(f'[data-tab="{name}"]').click()
             assert page.locator('.tab-body:visible').count() == 1
             assert page.locator(f'#tab-{name}').is_visible()

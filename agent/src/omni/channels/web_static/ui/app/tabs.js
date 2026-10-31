@@ -1,7 +1,8 @@
-// 右栏 9 页签：aria 状态同步、进入动效、tab 徽标（只显示真实计数，0 就摘掉徽标）。
-import {$} from './dom.js?v=20261031m10';
-import {loadDesktop} from './desktop.js?v=20261031m10';
-import {loadPublications} from './publications.js?v=20261031m10';
+// 右栏 5 页签（待办/技能/产物/桌面/发布草稿）：aria 状态同步、进入动效、tab 徽标
+//（只显示真实计数，0 就摘掉徽标）。记忆相关页签已统一收进设置中心「记忆系统」。
+import {$} from './dom.js?v=20261031m12';
+import {loadDesktop} from './desktop.js?v=20261031m12';
+import {loadPublications} from './publications.js?v=20261031m12';
 
 export function setTabBadge(tab,n){
   const b=document.querySelector(`.tabs button[data-tab="${tab}"]`);if(!b)return;

@@ -5,13 +5,12 @@ import datetime as dt
 from urllib.parse import urlsplit
 
 import pytest
-from playwright.sync_api import sync_playwright
 
 from test_web import _client
 
 
 @pytest.fixture
-def ui(tmp_path):
+def ui(tmp_path, ui_browser):
     client, runtime = _client(tmp_path)
     # 种子数据：一天的对话 + 会话全量工具步 + 一篇笔记 + 一位人物
     system = runtime.memory_system
@@ -28,9 +27,8 @@ def ui(tmp_path):
     system.people.link_account(zhang, "qq", "12345")
     system.people.add_entry(zhang, "archive", "喜欢骑车")
 
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
-        page = browser.new_page()
+    with ui_browser.new_context() as context:
+        page = context.new_page()
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
 
@@ -51,7 +49,6 @@ def ui(tmp_path):
             yield page, client, runtime, errors
         finally:
             page.close()
-            browser.close()
             assert runtime.close()["complete"]
             client.close()
 
@@ -63,8 +60,9 @@ def test_memory_station_views_and_flows(ui, in_settings):
     page.wait_for_selector("#overview-view:not([hidden])")
     page.locator("#overview-metrics .metric-card").nth(3).wait_for()
 
-    # 总览：四张指标卡 + 整理状态 + 最近笔记（芯片显示元数据）
-    assert page.locator("#overview-metrics .metric-card").count() == 4
+    # 总览：七张指标卡（四单元 + 事实/档案/复盘全记忆仪表盘） + 整理状态 + 最近笔记
+    assert page.locator("#overview-metrics .metric-card").count() == 7
+    assert "事实记忆" in page.locator("#overview-metrics").inner_text()
     assert "自动整理已启用" in page.locator("#journal-state").inner_text()
     assert "2026-10-30" in page.locator("#latest-notes").inner_text()
     assert "已完成" in page.locator("#latest-notes").inner_text()
@@ -107,10 +105,11 @@ def test_memory_station_views_and_flows(ui, in_settings):
     page.wait_for_timeout(300)
     assert "还没有每周笔记" in page.locator("#notes-list").inner_text()
 
-    # 人物：卡片 → 详情 → 添加临时事件
+    # 人物：卡片 → 详情 → 添加临时事件（迁移后 owner 人物固定在列表首位，显式选小张）
     page.click('.view-tabs button[data-view="people"]')
     page.wait_for_selector("#people-view:not([hidden])")
     page.wait_for_selector("#people-list button.active")
+    page.locator("#people-list button", has_text="小张").click()
     page.locator("#person-detail").get_by_text("喜欢骑车", exact=False).wait_for()
     detail = page.locator("#person-detail").inner_text()
     assert "小张" in detail and "qq:12345" in detail and "喜欢骑车" in detail
@@ -158,7 +157,7 @@ def test_memory_entry_uses_native_settings_section(ui, entry, width):
         page.locator('.ui-global-nav a[href="/?settings=1&section=sec-memory-system"]').click()
     page.locator('#sec-memory-system:not(.hidden)').wait_for()
     page.locator("#overview-metrics .metric-card").first.wait_for()
-    assert page.locator("#overview-metrics .metric-card").count() == 4
+    assert page.locator("#overview-metrics .metric-card").count() == 7
     assert len(page.context.pages) == 1
     assert page.locator('#hub').is_visible()
     assert page.locator('#hub-memory-content iframe').count() == 0

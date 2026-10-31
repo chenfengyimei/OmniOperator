@@ -1,9 +1,13 @@
 <div class="memory-surface">
 <nav class="view-tabs" aria-label="记忆系统">
   <button data-view="overview" aria-selected="true"><span class="material-icons">dashboard</span>总览</button>
+  <button data-view="facts" aria-selected="false"><span class="material-icons">lightbulb</span>事实记忆</button>
+  <button data-view="profile" aria-selected="false"><span class="material-icons">badge</span>档案</button>
+  <button data-view="resident" aria-selected="false"><span class="material-icons">push_pin</span>常驻</button>
   <button data-view="dialogue" aria-selected="false"><span class="material-icons">forum</span>对话全量</button>
   <button data-view="session" aria-selected="false"><span class="material-icons">manage_search</span>会话全量</button>
   <button data-view="notes" aria-selected="false"><span class="material-icons">book</span>笔记</button>
+  <button data-view="reviews" aria-selected="false"><span class="material-icons">rate_review</span>复盘</button>
   <button data-view="people" aria-selected="false"><span class="material-icons">group</span>人物</button>
   <button data-view="settings" aria-selected="false"><span class="material-icons">tune</span>整理设置</button>
 </nav>
@@ -18,6 +22,35 @@
   <section class="memory-panel">
     <div class="section-heading compact"><div><span class="eyebrow">RUNS</span><h2>最近整理流水</h2></div><button id="overview-reload" class="small"><span class="material-icons">refresh</span>刷新</button></div>
     <div id="overview-runs" class="run-list" role="list"></div>
+  </section>
+</section>
+
+<section id="facts-view" class="memory-view" hidden>
+  <section class="memory-panel">
+    <div class="section-heading compact"><div><span class="eyebrow">FACT MEMORY</span><h2>事实记忆</h2></div><span class="material-icons">lightbulb</span></div>
+    <p class="hint">小鱼在对话中主动记住的事实：recall 按需检索（不每轮注入）。删除会留遗忘墓碑——同样的内容不会再被自动记回来。</p>
+    <form id="fact-add-form" class="search-row"><input id="fact-add-input" placeholder="手动记一条（如：发布会安排在每周五下午）" maxlength="500"><button type="submit"><span class="material-icons">add</span>记住</button></form>
+    <form id="fact-search-form" class="search-row"><input id="fact-search-input" placeholder="检索事实记忆（留空显示最近记录）" maxlength="120"><button type="submit"><span class="material-icons">search</span>搜索</button></form>
+    <div id="facts-list" class="entry-list" aria-live="polite"></div>
+  </section>
+</section>
+
+<section id="profile-view" class="memory-view" hidden>
+  <section class="memory-panel">
+    <div class="section-heading compact"><div><span class="eyebrow">OWNER PROFILE</span><h2>所有者档案</h2></div><button id="profile-add"><span class="material-icons">add</span>新增档案行</button></div>
+    <p class="hint">关于你的稳定特征（职位、偏好、习惯），每轮注入小鱼的上下文；总量 2000 字符，写满要先合并。小鱼用 profile_manage 工具维护，也可以在这里直接编辑。</p>
+    <p id="profile-usage" class="hint"></p>
+    <div id="profile-list" class="entry-list" aria-live="polite"></div>
+  </section>
+</section>
+
+<section id="resident-view" class="memory-view" hidden>
+  <section class="memory-panel">
+    <div class="section-heading compact"><div><span class="eyebrow">RESIDENT NOTES</span><h2>常驻工作笔记</h2></div><span class="material-icons">push_pin</span></div>
+    <p class="hint">小鱼的常驻笔记（进行中的约定、教训、下一步），每轮注入；总量限额，写满会被拒绝并要求先合并。与「档案」同属人物系统里所有者（主人）的记忆条目。</p>
+    <p id="resident-usage" class="hint"></p>
+    <form id="resident-add-form" class="search-row"><input id="resident-add-input" placeholder="新增一条常驻笔记" maxlength="2000"><button type="submit"><span class="material-icons">add</span>添加</button></form>
+    <div id="resident-list" class="entry-list" aria-live="polite"></div>
   </section>
 </section>
 
@@ -78,6 +111,14 @@
         <details><summary><span class="material-icons">history</span>整理流水（本期）</summary><div id="note-runs" class="run-list"></div></details>
       </div>
     </div>
+  </section>
+</section>
+
+<section id="reviews-view" class="memory-view" hidden>
+  <section class="memory-panel">
+    <div class="section-heading compact"><div><span class="eyebrow">TURN REVIEWS</span><h2>复盘记录</h2></div><button id="reviews-reload"><span class="material-icons">refresh</span>刷新</button></div>
+    <p class="hint">会话结束后的自动复盘结论：回顾对话并沉淀记忆（受当日写入额度约束）。日 / 周 / 月的压缩整理见「笔记」页签。</p>
+    <div id="reviews-list" class="run-list" role="list"></div>
   </section>
 </section>
 

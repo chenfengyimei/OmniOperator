@@ -17,7 +17,6 @@
   <!-- 品牌标 = 官网同款「小鱼」图形（ui/brand-mark.svg，由 frame.css 的 ::before 渲染） -->
   <div class="rail-brand" data-tip="OmniOperator" role="img" aria-label="OmniOperator"></div>
   <button class="rail-btn active" data-tip="对话工作台" data-action="rail:go"><span class="material-icons">forum</span></button>
-  <button class="rail-btn" data-tip="记忆库" data-action="rail:tab" data-target="facts"><span class="material-icons">psychology</span></button>
   <button class="rail-btn" data-tip="技能库" data-action="rail:tab" data-target="skills"><span class="material-icons">auto_awesome</span></button>
   <button class="rail-btn" data-tip="定时任务" data-action="rail:cron"><span class="material-icons">schedule</span></button>
   <div class="rail-sep"></div>
@@ -97,20 +96,11 @@
   <aside>
     <div class="panel" style="flex:1.4">
       <div class="tabs">
-        <button data-tab="facts" class="active">记忆</button>
-        <button data-tab="profile">档案</button>
-        <button data-tab="resident">常驻</button>
-        <button data-tab="todos">待办</button>
-        <button data-tab="reviews">Review</button>
+        <button data-tab="todos" class="active">待办</button>
         <button data-tab="skills">技能</button>
         <button data-tab="artifacts">产物</button>
         <button data-tab="desktop">桌面</button>
         <button data-tab="publications">发布草稿</button>
-      </div>
-      <div id="tab-facts" class="tab-body">
-        <input id="fact-q" placeholder="搜索事实记忆…">
-        <div id="retrieval-state" class="hint" style="padding:6px 10px"></div>
-        <ul id="facts-list"></ul>
       </div>
       <div id="tab-publications" class="tab-body hidden">
         <button class="btn" data-action="publications:refresh">刷新草稿</button>
@@ -122,23 +112,13 @@
         <div class="hint">先观察，再在聊天中请求编辑；每次桌面写入都需要确认。</div>
         <div id="desktop-windows"></div><div id="desktop-tree"></div>
       </div>
-      <div id="tab-profile" class="tab-body hidden"><div id="profile-usage"></div><ul id="profile-list"></ul></div>
-      <div id="tab-resident" class="tab-body hidden">
-        <div id="resident-usage" style="padding:8px 12px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--border)"></div>
-        <div style="display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border)">
-          <input id="resident-new" placeholder="新增一条常驻笔记…" style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12.5px">
-          <button class="btn" data-action="memory:resident-add">添加</button>
-        </div>
-        <ul id="resident-list"></ul>
-      </div>
-      <div id="tab-todos" class="tab-body hidden"><ul id="todos-list"></ul></div>
-      <div id="tab-reviews" class="tab-body hidden"><ul id="reviews-list"></ul></div>
+      <div id="tab-todos" class="tab-body"><ul id="todos-list"></ul></div>
       <div id="tab-skills" class="tab-body hidden">
         <div class="skill-tab-head">
           <button class="btn small" data-action="hub:open" data-section="sec-skills">技能中心（统计 / 导入 / 设置）</button>
           <button class="btn small" data-action="skills:refresh">刷新</button>
         </div>
-        <div id="skill-pending-bar" class="hidden" style="margin:8px 10px;padding:6px 10px;border:1px solid #fbbf24;border-radius:8px;font-size:12px;display:flex;align-items:center;gap:8px"></div>
+        <div id="skill-pending-bar" class="hidden"></div>
         <ul id="skills-list"></ul>
       </div>
       <div id="tab-artifacts" class="tab-body hidden">
@@ -178,15 +158,15 @@
 <dialog id="skill-modal" class="modal" data-action="modals:backdrop-close" data-id="skill-modal">
   <div class="modal-box" style="width:min(920px,95vw);height:min(780px,94vh);display:flex;flex-direction:column;gap:8px">
     <div class="modal-title"><span id="skill-editor-title">编辑技能</span><button class="modal-x" data-action="modals:close" data-id="skill-modal">✕</button></div>
-    <textarea id="skill-editor" spellcheck="false" style="flex:1;min-height:180px;resize:none;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);font:12.5px/1.6 Consolas,monospace;padding:10px"></textarea>
-    <div id="skill-msg" style="min-height:1.2em;font-size:12px;color:#34d399"></div>
+    <textarea id="skill-editor" spellcheck="false"></textarea>
+    <div id="skill-msg"></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn" data-action="skills:save">保存（指纹冲突会拒绝）</button>
       <button class="btn" data-action="skills:reload">重新加载最新</button>
       <button class="btn" data-action="skills:history">历史 / 差异 / 回滚</button>
     </div>
     <div id="skill-history" style="max-height:170px;overflow:auto"></div>
-    <pre id="skill-diff" style="max-height:190px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
+    <pre id="skill-diff"></pre>
   </div>
 </dialog>
 <!-- ============ 新建技能（技能中心） ============ -->
@@ -199,7 +179,7 @@
         <div class="field"><label for="skill-new-name">技能名（3–40 位小写字母/数字/连字符）</label><input id="skill-new-name" maxlength="40" pattern="[a-z0-9][a-z0-9-]{2,39}" required placeholder="my-skill"></div>
         <div class="field"><label for="skill-new-description">一句话描述（≤60 字）</label><input id="skill-new-description" maxlength="60" required placeholder="什么时候用它，解决什么问题"></div>
       </div>
-      <div class="field" style="flex:1;min-height:0"><label for="skill-new-content">正文（四节结构）</label><textarea id="skill-new-content" spellcheck="false" required style="flex:1;min-height:220px;resize:vertical;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);font:12.5px/1.6 Consolas,monospace;padding:10px"></textarea></div>
+      <div class="field" style="flex:1;min-height:0"><label for="skill-new-content">正文（四节结构）</label><textarea id="skill-new-content" spellcheck="false" required></textarea></div>
       <div id="skill-new-msg" class="save-msg" role="status"></div>
       <div class="card-actions">
         <button class="btn primary" id="skill-new-submit" type="submit">创建技能</button>
@@ -218,7 +198,7 @@
       <button class="btn" data-action="skills:review-open">刷新</button>
     </div>
     <div id="review-list" style="flex:1;overflow:auto"></div>
-    <pre id="review-diff" style="max-height:220px;overflow:auto;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font:11.5px/1.5 Consolas,monospace;white-space:pre-wrap;color:var(--text);margin:0"></pre>
+    <pre id="review-diff"></pre>
   </div>
 </dialog>
 <!-- ============ 设置中心 ============ -->
@@ -233,7 +213,7 @@
       </div>
     </div>
     <div class="spacer"></div>
-    <div id="hub-msg" style="font-size:12.5px;color:#34d399;min-height:1em;margin-right:8px"></div>
+    <div id="hub-msg"></div>
   </div>
   <div class="hub-layout">
     <nav class="hub-nav">
@@ -244,7 +224,7 @@
       <div class="hub-group">对话与模型</div>
       <a data-go="sec-persona" class="active">人设</a>
       <a data-go="sec-models">模型</a>
-      <a data-go="sec-memory">记忆</a>
+      <a data-go="sec-memory">压缩与复盘</a>
       <div class="hub-group">平台与通道</div>
       <a data-go="sec-media">B站与转写</a>
       <a data-go="sec-browser">浏览器</a>
@@ -354,8 +334,8 @@
         <div class="context-related"><button class="btn" data-action="hub:section" data-section="sec-memory">记忆与回合整理</button><button class="btn" data-action="hub:section" data-section="sec-persona">人设提示词</button><button class="btn" data-action="hub:section" data-section="sec-models">模型设置</button></div>
       </div>
       <div class="hub-card" id="sec-memory">
-        <h3>记忆</h3>
-        <div class="hint">这里设置回合后的自动整理与审批。历史窗口、压缩和记忆配额集中在“上下文系统”设置。</div>
+        <h3>压缩与复盘</h3>
+        <div class="hint">这里设置回合后的自动整理与审批。记忆数据的查看与管理在「记忆系统」分区；历史窗口、压缩和记忆配额集中在"上下文系统"设置。</div>
         <div class="field"><label class="check-row"><input type="checkbox" id="cfg-review-enabled"><span class="switch"></span><span class="switch-text">聊完自动整理记忆（会越来越懂你，但每次多花一点）</span></label></div>
         <div class="field-row">
           <div class="field"><label>整理时回看多少条消息</label><input type="number" id="cfg-review-max-messages"></div>
@@ -590,7 +570,7 @@
     </div>
   </div>
 </div>
-<script type="module" src="/ui/app/main.js?v=20261031m11"></script>
+<script type="module" src="/ui/app/main.js?v=20261031m12"></script>
 <script src="/vendor/xterm.js"></script>
 <script src="/vendor/xterm-addon-fit.js"></script>
 </body>

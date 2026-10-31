@@ -1,6 +1,6 @@
 /* 记忆系统控制器：设置中心与旧页面共享六页签，查询、事件和状态限定在挂载根内。
    全部数据来自 /api/memory-system/*，读取一律分页；动态文本全部转义。 */
-import {esc} from '/ui/app/dom.js?v=20261031m11';
+import {esc} from '/ui/app/dom.js?v=20261031m12';
 export function mountMemory(root){
 const $=selector=>root.querySelector(selector);
 const UI=window.OmniUI;
@@ -11,6 +11,7 @@ const NOTE_STATUS={done:'已完成',running:'整理中',failed:'待重试'};
 
 let view='overview';
 let dialogueLoaded=false,sessionLoaded=false,notesLoaded=false,peopleLoaded=false,settingsLoaded=false;
+let factsLoaded=false,profileLoaded=false,residentLoaded=false,reviewsLoaded=false;
 let dState={day:null,session:null,after:0,more:false};
 let sState={day:null,session:null,run:'',after:0,more:false};
 let noteKind='daily',notePeriod=null;
@@ -27,9 +28,13 @@ function switchView(next){
   for(const node of root.querySelectorAll('.memory-view'))
     node.hidden=node.id!==next+'-view';
   if(next==='overview')loadOverview();
+  else if(next==='facts'&&!factsLoaded){factsLoaded=true;loadFactsView()}
+  else if(next==='profile'&&!profileLoaded){profileLoaded=true;loadProfileView()}
+  else if(next==='resident'&&!residentLoaded){residentLoaded=true;loadResidentView()}
   else if(next==='dialogue'&&!dialogueLoaded){dialogueLoaded=true;loadDialogueDays();}
   else if(next==='session'&&!sessionLoaded){sessionLoaded=true;loadSessionDays();}
   else if(next==='notes'&&!notesLoaded){notesLoaded=true;loadNotes();}
+  else if(next==='reviews'&&!reviewsLoaded){reviewsLoaded=true;loadReviewsView()}
   else if(next==='people'&&!peopleLoaded){peopleLoaded=true;loadPeople();}
   else if(next==='settings'&&!settingsLoaded){settingsLoaded=true;loadSettings();}
 }
@@ -45,6 +50,14 @@ async function loadOverview(){
       ['每日笔记',`${m.journal.daily.done} 篇`,`待重试 ${m.journal.daily.failed} · 整理中 ${m.journal.daily.running}`],
       ['核心人物',`${m.people.people} 人`,`账号 ${m.people.accounts} 个`],
     ];
+    const owner=data.owner||{};
+    if(!owner.error){
+      cards.push(
+        ['事实记忆',`${owner.facts??0} 条`,`recall 按需检索${owner.retrieval&&owner.retrieval.enabled?' · 向量混合':' · 关键词'}`],
+        ['所有者档案',`${owner.profile?owner.profile.used:0}/${owner.profile?owner.profile.max:0} 字`,`每轮注入 · 常驻 ${owner.resident?owner.resident.entries:0} 条`],
+        ['复盘记录',`${owner.reviews??0} 条`,'会话结束自动回顾'],
+      );
+    }
     $('#overview-metrics').innerHTML=cards.map(([label,value,note])=>
       `<div class="metric-card"><span class="metric-icon"><span class="material-icons">memory</span></span><div><span>${esc(label)}</span><b>${esc(value)}</b><small>${esc(note)}</small></div></div>`).join('');
     $('#journal-state').textContent=data.journal_enabled
@@ -76,6 +89,160 @@ function renderRunList(root,runs){
     root.append(row);
   }
 }
+
+// ---------------- 所有者记忆（事实 / 档案 / 常驻 / 复盘） ----------------
+const FACT_SOURCE_LABEL={chat:'对话',review:'复盘',manual:'手动',import:'迁移',workbench:'工作台'};
+function factNode(fact){
+  const node=UI.element('div',null,'entry-item');
+  node.append(UI.element('span',fact.content));
+  if(fact.source){
+    const meta=`${FACT_SOURCE_LABEL[fact.source]||fact.source}${fact.scope==='group'?' · 群聊可见':''}${fact.created_at?' · '+UI.date(fact.created_at):''}`;
+    node.append(UI.element('small',meta,'hint'));
+  }
+  const del=UI.element('button',null,'mini');del.title='删除这条记忆';
+  del.append(UI.element('span','delete','material-icons'));
+  del.onclick=async()=>{
+    const ok=await UI.ask({title:'删除记忆',message:'删除这条事实记忆？删除后不会再被自动复习回来。',confirmLabel:'删除',danger:true});
+    if(!ok)return;
+    try{
+      await UI.request(`/api/facts/${fact.id}`,{method:'DELETE'});
+      UI.notify('已删除，并标记为不再学习','info');
+      loadFactsView();
+    }catch(error){UI.notify(error.message,'error')}
+  };
+  node.append(del);
+  return node;
+}
+async function loadFactsView(){
+  const q=$('#fact-search-input').value.trim();
+  try{
+    // 浏览走 /api/facts/detail（带来源/作用域/时间）；检索走 /api/facts/rows（同一检索链，带 id）
+    const url=q?'/api/facts/rows?q='+encodeURIComponent(q)+'&limit=200':'/api/facts/detail?limit=200';
+    const data=await UI.request(url);
+    const root=$('#facts-list');
+    root.replaceChildren();
+    if(!data.facts.length){
+      root.append(UI.element('p',q?'没有匹配的事实记忆。':'还没有事实记忆（对话里说「记住……」就会出现在这里）。','empty'));
+      return;
+    }
+    for(const fact of data.facts)root.append(factNode(fact));
+  }catch(error){UI.notify(error.message,'error')}
+}
+$('#fact-search-form').onsubmit=event=>{event.preventDefault();loadFactsView()};
+$('#fact-add-form').onsubmit=async event=>{
+  event.preventDefault();
+  const content=$('#fact-add-input').value.trim();
+  if(!content)return;
+  try{
+    await UI.request('/api/facts',{method:'POST',body:JSON.stringify({content})});
+    $('#fact-add-input').value='';
+    UI.notify('已记住','info');
+    loadFactsView();
+  }catch(error){UI.notify(error.message,'error')}
+};
+
+function memoryLineNode(item,kind){
+  // 档案行与常驻条目共用行渲染（编辑/删除按种类走各自端点）
+  const node=UI.element('div',null,'entry-item');
+  node.append(UI.element('span',`[${item.id}] ${item.content}`));
+  const edit=UI.element('button',null,'mini');edit.title='编辑';
+  edit.append(UI.element('span','edit','material-icons'));
+  edit.onclick=async()=>{
+    const next=await UI.ask({title:kind==='profile'?'修改档案行':'修改常驻笔记',inputLabel:'内容',input:item.content,confirmLabel:'保存'});
+    if(next==null||!next.trim())return;
+    try{
+      if(kind==='profile'){
+        await UI.request('/api/profile/line',{method:'PUT',body:JSON.stringify({line_id:item.id,content:next.trim()})});
+        loadProfileView();
+      }else{
+        await UI.request('/api/resident/update',{method:'POST',body:JSON.stringify({operation:'replace',id:item.id,content:next.trim()})});
+        loadResidentView();
+      }
+    }catch(error){UI.notify(error.message,'error')}
+  };
+  const del=UI.element('button',null,'mini');del.title='删除';
+  del.append(UI.element('span','delete','material-icons'));
+  del.onclick=async()=>{
+    const ok=await UI.ask({title:kind==='profile'?'删除档案行':'删除常驻笔记',message:'删除这条记忆？此操作不可撤销。',confirmLabel:'删除',danger:true});
+    if(!ok)return;
+    try{
+      if(kind==='profile'){
+        await UI.request(`/api/profile/line/${item.id}`,{method:'DELETE'});
+        loadProfileView();
+      }else{
+        await UI.request('/api/resident/update',{method:'POST',body:JSON.stringify({operation:'remove',id:item.id})});
+        loadResidentView();
+      }
+    }catch(error){UI.notify(error.message,'error')}
+  };
+  node.append(edit,del);
+  return node;
+}
+async function loadProfileView(){
+  try{
+    const data=await UI.request('/api/profile');
+    $('#profile-usage').textContent=`已用 ${data.usage}/${data.max} 字符`;
+    const root=$('#profile-list');
+    root.replaceChildren();
+    if(!data.lines.length){
+      root.append(UI.element('p','档案还是空的。小鱼会在对话中逐步补充，也可以手动添加。','empty'));
+      return;
+    }
+    for(const line of data.lines)root.append(memoryLineNode(line,'profile'));
+  }catch(error){UI.notify(error.message,'error')}
+}
+$('#profile-add').onclick=async()=>{
+  const content=await UI.ask({title:'新增档案行',inputLabel:'内容',confirmLabel:'添加'});
+  if(content==null)return;
+  if(!content.trim()){UI.notify('内容不能为空','error');return}
+  try{
+    await UI.request('/api/profile/line',{method:'POST',body:JSON.stringify({content:content.trim()})});
+    UI.notify('已加入档案','info');
+    loadProfileView();
+  }catch(error){UI.notify(error.message,'error')}
+};
+async function loadResidentView(){
+  try{
+    const data=await UI.request('/api/resident');
+    $('#resident-usage').textContent=`${data.usage}（每轮注入小鱼的上下文）`;
+    const root=$('#resident-list');
+    root.replaceChildren();
+    if(!data.entries.length){
+      root.append(UI.element('p','常驻笔记为空。只放「当下持续有用」的内容：进行中的约定、重要教训、下一步。','empty'));
+      return;
+    }
+    for(const entry of data.entries)root.append(memoryLineNode(entry,'resident'));
+  }catch(error){UI.notify(error.message,'error')}
+}
+$('#resident-add-form').onsubmit=async event=>{
+  event.preventDefault();
+  const content=$('#resident-add-input').value.trim();
+  if(!content)return;
+  try{
+    await UI.request('/api/resident/update',{method:'POST',body:JSON.stringify({operation:'add',content})});
+    $('#resident-add-input').value='';
+    loadResidentView();
+  }catch(error){UI.notify(error.message,'error')}
+};
+async function loadReviewsView(){
+  try{
+    const data=await UI.request('/api/reviews?limit=100');
+    const root=$('#reviews-list');
+    root.replaceChildren();
+    if(!data.reviews.length){
+      root.append(UI.element('p','还没有复盘记录（会话结束后自动生成）。','empty'));
+      return;
+    }
+    for(const review of data.reviews){
+      const row=UI.element('div',null,'run-row');
+      row.append(UI.element('b',`会话 #${review.session_id}`));
+      row.append(UI.element('span',UI.date(review.created_at)));
+      row.append(UI.element('span',(review.outcome||'').slice(0,160)));
+      root.append(row);
+    }
+  }catch(error){UI.notify(error.message,'error')}
+}
+$('#reviews-reload').onclick=()=>loadReviewsView();
 
 // ---------------- 对话全量（M1） ----------------
 async function loadDialogueDays(){
@@ -339,7 +506,9 @@ function renderPerson(person){
 
   const head=UI.element('div');
   const title=UI.element('strong',person.name);
-  head.append(title,UI.element('span',` #${person.id} · ${IMPORTANCE_LABEL[person.importance]||person.importance}`,'hint'));
+  const roleLabel=IMPORTANCE_LABEL[person.importance]||person.importance;
+  const ownerNote=person.importance==='owner'?'（「档案」「常驻」页签管理的就是这份记忆）':'';
+  head.append(title,UI.element('span',` #${person.id} · ${roleLabel}${ownerNote}`,'hint'));
   const del=UI.element('button',null,'small');
   del.style.marginLeft='auto';
   del.append(UI.element('span','delete','material-icons'),document.createTextNode('删除人物'));
@@ -550,7 +719,7 @@ export async function loadMemory(root){
     root.setAttribute('aria-busy','true');
     root.replaceChildren(window.OmniUI.element('p','正在读取记忆系统…','empty'));
     try{
-      const response=await fetch('/memory/panel.html?v=20261031m11',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000)});
+      const response=await fetch('/memory/panel.html?v=20261031m12',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000)});
       if(!response.ok)throw Error('记忆界面资源读取失败（'+response.status+'），请重试。');
       const template=document.createElement('template');template.innerHTML=await response.text();
       if(!template.content.querySelector('.memory-surface .view-tabs'))throw Error('记忆界面资源不完整，请刷新工作台后重试。');

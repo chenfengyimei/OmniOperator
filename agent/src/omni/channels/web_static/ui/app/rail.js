@@ -1,8 +1,8 @@
 // 左侧 rail：跨页入口（终端/安卓）+ 工作台内快捷动作（记忆库/技能库/定时任务/审批队列）。
 // 函数只做转发，不新增业务逻辑。
-import {$} from './dom.js?v=20261031m10';
-import {openHub,switchHub} from './hub.js?v=20261031m10';
-import {pollApprovals} from './approvals.js?v=20261031m10';
+import {$} from './dom.js?v=20261031m12';
+import {openHub,switchHub} from './hub.js?v=20261031m12';
+import {pollApprovals} from './approvals.js?v=20261031m12';
 
 // ---------- 内置终端 / 安卓专题页：新标签打开，别把工作台顶掉 ----------
 function openTerminal() { return window.open('/terminal/','omni-terminal'); }
@@ -13,7 +13,7 @@ $('#open-phone').onclick=openPhone;
 
 function railActive(btn){document.querySelectorAll('.rail-btn').forEach(x=>x.classList.toggle('active',x===btn))}
 function railGo(btn){railActive(btn)} // 工作台本身就是当前页，只负责把高亮收回来
-function railTab(btn,tab){ // 记忆库/技能库 = 右栏对应 tab 的快捷入口
+function railTab(btn,tab){ // 技能库 = 右栏技能 tab 的快捷入口（记忆库入口已统一走 NAV_ITEMS「记忆库」/「记忆系统」）
   railActive(btn);
   document.querySelector(`.tabs button[data-tab="${tab}"]`)?.click();
 }

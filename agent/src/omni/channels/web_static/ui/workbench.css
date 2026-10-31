@@ -57,9 +57,7 @@ ul{list-style:none;overflow-y:auto}
 .tabs button.active{background:var(--panel2);color:var(--text)}
 .tab-body{display:flex;flex-direction:column;min-height:0;flex:1}
 .tab-body.hidden{display:none}
-#fact-q{margin:8px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);padding:6px 10px;font-size:12.5px}
-#fact-q:focus{outline:none;border-color:var(--accent)}
-#facts-list,#profile-list,#reviews-list,#skills-list,#tools{flex:1;overflow-y:auto}
+#skills-list,#tools{flex:1;overflow-y:auto}
 #publication-list,#desktop-tree{min-height:0;overflow-y:auto}
 #artifacts-grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:10px;align-content:start}
 .art-card{position:relative;border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;cursor:pointer;background:var(--panel2)}
@@ -69,17 +67,6 @@ ul{list-style:none;overflow-y:auto}
 .art-del:hover{background:var(--danger-bg);color:var(--danger)}
 .bubble img.art-inline{max-width:100%;max-height:260px;border-radius:var(--r-md);display:block;margin-top:6px;cursor:zoom-in}
 #img-modal img{max-width:92vw;max-height:78vh;border-radius:var(--r-md);display:block}
-#facts-list li,#profile-list li{padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px;line-height:1.55}
-/* 事实行改为横向布局：正文占满，删除按钮靠右（与档案行一致的操作位） */
-#facts-list li{display:flex;align-items:flex-start;gap:8px}
-#facts-list li .fact-text{flex:1;min-width:0;overflow-wrap:anywhere}
-#facts-list li .line-btn{flex-shrink:0;margin-left:auto;align-self:center;background:none;border:none;padding:2px 4px;line-height:1}
-#profile-list li b{color:var(--accent);margin-right:6px}
-#reviews-list li{padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--dim)}
-#reviews-list .r-meta{color:var(--accent);font-size:11px;margin-bottom:2px}
-#reviews-list .r-outcome{color:var(--text)}
-#profile-usage{padding:8px 12px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--border)}
-#profile-usage b{color:var(--text)}
 #tools li{padding:6px 12px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border)}
 .tool-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tool-set{color:var(--dim);font-size:11px;flex-shrink:0}
@@ -634,9 +621,7 @@ aside,section{gap:11px}
   font:10px/15px var(--font-mono);color:var(--text-4);font-weight:640;
 }
 .tabs button.active .badge{background:color-mix(in srgb,var(--seed-accent) 20%,transparent);color:color-mix(in srgb,var(--seed-accent) 88%,var(--text-1))}
-#fact-q{background:var(--surface-inset);border-color:var(--line-2);border-radius:var(--r-sm)}
-#fact-q:focus{border-color:var(--line-accent)}
-#facts-list li,#profile-list li,#reviews-list li,#todos-list li,#tools li{border-bottom-color:var(--line-3)}
+#todos-list li,#tools li{border-bottom-color:var(--line-3)}
 .skill-item{border-bottom-color:var(--line-3)}
 .skill-item:hover{background:var(--surface-2)}
 .skill-body{background:var(--surface-inset);border-color:var(--line-2);font-family:var(--font-mono)}
@@ -1068,3 +1053,28 @@ body[data-ui-page="workbench"] .hub-back .material-icons{font-size:18px}
   #sec-skills .skills-manifest li{grid-template-columns:1fr;text-align:left}
   #sec-skills .skills-manifest li span,#sec-skills .skills-manifest li small{text-align:left}
 }
+
+/* ---------------- 设置中心与技能编辑器的表单控件（从 index.html 内联样式迁出） ----------------
+   文档 §2 要求内联 CSS 归零：这些控件的视觉统一走 token，
+   色值与圆角不再写死在 markup 里。 */
+#skill-pending-bar{
+  margin:8px 10px;padding:6px 10px;border:1px solid var(--warn-bd);border-radius:var(--r-md);
+  font-size:var(--fs-secondary);display:flex;align-items:center;gap:8px;
+  background:var(--warn-bg);
+}
+#skill-editor{
+  flex:1;min-height:180px;resize:none;background:var(--surface-inset);border:1px solid var(--line-2);
+  border-radius:var(--r-md);color:var(--text-1);font:12.5px/1.6 Consolas,monospace;padding:10px;
+}
+#skill-new-content{
+  flex:1;min-height:220px;resize:vertical;background:var(--surface-inset);border:1px solid var(--line-2);
+  border-radius:var(--r-md);color:var(--text-1);font:12.5px/1.6 Consolas,monospace;padding:10px;
+}
+#skill-diff,#review-diff{
+  max-height:200px;overflow:auto;background:var(--surface-inset);border:1px solid var(--line-2);
+  border-radius:var(--r-md);padding:10px;font:11.5px/1.5 Consolas,monospace;
+  white-space:pre-wrap;color:var(--text-1);margin:0;
+}
+#review-diff{max-height:220px}
+#skill-msg{min-height:1.2em;font-size:var(--fs-secondary);color:var(--ok)}
+#hub-msg{font-size:12.5px;color:var(--ok);min-height:1em;margin-right:8px}
