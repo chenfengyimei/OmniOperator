@@ -1,5 +1,12 @@
 # 开发状态记录
 
+2026-10-31 outbox 仓储门面拆分（工作区）：`OutboxStore` 从 `memory/state.py`
+移到新模块 `memory/outbox.py`，只消费注入的 `StateStore` 事务，不新建连接；
+`omni.memory.state.OutboxStore` 旧 import 保持同一对象。新增守卫验证领域实现
+唯一。专项：`uv run --no-sync pytest -q -n 0 agent/tests/test_outbox.py agent/tests/test_cron.py agent/tests/test_state.py agent/tests/test_arch.py`
+→ **104 passed（17.14s）**；项目索引更新后 `agent/tests/test_project_catalog.py`
+→ **11 passed（15.12s）**。按用户要求未跑全量；真实服务未重启、真实数据未迁移。
+
 2026-10-31 状态库声明单一来源（工作区）：`state.db` 的全部 DDL 与 14 个版本
 迁移从 `memory/state.py` 抽到新模块 `memory/state_schema.py`；
 `memory/command_schema.py` 仅保留旧 import 兼容，`state.py` 的

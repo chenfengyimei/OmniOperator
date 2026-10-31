@@ -23,9 +23,16 @@ from omni.core.qq_policy import proactive_decision
 from omni.channels.web import create_app
 from omni.core.cron import make_outbox_drainer, make_runtime_deliver
 from omni.memory.cron import Job
+from omni.memory.outbox import OutboxStore as DomainOutboxStore
 from omni.memory.state import OutboxStore, StateStore
 from omni.safety.gates import DenyApprover
 from omni.tools.qq.client import DeliveryNotStarted
+
+
+def test_outbox_store_has_single_domain_implementation():
+    """outbox 门面归 memory/outbox；state.py 的旧 import 必须指向同一实现。"""
+    assert DomainOutboxStore is OutboxStore
+    assert OutboxStore.__module__ == "omni.memory.outbox"
 
 
 def test_atomic_claim_across_processes_and_stale_owner(tmp_path):

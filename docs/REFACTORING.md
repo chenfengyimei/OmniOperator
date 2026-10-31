@@ -1,5 +1,12 @@
 # 架构重构记录与后续顺序
 
+2026-10-31 outbox 仓储门面拆分：`OutboxStore` 从 `memory/state.py` 迁至
+`memory/outbox.py`，只依赖 `StateStore` 注入的连接/事务与 `jobs.to_iso`；
+表结构仍在 `state_schema.py`，旧 `omni.memory.state.OutboxStore` import 继续
+指向同一对象。专项 `test_outbox.py + test_cron.py + test_state.py + test_arch.py`
+**104 项通过（17.14s）**，索引与 `test_project_catalog.py` **11 项通过**；
+未跑全量。下一步按同样边界拆 MCP 指纹、技能已读与 jobs/executions 门面。
+
 2026-10-31 状态库声明单一来源：新增 `agent/src/omni/memory/state_schema.py`，
 集中承载 `state.db` 全部表结构、14 个版本迁移脚本与 `command_jobs` 声明；
 `memory/state.py` 只保留连接、事务与仓储行为，`memory/command_schema.py`
@@ -52,7 +59,7 @@ OpenAPI 合同检查接口形状；既有业务用例仍须运行，它不能代
 
 | 顺序 | 代码证据与目标 | 必须保留的验证 |
 |---|---|---|
-| 1 | memory/state.py 约 1350 行：schema 已归 `state_schema.py`；下一步按 jobs/leases/runs/账本/outbox 域拆仓储门面 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
+| 1 | memory/state.py 约 1130 行：schema 已归 `state_schema.py`、outbox 门面已独立；继续拆 jobs/executions/leases/runs 与 MCP、技能标记门面 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
 | 2 | plugins/host.py 约 800 行：包读取/类型校验、隔离状态、受信装载生命周期分别维护 | 校验零执行、激活人工确认、前缀注册、防篡改、失败回滚、原子状态与锁范围 |
 | 3 | Web 配对/设置和主 index.html 有并行工作：合入后再整理独立 settings/auth 适配及前端专题资源 | 配对/密钥三态与脱敏、Host/Origin/cookie、原有操作入口；不能覆盖并行改动 |
 | 4 | Runtime 的生命周期与状态查询继续按真实依赖收窄；组装根保持唯一 | 路径注入、关闭预算与残留、会话作用域、跨入口一致性，不提前增加空接口层 |
