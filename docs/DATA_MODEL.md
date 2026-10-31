@@ -58,7 +58,7 @@ state.db；对话原文、事实、技能、档案等"丢了用户会心疼"的�
 | `meta` | 基础 | `StateStore` | schema 版本等元数据 |
 | `resource_leases` | v3 | `state_mixin_leases.py`（LeasesMixin） | TTL 到期自动可再领；崩溃不需人工解锁 |
 
-## 3 memory.db
+## 3 memory.db（声明唯一来源 `memory/store_schema.py`）
 
 | 表 | 归属模块 | 说明 |
 |---|---|---|
