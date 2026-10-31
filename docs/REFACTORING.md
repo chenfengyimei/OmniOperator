@@ -1,5 +1,13 @@
 # 架构重构记录与后续顺序
 
+2026-10-31 状态库声明单一来源：新增 `agent/src/omni/memory/state_schema.py`，
+集中承载 `state.db` 全部表结构、14 个版本迁移脚本与 `command_jobs` 声明；
+`memory/state.py` 只保留连接、事务与仓储行为，`memory/command_schema.py`
+改为旧 import 兼容转发。已发布迁移 SQL 逐字节保持不变，`state.py` 的
+`SCHEMA_VERSION` / `_MIGRATIONS` 旧名继续指向同一对象。专项
+`test_state.py + test_command_jobs.py + test_arch.py` **67 项通过（18.59s）**，
+索引与 `test_project_catalog.py` **11 项通过**；按用户要求本批未跑全量。后续顺序调整为：先按域拆分 `state.py` 的仓储门面，再评估跨库统一模型。
+
 2026-10-31 产品目录重构：本地 Agent 源码、测试、配置模板、开发脚本和项目声明统一归 `agent/`；仓库根保留 uv 工作区、交接文档、安装启动与用户运行态。旧命令兼容、默认数据路径保持。结构与开发规则见 [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md)。全量 **1296 项通过（438.32s）**；迁移前专项 121 项、迁移后现场专项 77 项通过。收尾纳入并行记忆子站提交 `60d078f` 的五个新文件，模块引用与产品入口版本对齐后完整复跑。根/产品 uv 命令、离线锁文件、源码/API 索引和包含界面资源的 wheel 已验证。证据见 [目录重构验证](evidence/project-layout-2026-10-31.json)。
 
 架构规则唯一权威是 [ARCHITECTURE.md](ARCHITECTURE.md)，目录导航见
@@ -44,7 +52,7 @@ OpenAPI 合同检查接口形状；既有业务用例仍须运行，它不能代
 
 | 顺序 | 代码证据与目标 | 必须保留的验证 |
 |---|---|---|
-| 1 | memory/state.py 约 1600 行：先分离迁移/schema 声明，再考虑按账本职责拆分薄门面 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
+| 1 | memory/state.py 约 1350 行：schema 已归 `state_schema.py`；下一步按 jobs/leases/runs/账本/outbox 域拆仓储门面 | schema 升级/拒绝降级、短事务、跨进程 claim、费用与额度原子性、只读恢复 |
 | 2 | plugins/host.py 约 800 行：包读取/类型校验、隔离状态、受信装载生命周期分别维护 | 校验零执行、激活人工确认、前缀注册、防篡改、失败回滚、原子状态与锁范围 |
 | 3 | Web 配对/设置和主 index.html 有并行工作：合入后再整理独立 settings/auth 适配及前端专题资源 | 配对/密钥三态与脱敏、Host/Origin/cookie、原有操作入口；不能覆盖并行改动 |
 | 4 | Runtime 的生命周期与状态查询继续按真实依赖收窄；组装根保持唯一 | 路径注入、关闭预算与残留、会话作用域、跨入口一致性，不提前增加空接口层 |

@@ -32,7 +32,7 @@ MODULES = (
     Module('web-ui', 'Web 界面与身份', '交互与终端', ('channels/web.py', 'channels/web_auth.py', 'channels/web_static/'), '工作台业务路由、统一鉴权与静态界面；新专题使用独立 APIRouter。', ('ARCHITECTURE.md', 'UI_QA.md'), ('test_web.py', 'test_web_auth.py', 'test_ui_flows.py')),
     Module('http-sessions', '会话与待办 API', 'Web 接口', ('channels/web_api/sessions.py',), '会话选择、历史、状态和待办；消费注入 Runtime。', ('PROJECT_INDEX.md',), ('test_web_api.py', 'test_sessions.py')),
     Module('http-conversation', '对话与流式 API', 'Web 接口', ('channels/web_api/conversation.py',), '普通/流式对话、显式运行入口；共用会话闸门、租约和取消。', ('PROJECT_INDEX.md',), ('test_web_api.py', 'test_web.py')),
-    Module('command-contracts', '命令账本声明', '平台与数据', ('memory/command_schema.py',), 'state.db 命令账本的纯迁移声明，不导入仓储或执行器。', ('TERMINAL.md',), ('test_command_jobs.py',)),
+    Module('command-contracts', '状态库与命令账本声明', '平台与数据', ('memory/state_schema.py', 'memory/command_schema.py'), 'state.db 全部表结构与迁移脚本的唯一声明源；command_schema 仅保留旧 import 兼容。', ('TERMINAL.md',), ('test_state.py', 'test_command_jobs.py')),
     Module('command-jobs', '后台命令任务', '工具能力', ('tools/shell/jobs.py', 'tools/shell/job_logs.py', 'tools/shell/job_tools.py', 'channels/web_api/command_jobs.py', 'channels/web_static/jobs/'), '审批后的独立命令任务、状态仓储、有限日志、会话隔离与取消；不复用人工 PTY。', ('TERMINAL.md',), ('test_command_jobs.py',)),
     Module('http-runs', '运行与用量 API', 'Web 接口', ('channels/web_api/runs.py',), '运行查询、事件续读、协作取消和费用视图。', ('PROJECT_INDEX.md',), ('test_web.py',)),
     Module('http-memory', '记忆与档案 API', 'Web 接口', ('channels/web_api/memory.py',), '事实、档案、常驻、review 和检索状态。', ('PROJECT_INDEX.md',), ('test_web.py',)),

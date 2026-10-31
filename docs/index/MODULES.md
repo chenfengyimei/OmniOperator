@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`44dbf4801a9382a9d5815020a5045baa675520c87c221903934d351ec081f1d6`。包含 56 个职责模块、280 个源码/界面文件。
+源码指纹：`0ff497cfde50d2d074ec3652fd1d3164bc96f2e5f2c307dfb922ee0bf95076d3`。包含 56 个职责模块、281 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -184,7 +184,7 @@
 | [agent/src/omni/memory/session_log.py](../../agent/src/omni/memory/session_log.py) | 409 | 会话全量记忆（M2）：对话 + 工具过程的完整流水（比 M1 多工具与系统边界事件）。 |
 | [agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py) | 574 | 外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。 |
 | [agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py) | 1049 | 技能存储（程序性记忆）：skills/<name>/SKILL.md，agentskills.io 兼容子集。 |
-| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 1612 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
+| [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 1354 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
 | [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1146 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
 | [agent/src/omni/memory/system.py](../../agent/src/omni/memory/system.py) | 61 | 记忆系统门面：六个记忆模块对外的单点聚合（组合根纪律，无业务逻辑）。 |
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
@@ -345,19 +345,20 @@
 
 直接静态依赖：`assembly`、`engine`、`http-contracts`、`models`
 
-## 命令账本声明 · command-contracts
+## 状态库与命令账本声明 · command-contracts
 
-分类：平台与数据。state.db 命令账本的纯迁移声明，不导入仓储或执行器。
+分类：平台与数据。state.db 全部表结构与迁移脚本的唯一声明源；command_schema 仅保留旧 import 兼容。
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/memory/command_schema.py](../../agent/src/omni/memory/command_schema.py) | 22 | 后台命令账本的迁移声明；不连接数据库、不启动进程。 |
+| [agent/src/omni/memory/command_schema.py](../../agent/src/omni/memory/command_schema.py) | 6 | 命令账本声明的旧 import 兼容层；真实声明见 `memory/state_schema.py`。 |
+| [agent/src/omni/memory/state_schema.py](../../agent/src/omni/memory/state_schema.py) | 303 | `state.db` 的表结构与迁移声明唯一来源。 |
 
 文档：[docs/TERMINAL.md](../../docs/TERMINAL.md)
 
-测试：[agent/tests/test_command_jobs.py](../../agent/tests/test_command_jobs.py)
+测试：[agent/tests/test_state.py](../../agent/tests/test_state.py)、[agent/tests/test_command_jobs.py](../../agent/tests/test_command_jobs.py)
 
-直接静态依赖：无内部模块依赖
+直接静态依赖：`config`
 
 ## 后台命令任务 · command-jobs
 

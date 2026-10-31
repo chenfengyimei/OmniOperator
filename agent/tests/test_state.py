@@ -25,7 +25,9 @@ from omni.memory.state import (
     StateConflict,
     StateStore,
     StateUnavailable,
+    _MIGRATIONS,
 )
+from omni.memory.state_schema import MIGRATIONS
 from omni.tools.browser.budget import WriteBudget
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,6 +66,34 @@ def _run_parallel(code: str, arg_sets: list[list[str]], go: Path) -> list[str]:
 
 
 # ---------------------------------------------------------------- schema 与版本
+
+
+def test_schema_migrations_are_contiguous_and_single_sourced():
+    """state.db 的形状唯一来源是 state_schema：版本连续、兼容名指向同一份声明。"""
+    assert list(MIGRATIONS) == list(range(1, SCHEMA_VERSION + 1))
+    assert _MIGRATIONS is MIGRATIONS  # state.py 只做旧名兼容，不再复制第二份
+
+    from omni.memory import command_schema
+
+    assert command_schema.COMMAND_JOBS_SCHEMA is MIGRATIONS[14]
+
+
+def test_state_schema_declaration_has_no_store_behavior():
+    """声明模块不许偷偷 import 仓储/连接实现，防止数据形状和行为再次合流。"""
+    import ast
+
+    source = (ROOT / "src" / "omni" / "memory" / "state_schema.py").read_text(
+        encoding="utf-8"
+    )
+    tree = ast.parse(source)
+    imported = {
+        alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.Import, ast.ImportFrom))
+        for alias in node.names
+    }
+    assert not imported & {"state", "store", "command_jobs"}
+    assert not any(isinstance(node, ast.ClassDef) for node in ast.walk(tree))
 
 
 def test_fresh_database_has_schema_version_and_wal(tmp_path):

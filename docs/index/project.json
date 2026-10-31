@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "44dbf4801a9382a9d5815020a5045baa675520c87c221903934d351ec081f1d6",
+  "source_sha256": "0ff497cfde50d2d074ec3652fd1d3164bc96f2e5f2c307dfb922ee0bf95076d3",
   "modules": [
     {
       "id": "agent-directories",
@@ -322,7 +322,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8798,
+      "lines": 8540,
       "dependencies": [
         "command-contracts",
         "config",
@@ -556,23 +556,28 @@
     },
     {
       "id": "command-contracts",
-      "title": "命令账本声明",
+      "title": "状态库与命令账本声明",
       "category": "平台与数据",
       "prefixes": [
+        "memory/state_schema.py",
         "memory/command_schema.py"
       ],
-      "purpose": "state.db 命令账本的纯迁移声明，不导入仓储或执行器。",
+      "purpose": "state.db 全部表结构与迁移脚本的唯一声明源；command_schema 仅保留旧 import 兼容。",
       "docs": [
         "docs/TERMINAL.md"
       ],
       "tests": [
+        "agent/tests/test_state.py",
         "agent/tests/test_command_jobs.py"
       ],
       "files": [
-        "agent/src/omni/memory/command_schema.py"
+        "agent/src/omni/memory/command_schema.py",
+        "agent/src/omni/memory/state_schema.py"
       ],
-      "lines": 22,
-      "dependencies": []
+      "lines": 309,
+      "dependencies": [
+        "config"
+      ]
     },
     {
       "id": "command-jobs",
@@ -11044,10 +11049,12 @@
       "path": "agent/src/omni/memory/command_schema.py",
       "module": "command-contracts",
       "python_module": "omni.memory.command_schema",
-      "lines": 22,
-      "imports": [],
+      "lines": 6,
+      "imports": [
+        "omni.memory.state_schema"
+      ],
       "symbols": [],
-      "summary": "后台命令账本的迁移声明；不连接数据库、不启动进程。"
+      "summary": "命令账本声明的旧 import 兼容层；真实声明见 `memory/state_schema.py`。"
     },
     {
       "path": "agent/src/omni/memory/cron.py",
@@ -15063,51 +15070,50 @@
       "path": "agent/src/omni/memory/state.py",
       "module": "storage",
       "python_module": "omni.memory.state",
-      "lines": 1612,
+      "lines": 1354,
       "imports": [
-        "omni.config",
-        "omni.memory.command_schema",
-        "omni.memory.jobs"
+        "omni.memory.jobs",
+        "omni.memory.state_schema"
       ],
       "symbols": [
         {
           "name": "StateError",
-          "line": 316,
+          "line": 58,
           "kind": "class"
         },
         {
           "name": "StateUnavailable",
-          "line": 320,
+          "line": 62,
           "kind": "class"
         },
         {
           "name": "StateConflict",
-          "line": 324,
+          "line": 66,
           "kind": "class"
         },
         {
           "name": "StateBusy",
-          "line": 328,
+          "line": 70,
           "kind": "class"
         },
         {
           "name": "BudgetHit",
-          "line": 333,
+          "line": 75,
           "kind": "class"
         },
         {
           "name": "Claim",
-          "line": 341,
+          "line": 83,
           "kind": "class"
         },
         {
           "name": "Lease",
-          "line": 348,
+          "line": 90,
           "kind": "class"
         },
         {
           "name": "Lease.session_id",
-          "line": 358,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self"
@@ -15116,12 +15122,12 @@
         },
         {
           "name": "MigrationRecord",
-          "line": 368,
+          "line": 110,
           "kind": "class"
         },
         {
           "name": "_statements",
-          "line": 377,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "sql"
@@ -15132,14 +15138,14 @@
         },
         {
           "name": "_now",
-          "line": 382,
+          "line": 124,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_translate_operational",
-          "line": 386,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "exc"
@@ -15150,7 +15156,7 @@
         },
         {
           "name": "_row_to_job",
-          "line": 401,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "row"
@@ -15161,7 +15167,7 @@
         },
         {
           "name": "_job_params",
-          "line": 424,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "job"
@@ -15172,12 +15178,12 @@
         },
         {
           "name": "StateStore",
-          "line": 443,
+          "line": 185,
           "kind": "class"
         },
         {
           "name": "StateStore.__init__",
-          "line": 446,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -15193,7 +15199,7 @@
         },
         {
           "name": "StateStore._current_version",
-          "line": 484,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self"
@@ -15202,7 +15208,7 @@
         },
         {
           "name": "StateStore._apply_schema",
-          "line": 495,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self"
@@ -15211,7 +15217,7 @@
         },
         {
           "name": "StateStore.schema_version",
-          "line": 539,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "self"
@@ -15220,7 +15226,7 @@
         },
         {
           "name": "StateStore._tx",
-          "line": 545,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self"
@@ -15229,7 +15235,7 @@
         },
         {
           "name": "StateStore._begin",
-          "line": 570,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self"
@@ -15238,7 +15244,7 @@
         },
         {
           "name": "StateStore._read",
-          "line": 592,
+          "line": 334,
           "kind": "function",
           "parameters": [
             "self",
@@ -15252,7 +15258,7 @@
         },
         {
           "name": "StateStore._table_empty",
-          "line": 599,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "self",
@@ -15264,7 +15270,7 @@
         },
         {
           "name": "StateStore.degraded_reason",
-          "line": 603,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "self",
@@ -15276,7 +15282,7 @@
         },
         {
           "name": "StateStore._require",
-          "line": 606,
+          "line": 348,
           "kind": "function",
           "parameters": [
             "self",
@@ -15288,7 +15294,7 @@
         },
         {
           "name": "StateStore.close",
-          "line": 611,
+          "line": 353,
           "kind": "function",
           "parameters": [
             "self"
@@ -15297,7 +15303,7 @@
         },
         {
           "name": "StateStore.list_jobs",
-          "line": 618,
+          "line": 360,
           "kind": "function",
           "parameters": [
             "self"
@@ -15306,7 +15312,7 @@
         },
         {
           "name": "StateStore.get_job",
-          "line": 623,
+          "line": 365,
           "kind": "function",
           "parameters": [
             "self",
@@ -15318,7 +15324,7 @@
         },
         {
           "name": "StateStore.upsert_job",
-          "line": 628,
+          "line": 370,
           "kind": "function",
           "parameters": [
             "self",
@@ -15334,7 +15340,7 @@
         },
         {
           "name": "StateStore.update_run_state",
-          "line": 693,
+          "line": 435,
           "kind": "function",
           "parameters": [
             "self",
@@ -15352,7 +15358,7 @@
         },
         {
           "name": "StateStore.remove_job",
-          "line": 712,
+          "line": 454,
           "kind": "function",
           "parameters": [
             "self",
@@ -15364,7 +15370,7 @@
         },
         {
           "name": "StateStore.claim_due",
-          "line": 719,
+          "line": 461,
           "kind": "function",
           "parameters": [
             "self",
@@ -15382,7 +15388,7 @@
         },
         {
           "name": "StateStore.release_claim",
-          "line": 795,
+          "line": 537,
           "kind": "function",
           "parameters": [
             "self",
@@ -15394,7 +15400,7 @@
         },
         {
           "name": "StateStore.renew_job_claim",
-          "line": 799,
+          "line": 541,
           "kind": "function",
           "parameters": [
             "self",
@@ -15408,7 +15414,7 @@
         },
         {
           "name": "StateStore.lease",
-          "line": 807,
+          "line": 549,
           "kind": "function",
           "parameters": [
             "self",
@@ -15420,7 +15426,7 @@
         },
         {
           "name": "StateStore.acquire_lease",
-          "line": 820,
+          "line": 562,
           "kind": "function",
           "parameters": [
             "self",
@@ -15440,7 +15446,7 @@
         },
         {
           "name": "StateStore.renew_lease",
-          "line": 857,
+          "line": 599,
           "kind": "function",
           "parameters": [
             "self",
@@ -15456,7 +15462,7 @@
         },
         {
           "name": "StateStore.release_lease",
-          "line": 868,
+          "line": 610,
           "kind": "function",
           "parameters": [
             "self",
@@ -15468,7 +15474,7 @@
         },
         {
           "name": "StateStore.session_lease",
-          "line": 876,
+          "line": 618,
           "kind": "function",
           "parameters": [
             "self",
@@ -15480,7 +15486,7 @@
         },
         {
           "name": "StateStore.acquire_session_lease",
-          "line": 879,
+          "line": 621,
           "kind": "function",
           "parameters": [
             "self",
@@ -15500,7 +15506,7 @@
         },
         {
           "name": "StateStore.renew_session_lease",
-          "line": 896,
+          "line": 638,
           "kind": "function",
           "parameters": [
             "self",
@@ -15516,7 +15522,7 @@
         },
         {
           "name": "StateStore.release_session_lease",
-          "line": 901,
+          "line": 643,
           "kind": "function",
           "parameters": [
             "self",
@@ -15528,7 +15534,7 @@
         },
         {
           "name": "StateStore.record_execution",
-          "line": 906,
+          "line": 648,
           "kind": "function",
           "parameters": [
             "self",
@@ -15552,7 +15558,7 @@
         },
         {
           "name": "StateStore.recent_executions",
-          "line": 931,
+          "line": 673,
           "kind": "function",
           "parameters": [
             "self",
@@ -15564,7 +15570,7 @@
         },
         {
           "name": "StateStore.consume_budget",
-          "line": 951,
+          "line": 693,
           "kind": "function",
           "parameters": [
             "self",
@@ -15580,7 +15586,7 @@
         },
         {
           "name": "StateStore.budget_used",
-          "line": 974,
+          "line": 716,
           "kind": "function",
           "parameters": [
             "self",
@@ -15594,7 +15600,7 @@
         },
         {
           "name": "StateStore._migration",
-          "line": 982,
+          "line": 724,
           "kind": "function",
           "parameters": [
             "self",
@@ -15606,7 +15612,7 @@
         },
         {
           "name": "StateStore._write_migration",
-          "line": 996,
+          "line": 738,
           "kind": "function",
           "parameters": [
             "self",
@@ -15628,7 +15634,7 @@
         },
         {
           "name": "StateStore.migrate_legacy",
-          "line": 1015,
+          "line": 757,
           "kind": "function",
           "parameters": [
             "self",
@@ -15640,7 +15646,7 @@
         },
         {
           "name": "StateStore._migrate_file",
-          "line": 1024,
+          "line": 766,
           "kind": "function",
           "parameters": [
             "self",
@@ -15656,7 +15662,7 @@
         },
         {
           "name": "StateStore._mark_corrupt",
-          "line": 1062,
+          "line": 804,
           "kind": "function",
           "parameters": [
             "self",
@@ -15674,7 +15680,7 @@
         },
         {
           "name": "StateStore._import_rows",
-          "line": 1077,
+          "line": 819,
           "kind": "function",
           "parameters": [
             "self",
@@ -15690,7 +15696,7 @@
         },
         {
           "name": "StateStore._import_jobs",
-          "line": 1086,
+          "line": 828,
           "kind": "function",
           "parameters": [
             "self",
@@ -15704,7 +15710,7 @@
         },
         {
           "name": "StateStore._import_executions",
-          "line": 1121,
+          "line": 863,
           "kind": "function",
           "parameters": [
             "self",
@@ -15718,7 +15724,7 @@
         },
         {
           "name": "StateStore._import_budget",
-          "line": 1146,
+          "line": 888,
           "kind": "function",
           "parameters": [
             "self",
@@ -15732,7 +15738,7 @@
         },
         {
           "name": "StateStore.health",
-          "line": 1163,
+          "line": 905,
           "kind": "function",
           "parameters": [
             "self"
@@ -15741,12 +15747,12 @@
         },
         {
           "name": "JobStore",
-          "line": 1200,
+          "line": 942,
           "kind": "class"
         },
         {
           "name": "JobStore.__init__",
-          "line": 1203,
+          "line": 945,
           "kind": "function",
           "parameters": [
             "self",
@@ -15758,7 +15764,7 @@
         },
         {
           "name": "JobStore.state",
-          "line": 1207,
+          "line": 949,
           "kind": "function",
           "parameters": [
             "self"
@@ -15767,7 +15773,7 @@
         },
         {
           "name": "JobStore.list",
-          "line": 1210,
+          "line": 952,
           "kind": "function",
           "parameters": [
             "self"
@@ -15776,7 +15782,7 @@
         },
         {
           "name": "JobStore.get",
-          "line": 1213,
+          "line": 955,
           "kind": "function",
           "parameters": [
             "self",
@@ -15788,7 +15794,7 @@
         },
         {
           "name": "JobStore.upsert",
-          "line": 1216,
+          "line": 958,
           "kind": "function",
           "parameters": [
             "self",
@@ -15804,7 +15810,7 @@
         },
         {
           "name": "JobStore.remove",
-          "line": 1223,
+          "line": 965,
           "kind": "function",
           "parameters": [
             "self",
@@ -15816,7 +15822,7 @@
         },
         {
           "name": "JobStore.claim_due",
-          "line": 1226,
+          "line": 968,
           "kind": "function",
           "parameters": [
             "self",
@@ -15829,7 +15835,7 @@
         },
         {
           "name": "JobStore.release_claim",
-          "line": 1229,
+          "line": 971,
           "kind": "function",
           "parameters": [
             "self",
@@ -15841,7 +15847,7 @@
         },
         {
           "name": "JobStore.renew_claim",
-          "line": 1232,
+          "line": 974,
           "kind": "function",
           "parameters": [
             "self",
@@ -15855,7 +15861,7 @@
         },
         {
           "name": "JobStore.update_run_state",
-          "line": 1235,
+          "line": 977,
           "kind": "function",
           "parameters": [
             "self",
@@ -15868,12 +15874,12 @@
         },
         {
           "name": "ExecutionLog",
-          "line": 1239,
+          "line": 981,
           "kind": "class"
         },
         {
           "name": "ExecutionLog.__init__",
-          "line": 1242,
+          "line": 984,
           "kind": "function",
           "parameters": [
             "self",
@@ -15887,7 +15893,7 @@
         },
         {
           "name": "ExecutionLog.record",
-          "line": 1246,
+          "line": 988,
           "kind": "function",
           "parameters": [
             "self",
@@ -15909,7 +15915,7 @@
         },
         {
           "name": "ExecutionLog.recent",
-          "line": 1265,
+          "line": 1007,
           "kind": "function",
           "parameters": [
             "self",
@@ -15921,7 +15927,7 @@
         },
         {
           "name": "ExecutionLog.output",
-          "line": 1268,
+          "line": 1010,
           "kind": "function",
           "parameters": [
             "self",
@@ -15941,7 +15947,7 @@
         },
         {
           "name": "ExecutionLog.source",
-          "line": 1275,
+          "line": 1017,
           "kind": "function",
           "parameters": [
             "self",
@@ -15955,12 +15961,12 @@
         },
         {
           "name": "OutboxStore",
-          "line": 1286,
+          "line": 1028,
           "kind": "class"
         },
         {
           "name": "OutboxStore.__init__",
-          "line": 1303,
+          "line": 1045,
           "kind": "function",
           "parameters": [
             "self",
@@ -15972,14 +15978,14 @@
         },
         {
           "name": "OutboxStore._now",
-          "line": 1307,
+          "line": 1049,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "OutboxStore.enqueue",
-          "line": 1310,
+          "line": 1052,
           "kind": "function",
           "parameters": [
             "self",
@@ -15999,7 +16005,7 @@
         },
         {
           "name": "OutboxStore.list",
-          "line": 1343,
+          "line": 1085,
           "kind": "function",
           "parameters": [
             "self",
@@ -16011,7 +16017,7 @@
         },
         {
           "name": "OutboxStore.get",
-          "line": 1352,
+          "line": 1094,
           "kind": "function",
           "parameters": [
             "self",
@@ -16023,7 +16029,7 @@
         },
         {
           "name": "OutboxStore.pending",
-          "line": 1356,
+          "line": 1098,
           "kind": "function",
           "parameters": [
             "self",
@@ -16035,7 +16041,7 @@
         },
         {
           "name": "OutboxStore.mark",
-          "line": 1365,
+          "line": 1107,
           "kind": "function",
           "parameters": [
             "self",
@@ -16051,7 +16057,7 @@
         },
         {
           "name": "OutboxStore.claim_next",
-          "line": 1377,
+          "line": 1119,
           "kind": "function",
           "parameters": [
             "self",
@@ -16069,7 +16075,7 @@
         },
         {
           "name": "OutboxStore.finish_claim",
-          "line": 1409,
+          "line": 1151,
           "kind": "function",
           "parameters": [
             "self",
@@ -16087,7 +16093,7 @@
         },
         {
           "name": "OutboxStore.defer_claim",
-          "line": 1423,
+          "line": 1165,
           "kind": "function",
           "parameters": [
             "self",
@@ -16103,7 +16109,7 @@
         },
         {
           "name": "OutboxStore.attempt",
-          "line": 1431,
+          "line": 1173,
           "kind": "function",
           "parameters": [
             "self",
@@ -16117,7 +16123,7 @@
         },
         {
           "name": "OutboxStore.retry",
-          "line": 1447,
+          "line": 1189,
           "kind": "function",
           "parameters": [
             "self",
@@ -16131,7 +16137,7 @@
         },
         {
           "name": "OutboxStore.discard",
-          "line": 1468,
+          "line": 1210,
           "kind": "function",
           "parameters": [
             "self",
@@ -16145,7 +16151,7 @@
         },
         {
           "name": "OutboxStore.prune_terminal",
-          "line": 1481,
+          "line": 1223,
           "kind": "function",
           "parameters": [
             "self",
@@ -16157,7 +16163,7 @@
         },
         {
           "name": "OutboxStore._row",
-          "line": 1498,
+          "line": 1240,
           "kind": "function",
           "parameters": [
             "r"
@@ -16168,12 +16174,12 @@
         },
         {
           "name": "MCPSchemaStore",
-          "line": 1511,
+          "line": 1253,
           "kind": "class"
         },
         {
           "name": "MCPSchemaStore.__init__",
-          "line": 1518,
+          "line": 1260,
           "kind": "function",
           "parameters": [
             "self",
@@ -16185,7 +16191,7 @@
         },
         {
           "name": "MCPSchemaStore.observe",
-          "line": 1521,
+          "line": 1263,
           "kind": "function",
           "parameters": [
             "self",
@@ -16201,7 +16207,7 @@
         },
         {
           "name": "MCPSchemaStore.confirm",
-          "line": 1546,
+          "line": 1288,
           "kind": "function",
           "parameters": [
             "self",
@@ -16215,7 +16221,7 @@
         },
         {
           "name": "MCPSchemaStore.status",
-          "line": 1557,
+          "line": 1299,
           "kind": "function",
           "parameters": [
             "self",
@@ -16227,12 +16233,12 @@
         },
         {
           "name": "SkillAckStore",
-          "line": 1573,
+          "line": 1315,
           "kind": "class"
         },
         {
           "name": "SkillAckStore.__init__",
-          "line": 1581,
+          "line": 1323,
           "kind": "function",
           "parameters": [
             "self",
@@ -16244,7 +16250,7 @@
         },
         {
           "name": "SkillAckStore.ack",
-          "line": 1584,
+          "line": 1326,
           "kind": "function",
           "parameters": [
             "self",
@@ -16258,7 +16264,7 @@
         },
         {
           "name": "SkillAckStore.acked",
-          "line": 1599,
+          "line": 1341,
           "kind": "function",
           "parameters": [
             "self",
@@ -16270,7 +16276,7 @@
         },
         {
           "name": "SkillAckStore.acked_all",
-          "line": 1605,
+          "line": 1347,
           "kind": "function",
           "parameters": [
             "self"
@@ -16279,7 +16285,7 @@
         },
         {
           "name": "SkillAckStore.forget",
-          "line": 1609,
+          "line": 1351,
           "kind": "function",
           "parameters": [
             "self",
@@ -16291,6 +16297,17 @@
         }
       ],
       "summary": "共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。"
+    },
+    {
+      "path": "agent/src/omni/memory/state_schema.py",
+      "module": "command-contracts",
+      "python_module": "omni.memory.state_schema",
+      "lines": 303,
+      "imports": [
+        "omni.config"
+      ],
+      "symbols": [],
+      "summary": "`state.db` 的表结构与迁移声明唯一来源。"
     },
     {
       "path": "agent/src/omni/memory/store.py",
@@ -32621,7 +32638,7 @@
         {
           "source": "agent/src/omni/memory/state.py",
           "symbol": "MCPSchemaStore",
-          "line": 1511
+          "line": 1253
         }
       ]
     }
