@@ -14,7 +14,9 @@
     memory:{icon:'psychology',label:'记忆系统'},
   };
   /* NAV_ITEMS 是全站页面导航的唯一数据源（UI_DESIGN_SYSTEM.md §7）：
-     新增页面只在这里加一行；子站 rail 由 renderRail 渲染，工作台 rail 的链接项与之同源同序。 */
+     新增页面只在这里加一行；子站 rail 由 renderRail 渲染，工作台 rail 的链接项与之同源同序。
+     「记忆库」指向 /memory/ 独立页（此前该页无任何入口，是事实孤儿）；
+     「记忆系统」仍指向设置中心内的原生分区——两者是不同界面的不同称呼，不要混。 */
   const NAV_ITEMS=[
     ['/','forum','对话工作台'],
     ['/capabilities/','fact_check','能力总览'],
@@ -24,6 +26,7 @@
     ['/android/','smartphone','安卓控制'],
     ['/project/','account_tree','项目索引'],
     ['/storage/','folder','Agent 与文件'],
+    ['/memory/','psychology','记忆库'],
     ['/?settings=1&section=sec-memory-system','psychology','记忆系统'],
     ['/?settings=1','settings','设置中心'],
   ];

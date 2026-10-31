@@ -1,17 +1,17 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m10';
-import {api} from './api.js?v=20261031m10';
-import {loadState} from './header.js?v=20261031m10';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m10';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m10';
-import {loadCron} from './hub-cron.js?v=20261031m10';
-import {loadUsage} from './hub-usage.js?v=20261031m10';
-import {loadMcp} from './hub-mcp.js?v=20261031m10';
-import {loadContext} from './hub-context.js?v=20261031m10';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m10';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m10';
+import {$,esc} from './dom.js?v=20261031m11';
+import {api} from './api.js?v=20261031m11';
+import {loadState} from './header.js?v=20261031m11';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m11';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m11';
+import {loadCron} from './hub-cron.js?v=20261031m11';
+import {loadUsage} from './hub-usage.js?v=20261031m11';
+import {loadMcp} from './hub-mcp.js?v=20261031m11';
+import {loadContext} from './hub-context.js?v=20261031m11';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m11';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m11';
 
 export async function openHub(go=null){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');
@@ -52,7 +52,9 @@ export function switchHub(go){
     }
   }
 }
-document.querySelectorAll('.hub-nav a').forEach(a=>a.onclick=e=>{e.preventDefault();switchHub(a.dataset.go)});
+// 只拦截「分区跳转」锚点（带 data-go）；不带 data-go 的是独立页直链（如 /storage/），
+// 走浏览器默认行为新标签打开——此前全拦导致 /storage/ 独立页从工作台永远打不开。
+document.querySelectorAll('.hub-nav a[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();switchHub(a.dataset.go)});
 // 左侧导航图标：纯装饰，拿不到图标就跳过（不影响点击）
 (function(){
   const icons={
