@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2a01eb64cebc8c6c445c04e59ed9535307e2904fe01707c305e1c86a3912e96b`。包含 56 个职责模块、280 个源码/界面文件。
+源码指纹：`85e407cd38f69f43df608f2074bc02f46fe9bab936ed57d25c91a0f6766cb205`。包含 56 个职责模块、282 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -250,7 +250,7 @@
 | [agent/src/omni/channels/web_static/ui/app/chat.js](../../agent/src/omni/channels/web_static/ui/app/chat.js) | 117 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/desktop.js](../../agent/src/omni/channels/web_static/ui/app/desktop.js) | 24 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/dom.js](../../agent/src/omni/channels/web_static/ui/app/dom.js) | 36 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/header.js](../../agent/src/omni/channels/web_static/ui/app/header.js) | 138 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/header.js](../../agent/src/omni/channels/web_static/ui/app/header.js) | 132 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-capabilities.js](../../agent/src/omni/channels/web_static/ui/app/hub-capabilities.js) | 10 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-cron.js](../../agent/src/omni/channels/web_static/ui/app/hub-cron.js) | 140 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-jobs.js](../../agent/src/omni/channels/web_static/ui/app/hub-jobs.js) | 9 | 平台脚本或界面资源 |
@@ -285,7 +285,7 @@
 | [agent/src/omni/channels/web_static/ui/terminal-theme.js](../../agent/src/omni/channels/web_static/ui/terminal-theme.js) | 48 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/theme.js](../../agent/src/omni/channels/web_static/ui/theme.js) | 82 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/tokens.css](../../agent/src/omni/channels/web_static/ui/tokens.css) | 200 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1118 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1115 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -301,7 +301,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 493 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 629 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 626 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/index.html](../../agent/src/omni/channels/web_static/memory/index.html) | 6 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.css](../../agent/src/omni/channels/web_static/memory/memory.css) | 153 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.js](../../agent/src/omni/channels/web_static/memory/memory.js) | 738 | 平台脚本或界面资源 |
@@ -982,15 +982,17 @@
 | [agent/src/omni/system/atomic.py](../../agent/src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
 | [agent/src/omni/system/backup.py](../../agent/src/omni/system/backup.py) | 515 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
 | [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 463 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
-| [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
+| [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 100 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [agent/src/omni/system/filelock.py](../../agent/src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
 | [agent/src/omni/system/observability.py](../../agent/src/omni/system/observability.py) | 102 | 有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。 |
-| [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 231 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
+| [agent/src/omni/system/posixproc.py](../../agent/src/omni/system/posixproc.py) | 47 | POSIX 进程身份后端（P0 骨架）：Linux 只读身份走 /proc，身份核验失败一律拒绝授权终止。 |
+| [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 54 | 进程身份与已验证终止的公共协议与平台分派；不以裸 PID 或端口身份授权终止。 |
 | [agent/src/omni/system/provenance.py](../../agent/src/omni/system/provenance.py) | 30 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
 | [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 480 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [agent/src/omni/system/soak.py](../../agent/src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [agent/src/omni/system/stderr_log.py](../../agent/src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
+| [agent/src/omni/system/winproc.py](../../agent/src/omni/system/winproc.py) | 199 | Win32 进程身份与句柄终止后端；只在 os.name == "nt" 下被 process_identity 分派导入。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/ACCEPTANCE.md](../../docs/ACCEPTANCE.md)
 

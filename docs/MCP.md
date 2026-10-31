@@ -10,7 +10,7 @@ OmniOperator 通过已安装的官方 Python MCP SDK 接入 **stdio** 服务。�
 
 ## 配置
 
-在 `config/config.yaml` 加入以下配置（首次使用先复制模板：`Copy-Item config\config.example.yaml config\config.yaml`），换成自己审核过的服务可执行文件及工具名，然后重启使用它的入口：
+在 `config/config.yaml` 加入以下配置（首次使用先复制模板：`Copy-Item agent\config\config.example.yaml config\config.yaml`；模板在仓库的 `agent\config\` 下，运行时读仓库根的 `config\config.yaml`），换成自己审核过的服务可执行文件及工具名，然后重启使用它的入口：
 
 ```yaml
 mcp:
@@ -29,6 +29,7 @@ mcp:
 
 `command` 是可执行文件，参数逐项放 `args`，不会经过 shell 拼接。未配置 `cwd` 时使用
 项目根目录，相对 `cwd` 也以项目根目录为基准。默认没有任何外部服务，不会启动子进程。
+示例里的 `.venv/Scripts/python.exe` 是 Windows venv 布局；Linux/macOS 是 `.venv/bin/python`。
 如果服务不需要 token，可省略 `env`；需要时把值放 `.env`，配置里仅引用 `${变量名}`。
 缺失变量使连接失败；不会自动透传 LiteLLM 等其它凭据。Python 子进程默认启用 UTF-8。
 

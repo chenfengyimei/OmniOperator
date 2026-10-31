@@ -25,7 +25,7 @@ NapCat WebUI → **网络配置** → 新建连接：
 
 ## 3. 配置 OmniOperator
 
-编辑 `config/config.yaml`（首次使用先复制模板：`Copy-Item config\config.example.yaml config\config.yaml`；真实 QQ 白名单只存这个本地文件，不入库）：
+编辑 `config/config.yaml`（首次使用先复制模板：`Copy-Item agent\config\config.example.yaml config\config.yaml`，模板在仓库的 `agent\config\` 下；真实 QQ 白名单只存这个本地文件，不入库）：
 
 ```yaml
 qq:

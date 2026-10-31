@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2a01eb64cebc8c6c445c04e59ed9535307e2904fe01707c305e1c86a3912e96b",
+  "source_sha256": "85e407cd38f69f43df608f2074bc02f46fe9bab936ed57d25c91a0f6766cb205",
   "modules": [
     {
       "id": "agent-directories",
@@ -453,7 +453,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 5135,
+      "lines": 5126,
       "dependencies": []
     },
     {
@@ -488,7 +488,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2545,
+      "lines": 2542,
       "dependencies": [
         "assembly",
         "config",
@@ -1611,14 +1611,16 @@
         "agent/src/omni/system/doctor.py",
         "agent/src/omni/system/filelock.py",
         "agent/src/omni/system/observability.py",
+        "agent/src/omni/system/posixproc.py",
         "agent/src/omni/system/process_identity.py",
         "agent/src/omni/system/provenance.py",
         "agent/src/omni/system/release_gate.py",
         "agent/src/omni/system/services.py",
         "agent/src/omni/system/soak.py",
-        "agent/src/omni/system/stderr_log.py"
+        "agent/src/omni/system/stderr_log.py",
+        "agent/src/omni/system/winproc.py"
       ],
-      "lines": 2498,
+      "lines": 2574,
       "dependencies": [
         "agent-directories",
         "config"
@@ -5914,7 +5916,7 @@
       "path": "agent/src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 629,
+      "lines": 626,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6214,7 +6216,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/header.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 138,
+      "lines": 132,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6574,7 +6576,7 @@
       "path": "agent/src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1118,
+      "lines": 1115,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -19991,7 +19993,7 @@
       "path": "agent/src/omni/system/doctor.py",
       "module": "platform",
       "python_module": "omni.system.doctor",
-      "lines": 93,
+      "lines": 100,
       "imports": [
         "omni.config",
         "omni.system.process_identity",
@@ -20000,7 +20002,7 @@
       "symbols": [
         {
           "name": "diagnose",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "paths",
@@ -20013,7 +20015,7 @@
         },
         {
           "name": "diagnose.record",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "name",
@@ -20332,50 +20334,17 @@
       "summary": "有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。"
     },
     {
-      "path": "agent/src/omni/system/process_identity.py",
+      "path": "agent/src/omni/system/posixproc.py",
       "module": "platform",
-      "python_module": "omni.system.process_identity",
-      "lines": 231,
-      "imports": [],
+      "python_module": "omni.system.posixproc",
+      "lines": 47,
+      "imports": [
+        "omni.system.process_identity"
+      ],
       "symbols": [
         {
-          "name": "ProcessIdentity",
-          "line": 17,
-          "kind": "class"
-        },
-        {
-          "name": "ProcessIdentityError",
-          "line": 23,
-          "kind": "class"
-        },
-        {
-          "name": "_Entry",
-          "line": 27,
-          "kind": "class"
-        },
-        {
-          "name": "_kernel",
-          "line": 34,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "_identity_from_handle",
-          "line": 54,
-          "kind": "function",
-          "parameters": [
-            "api",
-            "handle",
-            "pid"
-          ],
-          "annotations": {
-            "pid": "int"
-          }
-        },
-        {
           "name": "inspect_process",
-          "line": 70,
+          "line": 15,
           "kind": "function",
           "parameters": [
             "pid"
@@ -20386,19 +20355,14 @@
         },
         {
           "name": "process_parents",
-          "line": 90,
+          "line": 26,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "_MemoryCounters",
-          "line": 110,
-          "kind": "class"
-        },
-        {
           "name": "sample_process",
-          "line": 116,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "identity"
@@ -20409,7 +20373,7 @@
         },
         {
           "name": "confirmed_exited",
-          "line": 149,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "identity"
@@ -20420,7 +20384,7 @@
         },
         {
           "name": "terminate_verified_tree",
-          "line": 174,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "root",
@@ -20430,10 +20394,57 @@
             "root": "ProcessIdentity",
             "timeout_s": "float"
           }
+        }
+      ],
+      "summary": "POSIX 进程身份后端（P0 骨架）：Linux 只读身份走 /proc，身份核验失败一律拒绝授权终止。"
+    },
+    {
+      "path": "agent/src/omni/system/process_identity.py",
+      "module": "platform",
+      "python_module": "omni.system.process_identity",
+      "lines": 54,
+      "imports": [
+        "omni.system"
+      ],
+      "symbols": [
+        {
+          "name": "ProcessIdentity",
+          "line": 18,
+          "kind": "class"
         },
         {
-          "name": "terminate_verified_tree.retain",
-          "line": 184,
+          "name": "ProcessIdentityError",
+          "line": 24,
+          "kind": "class"
+        },
+        {
+          "name": "_backend",
+          "line": 28,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "inspect_process",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "pid"
+          ],
+          "annotations": {
+            "pid": "int"
+          }
+        },
+        {
+          "name": "process_parents",
+          "line": 41,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "sample_process",
+          "line": 45,
           "kind": "function",
           "parameters": [
             "identity"
@@ -20441,9 +20452,33 @@
           "annotations": {
             "identity": "ProcessIdentity"
           }
+        },
+        {
+          "name": "confirmed_exited",
+          "line": 49,
+          "kind": "function",
+          "parameters": [
+            "identity"
+          ],
+          "annotations": {
+            "identity": "ProcessIdentity"
+          }
+        },
+        {
+          "name": "terminate_verified_tree",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "root",
+            "timeout_s"
+          ],
+          "annotations": {
+            "root": "ProcessIdentity",
+            "timeout_s": "float"
+          }
         }
       ],
-      "summary": "进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。"
+      "summary": "进程身份与已验证终止的公共协议与平台分派；不以裸 PID 或端口身份授权终止。"
     },
     {
       "path": "agent/src/omni/system/provenance.py",
@@ -21214,6 +21249,112 @@
         }
       ],
       "summary": "子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。"
+    },
+    {
+      "path": "agent/src/omni/system/winproc.py",
+      "module": "platform",
+      "python_module": "omni.system.winproc",
+      "lines": 199,
+      "imports": [
+        "omni.system.process_identity"
+      ],
+      "symbols": [
+        {
+          "name": "_Entry",
+          "line": 17,
+          "kind": "class"
+        },
+        {
+          "name": "_kernel",
+          "line": 24,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_identity_from_handle",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "api",
+            "handle",
+            "pid"
+          ],
+          "annotations": {
+            "pid": "int"
+          }
+        },
+        {
+          "name": "inspect_process",
+          "line": 60,
+          "kind": "function",
+          "parameters": [
+            "pid"
+          ],
+          "annotations": {
+            "pid": "int"
+          }
+        },
+        {
+          "name": "process_parents",
+          "line": 73,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_MemoryCounters",
+          "line": 91,
+          "kind": "class"
+        },
+        {
+          "name": "sample_process",
+          "line": 97,
+          "kind": "function",
+          "parameters": [
+            "identity"
+          ],
+          "annotations": {
+            "identity": "ProcessIdentity"
+          }
+        },
+        {
+          "name": "confirmed_exited",
+          "line": 128,
+          "kind": "function",
+          "parameters": [
+            "identity"
+          ],
+          "annotations": {
+            "identity": "ProcessIdentity"
+          }
+        },
+        {
+          "name": "terminate_verified_tree",
+          "line": 144,
+          "kind": "function",
+          "parameters": [
+            "root",
+            "timeout_s"
+          ],
+          "annotations": {
+            "root": "ProcessIdentity",
+            "timeout_s": "float"
+          }
+        },
+        {
+          "name": "terminate_verified_tree.retain",
+          "line": 152,
+          "kind": "function",
+          "parameters": [
+            "identity"
+          ],
+          "annotations": {
+            "identity": "ProcessIdentity"
+          }
+        }
+      ],
+      "summary": "Win32 进程身份与句柄终止后端；只在 os.name == \"nt\" 下被 process_identity 分派导入。"
     },
     {
       "path": "agent/src/omni/tools/__init__.py",
