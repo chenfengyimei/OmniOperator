@@ -1,5 +1,15 @@
 # 架构重构记录与后续顺序
 
+2026-11-01 摘要原语去重第二段：全仓 `sha256(data).hexdigest()` 命名函数还有
+4 处逐字相同副本（`memory/resident.py` 的 `_digest`、`tools/files/io.py` 的
+`sha256_hex`、`plugins/community/client.py` 与 `server.py` 的 `_digest`），
+全部收敛为 `system/path_guard.digest` 的 import 别名（调用点零改动，四个
+文件的 hashlib import 移除）。内联表达式（artifacts/revisions/files.history）
+不强制迁移——没有共享名就没有覆盖风险。新守卫：四个别名必须是同一函数对象。
+专项 `test_skill_inbox+test_plugins+test_plugin_community+test_arch+
+test_memory+test_files` **125 项通过（8.32s）**，索引与目录守卫 11 项通过；
+未跑全量。
+
 2026-11-01 路径安全原语统一：新增 `system/path_guard.py`（`safe_parts`/
 `digest`），消除 `plugins/package_reader.py` 与 `memory/skill_inbox.py`
 两份逐字相同的 zip-slip/摘要副本——同一份安全逻辑两处维护=改一处漏一处。

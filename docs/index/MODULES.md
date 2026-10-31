@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9b161190305cfcba774451e9fe3751f65f92c5a23bcbfa354a334e41ea396a6b`。包含 56 个职责模块、294 个源码/界面文件。
+源码指纹：`14e58dfe5b559ff7729b32631f3827f2fe87337ff677676abed4eb002f433788`。包含 56 个职责模块、294 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -181,7 +181,7 @@
 | [agent/src/omni/memory/people.py](../../agent/src/omni/memory/people.py) | 608 | 核心人物记忆（M6）：重要人物的账号、常驻档案、常驻记忆与临时事件。 |
 | [agent/src/omni/memory/publications.py](../../agent/src/omni/memory/publications.py) | 88 | 人工发布草稿与发送身份账本；进程中断/结果未知不自动二次发布。 |
 | [agent/src/omni/memory/qq.py](../../agent/src/omni/memory/qq.py) | 74 | QQ 入站去重、撤回墓碑与回复身份；只保存 ID/状态，不保存原文。 |
-| [agent/src/omni/memory/resident.py](../../agent/src/omni/memory/resident.py) | 377 | 常驻小记忆（Hermes MEMORY.md 式，NOTES §1.3a）：跨会话冻结快照注入系统提示词。 |
+| [agent/src/omni/memory/resident.py](../../agent/src/omni/memory/resident.py) | 373 | 常驻小记忆（Hermes MEMORY.md 式，NOTES §1.3a）：跨会话冻结快照注入系统提示词。 |
 | [agent/src/omni/memory/revisions.py](../../agent/src/omni/memory/revisions.py) | 240 | 内容修订历史（D08）：技能与常驻记忆的"可回滚快照"。 |
 | [agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py) | 388 | 运行记录（run）与事件流（`state.db`）：一次"问—想—做—答"的可查账本。 |
 | [agent/src/omni/memory/session_log.py](../../agent/src/omni/memory/session_log.py) | 409 | 会话全量记忆（M2）：对话 + 工具过程的完整流水（比 M1 多工具与系统边界事件）。 |
@@ -770,7 +770,7 @@
 |---|---:|---|
 | [agent/src/omni/tools/files/__init__.py](../../agent/src/omni/tools/files/__init__.py) | 19 | 结构化文件工具域（D13）：工作区内的有界读写、差异预览与回滚。 |
 | [agent/src/omni/tools/files/history.py](../../agent/src/omni/tools/files/history.py) | 161 | 工作区文件的修订快照（D13）：写前备份、可回滚。 |
-| [agent/src/omni/tools/files/io.py](../../agent/src/omni/tools/files/io.py) | 324 | 文本读写的有界实现（D13）：编码识别、二进制拒绝、窗口读取、原子替换。 |
+| [agent/src/omni/tools/files/io.py](../../agent/src/omni/tools/files/io.py) | 320 | 文本读写的有界实现（D13）：编码识别、二进制拒绝、窗口读取、原子替换。 |
 | [agent/src/omni/tools/files/paths.py](../../agent/src/omni/tools/files/paths.py) | 287 | 工作区路径边界（D13）：规范化、根校验、敏感项与"检查后不变"。 |
 | [agent/src/omni/tools/files/search.py](../../agent/src/omni/tools/files/search.py) | 169 | 有界目录遍历与内容搜索（D13）。 |
 | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py) | 703 | 结构化文件工具（D13，toolset=files）。 |
@@ -938,8 +938,8 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/plugins/community/__init__.py](../../agent/src/omni/plugins/community/__init__.py) | 5 | 插件社区公共入口；客户端、工具与服务器分别维护。 |
-| [agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py) | 288 | 插件社区客户端：搜索 / 详情 / 安装 / 发布。 |
-| [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py) | 261 | 插件社区参考服务器（FastAPI + 文件存储，单 owner 部署）。 |
+| [agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py) | 284 | 插件社区客户端：搜索 / 详情 / 安装 / 发布。 |
+| [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py) | 257 | 插件社区参考服务器（FastAPI + 文件存储，单 owner 部署）。 |
 | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py) | 142 | 社区工具适配；HTTP/发布逻辑由注入客户端承担。 |
 | [agent/src/omni/plugins/server.py](../../agent/src/omni/plugins/server.py) | 7 | 兼容 python -m omni.plugins.server；实现位于 plugins/community/server.py。 |
 

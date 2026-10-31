@@ -38,6 +38,25 @@ def test_path_guard_primitive_is_shared_not_duplicated():
     assert reader.digest is guard.digest
 
 
+def test_digest_helpers_all_alias_path_guard():
+    """全仓命名摘要函数只剩 path_guard.digest 一个实现：
+    resident / files.io / community.client / community.server 都是同一函数对象的别名，
+    不允许再出现第四份逐字相同的 `sha256(data).hexdigest()` 副本。"""
+    import omni.plugins.community.client as community_client
+    import omni.plugins.community.server as community_server
+    import omni.system.path_guard as guard
+    import omni.tools.files.io as files_io
+    from omni.memory import resident
+
+    for module, name in (
+        (resident, "_digest"),
+        (files_io, "sha256_hex"),
+        (community_client, "_digest"),
+        (community_server, "_digest"),
+    ):
+        assert getattr(module, name) is guard.digest, f"{module.__name__}.{name} 必须是 path_guard.digest 的别名"
+
+
 BODY = """## When to Use
 需要在多步任务里沉淀可复用流程的时候使用本技能，这句话足够长以通过最短正文的校验要求。
 ## Procedure

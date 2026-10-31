@@ -17,7 +17,6 @@ D08 补的一致性：主对话、后台 review、工作台是**不同线程/不
 """
 from __future__ import annotations
 
-import hashlib
 import os
 import re
 from pathlib import Path
@@ -25,6 +24,7 @@ from pathlib import Path
 from ..config import DATA_DIR
 from ..system.atomic import atomic_write_text
 from ..system.filelock import FileLock, LockTimeout, lock_beside
+from ..system.path_guard import digest as _digest
 from .revisions import Revision, RevisionError, RevisionStore
 
 ENTRY_DELIMITER = "\n§\n"
@@ -371,7 +371,3 @@ class ResidentMemory:
         if self._char_count(entries) > self._limit:
             return f"共 {self._char_count(entries)} 字符，超过限额 {self._limit}"
         return ""
-
-
-def _digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()

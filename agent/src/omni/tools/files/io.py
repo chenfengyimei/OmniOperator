@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import codecs
 import difflib
-import hashlib
 import io
 import os
 from contextlib import contextmanager
@@ -23,6 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
 
+from ...system.path_guard import digest as sha256_hex
 from .paths import PathRejected
 
 BINARY_SNIFF_BYTES = 8192
@@ -31,10 +31,6 @@ MIN_HASH_PREFIX = 8
 
 # UTF-16 只认显式 BOM；编码名带上字节序，写回时不会静默换端序
 UTF16_ENCODINGS = ("utf-16-le", "utf-16-be")
-
-
-def sha256_hex(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
 
 
 def hash_matches(expected: str, actual: str) -> bool:

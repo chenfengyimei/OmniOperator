@@ -33,7 +33,6 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import hashlib
 import hmac
 import io
 import json
@@ -46,13 +45,10 @@ from fastapi import FastAPI, File, Form, HTTPException, Query, Response, UploadF
 
 from ...system.atomic import atomic_write_text
 from ...system.filelock import FileLock, LockTimeout
+from ...system.path_guard import digest as _digest
 from ..manifest import MANIFEST_NAME, PluginManifest
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 发布上限（收件侧安装仍按 4 MiB 收紧）
-
-
-def _digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
 
 
 def _now() -> str:

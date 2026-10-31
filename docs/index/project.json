@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9b161190305cfcba774451e9fe3751f65f92c5a23bcbfa354a334e41ea396a6b",
+  "source_sha256": "14e58dfe5b559ff7729b32631f3827f2fe87337ff677676abed4eb002f433788",
   "modules": [
     {
       "id": "agent-directories",
@@ -332,7 +332,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8714,
+      "lines": 8710,
       "dependencies": [
         "command-contracts",
         "config",
@@ -1282,7 +1282,7 @@
         "agent/src/omni/tools/files/search.py",
         "agent/src/omni/tools/files/tools.py"
       ],
-      "lines": 1663,
+      "lines": 1659,
       "dependencies": [
         "platform",
         "toolkit"
@@ -1543,7 +1543,7 @@
         "agent/src/omni/plugins/community/tools.py",
         "agent/src/omni/plugins/server.py"
       ],
-      "lines": 703,
+      "lines": 695,
       "dependencies": [
         "platform",
         "plugins",
@@ -13538,12 +13538,13 @@
       "path": "agent/src/omni/memory/resident.py",
       "module": "storage",
       "python_module": "omni.memory.resident",
-      "lines": 377,
+      "lines": 373,
       "imports": [
         "omni.config",
         "omni.memory.revisions",
         "omni.system.atomic",
-        "omni.system.filelock"
+        "omni.system.filelock",
+        "omni.system.path_guard"
       ],
       "symbols": [
         {
@@ -13858,17 +13859,6 @@
           ],
           "annotations": {
             "entries": "list[str]"
-          }
-        },
-        {
-          "name": "_digest",
-          "line": 376,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
           }
         }
       ],
@@ -17654,30 +17644,20 @@
       "path": "agent/src/omni/plugins/community/client.py",
       "module": "community",
       "python_module": "omni.plugins.community.client",
-      "lines": 288,
+      "lines": 284,
       "imports": [
-        "omni.plugins.host"
+        "omni.plugins.host",
+        "omni.system.path_guard"
       ],
       "symbols": [
         {
-          "name": "_digest",
-          "line": 32,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
-          }
-        },
-        {
           "name": "CommunityClient",
-          "line": 36,
+          "line": 32,
           "kind": "class"
         },
         {
           "name": "CommunityClient.__init__",
-          "line": 39,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self",
@@ -17695,7 +17675,7 @@
         },
         {
           "name": "CommunityClient.config",
-          "line": 54,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self"
@@ -17704,7 +17684,7 @@
         },
         {
           "name": "CommunityClient.configure",
-          "line": 66,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -17718,7 +17698,7 @@
         },
         {
           "name": "CommunityClient._http",
-          "line": 86,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self"
@@ -17727,7 +17707,7 @@
         },
         {
           "name": "CommunityClient._require_server",
-          "line": 95,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self"
@@ -17736,7 +17716,7 @@
         },
         {
           "name": "CommunityClient._fail",
-          "line": 105,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "resp"
@@ -17747,7 +17727,7 @@
         },
         {
           "name": "CommunityClient.search",
-          "line": 114,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -17761,7 +17741,7 @@
         },
         {
           "name": "CommunityClient.info",
-          "line": 138,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -17773,7 +17753,7 @@
         },
         {
           "name": "CommunityClient.install",
-          "line": 159,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self",
@@ -17787,7 +17767,7 @@
         },
         {
           "name": "CommunityClient.publish_from_directory",
-          "line": 208,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
@@ -17799,7 +17779,7 @@
         },
         {
           "name": "CommunityClient.publish_zip",
-          "line": 224,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
@@ -17811,7 +17791,7 @@
         },
         {
           "name": "CommunityClient._zip_directory",
-          "line": 243,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self",
@@ -17823,7 +17803,7 @@
         },
         {
           "name": "CommunityClient._publish",
-          "line": 267,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "self",
@@ -17842,34 +17822,24 @@
       "path": "agent/src/omni/plugins/community/server.py",
       "module": "community",
       "python_module": "omni.plugins.community.server",
-      "lines": 261,
+      "lines": 257,
       "imports": [
         "omni.plugins.manifest",
         "omni.system.atomic",
-        "omni.system.filelock"
+        "omni.system.filelock",
+        "omni.system.path_guard"
       ],
       "symbols": [
         {
-          "name": "_digest",
-          "line": 54,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
-          }
-        },
-        {
           "name": "_now",
-          "line": 58,
+          "line": 54,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_read_json",
-          "line": 62,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "path",
@@ -17882,7 +17852,7 @@
         },
         {
           "name": "create_app",
-          "line": 69,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "root",
@@ -17895,14 +17865,14 @@
         },
         {
           "name": "create_app._index",
-          "line": 79,
+          "line": 75,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app._save_index",
-          "line": 82,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "index"
@@ -17913,7 +17883,7 @@
         },
         {
           "name": "create_app._load_manifest_from_zip",
-          "line": 85,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "data"
@@ -17924,7 +17894,7 @@
         },
         {
           "name": "create_app._item",
-          "line": 104,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "index",
@@ -17937,7 +17907,7 @@
         },
         {
           "name": "create_app._version_record",
-          "line": 107,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "plugin_id",
@@ -17950,14 +17920,14 @@
         },
         {
           "name": "create_app.health",
-          "line": 112,
+          "line": 108,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.search_plugins",
-          "line": 116,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "query",
@@ -17972,7 +17942,7 @@
         },
         {
           "name": "create_app.plugin_detail",
-          "line": 135,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "plugin_id"
@@ -17983,7 +17953,7 @@
         },
         {
           "name": "create_app.download",
-          "line": 146,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "plugin_id",
@@ -17996,7 +17966,7 @@
         },
         {
           "name": "create_app.publish",
-          "line": 174,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "file",
@@ -18009,7 +17979,7 @@
         },
         {
           "name": "main",
-          "line": 241,
+          "line": 237,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -24627,25 +24597,15 @@
       "path": "agent/src/omni/tools/files/io.py",
       "module": "files",
       "python_module": "omni.tools.files.io",
-      "lines": 324,
+      "lines": 320,
       "imports": [
+        "omni.system.path_guard",
         "omni.tools.files.paths"
       ],
       "symbols": [
         {
-          "name": "sha256_hex",
-          "line": 36,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
-          }
-        },
-        {
           "name": "hash_matches",
-          "line": 40,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "expected",
@@ -24658,12 +24618,12 @@
         },
         {
           "name": "Decoded",
-          "line": 56,
+          "line": 52,
           "kind": "class"
         },
         {
           "name": "newline_of_bytes",
-          "line": 63,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "data",
@@ -24676,7 +24636,7 @@
         },
         {
           "name": "is_binary",
-          "line": 77,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "data"
@@ -24687,7 +24647,7 @@
         },
         {
           "name": "detect_encoding",
-          "line": 85,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "sample"
@@ -24698,7 +24658,7 @@
         },
         {
           "name": "decode_bytes",
-          "line": 110,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "data"
@@ -24709,7 +24669,7 @@
         },
         {
           "name": "encode_text",
-          "line": 135,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "text",
@@ -24726,12 +24686,12 @@
         },
         {
           "name": "Window",
-          "line": 156,
+          "line": 152,
           "kind": "class"
         },
         {
           "name": "identity_matches",
-          "line": 170,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "fd",
@@ -24744,7 +24704,7 @@
         },
         {
           "name": "opened_checked",
-          "line": 185,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "path"
@@ -24755,7 +24715,7 @@
         },
         {
           "name": "read_window",
-          "line": 198,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "path",
@@ -24772,7 +24732,7 @@
         },
         {
           "name": "read_bytes",
-          "line": 291,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "path",
@@ -24785,7 +24745,7 @@
         },
         {
           "name": "unified_diff",
-          "line": 307,
+          "line": 303,
           "kind": "function",
           "parameters": [
             "old",
@@ -29466,7 +29426,7 @@
       "method": "GET",
       "path": "/api/download/{plugin_id}",
       "source": "agent/src/omni/plugins/community/server.py",
-      "line": 146,
+      "line": 142,
       "handler": "create_app.download",
       "module": "community",
       "parameters": [
@@ -29483,7 +29443,7 @@
       "method": "GET",
       "path": "/api/health",
       "source": "agent/src/omni/plugins/community/server.py",
-      "line": 112,
+      "line": 108,
       "handler": "create_app.health",
       "module": "community",
       "parameters": [],
@@ -29494,7 +29454,7 @@
       "method": "GET",
       "path": "/api/plugins",
       "source": "agent/src/omni/plugins/community/server.py",
-      "line": 116,
+      "line": 112,
       "handler": "create_app.search_plugins",
       "module": "community",
       "parameters": [
@@ -29513,7 +29473,7 @@
       "method": "GET",
       "path": "/api/plugins/{plugin_id}",
       "source": "agent/src/omni/plugins/community/server.py",
-      "line": 135,
+      "line": 131,
       "handler": "create_app.plugin_detail",
       "module": "community",
       "parameters": [
@@ -29528,7 +29488,7 @@
       "method": "POST",
       "path": "/api/publish",
       "source": "agent/src/omni/plugins/community/server.py",
-      "line": 174,
+      "line": 170,
       "handler": "create_app.publish",
       "module": "community",
       "parameters": [
@@ -32857,7 +32817,7 @@
         {
           "source": "agent/src/omni/plugins/community/client.py",
           "symbol": "CommunityClient.install",
-          "line": 159
+          "line": 155
         },
         {
           "source": "agent/src/omni/plugins/host.py",

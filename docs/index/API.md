@@ -32,7 +32,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 下载/收包、隔离校验、人工激活、命名空间注册，最终仍由工具审批链执行。
 
-`CommunityClient.install`（[agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py#L159)） → `PluginHost.install_package`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L161)） → `PluginHost.activate`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L231)） → `PluginContext.add_tool`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L73)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)）
+`CommunityClient.install`（[agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py#L155)） → `PluginHost.install_package`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L161)） → `PluginHost.activate`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L231)） → `PluginContext.add_tool`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L73)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)）
 
 ## 技能数据接入
 
@@ -50,11 +50,11 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 | 服务 | 方法 | 路径 | 处理函数 | 定位 |
 |---|---|---|---|---|
-| community | GET | `/api/download/{plugin_id}` | `create_app.download` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L146) |
-| community | GET | `/api/health` | `create_app.health` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L112) |
-| community | GET | `/api/plugins` | `create_app.search_plugins` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L116) |
-| community | GET | `/api/plugins/{plugin_id}` | `create_app.plugin_detail` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L135) |
-| community | POST | `/api/publish` | `create_app.publish` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L174) |
+| community | GET | `/api/download/{plugin_id}` | `create_app.download` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L142) |
+| community | GET | `/api/health` | `create_app.health` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L108) |
+| community | GET | `/api/plugins` | `create_app.search_plugins` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L112) |
+| community | GET | `/api/plugins/{plugin_id}` | `create_app.plugin_detail` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L131) |
+| community | POST | `/api/publish` | `create_app.publish` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L170) |
 | workbench | GET | `/api/android/devices` | `create_android_router.devices` | [agent/src/omni/channels/web_api/android.py](../../agent/src/omni/channels/web_api/android.py#L40) |
 | workbench | POST | `/api/android/devices/{serial}/actions` | `create_android_router.action` | [agent/src/omni/channels/web_api/android.py](../../agent/src/omni/channels/web_api/android.py#L63) |
 | workbench | GET | `/api/android/devices/{serial}/apps` | `create_android_router.apps` | [agent/src/omni/channels/web_api/android.py](../../agent/src/omni/channels/web_api/android.py#L58) |

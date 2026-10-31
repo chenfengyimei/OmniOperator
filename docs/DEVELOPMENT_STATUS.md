@@ -1,5 +1,10 @@
 # 开发状态记录
 
+2026-11-01 摘要原语去重第二段（工作区）：`resident.py`/`files/io.py`/
+`community/client.py`/`community/server.py` 四处逐字相同的命名摘要函数
+收敛为 `system/path_guard.digest` 的 import 别名，调用点零改动；守卫
+断言四个别名是同一函数对象。专项 **125 passed（8.32s）**，目录守卫 11 passed。
+
 2026-11-01 tests/ 重复定义守卫接入 pytest（工作区）：新增
 `agent/tests/test_no_duplicates.py`，复用 `scripts/scan_duplicates.py`
 的同一 `scan()` 实现锁住 tests/ 目录（`test_arch.py` 此前只覆盖

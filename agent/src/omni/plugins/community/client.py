@@ -12,7 +12,6 @@ CONFIRM + requires_human——审批流里的人工确认就是"用户同意公�
 """
 from __future__ import annotations
 
-import hashlib
 import io
 import json
 import zipfile
@@ -21,16 +20,13 @@ from typing import Any, Callable
 
 import httpx
 
+from ...system.path_guard import digest as _digest
 from ..host import MAX_ZIP_BYTES, PluginHost
 
 CONFIG_NAME = "community.json"
 MAX_PUBLISH_BYTES = 4 * 1024 * 1024   # 发布侧：客户端不传超过安装侧上限的包
 MAX_PUBLISH_ENTRIES = 50
 HTTP_TIMEOUT_S = 30.0
-
-
-def _digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
 
 
 class CommunityClient:
