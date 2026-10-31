@@ -85,6 +85,18 @@
       ],
       "test_mode_escalation_total": 17,
       "full_suite_after": "1438 passed / 161.24s（基线 1432 + 本批 6）"
+    },
+    "live_verification_2026_10_31": {
+      "note": "重启工作台进程后用用户原句实测（POST /api/chat，mode=auto，真实模型 deepseek/deepseek-chat，185.7s 完成）。修复前同句行为=检索档答「查不到」、不升档。",
+      "input": "查询一下当前deepseek剩下多少余额",
+      "response_meta": {"requested_mode": "auto", "mode": "agent", "mode_source": "rule", "escalated": true},
+      "event_chain": [
+        "mode_selected：requested=auto，rule 判 retrieval（reason=明确的只读查询，tool_count=22）",
+        "mode_upgraded：retrieval → agent（tool_count=95），模型给出的升档理由=「查询 DeepSeek 余额需要携带 API Key 调用 /user/balance 接口，检索档的网页工具不带鉴权信息，无法完成」",
+        "tool request_mode status=ok：返回文案「已升档到 agent（完整工具与人工审批）……」（MODE_LABELS 统一用语）",
+        "tool run_command（Invoke-RestMethod api.deepseek.com/user/balance，Bearer 取自环境变量）status=denied：确认超时 3 分钟无人处理自动拒绝——API 发起的回合没人在工作台点审批，属预期安全行为；side_effect_state=none"
+      ],
+      "conclusion": "修复生效：检索档缺工具时模型真实发起 request_mode 升档并继续尝试（不再直接说做不到）；被审批超时拦截后如实说明原因并给出替代路径（请用户批准或重发）。"
     }
   },
   "not_verified": [
