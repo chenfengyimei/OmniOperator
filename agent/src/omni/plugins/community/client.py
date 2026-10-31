@@ -1,11 +1,16 @@
-"""插件社区客户端：搜索 / 详情 / 安装 / 发布。
+"""社区客户端：插件与人设的索引 / 详情 / 安装 / 发布。
 
 本地配置存 `data/plugins/community.json`（server_url + token）——刻意不进
 config.yaml：社区接入点属于用户级偏好而非运行配置，且 config.py 由并行
 前端批持有；换社区服务器 = 换一个 URL，一行配置的事。
 
-信任定位：社区只做索引与分发（https + sha256 校验），**不背书插件安全性**
+同一个站点同时分发插件（zip 包）与人设（JSON 卡）：官方源就是
+`market/server.py`（内容在 `market/content/`，不进库）。两类内容共用一条
+HTTP 出口与一套错误映射，调用方按需取清单/详情。
+
+信任定位：社区只做索引与分发（sha256 校验），**不背书插件安全性**
 ——下载下来的包仍要走本机的隔离安装 → 人工确认激活链，谁也绕不过去。
+人设卡是纯文本（没有可执行内容），但仍逐字段收窄长度后才交给前端。
 
 发布是项目红线之一（"发布需人工确认"）：`community_publish` 是
 CONFIRM + requires_human——审批流里的人工确认就是"用户同意公开"这一步。
@@ -14,9 +19,11 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import zipfile
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import httpx
 
@@ -27,6 +34,15 @@ CONFIG_NAME = "community.json"
 MAX_PUBLISH_BYTES = 4 * 1024 * 1024   # 发布侧：客户端不传超过安装侧上限的包
 MAX_PUBLISH_ENTRIES = 50
 HTTP_TIMEOUT_S = 30.0
+MAX_INDEX_LIMIT = 50                 # 一次最多取多少条索引（界面一屏足够）
+# 官方默认源：部署好市场后由部署方通过环境变量固化，未设置时保持"未配置"
+# ——不硬编码某个主机，避免把别人的服务器当成默认信任锚。
+SERVER_ENV = "OMNI_MARKET_URL"
+
+
+def default_server_url() -> str:
+    """内置默认源（`OMNI_MARKET_URL`）；空串表示没有默认源。"""
+    return os.environ.get(SERVER_ENV, "").strip()
 
 
 class CommunityClient:
@@ -79,8 +95,12 @@ class CommunityClient:
         masked = "已配置" if merged["token"] else "未配置"
         return True, f"社区配置已保存：server={merged['server_url'] or '（未设置）'}，token {masked}"
 
+    def effective_server_url(self) -> str:
+        """生效源：显式配置优先，其次内置默认源（环境变量）。"""
+        return self.config()["server_url"] or default_server_url()
+
     def _http(self) -> httpx.Client:
-        server_url = self.config()["server_url"]
+        server_url = self.effective_server_url()
         return httpx.Client(
             base_url=server_url.rstrip("/") + "/",
             timeout=HTTP_TIMEOUT_S,
@@ -89,13 +109,12 @@ class CommunityClient:
         )
 
     def _require_server(self) -> str:
-        server_url = self.config()["server_url"]
-        if not server_url:
-            return (
-                "错误：社区服务器未配置。先用 community_config(server_url=…) 设置"
-                "（格式 http(s)://host:port）"
-            )
-        return ""
+        if self.effective_server_url():
+            return ""
+        return (
+            "错误：社区服务器未配置。先用 community_config(server_url=…) 设置"
+            f"（格式 http(s)://host:port），或设置环境变量 {SERVER_ENV}"
+        )
 
     @staticmethod
     def _fail(resp: httpx.Response) -> str:
@@ -105,20 +124,55 @@ class CommunityClient:
             detail = resp.text[:200]
         return f"错误：社区服务器返回 {resp.status_code}（{detail}）"
 
+    # ---------------------------------------------------------------- 结构化读取
+
+    def fetch(self, path: str, params: dict[str, Any] | None = None) -> tuple[dict[str, Any] | None, str]:
+        """GET 一个 JSON；返回 (数据, 错误文案)。失败时数据为 None。
+
+        这是索引/详情读取的唯一出口：调用方（工具文案、工作台接口）都不自己发请求。
+        """
+        problem = self._require_server()
+        if problem:
+            return None, problem
+        try:
+            with self._http() as client:
+                resp = client.get(path, params=params or {})
+        except httpx.HTTPError as exc:
+            return None, f"错误：连接社区服务器失败（{exc}）"
+        if resp.status_code != 200:
+            return None, self._fail(resp)
+        try:
+            data = resp.json()
+        except ValueError:
+            return None, "错误：社区服务器返回的不是 JSON"
+        if not isinstance(data, dict):
+            return None, "错误：社区服务器返回的数据结构不对（期望对象）"
+        return data, ""
+
+    def plugin_list(self, query: str = "", limit: int = MAX_INDEX_LIMIT) -> tuple[dict[str, Any] | None, str]:
+        return self.fetch("/api/plugins", {"query": query, "limit": limit})
+
+    def plugin_detail(self, plugin_id: str) -> tuple[dict[str, Any] | None, str]:
+        plugin_id = (plugin_id or "").strip()
+        if not plugin_id or "/" in plugin_id:
+            return None, "错误：插件 id 不能为空或含斜杠"
+        return self.fetch(f"/api/plugins/{plugin_id}")
+
+    def persona_list(self, query: str = "", limit: int = MAX_INDEX_LIMIT) -> tuple[dict[str, Any] | None, str]:
+        return self.fetch("/api/personas", {"query": query, "limit": limit})
+
+    def persona_detail(self, persona_id: str) -> tuple[dict[str, Any] | None, str]:
+        persona_id = (persona_id or "").strip()
+        if not persona_id or "/" in persona_id:
+            return None, "错误：人设 id 不能为空或含斜杠"
+        return self.fetch(f"/api/personas/{persona_id}")
+
     # ---------------------------------------------------------------- 查询与安装
 
     def search(self, query: str, limit: int = 10) -> tuple[bool, str]:
-        problem = self._require_server()
-        if problem:
+        data, problem = self.plugin_list(query, limit)
+        if data is None:
             return False, problem
-        try:
-            with self._http() as client:
-                resp = client.get("/api/plugins", params={"query": query, "limit": limit})
-        except httpx.HTTPError as exc:
-            return False, f"错误：连接社区服务器失败（{exc}）"
-        if resp.status_code != 200:
-            return False, self._fail(resp)
-        data = resp.json()
         items = data.get("items", [])
         if not items:
             return True, f"社区里没有匹配「{query}」的插件（共索引 {data.get('total', 0)} 个）。"
@@ -132,17 +186,9 @@ class CommunityClient:
         return True, "\n".join(lines)
 
     def info(self, plugin_id: str) -> tuple[bool, str]:
-        problem = self._require_server()
-        if problem:
+        item, problem = self.plugin_detail(plugin_id)
+        if item is None:
             return False, problem
-        try:
-            with self._http() as client:
-                resp = client.get(f"/api/plugins/{plugin_id}")
-        except httpx.HTTPError as exc:
-            return False, f"错误：连接社区服务器失败（{exc}）"
-        if resp.status_code != 200:
-            return False, self._fail(resp)
-        item = resp.json()
         lines = [
             f"{item.get('id')} v{item.get('latest_version')}：{item.get('description')}",
             f"作者：{item.get('author') or '未知'}　主页：{item.get('homepage') or '无'}",
@@ -197,7 +243,7 @@ class CommunityClient:
             target.unlink(missing_ok=True)  # 安装被拒：不留垃圾在收件箱
             return False, msg
         target.unlink(missing_ok=True)  # 已入隔离区（含内容+导入记录）：收件箱只做传输落点
-        return True, msg + f"\n（来源：社区 {self.config()['server_url']}，sha256 {actual[:16]}）"
+        return True, msg + f"\n（来源：社区 {self.effective_server_url()}，sha256 {actual[:16]}）"
 
     # ---------------------------------------------------------------- 发布
 

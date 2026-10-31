@@ -244,7 +244,10 @@ def test_client_publish_from_workspace_directory(tmp_path):
     assert "hello community" in registry.dispatch("demo-tools-hello", {})
 
 
-def test_client_errors_without_server_config(tmp_path):
+def test_client_errors_without_server_config(tmp_path, monkeypatch):
+    # 生效源 = 配置 > OMNI_MARKET_URL；默认源清空才算"未配置"，否则开发机上的
+    # 环境变量会让这条断言时过时不过
+    monkeypatch.delenv("OMNI_MARKET_URL", raising=False)
     _registry, host, client = _wired(tmp_path)
     assert client.configure(server_url="", token="")[0]
     for call in (client.search("x"), client.info("x"), client.install("x"),
