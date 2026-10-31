@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`4745bc45d882d10f80e023c4231d74211da2c311c9e77d1f781d55f1e703d76f`。包含 56 个职责模块、294 个源码/界面文件。
+源码指纹：`7929a848618d3f76204a496b63486720653de9f5f30cb912f101ea2c49c3d668`。包含 57 个职责模块、296 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -60,7 +60,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 765 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 767 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../../docs/REPOSITORY_STRUCTURE.md)
 
@@ -74,7 +74,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/config.py](../../agent/src/omni/config.py) | 690 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [agent/src/omni/config.py](../../agent/src/omni/config.py) | 737 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -133,7 +133,7 @@
 | [agent/src/omni/llm/budget.py](../../agent/src/omni/llm/budget.py) | 174 | 费用预留与结算的契约（D10）。 |
 | [agent/src/omni/llm/embedding.py](../../agent/src/omni/llm/embedding.py) | 116 | 可切换 embedding 出口：本地 Ollama / LiteLLM API；费用账本从 bootstrap 注入。 |
 | [agent/src/omni/llm/errors.py](../../agent/src/omni/llm/errors.py) | 206 | 模型调用的错误分类与脱敏（D10）。 |
-| [agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py) | 676 | LiteLLM 统一网关：一套 OpenAI 格式接所有供应商（海外/国产/本地 Ollama）。 |
+| [agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py) | 716 | LiteLLM 统一网关：一套 OpenAI 格式接所有供应商（海外/国产/本地 Ollama）。 |
 | [agent/src/omni/llm/usage.py](../../agent/src/omni/llm/usage.py) | 208 | 用量（tokens）与价格：把"这次调用大概/实际花了多少"变成可记账的数字。（D10） |
 
 文档：[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
@@ -194,8 +194,8 @@
 | [agent/src/omni/memory/state_mixin_leases.py](../../agent/src/omni/memory/state_mixin_leases.py) | 121 | 资源租约域的 `state.db` 访问 mixin（会话/浏览器 profile 等互斥资源）。 |
 | [agent/src/omni/memory/state_mixin_ledger.py](../../agent/src/omni/memory/state_mixin_ledger.py) | 85 | 执行账本与写额度域的 `state.db` 访问 mixin。 |
 | [agent/src/omni/memory/state_records.py](../../agent/src/omni/memory/state_records.py) | 55 | state.db 各域仓储返回值的数据形状（唯一来源）。 |
-| [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1029 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
-| [agent/src/omni/memory/store_schema.py](../../agent/src/omni/memory/store_schema.py) | 153 | memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。 |
+| [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1151 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
+| [agent/src/omni/memory/store_schema.py](../../agent/src/omni/memory/store_schema.py) | 155 | memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。 |
 | [agent/src/omni/memory/system.py](../../agent/src/omni/memory/system.py) | 61 | 记忆系统门面：六个记忆模块对外的单点聚合（组合根纪律，无业务逻辑）。 |
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
 | [agent/src/omni/memory/vectors.py](../../agent/src/omni/memory/vectors.py) | 93 | sqlite-vec 派生索引。与事实同库；遗忘/纠错触发器只用普通 SQL，无扩展依赖。 |
@@ -267,12 +267,12 @@
 | [agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js](../../agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js) | 10 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-mcp.js](../../agent/src/omni/channels/web_static/ui/app/hub-mcp.js) | 68 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-memory.js](../../agent/src/omni/channels/web_static/ui/app/hub-memory.js) | 3 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/hub-models.js](../../agent/src/omni/channels/web_static/ui/app/hub-models.js) | 314 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub-models.js](../../agent/src/omni/channels/web_static/ui/app/hub-models.js) | 440 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-persona.js](../../agent/src/omni/channels/web_static/ui/app/hub-persona.js) | 142 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-project.js](../../agent/src/omni/channels/web_static/ui/app/hub-project.js) | 9 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-skills.js](../../agent/src/omni/channels/web_static/ui/app/hub-skills.js) | 443 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-usage.js](../../agent/src/omni/channels/web_static/ui/app/hub-usage.js) | 34 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 322 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 334 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/main.js](../../agent/src/omni/channels/web_static/ui/app/main.js) | 65 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/memory.js](../../agent/src/omni/channels/web_static/ui/app/memory.js) | 36 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/modals.js](../../agent/src/omni/channels/web_static/ui/app/modals.js) | 23 | 平台脚本或界面资源 |
@@ -295,7 +295,7 @@
 | [agent/src/omni/channels/web_static/ui/terminal-theme.js](../../agent/src/omni/channels/web_static/ui/terminal-theme.js) | 48 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/theme.js](../../agent/src/omni/channels/web_static/ui/theme.js) | 82 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/tokens.css](../../agent/src/omni/channels/web_static/ui/tokens.css) | 200 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1120 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1128 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -309,7 +309,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 493 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
+| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 522 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
 | [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 632 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/index.html](../../agent/src/omni/channels/web_static/memory/index.html) | 6 | 平台脚本或界面资源 |
@@ -585,20 +585,34 @@
 
 直接静态依赖：无内部模块依赖
 
+## 市场 API（人设与插件） · http-market
+
+分类：Web 接口。社区源配置、人设卡与插件索引代理，以及插件的安装/激活/启停/卸载；安装只落隔离区，不执行代码。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py) | 290 | 市场 HTTP 适配：人设卡与插件列表/安装/激活，全部消费注入 Runtime。 |
+
+文档：[docs/PLUGIN_SYSTEM.md](../../docs/PLUGIN_SYSTEM.md)
+
+测试：[agent/tests/test_market_api.py](../../agent/tests/test_market_api.py)、[agent/tests/test_market_client.py](../../agent/tests/test_market_client.py)
+
+直接静态依赖：`assembly`、`community`
+
 ## HTTP 路由装配 · http-routing
 
 分类：Web 接口。聚合注入 Runtime 的领域路由，由应用入口统一挂载；不与请求契约合并为同一职责。
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web_api/__init__.py](../../agent/src/omni/channels/web_api/__init__.py) | 47 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
+| [agent/src/omni/channels/web_api/__init__.py](../../agent/src/omni/channels/web_api/__init__.py) | 49 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
 | [agent/src/omni/channels/web_api/memory_system.py](../../agent/src/omni/channels/web_api/memory_system.py) | 249 | 记忆系统 HTTP 适配（M1–M6）：只消费注入 Runtime，路由聚合进既有鉴权闸门。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)、[docs/REFACTORING.md](../../docs/REFACTORING.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)
 
-直接静态依赖：`assembly`、`command-jobs`、`http-android`、`http-approvals`、`http-artifacts`、`http-automation`、`http-context`、`http-contracts`、`http-conversation`、`http-devices`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`、`http-storage`、`storage`
+直接静态依赖：`assembly`、`command-jobs`、`http-android`、`http-approvals`、`http-artifacts`、`http-automation`、`http-context`、`http-contracts`、`http-conversation`、`http-devices`、`http-market`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`、`http-storage`、`storage`
 
 ## CLI 入口 · cli
 
@@ -669,7 +683,7 @@
 | [agent/src/omni/tools/personal/__init__.py](../../agent/src/omni/tools/personal/__init__.py) | 49 | 个人内置能力的注册入口：事实、档案、常驻、待办、摘要和整理。 |
 | [agent/src/omni/tools/personal/clock.py](../../agent/src/omni/tools/personal/clock.py) | 24 | 个人能力：clock；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/digest.py](../../agent/src/omni/tools/personal/digest.py) | 76 | 个人能力：digest；工具仅使用注入依赖，不构造运行时。 |
-| [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py) | 185 | 个人能力：facts；工具仅使用注入依赖，不构造运行时。 |
+| [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py) | 232 | 个人能力：facts；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/journal.py](../../agent/src/omni/tools/personal/journal.py) | 63 | 记忆系统工具（二）：日/周/月笔记的读取（M3/M4/M5）。 |
 | [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py) | 211 | 记忆系统工具（三）：核心人物记忆（M6）——查询、记住与临时事件。 |
 | [agent/src/omni/tools/personal/profile.py](../../agent/src/omni/tools/personal/profile.py) | 89 | 个人能力：profile；工具仅使用注入依赖，不构造运行时。 |
@@ -938,7 +952,8 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/plugins/community/__init__.py](../../agent/src/omni/plugins/community/__init__.py) | 5 | 插件社区公共入口；客户端、工具与服务器分别维护。 |
-| [agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py) | 284 | 插件社区客户端：搜索 / 详情 / 安装 / 发布。 |
+| [agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py) | 330 | 社区客户端：插件与人设的索引 / 详情 / 安装 / 发布。 |
+| [agent/src/omni/plugins/community/persona.py](../../agent/src/omni/plugins/community/persona.py) | 92 | 人设卡：社区分发的人设内容规格与收窄。 |
 | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py) | 257 | 插件社区参考服务器（FastAPI + 文件存储，单 owner 部署）。 |
 | [agent/src/omni/plugins/community/tools.py](../../agent/src/omni/plugins/community/tools.py) | 144 | 社区工具适配；HTTP/发布逻辑由注入客户端承担。 |
 | [agent/src/omni/plugins/server.py](../../agent/src/omni/plugins/server.py) | 7 | 兼容 python -m omni.plugins.server；实现位于 plugins/community/server.py。 |
@@ -977,7 +992,7 @@
 | [agent/src/omni/system/catalog/__init__.py](../../agent/src/omni/system/catalog/__init__.py) | 4 | 项目索引：只解析源码与显式分类，不导入被索引模块、不接触运行数据。 |
 | [agent/src/omni/system/catalog/render.py](../../agent/src/omni/system/catalog/render.py) | 46 | 索引输出：从同一结构生成模块表、API 表和可机器查询的 JSON。 |
 | [agent/src/omni/system/catalog/scan.py](../../agent/src/omni/system/catalog/scan.py) | 169 | 静态源码索引；扫描范围为本地 Agent 的源码包（兼容旧布局），不读取 config/data/.env。 |
-| [agent/src/omni/system/catalog/schema.py](../../agent/src/omni/system/catalog/schema.py) | 107 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
+| [agent/src/omni/system/catalog/schema.py](../../agent/src/omni/system/catalog/schema.py) | 108 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
@@ -994,7 +1009,7 @@
 | [agent/src/omni/system/__init__.py](../../agent/src/omni/system/__init__.py) | 5 | 本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。 |
 | [agent/src/omni/system/atomic.py](../../agent/src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
 | [agent/src/omni/system/backup.py](../../agent/src/omni/system/backup.py) | 515 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
-| [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 463 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
+| [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 473 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
 | [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [agent/src/omni/system/filelock.py](../../agent/src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
 | [agent/src/omni/system/observability.py](../../agent/src/omni/system/observability.py) | 102 | 有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。 |

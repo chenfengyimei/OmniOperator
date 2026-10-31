@@ -8,7 +8,7 @@
 
 Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记账。
 
-`create_conversation_router.chat`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L44)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L530)） → `Agent._chat`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L717)） → `Gateway.complete`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L339)）
+`create_conversation_router.chat`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L44)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L530)） → `Agent._chat`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L717)） → `Gateway.complete`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L378)）
 
 ## 模型调用工具
 
@@ -20,7 +20,7 @@ Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记
 
 流式响应和持久运行事件是两条接口；停止通过协作取消传播。
 
-`create_conversation_router.chat_stream`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L79)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L530)） → `Gateway.stream`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L425)） → `RunStore`（[agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py#L87)）
+`create_conversation_router.chat_stream`（[agent/src/omni/channels/web_api/conversation.py](../../agent/src/omni/channels/web_api/conversation.py#L79)） → `Agent.run_turn`（[agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py#L530)） → `Gateway.stream`（[agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py#L464)） → `RunStore`（[agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py#L87)）
 
 ## 交互式终端
 
@@ -32,7 +32,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 下载/收包、隔离校验、人工激活、命名空间注册，最终仍由工具审批链执行。
 
-`CommunityClient.install`（[agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py#L155)） → `PluginHost.install_package`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L163)） → `PluginHost.activate`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L233)） → `PluginContext.add_tool`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L75)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)）
+`CommunityClient.install`（[agent/src/omni/plugins/community/client.py](../../agent/src/omni/plugins/community/client.py#L201)） → `PluginHost.install_package`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L163)） → `PluginHost.activate`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L233)） → `PluginContext.add_tool`（[agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py#L75)） → `ToolRegistry.execute`（[agent/src/omni/tools/registry.py](../../agent/src/omni/tools/registry.py#L142)）
 
 ## 技能数据接入
 
@@ -94,6 +94,19 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/facts/rows` | `create_memory_router.get_fact_rows` | [agent/src/omni/channels/web_api/memory.py](../../agent/src/omni/channels/web_api/memory.py#L23) |
 | workbench | DELETE | `/api/facts/{fact_id}` | `create_memory_router.delete_fact` | [agent/src/omni/channels/web_api/memory.py](../../agent/src/omni/channels/web_api/memory.py#L48) |
 | workbench | GET | `/api/llm/usage` | `create_runs_router.llm_usage` | [agent/src/omni/channels/web_api/runs.py](../../agent/src/omni/channels/web_api/runs.py#L69) |
+| workbench | GET | `/api/market/installed` | `create_market_router.market_installed` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L220) |
+| workbench | GET | `/api/market/personas` | `create_market_router.market_personas` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L175) |
+| workbench | GET | `/api/market/personas/{persona_id}` | `create_market_router.market_persona_detail` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L186) |
+| workbench | GET | `/api/market/plugins` | `create_market_router.market_plugins` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L198) |
+| workbench | DELETE | `/api/market/plugins/{plugin_id}` | `create_market_router.market_plugin_remove` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L284) |
+| workbench | GET | `/api/market/plugins/{plugin_id}` | `create_market_router.market_plugin_detail` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L208) |
+| workbench | POST | `/api/market/plugins/{plugin_id}/disable` | `create_market_router.market_plugin_disable` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L277) |
+| workbench | POST | `/api/market/plugins/{plugin_id}/enable` | `create_market_router.market_plugin_enable` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L270) |
+| workbench | POST | `/api/market/plugins/{plugin_id}/install` | `create_market_router.market_plugin_install` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L224) |
+| workbench | POST | `/api/market/quarantine/{plugin_id}/activate` | `create_market_router.market_plugin_activate` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L252) |
+| workbench | POST | `/api/market/quarantine/{plugin_id}/discard` | `create_market_router.market_plugin_discard` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L263) |
+| workbench | PUT | `/api/market/source` | `create_market_router.market_source_save` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L165) |
+| workbench | GET | `/api/market/status` | `create_market_router.market_status` | [agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L132) |
 | workbench | GET | `/api/mcp/overview` | `create_mcp_router.mcp_overview` | [agent/src/omni/channels/web_api/mcp.py](../../agent/src/omni/channels/web_api/mcp.py#L52) |
 | workbench | GET | `/api/mcp/{server}/catalog` | `create_mcp_router.mcp_catalog` | [agent/src/omni/channels/web_api/mcp.py](../../agent/src/omni/channels/web_api/mcp.py#L42) |
 | workbench | POST | `/api/mcp/{server}/confirm-schema` | `create_mcp_router.mcp_confirm_schema` | [agent/src/omni/channels/web_api/mcp.py](../../agent/src/omni/channels/web_api/mcp.py#L107) |
@@ -180,10 +193,10 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/storage/preview-file` | `create_storage_router.preview_file` | [agent/src/omni/channels/web_api/storage.py](../../agent/src/omni/channels/web_api/storage.py#L115) |
 | workbench | POST | `/api/storage/upload` | `create_storage_router.upload` | [agent/src/omni/channels/web_api/storage.py](../../agent/src/omni/channels/web_api/storage.py#L141) |
 | workbench | POST | `/api/system/backup` | `create_operations_router.system_backup` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L27) |
-| workbench | GET | `/api/system/bili-cookies` | `create_app.bili_cookies_status` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L354) |
-| workbench | POST | `/api/system/bili-cookies` | `create_app.save_bili_cookies` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L366) |
-| workbench | GET | `/api/system/config` | `create_app.system_config` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L236) |
-| workbench | POST | `/api/system/config` | `create_app.system_config_save` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L319) |
+| workbench | GET | `/api/system/bili-cookies` | `create_app.bili_cookies_status` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L383) |
+| workbench | POST | `/api/system/bili-cookies` | `create_app.save_bili_cookies` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L395) |
+| workbench | GET | `/api/system/config` | `create_app.system_config` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L254) |
+| workbench | POST | `/api/system/config` | `create_app.system_config_save` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L340) |
 | workbench | GET | `/api/system/cron` | `create_automation_router.cron_list` | [agent/src/omni/channels/web_api/automation.py](../../agent/src/omni/channels/web_api/automation.py#L59) |
 | workbench | POST | `/api/system/cron/create` | `create_automation_router.cron_create` | [agent/src/omni/channels/web_api/automation.py](../../agent/src/omni/channels/web_api/automation.py#L22) |
 | workbench | POST | `/api/system/cron/delete` | `create_automation_router.cron_delete` | [agent/src/omni/channels/web_api/automation.py](../../agent/src/omni/channels/web_api/automation.py#L159) |
@@ -195,13 +208,13 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | POST | `/api/system/cron/update` | `create_automation_router.cron_update` | [agent/src/omni/channels/web_api/automation.py](../../agent/src/omni/channels/web_api/automation.py#L93) |
 | workbench | GET | `/api/system/doctor` | `create_operations_router.system_doctor` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L23) |
 | workbench | GET | `/api/system/logs/{name}` | `create_operations_router.system_logs` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L55) |
-| workbench | POST | `/api/system/model-key` | `create_app.model_key_set` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L391) |
-| workbench | GET | `/api/system/model-keys` | `create_app.model_keys` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L386) |
-| workbench | POST | `/api/system/model-test` | `create_app.model_test` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L408) |
+| workbench | POST | `/api/system/model-key` | `create_app.model_key_set` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L420) |
+| workbench | GET | `/api/system/model-keys` | `create_app.model_keys` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L415) |
+| workbench | POST | `/api/system/model-test` | `create_app.model_test` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L437) |
 | workbench | GET | `/api/system/napcat/qr` | `create_operations_router.system_napcat_qr` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L51) |
 | workbench | GET | `/api/system/overview` | `create_operations_router.system_overview` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L19) |
-| workbench | GET | `/api/system/qq-policy` | `create_app.qq_policy_status` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L335) |
-| workbench | POST | `/api/system/qq-policy/stop` | `create_app.qq_policy_stop` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L346) |
+| workbench | GET | `/api/system/qq-policy` | `create_app.qq_policy_status` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L364) |
+| workbench | POST | `/api/system/qq-policy/stop` | `create_app.qq_policy_stop` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L375) |
 | workbench | POST | `/api/system/services/{name}/start` | `create_operations_router.system_service_start` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L35) |
 | workbench | POST | `/api/system/services/{name}/stop` | `create_operations_router.system_service_stop` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L44) |
 | workbench | GET | `/api/system/state` | `create_operations_router.system_state` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L59) |
@@ -276,6 +289,22 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 |---|---|---|
 | revision | `str` | 否 |
 | updates | `dict[str, dict[str, Any]]` | 是 |
+
+### MarketSourceIn
+
+定位：[agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L33)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| server_url | `str` | 否 |
+
+### MarketInstallIn
+
+定位：[agent/src/omni/channels/web_api/market.py](../../agent/src/omni/channels/web_api/market.py#L39)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| version | `str` | 否 |
 
 ### ChatIn
 
@@ -596,7 +625,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Models
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L148)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L158)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -609,9 +638,23 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | retrieval_mode | `str` | 否 |
 | agent_mode | `str` | 否 |
 
+### Reasoning
+
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L171)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| chat | `str` | 否 |
+| vision | `str` | 否 |
+| review | `str` | 否 |
+| router | `str` | 否 |
+| chat_mode | `str` | 否 |
+| retrieval_mode | `str` | 否 |
+| agent_mode | `str` | 否 |
+
 ### ModeRouting
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L161)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L207)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -620,7 +663,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### ModelCapability
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L182)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L228)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -633,7 +676,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Retry
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L200)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L246)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -643,7 +686,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### LLMBudget
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L208)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L254)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -652,7 +695,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Vision
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L220)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L266)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -663,7 +706,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Artifacts
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L234)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L280)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -672,7 +715,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### LLM
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L242)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L288)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -684,7 +727,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Limits
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L255)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L301)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -696,7 +739,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Review
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L263)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L309)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -708,7 +751,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Memory
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L273)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L319)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -718,7 +761,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Skills
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L285)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L331)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -727,7 +770,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Web
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L298)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L344)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -742,7 +785,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Files
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L315)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L361)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -758,7 +801,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Compression
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L333)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L379)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -769,7 +812,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Asr
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L342)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L388)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -779,7 +822,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### QQ
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L350)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L396)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -802,7 +845,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Browser
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L387)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L433)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -813,7 +856,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### UIFormSelectors
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L396)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L442)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -833,7 +876,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### BilibiliWrite
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L414)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L460)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -844,7 +887,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### System
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L430)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L476)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -852,7 +895,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Approval
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L436)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L482)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -860,7 +903,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### MCPServerConfig
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L446)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L492)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -878,7 +921,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### MCPConfig
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L476)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L522)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -886,7 +929,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Desktop
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L490)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L536)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -899,7 +942,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Embedding
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L507)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L553)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -920,7 +963,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Cron
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L545)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L591)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -928,7 +971,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Journal
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L550)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L596)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -944,7 +987,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### Transcript
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L579)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L625)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -956,7 +999,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### People
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L594)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L640)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -967,7 +1010,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### AndroidConfig
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L604)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L650)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -981,7 +1024,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### CommandJobsConfig
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L623)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L669)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -994,7 +1037,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### TerminalConfig
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L633)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L679)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -1005,7 +1048,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 
 ### AppConfig
 
-定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L641)。
+定位：[agent/src/omni/config.py](../../agent/src/omni/config.py#L687)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -1014,6 +1057,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | terminal | `TerminalConfig` | 否 |
 | persona | `Persona` | 否 |
 | models | `Models` | 否 |
+| reasoning | `Reasoning` | 否 |
 | llm | `LLM` | 否 |
 | limits | `Limits` | 否 |
 | review | `Review` | 否 |
@@ -1134,7 +1178,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `files_restore` | confirm | True | False | files | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py#L574) |
 | `files_search` | safe | False | True | files | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py#L446) |
 | `files_write` | confirm | True | False | files | [agent/src/omni/tools/files/tools.py](../../agent/src/omni/tools/files/tools.py#L514) |
-| `forget` | confirm | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L137) |
+| `forget` | confirm | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L184) |
 | `get_time` | safe | False | True | personal | [agent/src/omni/tools/personal/clock.py](../../agent/src/omni/tools/personal/clock.py#L15) |
 | `journal_view` | safe | False | True | personal | [agent/src/omni/tools/personal/journal.py](../../agent/src/omni/tools/personal/journal.py#L42) |
 | `mcp_call_tool` | confirm | True | False | mcp | [agent/src/omni/tools/mcp/tools.py](../../agent/src/omni/tools/mcp/tools.py#L73) |
@@ -1152,11 +1196,11 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `plugin_remove` | confirm | True | False | plugins | [agent/src/omni/plugins/tools.py](../../agent/src/omni/plugins/tools.py#L168) |
 | `profile_manage` | safe | False | False | personal | [agent/src/omni/tools/personal/profile.py](../../agent/src/omni/tools/personal/profile.py#L62) |
 | `qq_send_message` | safe | False | False | qq-tools | [agent/src/omni/tools/qq/tools.py](../../agent/src/omni/tools/qq/tools.py#L75) |
-| `recall` | safe | False | True | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L117) |
-| `remember` | safe | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L98) |
+| `recall` | safe | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L163) |
+| `remember` | safe | False | False | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L144) |
 | `resident_memory` | safe | False | False | personal | [agent/src/omni/tools/personal/resident.py](../../agent/src/omni/tools/personal/resident.py#L40) |
 | `run_command` | confirm | True | False | shell | [agent/src/omni/tools/shell/tools.py](../../agent/src/omni/tools/shell/tools.py#L248) |
-| `search_history` | safe | False | True | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L170) |
+| `search_history` | safe | False | True | personal | [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py#L217) |
 | `session_log_read` | safe | False | True | personal | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py#L202) |
 | `session_log_search` | safe | False | True | personal | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py#L181) |
 | `session_refine` | safe | False | False | personal | [agent/src/omni/tools/personal/refine.py](../../agent/src/omni/tools/personal/refine.py#L46) |

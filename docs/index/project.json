@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4745bc45d882d10f80e023c4231d74211da2c311c9e77d1f781d55f1e703d76f",
+  "source_sha256": "7929a848618d3f76204a496b63486720653de9f5f30cb912f101ea2c49c3d668",
   "modules": [
     {
       "id": "agent-directories",
@@ -111,7 +111,7 @@
       "files": [
         "agent/src/omni/bootstrap.py"
       ],
-      "lines": 765,
+      "lines": 767,
       "dependencies": [
         "agent-directories",
         "android",
@@ -157,7 +157,7 @@
       "files": [
         "agent/src/omni/config.py"
       ],
-      "lines": 690,
+      "lines": 737,
       "dependencies": []
     },
     {
@@ -252,7 +252,7 @@
         "agent/src/omni/llm/gateway.py",
         "agent/src/omni/llm/usage.py"
       ],
-      "lines": 1381,
+      "lines": 1421,
       "dependencies": [
         "config"
       ]
@@ -332,7 +332,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8720,
+      "lines": 8844,
       "dependencies": [
         "command-contracts",
         "config",
@@ -463,7 +463,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 5125,
+      "lines": 5271,
       "dependencies": []
     },
     {
@@ -498,7 +498,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2548,
+      "lines": 2577,
       "dependencies": [
         "assembly",
         "config",
@@ -949,6 +949,30 @@
       "dependencies": []
     },
     {
+      "id": "http-market",
+      "title": "市场 API（人设与插件）",
+      "category": "Web 接口",
+      "prefixes": [
+        "channels/web_api/market.py"
+      ],
+      "purpose": "社区源配置、人设卡与插件索引代理，以及插件的安装/激活/启停/卸载；安装只落隔离区，不执行代码。",
+      "docs": [
+        "docs/PLUGIN_SYSTEM.md"
+      ],
+      "tests": [
+        "agent/tests/test_market_api.py",
+        "agent/tests/test_market_client.py"
+      ],
+      "files": [
+        "agent/src/omni/channels/web_api/market.py"
+      ],
+      "lines": 290,
+      "dependencies": [
+        "assembly",
+        "community"
+      ]
+    },
+    {
       "id": "http-routing",
       "title": "HTTP 路由装配",
       "category": "Web 接口",
@@ -967,7 +991,7 @@
         "agent/src/omni/channels/web_api/__init__.py",
         "agent/src/omni/channels/web_api/memory_system.py"
       ],
-      "lines": 296,
+      "lines": 298,
       "dependencies": [
         "assembly",
         "command-jobs",
@@ -979,6 +1003,7 @@
         "http-contracts",
         "http-conversation",
         "http-devices",
+        "http-market",
         "http-mcp",
         "http-memory",
         "http-operations",
@@ -1129,7 +1154,7 @@
         "agent/src/omni/tools/personal/todos.py",
         "agent/src/omni/tools/personal/transcript.py"
       ],
-      "lines": 1130,
+      "lines": 1177,
       "dependencies": [
         "storage",
         "toolkit"
@@ -1539,11 +1564,12 @@
       "files": [
         "agent/src/omni/plugins/community/__init__.py",
         "agent/src/omni/plugins/community/client.py",
+        "agent/src/omni/plugins/community/persona.py",
         "agent/src/omni/plugins/community/server.py",
         "agent/src/omni/plugins/community/tools.py",
         "agent/src/omni/plugins/server.py"
       ],
-      "lines": 697,
+      "lines": 835,
       "dependencies": [
         "platform",
         "plugins",
@@ -1599,7 +1625,7 @@
         "agent/src/omni/system/catalog/scan.py",
         "agent/src/omni/system/catalog/schema.py"
       ],
-      "lines": 326,
+      "lines": 327,
       "dependencies": [
         "config"
       ]
@@ -1636,7 +1662,7 @@
         "agent/src/omni/system/soak.py",
         "agent/src/omni/system/stderr_log.py"
       ],
-      "lines": 2549,
+      "lines": 2559,
       "dependencies": [
         "agent-directories",
         "config"
@@ -1684,7 +1710,7 @@
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 765,
+      "lines": 767,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1836,7 +1862,7 @@
         },
         {
           "name": "Runtime.qq_policy",
-          "line": 205,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self"
@@ -1845,7 +1871,7 @@
         },
         {
           "name": "Runtime.close_mcp",
-          "line": 209,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self",
@@ -1857,7 +1883,7 @@
         },
         {
           "name": "Runtime.doctor",
-          "line": 216,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self"
@@ -1866,7 +1892,7 @@
         },
         {
           "name": "Runtime.backup",
-          "line": 229,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self"
@@ -1875,7 +1901,7 @@
         },
         {
           "name": "Runtime.close",
-          "line": 234,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self",
@@ -1887,7 +1913,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 283,
+          "line": 284,
           "kind": "function",
           "parameters": [
             "self",
@@ -1899,7 +1925,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 289,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self"
@@ -1908,7 +1934,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 293,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self",
@@ -1920,7 +1946,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 302,
+          "line": 303,
           "kind": "function",
           "parameters": [
             "self",
@@ -1932,7 +1958,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 306,
+          "line": 307,
           "kind": "function",
           "parameters": [
             "self"
@@ -1941,7 +1967,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 311,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self",
@@ -1953,7 +1979,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 318,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self",
@@ -1965,7 +1991,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 326,
+          "line": 327,
           "kind": "function",
           "parameters": [
             "approver",
@@ -1992,7 +2018,7 @@
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 538,
+          "line": 539,
           "kind": "function",
           "parameters": [
             "rel"
@@ -2003,14 +2029,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 569,
+          "line": 570,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 664,
+          "line": 665,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -2021,7 +2047,7 @@
         },
         {
           "name": "build_runtime._journal_registry",
-          "line": 693,
+          "line": 694,
           "kind": "function",
           "parameters": [
             "journal_store"
@@ -2964,7 +2990,7 @@
       "path": "agent/src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 493,
+      "lines": 522,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -3103,15 +3129,22 @@
           }
         },
         {
+          "name": "create_app._config_from_disk",
+          "line": 235,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "create_app.system_config",
-          "line": 236,
+          "line": 254,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.system_config_save",
-          "line": 319,
+          "line": 340,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3122,28 +3155,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 335,
+          "line": 364,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 346,
+          "line": 375,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.bili_cookies_status",
-          "line": 354,
+          "line": 383,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.save_bili_cookies",
-          "line": 366,
+          "line": 395,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3154,14 +3187,14 @@
         },
         {
           "name": "create_app.model_keys",
-          "line": 386,
+          "line": 415,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.model_key_set",
-          "line": 391,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3172,7 +3205,7 @@
         },
         {
           "name": "create_app.model_test",
-          "line": 408,
+          "line": 437,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3183,7 +3216,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 446,
+          "line": 475,
           "kind": "function",
           "parameters": [
             "host"
@@ -3194,7 +3227,7 @@
         },
         {
           "name": "main",
-          "line": 457,
+          "line": 486,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -3206,7 +3239,7 @@
       "path": "agent/src/omni/channels/web_api/__init__.py",
       "module": "http-routing",
       "python_module": "omni.channels.web_api",
-      "lines": 47,
+      "lines": 49,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.android",
@@ -3217,6 +3250,7 @@
         "omni.channels.web_api.context",
         "omni.channels.web_api.conversation",
         "omni.channels.web_api.devices",
+        "omni.channels.web_api.market",
         "omni.channels.web_api.mcp",
         "omni.channels.web_api.memory",
         "omni.channels.web_api.memory_system",
@@ -3230,7 +3264,7 @@
       "symbols": [
         {
           "name": "create_api_routers",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -4000,6 +4034,265 @@
         }
       ],
       "summary": "桌面与安卓 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "agent/src/omni/channels/web_api/market.py",
+      "module": "http-market",
+      "python_module": "omni.channels.web_api.market",
+      "lines": 290,
+      "imports": [
+        "omni.bootstrap",
+        "omni.plugins.community",
+        "omni.plugins.community.persona"
+      ],
+      "symbols": [
+        {
+          "name": "MarketSourceIn",
+          "line": 33,
+          "kind": "class"
+        },
+        {
+          "name": "MarketInstallIn",
+          "line": 39,
+          "kind": "class"
+        },
+        {
+          "name": "_community",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "_host",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "_clip",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "limit"
+          ],
+          "annotations": {
+            "value": "Any",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "_string_list",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "raw",
+            "limit",
+            "item_limit"
+          ],
+          "annotations": {
+            "raw": "Any",
+            "limit": "int",
+            "item_limit": "int"
+          }
+        },
+        {
+          "name": "_plugin_card",
+          "line": 75,
+          "kind": "function",
+          "parameters": [
+            "raw"
+          ],
+          "annotations": {
+            "raw": "Any"
+          }
+        },
+        {
+          "name": "_plugin_cards",
+          "line": 110,
+          "kind": "function",
+          "parameters": [
+            "raw"
+          ],
+          "annotations": {
+            "raw": "Any"
+          }
+        },
+        {
+          "name": "_state",
+          "line": 116,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_market_router",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Runtime"
+          }
+        },
+        {
+          "name": "create_market_router.market_status",
+          "line": 132,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_market_router.market_source_save",
+          "line": 165,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "MarketSourceIn"
+          }
+        },
+        {
+          "name": "create_market_router.market_personas",
+          "line": 175,
+          "kind": "function",
+          "parameters": [
+            "query",
+            "limit"
+          ],
+          "annotations": {
+            "query": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_market_router.market_persona_detail",
+          "line": 186,
+          "kind": "function",
+          "parameters": [
+            "persona_id"
+          ],
+          "annotations": {
+            "persona_id": "str"
+          }
+        },
+        {
+          "name": "create_market_router.market_plugins",
+          "line": 198,
+          "kind": "function",
+          "parameters": [
+            "query",
+            "limit"
+          ],
+          "annotations": {
+            "query": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "create_market_router.market_plugin_detail",
+          "line": 208,
+          "kind": "function",
+          "parameters": [
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "create_market_router.market_installed",
+          "line": 220,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_market_router.market_plugin_install",
+          "line": 224,
+          "kind": "function",
+          "parameters": [
+            "plugin_id",
+            "payload"
+          ],
+          "annotations": {
+            "plugin_id": "str",
+            "payload": "MarketInstallIn | None"
+          }
+        },
+        {
+          "name": "create_market_router.market_plugin_activate",
+          "line": 252,
+          "kind": "function",
+          "parameters": [
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "create_market_router.market_plugin_discard",
+          "line": 263,
+          "kind": "function",
+          "parameters": [
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "create_market_router.market_plugin_enable",
+          "line": 270,
+          "kind": "function",
+          "parameters": [
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "create_market_router.market_plugin_disable",
+          "line": 277,
+          "kind": "function",
+          "parameters": [
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "create_market_router.market_plugin_remove",
+          "line": 284,
+          "kind": "function",
+          "parameters": [
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        }
+      ],
+      "summary": "市场 HTTP 适配：人设卡与插件列表/安装/激活，全部消费注入 Runtime。"
     },
     {
       "path": "agent/src/omni/channels/web_api/mcp.py",
@@ -6312,7 +6605,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub-models.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 314,
+      "lines": 440,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6362,7 +6655,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 322,
+      "lines": 334,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6592,7 +6885,7 @@
       "path": "agent/src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1120,
+      "lines": 1128,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6720,7 +7013,7 @@
       "path": "agent/src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 690,
+      "lines": 737,
       "imports": [],
       "symbols": [
         {
@@ -6786,17 +7079,48 @@
         },
         {
           "name": "Models",
-          "line": 148,
+          "line": 158,
           "kind": "class"
         },
         {
+          "name": "Reasoning",
+          "line": 171,
+          "kind": "class"
+        },
+        {
+          "name": "Reasoning.valid_level",
+          "line": 194,
+          "kind": "function",
+          "parameters": [
+            "cls",
+            "value"
+          ],
+          "annotations": {
+            "value": "str"
+          }
+        },
+        {
+          "name": "Reasoning.level_for",
+          "line": 199,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "models",
+            "model"
+          ],
+          "annotations": {
+            "models": "'Models'",
+            "model": "str"
+          }
+        },
+        {
           "name": "ModeRouting",
-          "line": 161,
+          "line": 207,
           "kind": "class"
         },
         {
           "name": "ModeRouting.valid_mode",
-          "line": 176,
+          "line": 222,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6808,37 +7132,37 @@
         },
         {
           "name": "ModelCapability",
-          "line": 182,
+          "line": 228,
           "kind": "class"
         },
         {
           "name": "Retry",
-          "line": 200,
+          "line": 246,
           "kind": "class"
         },
         {
           "name": "LLMBudget",
-          "line": 208,
+          "line": 254,
           "kind": "class"
         },
         {
           "name": "Vision",
-          "line": 220,
+          "line": 266,
           "kind": "class"
         },
         {
           "name": "Artifacts",
-          "line": 234,
+          "line": 280,
           "kind": "class"
         },
         {
           "name": "LLM",
-          "line": 242,
+          "line": 288,
           "kind": "class"
         },
         {
           "name": "LLM.capability",
-          "line": 251,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self",
@@ -6850,52 +7174,52 @@
         },
         {
           "name": "Limits",
-          "line": 255,
+          "line": 301,
           "kind": "class"
         },
         {
           "name": "Review",
-          "line": 263,
+          "line": 309,
           "kind": "class"
         },
         {
           "name": "Memory",
-          "line": 273,
+          "line": 319,
           "kind": "class"
         },
         {
           "name": "Skills",
-          "line": 285,
+          "line": 331,
           "kind": "class"
         },
         {
           "name": "Web",
-          "line": 298,
+          "line": 344,
           "kind": "class"
         },
         {
           "name": "Files",
-          "line": 315,
+          "line": 361,
           "kind": "class"
         },
         {
           "name": "Compression",
-          "line": 333,
+          "line": 379,
           "kind": "class"
         },
         {
           "name": "Asr",
-          "line": 342,
+          "line": 388,
           "kind": "class"
         },
         {
           "name": "QQ",
-          "line": 350,
+          "line": 396,
           "kind": "class"
         },
         {
           "name": "QQ.check_qq_policy",
-          "line": 371,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "self"
@@ -6904,22 +7228,22 @@
         },
         {
           "name": "Browser",
-          "line": 387,
+          "line": 433,
           "kind": "class"
         },
         {
           "name": "UIFormSelectors",
-          "line": 396,
+          "line": 442,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite",
-          "line": 414,
+          "line": 460,
           "kind": "class"
         },
         {
           "name": "BilibiliWrite.check_forms",
-          "line": 421,
+          "line": 467,
           "kind": "function",
           "parameters": [
             "self"
@@ -6928,22 +7252,22 @@
         },
         {
           "name": "System",
-          "line": 430,
+          "line": 476,
           "kind": "class"
         },
         {
           "name": "Approval",
-          "line": 436,
+          "line": 482,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig",
-          "line": 446,
+          "line": 492,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig.nonblank_command",
-          "line": 464,
+          "line": 510,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6955,7 +7279,7 @@
         },
         {
           "name": "MCPServerConfig.readonly_subset",
-          "line": 470,
+          "line": 516,
           "kind": "function",
           "parameters": [
             "self"
@@ -6964,12 +7288,12 @@
         },
         {
           "name": "MCPConfig",
-          "line": 476,
+          "line": 522,
           "kind": "class"
         },
         {
           "name": "MCPConfig.server_names",
-          "line": 482,
+          "line": 528,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6981,12 +7305,12 @@
         },
         {
           "name": "Desktop",
-          "line": 490,
+          "line": 536,
           "kind": "class"
         },
         {
           "name": "Desktop.absolute_apps",
-          "line": 501,
+          "line": 547,
           "kind": "function",
           "parameters": [
             "cls",
@@ -6996,12 +7320,12 @@
         },
         {
           "name": "Embedding",
-          "line": 507,
+          "line": 553,
           "kind": "class"
         },
         {
           "name": "Embedding.validate_provider",
-          "line": 525,
+          "line": 571,
           "kind": "function",
           "parameters": [
             "self"
@@ -7010,17 +7334,17 @@
         },
         {
           "name": "Cron",
-          "line": 545,
+          "line": 591,
           "kind": "class"
         },
         {
           "name": "Journal",
-          "line": 550,
+          "line": 596,
           "kind": "class"
         },
         {
           "name": "Journal.check_daily_time",
-          "line": 570,
+          "line": 616,
           "kind": "function",
           "parameters": [
             "self"
@@ -7029,22 +7353,22 @@
         },
         {
           "name": "Transcript",
-          "line": 579,
+          "line": 625,
           "kind": "class"
         },
         {
           "name": "People",
-          "line": 594,
+          "line": 640,
           "kind": "class"
         },
         {
           "name": "AndroidConfig",
-          "line": 604,
+          "line": 650,
           "kind": "class"
         },
         {
           "name": "AndroidConfig.packages",
-          "line": 616,
+          "line": 662,
           "kind": "function",
           "parameters": [
             "cls",
@@ -7054,22 +7378,22 @@
         },
         {
           "name": "CommandJobsConfig",
-          "line": 623,
+          "line": 669,
           "kind": "class"
         },
         {
           "name": "TerminalConfig",
-          "line": 633,
+          "line": 679,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 641,
+          "line": 687,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 673,
+          "line": 720,
           "kind": "function",
           "parameters": [
             "path"
@@ -7080,7 +7404,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 681,
+          "line": 728,
           "kind": "function",
           "parameters": [
             "path"
@@ -10148,7 +10472,7 @@
       "path": "agent/src/omni/llm/gateway.py",
       "module": "models",
       "python_module": "omni.llm.gateway",
-      "lines": 676,
+      "lines": 716,
       "imports": [
         "omni.config",
         "omni.llm",
@@ -10204,13 +10528,26 @@
           "annotations": {}
         },
         {
+          "name": "reasoning_params",
+          "line": 118,
+          "kind": "function",
+          "parameters": [
+            "model",
+            "level"
+          ],
+          "annotations": {
+            "model": "str",
+            "level": "str"
+          }
+        },
+        {
           "name": "_CallRecord",
-          "line": 106,
+          "line": 132,
           "kind": "class"
         },
         {
           "name": "_CallRecord.__init__",
-          "line": 109,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -10226,7 +10563,7 @@
         },
         {
           "name": "_CallRecord.duration_ms",
-          "line": 117,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self"
@@ -10235,18 +10572,19 @@
         },
         {
           "name": "Gateway",
-          "line": 121,
+          "line": 147,
           "kind": "class"
         },
         {
           "name": "Gateway.__init__",
-          "line": 122,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
             "models",
             "llm",
             "ledger",
+            "reasoning",
             "sleep",
             "clock"
           ],
@@ -10254,13 +10592,14 @@
             "models": "Models",
             "llm": "LLMConfig | None",
             "ledger": "Ledger | None",
+            "reasoning": "Reasoning | None",
             "sleep": "Callable[[float], None]",
             "clock": "Callable[[], float]"
           }
         },
         {
           "name": "Gateway.resolve",
-          "line": 138,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self",
@@ -10272,7 +10611,19 @@
         },
         {
           "name": "Gateway.capability",
-          "line": 150,
+          "line": 178,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "model"
+          ],
+          "annotations": {
+            "model": "str"
+          }
+        },
+        {
+          "name": "Gateway.call_params",
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self",
@@ -10284,7 +10635,7 @@
         },
         {
           "name": "Gateway._precheck",
-          "line": 153,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self",
@@ -10302,7 +10653,7 @@
         },
         {
           "name": "Gateway._reserve",
-          "line": 187,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "self",
@@ -10318,7 +10669,7 @@
         },
         {
           "name": "Gateway._settle",
-          "line": 249,
+          "line": 287,
           "kind": "function",
           "parameters": [
             "self",
@@ -10350,7 +10701,7 @@
         },
         {
           "name": "Gateway._warn_once",
-          "line": 297,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self",
@@ -10362,7 +10713,7 @@
         },
         {
           "name": "Gateway._call",
-          "line": 305,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "self",
@@ -10380,7 +10731,7 @@
         },
         {
           "name": "Gateway.complete",
-          "line": 339,
+          "line": 378,
           "kind": "function",
           "parameters": [
             "self",
@@ -10406,7 +10757,7 @@
         },
         {
           "name": "Gateway.stream",
-          "line": 425,
+          "line": 464,
           "kind": "function",
           "parameters": [
             "self",
@@ -10434,7 +10785,7 @@
         },
         {
           "name": "Gateway.stream.emit",
-          "line": 468,
+          "line": 507,
           "kind": "function",
           "parameters": [
             "event"
@@ -10445,7 +10796,7 @@
         },
         {
           "name": "Gateway._stream_call",
-          "line": 563,
+          "line": 602,
           "kind": "function",
           "parameters": [
             "self",
@@ -10463,7 +10814,7 @@
         },
         {
           "name": "_completion",
-          "line": 602,
+          "line": 642,
           "kind": "function",
           "parameters": [
             "**kwargs"
@@ -10472,7 +10823,7 @@
         },
         {
           "name": "_delta_of",
-          "line": 614,
+          "line": 654,
           "kind": "function",
           "parameters": [
             "chunk"
@@ -10483,7 +10834,7 @@
         },
         {
           "name": "_accumulate_calls",
-          "line": 621,
+          "line": 661,
           "kind": "function",
           "parameters": [
             "calls",
@@ -10496,17 +10847,17 @@
         },
         {
           "name": "_CallFunction",
-          "line": 641,
+          "line": 681,
           "kind": "class"
         },
         {
           "name": "_Call",
-          "line": 647,
+          "line": 687,
           "kind": "class"
         },
         {
           "name": "_finalize_calls",
-          "line": 654,
+          "line": 694,
           "kind": "function",
           "parameters": [
             "calls"
@@ -10517,7 +10868,7 @@
         },
         {
           "name": "_close",
-          "line": 670,
+          "line": 710,
           "kind": "function",
           "parameters": [
             "chunks"
@@ -16448,7 +16799,7 @@
       "path": "agent/src/omni/memory/store.py",
       "module": "storage",
       "python_module": "omni.memory.store",
-      "lines": 1029,
+      "lines": 1151,
       "imports": [
         "omni.config",
         "omni.memory.store_schema"
@@ -16496,7 +16847,7 @@
         },
         {
           "name": "_locked",
-          "line": 72,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "method"
@@ -16505,7 +16856,7 @@
         },
         {
           "name": "_locked.wrapper",
-          "line": 76,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -16518,12 +16869,12 @@
         },
         {
           "name": "MemoryStore",
-          "line": 83,
+          "line": 94,
           "kind": "class"
         },
         {
           "name": "MemoryStore.__init__",
-          "line": 84,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -16535,7 +16886,7 @@
         },
         {
           "name": "MemoryStore._migrate_columns",
-          "line": 97,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "self"
@@ -16544,7 +16895,7 @@
         },
         {
           "name": "MemoryStore._init_fts",
-          "line": 122,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self"
@@ -16553,7 +16904,7 @@
         },
         {
           "name": "MemoryStore._fts_table_sql",
-          "line": 193,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self",
@@ -16565,7 +16916,7 @@
         },
         {
           "name": "MemoryStore._meta_json",
-          "line": 199,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
@@ -16577,7 +16928,7 @@
         },
         {
           "name": "MemoryStore._set_meta",
-          "line": 211,
+          "line": 224,
           "kind": "function",
           "parameters": [
             "self",
@@ -16591,7 +16942,7 @@
         },
         {
           "name": "MemoryStore.new_session",
-          "line": 224,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -16603,7 +16954,7 @@
         },
         {
           "name": "MemoryStore.latest_session_id",
-          "line": 232,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self"
@@ -16612,7 +16963,7 @@
         },
         {
           "name": "MemoryStore.list_sessions",
-          "line": 239,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -16624,7 +16975,7 @@
         },
         {
           "name": "MemoryStore.session_exists",
-          "line": 247,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "self",
@@ -16636,7 +16987,7 @@
         },
         {
           "name": "MemoryStore.rename_session",
-          "line": 254,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self",
@@ -16650,7 +17001,7 @@
         },
         {
           "name": "MemoryStore.get_or_create_binding",
-          "line": 263,
+          "line": 276,
           "kind": "function",
           "parameters": [
             "self",
@@ -16664,7 +17015,7 @@
         },
         {
           "name": "MemoryStore.get_binding",
-          "line": 300,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self",
@@ -16678,7 +17029,7 @@
         },
         {
           "name": "MemoryStore.set_binding",
-          "line": 308,
+          "line": 321,
           "kind": "function",
           "parameters": [
             "self",
@@ -16694,7 +17045,7 @@
         },
         {
           "name": "MemoryStore.append_message",
-          "line": 320,
+          "line": 333,
           "kind": "function",
           "parameters": [
             "self",
@@ -16714,7 +17065,7 @@
         },
         {
           "name": "MemoryStore.prompt_contexts",
-          "line": 350,
+          "line": 363,
           "kind": "function",
           "parameters": [
             "self",
@@ -16728,7 +17079,7 @@
         },
         {
           "name": "MemoryStore.recent_messages",
-          "line": 370,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "self",
@@ -16742,7 +17093,7 @@
         },
         {
           "name": "MemoryStore.recent_messages_ex",
-          "line": 378,
+          "line": 391,
           "kind": "function",
           "parameters": [
             "self",
@@ -16756,7 +17107,7 @@
         },
         {
           "name": "MemoryStore.message_count",
-          "line": 388,
+          "line": 401,
           "kind": "function",
           "parameters": [
             "self",
@@ -16768,7 +17119,7 @@
         },
         {
           "name": "MemoryStore.max_message_id",
-          "line": 397,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "self",
@@ -16780,7 +17131,7 @@
         },
         {
           "name": "MemoryStore.claim_review",
-          "line": 404,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "self",
@@ -16794,7 +17145,7 @@
         },
         {
           "name": "MemoryStore.finish_review",
-          "line": 415,
+          "line": 428,
           "kind": "function",
           "parameters": [
             "self",
@@ -16812,7 +17163,7 @@
         },
         {
           "name": "MemoryStore.last_reviewed",
-          "line": 432,
+          "line": 445,
           "kind": "function",
           "parameters": [
             "self",
@@ -16824,7 +17175,7 @@
         },
         {
           "name": "MemoryStore.review_history",
-          "line": 439,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self",
@@ -16838,7 +17189,7 @@
         },
         {
           "name": "MemoryStore.active_summary",
-          "line": 452,
+          "line": 465,
           "kind": "function",
           "parameters": [
             "self",
@@ -16850,7 +17201,7 @@
         },
         {
           "name": "MemoryStore.save_summary",
-          "line": 468,
+          "line": 481,
           "kind": "function",
           "parameters": [
             "self",
@@ -16874,7 +17225,7 @@
         },
         {
           "name": "MemoryStore.summary_history",
-          "line": 521,
+          "line": 534,
           "kind": "function",
           "parameters": [
             "self",
@@ -16888,7 +17239,7 @@
         },
         {
           "name": "MemoryStore.list_messages",
-          "line": 545,
+          "line": 558,
           "kind": "function",
           "parameters": [
             "self",
@@ -16902,7 +17253,7 @@
         },
         {
           "name": "MemoryStore.search_messages",
-          "line": 557,
+          "line": 570,
           "kind": "function",
           "parameters": [
             "self",
@@ -16916,7 +17267,7 @@
         },
         {
           "name": "MemoryStore._like_messages",
-          "line": 587,
+          "line": 600,
           "kind": "function",
           "parameters": [
             "self",
@@ -16930,7 +17281,7 @@
         },
         {
           "name": "MemoryStore.save_fact",
-          "line": 601,
+          "line": 614,
           "kind": "function",
           "parameters": [
             "self",
@@ -16948,7 +17299,7 @@
         },
         {
           "name": "MemoryStore.is_forgotten",
-          "line": 630,
+          "line": 643,
           "kind": "function",
           "parameters": [
             "self",
@@ -16960,7 +17311,7 @@
         },
         {
           "name": "MemoryStore.forget_fact",
-          "line": 641,
+          "line": 654,
           "kind": "function",
           "parameters": [
             "self",
@@ -16976,7 +17327,7 @@
         },
         {
           "name": "MemoryStore._invalidate_summaries",
-          "line": 665,
+          "line": 678,
           "kind": "function",
           "parameters": [
             "self",
@@ -16990,7 +17341,7 @@
         },
         {
           "name": "MemoryStore.search_facts",
-          "line": 685,
+          "line": 698,
           "kind": "function",
           "parameters": [
             "self",
@@ -17006,7 +17357,7 @@
         },
         {
           "name": "MemoryStore.search_fact_rows",
-          "line": 696,
+          "line": 709,
           "kind": "function",
           "parameters": [
             "self",
@@ -17022,7 +17373,7 @@
         },
         {
           "name": "MemoryStore._search_fact_rows",
-          "line": 706,
+          "line": 719,
           "kind": "function",
           "parameters": [
             "self",
@@ -17037,8 +17388,22 @@
           }
         },
         {
+          "name": "MemoryStore._rank_fact_rows",
+          "line": 776,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "rows",
+            "limit"
+          ],
+          "annotations": {
+            "rows": "list[dict]",
+            "limit": "int"
+          }
+        },
+        {
           "name": "MemoryStore._fetch_fact_rows",
-          "line": 752,
+          "line": 795,
           "kind": "function",
           "parameters": [
             "self",
@@ -17058,7 +17423,7 @@
         },
         {
           "name": "MemoryStore.fact_rows",
-          "line": 767,
+          "line": 810,
           "kind": "function",
           "parameters": [
             "self",
@@ -17070,7 +17435,7 @@
         },
         {
           "name": "MemoryStore.filter_facts",
-          "line": 787,
+          "line": 832,
           "kind": "function",
           "parameters": [
             "self",
@@ -17083,8 +17448,63 @@
           }
         },
         {
+          "name": "MemoryStore.touch_facts",
+          "line": 842,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "contents",
+            "scope",
+            "cooldown_minutes"
+          ],
+          "annotations": {
+            "contents": "list[str]",
+            "scope": "str",
+            "cooldown_minutes": "int"
+          }
+        },
+        {
+          "name": "MemoryStore.fact_timestamps",
+          "line": 875,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "contents",
+            "scope"
+          ],
+          "annotations": {
+            "contents": "list[str]",
+            "scope": "str"
+          }
+        },
+        {
+          "name": "MemoryStore.forgotten_matches",
+          "line": 887,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "query",
+            "limit"
+          ],
+          "annotations": {
+            "query": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "MemoryStore.forgotten_matches._like",
+          "line": 897,
+          "kind": "function",
+          "parameters": [
+            "needles"
+          ],
+          "annotations": {
+            "needles": "list[str]"
+          }
+        },
+        {
           "name": "MemoryStore.facts_count",
-          "line": 797,
+          "line": 919,
           "kind": "function",
           "parameters": [
             "self"
@@ -17093,7 +17513,7 @@
         },
         {
           "name": "MemoryStore.reviews_count",
-          "line": 803,
+          "line": 925,
           "kind": "function",
           "parameters": [
             "self"
@@ -17102,7 +17522,7 @@
         },
         {
           "name": "MemoryStore.profile_lines",
-          "line": 813,
+          "line": 935,
           "kind": "function",
           "parameters": [
             "self"
@@ -17111,7 +17531,7 @@
         },
         {
           "name": "MemoryStore.profile_usage_chars",
-          "line": 820,
+          "line": 942,
           "kind": "function",
           "parameters": [
             "self"
@@ -17120,7 +17540,7 @@
         },
         {
           "name": "MemoryStore.profile_add",
-          "line": 824,
+          "line": 946,
           "kind": "function",
           "parameters": [
             "self",
@@ -17134,7 +17554,7 @@
         },
         {
           "name": "MemoryStore.profile_edit",
-          "line": 849,
+          "line": 971,
           "kind": "function",
           "parameters": [
             "self",
@@ -17148,7 +17568,7 @@
         },
         {
           "name": "MemoryStore.profile_edit_checked",
-          "line": 853,
+          "line": 975,
           "kind": "function",
           "parameters": [
             "self",
@@ -17162,7 +17582,7 @@
         },
         {
           "name": "MemoryStore.profile_delete",
-          "line": 879,
+          "line": 1001,
           "kind": "function",
           "parameters": [
             "self",
@@ -17174,7 +17594,7 @@
         },
         {
           "name": "MemoryStore.profile_block",
-          "line": 885,
+          "line": 1007,
           "kind": "function",
           "parameters": [
             "self"
@@ -17183,7 +17603,7 @@
         },
         {
           "name": "MemoryStore.save_review_log",
-          "line": 900,
+          "line": 1022,
           "kind": "function",
           "parameters": [
             "self",
@@ -17197,7 +17617,7 @@
         },
         {
           "name": "MemoryStore.list_reviews",
-          "line": 908,
+          "line": 1030,
           "kind": "function",
           "parameters": [
             "self",
@@ -17211,7 +17631,7 @@
         },
         {
           "name": "MemoryStore.list_all_reviews",
-          "line": 916,
+          "line": 1038,
           "kind": "function",
           "parameters": [
             "self",
@@ -17223,7 +17643,7 @@
         },
         {
           "name": "MemoryStore.digest_since",
-          "line": 927,
+          "line": 1049,
           "kind": "function",
           "parameters": [
             "self",
@@ -17235,7 +17655,7 @@
         },
         {
           "name": "MemoryStore.todo_add",
-          "line": 980,
+          "line": 1102,
           "kind": "function",
           "parameters": [
             "self",
@@ -17249,7 +17669,7 @@
         },
         {
           "name": "MemoryStore.todo_list",
-          "line": 993,
+          "line": 1115,
           "kind": "function",
           "parameters": [
             "self",
@@ -17261,7 +17681,7 @@
         },
         {
           "name": "MemoryStore.todo_set_done",
-          "line": 1001,
+          "line": 1123,
           "kind": "function",
           "parameters": [
             "self",
@@ -17277,7 +17697,7 @@
         },
         {
           "name": "MemoryStore.todo_delete",
-          "line": 1010,
+          "line": 1132,
           "kind": "function",
           "parameters": [
             "self",
@@ -17291,7 +17711,7 @@
         },
         {
           "name": "MemoryStore.todo_clear",
-          "line": 1018,
+          "line": 1140,
           "kind": "function",
           "parameters": [
             "self",
@@ -17305,7 +17725,7 @@
         },
         {
           "name": "MemoryStore.close",
-          "line": 1028,
+          "line": 1150,
           "kind": "function",
           "parameters": [
             "self"
@@ -17319,7 +17739,7 @@
       "path": "agent/src/omni/memory/store_schema.py",
       "module": "storage",
       "python_module": "omni.memory.store_schema",
-      "lines": 153,
+      "lines": 155,
       "imports": [],
       "symbols": [],
       "summary": "memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。"
@@ -17644,20 +18064,27 @@
       "path": "agent/src/omni/plugins/community/client.py",
       "module": "community",
       "python_module": "omni.plugins.community.client",
-      "lines": 284,
+      "lines": 330,
       "imports": [
         "omni.plugins.host",
         "omni.system.path_guard"
       ],
       "symbols": [
         {
+          "name": "default_server_url",
+          "line": 43,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "CommunityClient",
-          "line": 32,
+          "line": 48,
           "kind": "class"
         },
         {
           "name": "CommunityClient.__init__",
-          "line": 35,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self",
@@ -17675,7 +18102,7 @@
         },
         {
           "name": "CommunityClient.config",
-          "line": 50,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "self"
@@ -17684,7 +18111,7 @@
         },
         {
           "name": "CommunityClient.configure",
-          "line": 62,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self",
@@ -17697,8 +18124,17 @@
           }
         },
         {
+          "name": "CommunityClient.effective_server_url",
+          "line": 98,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "CommunityClient._http",
-          "line": 82,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self"
@@ -17707,7 +18143,7 @@
         },
         {
           "name": "CommunityClient._require_server",
-          "line": 91,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self"
@@ -17716,7 +18152,7 @@
         },
         {
           "name": "CommunityClient._fail",
-          "line": 101,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "resp"
@@ -17726,8 +18162,74 @@
           }
         },
         {
+          "name": "CommunityClient.fetch",
+          "line": 129,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path",
+            "params"
+          ],
+          "annotations": {
+            "path": "str",
+            "params": "dict[str, Any] | None"
+          }
+        },
+        {
+          "name": "CommunityClient.plugin_list",
+          "line": 152,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "query",
+            "limit"
+          ],
+          "annotations": {
+            "query": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "CommunityClient.plugin_detail",
+          "line": 155,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "plugin_id"
+          ],
+          "annotations": {
+            "plugin_id": "str"
+          }
+        },
+        {
+          "name": "CommunityClient.persona_list",
+          "line": 161,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "query",
+            "limit"
+          ],
+          "annotations": {
+            "query": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "CommunityClient.persona_detail",
+          "line": 164,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "persona_id"
+          ],
+          "annotations": {
+            "persona_id": "str"
+          }
+        },
+        {
           "name": "CommunityClient.search",
-          "line": 110,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self",
@@ -17741,7 +18243,7 @@
         },
         {
           "name": "CommunityClient.info",
-          "line": 134,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -17753,7 +18255,7 @@
         },
         {
           "name": "CommunityClient.install",
-          "line": 155,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -17767,7 +18269,7 @@
         },
         {
           "name": "CommunityClient.publish_from_directory",
-          "line": 204,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -17779,7 +18281,7 @@
         },
         {
           "name": "CommunityClient.publish_zip",
-          "line": 220,
+          "line": 266,
           "kind": "function",
           "parameters": [
             "self",
@@ -17791,7 +18293,7 @@
         },
         {
           "name": "CommunityClient._zip_directory",
-          "line": 239,
+          "line": 285,
           "kind": "function",
           "parameters": [
             "self",
@@ -17803,7 +18305,7 @@
         },
         {
           "name": "CommunityClient._publish",
-          "line": 263,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "self",
@@ -17816,7 +18318,74 @@
           }
         }
       ],
-      "summary": "插件社区客户端：搜索 / 详情 / 安装 / 发布。"
+      "summary": "社区客户端：插件与人设的索引 / 详情 / 安装 / 发布。"
+    },
+    {
+      "path": "agent/src/omni/plugins/community/persona.py",
+      "module": "community",
+      "python_module": "omni.plugins.community.persona",
+      "lines": 92,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "_text",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "raw",
+            "limit"
+          ],
+          "annotations": {
+            "raw": "Any",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "_tags",
+          "line": 38,
+          "kind": "function",
+          "parameters": [
+            "raw"
+          ],
+          "annotations": {
+            "raw": "Any"
+          }
+        },
+        {
+          "name": "_homepage",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "raw"
+          ],
+          "annotations": {
+            "raw": "Any"
+          }
+        },
+        {
+          "name": "normalize",
+          "line": 59,
+          "kind": "function",
+          "parameters": [
+            "raw"
+          ],
+          "annotations": {
+            "raw": "Any"
+          }
+        },
+        {
+          "name": "normalize_many",
+          "line": 83,
+          "kind": "function",
+          "parameters": [
+            "raw"
+          ],
+          "annotations": {
+            "raw": "Any"
+          }
+        }
+      ],
+      "summary": "人设卡：社区分发的人设内容规格与收窄。"
     },
     {
       "path": "agent/src/omni/plugins/community/server.py",
@@ -19946,7 +20515,7 @@
       "path": "agent/src/omni/system/catalog/schema.py",
       "module": "catalog",
       "python_module": "omni.system.catalog.schema",
-      "lines": 107,
+      "lines": 108,
       "imports": [],
       "symbols": [
         {
@@ -19956,7 +20525,7 @@
         },
         {
           "name": "classify",
-          "line": 78,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "relative"
@@ -19972,7 +20541,7 @@
       "path": "agent/src/omni/system/config_io.py",
       "module": "platform",
       "python_module": "omni.system.config_io",
-      "lines": 463,
+      "lines": 473,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -19981,17 +20550,17 @@
       "symbols": [
         {
           "name": "ConfigEditError",
-          "line": 94,
+          "line": 104,
           "kind": "class"
         },
         {
           "name": "ConfigConflict",
-          "line": 98,
+          "line": 108,
           "kind": "class"
         },
         {
           "name": "render_value",
-          "line": 102,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "kind",
@@ -20004,7 +20573,7 @@
         },
         {
           "name": "_scalar_updates",
-          "line": 144,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "text",
@@ -20017,7 +20586,7 @@
         },
         {
           "name": "_find_multiline_block",
-          "line": 169,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "lines",
@@ -20032,7 +20601,7 @@
         },
         {
           "name": "_replace_multiline_block",
-          "line": 199,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "text",
@@ -20049,7 +20618,7 @@
         },
         {
           "name": "_section_bounds",
-          "line": 217,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "lines",
@@ -20062,7 +20631,7 @@
         },
         {
           "name": "_has_key",
-          "line": 230,
+          "line": 240,
           "kind": "function",
           "parameters": [
             "lines",
@@ -20079,7 +20648,7 @@
         },
         {
           "name": "_append_key",
-          "line": 235,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "lines",
@@ -20096,7 +20665,7 @@
         },
         {
           "name": "_append_multiline_block",
-          "line": 259,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "text",
@@ -20113,7 +20682,7 @@
         },
         {
           "name": "apply_updates",
-          "line": 280,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "text",
@@ -20126,7 +20695,7 @@
         },
         {
           "name": "read_config_text",
-          "line": 329,
+          "line": 339,
           "kind": "function",
           "parameters": [
             "path"
@@ -20137,7 +20706,7 @@
         },
         {
           "name": "safe_write",
-          "line": 340,
+          "line": 350,
           "kind": "function",
           "parameters": [
             "path",
@@ -20150,7 +20719,7 @@
         },
         {
           "name": "read_config_snapshot",
-          "line": 345,
+          "line": 355,
           "kind": "function",
           "parameters": [
             "path"
@@ -20161,7 +20730,7 @@
         },
         {
           "name": "commit_config_updates",
-          "line": 352,
+          "line": 362,
           "kind": "function",
           "parameters": [
             "path",
@@ -20176,7 +20745,7 @@
         },
         {
           "name": "mask_secret",
-          "line": 380,
+          "line": 390,
           "kind": "function",
           "parameters": [
             "value"
@@ -20187,7 +20756,7 @@
         },
         {
           "name": "_env_name_ok",
-          "line": 390,
+          "line": 400,
           "kind": "function",
           "parameters": [
             "name"
@@ -20198,7 +20767,7 @@
         },
         {
           "name": "read_env_secrets",
-          "line": 394,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "path"
@@ -20209,7 +20778,7 @@
         },
         {
           "name": "set_env_secret",
-          "line": 417,
+          "line": 427,
           "kind": "function",
           "parameters": [
             "path",
@@ -26001,7 +26570,7 @@
       "path": "agent/src/omni/tools/personal/facts.py",
       "module": "personal",
       "python_module": "omni.tools.personal.facts",
-      "lines": 185,
+      "lines": 232,
       "imports": [
         "omni.memory.store",
         "omni.tools.registry"
@@ -26009,7 +26578,7 @@
       "symbols": [
         {
           "name": "_same_fact",
-          "line": 10,
+          "line": 11,
           "kind": "function",
           "parameters": [
             "candidate",
@@ -26021,8 +26590,21 @@
           }
         },
         {
+          "name": "humanize_age",
+          "line": 16,
+          "kind": "function",
+          "parameters": [
+            "created_at",
+            "now"
+          ],
+          "annotations": {
+            "created_at": "str",
+            "now": "dt.datetime | None"
+          }
+        },
+        {
           "name": "register_memory_tools",
-          "line": 15,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "registry",
@@ -26047,21 +26629,21 @@
         },
         {
           "name": "register_memory_tools._scope",
-          "line": 32,
+          "line": 63,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "register_memory_tools._session_id",
-          "line": 36,
+          "line": 67,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "register_memory_tools._check",
-          "line": 41,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "kind",
@@ -26074,7 +26656,7 @@
         },
         {
           "name": "register_memory_tools.remember",
-          "line": 46,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "args"
@@ -26085,7 +26667,7 @@
         },
         {
           "name": "register_memory_tools.recall",
-          "line": 60,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "args"
@@ -26096,7 +26678,7 @@
         },
         {
           "name": "register_memory_tools.forget",
-          "line": 75,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "args"
@@ -26107,7 +26689,7 @@
         },
         {
           "name": "register_memory_tools.search_history",
-          "line": 159,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "args"
@@ -30073,6 +30655,199 @@
     },
     {
       "method": "GET",
+      "path": "/api/market/installed",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 220,
+      "handler": "create_market_router.market_installed",
+      "module": "http-market",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/market/personas",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 175,
+      "handler": "create_market_router.market_personas",
+      "module": "http-market",
+      "parameters": [
+        "query",
+        "limit"
+      ],
+      "annotations": {
+        "query": "str",
+        "limit": "int"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/market/personas/{persona_id}",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 186,
+      "handler": "create_market_router.market_persona_detail",
+      "module": "http-market",
+      "parameters": [
+        "persona_id"
+      ],
+      "annotations": {
+        "persona_id": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/market/plugins",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 198,
+      "handler": "create_market_router.market_plugins",
+      "module": "http-market",
+      "parameters": [
+        "query",
+        "limit"
+      ],
+      "annotations": {
+        "query": "str",
+        "limit": "int"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/market/plugins/{plugin_id}",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 284,
+      "handler": "create_market_router.market_plugin_remove",
+      "module": "http-market",
+      "parameters": [
+        "plugin_id"
+      ],
+      "annotations": {
+        "plugin_id": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/market/plugins/{plugin_id}",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 208,
+      "handler": "create_market_router.market_plugin_detail",
+      "module": "http-market",
+      "parameters": [
+        "plugin_id"
+      ],
+      "annotations": {
+        "plugin_id": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/market/plugins/{plugin_id}/disable",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 277,
+      "handler": "create_market_router.market_plugin_disable",
+      "module": "http-market",
+      "parameters": [
+        "plugin_id"
+      ],
+      "annotations": {
+        "plugin_id": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/market/plugins/{plugin_id}/enable",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 270,
+      "handler": "create_market_router.market_plugin_enable",
+      "module": "http-market",
+      "parameters": [
+        "plugin_id"
+      ],
+      "annotations": {
+        "plugin_id": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/market/plugins/{plugin_id}/install",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 224,
+      "handler": "create_market_router.market_plugin_install",
+      "module": "http-market",
+      "parameters": [
+        "plugin_id",
+        "payload"
+      ],
+      "annotations": {
+        "plugin_id": "str",
+        "payload": "MarketInstallIn | None"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/market/quarantine/{plugin_id}/activate",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 252,
+      "handler": "create_market_router.market_plugin_activate",
+      "module": "http-market",
+      "parameters": [
+        "plugin_id"
+      ],
+      "annotations": {
+        "plugin_id": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/market/quarantine/{plugin_id}/discard",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 263,
+      "handler": "create_market_router.market_plugin_discard",
+      "module": "http-market",
+      "parameters": [
+        "plugin_id"
+      ],
+      "annotations": {
+        "plugin_id": "str"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/market/source",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 165,
+      "handler": "create_market_router.market_source_save",
+      "module": "http-market",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "MarketSourceIn"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/market/status",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 132,
+      "handler": "create_market_router.market_status",
+      "module": "http-market",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
       "path": "/api/mcp/overview",
       "source": "agent/src/omni/channels/web_api/mcp.py",
       "line": 52,
@@ -31377,7 +32152,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 354,
+      "line": 383,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -31388,7 +32163,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 366,
+      "line": 395,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -31403,7 +32178,7 @@
       "method": "GET",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 236,
+      "line": 254,
       "handler": "create_app.system_config",
       "module": "web-ui",
       "parameters": [],
@@ -31414,7 +32189,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 319,
+      "line": 340,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -31584,7 +32359,7 @@
       "method": "POST",
       "path": "/api/system/model-key",
       "source": "agent/src/omni/channels/web.py",
-      "line": 391,
+      "line": 420,
       "handler": "create_app.model_key_set",
       "module": "web-ui",
       "parameters": [
@@ -31599,7 +32374,7 @@
       "method": "GET",
       "path": "/api/system/model-keys",
       "source": "agent/src/omni/channels/web.py",
-      "line": 386,
+      "line": 415,
       "handler": "create_app.model_keys",
       "module": "web-ui",
       "parameters": [],
@@ -31610,7 +32385,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "agent/src/omni/channels/web.py",
-      "line": 408,
+      "line": 437,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -31647,7 +32422,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "agent/src/omni/channels/web.py",
-      "line": 335,
+      "line": 364,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -31658,7 +32433,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "agent/src/omni/channels/web.py",
-      "line": 346,
+      "line": 375,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -32273,7 +33048,7 @@
     {
       "name": "forget",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 137,
+      "line": 184,
       "module": "personal",
       "risk": "confirm",
       "requires_human": false,
@@ -32435,16 +33210,16 @@
     {
       "name": "recall",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 117,
+      "line": 163,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
-      "read_only": true
+      "read_only": false
     },
     {
       "name": "remember",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 98,
+      "line": 144,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -32471,7 +33246,7 @@
     {
       "name": "search_history",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 170,
+      "line": 217,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -32718,7 +33493,7 @@
         {
           "source": "agent/src/omni/llm/gateway.py",
           "symbol": "Gateway.complete",
-          "line": 339
+          "line": 378
         }
       ]
     },
@@ -32767,7 +33542,7 @@
         {
           "source": "agent/src/omni/llm/gateway.py",
           "symbol": "Gateway.stream",
-          "line": 425
+          "line": 464
         },
         {
           "source": "agent/src/omni/memory/runs.py",
@@ -32816,7 +33591,7 @@
         {
           "source": "agent/src/omni/plugins/community/client.py",
           "symbol": "CommunityClient.install",
-          "line": 155
+          "line": 201
         },
         {
           "source": "agent/src/omni/plugins/host.py",
@@ -33023,6 +33798,30 @@
           "name": "updates",
           "type": "dict[str, dict[str, Any]]",
           "required": true
+        }
+      ]
+    },
+    {
+      "name": "MarketSourceIn",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 33,
+      "fields": [
+        {
+          "name": "server_url",
+          "type": "str",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "MarketInstallIn",
+      "source": "agent/src/omni/channels/web_api/market.py",
+      "line": 39,
+      "fields": [
+        {
+          "name": "version",
+          "type": "str",
+          "required": false
         }
       ]
     },
@@ -33690,7 +34489,7 @@
     {
       "name": "Models",
       "source": "agent/src/omni/config.py",
-      "line": 148,
+      "line": 158,
       "fields": [
         {
           "name": "chat",
@@ -33735,9 +34534,51 @@
       ]
     },
     {
+      "name": "Reasoning",
+      "source": "agent/src/omni/config.py",
+      "line": 171,
+      "fields": [
+        {
+          "name": "chat",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "vision",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "review",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "router",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "chat_mode",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "retrieval_mode",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "agent_mode",
+          "type": "str",
+          "required": false
+        }
+      ]
+    },
+    {
       "name": "ModeRouting",
       "source": "agent/src/omni/config.py",
-      "line": 161,
+      "line": 207,
       "fields": [
         {
           "name": "default_mode",
@@ -33754,7 +34595,7 @@
     {
       "name": "ModelCapability",
       "source": "agent/src/omni/config.py",
-      "line": 182,
+      "line": 228,
       "fields": [
         {
           "name": "tools",
@@ -33791,7 +34632,7 @@
     {
       "name": "Retry",
       "source": "agent/src/omni/config.py",
-      "line": 200,
+      "line": 246,
       "fields": [
         {
           "name": "max_attempts",
@@ -33813,7 +34654,7 @@
     {
       "name": "LLMBudget",
       "source": "agent/src/omni/config.py",
-      "line": 208,
+      "line": 254,
       "fields": [
         {
           "name": "daily_usd",
@@ -33830,7 +34671,7 @@
     {
       "name": "Vision",
       "source": "agent/src/omni/config.py",
-      "line": 220,
+      "line": 266,
       "fields": [
         {
           "name": "send_to_cloud",
@@ -33857,7 +34698,7 @@
     {
       "name": "Artifacts",
       "source": "agent/src/omni/config.py",
-      "line": 234,
+      "line": 280,
       "fields": [
         {
           "name": "retention_days",
@@ -33874,7 +34715,7 @@
     {
       "name": "LLM",
       "source": "agent/src/omni/config.py",
-      "line": 242,
+      "line": 288,
       "fields": [
         {
           "name": "request_timeout_s",
@@ -33906,7 +34747,7 @@
     {
       "name": "Limits",
       "source": "agent/src/omni/config.py",
-      "line": 255,
+      "line": 301,
       "fields": [
         {
           "name": "max_history_messages",
@@ -33938,7 +34779,7 @@
     {
       "name": "Review",
       "source": "agent/src/omni/config.py",
-      "line": 263,
+      "line": 309,
       "fields": [
         {
           "name": "enabled",
@@ -33970,7 +34811,7 @@
     {
       "name": "Memory",
       "source": "agent/src/omni/config.py",
-      "line": 273,
+      "line": 319,
       "fields": [
         {
           "name": "max_writes_per_day",
@@ -33992,7 +34833,7 @@
     {
       "name": "Skills",
       "source": "agent/src/omni/config.py",
-      "line": 285,
+      "line": 331,
       "fields": [
         {
           "name": "history_keep",
@@ -34009,7 +34850,7 @@
     {
       "name": "Web",
       "source": "agent/src/omni/config.py",
-      "line": 298,
+      "line": 344,
       "fields": [
         {
           "name": "max_bytes",
@@ -34056,7 +34897,7 @@
     {
       "name": "Files",
       "source": "agent/src/omni/config.py",
-      "line": 315,
+      "line": 361,
       "fields": [
         {
           "name": "root",
@@ -34108,7 +34949,7 @@
     {
       "name": "Compression",
       "source": "agent/src/omni/config.py",
-      "line": 333,
+      "line": 379,
       "fields": [
         {
           "name": "enabled",
@@ -34135,7 +34976,7 @@
     {
       "name": "Asr",
       "source": "agent/src/omni/config.py",
-      "line": 342,
+      "line": 388,
       "fields": [
         {
           "name": "model",
@@ -34157,7 +34998,7 @@
     {
       "name": "QQ",
       "source": "agent/src/omni/config.py",
-      "line": 350,
+      "line": 396,
       "fields": [
         {
           "name": "enabled",
@@ -34244,7 +35085,7 @@
     {
       "name": "Browser",
       "source": "agent/src/omni/config.py",
-      "line": 387,
+      "line": 433,
       "fields": [
         {
           "name": "headless",
@@ -34271,7 +35112,7 @@
     {
       "name": "UIFormSelectors",
       "source": "agent/src/omni/config.py",
-      "line": 396,
+      "line": 442,
       "fields": [
         {
           "name": "account",
@@ -34343,7 +35184,7 @@
     {
       "name": "BilibiliWrite",
       "source": "agent/src/omni/config.py",
-      "line": 414,
+      "line": 460,
       "fields": [
         {
           "name": "enabled",
@@ -34370,7 +35211,7 @@
     {
       "name": "System",
       "source": "agent/src/omni/config.py",
-      "line": 430,
+      "line": 476,
       "fields": [
         {
           "name": "napcat_dir",
@@ -34382,7 +35223,7 @@
     {
       "name": "Approval",
       "source": "agent/src/omni/config.py",
-      "line": 436,
+      "line": 482,
       "fields": [
         {
           "name": "mode",
@@ -34394,7 +35235,7 @@
     {
       "name": "MCPServerConfig",
       "source": "agent/src/omni/config.py",
-      "line": 446,
+      "line": 492,
       "fields": [
         {
           "name": "command",
@@ -34456,7 +35297,7 @@
     {
       "name": "MCPConfig",
       "source": "agent/src/omni/config.py",
-      "line": 476,
+      "line": 522,
       "fields": [
         {
           "name": "servers",
@@ -34468,7 +35309,7 @@
     {
       "name": "Desktop",
       "source": "agent/src/omni/config.py",
-      "line": 490,
+      "line": 536,
       "fields": [
         {
           "name": "enabled",
@@ -34505,7 +35346,7 @@
     {
       "name": "Embedding",
       "source": "agent/src/omni/config.py",
-      "line": 507,
+      "line": 553,
       "fields": [
         {
           "name": "enabled",
@@ -34582,7 +35423,7 @@
     {
       "name": "Cron",
       "source": "agent/src/omni/config.py",
-      "line": 545,
+      "line": 591,
       "fields": [
         {
           "name": "max_running",
@@ -34594,7 +35435,7 @@
     {
       "name": "Journal",
       "source": "agent/src/omni/config.py",
-      "line": 550,
+      "line": 596,
       "fields": [
         {
           "name": "enabled",
@@ -34646,7 +35487,7 @@
     {
       "name": "Transcript",
       "source": "agent/src/omni/config.py",
-      "line": 579,
+      "line": 625,
       "fields": [
         {
           "name": "max_entry_chars",
@@ -34678,7 +35519,7 @@
     {
       "name": "People",
       "source": "agent/src/omni/config.py",
-      "line": 594,
+      "line": 640,
       "fields": [
         {
           "name": "person_card_chars",
@@ -34705,7 +35546,7 @@
     {
       "name": "AndroidConfig",
       "source": "agent/src/omni/config.py",
-      "line": 604,
+      "line": 650,
       "fields": [
         {
           "name": "allowed_apps",
@@ -34747,7 +35588,7 @@
     {
       "name": "CommandJobsConfig",
       "source": "agent/src/omni/config.py",
-      "line": 623,
+      "line": 669,
       "fields": [
         {
           "name": "max_running",
@@ -34784,7 +35625,7 @@
     {
       "name": "TerminalConfig",
       "source": "agent/src/omni/config.py",
-      "line": 633,
+      "line": 679,
       "fields": [
         {
           "name": "max_sessions",
@@ -34811,7 +35652,7 @@
     {
       "name": "AppConfig",
       "source": "agent/src/omni/config.py",
-      "line": 641,
+      "line": 687,
       "fields": [
         {
           "name": "android",
@@ -34836,6 +35677,11 @@
         {
           "name": "models",
           "type": "Models",
+          "required": false
+        },
+        {
+          "name": "reasoning",
+          "type": "Reasoning",
           "required": false
         },
         {
