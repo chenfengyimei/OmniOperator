@@ -1,5 +1,12 @@
 # 开发状态记录
 
+2026-11-01 tests/ 重复定义守卫接入 pytest（工作区）：新增
+`agent/tests/test_no_duplicates.py`，复用 `scripts/scan_duplicates.py`
+的同一 `scan()` 实现锁住 tests/ 目录（`test_arch.py` 此前只覆盖
+`src/omni`——5 处静默覆盖正是从这个缺口漏进来的）。CI 跑全量 pytest
+时自动生效，无需单独步骤。守卫与架构专项 **29 passed（4.09s）**，
+目录守卫 11 passed。
+
 2026-11-01 全仓重复定义清零（工作区）：常驻工具 `scripts/scan_duplicates.py`
 发现 **5 处测试函数静默覆盖**（`test_memory.py` 1 处、`test_web.py` 1 处、
 `test_web_model_key.py` 3 处，均为整段复制粘贴残留，含重复注释块；被覆盖
