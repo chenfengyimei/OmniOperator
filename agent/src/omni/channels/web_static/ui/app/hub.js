@@ -1,17 +1,17 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m12';
-import {api} from './api.js?v=20261031m12';
-import {loadState} from './header.js?v=20261031m12';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m12';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m12';
-import {loadCron} from './hub-cron.js?v=20261031m12';
-import {loadUsage} from './hub-usage.js?v=20261031m12';
-import {loadMcp} from './hub-mcp.js?v=20261031m12';
-import {loadContext} from './hub-context.js?v=20261031m12';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m12';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m12';
+import {$,esc} from './dom.js?v=20261031m13';
+import {api} from './api.js?v=20261031m13';
+import {loadState} from './header.js?v=20261031m13';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m13';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m13';
+import {loadCron} from './hub-cron.js?v=20261031m13';
+import {loadUsage} from './hub-usage.js?v=20261031m13';
+import {loadMcp} from './hub-mcp.js?v=20261031m13';
+import {loadContext} from './hub-context.js?v=20261031m13';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m13';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m13';
 
 export async function openHub(go=null){
   $('#hub').classList.remove('hidden');$('#hub').setAttribute('aria-hidden','false');

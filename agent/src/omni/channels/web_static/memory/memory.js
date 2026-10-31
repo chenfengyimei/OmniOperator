@@ -1,6 +1,6 @@
 /* 记忆系统控制器：设置中心与旧页面共享六页签，查询、事件和状态限定在挂载根内。
    全部数据来自 /api/memory-system/*，读取一律分页；动态文本全部转义。 */
-import {esc} from '/ui/app/dom.js?v=20261031m12';
+import {esc} from '/ui/app/dom.js?v=20261031m13';
 export function mountMemory(root){
 const $=selector=>root.querySelector(selector);
 const UI=window.OmniUI;
@@ -51,7 +51,8 @@ async function loadOverview(){
       ['核心人物',`${m.people.people} 人`,`账号 ${m.people.accounts} 个`],
     ];
     const owner=data.owner||{};
-    if(!owner.error){
+    // 旧后端（未重启的进程）没有 owner 段：宁可不显示这三张卡，也不显示假 0 误导人
+    if(owner && owner.facts!==undefined){
       cards.push(
         ['事实记忆',`${owner.facts??0} 条`,`recall 按需检索${owner.retrieval&&owner.retrieval.enabled?' · 向量混合':' · 关键词'}`],
         ['所有者档案',`${owner.profile?owner.profile.used:0}/${owner.profile?owner.profile.max:0} 字`,`每轮注入 · 常驻 ${owner.resident?owner.resident.entries:0} 条`],
@@ -144,7 +145,8 @@ $('#fact-add-form').onsubmit=async event=>{
 function memoryLineNode(item,kind){
   // 档案行与常驻条目共用行渲染（编辑/删除按种类走各自端点）
   const node=UI.element('div',null,'entry-item');
-  node.append(UI.element('span',`[${item.id}] ${item.content}`));
+  node.append(UI.element('span',`[${item.id}]`,'num'));
+  node.append(UI.element('span',item.content));
   const edit=UI.element('button',null,'mini');edit.title='编辑';
   edit.append(UI.element('span','edit','material-icons'));
   edit.onclick=async()=>{
@@ -719,7 +721,7 @@ export async function loadMemory(root){
     root.setAttribute('aria-busy','true');
     root.replaceChildren(window.OmniUI.element('p','正在读取记忆系统…','empty'));
     try{
-      const response=await fetch('/memory/panel.html?v=20261031m12',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000)});
+      const response=await fetch('/memory/panel.html?v=20261031m13',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(15000)});
       if(!response.ok)throw Error('记忆界面资源读取失败（'+response.status+'），请重试。');
       const template=document.createElement('template');template.innerHTML=await response.text();
       if(!template.content.querySelector('.memory-surface .view-tabs'))throw Error('记忆界面资源不完整，请刷新工作台后重试。');

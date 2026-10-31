@@ -20,7 +20,7 @@
     <div id="latest-notes" class="note-chips"></div>
   </section>
   <section class="memory-panel">
-    <div class="section-heading compact"><div><span class="eyebrow">RUNS</span><h2>最近整理流水</h2></div><button id="overview-reload" class="small"><span class="material-icons">refresh</span>刷新</button></div>
+    <div class="section-heading compact"><div><span class="eyebrow">RUNS</span><h2>最近整理流水</h2></div><button id="overview-reload" class="btn small"><span class="material-icons">refresh</span>刷新</button></div>
     <div id="overview-runs" class="run-list" role="list"></div>
   </section>
 </section>
@@ -29,15 +29,15 @@
   <section class="memory-panel">
     <div class="section-heading compact"><div><span class="eyebrow">FACT MEMORY</span><h2>事实记忆</h2></div><span class="material-icons">lightbulb</span></div>
     <p class="hint">小鱼在对话中主动记住的事实：recall 按需检索（不每轮注入）。删除会留遗忘墓碑——同样的内容不会再被自动记回来。</p>
-    <form id="fact-add-form" class="search-row"><input id="fact-add-input" placeholder="手动记一条（如：发布会安排在每周五下午）" maxlength="500"><button type="submit"><span class="material-icons">add</span>记住</button></form>
-    <form id="fact-search-form" class="search-row"><input id="fact-search-input" placeholder="检索事实记忆（留空显示最近记录）" maxlength="120"><button type="submit"><span class="material-icons">search</span>搜索</button></form>
+    <form id="fact-add-form" class="search-row"><input id="fact-add-input" placeholder="手动记一条（如：发布会安排在每周五下午）" maxlength="500"><button type="submit" class="btn small"><span class="material-icons">add</span>记住</button></form>
+    <form id="fact-search-form" class="search-row"><input id="fact-search-input" placeholder="检索事实记忆（留空显示最近记录）" maxlength="120"><button type="submit" class="btn small"><span class="material-icons">search</span>搜索</button></form>
     <div id="facts-list" class="entry-list" aria-live="polite"></div>
   </section>
 </section>
 
 <section id="profile-view" class="memory-view" hidden>
   <section class="memory-panel">
-    <div class="section-heading compact"><div><span class="eyebrow">OWNER PROFILE</span><h2>所有者档案</h2></div><button id="profile-add"><span class="material-icons">add</span>新增档案行</button></div>
+    <div class="section-heading compact"><div><span class="eyebrow">OWNER PROFILE</span><h2>所有者档案</h2></div><button id="profile-add" class="btn small"><span class="material-icons">add</span>新增档案行</button></div>
     <p class="hint">关于你的稳定特征（职位、偏好、习惯），每轮注入小鱼的上下文；总量 2000 字符，写满要先合并。小鱼用 profile_manage 工具维护，也可以在这里直接编辑。</p>
     <p id="profile-usage" class="hint"></p>
     <div id="profile-list" class="entry-list" aria-live="polite"></div>
@@ -49,7 +49,7 @@
     <div class="section-heading compact"><div><span class="eyebrow">RESIDENT NOTES</span><h2>常驻工作笔记</h2></div><span class="material-icons">push_pin</span></div>
     <p class="hint">小鱼的常驻笔记（进行中的约定、教训、下一步），每轮注入；总量限额，写满会被拒绝并要求先合并。与「档案」同属人物系统里所有者（主人）的记忆条目。</p>
     <p id="resident-usage" class="hint"></p>
-    <form id="resident-add-form" class="search-row"><input id="resident-add-input" placeholder="新增一条常驻笔记" maxlength="2000"><button type="submit"><span class="material-icons">add</span>添加</button></form>
+    <form id="resident-add-form" class="search-row"><input id="resident-add-input" placeholder="新增一条常驻笔记" maxlength="2000"><button type="submit" class="btn small"><span class="material-icons">add</span>添加</button></form>
     <div id="resident-list" class="entry-list" aria-live="polite"></div>
   </section>
 </section>
@@ -58,14 +58,14 @@
   <section class="memory-panel">
     <div class="section-heading compact"><div><span class="eyebrow">DIALOGUE MEMORY</span><h2>对话全量记忆</h2></div><span class="material-icons">forum</span></div>
     <p class="hint">完整对话原文（每一句用户与助手的话，不含工具过程）。按天浏览，或用关键词检索；分页读取，不会一次拉全库。</p>
-    <form id="dialogue-search-form" class="search-row"><input id="dialogue-search-input" placeholder="搜索对话原文（如：记忆系统、拿铁）" maxlength="120"><button type="submit"><span class="material-icons">search</span>搜索</button></form>
+    <form id="dialogue-search-form" class="search-row"><input id="dialogue-search-input" placeholder="搜索对话原文（如：记忆系统、拿铁）" maxlength="120"><button type="submit" class="btn small"><span class="material-icons">search</span>搜索</button></form>
     <div id="dialogue-search-results" class="search-results" hidden></div>
     <div class="memory-columns">
       <div id="dialogue-days" class="day-list" aria-label="按天索引"></div>
       <div class="reader">
         <div id="dialogue-sessions" class="session-chips"></div>
         <div id="dialogue-entries" class="entry-list" aria-live="polite"></div>
-        <button id="dialogue-more" hidden><span class="material-icons">expand_more</span>读取更多</button>
+        <button id="dialogue-more" hidden class="btn small"><span class="material-icons">expand_more</span>读取更多</button>
       </div>
     </div>
   </section>
@@ -75,7 +75,7 @@
   <section class="memory-panel">
     <div class="section-heading compact"><div><span class="eyebrow">SESSION MEMORY</span><h2>会话全量记忆</h2></div><span class="material-icons">manage_search</span></div>
     <p class="hint">对话 + 工具过程的完整流水（工具名、参数、结果、状态）——排查"那天到底执行了什么"用它；可按运行 ID 精确定位。</p>
-    <form id="session-search-form" class="search-row"><input id="session-search-input" placeholder="检索工具过程与对话（如：peek_command、git status）" maxlength="120"><button type="submit"><span class="material-icons">search</span>搜索</button></form>
+    <form id="session-search-form" class="search-row"><input id="session-search-input" placeholder="检索工具过程与对话（如：peek_command、git status）" maxlength="120"><button type="submit" class="btn small"><span class="material-icons">search</span>搜索</button></form>
     <div id="session-search-results" class="search-results" hidden></div>
     <div class="memory-columns">
       <div id="session-days" class="day-list" aria-label="按天索引"></div>
@@ -84,7 +84,7 @@
           <input id="session-run-filter" placeholder="按运行 ID 过滤（run_id）" maxlength="32">
         </div>
         <div id="session-entries" class="entry-list" aria-live="polite"></div>
-        <button id="session-more" hidden><span class="material-icons">expand_more</span>读取更多</button>
+        <button id="session-more" hidden class="btn small"><span class="material-icons">expand_more</span>读取更多</button>
       </div>
     </div>
   </section>
@@ -105,7 +105,7 @@
         <div class="note-toolbar">
           <strong id="note-title">选择一篇笔记阅读</strong>
           <span id="note-meta" class="hint"></span>
-          <button id="note-retry" hidden><span class="material-icons">replay</span>重新排队整理</button>
+          <button id="note-retry" hidden class="btn small"><span class="material-icons">replay</span>重新排队整理</button>
         </div>
         <article id="note-content" class="note-content" tabindex="0"></article>
         <details><summary><span class="material-icons">history</span>整理流水（本期）</summary><div id="note-runs" class="run-list"></div></details>
@@ -116,7 +116,7 @@
 
 <section id="reviews-view" class="memory-view" hidden>
   <section class="memory-panel">
-    <div class="section-heading compact"><div><span class="eyebrow">TURN REVIEWS</span><h2>复盘记录</h2></div><button id="reviews-reload"><span class="material-icons">refresh</span>刷新</button></div>
+    <div class="section-heading compact"><div><span class="eyebrow">TURN REVIEWS</span><h2>复盘记录</h2></div><button id="reviews-reload" class="btn small"><span class="material-icons">refresh</span>刷新</button></div>
     <p class="hint">会话结束后的自动复盘结论：回顾对话并沉淀记忆（受当日写入额度约束）。日 / 周 / 月的压缩整理见「笔记」页签。</p>
     <div id="reviews-list" class="run-list" role="list"></div>
   </section>
@@ -124,7 +124,7 @@
 
 <section id="people-view" class="memory-view" hidden>
   <section class="memory-panel">
-    <div class="section-heading compact"><div><span class="eyebrow">CORE PEOPLE</span><h2>核心人物</h2></div><button id="person-new"><span class="material-icons">person_add</span>新建人物</button></div>
+    <div class="section-heading compact"><div><span class="eyebrow">CORE PEOPLE</span><h2>核心人物</h2></div><button id="person-new" class="btn small"><span class="material-icons">person_add</span>新建人物</button></div>
     <p class="hint">重要的人物档案：账号（QQ / B站）是私聊注入的钥匙——与某人私聊时，他的常驻档案与常驻记忆会自动带给小鱼。临时事件到期自动清除。</p>
     <div class="memory-columns">
       <div id="people-list" class="day-list" aria-label="人物列表"></div>
@@ -160,7 +160,7 @@
         <label>常驻记忆单条上限<input id="cfg-people-resident" type="number" min="200" max="4000"></label>
         <label>临时事件单条上限<input id="cfg-people-event" type="number" min="50" max="2000"></label>
       </div>
-      <div class="actions"><button type="submit" class="ui-primary"><span class="material-icons">save</span>保存设置</button><span id="settings-msg" class="hint"></span></div>
+      <div class="actions"><button type="submit" class="btn primary"><span class="material-icons">save</span>保存设置</button><span id="settings-msg" class="hint"></span></div>
     </form>
   </section>
 </section>
