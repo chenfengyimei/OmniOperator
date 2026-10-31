@@ -47,6 +47,7 @@ MODULES = (
     Module('http-android', '安卓设备 API 与面板', 'Web 接口', ('channels/web_api/android.py', 'channels/web_api/android_stream.py', 'channels/web_static/android/'), '按设备固定目标、配对归属的观察与受控应用操作。', ('ANDROID.md',), ('test_android_devices.py',)),
     Module('http-devices', '桌面与安卓 API', 'Web 接口', ('channels/web_api/devices.py',), '窗口观察、设备树/锁帧、受观察约束的手动动作和 MJPEG。', ('ANDROID.md', 'DESKTOP.md'), ('test_web.py', 'test_web_api.py')),
     Module('http-contracts', 'HTTP 请求契约', 'Web 接口', ('channels/web_api/schemas.py',), '公共请求模型；只承载数据声明，旧 web 模型名继续显式转发。', ('PROJECT_INDEX.md',), ('test_web_api.py',)),
+    Module('http-market', '市场 API（人设与插件）', 'Web 接口', ('channels/web_api/market.py',), '社区源配置、人设卡与插件索引代理，以及插件的安装/激活/启停/卸载；安装只落隔离区，不执行代码。', ('PLUGIN_SYSTEM.md',), ('test_market_api.py', 'test_market_client.py')),
     Module('http-routing', 'HTTP 路由装配', 'Web 接口', ('channels/web_api/',), '聚合注入 Runtime 的领域路由，由应用入口统一挂载；不与请求契约合并为同一职责。', ('PROJECT_INDEX.md', 'REFACTORING.md'), ('test_web_api.py',)),
     Module('cli', 'CLI 入口', '交互与终端', ('channels/cli.py', '__main__.py'), '终端对话命令与 Runtime 适配。', ('HANDOFF.md',)),
     Module('qq-channel', 'QQ 入口', '交互与终端', ('channels/qq.py',), 'QQ 场景队列、事件去重和消息收发适配。', ('QQ_SCENARIOS.md',), ('test_qq.py', 'test_qq_scope.py')),

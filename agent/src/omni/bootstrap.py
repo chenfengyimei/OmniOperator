@@ -190,6 +190,7 @@ class Runtime:
     android_streams: AndroidFrameHub | None = None
     command_jobs: CommandJobManager | None = None
     plugins: PluginHost | None = None
+    community: CommunityClient | None = None  # 社区源客户端（插件索引 + 人设卡，工作台市场用）
     config_path: Path | None = None  # 策略热读用的配置源（None=默认 config.yaml）
     data_dir: Path = DATA_DIR  # 运行数据根（工作台密钥/会话、截图、日志都从这里派生）
     paths: RuntimePaths = None  # 全部可写路径的唯一声明（见 config.RuntimePaths）
@@ -430,7 +431,7 @@ def build_runtime(
     mcp_schemas = MCPSchemaStore(state)
     # 技能变更已读标记（D18）：agent/review 自动改技能进待审阅队列
     skill_acks = SkillAckStore(state)
-    gateway = Gateway(config.models, llm=config.llm, ledger=usage)
+    gateway = Gateway(config.models, llm=config.llm, ledger=usage, reasoning=config.reasoning)
     try:
         pruned = usage.prune(keep_days=180)
         if pruned and not (data_dir is not None):
@@ -726,6 +727,7 @@ def build_runtime(
         publications=publications,
         event_log=event_log,
         plugins=plugin_host,
+        community=community_client,
         command_jobs=command_jobs,
         mcp_schemas=mcp_schemas,
         skill_acks=skill_acks,

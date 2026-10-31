@@ -13,6 +13,7 @@ from .command_jobs import create_command_jobs_router
 from .context import create_context_router
 from .conversation import create_conversation_router
 from .devices import create_devices_router
+from .market import create_market_router
 from .mcp import create_mcp_router
 from .memory import create_memory_router
 from .memory_system import create_memory_system_router
@@ -42,6 +43,7 @@ def create_api_routers(runtime: Runtime) -> tuple[APIRouter, ...]:
         create_automation_router(runtime),
         create_publications_router(runtime),
         create_devices_router(runtime),
+        create_market_router(runtime),
     )
 
 __all__ = ["create_api_routers"]
