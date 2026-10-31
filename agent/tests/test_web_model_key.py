@@ -224,3 +224,84 @@ def test_config_save_creates_missing_section_end_to_end(tmp_path):
     text = runtime.paths.config.read_text(encoding="utf-8")
     assert "qq:" in text and "enabled: true" in text
     assert "persona:" in text  # 原有内容不能被冲掉
+
+
+# ---------- 设置中心读的是磁盘，不是启动快照（D30 修「选过又变没选」） ----------
+
+
+def test_config_get_reflects_disk_without_restart(tmp_path):
+    """保存成功后重开设置中心，必须看到刚存的值。
+
+    以前 GET 读的是 `runtime.config`（进程启动那一刻的快照），保存完再打开页面
+    看到的还是旧值——用户以为"没存上"，于是再选一遍，第二遍就把第一遍覆盖了。
+    """
+    client, runtime, _env = _client(tmp_path)
+    runtime.paths.config.write_text(
+        'models:\n  chat: "deepseek/deepseek-v4-pro"\n  vision: ""\n', encoding="utf-8"
+    )
+    body = client.get("/api/system/config").json()
+    assert body["models"]["chat"] == "deepseek/deepseek-v4-pro"
+    assert body["models"]["vision"] == ""
+    # 启动快照里还是默认值 → 明确告诉界面"这次改动要重启才生效"
+    assert body["pending_restart"] is True
+
+
+def test_config_post_writes_reasoning_levels(tmp_path):
+    client, runtime, _env = _client(tmp_path)
+    resp = client.post(
+        "/api/system/config",
+        json={
+            "updates": {
+                "models": {"chat": "deepseek/deepseek-flash"},
+                "reasoning": {"chat": "high", "agent_mode": "off"},
+            }
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["pending_restart"] is True
+
+    body = client.get("/api/system/config").json()
+    assert body["models"]["chat"] == "deepseek/deepseek-flash"
+    assert body["reasoning"]["chat"] == "high"
+    assert body["reasoning"]["agent_mode"] == "off"
+    # 没动过的档位保持 auto（不因为保存一次就给别人塞一个默认档）
+    assert body["reasoning"]["vision"] == "auto"
+    # 文件里真的写了，重启后读到的就是它
+    from omni.config import load_config
+
+    assert load_config(runtime.paths.config).reasoning.chat == "high"
+
+
+def test_config_post_rejects_unknown_reasoning_level(tmp_path):
+    client, _runtime, _env = _client(tmp_path)
+    resp = client.post(
+        "/api/system/config",
+        json={"updates": {"reasoning": {"chat": "ultra"}}},
+    )
+    assert resp.status_code == 400
+
+
+def test_config_post_keeps_unknown_model_string_verbatim(tmp_path):
+    """列表里没有的新型号也必须原样存下来：认不出 ≠ 清空。"""
+    client, runtime, _env = _client(tmp_path)
+    resp = client.post(
+        "/api/system/config",
+        json={"updates": {"models": {"chat": "deepseek/还没发布的名字"}}},
+    )
+    assert resp.status_code == 200, resp.text
+    from omni.config import load_config
+
+    assert load_config(runtime.paths.config).models.chat == "deepseek/还没发布的名字"
+
+
+def test_config_post_allows_empty_vision(tmp_path):
+    """「看截图」留空 = 跟随日常对话（V4.1 Flash 自己能看图），不该卡住整次保存。"""
+    client, runtime, _env = _client(tmp_path)
+    resp = client.post(
+        "/api/system/config",
+        json={"updates": {"models": {"chat": "deepseek/deepseek-flash", "vision": ""}}},
+    )
+    assert resp.status_code == 200, resp.text
+    from omni.config import load_config
+
+    assert load_config(runtime.paths.config).models.vision == ""

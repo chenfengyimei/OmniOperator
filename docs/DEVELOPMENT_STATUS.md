@@ -1,5 +1,65 @@
 # 开发状态记录
 
+2026-11-01 设置中心「模型选过又变没选」修复 + 思考开关（D30；后端已提交，前端留在工作区）：
+- **现场症状与三处根因**（详见 [MODEL_SETTINGS.md](MODEL_SETTINGS.md)）：① `GET /api/system/config`
+  以前返回 `runtime.config`（**进程启动那一刻的快照**），保存写的是 `config.yaml`，所以存完再开页面
+  看到的还是旧值——用户以为没存上，再选一遍，第二遍又覆盖第一遍；现改为 GET **直接读盘**
+  （读失败才退回快照）并返回 `pending_restart`，把"已保存待重启"与"已生效"分开说。② 型号不在内置
+  列表时槽位卡退化成槽位说明文案，和"没选"长得一样；现一律显示原始模型串。③ `pickProvider` 每次
+  都把型号重置成列表第一项，用户因"看起来没选"再点一次同一家就把自己的选择换掉了；现同家且已有
+  型号时早退。另修：`models.vision` 由"必须非空"改为可空（留空=跟随日常对话），空槽位不再连坐
+  整次保存 400。
+- **模型目录更新**（前端 `PROVIDERS`）：DeepSeek 换成 `deepseek-flash`（V4.1 Flash，1M 上下文、
+  文本+图片）与 `deepseek-v4-pro`，旧名 `deepseek-chat`/`deepseek-reasoner`（2026-07-24 下线）
+  **保留但标 `retired`**，已配旧名的用户不丢配置、界面提示"请求已转到 Flash"；OpenAI 换到
+  gpt-5.5/gpt-5.4/gpt-5.4-mini，Anthropic 换到 opus-4-8/sonnet-4-6/haiku-4-5；每家新增
+  **「自己填型号」**入口（列表过期不再把人挡住）。默认 `models.chat` 由 `deepseek/deepseek-chat`
+  改为 `deepseek/deepseek-flash`（config 模板同步）。
+- **思考开关（D30）**：新增配置段 `reasoning.<槽位>`（chat/vision/review/router/chat_mode/
+  retrieval_mode/agent_mode），取值 `auto|off|low|medium|high|max`；`auto` **一个参数都不发**
+  （沿用供应商默认）。网关新增 `reasoning_params()`，只对听得懂参数的供应商下发：DeepSeek 走
+  `extra_body.thinking` + `reasoning_effort`（LiteLLM 的 openai 兼容层会把顶层 `reasoning_effort`
+  当未知参数过滤掉，注册成顶层等于"设了没用"），OpenAI 走 `reasoning_effort`（关闭=`none`）；
+  Anthropic / 千问 / Kimi / Ollama 一律不发（Claude 的 `budget_tokens < max_tokens` 与我们不显式发
+  `max_tokens` 冲突，界面明说"这家不支持在这里调"）。设置中心每个槽位一排档位按钮，随
+  「保存模型设置」一起落盘。
+- **真实探针（唯一一次联网，成本约 $0.0003）**：`deepseek-flash` 在"历史含 assistant tool_calls
+  但无 reasoning_content"的带 `tools` 请求下返回 **200**，故本轮**不**改 `messages` 表结构回放思考
+  内容；`thinking.type=disabled` 与 `reasoning_effort=high/max` 均按预期生效。这是现场探针不是保证，
+  见 MODEL_SETTINGS.md 第 4 节。
+- 测试：新增 `agent/tests/test_ui_model_settings.py` **8 项**（真实 Chromium：选型号→保存→`reload()`
+  →仍在；档位回读；清空槽位不阻塞保存；另 5 项静态守卫含"前后端档位集合一致"）；`test_config.py`
+  +4、`test_gateway.py` +10、`test_web_model_key.py` +5。专项 `test_config/test_gateway/
+  test_web_model_key/test_ui_model_settings/test_ui_flows::test_header_chips_are_runtime_only` 全绿。
+  全量 **1514 passed / 1 failed / 1 error（239.00s）**：失败为
+  `test_command_jobs.py::test_queue_cancel_and_close_budget`（并行负载下间歇，`-n 0` 单跑通过，
+  与模型改动无关，属既有已知间歇）。
+- **未提交部分（明确）**：前端 `ui/app/hub-models.js`、`ui/app/hub.js`、`index.html`、
+  `ui/workbench.css` 与 app 组 `?v=` 原子递增（m18→m19）**留在工作区未提交**——同一个 `index.html`
+  / `workbench.css` 里还有并行会话未提交的 rail 入口改版（8 处按钮改 `hub:open`、卡片「整页打开 ↗」
+  样式等），按纪律不得混入本次提交；上述前端改动在工作区已生效，本轮 e2e 用例即它们为真。
+- 剩余限制：真实模型的档位收益（时延/正确率）未评测；思考使实际输出超过
+  `llm.max_output_tokens=1024` 的预留估算，设了日预算时可能"超一点点"；千问/Kimi 型号清单未逐个
+  核对（有"自己填型号"兜底）；设置中心新面板只做过一次浅色截图核对，**未做多视口与深色验收**；
+  真实工作台进程未重启，`pending_restart` 的界面语义只在隔离实例验证。
+
+2026-11-01 记忆系统核实与三项修正（复用 cb29b76 结构，零 DDL 变更，无需数据迁移）：
+- **核实结论**：cb29b76 的 schema/迁移（hits/last_used 新库与旧库补列两路齐）、
+  上下文组装链（persona + 回合快照 + 摘要；dialogue/session_log/journal/people 均为
+  档案层、明确不进 prompt）健康，无冗余注入模块——未发现需要重构或合并的记忆模块。
+- **后台召回不记账**：`register_memory_tools` 新增 `count_hits`（默认 True），
+  review / journal 两个后台 registry 传 False——夜间整理的召回是取材不是使用，
+  记账会把 hits 信号污染成"整理模型爱查什么"，强化排序随之漂移。
+- **forget 作用域对称**：检索作用域从硬编码 private 改为跟随当前 run——旧实现
+  群聊事实"记得住、召得回、永远忘不掉"，且群聊一句"忘掉 X"会搜并删除**私人**
+  事实（跨作用域删除是权限事故）。
+- **forget 反查修正**：id 反查从 `fact_rows(500)`（展示口径，按新到旧截 500 条）
+  换成新方法 `fact_ids_by_contents`（SQL IN 全库精确匹配）——库超 500 条后删旧
+  事实不再静默失败。
+- 专项 43+78 项全绿（新增 3 项：反查无上限、后台不记账、群 forget 作用域）；
+  冻结检索评测复跑 Recall@5 / MRR **0.7778** 与基线一致（valid_comparison: true）。
+  bootstrap 后台接线（count_hits=False）为组装根策略、无自动化测试覆盖，待真实验收。
+
 2026-11-01 设置中心接入市场（人设 + 插件，工作区，3 个提交）：
 - **读侧**（`945967f`）：`CommunityClient.fetch` 成为索引/详情唯一 HTTP 出口，
   `search`/`info` 改为复用（工具文案一字未动）；新增 `community/persona.py` 人设卡
@@ -24,7 +84,7 @@
   人设都没有"有新版本"提示（索引不落库）；市场站点无账号/评分；真机验收需所有者
   装一次、点一次激活。
 
-2026-11-01 记忆召回强化与元记忆（借鉴 SeekMemory，工作区）：
+2026-11-01 记忆召回强化与元记忆（借鉴 SeekMemory，已提交 cb29b76）：
 - `facts` 新增 `hits`/`last_used`（store_schema + `_migrate_columns` 只加不改）；
   `touch_facts` 原子条件更新：30 分钟冷却 + 每天最多一次，防"越提越重要"的正反馈；
   强化**只参与召回重排、不做入场券**（增益上限 1.5 链位，最多超越一个零命中邻居），

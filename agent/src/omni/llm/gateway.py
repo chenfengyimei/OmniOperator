@@ -1,9 +1,9 @@
 """LiteLLM 统一网关：一套 OpenAI 格式接所有供应商（海外/国产/本地 Ollama）。
 
 模型串格式为 provider/model，例如：
-- deepseek/deepseek-chat      （需 DEEPSEEK_API_KEY）
-- anthropic/claude-sonnet-4-5 （需 ANTHROPIC_API_KEY）
-- ollama/qwen2.5:7b           （本地，无需密钥）
+- deepseek/deepseek-flash    （需 DEEPSEEK_API_KEY；旧的 deepseek-chat 已于 2026-07-24 下线）
+- anthropic/claude-opus-4-8  （需 ANTHROPIC_API_KEY）
+- ollama/qwen2.5:7b          （本地，无需密钥）
 
 D10 在这一层补上四件事，因为它们**必须在唯一出口**做，否则每个调用点都得记得：
 
@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..config import LLM as LLMConfig
-from ..config import Models
+from ..config import Models, Reasoning
 from . import errors
 from .budget import (
     SOURCE_NOT_BILLED,
@@ -103,6 +103,32 @@ def _today() -> str:
     return dt.date.today().isoformat()
 
 
+# 「要不要思考、想多深」只有少数供应商听得懂这两个参数。列表外的供应商一律**不发**
+# 任何相关参数：被静默忽略用户会发现"设了没用"，但 400 会直接变成"聊不了天"。
+# - deepseek：thinking {enabled/disabled} + reasoning_effort低/高/最高（官方映射表里
+#   medium→high，所以中等也照发）；两个都要走 extra_body，LiteLLM 的 openai 兼容层
+#   会把 reasoning_effort 当未知参数过滤掉。
+# - openai：只认 reasoning_effort，关闭要用 "none"（它没有 disabled 这种说法）。
+# - anthropic：extended thinking 要求 budget_tokens < max_tokens，而本项目不显式发
+#   max_tokens（交给供应商默认），贸然下发在部分型号上会直接 400——所以暂不接，
+#   设置中心对 Claude 明说"这家不支持在这里调"。
+REASONING_PROVIDERS: tuple[str, ...] = ("deepseek", "openai")
+
+
+def reasoning_params(model: str, level: str) -> dict[str, Any]:
+    """档位 → LiteLLM 调用参数。auto/空 = 一个参数都不加（沿用供应商默认）。"""
+    if not level or level == "auto":
+        return {}
+    provider = model.split("/", 1)[0].strip().lower()
+    if provider == "deepseek":
+        if level == "off":
+            return {"extra_body": {"thinking": {"type": "disabled"}}}
+        return {"extra_body": {"thinking": {"type": "enabled"}, "reasoning_effort": level}}
+    if provider == "openai":
+        return {"reasoning_effort": "none" if level == "off" else level}
+    return {}
+
+
 class _CallRecord:
     """一次调用的记账上下文（失败路径也要能落账）。"""
 
@@ -125,11 +151,13 @@ class Gateway:
         *,
         llm: LLMConfig | None = None,
         ledger: Ledger | None = None,
+        reasoning: Reasoning | None = None,
         sleep: Callable[[float], None] = time.sleep,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.models = models
         self.llm = llm or LLMConfig()
+        self.reasoning = reasoning
         self.ledger: Ledger = ledger or NullLedger()
         self._sleep = sleep
         self._clock = clock
@@ -149,6 +177,16 @@ class Gateway:
 
     def capability(self, model: str):
         return self.llm.capability(model)
+
+    def call_params(self, model: str) -> dict[str, Any]:
+        """本次调用额外要带的参数（目前只有推理档位）。
+
+        放在这一层而不是调用点：模型串 → 档位的对应关系只有这里知道
+        （`Models` + `Reasoning` 都是同一个配置对象），调用点拿不到也不该知道。
+        """
+        if self.reasoning is None:
+            return {}
+        return reasoning_params(model, self.reasoning.level_for(self.models, model))
 
     def _precheck(
         self,
@@ -325,6 +363,7 @@ class Gateway:
                     tools=tools,
                     timeout=self.llm.request_timeout_s,
                     num_retries=0,  # 重试只由本模块负责，不让 LiteLLM 再乘一次
+                    **self.call_params(model),
                 )
                 return response, attempts
             except Exception as exc:  # noqa: BLE001 —— 统一翻译后再决定是否重试
@@ -584,6 +623,7 @@ class Gateway:
                     timeout=self.llm.request_timeout_s,
                     num_retries=0,
                     stream=True,
+                    **self.call_params(model),
                 )
                 return iter(stream), attempts
             except Exception as exc:  # noqa: BLE001

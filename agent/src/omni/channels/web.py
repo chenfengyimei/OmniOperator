@@ -27,7 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ..bootstrap import Runtime, build_runtime
-from ..config import load_env
+from ..config import REASONING_SLOTS, load_config, load_env
 from ..llm.gateway import GatewayError
 from ..safety.gates import WebApprover
 from ..system.config_io import (
@@ -232,11 +232,30 @@ def create_app(runtime: Runtime) -> FastAPI:
 
     # 注意：必须声明在 /api/skills/{name} 之前，否则 "pending" 会被当成技能名。
 
+    def _config_from_disk() -> tuple[Any, bool]:
+        """返回（磁盘上的配置, 是否需要重启才在运行期生效）。
+
+        为什么要读磁盘：`runtime.config` 是**进程启动那一刻**的快照。保存成功后页面
+        再打开，读到的还是旧值——用户看到"我明明选了，怎么又空了"，只能再选一遍，
+        而这一遍又会把上一次的选择覆盖掉。页面显示的必须是文件里真实的值。
+        读失败（文件被写坏/被占用）就退回启动快照，不让设置页整页打不开。
+        """
+        try:
+            fresh = load_config(runtime.paths.config)
+        except Exception:  # noqa: BLE001 —— 配置损坏时仍要看得到页面
+            return runtime.config, False
+        # 只比设置中心真的会写的段：其它字段在启动时被目录/身份覆盖过，
+        # 拿来比较会永远显示"待重启"。
+        watched = ("models", "reasoning", "mode_routing", "review", "approval", "asr", "qq", "browser")
+        pending = any(getattr(fresh, name) != getattr(runtime.config, name) for name in watched)
+        return fresh, pending
+
     @app.get("/api/system/config")
     def system_config() -> dict[str, Any]:
-        cfg = runtime.config
+        cfg, pending_restart = _config_from_disk()
         return {
             "persona": {"name": cfg.persona.name, "system_prompt": cfg.persona.system_prompt},
+            "pending_restart": pending_restart,
             "models": {
                 "chat": cfg.models.chat,
                 "vision": cfg.models.vision,
@@ -247,6 +266,8 @@ def create_app(runtime: Runtime) -> FastAPI:
                 "retrieval_mode": cfg.models.retrieval_mode,
                 "agent_mode": cfg.models.agent_mode,
             },
+            # 推理开关与强度（D30）：每档一套，auto = 沿用供应商默认
+            "reasoning": {slot: getattr(cfg.reasoning, slot) for slot in REASONING_SLOTS},
             "mode_routing": {
                 "default_mode": cfg.mode_routing.default_mode,
                 "allow_escalation": cfg.mode_routing.allow_escalation,
@@ -326,9 +347,17 @@ def create_app(runtime: Runtime) -> FastAPI:
             # 含密钥字段时只回笼统原因，避免把密钥值回显到错误信息/日志里
             detail = "配置更新被拒绝（含密钥字段，详情已省略）" if touched_secret else str(exc)
             raise HTTPException(status_code=400, detail=detail)
+        # 写完再读一遍盘：让界面知道"这次改动到底要不要重启才生效"，
+        # 而不是每次都甩一句"重启后生效"让人自己去猜。
+        _, pending = _config_from_disk()
         return {
             "ok": True,
-            "hint": "已写入 config.yaml；正在运行的服务重启后生效（见服务面板）",
+            "pending_restart": pending,
+            "hint": (
+                "已写入 config.yaml；正在运行的服务重启后生效（见服务面板）"
+                if pending
+                else "已写入 config.yaml，与当前运行配置一致"
+            ),
         }
 
     @app.get("/api/system/qq-policy")

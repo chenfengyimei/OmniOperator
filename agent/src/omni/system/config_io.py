@@ -21,7 +21,9 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("persona", "name"): "str",
     ("persona", "system_prompt"): "multiline",
     ("models", "chat"): "str",
-    ("models", "vision"): "str",
+    # 留空 = 跟随日常对话：DeepSeek V4.1 Flash 这类模型本身就能看图，
+    # 硬要求单配一个视觉模型只会把人挡在门外。
+    ("models", "vision"): "str_or_empty",
     ("models", "review"): "str_or_empty",
     # 能力档位（D28）：路由判定模型与三档各自的模型（留空跟随 chat）
     ("models", "router"): "str_or_empty",
@@ -30,6 +32,14 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("models", "agent_mode"): "str_or_empty",
     ("mode_routing", "default_mode"): "choice:auto,chat,retrieval,agent",
     ("mode_routing", "allow_escalation"): "bool",
+    # 推理开关与强度（D30）：每档一套，auto = 不干预、沿用供应商默认
+    ("reasoning", "chat"): "choice:auto,off,low,medium,high,max",
+    ("reasoning", "vision"): "choice:auto,off,low,medium,high,max",
+    ("reasoning", "review"): "choice:auto,off,low,medium,high,max",
+    ("reasoning", "router"): "choice:auto,off,low,medium,high,max",
+    ("reasoning", "chat_mode"): "choice:auto,off,low,medium,high,max",
+    ("reasoning", "retrieval_mode"): "choice:auto,off,low,medium,high,max",
+    ("reasoning", "agent_mode"): "choice:auto,off,low,medium,high,max",
     ("limits", "max_history_messages"): "int",
     ("limits", "max_agent_steps"): "int",
     ("limits", "resident_memory_chars"): "int",

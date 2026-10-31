@@ -18,7 +18,7 @@ HELP = """\
 /new              新开会话
 /list             列出最近会话
 /use <id>         切换到指定会话
-/switch <model>   切换模型（LiteLLM 串，如 deepseek/deepseek-chat）
+/switch <model>   切换模型（LiteLLM 串，如 deepseek/deepseek-flash）
 /model            查看当前模型与工具
 /mode [档位]      查看或设置能力档位（auto/chat/retrieval/agent）
 /doctor           只读诊断（不调用模型）

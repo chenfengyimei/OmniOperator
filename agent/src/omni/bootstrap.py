@@ -664,10 +664,12 @@ def build_runtime(
     # （技能是文件存储、常驻记忆自带锁，实例线程安全，可直接共享）。
     def _review_registry(review_store: MemoryStore) -> ToolRegistry:
         review_registry = ToolRegistry()
-        # review 的写入与用户手动写入抢同一份额度（同一 MemoryGuard 实例）
+        # review 的写入与用户手动写入抢同一份额度（同一 MemoryGuard 实例）。
+        # count_hits=False：后台取材的召回不给 hits 记账，防信号被整理偏好污染。
         register_memory_tools(
             review_registry, review_store, guard=memory_guard,
             recall_prefix=config.memory.recall_prefix, source="review",
+            count_hits=False,
         )
         register_profile_tools(review_registry, owner_memory, store=review_store, guard=memory_guard, source="review")
         register_resident_tools(review_registry, owner_memory)
@@ -693,9 +695,11 @@ def build_runtime(
     # 用户手动写入共享同一份 MemoryGuard）；note_save 工具由 worker 按期注入
     def _journal_registry(journal_store: MemoryStore) -> ToolRegistry:
         journal_registry = ToolRegistry()
+        # count_hits=False：同 review——夜间整理的召回是取材，不给 hits 记账。
         register_memory_tools(
             journal_registry, journal_store, guard=memory_guard,
             recall_prefix=config.memory.recall_prefix, source="journal",
+            count_hits=False,
         )
         register_profile_tools(journal_registry, owner_memory, store=journal_store, guard=memory_guard, source="journal")
         register_resident_tools(journal_registry, owner_memory)

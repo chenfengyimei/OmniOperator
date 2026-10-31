@@ -493,3 +493,81 @@ def test_stream_falls_back_to_complete_when_not_declared(
     reply = gateway.stream([{"role": "user", "content": "hi"}])
     assert reply.text == "同步回答"
     assert script.calls and script.calls[0].get("stream") is None  # 走的同步接口
+
+
+# ---------------------------------------------------------------- 推理档位（D30）
+
+
+def test_reasoning_auto_sends_nothing():
+    """auto / 空串 = 一个参数都不发：沿用供应商默认，别替用户做主。"""
+    assert gw.reasoning_params("deepseek/deepseek-flash", "auto") == {}
+    assert gw.reasoning_params("deepseek/deepseek-flash", "") == {}
+
+
+def test_reasoning_off_disables_thinking_on_deepseek():
+    assert gw.reasoning_params("deepseek/deepseek-flash", "off") == {
+        "extra_body": {"thinking": {"type": "disabled"}}
+    }
+
+
+def test_reasoning_levels_go_through_extra_body_on_deepseek():
+    """thinking 与 reasoning_effort 必须走 extra_body：LiteLLM 的 openai 兼容层会把
+    reasoning_effort 当未知顶层参数过滤掉，注册成顶层参数等于"设了没用"。"""
+    for level in ("low", "medium", "high", "max"):
+        assert gw.reasoning_params("deepseek/deepseek-flash", level) == {
+            "extra_body": {"thinking": {"type": "enabled"}, "reasoning_effort": level}
+        }
+
+
+def test_reasoning_off_maps_to_none_on_openai():
+    assert gw.reasoning_params("openai/gpt-5.5", "off") == {"reasoning_effort": "none"}
+    assert gw.reasoning_params("openai/gpt-5.5", "high") == {"reasoning_effort": "high"}
+
+
+@pytest.mark.parametrize(
+    "model",
+    ["anthropic/claude-opus-4-8", "ollama/qwen2.5:7b", "dashscope/qwen-max", "自定义/中转"],
+)
+def test_reasoning_unknown_provider_sends_nothing(model):
+    """不认识这两个参数的供应商一律不发：被静默忽略至少还能聊天，
+    发错参数 400 会直接变成"聊不了天"。"""
+    assert gw.reasoning_params(model, "high") == {}
+
+
+def test_gateway_attaches_reasoning_params_for_matching_slot(monkeypatch):
+    from omni.config import Reasoning
+
+    script = _Script(_resp("OK"))
+    monkeypatch.setattr(gw, "_completion", script)
+    gateway = gw.Gateway(
+        Models(chat="deepseek/deepseek-flash"),
+        reasoning=Reasoning(chat="high"),
+    )
+    gateway.complete([{"role": "user", "content": "hi"}])
+    assert script.calls[0]["extra_body"] == {
+        "thinking": {"type": "enabled"},
+        "reasoning_effort": "high",
+    }
+
+
+def test_gateway_leaves_other_models_alone(monkeypatch):
+    """档位只跟"哪个槽位用了这个模型串"绑定：同一进程里调用别的模型不该被牵连。"""
+    from omni.config import Reasoning
+
+    script = _Script(_resp("OK"))
+    monkeypatch.setattr(gw, "_completion", script)
+    gateway = gw.Gateway(
+        Models(chat="deepseek/deepseek-flash"),
+        reasoning=Reasoning(chat="max"),
+    )
+    gateway.complete([{"role": "user", "content": "hi"}], model="openai/gpt-5.5")
+    assert "extra_body" not in script.calls[0]
+    assert "reasoning_effort" not in script.calls[0]
+
+
+def test_gateway_without_reasoning_config_sends_nothing(monkeypatch):
+    """没配 reasoning（老配置/测试）也不能多发参数：默认行为必须与升级前一致。"""
+    script = _Script(_resp("OK"))
+    monkeypatch.setattr(gw, "_completion", script)
+    gw.Gateway(Models(chat="deepseek/deepseek-flash")).complete([{"role": "user", "content": "hi"}])
+    assert "extra_body" not in script.calls[0]

@@ -145,8 +145,18 @@ class Persona(BaseModel):
     )
 
 
+# 推理档位（D30）：auto = 不干预，沿用供应商默认；off = 显式关闭思考。
+# 中间三档是「愿意为思考等多久」——数值本身由供应商映射（DeepSeek: low/high/max，
+# OpenAI: low/medium/high），这里统一成一套中文界面能讲清楚的说法。
+REASONING_LEVELS: tuple[str, ...] = ("auto", "off", "low", "medium", "high", "max")
+# 与 Models 的字段一一对应；顺序同时也是「同一模型被多个槽位使用」时的优先级。
+REASONING_SLOTS: tuple[str, ...] = (
+    "chat", "vision", "review", "router", "chat_mode", "retrieval_mode", "agent_mode",
+)
+
+
 class Models(BaseModel):
-    chat: str = "deepseek/deepseek-chat"
+    chat: str = "deepseek/deepseek-flash"
     vision: str = "anthropic/claude-sonnet-4-5"
     local: str = "ollama/qwen2.5:7b"
     review: str = ""  # 回合后 review 用的模型；留空则跟随 chat
@@ -156,6 +166,42 @@ class Models(BaseModel):
     chat_mode: str = ""       # chat 档位模型；留空跟随 chat
     retrieval_mode: str = ""  # retrieval 档位模型；留空跟随 chat
     agent_mode: str = ""      # agent 档位模型；留空跟随 chat
+
+
+class Reasoning(BaseModel):
+    """每个模型槽位的「要不要思考、想多深」（D30）。
+
+    为什么按槽位而不是全局一个开关：日常对话想快、聊完复盘想深，两件事的诉求相反。
+    `auto` 表示**一个参数都不发**，完全沿用供应商默认（DeepSeek V4 系列默认开着思考、
+    effort=high）；`off` 才显式要求关闭。
+
+    只对明确支持这两种参数的供应商下发（见 llm/gateway.py 的 reasoning_params）：
+    把 reasoning_effort 塞给不认识的供应商，轻则被静默忽略、重则 400，那会直接变成
+    「聊不了天」。所以列表里没有的供应商，界面会明说「这家不支持在这里调」。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    chat: str = "auto"
+    vision: str = "auto"
+    review: str = "auto"
+    router: str = "auto"
+    chat_mode: str = "auto"
+    retrieval_mode: str = "auto"
+    agent_mode: str = "auto"
+
+    @field_validator(*REASONING_SLOTS)
+    @classmethod
+    def valid_level(cls, value: str) -> str:
+        if value not in REASONING_LEVELS:
+            raise ValueError(f"推理档位必须是 {'/'.join(REASONING_LEVELS)} 之一")
+        return value
+
+    def level_for(self, models: "Models", model: str) -> str:
+        """模型串 → 该用哪一档；同一模型被多个槽位引用时按槽位顺序取第一个。"""
+        for slot in REASONING_SLOTS:
+            if model and getattr(models, slot, "") == model:
+                return getattr(self, slot)
+        return "auto"
 
 
 class ModeRouting(BaseModel):
@@ -644,6 +690,7 @@ class AppConfig(BaseModel):
     terminal: TerminalConfig = Field(default_factory=TerminalConfig)
     persona: Persona = Field(default_factory=Persona)
     models: Models = Field(default_factory=Models)
+    reasoning: Reasoning = Field(default_factory=Reasoning)
     llm: LLM = Field(default_factory=LLM)
     limits: Limits = Field(default_factory=Limits)
     review: Review = Field(default_factory=Review)

@@ -26,8 +26,10 @@ persona:
 
 models:
   # LiteLLM 模型串（provider/model）。改成本地 .env 里有 key 的模型即可。
-  chat: "deepseek/deepseek-chat"            # 日常对话（便宜量大）
-  vision: "anthropic/claude-sonnet-4-5"     # 截屏/UI 视觉定位（强视觉）
+  # deepseek-chat / deepseek-reasoner 这两个旧名已于 2026-07-24 下线，现役是
+  # deepseek-flash（V4.1 Flash，1M 上下文、能看图）与 deepseek-v4-pro。
+  chat: "deepseek/deepseek-flash"           # 日常对话（便宜量大）
+  vision: "anthropic/claude-sonnet-4-5"     # 截屏/UI 视觉定位（强视觉）；留空跟随 chat
   local: ollama/qwen2.5:7b                # 本地零成本任务
   review: ""                               # 回合后 review 用；留空跟随 chat
   # 能力档位（D28）：每档可选自己的模型，留空都跟随 chat。
@@ -36,6 +38,18 @@ models:
   chat_mode: ""                            # chat 档位（纯聊天+只读记忆）
   retrieval_mode: ""                       # retrieval 档位（只读检索）
   agent_mode: ""                           # agent 档位（完整能力）
+
+reasoning:
+  # 推理开关与强度（D30）：每档一套。auto=不干预（沿用供应商默认，DeepSeek V4
+  # 默认就开着思考且 effort=high）；off=明确关闭；low/medium/high/max=愿意等它想多久。
+  # 只有 DeepSeek / OpenAI 认得这两个参数，其它供应商一律不下发（见 docs/MODEL_SETTINGS.md）。
+  chat: "auto"
+  vision: "auto"
+  review: "auto"
+  router: "auto"
+  chat_mode: "auto"
+  retrieval_mode: "auto"
+  agent_mode: "auto"
 
 mode_routing:
   # 回合能力档位：每个回合先判断用哪一档工具，少注入工具规格就是省 token。

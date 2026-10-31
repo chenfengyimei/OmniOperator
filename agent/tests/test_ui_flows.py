@@ -112,7 +112,7 @@ def test_header_chips_are_runtime_only(ui):
 
     page.locator('#input').fill('跑一个任务');page.locator('#send').click()
     page.wait_for_function('window.__pending.length===1')
-    page.locator('#chips').get_by_text('deepseek/deepseek-chat',exact=True).wait_for()
+    page.locator('#chips').get_by_text('deepseek/deepseek-flash',exact=True).wait_for()
     page.locator('#cost-chip').wait_for()
     assert page.locator('#chips').get_by_text('FTS5',exact=True).count()==0
 
