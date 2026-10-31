@@ -91,16 +91,36 @@ docs/ui-migration/          迁移素材与历史快照（差分基线职责已�
 3. **凹陷区不走玻璃**：代码块、终端、输出、输入内衬一律用 `--surface-inset` 实色。
 4. `blur` 与 `saturate` 必须同档配套，不得出现 `blur(20px) saturate(145%)` 与 `blur(20px) saturate(150%)` 两套值并存（历史遗留，已在 Phase 8 收敛）。
 5. **浮层必须走顶层**：`.rail` / `.panel` 的 `backdrop-filter` 会生成层叠上下文并成为 `position:fixed` 后代的包含块，`overflow:hidden` 还会裁掉浮层。因此提示浮层一律挂在 `body` 直管的 `#tip-layer`，下拉与悬浮菜单一律用原生 `<dialog>`。
-6. 守卫：`tests/test_ui_glass_tokens.py` 断言 token 单源、三档齐备、无写死 blur、无悬空变量、浅色块不重复定义玻璃。
+6. 守卫：`tests/test_ui_glass_tokens.py` 断言 token 单源、三档齐备、玻璃不得含 rgba 裸色、无写死 blur、无悬空变量、浅色块完整性、浅色块不重复定义玻璃、强调色唯一、圆角只用 5 档 token、断点白名单。
+
+**层级 → 档位对照表**（改样式时按此表落位，不要凭感觉）：
+
+| 层 | 元素 | 档 |
+|---|---|---|
+| 页面底 | `body` + 极光渐变 + 网格纹理 | 无玻璃（`--surface-0` + 渐变） |
+| 左侧栏 | `.rail` / `.ui-app-rail` | 强 |
+| 顶栏 | 各页 `body>header` | 强 |
+| 全屏覆盖层 | `#hub` | 强 |
+| 浮层 | `#tip-layer`、`.ui-notice`、`.ui-dialog` | 强 |
+| 卡片 | `.card`、`.hub-card`、`.metric-card`、`.console-toolbar`、`.server` | 中 |
+| 面板容器 | `.panel` / `#chat` | 中 |
+| 列表行 | `.row`、`.file-row`、`#sessions li` | 弱 |
+| 徽章/胶囊/按钮/页签 | `.chip`、`.tag`、`.ui-badge`、`.btn` | 弱 |
+| 主按钮 | `.btn.primary`、`.hub-save`、`#send` | 强调实心（`--grad`） |
+| 输入内衬 | `.field input`、`.search-field` | 凹陷实色（`--surface-inset`） |
+| 代码/终端/输出 | `pre`、`.xterm`、`#output`、`#tree` | 凹陷实色（`--surface-inset`） |
 
 ### 3.6 主题（暗色 / 浅色）
 
 token 三层结构天然支持主题切换：换第 1 层种子，第 2 层派生自动跟随。
 
 - 实际生效值写在 `<html data-theme="dark|light">`；CSS **只认** `[data-theme="light"]`，不写 `@media (prefers-color-scheme)`——避免「跟随系统」与「手动」两套 CSS 分叉。
-- `ui/theme.js` 是**同步阻塞的引导脚本**，必须放在所有 `<link>` 之前：否则浅色用户会先闪一下暗色。
+- `ui/theme.js` 是**同步阻塞的引导脚本**，必须放在所有 `<link>` 之前：否则浅色用户会先闪一下暗色。**必须是外部文件**：文档 §2 要求无内联 JS，且外部文件才能带 `?v=` 版本串。
+- 三态：`auto`（跟随系统，默认）/ `light` / `dark`，存 `localStorage['omni_theme']`。
+- 切换按钮挂在**顶栏**（`shared.js` 的 `mountThemeToggle`）：顶栏是全站唯一 9 页共有且位置稳定的容器；rail 有「工作台静态 markup + 子站 JS 生成」两套来源，放 rail 要改两处。**按钮不走 `data-action`**——工作台的 `main.js` document 级委托会捕获并静默吞掉 `data-action` 点击，子站又没有 `main.js`；改用 `addEventListener` 直连。
 - 浅色主题块里**不写任何 `--glass-*`**：玻璃三档的颜色成员都指向 `--surface-*` / `--seed-fg`，这两个在浅色块里已被重定义，玻璃因此自动翻面。若浅色块另写一份玻璃，就会出现「玻璃不跟随主题」的第二真源。
 - 浅色下的强调色是**同一色相的压深变体**（`#0e7490` / `#4f46e5`）：原色 `#3ddbd9` 在白底正文上对比度仅约 1.9:1，不可读。
+- 守卫：`tests/test_ui_theme.py` 断言引导脚本在样式表之前、9 页都有按钮、刷新持久化、跨页继承、三态循环、auto 跟随系统、DOMContentLoaded 时主题已就位（无闪帧）、内嵌版同源一致。
 
 
 ## 4. 排版刻度
@@ -129,7 +149,9 @@ token 三层结构天然支持主题切换：换第 1 层种子，第 2 层派�
 - **顶栏**：工作台=品牌标题+chips+设置中心按钮（品牌标=`ui/brand-mark.svg` 官网同款小鱼图形，全站只在 rail 顶部出现一次，顶栏不再重复图标，也不带副标题）；子站=`← 工作台`返回 + 图标页名 + `LOCAL` 徽章 + 页内动作。子站顶栏结构由 shared.js `addPageChrome` 统一注入样式类。
 - **内容节奏**：子站内容区最大宽 1480px 居中、左右 24px；区块 = `.section-heading`（eyebrow+标题+右侧 meta）+ 内容卡。
 - **移动端**：390px 契约（test_ui_flows 钉住）——工作台 `.ui-panes` 三面板切换、子站 rail 折顶、触控目标 ≥36px、无横向溢出。
-- 响应式断点：`900px`（壳折叠）、`760px`（单列）、`520px`（紧凑）。
+- 响应式断点：**只有 `900px`（壳折叠）、`760px`（单列）、`520px`（紧凑）**。守卫 `test_breakpoints_are_only_900_760_520` 钉死；`min-width:901`/`761` 是与 max-width 成对互补的桌面写法，不算独立断点。
+- **frame.css 的「Unified controls」层不可删**：子站的 `<button>` 多数只有 `id` 不带 `.btn` 类（capabilities/jobs/mcp/terminal/android/storage/project 的 markup 实测如此），那一层是无类按钮**唯一的皮肤来源**。守卫 `test_ui_substation_controls.py` 用真实 Chromium 读计算样式，钉住「按钮有背景有边框高度不塌陷、输入框有可读底色、卡片有玻璃表面与阴影」。
+- **子站 css 只写布局与语义**（带 `body[data-ui-page="X"]` 前缀），控件外观一律交给 frame.css 的共享层；历史遗留的 `:root{...}` 硬编码块（4 个子站）与 `body{...}` 块（jobs）已逐条重写，**不可整行删**——其中多数规则未被 frame.css 更强选择器覆盖，整行删会丢布局与语义。
 
 ## 6. 组件库（components.css）
 
@@ -162,14 +184,21 @@ token 三层结构天然支持主题切换：换第 1 层种子，第 2 层派�
 NAV_ITEMS = [
   ['/',            'forum',        '对话工作台'],
   ['/capabilities/','fact_check',  '能力总览'],
+  ['/terminal/',   'terminal',     '人工终端'],
   ['/jobs/',       'checklist',    '后台任务'],
   ['/mcp/',        'network_check','MCP 服务'],
   ['/android/',    'smartphone',   '安卓控制'],
   ['/project/',    'account_tree', '项目索引'],
   ['/storage/',    'folder',       'Agent 与文件'],
+  ['/memory/',     'psychology',   '记忆库'],
+  ['/?settings=1&section=sec-memory-system','psychology','记忆系统'],
   ['/?settings=1', 'settings',     '设置中心'],
 ]
 ```
+
+> 「记忆库」是 `/memory/` 独立页，「记忆系统」是设置中心内的原生分区——两个不同界面的
+> 不同称呼，不要混用。`/memory/` 此前全仓无任何入口（事实孤儿页），守卫
+> `test_every_subpage_is_reachable_from_navigation` 已钉住「每个子站都必须有入口」。
 
 - **子站 rail**：由 `shared.js renderRail()` 注入渲染（markup 不写 nav，禁止复制粘贴）；`aria-current` 按路径标记。
 - **工作台 rail**：markup 保留（含 4 个动作按钮），但其链接项与 NAV_ITEMS 同源同序，样式与子站 rail 同一套 frame.css 规则。
@@ -240,8 +269,8 @@ ui/app/
 
 ## 12. 禁止事项（红线）
 
-1. 禁止在任何 CSS 定义 `--seed-*/--ui-*/--shell-*`（守卫钉死）。
-2. 禁止出现第二种强调色/自造渐变。
+1. 禁止在任何 CSS 定义 `--seed-*/--ui-*/--shell-*/--glass-*`（守卫钉死）。
+2. 禁止出现第二种强调色/自造渐变；组件层禁止写死颜色值（守卫 `test_no_second_accent_color`）。
 3. 禁止 `alert()/confirm()/prompt()`（用 OmniUI.ask/notify）。
 4. 禁止内联 `onclick=`（data-action 委托）。
 5. 禁止 font-size <10px。
@@ -249,7 +278,12 @@ ui/app/
 7. 禁止在子站 markup 里写导航（renderRail 单源）。
 8. 禁止渲染未经 esc() 的模型/用户输出。
 9. 禁止新增自制 modal（一律 `<dialog>`）。
-10. 禁止删功能换美观：所有既有能力（9 tab、审批横幅、hub 13 分区、产物/桌面/发布草稿）永久保留。
+10. 禁止删功能换美观：所有既有能力（9 tab、审批横幅、hub 14 分区、产物/桌面/发布草稿）永久保留。
+11. 禁止在组件层写死 `backdrop-filter` 的模糊值（走 `--glass-*-blur`；守卫 `test_no_literal_blur_outside_tokens_css`）。
+12. 禁止引用未定义的 CSS 变量（守卫 `test_no_dangling_css_variables`）——悬空变量不报错，只是让样式静默失效。
+13. 禁止圆角写死（只用 5 档 token；仅 1-3px 微圆角指示条与 `50%` 全圆例外）。
+14. 禁止内联 `style=` 写视觉（文档 §2 内联 CSS 归零；色值与圆角一律走 token）。
+15. 禁止 `pre`/`--seed-*` 之外的字面色值出现在非 tokens.css 文件。
 
 ## 13. 新页面 / 新组件接入 checklist
 
@@ -258,19 +292,27 @@ ui/app/
 2. NAV_ITEMS 加一行；受影响测试同步（`.ui-global-nav a` 计数断言）
 3. 四态齐备 + 390px 无横向溢出（test_ui_flows 参数化用例加路径）
 4. `?v=` 串 + 全量 pytest + 4 视口截图
+5. **必须能被人点进去**：守卫 `test_every_subpage_is_reachable_from_navigation` 会检查每个子站
+   是否出现在 NAV_ITEMS 或工作台 markup 里——孤儿页（能靠 URL 访问但界面走不到）是缺陷。
 
 **新组件**：
 1. 先查 §6 表——是变体就加变体，是新组件才进 components.css
 2. 类名即契约：语义命名（`.tag` 不叫 `.green-pill`），变体用修饰类
-3. 用 token 不写色值；过 `test_ui_design_tokens` 字号扫描
+3. 用 token 不写色值；过 `test_ui_design_tokens` 字号扫描与 `test_ui_glass_tokens` 的
+   强调色/圆角/断点/悬空变量扫描
 
 ## 14. 验收清单（每个 UI 批次交付前必过）
 
-- [ ] `uv run --no-sync pytest -q` 全量绿（含 14 项 Chromium 行为测试）
+- [ ] `uv run --no-sync pytest -q` 全量绿（含真实 Chromium 行为测试）
 - [ ] `python scripts/check_ui_contract.py` 无新增违规
-- [ ] 8 页 ×（390/760/1024/1440px）截图人工核验（Playwright 实机）
+- [ ] 9 页 ×（390/760/1024/1440px）截图人工核验（Playwright 实机）
 - [ ] 手动冒烟：发消息/切会话/9 tab/审批横幅/设置各分区保存/扫码/调用链折叠/跨页跳转语义
-- [ ] `?v=` 已递增；无 <10px 字号；无内联 onclick 新增
+- [ ] `?v=` 已按资产递增（app 组整组原子；其余资产各自独立）
+- [ ] 无 <10px 字号；无内联 `onclick=` 新增；无内联 `style=` 写视觉
+- [ ] 玻璃层：壳层挂 blur、卡片层不挂；单页 `backdrop-filter` 元素 ≤ 8
+- [ ] 主题：深浅两态各自截图核验；切换后无闪帧、跨页保持
+- [ ] token 守卫：`--glass-*` 只在 tokens.css 定义；无悬空变量；无写死 blur；
+      强调色唯一；圆角只用 5 档 token；断点只有 900/760/520
 
 ---
 

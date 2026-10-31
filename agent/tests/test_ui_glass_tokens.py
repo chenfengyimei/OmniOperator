@@ -207,3 +207,74 @@ def test_breakpoints_are_only_900_760_520():
         if over:
             offenders[rel(path)] = over
     assert not offenders, f"断点超出白名单 {sorted(allowed)}（只许减少，配额见 BREAKPOINT_QUOTA）：{offenders}"
+
+
+# ---- 强调色唯一性（§3：全站只准青 + 紫两支 + 语义三支） ----
+# 允许出现在组件层的字面色：种子色本身、语义色本身、纯黑纯白、以及「同色相的浅色变体」。
+ALLOWED_HEX = {
+    "#3ddbd9",  # --seed-accent（暗色）
+    "#7c8cf8",  # --seed-accent2（暗色）
+    "#0e7490",  # --seed-accent（浅色变体）
+    "#4f46e5",  # --seed-accent2（浅色变体）
+    "#4ade80",  # --ok（暗色）
+    "#fbbf24",  # --warn（暗色）
+    "#f87171",  # --danger（暗色）
+    "#15803d",  # --ok（浅色）
+    "#b45309",  # --warn（浅色）
+    "#b91c1c",  # --danger（浅色）
+    "#eae7e2",  # --seed-fg
+    "#131720",  # --seed-fg（浅色）
+    "#070809",  # --seed-bg
+    "#f4f6f8",  # --seed-bg（浅色）
+    "#ffffff",  # 纯白（扫码底/内高光）
+    "#fff",
+    "#000000",  # 纯黑（遮罩/图片占位）
+    "#000",
+    "#03060a",  # 终端画布纯黑（必须保持）
+    "#0b1220",  # 浅色主题阴影基色
+}
+HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
+
+
+def test_no_second_accent_color():
+    """§3 强调色全站唯一：组件层不得自造颜色。
+
+    允许的是种子色、语义色、纯黑纯白与终端画布黑；其余一律违规——
+    历史上曾出现 12 种青色系并存（#22d3ee / #63dfc7 / #6cdcc3 / #58d5be / #64d7bd …）。
+    tokens.css 里的定义不在此限（那是 token 源本身）。
+    """
+    offenders: dict[str, list[str]] = {}
+    for path in all_assets():
+        if path == TOKENS:
+            continue
+        found = sorted({m.lower() for m in HEX.findall(path.read_text(encoding="utf-8"))})
+        bad = [c for c in found if c not in ALLOWED_HEX]
+        if bad:
+            offenders[rel(path)] = bad
+    assert not offenders, f"组件层出现未登记的颜色（只准用 token 里的种子色/语义色）：{offenders}"
+
+
+# ---- 圆角只用 5 档 token（§3：--r-sm/md/card/lg/full） ----
+RADIUS_LITERAL = re.compile(r"border-radius\s*:\s*([0-9.]+)px")
+# 允许的字面圆角：微圆角指示条（1-3px）与全圆（50%）
+ALLOWED_RADIUS = {1, 2, 3}
+
+
+def test_radius_values_use_tokens_only():
+    """§3 圆角只用 5 档 token；字面圆角只允许 1-3px 的微圆角指示条。
+
+    历史上出现过 12 档并存（4/5/6/7/8/9/10/12/14/17/20px + 999px）。
+    """
+    offenders: dict[str, list[str]] = {}
+    for path in all_assets():
+        if path == TOKENS:
+            continue
+        bad = []
+        for raw in RADIUS_LITERAL.findall(path.read_text(encoding="utf-8")):
+            value = float(raw)
+            if value in ALLOWED_RADIUS or value >= 50:
+                continue  # 微圆角指示条 / 全圆（圆形头像与状态点）
+            bad.append(raw)
+        if bad:
+            offenders[rel(path)] = sorted(set(bad))
+    assert not offenders, f"圆角未走 token（须用 --r-sm/md/card/lg/full）：{offenders}"

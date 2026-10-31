@@ -308,3 +308,49 @@ def test_mode_picker_value_is_sent_with_the_request():
     hub_js = (APP_DIR / "hub.js").read_text(encoding="utf-8")
     assert "#cfg-mode-default" in hub_js, "hub.js 未回填默认档位"
     assert "mode_routing" in hub_js, "hub.js 未提交 mode_routing 配置段"
+
+
+def test_every_subpage_is_reachable_from_navigation():
+    """每个独立子站都必须有界面入口——防止再出现「事实孤儿页」。
+
+    背景：/memory/ 独立页此前全仓无任何 <a href="/memory/">，能靠 URL 直接访问，
+    但界面上永远走不到（memory.js 里还自陈是「旧书签页面」）。
+    这里把「子站目录存在 ⇒ 必须出现在 NAV_ITEMS 或工作台 markup 里」钉成契约。
+    """
+    shared_js = (STATIC / "ui" / "shared.js").read_text(encoding="utf-8")
+    index_html = INDEX.read_text(encoding="utf-8")
+    # web_static 下的一级子目录就是独立子站
+    subpages = sorted(
+        p.name for p in STATIC.iterdir()
+        if p.is_dir() and p.name not in {"ui", "vendor"} and (p / "index.html").exists()
+    )
+    assert subpages, "未发现任何独立子站，测试本身失效"
+    for page in subpages:
+        in_nav = f"'/{page}/'" in shared_js
+        in_markup = f'href="/{page}/"' in index_html
+        assert in_nav or in_markup, (
+            f"子站 /{page}/ 没有任何界面入口（既不在 NAV_ITEMS 也不在工作台 markup）——"
+            f"它是事实孤儿页"
+        )
+
+
+def test_hub_nav_distinguishes_embedded_and_standalone():
+    """设置中心侧栏：分区项与独立页直链必须并存且语义不同。
+
+    「Agent 与文件」带 data-go（切到设置中心内的内嵌分区），
+    「Agent 与目录 ↗」不带 data-go（走浏览器默认行为新标签打开独立页）。
+    此前 hub.js 对 '.hub-nav a' 全量 preventDefault，把独立页直链的导航吞掉了。
+    """
+    html = INDEX.read_text(encoding="utf-8")
+    hub_js = (APP_DIR / "hub.js").read_text(encoding="utf-8")
+    assert '<a data-go="sec-storage">' in html, "设置中心缺少 sec-storage 分区项"
+    assert 'href="/storage/" target="_blank"' in html, "设置中心缺少 /storage/ 独立页直链"
+    # 绑点击的那一行必须只拦带 data-go 的锚点；
+    # （switchHub 里另有一次 '.hub-nav a' 遍历，那是切激活态用的，属正确行为）
+    assert ".hub-nav a[data-go]').forEach" in hub_js, "hub.js 的点击拦截未限定在带 data-go 的锚点上"
+    handler_lines = [ln for ln in hub_js.splitlines() if ".hub-nav a" in ln and "onclick" in ln]
+    assert handler_lines, "hub.js 里找不到 .hub-nav 的点击绑定行"
+    for line in handler_lines:
+        assert "a[data-go]" in line, (
+            f"hub.js 仍在全量拦截 .hub-nav a——独立页直链的导航会被吞掉：{line.strip()}"
+        )
