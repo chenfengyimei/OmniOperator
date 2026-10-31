@@ -323,6 +323,67 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 ---
 
+## 七、开发者入口
+
+1. 先读 [HANDOFF](docs/HANDOFF.md)（交接入口：能力清单 + 平台坑），再读
+   [ARCHITECTURE](docs/ARCHITECTURE.md)（分层与组装根唯一权威，AST 强制）。
+2. 进度与证据以 [DEVELOPMENT_STATUS](docs/DEVELOPMENT_STATUS.md) 台账为准；
+   功能导航见 [PROJECT_INDEX](docs/PROJECT_INDEX.md)。
+3. 新能力接入（工具/通道/记忆/插件）按 [ARCHITECTURE §5](docs/ARCHITECTURE.md) checklist 走；
+   每个新模块必须有单测，提交信息用中文「领域：要点——细节」，全量测试全绿再提交。
+4. 前端纪律以 [UI_DESIGN_SYSTEM](docs/UI_DESIGN_SYSTEM.md) 为唯一规范；新增/删除文件后跑
+   `uv run --no-sync python scripts/project_index.py` 更新索引。
+5. 完整贡献流程见 [CONTRIBUTING](CONTRIBUTING.md)；参与即接受 [行为准则](CODE_OF_CONDUCT.md)。
+
+**核心文档导航**
+
+- **用户手册**：[环境与安装](#六环境要求与安装) · [QQ 部署](docs/QQ_SETUP.md) · [B站写入](docs/BILIBILI_WRITING.md) ·
+  [安卓](docs/ANDROID.md) · [桌面](docs/DESKTOP.md) · [MCP](docs/MCP.md) · [终端](docs/TERMINAL.md) · [检索](docs/RETRIEVAL.md)
+- **设计权威**：[架构](docs/ARCHITECTURE.md) · [记忆系统](docs/MEMORY_SYSTEM.md) · [数据模型](docs/DATA_MODEL.md) ·
+  [插件系统](docs/PLUGIN_SYSTEM.md) · [技能系统](docs/SKILL_SYSTEM.md) · [档位路由](docs/MODE_ROUTING.md)
+- **工程记录**：[重构记录](docs/REFACTORING.md) · [运维](docs/OPERATIONS.md) · [验证](docs/VALIDATION.md) · [验收](docs/ACCEPTANCE.md)
+- **社区与版本**：[文档总导航](docs/README.md) · [变更日志](CHANGELOG.md) · [贡献指南](CONTRIBUTING.md) ·
+  [安全策略](SECURITY.md) · [行为准则](CODE_OF_CONDUCT.md)
+
+---
+
+## 八、如实边界（请务必阅读）
+
+开源不等于发布稳定版。当前状态是**受控内测（alpha）**：
+
+- ✅ **已验证**：1456 项离线测试全绿、架构守卫、桌面记事本首个真实闭环、备份恢复、只读体检
+- ⏳ **待真实验收**：QQ 实站完整闭环、安卓真机（多设备/旋转/断连）、真实模型混合检索收益对比、
+  72 小时常驻、夜间整理→早报链路
+- ⚠️ **不属于已验证交付**：macOS/Linux 全功能、通用桌面接管（不承诺 SendInput 对所有软件后台不抢焦点）、
+  视频上传、D19 远程 HTTP/OAuth MCP
+
+> **本地运行不表示模型请求不出机**：配置了云端模型密钥时，对话内容会发送给对应供应商。
+> 未显式开启 `vision.send_to_cloud` 时，模型"看不到图"并如实说明，不假装看过。
+
+### 使用边界
+
+- QQ/B站等第三方平台自动化存在**平台条款与风控风险**：账号冻结、限制等后果由使用者自行承担；
+  请用小号试水，本项目不担保账号安全。
+- 拟人延迟、写预算、人工审批是降低风险的设计，**不是**绕过风控的承诺。
+- 无人值守场景一律 fail-closed；花钱、发布、群发、加好友必须人工确认——请保持这些默认值。
+- 本项目面向个人本地使用与学习研究；请遵守所在地区法律与各平台服务条款。
+
+安全漏洞请按 [SECURITY](SECURITY.md) 的渠道报告，勿在公开 issue 讨论细节。
+
+---
+
+## 九、许可与目录
+
+代码以 [Apache-2.0](LICENSE) 许可发布。
+
+本地 Agent 的完整工程位于 [agent/](agent/README.md)：源码、测试、配置模板、开发脚本和产品依赖均归该目录。
+全仓位置规则见 [REPOSITORY_STRUCTURE](docs/REPOSITORY_STRUCTURE.md)。
+
+---
+
+
+---
+
 ## 模块地图
 
 以职责模块为单位（与 `agent/src/omni/system/catalog/schema.py` 分类一致，由 `agent/tests/test_community_docs.py` 守卫防漂移）。
@@ -419,62 +480,6 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 |---|---|---|
 | `catalog` | **项目索引基础设施** — 只读 AST 扫描、分类和确定性文档生成 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
 | `package` | **Python 包入口** — 安装包标识 | — |
-
-## 八、开发者入口
-
-1. 先读 [HANDOFF](docs/HANDOFF.md)（交接入口：能力清单 + 平台坑），再读
-   [ARCHITECTURE](docs/ARCHITECTURE.md)（分层与组装根唯一权威，AST 强制）。
-2. 进度与证据以 [DEVELOPMENT_STATUS](docs/DEVELOPMENT_STATUS.md) 台账为准；
-   功能导航见 [PROJECT_INDEX](docs/PROJECT_INDEX.md)。
-3. 新能力接入（工具/通道/记忆/插件）按 [ARCHITECTURE §5](docs/ARCHITECTURE.md) checklist 走；
-   每个新模块必须有单测，提交信息用中文「领域：要点——细节」，全量测试全绿再提交。
-4. 前端纪律以 [UI_DESIGN_SYSTEM](docs/UI_DESIGN_SYSTEM.md) 为唯一规范；新增/删除文件后跑
-   `uv run --no-sync python scripts/project_index.py` 更新索引。
-5. 完整贡献流程见 [CONTRIBUTING](CONTRIBUTING.md)；参与即接受 [行为准则](CODE_OF_CONDUCT.md)。
-
-**核心文档导航**
-
-- **用户手册**：[环境与安装](#六环境要求与安装) · [QQ 部署](docs/QQ_SETUP.md) · [B站写入](docs/BILIBILI_WRITING.md) ·
-  [安卓](docs/ANDROID.md) · [桌面](docs/DESKTOP.md) · [MCP](docs/MCP.md) · [终端](docs/TERMINAL.md) · [检索](docs/RETRIEVAL.md)
-- **设计权威**：[架构](docs/ARCHITECTURE.md) · [记忆系统](docs/MEMORY_SYSTEM.md) · [数据模型](docs/DATA_MODEL.md) ·
-  [插件系统](docs/PLUGIN_SYSTEM.md) · [技能系统](docs/SKILL_SYSTEM.md) · [档位路由](docs/MODE_ROUTING.md)
-- **工程记录**：[重构记录](docs/REFACTORING.md) · [运维](docs/OPERATIONS.md) · [验证](docs/VALIDATION.md) · [验收](docs/ACCEPTANCE.md)
-- **社区与版本**：[文档总导航](docs/README.md) · [变更日志](CHANGELOG.md) · [贡献指南](CONTRIBUTING.md) ·
-  [安全策略](SECURITY.md) · [行为准则](CODE_OF_CONDUCT.md)
-
----
-
-## 九、如实边界（请务必阅读）
-
-开源不等于发布稳定版。当前状态是**受控内测（alpha）**：
-
-- ✅ **已验证**：1456 项离线测试全绿、架构守卫、桌面记事本首个真实闭环、备份恢复、只读体检
-- ⏳ **待真实验收**：QQ 实站完整闭环、安卓真机（多设备/旋转/断连）、真实模型混合检索收益对比、
-  72 小时常驻、夜间整理→早报链路
-- ⚠️ **不属于已验证交付**：macOS/Linux 全功能、通用桌面接管（不承诺 SendInput 对所有软件后台不抢焦点）、
-  视频上传、D19 远程 HTTP/OAuth MCP
-
-> **本地运行不表示模型请求不出机**：配置了云端模型密钥时，对话内容会发送给对应供应商。
-> 未显式开启 `vision.send_to_cloud` 时，模型"看不到图"并如实说明，不假装看过。
-
-### 使用边界
-
-- QQ/B站等第三方平台自动化存在**平台条款与风控风险**：账号冻结、限制等后果由使用者自行承担；
-  请用小号试水，本项目不担保账号安全。
-- 拟人延迟、写预算、人工审批是降低风险的设计，**不是**绕过风控的承诺。
-- 无人值守场景一律 fail-closed；花钱、发布、群发、加好友必须人工确认——请保持这些默认值。
-- 本项目面向个人本地使用与学习研究；请遵守所在地区法律与各平台服务条款。
-
-安全漏洞请按 [SECURITY](SECURITY.md) 的渠道报告，勿在公开 issue 讨论细节。
-
----
-
-## 十、许可与目录
-
-代码以 [Apache-2.0](LICENSE) 许可发布。
-
-本地 Agent 的完整工程位于 [agent/](agent/README.md)：源码、测试、配置模板、开发脚本和产品依赖均归该目录。
-全仓位置规则见 [REPOSITORY_STRUCTURE](docs/REPOSITORY_STRUCTURE.md)。
 
 ---
 
