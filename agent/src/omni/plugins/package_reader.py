@@ -13,8 +13,9 @@ from __future__ import annotations
 import hashlib
 import json
 import zipfile
-from pathlib import Path, PureWindowsPath
+from pathlib import Path
 
+from ..system.path_guard import digest, safe_parts  # 共享原语：与 skill_inbox 同一实现
 from .manifest import (
     MANIFEST_NAME,
     PluginManifest,
@@ -33,30 +34,6 @@ REFERENCE_SUFFIXES = {".md", ".txt", ".rst", ".json", ".yaml", ".yml", ".toml", 
 
 class Reject(RuntimeError):
     """导入校验失败：整包拒绝，隔离区不落任何文件。"""
-
-
-def digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def safe_parts(entry: str) -> tuple[str, ...] | None:
-    """包内条目名 → 规范化相对部件；越界名拒绝（与 memory/skill_inbox 同一路径纪律）。"""
-    name = (entry or "").strip().replace("\\", "/")
-    if not name or name.startswith("/"):
-        return None
-    if PureWindowsPath(entry).drive or PureWindowsPath(entry).is_absolute():
-        return None
-    parts = name.split("/")
-    for part in parts:
-        if (
-            part in {"", ".", ".."}
-            or part.endswith((" ", "."))
-            or ":" in part
-            or "\x00" in part
-            or PureWindowsPath(part).is_reserved()
-        ):
-            return None
-    return tuple(parts)
 
 
 def entry_shape(parts: tuple[str, ...]) -> str | None:

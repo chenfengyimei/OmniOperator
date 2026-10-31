@@ -1,5 +1,12 @@
 # 开发状态记录
 
+2026-11-01 路径安全原语统一（工作区）：新增 `system/path_guard.py`，
+`plugins/package_reader.py` 与 `memory/skill_inbox.py` 的重复
+`_safe_parts`/`_digest` 实现收敛为同一共享原语；架构守卫白名单加入
+`path_guard`。专项
+`uv run --no-sync pytest -q -n 0 agent/tests/test_skill_inbox.py agent/tests/test_plugins.py agent/tests/test_plugin_community.py agent/tests/test_arch.py agent/tests/test_data_model.py`
+→ **83 passed（7.04s）**；目录守卫 11 passed。未跑全量。
+
 2026-11-01 memory.db 声明拆分（工作区）：新增 `memory/store_schema.py`，
 `store.py` 的全部 DDL/FTS 声明/额度常量迁入；store.py 1146→1026 行。
 旧 import 路径不变；新增守卫验证 store.py 无内嵌 DDL、声明层无行为。

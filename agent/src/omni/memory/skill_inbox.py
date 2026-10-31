@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import hashlib
 import json
 import shutil
 import uuid
@@ -27,6 +26,7 @@ from typing import Any
 
 from ..system.atomic import atomic_write_bytes, atomic_write_text
 from ..system.filelock import FileLock, LockTimeout
+from ..system.path_guard import digest as _digest, safe_parts as _safe_parts
 from .skills import (
     MAX_BODY,
     MAX_DESCRIPTION,
@@ -64,34 +64,6 @@ def _package_name(filename: str) -> str | None:
     ):
         return None
     return name
-
-
-def _digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def _safe_parts(entry: str) -> tuple[str, ...] | None:
-    """zip 条目名 → 规范化相对部件；绝对路径/`..`/盘符/ADS/保留名拒绝。
-
-    Windows 与 POSIX 语法各查一遍：宿主是 Windows，但 zip 里的名字可以
-    用任意一种语法表达越界。
-    """
-    name = (entry or "").strip().replace("\\", "/")
-    if not name or name.startswith("/"):
-        return None
-    if PureWindowsPath(entry).drive or PureWindowsPath(entry).is_absolute():
-        return None
-    parts = name.split("/")
-    for part in parts:
-        if (
-            part in {"", ".", ".."}
-            or part.endswith((" ", "."))
-            or ":" in part
-            or "\x00" in part
-            or PureWindowsPath(part).is_reserved()
-        ):
-            return None
-    return tuple(parts)
 
 
 def _entry_shape(parts: tuple[str, ...]) -> str | None:

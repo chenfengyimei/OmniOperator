@@ -130,8 +130,8 @@ def violations(source: str, rel: str) -> list[str]:
             issues.append(f"分层：{layer} -> system")
         if layer == "system" and target_layer not in {"system", "config"}:
             issues.append(f"平台基础设施倒挂：{target}")
-        if layer == "memory" and target_layer == "system" and len(target_parts) >= 3 and target_parts[2] not in {"atomic", "filelock"}:
-            issues.append(f"memory 只允许共享原子文件/锁：{target}")
+        if layer == "memory" and target_layer == "system" and len(target_parts) >= 3 and target_parts[2] not in {"atomic", "filelock", "path_guard"}:
+            issues.append(f"memory 只允许共享原子文件/锁/路径安全原语：{target}")
         if layer == "tools" and len(parts) > 2 and parts[1] in domains and target.startswith("omni.tools.") and len(target_parts) > 2:
             domain = target_parts[2]
             if domain in domains and domain != parts[1]:

@@ -1,5 +1,14 @@
 # 架构重构记录与后续顺序
 
+2026-11-01 路径安全原语统一：新增 `system/path_guard.py`（`safe_parts`/
+`digest`），消除 `plugins/package_reader.py` 与 `memory/skill_inbox.py`
+两份逐字相同的 zip-slip/摘要副本——同一份安全逻辑两处维护=改一处漏一处。
+两域改为消费同一实现（`_entry_shape` 白名单各域不同，保留在域内）；
+架构守卫 memory→system 白名单加入 `path_guard`（与 atomic/filelock 同级的
+共享原语层）。新增守卫：两消费域不再内嵌实现、引用同一函数对象。
+专项 `test_skill_inbox+test_plugins+test_plugin_community+test_arch+
+test_data_model` **83 项通过（7.04s）**，索引与目录守卫 11 项通过；未跑全量。
+
 2026-11-01 memory.db 声明拆分：新增 `memory/store_schema.py`（153 行），
 承载 `store.py` 的全部 DDL、FTS schema/触发器与 `PROFILE_MAX_CHARS` 等
 额度常量；`store.py` 1146→1026 行，只留连接、迁移补列、FTS 重建与仓储

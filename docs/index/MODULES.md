@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`6188563d29cf2ac9106a30fb1ea5c5378d16346e859882c0a4532ecb9a11a40a`。包含 56 个职责模块、293 个源码/界面文件。
+源码指纹：`9b161190305cfcba774451e9fe3751f65f92c5a23bcbfa354a334e41ea396a6b`。包含 56 个职责模块、294 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -186,7 +186,7 @@
 | [agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py) | 388 | 运行记录（run）与事件流（`state.db`）：一次"问—想—做—答"的可查账本。 |
 | [agent/src/omni/memory/session_log.py](../../agent/src/omni/memory/session_log.py) | 409 | 会话全量记忆（M2）：对话 + 工具过程的完整流水（比 M1 多工具与系统边界事件）。 |
 | [agent/src/omni/memory/skill_acks.py](../../agent/src/omni/memory/skill_acks.py) | 57 | 技能变更「已读」标记仓储（D18，`state.db`）。 |
-| [agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py) | 574 | 外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。 |
+| [agent/src/omni/memory/skill_inbox.py](../../agent/src/omni/memory/skill_inbox.py) | 546 | 外来技能包隔离安装（D18 后置项）：inbox 收包 → 隔离区校验 → 用户激活。 |
 | [agent/src/omni/memory/skills.py](../../agent/src/omni/memory/skills.py) | 1049 | 技能存储（程序性记忆）：skills/<name>/SKILL.md，agentskills.io 兼容子集。 |
 | [agent/src/omni/memory/state.py](../../agent/src/omni/memory/state.py) | 476 | 共享运行状态（`data/state.db`）：定时任务、执行账本、额度与迁移记录。 |
 | [agent/src/omni/memory/state_errors.py](../../agent/src/omni/memory/state_errors.py) | 43 | state.db 的异常语义与错误翻译（唯一来源）。 |
@@ -958,7 +958,7 @@
 | [agent/src/omni/plugins/__init__.py](../../agent/src/omni/plugins/__init__.py) | 16 | 插件子系统（顶层包，与 channels/bootstrap 同级）。 |
 | [agent/src/omni/plugins/host.py](../../agent/src/omni/plugins/host.py) | 418 | 插件宿主：外来功能包的隔离安装、激活、装载与卸载。 |
 | [agent/src/omni/plugins/manifest.py](../../agent/src/omni/plugins/manifest.py) | 104 | 插件清单（manifest.json）：插件包的唯一身份与能力声明。 |
-| [agent/src/omni/plugins/package_reader.py](../../agent/src/omni/plugins/package_reader.py) | 237 | 插件包读取与类型校验：纯数据检查，**零执行**。 |
+| [agent/src/omni/plugins/package_reader.py](../../agent/src/omni/plugins/package_reader.py) | 214 | 插件包读取与类型校验：纯数据检查，**零执行**。 |
 | [agent/src/omni/plugins/quarantine.py](../../agent/src/omni/plugins/quarantine.py) | 255 | 插件隔离区与安装状态的文件层：隔离区落盘、清单记录、防篡改复核。 |
 | [agent/src/omni/plugins/tools.py](../../agent/src/omni/plugins/tools.py) | 181 | 插件生命周期工具（面向 agent）：安装 → 审阅 → 激活 → 启停 → 卸载。 |
 
@@ -998,6 +998,7 @@
 | [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [agent/src/omni/system/filelock.py](../../agent/src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
 | [agent/src/omni/system/observability.py](../../agent/src/omni/system/observability.py) | 102 | 有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。 |
+| [agent/src/omni/system/path_guard.py](../../agent/src/omni/system/path_guard.py) | 45 | 跨域共享的路径安全原语：zip/目录条目名规范化与内容摘要。 |
 | [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 231 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
 | [agent/src/omni/system/provenance.py](../../agent/src/omni/system/provenance.py) | 30 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |

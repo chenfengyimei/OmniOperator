@@ -21,6 +21,23 @@ from omni.tools.registry import ToolRegistry
 from omni.tools.skill_tools import register_skill_inbox_tools
 
 
+def test_path_guard_primitive_is_shared_not_duplicated():
+    """zip-slip/摘要原语归 system/path_guard：skill_inbox 与 package_reader 消费同一实现，
+    各自文件里不再持有副本（同一份安全逻辑两处维护 = 改一处漏一处）。"""
+    import omni.plugins.package_reader as reader
+    import omni.system.path_guard as guard
+    from pathlib import Path
+
+    skill_src = (Path(__file__).resolve().parents[1] / "src" / "omni" / "memory" / "skill_inbox.py").read_text(encoding="utf-8")
+    reader_src = (Path(__file__).resolve().parents[1] / "src" / "omni" / "plugins" / "package_reader.py").read_text(encoding="utf-8")
+    for src, name in ((skill_src, "skill_inbox.py"), (reader_src, "package_reader.py")):
+        assert "def _safe_parts" not in src and "def safe_parts" not in src, f"{name} 不该再内嵌路径安全实现"
+        assert "def _digest" not in src and "def digest" not in src, f"{name} 不该再内嵌摘要实现"
+    # 两个域引用的是同一个函数对象
+    assert reader.safe_parts is guard.safe_parts
+    assert reader.digest is guard.digest
+
+
 BODY = """## When to Use
 需要在多步任务里沉淀可复用流程的时候使用本技能，这句话足够长以通过最短正文的校验要求。
 ## Procedure

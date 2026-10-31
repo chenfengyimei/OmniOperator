@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6188563d29cf2ac9106a30fb1ea5c5378d16346e859882c0a4532ecb9a11a40a",
+  "source_sha256": "9b161190305cfcba774451e9fe3751f65f92c5a23bcbfa354a334e41ea396a6b",
   "modules": [
     {
       "id": "agent-directories",
@@ -332,7 +332,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8742,
+      "lines": 8714,
       "dependencies": [
         "command-contracts",
         "config",
@@ -1572,7 +1572,7 @@
         "agent/src/omni/plugins/quarantine.py",
         "agent/src/omni/plugins/tools.py"
       ],
-      "lines": 1211,
+      "lines": 1188,
       "dependencies": [
         "platform",
         "safety",
@@ -1628,6 +1628,7 @@
         "agent/src/omni/system/doctor.py",
         "agent/src/omni/system/filelock.py",
         "agent/src/omni/system/observability.py",
+        "agent/src/omni/system/path_guard.py",
         "agent/src/omni/system/process_identity.py",
         "agent/src/omni/system/provenance.py",
         "agent/src/omni/system/release_gate.py",
@@ -1635,7 +1636,7 @@
         "agent/src/omni/system/soak.py",
         "agent/src/omni/system/stderr_log.py"
       ],
-      "lines": 2498,
+      "lines": 2543,
       "dependencies": [
         "agent-directories",
         "config"
@@ -14766,11 +14767,12 @@
       "path": "agent/src/omni/memory/skill_inbox.py",
       "module": "storage",
       "python_module": "omni.memory.skill_inbox",
-      "lines": 574,
+      "lines": 546,
       "imports": [
         "omni.memory.skills",
         "omni.system.atomic",
-        "omni.system.filelock"
+        "omni.system.filelock",
+        "omni.system.path_guard"
       ],
       "symbols": [
         {
@@ -14785,30 +14787,8 @@
           }
         },
         {
-          "name": "_digest",
-          "line": 69,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "_safe_parts",
-          "line": 73,
-          "kind": "function",
-          "parameters": [
-            "entry"
-          ],
-          "annotations": {
-            "entry": "str"
-          }
-        },
-        {
           "name": "_entry_shape",
-          "line": 97,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "parts"
@@ -14819,12 +14799,12 @@
         },
         {
           "name": "SkillInbox",
-          "line": 108,
+          "line": 80,
           "kind": "class"
         },
         {
           "name": "SkillInbox.__init__",
-          "line": 111,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "self",
@@ -14842,7 +14822,7 @@
         },
         {
           "name": "SkillInbox.import_package",
-          "line": 128,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -14854,7 +14834,7 @@
         },
         {
           "name": "SkillInbox.upload",
-          "line": 206,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self",
@@ -14868,7 +14848,7 @@
         },
         {
           "name": "SkillInbox.remove_inbox",
-          "line": 233,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -14880,7 +14860,7 @@
         },
         {
           "name": "SkillInbox._plan_entries",
-          "line": 247,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self",
@@ -14892,7 +14872,7 @@
         },
         {
           "name": "SkillInbox._strip_common_root",
-          "line": 296,
+          "line": 268,
           "kind": "function",
           "parameters": [
             "raw"
@@ -14903,7 +14883,7 @@
         },
         {
           "name": "SkillInbox._extract",
-          "line": 311,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "self",
@@ -14919,7 +14899,7 @@
         },
         {
           "name": "SkillInbox._validate_skill",
-          "line": 341,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "staging"
@@ -14930,7 +14910,7 @@
         },
         {
           "name": "SkillInbox._skill_meta",
-          "line": 371,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "staging"
@@ -14941,7 +14921,7 @@
         },
         {
           "name": "SkillInbox._load_manifest",
-          "line": 386,
+          "line": 358,
           "kind": "function",
           "parameters": [
             "self",
@@ -14953,7 +14933,7 @@
         },
         {
           "name": "SkillInbox.pending",
-          "line": 399,
+          "line": 371,
           "kind": "function",
           "parameters": [
             "self"
@@ -14962,7 +14942,7 @@
         },
         {
           "name": "SkillInbox.inbox_files",
-          "line": 445,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "self"
@@ -14971,7 +14951,7 @@
         },
         {
           "name": "SkillInbox.activate",
-          "line": 468,
+          "line": 440,
           "kind": "function",
           "parameters": [
             "self",
@@ -14983,7 +14963,7 @@
         },
         {
           "name": "SkillInbox._verify_against_manifest",
-          "line": 521,
+          "line": 493,
           "kind": "function",
           "parameters": [
             "self",
@@ -14997,7 +14977,7 @@
         },
         {
           "name": "SkillInbox.discard",
-          "line": 560,
+          "line": 532,
           "kind": "function",
           "parameters": [
             "self",
@@ -15009,7 +14989,7 @@
         },
         {
           "name": "_Reject",
-          "line": 573,
+          "line": 545,
           "kind": "class"
         }
       ],
@@ -18460,41 +18440,20 @@
       "path": "agent/src/omni/plugins/package_reader.py",
       "module": "plugins",
       "python_module": "omni.plugins.package_reader",
-      "lines": 237,
+      "lines": 214,
       "imports": [
-        "omni.plugins.manifest"
+        "omni.plugins.manifest",
+        "omni.system.path_guard"
       ],
       "symbols": [
         {
           "name": "Reject",
-          "line": 34,
+          "line": 35,
           "kind": "class"
         },
         {
-          "name": "digest",
-          "line": 38,
-          "kind": "function",
-          "parameters": [
-            "data"
-          ],
-          "annotations": {
-            "data": "bytes"
-          }
-        },
-        {
-          "name": "safe_parts",
-          "line": 42,
-          "kind": "function",
-          "parameters": [
-            "entry"
-          ],
-          "annotations": {
-            "entry": "str"
-          }
-        },
-        {
           "name": "entry_shape",
-          "line": 62,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "parts"
@@ -18505,7 +18464,7 @@
         },
         {
           "name": "is_artifact",
-          "line": 77,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "parts"
@@ -18516,7 +18475,7 @@
         },
         {
           "name": "read_zip",
-          "line": 86,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "zip_path"
@@ -18527,7 +18486,7 @@
         },
         {
           "name": "read_directory",
-          "line": 142,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "source_dir"
@@ -18538,7 +18497,7 @@
         },
         {
           "name": "validate_files",
-          "line": 180,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "files"
@@ -18549,7 +18508,7 @@
         },
         {
           "name": "content_sha256",
-          "line": 203,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "pkg_dir"
@@ -18560,7 +18519,7 @@
         },
         {
           "name": "compare_manifests",
-          "line": 222,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "recorded",
@@ -20639,6 +20598,38 @@
         }
       ],
       "summary": "有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。"
+    },
+    {
+      "path": "agent/src/omni/system/path_guard.py",
+      "module": "platform",
+      "python_module": "omni.system.path_guard",
+      "lines": 45,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "digest",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "data"
+          ],
+          "annotations": {
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "safe_parts",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "entry"
+          ],
+          "annotations": {
+            "entry": "str"
+          }
+        }
+      ],
+      "summary": "跨域共享的路径安全原语：zip/目录条目名规范化与内容摘要。"
     },
     {
       "path": "agent/src/omni/system/process_identity.py",
@@ -32903,7 +32894,7 @@
         {
           "source": "agent/src/omni/memory/skill_inbox.py",
           "symbol": "SkillInbox",
-          "line": 108
+          "line": 80
         },
         {
           "source": "agent/src/omni/memory/skills.py",
