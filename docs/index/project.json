@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "abe79f07b0f44e7bb331983af8ef7f633526f350a901c5b3d430b7384882442c",
+  "source_sha256": "6188563d29cf2ac9106a30fb1ea5c5378d16346e859882c0a4532ecb9a11a40a",
   "modules": [
     {
       "id": "agent-directories",
@@ -327,11 +327,12 @@
         "agent/src/omni/memory/state_mixin_ledger.py",
         "agent/src/omni/memory/state_records.py",
         "agent/src/omni/memory/store.py",
+        "agent/src/omni/memory/store_schema.py",
         "agent/src/omni/memory/system.py",
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8709,
+      "lines": 8742,
       "dependencies": [
         "command-contracts",
         "config",
@@ -16477,14 +16478,15 @@
       "path": "agent/src/omni/memory/store.py",
       "module": "storage",
       "python_module": "omni.memory.store",
-      "lines": 1146,
+      "lines": 1026,
       "imports": [
-        "omni.config"
+        "omni.config",
+        "omni.memory.store_schema"
       ],
       "symbols": [
         {
           "name": "_has_cjk",
-          "line": 167,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "text"
@@ -16495,14 +16497,14 @@
         },
         {
           "name": "_now",
-          "line": 171,
+          "line": 51,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "normalize_text",
-          "line": 175,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "text"
@@ -16513,7 +16515,7 @@
         },
         {
           "name": "_match_expr",
-          "line": 184,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "tokens"
@@ -16524,7 +16526,7 @@
         },
         {
           "name": "_locked",
-          "line": 189,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "method"
@@ -16533,7 +16535,7 @@
         },
         {
           "name": "_locked.wrapper",
-          "line": 193,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -16546,12 +16548,12 @@
         },
         {
           "name": "MemoryStore",
-          "line": 200,
+          "line": 80,
           "kind": "class"
         },
         {
           "name": "MemoryStore.__init__",
-          "line": 201,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -16563,7 +16565,7 @@
         },
         {
           "name": "MemoryStore._migrate_columns",
-          "line": 214,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self"
@@ -16572,7 +16574,7 @@
         },
         {
           "name": "MemoryStore._init_fts",
-          "line": 239,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self"
@@ -16581,7 +16583,7 @@
         },
         {
           "name": "MemoryStore._fts_table_sql",
-          "line": 310,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -16593,7 +16595,7 @@
         },
         {
           "name": "MemoryStore._meta_json",
-          "line": 316,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self",
@@ -16605,7 +16607,7 @@
         },
         {
           "name": "MemoryStore._set_meta",
-          "line": 328,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self",
@@ -16619,7 +16621,7 @@
         },
         {
           "name": "MemoryStore.new_session",
-          "line": 341,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -16631,7 +16633,7 @@
         },
         {
           "name": "MemoryStore.latest_session_id",
-          "line": 349,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self"
@@ -16640,7 +16642,7 @@
         },
         {
           "name": "MemoryStore.list_sessions",
-          "line": 356,
+          "line": 236,
           "kind": "function",
           "parameters": [
             "self",
@@ -16652,7 +16654,7 @@
         },
         {
           "name": "MemoryStore.session_exists",
-          "line": 364,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "self",
@@ -16664,7 +16666,7 @@
         },
         {
           "name": "MemoryStore.rename_session",
-          "line": 371,
+          "line": 251,
           "kind": "function",
           "parameters": [
             "self",
@@ -16678,7 +16680,7 @@
         },
         {
           "name": "MemoryStore.get_or_create_binding",
-          "line": 380,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "self",
@@ -16692,7 +16694,7 @@
         },
         {
           "name": "MemoryStore.get_binding",
-          "line": 417,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self",
@@ -16706,7 +16708,7 @@
         },
         {
           "name": "MemoryStore.set_binding",
-          "line": 425,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -16722,7 +16724,7 @@
         },
         {
           "name": "MemoryStore.append_message",
-          "line": 437,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "self",
@@ -16742,7 +16744,7 @@
         },
         {
           "name": "MemoryStore.prompt_contexts",
-          "line": 467,
+          "line": 347,
           "kind": "function",
           "parameters": [
             "self",
@@ -16756,7 +16758,7 @@
         },
         {
           "name": "MemoryStore.recent_messages",
-          "line": 487,
+          "line": 367,
           "kind": "function",
           "parameters": [
             "self",
@@ -16770,7 +16772,7 @@
         },
         {
           "name": "MemoryStore.recent_messages_ex",
-          "line": 495,
+          "line": 375,
           "kind": "function",
           "parameters": [
             "self",
@@ -16784,7 +16786,7 @@
         },
         {
           "name": "MemoryStore.message_count",
-          "line": 505,
+          "line": 385,
           "kind": "function",
           "parameters": [
             "self",
@@ -16796,7 +16798,7 @@
         },
         {
           "name": "MemoryStore.max_message_id",
-          "line": 514,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self",
@@ -16808,7 +16810,7 @@
         },
         {
           "name": "MemoryStore.claim_review",
-          "line": 521,
+          "line": 401,
           "kind": "function",
           "parameters": [
             "self",
@@ -16822,7 +16824,7 @@
         },
         {
           "name": "MemoryStore.finish_review",
-          "line": 532,
+          "line": 412,
           "kind": "function",
           "parameters": [
             "self",
@@ -16840,7 +16842,7 @@
         },
         {
           "name": "MemoryStore.last_reviewed",
-          "line": 549,
+          "line": 429,
           "kind": "function",
           "parameters": [
             "self",
@@ -16852,7 +16854,7 @@
         },
         {
           "name": "MemoryStore.review_history",
-          "line": 556,
+          "line": 436,
           "kind": "function",
           "parameters": [
             "self",
@@ -16866,7 +16868,7 @@
         },
         {
           "name": "MemoryStore.active_summary",
-          "line": 569,
+          "line": 449,
           "kind": "function",
           "parameters": [
             "self",
@@ -16878,7 +16880,7 @@
         },
         {
           "name": "MemoryStore.save_summary",
-          "line": 585,
+          "line": 465,
           "kind": "function",
           "parameters": [
             "self",
@@ -16902,7 +16904,7 @@
         },
         {
           "name": "MemoryStore.summary_history",
-          "line": 638,
+          "line": 518,
           "kind": "function",
           "parameters": [
             "self",
@@ -16916,7 +16918,7 @@
         },
         {
           "name": "MemoryStore.list_messages",
-          "line": 662,
+          "line": 542,
           "kind": "function",
           "parameters": [
             "self",
@@ -16930,7 +16932,7 @@
         },
         {
           "name": "MemoryStore.search_messages",
-          "line": 674,
+          "line": 554,
           "kind": "function",
           "parameters": [
             "self",
@@ -16944,7 +16946,7 @@
         },
         {
           "name": "MemoryStore._like_messages",
-          "line": 704,
+          "line": 584,
           "kind": "function",
           "parameters": [
             "self",
@@ -16958,7 +16960,7 @@
         },
         {
           "name": "MemoryStore.save_fact",
-          "line": 718,
+          "line": 598,
           "kind": "function",
           "parameters": [
             "self",
@@ -16976,7 +16978,7 @@
         },
         {
           "name": "MemoryStore.is_forgotten",
-          "line": 747,
+          "line": 627,
           "kind": "function",
           "parameters": [
             "self",
@@ -16988,7 +16990,7 @@
         },
         {
           "name": "MemoryStore.forget_fact",
-          "line": 758,
+          "line": 638,
           "kind": "function",
           "parameters": [
             "self",
@@ -17004,7 +17006,7 @@
         },
         {
           "name": "MemoryStore._invalidate_summaries",
-          "line": 782,
+          "line": 662,
           "kind": "function",
           "parameters": [
             "self",
@@ -17018,7 +17020,7 @@
         },
         {
           "name": "MemoryStore.search_facts",
-          "line": 802,
+          "line": 682,
           "kind": "function",
           "parameters": [
             "self",
@@ -17034,7 +17036,7 @@
         },
         {
           "name": "MemoryStore.search_fact_rows",
-          "line": 813,
+          "line": 693,
           "kind": "function",
           "parameters": [
             "self",
@@ -17050,7 +17052,7 @@
         },
         {
           "name": "MemoryStore._search_fact_rows",
-          "line": 823,
+          "line": 703,
           "kind": "function",
           "parameters": [
             "self",
@@ -17066,7 +17068,7 @@
         },
         {
           "name": "MemoryStore._fetch_fact_rows",
-          "line": 869,
+          "line": 749,
           "kind": "function",
           "parameters": [
             "self",
@@ -17086,7 +17088,7 @@
         },
         {
           "name": "MemoryStore.fact_rows",
-          "line": 884,
+          "line": 764,
           "kind": "function",
           "parameters": [
             "self",
@@ -17098,7 +17100,7 @@
         },
         {
           "name": "MemoryStore.filter_facts",
-          "line": 904,
+          "line": 784,
           "kind": "function",
           "parameters": [
             "self",
@@ -17112,7 +17114,7 @@
         },
         {
           "name": "MemoryStore.facts_count",
-          "line": 914,
+          "line": 794,
           "kind": "function",
           "parameters": [
             "self"
@@ -17121,7 +17123,7 @@
         },
         {
           "name": "MemoryStore.reviews_count",
-          "line": 920,
+          "line": 800,
           "kind": "function",
           "parameters": [
             "self"
@@ -17130,7 +17132,7 @@
         },
         {
           "name": "MemoryStore.profile_lines",
-          "line": 930,
+          "line": 810,
           "kind": "function",
           "parameters": [
             "self"
@@ -17139,7 +17141,7 @@
         },
         {
           "name": "MemoryStore.profile_usage_chars",
-          "line": 937,
+          "line": 817,
           "kind": "function",
           "parameters": [
             "self"
@@ -17148,7 +17150,7 @@
         },
         {
           "name": "MemoryStore.profile_add",
-          "line": 941,
+          "line": 821,
           "kind": "function",
           "parameters": [
             "self",
@@ -17162,7 +17164,7 @@
         },
         {
           "name": "MemoryStore.profile_edit",
-          "line": 966,
+          "line": 846,
           "kind": "function",
           "parameters": [
             "self",
@@ -17176,7 +17178,7 @@
         },
         {
           "name": "MemoryStore.profile_edit_checked",
-          "line": 970,
+          "line": 850,
           "kind": "function",
           "parameters": [
             "self",
@@ -17190,7 +17192,7 @@
         },
         {
           "name": "MemoryStore.profile_delete",
-          "line": 996,
+          "line": 876,
           "kind": "function",
           "parameters": [
             "self",
@@ -17202,7 +17204,7 @@
         },
         {
           "name": "MemoryStore.profile_block",
-          "line": 1002,
+          "line": 882,
           "kind": "function",
           "parameters": [
             "self"
@@ -17211,7 +17213,7 @@
         },
         {
           "name": "MemoryStore.save_review_log",
-          "line": 1017,
+          "line": 897,
           "kind": "function",
           "parameters": [
             "self",
@@ -17225,7 +17227,7 @@
         },
         {
           "name": "MemoryStore.list_reviews",
-          "line": 1025,
+          "line": 905,
           "kind": "function",
           "parameters": [
             "self",
@@ -17239,7 +17241,7 @@
         },
         {
           "name": "MemoryStore.list_all_reviews",
-          "line": 1033,
+          "line": 913,
           "kind": "function",
           "parameters": [
             "self",
@@ -17251,7 +17253,7 @@
         },
         {
           "name": "MemoryStore.digest_since",
-          "line": 1044,
+          "line": 924,
           "kind": "function",
           "parameters": [
             "self",
@@ -17263,7 +17265,7 @@
         },
         {
           "name": "MemoryStore.todo_add",
-          "line": 1097,
+          "line": 977,
           "kind": "function",
           "parameters": [
             "self",
@@ -17277,7 +17279,7 @@
         },
         {
           "name": "MemoryStore.todo_list",
-          "line": 1110,
+          "line": 990,
           "kind": "function",
           "parameters": [
             "self",
@@ -17289,7 +17291,7 @@
         },
         {
           "name": "MemoryStore.todo_set_done",
-          "line": 1118,
+          "line": 998,
           "kind": "function",
           "parameters": [
             "self",
@@ -17305,7 +17307,7 @@
         },
         {
           "name": "MemoryStore.todo_delete",
-          "line": 1127,
+          "line": 1007,
           "kind": "function",
           "parameters": [
             "self",
@@ -17319,7 +17321,7 @@
         },
         {
           "name": "MemoryStore.todo_clear",
-          "line": 1135,
+          "line": 1015,
           "kind": "function",
           "parameters": [
             "self",
@@ -17333,7 +17335,7 @@
         },
         {
           "name": "MemoryStore.close",
-          "line": 1145,
+          "line": 1025,
           "kind": "function",
           "parameters": [
             "self"
@@ -17342,6 +17344,15 @@
         }
       ],
       "summary": "SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。"
+    },
+    {
+      "path": "agent/src/omni/memory/store_schema.py",
+      "module": "storage",
+      "python_module": "omni.memory.store_schema",
+      "lines": 153,
+      "imports": [],
+      "symbols": [],
+      "summary": "memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。"
     },
     {
       "path": "agent/src/omni/memory/system.py",

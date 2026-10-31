@@ -72,3 +72,28 @@ def test_data_model_doc_records_merge_decision():
     doc = DOC.read_text(encoding="utf-8")
     assert "不合并" in doc
     assert "没有一条" in doc and "JOIN" in doc
+
+
+def test_memory_db_schema_declaration_is_separate_from_store():
+    """memory.db 与 state.db 同构：DDL 只在 store_schema，store.py 只留行为。"""
+    memory_dir = ROOT / "agent" / "src" / "omni" / "memory"
+    store_src = (memory_dir / "store.py").read_text(encoding="utf-8")
+    schema_src = (memory_dir / "store_schema.py").read_text(encoding="utf-8")
+
+    assert "CREATE TABLE" not in store_src, "store.py 不该再内嵌 DDL（归 store_schema.py）"
+    assert "CREATE TABLE" in schema_src
+    # 声明层保持无行为：无 class、不 import MemoryStore
+    import ast
+
+    tree = ast.parse(schema_src)
+    assert not any(isinstance(node, ast.ClassDef) for node in ast.walk(tree))
+    # import 与名字引用层面都不许出现 MemoryStore（docstring 提及不算）
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            assert all(alias.name != "MemoryStore" for alias in node.names)
+        assert not (isinstance(node, ast.Name) and node.id == "MemoryStore")
+    # 公开契约常量仍可从 store 导入（调用点零改动）
+    from omni.memory.store import PROFILE_MAX_CHARS as _from_store
+    from omni.memory.store_schema import PROFILE_MAX_CHARS as _from_schema
+
+    assert _from_store is _from_schema

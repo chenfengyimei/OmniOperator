@@ -1,5 +1,16 @@
 # 架构重构记录与后续顺序
 
+2026-11-01 memory.db 声明拆分：新增 `memory/store_schema.py`（153 行），
+承载 `store.py` 的全部 DDL、FTS schema/触发器与 `PROFILE_MAX_CHARS` 等
+额度常量；`store.py` 1146→1026 行，只留连接、迁移补列、FTS 重建与仓储
+行为。`omni.memory.store.PROFILE_MAX_CHARS` 等旧 import 路径不变。新增
+守卫（store.py 无内嵌 DDL；声明层无 class、AST 级无 MemoryStore 引用）。
+专项 `test_data_model+test_memory+test_state+test_arch+test_tools`
+**82 项通过（13.36s）**，索引与目录守卫 11 项通过；未跑全量。
+**store.py 行为层不再按域拆 mixin**（与 state.py 不同：memory.db 单连接
+单锁、无跨进程域门面需求，60 个公开方法被 guard/review/agent/web 广泛
+消费，拆分收益递减）；后续按域演进优先走 DATA_MODEL.md §5 流程。
+
 2026-11-01 插件宿主职责分层：`plugins/host.py` 从 799 行拆为三块——
 `package_reader.py`（237 行，包读取/类型校验/内容指纹，纯数据零执行）、
 `quarantine.py`（255 行，隔离区落盘/安装状态/防篡改复核，只做文件读写）、

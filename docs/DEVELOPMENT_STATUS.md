@@ -1,5 +1,13 @@
 # 开发状态记录
 
+2026-11-01 memory.db 声明拆分（工作区）：新增 `memory/store_schema.py`，
+`store.py` 的全部 DDL/FTS 声明/额度常量迁入；store.py 1146→1026 行。
+旧 import 路径不变；新增守卫验证 store.py 无内嵌 DDL、声明层无行为。
+**store.py 行为层不拆 mixin**（单连接单锁、无跨进程域门面需求，拆分收益
+递减，已记入 REFACTORING.md）。专项
+`uv run --no-sync pytest -q -n 0 agent/tests/test_data_model.py agent/tests/test_memory.py agent/tests/test_state.py agent/tests/test_arch.py agent/tests/test_tools.py`
+→ **82 passed（13.36s）**；目录守卫 11 passed。未跑全量。
+
 2026-11-01 插件宿主职责分层（工作区）：`plugins/host.py` 799 行拆为三层——
 `package_reader.py`（包读取/类型校验/内容指纹，纯数据零执行）、
 `quarantine.py`（隔离区落盘/安装状态/防篡改复核）、`host.py`（418 行，
