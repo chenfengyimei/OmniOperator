@@ -87,6 +87,15 @@ class SkillGateway:
         return SimpleNamespace(text="把流程沉淀成了技能。", tool_calls=[])
 
 
+def test_review_prompt_does_not_duplicate_cron_into_memory():
+    from omni.core.review import _REVIEW_SYSTEM
+
+    assert "cron_add/cron_once" in _REVIEW_SYSTEM
+    assert "不要用记忆代替调度" in _REVIEW_SYSTEM
+    assert "服务在线状态、一次查询结果" in _REVIEW_SYSTEM
+    assert "后续每轮都值得看到" in _REVIEW_SYSTEM
+
+
 def test_review_saves_fact_and_logs(tmp_path):
     db = tmp_path / "m.db"
     seed = MemoryStore(db)

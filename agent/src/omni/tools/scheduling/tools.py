@@ -208,7 +208,8 @@ def register_cron_tools(
             description=(
                 "创建定时任务：到点自动执行一段指令（由 omni-heartbeat 进程调度）。"
                 "用户说'每天X点做Y'/'每隔N分钟做Y'时使用。"
-                "every_minutes 与 daily_at 二选一；可选 deliver_to_qq 把结果发到白名单 QQ"
+                "every_minutes 与 daily_at 二选一；可选 deliver_to_qq 把结果发到白名单 QQ。"
+                "任务定义已在这里持久化，不要再写 resident_memory/person_event/remember 重复记录"
             ),
             parameters={
                 "type": "object",
@@ -248,7 +249,8 @@ def register_cron_tools(
                 "用户说'X分钟后提醒我…'/'明天9点叫我做Y'/'一小时后看看结果'时使用；"
                 "周期性任务（每天/每隔N分钟）用 cron_add。"
                 "run_at（绝对时间 YYYY-MM-DD HH:MM）与 delay_minutes（多少分钟后）二选一；"
-                "可选 deliver_to_qq 把结果发到白名单 QQ"
+                "可选 deliver_to_qq 把结果发到白名单 QQ。"
+                "任务定义已在这里持久化，不要再写 resident_memory/person_event/remember 重复记录"
             ),
             parameters={
                 "type": "object",

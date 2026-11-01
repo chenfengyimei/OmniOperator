@@ -453,6 +453,14 @@ def test_scheduler_ledger_records_failure(tmp_path):
 
 # ---------- 工具 ----------
 
+def test_cron_tool_descriptions_forbid_duplicate_memory_writes(tmp_path):
+    registry = ToolRegistry()
+    register_cron_tools(registry, _job_store(tmp_path), allowed_qq_users=[10001])
+    for name in ("cron_once", "cron_add"):
+        description = registry.get(name).description
+        assert "不要再写 resident_memory/person_event/remember" in description
+
+
 def test_cron_tools_dispatch(tmp_path):
     registry = ToolRegistry()
     store = _job_store(tmp_path)

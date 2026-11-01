@@ -190,9 +190,10 @@ def register_people_tools(
             name="person_remember",
             description=(
                 "把关于某个人物的信息写入其常驻记忆：kind=archive 放稳定特征"
-                "（职业、喜好、性格），kind=resident 放进行中的事（最近在忙什么）。"
-                "person 收名字或 channel:account；人物不存在会自动建立。"
-                "内容要自包含、一句一条。"
+                "（职业、喜好、性格），kind=resident 只放跨会话持续有用、每轮都值得看到的进行中事项。"
+                "不要写闹钟、到点提醒、周期任务、服务状态或一次查询结果；"
+                "定时执行只用 cron_once/cron_add，有时效的背景用 person_event。"
+                "person 收名字或 channel:account；人物不存在会自动建立。内容要自包含、一句一条。"
                 "后台整理（回合后复盘/夜间日记）写入时必须带 evidence：从原文逐字照抄一段作为依据，"
                 "会被逐字比对，照抄不过就写不进去"
             ),
@@ -221,9 +222,10 @@ def register_people_tools(
         Tool(
             name="person_event",
             description=(
-                "给人物记一条临时事件（「明天生日」「下周出差」这类有时效的事）。"
-                "expires_at 给 ISO 时间（如 2026-11-05T09:00:00+08:00）到期自动清除；"
-                "不给则长期保留"
+                "给人物记一条可按 person_lookup 查看的临时背景事件"
+                "（「明天生日」「下周出差」这类有时效的事），不是调度器，不会到点提醒。"
+                "需要执行闹钟/提醒/周期任务时只用 cron_once/cron_add，不要在这里重复记录。"
+                "expires_at 给 ISO 时间（如 2026-11-05T09:00:00+08:00）到期自动清除；不给则长期保留"
             ),
             parameters={
                 "type": "object",

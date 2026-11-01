@@ -85,6 +85,16 @@ def test_agent_injects_resident_block(tmp_path):
     store.close()
 
 
+def test_resident_tool_description_separates_scheduling_and_ephemeral_data(tmp_path):
+    registry = ToolRegistry()
+    register_resident_tools(registry, ResidentMemory(tmp_path / "MEMORY.md"))
+    description = registry.get("resident_memory").description
+    assert "cron_once/cron_add" in description
+    assert "不要在这里重复记录" in description
+    assert "服务状态" in description and "一次查询结果" in description
+    assert "每轮都值得看到" in description
+
+
 def test_tool_dispatch(tmp_path):
     rm = ResidentMemory(tmp_path / "MEMORY.md", char_limit=2200)
     registry = ToolRegistry()

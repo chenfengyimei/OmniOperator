@@ -130,6 +130,15 @@ def test_person_remember_auto_create_and_guards(tmp_path):
     assert "不能为空" in _dispatch(fixture, "person_remember", {"person": "小张", "content": "  "})
 
 
+def test_people_tool_descriptions_separate_events_from_reminders(tmp_path):
+    fixture = _make(tmp_path)
+    event_description = fixture.registry.get("person_event").description
+    resident_description = fixture.registry.get("person_remember").description
+    assert "不会到点提醒" in event_description
+    assert "cron_once/cron_add" in event_description
+    assert "不要写闹钟、到点提醒、周期任务" in resident_description
+
+
 def test_person_event_with_expiry(tmp_path):
     fixture = _make(tmp_path)
     result = _dispatch(fixture, "person_event", {"person": "小张", "content": "明天生日"})

@@ -97,6 +97,16 @@ def _make(tmp_path, gateway, *, guard: MemoryGuard | None = None, config: AppCon
     )
 
 
+def test_daily_rules_keep_cron_and_transient_status_out_of_resident(tmp_path):
+    fixture = _make(tmp_path, NoteGateway("daily_note_save"))
+    rules = fixture.consolidator._rules("daily")
+    assert "cron_add/cron_once" in rules
+    assert "不要再沉淀到常驻、事实或档案" in rules
+    assert "服务状态和一次查询结果" in rules
+    assert "后续每轮都值得看到" in rules
+    fixture.journal.close(); fixture.dialogue.close(); fixture.slog.close(); fixture.people.close(); fixture.state.close()
+
+
 def test_daily_consolidation_saves_note_with_covered_marker(tmp_path):
     fixture = _make(tmp_path, NoteGateway("daily_note_save"))
     for i in range(3):

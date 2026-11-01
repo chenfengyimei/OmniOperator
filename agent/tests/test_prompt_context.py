@@ -10,7 +10,7 @@ import pytest
 from omni.config import AppConfig
 from omni.core.agent import Agent
 from omni.core.compress import assemble_context, compress_if_needed, assert_invariants
-from omni.core.context import CONTEXT_HEADER, CONTEXT_FOOTER, TurnContext, render_rows
+from omni.core.context import CONTEXT_HEADER, CONTEXT_FOOTER, TurnContext, render_rows, system_prompt
 from omni.llm.usage import Usage
 from omni.memory.resident import ResidentMemory
 from omni.memory.store import MemoryStore, DEFAULT_TITLE
@@ -102,6 +102,14 @@ def test_group_rendering_strips_personal_data_from_all_old_snapshots(fixture,mon
     assert '私人常驻标识' not in outgoing and '私人档案标识' not in outgoing
     assert all('personal_memory' not in context(message) for message in gateway.calls[-1][0] if message['role']=='user')
     assert '群聊场景' in outgoing
+
+
+def test_stable_prompt_routes_reminders_to_cron_not_resident_memory():
+    prompt = system_prompt('身份固定。', include_personal=True)
+    assert '一次性用 cron_once，周期性用 cron_add' in prompt
+    assert '不要再把同一任务写进 resident_memory、person_event 或 remember' in prompt
+    assert '服务在线状态、一次查询结果' in prompt
+    assert '临时事件只是背景记录，不会触发提醒' in prompt
 
 
 def test_old_now_placeholder_remains_a_stable_reference(fixture):

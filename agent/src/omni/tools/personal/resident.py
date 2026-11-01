@@ -45,10 +45,13 @@ def register_resident_tools(registry: ToolRegistry, resident: Any) -> None:
         Tool(
             name="resident_memory",
             description=(
-                "维护常驻工作笔记（每轮对话都会注入你的系统提示词，跨会话生效）。"
+                "维护常驻工作笔记（每轮对话都会注入，跨会话生效），宁少勿多。"
                 "operation: view 查看 / add 新增 / replace 改写第 id 条 / remove 删除第 id 条。"
-                "只放'当下持续有用'的内容（进行中的约定、重要教训、下一步）；"
-                "写满会被拒绝，需先合并旧条目。稳定的人物特征请用 profile_manage。"
+                "只放跨会话持续有效、后续每轮都值得看到的约定、重要教训或当前阻断；"
+                "不要放定时任务、闹钟、提醒、触发时间、服务状态、一次查询结果、已完成事项或流水日志。"
+                "到点执行只用 cron_once/cron_add，不要在这里重复记录；临时人物背景用 person_event，"
+                "可检索事实用 remember，可复用流程用技能。写满会被拒绝，需先合并旧条目。"
+                "稳定的人物特征请用 profile_manage。"
                 "后台整理（回合后复盘/夜间日记）写入时必须带 evidence：从原文逐字照抄一段作为依据，"
                 "会被逐字比对，照抄不过就写不进去"
             ),
