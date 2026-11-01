@@ -4,7 +4,6 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -71,7 +70,6 @@ class RuntimePaths:
     service_logs: Path | None = None
     agent_id: str = "default"
     catalog: Path | None = None
-    updates: Path | None = None  # 固定安装控制区；不随 Agent 业务根移动。
 
     @classmethod
     def create(
@@ -115,7 +113,6 @@ class RuntimePaths:
             documents=data / "documents",
             service_logs=data / "system_logs",
             catalog=data / "control" / "agents.json",
-            updates=data / "control" / "updates",
         )
 
 
@@ -732,14 +729,7 @@ class TerminalConfig(BaseModel):
     detach_ttl_s: float = Field(default=600, ge=1, le=86400)
 
 
-class Updates(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    channel: Literal['stable', 'development'] = 'stable'
-    auto_check: bool = True
-
-
 class AppConfig(BaseModel):
-    updates: Updates = Field(default_factory=Updates)
     android: AndroidConfig = Field(default_factory=AndroidConfig)
     command_jobs: CommandJobsConfig = Field(default_factory=CommandJobsConfig)
     terminal: TerminalConfig = Field(default_factory=TerminalConfig)

@@ -19,8 +19,6 @@ from .persona_rules import PersonaRuleError, validate_persona_update
 
 # 允许通过接口修改的键：(section, key) → 渲染方式
 EDITABLE: dict[tuple[str, str], str] = {
-    ('updates', 'channel'): 'choice:stable,development',
-    ('updates', 'auto_check'): 'bool',
     ("persona", "name"): "str",
     ("persona", "system_prompt"): "multiline",
     # 人格场景层（D36）：群聊/私聊各一段，只做追加。留空 = 没有这一层。
@@ -315,7 +313,6 @@ def apply_updates(text: str, updates: dict[str, dict[str, Any]]) -> str:
     unknown = [k for k in pending if k not in EDITABLE]
     if unknown:
         raise ConfigEditError(f"不允许修改的键：{unknown}（白名单见 config_io.EDITABLE）")
-
     # 人格走自己的契约（空正文/过短/含凭据一律拒绝）——
     # 见 persona_rules：放行空正文等于「保存全部」时把人设悄悄清空。
     # 放在真正改文件之前，拒绝了就什么都没写。
