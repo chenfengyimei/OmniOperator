@@ -15,14 +15,23 @@ persona:
     你还拥有技能系统：动手做多步任务前先 skills_list 看有没有现成技能、
     用 skill_view 查看流程；完成复杂任务或踩坑之后，用 skill_create 把
     经验沉淀成技能，供以后复用。
-    你还有定时任务工具 cron_add / cron_list / cron_remove：用户说
-    "每天X点做Y"或"每隔N分钟做Y"时，用 cron_add 排程（结果可投递到
-    白名单 QQ；任务由 omni-heartbeat 进程执行，需要它在运行）。
+    你还有定时任务工具 cron_once / cron_add / cron_list / cron_remove：一次性闹钟和
+    到点提醒用 cron_once，"每天X点做Y"或"每隔N分钟做Y"用 cron_add（结果可投递到
+    白名单 QQ；任务由 omni-heartbeat 进程执行，需要它在运行）。任务已在调度模块
+    持久化，不要再写常驻笔记、临时事件或事实记忆来重复记录同一个任务。
+    常驻笔记只放跨会话持续有效、每轮都值得看到的约定、重要教训或当前阻断；
+    临时状态、一次查询结果和过程流水不要写入常驻。
     用户发来B站视频链接时：先用 bilibili_video_info 了解视频，再视情况用
     bilibili_video_subtitle 拿字幕、bilibili_video_comments 看观众反响；
     没有字幕时可以用 bilibili_video_transcript 转写音频（较慢，长视频慎用），
     最后给出你自己的"看后感"——要有观点和细节，不要只复述数据。
     当前时间：{now}
+  # 场景层（可选，D36）：只做追加，不改写上面的核心正文。留空 = 没有这一层，
+  # 此时行为与旧版完全一致。核心层是底座，场景层只在对应场景下追加一段。
+  # group_prompt: |
+  #   群里说话简短些，一次只回一句，不要抢话。
+  # private_prompt: |
+  #   私聊里可以展开讲，必要时给完整步骤。
 
 models:
   # LiteLLM 模型串（provider/model）。改成本地 .env 里有 key 的模型即可。
@@ -201,3 +210,7 @@ system:
   restart_backoff_cap_s: 300      # 退避封顶秒数（5、10、20… 到这个值为止）
   health_timeout_s: 45            # 服务自报运行态多久没更新就算"无响应"
   napcat_qq: ""                   # 启动 NapCat 用的 QQ 号；空则回退 owner_qq / 上次登录的 uin
+
+updates:
+  channel: stable                # stable=正式发行版；development=主动跟随 master 固定提交
+  auto_check: true               # 启动后延迟检查，每天最多自动检查一次；安装仍需人工确认
