@@ -36,6 +36,7 @@ from .process_identity import (
     ProcessIdentityError,
     confirmed_exited,
     inspect_process,
+    process_parents,
     terminate_verified_tree,
 )
 from .provenance import source_fingerprint
@@ -311,8 +312,46 @@ class ServiceManager:
             self._check_start(name)
             argv, cwd = self._omni_argv(name)
             pid = self._spawn(argv, cwd=cwd, log_path=self._log_dir / f"{name}.log")
-            self._write_pid(name, pid)
+            self._seed_pid(name, pid)
             return {"name": name, "pid": pid, "started": True}
+
+    def _seed_pid(self, name: str, pid: int) -> dict:
+        """spawn 之后登记启动记录，但**不能覆盖**子进程已经登记好的那份。
+
+        竞态（真机复现）：``.venv\\Scripts\\python.exe`` 是会再 fork 真解释器的跳板，
+        守护 spawn 记下的是跳板 pid，真正执行模块的是跳板的子进程。子进程启动后
+        自己登记身份——它先落盘的话，守护随后写的记录会把 pid 指回跳板，记录指向
+        的就不是真正在跑模块的那个进程（停止授权、状态展示都跟着错）。
+        守护写盘前还要算源码指纹（哈希整个 agent/src），窗口有几百毫秒，竞态常发生。
+
+        判定：现有记录的 pid 若在刚 spawn 出来的这个进程的**后代链**上（跳板 → worker
+        是两层，仍然算后代），说明 worker 已经自己登记过了 → 保持那份记录不动
+        （launch_id 仍是 worker 自己那份）。判不出来（非 Windows、快照失败）就按老路
+        写，不因此拒绝启动。
+        """
+        existing = self._read_record(name)
+        if existing is not None:
+            existing_identity = self._record_identity(existing)
+            if existing_identity is not None and existing_identity.pid != pid:
+                try:
+                    parents = process_parents()
+                except (ProcessIdentityError, OSError):
+                    parents = {}
+                if self._is_descendant(existing_identity.pid, pid, parents):
+                    return existing
+        return self._write_pid(name, pid)
+
+    @staticmethod
+    def _is_descendant(pid: int, ancestor: int, parents: dict[int, int]) -> bool:
+        """pid 是否在 ancestor 的后代链上（进程树快照给的父 pid 链）。"""
+        seen: set[int] = set()
+        current = pid
+        while current and current not in seen:
+            if current == ancestor:
+                return True
+            seen.add(current)
+            current = parents.get(current, 0)
+        return False
 
     def omni_stop(self, name: str) -> dict[str, Any]:
         return self._stop_verified(name)
@@ -381,6 +420,8 @@ class ServiceManager:
         }
 
     def start(self, name: str, qq: str = "") -> dict[str, Any]:
+        if getattr(self, 'maintenance', lambda: False)():
+            raise ServiceError('系统正在升级，暂停启动服务')
         # 起之前先收敛旧记录：死进程/被复用的 PID 不构成"已在运行"，
         # 但活着的不可核验进程仍然拒绝接管（不猜、不杀）。
         self._validate_name(name)
