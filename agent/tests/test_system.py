@@ -190,6 +190,125 @@ def test_start_without_install_errors(tmp_path):
         manager.stop("omni-qq")
 
 
+# ---------- 记录收敛（旧版裸 PID / 死进程 / PID 复用） ----------
+
+def _manager_with_probe(tmp_path: Path, inspector):
+    """只有 inspector 可注入：端口探测固定为空，避免读到真机 NapCat。"""
+    return ServiceManager(
+        napcat_dir=None,
+        napcat_ws_port=1,
+        napcat_webui_port=2,
+        run_dir=tmp_path / "run",
+        log_dir=tmp_path / "logs",
+        port_prober=lambda _port, _state: [],
+        tcp_probe=lambda _port: False,
+        inspector=inspector,
+    )
+
+
+def _pid_file(tmp_path: Path, name: str) -> Path:
+    return tmp_path / "run" / f"{name}.pid"
+
+
+def test_reconcile_clears_dead_legacy_pid(tmp_path):
+    """旧版裸 PID 指向已退出的进程：记录没有意义，清掉才能自动拉起。"""
+    path = _pid_file(tmp_path, "omni-qq")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("12345", encoding="utf-8")
+    manager = _manager_with_probe(tmp_path, lambda _pid: None)
+    verdict = manager.reconcile("omni-qq")
+    assert verdict["state"] == "cleared_dead" and verdict["pid"] == 12345
+    assert not path.exists()
+    # 收敛只动记录，不碰进程：没有 inspector 返回身份就不可能有终止动作
+    assert manager.status("omni-qq")["state"] == "absent"
+
+
+def test_reconcile_quarantines_corrupt_record(tmp_path):
+    """既不是记录也不是数字：移进 quarantine 留证，不静默删除。"""
+    path = _pid_file(tmp_path, "omni-heartbeat")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("{半截 JSON", encoding="utf-8")
+    manager = _manager_with_probe(tmp_path, lambda _pid: None)
+    verdict = manager.reconcile("omni-heartbeat")
+    assert verdict["state"] == "quarantined"
+    assert not path.exists()
+    quarantined = list((tmp_path / "run" / "quarantine").iterdir())
+    assert len(quarantined) == 1
+    assert quarantined[0].read_text(encoding="utf-8") == "{半截 JSON"
+
+
+def test_reconcile_clears_recycled_pid(tmp_path):
+    """裸 PID 被无关进程复用了：镜像名对不上，记录已失效。"""
+    from omni.system.process_identity import ProcessIdentity
+
+    path = _pid_file(tmp_path, "omni-qq")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("4242", encoding="utf-8")
+    notepad = ProcessIdentity(4242, "1", str(tmp_path / "notepad.exe"))
+    manager = _manager_with_probe(tmp_path, lambda pid: notepad if pid == 4242 else None)
+    verdict = manager.reconcile("omni-qq")
+    assert verdict["state"] == "cleared_reused"
+    assert not path.exists()
+
+
+def test_reconcile_blocks_live_unverified(tmp_path):
+    """裸 PID 指向的还真是 python 进程：不认领、不启动、不杀，只标记。"""
+    from omni.system.process_identity import ProcessIdentity
+
+    path = _pid_file(tmp_path, "omni-qq")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("4242", encoding="utf-8")
+    pythonish = ProcessIdentity(4242, "1", str(tmp_path / "python.exe"))
+    manager = _manager_with_probe(tmp_path, lambda pid: pythonish if pid == 4242 else None)
+    verdict = manager.reconcile("omni-qq")
+    assert verdict["state"] == "blocked_unverified" and verdict["pid"] == 4242
+    assert path.exists(), "不可核验的记录必须留着，否则下次会重复撞同一个进程"
+    assert manager.status("omni-qq")["state"] == "blocked_unverified"
+    from omni.system.services import ServiceError
+
+    with pytest.raises(ServiceError, match="不可核验"):
+        manager.start("omni-qq")
+
+
+def test_reconcile_keeps_verified_record(tmp_path):
+    """记录与进程身份完全一致时什么都不做。"""
+    import json
+
+    from omni.system.process_identity import ProcessIdentity
+
+    executable = str(tmp_path / "python.exe")
+    identity = ProcessIdentity(4242, "100", executable)
+    path = _pid_file(tmp_path, "omni-qq")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "version": 1, "service": "omni-qq", "launch_id": "a" * 32,
+        "pid": 4242, "created": "100", "executable": executable,
+    }), encoding="utf-8")
+    manager = _manager_with_probe(tmp_path, lambda pid: identity if pid == 4242 else None)
+    verdict = manager.reconcile("omni-qq")
+    assert verdict["state"] == "verified"
+    assert path.exists()
+    status = manager.status("omni-qq")
+    assert status["running"] is True and status["can_stop"] is True
+
+
+def test_reconcile_clears_stale_verified_record(tmp_path):
+    """记录合法但进程已经退出：清掉，别让"记录存在"被当成"还在跑"。"""
+    import json
+
+    executable = str(tmp_path / "python.exe")
+    path = _pid_file(tmp_path, "omni-heartbeat")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "version": 1, "service": "omni-heartbeat", "launch_id": "b" * 32,
+        "pid": 5252, "created": "100", "executable": executable,
+    }), encoding="utf-8")
+    manager = _manager_with_probe(tmp_path, lambda _pid: None)
+    assert manager.status("omni-heartbeat")["state"] == "stale"
+    assert manager.reconcile("omni-heartbeat")["state"] == "cleared_dead"
+    assert not path.exists()
+
+
 # ---------- agent 系统工具 ----------
 
 def test_system_tools_dispatch(tmp_path):

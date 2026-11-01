@@ -7,6 +7,10 @@
 
 停止只接受完整启动记录，核验创建时间/路径后由保留句柄终止已观察的进程树。
 旧裸 PID 与外部端口仅用于提示，不授权终止；启动/停止/登记按服务跨进程互斥。
+
+本模块不做的事：不守护、不重启、不推导"应该在跑"（那是 `system/supervisor.py` 的职责）；
+`reconcile()` 只收敛**记录**——进程已死、PID 被复用、文件损坏才清，活着但身份不可核验的
+一律标记 `blocked_unverified` 留着，交给人判断。
 """
 from __future__ import annotations
 
@@ -47,6 +51,24 @@ _SERVICE_LABELS = {
     "omni-qq": "QQ 通道（omni-qq）",
     "omni-heartbeat": "心跳调度（omni-heartbeat）",
 }
+
+# 旧版裸 PID 记录只存了一个数字，无法与进程身份核对；清理前用它判断
+# "这个 pid 现在还是不是我们那类进程"。镜像名对不上就是 PID 复用，记录已无意义。
+_PYTHON_IMAGES = frozenset({"python.exe", "pythonw.exe", "python", "python3"})
+_NAPCAT_IMAGES = frozenset({"cmd.exe", "node.exe", "napcat.exe", "napcat.bat"})
+
+
+def _expected_images(name: str) -> frozenset[str]:
+    return _PYTHON_IMAGES if name in OMNI_SERVICES else _NAPCAT_IMAGES
+
+
+# 对外只暴露五态：记录可信 / 记录失效（进程没了或 PID 被复用）/ 无记录 / 文件损坏 / 活着的不可核验
+_PUBLIC_STATE = {
+    "legacy_dead": "stale",
+    "legacy_reused": "stale",
+    "legacy_blocked": "blocked_unverified",
+}
+
 
 
 class ServiceError(RuntimeError):
@@ -286,21 +308,21 @@ class ServiceManager:
 
     def status(self, name: str) -> dict[str, Any]:
         self._validate_name(name)
-        record = self._read_record(name)
-        identity = self._record_identity(record)
-        verified = identity is not None and self._inspect(identity.pid) == identity
+        verdict = self._classify(name)
+        verified = verdict["state"] == "verified"
+        state = _PUBLIC_STATE.get(verdict["state"], verdict["state"])
         if name == "napcat":
             pid = self._read_pid("napcat") or self._napcat_pid()
             running = (pid is not None and self._inspect(pid) is not None) or bool(self._napcat_pid())
             detail = f"已登录 {self._napcat_uin()}" if self._napcat_uin() else "未登录（需扫码）"
             return {"name": name, "label": _SERVICE_LABELS[name], "running": running,
                     "pid": pid, "detail": detail + ("；身份未核验，不可停止" if running and not verified else ""),
-                    "identity_verified": verified, "can_stop": verified}
+                    "identity_verified": verified, "can_stop": verified, "state": state}
         pid = self._omni_pid(name)
         return {"name": name, "label": _SERVICE_LABELS[name],
                 "running": pid is not None, "pid": pid,
                 "detail": "身份未核验，不可停止" if pid and not verified else "",
-                "identity_verified": verified, "can_stop": verified}
+                "identity_verified": verified, "can_stop": verified, "state": state}
 
     def overview(self) -> dict[str, Any]:
         services = [self.status(n) for n in ALL_SERVICES]
@@ -314,6 +336,15 @@ class ServiceManager:
         }
 
     def start(self, name: str, qq: str = "") -> dict[str, Any]:
+        # 起之前先收敛旧记录：死进程/被复用的 PID 不构成"已在运行"，
+        # 但活着的不可核验进程仍然拒绝接管（不猜、不杀）。
+        self._validate_name(name)
+        verdict = self.reconcile(name)
+        if verdict["state"] == "blocked_unverified":
+            raise ServiceError(
+                f"{name} 存在不可核验的旧进程 pid={verdict['pid']}；未接管，"
+                "请人工核对后清理该 PID 记录"
+            )
         if name == "napcat":
             return self.napcat_start(qq)
         return self.omni_start(name)
@@ -400,6 +431,87 @@ class ServiceManager:
             record['source_confirmed'] = pid == os.getpid()
         atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
         return record
+
+    # ---------- 记录收敛 ----------
+    #
+    # 历史包袱：早期版本只往 <name>.pid 写一个裸数字。裸 PID 无法核对身份，
+    # 既不能拿来停止（会误杀复用了该 pid 的无关进程），也不该永远堵住启动。
+    # `_classify` 只读判定，`reconcile` 才动文件，且只在语义确定时清。
+
+    def _classify(self, name: str) -> dict[str, Any]:
+        """只读判定 pid 记录的归属；不改任何文件（status 也用它）。"""
+        path = self._pid_path(name)
+        record = self._read_record(name)
+        if record is not None:
+            identity = self._record_identity(record)
+            if identity is not None and self._inspect(identity.pid) == identity:
+                return {"state": "verified", "pid": identity.pid,
+                        "image": Path(identity.executable).name, "detail": "启动记录与进程身份一致"}
+            return {"state": "stale", "pid": record.get("pid"), "image": "",
+                    "detail": "启动记录指向的进程已退出或身份已变化"}
+        if not path.exists():
+            return {"state": "absent", "pid": None, "image": "", "detail": "无启动记录"}
+        legacy = self._legacy_pid(name)
+        if legacy is None:
+            return {"state": "corrupt", "pid": None, "image": "",
+                    "detail": "pid 文件无法解析（既不是记录也不是数字）"}
+        identity = self._inspect(legacy)
+        if identity is None:
+            return {"state": "legacy_dead", "pid": legacy, "image": "",
+                    "detail": "旧版裸 PID 指向的进程已不存在"}
+        image = Path(identity.executable).name.lower()
+        if image and image not in _expected_images(name):
+            return {"state": "legacy_reused", "pid": legacy, "image": image,
+                    "detail": f"旧版裸 PID 已被其他进程复用（{image}）"}
+        return {"state": "legacy_blocked", "pid": legacy, "image": image,
+                "detail": f"存在不可核验的旧进程 pid={legacy}（{image or '镜像未知'}），未接管"}
+
+    def reconcile(self, name: str) -> dict[str, Any]:
+        """收敛启动记录；返回 {name, state, pid, detail}。
+
+        `verified` / `absent` / `blocked_unverified` 不动文件；`cleared_dead` /
+        `cleared_reused` 删除记录；`quarantined` 把损坏文件移进 run/quarantine 留证。
+        **任何分支都不会终止进程**——记录不可信时停不授权，这是既有边界。
+        """
+        self._validate_name(name)
+        verdict = self._classify(name)
+        if verdict["state"] in ("verified", "absent", "legacy_blocked"):
+            if verdict["state"] == "legacy_blocked":
+                return {"name": name, "state": "blocked_unverified",
+                        "pid": verdict["pid"], "detail": verdict["detail"]}
+            return {"name": name, "state": verdict["state"], "pid": verdict["pid"],
+                    "detail": verdict["detail"]}
+        with self._lock(name):
+            # 拿锁期间记录可能被别的进程改写：以锁内的判定为准，避免删掉刚写好的新记录
+            verdict = self._classify(name)
+            state = verdict["state"]
+            if state in ("verified", "absent"):
+                return {"name": name, "state": state, "pid": verdict["pid"],
+                        "detail": verdict["detail"]}
+            if state == "legacy_blocked":
+                return {"name": name, "state": "blocked_unverified",
+                        "pid": verdict["pid"], "detail": verdict["detail"]}
+            if state == "corrupt":
+                target = self._quarantine(name)
+                return {"name": name, "state": "quarantined", "pid": None,
+                        "detail": f"无法解析的 pid 文件已移到 {target.name}"}
+            self._pid_path(name).unlink(missing_ok=True)
+            return {"name": name, "state": "cleared_reused" if state == "legacy_reused" else "cleared_dead",
+                    "pid": verdict["pid"], "detail": verdict["detail"]}
+
+    def _legacy_pid(self, name: str) -> int | None:
+        """只认裸数字；合法记录由 `_read_record` 负责，损坏文件返回 None。"""
+        try:
+            return int(self._pid_path(name).read_text(encoding="utf-8").strip())
+        except (OSError, ValueError):
+            return None
+
+    def _quarantine(self, name: str) -> Path:
+        target_dir = self._run_dir / "quarantine"
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / f"{name}.pid.{int(time.time() * 1000)}.txt"
+        self._pid_path(name).replace(target)
+        return target
 
     def _check_start(self, name: str) -> None:
         pid = self._read_pid(name)
