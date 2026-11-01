@@ -80,6 +80,7 @@ from .tools.android.tools import register_android_tools
 from .tools.bilibili.api import BiliAPI
 from .tools.bilibili.publishing import BilibiliPublisher
 from .tools.bilibili.tools import register_bilibili_tools
+from .tools.bilibili.video_source import BiliVideoSource
 from .tools.bilibili.write_tools import register_bilibili_write_tools
 from .tools.browser.budget import WriteBudget
 from .tools.browser.driver import BrowserDriver
@@ -113,6 +114,7 @@ from .tools.shell import register_shell_tools
 from .tools.shell.job_tools import register_command_job_tools
 from .tools.shell.jobs import CommandJobManager
 from .tools.skills import register_skill_inbox_tools, register_skill_tools
+from .tools.storyboard.tools import register_storyboard_tools
 from .tools.system import register_system_tools
 from .tools.web import FetchPolicy, register_web_tools
 
@@ -580,9 +582,17 @@ def build_runtime(
         )
     )
     # Cookie 路径必须注入：否则临时实例会读到真机的 B 站登录态
+    bili_api = BiliAPI(cookies_path=paths.cookies)
     register_bilibili_tools(
-        registry, BiliAPI(cookies_path=paths.cookies), config.asr,
+        registry, bili_api, config.asr,
         cache_root=paths.cache / 'asr', artifacts=artifacts,
+        session_ref=session_ref, run_ref=run_ref, can_view=can_view,
+    )
+    # 视频理解（分镜图）：取流能力由平台适配器注入，分镜域本身不认识 B站
+    register_storyboard_tools(
+        registry,
+        source=BiliVideoSource(bili_api, config.asr, cache_root=paths.cache / 'asr'),
+        cache_root=paths.cache / 'video', artifacts=artifacts,
         session_ref=session_ref, run_ref=run_ref, can_view=can_view,
     )
     # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照

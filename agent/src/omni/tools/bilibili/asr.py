@@ -89,6 +89,49 @@ def transcribe(
     VAD 先行（跳过静音，纯语音内容更快）；VAD 把内容全滤光时
     （音乐/歌声会被 Silero 误判为非语音）自动去掉 VAD 重试。
     """
+    segments = _transcribe_raw(
+        audio_path, model_name=model_name, device=device,
+        compute_type=compute_type, download_root=download_root,
+    )
+    return format_segments((seg.start, seg.text) for seg in segments)
+
+
+def transcribe_segments(
+    audio_path: Path,
+    *,
+    model_name: str = "small",
+    device: str = "cpu",
+    compute_type: str = "int8",
+    download_root: Path | None = None,
+) -> list[tuple[float, str]]:
+    """本地转写并返回**带秒级时间戳**的原始分段 [(起始秒, 文本)]。
+
+    `transcribe` 给的是按分钟窗口合并好的文本（给 agent 直接读）；
+    这个给的是原始分段——需要按秒对齐的场景（比如把台词挂到分镜的格子上）
+    只能用它。官方 B站字幕没有时间戳，对齐不了。
+    """
+    segments = _transcribe_raw(
+        audio_path, model_name=model_name, device=device,
+        compute_type=compute_type, download_root=download_root,
+    )
+    out: list[tuple[float, str]] = []
+    for seg in segments:
+        text = str(getattr(seg, "text", "") or "").strip()
+        if not text:
+            continue
+        out.append((float(getattr(seg, "start", 0.0) or 0.0), text))
+    return out
+
+
+def _transcribe_raw(
+    audio_path: Path,
+    *,
+    model_name: str = "small",
+    device: str = "cpu",
+    compute_type: str = "int8",
+    download_root: Path | None = None,
+) -> list[Any]:
+    """跑一遍转写，返回原始分段对象列表。"""
     model = _get_model(model_name, device, compute_type, download_root=download_root)
     audio_array = _decode_audio_16k_mono(audio_path)
     segments_iter, _info = model.transcribe(audio_array, vad_filter=True, beam_size=5)
@@ -98,4 +141,4 @@ def transcribe(
             audio_array, vad_filter=False, beam_size=5
         )
         segments = list(segments_iter)
-    return format_segments((seg.start, seg.text) for seg in segments)
+    return segments

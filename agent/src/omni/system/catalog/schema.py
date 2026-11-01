@@ -65,6 +65,7 @@ MODULES = (
     Module('android', '安卓工具', '工具能力', ('tools/android/',), 'ADB、防护、UI 树、观察令牌、锁帧和输入法。', ('ANDROID.md',), ('test_android.py', 'test_android_observations.py')),
     Module('desktop', '桌面工具', '工具能力', ('tools/desktop/',), 'Windows UIAutomation、窗口观察、租约与受控语义动作。', ('DESKTOP.md',), ('test_desktop.py',)),
     Module('bilibili', 'B站工具', '工具能力', ('tools/bilibili/',), '读 API/转写及注入浏览器协议的草稿与受控写。', ('BILIBILI_WRITING.md',), ('test_bilibili_tools.py', 'test_bilibili_publishing.py')),
+    Module('storyboard', '视频理解与分镜', '工具能力', ('tools/storyboard/',), '切点检测、局部剪辑率格位分配、PyAV 取最锐帧、宫格渲染与可寻址索引；取流能力由平台适配器注入。', ('VIDEO_UNDERSTANDING.md',), ('test_storyboard.py',)),
     Module('qq-tools', 'QQ 工具', '工具能力', ('tools/qq/',), 'OneBot 客户端与白名单内主动消息。', ('QQ_SCENARIOS.md',), ('test_outbox.py',)),
     Module('mcp', 'MCP 扩展适配', '插件与扩展', ('tools/mcp/',), '外部 stdio 工具发现、授权、漂移撤权与子进程生命周期。', ('MCP.md',), ('test_mcp.py',)),
     Module('toolkit', '工具公共协议与兼容层', '工具能力', ('tools/',), 'Registry、ToolResult、SessionRef/RunRef、路径策略、截图协议及旧 import 薄转发。', ('ARCHITECTURE.md',), ('test_tools.py',)),
