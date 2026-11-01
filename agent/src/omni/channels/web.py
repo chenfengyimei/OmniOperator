@@ -131,11 +131,29 @@ def create_app(runtime: Runtime) -> FastAPI:
     """把 Runtime 暴露成 REST + 静态工作台（测试用 TestClient 直接调）。"""
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        # 常驻服务（心跳调度/QQ 通道/NapCat）由守护线程拉起并一直盯着：
+        # 工作台一起来它们就在线，不需要用户点"启动"。隔离实例里守护是 disabled，
+        # 这里等于空操作——绝不能因为装配问题让测试去拉起真机进程。
+        if runtime.supervisor is not None:
+            try:
+                await asyncio.to_thread(runtime.supervisor.start)
+            except Exception as exc:  # noqa: BLE001 —— 守护没起来不该让工作台打不开
+                print(f"[工作台] 服务守护启动失败：{type(exc).__name__}: {exc}", flush=True)
         try:
             yield
         finally:
             loop = asyncio.get_running_loop()
             deadline = loop.time() + 10
+            if runtime.supervisor is not None:
+                try:
+                    # 默认只交出守护权、不停服务：关掉工作台不该打断正在跑的定时任务
+                    await asyncio.to_thread(
+                        runtime.supervisor.stop,
+                        stop_services=not runtime.supervisor.keep_running_after_exit(),
+                        wait_s=max(0.0, min(3.0, deadline - loop.time())),
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    print(f"[工作台] 服务守护停止失败：{type(exc).__name__}: {exc}", flush=True)
             terminal_result = await asyncio.to_thread(terminal_manager.close_all, wait_s=max(0,deadline-loop.time()))
             result = await asyncio.to_thread(runtime.close, wait_s=max(0,deadline-loop.time()))
             if not terminal_result["complete"] or not result["complete"]:

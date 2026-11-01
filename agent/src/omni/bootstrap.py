@@ -73,6 +73,7 @@ from .system.backup import backup_runtime
 from .system.doctor import diagnose
 from .system.observability import BoundedLog, EventLog
 from .system.services import ServiceManager
+from .system.supervisor import ServiceSupervisor
 from .tools.android.driver import AndroidDriver
 from .tools.android.stream import AndroidFrameHub
 from .tools.android.tools import register_android_tools
@@ -170,6 +171,7 @@ class Runtime:
     android: AndroidDriver
     mcp: MCPManager
     reviewer: TurnEndReviewer | None = None
+    supervisor: ServiceSupervisor | None = None  # 常驻服务守护（工作台 lifespan 启停）
     journal_consolidator: JournalConsolidator | None = None  # 记忆系统整理 worker（M3–M5）
     memory_guard: MemoryGuard | None = None  # 记忆写入额度与输入检查（D12）
     owner_memory: OwnerMemory | None = None  # 所有者记忆门面（web 端点用；数据层统一）
@@ -618,6 +620,7 @@ def build_runtime(
     services = ServiceManager(
         napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None,
         run_dir=paths.run, log_dir=paths.service_logs or paths.logs,
+        health_timeout_s=config.system.health_timeout_s,
         environment={'OMNI_AGENT_ID':paths.agent_id,'OMNI_AGENT_CATALOG':str(catalog_path.resolve()),
                      'OMNI_CONFIG_PATH':str(config_path.resolve()),'OMNI_STORAGE_BASE':str(data_root.resolve())},
         port_prober=None if not isolated else _no_port_probe,
@@ -625,6 +628,12 @@ def build_runtime(
         spawner=None if not isolated else _no_spawn,
         inspector=None if not isolated else _no_process_probe,
         tcp_probe=None if not isolated else _no_tcp_probe,
+    )
+    # 守护只在"真机 + 允许后台任务"时启用：隔离实例注入 _no_spawn，
+    # 一旦误开就是测试去拉起用户真实的 QQ/心跳进程
+    supervisor = ServiceSupervisor(
+        services, run_dir=paths.run, config_path=config_path,
+        enabled=not isolated and start_background_workers,
     )
     register_system_tools(registry, services)
     android_driver = AndroidDriver(
@@ -748,6 +757,7 @@ def build_runtime(
         write_budget=write_budget,
         approvals=approvals,
         services=services,
+        supervisor=supervisor,
         agent=agent,
         android=android_driver,
         android_streams=android_streams,

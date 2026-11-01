@@ -169,6 +169,26 @@ def test_isolated_runtime_refuses_to_spawn_real_services(tmp_path, monkeypatch):
         runtime.services.napcat_start()
 
 
+def test_isolated_supervisor_never_spawns(tmp_path):
+    """守护装配在隔离实例里必须整体失效：起服务就是起用户真机的进程。"""
+    runtime = _runtime(tmp_path)
+    assert runtime.supervisor is not None
+    assert runtime.supervisor.start()["mode"] == "disabled"
+    runtime.supervisor.reconcile_once()
+    run_dir = runtime.paths.run
+    assert not list(run_dir.glob("*.pid")), "隔离实例不许留下任何启动记录"
+    assert runtime.supervisor.snapshot()["supervised"] is False
+
+
+def test_isolated_workbench_lifespan_starts_and_stops_supervisor(tmp_path):
+    """工作台生命周期接上了守护，但隔离实例里它只是空转。"""
+    runtime = _runtime(tmp_path)
+    with TestClient(create_app(runtime), base_url="http://127.0.0.1"):
+        pass
+    assert runtime.supervisor.snapshot()["mode"] in {"disabled", "idle"}
+    assert not list(runtime.paths.run.glob("*.pid"))
+
+
 # ---------------------------------------------------------------- 写审计
 
 
