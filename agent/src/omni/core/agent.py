@@ -16,6 +16,7 @@ from ..config import AppConfig
 from ..llm import errors as llm_errors
 from ..llm.budget import RunBudget
 from ..llm.gateway import Gateway, Reply, StreamEvent, to_openai_tool_call
+from ..llm.tiers import ScopeUsage
 from ..llm.usage import estimate_tokens
 from ..memory.artifacts import MARKER_RE, ArtifactError
 from ..memory.dialogue import DialogueLog
@@ -48,6 +49,7 @@ from .modes import (
     request_mode_spec,
     scope_allowed_names,
 )
+from .budget_alert import ScopeAlertTaker, scope_warning
 from .router import ROUTER_SYSTEM_PROMPT, ModeRouter
 from .run import (
     ActiveRuns,
@@ -169,6 +171,35 @@ class Agent:
         # 压缩摘要用廉价模型（同回合后 review 的选型逻辑）
         review_model = config.models.review.strip()
         self._summary_model = review_model if review_model else self.model
+        # 额度阶梯告警（P5-c）：口径到 80% 时在回答末尾提示一句。
+        # 提醒权由账本落盘判定（每天一次），所以多进程/重启都不会重复弹。
+        self._alert_taker = ScopeAlertTaker(getattr(gateway, "ledger", None))
+
+    # ---------------------------------------------------------------- 额度告警（P5-c）
+
+    def _budget_warning(self, scope: str) -> str:
+        """本回合要不要给用户加一句额度提示。空串 = 不加。
+
+        口径用量与上限都在网关侧算（`gateway.scope_alerts`），本层只负责
+        "该不该说"（每天一次，落盘判定）与"怎么说"。
+        """
+        getter = getattr(self.gateway, "scope_alerts", None)
+        if getter is None:
+            return ""
+        try:
+            rows = getter()
+        except Exception as exc:  # noqa: BLE001 —— 告警失败不该让回答失败
+            print(f"[额度] 告警查询失败（不影响回答）：{exc}", file=sys.stderr, flush=True)
+            return ""
+        usages = [
+            ScopeUsage(
+                scope=str(row.get("scope", "other")),
+                used_micro=int(row.get("used_micro", 0) or 0),
+                limit_micro=int(row.get("limit_micro", 0) or 0),
+            )
+            for row in rows
+        ]
+        return scope_warning(usages, taker=self._alert_taker)
 
     # ---------------------------------------------------------------- 全量记忆旁路
 
@@ -839,6 +870,11 @@ class Agent:
                 answer = reply.text.strip() or "（模型没有返回内容）"
                 if getattr(reply, "incomplete", False):
                     answer += "\n\n（注意：这条回答在生成过程中连接中断，内容可能不完整。）"
+                # 额度阶梯告警（P5-c）：到 80% 时在末尾加一句。
+                # 每天只提醒一次（落盘判定），所以不会每轮都刷。
+                warning = self._budget_warning(channel)
+                if warning:
+                    answer += f"\n\n{warning}"
                 self.store.append_message(sid, "assistant", answer, auto_title=False)
                 self._record_dialogue(sid, "assistant", answer, channel=channel)
                 self._record_session_assistant(sid, run, answer)
@@ -1217,6 +1253,9 @@ class Agent:
             "session_id": sid,
             "run_budget": run.budget if run is not None else None,
             "cancel": run.cancel_token if run is not None else None,
+            # 分口径（P5-c）：口径就是通道。QQ 上烧的钱不该挤占网页端的额度，
+            # 所以按 run.identity.channel 分账；没有 run 时（单测/嵌入式）不传。
+            "scope": run.identity.channel if run is not None else "",
         }
         try:
             if on_delta is not None and hasattr(self.gateway, "stream"):

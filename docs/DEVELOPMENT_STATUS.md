@@ -1,5 +1,75 @@
 # 开发状态记录
 
+2026-11-01 费用额度的分口径与阶梯告警（P5-c，抄 surfcore `token-budget.js` 的判定逻辑，不抄形态）：
+- **用户原话**：「这些模块全部都学习一下看看，优化我们系统的模块，不照抄，只学习，
+  看哪些好与我们的模块可以优化升级的就进行修改而不是无脑乱加」。
+- **学习来源**：`xuexi/surfcore/src/token-budget.js`（464 行）。三条纯逻辑值得抄：
+  ① **口径维度**——`SCOPES = ['qq','bili','other','total']` 各自独立比额度，谁先到
+  80% 谁提醒、谁先到 100% 谁拦截；② **阶梯**——`ALERT_RATIO = 0.8`，80% 提醒 / 100% 拦截；
+  ③ **"每天只提醒一次"必须落盘**——`takeAlert` 的注释原话："这里在**返回时**就落盘，
+  而不是等用户点'知道了'：用户关掉页面/DSH 重启也不能让同一个提醒弹第二遍"。
+- **先核实后动手，纠正了四处初判**（不核实直接抄会做错）：
+  1. **口径名不抄**。它的 `qq/bili/other` 是它自己的业务面（QQ 机器人 + B站调度器）。
+     我们的自然口径是**通道**（`cli/web/qq/cron`，取自 `RunIdentity.channel`）——
+     用户真正想控制的是"QQ 上别烧太多"，而不是"bili 这个业务面"。
+     落成**开放集合**（不是枚举）：出现什么通道就按什么通道记，没配上限的照常记账。
+  2. **三档不抄**。它另有 80/90/100 三档，那是**记忆卡容量**告警（`memory-card.js`）的
+     设定，与费用口径无关。费用只抄它自己的 80/100 两档。
+  3. **双单位不抄**。它同时按人民币与 token 数两个单位比，我们只有美元——
+     且项目纪律是"金额一律微美元整数"，不引入第二套单位。
+  4. **形态不抄**。它把提醒写进独立 JSON 文件（`token-alert.json`）、走设置页弹窗；
+     我们是 SQLite（提醒标记与额度账本同库同事务）、提醒落在**回答末尾**
+     （用户在哪���通道说话就在哪看到），不引入设置页。
+- **实现落点**：
+  - 新 `agent/src/omni/llm/tiers.py`（叶子层纯逻辑，可完全离线单测）：`ScopeUsage`
+    （`ratio`/`tier`/`remaining_micro`）、`collect_tiers`、`describe_scope`、`tier_message`、
+    `normalize_scope`。
+  - 新 `agent/src/omni/core/budget_alert.py`：`ScopeAlertTaker`（领取提醒权的门面，
+    经 Protocol 注入账本——`llm` 层不许 import `memory`）、`scope_warning`、`scope_block_note`。
+  - `state.db` **schema v14 → v15**（纯增量）：新表 `llm_budget_scope(day, scope,
+    reserved_micro, spent_micro)` 与 `llm_budget_alert(day, scope, level, at)`。
+    **不动 `llm_budget` 的主键**——它是真机在用的表，改主键要搬存量行、要处理跨版本
+    回滚，风险与收益不成比例。旧库迁移后存量账与流水一字不动（已专项验证）。
+  - `memory/usage.py`：`scope_reserve`/`scope_settle`/`scope_total`/`scope_totals`/
+    `take_scope_alert`/`scope_alerts`。口径预留与总额预留**同一套条件更新纪律**
+    （`UPDATE ... WHERE reserved+spent+? <= limit` 的 rowcount 即判据），跨进程不超发。
+  - `llm/budget.py`：`Ledger` Protocol 增 6 个口径方法 + `NullLedger` 对应实现；
+    `Reservation` 增 `scope` 字段（结算时对称退预留）。
+  - `llm/gateway.py`：`complete`/`stream` 增 `scope` 形参；`_scope_reserve` 做口径硬拦截；
+    `scope_alerts()` 供上层读档位。
+  - `core/agent.py`：`_model_call` 把 `run.identity.channel` 作为 scope 传下去；
+    回答末尾追加额度提示（`core/agent.py:888` 一处）。
+  - `config.py`：`LLMBudget.scope_daily_usd`（通道 → 美元日上限，默认空 = 不分口径）。
+- **三条不变式**：
+  1. **未知不是 0**：口径不限时 `ratio` 是 `None` 不是 0——"不限"与"用完了"是两回事，
+     界面不能把没分母的比例渲染成"还很宽裕"。
+  2. **总额与口径并列**：两套上限各自独立判定，任一到线都拦；口径没配上限 = 只记账不拦
+     （**缺配置 ≠ 该拦截**）。
+  3. **提醒权落盘**：`take_scope_alert` 用主键冲突当闸门，`INSERT OR IGNORE` 的
+     rowcount 就是"没人领过"的证据——跨进程、跨重启都不会弹第二遍。**按口径分别领取**
+     （口径之间并列，QQ 提醒过不该让网页端也失去提醒权）。
+- **踩过的坑**：
+  1. **口径结算必须对称**：只在预留时记口径、结算时不退，口径的"已预留"会一直挂着，
+     用量只增不减，很快就误报超限。已加专项测试守住。
+  2. **测试假设写错**：第一版"口径上限 1 美元、调用花 0.85 美元 → 应被拦"是我写错了
+     （0.85 < 1 不该拦）。**实际代码行为是对的**——改测试而不是改断言意图。
+  3. **`Reservation` 是 frozen dataclass**：用 `dataclasses.replace` 补 `scope`，
+     不新造对象（造新对象会丢掉 `ledger_held`/`run_held` 两个标记）。
+- **测试**：`agent/tests/test_budget_tiers.py` 31 项全绿（判定层 10 + 账本层 9 + 告警层 6
+  + 端到端 3 + 迁移 1 + 其它 2）；相关回归 184 项全绿；
+  **隔离树全量 1796 passed / 0 failed（611.00s，HEAD=3779e17 的干净提交态）**。
+- **本轮修掉的真实缺陷**：
+  1. **迁移脚本不可重放**——v15 用了裸 `CREATE TABLE`，版本回退再前滚（运维手段，
+     也是测试构造旧库的手法）会撞 "table already exists" 而迁移失败。
+     改成 `CREATE TABLE IF NOT EXISTS`，并在 `DATA_MODEL.md` 的迁移纪律里写明"迁移要可重放"。
+  2. **新表漏登记数据模型文档**——`tests/test_data_model.py` 守���"state.db 表清单与真实
+     DDL 一致"，新增表必须同步登记 `docs/DATA_MODEL.md`（连带必改项）。
+- **剩余限制（待真实验收）**：① **未在真机跑过**——真实多进程（网页/QQ/心跳）下的
+  跨进程提醒落盘未验，只在同库双实例上验证过；② 分口径上限**默认不启用**
+  （`scope_daily_usd` 默认空），真机要自己配才生效；③ 提醒只在**回答末尾**出现，
+   界面侧（`/api/llm/usage`）尚未暴露分口径用量与档位——前端文件被并行会话占用，本轮未动；
+  ④ 口径取自通道，不区分"同一通道内的用途"（chat 与 review 都算 qq）——更细的分账未做。
+
 2026-11-01 视频理解真机验收：撞出四个缺陷并修复（D35，D33 的"待真实验收"清账）：
 - **用户原话**：「必须说清的剩余限制（待真实验收）真实 B站视频未跑过——DASH 分片流的取流与解码
   没在真机验证过，只跑过本地合成片；台词只能走本地 ASR——官方 B站字幕没有时间戳，对齐不了格子；

@@ -19,7 +19,7 @@ import datetime as dt
 import sys
 import time
 from collections.abc import Callable, Iterable, Iterator
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from ..config import LLM as LLMConfig
@@ -37,6 +37,12 @@ from .budget import (
     settle_amount,
 )
 from .errors import GatewayError
+from .tiers import (
+    ScopeUsage,
+    collect_tiers,
+    describe_scope,
+    normalize_scope,
+)
 from .usage import (
     MICRO,
     Usage,
@@ -284,6 +290,86 @@ class Gateway:
             )
         return Reservation(day=_today(), micro=micro, quote=quote, run_held=held_by_run)
 
+    # ---------------------------------------------------------------- 分口径（P5-c）
+
+    def _scope_limit_micro(self, scope: str) -> int:
+        """某口径的日上限（微美元）。没配 = 0 = 不限。
+
+        口径名是开放集合：配置里没写的通道照常记账，只是不单独设限。
+        """
+        key = normalize_scope(scope)
+        limits = self.llm.budget.scope_daily_usd or {}
+        for name, value in limits.items():
+            if normalize_scope(name) == key:
+                return max(0, int(round(float(value) * MICRO)))
+        return 0
+
+    def _scope_reserve(
+        self, *, scope: str, micro: int, model: str
+    ) -> tuple[str, bool]:
+        """按口径预留。返回 (口径名, 是否成功)。
+
+        口径没配上限时**只记账不拦**——与总额口径的"0 = 未设上限"同款语义。
+        口径超了是**硬拦截**（和总额一样）：额度是约定，不是建议。
+        """
+        key = normalize_scope(scope)
+        limit = self._scope_limit_micro(key)
+        if limit <= 0:
+            # 不限也要记账，否则"这个口径花了多少"永远查不出来。
+            try:
+                self.ledger.scope_reserve(
+                    day=_today(), scope=key, micro=micro, limit_micro=0
+                )
+            except Exception as exc:  # noqa: BLE001 —— 记账失败不该阻断对话
+                self._warn_once(f"[额度] 口径记账失败：{exc}")
+            return key, True
+        try:
+            ok, used = self.ledger.scope_reserve(
+                day=_today(), scope=key, micro=micro, limit_micro=limit
+            )
+        except Exception as exc:  # noqa: BLE001 —— 账本不可用就不敢花钱
+            raise errors.budget_error(
+                f"费用账本不可用（{exc}）：为避免超支，本次未发出模型请求",
+                model=model,
+            ) from exc
+        if not ok:
+            raise errors.budget_error(
+                f"该口径今日费用已达上限 ${limit / MICRO:.2f}"
+                f"（口径 {key}，已用 ${used / MICRO:.4f}）：本次未发出请求",
+                model=model,
+            )
+        return key, True
+
+    def scope_alerts(self, *, day: str | None = None) -> list[dict[str, str]]:
+        """当日各口径的用量与档位（供界面/回答提示使用）。"""
+        day = day or _today()
+        limits = self.llm.budget.scope_daily_usd or {}
+        totals = self.ledger.scope_totals(day)
+        usages: list[ScopeUsage] = []
+        for name, total in totals.items():
+            limit = 0
+            for key, value in limits.items():
+                if normalize_scope(key) == name:
+                    limit = max(0, int(round(float(value) * MICRO)))
+                    break
+            usages.append(
+                ScopeUsage(
+                    scope=name,
+                    used_micro=int(total.get("used_micro", 0)),
+                    limit_micro=limit,
+                )
+            )
+        return [
+            {
+                "scope": u.scope,
+                "used_micro": str(u.used_micro),
+                "limit_micro": str(u.limit_micro),
+                "tier": u.tier,
+                "message": describe_scope(u),
+            }
+            for u in collect_tiers(usages)
+        ]
+
     def _settle(
         self,
         record: _CallRecord,
@@ -310,6 +396,18 @@ class Gateway:
                 )
             except Exception as exc:  # noqa: BLE001 —— 结算失败不能否定已完成的回答
                 self._warn_once(f"[额度] 结算失败：{exc}")
+        # 分口径结算（P5-c）：与总额结算对称——总额退预留，口径也退。
+        # 少了这一步，口径的"已预留"会一直挂着，口径用量只增不减，很快就误报超限。
+        if reservation is not None and reservation.scope:
+            try:
+                self.ledger.scope_settle(
+                    day=reservation.day,
+                    scope=reservation.scope,
+                    reserved_micro=reservation.micro,
+                    charged_micro=max(0, charged or 0),
+                )
+            except Exception as exc:  # noqa: BLE001 —— 结算失败不能否定已完成的回答
+                self._warn_once(f"[额度] 口径结算失败：{exc}")
         if run_budget is not None and reservation is not None and reservation.run_held:
             run_budget.settle(reservation.micro, charged)
         try:
@@ -386,12 +484,19 @@ class Gateway:
         session_id: int | None = None,
         run_budget: RunBudget | None = None,
         cancel: Any = None,
+        scope: str = "",
     ) -> Reply:
         model = model or self.resolve("chat")
         self._precheck(model, messages, tools, cancel)
         reservation = self._reserve(
             model=model, messages=messages, run_budget=run_budget
         )
+        # 分口径预留（P5-c）：与总额预留**分开两次**。
+        # 为什么不在 _reserve 里一起做：口径限额是"某通道自己的上限"，
+        # 没配上限时只记账不拦（缺配置 ≠ 该拦截）；总额与口径各自独立判定，
+        # 任何一方到线都拦——两套上限是并列关系，不是包含关系。
+        scope_key = self._scope_reserve(scope=scope, micro=reservation.micro, model=model)[0]
+        reservation = replace(reservation, scope=scope_key)
         record = _CallRecord(model=model, purpose=purpose, reservation=reservation)
         try:
             response, attempts = self._call(model, messages, tools, cancel)
@@ -473,6 +578,7 @@ class Gateway:
         run_budget: RunBudget | None = None,
         cancel: Any = None,
         on_event: Callable[[StreamEvent], None] | None = None,
+        scope: str = "",
     ) -> Reply:
         """流式调用：边生成边交付增量，最后返回与 `complete` 同形状的 Reply。
 
@@ -492,11 +598,14 @@ class Gateway:
                 session_id=session_id,
                 run_budget=run_budget,
                 cancel=cancel,
+                scope=scope,
             )
         self._precheck(model, messages, tools, cancel)
         reservation = self._reserve(
             model=model, messages=messages, run_budget=run_budget
         )
+        scope_key = self._scope_reserve(scope=scope, micro=reservation.micro, model=model)[0]
+        reservation = replace(reservation, scope=scope_key)
         record = _CallRecord(model=model, purpose=purpose, reservation=reservation)
         text_parts: list[str] = []
         calls: dict[int, dict[str, Any]] = {}

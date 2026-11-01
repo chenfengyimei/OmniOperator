@@ -77,6 +77,7 @@ config.py 提供声明配置、路径与兼容版本，不承担业务编排。
 D26 明确平台基础设施边界：`system` 只可依赖 `config` 和 system 内部；memory 可引用
 `system.atomic/filelock`（§3.5 的共享文件事务原语），不能依赖服务管理。llm/safety/config
 不能借 system 绕层。`AndroidDriver`、`EventLog` 加入组装根守卫。
+
 D34 补充共享原语：`system.text_guard` 是**确定性文本守卫**（凭据形态与高危标识扫描，
 纯函数、只用标准库），加入 memory 可引用的共享原语名单
 （`atomic / filelock / path_guard / text_guard`）。理由：记忆写入闸门（`memory/privacy.py`）
@@ -233,6 +234,8 @@ Playwright 的**同步** API 绑定在创建它的线程上（greenlet）。`thr
 | 结算 | `Gateway._settle` | 有 usage 有单价=实付；有 usage 无单价=**NULL（未知）**；无 usage 有预留=按预留保守保留；限流/认证这类"确定没计费"的失败退回预留 |
 | 父子预算 | `core/run.RunContext.budget` | 子 run 复用父的 `RunBudget` **实例**（不是副本），累计限制才成立 |
 | 账本 | `state.db` 的 `llm_budget` | 微美元整数；`UPDATE ... WHERE reserved + spent + ? <= limit` 的 rowcount 即判据；跨天结算也不丢账 |
+| 分口径账本 | `state.db` 的 `llm_budget_scope` | 按**口径**（= 通道，`cli/web/qq/cron`…）分别预留与结算；口径名是开放集合，没配上限的口径只记账不拦；总额与口径是**并列**的两套上限，任一到线都拦 |
+| 阶梯告警 | `llm/tiers.py` + `core/budget_alert.py` | 80% 提醒 / 100% 拦截；**提醒权落盘**（`llm_budget_alert`），当天同一口径只提醒一次——跨进程、跨重启都不重复弹；口径不限时比例是 `None`（未知不是 0） |
 | 流水 | `state.db` 的 `llm_calls` | 谁（run/session）、什么用途（chat/compress/review/finalize/test）、多少 token、多少钱、钱从哪来（reported/estimated/reserved/unknown/not_billed） |
 
 明确不做：不替供应商宣布"免费"（只有本机 provider 与显式声明才算 0）；不改用户正在用的模型配置；
@@ -549,6 +552,18 @@ android_shots/android_cache/browser_profile/browser_shots/run/logs/mcp_logs）�
   新模块补分类/文档/测试，运行 project_index.py 和 --check；AST 守卫仍裁决依赖方向。
 
 ## 7. 编码约定
+
+### 安装级更新与恢复（2026-11-01）
+
+`system/updates` 提供版本识别、固定 Gitee 源、源码包校验、维护闸门、快照和独立事务执行。
+UpdateManager 只在 bootstrap 构造；业务空闲由 Runtime 回调注入，更新器不依赖内核类型。
+RuntimePaths.updates 属于固定安装控制区，不随业务根或所选 Agent 移动，显式 data_dir 时隔离。
+所有运行入口在打开数据库前取得进程租约；维护期间入口启动和新业务写入关闭，已有工作可完成。
+Agent、增量检索及后台投递通过注入的接收上下文登记工作；常驻守护不重拉服务。
+实际替换只由冻结、标准库依赖的基础 Python 执行器在全部入口退出后进行，禁止运行中重建 .venv。
+恢复点保留本机原值，与脱敏备份分离；SQLite 快照原语复用，提交后不自动回滚新数据。
+HTTP 位于 web_api/updates，关于页原生模块 hub-about，均沿用既有配对与前端事件分发。
+协议、发布包和操作说明见 [UPDATES.md](UPDATES.md)，不以实现测试替代真实升级验收。
 
 D25：system/process_identity 仅提供 OS 身份/保留句柄操作，ServiceManager 仍在 bootstrap
 构造；终止器、身份探测、端口探测均可注入。system/doctor 不组装 Runtime，不触发迁移。

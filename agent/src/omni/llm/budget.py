@@ -50,6 +50,7 @@ class Reservation:
     quote: Quote
     ledger_held: bool = False
     run_held: bool = False
+    scope: str = ""  # 分口径（P5-c）：空串 = 未按口径预留
 
     @property
     def reserved(self) -> bool:
@@ -71,6 +72,32 @@ class Ledger(Protocol):
         """记一条调用流水（只用于观测，失败不影响对话）。"""
         ...
 
+    # ---------------------------------------------------------------- 分口径（P5-c）
+
+    def scope_reserve(
+        self, *, day: str, scope: str, micro: int, limit_micro: int
+    ) -> tuple[bool, int]:
+        """按口径预留；返回 (是否成功, 该口径已预留+已花费)。"""
+        ...
+
+    def scope_settle(
+        self, *, day: str, scope: str, reserved_micro: int, charged_micro: int
+    ) -> None:
+        """按口径结算：退回预留，把实际花费计入。"""
+        ...
+
+    def scope_total(self, day: str, scope: str) -> dict[str, int]:
+        """某口径某日的用量（reserved/spent/used）。"""
+        ...
+
+    def scope_totals(self, day: str) -> dict[str, dict[str, int]]:
+        """某日所有口径的用量。"""
+        ...
+
+    def take_scope_alert(self, *, day: str, scope: str, level: str = "warn") -> bool:
+        """领取提醒权：True = 今天第一次（该提醒），False = 已提醒过（别再弹）。"""
+        ...
+
 
 class NullLedger:
     """没有注入账本时的空实现（嵌入式用法/单测）：不落库，预算仍按内存判定。"""
@@ -83,6 +110,30 @@ class NullLedger:
 
     def record(self, **fields: object) -> None:
         return None
+
+    # 分口径：没有落库就没有跨进程能力，所以口径一律不限（放行）。
+    # 这样嵌入式用法不会因为"没配账本"就拒绝调用——**缺能力不等于要拦截**。
+
+    def scope_reserve(
+        self, *, day: str, scope: str, micro: int, limit_micro: int
+    ) -> tuple[bool, int]:
+        return True, micro
+
+    def scope_settle(
+        self, *, day: str, scope: str, reserved_micro: int, charged_micro: int
+    ) -> None:
+        return None
+
+    def scope_total(self, day: str, scope: str) -> dict[str, int]:
+        return {"reserved_micro": 0, "spent_micro": 0, "used_micro": 0}
+
+    def scope_totals(self, day: str) -> dict[str, dict[str, int]]:
+        return {}
+
+    def take_scope_alert(self, *, day: str, scope: str, level: str = "warn") -> bool:
+        # 没有落库就没有"每天只提醒一次"的保证：无脑返回 True 会让每个进程都弹一次。
+        # 这里返回 False = 不提醒——宁可漏提醒，也不要刷屏。
+        return False
 
 
 class RunBudget:

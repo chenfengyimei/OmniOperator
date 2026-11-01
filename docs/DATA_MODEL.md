@@ -38,6 +38,7 @@ state.db；对话原文、事实、技能、档案等"丢了用户会心疼"的�
 |---|---|---|---|
 | `runs` / `run_events` | v4 | `memory/runs.py::RunStore` | 事件按 run 单调 seq；重启对账 interrupted |
 | `llm_calls` / `llm_budget` | v5 | `memory/usage.py` | 费用流水与当日预算；`cost_micro=NULL` 表示未知，不是 0 |
+| `llm_budget_scope` / `llm_budget_alert` | v15 | `memory/usage.py` | 分口径（= 通道）用量与提醒落盘；口径账与总额账并列，提醒权按 (日,口径,档位) 唯一，跨进程只发一次 |
 | `artifacts` | v6 | `memory/artifacts.py` | `expires_at` 到期由心跳清理；活跃 run 引用不删 |
 
 ### 投递与外部能力
@@ -113,8 +114,9 @@ state.db 引用 `session_id` 的表（从 DDL 动态提取，守卫测试校验�
 - **金额口径**：`llm_calls.cost_micro` 一律微美元整数；`NULL` 是"算不出来"，
   `0` 是"确定免费"，两者不得混用。
 - **状态语义**：`unknown` 永远表示"副作用未知"，不自动重试、不自动当成失败。
-- **迁移纪律**：已发布版本（v1–v14）的 SQL 逐字节不变；新结构一律追加版本号，
-  搬数据或删旧表的版本必须在 `state_schema.py` 注释里写清语义。
+- **迁移纪律**：已发布版本（v1–v15）的 SQL 逐字节不变；新结构一律追加版本号，
+  搬数据或删旧表的版本必须在 `state_schema.py` 注释里写清语义。迁移要**可重放**
+  （版本回退后再前滚是运维手段），所以建表用 `CREATE TABLE IF NOT EXISTS`。
 
 ## 5 后续演进
 

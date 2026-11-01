@@ -12,6 +12,15 @@
 
 `cost_micro` 允许 NULL：未知不是 0。读接口一律把 NULL 原样交给界面，
 不在仓储层"补一个 0"。
+
+**分口径账本**（P5-c）：`llm_budget_scope` 按口径（通道）分别记账，
+与 `llm_budget`（总额）并行。为什么要分口径：用户真正想控制的是
+"QQ 上别烧太多"——总额只有一个数字，分了口径才能各自设限、互不挤占。
+判定逻辑在 `llm/tiers.py`（纯函数），这里只管落盘与原子预留。
+
+**提醒落盘**（P5-c）：`llm_budget_alert` 记"今天这个口径已经提醒过了"。
+抄 surfcore `token-budget.js::takeAlert` 的纪律——在**返回时**就落盘，
+而不是等用户点"知道了"；用户关掉页面、进程重启，同一个提醒也不会弹第二遍。
 """
 from __future__ import annotations
 
@@ -132,6 +141,138 @@ class UsageLedger:
             "spent_micro": spent,
             "used_micro": reserved + spent,
         }
+
+    # ---------------------------------------------------------------- 分口径账本
+
+    def scope_reserve(
+        self, *, day: str, scope: str, micro: int, limit_micro: int
+    ) -> tuple[bool, int]:
+        """按口径原子预留。返回 (是否成功, 该口径已预留+已花费)。
+
+        与 `reserve` 同一套纪律：条件更新的 rowcount 就是"这笔钱是我预留到的"
+        的证据，多进程并发下也不会超发。
+
+        `limit_micro<=0` 表示该口径不限：只记账不拦（与总额口径一致）。
+        """
+        micro = max(0, int(micro))
+        limit_micro = int(limit_micro)
+        scope = str(scope or "other")
+        if micro == 0:
+            with self._state._tx() as conn:
+                conn.execute(
+                    "INSERT OR IGNORE INTO llm_budget_scope(day, scope, reserved_micro, spent_micro)"
+                    " VALUES (?, ?, 0, 0)",
+                    (day, scope),
+                )
+            return True, self.scope_total(day, scope)["used_micro"]
+        with self._state._tx() as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO llm_budget_scope(day, scope, reserved_micro, spent_micro)"
+                " VALUES (?, ?, 0, 0)",
+                (day, scope),
+            )
+            if limit_micro > 0:
+                cur = conn.execute(
+                    "UPDATE llm_budget_scope SET reserved_micro = reserved_micro + ?"
+                    " WHERE day = ? AND scope = ? AND reserved_micro + spent_micro + ? <= ?",
+                    (micro, day, scope, micro, limit_micro),
+                )
+                ok = cur.rowcount == 1
+            else:
+                conn.execute(
+                    "UPDATE llm_budget_scope SET reserved_micro = reserved_micro + ?"
+                    " WHERE day = ? AND scope = ?",
+                    (micro, day, scope),
+                )
+                ok = True
+            row = conn.execute(
+                "SELECT reserved_micro + spent_micro FROM llm_budget_scope"
+                " WHERE day = ? AND scope = ?",
+                (day, scope),
+            ).fetchone()
+        return ok, int(row[0]) if row else 0
+
+    def scope_settle(
+        self, *, day: str, scope: str, reserved_micro: int, charged_micro: int
+    ) -> None:
+        """按口径退回预留、计入实际花费。与总额结算同一套语义。"""
+        reserved = max(0, int(reserved_micro))
+        charged = max(0, int(charged_micro))
+        scope = str(scope or "other")
+        with self._state._tx() as conn:
+            cur = conn.execute(
+                "UPDATE llm_budget_scope SET reserved_micro = MAX(0, reserved_micro - ?),"
+                " spent_micro = spent_micro + ? WHERE day = ? AND scope = ?",
+                (reserved, charged, day, scope),
+            )
+            if cur.rowcount == 0:
+                conn.execute(
+                    "INSERT INTO llm_budget_scope(day, scope, reserved_micro, spent_micro)"
+                    " VALUES (?, ?, 0, ?)",
+                    (day, scope, charged),
+                )
+
+    def scope_total(self, day: str, scope: str) -> dict[str, int]:
+        """某口径某日的用量。"""
+        rows = self._state._read(
+            "SELECT reserved_micro, spent_micro FROM llm_budget_scope"
+            " WHERE day = ? AND scope = ?",
+            (day, str(scope or "other")),
+        )
+        if not rows:
+            return {"reserved_micro": 0, "spent_micro": 0, "used_micro": 0}
+        reserved, spent = int(rows[0][0]), int(rows[0][1])
+        return {
+            "reserved_micro": reserved,
+            "spent_micro": spent,
+            "used_micro": reserved + spent,
+        }
+
+    def scope_totals(self, day: str) -> dict[str, dict[str, int]]:
+        """某日所有口径的用量。"""
+        rows = self._state._read(
+            "SELECT scope, reserved_micro, spent_micro FROM llm_budget_scope WHERE day = ?",
+            (day,),
+        )
+        out: dict[str, dict[str, int]] = {}
+        for row in rows:
+            reserved, spent = int(row[1]), int(row[2])
+            out[str(row[0])] = {
+                "reserved_micro": reserved,
+                "spent_micro": spent,
+                "used_micro": reserved + spent,
+            }
+        return out
+
+    # ---------------------------------------------------------------- 提醒落盘
+
+    def take_scope_alert(self, *, day: str, scope: str, level: str = "warn") -> bool:
+        """领取"今天这个口径的提醒权"。返回 True = 你是今天第一次，**该提醒**。
+
+        返回 False = 今天已经提醒过了，**不要再弹**。
+
+        为什么必须落盘而不是放内存：网页、QQ、心跳是不同进程，各有自己的内存；
+        进程重启内存也没了。抄 surfcore `token-budget.js::takeAlert` 的纪律——
+        "这里在**返回时**就落盘，而不是等用户点'知道了'"。用户没点也记了，
+        所以关页面/重启都不会弹第二遍。
+
+        实现用主键冲突当闸门：`INSERT OR IGNORE` 的 rowcount 就是"没人领过"的证据。
+        """
+        stamp = dt.datetime.now().astimezone().isoformat(timespec="seconds")
+        with self._state._tx() as conn:
+            cur = conn.execute(
+                "INSERT OR IGNORE INTO llm_budget_alert(day, scope, level, at) VALUES (?, ?, ?, ?)",
+                (day, str(scope or "other"), str(level or "warn"), stamp),
+            )
+            return cur.rowcount == 1
+
+    def scope_alerts(self, day: str) -> list[dict[str, str]]:
+        """某日已发出的提醒记录（按口径、档位）。"""
+        rows = self._state._read(
+            "SELECT scope, level, at FROM llm_budget_alert WHERE day = ? ORDER BY at ASC",
+            (day,),
+        )
+        return [{"scope": str(r[0]), "level": str(r[1]), "at": str(r[2])} for r in rows]
 
     # ---------------------------------------------------------------- 流水
 

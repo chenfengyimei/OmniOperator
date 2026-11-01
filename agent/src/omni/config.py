@@ -28,7 +28,7 @@ ENV_PATH = PROJECT_ROOT / ".env"
 DATA_DIR = PROJECT_ROOT / "data"
 SKILLS_DIR = PROJECT_ROOT / "skills"  # 程序性记忆：skills/<name>/SKILL.md
 BILI_COOKIES_PATH = DATA_DIR / "bili_cookies.json"  # B站登录态（浏览器 Cookie，gitignore）
-STATE_SCHEMA_VERSION = 14  # 存储兼容上限；迁移实现仍归 memory/state.py。
+STATE_SCHEMA_VERSION = 15  # 存储兼容上限；迁移实现仍归 memory/state.py。
 
 
 @dataclass(frozen=True)
@@ -257,10 +257,20 @@ class LLMBudget(BaseModel):
     为什么不给一个"默认上限"：拍一个数字会在用户不知情时中断正在做的事。
     未设上限是现状的延续，但界面与事件里会明确显示"未设上限"，
     并且**一旦配置就是硬拦截**（调用前预留，超额直接不发请求）。
+
+    **分口径上限**（P5-c）：`scope_daily_usd` 按通道分别设日上限，
+    键是通道名（`qq` / `web` / `cli` / `cron`…）。为什么需要它：
+    总额只有一个数字时，QQ 上多聊几句就能把网页端的额度吃光；
+    分了口径才能各自设限、互不挤占。
+
+    口径名是**开放集合**（不写死枚举）：出现什么通道就按什么通道记，
+    没配上限的口径照常记账、只是不单独设限。`total` 是保留名，
+    指所有口径之和（由代码维护，不是配置项）。
     """
 
     daily_usd: float = Field(default=0.0, ge=0)
     per_run_usd: float = Field(default=0.0, ge=0)  # 单次运行（含子运行累计）上限
+    scope_daily_usd: dict[str, float] = Field(default_factory=dict)  # 分口径日上限（美元）
 
 
 class Vision(BaseModel):

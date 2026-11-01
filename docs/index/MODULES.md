@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`269ac6aac68e630d7bc28d8e91759c8be3405fde3e246e475d8dc21fff9abd59`。包含 58 个职责模块、318 个源码/界面文件。
+源码指纹：`78ecd1b689e87124401ed63651a4d99b59002b36a30c34602bac526b3843f5a0`。包含 58 个职责模块、320 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -74,7 +74,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/config.py](../../agent/src/omni/config.py) | 749 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [agent/src/omni/config.py](../../agent/src/omni/config.py) | 759 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -104,7 +104,8 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/core/__init__.py](../../agent/src/omni/core/__init__.py) | 1 | Agent 核心：编排循环。工具注册表在 tools 包，审批在 safety 包。 |
-| [agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py) | 1396 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
+| [agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py) | 1435 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
+| [agent/src/omni/core/budget_alert.py](../../agent/src/omni/core/budget_alert.py) | 107 | 费用额度的**阶梯告警**（P5-c，抄 surfcore `token-budget.js` 的判定逻辑）。 |
 | [agent/src/omni/core/cron.py](../../agent/src/omni/core/cron.py) | 452 | 心跳调度器：tick 循环 + 至多一次派发 + 任务执行/投递（Hermes cron 最小版）。 |
 | [agent/src/omni/core/evaluation.py](../../agent/src/omni/core/evaluation.py) | 24 | 固定样本检索评测；不把 mock 模型的排序表现当成真实语义收益。 |
 | [agent/src/omni/core/journal.py](../../agent/src/omni/core/journal.py) | 413 | 记忆系统整理编排：日/周/月笔记的模型整理 worker（与 TurnEndReviewer 同构）。 |
@@ -130,10 +131,11 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/llm/__init__.py](../../agent/src/omni/llm/__init__.py) | 1 | LLM 层：LiteLLM 统一网关。 |
-| [agent/src/omni/llm/budget.py](../../agent/src/omni/llm/budget.py) | 174 | 费用预留与结算的契约（D10）。 |
+| [agent/src/omni/llm/budget.py](../../agent/src/omni/llm/budget.py) | 225 | 费用预留与结算的契约（D10）。 |
 | [agent/src/omni/llm/embedding.py](../../agent/src/omni/llm/embedding.py) | 116 | 可切换 embedding 出口：本地 Ollama / LiteLLM API；费用账本从 bootstrap 注入。 |
 | [agent/src/omni/llm/errors.py](../../agent/src/omni/llm/errors.py) | 206 | 模型调用的错误分类与脱敏（D10）。 |
-| [agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py) | 716 | LiteLLM 统一网关：一套 OpenAI 格式接所有供应商（海外/国产/本地 Ollama）。 |
+| [agent/src/omni/llm/gateway.py](../../agent/src/omni/llm/gateway.py) | 825 | LiteLLM 统一网关：一套 OpenAI 格式接所有供应商（海外/国产/本地 Ollama）。 |
+| [agent/src/omni/llm/tiers.py](../../agent/src/omni/llm/tiers.py) | 183 | 费用额度的**口径化判定层**（P5-c，抄 surfcore `token-budget.js` 的判定逻辑）。 |
 | [agent/src/omni/llm/usage.py](../../agent/src/omni/llm/usage.py) | 208 | 用量（tokens）与价格：把"这次调用大概/实际花了多少"变成可记账的数字。（D10） |
 
 文档：[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
@@ -201,7 +203,7 @@
 | [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1371 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
 | [agent/src/omni/memory/store_schema.py](../../agent/src/omni/memory/store_schema.py) | 162 | memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。 |
 | [agent/src/omni/memory/system.py](../../agent/src/omni/memory/system.py) | 61 | 记忆系统门面：六个记忆模块对外的单点聚合（组合根纪律，无业务逻辑）。 |
-| [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
+| [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 383 | 模型调用的用量与费用账本（`state.db`，D10）。 |
 | [agent/src/omni/memory/vectors.py](../../agent/src/omni/memory/vectors.py) | 93 | sqlite-vec 派生索引。与事实同库；遗忘/纠错触发器只用普通 SQL，无扩展依赖。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/RETRIEVAL.md](../../docs/RETRIEVAL.md)
@@ -369,7 +371,7 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/memory/command_schema.py](../../agent/src/omni/memory/command_schema.py) | 6 | 命令账本声明的旧 import 兼容层；真实声明见 `memory/state_schema.py`。 |
-| [agent/src/omni/memory/state_schema.py](../../agent/src/omni/memory/state_schema.py) | 303 | `state.db` 的表结构与迁移声明唯一来源。 |
+| [agent/src/omni/memory/state_schema.py](../../agent/src/omni/memory/state_schema.py) | 336 | `state.db` 的表结构与迁移声明唯一来源。 |
 
 文档：[docs/TERMINAL.md](../../docs/TERMINAL.md)
 
@@ -883,8 +885,8 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/tools/bilibili/__init__.py](../../agent/src/omni/tools/bilibili/__init__.py) | 1 | B站能力域（P1：只读）。api 层不知道 LLM，tools 层不知道 HTTP 细节。 |
-| [agent/src/omni/tools/bilibili/api.py](../../agent/src/omni/tools/bilibili/api.py) | 374 | B站读 API 封装：只读端点 + 目标归一化 + WBI 签名。 |
-| [agent/src/omni/tools/bilibili/asr.py](../../agent/src/omni/tools/bilibili/asr.py) | 144 | 无字幕视频的 ASR 兜底（faster-whisper，本地转写）。 |
+| [agent/src/omni/tools/bilibili/api.py](../../agent/src/omni/tools/bilibili/api.py) | 418 | B站读 API 封装：只读端点 + 目标归一化 + WBI 签名。 |
+| [agent/src/omni/tools/bilibili/asr.py](../../agent/src/omni/tools/bilibili/asr.py) | 180 | 无字幕视频的 ASR 兜底（faster-whisper，本地转写）。 |
 | [agent/src/omni/tools/bilibili/frames.py](../../agent/src/omni/tools/bilibili/frames.py) | 137 | B站视频抽帧并拼成一张联络表（contact sheet）。 |
 | [agent/src/omni/tools/bilibili/publishing.py](../../agent/src/omni/tools/bilibili/publishing.py) | 189 | B站草稿→人工批准→一次 UI 提交→记录回读；浏览器能力通过协议注入。 |
 | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py) | 369 | B站读工具集（toolset=bilibili，全部 SAFE 只读）。 |
@@ -904,13 +906,13 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/tools/storyboard/__init__.py](../../agent/src/omni/tools/storyboard/__init__.py) | 39 | 视频理解能力域：把一段视频变成模型能"引用"的画面索引。 |
-| [agent/src/omni/tools/storyboard/decode.py](../../agent/src/omni/tools/storyboard/decode.py) | 383 | 用 PyAV 解视频帧（不依赖 ffmpeg 可执行文件）。 |
+| [agent/src/omni/tools/storyboard/__init__.py](../../agent/src/omni/tools/storyboard/__init__.py) | 47 | 视频理解能力域：把一段视频变成模型能"引用"的画面索引。 |
+| [agent/src/omni/tools/storyboard/decode.py](../../agent/src/omni/tools/storyboard/decode.py) | 428 | 用 PyAV 解视频帧（不依赖 ffmpeg 可执行文件）。 |
 | [agent/src/omni/tools/storyboard/detect.py](../../agent/src/omni/tools/storyboard/detect.py) | 433 | 场景切点检测：把一段视频切成若干镜头。 |
 | [agent/src/omni/tools/storyboard/render.py](../../agent/src/omni/tools/storyboard/render.py) | 264 | 宫格渲染：把镜头帧拼成一张模型能看、也能引用的图。 |
 | [agent/src/omni/tools/storyboard/segments.py](../../agent/src/omni/tools/storyboard/segments.py) | 344 | 镜头分段与可寻址索引。 |
 | [agent/src/omni/tools/storyboard/source.py](../../agent/src/omni/tools/storyboard/source.py) | 44 | 视频来源：把"一个目标"变成"一个本地可解码的视频文件 + 可选的带时间戳台词"。 |
-| [agent/src/omni/tools/storyboard/tools.py](../../agent/src/omni/tools/storyboard/tools.py) | 230 | 分镜工具：把视频变成"能看、能引用、能回看"的画面索引。 |
+| [agent/src/omni/tools/storyboard/tools.py](../../agent/src/omni/tools/storyboard/tools.py) | 243 | 分镜工具：把视频变成"能看、能引用、能回看"的画面索引。 |
 
 文档：[docs/VIDEO_UNDERSTANDING.md](../../docs/VIDEO_UNDERSTANDING.md)
 

@@ -285,6 +285,38 @@ CREATE TABLE command_jobs (
 CREATE INDEX command_jobs_session ON command_jobs(session_id, created_at);
 """
 
+# v15：费用额度的**分口径账本**（P5-c）。
+#
+# 为什么另起一张表，而不是把 llm_budget 改成 (day, scope) 复合主键：
+# llm_budget 是真机上已经在用的表，改主键要搬存量行、要处理跨版本回滚，
+# 风险与收益不成比例。新表是纯增量——老数据一行不动，新数据按口径分账。
+#
+# 口径（scope）取通道名（cli/web/qq/cron…），不是参考实现的 qq/bili/other：
+# 那是它自己的业务面，我们的自然口径是通道——用户想控制的是"QQ 上别烧太多"。
+# 'total' 是汇总口径（所有口径之和），保留字。
+#
+# 每天只提醒一次的标记也在这张表里（level='warn'），不另开 meta：
+# 同一张表、同一个事务，"记用量"和"记已提醒"不会各写各的。
+#
+# 用 CREATE TABLE IF NOT EXISTS：迁移要**可重放**——版本回退后再前滚是运维手段
+# （备份恢复、测试构造旧库），裸 CREATE TABLE 会在重放时撞"already exists"而失败。
+_SCHEMA_V15 = """
+CREATE TABLE IF NOT EXISTS llm_budget_scope (
+    day TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    reserved_micro INTEGER NOT NULL DEFAULT 0,
+    spent_micro INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, scope)
+);
+CREATE TABLE IF NOT EXISTS llm_budget_alert (
+    day TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    level TEXT NOT NULL DEFAULT 'warn',
+    at TEXT NOT NULL,
+    PRIMARY KEY (day, scope, level)
+);
+"""
+
 MIGRATIONS: dict[int, str] = {
     1: _SCHEMA_V1,
     2: _SCHEMA_V2,
@@ -300,4 +332,5 @@ MIGRATIONS: dict[int, str] = {
     12: _SCHEMA_V12,
     13: _SCHEMA_V13,
     14: COMMAND_JOBS_SCHEMA,
+    15: _SCHEMA_V15,
 }
