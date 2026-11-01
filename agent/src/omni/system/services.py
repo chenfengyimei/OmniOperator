@@ -334,15 +334,17 @@ class ServiceManager:
         if name == "napcat":
             pid = self._read_pid("napcat") or self._napcat_pid()
             running = (pid is not None and self._inspect(pid) is not None) or bool(self._napcat_pid())
-            # uin 是从 onebot11_<号>.json 的文件名推断的，只说明"登录过"，不代表现在在线：
-            # 进程没起来时还写"已登录"会让状态行自相矛盾（截图里出现过「已登录 X · 未启动」）。
+            # uin 是从 onebot11_<号>.json 的文件名推断的，只说明"登录过"，不代表现在在线。
+            # "在不在登录"也不看 cmd.exe 活着没有——NapCat 的包装进程一直在，OneBot 端口
+            # 要等 QQ 真登录上才开。判据取端口：真机见过「已登录 X」而实际 3001 没监听。
             uin = self._napcat_uin()
+            logged_in = bool(uin) and bool(self._tcp_probe(self._ws_port))
             if not uin:
                 detail = "未登录（需扫码）"
-            elif running:
+            elif logged_in:
                 detail = f"已登录 {uin}"
             else:
-                # 行尾还有 state 徽章（未启动）说明当前状态，这里只陈述"曾经登录过谁"
+                # 行尾还有 state 徽章说明当前状态，这里只陈述"曾经登录过谁"
                 detail = f"上次登录 {uin}"
             return {"name": name, "label": _SERVICE_LABELS[name], "running": running,
                     "pid": pid, "detail": detail + ("；身份未核验，不可停止" if running and not verified else ""),

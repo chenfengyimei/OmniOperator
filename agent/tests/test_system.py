@@ -212,6 +212,21 @@ def test_napcat_detail_does_not_claim_logged_in_while_stopped(tmp_path):
     assert "未登录" in fresh.status("napcat")["detail"]
 
 
+def test_napcat_detail_uses_port_not_process_state(tmp_path):
+    """包装进程活着 ≠ QQ 已登录：判据是 OneBot 端口有没有在监听。
+
+    真机见过：NapCat 的 cmd.exe 一直活着（包装进程），但 3001 没监听——QQ 还没登录。
+    那时行尾却写「已登录 X」，和 napcat.logged_in=false 自相矛盾。
+    """
+    napcat = _fake_napcat(tmp_path, with_qr=False, uin="123456")
+    manager = _isolated_manager(napcat, tmp_path)
+    manager._tcp_probe = lambda port: False  # 端口没开：没登录
+    assert "已登录" not in manager.status("napcat")["detail"]
+    assert "上次登录 123456" in manager.status("napcat")["detail"]
+    manager._tcp_probe = lambda port: True  # 端口开了：真登录上了
+    assert "已登录 123456" in manager.status("napcat")["detail"]
+
+
 def test_overview_shape(tmp_path):
     napcat = _fake_napcat(tmp_path, with_qr=False, uin=None)
     manager = _isolated_manager(napcat, tmp_path)
