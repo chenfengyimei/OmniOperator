@@ -59,19 +59,29 @@ def register_qq_tools(
                 f"错误：只能给白名单用户发消息（{decision.reason}）",
                 error_code="target_not_allowed",
             )
-        # 主动闸门：安静时段 / 仅所有者 / 每日额度。
-        # defer 在这里表示"安静时段"——工具调用没有队列，不能像定时投递那样
-        # 入队延后，所以直接告诉模型"现在别发"。
+        # 主动闸门：安静时段 / 仅所有者 / 每日额度 / 通道层冷却位。
+        # defer 在这里表示"现在别发"（安静时段或刚聊过还在冷却）——工具调用没有队列，
+        # 不能像定时投递那样入队延后，所以直接告诉模型"现在别发"。
+        # 两种 defer 用不同错误码区分：安静时段是"今晚别打扰"，冷却是"等一会儿再说"。
         if active_gate is not None:
             gate = active_gate(user_id)
             if gate.state != "allow":
-                error_code = (
+                error_code = gate.code or (
                     "proactive_quiet_hours" if gate.state == "defer" else "proactive_denied"
                 )
+                if error_code == "proactive_cooldown":
+                    tail = (
+                        "刚跟用户聊过，正在冷却期内，别急着插话；"
+                        "用户要是正在跟你说话，直接在当前对话里回答即可，不要另发私聊。"
+                    )
+                else:
+                    tail = (
+                        "这是主动私聊，同样的规矩和定时提醒一致："
+                        "安静时段不打扰、只主动联系所有者、每日次数有上限。"
+                        "如果用户正在跟你说话，直接在当前对话里回答即可，不要另发私聊。"
+                    )
                 return ToolResult.fail(
-                    f"错误：{gate.reason}。这是主动私聊，同样的规矩和定时提醒一致："
-                    "安静时段不打扰、只主动联系所有者、每日次数有上限。"
-                    "如果用户正在跟你说话，直接在当前对话里回答即可，不要另发私聊。",
+                    f"错误：{gate.reason}。{tail}",
                     error_code=error_code,
                 )
         text = str(args.get("text", "")).strip()

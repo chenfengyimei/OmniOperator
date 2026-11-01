@@ -38,6 +38,10 @@ class ProactiveDecision:
     reason: str
     day: str = ""
     limit: int = 0
+    # 具体原因的机器可读码（给调用方分文案/错误码用）；空表示"按 state 走默认语义"。
+    # 目前只有通道冷却位会填 "proactive_cooldown"——它和"安静时段"同样是 defer，
+    # 但对模型来说要区分开：一个是"现在别发，等会儿"，一个是"今晚不打扰"。
+    code: str = ""
 
 
 def proactive_decision(policy, target: int, *, now: dt.datetime | None = None) -> ProactiveDecision:

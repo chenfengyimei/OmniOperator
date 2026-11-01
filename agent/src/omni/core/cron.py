@@ -297,8 +297,13 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
         qq = runtime.qq
         if qq is None:
             return "未投递：QQ 未启用"
-        from .qq_policy import proactive_decision
-        decision = proactive_decision(runtime.qq_policy(), target)
+        from .qq_policy import proactive_gate, runtime_last_inbound_at
+        decision = proactive_gate(
+            runtime.qq_policy(),
+            target,
+            reason="cron",
+            last_inbound_at=runtime_last_inbound_at(runtime, target),
+        )
         if decision.state == "deny":
             return f"未投递：{decision.reason}"
         if decision.state == "defer":
@@ -332,7 +337,7 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
 
 async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
     from ..tools.qq.client import chunk_message
-    from .qq_policy import proactive_decision
+    from .qq_policy import proactive_gate, runtime_last_inbound_at
     outbox = runtime.outbox
 
     def finish(status: str, error: str = "") -> str:
@@ -343,7 +348,12 @@ async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
     def defer(reason: str) -> str:
         return "deferred" if outbox.defer_claim(entry["id"], entry["claim_token"], reason=reason) else "unknown"
 
-    decision = proactive_decision(runtime.qq_policy(), entry["target_qq"])
+    decision = proactive_gate(
+        runtime.qq_policy(),
+        entry["target_qq"],
+        reason="cron",
+        last_inbound_at=runtime_last_inbound_at(runtime, entry["target_qq"]),
+    )
     if decision.state == "deny":
         return finish("discarded", decision.reason)
     if decision.state == "defer":
@@ -353,7 +363,12 @@ async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
     sent = False
     try:
         for chunk in chunk_message(entry["content"]):
-            current = proactive_decision(runtime.qq_policy(), entry["target_qq"])
+            current = proactive_gate(
+                runtime.qq_policy(),
+                entry["target_qq"],
+                reason="cron",
+                last_inbound_at=runtime_last_inbound_at(runtime, entry["target_qq"]),
+            )
             if current.state != "allow":
                 if sent:
                     return finish("unknown", "部分分段发送后策略变化，停止后续发送")

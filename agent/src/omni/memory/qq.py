@@ -72,3 +72,30 @@ class QQMessageStore:
     def status(self) -> dict[str, int]:
         return {str(row[0]): int(row[1]) for row in self.state._read(
             "SELECT status,COUNT(*) FROM qq_messages GROUP BY status")}
+
+    def last_inbound_at(self, scene: str, bot: int | None = None) -> float | None:
+        """这个场景最近一次**收到**消息的时间（epoch 秒）；没有则返回 None。
+
+        供通道层冷却位判断「是不是刚跟用户聊过」。刻意复用已有的
+        `qq_messages.created_at` 列，**不新建表**——真机 `data/*.db` 一旦改结构
+        就得先备份迁移，而这一列本来就是入站时间戳，语义完全够用。
+
+        只统计入站。`qq_sent`（我方发出的消息）不参与：我方发过话不代表
+        用户刚跟我聊过，拿它当冷却锚点会把「我没说话也被潜水」变成常态。
+
+        撤回的消息（status='recalled'）不算——那段对话事实上没发生过。
+        `bot` 传 None 时跨 bot 聚合：bot id 只有 QQ 通道从事件里取得到
+        （`event['self_id']`），而 cron/工具这两条主动路径手上没有它；
+        scene 本身已按「私聊/群」命名空间隔离，一实例一 bot 的现实用法下
+        聚合与按 bot 过滤等价。
+        """
+        sql = ("SELECT MAX(created_at) FROM qq_messages "
+               "WHERE scene=? AND status!='recalled'")
+        params: tuple[object, ...] = (scene,)
+        if bot is not None:
+            sql += " AND bot=?"
+            params = (scene, int(bot))
+        rows = self.state._read(sql, params)
+        if not rows or rows[0][0] is None:
+            return None
+        return float(rows[0][0])

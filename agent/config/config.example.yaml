@@ -184,6 +184,10 @@ qq:
   proactive_enabled: false
   owner_qq: 0
   proactive_daily_limit: 5
+  proactive_cooldown_minutes: 20   # 通道层冷却位（P5-e）：收到消息后 N 分钟内不主动搭话。
+                                    # 只压「我方主动发起」（定时投递/主动私聊/将来的概率唤醒），
+                                    # 不压「被叫到就回应」——用户在跟机器人说话时照常回。
+                                    # 0 = 关闭。对齐 surfcore conversation-closure 的 20 分钟。
   quiet_start: "22:00"
   quiet_end: "08:00"
   timezone: "Asia/Shanghai"

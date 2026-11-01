@@ -442,6 +442,9 @@ class QQ(BaseModel):
     proactive_enabled: bool = False
     owner_qq: int = Field(default=0, ge=0)
     proactive_daily_limit: int = Field(default=5, ge=0, le=50)
+    # 通道层冷却位（P5-e）：收到消息后 N 分钟内压制「主动搭话」，不压制「被叫到就回应」。
+    # 0 = 关闭。20 分钟对齐 surfcore conversation-closure 的 cooldownMs。
+    proactive_cooldown_minutes: int = Field(default=20, ge=0, le=240)
     quiet_start: str = "22:00"
     quiet_end: str = "08:00"
     timezone: str = "Asia/Shanghai"

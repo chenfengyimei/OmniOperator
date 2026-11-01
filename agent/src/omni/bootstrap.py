@@ -667,12 +667,18 @@ def build_runtime(
     if config.qq.enabled:
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
         # 主动闸门：模型自己调 qq_send_message 主动私聊，与定时投递走同一套规矩
-        # （安静时段 / 仅所有者 / 每日额度）。闸门判定放在 safety 层（叶子层），
-        # 这里负责提供「当前策略」与「额度账本」——判定逻辑不碰 IO，额度扣减要跨进程原子。
+        # （安静时段 / 仅所有者 / 每日额度 / 通道层冷却位）。闸门判定放在 safety 层
+        # （叶子层），这里负责提供「当前策略」与「额度账本」——判定逻辑不碰 IO，
+        # 额度扣减要跨进程原子。
         def _active_send_gate(target: int) -> ProactiveDecision:
-            from .safety.proactive import proactive_decision
+            from .core.qq_policy import proactive_gate, runtime_last_inbound_at
 
-            decision = proactive_decision(load_qq_policy(config_path), target)
+            decision = proactive_gate(
+                load_qq_policy(config_path),
+                target,
+                reason="proactive",
+                last_inbound_at=runtime_last_inbound_at(runtime, target),
+            )
             if decision.state != "allow":
                 return decision
             if not state.consume_budget("qq_proactive", decision.day, decision.limit).ok:
