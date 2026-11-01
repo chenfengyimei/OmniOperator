@@ -21,9 +21,11 @@
 ## 2. 测试纪律（硬门槛）
 
 ```powershell
-uv run --no-sync pytest -q          # 全量离线测试，必须全绿再提交
+uv run --no-sync pytest -q -n 0 agent/tests/test_<模块>.py  # 开发中：相关模块与调用方
+uv run --no-sync pytest -q          # 任务收尾/提交前：全量离线测试，默认最多 4 进程
 ```
 
+- 不在每个小步骤后重复全量；失败优先重跑对应 nodeid。同一源码、测试、依赖和测试配置的全量通过结果可复用，相关内容变化再重新验证。详细命令与隔离策略见 [TESTING.md](docs/TESTING.md)。
 - 默认测试套件**离线**：禁止真实付费、真实社交消息、真实设备动作；
 - 测试隔离：任何落盘数据都要支持路径注入（`build_runtime(data_dir=…)`、
   `ServiceManager(run_dir=…, log_dir=…)`），不得污染真实 `data/`；

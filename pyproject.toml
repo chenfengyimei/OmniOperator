@@ -15,7 +15,11 @@ omnioperator = { workspace = true }
 members = ["agent"]
 
 [dependency-groups]
-dev = ["pytest>=8.3"]
+dev = [
+    "pytest>=8.3",
+    "pytest-xdist>=3.8,<4",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["agent/tests"]
+addopts = "-n auto --dist=loadfile --durations=10"

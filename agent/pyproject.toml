@@ -43,7 +43,7 @@ Repository = "https://gitee.com/chenfengloveyuri/OmniOperator"
 Issues = "https://gitee.com/chenfengloveyuri/OmniOperator/issues"
 
 [dependency-groups]
-dev = ["pytest>=8.3"]
+dev = ["pytest>=8.3", "pytest-xdist>=3.8,<4"]
 
 [build-system]
 requires = ["hatchling"]
@@ -58,6 +58,7 @@ packages = ["src/omni"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-n auto --dist=loadfile --durations=10"
 
 [tool.hatch.build.targets.sdist]
 include = ["src/omni", "tests", "scripts/*.py", "scripts/ci.ps1", "scripts/README.md", "config/config.example.yaml", "config/README.md", "README.md", "LICENSE", "pyproject.toml"]
