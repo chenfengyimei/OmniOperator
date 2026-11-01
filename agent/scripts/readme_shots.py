@@ -7,6 +7,7 @@
   静态资源与 API 全部经内存应用应答；
 - 种子内容只用占位数据（无真实 QQ 号/密钥/会话名/对话）——README 是公开资产，
   演示图必须可复现且零隐私；
+- 主题固定为**夜间**（`color_scheme='dark'`）：产品默认深色，README 展示图与之保持一致。
 - 产物：workbench.png（对话 + 展开的调用链）、hub.png（设置中心·小鱼大脑）、
   project-index.png（项目索引）、android-control.png（安卓控制台，无设备时为空态）。
   重新生成后注意：README 里引用的是相对路径 docs/assets/… 与 docs/assets/gitee/…，
@@ -114,7 +115,9 @@ def main() -> int:
 
             with sync_playwright() as playwright:
                 browser = playwright.chromium.launch()
-                page = browser.new_page(viewport=VIEWPORT)
+                # 夜间主题：theme.js 未设 omni_theme 时跟随系统，而 Playwright 默认
+                # prefers-color-scheme=light——不显式指定会截出浅色图。README 首图用深色。
+                page = browser.new_page(viewport=VIEWPORT, color_scheme='dark')
                 errors: list[str] = []
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.route('**/*', _route_through(client))
