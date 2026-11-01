@@ -16,11 +16,51 @@ from __future__ import annotations
 import io
 from pathlib import Path
 
-from . import MAX_SCAN_FPS, MAX_SCAN_FRAMES, SCAN_HEIGHT, SCAN_WIDTH, SHARPNESS_EDGE
+from . import (
+    MAX_SCAN_FPS,
+    MAX_SCAN_FRAMES,
+    MIN_SCAN_FPS,
+    SCAN_HEIGHT,
+    SCAN_WIDTH,
+    SHARPNESS_EDGE,
+)
 
 
 class VideoDecodeError(RuntimeError):
     """视频解码失败（没有视频轨、格式不支持、文件损坏）。"""
+
+
+def effective_scan_fps(
+    duration: float, fps_limit: float = MAX_SCAN_FPS, max_frames: int = MAX_SCAN_FRAMES
+) -> float:
+    """按片长算出**实际该用的扫描帧率**，保证一定看得到全片。
+
+    真机踩到的坑：原来只有一个固定的 `max_frames` 上限，扫到上限就停。
+    34 分钟的视频在 12fps 下需要约 24,600 帧，旧的 6000 帧上限只覆盖了
+    前 800 秒（39%）——**后 20 分钟的画面整段丢失**，而且因为格位分配用的是
+    完整 duration，末格还横跨了一大段没看过的空白区（索引里的时间码在撒谎）。
+
+    现在的口径：**先保证覆盖全片，再谈抽稀**。
+    - 片长在预算内 → 按原帧率（12fps）扫，一帧不落；
+    - 超出预算 → 均匀抽稀到刚好扫完，帧率不低于 `MIN_SCAN_FPS`；
+    - 极长（抽到 MIN_SCAN_FPS 还不够）→ 就用 MIN_SCAN_FPS，宁可稀也不截断
+      （宁可漏掉几个弱切点，也不要让"后半段根本没看"变成静默失败）。
+
+    返回的帧率保证 `duration * fps <= max(max_frames, duration * MIN_SCAN_FPS)`，
+    也就是：**只要片长在帧预算内，就一定 100% 覆盖**。
+    """
+    if duration <= 0:
+        return fps_limit
+    budget = max(1, max_frames)
+    needed = duration * fps_limit
+    if needed <= budget:
+        return fps_limit
+    # 抽稀到刚好扫完；但不低于 MIN_SCAN_FPS
+    thinned = budget / duration
+    if thinned < MIN_SCAN_FPS:
+        # 预算撑不住最低帧率 → 用最低帧率，并相应放大预算（保证覆盖全片）
+        return MIN_SCAN_FPS
+    return thinned
 
 
 def probe_video(path: Path) -> tuple[float, float, int, int]:
@@ -109,6 +149,9 @@ def scan_cut_scores(
 
     时间列表里的每个时刻是**那次变化的结束时刻**（后一帧的时刻），
     与 `detect.detect_cuts_from_scores` 的约定一致。
+
+    **帧率按片长自适应**（见 `effective_scan_fps`）：保证扫得到全片，
+    而不是扫到帧数上限就停——后者会让长视频后半段的画面整段消失。
     """
     try:
         import av
@@ -127,7 +170,9 @@ def scan_cut_scores(
                 raise VideoDecodeError("这个文件里没有视频轨（可能是纯音频流）")
             stream = container.streams.video[0]
             duration = _stream_duration(container, stream)
-            step = 1.0 / max(0.1, fps_limit)
+            # 片长决定实际帧率：短片按 12fps 扫，长片自动抽稀到能扫完整片
+            actual_fps = effective_scan_fps(duration, fps_limit, max_frames)
+            step = 1.0 / max(0.1, actual_fps)
             next_keep = 0.0
             for index, frame in enumerate(container.decode(stream)):
                 timestamp = float(

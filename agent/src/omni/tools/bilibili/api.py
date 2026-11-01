@@ -305,22 +305,66 @@ class BiliAPI:
         return url
 
     def download_binary(
-        self, url: str, dest: Path, max_bytes: int = 300 * 1024 * 1024
+        self, url: str, dest: Path, max_bytes: int = 300 * 1024 * 1024,
+        *, attempts: int = 3,
     ) -> None:
-        """流式下载二进制到 dest；m4s 直链要求带 Referer（client 已全局配置）。"""
-        try:
-            with self._client.stream("GET", url) as resp:
-                resp.raise_for_status()
-                size = int(resp.headers.get("content-length") or 0)
-                if size > max_bytes:
-                    raise BiliAPIError(
-                        f"文件过大（{size // 1048576}MB > {max_bytes // 1048576}MB），放弃下载"
-                    )
-                with dest.open("wb") as fh:
-                    for chunk in resp.iter_bytes(1 << 20):
-                        fh.write(chunk)
-        except httpx.HTTPError as exc:
-            raise BiliAPIError(f"下载失败: {exc}") from exc
+        """流式下载二进制到 dest；m4s 直链要求带 Referer（client 已全局配置）。
+
+        **带断点续传与重试**（真机踩到的坑）：B站 CDN 下载 55MB 视频时实测中断过
+        一次（收到 10MB 就断连，`peer closed connection`）。原实现是"一次流式读完"，
+        中断就抛错——但**残缺文件已经写了一半留在磁盘上**，而
+        `probe_video` 只读容器元信息，残缺文件照样能报出正确的时长，
+        看起来"下载成功了"，直到解码时才崩。
+
+        CDN 实测支持 Range（返回 206 + content-range），所以：
+        - 断了就带着 `Range: bytes=<已收>-` 重连，接着收；
+        - 服务端不支持 Range（返回 200 而不是 206）就从头重来；
+        - 每次重试都重新校验累计大小，超过上限立刻放弃。
+
+        `attempts` 是总尝试次数（含第一次）。
+        """
+        last_error: Exception | None = None
+        for attempt in range(1, max(1, attempts) + 1):
+            try:
+                self._download_once(url, dest, max_bytes)
+                return
+            except httpx.HTTPError as exc:
+                last_error = exc
+                if attempt >= max(1, attempts):
+                    break
+                # 续传前先看看磁盘上已有多少字节（有则接着收）
+                have = dest.stat().st_size if dest.exists() else 0
+                if have > max_bytes:
+                    break
+        raise BiliAPIError(f"下载失败: {last_error}")
+
+    def _download_once(self, url: str, dest: Path, max_bytes: int) -> None:
+        """下载一次（支持从已有字节处续传）。"""
+        have = dest.stat().st_size if dest.exists() else 0
+        headers: dict[str, str] = {}
+        if have > 0:
+            headers["Range"] = f"bytes={have}-"
+        with self._client.stream("GET", url, headers=headers) as resp:
+            resp.raise_for_status()
+            # 206 = 服务端认可续传；200 = 从头给（之前的部分作废，重写）
+            resumed = resp.status_code == 206
+            if not resumed and have:
+                have = 0
+                dest.unlink(missing_ok=True)
+            total = int(resp.headers.get("content-length") or 0)
+            if total and have + total > max_bytes:
+                raise BiliAPIError(
+                    f"文件过大（{(have + total) // 1048576}MB > {max_bytes // 1048576}MB），"
+                    "放弃下载"
+                )
+            with dest.open("ab" if resumed else "wb") as fh:
+                for chunk in resp.iter_bytes(1 << 20):
+                    fh.write(chunk)
+                    have += len(chunk)
+                    if have > max_bytes:
+                        raise BiliAPIError(
+                            f"文件过大（超过 {max_bytes // 1048576}MB），放弃下载"
+                        )
         if not dest.exists() or dest.stat().st_size == 0:
             raise BiliAPIError("下载结果为空文件")
 

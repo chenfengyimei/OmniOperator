@@ -28,16 +28,39 @@ def _get_model(model_name: str, device: str, compute_type: str, *, download_root
     key = (model_name, device, compute_type, location)
     with _MODEL_LOCK:
         if _MODEL is None or _MODEL_KEY != key:
-            from faster_whisper import WhisperModel  # 懒导入；配置目录不触发下载
-            try:
-                model = WhisperModel(model_name, device=device, compute_type=compute_type, download_root=location)
-            except Exception as exc:  # noqa: BLE001
-                raise RuntimeError(
-                    f"ASR 模型加载失败（{exc}）。若卡在下载：确认网络可达 HuggingFace，"
-                    "或在 .env 配 HF_ENDPOINT=https://hf-mirror.com 后重试"
-                ) from exc
+            model = _load_model(model_name, device, compute_type, location)
             _MODEL, _MODEL_KEY = model, key
         return _MODEL
+
+
+def _load_model(model_name: str, device: str, compute_type: str, location: str | None) -> Any:
+    """加载 faster-whisper 模型：**先离线，后联网**。
+
+    真机踩到的坑：模型明明已经在本地缓存里（~/.cache/huggingface/hub），
+    但 faster-whisper 仍会去 HuggingFace 校验一遍——网络不通（国内直连超时、
+    走代理又 502）时整个 ASR 直接不可用，而模型其实就在硬盘上。
+
+    所以先试 `local_files_only=True`（离线命中就用），失败再走联网下载。
+    离线优先还有个好处：转写不再依赖外网可达性。
+    """
+    from faster_whisper import WhisperModel  # 懒导入；配置目录不触发下载
+
+    try:
+        return WhisperModel(
+            model_name, device=device, compute_type=compute_type,
+            download_root=location, local_files_only=True,
+        )
+    except Exception:  # noqa: BLE001 —— 本地没有就联网取
+        pass
+    try:
+        return WhisperModel(
+            model_name, device=device, compute_type=compute_type, download_root=location
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"ASR 模型加载失败（{exc}）。若卡在下载：确认网络可达 HuggingFace，"
+            "或在 .env 配 HF_ENDPOINT=https://hf-mirror.com 后重试"
+        ) from exc
 
 
 def format_segments(segments: Iterable[tuple[float, str]]) -> str:
@@ -59,7 +82,18 @@ def format_segments(segments: Iterable[tuple[float, str]]) -> str:
 
 
 def _decode_audio_16k_mono(path: Path) -> Any:
-    """PyAV 解码 → 16kHz 单声道 float32 ndarray（供 faster-whisper 直接转写）。"""
+    """PyAV 解码 → 16kHz 单声道 float32 ndarray（供 faster-whisper 直接转写）。
+
+    **必须按 `af.samples` 精确截断，不能直接写整个 plane**（真机踩到的坑）：
+    PyAV 的 `frame.planes[0]` 是对齐过的缓冲区，长度可能大于实际样本数
+    （每个 packet 按 32 字节对齐）。实测一段 34 分钟的音频：
+    容器时长 2055 秒、真实样本 2071 秒，而"写整个 plane"会写出 2498 秒——
+    **多出 426 秒的垃圾字节**。这些字节不是静音，是上一个 packet 的残留，
+    混进 whisper 输入后表现为：开头一串 "You You You" 幻觉、
+    分段时间戳一路飘到 2504 秒（超出视频总长）。
+
+    所以这里只取 `af.samples * 2` 字节（s16 单声道 = 每样本 2 字节）。
+    """
     import av
     import numpy as np
 
@@ -69,7 +103,9 @@ def _decode_audio_16k_mono(path: Path) -> Any:
         for frame in container.decode(audio=0):
             out = resampler.resample(frame)
             for af in (out if isinstance(out, (list, tuple)) else [out]):
-                buffer.write(bytes(af.planes[0]))  # 缓冲区协议，兼容各版 PyAV
+                need = int(af.samples) * 2  # s16 单声道
+                raw = bytes(af.planes[0])
+                buffer.write(raw[:need])
     if buffer.tell() == 0:
         raise RuntimeError("音频解码结果为空（文件损坏或没有音轨）")
     samples = np.frombuffer(buffer.getvalue(), dtype=np.int16)

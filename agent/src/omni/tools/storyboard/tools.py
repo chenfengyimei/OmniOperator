@@ -100,6 +100,10 @@ def register_storyboard_tools(
             times, scores, duration = decode.scan_cut_scores(video)
             if not scores:
                 return "没能从视频里解出画面（可能是纯音频流，或文件已损坏）。"
+            # 覆盖率要如实报：扫描没覆盖到的地方，格位分配却仍按完整时长算，
+            # 末格会横跨一大段"没看过"的空白区——索引里的时间码就成了误导。
+            scanned = times[-1] if times else 0.0
+            coverage = (scanned / duration) if duration > 0 else 1.0
             cuts = detect.detect_cuts_from_scores(times, scores, duration=duration)
             board = segments.build_storyboard(
                 cuts, duration=duration, max_cells=cells, transcript=transcript,
@@ -131,8 +135,17 @@ def register_storyboard_tools(
             render.readability_note(result),
             f"共 {len(board.cells)} 格 · 视频时长 {render.format_time(duration)} · "
             f"检出 {len(cuts)} 个剪辑点。",
-            "分镜索引（格号 → 时间码 → 取帧时刻 → 该段台词）：",
         ]
+        if coverage < 0.98:
+            # 不静默：扫描没覆盖到全片时明说，否则模型会以为"看完了整个视频"
+            lines.append(
+                f"注意：画面扫描只覆盖到 {render.format_time(scanned)}"
+                f"（全片 {render.format_time(duration)} 的 {coverage:.0%}），"
+                "后半段的画面未纳入分镜，末格的时间码只到扫描终点。"
+            )
+        lines.append(
+            "分镜索引（格号 → 时间码 → 取帧时刻 → 该段台词）："
+        )
         for row in board.to_index():
             snippet = str(row["text"] or "")
             if len(snippet) > MAX_CELL_TEXT:
