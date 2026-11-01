@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/ui/tokens.css?v=20261031a">
 <link rel="stylesheet" href="/ui/base.css?v=20261031c">
 <link rel="stylesheet" href="/ui/icons.css?v=20261029">
-<link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031f"><link rel="stylesheet" href="/ui/workbench.css?v=20261031m16"><link rel="stylesheet" href="/memory/memory.css?v=20261031m11"><script src="/ui/shared.js?v=20261031m8"></script><script src="/ui/markdown.js?v=20261029"></script>
+<link rel="stylesheet" href="/ui/components.css?v=20261031e"><link rel="stylesheet" href="/ui/frame.css?v=20261031f"><link rel="stylesheet" href="/ui/workbench.css?v=20261101m17"><link rel="stylesheet" href="/memory/memory.css?v=20261031m11"><script src="/ui/shared.js?v=20261031m8"></script><script src="/ui/markdown.js?v=20261029"></script>
 </head>
 <body data-ui-page="workbench">
 <!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
@@ -44,6 +44,13 @@
        rail.js 里对应的 window.open 绑定一并移除（不再有「整页跳走」的第二条路径）。 -->
   <button class="hub-open" data-action="hub:open"><span class="material-icons">tune</span>设置中心</button>
 </header>
+<!-- 服务异常才出现：心跳卡住、QQ 掉线、服务没起来。点一条直达「服务与运行」 -->
+<div id="svc-alert" class="svc-alert hidden" role="status" aria-live="polite">
+  <span class="svc-alert-icon material-icons" aria-hidden="true">error_outline</span>
+  <span id="svc-alert-text"></span>
+  <button type="button" class="btn small" data-action="hub:open" data-section="sec-services">去处理</button>
+  <button type="button" class="svc-alert-x" data-action="services:alert-dismiss" aria-label="本次忽略">✕</button>
+</div>
 <main>
   <aside class="workbench-side">
     <div class="panel session-panel" style="flex:1.2">
@@ -51,9 +58,13 @@
       <div class="s-search"><span class="material-icons">search</span><input id="session-q" type="text" placeholder="搜索会话…"></div>
       <ul id="sessions"></ul>
     </div>
-    <div class="panel service-panel">
-      <div class="panel-title"><span>服务</span><span class="panel-meta" id="service-summary">读取中…</span></div>
-      <div id="services" class="svcs"></div>
+    <!-- 常驻服务默认由守护拉起，左栏只留一行在线状态；明细在设置中心「服务与运行」 -->
+    <div class="panel service-strip">
+      <button type="button" class="svc-strip" data-action="hub:open" data-section="sec-services" aria-label="打开服务与运行">
+        <span class="svc-dot" id="svc-dot"></span>
+        <span class="svc-strip-text" id="svc-strip-text">服务读取中…</span>
+        <span class="svc-strip-more">设置</span>
+      </button>
     </div>
     <div class="panel context-panel">
       <div class="panel-title"><span>上下文用量</span><span class="panel-meta" id="context-percent">估算中…</span></div>
@@ -237,6 +248,7 @@
       <div class="hub-group">平台与通道</div>
       <a data-go="sec-media">B站与转写</a>
       <a data-go="sec-browser">浏览器</a>
+      <a data-go="sec-services">服务与运行</a>
       <a data-go="sec-qq">QQ</a>
       <a data-go="sec-cron">定时任务</a>
       <div class="hub-group">文件与用量</div>
@@ -508,6 +520,42 @@
           <span class="save-msg" id="save-msg-browser"></span>
         </div>
       </div>
+      <div class="hub-card" id="sec-services">
+        <h3>服务与运行</h3>
+        <div class="hint">心跳调度、QQ 通道和 NapCat 会在工作台起来时自动拉起，掉线自己重连、崩了自己重启——不用点"启动"。<br>这里看它们现在到底在不在干活；唯一需要你动手的是扫码登录。</div>
+        <div class="svc-list" id="svc-status-list"><div class="muted">读取中…</div></div>
+        <div class="card-actions">
+          <button type="button" class="btn small" data-action="services:refresh">刷新状态</button>
+          <span class="save-msg" id="svc-summary-msg"></span>
+        </div>
+        <h4>通道与登录</h4>
+        <div class="muted" id="svc-napcat-line">读取中…</div>
+        <div class="field-row">
+          <div class="field"><label>NapCat 用的 QQ 号（留空就沿用上次登录的号）<input type="text" id="cfg-sys-napcat-qq" placeholder="123456789"></label></div>
+          <div class="field"><label>登录二维码</label><button type="button" class="btn small" data-action="services:qr-open">打开扫码登录</button></div>
+        </div>
+        <h4>调度与收发</h4>
+        <div class="muted" id="svc-stats-heartbeat">心跳：读取中…</div>
+        <div class="muted" id="svc-stats-qq">QQ：读取中…</div>
+        <h4>守护设置</h4>
+        <div class="field"><label class="check-row"><input type="checkbox" id="cfg-sys-autostart"><span class="switch"></span><span class="switch-text">工作台启动时自动拉起这三个服务</span></label></div>
+        <div class="field"><label class="check-row"><input type="checkbox" id="cfg-sys-keep"><span class="switch"></span><span class="switch-text">关掉工作台后服务继续跑（定时任务不中断）</span></label></div>
+        <div class="field"><label>连续启动失败几次就放弃（0 = 不自动拉起）<input type="number" id="cfg-sys-attempts" min="0" max="50"></label></div>
+        <div class="card-actions">
+          <button type="button" class="save-btn" data-action="hub:save" data-scope="services">保存守护设置</button>
+          <span class="save-msg" id="save-msg-services"></span>
+        </div>
+        <h4>日志</h4>
+        <div class="field-row">
+          <div class="field"><label>看哪个服务的日志<select id="svc-log-name">
+            <option value="omni-heartbeat">心跳调度</option>
+            <option value="omni-qq">QQ 通道</option>
+            <option value="napcat">NapCat</option>
+          </select></label></div>
+        </div>
+        <pre id="sec-services-log" class="muted maintenance-output" style="max-height:220px;overflow:auto;white-space:pre-wrap"></pre>
+        <div class="muted" id="svc-supervisor-line"></div>
+      </div>
       <div class="hub-card" id="sec-qq">
         <h3>QQ</h3>
         <div class="hint">只有名单里的人能跟它说话，陌生人发消息它一律不理；在群里必须 @ 它才回应。<br>改完要去「服务」面板重启一次 QQ 通道才会生效。</div>
@@ -644,7 +692,7 @@
 </div>
 <!-- 市场弹窗：人设与插件共用这个骨架，内容由 hub-market.js 按需渲染（静态 id 供契约门禁核对） -->
 <dialog class="modal market" id="market-modal"></dialog>
-<script type="module" src="/ui/app/main.js?v=20261031m19"></script>
+<script type="module" src="/ui/app/main.js?v=20261101m20"></script>
 </body>
 </html>
 

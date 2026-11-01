@@ -851,17 +851,23 @@ body[data-ui-page="workbench"] #approval-banner{backdrop-filter:blur(var(--glass
 /* Workbench left rail: compact services + context usage (prototype layout). */
 body[data-ui-page="workbench"] .workbench-side{min-height:0;overflow:hidden}
 body[data-ui-page="workbench"] .workbench-side .session-panel{flex:1 1 auto!important;min-height:150px}
-body[data-ui-page="workbench"] .service-panel,
+body[data-ui-page="workbench"] .service-strip,
 body[data-ui-page="workbench"] .context-panel{flex:0 0 auto!important}
+body[data-ui-page="workbench"] .service-strip{padding:0}
 body[data-ui-page="workbench"] .panel-meta{
   color:var(--text-4);font:500 10px/1.4 var(--font-mono);letter-spacing:.02em;white-space:nowrap;
 }
-body[data-ui-page="workbench"] .svcs{padding:4px 8px 7px;overflow-y:auto;max-height:168px}
-body[data-ui-page="workbench"] .svc{
-  display:flex;align-items:center;gap:8px;padding:6px 5px;border-radius:var(--r-md);
-  transition:background .15s;
+/* 一行在线状态：服务默认由守护拉起，这里只回答"现在是不是都活着"，不再放启停按钮 */
+body[data-ui-page="workbench"] .svc-strip{
+  display:flex;align-items:center;gap:8px;width:100%;padding:9px 11px;border:0;cursor:pointer;
+  background:transparent;color:var(--text-3);text-align:left;transition:background .15s,color .15s;
 }
-body[data-ui-page="workbench"] .svc:hover{background:color-mix(in oklab,var(--surface-2) 55%,transparent)}
+body[data-ui-page="workbench"] .svc-strip:hover{background:color-mix(in oklab,var(--surface-2) 55%,transparent);color:var(--text-1)}
+body[data-ui-page="workbench"] .svc-strip-text{
+  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:500 10.5px/1.4 var(--font-mono);
+}
+body[data-ui-page="workbench"] .svc-strip-more{flex-shrink:0;font-size:10px;color:var(--text-4)}
 body[data-ui-page="workbench"] .svc-dot{
   width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--text-4);position:relative;
 }
@@ -874,24 +880,43 @@ body[data-ui-page="workbench"] .svc-dot.on::after{
   opacity:.55;animation:svc-pulse 2.6s var(--ease-out) infinite;
 }
 body[data-ui-page="workbench"] .svc-dot.warn{background:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 14%,transparent)}
+body[data-ui-page="workbench"] .svc-dot.bad{background:var(--danger);box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 14%,transparent)}
 @keyframes svc-pulse{0%{transform:scale(.7);opacity:.6}70%{transform:scale(1.55);opacity:0}100%{opacity:0}}
-body[data-ui-page="workbench"] .svc-body{flex:1;min-width:0;display:flex;flex-direction:column}
-body[data-ui-page="workbench"] .svc-name{font-size:11px;color:var(--text-2);font-weight:560;line-height:1.35}
-body[data-ui-page="workbench"] .svc-detail{
-  font-size:10.5px;color:var(--text-4);margin-top:1px;font-family:var(--font-mono);
-  /* 状态词前置后文案变长：允许两行折行，保证「运行中/未启动 · 详情」都能读到（title 仍是全文） */
-  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
-  overflow:hidden;line-height:1.4;word-break:break-all;
+
+/* 顶部告警条：只在真有异常时出现，点「去处理」直接进服务页 */
+body[data-ui-page="workbench"] .svc-alert{
+  display:flex;align-items:center;gap:9px;flex:0 0 auto;padding:7px 14px;font-size:12px;
+  border-bottom:1px solid var(--warn-bd);background:var(--warn-bg);color:var(--text-1);
 }
-body[data-ui-page="workbench"] .svc-act{
-  min-height:19px;height:19px;padding:0 7px;border-radius:var(--r-sm);flex-shrink:0;
-  border:1px solid var(--line-2);background:transparent;font-size:10.5px;color:var(--text-3);
-  font-weight:640;cursor:pointer;transition:color .15s,border-color .15s,background .15s;
+body[data-ui-page="workbench"] .svc-alert[data-level="error"]{border-bottom-color:var(--danger-bd);background:var(--danger-bg)}
+body[data-ui-page="workbench"] .svc-alert-icon{font-size:16px;color:var(--warn)}
+body[data-ui-page="workbench"] .svc-alert[data-level="error"] .svc-alert-icon{color:var(--danger)}
+body[data-ui-page="workbench"] #svc-alert-text{flex:1;min-width:0;overflow-wrap:anywhere}
+body[data-ui-page="workbench"] .svc-alert-x{
+  border:0;background:transparent;color:var(--text-4);cursor:pointer;font-size:12px;padding:2px 4px;
 }
-body[data-ui-page="workbench"] .svc-act:hover:not(:disabled){color:var(--text-1);border-color:var(--line-1);background:var(--surface-3)}
-body[data-ui-page="workbench"] .svc-act.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 38%,transparent)}
-body[data-ui-page="workbench"] .svc-act.warn:hover:not(:disabled){background:var(--warn-bg)}
-body[data-ui-page="workbench"] .svc-act:disabled{opacity:.38;cursor:not-allowed}
+body[data-ui-page="workbench"] .svc-alert-x:hover{color:var(--text-1)}
+
+/* 设置中心「服务与运行」：每行一个服务，状态 + 最近退出 + 重启/清理 */
+body[data-ui-page="workbench"] .svc-list{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+body[data-ui-page="workbench"] .svc-row{
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:9px 11px;
+  border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--surface-2);
+}
+body[data-ui-page="workbench"] .svc-row .svc-main{flex:1 1 220px;min-width:0}
+body[data-ui-page="workbench"] .svc-row .svc-title{font-size:12px;color:var(--text-1);font-weight:600}
+body[data-ui-page="workbench"] .svc-row .svc-meta{
+  font:500 10.5px/1.5 var(--font-mono);color:var(--text-4);overflow-wrap:anywhere;
+}
+body[data-ui-page="workbench"] .svc-row[data-state="bad"]{border-color:var(--danger-bd)}
+body[data-ui-page="workbench"] .svc-row[data-state="warn"]{border-color:var(--warn-bd)}
+body[data-ui-page="workbench"] .svc-badge{
+  font:600 10px/1.6 var(--font-mono);padding:0 7px;border-radius:var(--r-full);
+  border:1px solid var(--line-2);color:var(--text-3);flex-shrink:0;
+}
+body[data-ui-page="workbench"] .svc-badge.ok{color:var(--ok);border-color:var(--ok-bd);background:var(--ok-bg)}
+body[data-ui-page="workbench"] .svc-badge.warn{color:var(--warn);border-color:var(--warn-bd);background:var(--warn-bg)}
+body[data-ui-page="workbench"] .svc-badge.bad{color:var(--danger);border-color:var(--danger-bd);background:var(--danger-bg)}
 
 body[data-ui-page="workbench"] .ctx{padding:9px 11px 10px;flex-shrink:0}
 body[data-ui-page="workbench"] .ctx-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}

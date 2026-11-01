@@ -1,22 +1,23 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m19';
-import {api} from './api.js?v=20261031m19';
-import {loadState} from './header.js?v=20261031m19';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue,getReasoningSlotValue,refreshModelSlots} from './hub-models.js?v=20261031m19';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m19';
-import {loadCron} from './hub-cron.js?v=20261031m19';
-import {loadUsage} from './hub-usage.js?v=20261031m19';
-import {loadMcp} from './hub-mcp.js?v=20261031m19';
-import {loadContext} from './hub-context.js?v=20261031m19';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m19';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m19';
-import {loadJobsHub} from './hub-jobs.js?v=20261031m19';
-import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261031m19';
-import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261031m19';
-import {loadProjectHub} from './hub-project.js?v=20261031m19';
-import {loadPluginsHub} from './hub-market.js?v=20261031m19';
+import {$,esc} from './dom.js?v=20261101m20';
+import {api} from './api.js?v=20261101m20';
+import {loadState} from './header.js?v=20261101m20';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue,getReasoningSlotValue,refreshModelSlots} from './hub-models.js?v=20261101m20';
+import {renderPersonaPresets} from './hub-persona.js?v=20261101m20';
+import {loadCron} from './hub-cron.js?v=20261101m20';
+import {loadUsage} from './hub-usage.js?v=20261101m20';
+import {loadMcp} from './hub-mcp.js?v=20261101m20';
+import {loadContext} from './hub-context.js?v=20261101m20';
+import {loadMemoryHub} from './hub-memory.js?v=20261101m20';
+import {loadSkillsHub} from './hub-skills.js?v=20261101m20';
+import {loadJobsHub} from './hub-jobs.js?v=20261101m20';
+import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261101m20';
+import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261101m20';
+import {loadProjectHub} from './hub-project.js?v=20261101m20';
+import {loadPluginsHub} from './hub-market.js?v=20261101m20';
+import {loadServicesHub} from './hub-services.js?v=20261101m20';
 
 /* 分区加载器表：切到哪个分区要拉什么数据，在这里登记一处。
    逐条 if 散在 switchHub 里，分区一多就容易漏（漏了的表现是分区空白）。 */
@@ -32,6 +33,7 @@ const PANEL_LOADERS={
   'sec-mcp-services':()=>loadMcpServicesHub(),
   'sec-project':()=>loadProjectHub(),
   'sec-plugins':()=>loadPluginsHub(),
+  'sec-services':()=>loadServicesHub(),
 };
 
 export async function openHub(go=null){
@@ -137,6 +139,7 @@ if(navSearch){
     'sec-media':'<circle cx="12" cy="12" r="8.4"/><path d="M10.6 9.2l4 2.8-4 2.8V9.2z"/>',
     'sec-browser':'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8M12 3.6c2.3 2.3 3.5 5.3 3.5 8.4s-1.2 6.1-3.5 8.4C9.7 18.1 8.5 15.1 8.5 12S9.7 5.7 12 3.6z"/>',
     'sec-qq':'<path d="M20.4 12c0 3.7-3.7 6.7-8.4 6.7-1 0-1.9-.1-2.8-.3l-3.6 1.4 1.1-3.1C4.6 15.6 3.6 13.9 3.6 12c0-3.7 3.7-6.7 8.4-6.7S20.4 8.3 20.4 12z"/>',
+    'sec-services':'<rect x="3.6" y="4.6" width="16.8" height="5.4" rx="1.6"/><rect x="3.6" y="14" width="16.8" height="5.4" rx="1.6"/><path d="M7 7.3h.01M7 16.7h.01"/>',
     'sec-cron':'<circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12h3.3"/>',
     'sec-storage':'<path d="M3.8 7.4h6l1.8 2h8.6v9.2H3.8z"/><path d="M3.8 7.4V5.6h6l1.8 1.8"/>',
     'sec-memory-system':'<ellipse cx="12" cy="6.2" rx="7" ry="3"/><path d="M5 6.2v5.8c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V6.2"/><path d="M5 12v5.6c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V12"/><path d="M12 9.4v2.2M10.9 10.5h2.2"/>',
@@ -203,6 +206,12 @@ async function loadHubConfig(){
   $('#cfg-browser-slowmo').value=d.browser.slow_mo_ms;
   $('#cfg-browser-budget').value=d.browser.max_writes_per_day;
   $('#cfg-browser-approval-timeout').value=d.browser.approval_timeout_s;
+  if(d.system){
+    $('#cfg-sys-autostart').checked=d.system.autostart!==false;
+    $('#cfg-sys-keep').checked=d.system.keep_running_after_exit!==false;
+    $('#cfg-sys-attempts').value=d.system.restart_max_attempts??5;
+    $('#cfg-sys-napcat-qq').value=d.system.napcat_qq||'';
+  }
 }
 async function loadCookies(){
   try{
@@ -231,6 +240,7 @@ const SAVE_SCOPES={
   media:['asr'],
   browser:['browser'],
   qq:['qq'],
+  services:['system'],
 };
 function collectHubUpdates(){
   // 提示词按行提交前必须去掉尾部空行：textarea 的值通常以换行结尾，
@@ -274,7 +284,12 @@ function collectHubUpdates(){
     browser:{headless:$('#cfg-browser-headless').checked,
              slow_mo_ms:parseInt($('#cfg-browser-slowmo').value)||120,
              max_writes_per_day:parseInt($('#cfg-browser-budget').value)||50,
-             approval_timeout_s:parseFloat($('#cfg-browser-approval-timeout').value)||180}
+             approval_timeout_s:parseFloat($('#cfg-browser-approval-timeout').value)||180},
+    // 守护开关：守护线程每轮热读，保存后下一轮就生效（不需要重启工作台）
+    system:{autostart:$('#cfg-sys-autostart').checked,
+            keep_running_after_exit:$('#cfg-sys-keep').checked,
+            restart_max_attempts:Math.max(0,Math.min(50,parseInt($('#cfg-sys-attempts').value)||0)),
+            napcat_qq:$('#cfg-sys-napcat-qq').value.trim()}
   };
 }
 // 提交前先在本地拦住"一看就填错了"的情况，省一次 400 往返和无谓的困惑

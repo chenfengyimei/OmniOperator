@@ -351,6 +351,14 @@ def create_app(runtime: Runtime) -> FastAPI:
                 "max_writes_per_day": cfg.browser.max_writes_per_day,
                 "approval_timeout_s": cfg.browser.approval_timeout_s,
             },
+            # 服务守护开关：守护线程每轮热读这几个键，所以保存后立刻生效
+            "system": {
+                "napcat_dir": cfg.system.napcat_dir,
+                "autostart": cfg.system.autostart,
+                "keep_running_after_exit": cfg.system.keep_running_after_exit,
+                "restart_max_attempts": cfg.system.restart_max_attempts,
+                "napcat_qq": cfg.system.napcat_qq,
+            },
             "editable": sorted(f"{s}.{k}" for s, k in EDITABLE),
         }
 

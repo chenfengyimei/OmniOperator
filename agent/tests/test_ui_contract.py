@@ -238,6 +238,24 @@ def test_hub_panel_stylesheet_versions_match_pages():
     assert checked >= 4, f"应至少核对 4 个面板样式入口，实际 {checked} 个"
 
 
+def test_service_strip_has_no_start_stop_buttons():
+    """左下角只留一行在线状态：启停由守护默认负责，界面不该再给"启动"按钮。
+
+    历史上服务必须手动点启动（bootstrap 只构造不启动），界面于是有 启动/停止 两个按钮；
+    改成默认常驻后，留着按钮反而暗示"它可能需要我点一下"。
+    """
+    html = INDEX.read_text(encoding="utf-8")
+    assert "services:toggle" not in html, "左栏不该再有服务启停按钮"
+    assert 'id="service-summary"' not in html and 'id="services"' not in html, "旧的多行服务面板已退役"
+    strip = re.search(r'<div class="panel service-strip">.*?</div>', html, re.S)
+    assert strip, "index.html 缺少一行服务状态条"
+    assert 'data-action="hub:open"' in strip.group(0) and 'data-section="sec-services"' in strip.group(0), (
+        "状态条点击必须跳到设置中心「服务与运行」"
+    )
+    assert 'id="svc-alert"' in html, "缺少顶部服务告警条"
+    assert 'id="sec-services"' in html, "设置中心缺少服务与运行分区"
+
+
 RAIL_TOOL_ENTRIES = {
     # rail 上的工具入口 → 设置中心分区 / 对应独立页
     "open-project": ("sec-project", "project"),

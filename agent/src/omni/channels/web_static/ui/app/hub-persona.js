@@ -1,6 +1,6 @@
 // 人设预设方案（localStorage 持久化，可增删改；市场导入的整套设定也落在这里，
 // 用 `market-<id>` 前缀区分来源，见 hub-market.js）。
-import {$,esc} from './dom.js?v=20261031m19';
+import {$,esc} from './dom.js?v=20261101m20';
 
 const PRESET_KEY='omni_persona_presets';
 const SEED_PRESETS=[

@@ -1,6 +1,6 @@
 // 发布草稿面板：B站写操作的产出（评论/私信草稿），人工核查后按状态流转。
-import {$,esc} from './dom.js?v=20261031m19';
-import {api} from './api.js?v=20261031m19';
+import {$,esc} from './dom.js?v=20261101m20';
+import {api} from './api.js?v=20261101m20';
 
 let publicationRows=new Map();
 export async function loadPublications(){
