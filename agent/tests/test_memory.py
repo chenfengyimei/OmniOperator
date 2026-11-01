@@ -261,3 +261,26 @@ def test_search_applies_reinforcement_and_keeps_rows_contract(tmp_path):
         query, limit=10
     )
     store.close()
+
+
+def test_fact_ids_by_contents_exact_scoped_and_uncapped(tmp_path):
+    """内容精确反查 id：按 scope 过滤，且不受工作台 500 条展示上限影响。
+
+    旧实现借 fact_rows(500)（按新到旧截 500 条）反查——库超过 500 条后删旧
+    事实会静默失败。这里放 505 条填充事实把目标挤出展示窗口再反查。
+    """
+    store = MemoryStore(tmp_path / "m.db")
+    target = store.save_fact("用户喜欢喝拿铁")
+    store.save_fact("群里的约定", scope="group")
+    assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="private") == {
+        "用户喜欢喝拿铁": target
+    }
+    assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="group") == {}
+    assert store.fact_ids_by_contents([], scope="private") == {}
+    assert store.fact_ids_by_contents(["不存在"], scope="private") == {}
+    for i in range(505):  # 目标成为最旧的一条，fact_rows(500) 里永远看不见
+        store.save_fact(f"填充事实 {i}")
+    assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="private") == {
+        "用户喜欢喝拿铁": target
+    }
+    store.close()

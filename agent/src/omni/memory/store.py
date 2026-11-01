@@ -872,6 +872,22 @@ class MemoryStore:
         return counted
 
     @_locked
+    def fact_ids_by_contents(self, contents: list[str], *, scope: str) -> dict[str, int]:
+        """按内容**精确**反查 id（forget 删除用）：SQL IN 直查全库，不看条数。
+
+        旧实现借 `fact_rows(500)`（工作台展示口径，按新到旧截 500 条）做反查——
+        记忆超过 500 条后删旧事实会静默失败（"已删除 0 条"），哪怕检索明明找到了它。
+        """
+        if not contents:
+            return {}
+        marks = ",".join("?" for _ in contents)
+        rows = self._conn.execute(
+            f"SELECT content, id FROM facts WHERE scope = ? AND content IN ({marks})",
+            [scope, *contents],
+        ).fetchall()
+        return {str(r[0]): int(r[1]) for r in rows}
+
+    @_locked
     def fact_timestamps(self, contents: list[str], *, scope: str) -> dict[str, str]:
         """按内容回查 `created_at`（recall 输出相对时间用）；不在库的内容无键。"""
         if not contents:

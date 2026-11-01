@@ -53,11 +53,16 @@ def register_memory_tools(
     recall_prefix: bool = False,
     source: str = "chat",
     retriever: Any = None,
+    count_hits: bool = True,
 ) -> None:
     """记忆读写工具。`guard` 是写入闸门（D12）：有它就走额度与遗忘检查。
 
     作用域取自当前 run（群聊 `scope="group"`），不是模型参数——
     模型不能自己声明"我在私聊里"，那等于让它自己给自己扩权。
+
+    `count_hits=False` 给后台 worker（review / journal）用：它们也注册 recall，
+    但召回命中**不**给 `facts.hits` 记账——hits 是"用户在对话里真的用到过"的
+    信号，夜间整理模型爱查什么不该污染它（否则强化排序会漂向后台取材偏好）。
     """
 
     def _scope() -> str:
@@ -103,8 +108,11 @@ def register_memory_tools(
             return "没有找到相关记忆。"
         # 命中记账（借鉴 SeekMemory 的"强化 + 冷却"）：30 分钟冷却 + 每天最多
         # 一次，防"越提越重要"的正反馈。这是 SAFE 但写状态的工具——因此 recall
-        # 不标注 read_only，保持串行，不进批内并发池。
-        store.touch_facts(hits, scope=_scope())
+        # 不标注 read_only，保持串行，不进批内并发池。后台 worker（review/journal）
+        # 注册时传 count_hits=False：它们的召回是取材不是使用，记账会把 hits
+        # 信号污染成"整理模型爱查什么"。
+        if count_hits:
+            store.touch_facts(hits, scope=_scope())
         stamps = store.fact_timestamps(hits, scope=_scope())
         body = "\n".join(
             f"- {h}（{humanize_age(stamps[h])}记住的）" if h in stamps else f"- {h}"
@@ -119,21 +127,27 @@ def register_memory_tools(
         return body
 
     def forget(args: dict[str, Any]) -> str:
-        """按内容匹配删除事实，并留下墓碑（review 不会再学回来）。"""
+        """按内容匹配删除事实，并留下墓碑（review 不会再学回来）。
+
+        检索作用域**跟随当前 run**（与 remember / recall 对称）：群聊删群作用域
+        事实；旧实现硬编码搜 private，等于群聊事实"记得住、召得回、永远忘不掉"，
+        而且群聊一句"忘掉 X"会去搜并删除**私人**事实——跨作用域删除是权限事故。
+        id 反查走 `fact_ids_by_contents` 全库精确匹配，不看工作台展示条数上限。
+        """
         target = str(args.get("text", "")).strip()
         if not target:
             return "错误：text 不能为空"
-        matches = store.search_facts(target, limit=8, scope="private")
+        matches = store.search_facts(target, limit=8, scope=_scope())
         exact = [item for item in matches if _same_fact(item, target)]
         if not exact:
             return (
                 "没有找到与这段文字一致的事实记忆，未删除任何内容。"
                 "（模糊命中不算删除依据；请给出更完整的一句）"
             )
-        rows = {row["content"]: row["id"] for row in store.fact_rows(500)}
+        ids = store.fact_ids_by_contents(exact, scope=_scope())
         deleted = 0
         for text in exact:
-            fact_id = rows.get(text)
+            fact_id = ids.get(text)
             if fact_id is not None and store.forget_fact(
                 fact_id, reason="用户要求忘记", session_id=_session_id()
             ):

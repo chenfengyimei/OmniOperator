@@ -462,3 +462,41 @@ def test_humanize_age_buckets() -> None:
     assert humanize_age((now - dt.timedelta(days=3)).strftime(fmt), now) == "3 天前"
     assert humanize_age((now - dt.timedelta(days=60)).strftime(fmt), now) == "2 个月前"
     assert humanize_age((now - dt.timedelta(days=730)).strftime(fmt), now) == "2 年前"
+
+
+# ---------------------------------------------------------------- 后台召回不记账与 forget 作用域
+
+
+def test_recall_count_hits_false_keeps_hits_zero(store) -> None:
+    """后台 worker（review/journal）注册的召回不记账：hits 只反映真实对话使用。"""
+    registry = _registry(store, count_hits=False)
+    _run(registry, "remember", {"text": "用户喜欢喝拿铁"})
+    assert "拿铁" in _run(registry, "recall", {"query": "拿铁"})
+    assert store.fact_rows(1)[0]["hits"] == 0  # 取材不记账
+    # 对话注册表（默认）照常记账
+    live = _registry(store)
+    assert "拿铁" in _run(live, "recall", {"query": "拿铁"})
+    assert store.fact_rows(1)[0]["hits"] == 1
+
+
+def test_forget_follows_run_scope_and_cannot_cross_delete(store) -> None:
+    """forget 作用域跟随 run：群聊删群事实，不搜也不删私人事实（防跨作用域删除）。"""
+    store.save_fact("用户喜欢喝拿铁", scope="private")  # 直接落库，不经群 run
+
+    class _GroupHandle:
+        scope = "group"
+
+    class _Ref:
+        def get(self):
+            return _GroupHandle()
+
+    registry = _registry(store, run_ref=_Ref())
+    assert "已记住" in _run(registry, "remember", {"text": "群规：周三值日"})  # scope=group
+
+    # 私人内容在群作用域里"不存在"：不删、不提
+    assert "没有找到" in _run(registry, "forget", {"text": "用户喜欢喝拿铁"})
+    assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="private")
+
+    # 群作用域事实照常可删（记得住、召得回、也忘得掉——三件事同一作用域）
+    assert "已删除 1 条" in _run(registry, "forget", {"text": "群规：周三值日"})
+    assert store.fact_ids_by_contents(["群规：周三值日"], scope="group") == {}
