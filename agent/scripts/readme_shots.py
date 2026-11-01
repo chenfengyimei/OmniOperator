@@ -7,8 +7,10 @@
   静态资源与 API 全部经内存应用应答；
 - 种子内容只用占位数据（无真实 QQ 号/密钥/会话名/对话）——README 是公开资产，
   演示图必须可复现且零隐私；
-- 产物：workbench.png（对话 + 展开的调用链）、hub.png（设置中心·小鱼大脑）。
-  重新生成后注意：README 里引用的是相对路径 docs/assets/…，同名覆盖无需改链接。
+- 产物：workbench.png（对话 + 展开的调用链）、hub.png（设置中心·小鱼大脑）、
+  project-index.png（项目索引）、android-control.png（安卓控制台，无设备时为空态）。
+  重新生成后注意：README 里引用的是相对路径 docs/assets/… 与 docs/assets/gitee/…，
+  同名覆盖无需改链接；docs/assets/gitee/ 的三张直接从本目录复制过去即可。
 """
 from __future__ import annotations
 
@@ -131,6 +133,18 @@ def main() -> int:
                     page.wait_for_timeout(400)
                     (args.out / 'hub.png').write_bytes(page.screenshot())
                     print(f'hub -> {args.out / "hub.png"}')
+
+                    # 独立子站：项目索引（AST 自动生成的模块/文件/API/工具索引）与安卓控制台。
+                    # 都是设置中心里的原生面板同名独立页，用于 Gitee 展示「工程规模」与「具身执行面」。
+                    page.goto('http://127.0.0.1/project/')
+                    page.wait_for_timeout(1200)
+                    (args.out / 'project-index.png').write_bytes(page.screenshot())
+                    print(f'project-index -> {args.out / "project-index.png"}')
+
+                    page.goto('http://127.0.0.1/android/')
+                    page.wait_for_timeout(1200)
+                    (args.out / 'android-control.png').write_bytes(page.screenshot())
+                    print(f'android-control -> {args.out / "android-control.png"}')
                 finally:
                     page.close()
                     browser.close()

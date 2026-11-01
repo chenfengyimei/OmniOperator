@@ -1,4 +1,4 @@
-# OmniOperator · 小鱼
+<h1 align="center">OmniOperator · 小鱼</h1>
 
 <div align="center">
 
@@ -9,12 +9,14 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](#六环境要求与安装)
-[![tests](https://img.shields.io/badge/tests-1456%20offline-brightgreen)](docs/DEVELOPMENT_STATUS.md)
+[![tests](https://img.shields.io/badge/tests-1515%20offline-brightgreen)](docs/DEVELOPMENT_STATUS.md)
 [![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
 
 </div>
 
-![OmniOperator Web 工作台：对话、展开的工具调用链与右侧面板（演示数据截图）](docs/assets/workbench.png)
+<p align="center">
+  <img src="docs/assets/workbench.png" alt="OmniOperator Web 工作台：对话、展开的工具调用链与右侧面板（演示数据截图）" width="100%">
+</p>
 
 ---
 
@@ -69,7 +71,7 @@ OmniOperator 的答案是：**给每一次动作绑定一次观察，动作必�
 **旧的 idx 令牌永远不会点到新的元素**，`tap_element` 不带 `obs=<id>` 直接拒绝。
 桌面端还有窗口租约、浏览器端有单线程所有权——同一时刻，只有一个"手"在动。
 
-![安卓应用控制台：观察令牌、锁帧坐标、元素与手势、白名单应用、UI 树预览](docs/assets/gitee/android-control.png)
+![安卓应用控制台：观察令牌、锁帧坐标、元素与手势、白名单应用、UI 树预览（演示环境未接设备，展示控制台结构）](docs/assets/gitee/android-control.png)
 
 这不是模型能力的胜利，是**工程约束的胜利**：让不可靠的模型，在可靠的骨架里工作。
 
@@ -197,10 +199,10 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 
 | 指标 | 数值 | 怎么验证 |
 |---|---|---|
-| 生产源码 | **217 个文件 / 37,203 行** | `find agent/src/omni -name "*.py"` |
-| 测试代码 | **104 个测试文件 / 26,467 行** | `find agent/tests -name "test_*.py"` |
-| 离线单测 | **1456 项全绿** | `uv run --no-sync pytest -q` |
-| 前端资源 | **77 个文件，零构建**（原生 ES 模块） | 无 webpack/vite，改完刷新生效 |
+| 生产源码 | **218 个文件 / 37,563 行** | `find agent/src/omni -name "*.py"` |
+| 测试代码 | **107 个测试文件 / 27,387 行** | `find agent/tests -name "test_*.py"` |
+| 离线单测 | **1515 项全绿** | `uv run --no-sync pytest -q` |
+| 前端资源 | **78 个文件，零构建**（原生 ES 模块） | 无 webpack/vite，改完刷新生效 |
 | 静态检查 | **11 类规则清零并固化** | `agent/ruff.toml` + `ruff check agent/src/omni` |
 | 架构守卫 | **AST 强制分层、组装根唯一** | `agent/tests/test_arch.py` |
 | 文档守卫 | **DDL 与文档防漂移** | `agent/tests/test_data_model.py` |
@@ -293,7 +295,7 @@ uv run omni-heartbeat  # 定时调度（无人值守 fail-closed；写操作仍�
 
 ```powershell
 uv run --no-sync python -m omni.channels.doctor    # 只读体检：配置 / 依赖 / 数据库 / 设备
-uv run --no-sync pytest -q                          # 全量离线测试（1456 项，约 2.5 分钟）
+uv run --no-sync pytest -q                          # 全量离线测试（1515 项，约 3 分钟）
 ```
 
 ### 常见问题
@@ -351,7 +353,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 开源不等于发布稳定版。当前状态是**受控内测（alpha）**：
 
-- ✅ **已验证**：1456 项离线测试全绿、架构守卫、桌面记事本首个真实闭环、备份恢复、只读体检
+- ✅ **已验证**：1515 项离线测试全绿、架构守卫、桌面记事本首个真实闭环、备份恢复、只读体检
 - ⏳ **待真实验收**：QQ 实站完整闭环、安卓真机（多设备/旋转/断连）、真实模型混合检索收益对比、
   72 小时常驻、夜间整理→早报链路
 - ⚠️ **不属于已验证交付**：macOS/Linux 全功能、通用桌面接管（不承诺 SendInput 对所有软件后台不抢焦点）、

@@ -1,9 +1,12 @@
-# OmniOperator ("Little Fish")
+<h1 align="center">OmniOperator ("Little Fish")</h1>
 
+<div align="center">
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6)](#quick-start)
 [![Status](https://img.shields.io/badge/status-alpha-orange)](docs/ACCEPTANCE.md)
+
+</div>
 
 > **The Chinese [README.md](README.md) is the authoritative version of this document.**
 
@@ -14,7 +17,9 @@ an Android phone over ADB, runs shell commands, and maintains its own long-term 
 skills. Python 3.12+ · uv · LiteLLM gateway · SQLite for memory and the run ledger ·
 build-free native ES-module frontend.
 
-![OmniOperator web workbench: chat, expanded tool-call chain and side panels (staged demo data)](docs/assets/workbench.png)
+<p align="center">
+  <img src="docs/assets/workbench.png" alt="OmniOperator web workbench: chat, expanded tool-call chain and side panels (staged demo data)" width="100%">
+</p>
 
 **Status (honest scope)**: controlled internal beta (alpha). The full offline test suite
 passes; real-account / real-device / real-model loops and the 72-hour soak have **not** all
