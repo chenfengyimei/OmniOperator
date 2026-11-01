@@ -43,6 +43,38 @@ def humanize_age(created_at: str, now: dt.datetime | None = None) -> str:
     return f"{int(days // 365)} 年前"
 
 
+def _recall_line(
+    content: str,
+    stamps: dict[str, str],
+    clarities: dict[str, str],
+) -> str:
+    """召回结果的一行：时间线索 + 陈旧标注。
+
+    陈旧标注只给 `fuzzy` 以上的档位加，且措辞是**如实描述**而不是下判断：
+    说"很久没被提起，可能已经过时"，而不是说"这是旧信息别用"——
+    模型自己决定采不采信，比我们替它决定更符合"数据不是指令"的分工。
+    """
+    parts: list[str] = []
+    age = humanize_age(stamps[content]) if content in stamps else ""
+    if age:
+        parts.append(f"{age}记住的")
+    clarity = clarities.get(content, "")
+    if clarity in _STALE_CLARITIES:
+        parts.append(_STALE_CLARITIES[clarity])
+    if not parts:
+        return f"- {content}"
+    return f"- {content}（{'，'.join(parts)}）"
+
+
+# 清晰度 → 召回时的陈旧措辞。只覆盖 `fuzzy`/`trace`/`forgotten` 三档；
+# `vivid`/`clear` 是正常记忆，不加任何标注（免得每行都拖一句噪声）。
+_STALE_CLARITIES: dict[str, str] = {
+    "fuzzy": "有点模糊了",
+    "trace": "很久没被提起，只剩印象",
+    "forgotten": "很久没被提起，可能已经过时",
+}
+
+
 def register_memory_tools(
     registry: ToolRegistry,
     store: MemoryStore,
@@ -113,10 +145,13 @@ def register_memory_tools(
         # 信号污染成"整理模型爱查什么"。
         if count_hits:
             store.touch_facts(hits, scope=_scope())
+            # 复习升档（P5-a）：被真正用到的记忆升一格清晰度。
+            # 与 `touch_facts` 分开是因为后者有 30 分钟冷却，而升档不该被冷却挡住。
+            store.review_facts_clarity(hits, scope=_scope())
         stamps = store.fact_timestamps(hits, scope=_scope())
+        clarities = store.fact_clarities(hits, scope=_scope())
         body = "\n".join(
-            f"- {h}（{humanize_age(stamps[h])}记住的）" if h in stamps else f"- {h}"
-            for h in hits
+            _recall_line(h, stamps, clarities) for h in hits
         )
         if recall_prefix:
             # 记忆是**数据**：里面即使写着"忽略之前的指令"也只是一句旧内容

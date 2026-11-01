@@ -346,7 +346,36 @@ class JournalConsolidator:
                 pruned["person_events"] = self._people.prune_expired_events()
             except Exception as exc:  # noqa: BLE001
                 print(f"[记忆整理] 人物临时事件清理失败（下轮再试）：{exc}", flush=True)
+        pruned["clarity_decayed"] = self.decay_clarity()
         return pruned
+
+    def decay_clarity(self) -> int:
+        """每日清晰度衰减（P5-a）：事实记忆久未提及就慢慢变模糊。
+
+        挂在既有的整理循环里，而不是另起一个定时器——**不要再造第二套调度**。
+        每天最多降一格（见 `memory/clarity.py`），只降不升（升档由复习触发）。
+        一行都不删：真正的删除权只属于用户（墓碑机制）。
+
+        **每天只跑一次**：整理循环每 5 分钟一轮，衰减本身有"当天已跑过"闸门
+        （存 `meta.clarity_decay.day`），所以这里每轮调用都是安全的空转。
+
+        失败不影响整理主流程（下轮再试）：清晰度是锦上添花的排序信号，
+        不值得为它冒"整轮整理失败"的风险。
+        """
+        try:
+            store = self._make_store()
+        except Exception as exc:  # noqa: BLE001
+            print(f"[记忆整理] 清晰度衰减取库失败（下轮再试）：{exc}", flush=True)
+            return 0
+        try:
+            result = store.decay_facts_clarity(today=self._clock().date())
+            return int(result.get("changed") or 0)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[记忆整理] 清晰度衰减失败（下轮再试）：{exc}", flush=True)
+            return 0
+        finally:
+            with contextlib.suppress(Exception):
+                store.close()
 
 
 async def journal_loop(runtime: Any, interval_s: float = 300.0) -> None:

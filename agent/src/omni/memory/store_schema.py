@@ -45,7 +45,9 @@ CREATE TABLE IF NOT EXISTS facts (
     session_id INTEGER,
     superseded_by INTEGER,
     hits INTEGER NOT NULL DEFAULT 0,
-    last_used TEXT
+    last_used TEXT,
+    clarity TEXT NOT NULL DEFAULT 'clear',
+    clarity_changed_at TEXT
 );
 CREATE TABLE IF NOT EXISTS profile (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -144,6 +146,11 @@ END;
 
 FTS_META_KEY = "fts"
 FTS_VERSION = 2
+
+# 清晰度衰减的"今天已衰减过"标记（存 meta 表）。
+# 整理循环每 5 分钟一轮，没有这道闸门，"每天最多降一格"会退化成"每 5 分钟降一格"；
+# 抄 surfcore `memory-card.js` 的 `lastDecayDate === today` 判断（只抄闸门，不抄形态）。
+CLARITY_META_KEY = "clarity_decay"
 
 PROFILE_MAX_CHARS = 2000
 

@@ -28,7 +28,18 @@ from pathlib import Path
 from typing import Any
 
 from ..config import DATA_DIR
+from .clarity import (
+    CLARITY_CLEAR,
+    CLARITY_ORDER,
+    CLARITY_VIVID,
+    ClarityConfig,
+    apply_daily_decay,
+    clarity_index,
+    normalize_clarity,
+    review_effect,
+)
 from .store_schema import (
+    CLARITY_META_KEY,
     DEFAULT_TITLE,
     FTS_META_KEY,
     FTS_TRIGGERS,
@@ -79,6 +90,39 @@ RECALL_HIT_BOOST = 0.15  # 每次命中的排序增益
 TOUCH_COOLDOWN_MINUTES = 30  # 冷却窗口：窗口内重复命中不计数
 RECALL_ROW_LIMIT_FACTOR = 2  # 重排取候选数 = limit × 此系数
 
+# 清晰度降权（P5-a）：每低一档施加的链位惩罚，以及惩罚上限。
+# 与 RECALL_HIT_BOOST 同量级——清晰度是一个**弱信号**，只用来在链序相近时
+# 把陈旧记忆往后挪，不该把一条新记忆从第 1 位直接挤到第 20 位。
+RECALL_CLARITY_STEP = 0.4  # 每降一档的惩罚
+RECALL_CLARITY_CAP = 2.0  # 惩罚上限（最多后移 2 个链位）
+
+
+def clarity_penalty(clarity: str | None) -> float:
+    """清晰度 → 排序惩罚（链位数，越大越靠后）。
+
+    `vivid`/`clear` 惩罚为 0（正常记忆不该被降权）；越模糊惩罚越大，
+    但封顶在 `RECALL_CLARITY_CAP` 个链位——**陈旧不等于该被埋掉**。
+    未知/脏值按 `clear` 处理（0 惩罚），宁可不高估陈旧度。
+    """
+    idx = clarity_index(clarity)
+    if idx <= CLARITY_ORDER.index(CLARITY_CLEAR):
+        return 0.0
+    return min(RECALL_CLARITY_CAP, (idx - CLARITY_ORDER.index(CLARITY_CLEAR)) * RECALL_CLARITY_STEP)
+
+
+def _fact_row(row: tuple) -> dict:
+    """检索链统一行结构（`id`/`content`/`hits`/`clarity`）。
+
+    单独一个函数是为了让三处查询（FTS、LIKE 链、空查询）产出的行**形状完全一致**——
+    少一处漏选 `clarity`，降权就会在某个分支静默失效。
+    """
+    return {
+        "id": int(row[0]),
+        "content": str(row[1]),
+        "hits": int(row[2] or 0),
+        "clarity": normalize_clarity(row[3] if len(row) > 3 else None),
+    }
+
 
 def _locked(method):
     """公开存储方法统一加可重入锁（web 通道线程池会并发访问同一连接）。"""
@@ -120,6 +164,13 @@ class MemoryStore:
                 "superseded_by": "INTEGER",
                 "hits": "INTEGER NOT NULL DEFAULT 0",
                 "last_used": "TEXT",
+                # 清晰度阶梯（P5-a）：新写入的事实直接是 vivid（刚说过的话最清楚）；
+                # 旧库补列时统一给 clear —— 存量事实不会因为升级突然"变旧"，
+                # 它们从 clear 起步，按天逐步降档。
+                "clarity": "TEXT NOT NULL DEFAULT 'clear'",
+                "clarity_changed_at": "TEXT",
+                # 上次"被复习升档"的日期戳：升档每天最多一次（防反复召回把阶梯刷爆）。
+                "clarity_reviewed_at": "TEXT",
             },
             "summaries": {"invalidated_at": "TEXT"},
         }
@@ -628,9 +679,12 @@ class MemoryStore:
         if self.is_forgotten(text):
             return None
         cur = self._conn.execute(
-            "INSERT INTO facts(content, created_at, updated_at, source, scope, session_id)"
-            " VALUES (?, ?, ?, ?, ?, ?)",
-            (text, _now(), _now(), source, scope, session_id),
+            "INSERT INTO facts(content, created_at, updated_at, source, scope, session_id,"
+            " clarity, clarity_changed_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            # 新写入的事实是 `vivid`：刚说出口的话最清楚。
+            # （旧库补列走默认值 clear，存量事实从 clear 起步，不会因升级突然变旧。）
+            (text, _now(), _now(), source, scope, session_id, CLARITY_VIVID, _now()),
         )
         if self.fts_enabled and not self._fts_triggers:
             self._conn.execute(
@@ -726,18 +780,18 @@ class MemoryStore:
         rows: list[dict]
         if not tokens:  # 空查询：返回最近的记忆
             rows = self._conn.execute(
-                "SELECT id, content, hits FROM facts WHERE 1=1"
+                "SELECT id, content, hits, clarity FROM facts WHERE 1=1"
                 f"{where_scope} ORDER BY id DESC LIMIT ?",
                 [*scope_params, limit * RECALL_ROW_LIMIT_FACTOR],
             ).fetchall()
             return self._rank_fact_rows(
-                [{"id": int(r[0]), "content": str(r[1]), "hits": int(r[2])} for r in rows],
+                [_fact_row(r) for r in rows],
                 limit,
             )
         if self.fts_enabled:
             try:
                 rows = self._conn.execute(
-                    "SELECT f.id, f.content, f.hits FROM facts_fts "
+                    "SELECT f.id, f.content, f.hits, f.clarity FROM facts_fts "
                     f"JOIN facts f ON f.id = facts_fts.rowid "
                     f"WHERE facts_fts MATCH ?{where_scope.replace('scope', 'f.scope')} "
                     "ORDER BY bm25(facts_fts) LIMIT ?",
@@ -745,7 +799,7 @@ class MemoryStore:
                 ).fetchall()
                 if rows:
                     return self._rank_fact_rows(
-                        [{"id": int(r[0]), "content": str(r[1]), "hits": int(r[2])} for r in rows],
+                        [_fact_row(r) for r in rows],
                         limit,
                     )
             except sqlite3.OperationalError:
@@ -780,10 +834,21 @@ class MemoryStore:
         平局起作用（增益上限 1.5 个链位，只能超越一个零命中邻居）。hits=0 时
         排序与纯链序完全一致——冻结检索评测与工作台删除契约
         （search_fact_rows == search_facts 顺序）都不受影响。
+
+        **清晰度降权**（P5-a）同理有界：清晰度每低一档施加一个固定的小额惩罚，
+        惩罚上限 `RECALL_CLARITY_CAP` 个链位。与 hits 的关系是**相加**：
+        命中强化（正）与清晰度降权（负）互相抵消，"最近被用过的旧记忆"不会
+        因为历史 hits 高就压过"刚写下的新记忆"。
+
+        **全部记忆清晰度相同时惩罚恒为 0**，排序与纯链序逐字节一致——
+        冻结检索评测（`tests/fixtures/retrieval_v1.json`）里所有样本同批写入、
+        清晰度相同，因此评测数字不受本改动影响。
         """
         keyed = [
             (
-                pos - min(int(row.get("hits") or 0), RECALL_HIT_CAP) * RECALL_HIT_BOOST,
+                pos
+                - min(int(row.get("hits") or 0), RECALL_HIT_CAP) * RECALL_HIT_BOOST
+                + clarity_penalty(row.get("clarity")),
                 pos,
                 row,
             )
@@ -801,17 +866,17 @@ class MemoryStore:
         scope_params: list[Any] | None = None,
     ) -> list[dict]:
         rows = self._conn.execute(  # 模板由 token 数生成，参数全部绑定
-            f"SELECT id, content, hits FROM facts WHERE ({where}){where_scope} ORDER BY id DESC LIMIT ?",
+            f"SELECT id, content, hits, clarity FROM facts WHERE ({where}){where_scope} ORDER BY id DESC LIMIT ?",
             [*params, *(scope_params or []), limit],
         ).fetchall()
-        return [{"id": int(r[0]), "content": str(r[1]), "hits": int(r[2])} for r in rows]
+        return [_fact_row(r) for r in rows]
 
     @_locked
     def fact_rows(self, limit: int = 200) -> list[dict]:
         """工作台展示用：带来源/作用域/时间，让人能判断"这条是哪来的"。"""
         rows = self._conn.execute(
-            "SELECT id, content, source, scope, session_id, created_at, hits, last_used"
-            " FROM facts ORDER BY id DESC LIMIT ?",
+            "SELECT id, content, source, scope, session_id, created_at, hits, last_used,"
+            " clarity FROM facts ORDER BY id DESC LIMIT ?",
             (max(1, limit),),
         ).fetchall()
         return [
@@ -824,6 +889,7 @@ class MemoryStore:
                 "created_at": str(r[5]),
                 "hits": int(r[6] or 0),
                 "last_used": str(r[7]) if r[7] is not None else None,
+                "clarity": normalize_clarity(r[8] if len(r) > 8 else None),
             }
             for r in rows
         ]
@@ -853,6 +919,10 @@ class MemoryStore:
         不更新未计数的行，否则"没计数却刷新了时间"会把当天第一次真正该得的
         计数也堵掉。时间比较用 ISO 字符串的字典序；跨时区偏移变化（如 DST）
         的边界误差对启发式排序信号可接受。
+
+        **复习效应**：被召回的记忆同时升一档清晰度（`review_effect`）。
+        清晰度阶梯是单向衰减的，只有"复习即回升"这条正反馈才能避免
+        "用得越多掉得越狠"。升档与计数在同一事务里，不额外开一条写路径。
         """
         if not contents:
             return 0
@@ -870,6 +940,117 @@ class MemoryStore:
             counted += max(0, cur.rowcount)
         self._conn.commit()
         return counted
+
+    @_locked
+    def review_facts_clarity(self, contents: list[str], *, scope: str) -> int:
+        """复习升档：被召回的内容清晰度升一格（最多到 vivid），**每天最多一次**。
+
+        与 `touch_facts` **分开**是有意的：`touch_facts` 有 30 分钟冷却，
+        而升档不受冷却限制——一条 31 分钟后再次被想起的记忆也应该变清楚，
+        不该因为冷却窗口错过回升。返回值是实际升档的行数。
+
+        **每天最多一次**：一轮对话里模型可能连着 recall 同一批事实多次，
+        若每次都升一格，一条 `forgotten` 记忆会在几分钟内被拉回 `vivid`——
+        阶梯就成了"刷出来的"，失去意义。用 `clarity_reviewed_at` 记当天戳，
+        当天再召回不再升档（与衰减的每日闸门对称：一天最多降一格、最多升一格）。
+        """
+        if not contents:
+            return 0
+        today = dt.datetime.now().astimezone().date().isoformat()
+        changed = 0
+        for text in dict.fromkeys(contents):
+            row = self._conn.execute(
+                "SELECT id, clarity, clarity_reviewed_at FROM facts"
+                " WHERE scope = ? AND content = ? LIMIT 1",
+                (scope, text),
+            ).fetchone()
+            if row is None:
+                continue
+            reviewed_at = str(row[2] or "")
+            if reviewed_at[:10] == today:
+                continue  # 今天已经升过档了
+            before = normalize_clarity(row[1])
+            after = review_effect(before, now=_now())
+            if after == before:
+                continue
+            self._conn.execute(
+                "UPDATE facts SET clarity = ?, clarity_changed_at = ?, clarity_reviewed_at = ?"
+                " WHERE id = ?",
+                (after, _now(), _now(), int(row[0])),
+            )
+            changed += 1
+        self._conn.commit()
+        return changed
+
+    @_locked
+    def decay_facts_clarity(
+        self,
+        *,
+        today: dt.date | None = None,
+        config: ClarityConfig | None = None,
+        force: bool = False,
+    ) -> dict:
+        """每日清晰度衰减：每条最多降一格，返回统计。
+
+        - **一天只跑一次**：`meta.clarity_decay.day` 记着上次衰减的日期，
+          当天再调直接返回（`changed=0`）。整理循环每 5 分钟一轮，
+          没有这道闸门，"每天最多降一格"会退化成"每 5 分钟降一格"——
+          抄 surfcore `memory-card.js:1565` 的 `lastDecayDate === today` 判断。
+          `force=True` 用于手工补跑（测试与运维），绕过闸门。
+        - 只降不升：升档只由复习（`review_facts_clarity`）触发；
+        - **不删除任何行**：`forgotten` 只是不再主动召回；
+        - 逐条判定（纯函数 `apply_daily_decay`），因此结果可完全预测与复算。
+        """
+        cfg = config or ClarityConfig()
+        day = today or dt.datetime.now().astimezone().date()
+        day_key = day.isoformat()
+        state = self._meta_json(CLARITY_META_KEY) or {}
+        if not force and str(state.get("day") or "") == day_key:
+            # 今天已经衰减过：直接返回（只跑一次聚合查询看分布，不搬整表）。
+            counts = {
+                str(row[0]): int(row[1])
+                for row in self._conn.execute(
+                    "SELECT clarity, COUNT(*) FROM facts GROUP BY clarity"
+                ).fetchall()
+            }
+            return {
+                "day": day_key,
+                "changed": 0,
+                "total": sum(counts.values()),
+                "by_clarity": counts,
+                "skipped": True,
+            }
+        rows = self._conn.execute(
+            "SELECT id, content, created_at, last_used, clarity FROM facts"
+        ).fetchall()
+        changed = 0
+        counts = {}
+        for row in rows:
+            before = normalize_clarity(row[4])
+            after = apply_daily_decay(
+                before,
+                created_at=str(row[2] or ""),
+                last_used=str(row[3] or ""),
+                today=day,
+                config=cfg,
+            )
+            counts[after] = counts.get(after, 0) + 1
+            if after == before:
+                continue
+            self._conn.execute(
+                "UPDATE facts SET clarity = ?, clarity_changed_at = ? WHERE id = ?",
+                (after, _now(), int(row[0])),
+            )
+            changed += 1
+        self._conn.commit()
+        self._set_meta(CLARITY_META_KEY, {"day": day_key, "at": _now(), "changed": changed})
+        return {
+            "day": day_key,
+            "changed": changed,
+            "total": len(rows),
+            "by_clarity": counts,
+            "skipped": False,
+        }
 
     @_locked
     def fact_ids_by_contents(self, contents: list[str], *, scope: str) -> dict[str, int]:
@@ -898,6 +1079,18 @@ class MemoryStore:
             [scope, *contents],
         ).fetchall()
         return {str(r[0]): str(r[1]) for r in rows}
+
+    @_locked
+    def fact_clarities(self, contents: list[str], *, scope: str) -> dict[str, str]:
+        """按内容回查清晰度档位（recall 标注陈旧程度用）；不在库的内容无键。"""
+        if not contents:
+            return {}
+        marks = ",".join("?" for _ in contents)
+        rows = self._conn.execute(
+            f"SELECT content, clarity FROM facts WHERE scope = ? AND content IN ({marks})",
+            [scope, *contents],
+        ).fetchall()
+        return {str(r[0]): normalize_clarity(r[1]) for r in rows}
 
     @_locked
     def forgotten_matches(self, query: str, limit: int = 1) -> list[str]:
