@@ -29,13 +29,20 @@ def register_profile_tools(
             if not lines:
                 return f"用户档案为空（{usage} 字符额度）。用 add 添加第一条。"
             body = "\n".join(f"[{lid}] {text}" for lid, text in lines)
-            return f"用户档案（{usage} 字符已用）：\n{body}"
+            out = f"用户档案（{usage} 字符已用）：\n{body}"
+            evidence = owner.evidence_lines("archive")
+            if evidence:
+                out += "\n\n出处（每条的来源与原文依据，供核对）：\n" + "\n".join(evidence)
+            return out
+        # evidence = 原文摘录：后台整理（回合后复盘/夜间日记）写入时必填，
+        # 由存储层逐字比对来源材料——没有出处的内容不写入长期记忆。
+        evidence = str(args.get("evidence", "") or "").strip()
         if op == "add":
             content = str(args.get("content", "")).strip()
             blocked = _gate("profile", content)
             if blocked:
                 return blocked
-            return owner.profile_add(content, source=source or "manual")[1]
+            return owner.profile_add(content, source=source or "manual", evidence=evidence)[1]
         if op == "edit":
             try:
                 line_id = int(args.get("line_id", 0))
@@ -47,7 +54,7 @@ def register_profile_tools(
             blocked = _gate("profile", content)
             if blocked:
                 return blocked
-            _ok, message = owner.profile_edit_checked(line_id, content)
+            _ok, message = owner.profile_edit_checked(line_id, content, evidence=evidence or None)
             return message
         if op == "delete":
             try:
@@ -64,7 +71,9 @@ def register_profile_tools(
             description=(
                 "维护用户长期档案（职位、稳定偏好、性格等核心特征；有字符额度限制）。"
                 "operation: view 查看 / add 添加 / edit 修改 / delete 删除；"
-                "写满时 add 会返回当前档案与剩余额度，此时应先合并再写"
+                "写满时 add 会返回当前档案与剩余额度，此时应先合并再写。"
+                "后台整理（回合后复盘/夜间日记）写入时必须带 evidence：从原文逐字照抄一段作为依据，"
+                "会被逐字比对，照抄不过就写不进去"
             ),
             parameters={
                 "type": "object",
@@ -78,6 +87,13 @@ def register_profile_tools(
                     "line_id": {
                         "type": "integer",
                         "description": "行编号（edit/delete 用，view 里有编号）",
+                    },
+                    "evidence": {
+                        "type": "string",
+                        "description": (
+                            "原文摘录（add/edit 用）：从你正在整理的原文里逐字照抄一段，"
+                            "不改写、不拼接、不概括。后台整理写入时必填，否则拒绝写入"
+                        ),
                     },
                 },
                 "required": ["operation"],

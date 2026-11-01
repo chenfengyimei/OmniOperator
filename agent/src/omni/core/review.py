@@ -21,6 +21,7 @@ from collections.abc import Callable
 
 from ..config import AppConfig
 from ..llm.gateway import Gateway, to_openai_tool_call
+from ..memory.anchor import anchor_scope
 from ..memory.store import MemoryStore
 from ..tools.registry import ToolRegistry
 
@@ -42,6 +43,8 @@ _REVIEW_SYSTEM = """\
 - 不记录密钥、令牌、密码、身份证号等凭据；这类内容只说明"用户提到过一个凭据"
 - 技能宁缺毋滥：单次性操作、日常寒暄不值得建技能；只有"以后还会再做、
   且有明确步骤"的事才建
+- 写入 profile_manage / resident_memory 时必须附 evidence：从上面那段对话片段里
+  逐字照抄一段作为依据，一个字都不要改；照抄不过会被拒绝，所以不要改写或概括
 - 写操作总共最多两三次
 - 没有值得记录的内容时，直接回复"无需变更"，不要调用任何工具"""
 
@@ -202,27 +205,33 @@ class TurnEndReviewer:
                 },
             ]
             outcome = ""
-            for _ in range(max(self._config.review.steps, 1)):
-                reply = self._gateway.complete(
-                    messages, model=self._model, tools=registry.specs(), purpose="review"
-                )
-                if not reply.tool_calls:
-                    outcome = reply.text.strip() or "无需变更"
-                    break
-                messages.append(
-                    {
-                        "role": "assistant",
-                        "content": reply.text or "",
-                        "tool_calls": [
-                            to_openai_tool_call(c) for c in reply.tool_calls
-                        ],
-                    }
-                )
-                for call in reply.tool_calls:
-                    result = self.registry_result(registry, call)
-                    messages.append(
-                        {"role": "tool", "tool_call_id": call.id, "content": result}
+            # 锚定（P5-b）：本轮 review 的来源材料就是上面这段对话片段。
+            # 在这个上下文里写入的常驻/档案条目必须附逐字原文摘录，否则拒绝写入——
+            # 背景整理是"模型对着自己写的总结说话"最容易编造长期记忆的地方。
+            with anchor_scope(
+                transcript, source="review", source_ref=f"session:{session_id}"
+            ):
+                for _ in range(max(self._config.review.steps, 1)):
+                    reply = self._gateway.complete(
+                        messages, model=self._model, tools=registry.specs(), purpose="review"
                     )
+                    if not reply.tool_calls:
+                        outcome = reply.text.strip() or "无需变更"
+                        break
+                    messages.append(
+                        {
+                            "role": "assistant",
+                            "content": reply.text or "",
+                            "tool_calls": [
+                                to_openai_tool_call(c) for c in reply.tool_calls
+                            ],
+                        }
+                    )
+                    for call in reply.tool_calls:
+                        result = self.registry_result(registry, call)
+                        messages.append(
+                            {"role": "tool", "tool_call_id": call.id, "content": result}
+                        )
             if not outcome:
                 outcome = "review 达到步数上限，已终止"
             store.save_review_log(session_id, outcome)

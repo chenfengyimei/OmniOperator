@@ -13,6 +13,7 @@ Runtime.resident 字段、工具注册、web 端点都是既有的注入点，�
 """
 from __future__ import annotations
 
+from .anchor import describe_source
 from .people import PersonError, PersonStore
 from .resident import BLOCK_HEADER, ENTRY_DELIMITER, injection_risk
 
@@ -68,6 +69,33 @@ class OwnerMemory:
             if e["entry_kind"] == kind
         ]
 
+    def _details(self, kind: str) -> list[dict]:
+        """带出处的条目明细（核对面用）：来源指针 + 原文摘录。"""
+        return [
+            e for e in self._people.entries(self.owner_id())
+            if e["entry_kind"] == kind
+        ]
+
+    def _evidence_section(self, details: list[dict]) -> list[str]:
+        """出处小节：条目编号 → 来源 + 原文摘录。
+
+        只列有出处的条目——没出处的写"（无出处）"是噪声，而"有出处但摘录为空"
+        在锚定上下文里根本写不进来。
+        """
+        lines = []
+        for e in details:
+            if not e.get("source_ref"):
+                continue
+            ref = describe_source(e.get("source", ""), e.get("source_ref", ""))
+            quote = str(e.get("evidence") or "").strip()
+            quote = (quote[:60] + "…") if len(quote) > 60 else quote
+            lines.append(f"[{e['id']}] {ref} · 「{quote}」" if quote else f"[{e['id']}] {ref}")
+        return lines
+
+    def evidence_lines(self, kind: str) -> list[str]:
+        """出处小节（对外）：kind 取 archive（档案）/ resident（常驻）。"""
+        return self._evidence_section(self._details(kind))
+
     # ---------------------------------------------------------------- resident 面
 
     @property
@@ -100,7 +128,7 @@ class OwnerMemory:
         )
 
     def view(self) -> str:
-        """agent 视角的清单：带编号（replace/remove 用编号寻址）。"""
+        """agent 视角的清单：带编号（replace/remove 用编号寻址）+ 出处小节。"""
         entries = self._entries("resident")
         if not entries:
             return (
@@ -109,18 +137,29 @@ class OwnerMemory:
             )
         lines = [f"常驻记忆（{self._resident_usage(entries)}）："]
         lines += [f"[{i}] {e}" for i, e in entries]
+        evidence = self._evidence_section(self._details("resident"))
+        if evidence:
+            lines.append("")
+            lines.append("出处（每条的来源与原文依据，供核对）：")
+            lines += evidence
         return "\n".join(lines)
 
-    def _write(self, op: str, content: str, entry_id: int | None, *, author: str, source: str) -> str:
+    def _write(
+        self, op: str, content: str, entry_id: int | None, *,
+        author: str, source: str, evidence: str = "",
+    ) -> str:
         """统一写路径：PersonError 转旧协议的"错误：…"返回串（工具/端点直接回显）。"""
         try:
             if op == "add":
                 self._people.add_entry(
-                    self.owner_id(), "resident", content, source=source or "resident_memory"
+                    self.owner_id(), "resident", content,
+                    source=source or "resident_memory", evidence=evidence,
                 )
                 return f"已写入常驻记忆（{self.usage()}）"
             if op == "replace":
-                if not self._people.edit_entry(int(entry_id or 0), content):
+                if not self._people.edit_entry(
+                    int(entry_id or 0), content, evidence=evidence or None
+                ):
                     return f"错误：不存在第 {entry_id} 条（先 view 查看编号）"
                 return f"已更新第 {entry_id} 条（{self.usage()}）"
             if op == "remove":
@@ -135,23 +174,29 @@ class OwnerMemory:
             return message if message.startswith("错误") else f"错误：{message}"
         raise ValueError(f"未知常驻写操作 {op}")
 
-    def add(self, content: str, *, author: str = "agent", source: str = "resident_memory") -> str:
+    def add(
+        self, content: str, *, author: str = "agent",
+        source: str = "resident_memory", evidence: str = "",
+    ) -> str:
         content = (content or "").strip()
         if not content:
             return "错误：content 不能为空"
         if risk := injection_risk(content):
             return f"错误：{risk}"
-        return self._write("add", content, None, author=author, source=source)
+        return self._write("add", content, None, author=author, source=source, evidence=evidence)
 
     def replace(
-        self, entry_id: int, content: str, *, author: str = "agent", source: str = "resident_memory"
+        self, entry_id: int, content: str, *, author: str = "agent",
+        source: str = "resident_memory", evidence: str = "",
     ) -> str:
         content = (content or "").strip()
         if not content:
             return "错误：content 不能为空（要删条目用 remove）"
         if risk := injection_risk(content):
             return f"错误：{risk}"
-        return self._write("replace", content, entry_id, author=author, source=source)
+        return self._write(
+            "replace", content, entry_id, author=author, source=source, evidence=evidence
+        )
 
     def remove(self, entry_id: int, *, author: str = "agent", source: str = "resident_memory") -> str:
         return self._write("remove", "", entry_id, author=author, source=source)
@@ -164,25 +209,32 @@ class OwnerMemory:
     def profile_usage_chars(self) -> int:
         return sum(len(text) for _, text in self.profile_lines())
 
-    def profile_add(self, content: str, *, source: str = "manual") -> tuple[bool, str]:
+    def profile_add(
+        self, content: str, *, source: str = "manual", evidence: str = ""
+    ) -> tuple[bool, str]:
         """超限时返回 (False, 错误+当前档案+剩余额度)，逼调用方当轮合并。"""
         content = (content or "").strip()
         if not content:
             return False, "错误：档案内容不能为空"
         try:
-            self._people.add_entry(self.owner_id(), "archive", content, source=source or "manual")
+            self._people.add_entry(
+                self.owner_id(), "archive", content,
+                source=source or "manual", evidence=evidence,
+            )
         except PersonError as exc:
             return False, str(exc)
         usage = self.profile_usage_chars()
         return True, f"已加入档案：{content}（当前 {usage}/{self._archive_total} 字符）"
 
-    def profile_edit_checked(self, line_id: int, content: str) -> tuple[bool, str]:
+    def profile_edit_checked(
+        self, line_id: int, content: str, *, evidence: str | None = None
+    ) -> tuple[bool, str]:
         """改一行档案。总量额度在存储层重算（对应旧 A15 修复的口径）。"""
         text = (content or "").strip()
         if not text:
             return False, "错误：档案内容不能为空"
         try:
-            if not self._people.edit_entry(int(line_id), text):
+            if not self._people.edit_entry(int(line_id), text, evidence=evidence):
                 return False, f"错误：不存在第 {line_id} 条（先 view 查看编号）"
         except PersonError as exc:
             return False, str(exc)

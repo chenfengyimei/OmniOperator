@@ -234,8 +234,14 @@ class ResidentMemory:
         return "\n".join(lines)
 
     def add(
-        self, content: str, *, author: str = "agent", source: str = "resident_memory"
+        self, content: str, *, author: str = "agent",
+        source: str = "resident_memory", evidence: str = "",
     ) -> str:
+        """`evidence`（原文摘录）为兼容 owner 门面而存在，这里没有出处列可落，接受但忽略。
+
+        旧文件式常驻记忆只服务迁移与测试；生产路径走 OwnerMemory
+        （条目落在 person_entries，带 source_ref/evidence）。
+        """
         content = (content or "").strip()
         if not content:
             return "错误：content 不能为空"
@@ -271,7 +277,9 @@ class ResidentMemory:
         *,
         author: str = "agent",
         source: str = "resident_memory",
+        evidence: str = "",
     ) -> str:
+        """`evidence` 同 add：为兼容 owner 门面的方法面而存在，这里接受但忽略。"""
         content = (content or "").strip()
         if not content:
             return "错误：content 不能为空（要删条目用 remove）"

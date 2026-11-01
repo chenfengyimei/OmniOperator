@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ...memory.anchor import describe_source
 from ...memory.guard import KIND_FACT
 from ...memory.people import PersonError, PersonStore
 from ..registry import Risk, Tool, ToolRegistry
@@ -75,6 +76,17 @@ def register_people_tools(
         events = [e for e in entries if e["entry_kind"] == "event"]
         if events:
             lines.append("临时事件：" + "；".join(e["content"] for e in events[-5:]))
+        # 出处小节：有出处的条目才列（后台写入的都带出处，对话里写的不带）
+        sourced = [e for e in entries if e.get("source_ref")]
+        if sourced:
+            lines.append("出处（条目 → 来源与原文依据，供核对）：")
+            for e in sourced:
+                ref = describe_source(e.get("source", ""), e.get("source_ref", ""))
+                quote = str(e.get("evidence") or "").strip()
+                quote = (quote[:60] + "…") if len(quote) > 60 else quote
+                lines.append(
+                    f"[{e['id']}] {ref} · 「{quote}」" if quote else f"[{e['id']}] {ref}"
+                )
         lines.append(f"（共 {len(entries)} 条记录；更新用 person_remember / person_event）")
         return "\n".join(lines)
 
@@ -102,6 +114,9 @@ def register_people_tools(
         person_key = str(args.get("person", "")).strip()
         entry_kind = str(args.get("kind", "resident")).strip()
         content = str(args.get("content", "")).strip()
+        # evidence = 原文摘录：后台整理（回合后复盘/夜间日记）写入时必填，
+        # 由存储层逐字比对来源材料——没有出处的内容不写入长期记忆。
+        evidence = str(args.get("evidence", "") or "").strip()
         if not person_key:
             return "错误：person 不能为空（名字或 channel:account，如 '小张' 或 'qq:12345'）"
         if entry_kind not in ("archive", "resident"):
@@ -115,7 +130,9 @@ def register_people_tools(
         if person is None:
             return error
         try:
-            people.add_entry(person["id"], entry_kind, content, source=source)
+            people.add_entry(
+                person["id"], entry_kind, content, source=source, evidence=evidence
+            )
         except PersonError as exc:
             return f"未写入人物记忆：{exc}"
         kind_label = "常驻档案" if entry_kind == "archive" else "常驻记忆"
@@ -125,6 +142,7 @@ def register_people_tools(
         person_key = str(args.get("person", "")).strip()
         content = str(args.get("content", "")).strip()
         expires_at = str(args.get("expires_at", "") or "").strip() or None
+        evidence = str(args.get("evidence", "") or "").strip()
         if not person_key:
             return "错误：person 不能为空（名字或 channel:account）"
         if not content:
@@ -136,7 +154,10 @@ def register_people_tools(
         if person is None:
             return error
         try:
-            people.add_entry(person["id"], "event", content, source=source, expires_at=expires_at)
+            people.add_entry(
+                person["id"], "event", content,
+                source=source, expires_at=expires_at, evidence=evidence,
+            )
         except PersonError as exc:
             return f"未写入人物事件：{exc}"
         suffix = f"，{expires_at} 过期自动清除" if expires_at else "（长期保留）"
@@ -171,7 +192,9 @@ def register_people_tools(
                 "把关于某个人物的信息写入其常驻记忆：kind=archive 放稳定特征"
                 "（职业、喜好、性格），kind=resident 放进行中的事（最近在忙什么）。"
                 "person 收名字或 channel:account；人物不存在会自动建立。"
-                "内容要自包含、一句一条"
+                "内容要自包含、一句一条。"
+                "后台整理（回合后复盘/夜间日记）写入时必须带 evidence：从原文逐字照抄一段作为依据，"
+                "会被逐字比对，照抄不过就写不进去"
             ),
             parameters={
                 "type": "object",
@@ -179,6 +202,13 @@ def register_people_tools(
                     "person": {"type": "string", "description": "名字或 channel:account（如 '小张'、'qq:12345'）"},
                     "kind": {"type": "string", "description": "archive（稳定特征）/ resident（进行中的事）"},
                     "content": {"type": "string", "description": "自包含的一句话"},
+                    "evidence": {
+                        "type": "string",
+                        "description": (
+                            "原文摘录：从你正在整理的原文里逐字照抄一段，"
+                            "不改写、不拼接、不概括。后台整理写入时必填，否则拒绝写入"
+                        ),
+                    },
                 },
                 "required": ["person", "content"],
             },
@@ -201,6 +231,13 @@ def register_people_tools(
                     "person": {"type": "string", "description": "名字或 channel:account"},
                     "content": {"type": "string", "description": "事件内容（自包含）"},
                     "expires_at": {"type": "string", "description": "可选：ISO 过期时间"},
+                    "evidence": {
+                        "type": "string",
+                        "description": (
+                            "原文摘录：从你正在整理的原文里逐字照抄一段。"
+                            "后台整理写入时必填，否则拒绝写入"
+                        ),
+                    },
                 },
                 "required": ["person", "content"],
             },

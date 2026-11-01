@@ -24,6 +24,7 @@ from typing import Any
 
 from ..config import AppConfig
 from ..llm.gateway import Gateway, to_openai_tool_call
+from ..memory.anchor import anchor_scope
 from ..memory.dialogue import DialogueLog
 from ..memory.journal import (
     KINDS,
@@ -61,6 +62,8 @@ _DEFAULT_RULES: dict[str, str] = {
 - 笔记正文不超过 {max_note_chars} 字；
 - 笔记之外，如发现值得长期记住的稳定事实，可用 remember 记录
   （自包含、宁缺毋滥）；写操作总共最多两三次，没有就什么都不做；
+- 用 remember / profile_manage / resident_memory 沉淀时必须附 evidence：
+  从上面的对话记录里逐字照抄一段作为依据，一个字都不要改；照抄不过会被拒绝；
 - 保存完笔记后如无其它沉淀，直接结束（不再调用任何工具）。""",
     "weekly": """\
 你是 OmniOperator 的记忆整理模块，在每周结束时于后台静默运行。
@@ -76,6 +79,8 @@ _DEFAULT_RULES: dict[str, str] = {
 - 大纲式：一条一行，不复制每日笔记的细节；细节以后翻对应日笔记即可；
 - 覆盖日期写明（如 10-26 ~ 11-01），半年后单看也懂；
 - 某天笔记缺失就直接跳过，不要虚构；
+- 用 remember / profile_manage / resident_memory 沉淀时必须附 evidence：
+  从上面的每日笔记里逐字照抄一段作为依据，不要改写或概括；照抄不过会被拒绝；
 - 笔记正文不超过 {max_note_chars} 字；保存后如无其它要做的直接结束。""",
     "monthly": """\
 你是 OmniOperator 的记忆整理模块，在每月结束时于后台静默运行。
@@ -93,6 +98,8 @@ _DEFAULT_RULES: dict[str, str] = {
 - 索引式：每条一行，不复述细节；细节以后翻对应周笔记即可；
 - 只消费每周笔记，不回去翻日笔记；
 - 某周笔记缺失就直接跳过，不要虚构；
+- 用 remember / profile_manage / resident_memory 沉淀时必须附 evidence：
+  从上面的每周笔记里逐字照抄一段作为依据，不要改写或概括；照抄不过会被拒绝；
 - 笔记正文不超过 {max_note_chars} 字；保存后直接结束。""",
 }
 
@@ -196,7 +203,7 @@ class JournalConsolidator:
                     )
                     self.stats["skipped"] += 1
                     return "跳过：没有可整理的素材（已保持现状）"
-                content = self._model_loop(kind, material)
+                content = self._model_loop(kind, material, period_key)
                 self._journal.finish(
                     kind, period_key, content, model=self._model, covered_to_id=covered
                 )
@@ -249,7 +256,7 @@ class JournalConsolidator:
         text = custom if custom else _DEFAULT_RULES[kind]
         return text.replace("{max_note_chars}", str(self._config.journal.max_note_chars))
 
-    def _model_loop(self, kind: str, material: str) -> str:
+    def _model_loop(self, kind: str, material: str, period_key: str = "") -> str:
         """有界模型循环：必须调 {kind}_note_save；沉淀工具经组装根白名单注入。"""
         store = self._make_store()  # remember/profile 工具要独立连接（后台线程）
         try:
@@ -299,22 +306,28 @@ class JournalConsolidator:
                     ),
                 },
             ]
-            for _ in range(max(1, self._config.journal.steps)):
-                reply = self._gateway.complete(
-                    messages, model=self._model, tools=registry.specs(), purpose="journal"
-                )
-                if not reply.tool_calls:
-                    break
-                messages.append(
-                    {
-                        "role": "assistant",
-                        "content": reply.text or "",
-                        "tool_calls": [to_openai_tool_call(c) for c in reply.tool_calls],
-                    }
-                )
-                for call in reply.tool_calls:
-                    result = registry.dispatch(call.function.name, call.function.arguments)
-                    messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
+            # 锚定（P5-b）：本期整理的来源材料就是上面这段素材。
+            # 在这个上下文里写入的常驻/档案/人物条目必须附逐字原文摘录，否则拒绝写入。
+            # 来源指针指向本期笔记（journal:<kind>:<period_key>），可回查到具体哪一期。
+            with anchor_scope(
+                material, source="journal", source_ref=f"journal:{kind}:{period_key}"
+            ):
+                for _ in range(max(1, self._config.journal.steps)):
+                    reply = self._gateway.complete(
+                        messages, model=self._model, tools=registry.specs(), purpose="journal"
+                    )
+                    if not reply.tool_calls:
+                        break
+                    messages.append(
+                        {
+                            "role": "assistant",
+                            "content": reply.text or "",
+                            "tool_calls": [to_openai_tool_call(c) for c in reply.tool_calls],
+                        }
+                    )
+                    for call in reply.tool_calls:
+                        result = registry.dispatch(call.function.name, call.function.arguments)
+                        messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
             content = holder.get("content")
             if not content:
                 raise RuntimeError("模型没有调用保存工具，本次整理作废（下轮自动重试）")

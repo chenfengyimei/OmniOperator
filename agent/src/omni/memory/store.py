@@ -1152,10 +1152,13 @@ class MemoryStore:
         return sum(len(content) for _, content in self.profile_lines())
 
     @_locked
-    def profile_add(self, content: str, *, source: str = "manual") -> tuple[bool, str]:
+    def profile_add(
+        self, content: str, *, source: str = "manual", evidence: str = ""
+    ) -> tuple[bool, str]:
         """超限时返回 (False, 错误+当前档案+剩余额度)，逼调用方当轮合并。
 
-        source 形参只为与 OwnerMemory 门面同形（冻结表不记来源），保持忽略。
+        source / evidence 形参只为与 OwnerMemory 门面同形（冻结表不记来源与出处），
+        保持忽略。锚定（原文出处）只发生在 owner 人物的 archive 条目上。
         """
         content = content.strip()
         if not content:
@@ -1176,14 +1179,22 @@ class MemoryStore:
         self._conn.commit()
         return True, f"已加入档案：{content}（当前 {usage + len(content)}/{PROFILE_MAX_CHARS} 字符）"
 
+    def evidence_lines(self, entry_kind: str = "archive") -> list[str]:
+        """出处小节（与 OwnerMemory 同形）：冻结的 profile 表没有出处列，返回空。"""
+        return []
+
     @_locked
     def profile_edit(self, line_id: int, content: str) -> bool:
         return self.profile_edit_checked(line_id, content)[0]
 
     @_locked
-    def profile_edit_checked(self, line_id: int, content: str) -> tuple[bool, str]:
+    def profile_edit_checked(
+        self, line_id: int, content: str, *, evidence: str | None = None
+    ) -> tuple[bool, str]:
         """改一行档案。**必须重算总额度**（A15）：以前 edit 不检查长度，
-        一句"把档案改成……"就能把限额顶穿，add 的限额形同虚设。"""
+        一句"把档案改成……"就能把限额顶穿，add 的限额形同虚设。
+
+        evidence 形参只为与 OwnerMemory 门面同形，保持忽略（见 profile_add）。"""
         text = content.strip()
         if not text:
             return False, "错误：档案内容不能为空"

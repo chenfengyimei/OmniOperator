@@ -21,12 +21,20 @@ import threading
 from pathlib import Path
 
 from ..config import DATA_DIR
+from .anchor import AnchorError, current_anchor, require_evidence
 from .resident import injection_risk
 
 ENTRY_KINDS = ("archive", "resident", "event")
 IMPORTANCE = ("owner", "important", "known")
 ACCOUNT_CHANNELS = ("qq", "bilibili")
 _ACCOUNT_VALUE = re.compile(r"^\d{1,20}$")
+
+# 锚定失败时的错误标签（说清是哪种条目，便于模型改对再来）
+_ENTRY_LABELS = {
+    "archive": "档案条目",
+    "resident": "常驻记忆条目",
+    "event": "临时事件条目",
+}
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS people (
@@ -53,6 +61,12 @@ CREATE TABLE IF NOT EXISTS person_entries (
     entry_kind TEXT NOT NULL,
     content TEXT NOT NULL,
     source TEXT NOT NULL DEFAULT 'chat',
+    -- 来源指针（session:42 / journal:daily:2026-11-01）：条目出自哪次对话/哪篇笔记。
+    -- source 只说"哪个子系统写的"，source_ref 才能回查到具体那一次。
+    source_ref TEXT NOT NULL DEFAULT '',
+    -- 原文摘录：后台写入器沉淀时的逐字依据（锚定机制，见 memory/anchor.py）。
+    -- 对话路径可以为空；后台整理必须有，否则拒绝写入。
+    evidence TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT,
     expires_at TEXT
@@ -130,7 +144,26 @@ class PersonStore:
         self._conn.execute("PRAGMA busy_timeout=5000")
         self._conn.executescript(_SCHEMA)
         self._conn.execute("PRAGMA foreign_keys=ON")
+        self._migrate_columns()
         self._conn.commit()
+
+    def _migrate_columns(self) -> None:
+        """旧库补列（锚定机制 P5-b）：只加不改，存量条目新列留空。
+
+        `CREATE TABLE IF NOT EXISTS` 不会改已存在的表，所以老库的 person_entries
+        不会自动多出 source_ref / evidence——这里用 PRAGMA table_info 判断缺哪列。
+        存量条目没有出处是事实，不猜、不回填。
+        """
+        additions = {
+            "source_ref": "TEXT NOT NULL DEFAULT ''",
+            "evidence": "TEXT NOT NULL DEFAULT ''",
+        }
+        existing = {
+            str(row[1]) for row in self._conn.execute("PRAGMA table_info(person_entries)")
+        }
+        for name, ddl in additions.items():
+            if name not in existing:
+                self._conn.execute(f"ALTER TABLE person_entries ADD COLUMN {name} {ddl}")
 
     # ---------------------------------------------------------------- 人物
 
@@ -441,7 +474,14 @@ class PersonStore:
     def add_entry(
         self, person_id: int, entry_kind: str, content: str, *,
         source: str = "chat", expires_at: str | None = None,
+        source_ref: str = "", evidence: str = "",
     ) -> int:
+        """写入条目。锚定校验在**存储层**收口（不是工具层）：
+        任何写入路径都走这里，后台整理绕不过去。
+
+        锚定上下文里（review/journal 在整理）：`evidence` 必填且要逐字命中来源材料，
+        否则拒绝写入；`source`/`source_ref` 以上下文为准（调用方传的只是默认标签）。
+        """
         if not self.get_person(int(person_id)):
             raise PersonError(f"人物 {person_id} 不存在")
         content = self._check_entry(person_id, entry_kind, content)
@@ -453,30 +493,68 @@ class PersonStore:
                 raise PersonError("过期时间必须是 ISO 时间（如 2026-11-05T09:00:00+08:00）") from exc
             if parsed <= dt.datetime.now().astimezone():
                 raise PersonError("临时事件的过期时间必须在未来")
+        ctx = current_anchor()
+        try:
+            kept_evidence, kept_ref = require_evidence(
+                evidence, label=_ENTRY_LABELS.get(entry_kind, "人物条目")
+            )
+        except AnchorError as exc:
+            raise PersonError(str(exc)) from exc
         cur = self._conn.execute(
-            "INSERT INTO person_entries(person_id, entry_kind, content, source, created_at, expires_at)"
-            " VALUES (?, ?, ?, ?, ?, ?)",
-            (int(person_id), entry_kind, content, str(source or "chat"), _now(), expires_at),
+            "INSERT INTO person_entries(person_id, entry_kind, content, source, source_ref,"
+            " evidence, created_at, expires_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                int(person_id), entry_kind, content,
+                (ctx.source if ctx is not None else str(source or "chat")),
+                str(kept_ref or source_ref or ""),
+                kept_evidence, _now(), expires_at,
+            ),
         )
         self._conn.commit()
         return int(cur.lastrowid)
 
     @_locked
-    def edit_entry(self, entry_id: int, content: str) -> bool:
+    def edit_entry(
+        self, entry_id: int, content: str, *, evidence: str | None = None
+    ) -> bool:
+        """改写条目内容。
+
+        出处与内容绑定：内容被改写后，旧摘录未必还支撑新内容。
+        - 后台整理：改写必须重新给出处（没给就拒绝）；
+        - 对话路径：内容没变则保留旧出处；变了就清掉（旧摘录留着就是"看着有依据、
+          其实对不上"）。
+        """
         row = self._conn.execute(
-            "SELECT person_id, entry_kind FROM person_entries WHERE id = ?",
+            "SELECT person_id, entry_kind, content, COALESCE(evidence,'')"
+            " FROM person_entries WHERE id = ?",
             (int(entry_id),),
         ).fetchone()
         if not row:
             return False
         person_id, entry_kind = int(row[0]), str(row[1])
+        old_content, old_evidence = str(row[2]), str(row[3])
         content = self._check_entry(person_id, entry_kind, content)
         self._enforce_owner_total(
             person_id, entry_kind, content, exclude_entry_id=int(entry_id)
         )
+        ctx = current_anchor()
+        if ctx is not None:
+            try:
+                kept_evidence, _ref = require_evidence(
+                    evidence or "", label=_ENTRY_LABELS.get(entry_kind, "人物条目")
+                )
+            except AnchorError as exc:
+                raise PersonError(str(exc)) from exc
+        elif evidence:
+            kept_evidence = ""  # 对话路径的摘录无从核对，不落库
+        elif old_content.strip() == content.strip():
+            kept_evidence = old_evidence
+        else:
+            kept_evidence = ""
         self._conn.execute(
-            "UPDATE person_entries SET content = ?, updated_at = ? WHERE id = ?",
-            (content, _now(), int(entry_id)),
+            "UPDATE person_entries SET content = ?, evidence = ?, updated_at = ? WHERE id = ?",
+            (content, kept_evidence, _now(), int(entry_id)),
         )
         self._conn.commit()
         return True
@@ -492,14 +570,14 @@ class PersonStore:
     @_locked
     def entries(self, person_id: int, *, include_expired: bool = False) -> list[dict]:
         rows = self._conn.execute(
-            "SELECT id, entry_kind, content, source, created_at, COALESCE(updated_at,''),"
-            " COALESCE(expires_at,'') FROM person_entries WHERE person_id = ?"
-            " ORDER BY entry_kind ASC, id ASC",
+            "SELECT id, entry_kind, content, source, source_ref, evidence, created_at,"
+            " COALESCE(updated_at,''), COALESCE(expires_at,'') FROM person_entries"
+            " WHERE person_id = ? ORDER BY entry_kind ASC, id ASC",
             (int(person_id),),
         ).fetchall()
         result: list[dict] = []
         for r in rows:
-            expired = _entry_expired(str(r[6]) or None)
+            expired = _entry_expired(str(r[8]) or None)
             if expired and not include_expired:
                 continue
             result.append(
@@ -508,9 +586,11 @@ class PersonStore:
                     "entry_kind": str(r[1]),
                     "content": str(r[2]),
                     "source": str(r[3]),
-                    "created_at": str(r[4]),
-                    "updated_at": str(r[5]),
-                    "expires_at": str(r[6]),
+                    "source_ref": str(r[4]),
+                    "evidence": str(r[5]),
+                    "created_at": str(r[6]),
+                    "updated_at": str(r[7]),
+                    "expires_at": str(r[8]),
                     "expired": expired,
                 }
             )

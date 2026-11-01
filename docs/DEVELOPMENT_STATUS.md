@@ -1,5 +1,51 @@
 # 开发状态记录
 
+2026-11-01 沉淀条目的原文锚定（P5-b，抄 dsh-bili-humanism 的校验机制，不抄形态）：
+- **用户原话**：同上前条（「这些模块全部都学习一下看看，优化我们系统的模块，不照抄，只学习，
+  看哪些好与我们的模块可以优化升级的就进行修改而不是无脑乱加」）。
+- **学习来源**：`xuexi/dsh-bili-humanism/lib/personality.mjs` 的 `choice()`——人格札记的
+  句子必须**逐字**出现在它引用的信笺原文（`body.revision` / `body.next_response`）里，
+  否则 `need(..., "PERSONALITY_REFLECTION_REQUIRED")` 拒绝落库；札记行末还带
+  「来源手账：<id> · 修订 N」可回查。**抄机制**（确定性校验 + 可回查指针），
+  **不抄形态**（我们不建 `human-world.md`，也不要求"整句逐字"）。
+- **先核实、后动手，修正了三处判断**（照抄会做错的地方）：
+  1. 参考实现的锚定针对的是 **agent 自己的人格反思**；我们的 `resident`/`profile`
+     装的是**用户的**约定与特征——语义不同，「摘句必须是原文」在我们这儿不成立。
+  2. 真正的缺口在别处：`person_entries.source` 只有 `chat/review/journal` 这类
+     **粗粒度标签**，无法回查到具体哪次对话、哪条笔记。
+  3. 所以落到「**摘录支撑**」：条目可以是概括（原文里根本没有这句话），但必须附一段
+     **逐字原文**，且系统用**确定性比对**校验出处（不是让另一个模型判断"像不像"）。
+- **实现落点**：新 `memory/anchor.py`（**叶子模块**，纯逻辑，可离线单测）：
+  `verify_evidence`（忽略空白后子串包含）、`require_evidence`（写入前统一入口）、
+  `anchor_scope`/`current_anchor`（**上下文变量**绑定来源材料——工具层不必知道调用方
+  是 review 还是 journal，也不用改 `bootstrap.py` 的装配签名）、`describe_source`。
+  存储层 `person_entries` 增两列 `source_ref`/`evidence`（旧库走 `PRAGMA table_info`
+  补列，存量条目出处留空——**没有出处是事实，不猜、不回填**）；
+  `PersonStore.add_entry`/`edit_entry` 是**唯一的锚定收口点**（任何写入路径都走这里，
+  后台绕不过去）。工具层 `resident_memory`/`profile_manage`/`person_remember`/
+  `person_event` 加 `evidence` 参数；`resident_memory view`/`profile_manage view`/
+  `person_lookup` 末尾多一段「出处」（条目 → 来源 + 原文摘录）。后台写入器接线：
+  `core/review.py` 在模型循环外层绑 `transcript`（来源 `session:<id>`），
+  `core/journal.py` 绑本期素材（来源 `journal:<kind>:<period_key>`）。
+- **三条不变式**：① **落库的摘录一定经过逐字校验**——对话路径给了摘录也不落库
+  （没有可核的来源，留着就是"看着有依据，其实没核对过"）；② **出处与内容绑定**——
+  后台改写必须重新给出处，对话路径内容变了就清掉旧出处（**清掉比留错诚实**）；
+  ③ **锚定在存储层收口**，不在工具层。
+- **本轮修掉的一个真实缺陷**：比对口径最初写成"折叠成单空格"，结果**来源材料里一句话
+  中间带换行时，模型逐字抄的那句就对不上**（多行消息、粘贴的代码块都会踩到）——合法记忆
+  写不进去是**假阴性**，比略松的比对更糟。改成**忽略全部空白**再比对；跨消息拼接仍然
+  拼不起来（来源材料每条消息都带 `[user] ` / `[10:23] user: ` 前缀挡着）。
+- **测试**：新 `agent/tests/test_anchor.py` **22 项全绿**（纯逻辑 10 + 存储层 7 +
+  工具层 5）；回归 `test_memory_tools`/`test_resident`/`test_review`/
+  `test_journal_consolidator`/`test_prompt_context`/`test_agent` **102 项全绿**。
+- **剩余限制（待真实验收，一律不算完成）**：① **事实记忆（`remember`）暂未锚定**——
+  facts 在 `memory.db` 的另一张表上，要另开一列与一条校验路径，本批未做；
+  ② **未在真机跑过**——真实 review / journal 模型能否稳定抄出逐字原文、抄不过时是否
+  会照着报错改对再来，都未验（离线测试只验机制不验模型行为）；
+  ③ 周/月记的出处是**链式**的（月记←周记←日记←对话），指向"周记 2026-W44"比指向
+  原始对话弱一档；④ 证据**不进注入块**（守住常驻 2200 / 档案 2000 的体积硬上限），
+  只在核对面与工作台可见。
+
 2026-11-01 视频理解接入：分镜图引擎 + video_storyboard / video_zoom（D33）：
 - **用户原话**：「不抄袭，只学习，先学习视频理解：我们有字幕但没有画面，根据 github:
   github.com/SAOS-3624/dsh-video-storyboard 将视频理解接入到我们的项目中」。
