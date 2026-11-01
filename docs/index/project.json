@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c74fef96bfae33682ef6b46eeeafcf3ea678668fc6823f8127b86d6fc264d93d",
+  "source_sha256": "147cf538b00261e50bddefc9ac103b3961192bdfd45fc20600ffb6dbdc2e4029",
   "modules": [
     {
       "id": "agent-directories",
@@ -111,7 +111,7 @@
       "files": [
         "agent/src/omni/bootstrap.py"
       ],
-      "lines": 771,
+      "lines": 781,
       "dependencies": [
         "agent-directories",
         "android",
@@ -157,7 +157,7 @@
       "files": [
         "agent/src/omni/config.py"
       ],
-      "lines": 737,
+      "lines": 749,
       "dependencies": []
     },
     {
@@ -218,7 +218,7 @@
         "agent/src/omni/core/session.py",
         "agent/src/omni/core/vision.py"
       ],
-      "lines": 3488,
+      "lines": 3500,
       "dependencies": [
         "config",
         "models",
@@ -499,7 +499,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2601,
+      "lines": 2619,
       "dependencies": [
         "assembly",
         "config",
@@ -1059,7 +1059,7 @@
       "files": [
         "agent/src/omni/channels/qq.py"
       ],
-      "lines": 320,
+      "lines": 350,
       "dependencies": [
         "assembly",
         "channels",
@@ -1088,7 +1088,7 @@
       "files": [
         "agent/src/omni/channels/heartbeat.py"
       ],
-      "lines": 82,
+      "lines": 117,
       "dependencies": [
         "assembly",
         "channels",
@@ -1662,9 +1662,10 @@
         "agent/src/omni/system/service_state.py",
         "agent/src/omni/system/services.py",
         "agent/src/omni/system/soak.py",
-        "agent/src/omni/system/stderr_log.py"
+        "agent/src/omni/system/stderr_log.py",
+        "agent/src/omni/system/supervisor.py"
       ],
-      "lines": 2804,
+      "lines": 3204,
       "dependencies": [
         "agent-directories",
         "config"
@@ -1712,7 +1713,7 @@
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 771,
+      "lines": 781,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1754,6 +1755,7 @@
         "omni.system.doctor",
         "omni.system.observability",
         "omni.system.services",
+        "omni.system.supervisor",
         "omni.tools.android.driver",
         "omni.tools.android.stream",
         "omni.tools.android.tools",
@@ -1792,7 +1794,7 @@
       "symbols": [
         {
           "name": "_no_port_probe",
-          "line": 119,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "_port",
@@ -1805,7 +1807,7 @@
         },
         {
           "name": "_no_kill",
-          "line": 124,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1816,7 +1818,7 @@
         },
         {
           "name": "_no_process_probe",
-          "line": 129,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1827,7 +1829,7 @@
         },
         {
           "name": "_no_tcp_probe",
-          "line": 133,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "_port"
@@ -1838,7 +1840,7 @@
         },
         {
           "name": "_no_spawn",
-          "line": 137,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "*_args",
@@ -1848,7 +1850,7 @@
         },
         {
           "name": "_resolve_root",
-          "line": 141,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "value"
@@ -1859,12 +1861,12 @@
         },
         {
           "name": "Runtime",
-          "line": 148,
+          "line": 149,
           "kind": "class"
         },
         {
           "name": "Runtime.qq_policy",
-          "line": 206,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self"
@@ -1873,7 +1875,7 @@
         },
         {
           "name": "Runtime.close_mcp",
-          "line": 210,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
@@ -1885,7 +1887,7 @@
         },
         {
           "name": "Runtime.doctor",
-          "line": 217,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self"
@@ -1894,7 +1896,7 @@
         },
         {
           "name": "Runtime.backup",
-          "line": 230,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self"
@@ -1903,7 +1905,7 @@
         },
         {
           "name": "Runtime.close",
-          "line": 235,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -1915,7 +1917,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 284,
+          "line": 286,
           "kind": "function",
           "parameters": [
             "self",
@@ -1927,7 +1929,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 290,
+          "line": 292,
           "kind": "function",
           "parameters": [
             "self"
@@ -1936,7 +1938,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 294,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "self",
@@ -1948,7 +1950,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 303,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -1960,7 +1962,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 307,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "self"
@@ -1969,7 +1971,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 312,
+          "line": 314,
           "kind": "function",
           "parameters": [
             "self",
@@ -1981,7 +1983,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 319,
+          "line": 321,
           "kind": "function",
           "parameters": [
             "self",
@@ -1993,7 +1995,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 327,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "approver",
@@ -2020,7 +2022,7 @@
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 539,
+          "line": 541,
           "kind": "function",
           "parameters": [
             "rel"
@@ -2031,14 +2033,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 570,
+          "line": 572,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 665,
+          "line": 674,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -2049,7 +2051,7 @@
         },
         {
           "name": "build_runtime._journal_registry",
-          "line": 696,
+          "line": 705,
           "kind": "function",
           "parameters": [
             "journal_store"
@@ -2155,7 +2157,7 @@
       "path": "agent/src/omni/channels/heartbeat.py",
       "module": "heartbeat",
       "python_module": "omni.channels.heartbeat",
-      "lines": 82,
+      "lines": 117,
       "imports": [
         "omni.bootstrap",
         "omni.channels.lifecycle",
@@ -2164,21 +2166,32 @@
         "omni.core.journal",
         "omni.memory.state",
         "omni.safety.gates",
-        "omni.system.observability"
+        "omni.system.observability",
+        "omni.system.service_state"
       ],
       "symbols": [
         {
-          "name": "_serve",
-          "line": 26,
+          "name": "_now_iso",
+          "line": 31,
           "kind": "function",
-          "parameters": [
-            "runtime"
-          ],
+          "parameters": [],
           "annotations": {}
         },
         {
+          "name": "_serve",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "runtime",
+            "launch_id"
+          ],
+          "annotations": {
+            "launch_id": "str"
+          }
+        },
+        {
           "name": "_serve._ignore_event",
-          "line": 27,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "_event"
@@ -2188,8 +2201,32 @@
           }
         },
         {
+          "name": "_serve._on_tick",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "fired"
+          ],
+          "annotations": {
+            "fired": "list[str]"
+          }
+        },
+        {
+          "name": "_serve._report",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "health",
+            "note"
+          ],
+          "annotations": {
+            "health": "str",
+            "note": "str"
+          }
+        },
+        {
           "name": "main",
-          "line": 64,
+          "line": 98,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -2227,7 +2264,7 @@
       "path": "agent/src/omni/channels/qq.py",
       "module": "qq-channel",
       "python_module": "omni.channels.qq",
-      "lines": 320,
+      "lines": 350,
       "imports": [
         "omni.bootstrap",
         "omni.channels.lifecycle",
@@ -2236,12 +2273,13 @@
         "omni.llm.gateway",
         "omni.safety.gates",
         "omni.system.observability",
+        "omni.system.service_state",
         "omni.tools.qq.client"
       ],
       "symbols": [
         {
           "name": "_event_id",
-          "line": 30,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "event"
@@ -2252,7 +2290,7 @@
         },
         {
           "name": "_resolve_scope",
-          "line": 38,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -2267,7 +2305,7 @@
         },
         {
           "name": "_session_for",
-          "line": 81,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -2282,7 +2320,7 @@
         },
         {
           "name": "_handle_message",
-          "line": 96,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -2299,7 +2337,7 @@
         },
         {
           "name": "_cancel_session",
-          "line": 114,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -2314,7 +2352,7 @@
         },
         {
           "name": "_handle_batch",
-          "line": 122,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -2331,7 +2369,7 @@
         },
         {
           "name": "_handle_batch.valid",
-          "line": 130,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "event"
@@ -2342,12 +2380,12 @@
         },
         {
           "name": "QQDispatcher",
-          "line": 196,
+          "line": 202,
           "kind": "class"
         },
         {
           "name": "QQDispatcher.__init__",
-          "line": 199,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -2361,7 +2399,7 @@
         },
         {
           "name": "QQDispatcher.on_event",
-          "line": 207,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -2373,7 +2411,7 @@
         },
         {
           "name": "QQDispatcher._work",
-          "line": 244,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self",
@@ -2387,7 +2425,7 @@
         },
         {
           "name": "QQDispatcher.close",
-          "line": 267,
+          "line": 279,
           "kind": "function",
           "parameters": [
             "self"
@@ -2396,18 +2434,27 @@
         },
         {
           "name": "_serve",
-          "line": 275,
+          "line": 287,
           "kind": "function",
           "parameters": [
-            "runtime"
+            "runtime",
+            "launch_id"
           ],
           "annotations": {
-            "runtime": "Runtime"
+            "runtime": "Runtime",
+            "launch_id": "str"
           }
         },
         {
+          "name": "_serve._report",
+          "line": 294,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "main",
-          "line": 285,
+          "line": 315,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -2992,7 +3039,7 @@
       "path": "agent/src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 522,
+      "lines": 540,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -3076,7 +3123,7 @@
         },
         {
           "name": "create_app.identity_guard",
-          "line": 152,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "request",
@@ -3088,7 +3135,7 @@
         },
         {
           "name": "create_app.auth_status",
-          "line": 175,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "request"
@@ -3099,7 +3146,7 @@
         },
         {
           "name": "create_app.auth_pair",
-          "line": 183,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "payload",
@@ -3112,14 +3159,14 @@
         },
         {
           "name": "create_app.auth_logout",
-          "line": 198,
+          "line": 216,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.pair_link",
-          "line": 204,
+          "line": 222,
           "kind": "function",
           "parameters": [
             "code",
@@ -3132,21 +3179,21 @@
         },
         {
           "name": "create_app._config_from_disk",
-          "line": 235,
+          "line": 253,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.system_config",
-          "line": 254,
+          "line": 272,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.system_config_save",
-          "line": 340,
+          "line": 358,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3157,28 +3204,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 364,
+          "line": 382,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 375,
+          "line": 393,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.bili_cookies_status",
-          "line": 383,
+          "line": 401,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.save_bili_cookies",
-          "line": 395,
+          "line": 413,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3189,14 +3236,14 @@
         },
         {
           "name": "create_app.model_keys",
-          "line": 415,
+          "line": 433,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.model_key_set",
-          "line": 420,
+          "line": 438,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3207,7 +3254,7 @@
         },
         {
           "name": "create_app.model_test",
-          "line": 437,
+          "line": 455,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3218,7 +3265,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 475,
+          "line": 493,
           "kind": "function",
           "parameters": [
             "host"
@@ -3229,7 +3276,7 @@
         },
         {
           "name": "main",
-          "line": 486,
+          "line": 504,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -7025,7 +7072,7 @@
       "path": "agent/src/omni/config.py",
       "module": "config",
       "python_module": "omni.config",
-      "lines": 737,
+      "lines": 749,
       "imports": [],
       "symbols": [
         {
@@ -7269,17 +7316,17 @@
         },
         {
           "name": "Approval",
-          "line": 482,
+          "line": 494,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig",
-          "line": 492,
+          "line": 504,
           "kind": "class"
         },
         {
           "name": "MCPServerConfig.nonblank_command",
-          "line": 510,
+          "line": 522,
           "kind": "function",
           "parameters": [
             "cls",
@@ -7291,7 +7338,7 @@
         },
         {
           "name": "MCPServerConfig.readonly_subset",
-          "line": 516,
+          "line": 528,
           "kind": "function",
           "parameters": [
             "self"
@@ -7300,12 +7347,12 @@
         },
         {
           "name": "MCPConfig",
-          "line": 522,
+          "line": 534,
           "kind": "class"
         },
         {
           "name": "MCPConfig.server_names",
-          "line": 528,
+          "line": 540,
           "kind": "function",
           "parameters": [
             "cls",
@@ -7317,12 +7364,12 @@
         },
         {
           "name": "Desktop",
-          "line": 536,
+          "line": 548,
           "kind": "class"
         },
         {
           "name": "Desktop.absolute_apps",
-          "line": 547,
+          "line": 559,
           "kind": "function",
           "parameters": [
             "cls",
@@ -7332,12 +7379,12 @@
         },
         {
           "name": "Embedding",
-          "line": 553,
+          "line": 565,
           "kind": "class"
         },
         {
           "name": "Embedding.validate_provider",
-          "line": 571,
+          "line": 583,
           "kind": "function",
           "parameters": [
             "self"
@@ -7346,17 +7393,17 @@
         },
         {
           "name": "Cron",
-          "line": 591,
+          "line": 603,
           "kind": "class"
         },
         {
           "name": "Journal",
-          "line": 596,
+          "line": 608,
           "kind": "class"
         },
         {
           "name": "Journal.check_daily_time",
-          "line": 616,
+          "line": 628,
           "kind": "function",
           "parameters": [
             "self"
@@ -7365,22 +7412,22 @@
         },
         {
           "name": "Transcript",
-          "line": 625,
+          "line": 637,
           "kind": "class"
         },
         {
           "name": "People",
-          "line": 640,
+          "line": 652,
           "kind": "class"
         },
         {
           "name": "AndroidConfig",
-          "line": 650,
+          "line": 662,
           "kind": "class"
         },
         {
           "name": "AndroidConfig.packages",
-          "line": 662,
+          "line": 674,
           "kind": "function",
           "parameters": [
             "cls",
@@ -7390,22 +7437,22 @@
         },
         {
           "name": "CommandJobsConfig",
-          "line": 669,
+          "line": 681,
           "kind": "class"
         },
         {
           "name": "TerminalConfig",
-          "line": 679,
+          "line": 691,
           "kind": "class"
         },
         {
           "name": "AppConfig",
-          "line": 687,
+          "line": 699,
           "kind": "class"
         },
         {
           "name": "load_config",
-          "line": 720,
+          "line": 732,
           "kind": "function",
           "parameters": [
             "path"
@@ -7416,7 +7463,7 @@
         },
         {
           "name": "load_qq_policy",
-          "line": 728,
+          "line": 740,
           "kind": "function",
           "parameters": [
             "path"
@@ -8463,7 +8510,7 @@
       "path": "agent/src/omni/core/cron.py",
       "module": "engine",
       "python_module": "omni.core.cron",
-      "lines": 440,
+      "lines": 452,
       "imports": [
         "omni.core.qq_policy",
         "omni.memory.cron",
@@ -8488,7 +8535,8 @@
             "clock",
             "ledger",
             "max_running",
-            "claim_ttl_s"
+            "claim_ttl_s",
+            "on_tick"
           ],
           "annotations": {
             "store": "JobStore",
@@ -8497,12 +8545,13 @@
             "clock": "Callable[[], float]",
             "ledger": "Any | None",
             "max_running": "int",
-            "claim_ttl_s": "float"
+            "claim_ttl_s": "float",
+            "on_tick": "Callable[[list[str]], None] | None"
           }
         },
         {
           "name": "CronScheduler.active_count",
-          "line": 53,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self"
@@ -8511,7 +8560,7 @@
         },
         {
           "name": "CronScheduler.close",
-          "line": 56,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "self",
@@ -8523,7 +8572,7 @@
         },
         {
           "name": "CronScheduler.run",
-          "line": 63,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "self"
@@ -8531,8 +8580,20 @@
           "annotations": {}
         },
         {
+          "name": "CronScheduler._notify_tick",
+          "line": 76,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "fired"
+          ],
+          "annotations": {
+            "fired": "list[str]"
+          }
+        },
+        {
           "name": "CronScheduler.tick",
-          "line": 72,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -8544,7 +8605,7 @@
         },
         {
           "name": "CronScheduler._period_seconds",
-          "line": 101,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "job"
@@ -8555,7 +8616,7 @@
         },
         {
           "name": "CronScheduler._run_job_safely",
-          "line": 106,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self",
@@ -8569,14 +8630,14 @@
         },
         {
           "name": "CronScheduler._run_job_safely.renew",
-          "line": 107,
+          "line": 119,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "CronScheduler._execute_job",
-          "line": 135,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -8588,7 +8649,7 @@
         },
         {
           "name": "make_runtime_executor",
-          "line": 175,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -8599,7 +8660,7 @@
         },
         {
           "name": "make_runtime_executor.executor",
-          "line": 186,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "job"
@@ -8610,14 +8671,14 @@
         },
         {
           "name": "make_runtime_executor.executor.execute",
-          "line": 208,
+          "line": 220,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_enqueue_or_note",
-          "line": 243,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -8638,7 +8699,7 @@
         },
         {
           "name": "make_runtime_deliver",
-          "line": 266,
+          "line": 278,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -8649,7 +8710,7 @@
         },
         {
           "name": "make_runtime_deliver.deliver",
-          "line": 281,
+          "line": 293,
           "kind": "function",
           "parameters": [
             "job",
@@ -8662,7 +8723,7 @@
         },
         {
           "name": "_send_outbox_entry",
-          "line": 321,
+          "line": 333,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -8675,7 +8736,7 @@
         },
         {
           "name": "_send_outbox_entry.finish",
-          "line": 326,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "status",
@@ -8688,7 +8749,7 @@
         },
         {
           "name": "_send_outbox_entry.defer",
-          "line": 331,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "reason"
@@ -8699,7 +8760,7 @@
         },
         {
           "name": "make_outbox_drainer",
-          "line": 365,
+          "line": 377,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -8710,14 +8771,14 @@
         },
         {
           "name": "make_outbox_drainer.drain",
-          "line": 375,
+          "line": 387,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_prune_terminal",
-          "line": 397,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "outbox"
@@ -8728,7 +8789,7 @@
         },
         {
           "name": "artifacts_sweep_loop",
-          "line": 407,
+          "line": 419,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -8741,7 +8802,7 @@
         },
         {
           "name": "outbox_drain_loop",
-          "line": 432,
+          "line": 444,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -20567,7 +20628,7 @@
       "path": "agent/src/omni/system/config_io.py",
       "module": "platform",
       "python_module": "omni.system.config_io",
-      "lines": 473,
+      "lines": 479,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -20576,17 +20637,17 @@
       "symbols": [
         {
           "name": "ConfigEditError",
-          "line": 104,
+          "line": 110,
           "kind": "class"
         },
         {
           "name": "ConfigConflict",
-          "line": 108,
+          "line": 114,
           "kind": "class"
         },
         {
           "name": "render_value",
-          "line": 112,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "kind",
@@ -20599,7 +20660,7 @@
         },
         {
           "name": "_scalar_updates",
-          "line": 154,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "text",
@@ -20612,7 +20673,7 @@
         },
         {
           "name": "_find_multiline_block",
-          "line": 179,
+          "line": 185,
           "kind": "function",
           "parameters": [
             "lines",
@@ -20627,7 +20688,7 @@
         },
         {
           "name": "_replace_multiline_block",
-          "line": 209,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "text",
@@ -20644,7 +20705,7 @@
         },
         {
           "name": "_section_bounds",
-          "line": 227,
+          "line": 233,
           "kind": "function",
           "parameters": [
             "lines",
@@ -20657,7 +20718,7 @@
         },
         {
           "name": "_has_key",
-          "line": 240,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "lines",
@@ -20674,7 +20735,7 @@
         },
         {
           "name": "_append_key",
-          "line": 245,
+          "line": 251,
           "kind": "function",
           "parameters": [
             "lines",
@@ -20691,7 +20752,7 @@
         },
         {
           "name": "_append_multiline_block",
-          "line": 269,
+          "line": 275,
           "kind": "function",
           "parameters": [
             "text",
@@ -20708,7 +20769,7 @@
         },
         {
           "name": "apply_updates",
-          "line": 290,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "text",
@@ -20721,7 +20782,7 @@
         },
         {
           "name": "read_config_text",
-          "line": 339,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "path"
@@ -20732,7 +20793,7 @@
         },
         {
           "name": "safe_write",
-          "line": 350,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "path",
@@ -20745,7 +20806,7 @@
         },
         {
           "name": "read_config_snapshot",
-          "line": 355,
+          "line": 361,
           "kind": "function",
           "parameters": [
             "path"
@@ -20756,7 +20817,7 @@
         },
         {
           "name": "commit_config_updates",
-          "line": 362,
+          "line": 368,
           "kind": "function",
           "parameters": [
             "path",
@@ -20771,7 +20832,7 @@
         },
         {
           "name": "mask_secret",
-          "line": 390,
+          "line": 396,
           "kind": "function",
           "parameters": [
             "value"
@@ -20782,7 +20843,7 @@
         },
         {
           "name": "_env_name_ok",
-          "line": 400,
+          "line": 406,
           "kind": "function",
           "parameters": [
             "name"
@@ -20793,7 +20854,7 @@
         },
         {
           "name": "read_env_secrets",
-          "line": 404,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "path"
@@ -20804,7 +20865,7 @@
         },
         {
           "name": "set_env_secret",
-          "line": 427,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "path",
@@ -21455,7 +21516,7 @@
       "path": "agent/src/omni/system/services.py",
       "module": "platform",
       "python_module": "omni.system.services",
-      "lines": 616,
+      "lines": 640,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -21661,8 +21722,17 @@
           "annotations": {}
         },
         {
+          "name": "ServiceManager.napcat_uin",
+          "line": 285,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "ServiceManager._omni_argv",
-          "line": 287,
+          "line": 291,
           "kind": "function",
           "parameters": [
             "self",
@@ -21674,7 +21744,7 @@
         },
         {
           "name": "ServiceManager.omni_start",
-          "line": 293,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self",
@@ -21686,7 +21756,7 @@
         },
         {
           "name": "ServiceManager.omni_stop",
-          "line": 301,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -21698,7 +21768,7 @@
         },
         {
           "name": "ServiceManager._omni_pid",
-          "line": 304,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self",
@@ -21710,7 +21780,7 @@
         },
         {
           "name": "ServiceManager.status",
-          "line": 312,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -21722,7 +21792,7 @@
         },
         {
           "name": "ServiceManager._launch_id",
-          "line": 331,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self",
@@ -21734,7 +21804,7 @@
         },
         {
           "name": "ServiceManager._live_state",
-          "line": 335,
+          "line": 339,
           "kind": "function",
           "parameters": [
             "self",
@@ -21748,7 +21818,7 @@
         },
         {
           "name": "ServiceManager.overview",
-          "line": 345,
+          "line": 349,
           "kind": "function",
           "parameters": [
             "self"
@@ -21757,7 +21827,7 @@
         },
         {
           "name": "ServiceManager.start",
-          "line": 356,
+          "line": 360,
           "kind": "function",
           "parameters": [
             "self",
@@ -21771,7 +21841,7 @@
         },
         {
           "name": "ServiceManager.stop",
-          "line": 370,
+          "line": 374,
           "kind": "function",
           "parameters": [
             "self",
@@ -21782,8 +21852,22 @@
           }
         },
         {
+          "name": "ServiceManager.request_stop",
+          "line": 379,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "wait_s"
+          ],
+          "annotations": {
+            "name": "str",
+            "wait_s": "float | None"
+          }
+        },
+        {
           "name": "ServiceManager.log_tail",
-          "line": 375,
+          "line": 398,
           "kind": "function",
           "parameters": [
             "self",
@@ -21797,7 +21881,7 @@
         },
         {
           "name": "ServiceManager._pid_path",
-          "line": 390,
+          "line": 413,
           "kind": "function",
           "parameters": [
             "self",
@@ -21809,7 +21893,7 @@
         },
         {
           "name": "ServiceManager._read_pid",
-          "line": 394,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "self",
@@ -21821,7 +21905,7 @@
         },
         {
           "name": "ServiceManager._validate_name",
-          "line": 404,
+          "line": 427,
           "kind": "function",
           "parameters": [
             "name"
@@ -21832,7 +21916,7 @@
         },
         {
           "name": "ServiceManager._lock",
-          "line": 408,
+          "line": 431,
           "kind": "function",
           "parameters": [
             "self",
@@ -21844,7 +21928,7 @@
         },
         {
           "name": "ServiceManager._read_record",
-          "line": 411,
+          "line": 434,
           "kind": "function",
           "parameters": [
             "self",
@@ -21856,7 +21940,7 @@
         },
         {
           "name": "ServiceManager._record_identity",
-          "line": 425,
+          "line": 448,
           "kind": "function",
           "parameters": [
             "record"
@@ -21867,7 +21951,7 @@
         },
         {
           "name": "ServiceManager._write_pid",
-          "line": 438,
+          "line": 461,
           "kind": "function",
           "parameters": [
             "self",
@@ -21881,7 +21965,7 @@
         },
         {
           "name": "ServiceManager._classify",
-          "line": 459,
+          "line": 482,
           "kind": "function",
           "parameters": [
             "self",
@@ -21893,7 +21977,7 @@
         },
         {
           "name": "ServiceManager.reconcile",
-          "line": 487,
+          "line": 510,
           "kind": "function",
           "parameters": [
             "self",
@@ -21905,7 +21989,7 @@
         },
         {
           "name": "ServiceManager._legacy_pid",
-          "line": 520,
+          "line": 543,
           "kind": "function",
           "parameters": [
             "self",
@@ -21917,7 +22001,7 @@
         },
         {
           "name": "ServiceManager._quarantine",
-          "line": 527,
+          "line": 550,
           "kind": "function",
           "parameters": [
             "self",
@@ -21929,7 +22013,7 @@
         },
         {
           "name": "ServiceManager._check_start",
-          "line": 534,
+          "line": 557,
           "kind": "function",
           "parameters": [
             "self",
@@ -21941,19 +22025,21 @@
         },
         {
           "name": "ServiceManager._stop_verified",
-          "line": 541,
+          "line": 564,
           "kind": "function",
           "parameters": [
             "self",
-            "name"
+            "name",
+            "wait_s"
           ],
           "annotations": {
-            "name": "str"
+            "name": "str",
+            "wait_s": "float | None"
           }
         },
         {
           "name": "ServiceManager.stop_requested",
-          "line": 581,
+          "line": 605,
           "kind": "function",
           "parameters": [
             "self",
@@ -21967,7 +22053,7 @@
         },
         {
           "name": "ServiceManager.register_current",
-          "line": 587,
+          "line": 611,
           "kind": "function",
           "parameters": [
             "self",
@@ -21979,7 +22065,7 @@
         },
         {
           "name": "ServiceManager.unregister_current",
-          "line": 603,
+          "line": 627,
           "kind": "function",
           "parameters": [
             "self",
@@ -21993,7 +22079,7 @@
         },
         {
           "name": "ServiceManager._clear_pid",
-          "line": 607,
+          "line": 631,
           "kind": "function",
           "parameters": [
             "self",
@@ -22249,6 +22335,235 @@
         }
       ],
       "summary": "子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。"
+    },
+    {
+      "path": "agent/src/omni/system/supervisor.py",
+      "module": "platform",
+      "python_module": "omni.system.supervisor",
+      "lines": 370,
+      "imports": [
+        "omni.config",
+        "omni.system.atomic",
+        "omni.system.filelock",
+        "omni.system.services"
+      ],
+      "symbols": [
+        {
+          "name": "Policy",
+          "line": 39,
+          "kind": "class"
+        },
+        {
+          "name": "Policy.from_config",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "cls",
+            "config",
+            "napcat_available",
+            "detected_uin"
+          ],
+          "annotations": {
+            "config": "Any",
+            "napcat_available": "bool",
+            "detected_uin": "str | None"
+          }
+        },
+        {
+          "name": "Policy.to_dict",
+          "line": 71,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "desired_state",
+          "line": 85,
+          "kind": "function",
+          "parameters": [
+            "name",
+            "policy"
+          ],
+          "annotations": {
+            "name": "str",
+            "policy": "Policy"
+          }
+        },
+        {
+          "name": "backoff_delay",
+          "line": 106,
+          "kind": "function",
+          "parameters": [
+            "attempts",
+            "cap_s",
+            "base_s"
+          ],
+          "annotations": {
+            "attempts": "int",
+            "cap_s": "int",
+            "base_s": "float"
+          }
+        },
+        {
+          "name": "_Entry",
+          "line": 114,
+          "kind": "class"
+        },
+        {
+          "name": "_Entry.to_dict",
+          "line": 124,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ServiceSupervisor",
+          "line": 137,
+          "kind": "class"
+        },
+        {
+          "name": "ServiceSupervisor.__init__",
+          "line": 140,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "services",
+            "run_dir",
+            "config_path",
+            "enabled",
+            "clock",
+            "lock_timeout_s"
+          ],
+          "annotations": {
+            "services": "ServiceManager",
+            "run_dir": "Path",
+            "config_path": "Path | None",
+            "enabled": "bool",
+            "lock_timeout_s": "float"
+          }
+        },
+        {
+          "name": "ServiceSupervisor.start",
+          "line": 170,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ServiceSupervisor.stop",
+          "line": 196,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "stop_services",
+            "wait_s"
+          ],
+          "annotations": {
+            "stop_services": "bool",
+            "wait_s": "float"
+          }
+        },
+        {
+          "name": "ServiceSupervisor._loop",
+          "line": 222,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ServiceSupervisor.reconcile_once",
+          "line": 234,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ServiceSupervisor._reconcile_round",
+          "line": 239,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ServiceSupervisor._reconcile_service",
+          "line": 260,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "policy"
+          ],
+          "annotations": {
+            "name": "str",
+            "policy": "Policy"
+          }
+        },
+        {
+          "name": "ServiceSupervisor._load_policy",
+          "line": 309,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ServiceSupervisor.keep_running_after_exit",
+          "line": 320,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ServiceSupervisor.snapshot",
+          "line": 327,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ServiceSupervisor._alert_for",
+          "line": 344,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "entry",
+            "now"
+          ],
+          "annotations": {
+            "name": "str",
+            "entry": "_Entry",
+            "now": "float"
+          }
+        },
+        {
+          "name": "ServiceSupervisor._persist",
+          "line": 356,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        }
+      ],
+      "summary": "服务守护：让常驻服务在 agent 运行期间保持在线。"
     },
     {
       "path": "agent/src/omni/tools/__init__.py",
@@ -30557,7 +30872,7 @@
       "method": "POST",
       "path": "/api/auth/logout",
       "source": "agent/src/omni/channels/web.py",
-      "line": 198,
+      "line": 216,
       "handler": "create_app.auth_logout",
       "module": "web-ui",
       "parameters": [],
@@ -30568,7 +30883,7 @@
       "method": "POST",
       "path": "/api/auth/pair",
       "source": "agent/src/omni/channels/web.py",
-      "line": 183,
+      "line": 201,
       "handler": "create_app.auth_pair",
       "module": "web-ui",
       "parameters": [
@@ -30585,7 +30900,7 @@
       "method": "GET",
       "path": "/api/auth/status",
       "source": "agent/src/omni/channels/web.py",
-      "line": 175,
+      "line": 193,
       "handler": "create_app.auth_status",
       "module": "web-ui",
       "parameters": [
@@ -32350,7 +32665,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 383,
+      "line": 401,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -32361,7 +32676,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 395,
+      "line": 413,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -32376,7 +32691,7 @@
       "method": "GET",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 254,
+      "line": 272,
       "handler": "create_app.system_config",
       "module": "web-ui",
       "parameters": [],
@@ -32387,7 +32702,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 340,
+      "line": 358,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -32557,7 +32872,7 @@
       "method": "POST",
       "path": "/api/system/model-key",
       "source": "agent/src/omni/channels/web.py",
-      "line": 420,
+      "line": 438,
       "handler": "create_app.model_key_set",
       "module": "web-ui",
       "parameters": [
@@ -32572,7 +32887,7 @@
       "method": "GET",
       "path": "/api/system/model-keys",
       "source": "agent/src/omni/channels/web.py",
-      "line": 415,
+      "line": 433,
       "handler": "create_app.model_keys",
       "module": "web-ui",
       "parameters": [],
@@ -32583,7 +32898,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "agent/src/omni/channels/web.py",
-      "line": 437,
+      "line": 455,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -32620,7 +32935,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "agent/src/omni/channels/web.py",
-      "line": 364,
+      "line": 382,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -32631,7 +32946,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "agent/src/omni/channels/web.py",
-      "line": 375,
+      "line": 393,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -32859,7 +33174,7 @@
       "method": "GET",
       "path": "/pair/{code}",
       "source": "agent/src/omni/channels/web.py",
-      "line": 204,
+      "line": 222,
       "handler": "create_app.pair_link",
       "module": "web-ui",
       "parameters": [
@@ -35415,13 +35730,48 @@
           "name": "napcat_dir",
           "type": "str",
           "required": false
+        },
+        {
+          "name": "autostart",
+          "type": "bool",
+          "required": false
+        },
+        {
+          "name": "keep_running_after_exit",
+          "type": "bool",
+          "required": false
+        },
+        {
+          "name": "supervise_interval_s",
+          "type": "float",
+          "required": false
+        },
+        {
+          "name": "restart_max_attempts",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "restart_backoff_cap_s",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "health_timeout_s",
+          "type": "int",
+          "required": false
+        },
+        {
+          "name": "napcat_qq",
+          "type": "str",
+          "required": false
         }
       ]
     },
     {
       "name": "Approval",
       "source": "agent/src/omni/config.py",
-      "line": 482,
+      "line": 494,
       "fields": [
         {
           "name": "mode",
@@ -35433,7 +35783,7 @@
     {
       "name": "MCPServerConfig",
       "source": "agent/src/omni/config.py",
-      "line": 492,
+      "line": 504,
       "fields": [
         {
           "name": "command",
@@ -35495,7 +35845,7 @@
     {
       "name": "MCPConfig",
       "source": "agent/src/omni/config.py",
-      "line": 522,
+      "line": 534,
       "fields": [
         {
           "name": "servers",
@@ -35507,7 +35857,7 @@
     {
       "name": "Desktop",
       "source": "agent/src/omni/config.py",
-      "line": 536,
+      "line": 548,
       "fields": [
         {
           "name": "enabled",
@@ -35544,7 +35894,7 @@
     {
       "name": "Embedding",
       "source": "agent/src/omni/config.py",
-      "line": 553,
+      "line": 565,
       "fields": [
         {
           "name": "enabled",
@@ -35621,7 +35971,7 @@
     {
       "name": "Cron",
       "source": "agent/src/omni/config.py",
-      "line": 591,
+      "line": 603,
       "fields": [
         {
           "name": "max_running",
@@ -35633,7 +35983,7 @@
     {
       "name": "Journal",
       "source": "agent/src/omni/config.py",
-      "line": 596,
+      "line": 608,
       "fields": [
         {
           "name": "enabled",
@@ -35685,7 +36035,7 @@
     {
       "name": "Transcript",
       "source": "agent/src/omni/config.py",
-      "line": 625,
+      "line": 637,
       "fields": [
         {
           "name": "max_entry_chars",
@@ -35717,7 +36067,7 @@
     {
       "name": "People",
       "source": "agent/src/omni/config.py",
-      "line": 640,
+      "line": 652,
       "fields": [
         {
           "name": "person_card_chars",
@@ -35744,7 +36094,7 @@
     {
       "name": "AndroidConfig",
       "source": "agent/src/omni/config.py",
-      "line": 650,
+      "line": 662,
       "fields": [
         {
           "name": "allowed_apps",
@@ -35786,7 +36136,7 @@
     {
       "name": "CommandJobsConfig",
       "source": "agent/src/omni/config.py",
-      "line": 669,
+      "line": 681,
       "fields": [
         {
           "name": "max_running",
@@ -35823,7 +36173,7 @@
     {
       "name": "TerminalConfig",
       "source": "agent/src/omni/config.py",
-      "line": 679,
+      "line": 691,
       "fields": [
         {
           "name": "max_sessions",
@@ -35850,7 +36200,7 @@
     {
       "name": "AppConfig",
       "source": "agent/src/omni/config.py",
-      "line": 687,
+      "line": 699,
       "fields": [
         {
           "name": "android",

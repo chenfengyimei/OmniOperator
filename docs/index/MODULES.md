@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c74fef96bfae33682ef6b46eeeafcf3ea678668fc6823f8127b86d6fc264d93d`。包含 57 个职责模块、298 个源码/界面文件。
+源码指纹：`147cf538b00261e50bddefc9ac103b3961192bdfd45fc20600ffb6dbdc2e4029`。包含 57 个职责模块、299 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -60,7 +60,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 771 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 781 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../../docs/REPOSITORY_STRUCTURE.md)
 
@@ -74,7 +74,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/config.py](../../agent/src/omni/config.py) | 737 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
+| [agent/src/omni/config.py](../../agent/src/omni/config.py) | 749 | 配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 
@@ -105,7 +105,7 @@
 |---|---:|---|
 | [agent/src/omni/core/__init__.py](../../agent/src/omni/core/__init__.py) | 1 | Agent 核心：编排循环。工具注册表在 tools 包，审批在 safety 包。 |
 | [agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py) | 1396 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
-| [agent/src/omni/core/cron.py](../../agent/src/omni/core/cron.py) | 440 | 心跳调度器：tick 循环 + 至多一次派发 + 任务执行/投递（Hermes cron 最小版）。 |
+| [agent/src/omni/core/cron.py](../../agent/src/omni/core/cron.py) | 452 | 心跳调度器：tick 循环 + 至多一次派发 + 任务执行/投递（Hermes cron 最小版）。 |
 | [agent/src/omni/core/evaluation.py](../../agent/src/omni/core/evaluation.py) | 24 | 固定样本检索评测；不把 mock 模型的排序表现当成真实语义收益。 |
 | [agent/src/omni/core/journal.py](../../agent/src/omni/core/journal.py) | 371 | 记忆系统整理编排：日/周/月笔记的模型整理 worker（与 TurnEndReviewer 同构）。 |
 | [agent/src/omni/core/modes.py](../../agent/src/omni/core/modes.py) | 211 | 按回合能力模式（chat / retrieval / agent）的声明与纯函数。 |
@@ -310,7 +310,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 522 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
+| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 540 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
 | [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 656 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/index.html](../../agent/src/omni/channels/web_static/memory/index.html) | 6 | 平台脚本或界面资源 |
@@ -636,7 +636,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/qq.py](../../agent/src/omni/channels/qq.py) | 320 | QQ 通道入口：uv run omni-qq（需先启动 NapCat 并在 config.yaml 开启 qq）。 |
+| [agent/src/omni/channels/qq.py](../../agent/src/omni/channels/qq.py) | 350 | QQ 通道入口：uv run omni-qq（需先启动 NapCat 并在 config.yaml 开启 qq）。 |
 
 文档：[docs/QQ_SCENARIOS.md](../../docs/QQ_SCENARIOS.md)
 
@@ -650,7 +650,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/heartbeat.py](../../agent/src/omni/channels/heartbeat.py) | 82 | 心跳入口：uv run omni-heartbeat（定时任务常驻调度，无人值守 fail-closed）。 |
+| [agent/src/omni/channels/heartbeat.py](../../agent/src/omni/channels/heartbeat.py) | 117 | 心跳入口：uv run omni-heartbeat（定时任务常驻调度，无人值守 fail-closed）。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
@@ -1010,7 +1010,7 @@
 | [agent/src/omni/system/__init__.py](../../agent/src/omni/system/__init__.py) | 5 | 本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。 |
 | [agent/src/omni/system/atomic.py](../../agent/src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
 | [agent/src/omni/system/backup.py](../../agent/src/omni/system/backup.py) | 515 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
-| [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 473 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
+| [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 479 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
 | [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [agent/src/omni/system/filelock.py](../../agent/src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
 | [agent/src/omni/system/observability.py](../../agent/src/omni/system/observability.py) | 102 | 有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。 |
@@ -1019,9 +1019,10 @@
 | [agent/src/omni/system/provenance.py](../../agent/src/omni/system/provenance.py) | 30 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
 | [agent/src/omni/system/service_state.py](../../agent/src/omni/system/service_state.py) | 115 | 服务运行态快照：子进程写，工作台读。 |
-| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 616 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
+| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 640 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [agent/src/omni/system/soak.py](../../agent/src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [agent/src/omni/system/stderr_log.py](../../agent/src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
+| [agent/src/omni/system/supervisor.py](../../agent/src/omni/system/supervisor.py) | 370 | 服务守护：让常驻服务在 agent 运行期间保持在线。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/ACCEPTANCE.md](../../docs/ACCEPTANCE.md)
 

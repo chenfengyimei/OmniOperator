@@ -39,6 +39,7 @@ CONSTRUCT_ONLY_IN_BOOTSTRAP = {
     "WriteBudget",
     "ApprovalBroker",
     "ServiceManager",
+    "ServiceSupervisor",
     "MCPManager", "CommandJobStore", "CommandJobManager", "AndroidFrameHub",
     "EmbeddingProvider", "VectorIndex", "HybridMemory",
     "DesktopDriver", "WindowsDesktopBackend", "AndroidDriver",

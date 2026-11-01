@@ -282,6 +282,10 @@ class ServiceManager:
                 return uin
         return None
 
+    def napcat_uin(self) -> str | None:
+        """上次登录留下的 QQ 号（按 onebot11_*.json 文件名推断）；没登录过返回 None。"""
+        return self._napcat_uin()
+
     # ---------- OmniOperator 常驻服务 ----------
 
     def _omni_argv(self, name: str) -> tuple[list[str], Path]:
@@ -371,6 +375,25 @@ class ServiceManager:
         if name == "napcat":
             return self.napcat_stop()
         return self.omni_stop(name)
+
+    def request_stop(self, name: str, *, wait_s: float | None = None) -> dict[str, Any]:
+        """只发出停止请求，不做长时间等待（关闭工作台有总预算）。
+
+        omni-* 走协作式 `.stop` 文件：写完立刻返回，进程自己收尾；
+        NapCat 是第三方进程，没有这条通道，只能核验身份后终止（用较短的等待预算）。
+        """
+        self._validate_name(name)
+        if name not in OMNI_SERVICES:
+            return self._stop_verified(name, wait_s=wait_s)
+        with self._lock(name):
+            record = self._read_record(name)
+            identity = self._record_identity(record)
+            if identity is None:
+                raise ServiceError(f"{name} 未在运行或缺少可信启动记录；旧 PID/端口不授权终止")
+            if self._inspect(identity.pid) != identity:
+                raise ServiceError(f"{name} 进程身份不匹配或不可核验，未终止任何进程")
+            atomic_write_text(self._pid_path(name).with_suffix(".stop"), record["launch_id"])
+        return {"name": name, "requested": True, "graceful": True}
 
     def log_tail(self, name: str, lines: int = 80) -> str:
         self._validate_name(name)
@@ -538,7 +561,8 @@ class ServiceManager:
         if self._pid_path(name).exists() and self._read_record(name) is None:
             raise ServiceError(f"{name} 是旧版/损坏 PID 记录，需人工核对后清理；不会自动接管")
 
-    def _stop_verified(self, name: str) -> dict[str, Any]:
+    def _stop_verified(self, name: str, *, wait_s: float | None = None) -> dict[str, Any]:
+        wait = self._stop_wait_s if wait_s is None else max(0.0, float(wait_s))
         with self._lock(name):
             record = self._read_record(name)
             identity = self._record_identity(record)
@@ -550,7 +574,7 @@ class ServiceManager:
                 atomic_write_text(self._pid_path(name).with_suffix(".stop"), record["launch_id"])
         # 不持服务文件锁等待退出：入口清理需要同一把锁。
         if name in OMNI_SERVICES:
-            deadline = time.monotonic() + self._stop_wait_s
+            deadline = time.monotonic() + wait
             while time.monotonic() < deadline:
                 if self._exited(identity):
                     with self._lock(name):
