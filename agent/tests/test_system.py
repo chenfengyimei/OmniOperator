@@ -190,6 +190,24 @@ def test_napcat_qr_and_uin(tmp_path):
     assert qr["logged_in"] is False
 
 
+def test_napcat_detail_does_not_claim_logged_in_while_stopped(tmp_path):
+    """uin 是「登录过」不是「在线」：进程没起来时不能写"已登录"。
+
+    截图里出现过「已登录 3919708658 · 未启动」这种自相矛盾的行——uin 来自
+    onebot11_<号>.json 的文件名，登录过一次就一直留在磁盘上。
+    """
+    napcat = _fake_napcat(tmp_path, with_qr=False, uin="123456")
+    manager = _isolated_manager(napcat, tmp_path)
+    status = manager.status("napcat")
+    assert status["running"] is False
+    assert "已登录" not in status["detail"], "没在运行时不能说已登录：%s" % status["detail"]
+    assert "上次登录 123456" in status["detail"]
+
+    # 没登录过就照旧提示扫码
+    fresh = _isolated_manager(_fake_napcat(tmp_path / "b", with_qr=False, uin=None), tmp_path)
+    assert "未登录" in fresh.status("napcat")["detail"]
+
+
 def test_overview_shape(tmp_path):
     napcat = _fake_napcat(tmp_path, with_qr=False, uin=None)
     manager = _isolated_manager(napcat, tmp_path)

@@ -1,13 +1,13 @@
 // 右栏「待办」面板：会话任务（多步任务小鱼用 todo 工具自动维护）。
 // 记忆相关管理已统一收进设置中心「记忆系统」（hub-memory.js 挂载 /memory/ 面板）。
 // refreshMemory 是右栏多面板一起刷的总入口（发完消息、初始化时调用）。
-import {$,esc} from './dom.js?v=20261101m20';
-import {api} from './api.js?v=20261101m20';
-import {S} from './state.js?v=20261101m20';
-import {setTabBadge} from './tabs.js?v=20261101m20';
-import {loadSkills} from './skills.js?v=20261101m20';
-import {loadArtifacts} from './artifacts.js?v=20261101m20';
-import {updateCostChip} from './header.js?v=20261101m20';
+import {$,esc} from './dom.js?v=20261101m21';
+import {api} from './api.js?v=20261101m21';
+import {S} from './state.js?v=20261101m21';
+import {setTabBadge} from './tabs.js?v=20261101m21';
+import {loadSkills} from './skills.js?v=20261101m21';
+import {loadArtifacts} from './artifacts.js?v=20261101m21';
+import {updateCostChip} from './header.js?v=20261101m21';
 
 export async function loadTodos(){
   if(S.currentSession==null)return;

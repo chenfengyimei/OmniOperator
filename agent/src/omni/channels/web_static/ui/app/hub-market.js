@@ -2,9 +2,9 @@
 // 后端 /api/market/* 只做「代理 + 本机安装决策」，信任链在这里一点没放宽：
 // 插件「装」只是把包落进隔离区（不执行代码），点「激活」才真正加载——那一下会再问一次。
 // 人设是纯文本：导入只是把名字与提示词填进表单，落盘仍由用户点「保存人设」。
-import {$,esc} from './dom.js?v=20261101m20';
-import {api} from './api.js?v=20261101m20';
-import {loadPresets,savePresets,presetTip,applyPersonaFields} from './hub-persona.js?v=20261101m20';
+import {$,esc} from './dom.js?v=20261101m21';
+import {api} from './api.js?v=20261101m21';
+import {loadPresets,savePresets,presetTip,applyPersonaFields} from './hub-persona.js?v=20261101m21';
 
 const KIND_TITLE={persona:'人设市场',plugin:'插件市场'};
 const KIND_HINT={

@@ -1,9 +1,9 @@
 // 设置中心「技能」域：只读统计 + 技能库管理 + 待审阅 + 外来包 + 技能设置。
 // 统计请求是只读的；所有写入仍走既有 SkillStore 锁/CAS/linter 与 SkillInbox 隔离链。
-import {$,esc,relTime} from './dom.js?v=20261101m20';
-import {api} from './api.js?v=20261101m20';
-import {openModal} from './modals.js?v=20261101m20';
-import {loadSkills} from './skills.js?v=20261101m20';
+import {$,esc,relTime} from './dom.js?v=20261101m21';
+import {api} from './api.js?v=20261101m21';
+import {openModal} from './modals.js?v=20261101m21';
+import {loadSkills} from './skills.js?v=20261101m21';
 
 const FIELD_IDS={
   history_keep:'cfg-skills-history-keep',

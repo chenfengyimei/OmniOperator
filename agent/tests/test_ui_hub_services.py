@@ -121,6 +121,33 @@ def test_services_card_renders_rows_and_stats(ui):
     assert not errors, "服务页引发脚本异常：%s" % errors
 
 
+def test_strip_does_not_show_green_light_when_nothing_runs(ui):
+    """0/N 在线时不能亮绿灯。
+
+    没有告警只说明"没有该跑却没跑的"（比如 autostart 关着、或守护还没接管），
+    绿色呼吸点会让人以为一切正常。这条守卫盯着"灯"和"数"必须一致。
+    """
+    page, _client_, _runtime, errors = ui
+    idle = json.loads(json.dumps(SUMMARY_ALERT))
+    idle["ok"] = True
+    idle["counts"] = {"online": 0, "total": 3}
+    idle["alerts"] = []
+    for row in idle["services"]:
+        row.update({"running": False, "pid": None, "state": "absent", "desired": "stopped",
+                    "fresh": False, "stats": {}})
+
+    page.route("**/api/system/services/summary",
+               lambda r: r.fulfill(status=200, body=json.dumps(idle),
+                                   headers={"Content-Type": "application/json"}))
+    page.goto("http://127.0.0.1/")
+    page.wait_for_function(
+        "document.querySelector('#svc-strip-text').textContent.includes('0/3')"
+    )
+    classes = page.locator("#svc-dot").get_attribute("class")
+    assert "on" not in classes.split(), "一个都没在跑还亮绿灯：%r" % classes
+    assert not errors, "状态条引发脚本异常：%s" % errors
+
+
 def test_alert_bar_shows_and_jumps_to_section(ui):
     """告警条只在真有 error 时出现；点「去处理」直接进服务页。"""
     page, _client_, _runtime, errors = ui

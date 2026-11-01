@@ -1,6 +1,6 @@
 // 定时任务面板：任务列表/执行历史/待投递 outbox + 编辑表单（带 revision 乐观锁）。
-import {$,esc} from './dom.js?v=20261101m20';
-import {api} from './api.js?v=20261101m20';
+import {$,esc} from './dom.js?v=20261101m21';
+import {api} from './api.js?v=20261101m21';
 
 let cronJobs=[]; // 任务列表缓存（编辑表单要回填 revision 与全量字段）
 export async function loadCron(){
