@@ -22,6 +22,19 @@
 
 **提示词更新（2026-10-30）：system 只保留稳定人设和规则，时间/常驻笔记/档案移至每轮用户消息末尾。回合快照与原文同事务保存在 memory.db，新轮和重启不重写旧快照；同一窗口内资料去重、压缩后重新锚定，当前请求不可压掉。工具目录排序并在回合内冻结，缓存用量采用供应商实际字段；详见 [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md)。实际缓存命中率尚未用付费模型验收，全量 **1189 项通过**（325.17s），新增提示词回归 21 项；证据见 DEVELOPMENT_STATUS 本轮记录。**
 
+**最新（2026-11-01）：数字具身独立成分类（D32）。** 设置中心侧栏新增「数字具身」组：
+总览 + 哔哩哔哩 + 浏览器 + 手机 + QQ（原来散在「工具与设备」「平台与通道」两组）。
+`GET /api/system/embodiments` 只读本地状态（不联网）给出每个具身是否可用、差什么；
+`GET /api/system/bili-account` 是设置中心唯一会外呼的接口，**必须人点才发**。
+哔哩哔哩本轮补齐：账号查询（`bilibili_account_info`）、**抽帧拼图**
+（`bilibili_video_frames`：等距抽帧拼成一张长图存产物，多模态一次看完画面）、
+评论排序/翻页与楼中楼（`bilibili_video_comments` / `bilibili_comment_replies`）、
+用户搜索（`bilibili_user_search`）、回复某条评论（目标带 `?reply_id=`）与艾特
+（`@{uid}` 占位 + `mentions` 名单，草稿里换成 `@昵称` 并在人工确认时逐条列出）。
+**艾特目前是文本 @昵称，不是网页版真实 mention 组件**（需用户核验页面控件后再开）；
+抽帧依赖 av（随 faster-whisper 装）+ Pillow。专项 89 项全绿，全量 1615 项全绿（281.03s，提交树自校验）。全部离线验证，**真实账号/真机未验收**。
+详见 [数字具身](EMBODIMENT.md) 与 [B站评论与私信草稿](BILIBILI_WRITING.md)。
+
 **最新（2026-11-01）：常驻服务改成默认启动并持续运行（D31，8 个提交）。心跳/QQ 通道/NapCat 不再需要手动点启动——`system/supervisor.py` 按配置推导期望状态，工作台 lifespan 一启动就接管，异常退出按指数退避重拉（默认 5 次后放弃并留 `restart_given_up`），单实例靠 `run/supervisor.lock` 互斥、抢不到的进 standby。旧裸 PID 记录改为 pid+创建时间+exe 三重核验，死进程自动清理、核验不过的只标记不接管。子进程自报 `data/run/<name>.state.json`（心跳 ticks、QQ 收发计数），"进程在但没响应"能被识别。界面从操作台变仪表盘：左栏一行「N/M 在线」、顶部告警条、设置中心新增「服务与运行」分区，**手动启停按钮全部删除，只留扫码登录**。零 schema 迁移（期望状态由配置推导、记账落 `run/supervisor.json`）。**以上均在隔离实例与假 services 上验证，真实工作台未重启、真实 NapCat 拉起与扫码未验——待真实验收，不算完成。** 详见 DEVELOPMENT_STATUS 本轮记录与下文 §2 服务管理。**
 
 **最新（2026-10-30）：全项目目录管理已接入，不仅限于 Agent。`/storage/` 可设置全局业务存储根、默认工作目录、Agent 空间池及各空间九类目录，并查询记忆/档案/日志/插件等存储用途索引。bootstrap 与离线 doctor/备份/演练/采样共用路径解析；运行态冻结，配置保存仅下次启动生效。固定控制区保持原位，ASR 缓存已纳入注入。目录边界、旧客户端防重置、额外根防绕过及浏览器回归已补；全量 **1165 项通过**（294.77s），样式调整后 16 项 UI 回归通过；40 视图浏览器检查无脚本错误和横向溢出。证据见 DEVELOPMENT_STATUS 本轮记录和 [STORAGE.md](STORAGE.md)。真实数据未搬移，真实服务未重启。以下测试数属于对应历史批次，不代表本轮状态。**
@@ -150,7 +163,7 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 | core | plugin_list / plugin_install / plugin_activate / plugin_enable / plugin_disable / plugin_remove | **插件系统（2026-10-29，设计见 docs/PLUGIN_SYSTEM.md）**：用户与 agent 自开发功能的接入通道——manifest+plugin.py 注册工具（PluginContext 强制 `<id>-` 前缀防影子覆盖、toolset=plugin:\<id\>、风险声明照常走审批链）；install 收 inbox zip 或工作区目录进隔离区（校验零执行）；activate CONFIRM+人工确认（激活即同意执行）；启用前内容指纹复核；启停/卸载反注册工具；群聊作用域自动禁用插件工具 |
 | core | community_config / community_search / community_info / community_install / community_publish | **插件社区（2026-10-29）**：参考服务器 `python -m omni.plugins.server`（FastAPI+文件存储；token 门、版本不可变、指纹不符拒发）+ 客户端；search/info read_only、install=下载 sha256 校验后走隔离安装链（激活仍人工确认）、**publish CONFIRM+requires_human（发布红线）**；配置存 data/plugins/community.json；服务器部署待所有者提供机器（部署指南 PLUGIN_SYSTEM.md §5） |
 | shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
-| bilibili | video_info / video_comments / video_subtitle / video_transcript | 读四件套（WBI 签名 + ASR 兜底） |
+| bilibili | video_info / account_info / video_frames / video_comments / comment_replies / user_search / video_subtitle / video_transcript | 读七件套（WBI 签名 + ASR 兜底 + **抽帧拼图**：多帧拼一张长图，多模态一次看完画面） |
 | qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
 | cron | cron_list / cron_add / cron_edit / cron_remove / cron_once | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链；edit 只改传入字段、显式 null 清除）；**cron_once 一次性触发（闹钟）**：run_at 绝对时间或 delay_minutes 二选一，到点执行一次后自动停用、错过宽限不补发（2026-10-29；工作台表单接线待前端批） |
 | browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流；截图存为产物 [artifact:id]（开 vision 后模型可直接看图） |
@@ -189,7 +202,7 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 - **Web 工作台**（`channels/web.py` + `web_static/` 前端：工作台 `index.html` 为纯 markup，逻辑在 `ui/app/` 下 25 个原生 ES 模块、入口 `main.js`；子站七页各自 module + 共享 `ui/` 层）：
   会话 / 聊天（**运行进度实时可视化**：等待期间显示每步模型调用与工具执行、可一键停止本回合，回复带费用标签）/
   右侧七页（记忆·档案·常驻·待办·Review·技能·产物）/ 工具列表 / 左栏一行服务在线状态（点击进设置中心）/ 扫码弹窗 /
-  设置中心（人设·模型·记忆·B站与转写·浏览器·QQ·定时任务（含编辑表单+执行历史）·
+  设置中心（人设·模型·记忆·**数字具身**（总览·哔哩哔哩·浏览器·手机·QQ）·定时任务（含编辑表单+执行历史）·
   **服务与运行**（三个服务各一行状态与重启、NapCat 登录与扫码、心跳 ticks/QQ 收发计数、
   守护开关、按服务看日志；**没有启停按钮**——启停由守护默认负责，界面只保留扫码这一件必须人工做的事，D31）·
   **用量**（今日花费/剩余额度/用途汇总/调用流水/模型能力）·

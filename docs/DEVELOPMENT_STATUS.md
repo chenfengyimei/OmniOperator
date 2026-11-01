@@ -1,5 +1,42 @@
 # 开发状态记录
 
+2026-11-01 数字具身独立成分类 + 哔哩哔哩能力补齐（D32，2 个提交）：
+- **用户原话**：「开始完善数字具身，数字具身的部分，在设置中心中单独创一个分类 数字具身，
+  然后将哔哩哔哩，浏览器，手机，QQ这些都放到这个分类下，他们是当前agent的数字具身，
+  我们优先完善哔哩哔哩部分（账号部分，视频查看（可以将视频内容分成多个截图然后全部拼在
+  同一个图，这样子可以让多模态模型更好更快的查看），以及读评论，私信回复，发布评论，艾特等等功能）」。
+- **设置中心导航重构**：侧栏由五组变六组，新增「数字具身」组（数字具身总览 / 哔哩哔哩 /
+  浏览器 / 手机 / QQ）。原来散在「工具与设备」的安卓控制（标签改为「手机」）与「平台与通道」的
+  B站与转写（改为「哔哩哔哩」）、浏览器、QQ 全部归入新组；条目 22 → 23。分组与成员写死在
+  `agent/tests/test_ui_hub_sections.py`（守卫改六组）。
+- **总览接口** `GET /api/system/embodiments`：只读本地状态（配置、凭证文件、adb 是否在 PATH），
+  **不联网**；每个具身给出 ready / detail / capabilities。`GET /api/system/bili-account`：
+  走 B站 nav 接口查当前账号，**是设置中心唯一会外呼的接口**，且必须由人点「检查登录状态」
+  才发出（打开分区不自动查）——查不到就如实报错，不缓存成"已登录"。
+- **哔哩哔哩工具面补齐**：新增 `bilibili_account_info`（UID/昵称/等级）、`bilibili_video_frames`
+  （**抽帧拼图**：等距抽帧 → Pillow 拼成一张联络表 → 存产物库返回 `[artifact:id]`，
+  多模态一次看完整个视频的画面）、`bilibili_comment_replies`（楼中楼）、`bilibili_user_search`
+  （拿 UID）；`bilibili_video_comments` 增加 sort(hot/time)/page 并回传评论ID；
+  评论接口先走新版 `/x/v2/reply/main`（WBI 签名），失败自动退回旧接口。
+- **写侧**：评论目标支持 `?reply_id=<评论ID>`（回复某条评论，其它查询参数一律拒绝）；
+  艾特用 `@{uid}` 占位 + `mentions` 名单，草稿落库前替换成 `@昵称`，人工确认文案逐条列出
+  艾特对象，缺昵称一律拒绝。**艾特目前是文本 @昵称，不是网页版真实 mention 组件**
+  （要真实艾特需用户核验页面上的用户选择控件后再开）。
+- **实现落点**：新 `tools/bilibili/frames.py`（PyAV 解码 + Pillow 拼接；av 随 faster-whisper 安装）、
+  新 `channels/web_api/embodiments.py`、新 `ui/app/hub-embodiment.js`；`tools/shots.py` 的
+  `save_screenshot` 增加 `label` 参数以区分「截图」与「视频抽帧长图」；bootstrap 把
+  can_view/artifacts/session_ref/run_ref 注入 B站工具（can_view 计算块前移，行为不变）。
+- **前端版本**：app 组 `?v=` 原子升 20261101u1 → 20261101u2（47 个文件，含子站引用）。
+- **测试**：新增 `test_bilibili_frames.py`(7)、`test_embodiments_api.py`(7)、`test_ui_embodiment.py`
+  (2，真实 Chromium)；改 `test_bilibili_api.py`(25)、`test_bilibili_tools.py`(15)、
+  `test_bilibili_publishing.py`(28)（艾特与 reply_id）、`test_ui_hub_sections.py`(5)（结构）。
+  专项 89 项全绿；**全量 1615 项全绿**（281.03s）——数字取自提交树自校验：
+  用 `git worktree` 检出本提交、并以 PYTHONPATH 指向该树的 src 另起一套环境跑的
+  （editable 安装默认指主工作区，不覆盖就会混进别的工作区代码）。
+- **剩余限制（待真实验收，一律不算完成）**：① 真实 B站账号未核验——账号接口只跑过假实现；
+  ② 抽帧在真实 DASH 分片流上能否解出画面未验（合并流未在真机试过）；③ 真实艾特
+  （mention 组件）未实现；④ 真实发布（评论/私信/回复评论）仍未用真实账号发过；
+  ⑤ 真实工作台未重启，设置中心新分区只做过离线 Chromium 验证。
 2026-11-01 常驻服务默认启动并持续运行（D31，8 个提交，本轮唯一一批动到服务生命周期的改动）：
 - **用户原话**：「左下角那个服务，为什么还要手动启动，心跳调度、QQ 通道等这些不应该就是默认
   启动并且一直持续运行的吗……服务界面只留最简单的比如用户扫码登录等操作」。
