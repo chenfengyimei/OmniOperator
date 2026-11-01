@@ -164,6 +164,7 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 | core | community_config / community_search / community_info / community_install / community_publish | **插件社区（2026-10-29）**：参考服务器 `python -m omni.plugins.server`（FastAPI+文件存储；token 门、版本不可变、指纹不符拒发）+ 客户端；search/info read_only、install=下载 sha256 校验后走隔离安装链（激活仍人工确认）、**publish CONFIRM+requires_human（发布红线）**；配置存 data/plugins/community.json；服务器部署待所有者提供机器（部署指南 PLUGIN_SYSTEM.md §5） |
 | shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
 | bilibili | video_info / account_info / video_frames / video_comments / comment_replies / user_search / video_subtitle / video_transcript | 读七件套（WBI 签名 + ASR 兜底 + **抽帧拼图**：多帧拼一张长图，多模态一次看完画面） |
+| video | video_storyboard / video_zoom | **视频理解（2026-11-01）**：全片 → 一张分镜图（按镜头切格、每格烧编号与时间码、底部挂台词时间轴）+ 可寻址索引（格号可反查绝对时间）；video_zoom 按时间码放大单格。切点用 HSV 三通道差，格位按局部剪辑率分配，取流走 B站 WBI 直链（不引 ffmpeg，零新增外部依赖），产物入产物库；详见 docs/VIDEO_UNDERSTANDING.md |
 | qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
 | cron | cron_list / cron_add / cron_edit / cron_remove / cron_once | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链；edit 只改传入字段、显式 null 清除）；**cron_once 一次性触发（闹钟）**：run_at 绝对时间或 delay_minutes 二选一，到点执行一次后自动停用、错过宽限不补发（2026-10-29；工作台表单接线待前端批） |
 | browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流；截图存为产物 [artifact:id]（开 vision 后模型可直接看图） |

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7f124b109c3d73b7963e6b14d09f98e4f2fb25961f841d1e661456a05da983fa",
+  "source_sha256": "c74f841e82c52af8c98ccba26d2669320c4c2909158a033cbbe7ca3431df74f1",
   "modules": [
     {
       "id": "agent-directories",
@@ -111,7 +111,7 @@
       "files": [
         "agent/src/omni/bootstrap.py"
       ],
-      "lines": 781,
+      "lines": 795,
       "dependencies": [
         "agent-directories",
         "android",
@@ -135,6 +135,7 @@
         "shell",
         "skills",
         "storage",
+        "storyboard",
         "system-tools",
         "toolkit",
         "web-fetch"
@@ -429,6 +430,7 @@
         "agent/src/omni/channels/web_static/ui/app/header.js",
         "agent/src/omni/channels/web_static/ui/app/hub-capabilities.js",
         "agent/src/omni/channels/web_static/ui/app/hub-cron.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-embodiment.js",
         "agent/src/omni/channels/web_static/ui/app/hub-jobs.js",
         "agent/src/omni/channels/web_static/ui/app/hub-market.js",
         "agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js",
@@ -465,7 +467,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 5872,
+      "lines": 5952,
       "dependencies": []
     },
     {
@@ -500,7 +502,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2675,
+      "lines": 2690,
       "dependencies": [
         "assembly",
         "config",
@@ -991,11 +993,13 @@
       ],
       "files": [
         "agent/src/omni/channels/web_api/__init__.py",
+        "agent/src/omni/channels/web_api/embodiments.py",
         "agent/src/omni/channels/web_api/memory_system.py"
       ],
-      "lines": 298,
+      "lines": 422,
       "dependencies": [
         "assembly",
+        "bilibili",
         "command-jobs",
         "http-android",
         "http-approvals",
@@ -1446,15 +1450,45 @@
         "agent/src/omni/tools/bilibili/__init__.py",
         "agent/src/omni/tools/bilibili/api.py",
         "agent/src/omni/tools/bilibili/asr.py",
+        "agent/src/omni/tools/bilibili/frames.py",
         "agent/src/omni/tools/bilibili/publishing.py",
         "agent/src/omni/tools/bilibili/tools.py",
+        "agent/src/omni/tools/bilibili/video_source.py",
         "agent/src/omni/tools/bilibili/wbi.py",
         "agent/src/omni/tools/bilibili/write_tools.py"
       ],
-      "lines": 749,
+      "lines": 1407,
       "dependencies": [
         "config",
         "storage",
+        "toolkit"
+      ]
+    },
+    {
+      "id": "storyboard",
+      "title": "视频理解与分镜",
+      "category": "工具能力",
+      "prefixes": [
+        "tools/storyboard/"
+      ],
+      "purpose": "切点检测、局部剪辑率格位分配、PyAV 取最锐帧、宫格渲染与可寻址索引；取流能力由平台适配器注入。",
+      "docs": [
+        "docs/VIDEO_UNDERSTANDING.md"
+      ],
+      "tests": [
+        "agent/tests/test_storyboard.py"
+      ],
+      "files": [
+        "agent/src/omni/tools/storyboard/__init__.py",
+        "agent/src/omni/tools/storyboard/decode.py",
+        "agent/src/omni/tools/storyboard/detect.py",
+        "agent/src/omni/tools/storyboard/render.py",
+        "agent/src/omni/tools/storyboard/segments.py",
+        "agent/src/omni/tools/storyboard/source.py",
+        "agent/src/omni/tools/storyboard/tools.py"
+      ],
+      "lines": 1737,
+      "dependencies": [
         "toolkit"
       ]
     },
@@ -1537,7 +1571,7 @@
         "agent/src/omni/tools/skill_tools.py",
         "agent/src/omni/tools/system_tools.py"
       ],
-      "lines": 679,
+      "lines": 680,
       "dependencies": [
         "delegation",
         "personal",
@@ -1627,7 +1661,7 @@
         "agent/src/omni/system/catalog/scan.py",
         "agent/src/omni/system/catalog/schema.py"
       ],
-      "lines": 327,
+      "lines": 328,
       "dependencies": [
         "config"
       ]
@@ -1715,7 +1749,7 @@
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 781,
+      "lines": 795,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1764,6 +1798,7 @@
         "omni.tools.bilibili.api",
         "omni.tools.bilibili.publishing",
         "omni.tools.bilibili.tools",
+        "omni.tools.bilibili.video_source",
         "omni.tools.bilibili.write_tools",
         "omni.tools.browser.budget",
         "omni.tools.browser.driver",
@@ -1790,13 +1825,14 @@
         "omni.tools.shell.job_tools",
         "omni.tools.shell.jobs",
         "omni.tools.skills",
+        "omni.tools.storyboard.tools",
         "omni.tools.system",
         "omni.tools.web"
       ],
       "symbols": [
         {
           "name": "_no_port_probe",
-          "line": 120,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "_port",
@@ -1809,7 +1845,7 @@
         },
         {
           "name": "_no_kill",
-          "line": 125,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1820,7 +1856,7 @@
         },
         {
           "name": "_no_process_probe",
-          "line": 130,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1831,7 +1867,7 @@
         },
         {
           "name": "_no_tcp_probe",
-          "line": 134,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "_port"
@@ -1842,7 +1878,7 @@
         },
         {
           "name": "_no_spawn",
-          "line": 138,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "*_args",
@@ -1852,7 +1888,7 @@
         },
         {
           "name": "_resolve_root",
-          "line": 142,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "value"
@@ -1863,12 +1899,12 @@
         },
         {
           "name": "Runtime",
-          "line": 149,
+          "line": 151,
           "kind": "class"
         },
         {
           "name": "Runtime.qq_policy",
-          "line": 208,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self"
@@ -1877,7 +1913,7 @@
         },
         {
           "name": "Runtime.close_mcp",
-          "line": 212,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -1889,7 +1925,7 @@
         },
         {
           "name": "Runtime.doctor",
-          "line": 219,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self"
@@ -1898,7 +1934,7 @@
         },
         {
           "name": "Runtime.backup",
-          "line": 232,
+          "line": 234,
           "kind": "function",
           "parameters": [
             "self"
@@ -1907,7 +1943,7 @@
         },
         {
           "name": "Runtime.close",
-          "line": 237,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self",
@@ -1919,7 +1955,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 286,
+          "line": 288,
           "kind": "function",
           "parameters": [
             "self",
@@ -1931,7 +1967,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 292,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self"
@@ -1940,7 +1976,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 296,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self",
@@ -1952,7 +1988,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 305,
+          "line": 307,
           "kind": "function",
           "parameters": [
             "self",
@@ -1964,7 +2000,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 309,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self"
@@ -1973,7 +2009,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 314,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -1985,7 +2021,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 321,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -1997,7 +2033,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 329,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "approver",
@@ -2024,7 +2060,7 @@
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 541,
+          "line": 543,
           "kind": "function",
           "parameters": [
             "rel"
@@ -2035,14 +2071,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 572,
+          "line": 599,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 674,
+          "line": 688,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -2053,7 +2089,7 @@
         },
         {
           "name": "build_runtime._journal_registry",
-          "line": 705,
+          "line": 719,
           "kind": "function",
           "parameters": [
             "journal_store"
@@ -3290,7 +3326,7 @@
       "path": "agent/src/omni/channels/web_api/__init__.py",
       "module": "http-routing",
       "python_module": "omni.channels.web_api",
-      "lines": 49,
+      "lines": 51,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.android",
@@ -3301,6 +3337,7 @@
         "omni.channels.web_api.context",
         "omni.channels.web_api.conversation",
         "omni.channels.web_api.devices",
+        "omni.channels.web_api.embodiments",
         "omni.channels.web_api.market",
         "omni.channels.web_api.mcp",
         "omni.channels.web_api.memory",
@@ -3315,7 +3352,7 @@
       "symbols": [
         {
           "name": "create_api_routers",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -4085,6 +4122,59 @@
         }
       ],
       "summary": "桌面与安卓 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"
+    },
+    {
+      "path": "agent/src/omni/channels/web_api/embodiments.py",
+      "module": "http-routing",
+      "python_module": "omni.channels.web_api.embodiments",
+      "lines": 122,
+      "imports": [
+        "omni.tools.bilibili.api"
+      ],
+      "symbols": [
+        {
+          "name": "_cookie_state",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_embodiments",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_embodiments_router",
+          "line": 95,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_embodiments_router.embodiments",
+          "line": 99,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_embodiments_router.bili_account",
+          "line": 103,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "summary": "数字具身总览与B站账号状态：只读聚合，不代替各能力域自己的操作接口。"
     },
     {
       "path": "agent/src/omni/channels/web_api/market.py",
@@ -6345,7 +6435,7 @@
       "path": "agent/src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 704,
+      "lines": 719,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6682,6 +6772,16 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-embodiment.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 74,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "agent/src/omni/channels/web_static/ui/app/hub-jobs.js",
       "module": "ui-shared",
       "python_module": null,
@@ -6795,7 +6895,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 352,
+      "lines": 357,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6805,7 +6905,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/main.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 67,
+      "lines": 68,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -20683,7 +20783,7 @@
       "path": "agent/src/omni/system/catalog/schema.py",
       "module": "catalog",
       "python_module": "omni.system.catalog.schema",
-      "lines": 108,
+      "lines": 109,
       "imports": [],
       "symbols": [
         {
@@ -20693,7 +20793,7 @@
         },
         {
           "name": "classify",
-          "line": 79,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "relative"
@@ -23848,7 +23948,7 @@
       "path": "agent/src/omni/tools/bilibili/api.py",
       "module": "bilibili",
       "python_module": "omni.tools.bilibili.api",
-      "lines": 256,
+      "lines": 374,
       "imports": [
         "omni.config",
         "omni.tools.bilibili.wbi"
@@ -23905,8 +24005,17 @@
           }
         },
         {
-          "name": "BiliAPI.video_info",
+          "name": "BiliAPI.account",
           "line": 102,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "BiliAPI.video_info",
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -23918,21 +24027,66 @@
         },
         {
           "name": "BiliAPI.video_comments",
-          "line": 119,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self",
             "target",
+            "count",
+            "sort",
+            "page"
+          ],
+          "annotations": {
+            "target": "str",
+            "count": "int",
+            "sort": "str",
+            "page": "int"
+          }
+        },
+        {
+          "name": "BiliAPI.comment_replies",
+          "line": 166,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "rpid",
             "count"
           ],
           "annotations": {
             "target": "str",
+            "rpid": "str",
             "count": "int"
           }
         },
         {
+          "name": "BiliAPI.user_search",
+          "line": 179,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "keyword",
+            "limit"
+          ],
+          "annotations": {
+            "keyword": "str",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "BiliAPI._comment_row",
+          "line": 201,
+          "kind": "function",
+          "parameters": [
+            "reply"
+          ],
+          "annotations": {
+            "reply": "dict[str, Any]"
+          }
+        },
+        {
           "name": "BiliAPI.video_subtitle",
-          "line": 137,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "self",
@@ -23944,7 +24098,7 @@
         },
         {
           "name": "BiliAPI.audio_stream",
-          "line": 162,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self",
@@ -23955,8 +24109,22 @@
           }
         },
         {
+          "name": "BiliAPI.video_stream",
+          "line": 268,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "quality"
+          ],
+          "annotations": {
+            "target": "str",
+            "quality": "int"
+          }
+        },
+        {
           "name": "BiliAPI.download_binary",
-          "line": 189,
+          "line": 307,
           "kind": "function",
           "parameters": [
             "self",
@@ -23972,7 +24140,7 @@
         },
         {
           "name": "BiliAPI._aid_of",
-          "line": 211,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "self",
@@ -23984,7 +24152,7 @@
         },
         {
           "name": "BiliAPI._wbi_params",
-          "line": 221,
+          "line": 339,
           "kind": "function",
           "parameters": [
             "self",
@@ -23996,7 +24164,7 @@
         },
         {
           "name": "BiliAPI._get_wbi_keys",
-          "line": 225,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "self"
@@ -24005,7 +24173,7 @@
         },
         {
           "name": "BiliAPI._get_json",
-          "line": 236,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "self",
@@ -24019,7 +24187,7 @@
         },
         {
           "name": "BiliAPI._get",
-          "line": 246,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self",
@@ -24033,7 +24201,7 @@
         },
         {
           "name": "BiliAPI.close",
-          "line": 255,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "self"
@@ -24047,7 +24215,7 @@
       "path": "agent/src/omni/tools/bilibili/asr.py",
       "module": "bilibili",
       "python_module": "omni.tools.bilibili.asr",
-      "lines": 101,
+      "lines": 144,
       "imports": [],
       "symbols": [
         {
@@ -24107,15 +24275,140 @@
             "compute_type": "str",
             "download_root": "Path | None"
           }
+        },
+        {
+          "name": "transcribe_segments",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "audio_path",
+            "model_name",
+            "device",
+            "compute_type",
+            "download_root"
+          ],
+          "annotations": {
+            "audio_path": "Path",
+            "model_name": "str",
+            "device": "str",
+            "compute_type": "str",
+            "download_root": "Path | None"
+          }
+        },
+        {
+          "name": "_transcribe_raw",
+          "line": 126,
+          "kind": "function",
+          "parameters": [
+            "audio_path",
+            "model_name",
+            "device",
+            "compute_type",
+            "download_root"
+          ],
+          "annotations": {
+            "audio_path": "Path",
+            "model_name": "str",
+            "device": "str",
+            "compute_type": "str",
+            "download_root": "Path | None"
+          }
         }
       ],
       "summary": "无字幕视频的 ASR 兜底（faster-whisper，本地转写）。"
     },
     {
+      "path": "agent/src/omni/tools/bilibili/frames.py",
+      "module": "bilibili",
+      "python_module": "omni.tools.bilibili.frames",
+      "lines": 137,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "format_time",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "seconds"
+          ],
+          "annotations": {
+            "seconds": "float"
+          }
+        },
+        {
+          "name": "target_times",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "duration_s",
+            "count"
+          ],
+          "annotations": {
+            "duration_s": "float",
+            "count": "int"
+          }
+        },
+        {
+          "name": "extract_frames",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "video_path",
+            "count",
+            "width"
+          ],
+          "annotations": {
+            "video_path": "Path",
+            "count": "int",
+            "width": "int"
+          }
+        },
+        {
+          "name": "_frame_at",
+          "line": 82,
+          "kind": "function",
+          "parameters": [
+            "container",
+            "stream",
+            "target"
+          ],
+          "annotations": {
+            "target": "float"
+          }
+        },
+        {
+          "name": "_png_bytes",
+          "line": 99,
+          "kind": "function",
+          "parameters": [
+            "frame",
+            "width"
+          ],
+          "annotations": {
+            "width": "int"
+          }
+        },
+        {
+          "name": "contact_sheet",
+          "line": 110,
+          "kind": "function",
+          "parameters": [
+            "frames",
+            "columns"
+          ],
+          "annotations": {
+            "frames": "list[tuple[float, bytes]]",
+            "columns": "int"
+          }
+        }
+      ],
+      "summary": "B站视频抽帧并拼成一张联络表（contact sheet）。"
+    },
+    {
       "path": "agent/src/omni/tools/bilibili/publishing.py",
       "module": "bilibili",
       "python_module": "omni.tools.bilibili.publishing",
-      "lines": 126,
+      "lines": 189,
       "imports": [
         "omni.config",
         "omni.memory.publications",
@@ -24172,8 +24465,41 @@
           "annotations": {}
         },
         {
+          "name": "apply_mentions",
+          "line": 29,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "mentions"
+          ],
+          "annotations": {
+            "content": "str",
+            "mentions": "list[dict] | None"
+          }
+        },
+        {
+          "name": "apply_mentions._replace",
+          "line": 51,
+          "kind": "function",
+          "parameters": [
+            "match"
+          ],
+          "annotations": {
+            "match": "re.Match[str]"
+          }
+        },
+        {
+          "name": "_reply_id_of",
+          "line": 64,
+          "kind": "function",
+          "parameters": [
+            "parsed"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "canonical_target",
-          "line": 26,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "kind",
@@ -24186,7 +24512,7 @@
         },
         {
           "name": "preview",
-          "line": 41,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "row"
@@ -24197,12 +24523,12 @@
         },
         {
           "name": "BilibiliPublisher",
-          "line": 45,
+          "line": 101,
           "kind": "class"
         },
         {
           "name": "BilibiliPublisher.__init__",
-          "line": 46,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
@@ -24220,7 +24546,7 @@
         },
         {
           "name": "BilibiliPublisher._check",
-          "line": 49,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
@@ -24234,7 +24560,7 @@
         },
         {
           "name": "BilibiliPublisher.prepare",
-          "line": 57,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -24242,19 +24568,21 @@
             "kind",
             "target",
             "account",
-            "content"
+            "content",
+            "mentions"
           ],
           "annotations": {
             "session_id": "int",
             "kind": "str",
             "target": "str",
             "account": "str",
-            "content": "str"
+            "content": "str",
+            "mentions": "list[dict] | None"
           }
         },
         {
           "name": "BilibiliPublisher.submit",
-          "line": 71,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -24284,34 +24612,44 @@
       "path": "agent/src/omni/tools/bilibili/tools.py",
       "module": "bilibili",
       "python_module": "omni.tools.bilibili.tools",
-      "lines": 172,
+      "lines": 369,
       "imports": [
         "omni.config",
         "omni.tools.bilibili",
         "omni.tools.bilibili.api",
-        "omni.tools.registry"
+        "omni.tools.registry",
+        "omni.tools.runctx",
+        "omni.tools.shots"
       ],
       "symbols": [
         {
           "name": "register_bilibili_tools",
-          "line": 19,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "registry",
             "api",
             "asr_config",
-            "cache_root"
+            "cache_root",
+            "artifacts",
+            "session_ref",
+            "run_ref",
+            "can_view"
           ],
           "annotations": {
             "registry": "ToolRegistry",
             "api": "BiliAPI",
             "asr_config": "Asr | None",
-            "cache_root": "Path | None"
+            "cache_root": "Path | None",
+            "artifacts": "Any",
+            "session_ref": "SessionRef | None",
+            "run_ref": "RunRef | None",
+            "can_view": "bool"
           }
         },
         {
           "name": "register_bilibili_tools._fmt_duration",
-          "line": 24,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -24322,7 +24660,7 @@
         },
         {
           "name": "register_bilibili_tools._fmt_date",
-          "line": 33,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "ts"
@@ -24332,8 +24670,15 @@
           }
         },
         {
+          "name": "register_bilibili_tools._artifact_context",
+          "line": 55,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "register_bilibili_tools.video_info",
-          "line": 39,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "args"
@@ -24343,8 +24688,52 @@
           }
         },
         {
+          "name": "register_bilibili_tools.account_info",
+          "line": 82,
+          "kind": "function",
+          "parameters": [
+            "_args"
+          ],
+          "annotations": {
+            "_args": "dict[str, Any]"
+          }
+        },
+        {
           "name": "register_bilibili_tools.video_comments",
-          "line": 60,
+          "line": 98,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "dict[str, Any]"
+          }
+        },
+        {
+          "name": "register_bilibili_tools.comment_replies",
+          "line": 121,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "dict[str, Any]"
+          }
+        },
+        {
+          "name": "register_bilibili_tools.user_search",
+          "line": 139,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "dict[str, Any]"
+          }
+        },
+        {
+          "name": "register_bilibili_tools.video_frames",
+          "line": 156,
           "kind": "function",
           "parameters": [
             "args"
@@ -24355,7 +24744,7 @@
         },
         {
           "name": "register_bilibili_tools.video_subtitle",
-          "line": 69,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "args"
@@ -24366,7 +24755,7 @@
         },
         {
           "name": "register_bilibili_tools.video_transcript",
-          "line": 79,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "args"
@@ -24377,6 +24766,67 @@
         }
       ],
       "summary": "B站读工具集（toolset=bilibili，全部 SAFE 只读）。"
+    },
+    {
+      "path": "agent/src/omni/tools/bilibili/video_source.py",
+      "module": "bilibili",
+      "python_module": "omni.tools.bilibili.video_source",
+      "lines": 65,
+      "imports": [
+        "omni.config",
+        "omni.tools.bilibili",
+        "omni.tools.bilibili.api"
+      ],
+      "symbols": [
+        {
+          "name": "BiliVideoSource",
+          "line": 20,
+          "kind": "class"
+        },
+        {
+          "name": "BiliVideoSource.__init__",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "api",
+            "asr_config",
+            "cache_root"
+          ],
+          "annotations": {
+            "api": "BiliAPI",
+            "asr_config": "Asr | None",
+            "cache_root": "Path | None"
+          }
+        },
+        {
+          "name": "BiliVideoSource.fetch",
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "destination"
+          ],
+          "annotations": {
+            "target": "str",
+            "destination": "Path"
+          }
+        },
+        {
+          "name": "BiliVideoSource.transcript",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "str"
+          }
+        }
+      ],
+      "summary": "B站取流适配器：实现分镜域的 VideoSource 协议。"
     },
     {
       "path": "agent/src/omni/tools/bilibili/wbi.py",
@@ -24420,7 +24870,7 @@
       "path": "agent/src/omni/tools/bilibili/write_tools.py",
       "module": "bilibili",
       "python_module": "omni.tools.bilibili.write_tools",
-      "lines": 50,
+      "lines": 85,
       "imports": [
         "omni.tools.bilibili.publishing",
         "omni.tools.registry",
@@ -24446,8 +24896,17 @@
           }
         },
         {
+          "name": "register_bilibili_write_tools._mentions",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "register_bilibili_write_tools.prepare",
-          "line": 18,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "args"
@@ -24456,7 +24915,7 @@
         },
         {
           "name": "register_bilibili_write_tools.submit",
-          "line": 28,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "args"
@@ -24465,7 +24924,7 @@
         },
         {
           "name": "register_bilibili_write_tools.drafts",
-          "line": 38,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "args"
@@ -29639,7 +30098,7 @@
       "path": "agent/src/omni/tools/shots.py",
       "module": "toolkit",
       "python_module": "omni.tools.shots",
-      "lines": 65,
+      "lines": 66,
       "imports": [],
       "symbols": [
         {
@@ -29697,7 +30156,8 @@
             "run_id",
             "kind",
             "source",
-            "can_view"
+            "can_view",
+            "label"
           ],
           "annotations": {
             "artifacts": "_Artifacts | None",
@@ -29706,7 +30166,8 @@
             "run_id": "str | None",
             "kind": "str",
             "source": "str",
-            "can_view": "bool"
+            "can_view": "bool",
+            "label": "str"
           }
         }
       ],
@@ -29942,6 +30403,882 @@
         }
       ],
       "summary": "技能工具集（toolset=core）：技能的渐进披露与维护。"
+    },
+    {
+      "path": "agent/src/omni/tools/storyboard/__init__.py",
+      "module": "storyboard",
+      "python_module": "omni.tools.storyboard",
+      "lines": 39,
+      "imports": [],
+      "symbols": [],
+      "summary": "视频理解能力域：把一段视频变成模型能\"引用\"的画面索引。"
+    },
+    {
+      "path": "agent/src/omni/tools/storyboard/decode.py",
+      "module": "storyboard",
+      "python_module": "omni.tools.storyboard.decode",
+      "lines": 383,
+      "imports": [
+        "omni.tools.storyboard",
+        "omni.tools.storyboard.detect"
+      ],
+      "symbols": [
+        {
+          "name": "VideoDecodeError",
+          "line": 22,
+          "kind": "class"
+        },
+        {
+          "name": "probe_video",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "scan_frame_diffs",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "max_frames",
+            "fps_limit"
+          ],
+          "annotations": {
+            "path": "Path",
+            "max_frames": "int",
+            "fps_limit": "float"
+          }
+        },
+        {
+          "name": "scan_cut_scores",
+          "line": 98,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "fps_limit",
+            "max_frames"
+          ],
+          "annotations": {
+            "path": "Path",
+            "fps_limit": "float",
+            "max_frames": "int"
+          }
+        },
+        {
+          "name": "_stream_duration",
+          "line": 155,
+          "kind": "function",
+          "parameters": [
+            "container",
+            "stream"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "pick_sharp_frames",
+          "line": 164,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "cells",
+            "width",
+            "samples"
+          ],
+          "annotations": {
+            "path": "Path",
+            "cells": "list[tuple[int, float, float]]",
+            "width": "int",
+            "samples": "int"
+          }
+        },
+        {
+          "name": "frame_at",
+          "line": 214,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "timestamp",
+            "width"
+          ],
+          "annotations": {
+            "path": "Path",
+            "timestamp": "float",
+            "width": "int"
+          }
+        },
+        {
+          "name": "_sharpest_in_range",
+          "line": 255,
+          "kind": "function",
+          "parameters": [
+            "container",
+            "stream",
+            "start",
+            "end",
+            "width",
+            "samples"
+          ],
+          "annotations": {
+            "start": "float",
+            "end": "float",
+            "width": "int",
+            "samples": "int"
+          }
+        },
+        {
+          "name": "_sharpest_near",
+          "line": 285,
+          "kind": "function",
+          "parameters": [
+            "container",
+            "stream",
+            "target",
+            "width",
+            "tolerance",
+            "limit"
+          ],
+          "annotations": {
+            "target": "float",
+            "width": "int",
+            "tolerance": "float",
+            "limit": "int"
+          }
+        },
+        {
+          "name": "laplacian_variance",
+          "line": 329,
+          "kind": "function",
+          "parameters": [
+            "frame"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_rgb_bytes",
+          "line": 361,
+          "kind": "function",
+          "parameters": [
+            "frame"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_png_bytes",
+          "line": 372,
+          "kind": "function",
+          "parameters": [
+            "frame",
+            "width"
+          ],
+          "annotations": {
+            "width": "int"
+          }
+        }
+      ],
+      "summary": "用 PyAV 解视频帧（不依赖 ffmpeg 可执行文件）。"
+    },
+    {
+      "path": "agent/src/omni/tools/storyboard/detect.py",
+      "module": "storyboard",
+      "python_module": "omni.tools.storyboard.detect",
+      "lines": 433,
+      "imports": [
+        "omni.tools.storyboard"
+      ],
+      "symbols": [
+        {
+          "name": "Cut",
+          "line": 52,
+          "kind": "class"
+        },
+        {
+          "name": "Segment",
+          "line": 60,
+          "kind": "class"
+        },
+        {
+          "name": "Segment.duration",
+          "line": 68,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Segment.mid",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "rgb_to_hsv_plane",
+          "line": 76,
+          "kind": "function",
+          "parameters": [
+            "pixels"
+          ],
+          "annotations": {
+            "pixels": "bytes"
+          }
+        },
+        {
+          "name": "_rgb_to_hsv_plane_python",
+          "line": 118,
+          "kind": "function",
+          "parameters": [
+            "pixels"
+          ],
+          "annotations": {
+            "pixels": "bytes"
+          }
+        },
+        {
+          "name": "hsv_difference",
+          "line": 151,
+          "kind": "function",
+          "parameters": [
+            "prev",
+            "cur"
+          ],
+          "annotations": {
+            "prev": "tuple[bytearray, bytearray, bytearray]",
+            "cur": "tuple[bytearray, bytearray, bytearray]"
+          }
+        },
+        {
+          "name": "_hsv_difference_python",
+          "line": 181,
+          "kind": "function",
+          "parameters": [
+            "prev",
+            "cur"
+          ],
+          "annotations": {
+            "prev": "tuple[bytearray, bytearray, bytearray]",
+            "cur": "tuple[bytearray, bytearray, bytearray]"
+          }
+        },
+        {
+          "name": "brightness_gain",
+          "line": 201,
+          "kind": "function",
+          "parameters": [
+            "prev_v",
+            "cur_v"
+          ],
+          "annotations": {
+            "prev_v": "bytearray",
+            "cur_v": "bytearray"
+          }
+        },
+        {
+          "name": "detect_cuts",
+          "line": 215,
+          "kind": "function",
+          "parameters": [
+            "frames",
+            "duration",
+            "target_gap",
+            "floor",
+            "max_cuts"
+          ],
+          "annotations": {
+            "frames": "list[tuple[float, bytes]]",
+            "duration": "float",
+            "target_gap": "float",
+            "floor": "float",
+            "max_cuts": "int"
+          }
+        },
+        {
+          "name": "score_frame_pairs",
+          "line": 241,
+          "kind": "function",
+          "parameters": [
+            "frames"
+          ],
+          "annotations": {
+            "frames": "list[tuple[float, bytes]]"
+          }
+        },
+        {
+          "name": "detect_cuts_from_scores",
+          "line": 252,
+          "kind": "function",
+          "parameters": [
+            "times",
+            "scores",
+            "duration",
+            "target_gap",
+            "floor",
+            "max_cuts"
+          ],
+          "annotations": {
+            "times": "list[float]",
+            "scores": "list[float]",
+            "duration": "float",
+            "target_gap": "float",
+            "floor": "float",
+            "max_cuts": "int"
+          }
+        },
+        {
+          "name": "_auto_threshold",
+          "line": 275,
+          "kind": "function",
+          "parameters": [
+            "scores",
+            "duration",
+            "floor",
+            "max_cuts"
+          ],
+          "annotations": {
+            "scores": "list[float]",
+            "duration": "float",
+            "floor": "float",
+            "max_cuts": "int"
+          }
+        },
+        {
+          "name": "_prominence",
+          "line": 327,
+          "kind": "function",
+          "parameters": [
+            "scores",
+            "window"
+          ],
+          "annotations": {
+            "scores": "list[float]",
+            "window": "int"
+          }
+        },
+        {
+          "name": "_noise_level",
+          "line": 347,
+          "kind": "function",
+          "parameters": [
+            "prominence"
+          ],
+          "annotations": {
+            "prominence": "list[float]"
+          }
+        },
+        {
+          "name": "_cluster_cuts",
+          "line": 365,
+          "kind": "function",
+          "parameters": [
+            "times",
+            "scores",
+            "threshold",
+            "prominence_floor"
+          ],
+          "annotations": {
+            "times": "list[float]",
+            "scores": "list[float]",
+            "threshold": "float",
+            "prominence_floor": "float"
+          }
+        },
+        {
+          "name": "_suppress_close",
+          "line": 401,
+          "kind": "function",
+          "parameters": [
+            "cuts",
+            "min_gap"
+          ],
+          "annotations": {
+            "cuts": "list[Cut]",
+            "min_gap": "float"
+          }
+        },
+        {
+          "name": "sample_interval",
+          "line": 429,
+          "kind": "function",
+          "parameters": [
+            "fps"
+          ],
+          "annotations": {
+            "fps": "float"
+          }
+        }
+      ],
+      "summary": "场景切点检测：把一段视频切成若干镜头。"
+    },
+    {
+      "path": "agent/src/omni/tools/storyboard/render.py",
+      "module": "storyboard",
+      "python_module": "omni.tools.storyboard.render",
+      "lines": 264,
+      "imports": [
+        "omni.tools.storyboard.segments"
+      ],
+      "symbols": [
+        {
+          "name": "RenderResult",
+          "line": 63,
+          "kind": "class"
+        },
+        {
+          "name": "format_time",
+          "line": 76,
+          "kind": "function",
+          "parameters": [
+            "seconds"
+          ],
+          "annotations": {
+            "seconds": "float"
+          }
+        },
+        {
+          "name": "render_storyboard",
+          "line": 82,
+          "kind": "function",
+          "parameters": [
+            "storyboard",
+            "frames",
+            "columns"
+          ],
+          "annotations": {
+            "storyboard": "Storyboard",
+            "frames": "list[tuple[int, bytes]]",
+            "columns": "int"
+          }
+        },
+        {
+          "name": "_cover",
+          "line": 160,
+          "kind": "function",
+          "parameters": [
+            "image",
+            "width",
+            "height"
+          ],
+          "annotations": {
+            "width": "int",
+            "height": "int"
+          }
+        },
+        {
+          "name": "_load_font",
+          "line": 182,
+          "kind": "function",
+          "parameters": [
+            "size"
+          ],
+          "annotations": {
+            "size": "int"
+          }
+        },
+        {
+          "name": "_find_cjk_font",
+          "line": 195,
+          "kind": "function",
+          "parameters": [
+            "size"
+          ],
+          "annotations": {
+            "size": "int"
+          }
+        },
+        {
+          "name": "_draw_transcript_band",
+          "line": 210,
+          "kind": "function",
+          "parameters": [
+            "draw",
+            "storyboard",
+            "width",
+            "height",
+            "band"
+          ],
+          "annotations": {
+            "storyboard": "Storyboard",
+            "width": "int",
+            "height": "int",
+            "band": "int"
+          }
+        },
+        {
+          "name": "readability_note",
+          "line": 247,
+          "kind": "function",
+          "parameters": [
+            "result"
+          ],
+          "annotations": {
+            "result": "RenderResult"
+          }
+        }
+      ],
+      "summary": "宫格渲染：把镜头帧拼成一张模型能看、也能引用的图。"
+    },
+    {
+      "path": "agent/src/omni/tools/storyboard/segments.py",
+      "module": "storyboard",
+      "python_module": "omni.tools.storyboard.segments",
+      "lines": 344,
+      "imports": [
+        "omni.tools.storyboard.detect"
+      ],
+      "symbols": [
+        {
+          "name": "Cell",
+          "line": 35,
+          "kind": "class"
+        },
+        {
+          "name": "Cell.duration",
+          "line": 46,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Cell.mid",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Cell.text",
+          "line": 54,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Cell.to_row",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Storyboard",
+          "line": 70,
+          "kind": "class"
+        },
+        {
+          "name": "Storyboard.to_index",
+          "line": 78,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Storyboard.cell_by_index",
+          "line": 81,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "index"
+          ],
+          "annotations": {
+            "index": "int"
+          }
+        },
+        {
+          "name": "plan_segments",
+          "line": 88,
+          "kind": "function",
+          "parameters": [
+            "cuts",
+            "duration",
+            "max_cells",
+            "min_cell_gap"
+          ],
+          "annotations": {
+            "cuts": "list[Cut]",
+            "duration": "float",
+            "max_cells": "int",
+            "min_cell_gap": "float"
+          }
+        },
+        {
+          "name": "_density_cumulative",
+          "line": 141,
+          "kind": "function",
+          "parameters": [
+            "boundaries",
+            "duration"
+          ],
+          "annotations": {
+            "boundaries": "list[float]",
+            "duration": "float"
+          }
+        },
+        {
+          "name": "_density_at",
+          "line": 180,
+          "kind": "function",
+          "parameters": [
+            "times",
+            "values",
+            "target"
+          ],
+          "annotations": {
+            "times": "list[float]",
+            "values": "list[float]",
+            "target": "float"
+          }
+        },
+        {
+          "name": "_density_edges",
+          "line": 199,
+          "kind": "function",
+          "parameters": [
+            "boundaries",
+            "duration",
+            "count"
+          ],
+          "annotations": {
+            "boundaries": "list[float]",
+            "duration": "float",
+            "count": "int"
+          }
+        },
+        {
+          "name": "_even_shot_edges",
+          "line": 235,
+          "kind": "function",
+          "parameters": [
+            "boundaries",
+            "duration",
+            "count"
+          ],
+          "annotations": {
+            "boundaries": "list[float]",
+            "duration": "float",
+            "count": "int"
+          }
+        },
+        {
+          "name": "_merge_short_cells",
+          "line": 248,
+          "kind": "function",
+          "parameters": [
+            "edges",
+            "boundaries",
+            "duration",
+            "min_cell_gap"
+          ],
+          "annotations": {
+            "edges": "list[float]",
+            "boundaries": "list[float]",
+            "duration": "float",
+            "min_cell_gap": "float"
+          }
+        },
+        {
+          "name": "attach_transcript",
+          "line": 277,
+          "kind": "function",
+          "parameters": [
+            "segments",
+            "transcript"
+          ],
+          "annotations": {
+            "segments": "list[Segment]",
+            "transcript": "list[tuple[float, str]]"
+          }
+        },
+        {
+          "name": "build_storyboard",
+          "line": 301,
+          "kind": "function",
+          "parameters": [
+            "cuts",
+            "duration",
+            "max_cells",
+            "transcript",
+            "frame_times",
+            "min_cell_gap"
+          ],
+          "annotations": {
+            "cuts": "list[Cut]",
+            "duration": "float",
+            "max_cells": "int",
+            "transcript": "list[tuple[float, str]] | None",
+            "frame_times": "list[tuple[int, float] | tuple[int, float, float]] | None",
+            "min_cell_gap": "float"
+          }
+        }
+      ],
+      "summary": "镜头分段与可寻址索引。"
+    },
+    {
+      "path": "agent/src/omni/tools/storyboard/source.py",
+      "module": "storyboard",
+      "python_module": "omni.tools.storyboard.source",
+      "lines": 44,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "VideoSource",
+          "line": 18,
+          "kind": "class"
+        },
+        {
+          "name": "VideoSource.fetch",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "destination"
+          ],
+          "annotations": {
+            "target": "str",
+            "destination": "Path"
+          }
+        },
+        {
+          "name": "VideoSource.transcript",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "str"
+          }
+        },
+        {
+          "name": "LocalVideoSource",
+          "line": 34,
+          "kind": "class"
+        },
+        {
+          "name": "LocalVideoSource.fetch",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target",
+            "destination"
+          ],
+          "annotations": {
+            "target": "str",
+            "destination": "Path"
+          }
+        },
+        {
+          "name": "LocalVideoSource.transcript",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "target"
+          ],
+          "annotations": {
+            "target": "str"
+          }
+        }
+      ],
+      "summary": "视频来源：把\"一个目标\"变成\"一个本地可解码的视频文件 + 可选的带时间戳台词\"。"
+    },
+    {
+      "path": "agent/src/omni/tools/storyboard/tools.py",
+      "module": "storyboard",
+      "python_module": "omni.tools.storyboard.tools",
+      "lines": 230,
+      "imports": [
+        "omni.tools.registry",
+        "omni.tools.runctx",
+        "omni.tools.shots",
+        "omni.tools.storyboard",
+        "omni.tools.storyboard.source"
+      ],
+      "symbols": [
+        {
+          "name": "register_storyboard_tools",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "registry",
+            "source",
+            "artifacts",
+            "session_ref",
+            "run_ref",
+            "can_view",
+            "cache_root"
+          ],
+          "annotations": {
+            "registry": "ToolRegistry",
+            "source": "VideoSource | None",
+            "artifacts": "Any",
+            "session_ref": "SessionRef | None",
+            "run_ref": "RunRef | None",
+            "can_view": "bool",
+            "cache_root": "Path | None"
+          }
+        },
+        {
+          "name": "register_storyboard_tools._artifact_context",
+          "line": 60,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "register_storyboard_tools._temporary_dir",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "prefix"
+          ],
+          "annotations": {
+            "prefix": "str"
+          }
+        },
+        {
+          "name": "register_storyboard_tools._storyboard",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "dict[str, Any]"
+          }
+        },
+        {
+          "name": "register_storyboard_tools._zoom",
+          "line": 151,
+          "kind": "function",
+          "parameters": [
+            "args"
+          ],
+          "annotations": {
+            "args": "dict[str, Any]"
+          }
+        }
+      ],
+      "summary": "分镜工具：把视频变成\"能看、能引用、能回看\"的画面索引。"
     },
     {
       "path": "agent/src/omni/tools/system/__init__.py",
@@ -32821,6 +34158,17 @@
     },
     {
       "method": "GET",
+      "path": "/api/system/bili-account",
+      "source": "agent/src/omni/channels/web_api/embodiments.py",
+      "line": 103,
+      "handler": "create_embodiments_router.bili_account",
+      "module": "http-routing",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
       "line": 409,
@@ -33005,6 +34353,17 @@
       "line": 84,
       "handler": "create_operations_router.system_doctor",
       "module": "http-operations",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/embodiments",
+      "source": "agent/src/omni/channels/web_api/embodiments.py",
+      "line": 99,
+      "handler": "create_embodiments_router.embodiments",
+      "module": "http-routing",
       "parameters": [],
       "annotations": {},
       "scope": "workbench"
@@ -33516,9 +34875,45 @@
       "read_only": false
     },
     {
+      "name": "bilibili_account_info",
+      "source": "agent/src/omni/tools/bilibili/tools.py",
+      "line": 231,
+      "module": "bilibili",
+      "risk": "safe",
+      "requires_human": false,
+      "read_only": true
+    },
+    {
+      "name": "bilibili_comment_replies",
+      "source": "agent/src/omni/tools/bilibili/tools.py",
+      "line": 295,
+      "module": "bilibili",
+      "risk": "safe",
+      "requires_human": false,
+      "read_only": true
+    },
+    {
+      "name": "bilibili_user_search",
+      "source": "agent/src/omni/tools/bilibili/tools.py",
+      "line": 315,
+      "module": "bilibili",
+      "risk": "safe",
+      "requires_human": false,
+      "read_only": true
+    },
+    {
       "name": "bilibili_video_comments",
       "source": "agent/src/omni/tools/bilibili/tools.py",
-      "line": 118,
+      "line": 270,
+      "module": "bilibili",
+      "risk": "safe",
+      "requires_human": false,
+      "read_only": true
+    },
+    {
+      "name": "bilibili_video_frames",
+      "source": "agent/src/omni/tools/bilibili/tools.py",
+      "line": 245,
       "module": "bilibili",
       "risk": "safe",
       "requires_human": false,
@@ -33527,7 +34922,7 @@
     {
       "name": "bilibili_video_info",
       "source": "agent/src/omni/tools/bilibili/tools.py",
-      "line": 98,
+      "line": 211,
       "module": "bilibili",
       "risk": "safe",
       "requires_human": false,
@@ -33536,7 +34931,7 @@
     {
       "name": "bilibili_video_subtitle",
       "source": "agent/src/omni/tools/bilibili/tools.py",
-      "line": 136,
+      "line": 333,
       "module": "bilibili",
       "risk": "safe",
       "requires_human": false,
@@ -33545,7 +34940,7 @@
     {
       "name": "bilibili_video_transcript",
       "source": "agent/src/omni/tools/bilibili/tools.py",
-      "line": 153,
+      "line": 350,
       "module": "bilibili",
       "risk": "safe",
       "requires_human": false,
@@ -34198,6 +35593,24 @@
       "risk": "safe",
       "requires_human": false,
       "read_only": false
+    },
+    {
+      "name": "video_storyboard",
+      "source": "agent/src/omni/tools/storyboard/tools.py",
+      "line": 180,
+      "module": "storyboard",
+      "risk": "safe",
+      "requires_human": false,
+      "read_only": true
+    },
+    {
+      "name": "video_zoom",
+      "source": "agent/src/omni/tools/storyboard/tools.py",
+      "line": 209,
+      "module": "storyboard",
+      "risk": "safe",
+      "requires_human": false,
+      "read_only": true
     },
     {
       "name": "web_read",

@@ -464,6 +464,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 | `android` | **安卓工具** — ADB、防护、UI 树、观察令牌、锁帧和输入法 | [ANDROID](docs/ANDROID.md) |
 | `desktop` | **桌面工具** — Windows UIAutomation、窗口观察、租约与受控语义动作 | [DESKTOP](docs/DESKTOP.md) |
 | `bilibili` | **B站工具** — 读 API/转写及注入浏览器协议的草稿与受控写 | [BILIBILI_WRITING](docs/BILIBILI_WRITING.md) |
+| `storyboard` | **视频理解与分镜** — 切点检测、局部剪辑率格位分配、PyAV 取最锐帧、宫格渲染与可寻址索引；取流能力由平台适配器注入 | [VIDEO_UNDERSTANDING](docs/VIDEO_UNDERSTANDING.md) |
 | `qq-tools` | **QQ 工具** — OneBot 客户端与白名单内主动消息 | [QQ_SCENARIOS](docs/QQ_SCENARIOS.md) |
 | `toolkit` | **工具公共协议与兼容层** — Registry、ToolResult、SessionRef/RunRef、路径策略、截图协议及旧 import 薄转发 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
 

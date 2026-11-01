@@ -193,6 +193,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/storage/preview-file` | `create_storage_router.preview_file` | [agent/src/omni/channels/web_api/storage.py](../../agent/src/omni/channels/web_api/storage.py#L115) |
 | workbench | POST | `/api/storage/upload` | `create_storage_router.upload` | [agent/src/omni/channels/web_api/storage.py](../../agent/src/omni/channels/web_api/storage.py#L141) |
 | workbench | POST | `/api/system/backup` | `create_operations_router.system_backup` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L88) |
+| workbench | GET | `/api/system/bili-account` | `create_embodiments_router.bili_account` | [agent/src/omni/channels/web_api/embodiments.py](../../agent/src/omni/channels/web_api/embodiments.py#L103) |
 | workbench | GET | `/api/system/bili-cookies` | `create_app.bili_cookies_status` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L409) |
 | workbench | POST | `/api/system/bili-cookies` | `create_app.save_bili_cookies` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L421) |
 | workbench | GET | `/api/system/config` | `create_app.system_config` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L272) |
@@ -207,6 +208,7 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | POST | `/api/system/cron/toggle` | `create_automation_router.cron_toggle` | [agent/src/omni/channels/web_api/automation.py](../../agent/src/omni/channels/web_api/automation.py#L143) |
 | workbench | POST | `/api/system/cron/update` | `create_automation_router.cron_update` | [agent/src/omni/channels/web_api/automation.py](../../agent/src/omni/channels/web_api/automation.py#L93) |
 | workbench | GET | `/api/system/doctor` | `create_operations_router.system_doctor` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L84) |
+| workbench | GET | `/api/system/embodiments` | `create_embodiments_router.embodiments` | [agent/src/omni/channels/web_api/embodiments.py](../../agent/src/omni/channels/web_api/embodiments.py#L99) |
 | workbench | GET | `/api/system/logs/{name}` | `create_operations_router.system_logs` | [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py#L116) |
 | workbench | POST | `/api/system/model-key` | `create_app.model_key_set` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L446) |
 | workbench | GET | `/api/system/model-keys` | `create_app.model_keys` | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py#L441) |
@@ -1181,10 +1183,14 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `android_tap_coords` | confirm | True | False | android | [agent/src/omni/tools/android/tools.py](../../agent/src/omni/tools/android/tools.py#L147) |
 | `android_tap_element` | confirm | True | False | android | [agent/src/omni/tools/android/tools.py](../../agent/src/omni/tools/android/tools.py#L122) |
 | `android_type` | confirm | True | False | android | [agent/src/omni/tools/android/tools.py](../../agent/src/omni/tools/android/tools.py#L199) |
-| `bilibili_video_comments` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L118) |
-| `bilibili_video_info` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L98) |
-| `bilibili_video_subtitle` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L136) |
-| `bilibili_video_transcript` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L153) |
+| `bilibili_account_info` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L231) |
+| `bilibili_comment_replies` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L295) |
+| `bilibili_user_search` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L315) |
+| `bilibili_video_comments` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L270) |
+| `bilibili_video_frames` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L245) |
+| `bilibili_video_info` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L211) |
+| `bilibili_video_subtitle` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L333) |
+| `bilibili_video_transcript` | safe | False | True | bilibili | [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py#L350) |
 | `browser_click` | confirm | True | False | browser | [agent/src/omni/tools/browser/tools.py](../../agent/src/omni/tools/browser/tools.py#L165) |
 | `browser_navigate` | safe | False | False | browser | [agent/src/omni/tools/browser/tools.py](../../agent/src/omni/tools/browser/tools.py#L131) |
 | `browser_read` | safe | False | False | browser | [agent/src/omni/tools/browser/tools.py](../../agent/src/omni/tools/browser/tools.py#L145) |
@@ -1257,4 +1263,6 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | `system_service` | confirm | False | False | system-tools | [agent/src/omni/tools/system/tools.py](../../agent/src/omni/tools/system/tools.py#L99) |
 | `system_status` | safe | False | True | system-tools | [agent/src/omni/tools/system/tools.py](../../agent/src/omni/tools/system/tools.py#L88) |
 | `todo` | safe | False | False | personal | [agent/src/omni/tools/personal/todos.py](../../agent/src/omni/tools/personal/todos.py#L61) |
+| `video_storyboard` | safe | False | True | storyboard | [agent/src/omni/tools/storyboard/tools.py](../../agent/src/omni/tools/storyboard/tools.py#L180) |
+| `video_zoom` | safe | False | True | storyboard | [agent/src/omni/tools/storyboard/tools.py](../../agent/src/omni/tools/storyboard/tools.py#L209) |
 | `web_read` | safe | False | True | web-fetch | [agent/src/omni/tools/web/tools.py](../../agent/src/omni/tools/web/tools.py#L113) |

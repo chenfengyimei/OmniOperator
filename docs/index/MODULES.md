@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7f124b109c3d73b7963e6b14d09f98e4f2fb25961f841d1e661456a05da983fa`。包含 57 个职责模块、301 个源码/界面文件。
+源码指纹：`c74f841e82c52af8c98ccba26d2669320c4c2909158a033cbbe7ca3431df74f1`。包含 58 个职责模块、312 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -60,13 +60,13 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 781 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 795 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../../docs/REPOSITORY_STRUCTURE.md)
 
 测试：[agent/tests/test_paths.py](../../agent/tests/test_paths.py)、[agent/tests/test_repository_layout.py](../../agent/tests/test_repository_layout.py)
 
-直接静态依赖：`agent-directories`、`android`、`bilibili`、`browser`、`command-jobs`、`community`、`config`、`delegation`、`desktop`、`engine`、`files`、`mcp`、`models`、`personal`、`platform`、`plugins`、`qq-tools`、`safety`、`scheduling`、`shell`、`skills`、`storage`、`system-tools`、`toolkit`、`web-fetch`
+直接静态依赖：`agent-directories`、`android`、`bilibili`、`browser`、`command-jobs`、`community`、`config`、`delegation`、`desktop`、`engine`、`files`、`mcp`、`models`、`personal`、`platform`、`plugins`、`qq-tools`、`safety`、`scheduling`、`shell`、`skills`、`storage`、`storyboard`、`system-tools`、`toolkit`、`web-fetch`
 
 ## 配置与路径契约 · config
 
@@ -263,6 +263,7 @@
 | [agent/src/omni/channels/web_static/ui/app/header.js](../../agent/src/omni/channels/web_static/ui/app/header.js) | 132 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-capabilities.js](../../agent/src/omni/channels/web_static/ui/app/hub-capabilities.js) | 10 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-cron.js](../../agent/src/omni/channels/web_static/ui/app/hub-cron.js) | 140 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub-embodiment.js](../../agent/src/omni/channels/web_static/ui/app/hub-embodiment.js) | 74 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-jobs.js](../../agent/src/omni/channels/web_static/ui/app/hub-jobs.js) | 9 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-market.js](../../agent/src/omni/channels/web_static/ui/app/hub-market.js) | 329 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js](../../agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js) | 10 | 平台脚本或界面资源 |
@@ -274,8 +275,8 @@
 | [agent/src/omni/channels/web_static/ui/app/hub-services.js](../../agent/src/omni/channels/web_static/ui/app/hub-services.js) | 148 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-skills.js](../../agent/src/omni/channels/web_static/ui/app/hub-skills.js) | 443 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-usage.js](../../agent/src/omni/channels/web_static/ui/app/hub-usage.js) | 34 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 352 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/main.js](../../agent/src/omni/channels/web_static/ui/app/main.js) | 67 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 357 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/main.js](../../agent/src/omni/channels/web_static/ui/app/main.js) | 68 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/memory.js](../../agent/src/omni/channels/web_static/ui/app/memory.js) | 36 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/modals.js](../../agent/src/omni/channels/web_static/ui/app/modals.js) | 23 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/publications.js](../../agent/src/omni/channels/web_static/ui/app/publications.js) | 35 | 平台脚本或界面资源 |
@@ -313,7 +314,7 @@
 |---|---:|---|
 | [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 548 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 704 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 719 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/index.html](../../agent/src/omni/channels/web_static/memory/index.html) | 6 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.css](../../agent/src/omni/channels/web_static/memory/memory.css) | 153 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.js](../../agent/src/omni/channels/web_static/memory/memory.js) | 738 | 平台脚本或界面资源 |
@@ -607,14 +608,15 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web_api/__init__.py](../../agent/src/omni/channels/web_api/__init__.py) | 49 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
+| [agent/src/omni/channels/web_api/__init__.py](../../agent/src/omni/channels/web_api/__init__.py) | 51 | 工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。 |
+| [agent/src/omni/channels/web_api/embodiments.py](../../agent/src/omni/channels/web_api/embodiments.py) | 122 | 数字具身总览与B站账号状态：只读聚合，不代替各能力域自己的操作接口。 |
 | [agent/src/omni/channels/web_api/memory_system.py](../../agent/src/omni/channels/web_api/memory_system.py) | 249 | 记忆系统 HTTP 适配（M1–M6）：只消费注入 Runtime，路由聚合进既有鉴权闸门。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)、[docs/REFACTORING.md](../../docs/REFACTORING.md)
 
 测试：[agent/tests/test_web_api.py](../../agent/tests/test_web_api.py)
 
-直接静态依赖：`assembly`、`command-jobs`、`http-android`、`http-approvals`、`http-artifacts`、`http-automation`、`http-context`、`http-contracts`、`http-conversation`、`http-devices`、`http-market`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`、`http-storage`、`storage`
+直接静态依赖：`assembly`、`bilibili`、`command-jobs`、`http-android`、`http-approvals`、`http-artifacts`、`http-automation`、`http-context`、`http-contracts`、`http-conversation`、`http-devices`、`http-market`、`http-mcp`、`http-memory`、`http-operations`、`http-publications`、`http-runs`、`http-sessions`、`http-skills`、`http-storage`、`storage`
 
 ## CLI 入口 · cli
 
@@ -877,18 +879,40 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/tools/bilibili/__init__.py](../../agent/src/omni/tools/bilibili/__init__.py) | 1 | B站能力域（P1：只读）。api 层不知道 LLM，tools 层不知道 HTTP 细节。 |
-| [agent/src/omni/tools/bilibili/api.py](../../agent/src/omni/tools/bilibili/api.py) | 256 | B站读 API 封装：只读端点 + 目标归一化 + WBI 签名。 |
-| [agent/src/omni/tools/bilibili/asr.py](../../agent/src/omni/tools/bilibili/asr.py) | 101 | 无字幕视频的 ASR 兜底（faster-whisper，本地转写）。 |
-| [agent/src/omni/tools/bilibili/publishing.py](../../agent/src/omni/tools/bilibili/publishing.py) | 126 | B站草稿→人工批准→一次 UI 提交→记录回读；浏览器能力通过协议注入。 |
-| [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py) | 172 | B站读工具集（toolset=bilibili，全部 SAFE 只读）。 |
+| [agent/src/omni/tools/bilibili/api.py](../../agent/src/omni/tools/bilibili/api.py) | 374 | B站读 API 封装：只读端点 + 目标归一化 + WBI 签名。 |
+| [agent/src/omni/tools/bilibili/asr.py](../../agent/src/omni/tools/bilibili/asr.py) | 144 | 无字幕视频的 ASR 兜底（faster-whisper，本地转写）。 |
+| [agent/src/omni/tools/bilibili/frames.py](../../agent/src/omni/tools/bilibili/frames.py) | 137 | B站视频抽帧并拼成一张联络表（contact sheet）。 |
+| [agent/src/omni/tools/bilibili/publishing.py](../../agent/src/omni/tools/bilibili/publishing.py) | 189 | B站草稿→人工批准→一次 UI 提交→记录回读；浏览器能力通过协议注入。 |
+| [agent/src/omni/tools/bilibili/tools.py](../../agent/src/omni/tools/bilibili/tools.py) | 369 | B站读工具集（toolset=bilibili，全部 SAFE 只读）。 |
+| [agent/src/omni/tools/bilibili/video_source.py](../../agent/src/omni/tools/bilibili/video_source.py) | 65 | B站取流适配器：实现分镜域的 VideoSource 协议。 |
 | [agent/src/omni/tools/bilibili/wbi.py](../../agent/src/omni/tools/bilibili/wbi.py) | 43 | B站 WBI 签名（纯算法，无网络依赖）。 |
-| [agent/src/omni/tools/bilibili/write_tools.py](../../agent/src/omni/tools/bilibili/write_tools.py) | 50 | B站草稿工具及逐次人工发布审批；所有浏览器依赖由组装根注入。 |
+| [agent/src/omni/tools/bilibili/write_tools.py](../../agent/src/omni/tools/bilibili/write_tools.py) | 85 | B站草稿工具及逐次人工发布审批；所有浏览器依赖由组装根注入。 |
 
 文档：[docs/BILIBILI_WRITING.md](../../docs/BILIBILI_WRITING.md)
 
 测试：[agent/tests/test_bilibili_tools.py](../../agent/tests/test_bilibili_tools.py)、[agent/tests/test_bilibili_publishing.py](../../agent/tests/test_bilibili_publishing.py)
 
 直接静态依赖：`config`、`storage`、`toolkit`
+
+## 视频理解与分镜 · storyboard
+
+分类：工具能力。切点检测、局部剪辑率格位分配、PyAV 取最锐帧、宫格渲染与可寻址索引；取流能力由平台适配器注入。
+
+| 文件 | 行数 | 职责 |
+|---|---:|---|
+| [agent/src/omni/tools/storyboard/__init__.py](../../agent/src/omni/tools/storyboard/__init__.py) | 39 | 视频理解能力域：把一段视频变成模型能"引用"的画面索引。 |
+| [agent/src/omni/tools/storyboard/decode.py](../../agent/src/omni/tools/storyboard/decode.py) | 383 | 用 PyAV 解视频帧（不依赖 ffmpeg 可执行文件）。 |
+| [agent/src/omni/tools/storyboard/detect.py](../../agent/src/omni/tools/storyboard/detect.py) | 433 | 场景切点检测：把一段视频切成若干镜头。 |
+| [agent/src/omni/tools/storyboard/render.py](../../agent/src/omni/tools/storyboard/render.py) | 264 | 宫格渲染：把镜头帧拼成一张模型能看、也能引用的图。 |
+| [agent/src/omni/tools/storyboard/segments.py](../../agent/src/omni/tools/storyboard/segments.py) | 344 | 镜头分段与可寻址索引。 |
+| [agent/src/omni/tools/storyboard/source.py](../../agent/src/omni/tools/storyboard/source.py) | 44 | 视频来源：把"一个目标"变成"一个本地可解码的视频文件 + 可选的带时间戳台词"。 |
+| [agent/src/omni/tools/storyboard/tools.py](../../agent/src/omni/tools/storyboard/tools.py) | 230 | 分镜工具：把视频变成"能看、能引用、能回看"的画面索引。 |
+
+文档：[docs/VIDEO_UNDERSTANDING.md](../../docs/VIDEO_UNDERSTANDING.md)
+
+测试：[agent/tests/test_storyboard.py](../../agent/tests/test_storyboard.py)
+
+直接静态依赖：`toolkit`
 
 ## QQ 工具 · qq-tools
 
@@ -937,7 +961,7 @@
 | [agent/src/omni/tools/result.py](../../agent/src/omni/tools/result.py) | 132 | 工具结果的结构化契约（D09）。 |
 | [agent/src/omni/tools/runctx.py](../../agent/src/omni/tools/runctx.py) | 49 | 低层可见的"当前运行"引用（D09）。 |
 | [agent/src/omni/tools/shell_tools.py](../../agent/src/omni/tools/shell_tools.py) | 38 | 兼容薄层：旧的 `omni.tools.shell_tools` 导入路径继续可用。 |
-| [agent/src/omni/tools/shots.py](../../agent/src/omni/tools/shots.py) | 65 | 截图工具与 ArtifactStore 的桥（D15/A13）。 |
+| [agent/src/omni/tools/shots.py](../../agent/src/omni/tools/shots.py) | 66 | 截图工具与 ArtifactStore 的桥（D15/A13）。 |
 | [agent/src/omni/tools/skill_tools.py](../../agent/src/omni/tools/skill_tools.py) | 4 | 旧导入兼容层；实现位于 tools/skills/。 |
 | [agent/src/omni/tools/system_tools.py](../../agent/src/omni/tools/system_tools.py) | 4 | 旧导入兼容层；实现位于 tools/system/。 |
 
@@ -994,7 +1018,7 @@
 | [agent/src/omni/system/catalog/__init__.py](../../agent/src/omni/system/catalog/__init__.py) | 4 | 项目索引：只解析源码与显式分类，不导入被索引模块、不接触运行数据。 |
 | [agent/src/omni/system/catalog/render.py](../../agent/src/omni/system/catalog/render.py) | 46 | 索引输出：从同一结构生成模块表、API 表和可机器查询的 JSON。 |
 | [agent/src/omni/system/catalog/scan.py](../../agent/src/omni/system/catalog/scan.py) | 169 | 静态源码索引；扫描范围为本地 Agent 的源码包（兼容旧布局），不读取 config/data/.env。 |
-| [agent/src/omni/system/catalog/schema.py](../../agent/src/omni/system/catalog/schema.py) | 108 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
+| [agent/src/omni/system/catalog/schema.py](../../agent/src/omni/system/catalog/schema.py) | 109 | 模块分类与关键调用链；分层规则仍以 docs/ARCHITECTURE.md 为准。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
