@@ -134,7 +134,9 @@ export const actions={
     const name=el.dataset.name;
     const pid=Number(el.dataset.pid)||null;
     // 只删记录、不杀进程：用户必须自己确认那个旧进程已经处理过
-    if(!window.confirm(`确认 pid=${pid||'未知'} 的旧进程已经结束？\n这里只删启动记录，不会替你结束进程。`))return;
+    if(!await OmniUI.ask({title:'清理启动记录',
+      message:`确认 pid=${pid||'未知'} 的旧进程已经结束？\n\n这里只删记录，不会替你结束进程。如果它其实还活着，删完守护会再起一个，你就有两个了。`,
+      confirmLabel:'只删记录',danger:true}))return;
     try{
       await api('/api/system/services/cleanup',{
         method:'POST',headers:{'Content-Type':'application/json'},
