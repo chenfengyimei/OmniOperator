@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 import datetime as dt
 import hashlib
 import json
@@ -116,6 +117,17 @@ class _NullRunStore:
 
     def get(self, run_id: str) -> None:
         return None
+
+
+def _admit_turn(function):
+    """运行入口注入的接收闸门；内核不感知维护协议或通道生命周期。"""
+    @functools.wraps(function)
+    def admitted(self, *args, **kwargs):
+        factory = getattr(self, 'admission_context', None)
+        context = factory(allow_drain=kwargs.get('parent') is not None or kwargs.get('channel') in {'qq', 'cron'}) if factory else contextlib.nullcontext()
+        with context:
+            return function(self, *args, **kwargs)
+    return admitted
 
 
 class Agent:
@@ -263,8 +275,21 @@ class Agent:
         """会话引用（delegate_task 等需要临时切换/还原会话指向的工具用）。"""
         return self._session_ref
 
-    def _system_prompt(self, *, include_personal: bool = True) -> str:
-        return system_prompt(self.config.persona.system_prompt, include_personal=include_personal)
+    def _system_prompt(self, *, include_personal: bool = True, is_group: bool = False) -> str:
+        """组装系统提示词：核心人格 +（可选）当前场景层 + 三段固定协议。
+
+        场景层（D36）：核心层是底座，场景层为空时逐字节等同旧版。
+        `is_group` 决定用群聊层还是私聊层——它与 `include_personal` 正交：
+        非所有者的私聊是 `include_personal=True` + `is_group=False`。
+        """
+        persona = self.config.persona
+        return system_prompt(
+            persona.system_prompt,
+            include_personal=include_personal,
+            group_prompt=persona.group_prompt,
+            private_prompt=persona.private_prompt,
+            is_group=is_group,
+        )
 
     def _turn_context(
         self,
@@ -558,6 +583,7 @@ class Agent:
             mode=mode,
         ).answer
 
+    @_admit_turn
     def run_turn(
         self,
         user_text: str,
@@ -581,6 +607,8 @@ class Agent:
         怎么送到浏览器），最终仍然返回完整回答。
         """
         sid = session_id if session_id is not None else self.session_id
+        if parent is None and not getattr(self, 'admission', lambda: True)():
+            raise RuntimeError('系统正在等待升级，不再接受新回合')
         if getattr(self, "closing", False):
             raise RuntimeError("运行态正在关闭，不再接受新回合")
         run = self._start_run(
@@ -815,7 +843,8 @@ class Agent:
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
-                "content": self._system_prompt(include_personal=not is_group),
+                # 场景层（D36）：is_group 决定拼群聊层还是私聊层。
+                "content": self._system_prompt(include_personal=not is_group, is_group=is_group),
             }
         ]
         body, context_info = self._assemble_body(sid, run=run, personal_context=personal_context)

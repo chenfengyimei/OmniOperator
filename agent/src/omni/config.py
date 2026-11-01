@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -70,6 +71,7 @@ class RuntimePaths:
     service_logs: Path | None = None
     agent_id: str = "default"
     catalog: Path | None = None
+    updates: Path | None = None  # 固定安装控制区；不随 Agent 业务根移动。
 
     @classmethod
     def create(
@@ -113,6 +115,7 @@ class RuntimePaths:
             documents=data / "documents",
             service_logs=data / "system_logs",
             catalog=data / "control" / "agents.json",
+            updates=data / "control" / "updates",
         )
 
 
@@ -139,10 +142,33 @@ def load_env(env_path: Path | None = None) -> None:
 
 
 class Persona(BaseModel):
+    """人格：核心正文 + 可选的场景层。
+
+    **为什么要场景层**（抄 surfcore `docs/cases/2026-10-31-persona-layers.md` 的判定逻辑）：
+    参考实现把人格拆成 core / tone / daily / scene 四层，QQ 场景还细分
+    群聊（qq-group）与私聊（qq-private）。抄的是**分层机制**与三条纪律：
+
+    1. **核心层永远是底座**：场景层为空时行为与旧版完全一致（不迁移、不强制生成空文件）；
+    2. **每层一个显式分支**：不给「未知的场景」兜底路径——未知场景就是没有场景层；
+    3. **注入顺序固定**：核心 → 场景，场景层只做**追加**，不改写核心。
+
+    我们的取舍：**只加一层「场景层」，且只分群聊/私聊两档**。
+    不抄它的 tone/daily 两层——那两层的前提是它有一整套「人格卡编辑 + 备份 + 回档」
+    的产品形态；我们只有 config.yaml 里的一个正文，加两层只会让保存契约变复杂。
+    群聊与私聊的说话方式确实该不同（群里要简短、别抢话；私聊可以展开），
+    这一层是**当前形态下确实缺**的，所以做。
+
+    字段留空字符串 = 没有这一层（不是「清空」也不是「不存在」的二义，
+    见 `system/persona_rules.py` 对空值语义的处理）。
+    """
+
     name: str = "小鱼"
     system_prompt: str = (
         "你是 OmniOperator，一个运行在用户电脑上的个人智能体。"
     )
+    # 场景层：群聊与私聊各一段，只做追加，不改写核心。
+    group_prompt: str = ""
+    private_prompt: str = ""
 
 
 # 推理档位（D30）：auto = 不干预，沿用供应商默认；off = 显式关闭思考。
@@ -706,7 +732,14 @@ class TerminalConfig(BaseModel):
     detach_ttl_s: float = Field(default=600, ge=1, le=86400)
 
 
+class Updates(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    channel: Literal['stable', 'development'] = 'stable'
+    auto_check: bool = True
+
+
 class AppConfig(BaseModel):
+    updates: Updates = Field(default_factory=Updates)
     android: AndroidConfig = Field(default_factory=AndroidConfig)
     command_jobs: CommandJobsConfig = Field(default_factory=CommandJobsConfig)
     terminal: TerminalConfig = Field(default_factory=TerminalConfig)

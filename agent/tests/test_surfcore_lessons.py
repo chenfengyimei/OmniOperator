@@ -364,7 +364,11 @@ def test_qq_send_message_gate_does_not_touch_allowlist_semantics() -> None:
 
 def test_safety_layer_does_not_import_core() -> None:
     """判定下沉到 safety 后不能倒挂依赖（safety 是叶子层）。"""
-    source = Path("src/omni/safety/proactive.py")
+    # 按**导入的模块自身位置**找源文件，不要假设 CWD 是仓库根：
+    # 隔离 worktree / 从别处运行 pytest 时，相对路径 "src/..." 会找不到文件。
+    import omni.safety.proactive as proactive_module
+
+    source = Path(proactive_module.__file__).resolve()
     text = source.read_text(encoding="utf-8")
     assert "from ..core" not in text
     assert "import omni.core" not in text

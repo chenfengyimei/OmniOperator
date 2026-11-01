@@ -49,6 +49,13 @@ PERSONA_PROMPT_MAX_CHARS = 20000
 # 人格名字的最大长度：与社区人设卡的 MAX_NAME 保持一致。
 PERSONA_NAME_MAX_CHARS = 30
 
+# 场景层（群聊/私聊）的最大长度：它每轮都跟着提示词走，比核心层更该克制。
+PERSONA_SCENE_MAX_CHARS = 4000
+
+# 场景层的最小长度闸门：低于这个长度视为误操作（与核心层同一条纪律）。
+# 空场景层是**合法**的——那表示"没有这一层"，与核心层的"空=拒绝"不同。
+PERSONA_SCENE_MIN_CHARS = 10
+
 
 class PersonaRuleError(ValueError):
     """人格保存被规则拒绝（消息可直接展示给用户）。"""
@@ -104,6 +111,42 @@ def check_persona_prompt(lines: list[str] | str) -> None:
         )
 
 
+def check_persona_scene(lines: list[str] | str, *, label: str) -> None:
+    """场景层：空 = 合法（没有这一层）；非空则要过凭据与长度闸门。
+
+    **与核心层的规则不同，差别在哪、为什么**：
+    - 核心层空 → **拒绝**。因为核心层是底座，把它清空等于「保存全部」时
+      把人设悄悄清掉，而界面还在说「已保存」（surfcore 的真实事故）。
+    - 场景层空 → **允许**。场景层是可选的追加段，"没有这一层"是它的
+      正常状态之一，不存在"把场景层清空"与"场景层不存在"的二义——
+      两种情况的行为完全一样（不追加）。
+
+    凭据检测对两层是同一套规则：场景层同样每轮进提示词，凭据一样会广播出去。
+    """
+    if isinstance(lines, str):
+        text = lines
+    else:
+        text = "\n".join(str(item) for item in (lines or []))
+    body = text.strip()
+    if not body:
+        return  # 空场景层 = 没有这一层，合法
+    hits = scan_sensitive(body)
+    if hits:
+        raise PersonaRuleError(
+            f"{label}里出现了疑似{hits[0].label}：人设会跟着每次对话进入提示词，"
+            "凭据不能写在这里。请删掉这一段再保存"
+        )
+    if len(body) < PERSONA_SCENE_MIN_CHARS:
+        raise PersonaRuleError(
+            f"{label}太短了（{len(body)} 字，至少 {PERSONA_SCENE_MIN_CHARS} 字）："
+            "这么短的内容说明没写清这个场景下该怎么说"
+        )
+    if len(body) > PERSONA_SCENE_MAX_CHARS:
+        raise PersonaRuleError(
+            f"{label}太长了（{len(body)} 字，上限 {PERSONA_SCENE_MAX_CHARS} 字）"
+        )
+
+
 def validate_persona_update(updates: dict) -> None:
     """校验一次「人格」段的更新；有违规就抛 PersonaRuleError。
 
@@ -120,3 +163,10 @@ def validate_persona_update(updates: dict) -> None:
         if not isinstance(value, list):
             raise PersonaRuleError("人格正文需要按行提交（字符串列表）")
         check_persona_prompt(value)
+    for key, label in (("group_prompt", "群聊场景层"), ("private_prompt", "私聊场景层")):
+        if key not in persona:
+            continue
+        value = persona[key]
+        if not isinstance(value, list):
+            raise PersonaRuleError(f"{label}需要按行提交（字符串列表）")
+        check_persona_scene(value, label=label)

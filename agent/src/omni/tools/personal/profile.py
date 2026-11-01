@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ...memory.capacity import CapacityUsage, TIER_OK, tier_label
 from ...memory.store import MemoryStore
 from ..registry import Risk, Tool, ToolRegistry
 
@@ -11,7 +12,7 @@ def register_profile_tools(
     registry: ToolRegistry,
     owner,  # OwnerMemory 门面：档案=owner 人物的 archive 条目（profile_lines/... 同形）
     *,
-    store: MemoryStore | None = None,  # 仅供 guard 的遗忘墓碑检查（profile 类不依赖，保持注入形状）
+    store: MemoryStore | None = None,  # 仅供 guard 的遗忘墓碑检查（profile 类不依赖，保持注入形状)
     guard: Any = None,
     source: str = "chat",
 ) -> None:
@@ -20,6 +21,29 @@ def register_profile_tools(
             return None
         decision = guard.check(kind, text, store=store)
         return None if decision.allowed else f"未写入档案：{decision.reason}"
+
+    def _capacity_line() -> str:
+        """档案容量的档位提示：到了 80% 就告诉模型该合并了。
+
+        为什么放在 view 里而不是写入被拒时：写入被拒只说明"这次写不进去"，
+        而**八成就该动手合并**——等写不进去再处理，用户已经积累了一堆碎片。
+        抄 surfcore 记忆卡的 80/90/100 三档判定（`memory/capacity.py`）。
+        """
+        try:
+            used = int(owner.profile_usage_chars())
+            total = int(owner.archive_total_limit() or 0)
+        except Exception:  # noqa: BLE001 —— 容量读不出来不该让档案查看整个失败
+            return ""
+        if total <= 0:
+            return ""
+        usage = CapacityUsage("用户档案", used, total)
+        if usage.tier == TIER_OK:
+            return ""
+        return (
+            f"⚠ 档案容量：{tier_label(usage.tier)}"
+            f"（{used}/{total} 字符）。"
+            "写新条目前先合并或删减现有条目，别等写不进去再处理。"
+        )
 
     def profile_manage(args: dict[str, Any]) -> str:
         op = str(args.get("operation", "view"))
@@ -33,6 +57,9 @@ def register_profile_tools(
             evidence = owner.evidence_lines("archive")
             if evidence:
                 out += "\n\n出处（每条的来源与原文依据，供核对）：\n" + "\n".join(evidence)
+            capacity = _capacity_line()
+            if capacity:
+                out += "\n\n" + capacity
             return out
         # evidence = 原文摘录：后台整理（回合后复盘/夜间日记）写入时必填，
         # 由存储层逐字比对来源材料——没有出处的内容不写入长期记忆。

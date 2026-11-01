@@ -110,6 +110,16 @@ class OwnerMemory:
     def usage(self) -> str:
         return self._resident_usage(self._entries("resident"))
 
+    def resident_usage_chars(self) -> int:
+        """常驻容器已用字符数（与注入块的口径一致：含条目分隔符）。
+
+        为什么常驻与档案的用量口径不同：常驻是**多行块**注入提示词的，
+        分隔符也占位置；档案是**逐条**列表注入的，不含分隔符。
+        两个口径各有各的注入形态，硬凑成一个数反而两边都不准。
+        """
+        entries = self._entries("resident")
+        return len(ENTRY_DELIMITER.join(text for _, text in entries))
+
     def entries(self) -> list[tuple[int, str]]:
         """工作台展示用：带编号（稳定行号，删除后不重排）。"""
         return self._entries("resident")
@@ -142,7 +152,41 @@ class OwnerMemory:
             lines.append("")
             lines.append("出处（每条的来源与原文依据，供核对）：")
             lines += evidence
+        capacity = self.capacity_notice("resident")
+        if capacity:
+            lines.append("")
+            lines.append(capacity)
         return "\n".join(lines)
+
+    def capacity_notice(self, container: str = "resident") -> str:
+        """容量档位提示：到了 80% 就提醒合并，返回空串表示一切正常。
+
+        抄 surfcore 记忆卡的 80/90/100 三档判定（`memory/capacity.py`）。
+        放在**查看**而不是**写入被拒**时：写不进去只说明这次不行，
+        而八成就该动手整理——等满了再处理，碎片已经堆了一堆。
+        """
+        from .capacity import CapacityUsage, TIER_OK, tier_label
+
+        try:
+            if container == "archive":
+                used = self.profile_usage_chars()
+                total = self.archive_total_limit()
+                name = "用户档案"
+            else:
+                used = self.resident_usage_chars()
+                total = self.resident_total_limit()
+                name = "常驻记忆"
+        except Exception:  # noqa: BLE001 —— 容量读不出来不该让查看整个失败
+            return ""
+        if total <= 0:
+            return ""
+        usage = CapacityUsage(name, used, total)
+        if usage.tier == TIER_OK:
+            return ""
+        return (
+            f"⚠ 容量：{tier_label(usage.tier)}（{used}/{total} 字符）。"
+            "写新条目前先合并或删减现有条目，别等写不进去再处理。"
+        )
 
     def _write(
         self, op: str, content: str, entry_id: int | None, *,
@@ -208,6 +252,19 @@ class OwnerMemory:
 
     def profile_usage_chars(self) -> int:
         return sum(len(text) for _, text in self.profile_lines())
+
+    def archive_total_limit(self) -> int:
+        """档案容器总字符上限（<=0 表示不限）。
+
+        公开成方法而不是让调用方摸 `_archive_total`：
+        容量档位判定（`memory/capacity.py`）需要「已用 / 上限」两个数，
+        而私有属性从别的模块读是坏习惯。
+        """
+        return int(self._archive_total)
+
+    def resident_total_limit(self) -> int:
+        """常驻容器总字符上限（<=0 表示不限）。"""
+        return int(self._resident_total)
 
     def profile_add(
         self, content: str, *, source: str = "manual", evidence: str = ""

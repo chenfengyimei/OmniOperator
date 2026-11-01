@@ -169,6 +169,37 @@ class DialogueLog:
         ]
 
     @_locked
+    def active_hours_by_day(self, limit_days: int = 30) -> dict[str, set[int]]:
+        """每天出现过**用户消息**的小时集合（升序天 → 小时集合）。
+
+        用途：作息画像（`safety/activity.py`）——按「天」而不是按「条数」
+        统计，理由是一条长谈会把某个小时的条数拉高，而用户关心的是
+        「通常这个点醒不醒着」。
+
+        只统计 `role='user'`：assistant 的消息是我们自己回的，
+        用户凌晨收到我们的回复不代表他凌晨还醒着。
+
+        时间取 `created_at` 的**本地小时**（该字段是 ISO 带时区串，
+        写入时用 `datetime.now().astimezone()`，所以它已经带本地偏移）。
+        """
+        rows = self._conn.execute(
+            "SELECT day, created_at FROM dialogue_log WHERE role = 'user' ORDER BY id DESC LIMIT ?",
+            (max(1, int(limit_days)) * 400,),
+        ).fetchall()
+        result: dict[str, set[int]] = {}
+        for day, created_at in rows:
+            text = str(created_at or "")
+            # ISO 形如 2026-11-01T17:54:03+08:00 —— 第 11~13 位是 HH
+            if len(text) < 13 or text[10] != "T":
+                continue
+            try:
+                hour = int(text[11:13])
+            except ValueError:
+                continue
+            result.setdefault(str(day), set()).add(hour)
+        return result
+
+    @_locked
     def days(self) -> list[str]:
         """全部有记录的天（升序）——整理 worker 枚举候选天用。"""
         rows = self._conn.execute(

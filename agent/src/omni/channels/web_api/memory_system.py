@@ -66,7 +66,41 @@ def create_memory_system_router(runtime: Runtime) -> APIRouter:
                 "steps": runtime.config.journal.steps,
             },
             "owner": owner_block,
+            "activity": _activity_block(),
         }
+
+    def _activity_block() -> dict[str, Any]:
+        """活跃时段画像与「建议安静时段」（D36）。
+
+        **只给建议，不自动改配置**——见 `safety/activity.py` 的说明：
+        作息推断会出错，而自动改安静时段会直接改变打扰频率，
+        猜错方向如果是「拦多了」，用户会以为系统坏了。
+        """
+        try:
+            from ...safety.activity import build_profile, suggest_quiet_hours
+
+            system = runtime.memory_system
+            dialogue = getattr(system, "dialogue", None)
+            if dialogue is None:
+                return {"error": "对话日志未初始化"}
+            hours_by_day = dialogue.active_hours_by_day()
+            profile = build_profile(hours_by_day)
+            suggestion = suggest_quiet_hours(profile)
+            return {
+                "observed_days": profile.observed_days,
+                "hour_counts": {str(h): c for h, c in sorted(profile.hour_counts.items())},
+                "suggestion": {
+                    "ok": suggestion.ok,
+                    "start": suggestion.start,
+                    "end": suggestion.end,
+                    "reason": suggestion.reason,
+                    "confidence": suggestion.confidence,
+                    "text": suggestion.describe(),
+                },
+                "note": "这是按历史对话的小时分布推出来的建议值，不会自动生效；要采纳请自行填到 qq.quiet_start / qq.quiet_end。",
+            }
+        except Exception as exc:  # noqa: BLE001 —— 读面，任何一块坏了不炸整个端点
+            return {"error": str(exc)}
 
     # ---------------------------------------------------------------- 对话全量（M1）
 

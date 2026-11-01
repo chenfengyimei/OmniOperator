@@ -273,13 +273,23 @@ def create_app(runtime: Runtime) -> FastAPI:
         # 但运行中的 Agent 用的还是启动时的快照——用户以为改了，其实没改。
         if fresh.persona.system_prompt != runtime.config.persona.system_prompt:
             pending = True
+        # 场景层同样进提示词（D36），改了也要重启才生效。
+        if (fresh.persona.group_prompt != runtime.config.persona.group_prompt
+                or fresh.persona.private_prompt != runtime.config.persona.private_prompt):
+            pending = True
         return fresh, pending
 
     @app.get("/api/system/config")
     def system_config() -> dict[str, Any]:
         cfg, pending_restart = _config_from_disk()
         return {
-            "persona": {"name": cfg.persona.name, "system_prompt": cfg.persona.system_prompt},
+            "persona": {
+                "name": cfg.persona.name,
+                "system_prompt": cfg.persona.system_prompt,
+                # 场景层（D36）：群聊/私聊各一段，留空 = 没有这一层。
+                "group_prompt": cfg.persona.group_prompt,
+                "private_prompt": cfg.persona.private_prompt,
+            },
             "pending_restart": pending_restart,
             "models": {
                 "chat": cfg.models.chat,

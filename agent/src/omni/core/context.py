@@ -23,16 +23,58 @@ CONTEXT_POLICY = (
     '用现有工具就能完成的请求不要升档；升档不改变场景许可，'
     '受限场景（群聊、他人的私聊）本来就拿不到的资料升档后依然拿不到。'
 )
+MEMORY_POLICY = (
+    '记忆落点协议：先区分"要执行的动作"与"要留存的信息"。'
+    '闹钟、到点提醒和周期任务只写调度模块：一次性用 cron_once，周期性用 cron_add，'
+    '查询用 cron_list；不要再把同一任务写进 resident_memory、person_event 或 remember。'
+    'resident_memory 只放少数跨会话持续有效、后续每轮都值得看到的约定、教训或当前阻断，'
+    '不放任务创建回执、触发时间、服务在线状态、一次查询结果、已完成事项或流水日志。'
+    '有时效的人物背景用 person_event，之后按需 person_lookup；稳定且值得检索的事实用 remember/recall；'
+    '可复用的操作流程沉淀为技能；当前会话的执行清单用 todo。'
+    '临时事件只是背景记录，不会触发提醒；需要到点执行时必须使用 cron 工具。'
+)
 GROUP_POLICY = (
     '当前是群聊场景：不注入所有者的个人档案、常驻笔记与其它会话历史。'
     '不要假设自己知道群外信息；涉及私人资料的请求请让用户私下联系。'
 )
 
+# 场景层的注入标题：让人格场景与核心层在提示词里可分辨。
+SCENE_HEADER_GROUP = '【群聊场景】'
+SCENE_HEADER_PRIVATE = '【私聊场景】'
 
-def system_prompt(persona: str, *, include_personal: bool) -> str:
-    """旧配置的 {now} 改为稳定引用；绝不把当前时间或资料插入前缀。"""
+
+def system_prompt(
+    persona: str,
+    *,
+    include_personal: bool,
+    group_prompt: str = '',
+    private_prompt: str = '',
+    is_group: bool = False,
+) -> str:
+    """旧配置的 {now} 改为稳定引用；绝不把当前时间或资料插入前缀。
+
+    **场景层**（D36，抄 surfcore persona-layers 的判定逻辑）：
+    核心层是底座，场景层只在对应场景下**追加**一段；场景层为空 = 没有这一层，
+    行为与旧版逐字节一致。
+
+    为什么场景层放在**系统提示词**而不是用户正文末尾：它是静态的、可缓存的
+    前缀内容（每次对话都要带上、每次都一样），放进正文末尾会破坏
+    「固定规则在前、每轮快照附在正文后」的缓存友好布局。
+
+    注意 `include_personal` 与 `is_group` 是两件事：
+    `include_personal` 管**注入哪些个人资料**（群聊不注入档案/常驻）；
+    `is_group` 管**用哪个人格场景层**。非所有者的私聊是
+    `include_personal=True` + `is_group=False`——它属于私聊场景。
+    """
     stable = persona.replace('{now}', '见本轮运行上下文的 observed_at')
-    parts = [stable, CONTEXT_POLICY]
+    parts = [stable]
+    # 场景层：只取当前场景对应的那一段，另一段不拼进来。
+    scene = (group_prompt if is_group else private_prompt).strip()
+    if scene:
+        header = SCENE_HEADER_GROUP if is_group else SCENE_HEADER_PRIVATE
+        parts.append(f'{header}\n{scene}')
+    parts.append(CONTEXT_POLICY)
+    parts.append(MEMORY_POLICY)
     if not include_personal:
         parts.append(GROUP_POLICY)
     return '\n\n'.join(parts)
