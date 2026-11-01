@@ -82,6 +82,24 @@ def test_apply_updates_appends_missing_key():
     assert apply_updates(out, {"qq": {"timezone": "Asia/Shanghai"}}) == out
 
 
+def test_system_section_keys_are_editable():
+    """服务守护开关要能通过接口保存：白名单漏一个键，设置页整页保存就会 400。"""
+    out = apply_updates(
+        SAMPLE_YAML,
+        {"system": {"autostart": False, "keep_running_after_exit": False,
+                    "restart_max_attempts": 3, "napcat_qq": "10001"}},
+    )
+    assert "autostart: false" in out
+    assert "keep_running_after_exit: false" in out
+    assert "restart_max_attempts: 3" in out
+    assert 'napcat_qq: "10001"' in out
+    loaded = yaml.safe_load(out)
+    assert loaded["system"]["autostart"] is False
+    # 调参项故意不进白名单：只能改文件，界面不暴露
+    with pytest.raises(ConfigEditError, match="不允许修改"):
+        apply_updates(out, {"system": {"supervise_interval_s": 30}})
+
+
 def test_apply_updates_creates_missing_section():
     """整节都不存在时新建一节（按顶层缩进 2 空格），且幂等。"""
     out = apply_updates(SAMPLE_YAML, {"approval": {"mode": "smart"}})

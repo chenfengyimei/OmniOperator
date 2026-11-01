@@ -188,3 +188,11 @@ browser:
 
 system:
   napcat_dir: "D:/tools/napcat"   # NapCat Shell 目录（含 napcat.bat），工作台由此管理启停/扫码；安装器会写为实际解包目录
+  # 常驻服务守护：工作台启动即拉起心跳调度 / QQ 通道 / NapCat，并一直盯着
+  autostart: true                 # 关掉=回到"只显示状态、要手动启动"
+  keep_running_after_exit: true   # 关掉工作台后服务继续跑（定时任务不中断）；false=连带停止
+  supervise_interval_s: 10        # 守护轮询间隔（2–120 秒）
+  restart_max_attempts: 5         # 连续启动失败上限（0 = 不自动拉起）
+  restart_backoff_cap_s: 300      # 退避封顶秒数（5、10、20… 到这个值为止）
+  health_timeout_s: 45            # 服务自报运行态多久没更新就算"无响应"
+  napcat_qq: ""                   # 启动 NapCat 用的 QQ 号；空则回退 owner_qq / 上次登录的 uin

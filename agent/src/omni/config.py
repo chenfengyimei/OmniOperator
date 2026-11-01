@@ -474,9 +474,21 @@ class BilibiliWrite(BaseModel):
 
 
 class System(BaseModel):
-    """本地系统控制台（服务管理/配置）。"""
+    """本地系统控制台（服务管理/配置）。
+
+    服务默认常驻：工作台起来就把心跳调度、QQ 通道、NapCat 拉起来并一直盯着，
+    不需要用户点"启动"。这里的开关是"要不要这么干"和"失败后怎么重试"，
+    不是"这一次起哪个"——单次启停属于运维动作，不进配置。
+    """
 
     napcat_dir: str = "D:/tools/napcat"  # NapCat Shell 目录（含 napcat.bat）
+    autostart: bool = True  # 工作台启动即拉起常驻服务并持续守护
+    keep_running_after_exit: bool = True  # 关掉工作台后服务继续跑（定时任务不中断）
+    supervise_interval_s: float = Field(default=10, ge=2, le=120)  # 守护轮询间隔
+    restart_max_attempts: int = Field(default=5, ge=0, le=50)  # 连续启动失败上限；0=不自动拉起
+    restart_backoff_cap_s: int = Field(default=300, ge=10, le=3600)  # 退避封顶
+    health_timeout_s: int = Field(default=45, ge=15, le=600)  # 运行态快照多久算过期
+    napcat_qq: str = ""  # 启动 NapCat 用的 QQ 号；空则回退 owner_qq / 上次登录的 uin
 
 
 class Approval(BaseModel):

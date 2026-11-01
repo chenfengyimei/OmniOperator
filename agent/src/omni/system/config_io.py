@@ -98,6 +98,12 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("people", "archive_max_chars"): "int",
     ("people", "resident_max_chars"): "int",
     ("people", "event_max_chars"): "int",
+    # 服务守护：这几个键由工作台「服务与运行」页保存，守护线程下一轮就热读到
+    ("system", "napcat_dir"): "str",
+    ("system", "autostart"): "bool",
+    ("system", "keep_running_after_exit"): "bool",
+    ("system", "restart_max_attempts"): "int",
+    ("system", "napcat_qq"): "str_or_empty",
 }
 
 
