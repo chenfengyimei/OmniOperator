@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2ff38ecfdde5907448f95d89703d26b7c7d8f9c1fdf774fe5b1a894efaf7f2ee",
+  "source_sha256": "269ac6aac68e630d7bc28d8e91759c8be3405fde3e246e475d8dc21fff9abd59",
   "modules": [
     {
       "id": "agent-directories",
@@ -111,7 +111,7 @@
       "files": [
         "agent/src/omni/bootstrap.py"
       ],
-      "lines": 795,
+      "lines": 811,
       "dependencies": [
         "agent-directories",
         "android",
@@ -219,7 +219,7 @@
         "agent/src/omni/core/session.py",
         "agent/src/omni/core/vision.py"
       ],
-      "lines": 3551,
+      "lines": 3527,
       "dependencies": [
         "config",
         "models",
@@ -276,9 +276,10 @@
         "agent/src/omni/safety/__init__.py",
         "agent/src/omni/safety/broker.py",
         "agent/src/omni/safety/gates.py",
+        "agent/src/omni/safety/proactive.py",
         "agent/src/omni/safety/smart.py"
       ],
-      "lines": 346,
+      "lines": 413,
       "dependencies": []
     },
     {
@@ -314,6 +315,7 @@
         "agent/src/omni/memory/owner.py",
         "agent/src/omni/memory/owner_migrate.py",
         "agent/src/omni/memory/people.py",
+        "agent/src/omni/memory/privacy.py",
         "agent/src/omni/memory/publications.py",
         "agent/src/omni/memory/qq.py",
         "agent/src/omni/memory/resident.py",
@@ -335,7 +337,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 9644,
+      "lines": 9730,
       "dependencies": [
         "command-contracts",
         "config",
@@ -469,7 +471,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 5952,
+      "lines": 5956,
       "dependencies": []
     },
     {
@@ -504,7 +506,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2690,
+      "lines": 2697,
       "dependencies": [
         "assembly",
         "config",
@@ -1513,7 +1515,7 @@
         "agent/src/omni/tools/qq/client.py",
         "agent/src/omni/tools/qq/tools.py"
       ],
-      "lines": 373,
+      "lines": 403,
       "dependencies": [
         "safety",
         "toolkit"
@@ -1693,6 +1695,7 @@
         "agent/src/omni/system/filelock.py",
         "agent/src/omni/system/observability.py",
         "agent/src/omni/system/path_guard.py",
+        "agent/src/omni/system/persona_rules.py",
         "agent/src/omni/system/process_identity.py",
         "agent/src/omni/system/provenance.py",
         "agent/src/omni/system/release_gate.py",
@@ -1701,9 +1704,10 @@
         "agent/src/omni/system/services.py",
         "agent/src/omni/system/soak.py",
         "agent/src/omni/system/stderr_log.py",
-        "agent/src/omni/system/supervisor.py"
+        "agent/src/omni/system/supervisor.py",
+        "agent/src/omni/system/text_guard.py"
       ],
-      "lines": 3348,
+      "lines": 3618,
       "dependencies": [
         "agent-directories",
         "config"
@@ -1751,7 +1755,7 @@
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 795,
+      "lines": 811,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -1787,6 +1791,7 @@
         "omni.plugins.tools",
         "omni.safety.broker",
         "omni.safety.gates",
+        "omni.safety.proactive",
         "omni.system.agent_spaces",
         "omni.system.agent_spaces.inventory",
         "omni.system.backup",
@@ -1834,7 +1839,7 @@
       "symbols": [
         {
           "name": "_no_port_probe",
-          "line": 122,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "_port",
@@ -1847,7 +1852,7 @@
         },
         {
           "name": "_no_kill",
-          "line": 127,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1858,7 +1863,7 @@
         },
         {
           "name": "_no_process_probe",
-          "line": 132,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "_pid"
@@ -1869,7 +1874,7 @@
         },
         {
           "name": "_no_tcp_probe",
-          "line": 136,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "_port"
@@ -1880,7 +1885,7 @@
         },
         {
           "name": "_no_spawn",
-          "line": 140,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "*_args",
@@ -1890,7 +1895,7 @@
         },
         {
           "name": "_resolve_root",
-          "line": 144,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "value"
@@ -1901,12 +1906,12 @@
         },
         {
           "name": "Runtime",
-          "line": 151,
+          "line": 152,
           "kind": "class"
         },
         {
           "name": "Runtime.qq_policy",
-          "line": 210,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self"
@@ -1915,7 +1920,7 @@
         },
         {
           "name": "Runtime.close_mcp",
-          "line": 214,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -1927,7 +1932,7 @@
         },
         {
           "name": "Runtime.doctor",
-          "line": 221,
+          "line": 222,
           "kind": "function",
           "parameters": [
             "self"
@@ -1936,7 +1941,7 @@
         },
         {
           "name": "Runtime.backup",
-          "line": 234,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self"
@@ -1945,7 +1950,7 @@
         },
         {
           "name": "Runtime.close",
-          "line": 239,
+          "line": 240,
           "kind": "function",
           "parameters": [
             "self",
@@ -1957,7 +1962,7 @@
         },
         {
           "name": "Runtime.close_reviewer",
-          "line": 288,
+          "line": 289,
           "kind": "function",
           "parameters": [
             "self",
@@ -1969,7 +1974,7 @@
         },
         {
           "name": "Runtime.close_state",
-          "line": 294,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "self"
@@ -1978,7 +1983,7 @@
         },
         {
           "name": "Runtime.close_retrieval",
-          "line": 298,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "self",
@@ -1990,7 +1995,7 @@
         },
         {
           "name": "Runtime.close_browser",
-          "line": 307,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "self",
@@ -2002,7 +2007,7 @@
         },
         {
           "name": "Runtime.new_session",
-          "line": 311,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self"
@@ -2011,7 +2016,7 @@
         },
         {
           "name": "Runtime.use_session",
-          "line": 316,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "self",
@@ -2023,7 +2028,7 @@
         },
         {
           "name": "Runtime.spawn_review",
-          "line": 323,
+          "line": 324,
           "kind": "function",
           "parameters": [
             "self",
@@ -2035,7 +2040,7 @@
         },
         {
           "name": "build_runtime",
-          "line": 331,
+          "line": 332,
           "kind": "function",
           "parameters": [
             "approver",
@@ -2062,7 +2067,7 @@
         },
         {
           "name": "build_runtime._resolve_plugin_dir",
-          "line": 543,
+          "line": 544,
           "kind": "function",
           "parameters": [
             "rel"
@@ -2073,14 +2078,14 @@
         },
         {
           "name": "build_runtime._allowed_qq_users",
-          "line": 599,
+          "line": 600,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "build_runtime._review_registry",
-          "line": 688,
+          "line": 704,
           "kind": "function",
           "parameters": [
             "review_store"
@@ -2091,7 +2096,7 @@
         },
         {
           "name": "build_runtime._journal_registry",
-          "line": 719,
+          "line": 735,
           "kind": "function",
           "parameters": [
             "journal_store"
@@ -3079,7 +3084,7 @@
       "path": "agent/src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 548,
+      "lines": 555,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -3226,14 +3231,14 @@
         },
         {
           "name": "create_app.system_config",
-          "line": 272,
+          "line": 279,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.system_config_save",
-          "line": 366,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3244,28 +3249,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 390,
+          "line": 397,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 401,
+          "line": 408,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.bili_cookies_status",
-          "line": 409,
+          "line": 416,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.save_bili_cookies",
-          "line": 421,
+          "line": 428,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3276,14 +3281,14 @@
         },
         {
           "name": "create_app.model_keys",
-          "line": 441,
+          "line": 448,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.model_key_set",
-          "line": 446,
+          "line": 453,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3294,7 +3299,7 @@
         },
         {
           "name": "create_app.model_test",
-          "line": 463,
+          "line": 470,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3305,7 +3310,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 501,
+          "line": 508,
           "kind": "function",
           "parameters": [
             "host"
@@ -3316,7 +3321,7 @@
         },
         {
           "name": "main",
-          "line": 512,
+          "line": 519,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -6897,7 +6902,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 357,
+      "lines": 361,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -9332,31 +9337,11 @@
       "path": "agent/src/omni/core/qq_policy.py",
       "module": "engine",
       "python_module": "omni.core.qq_policy",
-      "lines": 37,
+      "lines": 13,
       "imports": [
-        "omni.safety.gates"
+        "omni.safety.proactive"
       ],
-      "symbols": [
-        {
-          "name": "ProactiveDecision",
-          "line": 12,
-          "kind": "class"
-        },
-        {
-          "name": "proactive_decision",
-          "line": 19,
-          "kind": "function",
-          "parameters": [
-            "policy",
-            "target",
-            "now"
-          ],
-          "annotations": {
-            "target": "int",
-            "now": "dt.datetime | None"
-          }
-        }
-      ],
+      "symbols": [],
       "summary": "主动提醒策略：显式所有者、安静时段和独立每日额度；不做网络发送。"
     },
     {
@@ -12480,20 +12465,21 @@
       "path": "agent/src/omni/memory/guard.py",
       "module": "storage",
       "python_module": "omni.memory.guard",
-      "lines": 130,
+      "lines": 138,
       "imports": [
+        "omni.memory.privacy",
         "omni.memory.state",
         "omni.memory.store"
       ],
       "symbols": [
         {
           "name": "WriteDecision",
-          "line": 33,
+          "line": 36,
           "kind": "class"
         },
         {
           "name": "WriteDecision.brief",
-          "line": 39,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "self"
@@ -12502,12 +12488,12 @@
         },
         {
           "name": "MemoryGuard",
-          "line": 43,
+          "line": 46,
           "kind": "class"
         },
         {
           "name": "MemoryGuard.__init__",
-          "line": 46,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self",
@@ -12529,7 +12515,7 @@
         },
         {
           "name": "MemoryGuard.check",
-          "line": 65,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "self",
@@ -12545,7 +12531,7 @@
         },
         {
           "name": "MemoryGuard.usage_today",
-          "line": 118,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self"
@@ -14153,6 +14139,51 @@
         }
       ],
       "summary": "核心人物记忆（M6）：重要人物的账号、常驻档案、常驻记忆与临时事件。"
+    },
+    {
+      "path": "agent/src/omni/memory/privacy.py",
+      "module": "storage",
+      "python_module": "omni.memory.privacy",
+      "lines": 78,
+      "imports": [
+        "omni.system.text_guard"
+      ],
+      "symbols": [
+        {
+          "name": "scan",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "is_safe",
+          "line": 61,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "rejection_reason",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        }
+      ],
+      "summary": "记忆写入的隐私闸门（判定委托给共享原语 `system/text_guard.py`）。"
     },
     {
       "path": "agent/src/omni/memory/publications.py",
@@ -20321,6 +20352,37 @@
       "summary": "审批闸门：工具风险分级 + 按上下文选择审批策略（Strategy 模式）。"
     },
     {
+      "path": "agent/src/omni/safety/proactive.py",
+      "module": "safety",
+      "python_module": "omni.safety.proactive",
+      "lines": 67,
+      "imports": [
+        "omni.safety.gates"
+      ],
+      "symbols": [
+        {
+          "name": "ProactiveDecision",
+          "line": 36,
+          "kind": "class"
+        },
+        {
+          "name": "proactive_decision",
+          "line": 43,
+          "kind": "function",
+          "parameters": [
+            "policy",
+            "target",
+            "now"
+          ],
+          "annotations": {
+            "target": "int",
+            "now": "dt.datetime | None"
+          }
+        }
+      ],
+      "summary": "主动发言闸门：白名单 + 仅所有者 + 安静时段 + 每日额度上限。"
+    },
+    {
       "path": "agent/src/omni/safety/smart.py",
       "module": "safety",
       "python_module": "omni.safety.smart",
@@ -21231,26 +21293,27 @@
       "path": "agent/src/omni/system/config_io.py",
       "module": "platform",
       "python_module": "omni.system.config_io",
-      "lines": 479,
+      "lines": 487,
       "imports": [
         "omni.config",
         "omni.system.atomic",
-        "omni.system.filelock"
+        "omni.system.filelock",
+        "omni.system.persona_rules"
       ],
       "symbols": [
         {
           "name": "ConfigEditError",
-          "line": 110,
+          "line": 111,
           "kind": "class"
         },
         {
           "name": "ConfigConflict",
-          "line": 114,
+          "line": 115,
           "kind": "class"
         },
         {
           "name": "render_value",
-          "line": 118,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "kind",
@@ -21263,7 +21326,7 @@
         },
         {
           "name": "_scalar_updates",
-          "line": 160,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "text",
@@ -21276,7 +21339,7 @@
         },
         {
           "name": "_find_multiline_block",
-          "line": 185,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "lines",
@@ -21291,7 +21354,7 @@
         },
         {
           "name": "_replace_multiline_block",
-          "line": 215,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "text",
@@ -21308,7 +21371,7 @@
         },
         {
           "name": "_section_bounds",
-          "line": 233,
+          "line": 234,
           "kind": "function",
           "parameters": [
             "lines",
@@ -21321,7 +21384,7 @@
         },
         {
           "name": "_has_key",
-          "line": 246,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "lines",
@@ -21338,7 +21401,7 @@
         },
         {
           "name": "_append_key",
-          "line": 251,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "lines",
@@ -21355,7 +21418,7 @@
         },
         {
           "name": "_append_multiline_block",
-          "line": 275,
+          "line": 276,
           "kind": "function",
           "parameters": [
             "text",
@@ -21372,7 +21435,7 @@
         },
         {
           "name": "apply_updates",
-          "line": 296,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "text",
@@ -21385,7 +21448,7 @@
         },
         {
           "name": "read_config_text",
-          "line": 345,
+          "line": 353,
           "kind": "function",
           "parameters": [
             "path"
@@ -21396,7 +21459,7 @@
         },
         {
           "name": "safe_write",
-          "line": 356,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "path",
@@ -21409,7 +21472,7 @@
         },
         {
           "name": "read_config_snapshot",
-          "line": 361,
+          "line": 369,
           "kind": "function",
           "parameters": [
             "path"
@@ -21420,7 +21483,7 @@
         },
         {
           "name": "commit_config_updates",
-          "line": 368,
+          "line": 376,
           "kind": "function",
           "parameters": [
             "path",
@@ -21435,7 +21498,7 @@
         },
         {
           "name": "mask_secret",
-          "line": 396,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "value"
@@ -21446,7 +21509,7 @@
         },
         {
           "name": "_env_name_ok",
-          "line": 406,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "name"
@@ -21457,7 +21520,7 @@
         },
         {
           "name": "read_env_secrets",
-          "line": 410,
+          "line": 418,
           "kind": "function",
           "parameters": [
             "path"
@@ -21468,7 +21531,7 @@
         },
         {
           "name": "set_env_secret",
-          "line": 433,
+          "line": 441,
           "kind": "function",
           "parameters": [
             "path",
@@ -21859,6 +21922,56 @@
         }
       ],
       "summary": "跨域共享的路径安全原语：zip/目录条目名规范化与内容摘要。"
+    },
+    {
+      "path": "agent/src/omni/system/persona_rules.py",
+      "module": "platform",
+      "python_module": "omni.system.persona_rules",
+      "lines": 122,
+      "imports": [
+        "omni.system.text_guard"
+      ],
+      "symbols": [
+        {
+          "name": "PersonaRuleError",
+          "line": 53,
+          "kind": "class"
+        },
+        {
+          "name": "check_persona_name",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "check_persona_prompt",
+          "line": 68,
+          "kind": "function",
+          "parameters": [
+            "lines"
+          ],
+          "annotations": {
+            "lines": "list[str] | str"
+          }
+        },
+        {
+          "name": "validate_persona_update",
+          "line": 107,
+          "kind": "function",
+          "parameters": [
+            "updates"
+          ],
+          "annotations": {
+            "updates": "dict"
+          }
+        }
+      ],
+      "summary": "人格保存契约的判定规则（判定逻辑，不抄 surfcore 的形态）。"
     },
     {
       "path": "agent/src/omni/system/process_identity.py",
@@ -23244,6 +23357,63 @@
         }
       ],
       "summary": "服务守护：让常驻服务在 agent 运行期间保持在线。"
+    },
+    {
+      "path": "agent/src/omni/system/text_guard.py",
+      "module": "platform",
+      "python_module": "omni.system.text_guard",
+      "lines": 140,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "TextGuardHit",
+          "line": 43,
+          "kind": "class"
+        },
+        {
+          "name": "TextGuardHit.brief",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "scan_sensitive",
+          "line": 100,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "has_sensitive",
+          "line": 133,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "sensitive_labels",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        }
+      ],
+      "summary": "确定性文本守卫：凭据形态与高危标识的扫描（**单一真源**）。"
     },
     {
       "path": "agent/src/omni/tools/__init__.py",
@@ -28957,9 +29127,10 @@
       "path": "agent/src/omni/tools/qq/tools.py",
       "module": "qq-tools",
       "python_module": "omni.tools.qq.tools",
-      "lines": 93,
+      "lines": 123,
       "imports": [
         "omni.safety.gates",
+        "omni.safety.proactive",
         "omni.tools.qq.client",
         "omni.tools.registry",
         "omni.tools.result"
@@ -28967,7 +29138,7 @@
       "symbols": [
         {
           "name": "_as_provider",
-          "line": 24,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "allowed_users"
@@ -28978,22 +29149,24 @@
         },
         {
           "name": "register_qq_tools",
-          "line": 31,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "registry",
             "client",
-            "allowed_users"
+            "allowed_users",
+            "active_gate"
           ],
           "annotations": {
             "registry": "ToolRegistry",
             "client": "OneBotClient",
-            "allowed_users": "AllowedUsers"
+            "allowed_users": "AllowedUsers",
+            "active_gate": "ActiveSendGate | None"
           }
         },
         {
           "name": "register_qq_tools.send_message",
-          "line": 36,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "args"
@@ -34609,7 +34782,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 409,
+      "line": 416,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -34620,7 +34793,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 421,
+      "line": 428,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -34635,7 +34808,7 @@
       "method": "GET",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 272,
+      "line": 279,
       "handler": "create_app.system_config",
       "module": "web-ui",
       "parameters": [],
@@ -34646,7 +34819,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 366,
+      "line": 373,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -34827,7 +35000,7 @@
       "method": "POST",
       "path": "/api/system/model-key",
       "source": "agent/src/omni/channels/web.py",
-      "line": 446,
+      "line": 453,
       "handler": "create_app.model_key_set",
       "module": "web-ui",
       "parameters": [
@@ -34842,7 +35015,7 @@
       "method": "GET",
       "path": "/api/system/model-keys",
       "source": "agent/src/omni/channels/web.py",
-      "line": 441,
+      "line": 448,
       "handler": "create_app.model_keys",
       "module": "web-ui",
       "parameters": [],
@@ -34853,7 +35026,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "agent/src/omni/channels/web.py",
-      "line": 463,
+      "line": 470,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -34890,7 +35063,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "agent/src/omni/channels/web.py",
-      "line": 390,
+      "line": 397,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -34901,7 +35074,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "agent/src/omni/channels/web.py",
-      "line": 401,
+      "line": 408,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],
@@ -35774,7 +35947,7 @@
     {
       "name": "qq_send_message",
       "source": "agent/src/omni/tools/qq/tools.py",
-      "line": 75,
+      "line": 105,
       "module": "qq-tools",
       "risk": "safe",
       "requires_human": false,

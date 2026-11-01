@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2ff38ecfdde5907448f95d89703d26b7c7d8f9c1fdf774fe5b1a894efaf7f2ee`。包含 58 个职责模块、314 个源码/界面文件。
+源码指纹：`269ac6aac68e630d7bc28d8e91759c8be3405fde3e246e475d8dc21fff9abd59`。包含 58 个职责模块、318 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -60,7 +60,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 795 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 811 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../../docs/REPOSITORY_STRUCTURE.md)
 
@@ -109,7 +109,7 @@
 | [agent/src/omni/core/evaluation.py](../../agent/src/omni/core/evaluation.py) | 24 | 固定样本检索评测；不把 mock 模型的排序表现当成真实语义收益。 |
 | [agent/src/omni/core/journal.py](../../agent/src/omni/core/journal.py) | 413 | 记忆系统整理编排：日/周/月笔记的模型整理 worker（与 TurnEndReviewer 同构）。 |
 | [agent/src/omni/core/modes.py](../../agent/src/omni/core/modes.py) | 211 | 按回合能力模式（chat / retrieval / agent）的声明与纯函数。 |
-| [agent/src/omni/core/qq_policy.py](../../agent/src/omni/core/qq_policy.py) | 37 | 主动提醒策略：显式所有者、安静时段和独立每日额度；不做网络发送。 |
+| [agent/src/omni/core/qq_policy.py](../../agent/src/omni/core/qq_policy.py) | 13 | 主动提醒策略：显式所有者、安静时段和独立每日额度；不做网络发送。 |
 | [agent/src/omni/core/retrieval.py](../../agent/src/omni/core/retrieval.py) | 87 | FTS + 向量 RRF 融合；后台有界增量索引，网络请求不占数据库事务。 |
 | [agent/src/omni/core/review.py](../../agent/src/omni/core/review.py) | 255 | 回合后异步 review：自进化最小闭环（Hermes background_review 的 P1 简化版， |
 | [agent/src/omni/core/router.py](../../agent/src/omni/core/router.py) | 164 | 回合能力模式路由：先规则、后模型、最后回退。 |
@@ -151,6 +151,7 @@
 | [agent/src/omni/safety/__init__.py](../../agent/src/omni/safety/__init__.py) | 1 | 安全层：审批闸门（工具风险分级 + 按上下文选择审批策略）。 |
 | [agent/src/omni/safety/broker.py](../../agent/src/omni/safety/broker.py) | 116 | 审批代理：跨线程确认流（Web 工作台用）。 |
 | [agent/src/omni/safety/gates.py](../../agent/src/omni/safety/gates.py) | 146 | 审批闸门：工具风险分级 + 按上下文选择审批策略（Strategy 模式）。 |
+| [agent/src/omni/safety/proactive.py](../../agent/src/omni/safety/proactive.py) | 67 | 主动发言闸门：白名单 + 仅所有者 + 安静时段 + 每日额度上限。 |
 | [agent/src/omni/safety/smart.py](../../agent/src/omni/safety/smart.py) | 83 | smart 审批档（Hermes approval_smart 同款）：辅助 LLM 先判风险，拿不准再问人。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
@@ -173,7 +174,7 @@
 | [agent/src/omni/memory/cron.py](../../agent/src/omni/memory/cron.py) | 61 | 定时任务模型与存储的公开入口（保留旧导入路径）。 |
 | [agent/src/omni/memory/cron_store.py](../../agent/src/omni/memory/cron_store.py) | 106 | 定时任务域的两个门面（`JobStore` / `ExecutionLog`）。 |
 | [agent/src/omni/memory/dialogue.py](../../agent/src/omni/memory/dialogue.py) | 388 | 对话全量记忆（M1）：完整对话文本一字不差的追加型存档。 |
-| [agent/src/omni/memory/guard.py](../../agent/src/omni/memory/guard.py) | 130 | 记忆写入的确定性闸门（D12 / A15）。 |
+| [agent/src/omni/memory/guard.py](../../agent/src/omni/memory/guard.py) | 138 | 记忆写入的确定性闸门（D12 / A15）。 |
 | [agent/src/omni/memory/jobs.py](../../agent/src/omni/memory/jobs.py) | 138 | 定时任务模型与调度时间（纯数据 + 纯函数，不碰存储）。 |
 | [agent/src/omni/memory/journal.py](../../agent/src/omni/memory/journal.py) | 420 | 笔记记忆（M3/M4/M5）：每日/每周/每月笔记的存储与到期判定。 |
 | [agent/src/omni/memory/mcp_schemas.py](../../agent/src/omni/memory/mcp_schemas.py) | 77 | MCP 工具目录指纹仓储（D19，`state.db`）。 |
@@ -181,6 +182,7 @@
 | [agent/src/omni/memory/owner.py](../../agent/src/omni/memory/owner.py) | 259 | 所有者记忆门面：档案行与常驻笔记统一进人物系统后的注入与维护面。 |
 | [agent/src/omni/memory/owner_migrate.py](../../agent/src/omni/memory/owner_migrate.py) | 151 | 所有者记忆一次性迁移：profile 表与 MEMORY.md → owner 人物条目。 |
 | [agent/src/omni/memory/people.py](../../agent/src/omni/memory/people.py) | 688 | 核心人物记忆（M6）：重要人物的账号、常驻档案、常驻记忆与临时事件。 |
+| [agent/src/omni/memory/privacy.py](../../agent/src/omni/memory/privacy.py) | 78 | 记忆写入的隐私闸门（判定委托给共享原语 `system/text_guard.py`）。 |
 | [agent/src/omni/memory/publications.py](../../agent/src/omni/memory/publications.py) | 88 | 人工发布草稿与发送身份账本；进程中断/结果未知不自动二次发布。 |
 | [agent/src/omni/memory/qq.py](../../agent/src/omni/memory/qq.py) | 74 | QQ 入站去重、撤回墓碑与回复身份；只保存 ID/状态，不保存原文。 |
 | [agent/src/omni/memory/resident.py](../../agent/src/omni/memory/resident.py) | 381 | 常驻小记忆（Hermes MEMORY.md 式，NOTES §1.3a）：跨会话冻结快照注入系统提示词。 |
@@ -277,7 +279,7 @@
 | [agent/src/omni/channels/web_static/ui/app/hub-services.js](../../agent/src/omni/channels/web_static/ui/app/hub-services.js) | 148 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-skills.js](../../agent/src/omni/channels/web_static/ui/app/hub-skills.js) | 443 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-usage.js](../../agent/src/omni/channels/web_static/ui/app/hub-usage.js) | 34 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 357 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 361 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/main.js](../../agent/src/omni/channels/web_static/ui/app/main.js) | 68 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/memory.js](../../agent/src/omni/channels/web_static/ui/app/memory.js) | 36 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/modals.js](../../agent/src/omni/channels/web_static/ui/app/modals.js) | 23 | 平台脚本或界面资源 |
@@ -314,7 +316,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 548 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
+| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 555 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
 | [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 719 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/index.html](../../agent/src/omni/channels/web_static/memory/index.html) | 6 | 平台脚本或界面资源 |
@@ -924,7 +926,7 @@
 |---|---:|---|
 | [agent/src/omni/tools/qq/__init__.py](../../agent/src/omni/tools/qq/__init__.py) | 4 | QQ 能力域（P2）：OneBot v11 客户端（NapCat）与主动消息工具。 |
 | [agent/src/omni/tools/qq/client.py](../../agent/src/omni/tools/qq/client.py) | 276 | OneBot v11 正向 WebSocket 客户端（对接 NapCat）。 |
-| [agent/src/omni/tools/qq/tools.py](../../agent/src/omni/tools/qq/tools.py) | 93 | QQ 工具集（toolset=qq）：主动发消息。 |
+| [agent/src/omni/tools/qq/tools.py](../../agent/src/omni/tools/qq/tools.py) | 123 | QQ 工具集（toolset=qq）：主动发消息。 |
 
 文档：[docs/QQ_SCENARIOS.md](../../docs/QQ_SCENARIOS.md)
 
@@ -1037,11 +1039,12 @@
 | [agent/src/omni/system/__init__.py](../../agent/src/omni/system/__init__.py) | 5 | 本地系统域：服务管理（NapCat / 常驻通道启停与状态）+ 配置读写。 |
 | [agent/src/omni/system/atomic.py](../../agent/src/omni/system/atomic.py) | 39 | 原子写文件（A09 的同源问题）。 |
 | [agent/src/omni/system/backup.py](../../agent/src/omni/system/backup.py) | 515 | 离线备份与恢复（D25 的提前子项，D05 迁移前必须先能用）。 |
-| [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 479 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
+| [agent/src/omni/system/config_io.py](../../agent/src/omni/system/config_io.py) | 487 | config.yaml 安全读写：保留注释的定向修改（只动白名单键）。 |
 | [agent/src/omni/system/doctor.py](../../agent/src/omni/system/doctor.py) | 93 | 只读诊断：配置、安装元数据、DB 完整性和进程身份；不修复、不调用模型。 |
 | [agent/src/omni/system/filelock.py](../../agent/src/omni/system/filelock.py) | 157 | 跨进程文件锁（D08）。 |
 | [agent/src/omni/system/observability.py](../../agent/src/omni/system/observability.py) | 102 | 有界诊断日志。事件仅保留关联字段，排除对话、工具参数与结果正文。 |
 | [agent/src/omni/system/path_guard.py](../../agent/src/omni/system/path_guard.py) | 45 | 跨域共享的路径安全原语：zip/目录条目名规范化与内容摘要。 |
+| [agent/src/omni/system/persona_rules.py](../../agent/src/omni/system/persona_rules.py) | 122 | 人格保存契约的判定规则（判定逻辑，不抄 surfcore 的形态）。 |
 | [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 231 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
 | [agent/src/omni/system/provenance.py](../../agent/src/omni/system/provenance.py) | 30 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
@@ -1051,6 +1054,7 @@
 | [agent/src/omni/system/soak.py](../../agent/src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [agent/src/omni/system/stderr_log.py](../../agent/src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
 | [agent/src/omni/system/supervisor.py](../../agent/src/omni/system/supervisor.py) | 374 | 服务守护：让常驻服务在 agent 运行期间保持在线。 |
+| [agent/src/omni/system/text_guard.py](../../agent/src/omni/system/text_guard.py) | 140 | 确定性文本守卫：凭据形态与高危标识的扫描（**单一真源**）。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/ACCEPTANCE.md](../../docs/ACCEPTANCE.md)
 
