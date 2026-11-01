@@ -40,7 +40,9 @@
   `test_cron_delivery_is_deferred_not_dropped_while_cooldown_active`、
   `test_inbound_reply_is_not_suppressed_by_cooldown`），恢复后 22 项全绿。
   相关既有专项（surfcore 闸门 / cron / outbox / qq_scope / 分层守卫）**169 项全绿**。
-  **全量数字见下方「D37 全量测试数字补录」条目**（必须取自干净提交树自校验）。
+  **全量：干净提交树自校验 1887 passed / 0 failed（198.54 秒）**——取自
+  `git worktree add --detach .workbuddy/tmp/d37 c014309` + `PYTHONPATH=<worktree>/agent/src`
+  （不是主工作区混跑；`.venv` 是 editable 安装，不加 PYTHONPATH 会加载主工作区代码）。
 - **剩余限制**：
   ① **`qq_messages` 只记入站不记出站** → 「我刚发过消息」**不刷新**冷却窗口；
   ② 冷却**按 scene 锚定**（私聊 `dm:{target}`），**群场景不参与主动私聊冷却**；
@@ -51,7 +53,13 @@
   不得记完成；
   ⑥ 概率唤醒与群分层属 P5-e 后续，本条未做；
   ⑦ `state_schema.py` 的 v15（P5-c 分口径账本表）在并行会话的基线上被删掉了，本条**刻意不碰**
-  该文件——冷却位复用既有列正是为了避开这次结构冲突。
+  该文件——冷却位复用既有列正是为了避开这次结构冲突；
+  ⑧ **`docs/index/*` 本轮刻意未重生成**：核实发现 HEAD 里的索引是**从脏工作区生成的**
+  （已含并行会话**尚未提交**的 `system/updates/` 模块条目），而从干净树重生成会把这些条目
+  **删掉**、从主工作区重生成又会把对方的在途代码混进本提交——两头都不对。
+  该索引**没有任何测试门禁**（`test_project_catalog.py` 校验的是 `build_index()` 与
+  `/api/workbench/project`，不校验 `docs/index/*` 文件），所以本轮选择「不碰 + 写明」，
+  等工作树干净时由最后一次统一重生成补上。
 - **会话记录**：`docs/jilu/2026-11-01-通道层冷却位-P5e-会话记录.md`
 
 2026-11-01 常驻记忆与定时任务落点分离（本轮 1 个提交 `fea5b4a`）：
