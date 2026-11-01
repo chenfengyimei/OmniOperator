@@ -37,7 +37,7 @@
 **两个新接口已复验：重启后均返回 200**（未重启的旧进程里是 404，而静态页面已经能看到「数字具身」分组）。
 详见 [数字具身](EMBODIMENT.md) 与 [B站评论与私信草稿](BILIBILI_WRITING.md)。
 
-**最新（2026-11-01）：常驻服务改成默认启动并持续运行（D31，8 个提交）。心跳/QQ 通道/NapCat 不再需要手动点启动——`system/supervisor.py` 按配置推导期望状态，工作台 lifespan 一启动就接管，异常退出按指数退避重拉（默认 5 次后放弃并留 `restart_given_up`），单实例靠 `run/supervisor.lock` 互斥、抢不到的进 standby。旧裸 PID 记录改为 pid+创建时间+exe 三重核验，死进程自动清理、核验不过的只标记不接管。子进程自报 `data/run/<name>.state.json`（心跳 ticks、QQ 收发计数），"进程在但没响应"能被识别。界面从操作台变仪表盘：左栏一行「N/M 在线」、顶部告警条、设置中心新增「服务与运行」分区，**手动启停按钮全部删除，只留扫码登录**。零 schema 迁移（期望状态由配置推导、记账落 `run/supervisor.json`）。**以上均在隔离实例与假 services 上验证，真实工作台未重启、真实 NapCat 拉起与扫码未验——待真实验收，不算完成。** 详见 DEVELOPMENT_STATUS 本轮记录与下文 §2 服务管理。**
+**最新（2026-11-01）：常驻服务改成默认启动并持续运行（D31，8 个提交）。心跳/QQ 通道/NapCat 不再需要手动点启动——`system/supervisor.py` 按配置推导期望状态，工作台 lifespan 一启动就接管，异常退出按指数退避重拉（默认 5 次后放弃并留 `restart_given_up`），单实例靠 `run/supervisor.lock` 互斥、抢不到的进 standby。旧裸 PID 记录改为 pid+创建时间+exe 三重核验，死进程自动清理、核验不过的只标记不接管。子进程自报 `data/run/<name>.state.json`（心跳 ticks、QQ 收发计数），"进程在但没响应"能被识别。界面从操作台变仪表盘：左栏一行「N/M 在线」、顶部告警条、设置中心新增「服务与运行」分区，**手动启停按钮全部删除，只留扫码登录**。零 schema 迁移（期望状态由配置推导、记账落 `run/supervisor.json`）。**已在真机验收**：真实工作台重启后 reconcile 清掉 `data/run/` 旧记录并重拉三个服务（3/3 verified）；硬杀工作台后 62 秒三个服务仍存活、心跳仍在打点（DETACHED 成立）；真机连杀心跳 5 次复现指数退避与 `restart_given_up`。期间撞出并修掉两个缺陷（跳板认领、启动记录被迟写改回跳板）。**真实 NapCat 扫码登录与真实掉线重连仍待用户扫码，不算完成。** 详见 DEVELOPMENT_STATUS 顶部「常驻服务真机验收清账」条目与下文 §2 服务管理。**
 
 **最新（2026-10-30）：全项目目录管理已接入，不仅限于 Agent。`/storage/` 可设置全局业务存储根、默认工作目录、Agent 空间池及各空间九类目录，并查询记忆/档案/日志/插件等存储用途索引。bootstrap 与离线 doctor/备份/演练/采样共用路径解析；运行态冻结，配置保存仅下次启动生效。固定控制区保持原位，ASR 缓存已纳入注入。目录边界、旧客户端防重置、额外根防绕过及浏览器回归已补；全量 **1165 项通过**（294.77s），样式调整后 16 项 UI 回归通过；40 视图浏览器检查无脚本错误和横向溢出。证据见 DEVELOPMENT_STATUS 本轮记录和 [STORAGE.md](STORAGE.md)。真实数据未搬移，真实服务未重启。以下测试数属于对应历史批次，不代表本轮状态。**
 
@@ -266,6 +266,9 @@ MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待
 25. **run 的 owner 决定重启对账范围**：`owner = <kind>:<pid>:<boot>`，`interrupt_stale()` 只对同类进程（web/qq/heartbeat）的旧启动对账；否则网页重启会把心跳手里正在跑的任务宣布成失败
 26. **审批器签名不能靠 try/except TypeError 探测**：`type(绑定方法)` 对所有方法都是 `method`，拿它做缓存键会把「WebApprover 支持 cancel」套到每一个审批器上。按 (所属类, 方法名) 缓存
 27. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
+28. **`.venv\Scripts\python.exe` 是会再 fork 一次真解释器的跳板**：守护 spawn 记下的是**跳板 pid**，真正执行 `omni.channels.heartbeat` 的是跳板的子进程。子进程要能**认领父进程**的启动记录（pid+创建时间+exe 三元组全等才认），否则报「记录指向运行中的进程」→ 每 10 秒一轮崩溃循环。跳板还带第二个坑：守护落盘前要算源码指纹（哈希整个 `agent/src`，几百毫秒），子进程抢先登记的记录会被覆盖 → 记录又指回跳板；落盘前先看现有记录的 pid 是否在自己的**后代链**上（跳板 → worker 是两层）
+29. **DETACHED_PROCESS 脱离不了 job object**：服务用 `DETACHED_PROCESS|CREATE_NEW_PROCESS_GROUP` 起，只能脱离控制台；进程若跑在某个 job 里（IDE 终端、任务计划、CI、agent harness），job 一关成员全死。验收「工作台退出后服务继续跑」时别用「起工作台 → 杀工作台」——任务管理器结束后台任务会**递归清整棵进程树**（DETACHED 孙进程一起没），测到的是清理器行为、不是产品行为。要让**任务主进程常驻**、工作台当它的子进程，再杀工作台
+30. **别拿「包装进程还活着」当「已登录」**：NapCat 的 `cmd.exe` 包装进程一直在，OneBot 端口（3001）要等 QQ 真登录才开。登录态判据看端口，别看进程存活
 
 ## 6. 未完成事项（按优先级）
 
