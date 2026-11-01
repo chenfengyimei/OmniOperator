@@ -101,9 +101,12 @@
   中间带换行时，模型逐字抄的那句就对不上**（多行消息、粘贴的代码块都会踩到）——合法记忆
   写不进去是**假阴性**，比略松的比对更糟。改成**忽略全部空白**再比对；跨消息拼接仍然
   拼不起来（来源材料每条消息都带 `[user] ` / `[10:23] user: ` 前缀挡着）。
-- **测试**：新 `agent/tests/test_anchor.py` **22 项全绿**（纯逻辑 10 + 存储层 7 +
-  工具层 5）；回归 `test_memory_tools`/`test_resident`/`test_review`/
-  `test_journal_consolidator`/`test_prompt_context`/`test_agent` **102 项全绿**。
+- **测试**：新 `agent/tests/test_anchor.py` **23 项全绿**（纯逻辑 10 + 存储层 7 +
+  工具层 5 + 注入块边界 1）；回归 `test_memory_tools`/`test_resident`/`test_review`/
+  `test_journal_consolidator`/`test_profile_tools`/`test_prompt_context`/`test_agent`
+  **101 项全绿**（含专项 23）；**隔离树全量 1706 passed / 0 failed（793.75s）**
+  （`git worktree` + `PYTHONPATH` 重跑，不是工作区混跑的数字——工作区混跑会被并行会话
+  的中途态污染）；索引按源码重生成（58 模块/314 文件/188 路由/94 工具）。
 - **剩余限制（待真实验收，一律不算完成）**：① **事实记忆（`remember`）暂未锚定**——
   facts 在 `memory.db` 的另一张表上，要另开一列与一条校验路径，本批未做；
   ② **未在真机跑过**——真实 review / journal 模型能否稳定抄出逐字原文、抄不过时是否

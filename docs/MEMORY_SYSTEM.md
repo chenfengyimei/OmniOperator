@@ -238,6 +238,11 @@ limits:    # 所有者沿用旧协议的总量：resident_memory_chars 即 owner
 5. 隔离 runtime 的浏览器测试走 Playwright 路由拦截 + TestClient；断言配置保存要查
    **文件**而非 runtime 内存（保存只落盘，重启生效）。
 6. 测试里的"过去时间"种子要相对**真实当前时间**算，注入的固定时钟只影响整理判定。
+7. 工具层的 `owner`/`resident` 形参**可能不止一个门面**：`register_profile_tools` 在生产是
+   `OwnerMemory`，老测试直接传 `MemoryStore`（旧 `profile` 表已冻结）；`resident_memory` 同理，
+   旧 `ResidentMemory`（文件式）也还在。给这些形参加新参数时，要按旧 `source` 形参的老规矩
+   （"只为同形，保持忽略"）把**所有**门面补齐——别用 `getattr` 打补丁糊过去，糊过去的那条
+   路径就是**静默失效的校验缺口**。
 
 ## 8. 已知边界（如实）
 

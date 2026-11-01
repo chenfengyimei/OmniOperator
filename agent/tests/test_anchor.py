@@ -330,3 +330,26 @@ def test_person_lookup_shows_the_provenance_section(tmp_path):
     assert "出处" in out
     assert "日记 2026-11-01" in out
     assert "我下周要去趟成都" in out
+
+
+def test_injection_blocks_do_not_carry_the_evidence(tmp_path):
+    """体积纪律：常驻 2200 / 档案 2000 是硬上限，出处不进注入块，只在核对面可见。
+
+    这条是刻意取舍（参考实现把来源写进每轮注入的人格文件），得有守卫，
+    免得日后有人"顺手"把出处塞回提示词，把注入体积顶穿。
+    """
+    fixture = _make(tmp_path)
+    with anchor_scope(TRANSCRIPT, source="review", source_ref="session:7"):
+        _dispatch(fixture, "resident_memory", {
+            "operation": "add", "content": "用户下周要去成都", "evidence": "我下周要去趟成都",
+        })
+        _dispatch(fixture, "profile_manage", {
+            "operation": "add", "content": "用户常驻成都", "evidence": "我下周要去趟成都",
+        })
+    resident_block = fixture.owner.block()
+    profile_block = fixture.owner.profile_block()
+    assert "用户下周要去成都" in resident_block
+    assert "我下周要去趟成都" not in resident_block
+    assert "对话 #7" not in resident_block
+    assert "用户常驻成都" in profile_block
+    assert "我下周要去趟成都" not in profile_block

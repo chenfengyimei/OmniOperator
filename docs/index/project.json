@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c74f841e82c52af8c98ccba26d2669320c4c2909158a033cbbe7ca3431df74f1",
+  "source_sha256": "2ff38ecfdde5907448f95d89703d26b7c7d8f9c1fdf774fe5b1a894efaf7f2ee",
   "modules": [
     {
       "id": "agent-directories",
@@ -219,7 +219,7 @@
         "agent/src/omni/core/session.py",
         "agent/src/omni/core/vision.py"
       ],
-      "lines": 3500,
+      "lines": 3551,
       "dependencies": [
         "config",
         "models",
@@ -299,7 +299,9 @@
       ],
       "files": [
         "agent/src/omni/memory/__init__.py",
+        "agent/src/omni/memory/anchor.py",
         "agent/src/omni/memory/artifacts.py",
+        "agent/src/omni/memory/clarity.py",
         "agent/src/omni/memory/command_jobs.py",
         "agent/src/omni/memory/cron.py",
         "agent/src/omni/memory/cron_store.py",
@@ -333,7 +335,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8860,
+      "lines": 9644,
       "dependencies": [
         "command-contracts",
         "config",
@@ -1160,7 +1162,7 @@
         "agent/src/omni/tools/personal/todos.py",
         "agent/src/omni/tools/personal/transcript.py"
       ],
-      "lines": 1191,
+      "lines": 1293,
       "dependencies": [
         "storage",
         "toolkit"
@@ -9027,10 +9029,11 @@
       "path": "agent/src/omni/core/journal.py",
       "module": "engine",
       "python_module": "omni.core.journal",
-      "lines": 371,
+      "lines": 413,
       "imports": [
         "omni.config",
         "omni.llm.gateway",
+        "omni.memory.anchor",
         "omni.memory.dialogue",
         "omni.memory.journal",
         "omni.tools.registry"
@@ -9038,12 +9041,12 @@
       "symbols": [
         {
           "name": "JournalConsolidator",
-          "line": 106,
+          "line": 113,
           "kind": "class"
         },
         {
           "name": "JournalConsolidator.__init__",
-          "line": 109,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -9071,7 +9074,7 @@
         },
         {
           "name": "JournalConsolidator.run_due",
-          "line": 138,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self"
@@ -9080,7 +9083,7 @@
         },
         {
           "name": "JournalConsolidator.due_periods_safe",
-          "line": 152,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self",
@@ -9092,7 +9095,7 @@
         },
         {
           "name": "JournalConsolidator.consolidate",
-          "line": 169,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self",
@@ -9106,7 +9109,7 @@
         },
         {
           "name": "JournalConsolidator.consolidate_now",
-          "line": 213,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
@@ -9120,7 +9123,7 @@
         },
         {
           "name": "JournalConsolidator._weekly_material",
-          "line": 219,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -9132,7 +9135,7 @@
         },
         {
           "name": "JournalConsolidator._monthly_material",
-          "line": 228,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self",
@@ -9144,7 +9147,7 @@
         },
         {
           "name": "JournalConsolidator._rules",
-          "line": 243,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -9156,21 +9159,32 @@
         },
         {
           "name": "JournalConsolidator._model_loop",
-          "line": 252,
+          "line": 259,
           "kind": "function",
           "parameters": [
             "self",
             "kind",
-            "material"
+            "material",
+            "period_key"
           ],
           "annotations": {
             "kind": "str",
-            "material": "str"
+            "material": "str",
+            "period_key": "str"
           }
         },
         {
           "name": "JournalConsolidator.housekeeping",
-          "line": 328,
+          "line": 341,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "JournalConsolidator.decay_clarity",
+          "line": 365,
           "kind": "function",
           "parameters": [
             "self"
@@ -9179,7 +9193,7 @@
         },
         {
           "name": "journal_loop",
-          "line": 352,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "runtime",
@@ -9440,22 +9454,23 @@
       "path": "agent/src/omni/core/review.py",
       "module": "engine",
       "python_module": "omni.core.review",
-      "lines": 246,
+      "lines": 255,
       "imports": [
         "omni.config",
         "omni.llm.gateway",
+        "omni.memory.anchor",
         "omni.memory.store",
         "omni.tools.registry"
       ],
       "symbols": [
         {
           "name": "TurnEndReviewer",
-          "line": 49,
+          "line": 52,
           "kind": "class"
         },
         {
           "name": "TurnEndReviewer.__init__",
-          "line": 52,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -9473,7 +9488,7 @@
         },
         {
           "name": "TurnEndReviewer.submit",
-          "line": 81,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -9485,7 +9500,7 @@
         },
         {
           "name": "TurnEndReviewer.review_in_background",
-          "line": 126,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "self",
@@ -9497,7 +9512,7 @@
         },
         {
           "name": "TurnEndReviewer._work",
-          "line": 130,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self"
@@ -9506,7 +9521,7 @@
         },
         {
           "name": "TurnEndReviewer.close",
-          "line": 146,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -9518,7 +9533,7 @@
         },
         {
           "name": "TurnEndReviewer.queue_depth",
-          "line": 161,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self"
@@ -9527,7 +9542,7 @@
         },
         {
           "name": "TurnEndReviewer.active",
-          "line": 165,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self"
@@ -9536,7 +9551,7 @@
         },
         {
           "name": "TurnEndReviewer.review_recent",
-          "line": 172,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self",
@@ -9548,7 +9563,7 @@
         },
         {
           "name": "TurnEndReviewer.registry_result",
-          "line": 245,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "registry",
@@ -11331,6 +11346,111 @@
       "summary": "记忆层：SQLite 持久化（P0 版；P1 升级向量检索与三层记忆）。"
     },
     {
+      "path": "agent/src/omni/memory/anchor.py",
+      "module": "storage",
+      "python_module": "omni.memory.anchor",
+      "lines": 166,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "AnchorError",
+          "line": 49,
+          "kind": "class"
+        },
+        {
+          "name": "AnchorContext",
+          "line": 57,
+          "kind": "class"
+        },
+        {
+          "name": "anchor_scope",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "material",
+            "source",
+            "source_ref"
+          ],
+          "annotations": {
+            "material": "str",
+            "source": "str",
+            "source_ref": "str"
+          }
+        },
+        {
+          "name": "current_anchor",
+          "line": 87,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "normalize_evidence",
+          "line": 92,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "_squash",
+          "line": 97,
+          "kind": "function",
+          "parameters": [
+            "text"
+          ],
+          "annotations": {
+            "text": "str"
+          }
+        },
+        {
+          "name": "verify_evidence",
+          "line": 110,
+          "kind": "function",
+          "parameters": [
+            "evidence",
+            "material",
+            "label"
+          ],
+          "annotations": {
+            "evidence": "str",
+            "material": "str",
+            "label": "str"
+          }
+        },
+        {
+          "name": "require_evidence",
+          "line": 133,
+          "kind": "function",
+          "parameters": [
+            "raw",
+            "label"
+          ],
+          "annotations": {
+            "raw": "str",
+            "label": "str"
+          }
+        },
+        {
+          "name": "describe_source",
+          "line": 154,
+          "kind": "function",
+          "parameters": [
+            "source",
+            "source_ref"
+          ],
+          "annotations": {
+            "source": "str",
+            "source_ref": "str"
+          }
+        }
+      ],
+      "summary": "沉淀锚定（P5-b）：后台写入的记忆必须能指回它依据的原文。"
+    },
+    {
       "path": "agent/src/omni/memory/artifacts.py",
       "module": "storage",
       "python_module": "omni.memory.artifacts",
@@ -11569,6 +11689,158 @@
         }
       ],
       "summary": "产物存储（D15 / A13）：截图、文件、报告统一按 artifact_id 管理。"
+    },
+    {
+      "path": "agent/src/omni/memory/clarity.py",
+      "module": "storage",
+      "python_module": "omni.memory.clarity",
+      "lines": 267,
+      "imports": [],
+      "symbols": [
+        {
+          "name": "clarity_index",
+          "line": 79,
+          "kind": "function",
+          "parameters": [
+            "clarity"
+          ],
+          "annotations": {
+            "clarity": "str | None"
+          }
+        },
+        {
+          "name": "normalize_clarity",
+          "line": 87,
+          "kind": "function",
+          "parameters": [
+            "clarity"
+          ],
+          "annotations": {
+            "clarity": "str | None"
+          }
+        },
+        {
+          "name": "ClarityConfig",
+          "line": 93,
+          "kind": "class"
+        },
+        {
+          "name": "ClarityConfig.__init__",
+          "line": 113,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "recent_days",
+            "fuzzy_after_days",
+            "trace_after_days",
+            "forget_after_days",
+            "review_grace_days",
+            "enabled"
+          ],
+          "annotations": {
+            "recent_days": "int",
+            "fuzzy_after_days": "int",
+            "trace_after_days": "int",
+            "forget_after_days": "int",
+            "review_grace_days": "int",
+            "enabled": "bool"
+          }
+        },
+        {
+          "name": "ClarityConfig.as_dict",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "_parse_day",
+          "line": 141,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "str | None"
+          }
+        },
+        {
+          "name": "_days_since",
+          "line": 152,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "today"
+          ],
+          "annotations": {
+            "value": "str | None",
+            "today": "dt.date"
+          }
+        },
+        {
+          "name": "target_clarity",
+          "line": 160,
+          "kind": "function",
+          "parameters": [
+            "created_at",
+            "last_used",
+            "today",
+            "config"
+          ],
+          "annotations": {
+            "created_at": "str | None",
+            "last_used": "str | None",
+            "today": "dt.date",
+            "config": "ClarityConfig | None"
+          }
+        },
+        {
+          "name": "apply_daily_decay",
+          "line": 206,
+          "kind": "function",
+          "parameters": [
+            "current",
+            "created_at",
+            "last_used",
+            "today",
+            "config"
+          ],
+          "annotations": {
+            "current": "str | None",
+            "created_at": "str | None",
+            "last_used": "str | None",
+            "today": "dt.date",
+            "config": "ClarityConfig | None"
+          }
+        },
+        {
+          "name": "review_effect",
+          "line": 239,
+          "kind": "function",
+          "parameters": [
+            "current",
+            "now"
+          ],
+          "annotations": {
+            "current": "str | None",
+            "now": "str | None"
+          }
+        },
+        {
+          "name": "is_recallable",
+          "line": 259,
+          "kind": "function",
+          "parameters": [
+            "clarity"
+          ],
+          "annotations": {
+            "clarity": "str | None"
+          }
+        }
+      ],
+      "summary": "事实记忆的清晰度阶梯（纯判定层，抄 surfcore `memory-card.js` 的思路）。"
     },
     {
       "path": "agent/src/omni/memory/command_jobs.py",
@@ -12985,8 +13257,9 @@
       "path": "agent/src/omni/memory/owner.py",
       "module": "storage",
       "python_module": "omni.memory.owner",
-      "lines": 207,
+      "lines": 259,
       "imports": [
+        "omni.memory.anchor",
         "omni.memory.people",
         "omni.memory.resident",
         "omni.memory.store"
@@ -12994,12 +13267,12 @@
       "symbols": [
         {
           "name": "OwnerMemory",
-          "line": 25,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "OwnerMemory.__init__",
-          "line": 28,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self",
@@ -13017,7 +13290,7 @@
         },
         {
           "name": "OwnerMemory.owner_id",
-          "line": 52,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "self"
@@ -13026,7 +13299,7 @@
         },
         {
           "name": "OwnerMemory.person",
-          "line": 59,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self"
@@ -13035,7 +13308,43 @@
         },
         {
           "name": "OwnerMemory._entries",
-          "line": 64,
+          "line": 65,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "kind"
+          ],
+          "annotations": {
+            "kind": "str"
+          }
+        },
+        {
+          "name": "OwnerMemory._details",
+          "line": 72,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "kind"
+          ],
+          "annotations": {
+            "kind": "str"
+          }
+        },
+        {
+          "name": "OwnerMemory._evidence_section",
+          "line": 79,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "details"
+          ],
+          "annotations": {
+            "details": "list[dict]"
+          }
+        },
+        {
+          "name": "OwnerMemory.evidence_lines",
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -13047,7 +13356,7 @@
         },
         {
           "name": "OwnerMemory.limit",
-          "line": 74,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self"
@@ -13056,7 +13365,7 @@
         },
         {
           "name": "OwnerMemory._resident_usage",
-          "line": 77,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
@@ -13068,7 +13377,7 @@
         },
         {
           "name": "OwnerMemory.usage",
-          "line": 82,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self"
@@ -13077,7 +13386,7 @@
         },
         {
           "name": "OwnerMemory.entries",
-          "line": 85,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self"
@@ -13086,7 +13395,7 @@
         },
         {
           "name": "OwnerMemory.block",
-          "line": 89,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self"
@@ -13095,7 +13404,7 @@
         },
         {
           "name": "OwnerMemory.view",
-          "line": 102,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "self"
@@ -13104,7 +13413,7 @@
         },
         {
           "name": "OwnerMemory._write",
-          "line": 114,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -13112,53 +13421,59 @@
             "content",
             "entry_id",
             "author",
-            "source"
+            "source",
+            "evidence"
           ],
           "annotations": {
             "op": "str",
             "content": "str",
             "entry_id": "int | None",
             "author": "str",
-            "source": "str"
+            "source": "str",
+            "evidence": "str"
           }
         },
         {
           "name": "OwnerMemory.add",
-          "line": 138,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self",
             "content",
             "author",
-            "source"
+            "source",
+            "evidence"
           ],
           "annotations": {
             "content": "str",
             "author": "str",
-            "source": "str"
+            "source": "str",
+            "evidence": "str"
           }
         },
         {
           "name": "OwnerMemory.replace",
-          "line": 146,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
             "entry_id",
             "content",
             "author",
-            "source"
+            "source",
+            "evidence"
           ],
           "annotations": {
             "entry_id": "int",
             "content": "str",
             "author": "str",
-            "source": "str"
+            "source": "str",
+            "evidence": "str"
           }
         },
         {
           "name": "OwnerMemory.remove",
-          "line": 156,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -13174,7 +13489,7 @@
         },
         {
           "name": "OwnerMemory.profile_lines",
-          "line": 161,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self"
@@ -13183,7 +13498,7 @@
         },
         {
           "name": "OwnerMemory.profile_usage_chars",
-          "line": 164,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self"
@@ -13192,35 +13507,39 @@
         },
         {
           "name": "OwnerMemory.profile_add",
-          "line": 167,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self",
             "content",
-            "source"
+            "source",
+            "evidence"
           ],
           "annotations": {
             "content": "str",
-            "source": "str"
+            "source": "str",
+            "evidence": "str"
           }
         },
         {
           "name": "OwnerMemory.profile_edit_checked",
-          "line": 179,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
             "line_id",
-            "content"
+            "content",
+            "evidence"
           ],
           "annotations": {
             "line_id": "int",
-            "content": "str"
+            "content": "str",
+            "evidence": "str | None"
           }
         },
         {
           "name": "OwnerMemory.profile_edit",
-          "line": 191,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "self",
@@ -13234,7 +13553,7 @@
         },
         {
           "name": "OwnerMemory.profile_delete",
-          "line": 194,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self",
@@ -13246,7 +13565,7 @@
         },
         {
           "name": "OwnerMemory.profile_block",
-          "line": 197,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self"
@@ -13317,27 +13636,28 @@
       "path": "agent/src/omni/memory/people.py",
       "module": "storage",
       "python_module": "omni.memory.people",
-      "lines": 608,
+      "lines": 688,
       "imports": [
         "omni.config",
+        "omni.memory.anchor",
         "omni.memory.resident"
       ],
       "symbols": [
         {
           "name": "PersonError",
-          "line": 68,
+          "line": 82,
           "kind": "class"
         },
         {
           "name": "_now",
-          "line": 72,
+          "line": 86,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_locked",
-          "line": 76,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "method"
@@ -13346,7 +13666,7 @@
         },
         {
           "name": "_locked.wrapper",
-          "line": 80,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self",
@@ -13359,7 +13679,7 @@
         },
         {
           "name": "_entry_expired",
-          "line": 87,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "expires_at",
@@ -13372,12 +13692,12 @@
         },
         {
           "name": "PersonStore",
-          "line": 100,
+          "line": 114,
           "kind": "class"
         },
         {
           "name": "PersonStore.__init__",
-          "line": 103,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -13400,8 +13720,17 @@
           }
         },
         {
+          "name": "PersonStore._migrate_columns",
+          "line": 150,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "PersonStore.create_person",
-          "line": 138,
+          "line": 171,
           "kind": "function",
           "parameters": [
             "self",
@@ -13417,7 +13746,7 @@
         },
         {
           "name": "PersonStore.get_person",
-          "line": 156,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self",
@@ -13429,7 +13758,7 @@
         },
         {
           "name": "PersonStore._person_row",
-          "line": 168,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -13439,7 +13768,7 @@
         },
         {
           "name": "PersonStore._accounts_of",
-          "line": 178,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self",
@@ -13451,7 +13780,7 @@
         },
         {
           "name": "PersonStore.list_people",
-          "line": 190,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "self"
@@ -13460,7 +13789,7 @@
         },
         {
           "name": "PersonStore.update_person",
-          "line": 212,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self",
@@ -13478,7 +13807,7 @@
         },
         {
           "name": "PersonStore.delete_person",
-          "line": 251,
+          "line": 284,
           "kind": "function",
           "parameters": [
             "self",
@@ -13490,7 +13819,7 @@
         },
         {
           "name": "PersonStore.find_by_name",
-          "line": 257,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self",
@@ -13502,7 +13831,7 @@
         },
         {
           "name": "PersonStore.link_account",
-          "line": 268,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "self",
@@ -13520,7 +13849,7 @@
         },
         {
           "name": "PersonStore.unlink_account",
-          "line": 295,
+          "line": 328,
           "kind": "function",
           "parameters": [
             "self",
@@ -13532,7 +13861,7 @@
         },
         {
           "name": "PersonStore.lookup_account",
-          "line": 303,
+          "line": 336,
           "kind": "function",
           "parameters": [
             "self",
@@ -13546,7 +13875,7 @@
         },
         {
           "name": "PersonStore._owner_exists",
-          "line": 314,
+          "line": 347,
           "kind": "function",
           "parameters": [
             "self"
@@ -13555,7 +13884,7 @@
         },
         {
           "name": "PersonStore.ensure_owner",
-          "line": 321,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "self",
@@ -13567,7 +13896,7 @@
         },
         {
           "name": "PersonStore._owner_usage",
-          "line": 330,
+          "line": 363,
           "kind": "function",
           "parameters": [
             "self",
@@ -13583,7 +13912,7 @@
         },
         {
           "name": "PersonStore.owner_total_limit",
-          "line": 340,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "self",
@@ -13595,7 +13924,7 @@
         },
         {
           "name": "PersonStore._owner_total_error",
-          "line": 344,
+          "line": 377,
           "kind": "function",
           "parameters": [
             "self",
@@ -13615,7 +13944,7 @@
         },
         {
           "name": "PersonStore._enforce_owner_total",
-          "line": 370,
+          "line": 403,
           "kind": "function",
           "parameters": [
             "self",
@@ -13633,7 +13962,7 @@
         },
         {
           "name": "PersonStore.migration_done",
-          "line": 385,
+          "line": 418,
           "kind": "function",
           "parameters": [
             "self",
@@ -13645,7 +13974,7 @@
         },
         {
           "name": "PersonStore.mark_migration",
-          "line": 392,
+          "line": 425,
           "kind": "function",
           "parameters": [
             "self",
@@ -13657,7 +13986,7 @@
         },
         {
           "name": "PersonStore._import_entry",
-          "line": 400,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "self",
@@ -13675,7 +14004,7 @@
         },
         {
           "name": "PersonStore._check_entry",
-          "line": 414,
+          "line": 447,
           "kind": "function",
           "parameters": [
             "self",
@@ -13691,7 +14020,7 @@
         },
         {
           "name": "PersonStore.add_entry",
-          "line": 441,
+          "line": 474,
           "kind": "function",
           "parameters": [
             "self",
@@ -13699,33 +14028,39 @@
             "entry_kind",
             "content",
             "source",
-            "expires_at"
+            "expires_at",
+            "source_ref",
+            "evidence"
           ],
           "annotations": {
             "person_id": "int",
             "entry_kind": "str",
             "content": "str",
             "source": "str",
-            "expires_at": "str | None"
+            "expires_at": "str | None",
+            "source_ref": "str",
+            "evidence": "str"
           }
         },
         {
           "name": "PersonStore.edit_entry",
-          "line": 465,
+          "line": 518,
           "kind": "function",
           "parameters": [
             "self",
             "entry_id",
-            "content"
+            "content",
+            "evidence"
           ],
           "annotations": {
             "entry_id": "int",
-            "content": "str"
+            "content": "str",
+            "evidence": "str | None"
           }
         },
         {
           "name": "PersonStore.remove_entry",
-          "line": 485,
+          "line": 563,
           "kind": "function",
           "parameters": [
             "self",
@@ -13737,7 +14072,7 @@
         },
         {
           "name": "PersonStore.entries",
-          "line": 493,
+          "line": 571,
           "kind": "function",
           "parameters": [
             "self",
@@ -13751,7 +14086,7 @@
         },
         {
           "name": "PersonStore.prune_expired_events",
-          "line": 520,
+          "line": 600,
           "kind": "function",
           "parameters": [
             "self",
@@ -13763,7 +14098,7 @@
         },
         {
           "name": "PersonStore.card",
-          "line": 541,
+          "line": 621,
           "kind": "function",
           "parameters": [
             "self",
@@ -13779,14 +14114,14 @@
         },
         {
           "name": "PersonStore.card.size",
-          "line": 568,
+          "line": 648,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "PersonStore.card_for_account",
-          "line": 586,
+          "line": 666,
           "kind": "function",
           "parameters": [
             "self",
@@ -13800,7 +14135,7 @@
         },
         {
           "name": "PersonStore.stats",
-          "line": 594,
+          "line": 674,
           "kind": "function",
           "parameters": [
             "self"
@@ -13809,7 +14144,7 @@
         },
         {
           "name": "PersonStore.close",
-          "line": 606,
+          "line": 686,
           "kind": "function",
           "parameters": [
             "self"
@@ -14143,7 +14478,7 @@
       "path": "agent/src/omni/memory/resident.py",
       "module": "storage",
       "python_module": "omni.memory.resident",
-      "lines": 373,
+      "lines": 381,
       "imports": [
         "omni.config",
         "omni.memory.revisions",
@@ -14380,35 +14715,39 @@
             "self",
             "content",
             "author",
-            "source"
+            "source",
+            "evidence"
           ],
           "annotations": {
             "content": "str",
             "author": "str",
-            "source": "str"
+            "source": "str",
+            "evidence": "str"
           }
         },
         {
           "name": "ResidentMemory.replace",
-          "line": 267,
+          "line": 273,
           "kind": "function",
           "parameters": [
             "self",
             "entry_id",
             "content",
             "author",
-            "source"
+            "source",
+            "evidence"
           ],
           "annotations": {
             "entry_id": "int",
             "content": "str",
             "author": "str",
-            "source": "str"
+            "source": "str",
+            "evidence": "str"
           }
         },
         {
           "name": "ResidentMemory.remove",
-          "line": 302,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "self",
@@ -14424,7 +14763,7 @@
         },
         {
           "name": "ResidentMemory._load_for_write",
-          "line": 324,
+          "line": 332,
           "kind": "function",
           "parameters": [
             "self",
@@ -14440,7 +14779,7 @@
         },
         {
           "name": "ResidentMemory._snapshot",
-          "line": 354,
+          "line": 362,
           "kind": "function",
           "parameters": [
             "self",
@@ -14456,7 +14795,7 @@
         },
         {
           "name": "ResidentMemory._check_entries",
-          "line": 370,
+          "line": 378,
           "kind": "function",
           "parameters": [
             "self",
@@ -17053,15 +17392,16 @@
       "path": "agent/src/omni/memory/store.py",
       "module": "storage",
       "python_module": "omni.memory.store",
-      "lines": 1167,
+      "lines": 1371,
       "imports": [
         "omni.config",
+        "omni.memory.clarity",
         "omni.memory.store_schema"
       ],
       "symbols": [
         {
           "name": "_has_cjk",
-          "line": 50,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "text"
@@ -17072,14 +17412,14 @@
         },
         {
           "name": "_now",
-          "line": 54,
+          "line": 65,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "normalize_text",
-          "line": 58,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "text"
@@ -17090,7 +17430,7 @@
         },
         {
           "name": "_match_expr",
-          "line": 67,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "tokens"
@@ -17100,8 +17440,30 @@
           }
         },
         {
+          "name": "clarity_penalty",
+          "line": 100,
+          "kind": "function",
+          "parameters": [
+            "clarity"
+          ],
+          "annotations": {
+            "clarity": "str | None"
+          }
+        },
+        {
+          "name": "_fact_row",
+          "line": 113,
+          "kind": "function",
+          "parameters": [
+            "row"
+          ],
+          "annotations": {
+            "row": "tuple"
+          }
+        },
+        {
           "name": "_locked",
-          "line": 83,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "method"
@@ -17110,7 +17472,7 @@
         },
         {
           "name": "_locked.wrapper",
-          "line": 87,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self",
@@ -17123,12 +17485,12 @@
         },
         {
           "name": "MemoryStore",
-          "line": 94,
+          "line": 138,
           "kind": "class"
         },
         {
           "name": "MemoryStore.__init__",
-          "line": 95,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -17140,7 +17502,7 @@
         },
         {
           "name": "MemoryStore._migrate_columns",
-          "line": 108,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self"
@@ -17149,7 +17511,7 @@
         },
         {
           "name": "MemoryStore._init_fts",
-          "line": 135,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self"
@@ -17158,7 +17520,7 @@
         },
         {
           "name": "MemoryStore._fts_table_sql",
-          "line": 206,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "self",
@@ -17170,7 +17532,7 @@
         },
         {
           "name": "MemoryStore._meta_json",
-          "line": 212,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "self",
@@ -17182,7 +17544,7 @@
         },
         {
           "name": "MemoryStore._set_meta",
-          "line": 224,
+          "line": 275,
           "kind": "function",
           "parameters": [
             "self",
@@ -17196,7 +17558,7 @@
         },
         {
           "name": "MemoryStore.new_session",
-          "line": 237,
+          "line": 288,
           "kind": "function",
           "parameters": [
             "self",
@@ -17208,7 +17570,7 @@
         },
         {
           "name": "MemoryStore.latest_session_id",
-          "line": 245,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "self"
@@ -17217,7 +17579,7 @@
         },
         {
           "name": "MemoryStore.list_sessions",
-          "line": 252,
+          "line": 303,
           "kind": "function",
           "parameters": [
             "self",
@@ -17229,7 +17591,7 @@
         },
         {
           "name": "MemoryStore.session_exists",
-          "line": 260,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -17241,7 +17603,7 @@
         },
         {
           "name": "MemoryStore.rename_session",
-          "line": 267,
+          "line": 318,
           "kind": "function",
           "parameters": [
             "self",
@@ -17255,7 +17617,7 @@
         },
         {
           "name": "MemoryStore.get_or_create_binding",
-          "line": 276,
+          "line": 327,
           "kind": "function",
           "parameters": [
             "self",
@@ -17269,7 +17631,7 @@
         },
         {
           "name": "MemoryStore.get_binding",
-          "line": 313,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self",
@@ -17283,7 +17645,7 @@
         },
         {
           "name": "MemoryStore.set_binding",
-          "line": 321,
+          "line": 372,
           "kind": "function",
           "parameters": [
             "self",
@@ -17299,7 +17661,7 @@
         },
         {
           "name": "MemoryStore.append_message",
-          "line": 333,
+          "line": 384,
           "kind": "function",
           "parameters": [
             "self",
@@ -17319,7 +17681,7 @@
         },
         {
           "name": "MemoryStore.prompt_contexts",
-          "line": 363,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "self",
@@ -17333,7 +17695,7 @@
         },
         {
           "name": "MemoryStore.recent_messages",
-          "line": 383,
+          "line": 434,
           "kind": "function",
           "parameters": [
             "self",
@@ -17347,7 +17709,7 @@
         },
         {
           "name": "MemoryStore.recent_messages_ex",
-          "line": 391,
+          "line": 442,
           "kind": "function",
           "parameters": [
             "self",
@@ -17361,7 +17723,7 @@
         },
         {
           "name": "MemoryStore.message_count",
-          "line": 401,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self",
@@ -17373,7 +17735,7 @@
         },
         {
           "name": "MemoryStore.max_message_id",
-          "line": 410,
+          "line": 461,
           "kind": "function",
           "parameters": [
             "self",
@@ -17385,7 +17747,7 @@
         },
         {
           "name": "MemoryStore.claim_review",
-          "line": 417,
+          "line": 468,
           "kind": "function",
           "parameters": [
             "self",
@@ -17399,7 +17761,7 @@
         },
         {
           "name": "MemoryStore.finish_review",
-          "line": 428,
+          "line": 479,
           "kind": "function",
           "parameters": [
             "self",
@@ -17417,7 +17779,7 @@
         },
         {
           "name": "MemoryStore.last_reviewed",
-          "line": 445,
+          "line": 496,
           "kind": "function",
           "parameters": [
             "self",
@@ -17429,7 +17791,7 @@
         },
         {
           "name": "MemoryStore.review_history",
-          "line": 452,
+          "line": 503,
           "kind": "function",
           "parameters": [
             "self",
@@ -17443,7 +17805,7 @@
         },
         {
           "name": "MemoryStore.active_summary",
-          "line": 465,
+          "line": 516,
           "kind": "function",
           "parameters": [
             "self",
@@ -17455,7 +17817,7 @@
         },
         {
           "name": "MemoryStore.save_summary",
-          "line": 481,
+          "line": 532,
           "kind": "function",
           "parameters": [
             "self",
@@ -17479,7 +17841,7 @@
         },
         {
           "name": "MemoryStore.summary_history",
-          "line": 534,
+          "line": 585,
           "kind": "function",
           "parameters": [
             "self",
@@ -17493,7 +17855,7 @@
         },
         {
           "name": "MemoryStore.list_messages",
-          "line": 558,
+          "line": 609,
           "kind": "function",
           "parameters": [
             "self",
@@ -17507,7 +17869,7 @@
         },
         {
           "name": "MemoryStore.search_messages",
-          "line": 570,
+          "line": 621,
           "kind": "function",
           "parameters": [
             "self",
@@ -17521,7 +17883,7 @@
         },
         {
           "name": "MemoryStore._like_messages",
-          "line": 600,
+          "line": 651,
           "kind": "function",
           "parameters": [
             "self",
@@ -17535,7 +17897,7 @@
         },
         {
           "name": "MemoryStore.save_fact",
-          "line": 614,
+          "line": 665,
           "kind": "function",
           "parameters": [
             "self",
@@ -17553,7 +17915,7 @@
         },
         {
           "name": "MemoryStore.is_forgotten",
-          "line": 643,
+          "line": 697,
           "kind": "function",
           "parameters": [
             "self",
@@ -17565,7 +17927,7 @@
         },
         {
           "name": "MemoryStore.forget_fact",
-          "line": 654,
+          "line": 708,
           "kind": "function",
           "parameters": [
             "self",
@@ -17581,7 +17943,7 @@
         },
         {
           "name": "MemoryStore._invalidate_summaries",
-          "line": 678,
+          "line": 732,
           "kind": "function",
           "parameters": [
             "self",
@@ -17595,7 +17957,7 @@
         },
         {
           "name": "MemoryStore.search_facts",
-          "line": 698,
+          "line": 752,
           "kind": "function",
           "parameters": [
             "self",
@@ -17611,7 +17973,7 @@
         },
         {
           "name": "MemoryStore.search_fact_rows",
-          "line": 709,
+          "line": 763,
           "kind": "function",
           "parameters": [
             "self",
@@ -17627,7 +17989,7 @@
         },
         {
           "name": "MemoryStore._search_fact_rows",
-          "line": 719,
+          "line": 773,
           "kind": "function",
           "parameters": [
             "self",
@@ -17643,7 +18005,7 @@
         },
         {
           "name": "MemoryStore._rank_fact_rows",
-          "line": 776,
+          "line": 830,
           "kind": "function",
           "parameters": [
             "self",
@@ -17657,7 +18019,7 @@
         },
         {
           "name": "MemoryStore._fetch_fact_rows",
-          "line": 795,
+          "line": 860,
           "kind": "function",
           "parameters": [
             "self",
@@ -17677,7 +18039,7 @@
         },
         {
           "name": "MemoryStore.fact_rows",
-          "line": 810,
+          "line": 875,
           "kind": "function",
           "parameters": [
             "self",
@@ -17689,7 +18051,7 @@
         },
         {
           "name": "MemoryStore.filter_facts",
-          "line": 832,
+          "line": 898,
           "kind": "function",
           "parameters": [
             "self",
@@ -17703,7 +18065,7 @@
         },
         {
           "name": "MemoryStore.touch_facts",
-          "line": 842,
+          "line": 908,
           "kind": "function",
           "parameters": [
             "self",
@@ -17718,8 +18080,38 @@
           }
         },
         {
+          "name": "MemoryStore.review_facts_clarity",
+          "line": 945,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "contents",
+            "scope"
+          ],
+          "annotations": {
+            "contents": "list[str]",
+            "scope": "str"
+          }
+        },
+        {
+          "name": "MemoryStore.decay_facts_clarity",
+          "line": 986,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "today",
+            "config",
+            "force"
+          ],
+          "annotations": {
+            "today": "dt.date | None",
+            "config": "ClarityConfig | None",
+            "force": "bool"
+          }
+        },
+        {
           "name": "MemoryStore.fact_ids_by_contents",
-          "line": 875,
+          "line": 1056,
           "kind": "function",
           "parameters": [
             "self",
@@ -17733,7 +18125,21 @@
         },
         {
           "name": "MemoryStore.fact_timestamps",
-          "line": 891,
+          "line": 1072,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "contents",
+            "scope"
+          ],
+          "annotations": {
+            "contents": "list[str]",
+            "scope": "str"
+          }
+        },
+        {
+          "name": "MemoryStore.fact_clarities",
+          "line": 1084,
           "kind": "function",
           "parameters": [
             "self",
@@ -17747,7 +18153,7 @@
         },
         {
           "name": "MemoryStore.forgotten_matches",
-          "line": 903,
+          "line": 1096,
           "kind": "function",
           "parameters": [
             "self",
@@ -17761,7 +18167,7 @@
         },
         {
           "name": "MemoryStore.forgotten_matches._like",
-          "line": 913,
+          "line": 1106,
           "kind": "function",
           "parameters": [
             "needles"
@@ -17772,7 +18178,7 @@
         },
         {
           "name": "MemoryStore.facts_count",
-          "line": 935,
+          "line": 1128,
           "kind": "function",
           "parameters": [
             "self"
@@ -17781,7 +18187,7 @@
         },
         {
           "name": "MemoryStore.reviews_count",
-          "line": 941,
+          "line": 1134,
           "kind": "function",
           "parameters": [
             "self"
@@ -17790,7 +18196,7 @@
         },
         {
           "name": "MemoryStore.profile_lines",
-          "line": 951,
+          "line": 1144,
           "kind": "function",
           "parameters": [
             "self"
@@ -17799,7 +18205,7 @@
         },
         {
           "name": "MemoryStore.profile_usage_chars",
-          "line": 958,
+          "line": 1151,
           "kind": "function",
           "parameters": [
             "self"
@@ -17808,21 +18214,35 @@
         },
         {
           "name": "MemoryStore.profile_add",
-          "line": 962,
+          "line": 1155,
           "kind": "function",
           "parameters": [
             "self",
             "content",
-            "source"
+            "source",
+            "evidence"
           ],
           "annotations": {
             "content": "str",
-            "source": "str"
+            "source": "str",
+            "evidence": "str"
+          }
+        },
+        {
+          "name": "MemoryStore.evidence_lines",
+          "line": 1182,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "entry_kind"
+          ],
+          "annotations": {
+            "entry_kind": "str"
           }
         },
         {
           "name": "MemoryStore.profile_edit",
-          "line": 987,
+          "line": 1187,
           "kind": "function",
           "parameters": [
             "self",
@@ -17836,21 +18256,23 @@
         },
         {
           "name": "MemoryStore.profile_edit_checked",
-          "line": 991,
+          "line": 1191,
           "kind": "function",
           "parameters": [
             "self",
             "line_id",
-            "content"
+            "content",
+            "evidence"
           ],
           "annotations": {
             "line_id": "int",
-            "content": "str"
+            "content": "str",
+            "evidence": "str | None"
           }
         },
         {
           "name": "MemoryStore.profile_delete",
-          "line": 1017,
+          "line": 1221,
           "kind": "function",
           "parameters": [
             "self",
@@ -17862,7 +18284,7 @@
         },
         {
           "name": "MemoryStore.profile_block",
-          "line": 1023,
+          "line": 1227,
           "kind": "function",
           "parameters": [
             "self"
@@ -17871,7 +18293,7 @@
         },
         {
           "name": "MemoryStore.save_review_log",
-          "line": 1038,
+          "line": 1242,
           "kind": "function",
           "parameters": [
             "self",
@@ -17885,7 +18307,7 @@
         },
         {
           "name": "MemoryStore.list_reviews",
-          "line": 1046,
+          "line": 1250,
           "kind": "function",
           "parameters": [
             "self",
@@ -17899,7 +18321,7 @@
         },
         {
           "name": "MemoryStore.list_all_reviews",
-          "line": 1054,
+          "line": 1258,
           "kind": "function",
           "parameters": [
             "self",
@@ -17911,7 +18333,7 @@
         },
         {
           "name": "MemoryStore.digest_since",
-          "line": 1065,
+          "line": 1269,
           "kind": "function",
           "parameters": [
             "self",
@@ -17923,7 +18345,7 @@
         },
         {
           "name": "MemoryStore.todo_add",
-          "line": 1118,
+          "line": 1322,
           "kind": "function",
           "parameters": [
             "self",
@@ -17937,7 +18359,7 @@
         },
         {
           "name": "MemoryStore.todo_list",
-          "line": 1131,
+          "line": 1335,
           "kind": "function",
           "parameters": [
             "self",
@@ -17949,7 +18371,7 @@
         },
         {
           "name": "MemoryStore.todo_set_done",
-          "line": 1139,
+          "line": 1343,
           "kind": "function",
           "parameters": [
             "self",
@@ -17965,7 +18387,7 @@
         },
         {
           "name": "MemoryStore.todo_delete",
-          "line": 1148,
+          "line": 1352,
           "kind": "function",
           "parameters": [
             "self",
@@ -17979,7 +18401,7 @@
         },
         {
           "name": "MemoryStore.todo_clear",
-          "line": 1156,
+          "line": 1360,
           "kind": "function",
           "parameters": [
             "self",
@@ -17993,7 +18415,7 @@
         },
         {
           "name": "MemoryStore.close",
-          "line": 1166,
+          "line": 1370,
           "kind": "function",
           "parameters": [
             "self"
@@ -18007,7 +18429,7 @@
       "path": "agent/src/omni/memory/store_schema.py",
       "module": "storage",
       "python_module": "omni.memory.store_schema",
-      "lines": 155,
+      "lines": 162,
       "imports": [],
       "symbols": [],
       "summary": "memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。"
@@ -27698,7 +28120,7 @@
       "path": "agent/src/omni/tools/personal/facts.py",
       "module": "personal",
       "python_module": "omni.tools.personal.facts",
-      "lines": 246,
+      "lines": 281,
       "imports": [
         "omni.memory.store",
         "omni.tools.registry"
@@ -27731,8 +28153,23 @@
           }
         },
         {
-          "name": "register_memory_tools",
+          "name": "_recall_line",
           "line": 46,
+          "kind": "function",
+          "parameters": [
+            "content",
+            "stamps",
+            "clarities"
+          ],
+          "annotations": {
+            "content": "str",
+            "stamps": "dict[str, str]",
+            "clarities": "dict[str, str]"
+          }
+        },
+        {
+          "name": "register_memory_tools",
+          "line": 78,
           "kind": "function",
           "parameters": [
             "registry",
@@ -27759,21 +28196,21 @@
         },
         {
           "name": "register_memory_tools._scope",
-          "line": 68,
+          "line": 100,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "register_memory_tools._session_id",
-          "line": 72,
+          "line": 104,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "register_memory_tools._check",
-          "line": 77,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "kind",
@@ -27786,7 +28223,7 @@
         },
         {
           "name": "register_memory_tools.remember",
-          "line": 82,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "args"
@@ -27797,7 +28234,7 @@
         },
         {
           "name": "register_memory_tools.recall",
-          "line": 96,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "args"
@@ -27808,7 +28245,7 @@
         },
         {
           "name": "register_memory_tools.forget",
-          "line": 129,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "args"
@@ -27819,7 +28256,7 @@
         },
         {
           "name": "register_memory_tools.search_history",
-          "line": 220,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "args"
@@ -27872,8 +28309,9 @@
       "path": "agent/src/omni/tools/personal/people.py",
       "module": "personal",
       "python_module": "omni.tools.personal.people",
-      "lines": 211,
+      "lines": 248,
       "imports": [
+        "omni.memory.anchor",
         "omni.memory.guard",
         "omni.memory.people",
         "omni.tools.registry"
@@ -27881,7 +28319,7 @@
       "symbols": [
         {
           "name": "_find_person",
-          "line": 20,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "people",
@@ -27894,7 +28332,7 @@
         },
         {
           "name": "register_people_tools",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "registry",
@@ -27911,7 +28349,7 @@
         },
         {
           "name": "register_people_tools._check",
-          "line": 39,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "text"
@@ -27922,7 +28360,7 @@
         },
         {
           "name": "register_people_tools.person_lookup",
-          "line": 44,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "args"
@@ -27933,7 +28371,7 @@
         },
         {
           "name": "register_people_tools._resolve_or_create",
-          "line": 81,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "person_key"
@@ -27944,7 +28382,7 @@
         },
         {
           "name": "register_people_tools.person_remember",
-          "line": 101,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "args"
@@ -27955,7 +28393,7 @@
         },
         {
           "name": "register_people_tools.person_event",
-          "line": 124,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "args"
@@ -27971,7 +28409,7 @@
       "path": "agent/src/omni/tools/personal/profile.py",
       "module": "personal",
       "python_module": "omni.tools.personal.profile",
-      "lines": 89,
+      "lines": 105,
       "imports": [
         "omni.memory.store",
         "omni.tools.registry"
@@ -28064,7 +28502,7 @@
       "path": "agent/src/omni/tools/personal/resident.py",
       "module": "personal",
       "python_module": "omni.tools.personal.resident",
-      "lines": 64,
+      "lines": 78,
       "imports": [
         "omni.tools.registry"
       ],
@@ -35183,7 +35621,7 @@
     {
       "name": "forget",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 198,
+      "line": 233,
       "module": "personal",
       "risk": "confirm",
       "requires_human": false,
@@ -35246,7 +35684,7 @@
     {
       "name": "person_event",
       "source": "agent/src/omni/tools/personal/people.py",
-      "line": 191,
+      "line": 221,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -35255,7 +35693,7 @@
     {
       "name": "person_lookup",
       "source": "agent/src/omni/tools/personal/people.py",
-      "line": 146,
+      "line": 167,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -35264,7 +35702,7 @@
     {
       "name": "person_remember",
       "source": "agent/src/omni/tools/personal/people.py",
-      "line": 168,
+      "line": 189,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -35327,7 +35765,7 @@
     {
       "name": "profile_manage",
       "source": "agent/src/omni/tools/personal/profile.py",
-      "line": 62,
+      "line": 69,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -35345,7 +35783,7 @@
     {
       "name": "recall",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 177,
+      "line": 212,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -35354,7 +35792,7 @@
     {
       "name": "remember",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 158,
+      "line": 193,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -35363,7 +35801,7 @@
     {
       "name": "resident_memory",
       "source": "agent/src/omni/tools/personal/resident.py",
-      "line": 40,
+      "line": 45,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -35381,7 +35819,7 @@
     {
       "name": "search_history",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 231,
+      "line": 266,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,

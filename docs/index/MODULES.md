@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c74f841e82c52af8c98ccba26d2669320c4c2909158a033cbbe7ca3431df74f1`。包含 58 个职责模块、312 个源码/界面文件。
+源码指纹：`2ff38ecfdde5907448f95d89703d26b7c7d8f9c1fdf774fe5b1a894efaf7f2ee`。包含 58 个职责模块、314 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -107,11 +107,11 @@
 | [agent/src/omni/core/agent.py](../../agent/src/omni/core/agent.py) | 1396 | Agent 核心循环：组装上下文 → 调 LLM → 执行工具 → 直到给出回答。 |
 | [agent/src/omni/core/cron.py](../../agent/src/omni/core/cron.py) | 452 | 心跳调度器：tick 循环 + 至多一次派发 + 任务执行/投递（Hermes cron 最小版）。 |
 | [agent/src/omni/core/evaluation.py](../../agent/src/omni/core/evaluation.py) | 24 | 固定样本检索评测；不把 mock 模型的排序表现当成真实语义收益。 |
-| [agent/src/omni/core/journal.py](../../agent/src/omni/core/journal.py) | 371 | 记忆系统整理编排：日/周/月笔记的模型整理 worker（与 TurnEndReviewer 同构）。 |
+| [agent/src/omni/core/journal.py](../../agent/src/omni/core/journal.py) | 413 | 记忆系统整理编排：日/周/月笔记的模型整理 worker（与 TurnEndReviewer 同构）。 |
 | [agent/src/omni/core/modes.py](../../agent/src/omni/core/modes.py) | 211 | 按回合能力模式（chat / retrieval / agent）的声明与纯函数。 |
 | [agent/src/omni/core/qq_policy.py](../../agent/src/omni/core/qq_policy.py) | 37 | 主动提醒策略：显式所有者、安静时段和独立每日额度；不做网络发送。 |
 | [agent/src/omni/core/retrieval.py](../../agent/src/omni/core/retrieval.py) | 87 | FTS + 向量 RRF 融合；后台有界增量索引，网络请求不占数据库事务。 |
-| [agent/src/omni/core/review.py](../../agent/src/omni/core/review.py) | 246 | 回合后异步 review：自进化最小闭环（Hermes background_review 的 P1 简化版， |
+| [agent/src/omni/core/review.py](../../agent/src/omni/core/review.py) | 255 | 回合后异步 review：自进化最小闭环（Hermes background_review 的 P1 简化版， |
 | [agent/src/omni/core/router.py](../../agent/src/omni/core/router.py) | 164 | 回合能力模式路由：先规则、后模型、最后回退。 |
 | [agent/src/omni/core/run.py](../../agent/src/omni/core/run.py) | 274 | 运行（run）的身份、取消信号与上下文（D09）。 |
 | [agent/src/omni/core/session.py](../../agent/src/omni/core/session.py) | 147 | 会话作用域：同一会话串行、不同会话并行、排队有界、跨进程有租约。 |
@@ -166,7 +166,9 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/memory/__init__.py](../../agent/src/omni/memory/__init__.py) | 1 | 记忆层：SQLite 持久化（P0 版；P1 升级向量检索与三层记忆）。 |
+| [agent/src/omni/memory/anchor.py](../../agent/src/omni/memory/anchor.py) | 166 | 沉淀锚定（P5-b）：后台写入的记忆必须能指回它依据的原文。 |
 | [agent/src/omni/memory/artifacts.py](../../agent/src/omni/memory/artifacts.py) | 296 | 产物存储（D15 / A13）：截图、文件、报告统一按 artifact_id 管理。 |
+| [agent/src/omni/memory/clarity.py](../../agent/src/omni/memory/clarity.py) | 267 | 事实记忆的清晰度阶梯（纯判定层，抄 surfcore `memory-card.js` 的思路）。 |
 | [agent/src/omni/memory/command_jobs.py](../../agent/src/omni/memory/command_jobs.py) | 46 | 命令任务元数据仓储；不执行或终止操作系统进程。 |
 | [agent/src/omni/memory/cron.py](../../agent/src/omni/memory/cron.py) | 61 | 定时任务模型与存储的公开入口（保留旧导入路径）。 |
 | [agent/src/omni/memory/cron_store.py](../../agent/src/omni/memory/cron_store.py) | 106 | 定时任务域的两个门面（`JobStore` / `ExecutionLog`）。 |
@@ -176,12 +178,12 @@
 | [agent/src/omni/memory/journal.py](../../agent/src/omni/memory/journal.py) | 420 | 笔记记忆（M3/M4/M5）：每日/每周/每月笔记的存储与到期判定。 |
 | [agent/src/omni/memory/mcp_schemas.py](../../agent/src/omni/memory/mcp_schemas.py) | 77 | MCP 工具目录指纹仓储（D19，`state.db`）。 |
 | [agent/src/omni/memory/outbox.py](../../agent/src/omni/memory/outbox.py) | 242 | QQ 投递 outbox 仓储（`state.db`）。 |
-| [agent/src/omni/memory/owner.py](../../agent/src/omni/memory/owner.py) | 207 | 所有者记忆门面：档案行与常驻笔记统一进人物系统后的注入与维护面。 |
+| [agent/src/omni/memory/owner.py](../../agent/src/omni/memory/owner.py) | 259 | 所有者记忆门面：档案行与常驻笔记统一进人物系统后的注入与维护面。 |
 | [agent/src/omni/memory/owner_migrate.py](../../agent/src/omni/memory/owner_migrate.py) | 151 | 所有者记忆一次性迁移：profile 表与 MEMORY.md → owner 人物条目。 |
-| [agent/src/omni/memory/people.py](../../agent/src/omni/memory/people.py) | 608 | 核心人物记忆（M6）：重要人物的账号、常驻档案、常驻记忆与临时事件。 |
+| [agent/src/omni/memory/people.py](../../agent/src/omni/memory/people.py) | 688 | 核心人物记忆（M6）：重要人物的账号、常驻档案、常驻记忆与临时事件。 |
 | [agent/src/omni/memory/publications.py](../../agent/src/omni/memory/publications.py) | 88 | 人工发布草稿与发送身份账本；进程中断/结果未知不自动二次发布。 |
 | [agent/src/omni/memory/qq.py](../../agent/src/omni/memory/qq.py) | 74 | QQ 入站去重、撤回墓碑与回复身份；只保存 ID/状态，不保存原文。 |
-| [agent/src/omni/memory/resident.py](../../agent/src/omni/memory/resident.py) | 373 | 常驻小记忆（Hermes MEMORY.md 式，NOTES §1.3a）：跨会话冻结快照注入系统提示词。 |
+| [agent/src/omni/memory/resident.py](../../agent/src/omni/memory/resident.py) | 381 | 常驻小记忆（Hermes MEMORY.md 式，NOTES §1.3a）：跨会话冻结快照注入系统提示词。 |
 | [agent/src/omni/memory/revisions.py](../../agent/src/omni/memory/revisions.py) | 241 | 内容修订历史（D08）：技能与常驻记忆的"可回滚快照"。 |
 | [agent/src/omni/memory/runs.py](../../agent/src/omni/memory/runs.py) | 388 | 运行记录（run）与事件流（`state.db`）：一次"问—想—做—答"的可查账本。 |
 | [agent/src/omni/memory/session_log.py](../../agent/src/omni/memory/session_log.py) | 409 | 会话全量记忆（M2）：对话 + 工具过程的完整流水（比 M1 多工具与系统边界事件）。 |
@@ -194,8 +196,8 @@
 | [agent/src/omni/memory/state_mixin_leases.py](../../agent/src/omni/memory/state_mixin_leases.py) | 121 | 资源租约域的 `state.db` 访问 mixin（会话/浏览器 profile 等互斥资源）。 |
 | [agent/src/omni/memory/state_mixin_ledger.py](../../agent/src/omni/memory/state_mixin_ledger.py) | 85 | 执行账本与写额度域的 `state.db` 访问 mixin。 |
 | [agent/src/omni/memory/state_records.py](../../agent/src/omni/memory/state_records.py) | 55 | state.db 各域仓储返回值的数据形状（唯一来源）。 |
-| [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1167 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
-| [agent/src/omni/memory/store_schema.py](../../agent/src/omni/memory/store_schema.py) | 155 | memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。 |
+| [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1371 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
+| [agent/src/omni/memory/store_schema.py](../../agent/src/omni/memory/store_schema.py) | 162 | memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。 |
 | [agent/src/omni/memory/system.py](../../agent/src/omni/memory/system.py) | 61 | 记忆系统门面：六个记忆模块对外的单点聚合（组合根纪律，无业务逻辑）。 |
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
 | [agent/src/omni/memory/vectors.py](../../agent/src/omni/memory/vectors.py) | 93 | sqlite-vec 派生索引。与事实同库；遗忘/纠错触发器只用普通 SQL，无扩展依赖。 |
@@ -687,12 +689,12 @@
 | [agent/src/omni/tools/personal/__init__.py](../../agent/src/omni/tools/personal/__init__.py) | 49 | 个人内置能力的注册入口：事实、档案、常驻、待办、摘要和整理。 |
 | [agent/src/omni/tools/personal/clock.py](../../agent/src/omni/tools/personal/clock.py) | 24 | 个人能力：clock；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/digest.py](../../agent/src/omni/tools/personal/digest.py) | 76 | 个人能力：digest；工具仅使用注入依赖，不构造运行时。 |
-| [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py) | 246 | 个人能力：facts；工具仅使用注入依赖，不构造运行时。 |
+| [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py) | 281 | 个人能力：facts；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/journal.py](../../agent/src/omni/tools/personal/journal.py) | 63 | 记忆系统工具（二）：日/周/月笔记的读取（M3/M4/M5）。 |
-| [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py) | 211 | 记忆系统工具（三）：核心人物记忆（M6）——查询、记住与临时事件。 |
-| [agent/src/omni/tools/personal/profile.py](../../agent/src/omni/tools/personal/profile.py) | 89 | 个人能力：profile；工具仅使用注入依赖，不构造运行时。 |
+| [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py) | 248 | 记忆系统工具（三）：核心人物记忆（M6）——查询、记住与临时事件。 |
+| [agent/src/omni/tools/personal/profile.py](../../agent/src/omni/tools/personal/profile.py) | 105 | 个人能力：profile；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/refine.py](../../agent/src/omni/tools/personal/refine.py) | 59 | 个人能力：refine；工具仅使用注入依赖，不构造运行时。 |
-| [agent/src/omni/tools/personal/resident.py](../../agent/src/omni/tools/personal/resident.py) | 64 | 个人能力：resident；工具仅使用注入依赖，不构造运行时。 |
+| [agent/src/omni/tools/personal/resident.py](../../agent/src/omni/tools/personal/resident.py) | 78 | 个人能力：resident；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/todos.py](../../agent/src/omni/tools/personal/todos.py) | 86 | 个人能力：todos；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/transcript.py](../../agent/src/omni/tools/personal/transcript.py) | 224 | 记忆系统工具（一）：全量记忆两个模块的检索与精确读取（M1/M2）。 |
 
