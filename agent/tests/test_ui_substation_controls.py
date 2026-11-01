@@ -12,7 +12,6 @@ from __future__ import annotations
 from urllib.parse import urlsplit
 
 import pytest
-from playwright.sync_api import sync_playwright
 from test_web import _client
 
 SUBSTATIONS = [
@@ -28,11 +27,10 @@ SUBSTATIONS = [
 
 
 @pytest.fixture
-def browser_page(tmp_path):
+def browser_page(tmp_path, ui_browser):
     client, runtime = _client(tmp_path)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
-        page = browser.new_page()
+    with ui_browser.new_context() as context:
+        page = context.new_page()
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
 
@@ -55,7 +53,6 @@ def browser_page(tmp_path):
             yield page, errors
         finally:
             page.close()
-            browser.close()
             assert runtime.close()["complete"]
             client.close()
 

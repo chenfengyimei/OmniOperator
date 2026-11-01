@@ -6,7 +6,7 @@
 - 每个页面（8 页）都必须先加载 tokens.css，再 base/icons/frame，最后页面专属层；
 - 工作台不得再回归内联 <style>（结构/视觉/壳段一律进 ui/workbench.css）；
 - 自产资源必须带 ?v= 版本串（缓存防错配）；
-- rail 的 4 个子站入口新标签打开（不能把工作台顶掉）；
+- rail 的工具入口在设置中心内打开对应分区（独立页只从卡片「整页打开 ↗」进）；
 - Material Icons 字体必须内联（离线可用）。
 """
 from __future__ import annotations
@@ -238,13 +238,46 @@ def test_hub_panel_stylesheet_versions_match_pages():
     assert checked >= 4, f"应至少核对 4 个面板样式入口，实际 {checked} 个"
 
 
-def test_rail_subpages_open_in_new_tab():
-    """rail 的 4 个子站入口有且只有一个，且新标签打开（不能把工作台顶掉）。"""
+RAIL_TOOL_ENTRIES = {
+    # rail 上的工具入口 → 设置中心分区 / 对应独立页
+    "open-project": ("sec-project", "project"),
+    "open-command-jobs": ("sec-jobs", "jobs"),
+    "open-mcp-services": ("sec-mcp-services", "mcp"),
+    "open-capabilities": ("sec-capabilities", "capabilities"),
+}
+
+
+def test_rail_tool_entries_open_hub_sections():
+    """rail 的工具入口必须「在设置中心内打开对应分区」，不能整页跳走。
+
+    产品口径：工具页都已在设置中心做成原生面板/内嵌页（终端、安卓、任务、MCP 服务、
+    能力诊断、项目索引、Agent 与文件），rail 点图标却 window.open 或 <a target=_blank>
+    整页跳走，会让用户以为「工具是另一个网站」。独立页保留给卡片右上角的
+    「整页打开 ↗」直达。
+    """
     html = INDEX.read_text(encoding="utf-8")
-    for link_id in ("open-project", "open-command-jobs", "open-mcp-services", "open-capabilities"):
+    for link_id, (section, page) in RAIL_TOOL_ENTRIES.items():
         lines = [ln for ln in html.splitlines() if f'id="{link_id}"' in ln]
         assert len(lines) == 1, f"rail 入口 {link_id} 必须且只能出现一次"
-        assert 'target="_blank"' in lines[0], f"rail 入口 {link_id} 必须新标签打开"
+        line = lines[0]
+        assert line.lstrip().startswith("<button"), f"rail 入口 {link_id} 必须是按钮（当前是整页链接）：{line.strip()}"
+        assert 'data-action="hub:open"' in line, f"rail 入口 {link_id} 必须打开设置中心：{line.strip()}"
+        assert f'data-section="{section}"' in line, f"rail 入口 {link_id} 必须指向 {section}"
+        assert 'href=' not in line, f"rail 入口 {link_id} 不能带 href（会整页跳走）：{line.strip()}"
+        assert f'id="{section}"' in html, f"设置中心缺少 {section} 分区，rail 入口会点空"
+        assert f'href="/{page}/"' in html, f"独立页 /{page}/ 失去界面入口（卡片里应有「整页打开」）"
+
+
+def test_rail_has_no_window_open_tool_escape():
+    """rail 模块不得再 window.open 子站——终端/安卓曾整页跳出工作台。
+
+    只看代码、剥掉 // 注释：注释里解释「此前是 window.open」不算违规。
+    """
+    source = (APP_DIR / "rail.js").read_text(encoding="utf-8")
+    code = "\n".join(line.split("//", 1)[0] for line in source.splitlines())
+    for page in ("/terminal/", "/android/"):
+        assert page not in code, f"rail.js 仍在打开 {page} 独立页（应改为 hub:open 分区）"
+    assert "window.open" not in code, "rail.js 不应再 window.open 任何独立页"
 
 
 def test_icons_css_embeds_material_font_offline():

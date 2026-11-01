@@ -1,22 +1,22 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261031m17';
-import {api} from './api.js?v=20261031m17';
-import {loadState} from './header.js?v=20261031m17';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue} from './hub-models.js?v=20261031m17';
-import {renderPersonaPresets} from './hub-persona.js?v=20261031m17';
-import {loadCron} from './hub-cron.js?v=20261031m17';
-import {loadUsage} from './hub-usage.js?v=20261031m17';
-import {loadMcp} from './hub-mcp.js?v=20261031m17';
-import {loadContext} from './hub-context.js?v=20261031m17';
-import {loadMemoryHub} from './hub-memory.js?v=20261031m17';
-import {loadSkillsHub} from './hub-skills.js?v=20261031m17';
-import {loadJobsHub} from './hub-jobs.js?v=20261031m17';
-import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261031m17';
-import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261031m17';
-import {loadProjectHub} from './hub-project.js?v=20261031m17';
-import {loadPluginsHub} from './hub-market.js?v=20261031m17';
+import {$,esc} from './dom.js?v=20261031m19';
+import {api} from './api.js?v=20261031m19';
+import {loadState} from './header.js?v=20261031m19';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue,getReasoningSlotValue,refreshModelSlots} from './hub-models.js?v=20261031m19';
+import {renderPersonaPresets} from './hub-persona.js?v=20261031m19';
+import {loadCron} from './hub-cron.js?v=20261031m19';
+import {loadUsage} from './hub-usage.js?v=20261031m19';
+import {loadMcp} from './hub-mcp.js?v=20261031m19';
+import {loadContext} from './hub-context.js?v=20261031m19';
+import {loadMemoryHub} from './hub-memory.js?v=20261031m19';
+import {loadSkillsHub} from './hub-skills.js?v=20261031m19';
+import {loadJobsHub} from './hub-jobs.js?v=20261031m19';
+import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261031m19';
+import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261031m19';
+import {loadProjectHub} from './hub-project.js?v=20261031m19';
+import {loadPluginsHub} from './hub-market.js?v=20261031m19';
 
 /* 分区加载器表：切到哪个分区要拉什么数据，在这里登记一处。
    逐条 if 散在 switchHub 里，分区一多就容易漏（漏了的表现是分区空白）。 */
@@ -172,7 +172,7 @@ async function loadHubConfig(){
   $('#cfg-persona-name').value=d.persona.name;
   $('#cfg-persona-prompt').value=d.persona.system_prompt;
   await loadEnvKeys();  // 先拿密钥状态：模型卡片才知道该显示"已配 / 还没填"
-  renderModelSlots(d.models);
+  renderModelSlots(d.models,d.reasoning);
   // 能力档位（D28）：默认档位与是否允许本回合升档
   if(d.mode_routing){
     $('#cfg-mode-default').value=d.mode_routing.default_mode||'auto';
@@ -226,7 +226,7 @@ async function saveBiliCookies() {
 // 每页独立保存：只提交本页涉及的配置段。
 const SAVE_SCOPES={
   persona:['persona'],
-  models:['models','mode_routing'],
+  models:['models','reasoning','mode_routing'],
   memory:['review','approval'],
   media:['asr'],
   browser:['browser'],
@@ -248,6 +248,12 @@ function collectHubUpdates(){
             chat_mode:getModelSlotValue('chat_mode'),
             retrieval_mode:getModelSlotValue('retrieval_mode'),
             agent_mode:getModelSlotValue('agent_mode')},
+    // 推理开关与强度（D30）：每档一套；auto = 不干预，沿用供应商默认
+    reasoning:{chat:getReasoningSlotValue('chat'),vision:getReasoningSlotValue('vision'),
+               review:getReasoningSlotValue('review'),router:getReasoningSlotValue('router'),
+               chat_mode:getReasoningSlotValue('chat_mode'),
+               retrieval_mode:getReasoningSlotValue('retrieval_mode'),
+               agent_mode:getReasoningSlotValue('agent_mode')},
     mode_routing:{default_mode:$('#cfg-mode-default').value,
                   allow_escalation:$('#cfg-mode-escalation').checked},
     review:{enabled:$('#cfg-review-enabled').checked,
@@ -274,7 +280,7 @@ function collectHubUpdates(){
 // 提交前先在本地拦住"一看就填错了"的情况，省一次 400 往返和无谓的困惑
 function hubPrecheck(updates){
   if(updates.persona&&!updates.persona.name)return '「它叫什么」不能空着';
-  if(updates.models&&!updates.models.chat)return '日常对话还没选模型';
+  if(updates.models&&!updates.models.chat)return '日常对话还没选模型：点「日常对话」那张卡，选一家供应商再选一个型号';
   if(updates.qq){
     if(!updates.qq.ws_url)return 'QQ 连接地址不能空着';
     if(updates.qq.reply_delay_s.length!==2)return '回复间隔要填两个数字，比如 1.0, 3.0';
@@ -305,7 +311,13 @@ async function saveHub(scope,btn) {
   try{
     await api('/api/system/config',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({updates})});
-    const extra='（重启相应入口后生效）';
+    // 保存成功就把模型面板按服务端的值重画一遍：界面上看到的必须等于文件里的。
+    // 以前只有一句"已保存"，页面还留着提交前的状态，重开一看像是没存上。
+    let pending=null;
+    if(keys&&(keys.includes('models')||keys.includes('reasoning'))){
+      try{const d=await refreshModelSlots();pending=d&&d.pending_restart}catch(e){pending=null}
+    }
+    const extra=pending===false?'（已生效）':'（重启相应入口后生效）';
     setHubMsg(scope,'✅ 已保存 '+new Date().toLocaleTimeString()+extra,'ok');
     loadState();
   }catch(e){
