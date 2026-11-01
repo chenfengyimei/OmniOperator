@@ -62,12 +62,12 @@
   ③ NapCat 行曾显示「已登录 3919708658 · 未启动」——uin 来自 `onebot11_<号>.json` 文件名，
   登录过一次就永远在磁盘上；现按 running 分三档（未登录 / 已登录 X / 上次登录 X）。
   这两处测试和日志都不会报，只能靠截图看。app 组 `?v=` 随之原子升到 `20261101m21`。
-- **测试总计**：专项 `test_system`(21) + `test_ui_hub_services`(5) + `test_ui_contract`(21) +
+- **测试总计**：专项 `test_system`(22) + `test_ui_hub_services`(5) + `test_ui_contract`(21) +
   `test_ui_hub_sections`(5) + `test_ui_design_tokens` 全绿；全量 `-n 4` →
-  **junit 记录 tests=1579 / failures=0 / errors=0 / skipped=0（182s）**。注意：命令退出码为 1
-  是环境侧批量删除守卫拦下了 pytest 临时目录清理（3931 个文件 > 阈值 50），**不是测试失败**，
-  以 junit 计数为准。**更正**：`5342bef` 的提交信息把用例数写错了（写"contract 18 项 /
-  hub_sections 8 项"，实际按 collect 是 21 / 5），结论不变但数字以此处为准。
+  **junit 记录 tests=1581 / failures=0 / errors=0 / skipped=0（210s，收尾改动后复跑）**。
+  注意：命令退出码为 1 是环境侧批量删除守卫拦下了 pytest 临时目录清理（3931 个文件 > 阈值 50），
+  **不是测试失败**，以 junit 计数为准。**更正**：`5342bef` 的提交信息把用例数写错了（写
+  "contract 18 项 / hub_sections 8 项"，实际按 collect 是 21 / 5），结论不变但数字以此处为准。
 
 2026-11-01 设置中心「模型选过又变没选」修复 + 思考开关（D30；后端已提交，前端留在工作区）：
 - **现场症状与三处根因**（详见 [MODEL_SETTINGS.md](MODEL_SETTINGS.md)）：① `GET /api/system/config`
