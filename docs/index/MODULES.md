@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`147cf538b00261e50bddefc9ac103b3961192bdfd45fc20600ffb6dbdc2e4029`。包含 57 个职责模块、299 个源码/界面文件。
+源码指纹：`c098d511eab844ffc74d84d33f0b4d71e62ea27f386c9216978e9163f7a08c6f`。包含 57 个职责模块、300 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -486,7 +486,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py) | 63 | 服务与诊断 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
+| [agent/src/omni/channels/web_api/operations.py](../../agent/src/omni/channels/web_api/operations.py) | 124 | 服务与诊断 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)
 
@@ -578,7 +578,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web_api/schemas.py](../../agent/src/omni/channels/web_api/schemas.py) | 196 | 工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。 |
+| [agent/src/omni/channels/web_api/schemas.py](../../agent/src/omni/channels/web_api/schemas.py) | 213 | 工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。 |
 
 文档：[docs/PROJECT_INDEX.md](../../docs/PROJECT_INDEX.md)
 
@@ -1018,11 +1018,12 @@
 | [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 231 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
 | [agent/src/omni/system/provenance.py](../../agent/src/omni/system/provenance.py) | 30 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
+| [agent/src/omni/system/service_overview.py](../../agent/src/omni/system/service_overview.py) | 105 | 把服务状态、守护记账与运行态快照拼成前端要的一份汇总。 |
 | [agent/src/omni/system/service_state.py](../../agent/src/omni/system/service_state.py) | 115 | 服务运行态快照：子进程写，工作台读。 |
-| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 640 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
+| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 666 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [agent/src/omni/system/soak.py](../../agent/src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [agent/src/omni/system/stderr_log.py](../../agent/src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
-| [agent/src/omni/system/supervisor.py](../../agent/src/omni/system/supervisor.py) | 370 | 服务守护：让常驻服务在 agent 运行期间保持在线。 |
+| [agent/src/omni/system/supervisor.py](../../agent/src/omni/system/supervisor.py) | 374 | 服务守护：让常驻服务在 agent 运行期间保持在线。 |
 
 文档：[docs/OPERATIONS.md](../../docs/OPERATIONS.md)、[docs/ACCEPTANCE.md](../../docs/ACCEPTANCE.md)
 

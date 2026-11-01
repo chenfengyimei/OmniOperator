@@ -317,6 +317,10 @@ class ServiceSupervisor:
             detected_uin=self._services.napcat_uin(),
         )
 
+    def refresh(self) -> dict[str, Any]:
+        """外部改了策略后立刻收一轮，不用等下一个间隔。"""
+        return self.reconcile_once()
+
     def keep_running_after_exit(self) -> bool:
         """关闭工作台时该不该连带停服务；取最近一轮热读到的策略（没有就用"继续跑"）。"""
         with self._mutex:

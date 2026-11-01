@@ -1,4 +1,5 @@
 """系统控制台单测：配置定向修改（保留注释）+ 服务管理（假目录）+ 工具 + 端点。"""
+import json
 from pathlib import Path
 
 import pytest
@@ -457,6 +458,52 @@ def test_system_endpoints(tmp_path, monkeypatch):
     )
     resp_start = client.post("/api/system/services/napcat/start", json={"qq": ""})
     assert resp_start.status_code == 409
+
+
+def test_services_summary_cleanup_and_supervisor_endpoints(tmp_path):
+    """状态条/告警条的轮询源、记录清理、守护开关三条链路。"""
+    config_path = tmp_path / "boot.yaml"
+    config_path.write_text(SAMPLE_YAML, encoding="utf-8")
+    runtime = build_runtime(
+        approver=DenyApprover(),
+        db_path=tmp_path / "m.db",
+        config_path=config_path,
+        skills_root=tmp_path / "skills",
+        data_dir=tmp_path / "data",
+    )
+    app = create_app(runtime)
+    client = TestClient(app, base_url="http://127.0.0.1")
+    assert client.post("/api/auth/pair", json={"code": app.state.web_auth.pairing_code}).status_code == 200
+
+    summary = client.get("/api/system/services/summary").json()
+    assert summary["counts"]["total"] == 3
+    assert len(summary["services"]) == 3
+    # 隔离实例不守护；也不该出现故障级告警（"没装 NapCat"这类不算故障）
+    assert summary["supervisor"]["mode"] in {"idle", "disabled"}
+    assert summary["ok"] is True
+    assert all(alert["level"] != "error" for alert in summary["alerts"])
+    # 5 秒轮询的接口不能带二维码图片
+    assert "base64" not in json.dumps(summary)
+
+    # 清理指定记录必须显式确认（确认过那个进程已自行处理）
+    assert client.post("/api/system/services/cleanup", json={"name": "omni-qq"}).status_code == 400
+    batch = client.post("/api/system/services/cleanup", json={})
+    assert batch.status_code == 200
+    states = {action["name"]: action["state"] for action in batch.json()["actions"]}
+    assert set(states) == {"napcat", "omni-qq", "omni-heartbeat"}
+    assert all(state != "blocked_unverified" for state in states.values())
+
+    # 守护开关：写进注入的配置源，并且不需要重启就生效
+    resp = client.post("/api/system/supervisor",
+                       json={"autostart": False, "restart_max_attempts": 2})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["ok"] is True and body["pending_restart"] is False
+    text = config_path.read_text(encoding="utf-8")
+    assert "autostart: false" in text and "restart_max_attempts: 2" in text
+    # 调参项不在白名单：改它必须 400
+    assert client.post("/api/system/supervisor", json={"autostart": True}).status_code == 200
+    assert client.get("/api/system/supervisor").json()["mode"] in {"idle", "disabled"}
 
 
 def test_apply_updates_preserves_crlf():

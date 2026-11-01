@@ -27,6 +27,23 @@ class ConfigUpdateIn(BaseModel):
     updates: dict[str, dict[str, Any]]
 
 
+class ServiceCleanupIn(BaseModel):
+    """清理不可核验的启动记录：只删记录，绝不结束进程。"""
+
+    name: str = ""
+    pid: int | None = None
+    confirm: bool = False  # 指定服务名时必须为真：用户确认过那个进程他自己处理
+
+
+class SupervisorPolicyIn(BaseModel):
+    """服务守护开关；缺省字段表示不改。"""
+
+    autostart: bool | None = None
+    keep_running_after_exit: bool | None = None
+    restart_max_attempts: int | None = Field(default=None, ge=0, le=50)
+    napcat_qq: str | None = None
+
+
 class ModelTestIn(BaseModel):
     model: str
 

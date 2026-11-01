@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "147cf538b00261e50bddefc9ac103b3961192bdfd45fc20600ffb6dbdc2e4029",
+  "source_sha256": "c098d511eab844ffc74d84d33f0b4d71e62ea27f386c9216978e9163f7a08c6f",
   "modules": [
     {
       "id": "agent-directories",
@@ -794,7 +794,7 @@
       "files": [
         "agent/src/omni/channels/web_api/operations.py"
       ],
-      "lines": 63,
+      "lines": 124,
       "dependencies": [
         "assembly",
         "http-contracts",
@@ -946,7 +946,7 @@
       "files": [
         "agent/src/omni/channels/web_api/schemas.py"
       ],
-      "lines": 196,
+      "lines": 213,
       "dependencies": []
     },
     {
@@ -1659,13 +1659,14 @@
         "agent/src/omni/system/process_identity.py",
         "agent/src/omni/system/provenance.py",
         "agent/src/omni/system/release_gate.py",
+        "agent/src/omni/system/service_overview.py",
         "agent/src/omni/system/service_state.py",
         "agent/src/omni/system/services.py",
         "agent/src/omni/system/soak.py",
         "agent/src/omni/system/stderr_log.py",
         "agent/src/omni/system/supervisor.py"
       ],
-      "lines": 3204,
+      "lines": 3339,
       "dependencies": [
         "agent-directories",
         "config"
@@ -4959,17 +4960,20 @@
       "path": "agent/src/omni/channels/web_api/operations.py",
       "module": "http-operations",
       "python_module": "omni.channels.web_api.operations",
-      "lines": 63,
+      "lines": 124,
       "imports": [
         "omni.bootstrap",
         "omni.channels.web_api.schemas",
         "omni.system.backup",
+        "omni.system.config_io",
+        "omni.system.filelock",
+        "omni.system.service_overview",
         "omni.system.services"
       ],
       "symbols": [
         {
           "name": "create_operations_router",
-          "line": 15,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -4980,28 +4984,84 @@
         },
         {
           "name": "create_operations_router.system_overview",
-          "line": 19,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_operations_router.system_doctor",
           "line": 23,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
-          "name": "create_operations_router.system_backup",
+          "name": "create_operations_router.system_services_summary",
           "line": 27,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
+          "name": "create_operations_router.system_service_restart",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "name",
+            "payload"
+          ],
+          "annotations": {
+            "name": "str",
+            "payload": "NapCatStartIn | None"
+          }
+        },
+        {
+          "name": "create_operations_router.system_services_cleanup",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "ServiceCleanupIn | None"
+          }
+        },
+        {
+          "name": "create_operations_router.system_supervisor",
+          "line": 59,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_operations_router.system_supervisor_save",
+          "line": 66,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "SupervisorPolicyIn"
+          }
+        },
+        {
+          "name": "create_operations_router._napcat_qq",
+          "line": 77,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_operations_router.system_doctor",
+          "line": 84,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_operations_router.system_backup",
+          "line": 88,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "create_operations_router.system_service_start",
-          "line": 35,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "name",
@@ -5014,7 +5074,7 @@
         },
         {
           "name": "create_operations_router.system_service_stop",
-          "line": 44,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "name"
@@ -5025,14 +5085,14 @@
         },
         {
           "name": "create_operations_router.system_napcat_qr",
-          "line": 51,
+          "line": 112,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_operations_router.system_logs",
-          "line": 55,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "name",
@@ -5045,7 +5105,7 @@
         },
         {
           "name": "create_operations_router.system_state",
-          "line": 59,
+          "line": 120,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -5203,7 +5263,7 @@
       "path": "agent/src/omni/channels/web_api/schemas.py",
       "module": "http-contracts",
       "python_module": "omni.channels.web_api.schemas",
-      "lines": 196,
+      "lines": 213,
       "imports": [],
       "symbols": [
         {
@@ -5227,133 +5287,143 @@
           "kind": "class"
         },
         {
-          "name": "ModelTestIn",
+          "name": "ServiceCleanupIn",
           "line": 30,
           "kind": "class"
         },
         {
-          "name": "MCPSchemaConfirmIn",
-          "line": 34,
-          "kind": "class"
-        },
-        {
-          "name": "BiliCookiesIn",
+          "name": "SupervisorPolicyIn",
           "line": 38,
           "kind": "class"
         },
         {
+          "name": "ModelTestIn",
+          "line": 47,
+          "kind": "class"
+        },
+        {
+          "name": "MCPSchemaConfirmIn",
+          "line": 51,
+          "kind": "class"
+        },
+        {
+          "name": "BiliCookiesIn",
+          "line": 55,
+          "kind": "class"
+        },
+        {
           "name": "CronNameIn",
-          "line": 44,
+          "line": 61,
           "kind": "class"
         },
         {
           "name": "CronToggleIn",
-          "line": 48,
-          "kind": "class"
-        },
-        {
-          "name": "CronCreateIn",
-          "line": 53,
-          "kind": "class"
-        },
-        {
-          "name": "CronUpdateIn",
           "line": 65,
           "kind": "class"
         },
         {
+          "name": "CronCreateIn",
+          "line": 70,
+          "kind": "class"
+        },
+        {
+          "name": "CronUpdateIn",
+          "line": 82,
+          "kind": "class"
+        },
+        {
           "name": "TodoToggleIn",
-          "line": 81,
+          "line": 98,
           "kind": "class"
         },
         {
           "name": "AndroidTapIn",
-          "line": 87,
+          "line": 104,
           "kind": "class"
         },
         {
           "name": "AndroidElementIn",
-          "line": 95,
+          "line": 112,
           "kind": "class"
         },
         {
           "name": "AndroidKeyIn",
-          "line": 100,
+          "line": 117,
           "kind": "class"
         },
         {
           "name": "ProfileLineIn",
-          "line": 105,
-          "kind": "class"
-        },
-        {
-          "name": "ProfileLineCreateIn",
-          "line": 110,
-          "kind": "class"
-        },
-        {
-          "name": "FactCreateIn",
-          "line": 116,
-          "kind": "class"
-        },
-        {
-          "name": "ResidentUpdateIn",
           "line": 122,
           "kind": "class"
         },
         {
-          "name": "PairIn",
-          "line": 128,
+          "name": "ProfileLineCreateIn",
+          "line": 127,
           "kind": "class"
         },
         {
-          "name": "SkillSaveIn",
-          "line": 132,
+          "name": "FactCreateIn",
+          "line": 133,
           "kind": "class"
         },
         {
-          "name": "SkillCreateIn",
+          "name": "ResidentUpdateIn",
           "line": 139,
           "kind": "class"
         },
         {
+          "name": "PairIn",
+          "line": 145,
+          "kind": "class"
+        },
+        {
+          "name": "SkillSaveIn",
+          "line": 149,
+          "kind": "class"
+        },
+        {
+          "name": "SkillCreateIn",
+          "line": 156,
+          "kind": "class"
+        },
+        {
           "name": "SkillArchiveIn",
-          "line": 147,
+          "line": 164,
           "kind": "class"
         },
         {
           "name": "SkillSettingsIn",
-          "line": 154,
+          "line": 171,
           "kind": "class"
         },
         {
           "name": "SkillRollbackIn",
-          "line": 161,
+          "line": 178,
           "kind": "class"
         },
         {
           "name": "SkillAckIn",
-          "line": 166,
+          "line": 183,
           "kind": "class"
         },
         {
           "name": "PersonCreateIn",
-          "line": 175,
+          "line": 192,
           "kind": "class"
         },
         {
           "name": "PersonUpdateIn",
-          "line": 181,
+          "line": 198,
           "kind": "class"
         },
         {
           "name": "AccountLinkIn",
-          "line": 187,
+          "line": 204,
           "kind": "class"
         },
         {
           "name": "PersonEntryIn",
-          "line": 193,
+          "line": 210,
           "kind": "class"
         }
       ],
@@ -21431,6 +21501,51 @@
       "summary": "校验真实证据与常驻结果；永不执行发布或代替用户批准。"
     },
     {
+      "path": "agent/src/omni/system/service_overview.py",
+      "module": "platform",
+      "python_module": "omni.system.service_overview",
+      "lines": 105,
+      "imports": [
+        "omni.system.services",
+        "omni.system.supervisor"
+      ],
+      "symbols": [
+        {
+          "name": "service_summary",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "services",
+            "supervisor",
+            "now"
+          ],
+          "annotations": {
+            "services": "ServiceManager",
+            "supervisor": "ServiceSupervisor | None",
+            "now": "float | None"
+          }
+        },
+        {
+          "name": "_alerts",
+          "line": 62,
+          "kind": "function",
+          "parameters": [
+            "rows",
+            "snap",
+            "napcat",
+            "now"
+          ],
+          "annotations": {
+            "rows": "list[dict[str, Any]]",
+            "snap": "dict[str, Any]",
+            "napcat": "dict[str, Any]",
+            "now": "float"
+          }
+        }
+      ],
+      "summary": "把服务状态、守护记账与运行态快照拼成前端要的一份汇总。"
+    },
+    {
       "path": "agent/src/omni/system/service_state.py",
       "module": "platform",
       "python_module": "omni.system.service_state",
@@ -21516,7 +21631,7 @@
       "path": "agent/src/omni/system/services.py",
       "module": "platform",
       "python_module": "omni.system.services",
-      "lines": 640,
+      "lines": 666,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -21704,7 +21819,7 @@
           "annotations": {}
         },
         {
-          "name": "ServiceManager.napcat_qr",
+          "name": "ServiceManager.napcat_status",
           "line": 255,
           "kind": "function",
           "parameters": [
@@ -21713,8 +21828,17 @@
           "annotations": {}
         },
         {
+          "name": "ServiceManager.napcat_qr",
+          "line": 262,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "ServiceManager._napcat_uin",
-          "line": 275,
+          "line": 282,
           "kind": "function",
           "parameters": [
             "self"
@@ -21723,7 +21847,7 @@
         },
         {
           "name": "ServiceManager.napcat_uin",
-          "line": 285,
+          "line": 292,
           "kind": "function",
           "parameters": [
             "self"
@@ -21732,7 +21856,7 @@
         },
         {
           "name": "ServiceManager._omni_argv",
-          "line": 291,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self",
@@ -21744,7 +21868,7 @@
         },
         {
           "name": "ServiceManager.omni_start",
-          "line": 297,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -21756,7 +21880,7 @@
         },
         {
           "name": "ServiceManager.omni_stop",
-          "line": 305,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "self",
@@ -21768,7 +21892,7 @@
         },
         {
           "name": "ServiceManager._omni_pid",
-          "line": 308,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -21780,7 +21904,7 @@
         },
         {
           "name": "ServiceManager.status",
-          "line": 316,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -21792,7 +21916,7 @@
         },
         {
           "name": "ServiceManager._launch_id",
-          "line": 335,
+          "line": 342,
           "kind": "function",
           "parameters": [
             "self",
@@ -21804,7 +21928,7 @@
         },
         {
           "name": "ServiceManager._live_state",
-          "line": 339,
+          "line": 346,
           "kind": "function",
           "parameters": [
             "self",
@@ -21818,7 +21942,7 @@
         },
         {
           "name": "ServiceManager.overview",
-          "line": 349,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "self"
@@ -21827,7 +21951,7 @@
         },
         {
           "name": "ServiceManager.start",
-          "line": 360,
+          "line": 367,
           "kind": "function",
           "parameters": [
             "self",
@@ -21841,7 +21965,7 @@
         },
         {
           "name": "ServiceManager.stop",
-          "line": 374,
+          "line": 381,
           "kind": "function",
           "parameters": [
             "self",
@@ -21853,7 +21977,7 @@
         },
         {
           "name": "ServiceManager.request_stop",
-          "line": 379,
+          "line": 386,
           "kind": "function",
           "parameters": [
             "self",
@@ -21867,7 +21991,7 @@
         },
         {
           "name": "ServiceManager.log_tail",
-          "line": 398,
+          "line": 405,
           "kind": "function",
           "parameters": [
             "self",
@@ -21881,7 +22005,7 @@
         },
         {
           "name": "ServiceManager._pid_path",
-          "line": 413,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "self",
@@ -21893,7 +22017,7 @@
         },
         {
           "name": "ServiceManager._read_pid",
-          "line": 417,
+          "line": 424,
           "kind": "function",
           "parameters": [
             "self",
@@ -21905,7 +22029,7 @@
         },
         {
           "name": "ServiceManager._validate_name",
-          "line": 427,
+          "line": 434,
           "kind": "function",
           "parameters": [
             "name"
@@ -21916,7 +22040,7 @@
         },
         {
           "name": "ServiceManager._lock",
-          "line": 431,
+          "line": 438,
           "kind": "function",
           "parameters": [
             "self",
@@ -21928,7 +22052,7 @@
         },
         {
           "name": "ServiceManager._read_record",
-          "line": 434,
+          "line": 441,
           "kind": "function",
           "parameters": [
             "self",
@@ -21940,7 +22064,7 @@
         },
         {
           "name": "ServiceManager._record_identity",
-          "line": 448,
+          "line": 455,
           "kind": "function",
           "parameters": [
             "record"
@@ -21951,7 +22075,7 @@
         },
         {
           "name": "ServiceManager._write_pid",
-          "line": 461,
+          "line": 468,
           "kind": "function",
           "parameters": [
             "self",
@@ -21965,7 +22089,7 @@
         },
         {
           "name": "ServiceManager._classify",
-          "line": 482,
+          "line": 489,
           "kind": "function",
           "parameters": [
             "self",
@@ -21977,7 +22101,7 @@
         },
         {
           "name": "ServiceManager.reconcile",
-          "line": 510,
+          "line": 517,
           "kind": "function",
           "parameters": [
             "self",
@@ -21989,18 +22113,6 @@
         },
         {
           "name": "ServiceManager._legacy_pid",
-          "line": 543,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ServiceManager._quarantine",
           "line": 550,
           "kind": "function",
           "parameters": [
@@ -22012,7 +22124,7 @@
           }
         },
         {
-          "name": "ServiceManager._check_start",
+          "name": "ServiceManager._quarantine",
           "line": 557,
           "kind": "function",
           "parameters": [
@@ -22024,8 +22136,34 @@
           }
         },
         {
-          "name": "ServiceManager._stop_verified",
+          "name": "ServiceManager.drop_record",
           "line": 564,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "confirm"
+          ],
+          "annotations": {
+            "name": "str",
+            "confirm": "bool"
+          }
+        },
+        {
+          "name": "ServiceManager._check_start",
+          "line": 583,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager._stop_verified",
+          "line": 590,
           "kind": "function",
           "parameters": [
             "self",
@@ -22039,7 +22177,7 @@
         },
         {
           "name": "ServiceManager.stop_requested",
-          "line": 605,
+          "line": 631,
           "kind": "function",
           "parameters": [
             "self",
@@ -22053,7 +22191,7 @@
         },
         {
           "name": "ServiceManager.register_current",
-          "line": 611,
+          "line": 637,
           "kind": "function",
           "parameters": [
             "self",
@@ -22065,7 +22203,7 @@
         },
         {
           "name": "ServiceManager.unregister_current",
-          "line": 627,
+          "line": 653,
           "kind": "function",
           "parameters": [
             "self",
@@ -22079,7 +22217,7 @@
         },
         {
           "name": "ServiceManager._clear_pid",
-          "line": 631,
+          "line": 657,
           "kind": "function",
           "parameters": [
             "self",
@@ -22340,7 +22478,7 @@
       "path": "agent/src/omni/system/supervisor.py",
       "module": "platform",
       "python_module": "omni.system.supervisor",
-      "lines": 370,
+      "lines": 374,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -22520,7 +22658,7 @@
           "annotations": {}
         },
         {
-          "name": "ServiceSupervisor.keep_running_after_exit",
+          "name": "ServiceSupervisor.refresh",
           "line": 320,
           "kind": "function",
           "parameters": [
@@ -22529,8 +22667,17 @@
           "annotations": {}
         },
         {
+          "name": "ServiceSupervisor.keep_running_after_exit",
+          "line": 324,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "ServiceSupervisor.snapshot",
-          "line": 327,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "self"
@@ -22539,7 +22686,7 @@
         },
         {
           "name": "ServiceSupervisor._alert_for",
-          "line": 344,
+          "line": 348,
           "kind": "function",
           "parameters": [
             "self",
@@ -22555,7 +22702,7 @@
         },
         {
           "name": "ServiceSupervisor._persist",
-          "line": 356,
+          "line": 360,
           "kind": "function",
           "parameters": [
             "self"
@@ -32654,7 +32801,7 @@
       "method": "POST",
       "path": "/api/system/backup",
       "source": "agent/src/omni/channels/web_api/operations.py",
-      "line": 27,
+      "line": 88,
       "handler": "create_operations_router.system_backup",
       "module": "http-operations",
       "parameters": [],
@@ -32844,7 +32991,7 @@
       "method": "GET",
       "path": "/api/system/doctor",
       "source": "agent/src/omni/channels/web_api/operations.py",
-      "line": 23,
+      "line": 84,
       "handler": "create_operations_router.system_doctor",
       "module": "http-operations",
       "parameters": [],
@@ -32855,7 +33002,7 @@
       "method": "GET",
       "path": "/api/system/logs/{name}",
       "source": "agent/src/omni/channels/web_api/operations.py",
-      "line": 55,
+      "line": 116,
       "handler": "create_operations_router.system_logs",
       "module": "http-operations",
       "parameters": [
@@ -32913,7 +33060,7 @@
       "method": "GET",
       "path": "/api/system/napcat/qr",
       "source": "agent/src/omni/channels/web_api/operations.py",
-      "line": 51,
+      "line": 112,
       "handler": "create_operations_router.system_napcat_qr",
       "module": "http-operations",
       "parameters": [],
@@ -32924,7 +33071,7 @@
       "method": "GET",
       "path": "/api/system/overview",
       "source": "agent/src/omni/channels/web_api/operations.py",
-      "line": 19,
+      "line": 23,
       "handler": "create_operations_router.system_overview",
       "module": "http-operations",
       "parameters": [],
@@ -32955,9 +33102,52 @@
     },
     {
       "method": "POST",
+      "path": "/api/system/services/cleanup",
+      "source": "agent/src/omni/channels/web_api/operations.py",
+      "line": 45,
+      "handler": "create_operations_router.system_services_cleanup",
+      "module": "http-operations",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "ServiceCleanupIn | None"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/services/summary",
+      "source": "agent/src/omni/channels/web_api/operations.py",
+      "line": 27,
+      "handler": "create_operations_router.system_services_summary",
+      "module": "http-operations",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/system/services/{name}/restart",
+      "source": "agent/src/omni/channels/web_api/operations.py",
+      "line": 32,
+      "handler": "create_operations_router.system_service_restart",
+      "module": "http-operations",
+      "parameters": [
+        "name",
+        "payload"
+      ],
+      "annotations": {
+        "name": "str",
+        "payload": "NapCatStartIn | None"
+      },
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
       "path": "/api/system/services/{name}/start",
       "source": "agent/src/omni/channels/web_api/operations.py",
-      "line": 35,
+      "line": 96,
       "handler": "create_operations_router.system_service_start",
       "module": "http-operations",
       "parameters": [
@@ -32974,7 +33164,7 @@
       "method": "POST",
       "path": "/api/system/services/{name}/stop",
       "source": "agent/src/omni/channels/web_api/operations.py",
-      "line": 44,
+      "line": 105,
       "handler": "create_operations_router.system_service_stop",
       "module": "http-operations",
       "parameters": [
@@ -32989,11 +33179,37 @@
       "method": "GET",
       "path": "/api/system/state",
       "source": "agent/src/omni/channels/web_api/operations.py",
-      "line": 59,
+      "line": 120,
       "handler": "create_operations_router.system_state",
       "module": "http-operations",
       "parameters": [],
       "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/supervisor",
+      "source": "agent/src/omni/channels/web_api/operations.py",
+      "line": 59,
+      "handler": "create_operations_router.system_supervisor",
+      "module": "http-operations",
+      "parameters": [],
+      "annotations": {},
+      "scope": "workbench"
+    },
+    {
+      "method": "POST",
+      "path": "/api/system/supervisor",
+      "source": "agent/src/omni/channels/web_api/operations.py",
+      "line": 66,
+      "handler": "create_operations_router.system_supervisor_save",
+      "module": "http-operations",
+      "parameters": [
+        "payload"
+      ],
+      "annotations": {
+        "payload": "SupervisorPolicyIn"
+      },
       "scope": "workbench"
     },
     {
@@ -34402,9 +34618,58 @@
       ]
     },
     {
-      "name": "ModelTestIn",
+      "name": "ServiceCleanupIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
       "line": 30,
+      "fields": [
+        {
+          "name": "name",
+          "type": "str",
+          "required": false
+        },
+        {
+          "name": "pid",
+          "type": "int | None",
+          "required": false
+        },
+        {
+          "name": "confirm",
+          "type": "bool",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "SupervisorPolicyIn",
+      "source": "agent/src/omni/channels/web_api/schemas.py",
+      "line": 38,
+      "fields": [
+        {
+          "name": "autostart",
+          "type": "bool | None",
+          "required": false
+        },
+        {
+          "name": "keep_running_after_exit",
+          "type": "bool | None",
+          "required": false
+        },
+        {
+          "name": "restart_max_attempts",
+          "type": "int | None",
+          "required": false
+        },
+        {
+          "name": "napcat_qq",
+          "type": "str | None",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "ModelTestIn",
+      "source": "agent/src/omni/channels/web_api/schemas.py",
+      "line": 47,
       "fields": [
         {
           "name": "model",
@@ -34416,7 +34681,7 @@
     {
       "name": "MCPSchemaConfirmIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 34,
+      "line": 51,
       "fields": [
         {
           "name": "fingerprint",
@@ -34428,7 +34693,7 @@
     {
       "name": "BiliCookiesIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 38,
+      "line": 55,
       "fields": [
         {
           "name": "sessdata",
@@ -34450,7 +34715,7 @@
     {
       "name": "CronNameIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 44,
+      "line": 61,
       "fields": [
         {
           "name": "name",
@@ -34462,7 +34727,7 @@
     {
       "name": "CronToggleIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 48,
+      "line": 65,
       "fields": [
         {
           "name": "name",
@@ -34479,7 +34744,7 @@
     {
       "name": "CronCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 53,
+      "line": 70,
       "fields": [
         {
           "name": "name",
@@ -34531,7 +34796,7 @@
     {
       "name": "CronUpdateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 65,
+      "line": 82,
       "fields": [
         {
           "name": "name",
@@ -34593,7 +34858,7 @@
     {
       "name": "TodoToggleIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 81,
+      "line": 98,
       "fields": [
         {
           "name": "session_id",
@@ -34615,7 +34880,7 @@
     {
       "name": "AndroidTapIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 87,
+      "line": 104,
       "fields": [
         {
           "name": "x",
@@ -34647,7 +34912,7 @@
     {
       "name": "AndroidElementIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 95,
+      "line": 112,
       "fields": [
         {
           "name": "idx",
@@ -34664,7 +34929,7 @@
     {
       "name": "AndroidKeyIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 100,
+      "line": 117,
       "fields": [
         {
           "name": "keycode",
@@ -34681,7 +34946,7 @@
     {
       "name": "ProfileLineIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 105,
+      "line": 122,
       "fields": [
         {
           "name": "line_id",
@@ -34698,7 +34963,7 @@
     {
       "name": "ProfileLineCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 110,
+      "line": 127,
       "fields": [
         {
           "name": "content",
@@ -34710,7 +34975,7 @@
     {
       "name": "FactCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 116,
+      "line": 133,
       "fields": [
         {
           "name": "content",
@@ -34722,7 +34987,7 @@
     {
       "name": "ResidentUpdateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 122,
+      "line": 139,
       "fields": [
         {
           "name": "operation",
@@ -34744,7 +35009,7 @@
     {
       "name": "PairIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 128,
+      "line": 145,
       "fields": [
         {
           "name": "code",
@@ -34756,7 +35021,7 @@
     {
       "name": "SkillSaveIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 132,
+      "line": 149,
       "fields": [
         {
           "name": "content",
@@ -34773,7 +35038,7 @@
     {
       "name": "SkillCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 139,
+      "line": 156,
       "fields": [
         {
           "name": "name",
@@ -34795,7 +35060,7 @@
     {
       "name": "SkillArchiveIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 147,
+      "line": 164,
       "fields": [
         {
           "name": "expected_hash",
@@ -34812,7 +35077,7 @@
     {
       "name": "SkillSettingsIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 154,
+      "line": 171,
       "fields": [
         {
           "name": "revision",
@@ -34829,7 +35094,7 @@
     {
       "name": "SkillRollbackIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 161,
+      "line": 178,
       "fields": [
         {
           "name": "rev",
@@ -34846,7 +35111,7 @@
     {
       "name": "SkillAckIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 166,
+      "line": 183,
       "fields": [
         {
           "name": "rev",
@@ -34858,7 +35123,7 @@
     {
       "name": "PersonCreateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 175,
+      "line": 192,
       "fields": [
         {
           "name": "name",
@@ -34880,7 +35145,7 @@
     {
       "name": "PersonUpdateIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 181,
+      "line": 198,
       "fields": [
         {
           "name": "name",
@@ -34902,7 +35167,7 @@
     {
       "name": "AccountLinkIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 187,
+      "line": 204,
       "fields": [
         {
           "name": "channel",
@@ -34924,7 +35189,7 @@
     {
       "name": "PersonEntryIn",
       "source": "agent/src/omni/channels/web_api/schemas.py",
-      "line": 193,
+      "line": 210,
       "fields": [
         {
           "name": "entry_kind",

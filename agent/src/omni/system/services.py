@@ -252,11 +252,18 @@ class ServiceManager:
     def napcat_stop(self) -> dict[str, Any]:
         return self._stop_verified("napcat")
 
+    def napcat_status(self) -> dict[str, Any]:
+        """登录态摘要（不含二维码图片）：状态条每次轮询都要它，不能带 base64。"""
+        uin = self._napcat_uin()
+        return {"installed": self.napcat_dir is not None,
+                "logged_in": bool(uin) and self._tcp_probe(self._ws_port),
+                "uin": uin}
+
     def napcat_qr(self) -> dict[str, Any]:
         """扫码登录所需：二维码图片（base64）+ 登录状态。"""
-        logged_in = bool(self._napcat_uin()) and self._tcp_probe(self._ws_port)
-        payload: dict[str, Any] = {"logged_in": logged_in, "available": False,
-                                   "image": "", "uin": self._napcat_uin()}
+        summary = self.napcat_status()
+        payload: dict[str, Any] = {"logged_in": summary["logged_in"], "available": False,
+                                   "image": "", "uin": summary["uin"]}
         napcat_dir = self.napcat_dir
         if napcat_dir is None:
             return payload
@@ -553,6 +560,25 @@ class ServiceManager:
         target = target_dir / f"{name}.pid.{int(time.time() * 1000)}.txt"
         self._pid_path(name).replace(target)
         return target
+
+    def drop_record(self, name: str, *, confirm: bool = False) -> dict[str, Any]:
+        """删掉启动记录文件（不碰进程）。
+
+        只给"那个旧进程我已经自己处理了"这种人工确认过的场景用：记录不可核验时
+        我们既不能拿它停止（可能误杀），也不该让它永远堵住启动。
+        """
+        self._validate_name(name)
+        if not confirm:
+            raise ServiceError("删除启动记录需要显式确认（confirm=true）")
+        verdict = self._classify(name)
+        if verdict["state"] == "verified":
+            raise ServiceError(f"{name} 的启动记录可信（进程在运行），拒绝删除；请先正常停止")
+        with self._lock(name):
+            path = self._pid_path(name)
+            existed = path.exists()
+            path.unlink(missing_ok=True)
+        return {"name": name, "state": "dropped", "pid": verdict["pid"], "existed": existed,
+                "detail": "启动记录已删除；未结束任何进程"}
 
     def _check_start(self, name: str) -> None:
         pid = self._read_pid(name)
