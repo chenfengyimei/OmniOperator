@@ -54,7 +54,8 @@
 - **测试**：新 `agent/tests/test_surfcore_lessons.py` **45 项全绿**（人格保存契约 / 记忆隐私闸门 /
   主动发言闸门 / 分层守卫 / 单一真源回归，全离线：不联网、不碰真实账号与真实目录、不调模型）；
   回归 `test_arch`/`test_system`/`test_config`/`test_qq`/`test_qq_scope`/`test_outbox`/
-  `test_memory_tools`/`test_cron` **154 项全绿**；全量 **1827 passed / 0 failed**（提交时点数）。
+  `test_memory_tools`/`test_cron` **154 项全绿**；全量 **1827 passed / 0 failed**（工作区全量，
+  含并行会话在途改动）；**隔离树**（只含本批提交态、不含并行会话改动）**1750 passed / 0 failed**。
   另外**修了两个既有测试的样本**：`test_system.py` 的两条 multiline 用例原本用人格样本
   「新一」「只有一行」（4~5 字），撞上新的最小长度闸门——它们测的是 YAML 多行块机制不是人格契约，
   把样本改成长文本，断言意图不变。
