@@ -300,6 +300,10 @@ function collectHubUpdates(){
 // 提交前先在本地拦住"一看就填错了"的情况，省一次 400 往返和无谓的困惑
 function hubPrecheck(updates){
   if(updates.persona&&!updates.persona.name)return '「它叫什么」不能空着';
+  // 服务端也拦（system/persona_rules.py），这里只是提前说清楚，省一次报错往返。
+  if(updates.persona&&Array.isArray(updates.persona.system_prompt)
+     &&!updates.persona.system_prompt.join('\n').trim())
+    return '人格正文不能是空的：想换回默认人设，请把默认内容贴回去再保存';
   if(updates.models&&!updates.models.chat)return '日常对话还没选模型：点「日常对话」那张卡，选一家供应商再选一个型号';
   if(updates.qq){
     if(!updates.qq.ws_url)return 'QQ 连接地址不能空着';

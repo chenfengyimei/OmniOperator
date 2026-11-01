@@ -113,21 +113,25 @@ def test_apply_updates_multiline_does_not_duplicate_key():
     """多行块替换曾把 `key: |` 写两遍——每保存一次人设就多一行空块。
 
     判据：替换后 YAML 只有一处 system_prompt，且二次保存字节不变。
+    正文样本要够长：人格保存契约要求正文 ≥20 字（见 system/persona_rules.py），
+    这里测的是 YAML 多行块机制，正文内容只是载体。
     """
     src = "persona:\n  name: x\n  system_prompt: |\n    旧一\n    旧二\n\nmodels:\n  chat: a\n"
-    once = apply_updates(src, {"persona": {"system_prompt": ["新一", "新二"]}})
+    new_lines = ["新一行这里换成了新的人格正文第一行", "新二行这里换成了新的人格正文第二行"]
+    once = apply_updates(src, {"persona": {"system_prompt": new_lines}})
     yaml.safe_load(once)  # 必须仍是合法 YAML（重复键会让结构悄悄变形）
     assert once.count("system_prompt:") == 1
-    assert "新一" in once and "旧一" not in once
-    assert apply_updates(once, {"persona": {"system_prompt": ["新一", "新二"]}}) == once
+    assert "新一行这里换成了新的人格正文第一行" in once and "旧一" not in once
+    assert apply_updates(once, {"persona": {"system_prompt": new_lines}}) == once
 
 
 def test_apply_updates_multiline_appends_when_block_missing():
     """多行块不存在时不能静默丢内容，要补一块。"""
-    out = apply_updates(SAMPLE_YAML, {"persona": {"system_prompt": ["只有一行"]}})
+    body = "只有一行但这一行的字数足够通过人格保存契约的门槛"
+    out = apply_updates(SAMPLE_YAML, {"persona": {"system_prompt": [body]}})
     assert "persona:" in out and "system_prompt: |" in out
-    assert "    只有一行" in out
-    assert yaml.safe_load(out)["persona"]["system_prompt"].strip() == "只有一行"
+    assert f"    {body}" in out
+    assert yaml.safe_load(out)["persona"]["system_prompt"].strip() == body
 
 
 def test_safe_write_atomic(tmp_path):

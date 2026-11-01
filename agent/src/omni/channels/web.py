@@ -266,6 +266,13 @@ def create_app(runtime: Runtime) -> FastAPI:
         # 拿来比较会永远显示"待重启"。
         watched = ("models", "reasoning", "mode_routing", "review", "approval", "asr", "qq", "browser")
         pending = any(getattr(fresh, name) != getattr(runtime.config, name) for name in watched)
+        # 人格单独比：只有 system_prompt 进提示词，改了要重启才生效。
+        # name 只用于显示（CLI 标题、会话元数据），而且 bootstrap 会用目录
+        # profile 覆盖它——整段比较会让非默认 profile 永远误报"待重启"。
+        # 以前 persona 不在比较范围里，改完人格前端显示"已生效"，
+        # 但运行中的 Agent 用的还是启动时的快照——用户以为改了，其实没改。
+        if fresh.persona.system_prompt != runtime.config.persona.system_prompt:
+            pending = True
         return fresh, pending
 
     @app.get("/api/system/config")

@@ -5,20 +5,23 @@
 漏掉（A15 就是 `profile_edit` 没重算总额度）。所以校验收口到 `MemoryGuard`：
 
 1. **输入检查**：空内容、NUL、超长（事实/档案/技能各自的长度上限）；
-2. **遗忘检查**：用户说过"不要记"的内容，任何入口都不能再写回来；
-3. **共用额度**：事实 + 档案 + 技能共用一个当日额度（`state.db` 的条件更新），
+2. **隐私检查**：凭据形态的确定性正则（私钥/API key/Cookie/密码赋值…）——
+   提示词里的"不要记密钥"只是概率约束，长期记忆会进每轮提示词，这层必须是硬约束；
+3. **遗忘检查**：用户说过"不要记"的内容，任何入口都不能再写回来；
+4. **共用额度**：事实 + 档案 + 技能共用一个当日额度（`state.db` 的条件更新），
    review 和用户手动操作抢的是同一份；
-4. **fail-closed**：额度状态不可用（损坏/只读/库忙）时拒绝写入，绝不把
+5. **fail-closed**：额度状态不可用（损坏/只读/库忙）时拒绝写入，绝不把
    "读不出来"当成"还没用过"。
 
-注意边界：这一层只保证"写多少、能不能写"，**不判断内容对不对**，也不改任何权限。
-正则不是提示词注入防御——权限由工具风险等级与审批器用代码约束。
+注意边界：这一层保证"写多少、能不能写、能不能写凭据"，**不判断内容对不对**，
+也不改任何权限。正则不是提示词注入防御——权限由工具风险等级与审批器用代码约束。
 """
 from __future__ import annotations
 
 import datetime as dt
 from dataclasses import dataclass
 
+from .privacy import rejection_reason as privacy_rejection_reason
 from .state import StateBusy, StateStore, StateUnavailable
 from .store import PROFILE_MAX_CHARS, MemoryStore
 
@@ -65,7 +68,7 @@ class MemoryGuard:
     def check(
         self, kind: str, text: str, *, store: MemoryStore | None = None
     ) -> WriteDecision:
-        """按 输入 → 遗忘 → 额度 的顺序判定；被拒的写入**不消耗额度**。"""
+        """按 输入 → 隐私 → 遗忘 → 额度 的顺序判定；被拒的写入**不消耗额度**。"""
         body = str(text or "").strip()
         if not body:
             return WriteDecision(False, "内容为空：没有写入任何东西")
@@ -78,6 +81,11 @@ class MemoryGuard:
                 f"内容太长（{len(body)} 字符，上限 {limit_chars}）："
                 "请压缩成一句话再写，不要把整段对话塞进记忆",
             )
+        # 隐私闸门：凭据形态的确定性正则（提示词里的"不要记密钥"只是概率约束，
+        # 这层才是硬约束）。拦在额度之前——被拒的写入不消耗当日额度。
+        reason = privacy_rejection_reason(body)
+        if reason:
+            return WriteDecision(False, reason)
         if kind == KIND_FACT and store is not None and store.is_forgotten(body):
             return WriteDecision(
                 False,
