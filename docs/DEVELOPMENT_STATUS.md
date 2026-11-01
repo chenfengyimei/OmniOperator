@@ -1,5 +1,59 @@
 # 开发状态记录
 
+2026-11-01 常驻服务默认启动并持续运行（D31，8 个提交，本轮唯一一批动到服务生命周期的改动）：
+- **用户原话**：「左下角那个服务，为什么还要手动启动，心跳调度、QQ 通道等这些不应该就是默认
+  启动并且一直持续运行的吗……服务界面只留最简单的比如用户扫码登录等操作」。
+- **根因（不是缺功能，是缺"监护人"）**：`bootstrap.py` 只构造 `ServiceManager` 就返回，进程内
+  没有任何一处会去拉起 `omni-heartbeat` / `omni-qq` / NapCat；唯一启动入口是 HTTP 的
+  `POST /api/system/services/{name}/start`，也就是**必须有人点一下**。而 `ServiceManager`
+  自己的 docstring 就写着"不守护、不重启"，它的角色只是子进程的启动器。
+- **新增 `system/supervisor.py`**：`Policy.from_config()` 每轮热读配置推导**期望状态**
+  （`system.autostart` 关掉就整体不拉起；`qq.enabled=false` 时 `omni-qq` 期望必须是 stopped，
+  否则会出现"起来→自己退出→被拉起"的死循环）；`reconcile_once()` 串行化比对实际与期望，
+  缺就起；异常退出按 `min(5 * 2^(n-1), cap)` **指数退避**并在 `restart_max_attempts` 次后放弃
+  （放弃后记 `restart_given_up`，界面能看到原因，不会静默永不重试）；连续稳定跑满
+  `STABLE_RESET_S=300s` 才把 attempts 清零——否则"崩溃→重启→5 分钟内再崩"会被当成健康。
+  单实例用 `run/supervisor.lock`（`FileLock`）守护，抢不到锁的进程进入 `standby` 而不是
+  再起一套服务，`snapshot()` 把 mode/holder 暴露给界面。
+- **工作台生命周期接入**（`channels/web.py` lifespan）：启动即 `supervisor.start()`（异常只打印
+  不打挂工作台——服务起不来不该让人连界面都进不去）；关闭时 `stop(stop_services=not
+  keep_running_after_exit)`，默认**工作台退出后服务继续跑**（用户选定），可在设置中心切回
+  "随工作台停止"。为压进 10s 关闭预算新增 `request_stop()`：omni-* 只写 `.stop` 文件即返回，
+  由子进程自己的循环看到后退出，不再同步等进程结束。
+- **旧裸 PID 记录收敛**（`reconcile()` + `_classify()` 六态）：历史 `data/run/*.pid` 里存的是
+  裸 PID，PID 复用会指到无关进程。现在只在"pid + 创建时间 + 可执行文件"三者都对得上时才认
+  （`ProcessIdentity` 核验），死进程与复用记录自动清理，活着的但核验不过的**只标记
+  `blocked_unverified` 不接管也不杀**——宁可让人看一条"有东西占着记录"，也不误杀别人的进程。
+  `start()` 前先 reconcile，遇到 `blocked_unverified` 直接报错并提示人工确认后 `drop_record()`。
+- **"在跑"与"在干活"分开**：新增 `system/service_state.py`（子进程自报 `data/run/<name>.state.json`：
+  `seq` 自增 + `atomic_write_text`），心跳每 tick 报 `ticks/fired_total/jobs`，QQ 通道报
+  `received/handled/dropped/connected`；读侧 `read_state()` **永不抛异常**（原因码
+  `missing/corrupt/launch_mismatch/stale/ok`）。工作台据此判"进程在但没响应"（`heartbeat_stale`），
+  不用再靠猜。`launch_id` 不符即视为上一代进程的残留，不会被当成本代数据。
+- **统计与运维入设置中心**（`system/service_overview.py` 纯聚合 + 4 个新端点）：`GET
+  /api/system/services/summary`（counts/services/alerts/supervisor/napcat）、`POST .../{name}/restart`、
+  `POST .../cleanup`、`GET|POST /api/system/supervisor`。旧端点一个没删（脚本与诊断仍在用）。
+  `cleanup` **只删记录不杀进程**，界面确认文案照这个口径写死。
+- **界面从"操作台"改成"仪表盘"**（`5342bef`）：左栏一行「N/M 在线 · 心跳 X 秒前」点击进分区；
+  顶部告警条只在有 error/warn 时出现，可静音 30 分钟；新增「服务与运行」分区收纳状态行、
+  通道与登录（扫码入口保留）、调度统计、守护开关、日志；**手动启停按钮全部删除**，
+  `test_ui_contract.py` 断言 `services:toggle` 不再出现。app 组 `?v=` 原子升到 `20261101m20`。
+- **零 schema 迁移是刻意的**：期望状态由配置推导、守护记账只落 `run/supervisor.json`，
+  都不进 `state.db`，所以 `docs/DATA_MODEL.md` 无需同步，真实库也不用备份迁移。
+- 测试：新增 `test_service_state.py`(11)、`test_service_supervisor.py`(19)、
+  `test_service_overview.py`(12)、`test_ui_hub_services.py`(4，真实 Chromium)；改
+  `test_system.py`(+6 reconcile、+白名单、+端点为 25)、`test_cron.py`(+1 回调不影响派发)、
+  `test_paths.py`(+2 隔离实例不 spawn)、`test_ui_contract.py`(+1)、`test_ui_hub_sections.py`(22 项).
+  隔离实例三重闸门（`enabled=not isolated` + `_no_spawn` + 断言 `run_dir.glob("*.pid")` 为空），
+  所以离线套件**不会**在测试机上真拉起服务。
+- **剩余限制（待真实验收，一律不算完成）**：① 真实工作台进程尚未重启验证——本轮全部验证都在
+  隔离实例与假 services 上做，真实 `data/run/` 里的旧记录会在下次真机启动时第一次跑 reconcile，
+  清理结果需要人工看一眼；② 真实 NapCat 拉起与扫码登录未验（`system.napcat_qq` 回退链
+  `napcat_qq → owner_qq → 探测 uin` 只在单测里走过）；③ QQ 通道真实掉线重连后的
+  `qq_disconnected` 告警节奏未验；④ "工作台退出后服务继续跑"的 DETACHED 行为未在真机
+  开关一次工作台验证；⑤ 退避与放弃阈值（5 次 / 上限 300s）是按经验取的，真实故障下的
+  手感未调。
+
 2026-11-01 设置中心「模型选过又变没选」修复 + 思考开关（D30；后端已提交，前端留在工作区）：
 - **现场症状与三处根因**（详见 [MODEL_SETTINGS.md](MODEL_SETTINGS.md)）：① `GET /api/system/config`
   以前返回 `runtime.config`（**进程启动那一刻的快照**），保存写的是 `config.yaml`，所以存完再开页面

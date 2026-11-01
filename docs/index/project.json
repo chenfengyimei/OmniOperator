@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c098d511eab844ffc74d84d33f0b4d71e62ea27f386c9216978e9163f7a08c6f",
+  "source_sha256": "efb0c4314455439254a1d288e6324bd7536728253932dc2028dd3075486fbfd9",
   "modules": [
     {
       "id": "agent-directories",
@@ -437,6 +437,7 @@
         "agent/src/omni/channels/web_static/ui/app/hub-models.js",
         "agent/src/omni/channels/web_static/ui/app/hub-persona.js",
         "agent/src/omni/channels/web_static/ui/app/hub-project.js",
+        "agent/src/omni/channels/web_static/ui/app/hub-services.js",
         "agent/src/omni/channels/web_static/ui/app/hub-skills.js",
         "agent/src/omni/channels/web_static/ui/app/hub-usage.js",
         "agent/src/omni/channels/web_static/ui/app/hub.js",
@@ -464,7 +465,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 5657,
+      "lines": 5867,
       "dependencies": []
     },
     {
@@ -499,7 +500,7 @@
         "agent/src/omni/channels/web_static/vendor/xterm.js",
         "agent/src/omni/channels/web_static/vendor/xterm.min.css"
       ],
-      "lines": 2619,
+      "lines": 2675,
       "dependencies": [
         "assembly",
         "config",
@@ -3040,7 +3041,7 @@
       "path": "agent/src/omni/channels/web.py",
       "module": "web-ui",
       "python_module": "omni.channels.web",
-      "lines": 540,
+      "lines": 548,
       "imports": [
         "omni.bootstrap",
         "omni.channels.terminal",
@@ -3194,7 +3195,7 @@
         },
         {
           "name": "create_app.system_config_save",
-          "line": 358,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3205,28 +3206,28 @@
         },
         {
           "name": "create_app.qq_policy_status",
-          "line": 382,
+          "line": 390,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.qq_policy_stop",
-          "line": 393,
-          "kind": "function",
-          "parameters": [],
-          "annotations": {}
-        },
-        {
-          "name": "create_app.bili_cookies_status",
           "line": 401,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
+          "name": "create_app.bili_cookies_status",
+          "line": 409,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
           "name": "create_app.save_bili_cookies",
-          "line": 413,
+          "line": 421,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3237,14 +3238,14 @@
         },
         {
           "name": "create_app.model_keys",
-          "line": 433,
+          "line": 441,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "create_app.model_key_set",
-          "line": 438,
+          "line": 446,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3255,7 +3256,7 @@
         },
         {
           "name": "create_app.model_test",
-          "line": 455,
+          "line": 463,
           "kind": "function",
           "parameters": [
             "payload"
@@ -3266,7 +3267,7 @@
         },
         {
           "name": "_validate_bind_host",
-          "line": 493,
+          "line": 501,
           "kind": "function",
           "parameters": [
             "host"
@@ -3277,7 +3278,7 @@
         },
         {
           "name": "main",
-          "line": 504,
+          "line": 512,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -6344,7 +6345,7 @@
       "path": "agent/src/omni/channels/web_static/index.html",
       "module": "web-ui",
       "python_module": null,
-      "lines": 656,
+      "lines": 704,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6761,6 +6762,16 @@
       "summary": "平台脚本或界面资源"
     },
     {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-services.js",
+      "module": "ui-shared",
+      "python_module": null,
+      "lines": 146,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "平台脚本或界面资源"
+    },
+    {
       "path": "agent/src/omni/channels/web_static/ui/app/hub-skills.js",
       "module": "ui-shared",
       "python_module": null,
@@ -6784,7 +6795,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 337,
+      "lines": 352,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6794,7 +6805,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/main.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 66,
+      "lines": 67,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6854,7 +6865,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/services.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 78,
+      "lines": 101,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -7014,7 +7025,7 @@
       "path": "agent/src/omni/channels/web_static/ui/workbench.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 1171,
+      "lines": 1196,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -32812,7 +32823,7 @@
       "method": "GET",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 401,
+      "line": 409,
       "handler": "create_app.bili_cookies_status",
       "module": "web-ui",
       "parameters": [],
@@ -32823,7 +32834,7 @@
       "method": "POST",
       "path": "/api/system/bili-cookies",
       "source": "agent/src/omni/channels/web.py",
-      "line": 413,
+      "line": 421,
       "handler": "create_app.save_bili_cookies",
       "module": "web-ui",
       "parameters": [
@@ -32849,7 +32860,7 @@
       "method": "POST",
       "path": "/api/system/config",
       "source": "agent/src/omni/channels/web.py",
-      "line": 358,
+      "line": 366,
       "handler": "create_app.system_config_save",
       "module": "web-ui",
       "parameters": [
@@ -33019,7 +33030,7 @@
       "method": "POST",
       "path": "/api/system/model-key",
       "source": "agent/src/omni/channels/web.py",
-      "line": 438,
+      "line": 446,
       "handler": "create_app.model_key_set",
       "module": "web-ui",
       "parameters": [
@@ -33034,7 +33045,7 @@
       "method": "GET",
       "path": "/api/system/model-keys",
       "source": "agent/src/omni/channels/web.py",
-      "line": 433,
+      "line": 441,
       "handler": "create_app.model_keys",
       "module": "web-ui",
       "parameters": [],
@@ -33045,7 +33056,7 @@
       "method": "POST",
       "path": "/api/system/model-test",
       "source": "agent/src/omni/channels/web.py",
-      "line": 455,
+      "line": 463,
       "handler": "create_app.model_test",
       "module": "web-ui",
       "parameters": [
@@ -33082,7 +33093,7 @@
       "method": "GET",
       "path": "/api/system/qq-policy",
       "source": "agent/src/omni/channels/web.py",
-      "line": 382,
+      "line": 390,
       "handler": "create_app.qq_policy_status",
       "module": "web-ui",
       "parameters": [],
@@ -33093,7 +33104,7 @@
       "method": "POST",
       "path": "/api/system/qq-policy/stop",
       "source": "agent/src/omni/channels/web.py",
-      "line": 393,
+      "line": 401,
       "handler": "create_app.qq_policy_stop",
       "module": "web-ui",
       "parameters": [],

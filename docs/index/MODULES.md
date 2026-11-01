@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c098d511eab844ffc74d84d33f0b4d71e62ea27f386c9216978e9163f7a08c6f`。包含 57 个职责模块、300 个源码/界面文件。
+源码指纹：`efb0c4314455439254a1d288e6324bd7536728253932dc2028dd3075486fbfd9`。包含 57 个职责模块、301 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -271,16 +271,17 @@
 | [agent/src/omni/channels/web_static/ui/app/hub-models.js](../../agent/src/omni/channels/web_static/ui/app/hub-models.js) | 442 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-persona.js](../../agent/src/omni/channels/web_static/ui/app/hub-persona.js) | 150 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-project.js](../../agent/src/omni/channels/web_static/ui/app/hub-project.js) | 9 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub-services.js](../../agent/src/omni/channels/web_static/ui/app/hub-services.js) | 146 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-skills.js](../../agent/src/omni/channels/web_static/ui/app/hub-skills.js) | 443 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-usage.js](../../agent/src/omni/channels/web_static/ui/app/hub-usage.js) | 34 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 337 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/main.js](../../agent/src/omni/channels/web_static/ui/app/main.js) | 66 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 352 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/main.js](../../agent/src/omni/channels/web_static/ui/app/main.js) | 67 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/memory.js](../../agent/src/omni/channels/web_static/ui/app/memory.js) | 36 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/modals.js](../../agent/src/omni/channels/web_static/ui/app/modals.js) | 23 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/publications.js](../../agent/src/omni/channels/web_static/ui/app/publications.js) | 35 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/rail.js](../../agent/src/omni/channels/web_static/ui/app/rail.js) | 31 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/runs.js](../../agent/src/omni/channels/web_static/ui/app/runs.js) | 173 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/services.js](../../agent/src/omni/channels/web_static/ui/app/services.js) | 78 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/services.js](../../agent/src/omni/channels/web_static/ui/app/services.js) | 101 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/sessions.js](../../agent/src/omni/channels/web_static/ui/app/sessions.js) | 51 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/skills.js](../../agent/src/omni/channels/web_static/ui/app/skills.js) | 153 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/state.js](../../agent/src/omni/channels/web_static/ui/app/state.js) | 15 | 平台脚本或界面资源 |
@@ -296,7 +297,7 @@
 | [agent/src/omni/channels/web_static/ui/terminal-theme.js](../../agent/src/omni/channels/web_static/ui/terminal-theme.js) | 48 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/theme.js](../../agent/src/omni/channels/web_static/ui/theme.js) | 82 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/tokens.css](../../agent/src/omni/channels/web_static/ui/tokens.css) | 200 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1171 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/workbench.css](../../agent/src/omni/channels/web_static/ui/workbench.css) | 1196 | 平台脚本或界面资源 |
 
 文档：[docs/UI_QA.md](../../docs/UI_QA.md)
 
@@ -310,9 +311,9 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 540 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
+| [agent/src/omni/channels/web.py](../../agent/src/omni/channels/web.py) | 548 | Web 工作台入口：uv run omni-web（默认 http://127.0.0.1:8000）。 |
 | [agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py) | 341 | 工作台本地身份：配对码 → HttpOnly 会话 cookie，外加 Host/Origin/CSRF 校验。 |
-| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 656 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/index.html](../../agent/src/omni/channels/web_static/index.html) | 704 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/index.html](../../agent/src/omni/channels/web_static/memory/index.html) | 6 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.css](../../agent/src/omni/channels/web_static/memory/memory.css) | 153 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/memory/memory.js](../../agent/src/omni/channels/web_static/memory/memory.js) | 738 | 平台脚本或界面资源 |

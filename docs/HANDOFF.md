@@ -22,6 +22,8 @@
 
 **提示词更新（2026-10-30）：system 只保留稳定人设和规则，时间/常驻笔记/档案移至每轮用户消息末尾。回合快照与原文同事务保存在 memory.db，新轮和重启不重写旧快照；同一窗口内资料去重、压缩后重新锚定，当前请求不可压掉。工具目录排序并在回合内冻结，缓存用量采用供应商实际字段；详见 [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md)。实际缓存命中率尚未用付费模型验收，全量 **1189 项通过**（325.17s），新增提示词回归 21 项；证据见 DEVELOPMENT_STATUS 本轮记录。**
 
+**最新（2026-11-01）：常驻服务改成默认启动并持续运行（D31，8 个提交）。心跳/QQ 通道/NapCat 不再需要手动点启动——`system/supervisor.py` 按配置推导期望状态，工作台 lifespan 一启动就接管，异常退出按指数退避重拉（默认 5 次后放弃并留 `restart_given_up`），单实例靠 `run/supervisor.lock` 互斥、抢不到的进 standby。旧裸 PID 记录改为 pid+创建时间+exe 三重核验，死进程自动清理、核验不过的只标记不接管。子进程自报 `data/run/<name>.state.json`（心跳 ticks、QQ 收发计数），"进程在但没响应"能被识别。界面从操作台变仪表盘：左栏一行「N/M 在线」、顶部告警条、设置中心新增「服务与运行」分区，**手动启停按钮全部删除，只留扫码登录**。零 schema 迁移（期望状态由配置推导、记账落 `run/supervisor.json`）。**以上均在隔离实例与假 services 上验证，真实工作台未重启、真实 NapCat 拉起与扫码未验——待真实验收，不算完成。** 详见 DEVELOPMENT_STATUS 本轮记录与下文 §2 服务管理。**
+
 **最新（2026-10-30）：全项目目录管理已接入，不仅限于 Agent。`/storage/` 可设置全局业务存储根、默认工作目录、Agent 空间池及各空间九类目录，并查询记忆/档案/日志/插件等存储用途索引。bootstrap 与离线 doctor/备份/演练/采样共用路径解析；运行态冻结，配置保存仅下次启动生效。固定控制区保持原位，ASR 缓存已纳入注入。目录边界、旧客户端防重置、额外根防绕过及浏览器回归已补；全量 **1165 项通过**（294.77s），样式调整后 16 项 UI 回归通过；40 视图浏览器检查无脚本错误和横向溢出。证据见 DEVELOPMENT_STATUS 本轮记录和 [STORAGE.md](STORAGE.md)。真实数据未搬移，真实服务未重启。以下测试数属于对应历史批次，不代表本轮状态。**
 
 **前批（2026-10-29）：C01–C06 代码侧已全部完成，随后完成 UI 操作与 bug 修复批。精确提交源码 **1032 项全绿（251.77 秒）**，工作区 **1079 项全绿（248.46 秒）**；差额 47 项为原有并行未提交测试。新增 18 项真实 Chromium 离线回归，七页在 390/760/1024/1440px 验证；统一导航、任务筛选/日志、终端粘贴目标隔离、聊天/运行取消归属、MCP 目录复查与安卓按钮前提已完善。索引 52 模块/205 文件/118 路由声明。说明与证据见 [UI_QA.md](UI_QA.md)、[CAPABILITIES_PLAN.md](CAPABILITIES_PLAN.md)。真实手机、生产 MCP、模型效果和 72 小时仍待验收；真实服务未重启、真实数据未迁移。state v14 只在隔离测试验证，启用前先按手册备份。**
@@ -101,9 +103,13 @@ uv run python -m omni.system.backup --to data/backups/2026-10-27   # 离线备�
 uv run python -m omni.system.backup --restore <备份目录> --into <新目录>  # 恢复到新目录再校验
 ```
 
-服务管理（工作台"服务"面板或 `omni/system/services.py`）：
-- NapCat：`<NapCat 目录>\napcat.bat`，WS 3001，机器人小号 `<机器人QQ号>`（**重启后需工作台扫码登录**；真实 QQ 号只存本地 config.yaml，不入库）
-- 所有服务以分离进程运行（无窗口）：pid 在 `data/run/*.pid`，日志在 `data/system_logs/`
+服务管理（默认常驻：工作台一启动就由 `system/supervisor.py` 拉起，无需手动点；界面在
+设置中心「服务与运行」，左栏那行「N/M 在线」点一下就到）：
+- NapCat：`<NapCat 目录>\napcat.bat`，WS 3001，机器人小号 `<机器人QQ号>`（**重启后需工作台扫码登录**；真实 QQ 号只存本地 config.yaml，不入库）。QQ 号按 `system.napcat_qq` → `owner_qq` → 探测已登录 uin 的顺序回退，未登录时全自动拉起并等扫码
+- 所有服务以分离进程运行（无窗口）：pid 在 `data/run/*.pid`，运行态快照在 `data/run/<name>.state.json`（子进程自报，工作台判新鲜度），守护记账在 `data/run/supervisor.json`，日志在 `data/system_logs/`
+- 开关都在 `config.yaml` 的 `system:`：`autostart`（总开关）/ `keep_running_after_exit`（默认 true，工作台退出后服务继续跑）/ `restart_max_attempts`（默认 5，超了放弃并在界面留 `restart_given_up`）/ `supervise_interval_s` / `restart_backoff_cap_s` / `health_timeout_s`。前三个能在设置中心改，后三个只在文件里调
+- 守护是**单实例**的：`data/run/supervisor.lock` 抢不到就进 `standby`（再开一个工作台不会起两套服务），谁持有在 `GET /api/system/supervisor` 能看到
+- 旧裸 PID 记录不再可信：`reconcile()` 只在 pid + 创建时间 + 可执行文件三者都对上时才认，死进程与复用记录自动清理，**活着的但核验不过的一律只标记 `blocked_unverified`、不接管也不杀**——确认无人使用后在界面点「清理记录」（只删记录，不结束进程）
 - adb（Platform-Tools 37.0.1）在 `<platform-tools 目录>`，已加入用户 PATH
 
 ## 3. 架构纪律（改代码前必读）
@@ -113,7 +119,7 @@ uv run python -m omni.system.backup --restore <备份目录> --into <新目录> 
 1. **分层不倒挂**：`channels`/`bootstrap` → `core` → `tools`/`llm`/`memory`/`safety` → `config`。
    - `safety` 是叶子层：**不能 import llm**（smart 审批用注入的 `ask_model`，不要破坏）
    - `tools` 不能 import `core`/`llm`
-2. **组装根**：`Gateway / MemoryStore / SkillStore / JobStore / ToolRegistry / Agent / TurnEndReviewer / BrowserDriver / WriteBudget / ApprovalBroker / ServiceManager / MCPManager` 只准在 `bootstrap.py` 构造
+2. **组装根**：`Gateway / MemoryStore / SkillStore / JobStore / ToolRegistry / Agent / TurnEndReviewer / BrowserDriver / WriteBudget / ApprovalBroker / ServiceManager / ServiceSupervisor / MCPManager` 只准在 `bootstrap.py` 构造
 3. **工具接入**：`tools/<域>/` 建包 → `register_xxx_tools(registry, deps)` → 在 `bootstrap.build_runtime` 接线 → 写单测（见 ARCHITECTURE §5 checklist）
 4. 工具风险分级：读=SAFE / 写=CONFIRM / 高危=DANGEROUS（当前一律拒）
 5. 新数据存储要支持**测试隔离**：`build_runtime(data_dir=tmp_path)`（jobs/账本/常驻记忆/安卓缓存都走它）；`ServiceManager(run_dir=..., log_dir=...)` 同理
@@ -182,8 +188,10 @@ schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tool
 ### 4.3 通道与界面
 - **Web 工作台**（`channels/web.py` + `web_static/` 前端：工作台 `index.html` 为纯 markup，逻辑在 `ui/app/` 下 25 个原生 ES 模块、入口 `main.js`；子站七页各自 module + 共享 `ui/` 层）：
   会话 / 聊天（**运行进度实时可视化**：等待期间显示每步模型调用与工具执行、可一键停止本回合，回复带费用标签）/
-  右侧七页（记忆·档案·常驻·待办·Review·技能·产物）/ 工具列表 / 服务面板 / 扫码弹窗 /
+  右侧七页（记忆·档案·常驻·待办·Review·技能·产物）/ 工具列表 / 左栏一行服务在线状态（点击进设置中心）/ 扫码弹窗 /
   设置中心（人设·模型·记忆·B站与转写·浏览器·QQ·定时任务（含编辑表单+执行历史）·
+  **服务与运行**（三个服务各一行状态与重启、NapCat 登录与扫码、心跳 ticks/QQ 收发计数、
+  守护开关、按服务看日志；**没有启停按钮**——启停由守护默认负责，界面只保留扫码这一件必须人工做的事，D31）·
   **用量**（今日花费/剩余额度/用途汇总/调用流水/模型能力）·
   **MCP**（服务状态/工具目录/只读与需确认授权标记；工具目录指纹漂移提醒与复查确认、失败服务重连，D19）·关于）/
   **内置终端**（xterm.js + ConPTY，header「⌨ 终端」）/ **安卓手机页**（MJPEG 看屏 + 点屏下发 + UI 树）
