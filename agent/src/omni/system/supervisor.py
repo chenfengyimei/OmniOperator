@@ -276,10 +276,18 @@ class ServiceSupervisor:
             return
         # 没在跑：先看是否还在退避窗口
         entry.running_since = 0.0
-        if entry.next_retry_at and now < entry.next_retry_at:
-            return
         if entry.attempts >= policy.max_attempts:
+            entry.next_retry_at = 0.0
             return  # 已达尝试上限，放弃重试；告警在 snapshot 里给
+        if entry.next_retry_at and now < entry.next_retry_at:
+            return  # 退避窗口内，先不重试
+        if entry.attempts and not entry.next_retry_at:
+            # 上一次尝试没能稳住（进程随后就没了）→ 先退避再重试。
+            # 不这样退避的话，崩溃循环会每轮（默认 10s）重起一次：spawn 成功就把
+            # attempts 清零，于是退避与 restart_max_attempts 都形同虚设，
+            # restart_given_up 永远不会出现。
+            entry.next_retry_at = now + backoff_delay(entry.attempts, policy.backoff_cap_s)
+            return
         verdict = self._services.reconcile(name)
         if verdict.get("state") == "blocked_unverified":
             entry.skipped = "存在不可核验的旧进程，未接管"
@@ -299,7 +307,9 @@ class ServiceSupervisor:
             entry.next_retry_at = now + backoff_delay(entry.attempts, policy.backoff_cap_s)
             return
         entry.restarts_total += 1
-        entry.attempts = 0
+        # 本次尝试计入 attempts：spawn 成功不代表服务站得住，只有连续稳定跑满
+        # STABLE_RESET_S 才清零（见上面的 running 分支）。
+        entry.attempts += 1
         entry.next_retry_at = 0.0
         entry.running_since = now
         entry.last_error = ""

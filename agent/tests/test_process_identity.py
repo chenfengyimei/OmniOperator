@@ -79,7 +79,13 @@ def test_atomic_record_and_name_validation(tmp_path):
     assert not list((tmp_path / "run").glob("*.tmp"))
 
 
-def test_child_confirms_source_and_startup_drift_is_rejected(tmp_path, monkeypatch):
+def test_child_confirms_source_and_startup_drift_is_marked_not_rejected(tmp_path, monkeypatch):
+    """源码变了要**标记**而不是拒绝登记。
+
+    指纹覆盖整个 agent/src（含前端 .js/.css/.html）：并行开发时任何人改一个文件，
+    子进程注册就会失败——那是版本提示，不是身份问题。停止授权靠 pid+创建时间+exe
+    三元组，与源码无关，所以这里放宽不放大终止权限。
+    """
     from omni.system import services as module
     service, live, killed, identity = manager(tmp_path)
     monkeypatch.setattr(module, 'source_fingerprint', lambda: 'a'*64)
@@ -89,9 +95,69 @@ def test_child_confirms_source_and_startup_drift_is_rejected(tmp_path, monkeypat
     service.register_current('omni-qq')
     assert service._read_record('omni-qq')['source_confirmed'] is True
     monkeypatch.setattr(module, 'source_fingerprint', lambda: 'b'*64)
-    with pytest.raises(ServiceError, match='源码变化'):
+    launch_id = service.register_current('omni-qq')
+    record = service._read_record('omni-qq')
+    assert launch_id, "源码变了也要登记成功，否则服务永远起不来"
+    assert record['source_confirmed'] is False
+    assert record['observed_source_fingerprint'] == 'b'*64
+    assert record['source_fingerprint'] == 'a'*64, "启动时记的指纹要留着，不能被改写"
+    assert not killed
+
+
+def test_child_claims_record_when_it_describes_its_parent(tmp_path, monkeypatch):
+    """uv/venv 的 .venv\\Scripts\\python.exe 是会再 fork 的跳板：认领父进程的记录。
+
+    守护记的是跳板 pid，真正执行模块的是跳板的子进程。没有这条认领路，
+    子进程永远认不出自己，报「记录指向运行中的进程」并陷入崩溃循环。
+    """
+    from omni.system import services as module
+    service, live, killed, identity = manager(tmp_path)
+    monkeypatch.setattr(module, 'source_fingerprint', lambda: 'a'*64)
+    parent = ProcessIdentity(999, "222222222222222222", str(tmp_path / "launcher.exe"))
+    child = ProcessIdentity(123, "111111111111111111", str(tmp_path / "python.exe"))
+    live[999] = parent
+    live[123] = child
+    service._write_pid('omni-qq', 999)  # 守护记的是跳板
+    written = service._read_record('omni-qq')
+    monkeypatch.setattr(module.os, 'getpid', lambda: 123)
+    monkeypatch.setattr(module.os, 'getppid', lambda: 999)
+    launch_id = service.register_current('omni-qq')
+    record = service._read_record('omni-qq')
+    assert launch_id == written['launch_id'], "认领不换 launch_id：.stop 与快照校验都靠它"
+    assert record['pid'] == 123 and record['created'] == child.created
+    assert record['executable'] == child.executable, "记录要改指向真 worker"
+    assert service.status('omni-qq')['identity_verified'] is True
+    assert not killed
+
+
+def test_child_never_claims_a_stranger_live_process(tmp_path, monkeypatch):
+    """陌生活进程（不是父进程）一律不认领：宁可起不来也不接管别人的进程。"""
+    from omni.system import services as module
+    service, live, killed, identity = manager(tmp_path)
+    stranger = ProcessIdentity(999, "222222222222222222", str(tmp_path / "other.exe"))
+    live[999] = stranger
+    service._write_pid('omni-qq', 999)
+    monkeypatch.setattr(module.os, 'getpid', lambda: 123)
+    monkeypatch.setattr(module.os, 'getppid', lambda: 555)  # 父进程不是记录里那个
+    with pytest.raises(ServiceError, match='运行中的进程'):
         service.register_current('omni-qq')
-    assert service._read_record('omni-qq')['source_fingerprint'] == 'a'*64
+    assert service._read_record('omni-qq')['pid'] == 999, "陌生记录不许被改写"
+    assert not killed
+
+
+def test_child_never_claims_when_parent_identity_differs(tmp_path, monkeypatch):
+    """父进程 pid 相同但创建时间/可执行文件不同 → PID 复用，不认领。"""
+    from omni.system import services as module
+    service, live, killed, identity = manager(tmp_path)
+    original = ProcessIdentity(999, "222222222222222222", str(tmp_path / "launcher.exe"))
+    live[999] = original
+    service._write_pid('omni-qq', 999)
+    # 记录写完之后这个 pid 被别的进程复用了
+    live[999] = ProcessIdentity(999, "333333333333333333", str(tmp_path / "other.exe"))
+    monkeypatch.setattr(module.os, 'getpid', lambda: 123)
+    monkeypatch.setattr(module.os, 'getppid', lambda: 999)
+    with pytest.raises(ServiceError, match='运行中的进程'):
+        service.register_current('omni-qq')
     assert not killed
 
 

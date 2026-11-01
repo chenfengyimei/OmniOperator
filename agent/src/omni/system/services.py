@@ -195,6 +195,7 @@ class ServiceManager:
         health_timeout_s: float = 45,
         exit_checker: Callable[[ProcessIdentity], bool] | None = None,
         environment: dict[str,str] | None = None,
+        parent_pid_provider: Callable[[], int] | None = None,
     ) -> None:
         self._napcat_dir = Path(napcat_dir) if napcat_dir else None
         self._ws_port = napcat_ws_port
@@ -206,6 +207,10 @@ class ServiceManager:
         self._inspect = inspector or inspect_process
         self._exited = exit_checker or (confirmed_exited if inspector is None else lambda identity: inspector(identity.pid) != identity)
         self._tcp_probe = tcp_probe or _port_listening
+        # 父进程 pid 可注入：uv/venv 的 .venv\Scripts\python.exe 是**会再 fork 一次真解释器
+        # 的跳板**，父进程身份要参与"认领"判定，测试才能复现这条路径。
+        # 用 lambda 晚绑定 os.getppid，测试才能 monkeypatch 它。
+        self._parent_pid = parent_pid_provider or (lambda: os.getppid())
         self._stop_wait_s = max(0, float(stop_wait_s))
         self._health_timeout_s = max(1.0, float(health_timeout_s))
         from functools import partial
@@ -484,7 +489,11 @@ class ServiceManager:
             )
         record = {"version": 1, "service": name, "launch_id": uuid.uuid4().hex, **asdict(identity)}
         if name in OMNI_SERVICES:
-            record['source_fingerprint'] = source_fingerprint()
+            try:
+                record['source_fingerprint'] = source_fingerprint()
+            except (ValueError, OSError):
+                # 源码正在变化，指纹算不出来：登记身份不受影响，只标记未确认
+                record['source_fingerprint'] = ""
             record['source_confirmed'] = pid == os.getpid()
         atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
         return record
@@ -644,20 +653,59 @@ class ServiceManager:
             return False
 
     def register_current(self, name: str) -> str:
-        """入口自行登记当前身份；复用管理器已写的启动记录，不能覆盖另一个活进程。"""
+        """入口自行登记当前身份；复用管理器已写的启动记录，不能覆盖另一个活进程。
+
+        认领有两条路，都要求 pid + 创建时间 + 可执行文件三元组全等：
+        1. 记录描述的就是我自己（守护 spawn 后由我登记）→ 直接复用 launch_id；
+        2. 记录描述的是**我的父进程**——uv/venv 的 ``.venv\\Scripts\\python.exe`` 是
+           **会再 fork 一次真解释器的跳板**，守护记的是跳板 pid，真正执行模块的
+           是跳板的子进程。没有这条路，子进程永远认不出自己，会报
+           「记录指向运行中的进程，请先核验并停止」并陷入崩溃循环。
+        陌生活进程、PID 复用都不满足"父进程 + 三元组全等"，一律不认。
+        """
         with self._lock(name):
             record = self._read_record(name)
             identity = self._inspect(os.getpid())
-            if identity is not None and self._record_identity(record) == identity:
+            record_identity = self._record_identity(record)
+            if identity is not None and record_identity == identity:
+                self._mark_source(name, record)
                 if name in OMNI_SERVICES:
-                    current_source = source_fingerprint()
-                    if record.get('source_fingerprint') != current_source:
-                        raise ServiceError('启动期间源码变化，请固定版本后重新启动；不登记验收身份')
-                    record['source_confirmed'] = True
                     atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
                 return record["launch_id"]
+            if identity is not None and record_identity is not None:
+                parent = self._inspect(self._parent_pid())
+                if parent is not None and record_identity == parent:
+                    # 跳板认领：记录改指向真 worker，launch_id 保持不变
+                    # （.stop 文件与运行态快照的 launch_id 校验继续成立）
+                    record.update({"pid": identity.pid, "created": identity.created,
+                                   "executable": identity.executable})
+                    self._mark_source(name, record)
+                    atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
+                    return record["launch_id"]
             self._check_start(name)
             return self._write_pid(name, os.getpid())["launch_id"]
+
+    def _mark_source(self, name: str, record: dict[str, Any]) -> bool:
+        """源码指纹只作标记，不作拒绝理由。
+
+        指纹覆盖整个 agent/src（含前端 .js/.css/.html）：并行开发时任何人改一个文件，
+        子进程注册就会失败——那是"版本提示"，不是"身份问题"。停止授权的依据是
+        pid + 创建时间 + 可执行文件三元组，与源码无关，所以放宽这里不放大终止权限。
+        """
+        if name not in OMNI_SERVICES:
+            return True
+        try:
+            current = source_fingerprint()
+        except (ValueError, OSError):
+            # 源码正在变化，指纹算不出来：记为未确认，不因此拒绝登记
+            record["source_confirmed"] = False
+            return False
+        if record.get("source_fingerprint") == current:
+            record["source_confirmed"] = True
+        else:
+            record["source_confirmed"] = False
+            record["observed_source_fingerprint"] = current
+        return bool(record["source_confirmed"])
 
     def unregister_current(self, name: str, launch_id: str) -> None:
         with self._lock(name):

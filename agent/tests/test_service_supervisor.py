@@ -202,6 +202,73 @@ def test_attempts_reset_after_stable_run(tmp_path):
     sup.stop()
 
 
+def test_crash_loop_accumulates_attempts_and_backs_off(tmp_path):
+    """spawn 成功但进程随即死掉：attempts 必须累加，否则退避与上限都形同虚设。
+
+    真机踩过：守护每 10 秒重起一次，spawn 成功就把 attempts 清零，
+    于是 restart_max_attempts=5 永远达不到、restart_given_up 永不出现。
+    """
+    clock = Clock()
+    services = FakeServices(napcat_dir=tmp_path)
+    sup = _supervisor(tmp_path, services, config_path=_config(tmp_path, max_attempts=3), clock=clock)
+    sup.reconcile_once()
+    entry = sup.snapshot()["services"]["omni-qq"]
+    assert entry["attempts"] == 1, "起一次算一次尝试，不该立刻清零"
+    assert len(services.start_calls) == 3
+
+    # 进程随即死了：下一轮看到没在跑 → 先退避，不立刻重试
+    services.running.clear()
+    clock.advance(10)
+    sup.reconcile_once()
+    assert len(services.start_calls) == 3, "退避窗口内不该再拉起"
+    entry = sup.snapshot()["services"]["omni-qq"]
+    assert entry["attempts"] == 1 and entry["next_retry_at"] > clock.t
+    assert entry["alert"]["code"] == "restart_backoff"
+
+    # 窗口过了才重试，attempts 继续累加
+    clock.advance(60)
+    sup.reconcile_once()
+    assert len(services.start_calls) == 6
+    assert sup.snapshot()["services"]["omni-qq"]["attempts"] == 2
+    sup.stop()
+
+
+def test_crash_loop_eventually_gives_up(tmp_path):
+    """连续起不来 → 达到上限后停止重试，并给出 restart_given_up 告警。"""
+    clock = Clock()
+    services = FakeServices(napcat_dir=tmp_path)
+    sup = _supervisor(tmp_path, services, config_path=_config(tmp_path, max_attempts=2), clock=clock)
+    for _ in range(6):
+        sup.reconcile_once()
+        services.running.clear()  # 每次起来就死
+        clock.advance(60)
+    entry = sup.snapshot()["services"]["omni-qq"]
+    assert entry["attempts"] == 2, "达到上限后必须停止累加，不能无限重试"
+    assert entry["alert"]["code"] == "restart_given_up"
+    before = len(services.start_calls)
+    clock.advance(600)
+    sup.reconcile_once()
+    assert len(services.start_calls) == before, "放弃之后不许再拉起"
+    sup.stop()
+
+
+def test_healthy_service_keeps_attempts_at_zero(tmp_path):
+    """服务一直健康：attempts 不会累加，退避与告警都不该出现。"""
+    clock = Clock()
+    services = FakeServices(napcat_dir=tmp_path)
+    sup = _supervisor(tmp_path, services, clock=clock)
+    for _ in range(4):
+        sup.reconcile_once()
+        clock.advance(10)
+    entry = sup.snapshot()["services"]["omni-qq"]
+    assert entry["attempts"] == 1, "只起过一次；稳定后清零"
+    clock.advance(301)
+    sup.reconcile_once()
+    entry = sup.snapshot()["services"]["omni-qq"]
+    assert entry["attempts"] == 0 and entry["alert"] is None
+    sup.stop()
+
+
 def test_blocked_unverified_is_skipped_not_counted(tmp_path):
     """旧的不可核验进程占着：不拉起、不计失败、不给重启告警。"""
     services = FakeServices(napcat_dir=tmp_path)
