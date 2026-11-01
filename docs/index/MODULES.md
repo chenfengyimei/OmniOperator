@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`efb0c4314455439254a1d288e6324bd7536728253932dc2028dd3075486fbfd9`。包含 57 个职责模块、301 个源码/界面文件。
+源码指纹：`7f124b109c3d73b7963e6b14d09f98e4f2fb25961f841d1e661456a05da983fa`。包含 57 个职责模块、301 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -271,7 +271,7 @@
 | [agent/src/omni/channels/web_static/ui/app/hub-models.js](../../agent/src/omni/channels/web_static/ui/app/hub-models.js) | 442 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-persona.js](../../agent/src/omni/channels/web_static/ui/app/hub-persona.js) | 150 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-project.js](../../agent/src/omni/channels/web_static/ui/app/hub-project.js) | 9 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/hub-services.js](../../agent/src/omni/channels/web_static/ui/app/hub-services.js) | 146 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/hub-services.js](../../agent/src/omni/channels/web_static/ui/app/hub-services.js) | 148 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-skills.js](../../agent/src/omni/channels/web_static/ui/app/hub-skills.js) | 443 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub-usage.js](../../agent/src/omni/channels/web_static/ui/app/hub-usage.js) | 34 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/hub.js](../../agent/src/omni/channels/web_static/ui/app/hub.js) | 352 | 平台脚本或界面资源 |
@@ -281,7 +281,7 @@
 | [agent/src/omni/channels/web_static/ui/app/publications.js](../../agent/src/omni/channels/web_static/ui/app/publications.js) | 35 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/rail.js](../../agent/src/omni/channels/web_static/ui/app/rail.js) | 31 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/runs.js](../../agent/src/omni/channels/web_static/ui/app/runs.js) | 173 | 平台脚本或界面资源 |
-| [agent/src/omni/channels/web_static/ui/app/services.js](../../agent/src/omni/channels/web_static/ui/app/services.js) | 101 | 平台脚本或界面资源 |
+| [agent/src/omni/channels/web_static/ui/app/services.js](../../agent/src/omni/channels/web_static/ui/app/services.js) | 104 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/sessions.js](../../agent/src/omni/channels/web_static/ui/app/sessions.js) | 51 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/skills.js](../../agent/src/omni/channels/web_static/ui/app/skills.js) | 153 | 平台脚本或界面资源 |
 | [agent/src/omni/channels/web_static/ui/app/state.js](../../agent/src/omni/channels/web_static/ui/app/state.js) | 15 | 平台脚本或界面资源 |
@@ -1021,7 +1021,7 @@
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
 | [agent/src/omni/system/service_overview.py](../../agent/src/omni/system/service_overview.py) | 105 | 把服务状态、守护记账与运行态快照拼成前端要的一份汇总。 |
 | [agent/src/omni/system/service_state.py](../../agent/src/omni/system/service_state.py) | 115 | 服务运行态快照：子进程写，工作台读。 |
-| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 666 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
+| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 675 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [agent/src/omni/system/soak.py](../../agent/src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [agent/src/omni/system/stderr_log.py](../../agent/src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
 | [agent/src/omni/system/supervisor.py](../../agent/src/omni/system/supervisor.py) | 374 | 服务守护：让常驻服务在 agent 运行期间保持在线。 |

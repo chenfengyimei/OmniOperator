@@ -53,6 +53,21 @@
   `qq_disconnected` 告警节奏未验；④ "工作台退出后服务继续跑"的 DETACHED 行为未在真机
   开关一次工作台验证；⑤ 退避与放弃阈值（5 次 / 上限 300s）是按经验取的，真实故障下的
   手感未调。
+- **收尾修正（跑完全量与照完截图才发现的三处，各自单独提交）**：① `hub-services.js` 里
+  「清理记录」用了原生 `window.confirm`，违反 `test_ui_design_tokens` 的「原生对话框只许递减」
+  （`ui/app/*.js` 必须 0 处）——单跑服务页专项是绿的，因为守卫在另一个文件里，只有全量能抓到；
+  换成 `OmniUI.ask` 后顺手把风险说全（"如果它其实还活着，删完守护会再起一个，你就有两个了"）。
+  ② 左栏「0/3 在线」曾配绿色呼吸点：tone 只按 `alerts` 判，而"没有该跑却没跑的"被渲染成
+  "健康"；现补一档 `total>0 && online===0` 时退成灰点（绿的含义是"在跑而且是好的"）。
+  ③ NapCat 行曾显示「已登录 3919708658 · 未启动」——uin 来自 `onebot11_<号>.json` 文件名，
+  登录过一次就永远在磁盘上；现按 running 分三档（未登录 / 已登录 X / 上次登录 X）。
+  这两处测试和日志都不会报，只能靠截图看。app 组 `?v=` 随之原子升到 `20261101m21`。
+- **测试总计**：专项 `test_system`(21) + `test_ui_hub_services`(5) + `test_ui_contract`(21) +
+  `test_ui_hub_sections`(5) + `test_ui_design_tokens` 全绿；全量 `-n 4` →
+  **junit 记录 tests=1579 / failures=0 / errors=0 / skipped=0（182s）**。注意：命令退出码为 1
+  是环境侧批量删除守卫拦下了 pytest 临时目录清理（3931 个文件 > 阈值 50），**不是测试失败**，
+  以 junit 计数为准。**更正**：`5342bef` 的提交信息把用例数写错了（写"contract 18 项 /
+  hub_sections 8 项"，实际按 collect 是 21 / 5），结论不变但数字以此处为准。
 
 2026-11-01 设置中心「模型选过又变没选」修复 + 思考开关（D30；后端已提交，前端留在工作区）：
 - **现场症状与三处根因**（详见 [MODEL_SETTINGS.md](MODEL_SETTINGS.md)）：① `GET /api/system/config`

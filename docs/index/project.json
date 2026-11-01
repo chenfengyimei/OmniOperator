@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "efb0c4314455439254a1d288e6324bd7536728253932dc2028dd3075486fbfd9",
+  "source_sha256": "7f124b109c3d73b7963e6b14d09f98e4f2fb25961f841d1e661456a05da983fa",
   "modules": [
     {
       "id": "agent-directories",
@@ -465,7 +465,7 @@
         "agent/src/omni/channels/web_static/ui/tokens.css",
         "agent/src/omni/channels/web_static/ui/workbench.css"
       ],
-      "lines": 5867,
+      "lines": 5872,
       "dependencies": []
     },
     {
@@ -1667,7 +1667,7 @@
         "agent/src/omni/system/stderr_log.py",
         "agent/src/omni/system/supervisor.py"
       ],
-      "lines": 3339,
+      "lines": 3348,
       "dependencies": [
         "agent-directories",
         "config"
@@ -6765,7 +6765,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/hub-services.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 146,
+      "lines": 148,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -6865,7 +6865,7 @@
       "path": "agent/src/omni/channels/web_static/ui/app/services.js",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 101,
+      "lines": 104,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -21642,7 +21642,7 @@
       "path": "agent/src/omni/system/services.py",
       "module": "platform",
       "python_module": "omni.system.services",
-      "lines": 666,
+      "lines": 675,
       "imports": [
         "omni.config",
         "omni.system.atomic",
@@ -21927,7 +21927,7 @@
         },
         {
           "name": "ServiceManager._launch_id",
-          "line": 342,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "self",
@@ -21939,7 +21939,7 @@
         },
         {
           "name": "ServiceManager._live_state",
-          "line": 346,
+          "line": 355,
           "kind": "function",
           "parameters": [
             "self",
@@ -21953,7 +21953,7 @@
         },
         {
           "name": "ServiceManager.overview",
-          "line": 356,
+          "line": 365,
           "kind": "function",
           "parameters": [
             "self"
@@ -21962,7 +21962,7 @@
         },
         {
           "name": "ServiceManager.start",
-          "line": 367,
+          "line": 376,
           "kind": "function",
           "parameters": [
             "self",
@@ -21976,7 +21976,7 @@
         },
         {
           "name": "ServiceManager.stop",
-          "line": 381,
+          "line": 390,
           "kind": "function",
           "parameters": [
             "self",
@@ -21988,7 +21988,7 @@
         },
         {
           "name": "ServiceManager.request_stop",
-          "line": 386,
+          "line": 395,
           "kind": "function",
           "parameters": [
             "self",
@@ -22002,7 +22002,7 @@
         },
         {
           "name": "ServiceManager.log_tail",
-          "line": 405,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "self",
@@ -22016,7 +22016,7 @@
         },
         {
           "name": "ServiceManager._pid_path",
-          "line": 420,
+          "line": 429,
           "kind": "function",
           "parameters": [
             "self",
@@ -22028,7 +22028,7 @@
         },
         {
           "name": "ServiceManager._read_pid",
-          "line": 424,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "self",
@@ -22040,7 +22040,7 @@
         },
         {
           "name": "ServiceManager._validate_name",
-          "line": 434,
+          "line": 443,
           "kind": "function",
           "parameters": [
             "name"
@@ -22051,7 +22051,7 @@
         },
         {
           "name": "ServiceManager._lock",
-          "line": 438,
+          "line": 447,
           "kind": "function",
           "parameters": [
             "self",
@@ -22063,7 +22063,7 @@
         },
         {
           "name": "ServiceManager._read_record",
-          "line": 441,
+          "line": 450,
           "kind": "function",
           "parameters": [
             "self",
@@ -22075,7 +22075,7 @@
         },
         {
           "name": "ServiceManager._record_identity",
-          "line": 455,
+          "line": 464,
           "kind": "function",
           "parameters": [
             "record"
@@ -22086,7 +22086,7 @@
         },
         {
           "name": "ServiceManager._write_pid",
-          "line": 468,
+          "line": 477,
           "kind": "function",
           "parameters": [
             "self",
@@ -22100,7 +22100,7 @@
         },
         {
           "name": "ServiceManager._classify",
-          "line": 489,
+          "line": 498,
           "kind": "function",
           "parameters": [
             "self",
@@ -22112,7 +22112,7 @@
         },
         {
           "name": "ServiceManager.reconcile",
-          "line": 517,
+          "line": 526,
           "kind": "function",
           "parameters": [
             "self",
@@ -22124,7 +22124,7 @@
         },
         {
           "name": "ServiceManager._legacy_pid",
-          "line": 550,
+          "line": 559,
           "kind": "function",
           "parameters": [
             "self",
@@ -22136,7 +22136,7 @@
         },
         {
           "name": "ServiceManager._quarantine",
-          "line": 557,
+          "line": 566,
           "kind": "function",
           "parameters": [
             "self",
@@ -22148,7 +22148,7 @@
         },
         {
           "name": "ServiceManager.drop_record",
-          "line": 564,
+          "line": 573,
           "kind": "function",
           "parameters": [
             "self",
@@ -22162,7 +22162,7 @@
         },
         {
           "name": "ServiceManager._check_start",
-          "line": 583,
+          "line": 592,
           "kind": "function",
           "parameters": [
             "self",
@@ -22174,7 +22174,7 @@
         },
         {
           "name": "ServiceManager._stop_verified",
-          "line": 590,
+          "line": 599,
           "kind": "function",
           "parameters": [
             "self",
@@ -22188,7 +22188,7 @@
         },
         {
           "name": "ServiceManager.stop_requested",
-          "line": 631,
+          "line": 640,
           "kind": "function",
           "parameters": [
             "self",
@@ -22202,7 +22202,7 @@
         },
         {
           "name": "ServiceManager.register_current",
-          "line": 637,
+          "line": 646,
           "kind": "function",
           "parameters": [
             "self",
@@ -22214,7 +22214,7 @@
         },
         {
           "name": "ServiceManager.unregister_current",
-          "line": 653,
+          "line": 662,
           "kind": "function",
           "parameters": [
             "self",
@@ -22228,7 +22228,7 @@
         },
         {
           "name": "ServiceManager._clear_pid",
-          "line": 657,
+          "line": 666,
           "kind": "function",
           "parameters": [
             "self",
