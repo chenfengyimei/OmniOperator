@@ -77,6 +77,16 @@ config.py 提供声明配置、路径与兼容版本，不承担业务编排。
 D26 明确平台基础设施边界：`system` 只可依赖 `config` 和 system 内部；memory 可引用
 `system.atomic/filelock`（§3.5 的共享文件事务原语），不能依赖服务管理。llm/safety/config
 不能借 system 绕层。`AndroidDriver`、`EventLog` 加入组装根守卫。
+D34 补充共享原语：`system.text_guard` 是**确定性文本守卫**（凭据形态与高危标识扫描，
+纯函数、只用标准库），加入 memory 可引用的共享原语名单
+（`atomic / filelock / path_guard / text_guard`）。理由：记忆写入闸门（`memory/privacy.py`）
+与人格保存契约（`system/persona_rules.py`）都要判断"这段文本里是不是凭据"，
+**两份正则表必然漂移，漂移只会往"某一处更宽松"的方向走**——所以检测只有一份，
+两侧各自决定"命中之后怎么办"。
+`system` 侧不依赖 memory、memory 侧不依赖 safety，所以共享原语只能落在 system 这一层。
+同时 `safety/proactive.py` 把"主动发言是否放行"的判定下沉到叶子层 safety，
+让 core（定时投递）与 tools（模型自己发私聊）共用同一份判定——
+同一个动作两条路、一条有闸门一条没有，等于闸门没设。
 RunStore 的结构化日志经 event_sink 注入，memory 不依赖日志实现；日志路径由 RuntimePaths 注入。
 
 D27：system/soak 和 release_gate 只读平台状态与证据，不依赖 memory/core，不构造 Runtime。

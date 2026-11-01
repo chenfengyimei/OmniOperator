@@ -29,6 +29,7 @@
 | 文档 | 内容 |
 |---|---|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | **模块职责与依赖规则唯一权威**（tests/test_arch.py 强制执行） |
+| [PERSONA.md](PERSONA.md) | 人格：保存契约（空正文/过短/含凭据）、热生效边界、与记忆闸门共用的检测表 |
 | [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md) | 仓库/Agent 产品边界、代码位置、开发命令与运行数据路径 |
 | [PROJECT_INDEX.md](PROJECT_INDEX.md) | 项目导航：目录职责、扩展分类、API 与调用链 |
 | [PROMPT_CONTEXT.md](PROMPT_CONTEXT.md) | 提示词与上下文缓存布局：稳定前缀、回合快照、压缩边界 |
