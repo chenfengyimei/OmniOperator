@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2e936c76c7f92b9b5bddeb54e8aecdc32c6907ee491c4c04575eb61036f2e355",
+  "source_sha256": "c74fef96bfae33682ef6b46eeeafcf3ea678668fc6823f8127b86d6fc264d93d",
   "modules": [
     {
       "id": "agent-directories",
@@ -111,7 +111,7 @@
       "files": [
         "agent/src/omni/bootstrap.py"
       ],
-      "lines": 767,
+      "lines": 771,
       "dependencies": [
         "agent-directories",
         "android",
@@ -332,7 +332,7 @@
         "agent/src/omni/memory/usage.py",
         "agent/src/omni/memory/vectors.py"
       ],
-      "lines": 8844,
+      "lines": 8860,
       "dependencies": [
         "command-contracts",
         "config",
@@ -1155,7 +1155,7 @@
         "agent/src/omni/tools/personal/todos.py",
         "agent/src/omni/tools/personal/transcript.py"
       ],
-      "lines": 1177,
+      "lines": 1191,
       "dependencies": [
         "storage",
         "toolkit"
@@ -1659,11 +1659,12 @@
         "agent/src/omni/system/process_identity.py",
         "agent/src/omni/system/provenance.py",
         "agent/src/omni/system/release_gate.py",
+        "agent/src/omni/system/service_state.py",
         "agent/src/omni/system/services.py",
         "agent/src/omni/system/soak.py",
         "agent/src/omni/system/stderr_log.py"
       ],
-      "lines": 2559,
+      "lines": 2804,
       "dependencies": [
         "agent-directories",
         "config"
@@ -1711,7 +1712,7 @@
       "path": "agent/src/omni/bootstrap.py",
       "module": "assembly",
       "python_module": "omni.bootstrap",
-      "lines": 767,
+      "lines": 771,
       "imports": [
         "omni.config",
         "omni.core.agent",
@@ -2048,7 +2049,7 @@
         },
         {
           "name": "build_runtime._journal_registry",
-          "line": 694,
+          "line": 696,
           "kind": "function",
           "parameters": [
             "journal_store"
@@ -16810,7 +16811,7 @@
       "path": "agent/src/omni/memory/store.py",
       "module": "storage",
       "python_module": "omni.memory.store",
-      "lines": 1151,
+      "lines": 1167,
       "imports": [
         "omni.config",
         "omni.memory.store_schema"
@@ -17475,7 +17476,7 @@
           }
         },
         {
-          "name": "MemoryStore.fact_timestamps",
+          "name": "MemoryStore.fact_ids_by_contents",
           "line": 875,
           "kind": "function",
           "parameters": [
@@ -17489,8 +17490,22 @@
           }
         },
         {
+          "name": "MemoryStore.fact_timestamps",
+          "line": 891,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "contents",
+            "scope"
+          ],
+          "annotations": {
+            "contents": "list[str]",
+            "scope": "str"
+          }
+        },
+        {
           "name": "MemoryStore.forgotten_matches",
-          "line": 887,
+          "line": 903,
           "kind": "function",
           "parameters": [
             "self",
@@ -17504,7 +17519,7 @@
         },
         {
           "name": "MemoryStore.forgotten_matches._like",
-          "line": 897,
+          "line": 913,
           "kind": "function",
           "parameters": [
             "needles"
@@ -17515,24 +17530,6 @@
         },
         {
           "name": "MemoryStore.facts_count",
-          "line": 919,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "MemoryStore.reviews_count",
-          "line": 925,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "MemoryStore.profile_lines",
           "line": 935,
           "kind": "function",
           "parameters": [
@@ -17541,8 +17538,26 @@
           "annotations": {}
         },
         {
+          "name": "MemoryStore.reviews_count",
+          "line": 941,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "MemoryStore.profile_lines",
+          "line": 951,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "MemoryStore.profile_usage_chars",
-          "line": 942,
+          "line": 958,
           "kind": "function",
           "parameters": [
             "self"
@@ -17551,7 +17566,7 @@
         },
         {
           "name": "MemoryStore.profile_add",
-          "line": 946,
+          "line": 962,
           "kind": "function",
           "parameters": [
             "self",
@@ -17565,7 +17580,7 @@
         },
         {
           "name": "MemoryStore.profile_edit",
-          "line": 971,
+          "line": 987,
           "kind": "function",
           "parameters": [
             "self",
@@ -17579,7 +17594,7 @@
         },
         {
           "name": "MemoryStore.profile_edit_checked",
-          "line": 975,
+          "line": 991,
           "kind": "function",
           "parameters": [
             "self",
@@ -17593,7 +17608,7 @@
         },
         {
           "name": "MemoryStore.profile_delete",
-          "line": 1001,
+          "line": 1017,
           "kind": "function",
           "parameters": [
             "self",
@@ -17605,7 +17620,7 @@
         },
         {
           "name": "MemoryStore.profile_block",
-          "line": 1007,
+          "line": 1023,
           "kind": "function",
           "parameters": [
             "self"
@@ -17614,7 +17629,7 @@
         },
         {
           "name": "MemoryStore.save_review_log",
-          "line": 1022,
+          "line": 1038,
           "kind": "function",
           "parameters": [
             "self",
@@ -17628,7 +17643,7 @@
         },
         {
           "name": "MemoryStore.list_reviews",
-          "line": 1030,
+          "line": 1046,
           "kind": "function",
           "parameters": [
             "self",
@@ -17642,7 +17657,7 @@
         },
         {
           "name": "MemoryStore.list_all_reviews",
-          "line": 1038,
+          "line": 1054,
           "kind": "function",
           "parameters": [
             "self",
@@ -17654,7 +17669,7 @@
         },
         {
           "name": "MemoryStore.digest_since",
-          "line": 1049,
+          "line": 1065,
           "kind": "function",
           "parameters": [
             "self",
@@ -17666,7 +17681,7 @@
         },
         {
           "name": "MemoryStore.todo_add",
-          "line": 1102,
+          "line": 1118,
           "kind": "function",
           "parameters": [
             "self",
@@ -17680,7 +17695,7 @@
         },
         {
           "name": "MemoryStore.todo_list",
-          "line": 1115,
+          "line": 1131,
           "kind": "function",
           "parameters": [
             "self",
@@ -17692,7 +17707,7 @@
         },
         {
           "name": "MemoryStore.todo_set_done",
-          "line": 1123,
+          "line": 1139,
           "kind": "function",
           "parameters": [
             "self",
@@ -17708,7 +17723,7 @@
         },
         {
           "name": "MemoryStore.todo_delete",
-          "line": 1132,
+          "line": 1148,
           "kind": "function",
           "parameters": [
             "self",
@@ -17722,7 +17737,7 @@
         },
         {
           "name": "MemoryStore.todo_clear",
-          "line": 1140,
+          "line": 1156,
           "kind": "function",
           "parameters": [
             "self",
@@ -17736,7 +17751,7 @@
         },
         {
           "name": "MemoryStore.close",
-          "line": 1150,
+          "line": 1166,
           "kind": "function",
           "parameters": [
             "self"
@@ -21355,26 +21370,120 @@
       "summary": "校验真实证据与常驻结果；永不执行发布或代替用户批准。"
     },
     {
+      "path": "agent/src/omni/system/service_state.py",
+      "module": "platform",
+      "python_module": "omni.system.service_state",
+      "lines": 115,
+      "imports": [
+        "omni.system.atomic"
+      ],
+      "symbols": [
+        {
+          "name": "state_path",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "run_dir",
+            "service"
+          ],
+          "annotations": {
+            "run_dir": "Path",
+            "service": "str"
+          }
+        },
+        {
+          "name": "StateWriter",
+          "line": 34,
+          "kind": "class"
+        },
+        {
+          "name": "StateWriter.__init__",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path",
+            "service",
+            "launch_id",
+            "pid",
+            "clock"
+          ],
+          "annotations": {
+            "path": "Path",
+            "service": "str",
+            "launch_id": "str",
+            "pid": "int | None"
+          }
+        },
+        {
+          "name": "StateWriter.write",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "health",
+            "stats",
+            "note"
+          ],
+          "annotations": {
+            "health": "str",
+            "stats": "dict[str, Any] | None",
+            "note": "str"
+          }
+        },
+        {
+          "name": "read_state",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "now",
+            "ttl_s",
+            "launch_id"
+          ],
+          "annotations": {
+            "path": "Path",
+            "now": "float | None",
+            "ttl_s": "float",
+            "launch_id": "str | None"
+          }
+        }
+      ],
+      "summary": "服务运行态快照：子进程写，工作台读。"
+    },
+    {
       "path": "agent/src/omni/system/services.py",
       "module": "platform",
       "python_module": "omni.system.services",
-      "lines": 486,
+      "lines": 616,
       "imports": [
         "omni.config",
         "omni.system.atomic",
         "omni.system.filelock",
         "omni.system.process_identity",
-        "omni.system.provenance"
+        "omni.system.provenance",
+        "omni.system.service_state"
       ],
       "symbols": [
         {
+          "name": "_expected_images",
+          "line": 62,
+          "kind": "function",
+          "parameters": [
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
           "name": "ServiceError",
-          "line": 52,
+          "line": 75,
           "kind": "class"
         },
         {
           "name": "ServiceError.__init__",
-          "line": 59,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -21388,7 +21497,7 @@
         },
         {
           "name": "_pid_alive",
-          "line": 67,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "pid"
@@ -21399,7 +21508,7 @@
         },
         {
           "name": "_port_listening",
-          "line": 71,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "port",
@@ -21412,7 +21521,7 @@
         },
         {
           "name": "_netstat_pids",
-          "line": 79,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "port",
@@ -21425,7 +21534,7 @@
         },
         {
           "name": "_process_name",
-          "line": 112,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "pid"
@@ -21436,7 +21545,7 @@
         },
         {
           "name": "_spawn",
-          "line": 128,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "argv",
@@ -21453,12 +21562,12 @@
         },
         {
           "name": "ServiceManager",
-          "line": 157,
+          "line": 180,
           "kind": "class"
         },
         {
           "name": "ServiceManager.__init__",
-          "line": 158,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self",
@@ -21473,6 +21582,7 @@
             "inspector",
             "tcp_probe",
             "stop_wait_s",
+            "health_timeout_s",
             "exit_checker",
             "environment"
           ],
@@ -21488,13 +21598,14 @@
             "inspector": "Callable[[int], ProcessIdentity | None] | None",
             "tcp_probe": "Callable[[int], bool] | None",
             "stop_wait_s": "float",
+            "health_timeout_s": "float",
             "exit_checker": "Callable[[ProcessIdentity], bool] | None",
             "environment": "dict[str, str] | None"
           }
         },
         {
           "name": "ServiceManager.napcat_dir",
-          "line": 198,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "self"
@@ -21503,7 +21614,7 @@
         },
         {
           "name": "ServiceManager._napcat_pid",
-          "line": 203,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self"
@@ -21512,7 +21623,7 @@
         },
         {
           "name": "ServiceManager.napcat_start",
-          "line": 210,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self",
@@ -21524,7 +21635,7 @@
         },
         {
           "name": "ServiceManager.napcat_stop",
-          "line": 227,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self"
@@ -21533,7 +21644,7 @@
         },
         {
           "name": "ServiceManager.napcat_qr",
-          "line": 230,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "self"
@@ -21542,7 +21653,7 @@
         },
         {
           "name": "ServiceManager._napcat_uin",
-          "line": 250,
+          "line": 275,
           "kind": "function",
           "parameters": [
             "self"
@@ -21551,54 +21662,6 @@
         },
         {
           "name": "ServiceManager._omni_argv",
-          "line": 262,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ServiceManager.omni_start",
-          "line": 268,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ServiceManager.omni_stop",
-          "line": 276,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ServiceManager._omni_pid",
-          "line": 279,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "name"
-          ],
-          "annotations": {
-            "name": "str"
-          }
-        },
-        {
-          "name": "ServiceManager.status",
           "line": 287,
           "kind": "function",
           "parameters": [
@@ -21610,8 +21673,82 @@
           }
         },
         {
+          "name": "ServiceManager.omni_start",
+          "line": 293,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager.omni_stop",
+          "line": 301,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager._omni_pid",
+          "line": 304,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager.status",
+          "line": 312,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager._launch_id",
+          "line": 331,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager._live_state",
+          "line": 335,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name",
+            "record_launch_id"
+          ],
+          "annotations": {
+            "name": "str",
+            "record_launch_id": "str | None"
+          }
+        },
+        {
           "name": "ServiceManager.overview",
-          "line": 305,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "self"
@@ -21620,7 +21757,7 @@
         },
         {
           "name": "ServiceManager.start",
-          "line": 316,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "self",
@@ -21634,7 +21771,7 @@
         },
         {
           "name": "ServiceManager.stop",
-          "line": 321,
+          "line": 370,
           "kind": "function",
           "parameters": [
             "self",
@@ -21646,7 +21783,7 @@
         },
         {
           "name": "ServiceManager.log_tail",
-          "line": 326,
+          "line": 375,
           "kind": "function",
           "parameters": [
             "self",
@@ -21660,7 +21797,7 @@
         },
         {
           "name": "ServiceManager._pid_path",
-          "line": 341,
+          "line": 390,
           "kind": "function",
           "parameters": [
             "self",
@@ -21672,7 +21809,7 @@
         },
         {
           "name": "ServiceManager._read_pid",
-          "line": 345,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self",
@@ -21684,7 +21821,7 @@
         },
         {
           "name": "ServiceManager._validate_name",
-          "line": 355,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "name"
@@ -21695,7 +21832,7 @@
         },
         {
           "name": "ServiceManager._lock",
-          "line": 359,
+          "line": 408,
           "kind": "function",
           "parameters": [
             "self",
@@ -21707,7 +21844,7 @@
         },
         {
           "name": "ServiceManager._read_record",
-          "line": 362,
+          "line": 411,
           "kind": "function",
           "parameters": [
             "self",
@@ -21719,7 +21856,7 @@
         },
         {
           "name": "ServiceManager._record_identity",
-          "line": 376,
+          "line": 425,
           "kind": "function",
           "parameters": [
             "record"
@@ -21730,7 +21867,7 @@
         },
         {
           "name": "ServiceManager._write_pid",
-          "line": 389,
+          "line": 438,
           "kind": "function",
           "parameters": [
             "self",
@@ -21743,8 +21880,56 @@
           }
         },
         {
+          "name": "ServiceManager._classify",
+          "line": 459,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager.reconcile",
+          "line": 487,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager._legacy_pid",
+          "line": 520,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
+          "name": "ServiceManager._quarantine",
+          "line": 527,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "name"
+          ],
+          "annotations": {
+            "name": "str"
+          }
+        },
+        {
           "name": "ServiceManager._check_start",
-          "line": 404,
+          "line": 534,
           "kind": "function",
           "parameters": [
             "self",
@@ -21756,7 +21941,7 @@
         },
         {
           "name": "ServiceManager._stop_verified",
-          "line": 411,
+          "line": 541,
           "kind": "function",
           "parameters": [
             "self",
@@ -21768,7 +21953,7 @@
         },
         {
           "name": "ServiceManager.stop_requested",
-          "line": 451,
+          "line": 581,
           "kind": "function",
           "parameters": [
             "self",
@@ -21782,7 +21967,7 @@
         },
         {
           "name": "ServiceManager.register_current",
-          "line": 457,
+          "line": 587,
           "kind": "function",
           "parameters": [
             "self",
@@ -21794,7 +21979,7 @@
         },
         {
           "name": "ServiceManager.unregister_current",
-          "line": 473,
+          "line": 603,
           "kind": "function",
           "parameters": [
             "self",
@@ -21808,7 +21993,7 @@
         },
         {
           "name": "ServiceManager._clear_pid",
-          "line": 477,
+          "line": 607,
           "kind": "function",
           "parameters": [
             "self",
@@ -26581,7 +26766,7 @@
       "path": "agent/src/omni/tools/personal/facts.py",
       "module": "personal",
       "python_module": "omni.tools.personal.facts",
-      "lines": 232,
+      "lines": 246,
       "imports": [
         "omni.memory.store",
         "omni.tools.registry"
@@ -26625,7 +26810,8 @@
             "session_ref",
             "recall_prefix",
             "source",
-            "retriever"
+            "retriever",
+            "count_hits"
           ],
           "annotations": {
             "registry": "ToolRegistry",
@@ -26635,26 +26821,27 @@
             "session_ref": "Any",
             "recall_prefix": "bool",
             "source": "str",
-            "retriever": "Any"
+            "retriever": "Any",
+            "count_hits": "bool"
           }
         },
         {
           "name": "register_memory_tools._scope",
-          "line": 63,
+          "line": 68,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "register_memory_tools._session_id",
-          "line": 67,
+          "line": 72,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "register_memory_tools._check",
-          "line": 72,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "kind",
@@ -26667,7 +26854,7 @@
         },
         {
           "name": "register_memory_tools.remember",
-          "line": 77,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "args"
@@ -26678,7 +26865,7 @@
         },
         {
           "name": "register_memory_tools.recall",
-          "line": 91,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "args"
@@ -26689,7 +26876,7 @@
         },
         {
           "name": "register_memory_tools.forget",
-          "line": 121,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "args"
@@ -26700,7 +26887,7 @@
         },
         {
           "name": "register_memory_tools.search_history",
-          "line": 206,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "args"
@@ -33059,7 +33246,7 @@
     {
       "name": "forget",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 184,
+      "line": 198,
       "module": "personal",
       "risk": "confirm",
       "requires_human": false,
@@ -33221,7 +33408,7 @@
     {
       "name": "recall",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 163,
+      "line": 177,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -33230,7 +33417,7 @@
     {
       "name": "remember",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 144,
+      "line": 158,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,
@@ -33257,7 +33444,7 @@
     {
       "name": "search_history",
       "source": "agent/src/omni/tools/personal/facts.py",
-      "line": 217,
+      "line": 231,
       "module": "personal",
       "risk": "safe",
       "requires_human": false,

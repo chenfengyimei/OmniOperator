@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2e936c76c7f92b9b5bddeb54e8aecdc32c6907ee491c4c04575eb61036f2e355`。包含 57 个职责模块、297 个源码/界面文件。
+源码指纹：`c74fef96bfae33682ef6b46eeeafcf3ea678668fc6823f8127b86d6fc264d93d`。包含 57 个职责模块、298 个源码/界面文件。
 
 ## 项目存储与 Agent 目录 · agent-directories
 
@@ -60,7 +60,7 @@
 
 | 文件 | 行数 | 职责 |
 |---|---:|---|
-| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 767 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
+| [agent/src/omni/bootstrap.py](../../agent/src/omni/bootstrap.py) | 771 | 组装根（Composition Root）：全项目唯一负责装配的地方。 |
 
 文档：[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)、[docs/REPOSITORY_STRUCTURE.md](../../docs/REPOSITORY_STRUCTURE.md)
 
@@ -194,7 +194,7 @@
 | [agent/src/omni/memory/state_mixin_leases.py](../../agent/src/omni/memory/state_mixin_leases.py) | 121 | 资源租约域的 `state.db` 访问 mixin（会话/浏览器 profile 等互斥资源）。 |
 | [agent/src/omni/memory/state_mixin_ledger.py](../../agent/src/omni/memory/state_mixin_ledger.py) | 85 | 执行账本与写额度域的 `state.db` 访问 mixin。 |
 | [agent/src/omni/memory/state_records.py](../../agent/src/omni/memory/state_records.py) | 55 | state.db 各域仓储返回值的数据形状（唯一来源）。 |
-| [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1151 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
+| [agent/src/omni/memory/store.py](../../agent/src/omni/memory/store.py) | 1167 | SQLite 记忆存储：会话 / 消息 / 事实 / 用户档案 / 全文检索 / review 日志。 |
 | [agent/src/omni/memory/store_schema.py](../../agent/src/omni/memory/store_schema.py) | 155 | memory.db 的表结构、FTS 索引声明与额度常量（唯一来源）。 |
 | [agent/src/omni/memory/system.py](../../agent/src/omni/memory/system.py) | 61 | 记忆系统门面：六个记忆模块对外的单点聚合（组合根纪律，无业务逻辑）。 |
 | [agent/src/omni/memory/usage.py](../../agent/src/omni/memory/usage.py) | 242 | 模型调用的用量与费用账本（`state.db`，D10）。 |
@@ -684,7 +684,7 @@
 | [agent/src/omni/tools/personal/__init__.py](../../agent/src/omni/tools/personal/__init__.py) | 49 | 个人内置能力的注册入口：事实、档案、常驻、待办、摘要和整理。 |
 | [agent/src/omni/tools/personal/clock.py](../../agent/src/omni/tools/personal/clock.py) | 24 | 个人能力：clock；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/digest.py](../../agent/src/omni/tools/personal/digest.py) | 76 | 个人能力：digest；工具仅使用注入依赖，不构造运行时。 |
-| [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py) | 232 | 个人能力：facts；工具仅使用注入依赖，不构造运行时。 |
+| [agent/src/omni/tools/personal/facts.py](../../agent/src/omni/tools/personal/facts.py) | 246 | 个人能力：facts；工具仅使用注入依赖，不构造运行时。 |
 | [agent/src/omni/tools/personal/journal.py](../../agent/src/omni/tools/personal/journal.py) | 63 | 记忆系统工具（二）：日/周/月笔记的读取（M3/M4/M5）。 |
 | [agent/src/omni/tools/personal/people.py](../../agent/src/omni/tools/personal/people.py) | 211 | 记忆系统工具（三）：核心人物记忆（M6）——查询、记住与临时事件。 |
 | [agent/src/omni/tools/personal/profile.py](../../agent/src/omni/tools/personal/profile.py) | 89 | 个人能力：profile；工具仅使用注入依赖，不构造运行时。 |
@@ -1018,7 +1018,8 @@
 | [agent/src/omni/system/process_identity.py](../../agent/src/omni/system/process_identity.py) | 231 | 进程身份与 Windows 句柄终止；不以裸 PID 或端口身份授权终止。 |
 | [agent/src/omni/system/provenance.py](../../agent/src/omni/system/provenance.py) | 30 | 服务启动源码指纹，不依赖 Git 可用性，不包含配置/凭据/运行数据。 |
 | [agent/src/omni/system/release_gate.py](../../agent/src/omni/system/release_gate.py) | 64 | 校验真实证据与常驻结果；永不执行发布或代替用户批准。 |
-| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 486 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
+| [agent/src/omni/system/service_state.py](../../agent/src/omni/system/service_state.py) | 115 | 服务运行态快照：子进程写，工作台读。 |
+| [agent/src/omni/system/services.py](../../agent/src/omni/system/services.py) | 616 | 本地服务管理：NapCat 与 OmniOperator 常驻服务的 启动/停止/状态。 |
 | [agent/src/omni/system/soak.py](../../agent/src/omni/system/soak.py) | 263 | 只读常驻采样与连续性核验；不会启动服务、调用模型或投递消息。 |
 | [agent/src/omni/system/stderr_log.py](../../agent/src/omni/system/stderr_log.py) | 56 | 子进程 stderr 的有限管道泵：持续排空、跨块脱敏与文件轮转。 |
 

@@ -39,6 +39,7 @@ from .process_identity import (
     terminate_verified_tree,
 )
 from .provenance import source_fingerprint
+from .service_state import read_state, state_path
 
 RUN_DIR = DATA_DIR / "run"
 LOG_DIR = DATA_DIR / "system_logs"
@@ -191,6 +192,7 @@ class ServiceManager:
         inspector: Callable[[int], ProcessIdentity | None] | None = None,
         tcp_probe: Callable[[int], bool] | None = None,
         stop_wait_s: float = 12,
+        health_timeout_s: float = 45,
         exit_checker: Callable[[ProcessIdentity], bool] | None = None,
         environment: dict[str,str] | None = None,
     ) -> None:
@@ -205,6 +207,7 @@ class ServiceManager:
         self._exited = exit_checker or (confirmed_exited if inspector is None else lambda identity: inspector(identity.pid) != identity)
         self._tcp_probe = tcp_probe or _port_listening
         self._stop_wait_s = max(0, float(stop_wait_s))
+        self._health_timeout_s = max(1.0, float(health_timeout_s))
         from functools import partial
         self._spawn = spawner or (partial(_spawn,environment=environment) if environment else _spawn)
         # pid/日志目录可注入：测试必须与真机的 data/run 隔离，
@@ -311,18 +314,33 @@ class ServiceManager:
         verdict = self._classify(name)
         verified = verdict["state"] == "verified"
         state = _PUBLIC_STATE.get(verdict["state"], verdict["state"])
+        live = self._live_state(name, record_launch_id=self._launch_id(name))
         if name == "napcat":
             pid = self._read_pid("napcat") or self._napcat_pid()
             running = (pid is not None and self._inspect(pid) is not None) or bool(self._napcat_pid())
             detail = f"已登录 {self._napcat_uin()}" if self._napcat_uin() else "未登录（需扫码）"
             return {"name": name, "label": _SERVICE_LABELS[name], "running": running,
                     "pid": pid, "detail": detail + ("；身份未核验，不可停止" if running and not verified else ""),
-                    "identity_verified": verified, "can_stop": verified, "state": state}
+                    "identity_verified": verified, "can_stop": verified, "state": state, **live}
         pid = self._omni_pid(name)
         return {"name": name, "label": _SERVICE_LABELS[name],
                 "running": pid is not None, "pid": pid,
                 "detail": "身份未核验，不可停止" if pid and not verified else "",
-                "identity_verified": verified, "can_stop": verified, "state": state}
+                "identity_verified": verified, "can_stop": verified, "state": state, **live}
+
+    def _launch_id(self, name: str) -> str | None:
+        record = self._read_record(name)
+        return record["launch_id"] if record else None
+
+    def _live_state(self, name: str, *, record_launch_id: str | None) -> dict[str, Any]:
+        """服务自报的运行态快照；NapCat 是第三方进程，没有这份文件。"""
+        if name not in OMNI_SERVICES:
+            return {"stats": {}, "fresh": False, "health_reason": "not_applicable", "state_age_s": None}
+        snap = read_state(state_path(self._run_dir, name), ttl_s=self._health_timeout_s,
+                          launch_id=record_launch_id)
+        return {"stats": snap["stats"], "fresh": snap["fresh"],
+                "health_reason": snap["reason"], "state_age_s": snap["age_s"],
+                "health": snap["health"], "note": snap["note"]}
 
     def overview(self) -> dict[str, Any]:
         services = [self.status(n) for n in ALL_SERVICES]
