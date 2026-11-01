@@ -37,12 +37,14 @@ class CronScheduler:
         ledger: Any | None = None,
         max_running: int = 2,
         claim_ttl_s: float = 3600,
+        on_tick: Callable[[list[str]], None] | None = None,
     ) -> None:
         self._store = store
         self._executor = executor
         self._deliver = deliver
         self._clock = clock
         self._ledger = ledger  # ExecutionLog（可选）：成功与失败都记账
+        self._on_tick = on_tick  # 运行态上报（可选）：只观察，不参与调度决策
         self._job_locks: dict[str, asyncio.Lock] = {}
         self._max_running = max(1, int(max_running))
         self._claim_ttl_s = max(3, claim_ttl_s)
@@ -63,11 +65,21 @@ class CronScheduler:
     async def run(self) -> None:
         """常驻 tick 循环（阻塞直到取消）。"""
         while True:
+            fired: list[str] = []
             try:
-                await self.tick()
+                fired = await self.tick()
             except Exception as exc:  # noqa: BLE001 —— 单次 tick 失败不退出
                 print(f"[心跳] tick 失败: {exc}", flush=True)
+            self._notify_tick(fired)
             await asyncio.sleep(TICK_SECONDS)
+
+    def _notify_tick(self, fired: list[str]) -> None:
+        if self._on_tick is None:
+            return
+        try:
+            self._on_tick(fired)
+        except Exception:  # noqa: BLE001 —— 上报失败绝不影响调度
+            pass
 
     async def tick(self, now: float | None = None) -> list[str]:
         """检查到期任务：原子领取 → 跳过过期窗口 → 派发；返回本次触发的任务名。"""

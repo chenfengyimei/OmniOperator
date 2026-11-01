@@ -395,6 +395,39 @@ def test_scheduler_writes_ledger(tmp_path):
     asyncio.run(scenario())
 
 
+def test_scheduler_reports_ticks_without_touching_dispatch(tmp_path):
+    """on_tick 只做观测：上报抛异常也不能影响派发。"""
+    store = _job_store(tmp_path)
+    now = dt.datetime(2026, 10, 27, 12, 0, 0)
+    job = _job(name="observed", every_minutes=60)
+    job.next_run_at = to_iso(now - dt.timedelta(seconds=1))
+    store.upsert(job, validate=False)
+    seen: list[list[str]] = []
+    executed: list[str] = []
+
+    async def executor(j: Job) -> str:
+        executed.append(j.name)
+        return "ok"
+
+    async def scenario():
+        scheduler = CronScheduler(
+            store, executor, None, clock=lambda: now.timestamp(), on_tick=seen.append
+        )
+        fired = await scheduler.tick()
+        scheduler._notify_tick(fired)
+        await asyncio.sleep(0.05)
+        assert seen and "observed" in seen[-1]
+        assert executed == ["observed"]
+
+        def boom(_fired):
+            raise RuntimeError("上报炸了")
+
+        broken = CronScheduler(store, executor, None, clock=lambda: now.timestamp(), on_tick=boom)
+        broken._notify_tick(["x"])  # 不抛出去
+
+    asyncio.run(scenario())
+
+
 def test_scheduler_ledger_records_failure(tmp_path):
     store = _job_store(tmp_path)
     log = ExecutionLog(StateStore(tmp_path / "state.db"))

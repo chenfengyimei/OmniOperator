@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import datetime as dt
 
 from ..bootstrap import build_runtime
 from ..config import load_env
@@ -20,12 +22,37 @@ from ..core.cron import (
 from ..core.journal import journal_loop
 from ..memory.state import StateUnavailable
 from ..safety.gates import DenyApprover
+from ..system.service_state import StateWriter, state_path
 from .lifecycle import serve_until_stop
 
+REPORT_INTERVAL_S = 10.0
 
-async def _serve(runtime) -> None:
+
+def _now_iso() -> str:
+    return dt.datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+async def _serve(runtime, launch_id: str) -> None:
     async def _ignore_event(_event: dict) -> None:
         return None  # 消息由 omni-qq 处理；这里只保持发送通道
+
+    # 自报运行态：工作台靠它区分"在跑"和"还在正常工作"（进程活着但 tick 停了也算异常）
+    writer = StateWriter(state_path(runtime.paths.run, "omni-heartbeat"),
+                         service="omni-heartbeat", launch_id=launch_id)
+    stats: dict = {"ticks": 0, "last_tick_at": "", "fired_total": 0,
+                   "last_fired": [], "jobs": 0, "last_error": ""}
+
+    def _on_tick(fired: list[str]) -> None:
+        stats["ticks"] += 1
+        stats["last_tick_at"] = _now_iso()
+        stats["fired_total"] += len(fired)
+        if fired:
+            stats["last_fired"] = fired[-3:]
+
+    async def _report(health: str, note: str = "") -> None:
+        while True:
+            writer.write(health=health, note=note, stats=stats)
+            await asyncio.sleep(REPORT_INTERVAL_S)
 
     try:
         jobs = runtime.cron_jobs.list()
@@ -33,16 +60,19 @@ async def _serve(runtime) -> None:
         # 状态库损坏/被降级时**不启动调度器**：既不能把"读不出来"当成"没有任务"，
         # 也不能带着未知的 last_run/next_run 继续派发。QQ 发送通道照常保持。
         print(f"[心跳] 定时任务状态不可用，调度器未启动：{exc}", flush=True)
+        writer.write(health="fatal", note=f"定时任务状态不可用：{exc}", stats=stats)
         if runtime.qq is not None:
             await runtime.qq.run(_ignore_event)
         return
 
+    stats["jobs"] = len(jobs)
     scheduler = CronScheduler(
         runtime.cron_jobs,
         make_runtime_executor(runtime),
         make_runtime_deliver(runtime),
         ledger=runtime.cron_ledger,
         max_running=runtime.config.cron.max_running,
+        on_tick=_on_tick,
     )
     tasks = [scheduler.run(), outbox_drain_loop(runtime), artifacts_sweep_loop(runtime),
              journal_loop(runtime)]
@@ -54,9 +84,13 @@ async def _serve(runtime) -> None:
         "每小时清理过期产物；每5分钟检查记忆整理（日/周/月笔记）",
         flush=True,
     )
+    report = asyncio.create_task(_report("ok"))
     try:
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks, report)
     finally:
+        report.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await report
         if not await scheduler.close():
             print("[心跳] 仍有在途任务，未宣称关闭完成", flush=True)
 
@@ -69,7 +103,8 @@ def main() -> None:
     # pid 目录来自 RuntimePaths（与真实运行数据根一起注入，不另拼全局路径）
     launch_id = runtime.services.register_current("omni-heartbeat")
     try:
-        asyncio.run(serve_until_stop(runtime, "omni-heartbeat", launch_id, _serve(runtime)))
+        asyncio.run(serve_until_stop(runtime, "omni-heartbeat", launch_id,
+                                     _serve(runtime, launch_id)))
     finally:
         result = runtime.close()
         if not result["complete"]:

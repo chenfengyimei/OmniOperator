@@ -14,17 +14,23 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import datetime as dt
 import random
 import time
 from collections import deque
+from typing import Any
 
 from ..bootstrap import Runtime, build_runtime
 from ..config import load_env
 from ..core.session import SessionBusy
 from ..llm.gateway import GatewayError
 from ..safety.gates import DenyApprover, private_target_allowed
+from ..system.service_state import StateWriter, state_path
 from ..tools.qq.client import OneBotClient, chunk_message, clean_cq_message, cq_values
 from .lifecycle import serve_until_stop
+
+REPORT_INTERVAL_S = 10.0
 
 
 def _event_id(event: dict) -> str | None:
@@ -203,6 +209,8 @@ class QQDispatcher:
         self.limit = asyncio.Semaphore(runtime.config.qq.max_concurrent)
         self.pending = 0
         self.closed = False
+        # 自报运行态（工作台「服务与运行」页读它）：只记账，不参与任何决策
+        self.stats: dict[str, Any] = {"received": 0, "handled": 0, "dropped": 0, "last_message_at": ""}
 
     async def on_event(self, event: dict) -> None:
         if self.closed:
@@ -230,10 +238,13 @@ class QQDispatcher:
                 return
             scene = f"{scope[0]}:{scope[1]}"
             if self.pending >= self.runtime.config.qq.max_pending or len(self.tasks) >= 32 and scene not in self.tasks:
+                self.stats["dropped"] += 1
                 print("[QQ] 场景队列已满，未接收新消息", flush=True)
                 return
             if not inbox.claim(bot, scene, mid):
                 return
+            self.stats["received"] += 1
+            self.stats["last_message_at"] = dt.datetime.now().astimezone().isoformat(timespec="seconds")
             self.queues.setdefault(scene, deque()).append(event)
             self.pending += 1
             if scene not in self.tasks:
@@ -255,6 +266,7 @@ class QQDispatcher:
                         size += len(str(batch[-1].get("raw_message") or "")) + 1
                     try:
                         await _handle_batch(self.runtime, self.client, scope, batch)
+                        self.stats["handled"] += len(batch)
                     except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                         print(f"[QQ] 场景处理失败 scene={scene} type={type(exc).__name__}", flush=True)
                     finally:
@@ -272,13 +284,31 @@ class QQDispatcher:
         await asyncio.gather(*tasks, return_exceptions=True)
 
 
-async def _serve(runtime: Runtime) -> None:
+async def _serve(runtime: Runtime, launch_id: str) -> None:
     client = runtime.qq
     assert client is not None  # main() 已检查
     dispatcher = QQDispatcher(runtime, client)
+    writer = StateWriter(state_path(runtime.paths.run, "omni-qq"),
+                         service="omni-qq", launch_id=launch_id)
+
+    async def _report() -> None:
+        while True:
+            connected = bool(client.connected)
+            writer.write(
+                health="ok" if connected else "degraded",
+                note="" if connected else f"未连上 NapCat（{runtime.config.qq.ws_url}）",
+                stats={"connected": connected, "pending": dispatcher.pending,
+                       "in_flight": len(dispatcher.tasks), **dispatcher.stats},
+            )
+            await asyncio.sleep(REPORT_INTERVAL_S)
+
+    report = asyncio.create_task(_report())
     try:
         await client.run(dispatcher.on_event)
     finally:
+        report.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await report
         await dispatcher.close()
 
 
@@ -307,7 +337,7 @@ def main() -> None:
                 f"[QQ] 已授权群 {policy.allowed_groups}：按 @/回复策略响应，不注入个人档案",
                 flush=True,
             )
-        asyncio.run(serve_until_stop(runtime, "omni-qq", launch_id, _serve(runtime)))
+        asyncio.run(serve_until_stop(runtime, "omni-qq", launch_id, _serve(runtime, launch_id)))
     finally:
         result = runtime.close()
         if not result["complete"]:
