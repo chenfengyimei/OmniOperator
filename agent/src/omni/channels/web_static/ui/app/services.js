@@ -1,9 +1,9 @@
 // 服务在线状态：左下角一行 + 顶部告警条 + NapCat 扫码弹窗。
 // 启停不在这里——心跳调度/QQ 通道/NapCat 由守护默认拉起、崩了自动重启，
 // 唯一需要人动手的是扫码登录，所以这里只剩"读状态"和"扫码"两件事。
-import {$,esc} from './dom.js?v=20261101m21';
-import {api} from './api.js?v=20261101m21';
-import {openModal,closeModal,registerCloseHook} from './modals.js?v=20261101m21';
+import {$,esc} from './dom.js?v=20261101u2';
+import {api} from './api.js?v=20261101u2';
+import {openModal,closeModal,registerCloseHook} from './modals.js?v=20261101u2';
 
 let QR_TIMER=null;
 // 「本次忽略」只压住同一类告警 30 分钟：压太久了坏掉也看不见

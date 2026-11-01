@@ -37,12 +37,13 @@ def save_screenshot(
     kind: str,
     source: str,
     can_view: bool,
+    label: str = "截图",
 ) -> str:
     """存产物并生成工具结果文本。`artifacts` 为 None 时降级为旧行为（路径模式由调用方处理）。"""
     if artifacts is None:
         # 生产装配总是有产物库；这个分支保护嵌入式/测试用法里漏了守卫的调用方，
         # 把 AttributeError 崩溃换成一句可解释的错误，而不是半截结果
-        return "错误：产物库不可用，截图未保存（嵌入式装配需注入 artifacts）"
+        return f"错误：产物库不可用，{label}未保存（嵌入式装配需注入 artifacts）"
     width, height = _dims(data)
     try:
         artifact = artifacts.save_image(
@@ -50,16 +51,16 @@ def save_screenshot(
             scope="private", kind=kind, source=source, width=width, height=height,
         )
     except Exception as exc:  # noqa: BLE001 —— 保存失败要可解释，不能吞
-        return f"错误：截图产物保存失败（{exc}）"
+        return f"错误：{label}产物保存失败（{exc}）"
     dims = f"{width}x{height}" if width and height else "尺寸未知"
     ref = f"[artifact:{artifact.artifact_id}]"
     if can_view:
         return (
-            f"截图已存为产物 {ref}（PNG，{dims}，{len(data) // 1024}KB）。"
+            f"{label}已存为产物 {ref}（PNG，{dims}，{len(data) // 1024}KB）。"
             "这张图已作为图像内容提供给模型，可以直接描述/分析它。"
         )
     return (
-        f"截图已存为产物 {ref}（PNG，{dims}，{len(data) // 1024}KB）。"
+        f"{label}已存为产物 {ref}（PNG，{dims}，{len(data) // 1024}KB）。"
         "注意：当前未开启 vision.send_to_cloud，模型看不到图像内容；"
         "可在工作台「产物」面板查看，或用 read 读页面文本。"
     )

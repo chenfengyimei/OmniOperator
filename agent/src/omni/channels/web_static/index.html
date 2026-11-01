@@ -239,17 +239,19 @@
       <a data-go="sec-memory">压缩与复盘</a>
       <div class="hub-group">工具与设备</div>
       <a data-go="sec-terminal">人工终端</a>
-      <a data-go="sec-android">安卓控制</a>
       <a data-go="sec-jobs">后台任务</a>
       <a data-go="sec-mcp-services">MCP 服务</a>
       <a data-go="sec-plugins">插件</a>
       <a data-go="sec-capabilities">能力诊断</a>
       <a data-go="sec-project">项目索引</a>
-      <div class="hub-group">平台与通道</div>
-      <a data-go="sec-media">B站与转写</a>
+      <div class="hub-group">数字具身</div>
+      <a data-go="sec-embodiment">数字具身总览</a>
+      <a data-go="sec-media">哔哩哔哩</a>
       <a data-go="sec-browser">浏览器</a>
-      <a data-go="sec-services">服务与运行</a>
+      <a data-go="sec-android">手机</a>
       <a data-go="sec-qq">QQ</a>
+      <div class="hub-group">平台与通道</div>
+      <a data-go="sec-services">服务与运行</a>
       <a data-go="sec-cron">定时任务</a>
       <div class="hub-group">文件与用量</div>
       <a data-go="sec-storage">Agent 与文件</a>
@@ -451,7 +453,7 @@
         </div>
       </div>
       <div class="hub-card hub-wide" id="sec-android">
-        <h3>安卓控制</h3>
+        <h3>手机</h3>
           <div class="hub-card-tools"><a href="/android/" target="_blank" rel="noopener">整页打开 ↗</a></div>
         <div class="hint">连上手机后可以看屏幕、点元素、划滑块、输文字，也能拉 UI 树看结构。操作走后台的 adb 通道，不需要一直开着手机。</div>
         <div class="embed-shell">
@@ -482,9 +484,22 @@
         <div class="hint">这个项目的模块、接口、工具与扩展清单，以及可查阅的开发文档。</div>
         <div id="hub-project-content"><p class="empty">正在读取项目索引…</p></div>
       </div>
+      <div class="hub-card" id="sec-embodiment">
+        <h3>数字具身总览</h3>
+        <div class="hint">这些是它现在真正能"身处"的地方——能看、能点、能说话，不只是一个图标。<br>每个具身下面都有自己的设置分区；这里只看它现在是不是可用、还差什么。</div>
+        <div class="svc-list" id="embodiment-list"><div class="muted">正在读取…</div></div>
+      </div>
       <div class="hub-card" id="sec-media">
-        <h3>B站与转写</h3>
+        <h3>哔哩哔哩</h3>
         <div class="hint">想让小鱼帮你搬运 B 站视频，得先给它一个「登录凭证」——就相当于告诉它「这个账号是我」。<br>没有凭证也能用，但只能看到公开内容，字幕和音频大概率拿不到。</div>
+        <h4>账号</h4>
+        <div class="field"><label>当前登录的是哪个号</label><div id="bili-account-status" class="test-out">还没检查过</div></div>
+        <div class="card-actions">
+          <button class="btn small" data-action="hub:bili-account-check">检查登录状态</button>
+          <span class="save-msg" id="bili-account-msg"></span>
+        </div>
+        <h4>它现在能做的</h4>
+        <div class="hint">读：视频信息、字幕（没有就本地转写）、<b>抽帧拼成一张长图</b>直接给多模态看画面、评论与楼中楼回复。<br>写：发布评论、回复某条评论、私信回复、艾特——<b>每一次都要你人工确认</b>，草稿会先把全文摆给你看。</div>
         <div class="note-box">
           <div class="nb-title">凭证怎么拿</div>
           <div class="nb-body">先在浏览器里登录 B 站，按 F12 打开开发者工具 → Application（应用）→ Cookies → bilibili.com，找到下面几项，把值复制过来。<br>只有 <b>SESSDATA</b> 是必需的；另外两项留空也能跑，但发评论、点赞之类的操作会失败。</div>
@@ -692,7 +707,7 @@
 </div>
 <!-- 市场弹窗：人设与插件共用这个骨架，内容由 hub-market.js 按需渲染（静态 id 供契约门禁核对） -->
 <dialog class="modal market" id="market-modal"></dialog>
-<script type="module" src="/ui/app/main.js?v=20261101m21"></script>
+<script type="module" src="/ui/app/main.js?v=20261101u2"></script>
 </body>
 </html>
 

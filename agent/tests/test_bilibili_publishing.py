@@ -128,6 +128,59 @@ def test_registry_unattended_and_smart_cannot_approve_publishing(env):
     assert "完整末尾" in shown[0]
 
 
+def test_mentions_are_replaced_with_names_and_listed(env):
+    """艾特：@{uid} 占位换成 @昵称，并把艾特清单留给人工确认时看。"""
+    row = env.publisher.prepare(session_id=1, kind="comment", target=URL, account="42",
+                                content="@{5566} 你说得对",
+                                mentions=[{"uid": "5566", "name": "老王"}])
+    assert row["content"] == "@老王 你说得对"
+    assert row["mentions"] == [{"uid": "5566", "name": "老王"}]
+
+
+def test_mention_without_name_is_rejected(env):
+    with pytest.raises(PublicationError):
+        env.publisher.prepare(session_id=1, kind="comment", target=URL, account="42",
+                              content="@{5566} 嘿", mentions=[{"uid": "5566", "name": ""}])
+
+
+def test_mention_placeholder_without_list_is_rejected(env):
+    """正文里有 @{uid} 却没给昵称：宁可不发，也不发一个裸 UID。"""
+    with pytest.raises(PublicationError):
+        env.publisher.prepare(session_id=1, kind="comment", target=URL, account="42",
+                              content="@{5566} 嘿")
+
+
+def test_mention_expanding_body_is_still_capped(env):
+    with pytest.raises(PublicationError):
+        env.publisher.prepare(session_id=1, kind="comment", target=URL, account="42",
+                              content="@{5566} " + "字" * 1000,
+                              mentions=[{"uid": "5566", "name": "老王" * 40}])
+
+
+def test_prepare_tool_lists_mentions_for_human_review(env):
+    registry, session, run = ToolRegistry(), SessionRef(), RunRef()
+    register_bilibili_write_tools(registry, env.publisher, session, run)
+    with session.bind(1):
+        result = registry.execute("bilibili_prepare_write", {
+            "kind": "comment", "target": URL, "account": "42",
+            "content": "@{5566} 在吗", "mentions": [{"uid": "5566", "name": "老王"}],
+        })
+    assert result.status == "ok"
+    assert "老王(5566)" in result.text
+    assert "@老王 在吗" in result.text
+
+
+def test_reply_comment_target_keeps_reply_id():
+    url, key = canonical_target("comment", URL + "?reply_id=88001")
+    assert url == URL + "?reply_id=88001"
+    assert key == "BV1xx411c7mD"
+
+
+def test_unknown_query_parameter_is_rejected():
+    with pytest.raises(PublicationError):
+        canonical_target("comment", URL + "?spm=from搜索")
+
+
 def test_cross_process_only_one_draft_claim(env, tmp_path):
     row = prepare(env)
     code = """

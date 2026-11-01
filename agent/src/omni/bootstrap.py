@@ -566,8 +566,25 @@ def build_runtime(
     register_mcp_tools(registry, mcp, run_ref=run_ref)
     if mcp.servers():
         atexit.register(mcp.close)
+    # can_view = 截图文本能否声称"模型看得到"：隐私开关 + 至少一个视觉模型可用
+    _vision_route = ""
+    try:
+        _vision_route = gateway.resolve("vision")
+    except Exception:  # noqa: BLE001 —— 未配置 vision 路由
+        _vision_route = ""
+    can_view = bool(
+        config.vision.send_to_cloud
+        and (
+            config.llm.capability(_vision_route).vision
+            or config.llm.capability(config.models.chat).vision
+        )
+    )
     # Cookie 路径必须注入：否则临时实例会读到真机的 B 站登录态
-    register_bilibili_tools(registry, BiliAPI(cookies_path=paths.cookies), config.asr, cache_root=paths.cache/'asr')
+    register_bilibili_tools(
+        registry, BiliAPI(cookies_path=paths.cookies), config.asr,
+        cache_root=paths.cache / 'asr', artifacts=artifacts,
+        session_ref=session_ref, run_ref=run_ref, can_view=can_view,
+    )
     # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照
     def _allowed_qq_users() -> list[int]:
         return load_qq_policy(config_path).allowed_users
@@ -586,19 +603,6 @@ def build_runtime(
     publication_forms = BrowserForms(browser, config.bilibili_write.forms)
     publisher = BilibiliPublisher(config.bilibili_write, publications, publication_forms, write_budget)
     register_bilibili_write_tools(registry, publisher, session_ref, run_ref)
-    # can_view = 截图文本能否声称"模型看得到"：隐私开关 + 至少一个视觉模型可用
-    _vision_route = ""
-    try:
-        _vision_route = gateway.resolve("vision")
-    except Exception:  # noqa: BLE001 —— 未配置 vision 路由
-        _vision_route = ""
-    can_view = bool(
-        config.vision.send_to_cloud
-        and (
-            config.llm.capability(_vision_route).vision
-            or config.llm.capability(config.models.chat).vision
-        )
-    )
     register_browser_tools(
         registry, browser, write_budget,
         artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view,

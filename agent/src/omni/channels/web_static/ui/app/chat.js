@@ -1,12 +1,12 @@
 // 聊天主流程：渲染轮次（助手带头像、用户渐变气泡）、发送回合、失败草稿保留、复制消息。
 // 版本代数（S.selectionVersion / S.messagesVersion）保证迟到的响应绝不写进别的会话。
-import {$,esc,fmtTime,modeLabel} from './dom.js?v=20261101m21';
-import {api} from './api.js?v=20261101m21';
-import {S} from './state.js?v=20261101m21';
-import {refreshContextUsage,setRuntimeActivity,refreshRuntimeStatus} from './header.js?v=20261101m21';
-import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261101m21';
-import {loadSessions} from './sessions.js?v=20261101m21';
-import {refreshMemory} from './memory.js?v=20261101m21';
+import {$,esc,fmtTime,modeLabel} from './dom.js?v=20261101u2';
+import {api} from './api.js?v=20261101u2';
+import {S} from './state.js?v=20261101u2';
+import {refreshContextUsage,setRuntimeActivity,refreshRuntimeStatus} from './header.js?v=20261101u2';
+import {attachHistoryRuns,startRunWatch,stopRunWatch} from './runs.js?v=20261101u2';
+import {loadSessions} from './sessions.js?v=20261101u2';
+import {refreshMemory} from './memory.js?v=20261101u2';
 
 // 消息正文：先转义，再把 [artifact:id] 标记渲染成内联图（加载失败即显示 alt 占位）
 const renderArtifact=(m,id)=>`<img class="art-inline" src="/api/artifacts/${id}/image" alt="产物 ${id}（已过期或被清理）" data-action="artifacts:view" data-id="${id}">`;

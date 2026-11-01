@@ -1,23 +1,24 @@
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import {$,esc} from './dom.js?v=20261101m21';
-import {api} from './api.js?v=20261101m21';
-import {loadState} from './header.js?v=20261101m21';
-import {loadEnvKeys,renderModelSlots,getModelSlotValue,getReasoningSlotValue,refreshModelSlots} from './hub-models.js?v=20261101m21';
-import {renderPersonaPresets} from './hub-persona.js?v=20261101m21';
-import {loadCron} from './hub-cron.js?v=20261101m21';
-import {loadUsage} from './hub-usage.js?v=20261101m21';
-import {loadMcp} from './hub-mcp.js?v=20261101m21';
-import {loadContext} from './hub-context.js?v=20261101m21';
-import {loadMemoryHub} from './hub-memory.js?v=20261101m21';
-import {loadSkillsHub} from './hub-skills.js?v=20261101m21';
-import {loadJobsHub} from './hub-jobs.js?v=20261101m21';
-import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261101m21';
-import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261101m21';
-import {loadProjectHub} from './hub-project.js?v=20261101m21';
-import {loadPluginsHub} from './hub-market.js?v=20261101m21';
-import {loadServicesHub} from './hub-services.js?v=20261101m21';
+import {$,esc} from './dom.js?v=20261101u2';
+import {api} from './api.js?v=20261101u2';
+import {loadState} from './header.js?v=20261101u2';
+import {loadEnvKeys,renderModelSlots,getModelSlotValue,getReasoningSlotValue,refreshModelSlots} from './hub-models.js?v=20261101u2';
+import {renderPersonaPresets} from './hub-persona.js?v=20261101u2';
+import {loadCron} from './hub-cron.js?v=20261101u2';
+import {loadUsage} from './hub-usage.js?v=20261101u2';
+import {loadMcp} from './hub-mcp.js?v=20261101u2';
+import {loadContext} from './hub-context.js?v=20261101u2';
+import {loadMemoryHub} from './hub-memory.js?v=20261101u2';
+import {loadSkillsHub} from './hub-skills.js?v=20261101u2';
+import {loadJobsHub} from './hub-jobs.js?v=20261101u2';
+import {loadCapabilitiesHub} from './hub-capabilities.js?v=20261101u2';
+import {loadMcpServicesHub} from './hub-mcp-services.js?v=20261101u2';
+import {loadProjectHub} from './hub-project.js?v=20261101u2';
+import {loadPluginsHub} from './hub-market.js?v=20261101u2';
+import {loadServicesHub} from './hub-services.js?v=20261101u2';
+import {loadEmbodimentHub,loadBilibiliHub} from './hub-embodiment.js?v=20261101u2';
 
 /* 分区加载器表：切到哪个分区要拉什么数据，在这里登记一处。
    逐条 if 散在 switchHub 里，分区一多就容易漏（漏了的表现是分区空白）。 */
@@ -33,7 +34,11 @@ const PANEL_LOADERS={
   'sec-mcp-services':()=>loadMcpServicesHub(),
   'sec-project':()=>loadProjectHub(),
   'sec-plugins':()=>loadPluginsHub(),
+    // 数字具身：四个平台的入口（总览 + 哔哩哔哩 + 浏览器 + 手机 + QQ）
+'sec-embodiment':()=>loadEmbodimentHub(),
   'sec-services':()=>loadServicesHub(),
+  'sec-embodiment':()=>loadEmbodimentHub(),
+  'sec-media':()=>loadBilibiliHub(),
 };
 
 export async function openHub(go=null){

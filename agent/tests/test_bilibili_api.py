@@ -86,8 +86,13 @@ def test_api_error_code_raises():
 
 def test_video_comments_parses():
     def handler(request: httpx.Request) -> httpx.Response:
-        if request.url.path == "/x/web-interface/view":
+        path = request.url.path
+        if path == "/x/web-interface/nav":
+            return httpx.Response(200, json=NAV)
+        if path == "/x/web-interface/view":
             return httpx.Response(200, json=VIEW)  # 先补 aid
+        if path not in ("/x/v2/reply/main", "/x/v2/reply"):
+            raise AssertionError(f"unexpected request: {request.url}")
         assert "oid=928647776" in str(request.url)  # reply 用 view 拿到的 aid
         return httpx.Response(
             200,
@@ -96,9 +101,11 @@ def test_video_comments_parses():
                 "data": {
                     "replies": [
                         {
-                            "member": {"uname": "张三"},
+                            "rpid": 88001,
+                            "member": {"uname": "张三", "mid": 11},
                             "like": 233,
                             "content": {"message": "好活"},
+                            "reply_control": {"reply_count": 2},
                         }
                     ]
                 },
@@ -107,7 +114,148 @@ def test_video_comments_parses():
 
     api = _api(handler)
     comments = api.video_comments(BV, 5)
-    assert comments[0] == {"user": "张三", "like": 233, "content": "好活"}
+    assert comments[0]["user"] == "张三"
+    assert comments[0]["like"] == 233
+    assert comments[0]["content"] == "好活"
+    assert comments[0]["rpid"] == "88001"
+    assert comments[0]["reply_count"] == 2
+
+
+def test_video_comments_falls_back_to_legacy_endpoint():
+    """新版接口挂了（旧端点风控）时退回旧接口，不能整条读不到。"""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/nav":
+            return httpx.Response(200, json=NAV)
+        if path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        if path == "/x/v2/reply/main":
+            return httpx.Response(200, json={"code": -352, "message": "风控"})
+        assert path == "/x/v2/reply"
+        assert "sort=0" in str(request.url)  # time 排序映射到旧接口的 sort=0
+        return httpx.Response(
+            200,
+            json={"code": 0, "data": {"replies": [
+                {"member": {"uname": "李四"}, "like": 1, "content": {"message": "旧接口"}}]}},
+        )
+
+    api = _api(handler)
+    comments = api.video_comments(BV, 5, sort="time")
+    assert comments[0]["content"] == "旧接口"
+
+
+def test_comment_replies_reads_secondary_floor():
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/nav":
+            return httpx.Response(200, json=NAV)
+        if path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        assert path == "/x/v2/reply/reply"
+        assert "root=88001" in str(request.url)
+        return httpx.Response(
+            200,
+            json={"code": 0, "data": {"replies": [
+                {"rpid": 88002, "member": {"uname": "王五"},
+                 "content": {"message": "同问"},
+                 "reply_control": {"reply_who": {"uname": "张三"}}}]}},
+        )
+
+    api = _api(handler)
+    rows = api.comment_replies(BV, "88001", 5)
+    assert rows[0]["user"] == "王五"
+    assert rows[0]["to_user"] == "张三"
+
+
+def test_comment_replies_rejects_non_numeric_id():
+    api = _api(lambda request: httpx.Response(200, json=VIEW))
+    with pytest.raises(BiliAPIError):
+        api.comment_replies(BV, "abc", 5)
+
+
+def test_user_search_parses_users():
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/nav":
+            return httpx.Response(200, json=NAV)
+        assert path == "/x/web-interface/wbi/search/type"
+        assert "w_rid=" in str(request.url)
+        return httpx.Response(
+            200,
+            json={"code": 0, "data": {"result": [
+                {"mid": 5566, "uname": "老王", "usign": "写代码的"}]}},
+        )
+
+    api = _api(handler)
+    rows = api.user_search("老王", 5)
+    assert rows == [{"uid": "5566", "name": "老王", "sign": "写代码的"}]
+
+
+def test_account_reports_login_state():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/x/web-interface/nav":
+            return httpx.Response(200, json={"code": 0, "data": {
+                "isLogin": True, "mid": 10086, "uname": "小鱼本鱼",
+                "level_info": {"current_level": 5}, "money": 42, "vipStatus": 1}})
+        raise AssertionError(f"unexpected request: {request.url}")
+
+    account = _api(handler).account()
+    assert account["logged_in"] is True
+    assert account["uid"] == "10086"
+    assert account["name"] == "小鱼本鱼"
+    assert account["level"] == 5
+    assert account["vip"] is True
+
+
+def test_account_reports_logged_out():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"code": 0, "data": {"isLogin": False}})
+
+    account = _api(handler).account()
+    assert account["logged_in"] is False
+    assert account["uid"] == ""
+
+
+def test_video_stream_prefers_muxed_durl():
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        assert path == "/x/player/playurl"
+        assert "fnval=0" in str(request.url)
+        return httpx.Response(
+            200,
+            json={"code": 0, "data": {"durl": [{"url": "https://upos.example/480p.mp4"}]}},
+        )
+
+    assert _api(handler).video_stream(BV) == "https://upos.example/480p.mp4"
+
+
+def test_video_stream_falls_back_to_dash_video():
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        assert path == "/x/player/playurl"
+        if "fnval=0" in str(request.url):
+            return httpx.Response(200, json={"code": 0, "data": {"durl": []}})
+        return httpx.Response(200, json={"code": 0, "data": {"dash": {"video": [
+            {"baseUrl": "https://upos.example/hd.m4s", "bandwidth": 2000000},
+            {"baseUrl": "https://upos.example/sd.m4s", "bandwidth": 300000}]}}})
+
+    assert _api(handler).video_stream(BV) == "https://upos.example/sd.m4s"
+
+
+def test_video_stream_without_source_raises():
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/x/web-interface/view":
+            return httpx.Response(200, json=VIEW)
+        return httpx.Response(200, json={"code": 0, "data": {"durl": [], "dash": {}}})
+
+    with pytest.raises(BiliAPIError, match="没有可用的视频流"):
+        _api(handler).video_stream(BV)
 
 
 def test_video_subtitle_full_flow():

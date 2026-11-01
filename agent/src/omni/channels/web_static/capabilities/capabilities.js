@@ -6,7 +6,7 @@
      · loadCapabilities(root)：先取 panel.html 再挂载（设置中心分区用）
    id 全部带 cap- 前缀：面板要挂进工作台文档，而工作台自身已有 #status 等 id，
    不加前缀会互相串味（面板状态写进工作台侧栏）。 */
-import {esc} from '/ui/app/dom.js?v=20261101m21';
+import {esc} from '/ui/app/dom.js?v=20261101u2';
 const UI=window.OmniUI;
 const api=UI.request;
 const states={ok:'通过',warning:'需检查',error:'错误',info:'信息'};

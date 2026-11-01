@@ -99,6 +99,20 @@ class BiliAPI:
 
     # ---------- 读端点 ----------
 
+    def account(self) -> dict[str, Any]:
+        """当前登录账号（nav 接口）：未登录时 isLogin=False，不算错误。"""
+        data = self._get_json("/x/web-interface/nav", params={})
+        level = (data.get("level_info") or {}).get("current_level") or 0
+        return {
+            "logged_in": bool(data.get("isLogin")),
+            "uid": str(data.get("mid") or ""),
+            "name": str(data.get("uname") or ""),
+            "level": int(level or 0),
+            "coins": int(data.get("money") or 0),
+            "vip": bool(data.get("vipStatus")),
+            "face": str(data.get("face") or ""),
+        }
+
     def video_info(self, target: str) -> dict[str, Any]:
         """视频元信息（标题/UP主/时长/数据/简介/aid/cid）。"""
         data = self._get_json("/x/web-interface/view", params=self.resolve(target))
@@ -116,23 +130,88 @@ class BiliAPI:
             "stat": stat,
         }
 
-    def video_comments(self, target: str, count: int = 10) -> list[dict[str, Any]]:
-        """热门评论（按热度）。count 上限 20。"""
+    def video_comments(
+        self, target: str, count: int = 10, *, sort: str = "hot", page: int = 1
+    ) -> list[dict[str, Any]]:
+        """视频评论（sort=hot 热度 / time 最新；page 从 1 起）。
+
+        先走新版 /x/v2/reply/main（带 WBI 签名，能拿到 rpid 与楼中楼数），
+        失败再退回旧接口 /x/v2/reply——旧接口偶尔被风控，但能出的数据仍然有用。
+        """
         aid = self._aid_of(target)
+        limit = min(max(int(count), 1), 20)
+        try:
+            data = self._get_json(
+                "/x/v2/reply/main",
+                params=self._wbi_params({
+                    "type": 1, "oid": aid, "mode": 3 if sort != "time" else 2,
+                    "plat": 1, "web_location": 1315875,
+                    "pagination_str": json.dumps({"offset": ""}),
+                }),
+            )
+            replies = data.get("replies") or []
+            if replies:
+                return [self._comment_row(reply) for reply in replies[:limit]]
+        except Exception:  # noqa: BLE001 —— 新接口不可用就退旧接口，错误由旧接口自己报
+            pass
         data = self._get_json(
             "/x/v2/reply",
-            params={"type": 1, "oid": aid, "sort": 2, "ps": min(max(count, 1), 20), "pn": 1},
+            params={
+                "type": 1, "oid": aid, "sort": 2 if sort != "time" else 0,
+                "ps": limit, "pn": max(1, int(page)),
+            },
         )
-        out: list[dict[str, Any]] = []
-        for reply in (data.get("replies") or [])[:count]:
-            out.append(
-                {
-                    "user": (reply.get("member") or {}).get("uname", ""),
-                    "like": reply.get("like", 0),
-                    "content": (reply.get("content") or {}).get("message", ""),
-                }
-            )
-        return out
+        return [self._comment_row(reply) for reply in (data.get("replies") or [])[:limit]]
+
+    def comment_replies(self, target: str, rpid: str, count: int = 10) -> list[dict[str, Any]]:
+        """某条评论下的回复（楼中楼）。rpid 来自 bilibili_video_comments 的输出。"""
+        aid = self._aid_of(target)
+        if not str(rpid).strip().isdigit():
+            raise BiliAPIError(f"评论 ID 不是数字：{rpid}")
+        limit = min(max(int(count), 1), 20)
+        data = self._get_json(
+            "/x/v2/reply/reply",
+            params={"type": 1, "oid": aid, "root": int(str(rpid).strip()),
+                    "ps": limit, "pn": 1},
+        )
+        return [self._comment_row(reply) for reply in (data.get("replies") or [])[:limit]]
+
+    def user_search(self, keyword: str, limit: int = 5) -> list[dict[str, Any]]:
+        """按昵称/关键词找用户（拿到 UID 与昵称，供艾特使用）。"""
+        keyword = keyword.strip()
+        if not keyword:
+            raise BiliAPIError("搜索关键词不能为空")
+        data = self._get_json(
+            "/x/web-interface/wbi/search/type",
+            params=self._wbi_params({
+                "search_type": "bili_user", "keyword": keyword, "page": 1,
+            }),
+        )
+        users = data.get("result") or []
+        rows = []
+        for user in users[:max(1, int(limit))]:
+            rows.append({
+                "uid": str(user.get("mid") or ""),
+                "name": str(user.get("uname") or ""),
+                "sign": str(user.get("usign") or ""),
+            })
+        return rows
+
+    @staticmethod
+    def _comment_row(reply: dict[str, Any]) -> dict[str, Any]:
+        """新旧接口的评论结构对齐成同一形状。"""
+        member = reply.get("member") or {}
+        reply_control = reply.get("reply_control") or {}
+        return {
+            "rpid": str(reply.get("rpid") or ""),
+            "user": str(member.get("uname") or ""),
+            "uid": str(member.get("mid") or ""),
+            "like": int(reply.get("like") or 0),
+            "content": str((reply.get("content") or {}).get("message") or ""),
+            "time": int(reply.get("ctime") or 0),
+            "reply_count": int(reply_control.get("reply_count") or reply.get("rcount") or 0),
+            "to_user": str(((reply.get("reply_control") or {}).get("reply_who") or {}).get("uname") or ""),
+        }
 
     def video_subtitle(self, target: str) -> str:
         """字幕全文；空串 = 没有可获取字幕（未登录时 AI 字幕通常不可见）。"""
@@ -184,6 +263,45 @@ class BiliAPI:
                 "该视频没有可用的音频/视频流（可能需要登录：把浏览器 Cookie "
                 "配到 data/bili_cookies.json 后重试）"
             )
+        return url
+
+    def video_stream(self, target: str, *, quality: int = 32) -> str:
+        """可解码的视频直链（先试 MP4 合并流，退回 DASH 视频流）。
+
+        合并流（durl）解码最省事；DASH 是音视频分开的分片流，
+        抽帧时能解但体积小，优先低码率那一路。
+        """
+        info = self.video_info(target)
+        bvid, cid = info.get("bvid"), info.get("cid")
+        if not bvid or not cid:
+            raise BiliAPIError(f"拿不到视频信息：{target}")
+        params = {"bvid": bvid, "cid": cid, "qn": int(quality), "fnval": 0,
+                  "fnver": 0, "fourk": 0}
+        data = self._get_json("/x/player/playurl", params=params)
+        durl = data.get("durl") or []
+        if durl:
+            url = str((durl[0] or {}).get("url") or "")
+            if url:
+                return url
+        # 没有合并流就退回 DASH：取码率最低的视频流（抽帧够用，下载也快）
+        data = self._get_json(
+            "/x/player/playurl",
+            params={"bvid": bvid, "cid": cid, "qn": int(quality), "fnval": 16,
+                    "fnver": 0, "fourk": 0},
+        )
+        videos = (data.get("dash") or {}).get("video") or []
+        if not videos:
+            raise BiliAPIError(
+                "该视频没有可用的视频流（可能需要登录：把浏览器 Cookie "
+                "配到 data/bili_cookies.json 后重试）"
+            )
+        best = min(videos, key=lambda item: int(item.get("bandwidth") or 10 ** 9))
+        url = str(best.get("baseUrl") or best.get("base_url") or "")
+        if not url:
+            backups = best.get("backupUrl") or best.get("backup_url") or []
+            url = str(backups[0]) if backups else ""
+        if not url:
+            raise BiliAPIError("拿不到视频流地址")
         return url
 
     def download_binary(

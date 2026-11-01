@@ -1,7 +1,8 @@
 """设置中心分区结构与命名统一的守卫。
 
 背景：7 个工具子站并入设置中心后，侧栏从 14 项涨到 20 项、分区从 4 组涨到 5 组；
-插件市场并入「工具与设备」、服务与运行并入「平台与通道」后为 22 项。分组仍固定为 5 组。
+插件市场并入「工具与设备」、服务与运行并入「平台与通道」后为 22 项；
+数字具身（B站/浏览器/手机/QQ + 总览）独立成组后为 23 项、6 组。
 「导航名 / 浏览器标题 / 页内 h1」三处说法必须逐字一致——不一致时用户点进去会以为
 换了个东西（本轮统一前实际产出过「人工终端 · 人工终端 · OmniOperator」这种重复后缀）。
 """
@@ -18,7 +19,6 @@ INDEX = STATIC / "index.html"
 # 工具与设备组：7 个工具页里除 storage（已是分区）外新并入的 6 个，加上插件（市场入口）
 TOOL_SECTIONS = {
     "sec-terminal": "人工终端",
-    "sec-android": "安卓控制",
     "sec-jobs": "后台任务",
     "sec-mcp-services": "MCP 服务",
     "sec-capabilities": "能力诊断",
@@ -26,12 +26,22 @@ TOOL_SECTIONS = {
     "sec-plugins": "插件",
 }
 
-# 五组固定：核心系统 3 / 对话与模型 3 / 工具与设备 7 / 平台与通道 5 / 文件与用量 4
+# 数字具身组：当前 agent 真正"身处"的平台 + 一张总览卡
+EMBODIMENT_SECTIONS = {
+    "sec-embodiment": "数字具身总览",
+    "sec-media": "哔哩哔哩",
+    "sec-browser": "浏览器",
+    "sec-android": "手机",
+    "sec-qq": "QQ",
+}
+
+# 六组固定：核心系统 3 / 对话与模型 3 / 数字具身 5 / 工具与设备 6 / 平台与通道 2 / 文件与用量 4
 EXPECTED_GROUPS = {
     "核心系统": {"sec-context", "sec-skills", "sec-memory-system"},
     "对话与模型": {"sec-persona", "sec-models", "sec-memory"},
+    "数字具身": set(EMBODIMENT_SECTIONS),
     "工具与设备": set(TOOL_SECTIONS),
-    "平台与通道": {"sec-services", "sec-media", "sec-browser", "sec-qq", "sec-cron"},
+    "平台与通道": {"sec-services", "sec-cron"},
     "文件与用量": {"sec-storage", "sec-usage", "sec-mcp", "sec-about"},
 }
 
@@ -52,8 +62,8 @@ def _nav_groups(html):
     return groups
 
 
-def test_hub_nav_has_five_groups_with_expected_members():
-    """侧栏五组固定，每组成员写死——分组是导航骨架，改结构必须同时改这里。"""
+def test_hub_nav_has_six_groups_with_expected_members():
+    """侧栏六组固定，每组成员写死——分组是导航骨架，改结构必须同时改这里。"""
     groups = _nav_groups(INDEX.read_text(encoding="utf-8"))
     titles = [title for title, _ in groups]
     assert len(titles) == len(set(titles)), "侧边栏分组标题重复：%s" % titles
@@ -76,12 +86,16 @@ def test_hub_nav_entries_match_cards_exactly():
 
 
 def test_tool_sections_have_label_and_hint():
-    """6 个新工具分区：导航标签 = 卡片 h3，且都要有一句说明（空卡片让人不知道能干什么）。"""
+    """工具分区与数字具身分区：导航标签 = 卡片 h3，且都要有一句说明（空卡片让人不知道能干什么）。"""
     html = INDEX.read_text(encoding="utf-8")
     labels = {go: label for _, members in _nav_groups(html) for go, label in members}
-    for go, expected in TOOL_SECTIONS.items():
+    for go, expected in {**TOOL_SECTIONS, **EMBODIMENT_SECTIONS}.items():
         assert labels.get(go) == expected, "%s 导航标签应为「%s」，实得 %r" % (go, expected, labels.get(go))
-        card = re.search(r'<div class="hub-card[^"]*" id="%s">(.*?)</div>' % re.escape(go), html, re.S)
+        # 卡片内可能嵌任意层 <div>（如右上角「整页打开」入口），截到下一张卡片为止而不是
+        # 第一个 </div>，否则说明文案（hint）会落在截断区外被误判缺失。
+        card = re.search(
+            r'<div class="hub-card[^"]*" id="%s">(.*?)(?=<div class="hub-card[^"]*" id="sec-|\Z)'
+            % re.escape(go), html, re.S)
         assert card, "index.html 找不到 %s 卡片" % go
         body = card.group(1)
         heading = re.search(r"<h3>([^<]+)</h3>", body)
@@ -169,7 +183,7 @@ def test_hub_nav_search_filters_sections(ui):
     search.wait_for(state="visible")
 
     total = page.locator(".hub-nav a[data-go]").count()
-    assert total == 22, "侧栏应有 22 个分区条目（服务与运行并入后 +1），实得 %d" % total
+    assert total == 23, "侧栏应有 23 个分区条目（数字具身独立成组后 +1），实得 %d" % total
 
     search.fill("终端")
     page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===1")
@@ -185,5 +199,5 @@ def test_hub_nav_search_filters_sections(ui):
     assert page.locator(".hub-nav-empty").is_visible()
 
     search.fill("")
-    page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===22")
+    page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===23")
     assert not errors, "侧栏搜索引发脚本异常：%s" % errors

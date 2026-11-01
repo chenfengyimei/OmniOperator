@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import re
 from typing import Protocol
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlsplit
 
 from ...config import BilibiliWrite
 from ...memory.publications import PublicationError, PublicationStore
@@ -23,6 +23,58 @@ class BudgetPort(Protocol):
     def try_consume(self) -> tuple[bool, str]: ...
 
 
+_MENTION_TOKEN = re.compile(r"@\{(\d{1,20})\}")
+
+
+def apply_mentions(content: str, mentions: list[dict] | None) -> tuple[str, list[dict[str, str]]]:
+    """把内容里的 `@<uid>` 占位换成 `@昵称`，返回 (正文, 艾特清单)。
+
+    没有昵称的 UID 一律报错：宁可不发，也不发一个裸 UID 让读者自己猜是谁。
+    注意：这里产出的是**文本** @昵称。B站网页版真正的"艾特"要靠页面里的用户
+    选择组件（需要用户在 config.yaml 里核验控件后才启用），本函数不碰页面。
+    """
+    if not mentions:
+        unresolved = _MENTION_TOKEN.findall(content)
+        if unresolved:
+            raise PublicationError(f"内容里有没指定昵称的 @占位：{', '.join(unresolved)}")
+        return content, []
+    mapping: dict[str, str] = {}
+    for item in mentions:
+        uid = str(item.get("uid") or "").strip()
+        name = str(item.get("name") or "").strip()
+        if not uid.isdigit() or len(uid) > 20:
+            raise PublicationError("艾特对象必须提供数字 UID")
+        if not name or len(name) > 40:
+            raise PublicationError("艾特对象必须提供昵称（不超过 40 字）")
+        mapping[uid] = name
+
+    def _replace(match: re.Match[str]) -> str:
+        uid = match.group(1)
+        if uid not in mapping:
+            raise PublicationError(f"内容里的 @{uid} 没有对应昵称")
+        return "@" + mapping[uid]
+
+    text = _MENTION_TOKEN.sub(_replace, content)
+    left = _MENTION_TOKEN.findall(text)
+    if left:
+        raise PublicationError(f"还有没替换的 @占位：{', '.join(left)}")
+    return text, [{"uid": uid, "name": mapping[uid]} for uid in mapping]
+
+
+def _reply_id_of(parsed) -> str:
+    """只接受 reply_id（回复某条评论）；其它查询参数一律拒绝。"""
+    pairs = parse_qsl(parsed.query, keep_blank_values=True)
+    unknown = [name for name, _ in pairs if name != "reply_id"]
+    if unknown:
+        raise PublicationError(f"目标 URL 不支持这些参数：{', '.join(sorted(unknown))}")
+    for name, value in pairs:
+        if name == "reply_id":
+            if not value.isdigit() or len(value) > 20:
+                raise PublicationError("reply_id 必须是评论ID（纯数字）")
+            return value
+    return ""
+
+
 def canonical_target(kind: str, url: str) -> tuple[str, str]:
     parsed = urlsplit(url)
     if parsed.scheme != "https" or parsed.username or parsed.password or parsed.port not in (None, 443):
@@ -30,7 +82,11 @@ def canonical_target(kind: str, url: str) -> tuple[str, str]:
     if kind == "comment" and parsed.hostname == "www.bilibili.com":
         match = re.fullmatch(r"/video/(BV[0-9A-Za-z]{10})/?", parsed.path)
         if match:
-            return f"https://www.bilibili.com/video/{match[1]}", match[1]
+            reply_id = _reply_id_of(parsed)
+            target = f"https://www.bilibili.com/video/{match[1]}"
+            if reply_id:
+                target += f"?reply_id={reply_id}"
+            return target, match[1]
     if kind == "private_message" and parsed.hostname == "message.bilibili.com":
         match = re.fullmatch(r"/?whisper/mid([1-9][0-9]{0,19})/?", parsed.fragment)
         if match and parsed.path in ("", "/"):
@@ -54,8 +110,12 @@ class BilibiliPublisher:
             raise PublicationError("内容为空、过长或包含控制字符")
         return content
 
-    def prepare(self, *, session_id: int, kind: str, target: str, account: str, content: str) -> dict:
+    def prepare(self, *, session_id: int, kind: str, target: str, account: str,
+                content: str, mentions: list[dict] | None = None) -> dict:
         content = self._check(kind, content)
+        content, applied = apply_mentions(content, mentions)
+        if len(content) > self.config.max_content_chars:
+            raise PublicationError("替换艾特昵称后正文过长")
         target, key = canonical_target(kind, target)
         if not re.fullmatch(r"[1-9][0-9]{0,19}", account):
             raise PublicationError("账号必须为当前登录者的 B站 UID")
@@ -65,8 +125,11 @@ class BilibiliPublisher:
             raise PublicationError("当前页面账号/目标与预览不符，未创建草稿")
         if observation.get("editor_value", "").strip() not in ("", content):
             raise PublicationError("编辑框已有其它内容，请先由用户处理，未覆盖")
-        return preview(self.store.create(session_id=session_id, kind=kind, target=target, account=account,
-                                         content=content, observation=observation))
+        row = preview(self.store.create(session_id=session_id, kind=kind, target=target,
+                                        account=account, content=content,
+                                        observation=observation))
+        row["mentions"] = applied
+        return row
 
     def submit(self, *, session_id: int, draft_id: str, kind: str, target: str,
                account: str, content: str, expected_hash: str, cancel=None) -> ToolResult:
