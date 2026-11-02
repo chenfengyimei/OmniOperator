@@ -1,7 +1,10 @@
 """FTS + 向量 RRF 融合；后台有界增量索引，网络请求不占数据库事务。"""
+
 from __future__ import annotations
 
+import contextlib
 import threading
+from collections.abc import Callable
 from typing import Any
 
 
@@ -15,6 +18,7 @@ class HybridMemory:
         self._lock = threading.Lock()
         self.last_error = ""
         self._closed = False
+        self.admission_context: Callable[..., Any] = contextlib.nullcontext
 
     def start(self) -> None:
         with self._lock:
@@ -35,6 +39,11 @@ class HybridMemory:
             self._wake.clear()
 
     def index_pending(self) -> int:
+        factory = self.admission_context
+        with factory():
+            return self._index_pending()
+
+    def _index_pending(self) -> int:
         token = self.leases.acquire("memory:embedding", ttl_s=max(120, self.provider.config.timeout_s * 3))
         try:
             rows = self.index.pending(self.provider.config.batch_size)
@@ -53,9 +62,12 @@ class HybridMemory:
             return self.store.filter_facts(lexical, scope=scope)[:limit]
         handle = self.run_ref.get() if self.run_ref else None
         try:
-            vector = self.provider.embed([query], run_id=getattr(handle, "run_id", None),
-                                         session_id=getattr(getattr(handle, "identity", None), "session_id", None),
-                                         run_budget=getattr(handle, "budget", None))[0]
+            vector = self.provider.embed(
+                [query],
+                run_id=getattr(handle, "run_id", None),
+                session_id=getattr(getattr(handle, "identity", None), "session_id", None),
+                run_budget=getattr(handle, "budget", None),
+            )[0]
             semantic = self.index.search(vector, scope=scope, limit=max(limit * 2, 16))
         except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             self.last_error = f"向量查询降级（{type(exc).__name__}）"
@@ -69,9 +81,13 @@ class HybridMemory:
         return self.store.filter_facts(ranked, scope=scope)[:limit]
 
     def status(self) -> dict[str, Any]:
-        return {**self.index.status(), "provider": self.provider.config.provider,
-                "model": self.provider.config.model, "last_error": self.last_error,
-                "worker_alive": bool(self._thread and self._thread.is_alive())}
+        return {
+            **self.index.status(),
+            "provider": self.provider.config.provider,
+            "model": self.provider.config.model,
+            "last_error": self.last_error,
+            "worker_alive": bool(self._thread and self._thread.is_alive()),
+        }
 
     def close(self, wait_s=5) -> bool:
         if self._closed:

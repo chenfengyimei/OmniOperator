@@ -1,4 +1,5 @@
 """M6 核心人物记忆单元：账号、三类条目、防注入、过期与注入卡。"""
+
 from __future__ import annotations
 
 import datetime as dt

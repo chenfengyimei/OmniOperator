@@ -1,0 +1,750 @@
+{
+  "baseline_commit": "076c0c22fa8ecb90d3ce9a64562c90a23a129e00",
+  "original_files_verified": 107,
+  "note": "按本轮集成职责分配，不推测原会话作者；主仓未批量暂存或提交原有差异。",
+  "files": [
+    {
+      "path": ".gitignore",
+      "integration_batch": "U2",
+      "baseline_sha256": "336e68e79366f7faa04bcafd339a13c042daeb4c7ad09e952cd2833291f3c5e1",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": ".gitignore"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "integration_batch": "U7",
+      "baseline_sha256": "9dca6cccb088e5ea9862e4d3c028fa20c36edfb4019e8918591355be95dcedfc",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "CHANGELOG.md"
+    },
+    {
+      "path": "README.md",
+      "integration_batch": "U7",
+      "baseline_sha256": "0de58b5babbd47ca2bdd059895ff987e928a83296c7f0c53f195f4a5c15559ea",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "README.md"
+    },
+    {
+      "path": "agent/config/config.example.yaml",
+      "integration_batch": "U2",
+      "baseline_sha256": "15f9a8fe89b2922c0ea405e477a15518e6c01622c09bbf395b064e26877b79e3",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/config/config.example.yaml"
+    },
+    {
+      "path": "agent/pyproject.toml",
+      "integration_batch": "U2",
+      "baseline_sha256": "7394a96a78d607e4bab92997946d3cfeba7bbf724969fa1a6ba1119e4c7ea545",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/pyproject.toml"
+    },
+    {
+      "path": "agent/scripts/build_release.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "ca7486a27a50455ca78dafc59a4f6c4cd6634172c41b8862fc6380c69255cf59",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/scripts/build_release.py"
+    },
+    {
+      "path": "agent/src/omni/bootstrap.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "a3260b49d4e12337a9f8f7081e8f7ee7dfb9688a5c2789fa1fdd8e3cefd259b4",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/bootstrap.py"
+    },
+    {
+      "path": "agent/src/omni/channels/heartbeat.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "1b0c7635bb26b8932541238ba6337956dd01976a9662eaed665b226e6f017cdf",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/heartbeat.py"
+    },
+    {
+      "path": "agent/src/omni/channels/lifecycle.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "3d73667aea07d487e88af4e51d5ae43635a02a6028cad466a239c3d7a7d85448",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/lifecycle.py"
+    },
+    {
+      "path": "agent/src/omni/channels/qq.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "123ccd2ed629af36b35e5de6dbd1dd95bc775cedbe26647b64ad6dd355c91aac",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/qq.py"
+    },
+    {
+      "path": "agent/src/omni/channels/terminal/pool.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "c803edee67a91288af53e3c2085ed5a9723a25be201f095603e99ad2828cbd29",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/terminal/pool.py"
+    },
+    {
+      "path": "agent/src/omni/channels/update_probe.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "ccd7c427715ebcf153c725f1e49f7539c8c93d6204efe52e715b9920d6e67667",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/update_probe.py"
+    },
+    {
+      "path": "agent/src/omni/channels/web.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "4e7563225519c2892710e2091f51f8b7966d5bee7b4986eedc1e7ef12d3d8469",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/web.py"
+    },
+    {
+      "path": "agent/src/omni/channels/web_api/__init__.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "7da5a82739c9fd7e4f00796ecafad36d0bf112c9f4c00adbcfbe8a5d9bfcfb44",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/web_api/__init__.py"
+    },
+    {
+      "path": "agent/src/omni/channels/web_api/schemas.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "04fd4065654797e0950c7b354cf5f24034a3c69424c70f52e930bb270e260813",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/web_api/schemas.py"
+    },
+    {
+      "path": "agent/src/omni/channels/web_api/updates.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "9b075ae34733aa5ddb2d7ae3a7a3c98ae757fcd9b48a28d66f7c7353d83daf39",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/channels/web_api/updates.py"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/android/android.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "6404cb69daa67d678f6f0e08c525d2d6d556f41476c692386a6ff31dbd0b197d",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/android/android.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/android/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "e5fd5444bb2b78dec19a1e726dc9fcfeee33012772a321b514cd77549866425a",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/android/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/capabilities/capabilities.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "e7588612210a46f4d5f99e2c8b8798d3d84d75f17047f9a885922b2e75517a91",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/capabilities/capabilities.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/capabilities/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "27cd26432632bd3bf10a0a092ec80665973133cd68da6a20ab5a271ef48e7ba2",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/capabilities/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "f592d0f3ea12c6384becd96ac087d82098f9f1d5a21a6b3ad4ade6456123623b",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/jobs/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "4928f5dc1e71ba9eda86cce03488782fc03e020f1851e712dcae90155464e629",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/jobs/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/mcp/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "06cc5ccc9f6d584be914e09d72f68459fe6d88067d546594c5c3857464fca3b1",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/mcp/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/mcp/mcp.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "2f5c3315a6b947dd04e4958d6214e48289acc8c0508df30eac00e0d8f6ea3569",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/mcp/mcp.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/memory/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "ef7c71a1483f5f3758afe192799a8f531fa93043481ee45d65cebbf968e0e4e0",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/memory/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/memory/memory.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "48ffbe984144c6f84c843aeb22a0179d30c3443b4c3e45a980825455023bb3b7",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/memory/memory.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/memory/page.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "ffa961168999d4b77629d211eaeae2855a4acd222cfd6ea84eeb1a13769af51c",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/memory/page.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/project/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "31c70198323b461343a9eb7810d963e4335c791deff95475f7b875be9428c850",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/project/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/storage/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "45656617d759fe06caae6c3808ae4439f40549b69d748905f5126a4fa35a0401",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/storage/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/storage/storage.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "005ab07bf0d82aeb548b90230795f99cb16046fdad58c638b5592eb83ac4fb36",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/storage/storage.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/terminal/index.html",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "d979e55bb43bf17312fbdf95b75a2a0fcb70bd44e830a0dadbee2d2fe01eedf5",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/terminal/index.html"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/terminal/terminal.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "d2b569df1d25fd416395922f896b49285ec060dc618086ca06da84ba20d394bd",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/terminal/terminal.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/approvals.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "a8261181af2b257fb295d28798b6b6bec549ee467bafcfb2c2e761bf7ab0f54b",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/approvals.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/artifacts.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "935f4b81021e7eaf2fa3cdda31bb33c3f6a59ea9531c871816b0faa1cf5d0756",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/artifacts.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/chat.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "bb2bba438d875e8e8c70da0391b51090b752cdb514968c7b768c854c740049de",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/chat.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/desktop.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "359340d777e252dbb4356be117aaaa7c08d6bb191ab003dae6f4c3bead8cccff",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/desktop.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/header.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "763f0a959d3b9bd74d892f4a1662868f34a77e23fe489299d52d727897ad4a39",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/header.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-about.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "1b3f8f8654bd5e752644525e280e8335dbe40d66561822d55d09785d9e85e4ae",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-about.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-capabilities.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "cacf0d3c42855e15c216edb60d9084f700e00efc9a81159c8ab47e16eb13ce3c",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-capabilities.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-context.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "d5d05a923c06f3b1c9e80a77f707bd643985ed2b4d6a5599ad081dde11804604",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-context.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-cron.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "0732ea6088e20bafeb67a67c23015cbbf48efb02c12d7b5dfab276747e64539b",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-cron.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-embodiment.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "5a9005769043a75d24ea5c8eed8002bd7ee5d2d3791076a25d04906daf7255ff",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-embodiment.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-jobs.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "4aa6f3ce2ab34d8ee094a1637d47b2985f2033c9310c762ae08a590469f814e7",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-jobs.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-market.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "ecd15a6799edf6ff20aa369577c92dac8ba327cc71d4f98c355af05924a88d6b",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-market.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-mcp-services.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "f277384cae9e9d3b82ae03e507f7dbe8a8e4a947985e1c40817adb79a122f63a",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-mcp-services.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-mcp.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "e1f52a9cc6a979532f2b13e36f65f2e35027c83efa102d60501636365bc453af",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-mcp.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-memory.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "b83c40ae5d846b4a6fb41d1c9e0cb1c779c1b515abd5ecd82056d0f700854d5b",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-memory.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-models.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "31b61677895ce67943a52e7ee55b9b3133c61d2819b6275ba8c5f6ff8014ff62",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-models.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-persona.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "d4ae114718015738b7068f0343bb9735d84fe40f79b0363bd0e54356874e83cd",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-persona.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-project.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "1780f55328d9531622b87a1c16976df76df125884ad8c365dac957f64afede9c",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-project.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-services.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "fba923e872804795f2c5d4c346693e0b5eb867ef346f178ff9d5e3879a36f845",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-services.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-skills.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "b4f50768e207754d42f0b6d7de0b2d6ce56f02afac7b1c63723eddb444984d62",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-skills.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub-usage.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "8a7ba9f375164a3bf7e5a04bfa84af2c666cef67d4fec6e3fec10013b24894c5",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub-usage.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/hub.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "cb833a1e89ecd2336d65b0f73b0a00ae93e5047cd0f83c4b73c4b0741a2fd02d",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/hub.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/main.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "ee2c2dbae1f4f249907022573719e7c6031a2eea9d82776dd9482d66212e69e3",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/main.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/memory.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "e0664ffae3d8a17415f6690c2f822a0d093e946d09b20154ee51895dc4ff9ce7",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/memory.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/modals.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "0a76cd1b8619c8d54c7b027a7d7e79155b7ba17c778ad06fd372bd92ce95dcfa",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/modals.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/publications.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "03187a06357a0f6040ee57654b987951628c28fbca8c5da968226175addef2c8",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/publications.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/rail.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "dea978b882f4c1045efb6b130dbae3c7513179d1fd4455f773a69d9fa4669848",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/rail.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/runs.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "010705731f2be8e573f149658c8cb2f3a60ef2ec093c1e80c512ece76ac2518c",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/runs.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/services.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "e76b9bb99576ff5d62eab48350f84f5ff4d154179ce42546ad6d7d392134b900",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/services.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/sessions.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "e4d47fbe8c72bf9163ac009054f43f56cd80878c9938ce17f62095aeb98e7934",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/sessions.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/skills.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "23f372e0f4ad5c0653192701239f115dfd8edff0a8f157d7427361608e54051c",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/skills.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/tabs.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "10df370ee2b43d3164be76d20bde599ab30c5c5e0e485ce70deefdb49470299f",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/tabs.js"
+    },
+    {
+      "path": "agent/src/omni/channels/web_static/ui/app/tips.js",
+      "integration_batch": "U3/U4",
+      "baseline_sha256": "6ade86f05bd9b5c0b230d84c4c2216596a41d780d332c1fa923f3761d3a3d7d8",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "web/ui/app/tips.js"
+    },
+    {
+      "path": "agent/src/omni/config.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "27d1ae6709061351b0cf3a2284325ebd03d7e3ab31013edc4f336a69bb3baf39",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/config.py"
+    },
+    {
+      "path": "agent/src/omni/core/cron.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "370d24f325f4739c00cb2829ff55b6d8c315347e842e82de941986c051b35e62",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/core/cron.py"
+    },
+    {
+      "path": "agent/src/omni/core/journal.py",
+      "integration_batch": "U5",
+      "baseline_sha256": "b2ded3f39fdab29e986cdb3436d87b1d201851db5541ed95ee1fcf8e7556dc53",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/core/journal.py"
+    },
+    {
+      "path": "agent/src/omni/core/retrieval.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "743ca81500983c2a31f36d17bd30cdba744ec362b2099eb1e90d3e61549960dd",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/core/retrieval.py"
+    },
+    {
+      "path": "agent/src/omni/llm/gateway.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "040a6d0a8d1dc51b4f4673dfb058b9d5c219def465f9f61c5d79782d25d3d5d4",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/llm/gateway.py"
+    },
+    {
+      "path": "agent/src/omni/system/agent_spaces/catalog.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "2097f1b247c123f011f5804497102044847b65a3ab1cefe38c6d61ae4d1f38f0",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/agent_spaces/catalog.py"
+    },
+    {
+      "path": "agent/src/omni/system/agent_spaces/inspection.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "5aa6ed9e73cdd8c54b2390b12e3bc2243ffccbe6142893d7ed713db34b9305e6",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/agent_spaces/inspection.py"
+    },
+    {
+      "path": "agent/src/omni/system/agent_spaces/inventory.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "ef8cf4728b6590a8511bead5e43aebb5eba7b98d571bf486f5e7f84606591218",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/agent_spaces/inventory.py"
+    },
+    {
+      "path": "agent/src/omni/system/agent_spaces/layout.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "0f6284cccf9bc0fc8a0bccbe0306738f0c5f47582e45e8ae3c0c513ea10ec0f2",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/agent_spaces/layout.py"
+    },
+    {
+      "path": "agent/src/omni/system/backup.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "c53f46961680b907d266e8e220c544c4ad50240f35c43d89889a3e6299957ae2",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/backup.py"
+    },
+    {
+      "path": "agent/src/omni/system/catalog/schema.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "54a759693436627bbc1354ff6f96c1abcd692dd7599176e7b65835515d393511",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/catalog/schema.py"
+    },
+    {
+      "path": "agent/src/omni/system/config_io.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "81a7cd39883f1b2f4ca9e00464fa43635501bc2582a69a48cde27776095d71bb",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/config_io.py"
+    },
+    {
+      "path": "agent/src/omni/system/supervisor.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "7ec9648df244a06cfe6244997056d51965f38979b283392cd8b7655d8a53fca6",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/supervisor.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/__init__.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "e28658d2571be363e85f5dfde95730de19e3d18b483234ca027c86b05d17c148",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/__init__.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/archive.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "3b1fe5dd942652f53cda3c814b837f1a8ca2c7dbad4ca84958207e88f75ca2df",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/archive.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/common.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "6cab077fd355432fa2119e1a6315fead8d65b1882f2e6b971017860ea5e1d7e0",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/common.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/gate.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "6738409c59cbef2515827de0bdb1305c9ab06fe51ef289891f379f37ba282a50",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/gate.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/gitee.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "5bb5c620694e40d45958ae34eee2f91a77a0b789504d13498f73c9c6a589beeb",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/gitee.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/manager.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "4c38215bb2640ea180f64f03cc7d687b33d452199bdcf056f9c81b027dae37de",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/manager.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/snapshot.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "e6eeaaf93787adea6679beca97e947088eb177f3aad1780b72e13791ba3010fc",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/snapshot.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/version.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "f55b1e8a91bf8f37cbb9033fb58f0528c94b23c2208ba8cd76b0dea90ab08c36",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/version.py"
+    },
+    {
+      "path": "agent/src/omni/system/updates/worker.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "692ac0757de737e2a125832a34da3f5683e2a6cc64c6a25eceb27f665855783a",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/system/updates/worker.py"
+    },
+    {
+      "path": "agent/src/omni/tools/personal/people.py",
+      "integration_batch": "U5",
+      "baseline_sha256": "65a84e89f4d94a57100f43ce15beac94a14e2c52a703d36b1475882a867826ae",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/src/omni/tools/personal/people.py"
+    },
+    {
+      "path": "agent/tests/test_arch.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "bfc5e89ee1efc3de0d94d368541848a4e51b6f87dc4835417c15747246720548",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/tests/test_arch.py"
+    },
+    {
+      "path": "agent/tests/test_mcp.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "1725f94094cd703312f9dab83f5877663f6340b12170579e969f6a896c1e2e6a",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/tests/test_mcp.py"
+    },
+    {
+      "path": "agent/tests/test_surfcore_lessons.py",
+      "integration_batch": "U2",
+      "baseline_sha256": "3da2846a619bb4d9f177a6cdc0dc101779ed63c1d63fc663c3d1c4179a5c8466",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/tests/test_surfcore_lessons.py"
+    },
+    {
+      "path": "agent/tests/test_updates.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "2d48775c8d1f690dd939c0ec5f12bdd5a9dec579ccd282a84ccb9ff4d894538b",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/tests/test_updates.py"
+    },
+    {
+      "path": "agent/tests/test_updates_api.py",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "c6a2c68768d195f0f5dbf0c1d245c82653ba30feb425cbc9cb54398e22064873",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "agent/tests/test_updates_api.py"
+    },
+    {
+      "path": "docs/HANDOFF.md",
+      "integration_batch": "U7",
+      "baseline_sha256": "a263359964ae126b23933af598988411ae99998a8219c59e63d1126ccd28ffe9",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "temp/archive/docs/2026-11-01/HANDOFF.md"
+    },
+    {
+      "path": "docs/MEMORY_SYSTEM.md",
+      "integration_batch": "U7",
+      "baseline_sha256": "b19f85ca3c61a5d636c5889ff6654f9c8779c1d3db52f9d0057828fdcb8d9360",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/MEMORY_SYSTEM.md"
+    },
+    {
+      "path": "docs/OPERATIONS.md",
+      "integration_batch": "U7",
+      "baseline_sha256": "50ee0204f6522fcdd8c90a8604df05d68084661ad9c0474a1cbbc595a9b4d11b",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/OPERATIONS.md"
+    },
+    {
+      "path": "docs/PERSONA.md",
+      "integration_batch": "U7",
+      "baseline_sha256": "7faf801f1df3c1f660d8e0f8f0f89d44777dd1f37e2dba5d9b875f4c0424d96d",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/PERSONA.md"
+    },
+    {
+      "path": "docs/UPDATES.md",
+      "integration_batch": "U7",
+      "baseline_sha256": "127ad09115663769b7e56a2f5f29265c3765a72d70a7dcd334776d5c20651f7c",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/UPDATES.md"
+    },
+    {
+      "path": "docs/evidence/updates-2026-11-01.json",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "e1a3491b80a476922b49ef61519a6d1e7eab7c883325b4c7f3366753db11e1c9",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/evidence/updates-2026-11-01.json"
+    },
+    {
+      "path": "docs/jilu/2026-10-31-记忆整合与UI修复批-会话记录-所有者记忆并入人物系统.md",
+      "integration_batch": "U0",
+      "baseline_sha256": "a9f3b58084940b535b21742db211b7856db5336e0f72412345aed6cb11720f37",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/jilu/2026-10-31-记忆整合与UI修复批-会话记录-所有者记忆并入人物系统.md"
+    },
+    {
+      "path": "docs/jilu/2026-11-01-D15产物与视觉链路-核实清单与隐患记录.md",
+      "integration_batch": "U0",
+      "baseline_sha256": "44df7d8cca078c3644eabe8ddde148ca60371a2b6f394558ee0aec392225cf5a",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/jilu/2026-11-01-D15产物与视觉链路-核实清单与隐患记录.md"
+    },
+    {
+      "path": "docs/jilu/2026-11-01-前端目录归置会话记录-方案评估与打包验证未通过.md",
+      "integration_batch": "U0",
+      "baseline_sha256": "5fbc782cbf34956feaeb11022f4efa297f213e3283d81c7e86f665585f666d6e",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/jilu/2026-11-01-前端目录归置会话记录-方案评估与打包验证未通过.md"
+    },
+    {
+      "path": "docs/jilu/2026-11-01-记忆系统会话记录-借鉴融入与核实修正.md",
+      "integration_batch": "U0",
+      "baseline_sha256": "dd8e601546543adfabf0c4f4e20a998f93c51b3f83828f59b71ff8d97fbf0db0",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "docs/jilu/2026-11-01-记忆系统会话记录-借鉴融入与核实修正.md"
+    },
+    {
+      "path": "scripts/start.ps1",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "e7e58f7d45b1ec9e03f0ad65b9412e01372d0fc7d71c1d461c6a32e3753fa17f",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "scripts/start.ps1"
+    },
+    {
+      "path": "scripts/update.ps1",
+      "integration_batch": "U0/U5",
+      "baseline_sha256": "d02926b942632cb24647e0bad8c19e3baacf1867838322b9780992592bbe7aef",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "scripts/update.ps1"
+    },
+    {
+      "path": "uv.lock",
+      "integration_batch": "U2",
+      "baseline_sha256": "dcd7c791558f82a127669b26718923a4d1e4c4117b8e427ba7ab5360830c2a57",
+      "origin": "本次开始前已有，保留原恢复副本",
+      "current_location": "uv.lock"
+    }
+  ],
+  "unrelated_private_entries_omitted": 1
+}

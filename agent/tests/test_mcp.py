@@ -1,4 +1,5 @@
 """MCP 离线集成：真正的 stdio 子进程、协议分页、审批与资源回收，数据只落 tmp_path。"""
+
 from __future__ import annotations
 
 import json
@@ -21,7 +22,7 @@ from omni.tools.mcp.tools import register_mcp_tools
 from omni.tools.registry import ToolRegistry
 
 
-SERVER = r'''
+SERVER = r"""
 import json, os, sys, time
 from pathlib import Path
 count = 0
@@ -62,7 +63,7 @@ for line in sys.stdin:
     response = {"jsonrpc": "2.0", "id": message["id"]}
     response["error" if error else "result"] = error or result
     print(json.dumps(response), flush=True)
-'''
+"""
 
 
 @pytest.fixture
@@ -71,11 +72,21 @@ def setup_mcp(tmp_path, monkeypatch):
     script.write_text(SERVER, encoding="utf-8")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "not-for-mcp")
     monkeypatch.setenv("MCP_TEST_ALLOWED", "explicit-only")
-    cfg = MCPConfig(servers={"demo": MCPServerConfig(
-        command=sys.executable, args=["-u", str(script)], cwd=str(tmp_path),
-        env={"PID_FILE": str(tmp_path / "child.pid"), "MARKER": str(tmp_path / "writes.txt"),
-             "PERMITTED": "${MCP_TEST_ALLOWED}"}, read_only_tools=["echo"],
-    )})
+    cfg = MCPConfig(
+        servers={
+            "demo": MCPServerConfig(
+                command=sys.executable,
+                args=["-u", str(script)],
+                cwd=str(tmp_path),
+                env={
+                    "PID_FILE": str(tmp_path / "child.pid"),
+                    "MARKER": str(tmp_path / "writes.txt"),
+                    "PERMITTED": "${MCP_TEST_ALLOWED}",
+                },
+                read_only_tools=["echo"],
+            )
+        }
+    )
     state = StateStore(tmp_path / "trust.db")
     manager = MCPManager(cfg, tmp_path / "logs", schema_store=MCPSchemaStore(state))
     registry = ToolRegistry()
@@ -113,7 +124,9 @@ def test_mcp_writes_need_human_and_annotations_cannot_escalate(setup_mcp, tmp_pa
     assert "只读授权" in registry.dispatch("mcp_read_tool", args)
     assert "未获批准" in registry.dispatch("mcp_call_tool", args)
     assert "未获批准" in registry.dispatch("mcp_call_tool", args, approver=DenyApprover())
-    assert "未获批准" in registry.dispatch("mcp_call_tool", args, approver=SmartApprover(DenyApprover(), lambda *_: "ALLOW"))
+    assert "未获批准" in registry.dispatch(
+        "mcp_call_tool", args, approver=SmartApprover(DenyApprover(), lambda *_: "ALLOW")
+    )
     assert not (tmp_path / "child.pid").exists()
     assert not (tmp_path / "writes.txt").exists()
     assert "外部工具结果" in registry.dispatch("mcp_call_tool", args, approver=AllowAllApprover())
@@ -157,7 +170,9 @@ def test_mcp_concurrent_callers_are_serialized(setup_mcp):
 
 
 def test_mcp_missing_executable_fails_without_retry(tmp_path):
-    manager = MCPManager(MCPConfig(servers={"demo": MCPServerConfig(command=str(tmp_path / "missing.exe"))}), tmp_path / "logs")
+    manager = MCPManager(
+        MCPConfig(servers={"demo": MCPServerConfig(command=str(tmp_path / "missing.exe"))}), tmp_path / "logs"
+    )
     try:
         with pytest.raises(MCPError):
             manager.list_tools("demo")
@@ -184,7 +199,9 @@ runtime = build_runtime(config_path=root / 'config.json', data_dir=root / 'data'
 print(len(runtime.mcp.list_tools('demo')))
 # 故意不 close：验证 CLI/QQ/心跳正常进程退出时的 atexit 兜底。
 """
-    completed = subprocess.run([sys.executable, "-X", "utf8", "-c", code, str(tmp_path)], capture_output=True, timeout=20)
+    completed = subprocess.run(
+        [sys.executable, "-X", "utf8", "-c", code, str(tmp_path)], capture_output=True, timeout=20
+    )
     assert completed.returncode == 0, completed.stderr.decode("utf-8", errors="replace")
     assert completed.stdout.strip() == b"5"
     child_pid = int((tmp_path / "child.pid").read_text())
@@ -218,10 +235,12 @@ def test_mcp_rejects_repeating_catalog_cursor(setup_mcp):
 
 
 def test_mcp_allowlist_and_disabled_servers(tmp_path):
-    cfg = MCPConfig(servers={
-        "off": MCPServerConfig(command="must-not-start", enabled=False),
-        "limited": MCPServerConfig(command="must-not-start", allowed_tools=[]),
-    })
+    cfg = MCPConfig(
+        servers={
+            "off": MCPServerConfig(command="must-not-start", enabled=False),
+            "limited": MCPServerConfig(command="must-not-start", allowed_tools=[]),
+        }
+    )
     manager = MCPManager(cfg, tmp_path)
     assert manager.servers() == ["limited"]
     with pytest.raises(MCPError):
@@ -233,7 +252,9 @@ def test_mcp_allowlist_and_disabled_servers(tmp_path):
 
 
 def test_mcp_render_bounds_binary_and_errors():
-    output = render_result({"content": [{"type": "image", "data": "secret-base64"}, {"type": "text", "text": "x" * 20000}]})
+    output = render_result(
+        {"content": [{"type": "image", "data": "secret-base64"}, {"type": "text", "text": "x" * 20000}]}
+    )
     assert len(output) < 12100 and "secret-base64" not in output
     assert "省略 image" in output and "截断" in output
     assert "字段" in render_result({"structuredContent": {"字段": 1}})
@@ -282,14 +303,17 @@ def test_mcp_status_is_pure_and_includes_disabled(tmp_path, monkeypatch):
     script.write_text(SERVER, encoding="utf-8")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "x")
     pid_file = tmp_path / "child.pid"
-    cfg = MCPConfig(servers={
-        "demo": MCPServerConfig(
-            command=sys.executable, args=["-u", str(script)],
-            env={"PID_FILE": str(pid_file), "MARKER": str(tmp_path / "writes.txt")},
-            read_only_tools=["echo"],
-        ),
-        "off": MCPServerConfig(command="must-not-start", enabled=False),
-    })
+    cfg = MCPConfig(
+        servers={
+            "demo": MCPServerConfig(
+                command=sys.executable,
+                args=["-u", str(script)],
+                env={"PID_FILE": str(pid_file), "MARKER": str(tmp_path / "writes.txt")},
+                read_only_tools=["echo"],
+            ),
+            "off": MCPServerConfig(command="must-not-start", enabled=False),
+        }
+    )
     state = StateStore(tmp_path / "trust.db")
     manager = MCPManager(cfg, tmp_path / "logs", schema_store=MCPSchemaStore(state))
     try:
@@ -363,9 +387,7 @@ def test_mcp_web_panel_overview_and_tools(tmp_path, monkeypatch):
     try:
         app = create_app(runtime)
         client = TestClient(app, base_url="http://127.0.0.1")
-        assert client.post(
-            "/api/auth/pair", json={"code": app.state.web_auth.pairing_code}
-        ).status_code == 200
+        assert client.post("/api/auth/pair", json={"code": app.state.web_auth.pairing_code}).status_code == 200
 
         # overview：三个服务都在（含停用与坏命令），状态纯派生
         rows = client.get("/api/mcp/overview").json()["servers"]
@@ -382,15 +404,11 @@ def test_mcp_web_panel_overview_and_tools(tmp_path, monkeypatch):
         marks = {t["name"]: t["approval"] for t in payload["tools"]}
         assert marks["echo"] == "safe" and marks["write"] == "human"
         # 发现之后 overview 反映 ready
-        assert {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}[
-            "demo"
-        ]["state"] == "ready"
+        assert {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}["demo"]["state"] == "ready"
 
         # 坏命令：如实 409 + 状态变 failed；未知服务 404；停用服务不参与发现
         assert client.get("/api/mcp/broken/tools").status_code == 409
-        assert {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}[
-            "broken"
-        ]["state"] == "failed"
+        assert {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}["broken"]["state"] == "failed"
         assert client.get("/api/mcp/ghost/tools").status_code == 404
         assert client.get("/api/mcp/off/tools").status_code == 404
     finally:
@@ -401,7 +419,7 @@ def test_mcp_web_panel_overview_and_tools(tmp_path, monkeypatch):
 # ---------- D19 第二批：schema 漂移检测与面板重连 ----------
 
 # 服务升级模拟：工具参数形态由 marker 文件决定（每个请求现读，不需要重连）
-DRIFT_SERVER = r'''
+DRIFT_SERVER = r"""
 import json, os, sys
 from pathlib import Path
 for line in sys.stdin:
@@ -428,7 +446,7 @@ for line in sys.stdin:
     response = {"jsonrpc": "2.0", "id": message["id"]}
     response["error" if error else "result"] = error or result
     print(json.dumps(response), flush=True)
-'''
+"""
 
 
 def test_mcp_schema_store_has_single_domain_implementation():
@@ -462,10 +480,7 @@ def test_mcp_fingerprint_ignores_description_but_tracks_schema():
 
     base = [{"name": "a", "description": "x", "inputSchema": {"type": "object"}}]
     same_shape = [{"name": "a", "description": "y", "inputSchema": {"type": "object"}}]
-    changed_shape = [
-        {"name": "a", "description": "x",
-         "inputSchema": {"type": "object", "required": ["q"]}}
-    ]
+    changed_shape = [{"name": "a", "description": "x", "inputSchema": {"type": "object", "required": ["q"]}}]
     assert MCPManager.fingerprint(base) == MCPManager.fingerprint(same_shape)
     assert MCPManager.fingerprint(base) != MCPManager.fingerprint(changed_shape)
 
@@ -503,9 +518,7 @@ def test_mcp_schema_drift_confirm_and_reset(tmp_path):
     try:
         app = create_app(runtime)
         client = TestClient(app, base_url="http://127.0.0.1")
-        assert client.post(
-            "/api/auth/pair", json={"code": app.state.web_auth.pairing_code}
-        ).status_code == 200
+        assert client.post("/api/auth/pair", json={"code": app.state.web_auth.pairing_code}).status_code == 200
 
         # 首次发现：登记指纹，无漂移提醒
         first = client.get("/api/mcp/demo/tools").json()
@@ -534,7 +547,10 @@ def test_mcp_schema_drift_confirm_and_reset(tmp_path):
 
         # 用户复查后确认 → 漂移清除
         assert client.post("/api/mcp/demo/confirm-schema", json={"fingerprint": fingerprint}).status_code == 409
-        assert client.post("/api/mcp/demo/confirm-schema", json={"fingerprint": second["fingerprint"]}).json()["ok"] is True
+        assert (
+            client.post("/api/mcp/demo/confirm-schema", json={"fingerprint": second["fingerprint"]}).json()["ok"]
+            is True
+        )
         assert "ok" in runtime.mcp.call("demo", "search", {}, readonly=True)
         overview = {s["name"]: s for s in client.get("/api/mcp/overview").json()["servers"]}
         assert overview["demo"]["schema_state"] == "confirmed"
@@ -578,7 +594,7 @@ def test_mcp_missing_trust_store_denies_read_permission(setup_mcp):
 # ---------- D19 第三批：失败服务有界自动重连 ----------
 
 # 启动时读 marker：存在 → 进程立刻退出（握手失败）；不存在 → 正常服务
-FLAKY_SERVER = r'''
+FLAKY_SERVER = r"""
 import json, os, sys
 from pathlib import Path
 if Path(os.environ["BROKEN_FILE"]).exists():
@@ -604,7 +620,7 @@ for line in sys.stdin:
     response = {"jsonrpc": "2.0", "id": message["id"]}
     response["error" if error else "result"] = error or result
     print(json.dumps(response), flush=True)
-'''
+"""
 
 
 def _flaky_manager(tmp_path: Path, *, broken: bool) -> MCPManager:
@@ -614,10 +630,16 @@ def _flaky_manager(tmp_path: Path, *, broken: bool) -> MCPManager:
     marker = tmp_path / "broken"
     if broken and not marker.exists():
         marker.write_text("on", encoding="utf-8")
-    cfg = MCPConfig(servers={"flaky": MCPServerConfig(
-        command=sys.executable, args=["-u", str(script)],
-        env={"BROKEN_FILE": str(marker)}, read_only_tools=["echo"],
-    )})
+    cfg = MCPConfig(
+        servers={
+            "flaky": MCPServerConfig(
+                command=sys.executable,
+                args=["-u", str(script)],
+                env={"BROKEN_FILE": str(marker)},
+                read_only_tools=["echo"],
+            )
+        }
+    )
     return MCPManager(cfg, tmp_path / "logs")
 
 
@@ -708,7 +730,8 @@ def test_mcp_tool_results_are_structured(setup_mcp):
     assert denied.error_code == "mcp_refused" and "只读授权" in denied.text
 
     remote_error = registry.execute(
-        "mcp_call_tool", {"server": "demo", "name": "fail", "arguments": {}},
+        "mcp_call_tool",
+        {"server": "demo", "name": "fail", "arguments": {}},
         approver=AllowAllApprover(),
     )
     assert remote_error.status == "error" and remote_error.side_effect_state == "unknown"
@@ -716,7 +739,8 @@ def test_mcp_tool_results_are_structured(setup_mcp):
     assert remote_error.text.startswith("错误：外部工具执行失败")
 
     ok = registry.execute(
-        "mcp_call_tool", {"server": "demo", "name": "echo", "arguments": {"text": "x"}},
+        "mcp_call_tool",
+        {"server": "demo", "name": "echo", "arguments": {"text": "x"}},
         approver=AllowAllApprover(),
     )
     assert ok.status == "ok" and ok.side_effect_state == "applied" and ok.legacy is False
@@ -725,16 +749,19 @@ def test_mcp_tool_results_are_structured(setup_mcp):
 def test_mcp_tool_timeout_and_crash_are_uncertain(setup_mcp):
     """在途超时/服务中途回收：调用可能已到达服务器 → unknown；封闭后的新调用=确定未发出。"""
     manager, registry, _ = setup_mcp
+    manager.list_tools("demo")  # 先建立会话；下面验证的是已发出的调用超时，不是冷启动超时。
     manager._connections["demo"].config.timeout_s = 0.3
     unknown = registry.execute(
-        "mcp_call_tool", {"server": "demo", "name": "hang", "arguments": {}},
+        "mcp_call_tool",
+        {"server": "demo", "name": "hang", "arguments": {}},
         approver=AllowAllApprover(),
     )
     assert unknown.status == "unknown" and unknown.error_code == "mcp_uncertain"
     assert unknown.side_effect_state == "unknown" and "未知" in unknown.text
     # 连接已封闭：下一次调用在入队前被拒，确定没有发出
     sealed = registry.execute(
-        "mcp_call_tool", {"server": "demo", "name": "echo", "arguments": {}},
+        "mcp_call_tool",
+        {"server": "demo", "name": "echo", "arguments": {}},
         approver=AllowAllApprover(),
     )
     assert sealed.status == "error" and sealed.side_effect_state == "none"
@@ -746,7 +773,8 @@ def test_mcp_tool_crash_mid_call_is_uncertain(setup_mcp):
     manager, registry, _ = setup_mcp
     manager.list_tools("demo")  # 建立会话
     unknown = registry.execute(
-        "mcp_call_tool", {"server": "demo", "name": "crash", "arguments": {}},
+        "mcp_call_tool",
+        {"server": "demo", "name": "crash", "arguments": {}},
         approver=AllowAllApprover(),
     )
     assert unknown.status == "unknown" and unknown.error_code == "mcp_uncertain"

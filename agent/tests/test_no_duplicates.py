@@ -5,6 +5,7 @@
 被同名后定义静默覆盖（复制粘贴残留），被覆盖的测试从未运行过。
 CI 跑全量 pytest 时本守卫自动生效，无需单独步骤。
 """
+
 from __future__ import annotations
 
 import importlib.util

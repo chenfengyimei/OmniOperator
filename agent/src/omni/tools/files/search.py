@@ -7,6 +7,7 @@
 - 文件数、结果数、耗时三重上限，防止在一个巨型目录里把回合耗死；
 - 不跟随符号链接：链接可以指到工作区外，跟随就等于绕过了根校验。
 """
+
 from __future__ import annotations
 
 import fnmatch

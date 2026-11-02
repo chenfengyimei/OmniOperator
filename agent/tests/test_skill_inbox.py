@@ -9,6 +9,7 @@
   同名冲突锁内复核、来源记进修订历史（provenance）；
 - 工具层：审批边界——无人值守（DenyApprover）永远激活不了外来包。
 """
+
 import json
 import zipfile
 
@@ -28,8 +29,12 @@ def test_path_guard_primitive_is_shared_not_duplicated():
     import omni.system.path_guard as guard
     from pathlib import Path
 
-    skill_src = (Path(__file__).resolve().parents[1] / "src" / "omni" / "memory" / "skill_inbox.py").read_text(encoding="utf-8")
-    reader_src = (Path(__file__).resolve().parents[1] / "src" / "omni" / "plugins" / "package_reader.py").read_text(encoding="utf-8")
+    skill_src = (Path(__file__).resolve().parents[1] / "src" / "omni" / "memory" / "skill_inbox.py").read_text(
+        encoding="utf-8"
+    )
+    reader_src = (Path(__file__).resolve().parents[1] / "src" / "omni" / "plugins" / "package_reader.py").read_text(
+        encoding="utf-8"
+    )
     for src, name in ((skill_src, "skill_inbox.py"), (reader_src, "package_reader.py")):
         assert "def _safe_parts" not in src and "def safe_parts" not in src, f"{name} 不该再内嵌路径安全实现"
         assert "def _digest" not in src and "def digest" not in src, f"{name} 不该再内嵌摘要实现"
@@ -69,20 +74,11 @@ BODY = """## When to Use
 
 
 def _skill_md(name: str = "pkg-demo", description: str = "演示技能：完整可复用流程") -> str:
-    return (
-        "---\n"
-        f"name: {name}\n"
-        f"description: {description}\n"
-        "version: 1\n"
-        "platforms: [windows, macos]\n"
-        "---\n\n" + BODY
-    )
+    return f"---\nname: {name}\ndescription: {description}\nversion: 1\nplatforms: [windows, macos]\n---\n\n" + BODY
 
 
 def _make_store(tmp_path) -> tuple[SkillStore, SkillInbox]:
-    store = SkillStore(
-        tmp_path / "skills", history_root=tmp_path / "history", owner="test"
-    )
+    store = SkillStore(tmp_path / "skills", history_root=tmp_path / "history", owner="test")
     inbox = SkillInbox(store)
     return store, inbox
 
@@ -102,10 +98,14 @@ def _drop(inbox: SkillInbox, filename: str, entries: dict[str, bytes]) -> None:
 
 def test_import_pending_activate_full_flow(tmp_path):
     store, inbox = _make_store(tmp_path)
-    _drop(inbox, "pkg.zip", {
-        "pkg/SKILL.md": _skill_md().encode("utf-8"),
-        "pkg/references/note.md": "参考资料：完整的四节结构说明。\n".encode("utf-8"),
-    })
+    _drop(
+        inbox,
+        "pkg.zip",
+        {
+            "pkg/SKILL.md": _skill_md().encode("utf-8"),
+            "pkg/references/note.md": "参考资料：完整的四节结构说明。\n".encode("utf-8"),
+        },
+    )
 
     ok, msg = inbox.import_package("pkg.zip")
     assert ok, msg
@@ -135,9 +135,13 @@ def test_import_pending_activate_full_flow(tmp_path):
 
 def test_flat_layout_without_wrapper_dir(tmp_path):
     store, inbox = _make_store(tmp_path)
-    _drop(inbox, "flat.zip", {
-        "SKILL.md": _skill_md("flat-skill").encode("utf-8"),
-    })
+    _drop(
+        inbox,
+        "flat.zip",
+        {
+            "SKILL.md": _skill_md("flat-skill").encode("utf-8"),
+        },
+    )
     ok, msg = inbox.import_package("flat.zip")
     assert ok, msg
     ok, _msg = inbox.activate("flat-skill")
@@ -158,17 +162,20 @@ def test_package_arg_must_be_bare_filename(tmp_path):
 # ---------------------------------------------------------------- 拒绝面（路径与类型白名单）
 
 
-@pytest.mark.parametrize("entry", [
-    "../evil.md",
-    "pkg/../../evil.md",
-    "C:/evil.md",
-    "evil:notes.md",
-    "references/run.py",
-    "references/setup.exe",
-    "install.ps1",
-    "extra.md",
-    "references/a/b/c/d.md",
-])
+@pytest.mark.parametrize(
+    "entry",
+    [
+        "../evil.md",
+        "pkg/../../evil.md",
+        "C:/evil.md",
+        "evil:notes.md",
+        "references/run.py",
+        "references/setup.exe",
+        "install.ps1",
+        "extra.md",
+        "references/a/b/c/d.md",
+    ],
+)
 def test_unsafe_or_disallowed_entries_reject_whole_package(tmp_path, entry):
     _store, inbox = _make_store(tmp_path)
     entries = {"pkg/SKILL.md": _skill_md().encode("utf-8"), entry: b"x" * 10}
@@ -203,8 +210,7 @@ def test_bad_skill_md_rejected(tmp_path):
         "正文太短": {"pkg/SKILL.md": _skill_md("short-skill").replace(BODY, "太短")},
     }
     for label, entries in cases.items():
-        _drop(inbox, "case.zip", {k: v.encode("utf-8") if isinstance(v, str) else v
-                                  for k, v in entries.items()})
+        _drop(inbox, "case.zip", {k: v.encode("utf-8") if isinstance(v, str) else v for k, v in entries.items()})
         ok, msg = inbox.import_package("case.zip")
         assert not ok, label
         assert "错误" in msg, label
@@ -213,10 +219,14 @@ def test_bad_skill_md_rejected(tmp_path):
 
 def test_non_text_or_binary_content_rejected(tmp_path):
     _store, inbox = _make_store(tmp_path)
-    _drop(inbox, "bin.zip", {
-        "pkg/SKILL.md": _skill_md().encode("utf-8"),
-        "pkg/references/x.md": b"\xff\xfe\x00binary",
-    })
+    _drop(
+        inbox,
+        "bin.zip",
+        {
+            "pkg/SKILL.md": _skill_md().encode("utf-8"),
+            "pkg/references/x.md": b"\xff\xfe\x00binary",
+        },
+    )
     ok, msg = inbox.import_package("bin.zip")
     assert not ok and ("UTF-8" in msg or "二进制" in msg)
 
@@ -228,10 +238,14 @@ def test_size_and_count_caps(tmp_path):
     ok, msg = inbox.import_package("big.zip")
     assert not ok and "KiB 上限" in msg
     # 单个参考文件超 64 KiB
-    _drop(inbox, "ref.zip", {
-        "pkg/SKILL.md": _skill_md().encode("utf-8"),
-        "pkg/references/big.md": b"y" * (64 * 1024 + 1),
-    })
+    _drop(
+        inbox,
+        "ref.zip",
+        {
+            "pkg/SKILL.md": _skill_md().encode("utf-8"),
+            "pkg/references/big.md": b"y" * (64 * 1024 + 1),
+        },
+    )
     ok, msg = inbox.import_package("ref.zip")
     assert not ok and "64 KiB" in msg
     # 条目数超 200
@@ -243,6 +257,7 @@ def test_size_and_count_caps(tmp_path):
     assert not ok and "条目超过" in msg
     # 压缩包本体超 4 MiB
     import os
+
     payload = os.urandom(5 * 1024 * 1024)  # 随机字节不可压缩
     _drop(inbox, "huge.zip", {"pkg/SKILL.md": payload})
     ok, msg = inbox.import_package("huge.zip")
@@ -254,10 +269,14 @@ def test_size_and_count_caps(tmp_path):
 
 def test_activate_detects_tampering_after_import(tmp_path):
     store, inbox = _make_store(tmp_path)
-    _drop(inbox, "pkg.zip", {
-        "pkg/SKILL.md": _skill_md().encode("utf-8"),
-        "pkg/references/note.md": "原始参考内容。\n".encode("utf-8"),
-    })
+    _drop(
+        inbox,
+        "pkg.zip",
+        {
+            "pkg/SKILL.md": _skill_md().encode("utf-8"),
+            "pkg/references/note.md": "原始参考内容。\n".encode("utf-8"),
+        },
+    )
     assert inbox.import_package("pkg.zip")[0]
 
     # 导入后被改动：激活拒绝
@@ -269,9 +288,7 @@ def test_activate_detects_tampering_after_import(tmp_path):
     assert store.list() == []  # 正式库未被污染
 
     # 导入后被塞进新文件：同样拒绝
-    (store.root / ".quarantine" / "pkg-demo" / "references" / "extra.md").write_text(
-        "多余文件", encoding="utf-8"
-    )
+    (store.root / ".quarantine" / "pkg-demo" / "references" / "extra.md").write_text("多余文件", encoding="utf-8")
     ok, msg = inbox.activate("pkg-demo")
     assert not ok and "新增" in msg
 
@@ -323,7 +340,7 @@ def test_inbox_tools_registered_with_approval_gates(tmp_path):
     register_skill_inbox_tools(registry, inbox)
 
     assert registry.get("skill_pending").read_only is True
-    assert registry.get("skill_import").read_only is False      # 写隔离区：串行
+    assert registry.get("skill_import").read_only is False  # 写隔离区：串行
     activate = registry.get("skill_activate")
     assert activate.risk is Risk.CONFIRM and activate.requires_human
     assert registry.get("skill_discard").risk is Risk.SAFE
@@ -333,7 +350,7 @@ def test_inbox_tools_registered_with_approval_gates(tmp_path):
     # 导入是 SAFE：无人值守也能做（只进隔离区，不进正式库）
     result = registry.execute("skill_import", {"package": "pkg.zip"}, approver=DenyApprover())
     assert "已导入" in result.to_message()
-    assert registry.dispatch("skill_pending", {}) .count("pkg-demo") >= 1
+    assert registry.dispatch("skill_pending", {}).count("pkg-demo") >= 1
 
     # 激活是 CONFIRM + requires_human：无人值守一律拒绝
     result = registry.execute("skill_activate", {"name": "pkg-demo"}, approver=DenyApprover())

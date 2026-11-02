@@ -1,4 +1,5 @@
 """调度与可靠投递 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -30,22 +31,16 @@ def create_automation_router(runtime: Runtime) -> APIRouter:
             context_max_age_minutes=payload.context_max_age_minutes,
             deliver_to_qq=payload.deliver_to_qq,
             skills=[s.strip() for s in payload.skills if s.strip()],
-            context_from=(
-                payload.context_from.strip() if payload.context_from else None
-            ),
+            context_from=(payload.context_from.strip() if payload.context_from else None),
         )
         try:
             job.validate()
             if job.deliver_to_qq is not None:
                 # 与工具/投递同一判定：空白名单不是"不限"，撤销后立刻建不出新任务
-                decision = private_target_allowed(
-                    runtime.qq_policy().allowed_users, job.deliver_to_qq
-                )
+                decision = private_target_allowed(runtime.qq_policy().allowed_users, job.deliver_to_qq)
                 if not decision.allowed:
                     raise CronError(f"deliver_to_qq 不可用（{decision.reason}）")
-            job.next_run_at = to_iso(
-                compute_next_run(job, dt.datetime.now().astimezone())
-            )
+            job.next_run_at = to_iso(compute_next_run(job, dt.datetime.now().astimezone()))
             runtime.cron_jobs.upsert(job)  # 含 context_from 源存在校验
         except CronError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
@@ -68,11 +63,7 @@ def create_automation_router(runtime: Runtime) -> APIRouter:
                 {
                     "name": j.name,
                     "prompt": j.prompt,
-                    "schedule": (
-                        f"每 {j.every_minutes} 分钟"
-                        if j.every_minutes
-                        else f"每天 {j.daily_at}"
-                    ),
+                    "schedule": (f"每 {j.every_minutes} 分钟" if j.every_minutes else f"每天 {j.daily_at}"),
                     "every_minutes": j.every_minutes,
                     "daily_at": j.daily_at,
                     "timezone": j.timezone,
@@ -101,31 +92,21 @@ def create_automation_router(runtime: Runtime) -> APIRouter:
             if job is None:
                 raise HTTPException(status_code=404, detail="任务不存在")
             fields = payload.model_dump(exclude={"name", "expected_revision"})
-            touched = {
-                k: v for k, v in fields.items() if k in payload.model_fields_set
-            }
+            touched = {k: v for k, v in fields.items() if k in payload.model_fields_set}
             if not touched:
                 raise HTTPException(status_code=400, detail="没有要修改的字段")
             for key, value in touched.items():
                 setattr(job, key, value)
             if job.deliver_to_qq is not None:
                 # 与创建/工具/投递同一判定：空白名单不是"不限"
-                decision = private_target_allowed(
-                    runtime.qq_policy().allowed_users, job.deliver_to_qq
-                )
+                decision = private_target_allowed(runtime.qq_policy().allowed_users, job.deliver_to_qq)
                 if not decision.allowed:
                     raise CronError(f"deliver_to_qq 不可用（{decision.reason}）")
             job.validate()
-            schedule_changed = any(
-                k in touched for k in ("every_minutes", "daily_at", "enabled", "timezone")
-            )
+            schedule_changed = any(k in touched for k in ("every_minutes", "daily_at", "enabled", "timezone"))
             if schedule_changed and job.enabled:
-                job.next_run_at = to_iso(
-                    compute_next_run(job, dt.datetime.now().astimezone())
-                )
-            runtime.cron_jobs.upsert(
-                job, expected_revision=payload.expected_revision
-            )
+                job.next_run_at = to_iso(compute_next_run(job, dt.datetime.now().astimezone()))
+            runtime.cron_jobs.upsert(job, expected_revision=payload.expected_revision)
         except CronError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
         except StateConflict as exc:
@@ -147,9 +128,7 @@ def create_automation_router(runtime: Runtime) -> APIRouter:
                 raise HTTPException(status_code=404, detail="任务不存在")
             job.enabled = payload.enabled
             if payload.enabled:
-                job.next_run_at = to_iso(
-                    compute_next_run(job, dt.datetime.now().astimezone())
-                )
+                job.next_run_at = to_iso(compute_next_run(job, dt.datetime.now().astimezone()))
             runtime.cron_jobs.upsert(job, validate=False)
         except StateUnavailable as exc:
             raise HTTPException(status_code=503, detail=str(exc))

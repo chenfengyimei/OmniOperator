@@ -1,4 +1,5 @@
 """个人能力：refine；工具仅使用注入依赖，不构造运行时。"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -32,10 +33,7 @@ def register_refine_tool(
                 "完成后结果可在工作台「Review」页与 review 日志里查看"
             )
         if verdict == "duplicate":
-            return (
-                "没有需要整理的新内容（本会话暂无消息，或最近这段已整理过），"
-                "无需重复触发"
-            )
+            return "没有需要整理的新内容（本会话暂无消息，或最近这段已整理过），无需重复触发"
         if verdict == "full":
             return "整理队列已满，本次跳过；请稍后再试（宁可少整理一轮，不堆积待办）"
         if verdict == "closed":

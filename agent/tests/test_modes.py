@@ -2,6 +2,7 @@
 
 这些测试刻意不调用真实模型：路由要么走确定性规则，要么用假网关回放。
 """
+
 from __future__ import annotations
 
 import json
@@ -35,8 +36,7 @@ def _registry(names: tuple[str, ...] = ()) -> ToolRegistry:
     registry = ToolRegistry()
     for name in names:
         registry.register(
-            Tool(name, f"{name} 测试用", {"type": "object", "properties": {}},
-                 lambda _args: "ok", toolset="test")
+            Tool(name, f"{name} 测试用", {"type": "object", "properties": {}}, lambda _args: "ok", toolset="test")
         )
     return registry
 
@@ -56,11 +56,27 @@ def test_mode_allowlists_only_contain_registered_tool_names():
     from omni.tools.personal import clock, digest, facts, journal, people, transcript
 
     known = {
-        "get_time", "recall", "search_history", "journal_view", "person_lookup",
-        "daily_digest", "dialogue_search", "dialogue_read", "session_log_search",
-        "session_log_read", "files_list", "files_search", "files_read", "files_diff",
-        "files_history", "peek_command", "web_read", "system_status",
-        "bilibili_video_info", "bilibili_video_comments", "bilibili_video_subtitle",
+        "get_time",
+        "recall",
+        "search_history",
+        "journal_view",
+        "person_lookup",
+        "daily_digest",
+        "dialogue_search",
+        "dialogue_read",
+        "session_log_search",
+        "session_log_read",
+        "files_list",
+        "files_search",
+        "files_read",
+        "files_diff",
+        "files_history",
+        "peek_command",
+        "web_read",
+        "system_status",
+        "bilibili_video_info",
+        "bilibili_video_comments",
+        "bilibili_video_subtitle",
         "bilibili_video_transcript",
     }
     assert set(CHAT_TOOLS) <= known
@@ -71,10 +87,23 @@ def test_mode_allowlists_only_contain_registered_tool_names():
 def test_chat_mode_has_no_write_capability():
     """chat 档位只给只读记忆工具：不许写事实、不许改文件、不许执行命令。"""
     for name in (
-        "remember", "forget", "profile_manage", "resident_memory", "todo",
-        "skill_create", "skill_patch", "skill_rewrite", "cron_add", "cron_once",
-        "files_write", "files_restore", "run_command", "browser_click", "android_tap_element",
-        "qq_send_message", "delegate_task",
+        "remember",
+        "forget",
+        "profile_manage",
+        "resident_memory",
+        "todo",
+        "skill_create",
+        "skill_patch",
+        "skill_rewrite",
+        "cron_add",
+        "cron_once",
+        "files_write",
+        "files_restore",
+        "run_command",
+        "browser_click",
+        "android_tap_element",
+        "qq_send_message",
+        "delegate_task",
     ):
         assert name not in CHAT_TOOLS
         assert name not in RETRIEVAL_TOOLS
@@ -156,7 +185,8 @@ def test_rule_route_returns_none_for_ambiguous_input():
 def test_model_reply_parsing_is_strict():
     router = ModeRouter(AppConfig())
     assert router.parse_model_reply('{"mode":"chat","reason":"只是闲聊"}') == (
-        TurnMode.CHAT, "只是闲聊",
+        TurnMode.CHAT,
+        "只是闲聊",
     )
     # 多一个键 / 不是 JSON / 非法模式 / 理由过长，一律不认
     assert router.parse_model_reply('{"mode":"chat","reason":"好","extra":1}') is None
@@ -202,9 +232,7 @@ class _RouterGateway:
 def _agent(tmp_path, gateway, names=(), *, mode_router=None):
     store = MemoryStore(tmp_path / "m.db")
     sid = store.new_session()
-    agent = Agent(
-        AppConfig(), gateway, store, _registry(names), sid, mode_router=mode_router
-    )
+    agent = Agent(AppConfig(), gateway, store, _registry(names), sid, mode_router=mode_router)
     return agent, store, sid
 
 
@@ -212,7 +240,8 @@ def test_auto_route_uses_the_router_model_and_light_tool_set(tmp_path):
     gateway = _RouterGateway('{"mode":"retrieval","reason":"需要查资料"}')
     router = ModeRouter(AppConfig())
     agent, store, sid = _agent(
-        tmp_path, gateway,
+        tmp_path,
+        gateway,
         names=("get_time", "recall", "files_read", "run_command"),
         mode_router=router,
     )
@@ -231,9 +260,7 @@ def test_auto_route_uses_the_router_model_and_light_tool_set(tmp_path):
 def test_manual_mode_skips_the_router_model_entirely(tmp_path):
     gateway = _RouterGateway()
     router = ModeRouter(AppConfig())
-    agent, store, sid = _agent(
-        tmp_path, gateway, names=("get_time", "recall"), mode_router=router
-    )
+    agent, store, sid = _agent(tmp_path, gateway, names=("get_time", "recall"), mode_router=router)
     try:
         agent.chat("你好", mode="chat")
         assert [c["purpose"] for c in gateway.calls] == ["chat"]
@@ -275,9 +302,7 @@ def test_router_output_that_is_not_json_falls_back_to_full_capability(tmp_path):
     """路由输出不合规时回退完整能力：宁可多带规格，也不让用户的事做不成。"""
     gateway = _RouterGateway("我觉得应该用完整模式")
     router = ModeRouter(AppConfig())
-    agent, store, sid = _agent(
-        tmp_path, gateway, names=("get_time", "files_read"), mode_router=router
-    )
+    agent, store, sid = _agent(tmp_path, gateway, names=("get_time", "files_read"), mode_router=router)
     try:
         agent.chat("关于上个月那件事你怎么看", mode="auto")
         # 回退到完整能力：全部已注册工具都在（完整档位不附带升档工具）
@@ -313,13 +338,14 @@ def test_group_scope_still_cannot_read_owner_files_in_retrieval(tmp_path):
     """群聊即使路由到 retrieval，也拿不到所有者的工作区文件。"""
     gateway = _RouterGateway()
     router = ModeRouter(AppConfig())
-    agent, store, sid = _agent(
-        tmp_path, gateway, names=("get_time", "web_read", "files_read"), mode_router=router
-    )
+    agent, store, sid = _agent(tmp_path, gateway, names=("get_time", "web_read", "files_read"), mode_router=router)
     try:
         agent.run_turn(
-            "查一下配置文件", personal_context=False, channel="qq",
-            context_scope="group:200", mode="retrieval",
+            "查一下配置文件",
+            personal_context=False,
+            channel="qq",
+            context_scope="group:200",
+            mode="retrieval",
         )
         assert "files_read" not in gateway.seen_tools[0]
         sent = set(gateway.seen_tools[0]) - {REQUEST_MODE_TOOL}
@@ -351,8 +377,13 @@ def test_forged_write_tool_is_rejected_in_light_mode(tmp_path):
     )
     # 把写工具注册成真能执行的（证明拒绝来自档位，而不是工具不存在）
     agent.registry.register(
-        Tool("files_write", "写文件", {"type": "object", "properties": {}},
-             lambda _a: executed.append("wrote") or "已写入", toolset="test")
+        Tool(
+            "files_write",
+            "写文件",
+            {"type": "object", "properties": {}},
+            lambda _a: executed.append("wrote") or "已写入",
+            toolset="test",
+        )
     )
     try:
         agent.chat("帮我写点东西", mode="chat")

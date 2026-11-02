@@ -3,6 +3,7 @@
 真实 Chromium 跑一遍；离线保证：总览接口只读本地状态，账号检查**不自动触发**
 （必须人点），所以这个文件不会发任何外网请求。
 """
+
 from __future__ import annotations
 
 from urllib.parse import urlsplit
@@ -62,8 +63,12 @@ def test_embodiment_overview_lists_four_platforms(ui):
     for label in ("哔哩哔哩", "浏览器", "手机", "QQ"):
         assert label in body
     # 每行都要有进入对应分区的入口
-    assert page.locator('#embodiment-list a[data-action="hub:section"], '
-                        '#embodiment-list button[data-action="hub:section"]').count() == 4
+    assert (
+        page.locator(
+            '#embodiment-list a[data-action="hub:section"], #embodiment-list button[data-action="hub:section"]'
+        ).count()
+        == 4
+    )
     assert not errors, f"数字具身总览引发脚本异常：{errors}"
 
 

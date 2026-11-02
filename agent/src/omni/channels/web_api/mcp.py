@@ -1,4 +1,5 @@
 """MCP 管理 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -15,38 +16,51 @@ if TYPE_CHECKING:
 def create_mcp_router(runtime: Runtime) -> APIRouter:
     router = APIRouter(tags=["mcp"])
 
-    @router.get('/api/mcp/{server}/health')
+    @router.get("/api/mcp/{server}/health")
     def mcp_health(server: str):
         try:
-            return {**runtime.mcp.health(server),'configuration_matches':runtime.mcp.configuration_matches()}
-        except MCPError as exc:raise HTTPException(404,str(exc)) from exc
+            return {**runtime.mcp.health(server), "configuration_matches": runtime.mcp.configuration_matches()}
+        except MCPError as exc:
+            raise HTTPException(404, str(exc)) from exc
 
-    @router.get('/api/mcp/{server}/logs')
+    @router.get("/api/mcp/{server}/logs")
     def mcp_logs(server: str):
-        try:return runtime.mcp.logs(server)
-        except (MCPError,OSError) as exc:raise HTTPException(409,str(exc)) from exc
+        try:
+            return runtime.mcp.logs(server)
+        except (MCPError, OSError) as exc:
+            raise HTTPException(409, str(exc)) from exc
 
-    @router.post('/api/mcp/{server}/connect')
+    @router.post("/api/mcp/{server}/connect")
     def mcp_connect(server: str):
         try:
-            tools=runtime.mcp.list_tools(server)
-            return {'state':'ready','tool_count':len(tools)}
-        except MCPError as exc:raise HTTPException(409,str(exc)) from exc
+            tools = runtime.mcp.list_tools(server)
+            return {"state": "ready", "tool_count": len(tools)}
+        except MCPError as exc:
+            raise HTTPException(409, str(exc)) from exc
 
-    @router.post('/api/mcp/{server}/disconnect')
+    @router.post("/api/mcp/{server}/disconnect")
     def mcp_disconnect(server: str):
-        try:return runtime.mcp.disconnect(server)
-        except MCPError as exc:raise HTTPException(409,str(exc)) from exc
+        try:
+            return runtime.mcp.disconnect(server)
+        except MCPError as exc:
+            raise HTTPException(409, str(exc)) from exc
 
-    @router.get('/api/mcp/{server}/catalog')
+    @router.get("/api/mcp/{server}/catalog")
     def mcp_catalog(server: str, offset: int = 0, limit: int = 20):
-        if offset<0 or not 1<=limit<=50:raise HTTPException(422,'目录分页范围非法')
-        try:rows=runtime.mcp.list_tools(server)
-        except MCPError as exc:raise HTTPException(409,str(exc)) from exc
-        schema=runtime.mcp_schemas.status(server) if runtime.mcp_schemas else None
-        return {'tools':rows[offset:offset+limit],'total':len(rows),'offset':offset,
-                'fingerprint':schema['fingerprint'] if schema else '',
-                'confirmed':bool(schema and schema['confirmed_at'])}
+        if offset < 0 or not 1 <= limit <= 50:
+            raise HTTPException(422, "目录分页范围非法")
+        try:
+            rows = runtime.mcp.list_tools(server)
+        except MCPError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        schema = runtime.mcp_schemas.status(server) if runtime.mcp_schemas else None
+        return {
+            "tools": rows[offset : offset + limit],
+            "total": len(rows),
+            "offset": offset,
+            "fingerprint": schema["fingerprint"] if schema else "",
+            "confirmed": bool(schema and schema["confirmed_at"]),
+        }
 
     @router.get("/api/mcp/overview")
     def mcp_overview() -> dict[str, Any]:
@@ -58,19 +72,13 @@ def create_mcp_router(runtime: Runtime) -> APIRouter:
         """
         servers = runtime.mcp.status()
         for row in servers:
-            schema = (
-                runtime.mcp_schemas.status(row["name"])
-                if runtime.mcp_schemas is not None
-                else None
-            )
+            schema = runtime.mcp_schemas.status(row["name"]) if runtime.mcp_schemas is not None else None
             if schema is None:
                 row["schema_state"] = "absent"
                 row["schema_fingerprint"] = ""
             else:
                 row["schema_fingerprint"] = schema["fingerprint"]
-                row["schema_state"] = (
-                    "confirmed" if schema["confirmed_at"] else "drifted"
-                )
+                row["schema_state"] = "confirmed" if schema["confirmed_at"] else "drifted"
         return {"servers": servers}
 
     @router.get("/api/mcp/{server}/tools")
@@ -91,10 +99,7 @@ def create_mcp_router(runtime: Runtime) -> APIRouter:
         drift = ""
         schema = runtime.mcp_schemas.status(server) if runtime.mcp_schemas else None
         if schema is not None and not schema["confirmed_at"]:
-            drift = (
-                "工具目录或连接身份已变化：只读调用已暂停。"
-                "请复查当前目录与只读白名单后确认"
-            )
+            drift = "工具目录或连接身份已变化：只读调用已暂停。请复查当前目录与只读白名单后确认"
         return {
             "server": server,
             "total": len(rows),
@@ -130,5 +135,30 @@ def create_mcp_router(runtime: Runtime) -> APIRouter:
                 raise HTTPException(status_code=404, detail=message)
             raise HTTPException(status_code=409, detail=message)
         return {"ok": True, "state": status["state"]}
+
+    @router.post("/api/mcp/{server}/authorize", status_code=202)
+    def mcp_authorize(server: str) -> dict:
+        try:
+            return runtime.mcp.authorize(server)
+        except (ValueError, MCPError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @router.post("/api/mcp/{server}/oauth-callback")
+    def mcp_oauth_callback(server: str, payload: dict) -> dict:
+        try:
+            return runtime.mcp.authorization_callback(
+                server, str(payload.get("code", "")), str(payload.get("state", "")), payload.get("iss")
+            )
+        except (ValueError, MCPError) as exc:
+            raise HTTPException(409, "授权回调无效或已过期") from exc
+
+    @router.post("/api/mcp/oauth-callback")
+    def oauth_callback(payload: dict) -> dict:
+        try:
+            return runtime.mcp.complete_authorization(
+                str(payload.get("code", "")), str(payload.get("state", "")), payload.get("iss")
+            )
+        except (ValueError, MCPError) as exc:
+            raise HTTPException(409, "没有匹配的待授权请求或回调已过期") from exc
 
     return router

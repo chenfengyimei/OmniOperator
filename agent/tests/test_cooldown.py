@@ -12,6 +12,7 @@
 
 每一条都断言"该发生什么"，而不只是"没报错"。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -65,9 +66,7 @@ def test_unknown_reason_is_treated_as_hard_wake() -> None:
 
 
 def test_cooldown_suppresses_soft_wake_right_after_inbound() -> None:
-    decision = cooldown_decision(
-        last_inbound_at=NOW - 60, now=NOW, window_s=1200, reason="proactive"
-    )
+    decision = cooldown_decision(last_inbound_at=NOW - 60, now=NOW, window_s=1200, reason="proactive")
     assert decision.state == "suppress"
     assert decision.remaining_s == pytest.approx(1140)
     assert "冷却中" in decision.reason
@@ -76,35 +75,25 @@ def test_cooldown_suppresses_soft_wake_right_after_inbound() -> None:
 def test_cooldown_does_not_suppress_hard_wake() -> None:
     """被 @ / 叫名字 / 提问 / 私聊一律照常醒——「结束不是把人关掉」。"""
     for reason in sorted(HARD_WAKE_REASONS):
-        decision = cooldown_decision(
-            last_inbound_at=NOW - 60, now=NOW, window_s=1200, reason=reason
-        )
+        decision = cooldown_decision(last_inbound_at=NOW - 60, now=NOW, window_s=1200, reason=reason)
         assert decision.state == "allow", reason
 
 
 def test_cooldown_allows_when_window_disabled_or_no_inbound() -> None:
     """窗口关掉、或这个场景从没收到过消息 → 都不压制。"""
-    assert cooldown_decision(
-        last_inbound_at=NOW, now=NOW, window_s=0, reason="proactive"
-    ).state == "allow"
-    assert cooldown_decision(
-        last_inbound_at=None, now=NOW, window_s=1200, reason="proactive"
-    ).state == "allow"
+    assert cooldown_decision(last_inbound_at=NOW, now=NOW, window_s=0, reason="proactive").state == "allow"
+    assert cooldown_decision(last_inbound_at=None, now=NOW, window_s=1200, reason="proactive").state == "allow"
 
 
 def test_cooldown_expires_after_window() -> None:
-    decision = cooldown_decision(
-        last_inbound_at=NOW - 1201, now=NOW, window_s=1200, reason="cron"
-    )
+    decision = cooldown_decision(last_inbound_at=NOW - 1201, now=NOW, window_s=1200, reason="cron")
     assert decision.state == "allow"
     assert "冷却期已过" in decision.reason
 
 
 def test_cooldown_treats_clock_rollback_as_just_arrived() -> None:
     """时钟回拨不能变成放行主动搭话的漏洞。"""
-    decision = cooldown_decision(
-        last_inbound_at=NOW + 500, now=NOW, window_s=1200, reason="proactive"
-    )
+    decision = cooldown_decision(last_inbound_at=NOW + 500, now=NOW, window_s=1200, reason="proactive")
     assert decision.state == "suppress"
 
 
@@ -305,17 +294,13 @@ def test_cron_delivery_unchanged_without_runtime_message_store(tmp_path) -> None
 
 def _tool_result(gate):
     registry = ToolRegistry()
-    register_qq_tools(
-        registry, OneBotClient("ws://x"), allowed_users=[10001], active_gate=gate
-    )
+    register_qq_tools(registry, OneBotClient("ws://x"), allowed_users=[10001], active_gate=gate)
     return registry.execute("qq_send_message", {"user_id": 10001, "text": "hi"})
 
 
 def test_tool_reports_cooldown_with_its_own_error_code() -> None:
     """工具路径没有队列，冷却期只能直接拒——但错误码要和安静时段分开。"""
-    gate = lambda target: ProactiveDecision(
-        "defer", "刚在 1 分钟前聊过，冷却中", code=COOLDOWN_CODE
-    )
+    gate = lambda target: ProactiveDecision("defer", "刚在 1 分钟前聊过，冷却中", code=COOLDOWN_CODE)
     result = _tool_result(gate)
     assert result.status == "error"
     assert result.error_code == "proactive_cooldown"

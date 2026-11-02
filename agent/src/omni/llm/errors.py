@@ -15,6 +15,7 @@
 - 错误文本统一过 `sanitize`，密钥形态的串被替换成 `<已隐藏>`；
 - **不切换供应商**：重试永远打同一个 model 串，换供应商等于换一份账单和一个数据去向。
 """
+
 from __future__ import annotations
 
 import re
@@ -145,9 +146,7 @@ def _status_of(exc: BaseException) -> int | None:
     return value if isinstance(value, int) else None
 
 
-def classify(
-    exc: BaseException, *, model: str = "", attempts: int = 1
-) -> GatewayError:
+def classify(exc: BaseException, *, model: str = "", attempts: int = 1) -> GatewayError:
     """把任意异常翻译成带错误码的 GatewayError（不抛异常，纯函数）。"""
     name = type(exc).__name__
     text = sanitize(str(exc))

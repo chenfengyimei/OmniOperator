@@ -7,6 +7,7 @@ rowcount=1——这是 A09 要求的"额度预留/结算"，不再是读 JSON、
 fail-closed：旧额度文件损坏、状态库忙、目录只读时一律**拒绝写**，并把原因说清楚；
 绝不把"读不出来"当成 0 已用。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -41,10 +42,7 @@ class WriteBudget:
         today = dt.date.today().isoformat()
         reason = self._state.degraded_reason("budget")
         if reason:
-            return False, (
-                f"写操作已停止：{reason}。"
-                "为避免把损坏的额度状态当成 0 已用，这里不做任何自动重置"
-            )
+            return False, (f"写操作已停止：{reason}。为避免把损坏的额度状态当成 0 已用，这里不做任何自动重置")
         try:
             hit = self._state.consume_budget(self._scope, today, self._max)
         except StateBusy as exc:
@@ -54,10 +52,7 @@ class WriteBudget:
         if hit.ok:
             return True, f"写操作 {hit.used}/{hit.limit}（今日）"
         if hit.limit <= 0:
-            return False, (
-                "今日浏览器写操作额度上限为 0（未授权任何写操作）；"
-                "可在 config.yaml 调整 max_writes_per_day"
-            )
+            return False, ("今日浏览器写操作额度上限为 0（未授权任何写操作）；可在 config.yaml 调整 max_writes_per_day")
         return False, (
             f"今日浏览器写操作额度已用完（{hit.used}/{hit.limit}），"
             "为防失控已停止；明天自动恢复。也可在 config.yaml 调整 max_writes_per_day"

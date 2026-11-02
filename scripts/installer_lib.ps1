@@ -120,6 +120,22 @@ function Get-FreshPairUrl {
     if (-not $data -or -not $data.url -or -not $data.expires_at) { return $null }
     $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
     if ([double]$data.expires_at -lt ($now + 5)) { return $null }   # 留 5 秒余量
+    if (-not $data.boot_id -or -not $data.pid) { return $null }
+    try {
+        $pairUri = [Uri]$data.url
+        if ($pairUri.Scheme -ne 'http' -or $pairUri.Host -notin @('127.0.0.1', 'localhost', '[::1]')) { return $null }
+        if ($pairUri.Port -ne [int]$data.port -or $pairUri.UserInfo -or $pairUri.Query -or $pairUri.Fragment -or $pairUri.AbsolutePath -notmatch '^/pair/[A-Za-z0-9_-]+$') { return $null }
+        $request = [System.Net.WebRequest]::Create(('http://127.0.0.1:' + $data.port + '/api/auth/status?startup=1'))
+        $request.Proxy = $null
+        $request.Timeout = 1200
+        $response = $request.GetResponse()
+        try {
+            $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+            try { $health = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
+        } finally { $response.Dispose() }
+        if (-not $health.ready -or $health.boot_id -ne $data.boot_id -or $health.pid -ne $data.pid) { return $null }
+        if (-not (Get-Process -Id ([int]$data.pid) -ErrorAction SilentlyContinue)) { return $null }
+    } catch { return $null }
     return $data.url
 }
 
@@ -501,8 +517,8 @@ function Start-Workbench {
     }
 
     if (Test-PortListening $port) {
-        Send-Say $Sink '工作台已启动，但没能拿到未过期的配对链接：请到工作台窗口找 [工作台] 配对链接，在浏览器打开。' 'note'
-        return 'ok'
+        Send-Say $Sink '端口已监听，但工作台身份、就绪状态或当前配对记录未验证，不能报告启动成功。' 'bad'
+        return 'fail'
     }
     Send-Say $Sink '工作台可能启动失败：请查看刚打开窗口里的报错（常见：安装未完成、端口被占用）。' 'bad'
     return 'fail'

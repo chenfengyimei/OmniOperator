@@ -8,6 +8,7 @@
 
 社区源一律注入假上游（httpx.MockTransport），不连网、不碰真机 data/。
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -31,16 +32,16 @@ MANIFEST = {
     "author": "tester",
     "permissions": ["tools"],
 }
-PLUGIN_CODE = '''def register(ctx):
+PLUGIN_CODE = """def register(ctx):
     ctx.add_tool(name="demo-tools-hello", description="打招呼",
                  parameters={"type": "object", "properties": {}}, func=lambda args: "hi", risk="safe")
-'''
+"""
 PERSONA = {
     "id": "xiaoyu",
     "kind": "persona",
     "name": "小鱼",
     "description": "稳重、先给结论再展开",
-    "system_prompt": "你是小鱼，稳重专业，先给结论再展开。",
+    "system_prompt": "你是小鱼，稳重专业，先给结论再展开，用简洁清晰的中文解释每个步骤。",
     "greeting": "在。",
     "tags": ["默认", "稳重"],
     "author": "official",
@@ -93,9 +94,7 @@ def _upstream(request: httpx.Request) -> httpx.Response:
         )
     if path == "/api/download/demo-tools":
         package = _package()
-        return httpx.Response(
-            200, content=package, headers={"X-Plugin-Sha256": hashlib.sha256(package).hexdigest()}
-        )
+        return httpx.Response(200, content=package, headers={"X-Plugin-Sha256": hashlib.sha256(package).hexdigest()})
     return httpx.Response(404, json={"detail": "没有这个接口"})
 
 
@@ -150,12 +149,11 @@ def test_persona_market_imports_into_presets_and_form(ui):
     assert "你是小鱼" in card.locator(".mk-prompt").inner_text()
 
     card.locator('[data-action="market:persona-import"]').click()
-    page.wait_for_function(
-        "document.querySelector('#cfg-persona-name')?.value==='小鱼'", timeout=5000
-    )
+    page.wait_for_function("document.querySelector('#cfg-persona-name')?.value==='小鱼'", timeout=5000)
     assert "你是小鱼" in page.input_value("#cfg-persona-prompt")
-    presets = page.evaluate("JSON.parse(localStorage.getItem('omni_persona_presets')||'[]')")
+    presets = json.loads(_runtime.paths.persona_presets.read_text(encoding="utf-8"))
     assert any(item["id"] == "market-xiaoyu" for item in presets)
+    assert page.evaluate("localStorage.getItem('omni_persona_presets')") is None
     assert "已导入" in page.inner_text("#preset-tip")
 
     # 导入只是「填进表单」，配置没被偷偷改掉：保存按钮还在，且没有别的写入
@@ -164,14 +162,37 @@ def test_persona_market_imports_into_presets_and_form(ui):
     assert not errors, "市场弹窗引发脚本异常：%s" % errors
 
 
+def test_legacy_browser_presets_migrate_without_overwriting_server_presets(ui):
+    page, runtime, errors = ui
+    page.wait_for_function("document.querySelector('#hub').getAttribute('aria-busy') === 'false'")
+    before = json.loads(runtime.paths.persona_presets.read_text(encoding="utf-8"))
+    legacy = [
+        {**before[0], "prompt": "这份过时的浏览器缓存不应覆盖服务端已经保存的人设内容。"},
+        {
+            "id": "legacy-local",
+            "name": "历史预设",
+            "desc": "待迁移",
+            "prompt": "你是一个认真可靠的中文助手，回答要有依据，不确定时先核实再行动。",
+        },
+    ]
+    page.add_init_script(
+        "localStorage.setItem('omni_persona_presets', " + json.dumps(json.dumps(legacy, ensure_ascii=False)) + ")"
+    )
+    page.reload()
+    page.wait_for_function("document.querySelector('#hub').getAttribute('aria-busy') === 'false'")
+    after = json.loads(runtime.paths.persona_presets.read_text(encoding="utf-8"))
+    assert after[0] == before[0]
+    assert any(item["id"] == "legacy-local" for item in after)
+    assert page.evaluate("localStorage.getItem('omni_persona_presets')") is None
+    assert not errors
+
+
 def test_plugin_market_install_then_explicit_activate(ui):
     page, runtime, errors = ui
     page.click('.hub-nav a[data-go="sec-plugins"]')
     page.locator("#sec-plugins").wait_for(state="visible")
     # 分区先渲染「正在读取…」再异步换成结果，等它换完再断言，否则是在跟自己赛跑
-    page.wait_for_function(
-        "document.querySelector('#plugin-installed')?.textContent.includes('还没有装任何插件')"
-    )
+    page.wait_for_function("document.querySelector('#plugin-installed')?.textContent.includes('还没有装任何插件')")
 
     page.click('[data-action="market:open"][data-kind="plugin"]')
     page.locator("#market-list .mk-card").first.wait_for(state="visible")

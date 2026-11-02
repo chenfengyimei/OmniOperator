@@ -10,6 +10,7 @@
 
 这里全部用 httpx.MockTransport，不连网、不碰真机社区。
 """
+
 from __future__ import annotations
 
 import json
@@ -141,14 +142,14 @@ def test_persona_card_trims_and_drops_bad_fields():
     assert len(card["greeting"]) == 120
     assert card["tags"][:2] == ["默认", "x" * 12]
     assert len(card["tags"]) == 6
-    assert card["homepage"] == ""            # 非 http(s) 一律丢弃
+    assert card["homepage"] == ""  # 非 http(s) 一律丢弃
     assert card["sha256"] == "b" * 64
 
 
 def test_persona_card_requires_id_name_and_prompt():
-    assert normalize({"id": "a", "name": "n"}) is None              # 缺提示词
-    assert normalize({"id": "a", "system_prompt": "p"}) is None     # 缺名字
-    assert normalize({"name": "n", "system_prompt": "p"}) is None   # 缺 id
+    assert normalize({"id": "a", "name": "n"}) is None  # 缺提示词
+    assert normalize({"id": "a", "system_prompt": "p"}) is None  # 缺名字
+    assert normalize({"name": "n", "system_prompt": "p"}) is None  # 缺 id
     assert normalize({"id": "Bad Id", "name": "n", "system_prompt": "p"}) is None
     assert normalize("字符串不是卡") is None
     assert normalize({"id": "a", "name": "n" * (MAX_NAME + 5), "system_prompt": "p"})["name"] == "n" * MAX_NAME

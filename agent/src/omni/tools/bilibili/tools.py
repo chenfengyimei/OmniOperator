@@ -11,6 +11,7 @@ ASR 细节在 asr.py，抽帧拼图在 frames.py。
 - 找人：bilibili_user_search（为艾特定 UID）
 写（发评论、私信回复）走 write_tools.py 的草稿 + 人工审批链。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -29,8 +30,11 @@ MAX_COMMENT_COUNT = 20
 
 
 def register_bilibili_tools(
-    registry: ToolRegistry, api: BiliAPI, asr_config: Asr | None = None,
-    *, cache_root: Path | None = None,
+    registry: ToolRegistry,
+    api: BiliAPI,
+    asr_config: Asr | None = None,
+    *,
+    cache_root: Path | None = None,
     artifacts: Any = None,
     session_ref: SessionRef | None = None,
     run_ref: RunRef | None = None,
@@ -86,8 +90,10 @@ def register_bilibili_tools(
         except BiliAPIError as exc:
             return f"读取账号失败：{exc}"
         if not info.get("logged_in"):
-            return ("当前凭证没有登录 B站（或已失效）：只能看公开内容，字幕/音频/发布都拿不到。"
-                    "把浏览器里的 SESSDATA 重新粘到设置中心「哔哩哔哩」再试。")
+            return (
+                "当前凭证没有登录 B站（或已失效）：只能看公开内容，字幕/音频/发布都拿不到。"
+                "把浏览器里的 SESSDATA 重新粘到设置中心「哔哩哔哩」再试。"
+            )
         lines = [
             f"账号：{info['name']}（UID {info['uid']}）",
             f"等级：Lv{info['level']}" + ("· 大会员" if info.get("vip") else ""),
@@ -111,9 +117,11 @@ def register_bilibili_tools(
                     like=f"（{item['like']} 赞）" if item.get("like") else "",
                     content=item.get("content", ""),
                 )
-                + (f" [评论ID {item['rpid']}，{item['reply_count']} 条回复]"
-                   if item.get("rpid") and item.get("reply_count") else
-                   (f" [评论ID {item['rpid']}]" if item.get("rpid") else ""))
+                + (
+                    f" [评论ID {item['rpid']}，{item['reply_count']} 条回复]"
+                    if item.get("rpid") and item.get("reply_count")
+                    else (f" [评论ID {item['rpid']}]" if item.get("rpid") else "")
+                )
                 for item in items
             ]
         )
@@ -147,7 +155,8 @@ def register_bilibili_tools(
             return f"没有找到与「{keyword}」匹配的用户。"
         return "\n".join(
             "- {name}（UID {uid}）{sign}".format(
-                name=row.get("name", ""), uid=row.get("uid", ""),
+                name=row.get("name", ""),
+                uid=row.get("uid", ""),
                 sign=("· " + row["sign"]) if row.get("sign") else "",
             )
             for row in rows
@@ -157,10 +166,9 @@ def register_bilibili_tools(
         """抽帧拼长图：模型一次看完整个视频的画面。"""
         target = str(args["target"])
         count = min(max(int(args.get("count") or frames.DEFAULT_FRAMES), 1), frames.MAX_FRAMES)
-        width = min(max(int(args.get("width") or frames.DEFAULT_WIDTH),
-                        frames.MIN_WIDTH), frames.MAX_WIDTH)
+        width = min(max(int(args.get("width") or frames.DEFAULT_WIDTH), frames.MIN_WIDTH), frames.MAX_WIDTH)
         url = api.video_stream(target)
-        temporary = cache_root / 'video' if cache_root is not None else None
+        temporary = cache_root / "video" if cache_root is not None else None
         if temporary is not None:
             temporary.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="omni-frames-", dir=temporary) as tmp:
@@ -172,8 +180,13 @@ def register_bilibili_tools(
         sheet = frames.contact_sheet(picked)
         session_id, run_id = _artifact_context()
         text = save_screenshot(
-            artifacts, sheet, session_id=session_id, run_id=run_id,
-            kind="video_frames", source="bilibili_video_frames", can_view=can_view,
+            artifacts,
+            sheet,
+            session_id=session_id,
+            run_id=run_id,
+            kind="video_frames",
+            source="bilibili_video_frames",
+            can_view=can_view,
             label="视频抽帧长图",
         )
         stamps = "、".join(frames.format_time(timestamp) for timestamp, _ in picked)
@@ -193,7 +206,7 @@ def register_bilibili_tools(
         cfg = asr_config or Asr()
         target = str(args["target"])
         audio_url = api.audio_stream(target)
-        temporary = cache_root / 'audio' if cache_root is not None else None
+        temporary = cache_root / "audio" if cache_root is not None else None
         if temporary is not None:
             temporary.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="omni-asr-", dir=temporary) as tmp:
@@ -204,7 +217,7 @@ def register_bilibili_tools(
                 model_name=cfg.model,
                 device=cfg.device,
                 compute_type=cfg.compute_type,
-                **({'download_root': cache_root / 'models'} if cache_root is not None else {}),
+                **({"download_root": cache_root / "models"} if cache_root is not None else {}),
             )
 
     registry.register(
@@ -216,9 +229,7 @@ def register_bilibili_tools(
             ),
             parameters={
                 "type": "object",
-                "properties": {
-                    "target": {"type": "string", "description": "视频标识或链接"}
-                },
+                "properties": {"target": {"type": "string", "description": "视频标识或链接"}},
                 "required": ["target"],
             },
             func=video_info,
@@ -231,8 +242,7 @@ def register_bilibili_tools(
         Tool(
             name="bilibili_account_info",
             description=(
-                "查询当前B站登录账号：UID、昵称、等级、是否大会员。"
-                "发评论、发私信前先用它确认「现在登录的是哪个号」"
+                "查询当前B站登录账号：UID、昵称、等级、是否大会员。发评论、发私信前先用它确认「现在登录的是哪个号」"
             ),
             parameters={"type": "object", "properties": {}, "required": []},
             func=account_info,
@@ -253,10 +263,14 @@ def register_bilibili_tools(
                 "type": "object",
                 "properties": {
                     "target": {"type": "string", "description": "视频标识或链接"},
-                    "count": {"type": "integer",
-                              "description": f"抽帧数（1-{frames.MAX_FRAMES}，默认{frames.DEFAULT_FRAMES}）"},
-                    "width": {"type": "integer",
-                              "description": f"单帧宽度（{frames.MIN_WIDTH}-{frames.MAX_WIDTH}，默认{frames.DEFAULT_WIDTH}）"},
+                    "count": {
+                        "type": "integer",
+                        "description": f"抽帧数（1-{frames.MAX_FRAMES}，默认{frames.DEFAULT_FRAMES}）",
+                    },
+                    "width": {
+                        "type": "integer",
+                        "description": f"单帧宽度（{frames.MIN_WIDTH}-{frames.MAX_WIDTH}，默认{frames.DEFAULT_WIDTH}）",
+                    },
                 },
                 "required": ["target"],
             },
@@ -270,17 +284,18 @@ def register_bilibili_tools(
         Tool(
             name="bilibili_video_comments",
             description=(
-                "获取B站视频评论（默认10条，含点赞数与评论ID；可按最新排序或翻页）。"
-                "评论ID可用于继续读楼中楼回复"
+                "获取B站视频评论（默认10条，含点赞数与评论ID；可按最新排序或翻页）。评论ID可用于继续读楼中楼回复"
             ),
             parameters={
                 "type": "object",
                 "properties": {
                     "target": {"type": "string", "description": "视频标识或链接"},
-                    "count": {"type": "integer",
-                              "description": f"评论条数（1-{MAX_COMMENT_COUNT}，默认10）"},
-                    "sort": {"type": "string", "enum": ["hot", "time"],
-                             "description": "排序：hot 热度（默认）/ time 最新"},
+                    "count": {"type": "integer", "description": f"评论条数（1-{MAX_COMMENT_COUNT}，默认10）"},
+                    "sort": {
+                        "type": "string",
+                        "enum": ["hot", "time"],
+                        "description": "排序：hot 热度（默认）/ time 最新",
+                    },
                     "page": {"type": "integer", "description": "页码（从1起，默认1）"},
                 },
                 "required": ["target"],
@@ -300,8 +315,7 @@ def register_bilibili_tools(
                 "properties": {
                     "target": {"type": "string", "description": "视频标识或链接"},
                     "rpid": {"type": "string", "description": "评论ID（rpid）"},
-                    "count": {"type": "integer",
-                              "description": f"回复条数（1-{MAX_COMMENT_COUNT}，默认10）"},
+                    "count": {"type": "integer", "description": f"回复条数（1-{MAX_COMMENT_COUNT}，默认10）"},
                 },
                 "required": ["target", "rpid"],
             },
@@ -335,9 +349,7 @@ def register_bilibili_tools(
             description="获取B站视频的字幕全文（如有）。返回提示说明没有可获取的字幕时，改用 bilibili_video_transcript",
             parameters={
                 "type": "object",
-                "properties": {
-                    "target": {"type": "string", "description": "视频标识或链接"}
-                },
+                "properties": {"target": {"type": "string", "description": "视频标识或链接"}},
                 "required": ["target"],
             },
             func=video_subtitle,
@@ -356,9 +368,7 @@ def register_bilibili_tools(
             ),
             parameters={
                 "type": "object",
-                "properties": {
-                    "target": {"type": "string", "description": "视频标识或链接"}
-                },
+                "properties": {"target": {"type": "string", "description": "视频标识或链接"}},
                 "required": ["target"],
             },
             func=video_transcript,

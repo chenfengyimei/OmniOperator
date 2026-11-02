@@ -31,6 +31,7 @@
 
 版本号放这里而不是调用方：规则改了要能说清「当时按哪一版拦的」。
 """
+
 from __future__ import annotations
 
 import re
@@ -66,19 +67,28 @@ CREDENTIAL_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("Slack 令牌", re.compile(r"\bxox[abprs]-[A-Za-z0-9\-]{10,}")),
     ("Google API 密钥", re.compile(r"\bAIza[0-9A-Za-z_\-]{30,}")),
     ("Bearer 令牌", re.compile(r"\bBearer\s+[A-Za-z0-9_\-\.=]{16,}")),
-    ("Cookie 凭据", re.compile(
-        r"\b(?:SESSDATA|bili_jct|buvid3|sessionid|csrf|access_token|refresh_token)"
-        r"\s*=\s*[^\s;\"']{8,}",
-        re.IGNORECASE,
-    )),
-    ("密码赋值", re.compile(
-        r"(?:密码|口令|passwd|password|pwd)\s*(?:是|为|:|：|=)\s*\S{4,}",
-        re.IGNORECASE,
-    )),
-    ("api_key 赋值", re.compile(
-        r"\b(?:api[_\-]?key|secret[_\-]?key|access[_\-]?token)\s*(?:=|:)\s*\S{8,}",
-        re.IGNORECASE,
-    )),
+    (
+        "Cookie 凭据",
+        re.compile(
+            r"\b(?:SESSDATA|bili_jct|buvid3|sessionid|csrf|access_token|refresh_token)"
+            r"\s*=\s*[^\s;\"']{8,}",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "密码赋值",
+        re.compile(
+            r"(?:密码|口令|passwd|password|pwd)\s*(?:是|为|:|：|=)\s*\S{4,}",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "api_key 赋值",
+        re.compile(
+            r"\b(?:api[_\-]?key|secret[_\-]?key|access[_\-]?token)\s*(?:=|:)\s*\S{8,}",
+            re.IGNORECASE,
+        ),
+    ),
 )
 
 # ---------- 高危个人标识（要靠上下文词或校验位，不能只按位数） ----------
@@ -122,10 +132,41 @@ _ID_CHECK_CHARS = "10X98765432"
 
 # 行政区划前两位（省级）：11~65 之间的有效省码由 _ID_PROVINCE_CODES 列出。
 # 这里只做**区间**校验 + 有效省份集合双重把关，避免把 990000 这类假省码放过。
-_ID_PROVINCE_CODES = frozenset({
-    11, 12, 13, 14, 15, 21, 22, 23, 31, 32, 33, 34, 35, 36, 37,
-    41, 42, 43, 44, 45, 46, 50, 51, 52, 53, 54, 61, 62, 63, 64, 65,
-})
+_ID_PROVINCE_CODES = frozenset(
+    {
+        11,
+        12,
+        13,
+        14,
+        15,
+        21,
+        22,
+        23,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        50,
+        51,
+        52,
+        53,
+        54,
+        61,
+        62,
+        63,
+        64,
+        65,
+    }
+)
 
 
 def _id_checksum_ok(body17: str) -> bool:
@@ -177,10 +218,7 @@ def is_id_card_number(value: str) -> bool:
     text = str(value or "").strip()
     if not _ID_CARD_VALUE.fullmatch(text):
         return False
-    return (_id_checksum_ok(text)
-            and _id_region_ok(text)
-            and _id_birthdate_ok(text))
-
+    return _id_checksum_ok(text) and _id_region_ok(text) and _id_birthdate_ok(text)
 
 
 def scan_sensitive(text: str) -> list[TextGuardHit]:
@@ -202,18 +240,18 @@ def scan_sensitive(text: str) -> list[TextGuardHit]:
     #   ② 校验位路径：格式 + 校验位 + 省码 + 真实生日全部成立，**不需要上下文词**
     #      （这条是 D36 新增，用来堵"直接粘一串身份证号"的裸值漏洞）。
     for match in _ID_CARD_VALUE.finditer(body):
-        window = body[max(0, match.start() - _CONTEXT_WINDOW):match.end() + _CONTEXT_WINDOW]
+        window = body[max(0, match.start() - _CONTEXT_WINDOW) : match.end() + _CONTEXT_WINDOW]
         if _ID_CARD_CONTEXT.search(window):
             hits.append(TextGuardHit("身份证号", match.span()))
             continue
         if is_id_card_number(match.group(0)):
             hits.append(TextGuardHit("身份证号", match.span()))
     for match in _BANK_CARD_VALUE.finditer(body):
-        window = body[max(0, match.start() - _CONTEXT_WINDOW):match.end() + _CONTEXT_WINDOW]
+        window = body[max(0, match.start() - _CONTEXT_WINDOW) : match.end() + _CONTEXT_WINDOW]
         if _BANK_CARD_CONTEXT.search(window):
             hits.append(TextGuardHit("银行卡号", match.span()))
     for match in _VERIFICATION_VALUE.finditer(body):
-        window = body[max(0, match.start() - _CONTEXT_WINDOW):match.end() + _CONTEXT_WINDOW]
+        window = body[max(0, match.start() - _CONTEXT_WINDOW) : match.end() + _CONTEXT_WINDOW]
         if _VERIFICATION_CONTEXT.search(window):
             hits.append(TextGuardHit("验证码", match.span()))
     hits.sort(key=lambda item: item.span[0])

@@ -12,9 +12,18 @@
 一键图形安装器已于 2026-11-01 废弃（代码在 temp/retired-installer-2026-11-01/），
 本文件不再覆盖 GUI 部分；`installer_lib.ps1` 仍被 start.ps1 启动链依赖，守卫保留。
 """
+
 from __future__ import annotations
 
 from pathlib import Path
+import json
+import os
+import subprocess
+import threading
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -89,3 +98,53 @@ def test_gitignore_excludes_installer_downloads():
     """tools/ 下是下载的 NapCat / platform-tools，不能进仓库。"""
     text = (ROOT / ".gitignore").read_text(encoding="utf-8")
     assert "tools/" in text
+
+
+@pytest.mark.parametrize("case", ["ready", "wrong_boot", "not_ready", "wrong_pair_port"])
+def test_pair_link_requires_live_matching_service_identity(tmp_path, case):
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):
+            pass
+
+        def do_GET(self):
+            assert self.path == "/api/auth/status?startup=1"
+            body = json.dumps(
+                {
+                    "boot_id": "fixture-boot" if case != "wrong_boot" else "another-boot",
+                    "pid": os.getpid(),
+                    "ready": case != "not_ready",
+                }
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    worker = threading.Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    port = server.server_address[1]
+    url = f"http://127.0.0.1:{port + (1 if case == 'wrong_pair_port' else 0)}/pair/fixture-code"
+    target = tmp_path / "data/run/pair_url.json"
+    target.parent.mkdir(parents=True)
+    target.write_text(
+        json.dumps(
+            {"url": url, "expires_at": time.time() + 120, "boot_id": "fixture-boot", "pid": os.getpid(), "port": port}
+        ),
+        encoding="utf-8",
+    )
+    try:
+        command = ". (Join-Path $env:OMNI_TEST_REPOSITORY 'scripts/installer_lib.ps1'); $link = Get-FreshPairUrl -Root $env:OMNI_TEST_PAIR_ROOT; if ($link) { Write-Output $link } else { Write-Output 'NONE' }"
+        result = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
+            env={**os.environ, "OMNI_TEST_REPOSITORY": str(ROOT), "OMNI_TEST_PAIR_ROOT": str(tmp_path)},
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=20,
+        )
+        assert result.stdout.strip() == (url if case == "ready" else "NONE"), result.stderr
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(5)

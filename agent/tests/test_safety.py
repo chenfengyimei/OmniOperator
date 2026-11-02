@@ -1,4 +1,5 @@
 """审批闸门单测：三种上下文策略的风险分级行为。"""
+
 from omni.safety.gates import (
     AllowAllApprover,
     ConsoleApprover,
@@ -148,10 +149,20 @@ def test_smart_does_not_approve_truncated_arguments():
 
 def test_generic_writes_require_human_even_in_smart_mode(tmp_path):
     from omni.bootstrap import build_runtime
+
     runtime = build_runtime(db_path=tmp_path / "memory.db", data_dir=tmp_path, skills_root=tmp_path / "skills")
     ask = _ask_factory("ALLOW")
     approver = SmartApprover(ConsoleApprover(FakeConsole("n")), ask)
-    for name in ("run_command", "browser_click", "browser_type", "android_tap_element", "android_tap_coords", "android_swipe", "android_key", "android_type"):
+    for name in (
+        "run_command",
+        "browser_click",
+        "browser_type",
+        "android_tap_element",
+        "android_tap_coords",
+        "android_swipe",
+        "android_key",
+        "android_type",
+    ):
         tool = runtime.registry.get(name)
         assert tool.requires_human
         assert not approver.check(tool, {}).allowed

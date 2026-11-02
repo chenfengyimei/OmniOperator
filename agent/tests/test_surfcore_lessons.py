@@ -12,6 +12,7 @@
 
 所有用例都**离线**：不联网、不碰真实账号与真实目录、不调模型。
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -137,7 +138,7 @@ def test_config_write_rejects_empty_persona_and_keeps_file_intact(tmp_path: Path
     path = tmp_path / "config.yaml"
     original = (
         "persona:\n"
-        "  name: \"小鱼\"\n"
+        '  name: "小鱼"\n'
         "  system_prompt: |\n"
         "    你是小鱼，一个运行在用户电脑上的个人智能体。\n"
         "    说话简洁，不要废话。\n"
@@ -153,7 +154,7 @@ def test_config_write_accepts_valid_persona(tmp_path: Path) -> None:
     """合法的人格照常写进去（正文要够长，过最小长度闸门）。"""
     path = tmp_path / "config.yaml"
     path.write_text(
-        "persona:\n  name: \"小鱼\"\n  system_prompt: |\n    旧的人设正文在这里。\n",
+        'persona:\n  name: "小鱼"\n  system_prompt: |\n    旧的人设正文在这里。\n',
         encoding="utf-8",
     )
     new_text = apply_updates(
@@ -174,12 +175,10 @@ def test_config_write_accepts_valid_persona(tmp_path: Path) -> None:
 def test_config_write_rejects_credentials_in_persona(tmp_path: Path) -> None:
     """含凭据的人格也拒绝，且文件不变。"""
     path = tmp_path / "config.yaml"
-    original = "persona:\n  name: \"小鱼\"\n  system_prompt: |\n    旧正文。\n"
+    original = 'persona:\n  name: "小鱼"\n  system_prompt: |\n    旧正文。\n'
     path.write_text(original, encoding="utf-8")
     with pytest.raises(ConfigEditError):
-        commit_config_updates(
-            path, {"persona": {"system_prompt": ["我的密码是 hunter2xyz", "别外传。"]}}
-        )
+        commit_config_updates(path, {"persona": {"system_prompt": ["我的密码是 hunter2xyz", "别外传。"]}})
     assert path.read_text(encoding="utf-8") == original
 
 
@@ -312,9 +311,7 @@ def test_qq_send_message_tool_respects_active_gate() -> None:
 
     registry = ToolRegistry()
     gate = lambda target: ProactiveDecision("defer", "安静时段，等待下一次补投")
-    register_qq_tools(
-        registry, OneBotClient("ws://x"), allowed_users=[10001], active_gate=gate
-    )
+    register_qq_tools(registry, OneBotClient("ws://x"), allowed_users=[10001], active_gate=gate)
     result = registry.execute("qq_send_message", {"user_id": 10001, "text": "hi"})
     assert result.status == "error"
     assert result.error_code == "proactive_quiet_hours"
@@ -326,9 +323,7 @@ def test_qq_send_message_tool_reports_denial() -> None:
 
     registry = ToolRegistry()
     gate = lambda target: ProactiveDecision("deny", "主动私聊今日额度已用完")
-    register_qq_tools(
-        registry, OneBotClient("ws://x"), allowed_users=[10001], active_gate=gate
-    )
+    register_qq_tools(registry, OneBotClient("ws://x"), allowed_users=[10001], active_gate=gate)
     result = registry.execute("qq_send_message", {"user_id": 10001, "text": "hi"})
     assert result.status == "error"
     assert result.error_code == "proactive_denied"
@@ -352,9 +347,7 @@ def test_qq_send_message_gate_does_not_touch_allowlist_semantics() -> None:
 
     registry = ToolRegistry()
     gate = lambda target: ProactiveDecision("allow", "ok")
-    register_qq_tools(
-        registry, OneBotClient("ws://x"), allowed_users=[10001], active_gate=gate
-    )
+    register_qq_tools(registry, OneBotClient("ws://x"), allowed_users=[10001], active_gate=gate)
     result = registry.execute("qq_send_message", {"user_id": 999, "text": "hi"})
     assert result.error_code == "target_not_allowed"
 
@@ -364,11 +357,7 @@ def test_qq_send_message_gate_does_not_touch_allowlist_semantics() -> None:
 
 def test_safety_layer_does_not_import_core() -> None:
     """判定下沉到 safety 后不能倒挂依赖（safety 是叶子层）。"""
-    # 按**导入的模块自身位置**找源文件，不要假设 CWD 是仓库根：
-    # 隔离 worktree / 从别处运行 pytest 时，相对路径 "src/..." 会找不到文件。
-    import omni.safety.proactive as proactive_module
-
-    source = Path(proactive_module.__file__).resolve()
+    source = Path(__file__).resolve().parents[1] / "src/omni/safety/proactive.py"
     text = source.read_text(encoding="utf-8")
     assert "from ..core" not in text
     assert "import omni.core" not in text

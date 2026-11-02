@@ -7,6 +7,7 @@
 core/cron、bootstrap 与 96 处调用点消费，保留方法名是兼容合同；按域拆文件
 让评审只需看一个域的 SQL，而不是在 1000 行大类里找。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -99,13 +100,9 @@ class JobsMixin:
             job.validate()
         with self._tx() as conn:
             if validate and job.context_from:
-                row = conn.execute(
-                    "SELECT 1 FROM jobs WHERE name = ?", (job.context_from,)
-                ).fetchone()
+                row = conn.execute("SELECT 1 FROM jobs WHERE name = ?", (job.context_from,)).fetchone()
                 if row is None:
-                    raise CronError(
-                        f"context_from 指向的任务 {job.context_from} 不存在（先创建它）"
-                    )
+                    raise CronError(f"context_from 指向的任务 {job.context_from} 不存在（先创建它）")
                 visited = {job.name}
                 source = job.context_from
                 while source:
@@ -114,14 +111,10 @@ class JobsMixin:
                     visited.add(source)
                     parent = conn.execute("SELECT context_from FROM jobs WHERE name=?", (source,)).fetchone()
                     source = parent[0] if parent else None
-            current = conn.execute(
-                "SELECT revision FROM jobs WHERE name = ?", (job.name,)
-            ).fetchone()
+            current = conn.execute("SELECT revision FROM jobs WHERE name = ?", (job.name,)).fetchone()
             if current is None:
                 if expected_revision not in (None, 0):
-                    raise StateConflict(
-                        f"任务 {job.name} 不存在（你基于 revision {expected_revision} 提交）"
-                    )
+                    raise StateConflict(f"任务 {job.name} 不存在（你基于 revision {expected_revision} 提交）")
                 conn.execute(
                     "INSERT INTO jobs(name, prompt, every_minutes, daily_at, deliver_to_qq, "
                     "skills, context_from, enabled, next_run_at, last_run_at, last_result, "
@@ -196,9 +189,7 @@ class JobsMixin:
             conn.execute("DELETE FROM job_claims WHERE expires_at < ?", (stamp,))
             active = {r[0] for r in conn.execute("SELECT job FROM job_claims")}
             due: list[tuple[dt.datetime, Job]] = []
-            for row in conn.execute(
-                "SELECT * FROM jobs WHERE enabled = 1 AND next_run_at IS NOT NULL"
-            ).fetchall():
+            for row in conn.execute("SELECT * FROM jobs WHERE enabled = 1 AND next_run_at IS NOT NULL").fetchall():
                 raw = row["next_run_at"]
                 try:
                     due_dt = parse_iso(str(raw))
@@ -224,8 +215,14 @@ class JobsMixin:
                             due.append((due_dt, candidate))
                         continue
                     if candidate.name in active:
-                        conn.execute("UPDATE jobs SET next_run_at=?, last_result=? WHERE name=?",
-                                     (to_iso(compute_next_run(candidate, now)), "运行中再次到期：已合并，不积压", candidate.name))
+                        conn.execute(
+                            "UPDATE jobs SET next_run_at=?, last_result=? WHERE name=?",
+                            (
+                                to_iso(compute_next_run(candidate, now)),
+                                "运行中再次到期：已合并，不积压",
+                                candidate.name,
+                            ),
+                        )
                     else:
                         due.append((due_dt, candidate))
             if len(active) >= max(1, max_running):
@@ -237,14 +234,10 @@ class JobsMixin:
             if job.every_minutes is None and not job.daily_at:
                 # 一次性任务领取即在**同一事务**停用（at-most-once）：执行器中途崩溃
                 # 只留下"结果未知"的账本记录，绝不重触发——与 unknown 不重放纪律一致
-                conn.execute(
-                    "UPDATE jobs SET enabled = 0 WHERE name = ?", (job.name,)
-                )
+                conn.execute("UPDATE jobs SET enabled = 0 WHERE name = ?", (job.name,))
             else:
                 job.next_run_at = to_iso(compute_next_run(job, from_dt=now))
-                conn.execute(
-                    "UPDATE jobs SET next_run_at = ? WHERE name = ?", (job.next_run_at, job.name)
-                )
+                conn.execute("UPDATE jobs SET next_run_at = ? WHERE name = ?", (job.next_run_at, job.name))
             conn.execute(
                 "INSERT INTO job_claims(job, token, claimed_at, expires_at) VALUES (?, ?, ?, ?)",
                 (job.name, token, _jobs_now(), stamp + float(ttl_s)),
@@ -258,5 +251,9 @@ class JobsMixin:
     def renew_job_claim(self, token: str, ttl_s: float = 3600) -> bool:
         with self._tx() as conn:
             now = time.time()
-            return conn.execute("UPDATE job_claims SET expires_at=? WHERE token=? AND expires_at>?",
-                                (now + ttl_s, token, now)).rowcount == 1
+            return (
+                conn.execute(
+                    "UPDATE job_claims SET expires_at=? WHERE token=? AND expires_at>?", (now + ttl_s, token, now)
+                ).rowcount
+                == 1
+            )

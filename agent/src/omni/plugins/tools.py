@@ -6,6 +6,7 @@
   （人工确认就是"用户激活"这一步），卸载删除已确认过的包与插件数据；
   无人值守（DenyApprover）永远激活/卸载不了插件。
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -31,8 +32,7 @@ def register_plugin_tools(registry: ToolRegistry, host: PluginHost) -> None:
                 files = "、".join(f"{f['path']}({f['bytes']}B)" for f in item["files"]) or "（记录缺失）"
                 warn = "　⚠ 导入记录缺失" if item["record_missing"] else ""
                 lines.append(
-                    f"- {item['id']} v{item['version']}：{item['description']}"
-                    f"　来源：{item['source'] or '未知'}{warn}"
+                    f"- {item['id']} v{item['version']}：{item['description']}　来源：{item['source'] or '未知'}{warn}"
                 )
                 lines.append(f"  文件：{files}")
         if installed:
@@ -122,9 +122,7 @@ def register_plugin_tools(registry: ToolRegistry, host: PluginHost) -> None:
             ),
             parameters={
                 "type": "object",
-                "properties": {
-                    "id": {"type": "string", "description": "隔离区里的插件 id（plugin_list 里有）"}
-                },
+                "properties": {"id": {"type": "string", "description": "隔离区里的插件 id（plugin_list 里有）"}},
                 "required": ["id"],
             },
             func=plugin_activate,
@@ -151,8 +149,7 @@ def register_plugin_tools(registry: ToolRegistry, host: PluginHost) -> None:
         Tool(
             name="plugin_disable",
             description=(
-                "停用一个插件：反注册其工具入口（模块代码仍在进程内存里，"
-                "重启后彻底移除——返回消息会如实说明）"
+                "停用一个插件：反注册其工具入口（模块代码仍在进程内存里，重启后彻底移除——返回消息会如实说明）"
             ),
             parameters={
                 "type": "object",

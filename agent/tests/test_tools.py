@@ -1,4 +1,5 @@
 """工具注册表单测：spec 格式 / dispatch / 审批闸门 / 错误回传。"""
+
 import json
 
 from omni.memory.store import MemoryStore
@@ -125,6 +126,7 @@ def test_daily_digest_dispatch(tmp_path):
 
 # ---------- todo 内联工具（SessionRef 会话注入） ----------
 
+
 def test_todo_dispatch_session_scoped(tmp_path):
     from omni.tools.builtin import register_todo_tools
     from omni.tools.registry import SessionRef
@@ -140,14 +142,10 @@ def test_todo_dispatch_session_scoped(tmp_path):
     assert "会话上下文缺失" in registry.dispatch("todo", '{"operation": "view"}')
 
     ref.set(sid_a)
-    assert "已加待办 #1" in registry.dispatch(
-        "todo", json.dumps({"operation": "add", "content": "查字幕"})
-    )
+    assert "已加待办 #1" in registry.dispatch("todo", json.dumps({"operation": "add", "content": "查字幕"}))
     ref.set(sid_b)
     # id 全表自增（跨会话唯一，view/操作都按全局编号）
-    assert "已加待办 #2" in registry.dispatch(
-        "todo", json.dumps({"operation": "add", "content": "发测试消息"})
-    )
+    assert "已加待办 #2" in registry.dispatch("todo", json.dumps({"operation": "add", "content": "发测试消息"}))
     # 会话隔离：A 看不到 B 的待办
     ref.set(sid_a)
     view_a = registry.dispatch("todo", '{"operation": "view"}')
@@ -192,9 +190,7 @@ def test_agent_chat_binds_session_ref(tmp_path):
                     id=f"c{self.step}",
                     function=SimpleNamespace(
                         name="todo",
-                        arguments=json.dumps(
-                            {"operation": "add", "content": f"步骤{self.step}"}
-                        ),
+                        arguments=json.dumps({"operation": "add", "content": f"步骤{self.step}"}),
                     ),
                 )
                 return SimpleNamespace(text="", tool_calls=[call])

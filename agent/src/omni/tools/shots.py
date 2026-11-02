@@ -7,15 +7,26 @@ browser/android 截图共用这一段：字节 → 产物登记 → 给模型/�
 - 没开 `vision.send_to_cloud` 时，文本明确说"模型看不到这张图"，
   不让模型误以为看过（A13 的另一半）。
 """
+
 from __future__ import annotations
 
 from typing import Any, Protocol
 
 
 class _Artifacts(Protocol):  # 结构化 ArtifactStore，避免 tools 直接 import memory 具体类
-    def save_image(self, data: bytes, mime: str, *, session_id: int | None,
-                   run_id: str | None, scope: str, kind: str, source: str,
-                   width: int | None, height: int | None) -> Any: ...
+    def save_image(
+        self,
+        data: bytes,
+        mime: str,
+        *,
+        session_id: int | None,
+        run_id: str | None,
+        scope: str,
+        kind: str,
+        source: str,
+        width: int | None,
+        height: int | None,
+    ) -> Any: ...
 
 
 def _dims(png: bytes) -> tuple[int | None, int | None]:
@@ -47,8 +58,15 @@ def save_screenshot(
     width, height = _dims(data)
     try:
         artifact = artifacts.save_image(
-            data, "image/png", session_id=session_id, run_id=run_id,
-            scope="private", kind=kind, source=source, width=width, height=height,
+            data,
+            "image/png",
+            session_id=session_id,
+            run_id=run_id,
+            scope="private",
+            kind=kind,
+            source=source,
+            width=width,
+            height=height,
         )
     except Exception as exc:  # noqa: BLE001 —— 保存失败要可解释，不能吞
         return f"错误：{label}产物保存失败（{exc}）"
@@ -57,10 +75,10 @@ def save_screenshot(
     if can_view:
         return (
             f"{label}已存为产物 {ref}（PNG，{dims}，{len(data) // 1024}KB）。"
-            "这张图已作为图像内容提供给模型，可以直接描述/分析它。"
+            "图像已登记；是否附加到本次请求以及未附加原因，以后续图像说明为准。"
         )
     return (
         f"{label}已存为产物 {ref}（PNG，{dims}，{len(data) // 1024}KB）。"
-        "注意：当前未开启 vision.send_to_cloud，模型看不到图像内容；"
+        "注意：图像输入当前不可用（隐私开关未开启或没有可用视觉模型），模型看不到图像内容；"
         "可在工作台「产物」面板查看，或用 read 读页面文本。"
     )

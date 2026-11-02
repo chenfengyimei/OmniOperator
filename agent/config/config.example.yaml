@@ -26,6 +26,12 @@ persona:
     没有字幕时可以用 bilibili_video_transcript 转写音频（较慢，长视频慎用），
     最后给出你自己的"看后感"——要有观点和细节，不要只复述数据。
     当前时间：{now}
+  # 场景层（可选，D36）：只做追加，不改写上面的核心正文。留空 = 没有这一层，
+  # 此时行为与旧版完全一致。核心层是底座，场景层只在对应场景下追加一段。
+  # group_prompt: |
+  #   群里说话简短些，一次只回一句，不要抢话。
+  # private_prompt: |
+  #   私聊里可以展开讲，必要时给完整步骤。
 
 models:
   # LiteLLM 模型串（provider/model）。改成本地 .env 里有 key 的模型即可。
@@ -208,3 +214,25 @@ system:
   restart_backoff_cap_s: 300      # 退避封顶秒数（5、10、20… 到这个值为止）
   health_timeout_s: 45            # 服务自报运行态多久没更新就算"无响应"
   napcat_qq: ""                   # 启动 NapCat 用的 QQ 号；空则回退 owner_qq / 上次登录的 uin
+
+updates:
+  channel: stable                # stable=正式发行版；development=主动跟随 master 固定提交
+  auto_check: true               # 启动后延迟检查，每天最多自动检查一次；安装仍需人工确认
+
+# 图像只在显式授权后附加到模型请求
+vision:
+  send_to_cloud: false
+  max_image_bytes: 4194304
+  max_images_per_turn: 4
+  max_edge_px: 1280
+artifacts:
+  retention_days: 7
+  max_total_mb: 500
+
+desktop:
+  enabled: false
+  foreground_enabled: false  # 启用后仍须逐次人工批准，用户输入时暂停
+  allowed_apps: []           # 完整exe路径，空列表拒绝全部
+
+mcp:
+  servers: {}               # 默认stdio；远程Streamable HTTP/OAuth示例见docs/MCP.md

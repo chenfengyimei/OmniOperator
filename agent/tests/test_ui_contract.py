@@ -9,7 +9,10 @@
 - rail 的工具入口在设置中心内打开对应分区（独立页只从卡片「整页打开 ↗」进）；
 - Material Icons 字体必须内联（离线可用）。
 """
+
 from __future__ import annotations
+
+from omni.config import PROJECT_ROOT, web_root
 
 import os
 import re
@@ -18,7 +21,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STATIC = ROOT / "src" / "omni" / "channels" / "web_static"
+STATIC = web_root(PROJECT_ROOT)
 INDEX = STATIC / "index.html"
 GATE = ROOT / "scripts" / "check_ui_contract.py"
 ICONS = STATIC / "ui" / "icons.css"
@@ -45,7 +48,12 @@ def test_ui_contract_gate_passes():
     env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
     result = subprocess.run(
         [sys.executable, str(GATE)],
-        capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+        cwd=ROOT,
     )
     assert result.returncode == 0, "UI 契约门禁未通过：\n" + result.stdout + result.stderr
 
@@ -54,9 +62,16 @@ def test_every_page_loads_tokens_before_components_and_page_layer():
     """8 页统一加载链：tokens → base → icons → frame →（工作台 workbench / 子站页面 css）。"""
     for page, page_sheet in PAGE_SHEETS.items():
         html = (STATIC / page).read_text(encoding="utf-8")
-        order = {name: html.index(f'href="{name}') for name in (
-            "/ui/tokens.css", "/ui/base.css", "/ui/icons.css", "/ui/frame.css", page_sheet,
-        )}
+        order = {
+            name: html.index(f'href="{name}')
+            for name in (
+                "/ui/tokens.css",
+                "/ui/base.css",
+                "/ui/icons.css",
+                "/ui/frame.css",
+                page_sheet,
+            )
+        }
         assert sorted(order, key=order.get) == list(order), f"{page} 资源加载顺序错误：{order}"
         assert "/ui/skin.css" not in html and "/ui/shell.css" not in html, f"{page} 仍引用已解构的 skin/shell"
 
@@ -70,14 +85,21 @@ def test_workbench_has_no_inline_style():
 def test_ui_assets_carry_cache_busting_versions():
     """自产资源必须带 ?v=：防浏览器把新版标记与旧版皮肤/字体/渲染器缓存错配。"""
     html = INDEX.read_text(encoding="utf-8")
-    for href in ("href=\"/ui/tokens.css?v=", "href=\"/ui/components.css?v=", "href=\"/ui/frame.css?v=", "href=\"/ui/workbench.css?v=",
-                 "href=\"/ui/icons.css?v=", "src=\"/ui/markdown.js?v=", "src=\"/ui/app/main.js?v="):
+    for href in (
+        'href="/ui/tokens.css?v=',
+        'href="/ui/components.css?v=',
+        'href="/ui/frame.css?v=',
+        'href="/ui/workbench.css?v=',
+        'href="/ui/icons.css?v=',
+        'src="/ui/markdown.js?v=',
+        'src="/ui/app/main.js?v=',
+    ):
         assert href in html, f"index.html 缺少缓存版本参数：{href}"
     for page in PAGE_SHEETS:
         if page == "index.html":
             continue
         body = (STATIC / page).read_text(encoding="utf-8")
-        assert "href=\"/ui/frame.css?v=" in body, f"{page} 的 frame.css 缺少 ?v="
+        assert 'href="/ui/frame.css?v=' in body, f"{page} 的 frame.css 缺少 ?v="
 
 
 def test_app_module_import_versions_are_atomic():
@@ -100,8 +122,7 @@ def test_app_module_import_versions_are_atomic():
         for match in specifier.finditer(text):
             versions.add(match.group(2))
     assert len(versions) == 1, (
-        f"ui/app 模块 import 的 ?v= 不一致（{sorted(versions)}）——"
-        "版本串必须全组原子递增，否则同模块会按 URL 实例化两份"
+        f"ui/app 模块 import 的 ?v= 不一致（{sorted(versions)}）——版本串必须全组原子递增，否则同模块会按 URL 实例化两份"
     )
 
 
@@ -151,8 +172,13 @@ def test_app_modules_import_what_they_use():
     整个 import 块，$/api 运行时才炸，且只有点「发布草稿」页签才暴露）。
     """
     shared = {  # 共享符号 → 定义模块
-        "$": "dom.js", "esc": "dom.js", "fmtTime": "dom.js", "relTime": "dom.js", "usd": "dom.js",
-        "api": "api.js", "S": "state.js",
+        "$": "dom.js",
+        "esc": "dom.js",
+        "fmtTime": "dom.js",
+        "relTime": "dom.js",
+        "usd": "dom.js",
+        "api": "api.js",
+        "S": "state.js",
     }
     import_block = re.compile(r"import\s+\{([^}]+)\}\s+from\s+'\./([A-Za-z0-9-]+\.js)\?v=[0-9a-z]+'")
     problems = []
@@ -210,8 +236,10 @@ def test_substation_app_module_refs_match_group_version():
     group = {entry.group(1)}
     ref = re.compile(r"/ui/app/([A-Za-z0-9-]+\.js)\?v=([0-9a-z]+)")
     for page in SUBPAGES:
-        for text in [(STATIC / page / "index.html").read_text(encoding="utf-8"),
-                     (STATIC / page / f"{page}.js").read_text(encoding="utf-8")]:
+        for text in [
+            (STATIC / page / "index.html").read_text(encoding="utf-8"),
+            (STATIC / page / f"{page}.js").read_text(encoding="utf-8"),
+        ]:
             for match in ref.finditer(text):
                 group.add(match.group(2))
     assert len(group) == 1, f"子站引用的 app 模块版本与主组不一致：{sorted(group)}"
@@ -275,14 +303,15 @@ def test_rail_tool_entries_open_hub_sections():
     """
     html = INDEX.read_text(encoding="utf-8")
     for link_id, (section, page) in RAIL_TOOL_ENTRIES.items():
-        lines = [ln for ln in html.splitlines() if f'id="{link_id}"' in ln]
+        lines = re.findall(r'<[A-Za-z][^>]*\bid="' + re.escape(link_id) + r'"[^>]*>', html, re.S)
         assert len(lines) == 1, f"rail 入口 {link_id} 必须且只能出现一次"
         line = lines[0]
         assert line.lstrip().startswith("<button"), f"rail 入口 {link_id} 必须是按钮（当前是整页链接）：{line.strip()}"
         assert 'data-action="hub:open"' in line, f"rail 入口 {link_id} 必须打开设置中心：{line.strip()}"
         assert f'data-section="{section}"' in line, f"rail 入口 {link_id} 必须指向 {section}"
-        assert 'href=' not in line, f"rail 入口 {link_id} 不能带 href（会整页跳走）：{line.strip()}"
-        assert f'id="{section}"' in html, f"设置中心缺少 {section} 分区，rail 入口会点空"
+        assert "href=" not in line, f"rail 入口 {link_id} 不能带 href（会整页跳走）：{line.strip()}"
+        canonical = "sec-mcp" if section == "sec-mcp-services" else section
+        assert f'id="{canonical}"' in html, f"设置中心缺少 {canonical} 分区，rail 入口会点空"
         assert f'href="/{page}/"' in html, f"独立页 /{page}/ 失去界面入口（卡片里应有「整页打开」）"
 
 
@@ -367,7 +396,7 @@ def test_hub_core_nav_labels_match_destinations():
         assert labels.get(go) == expected, f"{go} 导航标签应为「{expected}」，实得 {labels.get(go)!r}"
         if go == "sec-memory-system":
             anchor = re.search(r'<a\b[^>]*data-go="sec-memory-system"[^>]*>', html).group()
-            assert 'href=' not in anchor and 'target=' not in anchor
+            assert "href=" not in anchor and "target=" not in anchor
             assert 'id="memory-system-frame"' not in html
             assert 'id="hub-memory-content"' in html
         card = re.search(rf'<div class="hub-card" id="{go}">(.*?)<h3>([^<]+)</h3>', html, re.S)
@@ -410,16 +439,18 @@ def test_every_subpage_is_reachable_from_navigation():
     index_html = INDEX.read_text(encoding="utf-8")
     # web_static 下的一级子目录就是独立子站
     subpages = sorted(
-        p.name for p in STATIC.iterdir()
+        p.name
+        for p in STATIC.iterdir()
         if p.is_dir() and p.name not in {"ui", "vendor"} and (p / "index.html").exists()
     )
     assert subpages, "未发现任何独立子站，测试本身失效"
     for page in subpages:
-        in_nav = f"'/{page}/'" in shared_js
+        in_nav = bool(
+            re.search(r"['\"]/" + re.escape(page) + r"/['\"]", (STATIC / "ui/sections.js").read_text(encoding="utf-8"))
+        )
         in_markup = f'href="/{page}/"' in index_html
         assert in_nav or in_markup, (
-            f"子站 /{page}/ 没有任何界面入口（既不在 NAV_ITEMS 也不在工作台 markup）——"
-            f"它是事实孤儿页"
+            f"子站 /{page}/ 没有任何界面入口（既不在 NAV_ITEMS 也不在工作台 markup）——它是事实孤儿页"
         )
 
 
@@ -437,9 +468,10 @@ def test_hub_nav_distinguishes_embedded_and_standalone():
     # 绑点击的那一行必须只拦带 data-go 的锚点；
     # （switchHub 里另有一次 '.hub-nav a' 遍历，那是切激活态用的，属正确行为）
     assert ".hub-nav a[data-go]').forEach" in hub_js, "hub.js 的点击拦截未限定在带 data-go 的锚点上"
-    handler_lines = [ln for ln in hub_js.splitlines() if ".hub-nav a" in ln and "onclick" in ln]
+    handler_lines = re.findall(
+        r"document\.querySelectorAll\(['\"](\.hub-nav a[^'\"]*)['\"]\)\.forEach\(\s*\(a\)\s*=>\s*\(?\s*a\.onclick",
+        hub_js,
+    )
     assert handler_lines, "hub.js 里找不到 .hub-nav 的点击绑定行"
     for line in handler_lines:
-        assert "a[data-go]" in line, (
-            f"hub.js 仍在全量拦截 .hub-nav a——独立页直链的导航会被吞掉：{line.strip()}"
-        )
+        assert "a[data-go]" in line, f"hub.js 仍在全量拦截 .hub-nav a——独立页直链的导航会被吞掉：{line.strip()}"

@@ -17,6 +17,7 @@
 「第 5 格」。一张带编号与时间码的宫格 + 一份机器可读索引，
 才让"模型引用一次就闭环、人对着时间码能复核"成立。
 """
+
 from __future__ import annotations
 
 import tempfile
@@ -106,7 +107,10 @@ def register_storyboard_tools(
             coverage = (scanned / duration) if duration > 0 else 1.0
             cuts = detect.detect_cuts_from_scores(times, scores, duration=duration)
             board = segments.build_storyboard(
-                cuts, duration=duration, max_cells=cells, transcript=transcript,
+                cuts,
+                duration=duration,
+                max_cells=cells,
+                transcript=transcript,
             )
             picked = decode.pick_sharp_frames(
                 video,
@@ -116,25 +120,32 @@ def register_storyboard_tools(
             if not picked:
                 return "没能从视频里取到画面帧（解码失败）。"
             board = segments.build_storyboard(
-                cuts, duration=duration, max_cells=cells, transcript=transcript,
-                frame_times=[(index, moment, sharp)
-                             for index, moment, _png, sharp in picked],
+                cuts,
+                duration=duration,
+                max_cells=cells,
+                transcript=transcript,
+                frame_times=[(index, moment, sharp) for index, moment, _png, sharp in picked],
             )
             result = render.render_storyboard(
-                board, [(index, png) for index, _moment, png, _sharp in picked],
+                board,
+                [(index, png) for index, _moment, png, _sharp in picked],
             )
 
         session_id, run_id = _artifact_context()
         text = save_screenshot(
-            artifacts, result.png, session_id=session_id, run_id=run_id,
-            kind="video_storyboard", source="video_storyboard", can_view=can_view,
+            artifacts,
+            result.png,
+            session_id=session_id,
+            run_id=run_id,
+            kind="video_storyboard",
+            source="video_storyboard",
+            can_view=can_view,
             label="视频分镜图",
         )
         lines = [
             text,
             render.readability_note(result),
-            f"共 {len(board.cells)} 格 · 视频时长 {render.format_time(duration)} · "
-            f"检出 {len(cuts)} 个剪辑点。",
+            f"共 {len(board.cells)} 格 · 视频时长 {render.format_time(duration)} · 检出 {len(cuts)} 个剪辑点。",
         ]
         if coverage < 0.98:
             # 不静默：扫描没覆盖到全片时明说，否则模型会以为"看完了整个视频"
@@ -143,9 +154,7 @@ def register_storyboard_tools(
                 f"（全片 {render.format_time(duration)} 的 {coverage:.0%}），"
                 "后半段的画面未纳入分镜，末格的时间码只到扫描终点。"
             )
-        lines.append(
-            "分镜索引（格号 → 时间码 → 取帧时刻 → 该段台词）："
-        )
+        lines.append("分镜索引（格号 → 时间码 → 取帧时刻 → 该段台词）：")
         for row in board.to_index():
             snippet = str(row["text"] or "")
             if len(snippet) > MAX_CELL_TEXT:
@@ -180,14 +189,16 @@ def register_storyboard_tools(
             actual, png = decode.frame_at(video, moment, width=width)
         session_id, run_id = _artifact_context()
         text = save_screenshot(
-            artifacts, png, session_id=session_id, run_id=run_id,
-            kind="video_zoom", source="video_zoom", can_view=can_view,
+            artifacts,
+            png,
+            session_id=session_id,
+            run_id=run_id,
+            kind="video_zoom",
+            source="video_zoom",
+            can_view=can_view,
             label="视频单帧放大",
         )
-        return (
-            f"{text}\n实际取到 {render.format_time(actual)}"
-            f"（请求 {moment:.2f} 秒）。"
-        )
+        return f"{text}\n实际取到 {render.format_time(actual)}（请求 {moment:.2f} 秒）。"
 
     registry.register(
         Tool(
@@ -205,10 +216,11 @@ def register_storyboard_tools(
                 "type": "object",
                 "properties": {
                     "target": {"type": "string", "description": "视频标识或链接"},
-                    "cells": {"type": "integer",
-                              "description": f"最多分几格（1-{MAX_CELLS}，默认{DEFAULT_CELLS}）"},
-                    "with_transcript": {"type": "boolean",
-                                        "description": "是否把台词挂到各格（默认 false；开启会额外跑一次语音转写，较慢）"},
+                    "cells": {"type": "integer", "description": f"最多分几格（1-{MAX_CELLS}，默认{DEFAULT_CELLS}）"},
+                    "with_transcript": {
+                        "type": "boolean",
+                        "description": "是否把台词挂到各格（默认 false；开启会额外跑一次语音转写，较慢）",
+                    },
                 },
                 "required": ["target"],
             },
@@ -230,8 +242,7 @@ def register_storyboard_tools(
                 "properties": {
                     "target": {"type": "string", "description": "视频标识或链接"},
                     "at": {"type": "number", "description": "要放大的时间点（秒）"},
-                    "width": {"type": "integer",
-                              "description": f"单帧宽度（320-1920，默认{ZOOM_WIDTH}）"},
+                    "width": {"type": "integer", "description": f"单帧宽度（320-1920，默认{ZOOM_WIDTH}）"},
                 },
                 "required": ["target", "at"],
             },

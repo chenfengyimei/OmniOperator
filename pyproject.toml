@@ -17,6 +17,8 @@ members = ["agent"]
 [dependency-groups]
 dev = [
     "pytest>=8.3",
+    "ruff==0.17.3",
+    "pyright==1.1.414",
     "pytest-xdist>=3.8,<4",
 ]
 

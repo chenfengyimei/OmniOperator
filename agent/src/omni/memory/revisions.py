@@ -11,6 +11,7 @@
 存储形态：`<root>/<key 各段>/<rev:04d>-<sha 前 8 位>.json`，一个修订一个文件，
 写入走 `atomic_write_text`（不是追加日志）——追加日志写坏一行会让整份历史不可读。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -110,12 +111,7 @@ class RevisionStore:
         directory = self._dir(key)
         digest = hashlib.sha256(data).hexdigest()
         latest = self.latest(key)
-        if (
-            latest is not None
-            and latest.sha256 == digest
-            and latest.version == version
-            and latest.applied == applied
-        ):
+        if latest is not None and latest.sha256 == digest and latest.version == version and latest.applied == applied:
             return latest
         rev = (latest.rev + 1) if latest is not None else 1
         record = {
@@ -219,9 +215,7 @@ def _to_revision(record: dict[str, Any]) -> Revision:
     )
 
 
-def reference_drift(
-    recorded: dict[str, str], current: dict[str, str]
-) -> list[str]:
+def reference_drift(recorded: dict[str, str], current: dict[str, str]) -> list[str]:
     """比对"修订时的附件清单"与"现在的附件清单"；返回可读差异列表。"""
     drift: list[str] = []
     for path in sorted(set(recorded) | set(current)):

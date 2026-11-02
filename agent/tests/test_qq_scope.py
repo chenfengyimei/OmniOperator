@@ -3,6 +3,7 @@
 覆盖的是"谁能指挥它、历史会不会串、群聊能不能看到私人资料"这三件事。
 全部用假 agent + 真实临时 MemoryStore：绑定关系是真实 SQLite 行为，不是桩。
 """
+
 import asyncio
 import itertools
 from types import SimpleNamespace
@@ -57,9 +58,7 @@ class _ChanRuntime:
         self.agent = _RecordingAgent()
         self.config = AppConfig()
         self.config.qq.reply_delay_s = [0.0, 0.0]  # 跳过拟人延迟
-        self.policy = SimpleNamespace(
-            allowed_users=list(users), allowed_groups=list(groups), owner_qq=owner_qq
-        )
+        self.policy = SimpleNamespace(allowed_users=list(users), allowed_groups=list(groups), owner_qq=owner_qq)
         self.reviews: list[int] = []
 
     def qq_policy(self):
@@ -277,16 +276,19 @@ def test_merge_and_recall_do_not_block_receipt_loop(store):
     rt = _ChanRuntime(store, [10001], [200])
     rt.config.qq.merge_window_s = 0.02
     client = _RecordingClient()
+
     async def scenario():
         dispatcher = QQDispatcher(rt, client)
         first, second, removed = _private(10001, "第一句"), _private(10001, "第二句"), _group(10001, 200)
         for event in (first, second, first, removed):
             await dispatcher.on_event(event)
-        await dispatcher.on_event({"post_type": "notice", "notice_type": "group_recall", "group_id": 200,
-                                   "message_id": removed["message_id"]})
+        await dispatcher.on_event(
+            {"post_type": "notice", "notice_type": "group_recall", "group_id": 200, "message_id": removed["message_id"]}
+        )
         await asyncio.gather(*list(dispatcher.tasks.values()))
         assert dispatcher.pending == 0
         await dispatcher.close()
+
     asyncio.run(scenario())
     assert len(rt.agent.calls) == 1 and rt.agent.calls[0][0] == "第一句\n第二句"
     assert len(client.sent) == 1
@@ -296,28 +298,39 @@ def test_merge_and_recall_do_not_block_receipt_loop(store):
 @pytest.mark.parametrize("recall", [True, False])
 def test_inflight_recall_or_revocation_suppresses_reply_and_review(store, recall):
     import threading
+
     rt = _ChanRuntime(store, [10001], [])
     rt.config.qq.merge_window_s = 0
     started, release = threading.Event(), threading.Event()
+
     def chat(*args, **kwargs):
         started.set()
         assert release.wait(5)
         return "不可发送"
+
     rt.agent.chat = chat
     client = _RecordingClient()
+
     async def scenario():
         dispatcher = QQDispatcher(rt, client)
         event = _private(10001)
         await dispatcher.on_event(event)
         assert await asyncio.to_thread(started.wait, 5)
         if recall:
-            await dispatcher.on_event({"post_type": "notice", "notice_type": "friend_recall", "user_id": 10001,
-                                       "message_id": event["message_id"]})
+            await dispatcher.on_event(
+                {
+                    "post_type": "notice",
+                    "notice_type": "friend_recall",
+                    "user_id": 10001,
+                    "message_id": event["message_id"],
+                }
+            )
         else:
             rt.policy.allowed_users = []
         release.set()
         await asyncio.gather(*list(dispatcher.tasks.values()))
         await dispatcher.close()
+
     asyncio.run(scenario())
     assert client.sent == [] and rt.reviews == []
 
@@ -327,6 +340,7 @@ def test_queue_full_and_foreign_lease_never_run_model(store):
     rt.config.qq.max_pending = 1
     sid = store.get_or_create_binding("qq", "dm:10001")
     client = _RecordingClient()
+
     async def scenario():
         dispatcher = QQDispatcher(rt, client)
         await dispatcher.on_event(_private(10001))
@@ -335,6 +349,7 @@ def test_queue_full_and_foreign_lease_never_run_model(store):
         with SessionLeases(rt.state, owner="other-process").hold(sid):
             await asyncio.gather(*list(dispatcher.tasks.values()))
         await dispatcher.close()
+
     asyncio.run(scenario())
     assert rt.agent.calls == [] and client.sent == []
 
@@ -350,11 +365,16 @@ def test_recall_tombstone_and_capacity_fail_closed(store):
 def test_message_claim_across_processes(tmp_path):
     import subprocess
     import sys
+
     path = tmp_path / "claims.db"
     state = StateStore(path)
     code = "from omni.memory.state import StateStore; from omni.memory.qq import QQMessageStore; import sys; s=StateStore(sys.argv[1]); print(int(QQMessageStore(s).claim(1,'group:2','-3'))); s.close()"
-    children = [subprocess.Popen([sys.executable, "-c", code, str(path)], stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, text=True) for _ in range(4)]
+    children = [
+        subprocess.Popen(
+            [sys.executable, "-c", code, str(path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+        for _ in range(4)
+    ]
     claims = []
     for child in children:
         stdout, stderr = child.communicate(timeout=30)

@@ -58,6 +58,7 @@ surfcore 是"记忆卡"，`forgotten` 的记录直接从卡片里移除；我们
 调用方（心跳整理循环）负责注入，这样本模块可以完全离线单测，
 不需要读配置、不需要碰数据库、不需要起任何服务。
 """
+
 from __future__ import annotations
 
 import datetime as dt

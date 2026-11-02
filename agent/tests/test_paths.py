@@ -4,6 +4,7 @@
 1. 临时实例的**所有**写入都落在注入根内（逐个路径断言 + 真实目录 canary 不变）；
 2. 临时实例不会发现/终止/启动真机进程，也不会读到真机 Cookie 与配置。
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -37,11 +38,7 @@ def _snapshot(directory: Path) -> dict[str, float]:
     """真实目录的 canary 快照：只读，不创建任何东西。"""
     if not directory.exists():
         return {}
-    return {
-        str(path.relative_to(directory)): path.stat().st_mtime
-        for path in directory.rglob("*")
-        if path.is_file()
-    }
+    return {str(path.relative_to(directory)): path.stat().st_mtime for path in directory.rglob("*") if path.is_file()}
 
 
 # ---------------------------------------------------------------- 路径表
@@ -80,6 +77,7 @@ def test_runtime_exposes_the_same_paths(tmp_path):
 class _FakeAdb:
     def deadline(self, seconds):
         from contextlib import nullcontext
+
         return nullcontext()
 
     def __init__(self, png: bytes) -> None:
@@ -129,21 +127,20 @@ def test_web_config_and_cookies_use_injected_paths(tmp_path):
     runtime = _runtime(tmp_path)
     app = create_app(runtime)
     client = TestClient(app, base_url="http://127.0.0.1")
-    assert client.post(
-        "/api/auth/pair", json={"code": app.state.web_auth.pairing_code}
-    ).status_code == 200
+    assert client.post("/api/auth/pair", json={"code": app.state.web_auth.pairing_code}).status_code == 200
 
-    assert client.post(
-        "/api/system/bili-cookies",
-        json={"sessdata": "s1", "bili_jct": "j1", "buvid3": "b1"},
-    ).status_code == 200
+    assert (
+        client.post(
+            "/api/system/bili-cookies",
+            json={"sessdata": "s1", "bili_jct": "j1", "buvid3": "b1"},
+        ).status_code
+        == 200
+    )
     assert (tmp_path / "data" / "bili_cookies.json").is_file()
     status = client.get("/api/system/bili-cookies").json()
     assert status["path"].startswith(str(tmp_path))
 
-    assert client.post(
-        "/api/system/config", json={"updates": {"persona": {"name": "临时实例"}}}
-    ).status_code == 200
+    assert client.post("/api/system/config", json={"updates": {"persona": {"name": "临时实例"}}}).status_code == 200
     assert "临时实例" in (tmp_path / "config.yaml").read_text(encoding="utf-8")
 
 
@@ -230,9 +227,5 @@ def test_isolated_runtime_writes_stay_inside_data_root(tmp_path):
     allowed_exact = {"config.yaml", "m.db", "m.db-shm", "m.db-wal", "web_secret"}
     written = [p for p in tmp_path.rglob("*") if p.is_file()]
     assert written, "这个用例本身应该产生文件"
-    strays = [
-        str(p)
-        for p in written
-        if not (p.is_relative_to(root) or p.name in allowed_exact)
-    ]
+    strays = [str(p) for p in written if not (p.is_relative_to(root) or p.name in allowed_exact)]
     assert strays == [], f"写到了注入根之外：{strays}"

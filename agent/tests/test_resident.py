@@ -1,4 +1,5 @@
 """常驻小记忆单测：限额合并协议（Hermes 同款）/ 注入快照 / 工具派发。"""
+
 from types import SimpleNamespace
 
 from omni.config import AppConfig
@@ -73,7 +74,7 @@ def test_agent_injects_resident_block(tmp_path):
     register_core_tools(registry, store)
     agent = Agent(AppConfig(), _ResolveOnlyGateway(), store, registry, sid, resident=rm)
     stable = agent._system_prompt()
-    assert '进行中：QQ 北极星实测' not in stable
+    assert "进行中：QQ 北极星实测" not in stable
     prompt = agent._turn_context().resident
     assert "MEMORY" in prompt and "进行中：QQ 北极星实测" in prompt
     assert "字符）" in prompt  # 用量头
@@ -103,9 +104,7 @@ def test_tool_dispatch(tmp_path):
     assert "为空" in registry.dispatch("resident_memory", '{"operation": "view"}')
     registry.dispatch("resident_memory", '{"operation": "add", "content": "测试条目"}')
     assert "测试条目" in registry.dispatch("resident_memory", '{"operation": "view"}')
-    assert "已更新" in registry.dispatch(
-        "resident_memory", '{"operation": "replace", "id": 1, "content": "改了"}'
-    )
+    assert "已更新" in registry.dispatch("resident_memory", '{"operation": "replace", "id": 1, "content": "改了"}')
     assert "未知操作" in registry.dispatch("resident_memory", '{"operation": "nope"}')
     assert "不能为空" in registry.dispatch("resident_memory", '{"operation": "add"}')
 

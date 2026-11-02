@@ -9,6 +9,7 @@
 状态写入走 `atomic_write_text`；防篡改复核按**逐文件 sha256 全等**比对，
 `__pycache__` 生成物跳过（见 package_reader.is_artifact）。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -46,15 +47,10 @@ class QuarantineStore:
     def is_installed(self, plugin_id: str) -> bool:
         return (self.root / plugin_id).exists() or self.state_path(plugin_id).exists()
 
-    def finalize(
-        self, manifest: PluginManifest, files: dict[str, bytes], *, source: str
-    ) -> tuple[bool, str]:
+    def finalize(self, manifest: PluginManifest, files: dict[str, bytes], *, source: str) -> tuple[bool, str]:
         """写入隔离区：暂存目录落盘 → 清单记录 → 原子改名。"""
         if self.is_installed(manifest.id):
-            return False, (
-                f"错误：插件 {manifest.id} 已安装。先 plugin_remove 卸载，"
-                "或先查看现有插件（plugin_list）"
-            )
+            return False, (f"错误：插件 {manifest.id} 已安装。先 plugin_remove 卸载，或先查看现有插件（plugin_list）")
         staging = self.quarantine / f".staging-{uuid.uuid4().hex[:12]}"
         staging.mkdir(parents=True)
         try:
@@ -74,8 +70,7 @@ class QuarantineStore:
                 "source": source,
                 "imported_at": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
                 "files": [
-                    {"path": rel, "bytes": len(data), "sha256": digest(data)}
-                    for rel, data in sorted(files.items())
+                    {"path": rel, "bytes": len(data), "sha256": digest(data)} for rel, data in sorted(files.items())
                 ],
             }
             atomic_write_text(
@@ -88,8 +83,7 @@ class QuarantineStore:
         finally:
             shutil.rmtree(staging, ignore_errors=True)
         lines = [
-            f"已导入 {source} 到隔离区（插件 {manifest.id} v{manifest.version}，"
-            f"{len(files)} 个文件）：",
+            f"已导入 {source} 到隔离区（插件 {manifest.id} v{manifest.version}，{len(files)} 个文件）：",
             f"- {manifest.name}：{manifest.description}",
             f"- 入口：{manifest.entry}；来源：{source}",
         ]
@@ -179,9 +173,7 @@ class QuarantineStore:
     def save_state(self, plugin_id: str, **updates: Any) -> None:
         state = self.read_state(plugin_id) or {"id": plugin_id}
         state.update(updates)
-        atomic_write_text(
-            self.state_path(plugin_id), json.dumps(state, ensure_ascii=False, indent=2)
-        )
+        atomic_write_text(self.state_path(plugin_id), json.dumps(state, ensure_ascii=False, indent=2))
 
     def installed_states(self) -> list[dict[str, Any]]:
         """全部已安装状态（按文件名序）。损坏的状态文件静默跳过（查询不炸）。"""
@@ -205,9 +197,7 @@ class QuarantineStore:
 
     def package_record(self, plugin_id: str) -> dict[str, Any] | None:
         try:
-            record = json.loads(
-                (self.quarantine / f"{plugin_id}.package.json").read_text(encoding="utf-8")
-            )
+            record = json.loads((self.quarantine / f"{plugin_id}.package.json").read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             return None
         if not isinstance(record, dict) or not isinstance(record.get("files"), list):
@@ -248,8 +238,5 @@ class QuarantineStore:
             return None
         current = content_sha256(self.root / plugin_id)
         if current != expected:
-            return (
-                "包内容与激活时不一致（激活后被改动过）。"
-                "确认改动后请重新走 plugin_install → plugin_activate"
-            )
+            return "包内容与激活时不一致（激活后被改动过）。确认改动后请重新走 plugin_install → plugin_activate"
         return None

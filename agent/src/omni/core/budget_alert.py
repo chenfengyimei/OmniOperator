@@ -22,6 +22,7 @@
 **职责边界**：本模块只负责"该不该提醒、提醒说什么"，
 不负责发消息（那是调用方的事），也不碰模型调用。
 """
+
 from __future__ import annotations
 
 from ..llm.tiers import (
@@ -60,19 +61,13 @@ class ScopeAlertTaker:
     def take(self, *, scope: str, level: str = LEVEL_WARN) -> bool:
         """领取提醒权。True = 你是今天第一次（该提醒）；False = 已提醒过。"""
         try:
-            return bool(
-                self._ledger.take_scope_alert(
-                    day=self._today(), scope=normalize_scope(scope), level=level
-                )
-            )
+            return bool(self._ledger.take_scope_alert(day=self._today(), scope=normalize_scope(scope), level=level))
         except Exception:  # noqa: BLE001 —— 提醒失败不该阻断对话
             # 拿不到提醒权时**不提醒**：宁可漏一次，也不要在每个进程里各弹一遍。
             return False
 
 
-def scope_warning(
-    usages: list[ScopeUsage], *, taker: ScopeAlertTaker | None = None
-) -> str:
+def scope_warning(usages: list[ScopeUsage], *, taker: ScopeAlertTaker | None = None) -> str:
     """给回答追加的额度提示。空串 = 这次不用提示。
 
     流程与参考实现一致：

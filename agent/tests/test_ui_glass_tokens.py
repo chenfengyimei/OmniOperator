@@ -16,13 +16,16 @@
 
 主题相关的断言见 test_ui_theme.py（行为层）。
 """
+
 from __future__ import annotations
+
+from omni.config import PROJECT_ROOT, web_root
 
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STATIC = ROOT / "src/omni/channels/web_static"
+STATIC = web_root(PROJECT_ROOT)
 TOKENS = STATIC / "ui/tokens.css"
 VENDOR = STATIC / "vendor"
 
@@ -161,13 +164,28 @@ def test_light_theme_redefines_core_tokens():
     assert ':root[data-theme="light"]' in text, '缺少浅色主题块 :root[data-theme="light"]'
     block = text[text.index(':root[data-theme="light"]') :]
     required = (
-        "--seed-accent", "--seed-accent2", "--seed-bg", "--seed-fg",
-        "--surface-0", "--surface-1", "--surface-2", "--surface-3",
-        "--surface-accent", "--surface-inset",
-        "--line-1", "--line-2", "--line-3", "--line-accent",
-        "--sh-1", "--sh-2", "--sh-3",
-        "--ok", "--warn", "--danger",
-        "--text-3", "--text-4",
+        "--seed-accent",
+        "--seed-accent2",
+        "--seed-bg",
+        "--seed-fg",
+        "--surface-0",
+        "--surface-1",
+        "--surface-2",
+        "--surface-3",
+        "--surface-accent",
+        "--surface-inset",
+        "--line-1",
+        "--line-2",
+        "--line-3",
+        "--line-accent",
+        "--sh-1",
+        "--sh-2",
+        "--sh-3",
+        "--ok",
+        "--warn",
+        "--danger",
+        "--text-3",
+        "--text-4",
         "--on-accent",
     )
     missing = [name for name in required if f"{name}:" not in block]

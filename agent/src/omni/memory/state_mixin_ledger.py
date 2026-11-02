@@ -4,6 +4,7 @@
 执行账本滚动保留最近 N 条；写额度用 `UPDATE ... WHERE used < limit` 的
 rowcount 判定（跨进程下这是"我拿到了最后一份额度"的唯一证据）。
 """
+
 from __future__ import annotations
 
 from .state_records import BudgetHit
@@ -26,21 +27,17 @@ class LedgerMixin:
         keep = self._keep_executions if keep is None else max(1, int(keep))
         with self._tx() as conn:
             conn.execute(
-                "INSERT INTO executions(job, started_at, duration_s, ok, result, delivery) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                (job, started_at, round(float(duration_s), 2), 1 if ok else 0,
-                 str(result)[:300], str(delivery)[:200]),
+                "INSERT INTO executions(job, started_at, duration_s, ok, result, delivery) VALUES (?, ?, ?, ?, ?, ?)",
+                (job, started_at, round(float(duration_s), 2), 1 if ok else 0, str(result)[:300], str(delivery)[:200]),
             )
             conn.execute(
-                "DELETE FROM executions WHERE id NOT IN "
-                "(SELECT id FROM executions ORDER BY id DESC LIMIT ?)",
+                "DELETE FROM executions WHERE id NOT IN (SELECT id FROM executions ORDER BY id DESC LIMIT ?)",
                 (keep,),
             )
 
     def recent_executions(self, limit: int = 50) -> list[dict]:
         rows = self._read(
-            "SELECT job, started_at, duration_s, ok, result, delivery FROM executions "
-            "ORDER BY id DESC LIMIT ?",
+            "SELECT job, started_at, duration_s, ok, result, delivery FROM executions ORDER BY id DESC LIMIT ?",
             (max(1, int(limit)),),
         )
         return [
@@ -69,17 +66,11 @@ class LedgerMixin:
                 "UPDATE budgets SET used = used + 1 WHERE scope = ? AND day = ? AND used < ?",
                 (scope, day, limit),
             )
-            used = int(
-                conn.execute(
-                    "SELECT used FROM budgets WHERE scope = ? AND day = ?", (scope, day)
-                ).fetchone()[0]
-            )
+            used = int(conn.execute("SELECT used FROM budgets WHERE scope = ? AND day = ?", (scope, day)).fetchone()[0])
         if cur.rowcount == 1:
             return BudgetHit(True, used, limit, f"写操作 {used}/{limit}（今日）")
         return BudgetHit(False, used, limit, f"额度已用完（{used}/{limit}）")
 
     def budget_used(self, scope: str, day: str) -> int:
-        rows = self._read(
-            "SELECT used FROM budgets WHERE scope = ? AND day = ?", (scope, day)
-        )
+        rows = self._read("SELECT used FROM budgets WHERE scope = ? AND day = ?", (scope, day))
         return int(rows[0][0]) if rows else 0

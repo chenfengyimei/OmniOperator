@@ -10,6 +10,7 @@
 不可信来源的外部能力请走 MCP（进程外、既有白名单与确认链），不是插件。
 设计全文见 docs/PLUGIN_SYSTEM.md。
 """
+
 from .host import PluginApiError, PluginContext, PluginHost
 from .manifest import PluginManifest
 

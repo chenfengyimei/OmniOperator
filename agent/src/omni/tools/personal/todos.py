@@ -1,4 +1,5 @@
 """个人能力：todos；工具仅使用注入依赖，不构造运行时。"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -7,9 +8,7 @@ from ...memory.store import MemoryStore
 from ..registry import Risk, SessionRef, Tool, ToolRegistry
 
 
-def register_todo_tools(
-    registry: ToolRegistry, store: MemoryStore, session_ref: SessionRef
-) -> None:
+def register_todo_tools(registry: ToolRegistry, store: MemoryStore, session_ref: SessionRef) -> None:
     """todo（SAFE）：agent 自维护多步任务清单（Hermes 内联工具的等价实现）。
 
     状态按会话隔离、跨回合保留；"当前会话"由 SessionRef 在派发时刻提供

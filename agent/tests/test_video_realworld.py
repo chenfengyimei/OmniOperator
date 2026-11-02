@@ -26,6 +26,7 @@
 第 1 条用 PyAV 现场造音频，第 2 条用 PyAV 现场造视频，
 第 3 条用本地假 HTTP 服务，第 4 条用假模型对象。
 """
+
 from __future__ import annotations
 
 import io
@@ -44,6 +45,7 @@ from omni.tools.storyboard.decode import effective_scan_fps
 
 # ============================================================ 1. 音频对齐填充
 
+
 def _make_aac_audio(path: Path, seconds: float, sample_rate: int = 44100) -> Path:
     """用 PyAV 现场造一段 AAC 音频（s16 单声道，44100Hz）。
 
@@ -61,12 +63,11 @@ def _make_aac_audio(path: Path, seconds: float, sample_rate: int = 44100) -> Pat
     stream = container.add_stream("aac", rate=sample_rate)
     stream.layout = "mono"
     # 造一个 440Hz 正弦的 int16 数组
-    samples = [
-        int(10000 * math.sin(2 * math.pi * 440 * i / sample_rate)) for i in range(total)
-    ]
+    samples = [int(10000 * math.sin(2 * math.pi * 440 * i / sample_rate)) for i in range(total)]
     frame = av.AudioFrame.from_ndarray(
         __import__("numpy").array(samples, dtype="int16").reshape(1, -1),
-        format="s16", layout="mono",
+        format="s16",
+        layout="mono",
     )
     frame.rate = sample_rate
     frame.pts = 0
@@ -113,9 +114,7 @@ def test_asr_audio_decode_plain_wav_still_works(tmp_path):
         w.setsampwidth(2)
         w.setframerate(44100)
         for i in range(22050):  # 0.5 秒
-            w.writeframes(
-                struct.pack("<h", int(12000 * math.sin(2 * math.pi * 440 * i / 44100)))
-            )
+            w.writeframes(struct.pack("<h", int(12000 * math.sin(2 * math.pi * 440 * i / 44100))))
     arr = asr._decode_audio_16k_mono(wav)
     assert 7000 <= len(arr) <= 9000  # 0.5s × 16kHz ≈ 8000（重采样容差）
     assert float(arr.max()) > 0.1
@@ -130,8 +129,7 @@ def test_asr_model_loads_from_local_cache_without_network(tmp_path, monkeypatch)
     calls: list[dict] = []
 
     class FakeWhisper:
-        def __init__(self, name, device=None, compute_type=None, download_root=None,
-                     local_files_only=False):
+        def __init__(self, name, device=None, compute_type=None, download_root=None, local_files_only=False):
             calls.append({"name": name, "local_files_only": local_files_only})
             if not local_files_only:
                 raise RuntimeError("离线加载失败，模拟需要联网")
@@ -156,8 +154,7 @@ def test_asr_model_falls_back_to_network_when_cache_missing(tmp_path, monkeypatc
     calls: list[bool] = []
 
     class FakeWhisper:
-        def __init__(self, name, device=None, compute_type=None, download_root=None,
-                     local_files_only=False):
+        def __init__(self, name, device=None, compute_type=None, download_root=None, local_files_only=False):
             calls.append(local_files_only)
             if local_files_only:
                 raise RuntimeError("本地没有缓存")
@@ -179,6 +176,7 @@ def test_asr_model_falls_back_to_network_when_cache_missing(tmp_path, monkeypatc
 
 # ============================================================ 2. 长视频扫描覆盖
 
+
 def test_effective_scan_fps_keeps_full_coverage_for_long_video():
     """回归：长视频必须 100% 覆盖，而不是扫到帧数上限就停。
 
@@ -191,8 +189,7 @@ def test_effective_scan_fps_keeps_full_coverage_for_long_video():
     fps = effective_scan_fps(duration)
     frames_needed = duration * fps
     assert frames_needed <= decode.MAX_SCAN_FRAMES + 1, (
-        f"按 {fps:.2f}fps 扫要 {frames_needed:.0f} 帧，超过预算 "
-        f"{decode.MAX_SCAN_FRAMES} —— 扫描一定会中途停下"
+        f"按 {fps:.2f}fps 扫要 {frames_needed:.0f} 帧，超过预算 {decode.MAX_SCAN_FRAMES} —— 扫描一定会中途停下"
     )
     # 帧率也不能低到看不出剪辑：至少 2fps
     assert fps >= 2.0 - 1e-9
@@ -264,12 +261,11 @@ def test_scan_cut_scores_covers_whole_long_video(tmp_path):
     times, scores, _d = decode.scan_cut_scores(path)
     assert times
     # 扫到的最后一刻必须贴着片尾（容差 3 秒：重采样与关键帧定位）
-    assert times[-1] >= duration - 3.0, (
-        f"只扫到 {times[-1]:.1f}s，片长 {duration:.1f}s —— 后半段没看"
-    )
+    assert times[-1] >= duration - 3.0, f"只扫到 {times[-1]:.1f}s，片长 {duration:.1f}s —— 后半段没看"
 
 
 # ============================================================ 3. 下载续传
+
 
 class _FakeResponse:
     def __init__(self, status: int, headers: dict, body: bytes):
@@ -283,7 +279,7 @@ class _FakeResponse:
 
     def iter_bytes(self, size: int = 1 << 20):
         for offset in range(0, len(self._body), size):
-            yield self._body[offset:offset + size]
+            yield self._body[offset : offset + size]
 
 
 class _FakeStream:
@@ -316,16 +312,18 @@ class _RangeClient:
         if rng and rng.startswith("bytes=") and self.supports_range:
             start = int(rng.split("=", 1)[1].split("-")[0])
             chunk = self.payload[start:]
-            return _FakeStream(_FakeResponse(
-                206,
-                {"content-length": str(len(chunk)),
-                 "content-range": f"bytes {start}-{len(self.payload) - 1}/{len(self.payload)}"},
-                chunk,
-            ))
+            return _FakeStream(
+                _FakeResponse(
+                    206,
+                    {
+                        "content-length": str(len(chunk)),
+                        "content-range": f"bytes {start}-{len(self.payload) - 1}/{len(self.payload)}",
+                    },
+                    chunk,
+                )
+            )
         # 忽略 Range，从头给全量（content-length 是整个文件的长度）
-        return _FakeStream(_FakeResponse(
-            200, {"content-length": str(len(self.payload))}, self.payload
-        ))
+        return _FakeStream(_FakeResponse(200, {"content-length": str(len(self.payload))}, self.payload))
 
 
 def test_download_binary_resumes_from_partial_file(tmp_path):
@@ -371,9 +369,7 @@ def test_download_binary_retries_on_transient_failure(tmp_path):
             attempts["n"] += 1
             if attempts["n"] == 1:
                 raise __import__("httpx").ReadError("peer closed connection")
-            return _FakeStream(_FakeResponse(
-                200, {"content-length": str(len(payload))}, payload
-            ))
+            return _FakeStream(_FakeResponse(200, {"content-length": str(len(payload))}, payload))
 
     api = BiliAPI(client=FlakyClient())
     dest = tmp_path / "video.mp4"
@@ -384,6 +380,7 @@ def test_download_binary_retries_on_transient_failure(tmp_path):
 
 def test_download_binary_raises_after_exhausting_attempts(tmp_path):
     """回归：重试用尽要报错，且不能留下"看着完整"的残缺文件被当成成功。"""
+
     class DeadClient:
         def stream(self, method, url, headers=None):
             raise __import__("httpx").ReadError("always fails")

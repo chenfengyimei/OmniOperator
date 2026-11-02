@@ -1,4 +1,5 @@
 """人工终端 v2：身份归属、结构化消息及只回放输出。旧 WS 独立兼容。"""
+
 from __future__ import annotations
 
 import asyncio
@@ -13,7 +14,7 @@ from ..web_auth import COOKIE_NAME
 
 
 class TerminalCreateIn(BaseModel):
-    shell: Literal['powershell', 'pwsh', 'cmd'] = 'powershell'
+    shell: Literal["powershell", "pwsh", "cmd"] = "powershell"
     cwd: str | None = None
     cols: int = Field(default=120, ge=20, le=500)
     rows: int = Field(default=30, ge=5, le=200)
@@ -24,59 +25,63 @@ class TerminalRenameIn(BaseModel):
 
 
 def create_sessions_router(manager, auth):
-    router = APIRouter(tags=['terminal'])
+    router = APIRouter(tags=["terminal"])
 
     def owner(cookie):
         if not auth.verify_session(cookie):
-            raise HTTPException(401, '需要配对')
+            raise HTTPException(401, "需要配对")
         return hashlib.sha256(cookie.encode()).hexdigest()
 
     def owned(cookie, identifier):
         try:
             return manager.get(owner(cookie), identifier)
         except KeyError:
-            raise HTTPException(404, '终端不存在') from None
+            raise HTTPException(404, "终端不存在") from None
 
-    @router.get('/api/terminal/options')
+    @router.get("/api/terminal/options")
     def options():
         return manager.options()
 
-    @router.get('/api/terminal/sessions')
+    @router.get("/api/terminal/sessions")
     def sessions(request: Request):
-        return {'sessions':manager.list_owned(owner(request.cookies.get(COOKIE_NAME)))}
+        return {"sessions": manager.list_owned(owner(request.cookies.get(COOKIE_NAME)))}
 
-    @router.post('/api/terminal/sessions')
+    @router.post("/api/terminal/sessions")
     async def create(request: Request, payload: TerminalCreateIn):
         try:
-            item = await asyncio.to_thread(manager.create, owner(request.cookies.get(COOKIE_NAME)), **payload.model_dump())
+            item = await asyncio.to_thread(
+                manager.create, owner(request.cookies.get(COOKIE_NAME)), **payload.model_dump()
+            )
             return item.brief()
         except (RuntimeError, OSError) as exc:
             raise HTTPException(409, str(exc)) from exc
 
-    @router.patch('/api/terminal/sessions/{identifier}')
+    @router.patch("/api/terminal/sessions/{identifier}")
     def rename(identifier: str, request: Request, payload: TerminalRenameIn):
         item = owned(request.cookies.get(COOKIE_NAME), identifier)
         item.label = payload.label
         return item.brief()
 
-    @router.delete('/api/terminal/sessions/{identifier}')
+    @router.delete("/api/terminal/sessions/{identifier}")
     async def end(identifier: str, request: Request):
         item = owned(request.cookies.get(COOKIE_NAME), identifier)
         complete = await asyncio.to_thread(manager.close, item.session)
         if not complete:
-            raise HTTPException(409, '终端回收未完成，可能存在残留')
-        return {'complete':True}
+            raise HTTPException(409, "终端回收未完成，可能存在残留")
+        return {"complete": True}
 
-    @router.websocket('/api/terminal/sessions/{identifier}/ws')
+    @router.websocket("/api/terminal/sessions/{identifier}/ws")
     async def connect(ws: WebSocket, identifier: str):
-        if auth.check_websocket(host=ws.headers.get('host'), origin=ws.headers.get('origin'), cookie=ws.cookies.get(COOKIE_NAME)):
+        if auth.check_websocket(
+            host=ws.headers.get("host"), origin=ws.headers.get("origin"), cookie=ws.cookies.get(COOKIE_NAME)
+        ):
             await ws.close(1008)
             return
         try:
             item = owned(ws.cookies.get(COOKIE_NAME), identifier)
-            after = int(ws.query_params.get('after', '0'))
-            if after < 0 or after > item.brief()['last_seq']:
-                raise ValueError('输出序号无效')
+            after = int(ws.query_params.get("after", "0"))
+            if after < 0 or after > item.brief()["last_seq"]:
+                raise ValueError("输出序号无效")
             item.attach()
         except (HTTPException, RuntimeError, ValueError):
             await ws.close(1008)
@@ -84,45 +89,61 @@ def create_sessions_router(manager, auth):
         tasks = []
         try:
             await ws.accept()
+
             async def output():
                 nonlocal after
                 while True:
                     gap, chunks = item.replay(after)
                     if gap:
-                        await ws.send_json({'v':2,'type':'gap','text':'较早输出已超过缓存，存在缺失'})
+                        await ws.send_json({"v": 2, "type": "gap", "text": "较早输出已超过缓存，存在缺失"})
                     for seq, data in chunks:
-                        await ws.send_json({'v':2,'type':'output','seq':seq,'data':data})
+                        await ws.send_json({"v": 2, "type": "output", "seq": seq, "data": data})
                         after = seq
                     state = item.brief()
-                    if state['status'] != 'running' and after >= state['last_seq']:
-                        await ws.send_json({'v':2,'type':'exit', **state})
+                    if state["status"] != "running" and after >= state["last_seq"]:
+                        await ws.send_json({"v": 2, "type": "exit", **state})
                         return
-                    await asyncio.sleep(.04)
+                    await asyncio.sleep(0.04)
 
             async def input_():
                 while True:
                     raw = await ws.receive_text()
-                    if len(raw.encode('utf-8')) > 16384:
-                        raise ValueError('输入消息超过 16 KiB')
+                    if len(raw.encode("utf-8")) > 16384:
+                        raise ValueError("输入消息超过 16 KiB")
                     message = json.loads(raw)
-                    if not isinstance(message,dict):raise ValueError('终端消息必须为对象')
-                    if message.get('v') != 2:
-                        raise ValueError('协议版本无效')
-                    if message.get('type') == 'input' and isinstance(message.get('data'), str):
-                        await asyncio.to_thread(item.session.write, message['data'])
-                    elif message.get('type') == 'resize':
-                        cols, rows = message.get('cols'), message.get('rows')
-                        if type(cols) is not int or type(rows) is not int or not 20 <= cols <= 500 or not 5 <= rows <= 200:
-                            raise ValueError('终端尺寸超限')
+                    if not isinstance(message, dict):
+                        raise ValueError("终端消息必须为对象")
+                    if message.get("v") != 2:
+                        raise ValueError("协议版本无效")
+                    if message.get("type") == "input" and isinstance(message.get("data"), str):
+                        await asyncio.to_thread(item.session.write, message["data"])
+                    elif message.get("type") == "resize":
+                        cols, rows = message.get("cols"), message.get("rows")
+                        if (
+                            type(cols) is not int
+                            or type(rows) is not int
+                            or not 20 <= cols <= 500
+                            or not 5 <= rows <= 200
+                        ):
+                            raise ValueError("终端尺寸超限")
                         await asyncio.to_thread(item.session.resize, cols, rows)
                     else:
-                        raise ValueError('未知终端消息')
+                        raise ValueError("未知终端消息")
+
             tasks = [asyncio.create_task(output()), asyncio.create_task(input_())]
-            done,pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-            for task in pending:task.cancel()
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            for task in pending:
+                task.cancel()
             if any(not task.cancelled() and task.exception() is not None for task in done):
                 try:
-                    await ws.send_json({'v':2,'type':'error','code':'bad_message','message':'终端连接输入无效或传输失败，连接结束；终端暂时保留'})
+                    await ws.send_json(
+                        {
+                            "v": 2,
+                            "type": "error",
+                            "code": "bad_message",
+                            "message": "终端连接输入无效或传输失败，连接结束；终端暂时保留",
+                        }
+                    )
                 except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     pass  # 客户端已经断开时仍必须执行下方的所有权归还。
         finally:
@@ -135,4 +156,5 @@ def create_sessions_router(manager, auth):
                 await ws.close()
             except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 pass
+
     return router

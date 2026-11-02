@@ -8,6 +8,7 @@
 信任模型（如实声明）：这里的校验是数据检查，不是安全证明；激活（人工
 确认）即同意执行该插件的代码。
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -22,11 +23,11 @@ from .manifest import (
     PluginManifest,
 )
 
-MAX_ZIP_BYTES = 4 * 1024 * 1024        # 压缩包本身 ≤ 4 MiB
-MAX_UNPACKED_BYTES = 8 * 1024 * 1024    # 解包总量 ≤ 8 MiB
-MAX_ENTRIES = 50                        # 条目数上限（含目录记录）
-MAX_CODE_BYTES = 128 * 1024             # entry 单文件 ≤ 128 KiB
-MAX_REFERENCE_BYTES = 64 * 1024         # 单个参考文件 ≤ 64 KiB
+MAX_ZIP_BYTES = 4 * 1024 * 1024  # 压缩包本身 ≤ 4 MiB
+MAX_UNPACKED_BYTES = 8 * 1024 * 1024  # 解包总量 ≤ 8 MiB
+MAX_ENTRIES = 50  # 条目数上限（含目录记录）
+MAX_CODE_BYTES = 128 * 1024  # entry 单文件 ≤ 128 KiB
+MAX_REFERENCE_BYTES = 64 * 1024  # 单个参考文件 ≤ 64 KiB
 MAX_REFERENCES = 20
 MAX_REFERENCE_DEPTH = 4
 REFERENCE_SUFFIXES = {".md", ".txt", ".rst", ".json", ".yaml", ".yml", ".toml", ".csv"}
@@ -100,8 +101,10 @@ def read_zip(zip_path: Path) -> dict[str, bytes]:
                 raise Reject(f"条目重名（{info.filename!r}），整包拒绝")
             seen.add(parts)
             unpacked += info.file_size
-            cap = MAX_MANIFEST_BYTES if shape == "manifest" else (
-                MAX_CODE_BYTES if shape == "code" else MAX_REFERENCE_BYTES
+            cap = (
+                MAX_MANIFEST_BYTES
+                if shape == "manifest"
+                else (MAX_CODE_BYTES if shape == "code" else MAX_REFERENCE_BYTES)
             )
             try:
                 with zf.open(info) as stream:
@@ -136,8 +139,8 @@ def read_directory(source_dir: Path) -> dict[str, bytes]:
                 f"文件 {path.name} 不在类型白名单内（只允许 manifest.json、"
                 "唯一顶层入口 .py、README.md 与 references/ 文本）"
             )
-        cap = MAX_MANIFEST_BYTES if shape == "manifest" else (
-            MAX_CODE_BYTES if shape == "code" else MAX_REFERENCE_BYTES
+        cap = (
+            MAX_MANIFEST_BYTES if shape == "manifest" else (MAX_CODE_BYTES if shape == "code" else MAX_REFERENCE_BYTES)
         )
         try:
             data = path.read_bytes()
@@ -167,10 +170,7 @@ def validate_files(files: dict[str, bytes]) -> PluginManifest:
         raise Reject(manifest)
     py_files = [name for name in files if name.endswith(".py") and "/" not in name]
     if py_files != [manifest.entry]:
-        raise Reject(
-            f"入口必须恰好是唯一的顶层 .py：manifest 声明 {manifest.entry}，"
-            f"实际有 {py_files or '（无）'}"
-        )
+        raise Reject(f"入口必须恰好是唯一的顶层 .py：manifest 声明 {manifest.entry}，实际有 {py_files or '（无）'}")
     refs = [name for name in files if name.startswith("references/")]
     if len(refs) > MAX_REFERENCES:
         raise Reject(f"references 文件超过 {MAX_REFERENCES} 个上限（当前 {len(refs)}）")

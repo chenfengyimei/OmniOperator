@@ -33,7 +33,10 @@ Python 网络/模型闸门仍在每个 worker 启用；子进程继承离线环�
 
 全新开发环境使用 `uv sync --frozen`，安装浏览器用 `uv run --no-sync python -m playwright install chromium`。常驻服务正在使用 `.venv` 时不要重建环境或停止服务；测试使用 `uv run --no-sync`。
 
-CI 仍执行全部测试、索引检查与离线评测；可用 `scripts/ci.ps1 -Workers 0` 排查串行行为，默认 `-Workers 4`。`-SkipSync` 的含义不变。
+CI执行Ruff、格式检查、已收口领域Pyright、固定版本Prettier、ES模块语法、UI接口合同、重复定义、
+任务摘要、索引检查、直接wheel/sdist→wheel及隔离导入校验，然后运行全部测试和离线评测。
+前端开发环境需要Node 24和`npm ci --prefix web`。可用`scripts/ci.ps1 -Workers 0`排查串行行为，
+默认`-Workers 4`。`-SkipSync`的含义不变，不能在用户服务运行中重建`.venv`。
 
 ## 耗时证据
 

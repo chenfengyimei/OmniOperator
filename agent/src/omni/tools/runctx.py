@@ -5,6 +5,7 @@
 `RunHandle` 是一个协议，core 的 `RunContext` 满足它；`RunRef` 是 thread-local 环境值，
 由 Agent 在回合开始时绑定、回合结束恢复（与 `SessionRef` 同一套做法）。
 """
+
 from __future__ import annotations
 
 import threading
@@ -20,7 +21,7 @@ class RunHandle(Protocol):
     run_id: str
     parent_run_id: str | None
     channel: str
-    scope: str          # "private" / "group"：委派出去也不该让群聊拿到私人上下文
+    scope: str  # "private" / "group"：委派出去也不该让群聊拿到私人上下文
     steps_left: int
 
     @property

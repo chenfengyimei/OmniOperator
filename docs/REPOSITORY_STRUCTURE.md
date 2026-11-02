@@ -7,7 +7,9 @@
 | 位置 | 内容与修改规则 |
 |---|---|
 | `agent/` | 本地 Agent 完整产品：源码、测试、配置模板、开发脚本、项目依赖 |
+| `web/` | 单一原生ES模块界面源码、固定版本排版配置；开发依赖不随界面打包 |
 | `website/` | 独立官网，本地素材与预览不混入 Agent 源码 |
+| `market/` | 独立市场仓库：源码、内容与部署模板；主程序不依赖本地目录 |
 | `docs/` | 全仓唯一交接入口、架构权威、开发记录和自动索引 |
 | `scripts/` | 仓库安装/启动/审计及旧开发命令兼容转发 |
 | `pyproject.toml` / `uv.lock` | 根 uv 工作区及统一依赖锁；产品依赖只在 agent/pyproject.toml 定义 |
@@ -15,6 +17,7 @@
 | `data/` | 默认记忆、档案、账本、日志与缓存；可由设置中心覆盖 |
 | `skills/` | 默认运行技能库，已有内容与路径保持 |
 | `xuexi/` / `prototype-html/` | 参考项目和原型，不是生产实现 |
+| `temp/archive` / `temp/private` / `temp/build` | 历史素材 / 私人可恢复归档 / 可再生成产物；私人区域禁止模型文件工具读取 |
 
 新增 Agent 能力进入 `agent/src/omni/` 既有分层，不在根建立第二套 tools/memory/terminal。
 多个运行 Agent 是独立数据空间，共用这一份源码；不得给每个空间复制程序代码。
@@ -37,4 +40,6 @@
 3. 测试进入 agent/tests，静态模板进入 agent/config，开发工具进入 agent/scripts。
 4. 运行全量 pytest 与项目索引检查；更新交接、证据和自动索引后提交。
 
-本次只重排源码与开发资产。真实配置、数据库、日志、凭据和服务不迁移、不重启。
+界面资源按源码`web/`、sdist`_web/`、wheel`omni/web_assets/`定位；直接wheel、sdist→wheel和
+隔离导入由`scripts/check_package.py`逐文件校验，升级恢复测试同时覆盖界面资源。
+真实配置、活跃数据库和凭据保留原位置；历史归档用显式plan/apply/restore，不按文件夹名批量删除。

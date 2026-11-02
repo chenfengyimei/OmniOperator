@@ -1,4 +1,5 @@
 """内置终端单测：真开 ConPTY 会话做回显冒烟（仅 Windows）+ 会话池限额。"""
+
 import sys
 import time
 

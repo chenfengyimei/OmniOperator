@@ -11,6 +11,7 @@
 明确不做：不实现进程操作（`ServiceManager` 的事）、不写配置（只热读最新策略）、
 不终止身份不可核验的进程（沿用 `ServiceManager` 的边界）、不做开机自启。
 """
+
 from __future__ import annotations
 
 import json
@@ -172,13 +173,13 @@ class ServiceSupervisor:
         with self._mutex:
             if not self._enabled:
                 self._mode = "disabled"
-                return {"supervised": False, "mode": "disabled",
-                        "reason": "隔离实例或已禁用，不管理本机服务"}
+                return {"supervised": False, "mode": "disabled", "reason": "隔离实例或已禁用，不管理本机服务"}
             if self._thread is not None and self._thread.is_alive():
                 return {"supervised": self._mode == "active", "mode": self._mode, "already": True}
             self._run_dir.mkdir(parents=True, exist_ok=True)
-            lock = FileLock(self._run_dir / "supervisor.lock",
-                            timeout_s=self._lock_timeout_s, owner=f"workbench pid:{os.getpid()}")
+            lock = FileLock(
+                self._run_dir / "supervisor.lock", timeout_s=self._lock_timeout_s, owner=f"workbench pid:{os.getpid()}"
+            )
             try:
                 lock.acquire()
             except LockTimeout:
@@ -237,6 +238,8 @@ class ServiceSupervisor:
             return self._reconcile_round()
 
     def _reconcile_round(self) -> dict[str, Any]:
+        if getattr(self, "maintenance", lambda: False)():
+            return self.snapshot()
         with self._mutex:
             if self._mode != "active":
                 return self.snapshot()
@@ -360,11 +363,9 @@ class ServiceSupervisor:
         if entry.desired != "running" or policy is None:
             return None
         if entry.attempts >= policy.max_attempts:
-            return {"code": "restart_given_up",
-                    "text": f"{name} 连续 {entry.attempts} 次未能启动，已停止自动重启"}
+            return {"code": "restart_given_up", "text": f"{name} 连续 {entry.attempts} 次未能启动，已停止自动重启"}
         if entry.attempts and entry.next_retry_at > now:
-            return {"code": "restart_backoff",
-                    "text": f"{name} 启动失败，{int(entry.next_retry_at - now)} 秒后重试"}
+            return {"code": "restart_backoff", "text": f"{name} 启动失败，{int(entry.next_retry_at - now)} 秒后重试"}
         return None
 
     def _persist(self) -> None:
@@ -378,7 +379,6 @@ class ServiceSupervisor:
                 "services": {name: self._entries[name].to_dict() for name in ALL_SERVICES},
             }
         try:
-            atomic_write_text(self._run_dir / "supervisor.json",
-                              json.dumps(payload, ensure_ascii=False))
+            atomic_write_text(self._run_dir / "supervisor.json", json.dumps(payload, ensure_ascii=False))
         except OSError:
             pass

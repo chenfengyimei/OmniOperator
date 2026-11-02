@@ -1,4 +1,5 @@
 """BiliAPI 单测：全部走 httpx.MockTransport，不发真实网络请求。"""
+
 import json
 
 import httpx
@@ -42,6 +43,7 @@ def _api(handler) -> BiliAPI:
 
 # ---------- 目标归一化 ----------
 
+
 def test_resolve_bvid_and_url():
     api = _api(lambda request: httpx.Response(200, json={}))
     assert api.resolve(BV)["bvid"] == BV
@@ -52,9 +54,7 @@ def test_resolve_bvid_and_url():
 def test_resolve_short_link_follows_redirect():
     def handler(request: httpx.Request) -> httpx.Response:
         if "b23.tv" in str(request.url):
-            return httpx.Response(
-                302, headers={"Location": f"https://www.bilibili.com/video/{BV}"}
-            )
+            return httpx.Response(302, headers={"Location": f"https://www.bilibili.com/video/{BV}"})
         return httpx.Response(200, json={})
 
     api = _api(handler)
@@ -68,6 +68,7 @@ def test_resolve_unrecognized():
 
 
 # ---------- 读端点 ----------
+
 
 def test_video_info_parses():
     api = _api(lambda request: httpx.Response(200, json=VIEW))
@@ -136,8 +137,10 @@ def test_video_comments_falls_back_to_legacy_endpoint():
         assert "sort=0" in str(request.url)  # time 排序映射到旧接口的 sort=0
         return httpx.Response(
             200,
-            json={"code": 0, "data": {"replies": [
-                {"member": {"uname": "李四"}, "like": 1, "content": {"message": "旧接口"}}]}},
+            json={
+                "code": 0,
+                "data": {"replies": [{"member": {"uname": "李四"}, "like": 1, "content": {"message": "旧接口"}}]},
+            },
         )
 
     api = _api(handler)
@@ -156,10 +159,19 @@ def test_comment_replies_reads_secondary_floor():
         assert "root=88001" in str(request.url)
         return httpx.Response(
             200,
-            json={"code": 0, "data": {"replies": [
-                {"rpid": 88002, "member": {"uname": "王五"},
-                 "content": {"message": "同问"},
-                 "reply_control": {"reply_who": {"uname": "张三"}}}]}},
+            json={
+                "code": 0,
+                "data": {
+                    "replies": [
+                        {
+                            "rpid": 88002,
+                            "member": {"uname": "王五"},
+                            "content": {"message": "同问"},
+                            "reply_control": {"reply_who": {"uname": "张三"}},
+                        }
+                    ]
+                },
+            },
         )
 
     api = _api(handler)
@@ -183,8 +195,7 @@ def test_user_search_parses_users():
         assert "w_rid=" in str(request.url)
         return httpx.Response(
             200,
-            json={"code": 0, "data": {"result": [
-                {"mid": 5566, "uname": "老王", "usign": "写代码的"}]}},
+            json={"code": 0, "data": {"result": [{"mid": 5566, "uname": "老王", "usign": "写代码的"}]}},
         )
 
     api = _api(handler)
@@ -195,9 +206,20 @@ def test_user_search_parses_users():
 def test_account_reports_login_state():
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/x/web-interface/nav":
-            return httpx.Response(200, json={"code": 0, "data": {
-                "isLogin": True, "mid": 10086, "uname": "小鱼本鱼",
-                "level_info": {"current_level": 5}, "money": 42, "vipStatus": 1}})
+            return httpx.Response(
+                200,
+                json={
+                    "code": 0,
+                    "data": {
+                        "isLogin": True,
+                        "mid": 10086,
+                        "uname": "小鱼本鱼",
+                        "level_info": {"current_level": 5},
+                        "money": 42,
+                        "vipStatus": 1,
+                    },
+                },
+            )
         raise AssertionError(f"unexpected request: {request.url}")
 
     account = _api(handler).account()
@@ -240,9 +262,20 @@ def test_video_stream_falls_back_to_dash_video():
         assert path == "/x/player/playurl"
         if "fnval=0" in str(request.url):
             return httpx.Response(200, json={"code": 0, "data": {"durl": []}})
-        return httpx.Response(200, json={"code": 0, "data": {"dash": {"video": [
-            {"baseUrl": "https://upos.example/hd.m4s", "bandwidth": 2000000},
-            {"baseUrl": "https://upos.example/sd.m4s", "bandwidth": 300000}]}}})
+        return httpx.Response(
+            200,
+            json={
+                "code": 0,
+                "data": {
+                    "dash": {
+                        "video": [
+                            {"baseUrl": "https://upos.example/hd.m4s", "bandwidth": 2000000},
+                            {"baseUrl": "https://upos.example/sd.m4s", "bandwidth": 300000},
+                        ]
+                    }
+                },
+            },
+        )
 
     assert _api(handler).video_stream(BV) == "https://upos.example/sd.m4s"
 
@@ -273,11 +306,7 @@ def test_video_subtitle_full_flow():
                 json={
                     "code": 0,
                     "data": {
-                        "subtitle": {
-                            "subtitles": [
-                                {"lan": "zh-CN", "subtitle_url": "//aisubtitle.hdslb.com/s.json"}
-                            ]
-                        }
+                        "subtitle": {"subtitles": [{"lan": "zh-CN", "subtitle_url": "//aisubtitle.hdslb.com/s.json"}]}
                     },
                 },
             )
@@ -355,9 +384,7 @@ def test_download_binary_writes_file(tmp_path):
     payload = b"fake-audio-bytes-1234567890"
 
     def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            200, content=payload, headers={"content-length": str(len(payload))}
-        )
+        return httpx.Response(200, content=payload, headers={"content-length": str(len(payload))})
 
     api = _api(handler)
     dest = tmp_path / "audio.m4s"
@@ -369,9 +396,7 @@ def test_download_binary_rejects_oversize(tmp_path):
     huge = 10 * 1024 * 1024
 
     def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            200, content=b"x" * 1024, headers={"content-length": str(huge)}
-        )
+        return httpx.Response(200, content=b"x" * 1024, headers={"content-length": str(huge)})
 
     api = _api(handler)
     dest = tmp_path / "audio.m4s"

@@ -7,6 +7,7 @@ ui/frame.css 的「Unified controls」层——那一层一度因为"和 compone
 
 本测试用真实 Chromium 读计算样式，把"按钮不能裸奔"钉成契约。
 """
+
 from __future__ import annotations
 
 from urllib.parse import urlsplit
@@ -61,18 +62,22 @@ def test_substation_buttons_keep_skin(browser_page):
     """子站按钮必须有背景、边框与足够高度——不能裸奔。"""
     page, errors = browser_page
     for path in SUBSTATIONS:
-        page.goto("http://127.0.0.1" + path)
-        button = page.locator("button").first
+        page.goto("http://127.0.0.1" + path + "?embed=1")
+        button = page.locator("button:visible").first
         button.wait_for(state="attached")
         style = button.evaluate(
             """e=>{const s=getComputedStyle(e);return {
                 bg:s.backgroundColor,
+                image:s.backgroundImage,
                 borderWidth:s.borderTopWidth,
                 borderColor:s.borderTopColor,
                 radius:s.borderTopLeftRadius,
                 height:e.getBoundingClientRect().height}}"""
         )
-        assert style["bg"] != "rgba(0, 0, 0, 0)", f"{path} 按钮背景透明（控件层缺失）"
+        # 渐变也是实际绘制的背景；选中标签的backgroundColor可以合法为透明。
+        assert style["bg"] != "rgba(0, 0, 0, 0)" or style["image"].startswith(
+            ("linear-gradient(", "radial-gradient(")
+        ), f"{path} 按钮未绘制背景：{style}"
         assert float(style["borderWidth"].replace("px", "")) >= 1, f"{path} 按钮无边框：{style}"
         assert style["height"] >= 30, f"{path} 按钮高度塌陷：{style}"
     assert not errors, f"子站控件渲染引发脚本异常：{errors}"
@@ -82,7 +87,7 @@ def test_substation_inputs_keep_legible_surface(browser_page):
     """子站输入框要有非透明背景与边框（凹陷实色），不能与页面底同色。"""
     page, errors = browser_page
     for path in ("/storage/", "/project/", "/jobs/"):
-        page.goto("http://127.0.0.1" + path)
+        page.goto("http://127.0.0.1" + path + "?embed=1")
         field = page.locator("input").first
         if field.count() == 0:
             continue
@@ -101,7 +106,7 @@ def test_substation_inputs_keep_legible_surface(browser_page):
 def test_substation_cards_keep_glass_surface(browser_page):
     """子站卡片要走中玻璃：半透明背景 + 可见边框（不是裸 div）。"""
     page, errors = browser_page
-    page.goto("http://127.0.0.1/capabilities/")
+    page.goto("http://127.0.0.1/capabilities/?embed=1")
     page.locator("#cap-cards").wait_for(state="attached")
     card = page.locator("#cap-cards > *").first
     card.wait_for(state="attached")

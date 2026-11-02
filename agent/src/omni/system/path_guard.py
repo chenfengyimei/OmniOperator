@@ -9,6 +9,7 @@
 判定（各域的条目形状白名单不同，留在各自域内：plugins 的 entry_shape 是
 manifest+唯一入口，skills 的是 SKILL.md+references）。
 """
+
 from __future__ import annotations
 
 import hashlib

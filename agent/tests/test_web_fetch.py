@@ -4,6 +4,7 @@
 本机地址默认是"内网目标"，所以每个用例要么显式写进 allow_private_hosts，
 要么就是在验证"没有授权时必须拒绝"。
 """
+
 from __future__ import annotations
 
 import http.server
@@ -50,10 +51,9 @@ class _Handler(http.server.BaseHTTPRequestHandler):
         elif route == "/next":
             self._send(200, b"<html><body>next page</body></html>", "text/html")
         elif route == "/gbk":
-            body = (
-                '<html><head><meta charset="gbk"><title>GBK 页</title></head>'
-                "<body>中文内容</body></html>"
-            ).encode("gbk")
+            body = ('<html><head><meta charset="gbk"><title>GBK 页</title></head><body>中文内容</body></html>').encode(
+                "gbk"
+            )
             self._send(200, body, "text/html")
         elif route == "/long":
             self._send(

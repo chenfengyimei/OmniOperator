@@ -11,6 +11,7 @@
 模型侧没有"再加一个根"的参数：允许的根只来自配置（用户显式写下的额外目录），
 否则模型自己写一句 `path="C:/Users"` 就等于给自己扩权。
 """
+
 from __future__ import annotations
 
 import os
@@ -133,17 +134,16 @@ class Workspace:
                 code="path_changed",
             )
 
-    def resolve(
-        self, raw: str, *, must_exist: bool = False, for_write: bool = False
-    ) -> Resolved:
+    def resolve(self, raw: str, *, must_exist: bool = False, for_write: bool = False) -> Resolved:
         text = _clean(raw)
         candidate = Path(text)
         if not candidate.is_absolute():
             candidate = self._roots[0].path / text
         canonical = _canonical(candidate)
-        if any(canonical == _canonical(path) or canonical.is_relative_to(_canonical(path))
-               for path in self.private_paths):
-            raise PathRejected('目标属于运行态私有数据，请使用对应模块入口', code='private_path')
+        if any(
+            canonical == _canonical(path) or canonical.is_relative_to(_canonical(path)) for path in self.private_paths
+        ):
+            raise PathRejected("目标属于运行态私有数据，请使用对应模块入口", code="private_path")
         root, rel = self._locate(canonical)
         exists = canonical.exists()
         is_dir = canonical.is_dir() if exists else False
@@ -160,7 +160,7 @@ class Workspace:
         return resolved
 
     def _locate(self, canonical: Path) -> tuple[Root, str]:
-        for root in sorted(self._roots,key=lambda item:len(item.path.parts),reverse=True):
+        for root in sorted(self._roots, key=lambda item: len(item.path.parts), reverse=True):
             rel = _relative_under(root.path, canonical)
             if rel is not None:
                 return root, rel
@@ -170,9 +170,7 @@ class Workspace:
             code="path_outside_root",
         )
 
-    def _check_policy(
-        self, resolved: Resolved, *, must_exist: bool, for_write: bool
-    ) -> None:
+    def _check_policy(self, resolved: Resolved, *, must_exist: bool, for_write: bool) -> None:
         rel = resolved.rel
         parts = tuple(part for part in rel.split("/") if part)
         reason = protected_reason(parts, parts[-1] if parts else "")
@@ -184,17 +182,17 @@ class Workspace:
             raise PathRejected(reason, code="sensitive_path")
 
         if for_write:
-            if any(resolved.path==_canonical(path) or resolved.path.is_relative_to(_canonical(path))
-                   for path in self.read_only_roots):
-                raise PathRejected('资料目录对模型只读；请用户通过文件管理添加资料',code='read_only_root')
+            if any(
+                resolved.path == _canonical(path) or resolved.path.is_relative_to(_canonical(path))
+                for path in self.read_only_roots
+            ):
+                raise PathRejected("资料目录对模型只读；请用户通过文件管理添加资料", code="read_only_root")
             if resolved.is_symlink:
                 raise PathRejected(
                     "目标是符号链接/快捷方式：拒绝顺着链接写文件（可能改到工作区外）",
                     code="write_through_link",
                 )
-            reason = self._prefix_reason(
-                rel, resolved.root.write_deny_prefixes, "不可写"
-            )
+            reason = self._prefix_reason(rel, resolved.root.write_deny_prefixes, "不可写")
             if not reason:
                 reason = _glob_reason(rel, self.write_deny_globs, "不可写")
             if reason:
@@ -210,10 +208,7 @@ class Workspace:
         lowered = rel.casefold()
         for prefix in prefixes:
             if lowered == prefix or lowered.startswith(prefix.rstrip("/") + "/"):
-                return (
-                    f"{prefix}/ 属于{verb}区域：这里有专门的读写通道"
-                    "（运行数据/技能版本/配置校验），文本工具不能绕过"
-                )
+                return f"{prefix}/ 属于{verb}区域：这里有专门的读写通道（运行数据/技能版本/配置校验），文本工具不能绕过"
         return ""
 
 
@@ -241,9 +236,7 @@ def _clean(raw: str) -> str:
             code="drive_relative",
         )
     if ":" in body:
-        raise PathRejected(
-            "路径含多余的冒号（NTFS 备用数据流或驱动器相对路径）", code="ads_or_drive_relative"
-        )
+        raise PathRejected("路径含多余的冒号（NTFS 备用数据流或驱动器相对路径）", code="ads_or_drive_relative")
     for segment in re.split(r"[\\/]+", body):
         if not segment or segment in {".", ".."}:
             continue  # 相对段的落点由后面的根校验决定

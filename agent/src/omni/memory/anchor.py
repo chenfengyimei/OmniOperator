@@ -24,13 +24,14 @@ review（回合后整理）与 journal（夜间整理）会把一段对话压缩
 来源材料通过上下文变量绑定（`anchor_scope`）：工具层只在"当前正处于后台整理"
 时才要求摘录，不必知道调用方到底是 review 还是 journal。
 """
+
 from __future__ import annotations
 
 import contextlib
 import contextvars
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator
 
 # 只有后台写入器需要出处：对话路径不强制（用户亲口说的内容本身就是出处）。
 ANCHORED_SOURCES = ("review", "journal")
@@ -41,9 +42,7 @@ MAX_EVIDENCE_CHARS = 400
 # 摘录是"逐字照抄"，但模型常把换行/缩进改写；比对前把空白折叠成单空格。
 _WHITESPACE = re.compile(r"\s+")
 
-_current: contextvars.ContextVar["AnchorContext | None"] = contextvars.ContextVar(
-    "omni_anchor_context", default=None
-)
+_current: contextvars.ContextVar["AnchorContext | None"] = contextvars.ContextVar("omni_anchor_context", default=None)
 
 
 class AnchorError(ValueError):
@@ -114,9 +113,7 @@ def verify_evidence(evidence: str, material: str, *, label: str = "这条记忆"
     那是"让模型判断模型"，不可靠也不便宜；确定性比对才是硬约束。
     """
     if not normalize_evidence(evidence):
-        raise AnchorError(
-            f"{label}缺少原文摘录：请从来源材料里逐字照抄一段（不要改写、不要拼接、不要概括）"
-        )
+        raise AnchorError(f"{label}缺少原文摘录：请从来源材料里逐字照抄一段（不要改写、不要拼接、不要概括）")
     if len(normalize_evidence(evidence)) > MAX_EVIDENCE_CHARS:
         raise AnchorError(
             f"{label}的原文摘录超长（{len(normalize_evidence(evidence))} 字，"

@@ -3,6 +3,7 @@
 工作台/工具改配置不允许整文件重写——注释和说明是人的上下文。
 支持三种替换：标量行值、多行块（key: |）、以及按行追加校验。
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -19,6 +20,8 @@ from .persona_rules import PersonaRuleError, validate_persona_update
 
 # 允许通过接口修改的键：(section, key) → 渲染方式
 EDITABLE: dict[tuple[str, str], str] = {
+    ("updates", "channel"): "choice:stable,development",
+    ("updates", "auto_check"): "bool",
     ("persona", "name"): "str",
     ("persona", "system_prompt"): "multiline",
     # 人格场景层（D36）：群聊/私聊各一段，只做追加。留空 = 没有这一层。
@@ -79,6 +82,10 @@ EDITABLE: dict[tuple[str, str], str] = {
     ("qq", "quiet_end"): "str",
     ("qq", "timezone"): "str",
     ("browser", "headless"): "bool",
+    ("vision", "send_to_cloud"): "bool",
+    ("desktop", "enabled"): "bool",
+    ("desktop", "foreground_enabled"): "bool",
+    ("desktop", "allowed_apps"): "str_list",
     ("browser", "slow_mo_ms"): "int",
     ("browser", "max_writes_per_day"): "int",
     ("browser", "approval_timeout_s"): "float",
@@ -146,15 +153,19 @@ def render_value(kind: str, value: Any) -> str:
             raise ConfigEditError(f"需要 {'/'.join(allowed)} 之一，得到 {value!r}")
         return '"' + str(value) + '"'
     if kind == "int_list":
-        if not isinstance(value, list) or not all(
-            isinstance(x, int) and not isinstance(x, bool) for x in value
-        ):
+        if not isinstance(value, list) or not all(isinstance(x, int) and not isinstance(x, bool) for x in value):
             raise ConfigEditError(f"需要整数列表，得到 {value!r}")
         return "[" + ", ".join(str(x) for x in value) + "]"
+    if kind == "str_list":
+        if not isinstance(value, list) or not all(isinstance(x, str) and x.strip() and "\x00" not in x for x in value):
+            raise ConfigEditError("需要非空字符串列表")
+        return json.dumps(value, ensure_ascii=False)
     if kind == "float_list":
-        if not isinstance(value, list) or not all(
-            isinstance(x, (int, float)) and not isinstance(x, bool) for x in value
-        ) or len(value) != 2:
+        if (
+            not isinstance(value, list)
+            or not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in value)
+            or len(value) != 2
+        ):
             raise ConfigEditError(f"需要 [下限, 上限] 两个数字，得到 {value!r}")
         # 保留小数形态：1.0 不能写成 1，否则每次保存都把配置里的写法改一遍
         return "[" + ", ".join(str(float(x)) for x in value) + "]"
@@ -186,9 +197,7 @@ def _scalar_updates(text: str, updates: dict[tuple[str, str], Any]) -> tuple[str
     return "\n".join(lines) + "\n", changed
 
 
-def _find_multiline_block(
-    lines: list[str], section: str, key: str
-) -> tuple[int, int, int] | None:
+def _find_multiline_block(lines: list[str], section: str, key: str) -> tuple[int, int, int] | None:
     """定位 `key: |` 块，返回 (键行下标, 块内容起, 块内容止)；找不到返回 None。"""
     in_section = False
     for i, line in enumerate(lines):
@@ -216,9 +225,7 @@ def _find_multiline_block(
     return None
 
 
-def _replace_multiline_block(
-    text: str, section: str, key: str, value_lines: list[str]
-) -> str:
+def _replace_multiline_block(text: str, section: str, key: str, value_lines: list[str]) -> str:
     """替换 `key: |` 多行块的内容（保留键行与缩进），找不到返回原文本。"""
     lines = text.splitlines(keepends=False)
     hit = _find_multiline_block(lines, section, key)
@@ -228,9 +235,7 @@ def _replace_multiline_block(
     key_indent = len(lines[i]) - len(lines[i].lstrip())
     # lines[:i] 已经不含键行——必须从 i 开始切。
     # 用 lines[:i+1] 会把 `key: |` 重复写一遍，于是每保存一次文件就多一行空块。
-    new_block = [f"{' ' * key_indent}{key}: |"] + [
-        f"{' ' * (key_indent + 2)}{ln}" for ln in value_lines
-    ]
+    new_block = [f"{' ' * key_indent}{key}: |"] + [f"{' ' * (key_indent + 2)}{ln}" for ln in value_lines]
     return "\n".join(lines[:i] + new_block + lines[end:]) + "\n"
 
 
@@ -276,9 +281,7 @@ def _append_key(lines: list[str], section: str, key: str, rendered: str) -> None
     lines.insert(insert_at, f"  {key}: {rendered}")
 
 
-def _append_multiline_block(
-    text: str, section: str, key: str, value_lines: list[str]
-) -> str:
+def _append_multiline_block(text: str, section: str, key: str, value_lines: list[str]) -> str:
     """`key: |` 整块不存在时补一个（节不存在就连节一起建）。"""
     lines = text.splitlines()
     bounds = _section_bounds(lines, section)
@@ -305,14 +308,11 @@ def apply_updates(text: str, updates: dict[str, dict[str, Any]]) -> str:
     节里没有的键会被补进去（整个节都没有就在文件末尾新建一节）。
     """
     crlf = "\r\n" in text
-    pending = {
-        (section, key): value
-        for section, keys in updates.items()
-        for key, value in keys.items()
-    }
+    pending = {(section, key): value for section, keys in updates.items() for key, value in keys.items()}
     unknown = [k for k in pending if k not in EDITABLE]
     if unknown:
         raise ConfigEditError(f"不允许修改的键：{unknown}（白名单见 config_io.EDITABLE）")
+
     # 人格走自己的契约（空正文/过短/含凭据一律拒绝）——
     # 见 persona_rules：放行空正文等于「保存全部」时把人设悄悄清空。
     # 放在真正改文件之前，拒绝了就什么都没写。
@@ -371,23 +371,25 @@ def safe_write(path: Path, new_text: str) -> None:
 
 def read_config_snapshot(path: Path) -> tuple[str, AppConfig, str]:
     import yaml
-    text=read_config_text(path) if path.exists() else ''
-    config=AppConfig.model_validate(yaml.safe_load(text) or {})
-    return text,config,hashlib.sha256(text.encode('utf-8')).hexdigest()
+
+    text = read_config_text(path) if path.exists() else ""
+    config = AppConfig.model_validate(yaml.safe_load(text) or {})
+    return text, config, hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def commit_config_updates(path: Path, updates: dict, *, revision: str | None = None) -> str:
     """所有 HTTP 配置写入共用锁；有 revision 的页面额外检查 CAS。"""
     import yaml
-    with FileLock(path.with_name(path.name+'.lock')):
-        text=read_config_text(path) if path.exists() else ''
-        current=hashlib.sha256(text.encode('utf-8')).hexdigest()
-        if revision is not None and revision!=current:
-            raise ConfigConflict('配置已被其它页面修改，请重新读取设置后再保存')
-        new_text=apply_updates(text,updates)
+
+    with FileLock(path.with_name(path.name + ".lock")):
+        text = read_config_text(path) if path.exists() else ""
+        current = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        if revision is not None and revision != current:
+            raise ConfigConflict("配置已被其它页面修改，请重新读取设置后再保存")
+        new_text = apply_updates(text, updates)
         AppConfig.model_validate(yaml.safe_load(new_text) or {})
-        safe_write(path,new_text)
-        return hashlib.sha256(new_text.encode('utf-8')).hexdigest()
+        safe_write(path, new_text)
+        return hashlib.sha256(new_text.encode("utf-8")).hexdigest()
 
 
 # ---------- .env 密钥：工作台"选供应商 → 填 API Key"的落地点 ----------
@@ -452,9 +454,7 @@ def set_env_secret(path: Path, name: str, value: str | None) -> str:
     """
     name = (name or "").strip()
     if not _env_name_ok(name):
-        raise ConfigEditError(
-            "密钥变量名不合法：只允许 A-Z / 0-9 / _，且以 _API_KEY、_KEY 或 _TOKEN 结尾"
-        )
+        raise ConfigEditError("密钥变量名不合法：只允许 A-Z / 0-9 / _，且以 _API_KEY、_KEY 或 _TOKEN 结尾")
     raw = (value or "").strip()
     if "\n" in raw or "\r" in raw or "\0" in raw:
         raise ConfigEditError("密钥里不能有换行或空字节")

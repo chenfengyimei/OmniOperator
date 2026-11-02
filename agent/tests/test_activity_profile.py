@@ -15,6 +15,7 @@
 
 **全部离线**：不联网、不碰真实账号与真实目录、不调模型。
 """
+
 from __future__ import annotations
 
 import pytest
@@ -39,11 +40,13 @@ def _days(patterns: dict[int, list[int]]) -> dict[str, set[int]]:
 
 def test_profile_counts_days_not_messages() -> None:
     """按「天」统计，不是按条数——一条长谈不该把某个小时拉满。"""
-    profile = build_profile({
-        "2026-11-01": {9, 10},
-        "2026-11-02": {9},
-        "2026-11-03": {9, 10, 14},
-    })
+    profile = build_profile(
+        {
+            "2026-11-01": {9, 10},
+            "2026-11-02": {9},
+            "2026-11-03": {9, 10, 14},
+        }
+    )
     assert profile.observed_days == 3
     assert profile.hour_counts[9] == 3
     assert profile.hour_counts[10] == 2
@@ -57,19 +60,23 @@ def test_activity_rate_distinguishes_absent_from_insufficient() -> None:
     那么用户每天在同一批小时里活动时，全天都会被判成活跃，
     永远找不到静默区间——作息画像直接废了。
     """
-    profile = build_profile({
-        "2026-11-01": {9, 10},
-        "2026-11-02": {9, 10},
-        "2026-11-03": {9, 10},
-    })
+    profile = build_profile(
+        {
+            "2026-11-01": {9, 10},
+            "2026-11-02": {9, 10},
+            "2026-11-03": {9, 10},
+        }
+    )
     # 3 点：一次都没出现过 → 确凿地没有活动 → 0.0
     assert profile.activity_rate(3) == 0.0
     # 20 点：只在 1 天出现（样本不足 3 天）→ 不可靠 → None
-    thin = build_profile({
-        "2026-11-01": {9, 20},
-        "2026-11-02": {9},
-        "2026-11-03": {9},
-    })
+    thin = build_profile(
+        {
+            "2026-11-01": {9, 20},
+            "2026-11-02": {9},
+            "2026-11-03": {9},
+        }
+    )
     assert thin.activity_rate(20) is None
     assert thin.activity_rate(9) == 1.0
 

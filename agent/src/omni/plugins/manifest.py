@@ -14,6 +14,7 @@
       "permissions": ["tools"]     # 必填：v1 只允许 ["tools"]
     }
 """
+
 from __future__ import annotations
 
 import json
@@ -63,12 +64,7 @@ class PluginManifest:
         if not description or len(description) > MAX_DESCRIPTION:
             return f"manifest 的 description 必须非空且 ≤{MAX_DESCRIPTION} 字"
         entry = str(data.get("entry", "")).strip()
-        if (
-            not entry
-            or entry != Path(entry).name
-            or not entry.endswith(".py")
-            or ":" in entry
-        ):
+        if not entry or entry != Path(entry).name or not entry.endswith(".py") or ":" in entry:
             return "manifest 的 entry 必须是包内顶层的 .py 文件名（不带路径）"
         permissions_raw = data.get("permissions")
         if not isinstance(permissions_raw, list) or not permissions_raw:

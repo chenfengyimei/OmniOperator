@@ -3,6 +3,7 @@
 判据：未配对/跨站/过期会话一律拿不到数据、改不了配置、启不了服务、开不了终端；
 拒绝时真实副作用为零（配置文件字节不变、服务管理器没被调用）。
 """
+
 from __future__ import annotations
 
 import json
@@ -76,15 +77,11 @@ def test_unpaired_cannot_change_config_or_services(tmp_path, monkeypatch):
     client = TestClient(app, base_url="http://127.0.0.1")
 
     calls: list[str] = []
-    monkeypatch.setattr(
-        runtime.services, "start", lambda name, qq="": calls.append(f"start:{name}") or {}
-    )
+    monkeypatch.setattr(runtime.services, "start", lambda name, qq="": calls.append(f"start:{name}") or {})
     monkeypatch.setattr(runtime.services, "stop", lambda name: calls.append(f"stop:{name}") or {})
 
     before = config_path.read_bytes()
-    assert client.post(
-        "/api/system/config", json={"updates": {"persona": {"name": "被改了"}}}
-    ).status_code == 401
+    assert client.post("/api/system/config", json={"updates": {"persona": {"name": "被改了"}}}).status_code == 401
     assert client.post("/api/system/services/omni-qq/start", json={}).status_code == 401
     assert client.post("/api/system/services/omni-qq/stop").status_code == 401
     assert client.post("/api/approvals/abc/resolve", json={"allowed": True}).status_code == 401
@@ -246,30 +243,22 @@ def test_access_token_is_never_echoed(tmp_path):
     assert payload["qq"]["access_token_configured"] is True
 
     # 空串 = 保留旧值（前端拿不到明文，空值不能当成"清空"）
-    assert client.post(
-        "/api/system/config", json={"updates": {"qq": {"access_token": ""}}}
-    ).status_code == 200
+    assert client.post("/api/system/config", json={"updates": {"qq": {"access_token": ""}}}).status_code == 200
     assert "s3cret-token" in config_path.read_text(encoding="utf-8")
 
     # null = 显式清除
-    assert client.post(
-        "/api/system/config", json={"updates": {"qq": {"access_token": None}}}
-    ).status_code == 200
+    assert client.post("/api/system/config", json={"updates": {"qq": {"access_token": None}}}).status_code == 200
     assert "s3cret-token" not in config_path.read_text(encoding="utf-8")
 
     # 非空 = 替换
-    assert client.post(
-        "/api/system/config", json={"updates": {"qq": {"access_token": "new-token"}}}
-    ).status_code == 200
+    assert client.post("/api/system/config", json={"updates": {"qq": {"access_token": "new-token"}}}).status_code == 200
     assert "new-token" in config_path.read_text(encoding="utf-8")
 
 
 def test_secret_error_message_does_not_echo_value(tmp_path):
     client, _runtime, _app_ = _paired(tmp_path)
     # 非字符串密钥值 → 被拒，但错误信息里不能出现该值
-    response = client.post(
-        "/api/system/config", json={"updates": {"qq": {"access_token": 12345678}}}
-    )
+    response = client.post("/api/system/config", json={"updates": {"qq": {"access_token": 12345678}}})
     assert response.status_code == 400
     assert "12345678" not in response.text
 
@@ -345,9 +334,10 @@ def test_websocket_gate_matrix(tmp_path):
     assert auth.check_websocket(host="127.0.0.1:8000", origin=None, cookie=session) is None
 
     assert auth.check_websocket(host="evil.example:8000", origin=None, cookie=session).code == "host_rejected"
-    assert auth.check_websocket(
-        host="127.0.0.1:8000", origin="https://evil.example", cookie=session
-    ).code == "origin_rejected"
+    assert (
+        auth.check_websocket(host="127.0.0.1:8000", origin="https://evil.example", cookie=session).code
+        == "origin_rejected"
+    )
     assert auth.check_websocket(host="127.0.0.1:8000", origin=None, cookie=None).code == "auth_required"
 
 
@@ -387,6 +377,7 @@ def test_pair_non_ascii_is_rejection_not_exception(tmp_path):
 
 
 # ------------------------------------------------- 配对链接落盘
+
 
 # 为什么：配对码只在控制台打印一次、15 分钟就换，助手想再拿就得重启服务，
 # 而重启又会换码 —— "想拿链接"和"保持链接有效"互相打架。落盘后随时可读。

@@ -3,6 +3,7 @@
 用法：uv run --no-sync python scripts/scan_duplicates.py
 退出码 0 = 无发现；1 = 有重复定义（输出逐条定位）。
 """
+
 from __future__ import annotations
 
 import ast
@@ -34,14 +35,12 @@ def scan(path: Path) -> list[str]:
                 if isinstance(deco, ast.Name):
                     decorators.append(deco.id)
                 elif isinstance(deco, ast.Attribute):
-                    decorators.append(deco.attr)
+                    decorators.append(ast.unparse(deco))
             if any(d.endswith(_EXEMPT_SUFFIXES) for d in decorators):
                 continue
             if node.name in seen:
                 rel = path.relative_to(ROOT).as_posix()
-                findings.append(
-                    f"{rel}: 重复定义 {node.name}（第 {seen[node.name]} 行被第 {node.lineno} 行静默覆盖）"
-                )
+                findings.append(f"{rel}: 重复定义 {node.name}（第 {seen[node.name]} 行被第 {node.lineno} 行静默覆盖）")
             else:
                 seen[node.name] = node.lineno
     return findings

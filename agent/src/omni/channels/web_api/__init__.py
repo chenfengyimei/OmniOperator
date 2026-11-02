@@ -1,4 +1,5 @@
 """工作台领域路由聚合；应用生命周期与统一鉴权仍由 web.py 持有。"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -24,13 +25,19 @@ from .runs import create_runs_router
 from .sessions import create_sessions_router
 from .skills import create_skills_router
 from .storage import create_storage_router
+from .updates import create_updates_router
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime
 
 
 def create_api_routers(runtime: Runtime) -> tuple[APIRouter, ...]:
-    return (create_context_router(runtime),create_storage_router(runtime), create_android_router(runtime), create_command_jobs_router(runtime),
+    return (
+        create_updates_router(runtime),
+        create_context_router(runtime),
+        create_storage_router(runtime),
+        create_android_router(runtime),
+        create_command_jobs_router(runtime),
         create_sessions_router(runtime),
         create_conversation_router(runtime),
         create_runs_router(runtime),
@@ -47,5 +54,6 @@ def create_api_routers(runtime: Runtime) -> tuple[APIRouter, ...]:
         create_embodiments_router(runtime),
         create_market_router(runtime),
     )
+
 
 __all__ = ["create_api_routers"]

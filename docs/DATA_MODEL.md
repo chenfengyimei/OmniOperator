@@ -1,5 +1,7 @@
 # OmniOperator 数据模型总览
 
+> V2的新单库模型及迁移状态见 [V2实施记录](V2_REFACTOR.md)。下文两库合同仅适用于仍保留的V1；新库不会导入旧数据。
+
 > 本文回答「每张表在哪、归谁管、什么时候清理」。分层与依赖规则以
 > [ARCHITECTURE.md](ARCHITECTURE.md) 为唯一权威；目录与磁盘布局见 [STORAGE.md](STORAGE.md)。
 > 声明与实现分离是本轮重构（2026-10-31）的硬约束：**表结构只在声明模块出现，
@@ -79,6 +81,15 @@ state.db；对话原文、事实、技能、档案等"丢了用户会心疼"的�
 
 FTS 虚表（`facts_fts` / `messages_fts` / `dialogue_fts` / `session_log_fts`）
 随宿主表在各自模块声明，由触发器维护。
+
+`facts.evidence/source_ref`保存后台整理已逐字验证的来源摘录与指针；历史空值明确表示未验证来源，
+不补造出处。review与journal写入共用anchor_scope，普通对话未提供可验证上下文时不接受模型自报出处。
+遗忘通过当前scope内归一化后的同一句话匹配全库，不依赖FTS前八名；墓碑和向量删除仍在原事务执行。
+后台混合召回不计hits，前台召回按注入时钟验证30分钟冷却与每日上限。
+
+人设预设在RuntimePaths.persona_presets（`data/persona_presets.json`）以文件锁、revision和原子写持久化，
+纳入备份恢复；导入预设不会应用运行人设，应用只填编辑草稿，保存才写配置并显示重启需求。
+远程MCP凭据在RuntimePaths.mcp_credentials，使用当前Windows用户DPAPI保护，不进入普通配置或脱敏导出。
 
 ## 4 跨库关系与纪律（2026-11-01 实测清单）
 

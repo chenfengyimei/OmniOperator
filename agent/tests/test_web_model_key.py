@@ -6,6 +6,7 @@
 2) 定向替换那一行，注释、顺序、其它变量原样保留；
 3) 任何响应里都不能出现明文。
 """
+
 from __future__ import annotations
 
 import pytest
@@ -187,6 +188,7 @@ def test_model_key_clear_is_idempotent(tmp_path, monkeypatch):
 # 旧逻辑只要看到密钥键就把所有错误替换成"含密钥字段，详情已省略"，
 # 于是真正的失败原因（找不到对应行）永远看不到。
 
+
 def test_config_save_reports_real_error_when_secret_untouched(tmp_path):
     """密钥是空的（保留旧值）时，错误信息必须说真话。"""
     client, _runtime, _env = _client(tmp_path)
@@ -236,9 +238,7 @@ def test_config_get_reflects_disk_without_restart(tmp_path):
     看到的还是旧值——用户以为"没存上"，于是再选一遍，第二遍就把第一遍覆盖了。
     """
     client, runtime, _env = _client(tmp_path)
-    runtime.paths.config.write_text(
-        'models:\n  chat: "deepseek/deepseek-v4-pro"\n  vision: ""\n', encoding="utf-8"
-    )
+    runtime.paths.config.write_text('models:\n  chat: "deepseek/deepseek-v4-pro"\n  vision: ""\n', encoding="utf-8")
     body = client.get("/api/system/config").json()
     assert body["models"]["chat"] == "deepseek/deepseek-v4-pro"
     assert body["models"]["vision"] == ""

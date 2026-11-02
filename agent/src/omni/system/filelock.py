@@ -11,6 +11,7 @@
 
 明确不做：不支持跨机器（NFS 上的 flock 语义不可靠），本项目是本地单所有者工具。
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -30,8 +31,7 @@ class LockTimeout(RuntimeError):
         self.holder = holder
         self.waited_s = waited_s
         super().__init__(
-            f"{self.path.name} 正被占用（{holder or '未知进程'}），等待 {waited_s:.1f}s 未拿到锁；"
-            "本次未做任何修改"
+            f"{self.path.name} 正被占用（{holder or '未知进程'}），等待 {waited_s:.1f}s 未拿到锁；本次未做任何修改"
         )
 
 

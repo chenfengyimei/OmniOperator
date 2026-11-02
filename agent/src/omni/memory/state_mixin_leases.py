@@ -4,6 +4,7 @@
 语义：同一资源同一时刻只允许一个持有者；过期后自动可再领取，进程崩溃
 不需要人工解锁，但要等满 TTL。
 """
+
 from __future__ import annotations
 
 import time
@@ -49,14 +50,11 @@ class LeasesMixin:
                 "DELETE FROM resource_leases WHERE resource = ? AND expires_at < ?",
                 (resource, stamp),
             )
-            held = conn.execute(
-                "SELECT owner FROM resource_leases WHERE resource = ?", (resource,)
-            ).fetchone()
+            held = conn.execute("SELECT owner FROM resource_leases WHERE resource = ?", (resource,)).fetchone()
             if held is not None:
                 return None
             conn.execute(
-                "INSERT INTO resource_leases(resource, owner, token, acquired_at, expires_at) "
-                "VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO resource_leases(resource, owner, token, acquired_at, expires_at) VALUES (?, ?, ?, ?, ?)",
                 (resource, str(owner), token, _leases_now(), expires),
             )
         return Lease(
@@ -67,9 +65,7 @@ class LeasesMixin:
             expires_at=expires,
         )
 
-    def renew_lease(
-        self, token: str, *, ttl_s: float = 600.0, now: float | None = None
-    ) -> bool:
+    def renew_lease(self, token: str, *, ttl_s: float = 600.0, now: float | None = None) -> bool:
         stamp = time.time() if now is None else float(now)
         with self._tx() as conn:
             cur = conn.execute(
@@ -81,9 +77,7 @@ class LeasesMixin:
     def release_lease(self, token: str) -> bool:
         """只释放自己那把（按 token）：不能顺手释放别人持有的租约。"""
         with self._tx() as conn:
-            return conn.execute(
-                "DELETE FROM resource_leases WHERE token = ?", (token,)
-            ).rowcount > 0
+            return conn.execute("DELETE FROM resource_leases WHERE token = ?", (token,)).rowcount > 0
 
     # 会话是资源租约的特例（键 `session:<id>`），保留语义化方法给调用方用
     def session_lease(self, session_id: int) -> Lease | None:
@@ -106,9 +100,7 @@ class LeasesMixin:
             now=now,
         )
 
-    def renew_session_lease(
-        self, token: str, *, ttl_s: float = 600.0, now: float | None = None
-    ) -> bool:
+    def renew_session_lease(self, token: str, *, ttl_s: float = 600.0, now: float | None = None) -> bool:
         return self.renew_lease(token, ttl_s=ttl_s, now=now)
 
     def release_session_lease(self, token: str) -> bool:

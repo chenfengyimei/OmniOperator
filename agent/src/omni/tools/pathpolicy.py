@@ -7,6 +7,7 @@
 明确不做：这里只判断"名字看起来是不是敏感"，不做路径规范化与根目录校验
 （那需要知道工作区根，见 `tools/files/paths.py`）。
 """
+
 from __future__ import annotations
 
 import fnmatch
@@ -18,10 +19,11 @@ PROTECTED_DIR_NAMES = frozenset(
         ".ssh",
         ".aws",
         ".gnupg",
-        "data",              # 运行数据：会话、账本、个人记忆、日志
-        "browser_profile",   # 浏览器登录态
+        "data",  # 运行数据：会话、账本、个人记忆、日志
+        "browser_profile",  # 浏览器登录态
         ".venv",
-        "node_modules",      # 体量大且无阅读价值（内含大量第三方密钥样例）
+        "node_modules",  # 体量大且无阅读价值（内含大量第三方密钥样例）
+        "private",  # 包括迁出 data/ 后的 temp/private 私人归档
     }
 )
 

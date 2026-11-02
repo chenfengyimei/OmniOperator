@@ -1,7 +1,8 @@
-"""一次性：用项目 venv 跑 pyright，把 error 级发现写成 UTF-8 文本。
+"""固定Pyright版本逐域检查；当前覆盖预设、归档、凭据和远程MCP。
 
 用法：uv run --no-sync python scripts/run_pyright.py
 """
+
 from __future__ import annotations
 
 import json
@@ -10,16 +11,23 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "scripts" / "_pyright_findings.txt"
+OUT = ROOT.parent / "temp" / "build" / "pyright.json"
 
 
 def main() -> int:
     proc = subprocess.run(
         [
-            "uvx", "pyright",
-            "--pythonpath", str(ROOT.parent / ".venv" / "Scripts" / "python.exe"),
+            "uvx",
+            "--from",
+            "pyright==1.1.414",
+            "pyright",
+            "--pythonpath",
+            str(ROOT.parent / ".venv" / "Scripts" / "python.exe"),
             "--outputjson",
-            "src/omni",
+            "src/omni/system/persona_presets.py",
+            "src/omni/system/archive.py",
+            "src/omni/system/protected_json.py",
+            "src/omni/tools/mcp/remote.py",
         ],
         cwd=ROOT,
         capture_output=True,
@@ -40,10 +48,11 @@ def main() -> int:
         rule = item.get("rule") or "-"
         message = item["message"].replace("\n", " ")[:200]
         lines.append(f"E {rel}:{line} {rule} {message}")
-    OUT.write_text("\n".join(lines), encoding="utf-8")
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(lines[0])
     print(f"error 明细已写入 {OUT}")
-    return 0
+    return proc.returncode
 
 
 if __name__ == "__main__":

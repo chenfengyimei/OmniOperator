@@ -10,7 +10,10 @@
 
 真实 Chromium 验证，不 mock。
 """
+
 from __future__ import annotations
+
+from omni.config import PROJECT_ROOT, web_root
 
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -18,7 +21,7 @@ from urllib.parse import urlsplit
 import pytest
 from test_web import _client
 
-STATIC = Path(__file__).resolve().parents[1] / "src/omni/channels/web_static"
+STATIC = web_root(PROJECT_ROOT)
 
 
 @pytest.fixture
@@ -53,95 +56,111 @@ def ui(tmp_path, ui_browser):
             client.close()
 
 
-def test_memory_page_has_navigation_entry(ui):
-    """每页的全局导航都要有「记忆库」入口，且指向 /memory/。
-
-    注意：工作台用自己的静态 rail（.ui-global-nav 在工作台被 CSS 隐藏），
-    所以工作台这一项改查 shared.js 的 NAV_ITEMS 数据源本身。
-    """
-    page, _client_, _runtime, errors = ui
-    for path in ("/jobs/", "/mcp/", "/project/", "/capabilities/"):
-        page.goto("http://127.0.0.1" + path)
-        page.locator(".ui-global-nav").wait_for(state="attached")
-        entry = page.locator('.ui-global-nav a[href="/memory/"]')
-        assert entry.count() == 1, f"{path} 缺少 /memory/ 入口"
-        assert "记忆库" in entry.inner_text()
-
-    # 工作台：导航单源在 shared.js 的 NAV_ITEMS，工作台 rail 与之同源
-    shared = (STATIC / "ui" / "shared.js").read_text(encoding="utf-8")
-    assert "['/memory/','psychology','记忆库']" in shared.replace(" ", ""), "NAV_ITEMS 缺 /memory/ 行"
-    assert not errors, f"导航渲染引发脚本异常：{errors}"
-
-
-def test_memory_page_is_reachable_from_navigation(ui):
-    """从子站导航点「记忆库」→ 真的到 /memory/ 且界面渲染出来。"""
-    page, _client_, _runtime, errors = ui
-    page.goto("http://127.0.0.1/jobs/")
-    page.locator(".ui-global-nav").wait_for()
-    page.locator('.ui-global-nav a[href="/memory/"]').click()
-    page.wait_for_url("**/memory/")
-    page.locator("#memory-root .memory-surface").wait_for()
-    assert not errors, f"记忆页渲染引发脚本异常：{errors}"
+@pytest.mark.parametrize(
+    "path,section",
+    [
+        ("memory", "sec-memory-system"),
+        ("jobs", "sec-jobs"),
+        ("mcp", "sec-mcp"),
+        ("project", "sec-project"),
+        ("capabilities", "sec-capabilities"),
+        ("terminal", "sec-terminal"),
+        ("android", "sec-android"),
+        ("storage", "sec-storage"),
+    ],
+)
+def test_legacy_address_opens_registered_workbench_section(ui, path, section):
+    page, _, _, errors = ui
+    page.goto("http://127.0.0.1/" + path + "/")
+    page.wait_for_url("**/?settings=1&section=" + section)
+    page.locator("#hub").wait_for(state="visible")
+    page.locator("#" + section).wait_for(state="visible")
+    assert page.locator('.hub-nav a[aria-current="page"]').get_attribute("data-go") == section
+    assert not errors
 
 
-def test_memory_page_marks_current_entry(ui):
-    """在 /memory/ 页时，该入口拿到 aria-current（不多不少一个）。"""
-    page, _client_, _runtime, errors = ui
-    page.goto("http://127.0.0.1/memory/")
-    page.locator(".ui-global-nav").wait_for()
-    current = page.locator(".ui-global-nav a[aria-current]")
-    assert current.count() == 1
-    assert current.get_attribute("href") == "/memory/"
-    assert not errors, f"记忆页当前项标记引发脚本异常：{errors}"
-
-
-def test_hub_distinguishes_embedded_and_standalone_storage(ui):
-    """设置中心侧栏：分区项与独立页直链必须并存且语义不同。
-
-    · 「Agent 与文件」带 data-go → 点它切到设置中心的内嵌分区（不跳走）
-    · 「Agent 与目录 ↗」不带 data-go → 点它新标签打开 /storage/ 独立页
-    """
-    page, _client_, _runtime, errors = ui
+def test_tools_dialog_uses_registered_targets_and_preserves_conversation(ui):
+    page, _, _, errors = ui
     page.goto("http://127.0.0.1/")
-    page.locator(".hub-open").click()
-    page.locator(".hub-nav").wait_for()
+    page.locator("#input").fill("未发送的草稿")
+    page.locator('[data-action="tools:open"]').click()
+    page.locator("#tools-panel").wait_for(state="visible")
+    page.locator('#tools-panel [data-section="sec-project"]').click()
+    page.locator("#sec-project").wait_for(state="visible")
+    assert page.locator("#input").input_value() == "未发送的草稿"
+    assert not page.locator("#tools-panel").is_visible()
+    assert not errors
 
-    section_link = page.locator('.hub-nav a[data-go="sec-storage"]')
-    standalone = page.locator('.hub-nav a[href="/storage/"]')
-    assert section_link.count() == 1, "缺少设置中心内的 sec-storage 分区项"
-    assert standalone.count() == 1, "缺少 /storage/ 独立页直链"
-    assert standalone.get_attribute("target") == "_blank"
-    assert standalone.get_attribute("rel") == "noopener"
 
-    # 分区项：点击不跳走，只切换分区
+def test_unknown_deep_link_is_visible_and_does_not_select_arbitrary_dom(ui):
+    page, _, _, errors = ui
+    page.goto("http://127.0.0.1/?settings=1&section=not-a-section")
+    page.locator("#hub").wait_for(state="visible")
+    page.get_by_text("找不到这个设置分区，请从侧栏选择", exact=True).wait_for()
+    assert not errors
+
+
+def test_storage_embed_remains_inside_workbench_without_redirect_loop(ui):
+    page, _, _, errors = ui
+    page.goto("http://127.0.0.1/?settings=1&section=sec-storage")
+    page.locator("#sec-storage").wait_for(state="visible")
+    frame = page.locator("#sec-storage iframe")
+    assert "embed=1" in frame.get_attribute("src")
+    assert "section=sec-storage" in page.url
+    assert not errors
+
+
+@pytest.mark.parametrize("width", [390, 760, 1024, 1440])
+@pytest.mark.parametrize("theme", ["dark", "light"])
+def test_workbench_tools_and_settings_fit_all_delivery_viewports(ui, width, theme):
+    page, _, _, errors = ui
+    page.set_viewport_size({"width": width, "height": 900})
+    page.add_init_script("localStorage.setItem('omni_theme', '" + theme + "')")
     page.goto("http://127.0.0.1/")
-    page.locator(".hub-open").click()
-    page.locator(".hub-nav").wait_for()
-    page.locator('.hub-nav a[data-go="sec-storage"]').click()
-    page.wait_for_timeout(300)
-    assert page.url.rstrip("/") == "http://127.0.0.1", f"分区项点击不该跳走，却到了 {page.url}"
-    assert not errors, f"设置中心分区点击引发脚本异常：{errors}"
+    page.locator('[data-action="tools:open"]').click()
+    page.locator('#tools-panel [data-section="sec-persona"]').click()
+    page.locator("#sec-persona").wait_for(state="visible")
+    assert page.locator("html").get_attribute("data-theme") == theme
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
+    assert page.locator("#cfg-persona-group").is_visible()
+    assert page.locator("#cfg-persona-private").is_visible()
+    assert not errors
 
 
-def test_standalone_storage_link_opens_in_new_tab(ui):
-    """独立页直链：新标签打开 /storage/，且 hub 的内嵌分区仍可用。"""
-    page, _client_, _runtime, errors = ui
-    page.goto("http://127.0.0.1/")
-    page.locator(".hub-open").click()
-    page.locator(".hub-nav").wait_for()
+def test_closing_jobs_panel_releases_polling_and_reopening_resumes(ui):
+    page, _, _, errors = ui
+    requests = []
+    page.on(
+        "request",
+        lambda request: requests.append(request.url) if urlsplit(request.url).path == "/api/command-jobs" else None,
+    )
+    page.goto("http://127.0.0.1/?settings=1&section=sec-jobs")
+    page.locator("#jobs-refresh").wait_for(state="visible")
+    page.wait_for_function("document.querySelector('#jobs-refresh').disabled === false")
+    assert requests
+    page.keyboard.press("Escape")
+    page.locator("#hub").wait_for(state="hidden")
+    count = len(requests)
+    page.wait_for_timeout(2000)
+    assert len(requests) == count
+    page.locator('[data-action="tools:open"]').click()
+    page.locator('#tools-panel [data-section="sec-jobs"]').click()
+    page.wait_for_function("document.querySelector('#jobs-refresh').disabled === false")
+    assert len(requests) > count
+    assert not errors
 
-    with page.context.expect_page() as new_tab:
-        page.locator('.hub-nav a[href="/storage/"]').click()
-    opened = new_tab.value
-    try:
-        opened.wait_for_load_state("domcontentloaded")
-        assert "/storage/" in opened.url
-    finally:
-        opened.close()
 
-    # 原页面仍在设置中心，且内嵌分区可切换
-    assert page.url.rstrip("/") == "http://127.0.0.1"
-    page.locator('.hub-nav a[data-go="sec-storage"]').click()
-    page.wait_for_timeout(200)
-    assert page.locator("#sec-storage").is_visible()
-    assert not errors, f"独立页打开引发脚本异常：{errors}"
+def test_persona_draft_survives_section_switch_and_reopening_tools(ui):
+    page, _, _, errors = ui
+    page.goto("http://127.0.0.1/?settings=1&section=sec-persona")
+    page.wait_for_function("document.querySelector('#hub').getAttribute('aria-busy') === 'false'")
+    field = page.locator("#cfg-persona-group")
+    field.fill("尚未保存的群聊人设草稿，切换分区后应继续保留。")
+    page.locator('.hub-nav [data-go="sec-browser"]').click()
+    page.locator('.hub-nav [data-go="sec-persona"]').click()
+    assert field.input_value() == "尚未保存的群聊人设草稿，切换分区后应继续保留。"
+    page.keyboard.press("Escape")
+    page.locator('[data-action="tools:open"]').click()
+    page.locator('#tools-panel [data-section="sec-persona"]').click()
+    assert field.input_value() == "尚未保存的群聊人设草稿，切换分区后应继续保留。"
+    assert not errors

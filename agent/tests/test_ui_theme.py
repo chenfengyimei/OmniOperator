@@ -9,7 +9,10 @@
 
 设计依据：UI_DESIGN_SYSTEM.md §3.6（主题）。
 """
+
 from __future__ import annotations
+
+from omni.config import PROJECT_ROOT, web_root
 
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -18,7 +21,7 @@ import pytest
 from test_web import _client
 
 ROOT = Path(__file__).resolve().parents[1]
-STATIC = ROOT / "src/omni/channels/web_static"
+STATIC = web_root(PROJECT_ROOT)
 
 # 9 个页面：工作台 + 7 子站 + 记忆独立页
 PAGES = [
@@ -126,9 +129,7 @@ def test_theme_persists_across_pages(ui):
     page.evaluate("window.OmniTheme.set('light')")
     for path, _ in PAGES:
         page.goto("http://127.0.0.1" + path)
-        assert page.evaluate("document.documentElement.getAttribute('data-theme')") == "light", (
-            f"{path} 未继承浅色主题"
-        )
+        assert page.evaluate("document.documentElement.getAttribute('data-theme')") == "light", f"{path} 未继承浅色主题"
     assert not errors, f"跨页主题继承引发脚本异常：{errors}"
 
 

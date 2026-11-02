@@ -13,6 +13,7 @@
   与 safety/ 决定，模式只决定"本回合把哪些工具规格发给模型"；
 - 不含任何状态：模式是纯数据，跨回合的持久化不是这一层的职责。
 """
+
 from __future__ import annotations
 
 import copy
@@ -50,14 +51,10 @@ REQUEST_MODES: tuple[str, ...] = (AUTO_MODE, TurnMode.CHAT.value, TurnMode.RETRI
 # 场景许可集合：群聊只允许公开读取与会话内待办，不碰所有者资料。
 GROUP_ALLOWED_TOOLS = frozenset({"get_time", "web_read", "todo"})
 # 非所有者的私聊：基础工具 + 人物记忆；所有者私人记忆（事实/档案/常驻/历史/技能）不可用。
-DM_ALLOWED_TOOLS = GROUP_ALLOWED_TOOLS | frozenset(
-    {"person_lookup", "person_remember", "person_event"}
-)
+DM_ALLOWED_TOOLS = GROUP_ALLOWED_TOOLS | frozenset({"person_lookup", "person_remember", "person_event"})
 
 # 模式白名单：显式列举，新增工具默认只进 full agent（不会悄悄出现在轻量模式）。
-CHAT_TOOLS = frozenset(
-    {"get_time", "recall", "search_history", "journal_view", "person_lookup"}
-)
+CHAT_TOOLS = frozenset({"get_time", "recall", "search_history", "journal_view", "person_lookup"})
 RETRIEVAL_TOOLS = CHAT_TOOLS | frozenset(
     {
         # 全量记忆检索（按索引分页，绝不整库进上下文）
@@ -184,9 +181,7 @@ def mode_allowed_names(mode: TurnMode, scope_allowed: frozenset[str]) -> frozens
     return frozenset(scope_allowed) & allowed
 
 
-def denied_names(
-    mode: TurnMode, scope_allowed: frozenset[str], all_names: frozenset[str]
-) -> frozenset[str]:
+def denied_names(mode: TurnMode, scope_allowed: frozenset[str], all_names: frozenset[str]) -> frozenset[str]:
     """本回合不可派发的工具名（既不出现规格，也在派发处再拦一次）。"""
     return frozenset(all_names) - mode_allowed_names(mode, scope_allowed)
 

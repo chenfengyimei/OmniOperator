@@ -11,6 +11,7 @@ BrowserUnknown 与动作内的 BrowserError=unknown——点击后 load-state �
 **点击可能已发出**，无法从异常区分，诚实按副作用未知处理，不盲目重试；
 BrowserBusy（入队前）/预算拒绝=确定未执行。
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -34,10 +35,7 @@ def register_browser_tools(
     run_ref: RunRef | None = None,
     can_view: bool = False,
 ) -> None:
-    _TARGET_DESC = (
-        "元素定位：'text=登录' 按可见文字找；'css=#submit' 按选择器找；"
-        "裸文字等同于 text="
-    )
+    _TARGET_DESC = "元素定位：'text=登录' 按可见文字找；'css=#submit' 按选择器找；裸文字等同于 text="
 
     def browser_navigate(args: dict[str, Any]) -> ToolResult:
         url = str(args.get("url", "")).strip()
@@ -73,12 +71,17 @@ def register_browser_tools(
                 return ToolResult.fail(f"错误：{exc}", error_code="browser_busy", retryable=True)
             except BrowserError as exc:
                 return ToolResult.fail(f"错误：{exc}", error_code="browser_failed")
-            return ToolResult.ok(save_screenshot(
-                artifacts, data,
-                session_id=(session_ref.get() if session_ref else None),
-                run_id=(run_ref.get().run_id if run_ref is not None and run_ref.get() else None),
-                kind="screenshot", source="browser_screenshot", can_view=can_view,
-            ))
+            return ToolResult.ok(
+                save_screenshot(
+                    artifacts,
+                    data,
+                    session_id=(session_ref.get() if session_ref else None),
+                    run_id=(run_ref.get().run_id if run_ref is not None and run_ref.get() else None),
+                    kind="screenshot",
+                    source="browser_screenshot",
+                    can_view=can_view,
+                )
+            )
         path = driver.screenshot()
         return ToolResult.ok(f"截图已保存：{path}（当前无法直接看图，可让用户打开检查，或用 read 读文本）")
 
@@ -164,10 +167,7 @@ def register_browser_tools(
     registry.register(
         Tool(
             name="browser_click",
-            description=(
-                "点击页面元素（需用户确认，且消耗每日写额度）。写操作后自动回读页面片段"
-                "用于核对效果"
-            ),
+            description=("点击页面元素（需用户确认，且消耗每日写额度）。写操作后自动回读页面片段用于核对效果"),
             parameters={
                 "type": "object",
                 "properties": {"target": {"type": "string", "description": _TARGET_DESC}},
@@ -182,9 +182,7 @@ def register_browser_tools(
     registry.register(
         Tool(
             name="browser_type",
-            description=(
-                "向输入框填入文字（需用户确认，且消耗每日写额度）。写操作后自动回读页面片段"
-            ),
+            description=("向输入框填入文字（需用户确认，且消耗每日写额度）。写操作后自动回读页面片段"),
             parameters={
                 "type": "object",
                 "properties": {

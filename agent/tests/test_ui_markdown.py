@@ -4,7 +4,10 @@
 「先整体转义、再在转义文本上做结构转换」，一旦有人为了支持新语法改成先拼标签
 再转义，XSS 就会漏进来——这里把关键边界钉死。
 """
+
 from __future__ import annotations
+
+from omni.config import PROJECT_ROOT, web_root
 
 from pathlib import Path
 
@@ -12,7 +15,7 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "src" / "omni" / "channels" / "web_static" / "ui" / "markdown.js"
+SCRIPT = web_root(PROJECT_ROOT) / "ui" / "markdown.js"
 
 
 @pytest.fixture(scope="module")
@@ -41,7 +44,7 @@ def test_inline_formatting(page):
 
 
 def test_raw_html_is_escaped(page):
-    html = render(page, '<script>alert(1)</script><img src=x onerror=alert(1)>')
+    html = render(page, "<script>alert(1)</script><img src=x onerror=alert(1)>")
     assert "&lt;script&gt;" in html
     assert "<script>" not in html
     assert "<img" not in html

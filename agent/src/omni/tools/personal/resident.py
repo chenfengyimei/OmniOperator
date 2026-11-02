@@ -1,4 +1,5 @@
 """个人能力：resident；工具仅使用注入依赖，不构造运行时。"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -30,9 +31,7 @@ def register_resident_tools(registry: ToolRegistry, resident: Any) -> None:
                 entry_id = int(args.get("id", 0))
             except (TypeError, ValueError):
                 return "错误：id 必须是整数（view 里的编号）"
-            return resident.replace(
-                entry_id, str(args.get("content", "")), evidence=evidence
-            )
+            return resident.replace(entry_id, str(args.get("content", "")), evidence=evidence)
         if op == "remove":
             try:
                 entry_id = int(args.get("id", 0))

@@ -1,5 +1,7 @@
 # OmniOperator 架构说明
 
+> V2新增四层的规则与实施边界见 [V2实施记录](V2_REFACTOR.md)，由`test_v2_architecture.py`守卫。下文仍适用于尚未退役的V1模块；V2不受旧数据及接口兼容要求约束。
+
 > 本文是模块职责与依赖规则的唯一权威。**分层与组装根规则由 `agent/tests/test_arch.py` 用 AST 强制执行**——改坏会直接测试红，不靠自觉。
 
 ## 0. 产品目录边界
@@ -49,8 +51,8 @@ config.py 提供声明配置、路径与兼容版本，不承担业务编排。
 | `plugins/` | 插件子系统（顶层包，与 channels 同级）：manifest 校验（纯数据零执行）；宿主生命周期（inbox 收 zip/工作区目录 → 隔离区数据化校验 → **人工确认激活** → 装载注册 → 启停/卸载/启动恢复）；受限注册面 `PluginContext`（工具名强制 `<id>-` 前缀防影子覆盖、`toolset=plugin:<id>` 可归因、风险声明照常走既有审批链）；面向 agent 的生命周期工具。信任模型：校验零执行、**激活即同意执行**（不假装沙箱；不可信来源走 MCP）——全文见 [PLUGIN_SYSTEM.md](PLUGIN_SYSTEM.md) | 不构造 Gateway/MemoryStore 等组装根对象；不加载未激活的代码 | `plugins/manifest.py`、`plugins/host.py`、`plugins/tools.py` |
 | `bootstrap.py` | 组装根：构造全部对象、暴露 Runtime 门面（new/use session） | 不含业务逻辑 | `bootstrap.py` |
 
-工作台公共界面资源归 `channels/web_static/ui/`：tokens→base→icons→components→frame 分层样式、
-`shared.js`（OmniUI 运行库 + NAV_ITEMS 单源导航注入）、`markdown.js`、`ui/app/` 工作台 ES 模块群
+工作台公共界面资源归仓库根 `web/ui/`：tokens→base→icons→components→frame 分层样式、
+`sections.js`（分区、旧地址与工具入口唯一注册表）、`shared.js`（OmniUI ES模块运行库）、`markdown.js`、`ui/app/` 工作台 ES 模块群
 （`main.js` 唯一入口 + data-action 委托分发；子站页面脚本同为 ES 模块，统一 import `ui/app/dom.js`）。
 记忆界面复用 `memory/panel.html` 与 `memory/memory.js` 的挂载根控制器：
 `ui/app/hub-memory.js` 将六页签直接挂进设置分区，`memory/page.js` 仅适配旧书签入口。
@@ -599,11 +601,25 @@ state v14 仓储只管理数据，tools.shell.jobs 管理独立非交互进程�
 父运行取消经注入 RunHandle 观察，不反向 import core；Runtime.close 在关闭 DB 前等待任务。
 新 command_logs 路径由 RuntimePaths 注入；模型 list/read 只能消费绑定会话，HTTP 不能直接启动。
 
-### 本地 MCP C04
+### MCP C04
 
 stdio 所有者任务保持唯一；等待请求有界且共享总 deadline，未派发与在途未知分别返回。
 连接代际约束授权回调/成功状态；system.stderr_log 只提供平台管道排空、脱敏与轮转，不引用工具。
 配置提供者经 bootstrap 注入，变化后停止新调用；被动状态与诊断不启动外部程序。
+远程Streamable HTTP复用相同所有者、授权指纹、截止时间与未知结果规则；OAuth入口显式发起，
+PKCE/state与回调单次消费；认证目标限于资源来源与人工配置的来源，凭据以当前Windows用户DPAPI
+存于RuntimePaths.mcp_credentials，普通配置只保存端点和认证方式。
+
+### 统一整改 U1–U7
+
+`channels/web.py`仅保留应用装配、身份中间件和生命周期；配对/配置由`web_api/settings.py`负责，
+请求模型归`web_api/schemas.py`，旧公开导入继续显式再导出。运行关闭消费浏览器结构化结果，旧文本
+仅由兼容出口生成。Agent关闭/接收闸门、附图累计预算、当前图像引用缓存均有显式字段。
+
+根`web/`是单一前端源码；构建钩子把sdist界面写到`_web`、wheel写到`omni/web_assets`。
+`config.web_root`统一源码、sdist、安装态定位；索引、运行指纹和更新受管清单包含前端，排除node_modules。
+本地目录迁移不搬动config/data/.env/skills。工作台分区关闭暂停面板轮询与嵌入连接；用户已启动的
+服务或后台任务继续由其管理器负责，不随界面关闭而重放或停止。
 
 ### 安卓 C05
 

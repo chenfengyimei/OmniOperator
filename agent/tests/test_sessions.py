@@ -4,6 +4,7 @@ Web 部分用 `httpx.ASGITransport` 直接并发打同一个 app：两个请求�
 而不是"先发一个等它答完"。假网关在**工作线程**里用 `threading.Barrier` 对齐，
 所以能区分"并行"和"被串行化"。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -183,9 +184,7 @@ while not go.exists():
 lease = StateStore(db).acquire_session_lease(7, "child:" + who, ttl_s=60)
 print("GOT" if lease else "BUSY")
 """
-    outs = _run_parallel(
-        code, [[str(db), "{go}", str(i)] for i in range(4)], tmp_path / "go"
-    )
+    outs = _run_parallel(code, [[str(db), "{go}", str(i)] for i in range(4)], tmp_path / "go")
     assert outs.count("GOT") == 1, f"同一会话被多个进程同时占用：{outs}"
     assert keeper.session_lease(7) is not None
     keeper.close()
@@ -254,8 +253,7 @@ store.close()
 class _Gateway:
     """可控假网关：在工作线程里记录 + 阻塞，用来观察并发行为。"""
 
-    def __init__(self, *, barrier: threading.Barrier | None = None,
-                 gate_event: threading.Event | None = None) -> None:
+    def __init__(self, *, barrier: threading.Barrier | None = None, gate_event: threading.Event | None = None) -> None:
         self.barrier = barrier
         self.gate_event = gate_event
         self.seen: list[str] = []
@@ -269,7 +267,7 @@ class _Gateway:
     def complete(self, messages, *, model, tools=None, **kwargs):
         user = [m for m in messages if m["role"] == "user"][-1]["content"]
         # 假模型只回显用户原文；运行快照是新的模型输入协议，不能成为测试答案。
-        user = user.rsplit('\n\n<omni_runtime_context>\n',1)[0]
+        user = user.rsplit("\n\n<omni_runtime_context>\n", 1)[0]
         with self._lock:
             self.active += 1
             self.peak = max(self.peak, self.active)
@@ -303,9 +301,7 @@ def web(tmp_path):
 
 
 async def _client(app):
-    client = httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1"
-    )
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1")
     code = app.state.web_auth.pairing_code
     assert (await client.post("/api/auth/pair", json={"code": code})).status_code == 200
     return client
@@ -351,13 +347,9 @@ def test_same_session_does_not_interleave_and_queue_overflow_is_429(web):
     async def scenario():
         client = await _client(app)
         try:
-            first = asyncio.create_task(
-                client.post("/api/chat", json={"message": "一", "session_id": sid})
-            )
+            first = asyncio.create_task(client.post("/api/chat", json={"message": "一", "session_id": sid}))
             await _wait_until(lambda: gateway.seen == ["一"])
-            second = asyncio.create_task(
-                client.post("/api/chat", json={"message": "二", "session_id": sid})
-            )
+            second = asyncio.create_task(client.post("/api/chat", json={"message": "二", "session_id": sid}))
             await _wait_until(lambda: runtime.session_gate.waiting(sid) == 1)
             # 队列深度 1：第三条直接 429，而不是无限挂起
             third = await client.post("/api/chat", json={"message": "三", "session_id": sid})
@@ -374,7 +366,10 @@ def test_same_session_does_not_interleave_and_queue_overflow_is_429(web):
     assert gateway.peak == 1, "同一会话的两个回合重叠执行了"
     assert gateway.seen == ["一", "二"]  # 按到达顺序
     assert [c for _r, c in runtime.store.recent_messages(sid, 10)] == [
-        "一", "答:一", "二", "答:二",
+        "一",
+        "答:一",
+        "二",
+        "答:二",
     ]
 
 
@@ -443,9 +438,7 @@ def test_tool_calls_stay_in_the_request_session(web):
             if self.turns == 1:
                 call = SimpleNamespace(
                     id="call-1",
-                    function=SimpleNamespace(
-                        name="todo", arguments='{"operation": "add", "content": "第一步"}'
-                    ),
+                    function=SimpleNamespace(name="todo", arguments='{"operation": "add", "content": "第一步"}'),
                 )
                 return SimpleNamespace(text="", tool_calls=[call])
             return SimpleNamespace(text="记下了", tool_calls=[])
@@ -455,9 +448,7 @@ def test_tool_calls_stay_in_the_request_session(web):
     async def scenario():
         client = await _client(app)
         try:
-            return await client.post(
-                "/api/chat", json={"message": "拆成一步", "session_id": target}
-            )
+            return await client.post("/api/chat", json={"message": "拆成一步", "session_id": target})
         finally:
             await client.aclose()
 

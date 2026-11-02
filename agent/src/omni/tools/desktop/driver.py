@@ -45,8 +45,9 @@ class DesktopDriver:
         token = uuid.uuid4().hex
         with self._lock:
             now = self._clock()
-            self._observations = {key: item for key, item in self._observations.items()
-                                  if now - item[0] <= self.config.observation_ttl_s}
+            self._observations = {
+                key: item for key, item in self._observations.items() if now - item[0] <= self.config.observation_ttl_s
+            }
             while len(self._observations) >= 32:
                 del self._observations[next(iter(self._observations))]
             self._observations[token] = (now, session_id, payload)
@@ -58,7 +59,9 @@ class DesktopDriver:
         windows = self.windows()["windows"]
         if not any(int(row["hwnd"]) == int(window) for row in windows):
             raise DesktopError("窗口不存在或不在允许的应用内")
-        return self._remember(self.backend.request("observe", window=int(window), allowed_apps=self._apps()), session_id)
+        return self._remember(
+            self.backend.request("observe", window=int(window), allowed_apps=self._apps()), session_id
+        )
 
     def _observed(self, token: str, session_id) -> dict:
         self._enabled()
@@ -70,14 +73,31 @@ class DesktopDriver:
             raise DesktopError("应用授权已撤销")
         return item[2]
 
-    def action(self, observation: str, element: str, action: str, text: str = "", *, session_id=None, cancel=None, preview=None) -> ToolResult:
+    def action(
+        self,
+        observation: str,
+        element: str,
+        action: str,
+        text: str = "",
+        *,
+        session_id=None,
+        cancel=None,
+        preview=None,
+        foreground=False,
+        run_id="",
+    ) -> ToolResult:
         token = None
+        foreground_token = None
         dispatched = False
         try:
+            if foreground and (not self.config.foreground_enabled or not run_id):
+                raise DesktopError("前台接管未启用或缺少当前运行身份；本次未执行")
             before = self._observed(observation, session_id)
             state = before["state"]
-            if preview is not None and (preview.get("window_title") != state["identity"].get("title")
-                                        or preview.get("application") != state["identity"].get("exe")):
+            if preview is not None and (
+                preview.get("window_title") != state["identity"].get("title")
+                or preview.get("application") != state["identity"].get("exe")
+            ):
                 raise DesktopError("审批预览与实际窗口不一致，未执行")
             nodes = [node for node in state["nodes"] if node["id"] == element]
             if action not in {"set_value", "invoke", "select"} or len(nodes) != 1:
@@ -92,6 +112,8 @@ class DesktopDriver:
             if len(text) > 4000:
                 raise DesktopError("单次文本超出 4000 字符")
             identity = state["identity"]
+            if foreground:
+                foreground_token = self.leases.acquire("desktop:foreground", ttl_s=max(120, self.config.timeout_s * 3))
             token = self.leases.acquire(f"desktop:{identity['hwnd']}", ttl_s=max(120, self.config.timeout_s * 3))
             if cancel is not None:
                 cancel.raise_if_cancelled()
@@ -108,29 +130,61 @@ class DesktopDriver:
                 if self._observations.pop(observation, None) is None:
                     raise DesktopError("观察已被使用，未执行")
             dispatched = True
-            after = self.backend.request("action", window=identity["hwnd"], fingerprint=before["fingerprint"],
-                                         element=element, action=action, text=text, allowed_apps=self._apps())
-            if any(after["state"]["identity"].get(key) != identity.get(key) for key in ("hwnd", "pid", "created", "exe")):
+            after = self.backend.request(
+                "foreground_action" if foreground else "action",
+                window=identity["hwnd"],
+                fingerprint=before["fingerprint"],
+                element=element,
+                action=action,
+                text=text,
+                allowed_apps=self._apps(),
+                **({"run_id": run_id, "expected_identity": identity} if foreground else {}),
+            )
+            if any(
+                after["state"]["identity"].get(key) != identity.get(key) for key in ("hwnd", "pid", "created", "exe")
+            ):
                 raise DesktopError("写后窗口进程身份变化，效果未知，禁止重试", unknown=True)
             observed = self._remember(after, session_id)
             if after.get("verified"):
-                return ToolResult.ok("桌面编辑已回读确认。\n" + json.dumps(observed, ensure_ascii=False),
-                                     side_effect_state="applied", verification="UIAutomation 文本精确回读", data=observed)
-            return ToolResult(status="unknown", text="动作已下发，回读未确认目标效果；不要自动重试。\n" + json.dumps(observed, ensure_ascii=False),
-                              side_effect_state="unknown", verification="需要人工核查", data=observed)
+                return ToolResult.ok(
+                    "桌面编辑已回读确认。\n" + json.dumps(observed, ensure_ascii=False),
+                    side_effect_state="applied",
+                    verification="UIAutomation 文本精确回读",
+                    data=observed,
+                )
+            return ToolResult(
+                status="unknown",
+                text="动作已下发，回读未确认目标效果；不要自动重试。\n" + json.dumps(observed, ensure_ascii=False),
+                side_effect_state="unknown",
+                verification="需要人工核查",
+                data=observed,
+            )
         except DesktopError as exc:
-            return ToolResult(status="unknown" if exc.unknown else "error", text=str(exc),
-                              error_code="desktop_unknown" if exc.unknown else "desktop_rejected",
-                              side_effect_state="unknown" if exc.unknown else "none")
+            return ToolResult(
+                status="unknown" if exc.unknown else "error",
+                text=str(exc),
+                error_code="desktop_unknown" if exc.unknown else "desktop_rejected",
+                side_effect_state="unknown" if exc.unknown else "none",
+            )
         except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
-            return ToolResult(status="unknown" if dispatched else "error", text=f"桌面操作未确认（{type(exc).__name__}）",
-                              side_effect_state="unknown" if dispatched else "none", error_code="desktop_failed")
+            return ToolResult(
+                status="unknown" if dispatched else "error",
+                text=f"桌面操作未确认（{type(exc).__name__}）",
+                side_effect_state="unknown" if dispatched else "none",
+                error_code="desktop_failed",
+            )
         finally:
             if token:
                 self.leases.release(token)
+            if foreground_token:
+                self.leases.release(foreground_token)
 
     def screenshot(self, observation: str, *, session_id=None) -> bytes:
         before = self._observed(observation, session_id)
-        payload = self.backend.request("screenshot", window=before["state"]["identity"]["hwnd"],
-                                       fingerprint=before["fingerprint"], allowed_apps=self._apps())
+        payload = self.backend.request(
+            "screenshot",
+            window=before["state"]["identity"]["hwnd"],
+            fingerprint=before["fingerprint"],
+            allowed_apps=self._apps(),
+        )
         return base64.b64decode(payload["png"], validate=True)

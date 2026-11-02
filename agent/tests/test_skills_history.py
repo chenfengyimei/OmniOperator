@@ -10,6 +10,7 @@
 跨进程用真实子进程（`subprocess` + go 文件对齐起跑），不是 mock —— 线程锁在单进程里
 永远是对的，缺陷只在跨进程出现。
 """
+
 from __future__ import annotations
 
 import os
@@ -49,9 +50,7 @@ def test_save_raw_roundtrip_cas_and_validation(tmp_path):
     text, digest = store.read("editor-skill")
 
     edited = text.replace("第一版", "第二版（编辑器改的）")
-    ok, msg = store.save_raw(
-        "editor-skill", edited, expected_hash=digest, author="user", source="workbench"
-    )
+    ok, msg = store.save_raw("editor-skill", edited, expected_hash=digest, author="user", source="workbench")
     assert ok, msg
     new_text, new_digest = store.read("editor-skill")
     assert "编辑器改的" in new_text and new_digest != digest
@@ -355,9 +354,7 @@ def test_write_through_junction_is_refused(tmp_path):
         child.unlink()
     skill_dir.rmdir()
     if os.name == "nt":
-        result = subprocess.run(
-            ["cmd", "/c", "mklink", "/J", str(skill_dir), str(external)], capture_output=True
-        )
+        result = subprocess.run(["cmd", "/c", "mklink", "/J", str(skill_dir), str(external)], capture_output=True)
         assert result.returncode == 0
     else:
         skill_dir.symlink_to(external, target_is_directory=True)

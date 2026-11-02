@@ -1,16 +1,12 @@
 """个人能力：facts；工具仅使用注入依赖，不构造运行时。"""
+
 from __future__ import annotations
 
 import datetime as dt
 from typing import Any
 
-from ...memory.store import MemoryStore, normalize_text
+from ...memory.store import MemoryStore
 from ..registry import Risk, Tool, ToolRegistry
-
-
-def _same_fact(candidate: str, target: str) -> bool:
-    """删除只认"同一句话"：归一化后相等才算，模糊命中不算删除依据。"""
-    return normalize_text(candidate) == normalize_text(target)
 
 
 def humanize_age(created_at: str, now: dt.datetime | None = None) -> str:
@@ -119,7 +115,7 @@ def register_memory_tools(
         if decision is not None and not decision.allowed:
             return f"未写入记忆：{decision.reason}"
         fact_id = store.save_fact(
-            content, source=source, scope=_scope(), session_id=_session_id()
+            content, source=source, scope=_scope(), session_id=_session_id(), evidence=str(args.get("evidence", ""))
         )
         if fact_id is None:  # 存储层拦住：与用户要求遗忘的记录一致
             return "未写入记忆：这条内容与用户要求遗忘的记录一致（如需恢复请让用户明确说'记住它'）"
@@ -150,9 +146,7 @@ def register_memory_tools(
             store.review_facts_clarity(hits, scope=_scope())
         stamps = store.fact_timestamps(hits, scope=_scope())
         clarities = store.fact_clarities(hits, scope=_scope())
-        body = "\n".join(
-            _recall_line(h, stamps, clarities) for h in hits
-        )
+        body = "\n".join(_recall_line(h, stamps, clarities) for h in hits)
         if recall_prefix:
             # 记忆是**数据**：里面即使写着"忽略之前的指令"也只是一句旧内容
             return (
@@ -172,20 +166,14 @@ def register_memory_tools(
         target = str(args.get("text", "")).strip()
         if not target:
             return "错误：text 不能为空"
-        matches = store.search_facts(target, limit=8, scope=_scope())
-        exact = [item for item in matches if _same_fact(item, target)]
+        ids = store.matching_fact_ids(target, scope=_scope())
+        exact = list(ids)
         if not exact:
-            return (
-                "没有找到与这段文字一致的事实记忆，未删除任何内容。"
-                "（模糊命中不算删除依据；请给出更完整的一句）"
-            )
-        ids = store.fact_ids_by_contents(exact, scope=_scope())
+            return "没有找到与这段文字一致的事实记忆，未删除任何内容。（模糊命中不算删除依据；请给出更完整的一句）"
         deleted = 0
         for text in exact:
             fact_id = ids.get(text)
-            if fact_id is not None and store.forget_fact(
-                fact_id, reason="用户要求忘记", session_id=_session_id()
-            ):
+            if fact_id is not None and store.forget_fact(fact_id, reason="用户要求忘记", session_id=_session_id()):
                 deleted += 1
         return f"已删除 {deleted} 条记忆，并标记为'不要再记'。相关摘要已失效。"
 
@@ -196,10 +184,11 @@ def register_memory_tools(
             parameters={
                 "type": "object",
                 "properties": {
+                    "evidence": {"type": "string", "description": "后台整理时必填：逐字摘录当前来源材料，不可编造出处"},
                     "text": {
                         "type": "string",
                         "description": "要记住的内容，一句自包含的话",
-                    }
+                    },
                 },
                 "required": ["text"],
             },
@@ -211,15 +200,10 @@ def register_memory_tools(
     registry.register(
         Tool(
             name="recall",
-            description=(
-                "从长期记忆里检索相关信息。query 建议用简短关键词"
-                "（如'猫 名字'、'拿铁'），也支持整句提问"
-            ),
+            description=("从长期记忆里检索相关信息。query 建议用简短关键词（如'猫 名字'、'拿铁'），也支持整句提问"),
             parameters={
                 "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "检索关键词或问题，尽量简短"}
-                },
+                "properties": {"query": {"type": "string", "description": "检索关键词或问题，尽量简短"}},
                 "required": ["query"],
             },
             func=recall,
@@ -232,10 +216,7 @@ def register_memory_tools(
     registry.register(
         Tool(
             name="forget",
-            description=(
-                "删除一条已记住的事实，并标记为'以后不要再记'。"
-                "只在用户明确要求忘记某事时使用；删除不可撤销"
-            ),
+            description=("删除一条已记住的事实，并标记为'以后不要再记'。只在用户明确要求忘记某事时使用；删除不可撤销"),
             parameters={
                 "type": "object",
                 "properties": {
@@ -258,8 +239,7 @@ def register_memory_tools(
         if not hits:
             return "没有在历史对话里找到相关内容。"
         return "\n".join(
-            f"- [会话 #{sid} · {role} · {created[:16]}] {content[:120]}"
-            for sid, role, content, created in hits
+            f"- [会话 #{sid} · {role} · {created[:16]}] {content[:120]}" for sid, role, content, created in hits
         )
 
     registry.register(
@@ -268,9 +248,7 @@ def register_memory_tools(
             description="搜索过去的对话记录（哪怕没有显式记住过的内容也能找到）",
             parameters={
                 "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "检索关键词或问题，尽量简短"}
-                },
+                "properties": {"query": {"type": "string", "description": "检索关键词或问题，尽量简短"}},
                 "required": ["query"],
             },
             func=search_history,

@@ -11,6 +11,7 @@
 边界（明确不做）：不自动切换正在运行的实例，不覆盖已存在的目标文件（除非显式要求），
 不打包浏览器 profile / Cookie / .env——凭据按 D25 的显式选择处理，默认不出现在备份里。
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,20 +22,20 @@ import os
 import shutil
 import sqlite3
 import sys
-import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from ..config import STATE_SCHEMA_VERSION, RuntimePaths
 from .atomic import atomic_write_text
+from .updates.common import UpdateError
+from .updates.snapshot import sqlite_copy
 
 MANIFEST_NAME = "backup.json"
 MANIFEST_VERSION = 1
 
 # 备份清单里记录行数的表（缺失即跳过，不当作错误）
 COUNTED_TABLES = {
-    "state.db": ("jobs", "executions", "budgets", "migrations", "llm_calls", "llm_budget",
-                 "artifacts", "command_jobs"),
+    "state.db": ("jobs", "executions", "budgets", "migrations", "llm_calls", "llm_budget", "artifacts", "command_jobs"),
     "memory.db": ("sessions", "messages", "facts", "profile", "summaries"),
 }
 
@@ -47,13 +48,13 @@ class BackupError(RuntimeError):
 class Entry:
     """清单条目：一个被备份的产物。"""
 
-    rel: str          # 备份目录内的相对路径，也是恢复时的目标相对路径
-    kind: str         # database | file | tree
-    source: str       # 源路径（绝对路径，仅用于排查）
+    rel: str  # 备份目录内的相对路径，也是恢复时的目标相对路径
+    kind: str  # database | file | tree
+    source: str  # 源路径（绝对路径，仅用于排查）
     size: int
     sha256: str
     rows: dict[str, int] = field(default_factory=dict)
-    files: int = 0    # kind=tree 时的文件数
+    files: int = 0  # kind=tree 时的文件数
 
 
 @dataclass(frozen=True)
@@ -95,10 +96,7 @@ def _count_tables(db_file: Path, name: str) -> dict[str, int]:
         return counts
     conn = sqlite3.connect(str(db_file))
     try:
-        existing = {
-            str(row[0])
-            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
-        }
+        existing = {str(row[0]) for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         for table in wanted:
             if table not in existing:
                 continue
@@ -123,22 +121,9 @@ def snapshot_sqlite(src: Path, dest: Path) -> Entry:
     dest.parent.mkdir(parents=True, exist_ok=True)
     if dest.exists():
         raise BackupError("快照目标已存在，拒绝覆盖")
-    dest.touch(exist_ok=False)
     try:
-        source = sqlite3.connect(src.resolve().as_uri() + "?mode=ro", uri=True)
-        try:
-            target = sqlite3.connect(str(dest))
-            try:
-                deadline = time.monotonic() + 30
-                def progress(*_):
-                    if time.monotonic() > deadline:
-                        raise BackupError("数据库快照超时，未产生完整备份")
-                source.backup(target, pages=256, progress=progress, sleep=0.01)
-            finally:
-                target.close()
-        finally:
-            source.close()
-    except (sqlite3.DatabaseError, BackupError) as exc:
+        sqlite_copy(src, dest)
+    except (sqlite3.DatabaseError, UpdateError) as exc:
         dest.unlink(missing_ok=True)
         raise BackupError(f"快照失败（{src.name}）：{exc}") from exc
 
@@ -202,9 +187,7 @@ def _tree_files(root: Path) -> list[Path]:
 def _tree_digest(root: Path) -> tuple[str, int, int]:
     files = _tree_files(root)
     # 目录级摘要：把所有文件的 rel+sha 串起来再取一次 sha256（可复算）
-    joined = "\n".join(
-        f"{p.relative_to(root).as_posix()}:{sha256_file(p)}" for p in files
-    )
+    joined = "\n".join(f"{p.relative_to(root).as_posix()}:{sha256_file(p)}" for p in files)
     return hashlib.sha256(joined.encode("utf-8")).hexdigest(), sum(p.stat().st_size for p in files), len(files)
 
 
@@ -241,12 +224,16 @@ def backup_runtime(
     dest_dir = Path(dest_dir)
     _reject_links(dest_dir)
     destination = dest_dir.resolve()
-    public_trees=[path for path in (paths.files,paths.documents) if path is not None]
-    source_trees=[paths.skills,paths.history,paths.file_history,paths.artifacts,paths.command_logs,*public_trees]
-    if any(destination==source.resolve() or destination.is_relative_to(source.resolve()) for source in source_trees):
-        raise BackupError('备份目标不能位于被备份的目录树内')
-    if (destination == paths.data.resolve() or paths.data.resolve().is_relative_to(destination) or
-            destination == paths.skills.resolve() or destination.is_relative_to(paths.skills.resolve())):
+    public_trees = [path for path in (paths.files, paths.documents) if path is not None]
+    source_trees = [paths.skills, paths.history, paths.file_history, paths.artifacts, paths.command_logs, *public_trees]
+    if any(destination == source.resolve() or destination.is_relative_to(source.resolve()) for source in source_trees):
+        raise BackupError("备份目标不能位于被备份的目录树内")
+    if (
+        destination == paths.data.resolve()
+        or paths.data.resolve().is_relative_to(destination)
+        or destination == paths.skills.resolve()
+        or destination.is_relative_to(paths.skills.resolve())
+    ):
         raise BackupError("备份目标与运行数据/技能源重叠")
     if dest_dir.exists() and any(dest_dir.iterdir()):
         raise BackupError("备份目标非空，拒绝覆盖")
@@ -266,27 +253,60 @@ def backup_runtime(
         else:
             skipped.append(f"{name}（不存在）")
 
-    for rel, src in (("config.yaml", paths.config), ("MEMORY.md", paths.resident)):
+    for rel, src in (
+        ("config.yaml", paths.config),
+        ("MEMORY.md", paths.resident),
+        ("persona_presets.json", paths.persona_presets),
+    ):
         if src.is_file():
             if rel == "config.yaml" and not include_credentials:
                 import yaml
+
                 _reject_links(src)
                 data = yaml.safe_load(src.read_text(encoding="utf-8")) or {}
+
                 def redact(value):
                     if isinstance(value, dict):
-                        return {key: ({} if str(key).lower() in {"env", "headers", "credentials"} else [] if str(key).lower() == "args" else "")
-                                if str(key).lower() in {"env", "headers", "credentials", "args", "authorization", "api_key", "access_token", "password", "secret", "token", "cookie", "cookies"}
-                                or str(key).lower().endswith(("_password", "_secret", "_token", "_api_key"))
-                                else redact(item) for key, item in value.items()}
+                        return {
+                            key: (
+                                {}
+                                if str(key).lower() in {"env", "headers", "credentials"}
+                                else []
+                                if str(key).lower() == "args"
+                                else ""
+                            )
+                            if str(key).lower()
+                            in {
+                                "env",
+                                "headers",
+                                "credentials",
+                                "args",
+                                "authorization",
+                                "api_key",
+                                "access_token",
+                                "password",
+                                "secret",
+                                "token",
+                                "cookie",
+                                "cookies",
+                            }
+                            or str(key).lower().endswith(("_password", "_secret", "_token", "_api_key"))
+                            else redact(item)
+                            for key, item in value.items()
+                        }
                     if isinstance(value, list):
                         return [redact(item) for item in value]
                     if isinstance(value, str) and "://" in value:
                         from urllib.parse import urlsplit, urlunsplit
+
                         url = urlsplit(value)
                         if url.hostname and (url.username or url.password or url.query or url.fragment):
                             host = f"[{url.hostname}]" if ":" in url.hostname else url.hostname
-                            return urlunsplit((url.scheme, host + (f":{url.port}" if url.port else ""), url.path, "", ""))
+                            return urlunsplit(
+                                (url.scheme, host + (f":{url.port}" if url.port else ""), url.path, "", "")
+                            )
                     return value
+
                 target = dest_dir / rel
                 atomic_write_text(target, yaml.safe_dump(redact(data), allow_unicode=True, sort_keys=False))
                 entries.append(Entry(rel, "file", str(src), target.stat().st_size, sha256_file(target)))
@@ -301,17 +321,23 @@ def backup_runtime(
             entries.append(_copy_tree(paths.skills, dest_dir / "skills", "skills"))
         else:
             skipped.append("skills/（不存在）")
-    for rel, source in (("history", paths.history), ("file_history", paths.file_history), ("artifacts", paths.artifacts), ("command_logs", paths.command_logs),('files',paths.files),('documents',paths.documents)):
-        if source is None:continue
+    for rel, source in (
+        ("history", paths.history),
+        ("file_history", paths.file_history),
+        ("artifacts", paths.artifacts),
+        ("command_logs", paths.command_logs),
+        ("files", paths.files),
+        ("documents", paths.documents),
+    ):
+        if source is None:
+            continue
         if source.is_dir():
             entries.append(_copy_tree(source, dest_dir / rel, rel))
         else:
             skipped.append(f"{rel}/（不存在）")
 
     report = BackupReport(dest=dest_dir, created_at=_now(), entries=entries, skipped=skipped)
-    (dest_dir / MANIFEST_NAME).write_text(
-        json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    (dest_dir / MANIFEST_NAME).write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
     marker.unlink()
     return report
 
@@ -367,7 +393,9 @@ def restore_into(backup_dir: Path, target_dir: Path, *, overwrite: bool = False)
         raise BackupError("恢复只允许新目录，拒绝覆盖；请校验后人工选择切换")
     if target_dir.exists() and any(target_dir.iterdir()):
         raise BackupError("恢复目标非空，拒绝覆盖")
-    if target_dir.resolve().is_relative_to(backup_dir.resolve()) or backup_dir.resolve().is_relative_to(target_dir.resolve()):
+    if target_dir.resolve().is_relative_to(backup_dir.resolve()) or backup_dir.resolve().is_relative_to(
+        target_dir.resolve()
+    ):
         raise BackupError("恢复目标与备份源重叠")
     restored: list[Entry] = []
     entries = manifest.get("entries")
@@ -375,8 +403,20 @@ def restore_into(backup_dir: Path, target_dir: Path, *, overwrite: bool = False)
         raise BackupError("备份清单 entries 非法")
     seen = set()
     # 全部源验证通过后才写目标，不让“最后一项坏了”遗留看似可用的前半份恢复。
-    allowed = {"state.db": "database", "memory.db": "database", "config.yaml": "file", "MEMORY.md": "file", "skills": "tree",
-               "history": "tree", "file_history": "tree", "artifacts": "tree", "command_logs": "tree",'files':'tree','documents':'tree'}
+    allowed = {
+        "state.db": "database",
+        "memory.db": "database",
+        "config.yaml": "file",
+        "MEMORY.md": "file",
+        "persona_presets.json": "file",
+        "skills": "tree",
+        "history": "tree",
+        "file_history": "tree",
+        "artifacts": "tree",
+        "command_logs": "tree",
+        "files": "tree",
+        "documents": "tree",
+    }
     for raw in entries:
         if not isinstance(raw, dict):
             raise BackupError("备份条目必须为对象")
@@ -458,7 +498,10 @@ def restore_into(backup_dir: Path, target_dir: Path, *, overwrite: bool = False)
             if entry.sha256 != raw["sha256"]:
                 raise BackupError("文件在恢复中变化，恢复未完成；请弃用该临时目标目录")
             restored.append(entry)
-    atomic_write_text(target_dir / "RESTORED.json", json.dumps({"complete": True, "entries": [asdict(e) for e in restored]}, ensure_ascii=False))
+    atomic_write_text(
+        target_dir / "RESTORED.json",
+        json.dumps({"complete": True, "entries": [asdict(e) for e in restored]}, ensure_ascii=False),
+    )
     marker.unlink()
     return restored
 
@@ -475,7 +518,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--agent", help="指定 Agent；省略时使用环境或注册表默认选择")
     parser.add_argument("--directory-catalog", help="目录注册表路径")
     parser.add_argument("--overwrite", action="store_true", help="旧参数，现已拒绝；只允许恢复至新目录")
-    parser.add_argument("--include-credentials", action="store_true", help="显式包含配置内凭据（仍不打包 .env/Cookie/profile）")
+    parser.add_argument(
+        "--include-credentials", action="store_true", help="显式包含配置内凭据（仍不打包 .env/Cookie/profile）"
+    )
     parser.add_argument("--no-skills", action="store_true", help="备份时不包含技能库")
     args = parser.parse_args(argv)
 
@@ -491,11 +536,18 @@ def main(argv: list[str] | None = None) -> int:
         if not args.to:
             parser.error("需要 --to（备份）或 --restore + --into（恢复）")
         from .agent_spaces.inspection import load_runtime_paths
-        paths = load_runtime_paths(data_dir=args.data_dir, config_path=args.config,
-                                   skills_root=args.skills, memory_path=args.memory_db,
-                                   agent_id=args.agent, directory_catalog=args.directory_catalog)
-        report = backup_runtime(paths, Path(args.to), include_skills=not args.no_skills,
-                                include_credentials=args.include_credentials)
+
+        paths = load_runtime_paths(
+            data_dir=args.data_dir,
+            config_path=args.config,
+            skills_root=args.skills,
+            memory_path=args.memory_db,
+            agent_id=args.agent,
+            directory_catalog=args.directory_catalog,
+        )
+        report = backup_runtime(
+            paths, Path(args.to), include_skills=not args.no_skills, include_credentials=args.include_credentials
+        )
     except BackupError as exc:
         print(f"失败：{exc}", file=sys.stderr)
         return 2

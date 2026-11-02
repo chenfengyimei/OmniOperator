@@ -6,6 +6,7 @@ human-world.md，也不要求"整句逐字"——我们写的是概括，要求�
 
 纯逻辑部分完全不碰数据库，可离线跑；存储与工具部分用临时目录。
 """
+
 from __future__ import annotations
 
 import json
@@ -33,10 +34,7 @@ from omni.tools.personal.profile import register_profile_tools
 from omni.tools.personal.resident import register_resident_tools
 from omni.tools.registry import ToolRegistry
 
-TRANSCRIPT = (
-    "[user] 我下周要去趟成都，帮我记一下\n"
-    "[assistant] 好的，出行安排记下了：成都。"
-)
+TRANSCRIPT = "[user] 我下周要去趟成都，帮我记一下\n[assistant] 好的，出行安排记下了：成都。"
 
 
 # ---------------------------------------------------------------- 纯逻辑层
@@ -151,9 +149,7 @@ def test_anchored_write_stamps_source_ref_and_evidence(tmp_path):
     store = _store(tmp_path)
     owner = store.ensure_owner("所有者")
     with anchor_scope(TRANSCRIPT, source="review", source_ref="session:7"):
-        entry_id = store.add_entry(
-            owner, "resident", "用户下周要去成都", evidence="我下周要去趟成都"
-        )
+        entry_id = store.add_entry(owner, "resident", "用户下周要去成都", evidence="我下周要去趟成都")
     entry = store.entries(owner)[0]
     assert entry["id"] == entry_id
     assert entry["source"] == "review"
@@ -175,9 +171,7 @@ def test_anchored_replace_requires_a_fresh_quote(tmp_path):
     store = _store(tmp_path)
     owner = store.ensure_owner("所有者")
     with anchor_scope(TRANSCRIPT, source="review", source_ref="session:7"):
-        entry_id = store.add_entry(
-            owner, "resident", "用户下周要去成都", evidence="我下周要去趟成都"
-        )
+        entry_id = store.add_entry(owner, "resident", "用户下周要去成都", evidence="我下周要去趟成都")
         with pytest.raises(PersonError) as err:
             store.edit_entry(entry_id, "用户下周要去成都，顺便订酒店")
         assert "必须带原文摘录" in str(err.value)
@@ -189,9 +183,7 @@ def test_chat_replace_clears_the_stale_quote_when_content_changes(tmp_path):
     store = _store(tmp_path)
     owner = store.ensure_owner("所有者")
     with anchor_scope(TRANSCRIPT, source="review", source_ref="session:7"):
-        entry_id = store.add_entry(
-            owner, "resident", "用户下周要去成都", evidence="我下周要去趟成都"
-        )
+        entry_id = store.add_entry(owner, "resident", "用户下周要去成都", evidence="我下周要去趟成都")
     # 内容没变 → 保留旧出处
     assert store.edit_entry(entry_id, "用户下周要去成都")
     assert store.entries(owner)[0]["evidence"] == "我下周要去趟成都"
@@ -227,8 +219,7 @@ def test_old_database_gets_source_ref_and_evidence_columns(tmp_path):
         """
     )
     conn.execute(
-        "INSERT INTO people(name, importance, created_at)"
-        " VALUES ('小张', 'known', '2026-01-01T00:00:00+08:00')"
+        "INSERT INTO people(name, importance, created_at) VALUES ('小张', 'known', '2026-01-01T00:00:00+08:00')"
     )
     conn.execute(
         "INSERT INTO person_entries(person_id, entry_kind, content, source, created_at)"
@@ -282,15 +273,33 @@ def test_tools_reject_anchored_writes_without_a_quote(tmp_path):
 def test_tools_accept_anchored_writes_with_a_quote(tmp_path):
     fixture = _make(tmp_path)
     with anchor_scope(TRANSCRIPT, source="review", source_ref="session:7"):
-        resident = _dispatch(fixture, "resident_memory", {
-            "operation": "add", "content": "用户下周要去成都", "evidence": "我下周要去趟成都",
-        })
-        profile = _dispatch(fixture, "profile_manage", {
-            "operation": "add", "content": "用户常驻成都", "evidence": "我下周要去趟成都",
-        })
-        person = _dispatch(fixture, "person_remember", {
-            "person": "小张", "content": "在成都工作", "evidence": "我下周要去趟成都",
-        })
+        resident = _dispatch(
+            fixture,
+            "resident_memory",
+            {
+                "operation": "add",
+                "content": "用户下周要去成都",
+                "evidence": "我下周要去趟成都",
+            },
+        )
+        profile = _dispatch(
+            fixture,
+            "profile_manage",
+            {
+                "operation": "add",
+                "content": "用户常驻成都",
+                "evidence": "我下周要去趟成都",
+            },
+        )
+        person = _dispatch(
+            fixture,
+            "person_remember",
+            {
+                "person": "小张",
+                "content": "在成都工作",
+                "evidence": "我下周要去趟成都",
+            },
+        )
     assert "已写入常驻记忆" in resident
     assert "已加入档案" in profile
     assert "已记入" in person
@@ -311,9 +320,15 @@ def test_tools_accept_chat_writes_without_a_quote(tmp_path):
 def test_view_shows_the_provenance_section(tmp_path):
     fixture = _make(tmp_path)
     with anchor_scope(TRANSCRIPT, source="review", source_ref="session:7"):
-        _dispatch(fixture, "resident_memory", {
-            "operation": "add", "content": "用户下周要去成都", "evidence": "我下周要去趟成都",
-        })
+        _dispatch(
+            fixture,
+            "resident_memory",
+            {
+                "operation": "add",
+                "content": "用户下周要去成都",
+                "evidence": "我下周要去趟成都",
+            },
+        )
     view = _dispatch(fixture, "resident_memory", {"operation": "view"})
     assert "出处" in view
     assert "对话 #7" in view
@@ -323,9 +338,15 @@ def test_view_shows_the_provenance_section(tmp_path):
 def test_person_lookup_shows_the_provenance_section(tmp_path):
     fixture = _make(tmp_path)
     with anchor_scope(TRANSCRIPT, source="journal", source_ref="journal:daily:2026-11-01"):
-        _dispatch(fixture, "person_remember", {
-            "person": "小张", "content": "在成都工作", "evidence": "我下周要去趟成都",
-        })
+        _dispatch(
+            fixture,
+            "person_remember",
+            {
+                "person": "小张",
+                "content": "在成都工作",
+                "evidence": "我下周要去趟成都",
+            },
+        )
     out = _dispatch(fixture, "person_lookup", {"query": "小张"})
     assert "出处" in out
     assert "日记 2026-11-01" in out
@@ -340,12 +361,24 @@ def test_injection_blocks_do_not_carry_the_evidence(tmp_path):
     """
     fixture = _make(tmp_path)
     with anchor_scope(TRANSCRIPT, source="review", source_ref="session:7"):
-        _dispatch(fixture, "resident_memory", {
-            "operation": "add", "content": "用户下周要去成都", "evidence": "我下周要去趟成都",
-        })
-        _dispatch(fixture, "profile_manage", {
-            "operation": "add", "content": "用户常驻成都", "evidence": "我下周要去趟成都",
-        })
+        _dispatch(
+            fixture,
+            "resident_memory",
+            {
+                "operation": "add",
+                "content": "用户下周要去成都",
+                "evidence": "我下周要去趟成都",
+            },
+        )
+        _dispatch(
+            fixture,
+            "profile_manage",
+            {
+                "operation": "add",
+                "content": "用户常驻成都",
+                "evidence": "我下周要去趟成都",
+            },
+        )
     resident_block = fixture.owner.block()
     profile_block = fixture.owner.profile_block()
     assert "用户下周要去成都" in resident_block

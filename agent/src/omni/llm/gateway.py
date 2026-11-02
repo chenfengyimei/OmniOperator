@@ -13,6 +13,7 @@ D10 在这一层补上四件事，因为它们**必须在唯一出口**做，否
 3. **超时与脱敏**：结构化 timeout；异常文本先脱敏再进入日志/界面。
 4. **费用预留与结算**：调用前预留、调用后结算，未知计价不当成零。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -212,8 +213,7 @@ class Gateway:
             )
         if uses_vision(messages) and not cap.vision:
             raise errors.unsupported(
-                f"模型 {model} 未声明视觉能力（llm.capabilities.{model}.vision），"
-                "含图片的请求已拒绝，未发出网络调用",
+                f"模型 {model} 未声明视觉能力（llm.capabilities.{model}.vision），含图片的请求已拒绝，未发出网络调用",
                 model=model,
             )
         if cap.context_tokens and estimate_tokens(messages) > cap.context_tokens:
@@ -234,6 +234,7 @@ class Gateway:
         model: str,
         messages: list[dict[str, Any]],
         run_budget: RunBudget | None,
+        scope: str = "",
     ) -> Reservation:
         price = resolve_price(self.llm, model)
         prompt_tokens = estimate_tokens(messages)
@@ -281,13 +282,10 @@ class Gateway:
                 if held_by_run:
                     run_budget.release(micro)
                 raise errors.budget_error(
-                    f"今日模型费用已达上限 ${daily_limit / MICRO:.2f}"
-                    f"（已用 ${used / MICRO:.4f}）：本次未发出请求",
+                    f"今日模型费用已达上限 ${daily_limit / MICRO:.2f}（已用 ${used / MICRO:.4f}）：本次未发出请求",
                     model=model,
                 )
-            return Reservation(
-                day=_today(), micro=micro, quote=quote, ledger_held=True, run_held=held_by_run
-            )
+            return Reservation(day=_today(), micro=micro, quote=quote, ledger_held=True, run_held=held_by_run)
         return Reservation(day=_today(), micro=micro, quote=quote, run_held=held_by_run)
 
     # ---------------------------------------------------------------- 分口径（P5-c）
@@ -304,9 +302,7 @@ class Gateway:
                 return max(0, int(round(float(value) * MICRO)))
         return 0
 
-    def _scope_reserve(
-        self, *, scope: str, micro: int, model: str
-    ) -> tuple[str, bool]:
+    def _scope_reserve(self, *, scope: str, micro: int, model: str) -> tuple[str, bool]:
         """按口径预留。返回 (口径名, 是否成功)。
 
         口径没配上限时**只记账不拦**——与总额口径的"0 = 未设上限"同款语义。
@@ -317,16 +313,12 @@ class Gateway:
         if limit <= 0:
             # 不限也要记账，否则"这个口径花了多少"永远查不出来。
             try:
-                self.ledger.scope_reserve(
-                    day=_today(), scope=key, micro=micro, limit_micro=0
-                )
+                self.ledger.scope_reserve(day=_today(), scope=key, micro=micro, limit_micro=0)
             except Exception as exc:  # noqa: BLE001 —— 记账失败不该阻断对话
                 self._warn_once(f"[额度] 口径记账失败：{exc}")
             return key, True
         try:
-            ok, used = self.ledger.scope_reserve(
-                day=_today(), scope=key, micro=micro, limit_micro=limit
-            )
+            ok, used = self.ledger.scope_reserve(day=_today(), scope=key, micro=micro, limit_micro=limit)
         except Exception as exc:  # noqa: BLE001 —— 账本不可用就不敢花钱
             raise errors.budget_error(
                 f"费用账本不可用（{exc}）：为避免超支，本次未发出模型请求",
@@ -334,8 +326,7 @@ class Gateway:
             ) from exc
         if not ok:
             raise errors.budget_error(
-                f"该口径今日费用已达上限 ${limit / MICRO:.2f}"
-                f"（口径 {key}，已用 ${used / MICRO:.4f}）：本次未发出请求",
+                f"该口径今日费用已达上限 ${limit / MICRO:.2f}（口径 {key}，已用 ${used / MICRO:.4f}）：本次未发出请求",
                 model=model,
             )
         return key, True
@@ -488,9 +479,7 @@ class Gateway:
     ) -> Reply:
         model = model or self.resolve("chat")
         self._precheck(model, messages, tools, cancel)
-        reservation = self._reserve(
-            model=model, messages=messages, run_budget=run_budget
-        )
+        reservation = self._reserve(model=model, messages=messages, run_budget=run_budget)
         # 分口径预留（P5-c）：与总额预留**分开两次**。
         # 为什么不在 _reserve 里一起做：口径限额是"某通道自己的上限"，
         # 没配上限时只记账不拦（缺配置 ≠ 该拦截）；总额与口径各自独立判定，
@@ -541,9 +530,7 @@ class Gateway:
             ) from exc
 
         usage = Usage.from_response(response)
-        cost_micro, cost_source = settle_amount(
-            usage, reservation.quote.price, reservation.micro
-        )
+        cost_micro, cost_source = settle_amount(usage, reservation.quote.price, reservation.micro)
         self._settle(
             record,
             usage=usage,
@@ -601,9 +588,7 @@ class Gateway:
                 scope=scope,
             )
         self._precheck(model, messages, tools, cancel)
-        reservation = self._reserve(
-            model=model, messages=messages, run_budget=run_budget
-        )
+        reservation = self._reserve(model=model, messages=messages, run_budget=run_budget)
         scope_key = self._scope_reserve(scope=scope, micro=reservation.micro, model=model)[0]
         reservation = replace(reservation, scope=scope_key)
         record = _CallRecord(model=model, purpose=purpose, reservation=reservation)
@@ -672,9 +657,7 @@ class Gateway:
                 )
                 raise interrupted from exc
 
-        cost_micro, cost_source = settle_amount(
-            usage, reservation.quote.price, reservation.micro
-        )
+        cost_micro, cost_source = settle_amount(usage, reservation.quote.price, reservation.micro)
         self._settle(
             record,
             usage=usage,
@@ -773,9 +756,7 @@ def _accumulate_calls(calls: dict[int, dict[str, Any]], deltas: Iterable[Any] | 
         index = getattr(delta, "index", None)
         if not isinstance(index, int):
             index = position
-        slot = calls.setdefault(
-            index, {"id": "", "type": "function", "name": "", "arguments": ""}
-        )
+        slot = calls.setdefault(index, {"id": "", "type": "function", "name": "", "arguments": ""})
         if getattr(delta, "id", None):
             slot["id"] = delta.id
         function = getattr(delta, "function", None)

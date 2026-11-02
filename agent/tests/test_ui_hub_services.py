@@ -5,6 +5,7 @@
 2. 告警条只在有 error/warn 时出现，点「去处理」跳到对应分区；
 3. 二维码弹窗还能打开并拉到状态（扫码是这一页唯一必须人工做的动作）。
 """
+
 import json
 from urllib.parse import urlsplit
 
@@ -15,29 +16,91 @@ SUMMARY_ALERT = {
     "ok": False,
     "counts": {"online": 2, "total": 3},
     "services": [
-        {"name": "napcat", "label": "NapCat（QQ 协议端）", "running": True, "pid": 100,
-         "detail": "已登录 123456", "identity_verified": True, "can_stop": True,
-         "state": "verified", "stats": {}, "fresh": False, "health_reason": "not_applicable",
-         "state_age_s": None, "desired": "running", "skipped": "", "attempts": 0,
-         "restarts": 0, "running_since": 0, "last_exit": {}, "next_retry_at": 0,
-         "last_error": "", "supervisor_alert": None},
-        {"name": "omni-qq", "label": "QQ 通道（omni-qq）", "running": False, "pid": None,
-         "detail": "", "identity_verified": False, "can_stop": False, "state": "absent",
-         "stats": {}, "fresh": False, "health_reason": "missing", "state_age_s": None,
-         "desired": "running", "skipped": "", "attempts": 2, "restarts": 1, "running_since": 0,
-         "last_exit": {"at": 1, "reason": "start_failed", "detail": "spawn 失败"},
-         "next_retry_at": 0, "last_error": "spawn 失败", "supervisor_alert": None},
-        {"name": "omni-heartbeat", "label": "心跳调度（omni-heartbeat）", "running": True,
-         "pid": 200, "detail": "", "identity_verified": True, "can_stop": True,
-         "state": "verified", "stats": {"ticks": 12, "fired_total": 3, "jobs": 2},
-         "fresh": True, "health_reason": "ok", "state_age_s": 4.0, "desired": "running",
-         "skipped": "", "attempts": 0, "restarts": 0, "running_since": 1,
-         "last_exit": {}, "next_retry_at": 0, "last_error": "", "supervisor_alert": None},
+        {
+            "name": "napcat",
+            "label": "NapCat（QQ 协议端）",
+            "running": True,
+            "pid": 100,
+            "detail": "已登录 123456",
+            "identity_verified": True,
+            "can_stop": True,
+            "state": "verified",
+            "stats": {},
+            "fresh": False,
+            "health_reason": "not_applicable",
+            "state_age_s": None,
+            "desired": "running",
+            "skipped": "",
+            "attempts": 0,
+            "restarts": 0,
+            "running_since": 0,
+            "last_exit": {},
+            "next_retry_at": 0,
+            "last_error": "",
+            "supervisor_alert": None,
+        },
+        {
+            "name": "omni-qq",
+            "label": "QQ 通道（omni-qq）",
+            "running": False,
+            "pid": None,
+            "detail": "",
+            "identity_verified": False,
+            "can_stop": False,
+            "state": "absent",
+            "stats": {},
+            "fresh": False,
+            "health_reason": "missing",
+            "state_age_s": None,
+            "desired": "running",
+            "skipped": "",
+            "attempts": 2,
+            "restarts": 1,
+            "running_since": 0,
+            "last_exit": {"at": 1, "reason": "start_failed", "detail": "spawn 失败"},
+            "next_retry_at": 0,
+            "last_error": "spawn 失败",
+            "supervisor_alert": None,
+        },
+        {
+            "name": "omni-heartbeat",
+            "label": "心跳调度（omni-heartbeat）",
+            "running": True,
+            "pid": 200,
+            "detail": "",
+            "identity_verified": True,
+            "can_stop": True,
+            "state": "verified",
+            "stats": {"ticks": 12, "fired_total": 3, "jobs": 2},
+            "fresh": True,
+            "health_reason": "ok",
+            "state_age_s": 4.0,
+            "desired": "running",
+            "skipped": "",
+            "attempts": 0,
+            "restarts": 0,
+            "running_since": 1,
+            "last_exit": {},
+            "next_retry_at": 0,
+            "last_error": "",
+            "supervisor_alert": None,
+        },
     ],
-    "alerts": [{"level": "error", "code": "service_exited", "action": "restart",
-                "text": "QQ 通道（omni-qq）未在运行（spawn 失败）"}],
-    "supervisor": {"supervised": True, "mode": "active", "holder": "pid:1",
-                   "policy": {"interval_s": 10}, "last_error": ""},
+    "alerts": [
+        {
+            "level": "error",
+            "code": "service_exited",
+            "action": "restart",
+            "text": "QQ 通道（omni-qq）未在运行（spawn 失败）",
+        }
+    ],
+    "supervisor": {
+        "supervised": True,
+        "mode": "active",
+        "holder": "pid:1",
+        "policy": {"interval_s": 10},
+        "last_error": "",
+    },
     "napcat": {"installed": True, "logged_in": False, "uin": None},
     "updated": 0,
 }
@@ -98,9 +161,7 @@ def test_service_strip_shows_online_summary(ui):
     page.goto("http://127.0.0.1/")
     text = page.locator("#svc-strip-text")
     text.wait_for(state="visible")
-    page.wait_for_function(
-        "document.querySelector('#svc-strip-text').textContent.includes('在线')"
-    )
+    page.wait_for_function("document.querySelector('#svc-strip-text').textContent.includes('在线')")
     assert "在线" in text.text_content()
     page.locator(".svc-strip").click()
     page.locator("#hub").wait_for(state="visible")
@@ -133,16 +194,16 @@ def test_strip_does_not_show_green_light_when_nothing_runs(ui):
     idle["counts"] = {"online": 0, "total": 3}
     idle["alerts"] = []
     for row in idle["services"]:
-        row.update({"running": False, "pid": None, "state": "absent", "desired": "stopped",
-                    "fresh": False, "stats": {}})
+        row.update(
+            {"running": False, "pid": None, "state": "absent", "desired": "stopped", "fresh": False, "stats": {}}
+        )
 
-    page.route("**/api/system/services/summary",
-               lambda r: r.fulfill(status=200, body=json.dumps(idle),
-                                   headers={"Content-Type": "application/json"}))
-    page.goto("http://127.0.0.1/")
-    page.wait_for_function(
-        "document.querySelector('#svc-strip-text').textContent.includes('0/3')"
+    page.route(
+        "**/api/system/services/summary",
+        lambda r: r.fulfill(status=200, body=json.dumps(idle), headers={"Content-Type": "application/json"}),
     )
+    page.goto("http://127.0.0.1/")
+    page.wait_for_function("document.querySelector('#svc-strip-text').textContent.includes('0/3')")
     classes = page.locator("#svc-dot").get_attribute("class")
     assert "on" not in classes.split(), "一个都没在跑还亮绿灯：%r" % classes
     assert not errors, "状态条引发脚本异常：%s" % errors
@@ -153,8 +214,7 @@ def test_alert_bar_shows_and_jumps_to_section(ui):
     page, _client_, _runtime, errors = ui
 
     def summary_route(r):
-        r.fulfill(status=200, body=json.dumps(SUMMARY_ALERT),
-                  headers={"Content-Type": "application/json"})
+        r.fulfill(status=200, body=json.dumps(SUMMARY_ALERT), headers={"Content-Type": "application/json"})
 
     # 后注册的路由优先：只拦截汇总接口，其余照旧转发给工作台
     page.route("**/api/system/services/summary", summary_route)

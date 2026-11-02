@@ -3,6 +3,7 @@
 创建时间使用 FILETIME 整数，避免浮点精度；查询和终止使用同一个保留句柄。
 进程树仅处理已观察、身份可核对的后代；无法核验时报告残留。
 """
+
 from __future__ import annotations
 
 import ctypes
@@ -25,10 +26,18 @@ class ProcessIdentityError(RuntimeError):
 
 
 class _Entry(ctypes.Structure):
-    _fields_ = [("dwSize", wt.DWORD), ("cntUsage", wt.DWORD), ("pid", wt.DWORD),
-                ("heap", ctypes.c_size_t), ("module", wt.DWORD), ("threads", wt.DWORD),
-                ("parent", wt.DWORD), ("priority", wt.LONG), ("flags", wt.DWORD),
-                ("exe", wt.WCHAR * 260)]
+    _fields_ = [
+        ("dwSize", wt.DWORD),
+        ("cntUsage", wt.DWORD),
+        ("pid", wt.DWORD),
+        ("heap", ctypes.c_size_t),
+        ("module", wt.DWORD),
+        ("threads", wt.DWORD),
+        ("parent", wt.DWORD),
+        ("priority", wt.LONG),
+        ("flags", wt.DWORD),
+        ("exe", wt.WCHAR * 260),
+    ]
 
 
 def _kernel():
@@ -56,8 +65,9 @@ def _identity_from_handle(api, handle, pid: int) -> ProcessIdentity | None:
     if not api.GetExitCodeProcess(handle, ctypes.byref(code)) or code.value != 259:
         return None
     created, exited, kernel, user = (wt.FILETIME() for _ in range(4))
-    if not api.GetProcessTimes(handle, ctypes.byref(created), ctypes.byref(exited),
-                               ctypes.byref(kernel), ctypes.byref(user)):
+    if not api.GetProcessTimes(
+        handle, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel), ctypes.byref(user)
+    ):
         return None
     size = wt.DWORD(32768)
     buffer = ctypes.create_unicode_buffer(size.value)
@@ -108,40 +118,61 @@ def process_parents() -> dict[int, int]:
 
 
 class _MemoryCounters(ctypes.Structure):
-    _fields_ = [('cb', wt.DWORD), ('faults', wt.DWORD)] + [(name, ctypes.c_size_t) for name in (
-        'peak_working_set', 'working_set', 'peak_paged', 'paged', 'peak_nonpaged', 'nonpaged',
-        'pagefile', 'peak_pagefile', 'private_bytes')]
+    _fields_ = [("cb", wt.DWORD), ("faults", wt.DWORD)] + [
+        (name, ctypes.c_size_t)
+        for name in (
+            "peak_working_set",
+            "working_set",
+            "peak_paged",
+            "paged",
+            "peak_nonpaged",
+            "nonpaged",
+            "pagefile",
+            "peak_pagefile",
+            "private_bytes",
+        )
+    ]
 
 
 def sample_process(identity: ProcessIdentity) -> dict:
     """同一只读句柄核验身份并采集资源；没有终止或注入权限。"""
-    if os.name != 'nt':
-        raise ProcessIdentityError('资源采样后端目前只验证 Windows')
+    if os.name != "nt":
+        raise ProcessIdentityError("资源采样后端目前只验证 Windows")
     api = _kernel()
     api.GetProcessHandleCount.argtypes = [wt.HANDLE, ctypes.POINTER(wt.DWORD)]
     api.GetProcessHandleCount.restype = wt.BOOL
-    psapi = ctypes.WinDLL('psapi', use_last_error=True)
+    psapi = ctypes.WinDLL("psapi", use_last_error=True)
     psapi.GetProcessMemoryInfo.argtypes = [wt.HANDLE, ctypes.POINTER(_MemoryCounters), wt.DWORD]
     psapi.GetProcessMemoryInfo.restype = wt.BOOL
     handle = api.OpenProcess(0x1000, False, identity.pid)
     if not handle:
-        raise ProcessIdentityError('无法打开资源采样句柄')
+        raise ProcessIdentityError("无法打开资源采样句柄")
     try:
         if _identity_from_handle(api, handle, identity.pid) != identity:
-            raise ProcessIdentityError('采样进程身份已变化')
+            raise ProcessIdentityError("采样进程身份已变化")
         memory, handles = _MemoryCounters(), wt.DWORD()
         memory.cb = ctypes.sizeof(memory)
         created, exited, kernel, user = (wt.FILETIME() for _ in range(4))
-        if not (psapi.GetProcessMemoryInfo(handle, ctypes.byref(memory), memory.cb)
-                and api.GetProcessHandleCount(handle, ctypes.byref(handles))
-                and api.GetProcessTimes(handle, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel), ctypes.byref(user))):
-            raise ProcessIdentityError('进程资源采样失败')
+        if not (
+            psapi.GetProcessMemoryInfo(handle, ctypes.byref(memory), memory.cb)
+            and api.GetProcessHandleCount(handle, ctypes.byref(handles))
+            and api.GetProcessTimes(
+                handle, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel), ctypes.byref(user)
+            )
+        ):
+            raise ProcessIdentityError("进程资源采样失败")
         if _identity_from_handle(api, handle, identity.pid) != identity:
-            raise ProcessIdentityError('采样期间进程退出')
+            raise ProcessIdentityError("采样期间进程退出")
         ticks = lambda value: (int(value.dwHighDateTime) << 32) | int(value.dwLowDateTime)
-        return {'pid': identity.pid, 'created': identity.created, 'working_set': int(memory.working_set),
-                'private_bytes': int(memory.private_bytes), 'peak_working_set': int(memory.peak_working_set),
-                'handles': int(handles.value), 'cpu_seconds': (ticks(kernel) + ticks(user)) / 10_000_000}
+        return {
+            "pid": identity.pid,
+            "created": identity.created,
+            "working_set": int(memory.working_set),
+            "private_bytes": int(memory.private_bytes),
+            "peak_working_set": int(memory.peak_working_set),
+            "handles": int(handles.value),
+            "cpu_seconds": (ticks(kernel) + ticks(user)) / 10_000_000,
+        }
     finally:
         api.CloseHandle(handle)
 

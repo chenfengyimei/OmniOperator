@@ -1,4 +1,5 @@
 """心跳（cron）单测：任务模型/时间计算/存储 + 调度器三纪律 + 执行器/投递 + 工具。"""
+
 import asyncio
 import datetime as dt
 import json
@@ -52,6 +53,7 @@ def _job(**kw) -> Job:
 
 # ---------- 模型与时间计算 ----------
 
+
 def test_job_validation():
     with pytest.raises(CronError):
         _job(name="Bad Name").validate()
@@ -96,6 +98,7 @@ def test_job_store_roundtrip(tmp_path):
 
 
 # ---------- 调度器三纪律 ----------
+
 
 def test_scheduler_advance_first_and_skip_missed(tmp_path):
     store = _job_store(tmp_path)
@@ -159,6 +162,7 @@ def test_scheduler_executor_failure_is_recorded(tmp_path):
 
 # ---------- 执行器 / 投递 ----------
 
+
 def test_runtime_executor_binds_session_and_injects_skills(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
 
@@ -168,13 +172,9 @@ def test_runtime_executor_binds_session_and_injects_skills(tmp_path):
             # 模拟真 Agent 的落库行为
             store.append_message(session_id, "user", text)
             store.append_message(session_id, "assistant", "回复", auto_title=False)
-            return SimpleNamespace(
-                answer=f"回复:{text[:40]}", status="done", run_id="r1", error_code=""
-            )
+            return SimpleNamespace(answer=f"回复:{text[:40]}", status="done", run_id="r1", error_code="")
 
-    runtime = SimpleNamespace(
-        store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None
-    )
+    runtime = SimpleNamespace(store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None)
     executor = make_runtime_executor(runtime)
     job = _job(name="e2e", prompt="报个到", skills=["bilibili-watch"])
     result = asyncio.run(executor(job))
@@ -190,7 +190,9 @@ def test_runtime_executor_binds_session_and_injects_skills(tmp_path):
 def test_runtime_deliver_guards(tmp_path):
     from omni.config import QQ
     from omni.memory.state import OutboxStore
+
     delivery_state = StateStore(tmp_path / "deliver.db")
+
     class FakeQQ:
         connected = True
 
@@ -204,8 +206,14 @@ def test_runtime_deliver_guards(tmp_path):
     # 策略是热读的：每次投递都问 qq_policy()，所以用可变容器模拟"配置被改"
     state = {"allowed": [10001]}
     rt = SimpleNamespace(
-        qq=qq, qq_policy=lambda: QQ(allowed_users=state["allowed"], proactive_enabled=True, owner_qq=10001,
-                                  quiet_start="00:00", quiet_end="00:00"),
+        qq=qq,
+        qq_policy=lambda: QQ(
+            allowed_users=state["allowed"],
+            proactive_enabled=True,
+            owner_qq=10001,
+            quiet_start="00:00",
+            quiet_end="00:00",
+        ),
         state=delivery_state,
         outbox=OutboxStore(delivery_state),
     )
@@ -235,6 +243,7 @@ def test_runtime_deliver_guards(tmp_path):
 
 # ---------- 任务链 context_from ----------
 
+
 def test_context_from_validation(tmp_path):
     store = _job_store(tmp_path)
     with pytest.raises(CronError):  # 自引用
@@ -258,26 +267,16 @@ def test_executor_injects_context_from_source(tmp_path):
     class FakeAgent:
         def run_turn(self, text: str, *, session_id=None):
             store.append_message(session_id, "user", text)
-            store.append_message(
-                session_id, "assistant", f"输出@{len(seen_prompts)}", auto_title=False
-            )
+            store.append_message(session_id, "assistant", f"输出@{len(seen_prompts)}", auto_title=False)
             seen_prompts.append(text)
-            return SimpleNamespace(
-                answer=f"输出@{len(seen_prompts) - 1}", status="done", run_id="r1", error_code=""
-            )
+            return SimpleNamespace(answer=f"输出@{len(seen_prompts) - 1}", status="done", run_id="r1", error_code="")
 
-    runtime = SimpleNamespace(
-        store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None, cron_ledger=ledger
-    )
+    runtime = SimpleNamespace(store=store, agent=FakeAgent(), spawn_review=lambda sid=None: None, cron_ledger=ledger)
     executor = make_runtime_executor(runtime)
     # 先跑源任务产出输出
     asyncio.run(executor(_job(name="nightly-tidy", prompt="整理")))
     # 下游任务带 context_from：源输出注入 prompt 头部
-    result = asyncio.run(
-        executor(
-            _job(name="morning-report", prompt="写早报", context_from="nightly-tidy")
-        )
-    )
+    result = asyncio.run(executor(_job(name="morning-report", prompt="写早报", context_from="nightly-tidy")))
     assert "nightly-tidy" in seen_prompts[1]
     assert "输出@0" in seen_prompts[1] and "写早报" in seen_prompts[1]
     assert "run_id=r1" in seen_prompts[1]
@@ -285,8 +284,13 @@ def test_executor_injects_context_from_source(tmp_path):
     # 缺失、过期、最近运行失败：停止依赖任务，不能拿历史聊天冒充成功结果。
     with pytest.raises(CronError, match="没有最近成功"):
         asyncio.run(executor(_job(name="fresh", prompt="直接干", context_from="never-ran")))
-    ledger.output("nightly-tidy", "stale-run", "done", "旧结果",
-                  finished_at=to_iso(dt.datetime.now().astimezone() - dt.timedelta(days=2)))
+    ledger.output(
+        "nightly-tidy",
+        "stale-run",
+        "done",
+        "旧结果",
+        finished_at=to_iso(dt.datetime.now().astimezone() - dt.timedelta(days=2)),
+    )
     with pytest.raises(CronError, match="过期"):
         asyncio.run(executor(_job(context_from="nightly-tidy")))
     ledger.output("nightly-tidy", "failed-run", "failed")
@@ -312,6 +316,7 @@ def test_job_dependency_cycle_and_timezone_roundtrip(tmp_path):
 
 def test_daily_timezone_dst_gap_and_fold():
     from zoneinfo import ZoneInfo
+
     ny = ZoneInfo("America/New_York")
     job = _job(every_minutes=None, daily_at="02:30", timezone="America/New_York")
     next_run = compute_next_run(job, dt.datetime(2026, 3, 8, 0, tzinfo=ny))
@@ -328,11 +333,14 @@ def test_scheduler_has_global_capacity_and_coalesces_running_job(tmp_path):
     now = dt.datetime.now().astimezone()
     for name in ("first", "second", "third"):
         store.upsert(_job(name=name, next_run_at=to_iso(now - dt.timedelta(seconds=1))))
+
     async def scenario():
         unblock = asyncio.Event()
+
         async def executor(job):
             await unblock.wait()
             return "done"
+
         scheduler = CronScheduler(store, executor, max_running=1)
         assert await scheduler.tick(now.timestamp()) == ["first"]
         assert scheduler.active_count == 1
@@ -346,6 +354,7 @@ def test_scheduler_has_global_capacity_and_coalesces_running_job(tmp_path):
         unblock.set()
         assert await scheduler.close(wait_s=2)
         assert state._read("SELECT * FROM job_claims") == []
+
     asyncio.run(scenario())
     state.close()
     second._state.close()
@@ -353,12 +362,11 @@ def test_scheduler_has_global_capacity_and_coalesces_running_job(tmp_path):
 
 # ---------- 执行账本 ----------
 
+
 def test_execution_log_records_and_caps(tmp_path):
     log = ExecutionLog(StateStore(tmp_path / "state.db"), keep=3)
     for i in range(5):
-        log.record(
-            f"job-{i}", f"2026-10-27T10:0{i}:00", 1.5, ok=True, result=f"r{i}", delivery="d"
-        )
+        log.record(f"job-{i}", f"2026-10-27T10:0{i}:00", 1.5, ok=True, result=f"r{i}", delivery="d")
     rows = log.recent(10)
     assert len(rows) == 3  # 滚动保留
     assert rows[0]["job"] == "job-4"  # 新的在前
@@ -381,9 +389,7 @@ def test_scheduler_writes_ledger(tmp_path):
         return "已投递 QQ"
 
     async def scenario():
-        scheduler = CronScheduler(
-            store, executor, deliver, clock=lambda: now.timestamp(), ledger=log
-        )
+        scheduler = CronScheduler(store, executor, deliver, clock=lambda: now.timestamp(), ledger=log)
         await scheduler.tick()
         await asyncio.sleep(0.05)
         rows = log.recent(5)
@@ -410,9 +416,7 @@ def test_scheduler_reports_ticks_without_touching_dispatch(tmp_path):
         return "ok"
 
     async def scenario():
-        scheduler = CronScheduler(
-            store, executor, None, clock=lambda: now.timestamp(), on_tick=seen.append
-        )
+        scheduler = CronScheduler(store, executor, None, clock=lambda: now.timestamp(), on_tick=seen.append)
         fired = await scheduler.tick()
         scheduler._notify_tick(fired)
         await asyncio.sleep(0.05)
@@ -440,9 +444,7 @@ def test_scheduler_ledger_records_failure(tmp_path):
         raise RuntimeError("炸了")
 
     async def scenario():
-        scheduler = CronScheduler(
-            store, boom, None, clock=lambda: now.timestamp(), ledger=log
-        )
+        scheduler = CronScheduler(store, boom, None, clock=lambda: now.timestamp(), ledger=log)
         await scheduler.tick()
         await asyncio.sleep(0.05)
         rows = log.recent(5)
@@ -452,6 +454,7 @@ def test_scheduler_ledger_records_failure(tmp_path):
 
 
 # ---------- 工具 ----------
+
 
 def test_cron_tool_descriptions_forbid_duplicate_memory_writes(tmp_path):
     registry = ToolRegistry()
@@ -492,14 +495,10 @@ def test_cron_tools_dispatch(tmp_path):
     # 任务链：源不存在被拒；存在则建链成功并在列表可见
     bad_chain = registry.dispatch(
         "cron_add",
-        json.dumps(
-            {"name": "chain-dst", "prompt": "x", "every_minutes": 30, "context_from": "ghost"}
-        ),
+        json.dumps({"name": "chain-dst", "prompt": "x", "every_minutes": 30, "context_from": "ghost"}),
     )
     assert "不存在" in bad_chain
-    registry.dispatch(
-        "cron_add", json.dumps({"name": "chain-src", "prompt": "x", "every_minutes": 30})
-    )
+    registry.dispatch("cron_add", json.dumps({"name": "chain-src", "prompt": "x", "every_minutes": 30}))
     ok_chain = registry.dispatch(
         "cron_add",
         json.dumps(
@@ -526,15 +525,11 @@ def test_cron_edit_tool_partial_updates(tmp_path):
     register_cron_tools(registry, store, allowed_qq_users=[10001])
     registry.dispatch(
         "cron_add",
-        json.dumps(
-            {"name": "daily-brief", "prompt": "旧指令", "daily_at": "08:30", "deliver_to_qq": 10001}
-        ),
+        json.dumps({"name": "daily-brief", "prompt": "旧指令", "daily_at": "08:30", "deliver_to_qq": 10001}),
     )
 
     # 只改 prompt：调度与投递不动
-    out = registry.dispatch(
-        "cron_edit", json.dumps({"name": "daily-brief", "prompt": "新指令"})
-    )
+    out = registry.dispatch("cron_edit", json.dumps({"name": "daily-brief", "prompt": "新指令"}))
     assert "已更新" in out
     job = store.get("daily-brief")
     assert job.prompt == "新指令" and job.daily_at == "08:30" and job.deliver_to_qq == 10001
@@ -567,12 +562,8 @@ def test_cron_edit_tool_partial_updates(tmp_path):
     assert job.enabled is False and job.deliver_to_qq is None
 
     # 任务不存在 / 校验失败（every 太小）
-    assert "错误" in registry.dispatch(
-        "cron_edit", json.dumps({"name": "ghost", "prompt": "x"})
-    )
-    assert "错误" in registry.dispatch(
-        "cron_edit", json.dumps({"name": "daily-brief", "every_minutes": 1})
-    )
+    assert "错误" in registry.dispatch("cron_edit", json.dumps({"name": "ghost", "prompt": "x"}))
+    assert "错误" in registry.dispatch("cron_edit", json.dumps({"name": "daily-brief", "every_minutes": 1}))
 
 
 def test_scheduler_success_not_judged_by_answer_prefix(tmp_path):
@@ -589,9 +580,7 @@ def test_scheduler_success_not_judged_by_answer_prefix(tmp_path):
         return "执行失败的任务共有 3 个，详见下文分析。"
 
     async def scenario():
-        scheduler = CronScheduler(
-            store, executor, None, clock=lambda: now.timestamp(), ledger=log
-        )
+        scheduler = CronScheduler(store, executor, None, clock=lambda: now.timestamp(), ledger=log)
         await scheduler.tick()
         await asyncio.sleep(0.05)
 
@@ -615,9 +604,7 @@ def test_runtime_executor_fails_on_non_done_turn(tmp_path):
                 error_code="budget_exhausted",
             )
 
-    runtime = SimpleNamespace(
-        store=store, agent=BudgetBlockedAgent(), spawn_review=reviewed.append
-    )
+    runtime = SimpleNamespace(store=store, agent=BudgetBlockedAgent(), spawn_review=reviewed.append)
     executor = make_runtime_executor(runtime)
     with pytest.raises(Exception, match="budget_exhausted"):
         asyncio.run(executor(_job(name="budget-job", prompt="跑一个")))
@@ -641,11 +628,10 @@ def test_artifacts_sweep_loop_cleans_and_keeps_active_refs(tmp_path):
         return buf.getvalue()
 
     state = StateStore(tmp_path / "state.db")
-    artifacts = ArtifactStore(
-        state, tmp_path / "artifacts", retention_days=7, max_total_bytes=10 * 1024 * 1024
+    artifacts = ArtifactStore(state, tmp_path / "artifacts", retention_days=7, max_total_bytes=10 * 1024 * 1024)
+    stale = artifacts.save_image(
+        _png(), "image/png", session_id=None, run_id=None, kind="screenshot", source="t", width=32, height=20
     )
-    stale = artifacts.save_image(_png(), "image/png", session_id=None, run_id=None,
-                                 kind="screenshot", source="t", width=32, height=20)
     with state._tx() as conn:
         conn.execute(
             "UPDATE artifacts SET expires_at = '2000-01-01T00:00:00' WHERE artifact_id = ?",
@@ -722,9 +708,7 @@ def test_one_shot_validation_and_parse():
     once = Job(name="alarm-test", prompt="p", next_run_at="2030-01-01T09:00:00+08:00")
     once.validate()
     # compute_next_run 对一次性返回自身时刻（旧调用方重算不炸、行为不变）
-    assert compute_next_run(once, dt.datetime.now().astimezone()).isoformat().startswith(
-        "2030-01-01T09:00:00"
-    )
+    assert compute_next_run(once, dt.datetime.now().astimezone()).isoformat().startswith("2030-01-01T09:00:00")
     # parse_run_at：naive 按时区解释
     aware = parse_run_at("2030-01-01 09:00", "Asia/Shanghai")
     assert aware.tzinfo is not None and (aware.hour, aware.minute) == (9, 0)
@@ -752,7 +736,8 @@ def test_one_shot_missed_beyond_grace_skips_not_replays(tmp_path):
     store = _job_store(tmp_path)
     now = dt.datetime.now().astimezone()
     job = Job(
-        name="alarm-late", prompt="叫我",
+        name="alarm-late",
+        prompt="叫我",
         next_run_at=to_iso(now - dt.timedelta(minutes=30)),
     )
     job.validate()
@@ -778,9 +763,7 @@ def test_cron_once_tool_contract(tmp_path):
     register_cron_tools(registry, store, [10001])
 
     # delay_minutes 相对时间
-    out = registry.dispatch(
-        "cron_once", {"name": "alarm-drink", "prompt": "提醒用户喝水", "delay_minutes": 5}
-    )
+    out = registry.dispatch("cron_once", {"name": "alarm-drink", "prompt": "提醒用户喝水", "delay_minutes": 5})
     assert "已设置一次性任务" in out and "自动停用" in out
     job = store.get("alarm-drink")
     assert job.every_minutes is None and job.daily_at is None and job.enabled is True
@@ -789,15 +772,12 @@ def test_cron_once_tool_contract(tmp_path):
     # 绝对时间（IANA 时区解释 naive）
     ok = registry.dispatch(
         "cron_once",
-        {"name": "alarm-abs", "prompt": "开会", "run_at": "2030-01-01 09:00",
-         "timezone": "Asia/Shanghai"},
+        {"name": "alarm-abs", "prompt": "开会", "run_at": "2030-01-01 09:00", "timezone": "Asia/Shanghai"},
     )
     assert "已设置一次性任务 alarm-abs" in ok
 
     # 过去时间 / 二选一 / 白名单外投递
-    assert "错误" in registry.dispatch(
-        "cron_once", {"name": "alarm-past", "prompt": "x", "run_at": "2000-01-01 09:00"}
-    )
+    assert "错误" in registry.dispatch("cron_once", {"name": "alarm-past", "prompt": "x", "run_at": "2000-01-01 09:00"})
     assert "错误" in registry.dispatch(
         "cron_once", {"name": "alarm-both", "prompt": "x", "run_at": "2030-01-01 09:00", "delay_minutes": 5}
     )
@@ -819,18 +799,12 @@ def test_cron_edit_one_shot_and_mode_guard(tmp_path):
     registry.dispatch("cron_once", {"name": "alarm-edit", "prompt": "提醒", "delay_minutes": 5})
 
     # 改触发时间：直接更新 next_run_at
-    out = registry.dispatch(
-        "cron_edit", {"name": "alarm-edit", "run_at": "2030-06-01 08:30"}
-    )
+    out = registry.dispatch("cron_edit", {"name": "alarm-edit", "run_at": "2030-06-01 08:30"})
     assert "已更新" in out
     assert store.get("alarm-edit").next_run_at.startswith("2030-06-01T08:30")
     # 启停切换不报错（一次性不参与周期重算）
-    assert "已更新" in registry.dispatch(
-        "cron_edit", {"name": "alarm-edit", "enabled": False}
-    )
+    assert "已更新" in registry.dispatch("cron_edit", {"name": "alarm-edit", "enabled": False})
     assert store.get("alarm-edit").enabled is False
     # 周期任务不接受 run_at
     registry.dispatch("cron_add", {"name": "repeat-job", "prompt": "报", "every_minutes": 30})
-    assert "错误" in registry.dispatch(
-        "cron_edit", {"name": "repeat-job", "run_at": "2030-06-01 08:30"}
-    )
+    assert "错误" in registry.dispatch("cron_edit", {"name": "repeat-job", "run_at": "2030-06-01 08:30"})

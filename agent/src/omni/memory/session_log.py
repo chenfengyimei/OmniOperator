@@ -9,6 +9,7 @@
 明确不做：不进上下文（排查/整理才按需读取）；不替代 state.db 的 run_events
 （那是运行观测账本，本模块是长期记忆存档，保留口径与生命周期都不同）。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -162,8 +163,7 @@ class SessionLog:
         )
         if self.fts_enabled and not self._fts_triggers:
             self._conn.execute(
-                "INSERT INTO session_log_fts(rowid, content, tool_name, tool_args, tool_result)"
-                " VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO session_log_fts(rowid, content, tool_name, tool_args, tool_result) VALUES (?, ?, ?, ?, ?)",
                 (
                     int(cur.lastrowid),
                     content,
@@ -181,16 +181,22 @@ class SessionLog:
         return text[:limit] + mark
 
     @_locked
-    def append_user(self, session_id: int, run_id: str, content: str, *,
-                    channel: str = "", now: dt.datetime | None = None) -> int:
+    def append_user(
+        self, session_id: int, run_id: str, content: str, *, channel: str = "", now: dt.datetime | None = None
+    ) -> int:
         return self._insert(
             session_id, run_id, "user", self._clip(str(content), self._entry_limit, "…（超长截断）"), now=now
         )
 
     @_locked
     def append_assistant(
-        self, session_id: int, run_id: str, content: str, *,
-        tool_calls: list | None = None, now: dt.datetime | None = None
+        self,
+        session_id: int,
+        run_id: str,
+        content: str,
+        *,
+        tool_calls: list | None = None,
+        now: dt.datetime | None = None,
     ) -> int:
         """中间助手消息：文本 + 本步发起的工具调用清单（供排查对账）。"""
         payload = ""
@@ -198,7 +204,10 @@ class SessionLog:
             try:
                 payload = json.dumps(
                     [
-                        {"name": getattr(c.function, "name", None) or "", "arguments": getattr(c.function, "arguments", "")}
+                        {
+                            "name": getattr(c.function, "name", None) or "",
+                            "arguments": getattr(c.function, "arguments", ""),
+                        }
                         for c in tool_calls
                     ],
                     ensure_ascii=False,
@@ -207,29 +216,41 @@ class SessionLog:
                 payload = "（工具调用清单序列化失败）"
             payload = self._clip(payload, self._args_limit, TRUNCATE_ARGS_MARK)
         return self._insert(
-            session_id, run_id, "assistant", self._clip(str(content), self._entry_limit, "…（超长截断）"),
-            tool_args=payload or None, now=now,
+            session_id,
+            run_id,
+            "assistant",
+            self._clip(str(content), self._entry_limit, "…（超长截断）"),
+            tool_args=payload or None,
+            now=now,
         )
 
     @_locked
     def append_tool(
-        self, session_id: int, run_id: str, name: str, args_json: str, result: str,
-        status: str, *, now: dt.datetime | None = None
+        self,
+        session_id: int,
+        run_id: str,
+        name: str,
+        args_json: str,
+        result: str,
+        status: str,
+        *,
+        now: dt.datetime | None = None,
     ) -> int:
         return self._insert(
-            session_id, run_id, "tool", "",
+            session_id,
+            run_id,
+            "tool",
+            "",
             tool_name=str(name or ""),
             tool_args=self._clip(str(args_json or ""), self._args_limit, TRUNCATE_ARGS_MARK),
             tool_result=self._clip(str(result or ""), self._result_limit, TRUNCATE_RESULT_MARK),
-            tool_status=str(status or ""), now=now,
+            tool_status=str(status or ""),
+            now=now,
         )
 
     @_locked
-    def append_system(self, session_id: int, run_id: str, note: str, *,
-                      now: dt.datetime | None = None) -> int:
-        return self._insert(
-            session_id, run_id, "system", self._clip(str(note), 2000, "…"), now=now
-        )
+    def append_system(self, session_id: int, run_id: str, note: str, *, now: dt.datetime | None = None) -> int:
+        return self._insert(session_id, run_id, "system", self._clip(str(note), 2000, "…"), now=now)
 
     # ---------------------------------------------------------------- 索引与精确读取
 
@@ -240,10 +261,7 @@ class SessionLog:
             " FROM session_log GROUP BY day ORDER BY day DESC LIMIT ?",
             (max(1, int(limit)),),
         ).fetchall()
-        return [
-            {"day": str(r[0]), "sessions": int(r[1]), "entries": int(r[2]), "chars": int(r[3])}
-            for r in rows
-        ]
+        return [{"day": str(r[0]), "sessions": int(r[1]), "entries": int(r[2]), "chars": int(r[3])} for r in rows]
 
     @_locked
     def sessions_for_day(self, day: str) -> list[dict]:
@@ -330,14 +348,7 @@ class SessionLog:
         rows = self._like(tokens, bound)
         if rows:
             return rows
-        bigrams = sorted(
-            {
-                t[i : i + 2]
-                for t in tokens
-                for i in range(len(t) - 1)
-                if _has_cjk(t[i : i + 2])
-            }
-        )
+        bigrams = sorted({t[i : i + 2] for t in tokens for i in range(len(t) - 1) if _has_cjk(t[i : i + 2])})
         return self._like(bigrams, bound) if bigrams else []
 
     def _like(self, tokens: list[str], limit: int) -> list[dict]:
@@ -396,9 +407,7 @@ class SessionLog:
         days = int(retention_days)
         if days <= 0:
             return 0
-        base = dt.date.fromisoformat(
-            today or dt.datetime.now().astimezone().date().isoformat()
-        )
+        base = dt.date.fromisoformat(today or dt.datetime.now().astimezone().date().isoformat())
         cutoff = (base - dt.timedelta(days=days)).isoformat()
         cur = self._conn.execute("DELETE FROM session_log WHERE day < ?", (cutoff,))
         self._conn.commit()

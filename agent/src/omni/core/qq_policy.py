@@ -16,6 +16,7 @@ tools 层不能 import core，而「模型自己调 qq_send_message 主动发消
 - 工具路径没有队列，defer 会被转成一次明确的拒绝（错误码 `proactive_cooldown`）。
 用 deny 会让 cron 路径把消息直接丢掉，所以这里必须是 defer。
 """
+
 from __future__ import annotations
 
 import datetime as dt

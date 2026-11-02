@@ -5,6 +5,7 @@ Runtime 门面，禁止在通道代码里直接构造 Gateway / MemoryStore /
 ToolRegistry / Agent——依赖关系只允许在本文件发生
 （tests/test_arch.py 用 AST 强制这条规则）。
 """
+
 from __future__ import annotations
 
 import atexit
@@ -34,6 +35,7 @@ from .core.review import TurnEndReviewer
 from .core.router import ModeRouter
 from .core.run import ActiveRuns
 from .core.session import ResourceLeases, SessionGate, SessionLeases
+from .core.vision import select_vision_model
 from .llm.embedding import EmbeddingProvider
 from .llm.gateway import Gateway
 from .memory.artifacts import ArtifactStore
@@ -75,6 +77,7 @@ from .system.doctor import diagnose
 from .system.observability import BoundedLog, EventLog
 from .system.services import ServiceManager
 from .system.supervisor import ServiceSupervisor
+from .system.updates.manager import UpdateManager
 from .tools.android.driver import AndroidDriver
 from .tools.android.stream import AndroidFrameHub
 from .tools.android.tools import register_android_tools
@@ -157,10 +160,10 @@ class Runtime:
     gateway: Gateway
     registry: ToolRegistry
     skills: SkillStore
-    state: StateStore          # 共享状态库（任务/账本/额度/迁移/运行）
-    usage: UsageLedger         # 模型调用流水与当日费用账（D10）
-    runs: RunStore             # 运行记录与事件流
-    active_runs: ActiveRuns    # 本进程内可取消的运行
+    state: StateStore  # 共享状态库（任务/账本/额度/迁移/运行）
+    usage: UsageLedger  # 模型调用流水与当日费用账（D10）
+    runs: RunStore  # 运行记录与事件流
+    active_runs: ActiveRuns  # 本进程内可取消的运行
     session_gate: SessionGate  # 进程内：同会话串行 + 排队有界
     session_leases: SessionLeases  # 跨进程：同会话同一时刻只有一个进程在跑
     cron_jobs: JobStore
@@ -175,16 +178,17 @@ class Runtime:
     mcp: MCPManager
     reviewer: TurnEndReviewer | None = None
     supervisor: ServiceSupervisor | None = None  # 常驻服务守护（工作台 lifespan 启停）
+    updates: UpdateManager | None = None
     journal_consolidator: JournalConsolidator | None = None  # 记忆系统整理 worker（M3–M5）
     memory_guard: MemoryGuard | None = None  # 记忆写入额度与输入检查（D12）
     owner_memory: OwnerMemory | None = None  # 所有者记忆门面（web 端点用；数据层统一）
-    workspace: Workspace | None = None        # 文件工具的允许根与敏感项边界（D13）
-    file_history: FileHistory | None = None   # 工作区文件的写入备份（D13）
-    artifacts: ArtifactStore | None = None    # 产物存储（D15）
-    outbox: OutboxStore | None = None         # 投递 outbox：QQ 掉线不丢心跳结果（D17）
-    mcp_schemas: MCPSchemaStore | None = None # MCP 工具目录指纹：漂移提醒（D19）
-    skill_acks: SkillAckStore | None = None   # 技能变更已读标记：待审阅队列（D18）
-    skill_inbox: SkillInbox | None = None     # 外来技能包收件箱/隔离区（技能中心复用）
+    workspace: Workspace | None = None  # 文件工具的允许根与敏感项边界（D13）
+    file_history: FileHistory | None = None  # 工作区文件的写入备份（D13）
+    artifacts: ArtifactStore | None = None  # 产物存储（D15）
+    outbox: OutboxStore | None = None  # 投递 outbox：QQ 掉线不丢心跳结果（D17）
+    mcp_schemas: MCPSchemaStore | None = None  # MCP 工具目录指纹：漂移提醒（D19）
+    skill_acks: SkillAckStore | None = None  # 技能变更已读标记：待审阅队列（D18）
+    skill_inbox: SkillInbox | None = None  # 外来技能包收件箱/隔离区（技能中心复用）
     qq: OneBotClient | None = None
     retrieval: HybridMemory | None = None
     memory_system: MemorySystem | None = None  # 记忆系统门面（M1–M6 聚合）
@@ -203,6 +207,8 @@ class Runtime:
     public_workspaces: dict[str, Workspace] = field(default_factory=dict)
     agent_layout: Any = None
     application_layout: ApplicationLayout | None = None
+    _qq_dispatcher: Any = field(default=None, repr=False)
+    _scheduler: Any = field(default=None, repr=False)
     _close_threads: dict = field(default_factory=dict, repr=False)
     _close_results: dict = field(default_factory=dict, repr=False)
     _close_lock: object = field(default_factory=threading.Lock, repr=False)
@@ -221,21 +227,35 @@ class Runtime:
 
     def doctor(self) -> dict:
         report = diagnose(self.paths, inspector=self.services._inspect)
-        report["runtime"] = {"active_runs": len(self.active_runs.contexts()),
-                             "approval_waiting": len(self.approvals.list_pending()),
-                             "review_queue": self.reviewer.queue_depth if self.reviewer else 0,
-                             "closing": getattr(self.agent, "closing", False)}
+        report["runtime"] = {
+            "active_runs": len(self.active_runs.contexts()),
+            "approval_waiting": len(self.approvals.list_pending()),
+            "review_queue": self.reviewer.queue_depth if self.reviewer else 0,
+            "closing": self.agent.closing,
+        }
         try:
-            report['metrics'] = self.runs.metrics()
-            report['metrics']['log_dropped'] = self.event_log.log.dropped if self.event_log else 0
+            report["metrics"] = self.runs.metrics()
+            report["metrics"]["log_dropped"] = self.event_log.log.dropped if self.event_log else 0
         except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
-            report['metrics'] = {'unavailable': type(exc).__name__}
+            report["metrics"] = {"unavailable": type(exc).__name__}
         return report
 
     def backup(self) -> dict:
         """显式用户动作生成新目录备份；默认脱敏配置凭据，不切换运行数据。"""
         name = time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8]
         return backup_runtime(self.paths, self.paths.backups / name).to_dict()
+
+    def update_busy_count(self) -> int:
+        """业务空闲观察经注入回调交给平台层，更新器不依赖内核对象。"""
+        count = len(self.active_runs.contexts()) + len(self.approvals.list_pending())
+        count += len(self.command_jobs.store.unfinished()) if self.command_jobs else 0
+        count += self.reviewer.active + self.reviewer.queue_depth if self.reviewer else 0
+        dispatcher = self._qq_dispatcher
+        scheduler = self._scheduler
+        count += dispatcher.pending if dispatcher else 0
+        count += scheduler.active_count if scheduler else 0
+        count += int(self.journal_consolidator.busy) if self.journal_consolidator else 0
+        return count
 
     def close(self, wait_s: float = 10) -> dict:
         """有界统一关闭；残留 worker 未结束时保留数据库，允许稍后再次核验。"""
@@ -249,19 +269,27 @@ class Runtime:
             self.active_runs.cancel_all("运行态关闭")
             self.approvals.close()
             remaining = lambda: max(0, deadline - time.monotonic())
+
             def browser_done():
-                result = self.close_browser(wait_s=remaining())
-                return "已关闭" in result or "未启动" in result
-            actions = {"review": lambda: self.close_reviewer(remaining()),
-                       "retrieval": lambda: self.close_retrieval(remaining()),
-                       "mcp": lambda: self.close_mcp(remaining()), "browser": browser_done,
-                       "command_jobs": lambda: self.command_jobs.close(remaining())["complete"] if self.command_jobs else True,
-                       "android_streams": lambda: self.android_streams.close(remaining())["complete"] if self.android_streams else True}
+                return self.browser.shutdown(wait_s=remaining()).complete
+
+            actions = {
+                "review": lambda: self.close_reviewer(remaining()),
+                "retrieval": lambda: self.close_retrieval(remaining()),
+                "mcp": lambda: self.close_mcp(remaining()),
+                "browser": browser_done,
+                "command_jobs": lambda: self.command_jobs.close(remaining())["complete"] if self.command_jobs else True,
+                "android_streams": lambda: (
+                    self.android_streams.close(remaining())["complete"] if self.android_streams else True
+                ),
+            }
+
             def perform(name, action):
                 try:
                     self._close_results[name] = bool(action())
                 except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                     self._close_results[name] = False
+
             for name, action in actions.items():
                 thread = self._close_threads.get(name)
                 if self._close_results.get(name) or thread and thread.is_alive():
@@ -273,7 +301,9 @@ class Runtime:
                 thread.join(remaining())
             while self.active_runs.contexts() and remaining() > 0:
                 time.sleep(min(0.02, remaining()))
-            residual = [name for name in actions if not self._close_results.get(name) or self._close_threads[name].is_alive()]
+            residual = [
+                name for name in actions if not self._close_results.get(name) or self._close_threads[name].is_alive()
+            ]
             if self.active_runs.contexts():
                 residual.append("active_runs")
             if not residual:
@@ -281,6 +311,8 @@ class Runtime:
                 if self.memory_system is not None:
                     self.memory_system.close()
                 self.state.close()
+                if self.updates is not None:
+                    self.updates.close()
                 self._fully_closed = True
             return {"complete": not residual, "residual": residual}
         finally:
@@ -324,9 +356,7 @@ class Runtime:
     def spawn_review(self, session_id: int | None = None) -> None:
         """回合后异步记忆整理（未启用则为空操作）；通道可传绑定会话。"""
         if self.reviewer is not None:
-            self.reviewer.review_in_background(
-                session_id if session_id is not None else self.agent.session_id
-            )
+            self.reviewer.review_in_background(session_id if session_id is not None else self.agent.session_id)
 
 
 def build_runtime(
@@ -338,40 +368,64 @@ def build_runtime(
     data_dir: Path | None = None,
     owner_kind: str = "cli",
     start_background_workers: bool = True,
+    load_plugins: bool = True,
     agent_id: str | None = None,
     directory_catalog: Path | None = None,
 ) -> Runtime:
     # 记住实际读取的配置源：策略热读必须命中同一个文件，否则会读到真机配置
-    config_path = Path(config_path or (os.environ.get('OMNI_CONFIG_PATH') if data_dir is None else '') or CONFIG_PATH)
-    config_path=config_path.resolve()
+    config_path = Path(config_path or (os.environ.get("OMNI_CONFIG_PATH") if data_dir is None else "") or CONFIG_PATH)
+    config_path = config_path.resolve()
     config = load_config(config_path)
-    data_root = Path(data_dir or os.environ.get('OMNI_STORAGE_BASE') or DATA_DIR)
-    data_root=data_root.resolve()
+    data_root = Path(data_dir or os.environ.get("OMNI_STORAGE_BASE") or DATA_DIR)
+    data_root = data_root.resolve()
     paths = RuntimePaths.create(data_root, config_path=config_path, skills_root=skills_root, memory_path=db_path)
-    paths=replace(paths,workspace=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT)
-    catalog_path=Path(directory_catalog or (data_root/'control'/'agents.json' if data_dir is not None else os.environ.get('OMNI_AGENT_CATALOG') or config_path.with_name('agents.json')))
-    directories=AgentDirectoryStore(catalog_path,paths,isolated=data_dir is not None)
-    application_layout,layout=directories.select_runtime(agent_id or (os.environ.get('OMNI_AGENT_ID') if data_dir is None else None))
-    paths=layout.paths
-    if db_path is not None:paths=replace(paths,memory=Path(db_path))
-    if skills_root is not None:paths=replace(paths,skills=Path(skills_root))
-    if not config.terminal.roots:config.terminal.roots=[str(paths.workspace)]
-    if layout.profile.id!='default':
-        config.persona.name=layout.profile.name
-        config.files.root=str(paths.workspace)
-        config.files.extra_roots=[str(paths.files),str(paths.documents)]
-        config.terminal.roots=[str(paths.workspace)]
-        for directory in (paths.workspace,paths.files,paths.documents):directory.mkdir(parents=True,exist_ok=True)
+    # 安装锁固定在程序控制区；显式 data_dir 的测试只写注入目录。
+    update_control = (data_root if data_dir is not None else PROJECT_ROOT / "data") / "control" / "updates"
+    paths = replace(paths, updates=update_control)
+    updates = UpdateManager(
+        root=PROJECT_ROOT, control=update_control, config_path=config_path, enabled=data_dir is None
+    )
+    if data_dir is None:
+        updates.gate.enter(owner_kind, probe_token=os.environ.get("OMNI_UPDATE_PROBE", ""))
+    if data_dir is None and os.environ.get("OMNI_UPDATE_PROBE"):
+        start_background_workers = False
+        load_plugins = False
+    paths = replace(paths, workspace=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT)
+    catalog_path = Path(
+        directory_catalog
+        or (
+            data_root / "control" / "agents.json"
+            if data_dir is not None
+            else os.environ.get("OMNI_AGENT_CATALOG") or config_path.with_name("agents.json")
+        )
+    )
+    directories = AgentDirectoryStore(catalog_path, paths, isolated=data_dir is not None)
+    application_layout, layout = directories.select_runtime(
+        agent_id or (os.environ.get("OMNI_AGENT_ID") if data_dir is None else None)
+    )
+    paths = layout.paths
+    if db_path is not None:
+        paths = replace(paths, memory=Path(db_path))
+    if skills_root is not None:
+        paths = replace(paths, skills=Path(skills_root))
+    if not config.terminal.roots:
+        config.terminal.roots = [str(paths.workspace)]
+    if layout.profile.id != "default":
+        config.persona.name = layout.profile.name
+        config.files.root = str(paths.workspace)
+        config.files.extra_roots = [str(paths.files), str(paths.documents)]
+        config.terminal.roots = [str(paths.workspace)]
+        for directory in (paths.workspace, paths.files, paths.documents):
+            directory.mkdir(parents=True, exist_ok=True)
     elif layout.profile.directories.workspace or application_layout.settings.workspace:
-        config.files.root=str(paths.workspace);config.terminal.roots=[str(paths.workspace)]
-        paths.workspace.mkdir(parents=True,exist_ok=True)
+        config.files.root = str(paths.workspace)
+        config.terminal.roots = [str(paths.workspace)]
+        paths.workspace.mkdir(parents=True, exist_ok=True)
     memory_path = paths.memory
     store = MemoryStore(memory_path)
     # 记忆系统（M1–M6）：对话全量/会话全量/日周月笔记/核心人物四个记忆单元
     # 共用 memory.db（各开独立连接，内部加锁）；MemorySystem 只做聚合门面
-    dialogue_log = DialogueLog(
-        memory_path, max_entry_chars=config.transcript.max_entry_chars
-    )
+    dialogue_log = DialogueLog(memory_path, max_entry_chars=config.transcript.max_entry_chars)
     session_log = SessionLog(
         memory_path,
         max_args_chars=config.transcript.max_tool_args_chars,
@@ -388,8 +442,10 @@ def build_runtime(
         owner_resident_total_chars=config.limits.resident_memory_chars,
     )
     memory_system = MemorySystem(
-        dialogue=dialogue_log, session_log=session_log,
-        journal=journal_store, people=people_store,
+        dialogue=dialogue_log,
+        session_log=session_log,
+        journal=journal_store,
+        people=people_store,
     )
     # 所有者记忆门面（数据层统一）：档案行与常驻笔记=owner 人物的 archive/resident
     # 条目；启动时一次性迁移旧 profile 表与 MEMORY.md（幂等+先备份+按内容去重续迁，
@@ -397,14 +453,15 @@ def build_runtime(
     owner_memory = OwnerMemory(people_store)
     try:
         migrate_owner_memory(
-            store, people_store, paths.resident,
-            backup_root=paths.backups, memory_db_path=paths.memory,
+            store,
+            people_store,
+            paths.resident,
+            backup_root=paths.backups,
+            memory_db_path=paths.memory,
         )
         if config.qq.owner_qq:
             try:
-                people_store.link_account(
-                    owner_memory.owner_id(), "qq", str(config.qq.owner_qq), label="所有者"
-                )
+                people_store.link_account(owner_memory.owner_id(), "qq", str(config.qq.owner_qq), label="所有者")
             except Exception:  # noqa: BLE001, S110  —— 已绑定给别的人物等情况不阻断启动
                 pass
     except Exception as exc:  # noqa: BLE001 —— 迁移失败只打日志：已导入部分生效，下次启动续迁
@@ -424,7 +481,8 @@ def build_runtime(
     usage = UsageLedger(state)
     # 产物存储（D15）：截图/导出统一登记，元数据在 state.db（v6）
     artifacts = ArtifactStore(
-        state, paths.artifacts,
+        state,
+        paths.artifacts,
         retention_days=config.artifacts.retention_days,
         max_total_bytes=config.artifacts.max_total_mb * 1024 * 1024,
     )
@@ -444,13 +502,11 @@ def build_runtime(
     except Exception:  # noqa: BLE001, S110  —— 清理失败不影响启动
         pass
     session_gate = SessionGate(capacity=config.limits.session_queue_depth)
-    session_leases = SessionLeases(
-        state, ttl_s=config.limits.session_lease_ttl_s
-    )
+    session_leases = SessionLeases(state, ttl_s=config.limits.session_lease_ttl_s)
     cron_jobs = JobStore(state)
     cron_ledger = ExecutionLog(state)
     # 运行记录：owner 记"本类进程的哪一次启动"，重启时据此对账（见 RunStore.interrupt_stale）
-    event_log = EventLog(BoundedLog(paths.logs / 'events.jsonl'))
+    event_log = EventLog(BoundedLog(paths.logs / "events.jsonl"))
     runs = RunStore(state, event_sink=event_log.emit)
     active_runs = ActiveRuns()
     run_ref = RunRef()
@@ -458,17 +514,23 @@ def build_runtime(
     interrupted = runs.interrupt_stale(owner_kind=owner_kind, current_owner=owner)
     registry = ToolRegistry()
     command_job_store = CommandJobStore(state)
-    command_jobs = CommandJobManager(command_job_store, paths.command_logs,
-                                    root=paths.workspace, config=config.command_jobs)
+    command_jobs = CommandJobManager(
+        command_job_store, paths.command_logs, root=paths.workspace, config=config.command_jobs
+    )
     session_ref = SessionRef()  # Agent 与会话级工具（todo）共享的"当前会话"
     register_command_job_tools(registry, command_jobs, session_ref=session_ref, run_ref=run_ref)
     retrieval = None
     if config.embedding.enabled:
         embedding = EmbeddingProvider(config.embedding, usage, daily_limit_usd=config.llm.budget.daily_usd)
-        vector_index = VectorIndex(memory_path, model=embedding.fingerprint,
-                                   dimensions=config.embedding.dimensions, scopes=config.embedding.scopes)
+        vector_index = VectorIndex(
+            memory_path,
+            model=embedding.fingerprint,
+            dimensions=config.embedding.dimensions,
+            scopes=config.embedding.scopes,
+        )
         retrieval = HybridMemory(store, vector_index, embedding, ResourceLeases(state), run_ref=run_ref)
         if start_background_workers:
+            retrieval.admission_context = updates.gate.work
             retrieval.start()
         atexit.register(retrieval.close)
     # 记忆写入闸门（D12）：事实/档案/技能共用一份当日额度，review 走同一个闸门
@@ -497,18 +559,22 @@ def build_runtime(
     register_people_tools(registry, people_store, guard=memory_guard)
     agent_holder: dict[str, Any] = {}  # Agent 构造在后，delegate 工具运行期取用
     register_delegate_tools(registry, store, agent_holder, run_ref)
-    register_shell_tools(registry,cwd=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT)
+    register_shell_tools(registry, cwd=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT)
     # 工作区文件工具（D13）：允许的根只来自配置；写需人工确认 + 指纹 CAS + 写前备份。
     # 模型侧没有任何"再加一个根"的参数——路径参数只做相对定位。
     workspace = Workspace(
         root=_resolve_root(config.files.root) if config.files.root else PROJECT_ROOT,
-        extra_roots=[_resolve_root(item) for item in config.files.extra_roots]+[paths.files,paths.documents],
+        extra_roots=[_resolve_root(item) for item in config.files.extra_roots] + [paths.files, paths.documents],
         deny_globs=tuple(config.files.deny_globs),
         write_deny_globs=tuple(config.files.write_deny_globs),
         read_only_roots=[paths.documents],
         private_paths=private_paths(paths),
     )
-    public_workspaces={name:Workspace(root=path,private_paths=private_paths(paths)) for name,path in [('workspace',workspace.root),('files',paths.files),('documents',paths.documents)] if path is not None}
+    public_workspaces = {
+        name: Workspace(root=path, private_paths=private_paths(paths))
+        for name, path in [("workspace", workspace.root), ("files", paths.files), ("documents", paths.documents)]
+        if path is not None
+    }
     file_history = FileHistory(paths.file_history)
     register_file_tools(
         registry,
@@ -539,6 +605,7 @@ def build_runtime(
     # 外来技能包：导入只进隔离区（SAFE），激活是 CONFIRM——审批流里的人工确认就是"用户激活"
     skill_inbox = SkillInbox(skills)
     register_skill_inbox_tools(registry, skill_inbox)
+
     # 插件系统：收包校验零执行；激活（CONFIRM+人工确认）即同意执行插件代码。
     # 宿主在这里恢复已激活插件的工具注册；装载失败只报 stderr，不阻断启动。
     def _resolve_plugin_dir(rel: str) -> Path | None:
@@ -550,10 +617,8 @@ def build_runtime(
             return None
         return resolved.path if resolved.is_dir else None
 
-    plugin_host = PluginHost(
-        paths.data / "plugins", registry, resolve_dir=_resolve_plugin_dir
-    )
-    for _failure in plugin_host.load_installed():
+    plugin_host = PluginHost(paths.data / "plugins", registry, resolve_dir=_resolve_plugin_dir)
+    for _failure in plugin_host.load_installed() if load_plugins else []:
         print(f"[插件装载失败] {_failure}", file=sys.stderr, flush=True)
     register_plugin_tools(registry, plugin_host)
     # 插件社区客户端：查询/安装 SAFE，发布 CONFIRM+人工确认（发布红线）；
@@ -564,38 +629,40 @@ def build_runtime(
         resolve_dir=_resolve_plugin_dir,
     )
     register_community_tools(registry, community_client)
-    mcp = MCPManager(config.mcp, log_dir=paths.mcp_logs, schema_store=mcp_schemas,
-                     config_provider=lambda: load_config(paths.config).mcp)
+    mcp = MCPManager(
+        config.mcp,
+        log_dir=paths.mcp_logs,
+        credential_dir=paths.mcp_credentials,
+        schema_store=mcp_schemas,
+        config_provider=lambda: load_config(paths.config).mcp,
+    )
     register_mcp_tools(registry, mcp, run_ref=run_ref)
     if mcp.servers():
         atexit.register(mcp.close)
-    # can_view = 截图文本能否声称"模型看得到"：隐私开关 + 至少一个视觉模型可用
-    _vision_route = ""
-    try:
-        _vision_route = gateway.resolve("vision")
-    except Exception:  # noqa: BLE001 —— 未配置 vision 路由
-        _vision_route = ""
-    can_view = bool(
-        config.vision.send_to_cloud
-        and (
-            config.llm.capability(_vision_route).vision
-            or config.llm.capability(config.models.chat).vision
-        )
-    )
+    can_view = bool(config.vision.send_to_cloud and select_vision_model(config, gateway, config.models.chat))
     # Cookie 路径必须注入：否则临时实例会读到真机的 B 站登录态
     bili_api = BiliAPI(cookies_path=paths.cookies)
     register_bilibili_tools(
-        registry, bili_api, config.asr,
-        cache_root=paths.cache / 'asr', artifacts=artifacts,
-        session_ref=session_ref, run_ref=run_ref, can_view=can_view,
+        registry,
+        bili_api,
+        config.asr,
+        cache_root=paths.cache / "asr",
+        artifacts=artifacts,
+        session_ref=session_ref,
+        run_ref=run_ref,
+        can_view=can_view,
     )
     # 视频理解（分镜图）：取流能力由平台适配器注入，分镜域本身不认识 B站
     register_storyboard_tools(
         registry,
-        source=BiliVideoSource(bili_api, config.asr, cache_root=paths.cache / 'asr'),
-        cache_root=paths.cache / 'video', artifacts=artifacts,
-        session_ref=session_ref, run_ref=run_ref, can_view=can_view,
+        source=BiliVideoSource(bili_api, config.asr, cache_root=paths.cache / "asr"),
+        cache_root=paths.cache / "video",
+        artifacts=artifacts,
+        session_ref=session_ref,
+        run_ref=run_ref,
+        can_view=can_view,
     )
+
     # 白名单以「读时为准」注入：任务新建与投递都取当前策略，不用启动时的快照
     def _allowed_qq_users() -> list[int]:
         return load_qq_policy(config_path).allowed_users
@@ -615,14 +682,23 @@ def build_runtime(
     publisher = BilibiliPublisher(config.bilibili_write, publications, publication_forms, write_budget)
     register_bilibili_write_tools(registry, publisher, session_ref, run_ref)
     register_browser_tools(
-        registry, browser, write_budget,
-        artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view,
+        registry,
+        browser,
+        write_budget,
+        artifacts=artifacts,
+        session_ref=session_ref,
+        run_ref=run_ref,
+        can_view=can_view,
     )
-    desktop = DesktopDriver(config.desktop,
-                            WindowsDesktopBackend(timeout_s=config.desktop.timeout_s, max_nodes=config.desktop.max_nodes),
-                            ResourceLeases(state),
-                            WriteBudget(state, max_per_day=config.desktop.max_writes_per_day, scope="desktop_write"))
-    register_desktop_tools(registry, desktop, artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view)
+    desktop = DesktopDriver(
+        config.desktop,
+        WindowsDesktopBackend(timeout_s=config.desktop.timeout_s, max_nodes=config.desktop.max_nodes),
+        ResourceLeases(state),
+        WriteBudget(state, max_per_day=config.desktop.max_writes_per_day, scope="desktop_write"),
+    )
+    register_desktop_tools(
+        registry, desktop, artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view
+    )
     approvals = ApprovalBroker(timeout_s=config.browser.approval_timeout_s)
     # 隔离实例（注入了 data_dir）不探测也不终止真机进程：否则测试可能把真 NapCat 当残留杀掉
     isolated = data_dir is not None
@@ -634,10 +710,15 @@ def build_runtime(
         )
     services = ServiceManager(
         napcat_dir=Path(config.system.napcat_dir) if config.system.napcat_dir else None,
-        run_dir=paths.run, log_dir=paths.service_logs or paths.logs,
+        run_dir=paths.run,
+        log_dir=paths.service_logs or paths.logs,
         health_timeout_s=config.system.health_timeout_s,
-        environment={'OMNI_AGENT_ID':paths.agent_id,'OMNI_AGENT_CATALOG':str(catalog_path.resolve()),
-                     'OMNI_CONFIG_PATH':str(config_path.resolve()),'OMNI_STORAGE_BASE':str(data_root.resolve())},
+        environment={
+            "OMNI_AGENT_ID": paths.agent_id,
+            "OMNI_AGENT_CATALOG": str(catalog_path.resolve()),
+            "OMNI_CONFIG_PATH": str(config_path.resolve()),
+            "OMNI_STORAGE_BASE": str(data_root.resolve()),
+        },
         port_prober=None if not isolated else _no_port_probe,
         killer=None if not isolated else _no_kill,
         spawner=None if not isolated else _no_spawn,
@@ -647,25 +728,41 @@ def build_runtime(
     # 守护只在"真机 + 允许后台任务"时启用：隔离实例注入 _no_spawn，
     # 一旦误开就是测试去拉起用户真实的 QQ/心跳进程
     supervisor = ServiceSupervisor(
-        services, run_dir=paths.run, config_path=config_path,
+        services,
+        run_dir=paths.run,
+        config_path=config_path,
         enabled=not isolated and start_background_workers,
     )
+    supervisor.maintenance = updates.gate.active
+    services.maintenance = updates.gate.active
     register_system_tools(registry, services)
     android_driver = AndroidDriver(
-        cache_path=paths.android_cache / "tree.json", shots_dir=paths.android_shots,
-        allowed_apps=config.android.allowed_apps, observation_ttl_s=config.android.observation_ttl_s,
-        operation_timeout_s=config.android.operation_timeout_s, max_devices=config.android.max_devices
+        cache_path=paths.android_cache / "tree.json",
+        shots_dir=paths.android_shots,
+        allowed_apps=config.android.allowed_apps,
+        observation_ttl_s=config.android.observation_ttl_s,
+        operation_timeout_s=config.android.operation_timeout_s,
+        max_devices=config.android.max_devices,
     )
-    android_streams = AndroidFrameHub(lambda serial: android_driver.screenshot_bytes(serial=serial, preview=True),
-                                     fps=config.android.preview_fps, max_clients=config.android.preview_clients,
-                                     idle_s=config.android.preview_idle_s, max_devices=config.android.max_devices)
+    android_streams = AndroidFrameHub(
+        lambda serial: android_driver.screenshot_bytes(serial=serial, preview=True),
+        fps=config.android.preview_fps,
+        max_clients=config.android.preview_clients,
+        idle_s=config.android.preview_idle_s,
+        max_devices=config.android.max_devices,
+    )
     register_android_tools(
-        registry, android_driver,
-        artifacts=artifacts, session_ref=session_ref, run_ref=run_ref, can_view=can_view,
+        registry,
+        android_driver,
+        artifacts=artifacts,
+        session_ref=session_ref,
+        run_ref=run_ref,
+        can_view=can_view,
     )
     qq_client: OneBotClient | None = None
     if config.qq.enabled:
         qq_client = OneBotClient(config.qq.ws_url, config.qq.access_token)
+
         # 主动闸门：模型自己调 qq_send_message 主动私聊，与定时投递走同一套规矩
         # （安静时段 / 仅所有者 / 每日额度 / 通道层冷却位）。闸门判定放在 safety 层
         # （叶子层），这里负责提供「当前策略」与「额度账本」——判定逻辑不碰 IO，
@@ -682,9 +779,7 @@ def build_runtime(
             if decision.state != "allow":
                 return decision
             if not state.consume_budget("qq_proactive", decision.day, decision.limit).ok:
-                return ProactiveDecision(
-                    "deny", "主动私聊今日额度已用完", decision.day, decision.limit
-                )
+                return ProactiveDecision("deny", "主动私聊今日额度已用完", decision.day, decision.limit)
             return decision
 
         register_qq_tools(registry, qq_client, _allowed_qq_users, _active_send_gate)
@@ -693,11 +788,21 @@ def build_runtime(
     # 路由只决定"发哪些工具规格"，不改变任何审批与作用域边界。
     mode_router = ModeRouter(config)
     agent = Agent(
-        config, gateway, store, registry, session_id,
-        approver=approver, session_ref=session_ref, resident=owner_memory,
-        runs=runs, active_runs=active_runs, run_ref=run_ref, owner=owner,
+        config,
+        gateway,
+        store,
+        registry,
+        session_id,
+        approver=approver,
+        session_ref=session_ref,
+        resident=owner_memory,
+        runs=runs,
+        active_runs=active_runs,
+        run_ref=run_ref,
+        owner=owner,
         artifacts=artifacts,
-        dialogue_log=dialogue_log, session_log=session_log,
+        dialogue_log=dialogue_log,
+        session_log=session_log,
         person_card=people_store.card_for_account,
         profile_block=owner_memory.profile_block,
         mode_router=mode_router,
@@ -712,9 +817,13 @@ def build_runtime(
         # review 的写入与用户手动写入抢同一份额度（同一 MemoryGuard 实例）。
         # count_hits=False：后台取材的召回不给 hits 记账，防信号被整理偏好污染。
         register_memory_tools(
-            review_registry, review_store, guard=memory_guard,
-            recall_prefix=config.memory.recall_prefix, source="review",
+            review_registry,
+            review_store,
+            guard=memory_guard,
+            recall_prefix=config.memory.recall_prefix,
+            source="review",
             count_hits=False,
+            retriever=retrieval.search if retrieval is not None else None,
         )
         register_profile_tools(review_registry, owner_memory, store=review_store, guard=memory_guard, source="review")
         register_resident_tools(review_registry, owner_memory)
@@ -742,27 +851,36 @@ def build_runtime(
         journal_registry = ToolRegistry()
         # count_hits=False：同 review——夜间整理的召回是取材，不给 hits 记账。
         register_memory_tools(
-            journal_registry, journal_store, guard=memory_guard,
-            recall_prefix=config.memory.recall_prefix, source="journal",
+            journal_registry,
+            journal_store,
+            guard=memory_guard,
+            recall_prefix=config.memory.recall_prefix,
+            source="journal",
             count_hits=False,
+            retriever=retrieval.search if retrieval is not None else None,
         )
-        register_profile_tools(journal_registry, owner_memory, store=journal_store, guard=memory_guard, source="journal")
+        register_profile_tools(
+            journal_registry, owner_memory, store=journal_store, guard=memory_guard, source="journal"
+        )
         register_resident_tools(journal_registry, owner_memory)
         register_people_tools(journal_registry, people_store, guard=memory_guard, source="journal")
         return journal_registry
 
     journal_consolidator = (
         JournalConsolidator(
-            config, gateway,
-            journal=journal_store, dialogue=dialogue_log,
+            config,
+            gateway,
+            journal=journal_store,
+            dialogue=dialogue_log,
             make_store=lambda: MemoryStore(memory_path),
             make_registry=_journal_registry,
-            session_log=session_log, people=people_store,
+            session_log=session_log,
+            people=people_store,
         )
         if config.journal.enabled
         else None
     )
-    return Runtime(
+    runtime = Runtime(
         config=config,
         store=store,
         gateway=gateway,
@@ -794,6 +912,7 @@ def build_runtime(
         approvals=approvals,
         services=services,
         supervisor=supervisor,
+        updates=updates,
         agent=agent,
         android=android_driver,
         android_streams=android_streams,
@@ -815,3 +934,7 @@ def build_runtime(
         agent_layout=layout,
         application_layout=application_layout,
     )
+    runtime.agent.admission = lambda: not updates.probe_mode and updates.gate.accepting()
+    runtime.agent.admission_context = updates.gate.work
+    updates.start(paths=paths, directories=directories, services=services, busy_probe=runtime.update_busy_count)
+    return runtime

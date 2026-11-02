@@ -1,4 +1,5 @@
 """人工审批 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -24,9 +25,7 @@ def create_approvals_router(runtime: Runtime) -> APIRouter:
 
     @router.post("/api/approvals/{approval_id}/resolve")
     def resolve_approval(approval_id: str, payload: ResolveIn) -> dict[str, Any]:
-        ok = runtime.approvals.resolve(
-            approval_id, payload.allowed, payload.reason
-        )
+        ok = runtime.approvals.resolve(approval_id, payload.allowed, payload.reason)
         return {"ok": ok}
 
     return router

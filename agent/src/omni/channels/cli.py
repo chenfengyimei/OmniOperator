@@ -3,6 +3,7 @@
 职责纪律：本文件只做「界面展示 + 输入解析 + 调 Runtime 门面」；
 所有对象装配都在 bootstrap.build_runtime 里完成（组装根规则见 docs/ARCHITECTURE.md）。
 """
+
 from __future__ import annotations
 
 from rich.console import Console
@@ -113,9 +114,7 @@ def _run_console(runtime: Runtime, console: Console) -> None:
                 else:
                     console.print("[yellow]用法: /switch <LiteLLM模型串>[/]")
             elif cmd == "/model":
-                console.print(
-                    f"当前模型: [cyan]{agent.model}[/] · 工具集: "
-                    f"{', '.join(runtime.registry.names())}")
+                console.print(f"当前模型: [cyan]{agent.model}[/] · 工具集: {', '.join(runtime.registry.names())}")
             elif cmd == "/mode":
                 if not arg:
                     current = selected_mode or runtime.config.mode_routing.default_mode
@@ -127,9 +126,7 @@ def _run_console(runtime: Runtime, console: Console) -> None:
                     selected_mode = arg
                     console.print(f"[cyan]档位已设为 {arg}[/]")
                 else:
-                    console.print(
-                        f"[yellow]用法: /mode <{'/'.join(MODE_CHOICES)}>[/]"
-                    )
+                    console.print(f"[yellow]用法: /mode <{'/'.join(MODE_CHOICES)}>[/]")
             else:
                 console.print(f"[yellow]未知命令 {cmd}，/help 查看可用命令。[/]")
             continue
@@ -139,14 +136,12 @@ def _run_console(runtime: Runtime, console: Console) -> None:
         except GatewayError as exc:
             console.print(f"[red]调用失败：{exc}[/]")
             console.print(
-                "[yellow]提示：检查 .env 里的 API key 与 config/config.yaml 的模型名；"
-                "或用 /switch 换一个可用模型。[/]"
+                "[yellow]提示：检查 .env 里的 API key 与 config/config.yaml 的模型名；或用 /switch 换一个可用模型。[/]"
             )
             continue
-        console.print(
-            Panel(answer, title=f"[bold cyan]{runtime.config.persona.name}", border_style="cyan")
-        )
+        console.print(Panel(answer, title=f"[bold cyan]{runtime.config.persona.name}", border_style="cyan"))
         runtime.spawn_review()  # 回合后异步记忆整理，不阻塞对话
+
 
 if __name__ == "__main__":
     main()

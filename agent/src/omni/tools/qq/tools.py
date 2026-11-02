@@ -16,6 +16,7 @@
 结果契约（D09 收口）：发送按回执分三类——确定未发出（可换方式再试）、
 结果未知（绝不自动重发）、已发送（side_effect_state=applied）。
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -66,9 +67,7 @@ def register_qq_tools(
         if active_gate is not None:
             gate = active_gate(user_id)
             if gate.state != "allow":
-                error_code = gate.code or (
-                    "proactive_quiet_hours" if gate.state == "defer" else "proactive_denied"
-                )
+                error_code = gate.code or ("proactive_quiet_hours" if gate.state == "defer" else "proactive_denied")
                 if error_code == "proactive_cooldown":
                     tail = (
                         "刚跟用户聊过，正在冷却期内，别急着插话；"
@@ -100,24 +99,15 @@ def register_qq_tools(
             )
         except DeliveryUnknown as exc:
             # 可能已发出一部分：宁可漏发也不自动重发，交人工/模型显式决定
-            return ToolResult.unknown(
-                f"发送未确认（不要自动重试）：{exc}", error_code="delivery_unknown"
-            )
+            return ToolResult.unknown(f"发送未确认（不要自动重试）：{exc}", error_code="delivery_unknown")
         except Exception as exc:  # noqa: BLE001 —— 跨线程等待等意外失败按"结果未知"处理
-            return ToolResult.unknown(
-                f"发送未确认（不要自动重试）：{exc}", error_code="delivery_unknown"
-            )
-        return ToolResult.ok(
-            "已发送", side_effect_state="applied", data={"message_ids": list(ids)}
-        )
+            return ToolResult.unknown(f"发送未确认（不要自动重试）：{exc}", error_code="delivery_unknown")
+        return ToolResult.ok("已发送", side_effect_state="applied", data={"message_ids": list(ids)})
 
     registry.register(
         Tool(
             name="qq_send_message",
-            description=(
-                "主动给 QQ 用户发私聊消息（目前只允许发给配置白名单内的用户，"
-                "比如主动通知/提醒主人）"
-            ),
+            description=("主动给 QQ 用户发私聊消息（目前只允许发给配置白名单内的用户，比如主动通知/提醒主人）"),
             parameters={
                 "type": "object",
                 "properties": {

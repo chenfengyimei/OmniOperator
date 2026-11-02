@@ -3,6 +3,7 @@
 笔记是整理后的压缩记忆：模型想快速知道"某天/某周发生了什么"先看笔记，
 需要细节再用 dialogue_read/session_log_read 下钻——这正是分层读取的意义。
 """
+
 from __future__ import annotations
 
 from typing import Any

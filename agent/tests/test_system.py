@@ -1,4 +1,5 @@
 """系统控制台单测：配置定向修改（保留注释）+ 服务管理（假目录）+ 工具 + 端点。"""
+
 import json
 from pathlib import Path
 
@@ -32,6 +33,7 @@ browser:
 
 
 # ---------- config_io ----------
+
 
 def test_render_value():
     assert render_value("bool", True) == "true"
@@ -87,8 +89,14 @@ def test_system_section_keys_are_editable():
     """服务守护开关要能通过接口保存：白名单漏一个键，设置页整页保存就会 400。"""
     out = apply_updates(
         SAMPLE_YAML,
-        {"system": {"autostart": False, "keep_running_after_exit": False,
-                    "restart_max_attempts": 3, "napcat_qq": "10001"}},
+        {
+            "system": {
+                "autostart": False,
+                "keep_running_after_exit": False,
+                "restart_max_attempts": 3,
+                "napcat_qq": "10001",
+            }
+        },
     )
     assert "autostart: false" in out
     assert "keep_running_after_exit: false" in out
@@ -143,6 +151,7 @@ def test_safe_write_atomic(tmp_path):
 
 
 # ---------- ServiceManager（假目录，不真启动进程） ----------
+
 
 def _fake_napcat(tmp_path: Path, with_qr: bool, uin: str | None) -> Path:
     napcat = tmp_path / "napcat"
@@ -248,6 +257,7 @@ def test_start_without_install_errors(tmp_path):
 
 # ---------- 记录收敛（旧版裸 PID / 死进程 / PID 复用） ----------
 
+
 def _manager_with_probe(tmp_path: Path, inspector):
     """只有 inspector 可注入：端口探测固定为空，避免读到真机 NapCat。"""
     return ServiceManager(
@@ -336,10 +346,19 @@ def test_reconcile_keeps_verified_record(tmp_path):
     identity = ProcessIdentity(4242, "100", executable)
     path = _pid_file(tmp_path, "omni-qq")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({
-        "version": 1, "service": "omni-qq", "launch_id": "a" * 32,
-        "pid": 4242, "created": "100", "executable": executable,
-    }), encoding="utf-8")
+    path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "service": "omni-qq",
+                "launch_id": "a" * 32,
+                "pid": 4242,
+                "created": "100",
+                "executable": executable,
+            }
+        ),
+        encoding="utf-8",
+    )
     manager = _manager_with_probe(tmp_path, lambda pid: identity if pid == 4242 else None)
     verdict = manager.reconcile("omni-qq")
     assert verdict["state"] == "verified"
@@ -355,10 +374,19 @@ def test_reconcile_clears_stale_verified_record(tmp_path):
     executable = str(tmp_path / "python.exe")
     path = _pid_file(tmp_path, "omni-heartbeat")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({
-        "version": 1, "service": "omni-heartbeat", "launch_id": "b" * 32,
-        "pid": 5252, "created": "100", "executable": executable,
-    }), encoding="utf-8")
+    path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "service": "omni-heartbeat",
+                "launch_id": "b" * 32,
+                "pid": 5252,
+                "created": "100",
+                "executable": executable,
+            }
+        ),
+        encoding="utf-8",
+    )
     manager = _manager_with_probe(tmp_path, lambda _pid: None)
     assert manager.status("omni-heartbeat")["state"] == "stale"
     assert manager.reconcile("omni-heartbeat")["state"] == "cleared_dead"
@@ -367,8 +395,10 @@ def test_reconcile_clears_stale_verified_record(tmp_path):
 
 # ---------- agent 系统工具 ----------
 
+
 def test_system_tools_dispatch(tmp_path):
     from omni.safety.gates import AllowAllApprover
+
     registry = ToolRegistry()
     register_system_tools(registry, _isolated_manager(tmp_path / "nope", tmp_path))
     out = registry.dispatch("system_status", "{}")
@@ -396,8 +426,10 @@ def test_system_service_structured_results():
             self._exc = exc
 
         def overview(self):  # 结构化测试不触达真实管理器
-            return {"services": [], "napcat": {"installed": False, "logged_in": False, "uin": None,
-                                               "qr_available": False}}
+            return {
+                "services": [],
+                "napcat": {"installed": False, "logged_in": False, "uin": None, "qr_available": False},
+            }
 
         def start(self, name, qq=""):
             if self._exc is not None:
@@ -414,9 +446,7 @@ def test_system_service_structured_results():
         register_system_tools(registry, FakeServices(exc))
         return registry
 
-    ok = build().execute(
-        "system_service", {"action": "start", "service": "omni-qq"}, approver=AllowAllApprover()
-    )
+    ok = build().execute("system_service", {"action": "start", "service": "omni-qq"}, approver=AllowAllApprover())
     assert ok.status == "ok" and ok.side_effect_state == "applied"
     assert ok.text.startswith("已启动 omni-qq") and ok.legacy is False
 
@@ -426,9 +456,9 @@ def test_system_service_structured_results():
     assert uncertain.status == "error" and uncertain.side_effect_state == "unknown"
     assert uncertain.error_code == "service_error"
 
-    definite = build(ServiceError("未找到 NapCat（检查 config.yaml system.napcat_dir 指向 napcat.bat 所在目录）")).execute(
-        "system_service", {"action": "start", "service": "omni-qq"}, approver=AllowAllApprover()
-    )
+    definite = build(
+        ServiceError("未找到 NapCat（检查 config.yaml system.napcat_dir 指向 napcat.bat 所在目录）")
+    ).execute("system_service", {"action": "start", "service": "omni-qq"}, approver=AllowAllApprover())
     assert definite.status == "error" and definite.side_effect_state == "none"
 
     bad_action = build().execute(
@@ -438,6 +468,7 @@ def test_system_service_structured_results():
 
 
 # ---------- Web 端点 ----------
+
 
 def test_system_endpoints(tmp_path, monkeypatch):
     # 用带注释的样例配置启动：写回要验"保留注释"，且必须落在临时文件上
@@ -453,14 +484,10 @@ def test_system_endpoints(tmp_path, monkeypatch):
     app = create_app(runtime)
     client = TestClient(app, base_url="http://127.0.0.1")
     # 工作台身份：先配对（Host 必须是本地主机名）
-    assert client.post(
-        "/api/auth/pair", json={"code": app.state.web_auth.pairing_code}
-    ).status_code == 200
+    assert client.post("/api/auth/pair", json={"code": app.state.web_auth.pairing_code}).status_code == 200
 
     overview = client.get("/api/system/overview").json()
-    assert {s["name"] for s in overview["services"]} == {
-        "napcat", "omni-qq", "omni-heartbeat"
-    }
+    assert {s["name"] for s in overview["services"]} == {"napcat", "omni-qq", "omni-heartbeat"}
 
     cfg = client.get("/api/system/config").json()
     assert "qq" in cfg and "editable" in cfg
@@ -479,20 +506,14 @@ def test_system_endpoints(tmp_path, monkeypatch):
     assert "enabled: true" in text and "# 开关注释要保留" in text
     assert "allowed_users: [42]" in text
     # 白名单外的键被 400 拒（白名单是唯一入口）
-    resp_bad = client.post(
-        "/api/system/config", json={"updates": {"models": {"nope": "x"}}}
-    )
+    resp_bad = client.post("/api/system/config", json={"updates": {"models": {"nope": "x"}}})
     assert resp_bad.status_code == 400
     # 白名单内但 yaml 里缺这一节：补进去并成功（以前这里会 400，把整次保存打死）
-    resp_fill = client.post(
-        "/api/system/config", json={"updates": {"approval": {"mode": "smart"}}}
-    )
+    resp_fill = client.post("/api/system/config", json={"updates": {"approval": {"mode": "smart"}}})
     assert resp_fill.status_code == 200
     assert 'mode: "smart"' in tmp_cfg.read_text(encoding="utf-8")
     # 启动未安装的 napcat → 409
-    monkeypatch.setattr(
-        runtime.services, "_napcat_dir", tmp_path / "nope", raising=False
-    )
+    monkeypatch.setattr(runtime.services, "_napcat_dir", tmp_path / "nope", raising=False)
     resp_start = client.post("/api/system/services/napcat/start", json={"qq": ""})
     assert resp_start.status_code == 409
 
@@ -531,8 +552,7 @@ def test_services_summary_cleanup_and_supervisor_endpoints(tmp_path):
     assert all(state != "blocked_unverified" for state in states.values())
 
     # 守护开关：写进注入的配置源，并且不需要重启就生效
-    resp = client.post("/api/system/supervisor",
-                       json={"autostart": False, "restart_max_attempts": 2})
+    resp = client.post("/api/system/supervisor", json={"autostart": False, "restart_max_attempts": 2})
     assert resp.status_code == 200
     body = resp.json()
     assert body["ok"] is True and body["pending_restart"] is False

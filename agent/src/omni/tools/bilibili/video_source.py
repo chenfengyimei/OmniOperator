@@ -7,6 +7,7 @@
 这个类不需要 import 分镜域：它只实现协议要求的形状（结构化类型），
 所以两边谁也不依赖谁。
 """
+
 from __future__ import annotations
 
 import tempfile
@@ -60,6 +61,5 @@ class BiliVideoSource:
                 model_name=self._asr.model,
                 device=self._asr.device,
                 compute_type=self._asr.compute_type,
-                **({"download_root": self._cache_root / "models"}
-                   if self._cache_root is not None else {}),
+                **({"download_root": self._cache_root / "models"} if self._cache_root is not None else {}),
             )

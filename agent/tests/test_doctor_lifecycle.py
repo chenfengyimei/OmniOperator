@@ -1,4 +1,5 @@
 """只读诊断与关闭残留验证；不调用模型或真实服务终止器。"""
+
 from __future__ import annotations
 
 import json
@@ -16,8 +17,11 @@ from omni.system.doctor import diagnose
 
 def test_doctor_missing_data_does_not_create_or_call_network(tmp_path, monkeypatch):
     import socket
+
     monkeypatch.setattr(socket, "create_connection", lambda *_: pytest.fail("doctor 不得访问网络"))
-    paths = RuntimePaths.create(tmp_path / "missing", config_path=tmp_path / "absent.yaml", skills_root=tmp_path / "skills")
+    paths = RuntimePaths.create(
+        tmp_path / "missing", config_path=tmp_path / "absent.yaml", skills_root=tmp_path / "skills"
+    )
     report = diagnose(paths, inspector=lambda _: None, resolver=lambda _: None)
     assert report["read_only"] and report["status"] == "warning"
     assert not paths.data.exists() and not paths.config.exists()
@@ -40,12 +44,16 @@ def test_doctor_does_not_migrate_and_does_not_export_secret(tmp_path):
 def test_runtime_close_reports_stuck_worker_and_preserves_database(tmp_path):
     cfg = tmp_path / "config.yaml"
     cfg.write_text("review:\n  enabled: false\n", encoding="utf-8")
-    runtime = build_runtime(data_dir=tmp_path / "data", config_path=cfg, skills_root=tmp_path / "skills", start_background_workers=False)
+    runtime = build_runtime(
+        data_dir=tmp_path / "data", config_path=cfg, skills_root=tmp_path / "skills", start_background_workers=False
+    )
     release, started = threading.Event(), threading.Event()
+
     def stuck(wait_s=5):
         started.set()
         release.wait(5)
         return True
+
     runtime.close_reviewer = stuck
     start = time.monotonic()
     result = runtime.close(wait_s=0.1)
@@ -61,19 +69,26 @@ def test_runtime_close_reports_stuck_worker_and_preserves_database(tmp_path):
 
 def test_terminal_blocking_read_does_not_block_write_and_failed_close_is_visible(monkeypatch):
     from omni.channels import terminal
+
     started, release = threading.Event(), threading.Event()
+
     class Pty:
         alive = True
+
         def read(self, size):
             started.set()
             release.wait(2)
             return "output"
+
         def write(self, data):
             release.set()
+
         def isalive(self):
             return self.alive
+
         def terminate(self, force):
             raise RuntimeError("拒绝退出")
+
     pty = Pty()
     monkeypatch.setattr(terminal.backend, "AVAILABLE", True)
     monkeypatch.setattr(terminal.backend, "PtyProcess", SimpleNamespace(spawn=lambda *args, **kwargs: pty))
@@ -96,13 +111,18 @@ def test_terminal_blocking_read_does_not_block_write_and_failed_close_is_visible
 def test_channel_stop_watcher_cancels_owned_worker_and_ignores_old_token():
     import asyncio
     from omni.channels.lifecycle import serve_until_stop
+
     events = []
-    runtime = SimpleNamespace(services=SimpleNamespace(stop_requested=lambda name, token: token == "current"),
-                              active_runs=SimpleNamespace(cancel_all=lambda reason: events.append("cancel")))
+    runtime = SimpleNamespace(
+        services=SimpleNamespace(stop_requested=lambda name, token: token == "current"),
+        active_runs=SimpleNamespace(cancel_all=lambda reason: events.append("cancel")),
+    )
+
     async def serve():
         try:
             await asyncio.sleep(10)
         finally:
             events.append("cleanup")
+
     asyncio.run(serve_until_stop(runtime, "omni-qq", "current", serve()))
     assert events == ["cancel", "cleanup"]

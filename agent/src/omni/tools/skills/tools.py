@@ -11,6 +11,7 @@
 写入类工具都支持 expected_hash：把 skill_view 给的指纹传回来，文件在你读过之后
 被别人（用户编辑器、后台整理）改过就会冲突而不是静默覆盖。
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -56,9 +57,7 @@ def register_skill_tools(
         items = skills.list()
         if not items:
             return "还没有任何技能。完成一个多步任务后，可以用 skill_create 把流程沉淀成技能。"
-        return "\n".join(
-            f"- {s['name']}（v{s['version']}）：{s['description']}" for s in items
-        )
+        return "\n".join(f"- {s['name']}（v{s['version']}）：{s['description']}" for s in items)
 
     def skill_view(args: dict[str, Any]) -> str:
         name = str(args.get("name", "")).strip()
@@ -77,8 +76,7 @@ def register_skill_tools(
             loaded = skills.read(name)
             if loaded is not None:
                 content += (
-                    f"\n\n内容指纹：{loaded[1][:16]}"
-                    "（改动时传 expected_hash=该值；文件被别人改过会冲突而不是覆盖）"
+                    f"\n\n内容指纹：{loaded[1][:16]}（改动时传 expected_hash=该值；文件被别人改过会冲突而不是覆盖）"
                 )
         return content
 
@@ -141,9 +139,7 @@ def register_skill_tools(
             rev = int(args.get("rev"))
         except (TypeError, ValueError):
             return "错误：rev 必须是整数（先 skill_history 查看）"
-        _ok, msg = skills.rollback(
-            str(args.get("name", "")), rev, expected_hash=_hash_arg(args)
-        )
+        _ok, msg = skills.rollback(str(args.get("name", "")), rev, expected_hash=_hash_arg(args))
         return msg
 
     def skill_archive(args: dict[str, Any]) -> str:
@@ -157,9 +153,7 @@ def register_skill_tools(
         return msg
 
     def skill_restore(args: dict[str, Any]) -> str:
-        _ok, msg = skills.restore(
-            str(args.get("name", "")), author="agent", source="skill_restore"
-        )
+        _ok, msg = skills.restore(str(args.get("name", "")), author="agent", source="skill_restore")
         return msg
 
     registry.register(
@@ -333,10 +327,7 @@ def register_skill_tools(
     registry.register(
         Tool(
             name="skill_restore",
-            description=(
-                "把已归档的技能恢复回技能库；同名技能已存在时拒绝覆盖。"
-                "恢复前可用 skills_list 确认当前技能库"
-            ),
+            description=("把已归档的技能恢复回技能库；同名技能已存在时拒绝覆盖。恢复前可用 skills_list 确认当前技能库"),
             parameters={
                 "type": "object",
                 "properties": {
@@ -432,14 +423,11 @@ def register_skill_inbox_tools(registry: ToolRegistry, inbox: SkillInbox) -> Non
         Tool(
             name="skill_activate",
             description=(
-                "把隔离区里的外来技能包激活进正式技能库（需用户确认）。"
-                "激活前请先 skill_pending 展示文件清单给用户看"
+                "把隔离区里的外来技能包激活进正式技能库（需用户确认）。激活前请先 skill_pending 展示文件清单给用户看"
             ),
             parameters={
                 "type": "object",
-                "properties": {
-                    "name": {"type": "string", "description": "隔离区里的技能名（skill_pending 里有）"}
-                },
+                "properties": {"name": {"type": "string", "description": "隔离区里的技能名（skill_pending 里有）"}},
                 "required": ["name"],
             },
             func=skill_activate,
@@ -454,9 +442,7 @@ def register_skill_inbox_tools(registry: ToolRegistry, inbox: SkillInbox) -> Non
             description="丢弃隔离区里的一个待激活技能包（只删隔离区，不碰正式技能库）",
             parameters={
                 "type": "object",
-                "properties": {
-                    "name": {"type": "string", "description": "隔离区里的技能名（skill_pending 里有）"}
-                },
+                "properties": {"name": {"type": "string", "description": "隔离区里的技能名（skill_pending 里有）"}},
                 "required": ["name"],
             },
             func=skill_discard,

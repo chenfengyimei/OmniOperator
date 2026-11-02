@@ -7,6 +7,7 @@
 依赖 av（随 faster-whisper 一起安装）与 Pillow；两者都在函数内部懒加载，
 导入本模块不会触发任何编解码开销。
 """
+
 from __future__ import annotations
 
 import io
@@ -35,8 +36,7 @@ def target_times(duration_s: float, count: int) -> list[float]:
         return [0.0] * count
     span = max(0.1, duration_s * 0.9)
     start = duration_s * 0.05
-    return [min(start + span * (index + 0.5) / count, max(0.0, duration_s - 0.05))
-            for index in range(count)]
+    return [min(start + span * (index + 0.5) / count, max(0.0, duration_s - 0.05)) for index in range(count)]
 
 
 def extract_frames(
@@ -74,8 +74,7 @@ def extract_frames(
             frame = _frame_at(container, stream, target)
             if frame is None:
                 continue
-            picked.append((float(frame.time if frame.time is not None else target),
-                           _png_bytes(frame, width)))
+            picked.append((float(frame.time if frame.time is not None else target), _png_bytes(frame, width)))
     return picked
 
 
@@ -124,8 +123,7 @@ def contact_sheet(frames: list[tuple[float, bytes]], *, columns: int = 2) -> byt
     cell_width = max(image.width for image in images)
     cell_height = max(image.height for image in images)
     rows = (len(images) + columns - 1) // columns
-    sheet = Image.new("RGB", (cell_width * columns, (cell_height + LABEL_HEIGHT) * rows),
-                      BACKGROUND)
+    sheet = Image.new("RGB", (cell_width * columns, (cell_height + LABEL_HEIGHT) * rows), BACKGROUND)
     draw = ImageDraw.Draw(sheet)
     for index, (timestamp, _data) in enumerate(frames):
         left = (index % columns) * cell_width

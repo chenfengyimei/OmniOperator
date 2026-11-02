@@ -1,0 +1,28 @@
+{
+  "market": {
+    "path": "market",
+    "commit": "1dee431d6424aba9c87afd7d055d217212fd3fcb",
+    "validation": [
+      "python selftest.py",
+      "python build.py --check"
+    ],
+    "public_deployment": "未执行",
+    "license": "Apache-2.0",
+    "validation_note": "运行源码沿用已验证基线；最后提交仅补许可证与排版配置。"
+  },
+  "website": {
+    "path": "website",
+    "commit": "99361e596b3cc37a4c0ff734de69912c8c1764cb",
+    "validation": [
+      "python verify.py"
+    ],
+    "public_deployment": "未执行",
+    "license": "Apache-2.0",
+    "validation_note": "运行源码沿用已验证基线；最后提交仅补许可证与排版配置。"
+  },
+  "main": {
+    "baseline_commit": "076c0c22fa8ecb90d3ce9a64562c90a23a129e00",
+    "state": "集成工作区，主仓冻结提交待审核；以离线证据中的源码指纹定位",
+    "source_fingerprint": "a57ec230f26975f90a65c42bdcb20b6cbcc026f910c90a4ac1f4809fccf4f560"
+  }
+}

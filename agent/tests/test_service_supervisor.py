@@ -2,6 +2,7 @@
 
 全部用假 ServiceManager：真机上的 NapCat/QQ/心跳一律不碰（离线套件纪律）。
 """
+
 import json
 from pathlib import Path
 
@@ -62,8 +63,15 @@ class FakeServices:
         return {"name": name, "requested": True}
 
 
-def _config(tmp_path: Path, *, autostart: bool = True, qq_enabled: bool = True,
-            max_attempts: int = 3, keep: bool = True, napcat_qq: str = "") -> Path:
+def _config(
+    tmp_path: Path,
+    *,
+    autostart: bool = True,
+    qq_enabled: bool = True,
+    max_attempts: int = 3,
+    keep: bool = True,
+    napcat_qq: str = "",
+) -> Path:
     path = tmp_path / "config.yaml"
     path.write_text(
         "qq:\n"
@@ -72,14 +80,15 @@ def _config(tmp_path: Path, *, autostart: bool = True, qq_enabled: bool = True,
         f"  autostart: {'true' if autostart else 'false'}\n"
         f"  keep_running_after_exit: {'true' if keep else 'false'}\n"
         f"  restart_max_attempts: {max_attempts}\n"
-        f"  napcat_qq: \"{napcat_qq}\"\n",
+        f'  napcat_qq: "{napcat_qq}"\n',
         encoding="utf-8",
     )
     return path
 
 
-def _supervisor(tmp_path: Path, services: FakeServices, *, config_path=None,
-                enabled: bool = True, clock=None) -> ServiceSupervisor:
+def _supervisor(
+    tmp_path: Path, services: FakeServices, *, config_path=None, enabled: bool = True, clock=None
+) -> ServiceSupervisor:
     sup = ServiceSupervisor(
         services,
         run_dir=tmp_path / "run",
@@ -284,8 +293,7 @@ def test_blocked_unverified_is_skipped_not_counted(tmp_path):
 def test_second_instance_goes_standby_and_touches_nothing(tmp_path):
     services = FakeServices(napcat_dir=tmp_path)
     first = _supervisor(tmp_path, services)
-    second = ServiceSupervisor(services, run_dir=tmp_path / "run",
-                               config_path=_config(tmp_path), clock=Clock())
+    second = ServiceSupervisor(services, run_dir=tmp_path / "run", config_path=_config(tmp_path), clock=Clock())
     result = second.start()
     assert result["mode"] == "standby" and result["supervised"] is False
     before = len(services.start_calls)

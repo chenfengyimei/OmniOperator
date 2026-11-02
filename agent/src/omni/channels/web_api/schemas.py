@@ -1,4 +1,5 @@
 """工作台请求契约；路由共用，旧 web.py 继续显式转发公共模型名。"""
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -106,17 +107,17 @@ class AndroidTapIn(BaseModel):
     y: int
     stream_w: int
     stream_h: int
-    observation: str = ''
+    observation: str = ""
 
 
 class AndroidElementIn(BaseModel):
     idx: int
-    observation: str = ''
+    observation: str = ""
 
 
 class AndroidKeyIn(BaseModel):
     keycode: str
-    observation: str = ''
+    observation: str = ""
 
 
 class ProfileLineIn(BaseModel):
@@ -211,3 +212,29 @@ class PersonEntryIn(BaseModel):
     entry_kind: str
     content: str
     expires_at: str | None = None
+
+
+class UpdatePolicyIn(BaseModel):
+    channel: Literal["stable", "development"] = "stable"
+    auto_check: bool = True
+
+
+class UpdatePrepareIn(BaseModel):
+    candidate_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+
+
+class UpdateInstallIn(BaseModel):
+    operation_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+    confirm: bool = False
+
+
+class PersonaPresetsIn(BaseModel):
+    items: list[dict[str, str]]
+    revision: str
+
+
+class ModelKeyIn(BaseModel):
+    """填 Key：`value` 为 None/空串表示清除该行，非空则替换。"""
+
+    name: str
+    value: str | None = None

@@ -9,6 +9,7 @@ JSON 文件存提醒状态、不做设置页。
 2. 账本层（口径预留/结算、提醒权落盘、旧库迁移）；
 3. 端到端（网关按口径拦截 → 回答里出现提醒 → 第二次不再提醒）。
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -294,8 +295,8 @@ def test_scope_warning_only_reports_freshly_alerted_scopes():
         ScopeUsage(scope="web", used_micro=860_000, limit_micro=1_000_000),
     ]
     ledger = _FakeLedger()
-    taker = ScopeAlertTaker(ledger)
-    ledger.take_scope_alert(day="2026-11-01", scope="qq")  # qq 已经提醒过
+    taker = ScopeAlertTaker(ledger, clock=lambda: "2026-11-01")
+    ledger.take_scope_alert(day="2026-11-01", scope="qq")  # 同一注入日期内只提醒一次
     text = scope_warning(usages, taker=taker)
     assert "web" in text
     assert "qq" not in text
@@ -343,9 +344,7 @@ def _reply(monkeypatch, gateway, *, cost_micro: int):
         choices = [_Choice()]
 
     monkeypatch.setattr(gateway, "_call", lambda *a, **k: (_Response(), 1))
-    monkeypatch.setattr(
-        "omni.llm.gateway.micro_from_usd", lambda usd: cost_micro
-    )
+    monkeypatch.setattr("omni.llm.gateway.micro_from_usd", lambda usd: cost_micro)
     return Reply
 
 
@@ -383,9 +382,7 @@ def test_gateway_records_the_scope_even_without_a_limit(tmp_path, monkeypatch):
     gateway, ledger = _gateway(tmp_path, scope_limits={})
     _reply(monkeypatch, gateway, cost_micro=123_456)
     gateway.complete([{"role": "user", "content": "hi"}], scope="web")
-    total = ledger.scope_total(
-        __import__("datetime").date.today().isoformat(), "web"
-    )
+    total = ledger.scope_total(__import__("datetime").date.today().isoformat(), "web")
     assert total["spent_micro"] == 123_456
 
 

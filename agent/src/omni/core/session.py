@@ -13,6 +13,7 @@ A 的记忆整理被记到 B 的会话上。"当前选中会话"本质上属于*
 
 明确不做：不用一把全局锁把所有入口永远串行——不同会话必须能并行跑。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -90,12 +91,8 @@ class ResourceLeases:
         self._state = state
         self.owner = owner or f"pid:{os.getpid()}"
 
-    def acquire(
-        self, resource: str, *, owner: str | None = None, ttl_s: float = 1800.0
-    ) -> str:
-        lease = self._state.acquire_lease(
-            resource, owner or self.owner, ttl_s=float(ttl_s)
-        )
+    def acquire(self, resource: str, *, owner: str | None = None, ttl_s: float = 1800.0) -> str:
+        lease = self._state.acquire_lease(resource, owner or self.owner, ttl_s=float(ttl_s))
         if lease is None:
             current = self._state.lease(resource)
             holder = current.owner if current else "未知进程"
@@ -131,9 +128,7 @@ class SessionLeases:
     def hold(self, session_id: int) -> Iterator[str]:
         """占用会话；被别的进程占着时抛 SessionBusy（带持有者）。"""
         try:
-            lease = self._state.acquire_session_lease(
-                session_id, self.owner, ttl_s=self.ttl_s
-            )
+            lease = self._state.acquire_session_lease(session_id, self.owner, ttl_s=self.ttl_s)
         except StateUnavailable as exc:
             # 状态库不可用时不假装互斥成立：宁可拒绝，也不要两个进程同时写一段历史
             raise SessionBusy(f"无法确认会话租约（{exc}）") from exc

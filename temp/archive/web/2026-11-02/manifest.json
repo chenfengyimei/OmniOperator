@@ -1,0 +1,7 @@
+{
+  "source": "web/ui/app/hub-mcp.js",
+  "target": "temp/archive/web/2026-11-02/hub-mcp.js",
+  "sha256": "befaf9055a8650d48d2e1b267284169cfec2c901e9c8aea56af6c84fae561bdb",
+  "reason": "MCP概览与检查器重复；原路径保留薄兼容转发，正式控制器只保留一套",
+  "restore": "恢复前先核对依赖与资源版本；原始完整版本亦在U0恢复ZIP。"
+}

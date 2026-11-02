@@ -2,6 +2,7 @@
 
 不导入 browser 域、不调用私有写 API、不处理验证码；unknown 仅人工核查。
 """
+
 from __future__ import annotations
 
 import json
@@ -95,7 +96,21 @@ def canonical_target(kind: str, url: str) -> tuple[str, str]:
 
 
 def preview(row: dict) -> dict:
-    return {key: row[key] for key in ("id", "session_id", "kind", "target", "account", "content", "content_hash", "status", "evidence", "error")}
+    return {
+        key: row[key]
+        for key in (
+            "id",
+            "session_id",
+            "kind",
+            "target",
+            "account",
+            "content",
+            "content_hash",
+            "status",
+            "evidence",
+            "error",
+        )
+    }
 
 
 class BilibiliPublisher:
@@ -106,14 +121,21 @@ class BilibiliPublisher:
         if not self.config.enabled or kind not in self.config.forms:
             raise PublicationError("B站写流程未启用或缺少已核验的页面控件配置")
         content = content.strip()
-        if not content or len(content) > self.config.max_content_chars or any(ord(c) < 32 and c not in "\n\t" for c in content):
+        if (
+            not content
+            or len(content) > self.config.max_content_chars
+            or any(ord(c) < 32 and c not in "\n\t" for c in content)
+        ):
             raise PublicationError("内容为空、过长或包含控制字符")
         return content
 
-    def prepare(self, *, session_id: int, kind: str, target: str, account: str,
-                content: str, mentions: list[dict] | None = None) -> dict:
+    def prepare(
+        self, *, session_id: int, kind: str, target: str, account: str, content: str, mentions: list[dict] | None = None
+    ) -> dict:
         content = self._check(kind, content)
         content, applied = apply_mentions(content, mentions)
+        if applied and not self.config.forms[kind].mention_options:
+            raise PublicationError("当前页面未配置可核验UID的真实艾特组件，未创建草稿；纯@昵称文本不能代替艾特")
         if len(content) > self.config.max_content_chars:
             raise PublicationError("替换艾特昵称后正文过长")
         target, key = canonical_target(kind, target)
@@ -125,39 +147,87 @@ class BilibiliPublisher:
             raise PublicationError("当前页面账号/目标与预览不符，未创建草稿")
         if observation.get("editor_value", "").strip() not in ("", content):
             raise PublicationError("编辑框已有其它内容，请先由用户处理，未覆盖")
-        row = preview(self.store.create(session_id=session_id, kind=kind, target=target,
-                                        account=account, content=content,
-                                        observation=observation))
+        observation["mentions"] = applied
+        if self.config.forms[kind].mention_options and len({item["name"] for item in applied}) != len(applied):
+            raise PublicationError("真实艾特对象昵称重复，无法安全定位")
+        row = preview(
+            self.store.create(
+                session_id=session_id,
+                kind=kind,
+                target=target,
+                account=account,
+                content=content,
+                observation=observation,
+            )
+        )
         row["mentions"] = applied
+        row["mention_mode"] = "component" if applied else "none"
         return row
 
-    def submit(self, *, session_id: int, draft_id: str, kind: str, target: str,
-               account: str, content: str, expected_hash: str, cancel=None) -> ToolResult:
+    def submit(
+        self,
+        *,
+        session_id: int,
+        draft_id: str,
+        kind: str,
+        target: str,
+        account: str,
+        content: str,
+        expected_hash: str,
+        cancel=None,
+    ) -> ToolResult:
         claimed = None
         try:
             self._check(kind, content)
             row = self.store.get(draft_id)
             if not row or row["session_id"] != session_id:
                 raise PublicationError("草稿不存在或不属于本会话")
-            if any(row[key] != value for key, value in {"kind": kind, "target": target, "account": account,
-                                                        "content": content, "content_hash": expected_hash}.items()):
+            if any(
+                row[key] != value
+                for key, value in {
+                    "kind": kind,
+                    "target": target,
+                    "account": account,
+                    "content": content,
+                    "content_hash": expected_hash,
+                }.items()
+            ):
                 raise PublicationError("审批预览与保存草稿不一致，批准后编辑须重新批准")
             if getattr(cancel, "cancelled", False):
                 return ToolResult.cancelled("发布已取消，未执行")
-            claimed = self.store.claim(draft_id, session_id=session_id, expected_hash=expected_hash, ttl_s=self.config.draft_ttl_s)
+            claimed = self.store.claim(
+                draft_id, session_id=session_id, expected_hash=expected_hash, ttl_s=self.config.draft_ttl_s
+            )
             # 填写与发送分别占一份浏览器预算；扣费失败不触及页面。
-            for _ in range(2):
+            for _ in range(
+                2
+                + (
+                    2 * len(json.loads(claimed["observation"]).get("mentions", []))
+                    if self.config.forms[kind].mention_options
+                    else 0
+                )
+            ):
                 ok, detail = self.budget.try_consume()
                 if not ok:
                     self.store.finish(draft_id, claimed["attempt_token"], "blocked", error=detail)
                     return ToolResult.denied(detail, error_code="write_budget")
+
             def authorized() -> bool:
                 current = self.store.get(draft_id)
-                return bool(current and current["status"] == "sending" and current["attempt_token"] == claimed["attempt_token"])
-            result = self.forms.submit(kind, json.loads(claimed["observation"]), content, cancel=cancel, authorized=authorized)
+                return bool(
+                    current and current["status"] == "sending" and current["attempt_token"] == claimed["attempt_token"]
+                )
+
+            result = self.forms.submit(
+                kind, json.loads(claimed["observation"]), content, cancel=cancel, authorized=authorized
+            )
             status = result.get("state")
             evidence = result.get("evidence") or {}
-            if status == "sent" and (not evidence.get("record_id") or evidence.get("account") != account or evidence.get("content_hash") != expected_hash):
+            if status == "sent" and (
+                not evidence.get("record_id")
+                or evidence.get("account") != account
+                or evidence.get("content_hash") != expected_hash
+            ):
                 status = "unknown"
             if status == "sent":
                 try:
@@ -167,16 +237,26 @@ class BilibiliPublisher:
                     status = "unknown"
             if status not in {"sent", "blocked", "unknown"}:
                 status = "unknown"
-            stored = self.store.finish(draft_id, claimed["attempt_token"], status, evidence=json.dumps(evidence, ensure_ascii=False),
-                                       error=result.get("error", "") if status != "sent" else "")
+            stored = self.store.finish(
+                draft_id,
+                claimed["attempt_token"],
+                status,
+                evidence=json.dumps(evidence, ensure_ascii=False),
+                error=result.get("error", "") if status != "sent" else "",
+            )
             if not stored:
                 return ToolResult.unknown("发布账本未确认，禁止自动重发", error_code="publication_ledger_unknown")
             if status == "sent":
-                return ToolResult.ok(f"草稿 {draft_id} 已提交，并读到新增记录 {evidence['record_id']}",
-                                     side_effect_state="applied", verification=json.dumps(evidence, ensure_ascii=False))
+                return ToolResult.ok(
+                    f"草稿 {draft_id} 已提交，并读到新增记录 {evidence['record_id']}",
+                    side_effect_state="applied",
+                    verification=json.dumps(evidence, ensure_ascii=False),
+                )
             if status == "blocked":
                 return ToolResult.fail(result.get("error", "页面核验失败，未写入"), error_code="publication_blocked")
-            return ToolResult.unknown(result.get("error", "发布结果未知，请人工核查；禁止自动重发"), error_code="publication_unknown")
+            return ToolResult.unknown(
+                result.get("error", "发布结果未知，请人工核查；禁止自动重发"), error_code="publication_unknown"
+            )
         except PublicationError as exc:
             return ToolResult.fail(str(exc), error_code="publication_rejected")
         except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）

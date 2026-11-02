@@ -10,6 +10,7 @@
 明确不做：不记工具调用细节（归 SessionLog）；不做摘要压缩（归 JournalStore）；
 不参与上下文组装（组装仍以 messages 表为准，本模块对组装器只写不读）。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -141,8 +142,7 @@ class DialogueLog:
         at = (now or dt.datetime.now().astimezone()).isoformat(timespec="seconds")
         day = (now or dt.datetime.now().astimezone()).date().isoformat()
         cur = self._conn.execute(
-            "INSERT INTO dialogue_log(session_id, day, role, content, channel, created_at)"
-            " VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO dialogue_log(session_id, day, role, content, channel, created_at) VALUES (?, ?, ?, ?, ?, ?)",
             (int(session_id), day, role, text, str(channel or ""), at),
         )
         if self.fts_enabled and not self._fts_triggers:
@@ -163,10 +163,7 @@ class DialogueLog:
             " FROM dialogue_log GROUP BY day ORDER BY day DESC LIMIT ?",
             (max(1, int(limit)),),
         ).fetchall()
-        return [
-            {"day": str(r[0]), "sessions": int(r[1]), "entries": int(r[2]), "chars": int(r[3])}
-            for r in rows
-        ]
+        return [{"day": str(r[0]), "sessions": int(r[1]), "entries": int(r[2]), "chars": int(r[3])} for r in rows]
 
     @_locked
     def active_hours_by_day(self, limit_days: int = 30) -> dict[str, set[int]]:
@@ -202,9 +199,7 @@ class DialogueLog:
     @_locked
     def days(self) -> list[str]:
         """全部有记录的天（升序）——整理 worker 枚举候选天用。"""
-        rows = self._conn.execute(
-            "SELECT DISTINCT day FROM dialogue_log ORDER BY day ASC"
-        ).fetchall()
+        rows = self._conn.execute("SELECT DISTINCT day FROM dialogue_log ORDER BY day ASC").fetchall()
         return [str(r[0]) for r in rows]
 
     @_locked
@@ -221,9 +216,7 @@ class DialogueLog:
                 "SELECT role, content FROM dialogue_log WHERE id = ?", (int(first_id),)
             ).fetchone()
             title = str(first[1])[:24] if first and str(first[0]) == "user" else f"会话 {session_id}"
-            result.append(
-                {"session_id": int(session_id), "entries": int(entries), "title": title}
-            )
+            result.append({"session_id": int(session_id), "entries": int(entries), "title": title})
         return result
 
     @_locked
@@ -284,14 +277,7 @@ class DialogueLog:
         rows = self._like(tokens, bound)
         if rows:
             return rows
-        bigrams = sorted(
-            {
-                t[i : i + 2]
-                for t in tokens
-                for i in range(len(t) - 1)
-                if _has_cjk(t[i : i + 2])
-            }
-        )
+        bigrams = sorted({t[i : i + 2] for t in tokens for i in range(len(t) - 1) if _has_cjk(t[i : i + 2])})
         return self._like(bigrams, bound) if bigrams else []
 
     def _like(self, tokens: list[str], limit: int) -> list[dict]:
@@ -334,16 +320,12 @@ class DialogueLog:
 
     @_locked
     def max_id_for_day(self, day: str) -> int | None:
-        row = self._conn.execute(
-            "SELECT MAX(id) FROM dialogue_log WHERE day = ?", (str(day),)
-        ).fetchone()
+        row = self._conn.execute("SELECT MAX(id) FROM dialogue_log WHERE day = ?", (str(day),)).fetchone()
         return int(row[0]) if row and row[0] is not None else None
 
     @_locked
     def has_activity(self, day: str) -> bool:
-        row = self._conn.execute(
-            "SELECT 1 FROM dialogue_log WHERE day = ? LIMIT 1", (str(day),)
-        ).fetchone()
+        row = self._conn.execute("SELECT 1 FROM dialogue_log WHERE day = ? LIMIT 1", (str(day),)).fetchone()
         return row is not None
 
     @_locked
@@ -408,9 +390,7 @@ class DialogueLog:
             return 0
         base = dt.date.fromisoformat(today or _today())
         cutoff = (base - dt.timedelta(days=days)).isoformat()
-        cur = self._conn.execute(
-            "DELETE FROM dialogue_log WHERE day < ?", (cutoff,)
-        )
+        cur = self._conn.execute("DELETE FROM dialogue_log WHERE day < ?", (cutoff,))
         self._conn.commit()
         return int(cur.rowcount)
 

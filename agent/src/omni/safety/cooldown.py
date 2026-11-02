@@ -23,6 +23,7 @@
 判定是纯函数：不碰 IO、不读时钟、不读配置，调用方把时间与窗口喂进来。
 这样它可以完全离线单测——真出问题时不靠真机也能复现。
 """
+
 from __future__ import annotations
 
 import time

@@ -3,6 +3,7 @@
 注意：bili-account 会真的外呼 B站 nav 接口——测试里用 monkeypatch 换成假实现，
 默认套件保持离线。
 """
+
 from __future__ import annotations
 
 import json
@@ -48,9 +49,7 @@ def test_embodiment_bilibili_reports_missing_credentials(workbench):
 
 def test_embodiment_bilibili_ready_when_cookies_present(workbench):
     client, runtime = workbench
-    runtime.paths.cookies.write_text(
-        json.dumps({"SESSDATA": "sess", "bili_jct": ""}), encoding="utf-8"
-    )
+    runtime.paths.cookies.write_text(json.dumps({"SESSDATA": "sess", "bili_jct": ""}), encoding="utf-8")
     rows = client.get("/api/system/embodiments").json()["embodiments"]
     bili = next(row for row in rows if row["id"] == "bilibili")
     assert bili["ready"] is True
@@ -59,9 +58,7 @@ def test_embodiment_bilibili_ready_when_cookies_present(workbench):
 
 def test_embodiment_never_echoes_cookie_values(workbench):
     client, runtime = workbench
-    runtime.paths.cookies.write_text(
-        json.dumps({"SESSDATA": "super-secret-value"}), encoding="utf-8"
-    )
+    runtime.paths.cookies.write_text(json.dumps({"SESSDATA": "super-secret-value"}), encoding="utf-8")
     body = client.get("/api/system/embodiments").text
     assert "super-secret-value" not in body
 
@@ -74,8 +71,15 @@ def test_bili_account_reports_login_state(workbench, monkeypatch):
             pass
 
         def account(self):
-            return {"logged_in": True, "uid": "10086", "name": "小鱼本鱼",
-                    "level": 5, "coins": 42, "vip": False, "face": ""}
+            return {
+                "logged_in": True,
+                "uid": "10086",
+                "name": "小鱼本鱼",
+                "level": 5,
+                "coins": 42,
+                "vip": False,
+                "face": "",
+            }
 
         def close(self):
             pass

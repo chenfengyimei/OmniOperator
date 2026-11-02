@@ -1,0 +1,403 @@
+import { SECTIONS, resolveSection, sectionUrl } from './sections.js?v=20261102u2';
+/* 本地工作台公共交互：请求、反馈、对话框和导航；不触发能力操作。 */
+(() => {
+  'use strict';
+  const labels = {
+    queued: '等待执行',
+    running: '运行中',
+    cancelling: '停止中',
+    succeeded: '已完成',
+    failed: '失败',
+    cancelled: '已取消',
+    timed_out: '已超时',
+    unknown: '待核查',
+    idle: '未连接',
+    starting: '连接中',
+    ready: '已连接',
+    closed: '已断开',
+    disabled: '未启用',
+    exited: '已退出',
+    absent: '未发现',
+    confirmed: '已确认',
+    drifted: '需复查',
+  };
+  const pageMeta = {
+    workbench: { icon: 'forum', label: '对话工作台' },
+    capabilities: { icon: 'fact_check', label: '能力诊断' },
+    terminal: { icon: 'terminal', label: '人工终端' },
+    jobs: { icon: 'checklist', label: '后台任务' },
+    mcp: { icon: 'network_check', label: 'MCP 服务' },
+    android: { icon: 'smartphone', label: '安卓控制' },
+    storage: { icon: 'folder', label: 'Agent 与文件' },
+    project: { icon: 'account_tree', label: '项目索引' },
+    memory: { icon: 'psychology', label: '记忆系统' },
+  };
+  /* NAV_ITEMS 是全站页面导航的唯一数据源（UI_DESIGN_SYSTEM.md §7）：
+     新增页面只在这里加一行；子站 rail 由 renderRail 渲染，工作台 rail 的链接项与之同源同序。
+     「记忆库」指向 /memory/ 独立页（此前该页无任何入口，是事实孤儿）；
+     「记忆系统」仍指向设置中心内的原生分区——两者是不同界面的不同称呼，不要混。 */
+  const NAV_ITEMS = [
+    ['/', 'forum', '对话工作台'],
+    ['/?tools=1', 'build', '工具'],
+    ['/?settings=1&section=sec-memory-system', 'psychology', '记忆系统'],
+    ['/?settings=1', 'settings', '设置中心'],
+  ];
+  function element(tag, text, className) {
+    const node = document.createElement(tag);
+    if (text != null) node.textContent = text;
+    if (className) node.className = className;
+    return node;
+  }
+  function icon(name, className = '') {
+    const node = element('span', name, ('material-icons ' + className).trim());
+    node.setAttribute('aria-hidden', 'true');
+    return node;
+  }
+  function notify(message, tone = 'info') {
+    let region = document.getElementById('ui-notices');
+    if (!region) {
+      region = element('div', null, 'ui-notices');
+      region.id = 'ui-notices';
+      region.setAttribute('aria-live', 'polite');
+      document.body.append(region);
+    }
+    const node = element('div', message, 'ui-notice');
+    node.dataset.tone = tone;
+    region.append(node);
+    while (region.children.length > 3) region.firstChild.remove();
+    setTimeout(() => node.remove(), 6500);
+  }
+  async function request(url, options = {}) {
+    const { timeoutMs, signal, ...fetchOptions } = options,
+      controller = new AbortController();
+    const method = (options.method || 'GET').toUpperCase(),
+      writing = !['GET', 'HEAD'].includes(method);
+    const headers = new Headers(options.headers || {});
+    if (options.body !== undefined && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+    const abort = () => controller.abort();
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) controller.abort();
+    const timeout = timeoutMs ?? (writing ? 60000 : 15000),
+      timer = timeout ? setTimeout(abort, timeout) : null;
+    try {
+      const response = await fetch(url, {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        ...fetchOptions,
+        headers,
+        signal: controller.signal,
+      });
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw Error('服务返回了无法读取的内容，请确认工作台版本与连接状态');
+      }
+      if (!response.ok) {
+        let message =
+          typeof data.detail === 'string'
+            ? data.detail
+            : Array.isArray(data.detail)
+              ? data.detail.map((row) => `${(row.loc || []).slice(1).join('.')}: ${row.msg}`).join('；')
+              : '请求未完成';
+        if (response.status === 401) {
+          message = '工作台尚未配对或配对已失效，请返回工作台重新配对';
+          document.dispatchEvent(new CustomEvent('omni:auth-required'));
+        }
+        if (message === 'Not Found') message = '未找到内容或接口，请确认服务已更新';
+        const error = Error(message);
+        error.status = response.status;
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      if (error.name === 'AbortError' && !signal?.aborted) {
+        const timeoutError = Error(
+          writing ? '等待响应超时；操作可能已经下发，请核查后再操作' : '读取超时，请检查连接后刷新',
+        );
+        timeoutError.uncertain = writing;
+        throw timeoutError;
+      }
+      throw error;
+    } finally {
+      if (timer) clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
+    }
+  }
+  let dialog;
+  function ask({
+    title = '确认操作',
+    message = '',
+    input,
+    inputLabel = '名称',
+    confirmLabel = '确认',
+    danger = false,
+  }) {
+    if (dialog?.open) return Promise.resolve(input === undefined ? false : null);
+    if (!dialog) {
+      dialog = element('dialog', null, 'ui-dialog');
+      dialog.id = 'ui-dialog';
+      document.body.append(dialog);
+    }
+    const previous = document.activeElement,
+      form = element('form');
+    form.method = 'dialog';
+    const heading = element('h2', title);
+    heading.id = 'ui-dialog-title';
+    dialog.setAttribute('aria-labelledby', heading.id);
+    const content = element('p', message),
+      actions = element('div', null, 'ui-dialog-actions');
+    const cancel = element('button', '取消'),
+      confirm = element('button', confirmLabel);
+    cancel.value = 'cancel';
+    cancel.formNoValidate = true;
+    confirm.value = 'confirm';
+    confirm.className = danger ? 'ui-danger' : 'ui-primary';
+    form.append(heading, content);
+    let field;
+    if (input !== undefined) {
+      const label = element('label', inputLabel);
+      field = element('input');
+      field.value = input;
+      field.required = true;
+      field.maxLength = 60;
+      label.append(field);
+      form.append(label);
+    }
+    actions.append(cancel, confirm);
+    form.append(actions);
+    dialog.replaceChildren(form);
+    dialog.returnValue = '';
+    return new Promise((resolve) => {
+      dialog.addEventListener(
+        'close',
+        () => {
+          const accepted = dialog.returnValue === 'confirm';
+          resolve(input === undefined ? accepted : accepted ? field.value.trim() : null);
+          previous?.focus?.();
+        },
+        { once: true },
+      );
+      dialog.showModal();
+      (field || cancel).focus();
+    });
+  }
+  function badge(state) {
+    const node = element('span', labels[state] || state || '未知', 'ui-badge');
+    node.dataset.state = state;
+    return node;
+  }
+  function date(value) {
+    if (value == null) return '—';
+    const date = new Date(typeof value === 'number' ? value * 1000 : value);
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString();
+  }
+  const warmed = new Set();
+  function warm(path) {
+    if (warmed.has(path)) return;
+    warmed.add(path);
+    const link = element('link');
+    link.rel = 'prefetch';
+    link.href = path;
+    link.as = 'document';
+    document.head.append(link);
+  }
+  function warmAll(nav) {
+    const run = () => {
+      for (const link of nav.querySelectorAll('a')) {
+        if (link.target !== '_blank') warm(link.getAttribute('href'));
+      }
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 1800 });
+    else setTimeout(run, 900);
+  }
+  function addPageChrome(page) {
+    const header = document.querySelector('body>header');
+    if (!header || page === 'workbench') return;
+    const title = header.querySelector('h1');
+    if (title && !title.querySelector('.ui-page-icon')) {
+      title.prepend(icon(pageMeta[page]?.icon || 'dashboard', 'ui-page-icon'));
+    }
+    if (title && !header.querySelector('.ui-env')) {
+      const env = element('span', 'LOCAL · 本地控制台', 'ui-env');
+      title.insertAdjacentElement('afterend', env);
+    }
+    header.setAttribute('data-ui-header', page);
+  }
+  /* renderRail：子站 rail 的唯一渲染器——子站 markup 不写导航（规范红线），
+     工作台注入的隐藏 rail 也走同一数据。链接统一挂 .rail-btn 与工作台 markup rail 同类。 */
+  function renderRail(nav, page) {
+    nav.replaceChildren();
+    const brand = element('span', null, 'ui-rail-brand');
+    brand.setAttribute('aria-hidden', 'true');
+    nav.append(brand);
+    for (const [path, iconName, label] of NAV_ITEMS) {
+      const link = element('a');
+      link.href = path;
+      link.title = label;
+      link.className = 'rail-btn';
+      link.setAttribute('aria-label', label);
+      link.append(icon(iconName), element('span', label, 'ui-nav-label'));
+      // 带查询串的深链（设置中心）永远不标「当前页」
+      if (!path.includes('?') && location.pathname === path) link.setAttribute('aria-current', 'page');
+      if (page === 'workbench' && path !== '/' && !path.includes('section=sec-memory-system')) {
+        link.target = '_blank';
+        link.rel = 'noopener';
+      }
+      nav.append(link);
+    }
+  }
+  /* 主题切换按钮：见 mountThemeToggle。挂顶栏而非 rail——rail 有两套来源
+     （工作台是 index.html 静态 markup，子站是 renderRail 生成），放 rail 要改两处，
+     违背「导航单源」精神；顶栏是全站唯一 9 页共有且位置稳定的容器。 */
+  function mountThemeToggle() {
+    const header = document.querySelector('body>header');
+    if (!header || header.querySelector('.theme-toggle')) return;
+    const button = element('button', null, 'theme-toggle');
+    button.type = 'button';
+    button.title = '切换主题';
+    button.setAttribute('aria-label', '切换主题');
+    button.append(icon('contrast'));
+    const labels = { auto: '跟随系统', light: '浅色', dark: '深色' };
+    const sync = () => {
+      const theme = window.OmniTheme;
+      const effective = theme ? theme.effective() : 'dark';
+      const glyph = button.querySelector('.material-icons');
+      if (glyph) glyph.textContent = effective === 'light' ? 'light_mode' : 'dark_mode';
+      const current = theme ? theme.pref() : 'auto';
+      button.title = '主题：' + (labels[current] || current);
+      button.setAttribute('aria-label', '切换主题（当前：' + (labels[current] || current) + '）');
+    };
+    button.addEventListener('click', () => {
+      if (window.OmniTheme) window.OmniTheme.cycle();
+      sync();
+    });
+    document.addEventListener('omni:theme-change', sync);
+    header.append(button);
+    sync();
+  }
+  function mount() {
+    const sourcePage = location.pathname.split('/').filter(Boolean)[0] || 'workbench';
+    if (sourcePage !== 'workbench' && new URLSearchParams(location.search).get('embed') !== '1') {
+      const section = SECTIONS.find((item) => item.path === location.pathname);
+      if (section) {
+        location.replace(sectionUrl(section.id));
+        return;
+      }
+    }
+
+    const page = location.pathname.split('/').filter(Boolean)[0] || 'workbench';
+    document.body.dataset.uiPage = page;
+    document.documentElement.dataset.uiPage = page;
+    const embedded = new URLSearchParams(location.search).get('embed') === '1';
+    document.documentElement.classList.toggle('ui-embed', embedded);
+    document.body.classList.toggle('ui-embedded', embedded);
+    const current = pageMeta[page] || { icon: 'dashboard', label: '工作台' };
+    // 整体替换而不是追加：追加会产出「人工终端 · 人工终端 · OmniOperator」这种重复后缀
+    // （各页 <title> 原文与 pageMeta.label 说法不同，两边只认一个权威名字）。
+    if (page !== 'workbench' && !embedded) document.title = current.label + ' · OmniOperator';
+    let nav = document.querySelector('body > .ui-global-nav');
+    if (!embedded && !nav) {
+      nav = element('nav', null, 'ui-global-nav');
+      if (page !== 'workbench') nav.classList.add('ui-app-rail');
+      nav.setAttribute('aria-label', '工作台功能导航');
+      renderRail(nav, page);
+      // 插在 header 之前：移动端折叠态 rail 是顶部横条（sticky top:0），
+      // header 让位 54px——DOM 顺序决定自然布局位，注入到 header 后面会把折顶搞乱
+      const header = document.querySelector('body>header');
+      if (header) header.before(nav);
+      else document.body.prepend(nav);
+    }
+    const header = document.querySelector('body>header');
+    if (!embedded) addPageChrome(page);
+    if (page === 'workbench' && !embedded) {
+      const panes = element('div', null, 'ui-panes');
+      panes.setAttribute('aria-label', '工作台区域');
+      for (const [id, label] of [
+        ['sessions', '会话'],
+        ['chat', '对话'],
+        ['details', '资料与工具'],
+      ]) {
+        const button = element('button', label);
+        button.type = 'button';
+        button.dataset.pane = id;
+        button.onclick = () => {
+          document.body.dataset.pane = id;
+          panes
+            .querySelectorAll('button')
+            .forEach((node) => node.setAttribute('aria-pressed', String(node === button)));
+        };
+        panes.append(button);
+      }
+      header.append(panes);
+      panes.querySelector('[data-pane="chat"]').click();
+      const settings = element('button', '设置', 'ui-settings');
+      settings.type = 'button';
+      settings.onclick = () => document.querySelector('.hub-open')?.click();
+      header.append(settings);
+    }
+    const currentLink = nav?.querySelector('[aria-current="page"]');
+    if (currentLink) requestAnimationFrame(() => currentLink.scrollIntoView({ block: 'nearest', inline: 'center' }));
+    document.body.classList.add('ui-ready');
+    if (!embedded) {
+      mountThemeToggle();
+      const openRequested = () => {
+        const query = new URLSearchParams(location.search);
+        if (query.get('tools') === '1') document.querySelector('[data-action="tools:open"]')?.click();
+        if (query.get('settings') !== '1') return;
+        const button = document.querySelector('.hub-open');
+        if (!button) return;
+        const section = query.get('section'),
+          target = resolveSection(section);
+        if (target) button.dataset.section = target.id;
+        else if (section) notify('找不到这个设置分区，请从侧栏选择', 'error');
+        button.click();
+        delete button.dataset.section;
+      };
+      if (document.documentElement.dataset.workbenchReady === '1') openRequested();
+      else document.addEventListener('omni:workbench-ready', openRequested, { once: true });
+    }
+    requestAnimationFrame(() => document.body.classList.add('ui-entered'));
+    const progress = element('div');
+    progress.className = 'ui-route-progress';
+    progress.setAttribute('aria-hidden', 'true');
+    document.body.append(progress);
+    const prefetchFrom = (event) => {
+      const link = event.target.closest('a[href]');
+      if (!link || link.target === '_blank') return;
+      try {
+        const url = new URL(link.href, location.href);
+        if (url.origin === location.origin) warm(url.pathname);
+      } catch {}
+    };
+    document.addEventListener('pointerover', prefetchFrom, { passive: true });
+    document.addEventListener('focusin', prefetchFrom, { passive: true });
+    document.addEventListener(
+      'click',
+      (event) => {
+        const link = event.target.closest('a[href]');
+        if (!link || link.target === '_blank' || link.hasAttribute('download') || event.defaultPrevented) return;
+        let target;
+        try {
+          target = new URL(link.href, location.href);
+        } catch {
+          return;
+        }
+        if (target.origin !== location.origin || target.pathname === location.pathname) return;
+        document.body.classList.add('ui-leaving');
+        progress.classList.add('active');
+      },
+      { passive: true },
+    );
+    if (nav) warmAll(nav);
+  }
+  window.OmniUI = { request, notify, ask, badge, date, element, labels, icon, NAV_ITEMS };
+  document.addEventListener('omni:auth-required', () =>
+    notify('需要配对：请返回工作台打开控制台提供的配对链接', 'error'),
+  );
+  window.addEventListener('offline', () => notify('本机服务连接已断开，正在等待恢复。', 'error'));
+  window.addEventListener('online', () => notify('连接已恢复，当前页面可继续操作。'));
+  window.addEventListener('pageshow', () => document.body.classList.remove('ui-leaving'));
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
+  else mount();
+})();

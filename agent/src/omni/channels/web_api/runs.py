@@ -1,4 +1,5 @@
 """运行与用量 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -57,9 +58,7 @@ def create_runs_router(runtime: Runtime) -> APIRouter:
         if record is None:
             raise HTTPException(status_code=404, detail="运行不存在")
         if record.finished:
-            raise HTTPException(
-                status_code=409, detail=f"运行已结束（{record.status}），无需取消"
-            )
+            raise HTTPException(status_code=409, detail=f"运行已结束（{record.status}），无需取消")
         raise HTTPException(
             status_code=409,
             detail="该运行不在本进程内（可能由其它进程执行），本进程无法取消",
@@ -86,17 +85,12 @@ def create_runs_router(runtime: Runtime) -> APIRouter:
                 "date": today,
                 **day,
                 "limit_micro": daily_limit or None,
-                "remaining_micro": max(0, daily_limit - day["used_micro"])
-                if daily_limit
-                else None,
+                "remaining_micro": max(0, daily_limit - day["used_micro"]) if daily_limit else None,
             },
             "per_run_limit_micro": int(round(budget.per_run_usd * MICRO)) or None,
             "summary": summary,
             "calls": calls,
-            "models": {
-                model: cap.model_dump()
-                for model, cap in runtime.config.llm.capabilities.items()
-            },
+            "models": {model: cap.model_dump() for model, cap in runtime.config.llm.capabilities.items()},
         }
 
     return router

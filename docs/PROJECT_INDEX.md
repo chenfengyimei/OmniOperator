@@ -1,7 +1,7 @@
 # 项目导航、模块分类与内部调用
 
 本地 Agent 完整工程归 `agent/`。先读 [产品开发入口](../agent/README.md) 与
-[仓库结构](REPOSITORY_STRUCTURE.md)，再按下列模块索引定位。原 `src/`/`agent/tests/`
+[仓库结构](REPOSITORY_STRUCTURE.md)，再按下列模块索引定位。原 `src/`/`tests/`
 仅可作为迁移机器上的兼容目录联接；新开发与干净检出均使用 `agent/` 的正式位置。
 
 
@@ -19,12 +19,12 @@
 
 项目数据位置与源码模块位置分别索引：`/project/` 查询代码、调用和 API，`/storage/`
 设置全局/Agent 目录并查看记忆、档案、文件、资料、日志等当前实际位置。
-路径声明与用途索引在 `system/agent_spaces/`，UI/HTTP 在 `channels/web_static/storage/`
+路径声明与用途索引在 `system/agent_spaces/`，UI/HTTP 在 `web/storage/`
 和 `channels/web_api/storage.py`；完整布局与运维入口见 [STORAGE.md](STORAGE.md)。
 
 ## 1 三种索引入口
 
-统一功能导航和手机区域切换由 `channels/web_static/ui/` 提供；终端、任务、MCP、安卓
+统一功能导航和手机区域切换由 `web/ui/` 提供；终端、任务、MCP、安卓
 各专题可从顶栏进入。操作说明与异步目标隔离回归见 [UI_QA.md](UI_QA.md)。
 
 - **可视化**：`uv run --no-sync omni-web`，配对后点顶栏“项目与能力”，或打开 `/project/`。

@@ -14,6 +14,7 @@
 - 迁移脚本不要在字符串字面量中出现分号（`state.py::_statements` 按分号拆分）；
 - 每个版本的语义必须写清楚，尤其涉及搬数据或删旧表的版本。
 """
+
 from __future__ import annotations
 
 from ..config import STATE_SCHEMA_VERSION

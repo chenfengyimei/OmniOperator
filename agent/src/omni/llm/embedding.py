@@ -1,4 +1,5 @@
 """可切换 embedding 出口：本地 Ollama / LiteLLM API；费用账本从 bootstrap 注入。"""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -25,8 +26,9 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def _local_request(config: Embedding, texts: list[str]) -> tuple[list[list[float]], int | None]:
     payload = json.dumps({"model": config.model, "input": texts, "truncate": False}).encode()
-    request = urllib.request.Request(config.endpoint.rstrip("/") + "/api/embed", data=payload,
-                                     headers={"Content-Type": "application/json"})
+    request = urllib.request.Request(
+        config.endpoint.rstrip("/") + "/api/embed", data=payload, headers={"Content-Type": "application/json"}
+    )
     # 回环连接不读代理环境，禁止把私人记忆意外转发给代理。
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect())
     with opener.open(request, timeout=config.timeout_s) as response:
@@ -39,11 +41,13 @@ def _local_request(config: Embedding, texts: list[str]) -> tuple[list[list[float
 
 def _api_request(config: Embedding, texts: list[str]) -> tuple[list[list[float]], int | None]:
     import litellm
+
     key = os.environ.get(config.api_key_env, "") if config.api_key_env else None
     if config.api_key_env and not key:
         raise EmbeddingError("embedding API 密钥环境变量未配置")
-    response = litellm.embedding(model=config.model, input=texts, api_base=config.endpoint,
-                                api_key=key, timeout=config.timeout_s, num_retries=0)
+    response = litellm.embedding(
+        model=config.model, input=texts, api_base=config.endpoint, api_key=key, timeout=config.timeout_s, num_retries=0
+    )
     rows = sorted(response.data, key=lambda r: r["index"])
     if [r["index"] for r in rows] != list(range(len(texts))):
         raise EmbeddingError("embedding API 返回了重复或缺失索引")
@@ -53,8 +57,9 @@ def _api_request(config: Embedding, texts: list[str]) -> tuple[list[list[float]]
 
 
 class EmbeddingProvider:
-    def __init__(self, config: Embedding, ledger: Ledger, *, daily_limit_usd: float = 0,
-                 transport: Callable | None = None):
+    def __init__(
+        self, config: Embedding, ledger: Ledger, *, daily_limit_usd: float = 0, transport: Callable | None = None
+    ):
         self.config = config
         self._ledger = ledger
         self._transport = transport or (_local_request if config.provider == "local" else _api_request)
@@ -63,7 +68,9 @@ class EmbeddingProvider:
         identity = {k: getattr(config, k) for k in ("provider", "model", "revision", "dimensions", "endpoint")}
         self.fingerprint = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
 
-    def embed(self, texts: list[str], *, run_id=None, session_id=None, run_budget: RunBudget | None = None) -> list[list[float]]:
+    def embed(
+        self, texts: list[str], *, run_id=None, session_id=None, run_budget: RunBudget | None = None
+    ) -> list[list[float]]:
         cfg = self.config
         if not cfg.enabled or not cfg.model:
             raise EmbeddingError("embedding 未启用")
@@ -94,13 +101,17 @@ class EmbeddingProvider:
             if len(vectors) != len(texts):
                 raise EmbeddingError("embedding 返回数量不一致")
             for vector in vectors:
-                if len(vector) != cfg.dimensions or any(not math.isfinite(float(v)) or abs(float(v)) > 1e10 for v in vector):
+                if len(vector) != cfg.dimensions or any(
+                    not math.isfinite(float(v)) or abs(float(v)) > 1e10 for v in vector
+                ):
                     raise EmbeddingError("embedding 维度或数值非法")
                 if not any(float(v) for v in vector):
                     raise EmbeddingError("embedding 返回零向量")
             if tokens is not None and (not isinstance(tokens, int) or tokens < 0):
                 raise EmbeddingError("embedding 用量非法")
-            charged = math.ceil(tokens * cfg.input_usd_per_m) if tokens is not None and cfg.provider == "api" else reserved
+            charged = (
+                math.ceil(tokens * cfg.input_usd_per_m) if tokens is not None and cfg.provider == "api" else reserved
+            )
             outcome = "ok"
             return [[float(v) for v in vector] for vector in vectors]
         except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
@@ -109,8 +120,16 @@ class EmbeddingProvider:
             self._ledger.settle(day=day, reserved_micro=reserved, charged_micro=charged)
             if run_budget is not None:
                 run_budget.settle(reserved, charged)
-            self._ledger.record(run_id=run_id, session_id=session_id, purpose="embedding", model=cfg.model,
-                                prompt_tokens=tokens, completion_tokens=0, cost_micro=charged,
-                                cost_source="reported" if tokens is not None else "reserved", outcome=outcome,
-                                error_code="" if outcome == "ok" else "embedding_failed",
-                                duration_ms=int((time.monotonic() - started) * 1000))
+            self._ledger.record(
+                run_id=run_id,
+                session_id=session_id,
+                purpose="embedding",
+                model=cfg.model,
+                prompt_tokens=tokens,
+                completion_tokens=0,
+                cost_micro=charged,
+                cost_source="reported" if tokens is not None else "reserved",
+                outcome=outcome,
+                error_code="" if outcome == "ok" else "embedding_failed",
+                duration_ms=int((time.monotonic() - started) * 1000),
+            )

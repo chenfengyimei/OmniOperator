@@ -9,6 +9,7 @@
 结果契约（D09 收口）：启停成功记 side_effect_state=applied；
 ServiceError.uncertain=True（进程可能已启动/停止未确认）记 unknown，其余错误记 none。
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -57,9 +58,7 @@ def register_system_tools(registry: ToolRegistry, services: ServiceManager) -> N
         if action not in ("start", "stop"):
             return ToolResult.fail("错误：action 只支持 start / stop", error_code="bad_arguments")
         if name not in ALL_SERVICES:
-            return ToolResult.fail(
-                f"错误：service 只支持 {', '.join(ALL_SERVICES)}", error_code="bad_arguments"
-            )
+            return ToolResult.fail(f"错误：service 只支持 {', '.join(ALL_SERVICES)}", error_code="bad_arguments")
         if action == "start" and name == "napcat" and args.get("qq"):
             qq = str(args["qq"]).strip()
             if not (qq.isdigit() and len(qq) <= 12):

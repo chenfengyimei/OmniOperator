@@ -12,6 +12,7 @@
 httpx 0.28 起 `ASGITransport` 只支持 AsyncClient；本文件用 `SyncASGITransport`
 把 ASGI 应用桥接到同步 httpx.Client（独立事件循环线程），仅测试用。
 """
+
 import asyncio
 import io
 import json
@@ -37,12 +38,12 @@ MANIFEST = {
     "author": "tester",
     "permissions": ["tools"],
 }
-PLUGIN_CODE = '''def register(ctx):
+PLUGIN_CODE = """def register(ctx):
     def hello(args):
         return "hello community"
     ctx.add_tool(name="demo-tools-hello", description="打招呼",
                  parameters={"type": "object", "properties": {}}, func=hello, risk="safe")
-'''
+"""
 
 
 class SyncASGITransport(httpx.BaseTransport):
@@ -250,8 +251,7 @@ def test_client_errors_without_server_config(tmp_path, monkeypatch):
     monkeypatch.delenv("OMNI_MARKET_URL", raising=False)
     _registry, host, client = _wired(tmp_path)
     assert client.configure(server_url="", token="")[0]
-    for call in (client.search("x"), client.info("x"), client.install("x"),
-                 client.publish_from_directory("y")):
+    for call in (client.search("x"), client.info("x"), client.install("x"), client.publish_from_directory("y")):
         ok, msg = call
         assert not ok and "未配置" in msg
 
@@ -268,18 +268,15 @@ def test_community_tools_approval_gates(tmp_path):
     assert publish.risk is Risk.CONFIRM and publish.requires_human
 
     # 查询/安装是 SAFE：无人值守可用（安装只落隔离区）
-    result = registry.execute(
-        "community_search", {"query": "演示"}, approver=DenyApprover()
-    )
+    result = registry.execute("community_search", {"query": "演示"}, approver=DenyApprover())
     assert "demo-tools" in result.to_message()
-    result = registry.execute(
-        "community_install", {"id": "demo-tools"}, approver=DenyApprover()
-    )
+    result = registry.execute("community_install", {"id": "demo-tools"}, approver=DenyApprover())
     assert "隔离区" in result.to_message()
 
     # 发布是 CONFIRM+requires_human：无人值守一律拒绝
     result = registry.execute(
-        "community_publish", {"id": "demo-tools", "path": "whatever"},
+        "community_publish",
+        {"id": "demo-tools", "path": "whatever"},
         approver=DenyApprover(),
     )
     assert "未获批准" in result.to_message()

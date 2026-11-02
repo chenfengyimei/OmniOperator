@@ -7,6 +7,8 @@
 - 终端的 xterm 主题写死 #0e1116 / #dbe7ee，不随站点深浅色翻转；
   且主题切换事件是 document 级的，iframe 内页收不到父页的切换。
 """
+
+from omni.config import PROJECT_ROOT, web_root
 import re
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -14,7 +16,7 @@ from urllib.parse import urlsplit
 import pytest
 from test_web import _client
 
-STATIC = Path(__file__).resolve().parents[1] / "src" / "omni" / "channels" / "web_static"
+STATIC = web_root(PROJECT_ROOT)
 
 EMBED_PAGES = ["terminal", "android", "storage"]
 
@@ -42,7 +44,7 @@ def test_embed_rules_live_only_in_frame_css():
         rel = path.relative_to(STATIC).as_posix()
         if rel == "ui/frame.css":
             continue
-        text = path.read_text(encoding="utf-8")
+        text = re.sub(r"\s+", "", path.read_text(encoding="utf-8"))
         # 规则块以 } 结尾；一个块里同时出现 ui-embed 与 chrome 特征串 = 重复实现了通用降级
         hits = []
         for block in text.split("}"):
@@ -51,9 +53,7 @@ def test_embed_rules_live_only_in_frame_css():
             hits.extend(mark for mark in common_marks if mark in block)
         if hits:
             offenders[rel] = sorted(set(hits))
-    assert not offenders, (
-        "通用 embed 降级规则只准写在 ui/frame.css；页面级 css 里的副本已移除：%s" % offenders
-    )
+    assert not offenders, "通用 embed 降级规则只准写在 ui/frame.css；页面级 css 里的副本已移除：%s" % offenders
 
 
 def test_frame_css_has_shared_embed_layer():
@@ -66,8 +66,8 @@ def test_frame_css_has_shared_embed_layer():
     assert "html.ui-embed body[data-ui-page]" in frame
     assert "body[data-ui-page].ui-embedded" in frame
     # chrome 去除：header 与全局导航
-    assert "html.ui-embed body[data-ui-page]>header" in frame
-    assert "body[data-ui-page].ui-embedded>header" in frame
+    assert re.search(r"html\.ui-embed body\[data-ui-page\]\s*>\s*header", frame)
+    assert re.search(r"body\[data-ui-page\]\.ui-embedded\s*>\s*header", frame)
 
 
 @pytest.mark.parametrize("page", EMBED_PAGES)
@@ -80,7 +80,7 @@ def test_embed_pages_load_height_reporter(page):
 def test_height_reporter_uses_documented_protocol():
     """高度协议的消息名与字段名是宿主与子页之间的契约，改名要一起改。"""
     script = _read("ui/embed-height.js")
-    assert "omni:'embed-height'" in script
+    assert re.search(r"omni:\s*'embed-height'", script)
     assert "location.origin" in script, "postMessage 必须限定同源"
     assert "ResizeObserver" in script, "内容变化要能触发重新上报"
 
@@ -145,18 +145,10 @@ def test_vendor_assets_carry_cache_versions():
 
 
 @pytest.fixture
-def ui(tmp_path):
-    """本文件自带浏览器 fixture，不依赖 conftest 的 ui_browser。
-
-    理由：本文件要能独立提交、独立跑绿——依赖工作区里尚未落库的 fixture 会让
-    「只应用本文件的改动」时直接红。
-    """
-    from playwright.sync_api import sync_playwright
-
+def ui(tmp_path, ui_browser):
+    """同文件共享浏览器，每例独立上下文和数据库。"""
     client, runtime = _client(tmp_path)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
-        context = browser.new_context()
+    with ui_browser.new_context() as context:
         page = context.new_page()
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -181,7 +173,6 @@ def ui(tmp_path):
         finally:
             page.close()
             context.close()
-            browser.close()
             assert runtime.close()["complete"]
             client.close()
 
@@ -197,9 +188,7 @@ def test_embedded_page_reports_its_height_to_host(ui):
         "()=>{const f=document.querySelector('iframe[data-embed-page=\"storage\"]');"
         "return f&&f.style.height&&parseInt(f.style.height)>100}"
     )
-    height = page.evaluate(
-        "()=>parseInt(document.querySelector('iframe[data-embed-page=\"storage\"]').style.height)"
-    )
+    height = page.evaluate("()=>parseInt(document.querySelector('iframe[data-embed-page=\"storage\"]').style.height)")
     assert 100 < height <= 1600, "iframe 高度应落在钳制区间内，实得 %s" % height
     assert not errors, "内嵌高度上报引发脚本异常：%s" % errors
 

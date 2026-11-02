@@ -33,6 +33,7 @@
 而且 `system/backup.py` 另有整套运行时备份。人事先加一套人格专用备份目录，
 收益低于它带来的目录结构复杂度——真要兜底，走 `omni.system.backup` 统一入口即可。
 """
+
 from __future__ import annotations
 
 from .text_guard import scan_sensitive
@@ -67,9 +68,7 @@ def check_persona_name(name: str) -> None:
     if not text:
         raise PersonaRuleError("「它叫什么」不能空着")
     if len(text) > PERSONA_NAME_MAX_CHARS:
-        raise PersonaRuleError(
-            f"名字太长了（{len(text)} 字，上限 {PERSONA_NAME_MAX_CHARS} 字）"
-        )
+        raise PersonaRuleError(f"名字太长了（{len(text)} 字，上限 {PERSONA_NAME_MAX_CHARS} 字）")
 
 
 def check_persona_prompt(lines: list[str] | str) -> None:
@@ -89,16 +88,13 @@ def check_persona_prompt(lines: list[str] | str) -> None:
     if not body:
         # 关键：空正文**不区分**「清空」与「不存在」——两种都拒绝。
         # 放行了就等于「保存全部」时把人设正文悄悄清空，而界面还在说「已保存」。
-        raise PersonaRuleError(
-            "人格正文不能是空的：想换回默认人设，请把默认内容贴回去再保存"
-        )
+        raise PersonaRuleError("人格正文不能是空的：想换回默认人设，请把默认内容贴回去再保存")
     # 凭据检测走共享原语（与记忆写入闸门同一份正则表）：
     # 人设会跟着每一次对话进提示词，等于把凭据广播给模型供应商。
     hits = scan_sensitive(body)
     if hits:
         raise PersonaRuleError(
-            f"人格正文里出现了疑似{hits[0].label}：人设会跟着每次对话进入提示词，"
-            "凭据不能写在这里。请删掉这一段再保存"
+            f"人格正文里出现了疑似{hits[0].label}：人设会跟着每次对话进入提示词，凭据不能写在这里。请删掉这一段再保存"
         )
     if len(body) < PERSONA_PROMPT_MIN_CHARS:
         raise PersonaRuleError(
@@ -106,9 +102,7 @@ def check_persona_prompt(lines: list[str] | str) -> None:
             "这么短的内容说明身份、说话方式或规则都没写全"
         )
     if len(body) > PERSONA_PROMPT_MAX_CHARS:
-        raise PersonaRuleError(
-            f"人格正文太长了（{len(body)} 字，上限 {PERSONA_PROMPT_MAX_CHARS} 字）"
-        )
+        raise PersonaRuleError(f"人格正文太长了（{len(body)} 字，上限 {PERSONA_PROMPT_MAX_CHARS} 字）")
 
 
 def check_persona_scene(lines: list[str] | str, *, label: str) -> None:
@@ -133,8 +127,7 @@ def check_persona_scene(lines: list[str] | str, *, label: str) -> None:
     hits = scan_sensitive(body)
     if hits:
         raise PersonaRuleError(
-            f"{label}里出现了疑似{hits[0].label}：人设会跟着每次对话进入提示词，"
-            "凭据不能写在这里。请删掉这一段再保存"
+            f"{label}里出现了疑似{hits[0].label}：人设会跟着每次对话进入提示词，凭据不能写在这里。请删掉这一段再保存"
         )
     if len(body) < PERSONA_SCENE_MIN_CHARS:
         raise PersonaRuleError(
@@ -142,9 +135,7 @@ def check_persona_scene(lines: list[str] | str, *, label: str) -> None:
             "这么短的内容说明没写清这个场景下该怎么说"
         )
     if len(body) > PERSONA_SCENE_MAX_CHARS:
-        raise PersonaRuleError(
-            f"{label}太长了（{len(body)} 字，上限 {PERSONA_SCENE_MAX_CHARS} 字）"
-        )
+        raise PersonaRuleError(f"{label}太长了（{len(body)} 字，上限 {PERSONA_SCENE_MAX_CHARS} 字）")
 
 
 def validate_persona_update(updates: dict) -> None:

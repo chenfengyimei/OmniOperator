@@ -15,6 +15,7 @@
 - **旧表/旧文件只冻结不删除**：facts 墓碑、摘要失效等旧机制引用的表保持
   可读，回滚 = 还原备份后回退代码。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -42,9 +43,7 @@ def _read_resident_file(path: Path) -> tuple[list[str], str | None]:
     except UnicodeError:
         return [], "不是 UTF-8 文本"
     # Windows 手工编辑过的文件分隔符是 \r\n§\r\n：读侧归一化后再切分（写侧保持 \n）
-    return [
-        e.strip() for e in text.replace("\r\n", "\n").split(ENTRY_DELIMITER) if e.strip()
-    ], None
+    return [e.strip() for e in text.replace("\r\n", "\n").split(ENTRY_DELIMITER) if e.strip()], None
 
 
 def _backup_memory_db(db_path: Path, backup_dir: Path) -> str | None:

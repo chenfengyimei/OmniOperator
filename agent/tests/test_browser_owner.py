@@ -3,6 +3,7 @@
 用假 `playwright.sync_api` 模块（monkeypatch 进 sys.modules）记录每次调用的线程 id，
 这样能直接观察到 A11 的核心不变量；另有一条真实 Chromium 用例（未安装则 skip）。
 """
+
 from __future__ import annotations
 
 import sys
@@ -60,8 +61,7 @@ class _FakeLocator:
 
 
 class _FakePage:
-    def __init__(self, rec: _Recorder, *, block: threading.Event | None = None,
-                 delay: float = 0.0) -> None:
+    def __init__(self, rec: _Recorder, *, block: threading.Event | None = None, delay: float = 0.0) -> None:
         self._rec = rec
         self._block = block
         self._delay = delay

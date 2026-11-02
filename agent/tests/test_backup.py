@@ -1,4 +1,5 @@
 """备份/恢复单测（D05 前置：迁移前必须有一条可验证的退路）。"""
+
 from __future__ import annotations
 
 import json
@@ -93,9 +94,7 @@ def test_backup_runtime_covers_databases_config_resident_and_skills(tmp_path):
 
 
 def test_backup_runtime_marks_missing_items_instead_of_pretending(tmp_path):
-    paths = RuntimePaths.create(
-        tmp_path / "empty", config_path=tmp_path / "x.yaml", skills_root=tmp_path / "skills"
-    )
+    paths = RuntimePaths.create(tmp_path / "empty", config_path=tmp_path / "x.yaml", skills_root=tmp_path / "skills")
     report = backup_runtime(paths, tmp_path / "out")
     assert report.entries == []
     assert any("state.db" in item for item in report.skipped)
@@ -125,9 +124,7 @@ def test_restore_goes_to_new_dir_and_refuses_overwrite(tmp_path):
 def test_restore_rejects_tampered_backup(tmp_path):
     data = tmp_path / "data"
     data.mkdir()
-    paths = RuntimePaths.create(
-        data, config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills"
-    )
+    paths = RuntimePaths.create(data, config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills")
     _db_with_row(paths.data / "memory.db").close()
     backup_runtime(paths, tmp_path / "out")
 
@@ -181,7 +178,9 @@ def test_snapshot_refuses_self_and_existing_dest_without_mutation(tmp_path):
 
 @pytest.mark.parametrize("rel", ["config.yaml", "skills/demo/SKILL.md"])
 def test_all_file_checksums_verified_before_restore(tmp_path, rel):
-    paths = RuntimePaths.create(tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills")
+    paths = RuntimePaths.create(
+        tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills"
+    )
     paths.config.write_text("qq:\n  access_token: secret\n", encoding="utf-8")
     (paths.skills / "demo").mkdir(parents=True)
     (paths.skills / "demo" / "SKILL.md").write_text("original")
@@ -193,8 +192,13 @@ def test_all_file_checksums_verified_before_restore(tmp_path, rel):
 
 
 def test_credentials_redacted_by_default_and_backup_cannot_overwrite(tmp_path):
-    paths = RuntimePaths.create(tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills")
-    paths.config.write_text("qq:\n  access_token: SECRET-A\n  ws_url: 'ws://user:SECRET-B@localhost:3001?token=SECRET-C'\nmcp:\n  servers:\n    demo:\n      args: [SECRET-D]\n      env: {KEY: SECRET-E}\n", encoding="utf-8")
+    paths = RuntimePaths.create(
+        tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills"
+    )
+    paths.config.write_text(
+        "qq:\n  access_token: SECRET-A\n  ws_url: 'ws://user:SECRET-B@localhost:3001?token=SECRET-C'\nmcp:\n  servers:\n    demo:\n      args: [SECRET-D]\n      env: {KEY: SECRET-E}\n",
+        encoding="utf-8",
+    )
     backup_runtime(paths, tmp_path / "backup")
     text = (tmp_path / "backup/config.yaml").read_text(encoding="utf-8")
     assert "SECRET-" not in text
@@ -215,7 +219,10 @@ def test_manifest_internal_traversal_and_streams_rejected(tmp_path, path):
 
 def test_future_state_version_refused_before_any_restore(tmp_path):
     from omni.memory.state import StateStore, SCHEMA_VERSION
-    paths = RuntimePaths.create(tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills")
+
+    paths = RuntimePaths.create(
+        tmp_path / "data", config_path=tmp_path / "config.yaml", skills_root=tmp_path / "skills"
+    )
     state = StateStore(paths.state)
     with state._tx() as conn:
         conn.execute("UPDATE meta SET value=? WHERE key='schema_version'", (str(SCHEMA_VERSION + 1),))

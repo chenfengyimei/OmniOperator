@@ -8,6 +8,7 @@
 
 全部使用假执行器 / 假模型 / 假发送器：不触碰真实命令、真实账号、真实 QQ 连接。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -122,9 +123,7 @@ class _FakeAgent:
     def __init__(self) -> None:
         self.calls: list[tuple[str, int | None, bool]] = []
 
-    def chat(
-        self, text: str, session_id: int | None = None, *, personal_context: bool = True, **kwargs
-    ) -> str:
+    def chat(self, text: str, session_id: int | None = None, *, personal_context: bool = True, **kwargs) -> str:
         self.calls.append((text, session_id, personal_context))
         return "好的"
 

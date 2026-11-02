@@ -15,6 +15,7 @@
   （xuexi/NOTES.md §1.3）；
 - 工具调用中间过程不持久化，只落 user 与最终 assistant 文本。
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -55,7 +56,6 @@ from .store_schema import (
 
 # 兼容旧私有名引用：声明本体已归 `store_schema.py`
 _FTS_TRIGGERS = FTS_TRIGGERS
-
 
 
 def _has_cjk(text: str) -> bool:
@@ -171,13 +171,13 @@ class MemoryStore:
                 "clarity_changed_at": "TEXT",
                 # 上次"被复习升档"的日期戳：升档每天最多一次（防反复召回把阶梯刷爆）。
                 "clarity_reviewed_at": "TEXT",
+                "evidence": "TEXT NOT NULL DEFAULT ''",
+                "source_ref": "TEXT NOT NULL DEFAULT ''",
             },
             "summaries": {"invalidated_at": "TEXT"},
         }
         for table, columns in additions.items():
-            existing = {
-                str(row[1]) for row in self._conn.execute(f"PRAGMA table_info({table})")
-            }
+            existing = {str(row[1]) for row in self._conn.execute(f"PRAGMA table_info({table})")}
             for name, ddl in columns.items():
                 if name not in existing:
                     self._conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
@@ -197,8 +197,8 @@ class MemoryStore:
         self.fts_tokenizer = ""
         state = self._meta_json(FTS_META_KEY) or {}
         existing = self._fts_table_sql("messages_fts")
-        current = "trigram" if "trigram" in (existing or "") else (
-            "unicode61" if "unicode61" in (existing or "") else ""
+        current = (
+            "trigram" if "trigram" in (existing or "") else ("unicode61" if "unicode61" in (existing or "") else "")
         )
         fresh = not existing
         upgraded = bool(existing) and current != "trigram"
@@ -231,9 +231,7 @@ class MemoryStore:
                 self._conn.execute("INSERT INTO facts_fts(facts_fts) VALUES ('rebuild')")
                 self._conn.execute("INSERT INTO messages_fts(messages_fts) VALUES ('rebuild')")
                 self.fts_rebuilt = True
-                self.fts_reason = (
-                    "fresh" if fresh else "tokenizer_upgrade" if upgraded else "legacy"
-                )
+                self.fts_reason = "fresh" if fresh else "tokenizer_upgrade" if upgraded else "legacy"
             except sqlite3.OperationalError as exc:
                 self.fts_reason = f"rebuild_failed:{exc}"
                 return
@@ -255,9 +253,7 @@ class MemoryStore:
         self.fts_tokenizer = tokenizer
 
     def _fts_table_sql(self, name: str) -> str:
-        row = self._conn.execute(
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", (name,)
-        ).fetchone()
+        row = self._conn.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", (name,)).fetchone()
         return str(row[0] or "") if row else ""
 
     def _meta_json(self, key: str) -> dict:
@@ -276,8 +272,7 @@ class MemoryStore:
         import json
 
         self._conn.execute(
-            "INSERT INTO meta(key, value) VALUES (?, ?) "
-            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            "INSERT INTO meta(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
             (key, json.dumps(value, ensure_ascii=False, sort_keys=True)),
         )
         self._conn.commit()
@@ -286,17 +281,13 @@ class MemoryStore:
 
     @_locked
     def new_session(self, title: str = DEFAULT_TITLE) -> int:
-        cur = self._conn.execute(
-            "INSERT INTO sessions(created_at, title) VALUES (?, ?)", (_now(), title)
-        )
+        cur = self._conn.execute("INSERT INTO sessions(created_at, title) VALUES (?, ?)", (_now(), title))
         self._conn.commit()
         return int(cur.lastrowid)
 
     @_locked
     def latest_session_id(self) -> int | None:
-        row = self._conn.execute(
-            "SELECT id FROM sessions ORDER BY id DESC LIMIT 1"
-        ).fetchone()
+        row = self._conn.execute("SELECT id FROM sessions ORDER BY id DESC LIMIT 1").fetchone()
         return int(row[0]) if row else None
 
     @_locked
@@ -309,16 +300,12 @@ class MemoryStore:
 
     @_locked
     def session_exists(self, session_id: int) -> bool:
-        row = self._conn.execute(
-            "SELECT 1 FROM sessions WHERE id = ?", (session_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT 1 FROM sessions WHERE id = ?", (session_id,)).fetchone()
         return row is not None
 
     @_locked
     def rename_session(self, session_id: int, title: str) -> None:
-        self._conn.execute(
-            "UPDATE sessions SET title = ? WHERE id = ?", (title, session_id)
-        )
+        self._conn.execute("UPDATE sessions SET title = ? WHERE id = ?", (title, session_id))
         self._conn.commit()
 
     # ---------- 通道绑定（QQ 等外部用户 ↔ 本地会话） ----------
@@ -392,9 +379,11 @@ class MemoryStore:
     ) -> None:
         context_json = None
         if prompt_context is not None:
-            if role != 'user':raise ValueError('只有用户回合可以附带上下文快照')
+            if role != "user":
+                raise ValueError("只有用户回合可以附带上下文快照")
             context_json = json.dumps(prompt_context, ensure_ascii=False, sort_keys=True, allow_nan=False)
-            if len(context_json) > 65536:raise ValueError('回合上下文快照超过 65536 字符上限')
+            if len(context_json) > 65536:
+                raise ValueError("回合上下文快照超过 65536 字符上限")
         # 消息、上下文和自动标题同一事务，失败不能留下缺少快照的半个回合。
         with self._conn:
             cur = self._conn.execute(
@@ -402,32 +391,36 @@ class MemoryStore:
                 (session_id, role, content, _now()),
             )
             if context_json is not None:
-                self._conn.execute('INSERT INTO message_contexts(message_id,payload) VALUES (?,?)',
-                                   (int(cur.lastrowid),context_json))
+                self._conn.execute(
+                    "INSERT INTO message_contexts(message_id,payload) VALUES (?,?)", (int(cur.lastrowid), context_json)
+                )
             if self.fts_enabled and not self._fts_triggers:
-                self._conn.execute('INSERT INTO messages_fts(rowid) VALUES (?)',(int(cur.lastrowid),))
-            if auto_title and role == 'user':
-                self._conn.execute('UPDATE sessions SET title=? WHERE id=? AND title=?',
-                                   (content[:24], session_id, DEFAULT_TITLE))
+                self._conn.execute("INSERT INTO messages_fts(rowid) VALUES (?)", (int(cur.lastrowid),))
+            if auto_title and role == "user":
+                self._conn.execute(
+                    "UPDATE sessions SET title=? WHERE id=? AND title=?", (content[:24], session_id, DEFAULT_TITLE)
+                )
 
     @_locked
     def prompt_contexts(self, session_id: int, message_ids: list[int]) -> dict[int, dict]:
         """按会话读取不可变的回合快照，旧消息无快照时保持原样。"""
         result = {}
         unique = list(dict.fromkeys(message_ids))
-        for offset in range(0,len(unique),500):
-            identifiers = unique[offset:offset+500]
-            placeholders = ','.join('?' for _ in identifiers)
+        for offset in range(0, len(unique), 500):
+            identifiers = unique[offset : offset + 500]
+            placeholders = ",".join("?" for _ in identifiers)
             rows = self._conn.execute(
-                'SELECT c.message_id,c.payload FROM message_contexts c JOIN messages m ON m.id=c.message_id '
-                f'WHERE m.session_id=? AND c.message_id IN ({placeholders})',
-                (session_id,*identifiers),
+                "SELECT c.message_id,c.payload FROM message_contexts c JOIN messages m ON m.id=c.message_id "
+                f"WHERE m.session_id=? AND c.message_id IN ({placeholders})",
+                (session_id, *identifiers),
             )
-            for message_id,raw in rows:
-                if len(raw)>65536:raise ValueError('回合上下文快照超限')
-                data=json.loads(raw)
-                if not isinstance(data,dict):raise ValueError('回合上下文快照无效')
-                result[int(message_id)]=data
+            for message_id, raw in rows:
+                if len(raw) > 65536:
+                    raise ValueError("回合上下文快照超限")
+                data = json.loads(raw)
+                if not isinstance(data, dict):
+                    raise ValueError("回合上下文快照无效")
+                result[int(message_id)] = data
         return result
 
     @_locked
@@ -442,43 +435,35 @@ class MemoryStore:
     def recent_messages_ex(self, session_id: int, limit: int) -> list[tuple[int, str, str]]:
         """带消息 id 的历史（D11）：摘要要按**消息区间**记覆盖范围，没 id 就对不上账。"""
         rows = self._conn.execute(
-            "SELECT id, role, content FROM messages WHERE session_id = ? "
-            "ORDER BY id DESC LIMIT ?",
+            "SELECT id, role, content FROM messages WHERE session_id = ? ORDER BY id DESC LIMIT ?",
             (session_id, limit),
         ).fetchall()
         return [(int(r[0]), str(r[1]), str(r[2])) for r in reversed(rows)]
 
     @_locked
     def message_count(self, session_id: int) -> int:
-        row = self._conn.execute(
-            "SELECT COUNT(*) FROM messages WHERE session_id = ?", (session_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT COUNT(*) FROM messages WHERE session_id = ?", (session_id,)).fetchone()
         return int(row[0]) if row else 0
 
     # ---------- 回合后 review 的去重游标（D12） ----------
 
     @_locked
     def max_message_id(self, session_id: int) -> int | None:
-        row = self._conn.execute(
-            "SELECT MAX(id) FROM messages WHERE session_id = ?", (session_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT MAX(id) FROM messages WHERE session_id = ?", (session_id,)).fetchone()
         return int(row[0]) if row and row[0] is not None else None
 
     @_locked
     def claim_review(self, session_id: int, up_to_msg_id: int) -> bool:
         """认领"整理到这条消息为止"。`UNIQUE` 让并发/多进程只有一个成功。"""
         cur = self._conn.execute(
-            "INSERT OR IGNORE INTO review_runs(session_id, up_to_msg_id, outcome, created_at)"
-            " VALUES (?, ?, '', ?)",
+            "INSERT OR IGNORE INTO review_runs(session_id, up_to_msg_id, outcome, created_at) VALUES (?, ?, '', ?)",
             (session_id, int(up_to_msg_id), _now()),
         )
         self._conn.commit()
         return cur.rowcount == 1
 
     @_locked
-    def finish_review(
-        self, session_id: int, up_to_msg_id: int, outcome: str, *, keep: bool = True
-    ) -> None:
+    def finish_review(self, session_id: int, up_to_msg_id: int, outcome: str, *, keep: bool = True) -> None:
         """写结果；`keep=False`（失败）时撤销认领，让这段下次还能重试。"""
         if keep:
             self._conn.execute(
@@ -502,14 +487,10 @@ class MemoryStore:
     @_locked
     def review_history(self, session_id: int, limit: int = 10) -> list[dict]:
         rows = self._conn.execute(
-            "SELECT up_to_msg_id, outcome, created_at FROM review_runs"
-            " WHERE session_id = ? ORDER BY id DESC LIMIT ?",
+            "SELECT up_to_msg_id, outcome, created_at FROM review_runs WHERE session_id = ? ORDER BY id DESC LIMIT ?",
             (session_id, max(1, limit)),
         ).fetchall()
-        return [
-            {"up_to_msg_id": int(r[0]), "outcome": str(r[1]), "created_at": str(r[2])}
-            for r in rows
-        ]
+        return [{"up_to_msg_id": int(r[0]), "outcome": str(r[1]), "created_at": str(r[2])} for r in rows]
 
     # ---------- 摘要（D11：持久上下文） ----------
     @_locked
@@ -553,9 +534,7 @@ class MemoryStore:
             return int(existing[0]), int(existing[1]), False
         version = 1
         if supersedes is not None:
-            row = self._conn.execute(
-                "SELECT version FROM summaries WHERE id = ?", (supersedes,)
-            ).fetchone()
+            row = self._conn.execute("SELECT version FROM summaries WHERE id = ?", (supersedes,)).fetchone()
             if row is not None:
                 version = int(row[0]) + 1
         cur = self._conn.execute(
@@ -606,21 +585,16 @@ class MemoryStore:
         ]
 
     @_locked
-    def list_messages(
-        self, session_id: int, limit: int = 500
-    ) -> list[tuple[str, str, str]]:
+    def list_messages(self, session_id: int, limit: int = 500) -> list[tuple[str, str, str]]:
         """工作台展示用：按时间正序返回 (role, content, created_at)。"""
         rows = self._conn.execute(
-            "SELECT role, content, created_at FROM messages WHERE session_id = ? "
-            "ORDER BY id ASC LIMIT ?",
+            "SELECT role, content, created_at FROM messages WHERE session_id = ? ORDER BY id ASC LIMIT ?",
             (session_id, limit),
         ).fetchall()
         return [(str(r[0]), str(r[1]), str(r[2])) for r in rows]
 
     @_locked
-    def search_messages(
-        self, query: str, limit: int = 8
-    ) -> list[tuple[int, str, str, str]]:
+    def search_messages(self, query: str, limit: int = 8) -> list[tuple[int, str, str, str]]:
         """跨会话搜历史消息：FTS5 优先，LIKE 兜底。返回 (session_id, role, content, created_at)。"""
         tokens = [t for t in query.split() if t]
         if not tokens:
@@ -638,23 +612,13 @@ class MemoryStore:
         rows = self._like_messages(tokens, limit)
         if rows:
             return rows
-        bigrams = sorted(
-            {
-                t[i : i + 2]
-                for t in tokens
-                for i in range(len(t) - 1)
-                if _has_cjk(t[i : i + 2])
-            }
-        )
+        bigrams = sorted({t[i : i + 2] for t in tokens for i in range(len(t) - 1) if _has_cjk(t[i : i + 2])})
         return self._like_messages(bigrams, limit) if bigrams else []
 
-    def _like_messages(
-        self, tokens: list[str], limit: int
-    ) -> list[tuple[int, str, str, str]]:
+    def _like_messages(self, tokens: list[str], limit: int) -> list[tuple[int, str, str, str]]:
         where = " OR ".join("content LIKE ?" for _ in tokens)  # 模板由 token 数生成，参数绑定
         rows = self._conn.execute(
-            f"SELECT session_id, role, content, created_at FROM messages "
-            f"WHERE {where} ORDER BY id DESC LIMIT ?",
+            f"SELECT session_id, role, content, created_at FROM messages WHERE {where} ORDER BY id DESC LIMIT ?",
             [*(f"%{t}%" for t in tokens), limit],
         ).fetchall()
         return [(int(r[0]), str(r[1]), str(r[2]), str(r[3])) for r in rows]
@@ -669,27 +633,29 @@ class MemoryStore:
         source: str = "chat",
         scope: str = "private",
         session_id: int | None = None,
+        evidence: str = "",
     ) -> int | None:
         """写入一条事实。`source` 记来源（chat/review/manual/import），`scope` 定可见域。
 
         返回 `None` 表示**被遗忘规则拒绝**（用户说过不要记）：这条检查放在存储层，
         任何入口都绕不过去，不依赖调用方记不记得检查。
         """
+        from .anchor import require_evidence
+
+        excerpt, source_ref = require_evidence(evidence, label="事实记忆")
         text = content.strip()
         if self.is_forgotten(text):
             return None
         cur = self._conn.execute(
             "INSERT INTO facts(content, created_at, updated_at, source, scope, session_id,"
-            " clarity, clarity_changed_at)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            " clarity, clarity_changed_at, evidence, source_ref)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             # 新写入的事实是 `vivid`：刚说出口的话最清楚。
             # （旧库补列走默认值 clear，存量事实从 clear 起步，不会因升级突然变旧。）
-            (text, _now(), _now(), source, scope, session_id, CLARITY_VIVID, _now()),
+            (text, _now(), _now(), source, scope, session_id, CLARITY_VIVID, _now(), excerpt, source_ref),
         )
         if self.fts_enabled and not self._fts_triggers:
-            self._conn.execute(
-                "INSERT INTO facts_fts(rowid) VALUES (?)", (int(cur.lastrowid),)
-            )
+            self._conn.execute("INSERT INTO facts_fts(rowid) VALUES (?)", (int(cur.lastrowid),))
         self._conn.commit()
         return int(cur.lastrowid)
 
@@ -699,30 +665,23 @@ class MemoryStore:
         key = normalize_text(content)
         if not key:
             return False
-        row = self._conn.execute(
-            "SELECT 1 FROM tombstones WHERE normalized = ? LIMIT 1", (key,)
-        ).fetchone()
+        row = self._conn.execute("SELECT 1 FROM tombstones WHERE normalized = ? LIMIT 1", (key,)).fetchone()
         return row is not None
 
     @_locked
-    def forget_fact(
-        self, fact_id: int, *, reason: str = "用户要求删除", session_id: int | None = None
-    ) -> bool:
+    def forget_fact(self, fact_id: int, *, reason: str = "用户要求删除", session_id: int | None = None) -> bool:
         """删除一条事实并留下墓碑：review 不能再把它学回来。
 
         同时把"包含这段文字的摘要"标为失效——否则删了事实、摘要里还留着，
         下一轮照样被注入，等于没删。
         """
-        row = self._conn.execute(
-            "SELECT content FROM facts WHERE id = ?", (fact_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT content FROM facts WHERE id = ?", (fact_id,)).fetchone()
         if row is None:
             return False
         content = str(row[0])
         self._conn.execute("DELETE FROM facts WHERE id = ?", (fact_id,))
         self._conn.execute(
-            "INSERT INTO tombstones(normalized, reason, session_id, created_at)"
-            " VALUES (?, ?, ?, ?)",
+            "INSERT INTO tombstones(normalized, reason, session_id, created_at) VALUES (?, ?, ?, ?)",
             (normalize_text(content), reason, session_id, _now()),
         )
         self._invalidate_summaries(content, session_id)
@@ -749,9 +708,7 @@ class MemoryStore:
         return len(hit)
 
     @_locked
-    def search_facts(
-        self, query: str, limit: int = 5, *, scope: str | None = None
-    ) -> list[str]:
+    def search_facts(self, query: str, limit: int = 5, *, scope: str | None = None) -> list[str]:
         """多级降级检索：FTS5（bm25 排序）→ 全词 AND → 全词 OR → 中文 2-gram 兜底。
 
         `scope` 非空时**先按作用域过滤**：群聊场景只能看到群作用域的事实，
@@ -760,9 +717,7 @@ class MemoryStore:
         return [row["content"] for row in self._search_fact_rows(query, limit, scope=scope)]
 
     @_locked
-    def search_fact_rows(
-        self, query: str, limit: int = 5, *, scope: str | None = None
-    ) -> list[dict]:
+    def search_fact_rows(self, query: str, limit: int = 5, *, scope: str | None = None) -> list[dict]:
         """search_facts 的行版：同一套降级链，但返回带 id 的行（供工作台逐条删除）。
 
         与 search_facts **共用同一个实现**（见 _search_fact_rows），因此返回顺序
@@ -770,9 +725,7 @@ class MemoryStore:
         """
         return self._search_fact_rows(query, limit, scope=scope)
 
-    def _search_fact_rows(
-        self, query: str, limit: int, *, scope: str | None = None
-    ) -> list[dict]:
+    def _search_fact_rows(self, query: str, limit: int, *, scope: str | None = None) -> list[dict]:
         """检索链的唯一实现：FTS5 → 全词 AND → 全词 OR → 中文 2-gram，末尾强化重排。"""
         tokens = [t for t in query.split() if t]
         where_scope = "" if scope is None else " AND scope = ?"
@@ -780,8 +733,7 @@ class MemoryStore:
         rows: list[dict]
         if not tokens:  # 空查询：返回最近的记忆
             rows = self._conn.execute(
-                "SELECT id, content, hits, clarity FROM facts WHERE 1=1"
-                f"{where_scope} ORDER BY id DESC LIMIT ?",
+                f"SELECT id, content, hits, clarity FROM facts WHERE 1=1{where_scope} ORDER BY id DESC LIMIT ?",
                 [*scope_params, limit * RECALL_ROW_LIMIT_FACTOR],
             ).fetchall()
             return self._rank_fact_rows(
@@ -805,24 +757,23 @@ class MemoryStore:
             except sqlite3.OperationalError:
                 pass  # 查询过短等场景，走 LIKE 链
         and_where = " AND ".join("content LIKE ?" for _ in tokens)
-        rows = self._fetch_fact_rows(and_where, [f"%{t}%" for t in tokens], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params)
+        rows = self._fetch_fact_rows(
+            and_where, [f"%{t}%" for t in tokens], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params
+        )
         if rows:
             return self._rank_fact_rows(rows, limit)
         or_where = " OR ".join("content LIKE ?" for _ in tokens)
-        rows = self._fetch_fact_rows(or_where, [f"%{t}%" for t in tokens], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params)
+        rows = self._fetch_fact_rows(
+            or_where, [f"%{t}%" for t in tokens], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params
+        )
         if rows:
             return self._rank_fact_rows(rows, limit)
-        bigrams = sorted(
-            {
-                t[i : i + 2]
-                for t in tokens
-                for i in range(len(t) - 1)
-                if _has_cjk(t[i : i + 2])
-            }
-        )
+        bigrams = sorted({t[i : i + 2] for t in tokens for i in range(len(t) - 1) if _has_cjk(t[i : i + 2])})
         if bigrams:
             where = " OR ".join("content LIKE ?" for _ in bigrams)
-            rows = self._fetch_fact_rows(where, [f"%{b}%" for b in bigrams], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params)
+            rows = self._fetch_fact_rows(
+                where, [f"%{b}%" for b in bigrams], limit * RECALL_ROW_LIMIT_FACTOR, where_scope, scope_params
+            )
             if rows:
                 return self._rank_fact_rows(rows, limit)
         return []
@@ -876,7 +827,7 @@ class MemoryStore:
         """工作台展示用：带来源/作用域/时间，让人能判断"这条是哪来的"。"""
         rows = self._conn.execute(
             "SELECT id, content, source, scope, session_id, created_at, hits, last_used,"
-            " clarity FROM facts ORDER BY id DESC LIMIT ?",
+            " clarity, evidence, source_ref FROM facts ORDER BY id DESC LIMIT ?",
             (max(1, limit),),
         ).fetchall()
         return [
@@ -890,6 +841,8 @@ class MemoryStore:
                 "hits": int(r[6] or 0),
                 "last_used": str(r[7]) if r[7] is not None else None,
                 "clarity": normalize_clarity(r[8] if len(r) > 8 else None),
+                "evidence": str(r[9] or ""),
+                "source_ref": str(r[10] or ""),
             }
             for r in rows
         ]
@@ -900,8 +853,12 @@ class MemoryStore:
         if not candidates:
             return []
         marks = ",".join("?" for _ in candidates)
-        found = {r[0] for r in self._conn.execute(
-            f"SELECT content FROM facts WHERE scope=? AND content IN ({marks})", [scope, *candidates])}
+        found = {
+            r[0]
+            for r in self._conn.execute(
+                f"SELECT content FROM facts WHERE scope=? AND content IN ({marks})", [scope, *candidates]
+            )
+        }
         return [text for text in candidates if text in found]
 
     @_locked
@@ -911,6 +868,7 @@ class MemoryStore:
         *,
         scope: str,
         cooldown_minutes: int = TOUCH_COOLDOWN_MINUTES,
+        now: dt.datetime | None = None,
     ) -> int:
         """召回命中计数：30 分钟冷却 + 每天最多一次（借鉴 SeekMemory 的防正反馈设计）。
 
@@ -926,7 +884,7 @@ class MemoryStore:
         """
         if not contents:
             return 0
-        now = dt.datetime.now().astimezone()
+        now = (now or dt.datetime.now().astimezone()).astimezone()
         cutoff = (now - dt.timedelta(minutes=cooldown_minutes)).isoformat(timespec="seconds")
         today = now.date().isoformat()
         counted = 0
@@ -935,7 +893,7 @@ class MemoryStore:
                 "UPDATE facts SET hits = hits + 1, last_used = ? "
                 "WHERE scope = ? AND content = ? "
                 "AND (last_used IS NULL OR (last_used < ? AND substr(last_used, 1, 10) <> ?))",
-                (_now(), scope, text, cutoff, today),
+                (now.isoformat(timespec="seconds"), scope, text, cutoff, today),
             )
             counted += max(0, cur.rowcount)
         self._conn.commit()
@@ -960,8 +918,7 @@ class MemoryStore:
         changed = 0
         for text in dict.fromkeys(contents):
             row = self._conn.execute(
-                "SELECT id, clarity, clarity_reviewed_at FROM facts"
-                " WHERE scope = ? AND content = ? LIMIT 1",
+                "SELECT id, clarity, clarity_reviewed_at FROM facts WHERE scope = ? AND content = ? LIMIT 1",
                 (scope, text),
             ).fetchone()
             if row is None:
@@ -974,8 +931,7 @@ class MemoryStore:
             if after == before:
                 continue
             self._conn.execute(
-                "UPDATE facts SET clarity = ?, clarity_changed_at = ?, clarity_reviewed_at = ?"
-                " WHERE id = ?",
+                "UPDATE facts SET clarity = ?, clarity_changed_at = ?, clarity_reviewed_at = ? WHERE id = ?",
                 (after, _now(), _now(), int(row[0])),
             )
             changed += 1
@@ -1009,9 +965,7 @@ class MemoryStore:
             # 今天已经衰减过：直接返回（只跑一次聚合查询看分布，不搬整表）。
             counts = {
                 str(row[0]): int(row[1])
-                for row in self._conn.execute(
-                    "SELECT clarity, COUNT(*) FROM facts GROUP BY clarity"
-                ).fetchall()
+                for row in self._conn.execute("SELECT clarity, COUNT(*) FROM facts GROUP BY clarity").fetchall()
             }
             return {
                 "day": day_key,
@@ -1020,9 +974,7 @@ class MemoryStore:
                 "by_clarity": counts,
                 "skipped": True,
             }
-        rows = self._conn.execute(
-            "SELECT id, content, created_at, last_used, clarity FROM facts"
-        ).fetchall()
+        rows = self._conn.execute("SELECT id, content, created_at, last_used, clarity FROM facts").fetchall()
         changed = 0
         counts = {}
         for row in rows:
@@ -1067,6 +1019,18 @@ class MemoryStore:
             [scope, *contents],
         ).fetchall()
         return {str(r[0]): int(r[1]) for r in rows}
+
+    @_locked
+    def matching_fact_ids(self, content: str, *, scope: str) -> dict[str, int]:
+        """遗忘仅匹配同一句话的书写差异；不依赖FTS、排序或展示条数。"""
+        key = normalize_text(content)
+        if not key:
+            return {}
+        return {
+            str(row[0]): int(row[1])
+            for row in self._conn.execute("SELECT content, id FROM facts WHERE scope = ?", (scope,))
+            if normalize_text(row[0]) == key
+        }
 
     @_locked
     def fact_timestamps(self, contents: list[str], *, scope: str) -> dict[str, str]:
@@ -1114,14 +1078,7 @@ class MemoryStore:
         hits = _like(tokens)
         if hits:
             return hits
-        bigrams = sorted(
-            {
-                t[i : i + 2]
-                for t in tokens
-                for i in range(len(t) - 1)
-                if _has_cjk(t[i : i + 2])
-            }
-        )
+        bigrams = sorted({t[i : i + 2] for t in tokens for i in range(len(t) - 1) if _has_cjk(t[i : i + 2])})
         return _like(bigrams) if bigrams else []
 
     @_locked
@@ -1142,9 +1099,7 @@ class MemoryStore:
 
     @_locked
     def profile_lines(self) -> list[tuple[int, str]]:
-        rows = self._conn.execute(
-            "SELECT id, content FROM profile ORDER BY id"
-        ).fetchall()
+        rows = self._conn.execute("SELECT id, content FROM profile ORDER BY id").fetchall()
         return [(int(r[0]), str(r[1])) for r in rows]
 
     @_locked
@@ -1152,9 +1107,7 @@ class MemoryStore:
         return sum(len(content) for _, content in self.profile_lines())
 
     @_locked
-    def profile_add(
-        self, content: str, *, source: str = "manual", evidence: str = ""
-    ) -> tuple[bool, str]:
+    def profile_add(self, content: str, *, source: str = "manual", evidence: str = "") -> tuple[bool, str]:
         """超限时返回 (False, 错误+当前档案+剩余额度)，逼调用方当轮合并。
 
         source / evidence 形参只为与 OwnerMemory 门面同形（冻结表不记来源与出处），
@@ -1188,9 +1141,7 @@ class MemoryStore:
         return self.profile_edit_checked(line_id, content)[0]
 
     @_locked
-    def profile_edit_checked(
-        self, line_id: int, content: str, *, evidence: str | None = None
-    ) -> tuple[bool, str]:
+    def profile_edit_checked(self, line_id: int, content: str, *, evidence: str | None = None) -> tuple[bool, str]:
         """改一行档案。**必须重算总额度**（A15）：以前 edit 不检查长度，
         一句"把档案改成……"就能把限额顶穿，add 的限额形同虚设。
 
@@ -1198,18 +1149,13 @@ class MemoryStore:
         text = content.strip()
         if not text:
             return False, "错误：档案内容不能为空"
-        row = self._conn.execute(
-            "SELECT content FROM profile WHERE id = ?", (line_id,)
-        ).fetchone()
+        row = self._conn.execute("SELECT content FROM profile WHERE id = ?", (line_id,)).fetchone()
         if row is None:
             return False, f"错误：不存在第 {line_id} 条（先 view 查看编号）"
         usage = self.profile_usage_chars()
         after = usage - len(str(row[0])) + len(text)
         if after > PROFILE_MAX_CHARS:
-            return False, (
-                f"档案额度不够：改完后 {after}/{PROFILE_MAX_CHARS} 字符。"
-                "请先合并或删减其它条目再改。"
-            )
+            return False, (f"档案额度不够：改完后 {after}/{PROFILE_MAX_CHARS} 字符。请先合并或删减其它条目再改。")
         self._conn.execute(
             "UPDATE profile SET content = ?, updated_at = ? WHERE id = ?",
             (text, _now(), line_id),
@@ -1276,8 +1222,7 @@ class MemoryStore:
         counts = {
             int(r[0]): int(r[1])
             for r in self._conn.execute(
-                "SELECT session_id, COUNT(*) FROM messages WHERE created_at >= ? "
-                "GROUP BY session_id",
+                "SELECT session_id, COUNT(*) FROM messages WHERE created_at >= ? GROUP BY session_id",
                 (since_iso,),
             ).fetchall()
         }
@@ -1287,23 +1232,19 @@ class MemoryStore:
             if sid in counts
         ]
         facts_new = int(
-            self._conn.execute(
-                "SELECT COUNT(*) FROM facts WHERE created_at >= ?", (since_iso,)
-            ).fetchone()[0]
+            self._conn.execute("SELECT COUNT(*) FROM facts WHERE created_at >= ?", (since_iso,)).fetchone()[0]
         )
         facts_recent = [
             str(r[0])
             for r in self._conn.execute(
-                "SELECT content FROM facts WHERE created_at >= ? "
-                "ORDER BY id DESC LIMIT 20",
+                "SELECT content FROM facts WHERE created_at >= ? ORDER BY id DESC LIMIT 20",
                 (since_iso,),
             ).fetchall()
         ]
         reviews_recent = [
             str(r[0])
             for r in self._conn.execute(
-                "SELECT outcome FROM reviews WHERE created_at >= ? "
-                "ORDER BY id DESC LIMIT 5",
+                "SELECT outcome FROM reviews WHERE created_at >= ? ORDER BY id DESC LIMIT 5",
                 (since_iso,),
             ).fetchall()
         ]
@@ -1350,9 +1291,7 @@ class MemoryStore:
 
     @_locked
     def todo_delete(self, session_id: int, todo_id: int) -> bool:
-        cur = self._conn.execute(
-            "DELETE FROM todos WHERE id = ? AND session_id = ?", (todo_id, session_id)
-        )
+        cur = self._conn.execute("DELETE FROM todos WHERE id = ? AND session_id = ?", (todo_id, session_id))
         self._conn.commit()
         return cur.rowcount > 0
 

@@ -3,6 +3,7 @@
 之前这些 dataclass 定义在 `state.py`；拆域 mixin 后由 state.py 与各域模块
 共同单向依赖这里，避免循环 import。只承载数据形状，不做查询或事务。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -48,7 +49,7 @@ SessionLease = Lease  # 兼容旧名
 @dataclass(frozen=True)
 class MigrationRecord:
     source: str
-    status: str        # missing | empty | ok | corrupt | resolved_missing | failed
+    status: str  # missing | empty | ok | corrupt | resolved_missing | failed
     sha256: str = ""
     imported: int = 0
     detail: str = ""

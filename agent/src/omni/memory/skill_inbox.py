@@ -14,6 +14,7 @@
 - 激活与技能编辑共用同一把跨进程文件锁（`skills/<name>.lock`），并把
   来源记进修订历史（provenance），激活前对隔离区内容做防篡改复核。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -40,11 +41,11 @@ from .skills import (
     parse_skill_text,
 )
 
-MAX_ZIP_BYTES = 4 * 1024 * 1024        # 压缩包本身 ≤ 4 MiB
+MAX_ZIP_BYTES = 4 * 1024 * 1024  # 压缩包本身 ≤ 4 MiB
 MAX_UNPACKED_BYTES = 16 * 1024 * 1024  # 解包总量 ≤ 16 MiB
-MAX_ENTRIES = 200                      # 条目数上限（含目录记录）
-MAX_SKILL_MD_BYTES = 128 * 1024        # 单个 SKILL.md ≤ 128 KiB
-MAX_REFERENCE_DEPTH = 4                 # references/a/b/file.md 最深四级
+MAX_ENTRIES = 200  # 条目数上限（含目录记录）
+MAX_SKILL_MD_BYTES = 128 * 1024  # 单个 SKILL.md ≤ 128 KiB
+MAX_REFERENCE_DEPTH = 4  # references/a/b/file.md 最深四级
 
 
 def _package_name(filename: str) -> str | None:
@@ -108,10 +109,7 @@ class SkillInbox:
             )
         zip_path = self._inbox / package
         if zip_path.is_symlink() or not zip_path.is_file():
-            return False, (
-                f"错误：inbox 里没有 {package or '（空）'}。"
-                "请把技能包 zip 放到 skills/.inbox/ 目录后再导入"
-            )
+            return False, (f"错误：inbox 里没有 {package or '（空）'}。请把技能包 zip 放到 skills/.inbox/ 目录后再导入")
         try:
             size = zip_path.stat().st_size
         except OSError as exc:
@@ -133,8 +131,7 @@ class SkillInbox:
             name, description, version = self._skill_meta(staging)
             if self._skills.exists(name):
                 return False, (
-                    f"错误：正式技能库已有同名技能 {name}。先查看现有内容再决定："
-                    "合并进来，或先删除旧版再导入"
+                    f"错误：正式技能库已有同名技能 {name}。先查看现有内容再决定：合并进来，或先删除旧版再导入"
                 )
             target = self._quarantine / name
             if target.is_symlink():
@@ -149,10 +146,7 @@ class SkillInbox:
                 "source_zip": package,
                 "zip_sha256": _digest(zip_path.read_bytes()),
                 "imported_at": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
-                "files": [
-                    {"path": rel, "bytes": len(data), "sha256": _digest(data)}
-                    for rel, data in files
-                ],
+                "files": [{"path": rel, "bytes": len(data), "sha256": _digest(data)} for rel, data in files],
             }
             atomic_write_text(
                 self._quarantine / f"{name}.manifest.json",
@@ -166,8 +160,7 @@ class SkillInbox:
             shutil.rmtree(staging, ignore_errors=True)
         total = sum(item["bytes"] for item in manifest["files"])
         lines = [
-            f"已导入 {package} 到隔离区（技能名 {name}，v{version}，"
-            f"{len(files)} 个文件、{total} 字节）：",
+            f"已导入 {package} 到隔离区（技能名 {name}，v{version}，{len(files)} 个文件、{total} 字节）：",
             f"- 描述：{description}",
             f"- 压缩包指纹：{manifest['zip_sha256'][:16]}",
         ]
@@ -189,10 +182,7 @@ class SkillInbox:
         if not data:
             return False, "错误：上传内容为空"
         if len(data) > MAX_ZIP_BYTES:
-            return False, (
-                f"错误：压缩包超过 {MAX_ZIP_BYTES // (1024 * 1024)} MiB 上限"
-                f"（当前 {len(data)} 字节）"
-            )
+            return False, (f"错误：压缩包超过 {MAX_ZIP_BYTES // (1024 * 1024)} MiB 上限（当前 {len(data)} 字节）")
         if not data.startswith((b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")):
             return False, "错误：不是 zip 压缩包（文件头不匹配）"
         target = self._inbox / name
@@ -326,10 +316,7 @@ class SkillInbox:
         meta = parsed["meta"]
         name = str(meta.get("name", "")).strip()
         if not NAME_RE.match(name):
-            return (
-                "错误：SKILL.md 的 name 需为 3-40 位小写字母/数字/连字符"
-                "（如 bilibili-watch），且不以连字符开头/结尾"
-            )
+            return "错误：SKILL.md 的 name 需为 3-40 位小写字母/数字/连字符（如 bilibili-watch），且不以连字符开头/结尾"
         description = str(meta.get("description", "")).strip()
         if not description or len(description) > MAX_DESCRIPTION:
             return f"错误：description 必须非空且 ≤{MAX_DESCRIPTION} 字（当前 {len(description)}）"
@@ -426,12 +413,15 @@ class SkillInbox:
                     stat = path.stat()
                 except OSError:
                     continue
-                out.append({
-                    "name": path.name,
-                    "bytes": stat.st_size,
-                    "modified_at": dt.datetime.fromtimestamp(stat.st_mtime)
-                    .astimezone().isoformat(timespec="seconds"),
-                })
+                out.append(
+                    {
+                        "name": path.name,
+                        "bytes": stat.st_size,
+                        "modified_at": dt.datetime.fromtimestamp(stat.st_mtime)
+                        .astimezone()
+                        .isoformat(timespec="seconds"),
+                    }
+                )
         except OSError:
             pass
         return out
@@ -449,10 +439,7 @@ class SkillInbox:
             return False, f"错误：隔离区没有待激活的技能 {name}（先 skill_pending 查看）"
         manifest = self._load_manifest(name)
         if manifest is None:
-            return False, (
-                f"错误：技能 {name} 的隔离区清单缺失或损坏，无法核对内容是否被改动；"
-                "请重新导入后再激活"
-            )
+            return False, (f"错误：技能 {name} 的隔离区清单缺失或损坏，无法核对内容是否被改动；请重新导入后再激活")
         # 防篡改复核：导入与激活之间文件可能被改过，激活前重新过同一套校验
         problem = self._validate_skill(pkg_dir)
         if problem:
@@ -486,14 +473,11 @@ class SkillInbox:
         (self._quarantine / f"{name}.manifest.json").unlink(missing_ok=True)
         if ok:
             return True, (
-                f"已激活技能 {name}（skills/{name}/，进入正式技能库）。{note}"
-                "原 zip 仍保留在 inbox，可自行删除。"
+                f"已激活技能 {name}（skills/{name}/，进入正式技能库）。{note}原 zip 仍保留在 inbox，可自行删除。"
             )
         return True, f"已激活技能 {name}，但{note}"
 
-    def _verify_against_manifest(
-        self, pkg_dir: Path, manifest: dict[str, Any]
-    ) -> str | None:
+    def _verify_against_manifest(self, pkg_dir: Path, manifest: dict[str, Any]) -> str | None:
         """隔离区当前内容与导入清单逐文件比对（路径集合 + sha256 全等）。"""
         recorded: dict[str, str] = {}
         for item in manifest.get("files", []):

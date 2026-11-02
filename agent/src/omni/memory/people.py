@@ -12,6 +12,7 @@
 明确不做：不做删除的墓碑语义（人物记忆是工作笔记不是事实库）；模型侧不提供
 删除人物/条目的工具（删除是工作台用户动作）；不做跨人物关系图。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -158,9 +159,7 @@ class PersonStore:
             "source_ref": "TEXT NOT NULL DEFAULT ''",
             "evidence": "TEXT NOT NULL DEFAULT ''",
         }
-        existing = {
-            str(row[1]) for row in self._conn.execute("PRAGMA table_info(person_entries)")
-        }
+        existing = {str(row[1]) for row in self._conn.execute("PRAGMA table_info(person_entries)")}
         for name, ddl in additions.items():
             if name not in existing:
                 self._conn.execute(f"ALTER TABLE person_entries ADD COLUMN {name} {ddl}")
@@ -188,8 +187,7 @@ class PersonStore:
     @_locked
     def get_person(self, person_id: int) -> dict | None:
         row = self._conn.execute(
-            "SELECT id, name, importance, note, created_at, COALESCE(updated_at,'')"
-            " FROM people WHERE id = ?",
+            "SELECT id, name, importance, note, created_at, COALESCE(updated_at,'') FROM people WHERE id = ?",
             (int(person_id),),
         ).fetchone()
         if not row:
@@ -210,14 +208,10 @@ class PersonStore:
 
     def _accounts_of(self, person_id: int) -> list[dict]:
         rows = self._conn.execute(
-            "SELECT id, channel, value, COALESCE(label,'') FROM person_accounts"
-            " WHERE person_id = ? ORDER BY id",
+            "SELECT id, channel, value, COALESCE(label,'') FROM person_accounts WHERE person_id = ? ORDER BY id",
             (int(person_id),),
         ).fetchall()
-        return [
-            {"id": int(r[0]), "channel": str(r[1]), "value": str(r[2]), "label": str(r[3])}
-            for r in rows
-        ]
+        return [{"id": int(r[0]), "channel": str(r[1]), "value": str(r[2]), "label": str(r[3])} for r in rows]
 
     @_locked
     def list_people(self) -> list[dict]:
@@ -243,8 +237,12 @@ class PersonStore:
 
     @_locked
     def update_person(
-        self, person_id: int, *, name: str | None = None,
-        importance: str | None = None, note: str | None = None,
+        self,
+        person_id: int,
+        *,
+        name: str | None = None,
+        importance: str | None = None,
+        note: str | None = None,
     ) -> bool:
         if not self.get_person(int(person_id)):
             return False
@@ -314,21 +312,16 @@ class PersonStore:
         if existing:
             raise PersonError(f"{channel} 账号 {value} 已属于「{existing[0]}」")
         cur = self._conn.execute(
-            "INSERT INTO person_accounts(person_id, channel, value, label, created_at)"
-            " VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO person_accounts(person_id, channel, value, label, created_at) VALUES (?, ?, ?, ?, ?)",
             (int(person_id), channel, value, str(label or "")[:100], _now()),
         )
-        self._conn.execute(
-            "UPDATE people SET updated_at = ? WHERE id = ?", (_now(), int(person_id))
-        )
+        self._conn.execute("UPDATE people SET updated_at = ? WHERE id = ?", (_now(), int(person_id)))
         self._conn.commit()
         return int(cur.lastrowid)
 
     @_locked
     def unlink_account(self, account_id: int) -> bool:
-        cur = self._conn.execute(
-            "DELETE FROM person_accounts WHERE id = ?", (int(account_id),)
-        )
+        cur = self._conn.execute("DELETE FROM person_accounts WHERE id = ?", (int(account_id),))
         self._conn.commit()
         return int(cur.rowcount) > 0
 
@@ -345,24 +338,18 @@ class PersonStore:
     # ---------------------------------------------------------------- 所有者
 
     def _owner_exists(self) -> bool:
-        row = self._conn.execute(
-            "SELECT 1 FROM people WHERE importance = 'owner' LIMIT 1"
-        ).fetchone()
+        row = self._conn.execute("SELECT 1 FROM people WHERE importance = 'owner' LIMIT 1").fetchone()
         return row is not None
 
     @_locked
     def ensure_owner(self, name: str = "所有者") -> int:
         """所有者是唯一的一等人物：档案行与常驻笔记并入其后共用同一套条目模型。幂等。"""
-        row = self._conn.execute(
-            "SELECT id FROM people WHERE importance = 'owner' ORDER BY id LIMIT 1"
-        ).fetchone()
+        row = self._conn.execute("SELECT id FROM people WHERE importance = 'owner' ORDER BY id LIMIT 1").fetchone()
         if row:
             return int(row[0])
         return self.create_person(name, importance="owner")
 
-    def _owner_usage(
-        self, person_id: int, entry_kind: str, *, exclude_entry_id: int | None = None
-    ) -> int:
+    def _owner_usage(self, person_id: int, entry_kind: str, *, exclude_entry_id: int | None = None) -> int:
         row = self._conn.execute(
             "SELECT COALESCE(SUM(LENGTH(content)), 0) FROM person_entries"
             " WHERE person_id = ? AND entry_kind = ? AND id != ?",
@@ -380,8 +367,7 @@ class PersonStore:
         """总量超限的报错：档案与常驻各自复刻旧协议文案（含当前条目与合并指引）。"""
         total = self._owner_totals[entry_kind]
         rows = self._conn.execute(
-            "SELECT id, content FROM person_entries"
-            " WHERE person_id = ? AND entry_kind = ? AND id != ? ORDER BY id",
+            "SELECT id, content FROM person_entries WHERE person_id = ? AND entry_kind = ? AND id != ? ORDER BY id",
             (int(person_id), entry_kind, -1 if exclude_entry_id is None else int(exclude_entry_id)),
         ).fetchall()
         entries = [(int(r[0]), str(r[1])) for r in rows]
@@ -410,15 +396,11 @@ class PersonStore:
             return
         used = self._owner_usage(person_id, entry_kind, exclude_entry_id=exclude_entry_id)
         if used + len(content) > self._owner_totals[entry_kind]:
-            raise self._owner_total_error(
-                person_id, entry_kind, content, used=used, exclude_entry_id=exclude_entry_id
-            )
+            raise self._owner_total_error(person_id, entry_kind, content, used=used, exclude_entry_id=exclude_entry_id)
 
     @_locked
     def migration_done(self, key: str) -> bool:
-        row = self._conn.execute(
-            "SELECT 1 FROM owner_migration WHERE key = ?", (str(key),)
-        ).fetchone()
+        row = self._conn.execute("SELECT 1 FROM owner_migration WHERE key = ?", (str(key),)).fetchone()
         return row is not None
 
     @_locked
@@ -430,13 +412,10 @@ class PersonStore:
         self._conn.commit()
 
     @_locked
-    def _import_entry(
-        self, person_id: int, entry_kind: str, content: str, *, source: str = "import"
-    ) -> int:
+    def _import_entry(self, person_id: int, entry_kind: str, content: str, *, source: str = "import") -> int:
         """迁移专用：历史数据如实入账，绕过限额与注入扫描（owner_migrate 调用）。"""
         cur = self._conn.execute(
-            "INSERT INTO person_entries(person_id, entry_kind, content, source, created_at)"
-            " VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO person_entries(person_id, entry_kind, content, source, created_at) VALUES (?, ?, ?, ?, ?)",
             (int(person_id), entry_kind, str(content), str(source), _now()),
         )
         self._conn.commit()
@@ -452,17 +431,12 @@ class PersonStore:
             raise PersonError("条目内容不能为空")
         limit = self._limits[entry_kind]
         person = self.get_person(int(person_id))
-        if (
-            person is not None
-            and person["importance"] == "owner"
-            and entry_kind in self._owner_totals
-        ):
+        if person is not None and person["importance"] == "owner" and entry_kind in self._owner_totals:
             # 所有者沿用"总量制"：单条上限=总量上限（旧档案行/常驻条目没有单条限制）
             limit = self._owner_totals[entry_kind]
         if len(content) > limit:
             raise PersonError(
-                f"该条目超过 {entry_kind} 限额（{limit} 字，本次 {len(content)} 字）："
-                "请先合并或精简现有条目再写入"
+                f"该条目超过 {entry_kind} 限额（{limit} 字，本次 {len(content)} 字）：请先合并或精简现有条目再写入"
             )
         if entry_kind in ("archive", "resident"):
             risk = injection_risk(content)
@@ -472,9 +446,15 @@ class PersonStore:
 
     @_locked
     def add_entry(
-        self, person_id: int, entry_kind: str, content: str, *,
-        source: str = "chat", expires_at: str | None = None,
-        source_ref: str = "", evidence: str = "",
+        self,
+        person_id: int,
+        entry_kind: str,
+        content: str,
+        *,
+        source: str = "chat",
+        expires_at: str | None = None,
+        source_ref: str = "",
+        evidence: str = "",
     ) -> int:
         """写入条目。锚定校验在**存储层**收口（不是工具层）：
         任何写入路径都走这里，后台整理绕不过去。
@@ -495,9 +475,7 @@ class PersonStore:
                 raise PersonError("临时事件的过期时间必须在未来")
         ctx = current_anchor()
         try:
-            kept_evidence, kept_ref = require_evidence(
-                evidence, label=_ENTRY_LABELS.get(entry_kind, "人物条目")
-            )
+            kept_evidence, kept_ref = require_evidence(evidence, label=_ENTRY_LABELS.get(entry_kind, "人物条目"))
         except AnchorError as exc:
             raise PersonError(str(exc)) from exc
         cur = self._conn.execute(
@@ -505,19 +483,21 @@ class PersonStore:
             " evidence, created_at, expires_at)"
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
-                int(person_id), entry_kind, content,
+                int(person_id),
+                entry_kind,
+                content,
                 (ctx.source if ctx is not None else str(source or "chat")),
                 str(kept_ref or source_ref or ""),
-                kept_evidence, _now(), expires_at,
+                kept_evidence,
+                _now(),
+                expires_at,
             ),
         )
         self._conn.commit()
         return int(cur.lastrowid)
 
     @_locked
-    def edit_entry(
-        self, entry_id: int, content: str, *, evidence: str | None = None
-    ) -> bool:
+    def edit_entry(self, entry_id: int, content: str, *, evidence: str | None = None) -> bool:
         """改写条目内容。
 
         出处与内容绑定：内容被改写后，旧摘录未必还支撑新内容。
@@ -526,8 +506,7 @@ class PersonStore:
           其实对不上"）。
         """
         row = self._conn.execute(
-            "SELECT person_id, entry_kind, content, COALESCE(evidence,'')"
-            " FROM person_entries WHERE id = ?",
+            "SELECT person_id, entry_kind, content, COALESCE(evidence,'') FROM person_entries WHERE id = ?",
             (int(entry_id),),
         ).fetchone()
         if not row:
@@ -535,15 +514,11 @@ class PersonStore:
         person_id, entry_kind = int(row[0]), str(row[1])
         old_content, old_evidence = str(row[2]), str(row[3])
         content = self._check_entry(person_id, entry_kind, content)
-        self._enforce_owner_total(
-            person_id, entry_kind, content, exclude_entry_id=int(entry_id)
-        )
+        self._enforce_owner_total(person_id, entry_kind, content, exclude_entry_id=int(entry_id))
         ctx = current_anchor()
         if ctx is not None:
             try:
-                kept_evidence, _ref = require_evidence(
-                    evidence or "", label=_ENTRY_LABELS.get(entry_kind, "人物条目")
-                )
+                kept_evidence, _ref = require_evidence(evidence or "", label=_ENTRY_LABELS.get(entry_kind, "人物条目"))
             except AnchorError as exc:
                 raise PersonError(str(exc)) from exc
         elif evidence:
@@ -561,9 +536,7 @@ class PersonStore:
 
     @_locked
     def remove_entry(self, entry_id: int) -> bool:
-        cur = self._conn.execute(
-            "DELETE FROM person_entries WHERE id = ?", (int(entry_id),)
-        )
+        cur = self._conn.execute("DELETE FROM person_entries WHERE id = ?", (int(entry_id),))
         self._conn.commit()
         return int(cur.rowcount) > 0
 
@@ -607,9 +580,7 @@ class PersonStore:
         ).fetchall()
         for entry_id, expires_at in rows:
             if _entry_expired(str(expires_at), now=current):
-                self._conn.execute(
-                    "DELETE FROM person_entries WHERE id = ?", (int(entry_id),)
-                )
+                self._conn.execute("DELETE FROM person_entries WHERE id = ?", (int(entry_id),))
                 removed += 1
         if removed:
             self._conn.commit()
@@ -674,9 +645,7 @@ class PersonStore:
     def stats(self) -> dict:
         row = self._conn.execute("SELECT COUNT(*) FROM people").fetchone()
         accounts = self._conn.execute("SELECT COUNT(*) FROM person_accounts").fetchone()
-        events = self._conn.execute(
-            "SELECT COUNT(*) FROM person_entries WHERE entry_kind='event'"
-        ).fetchone()
+        events = self._conn.execute("SELECT COUNT(*) FROM person_entries WHERE entry_kind='event'").fetchone()
         return {
             "people": int(row[0]),
             "accounts": int(accounts[0]),

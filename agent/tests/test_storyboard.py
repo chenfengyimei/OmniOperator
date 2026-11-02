@@ -10,6 +10,7 @@
 4. **索引必须可复核**——格号能反查绝对时间，取帧时刻必须落在该格内；
 5. **如实报最小格尺寸**——不报平均。
 """
+
 from __future__ import annotations
 
 import io
@@ -25,14 +26,13 @@ from omni.tools.storyboard.segments import Cell, Storyboard
 
 # ---------------------------------------------------------------- 合成帧
 
-def _frame(color: tuple[int, int, int], width: int = detect.SCAN_WIDTH,
-           height: int = detect.SCAN_HEIGHT) -> bytes:
+
+def _frame(color: tuple[int, int, int], width: int = detect.SCAN_WIDTH, height: int = detect.SCAN_HEIGHT) -> bytes:
     """一帧纯色 RGB888 字节串。"""
     return bytes(color) * (width * height)
 
 
-def _shots(shots: list[tuple[float, tuple[int, int, int]]], fps: int = 10
-           ) -> list[tuple[float, bytes]]:
+def _shots(shots: list[tuple[float, tuple[int, int, int]]], fps: int = 10) -> list[tuple[float, bytes]]:
     """[(时长秒, 颜色)] → [(时间秒, RGB 字节)]。"""
     frames: list[tuple[float, bytes]] = []
     time = 0.0
@@ -56,12 +56,19 @@ def _gradient(frames: int = 100, fps: int = 10) -> list[tuple[float, bytes]]:
 
 # ------------------------------------------------------------ 切点检测
 
+
 def test_detect_cuts_finds_every_cut_in_color_sequence():
     """6 个纯色镜头 → 5 刀，位置要对。"""
-    frames = _shots([
-        (2.0, (220, 30, 30)), (2.0, (30, 220, 30)), (2.0, (30, 30, 220)),
-        (2.0, (230, 220, 40)), (2.0, (220, 30, 220)), (2.0, (240, 240, 240)),
-    ])
+    frames = _shots(
+        [
+            (2.0, (220, 30, 30)),
+            (2.0, (30, 220, 30)),
+            (2.0, (30, 30, 220)),
+            (2.0, (230, 220, 40)),
+            (2.0, (220, 30, 220)),
+            (2.0, (240, 240, 240)),
+        ]
+    )
     cuts = detect.detect_cuts(frames, duration=12.0)
     assert len(cuts) == 5
     assert [round(c.time, 1) for c in cuts] == [2.0, 4.0, 6.0, 8.0, 10.0]
@@ -100,10 +107,16 @@ def test_detect_cuts_handles_fast_cut():
 
 def test_detect_cuts_handles_slow_cut():
     """慢速 6 镜：刀少但不能漏。"""
-    frames = _shots([
-        (3.0, (200, 40, 40)), (3.0, (40, 200, 40)), (3.0, (40, 40, 200)),
-        (3.0, (200, 200, 40)), (3.0, (200, 40, 200)), (3.0, (60, 60, 60)),
-    ])
+    frames = _shots(
+        [
+            (3.0, (200, 40, 40)),
+            (3.0, (40, 200, 40)),
+            (3.0, (40, 40, 200)),
+            (3.0, (200, 200, 40)),
+            (3.0, (200, 40, 200)),
+            (3.0, (60, 60, 60)),
+        ]
+    )
     cuts = detect.detect_cuts(frames, duration=18.0)
     assert len(cuts) == 5
 
@@ -116,10 +129,14 @@ def test_detect_cuts_does_not_report_gradient_as_cuts():
 
 def test_detect_cuts_from_scores_matches_batch_path():
     """流式打分与一次性打分必须给同一批切点（两条路径不能分叉）。"""
-    frames = _shots([
-        (2.0, (220, 30, 30)), (2.0, (30, 220, 30)), (2.0, (30, 30, 220)),
-        (2.0, (230, 220, 40)),
-    ])
+    frames = _shots(
+        [
+            (2.0, (220, 30, 30)),
+            (2.0, (30, 220, 30)),
+            (2.0, (30, 30, 220)),
+            (2.0, (230, 220, 40)),
+        ]
+    )
     batch = detect.detect_cuts(frames, duration=8.0)
     times = [time for time, _ in frames][1:]
     scores = detect.score_frame_pairs(frames)
@@ -131,9 +148,13 @@ def test_numpy_path_matches_python_path():
     """numpy 快速通道与纯 Python 保底通道必须给同样的结果（数值不能分叉）。"""
     pixels = bytes()
     for index in range(detect.SCAN_WIDTH * detect.SCAN_HEIGHT):
-        pixels += bytes((
-            (index * 37) % 256, (index * 91) % 256, (index * 13) % 256,
-        ))
+        pixels += bytes(
+            (
+                (index * 37) % 256,
+                (index * 91) % 256,
+                (index * 13) % 256,
+            )
+        )
     numpy_planes = detect.rgb_to_hsv_plane(pixels)
     python_planes = detect._rgb_to_hsv_plane_python(pixels)
     assert numpy_planes[0] == python_planes[0]
@@ -144,7 +165,9 @@ def test_numpy_path_matches_python_path():
         value
         for index in range(detect.SCAN_WIDTH * detect.SCAN_HEIGHT)
         for value in (
-            (index * 53 + 7) % 256, (index * 29) % 256, (index * 71) % 256,
+            (index * 53 + 7) % 256,
+            (index * 29) % 256,
+            (index * 71) % 256,
         )
     )
     other_planes = detect.rgb_to_hsv_plane(other)
@@ -155,10 +178,10 @@ def test_numpy_path_matches_python_path():
 
 # ---------------------------------------------------------------- 分段
 
+
 def test_segments_cover_the_whole_video():
     """格子必须从 0 覆盖到片尾——曾经有一次吸附逻辑把开头 2 秒吃掉了。"""
-    cuts = [Cut(time=2.0, score=80.0), Cut(time=4.0, score=80.0),
-            Cut(time=6.0, score=80.0)]
+    cuts = [Cut(time=2.0, score=80.0), Cut(time=4.0, score=80.0), Cut(time=6.0, score=80.0)]
     planned = segments.plan_segments(cuts, duration=8.0, max_cells=12)
     assert planned[0].start == 0.0
     assert planned[-1].end == pytest.approx(8.0)
@@ -197,9 +220,7 @@ def test_plan_segments_respects_max_cells():
 def test_short_cells_are_merged_not_split():
     """素材粒度太细时，宁可并格也不能切出比素材还碎的格。"""
     cuts = [Cut(time=0.2 * index, score=90.0) for index in range(1, 10)]
-    planned = segments.plan_segments(
-        cuts, duration=2.0, max_cells=12, min_cell_gap=1.0
-    )
+    planned = segments.plan_segments(cuts, duration=2.0, max_cells=12, min_cell_gap=1.0)
     for segment in planned:
         assert segment.duration >= 0.15
 
@@ -213,12 +234,18 @@ def test_single_cut_video_still_gets_a_cell():
 
 # ---------------------------------------------------------------- 台词
 
+
 def test_transcript_attaches_to_the_cell_containing_its_start():
     cuts = [Cut(time=2.0, score=90.0), Cut(time=4.0, score=90.0)]
     planned = segments.plan_segments(cuts, duration=6.0, max_cells=12)
-    lines = segments.attach_transcript(planned, [
-        (0.5, "开场白"), (2.5, "第二段"), (5.0, "第三段"),
-    ])
+    lines = segments.attach_transcript(
+        planned,
+        [
+            (0.5, "开场白"),
+            (2.5, "第二段"),
+            (5.0, "第三段"),
+        ],
+    )
     assert lines[0] == ["开场白"]
     assert lines[1] == ["第二段"]
     assert lines[2] == ["第三段"]
@@ -232,11 +259,15 @@ def test_transcript_is_optional_and_blank_entries_are_dropped():
 
 # ---------------------------------------------------------------- 索引
 
+
 def test_index_row_is_machine_readable():
     """索引是给人和脚本复核用的：格号 + 绝对时间 + 帧时刻 + 字数 + 原文。"""
     cuts = [Cut(time=2.0, score=90.0), Cut(time=4.0, score=90.0)]
     board = segments.build_storyboard(
-        cuts, duration=6.0, max_cells=12, transcript=[(0.5, "hello")],
+        cuts,
+        duration=6.0,
+        max_cells=12,
+        transcript=[(0.5, "hello")],
         frame_times=[(1, 1.0, 12.5)],
     )
     row = board.to_index()[0]
@@ -263,16 +294,19 @@ def test_cell_mid_is_inside_the_cell():
 
 # ---------------------------------------------------------------- 渲染
 
+
 def _board_with_images(cells: int = 3, transcript: bool = True) -> Storyboard:
     board_cells = []
     for index in range(1, cells + 1):
-        board_cells.append(Cell(
-            index=index,
-            start=float(index - 1),
-            end=float(index),
-            frame_time=index - 0.5,
-            lines=("台词内容",) if transcript else (),
-        ))
+        board_cells.append(
+            Cell(
+                index=index,
+                start=float(index - 1),
+                end=float(index),
+                frame_time=index - 0.5,
+                lines=("台词内容",) if transcript else (),
+            )
+        )
     return Storyboard(
         cells=board_cells,
         duration=float(cells),
@@ -334,8 +368,10 @@ def test_format_time_is_minute_second():
 
 # ------------------------------------------------------------ 解码端到端
 
-def _make_video(path: Path, shots: list[tuple[float, tuple[int, int, int]]],
-                fps: int = 10, size=(320, 240), textured: int = -1) -> Path:
+
+def _make_video(
+    path: Path, shots: list[tuple[float, tuple[int, int, int]]], fps: int = 10, size=(320, 240), textured: int = -1
+) -> Path:
     """用 PyAV 现场造一段视频（mpeg4 编码，纯本地）。"""
     import av
     from PIL import Image, ImageDraw
@@ -362,10 +398,16 @@ def _make_video(path: Path, shots: list[tuple[float, tuple[int, int, int]]],
 
 def test_end_to_end_storyboard_from_synthetic_video(tmp_path):
     """全链路：视频 → 切点 → 分段 → 台词 → 取帧 → 宫格 → 可寻址索引。"""
-    video = _make_video(tmp_path / "clip.mp4", [
-        (2.0, (220, 30, 30)), (2.0, (30, 220, 30)), (2.0, (30, 30, 220)),
-        (2.0, (230, 220, 40)), (2.0, (240, 240, 240)),
-    ])
+    video = _make_video(
+        tmp_path / "clip.mp4",
+        [
+            (2.0, (220, 30, 30)),
+            (2.0, (30, 220, 30)),
+            (2.0, (30, 30, 220)),
+            (2.0, (230, 220, 40)),
+            (2.0, (240, 240, 240)),
+        ],
+    )
     duration, fps, width, height = decode.probe_video(video)
     assert duration == pytest.approx(10.0, abs=0.2)
     assert fps == pytest.approx(10.0, abs=0.5)
@@ -379,16 +421,16 @@ def test_end_to_end_storyboard_from_synthetic_video(tmp_path):
     assert len(cuts) == 4
 
     board = segments.build_storyboard(
-        cuts, duration=stream_duration, max_cells=12,
+        cuts,
+        duration=stream_duration,
+        max_cells=12,
         transcript=[(0.5, "第一句"), (4.5, "第三句")],
     )
     assert len(board.cells) == 5
     assert board.cells[0].start == 0.0
     assert board.cells[-1].end == pytest.approx(stream_duration, abs=0.2)
 
-    picked = decode.pick_sharp_frames(
-        video, [(cell.index, cell.start, cell.end) for cell in board.cells], width=320
-    )
+    picked = decode.pick_sharp_frames(video, [(cell.index, cell.start, cell.end) for cell in board.cells], width=320)
     assert len(picked) == 5
     for index, timestamp, png, _sharp in picked:
         cell = board.cell_by_index(index)
@@ -397,9 +439,7 @@ def test_end_to_end_storyboard_from_synthetic_video(tmp_path):
         assert cell.start - 0.01 <= timestamp <= cell.end + 0.01
         assert png[:8] == b"\x89PNG\r\n\x1a\n"
 
-    result = render.render_storyboard(
-        board, [(index, png) for index, _t, png, _s in picked]
-    )
+    result = render.render_storyboard(board, [(index, png) for index, _t, png, _s in picked])
     assert result.png[:8] == b"\x89PNG\r\n\x1a\n"
     assert result.rows == 2
     assert result.columns == 4
@@ -407,9 +447,15 @@ def test_end_to_end_storyboard_from_synthetic_video(tmp_path):
 
 def test_pick_sharp_frames_prefers_the_textured_frame(tmp_path):
     """段内取 3 候选比 Laplacian 方差取最锐：糊的那几帧要被跳过。"""
-    video = _make_video(tmp_path / "clip.mp4", [
-        (2.0, (40, 40, 40)), (2.0, (40, 40, 40)), (2.0, (40, 40, 40)),
-    ], textured=1)
+    video = _make_video(
+        tmp_path / "clip.mp4",
+        [
+            (2.0, (40, 40, 40)),
+            (2.0, (40, 40, 40)),
+            (2.0, (40, 40, 40)),
+        ],
+        textured=1,
+    )
     picked = decode.pick_sharp_frames(video, [(1, 0.0, 6.0)], width=320)
     assert picked, "没取到任何帧"
     _index, timestamp, _png, sharpness = picked[0]
@@ -434,20 +480,36 @@ def test_decode_rejects_file_without_video_track(tmp_path):
 
 # ---------------------------------------------------------------- 工具层
 
+
 class _FakeArtifacts:
     """产物库替身：只登记不落盘（离线测试不碰真实产物目录）。"""
 
     def __init__(self) -> None:
         self.saved: list[dict[str, object]] = []
 
-    def save_image(self, data: bytes, mime: str, *, session_id: int | None,
-                   run_id: str | None, scope: str = "private",
-                   kind: str = "screenshot", source: str = "",
-                   width: int | None = None, height: int | None = None):
-        self.saved.append({
-            "data": data, "mime": mime, "kind": kind, "source": source,
-            "width": width, "height": height,
-        })
+    def save_image(
+        self,
+        data: bytes,
+        mime: str,
+        *,
+        session_id: int | None,
+        run_id: str | None,
+        scope: str = "private",
+        kind: str = "screenshot",
+        source: str = "",
+        width: int | None = None,
+        height: int | None = None,
+    ):
+        self.saved.append(
+            {
+                "data": data,
+                "mime": mime,
+                "kind": kind,
+                "source": source,
+                "width": width,
+                "height": height,
+            }
+        )
         return SimpleNamespace(artifact_id=f"fake{len(self.saved):04d}")
 
 
@@ -474,17 +536,25 @@ def _registry_with(source, artifacts, *, can_view: bool = True):
 
     registry = ToolRegistry()
     register_storyboard_tools(
-        registry, source=source, artifacts=artifacts, can_view=can_view,
+        registry,
+        source=source,
+        artifacts=artifacts,
+        can_view=can_view,
     )
     return registry
 
 
 def test_video_storyboard_tool_returns_index_and_artifact(tmp_path):
     """工具契约：一张图 + 一份能引用的索引 + 产物登记。"""
-    video = _make_video(tmp_path / "clip.mp4", [
-        (2.0, (220, 30, 30)), (2.0, (30, 220, 30)), (2.0, (30, 30, 220)),
-        (2.0, (230, 220, 40)),
-    ])
+    video = _make_video(
+        tmp_path / "clip.mp4",
+        [
+            (2.0, (220, 30, 30)),
+            (2.0, (30, 220, 30)),
+            (2.0, (30, 30, 220)),
+            (2.0, (230, 220, 40)),
+        ],
+    )
     source = _FakeSource(video, [(0.5, "开场白"), (3.0, "第二段")])
     artifacts = _FakeArtifacts()
     registry = _registry_with(source, artifacts)

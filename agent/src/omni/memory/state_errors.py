@@ -7,6 +7,7 @@
 - 损坏/只读/版本未知/数据库忙分别有明确状态，**绝不当成空数据继续**；
 - "环境问题"翻译成可解释状态，其余 SQL 错误保持原样（那是代码 bug，不该被吞）。
 """
+
 from __future__ import annotations
 
 import sqlite3

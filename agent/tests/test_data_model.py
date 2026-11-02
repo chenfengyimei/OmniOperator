@@ -3,6 +3,7 @@
 state.db 的表清单从 `state_schema.py` 的迁移脚本动态提取；memory.db 的
 关键表硬编码（分属多个模块，改动本来就是显式事件）。文档缺表名即失败。
 """
+
 from __future__ import annotations
 
 import re
@@ -33,10 +34,23 @@ def test_data_model_doc_lists_every_state_db_table():
 def test_data_model_doc_covers_memory_db_key_tables():
     doc = DOC.read_text(encoding="utf-8")
     key_tables = {
-        "sessions", "messages", "message_contexts", "facts", "profile",
-        "reviews", "bindings", "todos", "summaries", "tombstones",
-        "dialogue_log", "session_log", "journal_notes", "people",
-        "person_accounts", "person_entries", "fact_vectors",
+        "sessions",
+        "messages",
+        "message_contexts",
+        "facts",
+        "profile",
+        "reviews",
+        "bindings",
+        "todos",
+        "summaries",
+        "tombstones",
+        "dialogue_log",
+        "session_log",
+        "journal_notes",
+        "people",
+        "person_accounts",
+        "person_entries",
+        "fact_vectors",
     }
     missing = sorted(t for t in key_tables if f"`{t}`" not in doc)
     assert not missing, f"DATA_MODEL.md 缺少 memory.db 关键表的登记：{missing}"
@@ -52,9 +66,7 @@ def _tables_with_session_id_column() -> set[str]:
     sql_all = "\n".join(MIGRATIONS.values())
     tables = {
         m.group(1)
-        for m in re.finditer(
-            r"CREATE TABLE (?:IF NOT EXISTS )?([a-z_]+)\s*\((.*?)\n\);", sql_all, re.S
-        )
+        for m in re.finditer(r"CREATE TABLE (?:IF NOT EXISTS )?([a-z_]+)\s*\((.*?)\n\);", sql_all, re.S)
         if "session_id" in m.group(2)
     }
     return tables - HISTORICAL_TABLES

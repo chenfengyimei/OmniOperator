@@ -1,4 +1,5 @@
 """配置加载单测：.env 注入优先级（缺失填充、空值覆盖、真值不覆盖）。"""
+
 import os
 
 from omni.config import load_env
@@ -38,6 +39,7 @@ def test_load_env_skips_comments_and_blank(tmp_path, monkeypatch):
 
 # ---------------------------------------------------------------- 推理档位（D30）
 
+
 def test_reasoning_defaults_to_auto_everywhere():
     from omni.config import REASONING_SLOTS, AppConfig
 
@@ -74,4 +76,3 @@ def test_reasoning_slot_priority_is_declaration_order():
     models = Models(chat="deepseek/deepseek-flash", review="deepseek/deepseek-flash")
     reasoning = Reasoning(chat="low", review="max")
     assert reasoning.level_for(models, "deepseek/deepseek-flash") == "low"
-

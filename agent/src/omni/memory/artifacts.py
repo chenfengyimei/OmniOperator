@@ -19,6 +19,7 @@
    在用 id 集合（活跃 run 的消息里引用着的）来保证；
 5. 总量有上限：超了就拒绝保存新产物（老的还在，别悄悄删用户的东西）。
 """
+
 from __future__ import annotations
 
 import base64
@@ -50,6 +51,7 @@ def _as_dt(text: str) -> dt.datetime:
         value = value.astimezone()
     return value
 
+
 # 消息里的产物引用记号：工具结果文本携带，Agent 扫描后转成图像块
 MARKER_RE = re.compile(r"\[artifact:([0-9a-f]{8,32})\]")
 
@@ -66,9 +68,9 @@ class Artifact:
     artifact_id: str
     session_id: int | None
     run_id: str | None
-    scope: str            # private / group
-    kind: str             # screenshot / image / export / report
-    source: str           # browser_screenshot / android_screenshot / ...
+    scope: str  # private / group
+    kind: str  # screenshot / image / export / report
+    source: str  # browser_screenshot / android_screenshot / ...
     mime: str
     size: int
     width: int | None
@@ -91,8 +93,9 @@ class ArtifactError(RuntimeError):
 class ArtifactStore:
     """产物登记与字节存取。`store` 是共享 state.db；`root` 是产物文件目录。"""
 
-    def __init__(self, store: StateStore, root: Path, *, retention_days: int = 7,
-                 max_total_bytes: int = 500 * 1024 * 1024) -> None:
+    def __init__(
+        self, store: StateStore, root: Path, *, retention_days: int = 7, max_total_bytes: int = 500 * 1024 * 1024
+    ) -> None:
         self._store = store
         self.root = Path(root)
         self.retention_days = max(1, int(retention_days))
@@ -101,10 +104,19 @@ class ArtifactStore:
 
     # ---------------------------------------------------------------- 保存
 
-    def save_image(self, data: bytes, mime: str, *, session_id: int | None,
-                   run_id: str | None, scope: str = "private", kind: str = "screenshot",
-                   source: str = "", width: int | None = None,
-                   height: int | None = None) -> Artifact:
+    def save_image(
+        self,
+        data: bytes,
+        mime: str,
+        *,
+        session_id: int | None,
+        run_id: str | None,
+        scope: str = "private",
+        kind: str = "screenshot",
+        source: str = "",
+        width: int | None = None,
+        height: int | None = None,
+    ) -> Artifact:
         if mime not in _KNOWN_MIMES:
             raise ArtifactError(f"不支持的图像类型：{mime}", code="bad_mime")
         if not data:
@@ -127,9 +139,7 @@ class ArtifactStore:
             raise ArtifactError(f"产物写盘失败：{exc}", code="write_failed") from exc
         expires = None
         if self.retention_days > 0:
-            expires = to_iso(
-                parse_iso(_now_iso()) + dt.timedelta(days=self.retention_days)
-            )
+            expires = to_iso(parse_iso(_now_iso()) + dt.timedelta(days=self.retention_days))
         created = _now_iso()
         try:
             with self._store._tx() as conn:
@@ -137,22 +147,46 @@ class ArtifactStore:
                     "INSERT INTO artifacts(artifact_id, session_id, run_id, scope, kind,"
                     " source, mime, size, width, height, sha256, created_at, expires_at)"
                     " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                    (artifact_id, session_id, run_id, scope, kind, source, mime,
-                     len(data), width, height, digest, created, expires),
+                    (
+                        artifact_id,
+                        session_id,
+                        run_id,
+                        scope,
+                        kind,
+                        source,
+                        mime,
+                        len(data),
+                        width,
+                        height,
+                        digest,
+                        created,
+                        expires,
+                    ),
                 )
         except (sqlite3.Error, StateUnavailable) as exc:
             path.unlink(missing_ok=True)  # 登记失败就不留孤儿文件
             raise ArtifactError(f"产物登记失败：{exc}", code="db") from exc
         return Artifact(
-            artifact_id=artifact_id, session_id=session_id, run_id=run_id, scope=scope,
-            kind=kind, source=source, mime=mime, size=len(data), width=width,
-            height=height, sha256=digest, created_at=created, expires_at=expires,
+            artifact_id=artifact_id,
+            session_id=session_id,
+            run_id=run_id,
+            scope=scope,
+            kind=kind,
+            source=source,
+            mime=mime,
+            size=len(data),
+            width=width,
+            height=height,
+            sha256=digest,
+            created_at=created,
+            expires_at=expires,
         )
 
     # ---------------------------------------------------------------- 读取
 
-    def get(self, artifact_id: str, *, session_id: int | None = None,
-            now: str | None = None, allow_expired: bool = False) -> Artifact:
+    def get(
+        self, artifact_id: str, *, session_id: int | None = None, now: str | None = None, allow_expired: bool = False
+    ) -> Artifact:
         """按 id 取产物。`session_id` 给了就做归属校验（跨会话拒绝）。
 
         `allow_expired=True` 用于"清理时被保留的产物"：它还在活跃 run 的上下文里，
@@ -172,20 +206,23 @@ class ArtifactStore:
             raise ArtifactError(f"产物不存在或已清理：{aid}", code="not_found")
         r = rows[0]
         art = Artifact(
-            artifact_id=str(r[0]), session_id=r[1], run_id=r[2], scope=str(r[3]),
-            kind=str(r[4]), source=str(r[5]), mime=str(r[6]), size=int(r[7] or 0),
-            width=r[8], height=r[9], sha256=str(r[10]), created_at=str(r[11]),
+            artifact_id=str(r[0]),
+            session_id=r[1],
+            run_id=r[2],
+            scope=str(r[3]),
+            kind=str(r[4]),
+            source=str(r[5]),
+            mime=str(r[6]),
+            size=int(r[7] or 0),
+            width=r[8],
+            height=r[9],
+            sha256=str(r[10]),
+            created_at=str(r[11]),
             expires_at=r[12],
         )
         if art.session_id is not None and session_id is not None and art.session_id != session_id:
-            raise ArtifactError(
-                f"产物 {aid} 不属于会话 {session_id}（跨会话读取被拒绝）", code="cross_session"
-            )
-        if (
-            not allow_expired
-            and art.expires_at
-            and _as_dt(art.expires_at) < _as_dt(now or _now_iso())
-        ):
+            raise ArtifactError(f"产物 {aid} 不属于会话 {session_id}（跨会话读取被拒绝）", code="cross_session")
+        if not allow_expired and art.expires_at and _as_dt(art.expires_at) < _as_dt(now or _now_iso()):
             raise ArtifactError(f"产物 {aid} 已过期（{art.expires_at}）", code="expired")
         return art
 
@@ -236,9 +273,7 @@ class ArtifactStore:
         """删过期产物（文件 + 行）。`keep_ids` 是仍被引用的产物，过期也不删。"""
         current = _as_dt(now or _now_iso())
         keep = {str(k).lower() for k in keep_ids}
-        rows = self._store._read(
-            "SELECT artifact_id, mime, expires_at FROM artifacts WHERE expires_at IS NOT NULL"
-        )
+        rows = self._store._read("SELECT artifact_id, mime, expires_at FROM artifacts WHERE expires_at IS NOT NULL")
         removed = kept = 0
         for row in rows:
             aid = str(row[0])
@@ -260,9 +295,7 @@ class ArtifactStore:
             stem = path.stem
             if not re.fullmatch(r"[0-9a-f]{8,32}", stem):
                 continue  # 不认识的文件名绝不删：宁可留着也不误删用户的东西
-            hit = self._store._read(
-                "SELECT 1 FROM artifacts WHERE artifact_id = ?", (stem,)
-            )
+            hit = self._store._read("SELECT 1 FROM artifacts WHERE artifact_id = ?", (stem,))
             if not hit:
                 path.unlink(missing_ok=True)
                 orphans += 1
@@ -289,8 +322,17 @@ class ArtifactStore:
     def _row_to_artifact(self, r: Iterable) -> Artifact:
         row = list(r)
         return Artifact(
-            artifact_id=str(row[0]), session_id=row[1], run_id=row[2], scope=str(row[3]),
-            kind=str(row[4]), source=str(row[5]), mime=str(row[6]), size=int(row[7] or 0),
-            width=row[8], height=row[9], sha256=str(row[10]), created_at=str(row[11]),
+            artifact_id=str(row[0]),
+            session_id=row[1],
+            run_id=row[2],
+            scope=str(row[3]),
+            kind=str(row[4]),
+            source=str(row[5]),
+            mime=str(row[6]),
+            size=int(row[7] or 0),
+            width=row[8],
+            height=row[9],
+            sha256=str(row[10]),
+            created_at=str(row[11]),
             expires_at=row[12],
         )

@@ -14,11 +14,13 @@
 - **Host 校验**：只接受本地主机名，挡住 DNS rebinding 把恶意域名解析到 127.0.0.1 的玩法。
 - 密钥不落日志：本模块只打印配对码，不打印任何 token。
 """
+
 from __future__ import annotations
 
 import hashlib
 import hmac
 import json
+import os
 import secrets
 import time
 from collections import deque
@@ -84,6 +86,7 @@ class WebAuth:
         pair_ttl_s: float = PAIR_TTL_S,
     ) -> None:
         self._data_dir = Path(data_dir)
+        self.boot_id = secrets.token_hex(16)
         self._secret_path = Path(data_dir) / "web_secret"
         self._secret = self._load_or_create_secret()
         self.session_ttl = int(session_days * 86400)
@@ -233,6 +236,8 @@ class WebAuth:
                         "expires_in_s": round(self.pair_deadline_epoch - time.time(), 1),
                         "ttl_s": round(getattr(self, "_pair_ttl", PAIR_TTL_S), 1),
                         "port": self._display_port,
+                        "boot_id": self.boot_id,
+                        "pid": os.getpid(),
                     },
                     ensure_ascii=False,
                 )
@@ -252,9 +257,7 @@ class WebAuth:
         if time.monotonic() > self._pair_deadline:
             self._rotate_code()
             self.announce_pairing()
-            return Rejection(
-                "pair_expired", f"配对链接已过期，新的链接（{self._ttl_text()}有效）在工作台窗口里"
-            )
+            return Rejection("pair_expired", f"配对链接已过期，新的链接（{self._ttl_text()}有效）在工作台窗口里")
         candidate = (code or "").strip()
         if not candidate or not candidate.isascii():
             return self._reject()
@@ -273,9 +276,7 @@ class WebAuth:
         if self._pair_failures >= MAX_PAIR_FAILURES:
             self._rotate_code()
             self.announce_pairing()
-            return Rejection(
-                "pair_locked", "配对失败次数过多，已换码，最新链接在工作台窗口里"
-            )
+            return Rejection("pair_locked", "配对失败次数过多，已换码，最新链接在工作台窗口里")
         return Rejection("pair_rejected", "配对码不正确")
 
     # ---------- Host / Origin / CSRF ----------
@@ -324,9 +325,7 @@ class WebAuth:
             return Rejection("auth_required", "需要先在工作台完成配对（控制台有配对链接）")
         return None
 
-    def check_websocket(
-        self, *, host: str | None, origin: str | None, cookie: str | None
-    ) -> Rejection | None:
+    def check_websocket(self, *, host: str | None, origin: str | None, cookie: str | None) -> Rejection | None:
         """终端 WS 握手：Host + Origin + 会话，三者缺一不可。"""
         if not self.host_ok(host):
             return Rejection("host_rejected", "Host 不被允许")

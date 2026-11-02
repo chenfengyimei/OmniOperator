@@ -11,6 +11,7 @@
 - **检查后不变**：打开文件后用 `fstat(fd)` 与 `stat(path)` 比对文件身份，
   防止"校验时是普通文件、写入时已换成链接"的竞态。
 """
+
 from __future__ import annotations
 
 import codecs
@@ -191,9 +192,7 @@ def opened_checked(path: Path) -> Iterator[int]:
         os.close(fd)
 
 
-def read_window(
-    path: Path, *, offset: int = 1, limit: int = 200, hash_limit: int = 4 * 1024 * 1024
-) -> Window:
+def read_window(path: Path, *, offset: int = 1, limit: int = 200, hash_limit: int = 4 * 1024 * 1024) -> Window:
     """按行读取 `[offset, offset+limit)`；返回行内容、已知总行数与内容指纹。
 
     小文件（≤ hash_limit）一次读全：拿到**原始字节**的 sha256 当写入门票——
@@ -207,9 +206,7 @@ def read_window(
             if size <= hash_limit:
                 data = raw.read()
                 if is_binary(data[:BINARY_SNIFF_BYTES]):
-                    raise PathRejected(
-                        f"这是二进制文件（{size} 字节），不按文本读取", code="binary_file"
-                    )
+                    raise PathRejected(f"这是二进制文件（{size} 字节），不按文本读取", code="binary_file")
                 decoded = decode_bytes(data)
                 every = decoded.text.split("\n")
                 if every and every[-1] == "":
@@ -235,9 +232,7 @@ def read_window(
                 )
             sample = raw.read(BINARY_SNIFF_BYTES)
             if is_binary(sample):
-                raise PathRejected(
-                    f"这是二进制文件（{size} 字节），不按文本读取", code="binary_file"
-                )
+                raise PathRejected(f"这是二进制文件（{size} 字节），不按文本读取", code="binary_file")
             encoding, bom = detect_encoding(sample)
             raw.seek(0)
             if bom and encoding in UTF16_ENCODINGS:
@@ -289,8 +284,7 @@ def read_bytes(path: Path, *, limit: int) -> bytes:
         size = os.fstat(fd).st_size
         if size > limit:
             raise PathRejected(
-                f"文件 {size} 字节，超过单次读取上限 {limit} 字节；"
-                "请用 files_read 按行读取或指定更小的范围",
+                f"文件 {size} 字节，超过单次读取上限 {limit} 字节；请用 files_read 按行读取或指定更小的范围",
                 code="file_too_large",
             )
         with open(fd, "rb", closefd=False) as raw:

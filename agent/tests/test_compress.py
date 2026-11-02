@@ -1,4 +1,5 @@
 """上下文压缩单测：不变量断言 / 原子块切分 / 压缩触发与降级 / Agent 集成。"""
+
 from types import SimpleNamespace
 
 import pytest
@@ -37,14 +38,13 @@ def _pair(i: int, size: int = 300) -> list[dict]:
 
 def _pairs_intact(messages: list[dict]) -> bool:
     """每个 tool 结果都能找到带同 id tool_calls 的 assistant（对永不拆开）。"""
-    called = {
-        tc["id"] for m in messages for tc in (m.get("tool_calls") or [])
-    }
+    called = {tc["id"] for m in messages for tc in (m.get("tool_calls") or [])}
     answered = {m["tool_call_id"] for m in messages if m.get("role") == "tool"}
     return called == answered
 
 
 # ---------- 不变量 ----------
+
 
 def test_invariants_accept_valid_sequence():
     msgs = [
@@ -97,7 +97,9 @@ def test_invariants_accept_multiple_tool_results_and_compression():
     assert_invariants(compressed)
 
 
-@pytest.mark.parametrize("mutation", ["missing", "duplicate", "unknown", "interrupted", "duplicate-call-id", "empty-call-id"])
+@pytest.mark.parametrize(
+    "mutation", ["missing", "duplicate", "unknown", "interrupted", "duplicate-call-id", "empty-call-id"]
+)
 def test_invariants_require_exactly_one_result_per_call(mutation):
     call, first, second = _multi_call_block()
     block = [call, first, second]
@@ -131,6 +133,7 @@ def test_atomic_blocks_group_tool_pairs():
 
 # ---------- 压缩 ----------
 
+
 def _long_history(n: int) -> list[dict]:
     msgs: list[dict] = [{"role": "system", "content": "system prompt"}]
     for i in range(n):
@@ -159,9 +162,7 @@ class SummaryGateway:
 def test_compress_skipped_under_threshold():
     gw = SummaryGateway()
     msgs = _long_history(3)
-    out = compress_if_needed(
-        msgs, gateway=gw, model="m", trigger_chars=10**9, keep_recent=4
-    )
+    out = compress_if_needed(msgs, gateway=gw, model="m", trigger_chars=10**9, keep_recent=4)
     assert out is msgs and gw.calls == []
 
 
@@ -169,9 +170,7 @@ def test_compress_replaces_old_blocks_with_summary():
     gw = SummaryGateway()
     msgs = _long_history(12)
     msgs += _pair(99)
-    out = compress_if_needed(
-        msgs, gateway=gw, model="m", trigger_chars=3000, keep_recent=6
-    )
+    out = compress_if_needed(msgs, gateway=gw, model="m", trigger_chars=3000, keep_recent=6)
     assert out is not msgs
     assert out[0]["role"] == "system"
     assert SUMMARY_HEADER in out[1]["content"] and "要点" in out[1]["content"]
@@ -190,9 +189,7 @@ def test_compress_merges_summary_into_leading_user():
     msgs = [{"role": "system", "content": "s"}]
     msgs.append({"role": "user", "content": "开场白"})
     msgs += _long_history(12)
-    out = compress_if_needed(
-        msgs, gateway=gw, model="m", trigger_chars=3000, keep_recent=6
-    )
+    out = compress_if_needed(msgs, gateway=gw, model="m", trigger_chars=3000, keep_recent=6)
     assert_invariants(out)
     # 不存在连续 user（开场白被并入或被压缩；摘要并入首条 user）
     for a, b in zip(out, out[1:]):
@@ -203,9 +200,7 @@ def test_compress_merges_summary_into_leading_user():
 def test_compress_degrades_on_gateway_failure():
     gw = SummaryGateway(fail=True)
     msgs = _long_history(12)
-    out = compress_if_needed(
-        msgs, gateway=gw, model="m", trigger_chars=3000, keep_recent=6
-    )
+    out = compress_if_needed(msgs, gateway=gw, model="m", trigger_chars=3000, keep_recent=6)
     assert out is msgs  # 降级：原样返回
 
 
@@ -242,12 +237,8 @@ def test_agent_compresses_long_history(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
     sid = store.new_session()
     for i in range(30):
-        store.append_message(
-            sid, "user", ("长内容" * 500) + str(i), auto_title=False
-        )
-        store.append_message(
-            sid, "assistant", ("回复" * 500) + str(i), auto_title=False
-        )
+        store.append_message(sid, "user", ("长内容" * 500) + str(i), auto_title=False)
+        store.append_message(sid, "assistant", ("回复" * 500) + str(i), auto_title=False)
 
     cfg = AppConfig()
     cfg.compression.trigger_chars = 5000
@@ -274,9 +265,7 @@ def test_agent_compresses_long_history(tmp_path):
     assert agent.chat("还在吗") == "收到。"
 
     # 发给模型的对话里带摘要头
-    assert any(
-        SUMMARY_HEADER in m["content"] for m in gw.chat_messages[0][1:]
-    )
+    assert any(SUMMARY_HEADER in m["content"] for m in gw.chat_messages[0][1:])
     # 落库不受压缩影响：60 条旧消息 + 本轮 user/assistant
     assert len(store.list_messages(sid, 1000)) == 62
     store.close()

@@ -7,6 +7,7 @@
 编码推断顺序：HTTP 头 → `<meta charset>` → UTF-8 → GB18030 → 替换解码。
 中文站点大量是 GBK 且不写头，顺序反了就会得到一屏乱码。
 """
+
 from __future__ import annotations
 
 import re
@@ -14,14 +15,36 @@ from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
-SKIP_TAGS = frozenset(
-    {"script", "style", "noscript", "svg", "template", "iframe", "canvas", "object"}
-)
+SKIP_TAGS = frozenset({"script", "style", "noscript", "svg", "template", "iframe", "canvas", "object"})
 BLOCK_TAGS = frozenset(
     {
-        "p", "div", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6",
-        "section", "article", "header", "footer", "nav", "blockquote", "pre",
-        "table", "ul", "ol", "hr", "main", "aside", "form", "figure", "figcaption",
+        "p",
+        "div",
+        "br",
+        "li",
+        "tr",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "section",
+        "article",
+        "header",
+        "footer",
+        "nav",
+        "blockquote",
+        "pre",
+        "table",
+        "ul",
+        "ol",
+        "hr",
+        "main",
+        "aside",
+        "form",
+        "figure",
+        "figcaption",
     }
 )
 MAX_LINK_TEXT = 80

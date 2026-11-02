@@ -10,6 +10,7 @@
   `git diff --exit-code` 有差异时退出码为 1）；超时按"已确认回收/回收未知"
   区分副作用状态，不再依赖文本前缀推断。
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -94,9 +95,7 @@ def _timeout_text(timeout_s: float, reclaimed: bool, *, safe: bool) -> str:
         )
     if safe:
         return head + "，且进程树回收状态未知（可能有残留进程）。先核查残留再重试，不要把超时当成没执行"
-    return (
-        head + "，且进程树回收状态未知：副作用未知。请用户核查残留进程与实际结果，不要自动重试"
-    )
+    return head + "，且进程树回收状态未知：副作用未知。请用户核查残留进程与实际结果，不要自动重试"
 
 
 def _timeout_result(timeout_s: float, reclaimed: bool, *, safe: bool) -> ToolResult:
@@ -229,10 +228,7 @@ def register_shell_tools(
                 "properties": {
                     "command": {
                         "type": "string",
-                        "description": (
-                            f"单条只读命令（可用：{', '.join(SAFE_COMMANDS)}）；"
-                            "不要用 & | ; > < 等符号"
-                        ),
+                        "description": (f"单条只读命令（可用：{', '.join(SAFE_COMMANDS)}）；不要用 & | ; > < 等符号"),
                     },
                     "timeout_s": {"type": "number", "description": "超时秒数（默认 15，上限 60）"},
                 },

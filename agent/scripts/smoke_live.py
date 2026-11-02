@@ -7,6 +7,7 @@
 第二步带 --fresh 开新会话（无对话历史），agent 必须靠 recall 工具
 从事实库里捞到第一步记住的内容——以此验证跨会话长期记忆。
 """
+
 from __future__ import annotations
 
 import argparse

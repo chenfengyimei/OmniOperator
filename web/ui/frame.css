@@ -1,0 +1,956 @@
+/* ==========================================================================
+   OmniOperator 应用壳（frame）——子站与工作台共用的页面骨架层
+   职责（UI_DESIGN_SYSTEM.md §5）：全局 chrome、子站画布/顶栏/图标栏、统一控件、
+   共享表面、运营页构件、覆盖层动效、滚动条、共享断点（含按页面命名的布局微调）。
+   加载顺序：tokens.css → base.css → icons.css → frame.css →（页面 css）。
+   token 只从 ui/tokens.css 取；本文件禁止定义 --seed-* 与 --ui-* 与 --shell-*。
+
+   结构说明：本文件历史上存在两套壳（前半段「Sub-page canvas / Shared app header」，
+   后半段「Unified console frame」），同选择器重复定义、后者覆盖前者，且 blur 的
+   saturate 值两套并存（145% / 150%）互相打架。已收敛为：
+     · 壳层外观（顶栏/rail/折叠态）只在后半段「统一控制台壳」定义一次；
+     · 前半段只保留不重复的部分（页面图标、返回胶囊、LOCAL 徽标、内容节奏、控件、卡片）；
+     · 玻璃档位见 UI_DESIGN_SYSTEM.md §3.5：壳层强玻璃、卡片中玻璃、列表弱玻璃，
+       backdrop-filter 只挂壳层（Chromium Backdrop Root 会让嵌套玻璃互相截断）。
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+/* Some legacy panels use inline display:flex; visibility helpers must win. */
+body[data-ui-page] .hidden {
+  display: none !important;
+}
+html {
+  color-scheme: dark;
+  background: var(--shell-bg);
+  scroll-behavior: smooth;
+}
+body[data-ui-page] {
+  font-family: var(--shell-font);
+  color: var(--shell-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body[data-ui-page] ::selection {
+  background: color-mix(in srgb, var(--seed-accent) 24%, transparent);
+  color: #fff;
+}
+body[data-ui-page] :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--shell-accent);
+  outline-offset: 3px;
+}
+
+/* Cross-document navigation receives a quiet cross-fade where supported. */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root) {
+  animation: omni-vt-out 0.1s ease both;
+}
+::view-transition-new(root) {
+  animation: omni-vt-in 0.16s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes omni-vt-out {
+  to {
+    opacity: 0.45;
+    transform: scale(0.994);
+  }
+}
+@keyframes omni-vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.997);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Sub-page canvas
+   -------------------------------------------------------------------------- */
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) {
+  min-height: 100vh;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(980px 620px at 8% -8%, color-mix(in srgb, var(--seed-accent) 9%, transparent), transparent 58%),
+    radial-gradient(900px 620px at 102% -2%, color-mix(in srgb, var(--seed-accent2) 8%, transparent), transparent 58%),
+    var(--surface-0);
+  line-height: 1.6;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.32;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--seed-fg) 3.5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--seed-fg) 3.5%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(to bottom, #000, transparent 65%);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > :not(header):not(.ui-global-nav) {
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 48px);
+  max-width: 1480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > .ui-badge {
+  width: max-content !important;
+  max-width: calc(100% - 48px) !important;
+  margin-left: max(24px, calc((100% - 1480px) / 2)) !important;
+  margin-right: auto !important;
+}
+
+/* --------------------------------------------------------------------------
+   Shared app header + navigation
+   -------------------------------------------------------------------------- */
+body[data-ui-page]:not([data-ui-page="workbench"]) > header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 720;
+  letter-spacing: -0.015em;
+  color: var(--shell-text);
+}
+.ui-page-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-card);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--on-accent) !important;
+  background: linear-gradient(135deg, var(--shell-accent), var(--shell-accent-2));
+  box-shadow:
+    var(--sh-2),
+    inset 0 1px 0 color-mix(in srgb, #fff 42%, transparent);
+  font-size: 19px !important;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 31px;
+  padding: 0 11px;
+  color: var(--shell-text-2);
+  text-decoration: none;
+  font-size: var(--fs-secondary);
+  font-weight: 600;
+  border: 1px solid var(--shell-line);
+  border-radius: var(--r-full);
+  background: var(--glass-strong-bg);
+  transition:
+    color 0.16s,
+    border-color 0.16s,
+    background 0.16s;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child:hover {
+  color: var(--shell-accent);
+  border-color: color-mix(in srgb, var(--seed-accent) 35%, transparent);
+  background: var(--shell-accent-soft);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header a:not(:first-child) {
+  color: var(--shell-accent);
+  text-decoration: none;
+  font-size: var(--fs-secondary);
+  font-weight: 600;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header button,
+body[data-ui-page]:not([data-ui-page="workbench"]) > header select {
+  margin-left: 0;
+}
+.ui-env {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 2px;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--seed-accent) 22%, transparent);
+  border-radius: var(--r-full);
+  color: var(--shell-accent);
+  background: var(--shell-accent-soft);
+  font: 600 10.5px/1.5 var(--shell-mono);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.ui-env::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--shell-success);
+  box-shadow: 0 0 0 3px var(--ok-bg);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header .ui-env {
+  margin-left: auto;
+}
+
+/* 注入导航的样式见上方「统一图标栏」；.ui-global-nav 类名仅作 JS/测试锚点 */
+
+/* --------------------------------------------------------------------------
+   Content rhythm, typography and descriptions
+   -------------------------------------------------------------------------- */
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p {
+  color: var(--shell-text-3);
+  font-size: var(--fs-body);
+  line-height: 1.75;
+  margin: 18px auto 0;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p + p {
+  margin-top: 8px;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p#status,
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > #status[role="status"] {
+  margin-top: 14px;
+  padding: 9px 13px;
+  color: var(--shell-text-2);
+  border: 1px solid var(--shell-line);
+  border-radius: var(--shell-radius-sm);
+  background: var(--glass-weak-bg);
+  font-size: var(--fs-small);
+}
+body[data-ui-page] h1,
+body[data-ui-page] h2,
+body[data-ui-page] h3 {
+  letter-spacing: -0.012em;
+}
+body[data-ui-page] p {
+  color: var(--shell-text-3);
+}
+body[data-ui-page] a {
+  color: var(--shell-accent);
+}
+body[data-ui-page] small {
+  color: var(--shell-text-3);
+}
+
+/* --------------------------------------------------------------------------
+   Unified controls
+   -------------------------------------------------------------------------- */
+/* 子站独立页（body 作用域）与设置中心内嵌面板（.subpage-panel 作用域）共用同一份皮肤：
+   选择器并列、规则体只有一份。选择器列表必须整行写全——`:is(...)` 中间换行会
+   留下不闭合的括号，解析器会连带丢弃后面的整段规则（这个坑踩过一次）。 */
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(button, .outline, .doc-button),
+.subpage-panel :is(button, .outline, .doc-button) {
+  min-height: 34px;
+  padding: 7px 13px;
+  border: 1px solid var(--glass-weak-line);
+  border-radius: var(--shell-radius-sm);
+  background: var(--glass-weak-bg);
+  color: var(--shell-text-2);
+  font: 600 12px/1.2 var(--shell-font);
+  cursor: pointer;
+  box-shadow: var(--glass-weak-sheen);
+  transition:
+    border-color 0.16s,
+    color 0.16s,
+    background 0.16s,
+    transform 0.12s,
+    box-shadow 0.16s;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(button, .outline, .doc-button):hover:not(:disabled),
+.subpage-panel :is(button, .outline, .doc-button):hover:not(:disabled) {
+  color: var(--shell-text);
+  border-color: color-mix(in srgb, var(--seed-accent) 36%, transparent);
+  background: var(--surface-accent);
+  box-shadow: var(--sh-2);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(button, .outline, .doc-button):active:not(:disabled),
+.subpage-panel :is(button, .outline, .doc-button):active:not(:disabled) {
+  transform: translateY(1px);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) button:disabled,
+.subpage-panel button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  filter: saturate(0.45);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(input, select, textarea),
+.subpage-panel :is(input, select, textarea) {
+  min-height: 34px;
+  padding: 7px 11px;
+  color: var(--shell-text);
+  background: var(--surface-inset);
+  border: 1px solid var(--shell-line-strong);
+  border-radius: var(--shell-radius-sm);
+  font: 400 12px/1.5 var(--shell-font);
+  outline: none;
+  transition:
+    border-color 0.16s,
+    box-shadow 0.16s,
+    background 0.16s;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(input, select, textarea):focus,
+.subpage-panel :is(input, select, textarea):focus {
+  border-color: color-mix(in srgb, var(--seed-accent) 52%, transparent);
+  background: var(--surface-inset);
+  outline: 2px solid color-mix(in srgb, var(--seed-accent) 30%, transparent);
+  outline-offset: 1px;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(input, select)::placeholder,
+.subpage-panel :is(input, select)::placeholder {
+  color: var(--shell-text-3);
+  opacity: 0.8;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-primary,
+.subpage-panel .ui-primary,
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-primary:hover,
+.subpage-panel .ui-primary:hover {
+  color: var(--on-accent);
+  border-color: transparent;
+  background: var(--grad);
+  box-shadow:
+    var(--sh-2),
+    inset 0 1px 0 color-mix(in srgb, #fff 30%, transparent);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-danger,
+.subpage-panel .ui-danger,
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-danger:hover,
+.subpage-panel .ui-danger:hover {
+  color: var(--danger);
+  border-color: var(--danger-bd);
+  background: var(--danger-bg);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) button svg,
+.subpage-panel button svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   Shared surfaces / cards
+   -------------------------------------------------------------------------- */
+body[data-ui-page]:not([data-ui-page="workbench"]) .card,
+.subpage-panel .card,
+body[data-ui-page]:not([data-ui-page="workbench"]) .server,
+.subpage-panel .server,
+body[data-ui-page]:not([data-ui-page="workbench"]) #cards > *,
+.subpage-panel #cards > *,
+body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *,
+.subpage-panel #servers > * {
+  min-width: 0;
+  border: 1px solid var(--glass-mid-line);
+  border-radius: var(--shell-radius);
+  background: var(--glass-mid-bg);
+  box-shadow: var(--glass-mid-shadow), var(--glass-mid-sheen);
+  transition:
+    border-color 0.18s,
+    transform 0.18s,
+    box-shadow 0.18s;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) .card:hover,
+.subpage-panel .card:hover,
+body[data-ui-page]:not([data-ui-page="workbench"]) .server:hover,
+.subpage-panel .server:hover,
+body[data-ui-page]:not([data-ui-page="workbench"]) #cards > *:hover,
+.subpage-panel #cards > *:hover,
+body[data-ui-page]:not([data-ui-page="workbench"]) #servers > *:hover,
+.subpage-panel #servers > *:hover {
+  border-color: color-mix(in srgb, var(--seed-accent) 24%, transparent);
+  box-shadow:
+    var(--sh-3),
+    0 0 0 1px color-mix(in srgb, var(--seed-accent) 5%, transparent);
+  transform: translateY(-1px);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) pre,
+.subpage-panel pre {
+  color: var(--shell-text-2);
+  background: var(--surface-inset);
+  border: 1px solid var(--line-3);
+  border-radius: var(--shell-radius-sm);
+  font-family: var(--shell-mono);
+  font-size: var(--fs-small);
+  line-height: 1.7;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) details,
+.subpage-panel details {
+  border-color: var(--shell-line);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) summary,
+.subpage-panel summary {
+  color: var(--shell-accent);
+  font-weight: 600;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-empty,
+.subpage-panel .ui-empty {
+  padding: 28px 18px;
+  color: var(--shell-text-3);
+  border: 1px dashed var(--shell-line-strong);
+  border-radius: var(--shell-radius);
+  background: transparent;
+  line-height: 1.8;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) .ui-badge,
+.subpage-panel .ui-badge {
+  font-family: var(--shell-font);
+  letter-spacing: 0.01em;
+}
+
+/* Hide accidental horizontal overflow while keeping code/output scrollable. */
+body[data-ui-page]:not([data-ui-page="workbench"]) {
+  overflow-x: hidden;
+}
+
+/* List placeholders while the first read is in flight. */
+body[data-ui-page="jobs"] #jobs:empty::after,
+body[data-ui-page="mcp"] #servers:empty::after,
+body[data-ui-page="capabilities"] #cards:empty::after {
+  content: "正在读取本地状态…";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border: 1px dashed var(--shell-line-strong);
+  border-radius: var(--shell-radius);
+  color: var(--shell-text-3);
+  font-size: var(--fs-secondary);
+  background: var(--glass-weak-bg);
+  animation: omni-placeholder-pulse 1.4s ease-in-out infinite;
+}
+@keyframes omni-placeholder-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Overlay transitions: short, consistent and cancelled by reduced motion below. */
+body[data-ui-page] dialog.modal[open] {
+  animation: omni-overlay-in 0.18s ease both;
+}
+body[data-ui-page] dialog.modal[open] .modal-box {
+  animation: omni-modal-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+body[data-ui-page] #hub:not(.hidden) {
+  animation: omni-overlay-in 0.18s ease both;
+}
+body[data-ui-page] #hub:not(.hidden) .hub-card:not(.hidden) {
+  animation: omni-panel-in 0.2s ease both;
+}
+body[data-ui-page] dialog[open] {
+  animation: omni-modal-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+body[data-ui-page] dialog[open]::backdrop {
+  animation: omni-overlay-in 0.18s ease both;
+}
+@keyframes omni-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes omni-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.988);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Page enter/leave motion is intentionally short; it must never delay input. */
+body[data-ui-page].ui-ready > .tab-body {
+  animation: omni-panel-in 0.16s ease both;
+}
+body[data-ui-page].ui-leaving {
+  cursor: progress;
+}
+.ui-route-progress {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 2px;
+  z-index: 9999;
+  pointer-events: none;
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+  background: linear-gradient(90deg, var(--seed-accent), var(--seed-accent2));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--seed-accent) 70%, transparent);
+}
+.ui-route-progress.active {
+  opacity: 1;
+  animation: route-progress 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes route-progress {
+  0% {
+    transform: scaleX(0.05);
+  }
+  55% {
+    transform: scaleX(0.72);
+  }
+  100% {
+    transform: scaleX(0.92);
+  }
+}
+@keyframes omni-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Custom scrollbars keep dense operational pages readable. */
+body[data-ui-page] * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 162, 186, 0.28) transparent;
+}
+body[data-ui-page] *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+body[data-ui-page] *::-webkit-scrollbar-track {
+  background: transparent;
+}
+body[data-ui-page] *::-webkit-scrollbar-thumb {
+  background: rgba(139, 162, 186, 0.23);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--r-full);
+}
+body[data-ui-page] *::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--seed-accent) 38%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > header {
+    position: relative;
+    top: auto;
+    min-height: 58px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > :not(header):not(.ui-global-nav) {
+    width: calc(100% - 28px);
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header h1 {
+    font-size: 16px;
+  }
+  .ui-env {
+    display: none;
+  }
+}
+@media (max-width: 520px) {
+  body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > :not(header):not(.ui-global-nav) {
+    width: calc(100% - 20px);
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header {
+    gap: 8px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child {
+    min-height: 28px;
+    padding: 0 9px;
+    font-size: var(--fs-small);
+  }
+  body[data-ui-page="jobs"] main > section,
+  body[data-ui-page="mcp"] > section,
+  body[data-ui-page="capabilities"] > section,
+  body[data-ui-page="android"] .controls {
+    padding: 13px;
+  }
+  body[data-ui-page="terminal"] footer {
+    gap: 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   Unified console frame for every non-workbench page
+   The same fixed icon rail + topbar + content rhythm as the main workbench.
+   ========================================================================== */
+body[data-ui-page]:not([data-ui-page="workbench"]) {
+  padding-left: var(--rail-w) !important;
+  background:
+    radial-gradient(820px 560px at 12% -8%, color-mix(in srgb, var(--seed-accent) 8%, transparent), transparent 58%),
+    radial-gradient(780px 540px at 102% -4%, color-mix(in srgb, var(--seed-accent2) 7%, transparent), transparent 60%),
+    var(--surface-0) !important;
+}
+/* ---- 统一图标栏：工作台 .rail 与子站 .ui-app-rail 共用同一套结构与外观（§5） ---- */
+.rail,
+.ui-app-rail {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  width: var(--rail-w);
+  max-width: none;
+  margin: 0;
+  padding: 9px 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border-right: 1px solid var(--line-2);
+  border-bottom: 0;
+  background: var(--glass-strong-bg);
+  backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  -webkit-backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar,
+.ui-app-rail::-webkit-scrollbar {
+  display: none;
+}
+.rail-brand,
+.ui-rail-brand {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-bottom: 9px;
+  color: var(--on-accent);
+  cursor: default;
+  background: var(--grad);
+  box-shadow:
+    var(--sh-2),
+    inset 0 1px 0 color-mix(in srgb, #fff 38%, transparent);
+}
+/* 品牌标 = 官网同款「小鱼」图形（ui/brand-mark.svg，64×44 视图、白鱼身 + 深色眼）。
+   工作台 .rail-brand 与子站 .ui-rail-brand 共用这一条规则，换标只改 svg 文件；
+   svg 自带 ?v= 查询串，改图时与 frame.css 版本串一起递增，避免浏览器缓存旧图形。 */
+.rail-brand::before,
+.ui-rail-brand::before {
+  content: "";
+  width: 24px;
+  height: 17px;
+  flex-shrink: 0;
+  background: url("/ui/brand-mark.svg?v=20261102u2") center/contain no-repeat;
+}
+.rail-btn {
+  position: relative;
+  width: 34px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  margin: 0;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-4);
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    color 0.11s,
+    background 0.11s,
+    border-color 0.11s;
+}
+.rail-btn .material-icons {
+  font-size: 17px;
+}
+/* 子站链接的 .ui-nav-label 是视觉隐藏的可访问文本；工作台按钮用 data-tip 悬浮提示 */
+.rail-btn .ui-nav-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.rail-btn:hover {
+  color: var(--text-1);
+  background: color-mix(in oklab, var(--surface-3) 76%, transparent);
+  border-color: transparent;
+}
+.rail-btn.active,
+.rail-btn[aria-current="page"] {
+  color: var(--seed-accent);
+  background: color-mix(in srgb, var(--seed-accent) 13%, transparent);
+  border-color: color-mix(in srgb, var(--seed-accent) 24%, transparent);
+  box-shadow: inset 0 0 18px -10px color-mix(in srgb, var(--seed-accent) 75%, transparent);
+}
+.rail-btn.active::before,
+.rail-btn[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5px;
+  height: 15px;
+  border-radius: 0 99px 99px 0;
+  background: var(--grad);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--seed-accent) 80%, transparent);
+}
+.rail-sep {
+  width: 20px;
+  height: 1px;
+  background: var(--line-2);
+  margin: 6px 0;
+  flex-shrink: 0;
+}
+.rail-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  width: 100%;
+  max-width: none;
+  min-height: 66px;
+  margin: 0;
+  padding: 10px clamp(18px, 2.5vw, 34px);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-wrap: nowrap;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--glass-strong-bg);
+  backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  -webkit-backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  box-shadow: var(--glass-strong-shadow);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header h1 {
+  font-size: 17px;
+  white-space: nowrap;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child {
+  flex-shrink: 0;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-env,
+body[data-ui-page]:not([data-ui-page="workbench"]) > header .ui-env {
+  margin-left: 2px;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header > :is(button, select, a:not(:first-child)) {
+  margin-left: 0;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header > :is(button, select):first-of-type {
+  margin-left: auto;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > header .ui-env + :is(button, select, a) {
+  margin-left: 0;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > :not(header):not(.ui-global-nav) {
+  width: min(calc(100% - 44px), 1480px);
+  max-width: 1480px;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > main {
+  margin-top: 16px;
+}
+body[data-ui-page]:not([data-ui-page="workbench"]) > main:last-child {
+  margin-bottom: 30px;
+}
+
+/* Richer, consistent page intro strip: first descriptive paragraph. */
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p:first-of-type {
+  position: relative;
+  margin-top: 18px;
+  padding: 14px 16px 14px 44px;
+  border: 1px solid var(--line-2);
+  border-left: 1px solid var(--line-2);
+  border-radius: var(--r-card);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--seed-accent) 6%, transparent),
+      color-mix(in srgb, var(--seed-accent2) 2%, transparent) 55%,
+      transparent
+    ),
+    color-mix(in oklab, var(--surface-1) 58%, transparent);
+  color: var(--text-2);
+}
+body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"]) > p:first-of-type::before {
+  content: "info";
+  font-family: "Material Icons";
+  font-size: 17px;
+  color: var(--seed-accent);
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 900px) {
+  body[data-ui-page]:not([data-ui-page="workbench"]) {
+    padding-left: 0 !important;
+    padding-top: 0;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail {
+    position: sticky;
+    top: 0;
+    left: auto;
+    bottom: auto;
+    right: auto;
+    width: 100%;
+    height: 54px;
+    min-height: 54px;
+    padding: 6px 9px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-2);
+    background: var(--glass-strong-bg);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail .ui-rail-brand {
+    display: none;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a {
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > .ui-app-rail a[aria-current="page"]::before {
+    left: 50%;
+    top: auto;
+    bottom: -6px;
+    transform: translateX(-50%);
+    width: 15px;
+    height: 2px;
+    border-radius: var(--r-full);
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header {
+    position: sticky;
+    top: 54px;
+    min-height: 58px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header h1 {
+    font-size: 15px;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header .ui-env,
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header .header-note {
+    display: none;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header select {
+    flex: 1;
+    min-width: 130px;
+    max-width: none;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > header > a:first-child {
+    display: none;
+  }
+  body[data-ui-page]:not([data-ui-page="workbench"]) > :not(header):not(.ui-global-nav) {
+    width: calc(100% - 20px);
+  }
+}
+
+/* Consistent compact scrollbars for the new panels */
+body[data-ui-page]:not([data-ui-page="workbench"]) :is(#jobs, #catalog, #checks, #tabs, #tree) {
+  scrollbar-width: thin;
+}
+
+@media (max-width: 900px) {
+  body[data-ui-page="capabilities"] .cap-layout,
+  .cap-panel .cap-layout,
+  body[data-ui-page="mcp"] .mcp-layout,
+  .mcp-panel .mcp-layout,
+  body[data-ui-page="jobs"] .jobs-layout,
+  .jobs-panel .jobs-layout,
+  body[data-ui-page="android"] .android-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body[data-ui-page="mcp"] .mcp-detail-pane {
+    position: static;
+  }
+}
+@media (max-width: 760px) {
+  /* 面板也能挂进工作台（宿主 body 是 workbench），所以窄屏下的度量卡栅格要并列一份
+     .subpage-panel 作用域——否则四列挤在 390px 里，标签会竖排成一列字 */
+  body[data-ui-page]:not([data-ui-page="workbench"]) .metric-grid,
+  .subpage-panel .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Embed 降级层：子页被 iframe 内嵌进设置中心时，去掉自身 chrome 与页面留白。
+   共享到这一层后，所有内嵌页共用一份规则；页面级 css 不再重复写 embed。
+   双 class 机制：shared.js 同时给 <html>.ui-embed 与 <body>.ui-embedded。
+   html 侧负责背景透明（首帧即生效），body 侧负责布局归零。
+   -------------------------------------------------------------------------- */
+html.ui-embed {
+  background: transparent !important;
+}
+html.ui-embed body[data-ui-page],
+body[data-ui-page].ui-embedded {
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  overflow: auto;
+}
+html.ui-embed body[data-ui-page]::before,
+body[data-ui-page].ui-embedded::before {
+  display: none !important;
+}
+html.ui-embed body[data-ui-page] > header,
+html.ui-embed body[data-ui-page] > .ui-global-nav,
+body[data-ui-page].ui-embedded > header,
+body[data-ui-page].ui-embedded > .ui-global-nav {
+  display: none !important;
+}
+html.ui-embed body[data-ui-page] > :not(header):not(.ui-global-nav),
+body[data-ui-page].ui-embedded > :not(header):not(.ui-global-nav) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+/* 内嵌时页面自己的工具条不再留上边距（外壳已经给过间距了） */
+html.ui-embed body[data-ui-page] > .storage-toolbar,
+body[data-ui-page].ui-embedded > .storage-toolbar {
+  margin-top: 0;
+}

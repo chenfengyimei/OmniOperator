@@ -1,4 +1,5 @@
 """M1 对话全量记忆单元：记录、索引、精确读取、检索与整理取材。"""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -14,9 +15,7 @@ def _log(tmp_path, name="memory.db", **kw) -> DialogueLog:
 
 def test_append_and_paginated_read(tmp_path):
     log = _log(tmp_path)
-    ids = [
-        log.append(1, "user", f"第{i}句", channel="web") for i in range(5)
-    ]
+    ids = [log.append(1, "user", f"第{i}句", channel="web") for i in range(5)]
     rows = log.entries(session_id=1, after=ids[2], limit=10)
     assert [r["id"] for r in rows] == ids[3:]
     assert all(r["role"] in ("user",) for r in rows)

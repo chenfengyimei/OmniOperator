@@ -8,6 +8,7 @@
 这里做三件事：**同目录唯一临时名**（保证 `os.replace` 是同分区原子重命名）、
 写入后 `flush + fsync`、失败时删除临时文件且**绝不动原文件**。
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -20,9 +21,7 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
     """原子替换整个文件；失败时原文件保持原样。"""
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp_name = tempfile.mkstemp(
-        prefix=f".{target.name}.", suffix=".tmp", dir=str(target.parent)
-    )
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=str(target.parent))
     try:
         with os.fdopen(fd, "wb") as stream:
             stream.write(data)

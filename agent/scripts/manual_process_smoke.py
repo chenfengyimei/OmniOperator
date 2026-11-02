@@ -1,4 +1,5 @@
 """显式手动套件：只终止本脚本创建的短寿命 Python 父子进程，不访问常驻服务。"""
+
 from __future__ import annotations
 
 import argparse
@@ -19,14 +20,25 @@ def main() -> int:
     args = parser.parse_args()
     if not args.run or os.name != "nt":
         parser.error("需 Windows 并显式指定 --run")
-    code = ("import subprocess,sys,time; "
-            "p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)'],"
-            "creationflags=0x08000000,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); "
-            "print(p.pid,flush=True); time.sleep(60)")
-    root = subprocess.Popen([sys.executable, "-c", code], creationflags=0x08000000,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
-    report = {"at": dt.datetime.now(dt.timezone.utc).isoformat(), "platform": "Windows",
-              "scope": "script-owned temporary Python parent and child; no resident service"}
+    code = (
+        "import subprocess,sys,time; "
+        "p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)'],"
+        "creationflags=0x08000000,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); "
+        "print(p.pid,flush=True); time.sleep(60)"
+    )
+    root = subprocess.Popen(
+        [sys.executable, "-c", code],
+        creationflags=0x08000000,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+    )
+    report = {
+        "at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "platform": "Windows",
+        "scope": "script-owned temporary Python parent and child; no resident service",
+    }
     child_identity = None
     try:
         child_pid = int(root.stdout.readline().strip())

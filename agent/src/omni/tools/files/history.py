@@ -6,6 +6,7 @@
 
 只保留最近 `keep` 版：目标是"改坏了能找回上一版"，不是给整个工作区做版本控制。
 """
+
 from __future__ import annotations
 
 import base64
@@ -33,8 +34,7 @@ class Snapshot:
 
     def brief(self) -> str:
         return (
-            f"rev {self.rev}：{self.summary or '无摘要'}"
-            f"（{self.created_at} · {self.size} 字节 · {self.sha256[:12]}）"
+            f"rev {self.rev}：{self.summary or '无摘要'}（{self.created_at} · {self.size} 字节 · {self.sha256[:12]}）"
         )
 
 
@@ -57,13 +57,10 @@ class FileHistory:
 
     # ---------------------------------------------------------------- 写
 
-    def commit(
-        self, rel: str, data: bytes, *, summary: str = "", author: str = "agent"
-    ) -> Snapshot:
+    def commit(self, rel: str, data: bytes, *, summary: str = "", author: str = "agent") -> Snapshot:
         if len(data) > MAX_SNAPSHOT_BYTES:
             raise SnapshotTooLarge(
-                f"文件 {len(data)} 字节，超过可备份上限 {MAX_SNAPSHOT_BYTES} 字节："
-                "无法保证回滚，因此不写入"
+                f"文件 {len(data)} 字节，超过可备份上限 {MAX_SNAPSHOT_BYTES} 字节：无法保证回滚，因此不写入"
             )
         digest = hashlib.sha256(data).hexdigest()
         latest = self.latest(rel)

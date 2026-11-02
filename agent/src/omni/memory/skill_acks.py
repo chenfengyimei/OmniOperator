@@ -7,6 +7,7 @@
 表结构声明见 `memory/state_schema.py`；连接、事务与迁移执行归
 `memory/state.py::StateStore`，本模块不新建数据库。
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -36,15 +37,11 @@ class SkillAckStore:
                 " rev = MAX(skill_acks.rev, excluded.rev), acked_at = excluded.acked_at",
                 (skill, max(0, int(rev)), now),
             )
-            row = conn.execute(
-                "SELECT rev FROM skill_acks WHERE skill = ?", (skill,)
-            ).fetchone()
+            row = conn.execute("SELECT rev FROM skill_acks WHERE skill = ?", (skill,)).fetchone()
             return int(row[0])
 
     def acked(self, skill: str) -> int:
-        rows = self._state._read(
-            "SELECT rev FROM skill_acks WHERE skill = ?", (skill,)
-        )
+        rows = self._state._read("SELECT rev FROM skill_acks WHERE skill = ?", (skill,))
         return int(rows[0][0]) if rows else 0
 
     def acked_all(self) -> dict[str, int]:

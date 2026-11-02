@@ -30,6 +30,7 @@
 而且用户不会知道自己的记忆被改过——下次模型用出来的是一个错的凭据。
 宁可让模型当场改写一句「用户配置了一个 API key」。
 """
+
 from __future__ import annotations
 
 from ..system.text_guard import (

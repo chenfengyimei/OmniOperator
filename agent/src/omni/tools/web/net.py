@@ -9,6 +9,7 @@
 明确不做：不跟随非 http(s) 协议；不携带任何 Cookie/Authorization；不读环境变量里的代理；
 不做反爬绕过与登录（登录页只能识别并如实说明）。
 """
+
 from __future__ import annotations
 
 import http.client
@@ -91,10 +92,10 @@ class Response:
 @dataclass(frozen=True)
 class Target:
     scheme: str
-    host: str          # ASCII（IDNA 编码后）
+    host: str  # ASCII（IDNA 编码后）
     port: int
-    path: str          # 已百分号编码的路径
-    query: str = ""    # 已百分号编码的查询串
+    path: str  # 已百分号编码的路径
+    query: str = ""  # 已百分号编码的查询串
 
     @property
     def netloc(self) -> str:
@@ -130,8 +131,7 @@ def parse_target(raw: str) -> Target:
     scheme = (parts.scheme or "").lower()
     if scheme not in {"http", "https"}:
         raise WebError(
-            f"只支持 http/https，收到 {scheme or '空协议'}"
-            "（file/ftp/data/javascript 等一律不读取）",
+            f"只支持 http/https，收到 {scheme or '空协议'}（file/ftp/data/javascript 等一律不读取）",
             code="bad_scheme",
         )
     if parts.username or parts.password:
@@ -214,6 +214,7 @@ def check_target(target: Target, policy: FetchPolicy) -> list[str]:
 
 # ---------------------------------------------------------------- 连接（钉 IP）
 
+
 class _PinnedHTTP(http.client.HTTPConnection):
     """连接钉在校验过的 IP 上；`Host` 头仍然是域名（虚拟主机才能正常响应）。"""
 
@@ -226,9 +227,7 @@ class _PinnedHTTP(http.client.HTTPConnection):
 
 
 class _PinnedHTTPS(http.client.HTTPSConnection):
-    def __init__(
-        self, host: str, port: int, *, ip: str, timeout: float, context: ssl.SSLContext
-    ) -> None:
+    def __init__(self, host: str, port: int, *, ip: str, timeout: float, context: ssl.SSLContext) -> None:
         super().__init__(host, port, timeout=timeout, context=context)
         self._pinned_ip = ip
 
@@ -368,9 +367,7 @@ def _request_once(
     )
 
 
-def _read_body(
-    response: http.client.HTTPResponse, max_bytes: int, deadline: float
-) -> tuple[bytes, bool]:
+def _read_body(response: http.client.HTTPResponse, max_bytes: int, deadline: float) -> tuple[bytes, bool]:
     chunks: list[bytes] = []
     total = 0
     truncated = False
@@ -381,13 +378,9 @@ def _read_body(
             try:
                 chunk = response.read(min(65536, max_bytes + 1 - total))
             except (socket.timeout, TimeoutError) as exc:
-                raise WebError(
-                    "读取响应超时（服务器在传输中途停住）", code="timeout", retryable=True
-                ) from exc
+                raise WebError("读取响应超时（服务器在传输中途停住）", code="timeout", retryable=True) from exc
             except (OSError, http.client.HTTPException) as exc:
-                raise WebError(
-                    f"读取响应失败（{type(exc).__name__}: {exc}）", code="read_failed"
-                ) from exc
+                raise WebError(f"读取响应失败（{type(exc).__name__}: {exc}）", code="read_failed") from exc
             if not chunk:
                 break
             chunks.append(chunk)

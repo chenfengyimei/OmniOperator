@@ -16,6 +16,7 @@ SQLite 给出的正是这三件事：跨进程事务、唯一键、条件更新�
 2. 失败要可解释：损坏/只读/版本未知/数据库忙分别有明确状态，**绝不当成空数据继续**；
 3. 旧文件迁移要么整份成功、要么整份不生效（导入与"已迁移"标记同一个事务）。
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -97,6 +98,8 @@ class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
         busy_timeout_ms: int = 5000,
         keep_executions: int = 200,
     ) -> None:
+        if set(_MIGRATIONS) != set(range(1, SCHEMA_VERSION + 1)):
+            raise StateUnavailable("迁移声明与支持版本不一致，未打开或修改数据库")
         self.path = Path(path)
         self._keep_executions = max(1, int(keep_executions))
         self._lock = threading.RLock()
@@ -121,17 +124,14 @@ class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
         except sqlite3.OperationalError as exc:
             self._conn.close()
             raise StateUnavailable(
-                f"状态库不可写（{self.path}）：{exc}。"
-                "只读目录/文件被占用时不做任何降级处理，避免把已有状态当成空数据"
+                f"状态库不可写（{self.path}）：{exc}。只读目录/文件被占用时不做任何降级处理，避免把已有状态当成空数据"
             ) from exc
         self._apply_schema()
 
     # ---------------------------------------------------------------- schema
 
     def _current_version(self) -> int:
-        row = self._conn.execute(
-            "SELECT value FROM meta WHERE key = 'schema_version'"
-        ).fetchone()
+        row = self._conn.execute("SELECT value FROM meta WHERE key = 'schema_version'").fetchone()
         if row is None:
             return 0
         try:
@@ -276,7 +276,12 @@ class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
         )
 
     def _write_migration(
-        self, source: str, status: str, sha256: str = "", imported: int = 0, detail: str = "",
+        self,
+        source: str,
+        status: str,
+        sha256: str = "",
+        imported: int = 0,
+        detail: str = "",
         conn: sqlite3.Connection | None = None,
     ) -> MigrationRecord:
         stamp = _now()
@@ -312,9 +317,7 @@ class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
             if previous.status == "corrupt":
                 # 用户主动挪走了坏文件：解除停用，但如实说明用量已不可恢复
                 self._degraded.pop(capability, None)
-                return self._write_migration(
-                    key, "resolved_missing", detail="损坏的旧文件已被移走；此前的计数无法恢复"
-                )
+                return self._write_migration(key, "resolved_missing", detail="损坏的旧文件已被移走；此前的计数无法恢复")
             return previous
 
         raw = path.read_bytes()
@@ -326,16 +329,18 @@ class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             return self._mark_corrupt(path, capability, digest, f"解析失败：{exc}")
         if not isinstance(data, expect):
-            return self._mark_corrupt(
-                path, capability, digest, f"结构不符（期望 {expect.__name__}）"
-            )
+            return self._mark_corrupt(path, capability, digest, f"结构不符（期望 {expect.__name__}）")
         if not data:
             return self._write_migration(key, "empty", digest, 0, "合法空文件，无内容可导入")
 
         with self._tx() as conn:
             imported, skipped = self._import_rows(conn, capability, data)
             record = self._write_migration(
-                key, "ok", digest, imported, f"导入 {imported} 条" + (f"，跳过 {skipped} 条" if skipped else ""),
+                key,
+                "ok",
+                digest,
+                imported,
+                f"导入 {imported} 条" + (f"，跳过 {skipped} 条" if skipped else ""),
                 conn=conn,
             )
         self._degraded.pop(capability, None)
@@ -356,9 +361,7 @@ class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
             self._notes[capability] = f"{path.name} 损坏，但库内已有数据，按库内数据继续（{detail}）"
         return record
 
-    def _import_rows(
-        self, conn: sqlite3.Connection, capability: str, data: Any
-    ) -> tuple[int, int]:
+    def _import_rows(self, conn: sqlite3.Connection, capability: str, data: Any) -> tuple[int, int]:
         if capability == "jobs":
             return self._import_jobs(conn, data)
         if capability == "executions":
@@ -456,9 +459,7 @@ class StateStore(JobsMixin, LeasesMixin, LedgerMixin):
                         "detail": str(row["detail"]),
                         "applied_at": str(row["applied_at"]),
                     }
-                    for row in self._conn.execute(
-                        "SELECT * FROM migrations ORDER BY source"
-                    ).fetchall()
+                    for row in self._conn.execute("SELECT * FROM migrations ORDER BY source").fetchall()
                 ]
                 counts = {
                     table: int(self._conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])

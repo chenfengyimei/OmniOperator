@@ -16,6 +16,7 @@ config.yaml 里的一个正文，加两层只会让保存契约变复杂。
 
 **全部离线**：不联网、不碰真实账号与真实目录、不调模型。
 """
+
 from __future__ import annotations
 
 from omni.core.context import (
@@ -43,21 +44,18 @@ def test_empty_scene_keeps_prompt_identical_to_legacy() -> None:
     这条是最重要的兼容性保证：没有配置场景层的用户，行为一点不变。
     """
     legacy = system_prompt(CORE, include_personal=True)
-    with_empty = system_prompt(
-        CORE, include_personal=True, group_prompt="", private_prompt="", is_group=False
-    )
+    with_empty = system_prompt(CORE, include_personal=True, group_prompt="", private_prompt="", is_group=False)
     assert with_empty == legacy
     group_legacy = system_prompt(CORE, include_personal=False)
-    with_empty_group = system_prompt(
-        CORE, include_personal=False, group_prompt="", private_prompt="", is_group=True
-    )
+    with_empty_group = system_prompt(CORE, include_personal=False, group_prompt="", private_prompt="", is_group=True)
     assert with_empty_group == group_legacy
 
 
 def test_group_scene_is_appended_only_in_group() -> None:
     """群聊场景层只在群聊里出现。"""
     group = system_prompt(
-        CORE, include_personal=False,
+        CORE,
+        include_personal=False,
         group_prompt="在群里说话要简短，不要抢话。",
         private_prompt="在私聊里可以展开讲。",
         is_group=True,
@@ -70,7 +68,8 @@ def test_group_scene_is_appended_only_in_group() -> None:
 def test_private_scene_is_appended_only_in_private() -> None:
     """私聊场景层只在私聊里出现。"""
     private = system_prompt(
-        CORE, include_personal=True,
+        CORE,
+        include_personal=True,
         group_prompt="在群里说话要简短，不要抢话。",
         private_prompt="在私聊里可以展开讲。",
         is_group=False,
@@ -83,8 +82,10 @@ def test_private_scene_is_appended_only_in_private() -> None:
 def test_scene_comes_after_core_and_before_protocol() -> None:
     """注入顺序固定：核心 → 场景 → 固定协议。"""
     text = system_prompt(
-        CORE, include_personal=True,
-        group_prompt="这是群聊场景层的内容，足够长。", is_group=True,
+        CORE,
+        include_personal=True,
+        group_prompt="这是群聊场景层的内容，足够长。",
+        is_group=True,
     )
     assert text.index(CORE) < text.index(SCENE_HEADER_GROUP)
     assert text.index(SCENE_HEADER_GROUP) < text.index("运行上下文协议")
@@ -93,8 +94,10 @@ def test_scene_comes_after_core_and_before_protocol() -> None:
 def test_scene_never_replaces_core() -> None:
     """场景层只做**追加**，不改写核心层。"""
     text = system_prompt(
-        CORE, include_personal=True,
-        private_prompt="这段会试图改写核心，但它只是追加。", is_group=False,
+        CORE,
+        include_personal=True,
+        private_prompt="这段会试图改写核心，但它只是追加。",
+        is_group=False,
     )
     assert CORE in text
     assert text.startswith(CORE)
@@ -103,8 +106,10 @@ def test_scene_never_replaces_core() -> None:
 def test_group_scene_keeps_group_policy() -> None:
     """群聊场景层与群聊资料策略是两件事，都要保留。"""
     text = system_prompt(
-        CORE, include_personal=False,
-        group_prompt="在群里说话要简短，不要抢话。", is_group=True,
+        CORE,
+        include_personal=False,
+        group_prompt="在群里说话要简短，不要抢话。",
+        is_group=True,
     )
     assert SCENE_HEADER_GROUP in text
     assert "当前是群聊场景" in text
@@ -117,8 +122,10 @@ def test_non_owner_private_uses_private_scene() -> None:
     是**正交**的两件事——这个用例守住它们不被混为一谈。
     """
     text = system_prompt(
-        CORE, include_personal=True,
-        group_prompt="群里的说话方式", private_prompt="私聊的说话方式",
+        CORE,
+        include_personal=True,
+        group_prompt="群里的说话方式",
+        private_prompt="私聊的说话方式",
         is_group=False,
     )
     assert SCENE_HEADER_PRIVATE in text
@@ -168,9 +175,9 @@ def test_validate_update_checks_scene_layers() -> None:
     validate_persona_update({"persona": {"group_prompt": ["群里说话要简短，别抢话。"]}})
     # 场景层含凭据 → 拒绝
     try:
-        validate_persona_update({
-            "persona": {"private_prompt": ["长度足够但是藏着 sk-abcdefghijklmnopqrstuvwxyz123456"]}
-        })
+        validate_persona_update(
+            {"persona": {"private_prompt": ["长度足够但是藏着 sk-abcdefghijklmnopqrstuvwxyz123456"]}}
+        )
     except PersonaRuleError as exc:
         assert "凭据" in str(exc)
     else:

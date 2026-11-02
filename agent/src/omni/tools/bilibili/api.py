@@ -7,6 +7,7 @@
 未登录（无 Cookie）时：视频信息/评论可读；AI 字幕通常不可见，字幕接口
 返回空列表属正常情况，由上层给出可读提示。
 """
+
 from __future__ import annotations
 
 import json
@@ -20,10 +21,7 @@ from ...config import BILI_COOKIES_PATH
 from .wbi import sign_wbi
 
 API_BASE = "https://api.bilibili.com"
-UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-)
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
 _BV_RE = re.compile(r"BV[0-9A-Za-z]{10}")
 _AV_RE = re.compile(r"\bav(\d+)\b", re.IGNORECASE)
@@ -90,9 +88,7 @@ class BiliAPI:
             else:
                 raise BiliAPIError(f"链接里找不到 BV/av 号：{target}")
         else:
-            raise BiliAPIError(
-                f"无法识别的视频标识：{target}（支持 BV号 / av号 / 视频链接 / b23.tv 短链）"
-            )
+            raise BiliAPIError(f"无法识别的视频标识：{target}（支持 BV号 / av号 / 视频链接 / b23.tv 短链）")
         if len(self._resolve_cache) < 128:
             self._resolve_cache[target] = resolved
         return resolved
@@ -130,9 +126,7 @@ class BiliAPI:
             "stat": stat,
         }
 
-    def video_comments(
-        self, target: str, count: int = 10, *, sort: str = "hot", page: int = 1
-    ) -> list[dict[str, Any]]:
+    def video_comments(self, target: str, count: int = 10, *, sort: str = "hot", page: int = 1) -> list[dict[str, Any]]:
         """视频评论（sort=hot 热度 / time 最新；page 从 1 起）。
 
         先走新版 /x/v2/reply/main（带 WBI 签名，能拿到 rpid 与楼中楼数），
@@ -143,22 +137,30 @@ class BiliAPI:
         try:
             data = self._get_json(
                 "/x/v2/reply/main",
-                params=self._wbi_params({
-                    "type": 1, "oid": aid, "mode": 3 if sort != "time" else 2,
-                    "plat": 1, "web_location": 1315875,
-                    "pagination_str": json.dumps({"offset": ""}),
-                }),
+                params=self._wbi_params(
+                    {
+                        "type": 1,
+                        "oid": aid,
+                        "mode": 3 if sort != "time" else 2,
+                        "plat": 1,
+                        "web_location": 1315875,
+                        "pagination_str": json.dumps({"offset": ""}),
+                    }
+                ),
             )
             replies = data.get("replies") or []
             if replies:
                 return [self._comment_row(reply) for reply in replies[:limit]]
-        except Exception:  # noqa: BLE001 —— 新接口不可用就退旧接口，错误由旧接口自己报
+        except Exception:  # noqa: BLE001, S110 —— 新接口不可用就退旧接口，错误由旧接口自己报
             pass
         data = self._get_json(
             "/x/v2/reply",
             params={
-                "type": 1, "oid": aid, "sort": 2 if sort != "time" else 0,
-                "ps": limit, "pn": max(1, int(page)),
+                "type": 1,
+                "oid": aid,
+                "sort": 2 if sort != "time" else 0,
+                "ps": limit,
+                "pn": max(1, int(page)),
             },
         )
         return [self._comment_row(reply) for reply in (data.get("replies") or [])[:limit]]
@@ -171,8 +173,7 @@ class BiliAPI:
         limit = min(max(int(count), 1), 20)
         data = self._get_json(
             "/x/v2/reply/reply",
-            params={"type": 1, "oid": aid, "root": int(str(rpid).strip()),
-                    "ps": limit, "pn": 1},
+            params={"type": 1, "oid": aid, "root": int(str(rpid).strip()), "ps": limit, "pn": 1},
         )
         return [self._comment_row(reply) for reply in (data.get("replies") or [])[:limit]]
 
@@ -183,18 +184,24 @@ class BiliAPI:
             raise BiliAPIError("搜索关键词不能为空")
         data = self._get_json(
             "/x/web-interface/wbi/search/type",
-            params=self._wbi_params({
-                "search_type": "bili_user", "keyword": keyword, "page": 1,
-            }),
+            params=self._wbi_params(
+                {
+                    "search_type": "bili_user",
+                    "keyword": keyword,
+                    "page": 1,
+                }
+            ),
         )
         users = data.get("result") or []
         rows = []
-        for user in users[:max(1, int(limit))]:
-            rows.append({
-                "uid": str(user.get("mid") or ""),
-                "name": str(user.get("uname") or ""),
-                "sign": str(user.get("usign") or ""),
-            })
+        for user in users[: max(1, int(limit))]:
+            rows.append(
+                {
+                    "uid": str(user.get("mid") or ""),
+                    "name": str(user.get("uname") or ""),
+                    "sign": str(user.get("usign") or ""),
+                }
+            )
         return rows
 
     @staticmethod
@@ -220,9 +227,7 @@ class BiliAPI:
         bvid = info.get("bvid")
         if not cid or not bvid:
             return ""
-        data = self._get_json(
-            "/x/player/wbi/v2", params=self._wbi_params({"bvid": bvid, "cid": cid})
-        )
+        data = self._get_json("/x/player/wbi/v2", params=self._wbi_params({"bvid": bvid, "cid": cid}))
         subs = (data.get("subtitle") or {}).get("subtitles") or []
         picked = next(
             (s for s in subs if str(s.get("lan", "")).startswith("zh")),
@@ -234,9 +239,7 @@ class BiliAPI:
         if url.startswith("//"):
             url = "https:" + url
         body = self._get(url).json()
-        return "\n".join(
-            str(line.get("content", "")) for line in body.get("body") or []
-        ).strip()
+        return "\n".join(str(line.get("content", "")) for line in body.get("body") or []).strip()
 
     def audio_stream(self, target: str) -> str:
         """音频直链（DASH 最低码率，ASR 够用）；拿不到抛 BiliAPIError。"""
@@ -260,8 +263,7 @@ class BiliAPI:
             url = str((durl[0] or {}).get("url") or "") if durl else ""
         if not url:
             raise BiliAPIError(
-                "该视频没有可用的音频/视频流（可能需要登录：把浏览器 Cookie "
-                "配到 data/bili_cookies.json 后重试）"
+                "该视频没有可用的音频/视频流（可能需要登录：把浏览器 Cookie 配到 data/bili_cookies.json 后重试）"
             )
         return url
 
@@ -275,8 +277,7 @@ class BiliAPI:
         bvid, cid = info.get("bvid"), info.get("cid")
         if not bvid or not cid:
             raise BiliAPIError(f"拿不到视频信息：{target}")
-        params = {"bvid": bvid, "cid": cid, "qn": int(quality), "fnval": 0,
-                  "fnver": 0, "fourk": 0}
+        params = {"bvid": bvid, "cid": cid, "qn": int(quality), "fnval": 0, "fnver": 0, "fourk": 0}
         data = self._get_json("/x/player/playurl", params=params)
         durl = data.get("durl") or []
         if durl:
@@ -286,16 +287,14 @@ class BiliAPI:
         # 没有合并流就退回 DASH：取码率最低的视频流（抽帧够用，下载也快）
         data = self._get_json(
             "/x/player/playurl",
-            params={"bvid": bvid, "cid": cid, "qn": int(quality), "fnval": 16,
-                    "fnver": 0, "fourk": 0},
+            params={"bvid": bvid, "cid": cid, "qn": int(quality), "fnval": 16, "fnver": 0, "fourk": 0},
         )
         videos = (data.get("dash") or {}).get("video") or []
         if not videos:
             raise BiliAPIError(
-                "该视频没有可用的视频流（可能需要登录：把浏览器 Cookie "
-                "配到 data/bili_cookies.json 后重试）"
+                "该视频没有可用的视频流（可能需要登录：把浏览器 Cookie 配到 data/bili_cookies.json 后重试）"
             )
-        best = min(videos, key=lambda item: int(item.get("bandwidth") or 10 ** 9))
+        best = min(videos, key=lambda item: int(item.get("bandwidth") or 10**9))
         url = str(best.get("baseUrl") or best.get("base_url") or "")
         if not url:
             backups = best.get("backupUrl") or best.get("backup_url") or []
@@ -305,8 +304,12 @@ class BiliAPI:
         return url
 
     def download_binary(
-        self, url: str, dest: Path, max_bytes: int = 300 * 1024 * 1024,
-        *, attempts: int = 3,
+        self,
+        url: str,
+        dest: Path,
+        max_bytes: int = 300 * 1024 * 1024,
+        *,
+        attempts: int = 3,
     ) -> None:
         """流式下载二进制到 dest；m4s 直链要求带 Referer（client 已全局配置）。
 
@@ -353,18 +356,13 @@ class BiliAPI:
                 dest.unlink(missing_ok=True)
             total = int(resp.headers.get("content-length") or 0)
             if total and have + total > max_bytes:
-                raise BiliAPIError(
-                    f"文件过大（{(have + total) // 1048576}MB > {max_bytes // 1048576}MB），"
-                    "放弃下载"
-                )
+                raise BiliAPIError(f"文件过大（{(have + total) // 1048576}MB > {max_bytes // 1048576}MB），放弃下载")
             with dest.open("ab" if resumed else "wb") as fh:
                 for chunk in resp.iter_bytes(1 << 20):
                     fh.write(chunk)
                     have += len(chunk)
                     if have > max_bytes:
-                        raise BiliAPIError(
-                            f"文件过大（超过 {max_bytes // 1048576}MB），放弃下载"
-                        )
+                        raise BiliAPIError(f"文件过大（超过 {max_bytes // 1048576}MB），放弃下载")
         if not dest.exists() or dest.stat().st_size == 0:
             raise BiliAPIError("下载结果为空文件")
 
@@ -400,9 +398,7 @@ class BiliAPI:
         code = payload.get("code", -1)
         if code != 0:
             hint = "（需要登录态：把浏览器 Cookie 配到 data/bili_cookies.json）" if code == -101 else ""
-            raise BiliAPIError(
-                f"B站接口 {path} 返回错误 code={code}: {payload.get('message', '')}{hint}"
-            )
+            raise BiliAPIError(f"B站接口 {path} 返回错误 code={code}: {payload.get('message', '')}{hint}")
         return payload.get("data")
 
     def _get(self, path_or_url: str, params: dict[str, Any] | None = None) -> httpx.Response:

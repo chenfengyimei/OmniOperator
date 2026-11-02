@@ -3,6 +3,7 @@
 安全负例的判据一律是"假执行器调用次数为零"——不是看返回文案里有没有"错误"。
 真实子进程用例（父子进程超时回收）只跑无害的 Python 睡眠进程，不用任何危险命令。
 """
+
 from __future__ import annotations
 
 import os
@@ -70,7 +71,7 @@ def test_safe_allows_known_readonly_commands(tmp_path, monkeypatch):
     for command in (
         "adb devices",
         "git status --short",
-        "tasklist /FI \"PID eq 1\"",
+        'tasklist /FI "PID eq 1"',
         "netstat -ano",
         "ipconfig /all",
         "where git",
@@ -343,14 +344,15 @@ def test_process_boundary_reclaims_child_process_tree(tmp_path):
 def test_real_git_status_runs_through_default_executor(tmp_path):
     """默认执行器端到端：受控 git 观察真的能跑（只读、不写 index）。"""
     import subprocess
-    subprocess.run(['git', 'init', '--quiet', str(tmp_path)], check=True, capture_output=True)
-    (tmp_path / 'observation.txt').write_text('isolated fixture', encoding='utf-8')
+
+    subprocess.run(["git", "init", "--quiet", str(tmp_path)], check=True, capture_output=True)
+    (tmp_path / "observation.txt").write_text("isolated fixture", encoding="utf-8")
     registry = ToolRegistry()
     register_shell_tools(registry, cwd=tmp_path)  # 真实执行器，只观察自己的临时 Git 仓库。
     out = registry.dispatch("peek_command", {"command": "git status --short"})
     assert "错误" not in out
     assert "退出码" in out
-    assert 'observation.txt' in out
+    assert "observation.txt" in out
 
 
 # ---------------------------------------------------------------- 结构化结果（D09 收口：不再靠前缀推断）
@@ -408,9 +410,7 @@ def test_peek_completed_exit_code_is_data_not_failure(tmp_path, monkeypatch):
 
 def test_run_command_hard_block_refused_before_execution():
     registry, _, shell = _registry()
-    result = registry.execute(
-        "run_command", {"command": "format c: /y"}, approver=AllowAllApprover()
-    )
+    result = registry.execute("run_command", {"command": "format c: /y"}, approver=AllowAllApprover())
     assert result.status == "error" and result.error_code == "hard_blocked"
     assert result.side_effect_state == "none"
     assert shell.calls == []
@@ -419,9 +419,7 @@ def test_run_command_hard_block_refused_before_execution():
 def test_run_command_timeout_side_effects_unknown_even_if_reclaimed(tmp_path):
     shell = RecordingShell(ProcResult(0, b"", b"", timed_out=True, reclaimed=True))
     registry, _, _ = _registry(shell=shell)
-    result = registry.execute(
-        "run_command", {"command": "python --version"}, approver=AllowAllApprover()
-    )
+    result = registry.execute("run_command", {"command": "python --version"}, approver=AllowAllApprover())
     assert result.status == "error" and result.error_code == "command_timeout"
     assert result.side_effect_state == "unknown" and result.retryable is False
 
@@ -429,8 +427,6 @@ def test_run_command_timeout_side_effects_unknown_even_if_reclaimed(tmp_path):
 def test_run_command_completed_reports_applied():
     shell = RecordingShell(ProcResult(0, b"ok", b""))
     registry, _, _ = _registry(shell=shell)
-    result = registry.execute(
-        "run_command", {"command": "python --version"}, approver=AllowAllApprover()
-    )
+    result = registry.execute("run_command", {"command": "python --version"}, approver=AllowAllApprover())
     assert result.status == "ok" and result.side_effect_state == "applied"
     assert result.legacy is False

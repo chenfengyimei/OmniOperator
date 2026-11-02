@@ -9,6 +9,7 @@
 - worker 线程里 SessionRef/RunRef 按本回合重新绑定（thread-local 不丢失）；
 - 并发受 MAX_CONCURRENT_TOOLS 约束。
 """
+
 import threading
 from types import SimpleNamespace
 
@@ -48,9 +49,13 @@ class BatchGateway:
 
 def _agent(store, registry, gateway, *, sid=None, **kwargs) -> Agent:
     return Agent(
-        AppConfig(), gateway, store, registry,
+        AppConfig(),
+        gateway,
+        store,
+        registry,
         sid if sid is not None else store.new_session(),
-        approver=AllowAllApprover(), **kwargs,
+        approver=AllowAllApprover(),
+        **kwargs,
     )
 
 
@@ -79,9 +84,7 @@ def test_readonly_batch_runs_concurrently_and_backfills_in_call_order(tmp_path):
 
     registry.register(Tool("slow", "慢读", {}, lambda a: slow(a), read_only=True))
     registry.register(Tool("quick", "快读", {}, lambda a: quick(a["n"]), read_only=True))
-    gateway = BatchGateway([
-        [_call("c1", "slow"), _call("c2", "quick", '{"n": 2}'), _call("c3", "quick", '{"n": 3}')]
-    ])
+    gateway = BatchGateway([[_call("c1", "slow"), _call("c2", "quick", '{"n": 2}'), _call("c3", "quick", '{"n": 3}')]])
     agent = _agent(store, registry, gateway)
     try:
         assert agent.chat("并发读") == "全部完成"
@@ -151,9 +154,7 @@ def test_write_tool_fences_inflight_reads(tmp_path):
     registry.register(Tool("slow_read", "慢读", {}, lambda a: slow_read(a), read_only=True))
     registry.register(Tool("write", "写", {}, lambda a: write(a), risk=Risk.CONFIRM))
     registry.register(Tool("after_write", "读2", {}, lambda a: after_write(a), read_only=True))
-    gateway = BatchGateway([
-        [_call("c1", "slow_read"), _call("c2", "write"), _call("c3", "after_write")]
-    ])
+    gateway = BatchGateway([[_call("c1", "slow_read"), _call("c2", "write"), _call("c3", "after_write")]])
     agent = _agent(store, registry, gateway)
     try:
         assert agent.chat("先读后写再读") == "全部完成"
@@ -197,6 +198,7 @@ def test_all_write_batch_matches_legacy_serial_order(tmp_path):
         def run(_):
             order.append(name)
             return name
+
         return run
 
     for name in ("w1", "w2"):
@@ -216,7 +218,9 @@ def test_all_write_batch_matches_legacy_serial_order(tmp_path):
 def test_one_tool_bug_does_not_swallow_siblings_or_turn(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
     registry = ToolRegistry()
-    registry.register(Tool("boom", "会炸的读", {}, lambda a: (_ for _ in ()).throw(RuntimeError("内部 bug")), read_only=True))
+    registry.register(
+        Tool("boom", "会炸的读", {}, lambda a: (_ for _ in ()).throw(RuntimeError("内部 bug")), read_only=True)
+    )
     registry.register(Tool("fine", "正常读", {}, lambda a: "正常结果", read_only=True))
     gateway = BatchGateway([[_call("c1", "boom"), _call("c2", "fine")]])
     agent = _agent(store, registry, gateway)

@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .venv/
+omni-build.json
 .pytest_cache/
 
 # 密钥
@@ -43,3 +44,8 @@ config/agents.lock
 
 # 评测/调试临时产物（不进版本库）
 agent/.tmp/
+
+/temp/private/
+
+/temp/build/
+/web/node_modules/

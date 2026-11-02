@@ -2,6 +2,7 @@
 
 规则：能力域之间互不 import，只通过 registry 汇合。
 """
+
 from .registry import Tool, ToolRegistry
 
 __all__ = ["Tool", "ToolRegistry"]

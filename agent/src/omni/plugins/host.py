@@ -23,6 +23,7 @@
 数据检查，不是安全证明；**激活（人工确认）即同意执行该插件的代码**。
 不可信来源走 MCP（进程外、白名单与确认链），不要做进程内插件。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -86,10 +87,7 @@ class PluginContext:
         name = str(name or "").strip()
         prefix = f"{self.id}-"
         if not TOOL_NAME_RE.match(name) or not name.startswith(prefix):
-            raise PluginApiError(
-                f"工具名必须以 {prefix!r} 开头（如 {prefix}summarize），"
-                "避免覆盖内置工具与归因混淆"
-            )
+            raise PluginApiError(f"工具名必须以 {prefix!r} 开头（如 {prefix}summarize），避免覆盖内置工具与归因混淆")
         description = str(description or "").strip()
         if not description or len(description) > 500:
             raise PluginApiError(f"工具 {name} 的 description 必须非空且 ≤500 字")
@@ -98,9 +96,7 @@ class PluginContext:
         if not callable(func):
             raise PluginApiError(f"工具 {name} 的 func 必须可调用")
         if str(risk) not in {"safe", "confirm", "dangerous"}:
-            raise PluginApiError(
-                f"工具 {name} 的 risk 必须是 safe/confirm/dangerous（作者声明，照常走审批链）"
-            )
+            raise PluginApiError(f"工具 {name} 的 risk 必须是 safe/confirm/dangerous（作者声明，照常走审批链）")
         if self._registry.get(name) is not None:
             raise PluginApiError(f"工具 {name} 已被占用（内置或其它插件）；换一个名字")
         self._registry.register(
@@ -285,8 +281,7 @@ class PluginHost:
         if ok:
             return True, _activation_message(manifest, tools)
         return True, (
-            f"已激活插件 {manifest.id}，但装载失败：{err}。"
-            "代码已就位（用户已确认）；修复后用 plugin_enable 重新装载。"
+            f"已激活插件 {manifest.id}，但装载失败：{err}。代码已就位（用户已确认）；修复后用 plugin_enable 重新装载。"
         )
 
     def enable(self, plugin_id: str) -> tuple[bool, str]:
@@ -333,8 +328,7 @@ class PluginHost:
         self._unload(plugin_id)
         self._store.delete_installed(plugin_id)
         return True, (
-            f"已卸载插件 {plugin_id}（包、状态与插件数据已删除；"
-            "本进程已导入的模块代码不会卸载，重启后彻底清除）。"
+            f"已卸载插件 {plugin_id}（包、状态与插件数据已删除；本进程已导入的模块代码不会卸载，重启后彻底清除）。"
         )
 
     def load_installed(self) -> list[str]:
@@ -386,9 +380,7 @@ class PluginHost:
             sys.modules.pop(module_name, None)
             return False, [], f"{type(exc).__name__}: {exc}"
         with self._loaded_lock:
-            self._loaded[manifest.id] = _Loaded(
-                manifest, context.registered_tools, module_name
-            )
+            self._loaded[manifest.id] = _Loaded(manifest, context.registered_tools, module_name)
         return True, context.registered_tools, ""
 
     def _unload(self, plugin_id: str) -> list[str]:

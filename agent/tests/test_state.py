@@ -3,6 +3,7 @@
 真实多进程：用 `subprocess` 起独立解释器，同一个 state.db，靠一个 "go" 文件同步起跑。
 这不是 mock —— 跨进程才是这些缺陷的现场（`threading.Lock` 在单进程测试里永远是对的）。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -82,15 +83,10 @@ def test_state_schema_declaration_has_no_store_behavior():
     """声明模块不许偷偷 import 仓储/连接实现，防止数据形状和行为再次合流。"""
     import ast
 
-    source = (ROOT / "src" / "omni" / "memory" / "state_schema.py").read_text(
-        encoding="utf-8"
-    )
+    source = (ROOT / "src" / "omni" / "memory" / "state_schema.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     imported = {
-        alias.name
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.Import, ast.ImportFrom))
-        for alias in node.names
+        alias.name for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom)) for alias in node.names
     }
     assert not imported & {"state", "store", "command_jobs"}
     assert not any(isinstance(node, ast.ClassDef) for node in ast.walk(tree))
@@ -201,9 +197,7 @@ StateStore(db).upsert_job(Job(name=name, prompt="并发写入", every_minutes=30
 print("OK")
 """
     names = [f"job-{i}" for i in range(4)]
-    outs = _run_parallel(
-        code, [[str(db), "{go}", name] for name in names], tmp_path / "go"
-    )
+    outs = _run_parallel(code, [[str(db), "{go}", name] for name in names], tmp_path / "go")
     assert outs == ["OK"] * 4
     stored = {job.name for job in keeper.list_jobs()}
     assert stored == set(names), f"有写入被覆盖丢失：{stored}"
@@ -215,9 +209,7 @@ def test_busy_database_reports_busy_instead_of_success(tmp_path):
     state = StateStore(db, busy_timeout_ms=150)
     other = sqlite3.connect(str(db), isolation_level=None)
     other.execute("BEGIN IMMEDIATE")
-    other.execute(
-        "INSERT INTO budgets(scope, day, used) VALUES ('x', '2026-10-27', 0)"
-    )
+    other.execute("INSERT INTO budgets(scope, day, used) VALUES ('x', '2026-10-27', 0)")
     try:
         with pytest.raises(StateBusy):
             state.consume_budget(BROWSER_WRITE_SCOPE, "2026-10-27", 5)
@@ -339,16 +331,28 @@ def test_migration_imports_and_records_checksums(tmp_path):
     (data / "cron_executions.json").write_text(
         json.dumps(
             [
-                {"job": "nightly", "started_at": "2026-10-26T22:00:00+08:00", "duration_s": 3.5, "ok": True, "result": "好", "delivery": ""},
-                {"job": "morning", "started_at": "2026-10-27T08:30:00+08:00", "duration_s": 1.0, "ok": False, "result": "炸", "delivery": "未投递"},
+                {
+                    "job": "nightly",
+                    "started_at": "2026-10-26T22:00:00+08:00",
+                    "duration_s": 3.5,
+                    "ok": True,
+                    "result": "好",
+                    "delivery": "",
+                },
+                {
+                    "job": "morning",
+                    "started_at": "2026-10-27T08:30:00+08:00",
+                    "duration_s": 1.0,
+                    "ok": False,
+                    "result": "炸",
+                    "delivery": "未投递",
+                },
             ],
             ensure_ascii=False,
         ),
         encoding="utf-8",
     )
-    (data / "browser_budget.json").write_text(
-        json.dumps({"date": "2026-10-27", "used": 7}), encoding="utf-8"
-    )
+    (data / "browser_budget.json").write_text(json.dumps({"date": "2026-10-27", "used": 7}), encoding="utf-8")
     before = (data / "cron_jobs.json").read_bytes()
 
     state = _state(tmp_path)
@@ -455,6 +459,7 @@ def test_v2_to_v3_migration_keeps_session_leases(tmp_path):
     db = tmp_path / "state.db"
     # 从真实 v2 脚本建库，不能改新库版本号伪装旧库（后续 ALTER 会重复）。
     from omni.memory.state import _MIGRATIONS
+
     conn = sqlite3.connect(str(db), isolation_level=None)
     try:
         conn.executescript(_MIGRATIONS[1])
@@ -496,13 +501,28 @@ def test_state_store_domain_apis_survive_mixin_split():
     """域方法群拆成 mixin 后，StateStore 公开方法名一个都不能少。"""
     expected = {
         # 任务域（state_mixin_jobs）
-        "list_jobs", "get_job", "upsert_job", "update_run_state", "remove_job",
-        "claim_due", "release_claim", "renew_job_claim",
+        "list_jobs",
+        "get_job",
+        "upsert_job",
+        "update_run_state",
+        "remove_job",
+        "claim_due",
+        "release_claim",
+        "renew_job_claim",
         # 租约域（state_mixin_leases）
-        "lease", "acquire_lease", "renew_lease", "release_lease",
-        "session_lease", "acquire_session_lease", "renew_session_lease", "release_session_lease",
+        "lease",
+        "acquire_lease",
+        "renew_lease",
+        "release_lease",
+        "session_lease",
+        "acquire_session_lease",
+        "renew_session_lease",
+        "release_session_lease",
         # 账本/额度域（state_mixin_ledger）
-        "record_execution", "recent_executions", "consume_budget", "budget_used",
+        "record_execution",
+        "recent_executions",
+        "consume_budget",
+        "budget_used",
     }
     missing = {name for name in expected if not callable(getattr(StateStore, name, None))}
     assert not missing, f"StateStore 丢失了公开域方法：{sorted(missing)}"

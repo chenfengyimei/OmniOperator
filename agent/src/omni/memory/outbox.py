@@ -13,6 +13,7 @@ unknown 不自动重发」的纪律补投。表结构声明见 `memory/state_sch
 去重 = (target_qq, content_hash) 在活跃期（pending/unknown）内唯一：
 同一条消息不会排两次队；进入终态后同样的内容可以重新入队。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -61,9 +62,7 @@ class OutboxStore:
                     "SELECT COUNT(*) FROM outbox WHERE status IN ('pending','sending','unknown')"
                 ).fetchone()[0]
                 if int(live) >= self.MAX_LIVE:
-                    raise ValueError(
-                        f"待投递队列已满（{self.MAX_LIVE} 条活跃上限）：先在工作台清理"
-                    )
+                    raise ValueError(f"待投递队列已满（{self.MAX_LIVE} 条活跃上限）：先在工作台清理")
                 cursor = conn.execute(
                     "INSERT INTO outbox(job, target_qq, content, content_hash, status,"
                     " attempts, last_error, created_at, updated_at)"
@@ -90,8 +89,7 @@ class OutboxStore:
     def pending(self, *, max_attempts: int | None = None) -> list[dict]:
         cap = self.MAX_ATTEMPTS if max_attempts is None else max(1, int(max_attempts))
         rows = self._state._read(
-            "SELECT * FROM outbox WHERE status = 'pending' AND attempts < ?"
-            " ORDER BY created_at, id",
+            "SELECT * FROM outbox WHERE status = 'pending' AND attempts < ? ORDER BY created_at, id",
             (cap,),
         )
         return [self._row(r) for r in rows]
@@ -108,8 +106,14 @@ class OutboxStore:
             )
             return cursor.rowcount > 0
 
-    def claim_next(self, *, now: dt.datetime | None = None, stale_after_s: float = 300,
-                   only_id: int | None = None, exclude_ids: tuple[int, ...] = ()) -> dict | None:
+    def claim_next(
+        self,
+        *,
+        now: dt.datetime | None = None,
+        stale_after_s: float = 300,
+        only_id: int | None = None,
+        exclude_ids: tuple[int, ...] = (),
+    ) -> dict | None:
         """原子领取一次发送；过期在途记录变 unknown，绝不恢复为可重试。"""
         instant = now or dt.datetime.now().astimezone()
         stamp = to_iso(instant)
@@ -128,7 +132,9 @@ class OutboxStore:
                 params.extend(exclude_ids)
             row = conn.execute(
                 "SELECT id FROM outbox WHERE status='pending' AND attempts < ?"
-                + filters + " ORDER BY created_at,id LIMIT 1", params,
+                + filters
+                + " ORDER BY created_at,id LIMIT 1",
+                params,
             ).fetchone()
             if row is None:
                 return None
@@ -157,25 +163,26 @@ class OutboxStore:
     def defer_claim(self, entry_id: int, token: str, *, reason: str) -> bool:
         """发送尚未开始的策略等待不计网络尝试；仍需当前领取身份。"""
         with self._state._tx() as conn:
-            return conn.execute(
-                "UPDATE outbox SET status='pending', claim_token=NULL, attempts=MAX(0,attempts-1),"
-                " last_error=?, updated_at=? WHERE id=? AND status='sending' AND claim_token=?",
-                (reason, self._now(), entry_id, token)).rowcount == 1
+            return (
+                conn.execute(
+                    "UPDATE outbox SET status='pending', claim_token=NULL, attempts=MAX(0,attempts-1),"
+                    " last_error=?, updated_at=? WHERE id=? AND status='sending' AND claim_token=?",
+                    (reason, self._now(), entry_id, token),
+                ).rowcount
+                == 1
+            )
 
     def attempt(self, entry_id: int, *, error: str = "") -> int:
         """记一次失败尝试并返回累计次数（调用方据此决定是否成死信）。"""
         now = self._now()
         with self._state._tx() as conn:
             cursor = conn.execute(
-                "UPDATE outbox SET attempts = attempts + 1, last_error = ?, updated_at = ?"
-                " WHERE id = ?",
+                "UPDATE outbox SET attempts = attempts + 1, last_error = ?, updated_at = ? WHERE id = ?",
                 (error, now, int(entry_id)),
             )
             if cursor.rowcount == 0:
                 raise KeyError(f"outbox 条目 {entry_id} 不存在")
-            rows = conn.execute(
-                "SELECT attempts FROM outbox WHERE id = ?", (int(entry_id),)
-            ).fetchall()
+            rows = conn.execute("SELECT attempts FROM outbox WHERE id = ?", (int(entry_id),)).fetchall()
             return int(rows[0][0])
 
     def retry(self, entry_id: int, *, note: str = "用户手动重试") -> bool:
@@ -184,13 +191,21 @@ class OutboxStore:
         with self._state._tx() as conn:
             # 活跃内容唯一约束同样适用于人工重排，冲突应返回拒绝而非 500。
             row = conn.execute("SELECT target_qq,content_hash,status FROM outbox WHERE id=?", (entry_id,)).fetchone()
-            if row is None or conn.execute(
-                "SELECT 1 FROM outbox WHERE id<>? AND target_qq=? AND content_hash=? AND status IN ('pending','sending','unknown')",
-                (entry_id, row[0], row[1])).fetchone():
+            if (
+                row is None
+                or conn.execute(
+                    "SELECT 1 FROM outbox WHERE id<>? AND target_qq=? AND content_hash=? AND status IN ('pending','sending','unknown')",
+                    (entry_id, row[0], row[1]),
+                ).fetchone()
+            ):
                 return False
-            if row[2] not in self.LIVE_STATUSES and conn.execute(
-                "SELECT COUNT(*) FROM outbox WHERE status IN ('pending','sending','unknown')"
-            ).fetchone()[0] >= self.MAX_LIVE:
+            if (
+                row[2] not in self.LIVE_STATUSES
+                and conn.execute(
+                    "SELECT COUNT(*) FROM outbox WHERE status IN ('pending','sending','unknown')"
+                ).fetchone()[0]
+                >= self.MAX_LIVE
+            ):
                 return False
             cursor = conn.execute(
                 "UPDATE outbox SET status = 'pending', attempts = 0, last_error = ?,"
@@ -232,8 +247,18 @@ class OutboxStore:
     def _row(r: Iterable) -> dict:
         row = list(r)
         keys = (
-            "id", "job", "target_qq", "content", "content_hash", "status",
-            "attempts", "last_error", "created_at", "updated_at", "sent_at", "claim_token",
+            "id",
+            "job",
+            "target_qq",
+            "content",
+            "content_hash",
+            "status",
+            "attempts",
+            "last_error",
+            "created_at",
+            "updated_at",
+            "sent_at",
+            "claim_token",
         )
         out = {k: v for k, v in zip(keys, row)}
         out["id"] = int(out["id"])

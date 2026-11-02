@@ -9,6 +9,7 @@
 回读校验：写完立刻按字节重新读一遍比对指纹。磁盘满、被杀软拦截、被云盘同步改回去，
 都会在这里暴露成"写入未通过回读校验"，而不是一句"已保存"。
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -26,8 +27,8 @@ from .history import FileHistory, SnapshotTooLarge
 from .paths import PathRejected, Resolved, Workspace
 from .search import SKIP_DIR_NAMES, BadQuery, SearchOutcome, compile_query, search_tree
 
-MAX_FILE_BYTES = 4 * 1024 * 1024      # 可读全文/可备份的上限
-MAX_WRITE_BYTES = 2 * 1024 * 1024     # 单次写入上限
+MAX_FILE_BYTES = 4 * 1024 * 1024  # 可读全文/可备份的上限
+MAX_WRITE_BYTES = 2 * 1024 * 1024  # 单次写入上限
 MAX_DIFF_LINES = 200
 WRITE_DIFF_LINES = 60
 LOCK_TIMEOUT_S = 5.0
@@ -134,8 +135,7 @@ def register_file_tools(
             time_budget_s=max_search_seconds,
         )
         head = (
-            f"在 {target.display()} 下搜索 {query!r}："
-            f"扫描 {outcome.scanned} 个文本文件，命中 {len(outcome.matches)} 处"
+            f"在 {target.display()} 下搜索 {query!r}：扫描 {outcome.scanned} 个文本文件，命中 {len(outcome.matches)} 处"
         )
         lines = [head]
         for hit in outcome.matches:
@@ -164,12 +164,8 @@ def register_file_tools(
             return f"错误：读取 {target.display()} 失败（{exc}）"
         if window.total is not None and offset > window.total and window.total > 0:
             return f"错误：{target.display()} 只有 {window.total} 行，offset={offset} 超出范围"
-        total = (
-            f"共 {window.total} 行" if window.total is not None else "总行数未知（未读到末尾）"
-        )
-        fingerprint = (
-            f" · 指纹 {window.fingerprint[:12]}" if window.fingerprint else ""
-        )
+        total = f"共 {window.total} 行" if window.total is not None else "总行数未知（未读到末尾）"
+        fingerprint = f" · 指纹 {window.fingerprint[:12]}" if window.fingerprint else ""
         head = (
             f"{target.display()}（{window.encoding}{' +BOM' if window.bom else ''}"
             f" · {_size_label(window.size)} · {total} · "
@@ -251,14 +247,12 @@ def register_file_tools(
         existed = raw is not None
         if mode == "create" and existed:
             return ToolResult.fail(
-                f"错误：{target.display()} 已存在（create 只用于新建）。"
-                "改已有文件请用 overwrite，并带上当前指纹",
+                f"错误：{target.display()} 已存在（create 只用于新建）。改已有文件请用 overwrite，并带上当前指纹",
                 error_code="target_exists",
             )
         if mode in {"overwrite", "replace"} and not existed:
             return ToolResult.fail(
-                f"错误：{target.display()} 不存在（overwrite 不创建新文件）。"
-                "新建请用 mode=create",
+                f"错误：{target.display()} 不存在（overwrite 不创建新文件）。新建请用 mode=create",
                 error_code="target_missing",
             )
         current_hash = fio.sha256_hex(raw) if raw is not None else ""
@@ -287,9 +281,7 @@ def register_file_tools(
                 error_code="too_large",
             )
         if existed and new_text == current:
-            return ToolResult.ok(
-                f"{target.display()} 内容没有变化，未写入（指纹 {current_hash[:12]}）。"
-            )
+            return ToolResult.ok(f"{target.display()} 内容没有变化，未写入（指纹 {current_hash[:12]}）。")
 
         # 先备份再写：备份失败就不写，避免"改了但回不去"
         backup_note = "（原文件不存在，无需备份）"
@@ -305,21 +297,15 @@ def register_file_tools(
             except SnapshotTooLarge as exc:
                 return ToolResult.fail(f"错误：{exc}", error_code="backup_too_large")
             except OSError as exc:
-                return ToolResult.fail(
-                    f"错误：写入前备份失败，本次没有修改文件（{exc}）", error_code="backup_failed"
-                )
+                return ToolResult.fail(f"错误：写入前备份失败，本次没有修改文件（{exc}）", error_code="backup_failed")
         try:
             workspace.assert_unchanged(target)  # 落盘前最后确认一次路径没被换掉
             atomic_write_bytes(target.path, new_bytes)
         except PathRejected as exc:
-            return ToolResult.fail(
-                f"错误：{exc}；原文件未改动，{backup_note}", error_code="path_changed"
-            )
+            return ToolResult.fail(f"错误：{exc}；原文件未改动，{backup_note}", error_code="path_changed")
         except OSError as exc:
             # atomic_write_bytes 失败时删临时文件且不动原文件（system/atomic 契约）
-            return ToolResult.fail(
-                f"错误：写入失败（{exc}）；原文件未改动，{backup_note}", error_code="write_failed"
-            )
+            return ToolResult.fail(f"错误：写入失败（{exc}）；原文件未改动，{backup_note}", error_code="write_failed")
         # 回读校验：指纹不一致说明有别的进程/同步盘插了一脚
         try:
             written = target.path.read_bytes()
@@ -334,8 +320,7 @@ def register_file_tools(
             workspace.assert_unchanged(target)
         except PathRejected as exc:
             return ToolResult.fail(
-                f"错误：写入过程中路径被改变（{exc}）。文件内容已是新内容，"
-                f"{backup_note}；请重新读取确认落点",
+                f"错误：写入过程中路径被改变（{exc}）。文件内容已是新内容，{backup_note}；请重新读取确认落点",
                 error_code="path_changed_after_write",
                 side_effect_state=SIDE_EFFECT_UNKNOWN,  # 内容已落盘，落点不确定
             )
@@ -346,13 +331,8 @@ def register_file_tools(
                 error_code="readback_mismatch",
                 side_effect_state=SIDE_EFFECT_UNKNOWN,  # 磁盘上已有别的写入
             )
-        diff, total = fio.unified_diff(
-            current, new_text, name=target.display(), max_lines=WRITE_DIFF_LINES
-        )
-        head = (
-            f"已写入 {target.display()}：{len(new_bytes)} 字节，指纹 {new_hash[:12]}"
-            f"（{backup_note}，回读校验通过）"
-        )
+        diff, total = fio.unified_diff(current, new_text, name=target.display(), max_lines=WRITE_DIFF_LINES)
+        head = f"已写入 {target.display()}：{len(new_bytes)} 字节，指纹 {new_hash[:12]}（{backup_note}，回读校验通过）"
         return ToolResult.ok(
             f"{head}\n{diff or '（仅编码/行尾变化）'}\n（差异共 {total} 行）",
             side_effect_state=SIDE_EFFECT_APPLIED,
@@ -369,9 +349,7 @@ def register_file_tools(
         items = history.list(target.display(), limit=20)
         if not items:
             return f"{target.display()} 还没有备份记录（第一次写入时会自动生成）。"
-        return f"{target.display()} 的备份（新→旧）：\n" + "\n".join(
-            f"  {item.brief()}" for item in items
-        )
+        return f"{target.display()} 的备份（新→旧）：\n" + "\n".join(f"  {item.brief()}" for item in items)
 
     def files_restore(args: dict[str, Any]) -> ToolResult:
         try:
@@ -514,8 +492,7 @@ def register_file_tools(
         Tool(
             name="files_write",
             description=(
-                "写入/修改工作区文本文件（需人工确认）：必须带当前内容指纹 expected_hash，"
-                "写前自动备份、写后回读校验"
+                "写入/修改工作区文本文件（需人工确认）：必须带当前内容指纹 expected_hash，写前自动备份、写后回读校验"
             ),
             parameters={
                 "type": "object",
@@ -657,9 +634,7 @@ def _read_current(target: Resolved) -> tuple[str, bytes | None]:
         raise PathRejected("目标是目录", code="is_directory")
     data = fio.read_bytes(target.path, limit=MAX_FILE_BYTES)
     if fio.is_binary(data):
-        raise PathRejected(
-            f"{target.display()} 是二进制文件，文本工具不修改它", code="binary_file"
-        )
+        raise PathRejected(f"{target.display()} 是二进制文件，文本工具不修改它", code="binary_file")
     return fio.decode_bytes(data).text, data
 
 
@@ -667,9 +642,7 @@ def _encode_with(text: str, raw: bytes | None) -> bytes:
     """按目标文件现有编码/换行/BOM 编码；新文件用 UTF-8 + LF。"""
     if raw is not None:
         decoded = fio.decode_bytes(raw)
-        return fio.encode_text(
-            text, encoding=decoded.encoding, bom=decoded.bom, newline=decoded.newline
-        )
+        return fio.encode_text(text, encoding=decoded.encoding, bom=decoded.bom, newline=decoded.newline)
     return fio.encode_text(text, encoding="utf-8", bom=False, newline="\n")
 
 
@@ -686,9 +659,7 @@ def _compose(current: str, args: dict[str, Any], mode: str) -> str:
             raise ValueError("mode=replace 需要 old_text（要被替换的原文）")
         occurrences = current.count(old_text)
         if occurrences != 1:
-            raise ValueError(
-                f"要替换的原文出现 {occurrences} 次（必须唯一）：请带上更完整的上下文"
-            )
+            raise ValueError(f"要替换的原文出现 {occurrences} 次（必须唯一）：请带上更完整的上下文")
         return current.replace(old_text, text)
     raise ValueError(f"未知 mode {mode!r}（支持 overwrite/create/replace）")
 

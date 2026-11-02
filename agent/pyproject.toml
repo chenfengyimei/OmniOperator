@@ -1,7 +1,7 @@
 [project]
 name = "omnioperator"
-version = "0.1.0"
-description = "OmniOperator — 像人一样生活在平台里的具身个人 agent（Windows/macOS 通用）"
+dynamic = ["version"]
+description = "OmniOperator — cross-platform personal agent runtime"
 readme = "README.md"
 license = "Apache-2.0"
 authors = [{ name = "OmniOperator contributors" }]
@@ -10,26 +10,40 @@ keywords = ["agent", "personal-agent", "llm", "qq", "bilibili", "automation"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
     "fastapi>=0.162.0",
-    "faster-whisper>=1.2.1",
     "litellm>=1.70,<3.0",
     "mcp>=2.3.0",
+    "httpx2>=2.16.0",
     "pillow>=13.0.0",
     "playwright>=1.64.1",
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
-    "pywinpty>=3.1.0",
     "pyyaml>=6.0",
     "rich>=13.9",
-    "sqlite-vec>=0.1.9",
+    "sqlalchemy>=2.0,<3",
+    "alembic>=1.14,<2",
+    "platformdirs>=4.3,<5",
+    "keyring>=25,<26",
+    "cryptography>=50,<51",
+    "psutil>=6,<8",
+    "opentelemetry-sdk==1.45.1",
+    "jsonschema>=4.23,<5",
     "tzdata>=2026.6",
     "uvicorn>=0.54.0",
     "websockets>=17.3",
 ]
+
+[project.optional-dependencies]
+terminal = ["pywinpty>=3.1.0; sys_platform == 'win32'"]
+asr = ["faster-whisper>=1.2.1"]
+vectors = ["sqlite-vec>=0.1.9"]
+desktop-linux = ["dbus-next>=0.2.3; sys_platform == 'linux'", "python-xlib>=0.33; sys_platform == 'linux'"]
 
 [project.scripts]
 omni = "omni.channels.cli:main"
@@ -43,7 +57,7 @@ Repository = "https://gitee.com/chenfengloveyuri/OmniOperator"
 Issues = "https://gitee.com/chenfengloveyuri/OmniOperator/issues"
 
 [dependency-groups]
-dev = ["pytest>=8.3", "pytest-xdist>=3.8,<4"]
+dev = ["pytest>=8.3", "pytest-xdist>=3.8,<4", "ruff==0.17.3", "pyright==1.1.414"]
 
 [build-system]
 requires = ["hatchling"]
@@ -53,6 +67,12 @@ build-backend = "hatchling.build"
 ignore-vcs = true
 exclude = ["**/__pycache__/**", "**/*.pyc", "**/.pytest_cache/**"]
 
+[tool.hatch.version]
+path = "src/omni/__init__.py"
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/omni"]
 
@@ -61,4 +81,4 @@ testpaths = ["tests"]
 addopts = "-n auto --dist=loadfile --durations=10"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/omni", "tests", "scripts/*.py", "scripts/ci.ps1", "scripts/README.md", "config/config.example.yaml", "config/README.md", "README.md", "LICENSE", "pyproject.toml"]
+include = ["src/omni", "tests", "scripts/*.py", "scripts/ci.ps1", "scripts/README.md", "config/config.example.yaml", "config/README.md", "README.md", "LICENSE", "pyproject.toml", "hatch_build.py"]

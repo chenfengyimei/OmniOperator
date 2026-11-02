@@ -3,6 +3,7 @@
 种子数据按真实时序回放（run 先建、消息后落），浏览器里切到该会话后，
 助手消息上方应挂出调用链卡片，头行 meta 应带步数/耗时/终态。
 """
+
 from __future__ import annotations
 
 from test_ui_flows import ui
@@ -16,10 +17,12 @@ def test_history_message_shows_its_tool_chain(ui):
     runtime.runs.create(run_id=rid, session_id=sid, channel="web", principal="test", owner="test")
     runtime.runs.append_event(rid, "run_started")
     runtime.runs.append_event(rid, "model_start", step=1)
-    runtime.runs.append_event(rid, "model_end", step=1, text_chars=18, tool_calls=["disk_check"],
-                              prompt_tokens=10, completion_tokens=5)
-    runtime.runs.append_event(rid, "tool", name="disk_check", status="ok",
-                             args='{"path":"C:"}', excerpt="剩余 11.6 GB", elapsed_ms=321.5)
+    runtime.runs.append_event(
+        rid, "model_end", step=1, text_chars=18, tool_calls=["disk_check"], prompt_tokens=10, completion_tokens=5
+    )
+    runtime.runs.append_event(
+        rid, "tool", name="disk_check", status="ok", args='{"path":"C:"}', excerpt="剩余 11.6 GB", elapsed_ms=321.5
+    )
     runtime.runs.append_event(rid, "answer")
     runtime.runs.touch(rid, status="done")
 

@@ -7,6 +7,7 @@
 
 runner 可注入（单测离线跑）：默认走 subprocess 调真 adb。
 """
+
 from __future__ import annotations
 
 import base64
@@ -27,9 +28,10 @@ _ADB_KEYBOARD_IME = "com.android.adbkeyboard/.AdbIME"
 
 class AdbError(RuntimeError):
     """adb 交互失败（无设备/超时/命令错误/注入尝试）。"""
-    def __init__(self, message, *, code='adb_rejected'):
+
+    def __init__(self, message, *, code="adb_rejected"):
         super().__init__(message)
-        self.code=code
+        self.code = code
 
 
 def strip_to_png(data: bytes) -> bytes:
@@ -68,11 +70,13 @@ class AdbDevice:
 
     @contextmanager
     def deadline(self, seconds, *, override=False):
-        previous=getattr(self._local,'deadline',None)
-        until=time.monotonic()+seconds
-        self._local.deadline=until if previous is None or override else min(previous,until)
-        try:yield
-        finally:self._local.deadline=previous
+        previous = getattr(self._local, "deadline", None)
+        until = time.monotonic() + seconds
+        self._local.deadline = until if previous is None or override else min(previous, until)
+        try:
+            yield
+        finally:
+            self._local.deadline = previous
 
     # ---------- 底层 ----------
 
@@ -87,36 +91,34 @@ class AdbDevice:
     def _run(self, args: list[str], *, timeout: float = 15.0, binary: Literal[False] = False) -> str: ...
 
     def _run(self, args: list[str], *, timeout: float = 15.0, binary: bool = False) -> Any:
-        until=getattr(self._local,'deadline',None)
+        until = getattr(self._local, "deadline", None)
         if until is not None:
-            timeout=min(timeout,until-time.monotonic())
-            if timeout<=0:raise AdbError('安卓操作总时限已用尽，未重复执行',code='adb_timeout')
+            timeout = min(timeout, until - time.monotonic())
+            if timeout <= 0:
+                raise AdbError("安卓操作总时限已用尽，未重复执行", code="adb_timeout")
         argv = self._argv(args)
         if self._runner is not None:
             out = self._runner(argv, timeout)
-            if len(out)>16777216:raise AdbError('ADB 输出超过上限',code='adb_output_limit')
+            if len(out) > 16777216:
+                raise AdbError("ADB 输出超过上限", code="adb_output_limit")
             return out if binary else out.decode("utf-8", errors="replace")
         try:
-            code,out,_err=run_adb(argv,timeout)
+            code, out, _err = run_adb(argv, timeout)
         except FileNotFoundError as exc:
-            raise AdbError("adb 不在 PATH（先安装 Android Platform-Tools）",code='adb_missing') from exc
+            raise AdbError("adb 不在 PATH（先安装 Android Platform-Tools）", code="adb_missing") from exc
         except subprocess.TimeoutExpired as exc:
-            raise AdbError('adb 客户端超时，设备操作可能仍在进行',code='adb_timeout') from exc
+            raise AdbError("adb 客户端超时，设备操作可能仍在进行", code="adb_timeout") from exc
         except OverflowError as exc:
-            raise AdbError('ADB 输出过大或读取未完成',code='adb_output_limit') from exc
+            raise AdbError("ADB 输出过大或读取未完成", code="adb_output_limit") from exc
         if code != 0:
-            raise AdbError(f'adb 调用失败（退出码 {code}）',code='adb_failed')
-        return out if binary else out.decode('utf-8',errors='replace')
+            raise AdbError(f"adb 调用失败（退出码 {code}）", code="adb_failed")
+        return out if binary else out.decode("utf-8", errors="replace")
 
     def _device_shell(self, serial: str, command: str, *, timeout: float = 15.0) -> str:
-        return self._run(
-            ["-s", serial, "shell", command], timeout=timeout
-        )
+        return self._run(["-s", serial, "shell", command], timeout=timeout)
 
     def _device_exec_out(self, serial: str, command: str, *, binary: bool = False) -> Any:
-        return self._run(
-            ["-s", serial, "exec-out", command], timeout=20.0, binary=binary
-        )
+        return self._run(["-s", serial, "exec-out", command], timeout=20.0, binary=binary)
 
     # ---------- 设备 ----------
 
@@ -136,19 +138,15 @@ class AdbDevice:
     def require_device(self, serial: str | None = None) -> str:
         rows = [r for r in self.devices() if r["state"] == "device"]
         if not rows:
-            raise AdbError(
-                "没有已授权的安卓设备（手机开 USB 调试、屏幕上点允许授权）"
-            )
-        target=serial or self._serial
+            raise AdbError("没有已授权的安卓设备（手机开 USB 调试、屏幕上点允许授权）")
+        target = serial or self._serial
         if target:
             for r in rows:
                 if r["serial"] == target:
                     return target
-            raise AdbError(f"指定设备 {target} 未连接或未授权",code='device_unavailable')
+            raise AdbError(f"指定设备 {target} 未连接或未授权", code="device_unavailable")
         if len(rows) > 1:
-            raise AdbError(
-                f"连接了多台设备 {[r['serial'] for r in rows]}，请指定 serial"
-            )
+            raise AdbError(f"连接了多台设备 {[r['serial'] for r in rows]}，请指定 serial")
         return rows[0]["serial"]
 
     def screen_size(self, serial: str) -> tuple[int, int]:
@@ -165,9 +163,7 @@ class AdbDevice:
             raise AdbError("tap 坐标必须是整数")
         self._device_shell(serial, f"input tap {int(x)} {int(y)}")
 
-    def swipe(
-        self, serial: str, x1: int, y1: int, x2: int, y2: int, ms: int = 300
-    ) -> None:
+    def swipe(self, serial: str, x1: int, y1: int, x2: int, y2: int, ms: int = 300) -> None:
         self._device_shell(
             serial,
             f"input swipe {int(x1)} {int(y1)} {int(x2)} {int(y2)} {int(ms)}",
@@ -191,25 +187,21 @@ class AdbDevice:
 
         前提：设备上已安装 ADBKeyboard.apk（范凯 skill 同款方案）。
         """
-        original = self._device_shell(
-            serial, "settings get secure default_input_method"
-        ).strip()
-        if not re.fullmatch(r'[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+', original):
+        original = self._device_shell(serial, "settings get secure default_input_method").strip()
+        if not re.fullmatch(r"[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+", original):
             raise AdbError("拿不到当前输入法（settings get 失败），中止以免锁死输入法")
-        enabled = self._device_shell(serial, 'settings get secure enabled_input_methods').strip().split(':')
-        was_enabled = any(item.split(';')[0] == _ADB_KEYBOARD_IME for item in enabled) or original == _ADB_KEYBOARD_IME
+        enabled = self._device_shell(serial, "settings get secure enabled_input_methods").strip().split(":")
+        was_enabled = any(item.split(";")[0] == _ADB_KEYBOARD_IME for item in enabled) or original == _ADB_KEYBOARD_IME
         try:
             self._device_shell(serial, f"ime enable {_ADB_KEYBOARD_IME}")
             self._device_shell(serial, f"ime set {_ADB_KEYBOARD_IME}")
             if before_input is not None:
                 before_input()
             b64 = adb_keyboard_b64(text)
-            self._device_shell(
-                serial, f"am broadcast -p com.android.adbkeyboard -a ADB_INPUT_B64 --es msg {b64}"
-            )
+            self._device_shell(serial, f"am broadcast -p com.android.adbkeyboard -a ADB_INPUT_B64 --es msg {b64}")
         finally:
             # 范凯纪律：必须恢复原输入法，绝不 ime reset 猜默认值
-            with self.deadline(5,override=True):
+            with self.deadline(5, override=True):
                 self._device_shell(serial, f"ime set {original}")
                 if not was_enabled:
                     self._device_shell(serial, f"ime disable {_ADB_KEYBOARD_IME}")
@@ -228,18 +220,24 @@ class AdbDevice:
             self._device_shell(serial, f"uiautomator dump {tmp}")
             return self._device_exec_out(serial, f"cat {tmp}")
         finally:
-            with self.deadline(3,override=True):
+            with self.deadline(3, override=True):
                 self._device_shell(serial, f"rm {tmp}")
 
     def resolve_app(self, serial: str, package: str) -> str:
-        if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+',package):
-            raise AdbError('应用包名非法')
-        out=self._device_shell(serial,f'cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER {package}')
-        component=out.strip().splitlines()[-1] if out.strip() else ''
-        if not re.fullmatch(re.escape(package)+r'/[A-Za-z0-9_.$]+',component):
-            raise AdbError('无法核验该应用的启动组件')
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+", package):
+            raise AdbError("应用包名非法")
+        out = self._device_shell(
+            serial,
+            f"cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER {package}",
+        )
+        component = out.strip().splitlines()[-1] if out.strip() else ""
+        if not re.fullmatch(re.escape(package) + r"/[A-Za-z0-9_.$]+", component):
+            raise AdbError("无法核验该应用的启动组件")
         return component
 
     def launch_app(self, serial: str, component: str):
-        if not re.fullmatch(r'[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+',component):raise AdbError('启动组件非法')
-        self._device_shell(serial,f'am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -n {component}')
+        if not re.fullmatch(r"[A-Za-z0-9_.$]+/[A-Za-z0-9_.$]+", component):
+            raise AdbError("启动组件非法")
+        self._device_shell(
+            serial, f"am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -n {component}"
+        )

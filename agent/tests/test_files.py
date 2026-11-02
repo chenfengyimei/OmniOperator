@@ -3,6 +3,7 @@
 这些用例刻意都用**临时工作区**：文件工具的失败模式是"改到工作区外的真实文件"，
 测试一旦指向真机目录，就等于自己制造了一次事故。
 """
+
 from __future__ import annotations
 
 import codecs
@@ -25,9 +26,7 @@ def env(tmp_path: Path):
     root.mkdir()
     history = FileHistory(tmp_path / "hist")
     registry = ToolRegistry()
-    register_file_tools(
-        registry, Workspace(root=root), history, lock_dir=tmp_path / "hist" / "locks"
-    )
+    register_file_tools(registry, Workspace(root=root), history, lock_dir=tmp_path / "hist" / "locks")
     return registry, root, history
 
 
@@ -168,9 +167,7 @@ def test_utf16_without_bom_stays_binary(env):
     target = root / "no-bom-utf16.txt"
     target.write_bytes("ascii content".encode("utf-16-le"))
     assert "二进制" in run(registry, "files_read", path="no-bom-utf16.txt")
-    assert "二进制" in run(
-        registry, "files_write", path="no-bom-utf16.txt", content="x", mode="overwrite"
-    )
+    assert "二进制" in run(registry, "files_write", path="no-bom-utf16.txt", content="x", mode="overwrite")
     # 纯 CJK 无 BOM 无 NUL：按 GB18030 读（既有降级行为，不假装能识别）
     cjk = root / "cjk-no-bom.txt"
     cjk.write_bytes("中文".encode("utf-16-le"))
@@ -204,9 +201,7 @@ def test_binary_file_is_refused(env):
     registry, root, _ = env
     (root / "blob.bin").write_bytes(b"\x00\x01\x02PK\x03\x04")
     assert "二进制" in run(registry, "files_read", path="blob.bin")
-    assert "二进制" in run(
-        registry, "files_write", path="blob.bin", content="x", mode="overwrite"
-    )
+    assert "二进制" in run(registry, "files_write", path="blob.bin", content="x", mode="overwrite")
     assert (root / "blob.bin").read_bytes() == b"\x00\x01\x02PK\x03\x04"
 
 
@@ -255,9 +250,7 @@ def test_link_escaping_root_is_rejected(tmp_path: Path):
 
     history = FileHistory(tmp_path / "hist")
     registry = ToolRegistry()
-    register_file_tools(
-        registry, Workspace(root=root), history, lock_dir=tmp_path / "hist" / "locks"
-    )
+    register_file_tools(registry, Workspace(root=root), history, lock_dir=tmp_path / "hist" / "locks")
 
     message = run(registry, "files_read", path="jump/secret.txt")
     assert "不在允许的根内" in message
@@ -273,9 +266,7 @@ def test_extra_root_requires_explicit_authorization(tmp_path: Path):
     (other / "note.md").write_text("授权目录里的内容\n", encoding="utf-8")
 
     strict = ToolRegistry()
-    register_file_tools(
-        strict, Workspace(root=root), FileHistory(tmp_path / "h1"), lock_dir=tmp_path / "h1"
-    )
+    register_file_tools(strict, Workspace(root=root), FileHistory(tmp_path / "h1"), lock_dir=tmp_path / "h1")
     assert "不在允许的根内" in run(strict, "files_read", path=str(other / "note.md"))
 
     allowed = ToolRegistry()
@@ -344,14 +335,10 @@ def test_write_is_atomic_and_reports_readback(env):
     target.write_text("old\n", encoding="utf-8")
     body = run(registry, "files_read", path="a.txt")
 
-    result = run(
-        registry, "files_write", path="a.txt", content="new\n", expected_hash=_fingerprint(body)
-    )
+    result = run(registry, "files_write", path="a.txt", content="new\n", expected_hash=_fingerprint(body))
     assert "回读校验通过" in result and "备份 rev 1" in result and "+new" in result
     assert target.read_text(encoding="utf-8") == "new\n"
-    assert [s.summary for s in FileHistory(root.parent / "hist").list("a.txt")] == [
-        "写入前自动备份"
-    ]
+    assert [s.summary for s in FileHistory(root.parent / "hist").list("a.txt")] == ["写入前自动备份"]
 
 
 def test_replace_requires_unique_old_text(env):
@@ -509,9 +496,7 @@ def test_readback_mismatch_is_reported(env, monkeypatch):
         path.write_bytes(b"half")
 
     monkeypatch.setattr(file_tools, "atomic_write_bytes", truncated)
-    result = run(
-        registry, "files_write", path="a.txt", content="new\n", expected_hash=_fingerprint(body)
-    )
+    result = run(registry, "files_write", path="a.txt", content="new\n", expected_hash=_fingerprint(body))
     assert "回读校验不通过" in result and "不要假设已经保存成功" in result
 
 
@@ -545,9 +530,7 @@ def test_files_write_structured_results(env, monkeypatch):
     # 回读校验失败：磁盘可能已被写入/替换——副作用未知（旧推断曾记成 none）
     from omni.tools.files import tools as file_tools
 
-    monkeypatch.setattr(
-        file_tools, "atomic_write_bytes", lambda path, data: path.write_bytes(b"half")
-    )
+    monkeypatch.setattr(file_tools, "atomic_write_bytes", lambda path, data: path.write_bytes(b"half"))
     after = run(registry, "files_read", path="s.txt")
     mismatch = registry.execute(
         "files_write",
@@ -567,13 +550,15 @@ def test_files_restore_structured_results(env):
     target.write_text("v1\n", encoding="utf-8")
     first = _fingerprint(run(registry, "files_read", path="r.txt"))
     registry.execute(
-        "files_write", {"path": "r.txt", "content": "v2\n", "expected_hash": first},
+        "files_write",
+        {"path": "r.txt", "content": "v2\n", "expected_hash": first},
         approver=AllowAllApprover(),
     )
     after = _fingerprint(run(registry, "files_read", path="r.txt"))
 
     restored = registry.execute(
-        "files_restore", {"path": "r.txt", "rev": 1, "expected_hash": after},
+        "files_restore",
+        {"path": "r.txt", "rev": 1, "expected_hash": after},
         approver=AllowAllApprover(),
     )
     assert restored.status == "ok" and restored.side_effect_state == "applied"
@@ -583,7 +568,8 @@ def test_files_restore_structured_results(env):
     # 指纹冲突（文件又被改过）：确定没有写入
     target.write_text("用户改的\n", encoding="utf-8")
     stale = registry.execute(
-        "files_restore", {"path": "r.txt", "rev": 1, "expected_hash": after},
+        "files_restore",
+        {"path": "r.txt", "rev": 1, "expected_hash": after},
         approver=AllowAllApprover(),
     )
     assert stale.status == "error" and stale.error_code == "hash_conflict"

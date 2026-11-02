@@ -6,6 +6,7 @@
 - 外来包上传只写收件箱，导入仍走类型白名单/隔离区，激活仍有人工确认；
 - 技能设置与普通配置共用文件锁、白名单、revision CAS，保存后重启生效。
 """
+
 import io
 import zipfile
 from pathlib import Path
@@ -26,12 +27,7 @@ BODY = (
 
 def _skill_md(name: str = "pkg-skill", description: str = "外来包技能") -> str:
     return (
-        "---\n"
-        f"name: {name}\n"
-        f"description: {description}\n"
-        "version: 1\n"
-        "platforms: [windows, macos]\n"
-        "---\n\n" + BODY + "\n"
+        f"---\nname: {name}\ndescription: {description}\nversion: 1\nplatforms: [windows, macos]\n---\n\n" + BODY + "\n"
     )
 
 
@@ -58,11 +54,7 @@ def web(tmp_path):
 
 
 def _snapshot(root: Path) -> dict[str, bytes]:
-    return {
-        path.relative_to(root).as_posix(): path.read_bytes()
-        for path in sorted(root.rglob("*"))
-        if path.is_file()
-    }
+    return {path.relative_to(root).as_posix(): path.read_bytes() for path in sorted(root.rglob("*")) if path.is_file()}
 
 
 # ---------------------------------------------------------------- 总览（只读）
@@ -71,7 +63,7 @@ def _snapshot(root: Path) -> dict[str, bytes]:
 def test_skill_overview_reports_lifecycle_without_writing(web, tmp_path):
     client, runtime = web
     assert runtime.skills.create("agent-skill", "agent 写的", BODY)[0]
-    assert runtime.skills.patch("agent-skill", "Pitfalls", "补一条坑。" )[0]
+    assert runtime.skills.patch("agent-skill", "Pitfalls", "补一条坑。")[0]
     assert runtime.skills.create("user-skill", "用户写的", BODY, author="user", source="workbench")[0]
     refs = runtime.skills.root / "agent-skill" / "references"
     refs.mkdir()
@@ -168,23 +160,17 @@ def test_skill_settings_reject_invalid_and_stale_updates(web):
 
 def test_skill_create_archive_restore_and_history(web):
     client, runtime = web
-    created = client.post(
-        "/api/skills", json={"name": "ui-skill", "description": "界面技能", "content": BODY}
-    )
+    created = client.post("/api/skills", json={"name": "ui-skill", "description": "界面技能", "content": BODY})
     assert created.status_code == 200, created.text
     loaded = client.get("/api/skills/ui-skill").json()
     assert loaded["hash"] and "When to Use" in loaded["content"]
 
     # 错误指纹：拒绝且不移除
-    conflict = client.post(
-        "/api/skills/ui-skill/archive", json={"expected_hash": "deadbeefdeadbeef"}
-    )
+    conflict = client.post("/api/skills/ui-skill/archive", json={"expected_hash": "deadbeefdeadbeef"})
     assert conflict.status_code == 409
     assert [item["name"] for item in client.get("/api/skills").json()["skills"]] == ["ui-skill"]
 
-    archived = client.post(
-        "/api/skills/ui-skill/archive", json={"expected_hash": loaded["hash"], "reason": "暂时不用"}
-    )
+    archived = client.post("/api/skills/ui-skill/archive", json={"expected_hash": loaded["hash"], "reason": "暂时不用"})
     assert archived.status_code == 200, archived.text
     assert client.get("/api/skills").json()["skills"] == []
     assert client.get("/api/skills/ui-skill").status_code == 404
@@ -202,10 +188,22 @@ def test_skill_create_archive_restore_and_history(web):
 
 def test_skill_create_rejects_duplicate_and_bad_linter(web):
     client, _runtime = web
-    assert client.post("/api/skills", json={"name": "dup-skill", "description": "重复", "content": BODY}).status_code == 200
-    assert client.post("/api/skills", json={"name": "dup-skill", "description": "重复", "content": BODY}).status_code == 400
-    assert client.post("/api/skills", json={"name": "Bad Name", "description": "坏名字", "content": BODY}).status_code == 400
-    assert client.post("/api/skills", json={"name": "short-skill", "description": "太短", "content": "短"}).status_code == 400
+    assert (
+        client.post("/api/skills", json={"name": "dup-skill", "description": "重复", "content": BODY}).status_code
+        == 200
+    )
+    assert (
+        client.post("/api/skills", json={"name": "dup-skill", "description": "重复", "content": BODY}).status_code
+        == 400
+    )
+    assert (
+        client.post("/api/skills", json={"name": "Bad Name", "description": "坏名字", "content": BODY}).status_code
+        == 400
+    )
+    assert (
+        client.post("/api/skills", json={"name": "short-skill", "description": "太短", "content": "短"}).status_code
+        == 400
+    )
 
 
 # ---------------------------------------------------------------- 外来包
@@ -239,12 +237,15 @@ def test_skill_package_upload_import_activate_and_discard(web):
 
     # 再次上传 → 导入 → 篡改 → 激活必须 409，丢弃只动隔离区
     tamper_payload = _zip_bytes({"pkg/SKILL.md": _skill_md("tamper-skill")})
-    assert client.post(
-        "/api/skills/inbox/upload",
-        params={"filename": "second.zip"},
-        content=tamper_payload,
-        headers={"Content-Type": "application/zip"},
-    ).status_code == 200
+    assert (
+        client.post(
+            "/api/skills/inbox/upload",
+            params={"filename": "second.zip"},
+            content=tamper_payload,
+            headers={"Content-Type": "application/zip"},
+        ).status_code
+        == 200
+    )
     assert client.post("/api/skills/inbox/second.zip/import").status_code == 200
     (runtime.skill_inbox._quarantine / "tamper-skill" / "SKILL.md").write_text(
         _skill_md("tamper-skill").replace("外来包技能", "被改过的描述"), encoding="utf-8"
@@ -287,7 +288,9 @@ def test_skill_center_routes_require_pairing(tmp_path):
         assert client.get("/api/skills/overview").status_code == 401
         assert client.get("/api/skills/settings").status_code == 401
         assert client.get("/api/skills/inbox").status_code == 401
-        assert client.post("/api/skills", json={"name": "x-skill", "description": "x", "content": BODY}).status_code == 401
+        assert (
+            client.post("/api/skills", json={"name": "x-skill", "description": "x", "content": BODY}).status_code == 401
+        )
     finally:
         client.close()
         assert runtime.close()["complete"]

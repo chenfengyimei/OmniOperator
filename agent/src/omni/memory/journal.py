@@ -12,6 +12,7 @@
 明确不做：不做模型调用与笔记内容生成（归 core/journal.py 编排）；不删旧笔记
 （保留全文，覆盖更新即新内容替换旧内容，历史在 journal_runs 流水里可溯）。
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -151,8 +152,7 @@ class JournalStore:
             raise RuntimeError(f"笔记认领失败（数据库忙）：{exc}") from exc
         try:
             row = self._conn.execute(
-                "SELECT status, started_at, attempts FROM journal_notes"
-                " WHERE kind = ? AND period_key = ?",
+                "SELECT status, started_at, attempts FROM journal_notes WHERE kind = ? AND period_key = ?",
                 (kind, str(period_key)),
             ).fetchone()
             now = _now()
@@ -180,8 +180,7 @@ class JournalStore:
                 self._conn.commit()
                 return False
             self._conn.execute(
-                "UPDATE journal_notes SET status='running', started_at=?, attempts=?"
-                " WHERE kind = ? AND period_key = ?",
+                "UPDATE journal_notes SET status='running', started_at=?, attempts=? WHERE kind = ? AND period_key = ?",
                 (now, attempts + 1, kind, str(period_key)),
             )
             self._conn.commit()
@@ -235,8 +234,7 @@ class JournalStore:
         if str(row[0]) == "running":
             return "running"
         self._conn.execute(
-            "UPDATE journal_notes SET status='failed', error=?, finished_at=?"
-            " WHERE kind = ? AND period_key = ?",
+            "UPDATE journal_notes SET status='failed', error=?, finished_at=? WHERE kind = ? AND period_key = ?",
             (reason, _now(), kind, str(period_key)),
         )
         self._conn.commit()
@@ -246,8 +244,7 @@ class JournalStore:
     def mark_attempt(self, kind: str, period_key: str, *, ok: bool, detail: str = "") -> None:
         """整理流水：每次尝试（成败都）记一笔，观测面板用。"""
         self._conn.execute(
-            "INSERT INTO journal_runs(kind, period_key, ok, detail, created_at)"
-            " VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO journal_runs(kind, period_key, ok, detail, created_at) VALUES (?, ?, ?, ?, ?)",
             (kind, str(period_key), 1 if ok else 0, str(detail)[:2000], _now()),
         )
         self._conn.commit()
@@ -292,8 +289,7 @@ class JournalStore:
     @_locked
     def runs(self, limit: int = 50) -> list[dict]:
         rows = self._conn.execute(
-            "SELECT id, kind, period_key, ok, detail, created_at FROM journal_runs"
-            " ORDER BY id DESC LIMIT ?",
+            "SELECT id, kind, period_key, ok, detail, created_at FROM journal_runs ORDER BY id DESC LIMIT ?",
             (max(1, min(int(limit), 500)),),
         ).fetchall()
         return [

@@ -1,4 +1,5 @@
 """常驻入口响应本次启动的停止请求；不构造运行态、不自行终止其它进程。"""
+
 from __future__ import annotations
 
 import asyncio
@@ -10,6 +11,11 @@ async def serve_until_stop(runtime, name: str, launch_id: str, serve: Awaitable)
     try:
         while not worker.done():
             await asyncio.wait({worker}, timeout=0.25)
+            updates = getattr(runtime, "updates", None)
+            if updates and updates.gate.state().get("phase") == "stopping":
+                worker.cancel()
+                await asyncio.gather(worker, return_exceptions=True)
+                return
             if runtime.services.stop_requested(name, launch_id):
                 runtime.active_runs.cancel_all("服务停止请求")
                 worker.cancel()

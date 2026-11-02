@@ -4,6 +4,7 @@
 读到坏文件、旧实例的快照或过期数字时，必须降级成可见的"不新鲜"，
 而不是让接口 500 或者把陈旧数字当真。
 """
+
 import json
 import time
 
@@ -17,8 +18,7 @@ from omni.system.services import ServiceManager
 
 
 def _writer(tmp_path, *, service="omni-heartbeat", launch_id="a" * 32, clock=time.time):
-    return StateWriter(state_path(tmp_path, service), service=service,
-                       launch_id=launch_id, pid=4242, clock=clock)
+    return StateWriter(state_path(tmp_path, service), service=service, launch_id=launch_id, pid=4242, clock=clock)
 
 
 def test_state_path_uses_run_dir(tmp_path):
@@ -85,8 +85,11 @@ def test_oversized_file_is_treated_as_corrupt(tmp_path):
 
 def _manager(tmp_path, identity):
     return ServiceManager(
-        napcat_dir=None, napcat_ws_port=1, napcat_webui_port=2,
-        run_dir=tmp_path / "run", log_dir=tmp_path / "logs",
+        napcat_dir=None,
+        napcat_ws_port=1,
+        napcat_webui_port=2,
+        run_dir=tmp_path / "run",
+        log_dir=tmp_path / "logs",
         port_prober=lambda _port, _state: [],
         tcp_probe=lambda _port: False,
         inspector=lambda pid: identity if pid == identity.pid else None,
@@ -98,13 +101,23 @@ def test_status_merges_service_state(tmp_path):
     executable = str(tmp_path / "python.exe")
     identity = ProcessIdentity(4242, "100", executable)
     (tmp_path / "run").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "run" / "omni-heartbeat.pid").write_text(json.dumps({
-        "version": 1, "service": "omni-heartbeat", "launch_id": "c" * 32,
-        "pid": 4242, "created": "100", "executable": executable,
-    }), encoding="utf-8")
+    (tmp_path / "run" / "omni-heartbeat.pid").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "service": "omni-heartbeat",
+                "launch_id": "c" * 32,
+                "pid": 4242,
+                "created": "100",
+                "executable": executable,
+            }
+        ),
+        encoding="utf-8",
+    )
     manager = _manager(tmp_path, identity)
-    StateWriter(state_path(tmp_path / "run", "omni-heartbeat"), service="omni-heartbeat",
-                launch_id="c" * 32, pid=4242).write(stats={"ticks": 7, "fired_total": 2})
+    StateWriter(
+        state_path(tmp_path / "run", "omni-heartbeat"), service="omni-heartbeat", launch_id="c" * 32, pid=4242
+    ).write(stats={"ticks": 7, "fired_total": 2})
     status = manager.status("omni-heartbeat")
     assert status["running"] is True and status["fresh"] is True
     assert status["stats"]["ticks"] == 7
@@ -115,20 +128,45 @@ def test_status_flags_stale_service_state(tmp_path):
     executable = str(tmp_path / "python.exe")
     identity = ProcessIdentity(4242, "100", executable)
     (tmp_path / "run").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "run" / "omni-qq.pid").write_text(json.dumps({
-        "version": 1, "service": "omni-qq", "launch_id": "d" * 32,
-        "pid": 4242, "created": "100", "executable": executable,
-    }), encoding="utf-8")
-    manager = ServiceManager(napcat_dir=None, napcat_ws_port=1, napcat_webui_port=2,
-                             run_dir=tmp_path / "run", log_dir=tmp_path / "logs",
-                             port_prober=lambda _port, _state: [],
-                             tcp_probe=lambda _port: False,
-                             inspector=lambda pid: identity if pid == 4242 else None,
-                             health_timeout_s=15)
-    (tmp_path / "run" / "omni-qq.state.json").write_text(json.dumps({
-        "version": 1, "service": "omni-qq", "launch_id": "d" * 32, "pid": 4242,
-        "updated": 1.0, "seq": 1, "health": "ok", "stats": {"received": 3},
-    }), encoding="utf-8")
+    (tmp_path / "run" / "omni-qq.pid").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "service": "omni-qq",
+                "launch_id": "d" * 32,
+                "pid": 4242,
+                "created": "100",
+                "executable": executable,
+            }
+        ),
+        encoding="utf-8",
+    )
+    manager = ServiceManager(
+        napcat_dir=None,
+        napcat_ws_port=1,
+        napcat_webui_port=2,
+        run_dir=tmp_path / "run",
+        log_dir=tmp_path / "logs",
+        port_prober=lambda _port, _state: [],
+        tcp_probe=lambda _port: False,
+        inspector=lambda pid: identity if pid == 4242 else None,
+        health_timeout_s=15,
+    )
+    (tmp_path / "run" / "omni-qq.state.json").write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "service": "omni-qq",
+                "launch_id": "d" * 32,
+                "pid": 4242,
+                "updated": 1.0,
+                "seq": 1,
+                "health": "ok",
+                "stats": {"received": 3},
+            }
+        ),
+        encoding="utf-8",
+    )
     status = manager.status("omni-qq")
     assert status["fresh"] is False and status["health_reason"] == "stale"
     # 数字仍然给出来，界面负责标黄，别静默丢掉最后一次已知值
@@ -136,9 +174,14 @@ def test_status_flags_stale_service_state(tmp_path):
 
 
 def test_napcat_has_no_state_file(tmp_path):
-    manager = ServiceManager(napcat_dir=None, napcat_ws_port=1, napcat_webui_port=2,
-                             run_dir=tmp_path / "run", log_dir=tmp_path / "logs",
-                             port_prober=lambda _port, _state: [],
-                             tcp_probe=lambda _port: False)
+    manager = ServiceManager(
+        napcat_dir=None,
+        napcat_ws_port=1,
+        napcat_webui_port=2,
+        run_dir=tmp_path / "run",
+        log_dir=tmp_path / "logs",
+        port_prober=lambda _port, _state: [],
+        tcp_probe=lambda _port: False,
+    )
     status = manager.status("napcat")
     assert status["fresh"] is False and status["health_reason"] == "not_applicable"

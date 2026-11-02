@@ -1,0 +1,1280 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OmniOperator 工作台</title>
+    <script src="/ui/theme.js?v=20261102u2"></script>
+    <link rel="stylesheet" href="/ui/tokens.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/base.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/icons.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/components.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/frame.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/workbench.css?v=20261102u2" />
+    <link rel="stylesheet" href="/memory/memory.css?v=20261102u2" />
+    <script type="module" src="/ui/shared.js?v=20261102u2"></script>
+    <script src="/ui/markdown.js?v=20261102u2"></script>
+  </head>
+  <body data-ui-page="workbench">
+    <!-- 左侧图标栏：导航入口统一收这里。body 的直接子元素仍是 header / main，
+     shared.js 往 body>header 注入导航/面板切换的挂载假设不受影响（注入导航由 workbench.css 隐藏）。 -->
+    <nav class="rail" aria-label="主导航">
+      <!-- 品牌标 = 官网同款「小鱼」图形（ui/brand-mark.svg，由 frame.css 的 ::before 渲染） -->
+      <div class="rail-brand" data-tip="OmniOperator" role="img" aria-label="OmniOperator"></div>
+      <button class="rail-btn active" data-tip="对话工作台" data-action="rail:go">
+        <span class="material-icons">forum</span>
+      </button>
+      <button class="rail-btn" data-tip="技能库" data-action="rail:tab" data-target="skills">
+        <span class="material-icons">auto_awesome</span>
+      </button>
+      <button class="rail-btn" data-tip="定时任务" data-action="rail:cron">
+        <span class="material-icons">schedule</span>
+      </button>
+      <div class="rail-sep"></div>
+      <button class="rail-btn" data-tip="人工终端" data-action="hub:open" data-section="sec-terminal">
+        <span class="material-icons">terminal</span>
+      </button>
+      <button class="rail-btn" data-tip="安卓控制" data-action="hub:open" data-section="sec-android">
+        <span class="material-icons">smartphone</span>
+      </button>
+      <button class="rail-btn" data-tip="审批队列" data-action="rail:approvals">
+        <span class="material-icons">gpp_maybe</span>
+      </button>
+      <div class="rail-sep"></div>
+      <!-- 工具入口一律打开设置中心对应分区（原生面板/内嵌页都在这），不再整页跳走；
+       确实要看整页时，卡片右上角有「整页打开 ↗」直达独立 URL。 -->
+      <button class="rail-btn" id="open-project" data-tip="项目索引" data-action="hub:open" data-section="sec-project">
+        <span class="material-icons">account_tree</span>
+      </button>
+      <button
+        class="rail-btn"
+        id="open-command-jobs"
+        data-tip="后台任务"
+        data-action="hub:open"
+        data-section="sec-jobs"
+      >
+        <span class="material-icons">checklist</span>
+      </button>
+      <button
+        class="rail-btn"
+        id="open-mcp-services"
+        data-tip="MCP 服务"
+        data-action="hub:open"
+        data-section="sec-mcp-services"
+      >
+        <span class="material-icons">network_check</span>
+      </button>
+      <button
+        class="rail-btn"
+        id="open-capabilities"
+        data-tip="能力诊断"
+        data-action="hub:open"
+        data-section="sec-capabilities"
+      >
+        <span class="material-icons">fact_check</span>
+      </button>
+      <div class="rail-foot">
+        <button class="rail-btn" data-tip="设置中心" data-action="hub:open">
+          <span class="material-icons">settings</span>
+        </button>
+      </div>
+    </nav>
+    <header>
+      <div class="brand">
+        <div class="brand-title"><em>Omni</em>Operator 工作台</div>
+      </div>
+      <div id="chips"></div>
+      <div id="runtime-version-warning" role="status" hidden></div>
+      <div class="header-spacer"></div>
+      <!-- 终端/手机的旧 header 按钮已删：入口统一在 rail，点图标直接开设置中心对应分区；
+       rail.js 里对应的 window.open 绑定一并移除（不再有「整页跳走」的第二条路径）。 -->
+      <button class="btn" type="button" data-action="tools:open">工具</button>
+      <button class="hub-open" data-action="hub:open"><span class="material-icons">tune</span>设置中心</button>
+    </header>
+    <!-- 服务异常才出现：心跳卡住、QQ 掉线、服务没起来。点一条直达「服务与运行」 -->
+    <div id="svc-alert" class="svc-alert hidden" role="status" aria-live="polite">
+      <span class="svc-alert-icon material-icons" aria-hidden="true">error_outline</span>
+      <span id="svc-alert-text"></span>
+      <button type="button" class="btn small" data-action="hub:open" data-section="sec-services">去处理</button>
+      <button type="button" class="svc-alert-x" data-action="services:alert-dismiss" aria-label="本次忽略">✕</button>
+    </div>
+    <main>
+      <aside class="workbench-side">
+        <div class="panel session-panel" style="flex: 1.2">
+          <div class="panel-title"><span>会话</span><button id="new-session">＋ 新会话</button></div>
+          <div class="s-search">
+            <span class="material-icons">search</span><input id="session-q" type="text" placeholder="搜索会话…" />
+          </div>
+          <ul id="sessions"></ul>
+        </div>
+        <!-- 常驻服务默认由守护拉起，左栏只留一行在线状态；明细在设置中心「服务与运行」 -->
+        <div class="panel service-strip">
+          <button
+            type="button"
+            class="svc-strip"
+            data-action="hub:open"
+            data-section="sec-services"
+            aria-label="打开服务与运行"
+          >
+            <span class="svc-dot" id="svc-dot"></span>
+            <span class="svc-strip-text" id="svc-strip-text">服务读取中…</span>
+            <span class="svc-strip-more">设置</span>
+          </button>
+        </div>
+        <div class="panel context-panel">
+          <div class="panel-title">
+            <span>上下文用量</span><span class="panel-meta" id="context-percent">估算中…</span>
+          </div>
+          <div id="context-usage" class="ctx">
+            <div class="ctx-head">
+              <span class="ctx-val">—<span> / —</span></span>
+              <span class="ctx-percent">等待会话</span>
+            </div>
+            <div class="ctx-bar" role="img" aria-label="上下文占用分布"></div>
+            <div class="ctx-legend"></div>
+            <div class="ctx-note">读取当前会话后显示系统提示、工具规格、记忆与对话的估算占用。</div>
+          </div>
+          <div id="status" class="ctx-status"></div>
+          <button class="btn small" data-action="hub:open" data-section="sec-context">上下文统计与设置</button>
+        </div>
+      </aside>
+      <section id="chat">
+        <div id="messages" aria-live="polite" aria-relevant="additions">
+          <div class="empty">选择左侧会话，或直接开始聊天</div>
+        </div>
+        <div id="composer">
+          <!-- 原型 dock 结构：容器内无边框 textarea + 底部工具条；#composer/#input/#send 三个 id 与绑定不动 -->
+          <div class="dock">
+            <textarea id="input" rows="2" placeholder="给小鱼发消息…（丢 B 站链接、说排程需求都行）"></textarea>
+            <div class="dock-bar">
+              <label class="mode-pick" title="能力档位：自动判定 / 纯聊天 / 只读检索 / 完整能力">
+                <span class="material-icons" aria-hidden="true">tune</span>
+                <select id="mode-pick" aria-label="能力档位">
+                  <option value="auto">自动</option>
+                  <option value="chat">聊天</option>
+                  <option value="retrieval">检索</option>
+                  <option value="agent">完整</option>
+                </select>
+              </label>
+              <span class="dock-meta"><kbd>Enter</kbd>发送 <kbd>Shift</kbd>+<kbd>Enter</kbd>换行</span>
+              <button id="send">发送</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <aside>
+        <!-- 工具目录不再占主界面：完整版（搜索/筛选/参数/审批要求）在设置中心「项目索引」与 /project/ 子站 -->
+        <div class="panel" style="flex: 1">
+          <div class="tabs">
+            <button data-tab="todos" class="active">待办</button>
+            <button data-tab="skills">技能</button>
+            <button data-tab="artifacts">产物</button>
+            <button data-tab="desktop">桌面</button>
+            <button data-tab="publications">发布草稿</button>
+          </div>
+          <div id="tab-publications" class="tab-body hidden">
+            <button class="btn" data-action="publications:refresh">刷新草稿</button>
+            <div class="hint">在聊天中准备草稿；发送前会展示完整内容并请求确认。结果未知时，请先到网站核查。</div>
+            <div id="publication-list"></div>
+          </div>
+          <div id="tab-desktop" class="tab-body hidden">
+            <button class="btn" data-action="desktop:refresh">刷新允许的窗口</button>
+            <div class="hint">先观察，再在聊天中请求编辑；每次桌面写入都需要确认。</div>
+            <div id="desktop-windows"></div>
+            <div id="desktop-tree"></div>
+          </div>
+          <div id="tab-todos" class="tab-body"><ul id="todos-list"></ul></div>
+          <div id="tab-skills" class="tab-body hidden">
+            <div class="skill-tab-head">
+              <button class="btn small" data-action="hub:open" data-section="sec-skills">
+                技能中心（统计 / 导入 / 设置）
+              </button>
+              <button class="btn small" data-action="skills:refresh">刷新</button>
+            </div>
+            <div id="skill-pending-bar" class="hidden"></div>
+            <ul id="skills-list"></ul>
+          </div>
+          <div id="tab-artifacts" class="tab-body hidden">
+            <div
+              id="artifacts-usage"
+              style="padding: 8px 12px; font-size: 12px; color: var(--dim); border-bottom: 1px solid var(--border)"
+            ></div>
+            <div id="artifacts-grid"></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+    <div id="approval-banner" class="hidden"></div>
+    <!-- rail 图标提示浮层：position:fixed 顶层，避开层叠上下文与 overflow 裁剪；JS 在文件尾接线 -->
+    <div id="tip-layer"></div>
+    <dialog id="qr-modal" class="modal" data-action="modals:backdrop-close" data-id="qr-modal">
+      <div class="modal-box">
+        <div class="modal-title">
+          <span>QQ 扫码登录</span><button class="modal-x" data-action="modals:close" data-id="qr-modal">✕</button>
+        </div>
+        <div id="qr-status" class="qr-status"></div>
+        <img id="qr-img" class="qr-img" alt="登录二维码" />
+        <div class="qr-hint">
+          用手机 QQ（机器人小号）扫码并确认登录。<br />二维码约 2 分钟自动刷新，弹窗每 5 秒自动取最新。
+        </div>
+        <button class="btn" style="width: 100%; padding: 6px" data-action="services:qr-refresh">立即刷新</button>
+      </div>
+    </dialog>
+    <!-- ============ 内置终端 ============ -->
+    <!-- ============ 安卓手机 ============ -->
+    <!-- ============ 产物大图 ============ -->
+    <dialog id="img-modal" class="modal" data-action="modals:backdrop-close" data-id="img-modal">
+      <div class="modal-box" style="width: min(1040px, 96vw)">
+        <div class="modal-title">
+          <span id="img-title">产物</span
+          ><button class="modal-x" data-action="modals:close" data-id="img-modal">✕</button>
+        </div>
+        <img id="img-view" alt="产物大图" />
+        <div class="qr-hint" id="img-hint"></div>
+      </div>
+    </dialog>
+    <!-- ============ 技能编辑器 ============ -->
+    <dialog id="skill-modal" class="modal" data-action="modals:backdrop-close" data-id="skill-modal">
+      <div
+        class="modal-box"
+        style="width: min(920px, 95vw); height: min(780px, 94vh); display: flex; flex-direction: column; gap: 8px"
+      >
+        <div class="modal-title">
+          <span id="skill-editor-title">编辑技能</span
+          ><button class="modal-x" data-action="modals:close" data-id="skill-modal">✕</button>
+        </div>
+        <textarea id="skill-editor" spellcheck="false"></textarea>
+        <div id="skill-msg"></div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap">
+          <button class="btn" data-action="skills:save">保存（指纹冲突会拒绝）</button>
+          <button class="btn" data-action="skills:reload">重新加载最新</button>
+          <button class="btn" data-action="skills:history">历史 / 差异 / 回滚</button>
+        </div>
+        <div id="skill-history" style="max-height: 170px; overflow: auto"></div>
+        <pre id="skill-diff"></pre>
+      </div>
+    </dialog>
+    <!-- ============ 新建技能（技能中心） ============ -->
+    <dialog id="skill-new-modal" class="modal" data-action="modals:backdrop-close" data-id="skill-new-modal">
+      <div
+        class="modal-box"
+        style="width: min(760px, 95vw); max-height: 94vh; display: flex; flex-direction: column; gap: 8px"
+      >
+        <div class="modal-title">
+          <span>新建技能</span><button class="modal-x" data-action="modals:close" data-id="skill-new-modal">✕</button>
+        </div>
+        <div class="hint">
+          技能名用英文小写连字符；描述一句话说清“什么时候用它”；正文按 When to Use / Procedure / Pitfalls / Verification
+          四节组织。
+        </div>
+        <form id="skill-new-form" style="display: flex; flex-direction: column; gap: 8px; min-height: 0">
+          <div class="field-row">
+            <div class="field">
+              <label for="skill-new-name">技能名（3–40 位小写字母/数字/连字符）</label
+              ><input
+                id="skill-new-name"
+                maxlength="40"
+                pattern="[a-z0-9][a-z0-9-]{2,39}"
+                required
+                placeholder="my-skill"
+              />
+            </div>
+            <div class="field">
+              <label for="skill-new-description">一句话描述（≤60 字）</label
+              ><input id="skill-new-description" maxlength="60" required placeholder="什么时候用它，解决什么问题" />
+            </div>
+          </div>
+          <div class="field" style="flex: 1; min-height: 0">
+            <label for="skill-new-content">正文（四节结构）</label
+            ><textarea id="skill-new-content" spellcheck="false" required></textarea>
+          </div>
+          <div id="skill-new-msg" class="save-msg" role="status"></div>
+          <div class="card-actions">
+            <button class="btn primary" id="skill-new-submit" type="submit">创建技能</button>
+            <button class="btn" type="button" data-action="skills-hub:template">填入四节模板</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+    <!-- ============ 技能变更审阅（D18：agent/review 自动改的修订） ============ -->
+    <dialog id="review-modal" class="modal" data-action="modals:backdrop-close" data-id="review-modal">
+      <div
+        class="modal-box"
+        style="width: min(960px, 95vw); height: min(740px, 92vh); display: flex; flex-direction: column; gap: 8px"
+      >
+        <div class="modal-title">
+          <span>技能变更待审阅</span
+          ><button class="modal-x" data-action="modals:close" data-id="review-modal">✕</button>
+        </div>
+        <div class="hint">
+          这里是小鱼（对话/自进化
+          review/定时任务）自动改过的技能修订。技能改动不会改变风险等级或工具权限，但值得看一眼；不满意可回滚到变更前，回滚会产生新修订、可再撤销。
+        </div>
+        <div style="display: flex; gap: 6px">
+          <button class="btn" data-action="skills:review-ack-all">全部标记已读</button>
+          <button class="btn" data-action="skills:review-open">刷新</button>
+        </div>
+        <div id="review-list" style="flex: 1; overflow: auto"></div>
+        <pre id="review-diff"></pre>
+      </div>
+    </dialog>
+    <!-- ============ 设置中心 ============ -->
+    <div id="hub" class="hidden" role="dialog" aria-modal="true" aria-label="设置中心" aria-hidden="true">
+      <div class="hub-header">
+        <button class="hub-back" type="button" data-action="hub:close" title="返回工作台" aria-label="返回工作台">
+          <span class="material-icons">arrow_back</span>
+        </button>
+        <div class="hub-title">
+          <div class="hub-mark"><span class="material-icons">tune</span></div>
+          <div>
+            <div class="title"><span>设置中心</span></div>
+            <div class="sub">昵称、人设、模型、记忆、能力与路径，都从这里调整</div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <div id="hub-msg"></div>
+      </div>
+      <div class="hub-layout">
+        <nav class="hub-nav">
+          <div class="hub-search">
+            <span class="material-icons" aria-hidden="true">search</span>
+            <input id="hub-nav-search" type="search" placeholder="搜索分区…" aria-label="搜索设置分区" maxlength="20" />
+          </div>
+          <div class="hub-nav-scroll">
+            <div class="hub-group">核心系统</div>
+            <a data-go="sec-context" href="#sec-context">上下文系统</a>
+            <a data-go="sec-skills">技能系统</a>
+            <a data-go="sec-memory-system">记忆系统</a>
+            <div class="hub-group">对话与模型</div>
+            <a data-go="sec-persona" class="active">人设</a>
+            <a data-go="sec-models">模型</a>
+            <a data-go="sec-memory">压缩与复盘</a>
+            <div class="hub-group">工具与设备</div>
+            <a data-go="sec-terminal">人工终端</a>
+            <a data-go="sec-jobs">后台任务</a>
+            <a data-go="sec-plugins">插件</a>
+            <a data-go="sec-capabilities">能力诊断</a>
+            <a data-go="sec-project">项目索引</a>
+            <div class="hub-group">数字具身</div>
+            <a data-go="sec-embodiment">数字具身总览</a>
+            <a data-go="sec-media">哔哩哔哩</a>
+            <a data-go="sec-browser">浏览器</a>
+            <a data-go="sec-android">手机</a>
+            <a data-go="sec-qq">QQ</a>
+            <div class="hub-group">平台与通道</div>
+            <a data-go="sec-services">服务与运行</a>
+            <a data-go="sec-cron">定时任务</a>
+            <div class="hub-group">文件与用量</div>
+            <a data-go="sec-storage">Agent 与文件</a>
+            <a href="/storage/" target="_blank" rel="noopener">Agent 与目录 ↗</a>
+            <a data-go="sec-usage">花费</a>
+            <a data-go="sec-mcp">MCP 服务</a>
+            <a data-go="sec-about">关于</a>
+          </div>
+        </nav>
+        <div class="hub-body">
+          <div class="hub-card" id="sec-persona">
+            <h3>人设</h3>
+            <div class="hint">
+              这里决定它叫什么、怎么跟你说话。保存后重启相应入口使用新设置。<br />下面那几套是你存下来的设定，可以随手切换——比如工作用一套、闲聊用另一套。
+            </div>
+            <div class="field">
+              <label>它叫什么</label><input type="text" id="cfg-persona-name" placeholder="例如：小鱼" />
+            </div>
+            <div class="field">
+              <label>群聊补充设定（留空继承核心）<textarea id="cfg-persona-group"></textarea></label>
+            </div>
+            <div class="field">
+              <label>私聊补充设定（留空继承核心）<textarea id="cfg-persona-private"></textarea></label>
+            </div>
+            <div class="field">
+              <label>它是谁、怎么说话（写得越具体，它越像你想要的样子）</label
+              ><textarea id="cfg-persona-prompt"></textarea>
+            </div>
+            <div class="hint" style="margin-top: -6px">
+              小提示：时间自动放在每轮消息末尾；旧 <code>{now}</code> 会使用固定引用，保持前面的提示词稳定。
+            </div>
+            <div class="field">
+              <label>你存的几套设定</label>
+              <div style="display: flex; gap: 8px; margin-bottom: 8px">
+                <button class="btn small" data-action="persona:preset-save-current">把现在这套存下来</button>
+                <button class="btn small" data-action="persona:preset-new">新建一套</button>
+                <span id="preset-tip" class="test-out"></span>
+              </div>
+              <div id="persona-presets"></div>
+            </div>
+            <div
+              class="hint market-cta"
+              style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px"
+            >
+              <span
+                >不想自己写？市场里有别人调好的整套设定——挑一个导入，就等于新建了一套预设（改名、改成自己想要的都行）。</span
+              >
+              <button class="btn small" data-action="market:open" data-kind="persona">看看人设市场</button>
+            </div>
+            <div class="card-actions">
+              <button class="save-btn" data-action="hub:save" data-scope="persona">保存人设</button>
+              <span class="save-msg" id="save-msg-persona"></span>
+            </div>
+          </div>
+          <div class="hub-card" id="sec-models">
+            <h3>模型</h3>
+            <div class="hint">
+              模型就是它的「脑子」——用哪家的、哪个型号，直接决定它有多聪明、一天花多少钱。<br />先点上面一张卡，再按「选供应商
+              → 选模型 → 填 Key」走一遍，最后点「测一下通不通」就知道成没成。<br />选完顺手看一眼下方的「思考开关」：要不要让它先想再答、愿意等它想多久，这里都能自己定。
+            </div>
+            <div id="model-slots" class="slot-grid"></div>
+            <div id="model-wizard"></div>
+            <fieldset class="mode-routing">
+              <legend>能力档位</legend>
+              <div class="hint">
+                每个回合先判断用哪一档能力：纯聊天只带少量记忆工具，只读查询带检索工具，
+                真正要动手才给完整工具集——少带工具规格就是省 token。<br />
+                升档不影响任何权限：写操作照旧要你确认，群聊仍然拿不到你的文件。<br />
+                档位是服务端行为：<b>改完要重启工作台进程</b>才生效（只刷新浏览器页面不生效）。
+              </div>
+              <div class="field">
+                <label>默认档位</label>
+                <select id="cfg-mode-default">
+                  <option value="auto">自动判定（推荐）</option>
+                  <option value="chat">聊天（纯聊天）</option>
+                  <option value="retrieval">检索（只读检索）</option>
+                  <option value="agent">完整能力</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="check-row"
+                  ><input type="checkbox" id="cfg-mode-escalation" /><span class="switch"></span
+                  ><span class="switch-text">允许轻量档位在本回合升档一次</span></label
+                >
+              </div>
+            </fieldset>
+            <div class="card-actions">
+              <button class="save-btn" data-action="hub:save" data-scope="models">保存模型设置</button>
+              <span class="save-msg" id="save-msg-models"></span>
+            </div>
+          </div>
+          <div class="hub-card" id="sec-context">
+            <div class="context-heading">
+              <div>
+                <h3>上下文系统</h3>
+                <p class="hint" id="context-session">正在读取当前会话…</p>
+              </div>
+              <button class="btn" data-action="context:refresh" id="context-refresh">刷新统计</button>
+            </div>
+            <p class="hint">
+              查看模型实际保留的历史窗口与缓存上报，调整历史、压缩和记忆配额。本页只读统计不会调用模型。
+            </p>
+            <p id="context-stats-status" role="status">正在读取统计…</p>
+            <div id="context-metrics" class="context-metrics"><div class="empty">正在读取窗口用量…</div></div>
+            <div id="context-breakdown"></div>
+            <p id="context-estimate-note" class="hint"></p>
+            <h4>供应商缓存统计</h4>
+            <div id="context-cache"><div class="empty">正在读取缓存样本…</div></div>
+            <h4>提示词结构</h4>
+            <ol class="context-pipeline">
+              <li>固定人设与规则</li>
+              <li>历史消息与摘要</li>
+              <li>本轮用户输入</li>
+              <li>动态资料与时间</li>
+            </ol>
+            <p class="hint">旧轮快照不改写，工具目录在回合内固定。摘要、窗口滑动、工具或人设变化会形成新的缓存边界。</p>
+            <details>
+              <summary>查看固定提示词与前缀指纹</summary>
+              <pre id="context-prefix"></pre>
+              <pre id="context-system-prompt"></pre>
+            </details>
+            <h4>历史与压缩设置</h4>
+            <p class="hint" id="context-pending">正在读取已保存与当前运行配置…</p>
+            <form id="context-form">
+              <fieldset id="context-controls" disabled>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="cfg-context-history">保留的历史消息上限</label
+                    ><input id="cfg-context-history" type="number" required min="1" max="10000" step="1" />
+                  </div>
+                  <div class="field">
+                    <label for="cfg-context-steps">每回合工具循环上限</label
+                    ><input id="cfg-context-steps" type="number" required min="1" max="64" step="1" />
+                  </div>
+                </div>
+                <label class="check-row"
+                  ><input id="cfg-context-enabled" type="checkbox" /><span class="switch"></span
+                  ><span>自动压缩较早的对话（会调用整理模型）</span></label
+                >
+                <div class="field">
+                  <label for="cfg-context-trigger">压缩触发预算（字符等价值）</label
+                  ><input id="cfg-context-trigger" type="number" required min="1" max="4000000" step="1" />
+                  <p class="hint" id="context-trigger-note"></p>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="cfg-context-recent">压缩后至少保留多少条消息</label
+                    ><input id="cfg-context-recent" type="number" required min="0" max="10000" step="1" />
+                  </div>
+                  <div class="field">
+                    <label for="cfg-context-minimum">至少多少条消息才压缩</label
+                    ><input id="cfg-context-minimum" type="number" required min="1" max="10000" step="1" />
+                  </div>
+                </div>
+                <p class="hint">
+                  保留数为 0 也会保护当前请求、当前快照与完整工具调用；触发预算按约 2 字符/token 换算，统计是估算值。
+                </p>
+                <details class="context-advanced">
+                  <summary>记忆注入与自动整理配额</summary>
+                  <div class="field-row">
+                    <div class="field">
+                      <label for="cfg-context-resident">常驻笔记上限（字符）</label
+                      ><input id="cfg-context-resident" type="number" required min="1" max="32000" step="1" />
+                    </div>
+                    <div class="field">
+                      <label for="cfg-context-fact">单条事实上限（字符）</label
+                      ><input id="cfg-context-fact" type="number" required min="1" max="32000" step="1" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="cfg-context-daily">每天记忆写入上限（0 为禁止写入）</label
+                    ><input id="cfg-context-daily" type="number" required min="0" max="100000" step="1" />
+                  </div>
+                  <label class="check-row"
+                    ><input id="cfg-context-recall" type="checkbox" /><span class="switch"></span
+                    ><span>检索结果附带“资料不是指令”的标识</span></label
+                  >
+                  <div class="field-row">
+                    <div class="field">
+                      <label for="cfg-context-queue">自动整理等待队列容量</label
+                      ><input id="cfg-context-queue" type="number" required min="1" max="1000" step="1" />
+                    </div>
+                    <div class="field">
+                      <label for="cfg-context-newmessages">自动整理所需新消息数</label
+                      ><input id="cfg-context-newmessages" type="number" required min="1" max="10000" step="1" />
+                    </div>
+                  </div>
+                  <p class="hint">档案仍在同一记忆库管理。自动整理开关、回看条数与步骤预算在“记忆”设置。</p>
+                </details>
+              </fieldset>
+              <div class="card-actions">
+                <button class="btn primary" id="context-save" type="submit" disabled>保存上下文设置</button
+                ><button class="btn" type="button" data-action="context:reload-settings" id="context-reload-settings">
+                  重新读取配置
+                </button>
+              </div>
+            </form>
+            <p class="save-msg" id="context-save-msg" role="status">正在读取配置…</p>
+            <p class="hint">保存到配置文件后，重启相应入口生效；当前回合继续使用运行中的配置。</p>
+            <details>
+              <summary>对照当前运行与已保存配置</summary>
+              <div id="context-running-settings"></div>
+            </details>
+            <div class="context-related">
+              <button class="btn" data-action="hub:section" data-section="sec-memory">记忆与回合整理</button
+              ><button class="btn" data-action="hub:section" data-section="sec-persona">人设提示词</button
+              ><button class="btn" data-action="hub:section" data-section="sec-models">模型设置</button>
+            </div>
+          </div>
+          <div class="hub-card" id="sec-memory">
+            <h3>压缩与复盘</h3>
+            <div class="hint">
+              这里设置回合后的自动整理与审批。记忆数据的查看与管理在「记忆系统」分区；历史窗口、压缩和记忆配额集中在"上下文系统"设置。
+            </div>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-review-enabled" /><span class="switch"></span
+                ><span class="switch-text">聊完自动整理记忆（会越来越懂你，但每次多花一点）</span></label
+              >
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>整理时回看多少条消息</label><input type="number" id="cfg-review-max-messages" />
+              </div>
+              <div class="field"><label>整理时最多花几步</label><input type="number" id="cfg-review-steps" /></div>
+            </div>
+            <div class="field">
+              <label>它要改动东西时</label>
+              <select id="cfg-approval-mode">
+                <option value="manual">每次都要问我</option>
+                <option value="smart">小事自己判断，拿不准再问我</option>
+              </select>
+            </div>
+            <div class="card-actions">
+              <button class="save-btn" data-action="hub:save" data-scope="memory">保存记忆设置</button>
+              <span class="save-msg" id="save-msg-memory"></span>
+            </div>
+          </div>
+          <div class="hub-card" id="sec-skills">
+            <div class="skills-heading">
+              <div>
+                <h3>技能系统</h3>
+                <p class="hint" id="skills-hub-summary">正在读取技能库…</p>
+              </div>
+              <div class="skills-heading-actions">
+                <button class="btn" data-action="skills-hub:refresh" id="skills-hub-refresh">刷新</button>
+                <button class="btn primary" data-action="skills-hub:new">新建技能</button>
+              </div>
+            </div>
+            <p class="hint">
+              技能是“怎么做某类事”的可复用流程：小鱼完成复杂任务后会自己沉淀，你也可以在这里查看、编辑、回滚、归档或导入外来技能包。本页统计只读，不会执行技能或调用模型。
+            </p>
+            <div id="skills-hub-metrics" class="metric-grid skills-hub-metrics">
+              <div class="empty">正在读取技能统计…</div>
+            </div>
+            <div class="skills-hub-grid">
+              <section class="skills-panel">
+                <div class="section-heading compact">
+                  <div>
+                    <span class="eyebrow">ACTIVITY</span>
+                    <h4>最近 14 天修订</h4>
+                  </div>
+                  <span id="skills-hub-activity-total" class="section-meta">—</span>
+                </div>
+                <div id="skills-hub-activity" class="skills-activity"><div class="empty">正在读取…</div></div>
+                <div id="skills-hub-sources" class="skills-sources"></div>
+              </section>
+              <section class="skills-panel">
+                <div class="section-heading compact">
+                  <div>
+                    <span class="eyebrow">TO REVIEW</span>
+                    <h4>待审阅变更</h4>
+                  </div>
+                  <button class="btn small" data-action="skills:review-open">打开审阅</button>
+                </div>
+                <div id="skills-hub-pending"><div class="empty">正在读取…</div></div>
+              </section>
+            </div>
+            <section class="skills-panel">
+              <div class="section-heading compact">
+                <div>
+                  <span class="eyebrow">LIBRARY</span>
+                  <h4>技能库</h4>
+                </div>
+                <span id="skills-hub-count" class="section-meta">—</span>
+              </div>
+              <div class="skills-toolbar">
+                <input id="skills-hub-search" type="search" placeholder="搜索技能名或描述…" maxlength="60" />
+                <span id="skills-hub-filter-note" class="hint"></span>
+              </div>
+              <div id="skills-hub-list" class="skills-hub-list"><div class="empty">正在读取…</div></div>
+              <details class="skills-archive">
+                <summary>已归档技能 <span id="skills-hub-archived-count">0</span></summary>
+                <div id="skills-hub-archived"></div>
+              </details>
+            </section>
+            <section class="skills-panel">
+              <div class="section-heading compact">
+                <div>
+                  <span class="eyebrow">IMPORT</span>
+                  <h4>外来技能包</h4>
+                </div>
+                <span id="skills-hub-inbox-count" class="section-meta">—</span>
+              </div>
+              <p class="hint">
+                上传或放入技能包 zip 后先进入隔离区：只接受 SKILL.md 与 references 文本，逐文件记录
+                sha256，绝不执行包内脚本。确认文件清单后点“激活”，才会进入正式技能库。
+              </p>
+              <div class="skills-import-actions">
+                <label class="btn small skills-upload"
+                  >上传 zip<input id="skills-hub-upload" type="file" accept=".zip,application/zip" hidden
+                /></label>
+                <span id="skills-hub-import-msg" class="hint"></span>
+              </div>
+              <div id="skills-hub-inbox"></div>
+              <div id="skills-hub-quarantine"></div>
+            </section>
+            <section class="skills-panel">
+              <div class="section-heading compact">
+                <div>
+                  <span class="eyebrow">SETTINGS</span>
+                  <h4>技能设置</h4>
+                </div>
+                <span id="skills-hub-settings-status" class="section-meta">正在读取…</span>
+              </div>
+              <form id="skills-hub-settings-form">
+                <fieldset id="skills-hub-settings-controls" disabled>
+                  <div class="field-row">
+                    <div class="field">
+                      <label for="cfg-skills-history-keep">每个技能保留多少历史修订</label
+                      ><input id="cfg-skills-history-keep" type="number" required min="5" max="200" step="1" />
+                    </div>
+                    <div class="field">
+                      <label for="cfg-skills-write-chars">agent 单次技能写入上限（字符）</label
+                      ><input id="cfg-skills-write-chars" type="number" required min="200" max="24000" step="1" />
+                    </div>
+                  </div>
+                  <p class="hint">
+                    历史修订用于差异查看与回滚，保留越多越占磁盘；单次写入上限由记忆写入闸门执行，超过会被拒绝而不是截断。只约束小鱼自己的学习写入——你在工作台手动编辑/新建仍过同一
+                    linter 与历史，但不受此限额。
+                  </p>
+                </fieldset>
+                <div class="card-actions">
+                  <button class="btn primary" id="skills-hub-settings-save" type="submit" disabled>保存技能设置</button>
+                  <button
+                    class="btn"
+                    type="button"
+                    data-action="skills-hub:reload-settings"
+                    id="skills-hub-settings-reload"
+                  >
+                    重新读取配置
+                  </button>
+                </div>
+              </form>
+              <p class="save-msg" id="skills-hub-settings-msg" role="status">正在读取配置…</p>
+              <details class="skills-settings-diff">
+                <summary>对照当前运行与已保存配置</summary>
+                <div id="skills-hub-settings-running"></div>
+              </details>
+              <div class="skills-related">
+                <button class="btn" data-action="hub:section" data-section="sec-context">记忆写入额度</button>
+                <button class="btn" data-action="hub:section" data-section="sec-memory">自动整理</button>
+                <button class="btn" data-action="hub:section" data-section="sec-persona">人设提示词</button>
+              </div>
+            </section>
+          </div>
+          <div class="hub-card hub-wide" id="sec-terminal">
+            <h3>人工终端</h3>
+            <div class="hub-card-tools"><a href="/terminal/" target="_blank" rel="noopener">整页打开 ↗</a></div>
+            <div class="hint">
+              在设置中心里直接开终端会话，支持多标签、断线重连与剪贴板。内置的是
+              PowerShell，会话由后台托管，离开页面也不会丢。
+            </div>
+            <div class="embed-shell">
+              <iframe data-embed-page="terminal" title="人工终端" loading="lazy" data-src="/terminal/?embed=1"></iframe>
+            </div>
+          </div>
+          <div class="hub-card hub-wide" id="sec-android">
+            <h3>手机</h3>
+            <div class="hub-card-tools"><a href="/android/" target="_blank" rel="noopener">整页打开 ↗</a></div>
+            <div class="hint">
+              连上手机后可以看屏幕、点元素、划滑块、输文字，也能拉 UI 树看结构。操作走后台的 adb
+              通道，不需要一直开着手机。
+            </div>
+            <div class="embed-shell">
+              <iframe data-embed-page="android" title="安卓控制" loading="lazy" data-src="/android/?embed=1"></iframe>
+            </div>
+          </div>
+          <div class="hub-card hub-wide" id="sec-jobs">
+            <h3>后台任务</h3>
+            <div class="hub-card-tools"><a href="/jobs/" target="_blank" rel="noopener">整页打开 ↗</a></div>
+            <div class="hint">后台命令的队列与执行结果。可以按状态筛选，点开看增量输出，运行中的任务能取消。</div>
+            <div id="hub-jobs-content"><p class="empty">正在读取后台任务…</p></div>
+          </div>
+          <div class="hub-card hub-wide" id="sec-capabilities">
+            <h3>能力诊断</h3>
+            <div class="hub-card-tools"><a href="/capabilities/" target="_blank" rel="noopener">整页打开 ↗</a></div>
+            <div class="hint">当前能力域的只读快照与体检结果。想知道某个能力是否就绪，看这里。</div>
+            <div id="hub-capabilities-content"><p class="empty">正在读取能力诊断…</p></div>
+          </div>
+          <div class="hub-card hub-wide" id="sec-project">
+            <h3>项目索引</h3>
+            <div class="hub-card-tools"><a href="/project/" target="_blank" rel="noopener">整页打开 ↗</a></div>
+            <div class="hint">这个项目的模块、接口、工具与扩展清单，以及可查阅的开发文档。</div>
+            <div id="hub-project-content"><p class="empty">正在读取项目索引…</p></div>
+          </div>
+          <div class="hub-card" id="sec-embodiment">
+            <h3>数字具身总览</h3>
+            <div class="hint">
+              这些是它现在真正能"身处"的地方——能看、能点、能说话，不只是一个图标。<br />每个具身下面都有自己的设置分区；这里只看它现在是不是可用、还差什么。
+            </div>
+            <div class="svc-list" id="embodiment-list"><div class="muted">正在读取…</div></div>
+          </div>
+          <div class="hub-card" id="sec-media">
+            <h3>哔哩哔哩</h3>
+            <div class="hint">
+              想让小鱼帮你搬运 B 站视频，得先给它一个「登录凭证」——就相当于告诉它「这个账号是我」。<br />没有凭证也能用，但只能看到公开内容，字幕和音频大概率拿不到。
+            </div>
+            <h4>账号</h4>
+            <div class="field">
+              <label>当前登录的是哪个号</label>
+              <div id="bili-account-status" class="test-out">还没检查过</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn small" data-action="hub:bili-account-check">检查登录状态</button>
+              <span class="save-msg" id="bili-account-msg"></span>
+            </div>
+            <h4>它现在能做的</h4>
+            <div class="hint">
+              读：视频信息、字幕（没有就本地转写）、<b>抽帧拼成一张长图</b>直接给多模态看画面、评论与楼中楼回复。<br />写：发布评论、回复某条评论、私信回复、艾特——<b>每一次都要你人工确认</b>，草稿会先把全文摆给你看。
+            </div>
+            <div class="note-box">
+              <div class="nb-title">凭证怎么拿</div>
+              <div class="nb-body">
+                先在浏览器里登录 B 站，按 F12 打开开发者工具 → Application（应用）→ Cookies →
+                bilibili.com，找到下面几项，把值复制过来。<br />只有
+                <b>SESSDATA</b> 是必需的；另外两项留空也能跑，但发评论、点赞之类的操作会失败。
+              </div>
+            </div>
+            <div class="field">
+              <label>当前状态</label>
+              <div id="bili-cookie-status" class="test-out"></div>
+            </div>
+            <div class="field">
+              <label
+                >SESSDATA（必需）<input type="text" id="cfg-bili-sessdata" placeholder="粘贴浏览器里的 SESSDATA 值"
+              /></label>
+            </div>
+            <div class="field">
+              <label
+                >bili_jct（可选，用来点赞/发评论）<input type="text" id="cfg-bili-jct" placeholder="（可留空）"
+              /></label>
+            </div>
+            <div class="field">
+              <label>buvid3（可选，设备标识）<input type="text" id="cfg-bili-buvid3" placeholder="（可留空）" /></label>
+            </div>
+            <button class="btn small" data-action="hub:bili-cookies-save">保存凭证</button>
+            <h4>语音转文字</h4>
+            <div class="hint">视频没有字幕时，小鱼会把声音转成文字再理解。模型越大越准，也越慢越吃内存。</div>
+            <div class="field">
+              <label>用多大的模型</label
+              ><select id="cfg-asr-model">
+                <option>tiny</option>
+                <option>base</option>
+                <option>small</option>
+                <option>medium</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>用哪个来算</label
+                ><select id="cfg-asr-device">
+                  <option>cpu</option>
+                  <option>cuda</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>精度（低一点更快更省）</label
+                ><select id="cfg-asr-compute-type">
+                  <option>int8</option>
+                  <option>float16</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button class="save-btn" data-action="hub:save" data-scope="media">保存转写设置</button>
+              <span class="save-msg" id="save-msg-media"></span>
+            </div>
+          </div>
+          <div class="hub-card" id="sec-browser">
+            <h3>浏览器</h3>
+            <div class="hint">
+              小鱼用浏览器时，每一下点击、每一次填表都会先问你；每天还有次数上限，防止它一个人点个不停。
+            </div>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-browser-headless" /><span class="switch"></span
+                ><span class="switch-text">后台运行（建议关掉——开着你能亲眼看见它在点什么）</span></label
+              >
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>每步之间停多久（毫秒，慢一点更像人）</label><input type="number" id="cfg-browser-slowmo" />
+              </div>
+              <div class="field"><label>每天最多点几次</label><input type="number" id="cfg-browser-budget" /></div>
+              <div class="field">
+                <label>等你确认最多等几秒</label><input type="number" id="cfg-browser-approval-timeout" />
+              </div>
+            </div>
+            <div class="card-actions">
+              <button class="save-btn" data-action="hub:save" data-scope="browser">保存操作与视觉设置</button>
+              <span class="save-msg" id="save-msg-browser"></span>
+            </div>
+            <h4>截图与桌面</h4>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-vision-cloud" /><span class="switch"></span
+                ><span class="switch-text">允许把本回合的截图附加到视觉模型请求</span></label
+              >
+            </div>
+            <div class="hint">
+              默认关闭。只有已声明视觉能力的模型才能接收图片；未附加时会显示原因。以下设置保存后需重启工作台生效。
+            </div>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-desktop-enabled" /><span class="switch"></span
+                ><span class="switch-text">启用 Windows 桌面观察和受控编辑</span></label
+              >
+            </div>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-desktop-foreground" /><span class="switch"></span
+                ><span class="switch-text">允许逐次人工确认的前台接管</span></label
+              >
+            </div>
+            <div class="hint">授权绑定当前运行和目标窗口；用户输入或窗口身份变化时停止。每次写入仍需单独确认。</div>
+            <div class="field">
+              <label
+                >允许的应用完整路径（每行一个 exe；留空拒绝全部）<textarea
+                  id="cfg-desktop-apps"
+                  rows="3"
+                  spellcheck="false"
+                ></textarea>
+              </label>
+            </div>
+          </div>
+          <div class="hub-card" id="sec-services">
+            <h3>服务与运行</h3>
+            <div class="hint">
+              心跳调度、QQ 通道和 NapCat 会在工作台起来时自动拉起，掉线自己重连、崩了自己重启——不用点"启动"。<br />这里看它们现在到底在不在干活；唯一需要你动手的是扫码登录。
+            </div>
+            <div class="svc-list" id="svc-status-list"><div class="muted">读取中…</div></div>
+            <div class="card-actions">
+              <button type="button" class="btn small" data-action="services:refresh">刷新状态</button>
+              <span class="save-msg" id="svc-summary-msg"></span>
+            </div>
+            <h4>通道与登录</h4>
+            <div class="muted" id="svc-napcat-line">读取中…</div>
+            <div class="field-row">
+              <div class="field">
+                <label
+                  >NapCat 用的 QQ 号（留空就沿用上次登录的号）<input
+                    type="text"
+                    id="cfg-sys-napcat-qq"
+                    placeholder="123456789"
+                /></label>
+              </div>
+              <div class="field">
+                <label>登录二维码</label
+                ><button type="button" class="btn small" data-action="services:qr-open">打开扫码登录</button>
+              </div>
+            </div>
+            <h4>调度与收发</h4>
+            <div class="muted" id="svc-stats-heartbeat">心跳：读取中…</div>
+            <div class="muted" id="svc-stats-qq">QQ：读取中…</div>
+            <h4>守护设置</h4>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-sys-autostart" /><span class="switch"></span
+                ><span class="switch-text">工作台启动时自动拉起这三个服务</span></label
+              >
+            </div>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-sys-keep" /><span class="switch"></span
+                ><span class="switch-text">关掉工作台后服务继续跑（定时任务不中断）</span></label
+              >
+            </div>
+            <div class="field">
+              <label
+                >连续启动失败几次就放弃（0 = 不自动拉起）<input type="number" id="cfg-sys-attempts" min="0" max="50"
+              /></label>
+            </div>
+            <div class="card-actions">
+              <button type="button" class="save-btn" data-action="hub:save" data-scope="services">保存守护设置</button>
+              <span class="save-msg" id="save-msg-services"></span>
+            </div>
+            <h4>日志</h4>
+            <div class="field-row">
+              <div class="field">
+                <label
+                  >看哪个服务的日志<select id="svc-log-name">
+                    <option value="omni-heartbeat">心跳调度</option>
+                    <option value="omni-qq">QQ 通道</option>
+                    <option value="napcat">NapCat</option>
+                  </select></label
+                >
+              </div>
+            </div>
+            <pre
+              id="sec-services-log"
+              class="muted maintenance-output"
+              style="max-height: 220px; overflow: auto; white-space: pre-wrap"
+            ></pre>
+            <div class="muted" id="svc-supervisor-line"></div>
+          </div>
+          <div class="hub-card" id="sec-qq">
+            <h3>QQ</h3>
+            <div class="hint">
+              只有名单里的人能跟它说话，陌生人发消息它一律不理；在群里必须 @ 它才回应。<br />改完要去「服务」面板重启一次
+              QQ 通道才会生效。
+            </div>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-qq-enabled" /><span class="switch"></span
+                ><span class="switch-text">启用 QQ（需要 NapCat 在运行）</span></label
+              >
+            </div>
+            <div class="field">
+              <label>NapCat 连接地址<input type="text" id="cfg-qq-ws-url" /></label>
+            </div>
+            <div class="field">
+              <label>NapCat 访问令牌（可留空）<input type="text" id="cfg-qq-token" /></label>
+            </div>
+            <div class="field">
+              <label
+                >允许私聊它的 QQ 号（逗号分隔）<input type="text" id="cfg-qq-users" placeholder="123456789"
+              /></label>
+            </div>
+            <div class="field">
+              <label
+                >允许它待在哪些群（逗号分隔群号）<input
+                  type="text"
+                  id="cfg-qq-groups"
+                  placeholder="不填就只在私聊里工作"
+              /></label>
+            </div>
+            <div class="field">
+              <label
+                >回复间隔（秒，例如 1.0, 3.0——中间会随机）<input type="text" id="cfg-qq-delay" placeholder="1.0, 3.0"
+              /></label>
+            </div>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-qq-reply" /><span class="switch"></span
+                ><span class="switch-text">群里别人接它的话，它也能接着说（仍需在上面的群名单里）</span></label
+              >
+            </div>
+            <div class="field">
+              <label class="check-row"
+                ><input type="checkbox" id="cfg-qq-proactive" /><span class="switch"></span
+                ><span class="switch-text">让它定时提醒你（默认关闭，保存后立即生效）</span></label
+              >
+            </div>
+            <div class="field">
+              <label>你自己的 QQ（必须填在上面的名单里）<input type="number" id="cfg-qq-owner" min="0" /></label>
+            </div>
+            <div class="field">
+              <label>每天最多提醒几次<input type="number" id="cfg-qq-limit" min="0" max="50" /></label>
+            </div>
+            <div class="field">
+              <label>安静时段从<input type="time" id="cfg-qq-quiet-start" /></label>
+            </div>
+            <div class="field">
+              <label>安静时段到（和起点填一样 = 不设安静时段）<input type="time" id="cfg-qq-quiet-end" /></label>
+            </div>
+            <div class="field">
+              <label
+                >按哪个时区算（默认跟这台电脑一致）<input type="text" id="cfg-qq-timezone" placeholder="Asia/Shanghai"
+              /></label>
+            </div>
+            <div class="muted" id="qq-policy-status"></div>
+            <button type="button" id="qq-proactive-stop">马上停止提醒</button>
+            <div class="card-actions">
+              <button class="save-btn" data-action="hub:save" data-scope="qq">保存 QQ 设置</button>
+              <span class="save-msg" id="save-msg-qq"></span>
+            </div>
+          </div>
+          <div class="hub-card" id="sec-cron">
+            <h3>定时任务</h3>
+            <div class="hint">
+              到点自己干活，做完把结果发给你。也可以直接跟小鱼说一句「每天早上八点给我发 B
+              站日报」，它自己就建好了，不用来这儿填表。
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label
+                  >任务名（英文，方便自己认）<input type="text" id="cronf-name" placeholder="morning-report"
+                /></label>
+              </div>
+              <div class="field">
+                <label
+                  >每天几点（HH:MM）<input type="text" id="cronf-daily" placeholder="08:30（和右边二选一）"
+                /></label>
+              </div>
+              <div class="field">
+                <label
+                  >按哪个时区（默认跟这台电脑一致）<input type="text" id="cronf-zone" value="local" placeholder="local"
+                /></label>
+              </div>
+              <div class="field">
+                <label>或者每隔几分钟<input type="number" id="cronf-every" placeholder="至少 30" /></label>
+              </div>
+            </div>
+            <div class="field">
+              <label
+                >到点让它做什么（写得越清楚，它干得越准）<textarea
+                  id="cronf-prompt"
+                  style="min-height: 70px"
+                  placeholder="例：看B站热门榜前 10，挑 3 条我可能感兴趣的写一份简报"
+                ></textarea>
+              </label>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>结果发给哪个 QQ（可留空）<input type="text" id="cronf-qq" placeholder="123456789" /></label>
+              </div>
+              <div class="field">
+                <label>用哪个技能（可留空）<input type="text" id="cronf-skills" placeholder="nightly-tidy" /></label>
+              </div>
+              <div class="field">
+                <label
+                  >接着上一个任务的结果做（可留空）<input type="text" id="cronf-ctx" placeholder="nightly-tidy"
+                /></label>
+              </div>
+              <div class="field">
+                <label
+                  >上一步结果最多留多久（分钟）<input type="number" id="cronf-age" value="1440" min="1" max="10080"
+                /></label>
+              </div>
+            </div>
+            <button class="btn small" id="cron-create-btn" data-action="cron:create">创建任务</button>
+            <button class="btn small hidden" id="cron-cancel-edit" data-action="cron:cancel-edit">取消编辑</button>
+            <div id="cronf-msg" class="test-out"></div>
+            <h4>已建的任务</h4>
+            <div id="cron-list"></div>
+            <h4>跑过的记录</h4>
+            <div class="hint">成功失败都记，最近的留在上面。</div>
+            <div id="cron-history"></div>
+            <h4>还没发出去的结果</h4>
+            <div class="hint">
+              QQ 掉线的时候结果不会丢，先存着，等连上自动补发。<br />标着「不知道发没发出去」的那几条<b>不会自动重发</b>——万一对方其实收到了，重发就成了两条。先确认一下再手动点。
+            </div>
+            <div id="cron-outbox"></div>
+          </div>
+          <div class="hub-card" id="sec-usage">
+            <h3>花了多少钱</h3>
+            <div class="hint">
+              每次跟模型说话都要花钱，这里能看到明细。设了每日上限的话，超了它就不往下跑了，会先来找你。
+            </div>
+            <div id="usage-today" style="margin-top: 10px"></div>
+            <h4 style="margin-top: 16px">这几天都花在哪了（最近 7 天）</h4>
+            <div id="usage-purpose"></div>
+            <h4 style="margin-top: 16px">最近几十次调用</h4>
+            <div id="usage-calls"></div>
+            <h4 style="margin-top: 16px">各个模型会什么</h4>
+            <div class="hint">
+              没在这张表里登记过的能力，小鱼不会去用——所以如果某个模型明明会看图却不认，多半是这里漏了。
+            </div>
+            <div id="usage-models"></div>
+          </div>
+          <div class="hub-card hub-wide" id="sec-mcp">
+            <h3>MCP 服务</h3>
+            <div class="hint">
+              扩展是给小鱼「加装新本事」的东西——装上之后它就能用别人做好的工具，比如查资料库、读表格、连你公司里的系统。<br />
+              点「连接」或读取工具目录时才会建立连接；远程认证由你单独点击发起。
+            </div>
+            <div class="note-box">
+              <div class="nb-title">安全规则只有一条</div>
+              <div class="nb-body">
+                只看不改的操作，小鱼自己就能用，不打扰你；<b>凡是会改动东西的，一定先问你</b>。至于哪些算安全，由小鱼按你确认过的清单判断——扩展自己说「我很安全」是不作数的。
+              </div>
+            </div>
+            <div class="hub-card-tools"><a href="/mcp/" target="_blank" rel="noopener">整页打开 ↗</a></div>
+            <div id="hub-mcp-services-content"><p class="empty">正在读取 MCP 服务…</p></div>
+          </div>
+          <div class="hub-card" id="sec-plugins">
+            <h3>插件</h3>
+            <div class="hint">
+              插件是装在本机进程里的小工具包——装上之后小鱼就多几个能用的工具（比如格式化 JSON、统计字数、换算单位）。<br />
+              它和上面的扩展不是一回事：扩展是外面单独起的一个服务，插件是直接长在它身上的本事。
+            </div>
+            <div class="note-box">
+              <div class="nb-title">装和用是两步</div>
+              <div class="nb-body">
+                「装下来」只是把包装进隔离区，<b>不会运行</b>；你点了「激活」它才会真正加载——激活就等于同意运行这份代码。所以来源不明的插件，别激活。
+              </div>
+            </div>
+            <div class="market-actions">
+              <button class="btn" data-action="market:open" data-kind="plugin">打开插件市场</button>
+              <button class="btn small" data-action="plugins:refresh">刷新本机清单</button>
+              <span id="plugin-market-tip" class="test-out"></span>
+            </div>
+            <h4>已装</h4>
+            <div id="plugin-installed"><p class="empty">正在读取…</p></div>
+            <h4>下载好了，等你确认</h4>
+            <div id="plugin-quarantine"><p class="empty">正在读取…</p></div>
+          </div>
+          <div class="hub-card" id="sec-memory-system">
+            <h3>记忆系统</h3>
+            <p class="hint">对话与会话存档、日周月笔记、核心人物和整理设置。</p>
+            <div id="hub-memory-content"><p class="empty">正在读取记忆系统…</p></div>
+          </div>
+          <div class="hub-card hub-wide" id="sec-storage">
+            <h3>Agent 与文件</h3>
+            <div class="hub-card-tools"><a href="/storage/" target="_blank" rel="noopener">整页打开 ↗</a></div>
+            <div class="hint">
+              在这里统一管理 Agent
+              空间根目录、记忆/技能/产物等路径，以及当前公开文件区。目录修改只影响下次启动，旧数据不会自动搬移。
+            </div>
+            <div class="note-box">
+              <div class="nb-title">路径与文件安全</div>
+              <div class="nb-body">
+                文件区只开放当前 Agent
+                的公开目录；文本预览有大小上限，二进制文件只显示元数据；上传、建目录和备份都需要明确操作。
+              </div>
+            </div>
+            <div class="embed-shell">
+              <iframe
+                data-embed-page="storage"
+                title="Agent 与文件设置"
+                loading="lazy"
+                data-src="/storage/?embed=1"
+              ></iframe>
+            </div>
+          </div>
+          <div class="hub-card" id="sec-about">
+            <h3>关于</h3>
+            <div class="hint">OmniOperator · 像人一样生活在平台里的智能体。</div>
+            <div class="note-box" aria-live="polite">
+              <div class="nb-title">版本与更新</div>
+              <div id="about-version" class="nb-body">正在读取版本…</div>
+              <div id="about-source" class="hint"></div>
+              <div class="maintenance-actions">
+                <label for="update-channel">更新通道</label>
+                <select id="update-channel" data-action="updates:policy">
+                  <option value="stable">正式发行版</option>
+                  <option value="development">开发版（master）</option>
+                </select>
+                <label><input id="update-auto" type="checkbox" data-action="updates:policy" />后台检查更新</label>
+              </div>
+              <div class="hint">启动后检查，每天最多自动检查一次。安装前始终需要确认。</div>
+              <p id="update-status" role="status">尚未检查更新</p>
+              <div id="update-details" class="hint"></div>
+              <pre id="update-blockers" class="maintenance-output" hidden></pre>
+              <pre id="update-notes" class="maintenance-output"></pre>
+              <div class="maintenance-actions">
+                <button class="btn small" data-action="updates:check" id="update-check">检查更新</button>
+                <button class="btn small" data-action="updates:prepare" id="update-prepare" disabled>准备更新</button>
+                <button class="btn small" data-action="updates:confirm" id="update-install" disabled>安装并重启</button>
+                <a href="https://gitee.com/chenfengloveyuri/OmniOperator/releases" target="_blank" rel="noopener"
+                  >查看发行版 ↗</a
+                >
+              </div>
+              <p id="update-progress" role="status"></p>
+            </div>
+            <div class="note-box">
+              <div class="nb-title">它是什么</div>
+              <div class="nb-body">
+                它住在你这台电脑上，有自己的号码、自己的记忆，会慢慢学会你交代过的事。你说过的话它会记住，下次不用重复；重复的活儿它会自己编成技能，越用越顺。
+              </div>
+            </div>
+            <div class="note-box" style="margin-top: 10px">
+              <div class="nb-title">它不会自己做的事</div>
+              <div class="nb-body">
+                <b>花钱、发布、群发、加好友</b>——这四件事它必须经过你点头。就算它觉得再合理，也会停下来等你确认。
+              </div>
+            </div>
+            <h4>维护与数据</h4>
+            <div class="hint">
+              诊断只读取状态，不启动服务。备份会包含私人记忆；配置中的密钥会被脱敏，浏览器登录态不会包含。
+            </div>
+            <div class="maintenance-actions">
+              <button class="btn small" data-action="services:doctor">只读诊断</button>
+              <button class="btn small" data-action="services:backup">创建备份（含私人记忆）</button>
+            </div>
+            <pre
+              id="doctor-result"
+              class="muted maintenance-output"
+              style="max-height: 260px; overflow: auto; white-space: pre-wrap"
+            ></pre>
+            <div id="test-run-out" class="test-out" style="margin-top: 8px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 市场弹窗：人设与插件共用这个骨架，内容由 hub-market.js 按需渲染（静态 id 供契约门禁核对） -->
+    <dialog class="modal market" id="market-modal"></dialog>
+    <dialog class="modal" id="update-confirm">
+      <h3>安装更新并重启</h3>
+      <p id="update-confirm-target"></p>
+      <p>
+        工作台、QQ 通道和心跳会暂时退出。系统先等待任务完成，超过两分钟则取消升级；请先关闭人工终端和其他
+        CLI、工作台窗口。
+      </p>
+      <p>升级会保存包含私人记忆和原始配置的本机恢复点。失败时恢复升级前的源码、运行环境和数据。</p>
+      <div class="maintenance-actions">
+        <button class="btn" data-action="updates:install">确认安装并重启</button>
+        <button class="btn" data-action="modals:close" data-id="update-confirm">取消</button>
+      </div>
+    </dialog>
+    <script type="module" src="/ui/app/main.js?v=20261102u2"></script>
+    <dialog id="tools-panel" class="modal" aria-label="工具与设置"></dialog>
+  </body>
+</html>

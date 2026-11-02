@@ -1,4 +1,5 @@
 """安卓能力域单测：三防御 / UI 解析 / 中文输入序列 / 工具派发（全部离线）。"""
+
 import base64
 
 import pytest
@@ -21,7 +22,7 @@ class FakeRunner:
 
     def __init__(self) -> None:
         self.calls: list[list[str]] = []
-        self.script: list[tuple[str, bytes]] = [('wm size', b'Physical size: 1080x2400\n')]
+        self.script: list[tuple[str, bytes]] = [("wm size", b"Physical size: 1080x2400\n")]
 
     def expect(self, pattern: str, out) -> None:
         self.script.append((pattern, out if isinstance(out, bytes) else out.encode("utf-8")))
@@ -39,6 +40,7 @@ class FakeRunner:
 
 
 # ---------- 纯函数 ----------
+
 
 def test_quote_input_text():
     assert quote_input_text("hello world") == "'hello%sworld'"
@@ -60,6 +62,7 @@ def test_strip_to_png():
 
 
 # ---------- keycode 白名单 / 输入防御 ----------
+
 
 def _device_with_runner():
     runner = FakeRunner()
@@ -93,8 +96,10 @@ def test_type_unicode_restores_ime_in_order():
     adb.type_unicode("EMU1", "你好小鱼")
     joined_calls = [" ".join(c) for c in runner.calls]
     # 顺序：enable → set ADBKeyboard → 广播 → set 回原输入法 → disable
-    idx = [next(i for i, c in enumerate(joined_calls) if pat in c)
-           for pat in ("ime enable", "ADB_INPUT_B64", "ime set com.gboard", "ime disable")]
+    idx = [
+        next(i for i, c in enumerate(joined_calls) if pat in c)
+        for pat in ("ime enable", "ADB_INPUT_B64", "ime set com.gboard", "ime disable")
+    ]
     assert idx == sorted(idx)
     # 广播内容是 UTF-8 base64
     broadcast_line = next(c for c in joined_calls if "ADB_INPUT_B64" in c)
@@ -160,10 +165,14 @@ def test_parse_elements():
 
 
 def test_parse_elements_max_nodes():
-    many = "<hierarchy>" + "".join(
-        f'<node class="android.widget.TextView" text="t{i}" bounds="[{i},0][{i + 10},20]" clickable="true"/>'
-        for i in range(200)
-    ) + "</hierarchy>"
+    many = (
+        "<hierarchy>"
+        + "".join(
+            f'<node class="android.widget.TextView" text="t{i}" bounds="[{i},0][{i + 10},20]" clickable="true"/>'
+            for i in range(200)
+        )
+        + "</hierarchy>"
+    )
     assert len(parse_elements(many, max_nodes=50)) == 50
 
 
@@ -302,7 +311,7 @@ def test_tap_idx_missing_in_verified_tree(tmp_path):
         cache_path=tmp_path / "tree.json",
     )
     first = driver.refresh_tree()
-    assert '不在当前 UI 树' in driver.tap_element(99, _obs_of(first))
+    assert "不在当前 UI 树" in driver.tap_element(99, _obs_of(first))
     assert not any("input tap" in " ".join(c) for c in runner.calls)
 
 
@@ -320,6 +329,7 @@ def test_driver_screenshot(tmp_path):
 
 
 # ---------- 缓存持久化（跨进程恢复；点击不再依赖缓存新鲜度，见上方观察绑定） ----------
+
 
 def _dump_runner() -> FakeRunner:
     runner = FakeRunner()
@@ -373,10 +383,10 @@ def test_tap_on_restored_cache_still_reverifies(tmp_path):
         cache_path=cache,
     )
     out = second.tap_element(0, _obs_of(first_output))
-    assert 'observation' in out and not runner.calls
+    assert "observation" in out and not runner.calls
     fresh = second.refresh_tree()
-    assert '已点击 [0]' in second.tap_element(0, _obs_of(fresh))
-    assert len(runner.calls_matching('uiautomator')) == 3
+    assert "已点击 [0]" in second.tap_element(0, _obs_of(fresh))
+    assert len(runner.calls_matching("uiautomator")) == 3
 
 
 def test_tap_on_restored_cache_refuses_if_screen_moved_on(tmp_path):
@@ -397,7 +407,7 @@ def test_tap_on_restored_cache_refuses_if_screen_moved_on(tmp_path):
         cache_path=cache,
     )
     out = second.tap_element(0, _obs_of(first_output))
-    assert 'observation' in out and not runner.calls
+    assert "observation" in out and not runner.calls
     assert '"删除"' in second.refresh_tree()
     assert not any("input tap" in " ".join(c) for c in runner.calls)
 
@@ -420,6 +430,7 @@ def test_corrupted_cache_is_tolerated(tmp_path):
 
 # ---------- 工作台点屏（坐标换算唯一入口） ----------
 
+
 def test_scale_coords():
     from omni.tools.android.adb import AdbError
     from omni.tools.android.driver import scale_coords
@@ -433,10 +444,11 @@ def test_scale_coords():
 def test_driver_tap_scaled(tmp_path):
     from io import BytesIO
     from PIL import Image
+
     runner = _dump_runner()
     image = BytesIO()
-    Image.new('RGB', (1080, 2400)).save(image, format='PNG')
-    runner.expect('screencap', image.getvalue())
+    Image.new("RGB", (1080, 2400)).save(image, format="PNG")
+    runner.expect("screencap", image.getvalue())
     runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
     runner.expect("wm size", "Physical size: 1080x2400\n")
     driver = AndroidDriver(
@@ -464,19 +476,27 @@ def test_driver_screenshot_bytes(tmp_path):
 
 # ---------- 工具派发 ----------
 
+
 def test_android_tools_dispatch(tmp_path):
     runner = FakeRunner()
     runner.expect("devices", "List of devices attached\nEMU1\tdevice\n")
-    driver = AndroidDriver(adb=AdbDevice(adb_path="adb", runner=runner), serial="EMU1", cache_path=tmp_path/'tree.json')
+    driver = AndroidDriver(
+        adb=AdbDevice(adb_path="adb", runner=runner), serial="EMU1", cache_path=tmp_path / "tree.json"
+    )
     registry = ToolRegistry()
     from omni.tools.android.tools import register_android_tools
 
     register_android_tools(registry, driver)
     names = set(registry.names())
     assert {
-        "android_status", "android_screen_tree", "android_screenshot",
-        "android_tap_element", "android_tap_coords", "android_swipe",
-        "android_key", "android_type",
+        "android_status",
+        "android_screen_tree",
+        "android_screenshot",
+        "android_tap_element",
+        "android_tap_coords",
+        "android_swipe",
+        "android_key",
+        "android_type",
     } <= names
     # 风险分级：读 SAFE，写 CONFIRM
     assert registry.get("android_screen_tree").risk.value == "safe"

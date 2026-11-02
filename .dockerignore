@@ -1,0 +1,14 @@
+.git
+.venv
+**/__pycache__
+**/node_modules
+.pytest_cache
+.env
+config
+data
+temp
+website
+market
+xuexi
+src
+tests

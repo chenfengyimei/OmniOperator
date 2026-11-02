@@ -15,12 +15,15 @@
 
 纯逻辑：零 I/O、零网络，只吃已解码的帧。全部可离线单测。
 """
+
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
 
-from . import MAX_SCAN_FPS, SCAN_HEIGHT, SCAN_WIDTH
+from . import MAX_SCAN_FPS
+from . import SCAN_HEIGHT as SCAN_HEIGHT
+from . import SCAN_WIDTH as SCAN_WIDTH
 
 # 分数归一的亮度参考（0-255）：常见影视/网课素材 V 通道均值落在 140-180。
 REF_V = 160.0
@@ -190,11 +193,7 @@ def _hsv_difference_python(
         dh = abs(cur_h[i] - prev_h[i])
         hue_diff = dh if dh * 2 <= 255 else 255 - dh
         hue_weight = (cur_s[i] if cur_s[i] < prev_s[i] else prev_s[i]) / 255.0
-        total += (
-            hue_diff * hue_weight
-            + abs(cur_s[i] - prev_s[i])
-            + abs(cur_v[i] - prev_v[i])
-        )
+        total += hue_diff * hue_weight + abs(cur_s[i] - prev_s[i]) + abs(cur_v[i] - prev_v[i])
     return total / len(cur_h)
 
 
@@ -233,8 +232,12 @@ def detect_cuts(
     times = [time for time, _ in frames]
     scores = score_frame_pairs(frames)
     return detect_cuts_from_scores(
-        times[1:], scores, duration=duration, target_gap=target_gap,
-        floor=floor, max_cuts=max_cuts,
+        times[1:],
+        scores,
+        duration=duration,
+        target_gap=target_gap,
+        floor=floor,
+        max_cuts=max_cuts,
     )
 
 
@@ -266,15 +269,11 @@ def detect_cuts_from_scores(
     if len(scores) < 1 or len(times) != len(scores):
         return []
     total_duration = duration or (times[-1] if times else 0.0)
-    threshold, prominence_floor = _auto_threshold(
-        scores, duration=total_duration, floor=floor, max_cuts=max_cuts
-    )
+    threshold, prominence_floor = _auto_threshold(scores, duration=total_duration, floor=floor, max_cuts=max_cuts)
     return _cluster_cuts(times, scores, threshold, prominence_floor)
 
 
-def _auto_threshold(
-    scores: list[float], *, duration: float, floor: float, max_cuts: int = 64
-) -> tuple[float, float]:
+def _auto_threshold(scores: list[float], *, duration: float, floor: float, max_cuts: int = 64) -> tuple[float, float]:
     """定出「什么算一刀」的两道门槛 → (分数门槛, 突起量门槛)。
 
     **这里试过四种阈值策略，只有最后一种站得住**，记下来免得以后走回头路：
@@ -334,7 +333,7 @@ def _prominence(scores: list[float], window: int) -> list[float]:
     half = max(1, window // 2)
     result: list[float] = []
     for i in range(n):
-        neighbours = scores[max(0, i - half):i] + scores[i + 1:min(n, i + half + 1)]
+        neighbours = scores[max(0, i - half) : i] + scores[i + 1 : min(n, i + half + 1)]
         if neighbours:
             ordered = sorted(neighbours)
             background = ordered[len(ordered) // 2]
@@ -377,11 +376,7 @@ def _cluster_cuts(
     单看分数会被渐变骗过去——渐变的绝对分数可以很高，但相对背景并不突兀。
     """
     prominence = _prominence(scores, BASELINE_WINDOW)
-    above = [
-        i
-        for i, s in enumerate(scores)
-        if s >= threshold and prominence[i] >= prominence_floor
-    ]
+    above = [i for i, s in enumerate(scores) if s >= threshold and prominence[i] >= prominence_floor]
     if not above:
         return []
     clusters: list[list[int]] = []

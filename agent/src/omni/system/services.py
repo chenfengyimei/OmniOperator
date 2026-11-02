@@ -12,6 +12,7 @@
 `reconcile()` 只收敛**记录**——进程已死、PID 被复用、文件损坏才清，活着但身份不可核验的
 一律标记 `blocked_unverified` 留着，交给人判断。
 """
+
 from __future__ import annotations
 
 import base64
@@ -72,7 +73,6 @@ _PUBLIC_STATE = {
 }
 
 
-
 class ServiceError(RuntimeError):
     """服务操作失败（未安装/已在运行/停止失败等，信息自包含）。
 
@@ -109,9 +109,10 @@ def _netstat_pids(port: int, state: str) -> list[int]:
     pids: list[int] = []
     try:
         if platform.system() == "Windows":
-            raw = subprocess.run(
-                ["netstat", "-ano", "-p", "tcp"], capture_output=True, timeout=8, check=False
-            ).stdout or b""
+            raw = (
+                subprocess.run(["netstat", "-ano", "-p", "tcp"], capture_output=True, timeout=8, check=False).stdout
+                or b""
+            )
             out = raw.decode("utf-8", errors="replace")
             for line in out.splitlines():
                 upper = line.upper()
@@ -120,9 +121,10 @@ def _netstat_pids(port: int, state: str) -> list[int]:
                     if parts and parts[-1].isdigit():
                         pids.append(int(parts[-1]))
         else:
-            raw = subprocess.run(
-                ["lsof", "-sT", "-i", f":{port}"], capture_output=True, timeout=8, check=False
-            ).stdout or b""
+            raw = (
+                subprocess.run(["lsof", "-sT", "-i", f":{port}"], capture_output=True, timeout=8, check=False).stdout
+                or b""
+            )
             out = raw.decode("utf-8", errors="replace")
             for line in out.splitlines():
                 parts = line.split()
@@ -136,12 +138,15 @@ def _netstat_pids(port: int, state: str) -> list[int]:
 def _process_name(pid: int) -> str:
     try:
         if platform.system() == "Windows":
-            raw = subprocess.run(
-                ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
-                capture_output=True,
-                timeout=8,
-                check=False,
-            ).stdout or b""
+            raw = (
+                subprocess.run(
+                    ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
+                    capture_output=True,
+                    timeout=8,
+                    check=False,
+                ).stdout
+                or b""
+            )
             out = raw.decode("utf-8", errors="replace").strip()
             return out.split('","')[0].strip('"') if out else ""
         return Path(f"/proc/{pid}/comm").read_text().strip()
@@ -149,14 +154,15 @@ def _process_name(pid: int) -> str:
         return ""
 
 
-def _spawn(argv: list[str], cwd: Path, log_path: Path, *, environment: dict[str,str] | None = None) -> int:
+def _spawn(argv: list[str], cwd: Path, log_path: Path, *, environment: dict[str, str] | None = None) -> int:
     """分离进程启动，stdout/stderr 落日志文件；返回 pid。"""
     env = dict(os.environ)
-    if environment:env.update(environment)
+    if environment:
+        env.update(environment)
     env.setdefault("PYTHONUTF8", "1")
-    bounded_python = any(part in ('omni.channels.qq', 'omni.channels.heartbeat') for part in argv)
+    bounded_python = any(part in ("omni.channels.qq", "omni.channels.heartbeat") for part in argv)
     if bounded_python:
-        env['OMNI_SERVICE_LOG'] = str(log_path.resolve())
+        env["OMNI_SERVICE_LOG"] = str(log_path.resolve())
     kwargs: dict[str, Any] = {}
     if platform.system() == "Windows":
         kwargs["creationflags"] = 0x00000008 | 0x00000200  # DETACHED | NEW_PROCESS_GROUP
@@ -165,12 +171,26 @@ def _spawn(argv: list[str], cwd: Path, log_path: Path, *, environment: dict[str,
     log_path.parent.mkdir(parents=True, exist_ok=True)
     if bounded_python:
         # 子进程自行开关/轮转日志；父进程不传递长期占用该文件的 Windows 句柄。
-        return subprocess.Popen(argv, cwd=str(cwd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                                stdin=subprocess.DEVNULL, env=env, shell=False, **kwargs).pid
+        return subprocess.Popen(
+            argv,
+            cwd=str(cwd),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            env=env,
+            shell=False,
+            **kwargs,
+        ).pid
     with log_path.open("ab") as log_file:
         proc = subprocess.Popen(
-            argv, cwd=str(cwd), stdout=log_file, stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL, env=env, shell=False, **kwargs,
+            argv,
+            cwd=str(cwd),
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
+            env=env,
+            shell=False,
+            **kwargs,
         )
     return proc.pid
 
@@ -195,7 +215,7 @@ class ServiceManager:
         stop_wait_s: float = 12,
         health_timeout_s: float = 45,
         exit_checker: Callable[[ProcessIdentity], bool] | None = None,
-        environment: dict[str,str] | None = None,
+        environment: dict[str, str] | None = None,
         parent_pid_provider: Callable[[], int] | None = None,
     ) -> None:
         self._napcat_dir = Path(napcat_dir) if napcat_dir else None
@@ -206,7 +226,9 @@ class ServiceManager:
         self._port_pids = port_prober or _netstat_pids
         self._kill = killer or terminate_verified_tree
         self._inspect = inspector or inspect_process
-        self._exited = exit_checker or (confirmed_exited if inspector is None else lambda identity: inspector(identity.pid) != identity)
+        self._exited = exit_checker or (
+            confirmed_exited if inspector is None else lambda identity: inspector(identity.pid) != identity
+        )
         self._tcp_probe = tcp_probe or _port_listening
         # 父进程 pid 可注入：uv/venv 的 .venv\Scripts\python.exe 是**会再 fork 一次真解释器
         # 的跳板**，父进程身份要参与"认领"判定，测试才能复现这条路径。
@@ -215,7 +237,8 @@ class ServiceManager:
         self._stop_wait_s = max(0, float(stop_wait_s))
         self._health_timeout_s = max(1.0, float(health_timeout_s))
         from functools import partial
-        self._spawn = spawner or (partial(_spawn,environment=environment) if environment else _spawn)
+
+        self._spawn = spawner or (partial(_spawn, environment=environment) if environment else _spawn)
         # pid/日志目录可注入：测试必须与真机的 data/run 隔离，
         # 否则"未安装"类测试会读到真实 pid，甚至把真服务当测试残留杀掉
         self._run_dir = Path(run_dir) if run_dir else RUN_DIR
@@ -232,9 +255,7 @@ class ServiceManager:
         return None
 
     def _napcat_pid(self) -> int | None:
-        for pid in self._port_pids(self._ws_port, "LISTEN") or self._port_pids(
-            self._webui_port, "LISTEN"
-        ):
+        for pid in self._port_pids(self._ws_port, "LISTEN") or self._port_pids(self._webui_port, "LISTEN"):
             return pid
         return None
 
@@ -246,7 +267,11 @@ class ServiceManager:
             self._check_start("napcat")
             if self._napcat_pid():
                 raise ServiceError("NapCat 端口已有外部进程；未接管其停止权限")
-            argv = [str(Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32/cmd.exe"), "/c", str(napcat_dir / "napcat.bat")]
+            argv = [
+                str(Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32/cmd.exe"),
+                "/c",
+                str(napcat_dir / "napcat.bat"),
+            ]
             if qq.strip():
                 if not qq.strip().isdigit() or len(qq.strip()) > 12:
                     raise ServiceError("QQ 号必须为数字")
@@ -261,24 +286,28 @@ class ServiceManager:
     def napcat_status(self) -> dict[str, Any]:
         """登录态摘要（不含二维码图片）：状态条每次轮询都要它，不能带 base64。"""
         uin = self._napcat_uin()
-        return {"installed": self.napcat_dir is not None,
-                "logged_in": bool(uin) and self._tcp_probe(self._ws_port),
-                "uin": uin}
+        return {
+            "installed": self.napcat_dir is not None,
+            "logged_in": bool(uin) and self._tcp_probe(self._ws_port),
+            "uin": uin,
+        }
 
     def napcat_qr(self) -> dict[str, Any]:
         """扫码登录所需：二维码图片（base64）+ 登录状态。"""
         summary = self.napcat_status()
-        payload: dict[str, Any] = {"logged_in": summary["logged_in"], "available": False,
-                                   "image": "", "uin": summary["uin"]}
+        payload: dict[str, Any] = {
+            "logged_in": summary["logged_in"],
+            "available": False,
+            "image": "",
+            "uin": summary["uin"],
+        }
         napcat_dir = self.napcat_dir
         if napcat_dir is None:
             return payload
         qr = napcat_dir / "napcat" / "cache" / "qrcode.png"
         if qr.exists():
             try:
-                payload["image"] = "data:image/png;base64," + base64.b64encode(
-                    qr.read_bytes()
-                ).decode()
+                payload["image"] = "data:image/png;base64," + base64.b64encode(qr.read_bytes()).decode()
                 payload["available"] = True
                 payload["modified"] = qr.stat().st_mtime
             except OSError:
@@ -385,14 +414,29 @@ class ServiceManager:
             else:
                 # 行尾还有 state 徽章说明当前状态，这里只陈述"曾经登录过谁"
                 detail = f"上次登录 {uin}"
-            return {"name": name, "label": _SERVICE_LABELS[name], "running": running,
-                    "pid": pid, "detail": detail + ("；身份未核验，不可停止" if running and not verified else ""),
-                    "identity_verified": verified, "can_stop": verified, "state": state, **live}
+            return {
+                "name": name,
+                "label": _SERVICE_LABELS[name],
+                "running": running,
+                "pid": pid,
+                "detail": detail + ("；身份未核验，不可停止" if running and not verified else ""),
+                "identity_verified": verified,
+                "can_stop": verified,
+                "state": state,
+                **live,
+            }
         pid = self._omni_pid(name)
-        return {"name": name, "label": _SERVICE_LABELS[name],
-                "running": pid is not None, "pid": pid,
-                "detail": "身份未核验，不可停止" if pid and not verified else "",
-                "identity_verified": verified, "can_stop": verified, "state": state, **live}
+        return {
+            "name": name,
+            "label": _SERVICE_LABELS[name],
+            "running": pid is not None,
+            "pid": pid,
+            "detail": "身份未核验，不可停止" if pid and not verified else "",
+            "identity_verified": verified,
+            "can_stop": verified,
+            "state": state,
+            **live,
+        }
 
     def _launch_id(self, name: str) -> str | None:
         record = self._read_record(name)
@@ -402,35 +446,39 @@ class ServiceManager:
         """服务自报的运行态快照；NapCat 是第三方进程，没有这份文件。"""
         if name not in OMNI_SERVICES:
             return {"stats": {}, "fresh": False, "health_reason": "not_applicable", "state_age_s": None}
-        snap = read_state(state_path(self._run_dir, name), ttl_s=self._health_timeout_s,
-                          launch_id=record_launch_id)
-        return {"stats": snap["stats"], "fresh": snap["fresh"],
-                "health_reason": snap["reason"], "state_age_s": snap["age_s"],
-                "health": snap["health"], "note": snap["note"]}
+        snap = read_state(state_path(self._run_dir, name), ttl_s=self._health_timeout_s, launch_id=record_launch_id)
+        return {
+            "stats": snap["stats"],
+            "fresh": snap["fresh"],
+            "health_reason": snap["reason"],
+            "state_age_s": snap["age_s"],
+            "health": snap["health"],
+            "note": snap["note"],
+        }
 
     def overview(self) -> dict[str, Any]:
         services = [self.status(n) for n in ALL_SERVICES]
         qr = self.napcat_qr()
         return {
             "services": services,
-            "napcat": {"installed": self.napcat_dir is not None,
-                       "logged_in": qr["logged_in"], "uin": qr["uin"],
-                       "qr_available": qr["available"]},
+            "napcat": {
+                "installed": self.napcat_dir is not None,
+                "logged_in": qr["logged_in"],
+                "uin": qr["uin"],
+                "qr_available": qr["available"],
+            },
             "web": {"running": True, "pid": os.getpid()},  # 工作台自己
         }
 
     def start(self, name: str, qq: str = "") -> dict[str, Any]:
-        if getattr(self, 'maintenance', lambda: False)():
-            raise ServiceError('系统正在升级，暂停启动服务')
+        if getattr(self, "maintenance", lambda: False)():
+            raise ServiceError("系统正在升级，暂停启动服务")
         # 起之前先收敛旧记录：死进程/被复用的 PID 不构成"已在运行"，
         # 但活着的不可核验进程仍然拒绝接管（不猜、不杀）。
         self._validate_name(name)
         verdict = self.reconcile(name)
         if verdict["state"] == "blocked_unverified":
-            raise ServiceError(
-                f"{name} 存在不可核验的旧进程 pid={verdict['pid']}；未接管，"
-                "请人工核对后清理该 PID 记录"
-            )
+            raise ServiceError(f"{name} 存在不可核验的旧进程 pid={verdict['pid']}；未接管，请人工核对后清理该 PID 记录")
         if name == "napcat":
             return self.napcat_start(qq)
         return self.omni_start(name)
@@ -470,7 +518,7 @@ class ServiceManager:
                 content = handle.read(65536).decode("utf-8", errors="replace")
         except OSError:
             return "（日志读取失败）"
-        return "\n".join(content.splitlines()[-max(1, min(int(lines), 500)):])
+        return "\n".join(content.splitlines()[-max(1, min(int(lines), 500)) :])
 
     # ---------- pid 文件 ----------
 
@@ -501,8 +549,13 @@ class ServiceManager:
             if len(raw) > 8192:
                 return None
             data = json.loads(raw)
-            if (not isinstance(data, dict) or data.get("version") != 1 or data.get("service") != name or
-                    not isinstance(data.get("launch_id"), str) or len(data["launch_id"]) != 32):
+            if (
+                not isinstance(data, dict)
+                or data.get("version") != 1
+                or data.get("service") != name
+                or not isinstance(data.get("launch_id"), str)
+                or len(data["launch_id"]) != 32
+            ):
                 return None
             return data if self._record_identity(data) is not None else None
         except (OSError, ValueError, TypeError):
@@ -515,8 +568,14 @@ class ServiceManager:
         try:
             pid = record["pid"]
             created, executable = record["created"], record["executable"]
-            if (type(pid) is not int or pid <= 0 or not isinstance(created, str) or not created.isdigit() or
-                    not isinstance(executable, str) or not Path(executable).is_absolute()):
+            if (
+                type(pid) is not int
+                or pid <= 0
+                or not isinstance(created, str)
+                or not created.isdigit()
+                or not isinstance(executable, str)
+                or not Path(executable).is_absolute()
+            ):
                 return None
             return ProcessIdentity(pid, created, executable)
         except KeyError:
@@ -533,11 +592,11 @@ class ServiceManager:
         record = {"version": 1, "service": name, "launch_id": uuid.uuid4().hex, **asdict(identity)}
         if name in OMNI_SERVICES:
             try:
-                record['source_fingerprint'] = source_fingerprint()
+                record["source_fingerprint"] = source_fingerprint()
             except (ValueError, OSError):
                 # 源码正在变化，指纹算不出来：登记身份不受影响，只标记未确认
-                record['source_fingerprint'] = ""
-            record['source_confirmed'] = pid == os.getpid()
+                record["source_fingerprint"] = ""
+            record["source_confirmed"] = pid == os.getpid()
         atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
         return record
 
@@ -554,26 +613,40 @@ class ServiceManager:
         if record is not None:
             identity = self._record_identity(record)
             if identity is not None and self._inspect(identity.pid) == identity:
-                return {"state": "verified", "pid": identity.pid,
-                        "image": Path(identity.executable).name, "detail": "启动记录与进程身份一致"}
-            return {"state": "stale", "pid": record.get("pid"), "image": "",
-                    "detail": "启动记录指向的进程已退出或身份已变化"}
+                return {
+                    "state": "verified",
+                    "pid": identity.pid,
+                    "image": Path(identity.executable).name,
+                    "detail": "启动记录与进程身份一致",
+                }
+            return {
+                "state": "stale",
+                "pid": record.get("pid"),
+                "image": "",
+                "detail": "启动记录指向的进程已退出或身份已变化",
+            }
         if not path.exists():
             return {"state": "absent", "pid": None, "image": "", "detail": "无启动记录"}
         legacy = self._legacy_pid(name)
         if legacy is None:
-            return {"state": "corrupt", "pid": None, "image": "",
-                    "detail": "pid 文件无法解析（既不是记录也不是数字）"}
+            return {"state": "corrupt", "pid": None, "image": "", "detail": "pid 文件无法解析（既不是记录也不是数字）"}
         identity = self._inspect(legacy)
         if identity is None:
-            return {"state": "legacy_dead", "pid": legacy, "image": "",
-                    "detail": "旧版裸 PID 指向的进程已不存在"}
+            return {"state": "legacy_dead", "pid": legacy, "image": "", "detail": "旧版裸 PID 指向的进程已不存在"}
         image = Path(identity.executable).name.lower()
         if image and image not in _expected_images(name):
-            return {"state": "legacy_reused", "pid": legacy, "image": image,
-                    "detail": f"旧版裸 PID 已被其他进程复用（{image}）"}
-        return {"state": "legacy_blocked", "pid": legacy, "image": image,
-                "detail": f"存在不可核验的旧进程 pid={legacy}（{image or '镜像未知'}），未接管"}
+            return {
+                "state": "legacy_reused",
+                "pid": legacy,
+                "image": image,
+                "detail": f"旧版裸 PID 已被其他进程复用（{image}）",
+            }
+        return {
+            "state": "legacy_blocked",
+            "pid": legacy,
+            "image": image,
+            "detail": f"存在不可核验的旧进程 pid={legacy}（{image or '镜像未知'}），未接管",
+        }
 
     def reconcile(self, name: str) -> dict[str, Any]:
         """收敛启动记录；返回 {name, state, pid, detail}。
@@ -586,27 +659,31 @@ class ServiceManager:
         verdict = self._classify(name)
         if verdict["state"] in ("verified", "absent", "legacy_blocked"):
             if verdict["state"] == "legacy_blocked":
-                return {"name": name, "state": "blocked_unverified",
-                        "pid": verdict["pid"], "detail": verdict["detail"]}
-            return {"name": name, "state": verdict["state"], "pid": verdict["pid"],
-                    "detail": verdict["detail"]}
+                return {"name": name, "state": "blocked_unverified", "pid": verdict["pid"], "detail": verdict["detail"]}
+            return {"name": name, "state": verdict["state"], "pid": verdict["pid"], "detail": verdict["detail"]}
         with self._lock(name):
             # 拿锁期间记录可能被别的进程改写：以锁内的判定为准，避免删掉刚写好的新记录
             verdict = self._classify(name)
             state = verdict["state"]
             if state in ("verified", "absent"):
-                return {"name": name, "state": state, "pid": verdict["pid"],
-                        "detail": verdict["detail"]}
+                return {"name": name, "state": state, "pid": verdict["pid"], "detail": verdict["detail"]}
             if state == "legacy_blocked":
-                return {"name": name, "state": "blocked_unverified",
-                        "pid": verdict["pid"], "detail": verdict["detail"]}
+                return {"name": name, "state": "blocked_unverified", "pid": verdict["pid"], "detail": verdict["detail"]}
             if state == "corrupt":
                 target = self._quarantine(name)
-                return {"name": name, "state": "quarantined", "pid": None,
-                        "detail": f"无法解析的 pid 文件已移到 {target.name}"}
+                return {
+                    "name": name,
+                    "state": "quarantined",
+                    "pid": None,
+                    "detail": f"无法解析的 pid 文件已移到 {target.name}",
+                }
             self._pid_path(name).unlink(missing_ok=True)
-            return {"name": name, "state": "cleared_reused" if state == "legacy_reused" else "cleared_dead",
-                    "pid": verdict["pid"], "detail": verdict["detail"]}
+            return {
+                "name": name,
+                "state": "cleared_reused" if state == "legacy_reused" else "cleared_dead",
+                "pid": verdict["pid"],
+                "detail": verdict["detail"],
+            }
 
     def _legacy_pid(self, name: str) -> int | None:
         """只认裸数字；合法记录由 `_read_record` 负责，损坏文件返回 None。"""
@@ -638,8 +715,13 @@ class ServiceManager:
             path = self._pid_path(name)
             existed = path.exists()
             path.unlink(missing_ok=True)
-        return {"name": name, "state": "dropped", "pid": verdict["pid"], "existed": existed,
-                "detail": "启动记录已删除；未结束任何进程"}
+        return {
+            "name": name,
+            "state": "dropped",
+            "pid": verdict["pid"],
+            "existed": existed,
+            "detail": "启动记录已删除；未结束任何进程",
+        }
 
     def _check_start(self, name: str) -> None:
         pid = self._read_pid(name)
@@ -683,9 +765,7 @@ class ServiceManager:
                 raise ServiceError(f"{name} 停止未确认：{exc}", uncertain=True) from exc
             if not self._exited(identity):
                 # 强停信号已发但进程仍存活或无法确认退出
-                raise ServiceError(
-                    f"{name} 停止后仍存活或无法确认退出，保留启动记录", uncertain=True
-                )
+                raise ServiceError(f"{name} 停止后仍存活或无法确认退出，保留启动记录", uncertain=True)
             self._clear_pid(name, expected=record["launch_id"])
             return {"name": name, "stopped": True, "graceful": False}
 
@@ -720,8 +800,7 @@ class ServiceManager:
                 if parent is not None and record_identity == parent:
                     # 跳板认领：记录改指向真 worker，launch_id 保持不变
                     # （.stop 文件与运行态快照的 launch_id 校验继续成立）
-                    record.update({"pid": identity.pid, "created": identity.created,
-                                   "executable": identity.executable})
+                    record.update({"pid": identity.pid, "created": identity.created, "executable": identity.executable})
                     self._mark_source(name, record)
                     atomic_write_text(self._pid_path(name), json.dumps(record, ensure_ascii=False))
                     return record["launch_id"]

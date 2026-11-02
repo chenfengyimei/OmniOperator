@@ -1,4 +1,5 @@
 """只读采样：独立运行，不启停服务、不调用模型、不发送消息。"""
+
 import argparse
 import json
 from pathlib import Path
@@ -10,50 +11,70 @@ from omni.system.soak import start, collect, append, read, summarize, calibrate,
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('run', 'report', 'calibrate'))
-    parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--data-dir', type=Path, help='控制数据根；省略时沿用启动入口配置')
-    parser.add_argument('--config', type=Path)
-    parser.add_argument('--agent', help='指定 Agent，省略使用环境或注册表默认选择')
-    parser.add_argument('--directory-catalog', type=Path)
-    parser.add_argument('--limits', type=Path, help='run: 资源和费用上限；calibrate: 新基线文件输出路径')
-    parser.add_argument('--hours', type=float, default=72, help='本次采样时长；短跑不会通过 72 小时门槛')
-    parser.add_argument('--interval', type=int, default=60)
-    parser.add_argument('--resume', action='store_true')
+    parser.add_argument("command", choices=("run", "report", "calibrate"))
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--data-dir", type=Path, help="控制数据根；省略时沿用启动入口配置")
+    parser.add_argument("--config", type=Path)
+    parser.add_argument("--agent", help="指定 Agent，省略使用环境或注册表默认选择")
+    parser.add_argument("--directory-catalog", type=Path)
+    parser.add_argument("--limits", type=Path, help="run: 资源和费用上限；calibrate: 新基线文件输出路径")
+    parser.add_argument("--hours", type=float, default=72, help="本次采样时长；短跑不会通过 72 小时门槛")
+    parser.add_argument("--interval", type=int, default=60)
+    parser.add_argument("--resume", action="store_true")
     args = parser.parse_args(argv)
-    if args.command == 'calibrate':
-        if args.limits is None: parser.error('需要 --limits 指定新的基线文件')
+    if args.command == "calibrate":
+        if args.limits is None:
+            parser.error("需要 --limits 指定新的基线文件")
         calibrate(args.output, args.limits)
         return
-    if args.command == 'report':
+    if args.command == "report":
         manifest, rows = read(args.output)
         print(json.dumps(summarize(manifest, rows), ensure_ascii=False, indent=2))
         return
-    if not 0 < args.hours <= 168: parser.error('hours 必须为 0..168')
-    paths = load_runtime_paths(data_dir=args.data_dir, config_path=args.config,
-                               agent_id=args.agent, directory_catalog=args.directory_catalog)
+    if not 0 < args.hours <= 168:
+        parser.error("hours 必须为 0..168")
+    paths = load_runtime_paths(
+        data_dir=args.data_dir, config_path=args.config, agent_id=args.agent, directory_catalog=args.directory_catalog
+    )
     if args.resume:
         manifest, _rows = read(args.output)
-        if manifest['data_id'] != data_identity(paths.data):
-            parser.error('续采数据目录必须与初始目录一致')
+        if manifest["data_id"] != data_identity(paths.data):
+            parser.error("续采数据目录必须与初始目录一致")
     else:
-        if args.limits is None: parser.error('需要 --limits；不会猜测可接受的费用和资源上限')
-        manifest = start(args.output, json.loads(args.limits.read_text(encoding='utf-8')), interval_s=args.interval, data_dir=paths.data)
+        if args.limits is None:
+            parser.error("需要 --limits；不会猜测可接受的费用和资源上限")
+        manifest = start(
+            args.output,
+            json.loads(args.limits.read_text(encoding="utf-8")),
+            interval_s=args.interval,
+            data_dir=paths.data,
+        )
         _rows = []
     deadline = time.monotonic() + args.hours * 3600
-    previous = _rows[-1]['sample'] if _rows else None
+    previous = _rows[-1]["sample"] if _rows else None
     try:
         while True:
-            observed = collect(paths, manifest['source'], manifest['services'], previous=previous)
+            observed = collect(paths, manifest["source"], manifest["services"], previous=previous)
             report = append(args.output, observed)
             previous = observed
-            print(json.dumps({'samples': report['samples'], 'hours': round(report['elapsed_hours'], 3),
-                              'passed': report['soak_passed'], 'blockers': report['blockers']}, ensure_ascii=False), flush=True)
-            if time.monotonic() >= deadline: break
-            time.sleep(min(manifest['interval_s'], max(0, deadline-time.monotonic())))
+            print(
+                json.dumps(
+                    {
+                        "samples": report["samples"],
+                        "hours": round(report["elapsed_hours"], 3),
+                        "passed": report["soak_passed"],
+                        "blockers": report["blockers"],
+                    },
+                    ensure_ascii=False,
+                ),
+                flush=True,
+            )
+            if time.monotonic() >= deadline:
+                break
+            time.sleep(min(manifest["interval_s"], max(0, deadline - time.monotonic())))
     except KeyboardInterrupt:
-        print('采样已停止，现有证据保留；没有停止被观察的服务。')
+        print("采样已停止，现有证据保留；没有停止被观察的服务。")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

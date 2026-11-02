@@ -1,4 +1,5 @@
 """个人内置能力的注册入口：事实、档案、常驻、待办、摘要和整理。"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -46,4 +47,14 @@ def register_core_tools(
         source=source,
     )
 
-__all__ = ['register_time_tool', 'register_memory_tools', 'register_profile_tools', 'register_digest_tool', 'register_todo_tools', 'register_resident_tools', 'register_refine_tool', 'register_core_tools']
+
+__all__ = [
+    "register_time_tool",
+    "register_memory_tools",
+    "register_profile_tools",
+    "register_digest_tool",
+    "register_todo_tools",
+    "register_resident_tools",
+    "register_refine_tool",
+    "register_core_tools",
+]

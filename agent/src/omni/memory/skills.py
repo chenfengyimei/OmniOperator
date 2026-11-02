@@ -12,6 +12,7 @@
 - **完整读改写跨进程互斥 + 内容寻址的历史快照**（D08）：写入前拿文件锁，
   写入走唯一临时文件 + 原子替换，保存前后两份内容，回滚产生新修订。
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -216,10 +217,18 @@ class SkillStore:
         # 同时检查 Windows 和 POSIX 语法，不能靠宿主 OS 的 Path 判断盘符与 ADS。
         parts = relative.replace("\\", "/").split("/")
         if (
-            not parts or parts[0] != "references" or len(parts) < 2
+            not parts
+            or parts[0] != "references"
+            or len(parts) < 2
             or PureWindowsPath(relative).drive
-            or any(p in {"", ".", ".."} or p.endswith((" ", ".")) or ":" in p or "\x00" in p
-                   or PureWindowsPath(p).is_reserved() for p in parts)
+            or any(
+                p in {"", ".", ".."}
+                or p.endswith((" ", "."))
+                or ":" in p
+                or "\x00" in p
+                or PureWindowsPath(p).is_reserved()
+                for p in parts
+            )
         ):
             return None
         skill_md = self._safe_path(name)
@@ -384,9 +393,9 @@ class SkillStore:
             "valid": parsed is not None,
             "body_chars": len(body),
             "sections_missing": (
-                [section for section in SECTIONS
-                 if re.search(rf"(?m)^##\s+{re.escape(section)}\b", body) is None]
-                if parsed is not None else list(SECTIONS)
+                [section for section in SECTIONS if re.search(rf"(?m)^##\s+{re.escape(section)}\b", body) is None]
+                if parsed is not None
+                else list(SECTIONS)
             ),
             "bytes": len(data),
             "hash": _digest(data),
@@ -437,9 +446,7 @@ class SkillStore:
                 break
             parent = Path(directory)
             dirs[:] = sorted(
-                d for d in dirs
-                if self._contained(parent / d)
-                and len((parent / d).relative_to(root).parts) < 3
+                d for d in dirs if self._contained(parent / d) and len((parent / d).relative_to(root).parts) < 3
             )
             for filename in sorted(files):
                 target = parent / filename
@@ -496,15 +503,10 @@ class SkillStore:
         """创建技能（linter 守门）；失败信息自包含，回传给调用方自行调整。"""
         name = (name or "").strip()
         if not NAME_RE.match(name):
-            return False, (
-                "错误：技能名需为 3-40 位小写字母/数字/连字符"
-                "（如 bilibili-watch），且不以连字符开头/结尾"
-            )
+            return False, ("错误：技能名需为 3-40 位小写字母/数字/连字符（如 bilibili-watch），且不以连字符开头/结尾")
         description = (description or "").strip()
         if not description or len(description) > MAX_DESCRIPTION:
-            return False, (
-                f"错误：description 必须非空且 ≤{MAX_DESCRIPTION} 字（当前 {len(description)}）"
-            )
+            return False, (f"错误：description 必须非空且 ≤{MAX_DESCRIPTION} 字（当前 {len(description)}）")
         body = (body or "").strip()
         problem = self._body_problem(body, minimum=True)
         if problem:
@@ -513,8 +515,7 @@ class SkillStore:
             with self._locked(name):
                 if self.exists(name):
                     return False, (
-                        f"错误：技能 {name} 已存在。先 skill_view 查看现有内容，"
-                        "把新经验合并进去而不是建重复技能"
+                        f"错误：技能 {name} 已存在。先 skill_view 查看现有内容，把新经验合并进去而不是建重复技能"
                     )
                 path = self._safe_path(name)
                 if path is None:
@@ -527,11 +528,7 @@ class SkillStore:
                     "platforms": PLATFORMS,
                 }
                 content = (
-                    "---\n"
-                    + yaml.safe_dump(frontmatter, allow_unicode=True, sort_keys=False)
-                    + "---\n\n"
-                    + body
-                    + "\n"
+                    "---\n" + yaml.safe_dump(frontmatter, allow_unicode=True, sort_keys=False) + "---\n\n" + body + "\n"
                 )
                 rev = self._commit(path, name, content, 1, author=author, source=source, summary="创建")
         except _Abort as exc:
@@ -571,15 +568,18 @@ class SkillStore:
                 matched = pattern.search(body)
                 if matched is None:
                     return False, f"错误：正文里没有 {section} 小节（四节为固定结构）"
-                new_body = (
-                    body[: matched.start(1)] + content + "\n\n" + body[matched.end(1) :]
-                ).strip() + "\n"
+                new_body = (body[: matched.start(1)] + content + "\n\n" + body[matched.end(1) :]).strip() + "\n"
                 if len(new_body) > MAX_BODY:
                     return False, f"错误：修改后正文超过 {MAX_BODY} 字，请精简内容"
                 meta, version = self._next_meta(parsed["meta"], name)
                 rev = self._commit(
-                    path, name, self._render(meta, new_body), version,
-                    author=author, source=source, summary=f"patch {section}",
+                    path,
+                    name,
+                    self._render(meta, new_body),
+                    version,
+                    author=author,
+                    source=source,
+                    summary=f"patch {section}",
                 )
         except _Abort as exc:
             return False, f"错误：{exc}"
@@ -600,10 +600,7 @@ class SkillStore:
         description = (description or "").strip()
         body = (body or "").strip()
         if not description or len(description) > MAX_DESCRIPTION:
-            return False, (
-                f"错误：description 必须非空且 ≤{MAX_DESCRIPTION} 字"
-                f"（当前 {len(description)}）"
-            )
+            return False, (f"错误：description 必须非空且 ≤{MAX_DESCRIPTION} 字（当前 {len(description)}）")
         problem = self._body_problem(body, minimum=True)
         if problem:
             return False, problem
@@ -616,8 +613,13 @@ class SkillStore:
                 meta, version = self._next_meta(parsed["meta"], name)
                 meta["description"] = description
                 rev = self._commit(
-                    path, name, self._render(meta, body + "\n"), version,
-                    author=author, source=source, summary="全文重写",
+                    path,
+                    name,
+                    self._render(meta, body + "\n"),
+                    version,
+                    author=author,
+                    source=source,
+                    summary="全文重写",
                 )
         except _Abort as exc:
             return False, f"错误：{exc}"
@@ -672,9 +674,7 @@ class SkillStore:
                 path, _text, current = loaded
                 found = self.revision(name, int(rev))
                 if found is None:
-                    return False, (
-                        f"错误：技能 {name} 没有 rev {rev}（先 skill_history 查看可用修订）"
-                    )
+                    return False, (f"错误：技能 {name} 没有 rev {rev}（先 skill_history 查看可用修订）")
                 restored = parse_skill_text(found[1])
                 if restored is None:
                     return False, f"错误：rev {rev} 的内容格式损坏，无法作为回滚目标"
@@ -683,18 +683,20 @@ class SkillStore:
                 if problem:  # 历史也可能是坏内容（用户手工写坏的），回滚前同样过 linter
                     return False, f"错误：rev {rev} 未通过校验，拒绝回滚：{problem}"
                 meta, version = self._next_meta(current["meta"], name)
-                meta["description"] = str(
-                    restored["meta"].get("description") or meta.get("description", "")
-                )
+                meta["description"] = str(restored["meta"].get("description") or meta.get("description", ""))
                 new_rev = self._commit(
-                    path, name, self._render(meta, body + "\n"), version,
-                    author=author, source=source, summary=f"回滚到 rev {rev}",
+                    path,
+                    name,
+                    self._render(meta, body + "\n"),
+                    version,
+                    author=author,
+                    source=source,
+                    summary=f"回滚到 rev {rev}",
                 )
         except _Abort as exc:
             return False, f"错误：{exc}"
         return True, (
-            f"已把技能 {name} 回滚到 rev {rev} 的内容（v{version}，"
-            f"新修订 rev {new_rev.rev}；旧修订仍可再取）"
+            f"已把技能 {name} 回滚到 rev {rev} 的内容（v{version}，新修订 rev {new_rev.rev}；旧修订仍可再取）"
         )
 
     def archive(
@@ -753,10 +755,7 @@ class SkillStore:
                 except OSError as exc:
                     return False, f"错误：创建归档目录失败（{exc}）"
                 if target.exists() or target.is_symlink():
-                    return False, (
-                        f"错误：归档里已有同名技能 {name}。先恢复或清理旧归档，"
-                        "避免覆盖上一次的内容"
-                    )
+                    return False, (f"错误：归档里已有同名技能 {name}。先恢复或清理旧归档，避免覆盖上一次的内容")
                 try:
                     path.parent.rename(target)
                 except OSError as exc:
@@ -822,8 +821,12 @@ class SkillStore:
                     pass
                 try:
                     self._history.commit(
-                        self._key(name), text, author=author, source=source,
-                        summary="从归档恢复", version=self._int_version(parsed["meta"]),
+                        self._key(name),
+                        text,
+                        author=author,
+                        source=source,
+                        summary="从归档恢复",
+                        version=self._int_version(parsed["meta"]),
                         references=self._refs_manifest(name),
                     )
                 except (OSError, RevisionError):
@@ -880,9 +883,7 @@ class SkillStore:
         self._remember(name, _digest(data))
         return True, f"来源已登记（rev {rev.rev}）"
 
-    def _load_for_write(
-        self, name: str, expected_hash: str | None
-    ) -> tuple[Path, str, dict[str, Any]] | str:
+    def _load_for_write(self, name: str, expected_hash: str | None) -> tuple[Path, str, dict[str, Any]] | str:
         """在读改写临界区内调用：读当前内容 → 记历史 → CAS → 返回 (路径, 文本, 解析)。
 
         返回 `str` 表示拒绝（错误消息已成形）。
@@ -915,9 +916,7 @@ class SkillStore:
             return "错误：SKILL.md 格式损坏，请用 skill_rewrite 全文重写"
         return path, text, parsed
 
-    def _snapshot_unversioned(
-        self, name: str, text: str, parsed: dict[str, Any] | None, digest: str
-    ) -> None:
+    def _snapshot_unversioned(self, name: str, text: str, parsed: dict[str, Any] | None, digest: str) -> None:
         """把"当前磁盘上的内容"纳入历史（如果历史里还没有这一版）。"""
         key = self._key(name)
         latest = self._history.latest(key)
@@ -937,9 +936,7 @@ class SkillStore:
             references=self._refs_manifest(name),
         )
 
-    def _next_meta(
-        self, meta: dict[str, Any], name: str
-    ) -> tuple[dict[str, Any], int]:
+    def _next_meta(self, meta: dict[str, Any], name: str) -> tuple[dict[str, Any], int]:
         """版本号只增不减：无法解析的历史版本按 1 处理。"""
         current: int | None = None
         with contextlib.suppress(TypeError, ValueError):
@@ -955,13 +952,7 @@ class SkillStore:
 
     @staticmethod
     def _render(meta: dict[str, Any], body: str) -> str:
-        return (
-            "---\n"
-            + yaml.safe_dump(meta, allow_unicode=True, sort_keys=False)
-            + "---\n\n"
-            + body.rstrip()
-            + "\n"
-        )
+        return "---\n" + yaml.safe_dump(meta, allow_unicode=True, sort_keys=False) + "---\n\n" + body.rstrip() + "\n"
 
     def _commit(
         self,

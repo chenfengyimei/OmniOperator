@@ -4,6 +4,7 @@
 所有断言都用确定性代码验证（额度是条件更新、作用域是 SQL 过滤、遗忘是墓碑），
 不看模型"说了什么"。
 """
+
 from __future__ import annotations
 
 import threading
@@ -81,7 +82,8 @@ def test_memory_writes_share_one_daily_budget(tmp_path, store, state) -> None:
     assert "额度已用完" in _run(registry, "remember", {"text": "第三条"})
     assert "额度已用完" in _run(profile, "profile_manage", {"operation": "add", "content": "职位"})
     assert "额度已用完" in _run(
-        skill_registry, "skill_create",
+        skill_registry,
+        "skill_create",
         {"name": "demo", "description": "演示", "content": "# 演示\n步骤若干"},
     )
     assert store.search_facts("拿铁") and not store.search_facts("第三条")
@@ -149,9 +151,7 @@ def test_remember_uses_run_scope_not_model_input(store) -> None:
         def get(self):
             return 3
 
-    registry = _registry(
-        store, None, run_ref=_Ref(), session_ref=_Sessions(), source="review"
-    )
+    registry = _registry(store, None, run_ref=_Ref(), session_ref=_Sessions(), source="review")
     _run(registry, "remember", {"text": "群里的约定", "scope": "private"})
 
     row = store.fact_rows(1)[0]
@@ -194,9 +194,7 @@ def test_forget_invalidates_derived_summaries(tmp_path, store) -> None:
     sid = store.new_session()
     store.append_message(sid, "user", "记住：用户讨厌香菜", auto_title=False)
     store.append_message(sid, "assistant", "好的", auto_title=False)
-    store.save_summary(
-        sid, from_msg_id=1, to_msg_id=2, content="用户讨厌香菜这一条已经确认"
-    )
+    store.save_summary(sid, from_msg_id=1, to_msg_id=2, content="用户讨厌香菜这一条已经确认")
     store.save_fact("用户讨厌香菜", session_id=sid)
     fact_id = store.fact_rows(1)[0]["id"]
 

@@ -1,4 +1,5 @@
 """显式手动验收：只打开新建的临时记事本文件，不接触已有文档或真实运行数据。"""
+
 import argparse
 import json
 import subprocess
@@ -18,8 +19,11 @@ def cleanup_test_tabs(runtime, window_id, names):
     outcomes = []
     for name in names:
         observed = runtime.desktop.observe(window_id)
-        tabs = [node for node in observed["state"]["nodes"]
-                if node["role"] == "ControlType.TabItem" and node["name"].startswith(name + ".txt")]
+        tabs = [
+            node
+            for node in observed["state"]["nodes"]
+            if node["role"] == "ControlType.TabItem" and node["name"].startswith(name + ".txt")
+        ]
         if len(tabs) != 1:
             continue
         tab = tabs[0]
@@ -29,16 +33,28 @@ def cleanup_test_tabs(runtime, window_id, names):
                 outcomes.append({"tab": name, "closed": False})
                 continue
             observed = runtime.desktop.observe(window_id)
-        close = next((node for node in observed["state"]["nodes"]
-                      if node["parent_id"] == tab["id"] and node["automation_id"] == "CloseButton"), None)
+        close = next(
+            (
+                node
+                for node in observed["state"]["nodes"]
+                if node["parent_id"] == tab["id"] and node["automation_id"] == "CloseButton"
+            ),
+            None,
+        )
         if close is None:
             outcomes.append({"tab": name, "closed": False})
             continue
         runtime.desktop.action(observed["observation"], close["id"], "invoke")
         after = runtime.desktop.observe(window_id)
-        outcomes.append({"tab": name, "closed": not any(
-            node["role"] == "ControlType.TabItem" and node["name"].startswith(name + ".txt")
-            for node in after["state"]["nodes"])})
+        outcomes.append(
+            {
+                "tab": name,
+                "closed": not any(
+                    node["role"] == "ControlType.TabItem" and node["name"].startswith(name + ".txt")
+                    for node in after["state"]["nodes"]
+                ),
+            }
+        )
     return outcomes
 
 
@@ -58,8 +74,15 @@ def main():
         original = "OmniOperator temporary desktop acceptance\r\n中文读取测试\r\n"
         document.write_text(original, encoding="utf-8-sig")
         config = root / "config.yaml"
-        config.write_text(yaml.safe_dump({"review": {"enabled": False}, "desktop": {
-            "enabled": True, "allowed_apps": [str(app)], "max_writes_per_day": 8}}), encoding="utf-8")
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "review": {"enabled": False},
+                    "desktop": {"enabled": True, "allowed_apps": [str(app)], "max_writes_per_day": 8},
+                }
+            ),
+            encoding="utf-8",
+        )
         runtime = build_runtime(config_path=config, data_dir=root / "runtime", skills_root=root / "skills")
         # 用户明确选择的交互验收窗口；所有 UIA 辅助进程仍隐藏。
         process = subprocess.Popen([str(app), str(document)])
@@ -77,21 +100,36 @@ def main():
                 raise RuntimeError("未发现临时记事本窗口；可能为 Store 版重定向，需显式配置其 exe")
             observed = runtime.desktop.observe(window["hwnd"])
             edits = [node for node in observed["state"]["nodes"] if "中文读取测试" in node.get("value", "")]
-            report.update(initial_read=bool(edits), window_class=window["class"],
-                          executable=window["exe"], dpi=observed["state"]["dpi"],
-                          nodes=len(observed["state"]["nodes"]), supported_edit=any(n["set_value"] for n in edits))
+            report.update(
+                initial_read=bool(edits),
+                window_class=window["class"],
+                executable=window["exe"],
+                dpi=observed["state"]["dpi"],
+                nodes=len(observed["state"]["nodes"]),
+                supported_edit=any(n["set_value"] for n in edits),
+            )
             if not edits or not any(n["set_value"] for n in edits):
                 report["limitation"] = "该记事本不提供后台 ValuePattern 编辑；未使用 SendInput 或抢焦点"
             else:
                 edit = next(node for node in edits if node["set_value"])
-                result = runtime.registry.execute("desktop_action", {
-                    "observation": observed["observation"], "element": edit["id"],
-                    "window_title": window["title"], "application": window["exe"],
-                    "action": "set_value", "text": "OmniOperator 临时编辑回读成功"},
-                    approver=AllowAllApprover())
+                result = runtime.registry.execute(
+                    "desktop_action",
+                    {
+                        "observation": observed["observation"],
+                        "element": edit["id"],
+                        "window_title": window["title"],
+                        "application": window["exe"],
+                        "action": "set_value",
+                        "text": "OmniOperator 临时编辑回读成功",
+                    },
+                    approver=AllowAllApprover(),
+                )
                 report["edit"] = result.brief()
                 report["readback_exact"] = result.status == "ok"
-                report["replay_rejected"] = runtime.desktop.action(observed["observation"], edit["id"], "set_value", "不能重复").status == "error"
+                report["replay_rejected"] = (
+                    runtime.desktop.action(observed["observation"], edit["id"], "set_value", "不能重复").status
+                    == "error"
+                )
                 fresh = runtime.desktop.observe(window["hwnd"])
                 try:
                     shot = runtime.desktop.screenshot(fresh["observation"])

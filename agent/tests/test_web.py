@@ -1,4 +1,5 @@
 """Web 工作台接口单测：TestClient + 临时库（不真调 LLM）。"""
+
 import datetime as dt
 import json
 import threading
@@ -45,8 +46,16 @@ def _client(tmp_path, skills_root=None, config_text=None, pair=True):
 def test_qq_proactive_settings_validate_append_and_stop(tmp_path):
     client, runtime = _client(tmp_path, config_text="qq:\n  allowed_users: [10001] # 保留\n")
     try:
-        updates = {"qq": {"proactive_enabled": True, "owner_qq": 10001, "proactive_daily_limit": 2,
-                          "quiet_start": "00:00", "quiet_end": "00:00", "timezone": "Asia/Shanghai"}}
+        updates = {
+            "qq": {
+                "proactive_enabled": True,
+                "owner_qq": 10001,
+                "proactive_daily_limit": 2,
+                "quiet_start": "00:00",
+                "quiet_end": "00:00",
+                "timezone": "Asia/Shanghai",
+            }
+        }
         assert client.post("/api/system/config", json={"updates": updates}).status_code == 200
         assert "# 保留" in runtime.paths.config.read_text(encoding="utf-8")
         status = client.get("/api/system/qq-policy").json()
@@ -64,6 +73,7 @@ def test_qq_proactive_settings_validate_append_and_stop(tmp_path):
 def test_doctor_and_backup_are_paired_and_restore_to_injected_directory(tmp_path):
     from pathlib import Path
     from omni.system.backup import restore_into
+
     client, runtime = _client(tmp_path, pair=False)
     assert client.get("/api/system/doctor").status_code == 401
     assert client.post("/api/system/backup").status_code == 401
@@ -83,27 +93,48 @@ def test_doctor_and_backup_are_paired_and_restore_to_injected_directory(tmp_path
 def test_publication_drafts_pairing_edit_conflict_and_manual_resolution(tmp_path):
     client, runtime = _client(tmp_path, pair=False)
     try:
-        assert client.get('/api/publications').status_code == 401
-        assert client.post('/api/publications/none/resolve', json={}).status_code == 401
-        client.post('/api/auth/pair', json={'code': client.app.state.web_auth.pairing_code})
-        row = runtime.publications.create(session_id=1, kind='comment', target='https://www.bilibili.com/video/BV1xx411c7mD',
-                                          account='42', content='修改前', observation={'private': 'hidden'})
-        path = '/api/publications/' + row['id']
-        listing = client.get('/api/publications').json()
-        assert not listing['enabled'] and 'observation' not in listing['items'][0]
-        body = {'expected_hash': row['content_hash'], 'content': '修改后'}
-        edited = client.post(path + '/edit', json=body)
-        assert edited.status_code == 200 and edited.json()['content'] == '修改后'
-        assert client.post(path + '/edit', json=body).status_code == 409
+        assert client.get("/api/publications").status_code == 401
+        assert client.post("/api/publications/none/resolve", json={}).status_code == 401
+        client.post("/api/auth/pair", json={"code": client.app.state.web_auth.pairing_code})
+        row = runtime.publications.create(
+            session_id=1,
+            kind="comment",
+            target="https://www.bilibili.com/video/BV1xx411c7mD",
+            account="42",
+            content="修改前",
+            observation={"private": "hidden"},
+        )
+        path = "/api/publications/" + row["id"]
+        listing = client.get("/api/publications").json()
+        assert not listing["enabled"] and "observation" not in listing["items"][0]
+        body = {"expected_hash": row["content_hash"], "content": "修改后"}
+        edited = client.post(path + "/edit", json=body)
+        assert edited.status_code == 200 and edited.json()["content"] == "修改后"
+        assert client.post(path + "/edit", json=body).status_code == 409
         updated = edited.json()
-        assert client.post(path + '/resolve', json={'expected_hash': updated['content_hash'], 'verdict': 'not_sent'}).status_code == 409
-        claim = runtime.publications.claim(row['id'], session_id=1, expected_hash=updated['content_hash'], ttl_s=600)
-        runtime.publications.finish(row['id'], claim['attempt_token'], 'unknown')
-        assert client.post(path + '/edit', json={'expected_hash': updated['content_hash'], 'content': '覆盖未知'}).status_code == 409
-        assert client.post(path + '/resolve', json={'expected_hash': updated['content_hash'], 'verdict': 'not_sent'}).status_code == 200
-        assert runtime.publications.get(row['id'])['status'] == 'not_sent'
+        assert (
+            client.post(
+                path + "/resolve", json={"expected_hash": updated["content_hash"], "verdict": "not_sent"}
+            ).status_code
+            == 409
+        )
+        claim = runtime.publications.claim(row["id"], session_id=1, expected_hash=updated["content_hash"], ttl_s=600)
+        runtime.publications.finish(row["id"], claim["attempt_token"], "unknown")
+        assert (
+            client.post(
+                path + "/edit", json={"expected_hash": updated["content_hash"], "content": "覆盖未知"}
+            ).status_code
+            == 409
+        )
+        assert (
+            client.post(
+                path + "/resolve", json={"expected_hash": updated["content_hash"], "verdict": "not_sent"}
+            ).status_code
+            == 200
+        )
+        assert runtime.publications.get(row["id"])["status"] == "not_sent"
     finally:
-        assert runtime.close()['complete']
+        assert runtime.close()["complete"]
 
 
 @pytest.mark.parametrize("mode,size", [("RGB", (1080, 2400)), ("RGBA", (241, 121)), ("L", (1, 1))])
@@ -127,6 +158,7 @@ def test_android_stream_encodes_half_size_jpeg(tmp_path, monkeypatch, mode, size
         decoded.load()
     # 看屏帧尺寸随请求上传，后端仍只做一次到真实分辨率的换算。
     from omni.tools.android.driver import scale_coords
+
     assert scale_coords(270, 600, 540, 1200, 1080, 2400) == (540, 1200)
 
 
@@ -197,17 +229,10 @@ def test_todos_endpoints(tmp_path):
     todos = client.get(f"/api/sessions/{sid}/todos").json()["todos"]
     assert todos and todos[0]["content"] == "写日报" and todos[0]["done"] is False
     tid = todos[0]["id"]
-    ok = client.post(
-        "/api/todos/toggle", json={"session_id": sid, "todo_id": tid, "done": True}
-    )
+    ok = client.post("/api/todos/toggle", json={"session_id": sid, "todo_id": tid, "done": True})
     assert ok.status_code == 200
     assert client.get(f"/api/sessions/{sid}/todos").json()["todos"][0]["done"] is True
-    assert (
-        client.post(
-            "/api/todos/toggle", json={"session_id": sid, "todo_id": 999, "done": True}
-        ).status_code
-        == 404
-    )
+    assert client.post("/api/todos/toggle", json={"session_id": sid, "todo_id": 999, "done": True}).status_code == 404
 
 
 def test_memory_endpoints(tmp_path):
@@ -237,8 +262,7 @@ def test_skills_endpoints(tmp_path):
     ok, _msg = runtime.skills.create(
         "demo-skill",
         "演示技能",
-        "# 演示\n\n## When to Use\n演示。\n\n## Procedure\n按流程走。\n\n"
-        "## Pitfalls\n无。\n\n## Verification\nOK。",
+        "# 演示\n\n## When to Use\n演示。\n\n## Procedure\n按流程走。\n\n## Pitfalls\n无。\n\n## Verification\nOK。",
     )
     assert ok
     data = client.get("/api/skills").json()["skills"]
@@ -315,17 +339,13 @@ def test_approvals_endpoints(tmp_path):
     assert data["pending"] == []
     assert "browser_writes" in data and data["browser_writes"]["max"] > 0
     # 决议不存在的 id
-    assert client.post(
-        "/api/approvals/nope/resolve", json={"allowed": True}
-    ).json()["ok"] is False
+    assert client.post("/api/approvals/nope/resolve", json={"allowed": True}).json()["ok"] is False
     # 发起一个待审（走 broker），端点可见 → 决议 → 线程放行
     from types import SimpleNamespace
 
     from omni.safety.gates import Risk
 
-    tool = SimpleNamespace(
-        name="browser_click", description="点击", risk=Risk.CONFIRM
-    )
+    tool = SimpleNamespace(name="browser_click", description="点击", risk=Risk.CONFIRM)
     result = {}
 
     def request():
@@ -335,9 +355,7 @@ def test_approvals_endpoints(tmp_path):
     time.sleep(0.2)
     pending = client.get("/api/approvals").json()["pending"]
     assert len(pending) == 1 and pending[0]["tool_name"] == "browser_click"
-    assert client.post(
-        f"/api/approvals/{pending[0]['id']}/resolve", json={"allowed": True}
-    ).json()["ok"] is True
+    assert client.post(f"/api/approvals/{pending[0]['id']}/resolve", json={"allowed": True}).json()["ok"] is True
     time.sleep(0.2)
     assert result["decision"].allowed is True
 
@@ -382,23 +400,16 @@ def test_cron_endpoints(tmp_path):
     assert cron and cron[0]["name"] == "demo-job"
     assert cron[0]["schedule"] == "每 30 分钟"
     # 启停
-    resp = client.post(
-        "/api/system/cron/toggle", json={"name": "demo-job", "enabled": False}
-    )
+    resp = client.post("/api/system/cron/toggle", json={"name": "demo-job", "enabled": False})
     assert resp.json()["ok"] is True
     assert runtime.cron_jobs.get("demo-job").enabled is False
-    resp = client.post(
-        "/api/system/cron/toggle", json={"name": "demo-job", "enabled": True}
-    )
+    resp = client.post("/api/system/cron/toggle", json={"name": "demo-job", "enabled": True})
     assert resp.json()["ok"] is True
     # 删除
     assert client.post("/api/system/cron/delete", json={"name": "demo-job"}).json()["ok"] is True
     assert runtime.cron_jobs.get("demo-job") is None
     # 不存在的任务：toggle 404 / delete ok:False
-    assert (
-        client.post("/api/system/cron/toggle", json={"name": "nope", "enabled": True}).status_code
-        == 404
-    )
+    assert client.post("/api/system/cron/toggle", json={"name": "nope", "enabled": True}).status_code == 404
     assert client.post("/api/system/cron/delete", json={"name": "nope"}).json()["ok"] is False
 
 
@@ -425,9 +436,7 @@ def test_resident_endpoints(tmp_path):
     rows = client.get("/api/resident").json()["entries"]
     assert rows and rows[0]["content"] == "进行中的约定"
     rid = rows[0]["id"]
-    ok = client.post(
-        "/api/resident/update", json={"operation": "replace", "id": rid, "content": "改写"}
-    )
+    ok = client.post("/api/resident/update", json={"operation": "replace", "id": rid, "content": "改写"})
     assert ok.status_code == 200
     # 注入内容被 400 拒绝（原样回显原因）
     bad = client.post(
@@ -478,9 +487,7 @@ def test_cron_create_endpoint(tmp_path):
     )
     assert ok.status_code == 200
     # QQ 白名单守卫：写进配置源（策略是热读的，改内存对象不算数）
-    runtime.config_path.write_text(
-        "persona:\n  name: 测试小鱼\nqq:\n  allowed_users: [10001]\n", encoding="utf-8"
-    )
+    runtime.config_path.write_text("persona:\n  name: 测试小鱼\nqq:\n  allowed_users: [10001]\n", encoding="utf-8")
     assert (
         client.post(
             "/api/system/cron/create",
@@ -494,9 +501,7 @@ def test_cron_create_endpoint(tmp_path):
     )
     assert allowed.status_code == 200
     # 撤销白名单立即生效：同一进程内下一条就拒
-    runtime.config_path.write_text(
-        "persona:\n  name: 测试小鱼\nqq:\n  allowed_users: []\n", encoding="utf-8"
-    )
+    runtime.config_path.write_text("persona:\n  name: 测试小鱼\nqq:\n  allowed_users: []\n", encoding="utf-8")
     assert (
         client.post(
             "/api/system/cron/create",
@@ -510,9 +515,7 @@ def test_cron_history_endpoint(tmp_path):
     client, runtime = _client(tmp_path)
     # 账本在注入的 state.db 里（D05），测试实例本来就不碰真机 data/
     assert client.get("/api/system/cron/history").json()["history"] == []
-    runtime.cron_ledger.record(
-        "j1", "2026-10-27T10:00:00", 2.0, ok=True, result="结果", delivery=""
-    )
+    runtime.cron_ledger.record("j1", "2026-10-27T10:00:00", 2.0, ok=True, result="结果", delivery="")
     rows = client.get("/api/system/cron/history").json()["history"]
     assert rows and rows[0]["job"] == "j1" and rows[0]["ok"] is True
     # 新的在前
@@ -524,9 +527,11 @@ def test_cron_history_endpoint(tmp_path):
 def test_model_test_endpoint_rejects_bad_model(tmp_path, monkeypatch):
     client, _rt = _client(tmp_path)
     from omni.llm.errors import GatewayError
+
     def reject(*args, **kwargs):
-        raise GatewayError(message='模型不可用', code='unsupported_capability', retryable=False)
-    monkeypatch.setattr(_rt.gateway, 'complete', reject)
+        raise GatewayError(message="模型不可用", code="unsupported_capability", retryable=False)
+
+    monkeypatch.setattr(_rt.gateway, "complete", reject)
     resp = client.post("/api/system/model-test", json={"model": "nonexistent/model-xyz"})
     assert resp.status_code == 400
 
@@ -543,25 +548,15 @@ def test_android_endpoints_without_device(tmp_path, monkeypatch):
     state = client.get("/api/android/state").json()
     assert state["connected"] is False and state["detail"]
     assert client.get("/api/android/tree").status_code == 409
-    assert (
-        client.post(
-            "/api/android/tap", json={"x": 1, "y": 2, "stream_w": 10, "stream_h": 20}
-        ).status_code
-        == 409
-    )
+    assert client.post("/api/android/tap", json={"x": 1, "y": 2, "stream_w": 10, "stream_h": 20}).status_code == 409
     assert client.post("/api/android/element", json={"idx": 0}).status_code == 409
-    assert (
-        client.post("/api/android/key", json={"keycode": "KEYCODE_BACK"}).status_code
-        == 409
-    )
+    assert client.post("/api/android/key", json={"keycode": "KEYCODE_BACK"}).status_code == 409
 
 
 def test_android_state_connected(tmp_path, monkeypatch):
     client, runtime = _client(tmp_path)
     monkeypatch.setattr(runtime.android._adb, "require_device", lambda: "EMU1")
-    monkeypatch.setattr(
-        runtime.android._adb, "screen_size", lambda serial: (1080, 2400)
-    )
+    monkeypatch.setattr(runtime.android._adb, "screen_size", lambda serial: (1080, 2400))
     state = client.get("/api/android/state").json()
     assert state == {"connected": True, "serial": "EMU1", "width": 1080, "height": 2400}
 
@@ -624,7 +619,7 @@ def _sse_frames(body: str) -> list[dict]:
     frames = []
     for line in body.splitlines():
         if line.startswith("data: "):
-            frames.append(json.loads(line[len("data: "):]))
+            frames.append(json.loads(line[len("data: ") :]))
     return frames
 
 
@@ -676,10 +671,7 @@ def test_llm_usage_endpoint_reports_unset_limit_and_unknown_cost(tmp_path):
 def test_llm_usage_endpoint_shows_configured_limit(tmp_path):
     client, _runtime = _client(
         tmp_path,
-        config_text=(
-            "persona:\n  name: x\nllm:\n  budget:\n    daily_usd: 2.5\n"
-            "    per_run_usd: 0.5\n"
-        ),
+        config_text=("persona:\n  name: x\nllm:\n  budget:\n    daily_usd: 2.5\n    per_run_usd: 0.5\n"),
     )
     body = client.get("/api/llm/usage").json()
     assert body["today"]["limit_micro"] == 2_500_000
@@ -738,8 +730,14 @@ def _png_bytes(color: str = "red") -> bytes:
 def test_artifacts_endpoints_list_image_delete(tmp_path):
     client, runtime = _client(tmp_path)
     art = runtime.artifacts.save_image(
-        _png_bytes(), "image/png", session_id=None, run_id=None,
-        kind="screenshot", source="browser_screenshot", width=32, height=20,
+        _png_bytes(),
+        "image/png",
+        session_id=None,
+        run_id=None,
+        kind="screenshot",
+        source="browser_screenshot",
+        width=32,
+        height=20,
     )
     listed = client.get("/api/artifacts").json()["artifacts"]
     assert [a["artifact_id"] for a in listed] == [art.artifact_id]
@@ -764,8 +762,14 @@ def test_artifact_endpoint_error_statuses(tmp_path):
     assert client.get("/api/artifacts/../etc/passwd/image").status_code in (400, 404)
     assert client.get("/api/artifacts/00000000deadbeef/image").status_code == 404
     art = runtime.artifacts.save_image(
-        _png_bytes(), "image/png", session_id=None, run_id=None,
-        kind="screenshot", source="t", width=32, height=20,
+        _png_bytes(),
+        "image/png",
+        session_id=None,
+        run_id=None,
+        kind="screenshot",
+        source="t",
+        width=32,
+        height=20,
     )
     # 磁盘文件被换过 → 指纹不符如实 409，绝不拿旧图顶替
     (runtime.artifacts.root / f"{art.artifact_id}.png").write_bytes(_png_bytes("blue"))
@@ -800,9 +804,7 @@ def test_cron_update_endpoint_edits_and_conflicts(tmp_path):
     assert first["revision"] >= 1
 
     # 只改 prompt：调度不动，revision 递增
-    updated = client.post(
-        "/api/system/cron/update", json={"name": "demo-edit", "prompt": "新指令"}
-    )
+    updated = client.post("/api/system/cron/update", json={"name": "demo-edit", "prompt": "新指令"})
     assert updated.status_code == 200
     second = client.get("/api/system/cron").json()["jobs"][0]
     assert second["prompt"] == "新指令" and second["every_minutes"] == 30
@@ -829,10 +831,7 @@ def test_cron_update_endpoint_edits_and_conflicts(tmp_path):
     # 404 / 没有可改字段 / 校验失败
     assert client.post("/api/system/cron/update", json={"name": "ghost", "prompt": "x"}).status_code == 404
     assert client.post("/api/system/cron/update", json={"name": "demo-edit"}).status_code == 400
-    assert (
-        client.post("/api/system/cron/update", json={"name": "demo-edit", "every_minutes": 1}).status_code
-        == 400
-    )
+    assert client.post("/api/system/cron/update", json={"name": "demo-edit", "every_minutes": 1}).status_code == 400
 
 
 # ---------- D18：技能编辑器（保存 CAS / 历史 / 差异 / 回滚） ----------
@@ -893,9 +892,7 @@ def test_skill_editor_save_history_diff_rollback(tmp_path):
     # 404 / 校验失败
     assert client.get("/api/skills/ghost/history").status_code == 404
     assert client.get("/api/skills/editor-demo/diff", params={"rev": 999}).status_code == 404
-    bad = client.post(
-        "/api/skills/editor-demo/save", json={"content": "没有结构的纯文本"}
-    )
+    bad = client.post("/api/skills/editor-demo/save", json={"content": "没有结构的纯文本"})
     assert bad.status_code == 400
 
 
@@ -924,18 +921,13 @@ def test_skill_pending_review_queue(tmp_path):
     assert client.get("/api/skills/pending").json()["count"] == 1  # 仍只有 agent 那条
 
     # 差异：rev1 无上一版 → 从空开始
-    diff = client.get(
-        "/api/skills/pending/agent-skill/diff", params={"rev": item["rev"]}
-    ).json()
+    diff = client.get("/api/skills/pending/agent-skill/diff", params={"rev": item["rev"]}).json()
     assert diff["has_parent"] is False and "第一版" in diff["diff"]
 
     # 知道了 → 队列清空；标记只前进（旧 rev 不会把已读改回去）
     assert client.post("/api/skills/agent-skill/ack", json={"rev": item["rev"]}).json()["ok"]
     assert client.get("/api/skills/pending").json()["count"] == 0
-    assert (
-        client.post("/api/skills/agent-skill/ack", json={"rev": 1}).json()["acked"]
-        == item["rev"]
-    )
+    assert client.post("/api/skills/agent-skill/ack", json={"rev": 1}).json()["acked"] == item["rev"]
 
 
 def test_skill_pending_diff_ack_all_and_rollback_entry(tmp_path):
@@ -950,14 +942,8 @@ def test_skill_pending_diff_ack_all_and_rollback_entry(tmp_path):
     assert latest["base_rev"] is not None
 
     # 单条变更差异：rev vs rev-1，只含 agent 补的那一行
-    d = client.get(
-        "/api/skills/pending/agent-skill/diff", params={"rev": latest["rev"]}
-    ).json()
-    assert (
-        d["has_parent"]
-        and "agent 补的坑" in d["diff"]
-        and d["base_rev"] == latest["rev"] - 1
-    )
+    d = client.get("/api/skills/pending/agent-skill/diff", params={"rev": latest["rev"]}).json()
+    assert d["has_parent"] and "agent 补的坑" in d["diff"] and d["base_rev"] == latest["rev"] - 1
 
     # 全部标记已读
     assert client.post("/api/skills/ack-all").json()["ok"] is True

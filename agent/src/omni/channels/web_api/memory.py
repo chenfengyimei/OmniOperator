@@ -1,4 +1,5 @@
 """记忆与档案 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -6,7 +7,9 @@ from typing import TYPE_CHECKING, Any
 from fastapi import APIRouter, HTTPException
 
 from ...memory.store import PROFILE_MAX_CHARS
-from .schemas import FactCreateIn, ProfileLineCreateIn, ProfileLineIn, ResidentUpdateIn
+from ...system.filelock import LockTimeout
+from ...system.persona_presets import read_presets, save_presets
+from .schemas import FactCreateIn, PersonaPresetsIn, ProfileLineCreateIn, ProfileLineIn, ResidentUpdateIn
 
 if TYPE_CHECKING:
     from ...bootstrap import Runtime
@@ -14,6 +17,26 @@ if TYPE_CHECKING:
 
 def create_memory_router(runtime: Runtime) -> APIRouter:
     router = APIRouter(tags=["memory"])
+
+    @router.get("/api/persona/presets")
+    def persona_presets() -> dict:
+        try:
+            return read_presets(runtime.paths.persona_presets)
+        except (OSError, ValueError):
+            raise HTTPException(503, "预设存储不可读，请检查本机备份") from None
+
+    @router.put("/api/persona/presets")
+    def persona_presets_save(payload: PersonaPresetsIn) -> dict:
+        try:
+            return save_presets(runtime.paths.persona_presets, payload.items, payload.revision)
+        except FileExistsError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except LockTimeout as exc:
+            raise HTTPException(409, "另一个请求正在保存预设，请稍后重试") from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        except OSError as exc:
+            raise HTTPException(503, "预设文件无法写入，请检查目录权限与存储空间") from exc
 
     @router.get("/api/facts")
     def get_facts(q: str = "", limit: int = 50) -> dict[str, Any]:
@@ -54,11 +77,7 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
     @router.get("/api/memory/status")
     def memory_status() -> dict[str, Any]:
         """记忆写入额度、review 队列与最近整理记录（D12 可观测面）。"""
-        used, limit = (
-            runtime.memory_guard.usage_today()
-            if runtime.memory_guard is not None
-            else (0, 0)
-        )
+        used, limit = runtime.memory_guard.usage_today() if runtime.memory_guard is not None else (0, 0)
         reviewer = runtime.reviewer
         reviews: list[dict[str, Any]] = []
         sid = runtime.agent.session_id
@@ -80,10 +99,7 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
         # 数据层统一后档案=owner 人物的 archive 条目；响应形状不变（id=条目行号，删除后留空洞）
         owner = runtime.owner_memory if runtime.owner_memory is not None else runtime.resident
         return {
-            "lines": [
-                {"id": lid, "content": content}
-                for lid, content in owner.profile_lines()
-            ],
+            "lines": [{"id": lid, "content": content} for lid, content in owner.profile_lines()],
             "usage": owner.profile_usage_chars(),
             "max": PROFILE_MAX_CHARS,
         }
@@ -119,9 +135,7 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
         return {
             "usage": runtime.resident.usage(),
             "limit": runtime.resident.limit,
-            "entries": [
-                {"id": i, "content": c} for i, c in runtime.resident.entries()
-            ],
+            "entries": [{"id": i, "content": c} for i, c in runtime.resident.entries()],
         }
 
     @router.post("/api/resident/update")
@@ -131,13 +145,9 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
         if op == "add":
             message = runtime.resident.add(payload.content, author="user", source="workbench")
         elif op == "replace":
-            message = runtime.resident.replace(
-                int(payload.id or 0), payload.content, author="user", source="workbench"
-            )
+            message = runtime.resident.replace(int(payload.id or 0), payload.content, author="user", source="workbench")
         elif op == "remove":
-            message = runtime.resident.remove(
-                int(payload.id or 0), author="user", source="workbench"
-            )
+            message = runtime.resident.remove(int(payload.id or 0), author="user", source="workbench")
         else:
             raise HTTPException(status_code=400, detail=f"未知操作 {op}")
         if message.startswith("错误"):
@@ -150,8 +160,7 @@ def create_memory_router(runtime: Runtime) -> APIRouter:
         rows = runtime.store.list_all_reviews(min(limit, 100))
         return {
             "reviews": [
-                {"session_id": sid, "outcome": outcome, "created_at": created}
-                for sid, outcome, created in rows
+                {"session_id": sid, "outcome": outcome, "created_at": created} for sid, outcome, created in rows
             ]
         }
 

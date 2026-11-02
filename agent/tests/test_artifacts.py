@@ -6,6 +6,7 @@
 - 跨 session / 过期 / 指纹不符 / 超限的产物被拒绝；
 - 清理不删除仍使用中的产物。
 """
+
 from __future__ import annotations
 
 import base64
@@ -45,9 +46,7 @@ def _make_store(tmp_path) -> tuple[MemoryStore, StateStore, ArtifactStore, int]:
     memory = MemoryStore(tmp_path / "m.db")
     sid = memory.new_session()
     state = StateStore(tmp_path / "state.db")
-    artifacts = ArtifactStore(
-        state, tmp_path / "artifacts", retention_days=7, max_total_bytes=10 * 1024 * 1024
-    )
+    artifacts = ArtifactStore(state, tmp_path / "artifacts", retention_days=7, max_total_bytes=10 * 1024 * 1024)
     return memory, state, artifacts, sid
 
 
@@ -57,8 +56,14 @@ def _make_store(tmp_path) -> tuple[MemoryStore, StateStore, ArtifactStore, int]:
 def test_save_get_read_roundtrip(tmp_path):
     _memory, state, artifacts, sid = _make_store(tmp_path)
     art = artifacts.save_image(
-        _png(32, 20), "image/png", session_id=sid, run_id=None,
-        kind="screenshot", source="test", width=32, height=20,
+        _png(32, 20),
+        "image/png",
+        session_id=sid,
+        run_id=None,
+        kind="screenshot",
+        source="test",
+        width=32,
+        height=20,
     )
     loaded = artifacts.get(art.artifact_id, session_id=sid)
     assert loaded.width == 32 and loaded.height == 20
@@ -75,20 +80,23 @@ def test_save_get_read_roundtrip(tmp_path):
 def test_bad_mime_and_empty_rejected(tmp_path):
     _memory, state, artifacts, sid = _make_store(tmp_path)
     with pytest.raises(ArtifactError) as caught:
-        artifacts.save_image(b"x", "application/pdf", session_id=sid, run_id=None,
-                             kind="doc", source="t", width=None, height=None)
+        artifacts.save_image(
+            b"x", "application/pdf", session_id=sid, run_id=None, kind="doc", source="t", width=None, height=None
+        )
     assert caught.value.code == "bad_mime"
     with pytest.raises(ArtifactError):
-        artifacts.save_image(b"", "image/png", session_id=sid, run_id=None,
-                             kind="doc", source="t", width=None, height=None)
+        artifacts.save_image(
+            b"", "image/png", session_id=sid, run_id=None, kind="doc", source="t", width=None, height=None
+        )
     state.close()
     _memory.close()
 
 
 def test_cross_session_and_bad_id_rejected(tmp_path):
     _memory, state, artifacts, sid = _make_store(tmp_path)
-    art = artifacts.save_image(_png(), "image/png", session_id=sid, run_id=None,
-                               kind="screenshot", source="t", width=32, height=20)
+    art = artifacts.save_image(
+        _png(), "image/png", session_id=sid, run_id=None, kind="screenshot", source="t", width=32, height=20
+    )
     with pytest.raises(ArtifactError) as caught:
         artifacts.get(art.artifact_id, session_id=sid + 1)
     assert caught.value.code == "cross_session"
@@ -96,8 +104,9 @@ def test_cross_session_and_bad_id_rejected(tmp_path):
         artifacts.get("../etc/passwd")
     assert caught2.value.code == "bad_id"
     # 会话归属是 None 的产物（旧通道）任何会话都能读——登记时没承诺归属
-    loose = artifacts.save_image(_png(), "image/png", session_id=None, run_id=None,
-                                 kind="screenshot", source="t", width=32, height=20)
+    loose = artifacts.save_image(
+        _png(), "image/png", session_id=None, run_id=None, kind="screenshot", source="t", width=32, height=20
+    )
     assert artifacts.get(loose.artifact_id, session_id=sid).artifact_id == loose.artifact_id
     state.close()
     _memory.close()
@@ -105,8 +114,9 @@ def test_cross_session_and_bad_id_rejected(tmp_path):
 
 def test_expired_artifact_rejected(tmp_path):
     _memory, state, artifacts, sid = _make_store(tmp_path)
-    art = artifacts.save_image(_png(), "image/png", session_id=sid, run_id=None,
-                               kind="screenshot", source="t", width=32, height=20)
+    art = artifacts.save_image(
+        _png(), "image/png", session_id=sid, run_id=None, kind="screenshot", source="t", width=32, height=20
+    )
     # 不改系统时钟：把过期时间写回过去
     with state._tx() as conn:
         conn.execute(
@@ -122,8 +132,9 @@ def test_expired_artifact_rejected(tmp_path):
 
 def test_tampered_file_fails_hash_check(tmp_path):
     _memory, state, artifacts, sid = _make_store(tmp_path)
-    art = artifacts.save_image(_png(), "image/png", session_id=sid, run_id=None,
-                               kind="screenshot", source="t", width=32, height=20)
+    art = artifacts.save_image(
+        _png(), "image/png", session_id=sid, run_id=None, kind="screenshot", source="t", width=32, height=20
+    )
     path = artifacts.root / f"{art.artifact_id}.png"
     path.write_bytes(_png(8, 8, "blue"))  # 磁盘上被换成另一张图
     with pytest.raises(ArtifactError) as caught:
@@ -137,10 +148,12 @@ def test_cleanup_removes_expired_but_keeps_in_use(tmp_path):
     import datetime as dt
 
     _memory, state, artifacts, sid = _make_store(tmp_path)
-    stale = artifacts.save_image(_png(), "image/png", session_id=sid, run_id=None,
-                                 kind="screenshot", source="t", width=32, height=20)
-    fresh = artifacts.save_image(_png(), "image/png", session_id=sid, run_id=None,
-                                 kind="screenshot", source="t", width=32, height=20)
+    stale = artifacts.save_image(
+        _png(), "image/png", session_id=sid, run_id=None, kind="screenshot", source="t", width=32, height=20
+    )
+    fresh = artifacts.save_image(
+        _png(), "image/png", session_id=sid, run_id=None, kind="screenshot", source="t", width=32, height=20
+    )
     with state._tx() as conn:
         conn.execute(
             "UPDATE artifacts SET expires_at = '2000-01-01T00:00:00' WHERE artifact_id = ?",
@@ -175,15 +188,15 @@ def test_cleanup_removes_expired_but_keeps_in_use(tmp_path):
 def test_total_quota_rejects_new_saves(tmp_path):
     """总量撞上限：拒绝保存新产物，且已有的老产物一个不动。"""
     _memory, state, _artifacts, sid = _make_store(tmp_path)
-    tiny = ArtifactStore(
-        state, tmp_path / "tiny", retention_days=7, max_total_bytes=1_000_000
-    )
+    tiny = ArtifactStore(state, tmp_path / "tiny", retention_days=7, max_total_bytes=1_000_000)
     # 纯色 PNG 压缩后只有几百字节，撞不到上限——用不可压缩的噪声图
-    tiny.save_image(_noise(450), "image/png", session_id=sid, run_id=None,
-                    kind="screenshot", source="t", width=450, height=450)
+    tiny.save_image(
+        _noise(450), "image/png", session_id=sid, run_id=None, kind="screenshot", source="t", width=450, height=450
+    )
     with pytest.raises(ArtifactError) as caught:
-        tiny.save_image(_noise(450), "image/png", session_id=sid, run_id=None,
-                        kind="screenshot", source="t", width=450, height=450)
+        tiny.save_image(
+            _noise(450), "image/png", session_id=sid, run_id=None, kind="screenshot", source="t", width=450, height=450
+        )
     assert caught.value.code == "quota"
     # 拒绝保存不影响已有产物
     assert len(tiny.list_for_session(sid)) == 1
@@ -245,9 +258,14 @@ def _snap_registry(artifacts: ArtifactStore, sid: int, *, count: int = 1) -> Too
         parts = []
         for i in range(count):
             art = artifacts.save_image(
-                _png(40, 30, "red" if i == 0 else "blue"), "image/png",
-                session_id=sid, run_id=None, kind="screenshot",
-                source="snap", width=40, height=30,
+                _png(40, 30, "red" if i == 0 else "blue"),
+                "image/png",
+                session_id=sid,
+                run_id=None,
+                kind="screenshot",
+                source="snap",
+                width=40,
+                height=30,
             )
             parts.append(f"截图已存为产物 [artifact:{art.artifact_id}]（测试图 {i}）")
         return "\n".join(parts)
@@ -270,8 +288,12 @@ def test_agent_sends_real_image_block_to_vision_model(tmp_path):
     memory, state, artifacts, sid = _make_store(tmp_path)
     gateway = _VisionScriptGateway()
     agent = Agent(
-        _vision_config(send=True), gateway, memory,
-        _snap_registry(artifacts, sid), sid, artifacts=artifacts,
+        _vision_config(send=True),
+        gateway,
+        memory,
+        _snap_registry(artifacts, sid),
+        sid,
+        artifacts=artifacts,
     )
 
     answer = agent.chat("截图看看")
@@ -283,25 +305,20 @@ def test_agent_sends_real_image_block_to_vision_model(tmp_path):
     assert gateway.models[1] == "fake/vision"
     second = gateway.calls[1]
     image_messages = [
-        m for m in second
+        m
+        for m in second
         if isinstance(m.get("content"), list)
         and any(p.get("type") == "image_url" for p in m["content"] if isinstance(p, dict))
     ]
     assert image_messages, "第二轮调用里必须真的有图像内容块"
-    part = next(
-        p for p in image_messages[0]["content"]
-        if isinstance(p, dict) and p.get("type") == "image_url"
-    )
+    part = next(p for p in image_messages[0]["content"] if isinstance(p, dict) and p.get("type") == "image_url")
     url = part["image_url"]["url"]
     assert url.startswith("data:image/jpeg;base64,")
     payload = base64.b64decode(url.split(",", 1)[1])
     # 收到的是能解码的 JPEG 字节（重编码后不再是 PNG）
     assert payload[:3] == b"\xff\xd8\xff"
     # 文本部分带了坐标换算说明（40x30 → 未超过 64 上限则不缩放）
-    text_part = next(
-        p for p in image_messages[0]["content"]
-        if isinstance(p, dict) and p.get("type") == "text"
-    )
+    text_part = next(p for p in image_messages[0]["content"] if isinstance(p, dict) and p.get("type") == "text")
     assert "artifact" in text_part["text"] and "原图" in text_part["text"]
     # 绝不能出现本机路径字符串
     assert "data/" not in str(second)
@@ -314,8 +331,12 @@ def test_agent_downgrades_honestly_when_cloud_upload_disabled(tmp_path):
     memory, state, artifacts, sid = _make_store(tmp_path)
     gateway = _VisionScriptGateway()
     agent = Agent(
-        _vision_config(send=False), gateway, memory,
-        _snap_registry(artifacts, sid), sid, artifacts=artifacts,
+        _vision_config(send=False),
+        gateway,
+        memory,
+        _snap_registry(artifacts, sid),
+        sid,
+        artifacts=artifacts,
     )
 
     agent.chat("截图看看")
@@ -324,10 +345,7 @@ def test_agent_downgrades_honestly_when_cloud_upload_disabled(tmp_path):
         for m in call_messages:
             assert not (
                 isinstance(m.get("content"), list)
-                and any(
-                    isinstance(p, dict) and p.get("type") == "image_url"
-                    for p in m["content"]
-                )
+                and any(isinstance(p, dict) and p.get("type") == "image_url" for p in m["content"])
             ), "未开启 send_to_cloud 时不得出现图像块"
     # 工具结果文本留在上下文里（模型知道有图但看不到）
     tool_texts = [m["content"] for c in gateway.calls for m in c if m.get("role") == "tool"]
@@ -341,8 +359,12 @@ def test_agent_downgrades_when_no_vision_model(tmp_path):
     memory, state, artifacts, sid = _make_store(tmp_path)
     gateway = _VisionScriptGateway(vision_ok=False)  # vision 路由为空
     agent = Agent(
-        _vision_config(send=True), gateway, memory,
-        _snap_registry(artifacts, sid), sid, artifacts=artifacts,
+        _vision_config(send=True),
+        gateway,
+        memory,
+        _snap_registry(artifacts, sid),
+        sid,
+        artifacts=artifacts,
     )
 
     agent.chat("截图看看")
@@ -351,10 +373,7 @@ def test_agent_downgrades_when_no_vision_model(tmp_path):
         for m in call_messages:
             assert not (
                 isinstance(m.get("content"), list)
-                and any(
-                    isinstance(p, dict) and p.get("type") == "image_url"
-                    for p in m["content"]
-                )
+                and any(isinstance(p, dict) and p.get("type") == "image_url" for p in m["content"])
             )
     # 且全程只用 chat 模型
     assert set(gateway.models) == {"fake/chat"}
@@ -367,28 +386,27 @@ def test_per_turn_image_cap_with_honest_note(tmp_path):
     memory, state, artifacts, sid = _make_store(tmp_path)
     gateway = _VisionScriptGateway()
     agent = Agent(
-        _vision_config(send=True, per_turn=1), gateway, memory,
-        _snap_registry(artifacts, sid, count=2), sid, artifacts=artifacts,
+        _vision_config(send=True, per_turn=1),
+        gateway,
+        memory,
+        _snap_registry(artifacts, sid, count=2),
+        sid,
+        artifacts=artifacts,
     )
 
     agent.chat("截图看看")
 
     second = gateway.calls[1]
     image_messages = [
-        m for m in second
+        m
+        for m in second
         if isinstance(m.get("content"), list)
         and any(p.get("type") == "image_url" for p in m["content"] if isinstance(p, dict))
     ]
     assert image_messages
-    images = [
-        p for p in image_messages[0]["content"]
-        if isinstance(p, dict) and p.get("type") == "image_url"
-    ]
+    images = [p for p in image_messages[0]["content"] if isinstance(p, dict) and p.get("type") == "image_url"]
     assert len(images) == 1, "上限 1 张：第二张必须被拒"
-    text_part = next(
-        p for p in image_messages[0]["content"]
-        if isinstance(p, dict) and p.get("type") == "text"
-    )
+    text_part = next(p for p in image_messages[0]["content"] if isinstance(p, dict) and p.get("type") == "text")
     assert "上限" in text_part["text"]
     state.close()
     memory.close()
@@ -399,8 +417,12 @@ def test_big_image_is_prepared_with_downscale_note(tmp_path):
     memory, state, artifacts, sid = _make_store(tmp_path)
     gateway = _VisionScriptGateway()
     agent = Agent(
-        _vision_config(send=True), gateway, memory,
-        _snap_registry(artifacts, sid), sid, artifacts=artifacts,
+        _vision_config(send=True),
+        gateway,
+        memory,
+        _snap_registry(artifacts, sid),
+        sid,
+        artifacts=artifacts,
     )
     # 造一张 400x300 的图（上限 64）→ 必须缩放
     big = BytesIO()
@@ -410,21 +432,35 @@ def test_big_image_is_prepared_with_downscale_note(tmp_path):
 
     def snap(_args: dict[str, Any]) -> str:
         art = artifacts.save_image(
-            big.getvalue(), "image/png", session_id=sid, run_id=None,
-            kind="screenshot", source="snap", width=400, height=300,
+            big.getvalue(),
+            "image/png",
+            session_id=sid,
+            run_id=None,
+            kind="screenshot",
+            source="snap",
+            width=400,
+            height=300,
         )
         return f"截图已存为产物 [artifact:{art.artifact_id}]"
 
     registry.register(
-        Tool(name="snap", description="大图", parameters={"type": "object", "properties": {}, "required": []},
-             func=snap, toolset="test", risk=Risk.SAFE)
+        Tool(
+            name="snap",
+            description="大图",
+            parameters={"type": "object", "properties": {}, "required": []},
+            func=snap,
+            toolset="test",
+            risk=Risk.SAFE,
+        )
     )
     agent = Agent(_vision_config(send=True), gateway, memory, registry, sid, artifacts=artifacts)
     agent.chat("截图看看")
 
     second = gateway.calls[1]
     part = next(
-        p for m in second if isinstance(m.get("content"), list)
+        p
+        for m in second
+        if isinstance(m.get("content"), list)
         for p in m["content"]
         if isinstance(p, dict) and p.get("type") == "image_url"
     )
@@ -434,7 +470,9 @@ def test_big_image_is_prepared_with_downscale_note(tmp_path):
     with PILImage.open(BytesIO(payload)) as img:
         assert max(img.size) <= 64, "长边必须缩到上限内"
     text_part = next(
-        p for m in second if isinstance(m.get("content"), list)
+        p
+        for m in second
+        if isinstance(m.get("content"), list)
         for p in m["content"]
         if isinstance(p, dict) and p.get("type") == "text"
     )
@@ -448,9 +486,14 @@ def test_run_turn_cleanup_keeps_active_references(tmp_path):
     memory, state, artifacts, sid = _make_store(tmp_path)
     gateway = _VisionScriptGateway()
     agent = Agent(
-        _vision_config(send=True), gateway, memory,
-        _snap_registry(artifacts, sid), sid, artifacts=artifacts,
-        runs=None, active_runs=None,
+        _vision_config(send=True),
+        gateway,
+        memory,
+        _snap_registry(artifacts, sid),
+        sid,
+        artifacts=artifacts,
+        runs=None,
+        active_runs=None,
     )
     result = agent.run_turn("截图看看", session_id=sid)
     assert result.status == "done"
@@ -465,8 +508,14 @@ def test_run_turn_cleanup_keeps_active_references(tmp_path):
         )
     quiet_gateway = _QuietGateway()
     agent2 = Agent(
-        _vision_config(send=True), quiet_gateway, memory,
-        ToolRegistry(), sid, artifacts=artifacts, runs=None, active_runs=None,
+        _vision_config(send=True),
+        quiet_gateway,
+        memory,
+        ToolRegistry(),
+        sid,
+        artifacts=artifacts,
+        runs=None,
+        active_runs=None,
     )
     agent2.run_turn("你好", session_id=sid)
     with pytest.raises(ArtifactError):
@@ -505,13 +554,23 @@ def test_active_runs_contexts_vs_snapshot_and_sweep_keeps_referenced(tmp_path):
     assert active.snapshot() == []
 
     agent = Agent(
-        AppConfig(), SimpleNamespace(resolve=lambda route: "fake/chat"), memory,
-        ToolRegistry(), sid,
-        artifacts=artifacts, active_runs=active,
+        AppConfig(),
+        SimpleNamespace(resolve=lambda route: "fake/chat"),
+        memory,
+        ToolRegistry(),
+        sid,
+        artifacts=artifacts,
+        active_runs=active,
     )
     art = artifacts.save_image(
-        _png(), "image/png", session_id=sid, run_id=ctx.run_id,
-        kind="screenshot", source="snap", width=32, height=20,
+        _png(),
+        "image/png",
+        session_id=sid,
+        run_id=ctx.run_id,
+        kind="screenshot",
+        source="snap",
+        width=32,
+        height=20,
     )
     with state._tx() as conn:  # 改成已过期：清理应当删它——除非它仍被活跃 run 引用
         conn.execute(
@@ -537,6 +596,5 @@ def test_save_screenshot_without_artifacts_reports_cleanly():
     """产物库未注入时：一句可解释的错误，而不是 AttributeError 崩溃。"""
     from omni.tools.shots import save_screenshot
 
-    out = save_screenshot(None, b"", session_id=None, run_id=None,
-                          kind="screenshot", source="test", can_view=False)
+    out = save_screenshot(None, b"", session_id=None, run_id=None, kind="screenshot", source="test", can_view=False)
     assert "产物库不可用" in out

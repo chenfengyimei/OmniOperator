@@ -9,6 +9,7 @@
 - 上下文契约：无前缀名/未知风险/重名注册一律拒绝装载；
 - 重启恢复：新宿主 load_installed 把已启用插件工具注册回来。
 """
+
 import json
 import zipfile
 from pathlib import Path
@@ -79,8 +80,14 @@ def test_plugin_host_responsibilities_stay_split():
     src = Path(__file__).resolve().parents[1] / "src" / "omni" / "plugins"
 
     host_src = (src / "host.py").read_text(encoding="utf-8")
-    for gone in ("def _read_zip", "def _read_directory", "def _validate_files",
-                 "def _finalize_quarantine", "def _content_sha256", "def _compare_manifests"):
+    for gone in (
+        "def _read_zip",
+        "def _read_directory",
+        "def _validate_files",
+        "def _finalize_quarantine",
+        "def _content_sha256",
+        "def _compare_manifests",
+    ):
         assert gone not in host_src, f"host.py 不该再承担 {gone}（归 package_reader/quarantine）"
 
     reader_src = (src / "package_reader.py").read_text(encoding="utf-8")
@@ -250,13 +257,13 @@ def test_activation_and_removal_require_human_approval(tmp_path):
 
 def test_plugin_tool_risk_goes_through_approver_chain(tmp_path):
     """插件声明的 CONFIRM 工具照常被审批链拦住。"""
-    code = '''
+    code = """
 def register(ctx):
     def write(args):
         return "写了"
     ctx.add_tool(name="conf-demo-write", description="写操作演示",
                  parameters={"type": "object", "properties": {}}, func=write, risk="confirm")
-'''
+"""
     registry, host = _host(tmp_path)
     _drop_plugin(host, filename="conf.zip", manifest=dict(MANIFEST, id="conf-demo"), code=code)
     assert host.install_package("conf.zip")[0]
@@ -372,14 +379,14 @@ def test_import_time_crash_is_contained(tmp_path):
 def test_partial_registration_rolls_back(tmp_path):
     """注册一半再抛异常：已注册的工具必须回滚干净。"""
     registry, host = _host(tmp_path)
-    code = '''
+    code = """
 def register(ctx):
     def hello(args):
         return "hi"
     ctx.add_tool(name="demo-tools-hello", description="打招呼",
                  parameters={"type": "object", "properties": {}}, func=hello, risk="safe")
     raise ValueError("注册到一半炸了")
-'''
+"""
     _drop_plugin(host, code=code)
     assert host.install_package("demo.zip")[0]
     ok, msg = host.activate("demo-tools")
@@ -390,7 +397,7 @@ def register(ctx):
 @pytest.mark.parametrize(
     "name,phrase",
     [
-        ("remember", "前缀"),      # 试图影子覆盖内置工具：连前缀都没有，直接拒
+        ("remember", "前缀"),  # 试图影子覆盖内置工具：连前缀都没有，直接拒
         ("demo-tools", "前缀"),
         ("demo-tools_x", "前缀"),
     ],
@@ -414,13 +421,13 @@ def register(ctx):
 
 def test_context_rejects_unknown_risk(tmp_path):
     registry, host = _host(tmp_path)
-    code = '''
+    code = """
 def register(ctx):
     def hello(args):
         return "hi"
     ctx.add_tool(name="demo-tools-hello", description="打招呼",
                  parameters={"type": "object", "properties": {}}, func=hello, risk="ultra")
-'''
+"""
     _drop_plugin(host, code=code)
     assert host.install_package("demo.zip")[0]
     ok, msg = host.activate("demo-tools")

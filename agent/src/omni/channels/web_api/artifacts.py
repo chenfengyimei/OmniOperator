@@ -1,4 +1,5 @@
 """产物 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -34,9 +35,7 @@ def create_artifacts_router(runtime: Runtime) -> APIRouter:
             raise HTTPException(status_code=503, detail="产物存储不可用")
         capped = max(1, min(limit, 200))
         arts = (
-            store.list_for_session(session_id, limit=capped)
-            if session_id is not None
-            else store.list_all(limit=capped)
+            store.list_for_session(session_id, limit=capped) if session_id is not None else store.list_all(limit=capped)
         )
         return {
             "artifacts": [

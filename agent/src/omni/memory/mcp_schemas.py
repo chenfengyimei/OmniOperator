@@ -7,6 +7,7 @@
 表结构声明见 `memory/state_schema.py`；连接、事务与迁移执行归
 `memory/state.py::StateStore`，本模块不新建数据库。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -50,21 +51,24 @@ class MCPSchemaStore:
             )
             return stored if stored != fingerprint else None
 
+    def revoke(self, server: str) -> None:
+        """重新授权可能更换远程账号；相同目录也必须重新复查只读许可。"""
+        with self._state._tx() as conn:
+            conn.execute("UPDATE mcp_schemas SET confirmed_at = NULL WHERE server = ?", (server,))
+
     def confirm(self, server: str, fingerprint: str) -> bool:
         """用户复查后确认当前指纹（清除漂移提醒）。指纹又变了就拒绝——确认的必须是看到的那份。"""
         now = to_iso(dt.datetime.now().astimezone())
         with self._state._tx() as conn:
             cursor = conn.execute(
-                "UPDATE mcp_schemas SET confirmed_at = ? WHERE server = ?"
-                " AND fingerprint = ?",
+                "UPDATE mcp_schemas SET confirmed_at = ? WHERE server = ? AND fingerprint = ?",
                 (now, server, fingerprint),
             )
             return cursor.rowcount > 0
 
     def status(self, server: str) -> dict | None:
         rows = self._state._read(
-            "SELECT fingerprint, tool_count, confirmed_at, seen_at FROM mcp_schemas"
-            " WHERE server = ?",
+            "SELECT fingerprint, tool_count, confirmed_at, seen_at FROM mcp_schemas WHERE server = ?",
             (server,),
         )
         if not rows:

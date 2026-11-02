@@ -3,6 +3,7 @@
 重点守住三件事：抽出来的帧数对、宽度按约定缩放、拼出来的是**一张** PNG
 （多模态模型一次看完的前提）。
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,8 +13,7 @@ import pytest
 from omni.tools.bilibili import frames
 
 
-def _make_video(path: Path, *, seconds: int = 4, fps: int = 10,
-                size: tuple[int, int] = (320, 240)) -> Path:
+def _make_video(path: Path, *, seconds: int = 4, fps: int = 10, size: tuple[int, int] = (320, 240)) -> Path:
     """造一段纯色短片（每帧颜色不同，便于确认抽到的是不同时间点）。"""
     import av
     from PIL import Image
@@ -83,8 +83,8 @@ def test_contact_sheet_is_one_png_with_labels(tmp_path):
     sheet = frames.contact_sheet(picked)
     assert sheet[:8] == b"\x89PNG\r\n\x1a\n"
     with Image.open(io.BytesIO(sheet)) as image:
-        assert image.width == 640          # 两列
-        assert image.height > 240          # 至少两行 + 标签条
+        assert image.width == 640  # 两列
+        assert image.height > 240  # 至少两行 + 标签条
         assert len(picked) == 4
 
 

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Agent 与文件 · OmniOperator</title>
+    <script src="/ui/theme.js?v=20261102u2"></script>
+    <link rel="stylesheet" href="/ui/tokens.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/base.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/icons.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/components.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/frame.css?v=20261102u2" />
+    <link rel="stylesheet" href="/storage/storage.css?v=20261102u2" />
+    <script>
+      if (new URLSearchParams(location.search).get('embed') === '1') document.documentElement.classList.add('ui-embed');
+    </script>
+    <script type="module" src="/ui/shared.js?v=20261102u2"></script>
+  </head>
+  <body data-ui-page="storage">
+    <header>
+      <a href="/">← 工作台</a>
+      <h1>Agent 与文件</h1>
+    </header>
+    <div class="storage-toolbar">
+      <div id="status" role="status">读取目录设置…</div>
+      <div class="storage-toolbar-actions">
+        <button id="reload"><span class="material-icons">refresh</span>重新加载</button>
+        <button id="backup-current"><span class="material-icons">archive</span>备份当前空间</button>
+      </div>
+    </div>
+    <div id="running" class="notice"></div>
+    <details class="path-details">
+      <summary><span class="material-icons">folder_open</span>当前实际使用的目录与文件</summary>
+      <pre id="effective-paths"></pre>
+    </details>
+    <nav class="view-tabs" aria-label="空间管理">
+      <button data-view="settings" aria-selected="true">
+        <span class="material-icons">tune</span>全局与 Agent 目录
+      </button>
+      <button data-view="files" aria-selected="false">
+        <span class="material-icons">folder</span>当前 Agent 的文件
+      </button>
+      <button data-view="inventory" aria-selected="false">
+        <span class="material-icons">account_tree</span>存储用途索引
+      </button>
+    </nav>
+    <main id="settings-view" class="storage-view">
+      <section class="storage-panel application-panel">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">APPLICATION STORAGE</span>
+            <h2>整个项目的目录基础</h2>
+          </div>
+        </div>
+        <p class="hint">
+          全局设置影响所有入口的下次启动。Agent
+          可在下方覆盖自己的业务目录；未改动的旧布局继续使用。源码与固定控制区的位置仅展示。
+        </p>
+        <div class="field-grid">
+          <label
+            >全局业务存储根<input
+              id="app-data_root"
+              form="directory-form"
+              maxlength="1024"
+              placeholder="留空保留现有 data 位置"
+          /></label>
+          <label
+            >默认工作目录<input
+              id="app-workspace"
+              form="directory-form"
+              maxlength="1024"
+              placeholder="文件工具、Shell 与终端的默认工作区"
+          /></label>
+          <label
+            >Agent 空间池<input
+              id="app-agents_root"
+              form="directory-form"
+              maxlength="1024"
+              placeholder="留空使用全局存储根下 agents/"
+          /></label>
+        </div>
+        <p class="hint">
+          存储根的相对路径基于原始 data 根的父目录；工作目录与空间池的相对路径基于有效存储根。预览会显示完整绝对路径。
+        </p>
+        <details>
+          <summary>当前全局布局与固定控制区</summary>
+          <pre id="application-paths">正在读取…</pre>
+        </details>
+      </section>
+      <aside class="storage-panel">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">AGENTS</span>
+            <h2>独立 Agent</h2>
+          </div>
+          <span class="material-icons">group</span>
+        </div>
+        <div id="agents"></div>
+        <form id="new-agent">
+          <div class="form-title"><span class="material-icons">person_add</span><strong>新建 Agent 草稿</strong></div>
+          <label
+            >标识<input id="new-id" required pattern="[a-z][a-z0-9-]{0,31}" maxlength="32" placeholder="例如 writer"
+          /></label>
+          <label>显示名称<input id="new-name" required maxlength="60" placeholder="例如 写作助手" /></label>
+          <button type="submit"><span class="material-icons">add</span>新建 Agent 草稿</button>
+        </form>
+      </aside>
+      <section class="storage-panel">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">DIRECTORIES</span>
+            <h2 id="editor-title">目录设置</h2>
+          </div>
+          <span id="dirty" class="ui-badge" hidden>尚未保存</span>
+        </div>
+        <form id="directory-form">
+          <div class="field-grid">
+            <label>Agent 名称<input id="agent-name" maxlength="60" required /></label>
+            <label>空间根目录<input id="agent-home" placeholder="留空使用 data/agents/标识" /></label>
+          </div>
+          <p class="hint">
+            独立空间按用途分类；相对路径按空间根解析。记忆目录统一保存长期事实、用户档案、会话、摘要和常驻笔记，资料目录保存参考文件。默认空间继承全局目录。
+          </p>
+          <div id="directory-fields"></div>
+          <label class="check"><input id="agent-default" type="checkbox" /> 下次启动默认使用这个 Agent</label>
+          <div class="actions">
+            <button type="submit" class="ui-primary" id="save">
+              <span class="material-icons">save</span>校验并保存设置</button
+            ><button type="button" id="preview"><span class="material-icons">visibility</span>预览有效目录</button>
+          </div>
+        </form>
+        <p class="hint">
+          保存后需重启相应入口。旧数据不会自动搬移或删除；新位置可能使用空记忆库。请先备份再准备数据副本。
+        </p>
+        <pre id="layout-preview" tabindex="0">目录预览只解析路径，不创建文件夹。</pre>
+      </section>
+    </main>
+    <main id="inventory-view" class="storage-view" hidden>
+      <section class="storage-panel">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">STORAGE MAP</span>
+            <h2>当前运行的存储用途索引</h2>
+          </div>
+        </div>
+        <p class="hint">
+          这是当前运行实例实际使用的位置。记忆和档案通过专用 API 管理；此页只显示用途与路径，不读取数据库或凭据内容。
+        </p>
+        <div id="storage-inventory" role="list"><p class="empty">正在读取目录索引…</p></div>
+      </section>
+    </main>
+    <main id="files-view" class="storage-view" hidden>
+      <section class="storage-panel">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">PUBLIC FILES</span>
+            <h2 id="file-owner">当前运行空间</h2>
+          </div>
+          <select id="scope" aria-label="文件区域">
+            <option value="files">文件</option>
+            <option value="documents">资料（模型只读）</option>
+            <option value="workspace">工作区</option>
+          </select>
+        </div>
+        <div id="breadcrumbs" aria-label="目录位置"></div>
+        <div class="actions file-actions">
+          <button id="up"><span class="material-icons">arrow_upward</span>上一级</button
+          ><button id="refresh-files"><span class="material-icons">refresh</span>刷新</button
+          ><button id="mkdir"><span class="material-icons">create_new_folder</span>新建目录</button
+          ><label class="file-choice">选择文件<input id="upload-file" type="file" /></label
+          ><button id="upload" disabled><span class="material-icons">upload</span>上传到此目录</button>
+        </div>
+        <p class="hint">
+          单文件上限 8 MiB，同名不覆盖；上传不会执行内容或自动加载到模型。只浏览当前 Agent 的公开目录。
+        </p>
+        <div id="file-status" role="status"></div>
+        <div id="file-list"></div>
+        <button id="more" hidden><span class="material-icons">expand_more</span>读取更多</button>
+      </section>
+      <section class="storage-panel">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">PREVIEW</span>
+            <h2 id="preview-title">文件预览</h2>
+          </div>
+          <span class="material-icons">description</span>
+        </div>
+        <p id="preview-meta" class="hint">选择文本文件预览；数据库、凭据和其它 Agent 的目录不在此入口开放。</p>
+        <pre id="file-preview" tabindex="0"></pre>
+      </section>
+    </main>
+    <script src="/ui/embed-height.js?v=20261102u2"></script>
+    <script type="module" src="/storage/storage.js?v=20261102u2"></script>
+  </body>
+</html>

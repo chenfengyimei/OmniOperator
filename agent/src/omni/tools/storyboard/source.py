@@ -8,6 +8,7 @@ omni.tools.<别的域>.*）。所以取流能力用 Protocol 注入，
 这样分镜引擎与平台解耦——以后接 YouTube、接本地文件、接公司内网视频，
 都不用改 detect/segments/decode/render 这四层。
 """
+
 from __future__ import annotations
 
 from pathlib import Path

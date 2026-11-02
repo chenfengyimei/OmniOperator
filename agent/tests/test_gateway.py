@@ -7,6 +7,7 @@
 - 该拒绝的请求在发出去之前就拒绝（调用次数为零）；
 - 密钥不会因为报错而出现在文本里。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -286,9 +287,7 @@ def test_unknown_route_is_rejected() -> None:
 
 def test_error_text_never_contains_the_key(monkeypatch: pytest.MonkeyPatch) -> None:
     secret = "sk-proj-abcdefghijklmnop1234567890"
-    script = _Script(
-        _exc("AuthenticationError", f"Incorrect API key provided: {secret}. Bearer {secret}")
-    )
+    script = _Script(_exc("AuthenticationError", f"Incorrect API key provided: {secret}. Bearer {secret}"))
     gateway = _gateway(script, monkeypatch)
     with pytest.raises(GatewayError) as caught:
         gateway.complete([{"role": "user", "content": "hi"}])
@@ -355,13 +354,7 @@ def test_price_resolution_marks_local_free_vs_unknown() -> None:
 
 
 def test_config_price_overrides_table() -> None:
-    llm = LLM(
-        capabilities={
-            "ollama/qwen2.5:7b": ModelCapability(
-                input_usd_per_m=1.0, output_usd_per_m=2.0
-            )
-        }
-    )
+    llm = LLM(capabilities={"ollama/qwen2.5:7b": ModelCapability(input_usd_per_m=1.0, output_usd_per_m=2.0)})
     price = resolve_price(llm, "ollama/qwen2.5:7b")
     assert price.source == "config"
     assert price.cost_usd(1_000_000, 1_000_000) == 3.0
@@ -408,14 +401,10 @@ class _Cancel:
 
 
 def test_stream_emits_deltas_and_settles_usage(monkeypatch: pytest.MonkeyPatch) -> None:
-    script = _Script(
-        iter([_chunk("你"), _chunk("好"), _chunk(usage=_Usage(12, 3))])
-    )
+    script = _Script(iter([_chunk("你"), _chunk("好"), _chunk(usage=_Usage(12, 3))]))
     gateway = _gateway(script, monkeypatch, llm=LLM(budget=LLMBudget(daily_usd=1.0)))
     events: list[gw.StreamEvent] = []
-    reply = gateway.stream(
-        [{"role": "user", "content": "hi"}], on_event=events.append
-    )
+    reply = gateway.stream([{"role": "user", "content": "hi"}], on_event=events.append)
     assert reply.text == "你好"
     assert [e.type for e in events] == ["delta", "delta", "usage", "done"]
     assert [e.text for e in events if e.type == "delta"] == ["你", "好"]
@@ -505,9 +494,7 @@ def test_reasoning_auto_sends_nothing():
 
 
 def test_reasoning_off_disables_thinking_on_deepseek():
-    assert gw.reasoning_params("deepseek/deepseek-flash", "off") == {
-        "extra_body": {"thinking": {"type": "disabled"}}
-    }
+    assert gw.reasoning_params("deepseek/deepseek-flash", "off") == {"extra_body": {"thinking": {"type": "disabled"}}}
 
 
 def test_reasoning_levels_go_through_extra_body_on_deepseek():

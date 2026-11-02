@@ -8,6 +8,7 @@
 明确不做：不写任何数据（写入归各记忆单元）；不做检索/整理编排
 （检索归工具层，整理归 core/journal.py）；不替代 Runtime 持有各单元。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

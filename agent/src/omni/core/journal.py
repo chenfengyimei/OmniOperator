@@ -13,6 +13,7 @@
 能力）；不读 messages 表（素材只来自对话全量，与上下文组装互不影响）；
 不阻塞心跳循环——单期失败记 failed，下轮重试。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -131,13 +132,14 @@ class JournalConsolidator:
         clock: Callable[[], dt.datetime] | None = None,
     ) -> None:
         self._config = config
+        self._update_busy = False
         self._gateway = gateway
         self._journal = journal
         self._dialogue = dialogue
         self._make_store = make_store
         self._make_registry = make_registry
         self._session_log = session_log  # 保留期清理用（None=跳过）
-        self._people = people            # 过期事件清理用（None=跳过）
+        self._people = people  # 过期事件清理用（None=跳过）
         self._clock = clock or (lambda: dt.datetime.now().astimezone())
         self._run_lock = threading.Lock()  # 串行化 consolidate：loop 与手动触发并发时只有一个在跑
         review_model = config.models.review.strip()
@@ -145,6 +147,11 @@ class JournalConsolidator:
         self.stats = {"daily": 0, "weekly": 0, "monthly": 0, "failed": 0, "skipped": 0}
 
     # ---------------------------------------------------------------- 入口
+
+    @property
+    def busy(self) -> bool:
+        """包括定时循环与人工整理；升级不能遗漏持有整理锁的工作。"""
+        return self._update_busy or self._run_lock.locked()
 
     def run_due(self) -> dict:
         """心跳循环入口：判定 → 逐期整理 → 顺手做保留期清理。"""
@@ -201,16 +208,16 @@ class JournalConsolidator:
                     # 重整场景素材被清光：保持现状并推进覆盖标记，避免每轮空转
                     existing = self._journal.note(kind, period_key) or {}
                     self._journal.finish(
-                        kind, period_key,
+                        kind,
+                        period_key,
                         existing.get("content") or "（无可整理素材）",
-                        model=self._model, covered_to_id=covered,
+                        model=self._model,
+                        covered_to_id=covered,
                     )
                     self.stats["skipped"] += 1
                     return "跳过：没有可整理的素材（已保持现状）"
                 content = self._model_loop(kind, material, period_key)
-                self._journal.finish(
-                    kind, period_key, content, model=self._model, covered_to_id=covered
-                )
+                self._journal.finish(kind, period_key, content, model=self._model, covered_to_id=covered)
                 self._journal.mark_attempt(kind, period_key, ok=True, detail=f"笔记 {len(content)} 字")
                 self.stats[kind] = self.stats.get(kind, 0) + 1
                 return f"已生成{_LABELS[kind]}（{len(content)} 字）"
@@ -229,9 +236,9 @@ class JournalConsolidator:
 
     def _weekly_material(self, week: str) -> str:
         notes = [
-            note for note in self._journal.list_notes("daily", limit=2000)
-            if note["status"] == "done"
-            and week_key(dt.date.fromisoformat(note["period_key"])) == week
+            note
+            for note in self._journal.list_notes("daily", limit=2000)
+            if note["status"] == "done" and week_key(dt.date.fromisoformat(note["period_key"])) == week
         ]
         notes.sort(key=lambda note: note["period_key"])
         return "\n\n".join(f"## {n['period_key']}\n{n['content']}" for n in notes)
@@ -313,9 +320,7 @@ class JournalConsolidator:
             # 锚定（P5-b）：本期整理的来源材料就是上面这段素材。
             # 在这个上下文里写入的常驻/档案/人物条目必须附逐字原文摘录，否则拒绝写入。
             # 来源指针指向本期笔记（journal:<kind>:<period_key>），可回查到具体哪一期。
-            with anchor_scope(
-                material, source="journal", source_ref=f"journal:{kind}:{period_key}"
-            ):
+            with anchor_scope(material, source="journal", source_ref=f"journal:{kind}:{period_key}"):
                 for _ in range(max(1, self._config.journal.steps)):
                     reply = self._gateway.complete(
                         messages, model=self._model, tools=registry.specs(), purpose="journal"
@@ -346,16 +351,12 @@ class JournalConsolidator:
         """滚动清理：全量记录保留期 + 过期人物临时事件；单步失败不影响其它。"""
         pruned = {"dialogue": 0, "session_log": 0, "person_events": 0}
         try:
-            pruned["dialogue"] = self._dialogue.prune(
-                self._config.transcript.dialogue_retention_days
-            )
+            pruned["dialogue"] = self._dialogue.prune(self._config.transcript.dialogue_retention_days)
         except Exception as exc:  # noqa: BLE001
             print(f"[记忆整理] 对话全量保留期清理失败（下轮再试）：{exc}", flush=True)
         if self._session_log is not None:
             try:
-                pruned["session_log"] = self._session_log.prune(
-                    self._config.transcript.retention_days
-                )
+                pruned["session_log"] = self._session_log.prune(self._config.transcript.retention_days)
             except Exception as exc:  # noqa: BLE001
                 print(f"[记忆整理] 会话全量保留期清理失败（下轮再试）：{exc}", flush=True)
         if self._people is not None:
@@ -405,13 +406,19 @@ async def journal_loop(runtime: Any, interval_s: float = 300.0) -> None:
         consolidator = getattr(runtime, "journal_consolidator", None)
         if consolidator is None:
             continue
+        if getattr(runtime, "updates", None) and runtime.updates.gate.active():
+            continue
         try:
-            result = await asyncio.to_thread(consolidator.run_due)
+            consolidator._update_busy = True
+            updates = getattr(runtime, "updates", None)
+            with updates.gate.work() if updates else contextlib.nullcontext():
+                result = await asyncio.to_thread(consolidator.run_due)
             if result["due"]:
                 summary = "；".join(
-                    f"{item['kind']} {item['period']} → {item['outcome']}"
-                    for item in result["results"]
+                    f"{item['kind']} {item['period']} → {item['outcome']}" for item in result["results"]
                 )
                 print(f"[心跳] 记忆整理：{summary}", flush=True)
         except Exception as exc:  # noqa: BLE001
             print(f"[心跳] 记忆整理失败（下轮重试）：{exc}", flush=True)
+        finally:
+            consolidator._update_busy = False

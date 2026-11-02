@@ -199,10 +199,10 @@ CLI 支持 `/new`、`/list`、`/use <id>`、`/switch <model>`、`/tools`、`/mem
 
 | 指标 | 数值 | 怎么验证 |
 |---|---|---|
-| 生产源码 | **218 个文件 / 37,563 行** | `find agent/src/omni -name "*.py"` |
-| 测试代码 | **107 个测试文件 / 27,387 行** | `find agent/tests -name "test_*.py"` |
-| 离线单测 | **1515 项全绿** | `uv run --no-sync pytest -q` |
-| 前端资源 | **78 个文件，零构建**（原生 ES 模块） | 无 webpack/vite，改完刷新生效 |
+| 生产源码 | [实时生成索引](docs/index/MODULES.md) | `uv run --no-sync python scripts/project_index.py --check` |
+| 测试代码 | `agent/tests/` | 每例使用隔离数据；默认离线 |
+| 离线单测 | [当前固定版本验证记录](docs/evidence/unification-offline.json) | `uv run --no-sync pytest -q` |
+| 前端资源 | 根 `web/`，原生 ES 模块 | 直接wheel与sdist→wheel均校验界面资源 |
 | 静态检查 | **11 类规则清零并固化** | `agent/ruff.toml` + `ruff check agent/src/omni` |
 | 架构守卫 | **AST 强制分层、组装根唯一** | `agent/tests/test_arch.py` |
 | 文档守卫 | **DDL 与文档防漂移** | `agent/tests/test_data_model.py` |
@@ -378,7 +378,8 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 代码以 [Apache-2.0](LICENSE) 许可发布。
 
-本地 Agent 的完整工程位于 [agent/](agent/README.md)：源码、测试、配置模板、开发脚本和产品依赖均归该目录。
+Python产品工程位于 [agent/](agent/README.md)，单一界面源码位于 `web/`；测试、配置模板、开发脚本和产品依赖归产品目录。
+当前统一状态见 [开发状态](docs/DEVELOPMENT_STATUS.md)，归档恢复与真实验收见 [操作手册](docs/UNIFICATION_ACCEPTANCE.md)。
 全仓位置规则见 [REPOSITORY_STRUCTURE](docs/REPOSITORY_STRUCTURE.md)。
 
 ---
@@ -386,7 +387,11 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 ---
 
+V2底层重构正在开发，默认入口尚未切换；进度与限制见 [V2重构记录](docs/V2_REFACTOR.md)。
+
 ## 模块地图
+
+版本检查、源码升级与故障恢复的使用说明见 [版本与更新](docs/UPDATES.md)。
 
 以职责模块为单位（与 `agent/src/omni/system/catalog/schema.py` 分类一致，由 `agent/tests/test_community_docs.py` 守卫防漂移）。
 完整可搜索索引见工作台 `/project/` 页与 [docs/index/MODULES.md](docs/index/MODULES.md)。
@@ -395,7 +400,9 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
+| `v2-adapters` | **V2 数据与平台适配（开发中）** — 单库事务、日志、受管能力与平台原语 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
 | `agent-directories` | **项目存储与 Agent 目录** — 全局与独立空间目录解析、CAS 配置、运维路径解析与用途索引 | [STORAGE, AGENT_STORAGE](docs/STORAGE.md) |
+| `updates` | **版本与升级事务** — Gitee 固定提交检查、源码预检、安装级维护与独立恢复 | [UPDATES](docs/UPDATES.md) |
 | `config` | **配置与路径契约** — 配置模型、加载与 RuntimePaths | [ARCHITECTURE](docs/ARCHITECTURE.md) |
 | `storage` | **记忆与运行账本** — 会话/事实/技能/产物及 state.db 事务、迁移、额度、投递 | [OPERATIONS, RETRIEVAL](docs/OPERATIONS.md) |
 | `command-contracts` | **状态库与命令账本声明** — state.db 全部表结构与迁移脚本的唯一声明源 | [TERMINAL](docs/TERMINAL.md) |
@@ -405,7 +412,9 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
+| `v2-workbench` | **V2 开发工作台** — 新API的最小验证界面，尚未完成业务迁移 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
 | `http-storage` | **项目目录与文件管理** — 全局与 Agent 目录设置、运行与待重启路径、用途索引及当前空间公开文件区的有界浏览和人工上传 | [STORAGE, AGENT_STORAGE](docs/STORAGE.md) |
+| `http-updates` | **关于与更新 API** — 版本、通道、人工安装确认和持久进度 | [UPDATES](docs/UPDATES.md) |
 | `http-context` | **上下文设置与统计** — 设置中心的只读窗口统计、供应商缓存样本和带版本检查的配置保存 | [CONTEXT_SETTINGS, PROMPT_CONTEXT](docs/CONTEXT_SETTINGS.md) |
 | `http-sessions` | **会话与待办 API** — 会话选择、历史、状态和待办 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
 | `http-conversation` | **对话与流式 API** — 普通/流式对话、显式运行入口 | [PROJECT_INDEX](docs/PROJECT_INDEX.md) |
@@ -429,6 +438,9 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 
 | 模块 | 职责 | 文档 |
 |---|---|---|
+| `v2-domain` | **V2 领域合同** — 纯状态机与配置规则 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
+| `v2-application` | **V2 应用服务** — 回合、审批、取消与事务端口 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
+| `v2-composition` | **V2 实例组装** — 独立实例与开发入口 | [V2_REFACTOR](docs/V2_REFACTOR.md) |
 | `assembly` | **运行时组装** — 唯一组装根，构造依赖并暴露 Runtime 门面 | [ARCHITECTURE, REPOSITORY_STRUCTURE](docs/ARCHITECTURE.md) |
 | `prompt-context` | **提示词与上下文** — 稳定系统前缀、回合上下文快照渲染与保留当前请求的摘要边界 | [PROMPT_CONTEXT, ARCHITECTURE](docs/PROMPT_CONTEXT.md) |
 | `engine` | **Agent 内核** — 回合、上下文、工具循环、取消、委派约束、review 与调度 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
@@ -464,7 +476,7 @@ uv run --no-sync python -m omni.system.backup --to data/backups/<日期>   # 升
 | `android` | **安卓工具** — ADB、防护、UI 树、观察令牌、锁帧和输入法 | [ANDROID](docs/ANDROID.md) |
 | `desktop` | **桌面工具** — Windows UIAutomation、窗口观察、租约与受控语义动作 | [DESKTOP](docs/DESKTOP.md) |
 | `bilibili` | **B站工具** — 读 API/转写及注入浏览器协议的草稿与受控写 | [BILIBILI_WRITING](docs/BILIBILI_WRITING.md) |
-| `storyboard` | **视频理解与分镜** — 切点检测、局部剪辑率格位分配、PyAV 取最锐帧、宫格渲染与可寻址索引；取流能力由平台适配器注入 | [VIDEO_UNDERSTANDING](docs/VIDEO_UNDERSTANDING.md) |
+| `storyboard` | **视频理解与分镜** — 切点检测、局部剪辑率格位分配、最锐帧、宫格与可寻址索引 | [VIDEO_UNDERSTANDING](docs/VIDEO_UNDERSTANDING.md) |
 | `qq-tools` | **QQ 工具** — OneBot 客户端与白名单内主动消息 | [QQ_SCENARIOS](docs/QQ_SCENARIOS.md) |
 | `toolkit` | **工具公共协议与兼容层** — Registry、ToolResult、SessionRef/RunRef、路径策略、截图协议及旧 import 薄转发 | [ARCHITECTURE](docs/ARCHITECTURE.md) |
 

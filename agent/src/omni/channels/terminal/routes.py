@@ -1,4 +1,5 @@
 """内置终端 WebSocket 适配；复用工作台身份及注入的会话池。"""
+
 from __future__ import annotations
 
 import asyncio
@@ -27,9 +28,7 @@ def create_terminal_router(terminal_manager: TerminalManager, auth: WebAuth) -> 
             return
         await ws.accept()
         if not terminal_manager.available:
-            await ws.send_text(
-                f"终端不可用（需要 Windows + pywinpty）：{terminal_manager.unavailable_reason}"
-            )
+            await ws.send_text(f"终端不可用（需要 Windows + pywinpty）：{terminal_manager.unavailable_reason}")
             await ws.close()
             return
         try:

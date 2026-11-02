@@ -1,4 +1,5 @@
 """/memory/ 子站的真实浏览器流程：六页签渲染、浏览/检索/笔记/人物/设置全链路。"""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -35,12 +36,14 @@ def ui(tmp_path, ui_browser):
         def route(r):
             url = urlsplit(r.request.url)
             response = client.request(
-                r.request.method, url.path + ("?" + url.query if url.query else ""),
+                r.request.method,
+                url.path + ("?" + url.query if url.query else ""),
                 content=r.request.post_data,
                 headers={"Content-Type": "application/json"},
             )
             r.fulfill(
-                status=response.status_code, body=response.content,
+                status=response.status_code,
+                body=response.content,
                 headers={"Content-Type": response.headers.get("content-type", "")},
             )
 
@@ -53,10 +56,12 @@ def ui(tmp_path, ui_browser):
             client.close()
 
 
-@pytest.mark.parametrize('in_settings', [False, True])
+@pytest.mark.parametrize("in_settings", [False, True])
 def test_memory_station_views_and_flows(ui, in_settings):
     page, client, runtime, errors = ui
-    page.goto("http://127.0.0.1/?settings=1&section=sec-memory-system" if in_settings else "http://127.0.0.1/memory/")
+    page.goto(
+        "http://127.0.0.1/?settings=1&section=sec-memory-system" if in_settings else "http://127.0.0.1/memory/?embed=1"
+    )
     page.wait_for_selector("#overview-view:not([hidden])")
     page.locator("#overview-metrics .metric-card").nth(3).wait_for()
 
@@ -143,49 +148,50 @@ def test_memory_station_embed_mode_hides_chrome(ui):
     assert errors == []
 
 
-@pytest.mark.parametrize("entry,width", [("settings", 1440), ("settings", 390), ("rail", 1440)])
+@pytest.mark.parametrize("entry,width", [("settings", 1440), ("settings", 390), ("tools", 1440)])
 def test_memory_entry_uses_native_settings_section(ui, entry, width):
     """进入记忆后保留设置外层及 URL；仅外层滚动，不开 iframe 或新标签。"""
     page, client, runtime, errors = ui
     page.set_viewport_size({"width": width, "height": 900})
-    page.goto("http://127.0.0.1/" if entry == "settings" else "http://127.0.0.1/capabilities/")
+    page.goto("http://127.0.0.1/")
     if entry == "settings":
         page.locator("button.hub-open:visible,button.ui-settings:visible").first.click()
         page.wait_for_selector("#hub:not(.hidden)")
         page.click('.hub-nav a[data-go="sec-memory-system"]')
     else:
-        page.locator('.ui-global-nav a[href="/?settings=1&section=sec-memory-system"]').click()
-    page.locator('#sec-memory-system:not(.hidden)').wait_for()
+        page.locator('[data-action="tools:open"]').click()
+        page.locator('#tools-panel [data-section="sec-memory-system"]').click()
+    page.locator("#sec-memory-system:not(.hidden)").wait_for()
     page.locator("#overview-metrics .metric-card").first.wait_for()
     assert page.locator("#overview-metrics .metric-card").count() == 7
     assert len(page.context.pages) == 1
-    assert page.locator('#hub').is_visible()
-    assert page.locator('#hub-memory-content iframe').count() == 0
-    assert page.url == ('http://127.0.0.1/' if entry == 'settings' else 'http://127.0.0.1/?settings=1&section=sec-memory-system')
-    assert page.locator('#hub-memory-content .memory-view:visible').count() == 1
-    assert page.locator('#hub-memory-content .memory-view[hidden]:visible').count() == 0
-    assert page.locator('#overview-view').evaluate('(node)=>node.scrollHeight <= node.clientHeight + 1')
-    assert page.locator('#hub-memory-content').evaluate('(node)=>getComputedStyle(node).overflowY') == 'visible'
+    assert page.locator("#hub").is_visible()
+    assert page.locator("#hub-memory-content iframe").count() == 0
+    assert page.url == "http://127.0.0.1/"
+    assert page.locator("#hub-memory-content .memory-view:visible").count() == 1
+    assert page.locator("#hub-memory-content .memory-view[hidden]:visible").count() == 0
+    assert page.locator("#overview-view").evaluate("(node)=>node.scrollHeight <= node.clientHeight + 1")
+    assert page.locator("#hub-memory-content").evaluate("(node)=>getComputedStyle(node).overflowY") == "visible"
     page.locator('.view-tabs button[data-view="settings"]').click()
-    page.locator('#settings-view:not([hidden])').wait_for()
-    assert page.locator('#hub-memory-content .memory-view:visible').count() == 1
+    page.locator("#settings-view:not([hidden])").wait_for()
+    assert page.locator("#hub-memory-content .memory-view:visible").count() == 1
     page.wait_for_function("document.querySelector('#cfg-journal-daily-time').value !== ''")
-    page.locator('#cfg-journal-daily-time').fill('21:03')
+    page.locator("#cfg-journal-daily-time").fill("21:03")
     page.locator('.hub-nav a[data-go="sec-context"]').click()
     page.locator('.hub-nav a[data-go="sec-memory-system"]').click()
-    assert page.locator('#cfg-journal-daily-time').input_value() == '21:03'
+    assert page.locator("#cfg-journal-daily-time").input_value() == "21:03"
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
     assert errors == []
 
 
 def test_native_memory_resource_failure_can_retry(ui):
     page, _, _, errors = ui
-    page.add_init_script('''const originalFetch=window.fetch;let failed=false;window.fetch=(url,opts)=>{
+    page.add_init_script("""const originalFetch=window.fetch;let failed=false;window.fetch=(url,opts)=>{
       if(String(url).startsWith('/memory/panel.html')&&!failed){failed=true;return Promise.resolve(new Response('',{status:503}))}
-      return originalFetch(url,opts)};''')
-    page.goto('http://127.0.0.1/?settings=1&section=sec-memory-system')
-    page.get_by_role('button', name='重新读取记忆系统', exact=True).click()
-    page.locator('#overview-metrics .metric-card').first.wait_for()
-    assert page.locator('#hub').is_visible()
-    assert page.locator('#hub-memory-content .memory-view:visible').count() == 1
+      return originalFetch(url,opts)};""")
+    page.goto("http://127.0.0.1/?settings=1&section=sec-memory-system")
+    page.get_by_role("button", name="重新读取记忆系统", exact=True).click()
+    page.locator("#overview-metrics .metric-card").first.wait_for()
+    assert page.locator("#hub").is_visible()
+    assert page.locator("#hub-memory-content .memory-view:visible").count() == 1
     assert errors == []

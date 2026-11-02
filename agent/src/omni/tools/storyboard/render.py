@@ -15,6 +15,7 @@
 所以渲染前先找一个系统里的中文体；找不到就**只画时间轴线、不画文字**——
 宁可少画，也不能给模型看一排看不懂的方块。
 """
+
 from __future__ import annotations
 
 import io
@@ -128,9 +129,7 @@ def render_storyboard(
         tile = _cover(image, cell_width, cell_height)
         sheet.paste(tile, (left, top + LABEL_HEIGHT))
         # 标签条：格号 + 时间码（模型引用的是格号）
-        draw.rectangle(
-            [left, top, left + cell_width, top + LABEL_HEIGHT], fill=CELL_BACKGROUND
-        )
+        draw.rectangle([left, top, left + cell_width, top + LABEL_HEIGHT], fill=CELL_BACKGROUND)
         draw.text((left + 6, top + 5), f"#{cell.index}", fill=ACCENT, font=label_font)
         draw.text(
             (left + 34, top + 5),
@@ -207,9 +206,7 @@ def _find_cjk_font(size: int):
     return None
 
 
-def _draw_transcript_band(
-    draw, storyboard: Storyboard, width: int, height: int, band: int
-) -> None:
+def _draw_transcript_band(draw, storyboard: Storyboard, width: int, height: int, band: int) -> None:
     """底部台词带：按时间位置把台词排成时间轴。
 
     这是参考项目「音频包络画在同一条时间轴上」的等价物——对齐关系保住了，
@@ -239,8 +236,10 @@ def _draw_transcript_band(
         draw.text((left + 2, axis_y + 6), snippet, fill=DIM_INK, font=font)
     if font is not None:
         draw.text(
-            (PADDING, top + 2), "台词时间轴（左→右对应视频时间）",
-            fill=DIM_INK, font=_load_font(BAND_TITLE_SIZE),
+            (PADDING, top + 2),
+            "台词时间轴（左→右对应视频时间）",
+            fill=DIM_INK,
+            font=_load_font(BAND_TITLE_SIZE),
         )
 
 
@@ -257,8 +256,5 @@ def readability_note(result: RenderResult) -> str:
             "（接近色块）。要确认某一格的细节，请改用 video_zoom 单独放大那一格。"
         )
     if width < 320:
-        return (
-            f"注意：最小格子 {width}x{height}，细节有限；"
-            "需要看清某个具体画面时用 video_zoom 放大那一格。"
-        )
+        return f"注意：最小格子 {width}x{height}，细节有限；需要看清某个具体画面时用 video_zoom 放大那一格。"
     return f"每格 {width}x{height}，画面细节可辨。"

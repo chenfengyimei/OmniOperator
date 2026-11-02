@@ -17,6 +17,12 @@ $ErrorActionPreference = 'Stop'
 
 . "$PSScriptRoot\installer_lib.ps1"
 
+$maintenanceFile = Join-Path $script:InstallerRoot 'data\control\updates\maintenance.json'
+if (Test-Path -LiteralPath $maintenanceFile) {
+    & "$PSScriptRoot\update.ps1" -Recover
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+
 $sink = {
     param([string]$Text, [string]$Level)
     switch ($Level) {

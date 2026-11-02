@@ -8,6 +8,7 @@
 - 人物不存在时自动创建（importance=known）——"记忆深刻的人"由 agent 自己判断；
 - person 参数收名字或 "channel:account"（如 "qq:12345"），账号是注入查找键。
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -76,7 +77,7 @@ def register_people_tools(
         events = [e for e in entries if e["entry_kind"] == "event"]
         if events:
             lines.append("临时事件：" + "；".join(e["content"] for e in events[-5:]))
-        # 出处小节：有出处的条目才列（后台写入的都带出处，对话里写的不带）
+        # 出处小节：有出处的条目才列（后台整理写入的都带出处，对话里写的不带）
         sourced = [e for e in entries if e.get("source_ref")]
         if sourced:
             lines.append("出处（条目 → 来源与原文依据，供核对）：")
@@ -84,9 +85,7 @@ def register_people_tools(
                 ref = describe_source(e.get("source", ""), e.get("source_ref", ""))
                 quote = str(e.get("evidence") or "").strip()
                 quote = (quote[:60] + "…") if len(quote) > 60 else quote
-                lines.append(
-                    f"[{e['id']}] {ref} · 「{quote}」" if quote else f"[{e['id']}] {ref}"
-                )
+                lines.append(f"[{e['id']}] {ref} · 「{quote}」" if quote else f"[{e['id']}] {ref}")
         lines.append(f"（共 {len(entries)} 条记录；更新用 person_remember / person_event）")
         return "\n".join(lines)
 
@@ -98,8 +97,7 @@ def register_people_tools(
         if ":" in person_key:
             channel, _, value = person_key.partition(":")
             try:
-                pid = people.create_person(value, importance="known",
-                                           note=f"由账号 {channel}:{value} 自动建立")
+                pid = people.create_person(value, importance="known", note=f"由账号 {channel}:{value} 自动建立")
                 people.link_account(pid, channel.strip(), value.strip())
                 return people.get_person(pid), ""
             except PersonError as exc:
@@ -130,9 +128,7 @@ def register_people_tools(
         if person is None:
             return error
         try:
-            people.add_entry(
-                person["id"], entry_kind, content, source=source, evidence=evidence
-            )
+            people.add_entry(person["id"], entry_kind, content, source=source, evidence=evidence)
         except PersonError as exc:
             return f"未写入人物记忆：{exc}"
         kind_label = "常驻档案" if entry_kind == "archive" else "常驻记忆"
@@ -155,8 +151,12 @@ def register_people_tools(
             return error
         try:
             people.add_entry(
-                person["id"], "event", content,
-                source=source, expires_at=expires_at, evidence=evidence,
+                person["id"],
+                "event",
+                content,
+                source=source,
+                expires_at=expires_at,
+                evidence=evidence,
             )
         except PersonError as exc:
             return f"未写入人物事件：{exc}"
@@ -235,10 +235,7 @@ def register_people_tools(
                     "expires_at": {"type": "string", "description": "可选：ISO 过期时间"},
                     "evidence": {
                         "type": "string",
-                        "description": (
-                            "原文摘录：从你正在整理的原文里逐字照抄一段。"
-                            "后台整理写入时必填，否则拒绝写入"
-                        ),
+                        "description": ("原文摘录：从你正在整理的原文里逐字照抄一段。后台整理写入时必填，否则拒绝写入"),
                     },
                 },
                 "required": ["person", "content"],

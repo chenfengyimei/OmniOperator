@@ -8,13 +8,16 @@
 规范依据：docs/UI_DESIGN_SYSTEM.md §3（token 单源）、§4（字号下限 10px）、
 §9（禁止内联 onclick）、§12（禁止 alert/confirm/prompt）。
 """
+
 from __future__ import annotations
+
+from omni.config import PROJECT_ROOT, web_root
 
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STATIC = ROOT / "src/omni/channels/web_static"
+STATIC = web_root(PROJECT_ROOT)
 INDEX = STATIC / "index.html"
 VENDOR = STATIC / "vendor"
 # 子站目录：对它们从一开始就是零容忍（现状就是 0，保持 0）
@@ -60,7 +63,9 @@ def test_seed_tokens_defined_only_in_allowlisted_files():
 
 def test_font_size_floor_ten_px():
     """§4 字号下限：全站禁止 font-size<10px；现存违规按配额递减，新文件零容忍。"""
-    assert INDEX not in ALL_CSS_HTML or not [m for m in FONT_SIZE.findall(INDEX.read_text(encoding="utf-8")) if float(m) < 10], "index.html 不允许出现 <10px 字号"
+    assert INDEX not in ALL_CSS_HTML or not [
+        m for m in FONT_SIZE.findall(INDEX.read_text(encoding="utf-8")) if float(m) < 10
+    ], "index.html 不允许出现 <10px 字号"
     over: dict[str, list[str]] = {}
     for path in ALL_CSS_HTML:
         if VENDOR in path.parents or path == INDEX:
@@ -98,7 +103,9 @@ def test_subpages_have_no_inline_handlers():
 def test_native_dialogs_do_not_grow():
     """§12 原生对话框只许递减：index.html ≤ 历史基线 43，子站与共享层为 0。"""
     count = len(NATIVE_DIALOG.findall(INDEX.read_text(encoding="utf-8")))
-    assert count <= MAX_INDEX_NATIVE_DIALOGS, f"alert/confirm/prompt 共 {count} > 基线 {MAX_INDEX_NATIVE_DIALOGS}，只许减少"
+    assert count <= MAX_INDEX_NATIVE_DIALOGS, (
+        f"alert/confirm/prompt 共 {count} > 基线 {MAX_INDEX_NATIVE_DIALOGS}，只许减少"
+    )
     for path in STATIC.rglob("*.js"):
         if VENDOR in path.parents:
             continue

@@ -12,6 +12,7 @@
 **事件流**（按 run 单调递增的 seq，客户端用 `after=` 续读，不重放回合）、
 **重启对账**（上次没写完的 running 一律归入 interrupted，不假装成功）。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -23,9 +24,7 @@ from .state import StateError, StateStore
 
 # 状态机：queued → running →（done | failed | cancelled | interrupted）
 # waiting_approval 是 running 的子状态，单独记是为了界面上能直接显示"在等人点头"
-STATUSES = frozenset(
-    {"queued", "running", "waiting_approval", "done", "failed", "cancelled", "interrupted"}
-)
+STATUSES = frozenset({"queued", "running", "waiting_approval", "done", "failed", "cancelled", "interrupted"})
 TERMINAL = frozenset({"done", "failed", "cancelled", "interrupted"})
 
 
@@ -129,9 +128,7 @@ class RunStore:
         assert run is not None
         return run
 
-    def append_event(
-        self, run_id: str, kind: str, data: dict[str, Any] | None = None, **extra: Any
-    ) -> int:
+    def append_event(self, run_id: str, kind: str, data: dict[str, Any] | None = None, **extra: Any) -> int:
         """追加事件并返回它的 seq。
 
         `seq` 由同一写事务里的 `last_seq = last_seq + 1` 决定：并发追加不会撞号，
@@ -147,9 +144,7 @@ class RunStore:
             )
             if cur.rowcount == 0:
                 raise StateError(f"运行 {run_id} 不存在，无法记录事件")
-            row = conn.execute(
-                "SELECT last_seq, session_id FROM runs WHERE run_id = ?", (run_id,)
-            ).fetchone()
+            row = conn.execute("SELECT last_seq, session_id FROM runs WHERE run_id = ?", (run_id,)).fetchone()
             seq = int(row["last_seq"])
             conn.execute(
                 "INSERT INTO run_events(run_id, seq, at, kind, data) VALUES (?,?,?,?,?)",
@@ -157,36 +152,51 @@ class RunStore:
             )
         if self._event_sink is not None:
             try:
-                result = merged.get('result') if isinstance(merged.get('result'), dict) else merged
-                self._event_sink({'run_id': run_id, 'session_id': row['session_id'], 'event_id': f'{run_id}:{seq}',
-                                  'kind': kind, 'tool': merged.get('tool', merged.get('name', '')),
-                                  'status': result.get('status', ''), 'error_code': result.get('error_code', '')})
+                result = merged.get("result") if isinstance(merged.get("result"), dict) else merged
+                self._event_sink(
+                    {
+                        "run_id": run_id,
+                        "session_id": row["session_id"],
+                        "event_id": f"{run_id}:{seq}",
+                        "kind": kind,
+                        "tool": merged.get("tool", merged.get("name", "")),
+                        "status": result.get("status", ""),
+                        "error_code": result.get("error_code", ""),
+                    }
+                )
             except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 self.log_dropped += 1  # DB 是权威账本，日志失败不能伪造执行失败。
         return seq
 
     def metrics(self) -> dict:
         """有界窗口聚合，不导出 data/正文/principal。"""
-        runs = self._state._read('SELECT status,error_code FROM runs ORDER BY rowid DESC LIMIT 1000')
-        events = self._state._read('SELECT kind,substr(data,1,12000) AS data FROM run_events ORDER BY rowid DESC LIMIT 2000')
+        runs = self._state._read("SELECT status,error_code FROM runs ORDER BY rowid DESC LIMIT 1000")
+        events = self._state._read(
+            "SELECT kind,substr(data,1,12000) AS data FROM run_events ORDER BY rowid DESC LIMIT 2000"
+        )
         statuses, errors, outcomes = {}, {}, {}
         for row in runs:
-            statuses[row['status']] = statuses.get(row['status'], 0) + 1
-            if row['error_code']:
-                code = str(row['error_code'])[:80]
+            statuses[row["status"]] = statuses.get(row["status"], 0) + 1
+            if row["error_code"]:
+                code = str(row["error_code"])[:80]
                 errors[code] = errors.get(code, 0) + 1
         for row in events:
             try:
-                data = json.loads(row['data'])
-                result = data.get('result', data)
-                status = result.get('status') if isinstance(result, dict) else None
-                if status in {'ok', 'error', 'denied', 'unknown', 'cancelled'}:
+                data = json.loads(row["data"])
+                result = data.get("result", data)
+                status = result.get("status") if isinstance(result, dict) else None
+                if status in {"ok", "error", "denied", "unknown", "cancelled"}:
                     outcomes[status] = outcomes.get(status, 0) + 1
             except (ValueError, TypeError, AttributeError):
                 pass
-        return {'window_runs': len(runs), 'window_events': len(events), 'runs': statuses,
-                'error_codes': dict(sorted(errors.items(), key=lambda x: -x[1])[:20]), 'tool_outcomes': outcomes,
-                'log_sink_failures': self.log_dropped}
+        return {
+            "window_runs": len(runs),
+            "window_events": len(events),
+            "runs": statuses,
+            "error_codes": dict(sorted(errors.items(), key=lambda x: -x[1])[:20]),
+            "tool_outcomes": outcomes,
+            "log_sink_failures": self.log_dropped,
+        }
 
     def touch(
         self,
@@ -212,12 +222,7 @@ class RunStore:
                 params.append(value)
         params.append(run_id)
         with self._state._tx() as conn:
-            return (
-                conn.execute(
-                    f"UPDATE runs SET {', '.join(fields)} WHERE run_id = ?", params
-                ).rowcount
-                > 0
-            )
+            return conn.execute(f"UPDATE runs SET {', '.join(fields)} WHERE run_id = ?", params).rowcount > 0
 
     def finish(
         self,
@@ -264,12 +269,8 @@ class RunStore:
                     " phase = '' WHERE run_id = ?",
                     (stamp, stamp, run_id),
                 )
-                conn.execute(
-                    "UPDATE runs SET last_seq = last_seq + 1 WHERE run_id = ?", (run_id,)
-                )
-                row = conn.execute(
-                    "SELECT last_seq FROM runs WHERE run_id = ?", (run_id,)
-                ).fetchone()
+                conn.execute("UPDATE runs SET last_seq = last_seq + 1 WHERE run_id = ?", (run_id,))
+                row = conn.execute("SELECT last_seq FROM runs WHERE run_id = ?", (run_id,)).fetchone()
                 conn.execute(
                     "INSERT INTO run_events(run_id, seq, at, kind, data) VALUES (?,?,?,?,?)",
                     (
@@ -298,20 +299,15 @@ class RunStore:
     def list_recent(self, *, session_id: int | None = None, limit: int = 20) -> list[Run]:
         limit = max(1, min(int(limit), 200))
         if session_id is None:
-            rows = self._state._read(
-                "SELECT * FROM runs ORDER BY created_at DESC, rowid DESC LIMIT ?", (limit,)
-            )
+            rows = self._state._read("SELECT * FROM runs ORDER BY created_at DESC, rowid DESC LIMIT ?", (limit,))
         else:
             rows = self._state._read(
-                "SELECT * FROM runs WHERE session_id = ?"
-                " ORDER BY created_at DESC, rowid DESC LIMIT ?",
+                "SELECT * FROM runs WHERE session_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?",
                 (int(session_id), limit),
             )
         return [_row_to_run(row) for row in rows]
 
-    def events(
-        self, run_id: str, *, after: int = 0, limit: int = 200
-    ) -> list[RunEvent]:
+    def events(self, run_id: str, *, after: int = 0, limit: int = 200) -> list[RunEvent]:
         """续读：只返回 seq > after 的事件，客户端断线后不会重复消费。"""
         limit = max(1, min(int(limit), 1000))
         rows = self._state._read(
@@ -337,36 +333,59 @@ class RunStore:
 
     def context_cache_usage(self, session_id: int, *, limit: int = 100) -> dict[str, Any]:
         """聚合最近主对话 model_end 用量；未上报和未命中严格区分。"""
-        limit=max(1,min(int(limit),500))
-        rows=self._state._read(
+        limit = max(1, min(int(limit), 500))
+        rows = self._state._read(
             "SELECT e.at,e.data FROM run_events e JOIN runs r ON r.run_id=e.run_id "
             "WHERE r.session_id=? AND e.kind='model_end' ORDER BY e.at DESC,r.rowid DESC,e.seq DESC LIMIT ?",
-            (int(session_id),limit+1),
+            (int(session_id), limit + 1),
         )
-        more=len(rows)>limit;rows=rows[:limit]
+        more = len(rows) > limit
+        rows = rows[:limit]
+
         def token(value: Any) -> int | None:
-            return value if type(value) is int and value>=0 else None
-        cached=[];created=[];missed=[];ratio_hits=0;ratio_input=0;ratio_samples=0
+            return value if type(value) is int and value >= 0 else None
+
+        cached = []
+        created = []
+        missed = []
+        ratio_hits = 0
+        ratio_input = 0
+        ratio_samples = 0
         for row in rows:
-            try:data=json.loads(row['data'])
-            except (TypeError,ValueError):continue
-            if not isinstance(data,dict):continue
-            hit=token(data.get('cached_prompt_tokens'));prompt=token(data.get('prompt_tokens'))
-            write=token(data.get('cache_creation_tokens'));miss=token(data.get('cache_miss_tokens'))
+            try:
+                data = json.loads(row["data"])
+            except (TypeError, ValueError):
+                continue
+            if not isinstance(data, dict):
+                continue
+            hit = token(data.get("cached_prompt_tokens"))
+            prompt = token(data.get("prompt_tokens"))
+            write = token(data.get("cache_creation_tokens"))
+            miss = token(data.get("cache_miss_tokens"))
             if hit is not None:
                 cached.append(hit)
-                if prompt and hit<=prompt:
-                    ratio_hits+=hit;ratio_input+=prompt;ratio_samples+=1
-            if write is not None:created.append(write)
-            if miss is not None:missed.append(miss)
-        return {'sample_count':len(rows),'reported_count':len(cached),'ratio_sample_count':ratio_samples,
-                'cached_tokens':sum(cached) if cached else None,
-                'creation_tokens':sum(created) if created else None,
-                'miss_tokens':sum(missed) if missed else None,
-                'hit_percent':round(100*ratio_hits/ratio_input,1) if ratio_input else None,
-                'reported_prompt_tokens':ratio_input if ratio_samples else None,
-                'limit':limit,'has_more':more,'latest_at':rows[0]['at'] if rows else None,
-                'note':'当前会话最近有记录的主对话模型调用；不含压缩/Review，未上报不计为零。'}
+                if prompt and hit <= prompt:
+                    ratio_hits += hit
+                    ratio_input += prompt
+                    ratio_samples += 1
+            if write is not None:
+                created.append(write)
+            if miss is not None:
+                missed.append(miss)
+        return {
+            "sample_count": len(rows),
+            "reported_count": len(cached),
+            "ratio_sample_count": ratio_samples,
+            "cached_tokens": sum(cached) if cached else None,
+            "creation_tokens": sum(created) if created else None,
+            "miss_tokens": sum(missed) if missed else None,
+            "hit_percent": round(100 * ratio_hits / ratio_input, 1) if ratio_input else None,
+            "reported_prompt_tokens": ratio_input if ratio_samples else None,
+            "limit": limit,
+            "has_more": more,
+            "latest_at": rows[0]["at"] if rows else None,
+            "note": "当前会话最近有记录的主对话模型调用；不含压缩/Review，未上报不计为零。",
+        }
 
 
 def _row_to_run(row) -> Run:

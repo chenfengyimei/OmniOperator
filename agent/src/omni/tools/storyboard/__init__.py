@@ -23,6 +23,7 @@
 分层：本模块是**纯逻辑**（零 I/O、零网络），只吃已解码的帧序列；
 取流与工具包装在 tools.py 与 tools/video/ 下。
 """
+
 from __future__ import annotations
 
 # 切点检测的扫描分辨率：64×36 足够抓住画面突变，再高只是白烧 CPU。

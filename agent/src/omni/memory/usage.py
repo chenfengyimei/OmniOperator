@@ -22,6 +22,7 @@
 抄 surfcore `token-budget.js::takeAlert` 的纪律——在**返回时**就落盘，
 而不是等用户点"知道了"；用户关掉页面、进程重启，同一个提醒也不会弹第二遍。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -84,15 +85,13 @@ class UsageLedger:
         if micro == 0:
             with self._state._tx() as conn:
                 conn.execute(
-                    "INSERT OR IGNORE INTO llm_budget(day, reserved_micro, spent_micro)"
-                    " VALUES (?, 0, 0)",
+                    "INSERT OR IGNORE INTO llm_budget(day, reserved_micro, spent_micro) VALUES (?, 0, 0)",
                     (day,),
                 )
             return True, self.day_total(day)["used_micro"]
         with self._state._tx() as conn:
             conn.execute(
-                "INSERT OR IGNORE INTO llm_budget(day, reserved_micro, spent_micro)"
-                " VALUES (?, 0, 0)",
+                "INSERT OR IGNORE INTO llm_budget(day, reserved_micro, spent_micro) VALUES (?, 0, 0)",
                 (day,),
             )
             if limit_micro > 0:
@@ -108,9 +107,7 @@ class UsageLedger:
                     (micro, day),
                 )
                 ok = True
-            row = conn.execute(
-                "SELECT reserved_micro + spent_micro FROM llm_budget WHERE day = ?", (day,)
-            ).fetchone()
+            row = conn.execute("SELECT reserved_micro + spent_micro FROM llm_budget WHERE day = ?", (day,)).fetchone()
         return ok, int(row[0]) if row else 0
 
     def settle(self, *, day: str, reserved_micro: int, charged_micro: int) -> None:
@@ -130,9 +127,7 @@ class UsageLedger:
                 )
 
     def day_total(self, day: str) -> dict[str, int]:
-        rows = self._state._read(
-            "SELECT reserved_micro, spent_micro FROM llm_budget WHERE day = ?", (day,)
-        )
+        rows = self._state._read("SELECT reserved_micro, spent_micro FROM llm_budget WHERE day = ?", (day,))
         if not rows:
             return {"reserved_micro": 0, "spent_micro": 0, "used_micro": 0}
         reserved, spent = int(rows[0][0]), int(rows[0][1])
@@ -144,9 +139,7 @@ class UsageLedger:
 
     # ---------------------------------------------------------------- 分口径账本
 
-    def scope_reserve(
-        self, *, day: str, scope: str, micro: int, limit_micro: int
-    ) -> tuple[bool, int]:
+    def scope_reserve(self, *, day: str, scope: str, micro: int, limit_micro: int) -> tuple[bool, int]:
         """按口径原子预留。返回 (是否成功, 该口径已预留+已花费)。
 
         与 `reserve` 同一套纪律：条件更新的 rowcount 就是"这笔钱是我预留到的"
@@ -167,8 +160,7 @@ class UsageLedger:
             return True, self.scope_total(day, scope)["used_micro"]
         with self._state._tx() as conn:
             conn.execute(
-                "INSERT OR IGNORE INTO llm_budget_scope(day, scope, reserved_micro, spent_micro)"
-                " VALUES (?, ?, 0, 0)",
+                "INSERT OR IGNORE INTO llm_budget_scope(day, scope, reserved_micro, spent_micro) VALUES (?, ?, 0, 0)",
                 (day, scope),
             )
             if limit_micro > 0:
@@ -180,21 +172,17 @@ class UsageLedger:
                 ok = cur.rowcount == 1
             else:
                 conn.execute(
-                    "UPDATE llm_budget_scope SET reserved_micro = reserved_micro + ?"
-                    " WHERE day = ? AND scope = ?",
+                    "UPDATE llm_budget_scope SET reserved_micro = reserved_micro + ? WHERE day = ? AND scope = ?",
                     (micro, day, scope),
                 )
                 ok = True
             row = conn.execute(
-                "SELECT reserved_micro + spent_micro FROM llm_budget_scope"
-                " WHERE day = ? AND scope = ?",
+                "SELECT reserved_micro + spent_micro FROM llm_budget_scope WHERE day = ? AND scope = ?",
                 (day, scope),
             ).fetchone()
         return ok, int(row[0]) if row else 0
 
-    def scope_settle(
-        self, *, day: str, scope: str, reserved_micro: int, charged_micro: int
-    ) -> None:
+    def scope_settle(self, *, day: str, scope: str, reserved_micro: int, charged_micro: int) -> None:
         """按口径退回预留、计入实际花费。与总额结算同一套语义。"""
         reserved = max(0, int(reserved_micro))
         charged = max(0, int(charged_micro))
@@ -207,16 +195,14 @@ class UsageLedger:
             )
             if cur.rowcount == 0:
                 conn.execute(
-                    "INSERT INTO llm_budget_scope(day, scope, reserved_micro, spent_micro)"
-                    " VALUES (?, ?, 0, ?)",
+                    "INSERT INTO llm_budget_scope(day, scope, reserved_micro, spent_micro) VALUES (?, ?, 0, ?)",
                     (day, scope, charged),
                 )
 
     def scope_total(self, day: str, scope: str) -> dict[str, int]:
         """某口径某日的用量。"""
         rows = self._state._read(
-            "SELECT reserved_micro, spent_micro FROM llm_budget_scope"
-            " WHERE day = ? AND scope = ?",
+            "SELECT reserved_micro, spent_micro FROM llm_budget_scope WHERE day = ? AND scope = ?",
             (day, str(scope or "other")),
         )
         if not rows:
@@ -319,9 +305,7 @@ class UsageLedger:
             )
 
     def recent(self, limit: int = 50) -> list[CallRecord]:
-        rows = self._state._read(
-            "SELECT * FROM llm_calls ORDER BY id DESC LIMIT ?", (max(1, min(limit, 500)),)
-        )
+        rows = self._state._read("SELECT * FROM llm_calls ORDER BY id DESC LIMIT ?", (max(1, min(limit, 500)),))
         return [
             CallRecord(
                 id=int(row["id"]),
@@ -330,9 +314,7 @@ class UsageLedger:
                 purpose=str(row["purpose"]),
                 model=str(row["model"]),
                 prompt_tokens=int(row["prompt_tokens"]) if row["prompt_tokens"] is not None else None,
-                completion_tokens=int(row["completion_tokens"])
-                if row["completion_tokens"] is not None
-                else None,
+                completion_tokens=int(row["completion_tokens"]) if row["completion_tokens"] is not None else None,
                 cost_micro=int(row["cost_micro"]) if row["cost_micro"] is not None else None,
                 cost_source=str(row["cost_source"]),
                 outcome=str(row["outcome"]),
@@ -378,6 +360,4 @@ class UsageLedger:
         """删除过老流水（只删流水，不删当日账：账是钱，流水是明细）。"""
         cutoff = (dt.date.today() - dt.timedelta(days=max(1, keep_days))).isoformat()
         with self._state._tx() as conn:
-            return conn.execute(
-                "DELETE FROM llm_calls WHERE substr(started_at, 1, 10) < ?", (cutoff,)
-            ).rowcount
+            return conn.execute("DELETE FROM llm_calls WHERE substr(started_at, 1, 10) < ?", (cutoff,)).rowcount

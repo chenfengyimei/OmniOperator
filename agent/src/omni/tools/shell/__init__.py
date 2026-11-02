@@ -8,6 +8,7 @@
 
 对外的旧入口 `omni.tools.shell_tools` 保留为薄兼容层，导入路径不变。
 """
+
 from __future__ import annotations
 
 from .danger import hard_blocked_reason

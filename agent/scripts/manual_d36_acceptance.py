@@ -22,6 +22,7 @@
 **离线纪律**：本脚本不碰真实 QQ 账号、真实 NapCat、真实用户的 data 目录；
 唯一的外部调用是第 2 项的真实模型调用（可加 --no-model 跳过）。
 """
+
 from __future__ import annotations
 
 import argparse
@@ -119,17 +120,18 @@ def _workbench_persona(tmp: Path) -> dict[str, Any]:
             raw = resp.read().decode("utf-8", "replace")
             return resp.status, raw, resp.getheader("Set-Cookie") or ""
 
-        status, text, set_cookie = request("POST", "/api/auth/pair",
-                                          {"code": app.state.web_auth.pairing_code})
+        status, text, set_cookie = request("POST", "/api/auth/pair", {"code": app.state.web_auth.pairing_code})
         out["pair_status"] = status
         cookie = set_cookie.split(";")[0]
         out["paired_cookie"] = bool(cookie)
 
         good = "你是真机验收的人格正文，这一行足够长，可以通过最小长度闸门。"
-        status, text, _ = request("POST", "/api/system/config",
-                                  {"updates": {"persona": {"name": "真机小鱼",
-                                                          "system_prompt": good.split("\n")}}},
-                                  cookie)
+        status, text, _ = request(
+            "POST",
+            "/api/system/config",
+            {"updates": {"persona": {"name": "真机小鱼", "system_prompt": good.split("\n")}}},
+            cookie,
+        )
         out["save_status"] = status
         try:
             out["save_body"] = json.loads(text)
@@ -143,8 +145,15 @@ def _workbench_persona(tmp: Path) -> dict[str, Any]:
         for label, payload in (
             ("空正文", {"persona": {"name": "x", "system_prompt": ["   "]}}),
             ("过短", {"persona": {"name": "x", "system_prompt": ["太短了"]}}),
-            ("含凭据", {"persona": {"name": "x",
-                                   "system_prompt": ["长度足够但是里面藏着 sk-abcdefghijklmnopqrstuvwxyz123456"]}}),
+            (
+                "含凭据",
+                {
+                    "persona": {
+                        "name": "x",
+                        "system_prompt": ["长度足够但是里面藏着 sk-abcdefghijklmnopqrstuvwxyz123456"],
+                    }
+                },
+            ),
         ):
             before = config_path.read_text(encoding="utf-8")
             status, text, _ = request("POST", "/api/system/config", {"updates": payload}, cookie)
@@ -154,12 +163,14 @@ def _workbench_persona(tmp: Path) -> dict[str, Any]:
                 detail = json.loads(text).get("detail")
             except ValueError:
                 detail = text[:200]
-            rejects.append({
-                "case": label,
-                "status": status,
-                "detail": detail,
-                "disk_unchanged": before == after,
-            })
+            rejects.append(
+                {
+                    "case": label,
+                    "status": status,
+                    "detail": detail,
+                    "disk_unchanged": before == after,
+                }
+            )
         out["rejects"] = rejects
 
         status, text, _ = request("GET", "/api/system/config", None, cookie)
@@ -209,9 +220,7 @@ def _model_rewrite(tmp: Path, *, use_model: bool) -> dict[str, Any]:
         )
         out["final_answer"] = answer[:2000]
         # 直接读 facts 表：这才是「到底存进去了什么」的事实来源。
-        rows = runtime.store._conn.execute(
-            "SELECT content FROM facts ORDER BY id"
-        ).fetchall()
+        rows = runtime.store._conn.execute("SELECT content FROM facts ORDER BY id").fetchall()
         contents = [str(r[0]) for r in rows]
         out["stored_facts"] = contents
         out["secret_leaked"] = any(secret in c for c in contents)
@@ -220,19 +229,22 @@ def _model_rewrite(tmp: Path, *, use_model: bool) -> dict[str, Any]:
         # 这是区分「模型压根没调（自己拒绝）」与「调了被闸门拒（事后改写）」的关键。
         try:
             rows = runtime.store._conn.execute(
-                "SELECT kind, tool_name, tool_args, tool_result, tool_status "
-                "FROM session_log ORDER BY id"
+                "SELECT kind, tool_name, tool_args, tool_result, tool_status FROM session_log ORDER BY id"
             ).fetchall()
             calls = [
-                {"kind": str(r[0]), "tool": str(r[1] or ""), "args": str(r[2] or "")[:200],
-                 "result": str(r[3] or "")[:300], "status": str(r[4] or "")}
+                {
+                    "kind": str(r[0]),
+                    "tool": str(r[1] or ""),
+                    "args": str(r[2] or "")[:200],
+                    "result": str(r[3] or "")[:300],
+                    "status": str(r[4] or ""),
+                }
                 for r in rows
             ]
             out["session_log_rows"] = calls
             out["remember_calls"] = sum(1 for c in calls if c["tool"] == "remember")
             out["remember_rejections"] = [
-                c["result"] for c in calls
-                if c["tool"] == "remember" and "未写入记忆" in c["result"]
+                c["result"] for c in calls if c["tool"] == "remember" and "未写入记忆" in c["result"]
             ]
         except Exception as exc:  # noqa: BLE001
             out["tool_call_probe_error"] = f"{type(exc).__name__}: {exc}"
@@ -254,9 +266,11 @@ def _model_rewrite(tmp: Path, *, use_model: bool) -> dict[str, Any]:
         )
     except Exception as exc:  # noqa: BLE001 —— 验收脚本要把失败如实记下来
         out["error"] = f"{type(exc).__name__}: {exc}"
-    out["passed"] = bool(not out.get("secret_leaked")) and bool(
-        out.get("gate_direct_blocked")
-    ) and bool(out.get("refused_before_call") or out.get("rewritten"))
+    out["passed"] = (
+        bool(not out.get("secret_leaked"))
+        and bool(out.get("gate_direct_blocked"))
+        and bool(out.get("refused_before_call") or out.get("rewritten"))
+    )
     return out
 
 
@@ -275,11 +289,7 @@ def _qq_blocked(tmp: Path) -> dict[str, Any]:
     tmp.mkdir(parents=True, exist_ok=True)
     qq_config = tmp / "qq_config.yaml"
     qq_config.write_text(
-        "qq:\n"
-        "  enabled: true\n"
-        "  allowed_users:\n"
-        "    - 10001\n"
-        "  owner_qq: 10001\n",
+        "qq:\n  enabled: true\n  allowed_users:\n    - 10001\n  owner_qq: 10001\n",
         encoding="utf-8",
     )
     runtime = build_runtime(
@@ -304,9 +314,15 @@ def _qq_blocked(tmp: Path) -> dict[str, Any]:
     client = _RecordingClient()
 
     def _event(user_id: int, message_id: int) -> dict[str, Any]:
-        return {"post_type": "message", "message_type": "private", "sub_type": "friend",
-                "user_id": user_id, "self_id": 10000, "message_id": message_id,
-                "raw_message": "在吗"}
+        return {
+            "post_type": "message",
+            "message_type": "private",
+            "sub_type": "friend",
+            "user_id": user_id,
+            "self_id": 10000,
+            "message_id": message_id,
+            "raw_message": "在吗",
+        }
 
     # 场景一：白名单外（999999）——应当完全静默，且**不建会话**
     before_sessions = len(runtime.store.list_sessions(50))
@@ -314,9 +330,7 @@ def _qq_blocked(tmp: Path) -> dict[str, Any]:
     out["outside_allowlist_sent"] = len(sent)
     out["outside_allowlist_silent"] = len(sent) == 0
     out["outside_allowlist_sessions_delta"] = len(runtime.store.list_sessions(50)) - before_sessions
-    out["outside_allowlist_no_session"] = (
-        len(runtime.store.list_sessions(50)) - before_sessions == 0
-    )
+    out["outside_allowlist_no_session"] = len(runtime.store.list_sessions(50)) - before_sessions == 0
 
     # 场景二：白名单内（10001）——应当真的处理（证明闸门没有把所有人都拦掉）
     class _StubAgent:
@@ -369,8 +383,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run", action="store_true")
     parser.add_argument("--output", required=True)
-    parser.add_argument("--no-model", action="store_true",
-                        help="跳过第 2 项真实模型调用（只跑离线可验的两项）")
+    parser.add_argument("--no-model", action="store_true", help="跳过第 2 项真实模型调用（只跑离线可验的两项）")
     args = parser.parse_args()
     if not args.run:
         parser.error("需显式指定 --run（真机验收会起本地服务并可能调用真实模型）")

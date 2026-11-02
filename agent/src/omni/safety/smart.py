@@ -10,6 +10,7 @@
 分层说明：本模块在叶子层 safety，不 import llm——模型调用以 `ask_model`
 可调用注入（组装处负责接 Gateway），与 core/cron 的 duck-typing 同款手法。
 """
+
 from __future__ import annotations
 
 import json
@@ -44,19 +45,13 @@ class SmartApprover(Approver):
         risk = getattr(tool, "risk", Risk.SAFE)
         if risk == Risk.DANGEROUS:
             return Decision(False, "dangerous 级操作在当前版本一律拒绝")
-        if (
-            risk == Risk.SAFE
-            or getattr(tool, "requires_human", False)
-            or not self._base.allows_auto_approval
-        ):
+        if risk == Risk.SAFE or getattr(tool, "requires_human", False) or not self._base.allows_auto_approval:
             return self._base.check(tool, arguments)
         verdict, reason = self._verdict(tool, arguments)
         if verdict == "ALLOW":
             return Decision(True, f"smart 审批自动放行：{reason}")
         if verdict == "DENY":
-            return Decision(
-                False, f"smart 审批判定风险过高：{reason}。请换安全路径或向用户说明"
-            )
+            return Decision(False, f"smart 审批判定风险过高：{reason}。请换安全路径或向用户说明")
         return self._base.check(tool, arguments)  # ESCALATE / 不可解析 → 人工
 
     def _verdict(self, tool: Any, arguments: Any) -> tuple[str, str]:

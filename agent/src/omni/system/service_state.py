@@ -8,6 +8,7 @@
 明确不做：不判断服务该不该在跑（那是 `system/supervisor.py` 的职责）、
 不落 `state.db`（秒级刷新的数字进库只会带来写放大，还要同步数据模型文档）。
 """
+
 from __future__ import annotations
 
 import json
@@ -37,8 +38,7 @@ class StateWriter:
     写用原子替换：读端永远看不到半个文件（工作台每 5 秒读一次，撞上写入的概率不低）。
     """
 
-    def __init__(self, path: Path, *, service: str, launch_id: str,
-                 pid: int | None = None, clock=time.time) -> None:
+    def __init__(self, path: Path, *, service: str, launch_id: str, pid: int | None = None, clock=time.time) -> None:
         self._path = Path(path)
         self._service = service
         self._launch_id = launch_id
@@ -47,8 +47,7 @@ class StateWriter:
         self._seq = 0
         self._started = clock()
 
-    def write(self, *, health: str = "ok", stats: dict[str, Any] | None = None,
-              note: str = "") -> dict[str, Any]:
+    def write(self, *, health: str = "ok", stats: dict[str, Any] | None = None, note: str = "") -> dict[str, Any]:
         self._seq += 1
         payload = {
             "version": STATE_VERSION,
@@ -66,14 +65,24 @@ class StateWriter:
         return payload
 
 
-def read_state(path: Path, *, now: float | None = None, ttl_s: float = 45.0,
-               launch_id: str | None = None) -> dict[str, Any]:
+def read_state(
+    path: Path, *, now: float | None = None, ttl_s: float = 45.0, launch_id: str | None = None
+) -> dict[str, Any]:
     """读取快照；**永不抛异常**（坏文件当作"读不出来"，不是崩溃）。"""
     now = time.time() if now is None else float(now)
     blank: dict[str, Any] = {
-        "present": False, "fresh": False, "reason": REASON_MISSING,
-        "service": None, "launch_id": None, "pid": None, "updated": None,
-        "age_s": None, "health": "", "note": "", "stats": {}, "seq": 0,
+        "present": False,
+        "fresh": False,
+        "reason": REASON_MISSING,
+        "service": None,
+        "launch_id": None,
+        "pid": None,
+        "updated": None,
+        "age_s": None,
+        "health": "",
+        "note": "",
+        "stats": {},
+        "seq": 0,
     }
     try:
         raw = Path(path).read_text(encoding="utf-8")

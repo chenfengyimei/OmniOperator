@@ -1,4 +1,5 @@
 """MemoryStore 单测：会话 / 消息 / 事实 / FTS 全文检索 / 用户档案 / review 日志。"""
+
 import datetime as dt
 
 from omni.memory.store import PROFILE_MAX_CHARS, RECALL_HIT_CAP, MemoryStore
@@ -188,32 +189,26 @@ def test_search_fact_rows_matches_search_facts_order(tmp_path):
 
 
 def _set_last_used(store: MemoryStore, content: str, value: str) -> None:
-    store._conn.execute(
-        "UPDATE facts SET last_used = ? WHERE content = ?", (value, content)
-    )
+    store._conn.execute("UPDATE facts SET last_used = ? WHERE content = ?", (value, content))
     store._conn.commit()
 
 
 def test_touch_facts_counts_once_with_cooldown_and_daily_cap(tmp_path):
+    now = dt.datetime(2026, 11, 1, 12, tzinfo=dt.timezone(dt.timedelta(hours=8)))
     store = MemoryStore(tmp_path / "m.db")
     store.save_fact("用户喜欢喝拿铁")
-    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private") == 1
+    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private", now=now) == 1
     row = store.fact_rows(1)[0]
     assert row["hits"] == 1 and row["last_used"]
     # 冷却窗口内重复命中不计数
-    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private") == 0
+    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private", now=now) == 0
     assert store.fact_rows(1)[0]["hits"] == 1
     # 冷却已过但同一天：每天最多计一次
-    now = dt.datetime.now().astimezone()
-    _set_last_used(
-        store, "用户喜欢喝拿铁", (now - dt.timedelta(hours=2)).isoformat(timespec="seconds")
-    )
-    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private") == 0
+    _set_last_used(store, "用户喜欢喝拿铁", (now - dt.timedelta(hours=2)).isoformat(timespec="seconds"))
+    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private", now=now) == 0
     # 昨天计过、冷却已过：今天可以再计
-    _set_last_used(
-        store, "用户喜欢喝拿铁", (now - dt.timedelta(days=1)).isoformat(timespec="seconds")
-    )
-    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private") == 1
+    _set_last_used(store, "用户喜欢喝拿铁", (now - dt.timedelta(days=1)).isoformat(timespec="seconds"))
+    assert store.touch_facts(["用户喜欢喝拿铁"], scope="private", now=now) == 1
     assert store.fact_rows(1)[0]["hits"] == 2
     store.close()
 
@@ -257,9 +252,7 @@ def test_search_applies_reinforcement_and_keeps_rows_contract(tmp_path):
     ranked = [r["content"] for r in store.search_fact_rows(query, limit=10)]
     assert ranked != base  # 强化确实参与排序
     assert ranked.index(last) == base.index(last) - 1  # 但只前进一个链位
-    assert [r["content"] for r in store.search_fact_rows(query, limit=10)] == store.search_facts(
-        query, limit=10
-    )
+    assert [r["content"] for r in store.search_fact_rows(query, limit=10)] == store.search_facts(query, limit=10)
     store.close()
 
 
@@ -272,15 +265,11 @@ def test_fact_ids_by_contents_exact_scoped_and_uncapped(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
     target = store.save_fact("用户喜欢喝拿铁")
     store.save_fact("群里的约定", scope="group")
-    assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="private") == {
-        "用户喜欢喝拿铁": target
-    }
+    assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="private") == {"用户喜欢喝拿铁": target}
     assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="group") == {}
     assert store.fact_ids_by_contents([], scope="private") == {}
     assert store.fact_ids_by_contents(["不存在"], scope="private") == {}
     for i in range(505):  # 目标成为最旧的一条，fact_rows(500) 里永远看不见
         store.save_fact(f"填充事实 {i}")
-    assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="private") == {
-        "用户喜欢喝拿铁": target
-    }
+    assert store.fact_ids_by_contents(["用户喜欢喝拿铁"], scope="private") == {"用户喜欢喝拿铁": target}
     store.close()

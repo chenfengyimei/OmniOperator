@@ -1,4 +1,5 @@
 """社区工具适配；HTTP/发布逻辑由注入客户端承担。"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -27,9 +28,7 @@ def register_community_tools(registry: ToolRegistry, client: CommunityClient) ->
         return msg
 
     def community_search(args: dict[str, Any]) -> str:
-        _ok, msg = client.search(
-            str(args.get("query", "")), max(1, min(int(args.get("limit") or 10), 50))
-        )
+        _ok, msg = client.search(str(args.get("query", "")), max(1, min(int(args.get("limit") or 10), 50)))
         return msg
 
     def community_info(args: dict[str, Any]) -> str:
@@ -37,9 +36,7 @@ def register_community_tools(registry: ToolRegistry, client: CommunityClient) ->
         return msg
 
     def community_install(args: dict[str, Any]) -> str:
-        _ok, msg = client.install(
-            str(args.get("id", "")), str(args.get("version", "") or "")
-        )
+        _ok, msg = client.install(str(args.get("id", "")), str(args.get("version", "") or ""))
         return msg
 
     def community_publish(args: dict[str, Any]) -> str:
@@ -105,10 +102,7 @@ def register_community_tools(registry: ToolRegistry, client: CommunityClient) ->
     registry.register(
         Tool(
             name="community_install",
-            description=(
-                "从社区下载插件包到收件箱并走隔离安装（sha256 校验；"
-                "激活仍需人工确认，社区不背书安全性）"
-            ),
+            description=("从社区下载插件包到收件箱并走隔离安装（sha256 校验；激活仍需人工确认，社区不背书安全性）"),
             parameters={
                 "type": "object",
                 "properties": {

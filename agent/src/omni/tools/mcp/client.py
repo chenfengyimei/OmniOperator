@@ -3,6 +3,7 @@
 会话创建、请求和退出都在同一个 asyncio task，避免跨 task 退出 AnyIO scope。
 配置由 bootstrap 注入；不发现机器上的其它服务、不安装软件、不替服务器调用模型。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -25,6 +26,7 @@ import anyio
 
 from ...config import PROJECT_ROOT, MCPConfig, MCPServerConfig
 from ...system.stderr_log import StderrLog
+from .remote import RemoteAuthorization, remote_transport
 
 
 class MCPError(RuntimeError):
@@ -48,14 +50,14 @@ class CatalogTrust(Protocol):
 
 def resolve_env(values: dict[str, str]) -> dict[str, str]:
     """仅展开显式配置的环境变量；SDK 另附必要的系统变量白名单。"""
+
     def replace(match: re.Match[str]) -> str:
         value = os.environ.get(match[1])
         if not value:
             raise MCPError(f"MCP 缺少显式引用的环境变量 {match[1]}")
         return value
 
-    return {key: re.sub(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}", replace, value)
-            for key, value in values.items()}
+    return {key: re.sub(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}", replace, value) for key, value in values.items()}
 
 
 @dataclass
@@ -69,161 +71,280 @@ class PendingRequest:
 
 class MCPConnection:
     """一个所有者任务，有限等待；总预算包含排队，未知调用不重放。"""
-    def __init__(self, name, config, log_dir, catalog_guard=None):
-        self.name,self.config,self._log_dir=name,config.model_copy(deep=True),Path(log_dir)
-        self._queue=queue.Queue(maxsize=self.config.max_waiting)
-        self._state_lock=threading.RLock()
-        self._thread=self._loop=self._cancel_scope=self._wakeup=None
-        self._failure="";self._closed=False;self._ready=False
-        self._catalog_guard=catalog_guard;self.catalog_approved=False
-        self._active=None;self._log=None
+
+    def __init__(self, name, config, log_dir, catalog_guard=None, credential_dir=None):
+        self.name, self.config, self._log_dir = name, config.model_copy(deep=True), Path(log_dir)
+        self._queue = queue.Queue(maxsize=self.config.max_waiting)
+        self._state_lock = threading.RLock()
+        self._thread = self._loop = self._cancel_scope = self._wakeup = None
+        self._failure = ""
+        self._closed = False
+        self._ready = False
+        self._catalog_guard = catalog_guard
+        self.catalog_approved = False
+        self._active = None
+        self._log = None
+        self.remote = (
+            RemoteAuthorization(self.config, Path(credential_dir or Path(log_dir).parent / "mcp_credentials"))
+            if self.config.transport == "streamable_http"
+            else None
+        )
 
     def request(self, operation, arguments, *, cancel=None):
-        pending=PendingRequest(operation,arguments,time.monotonic()+self.config.timeout_s)
+        pending = PendingRequest(operation, arguments, time.monotonic() + self.config.timeout_s)
         with self._state_lock:
-            if self._closed or self._failure:raise MCPError(self._failure or 'MCP 连接已关闭')
-            if getattr(cancel,'cancelled',False):raise MCPError('MCP 请求已取消，未派发')
-            try:self._queue.put_nowait(pending)
-            except queue.Full:raise MCPError('MCP 等待队列已满，未派发') from None
+            if self._closed or self._failure:
+                raise MCPError(self._failure or "MCP 连接已关闭")
+            if getattr(cancel, "cancelled", False):
+                raise MCPError("MCP 请求已取消，未派发")
+            try:
+                self._queue.put_nowait(pending)
+            except queue.Full:
+                raise MCPError("MCP 等待队列已满，未派发") from None
             if self._thread is None:
-                self._thread=threading.Thread(target=self._run,name=f'mcp-{self.name}',daemon=True)
+                self._thread = threading.Thread(target=self._run, name=f"mcp-{self.name}", daemon=True)
                 self._thread.start()
         self._signal()
         while True:
-            try:return pending.future.result(timeout=max(.001,min(.05,pending.deadline-time.monotonic())))
+            try:
+                return pending.future.result(timeout=max(0.001, min(0.05, pending.deadline - time.monotonic())))
             except FutureTimeout:
-                cancelled=getattr(cancel,'cancelled',False)
-                if not cancelled and time.monotonic()<pending.deadline:continue
+                cancelled = getattr(cancel, "cancelled", False)
+                if not cancelled and time.monotonic() < pending.deadline:
+                    continue
                 with self._state_lock:
-                    if pending.future.done():return pending.future.result()
-                    uncertain=pending.phase=='calling'
+                    if pending.future.done():
+                        return pending.future.result()
+                    uncertain = pending.phase == "calling"
                     pending.future.cancel()
                     if uncertain:
-                        self._failure='MCP 超时或取消；执行结果未知，连接已停用，请核查实际状态，勿直接重试'
-                if uncertain:self._cancel()
-                raise MCPError(self._failure if uncertain else 'MCP 请求超时或取消，尚未派发工具调用',uncertain=uncertain)
+                        self._failure = "MCP 超时或取消；执行结果未知，连接已停用，请核查实际状态，勿直接重试"
+                if uncertain:
+                    self._cancel()
+                raise MCPError(
+                    self._failure if uncertain else "MCP 请求超时或取消，尚未派发工具调用", uncertain=uncertain
+                )
 
     def _signal(self):
-        with self._state_lock:loop,wakeup=self._loop,self._wakeup
+        with self._state_lock:
+            loop, wakeup = self._loop, self._wakeup
         if loop is not None and wakeup is not None:
-            try:loop.call_soon_threadsafe(wakeup.set)
-            except RuntimeError:pass
+            try:
+                loop.call_soon_threadsafe(wakeup.set)
+            except RuntimeError:
+                pass
 
     def _cancel(self):
-        try:self._queue.put_nowait(None)
-        except queue.Full:pass
-        with self._state_lock:loop,scope=self._loop,self._cancel_scope
+        try:
+            self._queue.put_nowait(None)
+        except queue.Full:
+            pass
+        with self._state_lock:
+            loop, scope = self._loop, self._cancel_scope
         if loop is not None and scope is not None:
-            try:loop.call_soon_threadsafe(scope.cancel)
-            except RuntimeError:pass
+            try:
+                loop.call_soon_threadsafe(scope.cancel)
+            except RuntimeError:
+                pass
         self._signal()
 
     def _run(self):
         asyncio.run(self._serve())
 
     async def _serve(self):
-        active=None
+        active = None
         try:
             from mcp import Client, StdioServerParameters
             from mcp.client.stdio import stdio_client
+
             with self._state_lock:
-                self._loop=asyncio.get_running_loop();self._wakeup=asyncio.Event()
-                if self._closed or self._failure:raise MCPError('MCP 连接已取消')
-            explicit_env=resolve_env(self.config.env)
-            params=StdioServerParameters(command=self.config.command,args=self.config.args,
-                     env={'PYTHONUTF8':'1',**explicit_env},cwd=PROJECT_ROOT/(self.config.cwd or '.'))
+                self._loop = asyncio.get_running_loop()
+                self._wakeup = asyncio.Event()
+                if self._closed or self._failure:
+                    raise MCPError("MCP 连接已取消")
+            explicit_env = resolve_env(self.config.env)
+            params = (
+                StdioServerParameters(
+                    command=self.config.command,
+                    args=self.config.args,
+                    env={"PYTHONUTF8": "1", **explicit_env},
+                    cwd=PROJECT_ROOT / (self.config.cwd or "."),
+                )
+                if self.config.transport == "stdio"
+                else None
+            )
             with anyio.CancelScope() as scope:
                 with self._state_lock:
-                    self._cancel_scope=scope
-                    if self._closed or self._failure:scope.cancel()
-                self._log=StderrLog(self._log_dir/f'{self.name}.log',secrets=explicit_env.values(),
-                                    max_bytes=self.config.log_bytes,segments=self.config.log_segments)
+                    self._cancel_scope = scope
+                    if self._closed or self._failure:
+                        scope.cancel()
+                self._log = StderrLog(
+                    self._log_dir / f"{self.name}.log",
+                    secrets=explicit_env.values(),
+                    max_bytes=self.config.log_bytes,
+                    segments=self.config.log_segments,
+                )
                 try:
-                    async with Client(stdio_client(params,errlog=self._log.file),read_timeout_seconds=self.config.timeout_s) as client:
-                        with self._state_lock:self._ready=True
+                    transport = (
+                        remote_transport(self.config, self.remote)
+                        if self.remote
+                        else stdio_client(params, errlog=self._log.file)
+                    )
+                    async with Client(transport, read_timeout_seconds=self.config.timeout_s) as client:
+                        with self._state_lock:
+                            self._ready = True
                         while True:
-                            try:item=self._queue.get_nowait()
+                            try:
+                                item = self._queue.get_nowait()
                             except queue.Empty:
-                                await self._wakeup.wait();self._wakeup.clear();continue
-                            if item is None:break
-                            active=item
+                                await self._wakeup.wait()
+                                self._wakeup.clear()
+                                continue
+                            if item is None:
+                                break
+                            active = item
                             with self._state_lock:
-                                if self._closed:break
-                                if active.future.cancelled() or active.deadline<=time.monotonic():
-                                    if not active.future.done():active.future.set_exception(MCPError('MCP 排队超时，未派发'))
-                                    active=None;continue
-                                active.phase='catalog';self._active=active
-                            with anyio.fail_after(max(.001,active.deadline-time.monotonic())):
-                                tools=await self._catalog(client)
-                                self.catalog_approved=bool(self._catalog_guard and self._catalog_guard(self.config,tools))
-                                result=tools
-                                if active.operation!='list':
-                                    if active.arguments.get('readonly') and not self.catalog_approved:
+                                if self._closed:
+                                    break
+                                if active.future.cancelled() or active.deadline <= time.monotonic():
+                                    if not active.future.done():
+                                        active.future.set_exception(MCPError("MCP 排队超时，未派发"))
+                                    active = None
+                                    continue
+                                active.phase = "catalog"
+                                self._active = active
+                            with anyio.fail_after(max(0.001, active.deadline - time.monotonic())):
+                                tools = await self._catalog(client)
+                                self.catalog_approved = bool(
+                                    self._catalog_guard and self._catalog_guard(self.config, tools)
+                                )
+                                result = tools
+                                if active.operation != "list":
+                                    if active.arguments.get("readonly") and not self.catalog_approved:
                                         with self._state_lock:
-                                            if not active.future.done():active.future.set_exception(MCPError('MCP 目录或连接身份变化，或授权记录不可用；只读调用已停止，请在工作台复查当前指纹后确认'))
-                                        active=None;self._active=None;continue
-                                    if active.arguments['name'] not in {t['name'] for t in tools}:
+                                            if not active.future.done():
+                                                active.future.set_exception(
+                                                    MCPError(
+                                                        "MCP 目录或连接身份变化，或授权记录不可用；只读调用已停止，请在工作台复查当前指纹后确认"
+                                                    )
+                                                )
+                                        active = None
+                                        self._active = None
+                                        continue
+                                    if active.arguments["name"] not in {t["name"] for t in tools}:
                                         with self._state_lock:
-                                            if not active.future.done():active.future.set_exception(MCPError('MCP 工具未在服务目录中声明'))
-                                        active=None;self._active=None;continue
+                                            if not active.future.done():
+                                                active.future.set_exception(MCPError("MCP 工具未在服务目录中声明"))
+                                        active = None
+                                        self._active = None
+                                        continue
                                     with self._state_lock:
-                                        if active.future.cancelled() or self._closed or active.deadline<=time.monotonic():
-                                            active=None;self._active=None;continue
-                                        active.phase='calling'
-                                    result=await client.session.call_tool(active.arguments['name'],active.arguments['arguments'])
-                                    result=result.model_dump(by_alias=True,exclude_none=True)
+                                        if (
+                                            active.future.cancelled()
+                                            or self._closed
+                                            or active.deadline <= time.monotonic()
+                                        ):
+                                            active = None
+                                            self._active = None
+                                            continue
+                                        active.phase = "calling"
+                                    result = await client.session.call_tool(
+                                        active.arguments["name"], active.arguments["arguments"]
+                                    )
+                                    result = result.model_dump(by_alias=True, exclude_none=True)
                             with self._state_lock:
-                                if not active.future.done():active.future.set_result(result)
-                                self._active=None
-                            active=None
+                                if not active.future.done():
+                                    active.future.set_result(result)
+                                self._active = None
+                            active = None
                 finally:
                     self._log.close()
         except BaseException as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
             with self._state_lock:
-                self._failure=self._failure or f'MCP 连接或请求失败（{type(exc).__name__}），已停用；请核查日志及实际状态'
+                self._failure = (
+                    self._failure or f"MCP 连接或请求失败（{type(exc).__name__}），已停用；请核查日志及实际状态"
+                )
         finally:
-            with self._state_lock:self._ready=False;self._active=None
+            with self._state_lock:
+                self._ready = False
+                self._active = None
             if active is not None and not active.future.done():
-                active.future.set_exception(MCPError(self._failure or 'MCP 连接已关闭',uncertain=active.phase=='calling'))
+                active.future.set_exception(
+                    MCPError(self._failure or "MCP 连接已关闭", uncertain=active.phase == "calling")
+                )
             while True:
-                try:pending=self._queue.get_nowait()
-                except queue.Empty:break
-                if pending is not None and not pending.future.done():pending.future.set_exception(MCPError(self._failure or 'MCP 连接已关闭'))
+                try:
+                    pending = self._queue.get_nowait()
+                except queue.Empty:
+                    break
+                if pending is not None and not pending.future.done():
+                    pending.future.set_exception(MCPError(self._failure or "MCP 连接已关闭"))
 
     def status(self):
         with self._state_lock:
-            state='closed' if self._closed else 'failed' if self._failure else 'ready' if self._ready else 'starting' if self._thread else 'idle'
-            return {'name':self.name,'enabled':True,'state':state,'command':self.config.command,
-                    'args':list(self.config.args),'timeout_s':self.config.timeout_s,
-                    'allowed_count':None if self.config.allowed_tools is None else len(self.config.allowed_tools),
-                    'read_only_count':len(self.config.read_only_tools),'last_error':self._failure,
-                    'waiting':self._queue.qsize(),'max_waiting':self.config.max_waiting,
-                    'active_phase':self._active.phase if self._active else '',
-                    'log_error':bool(self._log and self._log.failed)}
+            state = (
+                "closed"
+                if self._closed
+                else "failed"
+                if self._failure
+                else "ready"
+                if self._ready
+                else "starting"
+                if self._thread
+                else "idle"
+            )
+            return {
+                "name": self.name,
+                "enabled": True,
+                "state": state,
+                "command": self.config.command,
+                "args": list(self.config.args),
+                "timeout_s": self.config.timeout_s,
+                "transport": self.config.transport,
+                "url": self.config.url,
+                "authorization": self.remote.status() if self.remote and self.config.auth == "oauth" else None,
+                "allowed_count": None if self.config.allowed_tools is None else len(self.config.allowed_tools),
+                "read_only_count": len(self.config.read_only_tools),
+                "last_error": self._failure,
+                "waiting": self._queue.qsize(),
+                "max_waiting": self.config.max_waiting,
+                "active_phase": self._active.phase if self._active else "",
+                "log_error": bool(self._log and self._log.failed),
+            }
 
     @staticmethod
     async def _catalog(client):
-        rows=[];cursor=None;seen=set()
+        rows = []
+        cursor = None
+        seen = set()
         for _ in range(16):
-            page=await client.list_tools(cursor=cursor,cache_mode='refresh')
-            rows.extend(tool.model_dump(by_alias=True,exclude_none=True) for tool in page.tools)
-            if len(rows)>256:raise MCPError('MCP 工具目录超过 256 项')
-            cursor=page.next_cursor
-            if cursor is None:return rows
-            if cursor in seen:break
+            page = await client.list_tools(cursor=cursor, cache_mode="refresh")
+            rows.extend(tool.model_dump(by_alias=True, exclude_none=True) for tool in page.tools)
+            if len(rows) > 256:
+                raise MCPError("MCP 工具目录超过 256 项")
+            cursor = page.next_cursor
+            if cursor is None:
+                return rows
+            if cursor in seen:
+                break
             seen.add(cursor)
-        raise MCPError('MCP 工具目录分页循环或超过 16 页')
+        raise MCPError("MCP 工具目录分页循环或超过 16 页")
 
-    def close(self, wait_s: float=10):
-        deadline=time.monotonic()+max(0,wait_s)
-        with self._state_lock:self._closed=True;worker=self._thread
-        try:self._queue.put_nowait(None)
-        except queue.Full:pass
+    def close(self, wait_s: float = 10):
+        deadline = time.monotonic() + max(0, wait_s)
+        with self._state_lock:
+            self._closed = True
+            worker = self._thread
+        try:
+            self._queue.put_nowait(None)
+        except queue.Full:
+            pass
         self._signal()
         if worker is not None:
-            worker.join(min(.5,max(0,wait_s)))
+            worker.join(min(0.5, max(0, wait_s)))
             if worker.is_alive():
-                self._cancel();worker.join(max(0,deadline-time.monotonic()))
+                self._cancel()
+                worker.join(max(0, deadline - time.monotonic()))
         return (worker is None or not worker.is_alive()) and (self._log is None or not self._log.worker.is_alive())
 
 
@@ -266,34 +387,93 @@ class MCPManager:
     RECONNECT_MAX_ATTEMPTS = 5
 
     def __init__(
-        self, config: MCPConfig, log_dir: Path, *, schema_store: CatalogTrust | None = None, config_provider=None,
+        self,
+        config: MCPConfig,
+        log_dir: Path,
+        *,
+        schema_store: CatalogTrust | None = None,
+        config_provider=None,
+        credential_dir=None,
     ) -> None:
+        self._credential_dir = Path(credential_dir or Path(log_dir).parent / "mcp_credentials")
         self._config = config  # 停用的服务也要在面板可见（不是"配置了却查无此人"）
         self._schemas = schema_store
         self._config_provider = config_provider
         self._reconnect_lock = threading.RLock()
         self._closed = False
         self._reconnect_info: dict[str, dict[str, float]] = {}
-        self._generations = {name:0 for name in config.servers}
-        self._connections = {name: MCPConnection(name, cfg, log_dir, self._guard(name))
-                             for name, cfg in config.servers.items() if cfg.enabled}
+        self._generations = {name: 0 for name in config.servers}
+        self._connections = {
+            name: MCPConnection(name, cfg, log_dir, self._guard(name), self._credential_dir)
+            for name, cfg in config.servers.items()
+            if cfg.enabled
+        }
+
+    def authorize(self, server: str) -> dict:
+        with self._reconnect_lock:
+            if self._closed:
+                raise MCPError("MCP管理器已关闭")
+            connection = self._connection(server)
+            if not connection.remote or connection.config.auth != "oauth":
+                raise MCPError("此服务未配置OAuth")
+            if self._schemas is not None:
+                self._schemas.revoke(server)
+            connection = self._rebuild(server)
+            connection.remote.begin()
+            connection.config.timeout_s = 120
+
+            def discover():
+                try:
+                    connection.request("list", {})
+                except MCPError:
+                    connection.remote.error = "授权未完成，请检查来源配置或重新授权"
+                finally:
+                    connection.config.timeout_s = self._config.servers[server].timeout_s
+
+            threading.Thread(target=discover, name="mcp-oauth-" + server, daemon=True).start()
+            return {"state": "starting"}
+
+    def authorization_callback(self, server: str, code: str, state: str, issuer: str | None = None) -> dict:
+        connection = self._connection(server)
+        if not connection.remote:
+            raise MCPError("此服务未配置远程认证")
+        connection.remote.complete(code, state, issuer)
+        return {"state": "completing"}
+
+    def complete_authorization(self, code: str, state: str, issuer: str | None = None) -> dict:
+        with self._reconnect_lock:
+            for name, connection in self._connections.items():
+                if connection.remote and connection.remote.matches(state):
+                    return self.authorization_callback(name, code, state, issuer)
+        raise MCPError("没有匹配的待授权请求")
 
     def _guard(self, server: str) -> Callable[[MCPServerConfig, list[dict[str, Any]]], bool]:
         generation = self._generations[server]
+
         def check(config: MCPServerConfig, rows: list[dict[str, Any]]) -> bool:
             if self._schemas is None or self._closed or generation != self._generations[server]:
                 return False
             # 命令、参数、工作目录和显式环境属于连接身份；只保存哈希，不泄露密钥。
             identity = config.model_dump(exclude={"timeout_s", "enabled", "max_waiting", "log_bytes", "log_segments"})
-            identity['resolved_environment_hash'] = hashlib.sha256(json.dumps(resolve_env(config.env),sort_keys=True).encode()).hexdigest()
+            identity["resolved_environment_hash"] = hashlib.sha256(
+                json.dumps(resolve_env(config.env), sort_keys=True).encode()
+            ).hexdigest()
             material = json.dumps(
                 {"identity": identity, "catalog": self.fingerprint(rows)},
-                sort_keys=True, ensure_ascii=False,
+                sort_keys=True,
+                ensure_ascii=False,
             )
             fingerprint = hashlib.sha256(material.encode("utf-8")).hexdigest()
             self._schemas.observe(server, fingerprint, len(rows))
             state = self._schemas.status(server)
-            return bool(not self._closed and generation == self._generations[server] and state and state["fingerprint"] == fingerprint and state["confirmed_at"])
+            return bool(
+                not self._closed
+                and generation == self._generations[server]
+                and state
+                and state["fingerprint"] == fingerprint
+                and state["confirmed_at"]
+            )
+
         return check
 
     def servers(self) -> list[str]:
@@ -311,7 +491,8 @@ class MCPManager:
                 {"name": t.get("name", ""), "inputSchema": t.get("inputSchema", {})}
                 for t in sorted(tools, key=lambda t: str(t.get("name", "")))
             ],
-            ensure_ascii=False, sort_keys=True,
+            ensure_ascii=False,
+            sort_keys=True,
         )
         return hashlib.sha256(material.encode("utf-8")).hexdigest()[:16]
 
@@ -322,30 +503,30 @@ class MCPManager:
             conn = self._connections.get(name)
             if conn is not None:
                 row = conn.status()
-                row['generation'] = self._generations[name]
-                row['configuration_matches'] = self.configuration_matches()
+                row["generation"] = self._generations[name]
+                row["configuration_matches"] = self.configuration_matches()
                 with self._reconnect_lock:
                     info = self._reconnect_info.get(name)
                 if info is not None:
                     row["auto_reconnect_attempts"] = int(info["attempts"])
                     row["auto_reconnect_max"] = self.RECONNECT_MAX_ATTEMPTS
-                    row["auto_reconnect_next_in_s"] = max(
-                        0.0, round(info["next_at"] - time.monotonic(), 1)
-                    )
+                    row["auto_reconnect_next_in_s"] = max(0.0, round(info["next_at"] - time.monotonic(), 1))
                 rows.append(row)
                 continue
             cfg = self._config.servers[name]
-            rows.append({
-                "name": name,
-                "enabled": False,
-                "state": "disabled",
-                "command": cfg.command,
-                "args": list(cfg.args),
-                "timeout_s": cfg.timeout_s,
-                "allowed_count": None if cfg.allowed_tools is None else len(cfg.allowed_tools),
-                "read_only_count": len(cfg.read_only_tools),
-                "last_error": "",
-            })
+            rows.append(
+                {
+                    "name": name,
+                    "enabled": False,
+                    "state": "disabled",
+                    "command": cfg.command,
+                    "args": list(cfg.args),
+                    "timeout_s": cfg.timeout_s,
+                    "allowed_count": None if cfg.allowed_tools is None else len(cfg.allowed_tools),
+                    "read_only_count": len(cfg.read_only_tools),
+                    "last_error": "",
+                }
+            )
         return rows
 
     def reset(self, server: str) -> dict[str, Any]:
@@ -373,7 +554,7 @@ class MCPManager:
         if self._closed:
             raise MCPError("MCP 管理器正在关闭，拒绝建立连接")
         cfg = self._config.servers[server]
-        fresh = MCPConnection(server, cfg, log_dir, self._guard(server))
+        fresh = MCPConnection(server, cfg, log_dir, self._guard(server), self._credential_dir)
         self._connections[server] = fresh
         return fresh
 
@@ -385,7 +566,7 @@ class MCPManager:
         """显式调用路径的连接入口：failed 且到点则换新连接（有界退避）。"""
         connection = self._connection(server)
         if not self.configuration_matches():
-            raise MCPError('MCP 配置已变化或不可读取，本实例停止新调用；请从原入口重启以生效')
+            raise MCPError("MCP 配置已变化或不可读取，本实例停止新调用；请从原入口重启以生效")
         if connection.status()["state"] != "failed":
             return connection
         now = time.monotonic()
@@ -394,7 +575,8 @@ class MCPManager:
             # 没有失败登记（理论上失败后必有；防御）→ 先记一个基础间隔再谈重连
             if info is None:
                 self._reconnect_info[server] = {
-                    "attempts": 0, "next_at": now + self.RECONNECT_BASE_DELAY_S,
+                    "attempts": 0,
+                    "next_at": now + self.RECONNECT_BASE_DELAY_S,
                 }
                 return connection
             if info["attempts"] >= self.RECONNECT_MAX_ATTEMPTS or now < info["next_at"]:
@@ -411,9 +593,7 @@ class MCPManager:
             if self._closed or self._connections.get(server) is not conn:
                 return
             info = self._reconnect_info.get(server)
-            delay = self.RECONNECT_BASE_DELAY_S * (
-                self.RECONNECT_BACKOFF_FACTOR ** (info["attempts"] if info else 0)
-            )
+            delay = self.RECONNECT_BASE_DELAY_S * (self.RECONNECT_BACKOFF_FACTOR ** (info["attempts"] if info else 0))
             if info is None:
                 self._reconnect_info[server] = {"attempts": 0, "next_at": now + delay}
             else:
@@ -441,8 +621,16 @@ class MCPManager:
             raise
         self._note_success(server, connection)
         allowed = connection.config.allowed_tools
-        return [{**row, "approval": "safe" if connection.catalog_approved and row["name"] in connection.config.read_only_tools else "human"}
-                for row in rows if allowed is None or row["name"] in allowed]
+        return [
+            {
+                **row,
+                "approval": "safe"
+                if connection.catalog_approved and row["name"] in connection.config.read_only_tools
+                else "human",
+            }
+            for row in rows
+            if allowed is None or row["name"] in allowed
+        ]
 
     def call(self, server: str, name: str, arguments: dict[str, Any], *, readonly: bool) -> str:
         """兼容入口：只回渲染文本（旧调用点与测试零改动）。"""
@@ -465,7 +653,9 @@ class MCPManager:
         if not name or not isinstance(arguments, dict):
             raise MCPError("MCP name 不能为空且 arguments 必须为对象")
         try:
-            result = connection.request("call", {"name": name, "arguments": arguments, "readonly": readonly}, cancel=cancel)
+            result = connection.request(
+                "call", {"name": name, "arguments": arguments, "readonly": readonly}, cancel=cancel
+            )
         except MCPError:
             self._note_request_failure(server, connection)
             raise
@@ -477,43 +667,56 @@ class MCPManager:
             connection = self._connection(server)
             self._generations[server] += 1
             if not connection.close():
-                raise MCPError('MCP 连接关闭未完成，请核查残留')
+                raise MCPError("MCP 连接关闭未完成，请核查残留")
             return connection.status()
 
     def configuration_matches(self) -> bool:
-        if self._config_provider is None:return True
-        try:return self._config_provider().model_dump()==self._config.model_dump()
-        except Exception:return False  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
+        if self._config_provider is None:
+            return True
+        try:
+            return self._config_provider().model_dump() == self._config.model_dump()
+        except Exception:  # noqa: BLE001 -- 配置无法重读时撤回一致性声明
+            return False
 
     def health(self, server: str) -> dict[str, Any]:
         cfg = self._config.servers.get(server)
         if cfg is None:
-            raise MCPError('MCP 服务未配置')
+            raise MCPError("MCP 服务未配置")
         try:
             resolve_env(cfg.env)  # 校验失败走 except 分支；返回值不需要
             missing = []
         except MCPError:
-            missing = [name for name,value in cfg.env.items() if '${' in value]
-        return {'name':server, 'executable_found':bool(shutil.which(cfg.command)),
-                'environment_ready':not missing, 'environment_names':sorted(cfg.env),
-                'allowed_tools':cfg.allowed_tools, 'read_only_tools':list(cfg.read_only_tools),
-                'generation':self._generations[server], 'read_only':True}
+            missing = [name for name, value in cfg.env.items() if "${" in value]
+        return {
+            "name": server,
+            "executable_found": bool(shutil.which(cfg.command)) if cfg.transport == "stdio" else None,
+            "transport": cfg.transport,
+            "endpoint_configured": bool(cfg.url) if cfg.transport == "streamable_http" else False,
+            "environment_ready": not missing,
+            "environment_names": sorted(cfg.env),
+            "allowed_tools": cfg.allowed_tools,
+            "read_only_tools": list(cfg.read_only_tools),
+            "generation": self._generations[server],
+            "read_only": True,
+        }
 
     def logs(self, server: str) -> dict[str, Any]:
         connection = self._connection(server)
-        path = connection._log_dir / f'{server}.log'
-        if path.is_symlink():raise MCPError('MCP 日志路径非法')
-        text = ''
+        path = connection._log_dir / f"{server}.log"
+        if path.is_symlink():
+            raise MCPError("MCP 日志路径非法")
+        text = ""
         if path.is_file():
-            with path.open('rb') as file:
-                file.seek(max(0,path.stat().st_size-32768))
-                text = file.read(32768).decode('utf-8',errors='replace')
+            with path.open("rb") as file:
+                file.seek(max(0, path.stat().st_size - 32768))
+                text = file.read(32768).decode("utf-8", errors="replace")
         try:
             for secret in resolve_env(connection.config.env).values():
-                if secret:text=text.replace(secret,'[已脱敏]')
+                if secret:
+                    text = text.replace(secret, "[已脱敏]")
         except MCPError:
-            text='环境变量引用不可核验，暂不展示旧日志'
-        return {'text':text, 'limit_bytes':32768}
+            text = "环境变量引用不可核验，暂不展示旧日志"
+        return {"text": text, "limit_bytes": 32768}
 
     def close(self, wait_s: float = 10) -> bool:
         deadline = time.monotonic() + max(0, wait_s)

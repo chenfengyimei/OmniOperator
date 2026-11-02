@@ -3,6 +3,7 @@
 对应 P5-a（抄 surfcore `memory-card.js` 的**判定逻辑**，不抄形态）。
 纯逻辑部分完全不碰数据库与服务，可离线跑；存储部分用临时目录。
 """
+
 import datetime as dt
 
 from omni.memory.clarity import (
@@ -130,9 +131,7 @@ def test_daily_decay_steps_toward_a_far_target_one_rung_per_day():
     cfg = _cfg()
     level = CLARITY_CLEAR
     for _ in range(3):
-        level = apply_daily_decay(
-            level, created_at="2020-01-01", last_used=None, today=TODAY, config=cfg
-        )
+        level = apply_daily_decay(level, created_at="2020-01-01", last_used=None, today=TODAY, config=cfg)
     # 三天走了三格：clear → fuzzy → trace → forgotten
     assert level == CLARITY_FORGOTTEN
 
@@ -143,9 +142,7 @@ def test_daily_decay_never_jumps_straight_to_forgotten():
     level = CLARITY_CLEAR
     seen = [level]
     for _ in range(6):
-        level = apply_daily_decay(
-            level, created_at="2020-01-01", last_used=None, today=TODAY, config=cfg
-        )
+        level = apply_daily_decay(level, created_at="2020-01-01", last_used=None, today=TODAY, config=cfg)
         seen.append(level)
     # 第一次衰减绝不直接到 forgotten
     assert seen[1] == CLARITY_FUZZY
@@ -179,9 +176,10 @@ def test_review_effect_never_goes_beyond_vivid():
 def test_disabled_config_is_a_no_op():
     cfg = _cfg(enabled=False)
     assert target_clarity(created_at="2020-01-01", last_used=None, today=TODAY, config=cfg) == CLARITY_VIVID
-    assert apply_daily_decay(
-        CLARITY_CLEAR, created_at="2020-01-01", last_used=None, today=TODAY, config=cfg
-    ) == CLARITY_CLEAR
+    assert (
+        apply_daily_decay(CLARITY_CLEAR, created_at="2020-01-01", last_used=None, today=TODAY, config=cfg)
+        == CLARITY_CLEAR
+    )
 
 
 def test_forgotten_is_still_recallable():
@@ -222,9 +220,7 @@ def test_decay_only_downgrades_and_never_deletes(tmp_path):
     store = MemoryStore(tmp_path / "m.db")
     store.save_fact("很久以前说过的事")
     # 把这条事实的写入时间挪到很久以前，模拟"从没被用过的老记忆"
-    store._conn.execute(
-        "UPDATE facts SET created_at='2020-01-01T00:00:00', last_used=NULL"
-    )
+    store._conn.execute("UPDATE facts SET created_at='2020-01-01T00:00:00', last_used=NULL")
     store._conn.commit()
     before = store.fact_rows()
     assert len(before) == 1
@@ -257,9 +253,7 @@ def test_decay_runs_at_most_once_per_day(tmp_path):
     """
     store = MemoryStore(tmp_path / "m.db")
     store.save_fact("很久以前说过的事")
-    store._conn.execute(
-        "UPDATE facts SET created_at='2020-01-01T00:00:00', last_used=NULL"
-    )
+    store._conn.execute("UPDATE facts SET created_at='2020-01-01T00:00:00', last_used=NULL")
     store._conn.commit()
 
     first = store.decay_facts_clarity(today=TODAY)
@@ -277,9 +271,7 @@ def test_decay_next_day_moves_another_rung(tmp_path):
     """跨天才继续降——闸门是"一天一次"，不是"永不降"。"""
     store = MemoryStore(tmp_path / "m.db")
     store.save_fact("很久以前说过的事")
-    store._conn.execute(
-        "UPDATE facts SET created_at='2020-01-01T00:00:00', last_used=NULL"
-    )
+    store._conn.execute("UPDATE facts SET created_at='2020-01-01T00:00:00', last_used=NULL")
     store._conn.commit()
     store.decay_facts_clarity(today=TODAY)
     assert store.fact_rows()[0]["clarity"] == CLARITY_CLEAR
@@ -294,9 +286,7 @@ def test_decay_force_bypasses_the_daily_gate(tmp_path):
     """手工补跑用 force=True 绕过闸门（运维/测试需要立即看到效果）。"""
     store = MemoryStore(tmp_path / "m.db")
     store.save_fact("很久以前说过的事")
-    store._conn.execute(
-        "UPDATE facts SET created_at='2020-01-01T00:00:00', last_used=NULL"
-    )
+    store._conn.execute("UPDATE facts SET created_at='2020-01-01T00:00:00', last_used=NULL")
     store._conn.commit()
     store.decay_facts_clarity(today=TODAY)
     forced = store.decay_facts_clarity(today=TODAY, force=True)
@@ -368,9 +358,7 @@ def test_review_clarity_can_upgrade_again_next_day(tmp_path):
     """跨天可以继续升档——闸门是"一天一次"，不是"只能升一次"。"""
     store = MemoryStore(tmp_path / "m.db")
     store.save_fact("用户养了一只猫叫煤球")
-    store._conn.execute(
-        "UPDATE facts SET clarity='forgotten', clarity_reviewed_at='2020-01-01T00:00:00'"
-    )
+    store._conn.execute("UPDATE facts SET clarity='forgotten', clarity_reviewed_at='2020-01-01T00:00:00'")
     store._conn.commit()
     assert store.review_facts_clarity(["用户养了一只猫叫煤球"], scope="private") == 1
     assert store.fact_rows()[0]["clarity"] == CLARITY_TRACE

@@ -1,4 +1,5 @@
 """个人能力：digest；工具仅使用注入依赖，不构造运行时。"""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -26,13 +27,9 @@ def register_digest_tool(
         except (TypeError, ValueError):
             return "错误：hours 必须是整数（1-168）"
         hours = max(1, min(hours, 168))
-        since = (
-            dt.datetime.now().astimezone() - dt.timedelta(hours=hours)
-        ).isoformat(timespec="seconds")
+        since = (dt.datetime.now().astimezone() - dt.timedelta(hours=hours)).isoformat(timespec="seconds")
         d = store.digest_since(since)
-        profile_chars = (
-            int(profile_usage()) if callable(profile_usage) else int(d["profile_chars"])
-        )
+        profile_chars = int(profile_usage()) if callable(profile_usage) else int(d["profile_chars"])
         if not d["sessions"] and d["facts_new"] == 0 and not d["reviews_recent"]:
             return f"过去 {hours} 小时没有会话、记忆或 review 活动，无需整理。"
         lines = [f"过去 {hours} 小时活动（自 {since[:16]} 起）："]
@@ -42,13 +39,8 @@ def register_digest_tool(
         for fact in d["facts_recent"][:10]:
             lines.append(f"  · {fact[:80]}")
         if d["reviews_recent"]:
-            lines.append(
-                "- 最近 review：" + " / ".join(x[:60] for x in d["reviews_recent"])
-            )
-        lines.append(
-            f"- 用户档案已用 {profile_chars} 字符"
-            f"（额度 {PROFILE_MAX_CHARS}，临近额度应先合并再写）"
-        )
+            lines.append("- 最近 review：" + " / ".join(x[:60] for x in d["reviews_recent"]))
+        lines.append(f"- 用户档案已用 {profile_chars} 字符（额度 {PROFILE_MAX_CHARS}，临近额度应先合并再写）")
         return "\n".join(lines)
 
     registry.register(

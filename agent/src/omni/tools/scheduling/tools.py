@@ -3,6 +3,7 @@
 "每天早上八点给我发B站日报"→ cron_add 一次搞定。任务由 omni-heartbeat
 进程执行（工具只写 jobs.json，跨进程共享）。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -23,9 +24,7 @@ from ..registry import Risk, Tool, ToolRegistry
 AllowedUsers = list[int] | Callable[[], list[int]]
 
 
-def register_cron_tools(
-    registry: ToolRegistry, store: JobStore, allowed_qq_users: AllowedUsers
-) -> None:
+def register_cron_tools(registry: ToolRegistry, store: JobStore, allowed_qq_users: AllowedUsers) -> None:
     """allowed_qq_users 可以是列表或提供者；传提供者时按"读时"取当前白名单。"""
     if not callable(allowed_qq_users):
         snapshot = list(allowed_qq_users)
@@ -63,18 +62,14 @@ def register_cron_tools(
                 context_max_age_minutes=args.get("context_max_age_minutes", 1440),
                 deliver_to_qq=args.get("deliver_to_qq"),
                 skills=[str(s) for s in (args.get("skills") or [])],
-                context_from=(
-                    str(args["context_from"]).strip() if args.get("context_from") else None
-                ),
+                context_from=(str(args["context_from"]).strip() if args.get("context_from") else None),
             )
             if job.deliver_to_qq is not None:
                 decision = private_target_allowed(allowed_qq_users(), job.deliver_to_qq)
                 if not decision.allowed:
                     return f"错误：deliver_to_qq 不可用（{decision.reason}）"
             job.validate()
-            job.next_run_at = to_iso(
-                compute_next_run(job, dt.datetime.now().astimezone())
-            )
+            job.next_run_at = to_iso(compute_next_run(job, dt.datetime.now().astimezone()))
             store.upsert(job)  # upsert 做跨任务校验：context_from 源必须已存在
         except (CronError, TypeError, ValueError) as exc:
             return f"错误：{exc}"
@@ -176,14 +171,10 @@ def register_cron_tools(
             # 调度字段或启用状态变了才重算下次运行；纯改 prompt 不动排程。
             # 一次性任务（无周期字段）的触发时刻就是 next_run_at 本身——run_at 分支
             # 已直接写入，enabled 切换也不重算（错过宽限由领取事务兜底）。
-            schedule_changed = any(
-                k in args for k in ("every_minutes", "daily_at", "enabled", "timezone")
-            )
+            schedule_changed = any(k in args for k in ("every_minutes", "daily_at", "enabled", "timezone"))
             recurring = job.every_minutes is not None or bool(job.daily_at)
             if schedule_changed and job.enabled and recurring:
-                job.next_run_at = to_iso(
-                    compute_next_run(job, dt.datetime.now().astimezone())
-                )
+                job.next_run_at = to_iso(compute_next_run(job, dt.datetime.now().astimezone()))
             store.upsert(job, expected_revision=expected_revision)
         except (CronError, TypeError, ValueError) as exc:
             return f"错误：{exc}"
@@ -219,7 +210,10 @@ def register_cron_tools(
                     "context_max_age_minutes": {"type": "integer", "minimum": 1, "maximum": 10080},
                     "prompt": {"type": "string", "description": "到点执行的指令（自包含）"},
                     "every_minutes": {"type": "integer", "description": "周期分钟数（≥10），与 daily_at 二选一"},
-                    "daily_at": {"type": "string", "description": "每天定时 HH:MM（如 08:30），与 every_minutes 二选一"},
+                    "daily_at": {
+                        "type": "string",
+                        "description": "每天定时 HH:MM（如 08:30），与 every_minutes 二选一",
+                    },
                     "deliver_to_qq": {"type": "integer", "description": "结果投递到该 QQ（须在白名单）"},
                     "skills": {
                         "type": "array",
@@ -229,8 +223,7 @@ def register_cron_tools(
                     "context_from": {
                         "type": "string",
                         "description": (
-                            "任务链（可选）：把另一个已存在任务的最新输出作为本次输入。"
-                            "如夜间整理的输出喂给早报任务"
+                            "任务链（可选）：把另一个已存在任务的最新输出作为本次输入。如夜间整理的输出喂给早报任务"
                         ),
                     },
                 },
@@ -256,9 +249,15 @@ def register_cron_tools(
                 "type": "object",
                 "properties": {
                     "name": {"type": "string", "description": "任务名，如 alarm-drink-water"},
-                    "timezone": {"type": "string", "description": "IANA 时区（解释 run_at 用），如 Asia/Shanghai；local 为机器时区"},
+                    "timezone": {
+                        "type": "string",
+                        "description": "IANA 时区（解释 run_at 用），如 Asia/Shanghai；local 为机器时区",
+                    },
                     "prompt": {"type": "string", "description": "到点执行的指令（自包含，例如：提醒用户喝水）"},
-                    "run_at": {"type": "string", "description": "绝对触发时间 YYYY-MM-DD HH:MM[:SS]，与 delay_minutes 二选一"},
+                    "run_at": {
+                        "type": "string",
+                        "description": "绝对触发时间 YYYY-MM-DD HH:MM[:SS]，与 delay_minutes 二选一",
+                    },
                     "delay_minutes": {"type": "integer", "description": "多少分钟后触发（1–10080），与 run_at 二选一"},
                     "deliver_to_qq": {"type": "integer", "description": "结果投递到该 QQ（须在白名单）"},
                 },

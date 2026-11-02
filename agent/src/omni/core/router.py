@@ -14,6 +14,7 @@
   风险等级与审批链决定；
 - 不解析历史事实、不读档案或常驻记忆——分类输入只有当前文本与少量近期原文。
 """
+
 from __future__ import annotations
 
 import json
@@ -23,9 +24,7 @@ from .modes import RouteDecision, TurnMode
 
 # 明确的动作意图：出现这些短语说明用户要的是"做一件事"，不是"问一句"。
 # 刻意要求搭配请求标记或命令式短语，减少"保存了吗"这类疑问句被误判。
-_REQUEST_MARKER = re.compile(
-    r"(帮我|帮忙|请|麻烦|替我|给我|能不能|可以帮我|需要你|让它|把它|你来|由你)"
-)
+_REQUEST_MARKER = re.compile(r"(帮我|帮忙|请|麻烦|替我|给我|能不能|可以帮我|需要你|让它|把它|你来|由你)")
 _ACTION_PHRASES = re.compile(
     r"(写一下|写个|写下|记一下|记住|改一下|改下|修改|重写|删除|删掉|移除|"
     r"发送|发给我|发到|发布|投稿|评论|私信|上传|下载|安装|卸载|执行|跑一下|"
@@ -79,9 +78,7 @@ class ModeRouter:
         stripped = (text or "").strip()
         if not stripped:
             # 空输入按纯聊天处理：没有可执行的内容，也没有值得检索的目标。
-            return RouteDecision(
-                requested=requested, mode=TurnMode.CHAT, source="rule", reason="空输入按聊天处理"
-            )
+            return RouteDecision(requested=requested, mode=TurnMode.CHAT, source="rule", reason="空输入按聊天处理")
         if self._looks_like_action(stripped):
             return RouteDecision(
                 requested=requested,
@@ -114,7 +111,12 @@ class ModeRouter:
             return True
         # 没有请求标记时，只认句首的命令式短语（中文动宾结构）。
         head = text[:12]
-        return bool(re.match(r"^(写|改|删|发|发布|上传|下载|安装|执行|创建|新建|保存|导出|部署|提交|回滚|启动|停止|重启|启用|停用|排程|开发|实现|修复|调试|整理|生成|记住)", head))
+        return bool(
+            re.match(
+                r"^(写|改|删|发|发布|上传|下载|安装|执行|创建|新建|保存|导出|部署|提交|回滚|启动|停止|重启|启用|停用|排程|开发|实现|修复|调试|整理|生成|记住)",
+                head,
+            )
+        )
 
     # ---------------------------------------------------------------- 模型判定
 

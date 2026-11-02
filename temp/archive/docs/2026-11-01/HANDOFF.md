@@ -1,0 +1,397 @@
+# OmniOperator 交接文档（给后续开发者 / AI）
+
+2026-11-01 版本与升级系统（工作区）：设置中心「关于」增加正式/开发通道、检查与准备、
+人工安装确认、持久进度及重启重连；system/updates 负责安装级维护、固定提交、独立执行与恢复。
+支持干净 Git 与带清单源码包；Gitee 归档要求登录时用隔离 Git 下载同一提交。当前仍无正式 Release。
+本轮不停止真实服务、不升级当前安装、不推送或发布；验证和限制见 [UPDATES.md](../../../../docs/UPDATES.md)
+及 [更新系统验证](../../../../docs/evidence/updates-2026-11-01.json)。保留并行记忆与数字具身修改。
+收尾：冻结源码副本全量 **1827 项通过（293.14s）**，测试后与工作区源码/测试/依赖声明校验一致；
+现有虚拟环境未重建。专项、构建与浏览器证据详见上述验证记录，不代表真实安装已经升级验收。
+
+2026-10-31 记忆设置原生化（工作区）：设置中心「记忆系统」直接挂载六页签，保留设置侧栏与地址，不跳转、不嵌 iframe，内容随外层 `.hub-body` 滚动。`memory/panel.html` 单一结构 + 挂载根内控制器供原生分区与旧书签共享，分区切换保留草稿。修复 CSS 覆盖 `hidden` 导致多页同时显示，以及工作台窄屏通用 section 高度限制导致内容溢出。上下文读取失败不再永久显示加载占位，支持重试并区分接口/会话 404；现场三个上下文相关接口均为 200。专项 **48 项通过**，工作区全量 **1324 项通过（462.67s）**；含其他未提交功能，不能据此声称独立提交全绿。独立提交受到现有 HEAD 技能模板未配套动作注册影响，本批尚未提交或推送，其他工作保留原状。证据见 [记忆设置原生验证](../../../../docs/evidence/memory-settings-native-2026-10-31.json)。
+
+2026-10-31 产品目录重构：本地 Agent 源码、测试、配置模板、开发脚本和项目声明统一归 `agent/`；仓库根保留 uv 工作区、交接文档、安装启动与用户运行态。旧命令兼容、默认数据路径保持。结构与开发规则见 [REPOSITORY_STRUCTURE.md](../../../../docs/REPOSITORY_STRUCTURE.md)。全量 **1296 项通过（438.32s）**；迁移前专项 121 项、迁移后现场专项 77 项通过。收尾纳入并行记忆子站提交 `60d078f` 的五个新文件，模块引用与产品入口版本对齐后完整复跑。根/产品 uv 命令、离线锁文件、源码/API 索引和包含界面资源的 wheel 已验证。证据见 [目录重构验证](../../../../docs/evidence/project-layout-2026-10-31.json)。
+
+> 生成于 2026-10-27，交接核对更新于 2026-10-31。本文是跨会话接手的唯一入口：先读本文，再读 `docs/ARCHITECTURE.md`（模块职责唯一权威）。
+> 学习资料在 `xuexi/`（已 gitignore，不入库）：`NOTES.md` 是四个参考项目的深度提炼，本项目的对标路线全部出自它。
+
+## 0 接手顺序（R0–R7 开发轮次）
+
+1. 本文（能力清单 + 平台坑）
+2. `docs/ARCHITECTURE.md`（分层与组装根唯一权威）
+3. [PROJECT_INDEX.md](../../../../docs/PROJECT_INDEX.md)（模块、目录、内部调用、API、工具与可视化索引）
+4. [DEVELOPMENT_STATUS.md](../../../../docs/DEVELOPMENT_STATUS.md)（**当前进度、A01–A20 阻断项证据、谁在哪个 commit 关了什么**）
+5. [REFACTORING.md](../../../../docs/REFACTORING.md)（已落地重构、兼容合同和下一批边界）
+6. [LOCAL_AGENT_PLAN.md](../../../../docs/LOCAL_AGENT_PLAN.md)（完整评估、续接快照与路线）→ [DEEPSEEK_DEVELOPMENT_OUTLINE.md](../../../../docs/DEEPSEEK_DEVELOPMENT_OUTLINE.md)（任务卡、验收与可复制续接指令）
+
+任何"已完成"的宣称须核对台账证据、实际代码和测试：源码发现 ≠ 已复现 ≠ 已修复 ≠ 真实验收完成。
+
+**上下文设置中心（2026-10-30）：设置新增“上下文”，侧栏可直达；窗口分布、快照与摘要、固定提示和供应商缓存样本只读展示，历史/压缩/记忆配额集中设置。保存使用统一配置锁与 CAS，显示已保存/运行配置差异，重启相应入口生效。说明与接口见 [CONTEXT_SETTINGS.md](../../../../docs/CONTEXT_SETTINGS.md)，本轮测试证据见 DEVELOPMENT_STATUS。** 本批提交源码 **1289 项全量通过（481.50s）**，40 视图及只读索引/界面守卫已核验；证据见 [上下文设置验证](../../../../docs/evidence/context-settings-2026-10-30.json)。
+
+**提示词更新（2026-10-30）：system 只保留稳定人设和规则，时间/常驻笔记/档案移至每轮用户消息末尾。回合快照与原文同事务保存在 memory.db，新轮和重启不重写旧快照；同一窗口内资料去重、压缩后重新锚定，当前请求不可压掉。工具目录排序并在回合内冻结，缓存用量采用供应商实际字段；详见 [PROMPT_CONTEXT.md](../../../../docs/PROMPT_CONTEXT.md)。实际缓存命中率尚未用付费模型验收，全量 **1189 项通过**（325.17s），新增提示词回归 21 项；证据见 DEVELOPMENT_STATUS 本轮记录。**
+
+**最新（2026-11-01）：数字具身独立成分类（D32）。** 设置中心侧栏新增「数字具身」组：
+总览 + 哔哩哔哩 + 浏览器 + 手机 + QQ（原来散在「工具与设备」「平台与通道」两组）。
+`GET /api/system/embodiments` 只读本地状态（不联网）给出每个具身是否可用、差什么；
+`GET /api/system/bili-account` 是设置中心唯一会外呼的接口，**必须人点才发**。
+哔哩哔哩本轮补齐：账号查询（`bilibili_account_info`）、**抽帧拼图**
+（`bilibili_video_frames`：等距抽帧拼成一张长图存产物，多模态一次看完画面）、
+评论排序/翻页与楼中楼（`bilibili_video_comments` / `bilibili_comment_replies`）、
+用户搜索（`bilibili_user_search`）、回复某条评论（目标带 `?reply_id=`）与艾特
+（`@{uid}` 占位 + `mentions` 名单，草稿里换成 `@昵称` 并在人工确认时逐条列出）。
+**艾特目前是文本 @昵称，不是网页版真实 mention 组件**（需用户核验页面控件后再开）；
+抽帧依赖 av（随 faster-whisper 装）+ Pillow。专项 89 项全绿，全量 1615 项全绿（281.03s，提交树自校验）。全部离线验证，**真实账号/真机未验收**。
+详见 [数字具身](../../../../docs/EMBODIMENT.md) 与 [B站评论与私信草稿](../../../../docs/BILIBILI_WRITING.md)。
+
+**最新（2026-11-01）：常驻服务改成默认启动并持续运行（D31，8 个提交）。心跳/QQ 通道/NapCat 不再需要手动点启动——`system/supervisor.py` 按配置推导期望状态，工作台 lifespan 一启动就接管，异常退出按指数退避重拉（默认 5 次后放弃并留 `restart_given_up`），单实例靠 `run/supervisor.lock` 互斥、抢不到的进 standby。旧裸 PID 记录改为 pid+创建时间+exe 三重核验，死进程自动清理、核验不过的只标记不接管。子进程自报 `data/run/<name>.state.json`（心跳 ticks、QQ 收发计数），"进程在但没响应"能被识别。界面从操作台变仪表盘：左栏一行「N/M 在线」、顶部告警条、设置中心新增「服务与运行」分区，**手动启停按钮全部删除，只留扫码登录**。零 schema 迁移（期望状态由配置推导、记账落 `run/supervisor.json`）。**以上均在隔离实例与假 services 上验证，真实工作台未重启、真实 NapCat 拉起与扫码未验——待真实验收，不算完成。** 详见 DEVELOPMENT_STATUS 本轮记录与下文 §2 服务管理。**
+
+**最新（2026-10-30）：全项目目录管理已接入，不仅限于 Agent。`/storage/` 可设置全局业务存储根、默认工作目录、Agent 空间池及各空间九类目录，并查询记忆/档案/日志/插件等存储用途索引。bootstrap 与离线 doctor/备份/演练/采样共用路径解析；运行态冻结，配置保存仅下次启动生效。固定控制区保持原位，ASR 缓存已纳入注入。目录边界、旧客户端防重置、额外根防绕过及浏览器回归已补；全量 **1165 项通过**（294.77s），样式调整后 16 项 UI 回归通过；40 视图浏览器检查无脚本错误和横向溢出。证据见 DEVELOPMENT_STATUS 本轮记录和 [STORAGE.md](../../../../docs/STORAGE.md)。真实数据未搬移，真实服务未重启。以下测试数属于对应历史批次，不代表本轮状态。**
+
+**前批（2026-10-29）：C01–C06 代码侧已全部完成，随后完成 UI 操作与 bug 修复批。精确提交源码 **1032 项全绿（251.77 秒）**，工作区 **1079 项全绿（248.46 秒）**；差额 47 项为原有并行未提交测试。新增 18 项真实 Chromium 离线回归，七页在 390/760/1024/1440px 验证；统一导航、任务筛选/日志、终端粘贴目标隔离、聊天/运行取消归属、MCP 目录复查与安卓按钮前提已完善。索引 52 模块/205 文件/118 路由声明。说明与证据见 [UI_QA.md](../../../../docs/UI_QA.md)、[CAPABILITIES_PLAN.md](../../../../docs/CAPABILITIES_PLAN.md)。真实手机、生产 MCP、模型效果和 72 小时仍待验收；真实服务未重启、真实数据未迁移。state v14 只在隔离测试验证，启用前先按手册备份。**
+
+**架构前批历史：在 934618f 上继续完成第二批 Web 领域重构，12 组路由与 21 个公共请求模型已归包，已发布入口 1766→405 行；47 个模块的索引、API 按模块查询与重构记录已接入。提交源码独立 952 项、工作区 999 项全绿（47 项并行未提交测试另计），真实账号/设备/模型及 72 小时仍待验收。** 详细操作见 [ACCEPTANCE.md](../../../../docs/ACCEPTANCE.md)。
+
+以下为 2026-10-28 各批次历史，测试数与现场库版本仅表示当时证据：基线 `453485b` 的 635 项测试已复核；MCP 漂移强制撤销 SAFE、
+outbox 跨进程领取与 OneBot 回执确认后 **644 单测全绿**。state.db 新版为 v10，真机库尚未
+升级；升级前备份，MCP 旧指纹需在面板重新确认。ADB 假执行器测试已隔离 PATH。
+用户选择记事本临时内容作为桌面首个验收目标；embedding 要本地和 API 两种方案。
+
+D17 后续收口已到 **648 单测全绿**、state v11（真机库未动）：cron 数据库并行上限默认 2，
+运行中到期合并，claim 续约；任务链引用最近成功 run，带有效期；依赖环拒绝；显式 IANA
+时区已贯通工具与工作台。Windows 依赖增加 tzdata，升级时先备份并按 §5 管理常驻服务。
+
+D24 已交付本地 Ollama/API 双接口与 sqlite-vec 混合事实检索，**662 单测全绿**。
+默认不启用，配置与评测见 [RETRIEVAL.md](../../../../docs/RETRIEVAL.md)。20 个合成样本 FTS 基线已冻结，
+真实 embedding 模型未配置，不能宣称混合效果已达标。
+
+D20/D21 首批桌面交付已到 **676 单测全绿**：原生 UIAutomation、应用白名单、观察令牌、
+人工审批、窗口租约、预算与动作回读。Store 记事本临时中文文档的读取/编辑/截图/旧观察拒绝
+已真实通过，见 [DESKTOP.md](../../../../docs/DESKTOP.md) 与其中证据。第二应用、多屏/锁屏/管理员窗口
+仍待验收；未实现通用前台接管。继续 D22/D23、D25–D27，不能据此宣称整个计划完成。
+
+D22 离线闭环已到 **692 单测全绿**、state v12（真机库未动）：QQ 事件持久去重/撤回、
+场景合并/并行上限、跨进程会话租约、群聊工具许可名单与个人 review 隔离；主动提醒
+默认关闭，须在设置中心明确所有者、额度和安静时段，可一键停止。升级后的旧 cron
+仍执行，但未开启主动提醒就不投 QQ。详见 [QQ_SCENARIOS.md](../../../../docs/QQ_SCENARIOS.md)。
+真实 NapCat/群验证待用户参与；接下来优先关闭 D25 进程身份问题，再接 D23/D26/D27。
+
+D25 代码侧已交付，**718 单测全绿**：启动身份/句柄终止、协作停止、doctor、
+统一有界关闭、完整校验备份/恢复到新目录，详见 [OPERATIONS.md](../../../../docs/OPERATIONS.md)。
+临时父子进程真实终止通过；真机只读诊断确认 state 仍为 v9、NapCat/QQ 是旧 PID 记录，
+没有迁移或停止真实服务。旧记录不能自动认领；需从原启动入口核验并关闭后重新登记。
+D23 离线闭环已交付，**741 单测全绿**、state v13（真机仍 v9）：草稿/全文人工审批、
+账号目标观察核对、一次 UI 发送、稳定记录回读、unknown 禁止重发、工作台人工核查。
+默认关闭，实站选择器尚未核验，详见 [BILIBILI_WRITING.md](../../../../docs/BILIBILI_WRITING.md)。
+桌面/草稿页签可达性已用 Chromium 验证。
+D16 全动作观察绑定补齐，**763 单测全绿**：单次/会话/TTL 令牌、完整树与旋转核验、
+坐标锁帧、设备互斥、输入焦点与输入法恢复。工作台先锁定画面再点屏，见 [ANDROID.md](../../../../docs/ANDROID.md)。
+旧客户端必须携带 observation；旧磁盘缓存不能授权动作。真实设备尚未验收。
+D26 代码与本地验证已到 **789 单测全绿**：架构绕过负例、Python 出网/模型闸门、
+24 场景三轮离线评测、轮转诊断日志、Windows CI 入口与 Jenkins 配置。
+独立源码目录+全新 venv 已按锁文件离线安装并复跑测试；托管 CI 未接通，真实模型任务率未知。
+详见 [VALIDATION.md](../../../../docs/VALIDATION.md)。继续 D27 真实闭环与 72 小时验收准备，不能提前标发布完成。
+D27 验收工具已到 **817 单测全绿**：真实数据副本恢复、只读资源/账本采样、预热阈值、
+72 小时连续性与证据校验，见 [ACCEPTANCE.md](../../../../docs/ACCEPTANCE.md)。实际备份时现场库已是 v13，
+恢复副本两次打开通过；历史 v9→v13 用非空任务/预算的隔离用例验证，未切换或停止真实服务。
+短采样明确未通过，未跑满 72 小时、未对外发布。下一步按验收手册完成账号/设备/模型闭环；
+通用前台接管、远程 MCP、外部技能安装仍有明确范围限制，不将全计划标为完成。
+本批以 D26 `56ce482` 为开发基线；D27 精确暂存源码在全新 venv 中再次 **817 全绿**，
+24 场景三轮全部通过，证据和提交见台账。并行前端修改与 prototype-html 不得覆盖或混入本批。
+
+---
+
+## 1. 一句话定位
+
+OmniOperator（默认昵称"小鱼"）是跑在用户 Windows 电脑上的常驻"像人"具身个人 agent：
+QQ / Web 工作台 / CLI / 心跳四入口，能看 B 站、操作浏览器、控制安卓手机、跑命令、自维护记忆与技能。
+红线：**花钱 / 发布 / 群发 / 加好友必须人工确认；无人值守一律 fail-closed；小号试水防风控。**
+
+- 仓库：https://gitee.com/chenfengloveyuri/OmniOperator.git（master）
+- 本地：克隆到任意目录（下称 `<仓库根>`，示例命令自行替换），Python 3.12 + uv
+- 测试：`uv run pytest`；本轮提交源码独立环境 **1014 全绿**，工作区 **1061 全绿**（并行未提交 47 项另计）。默认套件禁止真实模型与 Python 外网调用；设备、服务、路径按注入隔离。架构守卫见 `tests/test_arch.py`，最新证据见 `docs/evidence/capabilities-c06-2026-10-29.json`。历史测试数只代表对应批次。
+  **注意**：常驻服务占着 `.venv/Scripts/omni-*.exe` 时 `uv run` 重建会失败，这时用 `uv run --no-sync pytest` 或先停服务
+
+## 2. 五分钟上手
+
+```powershell
+cd <仓库根>
+uv run pytest                      # 全量测试（必须全绿再提交）
+uv run omni-web                    # 工作台 http://127.0.0.1:8000（控制台会打印配对链接，点开才可操作）
+uv run omni                    # 终端 REPL
+uv run omni-qq                     # QQ 通道（需 NapCat 运行）
+uv run omni-heartbeat              # 心跳调度（cron）
+uv run python -m omni.system.backup --to data/backups/2026-10-27   # 离线备份（先备份再升级）
+uv run python -m omni.system.backup --restore <备份目录> --into <新目录>  # 恢复到新目录再校验
+```
+
+服务管理（默认常驻：工作台一启动就由 `system/supervisor.py` 拉起，无需手动点；界面在
+设置中心「服务与运行」，左栏那行「N/M 在线」点一下就到）：
+- NapCat：`<NapCat 目录>\napcat.bat`，WS 3001，机器人小号 `<机器人QQ号>`（**重启后需工作台扫码登录**；真实 QQ 号只存本地 config.yaml，不入库）。QQ 号按 `system.napcat_qq` → `owner_qq` → 探测已登录 uin 的顺序回退，未登录时全自动拉起并等扫码
+- 所有服务以分离进程运行（无窗口）：pid 在 `data/run/*.pid`，运行态快照在 `data/run/<name>.state.json`（子进程自报，工作台判新鲜度），守护记账在 `data/run/supervisor.json`，日志在 `data/system_logs/`
+- 开关都在 `config.yaml` 的 `system:`：`autostart`（总开关）/ `keep_running_after_exit`（默认 true，工作台退出后服务继续跑）/ `restart_max_attempts`（默认 5，超了放弃并在界面留 `restart_given_up`）/ `supervise_interval_s` / `restart_backoff_cap_s` / `health_timeout_s`。前三个能在设置中心改，后三个只在文件里调
+- 守护是**单实例**的：`data/run/supervisor.lock` 抢不到就进 `standby`（再开一个工作台不会起两套服务），谁持有在 `GET /api/system/supervisor` 能看到
+- 旧裸 PID 记录不再可信：`reconcile()` 只在 pid + 创建时间 + 可执行文件三者都对上时才认，死进程与复用记录自动清理，**活着的但核验不过的一律只标记 `blocked_unverified`、不接管也不杀**——确认无人使用后在界面点「清理记录」（只删记录，不结束进程）
+- adb（Platform-Tools 37.0.1）在 `<platform-tools 目录>`，已加入用户 PATH
+
+## 3. 架构纪律（改代码前必读）
+
+`docs/ARCHITECTURE.md` 是唯一权威，`tests/test_arch.py` 用 AST 强制：
+
+1. **分层不倒挂**：`channels`/`bootstrap` → `core` → `tools`/`llm`/`memory`/`safety` → `config`。
+   - `safety` 是叶子层：**不能 import llm**（smart 审批用注入的 `ask_model`，不要破坏）
+   - `tools` 不能 import `core`/`llm`
+2. **组装根**：`Gateway / MemoryStore / SkillStore / JobStore / ToolRegistry / Agent / TurnEndReviewer / BrowserDriver / WriteBudget / ApprovalBroker / ServiceManager / ServiceSupervisor / MCPManager` 只准在 `bootstrap.py` 构造
+3. **工具接入**：`tools/<域>/` 建包 → `register_xxx_tools(registry, deps)` → 在 `bootstrap.build_runtime` 接线 → 写单测（见 ARCHITECTURE §5 checklist）
+4. 工具风险分级：读=SAFE / 写=CONFIRM / 高危=DANGEROUS（当前一律拒）
+5. 新数据存储要支持**测试隔离**：`build_runtime(data_dir=tmp_path)`（jobs/账本/常驻记忆/安卓缓存都走它）；`ServiceManager(run_dir=..., log_dir=...)` 同理
+
+## 4. 当前能力清单（已交付）
+
+2026-10-29 能力专题：/terminal/、/jobs/、/mcp/、/android/、/capabilities/；工具与人工 PTY 隔离，默认诊断不启动依赖。
+
+2026-10-29 两批结构改造：领域 HTTP 位于 channels/web_api，各 create_xxx_router 只消费注入 Runtime；
+schemas.py 声明请求，web.py 保留旧模型名转发。工具实现在 tools/personal、skills、scheduling、delegation、system；
+旧 builtin/*_tools 仅兼容转发。终端在 channels/terminal，社区在 plugins/community。
+专题 Web 路由使用 APIRouter；新页面 `/project/`，数据接口 `/api/workbench/*` 受原鉴权保护。
+索引只解析源码和读取已注册元数据，不执行工具、不激活插件。详见 PROJECT_INDEX.md。
+
+### 4.1 工具面（`uv run omni` 里 `/tools` 可看全部）
+
+| 域 | 工具 | 说明 |
+|---|---|---|
+| core | get_time / remember / recall / search_history | 时间 + 事实记忆 + FTS 检索 |
+| core | profile_manage | 用户档案（2000 字符限额+报错逼合并） |
+| core | resident_memory | 常驻工作笔记（2200 限额，每轮作为末尾上下文快照提供，带防注入扫描） |
+| core | todo | 会话级多步清单（SessionRef thread-local 注入当前会话） |
+| core | daily_digest | 过去 N 小时活动摘要（夜间整理素材） |
+| core | skills_list / skill_view / skill_create / skill_patch / skill_rewrite / skill_history / skill_rollback / skill_archive / skill_restore | 技能（SKILL.md，渐进披露，patch 按节省 token，expected_hash CAS + 修订历史）；skill_view(name, path="references/guide.md") 按需读参考文本；工作台技能页与设置中心「技能」共用编辑器/CAS/差异/回滚；归档=移出技能库但保留 .archive 与历史，可恢复（archive 为 CONFIRM+人工确认） |
+| core | delegate_task | 子任务委派到 UUID 独立会话（同标签并发也不串历史，thread-local 防嵌套，会话引用自动还原） |
+| core | session_refine | 手动触发对当前会话的记忆整理（Hermes /refine 等价物，2026-10-29）：与自动 review 共用同一有界队列/消息区间去重/review 模型账本；作用域=当前会话（不收 session_id 参数），群聊作用域禁用；review 关闭或后台 worker 未启用时不注册 |
+| core | skill_import / skill_pending / skill_activate / skill_discard | 外来技能包隔离安装（2026-10-29）：inbox 收 zip 数据化解包进隔离区（类型白名单拒脚本、zip-slip 全防、清单逐文件 sha256）；activate 为 CONFIRM+人工确认且激活前防篡改复核、来源记入修订史 |
+| core | plugin_list / plugin_install / plugin_activate / plugin_enable / plugin_disable / plugin_remove | **插件系统（2026-10-29，设计见 docs/PLUGIN_SYSTEM.md）**：用户与 agent 自开发功能的接入通道——manifest+plugin.py 注册工具（PluginContext 强制 `<id>-` 前缀防影子覆盖、toolset=plugin:\<id\>、风险声明照常走审批链）；install 收 inbox zip 或工作区目录进隔离区（校验零执行）；activate CONFIRM+人工确认（激活即同意执行）；启用前内容指纹复核；启停/卸载反注册工具；群聊作用域自动禁用插件工具 |
+| core | community_config / community_search / community_info / community_install / community_publish | **插件社区（2026-10-29）**：参考服务器 `python -m omni.plugins.server`（FastAPI+文件存储；token 门、版本不可变、指纹不符拒发）+ 客户端；search/info read_only、install=下载 sha256 校验后走隔离安装链（激活仍人工确认）、**publish CONFIRM+requires_human（发布红线）**；配置存 data/plugins/community.json；服务器部署待所有者提供机器（部署指南 PLUGIN_SYSTEM.md §5） |
+| shell | peek_command（SAFE，结构化 argv）/ run_command（CONFIRM） | 本机命令；SAFE 先解析成 argv 再 `shell=False` 执行（拒复合命令/重定向/写参数/密钥路径），CONFIRM 保留 shell 语义；两者都有超时后进程树回收与"副作用未知"话术；灾难级硬黑名单即便确认也不执行 |
+| bilibili | video_info / account_info / video_frames / video_comments / comment_replies / user_search / video_subtitle / video_transcript | 读七件套（WBI 签名 + ASR 兜底 + **抽帧拼图**：多帧拼一张长图，多模态一次看完画面） |
+| qq | qq_send_message | 主动私聊（仅白名单；空白名单 = 谁都不许，读时生效） |
+| cron | cron_list / cron_add / cron_edit / cron_remove / cron_once | 定时任务（支持 skills 注入 / deliver_to_qq / context_from 任务链；edit 只改传入字段、显式 null 清除）；**cron_once 一次性触发（闹钟）**：run_at 绝对时间或 delay_minutes 二选一，到点执行一次后自动停用、错过宽限不补发（2026-10-29；工作台表单接线待前端批） |
+| browser | browser_* 读 SAFE / 写 CONFIRM | Playwright 持久登录态 + 每日写预算 + 审批流；截图存为产物 [artifact:id]（开 vision 后模型可直接看图） |
+| android | status / screen_tree / screenshot + tap_element / tap_coords / swipe / key / type | 8 工具，读 SAFE 写 CONFIRM；截图同样入产物库；tap_element 观察绑定（D16/A12）：点击前复核界面、不一致不点、点后强制复检 |
+| system | system_status（SAFE）/ system_service（CONFIRM） | NapCat/omni-qq/心跳 启停与状态 |
+| mcp | mcp_list_tools / mcp_read_tool / mcp_call_tool | 本地 stdio 服务，渐进发现、用户只读白名单、人工确认；配置见 `docs/MCP.md` |
+
+### 4.2 Agent 内核（`core/`）
+- **能力档位路由（D28）**：每回合先判 chat / retrieval / agent，再决定注入哪些工具规格——
+  纯聊天只带约 5 个只读记忆工具，检索约 22 个，复杂任务才给完整工具集。
+  档位只**缩小**能力（档位白名单 ∩ 场景白名单），升档也不放宽任何权限；
+  轻量档位可请求同回合升档一次（内核专用工具，不注册进 Registry、不经审批）。
+  各档模型与路由判定模型可单独配置；路由失败回退完整档位。详见 [MODE_ROUTING.md](../../../../docs/MODE_ROUTING.md)
+- 工具循环 + 步数预算（8）+ grace call 强制收敛
+- **产物 → 图像块（D15/A13）**：截图统一入产物库（sha256/归属/保留期），
+  工具结果带 `[artifact:id]` 标记；开 `vision.send_to_cloud` 且有视觉模型时转成图像块
+  （缩放 + JPEG 重编码 + 坐标口径说明），任一门没过就**如实降级**说"看不到图"
+- **上下文压缩**（`core/compress.py`）：按消息区间持久摘要，FTS 增量维护；阈值已统一为 D10 的 token 口径（trigger_chars/2 折算，消息开销与工具载荷计入，2026-10-29）；回合内工具输出临时压缩仍在内存（刻意不落库），摘要质量待真实模型验收
+- **消息不变量断言**：system 唯一首位 / 一批 tool_calls 后允许连续多项结果，每个调用 id 必须恰好匹配一项结果，不能漏回、重复或插入其它消息
+- **批内多工具并发（2026-10-29）**：同批工具调用里**显式标注 `read_only`** 的只读工具进线程池
+  并发执行（上限 `MAX_CONCURRENT_TOOLS=4`）；未标注的工具（CONFIRM/requires_human/
+  未知名/本回合禁用）是**栅栏**——先等在途并发结果落地再串行执行，同批"先读后写"
+  的相对顺序与串行实现等价；消息与事件严格按原始调用顺序回填（不变量不因并发改变）；
+  worker 线程内按本回合重新绑定 SessionRef/RunRef（thread-local 不丢）；单个工具的
+  意外异常隔离成它自己的 fail 结果（副作用 unknown），不吞同批同伴、不打断回合。
+  **SAFE ≠ read_only**：remember/todo/skill_create/cron_add/delegate_task 这类
+  "SAFE 但写状态"的工具保持串行；browser 共用同一张活动页面，整个 toolset 不标
+- **回合作用域**：SessionRef.bind 在正常返回和异常时均恢复调用者会话；delegate 保持父审批链，无需放宽权限
+- 系统提示词为稳定人设与规则；常驻记忆、档案与时间按每轮快照附在用户消息末尾，历史快照不重写，见 PROMPT_CONTEXT.md
+- review 已有有界队列、区间去重和共享模型账本；记忆额度、来源、作用域与遗忘已接入，D18 候选变更/差异确认已交付；**手动触发工具 session_refine（2026-10-29）**：模型说"整理一下这轮对话"即可把当前会话入队到同一 worker（不收 session_id、群聊禁用、review 未启用时不注册）
+- 运行账本、事件续读、协作式取消与 ToolResult 已接入；**副作用敏感域已全部迁结构化 ToolResult**（2026-10-29：shell/QQ/系统/browser/MCP/files 写，android 写/desktop/B站写此前已是；files 回读失败、MCP 在途/远端报错、浏览器写失败均如实记 unknown）。纯读与额度闸门内的内部记忆写（builtin/cron/skill/delegate 等）保留 from_legacy 文档化适配——推断对这些域是正确的；跨进程取消和在途操作限制见台账
+- 模型能力、超时、有界重试、usage/费用预留结算已有实现；**预算默认未设上限**，无人值守付费推理需明确授权与限额
+- 心跳调度：tick 30s，state.db 原子领取同一到期时刻并推进 next_run；任务可编辑（乐观 revision）；成败取 run_turn 结构化状态；投递 outbox 原子领取/回执确认/unknown 不自动重发；`context_from` 绑定有效期内成功 run，并行上限默认 2、积压合并、显式 IANA 时区已交付
+
+### 4.3 通道与界面
+- **Web 工作台**（`channels/web.py` + `web_static/` 前端：工作台 `index.html` 为纯 markup，逻辑在 `ui/app/` 下 25 个原生 ES 模块、入口 `main.js`；子站七页各自 module + 共享 `ui/` 层）：
+  会话 / 聊天（**运行进度实时可视化**：等待期间显示每步模型调用与工具执行、可一键停止本回合，回复带费用标签）/
+  右侧七页（记忆·档案·常驻·待办·Review·技能·产物）/ 工具列表 / 左栏一行服务在线状态（点击进设置中心）/ 扫码弹窗 /
+  设置中心（人设·模型·记忆·**数字具身**（总览·哔哩哔哩·浏览器·手机·QQ）·定时任务（含编辑表单+执行历史）·
+  **服务与运行**（三个服务各一行状态与重启、NapCat 登录与扫码、心跳 ticks/QQ 收发计数、
+  守护开关、按服务看日志；**没有启停按钮**——启停由守护默认负责，界面只保留扫码这一件必须人工做的事，D31）·
+  **用量**（今日花费/剩余额度/用途汇总/调用流水/模型能力）·
+  **MCP**（服务状态/工具目录/只读与需确认授权标记；工具目录指纹漂移提醒与复查确认、失败服务重连，D19）·关于）/
+  **内置终端**（xterm.js + ConPTY，header「⌨ 终端」）/ **安卓手机页**（MJPEG 看屏 + 点屏下发 + UI 树）
+  / **配对身份**（`channels/web_auth.py`：控制台配对链接 → HttpOnly 会话 cookie；Host/Origin/CSRF 三级校验；
+  终端 WS 握手鉴权；设置接口只回「密钥是否已配置」）/ **产物面板**（缩略图 + 大图 + 手动清理；
+  聊天正文里的产物标记渲染成内联图，`/api/artifacts*` 带归属与指纹校验）
+- CLI（rich REPL，`/new /list /use /switch /tools /memory /skills /help`）
+- QQ（OneBot v11 正向 WS，白名单 + 拟人延迟 + 长消息分段）：
+  空白名单不响应任何人；私聊 `dm:<qq>` 与群聊 `group:<群号>` 各自一条历史；
+  群聊只在被 @ 时回复，且**不注入**所有者档案/常驻笔记、不提供个人记忆工具
+- 心跳（无人值守 DenyApprover；支持 QQ 投递，空白名单不投递；**投递 outbox（D17）**：
+  QQ 掉线时任务结果入队、恢复后每 60s 自动补投；发送结果未知的**不自动重发**，面板人工决定；
+  白名单撤销对队列同样生效——补投前逐条重查；3 次失败成死信；每轮先滚动清理较旧终态行（默认保留 200 条，活跃欠账不删，2026-10-29）；每小时清理过期产物（活跃 run 引用的不删，D15 收口 2026-10-29）；工作台「定时任务 → 待投递」可见可操作）
+
+### 4.4 安全层
+- 审批三档：SAFE 直通 / CONFIRM 问人 / DANGEROUS 拒
+- 上下文策略：CLI 控制台问询、Web 横幅确认（阻塞+超时拒）、cron/心跳 DenyApprover
+- **smart 审批档**（`config approval.mode=smart`）：辅助模型一词裁决 ALLOW/DENY/ESCALATE，
+  参数视为不可信输入包 `<tool-call>` 定界符，ESCALATE/失败回退人工
+- 审批加固：仅接受完整的一词裁决；DANGEROUS 硬拒绝、DenyApprover 不被 smart 绕过；
+  浏览器/安卓写入与任意 shell 命令带 `requires_human`，smart 直接转人工；缺省审批器拒绝非 SAFE；
+  Web 确认框展示完整参数；QQ 空白名单拒绝全部主动投递
+- 硬黑名单（shell）/ 常驻记忆防注入扫描 / QQ 白名单
+
+### 4.5 Hermes 对标进度
+已借鉴并实现多入口内核、grace call、todo、消息不变量、三层记忆、review、技能 patch、cron、审批、受限委派和工具注册；后续补了运行/取消、预算、持久摘要、文件/网页读取和产物/图像消息。
+这不表示 Hermes 对标已完成。设备闭环、调度投递、技能治理、MCP 管理、运维评测和真实验收仍有缺口；完整比较与门槛见 [完整计划](../../../../docs/LOCAL_AGENT_PLAN.md)。没有同模型同任务评测，不能断言实际效果相当。
+
+MCP stdio、管理面板与漂移撤权已支持，HTTP/OAuth 与生产联调待做（见 `docs/MCP.md`）。技能 references、历史/CAS、工作台编辑/回滚、候选队列、归档恢复与设置中心统计/导入/配置已交付；外部安装通道=隔离区导入+人工激活（不执行包内脚本）。桌面、受控主动性和双接口向量记忆已有受限实现，真实扩展验收不能替代安全和稳定性收口。
+
+## 5. 平台坑清单（血泪，别再踩）
+
+1. **中文 Windows GBK**：`netstat`/`tasklist` 等必须 bytes 捕获 + `errors="replace"`（或 utf-8→gbk 逐级）；`text=True` 会崩
+2. **uv add 装包**：`.venv\Scripts\*.exe` 被运行中的服务占用会失败——先停服务再 uv add
+3. **测试隔离**：任何落 `data/` 的存储都要能注入路径（`data_dir` / `run_dir` / `log_dir`），否则测试会污染真机运行态（曾把真实 omni-qq 当测试残留树杀、把测试任务写进真 jobs.json）
+4. **FastAPI**：Pydantic 响应模型不要嵌套在 `create_app` 内（annotations 解析失败→422）
+5. **Playwright/浏览器**：拟人慢放写在工具层；写操作必过预算+审批+写后回读
+6. **av19 与 faster-whisper 冲突**：ASR 用自研 PyAV 解码绕开（`tools/bilibili/asr.py`）
+7. **FTS5**：中文 trigram 需 ≥3 字，2 字走 2-gram/LIKE 兜底链
+8. **naive/aware datetime**：比较前统一 `astimezone()`
+9. **ConPTY 终端**：读取是阻塞的，必须在线程池跑；输出是带 VT 序列的碎块，判断内容别用短前缀
+10. **NapCat 快速登录 `-q`** 会触发风控要求扫码；扫码文件在 `napcat/napcat/cache/qrcode.png`
+11. **MJPEG 帧**：screencap 每次 0.5-2s，别提高帧率；已用 Pillow 转半分辨率 JPEG q40；点屏继续携带实际帧尺寸，只在后端换算一次
+12. **pytest.raises match 中文** 在 GBK 控制台显示乱码但断言本身正常，别被吓到
+13. **MCP Windows 进程收尾**：使用 AnyIO CancelScope，不能用原生 task.cancel 打断 SDK 的 shield 清理；Python 服务默认 PYTHONUTF8=1；超时后结果未知，不自动重放
+14. **data_dir 完整隔离**：所有可写路径都在 `config.RuntimePaths` 里声明一次，由 bootstrap 注入（jobs/常驻/记忆/浏览器/安卓截图与缓存/服务 pid 与日志/MCP 日志/工作台密钥/B站 Cookie/配置读写）；skills 仍由 skills_root 单独控制。注入 `data_dir` 的实例**不探测也不启停真机进程**——`stop()` 的端口兜底曾把用户真服务当过残留
+15. **SAFE 命令不要用 shell**：`shell=True` 下前缀白名单等于没有白名单（`git status & 任意命令`）。改成 argv + `shell=False` 后，参数形态也要逐条校验——`git branch <name>`、`git show HEAD:.env` 都能借只读子命令读写
+16. **`git status` 会写 index**：观察类 git 必须带 `GIT_OPTIONAL_LOCKS=0`，否则 SAFE 观察也会改仓库状态；超时用 `taskkill /F /T` 收进程树，不能只 kill 直接子进程
+17. **跨进程状态不要用 JSON + threading.Lock**：`JobStore`/`ExecutionLog`/`WriteBudget` 已迁进 `data/state.db`。JSON 时代三个进程互相覆盖、固定 `.tmp` 互踩、读失败当空数据（额度被清零）。额度只能用 `UPDATE ... WHERE used < limit` 的 rowcount 判定，任务领取只能用同一个写事务推进 `next_run_at`——不要退回"先读后写"
+18. **备份 SQLite 不要直接 copy 文件**：WAL 里还有已提交事务，复制出来像"丢了一段历史"且不报错。用 `omni.system.backup.snapshot_sqlite`（`Connection.backup()` + `integrity_check` + sha256）
+19. **会话 id 由请求固定**：`/api/chat` 不再改写 `agent.session_id`，回答、落库、review、工具作用域全用本回合的 sid。想切到某个会话是客户端动作（`POST /api/sessions/{id}/select`），不是发消息的副作用。并发保护两层：进程内 `SessionGate`（同会话串行、队列满 429）+ `state.db` 的 `session_leases`（跨进程互斥）
+20. **Playwright 同步 API 只能用一条线程**：所有调用都进 `BrowserDriver._OwnerThread` 的队列；别再给驱动加 `RLock` 就当线程安全（那只防并发、不改线程归属）。超时返回 `BrowserUnknown`——是"可能仍在进行、状态未知"，不要自动重试写操作；`close()` 超时也要如实说"可能仍在运行"
+21. **文件类记忆不要用 `threading.Lock`**：`skills/`、`data/MEMORY.md` 的写入者是 CLI/心跳/工作台三个进程，线程锁各管各的。整段读改写要拿 `system/filelock.FileLock`（进程退出自动释放，无僵尸锁），落盘走 `atomic_write_text`（固定 `.tmp` 名字会在并发时互相覆盖）。技能/常驻改动都会进 `data/history/`，回滚是「产生新修订」而不是把版本号改小
+22. **指纹按字节算**：`view()` 用 `read_text` 得到的是 LF 版本，`read_bytes` 得到的是磁盘上的 CRLF，两者哈希不同 → 用户用记事本存过的技能会被误判「被改动过」。指纹统一取 `read_bytes()`
+24. **取消是协作式的**：不杀线程、不发信号，检查点在「每次模型调用前 / 模型返回后 / 每次工具调用前」。取消时状态先 `cancelling`，真停了才写 `cancelled`——把仍在跑的线程显示成已停止是最容易被信以为真的谎
+25. **run 的 owner 决定重启对账范围**：`owner = <kind>:<pid>:<boot>`，`interrupt_stale()` 只对同类进程（web/qq/heartbeat）的旧启动对账；否则网页重启会把心跳手里正在跑的任务宣布成失败
+26. **审批器签名不能靠 try/except TypeError 探测**：`type(绑定方法)` 对所有方法都是 `method`，拿它做缓存键会把「WebApprover 支持 cancel」套到每一个审批器上。按 (所属类, 方法名) 缓存
+27. **授权判定只写一处**：`private_target_allowed` 之外不要再手写 `if allowed_users and ...`——正是这种"空 = 不限"的写法让空白名单放行了所有人和 cron 投递。策略是**读时**从配置源取的，改内存里的 `runtime.config` 不会生效（测试也一样，要改就改 `runtime.config_path` 指向的文件）
+
+## 6. 未完成事项（按优先级）
+
+### 真实验收的外部前提
+- QQ 北极星实测：工作台扫码登录 NapCat → 所有者大号给机器人小号发 B 站链接（真实 QQ 号见本地 config.yaml，不入库）
+- B 站小号 Cookie：工作台设置中心贴 SESSDATA → 解锁字幕/音频流 → 才能做 P3 发视频实操
+- 安卓真机：开 USB 调试插上 + 装 ADBKeyboard.apk → P4 联调（工作台「📱 手机」页已可用）
+
+### 当前开发顺序（以最新台账与工作区为准）
+
+1. **D16 安卓闭环（离线部分已完成）**：观察绑定点击已交付——tap_element 必须带 screen_tree 的
+   `obs=<id>`，点击前复核界面、不一致不点、点后强制复检；旧 idx 绝不点新元素（A12 关闭）。
+   两设备交错/旋转/ADB 断连复检/中文输入恢复待**插真机**验收；真实视觉效果和 MJPEG 带宽同。
+2. **D17 cron（已完成）**：两批交付——①任务编辑（工作台「编辑」按钮 + `cron_edit` 工具，
+   字段级"没传=不改、null=清除"，expected_revision 乐观并发）+ 成败判定去前缀化；
+   ②投递 outbox：QQ 掉线任务结果入队、心跳恢复后每 60s 补投（3 次上限成死信）、
+   unknown 不自动重发（面板人工决定）、白名单撤销即丢、同内容活跃期去重；
+   工作台「定时任务 → 待投递」面板。
+   原列「剩余细项」经 2026-11-01 代码与测试核实**均已交付**（`test_cron.py` 27 项全绿）：
+   `context_from` 绑定具体成功 run（prompt 头部注入 `run_id=...`，源输出带新鲜度上限
+   `context_max_age_minutes`，过期/未跑过拒绝执行）；并行上限（`claim_due(max_running=)`
+   原子判据 + `CronScheduler(max_running=)` 默认 2）；显式时区（v11 迁移、IANA 校验、
+   DST gap/fold 边界 `test_daily_timezone_dst_gap_and_fold`）。
+   夜间整理→早报列为真实验收。
+3. **D18 技能工作台（已完成）**：①技能页可编辑——保存带指纹 CAS（冲突拒绝）、
+   历史/差异/回滚（回滚产生新修订）、修订里 author/source 可区分用户手改与 agent 修改；
+   ②**候选变更审阅队列**——agent/review 自动改的修订进"待审阅"横幅（作者=user/external 不进），
+   每条可看"这次改了什么"（相对上一版 diff）、一键回滚到变更前、标记已读（只前进）。
+   ③**外来技能包隔离安装（2026-10-29）**——`memory/skill_inbox.py`：zip 放 `skills/.inbox/`，
+   `skill_import` 数据化解包进 `.quarantine/`（**绝不执行包内任何脚本**；类型白名单=SKILL.md
+   +references 文本，zip-slip/盘符/ADS/保留名/重名条目整包拒绝；体积与数量上限；
+   清单带逐文件 sha256）；`skill_pending` 透明展示清单；`skill_activate`（CONFIRM+requires_human，
+   人工确认即"用户激活"）落正式技能库——激活前对隔离区做**防篡改复核**（逐文件 sha256 全等比对）、
+   与技能编辑共用同一把跨进程文件锁、来源记进修订历史（source=skill_import）；
+   `skill_discard` 丢隔离区。无人值守（DenyApprover）永远激活不了外来包。
+   ④**设置中心「技能」与生命周期收口（2026-10-30）**——只读总览（技能/归档/修订/附件/体积/
+   14 天活动/待审阅/隔离区）、技能库搜索与归档恢复、新建技能、外来包上传/导入/激活/丢弃、
+   `skills.history_keep` 与 `skills.max_write_chars` 配置 CAS；`SkillStore.statistics/archive/restore`、
+   `SkillInbox.upload/remove_inbox` 与 `/api/skills/*` 端点；详见 [SKILL_SYSTEM.md](../../../../docs/SKILL_SYSTEM.md)。
+4. **D19 MCP 管理（已完成）**：工作台「MCP」页——服务状态（idle/握手/已连接/失败/停用，
+   纯派生不启动服务）、工具目录与授权标记（只读白名单 🟢 / 需确认 🟡，只认用户配置）、
+   **schema 漂移检测**（发现时登记指纹；服务升级换参数形态 → ⚠ 提醒复查只读授权，
+   用户「复查后确认」才清除）、失败服务「重连」按钮（一次干净握手）、
+   **失败服务有界自动重连**（2026-10-29：显式调用到点换新连接，5s 起指数退避、
+   5 次用尽停手等人工；成功即清零；GET 状态零副作用；触发失败的调用本身不重放；
+   status 含 auto_reconnect_* 字段，前端展示待并行前端批接线）。
+   **剩余**：Streamable HTTP/OAuth（可独立后置）、真实受信生产服务联调。
+5. **D25/D26 运维与回归持续推进**：进程身份、备份恢复、CI/任务评测及内核剩余项；D27 完成必要真实验收与 72 小时常驻。
+6. **R5/R6 扩展**：桌面逐应用验证后台/前台能力、QQ 受控主动性、B 站人工批准 UI 写、FTS+向量混合检索。不要承诺 SendInput 对所有软件后台不抢焦点，也不直接用向量替代 FTS。
+
+完整 D00–D27 任务卡、依赖和验收见 [开发大纲](../../../../docs/DEEPSEEK_DEVELOPMENT_OUTLINE.md)，其中 §12 可直接交给 DeepSeek 4.1f 续接。
+
+## 7. 代码约定
+
+- 全量类型标注 + `from __future__ import annotations`；docstring 写「职责 + 明确不做」
+- 注释写"为什么"不写"是什么"
+- 每个模块必须有单测；提交前 `uv run pytest` 全绿
+- 提交信息：中文，`领域：要点——细节（N 单测全绿）`，一条 commit 一个完整交付
+- 前端无构建原生 ES 模块：工作台逻辑在 `web_static/ui/app/*.js`（`main.js` 唯一入口，data-action 委托分发）；CSS 分层 tokens→base→icons→components→frame→页面层；所有资源带 `?v=` 版本串防缓存错配；唯一权威规范 docs/UI_DESIGN_SYSTEM.md；xterm 资源在 `vendor/` 本地化，不依赖 CDN
+
+## 8. 关键文件地图
+
+```
+src/omni/
+  bootstrap.py           组装根（唯一构造核心对象处）
+  config.py              .env + config.yaml（AppConfig）+ RuntimePaths（全部可写路径的唯一声明）
+  core/agent.py          工具循环 + 系统提示词组装
+  core/modes.py          能力档位声明（chat/retrieval/agent 白名单 + 场景交集，D28）
+  core/router.py         能力档位判定（规则 → 模型 → 回退，D28）
+  core/compress.py       上下文压缩 + 消息不变量
+  core/review.py         回合后异步记忆整理
+  core/cron.py           心跳调度器 + 任务执行/投递 + 账本记账
+  core/session.py        会话闸门（同会话串行/队列有界）+ 跨进程会话租约
+  core/run.py            运行身份/取消信号/RunContext/ActiveRuns（协作式取消）
+  llm/gateway.py         LiteLLM 统一网关
+  memory/store.py        SQLite 仓储（会话/消息/事实/档案/review/绑定/待办/摘要）
+  memory/resident.py     常驻小记忆（MEMORY.md 式，限额+防注入）
+  memory/skills.py       SKILL.md 技能库（create/patch/rewrite）
+  memory/artifacts.py    产物登记（截图/导出：sha256/归属/保留期/总量上限，D15）
+  core/vision.py         产物字节 → 模型图像块（缩放/JPEG/坐标口径，D15）
+  tools/shots.py         browser/android 截图 → 产物库 的共用桥（D15）
+  memory/jobs.py         Job 模型 + 校验 + 调度时间（纯数据/纯函数）
+  memory/state.py        data/state.db：任务/执行账本/写额度/迁移记录（事务、原子领取、revision）
+  memory/revisions.py    内容修订快照（技能/常驻的回滚底座）
+  memory/runs.py         运行记录 + 事件流（单调 seq、重启对账）
+  memory/cron.py         兼容再导出（老导入路径不变）
+  safety/gates.py        风险分级 + 各上下文 Approver
+  safety/smart.py        smart 审批档（ask_model 注入）
+  safety/broker.py       跨线程确认（Web 横幅）
+  tools/registry.py      Registry + SessionRef（execute→ToolResult，dispatch→字符串）
+  tools/result.py        ToolResult 契约（status/error_code/side_effect_state + 旧字符串适配）
+  tools/runctx.py        RunRef（线程内的「当前 run」，给委派用）
+  tools/builtin.py       core 工具（记忆/档案/待办/常驻/摘要）
+  tools/shell/           SAFE 结构化命令（spec/process/danger/tools）+ 兼容薄层 shell_tools.py
+  tools/delegate_tools.py 子任务委派
+  tools/skill_tools.py   技能工具
+  tools/cron_tools.py    定时任务工具
+  tools/bilibili/        B站 API + ASR
+  tools/browser/         Playwright 驱动器（单一所有者线程 + profile 租约）+ 写预算
+  tools/android/         ADB 协议 + UI 树 + 语义驱动
+  tools/qq/              OneBot v11 客户端与工具
+  tools/system_tools.py  服务管理工具
+  tools/mcp/             MCP stdio 客户端、生命周期与三项工具适配
+  system/services.py     服务启停（分离进程、pid、日志）
+  system/atomic.py       原子写（同目录唯一临时名 + fsync + replace）
+  system/filelock.py     跨进程文件锁（msvcrt/flock，超时带持有者）
+  system/backup.py       离线备份/恢复（SQLite 一致快照 + integrity_check + sha256）
+  system/config_io.py    config.yaml 白名单键定向修改（保留注释）
+  channels/web.py        工作台 REST + WS（终端）+ MJPEG
+  channels/terminal.py   ConPTY 终端会话池
+  channels/cli.py / qq.py / heartbeat.py
+  channels/web_static/index.html  工作台 markup（脚本已外置 ui/app/）
+data/                    SQLite、jobs、账本、MEMORY.md、截图、pid、日志（gitignore）
+skills/                  种子技能（bilibili-watch / self-check / nightly-tidy）
+```
+
+## 9. 给接手者的第一条命令
+
+```powershell
+cd <仓库根>; uv run pytest -q; git log --oneline -n 10
+```
+
+测试全绿 + 看过最近提交，就可以开工。改任何文件前先读 `docs/ARCHITECTURE.md`；
+新增能力的路线图在第 6 节。

@@ -1,4 +1,5 @@
 """浏览器能力域 + 确认流单测（不启动真浏览器）。"""
+
 import json
 import threading
 import time
@@ -30,6 +31,7 @@ def _confirm_tool() -> Tool:
 
 # ---------- 写预算 ----------
 
+
 def test_write_budget_limit_and_day_rollover(tmp_path):
     state = StateStore(tmp_path / "state.db")
     budget = WriteBudget(state, max_per_day=2)
@@ -42,9 +44,7 @@ def test_write_budget_limit_and_day_rollover(tmp_path):
 
     # 额度按 (scope, 日) 分行存：别的日期用满 99 次不影响今天
     with state._tx() as conn:
-        conn.execute(
-            "INSERT INTO budgets(scope, day, used) VALUES ('browser_write', '2000-01-01', 99)"
-        )
+        conn.execute("INSERT INTO budgets(scope, day, used) VALUES ('browser_write', '2000-01-01', 99)")
     assert budget.usage_today() == (2, 2)
     ok4 = WriteBudget(state, max_per_day=2)
     assert ok4.usage_today() == (2, 2)
@@ -54,6 +54,7 @@ def test_write_budget_limit_and_day_rollover(tmp_path):
 
 
 # ---------- 审批代理 ----------
+
 
 def test_broker_allow_deny_timeout():
     broker = ApprovalBroker(timeout_s=1.0)
@@ -119,6 +120,7 @@ def test_web_approver_risk_routing():
 
 # ---------- 浏览器工具（假驱动） ----------
 
+
 class FakeDriver:
     def __init__(self) -> None:
         self.clicked: list[str] = []
@@ -167,6 +169,7 @@ def test_browser_tools_write_consumes_budget(tmp_path):
     # 预算耗尽：第二次被拒，且不触达驱动
     out2 = registry.dispatch("browser_click", {"target": "text=发布"}, approver=AllowAllApprover())
     assert "额度已用完" in out2 and driver.clicked == ["text=登录"]
+
     # 驱动报错以字符串回传
     class BoomDriver(FakeDriver):
         def click(self, target):
@@ -204,18 +207,25 @@ def test_browser_write_structured_results(tmp_path):
     assert "操作后页面" in ok.verification  # 写后回读进 verification
 
     # 动作内异常（元素找不到/点击后等待失败分不开）：副作用未知，不盲目重试
-    registry2 = _registry(RaisingDriver(BrowserError("元素找不到")), WriteBudget(_state(tmp_path, "s2"), max_per_day=10))
+    registry2 = _registry(
+        RaisingDriver(BrowserError("元素找不到")), WriteBudget(_state(tmp_path, "s2"), max_per_day=10)
+    )
     failed = registry2.execute("browser_click", {"target": "text=x"}, approver=AllowAllApprover())
     assert failed.status == "unknown" and failed.side_effect_state == "unknown"
     assert failed.error_code == "browser_action_unknown" and "元素找不到" in failed.text
 
     # 所有者线程超时：动作可能仍在执行
-    registry3 = _registry(RaisingDriver(BrowserUnknown("等待所有者线程超时，动作可能仍在执行")), WriteBudget(_state(tmp_path, "s3"), max_per_day=10))
+    registry3 = _registry(
+        RaisingDriver(BrowserUnknown("等待所有者线程超时，动作可能仍在执行")),
+        WriteBudget(_state(tmp_path, "s3"), max_per_day=10),
+    )
     unknown = registry3.execute("browser_type", {"target": "text=x", "text": "hi"}, approver=AllowAllApprover())
     assert unknown.status == "unknown" and unknown.error_code == "browser_unknown"
 
     # 排队被拒：从未进入所有者线程，可重试
-    registry4 = _registry(RaisingDriver(BrowserBusy("浏览器忙：请求排队已满")), WriteBudget(_state(tmp_path, "s4"), max_per_day=10))
+    registry4 = _registry(
+        RaisingDriver(BrowserBusy("浏览器忙：请求排队已满")), WriteBudget(_state(tmp_path, "s4"), max_per_day=10)
+    )
     busy = registry4.execute("browser_click", {"target": "text=x"}, approver=AllowAllApprover())
     assert busy.status == "error" and busy.retryable is True and busy.side_effect_state == "none"
 

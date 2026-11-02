@@ -7,6 +7,7 @@
 ```yaml
 desktop:
   enabled: true
+  foreground_enabled: false
   allowed_apps:
     - C:/Windows/System32/notepad.exe
   max_nodes: 100
@@ -32,8 +33,12 @@ desktop:
 set_value 精确回读原控件全文；invoke 不因接口成功就宣称业务目标完成。
 密码框、不可见/禁用/最小化、内容截断均拒写。群聊禁用全部桌面工具。
 
-没有通用 SendInput 或前台接管。缺少所需 UIAutomation Pattern 时报告不支持，由用户
-手动操作；不因截图成功宣称能控制任意软件。
+`desktop_foreground_action(...)`提供单次显式前台接管，默认关闭。可在工作台「浏览器」分区的
+「截图与桌面」启用并填写应用完整路径，保存后重启生效。每次动作仍需人工确认；授权绑定本次run和
+目标窗口身份，争用时拒绝执行。动作前后核验HWND、PID、创建身份、exe、前台焦点与用户输入时钟。
+发生用户输入即暂停；已经派发的动作保持unknown，禁止自动重试。
+当前支持UIAutomation语义编辑/激活/选择，缺少所需Pattern时由用户手动操作；不因截图成功宣称
+能控制任意软件。通用SendInput键鼠注入尚未提供。
 
 ## 验收与限制
 

@@ -1,4 +1,5 @@
 """个人能力：clock；工具仅使用注入依赖，不构造运行时。"""
+
 from __future__ import annotations
 
 import datetime as dt

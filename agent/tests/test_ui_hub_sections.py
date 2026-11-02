@@ -6,6 +6,8 @@
 「导航名 / 浏览器标题 / 页内 h1」三处说法必须逐字一致——不一致时用户点进去会以为
 换了个东西（本轮统一前实际产出过「人工终端 · 人工终端 · OmniOperator」这种重复后缀）。
 """
+
+from omni.config import PROJECT_ROOT, web_root
 import re
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -13,14 +15,13 @@ from urllib.parse import urlsplit
 import pytest
 from test_web import _client
 
-STATIC = Path(__file__).resolve().parents[1] / "src" / "omni" / "channels" / "web_static"
+STATIC = web_root(PROJECT_ROOT)
 INDEX = STATIC / "index.html"
 
 # 工具与设备组：7 个工具页里除 storage（已是分区）外新并入的 6 个，加上插件（市场入口）
 TOOL_SECTIONS = {
     "sec-terminal": "人工终端",
     "sec-jobs": "后台任务",
-    "sec-mcp-services": "MCP 服务",
     "sec-capabilities": "能力诊断",
     "sec-project": "项目索引",
     "sec-plugins": "插件",
@@ -69,9 +70,10 @@ def test_hub_nav_has_six_groups_with_expected_members():
     assert len(titles) == len(set(titles)), "侧边栏分组标题重复：%s" % titles
     assert set(titles) == set(EXPECTED_GROUPS), "侧边栏分组集合不对：%s" % titles
     for title, members in groups:
-        assert set(go for go, _ in members) == EXPECTED_GROUPS[title], (
-            "「%s」组成员应为 %s，实得 %s"
-            % (title, sorted(EXPECTED_GROUPS[title]), sorted(go for go, _ in members))
+        assert set(go for go, _ in members) == EXPECTED_GROUPS[title], "「%s」组成员应为 %s，实得 %s" % (
+            title,
+            sorted(EXPECTED_GROUPS[title]),
+            sorted(go for go, _ in members),
         )
 
 
@@ -80,28 +82,26 @@ def test_hub_nav_entries_match_cards_exactly():
     html = INDEX.read_text(encoding="utf-8")
     nav = {go for _, members in _nav_groups(html) for go, _ in members}
     cards = set(re.findall(r'<div class="hub-card[^"]*" id="(sec-[a-z-]+)"', html))
-    assert nav == cards, (
-        "侧栏与分区卡片不一致：仅侧栏有 %s，仅卡片有 %s" % (sorted(nav - cards), sorted(cards - nav))
-    )
+    assert nav == cards, "侧栏与分区卡片不一致：仅侧栏有 %s，仅卡片有 %s" % (sorted(nav - cards), sorted(cards - nav))
 
 
 def test_tool_sections_have_label_and_hint():
     """工具分区与数字具身分区：导航标签 = 卡片 h3，且都要有一句说明（空卡片让人不知道能干什么）。"""
     html = INDEX.read_text(encoding="utf-8")
     labels = {go: label for _, members in _nav_groups(html) for go, label in members}
-    for go, expected in {**TOOL_SECTIONS, **EMBODIMENT_SECTIONS}.items():
+    for go, expected in {**TOOL_SECTIONS, **EMBODIMENT_SECTIONS, "sec-mcp": "MCP 服务"}.items():
         assert labels.get(go) == expected, "%s 导航标签应为「%s」，实得 %r" % (go, expected, labels.get(go))
         # 卡片内可能嵌任意层 <div>（如右上角「整页打开」入口），截到下一张卡片为止而不是
         # 第一个 </div>，否则说明文案（hint）会落在截断区外被误判缺失。
         card = re.search(
-            r'<div class="hub-card[^"]*" id="%s">(.*?)(?=<div class="hub-card[^"]*" id="sec-|\Z)'
-            % re.escape(go), html, re.S)
+            r'<div class="hub-card[^"]*" id="%s">(.*?)(?=<div class="hub-card[^"]*" id="sec-|\Z)' % re.escape(go),
+            html,
+            re.S,
+        )
         assert card, "index.html 找不到 %s 卡片" % go
         body = card.group(1)
         heading = re.search(r"<h3>([^<]+)</h3>", body)
-        assert heading and heading.group(1).strip() == expected, (
-            "%s 卡片标题应为「%s」" % (go, expected)
-        )
+        assert heading and heading.group(1).strip() == expected, "%s 卡片标题应为「%s」" % (go, expected)
         assert 'class="hint"' in body, "%s 分区缺少说明文案（hint）" % go
 
 
@@ -111,9 +111,7 @@ def test_page_names_are_consistent_across_nav_title_and_heading():
     权威名字只有一处——ui/shared.js 的 pageMeta.label。
     """
     shared = (STATIC / "ui" / "shared.js").read_text(encoding="utf-8")
-    labels = dict(
-        re.findall(r"(\w+):\{icon:'[^']+',label:'([^']+)'\}", shared)
-    )
+    labels = dict(re.findall(r"(\w+):\s*\{\s*icon:\s*'[^']+',\s*label:\s*'([^']+)'\s*\}", shared))
     assert labels, "shared.js 的 pageMeta 解析失败"
     for page, label in labels.items():
         path = STATIC / page / "index.html"
@@ -127,24 +125,14 @@ def test_page_names_are_consistent_across_nav_title_and_heading():
         )
         heading = re.search(r"<h1>([^<]*)</h1>", html)
         assert heading, "%s 页缺 <h1>" % page
-        assert heading.group(1).strip() == label, (
-            "%s 页 h1 应为「%s」，实得「%s」" % (page, label, heading.group(1))
-        )
+        assert heading.group(1).strip() == label, "%s 页 h1 应为「%s」，实得「%s」" % (page, label, heading.group(1))
 
 
 @pytest.fixture
-def ui(tmp_path):
-    """本文件自带浏览器 fixture，不依赖 conftest 的 ui_browser。
-
-    理由：本文件要能独立提交、独立跑绿——依赖工作区里尚未落库的 fixture 会让
-    「只应用本文件的改动」时直接红。
-    """
-    from playwright.sync_api import sync_playwright
-
+def ui(tmp_path, ui_browser):
+    """同文件共享浏览器，每例独立上下文和数据库。"""
     client, runtime = _client(tmp_path)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
-        context = browser.new_context()
+    with ui_browser.new_context() as context:
         page = context.new_page()
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -169,7 +157,6 @@ def ui(tmp_path):
         finally:
             page.close()
             context.close()
-            browser.close()
             assert runtime.close()["complete"]
             client.close()
 
@@ -183,7 +170,7 @@ def test_hub_nav_search_filters_sections(ui):
     search.wait_for(state="visible")
 
     total = page.locator(".hub-nav a[data-go]").count()
-    assert total == 23, "侧栏应有 23 个分区条目（数字具身独立成组后 +1），实得 %d" % total
+    assert total == 22, "合并重复MCP入口后侧栏应有22个分区，实得 %d" % total
 
     search.fill("终端")
     page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===1")
@@ -199,5 +186,5 @@ def test_hub_nav_search_filters_sections(ui):
     assert page.locator(".hub-nav-empty").is_visible()
 
     search.fill("")
-    page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===23")
+    page.wait_for_function("document.querySelectorAll('.hub-nav a[data-go]:not([hidden])').length===22")
     assert not errors, "侧栏搜索引发脚本异常：%s" % errors

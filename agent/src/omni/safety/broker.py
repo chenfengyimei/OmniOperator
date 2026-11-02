@@ -4,6 +4,7 @@
 用户在浏览器里点同意/拒绝 → HTTP 端点 resolve → Event 置位 → 工具继续。
 超时自动拒绝（fail-closed），绝不无限等待。
 """
+
 from __future__ import annotations
 
 import datetime as dt

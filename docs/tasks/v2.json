@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "plan": "OmniOperator V2",
+  "status": "开发中",
+  "branch": "codex/architecture-v2",
+  "baseline_commit": "076c0c22fa8ecb90d3ce9a64562c90a23a129e00",
+  "baseline": {
+    "manifest": "temp/private/v2-baseline-20261102T082736Z/manifest.json",
+    "source_files": 688,
+    "sqlite_snapshots": 13,
+    "zip_sha256": "ecf3dc0221a2d721a4e65ec864b7654dc55c952b3b043c95aaa158c9727f902c"
+  },
+  "default_entrypoints": "V1 until R6 parity gate",
+  "legacy_data_imported": false,
+  "tasks": [
+    {
+      "id": "R0",
+      "title": "基线与设计冻结",
+      "status": "开发中",
+      "notes": "已保存688份源码/文档及13份SQLite一致快照；三平台接口验证尚未完成。",
+      "evidence": [
+        "docs/evidence/v2-offline.json"
+      ]
+    },
+    {
+      "id": "R1",
+      "title": "新工程与公共合同",
+      "status": "开发中",
+      "notes": "四层结构、独立实例、路径/配置/端口已落地；正式入口和旧联接清理等待业务迁移。",
+      "evidence": [
+        "docs/evidence/v2-offline.json"
+      ]
+    },
+    {
+      "id": "R2",
+      "title": "数据基础与状态机",
+      "status": "开发中",
+      "notes": "35表新基线、FTS、关键事务、记忆来源/遗忘和备份恢复已落地；对象/人物/摘要等完整流程待接入。",
+      "evidence": [
+        "docs/evidence/v2-offline.json"
+      ]
+    },
+    {
+      "id": "R3",
+      "title": "日志与诊断",
+      "status": "开发中",
+      "notes": "JSON日志、脱敏、追踪关联、轮转/丢失计数和查询已落地；保留策略/调试/指标/异常钩子待完善。",
+      "evidence": [
+        "docs/evidence/v2-offline.json"
+      ]
+    },
+    {
+      "id": "R4",
+      "title": "运行内核",
+      "status": "开发中",
+      "notes": "并发回合、同会话顺序、取消/审批/费用及受管内建能力工作器已落地；调度/投递/整理/扩展工作器待接入。",
+      "evidence": [
+        "docs/evidence/v2-offline.json"
+      ]
+    },
+    {
+      "id": "R5",
+      "title": "三平台原生能力",
+      "status": "待开始",
+      "notes": "已有进程锁、Windows Job Object/POSIX进程组和凭据原语；终端、原生桌面和系统服务尚未交付。",
+      "evidence": [
+        "docs/evidence/v2-offline.json"
+      ]
+    },
+    {
+      "id": "R6",
+      "title": "业务接入与交付",
+      "status": "开发中",
+      "notes": "最小新API/开发工作台及容器/CI配方已落地；现有完整业务、正式安装更新和默认入口切换未完成。",
+      "evidence": [
+        "docs/evidence/v2-offline.json"
+      ]
+    },
+    {
+      "id": "R7",
+      "title": "稳定性验收",
+      "status": "待开始",
+      "notes": "Windows专项已执行；三平台全量与真实设备、负载、每平台72小时尚未执行。",
+      "evidence": [
+        "docs/evidence/v2-offline.json"
+      ]
+    }
+  ]
+}

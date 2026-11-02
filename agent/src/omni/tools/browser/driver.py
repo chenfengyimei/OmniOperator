@@ -15,6 +15,7 @@
 
 仍然保留：持久 profile（登录态常驻）、slow_mo + 随机停顿（拟人）、写后回读复核。
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -41,6 +42,13 @@ class BrowserBusy(BrowserError):
 
 class BrowserUnknown(BrowserError):
     """等不到结果：动作可能仍在进行，状态未知（不是"失败"，也不能当"没发生"）。"""
+
+
+@dataclasses.dataclass(frozen=True)
+class BrowserCloseResult:
+    complete: bool
+    code: str
+    message: str
 
 
 class ProfileLease(Protocol):
@@ -108,9 +116,7 @@ class _OwnerThread:
         try:
             self._queue.put_nowait(call)
         except queue.Full:
-            raise BrowserBusy(
-                f"浏览器正忙：已有 {self.depth} 个操作在排队；等当前动作结束后再试"
-            ) from None
+            raise BrowserBusy(f"浏览器正忙：已有 {self.depth} 个操作在排队；等当前动作结束后再试") from None
         if not call.done.wait(max(0.1, float(timeout_s))):
             raise BrowserUnknown(
                 f"等待 {timeout_s:.0f}s 仍未返回：动作可能仍在进行，状态未知。"
@@ -199,23 +205,28 @@ class BrowserDriver:
         return owner.run(fn, timeout_s=self._action_timeout if timeout_s is None else timeout_s)
 
     def close(self, *, wait_s: float | None = None) -> str:
+        """公开兼容出口；运行态使用结构化shutdown结果。"""
+        return self.shutdown(wait_s=wait_s).message
+
+    def shutdown(self, *, wait_s: float | None = None) -> BrowserCloseResult:
         """有界等待关闭，返回可读结论——超时就说"可能残留"，不假装已关闭。"""
         wait = self._close_timeout if wait_s is None else float(wait_s)
+        deadline = time.monotonic() + max(0, wait)
         self._closed = True
         owner = self._owner
         if owner is None:
             self._release_lease()
-            return "浏览器未启动（无需关闭）"
+            return BrowserCloseResult(True, "not_started", "浏览器未启动（无需关闭）")
         try:
             owner.run(self._shutdown_here, timeout_s=wait)
         except BrowserUnknown as exc:
-            return f"关闭超时：浏览器可能仍在运行（{exc}）"
+            return BrowserCloseResult(False, "timeout", f"关闭超时：浏览器可能仍在运行（{exc}）")
         except BrowserError as exc:
-            return f"关闭失败：{exc}"
-        if not owner.stop(timeout_s=2.0):
-            return "关闭超时：负责浏览器的线程未退出，可能仍有残留进程"
+            return BrowserCloseResult(False, "failed", f"关闭失败：{exc}")
+        if not owner.stop(timeout_s=max(0, min(2.0, deadline - time.monotonic()))):
+            return BrowserCloseResult(False, "residual", "关闭超时：负责浏览器的线程未退出，可能仍有残留进程")
         self._owner = None
-        return "浏览器已关闭"
+        return BrowserCloseResult(True, "closed", "浏览器已关闭")
 
     def _shutdown_here(self) -> None:
         """在所有者线程里执行真正的关闭（Playwright 的对象只能在自己线程里关）。"""
@@ -238,9 +249,7 @@ class BrowserDriver:
         if self._lease is None or self._lease_token is not None:
             return
         try:
-            self._lease_token = self._lease.acquire(
-                self.resource, owner=self._lease_owner, ttl_s=self._lease_ttl
-            )
+            self._lease_token = self._lease.acquire(self.resource, owner=self._lease_owner, ttl_s=self._lease_ttl)
         except Exception as exc:  # noqa: BLE001 —— 适配器用什么异常都行，统一转成忙
             raise BrowserBusy(f"浏览器 profile 不可用：{exc}") from exc
 
@@ -283,20 +292,14 @@ class BrowserDriver:
                 viewport={"width": 1280, "height": 800},
                 locale="zh-CN",
             )
-            self._page = (
-                self._context.pages[0]
-                if self._context.pages
-                else self._context.new_page()
-            )
+            self._page = self._context.pages[0] if self._context.pages else self._context.new_page()
             return self._page
         except Exception as exc:  # noqa: BLE001 —— 给可操作的提示
             message = str(exc)
             self._page = self._context = self._pw = None
             self._release_lease()  # 启动失败要把 profile 让出来，否则下次永远"被占用"
             if "Executable doesn't exist" in message:
-                raise BrowserError(
-                    "Chromium 未安装：先运行 `uv run playwright install chromium`"
-                ) from exc
+                raise BrowserError("Chromium 未安装：先运行 `uv run playwright install chromium`") from exc
             raise BrowserError(f"浏览器启动失败：{exc}") from exc
 
     def _sync_active_page(self) -> None:

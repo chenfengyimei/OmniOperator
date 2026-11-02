@@ -10,6 +10,7 @@
 
 真实 Chromium 跑通全链路，不 mock 接口。
 """
+
 from __future__ import annotations
 
 from urllib.parse import urlsplit
@@ -55,7 +56,7 @@ def ui(tmp_path, ui_browser):
 
 def open_facts(page):
     """打开 /memory/ 并切到「事实记忆」页签，等列表渲染。"""
-    page.goto("http://127.0.0.1/memory/")
+    page.goto("http://127.0.0.1/memory/?embed=1")
     page.wait_for_selector("#overview-view:not([hidden])")
     page.click('.view-tabs button[data-view="facts"]')
     page.wait_for_selector("#facts-view:not([hidden])")

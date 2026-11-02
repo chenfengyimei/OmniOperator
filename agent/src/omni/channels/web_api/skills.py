@@ -6,6 +6,7 @@
 - 归档是"移出技能库 + 保留历史"，恢复遇到同名技能拒绝覆盖；
 - 外来包上传只把字节放进收件箱；解包校验、隔离与人工激活仍归 SkillInbox。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -102,9 +103,7 @@ def create_skills_router(runtime: Runtime) -> APIRouter:
                         "rev": revision.rev,
                         # 有上一版才给"回滚这一条变更"的入口（历史被裁剪时不提供）
                         "base_rev": (
-                            revision.rev - 1
-                            if runtime.skills.revision(name, revision.rev - 1) is not None
-                            else None
+                            revision.rev - 1 if runtime.skills.revision(name, revision.rev - 1) is not None else None
                         ),
                         "version": revision.version,
                         "author": revision.author,
@@ -180,9 +179,7 @@ def create_skills_router(runtime: Runtime) -> APIRouter:
         if getattr(runtime.agent, "closing", False):
             raise HTTPException(status_code=409, detail="运行态正在关闭")
         if not payload.updates or any(
-            section not in SKILL_SETTINGS
-            or not values
-            or any(key not in SKILL_SETTINGS[section] for key in values)
+            section not in SKILL_SETTINGS or not values or any(key not in SKILL_SETTINGS[section] for key in values)
             for section, values in payload.updates.items()
         ):
             raise HTTPException(status_code=422, detail="只允许修改技能的修订保留数与单次写入上限")
@@ -192,13 +189,9 @@ def create_skills_router(runtime: Runtime) -> APIRouter:
         except ConfigConflict as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         except LockTimeout as exc:
-            raise HTTPException(
-                status_code=409, detail="配置正在由其它入口修改，请稍后重试"
-            ) from exc
+            raise HTTPException(status_code=409, detail="配置正在由其它入口修改，请稍后重试") from exc
         except (OSError, ValueError) as exc:
-            raise HTTPException(
-                status_code=422, detail="技能设置未保存，请检查各项数值和配置文件格式"
-            ) from exc
+            raise HTTPException(status_code=422, detail="技能设置未保存，请检查各项数值和配置文件格式") from exc
 
     # 工作台直接新建技能：与 agent 的 skill_create 共用同一条存储/linter/历史路径
     @router.post("/api/skills")
@@ -270,8 +263,10 @@ def create_skills_router(runtime: Runtime) -> APIRouter:
         box = inbox()
         ok, message = box.activate(name)
         if not ok:
-            status = 404 if "没有待激活" in message else (
-                409 if ("不一致" in message or "清单" in message or "同名" in message) else 400
+            status = (
+                404
+                if "没有待激活" in message
+                else (409 if ("不一致" in message or "清单" in message or "同名" in message) else 400)
             )
             raise HTTPException(status_code=status, detail=message)
         return {"ok": True, "message": message, "quarantine": box.pending()}
@@ -436,10 +431,15 @@ def create_skills_router(runtime: Runtime) -> APIRouter:
         found = runtime.skills.revision(name, rev)
         if found is None:
             raise HTTPException(status_code=404, detail=f"没有 rev {rev}")
-        return {"content": found[1], "meta": {
-            "author": found[0].author, "created_at": found[0].created_at,
-            "summary": found[0].summary, "version": found[0].version,
-        }}
+        return {
+            "content": found[1],
+            "meta": {
+                "author": found[0].author,
+                "created_at": found[0].created_at,
+                "summary": found[0].summary,
+                "version": found[0].version,
+            },
+        }
 
     @router.get("/api/skills/{name}/diff")
     def skill_diff(name: str, rev: int) -> dict[str, Any]:

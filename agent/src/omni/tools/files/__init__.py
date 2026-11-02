@@ -4,6 +4,7 @@
 读写实现在 `io`（编码、二进制、窗口、指纹），搜索在 `search`（有界遍历），
 备份在 `history`，工具契约在 `tools`。
 """
+
 from .history import FileHistory, Snapshot, SnapshotTooLarge
 from .paths import PathRejected, Resolved, Workspace
 from .tools import register_file_tools

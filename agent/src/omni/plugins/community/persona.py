@@ -11,6 +11,7 @@
 字段与 `config.Persona`（name + system_prompt）对齐：导入只是把这两项填进
 表单，落盘仍由用户点「保存人设」走既有配置写入链。
 """
+
 from __future__ import annotations
 
 import re

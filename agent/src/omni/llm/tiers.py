@@ -27,6 +27,7 @@
 - **口径是开放集合**：只有 `total` 是保留字；其余口径名原样透传，
   由调用方归一（见 `normalize_scope`）。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -40,9 +41,9 @@ ALERT_RATIO = 0.8
 TOTAL_SCOPE = "total"
 
 # 档位
-TIER_OK = "ok"          # 未到提醒线
-TIER_WARN = "warn"      # 到了提醒线（≥80%），该提醒了
-TIER_BLOCK = "block"    # 到 100%，该拦了
+TIER_OK = "ok"  # 未到提醒线
+TIER_WARN = "warn"  # 到了提醒线（≥80%），该提醒了
+TIER_BLOCK = "block"  # 到 100%，该拦了
 
 
 @dataclass(frozen=True)
@@ -107,9 +108,7 @@ def normalize_scope(scope: str) -> str:
     return text or "other"
 
 
-def collect_tiers(
-    usages: list[ScopeUsage], *, alert_ratio: float = ALERT_RATIO
-) -> list[ScopeUsage]:
+def collect_tiers(usages: list[ScopeUsage], *, alert_ratio: float = ALERT_RATIO) -> list[ScopeUsage]:
     """挑出"到了提醒线或拦截线"的口径，按严重度排序。
 
     排序规则：先拦截线后提醒线；同档按比例从高到低；再同则按口径名，
@@ -146,10 +145,7 @@ def describe_scope(usage: ScopeUsage) -> str:
     if not usage.limited:
         return f"{scope}：已用 {used}（未设上限）"
     ratio = usage.ratio or 0.0
-    return (
-        f"{scope}：{used} / {_money(usage.limit_micro)}"
-        f"（{ratio * 100:.1f}%）"
-    )
+    return f"{scope}：{used} / {_money(usage.limit_micro)}（{ratio * 100:.1f}%）"
 
 
 def describe_tiers(usages: list[ScopeUsage], *, separator: str = "；") -> str:

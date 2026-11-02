@@ -11,6 +11,7 @@
 - 策略每次从配置源重读：撤销白名单在下一条消息就生效，不必重启进程；
 - 工具：QQ 上下文 DenyApprover（fail-closed），safe 级直通。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -41,9 +42,7 @@ def _event_id(event: dict) -> str | None:
     return str(value)
 
 
-def _resolve_scope(
-    runtime: Runtime, client: OneBotClient, event: dict
-) -> tuple[str, int, bool] | None:
+def _resolve_scope(runtime: Runtime, client: OneBotClient, event: dict) -> tuple[str, int, bool] | None:
     """判定本条消息是否该处理：返回 (作用域键, 会话 key, 是否带个人上下文)。
 
     拒绝路径一律返回 None（静默），不区分"没授权"和"不存在"，避免探测。
@@ -76,8 +75,11 @@ def _resolve_scope(
         raw = str(event.get("raw_message") or "")
         mentioned = str(bot) in cq_values(raw, "at", "qq")
         inbox = getattr(runtime, "qq_messages", None)
-        replied = (getattr(policy, "group_reply_to_bot", False) and inbox is not None and
-                   any(inbox.is_reply(bot, f"group:{group_id}", mid) for mid in cq_values(raw, "reply", "id")))
+        replied = (
+            getattr(policy, "group_reply_to_bot", False)
+            and inbox is not None
+            and any(inbox.is_reply(bot, f"group:{group_id}", mid) for mid in cq_values(raw, "reply", "id"))
+        )
         if not mentioned and not replied:
             return None
         return "group", group_id, False
@@ -99,9 +101,7 @@ def _session_for(runtime: Runtime, scope: str, key: int) -> int:
     return runtime.store.get_or_create_binding("qq", binding_key)
 
 
-async def _handle_message(
-    runtime: Runtime, client: OneBotClient, event: dict, locks: dict[str, asyncio.Lock]
-) -> None:
+async def _handle_message(runtime: Runtime, client: OneBotClient, event: dict, locks: dict[str, asyncio.Lock]) -> None:
     """单事件入口；生产 dispatcher 在同一场景内合并后调用相同处理器。"""
     scope = _resolve_scope(runtime, client, event)
     inbox = getattr(runtime, "qq_messages", None)
@@ -125,8 +125,9 @@ def _cancel_session(runtime: Runtime, session_id: int, reason: str) -> None:
                 run.cancel_token.cancel(reason)
 
 
-async def _handle_batch(runtime: Runtime, client: OneBotClient,
-                        scope: tuple[str, int, bool], events: list[dict]) -> None:
+async def _handle_batch(
+    runtime: Runtime, client: OneBotClient, scope: tuple[str, int, bool], events: list[dict]
+) -> None:
     scope_name, target_id, personal = scope
     scene = f"{scope_name}:{target_id}"
     bot = int(events[0].get("self_id") or client.self_id)
@@ -134,8 +135,7 @@ async def _handle_batch(runtime: Runtime, client: OneBotClient,
     status = "suppressed"
 
     def valid(event: dict) -> bool:
-        return (_resolve_scope(runtime, client, event) == scope and
-                inbox.active(bot, scene, _event_id(event)))
+        return _resolve_scope(runtime, client, event) == scope and inbox.active(bot, scene, _event_id(event))
 
     try:
         lo, hi = runtime.config.qq.reply_delay_s
@@ -148,12 +148,18 @@ async def _handle_batch(runtime: Runtime, client: OneBotClient,
         if not text or len(text) > 16000:
             return
         sid = _session_for(runtime, scope_name, target_id)
+
         # 身份由可信通道提供，群话题历史与待办均绑定该场景的 session。
         # scope：私聊恒为 private（含非所有者——agent 侧据此注入人物卡）；群聊带群号
         def chat() -> str:
-            return runtime.agent.chat(text, session_id=sid, personal_context=personal,
-                                      channel="qq", principal=f"qq:{selected[0]['user_id']}",
-                                      context_scope="private" if scope_name == "dm" else scene)
+            return runtime.agent.chat(
+                text,
+                session_id=sid,
+                personal_context=personal,
+                channel="qq",
+                principal=f"qq:{selected[0]['user_id']}",
+                context_scope="private" if scope_name == "dm" else scene,
+            )
 
         # 租约覆盖模型、回写与发送；线程真正结束前不能释放给另一进程。
         with runtime.session_leases.hold(sid) as token:
@@ -188,7 +194,9 @@ async def _handle_batch(runtime: Runtime, client: OneBotClient,
                     return
                 status = "unknown"  # 发送前登记语义，抛错也不能重放整批。
                 # 路由按场景而非 personal 标志：非所有者私聊 personal=False，但必须仍发私聊
-                ids = await (client.send_private(target_id, chunk) if scope_name == "dm" else client.send_group(target_id, chunk))
+                ids = await (
+                    client.send_private(target_id, chunk) if scope_name == "dm" else client.send_group(target_id, chunk)
+                )
                 inbox.remember_sent(bot, scene, ids or [])
             status = "done"
             print(f"[QQ] scene={scene} session={sid} events={len(selected)} replied_chars={len(answer)}", flush=True)
@@ -208,11 +216,14 @@ class QQDispatcher:
         self.tasks: dict[str, asyncio.Task] = {}
         self.limit = asyncio.Semaphore(runtime.config.qq.max_concurrent)
         self.pending = 0
+        runtime._qq_dispatcher = self
         self.closed = False
         # 自报运行态（工作台「服务与运行」页读它）：只记账，不参与任何决策
         self.stats: dict[str, Any] = {"received": 0, "handled": 0, "dropped": 0, "last_message_at": ""}
 
     async def on_event(self, event: dict) -> None:
+        if getattr(self.runtime, "updates", None) and self.runtime.updates.gate.active():
+            return
         if self.closed:
             return
         inbox = self.runtime.qq_messages
@@ -260,8 +271,12 @@ class QQDispatcher:
                     queue = self.queues[scene]
                     batch = [queue.popleft()]
                     size = len(str(batch[0].get("raw_message") or ""))
-                    while (queue and len(batch) < 8 and queue[0]["user_id"] == batch[0]["user_id"] and
-                           size + len(str(queue[0].get("raw_message") or "")) + 1 <= 16000):
+                    while (
+                        queue
+                        and len(batch) < 8
+                        and queue[0]["user_id"] == batch[0]["user_id"]
+                        and size + len(str(queue[0].get("raw_message") or "")) + 1 <= 16000
+                    ):
                         batch.append(queue.popleft())
                         size += len(str(batch[-1].get("raw_message") or "")) + 1
                     try:
@@ -288,8 +303,7 @@ async def _serve(runtime: Runtime, launch_id: str) -> None:
     client = runtime.qq
     assert client is not None  # main() 已检查
     dispatcher = QQDispatcher(runtime, client)
-    writer = StateWriter(state_path(runtime.paths.run, "omni-qq"),
-                         service="omni-qq", launch_id=launch_id)
+    writer = StateWriter(state_path(runtime.paths.run, "omni-qq"), service="omni-qq", launch_id=launch_id)
 
     async def _report() -> None:
         while True:
@@ -297,8 +311,12 @@ async def _serve(runtime: Runtime, launch_id: str) -> None:
             writer.write(
                 health="ok" if connected else "degraded",
                 note="" if connected else f"未连上 NapCat（{runtime.config.qq.ws_url}）",
-                stats={"connected": connected, "pending": dispatcher.pending,
-                       "in_flight": len(dispatcher.tasks), **dispatcher.stats},
+                stats={
+                    "connected": connected,
+                    "pending": dispatcher.pending,
+                    "in_flight": len(dispatcher.tasks),
+                    **dispatcher.stats,
+                },
             )
             await asyncio.sleep(REPORT_INTERVAL_S)
 
@@ -314,6 +332,7 @@ async def _serve(runtime: Runtime, launch_id: str) -> None:
 
 def main() -> None:
     from ..system.observability import configure_service_logging
+
     configure_service_logging()
     load_env()
     runtime = build_runtime(approver=DenyApprover(), owner_kind="qq")
@@ -322,14 +341,12 @@ def main() -> None:
     try:
         if runtime.qq is None:
             raise SystemExit(
-                "QQ 未启用：在 config/config.yaml 设置 qq.enabled: true，"
-                "并按 docs/QQ_SETUP.md 启动 NapCat。"
+                "QQ 未启用：在 config/config.yaml 设置 qq.enabled: true，并按 docs/QQ_SETUP.md 启动 NapCat。"
             )
         policy = runtime.qq_policy()
         if not policy.allowed_users:
             print(
-                "[QQ] 警告：allowed_users 为空，将不响应任何私聊、也不投递任何主动消息"
-                "（先配置你的 QQ 号）",
+                "[QQ] 警告：allowed_users 为空，将不响应任何私聊、也不投递任何主动消息（先配置你的 QQ 号）",
                 flush=True,
             )
         if policy.allowed_groups:

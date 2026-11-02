@@ -1,9 +1,11 @@
 """配置加载：.env 密钥 + config.yaml 主配置 + 运行期路径表。"""
+
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -22,6 +24,19 @@ def application_root(root: Path = PROJECT_ROOT) -> Path:
 
 def source_root(root: Path = PROJECT_ROOT) -> Path:
     return application_root(root) / "src/omni"
+
+
+def web_root(root: Path = PROJECT_ROOT) -> Path:
+    """源码态、sdist 与已安装 wheel 使用同一资源定位协议，不依赖当前目录。"""
+    root = Path(root)
+    candidates = (
+        root / "web",
+        root / "_web",
+        Path(__file__).parent / "web_assets",
+        source_root(root) / "channels/web_static",
+    )
+    return next((path for path in candidates if (path / "index.html").is_file()), candidates[-1])
+
 
 CONFIG_PATH = PROJECT_ROOT / "config" / "config.yaml"
 ENV_PATH = PROJECT_ROOT / ".env"
@@ -44,22 +59,22 @@ class RuntimePaths:
     """
 
     data: Path
-    config: Path          # 配置源（读 + 工作台写回同一个文件）
-    env: Path             # 密钥文件（.env）：与 config 同一棵树，迁移时一起搬
-    state: Path           # 共享运行状态（任务/执行账本/额度/迁移记录，SQLite）
-    memory: Path          # 可独立注入的记忆库；诊断与备份必须读同一路径。
-    resident: Path        # 常驻工作笔记（MEMORY.md）
-    history: Path         # 技能与常驻内容的修订快照（可回滚）
-    file_history: Path    # 工作区文件的写入备份与回滚（D13）
-    cookies: Path         # B站登录态
-    skills: Path          # 技能库（与 data 独立，可单独注入）
-    cache: Path           # 可再生的缓存（ASR 等）
+    config: Path  # 配置源（读 + 工作台写回同一个文件）
+    env: Path  # 密钥文件（.env）：与 config 同一棵树，迁移时一起搬
+    state: Path  # 共享运行状态（任务/执行账本/额度/迁移记录，SQLite）
+    memory: Path  # 可独立注入的记忆库；诊断与备份必须读同一路径。
+    resident: Path  # 常驻工作笔记（MEMORY.md）
+    history: Path  # 技能与常驻内容的修订快照（可回滚）
+    file_history: Path  # 工作区文件的写入备份与回滚（D13）
+    cookies: Path  # B站登录态
+    skills: Path  # 技能库（与 data 独立，可单独注入）
+    cache: Path  # 可再生的缓存（ASR 等）
     android_shots: Path
     android_cache: Path
     browser_profile: Path
     browser_shots: Path
-    artifacts: Path      # 产物文件（截图/导出，D15）
-    run: Path             # 服务 pid
+    artifacts: Path  # 产物文件（截图/导出，D15）
+    run: Path  # 服务 pid
     logs: Path
     command_logs: Path
     mcp_logs: Path
@@ -70,6 +85,15 @@ class RuntimePaths:
     service_logs: Path | None = None
     agent_id: str = "default"
     catalog: Path | None = None
+    updates: Path | None = None  # 固定安装控制区；不随 Agent 业务根移动。
+
+    @property
+    def persona_presets(self) -> Path:
+        return self.data / "persona_presets.json"
+
+    @property
+    def mcp_credentials(self) -> Path:
+        return self.data / "mcp_credentials"
 
     @classmethod
     def create(
@@ -85,11 +109,7 @@ class RuntimePaths:
         return cls(
             data=data,
             config=config_file,
-            env=(
-                config_file.parent.parent / ".env"
-                if config_path is not None
-                else ENV_PATH
-            ),
+            env=(config_file.parent.parent / ".env" if config_path is not None else ENV_PATH),
             state=data / "state.db",
             memory=Path(memory_path) if memory_path is not None else data / "memory.db",
             resident=data / "MEMORY.md",
@@ -113,6 +133,7 @@ class RuntimePaths:
             documents=data / "documents",
             service_logs=data / "system_logs",
             catalog=data / "control" / "agents.json",
+            updates=data / "control" / "updates",
         )
 
 
@@ -123,8 +144,8 @@ def load_env(env_path: Path | None = None) -> None:
     缺失或为空的变量用 .env 填充——机器里可能残留空值变量（本次踩坑：
     空的 DEEPSEEK_API_KEY 曾导致 Authorization: "Bearer " 非法）。
     """
-    selected_config = os.environ.get('OMNI_CONFIG_PATH')
-    path = env_path or (Path(selected_config).resolve().parent.parent / '.env' if selected_config else ENV_PATH)
+    selected_config = os.environ.get("OMNI_CONFIG_PATH")
+    path = env_path or (Path(selected_config).resolve().parent.parent / ".env" if selected_config else ENV_PATH)
     if not path.exists():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -160,9 +181,7 @@ class Persona(BaseModel):
     """
 
     name: str = "小鱼"
-    system_prompt: str = (
-        "你是 OmniOperator，一个运行在用户电脑上的个人智能体。"
-    )
+    system_prompt: str = "你是 OmniOperator，一个运行在用户电脑上的个人智能体。"
     # 场景层：群聊与私聊各一段，只做追加，不改写核心。
     group_prompt: str = ""
     private_prompt: str = ""
@@ -174,7 +193,13 @@ class Persona(BaseModel):
 REASONING_LEVELS: tuple[str, ...] = ("auto", "off", "low", "medium", "high", "max")
 # 与 Models 的字段一一对应；顺序同时也是「同一模型被多个槽位使用」时的优先级。
 REASONING_SLOTS: tuple[str, ...] = (
-    "chat", "vision", "review", "router", "chat_mode", "retrieval_mode", "agent_mode",
+    "chat",
+    "vision",
+    "review",
+    "router",
+    "chat_mode",
+    "retrieval_mode",
+    "agent_mode",
 )
 
 
@@ -185,10 +210,10 @@ class Models(BaseModel):
     review: str = ""  # 回合后 review 用的模型；留空则跟随 chat
     # 回合能力档位（chat/retrieval/agent）各自的模型；留空都跟随 chat。
     # 留空而不是写死，是让"每档用不同模型"成为可选增强，而不是必填负担。
-    router: str = ""          # 能力判定模型；留空跟随 review，再留空跟随 chat
-    chat_mode: str = ""       # chat 档位模型；留空跟随 chat
+    router: str = ""  # 能力判定模型；留空跟随 review，再留空跟随 chat
+    chat_mode: str = ""  # chat 档位模型；留空跟随 chat
     retrieval_mode: str = ""  # retrieval 档位模型；留空跟随 chat
-    agent_mode: str = ""      # agent 档位模型；留空跟随 chat
+    agent_mode: str = ""  # agent 档位模型；留空跟随 chat
 
 
 class Reasoning(BaseModel):
@@ -237,7 +262,7 @@ class ModeRouting(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
-    default_mode: str = "auto"    # auto / chat / retrieval / agent
+    default_mode: str = "auto"  # auto / chat / retrieval / agent
     allow_escalation: bool = True  # 轻量档位可否在本回合升档一次
 
     @field_validator("default_mode")
@@ -262,7 +287,7 @@ class ModelCapability(BaseModel):
     vision: bool = False
     stream: bool = True
     context_tokens: int = Field(default=0, ge=0)  # 0 = 未声明
-    input_usd_per_m: float | None = Field(default=None, ge=0)   # 每百万输入 token
+    input_usd_per_m: float | None = Field(default=None, ge=0)  # 每百万输入 token
     output_usd_per_m: float | None = Field(default=None, ge=0)  # 每百万输出 token
 
 
@@ -305,17 +330,17 @@ class Vision(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     send_to_cloud: bool = False
-    max_image_bytes: int = Field(default=4_000_000, gt=0)   # 单图上限（字节）
-    max_images_per_turn: int = Field(default=4, ge=1)        # 单回合最多附图数
-    max_edge_px: int = Field(default=1568, ge=64)            # 长边超此值先缩放再发
+    max_image_bytes: int = Field(default=4_000_000, gt=0)  # 单图上限（字节）
+    max_images_per_turn: int = Field(default=4, ge=1)  # 单回合最多附图数
+    max_edge_px: int = Field(default=1568, ge=64)  # 长边超此值先缩放再发
 
 
 class Artifacts(BaseModel):
     """产物（截图/导出）的保留与容量。"""
 
     model_config = ConfigDict(extra="forbid")
-    retention_days: int = Field(default=7, ge=0)   # 0 = 永不过期（不推荐）
-    max_total_mb: int = Field(default=500, ge=1)   # 总量上限，超了拒绝保存新产物
+    retention_days: int = Field(default=7, ge=0)  # 0 = 永不过期（不推荐）
+    max_total_mb: int = Field(default=500, ge=1)  # 总量上限，超了拒绝保存新产物
 
 
 class LLM(BaseModel):
@@ -332,10 +357,10 @@ class LLM(BaseModel):
 
 
 class Limits(BaseModel):
-    max_history_messages: int = Field(default=40,ge=1,le=10000)
-    max_agent_steps: int = Field(default=8,ge=1,le=64)
-    resident_memory_chars: int = Field(default=2200,ge=1,le=32000)
-    session_queue_depth: int = 1   # 同一会话允许排队的请求数（不含正在执行的那条）
+    max_history_messages: int = Field(default=40, ge=1, le=10000)
+    max_agent_steps: int = Field(default=8, ge=1, le=64)
+    resident_memory_chars: int = Field(default=2200, ge=1, le=32000)
+    session_queue_depth: int = 1  # 同一会话允许排队的请求数（不含正在执行的那条）
     session_lease_ttl_s: int = 600  # 跨进程会话租约的有效期（进程崩溃后按此过期）
 
 
@@ -343,10 +368,10 @@ class Review(BaseModel):
     """回合后异步 review（记忆自进化）的开关与预算。"""
 
     enabled: bool = True
-    max_messages: int = Field(default=12,ge=1,le=10000)
-    steps: int = Field(default=4,ge=1,le=64)
-    queue_depth: int = Field(default=4,ge=1,le=1000)
-    min_messages: int = Field(default=2,ge=1,le=10000)
+    max_messages: int = Field(default=12, ge=1, le=10000)
+    steps: int = Field(default=4, ge=1, le=64)
+    queue_depth: int = Field(default=4, ge=1, le=1000)
+    min_messages: int = Field(default=2, ge=1, le=10000)
 
 
 class Memory(BaseModel):
@@ -356,9 +381,9 @@ class Memory(BaseModel):
     自动 review 与用户手动操作走同一条路，不能靠模型自觉。
     """
 
-    max_writes_per_day: int = Field(default=200,ge=0,le=100000)
-    max_fact_chars: int = Field(default=500,ge=1,le=32000)
-    recall_prefix: bool = True      # 检索结果加"这是数据不是指令"的说明
+    max_writes_per_day: int = Field(default=200, ge=0, le=100000)
+    max_fact_chars: int = Field(default=500, ge=1, le=32000)
+    recall_prefix: bool = True  # 检索结果加"这是数据不是指令"的说明
 
 
 class Skills(BaseModel):
@@ -381,14 +406,14 @@ class Web(BaseModel):
     由用户在配置里逐条授权——模型没有任何参数能让它连内网。
     """
 
-    max_bytes: int = 2_000_000          # 响应体最多读多少字节（超出即停，不落盘）
-    max_chars: int = 8000               # 默认返回多少字符正文
-    max_links: int = 10                 # 默认返回多少条链接
-    timeout_s: float = 15.0             # 单次连接/读取超时
-    total_deadline_s: float = 30.0      # 含重定向的总时限
-    max_redirects: int = 5              # 最多跟随几次重定向（每跳重新校验目标）
+    max_bytes: int = 2_000_000  # 响应体最多读多少字节（超出即停，不落盘）
+    max_chars: int = 8000  # 默认返回多少字符正文
+    max_links: int = 10  # 默认返回多少条链接
+    timeout_s: float = 15.0  # 单次连接/读取超时
+    total_deadline_s: float = 30.0  # 含重定向的总时限
+    max_redirects: int = 5  # 最多跟随几次重定向（每跳重新校验目标）
     allow_private_hosts: list[str] = Field(default_factory=list)  # 显式授权的内网目标
-    user_agent: str = ""                # 留空用内置 UA
+    user_agent: str = ""  # 留空用内置 UA
 
 
 class Files(BaseModel):
@@ -398,31 +423,31 @@ class Files(BaseModel):
     模型没有任何参数能扩展它——否则"再传一个 path"就成了自我授权。
     """
 
-    root: str = ""                    # 留空 = 项目根目录
-    extra_roots: list[str] = Field(default_factory=list)        # 额外授权目录（用户手写）
-    deny_globs: list[str] = Field(default_factory=list)         # 额外不可读（相对各根）
-    write_deny_globs: list[str] = Field(default_factory=list)   # 额外不可写
-    max_read_lines: int = 200         # files_read 单次默认行数
-    max_list_entries: int = 200       # files_list 单次默认条目
-    max_search_files: int = 2000      # 搜索最多访问多少个文件
-    max_search_results: int = 80      # 搜索最多返回多少条命中
-    max_search_seconds: float = 5.0   # 搜索时间上限（防止巨目录拖死回合）
+    root: str = ""  # 留空 = 项目根目录
+    extra_roots: list[str] = Field(default_factory=list)  # 额外授权目录（用户手写）
+    deny_globs: list[str] = Field(default_factory=list)  # 额外不可读（相对各根）
+    write_deny_globs: list[str] = Field(default_factory=list)  # 额外不可写
+    max_read_lines: int = 200  # files_read 单次默认行数
+    max_list_entries: int = 200  # files_list 单次默认条目
+    max_search_files: int = 2000  # 搜索最多访问多少个文件
+    max_search_results: int = 80  # 搜索最多返回多少条命中
+    max_search_seconds: float = 5.0  # 搜索时间上限（防止巨目录拖死回合）
 
 
 class Compression(BaseModel):
     """上下文压缩（长会话防膨胀；Hermes compression_facade 最小版）。"""
 
     enabled: bool = True
-    trigger_chars: int = Field(default=24000,ge=1,le=4000000)
-    keep_recent: int = Field(default=12,ge=0,le=10000)
-    min_messages: int = Field(default=16,ge=1,le=10000)
+    trigger_chars: int = Field(default=24000, ge=1, le=4000000)
+    keep_recent: int = Field(default=12, ge=0, le=10000)
+    min_messages: int = Field(default=16, ge=1, le=10000)
 
 
 class Asr(BaseModel):
     """本地 ASR（faster-whisper，无字幕视频转写兜底）。"""
 
-    model: str = "small"       # tiny/base/small/medium；small 中文质量与速度平衡
-    device: str = "cpu"        # 有 NVIDIA GPU 可改 cuda
+    model: str = "small"  # tiny/base/small/medium；small 中文质量与速度平衡
+    device: str = "cpu"  # 有 NVIDIA GPU 可改 cuda
     compute_type: str = "int8"
 
 
@@ -432,7 +457,7 @@ class QQ(BaseModel):
     enabled: bool = False
     ws_url: str = "ws://127.0.0.1:3001"
     access_token: str = ""
-    allowed_users: list[int] = Field(default_factory=list)   # 私聊白名单（空=拒绝所有人）
+    allowed_users: list[int] = Field(default_factory=list)  # 私聊白名单（空=拒绝所有人）
     allowed_groups: list[int] = Field(default_factory=list)  # 群白名单（群里还需 @机器人）
     reply_delay_s: list[float] = Field(default_factory=lambda: [1.0, 3.0])  # 拟人回复延迟
     group_reply_to_bot: bool = False
@@ -453,6 +478,7 @@ class QQ(BaseModel):
     def check_qq_policy(self):
         import datetime as dt
         from zoneinfo import ZoneInfo
+
         try:
             ZoneInfo(self.timezone)
         except (KeyError, ValueError) as exc:
@@ -469,14 +495,15 @@ class QQ(BaseModel):
 class Browser(BaseModel):
     """浏览器能力域（P3 写操作走 UI）。"""
 
-    headless: bool = False          # 默认有头：用户能看到它在干什么（像人）
-    slow_mo_ms: int = 120           # Playwright 慢放（拟人节奏 + 稳定性）
-    max_writes_per_day: int = 50    # 每日写操作预算（click/type 合计）
+    headless: bool = False  # 默认有头：用户能看到它在干什么（像人）
+    slow_mo_ms: int = 120  # Playwright 慢放（拟人节奏 + 稳定性）
+    max_writes_per_day: int = 50  # 每日写操作预算（click/type 合计）
     approval_timeout_s: float = 180.0  # 确认等待上限，超时自动拒绝
 
 
 class UIFormSelectors(BaseModel):
     """用户核验过的页面控件描述；不从模型输入接受选择器或脚本。"""
+
     model_config = ConfigDict(extra="forbid")
     account: str
     account_attr: str = "data-mid"
@@ -491,6 +518,10 @@ class UIFormSelectors(BaseModel):
     record_author_attr: str = "data-mid"
     challenge: str
     logged_out: str
+    mention_input: str = ""
+    mention_options: str = ""
+    mention_nodes: str = ""
+    mention_uid_attr: str = "data-mid"
 
 
 class BilibiliWrite(BaseModel):
@@ -504,8 +535,14 @@ class BilibiliWrite(BaseModel):
         if set(self.forms) - {"comment", "private_message"}:
             raise ValueError("B站写表单仅支持 comment/private_message")
         for profile in self.forms.values():
-            if any(not value.strip() or len(value) > 500 for value in profile.model_dump().values()):
+            optional = {"mention_input", "mention_options", "mention_nodes"}
+            if any(
+                (not value.strip() and key not in optional) or len(value) > 500
+                for key, value in profile.model_dump().items()
+            ):
                 raise ValueError("B站表单选择器/属性不能为空或过长")
+            if bool(profile.mention_options) != bool(profile.mention_nodes):
+                raise ValueError("真实艾特必须同时配置候选项和已选组件")
         return self
 
 
@@ -538,10 +575,15 @@ class Approval(BaseModel):
 
 
 class MCPServerConfig(BaseModel):
-    """仅用户配置可声明本地 stdio 服务；模型不能修改命令或权限。"""
+    """仅用户配置可声明stdio或远程服务；模型不能修改连接、认证或权限。"""
 
     model_config = ConfigDict(extra="forbid")
-    command: str = Field(min_length=1)
+    command: str = ""
+    transport: Literal["stdio", "streamable_http"] = "stdio"
+    url: str = ""
+    auth: Literal["none", "oauth"] = "none"
+    oauth_redirect_uri: str = "http://127.0.0.1:8000/?mcp_auth=1"
+    oauth_allowed_origins: list[str] = Field(default_factory=list)
     args: list[str] = Field(default_factory=list)
     env: dict[str, str] = Field(default_factory=dict)  # 值可用 ${ENV_NAME} 引用 .env
     cwd: str | None = None
@@ -562,6 +604,52 @@ class MCPServerConfig(BaseModel):
 
     @model_validator(mode="after")
     def readonly_subset(self) -> MCPServerConfig:
+        from urllib.parse import urlsplit
+
+        if self.transport == "stdio" and not self.command:
+            raise ValueError("stdio MCP需要command")
+        if self.transport == "stdio" and (self.url or self.auth != "none" or self.oauth_allowed_origins):
+            raise ValueError("远程连接与OAuth只能用于streamable_http")
+        if self.transport == "streamable_http":
+            parsed = urlsplit(self.url)
+            if (
+                not parsed.hostname
+                or parsed.username
+                or parsed.password
+                or parsed.fragment
+                or parsed.query
+                or (
+                    parsed.scheme != "https"
+                    and not (parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1", "::1"})
+                )
+            ):
+                raise ValueError("远程MCP必须使用无凭据的HTTPS地址；HTTP仅供回环测试")
+            callback = urlsplit(self.oauth_redirect_uri)
+            if (
+                callback.scheme != "http"
+                or callback.hostname not in {"localhost", "127.0.0.1", "::1"}
+                or callback.username
+                or callback.password
+                or callback.fragment
+                or callback.path not in {"", "/"}
+                or callback.query != "mcp_auth=1"
+            ):
+                raise ValueError("OAuth回调必须为本地工作台")
+            for value in self.oauth_allowed_origins:
+                allowed = urlsplit(value)
+                if (
+                    not allowed.hostname
+                    or allowed.username
+                    or allowed.password
+                    or allowed.query
+                    or allowed.fragment
+                    or allowed.path not in {"", "/"}
+                    or (
+                        allowed.scheme != "https"
+                        and not (allowed.scheme == "http" and allowed.hostname in {"localhost", "127.0.0.1", "::1"})
+                    )
+                ):
+                    raise ValueError("OAuth授权来源须为无路径、无凭据的HTTPS来源；HTTP仅限回环")
         if self.allowed_tools is not None and not set(self.read_only_tools) <= set(self.allowed_tools):
             raise ValueError("MCP read_only_tools 必须包含在 allowed_tools 中")
         return self
@@ -584,6 +672,7 @@ class MCPConfig(BaseModel):
 class Desktop(BaseModel):
     model_config = ConfigDict(extra="forbid")
     enabled: bool = False
+    foreground_enabled: bool = False
     allowed_apps: list[str] = Field(default_factory=list)  # 完整 exe 路径；空列表全拒
     max_nodes: int = Field(default=100, ge=1, le=300)
     timeout_s: float = Field(default=15, ge=1, le=60)
@@ -618,6 +707,7 @@ class Embedding(BaseModel):
     @model_validator(mode="after")
     def validate_provider(self):
         from urllib.parse import urlsplit
+
         if self.provider not in {"local", "api"}:
             raise ValueError("embedding.provider 必须是 local 或 api")
         url = urlsplit(self.endpoint)
@@ -631,7 +721,11 @@ class Embedding(BaseModel):
             raise ValueError("API embedding 必须配置 HTTPS endpoint")
         if self.enabled and not self.model.strip():
             raise ValueError("启用 embedding 前必须配置已有模型")
-        if self.enabled and self.provider == "api" and not (self.send_to_cloud and self.daily_usd > 0 and self.input_usd_per_m > 0):
+        if (
+            self.enabled
+            and self.provider == "api"
+            and not (self.send_to_cloud and self.daily_usd > 0 and self.input_usd_per_m > 0)
+        ):
             raise ValueError("API embedding 需要显式 send_to_cloud、每日预算和输入单价")
         return self
 
@@ -651,11 +745,11 @@ class Journal(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     enabled: bool = True
-    daily_time: str = "23:30"      # 当天整理的触发时刻（HH:MM）
-    steps: int = Field(default=6, ge=1, le=12)          # 单次整理的模型步数预算
-    max_catchup: int = Field(default=3, ge=1, le=10)     # 每轮最多补整理几天积压
+    daily_time: str = "23:30"  # 当天整理的触发时刻（HH:MM）
+    steps: int = Field(default=6, ge=1, le=12)  # 单次整理的模型步数预算
+    max_catchup: int = Field(default=3, ge=1, le=10)  # 每轮最多补整理几天积压
     max_input_chars: int = Field(default=40000, ge=4000, le=200000)  # 取材截断上限
-    max_note_chars: int = Field(default=6000, ge=500, le=20000)      # 单篇笔记上限
+    max_note_chars: int = Field(default=6000, ge=500, le=20000)  # 单篇笔记上限
     daily_prompt: str = ""
     weekly_prompt: str = ""
     monthly_prompt: str = ""
@@ -681,7 +775,7 @@ class Transcript(BaseModel):
     max_entry_chars: int = Field(default=20000, ge=1000, le=200000)
     max_tool_args_chars: int = Field(default=4000, ge=200, le=50000)
     max_tool_result_chars: int = Field(default=4000, ge=200, le=50000)
-    retention_days: int = Field(default=0, ge=0, le=3650)          # 会话全量（M2）
+    retention_days: int = Field(default=0, ge=0, le=3650)  # 会话全量（M2）
     dialogue_retention_days: int = Field(default=0, ge=0, le=3650)  # 对话全量（M1）
 
 
@@ -709,7 +803,8 @@ class AndroidConfig(BaseModel):
     @classmethod
     def packages(cls, values):
         import re
-        if any(not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+",value) for value in values):
+
+        if any(not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+", value) for value in values):
             raise ValueError("android.allowed_apps 只接受包名，不接受命令或 Intent")
         return values
 
@@ -732,7 +827,14 @@ class TerminalConfig(BaseModel):
     detach_ttl_s: float = Field(default=600, ge=1, le=86400)
 
 
+class Updates(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    channel: Literal["stable", "development"] = "stable"
+    auto_check: bool = True
+
+
 class AppConfig(BaseModel):
+    updates: Updates = Field(default_factory=Updates)
     android: AndroidConfig = Field(default_factory=AndroidConfig)
     command_jobs: CommandJobsConfig = Field(default_factory=CommandJobsConfig)
     terminal: TerminalConfig = Field(default_factory=TerminalConfig)

@@ -149,18 +149,12 @@ async with websockets.connect(
 | `agent/tests/test_qq.py`（隔离 worktree，`PYTHONPATH` 指向 worktree 源码） | **14 passed**（原 11 + 新 3） |
 | `agent/tests/test_arch.py` + `test_qq.py` + `test_service_overview.py` | **54 passed** |
 | 端到端复刻脚本（故障环境 + 真实回环 WS 服务） | 修复后连接成功、零 `InvalidProxyStatus`、零 `EOFError` |
-| **真机**：`omni-qq` / `omni-heartbeat` 重启后日志 | **新增 `InvalidProxyStatus=0`、`EOFError=0`、`连接断开=0`**，各一次连上；QQ 消息实收实回（`replied_chars=457`） |
 
 ## 6. 剩余限制（未做/待真机）
 
-- **真机已验收（2026-11-02）**：经工作台 API（`POST /api/auth/pair` 换 session cookie →
-  `POST /api/system/services/{name}/restart`）重启 `omni-qq`（pid 21464）与
-  `omni-heartbeat`（pid 70208）后，按「最后一次『已连接 ws://127.0.0.1:3001』」切分日志核实：
-  **修复后新增 `InvalidProxyStatus=0`、`EOFError=0`、`连接断开=0`，两个服务各一次连上**
-  （修复前历史累计：`omni-qq` 131 次 / 131 次、`omni-heartbeat` 449 次 / 449 次）。
-  更进一步：`omni-qq` 修复后**确实收到了真实 QQ 消息并回复**——
-  `[QQ] scene=dm:2079937150 session=15 events=1 replied_chars=457`（及 `362`），
-  说明不只是日志变干净，消息收发链路也真的通了。
+- **真机验收未做**：本轮在隔离 worktree 内完成单测与端到端复刻，**没有**重启用户正在
+  运行的 omni-qq / omni-heartbeat 服务去看日志是否真的干净——工作台与三个服务都在跑，
+  重启会影响用户当前会话，需另行安排。代码路径已由对照实验证明等价。
 - **`docs/index/` 未更新**：HEAD 里提交的索引本身已过期（提交进去的是并行会话在途的
   60 模块/335 文件版本，而 HEAD 实际源码只有 58 模块/323 文件）。在 HEAD 原样状态下跑
   `project_index.py --check` 同样报 `stale=MODULES.md,API.md,project.json`，

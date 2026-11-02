@@ -3,6 +3,7 @@
 实现已拆到 `tools/shell/` 包（spec/process/danger/tools）；本文件只做转发，
 不新增逻辑——避免出现"两套相互矛盾的放行判断"。
 """
+
 from __future__ import annotations
 
 from .shell import (

@@ -16,13 +16,27 @@ from omni.tools.registry import SessionRef, ToolRegistry
 
 class FakeDesktop:
     def __init__(self, exe):
-        self.state = {"identity": {"hwnd": 101, "pid": 20, "created": "123", "exe": str(exe), "title": "Fixture"},
-                      "enabled": True, "minimized": False, "nodes": [
-                          {"id": "edit-1", "value": "before", "set_value": True, "invoke": False,
-                           "enabled": True, "password": False, "offscreen": False, "truncated": False}]}
+        self.state = {
+            "identity": {"hwnd": 101, "pid": 20, "created": "123", "exe": str(exe), "title": "Fixture"},
+            "enabled": True,
+            "minimized": False,
+            "nodes": [
+                {
+                    "id": "edit-1",
+                    "value": "before",
+                    "set_value": True,
+                    "invoke": False,
+                    "enabled": True,
+                    "password": False,
+                    "offscreen": False,
+                    "truncated": False,
+                }
+            ],
+        }
         self.fingerprint = "first"
         self.actions = []
         self.unknown = False
+
     def request(self, command, **args):
         if command == "windows":
             return {"windows": [copy.deepcopy(self.state["identity"])]}
@@ -40,9 +54,14 @@ def desktop(tmp_path):
     state = StateStore(tmp_path / "state.db")
     exe = tmp_path / "allowed.exe"
     backend = FakeDesktop(exe)
-    time = [0.]
-    driver = DesktopDriver(Desktop(enabled=True, allowed_apps=[str(exe)]), backend, ResourceLeases(state),
-                           WriteBudget(state, max_per_day=2, scope="desktop_write"), clock=lambda: time[0])
+    time = [0.0]
+    driver = DesktopDriver(
+        Desktop(enabled=True, allowed_apps=[str(exe)]),
+        backend,
+        ResourceLeases(state),
+        WriteBudget(state, max_per_day=2, scope="desktop_write"),
+        clock=lambda: time[0],
+    )
     yield driver, backend, time, state
     state.close()
 
@@ -126,11 +145,80 @@ def test_disabled_desktop_does_not_start_native_backend(desktop):
 def test_approval_preview_must_match_observed_application(desktop):
     driver, backend, _, _ = desktop
     observation = driver.observe(101)["observation"]
-    result = driver.action(observation, "edit-1", "set_value", "content",
-                           preview={"window_title": "fake harmless app", "application": "different.exe"})
+    result = driver.action(
+        observation,
+        "edit-1",
+        "set_value",
+        "content",
+        preview={"window_title": "fake harmless app", "application": "different.exe"},
+    )
     assert result.status == "error" and not backend.actions
 
 
 def test_desktop_tools_not_available_in_group_scope():
     from omni.core.agent import GROUP_DENIED_TOOLS
+
     assert {"desktop_windows", "desktop_observe", "desktop_screenshot", "desktop_action"} <= GROUP_DENIED_TOOLS
+
+
+def test_foreground_takeover_is_opt_in_and_bound_to_run(desktop):
+    driver, backend, _, _ = desktop
+    observation = driver.observe(101, session_id=1)["observation"]
+    assert (
+        driver.action(observation, "edit-1", "set_value", "after", session_id=1, foreground=True, run_id="run").status
+        == "error"
+    )
+    assert not backend.actions
+    driver.config.foreground_enabled = True
+    assert driver.action(observation, "edit-1", "set_value", "after", session_id=1, foreground=True).status == "error"
+    calls = []
+    original = backend.request
+
+    def request(command, **arguments):
+        if command == "foreground_action":
+            calls.append(arguments)
+            return original("action", **arguments)
+        return original(command, **arguments)
+
+    backend.request = request
+    result = driver.action(
+        observation, "edit-1", "set_value", "after", session_id=1, foreground=True, run_id="approved-run"
+    )
+    assert result.status == "ok"
+    assert calls[0]["run_id"] == "approved-run"
+    assert calls[0]["expected_identity"]["hwnd"] == 101
+
+
+def test_foreground_contention_rejects_and_input_interruption_is_not_replayed(desktop):
+    driver, backend, _, _ = desktop
+    driver.config.foreground_enabled = True
+    observed = driver.observe(101, session_id=1)["observation"]
+    lease = driver.leases.acquire("desktop:foreground", ttl_s=120)
+    try:
+        assert (
+            driver.action(observed, "edit-1", "set_value", "after", session_id=1, foreground=True, run_id="run").status
+            == "error"
+        )
+        assert not backend.actions
+    finally:
+        driver.leases.release(lease)
+    calls = []
+    original = backend.request
+
+    def interrupted(command, **arguments):
+        if command == "foreground_action":
+            calls.append(command)
+            raise DesktopError("用户输入，已暂停；效果需人工核查", unknown=True)
+        return original(command, **arguments)
+
+    backend.request = interrupted
+    result = driver.action(observed, "edit-1", "set_value", "after", session_id=1, foreground=True, run_id="run")
+    assert result.status == result.side_effect_state == "unknown"
+    assert (
+        driver.action(observed, "edit-1", "set_value", "after", session_id=1, foreground=True, run_id="run").status
+        == "error"
+    )
+    assert calls == ["foreground_action"]
+    # 中断释放接管租约；后续用户仍可发起新的独立授权。
+    fresh = driver.leases.acquire("desktop:foreground", ttl_s=120)
+    driver.leases.release(fresh)

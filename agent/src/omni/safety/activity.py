@@ -30,6 +30,7 @@
 **为什么要放在 `safety`（叶子层）**：判定是纯函数（输入是小时计数，
 输出是建议区间），不碰 IO、不读配置。读数据、落盘、呈现都在调用方。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -105,10 +106,7 @@ class QuietSuggestion:
     def describe(self) -> str:
         if not self.ok:
             return f"给不出建议：{self.reason}"
-        return (
-            f"建议安静时段 {self.start} – {self.end}"
-            f"（依据 {self.confidence * 100:.0f}% 的天数在这个区间没有活动）"
-        )
+        return f"建议安静时段 {self.start} – {self.end}（依据 {self.confidence * 100:.0f}% 的天数在这个区间没有活动）"
 
 
 def build_profile(hours_by_day: dict[str, set[int]]) -> ActivityProfile:
@@ -148,9 +146,7 @@ def suggest_quiet_hours(profile: ActivityProfile) -> QuietSuggestion:
     if days <= 0:
         return QuietSuggestion(False, reason="还没有对话记录，无法统计活跃时段")
     if days < MIN_SAMPLES_PER_HOUR:
-        return QuietSuggestion(
-            False, reason=f"只有 {days} 天的记录，至少要 {MIN_SAMPLES_PER_HOUR} 天才谈得上作息"
-        )
+        return QuietSuggestion(False, reason=f"只有 {days} 天的记录，至少要 {MIN_SAMPLES_PER_HOUR} 天才谈得上作息")
 
     rates: dict[int, float | None] = {h: profile.activity_rate(h) for h in range(24)}
     # 静默 = 活跃率已知且低于 50%

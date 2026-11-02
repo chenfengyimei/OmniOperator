@@ -1,4 +1,5 @@
 """delegate_task 单测：独立会话 / 会话引用还原 / 防嵌套 / 结果截断（全离线）。"""
+
 from omni.memory.store import MemoryStore
 from omni.tools.delegate_tools import register_delegate_tools
 from omni.tools.registry import SessionRef, ToolRegistry
@@ -34,9 +35,7 @@ def test_delegate_runs_in_dedicated_session_and_restores_ref(tmp_path):
     agent.session_ref.set(main_sid)
     agent_holder["agent"] = agent
 
-    out = registry.dispatch(
-        "delegate_task", {"prompt": "调查这个报错的原因", "label": "research"}
-    )
+    out = registry.dispatch("delegate_task", {"prompt": "调查这个报错的原因", "label": "research"})
     assert "子任务完成" in out and "调查这个报错的原因" in out
     # 子任务落在 delegate 绑定的独立会话（非主会话）
     assert agent.chat_calls[0][0] == "调查这个报错的原因"
@@ -56,9 +55,7 @@ def test_delegate_nesting_is_rejected(tmp_path):
     class NestingAgent(FakeAgent):
         def chat(self, text: str, *, session_id: int | None = None) -> str:
             # 子 run 里又发起委派 → 应被深度守卫拒绝而不是递归
-            nested = self.registry.dispatch(
-                "delegate_task", {"prompt": "内层委派"}
-            )
+            nested = self.registry.dispatch("delegate_task", {"prompt": "内层委派"})
             return f"外层结果[{nested}]"
 
     agent = NestingAgent(store, registry)
@@ -92,6 +89,7 @@ def test_delegate_guards(tmp_path):
     agent = FakeAgent(store)
     agent_holder["agent"] = agent
     assert "不能为空" in registry.dispatch("delegate_task", {"prompt": ""})
+
     # 失败现场保留在子会话
     class BoomAgent(FakeAgent):
         def chat(self, text: str, *, session_id: int | None = None) -> str:
@@ -144,10 +142,13 @@ def test_real_delegate_inherits_approval_and_restores_parent(tmp_path):
             if messages[-1]["role"] == "tool":
                 return SimpleNamespace(text=messages[-1]["content"], tool_calls=[])
             main = messages[-1]["content"].startswith("主任务\n\n<omni_runtime_context>")
-            call = SimpleNamespace(id="c1", function=SimpleNamespace(
-                name="delegate_task" if main else "write",
-                arguments='{"prompt":"子任务"}' if main else "{}",
-            ))
+            call = SimpleNamespace(
+                id="c1",
+                function=SimpleNamespace(
+                    name="delegate_task" if main else "write",
+                    arguments='{"prompt":"子任务"}' if main else "{}",
+                ),
+            )
             return SimpleNamespace(text="", tool_calls=[call])
 
     try:

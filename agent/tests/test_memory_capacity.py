@@ -19,6 +19,7 @@
 
 **全部离线**：不联网、不碰真实账号与真实目录、不调模型。
 """
+
 from __future__ import annotations
 
 from omni.memory.capacity import (
@@ -71,10 +72,10 @@ def test_remaining_chars_is_not_zero_when_unlimited() -> None:
 def test_collect_tiers_picks_and_sorts() -> None:
     """只挑出到线的，并按严重度排序：full > critical > warn。"""
     usages = [
-        CapacityUsage("常驻", 100, 1000),      # ok，不该出现
-        CapacityUsage("档案", 850, 1000),      # warn
-        CapacityUsage("技能", 1000, 1000),     # full
-        CapacityUsage("人物", 950, 1000),      # critical
+        CapacityUsage("常驻", 100, 1000),  # ok，不该出现
+        CapacityUsage("档案", 850, 1000),  # warn
+        CapacityUsage("技能", 1000, 1000),  # full
+        CapacityUsage("人物", 950, 1000),  # critical
     ]
     hits = collect_tiers(usages)
     assert [u.container for u in hits] == ["技能", "人物", "档案"]
@@ -111,11 +112,13 @@ def test_describe_usage_with_limit_shows_ratio() -> None:
 
 def test_tier_message_distinguishes_three_levels() -> None:
     """三档的**处置动作不同**，文案必须分开说。"""
-    text = tier_message([
-        CapacityUsage("档案", 1000, 1000),
-        CapacityUsage("常驻", 950, 1000),
-        CapacityUsage("人物", 850, 1000),
-    ])
+    text = tier_message(
+        [
+            CapacityUsage("档案", 1000, 1000),
+            CapacityUsage("常驻", 950, 1000),
+            CapacityUsage("人物", 850, 1000),
+        ]
+    )
     assert "100%" in text
     assert "90%" in text
     assert "80%" in text

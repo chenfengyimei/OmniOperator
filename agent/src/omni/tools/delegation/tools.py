@@ -12,6 +12,7 @@
 - 会话引用保存/恢复：子 run 会把 SessionRef 切到子会话，返回前必须还原，
   否则主回合后续工具（todo 等）会写错会话。
 """
+
 from __future__ import annotations
 
 import threading
@@ -48,10 +49,7 @@ def register_delegate_tools(
         if not prompt:
             return "错误：prompt 不能为空（说清子任务的目标与验收标准）"
         if _depth():
-            return (
-                "错误：已处于委派任务中，不支持嵌套委派——"
-                "请把子任务拆到主循环顺序执行"
-            )
+            return "错误：已处于委派任务中，不支持嵌套委派——请把子任务拆到主循环顺序执行"
         parent = run_ref.get() if run_ref is not None else None
         if parent is not None and parent.cancelled:
             return "错误：父运行已取消，不再启动新的子任务"
@@ -73,12 +71,8 @@ def register_delegate_tools(
                         prompt,
                         session_id=session_id,
                         channel=f"{getattr(parent, 'channel', 'cli')}:delegate",
-                        principal=(
-                            getattr(parent, "principal", "owner") if parent else "owner"
-                        ),
-                        personal_context=(
-                            getattr(parent, "scope", "private") == "private"
-                        ),
+                        principal=(getattr(parent, "principal", "owner") if parent else "owner"),
+                        personal_context=(getattr(parent, "scope", "private") == "private"),
                         parent=parent,
                         # 子任务固定完整档位：委派本身就是"多步骤复杂活"，
                         # 不再重新路由，也不允许降档成轻量回合
@@ -92,10 +86,7 @@ def register_delegate_tools(
                     ref.set(prev)  # 还原主回合的会话指向
             result = (result or "").strip()
             if len(result) > _MAX_SUB_RESULT_CHARS:
-                result = (
-                    result[:_MAX_SUB_RESULT_CHARS]
-                    + f"…（子任务结果过长已截断；完整现场在会话 delegate:{key}）"
-                )
+                result = result[:_MAX_SUB_RESULT_CHARS] + f"…（子任务结果过长已截断；完整现场在会话 delegate:{key}）"
             return f"子任务完成（会话 delegate:{key}）：\n{result}"
         except Exception as exc:  # noqa: BLE001 —— 失败现场留在子会话供排查
             return f"子任务执行失败（现场已保留在会话 delegate:{key}）：{exc}"

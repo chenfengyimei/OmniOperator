@@ -3,6 +3,7 @@
 前端只有两个消费者：左下角那行状态和顶部告警条。判错的代价是"以为在跑其实挂了"，
 所以每条告警的触发条件都要钉死。
 """
+
 from omni.system.service_overview import STARTUP_GRACE_S, service_summary
 
 NOW = 10_000.0
@@ -24,10 +25,15 @@ def _entries(rows):
     """把假行里"守护侧"的字段摊成 snapshot 的 services 记账。"""
     return {
         name: {
-            "desired": row["desired"], "skipped": row["skipped"], "attempts": row["attempts"],
-            "restarts_total": row["restarts"], "running_since": row["running_since"],
-            "last_exit": row["last_exit"], "next_retry_at": row["next_retry_at"],
-            "last_error": row["last_error"], "alert": row["supervisor_alert"],
+            "desired": row["desired"],
+            "skipped": row["skipped"],
+            "attempts": row["attempts"],
+            "restarts_total": row["restarts"],
+            "running_since": row["running_since"],
+            "last_exit": row["last_exit"],
+            "next_retry_at": row["next_retry_at"],
+            "last_error": row["last_error"],
+            "alert": row["supervisor_alert"],
         }
         for name, row in rows.items()
     }
@@ -41,21 +47,53 @@ class FakeSupervisor:
         self._policy = policy
 
     def snapshot(self):
-        return {"supervised": self._mode == "active", "mode": self._mode,
-                "holder": self._holder, "policy": self._policy, "last_error": "",
-                "services": self._services}
+        return {
+            "supervised": self._mode == "active",
+            "mode": self._mode,
+            "holder": self._holder,
+            "policy": self._policy,
+            "last_error": "",
+            "services": self._services,
+        }
 
 
-def _row(name, *, running=True, fresh=True, reason="ok", desired="running", state="verified",
-         stats=None, running_since=NOW - 3600, alert=None, label=None):
+def _row(
+    name,
+    *,
+    running=True,
+    fresh=True,
+    reason="ok",
+    desired="running",
+    state="verified",
+    stats=None,
+    running_since=NOW - 3600,
+    alert=None,
+    label=None,
+):
     return {
-        "name": name, "label": label or name, "running": running, "pid": 100 if running else None,
-        "detail": "", "identity_verified": running, "can_stop": running, "state": state,
-        "stats": stats or {}, "fresh": fresh, "health_reason": reason,
-        "state_age_s": 1.0 if fresh else 120.0, "health": "ok" if fresh else "", "note": "",
-        "desired": desired, "skipped": "", "attempts": 0, "restarts": 0,
-        "running_since": running_since, "last_exit": {}, "next_retry_at": 0.0,
-        "last_error": "", "supervisor_alert": alert,
+        "name": name,
+        "label": label or name,
+        "running": running,
+        "pid": 100 if running else None,
+        "detail": "",
+        "identity_verified": running,
+        "can_stop": running,
+        "state": state,
+        "stats": stats or {},
+        "fresh": fresh,
+        "health_reason": reason,
+        "state_age_s": 1.0 if fresh else 120.0,
+        "health": "ok" if fresh else "",
+        "note": "",
+        "desired": desired,
+        "skipped": "",
+        "attempts": 0,
+        "restarts": 0,
+        "running_since": running_since,
+        "last_exit": {},
+        "next_retry_at": 0.0,
+        "last_error": "",
+        "supervisor_alert": alert,
     }
 
 
@@ -93,8 +131,9 @@ def test_heartbeat_stale_is_warned():
 def test_heartbeat_within_startup_grace_is_quiet():
     """刚拉起来还没写第一份快照，不该立刻报"卡住了"。"""
     rows = _healthy()
-    rows["omni-heartbeat"] = _row("omni-heartbeat", fresh=False, reason="missing",
-                                  running_since=NOW - STARTUP_GRACE_S / 2)
+    rows["omni-heartbeat"] = _row(
+        "omni-heartbeat", fresh=False, reason="missing", running_since=NOW - STARTUP_GRACE_S / 2
+    )
     assert _summary(rows)["alerts"] == []
 
 
@@ -128,8 +167,9 @@ def test_blocked_unverified_is_error_with_cleanup_action():
 
 def test_restart_given_up_is_error_and_replaces_exited():
     rows = _healthy()
-    rows["omni-qq"] = _row("omni-qq", running=False, fresh=False,
-                           alert={"code": "restart_given_up", "text": "连续 5 次未能启动"})
+    rows["omni-qq"] = _row(
+        "omni-qq", running=False, fresh=False, alert={"code": "restart_given_up", "text": "连续 5 次未能启动"}
+    )
     alerts = _summary(rows)["alerts"]
     assert [a["code"] for a in alerts] == ["restart_given_up"]
 
@@ -144,8 +184,7 @@ def test_napcat_not_installed_says_nothing():
     """没装 NapCat 时提醒"未登录"是噪音：用户根本没这个东西。"""
     napcat = {"installed": False, "logged_in": False, "uin": None}
     rows = _healthy()
-    rows["napcat"] = _row("napcat", running=False, fresh=False, reason="not_applicable",
-                          desired="stopped")
+    rows["napcat"] = _row("napcat", running=False, fresh=False, reason="not_applicable", desired="stopped")
     assert _summary(rows, napcat=napcat)["alerts"] == []
 
 

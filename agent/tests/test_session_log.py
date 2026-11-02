@@ -1,4 +1,5 @@
 """M2 会话全量记忆单元：对话+工具过程的完整流水与排查读取。"""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -30,8 +31,8 @@ def test_full_turn_records_all_kinds_in_order(tmp_path):
     assert [r["kind"] for r in rows] == ["user", "assistant", "tool", "assistant", "system"]
     tool = rows[2]
     assert tool["tool_name"] == "video_info" and tool["tool_status"] == "ok"
-    assert json.loads(tool["tool_args"])["bvid"] == "BV1abc"   # 工具行存的是本次参数
-    calls = json.loads(rows[1]["tool_args"])                     # 助手行存的是发起的调用清单
+    assert json.loads(tool["tool_args"])["bvid"] == "BV1abc"  # 工具行存的是本次参数
+    calls = json.loads(rows[1]["tool_args"])  # 助手行存的是发起的调用清单
     assert calls[0]["name"] == "video_info"
     log.close()
 
@@ -90,9 +91,7 @@ def test_day_index_and_stats(tmp_path):
 def test_prune_and_reopen(tmp_path):
     log = _log(tmp_path)
     old_day = (dt.datetime.now().astimezone() - dt.timedelta(days=30)).date().isoformat()
-    log.append_user(
-        1, "run-old", "旧", now=dt.datetime.fromisoformat(old_day + "T10:00:00").astimezone()
-    )
+    log.append_user(1, "run-old", "旧", now=dt.datetime.fromisoformat(old_day + "T10:00:00").astimezone())
     log.append_user(1, "run-new", "新")
     assert log.prune(7) == 1
     log.close()

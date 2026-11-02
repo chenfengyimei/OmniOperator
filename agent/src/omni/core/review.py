@@ -12,6 +12,7 @@
 - **有界**（D12/A16）：一个固定 worker + 有界队列，按消息区间去重；
   队列满了就明确跳过并记账，不再"每轮起一个 daemon 线程"。
 """
+
 from __future__ import annotations
 
 import queue
@@ -29,7 +30,7 @@ _REVIEW_SYSTEM = """\
 你是 OmniOperator 的记忆整理模块，在每轮对话结束后于后台静默运行。
 任务：审阅最近对话片段，判断有哪些内容值得长期留存。
 可用工具：
-- remember(text)：记录自包含的重要事实（用户偏好、约定、重要事实、进展）
+- remember(text, evidence)：记录自包含的重要事实（用户偏好、约定、重要事实、进展）
 - profile_manage(operation=add, content=...)：往用户长期档案添加一行
   （只放最核心、稳定的特征；先用 view 查看现有档案，能合并就合并）
 - resident_memory：只维护跨会话持续有效、后续每轮都值得看到的约定、重要教训或当前阻断；
@@ -49,7 +50,7 @@ _REVIEW_SYSTEM = """\
 - 不记录密钥、令牌、密码、身份证号等凭据；这类内容只说明"用户提到过一个凭据"
 - 技能宁缺毋滥：单次性操作、日常寒暄不值得建技能；只有"以后还会再做、
   且有明确步骤"的事才建
-- 写入 profile_manage / resident_memory 时必须附 evidence：从上面那段对话片段里
+- 写入 remember / profile_manage / resident_memory 时必须附 evidence：从上面那段对话片段里
   逐字照抄一段作为依据，一个字都不要改；照抄不过会被拒绝，所以不要改写或概括
 - 写操作总共最多两三次
 - 没有值得记录的内容时，直接回复"无需变更"，不要调用任何工具"""
@@ -75,9 +76,7 @@ class TurnEndReviewer:
         self._make_registry = make_registry
         review_model = config.models.review.strip()
         self._model = review_model if review_model else config.models.chat
-        self._queue: queue.Queue[int | None] = queue.Queue(
-            maxsize=max(1, int(config.review.queue_depth))
-        )
+        self._queue: queue.Queue[int | None] = queue.Queue(maxsize=max(1, int(config.review.queue_depth)))
         self._lock = threading.Lock()
         self._worker: threading.Thread | None = None
         self._closed = False
@@ -113,9 +112,7 @@ class TurnEndReviewer:
             if self._closed:
                 return "closed"
             if self._worker is None or not self._worker.is_alive():
-                self._worker = threading.Thread(
-                    target=self._work, daemon=True, name="turn-end-review"
-                )
+                self._worker = threading.Thread(target=self._work, daemon=True, name="turn-end-review")
                 self._worker.start()
         try:
             self._queue.put_nowait(session_id)
@@ -214,9 +211,7 @@ class TurnEndReviewer:
             # 锚定（P5-b）：本轮 review 的来源材料就是上面这段对话片段。
             # 在这个上下文里写入的常驻/档案条目必须附逐字原文摘录，否则拒绝写入——
             # 背景整理是"模型对着自己写的总结说话"最容易编造长期记忆的地方。
-            with anchor_scope(
-                transcript, source="review", source_ref=f"session:{session_id}"
-            ):
+            with anchor_scope(transcript, source="review", source_ref=f"session:{session_id}"):
                 for _ in range(max(self._config.review.steps, 1)):
                     reply = self._gateway.complete(
                         messages, model=self._model, tools=registry.specs(), purpose="review"
@@ -228,16 +223,12 @@ class TurnEndReviewer:
                         {
                             "role": "assistant",
                             "content": reply.text or "",
-                            "tool_calls": [
-                                to_openai_tool_call(c) for c in reply.tool_calls
-                            ],
+                            "tool_calls": [to_openai_tool_call(c) for c in reply.tool_calls],
                         }
                     )
                     for call in reply.tool_calls:
                         result = self.registry_result(registry, call)
-                        messages.append(
-                            {"role": "tool", "tool_call_id": call.id, "content": result}
-                        )
+                        messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
             if not outcome:
                 outcome = "review 达到步数上限，已终止"
             store.save_review_log(session_id, outcome)

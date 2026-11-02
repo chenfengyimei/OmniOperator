@@ -12,6 +12,7 @@
 3. **取消要撤销待批准项**：审批器在等待期间轮询取消信号（见 safety/broker.py），
    否则界面上还能点"同意"去执行一个没人等的动作。
 """
+
 from __future__ import annotations
 
 import threading
@@ -124,6 +125,18 @@ class RunContext:
     mode: str = ""
     mode_source: str = ""
     escalated: bool = False
+    attached_image_ids: set[str] = field(default_factory=set)
+    image_messages: dict[str, dict] = field(default_factory=dict, repr=False)
+    image_notices: set[tuple[str, str]] = field(default_factory=set, repr=False)
+
+    @property
+    def _attached_image_ids(self) -> set[str]:
+        """兼容旧嵌入调用；实际状态只有 attached_image_ids 一份。"""
+        return self.attached_image_ids
+
+    @_attached_image_ids.setter
+    def _attached_image_ids(self, value: set[str]) -> None:
+        self.attached_image_ids = value
 
     # ---------- RunHandle ----------
 
@@ -187,9 +200,7 @@ class RunContext:
 
     def finish(self, status: str, *, error_code: str = "", error_text: str = "") -> None:
         try:
-            self.store.finish(
-                self.run_id, status, error_code=error_code, error_text=error_text
-            )
+            self.store.finish(self.run_id, status, error_code=error_code, error_text=error_text)
         except Exception:  # noqa: BLE001, S110
             pass
 

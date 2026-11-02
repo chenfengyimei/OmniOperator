@@ -7,6 +7,7 @@
 - 同一条消息 (target, content) 活跃期内只排一次队；进入终态后可重新入队；
 - 补投重试有上限（3 次 → dead）；「已投递」不能被丢弃或重排。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -46,9 +47,15 @@ item = OutboxStore(s).claim_next()
 print(item['id'] if item else 0)
 s.close()
 """
-    processes = [subprocess.Popen([sys.executable, "-c", code, str(tmp_path / "state.db")],
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                 for _ in range(4)]
+    processes = [
+        subprocess.Popen(
+            [sys.executable, "-c", code, str(tmp_path / "state.db")],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        for _ in range(4)
+    ]
     claims = []
     for process in processes:
         output, error = process.communicate(timeout=30)
@@ -85,12 +92,15 @@ def test_raw_connection_error_is_unknown(tmp_path):
 
 def test_online_send_has_claim_before_network_and_cancel_is_unknown(tmp_path):
     rt, outbox, state = _runtime(tmp_path, FakeQQ())
+
     async def send(target, content):
         row = outbox.list()[0]
         assert row["status"] == "sending" and row["claim_token"]
         raise asyncio.CancelledError()
+
     rt.qq.send_private = send
     import pytest
+
     with pytest.raises(asyncio.CancelledError):
         asyncio.run(make_runtime_deliver(rt)(_job(), "content"))
     assert outbox.list()[0]["status"] == "unknown"
@@ -130,9 +140,7 @@ def test_enqueue_dedup_and_release_after_terminal(tmp_path):
     assert any(r["status"] == "sent" and r["sent_at"] for r in rows)
     # 活跃条目排在终态前面
     statuses = [r["status"] for r in rows]
-    assert statuses.index("sent") > max(
-        i for i, s in enumerate(statuses) if s in ("pending", "unknown")
-    )
+    assert statuses.index("sent") > max(i for i, s in enumerate(statuses) if s in ("pending", "unknown"))
     state.close()
 
 
@@ -255,8 +263,14 @@ def _runtime(tmp_path, qq, allowed=(10001,)):
     return (
         SimpleNamespace(
             qq=qq,
-            qq_policy=lambda: QQ(allowed_users=list(allowed), proactive_enabled=True, owner_qq=10001,
-                                 quiet_start="00:00", quiet_end="00:00", proactive_daily_limit=50),
+            qq_policy=lambda: QQ(
+                allowed_users=list(allowed),
+                proactive_enabled=True,
+                owner_qq=10001,
+                quiet_start="00:00",
+                quiet_end="00:00",
+                proactive_daily_limit=50,
+            ),
             state=state,
             outbox=outbox,
         ),
@@ -300,9 +314,11 @@ def test_revocation_between_chunks_stops_with_unknown(tmp_path):
     policy = rt.qq_policy()
     rt.qq_policy = lambda: policy
     sent = []
+
     async def send(target, text):
         sent.append(text)
         policy.proactive_enabled = False
+
     rt.qq.send_private = send
     result = asyncio.run(make_runtime_deliver(rt)(_job(), "x" * 4000))
     assert "未知" in result and len(sent) == 1
@@ -444,9 +460,7 @@ def _client(tmp_path):
     )
     app = create_app(runtime)
     client = TestClient(app, base_url="http://127.0.0.1")
-    assert client.post(
-        "/api/auth/pair", json={"code": app.state.web_auth.pairing_code}
-    ).status_code == 200
+    assert client.post("/api/auth/pair", json={"code": app.state.web_auth.pairing_code}).status_code == 200
     return client, runtime
 
 
@@ -456,8 +470,10 @@ def test_outbox_endpoints(tmp_path):
         assert client.get("/api/system/cron/outbox").json()["items"] == []
 
         entry = runtime.outbox.enqueue(
-            job="morning-report", target_qq=10001,
-            content="很长的早报内容" * 20, error="QQ 未连接（NapCat 未启动？）",
+            job="morning-report",
+            target_qq=10001,
+            content="很长的早报内容" * 20,
+            error="QQ 未连接（NapCat 未启动？）",
         )
         listed = client.get("/api/system/cron/outbox").json()["items"]
         assert len(listed) == 1

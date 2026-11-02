@@ -9,6 +9,7 @@
 断言登记之后记录指向的正是子进程自己的身份与 launch_id。
 不关心这台机器上有没有跳板——两种形态下这条不变量都必须成立。
 """
+
 from __future__ import annotations
 
 import json
@@ -65,7 +66,9 @@ def test_child_registers_its_own_record_with_real_process(tmp_path):
 
     proc = subprocess.Popen(
         [sys.executable, str(script), str(run_dir), str(log_dir), str(pid_file)],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
     )
     try:
         # 扮演守护：spawn 之后立刻把启动记录写下来（记的是被 spawn 到的那个 pid）
@@ -75,6 +78,7 @@ def test_child_registers_its_own_record_with_real_process(tmp_path):
             if identity is not None:
                 break
             import time
+
             time.sleep(0.05)
         assert identity is not None, "拿不到被 spawn 进程的身份"
         supervisor = ServiceManager(run_dir=run_dir, log_dir=log_dir)
@@ -117,7 +121,9 @@ def test_seed_keeps_worker_record_when_worker_registered_first(tmp_path):
 
     proc = subprocess.Popen(
         [sys.executable, str(script), str(run_dir), str(log_dir), str(ready)],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
     )
     try:
         deadline = time.time() + 60
@@ -150,7 +156,8 @@ def test_seed_writes_spawned_process_when_no_worker_recorded(tmp_path):
 
     proc = subprocess.Popen(
         [sys.executable, "-c", "import time; time.sleep(30)"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
     try:
         identity = None

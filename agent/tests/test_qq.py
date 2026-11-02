@@ -256,6 +256,7 @@ def test_qq_empty_allowlist_denies_all_sends():
     register_qq_tools(registry, OneBotClient("ws://x"), allowed_users=[])
     assert "白名单" in registry.dispatch("qq_send_message", {"user_id": 10001, "text": "hi"})
 
+
 def test_is_loopback_url_recognises_local_targets():
     """回环判定只有一份：127.0.0.1/localhost/::1 算本机，其余不算。"""
     assert is_loopback_url("ws://127.0.0.1:3001")

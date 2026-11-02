@@ -1,4 +1,5 @@
 """技能系统单测：存储（创建/列表/查看/linter）+ 工具派发。"""
+
 import json
 import pytest
 
@@ -65,9 +66,7 @@ def test_tools_dispatch(tmp_path):
     )
     assert "已创建技能 demo-skill" in out
     assert "demo-skill" in registry.dispatch("skills_list", "{}")
-    assert "When to Use" in registry.dispatch(
-        "skill_view", json.dumps({"name": "demo-skill"})
-    )
+    assert "When to Use" in registry.dispatch("skill_view", json.dumps({"name": "demo-skill"}))
     assert "没有技能" in registry.dispatch("skill_view", json.dumps({"name": "nope"}))
     # linter 错误经工具原样回传（LLM 可自行修正后重试）
     assert "错误" in registry.dispatch(
@@ -114,9 +113,7 @@ def test_patch_and_rewrite(tmp_path):
     assert not ok and "不存在" in msg
 
     # rewrite：描述与正文一起更新
-    ok, msg = store.rewrite(
-        "demo-skill", "重写后的描述", _body() + "\n补充一行让长度达标。"
-    )
+    ok, msg = store.rewrite("demo-skill", "重写后的描述", _body() + "\n补充一行让长度达标。")
     assert ok, msg
     after2 = store.view("demo-skill")
     assert "version: 3" in after2 and "重写后的描述" in after2
@@ -140,11 +137,27 @@ def test_references_progressive_disclosure(tmp_path):
     assert "guide.md" not in listing
     main = registry.dispatch("skill_view", {"name": "demo-skill"})
     assert "references/guide.md" in main and "只在第三级" not in main
-    assert registry.dispatch("skill_view", {"name": "demo-skill", "path": "references/guide.md"}) == "只在第三级出现的正文"
+    assert (
+        registry.dispatch("skill_view", {"name": "demo-skill", "path": "references/guide.md"}) == "只在第三级出现的正文"
+    )
     assert store.view("demo-skill", "references/missing.md") is None
 
 
-@pytest.mark.parametrize("path", ["../secret.md", "references/../../secret.md", "C:/secret.md", "C:secret.md", "\\\\server\\share\\secret.md", "references/a.md:stream", "references/../SKILL.md", "references/NUL.txt", "references/guide.md.", "scripts/run.py"])
+@pytest.mark.parametrize(
+    "path",
+    [
+        "../secret.md",
+        "references/../../secret.md",
+        "C:/secret.md",
+        "C:secret.md",
+        "\\\\server\\share\\secret.md",
+        "references/a.md:stream",
+        "references/../SKILL.md",
+        "references/NUL.txt",
+        "references/guide.md.",
+        "scripts/run.py",
+    ],
+)
 def test_reference_paths_cannot_escape(tmp_path, path):
     store = SkillStore(tmp_path)
     store.create("demo-skill", "演示", _body())
@@ -184,6 +197,7 @@ def test_skill_and_reference_links_are_rejected(tmp_path):
     # Windows 无符号链接权限时用 junction；两种都是需要阻断的真实文件系统路径。
     import os
     import subprocess
+
     reference_link = skill / "references"
     if os.name == "nt":
         result = subprocess.run(["cmd", "/c", "mklink", "/J", str(reference_link), str(external)], capture_output=True)

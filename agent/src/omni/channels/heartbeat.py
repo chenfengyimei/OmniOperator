@@ -4,6 +4,7 @@
 （消息事件全部忽略），不会与 omni-qq 重复回复。QQ 未启用时照常运行
 （任务结果只落会话，可在 Web 工作台查看 cron: 开头的会话）。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -37,10 +38,8 @@ async def _serve(runtime, launch_id: str) -> None:
         return None  # 消息由 omni-qq 处理；这里只保持发送通道
 
     # 自报运行态：工作台靠它区分"在跑"和"还在正常工作"（进程活着但 tick 停了也算异常）
-    writer = StateWriter(state_path(runtime.paths.run, "omni-heartbeat"),
-                         service="omni-heartbeat", launch_id=launch_id)
-    stats: dict = {"ticks": 0, "last_tick_at": "", "fired_total": 0,
-                   "last_fired": [], "jobs": 0, "last_error": ""}
+    writer = StateWriter(state_path(runtime.paths.run, "omni-heartbeat"), service="omni-heartbeat", launch_id=launch_id)
+    stats: dict = {"ticks": 0, "last_tick_at": "", "fired_total": 0, "last_fired": [], "jobs": 0, "last_error": ""}
 
     def _on_tick(fired: list[str]) -> None:
         stats["ticks"] += 1
@@ -74,8 +73,9 @@ async def _serve(runtime, launch_id: str) -> None:
         max_running=runtime.config.cron.max_running,
         on_tick=_on_tick,
     )
-    tasks = [scheduler.run(), outbox_drain_loop(runtime), artifacts_sweep_loop(runtime),
-             journal_loop(runtime)]
+    runtime._scheduler = scheduler
+    scheduler.admission = lambda: not (runtime.updates and runtime.updates.gate.active())
+    tasks = [scheduler.run(), outbox_drain_loop(runtime), artifacts_sweep_loop(runtime), journal_loop(runtime)]
     if runtime.qq is not None:
         tasks.append(runtime.qq.run(_ignore_event))
     print(
@@ -97,14 +97,14 @@ async def _serve(runtime, launch_id: str) -> None:
 
 def main() -> None:
     from ..system.observability import configure_service_logging
+
     configure_service_logging()
     load_env()
     runtime = build_runtime(approver=DenyApprover(), owner_kind="heartbeat")  # 无人值守：fail-closed
     # pid 目录来自 RuntimePaths（与真实运行数据根一起注入，不另拼全局路径）
     launch_id = runtime.services.register_current("omni-heartbeat")
     try:
-        asyncio.run(serve_until_stop(runtime, "omni-heartbeat", launch_id,
-                                     _serve(runtime, launch_id)))
+        asyncio.run(serve_until_stop(runtime, "omni-heartbeat", launch_id, _serve(runtime, launch_id)))
     finally:
         result = runtime.close()
         if not result["complete"]:

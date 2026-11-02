@@ -2,10 +2,12 @@
 
 不调用站点写 API，不从工具参数接受脚本/选择器；表单漂移、登录或挑战异常直接停止。
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 import threading
 import time
 from urllib.parse import urlsplit
@@ -26,8 +28,13 @@ def _identity(value: str) -> str:
 
 
 class BrowserForms:
-    def __init__(self, driver: BrowserDriver, profiles: dict[str, UIFormSelectors], *,
-                 allowed_hosts: tuple[str, ...] = ("www.bilibili.com", "message.bilibili.com")) -> None:
+    def __init__(
+        self,
+        driver: BrowserDriver,
+        profiles: dict[str, UIFormSelectors],
+        *,
+        allowed_hosts: tuple[str, ...] = ("www.bilibili.com", "message.bilibili.com"),
+    ) -> None:
         self.driver, self.profiles = driver, profiles
         self.allowed_hosts = allowed_hosts
 
@@ -40,7 +47,9 @@ class BrowserForms:
 
     @staticmethod
     def _raw(locator, attribute: str) -> str:
-        raw = locator.inner_text(timeout=2000) if attribute == "text" else locator.get_attribute(attribute, timeout=2000)
+        raw = (
+            locator.inner_text(timeout=2000) if attribute == "text" else locator.get_attribute(attribute, timeout=2000)
+        )
         if raw is None or not raw.strip() or len(raw) > 2048:
             raise BrowserError("页面身份属性无法核验")
         return raw
@@ -61,8 +70,13 @@ class BrowserForms:
             text = texts.inner_text(timeout=2000).strip()
             if len(text) > 2200:
                 continue
-            result.append({"id": identity, "account": self._value(authors, profile.record_author_attr),
-                           "content_hash": hashlib.sha256(text.encode()).hexdigest()})
+            result.append(
+                {
+                    "id": identity,
+                    "account": self._value(authors, profile.record_author_attr),
+                    "content_hash": hashlib.sha256(text.encode()).hexdigest(),
+                }
+            )
         return result
 
     def _capture(self, kind: str) -> tuple[dict, dict]:
@@ -77,8 +91,9 @@ class BrowserForms:
             matches = page.locator(selector)
             if matches.count() > 32 or any(matches.nth(i).is_visible() for i in range(matches.count())):
                 raise BrowserError("页面存在登录失效/验证码/安全挑战，需人工处理")
-        account, target, editor, submit = [self._one(page, selector) for selector in
-                                           (profile.account, profile.target, profile.editor, profile.submit)]
+        account, target, editor, submit = [
+            self._one(page, selector) for selector in (profile.account, profile.target, profile.editor, profile.submit)
+        ]
         if not editor.is_editable() or (editor.get_attribute("type") or "").lower() == "password":
             raise BrowserError("编辑控件不可用")
         # 一些站点空内容时按钮禁用；提交阶段会再次检查可用状态。
@@ -87,21 +102,72 @@ class BrowserForms:
             raise BrowserError("现有输入过长，拒绝覆盖")
         key = "e => [e.tagName,e.id,e.getAttribute('name'),e.getAttribute('type'),e.getAttribute('aria-label')]"
         account_raw, target_raw = self._raw(account, profile.account_attr), self._raw(target, profile.target_attr)
-        observation = {"url": page.url, "epoch": page.evaluate("performance.timeOrigin"),
-                       "account": _identity(account_raw), "target": _identity(target_raw),
-                       "account_raw": account_raw, "target_raw": target_raw,
-                       "editor_value": text, "editor_key": editor.evaluate(key), "submit_key": submit.evaluate(key),
-                       "profile_hash": _digest(profile.model_dump()), "records": self._records(page, profile)}
+        observation = {
+            "url": page.url,
+            "epoch": page.evaluate("performance.timeOrigin"),
+            "account": _identity(account_raw),
+            "target": _identity(target_raw),
+            "account_raw": account_raw,
+            "target_raw": target_raw,
+            "editor_value": text,
+            "editor_key": editor.evaluate(key),
+            "submit_key": submit.evaluate(key),
+            "profile_hash": _digest(profile.model_dump()),
+            "records": self._records(page, profile),
+        }
         observation["fingerprint"] = _digest(observation)
         return observation, {"page": page, "account": account, "target": target, "editor": editor, "submit": submit}
 
     def observe(self, kind: str) -> dict:
         return self.driver._run(lambda: self._capture(kind)[0])
 
+    def _fill(self, kind, expected, handles, content, permitted):
+        profile = self.profiles[kind]
+        mentions = expected.get("mentions", [])
+        if not mentions or not profile.mention_options:
+            handles["editor"].fill(content, timeout=3000)
+            return
+        editor, page = handles["editor"], handles["page"]
+        names = {item["name"]: item["uid"] for item in mentions}
+        pattern = re.compile("|".join(re.escape("@" + name) for name in sorted(names, key=len, reverse=True)))
+        editor.fill("", timeout=3000)
+        offset = 0
+        for match in pattern.finditer(content):
+            if not permitted():
+                raise BrowserError("艾特选择前授权已撤销")
+            editor.press_sequentially(content[offset : match.start()] + match.group(), timeout=3000)
+            if profile.mention_input:
+                self._one(page, profile.mention_input).fill(match.group()[1:], timeout=3000)
+            candidates = page.locator(profile.mention_options)
+            if candidates.count() > 50:
+                raise BrowserError("艾特候选项过多")
+            matches = [
+                candidates.nth(i)
+                for i in range(candidates.count())
+                if candidates.nth(i).is_visible()
+                and candidates.nth(i).get_attribute(profile.mention_uid_attr) == names[match.group()[1:]]
+            ]
+            if len(matches) != 1:
+                raise BrowserError("艾特候选UID缺失、不唯一或不匹配，未发送")
+            current, _ = self._capture(kind)
+            if any(current[key] != expected[key] for key in ("url", "epoch", "account", "target", "profile_hash")):
+                raise BrowserError("选择艾特前页面身份变化")
+            if not permitted():
+                raise BrowserError("艾特选择前授权已撤销")
+            matches[0].click(timeout=3000)
+            offset = match.end()
+        editor.press_sequentially(content[offset:], timeout=3000)
+        nodes = editor.locator(profile.mention_nodes)
+        actual = [nodes.nth(i).get_attribute(profile.mention_uid_attr) for i in range(nodes.count())]
+        if sorted(actual) != sorted(item["uid"] for item in mentions):
+            raise BrowserError("页面真实艾特组件与批准名单不一致，未发送")
+
     def submit(self, kind: str, expected: dict, content: str, *, cancel=None, authorized=lambda: True) -> dict:
         abandoned = threading.Event()
+
         def permitted() -> bool:
             return not abandoned.is_set() and not getattr(cancel, "cancelled", False) and authorized()
+
         def action() -> dict:
             wrote = False
             try:
@@ -113,9 +179,19 @@ class BrowserForms:
                 if not permitted():
                     return {"state": "blocked", "error": "调用已取消或授权已失效"}
                 wrote = True
-                handles["editor"].fill(content, timeout=3000)
+                self._fill(kind, expected, handles, content, permitted)
                 filled, handles = self._capture(kind)
-                for key in ("url", "epoch", "account", "target", "account_raw", "target_raw", "editor_key", "submit_key", "profile_hash"):
+                for key in (
+                    "url",
+                    "epoch",
+                    "account",
+                    "target",
+                    "account_raw",
+                    "target_raw",
+                    "editor_key",
+                    "submit_key",
+                    "profile_hash",
+                ):
                     if filled[key] != expected[key]:
                         return {"state": "unknown", "error": "填写后目标身份变化；未继续点击，需核查草稿是否自动保存"}
                 if filled["editor_value"] != content or not handles["submit"].is_enabled() or not permitted():
@@ -124,38 +200,69 @@ class BrowserForms:
                 page = handles.pop("page")
                 # 在一个 JS 任务内复核保留的控件和字段再触发 UI click，避免重新定位到另一按钮。
                 payload = {key: locator.element_handle() for key, locator in handles.items()}
-                payload.update({"account_attr": profile.account_attr, "target_attr": profile.target_attr,
-                                "account_raw": expected["account_raw"], "target_raw": expected["target_raw"],
-                                "content": content, "url": filled["url"], "epoch": filled["epoch"]})
+                payload.update(
+                    {
+                        "account_attr": profile.account_attr,
+                        "target_attr": profile.target_attr,
+                        "account_raw": expected["account_raw"],
+                        "target_raw": expected["target_raw"],
+                        "content": content,
+                        "url": filled["url"],
+                        "epoch": filled["epoch"],
+                    }
+                )
+                payload["mention_selector"] = profile.mention_nodes
+                payload["mention_uid_attr"] = profile.mention_uid_attr
+                payload["mention_uids"] = (
+                    sorted(item["uid"] for item in expected.get("mentions", [])) if profile.mention_nodes else []
+                )
                 before = {row["id"] for row in filled["records"]}
                 if not permitted():
                     return {"state": "unknown", "error": "填写后授权撤销，未继续发送"}
-                clicked = page.evaluate("""p => {
+                clicked = page.evaluate(
+                    """p => {
                     const attr=(e,k)=>k==='text'?e.innerText:e.getAttribute(k);
+                    if(p.mention_selector && JSON.stringify([...p.editor.querySelectorAll(p.mention_selector)].map(e=>e.getAttribute(p.mention_uid_attr)).sort())!==JSON.stringify(p.mention_uids)) return false;
                     if(location.href!==p.url || performance.timeOrigin!==p.epoch ||
                        ![p.account,p.target,p.editor,p.submit].every(e=>e && e.isConnected && e.getClientRects().length) ||
                        attr(p.account,p.account_attr)!==p.account_raw || attr(p.target,p.target_attr)!==p.target_raw ||
                        ('value' in p.editor?p.editor.value:p.editor.textContent)!==p.content || p.submit.disabled ||
                        p.submit.getAttribute('aria-disabled')==='true') return false;
                     p.submit.click(); return true;
-                }""", payload)
+                }""",
+                    payload,
+                )
                 if not clicked:
                     return {"state": "unknown", "error": "最终页面身份核验失败，未点击"}
                 deadline = time.monotonic() + 3
                 while time.monotonic() < deadline:
                     observed, _ = self._capture(kind)
-                    if any(observed[key] != expected[key] for key in ("url", "epoch", "account", "target", "profile_hash")):
+                    if any(
+                        observed[key] != expected[key] for key in ("url", "epoch", "account", "target", "profile_hash")
+                    ):
                         return {"state": "unknown", "error": "提交后页面身份变化，无法确认发布结果"}
                     for row in observed["records"]:
-                        if row["id"] not in before and row["account"] == expected["account"] and row["content_hash"] == hashlib.sha256(content.encode()).hexdigest():
-                            return {"state": "sent", "evidence": {"record_id": row["id"], "url": observed["url"],
-                                                                   "account": row["account"], "content_hash": hashlib.sha256(content.encode()).hexdigest()}}
+                        if (
+                            row["id"] not in before
+                            and row["account"] == expected["account"]
+                            and row["content_hash"] == hashlib.sha256(content.encode()).hexdigest()
+                        ):
+                            return {
+                                "state": "sent",
+                                "evidence": {
+                                    "record_id": row["id"],
+                                    "url": observed["url"],
+                                    "account": row["account"],
+                                    "content_hash": hashlib.sha256(content.encode()).hexdigest(),
+                                },
+                            }
                     if not permitted():
                         break
                     page.wait_for_timeout(100)
                 return {"state": "unknown", "error": "已触发一次发送，但未获得新增发布记录；禁止自动重发"}
             except Exception as exc:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
                 return {"state": "unknown" if wrote else "blocked", "error": f"页面流程停止：{type(exc).__name__}"}
+
         try:
             return self.driver._run(action)
         except BrowserUnknown:

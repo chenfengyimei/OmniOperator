@@ -10,6 +10,7 @@
    这与"离线可跑、测试不联网"直接冲突；这里强制用随包发布的本地快照，
    造价查不到就承认查不到。
 """
+
 from __future__ import annotations
 
 import math
@@ -83,21 +84,21 @@ class Usage:
             usage = response.get("usage")
         prompt = _int_or_none(_field(usage, "prompt_tokens"))
         completion = _int_or_none(_field(usage, "completion_tokens"))
-        cached = _nonnegative_int(_field(usage,'prompt_cache_hit_tokens'))
+        cached = _nonnegative_int(_field(usage, "prompt_cache_hit_tokens"))
         if cached is None:
-            cached = _nonnegative_int(_field(_field(usage,'prompt_tokens_details'),'cached_tokens'))
+            cached = _nonnegative_int(_field(_field(usage, "prompt_tokens_details"), "cached_tokens"))
         if cached is None:
-            cached = _nonnegative_int(_field(usage,'cache_read_input_tokens'))
-        created = _nonnegative_int(_field(usage,'cache_creation_input_tokens'))
+            cached = _nonnegative_int(_field(usage, "cache_read_input_tokens"))
+        created = _nonnegative_int(_field(usage, "cache_creation_input_tokens"))
         if created is None:
-            created = _nonnegative_int(_field(_field(usage,'prompt_tokens_details'),'cache_creation_tokens'))
+            created = _nonnegative_int(_field(_field(usage, "prompt_tokens_details"), "cache_creation_tokens"))
         return cls(
             prompt_tokens=prompt,
             completion_tokens=completion,
             reported=prompt is not None and completion is not None,
             cached_prompt_tokens=cached,
             cache_creation_tokens=created,
-            cache_miss_tokens=_nonnegative_int(_field(usage,'prompt_cache_miss_tokens')),
+            cache_miss_tokens=_nonnegative_int(_field(usage, "prompt_cache_miss_tokens")),
         )
 
 
@@ -116,7 +117,7 @@ def _int_or_none(value: Any) -> int | None:
 
 
 def _nonnegative_int(value: Any) -> int | None:
-    if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value<0:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
         return None
     return int(value)
 
@@ -136,19 +137,15 @@ class Price:
     def cost_usd(self, prompt_tokens: int, completion_tokens: int) -> float | None:
         if not self.known:
             return None
-        return float(self.input_per_token or 0) * max(0, prompt_tokens) + float(
-            self.output_per_token or 0
-        ) * max(0, completion_tokens)
+        return float(self.input_per_token or 0) * max(0, prompt_tokens) + float(self.output_per_token or 0) * max(
+            0, completion_tokens
+        )
 
     def brief(self) -> dict[str, Any]:
         return {
             "source": self.source,
-            "input_per_m": None
-            if self.input_per_token is None
-            else round(self.input_per_token * MICRO, 4),
-            "output_per_m": None
-            if self.output_per_token is None
-            else round(self.output_per_token * MICRO, 4),
+            "input_per_m": None if self.input_per_token is None else round(self.input_per_token * MICRO, 4),
+            "output_per_m": None if self.output_per_token is None else round(self.output_per_token * MICRO, 4),
         }
 
 
@@ -156,13 +153,9 @@ def resolve_price(cfg: LLMConfig, model: str) -> Price:
     """单价解析顺序：配置声明 → LiteLLM 本地价格表 → 未知（本地模型记免费）。"""
     cap = cfg.capabilities.get(model)
     if cap is not None and cap.input_usd_per_m is not None and cap.output_usd_per_m is not None:
-        return Price(
-            cap.input_usd_per_m / MICRO, cap.output_usd_per_m / MICRO, "config"
-        )
+        return Price(cap.input_usd_per_m / MICRO, cap.output_usd_per_m / MICRO, "config")
     try:
-        prompt_cost, completion_cost = litellm.cost_per_token(
-            model=model, prompt_tokens=MICRO, completion_tokens=MICRO
-        )
+        prompt_cost, completion_cost = litellm.cost_per_token(model=model, prompt_tokens=MICRO, completion_tokens=MICRO)
     except Exception:  # noqa: BLE001 —— 查不到价格是正常情况，不是错误
         return Price(None, None, "unknown")
     if not prompt_cost and not completion_cost:
@@ -185,11 +178,7 @@ def estimate_tokens(messages: list[dict[str, Any]]) -> int:
         if isinstance(content, str):
             chars += len(content)
         elif isinstance(content, list):  # 多模态块：只按文本部分估
-            chars += sum(
-                len(part.get("text") or "")
-                for part in content
-                if isinstance(part, dict)
-            )
+            chars += sum(len(part.get("text") or "") for part in content if isinstance(part, dict))
             chars += 256 * len(content)
         for call in message.get("tool_calls") or []:
             chars += len(str(call))

@@ -16,6 +16,7 @@
 索引是**机器可读**的：每格带时间、台词、字数。模型引用一次就闭环，
 人也���对着时间码回看原片复核——这是参考项目最值得学的一点。
 """
+
 from __future__ import annotations
 
 from bisect import bisect_left
@@ -35,12 +36,12 @@ MIN_CELL_GAP = 1.0
 class Cell:
     """宫格里的一格：可寻址的最小单元。"""
 
-    index: int          # 1 起的格号（模型引用的是这个）
-    start: float        # 绝对起始秒
-    end: float          # 绝对结束秒
-    frame_time: float   # 取帧时刻（该段内最清晰的一帧）
-    lines: tuple[str, ...] = ()   # 该段的台词（可为空：没有字幕/ASR）
-    sharpness: float = 0.0        # 取帧的清晰度分（Laplacian 方差）
+    index: int  # 1 起的格号（模型引用的是这个）
+    start: float  # 绝对起始秒
+    end: float  # 绝对结束秒
+    frame_time: float  # 取帧时刻（该段内最清晰的一帧）
+    lines: tuple[str, ...] = ()  # 该段的台词（可为空：没有字幕/ASR）
+    sharpness: float = 0.0  # 取帧的清晰度分（Laplacian 方差）
 
     @property
     def duration(self) -> float:
@@ -138,9 +139,7 @@ def plan_segments(
     return segments
 
 
-def _density_cumulative(
-    boundaries: list[float], duration: float
-) -> tuple[list[float], list[float]]:
+def _density_cumulative(boundaries: list[float], duration: float) -> tuple[list[float], list[float]]:
     """剪辑率密度的累积曲线 D(t) → (断点时刻, 累积值)。
 
     一个切点对 D 的贡献是「斜坡 → 平台」：矩形窗内密度恒为 1/(2h)，
@@ -196,9 +195,7 @@ def _density_at(times: list[float], values: list[float], target: float) -> float
     return low_value + (high_value - low_value) * ratio
 
 
-def _density_edges(
-    boundaries: list[float], duration: float, count: int
-) -> list[float]:
+def _density_edges(boundaries: list[float], duration: float, count: int) -> list[float]:
     """按密度积分把镜头分成 count 组，返回组边界（**都是真实切点**）。
 
     密度等分点只用来决定「**合并哪些镜头**」，不直接当格边界：
@@ -232,9 +229,7 @@ def _density_edges(
     return edges
 
 
-def _even_shot_edges(
-    boundaries: list[float], duration: float, count: int
-) -> list[float]:
+def _even_shot_edges(boundaries: list[float], duration: float, count: int) -> list[float]:
     """没有剪辑事件时的退路：按镜头数均匀分组。"""
     shots = len(boundaries) + 1
     edges: list[float] = []
@@ -312,9 +307,7 @@ def build_storyboard(
     `frame_times` 是 [(段序号, 取帧时刻)] 或 [(段序号, 取帧时刻, 清晰度)]；
     缺省用段中点。
     """
-    segments = plan_segments(
-        cuts, duration=duration, max_cells=max_cells, min_cell_gap=min_cell_gap
-    )
+    segments = plan_segments(cuts, duration=duration, max_cells=max_cells, min_cell_gap=min_cell_gap)
     lines = attach_transcript(segments, transcript or [])
     picks: dict[int, tuple[float, float]] = {}
     for item in frame_times or []:

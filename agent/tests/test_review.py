@@ -1,4 +1,5 @@
 """回合后 review 单测：假 Gateway 验证 记忆/技能落库 + review 日志 + 短历史跳过。"""
+
 import json
 from types import SimpleNamespace
 
@@ -48,7 +49,7 @@ class ReviewGateway:
             call = SimpleNamespace(
                 id="c1",
                 function=SimpleNamespace(
-                    name="remember", arguments='{"text": "用户是游戏开发者"}'
+                    name="remember", arguments='{"text": "用户是游戏开发者", "evidence": "我是做游戏开发的"}'
                 ),
             )
             return SimpleNamespace(text="", tool_calls=[call])
@@ -222,7 +223,7 @@ def test_refine_tool_maps_reviewer_verdicts(verdict, phrase):
 
     tool = registry.get("session_refine")
     assert tool.risk is Risk.SAFE
-    assert tool.read_only is False              # 会入队并动计数：保持串行
+    assert tool.read_only is False  # 会入队并动计数：保持串行
     assert tool.parameters["properties"] == {}  # 刻意不收 session_id：作用域=当前会话
     assert "session_refine" not in GROUP_ALLOWED_TOOLS  # 群聊作用域同样禁用
 

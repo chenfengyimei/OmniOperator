@@ -1,4 +1,5 @@
 """M3/M4/M5 笔记记忆单元：认领幂等、三态结算与到期判定纯函数。"""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -89,17 +90,20 @@ def test_due_daily_past_today_and_late_activity(tmp_path):
     dialogue.append(1, "user", "23:40 的迟到消息", now=dt.datetime.fromisoformat("2026-10-02T23:40:00").astimezone())
     due = due_periods(journal, dialogue, today=today, now_hhmm="23:31", daily_time="23:30", max_catchup=3)
     assert ("daily", "2026-10-02") in due
-    journal.close(); dialogue.close()
+    journal.close()
+    dialogue.close()
 
 
 def test_due_catchup_is_bounded_oldest_first(tmp_path):
     journal, dialogue = _stores(tmp_path)
     for day in ("2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05"):
         dialogue.append(1, "user", "x", now=dt.datetime.fromisoformat(day + "T12:00:00").astimezone())
-    due = due_periods(journal, dialogue, today=dt.date(2026, 10, 6), now_hhmm="09:00",
-                      daily_time="23:30", max_catchup=2)
+    due = due_periods(
+        journal, dialogue, today=dt.date(2026, 10, 6), now_hhmm="09:00", daily_time="23:30", max_catchup=2
+    )
     assert [p for k, p in due if k == "daily"] == ["2026-10-01", "2026-10-02"]
-    journal.close(); dialogue.close()
+    journal.close()
+    dialogue.close()
 
 
 def test_due_weekly_waits_for_all_daily(tmp_path):
@@ -119,7 +123,8 @@ def test_due_weekly_waits_for_all_daily(tmp_path):
     journal.finish("weekly", "2026-W44", "周记")
     due = due_periods(journal, dialogue, today=today, now_hhmm="09:00", daily_time="23:30", max_catchup=5)
     assert ("weekly", "2026-W44") not in due
-    journal.close(); dialogue.close()
+    journal.close()
+    dialogue.close()
 
 
 def test_due_monthly_consumes_weekly_with_straddle(tmp_path):
@@ -141,7 +146,8 @@ def test_due_monthly_consumes_weekly_with_straddle(tmp_path):
         journal.finish("monthly", m, "月度大纲")
     due = due_periods(journal, dialogue, today=today, now_hhmm="09:00", daily_time="23:30", max_catchup=5)
     assert all(("monthly", m) not in due for m in ("2026-09", "2026-10"))
-    journal.close(); dialogue.close()
+    journal.close()
+    dialogue.close()
 
 
 def test_stats_counts_by_kind(tmp_path):

@@ -41,6 +41,7 @@
 - **判定与处置分离**：本模块只判定档位与「该不该再提醒」，不落盘、不发消息。
 - **比例算不出来就返回 None**：调用方不得把它当 0% 渲染成「还很宽裕」。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -50,10 +51,10 @@ from dataclasses import dataclass
 CAPACITY_THRESHOLDS: tuple[float, float, float] = (0.8, 0.9, 1.0)
 
 # 档位
-TIER_OK = "ok"        # 未到 80%
-TIER_WARN = "warn"    # >= 80%：该合并了
+TIER_OK = "ok"  # 未到 80%
+TIER_WARN = "warn"  # >= 80%：该合并了
 TIER_CRITICAL = "critical"  # >= 90%：快满了
-TIER_FULL = "full"    # >= 100%：写不进去了
+TIER_FULL = "full"  # >= 100%：写不进去了
 
 # 同一档的提醒冷却：12 小时内不重复提醒同一档。
 # 抄参考实现的 `shouldNotifyOwner(card, level, now, cooldownMs = 12h)`。
@@ -136,10 +137,7 @@ def describe_usage(usage: CapacityUsage) -> str:
     if not usage.limited:
         return f"{name}：已用 {usage.used_chars} 字（未设上限）"
     ratio = usage.ratio or 0.0
-    return (
-        f"{name}：{usage.used_chars} / {usage.limit_chars} 字"
-        f"（{ratio * 100:.1f}%）"
-    )
+    return f"{name}：{usage.used_chars} / {usage.limit_chars} 字（{ratio * 100:.1f}%）"
 
 
 def tier_message(usages: list[CapacityUsage], *, separator: str = "；") -> str:
@@ -154,24 +152,22 @@ def tier_message(usages: list[CapacityUsage], *, separator: str = "；") -> str:
     parts: list[str] = []
     if full:
         parts.append(
-            "已写不进去了（100%）：" + separator.join(describe_usage(u) for u in full)
+            "已写不进去了（100%）："
+            + separator.join(describe_usage(u) for u in full)
             + "。请先合并或删减现有条目，再写入新的。"
         )
     if critical:
         parts.append(
-            "快满了（90%）：" + separator.join(describe_usage(u) for u in critical)
+            "快满了（90%）："
+            + separator.join(describe_usage(u) for u in critical)
             + "。建议现在就合并，别等写不进去再处理。"
         )
     if warn:
-        parts.append(
-            "接近满（80%）：" + separator.join(describe_usage(u) for u in warn)
-            + "。可以开始合并了。"
-        )
+        parts.append("接近满（80%）：" + separator.join(describe_usage(u) for u in warn) + "。可以开始合并了。")
     return separator.join(parts)
 
 
-def should_notify(level: int, last_notified: float, now: float, *,
-                  cooldown_seconds: int = COOLDOWN_SECONDS) -> bool:
+def should_notify(level: int, last_notified: float, now: float, *, cooldown_seconds: int = COOLDOWN_SECONDS) -> bool:
     """这一档该不该**再**提醒一次。
 
     抄参考实现的 `shouldNotifyOwner`：同一档在冷却期内只提醒一次。

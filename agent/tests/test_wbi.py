@@ -1,4 +1,5 @@
 """WBI 签名单测：结构正确性 + 确定性（真实接口有效性由 E2E 冒烟验证）。"""
+
 from hashlib import md5
 
 from omni.tools.bilibili.wbi import get_mixin_key, sign_wbi

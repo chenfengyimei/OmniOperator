@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "status": "validation_in_progress",
+  "date": "2026-11-02",
+  "runtime": "Windows x64 / Python 3.12",
+  "whole_v2_complete": false,
+  "platform_runtime_tests": {
+    "windows": "in_progress",
+    "macos": "not_run",
+    "linux": "not_run"
+  },
+  "desktop_runtime_tests": "not_run",
+  "soak_hours": 0,
+  "real_model_calls": 0,
+  "account_messages": 0,
+  "deployment": false,
+  "main_committed": false
+}

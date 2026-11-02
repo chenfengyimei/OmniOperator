@@ -1,9 +1,10 @@
 """个人能力：profile；工具仅使用注入依赖，不构造运行时。"""
+
 from __future__ import annotations
 
 from typing import Any
 
-from ...memory.capacity import CapacityUsage, TIER_OK, tier_label
+from ...memory.capacity import TIER_OK, CapacityUsage, tier_label
 from ...memory.store import MemoryStore
 from ..registry import Risk, Tool, ToolRegistry
 

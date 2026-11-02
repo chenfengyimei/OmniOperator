@@ -4,6 +4,7 @@
 1. 超额的请求**一次都没有发出去**（假 `_completion` 的调用次数为零）；
 2. 账本上的数字对得上（预留退回、实付入账、未知记 NULL 而不是 0）。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -162,9 +163,7 @@ def test_budget_blocks_before_any_call(monkeypatch, ledger: UsageLedger) -> None
         gateway.complete([{"role": "user", "content": "hi"}])
     assert caught.value.code == errors.BUDGET
     assert script.calls == []
-    assert ledger.day_total(__import__("datetime").date.today().isoformat())[
-        "used_micro"
-    ] == 0
+    assert ledger.day_total(__import__("datetime").date.today().isoformat())["used_micro"] == 0
 
 
 def test_successful_call_books_actual_cost(monkeypatch, ledger: UsageLedger) -> None:
@@ -222,9 +221,7 @@ def test_unpriced_model_refused_when_a_limit_exists(monkeypatch, ledger: UsageLe
     assert script.calls == []
 
 
-def test_unpriced_model_allowed_without_limit_but_cost_is_null(
-    monkeypatch, ledger: UsageLedger
-) -> None:
+def test_unpriced_model_allowed_without_limit_but_cost_is_null(monkeypatch, ledger: UsageLedger) -> None:
     """没有上限时放行，但账上必须是"未知"，不能替供应商宣布免费。"""
     llm = LLM()
     script = _Script(_resp())
@@ -238,9 +235,7 @@ def test_local_model_is_billed_as_free_not_unknown(monkeypatch, ledger: UsageLed
     llm = LLM(budget=LLMBudget(daily_usd=1.0))
     script = _Script(_resp())
     gateway = _gateway(monkeypatch, script, llm, ledger)
-    reply = gateway.complete(
-        [{"role": "user", "content": "hi"}], model="ollama/qwen2.5:7b"
-    )
+    reply = gateway.complete([{"role": "user", "content": "hi"}], model="ollama/qwen2.5:7b")
     assert reply.cost_micro == 0 and reply.cost_source == "reported"
 
 
@@ -277,9 +272,7 @@ def test_ledger_failure_refuses_to_spend(state: StateStore, tmp_path) -> None:
         def record(self, **_kw):
             raise RuntimeError("database is locked")
 
-    gateway = gw.Gateway(
-        Models(chat="deepseek/deepseek-chat"), llm=llm, ledger=_Broken(), sleep=lambda _s: None
-    )
+    gateway = gw.Gateway(Models(chat="deepseek/deepseek-chat"), llm=llm, ledger=_Broken(), sleep=lambda _s: None)
     with pytest.raises(gw.GatewayError) as caught:
         gateway.complete([{"role": "user", "content": "hi"}])
     assert caught.value.code == errors.BUDGET
@@ -300,9 +293,7 @@ def test_agent_turns_budget_block_into_an_explanation(monkeypatch, tmp_path) -> 
     state = StateStore(tmp_path / "state.db")
     store = MemoryStore(tmp_path / "m.db")
     ledger = UsageLedger(state)
-    gateway = gw.Gateway(
-        Models(chat="deepseek/deepseek-chat"), llm=config.llm, ledger=ledger
-    )
+    gateway = gw.Gateway(Models(chat="deepseek/deepseek-chat"), llm=config.llm, ledger=ledger)
     sid = store.new_session()
     agent = Agent(config, gateway, store, ToolRegistry(), sid)
 

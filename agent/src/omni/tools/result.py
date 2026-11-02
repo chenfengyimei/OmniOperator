@@ -15,6 +15,7 @@
 兼容：`text` 保留给模型看的那句话（与旧输出逐字一致），`Registry.dispatch()` 仍返回字符串。
 新代码用 `execute()` 拿结构化结果，旧调用点不用改。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -26,7 +27,7 @@ DENIED = "denied"
 CANCELLED = "cancelled"
 UNKNOWN = "unknown"
 
-SIDE_EFFECT_NONE = "none"        # 确定没有产生外部影响（校验失败、只读工具）
+SIDE_EFFECT_NONE = "none"  # 确定没有产生外部影响（校验失败、只读工具）
 SIDE_EFFECT_UNKNOWN = "unknown"  # 不确定：超时/断连/进程崩溃，需要人工查证
 SIDE_EFFECT_APPLIED = "applied"  # 工具明确报告已完成（例如已发送）
 
@@ -90,14 +91,18 @@ class ToolResult:
 
     @classmethod
     def unknown(cls, text: str, *, error_code: str = "side_effect_unknown", **kwargs: Any) -> ToolResult:
-        return cls(status=UNKNOWN, text=text, error_code=error_code, retryable=False,
-                   side_effect_state=SIDE_EFFECT_UNKNOWN, **kwargs)
+        return cls(
+            status=UNKNOWN,
+            text=text,
+            error_code=error_code,
+            retryable=False,
+            side_effect_state=SIDE_EFFECT_UNKNOWN,
+            **kwargs,
+        )
 
     @classmethod
     def cancelled(cls, text: str) -> ToolResult:
-        return cls(
-            status=CANCELLED, text=text, error_code="run_cancelled", side_effect_state=SIDE_EFFECT_NONE
-        )
+        return cls(status=CANCELLED, text=text, error_code="run_cancelled", side_effect_state=SIDE_EFFECT_NONE)
 
     @classmethod
     def from_legacy(cls, text: str, *, tool: str = "") -> ToolResult:

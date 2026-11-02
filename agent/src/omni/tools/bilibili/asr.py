@@ -6,6 +6,7 @@
 - 转写按约 1 分钟窗口输出 "[MM:00] 文本"，方便 agent 按结构总结；
 - 超长转写截断保护（防 context 爆炸）。
 """
+
 from __future__ import annotations
 
 import io
@@ -47,15 +48,16 @@ def _load_model(model_name: str, device: str, compute_type: str, location: str |
 
     try:
         return WhisperModel(
-            model_name, device=device, compute_type=compute_type,
-            download_root=location, local_files_only=True,
+            model_name,
+            device=device,
+            compute_type=compute_type,
+            download_root=location,
+            local_files_only=True,
         )
-    except Exception:  # noqa: BLE001 —— 本地没有就联网取
+    except Exception:  # noqa: BLE001, S110 —— 本地没有就联网取
         pass
     try:
-        return WhisperModel(
-            model_name, device=device, compute_type=compute_type, download_root=location
-        )
+        return WhisperModel(model_name, device=device, compute_type=compute_type, download_root=location)
     except Exception as exc:  # noqa: BLE001
         raise RuntimeError(
             f"ASR 模型加载失败（{exc}）。若卡在下载：确认网络可达 HuggingFace，"
@@ -71,10 +73,7 @@ def format_segments(segments: Iterable[tuple[float, str]]) -> str:
         if not text:
             continue
         windows.setdefault(int(start // WINDOW_SECONDS), []).append(text)
-    lines = [
-        f"[{minute:02d}:00] " + "".join(texts)
-        for minute, texts in sorted(windows.items())
-    ]
+    lines = [f"[{minute:02d}:00] " + "".join(texts) for minute, texts in sorted(windows.items())]
     out = "\n".join(lines)
     if len(out) > MAX_OUTPUT_CHARS:
         out = out[:MAX_OUTPUT_CHARS] + "\n（转写过长已截断；长视频建议分段理解）"
@@ -102,7 +101,7 @@ def _decode_audio_16k_mono(path: Path) -> Any:
     with av.open(str(path)) as container:
         for frame in container.decode(audio=0):
             out = resampler.resample(frame)
-            for af in (out if isinstance(out, (list, tuple)) else [out]):
+            for af in out if isinstance(out, (list, tuple)) else [out]:
                 need = int(af.samples) * 2  # s16 单声道
                 raw = bytes(af.planes[0])
                 buffer.write(raw[:need])
@@ -126,8 +125,11 @@ def transcribe(
     （音乐/歌声会被 Silero 误判为非语音）自动去掉 VAD 重试。
     """
     segments = _transcribe_raw(
-        audio_path, model_name=model_name, device=device,
-        compute_type=compute_type, download_root=download_root,
+        audio_path,
+        model_name=model_name,
+        device=device,
+        compute_type=compute_type,
+        download_root=download_root,
     )
     return format_segments((seg.start, seg.text) for seg in segments)
 
@@ -147,8 +149,11 @@ def transcribe_segments(
     只能用它。官方 B站字幕没有时间戳，对齐不了。
     """
     segments = _transcribe_raw(
-        audio_path, model_name=model_name, device=device,
-        compute_type=compute_type, download_root=download_root,
+        audio_path,
+        model_name=model_name,
+        device=device,
+        compute_type=compute_type,
+        download_root=download_root,
     )
     out: list[tuple[float, str]] = []
     for seg in segments:
@@ -173,8 +178,6 @@ def _transcribe_raw(
     segments_iter, _info = model.transcribe(audio_array, vad_filter=True, beam_size=5)
     segments = list(segments_iter)
     if not segments:
-        segments_iter, _info = model.transcribe(
-            audio_array, vad_filter=False, beam_size=5
-        )
+        segments_iter, _info = model.transcribe(audio_array, vad_filter=False, beam_size=5)
         segments = list(segments_iter)
     return segments

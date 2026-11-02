@@ -6,7 +6,7 @@
 ## 0. 先读什么
 
 1. [README](README.md) —— 定位、安全模型与模块地图；
-2. [docs/HANDOFF.md](docs/HANDOFF.md) —— 交接入口：能力清单与 27 条平台坑（第 5 节必读）；
+2. [docs/HANDOFF.md](docs/HANDOFF.md) —— 当前交接入口，链接历史能力与平台坑；
 3. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) —— 分层与组装根**唯一权威**；
 4. [docs/DEVELOPMENT_STATUS.md](docs/DEVELOPMENT_STATUS.md) —— 当前进度与证据台账。
 
@@ -33,6 +33,9 @@ uv run --no-sync pytest -q          # 任务收尾/提交前：全量离线测�
 - `agent/tests/test_community_docs.py` 会校验 README 模块地图与 catalog 分类一致——
   在 `system/catalog/schema.py` 增删模块后，记得同步 README 模块地图；
 - 新增/删除仓库文件后运行 `uv run --no-sync python scripts/project_index.py` 更新索引。
+- 静态检查：`ruff check agent/src/omni`、`ruff format --check agent/src/omni agent/tests agent/scripts agent/hatch_build.py`；工具版本由uv.lock锁定。
+- 前端：在`web/`运行`npm ci`和`npm run format:check`（Prettier固定版本），再执行`scripts/check_frontend.py`与UI契约守卫。
+- `scripts/run_pyright.py`按已收口领域检查，失败返回非零；当前范围见脚本，不能称为全仓类型通过。
 
 ## 3. 架构纪律
 

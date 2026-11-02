@@ -9,6 +9,7 @@
 明确不做：不做沙箱、不做权限降级；环境最小化只对 SAFE 观察生效，
 `run_command` 保留用户环境（它本来就等价于用户在终端里敲命令）。
 """
+
 from __future__ import annotations
 
 import os

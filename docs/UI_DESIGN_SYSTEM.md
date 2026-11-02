@@ -19,7 +19,7 @@
 ## 2. 文件结构与职责
 
 ```
-web_static/
+web/
   index.html               工作台骨架：纯标记 + <script type="module">，无内联 JS；内联 CSS 归零
   <page>/index.html         子站骨架（7 个：capabilities/jobs/mcp/terminal/android/storage/project）
   <page>/<page>.css         子站布局样式（只写本页布局，控件一律用组件类）
@@ -31,7 +31,7 @@ web_static/
     components.css          ★共享组件库（§6 全部组件类）
     frame.css               ★应用壳：rail、子站顶栏、内容节奏、移动端折叠
     workbench.css           工作台专属：聊天轮次/调用链/输入坞/会话列表/设置中心
-    shared.js              OmniUI 库 + NAV_ITEMS + renderRail()（经典 script，子站共用）
+    shared.js              OmniUI库（ES模块，子站共用）；sections.js声明分区与旧地址映射
     markdown.js             安全 Markdown 渲染器（经典 script）
     app/                    工作台 ES 模块（§9）：main.js 唯一入口
   vendor/                   xterm（不动）
@@ -293,12 +293,12 @@ ui/app/
 ## 13. 新页面 / 新组件接入 checklist
 
 **新子站页面**：
-1. `web_static/<page>/`：index.html（含 `data-ui-page` + `<page>.css` + `<page>.js` 三件套，样式只写布局）
-2. NAV_ITEMS 加一行；受影响测试同步（`.ui-global-nav a` 计数断言）
+1. `web/<page>/`：index.html（含 `data-ui-page` + `<page>.css` + `<page>.js` 三件套，样式只写布局）
+2. ui/sections.js注册分区、组别、名称与旧地址；导航、工具弹窗和深链从该表读取
 3. 四态齐备 + 390px 无横向溢出（test_ui_flows 参数化用例加路径）
 4. `?v=` 串 + 全量 pytest + 4 视口截图
 5. **必须能被人点进去**：守卫 `test_every_subpage_is_reachable_from_navigation` 会检查每个子站
-   是否出现在 NAV_ITEMS 或工作台 markup 里——孤儿页（能靠 URL 访问但界面走不到）是缺陷。
+   是否出现在分区注册表或工作台 markup 里——孤儿页（能靠 URL 访问但界面走不到）是缺陷。
 
 **新组件**：
 1. 先查 §6 表——是变体就加变体，是新组件才进 components.css
@@ -331,3 +331,11 @@ ui/app/
 | `docs/ui-migration/` | 保留为历史素材与回滚源；`baseline-index.html` 的契约差分基线职责已于 Phase 7b 退役（门禁转绝对模式，任何缺失/重复/未注册即失败） |
 | `UI_REDESIGN_MIGRATION_PLAN.md` | 顶部标注由本文接管，仅留作历史记录 |
 | index.html 内联 `<style>`/`<script>` | Phase 1/4 分别清零（样式入 workbench.css，JS 入 ui/app/） |
+
+## 15. 统一开发约定
+
+前端源码只在根web/，排版固定Prettier 3.6.2（npm ci，npm run format:check）。Python排版固定Ruff 0.17.3。
+文本的正文/辅助/小字/注释优先用--fs-body/secondary/small/caption；按钮、表单、空态与错误态复用公共层。
+旧独立URL转到注册分区；终端、安卓和存储保留?embed=1内部入口，未知深链显示提示。
+切换分区保留草稿，关闭面板暂停轮询与嵌入连接；重新打开恢复观察，不重放写操作。
+所有一组资源引用必须同步更新缓存版本；本轮统一到20261102u2。

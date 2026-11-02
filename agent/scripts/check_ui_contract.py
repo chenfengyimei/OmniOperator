@@ -13,10 +13,12 @@
 扫描范围（多文件）：
 - index.html（markup）；
 - ui/app/*.js（工作台 ES 模块：函数定义、id 引用、模板 id、data-action 注册表并入计算）。
-基线差分模式不变：只把「相对 docs/ui-migration/baseline-index.html 新增」的违规算失败
-（data-action 核对是全新机制，无历史基线，缺失即失败）。
+采用绝对模式，任何缺失/重复id、未定义函数或未注册动作均失败；历史基线仅供追溯。
 """
+
 from __future__ import annotations
+
+from omni.config import PROJECT_ROOT, web_root
 
 import re
 import sys
@@ -24,15 +26,38 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT = ROOT / "src/omni/channels/web_static/index.html"
-APP_DIR = ROOT / "src/omni/channels/web_static/ui/app"
+DEFAULT = web_root(PROJECT_ROOT) / "index.html"
+APP_DIR = web_root(PROJECT_ROOT) / "ui/app"
 BASELINE = ROOT.parent / "docs/ui-migration/baseline-index.html"
 # JS 内置/原型方法，不是页面函数
 BUILTINS = {
-    "if", "for", "while", "switch", "return", "event", "Number", "String", "Boolean",
-    "parseInt", "parseFloat", "closest", "remove", "stopPropagation", "preventDefault",
-    "querySelector", "querySelectorAll", "getElementById", "append", "appendChild",
-    "setAttribute", "classList", "focus", "blur", "click", "showModal", "close",
+    "if",
+    "for",
+    "while",
+    "switch",
+    "return",
+    "event",
+    "Number",
+    "String",
+    "Boolean",
+    "parseInt",
+    "parseFloat",
+    "closest",
+    "remove",
+    "stopPropagation",
+    "preventDefault",
+    "querySelector",
+    "querySelectorAll",
+    "getElementById",
+    "append",
+    "appendChild",
+    "setAttribute",
+    "classList",
+    "focus",
+    "blur",
+    "click",
+    "showModal",
+    "close",
 }
 # data-action：静态动作名（域:动作）；模板里条件拼的动作名含 ${，静态跳过
 ACTION_ATTR = re.compile(r'data-action="([a-z0-9-]+:[a-z0-9-]+)"')
@@ -72,8 +97,16 @@ def scan_html(html: str) -> dict:
     defined |= set(re.findall(r"(?:const|let|var)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:async\s*)?[A-Za-z0-9_(]", html))
     undef = sorted(called - defined - BUILTINS)
     actions_used = set(ACTION_ATTR.findall(html))
-    return {"ids": len(static_ids), "used": used, "missing": missing, "dup": dup,
-            "undef": undef, "id_set": id_set, "defined": defined, "actions_used": actions_used}
+    return {
+        "ids": len(static_ids),
+        "used": used,
+        "missing": missing,
+        "dup": dup,
+        "undef": undef,
+        "id_set": id_set,
+        "defined": defined,
+        "actions_used": actions_used,
+    }
 
 
 def scan_app_js(sources: list[Path]) -> dict:
@@ -88,14 +121,21 @@ def scan_app_js(sources: list[Path]) -> dict:
         used |= set(re.findall(r"\$\('#([A-Za-z0-9_-]+)'\)", text))
         used |= set(re.findall(r"getElementById\('([A-Za-z0-9_-]+)'\)", text))
         ids |= {i for i in re.findall(r'(?<![\w-])id="([^"]+)"', text) if "${" not in i}
+        ids |= set(re.findall(r"\.id\s*=\s*['\"]([A-Za-z0-9_-]+)['\"]", text))
+        ids |= set(re.findall(r"\.setAttribute\(['\"]id['\"],\s*['\"]([A-Za-z0-9_-]+)['\"]\)", text))
         actions_used |= set(ACTION_ATTR.findall(text))
         actions_registered |= set(ACTION_KEY.findall(text))
         # 模块内具名函数与导出函数都算定义；迁移期挂 window.fn= 也算
         defined |= set(re.findall(r"(?:async\s+)?function\s+([A-Za-z_][A-Za-z0-9_]*)", text))
         defined |= set(re.findall(r"window\.([A-Za-z_][A-Za-z0-9_]*)\s*=", text))
         defined |= set(re.findall(r"export\s+(?:async\s+)?function\s+([A-Za-z_][A-Za-z0-9_]*)", text))
-    return {"used": used, "defined": defined, "ids": ids,
-            "actions_used": actions_used, "actions_registered": actions_registered}
+    return {
+        "used": used,
+        "defined": defined,
+        "ids": ids,
+        "actions_used": actions_used,
+        "actions_registered": actions_registered,
+    }
 
 
 def css_unbalanced(text: str) -> bool:
@@ -133,7 +173,7 @@ def css_unbalanced(text: str) -> bool:
 
 
 def css_sources() -> list[Path]:
-    statics = ROOT / "src/omni/channels/web_static"
+    statics = web_root(PROJECT_ROOT)
     return sorted(p for p in statics.rglob("*.css") if p.is_file())
 
 
@@ -155,8 +195,9 @@ def scan(path: Path) -> dict:
     missing = sorted(m for m in (merged_used - id_pool) if "${" not in m)
     undef = sorted(set(html_result["undef"]) - app_result["defined"])
     # data-action 核对：markup 与模块模板用到的静态动作名，必须有人在 actions 注册
-    actions_missing = sorted((html_result["actions_used"] | app_result["actions_used"])
-                             - app_result["actions_registered"])
+    actions_missing = sorted(
+        (html_result["actions_used"] | app_result["actions_used"]) - app_result["actions_registered"]
+    )
     return {
         "ids": html_result["ids"],
         "used": len(merged_used),
@@ -176,15 +217,16 @@ def main() -> int:
     # 未注册 data-action 都是失败——迁移期历史遗留已在 Phase 0-7 间全部清零，
     # 基线文件（docs/ui-migration/baseline-index.html）仅作素材与回滚来源保留。
     print(f"文件：{path}")
-    print(f"静态 id：{cur['ids']}，JS 引用 id：{cur['used']}，app 模块：{len(app_sources())} 个，data-action：{cur['actions']} 个")
+    print(
+        f"静态 id：{cur['ids']}，JS 引用 id：{cur['used']}，app 模块：{len(app_sources())} 个，data-action：{cur['actions']} 个"
+    )
     print(f"[{'PASS' if not cur['missing'] else 'FAIL'}] 缺失 id：{cur['missing'] or '无'}")
     print(f"[{'PASS' if not cur['dup'] else 'FAIL'}] 重复 id：{cur['dup'] or '无'}")
     print(f"[{'PASS' if not cur['undef'] else 'FAIL'}] 未定义函数：{cur['undef'] or '无'}")
     print(f"[{'PASS' if not cur['actions_missing'] else 'FAIL'}] 未注册 data-action：{cur['actions_missing'] or '无'}")
     broken_css = scan_css()
     print(f"[{'PASS' if not broken_css else 'FAIL'}] CSS 括号配平：{broken_css or '全部通过'}")
-    return 1 if (cur["missing"] or cur["dup"] or cur["undef"] or cur["actions_missing"]
-                 or broken_css) else 0
+    return 1 if (cur["missing"] or cur["dup"] or cur["undef"] or cur["actions_missing"] or broken_css) else 0
 
 
 if __name__ == "__main__":

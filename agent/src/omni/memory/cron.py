@@ -10,6 +10,7 @@
 为什么不再用 JSON 文件：见 `memory/state.py` 的模块注释（A09 跨进程丢写 / A10 损坏当空 /
 A17 无至多一次）。
 """
+
 from __future__ import annotations
 
 from .jobs import (

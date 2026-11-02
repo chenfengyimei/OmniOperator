@@ -1,4 +1,5 @@
 """在临时数据库评测合成样本；hybrid 模式须显式传配置，默认完全离线。"""
+
 from __future__ import annotations
 
 import argparse
@@ -36,8 +37,9 @@ def main():
         root = Path(directory)
         path = root / "config.yaml"
         path.write_text(yaml.safe_dump(config), encoding="utf-8")
-        runtime = build_runtime(config_path=path, data_dir=root, skills_root=root / "skills",
-                                start_background_workers=False)
+        runtime = build_runtime(
+            config_path=path, data_dir=root, skills_root=root / "skills", start_background_workers=False
+        )
         try:
             for fact in dataset["facts"]:
                 runtime.store.save_fact(fact["text"], source="eval", scope=fact["scope"])
@@ -53,12 +55,15 @@ def main():
             report = evaluate_retrieval(search, dataset["cases"])
             _, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
-            report.update(mode=args.mode, dataset_version=dataset["version"],
-                          python_peak_bytes=peak,
-                          valid_comparison=not bool(runtime.retrieval and runtime.retrieval.last_error),
-                          dataset_sha256=hashlib.sha256(args.dataset.read_bytes()).hexdigest(),
-                          retrieval=runtime.retrieval.status() if runtime.retrieval else None,
-                          usage=[record.brief() for record in runtime.usage.recent(500)])
+            report.update(
+                mode=args.mode,
+                dataset_version=dataset["version"],
+                python_peak_bytes=peak,
+                valid_comparison=not bool(runtime.retrieval and runtime.retrieval.last_error),
+                dataset_sha256=hashlib.sha256(args.dataset.read_bytes()).hexdigest(),
+                retrieval=runtime.retrieval.status() if runtime.retrieval else None,
+                usage=[record.brief() for record in runtime.usage.recent(500)],
+            )
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
             print(json.dumps({k: v for k, v in report.items() if k not in {"cases", "usage"}}, ensure_ascii=False))

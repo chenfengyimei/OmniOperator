@@ -11,6 +11,7 @@
 
 明确不做：不解释通配符、不做变量展开、不支持管道/重定向/命令串联。
 """
+
 from __future__ import annotations
 
 import fnmatch
@@ -64,7 +65,7 @@ _GIT_DENY_ANYWHERE = (
     "-O",
 )
 
-_REV_RE = re.compile(r"^[A-Za-z0-9_./~^@{}-]+$")          # 无冒号：`HEAD:.env` 会打印已提交内容
+_REV_RE = re.compile(r"^[A-Za-z0-9_./~^@{}-]+$")  # 无冒号：`HEAD:.env` 会打印已提交内容
 _INT_RE = re.compile(r"^\d{1,4}$")
 _PATHSPEC_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_./-]*$")
 
@@ -97,8 +98,7 @@ def _tokenize(command: str) -> list[str] | Rejected:
     for ch in command:
         if ch in _SHELL_METACHARS:
             return _reject(
-                f"命令含 shell 元字符 {ch!r}（{_SHELL_METACHARS[ch]}）："
-                "只读观察不接受复合命令、管道或重定向"
+                f"命令含 shell 元字符 {ch!r}（{_SHELL_METACHARS[ch]}）：只读观察不接受复合命令、管道或重定向"
             )
         if ch == '"':
             in_quote = not in_quote
@@ -178,17 +178,15 @@ def _protected_reason(path: Path, root: Path) -> str:
     """命中敏感文件/目录返回理由，否则空串。"""
     if is_protected_name(path.name):
         return f"{path.name} 属于密钥/凭据/个人数据类文件，SAFE 观察不读取"
-    parts = {p.lower() for p in (path.relative_to(root).parts if _is_within(path,root) else path.parts)}
-    parts.update(p.lower() for p in root.parts if p.lower() in _PROTECTED_DIR_NAMES and p.lower()!='data')
-    if root.name.lower() in _PROTECTED_DIR_NAMES:parts.add(root.name.lower())
+    parts = {p.lower() for p in (path.relative_to(root).parts if _is_within(path, root) else path.parts)}
+    parts.update(p.lower() for p in root.parts if p.lower() in _PROTECTED_DIR_NAMES and p.lower() != "data")
+    if root.name.lower() in _PROTECTED_DIR_NAMES:
+        parts.add(root.name.lower())
     for name in _PROTECTED_DIR_NAMES:
         if name in parts:
             return f"路径包含受保护目录 {name}/（密钥、个人数据或浏览器登录态）"
     if not _is_within(path, root):
-        return (
-            "路径在工作区之外：SAFE 观察只在项目根内读文件系统，"
-            "其它位置请用 run_command（需人工确认）"
-        )
+        return "路径在工作区之外：SAFE 观察只在项目根内读文件系统，其它位置请用 run_command（需人工确认）"
     return ""
 
 
@@ -252,7 +250,10 @@ def _spec_netstat(tokens: list[str]) -> SafeCommand | Rejected:
             continue
         if arg == "-p":
             if i + 1 >= len(args) or args[i + 1].upper() not in {
-                "TCP", "UDP", "TCPV6", "UDPV6",
+                "TCP",
+                "UDP",
+                "TCPV6",
+                "UDPV6",
             }:
                 return _reject("netstat -p 只接受 TCP|UDP|TCPv6|UDPv6")
             i += 2
@@ -309,9 +310,19 @@ def _git_arg_is_denied(arg: str) -> str:
 
 def _git_status(args: list[str]) -> str:
     allowed = {
-        "--short", "-s", "--porcelain", "--porcelain=v1", "--branch", "-b",
-        "--no-color", "-uno", "-unormal", "-uall",
-        "--untracked-files=no", "--untracked-files=normal", "--untracked-files=all",
+        "--short",
+        "-s",
+        "--porcelain",
+        "--porcelain=v1",
+        "--branch",
+        "-b",
+        "--no-color",
+        "-uno",
+        "-unormal",
+        "-uall",
+        "--untracked-files=no",
+        "--untracked-files=normal",
+        "--untracked-files=all",
     }
     for arg in args:
         if arg not in allowed:
@@ -321,8 +332,16 @@ def _git_status(args: list[str]) -> str:
 
 def _git_log(args: list[str]) -> str:
     allowed = {
-        "--oneline", "--graph", "--decorate", "--all", "--stat", "--name-only",
-        "--name-status", "--no-color", "--abbrev-commit", "-n",
+        "--oneline",
+        "--graph",
+        "--decorate",
+        "--all",
+        "--stat",
+        "--name-only",
+        "--name-status",
+        "--no-color",
+        "--abbrev-commit",
+        "-n",
     }
     i = 0
     while i < len(args):
@@ -355,14 +374,22 @@ def _git_log(args: list[str]) -> str:
 
 def _git_diff_like(name: str, args: list[str]) -> str:
     allowed = {
-        "--stat", "--name-only", "--name-status", "--no-color", "--cached",
-        "--staged", "--compact-summary", "--summary", "--numstat", "-U",
+        "--stat",
+        "--name-only",
+        "--name-status",
+        "--no-color",
+        "--cached",
+        "--staged",
+        "--compact-summary",
+        "--summary",
+        "--numstat",
+        "-U",
     }
     i = 0
     while i < len(args):
         arg = args[i]
         if arg == "--":
-            paths = args[i + 1:]
+            paths = args[i + 1 :]
             if len(paths) > 5:
                 return f"{name} 的路径参数过多"
             for path in paths:
@@ -395,8 +422,17 @@ def _git_show(args: list[str]) -> str:
 
 def _git_branch(args: list[str]) -> str:
     allowed = {
-        "-a", "-r", "-v", "-vv", "--list", "--show-current", "--merged",
-        "--no-merged", "--all", "--verbose", "--no-color",
+        "-a",
+        "-r",
+        "-v",
+        "-vv",
+        "--list",
+        "--show-current",
+        "--merged",
+        "--no-merged",
+        "--all",
+        "--verbose",
+        "--no-color",
     }
     for arg in args:
         if arg not in allowed:
@@ -433,9 +469,7 @@ def _spec_git(tokens: list[str], root: Path) -> SafeCommand | Rejected:
     sub = args[0]
     validator = _GIT_SUBCOMMANDS.get(sub)
     if validator is None:
-        return _reject(
-            f"git {sub} 不在只读白名单（只允许 status/log/diff/show/branch/remote 的列举形态）"
-        )
+        return _reject(f"git {sub} 不在只读白名单（只允许 status/log/diff/show/branch/remote 的列举形态）")
     rest = args[1:]
     problem = validator(rest)
     if problem:
@@ -500,7 +534,6 @@ def parse_safe_command(command: str, *, root: Path) -> SafeCommand | Rejected:
     spec = _SPECS.get(name)
     if spec is None:
         return _reject(
-            f"{name} 不在只读白名单（可观察：{', '.join(SAFE_COMMANDS)}）；"
-            "执行类操作请用 run_command（需用户确认）"
+            f"{name} 不在只读白名单（可观察：{', '.join(SAFE_COMMANDS)}）；执行类操作请用 run_command（需用户确认）"
         )
     return spec(tokens, root)

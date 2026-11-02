@@ -14,7 +14,10 @@
 另外钉住 D30 的思考开关：档位能存能回读，且前后端档位集合必须一致（不一致的
 表现是界面给了一个后端不认的值，保存直接 400）。
 """
+
 from __future__ import annotations
+
+from omni.config import PROJECT_ROOT, web_root
 
 import re
 from pathlib import Path
@@ -23,7 +26,7 @@ from urllib.parse import urlsplit
 import pytest
 from test_web import _client
 
-STATIC = Path(__file__).resolve().parents[1] / "src" / "omni" / "channels" / "web_static"
+STATIC = web_root(PROJECT_ROOT)
 APP = STATIC / "ui" / "app"
 
 
@@ -83,9 +86,7 @@ def test_chosen_model_survives_reload(ui):
     assert "deepseek/deepseek-v4-pro" in page.text_content("#mk-model")
 
     page.click('[data-action="hub:save"][data-scope="models"]')
-    page.wait_for_function(
-        "() => (document.querySelector('#save-msg-models')?.textContent || '').includes('已保存')"
-    )
+    page.wait_for_function("() => (document.querySelector('#save-msg-models')?.textContent || '').includes('已保存')")
 
     from omni.config import load_config
 
@@ -106,9 +107,7 @@ def test_reasoning_level_survives_reload(ui):
     page.click('[data-action="models:pick-provider"][data-prov="deepseek"]')
     page.click('[data-action="models:set-reasoning"][data-level="high"]')
     page.click('[data-action="hub:save"][data-scope="models"]')
-    page.wait_for_function(
-        "() => (document.querySelector('#save-msg-models')?.textContent || '').includes('已保存')"
-    )
+    page.wait_for_function("() => (document.querySelector('#save-msg-models')?.textContent || '').includes('已保存')")
 
     from omni.config import load_config
 
@@ -127,9 +126,7 @@ def test_clearing_a_slot_writes_empty_and_does_not_block_save(ui):
     page.click('[data-action="models:pick-provider"][data-prov="deepseek"]')
     page.click('[data-action="models:clear-slot"]')
     page.click('[data-action="hub:save"][data-scope="models"]')
-    page.wait_for_function(
-        "() => (document.querySelector('#save-msg-models')?.textContent || '').includes('已保存')"
-    )
+    page.wait_for_function("() => (document.querySelector('#save-msg-models')?.textContent || '').includes('已保存')")
 
     from omni.config import load_config
 
@@ -149,11 +146,11 @@ def _hub_models_text():
 def test_catalog_knows_current_deepseek_models():
     """目录里必须有现役型号，旧名标成"已下线"而不是继续当成推荐。"""
     text = _hub_models_text()
-    assert "{id:'deepseek-flash'" in text
-    assert "{id:'deepseek-v4-pro'" in text
+    assert re.search(r"\{\s*id:\s*'deepseek-flash'", text)
+    assert re.search(r"\{\s*id:\s*'deepseek-v4-pro'", text)
     # 旧名保留（有人已经配了它），但必须带 retired 标记，不再当默认推荐
-    assert re.search(r"\{id:'deepseek-chat'[^}]*retired:true", text)
-    assert re.search(r"\{id:'deepseek-reasoner'[^}]*retired:true", text)
+    assert re.search(r"\{\s*id:\s*'deepseek-chat'[^}]*retired:\s*true", text)
+    assert re.search(r"\{\s*id:\s*'deepseek-reasoner'[^}]*retired:\s*true", text)
 
 
 def test_unknown_model_still_renders_as_chosen():
@@ -169,7 +166,7 @@ def test_repicking_same_provider_keeps_chosen_model():
     text = _hub_models_text()
     body = re.search(r"function pickProvider\(provId\)\s*\{(.*?)\n\}", text, re.S)
     assert body, "找不到 pickProvider"
-    assert "st.providerId===provId&&st.modelStr" in body.group(1)
+    assert "st.providerId===provId&&st.modelStr" in re.sub(r"\s+", "", body.group(1))
 
 
 def test_frontend_and_backend_reasoning_levels_match():
@@ -178,9 +175,9 @@ def test_frontend_and_backend_reasoning_levels_match():
     from omni.system.config_io import EDITABLE
 
     text = _hub_models_text()
-    block = re.search(r"const REASONING_LEVELS=\[(.*?)\];", text, re.S)
+    block = re.search(r"const REASONING_LEVELS\s*=\s*\[(.*?)\];", text, re.S)
     assert block, "hub-models.js 里找不到 REASONING_LEVELS"
-    front = re.findall(r"\{id:'([a-z]+)'", block.group(1))
+    front = re.findall(r"\{\s*id:\s*'([a-z]+)'", block.group(1))
     assert tuple(front) == REASONING_LEVELS, (front, REASONING_LEVELS)
 
     # 每个槽位都必须可写：漏一个键 = 那一档的开关存不下去
@@ -191,6 +188,6 @@ def test_frontend_and_backend_reasoning_levels_match():
 def test_save_scope_covers_reasoning():
     """「保存模型设置」必须把 reasoning 一起提交，否则档位只在页面上热闹。"""
     text = (APP / "hub.js").read_text(encoding="utf-8")
-    scope = re.search(r"models:\[([^\]]+)\]", text)
+    scope = re.search(r"models:\s*\[([^\]]+)\]", text)
     assert scope and "'reasoning'" in scope.group(1)
     assert "getReasoningSlotValue(" in text

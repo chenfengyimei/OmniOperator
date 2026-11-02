@@ -10,6 +10,7 @@ max_history_messages 的硬截断会无声丢掉旧上下文。压缩 = 上下�
 - 只压内存视图不落库：store 本就只存 user/assistant 文本，压缩视图随生随灭；
 - 失败降级：摘要调用失败就原样返回——压缩是优化，不是正确性的依赖。
 """
+
 from __future__ import annotations
 
 import json
@@ -31,6 +32,7 @@ def _over_threshold(messages: list[dict[str, Any]], trigger_chars: int) -> bool:
     与每条消息的包装开销都计入体量，与网关预留额度口径一致。
     """
     return estimate_tokens(messages) > max(1, trigger_chars // 2)
+
 
 _COMPRESS_SYSTEM = (
     "你是 OmniOperator 的上下文压缩器。把旧对话压缩成要点摘要，供 agent 延续"
@@ -76,26 +78,21 @@ def assemble_context(
     info: dict[str, Any] = {"summarized": False, "summary_id": None, "version": None}
     if summary is not None:
         info["summary_id"], info["version"] = summary[0], summary[4]
-    uncovered = [
-        row for row in rows if summary is None or row[0] > summary[2]
-    ]
-    if len(uncovered) < min_messages or not _over_threshold(
-        _rows_to_messages(uncovered, None, render), trigger_chars
-    ):
+    uncovered = [row for row in rows if summary is None or row[0] > summary[2]]
+    if len(uncovered) < min_messages or not _over_threshold(_rows_to_messages(uncovered, None, render), trigger_chars):
         return _rows_to_messages(uncovered, summary, render), info
 
     cut = max(0, len(uncovered) - keep_recent) if keep_recent > 0 else len(uncovered)
     if render is not None:
         # 当前回合的原始请求和快照不可被摘要替换，keep_recent=0 也一样。
-        current = next((i for i in range(len(uncovered)-1,-1,-1) if uncovered[i][1]=='user'), None)
-        if current is not None:cut=min(cut,current)
+        current = next((i for i in range(len(uncovered) - 1, -1, -1) if uncovered[i][1] == "user"), None)
+        if current is not None:
+            cut = min(cut, current)
     old, recent = uncovered[:cut], uncovered[cut:]
     if not old:
         return _rows_to_messages(uncovered, summary, render), info
 
-    transcript = "\n".join(
-        f"[{row[1]}] {row[2][:400]}" for row in old
-    )
+    transcript = "\n".join(f"[{row[1]}] {row[2][:400]}" for row in old)
     try:
         reply = gateway.complete(
             [
@@ -130,8 +127,11 @@ def assemble_context(
                 supersedes=summary[0] if summary is not None else None,
             )
             info.update(
-                summarized=created, summary_id=new_id, version=version,
-                from_msg_id=from_msg, to_msg_id=to_msg,
+                summarized=created,
+                summary_id=new_id,
+                version=version,
+                from_msg_id=from_msg,
+                to_msg_id=to_msg,
             )
         except Exception as exc:  # noqa: BLE001 —— 存不下就只影响本轮，不影响回答
             info["reason"] = f"save_failed:{exc}"
@@ -174,9 +174,7 @@ def assert_invariants(messages: list[dict[str, Any]]) -> None:
     if not messages:
         return
     assert messages[0].get("role") == "system", "消息序列必须以 system 开头"
-    assert (
-        sum(1 for m in messages if m.get("role") == "system") == 1
-    ), "system 只能有一条"
+    assert sum(1 for m in messages if m.get("role") == "system") == 1, "system 只能有一条"
     pending: set[str] = set()
     for i, m in enumerate(messages[1:], start=1):
         if m.get("role") == "tool":
@@ -203,11 +201,7 @@ def atomic_blocks(messages: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
     """
     blocks: list[list[dict[str, Any]]] = []
     for m in messages:
-        if (
-            m.get("role") == "tool"
-            and blocks
-            and blocks[-1][0].get("tool_calls")
-        ):
+        if m.get("role") == "tool" and blocks and blocks[-1][0].get("tool_calls"):
             blocks[-1].append(m)
             continue
         blocks.append([m])
@@ -229,7 +223,7 @@ def _text_of(content: Any) -> str:
                 if part.get("type") == "text" and isinstance(part.get("text"), str):
                     parts.append(part["text"])
                 elif part.get("type") in {"image_url", "image", "input_image"}:
-                    parts.append("（此处已向模型发送一张图像）")
+                    parts.append("（图像像素已从此压缩文本移除；需以本次请求的实际图像块为准）")
             else:
                 parts.append(str(part))
         return "\n".join(parts)
@@ -278,11 +272,21 @@ def compress_if_needed(
         taken += len(block)
     # 回合内工具输出很多时，保留最新运行快照及它之后的完整原子块。
     # 只压较早的前缀；不能为压缩而丢掉当前时间、最新档案或用户约束。
-    current_retained = any(block[0].get('role')=='user'
-                           and CONTEXT_HEADER in _text_of(block[0].get('content')) for block in recent)
-    anchor = None if current_retained else next((i for i in range(len(blocks)-1,-1,-1)
-                   if blocks[i][0].get('role')=='user'
-                   and CONTEXT_HEADER in _text_of(blocks[i][0].get('content'))), None)
+    current_retained = any(
+        block[0].get("role") == "user" and CONTEXT_HEADER in _text_of(block[0].get("content")) for block in recent
+    )
+    anchor = (
+        None
+        if current_retained
+        else next(
+            (
+                i
+                for i in range(len(blocks) - 1, -1, -1)
+                if blocks[i][0].get("role") == "user" and CONTEXT_HEADER in _text_of(blocks[i][0].get("content"))
+            ),
+            None,
+        )
+    )
     if anchor is not None:
         recent = blocks[anchor:] + recent
         blocks = blocks[:anchor]
@@ -290,9 +294,7 @@ def compress_if_needed(
         return messages
 
     old = [m for block in blocks for m in block]
-    transcript = "\n".join(
-        f"[{m['role']}] {_text_of(m.get('content'))[:400]}" for m in old
-    )
+    transcript = "\n".join(f"[{m['role']}] {_text_of(m.get('content'))[:400]}" for m in old)
     try:
         reply = gateway.complete(
             [
@@ -321,8 +323,6 @@ def compress_if_needed(
     # 维持严格角色交替：recent 以 user 开头时把摘要并入首条，避免连续 user
     if flat_recent and flat_recent[0].get("role") == "user":
         merged = dict(flat_recent[0])
-        merged["content"] = (
-            f"{summary_block['content']}\n\n{merged.get('content') or ''}"
-        )
+        merged["content"] = f"{summary_block['content']}\n\n{merged.get('content') or ''}"
         return [system, merged, *flat_recent[1:]]
     return [system, summary_block, *flat_recent]

@@ -5,6 +5,7 @@
 - Approver 是纯决策接口，不知道具体工具类型的存在——依赖方向保持 tools → safety 单向；
 - 上下文默认 fail-closed：没人能点确认的场景（cron/心跳）必须用 DenyApprover。
 """
+
 from __future__ import annotations
 
 import abc
@@ -15,8 +16,8 @@ from typing import Any
 
 
 class Risk(str, Enum):
-    SAFE = "safe"            # 只读/本地无害操作，直通
-    CONFIRM = "confirm"      # 需要人确认的写操作（发消息、发布…）
+    SAFE = "safe"  # 只读/本地无害操作，直通
+    CONFIRM = "confirm"  # 需要人确认的写操作（发消息、发布…）
     DANGEROUS = "dangerous"  # 高危（支付/删除/安装…），P3 接入显式授权前一律拒绝
 
 
@@ -51,9 +52,7 @@ class Approver(abc.ABC):
     allows_auto_approval: bool = True
 
     @abc.abstractmethod
-    def check(
-        self, tool: Any, arguments: Any = None, *, cancel: Any = None
-    ) -> Decision:
+    def check(self, tool: Any, arguments: Any = None, *, cancel: Any = None) -> Decision:
         """cancel 是本次运行的取消信号（有 `.cancelled`）；不支持时忽略。
 
         交互式审批器必须在等待中检查它：运行被取消后，待批准的操作要立刻撤销，
@@ -111,10 +110,15 @@ class ConsoleApprover(Approver):
             except (TypeError, ValueError):
                 return Decision(False, "无法完整展示审批参数")
         from rich.markup import escape
+
         args_text = escape(args_text)
-        answer = self._console.input(
-            f"[bold yellow]即将执行工具 {tool.name} {args_text}（{tool.description}），允许? [y/N][/] "
-        ).strip().lower()
+        answer = (
+            self._console.input(
+                f"[bold yellow]即将执行工具 {tool.name} {args_text}（{tool.description}），允许? [y/N][/] "
+            )
+            .strip()
+            .lower()
+        )
         if answer in ("y", "yes"):
             return Decision(True)
         return Decision(False, "用户在确认时拒绝了该操作")
@@ -139,8 +143,5 @@ class WebApprover(Approver):
             return Decision(False, "dangerous 级操作在当前版本一律拒绝")
         detail = json.dumps(arguments or {}, ensure_ascii=False, indent=2)
         if len(detail) > self.MAX_DETAIL_CHARS:
-            detail = (
-                detail[: self.MAX_DETAIL_CHARS]
-                + "\n…（参数过长，已截断；完整内容见执行结果与写入备份）"
-            )
+            detail = detail[: self.MAX_DETAIL_CHARS] + "\n…（参数过长，已截断；完整内容见执行结果与写入备份）"
         return self._broker.request(tool, detail=detail)

@@ -9,6 +9,7 @@
 2. **摘要是持久事实**：摘要按消息 id 区间落库，重启后仍在；重复压缩同一段不会再
    花一次钱；压缩失败原样返回，绝不写半截摘要改写用户的历史。
 """
+
 from __future__ import annotations
 
 import sqlite3

@@ -11,6 +11,7 @@ cookies.txt 才能取流与抽帧；我们已有 B站 WBI 直链（tools/bilibil
 清晰度用 Laplacian 方差：模糊不改变直方图，按直方图挑帧会选到糊掉的画面，
 所以必须用梯度能量来判断「这张清不清楚」。
 """
+
 from __future__ import annotations
 
 import io
@@ -30,9 +31,7 @@ class VideoDecodeError(RuntimeError):
     """视频解码失败（没有视频轨、格式不支持、文件损坏）。"""
 
 
-def effective_scan_fps(
-    duration: float, fps_limit: float = MAX_SCAN_FPS, max_frames: int = MAX_SCAN_FRAMES
-) -> float:
+def effective_scan_fps(duration: float, fps_limit: float = MAX_SCAN_FPS, max_frames: int = MAX_SCAN_FRAMES) -> float:
     """按片长算出**实际该用的扫描帧率**，保证一定看得到全片。
 
     真机踩到的坑：原来只有一个固定的 `max_frames` 上限，扫到上限就停。
@@ -119,9 +118,7 @@ def scan_frame_diffs(
             step = 1.0 / max(0.1, fps_limit)
             next_keep = 0.0
             for index, frame in enumerate(container.decode(stream)):
-                timestamp = float(
-                    frame.time if frame.time is not None else index / 25.0
-                )
+                timestamp = float(frame.time if frame.time is not None else index / 25.0)
                 if timestamp + 1e-6 < next_keep:
                     continue
                 next_keep = timestamp + step
@@ -175,9 +172,7 @@ def scan_cut_scores(
             step = 1.0 / max(0.1, actual_fps)
             next_keep = 0.0
             for index, frame in enumerate(container.decode(stream)):
-                timestamp = float(
-                    frame.time if frame.time is not None else index / 25.0
-                )
+                timestamp = float(frame.time if frame.time is not None else index / 25.0)
                 if timestamp + 1e-6 < next_keep:
                     continue
                 next_keep = timestamp + step
@@ -242,9 +237,7 @@ def pick_sharp_frames(
                 raise VideoDecodeError("这个文件里没有视频轨（可能是纯音频流）")
             stream = container.streams.video[0]
             for index, start, end in cells:
-                best = _sharpest_in_range(
-                    container, stream, start, end, width, samples
-                )
+                best = _sharpest_in_range(container, stream, start, end, width, samples)
                 if best is None:
                     continue
                 timestamp, sharp, png = best
@@ -275,9 +268,10 @@ def frame_at(path: Path, timestamp: float, *, width: int = 1280) -> tuple[float,
             try:
                 container.seek(
                     int(max(0.0, timestamp) / float(stream.time_base)),
-                    stream=stream, backward=True,
+                    stream=stream,
+                    backward=True,
                 )
-            except Exception:  # noqa: BLE001 —— 某些容器不支持 seek
+            except Exception:  # noqa: BLE001, S110 —— 某些容器不支持 seek
                 pass
             best: tuple[float, float] | None = None
             best_frame = None
@@ -318,11 +312,7 @@ def _sharpest_in_range(
             continue
         timestamp, sharp, png = candidate
         # 平局裁决：清晰度一样时取更靠近段中点的那一帧
-        if (
-            best is None
-            or sharp > best[1]
-            or (sharp == best[1] and abs(timestamp - middle) < abs(best[0] - middle))
-        ):
+        if best is None or sharp > best[1] or (sharp == best[1] and abs(timestamp - middle) < abs(best[0] - middle)):
             best = (timestamp, sharp, png)
     return best
 
@@ -336,10 +326,8 @@ def _sharpest_near(
     所以 seek 之后拿到的是"目标之前的关键帧"，必须再往后解几帧才对得上目标。
     """
     try:
-        container.seek(
-            int(max(0.0, target) / float(stream.time_base)), stream=stream, backward=True
-        )
-    except Exception:  # noqa: BLE001 —— 某些容器不支持 seek
+        container.seek(int(max(0.0, target) / float(stream.time_base)), stream=stream, backward=True)
+    except Exception:  # noqa: BLE001, S110 —— 某些容器不支持 seek
         return None
     best: tuple[float, float, float, object] | None = None
     closest: tuple[float, float, object] | None = None
@@ -353,11 +341,7 @@ def _sharpest_near(
             sharp = laplacian_variance(frame)
             # 平局裁决：清晰度一样时取更接近目标的那一帧
             # （纯色素材所有帧清晰度都是 0，不裁决就会永远返回容差内的第一帧）
-            if (
-                best is None
-                or sharp > best[0]
-                or (sharp == best[0] and distance < best[1])
-            ):
+            if best is None or sharp > best[0] or (sharp == best[0] and distance < best[1]):
                 best = (sharp, distance, current, frame)
         seen += 1
         if seen >= limit or current > target + tolerance:
@@ -394,10 +378,7 @@ def laplacian_variance(frame) -> float:
     array = np.asarray(image, dtype=np.float32)
     if array.ndim != 2 or array.shape[0] < 3 or array.shape[1] < 3:
         return 0.0
-    kernel = np.array(
-        [[0.0, 1.0, 0.0], [1.0, -4.0, 1.0], [0.0, 1.0, 0.0]], dtype=np.float32
-    )
-    height, width = array.shape
+    kernel = np.array([[0.0, 1.0, 0.0], [1.0, -4.0, 1.0], [0.0, 1.0, 0.0]], dtype=np.float32)
     windows = np.lib.stride_tricks.sliding_window_view(array, (3, 3))
     response = np.einsum("ijkl,kl->ij", windows, kernel)
     return float(response.var())
@@ -407,7 +388,7 @@ def _rgb_bytes(frame) -> bytes:
     """帧 → RGB888 字节串（扫描用的小帧）。"""
     try:
         return bytes(frame.reformat(width=SCAN_WIDTH, height=SCAN_HEIGHT, format="rgb24").to_ndarray().tobytes())
-    except Exception:  # noqa: BLE001 —— 某些帧格式转换失败，退回全尺寸
+    except Exception:  # noqa: BLE001, S110 —— 某些帧格式转换失败，退回全尺寸
         try:
             return bytes(frame.to_ndarray(format="rgb24").tobytes())
         except Exception:  # noqa: BLE001

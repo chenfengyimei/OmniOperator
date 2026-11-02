@@ -1,4 +1,5 @@
 """可恢复的人类终端：持续排空、有限输出环与单写者；不向模型暴露。"""
+
 from __future__ import annotations
 
 import threading
@@ -17,9 +18,9 @@ class ManagedTerminal:
         self._lock = threading.RLock()
         self._clock, self.detached_at = clock, clock()
         self.connected = False
-        self.status, self.exit_code = 'running', None
+        self.status, self.exit_code = "running", None
         self._on_exit = on_exit
-        self.worker = threading.Thread(target=self._read, name=f'terminal-{self.id[:8]}', daemon=True)
+        self.worker = threading.Thread(target=self._read, name=f"terminal-{self.id[:8]}", daemon=True)
         self.worker.start()
 
     def _read(self):
@@ -29,8 +30,8 @@ class ManagedTerminal:
                 if not text:
                     break
                 for start in range(0, len(text), 4096):
-                    chunk = text[start:start+4096]
-                    size = len(chunk.encode('utf-8'))
+                    chunk = text[start : start + 4096]
+                    size = len(chunk.encode("utf-8"))
                     with self._lock:
                         self._seq += 1
                         self._chunks.append((self._seq, chunk, size))
@@ -42,21 +43,28 @@ class ManagedTerminal:
         finally:
             with self._lock:
                 alive = self.session.isalive()
-                self.status = 'unknown' if alive else 'exited'
+                self.status = "unknown" if alive else "exited"
                 if not alive:
-                    self.exit_code = getattr(self.session._pty, 'exitstatus', None)
+                    self.exit_code = getattr(self.session._pty, "exitstatus", None)
             self._on_exit(self.session)
 
     def brief(self):
         with self._lock:
-            return {'id':self.id, 'label':self.label, 'shell':self.shell, 'cwd':self.cwd,
-                    'status':self.status, 'connected':self.connected, 'exit_code':self.exit_code,
-                    'last_seq':self._seq}
+            return {
+                "id": self.id,
+                "label": self.label,
+                "shell": self.shell,
+                "cwd": self.cwd,
+                "status": self.status,
+                "connected": self.connected,
+                "exit_code": self.exit_code,
+                "last_seq": self._seq,
+            }
 
     def attach(self):
         with self._lock:
             if self.connected:
-                raise RuntimeError('终端已有写入连接')
+                raise RuntimeError("终端已有写入连接")
             self.connected = True
 
     def detach(self):

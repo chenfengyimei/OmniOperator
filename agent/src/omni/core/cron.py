@@ -9,6 +9,7 @@ D05：领取改成 `JobStore.claim_due()` —— 选任务、推进 next_run_at�
 写事务**里完成。所以两个调度进程同时 tick 时，同一个到期时刻只有一个能拿到（A17 的一部分；
 完整的调度/投递语义在 D17）。旧的 `list() + upsert()` 是"先读后写"，两个进程都会派发。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -78,7 +79,7 @@ class CronScheduler:
             return
         try:
             self._on_tick(fired)
-        except Exception:  # noqa: BLE001 —— 上报失败绝不影响调度
+        except Exception:  # noqa: BLE001, S110 —— 上报失败绝不影响调度
             pass
 
     async def tick(self, now: float | None = None) -> list[str]:
@@ -86,7 +87,7 @@ class CronScheduler:
         now = self._clock() if now is None else now
         now_dt = dt.datetime.fromtimestamp(now).astimezone()
         fired: list[str] = []
-        if self._closing:
+        if self._closing or not getattr(self, "admission", lambda: True)():
             return fired
         while True:
             claim = self._store.claim_due(now_dt, max_running=self._max_running, ttl_s=self._claim_ttl_s)
@@ -98,8 +99,7 @@ class CronScheduler:
                 # 纪律 2：错过窗口只重排（claim 已推进 next_run_at），释放领取记录
                 self._store.release_claim(claim.token)
                 print(
-                    f"[心跳] {job.name} 错过窗口（迟到 {claim.overdue_s / 60:.0f} 分钟），"
-                    "跳过补跑、仅重排",
+                    f"[心跳] {job.name} 错过窗口（迟到 {claim.overdue_s / 60:.0f} 分钟），跳过补跑、仅重排",
                     flush=True,
                 )
                 continue
@@ -220,7 +220,9 @@ def make_runtime_executor(runtime: Any) -> Callable[[Job], Awaitable[str]]:
         def execute():
             leases = getattr(runtime, "session_leases", None)
             with leases.hold(session_id) if leases else contextlib.nullcontext():
-                return runtime.agent.run_turn(prompt, session_id=session_id)
+                updates = getattr(runtime, "updates", None)
+                with updates.gate.work(allow_drain=True) if updates else contextlib.nullcontext():
+                    return runtime.agent.run_turn(prompt, session_id=session_id)
 
         work = asyncio.create_task(asyncio.to_thread(execute))
         try:
@@ -252,17 +254,13 @@ def make_runtime_executor(runtime: Any) -> Callable[[Job], Awaitable[str]]:
     return executor
 
 
-def _enqueue_or_note(
-    runtime: Any, job: str, target: int, content: str, reason: str, status: str
-) -> str:
+def _enqueue_or_note(runtime: Any, job: str, target: int, content: str, reason: str, status: str) -> str:
     """把没发出去的消息放进 outbox；入队失败时如实说明（结果本身已落会话，不丢）。"""
     outbox = runtime.outbox
     if outbox is None:
         return f"未投递：{reason}（outbox 不可用）"
     try:
-        entry_id = outbox.enqueue(
-            job=job, target_qq=int(target), content=content, status=status, error=reason
-        )
+        entry_id = outbox.enqueue(job=job, target_qq=int(target), content=content, status=status, error=reason)
     except (StateUnavailable, ValueError) as exc:
         return f"未投递：{reason}（入队失败：{exc}；结果已落在会话里，可手动查看）"
     if entry_id is None:
@@ -298,6 +296,7 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
         if qq is None:
             return "未投递：QQ 未启用"
         from .qq_policy import proactive_gate, runtime_last_inbound_at
+
         decision = proactive_gate(
             runtime.qq_policy(),
             target,
@@ -309,9 +308,7 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
         if decision.state == "defer":
             return _enqueue_or_note(runtime, job.name, target, result, decision.reason, "pending")
         if not qq.connected:
-            return _enqueue_or_note(
-                runtime, job.name, target, result, "QQ 未连接（NapCat 未启动？）", "pending"
-            )
+            return _enqueue_or_note(runtime, job.name, target, result, "QQ 未连接（NapCat 未启动？）", "pending")
         # 在线也先持久登记，再领取发送。崩溃留下 sending，恢复时转 unknown。
         outbox = runtime.outbox
         if outbox is None:
@@ -338,6 +335,7 @@ def make_runtime_deliver(runtime: Any) -> Callable[[Job, str], Awaitable[str]]:
 async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
     from ..tools.qq.client import chunk_message
     from .qq_policy import proactive_gate, runtime_last_inbound_at
+
     outbox = runtime.outbox
 
     def finish(status: str, error: str = "") -> str:
@@ -380,8 +378,9 @@ async def _send_outbox_entry(runtime: Any, entry: dict) -> str:
         if sent:
             return finish("unknown", "已有部分分段成功，后续确认未发送，不能重放整条")
         attempts = entry["attempts"]
-        return finish("dead" if attempts >= outbox.MAX_ATTEMPTS else "pending",
-                      f"确认未发送，已尝试 {attempts} 次：{exc}")
+        return finish(
+            "dead" if attempts >= outbox.MAX_ATTEMPTS else "pending", f"确认未发送，已尝试 {attempts} 次：{exc}"
+        )
     except asyncio.CancelledError:
         finish("unknown", "发送中断，结果未知，禁止自动重发")
         raise
@@ -441,13 +440,15 @@ async def artifacts_sweep_loop(runtime: Any, interval_s: float = 3600.0) -> None
     """
     while True:
         await asyncio.sleep(interval_s)
+        if getattr(runtime, "updates", None) and runtime.updates.gate.active():
+            continue
         try:
             artifacts = getattr(runtime, "artifacts", None)
             active_runs = getattr(runtime, "active_runs", None)
             if artifacts is None:
                 continue
             keep: set[str] = set()
-            for active in (active_runs.contexts() if active_runs else []):
+            for active in active_runs.contexts() if active_runs else []:
                 keep.update(getattr(active, "_attached_image_ids", None) or set())
             removed = artifacts.cleanup(keep_ids=keep)
             if removed.get("removed"):
@@ -461,7 +462,10 @@ async def outbox_drain_loop(runtime: Any, interval_s: float = 60.0) -> None:
     drain = make_outbox_drainer(runtime)
     while True:
         try:
-            await drain()
+            if not (getattr(runtime, "updates", None) and runtime.updates.gate.active()):
+                updates = getattr(runtime, "updates", None)
+                with updates.gate.work() if updates else contextlib.nullcontext():
+                    await drain()
         except Exception as exc:  # noqa: BLE001 —— 打印后下轮再试
             print(f"[心跳] outbox 补投失败（下轮重试）：{exc}", flush=True)
         await asyncio.sleep(interval_s)

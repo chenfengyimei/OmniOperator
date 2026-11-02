@@ -21,6 +21,7 @@ D36 先核实这条限制的准确边界，再补上能补的那一半。
 
 **全部离线**：不联网、不碰真实账号与真实目录、不调模型。
 """
+
 from __future__ import annotations
 
 import random
@@ -94,12 +95,12 @@ def test_order_numbers_are_not_misjudged_as_id_cards() -> None:
 def test_common_non_id_numbers_pass() -> None:
     """几类真实存在的高频长数字，逐条确认不误伤。"""
     samples = (
-        "快递单号 6222021234567890 已签收",       # 13 位 + 银行卡上下文词
-        "订单 202608011234567890 已发货",          # 18 位日期前缀流水
-        "时间戳 1767225600000",                   # 13 位毫秒
-        "房间号 1234 定了",                        # 短数字
-        "BV1xx411c7mD 的 av 号 114514",            # BV 号里的数字
-        "电话 13800138000",                        # 手机号
+        "快递单号 6222021234567890 已签收",  # 13 位 + 银行卡上下文词
+        "订单 202608011234567890 已发货",  # 18 位日期前缀流水
+        "时间戳 1767225600000",  # 13 位毫秒
+        "房间号 1234 定了",  # 短数字
+        "BV1xx411c7mD 的 av 号 114514",  # BV 号里的数字
+        "电话 13800138000",  # 手机号
     )
     for text in samples:
         assert not scan(text), f"误伤：{text}"
@@ -111,12 +112,12 @@ def test_invalid_checksum_but_valid_shape_is_not_a_bare_id() -> None:
     这条是「不误伤」与「拦得全」之间的分界：校验位不自洽的数字有 91%
     是普通长数字，放行它们才是对的。
     """
-    assert not is_id_card_number("110101199003151234")   # 末位应为 3
-    assert not is_id_card_number("11010119900315123X")   # 末位应为 5
-    assert not is_id_card_number("110101199013151233")   # 13 月不存在
-    assert not is_id_card_number("110101199002301233")   # 2 月 30 日不存在
-    assert not is_id_card_number("990101199003151233")   # 99 省码不存在
-    assert not is_id_card_number("11010119900315123")    # 17 位，形态就不对
+    assert not is_id_card_number("110101199003151234")  # 末位应为 3
+    assert not is_id_card_number("11010119900315123X")  # 末位应为 5
+    assert not is_id_card_number("110101199013151233")  # 13 月不存在
+    assert not is_id_card_number("110101199002301233")  # 2 月 30 日不存在
+    assert not is_id_card_number("990101199003151233")  # 99 省码不存在
+    assert not is_id_card_number("11010119900315123")  # 17 位，形态就不对
 
 
 def test_bank_card_still_requires_context_word() -> None:

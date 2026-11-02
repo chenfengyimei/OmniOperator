@@ -10,6 +10,7 @@
 明确不做：不做配对/鉴权（/api/ 前缀统一受会话闸门）；不做写全量记忆
 （记录是 Agent 回合的旁路，接口只读）。
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -116,12 +117,12 @@ def create_memory_system_router(runtime: Runtime) -> APIRouter:
 
     @router.get("/api/memory-system/dialogue/entries")
     def dialogue_entries(
-        day: str | None = None, session_id: int | None = None,
-        after: int = 0, limit: int = 100,
+        day: str | None = None,
+        session_id: int | None = None,
+        after: int = 0,
+        limit: int = 100,
     ) -> dict[str, Any]:
-        entries = _system().dialogue.entries(
-            day=day, session_id=session_id, after=after, limit=min(limit, 500)
-        )
+        entries = _system().dialogue.entries(day=day, session_id=session_id, after=after, limit=min(limit, 500))
         return {"entries": entries, "has_more": len(entries) >= min(limit, 500)}
 
     @router.get("/api/memory-system/dialogue/search")
@@ -144,8 +145,11 @@ def create_memory_system_router(runtime: Runtime) -> APIRouter:
 
     @router.get("/api/memory-system/session-log/entries")
     def session_log_entries(
-        day: str | None = None, session_id: int | None = None, run_id: str | None = None,
-        after: int = 0, limit: int = 100,
+        day: str | None = None,
+        session_id: int | None = None,
+        run_id: str | None = None,
+        after: int = 0,
+        limit: int = 100,
     ) -> dict[str, Any]:
         entries = _system().session_log.entries(
             day=day, session_id=session_id, run_id=run_id, after=after, limit=min(limit, 500)
@@ -167,8 +171,7 @@ def create_memory_system_router(runtime: Runtime) -> APIRouter:
         items = _system().journal.list_notes(kind, limit=min(limit, 500))
         return {
             "notes": [
-                {k: v for k, v in note.items() if k != "content"} | {"chars": len(note["content"])}
-                for note in items
+                {k: v for k, v in note.items() if k != "content"} | {"chars": len(note["content"])} for note in items
             ]
         }
 
@@ -241,9 +244,7 @@ def create_memory_system_router(runtime: Runtime) -> APIRouter:
     @router.post("/api/memory-system/people/{person_id}/accounts")
     def account_link(person_id: int, payload: AccountLinkIn) -> dict[str, Any]:
         try:
-            _system().people.link_account(
-                person_id, payload.channel, payload.value.strip(), label=payload.label
-            )
+            _system().people.link_account(person_id, payload.channel, payload.value.strip(), label=payload.label)
         except PersonError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return {"ok": True, "person": _system().people.get_person(person_id)}
@@ -258,8 +259,11 @@ def create_memory_system_router(runtime: Runtime) -> APIRouter:
     def entry_add(person_id: int, payload: PersonEntryIn) -> dict[str, Any]:
         try:
             _system().people.add_entry(
-                person_id, payload.entry_kind, payload.content,
-                source="workbench", expires_at=payload.expires_at,
+                person_id,
+                payload.entry_kind,
+                payload.content,
+                source="workbench",
+                expires_at=payload.expires_at,
             )
         except PersonError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

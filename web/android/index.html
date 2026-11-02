@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>安卓控制 · OmniOperator</title>
+    <script src="/ui/theme.js?v=20261102u2"></script>
+    <link rel="stylesheet" href="/ui/tokens.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/base.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/icons.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/components.css?v=20261102u2" />
+    <link rel="stylesheet" href="/ui/frame.css?v=20261102u2" />
+    <link rel="stylesheet" href="/android/android.css?v=20261102u2" />
+    <script type="module" src="/ui/shared.js?v=20261102u2"></script>
+  </head>
+  <body data-ui-page="android">
+    <header>
+      <a href="/">← 工作台</a>
+      <h1>安卓控制</h1>
+    </header>
+    <section class="console-toolbar device-toolbar" aria-label="设备选择">
+      <button id="detect"><span class="material-icons">usb</span>检测设备</button>
+      <select id="devices" aria-label="目标设备">
+        <option value="">先检测并选择设备</option>
+      </select>
+    </section>
+    <p>
+      通过本地 ADB
+      观察和操作已授权设备。多设备必须明确选择；读取、锁帧和动作都遵循单次观察令牌，超时或掉线不会自动重试。
+    </p>
+    <div class="status-strip">
+      <p id="status" role="status">检测会访问本地 ADB；动作需单次观察，超时或掉线不自动重试。</p>
+      <p id="observation-state" class="ui-badge" role="status">未取得有效观察</p>
+      <span id="device-meta" class="device-meta">未选择设备</span>
+    </div>
+    <div id="android-stats" class="metric-grid" aria-label="设备概览"></div>
+    <section class="console-toolbar android-toolbar">
+      <div class="toolbar-group">
+        <span class="toolbar-label">观察与显示</span>
+        <button id="live"><span class="material-icons">live_tv</span>实时预览</button>
+        <button id="stop-live"><span class="material-icons">stop_circle</span>停止预览</button>
+        <button id="snapshot"><span class="material-icons">screenshot</span>锁定操作帧</button>
+        <button id="observe"><span class="material-icons">account_tree</span>刷新 UI 树</button>
+      </div>
+      <div class="toolbar-group">
+        <span class="toolbar-label">系统导航</span>
+        <button data-key="KEYCODE_BACK"><span class="material-icons">arrow_back</span>返回</button>
+        <button data-key="KEYCODE_HOME"><span class="material-icons">home</span>主屏</button>
+        <button data-key="KEYCODE_APP_SWITCH"><span class="material-icons">apps</span>最近应用</button>
+      </div>
+    </section>
+    <main class="android-layout">
+      <section class="android-preview">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">DEVICE VIEW</span>
+            <h2>设备画面</h2>
+          </div>
+          <span id="frame-info">坐标点击必须先锁定操作帧。</span>
+        </div>
+        <div class="screen">
+          <img hidden id="screen" alt="锁定的手机操作帧" />
+          <div class="screen-placeholder">
+            <span class="material-icons">phone_android</span><strong>等待设备画面</strong
+            ><small>点击「实时预览」或「锁定操作帧」</small>
+          </div>
+        </div>
+      </section>
+      <section class="controls">
+        <div class="section-heading compact">
+          <div>
+            <span class="eyebrow">CONTROLS</span>
+            <h2>元素与手势</h2>
+          </div>
+          <span class="material-icons">touch_app</span>
+        </div>
+        <div class="control-group">
+          <h3>目标元素</h3>
+          <select id="elements" aria-label="目标元素"></select>
+          <div class="button-row">
+            <button id="tap"><span class="material-icons">ads_click</span>点击元素</button
+            ><button id="long"><span class="material-icons">touch_app</span>长按元素</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <h3>滑动手势</h3>
+          <div class="button-row">
+            <button data-direction="up">上滑</button><button data-direction="down">下滑</button
+            ><button data-direction="left">左滑</button><button data-direction="right">右滑</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <h3>文本输入</h3>
+          <input id="text" maxlength="2000" autocomplete="off" placeholder="输入要发送到当前焦点的文字" />
+          <button id="type"><span class="material-icons">keyboard</span>输入到当前非密码焦点</button>
+        </div>
+        <div class="control-group">
+          <h3>白名单应用</h3>
+          <div class="button-row">
+            <button id="apps"><span class="material-icons">apps</span>读取允许应用</button
+            ><button id="launch"><span class="material-icons">rocket_launch</span>启动所选应用</button>
+          </div>
+          <select id="packages" aria-label="允许启动的应用"></select>
+        </div>
+        <div class="control-group tree-group">
+          <h3>UI 树观察</h3>
+          <pre id="tree" tabindex="0">刷新 UI 树后查看元素。</pre>
+        </div>
+      </section>
+    </main>
+    <script src="/ui/embed-height.js?v=20261102u2"></script>
+    <script type="module" src="/android/android.js?v=20261102u2"></script>
+  </body>
+</html>

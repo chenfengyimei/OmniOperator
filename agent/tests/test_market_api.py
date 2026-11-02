@@ -8,6 +8,7 @@
   且激活前提是防篡改复核通过；丢弃只删隔离区；
 - 人设卡导入是纯文本：接口只回卡片，不写配置。
 """
+
 from __future__ import annotations
 
 import io
@@ -29,12 +30,12 @@ MANIFEST = {
     "author": "tester",
     "permissions": ["tools"],
 }
-PLUGIN_CODE = '''def register(ctx):
+PLUGIN_CODE = """def register(ctx):
     def hello(args):
         return "hello market"
     ctx.add_tool(name="demo-tools-hello", description="打招呼",
                  parameters={"type": "object", "properties": {}}, func=hello, risk="safe")
-'''
+"""
 
 
 def _zip() -> bytes:
@@ -130,6 +131,21 @@ def _wired(tmp_path, monkeypatch, *, fail: str = "", source: str = "http://marke
     return client, runtime, upstream
 
 
+@pytest.mark.parametrize("installed,available", [("0.9.0", True), ("1.0.0", False), ("legacy-version", False)])
+def test_market_compares_versions_without_failing_on_legacy_metadata(tmp_path, monkeypatch, installed, available):
+    client, runtime, _ = _wired(tmp_path, monkeypatch)
+    monkeypatch.setattr(runtime.plugins, "installed", lambda: [{"id": "demo-tools", "version": installed}])
+    try:
+        response = client.get("/api/market/plugins")
+        assert response.status_code == 200
+        card = response.json()["items"][0]
+        assert card["installed_version"] == installed
+        assert card["update_available"] is available
+    finally:
+        client.close()
+        assert runtime.close()["complete"]
+
+
 def test_status_explains_missing_source(tmp_path, monkeypatch):
     client, _runtime, _upstream = _wired(tmp_path, monkeypatch, source="")
     payload = client.get("/api/market/status").json()
@@ -177,7 +193,7 @@ def test_plugins_are_clipped(tmp_path, monkeypatch):
     item = client.get("/api/market/plugins").json()["items"][0]
     assert item["id"] == "demo-tools"
     assert len(item["description"]) == 300
-    assert item["homepage"] == ""                    # 非 http(s) 丢弃
+    assert item["homepage"] == ""  # 非 http(s) 丢弃
     assert item["tags"] == ["工具", "演示", "t" * 12]  # 去重 + 单条截断
     assert [entry["path"] for entry in item["files"]] == ["manifest.json", "../evil"]
 
@@ -203,7 +219,7 @@ def test_install_quarantines_without_registering_tools(tmp_path, monkeypatch):
     state = response.json()
     assert [item["id"] for item in state["quarantine"]] == ["demo-tools"]
     assert state["installed"] == []
-    assert runtime.registry.get("demo-tools-hello") is None      # 装了不等于跑
+    assert runtime.registry.get("demo-tools-hello") is None  # 装了不等于跑
     assert "/api/download/demo-tools" in upstream.paths
 
     # 收件箱只做传输落点：装完不留下同一个 zip

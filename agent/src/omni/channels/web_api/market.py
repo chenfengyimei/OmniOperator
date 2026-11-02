@@ -12,6 +12,7 @@
 源：`data/plugins/community.json` 的 server_url，未配置时回落到
 `OMNI_MARKET_URL`（官方默认源）。改源是普通字段写入，不需要重启。
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
 
 LIMIT_MAX = 50
 TAGS_MAX = 6
-TEXT_MAX = 300          # 作者自填文本的默认收窄长度（描述类字段）
+TEXT_MAX = 300  # 作者自填文本的默认收窄长度（描述类字段）
 
 
 class MarketSourceIn(BaseModel):
@@ -139,9 +140,7 @@ def create_market_router(runtime: Runtime) -> APIRouter:
             "server_url": effective,
             "token_set": bool(configured["token"]),
             "default_source": not configured["server_url"] and bool(effective),
-            "hint": (
-                "这里显示的是市场源地址。装插件仍要走本机隔离安装，激活前会再问你一次。"
-            ),
+            "hint": ("这里显示的是市场源地址。装插件仍要走本机隔离安装，激活前会再问你一次。"),
         }
         if effective:
             data, problem = client.fetch("/api/health")
@@ -201,6 +200,17 @@ def create_market_router(runtime: Runtime) -> APIRouter:
         if data is None:
             raise HTTPException(status_code=502, detail=problem)
         items = _plugin_cards(data.get("items"))
+        installed = {item["id"]: item["version"] for item in _host(runtime).installed()}
+        from ...system.updates.common import UpdateError
+        from ...system.updates.version import semver
+
+        for item in items:
+            previous = installed.get(item["id"])
+            item["installed_version"] = previous
+            try:
+                item["update_available"] = bool(previous and semver(item["version"]) > semver(previous))
+            except (ValueError, UpdateError):
+                item["update_available"] = False
         total = data.get("total")
         return {"items": items, "total": total if isinstance(total, int) else len(items)}
 
@@ -235,16 +245,12 @@ def create_market_router(runtime: Runtime) -> APIRouter:
                 )
         for item in host.installed():
             if item.get("id") == plugin_id:
-                raise HTTPException(
-                    status_code=409, detail=f"插件 {plugin_id} 已安装；要换版本先卸载再装"
-                )
+                raise HTTPException(status_code=409, detail=f"插件 {plugin_id} 已安装；要换版本先卸载再装")
         version = (payload.version if payload else "").strip()
         ok, message = client.install(plugin_id, version)
         if not ok:
             lowered = message
-            status = 404 if "404" in lowered else (
-                409 if "已有" in lowered or "已安装" in lowered else 502
-            )
+            status = 404 if "404" in lowered else (409 if "已有" in lowered or "已安装" in lowered else 502)
             raise HTTPException(status_code=status, detail=message)
         return {"ok": True, "message": message, **_state(runtime)}
 
@@ -253,8 +259,10 @@ def create_market_router(runtime: Runtime) -> APIRouter:
         """激活 = 同意执行该插件代码（界面必须已明确提示过）。"""
         ok, message = _host(runtime).activate(plugin_id)
         if not ok:
-            status = 404 if "没有待激活" in message else (
-                409 if ("复核" in message or "缺失" in message or "已安装" in message) else 400
+            status = (
+                404
+                if "没有待激活" in message
+                else (409 if ("复核" in message or "缺失" in message or "已安装" in message) else 400)
             )
             raise HTTPException(status_code=status, detail=message)
         return {"ok": True, "message": message, **_state(runtime)}

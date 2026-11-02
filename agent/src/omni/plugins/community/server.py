@@ -29,6 +29,7 @@ API（v1）：
 - 服务器对 zip 内容量、发布频率不做复杂治理——单 owner 参考实现，
   面向公网运营前应按实际规模加反代限流。
 """
+
 from __future__ import annotations
 
 import argparse
@@ -118,9 +119,7 @@ def create_app(root: Path, *, token: str = "") -> FastAPI:
         items = []
         needle = query.strip().lower()
         for plugin in sorted(index.get("plugins", {}).values(), key=lambda p: str(p.get("id", ""))):
-            haystack = " ".join(
-                str(plugin.get(key, "")) for key in ("id", "name", "description", "author")
-            ).lower()
+            haystack = " ".join(str(plugin.get(key, "")) for key in ("id", "name", "description", "author")).lower()
             if needle and needle not in haystack:
                 continue
             items.append(plugin)
@@ -206,9 +205,7 @@ def create_app(root: Path, *, token: str = "") -> FastAPI:
             with write_lock:
                 index = _index()
                 plugins = index.setdefault("plugins", {})
-                versions = sorted(
-                    meta["versions"].keys(), key=lambda v: tuple(int(x) for x in v.split("."))
-                )
+                versions = sorted(meta["versions"].keys(), key=lambda v: tuple(int(x) for x in v.split(".")))
                 existing = plugins.get(manifest.id) or {"downloads": 0}
                 plugins[manifest.id] = {
                     "id": manifest.id,

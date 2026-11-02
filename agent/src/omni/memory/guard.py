@@ -16,6 +16,7 @@
 注意边界：这一层保证"写多少、能不能写、能不能写凭据"，**不判断内容对不对**，
 也不改任何权限。正则不是提示词注入防御——权限由工具风险等级与审批器用代码约束。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -65,9 +66,7 @@ class MemoryGuard:
         }
         self.source = source
 
-    def check(
-        self, kind: str, text: str, *, store: MemoryStore | None = None
-    ) -> WriteDecision:
+    def check(self, kind: str, text: str, *, store: MemoryStore | None = None) -> WriteDecision:
         """按 输入 → 隐私 → 遗忘 → 额度 的顺序判定；被拒的写入**不消耗额度**。"""
         body = str(text or "").strip()
         if not body:
@@ -78,8 +77,7 @@ class MemoryGuard:
         if len(body) > limit_chars:
             return WriteDecision(
                 False,
-                f"内容太长（{len(body)} 字符，上限 {limit_chars}）："
-                "请压缩成一句话再写，不要把整段对话塞进记忆",
+                f"内容太长（{len(body)} 字符，上限 {limit_chars}）：请压缩成一句话再写，不要把整段对话塞进记忆",
             )
         # 隐私闸门：凭据形态的确定性正则（提示词里的"不要记密钥"只是概率约束，
         # 这层才是硬约束）。拦在额度之前——被拒的写入不消耗当日额度。

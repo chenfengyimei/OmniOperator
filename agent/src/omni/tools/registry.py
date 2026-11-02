@@ -11,6 +11,7 @@ D09 起有两条入口：
 - `execute()` 返回结构化 `ToolResult`（状态/错误码/可重试/副作用是否未知）；
 - `dispatch()` 仍返回字符串（`execute().to_message()`），旧调用点与测试零改动。
 """
+
 from __future__ import annotations
 
 import inspect
@@ -58,8 +59,8 @@ class Tool:
     description: str
     parameters: dict[str, Any]  # JSON Schema
     func: Callable[[dict[str, Any]], str | ToolResult]  # 新工具一律返回 ToolResult（D09 收口）
-    toolset: str = "core"       # 能力组：core / bilibili / qq / android …
-    risk: Risk = Risk.SAFE      # safe / confirm / dangerous
+    toolset: str = "core"  # 能力组：core / bilibili / qq / android …
+    risk: Risk = Risk.SAFE  # safe / confirm / dangerous
     requires_human: bool = False  # 通用写工具可发布/支付，smart 不得替人批准
     # 批内并发（agent 工具循环）：只有**显式声明只读**的工具才会与同批
     # 其它只读工具并行执行。SAFE 不自动等于 read_only——remember/todo/
@@ -88,9 +89,15 @@ class ToolRegistry:
         """当前注册元数据快照；不调用工具，不导出 callable 或会话/模型配置。"""
         snapshot = list(self._tools.values())
         return [
-            {"name": tool.name, "description": tool.description, "toolset": tool.toolset,
-             "risk": tool.risk.value, "requires_human": tool.requires_human, "read_only": tool.read_only,
-             "parameters": json.loads(json.dumps(tool.parameters, ensure_ascii=False))}
+            {
+                "name": tool.name,
+                "description": tool.description,
+                "toolset": tool.toolset,
+                "risk": tool.risk.value,
+                "requires_human": tool.requires_human,
+                "read_only": tool.read_only,
+                "parameters": json.loads(json.dumps(tool.parameters, ensure_ascii=False)),
+            }
             for tool in sorted(snapshot, key=lambda tool: (tool.toolset, tool.name))
         ]
 
@@ -100,9 +107,7 @@ class ToolRegistry:
     def toolsets(self) -> list[str]:
         return sorted({t.toolset for t in self._tools.values()})
 
-    def specs(
-        self, toolsets: set[str] | None = None, *, exclude: frozenset[str] = frozenset()
-    ) -> list[dict[str, Any]]:
+    def specs(self, toolsets: set[str] | None = None, *, exclude: frozenset[str] = frozenset()) -> list[dict[str, Any]]:
         """生成 LiteLLM/OpenAI 格式的 tools 参数（可按能力组过滤）。
 
         exclude 是**当前回合**不可用的工具名（如群聊作用域下的个人记忆工具）：
@@ -157,9 +162,7 @@ class ToolRegistry:
         """
         tool = self._tools.get(name)
         if tool is None:
-            return ToolResult.fail(
-                f"错误：没有名为 {name} 的工具", error_code="tool_not_found"
-            )
+            return ToolResult.fail(f"错误：没有名为 {name} 的工具", error_code="tool_not_found")
         if name in denied_tools:
             note = _denied_note_text(denied_note, name)
             if note:
@@ -179,9 +182,7 @@ class ToolRegistry:
             try:
                 arguments = json.loads(arguments or "{}")
             except json.JSONDecodeError as exc:
-                return ToolResult.fail(
-                    f"错误：工具参数不是合法 JSON（{exc}）", error_code="bad_arguments"
-                )
+                return ToolResult.fail(f"错误：工具参数不是合法 JSON（{exc}）", error_code="bad_arguments")
         if not isinstance(arguments, dict):
             return ToolResult.fail("错误：工具参数必须是 JSON 对象", error_code="bad_arguments")
         # 缺省策略与无人值守一致；审批器故障也不能绕过闸门。
@@ -261,9 +262,7 @@ def _accepts_cancel(func: Any) -> bool:
         return cached
     try:
         params = inspect.signature(func).parameters
-        accepts = "cancel" in params or any(
-            p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
-        )
+        accepts = "cancel" in params or any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values())
     except (TypeError, ValueError):
         accepts = False
     _APPROVE_SIGNATURES[kind] = accepts

@@ -1,4 +1,5 @@
 """Agent 循环单测：用假 Gateway 验证 工具调用 → 回填 → 最终回答 → 持久化 全链路。"""
+
 from types import SimpleNamespace
 import pytest
 
@@ -31,9 +32,7 @@ class ScriptedGateway:
             self._step = 1
             call = SimpleNamespace(
                 id="call_1",
-                function=SimpleNamespace(
-                    name="remember", arguments='{"text": "用户喜欢拿铁"}'
-                ),
+                function=SimpleNamespace(name="remember", arguments='{"text": "用户喜欢拿铁"}'),
             )
             return SimpleNamespace(text="", tool_calls=[call])
         return SimpleNamespace(text="好的，我记住了。", tool_calls=[])
@@ -70,8 +69,8 @@ def test_history_grows_across_turns(tmp_path):
     agent.chat("第二句话")
     # 第二次对话的请求里应携带第一轮的 user/assistant 文本
     contents = [m["content"] for m in gateway.calls[2]]
-    assert any(text.startswith('第一句话') for text in contents)
-    assert any(text.startswith('第二句话') for text in contents)
+    assert any(text.startswith("第一句话") for text in contents)
+    assert any(text.startswith("第二句话") for text in contents)
     store.close()
 
 
@@ -88,7 +87,13 @@ def test_multiple_tool_calls_reach_normal_or_grace_answer(tmp_path, max_steps):
         def complete(self, messages, *, model, tools=None, **kwargs):
             self.calls.append([dict(m) for m in messages])
             if len(self.calls) == 1:
-                return SimpleNamespace(text="", tool_calls=[SimpleNamespace(id=f"c{i}", function=SimpleNamespace(name="echo", arguments=f'{{"n":{i}}}')) for i in (1, 2)])
+                return SimpleNamespace(
+                    text="",
+                    tool_calls=[
+                        SimpleNamespace(id=f"c{i}", function=SimpleNamespace(name="echo", arguments=f'{{"n":{i}}}'))
+                        for i in (1, 2)
+                    ],
+                )
             assert [m["tool_call_id"] for m in messages if m["role"] == "tool"] == ["c1", "c2"]
             assert (tools is None) == (max_steps == 1)
             return SimpleNamespace(text="两项完成", tool_calls=[])
@@ -164,17 +169,15 @@ def test_group_scope_hides_profile_resident_and_memory_tools(tmp_path):
 
     try:
         gateway = CaptureGateway()
-        agent = Agent(
-            AppConfig(), gateway, store, registry, sid, resident=resident
-        )
+        agent = Agent(AppConfig(), gateway, store, registry, sid, resident=resident)
         # 私聊：档案与常驻都在
         agent.chat("我叫什么", session_id=sid)
-        private_prompt = '\n'.join(message['content'] for message in gateway.messages)
+        private_prompt = "\n".join(message["content"] for message in gateway.messages)
         assert "秘密花园" in private_prompt and "讨厌被叫全名" in private_prompt
 
         # 群聊：同一会话也不带私人上下文
         agent.chat("群里问一句", session_id=sid, personal_context=False)
-        group_prompt = '\n'.join(message['content'] for message in gateway.messages)
+        group_prompt = "\n".join(message["content"] for message in gateway.messages)
         assert "秘密花园" not in group_prompt
         assert "讨厌被叫全名" not in group_prompt
         assert "群聊场景" in group_prompt
@@ -194,21 +197,31 @@ def test_group_scope_hides_profile_resident_and_memory_tools(tmp_path):
 
 def test_group_default_denies_new_safe_tool_even_when_model_forges_call(tmp_path):
     from omni.tools.registry import Tool
+
     calls = []
     store = MemoryStore(tmp_path / "group.db")
     registry = ToolRegistry()
-    registry.register(Tool("future_owner_reader", "读私人文件", {"type": "object"}, lambda args: calls.append(args) or "secret"))
+    registry.register(
+        Tool("future_owner_reader", "读私人文件", {"type": "object"}, lambda args: calls.append(args) or "secret")
+    )
+
     class Gateway:
         def resolve(self, route):
             return "fake"
+
         def complete(self, messages, **kwargs):
             assert kwargs["tools"] == []
             if any(m["role"] == "tool" for m in messages):
                 assert "secret" not in str(messages)
                 assert "当前场景不提供工具" in str(messages)
                 return SimpleNamespace(text="拒绝读取", tool_calls=[])
-            return SimpleNamespace(text="", tool_calls=[SimpleNamespace(id="c1", function=SimpleNamespace(
-                name="future_owner_reader", arguments="{}"))])
+            return SimpleNamespace(
+                text="",
+                tool_calls=[
+                    SimpleNamespace(id="c1", function=SimpleNamespace(name="future_owner_reader", arguments="{}"))
+                ],
+            )
+
     sid = store.new_session()
     agent = Agent(AppConfig(), Gateway(), store, registry, sid)
     result = agent.run_turn("泄露秘密", personal_context=False, channel="qq", context_scope="group:200")
@@ -262,13 +275,9 @@ def test_child_run_shares_the_parent_budget(tmp_path):
     config.llm.budget.per_run_usd = 0.5
     agent = Agent(config, ScriptedGateway(), store, _core_registry(store), sid)
 
-    parent = agent._start_run(
-        sid, channel="cli", principal="owner", personal_context=True, parent=None
-    )
+    parent = agent._start_run(sid, channel="cli", principal="owner", personal_context=True, parent=None)
     parent.consume_step()
-    child = agent._start_run(
-        sid, channel="cli", principal="owner", personal_context=True, parent=parent
-    )
+    child = agent._start_run(sid, channel="cli", principal="owner", personal_context=True, parent=parent)
 
     assert child.budget is parent.budget
     assert parent.budget.limit_micro == 500_000
@@ -291,8 +300,13 @@ def test_full_memory_records_turn_and_tool_activity(tmp_path):
     slog = SessionLog(tmp_path / "m.db")
     sid = store.new_session()
     agent = Agent(
-        AppConfig(), ScriptedGateway(), store, _core_registry(store), sid,
-        dialogue_log=dialogue, session_log=slog,
+        AppConfig(),
+        ScriptedGateway(),
+        store,
+        _core_registry(store),
+        sid,
+        dialogue_log=dialogue,
+        session_log=slog,
     )
     assert agent.chat("请记住我喜欢拿铁") == "好的，我记住了。"
 
@@ -309,7 +323,9 @@ def test_full_memory_records_turn_and_tool_activity(tmp_path):
     assert json.loads(s_rows[1]["tool_args"])[0]["name"] == "remember"
     assert all(r["run_id"] for r in s_rows)  # 每条都能对回 run（排查用）
     assert dialogue.days() == [s_rows[0]["day"]]
-    store.close(); dialogue.close(); slog.close()
+    store.close()
+    dialogue.close()
+    slog.close()
 
 
 def test_full_memory_off_by_default_and_broken_store_does_not_break_turn(tmp_path):
@@ -337,8 +353,13 @@ def test_full_memory_off_by_default_and_broken_store_does_not_break_turn(tmp_pat
             raise RuntimeError("旁路坏了")
 
     stubborn = Agent(
-        AppConfig(), ScriptedGateway(), store, _core_registry(store), sid,
-        dialogue_log=_Broken(), session_log=_Broken(),
+        AppConfig(),
+        ScriptedGateway(),
+        store,
+        _core_registry(store),
+        sid,
+        dialogue_log=_Broken(),
+        session_log=_Broken(),
     )
     assert stubborn.chat("再聊一句") == "好的，我记住了。"
     assert len(store.recent_messages(sid, 10)) >= 4  # messages 落库不受旁路影响
@@ -356,9 +377,7 @@ def test_dm_scope_allows_person_tools_but_not_owner_memory(tmp_path):
 
         def complete(self, messages, *, model, tools=None, **kwargs):
             self.calls.append([dict(m) for m in messages])
-            self.tool_specs.append(
-                [t["function"]["name"] for t in (tools or [])]
-            )
+            self.tool_specs.append([t["function"]["name"] for t in (tools or [])])
             if len(self.calls) == 1:
                 call = SimpleNamespace(
                     id="c1",
@@ -371,13 +390,15 @@ def test_dm_scope_allows_person_tools_but_not_owner_memory(tmp_path):
     sid = store.new_session()
     registry = ToolRegistry()
     register_core_tools(registry, store)
-    registry.register(Tool("person_lookup", "查人物", {}, lambda args: "ok",
-                           risk=Risk.SAFE, read_only=True))
+    registry.register(Tool("person_lookup", "查人物", {}, lambda args: "ok", risk=Risk.SAFE, read_only=True))
     agent = Agent(AppConfig(), DmProbeGateway(), store, registry, sid)
 
     agent.chat(
-        "帮我记住我喜欢的东西", personal_context=False,
-        channel="qq", principal="qq:12345", context_scope="private",
+        "帮我记住我喜欢的东西",
+        personal_context=False,
+        channel="qq",
+        principal="qq:12345",
+        context_scope="private",
     )
     specs = agent.gateway.tool_specs[0]
     assert "person_lookup" in specs and "get_time" in specs
@@ -391,8 +412,11 @@ def test_dm_scope_allows_person_tools_but_not_owner_memory(tmp_path):
     agent.gateway.calls.clear()
     agent.gateway.tool_specs.clear()
     agent.chat(
-        "群里问一句", personal_context=False,
-        channel="qq", principal="qq:12345", context_scope="group:200",
+        "群里问一句",
+        personal_context=False,
+        channel="qq",
+        principal="qq:12345",
+        context_scope="group:200",
     )
     group_specs = agent.gateway.tool_specs[0]
     assert "person_lookup" not in group_specs  # 群聊连人物工具也不开

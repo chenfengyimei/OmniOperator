@@ -4,6 +4,7 @@
 - SAFE 白名单是"什么可以免确认"，黑名单是"什么任何情况下都不做"；
 - 确认可以授权"有风险"，不能授权"灾难"（递归删根、格式化、远程内容进 shell…）。
 """
+
 from __future__ import annotations
 
 import re

@@ -8,6 +8,7 @@
 `JobStore` 是 bootstrap 组装根暴露给 core/cron 与 scheduling 工具的公开
 仓储口径；`ExecutionLog` 是执行账本 + `cron_outputs` 任务链结果的门面。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -32,12 +33,8 @@ class JobStore:
     def get(self, name: str) -> Job | None:
         return self._state.get_job(name)
 
-    def upsert(
-        self, job: Job, *, validate: bool = True, expected_revision: int | None = None
-    ) -> int:
-        return self._state.upsert_job(
-            job, validate=validate, expected_revision=expected_revision
-        )
+    def upsert(self, job: Job, *, validate: bool = True, expected_revision: int | None = None) -> int:
+        return self._state.upsert_job(job, validate=validate, expected_revision=expected_revision)
 
     def remove(self, name: str) -> bool:
         return self._state.remove_job(name)
@@ -86,10 +83,12 @@ class ExecutionLog:
 
     def output(self, job: str, run_id: str, status: str, result: str = "", *, finished_at: str | None = None) -> None:
         with self._state._tx() as conn:
-            conn.execute("INSERT INTO cron_outputs(job,run_id,status,result,finished_at) VALUES (?,?,?,?,?) "
-                         "ON CONFLICT(job) DO UPDATE SET run_id=excluded.run_id,status=excluded.status,"
-                         "result=excluded.result,finished_at=excluded.finished_at",
-                         (job, run_id, status, result[:4000], finished_at or _log_now()))
+            conn.execute(
+                "INSERT INTO cron_outputs(job,run_id,status,result,finished_at) VALUES (?,?,?,?,?) "
+                "ON CONFLICT(job) DO UPDATE SET run_id=excluded.run_id,status=excluded.status,"
+                "result=excluded.result,finished_at=excluded.finished_at",
+                (job, run_id, status, result[:4000], finished_at or _log_now()),
+            )
 
     def source(self, job: str, max_age_minutes: int) -> dict:
         rows = self._state._read("SELECT * FROM cron_outputs WHERE job=?", (job,))

@@ -12,6 +12,7 @@
 - `PROFILE_MAX_CHARS` 是跨模块公开契约（web_api / guard / tools 消费），
   改动前先核对「限额+报错=自整理」协议（xuexi/NOTES.md §1.3）。
 """
+
 from __future__ import annotations
 
 SCHEMA = """
@@ -47,7 +48,9 @@ CREATE TABLE IF NOT EXISTS facts (
     hits INTEGER NOT NULL DEFAULT 0,
     last_used TEXT,
     clarity TEXT NOT NULL DEFAULT 'clear',
-    clarity_changed_at TEXT
+    clarity_changed_at TEXT,
+    evidence TEXT NOT NULL DEFAULT '',
+    source_ref TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS profile (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

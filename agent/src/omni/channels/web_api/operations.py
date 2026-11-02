@@ -1,4 +1,5 @@
 """服务与诊断 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -48,8 +49,7 @@ def create_operations_router(runtime: Runtime) -> APIRouter:
         try:
             if body.name:
                 if not body.confirm:
-                    raise HTTPException(status_code=400,
-                                        detail="清理指定服务需要 confirm=true（确认该进程已自行处理）")
+                    raise HTTPException(status_code=400, detail="清理指定服务需要 confirm=true（确认该进程已自行处理）")
                 return {"actions": [runtime.services.drop_record(body.name, confirm=True)]}
             return {"actions": [runtime.services.reconcile(name) for name in ALL_SERVICES]}
         except ServiceError as exc:
@@ -58,8 +58,14 @@ def create_operations_router(runtime: Runtime) -> APIRouter:
     @router.get("/api/system/supervisor")
     def system_supervisor() -> dict[str, Any]:
         if runtime.supervisor is None:
-            return {"supervised": False, "mode": "absent", "holder": "", "policy": None,
-                    "last_error": "", "services": {}}
+            return {
+                "supervised": False,
+                "mode": "absent",
+                "holder": "",
+                "policy": None,
+                "last_error": "",
+                "services": {},
+            }
         return runtime.supervisor.snapshot()
 
     @router.post("/api/system/supervisor")
@@ -71,8 +77,12 @@ def create_operations_router(runtime: Runtime) -> APIRouter:
         except (ValueError, OSError, yaml.YAMLError, LockTimeout) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         snapshot = runtime.supervisor.refresh() if runtime.supervisor is not None else None
-        return {"ok": True, "pending_restart": False,
-                "hint": "已写入 config.yaml，守护下一轮按新设置执行", "supervisor": snapshot}
+        return {
+            "ok": True,
+            "pending_restart": False,
+            "hint": "已写入 config.yaml，守护下一轮按新设置执行",
+            "supervisor": snapshot,
+        }
 
     def _napcat_qq() -> str:
         if runtime.supervisor is None:
@@ -87,15 +97,14 @@ def create_operations_router(runtime: Runtime) -> APIRouter:
     @router.post("/api/system/backup")
     def system_backup() -> dict[str, Any]:
         from ...system.backup import BackupError
+
         try:
             return runtime.backup()
         except (BackupError, OSError) as exc:
             raise HTTPException(status_code=409, detail=f"备份未完成：{type(exc).__name__}") from exc
 
     @router.post("/api/system/services/{name}/start")
-    def system_service_start(
-        name: str, payload: NapCatStartIn | None = None
-    ) -> dict[str, Any]:
+    def system_service_start(name: str, payload: NapCatStartIn | None = None) -> dict[str, Any]:
         try:
             return runtime.services.start(name, qq=(payload.qq if payload else ""))
         except ServiceError as exc:

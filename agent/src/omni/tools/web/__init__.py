@@ -3,6 +3,7 @@
 边界在 `net.FetchPolicy`（协议/目标网络/每跳重定向/响应大小/超时），
 正文与编码在 `extract`，工具契约在 `tools`。
 """
+
 from .extract import Page, extract
 from .net import FetchPolicy, Response, WebError, fetch, parse_target
 from .tools import register_web_tools

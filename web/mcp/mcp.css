@@ -1,0 +1,227 @@
+/* ==========================================================================
+   MCP 服务面板 —— 本页布局样式（UI_DESIGN_SYSTEM.md §2/§6）
+   只写本页布局与页面专属外观；控件基样一律来自 ui/frame.css。
+   token 只从 ui/tokens.css 取。加载位置：frame.css 之后（最后一个样式）。
+
+   作用域用 .mcp-panel 容器而不是 body[data-ui-page="mcp"] 后代选择器：
+   本面板会被挂进工作台文档（设置中心分区），那时宿主的 body 是
+   data-ui-page="workbench"——body 后代作用域的选择器会整体失效，控件裸奔。
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   MCP
+   -------------------------------------------------------------------------- */
+.mcp-panel .mcp-layout {
+  display: grid;
+  grid-template-columns: minmax(310px, 0.78fr) minmax(0, 1.35fr);
+  gap: 14px;
+  margin-top: 14px;
+  align-items: start;
+}
+.mcp-panel .mcp-list-pane,
+.mcp-panel .mcp-detail-pane {
+  padding: 14px;
+  border: 1px solid var(--glass-mid-line);
+  border-radius: var(--r-card);
+  background: var(--glass-mid-bg);
+  box-shadow: var(--glass-mid-shadow), var(--glass-mid-sheen);
+  min-width: 0;
+}
+.mcp-panel #mcp-servers {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+}
+.mcp-panel .server {
+  padding: 13px !important;
+  border-radius: var(--r-card) !important;
+  background: var(--glass-weak-bg) !important;
+  box-shadow: none !important;
+  min-width: 0;
+}
+.mcp-panel .server.active {
+  border-color: color-mix(in srgb, var(--seed-accent) 42%, transparent) !important;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--seed-accent) 8%, transparent),
+    color-mix(in srgb, var(--seed-accent2) 4%, transparent)
+  ) !important;
+  box-shadow: inset 2px 0 0 var(--seed-accent) !important;
+}
+.mcp-panel .server-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+.mcp-panel .server-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--seed-accent);
+  background: color-mix(in srgb, var(--seed-accent) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--seed-accent) 16%, transparent);
+}
+.mcp-panel .server-icon .material-icons {
+  font-size: 16px;
+}
+.mcp-panel .server-title {
+  flex: 1;
+  min-width: 0;
+}
+.mcp-panel .server-title h2 {
+  margin: 0;
+  font-size: var(--fs-secondary);
+  font-weight: 680;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mcp-panel .server-title p {
+  margin: 1px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  color: var(--text-4) !important;
+  font-size: 10px !important;
+  line-height: 1.5 !important;
+  overflow-wrap: anywhere;
+}
+.mcp-panel .server-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 9px;
+}
+.mcp-panel .server-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font: 10px/1.5 var(--font-mono);
+  color: var(--text-4);
+}
+.mcp-panel .server-meta .material-icons {
+  font-family: "Material Icons" !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+.mcp-panel .server-warning {
+  font-size: var(--fs-caption) !important;
+  line-height: 1.5 !important;
+  color: var(--warn) !important;
+  margin: 5px 0 !important;
+  padding: 6px 8px !important;
+  background: var(--warn-bg) !important;
+  border: 1px solid var(--warn-bd) !important;
+  border-radius: var(--r-sm) !important;
+  white-space: normal !important;
+}
+/* 操作按「只读诊断 / 连接变更」分组：原先 6 个按钮等权平铺，看不出哪些有风险 */
+.mcp-panel .server-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 !important;
+}
+.mcp-panel .server-action-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.mcp-panel .server-action-label {
+  flex: none;
+  min-width: 34px;
+  font-size: var(--fs-caption);
+  color: var(--text-4);
+}
+.mcp-panel .server-actions button {
+  min-height: 30px;
+  padding: 0 9px;
+  font-size: var(--fs-caption);
+  border-radius: var(--r-sm);
+  background: var(--glass-mid-sheen);
+}
+.mcp-panel .server-actions .primary-action {
+  min-height: 34px;
+  font-weight: 650;
+  color: var(--seed-accent);
+  border-color: color-mix(in srgb, var(--seed-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--seed-accent) 8%, transparent);
+}
+.mcp-panel #mcp-detail {
+  min-height: 170px;
+  max-height: 330px;
+  margin: 0 0 10px !important;
+  font-size: var(--fs-caption) !important;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: auto;
+}
+.mcp-panel #mcp-catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.mcp-panel .catalog-tool {
+  padding: 9px 10px !important;
+  border-radius: var(--r-md) !important;
+  background: var(--glass-weak-bg) !important;
+  border: 1px solid var(--line-2);
+  min-width: 0;
+}
+.mcp-panel .catalog-tool summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  list-style: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.mcp-panel .catalog-tool summary::-webkit-details-marker {
+  display: none;
+}
+.mcp-panel .catalog-tool-name {
+  font: 600 10.5px/1.5 var(--font-mono);
+  color: var(--text-2);
+}
+.mcp-panel .catalog-tool summary .material-icons {
+  font-size: var(--fs-body);
+  color: var(--text-4);
+}
+.mcp-panel .catalog-tool p {
+  font-size: var(--fs-caption) !important;
+  color: var(--text-4) !important;
+  margin: 5px 0 !important;
+  line-height: 1.55 !important;
+}
+.mcp-panel .catalog-tool pre {
+  max-height: 170px;
+  margin: 7px 0 0 !important;
+  font-size: var(--fs-caption) !important;
+  margin-bottom: 0;
+}
+.mcp-panel #mcp-confirm {
+  margin-top: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   响应式
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .mcp-panel .mcp-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mcp-panel .mcp-detail-pane {
+    position: static;
+  }
+}

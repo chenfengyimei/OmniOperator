@@ -11,6 +11,7 @@
 这一层只定义数字与契约，不碰 SQLite（`memory/usage.py` 才是仓储）：
 `llm` 层不允许 import `memory`（见 tests/test_arch.py）。
 """
+
 from __future__ import annotations
 
 import threading
@@ -74,15 +75,11 @@ class Ledger(Protocol):
 
     # ---------------------------------------------------------------- 分口径（P5-c）
 
-    def scope_reserve(
-        self, *, day: str, scope: str, micro: int, limit_micro: int
-    ) -> tuple[bool, int]:
+    def scope_reserve(self, *, day: str, scope: str, micro: int, limit_micro: int) -> tuple[bool, int]:
         """按口径预留；返回 (是否成功, 该口径已预留+已花费)。"""
         ...
 
-    def scope_settle(
-        self, *, day: str, scope: str, reserved_micro: int, charged_micro: int
-    ) -> None:
+    def scope_settle(self, *, day: str, scope: str, reserved_micro: int, charged_micro: int) -> None:
         """按口径结算：退回预留，把实际花费计入。"""
         ...
 
@@ -114,14 +111,10 @@ class NullLedger:
     # 分口径：没有落库就没有跨进程能力，所以口径一律不限（放行）。
     # 这样嵌入式用法不会因为"没配账本"就拒绝调用——**缺能力不等于要拦截**。
 
-    def scope_reserve(
-        self, *, day: str, scope: str, micro: int, limit_micro: int
-    ) -> tuple[bool, int]:
+    def scope_reserve(self, *, day: str, scope: str, micro: int, limit_micro: int) -> tuple[bool, int]:
         return True, micro
 
-    def scope_settle(
-        self, *, day: str, scope: str, reserved_micro: int, charged_micro: int
-    ) -> None:
+    def scope_settle(self, *, day: str, scope: str, reserved_micro: int, charged_micro: int) -> None:
         return None
 
     def scope_total(self, day: str, scope: str) -> dict[str, int]:
@@ -200,9 +193,7 @@ class RunBudget:
         return self
 
 
-def settle_amount(
-    usage: Usage, price: Price, reserved_micro: int
-) -> tuple[int | None, str]:
+def settle_amount(usage: Usage, price: Price, reserved_micro: int) -> tuple[int | None, str]:
     """结算金额与来源。返回 `(微美元或 None, 来源)`。
 
     - 有 usage 且有单价 → 真实金额；

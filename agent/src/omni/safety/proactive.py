@@ -23,6 +23,7 @@ qq_send_message 主动发消息」这条路径绕过了整套主动策略——�
 （`state.db` 的条件 UPDATE），那是 `StateStore` 的事。分开之后判定可以单测，
 额度也不会因为判定被多处调用而重复扣。
 """
+
 from __future__ import annotations
 
 import datetime as dt

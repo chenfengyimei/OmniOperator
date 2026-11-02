@@ -1,4 +1,5 @@
 """对话与流式 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 import asyncio
@@ -126,9 +127,7 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
             except GatewayError as exc:
                 await queue.put({"type": "error", "code": exc.code, "message": str(exc)})
             except Exception as exc:  # noqa: BLE001 —— 流已经开了，只能用事件报错
-                await queue.put(
-                    {"type": "error", "code": "internal", "message": str(exc)[:300]}
-                )
+                await queue.put({"type": "error", "code": "internal", "message": str(exc)[:300]})
             finally:
                 await queue.put(None)
 
@@ -153,9 +152,7 @@ def create_conversation_router(runtime: Runtime) -> APIRouter:
                     # 页面关了：取消本会话在本进程内的运行（协作式，不杀线程）
                     for record in runtime.active_runs.snapshot():
                         if record.session_id == sid and not record.finished:
-                            runtime.active_runs.cancel(
-                                record.run_id, "浏览器断开，取消本回合"
-                            )
+                            runtime.active_runs.cancel(record.run_id, "浏览器断开，取消本回合")
                 if not task.done():
                     task.cancel()
                 with contextlib.suppress(BaseException):

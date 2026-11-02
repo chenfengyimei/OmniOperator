@@ -1,4 +1,5 @@
 """只读 doctor 命令；不组装运行态，以免诊断触发建库、迁移或后台任务。"""
+
 from __future__ import annotations
 
 import argparse
@@ -20,13 +21,26 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", help="可选：显式保存不含对话/密钥的 JSON 报告，拒绝覆盖")
     args = parser.parse_args(argv)
     try:
-        paths = load_runtime_paths(data_dir=args.data_dir, config_path=args.config,
-                                   skills_root=args.skills, memory_path=args.memory_db,
-                                   agent_id=args.agent, directory_catalog=args.directory_catalog)
+        paths = load_runtime_paths(
+            data_dir=args.data_dir,
+            config_path=args.config,
+            skills_root=args.skills,
+            memory_path=args.memory_db,
+            agent_id=args.agent,
+            directory_catalog=args.directory_catalog,
+        )
     except (OSError, ValueError) as exc:
-        print(json.dumps({'status': 'error', 'read_only': True,
-                          'error': '目录配置无法解析，未检查其它数据目录',
-                          'code': type(exc).__name__}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "status": "error",
+                    "read_only": True,
+                    "error": "目录配置无法解析，未检查其它数据目录",
+                    "code": type(exc).__name__,
+                },
+                ensure_ascii=False,
+            )
+        )
         return 2
     report = diagnose(paths)
     text = json.dumps(report, ensure_ascii=False, indent=2)

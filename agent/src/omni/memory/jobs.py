@@ -10,6 +10,7 @@
 存储演进不绑死在配置文件上（schema 版本常量在 config.py，当前由并行前端批持有），
 且"无周期字段"在既有校验下只可能由一次性入口产生，语义无歧义。
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -30,13 +31,13 @@ class CronError(ValueError):
 class Job:
     name: str
     prompt: str
-    every_minutes: int | None = None   # 周期模式（分钟）
-    daily_at: str | None = None        # 每日定时 "HH:MM"（本地时区）
-    deliver_to_qq: int | None = None   # 投递给白名单 QQ 用户（可选）
+    every_minutes: int | None = None  # 周期模式（分钟）
+    daily_at: str | None = None  # 每日定时 "HH:MM"（本地时区）
+    deliver_to_qq: int | None = None  # 投递给白名单 QQ 用户（可选）
     skills: list[str] = field(default_factory=list)  # 执行前注入的技能
-    context_from: str | None = None    # 任务链：把源任务的最新输出注入本次 prompt
+    context_from: str | None = None  # 任务链：把源任务的最新输出注入本次 prompt
     enabled: bool = True
-    next_run_at: str | None = None     # ISO 本地时间
+    next_run_at: str | None = None  # ISO 本地时间
     last_run_at: str | None = None
     last_result: str | None = None
     # 用户可见定义的版本号：只在「定义」被改写时递增，调度器推进 next_run_at 不算。
@@ -71,9 +72,7 @@ class Job:
             raise CronError("缺少调度方式：every_minutes / daily_at 二选一，或经一次性入口设置触发时刻")
         if self.context_from is not None:
             if not NAME_RE.match(self.context_from):
-                raise CronError(
-                    "context_from 需为有效任务名（3-40 位小写字母/数字/连字符）"
-                )
+                raise CronError("context_from 需为有效任务名（3-40 位小写字母/数字/连字符）")
             if self.context_from == self.name:
                 raise CronError("context_from 不能引用任务自己")
 
@@ -113,7 +112,9 @@ def compute_next_run(job: Job, from_dt: dt.datetime) -> dt.datetime:
         return parsed if parsed.tzinfo else parsed.astimezone()
     from_dt = from_dt.astimezone() if job.timezone == "local" else from_dt.astimezone(ZoneInfo(job.timezone))
     if job.every_minutes is not None:
-        return (from_dt.astimezone(dt.timezone.utc) + dt.timedelta(minutes=int(job.every_minutes))).astimezone(from_dt.tzinfo)
+        return (from_dt.astimezone(dt.timezone.utc) + dt.timedelta(minutes=int(job.every_minutes))).astimezone(
+            from_dt.tzinfo
+        )
     match = DAILY_RE.match(job.daily_at or "")
     if not match:
         raise CronError(f"daily_at 非法: {job.daily_at}")

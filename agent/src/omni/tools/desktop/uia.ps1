@@ -15,6 +15,10 @@ public static class OmniWindow {
  [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr ctx);
  [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hwnd,IntPtr dc,uint flags);
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
+ [StructLayout(LayoutKind.Sequential)] public struct LastInput { public uint size; public uint tick; }
+ [DllImport("user32.dll")] public static extern bool GetLastInputInfo(ref LastInput value);
+ public static uint InputTick() { var value=new LastInput(); value.size=(uint)Marshal.SizeOf(value); if(!GetLastInputInfo(ref value)) throw new Exception("无法核验用户输入"); return value.tick; }
 }
 '@
 [void][OmniWindow]::SetProcessDpiAwarenessContext([IntPtr](-4))
@@ -118,13 +122,28 @@ try {
             $snapshot=Snapshot ([long]$request.window)
             $result=@{ok=$true; state=$snapshot.state; fingerprint=$snapshot.fingerprint}
         }
-        'action' {
+        { $_ -in @('action','foreground_action') } {
             $snapshot=Snapshot ([long]$request.window)
             if ($snapshot.fingerprint -ne $request.fingerprint) { throw '观察已变化，未执行；请重新观察' }
             if ($snapshot.state.minimized -or -not $snapshot.state.enabled) { throw '窗口最小化或被弹窗禁用，未执行' }
             $node=@($snapshot.state.nodes | Where-Object { $_.id -eq $request.element })
             if ($node.Count -ne 1 -or $node[0].password -or $node[0].truncated -or -not $node[0].enabled -or $node[0].offscreen) { throw '目标控件不可安全操作' }
             $element=$script:elements[[string]$request.element]
+            $foreground = $request.command -eq 'foreground_action'
+            $inputTick = [OmniWindow]::InputTick()
+            if ($foreground) {
+                if (-not $request.run_id) { throw '前台接管缺少当前运行身份' }
+                foreach ($key in @('hwnd','pid','created','exe')) {
+                    if ([string]$snapshot.state.identity[$key] -cne [string]$request.expected_identity.$key) { throw '前台接管窗口身份变化' }
+                }
+                $script:startedWrite=$true
+                if (-not [OmniWindow]::SetForegroundWindow([IntPtr]([long]$request.window))) { throw '系统未允许前台接管，停止本次操作' }
+                $element.SetFocus()
+                if ([OmniWindow]::GetForegroundWindow() -ne [IntPtr]([long]$request.window) -or [OmniWindow]::InputTick() -ne $inputTick) { throw '用户输入或前台目标变化，已暂停操作' }
+                $fresh=Snapshot ([long]$request.window)
+                if ($fresh.fingerprint -ne $request.fingerprint) { throw '前台接管后观察变化，停止本次操作' }
+            }
+
             $pattern=$null
             if ($request.action -eq 'set_value') {
                 if (-not $node[0].set_value -or -not $element.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$pattern)) { throw '控件不支持后台 ValuePattern 编辑，未执行；需用户手动编辑' }
@@ -139,6 +158,7 @@ try {
                 $script:startedWrite=$true
                 $pattern.Select()
             } else { throw '未支持的动作' }
+            if ($foreground -and ([OmniWindow]::InputTick() -ne $inputTick -or [OmniWindow]::GetForegroundWindow() -ne [IntPtr]([long]$request.window))) { throw '动作期间用户接管或焦点变化，效果需人工核查' }
             $after=Snapshot ([long]$request.window)
             $verified=$false
             if ($request.action -eq 'set_value') {

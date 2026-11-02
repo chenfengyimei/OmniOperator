@@ -7,6 +7,7 @@
 3. **结构化结果**：拒绝/失败/副作用未知分得开，旧字符串仍能回填给模型；
 4. **父子只缩不扩**：子 run 的步数不超过父剩余，父取消传染子，群聊委派拿不到私人上下文。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -109,9 +110,7 @@ def _run_id_of(rt, sid: int) -> str:
 def test_run_lifecycle_and_monotonic_event_sequence(tmp_path):
     state = StateStore(tmp_path / "state.db")
     runs = RunStore(state)
-    run = runs.create(
-        run_id="r1", session_id=7, channel="web", principal="owner", owner="web:1:abc"
-    )
+    run = runs.create(run_id="r1", session_id=7, channel="web", principal="owner", owner="web:1:abc")
     assert run.status == "running" and not run.finished
     seqs = [runs.append_event("r1", "model_start", step=i) for i in range(3)]
     assert seqs == [1, 2, 3]
@@ -368,8 +367,8 @@ def test_delegate_creates_child_run_with_parent_and_capped_steps(tmp_path):
     rt.agent.gateway = _Scripted(
         [
             [_call("delegate_task", prompt="查一下", label="research")],  # 父：发起委派
-            "子任务结果",                                                  # 子：直接回答
-            "主任务收尾",                                                  # 父：收尾
+            "子任务结果",  # 子：直接回答
+            "主任务收尾",  # 父：收尾
         ]
     )
 
@@ -422,9 +421,7 @@ def _app(rt):
 
 
 def _client_for(app):
-    client = httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1"
-    )
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1")
     return client
 
 

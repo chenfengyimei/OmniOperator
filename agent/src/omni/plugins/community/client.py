@@ -15,6 +15,7 @@ HTTP 出口与一套错误映射，调用方按需取清单/详情。
 发布是项目红线之一（"发布需人工确认"）：`community_publish` 是
 CONFIRM + requires_human——审批流里的人工确认就是"用户同意公开"这一步。
 """
+
 from __future__ import annotations
 
 import io
@@ -31,10 +32,10 @@ from ...system.path_guard import digest as _digest
 from ..host import MAX_ZIP_BYTES, PluginHost
 
 CONFIG_NAME = "community.json"
-MAX_PUBLISH_BYTES = 4 * 1024 * 1024   # 发布侧：客户端不传超过安装侧上限的包
+MAX_PUBLISH_BYTES = 4 * 1024 * 1024  # 发布侧：客户端不传超过安装侧上限的包
 MAX_PUBLISH_ENTRIES = 50
 HTTP_TIMEOUT_S = 30.0
-MAX_INDEX_LIMIT = 50                 # 一次最多取多少条索引（界面一屏足够）
+MAX_INDEX_LIMIT = 50  # 一次最多取多少条索引（界面一屏足够）
 # 官方默认源：部署好市场后由部署方通过环境变量固化，未设置时保持"未配置"
 # ——不硬编码某个主机，避免把别人的服务器当成默认信任锚。
 SERVER_ENV = "OMNI_MARKET_URL"
@@ -81,17 +82,13 @@ class CommunityClient:
         merged = dict(current)
         if server_url is not None:
             server_url = server_url.strip()
-            if server_url and not (
-                server_url.startswith("http://") or server_url.startswith("https://")
-            ):
+            if server_url and not (server_url.startswith("http://") or server_url.startswith("https://")):
                 return False, "错误：server_url 必须以 http:// 或 https:// 开头"
             merged["server_url"] = server_url
         if token is not None:
             merged["token"] = token.strip()
         self._config_path.parent.mkdir(parents=True, exist_ok=True)
-        self._config_path.write_text(
-            json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        self._config_path.write_text(json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8")
         masked = "已配置" if merged["token"] else "未配置"
         return True, f"社区配置已保存：server={merged['server_url'] or '（未设置）'}，token {masked}"
 
@@ -227,16 +224,12 @@ class CommunityClient:
         actual = _digest(data)
         if expected and actual != expected:
             return False, (
-                f"错误：下载内容与服务器指纹不符（期望 {expected[:16]}，实际 {actual[:16]}），"
-                "已丢弃，不入收件箱"
+                f"错误：下载内容与服务器指纹不符（期望 {expected[:16]}，实际 {actual[:16]}），已丢弃，不入收件箱"
             )
         filename = f"{plugin_id}-{version}.zip"
         target = self._host.inbox_dir / filename
         if target.exists():
-            return False, (
-                f"错误：inbox 里已有 {filename}（先处理掉再下载：装它或删掉）。"
-                "同一版本重复下载没有意义"
-            )
+            return False, (f"错误：inbox 里已有 {filename}（先处理掉再下载：装它或删掉）。同一版本重复下载没有意义")
         target.write_bytes(data)
         ok, msg = self._host.install_package(filename)
         if not ok:

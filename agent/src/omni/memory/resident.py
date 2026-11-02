@@ -15,6 +15,7 @@ D08 补的一致性：主对话、后台 review、工作台是**不同线程/不
 在跨进程文件锁里完成，写入走唯一临时文件 + 原子替换；改文件前把当前内容
 记进历史，删错了还能找回来。读不到文件时**拒绝写**（绝不把"读失败"当"空文件"覆盖）。
 """
+
 from __future__ import annotations
 
 import os
@@ -114,9 +115,7 @@ class ResidentMemory:
         return [e.strip() for e in text.split(ENTRY_DELIMITER) if e.strip()]
 
     def _lock(self) -> FileLock:
-        return FileLock(
-            lock_beside(self._path), timeout_s=self._lock_timeout, owner=self._owner
-        )
+        return FileLock(lock_beside(self._path), timeout_s=self._lock_timeout, owner=self._owner)
 
     def _write_entries(
         self,
@@ -132,9 +131,7 @@ class ResidentMemory:
             atomic_write_text(self._path, text)
         except OSError as exc:
             raise _Unreadable(f"写入常驻记忆失败（{exc}）；原文件保持原样") from exc
-        rev = self._history.commit(
-            self._key(), text, author=author, source=source, summary=summary
-        )
+        rev = self._history.commit(self._key(), text, author=author, source=source, summary=summary)
         self._seen = _digest(text.encode("utf-8"))
         return rev
 
@@ -204,9 +201,7 @@ class ResidentMemory:
             return f"MEMORY（常驻工作笔记读取失败：{exc}）"
         if not entries:
             return ""
-        return f"{BLOCK_HEADER}（{self._usage(entries)}）\n" + ENTRY_DELIMITER.join(
-            entries
-        )
+        return f"{BLOCK_HEADER}（{self._usage(entries)}）\n" + ENTRY_DELIMITER.join(entries)
 
     # ---------- 工具面 ----------
 
@@ -225,17 +220,18 @@ class ResidentMemory:
         """agent 视角的清单：带编号（replace/remove 用编号寻址）。"""
         entries = self._read_entries()
         if not entries:
-            return (
-                f"常驻记忆为空（限额 {self._limit} 字符）。"
-                "用 add 记录跨会话仍需要的事：进行中的约定、教训、下一步。"
-            )
+            return f"常驻记忆为空（限额 {self._limit} 字符）。用 add 记录跨会话仍需要的事：进行中的约定、教训、下一步。"
         lines = [f"常驻记忆（{self._usage(entries)}）："]
         lines += [f"[{i}] {e}" for i, e in enumerate(entries, 1)]
         return "\n".join(lines)
 
     def add(
-        self, content: str, *, author: str = "agent",
-        source: str = "resident_memory", evidence: str = "",
+        self,
+        content: str,
+        *,
+        author: str = "agent",
+        source: str = "resident_memory",
+        evidence: str = "",
     ) -> str:
         """`evidence`（原文摘录）为兼容 owner 门面而存在，这里没有出处列可落，接受但忽略。
 
@@ -249,9 +245,7 @@ class ResidentMemory:
             return f"错误：{risk}"
         try:
             with self._lock():
-                entries, problem = self._load_for_write(
-                    check_stale=False, author=author, source=source
-                )
+                entries, problem = self._load_for_write(check_stale=False, author=author, source=source)
                 if problem:
                     return problem
                 merged = ENTRY_DELIMITER.join(entries + [content])
@@ -263,9 +257,7 @@ class ResidentMemory:
                         f"再重试 add——限额按最终结果检查：\n"
                         + "\n§\n".join(f"[{i}] {e}" for i, e in enumerate(entries, 1))
                     )
-                self._write_entries(
-                    entries + [content], author=author, source=source, summary="add"
-                )
+                self._write_entries(entries + [content], author=author, source=source, summary="add")
         except (LockTimeout, _Unreadable) as exc:
             return f"错误：{exc}"
         return f"已写入常驻记忆（{self._usage(self._read_entries())}）"
@@ -287,9 +279,7 @@ class ResidentMemory:
             return f"错误：{risk}"
         try:
             with self._lock():
-                entries, problem = self._load_for_write(
-                    check_stale=True, author=author, source=source
-                )
+                entries, problem = self._load_for_write(check_stale=True, author=author, source=source)
                 if problem:
                     return problem
                 if not (1 <= entry_id <= len(entries)):
@@ -297,41 +287,30 @@ class ResidentMemory:
                 entries[entry_id - 1] = content
                 if self._char_count(entries) > self._limit:
                     return (
-                        f"错误：替换后 {self._char_count(entries)}/{self._limit} 字符"
-                        "超限，未写入。请给出更精简的内容"
+                        f"错误：替换后 {self._char_count(entries)}/{self._limit} 字符超限，未写入。请给出更精简的内容"
                     )
-                self._write_entries(
-                    entries, author=author, source=source, summary=f"replace [{entry_id}]"
-                )
+                self._write_entries(entries, author=author, source=source, summary=f"replace [{entry_id}]")
         except (LockTimeout, _Unreadable) as exc:
             return f"错误：{exc}"
         return f"已更新第 {entry_id} 条（{self._usage(entries)}）"
 
-    def remove(
-        self, entry_id: int, *, author: str = "agent", source: str = "resident_memory"
-    ) -> str:
+    def remove(self, entry_id: int, *, author: str = "agent", source: str = "resident_memory") -> str:
         try:
             with self._lock():
-                entries, problem = self._load_for_write(
-                    check_stale=True, author=author, source=source
-                )
+                entries, problem = self._load_for_write(check_stale=True, author=author, source=source)
                 if problem:
                     return problem
                 if not (1 <= entry_id <= len(entries)):
                     return f"错误：不存在第 {entry_id} 条（先 view 查看编号）"
                 removed = entries.pop(entry_id - 1)
-                self._write_entries(
-                    entries, author=author, source=source, summary=f"remove [{entry_id}]"
-                )
+                self._write_entries(entries, author=author, source=source, summary=f"remove [{entry_id}]")
         except (LockTimeout, _Unreadable) as exc:
             return f"错误：{exc}"
         return f"已删除第 {entry_id} 条：{removed[:60]}（{self._usage(entries)}）"
 
     # ---------- 写路径内部 ----------
 
-    def _load_for_write(
-        self, *, check_stale: bool, author: str, source: str
-    ) -> tuple[list[str], str]:
+    def _load_for_write(self, *, check_stale: bool, author: str, source: str) -> tuple[list[str], str]:
         """在临界区内读现状并做校验；返回 (条目, 错误消息)——错误消息非空时调用方直接返回。
 
         先在**读之前**记下 `_seen` 基线：读操作本身会刷新它，用它比较就永远相等了。

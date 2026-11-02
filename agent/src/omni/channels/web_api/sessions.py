@@ -1,4 +1,5 @@
 """会话与待办 HTTP 适配；使用注入 Runtime，保留既有权限、路径与响应契约。"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -21,12 +22,10 @@ def create_sessions_router(runtime: Runtime) -> APIRouter:
         for name in runtime.registry.names():
             tool = runtime.registry.get(name)
             if tool is not None:
-                tools.append(
-                    {"name": tool.name, "toolset": tool.toolset, "risk": tool.risk.value}
-                )
+                tools.append({"name": tool.name, "toolset": tool.toolset, "risk": tool.risk.value})
         sid = runtime.agent.session_id
         context = runtime.agent.context_overview(sid)
-        context.pop('system_prompt',None)  # 常规状态只返回统计；完整固定提示由上下文页按需读取。
+        context.pop("system_prompt", None)  # 常规状态只返回统计；完整固定提示由上下文页按需读取。
         return {
             "persona": runtime.config.persona.name,
             "model": runtime.agent.model,
@@ -76,10 +75,7 @@ def create_sessions_router(runtime: Runtime) -> APIRouter:
             raise HTTPException(status_code=404, detail="会话不存在")
         rows = runtime.store.list_messages(session_id, min(limit, 1000))
         return {
-            "messages": [
-                {"role": role, "content": content, "created_at": created}
-                for role, content, created in rows
-            ]
+            "messages": [{"role": role, "content": content, "created_at": created} for role, content, created in rows]
         }
 
     @router.get("/api/sessions/{session_id}/todos")
@@ -96,9 +92,7 @@ def create_sessions_router(runtime: Runtime) -> APIRouter:
 
     @router.post("/api/todos/toggle")
     def toggle_todo(payload: TodoToggleIn) -> dict[str, Any]:
-        if not runtime.store.todo_set_done(
-            payload.session_id, payload.todo_id, payload.done
-        ):
+        if not runtime.store.todo_set_done(payload.session_id, payload.todo_id, payload.done):
             raise HTTPException(status_code=404, detail="待办不存在")
         return {"ok": True}
 
