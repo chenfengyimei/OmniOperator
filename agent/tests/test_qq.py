@@ -1,21 +1,26 @@
 """QQ 能力域单测：CQ 清洗 / 分段 / 通道绑定 / 客户端发送 / 工具白名单 / 会话覆盖。"""
+
 import asyncio
 import json
 from types import SimpleNamespace
 
+import pytest
+
 from omni.config import AppConfig
 from omni.core.agent import Agent
 from omni.memory.store import MemoryStore
-from omni.tools.qq.client import OneBotClient, chunk_message, clean_cq_message
+from omni.tools.qq.client import (
+    OneBotClient,
+    chunk_message,
+    clean_cq_message,
+    is_loopback_url,
+)
 from omni.tools.qq.tools import register_qq_tools
 from omni.tools.registry import ToolRegistry
 
 
 def test_clean_cq_message():
-    raw = (
-        "[CQ:reply,id=123][CQ:at,qq=10001] 看看这个 "
-        "[CQ:image,file=x.jpg,url=https://a] 还有[CQ:face,id=14]"
-    )
+    raw = "[CQ:reply,id=123][CQ:at,qq=10001] 看看这个 [CQ:image,file=x.jpg,url=https://a] 还有[CQ:face,id=14]"
     # @机器人本体剔除（触发词）；图片/表情转占位；引用标记剔除
     assert clean_cq_message(raw, self_id=10001) == "看看这个 [图片] 还有[表情]"
     # @别人保留为 @QQ号
@@ -64,7 +69,10 @@ def test_client_send_chunks_via_fake_ws():
         async def send(self, data):
             payload = json.loads(data)
             sent.append(payload)
-            await client._dispatch(json.dumps({"echo": payload["echo"], "status": "ok", "retcode": 0, "data": {"message_id": 1}}), lambda _: None)
+            await client._dispatch(
+                json.dumps({"echo": payload["echo"], "status": "ok", "retcode": 0, "data": {"message_id": 1}}),
+                lambda _: None,
+            )
 
     async def scenario():
         client._ws = FakeWS()
@@ -88,9 +96,11 @@ def test_api_receipt_timeout_failure_and_partial_delivery():
     async def scenario():
         client = OneBotClient("ws://test", response_timeout_s=0.02)
         sent = []
+
         class SilentWS:
             async def send(self, raw):
                 sent.append(json.loads(raw))
+
         client._ws = SilentWS()
         with pytest.raises(DeliveryUnknown, match="回执超时"):
             await client.send_private(1, "hello")
@@ -100,6 +110,7 @@ def test_api_receipt_timeout_failure_and_partial_delivery():
             async def send(self, raw):
                 request = json.loads(raw)
                 await client._dispatch(json.dumps({"echo": request["echo"], "status": "failed", "retcode": 100}), None)
+
         client._ws = RejectedWS()
         with pytest.raises(DeliveryNotStarted):
             await client.send_private(1, "hello")
@@ -109,27 +120,36 @@ def test_api_receipt_timeout_failure_and_partial_delivery():
                 request = json.loads(raw)
                 await client._dispatch(json.dumps({"echo": request["echo"], "status": "ok", "retcode": 0}), None)
                 client._ws = None
+
         client._ws = PartialWS()
         with pytest.raises(DeliveryUnknown, match="分段"):
             await client.send_private(1, "a" * 2900)
+
     asyncio.run(scenario())
 
 
 def test_receiver_reads_receipt_while_event_handler_waits():
     import websockets
+
     async def scenario():
         replied = asyncio.Event()
+
         async def server(ws):
             await ws.send(json.dumps({"post_type": "message", "raw_message": "hello"}))
             request = json.loads(await ws.recv())
-            await ws.send(json.dumps({"echo": request["echo"], "status": "ok", "retcode": 0, "data": {"message_id": 10}}))
+            await ws.send(
+                json.dumps({"echo": request["echo"], "status": "ok", "retcode": 0, "data": {"message_id": 10}})
+            )
             await replied.wait()
+
         async with websockets.serve(server, "127.0.0.1", 0) as listener:
             port = listener.sockets[0].getsockname()[1]
             client = OneBotClient(f"ws://127.0.0.1:{port}", response_timeout_s=2)
+
             async def handler(event):
                 await client.send_private(1, "reply")
                 replied.set()
+
             task = asyncio.create_task(client.run(handler))
             try:
                 await asyncio.wait_for(replied.wait(), 5)
@@ -137,6 +157,7 @@ def test_receiver_reads_receipt_while_event_handler_waits():
             finally:
                 task.cancel()
                 await asyncio.gather(task, return_exceptions=True)
+
     asyncio.run(scenario())
 
 
@@ -144,17 +165,11 @@ def test_qq_send_message_tool_guards():
     registry = ToolRegistry()
     register_qq_tools(registry, OneBotClient("ws://x"), allowed_users=[10001])
     # 白名单外直接拒绝（不触达网络）
-    assert "白名单" in registry.dispatch(
-        "qq_send_message", {"user_id": 999, "text": "hi"}
-    )
+    assert "白名单" in registry.dispatch("qq_send_message", {"user_id": 999, "text": "hi"})
     # 空文本
-    assert "不能为空" in registry.dispatch(
-        "qq_send_message", {"user_id": 10001, "text": "  "}
-    )
+    assert "不能为空" in registry.dispatch("qq_send_message", {"user_id": 10001, "text": "  "})
     # 白名单内但 QQ 未连接 → 明确的未连接提示
-    assert "未连接" in registry.dispatch(
-        "qq_send_message", {"user_id": 10001, "text": "hi"}
-    )
+    assert "未连接" in registry.dispatch("qq_send_message", {"user_id": 10001, "text": "hi"})
 
 
 def test_qq_send_message_tool_structured_results():
@@ -240,3 +255,78 @@ def test_qq_empty_allowlist_denies_all_sends():
     registry = ToolRegistry()
     register_qq_tools(registry, OneBotClient("ws://x"), allowed_users=[])
     assert "白名单" in registry.dispatch("qq_send_message", {"user_id": 10001, "text": "hi"})
+
+def test_is_loopback_url_recognises_local_targets():
+    """回环判定只有一份：127.0.0.1/localhost/::1 算本机，其余不算。"""
+    assert is_loopback_url("ws://127.0.0.1:3001")
+    assert is_loopback_url("ws://localhost:3001")
+    assert is_loopback_url("ws://[::1]:3001")
+    assert is_loopback_url("ws://LOCALHOST:3001")
+    # 远程 NapCat / 其它主机不算回环
+    assert not is_loopback_url("ws://192.168.1.10:3001")
+    assert not is_loopback_url("ws://napcat.example.com:3001")
+    assert not is_loopback_url("ws://x")
+
+
+def test_qq_loopback_connection_ignores_environment_proxy(monkeypatch):
+    """回环 NapCat 不走环境代理。
+
+    复现真机故障链：进程环境里有 HTTP_PROXY（IDE 的透明代理）时，
+    websockets>=17.3 默认 proxy=True 会把本机 NapCat 的连接也塞进代理隧道；
+    代理拒绝对回环目标时抛 InvalidProxyStatus 并反复重连，心跳调度日志
+    里还会刷一串 transport 回调里的 EOFError 堆栈。
+    """
+    import websockets
+
+    seen: list[object] = []
+
+    class Recorder:
+        """记录传给 connect 的 proxy 参数，不真正建连。"""
+
+        def __init__(self, *args, **kwargs):
+            seen.append(kwargs.get("proxy"))
+
+        async def __aenter__(self):
+            raise asyncio.CancelledError
+
+        async def __aexit__(self, *exc):
+            return False
+
+    monkeypatch.setattr(websockets, "connect", Recorder)
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setenv("http_proxy", "http://127.0.0.1:9")
+
+    async def scenario():
+        client = OneBotClient("ws://127.0.0.1:3001")
+        with pytest.raises(asyncio.CancelledError):
+            await client.run(lambda _e: asyncio.sleep(0))
+
+    asyncio.run(scenario())
+    assert seen and seen[0] is None, "回环目标必须显式禁用代理"
+
+
+def test_qq_remote_target_keeps_system_proxy_behaviour(monkeypatch):
+    """远程 NapCat 仍按系统配置走代理，不因本次修复被改掉。"""
+    import websockets
+
+    seen: list[object] = []
+
+    class Recorder:
+        def __init__(self, *args, **kwargs):
+            seen.append(kwargs.get("proxy"))
+
+        async def __aenter__(self):
+            raise asyncio.CancelledError
+
+        async def __aexit__(self, *exc):
+            return False
+
+    monkeypatch.setattr(websockets, "connect", Recorder)
+
+    async def scenario():
+        client = OneBotClient("ws://napcat.example.com:3001")
+        with pytest.raises(asyncio.CancelledError):
+            await client.run(lambda _e: asyncio.sleep(0))
+
+    asyncio.run(scenario())
+    assert seen and seen[0] is True, "非回环目标保持系统代理探测"

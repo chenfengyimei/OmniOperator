@@ -1,5 +1,11 @@
 # 运维、诊断与恢复
 
+版本检查、源码升级和中断恢复位于设置中心 → 关于，完整流程见 [UPDATES.md](UPDATES.md)。
+默认等待空闲 120 秒，再退出受管入口并保存私有恢复点；安装执行器独立于当前 `.venv`。
+启动脚本先恢复未完成事务。首批更新功能加载后，旧的 QQ/心跳入口若尚无维护租约，
+需要先从原启动入口退出旧服务、再启动工作台，以免在无法观测旧进程任务时直接升级。
+不能为启用本功能而擅自结束真实服务；操作仍由用户安排。
+
 2026-10-30：运维入口已跟随全局目录设置和所选 Agent。`omni-doctor`、备份、
 `scripts/rehearse_upgrade.py` 和 `scripts/soak_monitor.py` 使用相同的只读路径解析，
 支持 `--agent` / `--directory-catalog`；不再默认检查或备份旧 data 库。
@@ -18,6 +24,33 @@ CLI 对话中 `/doctor`、工作台“只读诊断”调用相同检查。独立
 不建库、不迁移、不连接 NapCat/设备/MCP、不调用模型或下载依赖。报告只有安装版本、
 计数、兼容性和进程身份状态；不包含密钥、完整对话或工具参数。
 
+### 心跳调度日志里的 QQ 断线（2026-11-02）
+
+工作台“服务与运行 → 日志 → 心跳调度”里如果刷出成片的
+
+```
+[QQ] 连接断开（InvalidProxyStatus），Ns 后重连…
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+  File ".../websockets/asyncio/client.py", line 770, in connection_lost
+    self.reader.feed_eof()
+EOFError: stream ended
+```
+
+**这不是 NapCat 挂了，是本机连接被环境代理劫持**。`websockets>=17.3` 的
+`connect()` 默认 `proxy=True`，会读 `HTTP_PROXY`/`http_proxy` 等环境变量决定是否走
+代理；IDE 等宿主常设这些变量，于是连**本机** NapCat（`ws://127.0.0.1:3001`）的连接
+也被塞进代理隧道。代理拒绝对回环目标时抛 `InvalidProxyStatus` 并触发重连退避；
+代理连接收尾时 `HTTPProxyConnection.connection_lost` 二次调用 `feed_eof()`，
+在 transport 回调里抛 `EOFError` —— 这段堆栈只出现在**代理路径**上，直连不会出现。
+
+已修：QQ 通道连回环地址时显式 `proxy=None`（`tools/qq/client.py`），非回环目标仍按
+系统配置探测代理，行为不变。这与项目既有纪律一致——本机自管服务不读环境代理
+（`tools/web/net.py` 不读、`tools/mcp/remote.py` 用 `trust_env=False`、
+`llm/embedding.py` 用 `ProxyHandler({})`）。
+
+自检：把 `HTTP_PROXY` 指到一个拒绝代理再起通道，回环连接应照常建立；若仍报
+`InvalidProxyStatus`，说明改动没生效（服务未重启或跑的不是这份源码）。
+
 2026-10-28 早先真机只读报告见 [doctor 证据](evidence/doctor-2026-10-28.json)：当时 state v9，
 当时程序要求 v12；NapCat/QQ 为旧记录，不能授权自动停止。当时进程的 PATH 未解析到
 adb，这不表示 D:/tools/platform-tools 中没有安装。模型连通、设备与账户登录未验证。
@@ -29,13 +62,8 @@ D27 实际备份时源库已为 v13，恢复副本两次打开通过；完整采
 ## 服务身份与停止
 
 新的 data/run/*.pid 为 JSON：服务名、PID、FILETIME 创建时间、exe 完整路径、启动 nonce。
-启动/停止/入口登记使用同一服务文件锁，旧入口退出只清理自己的 nonce。服务用当前
-Python（`sys.executable`）直接启动模块、保持后台无窗口运行；但在 uv/venv 布局下它
-**是会再 fork 一次真解释器的跳板**——守护记的是跳板 pid，真正跑模块的是它的子进程。
-启动记录必须指向**真正在跑模块的那个进程**：子进程可认领父进程那份（pid+创建时间+exe
-三元组全等才认），守护落盘前也要看现有记录的 pid 是否在自己的后代链上，免得把 worker
-的登记覆盖回跳板。核验时先看记录里的 exe 是解释器本身（uv 的 `cpython-*.exe`）还是
-`.venv\Scripts\python.exe`——后者是跳板。
+启动/停止/入口登记使用同一服务文件锁，旧入口退出只清理自己的 nonce。Omni 服务直接
+用当前 Python 启动模块，减少 uv/入口包装层；保持后台无窗口运行。
 
 停止先核验身份。Omni 服务写入绑定本次启动的 .stop 请求，最多等待 12 秒协作退出；
 超时再核验并终止已观察的进程树。NapCat 直接走核验后的终止流程。Windows 查询和终止

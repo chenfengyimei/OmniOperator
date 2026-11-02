@@ -1,5 +1,71 @@
 # 开发状态记录
 
+2026-11-02 心跳调度日志里的 QQ 断线噪音：环境代理劫持本机回环 WebSocket（用户原话「服务与运行里面，心跳调度的日志」）：
+- **要解决什么**：工作台「服务与运行 → 日志 → 心跳调度」里成片刷出
+  `[QQ] 连接断开（InvalidProxyStatus），Ns 后重连…` 与 transport 回调里的
+  `EOFError: stream ended` 堆栈。**先判它是什么**：不是 NapCat 挂了，也不是心跳调度坏了
+  ——那段堆栈本身就能证明「连接走了代理」（见下）。
+- **根因（单一真源）**：`websockets` 17.3 把 `connect()` 的 `proxy` 默认值改成 `True`
+  （`client.py:276` → `client.py:357` 调 `get_proxy()` 读 `HTTP_PROXY` 等环境变量）。
+  `agent/pyproject.toml` 声明 `websockets>=17.3`，升级后**自动**继承宿主（IDE）的代理环境变量；
+  而 `tools/qq/client.py` 的 `websockets.connect(self._ws_url, ...)` 从未显式指定 `proxy`，
+  于是**连本机 NapCat（`ws://127.0.0.1:3001`）的连接也被塞进代理隧道**。
+- **证据（三重独立闭合）**：
+  ① **堆栈行号与 venv 源码逐行吻合且路径专属**：日志里的 `client.py:770` 是
+     `HTTPProxyConnection.connection_lost`（**代理协议类**），`streams.py:159` 是
+     `feed_eof()` 的二次调用保护；对照**直连**路径 `connection.py:1015` 的
+     `ClientConnection.connection_lost` 走 `protocol.receive_eof()`，**根本不调 `feed_eof`**
+     → 这段 `EOFError` 堆栈在直连下**不可能出现**。`InvalidProxyStatus` 全仓只在一处抛出
+     （`client.py:746`，代理回了非 2xx）。
+  ② **环境与绕过判定**：本机 `HTTP_PROXY/http_proxy/HTTPS_PROXY/https_proxy` 四个都在
+     （指向 IDE 透明代理 `127.0.0.1:49780`），而
+     `urllib.request.proxy_bypass("127.0.0.1:3001")` → **False**
+     （Windows 读注册表 + `no_proxy`，本机两者都没覆盖 127.0.0.1）→ 回环被判定「该走代理」。
+  ③ **端到端对照实验**（同机同故障环境，脚本起一个会对回环目标返回 403 的代理）：
+     旧行为 `InvalidProxyStatus` **3 次**、连不上（`self_id=None`）；
+     修复后 **0 次**、正常连上（`self_id=3919700658`）、零 `EOFError` 堆栈。
+  ④ 佐证：真实代理对 `CONNECT 127.0.0.1:3001` 回 `200 Connection Established`
+     ——这条隧道**有时也能通**，所以现象是**时通时不通**（难自查），不是稳定失败。
+- **落点**：`tools/qq/client.py` 新增 `LOOPBACK_HOSTS` + `is_loopback_url(url)`，
+  `run()` 里按目标分流 `proxy = None if is_loopback_url(self._ws_url) else True`。
+  **回环 → 完全禁用代理；非回环 → 保持系统配置探测（`proxy=True` 即原默认值，
+  远程 NapCat 的既有部署路径不受影响）**。判定**不**下沉到 `system/`：本轮只有 QQ 一个调用方，
+  为单一调用方放宽一格（`docs/ARCHITECTURE.md §3.1` 的共享原语白名单）不划算；
+  日后出现第二个调用方，再按 `system/text_guard` 的先例下沉并同步 §3.1。
+- **与项目既有纪律一致**（这才是「本该早就对」的根据）：本机自管服务不读环境代理——
+  `tools/web/net.py` docstring 明写「不读环境变量里的代理」、`tools/mcp/remote.py` 用
+  `trust_env=False`、`llm/embedding.py` 用 `ProxyHandler({})`（注释「禁止把私人记忆意外转发给代理」）。
+  **QQ 通道是唯一漏掉这条纪律的出网点**，而且它带的是 NapCat 的 `Authorization` token。
+- **测试**：新增 `agent/tests/test_qq.py` **3 项**（回环判定边界 / 回环必须禁用代理 /
+  远程目标保持系统代理探测）。**已验证「修复前会失败」**：整体回退 `client.py` 到 HEAD
+  → 收集期 `ImportError`（只证明依赖新函数，**不够**）；再**只回退代理判定**
+  （保留新函数、把 `proxy` 换回 `True`）→ `test_qq_loopback_connection_ignores_environment_proxy`
+  **失败**（`assert ([True] and True is None)`）→ 证明测试确实锁住了行为而非空转。
+  专项：`test_qq.py` **14 passed**（原 11 + 新 3）；
+  `test_qq.py`+`test_arch.py`+`test_service_overview.py`+`test_community_docs.py` **63 passed**。
+  全量：隔离 worktree **1888 passed**（245.44 秒），2 failed + 1 error 经**交错 A/B**
+  确认为**基线既有 flaky**（基线树同样失败，与本改动无关）。
+- **文档**：`docs/OPERATIONS.md` 新增「心跳调度日志里的 QQ 断线（2026-11-02）」小节
+  （现象/根因/自检方法 + 「这段堆栈只在代理路径出现」这个判别依据）；
+  会话记录 `docs/jilu/2026-11-02-心跳调度QQ断线-环境代理劫持回环WebSocket-会话记录.md`。
+- **剩余限制**：
+  ① **真机已验收（2026-11-02）**：经工作台 API 重启 `omni-qq`（pid 21464）与
+     `omni-heartbeat`（pid 70208）后，按「最后一次『已连接』」切分日志核实——
+     **修复后新增 `InvalidProxyStatus=0`、`EOFError=0`、`连接断开=0`，各一次连上**
+     （修复前历史累计：omni-qq 131/131、omni-heartbeat 449/449）；
+     且 `omni-qq` 修复后**确实收到了真实 QQ 消息并回复**（`scene=dm:2079937150 events=1`
+     `replied_chars=457`/`362`），说明不只是日志干净，消息链路也真的通了；
+  ② **真机验收前本批曾记「待真实验收」**——离线判定与端到端对照实验已证明等价，
+     真机重启只是确认服务确实跑的是这份源码（若跑的是旧代码仍会刷 `InvalidProxyStatus`）；
+  ② **`docs/index/*` 本轮刻意未重生成**（与上一批同因）：HEAD 里的索引是**从脏工作区生成的**
+     （已含并行会话**尚未提交**的 `system/updates/` 等条目，60 模块/335 文件），而 HEAD 实际源码
+     只有 58 模块/323 文件——在 HEAD 原样状态下跑 `project_index.py --check` **同样**报
+     `stale=MODULES.md,API.md,project.json`；从干净树重生成会把对方在途条目**删掉**，
+     从主工作区重生成又把对方在途代码混进本提交——两头都不对，故不碰；
+  ③ **`proxy_bypass` 未改**：Windows 上它依赖注册表与 `no_proxy` 环境变量，本机都不覆盖 127.0.0.1；
+     改注册表是用户机器的全局副作用，不在本次范围，代码层已不依赖它；
+  ④ **远程 NapCat 仍走系统代理**：有意保留的既有行为，若远程场景下代理反而添乱需另开一轮；
+  ⑤ 只修了 QQ 这一个出网点——若日后新增出网客户端，须沿用同一条纪律，否则同类问题会换个地方复现。
 2026-11-01 通道层冷却位（P5-e 第一块；用户原话「还没完成吗请快速收尾完成」）：
 - **要解决什么**：NOTES §5 的 P5-e（唤醒理由分层）里**前置依赖最少、收益最直接**的一块——
   「收到消息后 N 分钟内不主动搭话」。NOTES §11.8 早给了结论：**可以在通道层加一个冷却位，

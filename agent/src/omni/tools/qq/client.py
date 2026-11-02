@@ -6,6 +6,7 @@
 线程模型：run() 跑在 asyncio 事件循环里；agent 的工具跑在线程池里，
 通过 send_*_sync（run_coroutine_threadsafe）跨线程投递发送请求。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -13,9 +14,27 @@ import itertools
 import json
 import re
 from collections.abc import Awaitable, Callable
+from urllib.parse import urlsplit
 
 # QQ 单条消息安全长度（经验值，留余量防风控）
 CHUNK_LIMIT = 2800
+
+# 回环主机名：本机自管服务（NapCat 在本机监听）不得走 HTTP 代理。
+# 与 system/text_guard 同一思路——判定只有一份，各域各自决定"命中之后怎么办"。
+LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
+
+
+def is_loopback_url(url: str) -> bool:
+    """目标是否指向本机（回环地址）。
+
+    NapCat 是用户自己在本机跑的进程：把它送进 HTTP 代理既没意义也不安全
+    （代理会看到 Authorization 头里的 NapCat token）。
+    """
+    try:
+        host = (urlsplit(url).hostname or "").lower()
+    except ValueError:
+        return False
+    return host in LOOPBACK_HOSTS
 
 
 class DeliveryNotStarted(ConnectionError):
@@ -28,6 +47,7 @@ class DeliveryUnknown(RuntimeError):
 
 class QQNotConnected(RuntimeError):
     """通道未连接：发送动作确定没有发生（与"结果未知"严格区分）。"""
+
 
 _CQ_RE = re.compile(r"\[CQ:(\w+)(?:,([^\]]*))?\]")
 _CQ_TEXT = {
@@ -136,11 +156,16 @@ class OneBotClient:
 
         # 接收循环必须持续读取 API 回执；不能被正在等待回执的聊天处理器阻塞。
         consumer = asyncio.create_task(consume())
+        # 回环目标禁用代理：websockets>=17.3 默认 proxy=True，会读 HTTP_PROXY 等环境变量
+        # 把本机 NapCat 的连接也塞进代理隧道——代理拒绝对回环目标时抛 InvalidProxyStatus，
+        # 且代理连接收尾会在 transport 回调里二次 feed_eof 抛 EOFError，
+        # 两者都会变成心跳调度日志里的噪音与反复重连。
+        proxy = None if is_loopback_url(self._ws_url) else True
         try:
             while True:
                 try:
                     async with websockets.connect(
-                        self._ws_url, additional_headers=headers, max_size=2**22
+                        self._ws_url, additional_headers=headers, max_size=2**22, proxy=proxy
                     ) as ws:
                         self._ws = ws
                         self._loop = asyncio.get_running_loop()
@@ -163,9 +188,7 @@ class OneBotClient:
             consumer.cancel()
             await asyncio.gather(consumer, return_exceptions=True)
 
-    async def _dispatch(
-        self, raw: str | bytes, on_event: Callable[[dict], Awaitable[None]]
-    ) -> None:
+    async def _dispatch(self, raw: str | bytes, on_event: Callable[[dict], Awaitable[None]]) -> None:
         # websockets 的帧可能是 str 或 bytes；json.loads 两者都收（bytes 自动识别编码）
         try:
             event = json.loads(raw)
