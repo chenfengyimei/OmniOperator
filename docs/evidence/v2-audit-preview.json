@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "batch": "R3.retention_audit.preview",
+  "date": "2026-11-05",
+  "status": "development_complete_targeted_passed_full_recheck_required",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "9fa9ddbdb8fc88303f7c1a8957909cfeb240786a812e47df47a1e469bad3c998",
+    "fixed_source_files": 714,
+    "snapshot": "temp/build/v2-audit-preview-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "baseline_recovery": "temp/private/v2-history-source-20261105T004115+0800/manifest.json",
+  "implementation": {
+    "schema_version": "v2_0014",
+    "declared_tables": 74,
+    "own_assets": "20261105v20",
+    "policy": "agent-audit-retention-v1",
+    "days": 180,
+    "eligible_kinds": [
+      "run.completed",
+      "action.ok",
+      "action.error",
+      "action.denied",
+      "action.cancelled"
+    ],
+    "api": "GET /api/v1/agents/{agent_id}/audit/retention-preview",
+    "offline_cli": "retention-audit-preview --agent <UUID> [--limit 20] [--cursor <opaque>] [--as-of <aware ISO time>]",
+    "page_default": 20,
+    "page_max": 50,
+    "workbench_max": 200,
+    "cursor": "Independent canonical format/policy, Agent, epoch, trim revision, fixed UTC as_of, initial allocated ceiling and position; scope422/expired410/time rollback422",
+    "scope": "Aged audit metadata only; source/body/batch/current-state protections rechecked per page; counts apply to this page, not all history",
+    "body_reads": false,
+    "executable_plan": false,
+    "can_apply": false,
+    "audit_rows_deleted": false,
+    "protection": [
+      "Shared run/work/action/approval/cost/outbound/lease/source/pin protection without body fingerprint",
+      "Exact same-Agent kind-to-subject mapping and current-state check",
+      "Complete original body batch, matching target SHA/time and per-action prune time",
+      "Pending prepared reference release; direct manual-memory/document-author audit FKs",
+      "Unknown kinds/subjects retained; reviewed unknown deliveries remain protected"
+    ]
+  },
+  "validation": {
+    "current_full_passed": false,
+    "full_recheck_required": true,
+    "full_runs_this_checkpoint": 0,
+    "targeted_unique_passed": 138,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-audit-retention-contract-typed.xml",
+        "passed": 31,
+        "duration_s": 0.278,
+        "sha256": "8669cdba7a52de65c30b4fdc7fa302522359e71c18191544a90ecc3fcc392df2"
+      },
+      {
+        "path": "temp/build/v2-audit-retention-protection-final.xml",
+        "passed": 16,
+        "duration_s": 7.4,
+        "sha256": "d4b7e76bb3013c6a97eb7ff9cf34fbf9b7af8a849909719b724c8c7db54cf230"
+      },
+      {
+        "path": "temp/build/v2-audit-retention-http.xml",
+        "passed": 4,
+        "duration_s": 7.722,
+        "sha256": "52e2255a5e78382d2daa3e0bd80e74b141ec194f87e90515341e17348f998bef"
+      },
+      {
+        "path": "temp/build/v2-audit-retention-callers.xml",
+        "passed": 74,
+        "duration_s": 69.095,
+        "sha256": "b7a5f3c9240665e92d400a506df86c496a240c24893a6eaf13b12c01a8ce6b48"
+      },
+      {
+        "path": "temp/build/v2-audit-retention-ui.xml",
+        "passed": 5,
+        "duration_s": 13.683,
+        "sha256": "aa2a63d826e395275ceb28778af8a818296a25a6df8237214709e84a71dc37f6"
+      },
+      {
+        "path": "temp/build/v2-audit-preview-workbench.xml",
+        "passed": 10,
+        "duration_s": 42.187,
+        "sha256": "08bd9e526869a05285e508a36a8baf352c9992276ef20ddfbc84dbd23311a9b9"
+      }
+    ],
+    "initial_development_failures": {
+      "report": "temp/build/v2-audit-retention-protection.xml",
+      "passed": 12,
+      "failed": 2,
+      "resolution": "Corrected fixture expectations to actual evidence deletion on explicit forgetting and real stale-owner recovery instead of invalid finish under expired lease; final16 pass"
+    },
+    "static_report": "temp/build/v2-audit-preview-static.json",
+    "v2_default_typechecked_files": 112,
+    "type_targets": [
+      "Windows",
+      "Linux",
+      "Darwin"
+    ],
+    "strict_whole_repository": false,
+    "real_platform_runtime": false,
+    "packaging": {
+      "assets": 95,
+      "sha256": "4cc0f77e9cf6861ae88621cd8fc39c8938976ca013d7692d63ec0bb8faf94709",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "97dc11c9b136df332b0d13a42acbd5a070bb1c3b383505d44bd10be81897da67"
+    },
+    "last_full_is_previous_source": {
+      "report": "temp/build/v2-history-full-initial.xml",
+      "passed": 2659,
+      "failed": 1,
+      "duration_s": 568.14,
+      "followup": "ConPTY fix24 related passed; see v2-history.json; no current-source full-green claim"
+    },
+    "strategy": "Development-first targeted checks and caller regressions; defer one combined full revalidation to the stage closure; no commit/release acceptance",
+    "test_cost": "One real closed/checkpointed prune fixture copied to independent homes for each case; BrowserContexts/databases remain isolated; no timeout/assertion/network-gate changes",
+    "task_summary_check": {
+      "command": "uv run --no-sync python agent/scripts/task_status.py --check",
+      "exit_code": 0
+    }
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-audit-preview-source-20261105T011944+0800/manifest.json",
+    "runtime_data_included": false,
+    "credentials_included": false,
+    "validation_status": "development_only_full_recheck_required",
+    "source_files": 903
+  },
+  "pending": [
+    "R3.retention_audit.apply: bounded persisted plans, verified backup, late protection checks, atomic progress/delete/audit, interrupted resume, explicit cancel and restore",
+    "R3.retention_audit.events; semantic summaries remain active business data",
+    "Current-source combined full recheck and real native/platform/business/72h acceptance; whole V2 incomplete"
+  ]
+}

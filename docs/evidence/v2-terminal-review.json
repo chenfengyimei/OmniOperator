@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "batch": "D4.terminal_review",
+  "parent_delivery": "D4",
+  "date": "2026-11-07",
+  "status": "Owner terminal review source/API/workbench integrated; platform operations and full V2 remain incomplete",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "8c05095f0d5b3008d27178555b5f0c23f064e5c8729d80628f791ddd39ea06e4",
+    "fixed_source_files": 947,
+    "snapshot": "temp/build/v2-terminal-review-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "desktop_ipc_version": "omni-desktop-ipc-6",
+    "portal_ipc_version": "omni-portal-ipc-2",
+    "credential_ipc_version": "omni-credential-ipc-1",
+    "terminal_review_source_integrated": true,
+    "real_shell_or_desktop_input": false,
+    "native_services_modified": false,
+    "system_credentials_modified": false,
+    "real_accounts_or_paid_models_used": false,
+    "scope": [
+      "TerminalReviewService and pure domain requests, transaction-scoped repository and composition; HTTP only calls application services",
+      "One new terminal_reviews table, immutable observation metadata and one-way erasable evidence; composite Agent/operation/session FK and indexed stable unknown UUID cursor",
+      "Versioned source proof captures immutable receipt and session metadata,history epoch and revision; original input/output bodies are never copied",
+      "Full UUID request identity plus expected revision/history epoch/fingerprint/policy and explicit limits acknowledgement; only ended unknown receipts,100 observations per operation",
+      "Same identity/content replays the original review,changed reuse conflicts,concurrent stale revisions allow one commit; erasure never revives via replay",
+      "Review admission shares actual terminal-start lock; all current native work and reclamation must be quiescent; historical process state is never inferred from current ownership",
+      "Owned cancellation/lifecycle and pending health; unfinished review transactions protect database and instance lock; no shell starts,PID operations or input replay",
+      "Review/audit and evidence-erasure/audit commit together; audit FK joins existing protection inventory,diagnostics contain only static events/IDs",
+      "Existing verified snapshot and restore change history epoch,retaining old observations while invalidating their current-source match; new V26 DDL interruption rolls back and retries",
+      "Existing terminal workbench adds explicit bounded review list/detail/history,independent note/ack,erasure and fixed-request retry after lost response; leaving clears details and stale responses",
+      "V2 asset references advance to v36,one new ES module and no CSS/theme change; no automatic polling/model capability or raw native action authority"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 43,
+    "targeted_python_nonbrowser_passed": 40,
+    "targeted_browser_passed": 3,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-terminal-review-core-final.xml",
+        "sha256": "0974dfde1dc0c4525f765349733d12927fc29a6e397700937f3dc48308455ad8",
+        "tests": 40,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 27.809
+      },
+      {
+        "path": "temp/build/v2-terminal-review-service-current.xml",
+        "sha256": "86a104da6949beea8ba261bd542c9cf0bb3e927c54c15983647d5741c607c580",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 3.201
+      },
+      {
+        "path": "temp/build/v2-terminal-review-ui-final.xml",
+        "sha256": "45c9b4e101854505db5b771addc8b083df4ff9996f95c0f12642bd6a37e3b39b",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 9.449
+      }
+    ],
+    "strategy": "JUnit classname/name unique latest results. Related40 backend/migration/caller cases passed; shape narrowing then reran two API/ownership callers and three browser cases. Unchanged migration/data witnesses reused.",
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "pyright": [
+      {
+        "path": "temp/build/v2-terminal-review-types-host.json",
+        "sha256": "7b20c9c84298392ff1c78599e35bb10549576da5064323fd7f5e391b95bc66a9",
+        "filesAnalyzed": 11,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 3.626
+      },
+      {
+        "path": "temp/build/v2-terminal-review-types-linux.json",
+        "sha256": "d7cd0fdddfdd06c0a066e98d488e8ad411cbf98005c8ed35d63abb3b9d43583b",
+        "filesAnalyzed": 11,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 3.632
+      }
+    ],
+    "type_limit": "Eleven affected production files in default host/Linux Pyright modes; not whole-production strict types or native platform execution",
+    "gates": {
+      "path": "temp/build/v2-terminal-review-gates.json",
+      "sha256": "30d4f81bebdee74f50d4eeeab59a53fac4858552731fe68d20543ba7a358072e"
+    },
+    "packaging_runs_this_checkpoint": 1,
+    "packaging_current_source_verified": true,
+    "packaging": {
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "13c5ced2131970b23f88875da6cdb7e77973c4ea53cc9958fe6b06d857357ca3"
+    },
+    "packaging_final": "temp/build/v2-terminal-review-packaging/evidence.json",
+    "packaging_artifacts": [
+      {
+        "path": "temp/build/v2-terminal-review-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "29791bb8a58f9a22c8892a6ac0610967bd5cbf47b113373f79f9ff3251d92f88",
+        "bytes": 1909822
+      },
+      {
+        "path": "temp/build/v2-terminal-review-packaging/evidence.json",
+        "sha256": "89a07f75e839efddebec58d78283a788728e7a8fd5b14c0d5451d338d3b633dd",
+        "bytes": 398
+      },
+      {
+        "path": "temp/build/v2-terminal-review-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "29791bb8a58f9a22c8892a6ac0610967bd5cbf47b113373f79f9ff3251d92f88",
+        "bytes": 1909822
+      },
+      {
+        "path": "temp/build/v2-terminal-review-packaging/sdist/omnioperator-0.1.0.tar.gz",
+        "sha256": "a0deb0cff91d144c320e41b0da1560a9149f56e7963cd45b74f864603bdf9ec2",
+        "bytes": 2376280
+      }
+    ],
+    "packaging_limit": "Current kernel/native bytes and103assets match both wheel paths; fresh V26/no V1 import/clean shutdown on Windows only",
+    "ui_scope": "390px dark and1024px light terminal review flow; mobile loses the real committed POST response then retries same identity with one history row; existing390px owner terminal flow also passes",
+    "full_ui_matrix": false,
+    "development_corrections": [
+      "New DB immutability test asserts the actor's public data_constraint error,not an unexposed SQLAlchemy exception",
+      "Restore test checks verified integrity/quarantine fields from the actual restore contract instead of inventing a complete flag; production restore unchanged",
+      "Two pre-existing frozen V20 migration fixtures used current run insertion with execution_kind; switched only old seeding to the established LegacySeedRepositories,upgraded paths remain real repositories",
+      "Explicit SQL COALESCE/type/byte bounds reject absent proof schema instead of accepting SQL NULL; malformed-proof and cross-session inserts rejected",
+      "Narrowed port response collections/operation identities and wrapped Awaitable into coroutine; no type ignores or global suppression",
+      "Formatted four affected V2 cache import callers before final browser/build gates; no unrelated frontend behavior claim"
+    ],
+    "limitations": [
+      "Current tests use Windows,isolated SQLite and injected terminal processes; native PTY/store/services or desktop actions were not executed",
+      "Only selected browser flows,not the four-viewport/two-theme matrix; no current full-suite,load,long-run or all-platform pass",
+      "Other current-head-only fixture literals advanced V25→V26 and table95→96; those unrelated modules were not all executed",
+      "Review annotations do not prove historical processes are gone or commands completed; original unknown state and no replay authority remain",
+      "D3 sustained X11 identity/foreground and Wayland independent control/input-pause remain unimplemented; Linux runtime/GStreamer/native acceptance pending",
+      "Windows real keyboard/mouse deferred; Mac Swift/C/nine Swift cases uncompiled; business/models/extensions/product switch and all platform72h pending"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-terminal-review-source-20261107T020219+0800/manifest.json",
+    "source_files": 1161,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "handoff": "docs/V2_SERVICES.md",
+    "scope": "Service install/uninstall and immutable version switching with verified backup/recovery; D3 native control conditions remain explicitly pending"
+  }
+}

@@ -2,29 +2,122 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
+import sys
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.trace import Span, StatusCode
 
+from ..adapters.android import AndroidBackend
+from ..adapters.bilibili import BilibiliGateway
+from ..adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
+from ..adapters.credentials import Credentials
+from ..adapters.diagnostic_bundle import DiagnosticFiles
 from ..adapters.diagnostics import JsonLogSink, LoggingSession, bind_context
+from ..adapters.extensions.hosts import ExtensionHosts
+from ..adapters.extensions.packages import ExtensionPackages
+from ..adapters.images import ImageCodec
+from ..adapters.local_vectors import configured_vectors
+from ..adapters.media import MediaProcessor
+from ..adapters.metrics import Metrics
 from ..adapters.models import LiteLLMModel
+from ..adapters.native_credentials import NativeCredentials
+from ..adapters.object_store import ObjectFiles
+from ..adapters.onebot import OneBotTransport
 from ..adapters.persistence.database import Database
+from ..adapters.persistence.deployed_instance import verify_deployed_instance
+from ..adapters.platform.desktop import DesktopBackend
 from ..adapters.platform.paths import InstanceLock, InstancePaths
-from ..adapters.platform.secrets import FileVault, SystemSecrets
+from ..adapters.platform.portal import PortalBackend
+from ..adapters.platform.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
+from ..adapters.platform.secrets import FileVault
+from ..adapters.platform.service_launch import consume_launch
+from ..adapters.platform.terminal import TerminalBackend
 from ..adapters.platform.workspaces import WorkspacePolicy
 from ..adapters.primitives import SystemClock, UUIDs
+from ..adapters.process_diagnostics import ProcessDiagnostics
+from ..adapters.skill_packages import SkillPackages
+from ..adapters.timezones import PinnedTimezones
+from ..adapters.token_counter import ConservativeTokenCounter
+from ..application.action_review import ActionReviewService
+from ..application.android import AndroidPort, AndroidService
+from ..application.bilibili import PREPARE_SPEC as BILIBILI_PREPARE
+from ..application.bilibili import READ_SPEC as BILIBILI_READ
+from ..application.bilibili import BilibiliPort, BilibiliService
+from ..application.configuration import ConfigurationService
+from ..application.context import ContextService
+from ..application.credentials import CredentialService
+from ..application.debugging import DebugService
+from ..application.delivery import DeliveryService
+from ..application.desktop import DesktopService
+from ..application.desktop_actions import DesktopActions
+from ..application.desktop_portal import DesktopPortalService
+from ..application.documents import DocumentService
 from ..application.engine import Application, Capability
-from ..application.ports import ModelPort
-from ..domain.contracts import BusinessError
+from ..application.extensions import ExtensionService
+from ..application.images import ImageService
+from ..application.maintenance import MaintenanceService
+from ..application.media import LIST_SPEC as MEDIA_LIST
+from ..application.media import TRANSCRIPT_SPEC as MEDIA_TRANSCRIPT
+from ..application.media import BilibiliMediaPort, MediaProcessingPort, MediaService
+from ..application.memory_organization import MemoryOrganizationService
+from ..application.memory_semantics import MemorySemanticService
+from ..application.model_calls import ModelCalls
+from ..application.objects import ObjectService
+from ..application.operations import OperationsService
+from ..application.people import PeopleService
+from ..application.ports import (
+    AsyncSecretPort,
+    Clock,
+    DeliveryPort,
+    DesktopBackendPort,
+    DesktopPortalPort,
+    LocalVectorizer,
+    MetricsPort,
+    ModelPort,
+    ModelStreamingPort,
+    SecretStore,
+    TerminalBackendPort,
+    TokenCounter,
+)
+from ..application.qq import QQService, QQTransportPort
+from ..application.routing import RoutingService
+from ..application.scheduling import SchedulingService
+from ..application.skills import SkillService
+from ..application.terminal_review import TerminalReviewService
+from ..application.terminals import TerminalService
+from ..domain.android import ACCESS_SPEC as ANDROID_ACCESS
+from ..domain.android import MODEL_SPEC as ANDROID_MODEL
+from ..domain.android import OBSERVE_SPEC as ANDROID_OBSERVE
+from ..domain.android import RESTORE_SPEC as ANDROID_RESTORE
+from ..domain.android import SPEC as ANDROID_ACTION
+from ..domain.contracts import BusinessError, Outcome
+from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
+from ..domain.skills import SKILL_SPECS
 from .capabilities import builtin_capabilities
+from .lifecycle import Lifetime, close_sync
+
+
+@dataclass
+class SpanMeasurement:
+    span: Span
+    outcome: Outcome = Outcome.OK
+    explicit: bool = False
+
+    def result(self, outcome: Outcome) -> None:
+        self.outcome, self.explicit = outcome, True
+        self.span.set_attribute("omni.outcome", outcome.value)
 
 
 class Observation:
-    def __init__(self) -> None:
+    def __init__(self, metrics: MetricsPort, clock: Clock) -> None:
+        self._metrics, self._clock = metrics, clock
         self.provider = TracerProvider()
         self.tracer = self.provider.get_tracer("omni.v2")
 
@@ -33,8 +126,47 @@ class Observation:
         with bind_context(**fields):
             yield
 
+    @contextmanager
     def span(self, name: str):
-        return self.tracer.start_as_current_span(name)
+        operation = {
+            "agent.turn": "turn",
+            "model.complete": "model",
+            "model.summary": "summary",
+            "outbound.send": "delivery",
+            "maintenance.document_index_rebuild": "maintenance",
+            "maintenance.document_erasure_resume": "maintenance",
+            "memory.organization": "maintenance",
+            "desktop.probe": "desktop",
+            "desktop.targets": "desktop",
+            "desktop.verify": "desktop",
+            "desktop.observe": "desktop",
+            "desktop.capture": "desktop",
+        }.get(name, "tool" if name.startswith("tool.") else "")
+        started = self._clock.monotonic()
+        with self.tracer.start_as_current_span(name, record_exception=False, set_status_on_exception=False) as span:
+            report = SpanMeasurement(span)
+            try:
+                yield report
+            except BaseException as exc:
+                if not report.explicit:
+                    report.result(Outcome.CANCELLED if isinstance(exc, asyncio.CancelledError) else Outcome.ERROR)
+                span.set_attribute("error.type", type(exc).__name__)
+                raise
+            finally:
+                if report.outcome in {Outcome.ERROR, Outcome.UNKNOWN}:
+                    span.set_status(StatusCode.ERROR)
+                if operation:
+                    duration = max(0, self._clock.monotonic() - started)
+                    self._metrics.observe(operation, report.outcome.value, duration)
+                    logging.getLogger("omni.v2.observation").debug(
+                        "Execution measurement",
+                        extra={
+                            "event": "span.completed",
+                            "operation": operation,
+                            "outcome": report.outcome.value,
+                            "duration_ms": duration * 1000,
+                        },
+                    )
 
 
 @dataclass
@@ -47,34 +179,93 @@ class Instance:
     _observation: Observation
     boot_id: str
     build_id: str
+    identity: dict
+    _identity_files: RuntimeIdentityFiles
+    objects: ObjectService
+    images: ImageService
+    people: PeopleService
+    configurations: ConfigurationService
+    routing: RoutingService
+    memory_semantics: MemorySemanticService
+    skills: SkillService
+    documents: DocumentService
+    schedules: SchedulingService
+    deliveries: DeliveryService
+    qq: QQService
+    bilibili: BilibiliService
+    media: MediaService
+    android: AndroidService
+    operations: OperationsService
+    credentials: CredentialService
+    _credential_io: AsyncSecretPort
+    _lifetime: Lifetime
+    maintenance: MaintenanceService
+    memory_organization: MemoryOrganizationService
+    extensions: ExtensionService
+    action_reviews: ActionReviewService
+    terminals: TerminalService
+    terminal_reviews: TerminalReviewService
+    desktop: DesktopService
+    desktop_portal: DesktopPortalService
+    desktop_actions: DesktopActions
+    _process_diagnostics: ProcessDiagnostics | None = None
     _closed: bool = False
+
+    def identity_proof(self, challenge: str) -> dict:
+        return canonical_proof(self.health(), challenge, self._identity_files.key)
 
     def health(self) -> dict:
         health = {
             **self.application.health(),
+            **self.identity,
             "boot_id": self.boot_id,
             "build_id": self.build_id,
             "api_version": 1,
-            "schema_version": "v2_0001",
+            "schema_version": self._database.schema_version,
             "database": self._database.metrics,
             "logs": self._logging.sink.snapshot(),
+            "documents": self.documents.health(),
+            "memory_semantics": self.memory_semantics.health(),
+            "skills": self.skills.health(),
+            "schedules": self.schedules.health(),
+            "deliveries": self.deliveries.health(),
+            "qq": self.qq.health(),
+            "bilibili": self.bilibili.health(),
+            "media": self.media.health(),
+            "android": self.android.health(),
+            "credentials": self.credentials.health(),
+            "action_reviews": self.action_reviews.health(),
+            "terminals": self.terminals.health(),
+            "terminal_reviews": self.terminal_reviews.health(),
+            "desktop": self.desktop.health(),
+            "desktop_portal": self.desktop_portal.health(),
+            "desktop_actions": self.desktop_actions.health(),
+            "maintenance": self.maintenance.health(),
+            "memory_organization": self.memory_organization.health(),
+            "extensions": self.extensions.health(),
+            "images": self.images.health(),
+            "shutdown_residual": list(self._lifetime.residual),
             "platform_acceptance": "pending",
+            "unhandled_exceptions": dict(self._process_diagnostics.counts) if self._process_diagnostics else {},
         }
         health["ready"] = bool(
-            health["ready"] and not self._database.metrics["closed"] and not self._database.metrics["error_code"]
+            health["ready"]
+            and self.schedules.health()["ready"]
+            and self.deliveries.health()["ready"]
+            and self.maintenance.health()["ready"]
+            and not self.memory_organization.health()["closing"]
+            and not self.memory_semantics.health()["closing"]
+            and not self.skills.health()["closing"]
+            and not self.media.health()["closing"]
+            and not self._lifetime.closing
+            and not self._database.metrics["closed"]
+            and not self._database.metrics["error_code"]
         )
         return health
 
-    async def close(self) -> dict:
-        if self._closed:
-            return {"complete": True, "residual": []}
-        result = await self.application.close()
-        if result["complete"]:
-            self._observation.provider.shutdown()
-            if not self._logging.close():
-                return {"complete": False, "residual": ["log_writer"]}
-            self._lock.close()
-            self._closed = True
+    async def close(self, timeout_s: float = 30) -> dict:
+        result = await self._lifetime.close(timeout_s)
+        self._closed = result["complete"]
         return result
 
 
@@ -82,9 +273,24 @@ async def open_instance(
     home: Path | None = None,
     *,
     model: ModelPort | None = None,
+    model_streamer: ModelStreamingPort | None = None,
+    token_counter: TokenCounter | None = None,
+    vectorizer: LocalVectorizer | None = None,
+    delivery_ports: dict[str, DeliveryPort] | None = None,
+    qq_transport: QQTransportPort | None = None,
+    bilibili_backend: BilibiliPort | None = None,
+    media_processor: MediaProcessingPort | None = None,
+    android_backend: AndroidPort | None = None,
     capabilities: tuple[Capability, ...] | None = None,
     master_key_file: Path | None = None,
     stderr_only: bool = False,
+    process_diagnostics: bool = False,
+    clock: Clock | None = None,
+    credential_backend: SecretStore | None = None,
+    terminal_backend: TerminalBackendPort | None = None,
+    desktop_backend: DesktopBackendPort | None = None,
+    portal_backend: DesktopPortalPort | None = None,
+    deployment: dict | None = None,
 ) -> Instance:
     paths = InstancePaths.resolve(home)
     if master_key_file and master_key_file.resolve().is_relative_to(paths.home):
@@ -92,43 +298,375 @@ async def open_instance(
     paths.initialize()
     lock = InstanceLock(paths)
     lock.acquire()
-    ids, clock = UUIDs(), SystemClock()
-    boot_id = ids.new()
-    source = Path(__file__).resolve().parents[1]
-    digest = hashlib.sha256()
-    for path in sorted(
-        p for part in ("domain", "application", "adapters", "composition") for p in (source / part).rglob("*.py")
-    ):
-        digest.update(path.relative_to(source).as_posix().encode())
-        digest.update(path.read_bytes())
-    build_id = digest.hexdigest()
-    sink = JsonLogSink(paths.logs, boot_id=boot_id, build_id=build_id, stderr_only=stderr_only)
-    logs = LoggingSession(sink)
-    observation = Observation()
-    database = None
+    lifetime = Lifetime()
+    lifetime.own("instance_lock", 6, lambda _: close_sync(lock.close))
     try:
-        database = Database(paths.database, clock, ids)
-        namespace = hashlib.sha256(str(paths.home).encode()).hexdigest()[:20]
-        secrets = (
-            FileVault(paths.home / "private/vault", master_key_file) if master_key_file else SystemSecrets(namespace)
+        if deployment is not None:
+            verify_deployed_instance(paths.database, deployment["instance_id"])
+        ids, clock = UUIDs(), clock or SystemClock()
+        boot_id = consume_launch(paths.control, deployment)
+        source = Path(__file__).resolve().parents[1]
+        digest = hashlib.sha256()
+        for path in sorted(
+            p
+            for part in LAYERS
+            for p in (source / part).rglob("*")
+            if p.is_file() and p.suffix in CODE_SUFFIXES and not CODE_CACHE_DIRS.intersection(p.parts)
+        ):
+            digest.update(path.relative_to(source).as_posix().encode())
+            digest.update(path.read_bytes())
+        build_id = digest.hexdigest()
+        sink = JsonLogSink(
+            paths.logs, boot_id=boot_id, build_id=build_id, stderr_only=stderr_only, monotonic=clock.monotonic
         )
+        logs = LoggingSession(sink)
+        lifetime.own("log_writer", 5, lambda budget: close_sync(lambda: logs.close(budget)))
+        measurements = Metrics()
+        observation = Observation(measurements, clock)
+        lifetime.own("tracing", 4, lambda _: close_sync(observation.provider.shutdown))
+        host_diagnostics = ProcessDiagnostics(sink, asyncio.get_running_loop()) if process_diagnostics else None
+        if host_diagnostics:
+            lifetime.own("process_diagnostics", 4, lambda _: close_sync(host_diagnostics.close))
+        database = Database(
+            paths.database, clock, ids, objects_root=paths.objects, boot_id=boot_id, metrics=measurements
+        )
+        lifetime.own("database", 3, lambda _: database.close())
+        if deployment is not None:
+            persisted = await database.read(lambda u: u.instance_identity())
+            if persisted["instance_id"] != deployment["instance_id"] or build_id != deployment["build_id"]:
+                raise BusinessError("service_identity_mismatch", "Deployment does not match this program and instance")
+        files = ObjectFiles(paths.objects)
+        lifetime.own("object_store", 2, lambda _: files.close())
+        objects = ObjectService(database, files, clock)
+        lifetime.own("object_store", 2, objects.close)
+        skill_packages = SkillPackages()
+        lifetime.own("skill_packages", 1, skill_packages.close)
+        skills = SkillService(
+            database,
+            objects,
+            skill_packages,
+            "windows" if sys.platform == "win32" else "macos" if sys.platform == "darwin" else "linux",
+        )
+        lifetime.own("skills", 0, skills.close, skills.stop_accepting)
+        image_codec = ImageCodec()
+        lifetime.own("image_codec", 1, image_codec.close, image_codec.stop_accepting)
+        images = ImageService(database, objects, image_codec)
+        lifetime.own("images", 0, images.close, images.stop_accepting)
+        extension_packages = ExtensionPackages(paths.home / "cache" / "extensions")
+        lifetime.own("extension_packages", 1, extension_packages.close)
+        extension_hosts = ExtensionHosts()
+        lifetime.own("extension_hosts", 0, extension_hosts.close, extension_hosts.stop_accepting)
+        extensions = ExtensionService(database, objects, extension_packages, extension_hosts)
+        lifetime.own("extensions", 0, extensions.close, extensions.stop_accepting)
+        people = PeopleService(database, objects)
+        terminal_io = (
+            terminal_backend
+            if terminal_backend is not None
+            else TerminalBackend(
+                workspace_validator=WorkspacePolicy(paths.home, Path(__file__).resolve().parents[1]).validate
+            )
+        )
+        lifetime.own("terminal_io", 1, terminal_io.close)
+        terminals = TerminalService(database, terminal_io, clock, ids)
+        lifetime.own("terminals", 0, terminals.close, terminals.stop_accepting)
+        terminal_reviews = TerminalReviewService(
+            database,
+            observation,
+            native_quiescent=terminals.review_quiescent,
+            while_quiescent=terminals.while_quiescent,
+        )
+        lifetime.own("terminal_reviews", 0, terminal_reviews.close, terminal_reviews.stop_accepting)
+        desktop_capacity = asyncio.Semaphore(2)
+        desktop_io = (
+            desktop_backend
+            if desktop_backend is not None
+            else DesktopBackend(capture_root=paths.control / "desktop-captures", capacity=desktop_capacity)
+        )
+        lifetime.own("desktop_io", 1, desktop_io.close, desktop_io.stop_accepting)
+
+        desktop_portal: DesktopPortalService | None = None
+
+        async def detach_portal(agent_id: str, view_id: str) -> None:
+            if desktop_portal is not None:
+                await desktop_portal.detach(agent_id, view_id)
+
+        desktop = DesktopService(
+            database, desktop_io, clock, ids, boot_id, observation, objects, on_detach=detach_portal
+        )
+        lifetime.own("desktop_observations", 0, desktop.close, desktop.stop_accepting)
+        portal_io = (
+            portal_backend
+            if portal_backend is not None
+            else PortalBackend(capacity=desktop_capacity, capture_root=paths.control / "portal-captures")
+        )
+        lifetime.own("desktop_portal_io", 1, portal_io.close, portal_io.stop_accepting)
+        desktop_portal = DesktopPortalService(
+            database, portal_io, ids, boot_id, observation, objects, authorize=desktop.require_view
+        )
+        lifetime.own("desktop_portal", 0, desktop_portal.close, desktop_portal.stop_accepting)
+        desktop_actions = DesktopActions(
+            database, desktop, desktop_io, clock, ids, accepting=lambda: bool(application.health()["ready"])
+        )
+        lifetime.own("desktop_actions", 0, desktop_actions.close, desktop_actions.stop_accepting)
+        local_vectors = vectorizer if vectorizer is not None else await configured_vectors(paths.home)
+        documents = DocumentService(database, objects, local_vectors)
+        lifetime.own("source_documents", 1, documents.close)
+        memory_semantics = MemorySemanticService(database, local_vectors)
+        lifetime.own("memory_semantics", 0, memory_semantics.close, memory_semantics.stop_accepting)
+        memory_organization = MemoryOrganizationService(database, observation)
+        lifetime.own("memory_organization", 0, memory_organization.close, memory_organization.stop_accepting)
+        maintenance = MaintenanceService(database, documents, clock, observation, memory_organization)
+        memory_organization.on_queued(maintenance.notify)
+        lifetime.own("maintenance", 0, maintenance.close, maintenance.stop_accepting)
+        namespace = hashlib.sha256(str(paths.home).encode()).hexdigest()[:20]
+        credential_io: AsyncSecretPort
+        if credential_backend is not None:
+            credential_io = Credentials(credential_backend, sink.redactor)
+        elif master_key_file:
+            credential_io = Credentials(FileVault(paths.home / "private/vault", master_key_file), sink.redactor)
+        else:
+            credential_io = NativeCredentials(namespace, sink.redactor)
+        lifetime.own("credential_io", 1, credential_io.close, credential_io.stop_accepting)
+        android_io = (
+            android_backend
+            if android_backend is not None
+            else AndroidBackend(paths.control / "android-captures", secrets=credential_io)
+        )
+        lifetime.own("android_io", 1, android_io.close, android_io.stop_accepting)
+        android = AndroidService(
+            database, android_io, objects, clock, ids, accepting=lambda: bool(application.health()["ready"])
+        )
+        lifetime.own("android", 0, android.close, android.stop_accepting)
+        counter = token_counter if token_counter is not None else ConservativeTokenCounter()
+        configurations = ConfigurationService(database, counter)
+        routing = RoutingService(database)
+        if model is None:
+            production_model = LiteLLMModel(
+                credential_io, sink.redactor, host_diagnostics.capture if host_diagnostics else None
+            )
+            calls = ModelCalls(
+                database,
+                production_model,
+                observation,
+                counter,
+                preparer=production_model,
+                streamer=production_model,
+                images=images,
+            )
+            lifetime.own("model_streams", 1, production_model.close, production_model.stop_accepting)
+        else:
+            calls = ModelCalls(database, model, observation, counter, streamer=model_streamer, images=images)
+            if model_streamer is not None:
+                lifetime.own("model_streams", 1, model_streamer.close, model_streamer.stop_accepting)
+        contexts = ContextService(database, calls, images)
+
+        async def authorize_qq(message):
+            return await database.read(lambda u: u.qq_outbound_authorized(message))
+
+        async def authorize_bilibili(message):
+            return await database.read(lambda u: u.bilibili_outbound_authorized(message))
+
+        onebot = qq_transport if qq_transport is not None else OneBotTransport(credential_io, authorize_qq)
+        lifetime.own("onebot", 1, onebot.close)
+        bili_gateway = (
+            bilibili_backend
+            if bilibili_backend is not None
+            else BilibiliGateway(credential_io, sink.redactor, authorize_bilibili)
+        )
+        lifetime.own("bilibili_gateway", 1, bili_gateway.close)
+        bilibili = BilibiliService(database, bili_gateway)
+        lifetime.own("bilibili", 0, bilibili.close, bilibili.stop_accepting)
+        processor = media_processor if media_processor is not None else MediaProcessor()
+        lifetime.own("media_processor", 1, processor.close, processor.stop_accepting)
+        # The gateway protocol splits by use case; the concrete object serves both
+        # reads and bounded downloads for the media pipeline.
+        media = MediaService(
+            database,
+            objects,
+            images,
+            cast(BilibiliMediaPort, bili_gateway),
+            processor,
+            clock,
+            paths.control / "media-staging",
+        )
+        lifetime.own("media", 0, media.close, media.stop_accepting)
+        # Jobs owned by the previous process end interrupted or unknown before
+        # any new work is admitted; the lifecycle log carries the counts.
+        recovered = await media.recover()
+        if recovered["cancelled"] or recovered["unknown"]:
+            logging.getLogger("omni.v2.startup").warning(
+                "Media jobs from the previous process were reconciled",
+                extra={"event": "media.restart_reconciled", **recovered},
+            )
+        ports = {"qq": onebot, "bilibili": bili_gateway, **(delivery_ports or {})}
+        deliveries = DeliveryService(database, clock, observation, ports)
+        lifetime.own("deliveries", 0, deliveries.close, deliveries.stop_accepting)
+        credentials = CredentialService(database, credential_io, ids, deliveries.cancel_active, observation)
+        lifetime.own("credential_changes", 0, credentials.close, credentials.stop_accepting)
         application = Application(
             database,
-            model or LiteLLMModel(secrets, sink.redactor),
-            capabilities if capabilities is not None else builtin_capabilities(database),
+            calls,
+            contexts,
+            capabilities
+            if capabilities is not None
+            else (
+                *builtin_capabilities(database, documents, memory_semantics),
+                *(Capability(spec, skills, lambda: skills.health()["pending"] == 0) for spec in SKILL_SPECS),
+                Capability(BILIBILI_READ, bilibili),
+                Capability(BILIBILI_PREPARE, bilibili),
+                Capability(MEDIA_LIST, media),
+                Capability(MEDIA_TRANSCRIPT, media),
+                Capability(ANDROID_ACCESS, android, android.quiescent),
+                Capability(ANDROID_OBSERVE, android, android.quiescent),
+                Capability(ANDROID_MODEL, android, android.quiescent),
+            ),
             clock,
             observation,
             workspace_validator=WorkspacePolicy(paths.home, Path(__file__).resolve().parents[1]).validate,
+            delivery_cancellation=deliveries.cancel_active,
+            extensions=extensions,
+            images=images,
+            memory_semantics=memory_semantics,
+            skills=skills,
+            owner_capabilities=(
+                Capability(DESKTOP_ACTION, desktop_actions, desktop_actions.quiescent),
+                Capability(ANDROID_ACTION, android, android.quiescent),
+                Capability(ANDROID_RESTORE, android, android.quiescent),
+            ),
         )
+        qq = QQService(database, onebot, application.notify)
+        lifetime.own("qq", 0, qq.close, qq.stop_accepting)
+        lifetime.own(
+            "runs", 0, lambda budget: application.close(budget, close_database=False), application.stop_accepting
+        )
+        schedules = SchedulingService(database, clock, PinnedTimezones(), application.notify, application.cancel)
+        lifetime.own("scheduler", 0, schedules.close, schedules.stop_accepting)
+        action_reviews = ActionReviewService(database, application.action_review_blockers, schedules.notify)
+        lifetime.own("action_reviews", 0, action_reviews.close, action_reviews.stop_accepting)
+        diagnostic = DiagnosticFiles(paths, sink)
+        lifetime.own("operations", 0, diagnostic.close)
+
+        def operational_health():
+            health = current_instance.health()
+            return {
+                "ready": health["ready"],
+                "closing": health["closing"],
+                "active_runs": health["active_runs"],
+                "active_deliveries": health["deliveries"]["active"],
+                "active_maintenance": health["maintenance"]["active"],
+                "memory_organization_pending": health["memory_organization"]["pending"],
+                "extension_hosts": health["extensions"]["hosts"]["resident"],
+                "extension_cleanup_pending": health["extensions"]["hosts"]["cleanup_pending"],
+                "active_terminals": health["terminals"]["active"],
+                "media_jobs_pending": health["media"]["pending"],
+                "desktop_observations": health["desktop"]["pending"],
+                "desktop_portal_pending": health["desktop_portal"]["pending"],
+                "desktop_portal_resident": health["desktop_portal"]["backend"]["resident"],
+                "desktop_portal_cleanup_pending": health["desktop_portal"]["backend"]["cleanup_pending"],
+                "desktop_cleanup_pending": health["desktop"]["backend"].get("cleanup_pending", 0),
+                "desktop_capture_staging": health["desktop"]["backend"].get("capture_staging"),
+                "terminal_cleanup_pending": health["terminals"]["cleanup_pending"],
+                "terminal_state_pending": health["terminals"]["state_pending"],
+                "terminal_reviews_pending": health["terminal_reviews"]["pending"],
+                "database": health["database"],
+                "scheduler_ready": health["schedules"]["ready"],
+                "delivery_ready": health["deliveries"]["ready"],
+                "document_queries": health["documents"]["pending"],
+                "vector_available": health["documents"]["vector"]["available"],
+                "installed_delivery_transports": health["deliveries"]["installed_transports"],
+                "stalled_deliveries": health["deliveries"]["stalled"],
+                "credentials": health["credentials"],
+                "shutdown_residual_count": len(health["shutdown_residual"]),
+            }
+
+        debugging = DebugService(database, diagnostic, clock, ids)
+        operations = OperationsService(database, measurements, diagnostic, operational_health, debugging)
+        lifetime.own("operations", 0, operations.close, operations.stop_accepting)
+        debugging.start()
         await application.start()
-        return Instance(application, paths, database, lock, logs, observation, boot_id, build_id)
+        if local_vectors is not None:
+            vector_state = documents.vector_status()
+
+            def audit_vectors(u):
+                for agent in u.query("agents", ""):
+                    u.audit(
+                        str(agent["id"]),
+                        "vector.boot_configuration",
+                        boot_id,
+                        {
+                            "version": local_vectors.version,
+                            "dimension": local_vectors.dimension,
+                            "state": vector_state.get("state", vector_state.get("reason", "unavailable")),
+                            "available": vector_state["available"],
+                        },
+                    )
+
+            await database.write(audit_vectors)
+        identity = {
+            **await database.read(lambda u: u.instance_identity()),
+            **process_identity(),
+            "boot_id": boot_id,
+            "build_id": build_id,
+            "api_version": 1,
+            "schema_version": database.schema_version,
+            "service_plan_sha256": deployment["service_plan_sha256"] if deployment else None,
+        }
+        identity_files = RuntimeIdentityFiles(paths.control, identity)
+        lifetime.own("runtime_identity", 5, identity_files.close, identity_files.stop_accepting)
+        await identity_files.start()
+        await maintenance.start()
+        deliveries.start()
+        schedules.start()
+        qq.start()
+        current_instance = Instance(
+            application=application,
+            paths=paths,
+            _database=database,
+            _lock=lock,
+            _logging=logs,
+            _observation=observation,
+            boot_id=boot_id,
+            build_id=build_id,
+            identity=identity,
+            _identity_files=identity_files,
+            objects=objects,
+            images=images,
+            people=people,
+            configurations=configurations,
+            routing=routing,
+            memory_semantics=memory_semantics,
+            skills=skills,
+            documents=documents,
+            schedules=schedules,
+            deliveries=deliveries,
+            qq=qq,
+            bilibili=bilibili,
+            media=media,
+            android=android,
+            operations=operations,
+            credentials=credentials,
+            _credential_io=credential_io,
+            _lifetime=lifetime,
+            maintenance=maintenance,
+            memory_organization=memory_organization,
+            extensions=extensions,
+            action_reviews=action_reviews,
+            terminals=terminals,
+            terminal_reviews=terminal_reviews,
+            desktop=desktop,
+            desktop_portal=desktop_portal,
+            desktop_actions=desktop_actions,
+            _process_diagnostics=host_diagnostics,
+        )
+        return current_instance
     except BaseException:
         logging.getLogger("omni.v2.startup").exception(
             "Instance startup failed", extra={"event": "runtime.start_failed"}
         )
-        if database is not None:
-            await database.close()
-        observation.provider.shutdown()
-        logs.close()
-        lock.close()
+        result = await lifetime.close()
+        if not result["complete"]:
+            logging.getLogger("omni.v2.startup").error(
+                "Startup rollback has residual components; instance lock retained",
+                extra={"event": "runtime.rollback_incomplete", "error_code": "startup_cleanup_pending"},
+            )
         raise

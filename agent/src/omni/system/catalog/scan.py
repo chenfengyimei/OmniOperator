@@ -30,8 +30,8 @@ def source_files(root: Path) -> list[Path]:
         for path in base.rglob("*"):
             if (
                 not path.is_file()
-                or path.suffix not in {".py", ".ps1", ".html", ".js", ".css"}
-                or any(part in {"__pycache__", "node_modules"} for part in path.parts)
+                or path.suffix not in {".py", ".ps1", ".cs", ".swift", ".c", ".h", ".html", ".js", ".css"}
+                or any(part in {"__pycache__", "node_modules", ".build", ".swiftpm"} for part in path.parts)
             ):
                 continue
             if (
@@ -101,6 +101,24 @@ def _symbols(tree: ast.AST) -> list[dict]:
 def _routes(tree: ast.AST, path: str, module_id: str, symbols: list[dict]) -> list[dict]:
     found = []
     by_line = {item["line"]: item for item in symbols}
+    prefixes = {}
+    for assignment in ast.walk(tree):
+        if not isinstance(assignment, ast.Assign) or not isinstance(assignment.value, ast.Call):
+            continue
+        call = assignment.value
+        if not isinstance(call.func, ast.Name) or call.func.id != "APIRouter":
+            continue
+        prefix = next(
+            (
+                kw.value.value
+                for kw in call.keywords
+                if kw.arg == "prefix" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str)
+            ),
+            "",
+        )
+        for target in assignment.targets:
+            if isinstance(target, ast.Name):
+                prefixes[target.id] = prefix
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
@@ -114,8 +132,13 @@ def _routes(tree: ast.AST, path: str, module_id: str, symbols: list[dict]) -> li
                 or not isinstance(decorator.args[0].value, str)
             ):
                 continue
-            url = decorator.args[0].value
-            scope = "community" if "/omni/plugins/" in path else "workbench"
+            owner = decorator.func.value
+            url = (
+                prefixes.get(owner.id, "") + decorator.args[0].value
+                if isinstance(owner, ast.Name)
+                else decorator.args[0].value
+            )
+            scope = "v2" if "/omni/adapters/" in path else "community" if "/omni/plugins/" in path else "workbench"
             found.append(
                 {
                     "method": decorator.func.attr.upper(),
@@ -191,7 +214,7 @@ def build_index(root: Path = PROJECT_ROOT) -> dict:
                     "imports": [],
                     "symbols": [],
                     "kind": "asset",
-                    "summary": "平台脚本或界面资源",
+                    "summary": "原生源码、平台脚本或界面资源",
                 }
             )
             continue

@@ -1,7 +1,7 @@
 // 工具弹窗只导航，不创建任务或启动设备。
-import { $, esc } from './dom.js?v=20261102u2';
-import { SECTIONS } from '../sections.js?v=20261102u2';
-import { openHub } from './hub.js?v=20261102u2';
+import { $, esc } from './dom.js?v=20261103u5';
+import { SECTIONS } from '../sections.js?v=20261103u5';
+import { openHub } from './hub.js?v=20261103u5';
 
 function openTools() {
   let box = $('#tools-panel');

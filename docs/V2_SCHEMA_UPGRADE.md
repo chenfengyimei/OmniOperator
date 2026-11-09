@@ -1,0 +1,48 @@
+# V2 跨 schema 的新目录准备与快照恢复
+
+本页定义 D4 已接入的离线数据链。它复用 release 的备份、双 home 锁、启动闸门、不可变安装核验和服务缺失证明。当前开发与专项在 Windows 隔离目录完成；不代表完整升级产品、真实系统服务交换或三平台验收。默认入口仍为 V1。
+
+## 计划与允许范围
+
+release 计划升级为 `omni-release-plan-3`，必须明确包含 `schema_upgrade`。同 schema 时该字段为 null；前向升级时包含 `omni-schema-upgrade-1`、源/目标 revision，以及有序迁移文件的路径、父 revision、大小和 SHA256。旧计划不补字段，应重新生成。
+
+当前前向范围从 `v2_0025` 起，已用真实库验证 `v2_0025 → v2_0026`。这是 V2 内部结构演进，不导入 V1 数据。只接受当前目标安装中的一条完整线性 Alembic 历史；历史迁移文件必须同时匹配源和目标的不可变捕获，新增迁移匹配目标捕获。缺失前驱、分支、依赖、顺序或内容变化均拒绝。目标 head 必须与当前安装一致，不能在请求中指定外部脚本或任意 revision。
+
+共享启动闸门与激活消费者仍须在新旧安装中完全一致。闸门协议变化尚未开放。管理员协议/包/审计现为4；当前包增加纯领域迁移合同，含29项文件记录。单父会话系统交换仍要求管理员源码双端一致且同schema；跨schema改用[分阶段交接](V2_ADMIN_HANDOVER.md)，不删除原检查。
+
+## 准备、选择与启动
+
+在已安装的目标程序生成并审阅普通 release 计划，使用已有命令：
+
+```text
+TARGET_PYTHON -I -m omni.composition.cli release plan SOURCE_BUNDLE REQUEST_JSON NEW_PLAN_JSON
+TARGET_PYTHON -I -m omni.composition.cli release prepare NEW_PLAN_JSON --approve PLAN_SHA256
+TARGET_PYTHON -I -m omni.composition.cli release inspect NEW_PLAN_JSON
+```
+
+请求格式及路径规则见[版本准备合同](V2_RELEASES.md)。plan 不修改数据库。prepare 要求源实例停止且锁可取得，在持有两份实例锁时执行：
+
+1. 核验精确源实例/schema、完整迁移目录、当前目标程序和已批准计划。
+2. 创建一致快照并验证数据库、对象及清单；源 home 保留。
+3. 建立禁止启动的新目标，复用恢复隔离：待执行工作转核查、令牌撤销、费用预留与未知结果保留，凭据不复制。
+4. 无覆盖发布目标的 `run/schema-upgrade-intent.json`，绑定 release/迁移路线/原恢复报告。
+5. 使用与运行内核相同的 SQLAlchemy 连接配置，短独占事务执行已批准迁移，核验版本、外键和完整性，并为各 Agent 写入 `schema.upgraded` 审计。
+6. 关闭写连接，核验对象，发布独立完成报告；release 的 prepared 证明同时绑定迁移报告、原恢复报告和两份数据指纹。
+
+运行内核与离线迁移共用外键、WAL、FULL 持久性、忙等待及显式事务配置。迁移不构造运行时、不启动调度器，也不运行模型、插件或设备。
+
+旧服务仍需独立批准移除。随后 `release select PLAN --approve SHA` 重新核验源缺失、两份安装、数据连续性、备份和迁移证明，按原有顺序退役源并开放目标。系统目标仍需明确的源卸载操作、root socket 和包指纹；此步骤只观察，不重新卸载。目标注册、启动与本次 boot/HMAC/PID 就绪须另外执行。
+
+## 中断与恢复
+
+迁移异常发生在事务内时，DDL、revision 和业务审计一起回滚。事务已经提交而完成报告尚未发布，也不能冒充 prepared。无论哪种中断，目标保持启动闸门、源数据和验证备份保留；不会自动重试已存在的 intent，也不反向迁移。当前做法是检查、显式 abandon 并在另一份新 home 重新准备，部分目录和证明不自动删除。
+
+从已选择升级恢复到旧 schema 时，必须在原始不可变安装中运行 `release recovery-plan ORIGINAL_PLAN REQUEST OUTPUT`。该计划只能绑定原升级前验证快照、匹配旧 schema 的程序和另一份新 home；恢复本身不调用 downgrade。失败版本也先产生单独快照，原 home 保留。
+
+旧快照恢复要求失败 home 的数据库/WAL/回滚日志仍与原 prepared 的目标证明相同。任何后续业务写入都拒绝该恢复，不能覆盖新消息、费用、未知动作或投递。产生新数据后的跨 schema 救援需要匹配较新 schema 的前向修复；当前不把同 schema 的 `latest_failed` 救援当作可降级能力。
+
+## 验证与后续工作
+
+专项覆盖真实 V25→V26、新目录选择、原库与对象保留、费用预留/未知工作、旧令牌撤销、迁移事务失败、提交后报告失败、证明及程序漂移、缺失前驱，以及匹配旧快照恢复和新增数据拒绝。异常注入不替代真实进程终止、电源、磁盘和三平台验收。
+
+分阶段交接现已接源码：将源移除、只读缺失核验、数据选择和目标注册/启动分别绑定对应不可变管理员与批准，持久保存实际回收证明。现有同 schema 单父会话和双端源码检查继续生效；共享协议4的分阶段跨schema系统协调和跨schema用户服务协调已接源码；旧协议不隐式兼容。D5业务迁移、D6扩展、正式入口切换和三平台72小时仍未完成。

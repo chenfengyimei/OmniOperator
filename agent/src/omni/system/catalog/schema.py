@@ -57,7 +57,7 @@ MODULES = (
         "v2-workbench",
         "V2 开发工作台",
         "Web 接口",
-        ("web/v2/",),
+        ("web/ui/v2/",),
         "基于现有主题的最小开发工作台，尚非完整功能迁移。",
         ("V2_REFACTOR.md",),
         ("test_v2_http.py",),

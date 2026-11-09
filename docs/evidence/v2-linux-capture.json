@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "batch": "D3.linux.capture",
+  "date": "2026-11-06",
+  "status": "Selected Xorg/XRes/Composite capture code integrated; injected protocol, storage and workbench verified; actual Linux still pending",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "40766fd8ed1e9f21e5b351595b6746bb30cec6929ec0d1b27cbfb6390884a677",
+    "fixed_source_files": 902,
+    "snapshot": "temp/build/v2-linux-capture-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 95,
+    "migration_head": "v2_0024",
+    "assets_version": "20261106v34",
+    "ipc_version": "omni-desktop-ipc-5",
+    "scope": [
+      "Canonical logind X11 Display and real Unix peer/root-protected Xorg executable/session identity before private-cookie authentication",
+      "Bounded X11 setup/framing/errors/events, XRes 1.2 real client PID and process-creation proof; _NET_CLIENT_LIST is candidates only, no _NET_WM_PID trust",
+      "Separate X11 capture target without PID/geometry mapping to AT-SPI; structural lifecycle and before/after identity checks",
+      "Only name an existing Composite window pixmap; no redirect, ordinary-window framebuffer, root image or input fallback",
+      "TrueColor standard RGB, 24/32-bit layouts and 32-bit row alignment; bounded image/PNG, uniform-content denial and private exclusive fsynced staging",
+      "Owned host fingerprint/PNG verification through existing object publication and session reference transaction; cancellation/expiry/scope protections reused",
+      "V24 capture provenance expands Windows/Mac/X11 methods while preserving rows/FKs/immutability/live-session and erasure triggers, with interruption/backup coverage",
+      "Deployment runtime schema identity comes from packaged Alembic head; current fresh-schema expectations updated, historical migrations not rewritten",
+      "Workbench exposes per-target observation/capture availability and disables unsupported buttons; v34 cache references and selected frontend formatting unified",
+      "Explicit native acceptance supports backend-selected X11 pixel sample, emits only receipt metadata and closes staging; no actual native run here"
+    ],
+    "linux_source_implementation_present": true,
+    "linux_capture_implemented": true,
+    "linux_semantic_or_foreground_actions_implemented": false,
+    "real_system_input_this_checkpoint": false,
+    "real_desktop_enumerated_this_checkpoint": false,
+    "real_bus_connected_this_checkpoint": false,
+    "system_credentials_modified": false,
+    "real_accounts_or_paid_models_used": false,
+    "native_services_modified": false
+  },
+  "validation": {
+    "targeted_unique_python_passed": 141,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-linux-capture-fixed.xml",
+        "sha256": "901eb8b0e1d56ee07be8ffc1066b7d89cd48998a81152a7e46c37b4868aa8fe8",
+        "tests": 140,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 42.564
+      },
+      {
+        "path": "temp/build/v2-linux-capture-ui.xml",
+        "sha256": "8f9dc371ecea72ec96a83bcb22a844499add570cbe435e8a92d54ef6828dd02d",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 3.584
+      }
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "pyright": [
+      {
+        "path": "temp/build/v2-linux-capture-types-fixed.json",
+        "filesAnalyzed": 9,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.486
+      },
+      {
+        "path": "temp/build/v2-linux-capture-types-linux-fixed.json",
+        "filesAnalyzed": 5,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.031
+      }
+    ],
+    "all_production_strict": false,
+    "static": {
+      "path": "temp/build/v2-linux-capture-static.json",
+      "sha256": "ca628422d71fe50f8a7e25d2535f5615e0fab1c863333b11ccf65347a1d1449a"
+    },
+    "packaging_runs_this_checkpoint": 2,
+    "packaging_current_source_verified": true,
+    "packaging": {
+      "assets": 102,
+      "sha256": "bb3ec7d9df8932c38b9ba79a7946f43adc58bccd46182dbcad63d9cfb867ddf1",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "9339b61f678fc982ec0c16629e544274c00a255d47e9d5cc6763d882e7f1cb55"
+    },
+    "packaging_artifacts": [
+      {
+        "path": "temp/build/v2-linux-capture-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "40b2807257848eee4a65963b36f1e6646e970533dba95558d179cf764020616f",
+        "bytes": 1857034
+      },
+      {
+        "path": "temp/build/v2-linux-capture-packaging/evidence.json",
+        "sha256": "c59d2220f7701dd7e35e0a4f0b164aefa320217d35787d4ceeff355da6bed462",
+        "bytes": 398
+      },
+      {
+        "path": "temp/build/v2-linux-capture-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "40b2807257848eee4a65963b36f1e6646e970533dba95558d179cf764020616f",
+        "bytes": 1857034
+      },
+      {
+        "path": "temp/build/v2-linux-capture-packaging/sdist/omnioperator-0.1.0.tar.gz",
+        "sha256": "27164dc188908df154f29e57442bc685f45196d5045d08dab13a12f6b1e4b94c",
+        "bytes": 2304615
+      },
+      {
+        "path": "temp/build/v2-linux-capture-packaging-final/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "ef10da246862eee89d7f2bf88af159a1cca6473c58c559415bbdda3471073c18",
+        "bytes": 1856938
+      },
+      {
+        "path": "temp/build/v2-linux-capture-packaging-final/evidence.json",
+        "sha256": "c22821bea0423d48f9a22f20e98c12c748745220f38a4540f519f7415f6c601f",
+        "bytes": 398
+      },
+      {
+        "path": "temp/build/v2-linux-capture-packaging-final/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "ef10da246862eee89d7f2bf88af159a1cca6473c58c559415bbdda3471073c18",
+        "bytes": 1856938
+      },
+      {
+        "path": "temp/build/v2-linux-capture-packaging-final/sdist/omnioperator-0.1.0.tar.gz",
+        "sha256": "cbd3ac677add2dbe80cb8e5f2c002f869f6e8477336e0cb3bd225504860d133a",
+        "bytes": 2304027
+      }
+    ],
+    "packaging_limit": "Final direct wheel and sdist-wheel match executable/native bytes plus 102 assets; fresh V24/no-V1 import/shutdown passed on Windows. This does not run Xorg, validate Xauthority or compile Mac sources.",
+    "linux_runtime": false,
+    "actual_dbus_next_transport_handshake": false,
+    "linux_x11_desktop": false,
+    "linux_wayland_desktop": false,
+    "macos_runtime": false,
+    "macos_swift_compiled": false,
+    "swift_tests_authored": 9,
+    "swift_tests_executed_here": 0,
+    "windows_interactive_acceptance": "Deferred by owner; no real input run",
+    "new_browser_runs": 3,
+    "full_ui_matrix": false,
+    "limitations": [
+      "All X11 server, socket/process metadata, cookies and events use injected peers on Windows; no real Linux socket, Xorg/Composite or window pixels were read",
+      "X11 currently requires a verified Xorg executable/session and bounded private FamilyLocal authority; other servers/auth layouts/frames may be unavailable and need real evidence",
+      "Same metadata and XID across requests do not prove permanent window generation; no Linux control is authorized or implemented",
+      "Current-schema literals were updated in affected fixtures; the complete suites and whole production strict typing remain pending",
+      "One 1024px browser scenario validates target-specific buttons; four-viewports/two-themes and real permissions/platform72h remain pending"
+    ],
+    "development_corrections": [
+      "Fixed an existing Windows-only capture DB constraint that would reject Mac provenance; V24 retains references/triggers and rolls back interrupted rebuild",
+      "Fixed sample setup to use the required pre-publication guard and actual object bytes so migration backup validation was exercised rather than bypassed",
+      "Updated exact public-target response contract for per-target read features and preserved opaque native identity boundaries",
+      "Rolled back failed optional accessibility connections while retaining cleanup failure, so AT-SPI unavailability does not falsely disable verified X11",
+      "Scoped frontend formatting initially found four existing files at changed v34 import call sites; formatted them and rebuilt final assets. Intermediate build and failed reports retained",
+      "Fixed native boundary typing without blanket ignores; final 9-file host and 5-file Linux checks have no errors"
+    ],
+    "targeted_unique_includes_browser": true,
+    "targeted_python_nonbrowser_passed": 140,
+    "targeted_browser_passed": 1,
+    "packaging_final": "temp/build/v2-linux-capture-packaging-final/evidence.json"
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-linux-capture-source-20261106T141813+0800/manifest.json",
+    "source_files": 1111,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D3.linux.portal",
+    "handoff": "docs/V2_LINUX_HANDOFF.md",
+    "scope": "Wayland Portal explicit consent/unique service/session ownership/cancellation/revocation and controlled frames, then Linux semantic/input pause contracts"
+  },
+  "pending": [
+    "Actual Linux runtime/Xorg/Composite and platform acceptance",
+    "Wayland Portal, Linux semantics/input and PTY/credential closure",
+    "Mac mini compilation/9 Swift tests/native acceptance",
+    "Owner-assisted Windows input/full acceptance",
+    "Platform operations, business migration, models/extensions",
+    "Default-entry switch/complete strict typing/candidate",
+    "Full/fault/load/real-accounts/devices and each platform72h"
+  ]
+}

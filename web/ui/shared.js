@@ -1,4 +1,5 @@
-import { SECTIONS, resolveSection, sectionUrl } from './sections.js?v=20261102u2';
+import { ask, element } from './dialog.js?v=20261103v7';
+import { SECTIONS, resolveSection, sectionUrl } from './sections.js?v=20261103u5';
 /* 本地工作台公共交互：请求、反馈、对话框和导航；不触发能力操作。 */
 (() => {
   'use strict';
@@ -42,12 +43,6 @@ import { SECTIONS, resolveSection, sectionUrl } from './sections.js?v=20261102u2
     ['/?settings=1&section=sec-memory-system', 'psychology', '记忆系统'],
     ['/?settings=1', 'settings', '设置中心'],
   ];
-  function element(tag, text, className) {
-    const node = document.createElement(tag);
-    if (text != null) node.textContent = text;
-    if (className) node.className = className;
-    return node;
-  }
   function icon(name, className = '') {
     const node = element('span', name, ('material-icons ' + className).trim());
     node.setAttribute('aria-hidden', 'true');
@@ -123,64 +118,6 @@ import { SECTIONS, resolveSection, sectionUrl } from './sections.js?v=20261102u2
       if (timer) clearTimeout(timer);
       signal?.removeEventListener('abort', abort);
     }
-  }
-  let dialog;
-  function ask({
-    title = '确认操作',
-    message = '',
-    input,
-    inputLabel = '名称',
-    confirmLabel = '确认',
-    danger = false,
-  }) {
-    if (dialog?.open) return Promise.resolve(input === undefined ? false : null);
-    if (!dialog) {
-      dialog = element('dialog', null, 'ui-dialog');
-      dialog.id = 'ui-dialog';
-      document.body.append(dialog);
-    }
-    const previous = document.activeElement,
-      form = element('form');
-    form.method = 'dialog';
-    const heading = element('h2', title);
-    heading.id = 'ui-dialog-title';
-    dialog.setAttribute('aria-labelledby', heading.id);
-    const content = element('p', message),
-      actions = element('div', null, 'ui-dialog-actions');
-    const cancel = element('button', '取消'),
-      confirm = element('button', confirmLabel);
-    cancel.value = 'cancel';
-    cancel.formNoValidate = true;
-    confirm.value = 'confirm';
-    confirm.className = danger ? 'ui-danger' : 'ui-primary';
-    form.append(heading, content);
-    let field;
-    if (input !== undefined) {
-      const label = element('label', inputLabel);
-      field = element('input');
-      field.value = input;
-      field.required = true;
-      field.maxLength = 60;
-      label.append(field);
-      form.append(label);
-    }
-    actions.append(cancel, confirm);
-    form.append(actions);
-    dialog.replaceChildren(form);
-    dialog.returnValue = '';
-    return new Promise((resolve) => {
-      dialog.addEventListener(
-        'close',
-        () => {
-          const accepted = dialog.returnValue === 'confirm';
-          resolve(input === undefined ? accepted : accepted ? field.value.trim() : null);
-          previous?.focus?.();
-        },
-        { once: true },
-      );
-      dialog.showModal();
-      (field || cancel).focus();
-    });
   }
   function badge(state) {
     const node = element('span', labels[state] || state || '未知', 'ui-badge');
@@ -349,8 +286,9 @@ import { SECTIONS, resolveSection, sectionUrl } from './sections.js?v=20261102u2
         if (!button) return;
         const section = query.get('section'),
           target = resolveSection(section);
-        if (target) button.dataset.section = target.id;
-        else if (section) notify('找不到这个设置分区，请从侧栏选择', 'error');
+        // The hub owns validation and persistent route feedback. Passing an
+        // unknown label is safe: switchHub resolves it before querying the DOM.
+        if (section) button.dataset.section = target?.id || section;
         button.click();
         delete button.dataset.section;
       };

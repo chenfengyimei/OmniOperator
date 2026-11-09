@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from ..adapters.workers.client import WorkerClient
+from ..application.documents import DocumentService
 from ..application.engine import Capability
+from ..application.memory_semantics import MemorySemanticService
 from ..application.memory_tools import MemoryCapabilities
 from ..application.ports import DatabasePort
 from ..domain.contracts import ToolSpec
@@ -13,10 +15,12 @@ def parameters(properties: dict, required: list[str] | None = None) -> dict:
     return {"type": "object", "properties": properties, "required": required or [], "additionalProperties": False}
 
 
-def builtin_capabilities(database: DatabasePort) -> tuple[Capability, ...]:
-    worker = WorkerClient("builtin")
-    browser = WorkerClient("browser")
-    memory = MemoryCapabilities(database)
+def builtin_capabilities(
+    database: DatabasePort, documents: DocumentService, semantics: MemorySemanticService | None = None
+) -> tuple[Capability, ...]:
+    worker = "builtin"
+    browser = "browser"
+    memory = MemoryCapabilities(database, semantics)
     specs = [
         ("system_info", "Read operating system and runtime versions", {}, [], False, worker, ""),
         (
@@ -84,6 +88,29 @@ def builtin_capabilities(database: DatabasePort) -> tuple[Capability, ...]:
             "browser",
         ),
         (
+            "document_search",
+            "Search source documents; returned exact revision and character ranges are registered before use",
+            {"query": {"type": "string", "minLength": 1, "maxLength": 500}},
+            ["query"],
+            False,
+            documents,
+            "documents",
+        ),
+        (
+            "document_read",
+            "Read a bounded exact source revision; offsets count Unicode characters",
+            {
+                "document_id": {"type": "string"},
+                "revision_id": {"type": "string"},
+                "start": {"type": "integer", "minimum": 0},
+                "length": {"type": "integer", "minimum": 1, "maximum": 4000},
+            },
+            ["document_id"],
+            False,
+            documents,
+            "documents",
+        ),
+        (
             "memory_search",
             "Search live memory in this Agent space",
             {"query": {"type": "string"}},
@@ -94,9 +121,15 @@ def builtin_capabilities(database: DatabasePort) -> tuple[Capability, ...]:
         ),
         (
             "memory_remember",
-            "Save memory with an exact quote from a source message",
-            {"content": {"type": "string"}, "message_id": {"type": "string"}, "quote": {"type": "string"}},
-            ["content", "message_id", "quote"],
+            "Save memory with an exact quote from a message, observed tool action, or observed document revision",
+            {
+                "content": {"type": "string", "minLength": 1, "maxLength": 20000},
+                "message_id": {"type": "string"},
+                "action_id": {"type": "string"},
+                "document_revision_id": {"type": "string"},
+                "quote": {"type": "string", "minLength": 1, "maxLength": 20000},
+            },
+            ["content", "quote"],
             True,
             memory,
             "",
@@ -104,14 +137,28 @@ def builtin_capabilities(database: DatabasePort) -> tuple[Capability, ...]:
         (
             "memory_forget",
             "Forget one memory entry by its exact identifier",
-            {"memory_id": {"type": "string"}},
-            ["memory_id"],
+            {"memory_id": {"type": "string"}, "revision": {"type": "integer", "minimum": 1}},
+            ["memory_id", "revision"],
             True,
             memory,
             "",
         ),
     ]
-    return tuple(
-        Capability(ToolSpec(name, description, parameters(props, required), writes, resource=resource), adapter)
+    registered = [
+        (ToolSpec(name, description, parameters(props, required), writes, resource=resource), adapter)
         for name, description, props, required, writes, adapter, resource in specs
+    ]
+    workers = {
+        kind: WorkerClient(
+            kind, tool_writes={spec.name: spec.writes for spec, adapter in registered if adapter == kind}
+        )
+        for kind in (worker, browser)
+    }
+    return tuple(
+        Capability(
+            spec,
+            workers[adapter] if isinstance(adapter, str) else adapter,
+            workers[adapter].review_quiescent if isinstance(adapter, str) else lambda: True,
+        )
+        for spec, adapter in registered
     )

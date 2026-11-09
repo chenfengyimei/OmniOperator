@@ -1,8 +1,8 @@
 // 设置中心「数字具身总览」与「哔哩哔哩」账号检查。
 // 总览只读本地状态（配置、凭证文件、adb 是否在 PATH）；账号状态是唯一会外呼的接口，
 // 查不到就如实说查不到——这个面板是给人判断"现在能不能用"的，不能骗人。
-import { $, esc } from './dom.js?v=20261102u2';
-import { api } from './api.js?v=20261102u2';
+import { $, esc } from './dom.js?v=20261103u5';
+import { api } from './api.js?v=20261103u5';
 
 export async function loadEmbodimentHub() {
   const box = $('#embodiment-list');

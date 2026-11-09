@@ -219,6 +219,10 @@ def test_settings_context_late_stats_do_not_replace_new_session(ui):
     second = runtime.store.new_session("另一个上下文")
     page.add_init_script(delay_script("String(url).startsWith('/api/context?')"))
     page.goto("http://127.0.0.1/")
+    # Delay the explicitly selected session's request, after initial state has
+    # populated S.currentSession. An early click legitimately uses /api/context
+    # without a query and would bypass this test's delayed-response injection.
+    page.locator(f'#sessions li.active[data-id="{first}"]').wait_for()
     page.locator('[data-action="hub:open"][data-section="sec-context"]').click()
     page.wait_for_function("window.__pending.length===1")
     page.evaluate(

@@ -1,0 +1,218 @@
+{
+  "schema": 1,
+  "batch": "D1.windows.actions",
+  "date": "2026-11-06",
+  "status": "semantic_chain_implemented_targeted_verified_D1_still_in_progress",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "a58c3970768a2657d55e58caa7644d7a4e7f649f419773f4369e3e5c5f4b1c82",
+    "fixed_source_files": 854,
+    "snapshot": "temp/build/v2-actions-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 95,
+    "migration_head": "v2_0023",
+    "assets_version": "20261106v32",
+    "ipc_version": "omni-desktop-ipc-4",
+    "scope": [
+      "Owner-only semantic commands reuse runs, work queues, approvals, actions, leases and independent unknown review; no model call or model-tool registration",
+      "Atomic owner command admission, request deduplication, immutable run execution kind and one-way argument transfer; old-boot queued commands interrupted, pending body erased",
+      "Opaque observation/node bindings; recheck view, session epoch, approval and policy before native dispatch; fixed MTA helper revalidates target and bounded node proof",
+      "UIA invoke/select/set_text; bounded postcondition reads, identity/input/focus checks; unverified or interrupted dispatched writes remain unknown with no replay",
+      "Owner API/workbench proposal, independent approval, cancel and explicit status refresh; lifecycle retains actual helpers/leases and rejects draining admission"
+    ],
+    "real_user_windows_manipulated": false,
+    "real_accounts_or_paid_models_used": false,
+    "native_services_modified": false
+  },
+  "validation": {
+    "targeted_unique_passed": 122,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-actions-core.xml",
+        "sha256": "4f541f78eca2f00c1c7f89de2e4defb6a7d0f82fa34b42528d9d20d3d74098d8",
+        "tests": 34,
+        "failures": 8,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 25.996
+      },
+      {
+        "path": "temp/build/v2-actions-integration.xml",
+        "sha256": "45cc2f6e2c61e05c1dc5a7b6a459b6a84b58e4df8af47908e95fbdd399c3b4b0",
+        "tests": 15,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 20.622
+      },
+      {
+        "path": "temp/build/v2-actions-native.xml",
+        "sha256": "6bfe4e5ffca107955690f0e65b12f234018bd9044cefe67895a241626720ae0f",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 13.946
+      },
+      {
+        "path": "temp/build/v2-actions-final-core.xml",
+        "sha256": "252104ceba171cfbc223f41b44e628afcdfba5b6912526088a92428fbeaa4177",
+        "tests": 21,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 44.516
+      },
+      {
+        "path": "temp/build/v2-actions-recovery-native.xml",
+        "sha256": "56f9730c2406fe750453d47558f6d2bf1b8fc5e1740d04c164f2735b19c6004d",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 11.25
+      },
+      {
+        "path": "temp/build/v2-actions-ui.xml",
+        "sha256": "e02c0989615b192b71abeae1bbe03a38ae412801ab9be8dfc9e43e1c6d847f14",
+        "tests": 2,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 74.754
+      },
+      {
+        "path": "temp/build/v2-actions-ui-recheck.xml",
+        "sha256": "2563c6797650885834f1d47c96df9b56a928ee2e09350e72362f300160b3176f",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 15.506
+      },
+      {
+        "path": "temp/build/v2-actions-callers.xml",
+        "sha256": "c9d2cdaf5df3270397261fc3dcf3dbada701bfc64a413edfbbbb6195041f8c94",
+        "tests": 66,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 43.305
+      },
+      {
+        "path": "temp/build/v2-actions-migrations.xml",
+        "sha256": "449296271ee2c687cfe7741a09cd42b64745271d4966492194aa8ac4e81bb315",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 13.811
+      },
+      {
+        "path": "temp/build/v2-actions-transport.xml",
+        "sha256": "866ad4ca05d48f3453682eeafffaab8cfbf1e625918c0b16ea79eb499ff19d78",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 5.423
+      },
+      {
+        "path": "temp/build/v2-actions-final-targets.xml",
+        "sha256": "662a6bcd7aaa704383939704e2f23b54a24ecee1fc29118953dbe5fdb1b08b5c",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 46.743
+      },
+      {
+        "path": "temp/build/v2-actions-final-callers.xml",
+        "sha256": "96674e0495beba6dd9a106f691c5102a8fcef53bee71eb217875d3487b3654f5",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 51.289
+      },
+      {
+        "path": "temp/build/v2-actions-admission.xml",
+        "sha256": "678352365a5c08a1ce958e5825bd32967da0e73ce831ef3d9ae62804d3bd5df7",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 29.874
+      },
+      {
+        "path": "temp/build/v2-actions-observation-recheck.xml",
+        "sha256": "d0bf19eaf25dfff19b7c0b10a77caa999f4acd17dc63b388124da632f79ceaa1",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 3.001
+      }
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "packaging_runs_this_checkpoint": 0,
+    "packaging_current_source_verified": false,
+    "last_packaging_evidence": "docs/evidence/v2-uia.json",
+    "pyright": {
+      "path": "temp/build/v2-actions-pyright-final.json",
+      "filesAnalyzed": 12,
+      "errorCount": 0,
+      "warningCount": 0,
+      "informationCount": 0,
+      "timeInSec": 5.437,
+      "all_production_strict": false
+    },
+    "static_reports": [
+      {
+        "path": "temp/build/v2-actions-static.json",
+        "sha256": "76a5e83672328841fda34caba76144fe8f0688b60dcd0a3afcd23f17de9581b7"
+      }
+    ],
+    "windows_native": "Owned nonactivating Win32 fixture only: UIA/password/text bounds, capture, identity mismatch denial, text mutation independently observed, selected postcondition and Invoke unknown; 10004 FILETIME rounding cases.",
+    "browser": {
+      "action_cases": 2,
+      "viewports": [
+        390,
+        1440
+      ],
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "isolated_contexts_and_databases": true
+    },
+    "macos_runtime": false,
+    "linux_runtime": false,
+    "full_ui_matrix": false,
+    "failures_retained": [
+      "Run configuration constraint required model for owner commands; added immutable execution_kind and separately scoped database constraints, retained model authorization checks",
+      "HTTP facade missed new dependency; composition corrected and real HTTP/UI verified",
+      "Test fixtures used unsupported direct configuration mutation, wrong policy column/close return and control label; corrected fixtures without weakening production constraints/timeouts",
+      "Selection fixture text budget exhausted by unrelated long-text controls; dedicated semantic fixture retains separate unchanged long-tree/password coverage",
+      "Legacy migration preservation projections explicitly exclude newly added execution_kind, while V23 regression separately checks existing model identity and immutable type",
+      "Formatting-only corrections in touched assets and pre-existing provenance expression; final static checks passed"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-actions-source-20261106T061130+0800/manifest.json",
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "pending": [
+    "D1 explicit foreground takeover and full Windows native acceptance",
+    "D2 Swift/macOS implementation and Mac mini handoff",
+    "D3 Linux adapters and real desktop acceptance",
+    "D4 platform operations, D5 business migration, D6 model/extensions, D7 default-entry/candidate packaging, D8 full/real/72h acceptance"
+  ]
+}

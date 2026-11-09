@@ -5,21 +5,38 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import hashlib
-import json
 import os
 import secrets
+from collections.abc import Callable
+from dataclasses import asdict
 from pathlib import Path
 
 from ..adapters.http import HttpRuntime, create_app
+from ..adapters.log_query import LogQuery
 from ..adapters.platform.permissions import private_path
-from ..application.ports import ModelPort
+from ..application.android import AndroidPort
+from ..application.bilibili import BilibiliPort
+from ..application.media import MediaProcessingPort
+from ..application.ports import (
+    DeliveryPort,
+    DesktopBackendPort,
+    DesktopPortalPort,
+    LocalVectorizer,
+    ModelPort,
+    ModelStreamingPort,
+    SecretStore,
+    TerminalBackendPort,
+    TokenCounter,
+)
+from ..application.qq import QQTransportPort
 from .instance import open_instance
+from .lifecycle import close_until_quiescent
 
 
 def web_assets() -> Path:
     package = Path(__file__).resolve().parents[1]
     for path in (package / "web_assets", Path(__file__).resolve().parents[4] / "web"):
-        if (path / "v2/index.html").is_file():
+        if (path / "ui/v2/index.html").is_file():
             return path
     raise RuntimeError("V2 web assets are missing from this distribution")
 
@@ -28,12 +45,47 @@ def http_app(
     home: Path | None = None,
     *,
     model: ModelPort | None = None,
+    model_streamer: ModelStreamingPort | None = None,
+    token_counter: TokenCounter | None = None,
+    vectorizer: LocalVectorizer | None = None,
+    delivery_ports: dict[str, DeliveryPort] | None = None,
+    qq_transport: QQTransportPort | None = None,
+    bilibili_backend: BilibiliPort | None = None,
+    media_processor: MediaProcessingPort | None = None,
+    android_backend: AndroidPort | None = None,
     master_key_file: Path | None = None,
     allowed_origins: tuple[str, ...] = (),
     stderr_only: bool = False,
+    process_diagnostics: bool = False,
+    credential_backend: SecretStore | None = None,
+    terminal_backend: TerminalBackendPort | None = None,
+    desktop_backend: DesktopBackendPort | None = None,
+    portal_backend: DesktopPortalPort | None = None,
+    deployment: dict | None = None,
+    shutdown: Callable[[], None] | None = None,
 ):
     async def factory() -> HttpRuntime:
-        instance = await open_instance(home, model=model, master_key_file=master_key_file, stderr_only=stderr_only)
+        drain_deadline: float | None = None
+        instance = await open_instance(
+            home,
+            model=model,
+            model_streamer=model_streamer,
+            token_counter=token_counter,
+            vectorizer=vectorizer,
+            delivery_ports=delivery_ports,
+            qq_transport=qq_transport,
+            bilibili_backend=bilibili_backend,
+            media_processor=media_processor,
+            android_backend=android_backend,
+            master_key_file=master_key_file,
+            stderr_only=stderr_only,
+            process_diagnostics=process_diagnostics,
+            credential_backend=credential_backend,
+            terminal_backend=terminal_backend,
+            desktop_backend=desktop_backend,
+            portal_backend=portal_backend,
+            deployment=deployment,
+        )
         try:
             token_path = instance.paths.control / "owner.token"
             if token_path.is_symlink():
@@ -59,42 +111,60 @@ def http_app(
                 digest = hashlib.sha256(token.encode()).hexdigest()
                 return await instance._database.read(lambda u: u.token_valid(digest))
 
-            async def logs(limit: int) -> list[dict]:
-                def read():
-                    path = instance.paths.logs / "runtime.jsonl"
-                    if not path.exists():
-                        return []
-                    if path.is_symlink():
-                        raise OSError("Log path is a link")
-                    with path.open("rb") as stream:
-                        stream.seek(0, 2)
-                        size = stream.tell()
-                        stream.seek(max(0, size - 1_048_576))
-                        if size > 1_048_576:
-                            stream.readline()
-                        lines = stream.read().decode("utf-8", errors="replace").splitlines()[-limit:]
-                    return [json.loads(line) for line in lines if line.strip()]
+            async def logs(query: LogQuery) -> dict:
+                return await instance.operations.logs(asdict(query))
 
-                return await asyncio.to_thread(read)
+            async def drain(value: dict) -> dict:
+                return await instance._identity_files.request_drain(
+                    value, dt.datetime.now(dt.timezone.utc).isoformat(), request_shutdown
+                )
 
-            namespace = hashlib.sha256(str(instance.paths.home).encode()).hexdigest()[:20]
-            from ..adapters.platform.secrets import FileVault, SystemSecrets
+            def request_shutdown() -> None:
+                nonlocal drain_deadline
+                if drain_deadline is None:
+                    drain_deadline = asyncio.get_running_loop().time() + 30
+                instance._lifetime.stop_accepting()
+                if shutdown is not None:
+                    shutdown()
 
-            vault = (
-                FileVault(instance.paths.home / "private/vault", master_key_file)
-                if master_key_file
-                else SystemSecrets(namespace)
-            )
-
-            async def credential(reference: str, value: str | None) -> None:
-                if value is None:
-                    await asyncio.to_thread(vault.delete, reference)
-                else:
-                    instance._logging.sink.redactor.register(value)
-                    await asyncio.to_thread(vault.set, reference, value)
+            async def close() -> dict:
+                remaining = 30 if drain_deadline is None else max(0, drain_deadline - asyncio.get_running_loop().time())
+                return await close_until_quiescent(instance.close, remaining)
 
             return HttpRuntime(
-                instance.application, authenticate, instance.health, instance.close, logs, credential, web_assets()
+                qq=instance.qq,
+                bilibili=instance.bilibili,
+                media=instance.media,
+                android=instance.android,
+                application=instance.application,
+                authenticate=authenticate,
+                describe=instance.health,
+                close=close,
+                logs=logs,
+                assets=web_assets(),
+                objects=instance.objects,
+                images=instance.images,
+                people=instance.people,
+                configurations=instance.configurations,
+                routing=instance.routing,
+                memory_semantics=instance.memory_semantics,
+                skills=instance.skills,
+                documents=instance.documents,
+                schedules=instance.schedules,
+                deliveries=instance.deliveries,
+                operations=instance.operations,
+                credentials=instance.credentials,
+                maintenance=instance.maintenance,
+                memory_organization=instance.memory_organization,
+                extensions=instance.extensions,
+                action_reviews=instance.action_reviews,
+                terminals=instance.terminals,
+                terminal_reviews=instance.terminal_reviews,
+                desktop=instance.desktop,
+                desktop_portal=instance.desktop_portal,
+                desktop_actions=instance.desktop_actions,
+                identity_proof=instance.identity_proof,
+                drain=drain if shutdown is not None else None,
             )
         except BaseException:
             await instance.close()

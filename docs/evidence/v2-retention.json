@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "batch": "R3.retention_preview",
+  "status": "run_pins_and_read_only_preview_windows_offline_validation_passed",
+  "date": "2026-11-04",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "baseline_source": "51a508f7b2bcc2b164c6c07eba4bf39106c2a35d3f922bd15e682631a7e03332",
+  "baseline_recovery": "temp/private/v2-authority-source-20261104T195242+0800/manifest.json",
+  "source": {
+    "code_version": "f2b598349f63ecd19324e39e8962a2f57f6b7e01218dce78876d57cc3513db1d",
+    "fixed_source_files": 682,
+    "snapshot": "temp/build/v2-retention-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "model": {
+    "declared_tables": 67,
+    "schema_version": "v2_0011",
+    "run_fields": [
+      "retention_pinned",
+      "retention_revision"
+    ],
+    "policy": "execution-body-v1",
+    "body_days": 30,
+    "can_apply": false
+  },
+  "implementation": [
+    "Owner run pins have a separate optimistic revision, database monotonicity guard and same-transaction audit. CAS/rollback and cross-Agent references tested.",
+    "Workbench exposes pin/unpin for the most recent run, including after completion. Generation/target/revision guards prevent stale polling responses overwriting a newer preference.",
+    "One repository eligibility query protects recent/nonterminal/pinned runs, unresolved actions/effects, model costs, work, held leases, outbound work including unknown, memory source anchors, document read contexts and pinned artifacts.",
+    "Bounded preview uses full UUID cursors, max50 ended runs at least30d old. Fingerprints stream canonical length-delimited run/action/event records without returning chat, tool arguments, result bodies or event payloads.",
+    "Offline retention-preview takes the same exclusive instance lock, shares the central read-only query lifecycle with diagnostics, refuses live or mismatched-schema instances and never upgrades/starts a runtime.",
+    "Preview is deliberately not an executable deletion plan: can_apply=false. No body pruning, context erasure, object reference release, audit deletion or TTL reuse of user-forget logic.",
+    "Fixed source-document index/delete race: editor stays disabled until rebuild and refresh finish; a controlled event-held browser regression covers it. Isolated service registration test signals publish atomically after JSON close.",
+    "Own workbench assets v17; four viewport widths and both themes include run pin/unpin regression. V2 default entrypoints unchanged."
+  ],
+  "validation": {
+    "full": {
+      "report": "temp/build/v2-retention-full.xml",
+      "output": "temp/build/v2-retention-full-output.txt",
+      "passed": 2417,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 461.59,
+      "v2_tests": 401,
+      "added_tests": 18,
+      "fixed_source_files": 682,
+      "unchanged_before_after": true
+    },
+    "static": {
+      "report": "temp/build/v2-retention-static.json",
+      "python_formatted": 549,
+      "v2_default_typechecked_files": 99,
+      "targets": [
+        "Windows",
+        "Linux",
+        "Darwin"
+      ],
+      "strict_whole_repository": false,
+      "es_modules": 61
+    },
+    "packaging": {
+      "assets": 95,
+      "sha256": "7bc8fb72d9af9cfe00d5fce5f6d19bc3ba0fc4717162e96a8efc051c2c769e9f",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "2f9f27c8b6039701cf4adbcc6d9edfc2fd5064aa2c8a8935e269b27e955bee3e"
+    },
+    "targeted": [
+      {
+        "report": "temp/build/v2-retention-service-registration.xml",
+        "passed": 3
+      },
+      {
+        "report": "temp/build/v2-retention-document-regression.xml",
+        "passed": 2
+      },
+      {
+        "report": "temp/build/v2-retention-targeted-complete.xml",
+        "passed": 17
+      },
+      {
+        "report": "temp/build/v2-retention-ui.xml",
+        "passed": 8
+      },
+      {
+        "report": "temp/build/v2-retention-kernel.xml",
+        "passed": 13
+      }
+    ],
+    "development_failures": [
+      {
+        "report": "temp/build/v2-retention-full-second.xml",
+        "passed": 2416,
+        "failed": 1,
+        "code_version": "861aa5dbaa45d63f82cfb5c4ac4aaf4d95d7a68cccd533b824b53c59b6ffd55e",
+        "snapshot": "temp/build/v2-retention-second-validation-snapshot.json",
+        "reason": "Second full passed the document fix and exposed a preexisting test signal publication race: ready exists before its JSON is written. Made the isolated child fixture publish via closed temporary file + os.replace; no timeout or assertion relaxed."
+      },
+      {
+        "report": "temp/build/v2-retention-full-initial.xml",
+        "passed": 2415,
+        "failed": 1,
+        "code_version": "27d924f5730daec0efce1a3519c3736a5e1a65ae297478a01cb854bbe60a44f3",
+        "snapshot": "temp/build/v2-retention-initial-validation-snapshot.json",
+        "reason": "Full run exposed source-document delete racing unfinished index rebuild/refresh. Disabled editor until rebuild and reload finish, added event-held regression, retained original assertion/timeouts; final full rerun required."
+      },
+      {
+        "report": "temp/build/v2-retention-initial.xml",
+        "reason": "New CLI test expected instance_running; exact existing refusal code is instance_busy. Corrected assertion to parsed error, retaining refusal requirement."
+      },
+      {
+        "report": "temp/build/v2-retention-targeted.xml",
+        "reason": "New fixture closed the delivery service before inspecting, cancelling its pending proposal. Created the isolated proposal in its transaction without starting/closing a transport so pending protection is actually exercised."
+      }
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-retention-source-20261104T204302+0800/manifest.json",
+    "source_files": 865,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "pending": [
+    "R3.retention_apply: verified backup, reviewed immutable plan, fingerprint and eligibility recheck, explicit body-pruned marks, bounded transactions, interruption/resume and restore.",
+    "Object reference release only after source/usage protection and via existing GC;180d summary/audit retention still needs reference protection and persistent cursor watermarks.",
+    "R5 native file bounds/identity and capability reports, terminal/desktop/system service adapters; R6 provider credentials/SDK clients, actual channels/vectors/business parity.",
+    "Three-platform actual deployment/native/account/model/device/load/fault and72h acceptance; default V1 remains."
+  ]
+}

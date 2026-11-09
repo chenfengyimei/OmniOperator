@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "batch": "R4.io_safety",
+  "status": "io_safety_batch_windows_offline_validation_passed",
+  "date": "2026-11-04",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "baseline_source": "487ea6aaa9deba61768d4fd6cfa0c694f3b76b3f7bd46e1ff0f722a1576796d6",
+  "baseline_recovery": "temp/private/v2-operations-source-20261104T080029+0800/manifest.json",
+  "source": {
+    "code_version": "79e35ee47183186e0dafab3fa992282b4c0a29e1c6e930bb6c50f1cb4a912f65",
+    "fixed_source_files": 674,
+    "snapshot": "temp/build/v2-safety-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "model": {
+    "declared_tables": 64,
+    "schema_version": "v2_0009",
+    "new_table": "instance_audit",
+    "ownership": "Global owner credential intent/outcome audit; no arbitrary Agent attribution; no secret value or plaintext reference stored",
+    "json_payload_version": 1
+  },
+  "implementation": [
+    "One Instance-owned async credential executor, one native worker, max16 jobs including completed-but-not-returned reads; cancellations keep actual work owned.",
+    "Four owned mutation slots serialize intent, revocation and backend change; cancelled HTTP waiters cannot let later delete overtake earlier set.",
+    "Pending credential reads invalidated on mutation; default model preparation separated from send and authority rechecked after slow credential I/O. Only confirmed pre-send failure releases model reservation.",
+    "Native system backends selected directly for Windows/macOS/SecretService; configured third-party plaintext/chainer backend never selected. No real OS credential reads/writes in validation.",
+    "FileVault private ACLs, bounded ciphertext/key metadata, durable replacement and canonical-name retirement before delete acknowledgement. Encrypted cleanup residue cannot resurrect lookup reference.",
+    "Instance credential requested/resolved audit, unique operation/kind, immutable/idempotent repository settlement, unknown intent count and owner-only bounded query. Unknown outcomes survive restart without replay.",
+    "HTTP and model share the same owned credential component; health and native-thread context propagation; shutdown retains database and instance lock on physical work.",
+    "Version2 worker protocol shared strict parsing: exact fields, UUID, bool/int distinction, outcome/effect invariants, duplicate/nonfinite/depth/frame limits, authoritative frozen writes map derived from ToolSpec.",
+    "Post-dispatch worker failure cannot report NONE; oversized response retains observed outcome/effect/artifacts/bounded verification and marks truncation; no automatic retry.",
+    "Atomic durable file publication, no hardlink/special-file content access, bounded listing memory, read fingerprint visible to model and shell buffer truncation explicit.",
+    "Fresh close budget can retry an old coordinator that just returned false, without duplicating pending cleanup tasks.",
+    "Workbench own cache v14: bounded instance credential audit viewer and unknown-change count; four viewports/double theme covered."
+  ],
+  "validation": {
+    "full": {
+      "report": "temp/build/v2-safety-full.xml",
+      "output": "temp/build/v2-safety-full-output.txt",
+      "passed": 2371,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 489.71,
+      "v2_tests": 355,
+      "added_tests": 50,
+      "fixed_source_files": 674,
+      "unchanged_before_after": true
+    },
+    "static": {
+      "report": "temp/build/v2-safety-static.json",
+      "python_formatted": 542,
+      "v2_default_typechecked_files": 94,
+      "targets": [
+        "Windows",
+        "Linux",
+        "Darwin"
+      ],
+      "strict_whole_repository": false,
+      "es_modules": 60
+    },
+    "packaging": {
+      "assets": 94,
+      "sha256": "24ab0b71d751cd795307992f69b2aedb9dc61cdd1da8da4525eaf39bae806c04",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "656e8a43ef912d2ce30529a306d9e68360ca203691dbc77a023c09a90caf003b"
+    },
+    "targeted": [
+      {
+        "report": "temp/build/v2-safety-final-targeted.xml",
+        "passed": 55,
+        "duration_s": 15.0
+      },
+      {
+        "report": "temp/build/v2-safety-ui-callers-fixed.xml",
+        "passed": 40,
+        "duration_s": 62.01
+      },
+      {
+        "report": "temp/build/v2-safety-storage-callers.xml",
+        "passed": 48,
+        "duration_s": 29.26
+      },
+      {
+        "report": "temp/build/v2-safety-audit-correlation.xml",
+        "passed": 1
+      }
+    ],
+    "development_failures": [
+      {
+        "report": "temp/build/v2-safety-worker-original.xml",
+        "failed": 1,
+        "reason": "Reproduced real isolated shell write followed by escaped output overflow: marker exists but prior result incorrectly had effect none. Fixed protocol preserves known applied result."
+      },
+      {
+        "report": "temp/build/v2-safety-credentials-initial.xml",
+        "failed": 3,
+        "passed": 5,
+        "reason": "Found reused short-budget shutdown-coordinator race; fixed and added deterministic regression. Two new test queries used wrong query name/state; corrected to actual calls/not_sent contract."
+      },
+      {
+        "report": "temp/build/v2-safety-credentials-failed-fixed.xml",
+        "failed": 2,
+        "passed": 5,
+        "reason": "New tests expected failed rather than the stronger existing not_sent model-call state. Kept zero-reservation and zero-provider assertions."
+      },
+      {
+        "report": "temp/build/v2-safety-credentials-complete.xml",
+        "failed": 1,
+        "passed": 17,
+        "reason": "New positive test used run state succeeded for a cost ledger whose actual success state is settled. Corrected precise state; provider called once and cost/reservation evidence retained."
+      },
+      {
+        "report": "temp/build/v2-safety-ui-callers.xml",
+        "stage": "collection",
+        "reason": "Mistyped requested nodeid; no tests ran. Correct modules rerun and all tested by final full."
+      }
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-safety-source-20261104T182905+0800/manifest.json",
+    "source_files": 854,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "pending": [
+    "R4.credentials_authority: explicit credential registry/operations/review state, active-operation lease, reference-level unknown authorization gate and owner review, restart/restore epoch guards; audit counts alone are not the final authority model.",
+    "R3.retention: run pins, bounded reviewable/recoverable 30d execution-body pruning and 180d summary/audit policy; protect credential unknown records.",
+    "R5: fully bounded native file reads/fingerprints and identity checks, platform capability reports, terminal/desktop/system services and real platform acceptance.",
+    "R6: provider-specific credential kinds/environment discovery and owned SDK clients, actual account routing, local vectors and remaining business migration.",
+    "Complete extension/review host, full audit coverage, three-platform load/fault/72h and actual accounts/devices acceptance."
+  ]
+}

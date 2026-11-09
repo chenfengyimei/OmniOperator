@@ -7,14 +7,12 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 from fastapi.testclient import TestClient
 
 from omni.bootstrap import build_runtime
 from omni.channels.web import create_app
-from omni.config import DATA_DIR, RuntimePaths
+from omni.config import RuntimePaths
 from omni.safety.gates import DenyApprover
 from omni.system.services import ServiceError
 from omni.tools.android.driver import AndroidDriver
@@ -32,13 +30,6 @@ def _runtime(tmp_path, **kwargs):
         data_dir=tmp_path / "data",
         **kwargs,
     )
-
-
-def _snapshot(directory: Path) -> dict[str, float]:
-    """真实目录的 canary 快照：只读，不创建任何东西。"""
-    if not directory.exists():
-        return {}
-    return {str(path.relative_to(directory)): path.stat().st_mtime for path in directory.rglob("*") if path.is_file()}
 
 
 # ---------------------------------------------------------------- 路径表
@@ -71,6 +62,15 @@ def test_runtime_exposes_the_same_paths(tmp_path):
     assert runtime.paths.skills == tmp_path / "skills"
 
 
+def test_isolated_runtime_defaults_skills_to_its_own_data_root(tmp_path):
+    runtime = _runtime(tmp_path)
+    try:
+        assert runtime.paths.skills == tmp_path / "data/skills"
+        assert runtime.skills.root == runtime.paths.skills
+    finally:
+        runtime.close()
+
+
 # ---------------------------------------------------------------- 安卓截图
 
 
@@ -96,7 +96,6 @@ def test_android_screenshot_lands_in_injected_root(tmp_path):
     path = driver.screenshot()
     assert path == tmp_path / "shots" / "latest.png"
     assert path.read_bytes() == b"\x89PNG-fake"
-    assert not (DATA_DIR / "android_shots" / "latest.png").exists() or True  # 真机目录不被本用例写
 
 
 def test_runtime_android_driver_uses_injected_shots_dir(tmp_path):
@@ -190,8 +189,7 @@ def test_isolated_workbench_lifespan_starts_and_stops_supervisor(tmp_path):
 
 
 def test_full_write_audit_never_touches_real_data_dir(tmp_path):
-    """把常见写路径全跑一遍：真实 data/ 的内容与 mtime 必须一字不差。"""
-    before = _snapshot(DATA_DIR)
+    """常见写路径不得触发进程/子进程的真实数据审计闸门，外部服务无需停止。"""
 
     runtime = _runtime(tmp_path)
     client = TestClient(create_app(runtime), base_url="http://127.0.0.1")
@@ -211,7 +209,10 @@ def test_full_write_audit_never_touches_real_data_dir(tmp_path):
     runtime.cron_jobs.list()
     AndroidDriver(adb=_FakeAdb(b"\x89PNG"), shots_dir=runtime.paths.android_shots).screenshot()
 
-    assert _snapshot(DATA_DIR) == before, "隔离实例写到了真实 data/ 目录"
+    assert runtime.paths.data == tmp_path / "data"
+    assert runtime.paths.cookies.is_relative_to(tmp_path)
+    assert runtime.paths.updates.is_relative_to(tmp_path)
+    assert runtime.paths.android_shots.is_relative_to(tmp_path)
 
 
 def test_isolated_runtime_writes_stay_inside_data_root(tmp_path):

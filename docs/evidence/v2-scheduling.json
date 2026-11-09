@@ -1,0 +1,249 @@
+{
+  "schema": 1,
+  "status": "scheduling_batch_windows_offline_validation_passed",
+  "date": "2026-11-04",
+  "batch": "R4.scheduling",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "branch": "codex/architecture-v2",
+    "checkpoint_commit": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "uncommitted_changes": true,
+    "files": 638,
+    "fingerprint": "2c2a795b26a5aa0df1393c06757727f858ea5a6f6de4cf4f004ec479ad54e6a4",
+    "snapshot": "temp/build/v2-scheduling-validation-snapshot.json",
+    "unchanged_during_full_run": true
+  },
+  "tests": {
+    "full": {
+      "status": "passed",
+      "command": "uv run --no-sync pytest -q --junitxml=temp/build/v2-scheduling-full-complete.xml",
+      "report": "temp/build/v2-scheduling-full-complete.xml",
+      "workers": 4,
+      "passed": 2233,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_s": 559.85,
+      "xml_duration_s": 558.938
+    },
+    "targeted": {
+      "passed": 47,
+      "report": "temp/build/v2-scheduling-final-targeted.xml",
+      "scope": "scheduling domain/repositories/runtime/API, process faults and new UI cases; not full suite"
+    },
+    "restoration_and_callers": {
+      "passed": 63,
+      "report": "temp/build/v2-scheduling-restoration.xml"
+    },
+    "initial_full": {
+      "passed": 2226,
+      "failed": 2,
+      "skipped": 0,
+      "duration_s": 700.91,
+      "xml_duration_s": 700.761,
+      "report": "temp/build/v2-scheduling-full.xml",
+      "snapshot": "temp/build/v2-scheduling-validation-initial-snapshot.json",
+      "source_fingerprint": "1e0fa273878bcabab0810708f5772f0dda342e37d32a5016c91808f8ed722d11",
+      "failures": [
+        "agent/tests/test_mcp.py::test_runtime_exit_reaps_mcp_child",
+        "agent/tests/test_command_jobs.py::test_cancellation_and_timeout_reap_owned_process[parent]"
+      ],
+      "scope": "Historical initial source before restoration quarantine; no V1 lifecycle source changed in this batch"
+    },
+    "existing_failure_recheck": {
+      "passed": 2,
+      "report": "temp/build/v2-scheduling-existing-failures.xml",
+      "root_cause": "not proven; isolated passes do not substitute for final full validation"
+    },
+    "development_discoveries": [
+      {
+        "issue": "Sequence-only review could skip new unknown intents on an already-reviewed occurrence",
+        "fix": "typed immutable per-intent review ledger, exact-state fingerprint and restore generation",
+        "regression": "test_late_unknown_delivery_gates_claim_and_execution_checkpoint"
+      },
+      {
+        "issue": "Restoring an older snapshot could replay work completed after snapshot capture",
+        "proof": "temp/build/v2-scheduling-restore-gap/proof.json",
+        "fix": "restore completion barrier, queued work quarantine, paused schedule cursor, per-intent review generation and preserved cost holds",
+        "regressions": [
+          "test_restored_snapshot_quarantines_execution_and_invalidates_old_reviews",
+          "test_restore_process_exit_never_exposes_automatic_execution"
+        ]
+      }
+    ],
+    "pre_archive_full": {
+      "passed": 2232,
+      "failed": 0,
+      "skipped": 0,
+      "duration_s": 645.86,
+      "report": "temp/build/v2-scheduling-full-final.xml",
+      "snapshot": "temp/build/v2-scheduling-validation-pre-archive-snapshot.json",
+      "scope": "Historical fixed source before archived-plan history/cancellation access",
+      "xml_duration_s": 645.709
+    },
+    "archive_ui": {
+      "passed": 8,
+      "report": "temp/build/v2-scheduling-archive-ui-final.xml"
+    },
+    "archive_api": {
+      "passed": 2,
+      "report": "temp/build/v2-scheduling-archive-api-final.xml"
+    },
+    "v2_cases_in_full": 217,
+    "new_cases_in_full": 48,
+    "archive_development": {
+      "report": "temp/build/v2-scheduling-archive-ui.xml",
+      "note": "Fieldset assertion did not verify the disabled user controls; final regression verifies individual fields and save button disabled while ledger/history remain enabled. Timeouts and required behavior retained."
+    }
+  },
+  "storage": {
+    "database": "omni.db",
+    "alembic_version": "v2_0007",
+    "declared_tables": 58,
+    "new_tables": [
+      "schedule_revisions",
+      "schedule_progress",
+      "schedule_reviews"
+    ],
+    "rebuilt_tables": [
+      "schedules",
+      "occurrences",
+      "leases",
+      "work_items"
+    ],
+    "definition": "immutable revision distinct from CAS cursor and due ledger",
+    "due_identity": "unique across all revisions on (schedule_id, scheduled_at); monotone sequence and high water",
+    "work": "transactional instance queue sequence, atomic pending to claimed, explicit start, session FIFO and fenced lease",
+    "legacy_v1_data_imported": false,
+    "v2_placeholder_upgrade": "disabled, unverified metadata preserved; existing pending work order preserved and started work not replayed"
+  },
+  "scheduling": {
+    "kinds": [
+      "numeric five-field cron",
+      "UTC anchored interval",
+      "aware one-time instant"
+    ],
+    "timezone_package": "tzdata",
+    "timezone_version": "2026.6",
+    "os_timezone_database_used": false,
+    "ambiguous_minute": "first fold only",
+    "missing_minute": "skip",
+    "dom_dow": "OR when both restricted",
+    "misfire": "latest not-yet-registered due, record coalesced_from",
+    "inflight_revision_overwritten": false,
+    "maximum_outstanding_per_schedule": 1,
+    "disable_archive": "cancel not-yet-enqueued intents; already admitted runs require explicit cancellation",
+    "unknown_review": "per occurrence, typed intent identity, state, fingerprint and restore generation; preserves unknown states and held costs",
+    "unknown_gate": [
+      "materialization",
+      "enqueue/claim",
+      "model/action/output checkpoint"
+    ],
+    "network_or_device_approval_bypassed": false
+  },
+  "recovery": {
+    "claim_before_start": "requeue only without external intent",
+    "started_run": "interrupted, no automatic replay",
+    "expired_lease": "fences late success; no takeover while previous run is nonterminal",
+    "restore": "quarantine old queued/live work; pending/sending deliveries become unknown; pause all schedules; invalidate old review generation",
+    "fees": "unknown reservations remain held; snapshot cannot reconstruct usage after capture",
+    "incomplete_restore": "startup and diagnostic blocker until completion marker validated and cleared",
+    "interruption_phases": [
+      "before/after admission commit",
+      "after claim",
+      "after start/reservation",
+      "v7 DDL reconstruction",
+      "restore transaction",
+      "before restore report",
+      "after report before completion-marker removal"
+    ]
+  },
+  "limits": {
+    "active_runs": 4,
+    "queued_runs": 64,
+    "schedule_tick_candidates": 16,
+    "enabled_schedules": 256,
+    "total_schedules": 4096,
+    "interval_min_s": 60,
+    "interval_max_s": 31536000,
+    "lease_s": 60,
+    "api_page_max": 200,
+    "web_history_max": 500,
+    "web_drafts_max": 64,
+    "scheduler_close_s": 5
+  },
+  "interfaces": {
+    "namespace": "/api/v1/agents/{agent}/schedules",
+    "operations": [
+      "page",
+      "save immutable revision",
+      "read current",
+      "soft archive",
+      "bounded definition history",
+      "bounded due ledger",
+      "cancel occurrence",
+      "explicit fingerprint-bound continuation review",
+      "include archived definitions as read-only history with cancellation access"
+    ],
+    "workbench_cache": "20261103v10",
+    "shared_dialog": "20261103v7",
+    "automatic_sending_to_channels": false
+  },
+  "static": {
+    "ruff_production": "passed",
+    "ruff_v2_tests": "passed",
+    "format_python_files": 508,
+    "pyright": {
+      "mode": "default, V2 four layers only",
+      "files": 73,
+      "Windows": 0,
+      "Linux": 0,
+      "Darwin": 0,
+      "real_platform_runtime_claim": false
+    },
+    "prettier": "3.6.2 passed",
+    "es_modules": 58,
+    "ui_contracts": "passed",
+    "duplicate_scan": "passed",
+    "project_index": "passed --check",
+    "task_summary": "passed --check",
+    "packaging": "temp/build/v2-scheduling-packaging-verified/evidence.json"
+  },
+  "packaging": {
+    "report": "temp/build/v2-scheduling-packaging-verified/evidence.json",
+    "assets": 92,
+    "sha256": "258d0eca0ddb2185f458bf5125572a731593fe6a0b83fd90998ad6263f0650a9",
+    "chains": [
+      "direct wheel",
+      "sdist to wheel",
+      "isolated import"
+    ],
+    "v2": [
+      "packaged assets",
+      "isolated fresh schema",
+      "no V1 imports",
+      "clean shutdown"
+    ],
+    "v2_kernel_sha256": "d59a1ed305ec30b88394a45b2756fb565c4d78380bac9180999b842578287807"
+  },
+  "visual_review": [
+    "temp/build/v2-scheduling-ui/schedules-dark-390.png",
+    "temp/build/v2-scheduling-ui/schedules-light-1440.png"
+  ],
+  "source_recovery": {
+    "manifest": "temp/private/v2-scheduling-source-20261103T234105+0800/manifest.json",
+    "files": 815,
+    "standalone_source": true,
+    "runtime_data_included": false
+  },
+  "remaining": [
+    "R4 persistent delivery, unknown reconciliation, review/cleanup workers and shared whole-instance shutdown budget",
+    "R3 retention, temporary debug, bounded metrics and diagnostic bundle",
+    "R6 real local vector adapter/ANN, skills, plugins and channels",
+    "native Windows/macOS/Linux adapters and actual macOS/Linux runtime",
+    "three-platform fixed-build load and 72-hour real acceptance",
+    "whole V2 parity, entrypoint cutover and release"
+  ]
+}

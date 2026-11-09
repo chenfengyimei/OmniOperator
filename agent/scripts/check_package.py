@@ -12,6 +12,8 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+from omni.adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES
+
 ROOT = Path(__file__).resolve().parents[2]
 SUFFIXES = {".html", ".js", ".css", ".svg", ".woff", ".woff2", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp"}
 
@@ -36,7 +38,8 @@ def main() -> int:
     kernel = {
         "omni/" + p.relative_to(ROOT / "agent/src/omni").as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
         for layer in ("domain", "application", "adapters", "composition")
-        for p in (ROOT / "agent/src/omni" / layer).rglob("*.py")
+        for p in (ROOT / "agent/src/omni" / layer).rglob("*")
+        if p.is_file() and p.suffix in CODE_SUFFIXES and not CODE_CACHE_DIRS.intersection(p.parts)
     }
     for wheel in [*folder.glob("sdist/*.whl"), *folder.glob("direct/*.whl")]:
         with zipfile.ZipFile(wheel) as archive:
@@ -63,7 +66,7 @@ from omni.composition.http import web_assets
 async def check():
     expected = Path(sys.argv[1]) / 'omni/web_assets'
     assert web_assets() == expected
-    assert (expected / 'v2/index.html').is_file()
+    assert (expected / 'ui/v2/index.html').is_file()
     instance = await open_instance(Path(sys.argv[1]) / 'isolated-v2-home')
     try:
         assert instance.health()['ready']

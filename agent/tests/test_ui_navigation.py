@@ -96,7 +96,10 @@ def test_unknown_deep_link_is_visible_and_does_not_select_arbitrary_dom(ui):
     page, _, _, errors = ui
     page.goto("http://127.0.0.1/?settings=1&section=not-a-section")
     page.locator("#hub").wait_for(state="visible")
-    page.get_by_text("找不到这个设置分区，请从侧栏选择", exact=True).wait_for()
+    page.locator("#hub-msg").get_by_text("找不到这个设置分区，请从侧栏选择", exact=True).wait_for()
+    page.locator('.hub-nav a[data-go="sec-persona"]').click()
+    page.locator("#sec-persona").wait_for(state="visible")
+    assert "找不到这个设置分区" not in page.locator("#hub-msg").inner_text()
     assert not errors
 
 

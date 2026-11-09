@@ -14,7 +14,7 @@ from omni.domain.contracts import InvocationContext, Outcome
 
 def test_real_worker_file_scope_and_atomic_overwrite(tmp_path):
     async def scenario():
-        client = WorkerClient("builtin")
+        client = WorkerClient("builtin", tool_writes={"system_info": False, "files_write": True, "files_read": False})
         context = InvocationContext(str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4()), 1, str(tmp_path))
 
         async def call(name, args):

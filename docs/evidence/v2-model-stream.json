@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "batch": "D6.model_streaming",
+  "date": "2026-11-09T01:55:09.227059+08:00",
+  "whole_v2_complete": false,
+  "d6_complete": false,
+  "selected_streaming_development_complete": true,
+  "multimodal_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "20c393f8f0d5c98fdb2b4048a055a79a60151a3771e1eb6c600a476f5227587e",
+    "fixed_source_files": 1091,
+    "snapshot": "temp/build/v2-model-stream-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 108,
+    "migration_head": "v2_0031",
+    "new_database_tables": 0,
+    "assets_version": "20261109v42",
+    "guide": "docs/V2_MODEL_STREAMING.md",
+    "default_entrypoint_changed": false,
+    "actual_paid_model_or_device_actions": false,
+    "v1_runtime_or_data_imported": false,
+    "scope": [
+      "Explicit narrow streaming/prepared ports and one-shot invocation; summaries retain the same nonstreaming settlement path",
+      "Bounded provider-before-SDK and normalized response assembly, text, tools, JSON, UTF-8, timeouts and actual async transport ownership",
+      "Provider finish proof and actual usage; SDK-synthesized EOF/usage cannot cause false success or free an unknown reservation",
+      "Partial tool arguments never create an action; complete writes still require shared approvals; length/filter/refusal not success",
+      "Credential revision/epoch capture before prepare, dispatch and each preview; mid-stream rotation cannot be treated as unsent",
+      "Cancelled reads wait for actual close; close failure retains owner/capacity, queried health and instance storage/lock protection",
+      "Agent/run-guarded no-store preview snapshots, maximum four 32-KiB tails, no persistent chat/event/log copy; final output atomic",
+      "Workbench safe text rendering, stale generation clearing, page/Agent/session isolation and saved-message calibration"
+    ],
+    "pending": [
+      "继续D6图像附件与实际附图预算：统一上传/截图对象、message_parts及接收入队原子提交、模型图像能力/计量、实际上下文来源、累计预算与压缩引用分离、删除/撤权/取消与费用闭环。随后档位/真实向量、技能/视频/ASR、MCP/OAuth、插件/市场及D7产品切换；真实供应商、账号/设备、原生与三平台72小时仍待验收。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 82,
+    "all_latest_cases_passed": true,
+    "method": "One final offline scoped suite after raw-frame hardening, shared configuration/context/execution/HTTP and QQ/Android/desktop callers; not full repository",
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-model-stream-final.xml",
+        "sha256": "c6954c91500e3e8314adcb44b4ded761634e124c45c3fe6eb0428b7a64d4902b",
+        "tests": 82,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 174.653
+      }
+    ],
+    "browser_ui_cases": 16,
+    "viewports": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "current_packaging_rerun": false,
+    "gates": {
+      "path": "temp/build/v2-model-stream-gates.json",
+      "sha256": "7bcf1ca53faaf33eeff17675d9f7e9f8878c43c59f7c2aadea647c71df76e742",
+      "passed": 4
+    },
+    "pyright": {
+      "mode": "host",
+      "checking": "default",
+      "summary": {
+        "filesAnalyzed": 12,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 3.55
+      },
+      "sources": [
+        "agent/src/omni/domain/model_stream.py",
+        "agent/src/omni/domain/contracts.py",
+        "agent/src/omni/application/model_calls.py",
+        "agent/src/omni/application/model_output.py",
+        "agent/src/omni/application/engine.py",
+        "agent/src/omni/adapters/model_stream.py",
+        "agent/src/omni/adapters/models.py",
+        "agent/src/omni/adapters/http.py",
+        "agent/src/omni/adapters/persistence/configuration_repository.py",
+        "agent/src/omni/application/ports.py",
+        "agent/src/omni/composition/instance.py",
+        "agent/src/omni/composition/http.py"
+      ]
+    },
+    "limitations": [
+      "Actual locked LiteLLM parser talks only to a local fake HTTP/SSE server with fixture credentials; no paid or real provider calls",
+      "Injected async transports exercise business/ownership failures; browser contexts and databases isolated",
+      "First 81-case scope passed; provider raw-frame limits were added and current 82-case scope rerun, without changing production timeouts or assertions",
+      "No full suite, main-package rebuild, strict-all, macOS/Linux runtime, actual model/device/account, load or 72h acceptance",
+      "Only text/tool streaming scope complete; no claim of all provider native protocols, attachment, image budget, model routing or full D6 completion"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-model-stream-source-20261109T015509+0800/manifest.json",
+    "source_files": 1343,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "id": "D6.image_attachments",
+    "status": "待开始",
+    "design": "docs/V2_MODEL_STREAMING.md",
+    "scope": "继续D6图像附件与实际附图预算：统一上传/截图对象、message_parts及接收入队原子提交、模型图像能力/计量、实际上下文来源、累计预算与压缩引用分离、删除/撤权/取消与费用闭环。随后档位/真实向量、技能/视频/ASR、MCP/OAuth、插件/市场及D7产品切换；真实供应商、账号/设备、原生与三平台72小时仍待验收。"
+  }
+}

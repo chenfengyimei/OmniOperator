@@ -1,0 +1,350 @@
+{
+  "schema": 1,
+  "batch": "R5.desktop.foundation",
+  "date": "2026-11-06",
+  "status": "first_read_only_development_batch_targeted_passed_full_and_real_platform_acceptance_required",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "baseline_recovery": "temp/private/v2-services-source-20261105T231157+0800/manifest.json",
+  "source": {
+    "code_version": "f4a821f0fc878c936095b69a3d5d6304098eeba3be86a79268621762046ab166",
+    "fixed_source_files": 838,
+    "snapshot": "temp/build/v2-desktop-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 93,
+    "migration_head": "v2_0021",
+    "assets_version": "20261105v29",
+    "scope": [
+      "Pure four-capability and native target identity contracts; strict version/id/op/result/consent and opaque owner views",
+      "Bounded one-shot helper: 4 actual queued/2 resident, combined64KiB IPC+stderr, 5s total and retained real cleanup ownership",
+      "Recheck view/expiry after audit, capacity and native spawn before dispatch; revoked views cannot begin new observations",
+      "Same-Agent serialization, 8 diagnostic views/4 snapshots/50 targets/60s TTL; conditional old-view cleanup cannot erase a new view",
+      "Windows same-SID/session/input-desktop metadata only, repeated process creation/executable/window verification and native handle reclamation",
+      "No-title/content/capture/input, no foreground control/model tool; same-process HWND reuse explicitly remains unprovable",
+      "macOS no-prompt current-Python AX/CG/login diagnostics; Linux no-display/unverified environment only; missing adapters unavailable",
+      "Owner workbench explicit probe/list/verify, stale/generation/Agent isolation, no hidden polling, cache labelled last check",
+      "Metadata audit and request/operation/trace correlation; desktop fixed metric and shared temporary-debug operation registry"
+    ],
+    "native_services_modified": false,
+    "real_accounts_or_paid_models_used": false,
+    "real_runtime_data_modified": false
+  },
+  "validation": {
+    "targeted_unique_passed": 98,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-desktop-contracts.xml",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.446,
+        "sha256": "6109cddebf6bcc8686680afd286ccb331a215a5487581daa767f219922074800"
+      },
+      {
+        "path": "temp/build/v2-desktop-contracts-final.xml",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 2.847,
+        "sha256": "578a9185ad5674682a15e6a24fed23a8d22d4f3c2e866ad6306a3915055837c1"
+      },
+      {
+        "path": "temp/build/v2-desktop-view-contracts.xml",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.466,
+        "sha256": "d9cdd528db97b94e987d583f2eeb965cf9a1fddf6511ed372a8c6dc5a8542d16"
+      },
+      {
+        "path": "temp/build/v2-desktop-native.xml",
+        "tests": 7,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.519,
+        "sha256": "3710ede7173203881a9a79e5117e7f7abf5290f69ed6ce46fe46e6ced53b66c1"
+      },
+      {
+        "path": "temp/build/v2-desktop-native-recheck.xml",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.883,
+        "sha256": "9d722ac7b9691ebb3af935b6847fcc2e329a8687f5a614923d89133ea58f6a50"
+      },
+      {
+        "path": "temp/build/v2-desktop-native-availability.xml",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.539,
+        "sha256": "4d455b863f90fa0fe9a2dbcbfef8a1d23dc3f00d262f792d4c9c51043e7cce9a"
+      },
+      {
+        "path": "temp/build/v2-desktop-worker-error.xml",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.493,
+        "sha256": "d3e28b09f5caad6d2afbd136dc1ff11b1f44ce0a18a095089d4cada58ec65b61"
+      },
+      {
+        "path": "temp/build/v2-desktop-backend.xml",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 5.667,
+        "sha256": "5525da90448cff5663f93c365c36d9d96aa6fc5858df463d6c66975375285382"
+      },
+      {
+        "path": "temp/build/v2-desktop-dispatch-gate.xml",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.542,
+        "sha256": "5afb59115ade8f6f0631707bf9e9e844ef6f96217906bffe543c86a9379577d8"
+      },
+      {
+        "path": "temp/build/v2-desktop-application-http.xml",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 17.477,
+        "sha256": "11dc917f4473fd9d66b91a3c3b9d8204d13d1129b4989d2761404c03e468a716"
+      },
+      {
+        "path": "temp/build/v2-desktop-ui-initial.xml",
+        "tests": 3,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 16.134,
+        "sha256": "af59b60f63109a113f07fa6d18fb8729cb4a5c818c500d16edbea2a780d064b4"
+      },
+      {
+        "path": "temp/build/v2-desktop-ui.xml",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 9.45,
+        "sha256": "2da18adb90831936a99afba18c559270cd2823ce3ac4ee06410055f6fb4d17e6"
+      },
+      {
+        "path": "temp/build/v2-desktop-callers.xml",
+        "tests": 32,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 30.645,
+        "sha256": "b7d299c50a5313eefcd78171ca37e0e7f7df839e36067e6673b8b11833d6ed00"
+      },
+      {
+        "path": "temp/build/v2-desktop-callers-recheck.xml",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 6.992,
+        "sha256": "538b3dd79494e29eac1b7da3142eca7ab59950843528ed1ffcd1c6fc648ffde4"
+      }
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "strict_all_production_typing": false,
+    "pyright_targets": {
+      "Windows": {
+        "path": "temp/build/v2-desktop-pyright-windows-recheck.json",
+        "filesAnalyzed": 166,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 19.713,
+        "sha256": "1794089481e0d569dfda1a50f6848349d3fc9d531a2c166f771ddb11e2244ef6"
+      },
+      "Linux": {
+        "path": "temp/build/v2-desktop-pyright-linux-final.json",
+        "filesAnalyzed": 166,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 16.702,
+        "sha256": "a7b7333c0e2771545273d3d017e81ef11c532990d3513c450b2c8a4f1177c578"
+      },
+      "Darwin": {
+        "path": "temp/build/v2-desktop-pyright-darwin-recheck.json",
+        "filesAnalyzed": 166,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 19.071,
+        "sha256": "8ba6cc17f95043b13970cbeb1fb6a0c7d6195282a7a135e0954e7608a3b40038"
+      }
+    },
+    "static": {
+      "ruff": {
+        "command": [
+          "uv",
+          "run",
+          "--no-sync",
+          "ruff",
+          "check",
+          "agent/src/omni",
+          "agent/tests/test_v2_desktop.py",
+          "agent/tests/test_v2_desktop_backend.py",
+          "agent/tests/test_v2_desktop_contracts.py",
+          "agent/tests/test_v2_desktop_http.py",
+          "agent/tests/test_v2_desktop_native.py",
+          "agent/tests/test_v2_desktop_ui.py",
+          "agent/tests/v2_desktop_helpers.py",
+          "agent/tests/test_v2_operations_http.py"
+        ],
+        "exit_code": 0,
+        "stdout": "All checks passed!\n",
+        "stderr": ""
+      },
+      "format": {
+        "command": [
+          "uv",
+          "run",
+          "--no-sync",
+          "ruff",
+          "format",
+          "--check",
+          "agent/src/omni",
+          "agent/tests",
+          "agent/scripts",
+          "agent/hatch_build.py"
+        ],
+        "exit_code": 0,
+        "stdout": "698 files already formatted\n",
+        "stderr": ""
+      },
+      "frontend_format": {
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "."
+        ],
+        "exit_code": 0,
+        "stdout": "Checking formatting...\nAll matched files use Prettier code style!\n",
+        "stderr": ""
+      },
+      "frontend_syntax": {
+        "command": [
+          "uv",
+          "run",
+          "--no-sync",
+          "python",
+          "scripts/check_frontend.py"
+        ],
+        "exit_code": 0,
+        "stdout": "ES modules: 67 syntax checks passed\n",
+        "stderr": ""
+      },
+      "ui_contract": {
+        "command": [
+          "uv",
+          "run",
+          "--no-sync",
+          "python",
+          "scripts/check_ui_contract.py"
+        ],
+        "exit_code": 0,
+        "stdout": "�ļ���D:\\xm\\OmniOperator\\web\\index.html\n��̬ id��252��JS ���� id��210��app ģ�飺37 ����data-action��104 ��\n[PASS] ȱʧ id����\n[PASS] �ظ� id����\n[PASS] δ���庯������\n[PASS] δע�� data-action����\n[PASS] CSS ������ƽ��ȫ��ͨ��\n",
+        "stderr": ""
+      },
+      "index": {
+        "command": [
+          "uv",
+          "run",
+          "--no-sync",
+          "python",
+          "scripts/project_index.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "stdout": "modules=65 files=525 routes=340 declared_tools=94\nstale=\n",
+        "stderr": ""
+      },
+      "duplicates": {
+        "command": [
+          "uv",
+          "run",
+          "--no-sync",
+          "python",
+          "scripts/scan_duplicates.py"
+        ],
+        "exit_code": 0,
+        "stdout": "��ͬ����Ĭ���ǡ�\n",
+        "stderr": ""
+      }
+    },
+    "packaging": {
+      "assets": 101,
+      "sha256": "30e4a1d1a6594aa6c4f3dce79682ffd5376469dfb14842b1a326c551e03a4632",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "e38753fbd08548a94dcc485bb4b40b0f094bf5c0b468c912b73a28d99bcaf466"
+    },
+    "packaging_runs_this_checkpoint": 1,
+    "native_sample": "One real Windows isolated helper-window case: empty title/off-screen/nonactivating, direct handle only; matching, wrong process/create/exe and destruction while process alive. No enumeration of real user windows.",
+    "browser": {
+      "unique_cases": 3,
+      "backend": "injected, real HTTP",
+      "viewports": [
+        390,
+        760,
+        1440
+      ],
+      "full_viewport_theme_matrix": false,
+      "contexts_and_databases_isolated": true,
+      "hidden_virtual_time_ms": 120000
+    },
+    "macos_linux_runtime": "Not executed; target type checks/fake platform states are not real native support",
+    "initial_failures_preserved": [
+      "Windows isolated fixture initially confused venv redirector PID with its actual Python child; fixed lineage/create/exe proof without relaxing native assertions",
+      "UI fixture initially passed eval expression rejected by CSP; changed to a function predicate, retained timeout and assertions",
+      "A local commit-memory spike caused three caller failures and interrupted Darwin/Windows type checks; failed tests rerun alone and type targets completed serially",
+      "Frontend version edits exposed two formatting differences; normalized the affected versioned modules"
+    ],
+    "historical_full_only": "docs/evidence/v2-history.json; not reused as current source full pass"
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-desktop-source-20261106T001547+0800/manifest.json",
+    "source_files": 1039,
+    "runtime_data_included": false,
+    "credentials_included": false,
+    "validation_status": "development_only_full_and_platform_recheck_required"
+  },
+  "pending": [
+    "R5.desktop.windows_observation: bounded UIA semantic observation, fresh object identity and permission changes, no reuse of metadata snapshots as write authorization",
+    "Fixed signed Swift helper/AX/ScreenCaptureKit, Linux logind/peer ownership/AT-SPI/X11/Portal sessions and all real native acceptance",
+    "Actual five-target service installation/removal and startup/upgrade/rollback, old terminal reconciliation, business/vector/provider/extensions integration",
+    "Default-entry parity, fixed-source full/UI/load/three-platform72h and candidate/release acceptance"
+  ]
+}

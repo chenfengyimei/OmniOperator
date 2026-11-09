@@ -24,16 +24,25 @@ async def fixture_db(tmp_path, clock=None):
 
 
 def test_output_failure_rolls_back_message_and_terminal_state(tmp_path):
+    from v2_delivery_helpers import descriptor
+
     async def scenario():
         db, agent, turn = await fixture_db(tmp_path)
         try:
+            route = await descriptor(db, agent)
             await db.write(lambda u: u.transition(agent, turn["run_id"], "running"))
+            await db.write(lambda u: u.snapshot(agent, turn["run_id"], [], []))
+            invalid_route = {key: value for key, value in route.items() if key != "target"}
             with pytest.raises(KeyError):
-                await db.write(lambda u: u.finish(agent, turn["run_id"], "must rollback", {"channel": "test"}))
+                await db.write(lambda u: u.finish(agent, turn["run_id"], "must rollback", invalid_route))
             assert (await db.read(lambda u: u.get_run(agent, turn["run_id"])))["state"] == "running"
             assert len(await db.read(lambda u: u.messages(agent, turn["session_id"]))) == 1
-            await db.write(lambda u: u.finish(agent, turn["run_id"], "final", {"channel": "test", "target": "test"}))
-            assert (await db.read(lambda u: u.query("outbox", agent)))[0]["state"] == "pending"
+            assert await db.read(lambda u: u.delivery_page(agent)) == []
+            await db.write(lambda u: u.finish(agent, turn["run_id"], "final", route))
+            saved = await db.read(lambda u: u.delivery_page(agent))
+            assert len(saved) == 1 and saved[0]["state"] == "awaiting_approval"
+            assert saved[0]["text"] == "final"
+            assert (await db.read(lambda u: u.get_run(agent, turn["run_id"])))["state"] == "succeeded"
         finally:
             await db.close()
 
@@ -121,7 +130,7 @@ def test_approved_action_rechecks_latest_policy(tmp_path):
             approval = (await db.read(lambda u: u.pending_approvals(agent)))[0]
             await db.write(lambda u: u.resolve_approval(agent, approval["id"], True, 1))
             settings = await db.read(lambda u: u.settings(agent))
-            await db.write(lambda u: u.settings_put(agent, settings["value"], 1))
+            await db.write(lambda u: u.settings_put(agent, {**settings["value"], "disabled_tools": ["write"]}, 1))
             with pytest.raises(BusinessError, match="revoked"):
                 await db.write(lambda u: u.authorize_action(agent, action["id"]))
         finally:

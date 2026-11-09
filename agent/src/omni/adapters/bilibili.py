@@ -1,0 +1,540 @@
+"""Bounded Bilibili reads and a single approved UI publication; credentials never enter diagnostics."""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import re
+import sys
+import time
+from collections.abc import Awaitable, Callable
+from pathlib import Path
+from typing import cast
+
+import httpx
+
+from ..application.ports import AsyncSecretPort
+from ..domain.bilibili import ADAPTER, API, connection, uid
+from ..domain.contracts import JSON, BusinessError, Effect, InvocationContext, Outcome
+from ..domain.delivery import DeliveryResult, OutboundMessage, text_fingerprint
+from .diagnostics import Redactor
+from .workers.client import WorkerClient
+
+
+class BilibiliGateway:
+    identity = ADAPTER
+
+    def __init__(
+        self,
+        credentials: AsyncSecretPort,
+        redactor: Redactor,
+        authorize: Callable[[OutboundMessage], Awaitable[dict]],
+        *,
+        client_factory: Callable | None = None,
+        worker_factory: Callable | None = None,
+    ) -> None:
+        self._credentials, self._redactor, self._authorize = credentials, redactor, authorize
+        self._client_factory, self._worker_factory = client_factory, worker_factory
+        self._workers: set[WorkerClient] = set()
+        self._reads: set[asyncio.Task] = set()
+        self._slots = asyncio.Semaphore(4)
+        self._closing = False
+
+    def account_key(self, configuration: dict) -> str:
+        return connection(configuration)["account"]
+
+    async def _cookies(self, value: dict) -> dict[str, str]:
+        raw = await self._credentials.get(value["credential_ref"])
+        try:
+            if not isinstance(raw, str) or len(raw.encode()) > 16384:
+                raise ValueError("Missing bounded cookie object")
+            cookies = json.loads(raw)
+            if not isinstance(cookies, dict) or not 1 <= len(cookies) <= 32 or not cookies.get("SESSDATA"):
+                raise ValueError("Missing session cookie")
+            if any(
+                not re.fullmatch(r"[A-Za-z0-9_]{1,64}", k)
+                or not isinstance(v, str)
+                or not 1 <= len(v) <= 4096
+                or any(ord(c) < 33 or ord(c) > 126 or c in ";," for c in v)
+                for k, v in cookies.items()
+            ):
+                raise ValueError("Invalid cookie")
+        except (ValueError, TypeError, UnicodeError) as exc:
+            raise BusinessError(
+                "bilibili_credential_invalid",
+                "Credential must be a bounded JSON cookie object containing SESSDATA",
+                status=422,
+            ) from exc
+        for secret in cookies.values():
+            self._redactor.register(secret)
+        if "DedeUserID" in cookies and uid(cookies["DedeUserID"]) != value["account"]:
+            raise BusinessError("bilibili_account_mismatch", "Cookie identity differs from the configured account")
+        return cookies
+
+    def _client(self, cookies: dict):
+        factory = self._client_factory or httpx.AsyncClient
+        return factory(
+            base_url=API,
+            cookies=cookies,
+            follow_redirects=False,
+            trust_env=False,
+            timeout=8,
+            headers={"User-Agent": "Mozilla/5.0 OmniOperator/2", "Referer": "https://www.bilibili.com/"},
+            limits=httpx.Limits(max_connections=2, max_keepalive_connections=0),
+        )
+
+    @staticmethod
+    async def _get(client, path: str, params: dict | None = None) -> dict:
+        async with client.stream("GET", path, params=params or {}) as response:
+            if response.status_code != 200 or "json" not in response.headers.get("content-type", "").lower():
+                raise BusinessError(
+                    "bilibili_read_unavailable", "Bilibili read was denied, redirected or unavailable", status=503
+                )
+            body = bytearray()
+            async for part in response.aiter_bytes():
+                body.extend(part)
+                if len(body) > 524288:
+                    raise BusinessError(
+                        "bilibili_response_too_large", "Bilibili response exceeded its bounded read limit", status=502
+                    )
+            try:
+                value = json.loads(body)
+            except (ValueError, RecursionError) as exc:
+                raise BusinessError(
+                    "bilibili_response_invalid", "Bilibili response was not valid JSON", status=502
+                ) from exc
+            if (
+                not isinstance(value, dict)
+                or type(value.get("code")) is not int
+                or value["code"] != 0
+                or not isinstance(value.get("data"), dict)
+            ):
+                raise BusinessError(
+                    "bilibili_read_rejected", "Bilibili denied the request or changed its response format", status=502
+                )
+            return value["data"]
+
+    async def _login_nav(self, client, account: str) -> dict:
+        nav = await self._get(client, "/x/web-interface/nav")
+        if nav.get("isLogin") is not True or uid(nav.get("mid")) != account:
+            raise BusinessError("bilibili_account_mismatch", "Bilibili login identity does not match configuration")
+        return nav
+
+    async def _login(self, client, account: str) -> dict:
+        nav = await self._login_nav(client, account)
+        return {"uid": account, "name": str(nav.get("uname", ""))[:100], "logged_in": True}
+
+    async def _subtitle(self, client, nav: dict, video: dict) -> dict:
+        """Official subtitle text via the WBI-signed player endpoint; empty means none exists."""
+        from ..domain.bilibili import sign_wbi, subtitle_url, wbi_keys
+
+        img, sub = wbi_keys(nav)
+        player = await self._get(
+            client,
+            "/x/player/wbi/v2",
+            sign_wbi({"bvid": video["bvid"], "cid": video["cid"]}, img, sub, int(time.time())),
+        )
+        subtitles = (player.get("subtitle") or {}).get("subtitles") or []
+        if not isinstance(subtitles, list) or len(subtitles) > 32:
+            raise BusinessError("bilibili_response_invalid", "Subtitle list changed format", status=502)
+        picked = next(
+            (s for s in subtitles if str(s.get("lan", "")).startswith("zh")), subtitles[0] if subtitles else None
+        )
+        if not isinstance(picked, dict) or not picked.get("subtitle_url"):
+            return {"language": "", "text": ""}
+        url = subtitle_url(picked.get("subtitle_url"))
+        response = await client.get(url)
+        if response.status_code != 200 or "json" not in response.headers.get("content-type", "").lower():
+            raise BusinessError("bilibili_read_unavailable", "Subtitle download was denied or unavailable", status=503)
+        if len(response.content) > 2 * 1024 * 1024:
+            raise BusinessError("bilibili_response_too_large", "Subtitle exceeded its bounded read limit", status=502)
+        try:
+            body = json.loads(response.content)
+        except (ValueError, RecursionError) as exc:
+            raise BusinessError(
+                "bilibili_response_invalid", "Subtitle response was not valid JSON", status=502
+            ) from exc
+        lines = body.get("body") if isinstance(body, dict) else None
+        if not isinstance(lines, list) or len(lines) > 20000:
+            raise BusinessError("bilibili_response_invalid", "Subtitle body changed format", status=502)
+        text = "\n".join(str(line.get("content", "")) for line in lines if isinstance(line, dict)).strip()
+        if not text or len(text) > 60000:
+            raise BusinessError("bilibili_response_invalid", "Subtitle body is empty or exceeds its bound", status=502)
+        return {"language": str(picked.get("lan", ""))[:16], "text": text[:60000]}
+
+    async def _streams(self, client, video: dict) -> dict:
+        """Lowest-bitrate audio and decodable video direct URLs with bounded sizes."""
+        from ..domain.bilibili import stream_url
+
+        bvid, cid = video["bvid"], video["cid"]
+        audio: dict = {}
+        play = await self._get(
+            client, "/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": 64, "fnval": 16, "fnver": 0, "fourk": 0}
+        )
+        tracks = (play.get("dash") or {}).get("audio") or []
+        if isinstance(tracks, list) and tracks:
+            best = min(
+                (t for t in tracks if isinstance(t, dict)), key=lambda t: int(t.get("bandwidth") or 10**9), default=None
+            )
+            if best is not None:
+                url = str(best.get("baseUrl") or best.get("base_url") or "")
+                if not url:
+                    backups = best.get("backupUrl") or best.get("backup_url") or []
+                    url = str(backups[0]) if isinstance(backups, list) and backups else ""
+                if url:
+                    audio = {
+                        "url": stream_url(url),
+                        "bytes": int(best.get("size") or 0),
+                    }
+        if not audio:
+            merged = play.get("durl") or []
+            if isinstance(merged, list) and merged and isinstance(merged[0], dict):
+                url = str(merged[0].get("url") or "")
+                if url:
+                    audio = {"url": stream_url(url), "bytes": int(merged[0].get("size") or 0)}
+        video_stream: dict = {}
+        merged_play = await self._get(
+            client, "/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": 32, "fnval": 0, "fnver": 0, "fourk": 0}
+        )
+        merged = merged_play.get("durl") or []
+        if isinstance(merged, list) and merged and isinstance(merged[0], dict):
+            url = str(merged[0].get("url") or "")
+            if url:
+                video_stream = {"url": stream_url(url), "bytes": int(merged[0].get("size") or 0)}
+        if not video_stream:
+            tracks = (play.get("dash") or {}).get("video") or []
+            if isinstance(tracks, list) and tracks:
+                best = min(
+                    (t for t in tracks if isinstance(t, dict)),
+                    key=lambda t: int(t.get("bandwidth") or 10**9),
+                    default=None,
+                )
+                if best is not None:
+                    url = str(best.get("baseUrl") or best.get("base_url") or "")
+                    if not url:
+                        backups = best.get("backupUrl") or best.get("backup_url") or []
+                        url = str(backups[0]) if isinstance(backups, list) and backups else ""
+                    if url:
+                        video_stream = {"url": stream_url(url), "bytes": int(best.get("size") or 0)}
+        if not audio and not video_stream:
+            raise BusinessError(
+                "bilibili_read_rejected", "This video exposes no decodable audio or video stream", status=502
+            )
+        return {"audio": audio or None, "video": video_stream or None}
+
+    async def read(self, configuration: dict, operation: str, target: str, limit: int = 10) -> dict:
+        if self._closing or len(self._reads) >= 8:
+            raise BusinessError("bilibili_busy", "Bilibili reader is draining or busy", status=503)
+        owner = asyncio.current_task()
+        assert owner is not None
+        self._reads.add(owner)
+        try:
+            value = connection(configuration)
+            if (
+                operation not in {"account", "video", "comments", "replies", "subtitle", "streams"}
+                or type(limit) is not int
+                or not 1 <= limit <= 20
+            ):
+                raise BusinessError(
+                    "bilibili_read_invalid",
+                    "Choose account/video/comments/replies/subtitle/streams and a limit of 1–20",
+                    status=422,
+                )
+            root = ""
+            if operation == "replies":
+                target, separator, root = target.partition(":")
+                if not separator:
+                    raise BusinessError("bilibili_read_invalid", "Thread reads require BV:root-comment-id", status=422)
+                root = uid(root)
+            if operation != "account" and not re.fullmatch(r"BV[0-9A-Za-z]{10}", target):
+                raise BusinessError("bilibili_read_invalid", "Read targets require an exact BV identifier", status=422)
+            async with self._slots, asyncio.timeout(20):
+                cookies = await self._cookies(value)
+                async with self._client(cookies) as client:
+                    nav = await self._login_nav(client, value["account"])
+                    if operation == "account":
+                        return {
+                            "uid": value["account"],
+                            "name": str(nav.get("uname", ""))[:100],
+                            "logged_in": True,
+                        }
+                    video = await self._get(client, "/x/web-interface/view", {"bvid": target})
+                    if video.get("bvid") != target:
+                        raise BusinessError("bilibili_source_changed", "Video identity changed")
+                    if operation == "video":
+                        return {
+                            "bvid": target,
+                            "aid": uid(video.get("aid")),
+                            "cid": uid(video.get("cid")),
+                            "title": str(video.get("title", ""))[:300],
+                            "description": str(video.get("desc", ""))[:8000],
+                            "owner": str(video.get("owner", {}).get("name", ""))[:100],
+                            "duration_s": video.get("duration") if type(video.get("duration")) is int else None,
+                        }
+                    if operation == "subtitle":
+                        return await self._subtitle(client, nav, {"bvid": target, "cid": uid(video.get("cid"))})
+                    if operation == "streams":
+                        return await self._streams(client, {"bvid": target, "cid": uid(video.get("cid"))})
+                    comments = await self._get(
+                        client,
+                        "/x/v2/reply/reply" if root else "/x/v2/reply",
+                        {
+                            "type": 1,
+                            "oid": uid(video.get("aid")),
+                            "sort": 0,
+                            "pn": 1,
+                            "ps": limit,
+                            **({"root": root} if root else {}),
+                        },
+                    )
+                    if "replies" not in comments:
+                        raise BusinessError("bilibili_response_invalid", "Comment list field is missing", status=502)
+                    rows = comments.get("replies")
+                    if rows is None:
+                        rows = []
+                    if not isinstance(rows, list) or len(rows) > 100:
+                        raise BusinessError("bilibili_response_invalid", "Comment list changed format", status=502)
+                    if any(
+                        not isinstance(r, dict)
+                        or not isinstance(r.get("member"), dict)
+                        or not isinstance(r.get("content"), dict)
+                        or not isinstance(r["content"].get("message"), str)
+                        for r in rows[:limit]
+                    ):
+                        raise BusinessError("bilibili_response_invalid", "Comment records changed format", status=502)
+                    return {
+                        "bvid": target,
+                        "items": [
+                            {
+                                "id": uid(r.get("rpid")),
+                                "author_uid": uid(r.get("mid")),
+                                "name": str(r.get("member", {}).get("uname", ""))[:100],
+                                "text": str(r.get("content", {}).get("message", ""))[:1000],
+                            }
+                            for r in rows[:limit]
+                        ],
+                        "has_more": len(rows) >= limit,
+                    }
+        except (httpx.HTTPError, TimeoutError) as exc:
+            raise BusinessError(
+                "bilibili_read_unavailable", "Bilibili read timed out or disconnected", status=503
+            ) from exc
+        finally:
+            self._reads.discard(owner)
+
+    async def download(
+        self,
+        configuration: dict,
+        url: str,
+        destination: Path,
+        *,
+        max_bytes: int,
+        budget_s: float,
+        before_dispatch: Callable[[], Awaitable[None]] | None = None,
+    ) -> dict:
+        """Bounded resumable media download with the connection's cookies and Referer.
+
+        CDN streams may drop mid-transfer (observed on a real machine): each
+        retry resumes from the bytes already on disk, and a server that ignores
+        Range (200 instead of 206) restarts from scratch. Credentials stay in
+        this adapter and never enter diagnostics.
+        """
+        from ..domain.bilibili import stream_url
+
+        if self._closing or len(self._reads) >= 8:
+            raise BusinessError("bilibili_busy", "Bilibili reader is draining or busy", status=503)
+        owner = asyncio.current_task()
+        assert owner is not None
+        self._reads.add(owner)
+        destination = Path(destination)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        last_error: Exception | None = None
+        try:
+            async with self._slots, asyncio.timeout(budget_s):
+                checked = stream_url(url)
+                value = connection(configuration)
+                cookies = await self._cookies(value)
+                factory = self._client_factory or httpx.AsyncClient
+                async with factory(
+                    base_url=API,
+                    cookies=cookies,
+                    follow_redirects=False,
+                    trust_env=False,
+                    timeout=30,
+                    headers={
+                        "User-Agent": "Mozilla/5.0 OmniOperator/2",
+                        "Referer": "https://www.bilibili.com/",
+                    },
+                    limits=httpx.Limits(max_connections=2, max_keepalive_connections=0),
+                ) as client:
+                    for attempt in range(3):
+                        try:
+                            have = destination.stat().st_size if destination.exists() else 0
+                            headers = {"Range": f"bytes={have}-"} if have else {}
+                            if before_dispatch is not None:
+                                await before_dispatch()
+                            async with client.stream("GET", checked, headers=headers) as response:
+                                response.raise_for_status()
+                                resumed = response.status_code == 206
+                                if not resumed and have:
+                                    have = 0
+                                    destination.unlink(missing_ok=True)
+                                declared = int(response.headers.get("content-length") or 0)
+                                if declared and have + declared > max_bytes:
+                                    raise BusinessError(
+                                        "media_download_too_large",
+                                        "Media stream exceeds its declared size bound",
+                                        status=413,
+                                    )
+                                with destination.open("ab" if resumed else "wb") as handle:
+                                    async for chunk in response.aiter_bytes(1 << 20):
+                                        handle.write(chunk)
+                                        have += len(chunk)
+                                        if have > max_bytes:
+                                            raise BusinessError(
+                                                "media_download_too_large",
+                                                "Media stream exceeds its size bound",
+                                                status=413,
+                                            )
+                            if not destination.exists() or destination.stat().st_size == 0:
+                                raise BusinessError(
+                                    "media_download_failed", "Media download produced an empty file", status=502
+                                )
+                            return {"bytes": destination.stat().st_size, "resumed": resumed}
+                        except (httpx.HTTPError, TimeoutError) as exc:
+                            last_error = exc
+                raise BusinessError(
+                    "media_download_failed", "Media download failed after its bounded retries", status=502
+                ) from last_error
+        except asyncio.CancelledError:
+            raise
+        except BusinessError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - never emit cookie values or CDN URLs
+            raise BusinessError("media_download_failed", "Media download failed", status=502) from exc
+        finally:
+            self._reads.discard(owner)
+
+    async def send(self, message: OutboundMessage) -> DeliveryResult:
+        worker = None
+        dispatched = False
+        try:
+            if self._closing or len(self._workers) >= 4:
+                return DeliveryResult("not_sent", message.fingerprint, error_code="bilibili_busy")
+            value = connection(message.configuration)
+            if value["account"] != message.account_key:
+                raise BusinessError("bilibili_account_mismatch", "Approved Bilibili sender changed")
+            spec = await self._authorize(message)
+            async with asyncio.timeout(25):
+                cookies = await self._cookies(value)
+                async with self._client(cookies) as client:
+                    await self._login(client, value["account"])
+                    if spec["kind"] == "comment":
+                        from urllib.parse import urlsplit
+
+                        bvid = urlsplit(spec["target"]).path.rstrip("/").split("/")[-1]
+                        video = await self._get(client, "/x/web-interface/view", {"bvid": bvid})
+                        if video.get("bvid") != bvid:
+                            raise BusinessError("bilibili_source_changed", "Publication video identity changed")
+                        spec["remote_target_id"] = uid(video.get("aid"))
+                    else:
+                        spec["remote_target_id"] = spec["target_key"]
+                if (await self._authorize(message))["authority"] != spec["authority"]:
+                    raise BusinessError("bilibili_credential_changed", "Cookie authority changed while connecting")
+                worker = (
+                    self._worker_factory()
+                    if self._worker_factory
+                    else WorkerClient(
+                        "bilibili",
+                        tool_writes={"bilibili_open": False, "bilibili_fill": True, "bilibili_commit": True},
+                        argv=[sys.executable, "-m", "omni.adapters.workers.bilibili"],
+                        forbid_artifacts=True,
+                    )
+                )
+                self._workers.add(worker)
+                context = InvocationContext(
+                    spec["agent_id"], spec["run_id"], spec["session_id"], int(spec["policy_revision"]), ""
+                )
+
+                async def guard():
+                    current = await self._authorize(message)
+                    if self._closing or current["authority"] != spec["authority"]:
+                        raise BusinessError(
+                            "bilibili_dispatch_revoked", "Publication was revoked before its next operation"
+                        )
+
+                opened = await worker.invoke(
+                    "bilibili_open",
+                    {
+                        "kind": spec["kind"],
+                        "headless": spec.get("headless", True),
+                        "url": spec["target"],
+                        "target_key": spec["target_key"],
+                        "remote_target_id": spec["remote_target_id"],
+                        "account": value["account"],
+                        "form": spec["form"],
+                        "cookies": cast(dict[str, JSON], cookies),
+                    },
+                    operation_id=message.token,
+                    context=context,
+                    before_dispatch=guard,
+                )
+                if opened.status != Outcome.OK:
+                    return DeliveryResult("not_sent", message.fingerprint, error_code="bilibili_form_unavailable")
+                filled = await worker.invoke(
+                    "bilibili_fill",
+                    {"observation": opened.data, "text": message.text, "mentions": spec["mentions"]},
+                    operation_id=message.token,
+                    context=context,
+                    before_dispatch=guard,
+                )
+                if filled.status != Outcome.OK:
+                    return DeliveryResult("not_sent", message.fingerprint, error_code="bilibili_form_rejected")
+                dispatched = True
+                result = await worker.invoke(
+                    "bilibili_commit",
+                    {"observation": filled.data},
+                    operation_id=message.token,
+                    context=context,
+                    before_dispatch=guard,
+                )
+                proof = result.data
+                receipt_id = proof.get("record_id")
+                expected = {
+                    "account": value["account"],
+                    "target": spec["target"],
+                    "body_hash": text_fingerprint(message.text),
+                    "mentions": [m["uid"] for m in spec["mentions"]],
+                }
+                if (
+                    result.status == Outcome.OK
+                    and result.effect == Effect.APPLIED
+                    and isinstance(proof, dict)
+                    and all(proof.get(k) == v for k, v in expected.items())
+                    and isinstance(receipt_id, str)
+                    and 1 <= len(receipt_id) <= 128
+                ):
+                    return DeliveryResult("sent", message.fingerprint, receipt_id=receipt_id)
+                if result.effect == Effect.NONE:
+                    return DeliveryResult("not_sent", message.fingerprint, error_code="bilibili_commit_rejected")
+                return DeliveryResult("unknown", message.fingerprint, error_code="bilibili_publish_unknown")
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001 -- never emit cookie values, page bodies or provider exceptions
+            return DeliveryResult(
+                "unknown" if dispatched else "not_sent",
+                message.fingerprint,
+                error_code="bilibili_publish_unknown" if dispatched else "bilibili_not_dispatched",
+            )
+        finally:
+            if worker is not None:
+                # The actual send retains its worker and account lease until native cleanup is proven.
+                while not await worker.close(5):
+                    await asyncio.sleep(0.25)
+                self._workers.discard(worker)
+
+    async def close(self, timeout_s: float = 30) -> bool:
+        self._closing = True
+        if self._reads:
+            await asyncio.wait(tuple(self._reads), timeout=max(0, timeout_s))
+        return not self._reads and not self._workers

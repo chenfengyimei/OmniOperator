@@ -5,39 +5,67 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
-import re
-from collections.abc import Mapping
 from dataclasses import asdict
-from typing import Any
 
-from sqlalchemy import Connection, and_, func, insert, select, text, update
+from sqlalchemy import and_, func, insert, select, update
 
-from ...application.ports import Clock, Ids, Record
-from ...domain.contracts import ActionResult, BusinessError, ModelReply, RunState, ToolSpec, check_transition
-from ...domain.settings import validate_settings
+from ...application.ports import Record
+from ...domain.contracts import ActionResult, BusinessError, ModelReply, Outcome, RunState, ToolSpec, check_transition
 from . import schema as s
+from .action_review_repository import ActionReviewRepositories
+from .android_repository import AndroidRepositories
+from .android_unicode_repository import AndroidUnicodeRepositories
+from .audit_pruning_repository import AuditPruningRepositories
+from .bilibili_repository import BilibiliRepositories
+from .context_repository import ContextRepositories
+from .event_retention_repository import EventRetentionRepositories
+from .extension_repository import ExtensionRepositories
+from .history_repository import HistoryRepositories
+from .history_sequence import allocate_history
+from .maintenance_repository import MaintenanceRepositories
+from .media_repository import MediaRepositories
+from .memory_organization_repository import MemoryOrganizationRepositories
+from .memory_semantic_repository import MemorySemanticRepositories
+from .object_repository import ObjectRepositories
+from .operations_repository import OperationsRepositories
+from .people_repository import PeopleRepositories
+from .qq_repository import QQRepositories
+from .reference_release_repository import ReferenceReleaseRepositories
+from .routing_repository import RoutingRepositories
+from .schedule_repository import ScheduleRepositories
+from .skill_repository import SkillRepositories
+from .terminal_review_repository import TerminalReviewRepositories
 
 
-class Repositories:
-    def __init__(self, connection: Connection, clock: Clock, ids: Ids) -> None:
-        self.connection, self.clock, self.ids = connection, clock, ids
-
-    def _record(self, table, values: Mapping[str, Any], agent_id: str | None = None) -> dict:
-        row = {"id": self.ids.new(), "created_at": self.clock.now(), **values}
-        if agent_id is not None:
-            row["agent_id"] = agent_id
-        self.connection.execute(insert(table).values(**row))
-        return row
-
-    def _one(self, table, agent_id: str, entity_id: str) -> dict:
-        row = (
-            self.connection.execute(select(table).where(table.c.id == entity_id, table.c.agent_id == agent_id))
-            .mappings()
-            .first()
-        )
-        if row is None:
-            raise BusinessError("not_found", "Resource does not exist in this Agent space", status=404)
-        return dict(row)
+class Repositories(
+    SkillRepositories,
+    MemorySemanticRepositories,
+    RoutingRepositories,
+    AndroidUnicodeRepositories,
+    AndroidRepositories,
+    MediaRepositories,
+    BilibiliRepositories,
+    QQRepositories,
+    TerminalReviewRepositories,
+    ActionReviewRepositories,
+    ExtensionRepositories,
+    MemoryOrganizationRepositories,
+    MaintenanceRepositories,
+    AuditPruningRepositories,
+    EventRetentionRepositories,
+    HistoryRepositories,
+    ObjectRepositories,
+    PeopleRepositories,
+    ContextRepositories,
+    ScheduleRepositories,
+    OperationsRepositories,
+    ReferenceReleaseRepositories,
+):
+    def instance_identity(self) -> Record:
+        current = self.connection.execute(select(s.instances).where(s.instances.c.slot == 1)).mappings().first()
+        if current is None:
+            raise BusinessError("instance_not_initialized", "Initialize the V2 instance before deploying a service")
+        return {"instance_id": current["id"]}
 
     def initialize(self) -> dict:
         current = self.connection.execute(select(s.instances)).mappings().first()
@@ -55,24 +83,27 @@ class Repositories:
         if not name.strip() or len(name) > 100:
             raise BusinessError("invalid_agent_name", "Agent name must contain 1 to 100 characters", status=422)
         agent = self._record(s.agents, {"name": name, "enabled": True, "revision": 1})
+        model = self.configuration_create(agent["id"], "model", "Default model", True, {})
+        value = {
+            "persona": "You are a helpful personal assistant.",
+            "workspace": "",
+            "daily_budget_micro": 1_000_000,
+            "call_reservation_micro": 10_000,
+            "max_steps": 12,
+            "disabled_tools": [],
+            "model_profile_id": model["id"],
+        }
         self.connection.execute(
             insert(s.settings).values(
                 agent_id=agent["id"],
                 revision=1,
-                value={
-                    "persona": "You are a helpful personal assistant.",
-                    "model": "",
-                    "workspace": "",
-                    "daily_budget_micro": 1_000_000,
-                    "call_reservation_micro": 10_000,
-                    "max_steps": 12,
-                    "credential_ref": "",
-                    "model_base_url": "",
-                    "disabled_tools": [],
-                },
+                permission_epoch=1,
                 updated_at=self.clock.now(),
+                **{k: v for k, v in value.items() if k != "disabled_tools"},
             )
         )
+        self._settings_history_record(agent["id"], value, 1, 1)
+        self.ensure_owner(agent["id"])
         return agent
 
     def issue_token(self, token_hash: str, expires_at: str) -> None:
@@ -92,50 +123,6 @@ class Repositories:
             is not None
         )
 
-    def settings(self, agent_id: str) -> dict:
-        row = self.connection.execute(select(s.settings).where(s.settings.c.agent_id == agent_id)).mappings().first()
-        if row is None:
-            raise BusinessError("agent_not_found", "Agent does not exist", status=404)
-        return {"revision": row["revision"], "value": row["value"]}
-
-    def settings_put(self, agent_id: str, value: Record, revision: int) -> dict:
-        def check_no_secrets(data):
-            if isinstance(data, dict):
-                for key, child in data.items():
-                    if key.lower() in {
-                        "api_key",
-                        "access_token",
-                        "refresh_token",
-                        "password",
-                        "cookie",
-                        "authorization",
-                    }:
-                        raise BusinessError(
-                            "credential_reference_required",
-                            "Store credentials through the credential endpoint",
-                            status=422,
-                        )
-                    check_no_secrets(child)
-            elif isinstance(data, list):
-                for child in data:
-                    check_no_secrets(child)
-
-        check_no_secrets(value)
-        validate_settings(value)
-        self.settings(agent_id)
-        changed = self.connection.execute(
-            update(s.settings)
-            .where(s.settings.c.agent_id == agent_id, s.settings.c.revision == revision)
-            .values(value=value, revision=revision + 1, updated_at=self.clock.now())
-        ).rowcount
-        if changed != 1:
-            raise BusinessError("revision_conflict", "Settings changed; reload before saving")
-        self.audit(agent_id, "settings.changed", None, {"revision": revision + 1})
-        return {"revision": revision + 1, "value": value}
-
-    def audit(self, agent_id: str, kind: str, operation_id: str | None, data: dict) -> str:
-        return self._record(s.audit, {"kind": kind, "operation_id": operation_id, "data": data}, agent_id)["id"]
-
     def _message(self, agent_id: str, session_id: str, role: str, text: str) -> dict:
         session = self._one(s.sessions, agent_id, session_id)
         if session["deleted_at"]:
@@ -144,13 +131,64 @@ class Repositories:
         self.connection.execute(update(s.sessions).where(s.sessions.c.id == session_id).values(next_seq=seq))
         return self._record(s.messages, {"session_id": session_id, "seq": seq, "role": role, "content": text}, agent_id)
 
-    def accept_turn(self, agent_id: str, session_id: str | None, key: str, text: str, config: Record) -> dict:
+    def accept_turn(
+        self,
+        agent_id: str,
+        session_id: str | None,
+        key: str,
+        text: str,
+        config: Record,
+        *,
+        model_required: bool = True,
+        origin: str = "chat",
+        image_ids: tuple[str, ...] = (),
+        mode: str | None = None,
+        skill_ids: tuple[str, ...] = (),
+        skill_platform: str = "",
+    ) -> dict:
+        if origin not in {"chat", "qq"}:
+            raise BusinessError("invalid_turn_origin", "Unknown turn origin")
+        from ...domain.routing import requested
+
+        route_mode = requested(mode)
+        from ...domain.skills import identifiers
+
+        selected_skills = identifiers(skill_ids)
+        if selected_skills and (origin != "chat" or not model_required):
+            raise BusinessError("skill_channel_unsupported", "This channel cannot activate owner skills", status=422)
+        from ...domain.images import image_ids as checked_image_ids
+
+        images = checked_image_ids(image_ids)
+        if images and (origin != "chat" or not model_required):
+            raise BusinessError("image_channel_unsupported", "This channel cannot attach image messages", status=422)
+        if (
+            session_id
+            and origin != "qq"
+            and self.connection.execute(
+                select(s.qq_bindings.c.id).where(
+                    s.qq_bindings.c.agent_id == agent_id, s.qq_bindings.c.session_id == session_id
+                )
+            ).first()
+        ):
+            raise BusinessError("channel_session_readonly", "Use the QQ channel to write to its conversation")
+        channel = origin if model_required else "owner_command"
         request_fingerprint = hashlib.sha256(
-            json.dumps({"session_id": session_id, "text": text}, sort_keys=True).encode()
+            json.dumps(
+                {
+                    "session_id": session_id,
+                    "text": text,
+                    **({"image_ids": images} if images else {}),
+                    **({"mode": route_mode} if route_mode != "default" else {}),
+                    **({"skill_ids": selected_skills} if selected_skills else {}),
+                },
+                sort_keys=True,
+            ).encode()
         ).hexdigest()
         prior = (
             self.connection.execute(
-                select(s.inbox).where(s.inbox.c.agent_id == agent_id, s.inbox.c.channel == "chat", s.inbox.c.key == key)
+                select(s.inbox).where(
+                    s.inbox.c.agent_id == agent_id, s.inbox.c.channel == channel, s.inbox.c.key == key
+                )
             )
             .mappings()
             .first()
@@ -160,11 +198,19 @@ class Repositories:
                 raise BusinessError("idempotency_conflict", "This key already identifies a different request")
             run = self.get_run(agent_id, prior["run_id"])
             return {"run_id": run["id"], "session_id": run["session_id"], "duplicate": True}
-        if not key or len(key) > 200 or not text or len(text) > 200_000:
+        if not key or len(key) > 200 or (not text and not images) or len(text) > 200_000:
             raise BusinessError("invalid_turn", "A bounded message and idempotency key are required", status=422)
         settings = self.settings(agent_id)
+        route = self.route_resolve(agent_id, text, route_mode, bool(images), origin == "qq") if model_required else None
+        captured = self.capture_configuration(
+            agent_id, model_required=model_required, model_id=route["model_id"] if route else None
+        )
+        if images:
+            self.image_admit(agent_id, captured["model_revision_id"], images)
         if session_id is None:
-            session_id = self._record(s.sessions, {"title": text[:80], "revision": 1, "next_seq": 0}, agent_id)["id"]
+            session_id = self._record(
+                s.sessions, {"title": text[:80] or "Image conversation", "revision": 1, "next_seq": 0}, agent_id
+            )["id"]
         unfinished = self.connection.execute(
             select(func.count())
             .select_from(s.runs)
@@ -177,22 +223,34 @@ class Repositories:
             raise BusinessError("queue_full", "Execution queue is full", retryable=True, status=429)
         assert session_id is not None
         message = self._message(agent_id, session_id, "user", text)
+        for position, object_id in enumerate(images):
+            self._record(
+                s.message_parts,
+                {"message_id": message["id"], "position": position, "kind": "image", "object_id": object_id},
+                agent_id,
+            )
         run = self._record(
             s.runs,
             {
                 "session_id": session_id,
                 "state": "queued",
+                "execution_kind": "model" if model_required else "owner",
                 "config_revision": settings["revision"],
                 "input_message_id": message["id"],
-                "config_snapshot": settings["value"],
+                **captured,
                 "last_seq": 0,
                 "error_code": "",
             },
             agent_id,
         )
+        if route:
+            self.route_attach(agent_id, run["id"], route)
+        if model_required and origin != "qq":
+            self.extension_capture_run(agent_id, run["id"])
+            self.skill_capture_run(agent_id, run["id"], selected_skills, skill_platform)
         self._record(
             s.inbox,
-            {"channel": "chat", "key": key, "run_id": run["id"], "request_fingerprint": request_fingerprint},
+            {"channel": channel, "key": key, "run_id": run["id"], "request_fingerprint": request_fingerprint},
             agent_id,
         )
         self.connection.execute(update(s.messages).where(s.messages.c.id == message["id"]).values(run_id=run["id"]))
@@ -202,7 +260,126 @@ class Repositories:
             agent_id,
         )
         self.event(agent_id, run["id"], "run.queued", {})
+        if route:
+            self.event(
+                agent_id,
+                run["id"],
+                "routing.selected",
+                {"mode": route["mode"], "source": route["source"], "reason": route["reason"]},
+            )
         return {"run_id": run["id"], "session_id": session_id, "duplicate": False}
+
+    def owner_command(self, agent_id: str, run_id: str) -> dict | None:
+        row = (
+            self.connection.execute(
+                select(s.owner_commands).where(
+                    s.owner_commands.c.agent_id == agent_id, s.owner_commands.c.run_id == run_id
+                )
+            )
+            .mappings()
+            .first()
+        )
+        return dict(row) if row else None
+
+    def owner_command_replay(self, agent_id: str, request_id: str, fingerprint: str) -> dict | None:
+        row = (
+            self.connection.execute(
+                select(s.owner_commands).where(
+                    s.owner_commands.c.agent_id == agent_id, s.owner_commands.c.request_id == request_id
+                )
+            )
+            .mappings()
+            .first()
+        )
+        if row:
+            if row["request_sha256"] != fingerprint:
+                raise BusinessError("idempotency_conflict", "This request already identifies another owner action")
+            run = self.get_run(agent_id, row["run_id"])
+            return {"run_id": run["id"], "session_id": run["session_id"], "duplicate": True}
+        return None
+
+    def accept_owner_command(
+        self,
+        agent_id: str,
+        session_id: str,
+        request_id: str,
+        fingerprint: str,
+        arguments: Record,
+        *,
+        tool: str = "desktop_semantic",
+    ) -> dict:
+        if tool not in {"desktop_semantic", "android_input", "android_restore_ime"}:
+            raise BusinessError("owner_tool_invalid", "Owner command capability is not registered")
+        prior = self.owner_command_replay(agent_id, request_id, fingerprint)
+        if prior:
+            return prior
+        session = self._one(s.sessions, agent_id, session_id)
+        if session["deleted_at"]:
+            raise BusinessError("session_deleted", "Conversation was deleted")
+        receipt = self.accept_turn(
+            agent_id,
+            session_id,
+            "owner-command/" + request_id,
+            "Owner requested " + tool + " " + str(arguments["kind"]),
+            {},
+            model_required=False,
+        )
+        self._record(
+            s.owner_commands,
+            {
+                "run_id": receipt["run_id"],
+                "request_id": request_id,
+                "request_sha256": fingerprint,
+                "boot_id": self.boot_id,
+                "session_epoch": session["content_epoch"],
+                "tool": tool,
+                "arguments": arguments,
+            },
+            agent_id,
+        )
+        self.audit(
+            agent_id,
+            "owner.command_queued",
+            receipt["run_id"],
+            {"request_id": request_id, "request_sha256": fingerprint, "tool": tool},
+        )
+        return receipt
+
+    def assert_run_authorized(self, agent_id: str, run_id: str) -> None:
+        self.assert_context(agent_id, run_id)
+        if self.get_run(agent_id, run_id).get("execution_kind") != "owner":
+            self.assert_model_authorized(agent_id, run_id)
+
+    def desktop_dispatch(self, agent_id: str, run_id: str, action_id: str, arguments: Record) -> None:
+        self.owner_dispatch(agent_id, run_id, action_id, arguments, "desktop_semantic")
+
+    def owner_dispatch(self, agent_id: str, run_id: str, action_id: str, arguments: Record, tool: str) -> None:
+        command = self.owner_command(agent_id, run_id)
+        if not command or command["action_id"] != action_id or command["tool"] != tool:
+            raise BusinessError("desktop_binding_changed", "Desktop action binding changed")
+        self.approved_dispatch(agent_id, run_id, action_id, arguments, tool)
+
+    def approved_dispatch(self, agent_id: str, run_id: str, action_id: str, arguments: Record, tool: str) -> None:
+        self.assert_run_authorized(agent_id, run_id)
+        action, run = self.action(agent_id, action_id), self.get_run(agent_id, run_id)
+        settings = self.settings(agent_id)
+        if action["run_id"] != run_id or action["tool"] != tool or action["arguments"] != arguments:
+            raise BusinessError("action_binding_changed", "Approved action binding changed")
+        if (
+            run["state"] != "running"
+            or action["state"] != "executing"
+            or action["approval_state"] != "approved"
+            or str(action["approval_expires_at"]) <= self.clock.now()
+        ):
+            raise BusinessError(
+                "desktop_action_revoked" if tool == "desktop_semantic" else "action_authority_revoked",
+                "Action is no longer approved",
+            )
+        if (
+            settings["policy_revision"] != action["policy_revision"]
+            or action["tool"] in settings["value"]["disabled_tools"]
+        ):
+            raise BusinessError("policy_changed", "Action policy was revoked")
 
     def get_run(self, agent_id: str, run_id: str) -> dict:
         return self._one(s.runs, agent_id, run_id)
@@ -211,6 +388,11 @@ class Repositories:
         run = self.get_run(agent_id, run_id)
         target = RunState(state)
         check_transition(run["state"], target)
+        if state == "running":
+            work = self._work(agent_id, run_id)
+            if work["state"] == "pending" and not self._claim_run(agent_id, run_id):
+                raise BusinessError("run_claim_unavailable", "Run cannot acquire its session")
+            self.assert_run_lease(agent_id, run_id)
         ended = (
             self.clock.now()
             if target in {RunState.SUCCEEDED, RunState.FAILED, RunState.CANCELLED, RunState.INTERRUPTED}
@@ -234,6 +416,12 @@ class Repositories:
             self.connection.execute(
                 update(s.work_items).where(s.work_items.c.run_id == run_id).values(state=work_state)
             )
+            if ended:
+                work = self._work(agent_id, run_id)
+                if work["claim_token"]:
+                    self.lease_release(
+                        agent_id, "session/" + run["session_id"], work["claim_token"], work["lease_fence"]
+                    )
         self.event(agent_id, run_id, "run." + state, {"error_code": error_code})
 
     def event(self, agent_id: str, run_id: str, kind: str, data: dict) -> int:
@@ -242,7 +430,13 @@ class Repositories:
         self.connection.execute(update(s.runs).where(s.runs.c.id == run_id).values(last_seq=seq))
         self.connection.execute(
             insert(s.run_events).values(
-                agent_id=agent_id, run_id=run_id, seq=seq, created_at=self.clock.now(), kind=kind, data=data
+                sequence=allocate_history(self.connection, "events"),
+                agent_id=agent_id,
+                run_id=run_id,
+                seq=seq,
+                created_at=self.clock.now(),
+                kind=kind,
+                data=data,
             )
         )
         return seq
@@ -265,60 +459,70 @@ class Repositories:
         )
         return [dict(row) for row in reversed(rows)]
 
-    def context_messages(self, agent_id: str, run_id: str) -> list[dict]:
-        run = self.get_run(agent_id, run_id)
-        rows = (
-            self.connection.execute(
-                select(s.messages)
-                .join(s.runs, s.runs.c.id == s.messages.c.run_id)
-                .where(
-                    s.messages.c.agent_id == agent_id,
-                    s.messages.c.session_id == run["session_id"],
-                    s.messages.c.deleted_at.is_(None),
-                    (s.runs.c.id == run_id)
-                    | ((s.runs.c.created_at < run["created_at"]) & s.runs.c.ended_at.is_not(None)),
-                )
-                .order_by(s.runs.c.created_at.desc(), s.messages.c.seq.desc())
-                .limit(100)
+    def context_memories(self, agent_id: str, snapshot_id: str) -> list[dict]:
+        self._one(s.context_snapshots, agent_id, snapshot_id)
+        rows = self.connection.execute(
+            select(
+                s.context_memories,
+                s.memory_entries.c.kind,
+                s.memory_entries.c.deleted_at,
+                s.memory_revisions.c.content,
+                s.memory_revisions.c.revision,
             )
-            .mappings()
-            .all()
-        )
-        return [dict(row) for row in reversed(rows)]
+            .join(s.memory_entries, s.memory_entries.c.id == s.context_memories.c.memory_id)
+            .outerjoin(s.memory_revisions, s.memory_revisions.c.id == s.context_memories.c.memory_revision_id)
+            .where(s.context_memories.c.agent_id == agent_id, s.context_memories.c.snapshot_id == snapshot_id)
+            .order_by(s.memory_entries.c.kind)
+        ).mappings()
+        return [
+            {
+                **dict(row),
+                "content": row["content"] if row["deleted_at"] is None else "",
+                "erased": row["deleted_at"] is not None,
+            }
+            for row in rows
+        ]
 
-    def snapshot(self, agent_id: str, run_id: str, message_ids: list[str], memory_ids: list[str]) -> str:
-        run = self.get_run(agent_id, run_id)
-        for message_id in message_ids:
-            message = self._one(s.messages, agent_id, message_id)
-            if message["session_id"] != run["session_id"]:
-                raise BusinessError("invalid_context", "Context message belongs to another session")
-        for memory_id in memory_ids:
-            self._one(s.memory_entries, agent_id, memory_id)
-        return self._record(
-            s.context_snapshots, {"run_id": run_id, "message_ids": message_ids, "memory_ids": memory_ids}, agent_id
-        )["id"]
+    def run_context(self, agent_id: str, run_id: str) -> list[dict]:
+        self.get_run(agent_id, run_id)
+        snapshots = self.connection.execute(
+            select(s.context_snapshots.c.id)
+            .where(s.context_snapshots.c.agent_id == agent_id, s.context_snapshots.c.run_id == run_id)
+            .limit(32)
+        ).scalars()
+        return [row for snapshot in snapshots for row in self.context_memories(agent_id, snapshot)]
 
     def finish(self, agent_id: str, run_id: str, text: str, delivery: Record | None = None) -> None:
+        self.assert_run_authorized(agent_id, run_id)
+        channel_delivery = self.qq_run_authorized(agent_id, run_id)
+        if channel_delivery:
+            if delivery is not None and delivery != channel_delivery:
+                raise BusinessError("qq_delivery_mismatch", "QQ replies must use their captured conversation")
+            delivery = channel_delivery
+        if delivery and self.owner_command(agent_id, run_id):
+            raise BusinessError("owner_command_delivery_forbidden", "Owner commands do not create external deliveries")
         run = self.get_run(agent_id, run_id)
         check_transition(run["state"], RunState.SUCCEEDED)
         message = self._message(agent_id, run["session_id"], "assistant", text)
         self.connection.execute(update(s.messages).where(s.messages.c.id == message["id"]).values(run_id=run_id))
         if delivery:
-            self._record(
-                s.outbox,
-                {
-                    "run_id": run_id,
-                    "channel": delivery["channel"],
-                    "target": delivery["target"],
-                    "state": "pending",
-                    "message_id": message["id"],
-                },
+            self.delivery_create(
                 agent_id,
+                message["id"],
+                str(delivery["config_id"]),
+                str(delivery["target"]),
+                str(delivery.get("key") or "run-output:" + run_id),
+                str(delivery["adapter_id"]),
+                str(delivery["account_key"]),
+                str(delivery["config_revision_id"]),
+                allow_running=True,
             )
         self.transition(agent_id, run_id, "succeeded")
         self.audit(agent_id, "run.completed", run_id, {"message_id": message["id"]})
 
-    def reserve_call(self, agent_id: str, run_id: str, amount: int, limit: int, model: str) -> str:
+    def reserve_call(
+        self, agent_id: str, run_id: str, amount: int, limit: int, model: str, *, purpose: str = "turn"
+    ) -> str:
         self.get_run(agent_id, run_id)
         if amount < 0 or limit < 0:
             raise BusinessError("invalid_budget", "Budget cannot be negative", status=422)
@@ -347,7 +551,14 @@ class Repositories:
             raise BusinessError("budget_exceeded", "Daily model budget is exhausted")
         return self._record(
             s.model_calls,
-            {"run_id": run_id, "model": model, "day": day, "state": "reserved", "reserved_micro": amount},
+            {
+                "run_id": run_id,
+                "model": model,
+                "day": day,
+                "state": "reserved",
+                "reserved_micro": amount,
+                "purpose": purpose,
+            },
             agent_id,
         )["id"]
 
@@ -391,7 +602,7 @@ class Repositories:
         if run["state"] != "running":
             raise BusinessError("run_not_running", "Run no longer accepts actions")
         current = self.settings(agent_id)
-        if current["revision"] != policy or spec.name in current["value"].get("disabled_tools", []):
+        if current["policy_revision"] != policy or spec.name in current["value"].get("disabled_tools", []):
             raise BusinessError("policy_changed", "Action policy changed; submit a new action")
         digest = hashlib.sha256(
             json.dumps(arguments, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
@@ -410,6 +621,16 @@ class Repositories:
             },
             agent_id,
         )
+        self.extension_bind_action(agent_id, run_id, action["id"], spec)
+        command = self.owner_command(agent_id, run_id)
+        if command:
+            if command["tool"] != spec.name or command["arguments"] != arguments or command["action_id"] is not None:
+                raise BusinessError("owner_command_changed", "Owner command cannot be replaced or replayed")
+            self.connection.execute(
+                update(s.owner_commands)
+                .where(s.owner_commands.c.id == command["id"])
+                .values(arguments=None, action_id=action["id"])
+            )
         if spec.writes:
             expires = (dt.datetime.fromisoformat(self.clock.now()) + dt.timedelta(seconds=180)).isoformat(
                 timespec="microseconds"
@@ -432,7 +653,9 @@ class Repositories:
 
     def pending_approvals(self, agent_id: str) -> list[dict]:
         rows = self.connection.execute(
-            select(s.approvals, s.actions.c.tool, s.actions.c.arguments, s.actions.c.run_id)
+            select(
+                s.approvals, s.actions.c.tool, s.actions.c.arguments, s.actions.c.run_id, s.actions.c.policy_revision
+            )
             .join(s.actions, s.actions.c.id == s.approvals.c.action_id)
             .where(
                 s.approvals.c.agent_id == agent_id,
@@ -448,7 +671,8 @@ class Repositories:
         action = self._one(s.actions, agent_id, approval["action_id"])
         if approval["state"] != "pending" or approval["expires_at"] <= self.clock.now() or action["state"] != "pending":
             raise BusinessError("approval_expired", "Approval is no longer pending")
-        if self.settings(agent_id)["revision"] != policy or action["policy_revision"] != policy:
+        self.extension_assert_action(agent_id, action["id"])
+        if self.settings(agent_id)["policy_revision"] != policy or action["policy_revision"] != policy:
             raise BusinessError("policy_changed", "Approval belongs to an older policy")
         if self.get_run(agent_id, action["run_id"])["state"] != "waiting_approval":
             raise BusinessError("run_not_waiting", "Run no longer accepts approval")
@@ -461,12 +685,14 @@ class Repositories:
         self.transition(agent_id, action["run_id"], "running")
 
     def authorize_action(self, agent_id: str, action_id: str) -> dict:
+        self.assert_run_authorized(agent_id, self._one(s.actions, agent_id, action_id)["run_id"])
         action = self._one(s.actions, agent_id, action_id)
         run = self.get_run(agent_id, action["run_id"])
         current = self.settings(agent_id)
         if run["state"] != "running" or action["state"] != "approved":
             raise BusinessError("action_not_authorized", "Action is not authorized")
-        if action["policy_revision"] != current["revision"] or action["tool"] in current["value"].get(
+        self.extension_assert_action(agent_id, action_id)
+        if action["policy_revision"] != current["policy_revision"] or action["tool"] in current["value"].get(
             "disabled_tools", []
         ):
             raise BusinessError("policy_changed", "Action policy was revoked")
@@ -482,10 +708,81 @@ class Repositories:
         self.audit(agent_id, "action.executing", action_id, {"tool": action["tool"]})
         return action
 
+    def extension_dispatch(self, agent_id: str, run_id: str, action_id: str, name: str) -> dict:
+        self.assert_context(agent_id, run_id)
+        self.assert_model_authorized(agent_id, run_id)
+        action, current = self._one(s.actions, agent_id, action_id), self.settings(agent_id)
+        if action["policy_revision"] != current["policy_revision"] or name in current["value"]["disabled_tools"]:
+            raise BusinessError("policy_changed", "Action policy changed before plugin dispatch")
+        approval = (
+            self.connection.execute(
+                select(s.approvals).where(
+                    s.approvals.c.agent_id == agent_id,
+                    s.approvals.c.action_id == action_id,
+                )
+            )
+            .mappings()
+            .first()
+        )
+        if approval is None or approval["state"] != "approved" or approval["expires_at"] <= self.clock.now():
+            raise BusinessError("approval_expired", "Plugin action approval expired before dispatch")
+        return {
+            **self._extension_dispatch_binding(agent_id, run_id, action_id, name),
+            "arguments_sha256": action["arguments_sha256"],
+        }
+
+    def _extension_revoke(self, slot: dict) -> list[str]:
+        waiting = list(
+            self.connection.execute(
+                select(s.runs.c.id)
+                .join(s.actions, and_(s.actions.c.run_id == s.runs.c.id, s.actions.c.agent_id == s.runs.c.agent_id))
+                .join(
+                    s.action_extension_bindings,
+                    and_(
+                        s.action_extension_bindings.c.action_id == s.actions.c.id,
+                        s.action_extension_bindings.c.agent_id == s.actions.c.agent_id,
+                    ),
+                )
+                .join(
+                    s.run_extension_tools,
+                    and_(
+                        s.run_extension_tools.c.id == s.action_extension_bindings.c.run_tool_id,
+                        s.run_extension_tools.c.agent_id == s.action_extension_bindings.c.agent_id,
+                    ),
+                )
+                .where(
+                    s.runs.c.agent_id == slot["agent_id"],
+                    s.runs.c.state == "waiting_approval",
+                    s.actions.c.state.in_(["pending", "approved"]),
+                    s.run_extension_tools.c.extension_id == slot["id"],
+                )
+                .distinct()
+            ).scalars()
+        )
+        executing = super()._extension_revoke(slot)
+        for run_id in waiting:
+            try:
+                self.transition(slot["agent_id"], run_id, "running")
+            except BusinessError as exc:
+                # Revocation must commit even when an old worker has lost its lease;
+                # the ordinary run recovery path owns that interrupted execution.
+                if exc.code not in {"run_lease_lost", "previous_outcome_unknown"}:
+                    raise
+        return executing
+
     def settle_action(self, agent_id: str, action_id: str, result: ActionResult) -> None:
         action = self._one(s.actions, agent_id, action_id)
         if action["state"] != "executing":
             raise BusinessError("action_already_settled", "Action is not executing")
+        erased = self.connection.execute(
+            select(s.context_documents.c.id)
+            .join(s.document_revisions, s.document_revisions.c.id == s.context_documents.c.document_revision_id)
+            .where(s.context_documents.c.action_id == action_id, s.document_revisions.c.redacted_at.is_not(None))
+        ).first()
+        if erased and not action["writes"]:
+            result = ActionResult(Outcome.ERROR, "Source document erased", error_code="context_invalidated")
+        for object_id in result.artifacts:
+            self.object_link(agent_id, object_id, "action", action_id)
         self.connection.execute(
             update(s.actions)
             .where(s.actions.c.id == action_id)
@@ -507,7 +804,22 @@ class Repositories:
         )
 
     def action(self, agent_id: str, action_id: str) -> dict:
-        return self._one(s.actions, agent_id, action_id)
+        row = (
+            self.connection.execute(
+                select(
+                    s.actions,
+                    s.approvals.c.state.label("approval_state"),
+                    s.approvals.c.expires_at.label("approval_expires_at"),
+                )
+                .outerjoin(s.approvals, s.approvals.c.action_id == s.actions.c.id)
+                .where(s.actions.c.agent_id == agent_id, s.actions.c.id == action_id)
+            )
+            .mappings()
+            .first()
+        )
+        if row is None:
+            raise BusinessError("not_found", "Action does not exist in this Agent space", status=404)
+        return dict(row)
 
     def cancel(self, agent_id: str, run_id: str) -> None:
         run = self.get_run(agent_id, run_id)
@@ -515,6 +827,11 @@ class Repositories:
             return
         target = "cancelled" if run["state"] == "queued" else "cancelling"
         self.transition(agent_id, run_id, target)
+        self.connection.execute(
+            update(s.owner_commands)
+            .where(s.owner_commands.c.run_id == run_id, s.owner_commands.c.agent_id == agent_id)
+            .values(arguments=None)
+        )
         action_ids = select(s.actions.c.id).where(s.actions.c.run_id == run_id, s.actions.c.agent_id == agent_id)
         self.connection.execute(
             update(s.approvals)
@@ -534,8 +851,13 @@ class Repositories:
             update(s.actions).where(s.actions.c.state.in_(["pending", "approved"])).values(state="cancelled")
         )
 
-    def close_run_actions(self, agent_id: str, run_id: str) -> None:
+    def close_run_actions(self, agent_id: str, run_id: str) -> int:
         self.get_run(agent_id, run_id)
+        self.connection.execute(
+            update(s.owner_commands)
+            .where(s.owner_commands.c.run_id == run_id, s.owner_commands.c.agent_id == agent_id)
+            .values(arguments=None)
+        )
         ids = select(s.actions.c.id).where(s.actions.c.agent_id == agent_id, s.actions.c.run_id == run_id)
         self.connection.execute(
             update(s.approvals)
@@ -551,8 +873,94 @@ class Repositories:
             )
             .values(state="cancelled", ended_at=self.clock.now())
         )
+        unresolved = (
+            self.connection.execute(
+                select(s.actions.c.id).where(
+                    s.actions.c.agent_id == agent_id, s.actions.c.run_id == run_id, s.actions.c.state == "executing"
+                )
+            )
+            .scalars()
+            .all()
+        )
+        if unresolved:
+            self.connection.execute(
+                update(s.actions)
+                .where(s.actions.c.id.in_(unresolved))
+                .values(state="unknown", effect="unknown", ended_at=self.clock.now())
+            )
+            for action_id in unresolved:
+                self.audit(agent_id, "action.unknown", action_id, {"error_code": "run_interrupted"})
+                self.event(
+                    agent_id,
+                    run_id,
+                    "action.completed",
+                    {"action_id": action_id, "status": "unknown", "effect": "unknown"},
+                )
+        return len(unresolved)
 
     def recover(self) -> dict:
+        self.memory_semantic_recover()
+        self.terminal_recover()
+        recovered_credentials = self.credential_recover()
+        self.delivery_recover()
+        stale_commands = (
+            self.connection.execute(
+                select(s.runs)
+                .join(s.owner_commands, s.owner_commands.c.run_id == s.runs.c.id)
+                .where(s.owner_commands.c.boot_id != self.boot_id, s.runs.c.state == "queued")
+            )
+            .mappings()
+            .all()
+        )
+        for run in stale_commands:
+            self.transition(run["agent_id"], run["id"], "interrupted", "desktop_binding_expired")
+        self.connection.execute(
+            update(s.owner_commands).where(s.owner_commands.c.boot_id != self.boot_id).values(arguments=None)
+        )
+        # A committed claim is not an execution. Only a claim with no external
+        # intent can safely return to pending after an exclusive process restart.
+        claimed = (
+            self.connection.execute(
+                select(s.work_items)
+                .join(s.runs, s.runs.c.id == s.work_items.c.run_id)
+                .where(
+                    s.work_items.c.kind == "turn",
+                    s.work_items.c.state == "claimed",
+                    s.runs.c.state == "queued",
+                )
+            )
+            .mappings()
+            .all()
+        )
+        for work in claimed:
+            has_intent = any(
+                self.connection.execute(
+                    select(table.c.id)
+                    .where(
+                        table.c.run_id == work["run_id"],
+                        table.c.state.in_(states),
+                    )
+                    .limit(1)
+                ).first()
+                for table, states in (
+                    (s.model_calls, ("reserved", "unknown")),
+                    (s.actions, ("executing", "unknown")),
+                    (s.outbox, ("sending", "unknown")),
+                )
+            )
+            if has_intent:
+                self.transition(work["agent_id"], work["run_id"], "interrupted", "claim_has_external_intent")
+                continue
+            self.connection.execute(
+                update(s.work_items)
+                .where(s.work_items.c.id == work["id"])
+                .values(
+                    state="pending",
+                    claimed_by=None,
+                    claim_token=None,
+                    lease_fence=None,
+                )
+            )
         interrupted = (
             self.connection.execute(
                 select(s.runs).where(s.runs.c.state.in_(["running", "waiting_approval", "cancelling"]))
@@ -572,76 +980,23 @@ class Repositories:
         self.connection.execute(
             update(s.model_calls).where(s.model_calls.c.state == "reserved").values(state="unknown")
         )
+        self.connection.execute(
+            update(s.summaries)
+            .where(s.summaries.c.state == "building")
+            .values(state="unknown", content="", error_code="process_interrupted")
+        )
+        self.connection.execute(
+            update(s.document_index_builds)
+            .where(s.document_index_builds.c.state == "building")
+            .values(state="failed", error_code="process_interrupted", completed_at=self.clock.now())
+        )
         self.cancel_approvals()
-        return {"interrupted_runs": len(interrupted), "unknown_actions": unknown}
-
-    def remember(
-        self, agent_id: str, content: str, *, kind: str = "fact", message_id: str | None = None, quote: str = ""
-    ) -> dict:
-        if not content.strip() or len(content) > 20_000:
-            raise BusinessError("invalid_memory", "Memory must contain bounded text", status=422)
-        source = None
-        if message_id:
-            message = self._one(s.messages, agent_id, message_id)
-            if message["deleted_at"] or not quote or quote not in message["content"]:
-                raise BusinessError("invalid_evidence", "Evidence must quote a live source message", status=422)
-            source = {"message_id": message_id}
-        else:
-            source = {"manual_audit_id": self.audit(agent_id, "memory.authored", None, {})}
-        entry = self._record(s.memory_entries, {"kind": kind, "content": content, "revision": 1}, agent_id)
-        self._record(s.source_anchors, {"memory_id": entry["id"], "quote": quote, **source}, agent_id)
-        self._record(s.memory_revisions, {"memory_id": entry["id"], "revision": 1, "content": content}, agent_id)
-        return entry
-
-    def forget(self, agent_id: str, memory_id: str) -> None:
-        entry = self._one(s.memory_entries, agent_id, memory_id)
-        if entry["deleted_at"]:
-            return
-        self.connection.execute(
-            update(s.memory_entries)
-            .where(s.memory_entries.c.id == memory_id)
-            .values(content="", deleted_at=self.clock.now(), revision=entry["revision"] + 1)
-        )
-        self.connection.execute(
-            update(s.memory_revisions).where(s.memory_revisions.c.memory_id == memory_id).values(content="")
-        )
-        self.connection.execute(
-            update(s.source_anchors).where(s.source_anchors.c.memory_id == memory_id).values(quote="")
-        )
-        self._record(s.tombstones, {"memory_id": memory_id, "reason": "owner_requested"}, agent_id)
-        self.audit(agent_id, "memory.forgotten", memory_id, {})
-
-    def search_memory(self, agent_id: str, query: str, limit: int = 20) -> list[dict]:
-        self.settings(agent_id)
-        if not query.strip():
-            return []
-        tokens = re.findall(r"[^\W_]+", query, flags=re.UNICODE)[:20]
-        if tokens:
-            expression = " OR ".join('"' + token.replace('"', '""') + '"' for token in tokens)
-            matches = (
-                self.connection.execute(
-                    text(
-                        "SELECT m.* FROM memory_entries m JOIN memory_fts ON m.rowid=memory_fts.rowid "
-                        "WHERE memory_fts MATCH :expression AND m.agent_id=:agent AND m.deleted_at IS NULL "
-                        "ORDER BY bm25(memory_fts) LIMIT :limit"
-                    ),
-                    {"expression": expression, "agent": agent_id, "limit": min(100, max(1, limit))},
-                )
-                .mappings()
-                .all()
-            )
-            if matches:
-                return [dict(row) for row in matches]
-        statement = (
-            select(s.memory_entries)
-            .where(
-                s.memory_entries.c.agent_id == agent_id,
-                s.memory_entries.c.deleted_at.is_(None),
-                s.memory_entries.c.content.contains(query, autoescape=True),
-            )
-            .limit(min(100, max(1, limit)))
-        )
-        return [dict(row) for row in self.connection.execute(statement).mappings()]
+        self.connection.execute(update(s.leases).where(s.leases.c.state == "held").values(state="released"))
+        return {
+            "interrupted_runs": len(interrupted),
+            "unknown_actions": unknown,
+            "recovered_credentials": recovered_credentials,
+        }
 
     def query(self, kind: str, agent_id: str, *, after: int = 0, limit: int = 100, **filters: str) -> list[dict]:
         tables = {
@@ -655,9 +1010,9 @@ class Repositories:
             "work": s.work_items,
             "calls": s.model_calls,
             "outbox": s.outbox,
-            "presets": s.presets,
             "extensions": s.extensions,
             "schedules": s.schedules,
+            "summaries": s.summaries,
         }
         if kind not in tables:
             raise BusinessError("invalid_query", "Unknown query", status=422)
@@ -668,6 +1023,8 @@ class Repositories:
             statement = statement.where(table.c.agent_id == agent_id)
         if "deleted_at" in table.c:
             statement = statement.where(table.c.deleted_at.is_(None))
+        if kind == "memory":
+            statement = statement.where(table.c.kind.not_in(["profile", "resident"]))
         cursor = table.c.sequence if "sequence" in table.c else None
         if cursor is not None:
             statement = statement.where(cursor > after).order_by(cursor)

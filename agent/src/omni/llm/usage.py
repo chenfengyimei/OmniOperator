@@ -21,8 +21,6 @@ from typing import Any
 # 必须在 import litellm 之前：否则 LiteLLM 会在导入期向 GitHub 拉取价格表
 os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 
-import litellm  # noqa: E402  —— 有意在环境变量之后导入
-
 from ..config import LLM as LLMConfig  # noqa: E402
 
 MICRO = 1_000_000  # 1 美元 = 10^6 微美元（整数记账，不用浮点累计）
@@ -155,6 +153,10 @@ def resolve_price(cfg: LLMConfig, model: str) -> Price:
     if cap is not None and cap.input_usd_per_m is not None and cap.output_usd_per_m is not None:
         return Price(cap.input_usd_per_m / MICRO, cap.output_usd_per_m / MICRO, "config")
     try:
+        # Only price discovery needs the vendor SDK; importing contracts and
+        # using explicitly declared prices must not initialize it.
+        import litellm
+
         prompt_cost, completion_cost = litellm.cost_per_token(model=model, prompt_tokens=MICRO, completion_tokens=MICRO)
     except Exception:  # noqa: BLE001 —— 查不到价格是正常情况，不是错误
         return Price(None, None, "unknown")

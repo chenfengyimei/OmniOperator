@@ -1,0 +1,52 @@
+"""Tier drafts, model selection and persistent cost/tool reports at all supported viewports/themes."""
+
+import pytest
+from playwright.sync_api import expect
+from test_v2_history_ui import connect
+from test_v2_ui import v2_server as v2_server
+
+
+@pytest.mark.parametrize("width", [390, 760, 1024, 1440])
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_tier_editor_draft_and_actual_model_report(ui_browser, v2_server, width, theme):
+    context = ui_browser.new_context(viewport={"width": width, "height": 1000})
+    try:
+        context.add_init_script(f"localStorage.setItem('omni_theme','{theme}')")
+        page, errors = connect(context, v2_server)
+        url, token = v2_server
+        agent = page.locator("#agents").input_value()
+        response = context.request.post(
+            url + f"/api/v1/agents/{agent}/configurations",
+            headers={"Authorization": "Bearer " + token},
+            data={
+                "kind": "model",
+                "name": "UI cheap <script>window.injected=1</script>",
+                "enabled": True,
+                "value": {"model": "fixture-small"},
+            },
+        )
+        assert response.status == 201
+        model = response.json()
+        page.locator('[data-page="settings"]').click()
+        expect(page.locator("#route-fields")).to_be_enabled()
+        page.locator("#route-chat-model").select_option(model["id"])
+        page.locator("#route-chat-reserve").fill("321")
+        page.locator("#route-default").select_option("auto")
+        page.locator('[data-page="people"]').click()
+        page.locator('[data-page="settings"]').click()
+        expect(page.locator("#route-chat-reserve")).to_have_value("321")
+        page.get_by_role("button", name="保存档位配置", exact=True).click()
+        expect(page.locator("#route-config-status")).to_contain_text("已载入修订 1")
+        page.locator('[data-page="chat"]').click()
+        page.locator("#message").fill("你好")
+        page.get_by_role("button", name="发送", exact=True).click()
+        expect(page.locator("#messages")).to_contain_text("V2 test reply")
+        expect(page.locator("#route-run-status")).to_contain_text("档位 聊天")
+        expect(page.locator("#route-run-status")).to_contain_text("fixture-small")
+        expect(page.locator("#route-run-status")).to_contain_text("321 微美元")
+        expect(page.locator("#route-run-status")).to_contain_text("不是费用收益")
+        expect(page.locator("#route-call-list")).to_contain_text("memory_search")
+        assert not page.locator("#route-run-status script").count() and page.evaluate("window.injected") is None
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth") and not errors
+    finally:
+        context.close()

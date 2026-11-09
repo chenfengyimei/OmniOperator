@@ -1,0 +1,326 @@
+"""Trusted extension installation, scoped catalogs and explicit authorization; no plugin imports or process creation."""
+
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import json
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from typing import TypeVar, cast
+
+from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
+from ..domain.extensions import parse_authorization, parse_install, request_fingerprint, tool_spec
+from .objects import ObjectService
+from .ports import DatabasePort, ExtensionHostsPort, ExtensionPackagesPort, Record
+
+T = TypeVar("T")
+
+
+class ExtensionService:
+    def __init__(
+        self, database: DatabasePort, objects: ObjectService, packages: ExtensionPackagesPort, hosts: ExtensionHostsPort
+    ) -> None:
+        self._db, self._objects, self._packages, self._hosts = database, objects, packages, hosts
+        self._pending: set[asyncio.Task] = set()
+        self._invocations: dict[asyncio.Task, tuple[str, str, int]] = {}
+        self._errors: dict[tuple[str, str], str] = {}
+        self._closing = False
+
+    def _remember_error(self, record: Record, code: str) -> None:
+        key = str(record["agent_id"]), str(record["extension_id"])
+        if key not in self._errors and len(self._errors) >= 256:
+            self._errors.pop(next(iter(self._errors)))
+        self._errors[key] = code
+
+    def _public(self, record: Record) -> Record:
+        result = {
+            key: value
+            for key, value in record.items()
+            if key not in {"object_id", "cancel_operations", "retired_authority_epoch"}
+        }
+        result["runtime_error_code"] = self._errors.get((str(record["agent_id"]), str(record["extension_id"])), "")
+        result["runtime"] = self._hosts.health()
+        result["workers"] = self._hosts.health(str(record["agent_id"]), str(record["extension_id"]))["workers"]
+        result["trust_model"] = "trusted_python_not_os_sandbox"
+        result["requires_action_approval"] = True
+        return result
+
+    async def _execute(self, operation: Callable[[], Awaitable[T]], *, cancel_operation: bool = False) -> T:
+        if self._closing:
+            raise BusinessError("extensions_closing", "Extensions are draining", status=503)
+        if len(self._pending) >= 64:
+            raise BusinessError("extension_busy", "Extension operations are bounded", retryable=True, status=503)
+
+        async def perform():
+            return await operation()
+
+        task = asyncio.create_task(perform(), name="extension-operation")
+        self._pending.add(task)
+
+        def complete(future):
+            self._pending.discard(future)
+            self._invocations.pop(future, None)
+            if not future.cancelled():
+                future.exception()
+
+        task.add_done_callback(complete)
+        try:
+            return await asyncio.shield(task)
+        except asyncio.CancelledError:
+            if cancel_operation and not task.done() and not task.cancelling():
+                task.cancel()
+            raise
+
+    async def _retire(self, record: Record) -> None:
+        epoch = cast(int, record.get("retired_authority_epoch", 0))
+        if epoch <= 0:
+            return
+        agent, identity = str(record["agent_id"]), str(record["extension_id"])
+        current = asyncio.current_task()
+        for task, (owner, extension, authority) in list(self._invocations.items()):
+            if (
+                task is not current
+                and (owner, extension) == (agent, identity)
+                and authority <= epoch
+                and not task.done()
+                and not task.cancelling()
+            ):
+                task.cancel()
+        await self._hosts.revoke(agent, identity, epoch)
+
+    async def _prepare(self, record: Record) -> str:
+        agent = str(record["agent_id"])
+        _, payload = await self._objects.get(agent, str(record["object_id"]))
+        return await self._packages.prepare(agent, record, payload)
+
+    async def _drift(self, record: Record, code: str = "extension_snapshot_drift") -> None:
+        changed = await self._db.write(
+            lambda u: u.extension_mark_drift(
+                str(record["agent_id"]), str(record["extension_id"]), str(record["extension_revision_id"]), code
+            )
+        )
+        self._remember_error(record, code)
+        await self._retire(changed)
+
+    async def install(self, agent_id: str, request: Record) -> Record:
+        normalized, digest = parse_install(request), request_fingerprint(request)
+
+        async def perform():
+            prior = await self._db.read(lambda u: u.extension_install_replay(agent_id, normalized["key"], digest))
+            if prior:
+                return self._public(prior)
+            captured = await self._packages.capture(normalized["source"])
+            obj = await self._objects.publish(agent_id, captured.content, "application/vnd.omni.extension+zip")
+            metadata: Record = {
+                "manifest": captured.manifest,
+                "files": list(captured.files),
+                "package_sha256": captured.package_sha256,
+                "catalog_sha256": captured.catalog_sha256,
+            }
+            result = await self._db.write(lambda u: u.extension_install(agent_id, normalized, metadata, str(obj["id"])))
+            await self._retire(result)
+            return self._public(result)
+
+        return await self._execute(perform)
+
+    async def get(self, agent_id: str, extension_id: str) -> Record:
+        async def perform():
+            return self._public(await self._db.read(lambda u: u.extension_get(agent_id, extension_id)))
+
+        return await self._execute(perform)
+
+    async def page(self, agent_id: str, after: int = 0, limit: int = 20) -> Record:
+        async def perform():
+            records = await self._db.read(lambda u: u.extension_page(agent_id, after, limit))
+            return {
+                "items": [self._public(row) for row in records],
+                "next_after": records[-1]["sequence"] if len(records) == limit else None,
+            }
+
+        return await self._execute(perform)
+
+    async def authorize(self, agent_id: str, extension_id: str, request: Record) -> Record:
+        checked = parse_authorization(request)
+
+        async def perform():
+            record = await self._db.read(lambda u: u.extension_get(agent_id, extension_id))
+            if record["revision"] != checked["revision"]:
+                raise BusinessError("revision_conflict", "Plugin changed; inspect its current version")
+            try:
+                await self._prepare(record)
+            except BusinessError as exc:
+                if exc.code == "extension_snapshot_drift":
+                    await self._drift(record)
+                raise
+            result = await self._db.write(lambda u: u.extension_authorize(agent_id, extension_id, checked))
+            await self._retire(result)
+            self._errors.pop((agent_id, extension_id), None)
+            return self._public(result)
+
+        return await self._execute(perform)
+
+    async def disable(self, agent_id: str, extension_id: str, revision: int) -> Record:
+        async def perform():
+            result = await self._db.write(lambda u: u.extension_disable(agent_id, extension_id, revision))
+            if not result.get("retired_authority_epoch"):
+                # Explicitly retry resource cleanup for an already disabled slot;
+                # no new authorization, revision or audit is created by this retry.
+                result = {**result, "retired_authority_epoch": max(0, cast(int, result["authority_epoch"]) - 1)}
+            await self._retire(result)
+            return self._public(result)
+
+        return await self._execute(perform)
+
+    async def tools_for_run(self, agent_id: str, run_id: str) -> Sequence[ToolSpec]:
+        async def perform():
+            records = await self._db.read(lambda u: u.extension_run_tools(agent_id, run_id))
+            usable: set[str] = set()
+            checked: dict[str, bool] = {}
+            for record in records:
+                version = str(record["extension_revision_id"])
+                if version not in checked:
+                    try:
+                        await self._prepare(record)
+                        checked[version] = True
+                    except BusinessError as exc:
+                        checked[version] = False
+                        self._remember_error(record, exc.code)
+                        if exc.code == "extension_snapshot_drift":
+                            await self._drift(record)
+                if checked[version]:
+                    usable.add(str(record["binding_id"]))
+            # File I/O may have overlapped revocation; never substitute a later grant.
+            latest = await self._db.read(lambda u: u.extension_run_tools(agent_id, run_id))
+            return tuple(tool_spec(record) for record in latest if str(record["binding_id"]) in usable)
+
+        return await self._execute(perform)
+
+    async def invoke(
+        self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
+    ) -> ActionResult:
+        async def perform():
+            try:
+                encoded = json.dumps(
+                    dict(arguments), sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+                ).encode("utf-8")
+                if len(encoded) > 262144:
+                    raise ValueError("Plugin arguments exceed the JSON payload limit")
+                frozen = json.loads(encoded)
+                digest = hashlib.sha256(encoded).hexdigest()
+            except (ValueError, TypeError, UnicodeError, RecursionError):
+                return ActionResult(
+                    Outcome.DENIED, "Plugin arguments are not a bounded JSON value", error_code="invalid_tool_arguments"
+                )
+            record = None
+            try:
+                record = await self._db.read(
+                    lambda u: u.extension_dispatch(context.agent_id, context.run_id, operation_id, name)
+                )
+                if record["arguments_sha256"] != digest:
+                    raise BusinessError(
+                        "extension_arguments_changed", "Plugin arguments differ from the approved intent"
+                    )
+                task = asyncio.current_task()
+                assert task is not None
+                self._invocations[task] = (
+                    context.agent_id,
+                    str(record["extension_id"]),
+                    cast(int, record["authority_epoch"]),
+                )
+                location = await self._prepare(record)
+            except BusinessError as exc:
+                if record is not None:
+                    self._remember_error(record, exc.code)
+                    if exc.code == "extension_snapshot_drift":
+                        await self._drift(record)
+                return ActionResult(
+                    Outcome.DENIED, "Plugin is unavailable or its authorization changed", error_code=exc.code
+                )
+
+            preflight_error = ""
+
+            async def before_dispatch():
+                nonlocal preflight_error
+                try:
+                    await self._packages.verify(location, record)
+                    latest = await self._db.read(
+                        lambda u: u.extension_dispatch(context.agent_id, context.run_id, operation_id, name)
+                    )
+                    if latest["arguments_sha256"] != digest:
+                        raise BusinessError(
+                            "extension_arguments_changed", "Plugin arguments differ from approved intent"
+                        )
+                except BusinessError as exc:
+                    preflight_error = exc.code
+                    raise
+
+            try:
+                result = await self._hosts.invoke(
+                    record,
+                    location,
+                    name,
+                    frozen,
+                    operation_id=operation_id,
+                    context=context,
+                    before_dispatch=before_dispatch,
+                )
+            except BusinessError as exc:
+                return ActionResult(
+                    Outcome.ERROR, "No extension host is available", error_code=exc.code, retryable=exc.retryable
+                )
+            if preflight_error:
+                self._remember_error(record, preflight_error)
+                if preflight_error == "extension_snapshot_drift":
+                    await self._drift(record)
+                return ActionResult(
+                    Outcome.DENIED, "Plugin dispatch was rejected before code execution", error_code=preflight_error
+                )
+            if result.error_code == "extension_snapshot_drift":
+                await self._drift(record)
+            if result.artifacts:
+                return ActionResult(
+                    Outcome.UNKNOWN,
+                    "Plugin returned unsupported artifact references",
+                    Effect.UNKNOWN,
+                    error_code="extension_artifact_protocol",
+                )
+            return result
+
+        return await self._execute(perform, cancel_operation=True)
+
+    def health(self) -> Record:
+        return {
+            "closing": self._closing,
+            "pending": len(self._pending),
+            "unavailable": len(self._errors),
+            "hosts": self._hosts.health(),
+        }
+
+    def review_quiescent(self, agent_id: str, extension_id: str, authority_epoch: int) -> bool:
+        if any(
+            not task.done() and owner == agent_id and extension == extension_id and epoch <= authority_epoch
+            for task, (owner, extension, epoch) in self._invocations.items()
+        ):
+            return False
+        workers = self._hosts.health(agent_id, extension_id).get("workers", [])
+        return isinstance(workers, list) and all(
+            isinstance(worker, dict)
+            and (
+                cast(int, worker["authority_epoch"]) > authority_epoch
+                or not (worker.get("busy") or worker.get("starting") or worker.get("cleanup_pending"))
+            )
+            for worker in workers
+        )
+
+    def stop_accepting(self) -> None:
+        self._closing = True
+
+    async def close(self, timeout_s: float = 30) -> bool:
+        self.stop_accepting()
+        for task in list(self._invocations):
+            if not task.done() and not task.cancelling():
+                task.cancel()
+        if self._pending:
+            _, pending = await asyncio.wait(self._pending, timeout=max(0, timeout_s))
+            return not pending
+        return True

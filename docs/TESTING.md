@@ -21,6 +21,14 @@ uv run --no-sync pytest -q -n 8
 
 同一份源码、测试、依赖、测试配置已全量通过时复用该次结果；其中任一变化或其他会话改了代码，都要重新判断受影响范围与最终验证。不要并发启动多个完整套件。只使用规范路径 `agent/tests/`，避免本机兼容联接 `tests/` 带来不同 nodeid 和失败缓存。
 
+V2 文档维护的开发反馈先选 `test_v2_maintenance.py`、`test_v2_maintenance_http.py`；所有权、迁移或恢复发生变化时再增加对应的 `ownership`、`crash`、`migration` 文件。界面改动先选 `test_v2_maintenance_ui.py` 和受影响的具体 nodeid，整份 `test_v2_ui.py` 的多视口/主题业务矩阵留到跨界面验收。该矩阵保留完整场景、独立上下文与超时，不用缩短业务等待换取提速；开发反馈通过减少无关重复范围获得。
+
+记忆整理开发使用 `test_v2_memory_organization.py`、`test_v2_memory_organization_http.py`；关系/召回变更加入 `repository`，迁移/恢复加入 `migration`，事务中断加入 `crash`，界面仅先跑 `test_v2_memory_organization_ui.py`。必须验证逐字原文与规范化相同的差别、同作用域、审批不改记忆真值、可撤销召回、真实来源删除传播、恢复后旧核查不可复用，以及所有者CAS和迟到界面隔离。默认不调用模型或创建费用账；不得通过遗忘重复项实现普通整理。
+
+可信插件开发先跑 `test_v2_extensions.py`、`test_v2_extensions_http.py`；清单使用 `test_v2_extensions_contract.py`，仓储/中断使用 `test_v2_extension_repository.py` 与 `test_v2_extension_crash.py`，迁移/恢复使用 `test_v2_extensions_migration.py`。包和进程变更加入 `test_v2_extension_packages.py`、`test_v2_extension_hosts.py` 及已有worker调用方；界面先选新增 `test_v2_extensions_ui.py`，不每次运行旧工作台全矩阵。所有源码、进程、模型和写文件夹具隔离；插件必须先保持登记/授权零执行，再验证真实审批后代码、派发中断unknown及取消回收，不能通过模拟结果宣称实机能力。
+
+历史迁移夹具仅在旧schema造数时使用 `v2_legacy_seed.LegacySeedRepositories`，不把新版扩展表查询或运行目录捕获加到旧库；升级后必须使用真实Repositories。新增capture列由新迁移回归单独核验，旧字段继续精确比较，不在生产加入旧schema兼容层。
+
 ## 并行与浏览器隔离
 
 根目录与 `agent/` 的 pytest 配置一致：`-n auto --dist=loadfile --durations=10`，`conftest.py` 将自动 worker 数限制为 `min(4, CPU 数)`。`pytest-xdist` 属于开发依赖并锁定在 `uv.lock`。`-n 0` 关闭并行，显式 `-n 8` 或 `PYTEST_XDIST_AUTO_NUM_WORKERS` 可覆盖自动 worker 数。
@@ -51,3 +59,33 @@ uv run --no-sync pytest -q --junitxml=.pytest_cache/test-speed/full.xml
 2026-10-31 同机实测：相同的 55 项 UI/上下文测试，优化前串行 **139.39 秒**，优化后 4 worker + 浏览器复用 **55.31 秒**，本次观察到约 **2.52 倍**提速、耗时减少 **60.32%**。这只是单次测量。
 
 本轮并行全量共 1411 项，**1408 通过、3 失败，207.06 秒**。运行期间发生其他 UI 源码修改，不能作为固定源码快照全绿证据。3 个失败串行复核后，2 个资源版本检查已恢复，1 个 UI 契约检查仍因 `memory:resident-add` 未注册失败；串行同样复现。详细范围与原始报告摘要见 [提速验证记录](evidence/test-speed-2026-10-31.json)。
+
+2026-11-04 的单次串行冷进程观察：相同 node `agent/tests/test_v2_reference_release_contract.py::test_valid_plan_has_canonical_fingerprint_is_immutable_and_allows_shared_objects` 的命令报告从 **3.82 秒降到 0.38 秒**。改动仅将 `llm/usage.py` 的 LiteLLM 导入推迟到实际发现 SDK 价格时，配置价格及纯领域测试不再为未使用的 SDK 支付导入成本；离线价格表、未知费用与故障语义保持。相关定价、Gateway、检索和隔离闸门专项 **84 项通过**，不等于全量通过。这不是重复采样的基准，也不能推算全仓提速比例；开发专项仍用 `-n 0`，完整任务收尾仍按前述纪律运行一次全量。
+
+## V2 历史游标与后续审计保留
+
+R3.retention_audit.cursors 的专项分为领域游标校验、持久分配/清理修订、迁移/恢复、HTTP调用方及工作台。浏览器专项优先使用 `ui_browser`，每例独立 BrowserContext 和数据库；最小新增用例覆盖两类审计分页/410清空重载、未知种类通用展示，以及跨Agent迟到响应不恢复旧视图。UI故障注入前先检查真实新API响应合同，不能用模拟分页掩盖尚未接线的服务端。
+
+开发中按改动范围选择 `test_v2_history_contract.py`、历史仓储/迁移测试及 `test_v2_history_ui.py`，使用 `-n 0`；跨模块变动还须覆盖普通事件/审计、凭据实例审计、维护直接SQL和恢复调用方。删除尾部/全部行后仍保持分配高水位，中间缺口使原游标明确失效；事务回滚同时撤销删除和清理修订。HTTP覆盖错作用域/筛选、未来位置、旧after拒绝及恢复epoch变化，不跳过断言或缩短被测超时。
+
+本批游标基础的测试不证明180天候选、计划、备份执行与取消已经实现，也不证明三平台运行或72小时验收。上述清理门槛仍按[审计保留设计](V2_AUDIT_RETENTION_DESIGN.md)独立推进；专项结果和最终固定源码全量结果分别记录，不互相替代。
+
+R3.retention_audit.preview 新增领域、仓储保护、HTTP/CLI 与 UI 专项（`test_v2_audit_retention*.py`）。仓储用一次真实关闭后的裁剪模板复制到各例独立目录，避免重复创建同样的验证备份；每例仍独占数据库与锁，绝不复制活跃数据库。SQL 观察断言预览不读取审计/动作/事件正文，页内相同运行只判定一次。覆盖完整/部分/取消批次、作者 FK、遗忘后的实际关系释放、晚到费用/审批/租约/来源、人工核查后的 unknown 投递、固定时间/上界、180 天微秒边界与410。共享保护抽取需连同正文/引用/历史调用方验证。
+
+按本轮开发优先要求，阶段内只运行受影响专项；当前源码全仓复验继续待合并执行，不把专项或旧版全量写作当前全绿，不提交/发布候选版。
+
+R3.retention_audit.apply 先完成生产计划、DDL/仓储、离线命令、恢复和运维接线，再集中验证。计划、迁移、执行和恢复专项为 `test_v2_audit_plan_contract.py`、`test_v2_audit_plan_migration.py`、`test_v2_audit_pruning.py`、`test_v2_audit_pruning_crash.py`、`test_v2_audit_recovery.py`；运行均用 `-n 0`。真实子进程退出覆盖删行审计前/后、下一目标开始和完成前，不能用抛异常代替崩溃证据。迁移断点覆盖新表、索引、最后触发器并验证DDL与原数据完整回滚。
+
+共享 `offline_plans` 新增重复JSON字段拒绝；调用方验证仍含原正文/引用维护、历史游标、默认诊断、schema升级和恢复。每份报告标明范围；后续当前源码全仓复验仍是独立门槛。交互平台、真实账号及72小时不能由本地故障注入代替。
+
+R3.retention_audit.events 在生产接线完成后集中运行 `test_v2_event_retention_contract.py`、`test_v2_event_pruning.py`、`test_v2_event_retention_http.py`、`test_v2_event_plan_migration.py`、`test_v2_event_pruning_crash.py` 与工作台专项。共同执行核心抽取必须覆盖既有审计、正文、引用、历史与诊断调用方，不能只跑新事件用例。验证空事件表仍按原last_seq继续分配、只使对应Agent的events游标过期、恢复保留deleted证据且撤销pending、原引用计划过期及两类维护互相保护。
+
+迁移约束对照需同时收集 table.constraints 和每列 column.constraints 中的 CHECK，不能漏掉 ident() 的列级UUID长度约束；对实际约束仍作完整集合相等比较。失败原报告与指定nodeid修正报告分别保留，不以重跑专项宣称全仓通过。
+
+Windows前台输入离线回归为test_v2_foreground.py、test_v2_foreground_transport.py、test_v2_foreground_worker.py和test_v2_foreground_ui.py；worker使用真实固定帧/UIA与注入输入接口，不发送系统键鼠事件。真实验收仅通过agent/scripts/accept_foreground.py显式运行，要求所有者配合，保存至全新证据目录；本次用户已要求稍后执行，不把未运行写成通过。
+
+macOS宿主与协议离线回归为test_v2_macos_helper.py；包链检查包含全部Swift/C/H字节，部署捕获及启动指纹同样包含原生源码。Swift编译、AX/ScreenCaptureKit真实行为和输入暂停需按V2_MACOS_HANDOFF.md在Mac mini执行；Windows上的注入测试和通用wheel不证明原生macOS已支持。
+
+D2.macos.control 的Python离线范围包含test_v2_foreground.py、test_v2_foreground_transport.py、test_v2_macos_helper.py及test_v2_macos_acceptance.py。共用宿主测试同时注入Windows/Mac身份，覆盖二次放行、撤权、错误绑定、CRLF、提前成功及错误后置证明；Mac验收脚本测试使用注入凭据和管道，不调用系统Keychain。源码索引变动同时覆盖项目API调用方。
+
+macos/Core中9个XCTest只测试端口编排，不加载AppKit或发送系统输入；Mac构建脚本和独立CI任务负责实际编译执行。当前Windows环境未执行这些Swift用例。accept_macos_desktop.py的--foreground-owned-fixture及accept_macos_keychain.py的--write-owned-item均为显式实机验收，默认pytest不触发。未知凭据写入不重试，清理标识在执行前保存；已有条目不覆盖或删除，回传错误使用固定代码，不回传原始诊断正文。

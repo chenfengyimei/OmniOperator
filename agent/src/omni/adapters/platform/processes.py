@@ -173,7 +173,7 @@ class OwnedProcess:
         except (OSError, psutil.Error, TimeoutError):
             return False
         finally:
-            if self.job:
+            if self.job and self.reclaimed:
                 self.job.close()
 
     def _group_quiet(self) -> bool:

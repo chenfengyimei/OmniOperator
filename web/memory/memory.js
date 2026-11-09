@@ -1,6 +1,6 @@
 /* 记忆系统控制器：设置中心与旧页面共享六页签，查询、事件和状态限定在挂载根内。
    全部数据来自 /api/memory-system/*，读取一律分页；动态文本全部转义。 */
-import { esc } from '/ui/app/dom.js?v=20261102u2';
+import { esc } from '/ui/app/dom.js?v=20261103u5';
 export function mountMemory(root) {
   const $ = (selector) => root.querySelector(selector);
   const UI = window.OmniUI;
@@ -1030,7 +1030,7 @@ export async function loadMemory(root) {
     root.setAttribute('aria-busy', 'true');
     root.replaceChildren(window.OmniUI.element('p', '正在读取记忆系统…', 'empty'));
     try {
-      const response = await fetch('/memory/panel.html?v=20261102u2', {
+      const response = await fetch('/memory/panel.html?v=20261103u5', {
         credentials: 'same-origin',
         cache: 'no-store',
         signal: AbortSignal.timeout(15000),

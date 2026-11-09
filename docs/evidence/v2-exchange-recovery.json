@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.exchange_recovery_online_preparation",
+  "date": "2026-11-07T08:19:50.045539+08:00",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "0b4865e6e9446bebc86e79156d5dd46dfbcc6b527ca5f6ccd3f7a54765bee10a",
+    "fixed_source_files": 1000,
+    "snapshot": "temp/build/v2-exchange-recovery-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "service_plan_format": "omni-service-plan-2",
+    "release_format": "omni-release-plan-2",
+    "exchange_format": "omni-service-exchange-2",
+    "isolation_format": "omni-service-isolation-1",
+    "runtime_capture_format": "omni-service-runtime-2",
+    "actual_os_services_modified": false,
+    "system_start_authorization_implemented": false,
+    "macos_exchange_activation_implemented": false,
+    "cross_schema_upgrade_implemented": false,
+    "scope": [
+      "Explicit private isolation review binds exact interrupted history and reason; metadata events omit the reason",
+      "Two maintenance/instance locks and append-only isolating/isolated witnesses; partial fences resume only exact review",
+      "Original unknown operation bytes, active markers and predecessor reservation remain; isolation is not an effect conclusion",
+      "Rescue verifies original isolated authority, captures reviewed source DB/WAL/journal and restores latest failed data into a new home",
+      "New full deployment UUID native key prevents late old native operations from touching recovery registration; later descendants preserve separate keys",
+      "One source-locked immutable rescue selection witness prevents a second prepared recovery from opening another primary home; original plan remains resumable",
+      "Original-snapshot rollback refuses changed source data; latest rescue retains new messages, unknown cost and settled/held money",
+      "Financial continuity regression preserved unknown250000-micro hold and50000-micro spent through recovery and real core reopen, with no real model call",
+      "Read-only SQLite may create empty WAL; identity is checked before sealing the source witness, without ignoring WAL changes",
+      "Online-plan binds source stop/boot and advertises stops_service; prepare-online persists intent then drains once before snapshot, unknown only observes",
+      "Owned preparation task and independent preparation mutex survive waiting cancellation and remain until actual control cleanup",
+      "CLI plan/execute/rescue/online wiring, strict witness bindings and reserved journal capacity; no default-entry switch"
+    ],
+    "pending": [
+      "继续D4：系统启动授权后端、Mac登录激活与启动预留绑定，以及隔离前代注册的显式核查/清理；随后推进跨schema协调。Windows/Linux用户服务的排空→准备→交换→隔离救援源码已串联，但真实管理器、不可变环境和故障恢复仍待验收。Mac编译/ACL/实际字段、Linux实机、D3控制、业务/模型迁移及三平台72小时未完成。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 269,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-exchange-recovery-development.xml",
+        "sha256": "d9b94f73879d90a7f203b4a2c2bcd4dc9f8b54a9faebaf74f41325b282d4d589",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 39.151
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-current.xml",
+        "sha256": "b4e8ef4bbf48a5a4a9bcee5cf351fa38b745049a9a3148266998f1cf485642f6",
+        "tests": 58,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 225.514
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-corrected.xml",
+        "sha256": "2ce71e53c0c39748c8710246db6bcec36ba71ff09e51ee4e1a6821ba65db311c",
+        "tests": 3,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 16.978
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-fees.xml",
+        "sha256": "a2ce0bfbdd5aefffb24020b1cf3bf7173868a198e571c54fe446affb55d899e7",
+        "tests": 2,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 22.775
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-wal.xml",
+        "sha256": "04488a9df602a33c4679b1c2caaf5f3ccedc6043ef7776f9ab4f840944a1cd7c",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 38.488
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-final.xml",
+        "sha256": "08aaa4e252a4ab9fe1a48a92d8b43cd13ff8ce5eb9e9ee7892ad5de95b0857bf",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 62.412
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-callers.xml",
+        "sha256": "f618b0d5515e0e006caff01ae5c4e54bdb7e831e5598fb5428605aada444a19e",
+        "tests": 198,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 54.493
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-entrypoints.xml",
+        "sha256": "8b4db932b5892799fbeb7efe4fb985a7101082cfaede83812ac466bf5c6637a7",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 14.756
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-selection.xml",
+        "sha256": "d4a3f28fd8d65699daebb38563b14c02ccdb2e30876a27139fa6c0ac395e2b67",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 53.381
+      }
+    ],
+    "all_latest_cases_passed": true,
+    "report_method": "Chronological classname/name latest results across scoped runs, not a single269-case run. Original failed reports retained unchanged.",
+    "resolved_development_failures": [
+      "Initial financial fixture bypassed run-configuration invariants; replaced with actual repositories and offline model settings, without weakening DB triggers",
+      "Updated the root query composition test double for the explicit optional drain port, preserving its no-root-action assertion",
+      "Corrected the financial fixture to use the actual no-argument Database.close API",
+      "A genuine physical-witness drift came from read-only identity validation creating an empty WAL; normalized by validating identity before sealing, with strict WAL comparison retained"
+    ],
+    "additional_boundary_fixed": "Final review found that independent recovery plans could share the original isolation gate. A source-locked once-only selection claim now forbids opening a second target; competing plans and both financial recovery paths were checked. The earlier scoped snapshot remains in the private archive as superseded evidence.",
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "pyright": [
+      {
+        "path": "temp/build/v2-exchange-recovery-types-host.json",
+        "sha256": "ce9c0b64dd258c5fb759f98e0358014f99f7a97b183e07db666e393c0358fed6",
+        "filesAnalyzed": 19,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.408
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-types-linux.json",
+        "sha256": "29f17875bcde1bb02701524843fe5f5f027289cf742c094e1092f9fb0654ea4b",
+        "filesAnalyzed": 19,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.384
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-types-darwin.json",
+        "sha256": "8fbb5526c3a4ab55aece9c90252700d57208fe1b19b016c65d3fba4928b9d97f",
+        "filesAnalyzed": 19,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.504
+      }
+    ],
+    "type_limit": "Nineteen affected files in default host/Linux/Darwin modes; not strict whole repository or native compilation",
+    "gates": {
+      "path": "temp/build/v2-exchange-recovery-gates.json",
+      "sha256": "73482224dd3ffeba8c4c737ccab1022911b55484544ab410e870f1f0070e6b5a",
+      "passed": 6
+    },
+    "powershell_parse": {
+      "path": "temp/build/v2-exchange-recovery-powershell.json",
+      "target": "windows_services.ps1",
+      "script_executed": false,
+      "syntax_errors": 0
+    },
+    "packaging": {
+      "path": "temp/build/v2-exchange-recovery-packaging/evidence.json",
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "5cbd0f0e321f12adfcfeb6728c81af18ea6a8d0433d4a1602e4886b920472d46"
+    },
+    "packaged_sources_verified": [
+      {
+        "path": "temp/build/v2-exchange-recovery-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "fd21d2c84b5318cc2f7c8cf30004d4d79552b1bcffbc4eb85c7a0d43c759d850"
+      },
+      {
+        "path": "temp/build/v2-exchange-recovery-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "fd21d2c84b5318cc2f7c8cf30004d4d79552b1bcffbc4eb85c7a0d43c759d850"
+      }
+    ],
+    "limitations": [
+      "All registration/start/drain endpoints injected; PS parsed only, no real TaskScheduler/systemd/launchd, account or device action",
+      "The journal-capacity guard injects8 slots to exercise reserve behavior efficiently; production default remains64, no tested timeout shortened",
+      "Real isolated SQLite recovery and core reopen verified; this is not a canonical OS-service or real account/model acceptance",
+      "No full/UI matrix/load/72h/platform acceptance or automatic old-registration cleanup; Mac compilation and Linux actual run pending"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-exchange-recovery-source-20261107T081950+0800/manifest.json",
+    "source_files": 1225,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_EXCHANGE_RECOVERY.md",
+    "scope": "继续D4：系统启动授权后端、Mac登录激活与启动预留绑定，以及隔离前代注册的显式核查/清理；随后推进跨schema协调。Windows/Linux用户服务的排空→准备→交换→隔离救援源码已串联，但真实管理器、不可变环境和故障恢复仍待验收。Mac编译/ACL/实际字段、Linux实机、D3控制、业务/模型迁移及三平台72小时未完成。"
+  }
+}

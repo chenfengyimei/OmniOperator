@@ -1,7 +1,7 @@
-import { api } from './api.js?v=20261102u2';
+import { api } from './api.js?v=20261103u5';
 // 人设预设方案（localStorage 持久化，可增删改；市场导入的整套设定也落在这里，
 // 用 `market-<id>` 前缀区分来源，见 hub-market.js）。
-import { $, esc } from './dom.js?v=20261102u2';
+import { $, esc } from './dom.js?v=20261103u5';
 
 const PRESET_KEY = 'omni_persona_presets';
 let revision = '',

@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.macos_system_administrator_single_operation",
+  "date": "2026-11-07T23:37:08.007089+08:00",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "single_operation_development_complete": true,
+  "macos_system_exchange_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "da498e633ec6c27271c31e5b1d57d66c1bc919ccad6a9657192ac8872cb6e582",
+    "fixed_source_files": 1021,
+    "snapshot": "temp/build/v2-darwin-admin-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "administrator_protocol": 3,
+    "administrator_bundle_files": 28,
+    "administrator_audit": 3,
+    "actual_os_services_modified": false,
+    "default_entrypoint_changed": false,
+    "scope": [
+      "Root-owned isolated standard-library artifact; fixed local account, native Unix peer and no-follow ACL path proof",
+      "Typed bounded public system ServiceManagement probe in managed root child, no owner Swift execution",
+      "Register without bootstrap, idle exact unload/remove, single explicit start acceptance only; no unknown replay",
+      "Pre-exec permit and kqueue EXIT/FORK; unreaped child owns group identity, observed fork or uncertain close retains cleanup obligation",
+      "Shared audit3 and bounded transport/cancellation; Linux production contracts and callers covered"
+    ],
+    "pending": [
+      "继续D4 macOS系统整体交换与激活绑定：精确三子操作、单root父会话、双home/同原生键、实际settle/close与隔离清理；接续跨管理员协议/跨schema。Mac单操作已接源码，真实ABI/kqueue/dscl/launchd/ACL、Swift及8项原生门禁待Mac mini；Linux真实root及服务同待验收。D3前台/Portal、D5业务、D6模型扩展、D7入口与三平台72小时未完成。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 220,
+    "all_latest_cases_passed": true,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-darwin-admin-development.xml",
+        "sha256": "ec5dabe8ea80163d01ec1f370c336e2dae933ddd0b9606d6552e74448cb34ec7",
+        "tests": 104,
+        "failures": 6,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 21.582
+      },
+      {
+        "path": "temp/build/v2-darwin-admin-corrected.xml",
+        "sha256": "88cfdacdcc3da344661d51c56aabe6cc783e7b38d665a3535b489ec2395e0343",
+        "tests": 12,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.699
+      },
+      {
+        "path": "temp/build/v2-darwin-admin-acl-corrected.xml",
+        "sha256": "98d3e18411ff5f108dafec910f479bc18cf0f74eab6251f4181a75af76a1b094",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 0.415
+      },
+      {
+        "path": "temp/build/v2-darwin-admin-integration.xml",
+        "sha256": "ca82cec3ce2a0363a22e943a8769d40635beebdc18caa3b0f5c68fcbd999b739",
+        "tests": 145,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 6.999
+      },
+      {
+        "path": "temp/build/v2-darwin-admin-final.xml",
+        "sha256": "5d326814f1a7340bbcb8f941075bf03b66f952fd504ed514a499b29f2c885a0f",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.847
+      }
+    ],
+    "report_method": "Chronological latest node identities across development104, corrected12, ACL8, integration145 and final8. Not a single220 run or full suite. Initial failures preserved.",
+    "resolved_development_failures": [
+      "Test paths now use exact native Path spelling",
+      "Windows tests inject absent SIGKILL/WNOHANG and deterministic Darwin metadata without weakening production identity",
+      "Explicit platform narrowing and optional native job guard resolve initial31 type errors; raw report retained"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "pyright": [
+      {
+        "path": "temp/build/v2-darwin-admin-types-host.json",
+        "sha256": "9b020c1180b6042090b1651660d2c84995f95e0596e0ad723a207aeacc06dee7",
+        "filesAnalyzed": 19,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.202
+      },
+      {
+        "path": "temp/build/v2-darwin-admin-types-linux.json",
+        "sha256": "472c6a7eb927011bd6fedddecd34557b6b3d665c48e027a3a5ef08873aa9ecfa",
+        "filesAnalyzed": 19,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.245
+      },
+      {
+        "path": "temp/build/v2-darwin-admin-types-darwin.json",
+        "sha256": "e6c4c686b618d75a1bb7d5a0d248290f22bfdf0bf1bf19847628e9de52373d36",
+        "filesAnalyzed": 19,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.113
+      }
+    ],
+    "type_limit": "Nineteen affected Python files/callers, default host/Linux/Darwin mode; not repository strict or native ABI",
+    "gates": {
+      "path": "temp/build/v2-darwin-admin-gates.json",
+      "sha256": "e06ad771fee7bc77db64af030b387dceb33ca1e48cc6beeaab685f6afd11d3c9",
+      "passed": 3
+    },
+    "packaging": {
+      "path": "temp/build/v2-darwin-admin-packaging-final/evidence.json",
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "08873e3057fef09dd128023730082eadc000e0e00801d07e4e4b49673c41fd91"
+    },
+    "packaged_sources_verified": [
+      {
+        "path": "temp/build/v2-darwin-admin-packaging-final/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "08ef6698ca93872a1cbae7f2ef95e3b4d11b54cc10fb1ff52335a259ff4bcebe"
+      },
+      {
+        "path": "temp/build/v2-darwin-admin-packaging-final/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "08ef6698ca93872a1cbae7f2ef95e3b4d11b54cc10fb1ff52335a259ff4bcebe"
+      }
+    ],
+    "limitations": [
+      "No root, real service/account/model/device operations; native libraries/processes/signals injected",
+      "Mac ctypes ABI, kqueue ordering/no-fork utilities, ACL/local volume, dscl and launchd still need actual Mac validation",
+      "Swift/C and eight native path XCTest unexecuted; no full/UI/load/72-hour acceptance",
+      "System exchange/cross-administrator version/schema not implemented in this scope; V2 default remains V1"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-darwin-admin-source-20261107T233708+0800/manifest.json",
+    "source_files": 1256,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_MACOS_SYSTEM_SERVICES.md",
+    "scope": "继续D4 macOS系统整体交换与激活绑定：精确三子操作、单root父会话、双home/同原生键、实际settle/close与隔离清理；接续跨管理员协议/跨schema。Mac单操作已接源码，真实ABI/kqueue/dscl/launchd/ACL、Swift及8项原生门禁待Mac mini；Linux真实root及服务同待验收。D3前台/Portal、D5业务、D6模型扩展、D7入口与三平台72小时未完成。"
+  }
+}

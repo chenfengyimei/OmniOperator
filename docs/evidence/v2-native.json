@@ -1,0 +1,271 @@
+{
+  "schema": 1,
+  "batch": "D1.windows.foreground_D2.macos.initial",
+  "date": "2026-11-06",
+  "status": "Windows foreground development and scoped offline checks closed; macOS initial source implementation remains uncompiled",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "af23b32922f432ffbd0b6f3ca2994ca6123fc5c16aefa29217a0b0396fdf82a3",
+    "fixed_source_files": 876,
+    "snapshot": "temp/build/v2-native-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 95,
+    "migration_head": "v2_0023",
+    "assets_version": "20261106v33",
+    "ipc_version": "omni-desktop-ipc-5",
+    "windows": [
+      "Explicit single-action takeover consent and separate policy reuse owner commands/runs/approvals/actions/leases/review",
+      "Bound ready/permit handshake rechecks revocation after manual target focus; initial frame cannot authorize SendInput",
+      "One bounded input batch, passive input/focus monitoring, no focus stealing, partial own-key cleanup, unknown never replayed",
+      "Structured kind-specific verification, local workbench consent status and explicit interactive acceptance runner"
+    ],
+    "macos": [
+      "Fixed bundle/executable/ID; same bounded host and lifecycle, owner/source/protocol/final-executable fingerprint checks",
+      "Swift/C source for audit/libproc identity, bounded AX paths/ranges, secure subtree exclusion and ScreenCaptureKit single-window RGB capture",
+      "Semantic actions with passive user-input monitoring and stable existing focus; native foreground input unavailable",
+      "arm64/x86_64/universal build/sign/explicit first-install scripts and owned fixture acceptance/evidence runner",
+      "Swift/C/H included in runtime/deployment identity and both package chains"
+    ],
+    "macos_source_sha256": {
+      "Package.swift": "bfbd7d57b32ff7b69e2c15d14f88fb79b1b5abbea47cadcee5da611248a27169",
+      "Sources/NativeIdentity/identity.c": "396fdc1b3f352a19901e6437ae9183962642a1b61d407ac73e5ea991cac2121c",
+      "Sources/NativeIdentity/include/NativeIdentity.h": "8e556cb032e69ced1144eee1476a5a3c9303e3e1cd6bc19e0e55c26c28bde46d",
+      "Sources/OmniDesktopFixture/Fixture.swift": "3468826dfb5653a75ace938eeec9c180f713f73bdfaa72de00aac80e0255320e",
+      "Sources/OmniDesktopHelper/Accessibility.swift": "d3c6669d4c85f472d65bec376a67f87c48855d396f42d4b8124fe2877da9c5a7",
+      "Sources/OmniDesktopHelper/Actions.swift": "64baaa0ab802a51f13163de4ed7c28eef5f15725296116a16b7b4167d1bcf3eb",
+      "Sources/OmniDesktopHelper/Capture.swift": "24470d44247f20bfad038ba4a4ef5f1219803ac1bab6fb24af022cb11901f446",
+      "Sources/OmniDesktopHelper/HelperMain.swift": "40e18a450704d8d6c3e553b3d4180403245e9b7817bc32a076acc5ab89061923",
+      "Sources/OmniDesktopHelper/Identity.swift": "1aaf6e197e4b427bf8598a49f250f89fd56298566adebb4cd61579d9da280c59",
+      "Sources/OmniDesktopHelper/Protocol.swift": "eb45389deae0c999cb0445fb4e4f173db3e17624442c1ffa44b11a7438c866b5"
+    },
+    "macos_swift_compiled": false,
+    "macos_foreground_implemented": false,
+    "real_user_windows_manipulated": false,
+    "real_foreground_input_this_checkpoint": false,
+    "real_accounts_or_paid_models_used": false,
+    "native_services_modified": false
+  },
+  "validation": {
+    "targeted_unique_passed": 147,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-foreground-first.xml",
+        "sha256": "b95671220e48af1b4c5c683b8d0c66b79490cedf4668ecdcc788a1c9db49c6b8",
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 21.054
+      },
+      {
+        "path": "temp/build/v2-foreground-final-callers.xml",
+        "sha256": "55d296af8d2a625fce7c1c383a7fc7b9d069a789693b30a3175d724558251a69",
+        "tests": 69,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 27.539
+      },
+      {
+        "path": "temp/build/v2-native-macos-contracts.xml",
+        "sha256": "b3f1aef59ae09005d863f2ad29ad5eb9f8aa24e360e7f59d8824aa3ecc580a96",
+        "tests": 43,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 15.079
+      },
+      {
+        "path": "temp/build/v2-native-final-contracts.xml",
+        "sha256": "c06efc65c164b6a93c5c6117d71176a9947e16e83b0cbbeeef972053eb21a0b5",
+        "tests": 38,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 12.032
+      },
+      {
+        "path": "temp/build/v2-native-worker-final.xml",
+        "sha256": "96e4fa84af2bc0eb8f0aec9387a36699c357fc877f2ba28b1442ff49c2ae4ad2",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 31.032
+      },
+      {
+        "path": "temp/build/v2-native-ui-final.xml",
+        "sha256": "11978992f15f8a89f7ed7811fbb7433553a6cbe652fac8d5ae62fd1cee6a8227",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 17.414
+      }
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "packaging_runs_this_checkpoint": 2,
+    "packaging_current_source_verified": true,
+    "packaging": {
+      "assets": 102,
+      "sha256": "0afcb9c7ac0b271d22827891963016992f4403ccc7dbef861669f550c2fcc1b0",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "801c736ab101187d0eb59d88342b22f670eda058fec959cc5684e1e3ec2db835"
+    },
+    "packaging_artifacts": [
+      {
+        "path": "temp/build/v2-native-packaging-final/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "cce453ddf1edd12710096eca94f3106bbfa4403a96ccd7364b4c4af786e9aed4",
+        "bytes": 1820298
+      },
+      {
+        "path": "temp/build/v2-native-packaging-final/evidence.json",
+        "sha256": "986a0da22c86302987f233efbec21a358be34ce3253662407e64736674803ccd",
+        "bytes": 398
+      },
+      {
+        "path": "temp/build/v2-native-packaging-final/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "cce453ddf1edd12710096eca94f3106bbfa4403a96ccd7364b4c4af786e9aed4",
+        "bytes": 1820298
+      },
+      {
+        "path": "temp/build/v2-native-packaging-final/sdist/omnioperator-0.1.0.tar.gz",
+        "sha256": "fbb3209a9d21d4146d9b4a563171b57dbc1bb7b262a4fdbe4f7e8465559bc6fc",
+        "bytes": 2249949
+      }
+    ],
+    "packaging_note": "Initial package proof retained; native focus review and formatting changed sources afterward, so a final package chain was rebuilt and checked against the current kernel bytes.",
+    "pyright": {
+      "path": "temp/build/v2-native-pyright-final.json",
+      "filesAnalyzed": 9,
+      "errorCount": 0,
+      "warningCount": 0,
+      "informationCount": 0,
+      "timeInSec": 1.187,
+      "all_production_strict": false
+    },
+    "static_reports": [
+      {
+        "path": "temp/build/v2-native-static.json",
+        "sha256": "2e6c7a93747d197c99f28245d33ba18069e519fbf1ae006160973cc1b5bb0a37"
+      }
+    ],
+    "windows_native": "Owned UIA/window fixture and injected foreground input port; 8 intervention/protocol/partial/cleanup cases. Real system input was not sent.",
+    "browser": {
+      "cases": 2,
+      "viewports": [
+        390,
+        1440
+      ],
+      "themes": [
+        "dark",
+        "light"
+      ],
+      "isolated_contexts_and_databases": true
+    },
+    "interactive_windows": {
+      "status": "deferred_by_owner",
+      "raw_attempt": "temp/build/v2-foreground-native.xml",
+      "reason": "Windows would not grant fixture focus automatically; owner explicitly chose later interactive acceptance and continuing development. No passing interactive acceptance claimed."
+    },
+    "macos_runtime": false,
+    "linux_runtime": false,
+    "full_ui_matrix": false,
+    "diagnostic_reports": [
+      {
+        "path": "temp/build/v2-foreground-chain.xml",
+        "sha256": "c2ca76aabbf76eaeff69b4db0912c8cb1f661af03c2d3e71f281f16dad8f054e"
+      },
+      {
+        "path": "temp/build/v2-foreground-final-callers.xml",
+        "sha256": "55d296af8d2a625fce7c1c383a7fc7b9d069a789693b30a3175d724558251a69"
+      },
+      {
+        "path": "temp/build/v2-foreground-first.xml",
+        "sha256": "b95671220e48af1b4c5c683b8d0c66b79490cedf4668ecdcc788a1c9db49c6b8"
+      },
+      {
+        "path": "temp/build/v2-foreground-native.xml",
+        "sha256": "8bffc4fa3e2f315e16b5eec456aa91dec923ec5dbabd90e0cc4eeda9988ce1a4"
+      },
+      {
+        "path": "temp/build/v2-foreground-ui-recheck.xml",
+        "sha256": "6284215b11d1eafcd0cb03c92f8ca3cb1bc64c056b6e7a61173fb0b181f82f94"
+      },
+      {
+        "path": "temp/build/v2-foreground-worker-diagnostic.xml",
+        "sha256": "c2e8bcf7e59538bc81947e4dbd5e226f6fbbf0a9b9179ee64cfca7f314741cb7"
+      },
+      {
+        "path": "temp/build/v2-foreground-worker-first.xml",
+        "sha256": "24de928ef0ee052a933f18e07b41b46d71175e7e52bb709af7f283284e6d4725"
+      },
+      {
+        "path": "temp/build/v2-foreground-worker-framing.xml",
+        "sha256": "eb21346d0eb6a8010afc540aec619c61bc7f6a442c05dd53df0256970234f702"
+      },
+      {
+        "path": "temp/build/v2-native-final-contracts.xml",
+        "sha256": "c06efc65c164b6a93c5c6117d71176a9947e16e83b0cbbeeef972053eb21a0b5"
+      },
+      {
+        "path": "temp/build/v2-native-macos-contracts.xml",
+        "sha256": "b3f1aef59ae09005d863f2ad29ad5eb9f8aa24e360e7f59d8824aa3ecc580a96"
+      },
+      {
+        "path": "temp/build/v2-native-ui-final.xml",
+        "sha256": "11978992f15f8a89f7ed7811fbb7433553a6cbe652fac8d5ae62fd1cee6a8227"
+      },
+      {
+        "path": "temp/build/v2-native-worker-final.xml",
+        "sha256": "96e4fa84af2bc0eb8f0aec9387a36699c357fc877f2ba28b1442ff49c2ae4ad2"
+      },
+      {
+        "path": "temp/build/v2-native-pyright-final.json",
+        "sha256": "99230249498b069a45582bd5c8706626d3ea30b0807fe33d86a2b3a7a2ef0f32"
+      },
+      {
+        "path": "temp/build/v2-native-pyright.json",
+        "sha256": "ee322b5bc15ad7ecba35997c354e0ce0b38fe36a7b610611e772c9e6d5e571de"
+      },
+      {
+        "path": "temp/build/v2-native-static.json",
+        "sha256": "2e6c7a93747d197c99f28245d33ba18069e519fbf1ae006160973cc1b5bb0a37"
+      }
+    ],
+    "retained_failures_and_fixes": [
+      "Initial fixed readiness frame used CRLF; switched to LF, then reran native injected framing and fault paths",
+      "Initial browser connection failures retained; final independent contexts passed",
+      "Windows-host Pyright could not resolve os.getuid; platform lookup now explicit and bounded, final 9-file scope has no errors",
+      "Mac semantic code review replaced target-foreground requirement with existing-focus stability so workbench approval does not force focus stealing; Swift still awaits native compilation",
+      "Three existing V2 modules brought to fixed Prettier formatting; final static gates passed"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-native-source-20261106T105615+0800/manifest.json",
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "pending": [
+    "Owner-assisted Windows foreground/system input and full Windows platform acceptance",
+    "D2 compile Swift/C on Mac mini, implement native foreground authority/pause path, verify PTY/Keychain and return evidence",
+    "D3 Linux native/real desktop; D4 platform operations; D5 business migration; D6 models/extensions",
+    "D7 default-entry switch, strict types and candidate; D8 full/real/three-platform 72h acceptance"
+  ]
+}

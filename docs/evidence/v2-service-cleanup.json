@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.quarantined_predecessor_registration_cleanup",
+  "date": "2026-11-07T09:56:45.294453+08:00",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "a169cf7b21822156094451f9f07e1afee28adaa178d4986de1a6ece40edb29fb",
+    "fixed_source_files": 1009,
+    "snapshot": "temp/build/v2-service-cleanup-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "cleanup_plan": "omni-service-cleanup-1",
+    "cleanup_reservation": "omni-service-cleanup-reservation-1",
+    "original_exchange": "omni-service-exchange-3",
+    "actual_os_services_modified": false,
+    "scope": [
+      "Explicit full isolated history and witness plus one exact source/target definition, fixed derived private journal and distinct operation IDs",
+      "Existing ServiceOperations state, audit, cancellation, unknown reconciliation and ServiceRegistration native port reused without a second execution truth",
+      "Original exchange, maintenance and instance locks owned across actual work; exact original reservations/fences checked before and after instance lock acquisition",
+      "Same native manager/domain/name/scope reserves both old homes, blocking alternate-side/new-plan replay and related isolation chains sharing an old home",
+      "Partial two-home claim appears as an undispatched intent, cancellable but not reapplied; persistent dispatch always requires observation rather than replay",
+      "Uninstall only an exact idle reviewed definition; already absent may be recorded without native dispatch; foreign/running/unavailable refused",
+      "Static old bundle/code/resources/interpreter verification extracted and shared with release maintenance; no old import/execution or SQLite access for cleanup",
+      "Old data/objects/unknown receipts/launch claims/exchange reservations/fences preserved; new private cleanup reservations released only after terminal receipt and actual cleanup",
+      "Historical inspect/apply distinguished from live native observation; reappearing old registration remains unknown without automatic resend",
+      "CLI full-plan approval and absence+cleanup exit-code gates; rescue status explicitly says predecessor not_observed rather than implying fresh cleanup"
+    ],
+    "pending": [
+      "继续D4：系统服务交换编排，接续macOS系统授权与跨schema协调。隔离前代注册的独立清理计划、同键双home预约、取消与未知核查已接线；当前服务缺失与原unknown明确分离，原数据/费用/闸门保留。Linux系统单次start、Mac用户激活绑定、用户交换/救援继续保留。Mac Swift/ACL/加载字典与实际登录、Linux实机、D3控制、业务/模型迁移及三平台72小时未完成。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 46,
+    "all_latest_cases_passed": true,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-service-cleanup-development.xml",
+        "sha256": "60deef3e4adf819f2f5fe49716843ab1d1430294c02e17f85d7cc28e75ad3c1f",
+        "tests": 15,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 20.947
+      },
+      {
+        "path": "temp/build/v2-service-cleanup-corrected.xml",
+        "sha256": "228af5fb924cee2cb68c1bb8a9703b966cd83647b13d23c68850637dabf38b39",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 5.578
+      },
+      {
+        "path": "temp/build/v2-service-cleanup-integration.xml",
+        "sha256": "2b3bdfb72e6e26cc9d802f443e6ec4b2a9935ce753b898303a13a4822794813e",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 9.344
+      },
+      {
+        "path": "temp/build/v2-service-cleanup-final.xml",
+        "sha256": "3da06778c96c0d5a40db93848dff6957a0f2e0172e6668cb02d89323533c23ce",
+        "tests": 46,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 100.6
+      },
+      {
+        "path": "temp/build/v2-service-cleanup-cli.xml",
+        "sha256": "603df0ee48ebf577104827b7e414ef11d1ff5af657ab2240cb333f11ab4ee093",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.225
+      },
+      {
+        "path": "temp/build/v2-service-cleanup-proof.xml",
+        "sha256": "7c9a5dbe14ba5b3aa88d87ff0d28e92a8b90867144117bbd8b5a1f74e76deb5b",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 3.448
+      }
+    ],
+    "report_method": "One46-case scoped run passed; later CLI type-narrowing and static-proof wiring checks passed at their exact nodeids. Chronological latest identity results cover46 unique cases. Original failed reports retained.",
+    "initial_type_report": "temp/build/v2-service-cleanup-types-host-initial.json",
+    "resolved_development_failures": [
+      "Partial-claim fixture injected its failure by unsorted source/target order; corrected to the actual sorted lock order and verified zero native dispatch plus cancellation",
+      "Six Pyright diagnostics referred to one JSON-union receipt accessed twice; narrowed a local variable explicitly, without suppression or semantic fallback",
+      "Temporary gate output hit the Windows GBK console on a Pyright diagnostic; report had already been preserved; gate output is now explicitly UTF-8"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "pyright": [
+      {
+        "path": "temp/build/v2-service-cleanup-types-host.json",
+        "sha256": "2b72d5fd3af6456f836621444bb503d3c09dbf070dd326dbe608cc5a3e72c7d6",
+        "filesAnalyzed": 11,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.283
+      },
+      {
+        "path": "temp/build/v2-service-cleanup-types-linux.json",
+        "sha256": "d772ee10b023eceb1c3667962bed4d5d98d7d06b5cade12c102502efe0653994",
+        "filesAnalyzed": 11,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.238
+      },
+      {
+        "path": "temp/build/v2-service-cleanup-types-darwin.json",
+        "sha256": "db3f9aac3bedfc64e1e2b60289e6d9d983785592e70f9d587468be9292b1b9fe",
+        "filesAnalyzed": 11,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.342
+      }
+    ],
+    "type_limit": "Eleven affected/default-check files in host/Linux/Darwin modes; not strict whole repository or native compilation",
+    "gates": {
+      "path": "temp/build/v2-service-cleanup-gates.json",
+      "sha256": "e92ed4dbdecad612fdcbd4c204add30ec217d298b5d02a83522d9fbe862419bc",
+      "passed": 4
+    },
+    "packaging": {
+      "path": "temp/build/v2-service-cleanup-packaging/evidence.json",
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "f6f94693d79c5abdabaa6ca4dc2ad9cc02e0e9d43a440b2863b3d01666722209"
+    },
+    "packaged_sources_verified": [
+      {
+        "path": "temp/build/v2-service-cleanup-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "519af02f998e220c9b15670a768205f3dd133bfdaf66fe37afc7e16547770f0d"
+      },
+      {
+        "path": "temp/build/v2-service-cleanup-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "519af02f998e220c9b15670a768205f3dd133bfdaf66fe37afc7e16547770f0d"
+      }
+    ],
+    "limitations": [
+      "Native manager calls injected; no real task/systemd/launchd registration changed, no account/model/device action or privilege elevation",
+      "Cleanup tests preserve malformed SQLite sentinel bytes to prove no business DB access, while common rescue regression preserves actual unknown reserves and spent fees in isolated SQLite",
+      "Selected old code and interpreter proofs use isolated actual artifacts, with subprocess execution forbidden and changed code refused",
+      "No full/UI/load/72-hour or native platform acceptance; real Mac compilation/ACL/loaded dictionaries and Linux runtime remain pending"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-service-cleanup-source-20261107T095645+0800/manifest.json",
+    "source_files": 1239,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_SERVICE_CLEANUP.md",
+    "scope": "继续D4：系统服务交换编排，接续macOS系统授权与跨schema协调。隔离前代注册的独立清理计划、同键双home预约、取消与未知核查已接线；当前服务缺失与原unknown明确分离，原数据/费用/闸门保留。Linux系统单次start、Mac用户激活绑定、用户交换/救援继续保留。Mac Swift/ACL/加载字典与实际登录、Linux实机、D3控制、业务/模型迁移及三平台72小时未完成。"
+  }
+}

@@ -5,6 +5,7 @@ import uuid
 
 import pytest
 from sqlalchemy import insert, select
+from v2_configuration_helpers import model_instance
 
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.database import Database
@@ -84,8 +85,7 @@ def test_model_turn_and_exclusive_instance(tmp_path):
         with pytest.raises(BusinessError, match="already running"):
             await open_instance(tmp_path, model=Model())
         agent = (await app.query("agents", ""))[0]["id"]
-        cfg = await app.settings(agent)
-        await app.save_settings(agent, {**cfg["value"], "model": "fake"}, cfg["revision"])
+        await model_instance(instance, agent)
         receipt = await app.submit_turn(agent, None, "hello", "hello")
         for _ in range(100):
             run = await app.get_run(agent, receipt["run_id"])

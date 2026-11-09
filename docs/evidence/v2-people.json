@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "status": "people_batch_windows_offline_validation_passed",
+  "date": "2026-11-03",
+  "recorded_at": "2026-11-03T05:42:17.705604+08:00",
+  "batch": "R2.people",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "branch": "codex/architecture-v2",
+    "checkpoint_commit": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "uncommitted_changes": true,
+    "files": 598,
+    "fingerprint": "1d868c738d69b4d50d65d0cd63bad25023307ca88684ddc217f2b85e848ee59a",
+    "snapshot": "temp/build/v2-people-validation-snapshot.json",
+    "unchanged_during_full_run": true
+  },
+  "tests": {
+    "full": {
+      "status": "passed",
+      "command": "uv run --no-sync pytest -q --junitxml=temp/build/v2-people-full-pytest.xml",
+      "report": "temp/build/v2-people-full-pytest.xml",
+      "passed": 2091,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "workers": 4,
+      "duration_s": 524.64,
+      "xml_duration_s": 524.262
+    },
+    "v2_gate": {
+      "passed": 75,
+      "failed": 0,
+      "skipped": 0,
+      "duration_s": 96.6,
+      "report": "temp/build/v2-people-ci/pytest.xml"
+    },
+    "people_cases": 9,
+    "new_http_cases": 1,
+    "new_ui_cases": 3,
+    "fault_coverage": [
+      "owner protection and cross-Agent isolation",
+      "document revision compare-and-swap and delete/recreate ABA",
+      "manual account uniqueness and refusal of silent transfer",
+      "verified UTF-8 object import and erasure releases references",
+      "model exact-quote evidence and hash-only tombstone denial",
+      "person erasure failure rolls back all dependent writes",
+      "captured model context revision survives edits, erasure applies before next call",
+      "legacy V2 context revision uncertainty stays explicit",
+      "real process exit during schema rebuild preserves old database and retry succeeds",
+      "UI concurrent save/reload and late person response",
+      "UI draft conflict retention and explicit reload"
+    ],
+    "v2_cases_in_full": 75,
+    "people_cases_in_full": 9,
+    "ui_cases_in_full": 11
+  },
+  "storage": {
+    "database": "omni.db",
+    "alembic_version": "v2_0003",
+    "declared_tables": 38,
+    "personal_document_max_characters": 8000,
+    "one_owner_person_per_agent": true,
+    "account_verification": "manual only; no owner authority",
+    "evidence": "relational revision-bound message/object/manual-audit source",
+    "context": "captured revision relationships; legacy unresolved revision remains explicit",
+    "erasure": "scrubs all entry revisions and quotes, clears FTS, drops object source references, hash-only tombstones; original messages/files retained"
+  },
+  "static": {
+    "ruff": "passed",
+    "ruff_formatted_files": 475,
+    "prettier": "3.6.2; npm run format:check passed (vendor excluded by repository convention)",
+    "es_modules_syntax_checked": 54,
+    "project_index": "passed",
+    "task_summary": "passed",
+    "pyright_mode": "default; V2 production only, not whole-repository strict typing",
+    "pyright": {
+      "windows": {
+        "filesAnalyzed": 51,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 5.073
+      },
+      "linux": {
+        "filesAnalyzed": 51,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 5.198
+      },
+      "darwin": {
+        "filesAnalyzed": 51,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 5.827
+      }
+    }
+  },
+  "packaging": {
+    "report": "temp/build/v2-people-packaging/evidence.json",
+    "assets": 88,
+    "sha256": "2b0af43a9f2005c5d758ebaf6621bfcabe753063318065b8926607bb01ddee8c",
+    "chains": [
+      "direct wheel",
+      "sdist to wheel",
+      "isolated import"
+    ],
+    "v2": [
+      "packaged assets",
+      "isolated fresh schema",
+      "no V1 imports",
+      "clean shutdown"
+    ],
+    "v2_kernel_sha256": "44957c364c64c1f0a034395d8d3c4da048f328aed9f59634a9e9b9781d6b8f2b"
+  },
+  "ui": {
+    "runtime": "Windows Chromium",
+    "viewports": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "isolated_context_and_database_per_case": true,
+    "features": [
+      "chat",
+      "memory",
+      "files",
+      "logs",
+      "people",
+      "profile and resident revision editing",
+      "verified file import",
+      "saved Markdown export",
+      "account bind and person erasure",
+      "draft conflicts and in-flight response isolation"
+    ],
+    "screenshots": "temp/build/v2-ui/people-{theme}-{width}.png"
+  },
+  "resolved_failures": [
+    {
+      "report": "temp/build/v2-people-targeted.xml",
+      "cause": "Initialization could reload the people panel after navigation and overlap editing; in-flight saves could also overlap an explicit reload.",
+      "fix": "Keep navigation inert through instance initialization; await active writes before person reload; reject obsolete responses; retain conflicted drafts.",
+      "validation": "75-case V2 gate and fixed-source 2091-case full suite passed"
+    }
+  ],
+  "platform_acceptance": {
+    "windows": "2091 offline cases passed, including 75 V2 cases and Chromium scenarios; full native and real-account acceptance pending",
+    "macos": "static typing only; runtime not run",
+    "linux": "static typing only; runtime not run"
+  },
+  "known_limits": [
+    "summary/compression and full derived deletion propagation pending",
+    "message context currently bounded to 100 messages; summary/compression and visible truncation status await the next batch",
+    "source tombstones match normalized exact content or evidence quotes, not semantic equivalence",
+    "channel account identity verification and automatic people association pending R6",
+    "general source document extraction and background memory review pending",
+    "native adapters, full business migration, strict whole-repository typing and candidate delivery pending",
+    "container build, three-platform runtime and soak pending"
+  ],
+  "external_actions": {
+    "real_model_calls": 0,
+    "account_messages": 0,
+    "user_services_restarted": false,
+    "deployments": 0,
+    "releases": 0,
+    "soak_hours": 0
+  },
+  "previous_evidence": "docs/evidence/v2-objects.json",
+  "source_recovery": {
+    "manifest": "temp/private/v2-people-source-20261103T054238+0800/manifest.json",
+    "files": 774,
+    "zip_sha256": "df55f04a64f28b9e832ad3236bae0066dbd90ce5c808803567ad8680b5665055",
+    "standalone_source": true,
+    "runtime_data_included": false
+  }
+}

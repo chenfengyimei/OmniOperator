@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "batch": "R3.retention_audit.apply",
+  "date": "2026-11-05",
+  "status": "development_complete_targeted_passed_full_recheck_required",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "baseline_recovery": "temp/private/v2-audit-preview-source-20261105T011944+0800/manifest.json",
+  "source": {
+    "code_version": "e3060cc92a0f92f766f718eafec50a58094e8cc056f2ca6218c372986f582224",
+    "fixed_source_files": 722,
+    "snapshot": "temp/build/v2-audit-apply-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "implementation": {
+    "schema_version": "v2_0015",
+    "declared_tables": 76,
+    "own_assets": "20261105v21",
+    "policy": "agent-audit-retention-v1",
+    "plan_format": "omni-audit-retention-plan-1",
+    "tables": [
+      "audit_retention_batches",
+      "audit_retention_targets"
+    ],
+    "commands": [
+      "retention-audit-plan",
+      "retention-audit-apply",
+      "retention-audit-cancel"
+    ],
+    "plan_max_targets": 50,
+    "plan_max_bytes": 65536,
+    "contract": [
+      "Exact same-Agent subject mapping, fixed time/epoch/revision/ceiling, full audit and prune-proof fingerprints",
+      "Shared exclusive offline infrastructure; complete verified original snapshot and original target validation",
+      "Atomic exact DELETE/target progress/trigger trim revision/maintenance audit; bounded short transactions",
+      "Only matching deleted proof permits missing-row idempotence; prepared revision=base+committed deletes; complete receipt tolerates later legitimate cleanup",
+      "Late provenance/work/approval/unknown/cost/lease/pin/maintenance protection rechecked before each pending target",
+      "Cancellation preserves committed deletions, tolerates clock rollback or missing backup; restore cancels pending and changes epoch",
+      "Same-Agent prepared batch and pending-audit uniqueness; immutable evidence without live audit/action foreign keys",
+      "Diagnostic/workbench state counts only; no backup paths, plan payload or audit body export"
+    ],
+    "run_events_deleted": false,
+    "business_records_deleted": false,
+    "real_user_data_cleaned": false
+  },
+  "validation": {
+    "targeted_unique_passed": 231,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-audit-apply-development.xml",
+        "passed": 61,
+        "duration_s": 30.539,
+        "sha256": "2f31a7d7b088dbee00ff6dff535b17ce774709b7c63ca7fcef3f496840a447b7"
+      },
+      {
+        "path": "temp/build/v2-audit-apply-callers.xml",
+        "passed": 150,
+        "duration_s": 111.237,
+        "sha256": "273bc35c940cd6cf9fec790a52d50c880eff0259448be66dd0b42838b126e6ce"
+      },
+      {
+        "path": "temp/build/v2-audit-apply-recovery.xml",
+        "passed": 9,
+        "duration_s": 22.612,
+        "sha256": "f2a6d2feaa475644cb9d15484466947c5ff65ddb5e8990600fa9cdbc62edcbea"
+      },
+      {
+        "path": "temp/build/v2-audit-apply-guards.xml",
+        "passed": 5,
+        "duration_s": 8.704,
+        "sha256": "4ec72543d739ad24ef7dc07da7df95c333f9c8bfc0f5e5a8af693dd29e9e0b2a"
+      },
+      {
+        "path": "temp/build/v2-audit-apply-workbench.xml",
+        "passed": 6,
+        "duration_s": 17.527,
+        "sha256": "b2f833f9575be95214dd831d9e6b977eb9dc400678c85525852b6cd153b7225c"
+      }
+    ],
+    "current_full_passed": false,
+    "full_recheck_required": true,
+    "full_runs_this_checkpoint": 0,
+    "development_first": "Production contracts/schema/repository/CLI/recovery were completed before the consolidated related checks; no repeated full suite",
+    "static_report": "temp/build/v2-audit-apply-static.json",
+    "formatted_python": 588,
+    "v2_default_typechecked_files": 115,
+    "type_targets": [
+      "Windows",
+      "Linux",
+      "Darwin"
+    ],
+    "strict_whole_repository": false,
+    "real_platform_runtime": false,
+    "packaging": {
+      "assets": 95,
+      "sha256": "44234f904788ae3e7976a4ad56ecbb64316617149c56bee6350ce187a51ea8f7",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "ec254bcec575fd89581470e2b44ace967879b5d8a17f4b4981e4c5a500ea7eb7"
+    },
+    "faults": [
+      "os._exit before/after deletion audit, next target and before complete",
+      "v15 DDL process exit at table/index/final trigger; verified v14 backup and rollback/retry",
+      "Late source/cost/pin/content/missing-row/history drift before backup",
+      "Partial cancellation, invalid or missing backup, original and partial snapshot restore, restore fastpath markers/epoch",
+      "Duplicate JSON fields, wrong instance/Agent/schema/epoch, immutable targets, cross-Agent constraints"
+    ],
+    "initial_static_failure": {
+      "report": "temp/build/v2-audit-apply-static-initial.json",
+      "failure": "Two asset-version-updated files required Prettier formatting",
+      "resolved": true
+    },
+    "last_full_is_previous_source": {
+      "evidence": "docs/evidence/v2-history.json",
+      "passed": 2659,
+      "failed": 1,
+      "followup": "Original ConPTY race fixed and24 targeted passed; current whole-source full validation still pending"
+    }
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-audit-apply-source-20261105T015650+0800/manifest.json",
+    "source_files": 912,
+    "runtime_data_included": false,
+    "credentials_included": false,
+    "validation_status": "development_only_full_recheck_required"
+  },
+  "pending": [
+    "R3.retention_audit.events: preserve run identity/last_seq, sources/dedup/fees and explicit cursor expiration",
+    "Combined current-source full validation before any full-green/commit/release acceptance",
+    "R4/R5/R6 remaining business/vector/provider/native migration; macOS/Linux runtime and real three-platform/72h acceptance"
+  ]
+}

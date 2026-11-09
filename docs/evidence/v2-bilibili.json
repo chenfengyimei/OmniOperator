@@ -1,0 +1,193 @@
+{
+  "schema": 1,
+  "batch": "D5.business_channels.bilibili_base",
+  "date": "2026-11-08T12:16:57.510241+08:00",
+  "whole_v2_complete": false,
+  "business_channels_complete": false,
+  "bilibili_full_functionality_complete": false,
+  "selected_base_development_complete": true,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "349262b3c0fcae4588bd4f8b7617fd8d9908724103a612d9b4ab99a8d44210a0",
+    "fixed_source_files": 1052,
+    "snapshot": "temp/build/v2-bilibili-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 102,
+    "migration_head": "v2_0028",
+    "assets_version": "20261108v38",
+    "ipc_protocol": 2,
+    "adapter": "bilibili-ui/v2",
+    "guide": "docs/V2_BILIBILI.md",
+    "default_entrypoint_changed": false,
+    "v1_runtime_or_data_imported": false,
+    "actual_account_or_external_publication": false,
+    "headless_default": true,
+    "send_deadline_s": 25,
+    "read_deadline_s": 20,
+    "maximum_publication_processes": 4,
+    "actual_read_slots": 4,
+    "accepted_reads": 8,
+    "scope": [
+      "Async scoped account/video/comments/replies; fixed HTTPS targets, cookie UID/provider identity and bounded stream validation",
+      "Immutable reviewed profiles/revisions, browser mode, source/mention anchors, semantic idempotency and shared outbox association",
+      "Owner and model preparation cannot approve or submit; no duplicate message bodies in publication or preparation-tool results",
+      "UID-based real mention chips, exact form/content/target/epoch checks, no Enter submission, one guarded network write",
+      "Passive successful provider receipt and independent fresh-context exact matching server record; optimistic local DOM, changed server text and lost post-dispatch responses cannot report success",
+      "Four managed workers maximum, no database/legacy runtime/cookie files in child, stderr metadata only, actual reclamation owns account resources",
+      "Workbench profile drafts/CAS, source-message action, reader, publication records and real target/mention approval preview"
+    ],
+    "pending": [
+      "Android closed-loop migration",
+      "Bilibili actual account/DOM/request/receipt compatibility and QQ real-account acceptance",
+      "User search/subtitles/video/ASR/frames and remaining D6 model/extensions",
+      "D7 default-entry/package/product and native/three-platform acceptance"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 95,
+    "all_latest_cases_passed": true,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-bilibili-callers.xml",
+        "sha256": "a4a36708767e7cfbbe42d2329d53b196a8973350ae2a7d6bd4f1745933a8007d",
+        "tests": 78,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 78.408
+      },
+      {
+        "path": "temp/build/v2-bilibili-ui.xml",
+        "sha256": "8ad9a7b43be8cb28028db65d15abe63f4b62e47fa7ed43e083c33728e07cd743",
+        "tests": 11,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 31.096
+      },
+      {
+        "path": "temp/build/v2-bilibili-ui-fixed.xml",
+        "sha256": "925a9976871d22b288b6fa6e7e32ce497987d1e5a7a417dbd3d88472d96409b1",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 5.294
+      },
+      {
+        "path": "temp/build/v2-bilibili-schema.xml",
+        "sha256": "8e2a8716356562a1826c1da631e367083b42549f02cae913bdc11072f0716bcd",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 33.361
+      },
+      {
+        "path": "temp/build/v2-bilibili-provenance.xml",
+        "sha256": "b4dd4244d4d0db7e869ed519683728db78580830bab6cfccda47f53bff8beb18",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 2.699
+      },
+      {
+        "path": "temp/build/v2-bilibili-protocol.xml",
+        "sha256": "4890250fa030059f0b9656ca8485a4fb2136caf2aaf49efb543ea0722f9cd1a2",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.74
+      },
+      {
+        "path": "temp/build/v2-bilibili-read-validation.xml",
+        "sha256": "4507207eb90b8ea4051d756b4fdfd7ad0d7b3a95a9c5518170d04b540ffcacd2",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.031
+      },
+      {
+        "path": "temp/build/v2-bilibili-fresh-verification.xml",
+        "sha256": "f3a17d2061fa9285dc8b456ca36684100dab9fa5b8374f76c3e368cfcbd5e414",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 11.301
+      }
+    ],
+    "report_method": "Incremental callers78, UI11 with one fixed node, schema2, provenance2, protocol1, read5 (four overlaps), fresh-context verification2 (both overlap). Deduplicate latest node identities; not a single95 run or full suite.",
+    "browser_ui_cases": 9,
+    "viewports": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "current_packaging_rerun": false,
+    "gates": {
+      "path": "temp/build/v2-bilibili-gates.json",
+      "sha256": "1bc65defc09d8203c3b092f65c96af601904ab8056ee7bd5957bd0895f27847f",
+      "passed": 4
+    },
+    "pyright": {
+      "mode": "host",
+      "checking": "default",
+      "summary": {
+        "filesAnalyzed": 14,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 4.389
+      },
+      "sources": [
+        "agent/src/omni/domain/bilibili.py",
+        "agent/src/omni/application/bilibili.py",
+        "agent/src/omni/adapters/bilibili.py",
+        "agent/src/omni/adapters/workers/bilibili.py",
+        "agent/src/omni/adapters/persistence/bilibili_repository.py",
+        "agent/src/omni/adapters/persistence/bilibili_authority.py",
+        "agent/src/omni/composition/instance.py",
+        "agent/src/omni/composition/http.py",
+        "agent/src/omni/adapters/http.py",
+        "agent/src/omni/application/ports.py",
+        "agent/src/omni/adapters/persistence/repository.py",
+        "agent/src/omni/adapters/persistence/delivery_repository.py",
+        "agent/src/omni/adapters/persistence/schema.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0028.py"
+      ]
+    },
+    "limitations": [
+      "Provider, cookies, pages and responses are isolated fakes; real managed Python/Chromium/SQLite run on Windows only",
+      "Historical migration table-count assertions adjusted; those files were not all rerun; current empty metadata and selected real V25-to-current release paths passed",
+      "No real Bilibili login/write, native device/service or macOS/Linux execution, full suite, current package, strict-all, load or72h result",
+      "Bilibili base scope only; profile selectors and browser network formats require separate real-account acceptance"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-bilibili-source-20261108T121657+0800/manifest.json",
+    "source_files": 1296,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "id": "D5.android",
+    "status": "待开始",
+    "design": "docs/V2_BILIBILI.md",
+    "scope": "接通完整安卓业务闭环：V2配置/明确设备授权、受管ADB或语义辅助进程、固定设备身份与并发资源、观察/截图对象、动作意图与审批、派发前核验、断开/取消/unknown及回收、工作台和隔离假设备验证。不复用V1 Runtime或旧库，不操作未批准真实设备。随后继续D6模型/媒体/向量/MCP/技能扩展、D7产品切换；QQ/B站真实账号与原生/三平台72小时分别待验收。"
+  }
+}

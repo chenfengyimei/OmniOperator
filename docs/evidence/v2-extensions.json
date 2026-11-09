@@ -1,0 +1,260 @@
+{
+  "schema": 1,
+  "batch": "R4.extensions.python",
+  "date": "2026-11-05",
+  "status": "development_complete_targeted_passed_full_recheck_required",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "baseline_recovery": "temp/private/v2-memory-organization-source-20261105T051926+0800/manifest.json",
+  "source": {
+    "code_version": "c43f7c8a058849891005d144205209f02db84b3d41c699d21fb288fede2ba0f3",
+    "fixed_source_files": 779,
+    "snapshot": "temp/build/v2-extensions-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "implementation": {
+    "declared_tables": 88,
+    "schema_version": "v2_0019",
+    "own_assets": "20261105v25",
+    "manifest_format": "omni-python-extension-1",
+    "plugin_protocol": "omni-python-extension-ipc-1",
+    "ipc_envelope_version": 2,
+    "replaced_empty_placeholders": [
+      "extensions",
+      "grants"
+    ],
+    "new_tables": [
+      "extension_revisions",
+      "extension_tools",
+      "extension_install_requests",
+      "run_extension_tools",
+      "action_extension_bindings"
+    ],
+    "run_capture_marker": "runs.extension_capture_epoch",
+    "api": [
+      "GET/POST /api/v1/agents/{agent_id}/extensions",
+      "GET /api/v1/agents/{agent_id}/extensions/{extension_id}",
+      "PUT /api/v1/agents/{agent_id}/extensions/{extension_id}/authorization",
+      "POST /api/v1/agents/{agent_id}/extensions/{extension_id}/disable"
+    ],
+    "limits": {
+      "slots_per_agent": 16,
+      "versions_per_agent": 128,
+      "enabled_tools_per_agent": 64,
+      "tools_per_package": 16,
+      "files": 64,
+      "file_bytes": 1048576,
+      "package_source_bytes": 8388608,
+      "manifest_canonical_bytes": 65536,
+      "schema_canonical_bytes": 16384,
+      "schema_depth": 12,
+      "schema_nodes": 1024,
+      "model_tool_name_chars": 64,
+      "resident_hosts": 4,
+      "pending_calls": 64,
+      "package_io_threads": 2,
+      "package_io_pending": 8,
+      "ipc_frame_bytes": 1048576,
+      "arguments_bytes": 262144,
+      "page_default": 20,
+      "page_max": 50,
+      "workbench_rows": 200
+    },
+    "contract": [
+      "Static manifest and deterministic ZIP_STORED capture never import entry code; package SHA equals protected object SHA, catalog has a separate fingerprint",
+      "Immutable versions/tools retain real Agent-scoped object references; source edits require a new captured version, never alter an installed snapshot",
+      "No symlinks/junctions/hardlinks/traversal/case collisions/private runtime files/startup hooks; existing snapshot drift is rejected without overwriting",
+      "Install intent keys retain historical immutable receipts across upgrades; replay precedes source reads/capacity checks",
+      "Owner trust and selected tool grants bind revision/package/catalog/history epoch; all tools still require per-action human approval",
+      "Request acceptance captures Agent tool bindings and seals empty rosters; new grants cannot add tools to existing runs",
+      "Action preparation, approval, authorization and final IPC dispatch recheck exact binding/permissions and approved argument SHA",
+      "Update/disable/drift/regrant retire old epochs, cancel unsent approvals and preserve dispatched uncertainty; late revocation never closes a concurrent new epoch",
+      "Fixed -P trusted bootstrap starts outside plugin cwd; static hello precedes code import; only an authorized invoke loads entry bytes in the child",
+      "No direct HTTP invoke, model/credential/database SDK, host callbacks, dependency installation or file artifacts in this first slice",
+      "Cancellation retains actual spawn/cleanup tasks and Windows Job handles; poisoned workers cannot be reused before verified reclamation",
+      "Phase0 residual workers retain database and instance lock; owner detail exposes scoped PID/epoch/cleanup state, diagnostics expose only totals",
+      "Restore disables slots/revokes grants in the same quarantine/epoch transaction while retaining immutable package/tool/action evidence",
+      "Object and audit FK registries include extension evidence; protected authorization/review audit references are excluded from pruning",
+      "Stderr is bounded metadata-only with fresh context and no raw child text; namespace/Agent catalogs cannot leak into another space"
+    ],
+    "trust_model": "trusted_python_not_os_sandbox",
+    "all_plugin_tools_require_approval": true,
+    "real_user_data_modified": false,
+    "real_paid_model_or_account_used": false
+  },
+  "validation": {
+    "targeted_unique_passed": 151,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-extensions-core.xml",
+        "tests": 4,
+        "failed": 4,
+        "duration_s": 7.575,
+        "sha256": "ef94c55f57cd3d0cacff4f3cb966c336dc9453f1f17feec49ebe8e6528e0de17"
+      },
+      {
+        "path": "temp/build/v2-extensions-core-recheck.xml",
+        "tests": 4,
+        "failed": 0,
+        "duration_s": 11.811,
+        "sha256": "4c1308c338df2348faae48bd6d782a234ece7ee89f467170c5bcf9feef7ed6bc"
+      },
+      {
+        "path": "temp/build/v2-extensions-domain-storage.xml",
+        "tests": 46,
+        "failed": 3,
+        "duration_s": 37.433,
+        "sha256": "d002f50e22cfb20e85fcc458a3da2154aa185686a9fe30961a8ef4482a9bd82f"
+      },
+      {
+        "path": "temp/build/v2-extensions-budget-recheck.xml",
+        "tests": 3,
+        "failed": 0,
+        "duration_s": 1.9,
+        "sha256": "58bc65be9be939b17bd8cca109c42a10b57477f0c74c354b5539614747010ec2"
+      },
+      {
+        "path": "temp/build/v2-extensions-callers.xml",
+        "tests": 45,
+        "failed": 0,
+        "duration_s": 12.494,
+        "sha256": "9ac245c79b664cd2b9a5f2a397a69b98cde033f5c43d4c060213b13712f92312"
+      },
+      {
+        "path": "temp/build/v2-extensions-final-core.xml",
+        "tests": 3,
+        "failed": 0,
+        "duration_s": 10.374,
+        "sha256": "9cee83fcc92265e0f66154a0940e11d3a50d0ade375782ae37cfd7b46c09f18c"
+      },
+      {
+        "path": "temp/build/v2-extensions-adapters.xml",
+        "tests": 35,
+        "failed": 0,
+        "duration_s": 1.597,
+        "sha256": "644e1681285377150bec6e44a4a43bb7acefe9bf5fa3f600d71439a62886c285"
+      },
+      {
+        "path": "temp/build/v2-extensions-ui.xml",
+        "tests": 3,
+        "failed": 0,
+        "duration_s": 14.736,
+        "sha256": "b6b314b070f4bd79a0eb50df0cb6432bb95276bcac69e0ae9e64bf71f61d903a"
+      },
+      {
+        "path": "temp/build/v2-extensions-head-callers.xml",
+        "tests": 17,
+        "failed": 0,
+        "duration_s": 43.106,
+        "sha256": "90f839f21ffe700c63a3027b2f3c04d48fe1515ac535f1bacaba3f1db755dfa0"
+      },
+      {
+        "path": "temp/build/v2-extensions-runtime-details.xml",
+        "tests": 11,
+        "failed": 0,
+        "duration_s": 6.905,
+        "sha256": "ebe7713eaefa563125b2409daf5185c04a90ee2ee50b65a9cca45c5dea57b9e4"
+      }
+    ],
+    "aggregation": "Latest result per classname/parameterized node; original failures are replaced by explicit rechecks, never added twice",
+    "current_full_passed": false,
+    "full_recheck_required": true,
+    "full_runs_this_checkpoint": 0,
+    "development_first": true,
+    "static_report": "temp/build/v2-extensions-static.json",
+    "formatted_python": 642,
+    "v2_default_typechecked_files": 138,
+    "type_targets": [
+      "Windows",
+      "Linux",
+      "Darwin"
+    ],
+    "strict_whole_repository": false,
+    "real_platform_runtime": "Isolated Windows fake-model/local-plugin integration only; macOS/Linux native execution remains pending",
+    "packaging": {
+      "assets": 98,
+      "sha256": "8a63ee846f880b31bfee1a96569c7bac4916f6b8ec0df78b9d46ffccd3d145b6",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "abb9e50f785c05bba84f082b0e5eacfc51e4aebb83d6328b5702945626482dae"
+    },
+    "initial_failures": [
+      {
+        "report": "temp/build/v2-extensions-core.xml",
+        "failed": 4,
+        "cause": "Windows Python3.12 DirEntry.stat cached st_nlink=0 for regular files; Path.stat/os.stat returned1",
+        "fix": "Use path.stat(follow_symlinks=False), preserving strict single-link/descriptor identity checks",
+        "rechecks": [
+          "temp/build/v2-extensions-core-recheck.xml",
+          "temp/build/v2-extensions-final-core.xml",
+          "temp/build/v2-extensions-runtime-details.xml"
+        ]
+      },
+      {
+        "report": "temp/build/v2-extensions-domain-storage.xml",
+        "failed": 3,
+        "cause": "New Chinese-boundary fixture changed later schema overhead while allocating earlier strings, producing65575 rather than65536bytes before validation",
+        "fix": "Fix all schema skeletons first, then allocate payload; retain exact limit and +1byte rejection assertions",
+        "recheck": "temp/build/v2-extensions-budget-recheck.xml"
+      },
+      {
+        "report": "temp/build/v2-extensions-static-initial.json",
+        "cause": "Pool startup closure type allowed an unset Host reference",
+        "fix": "Assert the Host is published before startup; no ignores or relaxed type checks"
+      }
+    ],
+    "faults": [
+      "Five real process exits during installation, grant, executing intent, precommit settlement and committed success",
+      "Three v19 DDL exits with verified v18 backup/rollback/retry plus refusal of nonempty unsupported placeholder data",
+      "Real approved child import/invoke, after-dispatch child crash unknown, active-write disable and actual process reclamation",
+      "Empty run catalog cannot gain grants later; revocation/regrant and restore cannot resurrect old approvals",
+      "Concurrent CAS, descriptor and argument identity, cross-Agent catalogs, complete object/audit FK protection",
+      "False process reclaim retains ownership, stderr draining and Job handles; cancelled spawn remains owned; four resident slots/64pending quotas",
+      "Real Windows hardlink/junction rejection and DirEntry stat semantics; deterministic archive, poisoned ZIP and immutable snapshot drift",
+      "Metadata-only stderr cannot inherit a prior request context or leak child text",
+      "Three real-API browser cases cover hand-selected trust, CAS, disable, snapshot drift and late Agent/selection/write responses"
+    ],
+    "browser_scope": {
+      "new_cases": 3,
+      "duration_s": 14.91,
+      "representative_viewports": [
+        390,
+        760,
+        1440
+      ],
+      "four_viewport_dual_theme_full_matrix_currently_run": false,
+      "independent_contexts_and_databases": true
+    },
+    "legacy_seed_tests": "Old-schema seed-only helpers bypass new extension hooks; upgraded runtime always uses real repositories and exact prior-field comparisons",
+    "last_full_is_previous_source": {
+      "evidence": "docs/evidence/v2-history.json",
+      "passed": 2659,
+      "failed": 1,
+      "followup": "Old ConPTY race fixed with24 related passes; current-source full still pending"
+    }
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-extensions-source-20261105T083643+0800/manifest.json",
+    "source_files": 973,
+    "runtime_data_included": false,
+    "credentials_included": false,
+    "validation_status": "development_only_full_recheck_required"
+  },
+  "pending": [
+    "R4.action_review: durable owner reconciliation for unknown external actions, preserving original evidence and prohibiting automatic replay",
+    "Plugin host callbacks/artifact broker and real marketplace/MCP integrations remain outside this first Python-host slice",
+    "Combined current-source full revalidation and complete four-viewport/dual-theme gate before candidate acceptance",
+    "Semantic memory, remaining business/vector/provider integration, native adapters and three-platform real72h acceptance"
+  ]
+}

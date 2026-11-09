@@ -14,7 +14,6 @@ import asyncio
 import json
 import threading
 import time
-from pathlib import Path
 from types import SimpleNamespace
 
 import httpx
@@ -26,7 +25,7 @@ from omni.core.run import CancelToken, RunContext, RunIdentity
 from omni.memory.runs import RunStore
 from omni.memory.state import SCHEMA_VERSION, StateStore
 from omni.safety.broker import ApprovalBroker
-from omni.safety.gates import AllowAllApprover, DenyApprover, Risk
+from omni.safety.gates import DenyApprover, Risk
 from omni.tools.registry import Tool, ToolRegistry
 from omni.tools.result import ToolResult
 
@@ -503,12 +502,14 @@ def test_cancel_is_cooperative_and_does_not_fake_stopped(tmp_path):
     rt = _runtime(tmp_path)
     sid = rt.store.new_session("s")
     gate = threading.Event()
+    entered = threading.Event()
 
     class Blocking:
         def resolve(self, _route):
             return "fake/model"
 
         def complete(self, messages, *, model, tools=None, **kwargs):
+            entered.set()
             assert gate.wait(10)  # 模拟一个很慢的模型请求
             return SimpleNamespace(text="慢慢答完了", tool_calls=[])
 
@@ -519,26 +520,28 @@ def test_cancel_is_cooperative_and_does_not_fake_stopped(tmp_path):
         daemon=True,
     )
     worker.start()
-    for _ in range(200):
-        recent = rt.runs.list_recent(session_id=sid, limit=1)
-        if recent and rt.active_runs.get(recent[0].run_id) is not None:
-            break
-        time.sleep(0.01)
-    run_id = _run_id_of(rt, sid)
-    assert rt.active_runs.get(run_id) is not None, "运行应当已注册到本进程的取消表"
+    try:
+        # Registration precedes model entry. Only an entered model call proves
+        # the underlying work is still blocked when cancellation is requested.
+        assert entered.wait(10)
+        run_id = _run_id_of(rt, sid)
+        assert rt.active_runs.get(run_id) is not None, "运行应当已注册到本进程的取消表"
 
-    assert rt.active_runs.cancel(run_id, "用户点了停止") is True
-    during = rt.runs.get(run_id)
-    assert during.status == "running", "线程还在跑，不能显示成已停止"
-    assert during.phase == "cancelling" and during.ended_at is None
+        assert rt.active_runs.cancel(run_id, "用户点了停止") is True
+        during = rt.runs.get(run_id)
+        assert during.status == "running", "线程还在跑，不能显示成已停止"
+        assert during.phase == "cancelling" and during.ended_at is None
 
-    gate.set()
-    worker.join(10)
-    assert not worker.is_alive()
-    after = rt.runs.get(run_id)
-    assert after.status == "cancelled" and after.ended_at
-    assert result["turn"].status == "cancelled"
-    rt.close_state()
+        gate.set()
+        worker.join(10)
+        assert not worker.is_alive()
+        after = rt.runs.get(run_id)
+        assert after.status == "cancelled" and after.ended_at
+        assert result["turn"].status == "cancelled"
+    finally:
+        gate.set()
+        worker.join(10)
+        rt.close_state()
 
 
 def test_phase_never_overwrites_cancelling_marker():

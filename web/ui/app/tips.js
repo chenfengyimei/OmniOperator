@@ -1,5 +1,5 @@
 // rail 图标提示（data-tip → #tip-layer 顶层浮层）：hover 显示、移出隐藏、屏幕边缘自动翻转。
-import { $ } from './dom.js?v=20261102u2';
+import { $ } from './dom.js?v=20261103u5';
 
 (function () {
   const layer = $('#tip-layer');

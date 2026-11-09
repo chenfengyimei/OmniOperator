@@ -222,7 +222,7 @@ export async function loadJobs(root) {
     root.setAttribute('aria-busy', 'true');
     root.replaceChildren(UI.element('p', '正在读取后台任务…', 'empty'));
     try {
-      const response = await fetch('/jobs/panel.html?v=20261102u2', {
+      const response = await fetch('/jobs/panel.html?v=20261103u5', {
         credentials: 'same-origin',
         cache: 'no-store',
         signal: AbortSignal.timeout(15000),

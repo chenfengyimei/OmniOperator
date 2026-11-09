@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import re
+import uuid
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TypeAlias
@@ -90,12 +91,17 @@ class ToolSpec:
     writes: bool = False
     timeout_s: float = 60
     resource: str = ""
+    binding_id: str = ""
 
     def __post_init__(self) -> None:
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,100}", self.name):
             raise ValueError("Invalid capability name")
         if not math.isfinite(self.timeout_s) or self.timeout_s <= 0:
             raise ValueError("Capability timeout must be finite and positive")
+        if not isinstance(self.binding_id, str) or (
+            self.binding_id and str(uuid.UUID(self.binding_id)) != self.binding_id
+        ):
+            raise ValueError("Capability binding requires a canonical UUID")
 
 
 @dataclass(frozen=True)
@@ -121,8 +127,11 @@ class ModelReply:
     input_tokens: int | None = None
     output_tokens: int | None = None
     cost_micro: int | None = None
+    completion_reason: str = "stop"
 
     def __post_init__(self) -> None:
+        if self.completion_reason not in {"stop", "tool_calls", "length", "content_filter"}:
+            raise ValueError("Invalid model completion reason")
         for value in (self.input_tokens, self.output_tokens, self.cost_micro):
             if value is not None and (type(value) is not int or value < 0):
                 raise ValueError("Model usage and cost must be nonnegative integers or unknown")

@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "batch": "D3.linux.session",
+  "date": "2026-11-06",
+  "status": "Selected logind/local-bus/AT-SPI read source integrated; Windows injected checks passed; actual Linux runtime pending",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "50a66d8a9cb6cf8532306a8c60f08febec694e57c7e7f699c950746800cdc711",
+    "fixed_source_files": 894,
+    "snapshot": "temp/build/v2-linux-session-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 95,
+    "migration_head": "v2_0023",
+    "assets_version": "20261106v33",
+    "ipc_version": "omni-desktop-ipc-5",
+    "scope": [
+      "Active local graphical logind user/seat/session identity, locked/remote/root denial; User.Display fallback only for NoSessionForPID",
+      "Pre-authentication socket path/owner/inode/SO_PEERCRED and process-creation checks; exact connected socket reused by version-fenced dbus-next 0.2.3",
+      "Canonical local buses, pinned unique service names/UID/PID and GUID checks, NO_AUTO_START, bounded auth/frame/count/aggregate/timeout and cleanup",
+      "AT-SPI top-level discovery and 128-node/8-depth/16KiB read-only trees; no password Name/Text or descendants, cross-bus truncation",
+      "Application GetSessionByPID membership required; same-UID user-service apps without provable membership are explicitly unavailable",
+      "Window-relative geometry explicitly carried through domain/HTTP; Linux action references denied, no capture or input enabled",
+      "Existing owned helper, queue/cancel/revocation/audit/API/workbench reused; native text/errors not put in logs or metadata evidence",
+      "Explicit Linux native read-only acceptance tool and handoff, injected acceptance evidence excludes UI text and platform-complete claims"
+    ],
+    "linux_source_implementation_present": true,
+    "linux_capture_implemented": false,
+    "linux_semantic_or_foreground_actions_implemented": false,
+    "real_system_input_this_checkpoint": false,
+    "real_desktop_enumerated_this_checkpoint": false,
+    "real_bus_connected_this_checkpoint": false,
+    "system_credentials_modified": false,
+    "real_accounts_or_paid_models_used": false,
+    "native_services_modified": false
+  },
+  "validation": {
+    "targeted_unique_python_passed": 142,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-linux-session-final.xml",
+        "sha256": "fe49089ef30eaf1cb8a25e3119b8388cd180d9115737e81d633e63c0eab22f51",
+        "tests": 134,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 13.018
+      },
+      {
+        "path": "temp/build/v2-linux-session-integration.xml",
+        "sha256": "08c10b809a8840fd30f54887bd961959070e5680b75332838c95a7f5369c65fc",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 4.076
+      }
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "pyright": [
+      {
+        "path": "temp/build/v2-linux-session-types-final.json",
+        "filesAnalyzed": 9,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.327
+      },
+      {
+        "path": "temp/build/v2-linux-session-acceptance-types-final.json",
+        "filesAnalyzed": 1,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 0.451
+      },
+      {
+        "path": "temp/build/v2-linux-session-types-linux.json",
+        "filesAnalyzed": 4,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 0.814
+      }
+    ],
+    "all_production_strict": false,
+    "static": {
+      "path": "temp/build/v2-linux-session-static.json",
+      "sha256": "aedee31772ba1b3ccbd702d7a217f387834c0d3609b362f4653937e429a4d72d"
+    },
+    "packaging_runs_this_checkpoint": 1,
+    "packaging_current_source_verified": true,
+    "packaging": {
+      "assets": 102,
+      "sha256": "0afcb9c7ac0b271d22827891963016992f4403ccc7dbef861669f550c2fcc1b0",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "f34bf841830fcd7d6975c3b2a80499b83b534a0f9ae62ae29d7859becf00b378"
+    },
+    "packaging_artifacts": [
+      {
+        "path": "temp/build/v2-linux-session-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "08e1a22645d63f318dc72d99892a2422f28f1b6f62aa2c7e5129e8558365b59b",
+        "bytes": 1845147
+      },
+      {
+        "path": "temp/build/v2-linux-session-packaging/evidence.json",
+        "sha256": "a3c58631fb71dfa12407b9334506f51c21e0bccff5099c3fda07ec00b450eac4",
+        "bytes": 398
+      },
+      {
+        "path": "temp/build/v2-linux-session-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "08e1a22645d63f318dc72d99892a2422f28f1b6f62aa2c7e5129e8558365b59b",
+        "bytes": 1845147
+      },
+      {
+        "path": "temp/build/v2-linux-session-packaging/sdist/omnioperator-0.1.0.tar.gz",
+        "sha256": "e8af30c4fb44da1c99499680491b9daa76c8def9c33e05c588499492b7309c34",
+        "bytes": 2285770
+      }
+    ],
+    "packaging_limit": "Windows byte-checks Python/Swift/C/H and assets in direct wheel/sdist-wheel; fresh isolated V2 schema/import/shutdown. No native Linux transport, Mac compilation or platform install is proven.",
+    "linux_runtime": false,
+    "actual_dbus_next_transport_handshake": false,
+    "linux_x11_desktop": false,
+    "linux_wayland_desktop": false,
+    "macos_runtime": false,
+    "macos_swift_compiled": false,
+    "swift_tests_authored": 9,
+    "swift_tests_executed_here": 0,
+    "windows_interactive_acceptance": "Deferred by owner; no real input run",
+    "new_browser_runs": 0,
+    "full_ui_matrix": false,
+    "limitations": [
+      "Kernel metadata, sockets, D-Bus library hooks and provider replies are injected in Windows tests; actual library handshake and Linux desktop still need evidence",
+      "Apps launched under systemd user services can lack logind PID membership and are deliberately refused until stronger X11/Portal binding exists",
+      "No screenshot/input/Portal adapter yet; native withdrawal, session/login/sleep and hardware behavior remain unverified"
+    ],
+    "development_corrections": [
+      "Made process credentials and socket inode checks stable and full-UID scoped; library constructor/auth faults close both stream and socket",
+      "Fixed explicit asyncio import and platform-only type boundaries; default 10-file and Linux 4-file checks have no diagnostics",
+      "Legacy Linux fallback no longer infers headless from absent display env; production Linux session truth only comes from the verified helper",
+      "Corrected request fixture probe limit and injected Linux constants on Windows; retained original failed raw reports, final affected coverage passes",
+      "Bound Linux window coordinate metadata and refused action references; acceptance helper validates listing before selection"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-linux-session-source-20261106T132030+0800/manifest.json",
+    "source_files": 1102,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D3.linux.capture",
+    "handoff": "docs/V2_LINUX_HANDOFF.md",
+    "scope": "X11 server/XRes process/session identity and screenshot/object publication, then Wayland Portal session/consent/revocation and actions"
+  },
+  "pending": [
+    "Linux real runtime/library/desktop validation and capture/control implementation",
+    "Mac mini compilation and 9 Swift tests/native acceptance",
+    "Owner-assisted Windows input and full platform acceptance",
+    "Platform operations, business migration, model/extensions",
+    "Default-entry switch and complete strict typing/candidate",
+    "Full/fault/load/real-accounts/devices and each platform 72h"
+  ]
+}

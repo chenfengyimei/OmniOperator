@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "batch": "D6.local_vector_documents",
+  "date": "2026-11-09T03:22:11.101478+08:00",
+  "whole_v2_complete": false,
+  "d6_complete": false,
+  "selected_local_onnx_documents_development_complete": true,
+  "real_pretrained_quality_accepted": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "a1e5aefbefd5d96aa19f54832e4538c82de5b1f0b4363c89dad2bdf1f90b5c20",
+    "fixed_source_files": 1108,
+    "snapshot": "temp/build/v2-vectors-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 111,
+    "migration_head": "v2_0032",
+    "new_database_tables": 0,
+    "assets_version": "20261109v44",
+    "guide": "docs/V2_LOCAL_VECTORS.md",
+    "default_entrypoint_changed": false,
+    "actual_paid_model_or_device_actions": false,
+    "pretrained_weights_downloaded": false,
+    "main_environment_rebuilt": false,
+    "scope": [
+      "Explicit canonical manifest SHA, safe local file identity and atomic offline startup selection, optional CPU dependencies",
+      "Supervised native worker, no DB/credentials/network/model download, bounded IPC/queue/CPU threads and actual cleanup retention",
+      "Real ONNX/Tokenizers execution, recursive external-tensor refusal, shape/finite/nonzero normalization and actual file-change guards",
+      "Separate query/document prefixes and complete overflow windows, weighted pooling, version includes policy/model/runtime",
+      "Reuse existing document build/vector/active pointers, namespace changes exclude stale indexes, late edited/erased sources cannot republish",
+      "Honest full-text fallback, workbench configured/loaded/error states, metadata-only diagnostic and effective boot audit",
+      "Conditional Intel Mac runtime and separate CI targets; CI and other platform results remain pending"
+    ],
+    "pending": [
+      "继续D6档位路由：模型角色/配置修订、每轮实际选择与费用/图像能力一致性、撤权/取消、界面解释和可复现成本验证。文档本地ONNX已接；预训练模型语义质量、记忆向量召回/语义整理、技能媒体、MCP/OAuth、插件市场仍待；D7正式入口及各平台真实模型/设备/负载/72小时未完成。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 61,
+    "all_latest_cases_passed": true,
+    "method": "One final fixed-source offline scope, real synthetic ONNX graphs and consumers; no full suite or package rebuild",
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-vectors-final.xml",
+        "sha256": "a51e89c0ad88725e834c6a1344881ee2932780c436c2a08fb27fed024b5a5a5a",
+        "tests": 61,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 109.806
+      }
+    ],
+    "native_synthetic_inference_cases": 6,
+    "browser_ui_cases": 16,
+    "viewports": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "core_without_optional_onnx": {
+      "path": "temp/build/v2-vectors-core-no-extras.json",
+      "sha256": "1aa7ef7b836db97dca7544b4a57067ea9151ffd5e0fca3a781709f12df48c97d",
+      "result": {
+        "onnx_installed": false,
+        "core_ready": true,
+        "mode": "full_text",
+        "reason": "vector_runtime_not_installed",
+        "hits": 1
+      }
+    },
+    "fixed_gate_source": {
+      "path": "temp/build/v2-vectors-gate-source.json",
+      "sha256": "8dbffd5e6a4e366c1a35ceaf967bfc8ca62def4fe2a9163797a7a03d7569e444",
+      "files": 44
+    },
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "current_packaging_rerun": false,
+    "gates": {
+      "path": "temp/build/v2-vectors-gates.json",
+      "sha256": "6612763b2c8359748eb062ac0aafaf83bb1c1ed76b730c0e67602be47fb9e470",
+      "passed": 5
+    },
+    "pyright": {
+      "checking": "default",
+      "mode": "host",
+      "summary": {
+        "filesAnalyzed": 8,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.977
+      },
+      "sources": [
+        "agent/src/omni/domain/local_vectors.py",
+        "agent/src/omni/adapters/vector_files.py",
+        "agent/src/omni/adapters/local_vectors.py",
+        "agent/src/omni/adapters/workers/local_vectors.py",
+        "agent/src/omni/application/documents.py",
+        "agent/src/omni/application/ports.py",
+        "agent/src/omni/composition/instance.py",
+        "agent/src/omni/composition/cli.py"
+      ]
+    },
+    "limitations": [
+      "Windows only; genuine native inference with synthetic graph/tokenizer, no pretrained quality claim",
+      "Optional ONNX/ML dtypes installed only to an isolated build directory, unchanged main environment independently starts and searches without them",
+      "CI templates added, not executed; no Mac/Linux/ARM runtime, full package rebuild, all-strict, real model quality, load or 72h acceptance",
+      "Memory vector recall, semantic organization and other D6 extensions remain pending"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-vectors-source-20261109T032211+0800/manifest.json",
+    "source_files": 1364,
+    "runtime_data_included": false,
+    "credentials_included": false,
+    "model_weights_included": false
+  },
+  "next": {
+    "id": "D6.model_routing",
+    "status": "待开始",
+    "design": "docs/V2_REFACTOR.md",
+    "scope": "继续D6档位路由：模型角色/配置修订、每轮实际选择与费用/图像能力一致性、撤权/取消、界面解释和可复现成本验证。文档本地ONNX已接；预训练模型语义质量、记忆向量召回/语义整理、技能媒体、MCP/OAuth、插件市场仍待；D7正式入口及各平台真实模型/设备/负载/72小时未完成。"
+  }
+}

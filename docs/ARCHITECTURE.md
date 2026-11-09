@@ -4,7 +4,138 @@
 
 > 本文是模块职责与依赖规则的唯一权威。**分层与组装根规则由 `agent/tests/test_arch.py` 用 AST 强制执行**——改坏会直接测试红，不靠自觉。
 
+## V2 文本技能与回合披露
+
+`domain/skills.py`定义纯文本、清单和编辑规则；有界`adapters/skill_packages.py`只解析内存ZIP/Markdown，不解包或执行。`application/skills.py`通过对象与事务端口编排导入、审阅、历史和实际披露；持久层固定目录、使用、审阅审计与授权代次，模型动作继续共用审批。Engine只组合已使用技能文本，模型可见工具文本明确携带编辑修订、参考清单及写入回执，后台data不能替代实际模型输入；ModelCalls沿现有授权检查拒绝失效来源，QQ不接入所有者技能。关闭先排空实际任务，协调器只为上一轮遗留的已完成短预算等待接续一次，不复制活跃关闭。详见[技能合同](V2_SKILLS.md)。
+
+## V2 记忆语义与相关核查
+
+`application/local_vectors.py`统一文档与记忆的本地向量预检/身份/有界计算；`memory_semantics.py`拥有索引、混合召回和相关候选用例，计算不进入事务。持久层复用现有记忆修订与来源捕获，派生向量绑定模型/来源，SQL触发器即时清空失效向量。模型工具在最终来源复核事务中登记上下文依赖；相关事实仅保存明确人工决定，不改写、抑制或删除正文。记忆任务先排空，再由现有文档/向量生命周期回收共享worker；辅助进程不打开数据库，详见[记忆语义合同](V2_MEMORY_SEMANTICS.md)。
+
+## V2 档位与固定模型调用
+
+`domain/routing.py`拥有纯规则、策略校验和工具交集；应用服务只编排配置/报告，Engine持有每次响应原工具边界。入队事务捕获档位策略、实际模型修订和费用预留；ModelCalls沿同一授权、计量、图片和流式链登记实际工具快照。升档只能引用先前提供控制工具的调用，并只影响下一调用，不改变模型/预算或绕过审批。持久层约束作用域、顺序与不可变性，HTTP不直接选择供应商。工作台使用服务端事实解释选择和未知费用，不把规格字节差称为实际收益，详见[档位合同](V2_ROUTING.md)。
+
+## V2 本地向量与文档检索
+
+`domain/local_vectors.py`固定纯清单、版本和有界IPC合同；`vector_files.py`验证本机模型安装与启动选择。宿主只编排受管进程，固定worker才加载ONNX/Tokenizers并计算CPU向量，不打开数据库或继承凭据。`LocalVectorizer`显式报告状态及区分query/document；`DocumentService`复用现有派生索引与来源/删除屏障。模型、池化、前缀、分窗和运行时共同决定索引版本；故障如实降级全文检索，实际回收前保留实例资源。详见[向量合同](V2_LOCAL_VECTORS.md)。
+
+## V2 图片对象与实际模型请求
+
+`application/images.py`编排验证、来源与最后一程编码；有界Pillow适配器不打开数据库。原图复用对象存储，消息分块与运行原子入队，模型图片协议绑定不可变配置修订。`ModelCalls`先持久预留引用，再经共享授权/费用/流式路径派发；摘要只登记图片存在，不读取图片正文。每次调用累计次数独立于上下文压缩，未知不释放，源删除释放对象指针但保留次数。非拥有图片元数据随对象删除，不阻止GC；详见[图片合同](V2_IMAGES.md)。
+
+## V2 模型流式输出
+
+`application/model_calls.py`继续统一预检、授权、费用与摘要调用；显式流式端口只用于普通模型回合。纯领域组合有界正文/工具片段，适配器核验SDK之前的供应商结束与用量并拥有实际关闭。`model_output.py`只保存4个活跃回合的有界临时预览，不写第二份消息或费用真值；HTTP按作用域与上下文复核，终态回到持久消息。半个工具不生成动作，完整工具仍统一审批；取消/关闭失败保留实际归属，凭据代次切换不误退已派发费用。源码和验证边界见[流式合同](V2_MODEL_STREAMING.md)。
+
+## V2 安卓设备与所有者动作
+
+`application/android.py`拥有持久授权、短期观察、截图和共享审批动作；固定`workers/android.py`和`android_adb.py`只访问显式选择的现有本机ADB，不打开数据库、不启动ADB或执行任意shell。设备绑定配置修订、transport、boot、Android用户及恢复历史代次，写前复核；已派发但后置条件不明保留unknown，统一核查前阻止同设备后续输入。截图复用会话对象引用，命令参数单向移交`actions`；实际进程、文件及租约回收前保留归属。模型运行范围以规范化关系行绑定来源批准动作，统一approved_dispatch并复核模型/应用/动作权限；滑动、长按、按键及应用查询启动已接入，Unicode辅助组件与恢复义务现已接线，详见[安卓合同](V2_ANDROID.md)、[模型范围](V2_ANDROID_MODEL.md)和[Unicode合同](V2_ANDROID_UNICODE.md)。
+
+`adapters/android_unicode.py`只编排受管进程与凭据端口，固定Unicode worker拥有本机ADB/IME协议；原生InputMethodService校验编辑器并处理一次提交。配置修订不可变，恢复义务必须先于IME切换持久提交；未知派发只读核查，不重放。恢复使用共享所有者动作审批，原动作unknown独立保留。源码Java/XML纳入构建身份；真实Android安装和设备验收待完成。
+
+## V2 B站读取与发布
+
+`application/bilibili.py`统一所有者/模型读取及发布准备，不执行隐式审批；`bilibili_authority.py`共享配置、凭据、规则和来源判定。`adapters/bilibili.py`拥有有界异步读取与发布进程，固定`workers/bilibili.py`承担真实组件、一次网络放行、回执与新增记录核验；辅助进程不打开数据库。发布绑定引用原消息，经关系表接共享outbox，不复制正文或再建发送真值。最后派发重新核验，unknown不重发，真实回收前保留资源归属。默认无头模式可供服务器使用，平台实测另记；详见[B站合同](V2_BILIBILI.md)。
+
+## V2 QQ入口与受限上下文
+
+`application/qq.py`拥有有界接收监督器和会话授权用例；`adapters/onebot.py`只负责OneBot协议、登录身份和确定/未知结果，不导入V1或打开数据库。`qq_repository.py`在共享事务中完成归属、去重与入队；`qq_authority.py`统一模型、上下文和投递使用的授权判定。QQ会话采用独立人设/历史，不注入所有者档案、私人记忆、工具或插件。回复沿统一outbox审批，发送前再次核验实际连接的凭据代次；冷却沿现有尝试账本持久化。组装根统一构造和回收连接、通道服务与投递，详见[QQ合同](V2_QQ.md)。
+
+## V2 离线服务变更边界
+
+`domain/service_operations.py`定义纯计划、注册前后置条件；`application/service_operations.py`通过部署、注册和维护记录端口编排。`composition/service_operations.py`只组装显式 CLI，不构造 V1 Runtime。原生适配器负责固定管理器调用；维护记录适配器在实例锁下验证既有数据库身份，不迁移或自行建表。意图与回执是独立的离线审计，未知结果阻止新操作，不构成另一套业务状态。调用取消及回收失败不能提前释放实例锁。Windows/Linux 用户注册已接入；macOS 用户宿主与固定 Swift 只读描述源码已加入，注册、加载、就绪分开报告，完整 job 不离开比较内存。操作计划 v2 明确声明 macOS 潜在激活/卸载影响，不在维护锁内 bootstrap。Mac 编译、默认 ACL/原生字典核验、macOS 系统目标、不可变更新及平台实测仍待完成。详见[服务合同](V2_SERVICES.md)。
+
+Mac 用户/系统状态共用查询协议2，响应明确绑定 GUI 或 system 域；系统查询仅核验普通所有者进程，不借图形会话或用户 helper 获得 root 权限。共享 C 文件证明采用成功的 no-follow statx/filesec 属性查询确认 ACL 缺失，用户/root 路径属主分开，最终身份不变才接受。签名前原生文件8项测试已接线，待 Mac 编译执行；macOS 独立标准库管理员已接单操作注册/卸载/start，同 schema 系统交换已接线，仍待平台验收。详见[系统服务前置与接续](V2_MACOS_SYSTEM_SERVICES.md)。
+
+Linux 系统注册/显式启动由普通用户的 `ServiceRegistrationPort` / `ServiceStarterPort` 客户端与独立 root 管理员包协作；端点和包 SHA 必须显式指定，不自动提权。`domain/service_admin.py`定义有限消息，`systemd_state.py`统一普通/root 查询判定。root 包仅使用固定标准库模块，不导入应用组装根、数据库、插件或用户环境；源文件指纹须与审阅部署一致。root 通过固定 Unix socket 的内核身份、每实例锁及无覆盖派发见证，只对绑定 unit 执行注册/移除或精确 ControlPlan 的 start；完整 Linux 系统交换可批准唯一父会话，绑定三项子操作，子 settle 证明命令回收、父 close 证明会话归属结清，不接受 stop/restart/任意命令。root 启动回执只证明提交；普通控制服务持有启动预留，以本次 HMAC boot 及匹配 MainPID 核验成功。坏帧、取消、进程回收失败不能视作成功。Linux root 文件、pidfd/subreaper、实际 systemd 与完整交互尚未实机验证，源码/注入通过不等于已支持，详见[系统启动合同](V2_SYSTEM_SERVICE_START.md)。
+
+Darwin管理员只导入纯合同、共享launchd状态和独立平台适配；root probe通过受管标准库子进程读取公开ServiceManagement，不执行用户Swift应用。账号来自固定Local/Default，文件与内核Unix peer分别验证；注册不bootstrap，单次start由所有者证明预约boot。预exec许可后才允许运行固定命令，kqueue严格检测fork；任何fork或关闭不确定保留归属，不使用已失效的NOTE_TRACK或历史后代PID。两平台共用审计字节结构，源代码没有引入第二套应用状态。详见[Mac管理员合同](V2_MACOS_SYSTEM_SERVICES.md)。
+
+## V2 不可变版本与目录选择边界
+
+`domain/releases.py`定义不可变计划、路径隔离与 typed 元数据；`domain/schema_upgrade.py`只校验捕获绑定的线性前向迁移。`application/releases.py`编排准备、选择和放弃，不安装、启停或提权。`release_files.py`负责连续日志、安装文件和两份实例锁；持久层复用一致快照及恢复隔离，只在禁止启动的新 home 迁移，保留意图与报告。`sqlalchemy_access.py`统一运行内核和离线升级的连接/事务配置；领域与应用不导入数据库。跨 schema 数据准备及旧快照恢复见[结构升级合同](V2_SCHEMA_UPGRADE.md)，完整跨schema服务协调现已接入分阶段管理员模式，原生验收待完成。
+
+`domain/release_fence.py`是新旧安装必须共同采用的启动排除合同。普通 `InstanceLock`不能打开暂存或退役 home；协调器必须携带匹配 release ID/SHA。选择先持久登记意图并封住源，再开放目标；旧服务必须独立移除且查询明确证明缺失。恢复使用匹配的原安装与验证快照，进入另一份新目录，保留失败版本数据。该离线链不等于自动服务交换、跨 schema 升级或 ready；完整规则及中断行为见[版本切换合同](V2_RELEASES.md)。
+
+## V2 服务控制与实际关闭
+
+`domain/service_control.py`定义精确启停计划和分用途的 HMAC 请求/回执；`application/service_control.py`只编排注入端口及观察后置条件。控制与注册复用维护日志及 `PrivateFileLock`，实例锁继续拥有启动闸门。启动预留在实例锁下单次领取，随后以预定 boot_id 核验；正常停止只向匹配本次启动的本机端点请求排空，不按历史 PID 强杀。
+
+HTTP 只持有窄排空端口，实际登记及关闭入口由运行时任务拥有，断线不丢弃。组装根将服务器退出与共同生命周期连接，超出正常关闭预算仍保留事件循环和实际清理归属。运行描述 v2 分开固定 venv 启动器和实际进程映像，不通过放宽路径比较兼容 Windows 启动器。Linux 系统显式启动和 Mac 用户交换激活绑定已接线；macOS 系统单操作/交换已接源码，平台验收仍待完成；细节见[控制合同](V2_SERVICE_CONTROL.md)。
+
+## V2 服务交换边界
+
+`domain/service_exchange.py`定义交换计划4、固定子操作及有序证明；`application/service_exchange.py`拥有协调任务和交换日志锁，`exchange_steps.py`组合既有注册、release 和控制用例。交换日志及双 home 维护预约由 `exchange_files.py`持久维护，不新增业务库或自动回滚。步骤调用前登记派发；恢复只观察未完成步骤，不重放原生变更；只有后续未派发步骤可在完整批准下继续。
+
+目标启动时不持有实例锁，旧源已被 release 闸门封住。源卸载/签名排空通过审阅源核验器验证公开安装，不运行旧代码。注册和控制的成功回执与实际回收分别记录，原生回收未完成时保留活动标记和锁。Windows/Linux/macOS 用户交换及 Linux/macOS 系统交换已接线；后者使用完整计划绑定的 root 父会话，目录选择借只读子端口观察源，所有者保持数据真值。Linux 系统与 Mac 用户共用启动激活绑定，拒绝非预约 boot。管理员源码必须同时匹配新旧捕获，不同管理员源码/跨schema使用分阶段模式；不兼容协议桥接不开放，实机验收待完成，见[系统交换合同](V2_SYSTEM_SERVICE_EXCHANGE.md)。详见[交换合同](V2_SERVICE_EXCHANGE.md)。
+
+`domain/service_activation.py`定义交换预约与精确启动绑定；`service_launch.py`在业务存储打开前核验预约、部署和一次性预留。Mac 用户/系统和 Linux 系统的旧源、未预留目标不能因登录或机器重启生成随机 boot；开发入口也不能越过。`ExchangeFiles`先落盘预约，终态与实际子操作/父会话回收成立后才释放；intent 后缺失预约拒绝重建。审阅计划明确 abandon 解除后续自动激活限制的影响，Mac 另声明源卸载影响。状态查询、启动和只读验收共用运行/管理器判定，Mac/Linux 要求原生 PID 与 HMAC 进程一致。新旧固定安装须共享激活合同及消费者；原生 Swift、ACL、加载字典与实际登录仍待 Mac mini 验收。
+
+`service_isolation.py`与`recovery_authority.py`定义独立的隔离批准和前代授权；`application/exchange_recovery.py`只在实际停机、两份锁及连续见证下封住旧目录，不清除未知回执。救援从失败目录的最新一致快照恢复，并以部署 UUID 隔开原生名称，旧活动标记继续保留。持久层先核验身份再封存 WAL 指纹，避免自己的只读打开误报变化；旧快照回滚要求数据连续性，不覆盖后续费用与未知账目。`application/release_drain.py`复用本次 boot 控制，在线准备先登记正常排空，未知阶段只观察，确认关闭后才备份。隔离/恢复不自动回滚或清理旧注册，详见[恢复与准备合同](V2_EXCHANGE_RECOVERY.md)。
+
+`domain/service_cleanup.py`绑定精确隔离历史、部署与移除计划；应用清理复用 `ServiceOperations` 状态和取消逻辑。`CleanupFiles`仅在原交换锁、两份维护及实例锁下拥有独立日志/预约，不删除原 unknown、闸门或数据；同原生名称的未结清清理阻止换侧或换计划重发。`ReleaseFiles.reviewed_installation`统一静态旧代码核验，不执行旧环境或打开业务数据库。成功只表示对应时间观察缺失，迟到原请求仍可能改变旧注册；救援就绪和历史回执都不代替当前核查。详见[前代清理合同](V2_SERVICE_CLEANUP.md)。
+
+`service_handover.py`拥有source/target两个顺序打开的管理员客户端；计划分别固定协议4/包SHA和角色，root只校验执行本方源码。关闭协议先回收命令、释放原生锁再回执；交换记录两个关闭阶段，目标未就绪时只登记等待、不建立派发。原回收/关闭证明缺失不能借新会话补造，保留unknown并要求核查。用户跨schema链复用同一prepared数据及一次启动，系统跨schema必须分阶段。启动预约合同3不随计划4改动，详见[管理员交接](V2_ADMIN_HANDOVER.md)。
+
+## V2 Linux桌面会话与只读边界
+
+Linux桌面原生会话由固定辅助进程内的`SessionInspector`核验，`LocalBus`在认证前验证实际Unix socket对端并持有同一连接；AT-SPI只读适配器独立于logind/传输，不在主进程查找环境中的总线或打开数据库。业务服务仍统一拥有视图、取消和元数据审计。Linux节点只有窗口相对边界，不返回动作证明；无法证明应用PID的图形会话归属时拒绝，不能以同UID放行。协议、限制及实测步骤见[Linux交接](V2_LINUX_HANDOFF.md)。
+
+`linux_x11_socket.py`在认证前核验logind Display、实际socket对端、Xorg进程/会话与受保护二进制，再读取私有Xauthority；`linux_x11_wire.py`只实现有界XRes、窗口元数据、结构事件及现有Composite pixmap读取。`linux_x11.py`将这些证明组合成单独X11目标，发布受控PNG，不将PID或几何匹配用于AT-SPI窗口映射。语义与截图目标各自报告可用操作。截图沿同一宿主/对象服务事务发布；没有根窗口、普通窗口帧缓冲、重定向或输入回退。新v2_0024仅扩充截图来源约束，保持引用、不可变和删除传播；原生Linux运行仍未验证。
+
+## V2 调度与所有权边界
+
+V2依赖方向固定为入口适配器→应用服务→领域端口；`composition/instance.py`构造并关闭调度器，`application/scheduling.py`只编排时钟、时区端口和事务。数字日历计算位于纯领域层，锁定IANA数据读取位于适配器。数据库仓储负责到期唯一约束、进度、savepoint入队、逐条核查和租约，不调用网络或模型。回合分发通过持久原子领取取得会话fence，外部调用不在事务内等待；未知执行不得自动重放。完整合同和当前证据见[V2实施记录](V2_REFACTOR.md)。
+
+
+## V2 投递与生命周期边界
+
+`application/delivery.py`只编排事务与注入的DeliveryPort，不内置网络发送或凭据后端。仓储统一发送授权、账号FIFO、结果及核查判定；调度使用同一pending/unresolved谓词，终态回合存在未完成投递时仍须阻塞。领域只定义身份与结果合同。真实账号适配归R6，并须在动作前校验实际发送账号；当前默认注册QQ与B站适配器，配置、凭据或页面规则缺失时不能发送；每项投递仍须独立人工审批。`composition/lifecycle.py`统一拥有启动回收、关闭阶段、30秒总预算与未完成清理任务，残留时不得释放存储和实例锁；不承载业务逻辑。详见[V2实施记录](V2_REFACTOR.md)。
+
+## V2 日志与诊断边界
+
+V2日志与诊断由组装根统一拥有。`application/operations.py`限制公共查询与取消后的实际工作；`application/debugging.py`管理本次启动的调试授权、审计和维护；适配器负责单写线程、脱敏、受管文件及离线只读导出。日志与调试读盘使用同一受管执行器，不能创建无人回收的请求线程。业务保留清理独立于用户遗忘；详细规则见[日志合同](LOGGING.md)。
+
+180 天审计预览由应用用例调用事务仓储；`domain/audit_retention.py` 定义精确主体注册表、时间、固定截面游标与计划校验。正文/审计共用无正文读取的运行保护查询，审计按页缓存同一运行的判定，作者外键另按审计身份查询。独占离线执行复用 `offline_plans` 的锁、验证备份与生命周期；`audit_pruning_repository.py` 提供审计目标策略，共同执行核心拥有删除、进度和维护审计的事务。通道不能按 kind 前缀、中文结果或年龄自行授权删除；在线预览不建立可执行计划。详见[审计保留设计](V2_AUDIT_RETENTION_DESIGN.md)。
+
+事件明细接入后，审计/事件都由 `history_pruning_cycle.py` 执行共同事务算法；策略描述只指定表、流、严格校验和精确删除字段，当前目标由各仓储回调重新检查。`history_protection.py` 统一完整裁剪证明与来源/维护保护，原正文及引用释放继续使用同一业务保护。事件不继承审计能力，也不复用审计 UUID 语义；独立政策/ledger 与 events 水位协作。组装根、工作器及通道不执行 TTL SQL，在线预览始终只读。
+
+## V2 部署与启动身份边界
+
+`domain/service_deployment.py`只校验计划与固定启动合同，`application/service_deployment.py`组合文件、管理器及运行证明端口；模板、程序捕获、独占发布和只读原生查询由平台适配器实现。生成部署包不注册或启动系统服务。组装根的固定runner复核不可变安装、账号、实例ID和数据库版本，再启动单worker；服务启动不暗中升级数据库。
+
+每次启动的私密runtime元数据及独立readiness key由组装根拥有，排空时先改变状态，实际清理与最终文件发布完成后才释放实例锁。就绪挑战仅在回环接口公开固定元数据的HMAC证明，客户端不读取或发送所有者Bearer令牌。完整HTTP/原生查询、文件读取和取消后真实任务均有界并持有关闭义务；无法证明已加载的系统定义时返回unknown/null。详见[部署合同](V2_SERVICES.md)，三平台真实安装及72小时仍待验收。
+
+## V2 原生桌面发现边界
+
+`domain/desktop.py`统一只读能力、目标身份和版本化IPC合同；`application/desktop.py`拥有Agent隔离、视图代次、60秒快照、派发前复核及元数据审计。HTTP只接opaque视图/目标UUID，不能提交原生句柄；工作台只显式查询，不自动轮询或暴露模型工具。平台原生库只在固定辅助进程调用，默认构造/启动不扫描桌面。宿主在容量、spawn和发帧前复核撤销，实际查询和回收均有界；phase0应用与phase1宿主未清理完时保留存储和实例锁。
+
+Windows提供当前用户交互桌面的窗口元数据及显式有界UIA观察；正文仅返回当次所有者视图，不进入诊断或审计。原生UIA在固定MTA辅助进程执行，节点引用不授权动作。截图由同一辅助进程写入受控临时文件，经单个有界 I/O 工作者核验，再由对象应用服务将对象、会话引用与审计共同提交；截图不自动成为模型附件。Mac/Linux诊断不能冒充已接入原生适配，OS权限与组件安装/可用状态分开。窗口元数据匹配不授权后续控制，完整规则及Swift/AT-SPI/Portal后续边界见[桌面合同](V2_DESKTOP.md)。
+
+`application/desktop_actions.py`将所有者选定控件的调用、选择、文本设置和逐次授权的前台输入编排为现有运行与审批。独立的所有者能力注册表不暴露给模型，`execution_kind=owner`运行捕获业务设置但不调用模型；普通模型运行的权限校验保持独立。`owner_commands`仅记录入队意图及绑定，参数与动作ID在同一事务单向移交至`actions`，不会形成第二套动作状态机。动作在全局desktop串行锁及持久租约内执行；派发前复核当前视图、运行、审批和策略，取消后仍持有实际原生工作。前台输入初始帧不授予执行权限；原生确认手动焦点后回传绑定的ready，宿主再次核查撤销后才发送permit。原生后置状态不能验证时进入unknown，现有独立核查用例处理结论，不重放动作。Windows真实键鼠及完整平台验收仍待完成。
+
+macOS固定Swift应用复用同一宿主和业务合同；`macos_helper.py`只在受管文件执行器核验固定安装、属主、协议、来源及签名后的指纹，不构建、不请求权限。Swift/C源码负责audit会话、libproc创建身份、有限AX路径证明及ScreenCaptureKit窗口采集；不向子进程开放主数据库。AX引用在本次观察绑定中保存，写前重新解析，不能将路径或几何匹配本身视作授权。ForegroundCore只编排注入端口；原生端口拥有会话与目标事件监听、AX/工作区焦点通知及一个CGEvent事件对。ready后仍须宿主重新授权，投递不等于成功。Swift编译和所有Mac原生行为仍待Mac mini验证；交接见[V2_MACOS_HANDOFF.md](V2_MACOS_HANDOFF.md)。
+
+## V2 所有者终端边界
+
+`application/terminals.py`统一管理终端会话、单写者租约、输入回执、输出缺口与关闭义务；`terminal_repository.py`只提交会话元数据、意图指纹和审计，不保存输入或输出正文。原生PTY仅在固定辅助进程运行，主进程不fork、不调用阻塞PTY库。Windows使用同步ConPTY管道和独立Job，POSIX单独拥有交互会话、进程组与创建身份。平台库、进程和线程由组装根拥有，phase0回收/状态结算未完成时保留存储与实例锁。
+
+首批仅所有者显式手动操作，不向模型提供原始终端输入；模型命令继续使用原动作审批。面板离开只断开控制连接；输入结果未知只按操作ID查询回执，不能重放。原生输入接受不等于命令成功；重启和恢复将不明状态隔离，不按历史PID操作系统进程。能力、平台限制与实机验收分别记录，详见[终端合同](V2_TERMINALS.md)。
+
+## V2 未知动作核查边界
+
+V2未知写动作由 `application/action_review.py` 提供独立所有者核查用例。仓储固定原动作、参数/结果指纹、策略、会话内容代次与历史插件绑定；核查结论使用独立不可变账本，原执行状态、运行终态、费用与投递账均不改写。内置历史动作没有捕获源码版本，来源明确标记 `builtin_unversioned`，不能用当前实现冒充历史证据。HTTP列表和详情只返回元数据，不公开动作参数或结果正文。
+
+`action_predicates.py` 是动作是否仍需核查的共同判定，供保留保护、调度和离线诊断使用；恢复及重发防护仍检查原执行真值。调度续跑确认只允许未来到期任务继续，不证明过去动作效果。应用层还核验真实run归属与能力执行器的显式静止合同；缺少合同或实际回收未完成时不能登记新核查。受管worker即使返回合法unknown，也先尝试回收；回收失败继续持有进程归属。相同核查ID的完整请求可以取得已登记回执，不执行动作。
+
+核查依据正文单独保存、支持单向擦除；来源会话代次变化清除依据正文并使旧结论失效，账本仅保留身份和指纹。合法执行正文裁剪保留已登记结果指纹与核查有效性；恢复使用新历史代次隔离旧权限，核查历史不丢失。核查服务属于phase0，取消HTTP等待不会丢弃实际数据库提交，关闭继续等待其有界任务。
+
 ## 0. 产品目录边界
+
+### V2 凭据授权边界
+
+`domain/credentials.py`定义纯数据状态、引用指纹和版本化核查合同；`application/credentials.py`拥有有界操作、取消后的实际归属和短事务编排。`credential_repository.py`统一引用授权，模型发送与投递审批、领取、执行前共同调用；原生后端只执行凭据 I/O。引用属于实例所有者，多个 Agent 配置共享相同引用的授权状态，但不共享其他业务数据。凭据修改意图、授权撤销和审计同事务；核查绑定 revision、恢复代次、当前操作及策略指纹，不覆盖未知操作历史。默认诊断只导出数量，不导出引用名或核查正文。细节见[凭据授权合同](V2_CREDENTIAL_AUTHORITY.md)。
 
 本地 Agent 工程统一在 `agent/`：生产代码 `agent/src/omni/`、测试 `agent/tests/`、
 模板 `agent/config/`、开发脚本 `agent/scripts/`、产品声明 `agent/pyproject.toml`。
@@ -635,3 +766,142 @@ AndroidFrameHub 只在 bootstrap 构造，接收 capture 回调，不引入 core
 人工动作与预览共用设备锁，预览让位；Runtime.close 将采集残留纳入关闭门槛。
 Web lifespan 的终端与 Runtime 收尾共用 10 秒总预算；未确认回收时不关闭仍使用的数据库。
 capabilities HTTP 只聚合公开状态和 doctor，不构造对象、不启动外部依赖、不返回私密载荷。
+
+## V2对象服务边界（R2）
+
+领域`domain.objects.Blob`仅定义Agent、内容指纹、大小与受控键；应用`ObjectService`通过`ObjectFilesPort`、`DatabasePort`执行业务，不接触文件路径或ORM。组装根构造对象服务并负责排空。文件适配器拥有2个有界I/O工作线程，应用层最多登记16个在途对象操作，HTTP另限4个上传槽位；每个对象最多16MiB。
+
+对象仓储与执行仓储共享事务基础，不自行建表或连接。对象引用以关系外键为准；运行结果中的产物ID在同一结算事务中登记外键引用。离线清理从实际数据库外键枚举引用，避免新增领域遗漏保护。对象读取校验大小与SHA256，拒绝符号链接、junction和硬链接。
+
+回收由停机维护适配器取得实例锁后执行，不能与活跃实例并行。计划只授权其中已核验的目标；提交元数据删除前完整复查，持久记录允许崩溃后继续。文件I/O不进入数据库事务，物理清理失败必须报告残留。对象备份及升级前快照复用同一验证流程；安装、原生能力与完整业务切换仍按R5/R6推进。
+
+落盘语义参考[Python fsync](https://docs.python.org/3.12/library/os.html#os.fsync)、[Windows MoveFileExW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw)；SQLite快照使用[Backup API](https://www.sqlite.org/backup.html)。
+
+## V2人物与记忆边界（R2.people）
+
+`domain.people`管理名称、账号、文档长度及指纹规则，不接触数据库或平台。`PeopleService`向HTTP提供人物、账号、个人文档与修订用例，导入经注入的对象服务读取并验证UTF-8内容。通道不接触连接；`PeopleRepositories`与`MemoryRepositories`复用同一事务工作单元，档案、常驻和事实共用存储。
+
+组装根构造人物服务，不引入全局查找。模型记忆能力只接受真实消息来源，缺省来源绑定本回合输入；逐字校验失败作为明确的无副作用错误返回。模型不能自行宣称人工作者、文件验证或所有者身份。人工账号关联与实例认证分开，未来通道验证仍须独立实现。
+
+运行准备通过仓储原子登记确定修订的上下文关系。文档编辑不会在活跃运行中悄悄换入新内容；来源遗忘会递增受影响会话的删除版本，相关活跃运行以context_invalidated停止，不再调用模型、启动新动作或发布旧回复。已发出的请求和动作无法撤回，费用和未知副作用继续保留。诊断日志仅记录关联编号、修订和计数，不写档案正文。
+
+工作台人物模块由主入口注入传输和Agent作用域。草稿只驻留内存，受数量上限限制；请求按Agent、人物、实例代际及加载代次隔离。保存与重载按在途写入排序，连接初始化期间禁用导航，避免迟到的初始化覆盖编辑。冲突保留草稿，显式放弃后才重载。持久摘要与已登记来源的删除传播见下一节；后台整理、通道身份核验及全业务派生关系仍待接入。
+
+## V2摘要与删除传播（R2.summaries）
+
+组装根构造`ModelCalls`和`ContextService`并注入运行编排。普通回答与摘要共用费用预留、结算、取消、未知费用及追踪出口；模型调用均在事务外。摘要调用不携带工具，返回的工具请求不执行。`domain.context`仅定义有界策略和完整回合选择；仓储维护来源、状态及发布核验，不调用模型。
+
+历史按输入消息序号确定回合先后，保留完整用户/最终回复组合，排除未来排队输入；当前回合的工具调用和结果不压缩、不拆对。压缩每轮最多3次，每批最多64条消息、32000字符，保留最近8个回合；摘要最多4000字符。整体序列化请求有48000字符上限，此值不是模型token窗口声明。超限的当前材料拒绝调用；旧历史压缩失败或达到批次上限时有界保留最近回合，记录省略数和原因，并向模型及工作台说明。
+
+摘要发布前核验会话删除版本、确定来源指纹及执行身份，正文只在成功提交后成为可复用摘要。模型用量按purpose区分turn/summary；进程中断留下的building摘要对账为unknown，不释放未知费用。来源引用使用关系外键，父摘要关系限定同Agent、同会话；上下文快照用运行内单调ordinal定位，不依赖墙钟排序。
+
+遗忘会递归清除关联派生记忆、来源摘录及全文索引内容，并清空受影响会话的摘要。会话建立可查询的历史边界，保留聊天原文但禁止旧历史再进入模型或新摘要；新输入建立新的可用范围。这是保守策略，可能排除同一会话里无关的旧内容，界面必须说明。记忆检索在返回正文前登记依赖，防止人工事实没有消息来源时漏掉传播。删除消息另清空指定原文、释放附件引用，未投递记录置dead；unknown外部动作与费用记录不因删除而结清。
+
+保留策略、向量/文档派生索引、未来后台整理及完整业务接入仍需各自产生可核验来源，不能仅凭本批的摘要支持宣称全业务删除已完成。
+
+V1的OmniUI.ask与V2共享ui/dialog.js中的同一对话框及DOM原语，组件使用原生<dialog>，不导入导航、认证或请求挂载。公共资源改动按各入口的缓存版本合同同步，避免新页面复制弹窗实现。
+
+## V2 运行保留与用户遗忘的边界
+
+domain/retention.py 只定义注入时间的30天策略、分页和指纹；domain/reference_release.py 定义有界引用计划与身份合同。execution_retention_repository 统一判断保护条件、固定版本和持久裁剪批次，复用投递的待执行谓词；reference_release_repository 复用业务保护，再核对已完成正文批次和精确动作/对象引用。原有 retention_repository 继续处理用户遗忘及上下文屏障，不能用于时间保留清理。
+
+execution_pruning 与 reference_release 仅绑定各自领域操作；共享 offline_plans 适配器在一个实例独占锁内编排只读复核、一致备份、原备份核验及逐目标短事务。仓储修改进度与审计同事务；备份和文件 I/O 不进入事务，不启动后台运行或第二套真值存储。取消不重新判定目标是否可释放，只校验原批次身份并取消未提交目标，不恢复已提交正文或引用。
+
+正文裁剪保留 action_objects；引用释放另行审核，只删除精确关系，不删除对象或改变到期时间。历史目标不建立到 objects/action_objects 的外键；共享对象仍由所有真实业务外键保护，已裁剪动作禁止再取得产物引用。物理删除必须重新生成现有对象 GC 计划，不能从正文裁剪或引用释放隐式触发。引用备份恢复引用与对象，原文恢复使用更早的正文备份，均进入新目录。详见[执行正文保留合同](V2_EXECUTION_RETENTION.md)。整个 V2 及三平台真实验收尚未完成，默认入口仍为 V1。
+
+## V2 持久历史游标边界（R3.retention_audit.cursors）
+
+`domain/history.py` 只校验有界游标及查询身份，不访问存储。应用层通过历史查询用例读取 Agent 审计、运行事件和实例审计；`history_repository.py` 在同一读事务中读取代次、作用域清理状态、高水位和有界数据页。HTTP 不再直接用整数 after 读取这三类历史；工作台两类审计复用同一个分页控制器，过期时清空旧视图，等待显式重新加载。当前没有 V2 持久 WS/SSE 接口。
+
+`history_sequence.py` 在调用方原事务中分配事件与普通审计的全局序号，不自行连接或提交；普通业务和索引重建、恢复隔离等直接 SQL 写入共用该分配器。实例审计继续使用 SQLite AUTOINCREMENT。运行内部的 `runs.last_seq`/事件 `seq` 与全局分页序号分工不变，不从剩余行重新计算。
+
+三张历史流表的 DELETE 触发器在删除原事务中更新所属作用域的清理修订、数量和 UTC 时间，不依赖清理脚本手动通知。事件清理作用域为整个 Agent，即使查询固定某个运行，该 Agent 的事件删除也会保守失效原游标。恢复在业务隔离的同一事务更换历史 epoch；普通重启保留 epoch。上述基础不授权删除任何业务记录；180 天候选预览、计划与执行仍待实施，详见[审计保留设计](V2_AUDIT_RETENTION_DESIGN.md)。
+
+## V2 在线维护边界（R4.maintenance）
+
+`domain.maintenance` 定义有限请求、状态与租约合同；`MaintenanceService` 拥有后台执行及排空，仓储负责幂等、原子领取、fence 和结算，组装根统一构造。首批仅开放 `document_index_rebuild` 的全文重建与 `document_erasure_resume` 的既有确认续跑，不调用模型、设备或远程向量服务。全局最多64项未结束任务、2项实际活跃尝试；同 Agent/文档按入队序号 FIFO，最多3次尝试，租约60秒。同 boot 的超时不能成为抢占仍在运行任务的依据。
+
+索引任务捕获原文档修订ID、修订号及索引版本；擦除任务绑定既有擦除请求，不因文档更新扩大授权。执行与发布前复核取消、来源及当前所有权；build绑定与创建同事务，索引发布或擦除传播与维护成功同事务。全文重建会使依赖旧分块的向量索引失效，不能无差别定时重建健康文档。HTTP取消仅登记意图，不能把仍在执行的工作当成已经停止。
+
+维护服务在普通启动的业务 recover 之后恢复任务。旧 boot 的未结束尝试记为 interrupted，只有目标仍匹配、未取消且未达上限才重新排队；旧 building 不复活，迟到 token 不得修改新尝试。备份恢复采用另一合同：取消快照中的 queued/active维护，保留尝试证据，禁止自动重跑恢复出的擦除请求。
+
+维护在 Lifetime phase 0 停止领取并等待实际 Task，不取消等待后提前释放名额。残留使关闭返回未完成，并保留随后 phase 1 的文档服务、对象存储、数据库及实例锁；业务已经提交的成功不被迟到取消降级。TTL裁剪、引用释放、对象GC、备份及恢复继续要求独占离线流程，不放入在线维护worker。整个V2及默认入口切换另受业务迁移和平台验收门槛约束。
+
+## V2 本地事实整理边界（R4.maintenance.memory）
+
+`MemoryOrganizationService` 处理所有者选定的确定记忆修订，仓储在一个短事务中生成原文字节完全相同、人物与会话作用域相同的事实候选。只比较本地已有事实，不调用模型、不生成新事实。提案与人工应用分开；应用只建立可撤销的重复关系，不执行遗忘，不修改记忆正文、修订或来源。取消批次保留已经应用的关系，所有者仍可撤销。
+
+每批2至32条事实，原文与当前来源quote合计最多256 KiB，每条最多8个当前修订来源；先检查字节长度再读正文。提案固定来源身份、修订、原文SHA与来源证据SHA，决定时在同事务重新核验整批来源、策略和恢复代次。共享谓词只对仍有效的已应用关系抑制检索与新上下文捕获；管理查询保留所有事实，已经捕获的历史快照不改写。禁止重复抑制、关系链与循环，允许同一保留事实对应多个重复项。
+
+本地分类没有事务外动作，不伪造文档任务、外部租约或独立线程。既有维护worker每轮有界处理组织批次，再领取文档任务；全局64项容量合计组织queued/ready与文档未结束任务。服务在phase 0停止接收并持有实际Task直至事务完成；调用方取消不提前释放所有权，关闭残留继续保护数据库与实例锁。普通启动可处理原queued批次；来源变更触发失效，备份恢复更换代次并隔离原批次及关系，不能自动重新应用。独占离线TTL、引用清理、GC和备份恢复仍独立执行。
+
+## V2 可信插件宿主边界（R4.extensions）
+
+`ExtensionService`编排静态包安装、所有者授权与执行，`ExtensionPackages`负责有界捕获和固定版本快照，`ExtensionHosts`复用受管子进程及严格IPC；仓储只处理短事务，不读源码、不执行插件、不等待文件或网络。安装源路径不是运行真值，确定ZIP源码对象与不可变工具catalog才是版本依据；运行不能追随源目录或当前新版本。包ZIP的SHA与对象SHA相等，catalog另有指纹。JSON预算统一按领域规范UTF-8序列化计算，数据库的ASCII转义表示不定义另一套预算。
+
+每次接收回合同事务捕获该Agent当时有效的工具授权，并封闭空目录标记；之后的新授权、新版本和新工具只进入新运行。工具规格携带确定run binding，动作准备绑定版本、授权代次与恢复代次；审批、执行授权及最后IPC派发逐次核验，实际参数SHA必须与持久审批内容相同。更新、禁用、漂移或重授递增授权代次，撤销旧grant并取消未派发动作；已经执行的写入交原所有者按真实结果或unknown结算，不能自动重发。恢复撤权并更换代次，旧审批和旧run binding不能复活。
+
+首批仅支持所有者主动信任的Python代码；进程隔离用于故障隔离，不是操作系统安全沙箱。所有插件工具均按写工具走现有人工审批；捕获与静态握手不import入口，实际派发后才加载代码。worker使用`-P`启动可信模块，工作目录取快照父目录，避免以插件目录作为默认模块搜索入口。协议与SDK不提供数据库、模型或凭据对象，首批不开放宿主回调和artifact引用；模型预算继续由原ModelCalls路径管理。
+
+宿主全局最多4个常驻进程、64项在途请求，按Agent、插件与授权代次隔离归属；空闲回收也必须确认实际进程已结束。spawn任务、进程句柄和实际调用持续计入所有权，取消等待不提前释放；超时或协议故障使连接poisoned，未确认回收前禁止复用。phase 0关闭若有任务或子进程残留，继续保留数据库与实例锁，不把关闭请求当作已关闭。
+
+插件详情提供本Agent/安装槽的有界worker身份、PID、授权代次和清理状态，实例诊断仅导出合计，不把其他空间目录混入当前工具列表。派发前检测快照漂移只撤销原版本授权，不能关闭并发新授权的宿主。显式禁用可重复核查旧代次回收而不重复创建授权或审计。
+
+快照发布要求原子且不覆盖已有目录；Linux使用[renameat2的RENAME_NOREPLACE语义](https://man7.org/linux/man-pages/man2/rename.2.html)，macOS使用[系统支持的renamex_np/RENAME_EXCL语义](https://developer.apple.com/documentation/foundation/urlresourcekey/volumesupportsexclusiverenamingkey)。不可用时拒绝发布，不能以覆盖目录降级。这是适配设计和接口核查，macOS/Linux运行与实机验收仍待完成。
+
+
+## V2 Wayland授权与窗口单帧边界（D3.linux.portal，原生待验收）
+
+纯领域`desktop_portal`定义UUID作用域、有限状态和IPC限额；应用`DesktopPortalService`通过`DesktopPortalPort`持有Agent/view/boot/grant、审计、取消与结算。`DesktopService`只提供视图权限及detach回调，组装根构造并注入，不查询全局对象。新API只调用应用服务；业务审计仍写现有数据库，不新增第二套存储或业务表。
+
+平台`PortalBackend`和普通`DesktopBackend`共享2个实际helper容量；前者持有固定Python长驻helper及真实spawn/reclaim任务，不把用户选择压进5秒单次RPC。`PortalSession`复用logind/本机socket证明，通过同一连接订阅精确Portal信号及唯一服务，显式选择一个窗口；要求v6非复用serial，拒绝node-only降级。原生身份和stream仅驻留helper内存，不写诊断或审计正文。
+
+先请求审计、prepared、父进程重新核验再permit；授权审计成功后才暴露authorized。视图换代、离开、重查或淘汰、锁屏、Closed及唯一服务变化均撤回。入场、等待、日志管道、心跳、生存与清理有界；取消等待不丢弃实际任务。失败回收保留容量与健康，phase 0重试实际回收并结算审计，之后phase 1才释放IO，数据库和实例锁继续受生命周期保护。
+
+同一Portal连接已接OpenPipeWireRemote，专用FD接收端拥有部分帧、关联验证、超时/迟到及关闭义务，普通总线仍拒绝FD。描述符仅在helper内传递给单线程GStreamer消费者，按非复用serial读取固定有界pipeline的一帧。宿主文件执行器核验PNG后，ObjectService以原事务登记对象、会话引用与审计；取消/撤回和会话删除版本在读取及发布前复核。大载荷及native身份不进IPC/诊断。
+
+工作台的手动选择/查询/保存/结束共享复用视图撤回和截图预览，没有自动抓图或输入权限。新v2_0025只扩充截图来源，95表不变，桌面IPC5与Portal IPC2独立。PyGObject/GStreamer为Linux可选组件，主进程不加载GI，缺依赖时核心可运行。源码与所选离线通过不等于Linux已支持；后续D3.linux.control继续语义/RemoteDesktop控制和输入暂停，默认V1不变。证据见[窗口共享帧](evidence/v2-linux-portal-frames.json)。
+
+## V2 Linux语义动作与输入守卫边界（D3.linux.control）
+
+`linux_semantic`仅在受管helper中经已核验的AT-SPI连接定位和调用；`linux_input`另持有已核验的Xorg连接，核验XI2设备、键鼠释放与焦点/输入变化。输入载荷丢弃，主进程不加载原生库。只提供单次set_text/select/invoke，不向模型或IPC提供任意原生接口；Wayland控制和全局前台输入尚未开放。
+
+观察证明来自同一有界正文读取；执行前后重新核验所选窗口、祖先、节点内容和动作目录。准备后helper发送ready，宿主复用原运行/审批/租约/视图权限，再发permit；初始语义请求不授予变更权。普通观察/采集Wire仍只接受所选窗口结构事件，输入守卫使用独立有限事件解析器，不扩充采集权限。单次RPC结果不确定或无法回收继续unknown，原生命周期持有进程/容量/存储/锁。
+
+公共桌面IPC升级为6，Windows/Swift常量同步；Portal IPC2、v2_0025及95表不变。Mac需重新构建固定helper；Linux原生与三平台完整验收仍未完成，默认V1。细节与限制见[Linux交接](V2_LINUX_HANDOFF.md)，所选离线证据见[语义动作](evidence/v2-linux-control.json)。
+
+## 系统凭据的受管进程边界（R5.native_credentials）
+
+默认系统存储由`NativeCredentials → 固定omni.adapters.workers.credentials → SystemSecrets`实现；Windows使用WinVault、macOS使用Keychain、Linux使用Secret Service。核心构造、doctor和普通启动不探测或解锁原生存储；外部主密钥的FileVault及显式注入假后端继续用原有有界线程I/O，不转为原生钥匙串，也不自动回退到明文后端。
+
+每个实例最多16项实际在途凭据任务、1个实际helper，串行顺序包含取消等待的任务。凭据IPC1只接受固定命名空间、引用和get/set/delete，不接受后端类、模块、命令、脚本或凭据文件路径。最多262144个有效Unicode字符，4MiB帧预算覆盖最坏JSON转义；重复字段、非有限数、跨请求/操作回复或多帧结果拒绝。ready/permit初始帧与放行合计仍受限，原生后端只在permit之后构造和调用。
+
+宿主在真正派发前检查排空与读取失效，permit前失败明确not_applied；permit可能送达后的写入超时、原生异常、丢回复和无法回收均unknown，不重试。单项30秒预算包含启动和原生调用，队列等待在有界容量内另行计数；spawn、读管道和清理任务持续归属，不能以取消调用者释放容量。回收失败阻止新helper，关闭继续持有数据库与实例锁并可重试。凭据核查不仅检查持久状态，也要求实际I/O和原生进程均已结束。
+
+固定worker使用当前Python隔离模式与模块路径，敏感值只走私有stdin/stdout管道，不进argv、环境或文件。系统后端始终显式选择，不读取配置的第三方keyring类；不继承KEYRING_PROPERTY/PYTHON_KEYRING_BACKEND等覆盖。Linux只设置当前UID的`/run/user/<uid>/bus`，不采纳任意继承总线地址。旧式自定义总线布局暂不可用；无桌面部署应显式配置外置主密钥的FileVault，不以无法访问Secret Service推断密钥不存在。
+
+原生库stdout在专用helper中丢弃，独立私有描述符只写版本化协议；主进程和CLI不重定向stdout。原生stderr始终排空丢弃，最多64KiB后终止本次调用，不把异常文本或局部变量放进日志。宿主只输出固定`credential.native.unconfirmed`和错误码，沿用请求/操作上下文；set值在派发前、get值在返回前登记脱敏。业务凭据引用、操作、审计和核查仍在既有omni.db中，95表/v2_0025不变。
+
+当前离线验证只使用注入存储和受控管道；真实Windows进程用错误permit退出，未访问OS存储。三平台真实解锁、拒绝、锁定、登录切换、系统服务及权限行为仍待实测，不能据此宣称三平台凭据已支持。
+
+
+## 终端未知结果的独立观察（D4，v2_0026）
+
+所有者终端内的“未知终端操作核查”显式读取未知回执。`TerminalReviewService`编排用例，`TerminalReviewRepositories`管理短事务，`terminal_review`领域定义精确请求及有界证据；组装根注入终端原生静止门。HTTP不访问原生对象或数据库连接。
+
+只可核查已结算的unknown操作；列表仍保留原始unknown，即使已有人工观察。applied/not_applied/still_unknown分别表示所有者独立观察，不改terminal_operations、terminal_sessions、费用、运行或投递，也不授予重放或历史PID操作。accepted仍只表示PTY/原生操作接收，任何核查都不把它解释为Shell业务成功。
+
+来源证明包含Agent、操作/会话UUID、原boot、种类/字节/意图指纹、原始状态/时间及会话修订/权限代次/工作目录指纹/回收状态，使用版本化schema=1载荷和SHA；不保存终端输入或输出原文。提交绑定review UUID、当前核查revision、history_epoch、来源fingerprint、terminal-review-1策略、决定、1–2000字符说明与显式限制确认。父操作/会话/Agent用组合外键约束；每操作最多100条追加观察，修订唯一且递增。
+
+新terminal_reviews单表保存不可变观察元数据与可显式清除的说明。清除只从正文到NULL并保留SHA与删除时间，不能改结论、来源或原始回执，重复提交不能复活已清除说明。说明及记录审计在原短事务共同提交；普通诊断只记录固定事件及operation/review UUID，不记录说明、输入/输出或证明正文。审计引用自动纳入现有外键保护。
+
+只有当前实例所有实际终端工作、spawn和回收均结束才登记；检查和事务共享终端启动锁，防止检查后并发启动。取消HTTP等待不取消已接受事务；phase 0未排空继续保护数据库和实例锁。历史会话没有当前进程所有权，不代表旧进程已经停止：界面分开显示记录中的回收状态，必须确认核查限制，不做历史PID探测/杀进程或自动清理。
+
+同一review UUID和内容只返回原记录，改变内容复用UUID冲突；不同请求并发使用旧revision只允许一个提交。来源状态/会话修订或恢复history_epoch变化使旧证明失效，历史观察与说明保留，但不作为当前匹配观察。恢复通过既有一致备份/新目录/隔离流程，不增加第二套运行真值。
+
+API均在`/api/v1/agents/{agent_id}/terminal-reviews`：GET列表按操作UUID稳定分页，GET`/{operation_id}`检查来源，GET`/{operation_id}/history`按核查revision分页，POST`/{operation_id}`追加独立观察；DELETE`/{operation_id}/history/{review_id}/evidence`携带空对象只清除选定说明。列表/历史每页默认20、上限50，正文请求上限32KiB；不默认读取全部历史。
+
+工作台沿用原生ES模块和公共表单/对话框，不增加自动轮询或新主题。草稿按Agent/操作隔离，最多32份；待确认请求固定UUID与完整载荷，丢回复后只按原身份手动重试，不能默默换ID。列表最多200项、历史最多100项，详情与说明离开面板清除、迟到响应丢弃。说明删除也清除匹配的本地待确认载荷。v36统一V2缓存引用；四视口/双主题完整矩阵仍待阶段验收。
+
+v26只新增一张表及两个原表索引，当前合计96表。V25升级先由既有维护流程生成验证备份；旧回执保留，新DDL中断应回滚后重试。原生PTY、服务安装/更新、三平台和72小时验收仍未完成；本批隔离/浏览器通过不等同于平台支持或整个D4完成。
+

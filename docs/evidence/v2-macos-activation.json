@@ -1,0 +1,191 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.macos_exchange_activation",
+  "date": "2026-11-07T09:26:09.552323+08:00",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "6128a8d73721b3db45b48a8134db44964cad33596baab2d8b57368861f906556",
+    "fixed_source_files": 1003,
+    "snapshot": "temp/build/v2-macos-activation-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "service_plan": "omni-service-plan-2",
+    "release_plan": "omni-release-plan-2",
+    "exchange_plan_and_reservation": "omni-service-exchange-3",
+    "activation": "omni-service-activation-1",
+    "macos_readonly_evidence": "omni-macos-service-acceptance-2",
+    "actual_os_services_modified": false,
+    "actual_native_actions": false,
+    "swift_compiled": false,
+    "macos_exchange_activation_implemented": true,
+    "cross_schema_upgrade_implemented": false,
+    "macos_system_start_implemented": false,
+    "system_service_exchange_implemented": false,
+    "scope": [
+      "Pure exact home/instance/deployment/control/boot activation binding and fingerprinted reservation, shared by both immutable installations",
+      "Mac source and unarmed target cannot create random boots; development entry cannot bypass an exact deployed reservation; claimed boot cannot be replayed",
+      "Exchange3 accepts Mac user targets and advertises source bootout and explicit abandon releasing later login activation; old plans/markers rejected",
+      "Existing registration/select/start/reconcile kernel and private journals/instance locks reused, no second execution truth or database table",
+      "Partial claim before intent resumable; missing reservation after intent refused; only terminal parent and actually settled children allow marker release",
+      "Unknown boot and cancelled waiter keep reservations/real ownership, read-only resumption never repeats a native activation",
+      "Deployment status, startup and evidence share positive running/identity/PID postconditions; Mac native PID propagated instead of discarded",
+      "Rescue verifies complete predecessor marker using its validated exchange plan, preserving activation binding, original unknown receipts and financial state",
+      "Mac read-only evidence optionally binds exact exchange, stable before/after history, terminal state and current reserved HMAC boot plus loaded PID",
+      "Evidence output protected from both homes/installations/bundles/backups/journals; actual query cleanup retained beyond initial shutdown budget"
+    ],
+    "pending": [
+      "继续D4：隔离前代注册的显式核查/清理；接续系统服务交换、macOS系统授权与跨schema协调。Mac用户交换的持久激活绑定及Mac mini证据入口已接线，Windows/Linux用户交换/隔离救援和Linux系统单次start继续保留。Mac Swift/ACL/加载字典/实际登录、Linux实机、D3控制、业务/模型迁移和三平台72小时未完成。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 198,
+    "all_latest_cases_passed": true,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-macos-activation-development.xml",
+        "sha256": "dd991ab6349b02494ad7822a13b9ce8094cd44241020a089affe9948f6ea7208",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 3.642
+      },
+      {
+        "path": "temp/build/v2-macos-activation-kernel.xml",
+        "sha256": "08596c739d0cd5f9f6c481a797106270f958f3718a65028ab44259d9a1ac59b7",
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 8.811
+      },
+      {
+        "path": "temp/build/v2-macos-activation-callers.xml",
+        "sha256": "7f43a94889d1e1c0559836a5c49cebc938657a0f1c455ba03f3ffb125872ce04",
+        "tests": 168,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 276.409
+      },
+      {
+        "path": "temp/build/v2-macos-activation-recovery.xml",
+        "sha256": "300bad24db1fb161efd181762566d7eb537ad130a59f189b98f629d7dd07613b",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 43.537
+      },
+      {
+        "path": "temp/build/v2-macos-activation-binding.xml",
+        "sha256": "774feb07782a925f0b420f2578144a6c5f02770ef2543b708030e3aa600676c4",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.29
+      }
+    ],
+    "report_method": "Chronological classname/name latest results across scoped runs; not a single198-case or full run. Original failed caller report preserved.",
+    "resolved_development_failures": [
+      "Two real SQLite financial rescue regressions exposed a hardcoded exchange2 predecessor reservation; replaced with the full marker from the verified predecessor plan",
+      "Both failed install/start financial recovery cases were rerun and passed; an extra Mac predecessor binding regression ensures activation cannot be dropped"
+    ],
+    "behavioral_regression_update": "The prior status test treated unknown manager state as ready. It now covers unknown and running explicitly; unknown cannot declare readiness.",
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "pyright": [
+      {
+        "path": "temp/build/v2-macos-activation-types-host.json",
+        "sha256": "37352b43ed640ab64a3d6f25e5a31df38250fad94ffc8e5a12af3ba829ea8535",
+        "filesAnalyzed": 14,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.233
+      },
+      {
+        "path": "temp/build/v2-macos-activation-types-linux.json",
+        "sha256": "5bea7df1d7aefa359a813c3424ef3aa85c7ece5fa34574c9d4d5a637d4bd9b25",
+        "filesAnalyzed": 14,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.166
+      },
+      {
+        "path": "temp/build/v2-macos-activation-types-darwin.json",
+        "sha256": "ed84232c040ae9e9c75b59b4fa5d26b3268dd27eec15080a2217f22b326d7d65",
+        "filesAnalyzed": 14,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.216
+      }
+    ],
+    "type_limit": "Fourteen affected Python files, including the Mac evidence script and callers, in default host/Linux/Darwin modes; not strict whole repository or native compilation",
+    "gates": {
+      "path": "temp/build/v2-macos-activation-gates.json",
+      "sha256": "c76744bc881910c269491312eb038f39be86e1a77ec0adcbfb74378a9a6a0556",
+      "passed": 4
+    },
+    "packaging": {
+      "path": "temp/build/v2-macos-activation-packaging/evidence.json",
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "0ad75b2db2c03ce8d83e5efc0d425f0f161c65d1b37f6c286b61b87adf2a40d6"
+    },
+    "packaged_sources_verified": [
+      {
+        "path": "temp/build/v2-macos-activation-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "0efddeb417c380155c126e6a8c29fe4efea1beef3f905df360a0210bfaf1909c"
+      },
+      {
+        "path": "temp/build/v2-macos-activation-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "0efddeb417c380155c126e6a8c29fe4efea1beef3f905df360a0210bfaf1909c"
+      }
+    ],
+    "limitations": [
+      "Mac logical paths, immutable/storage identity and all native manager IO injected on Windows; no actual Swift/launchd/ACL/login/action or OS service acceptance",
+      "Real private files, locks, bounded journals and startup entry rejection exercised; common financial rescue uses real isolated SQLite",
+      "No whole suite, UI matrix, load, 72-hour or native platform acceptance; real Mac/Linux execution remains pending",
+      "Root isolated bundle import still passed as a caller; root/admin protocol2 is unchanged, but changed source requires a fresh matching capture/artifact"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-macos-activation-source-20261107T092843+0800-final/manifest.json",
+    "source_files": 1231,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_SERVICE_EXCHANGE.md",
+    "scope": "继续D4：隔离前代注册的显式核查/清理；接续系统服务交换、macOS系统授权与跨schema协调。Mac用户交换的持久激活绑定及Mac mini证据入口已接线，Windows/Linux用户交换/隔离救援和Linux系统单次start继续保留。Mac Swift/ACL/加载字典/实际登录、Linux实机、D3控制、业务/模型迁移和三平台72小时未完成。"
+  },
+  "documentation_finalization": {
+    "supersedes_source_snapshot": "temp/private/v2-macos-activation-source-20261107T092609+0800/manifest.json",
+    "reason": "Corrected two current guide sentences: Mac user activation is implemented in code and its loaded PID is mandatory. Tested code, scripts, tests, dependency lock, package bytes and frozen1003-file baseline are unchanged."
+  }
+}

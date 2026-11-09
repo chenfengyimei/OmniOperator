@@ -42,8 +42,9 @@ dependencies = [
 [project.optional-dependencies]
 terminal = ["pywinpty>=3.1.0; sys_platform == 'win32'"]
 asr = ["faster-whisper>=1.2.1"]
-vectors = ["sqlite-vec>=0.1.9"]
-desktop-linux = ["dbus-next>=0.2.3; sys_platform == 'linux'", "python-xlib>=0.33; sys_platform == 'linux'"]
+vectors = ["sqlite-vec>=0.1.9", "onnx==1.23.0", "onnxruntime==1.31.1; sys_platform != 'darwin' or platform_machine != 'x86_64'", "onnxruntime==1.23.2; sys_platform == 'darwin' and platform_machine == 'x86_64'", "tokenizers==0.23.3", "numpy==2.5.4"]
+desktop-linux = ["dbus-next==0.2.3; sys_platform == 'linux'", "python-xlib>=0.33; sys_platform == 'linux'"]
+desktop-wayland = ["PyGObject==3.48.2; sys_platform == 'linux'"]
 
 [project.scripts]
 omni = "omni.channels.cli:main"
@@ -65,7 +66,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build]
 ignore-vcs = true
-exclude = ["**/__pycache__/**", "**/*.pyc", "**/.pytest_cache/**"]
+exclude = ["**/__pycache__/**", "**/*.pyc", "**/.pytest_cache/**", "**/.build/**", "**/.swiftpm/**"]
 
 [tool.hatch.version]
 path = "src/omni/__init__.py"

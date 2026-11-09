@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.macos_system_read_prerequisites",
+  "date": "2026-11-07T20:30:41.010199+08:00",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "macos_administrator_backend_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "c246d5d67edc86aadfee286cbc54364ec4b60e46e49000aa6c149f179dd46169",
+    "fixed_source_files": 1012,
+    "snapshot": "temp/build/v2-macos-system-inspection-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "desktop_protocol": "omni-desktop-ipc-6",
+    "macos_service_query": "omni-macos-service-query-2",
+    "native_path_test_cases_written": 8,
+    "native_path_test_cases_executed_this_host": 0,
+    "actual_os_services_modified": false,
+    "default_entrypoint_changed": false,
+    "scope": [
+      "System status uses fixed Swift system-domain query, ordinary same UID/process identity and no Aqua requirement; root/elevated caller forbidden",
+      "Service protocol2 binds exact native domain, label, UID, nonce and schema; no system launchctl print fallback",
+      "Bounded repeated native descriptions and complete enumeration for absence; typed snapshots distinguish true/1; only metadata leaves host comparison",
+      "Held no-follow descriptor, verified local volume extended-security support, statx/filesec explicit ACL-property absence, conservative deny-only ACL, user/root owner split and stable identity",
+      "Eight real local registration-path XCTest cases integrated before signing and in CI artifacts; Mac build/actual execution still pending",
+      "Read-only system evidence reuses status/readiness lifecycle, rejects registration/exchange claims and exports no native job descriptions"
+    ],
+    "pending": [
+      "继续D4 macOS独立受信管理员后端：精确本地账号与Unix对端身份、root文件/审计发布、有限注册和显式启动、Darwin实际命令/后代回收及父会话归属。当前只读system查询和默认ACL证明已接源码，不能以普通用户helper执行root操作。Mac编译/8项原生ACL门禁/实际字典待Mac mini；接续系统交换、跨管理员协议/跨schema。D3持续前台/Portal、D5业务、D6模型扩展、D7正式入口和三平台实机/72小时均未完成。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 142,
+    "all_latest_cases_passed": true,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-macos-system-inspection-development.xml",
+        "sha256": "861180b331a64241e2450037c92498ca0c8ff52fd7182975851606c8d7dd5cfe",
+        "tests": 127,
+        "failures": 10,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 15.378
+      },
+      {
+        "path": "temp/build/v2-macos-system-inspection-corrected.xml",
+        "sha256": "b420d6e76c4353e20dd8893d6579245449b6b9a4b33a272936ec709e71fdaa1f",
+        "tests": 24,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.436
+      },
+      {
+        "path": "temp/build/v2-macos-system-inspection-caller.xml",
+        "sha256": "f6876c45d8884a2ba864652923d6ce5e2796c3be633598424dd3f970be9eb099",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.711
+      }
+    ],
+    "report_method": "Chronological latest node identities: initial127 scoped run, exact affected24 cases, then16 caller/helper/architecture cases. Failed reports preserved. Not full or native XCTest.",
+    "resolved_development_failures": [
+      "Shared test helper hardcoded user agent.plist; now uses exact manager artifact for system daemon.plist",
+      "Malformed native response path originally inherited available=true; now explicitly unavailable with unknown state, never false absence",
+      "Generic query caller fixture expected POSIX spelling on Windows; now compares the exact native Path spelling",
+      "One long assertion needed formatter; original gate report retained",
+      "Post-seal native source review added explicit fcntl declaration and held-descriptor local-volume extended-security capability proof; first source/evidence/package retained, corrected native sources rebuilt into both final wheels; Swift/C still pending Mac compilation"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "pyright": [
+      {
+        "path": "temp/build/v2-macos-system-inspection-types-host.json",
+        "sha256": "03b587e45f020401a6cd5ee366a34de7dc5703cd1c3671b314e2fd2e3317826f",
+        "filesAnalyzed": 7,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.062
+      },
+      {
+        "path": "temp/build/v2-macos-system-inspection-types-linux.json",
+        "sha256": "2cd580fbcad7b04db3b6425eb127d96a04540f386374bda7ca545d85a624434b",
+        "filesAnalyzed": 7,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.116
+      },
+      {
+        "path": "temp/build/v2-macos-system-inspection-types-darwin.json",
+        "sha256": "30b31bdf5ffb016951c52d90e94ee0f80a36fb0fe83ddeba9ba82a8896210336",
+        "filesAnalyzed": 7,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.061
+      }
+    ],
+    "type_limit": "Seven affected Python files/callers in host/Linux/Darwin modes, default checking, not Swift/C or whole-repository strict",
+    "gates": {
+      "path": "temp/build/v2-macos-system-inspection-gates.json",
+      "sha256": "e7b0ce28aaaa27d03f35657fe73d7703ecf1008acfdc3950acfdbada7f912348",
+      "passed": 3
+    },
+    "packaging": {
+      "path": "temp/build/v2-macos-system-inspection-packaging-corrected/evidence.json",
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "317cdb5f1c17e1105cd48ba65ef5d905f2da374ff7e53570473b6db9e9a5bb31"
+    },
+    "packaged_sources_verified": [
+      {
+        "path": "temp/build/v2-macos-system-inspection-packaging-corrected/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "b409463e4a0914e4a2bb6ee774ca91e96c5cad0dfc8de1b4a4cc7e4db35c8afe"
+      },
+      {
+        "path": "temp/build/v2-macos-system-inspection-packaging-corrected/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "b409463e4a0914e4a2bb6ee774ca91e96c5cad0dfc8de1b4a4cc7e4db35c8afe"
+      }
+    ],
+    "limitations": [
+      "Native frames/file access injected; no root or real service, account, model, device action",
+      "Both wheels contain exact new native sources/XCTest; shipping source does not prove Mac compilation",
+      "Swift/C compilation and 8 native path XCTest cases not executed here; SM API availability/actual fields, ACL/APFS and headless/session behavior pending",
+      "Mac administrator registration/start/system exchange still unimplemented; no full/UI/load/72-hour acceptance"
+    ]
+  },
+  "superseded_source_recovery": {
+    "manifest": "temp/private/v2-macos-system-inspection-source-20261107T202309+0800/manifest.json",
+    "reason": "Native header/descriptor and volume-capability review before final handoff"
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-macos-system-inspection-source-20261107T203041+0800/manifest.json",
+    "source_files": 1246,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_MACOS_SYSTEM_SERVICES.md",
+    "scope": "继续D4 macOS独立受信管理员后端：精确本地账号与Unix对端身份、root文件/审计发布、有限注册和显式启动、Darwin实际命令/后代回收及父会话归属。当前只读system查询和默认ACL证明已接源码，不能以普通用户helper执行root操作。Mac编译/8项原生ACL门禁/实际字典待Mac mini；接续系统交换、跨管理员协议/跨schema。D3持续前台/Portal、D5业务、D6模型扩展、D7正式入口和三平台实机/72小时均未完成。"
+  }
+}

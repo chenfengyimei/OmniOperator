@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.user_service_exchange",
+  "date": "2026-11-07T07:10:10.329919+08:00",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "16e89a69827cdf17895fae26154578a55bdf05ad244b991472c9a5b655c5860b",
+    "fixed_source_files": 992,
+    "snapshot": "temp/build/v2-service-exchange-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "exchange_format": "omni-service-exchange-1",
+    "runtime_capture_format": "omni-service-runtime-2",
+    "prepared_user_service_exchange_source_implemented": true,
+    "automatic_rollback": false,
+    "actual_os_services_modified": false,
+    "system_start_authorization_implemented": false,
+    "cross_schema_upgrade_implemented": false,
+    "scope": [
+      "Exact release and child operation bindings; fixed ordered source uninstall/select/target install/start",
+      "Bounded linked exchange witnesses and two-home persistent maintenance reservations",
+      "No instance lock across target boot; existing release, registration and HMAC readiness use cases own each step",
+      "Interrupted stages only observe; missing child intent cannot authorize repeated native dispatch",
+      "Current registration and reserved-boot rechecks; historical completion never claims current readiness",
+      "Original source bytes verified but never imported/executed for removal; source data and effects retained",
+      "Actual helper cleanup gates active-marker release for registration as well as control; cancelled waiter does not cancel owned exchange",
+      "Explicit abandonment only after child intents settle, no rollback or unknown erasure; CLI waits for actual residual cleanup"
+    ],
+    "pending": [
+      "继续D4：无法证明后置条件的安装/启动结果须有显式核查与隔离恢复，不能清空unknown重放；串联在线排空到离线准备。随后推进Mac登录激活绑定、系统启动授权和跨schema升级。Mac编译/ACL/实际字段、Linux实机、D3控制、业务迁移和三平台72小时仍待推进。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 153,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-service-exchange-development.xml",
+        "sha256": "14edcb573f4c49f05b5112ff964530147fe8fbfa518e6b37db54dfd54c8f8b10",
+        "tests": 18,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 79.865
+      },
+      {
+        "path": "temp/build/v2-service-exchange-current.xml",
+        "sha256": "f3f6acb03fe3195eaff9e3e0479df62c6fe693d2c34a60f577528ba6a5529581",
+        "tests": 66,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 196.394
+      },
+      {
+        "path": "temp/build/v2-service-exchange-callers.xml",
+        "sha256": "43087da5cff5060f7a942c159c42d7a75cc9366fe1a28d748c227363f883945b",
+        "tests": 87,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 3.079
+      },
+      {
+        "path": "temp/build/v2-service-exchange-final.xml",
+        "sha256": "05670b51c0d7af0402185db53326525889d66cd0424eff36f54ac51040b17c69",
+        "tests": 2,
+        "failures": 0,
+        "errors": 2,
+        "skipped": 0,
+        "duration_s": 1.066
+      },
+      {
+        "path": "temp/build/v2-service-exchange-fixture.xml",
+        "sha256": "1ef78e50025881a476730bb0294b36a302b58c15fc5b45246230d40fec80b89e",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 13.03
+      }
+    ],
+    "all_latest_cases_passed": true,
+    "report_method": "Chronological classname/name results, not a single153-case run; original failed fixture reports retained.",
+    "resolved_development_failures": [
+      "Two final smoke setups failed after Ruff removed a fixture import used only through pytest injection; explicitly exposing the base fixture fixed both and the fixture report re-ran both successfully."
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "pyright": [
+      {
+        "path": "temp/build/v2-service-exchange-types-host.json",
+        "sha256": "b8a8277dd48b503d7aa41cdeba92a3c254ca8e4a532965c7bddfdd67581decc1",
+        "filesAnalyzed": 13,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.351
+      },
+      {
+        "path": "temp/build/v2-service-exchange-types-linux.json",
+        "sha256": "b5a3dd24f15a2638b4a9da37317bc693010be2f314a6e4a2fd7dc79090c0161f",
+        "filesAnalyzed": 13,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.457
+      },
+      {
+        "path": "temp/build/v2-service-exchange-types-darwin.json",
+        "sha256": "feff9e1ccf3fd81a6099d1e8ab085b9fcaf937f231a755314a1cda8f89b6c972",
+        "filesAnalyzed": 13,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.39
+      }
+    ],
+    "type_limit": "Thirteen affected files in default host/Linux/Darwin modes, not strict whole-repository or native SDK compilation",
+    "gates": {
+      "path": "temp/build/v2-service-exchange-gates.json",
+      "sha256": "24209f1b35ced95b1653857d31b61d9598671597217e9e12c8fc941027ecda27",
+      "passed": 4
+    },
+    "packaging": {
+      "path": "temp/build/v2-service-exchange-packaging/evidence.json",
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "ca55a2c61d306ef271b2bc9f21ac6cdb88377b74f19a00a95128b8fff20317dd"
+    },
+    "packaged_sources_verified": [
+      {
+        "path": "temp/build/v2-service-exchange-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "f02ea274484db0d2e47fbc626409e175c9fe3239f3450fecff934ff08b036c0c"
+      },
+      {
+        "path": "temp/build/v2-service-exchange-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "f02ea274484db0d2e47fbc626409e175c9fe3239f3450fecff934ff08b036c0c"
+      }
+    ],
+    "limitations": [
+      "All native registration/start actions injected; no TaskScheduler/systemd/launchd operations in this checkpoint",
+      "Mac tests validate refusal and source contracts; no macOS compile/run, Linux actual run or platform acceptance",
+      "Prepared-release chain only, not an online update or complete unknown-outcome recovery system",
+      "No current full/UI/load/real account/device/model or72h conclusion; no runtime/test DB,key,token included in source recovery"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-service-exchange-source-20261107T071010+0800/manifest.json",
+    "source_files": 1215,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_SERVICE_EXCHANGE.md",
+    "scope": "继续D4：无法证明后置条件的安装/启动结果须有显式核查与隔离恢复，不能清空unknown重放；串联在线排空到离线准备。随后推进Mac登录激活绑定、系统启动授权和跨schema升级。Mac编译/ACL/实际字段、Linux实机、D3控制、业务迁移和三平台72小时仍待推进。"
+  }
+}

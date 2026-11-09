@@ -26,7 +26,7 @@ Web/QQ/CLI 的请求经 Runtime 进入同一内核，模型请求经 Gateway 记
 
 WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查退出。
 
-`create_terminal_router.terminal_ws`（[agent/src/omni/channels/terminal/routes.py](../../agent/src/omni/channels/terminal/routes.py#L19)） → `WebAuth.check_websocket`（[agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py#L328)） → `TerminalManager.open`（[agent/src/omni/channels/terminal/pool.py](../../agent/src/omni/channels/terminal/pool.py#L38)） → `TerminalSession`（[agent/src/omni/channels/terminal/session.py](../../agent/src/omni/channels/terminal/session.py#L11)） → `open_process`（[agent/src/omni/channels/terminal/backend.py](../../agent/src/omni/channels/terminal/backend.py#L30)）
+`create_terminal_router.terminal_ws`（[agent/src/omni/channels/terminal/routes.py](../../agent/src/omni/channels/terminal/routes.py#L19)） → `WebAuth.check_websocket`（[agent/src/omni/channels/web_auth.py](../../agent/src/omni/channels/web_auth.py#L328)） → `TerminalManager.open`（[agent/src/omni/channels/terminal/pool.py](../../agent/src/omni/channels/terminal/pool.py#L38)） → `TerminalSession`（[agent/src/omni/channels/terminal/session.py](../../agent/src/omni/channels/terminal/session.py#L12)） → `open_process`（[agent/src/omni/channels/terminal/backend.py](../../agent/src/omni/channels/terminal/backend.py#L30)）
 
 ## 插件扩展接入
 
@@ -55,23 +55,221 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | community | GET | `/api/plugins` | `create_app.search_plugins` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L113) |
 | community | GET | `/api/plugins/{plugin_id}` | `create_app.plugin_detail` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L130) |
 | community | POST | `/api/publish` | `create_app.publish` | [agent/src/omni/plugins/community/server.py](../../agent/src/omni/plugins/community/server.py#L169) |
-| workbench | GET | `/` | `create_app.index` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L257) |
-| workbench | GET | `/agents` | `create_app.agents` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L156) |
-| workbench | GET | `/agents/{agent_id}/approvals` | `create_app.approvals` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L208) |
-| workbench | POST | `/agents/{agent_id}/approvals/{approval_id}` | `create_app.approve` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L212) |
-| workbench | GET | `/agents/{agent_id}/audit` | `create_app.audit` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L237) |
-| workbench | GET | `/agents/{agent_id}/memory` | `create_app.memories` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L217) |
-| workbench | POST | `/agents/{agent_id}/memory` | `create_app.remember` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L226) |
-| workbench | DELETE | `/agents/{agent_id}/memory/{memory_id}` | `create_app.forget` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L232) |
-| workbench | GET | `/agents/{agent_id}/runs` | `create_app.runs` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L174) |
-| workbench | GET | `/agents/{agent_id}/runs/{run_id}` | `create_app.run` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L178) |
-| workbench | POST | `/agents/{agent_id}/runs/{run_id}/cancel` | `create_app.cancel` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L195) |
-| workbench | GET | `/agents/{agent_id}/runs/{run_id}/events` | `create_app.events` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L182) |
-| workbench | GET | `/agents/{agent_id}/sessions` | `create_app.sessions` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L166) |
-| workbench | GET | `/agents/{agent_id}/sessions/{session_id}/messages` | `create_app.messages` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L170) |
-| workbench | GET | `/agents/{agent_id}/settings` | `create_app.settings` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L200) |
-| workbench | PUT | `/agents/{agent_id}/settings` | `create_app.save_settings` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L204) |
-| workbench | POST | `/agents/{agent_id}/turns` | `create_app.turn` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L160) |
+| v2 | GET | `/` | `create_app.index` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1964) |
+| v2 | GET | `/api/v1/agents` | `create_app.agents` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L758) |
+| v2 | GET | `/api/v1/agents/{agent_id}/action-reviews` | `create_app.action_review_list` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1600) |
+| v2 | GET | `/api/v1/agents/{agent_id}/actions/{action_id}/review` | `create_app.action_review_detail` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1609) |
+| v2 | POST | `/api/v1/agents/{agent_id}/actions/{action_id}/review` | `create_app.action_review_commit` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1623) |
+| v2 | GET | `/api/v1/agents/{agent_id}/actions/{action_id}/reviews` | `create_app.action_review_history` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1613) |
+| v2 | GET | `/api/v1/agents/{agent_id}/android/access` | `create_app.android_access_list` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L542) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/access/{access_id}/revoke` | `create_app.android_access_revoke` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L548) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/actions` | `create_app.android_action` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L593) |
+| v2 | GET | `/api/v1/agents/{agent_id}/android/environments` | `create_app.android_ime_environments` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L529) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/environments/{environment_id}/restore` | `create_app.android_ime_restore` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L535) |
+| v2 | GET | `/api/v1/agents/{agent_id}/android/grants` | `create_app.android_grants` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L507) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/grants` | `create_app.android_grant` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L565) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/grants/{grant_id}/apps` | `create_app.android_apps` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L553) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/grants/{grant_id}/capture` | `create_app.android_capture` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L582) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/grants/{grant_id}/observe` | `create_app.android_observe` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L575) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/grants/{grant_id}/revoke` | `create_app.android_revoke` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L570) |
+| v2 | GET | `/api/v1/agents/{agent_id}/android/grants/{grant_id}/unicode` | `create_app.android_unicode_profile` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L518) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/android/grants/{grant_id}/unicode` | `create_app.android_unicode_profile_save` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L522) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/android/observations/{observation_id}` | `create_app.android_dismiss` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L589) |
+| v2 | POST | `/api/v1/agents/{agent_id}/android/probe` | `create_app.android_probe` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L513) |
+| v2 | GET | `/api/v1/agents/{agent_id}/approvals` | `create_app.approvals` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1413) |
+| v2 | POST | `/api/v1/agents/{agent_id}/approvals/{approval_id}` | `create_app.approve` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1417) |
+| v2 | GET | `/api/v1/agents/{agent_id}/audit` | `create_app.audit` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1829) |
+| v2 | GET | `/api/v1/agents/{agent_id}/audit/retention-preview` | `create_app.audit_retention_preview` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1359) |
+| v2 | GET | `/api/v1/agents/{agent_id}/bilibili/profiles/{config_id}` | `create_app.bilibili_profile` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L606) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/bilibili/profiles/{config_id}` | `create_app.bilibili_profile_save` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L610) |
+| v2 | GET | `/api/v1/agents/{agent_id}/bilibili/publications` | `create_app.bilibili_publications` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L631) |
+| v2 | POST | `/api/v1/agents/{agent_id}/bilibili/publications` | `create_app.bilibili_prepare` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L624) |
+| v2 | GET | `/api/v1/agents/{agent_id}/bilibili/publications/{identity}` | `create_app.bilibili_publication` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L640) |
+| v2 | POST | `/api/v1/agents/{agent_id}/bilibili/read` | `create_app.bilibili_read` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L617) |
+| v2 | GET | `/api/v1/agents/{agent_id}/configurations` | `create_app.configurations` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L912) |
+| v2 | POST | `/api/v1/agents/{agent_id}/configurations` | `create_app.create_configuration` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L940) |
+| v2 | POST | `/api/v1/agents/{agent_id}/configurations/preview` | `create_app.preview_configuration` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L954) |
+| v2 | GET | `/api/v1/agents/{agent_id}/configurations/template` | `create_app.configuration_template` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L947) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/configurations/{config_id}` | `create_app.archive_configuration` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L970) |
+| v2 | GET | `/api/v1/agents/{agent_id}/configurations/{config_id}` | `create_app.get_configuration` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L959) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/configurations/{config_id}` | `create_app.save_configuration` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L963) |
+| v2 | GET | `/api/v1/agents/{agent_id}/configurations/{config_id}/diagnosis` | `create_app.configuration_diagnosis` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L987) |
+| v2 | GET | `/api/v1/agents/{agent_id}/configurations/{config_id}/preset` | `create_app.apply_preset` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L991) |
+| v2 | GET | `/api/v1/agents/{agent_id}/configurations/{config_id}/revisions` | `create_app.configuration_history` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L977) |
+| v2 | GET | `/api/v1/agents/{agent_id}/debug` | `create_app.debug_status` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1844) |
+| v2 | POST | `/api/v1/agents/{agent_id}/debug` | `create_app.debug_start` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1848) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/debug/{operation_id}` | `create_app.debug_stop` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1853) |
+| v2 | GET | `/api/v1/agents/{agent_id}/debug/{operation_id}/logs` | `create_app.debug_logs` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1857) |
+| v2 | GET | `/api/v1/agents/{agent_id}/deliveries` | `create_app.deliveries` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L775) |
+| v2 | POST | `/api/v1/agents/{agent_id}/deliveries` | `create_app.create_delivery` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L786) |
+| v2 | GET | `/api/v1/agents/{agent_id}/deliveries/capabilities` | `create_app.delivery_capabilities` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L771) |
+| v2 | GET | `/api/v1/agents/{agent_id}/deliveries/channels` | `create_app.delivery_channels` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L762) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/deliveries/{delivery_id}` | `create_app.archive_delivery` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L832) |
+| v2 | GET | `/api/v1/agents/{agent_id}/deliveries/{delivery_id}` | `create_app.delivery` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L799) |
+| v2 | GET | `/api/v1/agents/{agent_id}/deliveries/{delivery_id}/attempts` | `create_app.delivery_attempts` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L803) |
+| v2 | POST | `/api/v1/agents/{agent_id}/deliveries/{delivery_id}/cancel` | `create_app.cancel_delivery` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L821) |
+| v2 | POST | `/api/v1/agents/{agent_id}/deliveries/{delivery_id}/decision` | `create_app.decide_delivery` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L814) |
+| v2 | POST | `/api/v1/agents/{agent_id}/deliveries/{delivery_id}/review` | `create_app.review_delivery` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L825) |
+| v2 | GET | `/api/v1/agents/{agent_id}/desktop` | `create_app.desktop_status` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1422) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/actions` | `create_app.desktop_action` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1466) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/capture` | `create_app.desktop_capture` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1446) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/observe` | `create_app.desktop_observe` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1442) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/desktop/portal` | `create_app.desktop_portal_close` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1462) |
+| v2 | GET | `/api/v1/agents/{agent_id}/desktop/portal` | `create_app.desktop_portal_status` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1454) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/portal` | `create_app.desktop_portal_open` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1450) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/portal/capture` | `create_app.desktop_portal_capture` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1458) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/probe` | `create_app.desktop_probe` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1430) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/desktop/snapshot` | `create_app.desktop_forget` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1489) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/targets` | `create_app.desktop_targets` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1434) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/verify` | `create_app.desktop_verify` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1438) |
+| v2 | POST | `/api/v1/agents/{agent_id}/desktop/view` | `create_app.desktop_begin` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1426) |
+| v2 | GET | `/api/v1/agents/{agent_id}/documents` | `create_app.source_documents` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1008) |
+| v2 | POST | `/api/v1/agents/{agent_id}/documents` | `create_app.source_document_create` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1017) |
+| v2 | POST | `/api/v1/agents/{agent_id}/documents/import` | `create_app.source_document_import` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1028) |
+| v2 | GET | `/api/v1/agents/{agent_id}/documents/search` | `create_app.source_document_search` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1039) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/documents/{document_id}` | `create_app.source_document_erase` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1065) |
+| v2 | GET | `/api/v1/agents/{agent_id}/documents/{document_id}` | `create_app.source_document_get` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1048) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/documents/{document_id}` | `create_app.source_document_save` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1056) |
+| v2 | GET | `/api/v1/agents/{agent_id}/documents/{document_id}/indexes` | `create_app.source_document_indexes` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1082) |
+| v2 | POST | `/api/v1/agents/{agent_id}/documents/{document_id}/indexes` | `create_app.source_document_rebuild` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1094) |
+| v2 | GET | `/api/v1/agents/{agent_id}/documents/{document_id}/revisions` | `create_app.source_document_history` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1072) |
+| v2 | GET | `/api/v1/agents/{agent_id}/events/retention-preview` | `create_app.event_retention_preview` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1343) |
+| v2 | GET | `/api/v1/agents/{agent_id}/extensions` | `create_app.extension_list` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1633) |
+| v2 | POST | `/api/v1/agents/{agent_id}/extensions` | `create_app.extension_install` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1629) |
+| v2 | GET | `/api/v1/agents/{agent_id}/extensions/{extension_id}` | `create_app.extension_detail` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1642) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/extensions/{extension_id}/authorization` | `create_app.extension_authorization` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1646) |
+| v2 | POST | `/api/v1/agents/{agent_id}/extensions/{extension_id}/disable` | `create_app.extension_disable` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1652) |
+| v2 | POST | `/api/v1/agents/{agent_id}/images` | `create_app.upload_image` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1247) |
+| v2 | POST | `/api/v1/agents/{agent_id}/images/{object_id}/prepare` | `create_app.prepare_image` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1266) |
+| v2 | GET | `/api/v1/agents/{agent_id}/maintenance` | `create_app.maintenance_list` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1323) |
+| v2 | POST | `/api/v1/agents/{agent_id}/maintenance` | `create_app.maintenance_submit` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1319) |
+| v2 | GET | `/api/v1/agents/{agent_id}/maintenance/{job_id}` | `create_app.maintenance_get` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1332) |
+| v2 | POST | `/api/v1/agents/{agent_id}/maintenance/{job_id}/cancel` | `create_app.maintenance_cancel` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1336) |
+| v2 | GET | `/api/v1/agents/{agent_id}/media/frames/{frames_id}` | `create_app.media_frames` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L715) |
+| v2 | GET | `/api/v1/agents/{agent_id}/media/jobs/{job_id}` | `create_app.media_job` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L693) |
+| v2 | POST | `/api/v1/agents/{agent_id}/media/jobs/{job_id}/cancel` | `create_app.media_job_cancel` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L697) |
+| v2 | GET | `/api/v1/agents/{agent_id}/media/processor` | `create_app.media_processor` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L719) |
+| v2 | POST | `/api/v1/agents/{agent_id}/media/processor/probe` | `create_app.media_processor_probe` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L723) |
+| v2 | GET | `/api/v1/agents/{agent_id}/media/sources` | `create_app.media_sources` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L655) |
+| v2 | POST | `/api/v1/agents/{agent_id}/media/sources` | `create_app.media_source_register` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L650) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/media/sources/{source_id}` | `create_app.media_source_delete` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L668) |
+| v2 | GET | `/api/v1/agents/{agent_id}/media/sources/{source_id}` | `create_app.media_source` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L664) |
+| v2 | GET | `/api/v1/agents/{agent_id}/media/sources/{source_id}/jobs` | `create_app.media_jobs` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L683) |
+| v2 | POST | `/api/v1/agents/{agent_id}/media/sources/{source_id}/jobs` | `create_app.media_job_submit` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L673) |
+| v2 | GET | `/api/v1/agents/{agent_id}/media/transcripts/{transcript_id}` | `create_app.media_transcript` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L701) |
+| v2 | GET | `/api/v1/agents/{agent_id}/media/transcripts/{transcript_id}/window` | `create_app.media_transcript_window` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L705) |
+| v2 | GET | `/api/v1/agents/{agent_id}/memory` | `create_app.memories` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1735) |
+| v2 | POST | `/api/v1/agents/{agent_id}/memory` | `create_app.remember` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1813) |
+| v2 | POST | `/api/v1/agents/{agent_id}/memory/index` | `create_app.memory_index` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1759) |
+| v2 | GET | `/api/v1/agents/{agent_id}/memory/organizations` | `create_app.memory_organizations` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1785) |
+| v2 | POST | `/api/v1/agents/{agent_id}/memory/organizations` | `create_app.memory_organization_create` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1779) |
+| v2 | POST | `/api/v1/agents/{agent_id}/memory/organizations/candidates/{candidate_id}/decision` | `create_app.memory_organization_decision` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1807) |
+| v2 | GET | `/api/v1/agents/{agent_id}/memory/organizations/{batch_id}` | `create_app.memory_organization_detail` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1794) |
+| v2 | POST | `/api/v1/agents/{agent_id}/memory/organizations/{batch_id}/cancel` | `create_app.memory_organization_cancel` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1798) |
+| v2 | POST | `/api/v1/agents/{agent_id}/memory/semantic-links/{link_id}/decision` | `create_app.semantic_decide` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1773) |
+| v2 | GET | `/api/v1/agents/{agent_id}/memory/semantics` | `create_app.semantic_batches` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1753) |
+| v2 | POST | `/api/v1/agents/{agent_id}/memory/semantics` | `create_app.semantic_propose` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1765) |
+| v2 | GET | `/api/v1/agents/{agent_id}/memory/semantics/{batch_id}` | `create_app.semantic_detail` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1769) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/memory/{memory_id}` | `create_app.forget` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1824) |
+| v2 | GET | `/api/v1/agents/{agent_id}/memory/{memory_id}/revisions` | `create_app.memory_revisions` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1190) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/messages/{message_id}` | `create_app.erase_message` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1204) |
+| v2 | GET | `/api/v1/agents/{agent_id}/objects` | `create_app.list_objects` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1232) |
+| v2 | POST | `/api/v1/agents/{agent_id}/objects` | `create_app.upload_object` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1213) |
+| v2 | GET | `/api/v1/agents/{agent_id}/objects/{object_id}` | `create_app.describe_object` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1274) |
+| v2 | GET | `/api/v1/agents/{agent_id}/objects/{object_id}/content` | `create_app.download_object` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1278) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/objects/{object_id}/pin` | `create_app.pin_object` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1287) |
+| v2 | GET | `/api/v1/agents/{agent_id}/people` | `create_app.list_people` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1103) |
+| v2 | POST | `/api/v1/agents/{agent_id}/people` | `create_app.create_person` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1112) |
+| v2 | GET | `/api/v1/agents/{agent_id}/people/owner` | `create_app.owner_person` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1099) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/people/{person_id}` | `create_app.erase_person` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1124) |
+| v2 | GET | `/api/v1/agents/{agent_id}/people/{person_id}` | `create_app.get_person` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1116) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/people/{person_id}` | `create_app.rename_person` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1120) |
+| v2 | GET | `/api/v1/agents/{agent_id}/people/{person_id}/accounts` | `create_app.person_accounts` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1129) |
+| v2 | POST | `/api/v1/agents/{agent_id}/people/{person_id}/accounts` | `create_app.bind_account` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1139) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/people/{person_id}/accounts/{account_id}` | `create_app.unbind_account` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1143) |
+| v2 | GET | `/api/v1/agents/{agent_id}/people/{person_id}/documents/{kind}` | `create_app.personal_document` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1150) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/people/{person_id}/documents/{kind}` | `create_app.save_personal_document` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1156) |
+| v2 | POST | `/api/v1/agents/{agent_id}/people/{person_id}/documents/{kind}/import` | `create_app.import_personal_document` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1173) |
+| v2 | GET | `/api/v1/agents/{agent_id}/qq/bindings` | `create_app.qq_bindings` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L727) |
+| v2 | POST | `/api/v1/agents/{agent_id}/qq/bindings` | `create_app.qq_binding_create` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L740) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/qq/bindings/{binding_id}` | `create_app.qq_binding_edit` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L748) |
+| v2 | GET | `/api/v1/agents/{agent_id}/qq/status` | `create_app.qq_status` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L736) |
+| v2 | GET | `/api/v1/agents/{agent_id}/routing` | `create_app.route_policy` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L928) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/routing` | `create_app.save_route_policy` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L932) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs` | `create_app.runs` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1311) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}` | `create_app.run` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1315) |
+| v2 | POST | `/api/v1/agents/{agent_id}/runs/{run_id}/cancel` | `create_app.cancel` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1399) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}/configuration` | `create_app.run_configuration` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1004) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}/context` | `create_app.run_context` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1200) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}/events` | `create_app.events` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1386) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}/images` | `create_app.run_images` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1270) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}/live-output` | `create_app.model_live_output` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1382) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}/retention` | `create_app.run_retention` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1373) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/runs/{run_id}/retention-pin` | `create_app.run_retention_pin` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1377) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}/routing` | `create_app.route_report` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L936) |
+| v2 | GET | `/api/v1/agents/{agent_id}/runs/{run_id}/skills` | `create_app.skill_run_report` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1731) |
+| v2 | GET | `/api/v1/agents/{agent_id}/schedules` | `create_app.schedules` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L839) |
+| v2 | POST | `/api/v1/agents/{agent_id}/schedules` | `create_app.create_schedule` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L852) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/schedules/{schedule_id}` | `create_app.archive_schedule` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L870) |
+| v2 | GET | `/api/v1/agents/{agent_id}/schedules/{schedule_id}` | `create_app.schedule` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L859) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/schedules/{schedule_id}` | `create_app.save_schedule` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L863) |
+| v2 | GET | `/api/v1/agents/{agent_id}/schedules/{schedule_id}/history` | `create_app.schedule_history` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L877) |
+| v2 | GET | `/api/v1/agents/{agent_id}/schedules/{schedule_id}/occurrences` | `create_app.schedule_occurrences` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L888) |
+| v2 | POST | `/api/v1/agents/{agent_id}/schedules/{schedule_id}/occurrences/{occurrence_id}/cancel` | `create_app.schedule_cancel` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L907) |
+| v2 | POST | `/api/v1/agents/{agent_id}/schedules/{schedule_id}/review` | `create_app.schedule_review` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L899) |
+| v2 | GET | `/api/v1/agents/{agent_id}/sessions` | `create_app.sessions` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1303) |
+| v2 | GET | `/api/v1/agents/{agent_id}/sessions/{session_id}/captures` | `create_app.session_captures` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1473) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/sessions/{session_id}/captures/{capture_id}` | `create_app.release_capture` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1485) |
+| v2 | GET | `/api/v1/agents/{agent_id}/sessions/{session_id}/messages` | `create_app.messages` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1307) |
+| v2 | GET | `/api/v1/agents/{agent_id}/settings` | `create_app.settings` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1404) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/settings` | `create_app.save_settings` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1408) |
+| v2 | GET | `/api/v1/agents/{agent_id}/settings/revisions` | `create_app.settings_history` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L995) |
+| v2 | GET | `/api/v1/agents/{agent_id}/skills` | `create_app.skill_list` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1665) |
+| v2 | POST | `/api/v1/agents/{agent_id}/skills` | `create_app.skill_save` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1671) |
+| v2 | GET | `/api/v1/agents/{agent_id}/skills/available` | `create_app.skill_available` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1687) |
+| v2 | POST | `/api/v1/agents/{agent_id}/skills/import` | `create_app.skill_import` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1677) |
+| v2 | GET | `/api/v1/agents/{agent_id}/skills/{skill_id}` | `create_app.skill_detail` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1699) |
+| v2 | POST | `/api/v1/agents/{agent_id}/skills/{skill_id}/export` | `create_app.skill_export` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1691) |
+| v2 | GET | `/api/v1/agents/{agent_id}/skills/{skill_id}/history` | `create_app.skill_versions` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1711) |
+| v2 | POST | `/api/v1/agents/{agent_id}/skills/{skill_id}/rollback` | `create_app.skill_rollback` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1727) |
+| v2 | PUT | `/api/v1/agents/{agent_id}/skills/{skill_id}/state` | `create_app.skill_change_state` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1721) |
+| v2 | GET | `/api/v1/agents/{agent_id}/summaries/{summary_id}` | `create_app.summary` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1209) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminal-operations/{operation_id}` | `create_app.terminal_lookup` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1544) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminal-reviews` | `create_app.terminal_review_list` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1493) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminal-reviews/{operation_id}` | `create_app.terminal_review_detail` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1499) |
+| v2 | POST | `/api/v1/agents/{agent_id}/terminal-reviews/{operation_id}` | `create_app.terminal_review_record` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1513) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminal-reviews/{operation_id}/history` | `create_app.terminal_review_history` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1503) |
+| v2 | DELETE | `/api/v1/agents/{agent_id}/terminal-reviews/{operation_id}/history/{review_id}/evidence` | `create_app.terminal_review_erase_evidence` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1519) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminals` | `create_app.terminal_list` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1531) |
+| v2 | POST | `/api/v1/agents/{agent_id}/terminals` | `create_app.terminal_open` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1540) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminals/options` | `create_app.terminal_options` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1527) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminals/{terminal_id}` | `create_app.terminal_detail` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1548) |
+| v2 | POST | `/api/v1/agents/{agent_id}/terminals/{terminal_id}/attach` | `create_app.terminal_attach` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1556) |
+| v2 | POST | `/api/v1/agents/{agent_id}/terminals/{terminal_id}/close` | `create_app.terminal_close` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1594) |
+| v2 | POST | `/api/v1/agents/{agent_id}/terminals/{terminal_id}/detach` | `create_app.terminal_detach` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1562) |
+| v2 | POST | `/api/v1/agents/{agent_id}/terminals/{terminal_id}/input` | `create_app.terminal_input` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1582) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminals/{terminal_id}/operations/{operation_id}` | `create_app.terminal_receipt` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1552) |
+| v2 | GET | `/api/v1/agents/{agent_id}/terminals/{terminal_id}/output` | `create_app.terminal_output` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1569) |
+| v2 | POST | `/api/v1/agents/{agent_id}/terminals/{terminal_id}/resize` | `create_app.terminal_resize` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1588) |
+| v2 | POST | `/api/v1/agents/{agent_id}/turns` | `create_app.turn` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1291) |
+| v2 | DELETE | `/api/v1/credentials` | `create_app.delete_credential` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1945) |
+| v2 | GET | `/api/v1/credentials` | `create_app.credential_list` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1891) |
+| v2 | PUT | `/api/v1/credentials` | `create_app.put_credential` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1937) |
+| v2 | POST | `/api/v1/credentials/register` | `create_app.credential_register` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1897) |
+| v2 | GET | `/api/v1/credentials/{identity}` | `create_app.credential_get` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1902) |
+| v2 | GET | `/api/v1/credentials/{identity}/operations` | `create_app.credential_operations` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1906) |
+| v2 | POST | `/api/v1/credentials/{identity}/review` | `create_app.credential_review` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1924) |
+| v2 | GET | `/api/v1/credentials/{identity}/reviews` | `create_app.credential_reviews` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1915) |
+| v2 | POST | `/api/v1/service/drain` | `create_app.drain` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L472) |
+| v2 | GET | `/api/v1/system/audit` | `create_app.instance_audit` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1952) |
+| v2 | GET | `/api/v1/system/diagnostics` | `create_app.diagnostic_bundle` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1869) |
+| v2 | GET | `/api/v1/system/logs` | `create_app.logs` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1878) |
+| v2 | GET | `/api/v1/system/metrics` | `create_app.metrics` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1840) |
+| v2 | GET | `/api/v1/version` | `create_app.version` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L485) |
+| v2 | GET | `/assets/{path:path}` | `create_app.resource` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L1969) |
+| v2 | GET | `/health/identity` | `create_app.identity_proof` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L461) |
+| v2 | GET | `/health/live` | `create_app.live` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L452) |
+| v2 | GET | `/health/ready` | `create_app.ready` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L456) |
 | workbench | GET | `/api/android/devices` | `create_android_router.devices` | [agent/src/omni/channels/web_api/android.py](../../agent/src/omni/channels/web_api/android.py#L42) |
 | workbench | POST | `/api/android/devices/{serial}/actions` | `create_android_router.action` | [agent/src/omni/channels/web_api/android.py](../../agent/src/omni/channels/web_api/android.py#L79) |
 | workbench | GET | `/api/android/devices/{serial}/apps` | `create_android_router.apps` | [agent/src/omni/channels/web_api/android.py](../../agent/src/omni/channels/web_api/android.py#L72) |
@@ -266,20 +464,13 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | workbench | GET | `/api/workbench/extensions` | `create_workbench_router.extensions` | [agent/src/omni/channels/workbench/routes.py](../../agent/src/omni/channels/workbench/routes.py#L68) |
 | workbench | GET | `/api/workbench/project` | `create_workbench_router.project` | [agent/src/omni/channels/workbench/routes.py](../../agent/src/omni/channels/workbench/routes.py#L36) |
 | workbench | GET | `/api/workbench/tools` | `create_workbench_router.tools` | [agent/src/omni/channels/workbench/routes.py](../../agent/src/omni/channels/workbench/routes.py#L56) |
-| workbench | GET | `/assets/{path:path}` | `create_app.resource` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L262) |
-| workbench | DELETE | `/credentials/{reference}` | `create_app.delete_credential` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L250) |
-| workbench | PUT | `/credentials/{reference}` | `create_app.put_credential` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L245) |
-| workbench | GET | `/health/live` | `create_app.live` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L141) |
-| workbench | GET | `/health/ready` | `create_app.ready` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L145) |
 | workbench | GET | `/pair/{code}` | `create_settings_router.pair_link` | [agent/src/omni/channels/web_api/settings.py](../../agent/src/omni/channels/web_api/settings.py#L98) |
-| workbench | GET | `/system/logs` | `create_app.logs` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L241) |
-| workbench | GET | `/version` | `create_app.version` | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L152) |
 
 ## 请求模型
 
 ### StrictInput
 
-定位：[agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L34)。
+定位：[agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py#L92)。
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
@@ -1219,6 +1410,53 @@ WebSocket 先校验身份，再由会话池创建独立 ConPTY；断开时核查
 | embedding | `Embedding` | 否 |
 | desktop | `Desktop` | 否 |
 | mode_routing | `ModeRouting` | 否 |
+
+### Form
+
+定位：[agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py#L119)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| account | `str` | 否 |
+| account_attr | `str` | 否 |
+| target | `str` | 否 |
+| target_attr | `str` | 否 |
+| editor | `str` | 否 |
+| submit | `str` | 否 |
+| records | `str` | 否 |
+| record_id_attr | `str` | 否 |
+| record_author | `str` | 否 |
+| record_author_attr | `str` | 否 |
+| record_text | `str` | 否 |
+| challenge | `str` | 否 |
+| logged_out | `str` | 否 |
+| mention_input | `str` | 否 |
+| mention_options | `str` | 否 |
+| mention_nodes | `str` | 否 |
+| mention_uid_attr | `str` | 否 |
+| record_mentions | `str` | 否 |
+
+### Payload
+
+定位：[agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py#L46)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+
+### ScheduleValue
+
+定位：[agent/src/omni/domain/scheduling.py](../../agent/src/omni/domain/scheduling.py#L117)。
+
+| 字段 | 类型 | 必填 |
+|---|---|---|
+| kind | `Literal['cron', 'interval', 'once']` | 否 |
+| timezone | `str` | 否 |
+| expression | `str` | 否 |
+| interval_seconds | `int \| None` | 否 |
+| start_at | `str \| None` | 否 |
+| session_id | `str \| None` | 否 |
+| prompt | `str` | 否 |
+| misfire | `Literal['latest']` | 否 |
 
 ### Catalog
 

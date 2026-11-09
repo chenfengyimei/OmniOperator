@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "batch": "R4.action_review",
+  "date": "2026-11-05",
+  "status": "development_complete_targeted_passed_full_recheck_required",
+  "whole_v2_complete": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "release_candidate": false,
+  "baseline_recovery": "temp/private/v2-extensions-source-20261105T083643+0800/manifest.json",
+  "source": {
+    "code_version": "5921a3c655cb5814ef26d29411b642fc8c304df52a1b7d96c3b1d5b64d82ca2c",
+    "fixed_source_files": 793,
+    "snapshot": "temp/build/v2-action-review-validation-snapshot-final.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 91,
+    "migration_head": "v2_0020",
+    "assets_version": "20261105v27",
+    "scope": [
+      "Independent owner observations applied/not_applied/still_unknown; immutable original action outcome and terminal run remain unchanged",
+      "Revision/epoch/proof bound decisions and immutable idempotent receipts; actual run/worker ownership blocks new decisions until reclaimed",
+      "Historical plugin identities remain reviewable after revoke without granting future authority; builtin source explicitly unversioned",
+      "Shared action attention predicate for retention, scheduling and doctor; raw recover/replay prevention, fees and outbound uncertainty stay independent",
+      "Session erasure invalidates old conclusions and wipes owner evidence; verified body pruning preserves result proof; restore isolates old decisions",
+      "Owner-only bounded metadata APIs and workbench, no invoke/retry endpoint, protected audit FK and bounded phase0 service lifetime",
+      "Unknown structured IPC responses reclaim actual worker before review; cleanup failures retain process ownership"
+    ],
+    "real_paid_models_or_accounts_used": false,
+    "real_runtime_data_modified": false
+  },
+  "validation": {
+    "targeted_unique_passed": 277,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-action-review-http-workers.xml",
+        "tests": 5,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 6.164,
+        "sha256": "625933ef8b1fb33966fb691f264fea36302895475168449f92ea485c7605449e"
+      },
+      {
+        "path": "temp/build/v2-action-review-http-recheck.xml",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 3.568,
+        "sha256": "e5b2f40aef46b9cb4cbbbe9298a250712409f15f3cfea67238b8aa220858b2f5"
+      },
+      {
+        "path": "temp/build/v2-action-review-runtime.xml",
+        "tests": 47,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 40.797,
+        "sha256": "9ced100c14c961a8137daefa9469e9dc34b6105771716f4e1081b7e6f9f43e7e"
+      },
+      {
+        "path": "temp/build/v2-action-review-repository.xml",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 8.857,
+        "sha256": "5e3c95525283a4671c13803496c302d95e6bda4bf1c845d11e1b10eff90462c6"
+      },
+      {
+        "path": "temp/build/v2-action-review-domain-storage.xml",
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 13.861,
+        "sha256": "23de2e4600ca72e3c46952e69238bc27d910c2603b31e7008868bd4804f1bf32"
+      },
+      {
+        "path": "temp/build/v2-action-review-ui-initial.xml",
+        "tests": 3,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 10.907,
+        "sha256": "ecab9fe924fe4a84f880736d18be85869a3fb1cf3463791c47907095c2d484b4"
+      },
+      {
+        "path": "temp/build/v2-action-review-ui.xml",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 15.61,
+        "sha256": "05d3cd27532dde21435af86034d948987dee61405a23a557a771f18cd66111e1"
+      },
+      {
+        "path": "temp/build/v2-action-review-callers.xml",
+        "tests": 133,
+        "failures": 3,
+        "errors": 18,
+        "skipped": 0,
+        "duration_s": 164.331,
+        "sha256": "1cc02862849b2143a4c0de85a103ce6b9e32dec1df1fd6038cc6a4a0c5e3e74e"
+      },
+      {
+        "path": "temp/build/v2-action-review-callers-recheck.xml",
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 42.761,
+        "sha256": "a2858a1ec47bdb99c3d9bf6630bbbd82d81c0ba419156e5aea5f240009ed732a"
+      },
+      {
+        "path": "temp/build/v2-action-review-head-callers.xml",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 48.377,
+        "sha256": "2f7f134a2866a448a96b87e50f54cb306fea1144b3c877e2e5164b5f53b83ced"
+      },
+      {
+        "path": "temp/build/v2-action-review-proof-recheck.xml",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.814,
+        "sha256": "74455cca693745a0ae4f7aa6e09daf7300553f457c2bc44f44eb6116f7c5a55b"
+      },
+      {
+        "path": "temp/build/v2-action-review-kernel-http.xml",
+        "tests": 11,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 21.192,
+        "sha256": "2051be63b4f0067ff0ad50e646ecf8ff55941094922dfd172e9625b9817c4adb"
+      },
+      {
+        "path": "temp/build/v2-action-review-architecture-recheck.xml",
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 3.971,
+        "sha256": "89f55629e637135bb2e5337d14e5cce04e90556622f50120ad3ec78669184b26"
+      },
+      {
+        "path": "temp/build/v2-action-review-final-core.xml",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 10.885,
+        "sha256": "e80bfd15ee660efc64aa54695006230112c56fc85b2bb2c2c3fb81150d3df8af"
+      },
+      {
+        "path": "temp/build/v2-action-review-final-ui.xml",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 7.133,
+        "sha256": "18486e208fdaeeda33b37322e640a0b91de83c52f18e71f7f12724fa4d6ba706"
+      }
+    ],
+    "aggregation": "Latest result per classname/parameterized node; retained initial reports are superseded only by matching explicit rechecks",
+    "current_full_passed": false,
+    "full_runs_this_checkpoint": 0,
+    "full_recheck_required": true,
+    "static_report": "temp/build/v2-action-review-static.json",
+    "packaging": {
+      "assets": 99,
+      "sha256": "579a09aaa334f8add666296ac76edf8f4715ef842f0a9793ae7a36ab455232e3",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "d1d1eda3941efbe6780015bd382432afd54762dc4846706b4ba340d4d9d9a27d"
+    },
+    "type_targets": [
+      "Windows",
+      "Linux",
+      "Darwin"
+    ],
+    "strict_whole_repository": false,
+    "native_real_platform_acceptance": false,
+    "full_four_viewport_dual_theme_matrix": false,
+    "initial_failures": [
+      "New HTTP fixture queried unsupported generic messages kind; replaced with exact input message identity and rechecked",
+      "New UI fixture attempted asyncio.run on Playwright's active loop; isolated fixture bridge fixed and all3 rechecked",
+      "Caller head assertions still expected19 and body guard confused SHA metadata columns with raw body; updated exact head and exact column guard, failed/error nodes rechecked without repeating112 passed nodes",
+      "Old architecture guard rejected the intentionally trusted child loader; allow only its two exact calls in _load_entry and add negative bypass regression",
+      "Static typing exposed generic JSON reasons being treated as an iterable; added explicit bounded protection-list validation, no type ignores"
+    ],
+    "historical_full_only": {
+      "evidence": "docs/evidence/v2-history.json",
+      "passed": 2659,
+      "failed": 1,
+      "note": "Older source only; old ConPTY race later fixed with24 related passes; no current full pass"
+    }
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-action-review-source-20261105T103256+0800/manifest.json",
+    "source_files": 988,
+    "runtime_data_included": false,
+    "credentials_included": false,
+    "validation_status": "development_only_full_recheck_required"
+  },
+  "pending": [
+    "R5.terminal: platform PTY/process capability ports, managed interactive sessions and real-platform acceptance",
+    "Remaining business migration, semantic memory/vector/provider integration, extension callbacks/artifacts and native desktop adapters",
+    "Combined current-source full/UI matrix, three-platform real72h acceptance and default-entry switch"
+  ]
+}

@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "batch": "R4.maintenance.memory_exact",
+  "date": "2026-11-05",
+  "status": "development_complete_targeted_passed_full_recheck_required",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "baseline_recovery": "temp/private/v2-maintenance-source-20261105T035858+0800/manifest.json",
+  "source": {
+    "code_version": "319959d032d6af3d32b82a81af5191ff6de56162ce7f4d46306d30a2a13ccd56",
+    "fixed_source_files": 759,
+    "snapshot": "temp/build/v2-memory-organization-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "implementation": {
+    "declared_tables": 83,
+    "schema_version": "v2_0018",
+    "own_assets": "20261105v24",
+    "policy": "exact-fact-duplicates-v1",
+    "tables": [
+      "memory_organization_batches",
+      "memory_organization_sources",
+      "memory_organization_candidates"
+    ],
+    "api": [
+      "POST/GET /api/v1/agents/{agent_id}/memory/organizations",
+      "GET /api/v1/agents/{agent_id}/memory/organizations/{batch_id}",
+      "POST /api/v1/agents/{agent_id}/memory/organizations/{batch_id}/cancel",
+      "POST /api/v1/agents/{agent_id}/memory/organizations/candidates/{candidate_id}/decision"
+    ],
+    "limits": {
+      "shared_unfinished_documents_and_queued_ready_reviews": 64,
+      "sources_min": 2,
+      "sources_max": 32,
+      "candidates_max": 31,
+      "raw_fact_and_quote_bytes": 262144,
+      "anchors_per_source": 8,
+      "model_budget_micro": 0,
+      "service_pending_requests": 8,
+      "service_slots": 2,
+      "page_default": 20,
+      "page_max": 50,
+      "workbench_rows": 200,
+      "workbench_fact_choices": 100
+    },
+    "contract": [
+      "Owner selects fixed live fact revisions; exact normalized request identity replays before capacity/source validation",
+      "Classify raw UTF-8 equality with identical Agent/person/session scope; normalized content_hash alone never establishes exact duplication",
+      "Only source identities, revisions, raw/evidence hashes and policy/epoch are persisted; no copied fact/quote body or new object reference",
+      "Local classification and proposal/audit publication use one bounded writer transaction; crash leaves queue or full receipt, never partial proposals",
+      "Shared maintenance worker dispatches pure local transactions without fake document jobs, external leases or background model calls",
+      "Explicit owner CAS binds candidate revision/fingerprint/history epoch; application creates reversible recall relationships, never invokes forget or creates a new fact",
+      "One predicate filters FTS and Chinese fallback and protects new context captures; existing context snapshots remain unchanged",
+      "Prevent suppression chains/cycles/double-suppression; same keeper may retain multiple duplicate links",
+      "Cancel only remaining proposals; applied relationships remain explicitly revocable after complete or partial cancellation",
+      "Memory head/revision/kind/person/session/anchor and person deletion triggers invalidate affected proposals and applied relations; invalid details never return historical fact body",
+      "Normal restart may finish the captured deterministic queue; verified restore cancels queued work, invalidates active review relationships and old epoch decisions without rewriting fact truth",
+      "Actual service tasks remain owned after caller cancellation; phase0 residue preserves database and instance lock",
+      "Fixed maintenance metric and trace fields; diagnostics/audit exclude raw bodies, quotes, request keys and secrets"
+    ],
+    "fact_truth_changed_by_organization": false,
+    "forget_called_by_organization": false,
+    "models_called": false,
+    "model_ledger_rows_created": false,
+    "semantic_consolidation_implemented": false,
+    "real_user_data_modified": false,
+    "offline_cleanup_enqueued": false
+  },
+  "validation": {
+    "targeted_unique_passed": 156,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-memory-organization-core.xml",
+        "tests": 7,
+        "failed": 0,
+        "duration_s": 11.185,
+        "sha256": "2b22a24509b2fa0d7cae72b1e77bebd92d8c78aac2e70a7d358db5ce05349acf"
+      },
+      {
+        "path": "temp/build/v2-memory-organization-ui.xml",
+        "tests": 3,
+        "failed": 0,
+        "duration_s": 14.057,
+        "sha256": "e6950f962daed3feb6ea64d9634baa3ef4c4f00c292d392fd678c5d687c047d6"
+      },
+      {
+        "path": "temp/build/v2-memory-organization-callers.xml",
+        "tests": 60,
+        "failed": 0,
+        "duration_s": 61.857,
+        "sha256": "ce5b853be2fe208b9e415fd89ef826d2c20854bf85a644c6e9c73c4feb0ac0de"
+      },
+      {
+        "path": "temp/build/v2-memory-organization-ownership.xml",
+        "tests": 18,
+        "failed": 0,
+        "duration_s": 16.342,
+        "sha256": "0f7955d28797ce804077c87111d4318ec77f496ea442d2b9abbf5ef857dbe838"
+      },
+      {
+        "path": "temp/build/v2-memory-organization-migration.xml",
+        "tests": 51,
+        "failed": 0,
+        "duration_s": 20.159,
+        "sha256": "3d0d5085233f3a3aef0f11caf7cfa64923fd4cc8b09181ab4b2db1878d2b95a3"
+      },
+      {
+        "path": "temp/build/v2-memory-organization-head-callers.xml",
+        "tests": 17,
+        "failed": 1,
+        "duration_s": 47.24,
+        "sha256": "e001c256383c9831c8ad6138eac2b0acfac4dc763944df2b1989418e11083b57"
+      },
+      {
+        "path": "temp/build/v2-memory-organization-head-recheck.xml",
+        "tests": 1,
+        "failed": 0,
+        "duration_s": 1.885,
+        "sha256": "076ba7599194d9398291915eb879c36bd498eba164aa77fb8f6a130b34245aaf"
+      }
+    ],
+    "aggregation": "Latest result per classname/parameterized node; the single head recheck replaces its initial failed result",
+    "current_full_passed": false,
+    "full_recheck_required": true,
+    "full_runs_this_checkpoint": 0,
+    "development_first": true,
+    "static_report": "temp/build/v2-memory-organization-static.json",
+    "formatted_python": 623,
+    "v2_default_typechecked_files": 130,
+    "type_targets": [
+      "Windows",
+      "Linux",
+      "Darwin"
+    ],
+    "strict_whole_repository": false,
+    "real_platform_runtime": false,
+    "packaging": {
+      "assets": 97,
+      "sha256": "fa7b3b8fe5e31daac28c7d51b626a8ba99698748f776fd4667ebe0a23261f382",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "7cc3f6e5012fca3d1ff046b8f40ae9e65eb4b02193f83f7a99bcb8efda328782"
+    },
+    "initial_failures": [
+      {
+        "report": "temp/build/v2-memory-organization-head-callers.xml",
+        "failed": 1,
+        "cause": "Existing metrics API test still expected9 operations*5outcomes=45; fixed maintenance operation added in previous batch makes10*5=50",
+        "fix": "Update exact bound to50 with explicit fixed-cardinality explanation; no production or timeout change",
+        "recheck": "temp/build/v2-memory-organization-head-recheck.xml",
+        "passed": 1
+      },
+      {
+        "report": "temp/build/v2-memory-organization-static-initial.json",
+        "cause": "UnitOfWork decision argument name differed from repository request keyword; final health dict required formatting",
+        "fix": "Align protocol keyword name and format only; no ignores or weaker type checks"
+      }
+    ],
+    "faults": [
+      "Three real process exits during proposal publication, during owner decision before commit, and after committed decision",
+      "Three v18 DDL exit points with exact v17 rollback and verified snapshot retry",
+      "Eleven source mutations plus anchor movement invalidate pending/applied relations",
+      "Restore preserves original facts and source anchors while cancelling queued and invalidating ready/applied review relationships",
+      "Caller cancellation and exhausted shutdown budget retain actual transaction, database and instance lock",
+      "Concurrent CAS, capacity in both queue directions, chain/double-suppression rejection and retained historical context",
+      "Real browser late decision/detail/raw-memory responses cannot overwrite another Agent or selected batch"
+    ],
+    "browser_scope": {
+      "new_cases": 3,
+      "duration_s": 14.67,
+      "representative_viewports": [
+        390,
+        760,
+        1440
+      ],
+      "themes": "dark390; default light760/1440",
+      "contexts_and_databases_isolated": true,
+      "four_viewport_dual_theme_full_matrix_currently_run": false
+    },
+    "feedback_scope": "New feature and related nodes only; no entire test_v2_ui matrix or full pytest, no shortened production/test waits",
+    "last_full_is_previous_source": {
+      "evidence": "docs/evidence/v2-history.json",
+      "passed": 2659,
+      "failed": 1,
+      "followup": "Old ConPTY race fixed with24 related passes; current source full still pending"
+    }
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-memory-organization-source-20261105T051926+0800/manifest.json",
+    "source_files": 952,
+    "runtime_data_included": false,
+    "credentials_included": false,
+    "validation_status": "development_only_full_recheck_required"
+  },
+  "pending": [
+    "R4.extensions: trusted managed extension host, versioned catalog and authorization drift/cancellation/closure",
+    "Semantic/model-assisted memory proposals are not implemented; exact duplicate organization does not imply semantic fact merging",
+    "Combined current-source full revalidation and complete four-viewport/dual-theme UI gates before candidate acceptance",
+    "Remaining business/vector/provider integration, native adapters, macOS/Linux runtime and three-platform real72h acceptance"
+  ]
+}

@@ -37,6 +37,30 @@ def main() -> int:
             )
             + " |"
         )
+    packages = tasks.get("delivery_packages", [])
+    if packages:
+        lines.extend(
+            [
+                "",
+                "## 当前交付清单",
+                "",
+                "开发、离线验证与平台实测分别记录；历史子批次不等于完整交付。",
+                "",
+                "| 交付包 | 内容 | 开发 | 离线验证 | 平台实测 | 下一退出条件 |",
+                "|---|---|---|---|---|---|",
+            ]
+        )
+        for item in packages:
+            assert item["development"] in STATES and item["offline_validation"] in STATES
+            values = [
+                item["id"],
+                item["title"],
+                item["development"],
+                item["offline_validation"],
+                item["platform_acceptance"],
+                item["exit_criteria"],
+            ]
+            lines.append("| " + " | ".join(str(v).replace("|", "\\|").replace("\n", " ") for v in values) + " |")
     lines.extend(
         [
             "",

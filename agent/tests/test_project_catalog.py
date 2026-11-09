@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import json
+import zipfile
 from pathlib import Path
 from urllib.parse import urlsplit
-import zipfile
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from omni.bootstrap import build_runtime
 from omni.channels.web import create_app
@@ -70,6 +70,23 @@ def test_repository_sources_have_unique_owners_and_resolvable_flows():
         for path in module["docs"] + module["tests"]:
             assert (PROJECT_ROOT / path).is_file(), path
     assert all(step["line"] for flow in result["flows"] for step in flow["steps"])
+
+
+def test_native_source_index_tracks_swift_c_headers_and_ignores_compiler_caches(tmp_path):
+    root = tmp_path / "agent/src/omni/adapters/workers/macos"
+    root.mkdir(parents=True)
+    for name in ("Helper.swift", "identity.c", "identity.h"):
+        (root / name).write_text("native source, not Python\n", encoding="utf-8")
+    for directory in (".build", ".swiftpm"):
+        (root / directory).mkdir()
+        (root / directory / "derived.swift").write_text("generated cache", encoding="utf-8")
+    before = build_index(tmp_path)
+    assert {Path(item["path"]).name for item in before["files"]} == {"Helper.swift", "identity.c", "identity.h"}
+    assert all(item["kind"] == "asset" and not item["symbols"] for item in before["files"])
+    (root / ".build/derived.swift").write_text("changed generated cache", encoding="utf-8")
+    assert build_index(tmp_path)["source_sha256"] == before["source_sha256"]
+    (root / "Helper.swift").write_text("changed native implementation", encoding="utf-8")
+    assert build_index(tmp_path)["source_sha256"] != before["source_sha256"]
 
 
 def test_oversized_or_invalid_source_cannot_produce_a_silent_partial_index(tmp_path):

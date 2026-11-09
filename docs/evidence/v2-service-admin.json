@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.linux_system_service_admin",
+  "date": "2026-11-07",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "6e7afac6a12d25ed7b323eb46ba090dcf02a77f719b17b924f0f7e65e5274878",
+    "fixed_source_files": 971,
+    "snapshot": "temp/build/v2-service-admin-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "desktop_ipc_version": "omni-desktop-ipc-6",
+    "operation_plan_format": "omni-service-operation-2",
+    "admin_protocol": "omni-service-admin-1",
+    "linux_system_admin_source_integrated": true,
+    "actual_root_executed": false,
+    "native_services_modified": false,
+    "linux_root_available_verified": false,
+    "immutable_update_coordinator_implemented": false,
+    "macos_system_admin_implemented": false,
+    "scope": [
+      "Owner CLI explicitly pins operation socket and root bundle SHA; existing application owns full deployment verification, instance lock and maintenance intent",
+      "New admin-bundle publishes15 reviewed files, manifest and root operator instructions; no automatic elevation/install/root execution",
+      "Root stdlib-only -I -S launcher verifies protected artifact, exact contents and source hashes matching captured owner installation; no business DB, plugin, .pth or owner environment import",
+      "Fixed Linux Unix endpoint and SO_PEERCRED on both peers; bounded exact operation/approval/bundle/sequence/request binding and explicit cleanup receipt",
+      "Root fixed local-account identity, protected paths, instance lock and immutable dispatch/outcome privilege witnesses; once-dispatched operations never replay",
+      "Root and owner queries share structured systemd decoder; not-found with unverified dropins cannot prove safe absence",
+      "Fixed systemctl registration/removal only, numeric nonzero service User; verify loaded definition before enable; no shell/start/stop/restart/now/force",
+      "Single-thread native command owner uses pidfd, subreaper, PDEATHSIG and unreaped group anchor; post-exit adoption resample, partial setup ownership and post-reap descriptor state",
+      "Cancellation, malformed reply, broken transport, command timeout or incomplete tree reclaim retain ownership and unknown state",
+      "Reproduced Windows sharing failures during actual CLI artifact publication; bounded1s retry only while original directory identity and absent destination remain proven; no replace or copy"
+    ],
+    "pending": [
+      "Actual Linux root installation/trust, socket credentials, pidfd/prctl, local filesystems, systemd UnitPath/dropins and service install/remove acceptance",
+      "Root crash stale endpoint/privilege audit manual recovery and real uninterruptible process/cleanup behavior",
+      "Immutable release coordinator, verified backup/object pinning, service switch and matching-snapshot failed-update restoration",
+      "macOS system administrator and Mac helper compilation/default ACL absence/actual ServiceManagement fields/GUI domain proof",
+      "D3 sustained X11 identity/foreground and independent Wayland control; remaining business/model/extension migration, default switch, platform full and72h"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 111,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-service-admin-current.xml",
+        "sha256": "11d12b8acdf680d13ab5695f9c15632ba1e9dccf66a88e7800a32ab5c1bcbfe3",
+        "tests": 84,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 21.702
+      },
+      {
+        "path": "temp/build/v2-service-admin-final.xml",
+        "sha256": "9e58372cc59d428869f3322341a46f241df3dc51316e415e64ba58fe335f5f60",
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.71
+      },
+      {
+        "path": "temp/build/v2-service-admin-publication-final.xml",
+        "sha256": "d21c16ace2832c56618f1da7e2a8a71d2e92175cac52e383239a4459bc5f0558",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.719
+      },
+      {
+        "path": "temp/build/v2-service-admin-publication-callers.xml",
+        "sha256": "495c8afd98e000b36adcb748dd6e73d5d70e21ef592898fe6528e460ef54c804",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 10.643
+      }
+    ],
+    "strategy": "Initial84 service/protocol/ownership/query/deployment/application/readiness/architecture cases; latest34 admin regressions,15 publication/deployment cases and23 publication/file-caller cases deduplicate111. Only affected subsets rerun after actual fixes.",
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "pyright": [
+      {
+        "path": "temp/build/v2-service-admin-types-host.json",
+        "sha256": "8832bb3c8bb2226548ba7ecef579724402ef8a4d66bd5731616f8ea1cc653182",
+        "filesAnalyzed": 14,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.485
+      },
+      {
+        "path": "temp/build/v2-service-admin-types-linux.json",
+        "sha256": "e5c9a7ce6895225cd122d704d7e52cea3103515b93ec553f68379dfbd5fa59d8",
+        "filesAnalyzed": 14,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.394
+      }
+    ],
+    "type_limit": "Fourteen affected production Python files in default host/Linux modes, not strict whole repository/native kernel validation",
+    "gates": {
+      "path": "temp/build/v2-service-admin-gates.json",
+      "sha256": "5c46b3ec01d717a9e3560c142a9b258a72bfa169ef5d94469f04bb2c679611e6",
+      "passed": 7
+    },
+    "packaging": {
+      "path": "temp/build/v2-service-admin-packaging/evidence.json",
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "dd7321127a1f37ddc339254042fd9d0d44b230badae5e69cf1369c951893fa6d"
+    },
+    "packaging_current_source_verified": true,
+    "artifact": {
+      "path": "temp/build/v2-service-admin-artifact.json",
+      "sha256": "45caf7919a088b3f45fb6fc59d77ad5fe7b202f7c4785512b4652cf0386a0114",
+      "published": {
+        "bundle": "D:\\xm\\OmniOperator\\temp\\build\\v2-service-admin-operator-bundle",
+        "sha256": "5d556c926e1d849bc771a35ae7e4a8497722aeabd2bab8b0d5b33378dbf4987a",
+        "files": 15,
+        "installed": false,
+        "elevated": false,
+        "protocol": "omni-service-admin-1"
+      },
+      "checks": {
+        "isolated_stdlib_import": {
+          "exit_code": 0,
+          "argv": [
+            "D:\\xm\\OmniOperator\\.venv\\Scripts\\python.exe",
+            "-I",
+            "-S",
+            "-B",
+            "-c",
+            "import sys;sys.path.insert(0,sys.argv[1]);import omni.adapters.platform.service_admin;assert 'site' not in sys.modules;assert 'psutil' not in sys.modules;assert not any(k.startswith('omni.composition') for k in sys.modules)",
+            "D:\\xm\\OmniOperator\\temp\\build\\v2-service-admin-operator-bundle\\lib"
+          ]
+        },
+        "help": {
+          "exit_code": 0,
+          "argv": [
+            "D:\\xm\\OmniOperator\\.venv\\Scripts\\python.exe",
+            "-I",
+            "-S",
+            "-B",
+            "D:\\xm\\OmniOperator\\temp\\build\\v2-service-admin-operator-bundle\\service-admin.py",
+            "--help"
+          ]
+        }
+      },
+      "wheels": [
+        {
+          "path": "temp/build/v2-service-admin-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+          "sha256": "8989d8a2cd9169c4732c763a0e4e6c01dd945b486919b4be8c75928f47bd48f1"
+        },
+        {
+          "path": "temp/build/v2-service-admin-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+          "sha256": "8989d8a2cd9169c4732c763a0e4e6c01dd945b486919b4be8c75928f47bd48f1"
+        }
+      ],
+      "root_executed": false,
+      "root_trust_validated": false,
+      "native_linux_validated": false
+    },
+    "limitations": [
+      "Linux root IO, kernel graph, sockets and commands are injected on Windows; no live root, chmod/chown of system paths or manager invocation",
+      "Bundle generated as ordinary owner, isolated stdlib import/help only; root protection and clean trusted operator environment not validated on Linux",
+      "Local /etc/passwd accounts only; conservative protected UnitPath and no-dropin prerequisites may keep actual environments unavailable",
+      "Windows real directory publication succeeded after bounded retry fix; other platform publication still not real acceptance",
+      "Mac Swift/C remains uncompiled; no native multi-platform/UI matrix/full/load/72h or candidate completion"
+    ],
+    "development_corrections": [
+      "Initial artifact integrity test wrote bytecode during isolated import; use -B, matching production no-bytecode root policy",
+      "Oversize malformed-frame parameter now has short test ID; payload/assertions unchanged",
+      "Root partial spawn setup/descendant adoption/post-reap close failures now retain ownership; regression graph is fully injected",
+      "Windows no-overwrite publication gained same-identity bounded sharing retry after real CLI reproduction; fake timeout clock confined to adapter module"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-service-admin-source-20261107T044414+0800/manifest.json",
+    "source_files": 1188,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_SERVICES.md",
+    "scope": "D4优先实现不可变版本切换协调器：审阅计划、独占排空、验证快照/对象、目标新目录、单次服务切换、本次运行证明及失败恢复，不覆盖活动程序/数据；Linux系统root链待实机验证，macOS系统管理员仍未实现，Mac编译/ACL/字段和D3控制继续保留待办。"
+  }
+}

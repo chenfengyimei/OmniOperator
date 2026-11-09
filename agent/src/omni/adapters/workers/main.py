@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import heapq
 import json
 import os
 import platform
 import sys
 import tempfile
-from dataclasses import asdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -17,8 +18,14 @@ if TYPE_CHECKING:
     from playwright.async_api import Browser, BrowserContext, Page, Playwright
 
 from ...domain.contracts import ActionResult, Effect, Outcome
+from ..object_store import publish_file
+from .protocol import MAX_FRAME, encode_response
+from .protocol import request as decode_request
 
-MAX_FRAME = 1_048_576
+
+@dataclass
+class Effects:
+    dispatched: bool = False
 
 
 def workspace_path(root_text: str, relative: str) -> Path:
@@ -42,6 +49,8 @@ def workspace_path(root_text: str, relative: str) -> Path:
             raise ValueError("Workspace links are not permitted")
     if not path.resolve().is_relative_to(root):
         raise ValueError("Path escapes workspace")
+    if path.exists() and (not path.is_dir() and (not path.is_file() or path.stat().st_nlink != 1)):
+        raise ValueError("Workspace files must be single-link regular files")
     return path
 
 
@@ -53,6 +62,7 @@ class Worker:
         self._pages: dict[str, Page] = {}
 
     async def invoke(self, name: str, args: dict, context: dict) -> ActionResult:
+        effects = Effects()
         try:
             if name == "system_info":
                 return ActionResult(
@@ -67,23 +77,32 @@ class Worker:
                     ),
                 )
             if name.startswith("files_"):
-                return self._files(name, args, context)
+                return self._files(name, args, context, effects)
             if name == "shell_execute":
-                return await self._shell(args, context)
+                return await self._shell(args, context, effects)
             if name.startswith("browser_"):
-                return await self._web(name, args, context)
+                return await self._web(name, args, context, effects)
             return ActionResult(
                 Outcome.ERROR, "Capability is not implemented by this worker", error_code="unsupported_capability"
             )
-        except (ValueError, KeyError, TypeError, OSError) as exc:
-            return ActionResult(Outcome.ERROR, str(exc)[:500], error_code="invalid_capability_request")
+        except Exception:  # noqa: BLE001 -- worker failures preserve dispatch certainty without leaking native payloads
+            return ActionResult(
+                Outcome.UNKNOWN if effects.dispatched else Outcome.ERROR,
+                "Capability outcome requires verification"
+                if effects.dispatched
+                else "Capability request was rejected before dispatch",
+                Effect.UNKNOWN if effects.dispatched else Effect.NONE,
+                error_code="capability_outcome_unknown" if effects.dispatched else "invalid_capability_request",
+            )
 
-    def _files(self, name: str, args: dict, context: dict) -> ActionResult:
+    def _files(self, name: str, args: dict, context: dict, effects: Effects) -> ActionResult:
         path = workspace_path(context["workspace"], str(args.get("path", ".")))
         if name == "files_list":
             rows = []
-            for item in sorted(path.iterdir(), key=lambda p: p.name)[:200]:
+            for item in heapq.nsmallest(200, path.iterdir(), key=lambda p: p.name):
                 if item.is_symlink() or item.is_junction():
+                    continue
+                if item.is_file() and item.stat().st_nlink != 1:
                     continue
                 rows.append(
                     {
@@ -97,8 +116,12 @@ class Worker:
             if path.stat().st_size > 256 * 1024:
                 raise ValueError("File exceeds text read limit")
             content = path.read_bytes()
+            digest = hashlib.sha256(content).hexdigest()
             return ActionResult(
-                Outcome.OK, content.decode("utf-8-sig"), data={"sha256": hashlib.sha256(content).hexdigest()}
+                Outcome.OK,
+                f"sha256={digest}\n" + content.decode("utf-8-sig"),
+                verification=digest,
+                data={"sha256": digest},
             )
         if name == "files_write":
             payload = str(args["content"]).encode("utf-8")
@@ -123,14 +146,15 @@ class Worker:
                 current = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
                 if current != expected:
                     raise ValueError("File fingerprint changed while preparing the write")
-                os.replace(temporary, path)
+                effects.dispatched = True
+                publish_file(Path(temporary), path, replace=True)
             finally:
                 Path(temporary).unlink(missing_ok=True)
             digest = hashlib.sha256(payload).hexdigest()
             return ActionResult(Outcome.OK, "File saved", Effect.APPLIED, verification=digest, data={"sha256": digest})
         raise ValueError("Unknown file capability")
 
-    async def _shell(self, args: dict, context: dict) -> ActionResult:
+    async def _shell(self, args: dict, context: dict, effects: Effects) -> ActionResult:
         argv = args.get("argv")
         if (
             not isinstance(argv, list)
@@ -140,6 +164,7 @@ class Worker:
         ):
             raise ValueError("Provide a bounded argv array; shell interpolation is not supported")
         cwd = workspace_path(context["workspace"], str(args.get("cwd", ".")))
+        effects.dispatched = True
         process = await asyncio.create_subprocess_exec(
             *argv,
             cwd=cwd,
@@ -150,21 +175,35 @@ class Worker:
 
         async def drain(stream):
             output = bytearray()
+            truncated = False
             while data := await stream.read(8192):
-                output.extend(data[: max(0, 256 * 1024 - len(output))])
-            return output.decode("utf-8", errors="replace")
+                remaining = max(0, 256 * 1024 - len(output))
+                truncated = truncated or len(data) > remaining
+                output.extend(data[:remaining])
+            return output.decode("utf-8", errors="replace"), truncated
 
-        stdout, stderr = await asyncio.gather(drain(process.stdout), drain(process.stderr))
+        (stdout, stdout_truncated), (stderr, stderr_truncated) = await asyncio.gather(
+            drain(process.stdout), drain(process.stderr)
+        )
         code = await process.wait()
+        if stdout_truncated:
+            stdout = "[stdout truncated at 262144 bytes]\n" + stdout
+        if stderr_truncated:
+            stderr = "[stderr truncated at 262144 bytes]\n" + stderr
         return ActionResult(
             Outcome.OK if code == 0 else Outcome.ERROR,
             stdout + ("\n" + stderr if stderr else ""),
             Effect.APPLIED,
             error_code="" if code == 0 else "command_failed",
-            data={"exit_code": code},
+            data={
+                "exit_code": code,
+                "truncated": stdout_truncated or stderr_truncated,
+                "stdout_truncated": stdout_truncated,
+                "stderr_truncated": stderr_truncated,
+            },
         )
 
-    async def _web(self, name: str, args: dict, context: dict) -> ActionResult:
+    async def _web(self, name: str, args: dict, context: dict, effects: Effects) -> ActionResult:
         from urllib.parse import urlsplit
 
         if self._playwright is None:
@@ -183,6 +222,7 @@ class Worker:
             target = urlsplit(url)
             if target.scheme not in {"http", "https"} or target.username or target.password:
                 raise ValueError("Browser navigation requires a plain HTTP(S) URL")
+            effects.dispatched = True
             await page.goto(url, timeout=30_000, wait_until="domcontentloaded")
             return ActionResult(
                 Outcome.OK,
@@ -200,8 +240,10 @@ class Worker:
             if await locator.count() != 1:
                 raise ValueError("Selector must identify exactly one element")
             if name == "browser_fill":
+                effects.dispatched = True
                 await locator.fill(str(args["text"]), timeout=10_000)
             else:
+                effects.dispatched = True
                 await locator.click(timeout=10_000)
             return ActionResult(Outcome.OK, "Browser action completed", Effect.APPLIED, verification=page.url)
         raise ValueError("Unknown browser capability")
@@ -222,21 +264,12 @@ async def serve() -> None:
                 return
             if len(line) > MAX_FRAME or not line.endswith(b"\n"):
                 return
-            request = json.loads(line)
-            if (
-                request.get("version") != 1
-                or not isinstance(request.get("arguments"), dict)
-                or not isinstance(request.get("context"), dict)
-            ):
+            try:
+                request = decode_request(line)
+            except ValueError:
                 return
             result = await worker.invoke(request["method"], request["arguments"], request["context"])
-            response = {"version": 1, "id": request["id"], "result": asdict(result)}
-            frame = json.dumps(response, ensure_ascii=False).encode() + b"\n"
-            if len(frame) > MAX_FRAME:
-                result = ActionResult(
-                    Outcome.ERROR, "Worker result exceeded transport limit", error_code="result_too_large"
-                )
-                frame = json.dumps({"version": 1, "id": request["id"], "result": asdict(result)}).encode() + b"\n"
+            frame = encode_response(request["id"], result)
             sys.stdout.buffer.write(frame)
             sys.stdout.buffer.flush()
     finally:

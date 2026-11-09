@@ -44,7 +44,7 @@ def offline_model_gate(monkeypatch):
     monkeypatch.setattr(embedding, "_api_request", lambda *args, **kwargs: deny("embedding.api"))
     yield transports
     after = _violations.stat().st_size if _violations.exists() else 0
-    assert after == before, "本用例或其子进程触发了出网/模型闸门；即使业务层捕获异常也不能算通过"
+    assert after == before, "本用例或其子进程触发了网络/模型/真实数据隔离闸门；即使业务层捕获异常也不能算通过"
 
 
 @pytest.fixture(scope="module")

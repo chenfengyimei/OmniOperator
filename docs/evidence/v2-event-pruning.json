@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "batch": "R3.retention_audit.events",
+  "date": "2026-11-05",
+  "status": "development_complete_targeted_passed_full_recheck_required",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "baseline_recovery": "temp/private/v2-audit-apply-source-20261105T015650+0800/manifest.json",
+  "source": {
+    "code_version": "5376218131a483ef8c35d574ba2e22b59daf0f8e286012b12f76bcff7595f780",
+    "fixed_source_files": 734,
+    "snapshot": "temp/build/v2-event-pruning-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "implementation": {
+    "declared_tables": 78,
+    "schema_version": "v2_0016",
+    "own_assets": "20261105v22",
+    "policy": "agent-event-retention-v1",
+    "plan_format": "omni-event-retention-plan-1",
+    "tables": [
+      "event_retention_batches",
+      "event_retention_targets"
+    ],
+    "commands": [
+      "retention-events-preview",
+      "retention-events-plan",
+      "retention-events-apply",
+      "retention-events-cancel"
+    ],
+    "api": "GET /api/v1/agents/{agent_id}/events/retention-preview",
+    "page_default": 20,
+    "page_max": 50,
+    "plan_max_bytes": 65536,
+    "workbench_max": 200,
+    "kinds": [
+      "run.queued",
+      "run.running",
+      "run.waiting_approval",
+      "run.cancelling",
+      "run.succeeded",
+      "run.failed",
+      "run.cancelled",
+      "action.prepared",
+      "action.completed"
+    ],
+    "preserved": [
+      "run.interrupted and unknown event kinds",
+      "runs.last_seq/original body proof and existing local event sequence",
+      "Messages, input dedup, memory/document/context provenance, actions/approvals, scheduling/delivery, model/budget and artifact identities"
+    ],
+    "shared_core": [
+      "history_pruning_cycle.py: stream-described binding/verified backup/progress/atomic delete/audit/complete/cancel",
+      "history_protection.py: complete pruning evidence, source/unknown/work/pin and maintenance protection",
+      "schema.py: common batch declaration with distinct policy and immutable ledgers"
+    ],
+    "contract": [
+      "Event-local prune time/data digest/body marker must match the run; late unpruned events are protected",
+      "Projected action identity/outcome resolves to current same-Agent/run action; terminal event matches run state while old progress remains readable",
+      "Independent canonical event cursor fixes as_of/events high water/trim revision/Agent/epoch",
+      "Global sequence target plus exact run/local seq/kind; event DELETE advances events trim, audit append does not advance audit trim",
+      "Audit/event prepared batches mutually exclusive per Agent even with equal plan UUID; reference release/event holds are bidirectional",
+      "Old reference plan fingerprint changes after event deletion; original body proof remains unchanged",
+      "Restore cancels pending/prepared, retains deleted evidence and rotates epoch; normal restart allows original-backup resume"
+    ],
+    "run_identity_deleted": false,
+    "real_user_data_cleaned": false
+  },
+  "validation": {
+    "targeted_unique_passed": 269,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-event-pruning-development.xml",
+        "tests": 73,
+        "failed": 0,
+        "duration_s": 42.527,
+        "sha256": "c9834e5e540f3a97911f692dc60e324d5e7d90e6f0aab4bfac240974dae2dbd5"
+      },
+      {
+        "path": "temp/build/v2-event-pruning-faults.xml",
+        "tests": 12,
+        "failed": 4,
+        "duration_s": 34.774,
+        "sha256": "819099c5d45ab1fdc439331efa5ff02e8a1495d3f0e02c60bd3a90f0fabc8c60"
+      },
+      {
+        "path": "temp/build/v2-event-pruning-migration-recheck.xml",
+        "tests": 4,
+        "failed": 0,
+        "duration_s": 9.268,
+        "sha256": "714df61201b20deeeaf94ad3953bf7688347b1e0112ce9e8a6c094ea5ac71e01"
+      },
+      {
+        "path": "temp/build/v2-event-pruning-callers.xml",
+        "tests": 169,
+        "failed": 0,
+        "duration_s": 142.315,
+        "sha256": "c12b076d7e8d7b67b30f24dd1cb77358c1043a0c2caddf82cc55734e060bd029"
+      },
+      {
+        "path": "temp/build/v2-event-pruning-workbench.xml",
+        "tests": 15,
+        "failed": 0,
+        "duration_s": 56.232,
+        "sha256": "8754a35a5427541dc8e6b96c81d140133e506a1ea7a25769f606c7eefeb25883"
+      }
+    ],
+    "aggregation": "Latest result per classname/node name; initial four failures resolved by the explicit migration recheck, not added twice",
+    "current_full_passed": false,
+    "full_recheck_required": true,
+    "full_runs_this_checkpoint": 0,
+    "development_first": true,
+    "static_report": "temp/build/v2-event-pruning-static.json",
+    "formatted_python": 600,
+    "v2_default_typechecked_files": 121,
+    "type_targets": [
+      "Windows",
+      "Linux",
+      "Darwin"
+    ],
+    "strict_whole_repository": false,
+    "real_platform_runtime": false,
+    "packaging": {
+      "assets": 95,
+      "sha256": "1cc12db5081e3640f8b80cba766635a96907638998b00bbeb874442a259fff22",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "64e2b1b6d217affc2e4eb2e599840495aa542dc85df6a687ea53798a0bd2123a"
+    },
+    "initial_failures": {
+      "report": "temp/build/v2-event-pruning-faults.xml",
+      "failed": 4,
+      "cause": "DDL was correct; reflection expectation omitted Column-level CHECK(length(id)=36)",
+      "fix": "Compare all Table and Column CHECK constraints exactly; no production/DDL or assertions weakened",
+      "recheck": "temp/build/v2-event-pruning-migration-recheck.xml",
+      "recheck_passed": 4
+    },
+    "faults": [
+      "Real process exit before/after per-event audit, before next target and before completion",
+      "v16 DDL process exit at table/index/final trigger with exact schema/data/counter rollback and verified v15 snapshot retry",
+      "Partial event snapshot restore, pending cancellation/deleted evidence/epoch fencing",
+      "Empty event table append continues original last_seq+1 and higher allocated global sequence",
+      "Late actor/provenance/cost/lease/pin/payload/stream drift and mutually held reference/event maintenance",
+      "Four viewports and light/dark operational UI, bounded event preview and stale Agent responses"
+    ],
+    "last_full_is_previous_source": {
+      "evidence": "docs/evidence/v2-history.json",
+      "passed": 2659,
+      "failed": 1,
+      "followup": "Original ConPTY race fixed and24 related passed; current whole-source full validation still pending"
+    }
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-event-pruning-source-20261105T030420+0800/manifest.json",
+    "source_files": 925,
+    "runtime_data_included": false,
+    "credentials_included": false,
+    "validation_status": "development_only_full_recheck_required"
+  },
+  "pending": [
+    "R4.maintenance: persistent background maintenance/review ownership, bounded work, cancellation, recovery and shared shutdown",
+    "Combined current-source full revalidation before full-green/commit/release acceptance",
+    "R4/R5/R6 remaining real business/vector/provider/native integration; macOS/Linux runtime and three-platform/72h acceptance",
+    "Live semantic summaries remain protected business state; no blanket180d summary deletion"
+  ]
+}

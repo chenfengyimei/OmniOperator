@@ -1,9 +1,9 @@
 // 左侧 rail：工作台内快捷动作（技能库/定时任务/审批队列）与工具分区入口。
 // 工具入口一律走 hub:open + data-section（见 index.html），这里只保留动作类。
 // 函数只做转发，不新增业务逻辑。
-import { $ } from './dom.js?v=20261102u2';
-import { openHub, switchHub } from './hub.js?v=20261102u2';
-import { pollApprovals } from './approvals.js?v=20261102u2';
+import { $ } from './dom.js?v=20261103u5';
+import { openHub, switchHub } from './hub.js?v=20261103u5';
+import { pollApprovals } from './approvals.js?v=20261103u5';
 
 function railActive(btn) {
   document.querySelectorAll('.rail-btn').forEach((x) => x.classList.toggle('active', x === btn));

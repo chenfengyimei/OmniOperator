@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+import time
 
 from . import backend
 from .backend import DEFAULT_COLS, DEFAULT_ROWS
@@ -35,11 +36,20 @@ class TerminalSession:
         return self._pty.isalive()
 
     def kill(self) -> bool:
-        try:
-            if self._pty.isalive():
-                self._pty.terminate(force=True)
-            if not self._pty.isalive() and callable(getattr(self._pty, "close", None)):
-                self._pty.close(force=True)
-            return not self._pty.isalive()
-        except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
-            return False
+        with self._lock:
+            deadline = time.monotonic() + 2
+            try:
+                if self._pty.isalive():
+                    self._pty.terminate(force=True)
+                # ConPTY may still be exiting after terminate's short internal wait.
+                # Keep ownership until exit is observed; retries must share this budget.
+                while self._pty.isalive():
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        return False
+                    time.sleep(min(0.05, remaining))
+                if callable(getattr(self._pty, "close", None)):
+                    self._pty.close(force=True)
+                return not self._pty.isalive()
+            except Exception:  # noqa: BLE001, S110  （有意容错：边界转换/生命周期清理不阻断）
+                return False

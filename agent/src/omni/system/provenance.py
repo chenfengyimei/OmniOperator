@@ -15,7 +15,9 @@ def source_fingerprint(root: Path = PROJECT_ROOT) -> str:
         code = sorted(
             p
             for p in source_root(root).rglob("*")
-            if p.is_file() and p.suffix in {".py", ".ps1", ".html", ".js", ".css"} and "__pycache__" not in p.parts
+            if p.is_file()
+            and p.suffix in {".py", ".ps1", ".cs", ".swift", ".c", ".h", ".html", ".js", ".css"}
+            and not {"__pycache__", ".build", ".swiftpm"}.intersection(p.parts)
         )
         assets = web_root(root)
         if assets.is_relative_to(root) and not assets.is_relative_to(source_root(root)):

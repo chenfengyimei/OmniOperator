@@ -378,7 +378,8 @@ def build_runtime(
     config = load_config(config_path)
     data_root = Path(data_dir or os.environ.get("OMNI_STORAGE_BASE") or DATA_DIR)
     data_root = data_root.resolve()
-    paths = RuntimePaths.create(data_root, config_path=config_path, skills_root=skills_root, memory_path=db_path)
+    default_skills = skills_root if skills_root is not None else data_root / "skills" if data_dir is not None else None
+    paths = RuntimePaths.create(data_root, config_path=config_path, skills_root=default_skills, memory_path=db_path)
     # 安装锁固定在程序控制区；显式 data_dir 的测试只写注入目录。
     update_control = (data_root if data_dir is not None else PROJECT_ROOT / "data") / "control" / "updates"
     paths = replace(paths, updates=update_control)

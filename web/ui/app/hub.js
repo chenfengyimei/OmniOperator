@@ -1,32 +1,32 @@
-import '../shared.js?v=20261102u2';
-import { SECTIONS, resolveSection } from '../sections.js?v=20261102u2';
+import '../shared.js?v=20261103v7';
+import { SECTIONS, resolveSection } from '../sections.js?v=20261103u5';
 // 设置中心：全屏沉浸式骨架（开合/Esc/分组导航/图标）+ 表单回填 + 每页独立保存。
 // 每页独立保存的原因：以前只有一个"保存全部设置"，任一页填错都会让整次提交 400，
 // 用户看到的是"保存失败"却不知道是哪一页的问题。
-import { $, esc } from './dom.js?v=20261102u2';
-import { api } from './api.js?v=20261102u2';
-import { loadState } from './header.js?v=20261102u2';
+import { $, esc } from './dom.js?v=20261103u5';
+import { api } from './api.js?v=20261103u5';
+import { loadState } from './header.js?v=20261103u5';
 import {
   loadEnvKeys,
   renderModelSlots,
   getModelSlotValue,
   getReasoningSlotValue,
   refreshModelSlots,
-} from './hub-models.js?v=20261102u2';
-import { renderPersonaPresets, hydratePresets } from './hub-persona.js?v=20261102u2';
-import { loadCron } from './hub-cron.js?v=20261102u2';
-import { loadUsage } from './hub-usage.js?v=20261102u2';
-import { loadMcp } from './hub-mcp.js?v=20261102u2';
-import { loadContext } from './hub-context.js?v=20261102u2';
-import { loadMemoryHub } from './hub-memory.js?v=20261102u2';
-import { loadSkillsHub } from './hub-skills.js?v=20261102u2';
-import { loadJobsHub } from './hub-jobs.js?v=20261102u2';
-import { loadCapabilitiesHub } from './hub-capabilities.js?v=20261102u2';
-import { loadProjectHub } from './hub-project.js?v=20261102u2';
-import { loadPluginsHub } from './hub-market.js?v=20261102u2';
-import { loadServicesHub } from './hub-services.js?v=20261102u2';
-import { loadEmbodimentHub, loadBilibiliHub } from './hub-embodiment.js?v=20261102u2';
-import { loadAbout, stopAbout } from './hub-about.js?v=20261102u2';
+} from './hub-models.js?v=20261103u5';
+import { renderPersonaPresets, hydratePresets } from './hub-persona.js?v=20261103u5';
+import { loadCron } from './hub-cron.js?v=20261103u5';
+import { loadUsage } from './hub-usage.js?v=20261103u5';
+import { loadMcp } from './hub-mcp.js?v=20261103u5';
+import { loadContext } from './hub-context.js?v=20261103u5';
+import { loadMemoryHub } from './hub-memory.js?v=20261103u5';
+import { loadSkillsHub } from './hub-skills.js?v=20261103u5';
+import { loadJobsHub } from './hub-jobs.js?v=20261103u5';
+import { loadCapabilitiesHub } from './hub-capabilities.js?v=20261103u5';
+import { loadProjectHub } from './hub-project.js?v=20261103u5';
+import { loadPluginsHub } from './hub-market.js?v=20261103u5';
+import { loadServicesHub } from './hub-services.js?v=20261103u5';
+import { loadEmbodimentHub, loadBilibiliHub } from './hub-embodiment.js?v=20261103u5';
+import { loadAbout, stopAbout } from './hub-about.js?v=20261103u5';
 
 /* 分区加载器表：切到哪个分区要拉什么数据，在这里登记一处。
    逐条 if 散在 switchHub 里，分区一多就容易漏（漏了的表现是分区空白）。 */
@@ -153,6 +153,7 @@ export function switchHub(go) {
     $('#hub-msg').textContent = '找不到这个设置分区，请从侧栏选择';
     return;
   }
+  if ($('#hub-msg').textContent === '找不到这个设置分区，请从侧栏选择') $('#hub-msg').textContent = '';
   go = declared.id;
   panelActivity(go);
 

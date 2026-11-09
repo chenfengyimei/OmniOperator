@@ -1,7 +1,7 @@
 // 审批横幅：2 秒轮询 pending；允许/拒绝走同一个 resolve 端点。
 // rail 上的「审批队列」按钮同步挂计数徽章——有待确认项时不用点进去才知道。
-import { $, esc } from './dom.js?v=20261102u2';
-import { api } from './api.js?v=20261102u2';
+import { $, esc } from './dom.js?v=20261103u5';
+import { api } from './api.js?v=20261103u5';
 
 function setRailBadge(n) {
   const btn = document.querySelector('.rail-btn[data-action="rail:approvals"]');

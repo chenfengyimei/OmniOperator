@@ -1,0 +1,276 @@
+"""Persistent FIFO claims and fenced resource leases, within the caller's transaction."""
+
+from __future__ import annotations
+
+import datetime as dt
+import hashlib
+import json
+
+from sqlalchemy import insert, literal, or_, select, update
+
+from ...domain.contracts import BusinessError
+from ...domain.scheduling import LEASE_SECONDS, instant, timestamp
+from . import schema as s
+from .action_predicates import ACTIVE_ACTION_STATES, unresolved_action
+from .delivery_predicates import held_outbound, pending_for_run, unresolved_outbound
+from .repository_base import RepositoryBase
+
+LIVE = ("queued", "running", "waiting_approval", "cancelling")
+
+
+class LeaseRepositories(RepositoryBase):
+    def lease_acquire(self, agent_id: str, resource: str, run_id: str | None = None) -> dict | None:
+        key = (s.leases.c.agent_id == agent_id, s.leases.c.resource == resource)
+        old = self.connection.execute(select(s.leases).where(*key)).mappings().first()
+        now = self.clock.now()
+        if old and old["state"] == "held":
+            if old["expires_at"] > now:
+                return None
+            # Expiration fences the old caller, but is not proof it has stopped.
+            if old["run_id"] and self._one(s.runs, agent_id, old["run_id"])["state"] in LIVE:
+                return None
+        value = {
+            "token": self.ids.new(),
+            "boot_id": self.boot_id,
+            "fence": old["fence"] + 1 if old else 1,
+            "expires_at": timestamp(instant(now) + dt.timedelta(seconds=LEASE_SECONDS)),
+            "state": "held",
+            "run_id": run_id,
+        }
+        if old:
+            self.connection.execute(update(s.leases).where(*key).values(**value))
+        else:
+            self.connection.execute(insert(s.leases).values(agent_id=agent_id, resource=resource, **value))
+        return {"agent_id": agent_id, "resource": resource, **value}
+
+    def lease_release(self, agent_id: str, resource: str, token: str, fence: int) -> bool:
+        return (
+            self.connection.execute(
+                update(s.leases)
+                .where(
+                    s.leases.c.agent_id == agent_id,
+                    s.leases.c.resource == resource,
+                    s.leases.c.token == token,
+                    s.leases.c.fence == fence,
+                    s.leases.c.boot_id == self.boot_id,
+                    s.leases.c.state == "held",
+                )
+                .values(state="released")
+            ).rowcount
+            == 1
+        )
+
+    def _work(self, agent_id: str, run_id: str) -> dict:
+        row = (
+            self.connection.execute(
+                select(s.work_items).where(
+                    s.work_items.c.agent_id == agent_id,
+                    s.work_items.c.run_id == run_id,
+                    s.work_items.c.kind == "turn",
+                )
+            )
+            .mappings()
+            .one()
+        )
+        return dict(row)
+
+    def assert_run_lease(self, agent_id: str, run_id: str) -> None:
+        work = self._work(agent_id, run_id)
+        if work["state"] not in {"claimed", "running"}:
+            return
+        run = self._one(s.runs, agent_id, run_id)
+        lease = self.connection.execute(
+            select(s.leases).where(
+                s.leases.c.agent_id == agent_id,
+                s.leases.c.resource == "session/" + run["session_id"],
+                s.leases.c.token == work["claim_token"],
+                s.leases.c.fence == work["lease_fence"],
+                s.leases.c.boot_id == self.boot_id,
+                s.leases.c.run_id == run_id,
+                s.leases.c.state == "held",
+                s.leases.c.expires_at > self.clock.now(),
+            )
+        ).first()
+        if not lease or work["claimed_by"] != self.boot_id:
+            raise BusinessError("run_lease_lost", "Execution ownership expired or changed")
+        occurrence = (
+            self.connection.execute(select(s.occurrences).where(s.occurrences.c.run_id == run_id)).mappings().first()
+        )
+        if occurrence and self.schedule_blocker(agent_id, occurrence["schedule_id"], occurrence["sequence"]):
+            raise BusinessError("previous_outcome_unknown", "A previous scheduled outcome requires review")
+
+    def renew_run_leases(self) -> None:
+        now = self.clock.now()
+        self.connection.execute(
+            update(s.leases)
+            .where(
+                s.leases.c.boot_id == self.boot_id,
+                s.leases.c.state == "held",
+                s.leases.c.expires_at > now,
+                s.leases.c.run_id.in_(select(s.runs.c.id).where(s.runs.c.state.in_(LIVE))),
+            )
+            .values(expires_at=timestamp(instant(now) + dt.timedelta(seconds=LEASE_SECONDS)))
+        )
+
+    def schedule_blocker(self, agent_id: str, schedule_id: str, before_sequence: int | None = None) -> dict | None:
+        progress = (
+            self.connection.execute(
+                select(s.schedule_progress).where(
+                    s.schedule_progress.c.agent_id == agent_id, s.schedule_progress.c.schedule_id == schedule_id
+                )
+            )
+            .mappings()
+            .one()
+        )
+        active_delivery = pending_for_run(s.occurrences.c.run_id)
+        specs = (
+            (s.model_calls, ("reserved", "unknown")),
+            (s.actions, ("executing", "unknown")),
+            (s.outbox, ("unknown",)),
+        )
+
+        def conditions(table, states, occurrence_id):
+            column = {"model_calls": "model_call_id", "actions": "action_id", "outbox": "delivery_id"}[table.name]
+            clauses = [
+                s.schedule_reviews.c.occurrence_id == occurrence_id,
+                s.schedule_reviews.c[column] == table.c.id,
+                s.schedule_reviews.c.state == table.c.state,
+                s.schedule_reviews.c.review_epoch == progress["review_epoch"],
+            ]
+            if table is s.outbox:
+                clauses.append(s.schedule_reviews.c.delivery_revision == table.c.outcome_revision)
+            reviewed = select(s.schedule_reviews.c.id).where(*clauses).correlate(s.occurrences, table).exists()
+            if table is s.actions:
+                # An old continuation acknowledgment is no proof that an active
+                # executor stopped. Only terminal unknown observations may be acknowledged.
+                return [or_(table.c.state.in_(ACTIVE_ACTION_STATES), unresolved_action(table) & ~reviewed)]
+            values = [table.c.state.in_(states), ~reviewed]
+            if table is s.outbox:
+                values.extend((unresolved_outbound(), ~held_outbound()))
+            return values
+
+        unknown_exists = [
+            select(table.c.id)
+            .where(table.c.run_id == s.occurrences.c.run_id, *conditions(table, states, s.occurrences.c.id))
+            .exists()
+            for table, states in specs
+        ]
+        query = (
+            select(s.occurrences, s.runs.c.state.label("run_state"), active_delivery.label("delivery_pending"))
+            .outerjoin(s.runs, s.runs.c.id == s.occurrences.c.run_id)
+            .where(
+                s.occurrences.c.agent_id == agent_id,
+                s.occurrences.c.schedule_id == schedule_id,
+                or_(
+                    s.runs.c.state.in_(LIVE),
+                    s.occurrences.c.run_id.is_(None) & s.occurrences.c.state.in_(("pending", "blocked")),
+                    active_delivery,
+                    *unknown_exists,
+                ),
+            )
+        )
+        if before_sequence is not None:
+            query = query.where(s.occurrences.c.sequence < before_sequence)
+        row = self.connection.execute(query.order_by(s.occurrences.c.sequence).limit(1)).mappings().first()
+        if row is None:
+            return None
+        base = {"id": row["id"], "sequence": row["sequence"], "run_id": row["run_id"]}
+        if row["run_state"] in LIVE or row["run_id"] is None:
+            return {**base, "reason": "active"}
+        if row["delivery_pending"]:
+            return {**base, "reason": "delivery_pending"}
+        unknown = []
+        for table, states in specs:
+            revision = table.c.outcome_revision if table is s.outbox else literal(0)
+            unknown.extend(
+                (table.name, r[0], r[1], r[2])
+                for r in self.connection.execute(
+                    select(table.c.id, table.c.state, revision)
+                    .where(table.c.run_id == row["run_id"], *conditions(table, states, row["id"]))
+                    .order_by(table.c.id)
+                )
+            )
+        if not unknown:
+            return None
+        if any(kind == "actions" and state in ACTIVE_ACTION_STATES for kind, _identity, state, _revision in unknown):
+            return {**base, "reason": "active", "records": len(unknown)}
+        if any(kind == "actions" and state != "unknown" for kind, _identity, state, _revision in unknown):
+            return {**base, "reason": "action_review_required", "records": len(unknown)}
+        fingerprint = hashlib.sha256(
+            json.dumps([progress["review_epoch"], unknown], separators=(",", ":")).encode()
+        ).hexdigest()
+        return {
+            **base,
+            "reason": "unknown",
+            "fingerprint": fingerprint,
+            "records": len(unknown),
+            "items": [
+                {"kind": kind, "id": identity, "state": state, "revision": revision}
+                for kind, identity, state, revision in unknown
+            ],
+        }
+
+    def _claim_run(self, agent_id: str, run_id: str) -> dict | None:
+        run = self._one(s.runs, agent_id, run_id)
+        work = self._work(agent_id, run_id)
+        if run["state"] != "queued" or work["state"] != "pending":
+            return None
+        occurrence = (
+            self.connection.execute(select(s.occurrences).where(s.occurrences.c.run_id == run_id)).mappings().first()
+        )
+        if occurrence and self.schedule_blocker(agent_id, occurrence["schedule_id"], occurrence["sequence"]):
+            return None
+        message = self._one(s.messages, agent_id, run["input_message_id"])
+        earlier = self.connection.execute(
+            select(s.runs.c.id)
+            .join(s.messages, s.messages.c.id == s.runs.c.input_message_id)
+            .where(
+                s.runs.c.session_id == run["session_id"],
+                s.runs.c.state.in_(LIVE),
+                s.messages.c.seq < message["seq"],
+            )
+            .limit(1)
+        ).first()
+        if earlier:
+            return None
+        lease = self.lease_acquire(agent_id, "session/" + run["session_id"], run_id)
+        if not lease:
+            return None
+        self.connection.execute(
+            update(s.work_items)
+            .where(s.work_items.c.id == work["id"])
+            .values(
+                state="claimed",
+                claimed_by=self.boot_id,
+                claim_token=lease["token"],
+                lease_fence=lease["fence"],
+                attempt=work["attempt"] + 1,
+            )
+        )
+        return {**run, "claim_token": lease["token"], "lease_fence": lease["fence"]}
+
+    def claim_runs(self, limit: int) -> list[dict]:
+        result = []
+        rows = self.connection.execute(
+            select(s.work_items.c.agent_id, s.work_items.c.run_id)
+            .join(
+                s.agents,
+                s.agents.c.id == s.work_items.c.agent_id,
+            )
+            .where(s.work_items.c.kind == "turn", s.work_items.c.state == "pending", s.agents.c.enabled.is_(True))
+            .order_by(s.work_items.c.queue_sequence)
+            .limit(64)
+        ).all()
+        for agent_id, run_id in rows:
+            if len(result) >= max(0, min(4, limit)):
+                break
+            claim = self._claim_run(agent_id, run_id)
+            if claim:
+                result.append(claim)
+        return result
+
+    def start_claimed_run(self, agent_id: str, run_id: str, token: str, fence: int) -> None:
+        work = self._work(agent_id, run_id)
+        if work["state"] != "claimed" or work["claim_token"] != token or work["lease_fence"] != fence:
+            raise BusinessError("run_claim_lost", "Task is no longer owned by this execution")
+        self.assert_run_lease(agent_id, run_id)

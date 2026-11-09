@@ -1,6 +1,6 @@
 // 用量面板（D10 账本）：今日/剩余/按用途汇总/调用流水/模型能力表。
-import { $, esc, usd } from './dom.js?v=20261102u2';
-import { api } from './api.js?v=20261102u2';
+import { $, esc, usd } from './dom.js?v=20261103u5';
+import { api } from './api.js?v=20261103u5';
 
 // 用途在账本里是英文键名，界面上必须翻成人话
 const PURPOSE_CN = {

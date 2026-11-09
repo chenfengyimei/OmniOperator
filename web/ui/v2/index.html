@@ -1,0 +1,1321 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OmniOperator V2</title>
+    <script src="/assets/ui/theme.js?v=20261103v7"></script>
+    <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
+    <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v48" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v48" />
+  </head>
+  <body>
+    <header>
+      <img src="/assets/ui/brand-mark.svg" width="30" height="30" alt="" />
+      <strong>OmniOperator <small>V2 开发工作台</small></strong>
+      <span id="health" role="status">尚未连接</span>
+      <button id="theme" type="button">切换主题</button>
+    </header>
+    <main>
+      <aside>
+        <form id="connect">
+          <label>所有者令牌<input id="token" type="password" autocomplete="off" required /></label>
+          <button type="submit">连接实例</button>
+        </form>
+        <label>Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
+        <nav aria-label="工作台" inert>
+          <button type="button" data-page="chat">对话</button>
+          <button type="button" data-page="memory">记忆</button>
+          <button type="button" data-page="skills">技能</button>
+          <button type="button" data-page="settings">设置</button>
+          <button type="button" data-page="extensions">可信插件</button>
+          <button type="button" data-page="action-reviews">动作核查</button>
+          <button type="button" data-page="terminals">所有者终端</button>
+          <button type="button" data-page="desktop">桌面能力</button>
+          <button type="button" data-page="logs">诊断日志</button>
+          <button type="button" data-page="audit">审计记录</button>
+          <button type="button" data-page="objects">文件</button>
+          <button type="button" data-page="people">人物与档案</button>
+          <button type="button" data-page="qq">QQ 通道</button>
+          <button type="button" data-page="bilibili">B站</button>
+          <button type="button" data-page="media">媒体</button>
+          <button type="button" data-page="android">安卓设备</button>
+          <button type="button" data-page="documents">来源文档</button>
+          <button type="button" data-page="schedules">持久调度</button>
+          <button type="button" data-page="deliveries">持久投递</button>
+        </nav>
+        <button id="new-session" type="button">新建对话</button>
+        <div id="sessions" aria-label="历史会话"></div>
+      </aside>
+      <section aria-label="工作区">
+        <p id="error" role="alert" hidden></p>
+        <div id="approvals" aria-live="polite"></div>
+        <section id="chat" class="page">
+          <div id="messages" aria-live="polite">
+            <p class="muted">连接实例后开始对话。模型与凭据需先在设置中配置。</p>
+          </div>
+          <p id="run-status" role="status"></p>
+          <section id="model-live" hidden aria-label="模型临时输出">
+            <p id="model-live-status" role="status"></p>
+            <pre id="model-live-text"></pre>
+          </section>
+          <button id="pin-run" type="button" disabled>固定保留本次运行</button>
+          <p id="run-retention-status" role="status"></p>
+          <p id="context-status" role="status"></p>
+          <pre id="route-run-status" role="status"></pre>
+          <pre id="skill-run-status" role="status"></pre>
+          <details>
+            <summary>本轮工具清单与计量</summary>
+            <div id="route-call-list"></div>
+          </details>
+          <button id="show-summary" type="button" hidden>查看当前摘要</button>
+          <pre id="summary-body"></pre>
+          <form id="send">
+            <label
+              >本次档位<select id="chat-mode">
+                <option value="">跟随空间档位设置</option>
+                <option value="auto">自动（不确定时完整）</option>
+                <option value="chat">聊天</option>
+                <option value="retrieval">检索</option>
+                <option value="agent">完整</option>
+              </select></label
+            >
+            <label>本轮技能（可选，最多 4 个）<select id="skill-turn" multiple size="3"></select></label>
+            <button id="skill-turn-clear" type="button">清空技能选择</button>
+            <label>消息<textarea id="message" rows="3"></textarea></label>
+            <label
+              >图片（PNG / JPEG / WebP，最多 4 张）<input
+                id="image-file"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                disabled
+            /></label>
+            <ul id="image-drafts"></ul>
+            <div class="actions">
+              <button id="image-refresh-captures" type="button">载入会话截图</button
+              ><label>复用截图<select id="image-capture"></select></label
+              ><button id="image-add-capture" type="button" disabled>附加所选截图</button>
+            </div>
+            <p id="image-status" role="status"></p>
+            <p id="image-run-status" role="status"></p>
+            <div class="actions">
+              <button type="submit">发送</button><button id="cancel" type="button" disabled>取消运行</button>
+            </div>
+          </form>
+        </section>
+        <section id="android" class="page" hidden>
+          <h2>安卓设备</h2>
+          <p>
+            在「配置」建立安卓通道：地址为已启动的本机 ADB 服务（例如
+            http://127.0.0.1:5037），账号为设备序列号，凭据引用留空。本页不会启动服务或配对设备。
+          </p>
+          <p id="android-capability" role="status"></p>
+          <label>通道配置<select id="android-config"></select></label>
+          <label
+            ><input
+              type="checkbox"
+              id="android-consent"
+            />确认读取指定设备身份并授权本实例观察；每次输入仍需单独审批</label
+          >
+          <div class="actions">
+            <button type="button" id="android-probe">核验指定设备</button
+            ><button type="button" id="android-grant" disabled>授权已核验设备</button>
+          </div>
+          <pre id="android-probe-result"></pre>
+          <h3>设备授权</h3>
+          <div class="actions">
+            <button type="button" id="android-refresh">刷新授权</button
+            ><button type="button" id="android-more" disabled>更多授权</button>
+          </div>
+          <label>选择设备<select id="android-list"></select></label>
+          <pre id="android-device-reference"></pre>
+          <details>
+            <summary>受控 Unicode 输入辅助组件</summary>
+            <p>
+              手动安装并在安卓设置中启用辅助输入法，在设备上允许本次使用。配对密钥通过「实例凭据」保存，这里只填写引用；不会自动启用输入法或通过剪贴板输入。
+            </p>
+            <form id="android-unicode-form">
+              <fieldset id="android-unicode-fields" disabled>
+                <label><input id="android-unicode-enabled" type="checkbox" />启用当前设备的辅助组件配置</label>
+                <label>配对凭据引用<input id="android-unicode-reference" maxlength="200" autocomplete="off" /></label>
+                <label>已安装 APK SHA-256<input id="android-unicode-apk" maxlength="64" spellcheck="false" /></label>
+                <label
+                  >签名证书 SHA-256<input id="android-unicode-certificate" maxlength="64" spellcheck="false"
+                /></label>
+                <button type="submit">保存辅助组件配置</button>
+              </fieldset>
+            </form>
+            <button id="android-unicode-reload" type="button">放弃辅助组件草稿并重载</button>
+            <p id="android-unicode-status" role="status"></p>
+          </details>
+          <p>
+            模型访问需在对话提供上面的设备引用，由 android_request_access
+            申请本次运行的应用/动作范围并人工审批；实际输入仍逐次审批。
+          </p>
+          <div class="actions">
+            <button type="button" id="android-apps">查询已安装应用</button>
+            <button type="button" id="android-observe">读取当前界面</button
+            ><button type="button" id="android-capture">截图到会话</button
+            ><button type="button" id="android-revoke">撤销设备授权</button>
+          </div>
+          <button type="button" id="android-apps-more" disabled>更多应用</button>
+          <pre id="android-apps-result"></pre>
+          <label>归属会话 UUID<input id="android-session" maxlength="36" /></label>
+          <img id="android-image" alt="已授权安卓设备截图" hidden style="max-width: 100%; max-height: 32rem" />
+          <details>
+            <summary>本次界面观察</summary>
+            <pre id="android-tree"></pre>
+          </details>
+          <form id="android-action-form">
+            <label>控件<select id="android-nodes"></select></label>
+            <label
+              >动作<select id="android-kind">
+                <option value="tap">点击（结果需人工核查）</option>
+                <option value="toggle">切换勾选状态并核验</option>
+                <option value="append_ascii">向已聚焦文本框追加 ASCII 并核验</option>
+                <option value="append_unicode">通过配对辅助组件追加 Unicode 并核验</option>
+                <option value="long_press">长按控件（结果需核查）</option>
+                <option value="swipe">在可滚动控件内滑动</option>
+                <option value="key">向当前聚焦控件发送按键</option>
+                <option value="launch">启动指定应用并核验前台页面</option>
+              </select></label
+            >
+            <label>追加文本<input id="android-text" maxlength="256" /></label>
+            <label
+              >滑动方向<select id="android-direction">
+                <option value="up">上</option>
+                <option value="down">下</option>
+                <option value="left">左</option>
+                <option value="right">右</option>
+              </select></label
+            >
+            <label
+              >长按/滑动时长（毫秒）<input id="android-duration" type="number" min="100" max="1500" value="600"
+            /></label>
+            <label
+              >按键<select id="android-key">
+                <option value="BACK">返回</option>
+                <option value="HOME">主页</option>
+                <option value="ENTER">回车</option>
+                <option value="TAB">切换焦点</option>
+                <option value="DPAD_UP">上方向</option>
+                <option value="DPAD_DOWN">下方向</option>
+                <option value="DPAD_LEFT">左方向</option>
+                <option value="DPAD_RIGHT">右方向</option>
+              </select></label
+            >
+            <label>启动包名<input id="android-package" maxlength="200" /></label>
+            <button type="submit" id="android-action" disabled>准备动作并请求审批</button>
+          </form>
+          <button type="button" id="android-run-status">查询本次动作状态</button>
+          <p id="android-status" role="status"></p>
+          <h3>输入法恢复状态</h3>
+          <p>
+            恢复未核验时阻止继续输入。可在设备上手动恢复，再准备核查/恢复动作；恢复不会重发原文本，也不代替未知输入的独立核查。
+          </p>
+          <button id="android-environments-refresh" type="button">刷新恢复状态</button>
+          <button id="android-environments-more" type="button" disabled>更多恢复记录</button>
+          <div id="android-environments"></div>
+          <h3>模型本次运行权限</h3>
+          <p>
+            权限限定本次运行、应用白名单和动作范围，最长15分钟，运行结束即失效；每条输入仍须审批。撤销不保证撤回已经派发的操作。
+          </p>
+          <button type="button" id="android-access-refresh">刷新运行权限</button>
+          <button type="button" id="android-access-more" disabled>更多运行权限</button>
+          <div id="android-access-list"></div>
+          <p>
+            界面观察60秒后失效。密码控件不读正文、不输入。离开面板清除当前观察和截图预览；已经保存的截图通过会话引用管理。普通点击不冒充业务成功，结果未知时先核查。
+          </p>
+        </section>
+        <section id="bilibili" class="page" hidden>
+          <h2>B站</h2>
+          <p>
+            先在配置中建立 B站通道，填写账号 UID 和独立 Cookie JSON
+            凭据引用。读取会核验实际登录账号。发布只通过受管浏览器中的已核验页面控件执行，每条内容仍需「持久投递」审批。
+          </p>
+          <label>通道配置 UUID<input id="bili-config" maxlength="36" /></label>
+          <form id="bili-read-form">
+            <label
+              >读取内容<select id="bili-read-operation">
+                <option value="account">当前账号</option>
+                <option value="video">视频信息</option>
+                <option value="comments">视频评论</option>
+                <option value="replies">评论回复</option>
+              </select></label
+            >
+            <label>视频 BV / 回复线程 BV:评论ID<input id="bili-read-target" maxlength="100" /></label>
+            <button type="submit">读取并核验账号</button>
+          </form>
+          <p id="bili-read-status" role="status"></p>
+          <pre id="bili-read-result"></pre>
+          <h3>已核验的页面规则</h3>
+          <p>
+            页面规则由所有者核验后保存。编辑框、提交按钮和发布记录均相对于目标容器定位。真实 mention 必须同时配置候选
+            UID、编辑器组件及发布后组件；页面漂移、登录失效或挑战会停止发布。
+          </p>
+          <button id="bili-load-profile" type="button">加载页面规则</button>
+          <form id="bili-profile-form">
+            <fieldset id="bili-profile-fields" disabled>
+              <label
+                >规则 JSON（comment / private_message）<textarea
+                  id="bili-forms"
+                  rows="12"
+                  spellcheck="false"
+                ></textarea>
+              </label>
+              <label><input id="bili-enabled" type="checkbox" />启用已核验的页面规则</label>
+              <button id="bili-form-template" type="button">填入空白字段模板</button>
+              <label
+                ><input
+                  id="bili-headless"
+                  type="checkbox"
+                  checked
+                />使用无头浏览器（适用于服务器；取消后显示独立浏览器窗口）</label
+              >
+              <button type="submit">保存规则修订</button>
+            </fieldset>
+          </form>
+          <p id="bili-profile-status" role="status"></p>
+          <h3>准备发布意图</h3>
+          <p>
+            使用 V2 已保存的助手消息，正文不在草稿中重复保存。mention 格式为 start、end、uid、name；范围以 Unicode
+            字符计数，并须精确覆盖正文中的 @昵称。私信本批不支持 mention。
+          </p>
+          <form id="bili-prepare-form">
+            <label>助手消息 UUID<input id="bili-message" maxlength="36" required /></label>
+            <label
+              >发布类型<select id="bili-kind">
+                <option value="comment">视频评论 / 线程回复</option>
+                <option value="private_message">指定用户私信</option>
+              </select></label
+            >
+            <label>明确目标 HTTPS 地址<input id="bili-target" maxlength="500" required /></label>
+            <label>真实 mention 清单 JSON<textarea id="bili-mentions" rows="3" spellcheck="false">[]</textarea></label>
+            <button id="bili-prepare" type="submit">保存并进入投递审批</button>
+          </form>
+          <p id="bili-publication-status" role="status"></p>
+          <div class="actions">
+            <button id="bili-refresh" type="button">刷新发布记录</button
+            ><button id="bili-more" type="button" disabled>更多记录</button>
+          </div>
+          <label>发布记录<select id="bili-publication-list"></select></label>
+          <pre id="bili-preview"></pre>
+        </section>
+        <section id="media" class="page" hidden>
+          <h2>媒体</h2>
+          <p>
+            把 B站视频登记为媒体来源后，可以拉取在线字幕、用本地受管进程转写音频或抽取等距帧拼图。转写文本带
+            [MM:SS-MM:SS] 时间锚点；模型只能通过工具读取实际落库的内容，不接触原始视频。
+          </p>
+          <form id="media-register-form">
+            <label>通道配置 UUID<input id="media-config" maxlength="36" required /></label>
+            <label>视频 BV 号<input id="media-target" maxlength="12" placeholder="BVxxxxxxxxxx" required /></label>
+            <button type="submit">登记媒体来源</button>
+          </form>
+          <p id="media-register-status" role="status"></p>
+          <div class="actions">
+            <button id="media-refresh" type="button">刷新来源</button
+            ><button id="media-more" type="button" disabled>更多来源</button>
+          </div>
+          <label>媒体来源<select id="media-source-list"></select></label>
+          <pre id="media-source-detail"></pre>
+          <form id="media-job-form">
+            <h3>提交处理作业</h3>
+            <label
+              >操作<select id="media-operation">
+                <option value="subtitle">拉取在线字幕</option>
+                <option value="transcribe">本地 ASR 转写</option>
+                <option value="frames">等距抽帧拼图</option>
+              </select></label
+            >
+            <label>ASR 模型<input id="media-asr-model" maxlength="40" value="small" /></label>
+            <label
+              >ASR 设备<select id="media-asr-device">
+                <option value="cpu">cpu</option>
+                <option value="auto">auto</option>
+              </select></label
+            >
+            <label
+              >ASR 精度<select id="media-asr-compute">
+                <option value="int8">int8</option>
+                <option value="float16">float16</option>
+                <option value="float32">float32</option>
+              </select></label
+            >
+            <label>帧数（1-12）<input id="media-frame-count" type="number" min="1" max="12" value="6" /></label>
+            <label
+              >帧宽（320-1280）<input id="media-frame-width" type="number" min="320" max="1280" step="2" value="640"
+            /></label>
+            <button type="submit">提交作业</button>
+          </form>
+          <p id="media-job-status" role="status"></p>
+          <div class="actions">
+            <button id="media-jobs-refresh" type="button" disabled>刷新作业</button
+            ><button id="media-jobs-more" type="button" disabled>更多作业</button
+            ><button id="media-job-cancel" type="button" disabled>取消所选作业</button>
+          </div>
+          <label>作业<select id="media-job-list"></select></label>
+          <pre id="media-job-detail"></pre>
+          <h3>转写阅读</h3>
+          <p class="muted">ASR 转写每行带 [MM:SS-MM:SS] 锚点；在线字幕没有可靠时间轴，只有正文。</p>
+          <div class="actions">
+            <button id="media-transcript-open" type="button" disabled>读取最新转写</button
+            ><button id="media-window-prev" type="button" disabled>上一窗口</button
+            ><button id="media-window-next" type="button" disabled>下一窗口</button>
+          </div>
+          <label
+            >窗口字符数（≤12000）<input id="media-window-length" type="number" min="1" max="12000" value="4000"
+          /></label>
+          <pre id="media-transcript-window"></pre>
+          <h3>帧拼图</h3>
+          <button id="media-frames-open" type="button" disabled>读取最新帧拼图</button>
+          <p id="media-frames-status" role="status"></p>
+          <img id="media-frames-image" alt="等距抽帧拼图预览" hidden />
+          <pre id="media-frames-detail"></pre>
+          <h3>本地处理组件</h3>
+          <p class="muted">
+            ASR 与抽帧在独立受管子进程内离线执行；缺少组件时作业会明确报错，不会静默降级。ASR 模型须提前放入离线缓存。
+          </p>
+          <p id="media-processor-status" role="status"></p>
+          <div class="actions">
+            <button id="media-processor-probe" type="button" disabled>检查本地组件</button>
+          </div>
+          <button id="media-source-delete" type="button" disabled>删除所选来源（级联其作业与产物行）</button>
+        </section>
+        <section id="qq" class="page" hidden>
+          <h2>QQ 通道</h2>
+          <p>
+            先在配置中建立 QQ / OneBot WebSocket 通道，并在人物中绑定发送者的 QQ 账号。群聊仅响应对当前账号的
+            @。私聊和群聊分别授权、分别设置人设；不使用所有者档案、私人记忆或工具。
+          </p>
+          <p>
+            启用会话授权后会连接对应账号并接收消息，可能产生模型费用。生成的回复进入「持久投递」等待逐条审批；尚未批准的消息不外发。
+          </p>
+          <div class="actions">
+            <button id="qq-refresh" type="button">重新载入</button
+            ><button id="qq-more" type="button" disabled>更多会话</button>
+          </div>
+          <label
+            >会话授权<select id="qq-list">
+              <option value="">新会话授权</option>
+            </select></label
+          >
+          <form id="qq-form">
+            <fieldset id="qq-fields" disabled>
+              <label>通道配置 UUID<input id="qq-config" list="qq-config-options" required maxlength="36" /></label>
+              <datalist id="qq-config-options"></datalist>
+              <label
+                >会话类型<select id="qq-scene">
+                  <option value="private">私聊</option>
+                  <option value="group">群聊</option>
+                </select></label
+              >
+              <label
+                >对方 QQ 号 / 群号<input
+                  id="qq-peer"
+                  required
+                  inputmode="numeric"
+                  pattern="[1-9][0-9]{0,18}"
+                  maxlength="19"
+              /></label>
+              <label>独立会话人设<textarea id="qq-persona" required maxlength="8000" rows="6"></textarea></label>
+              <label>入站冷却秒数<input id="qq-cooldown" type="number" min="1" max="3600" required /></label>
+              <label><input id="qq-enabled" type="checkbox" />启用本会话的入站授权</label>
+              <button id="qq-save" type="submit">保存授权</button>
+            </fieldset>
+          </form>
+          <p id="qq-draft-status" role="status"></p>
+          <pre id="qq-binding-status"></pre>
+          <h3>连接诊断</h3>
+          <pre id="qq-connection-status" role="status"></pre>
+        </section>
+        <section id="deliveries" class="page" hidden>
+          <h1>持久投递</h1>
+          <p class="muted">
+            生成回复不代表已外发；服务方接收不代表对方已读。每次外发都需核对正文、发送账号和目标后批准。结果未知时先核查，系统不会自动重发。
+          </p>
+          <p id="delivery-capabilities" role="status"></p>
+          <form id="delivery-form">
+            <fieldset id="delivery-fields" disabled>
+              <label>已保存的助手消息 ID<input id="delivery-message" required /></label>
+              <label>发送通道配置<select id="delivery-channel" required></select></label>
+              <label>目标标识<input id="delivery-target" maxlength="512" required /></label>
+              <p id="delivery-parent" role="status"></p>
+              <button type="submit">建立待审批投递</button>
+              <button id="delivery-new" type="button">清空草稿</button>
+            </fieldset>
+          </form>
+          <button id="delivery-channels-more" type="button" disabled>更多发送通道</button>
+          <label><input id="delivery-archived" type="checkbox" />包含归档</label>
+          <div class="actions">
+            <button id="delivery-refresh" type="button">刷新投递</button
+            ><button id="delivery-more" type="button" disabled>更多投递</button>
+          </div>
+          <label>投递记录<select id="delivery-list"></select></label>
+          <p id="delivery-status" role="status"></p>
+          <pre id="delivery-preview"></pre>
+          <div class="actions">
+            <button id="delivery-approve" type="button" disabled>批准本次外发</button>
+            <button id="delivery-reject" type="button" disabled>拒绝外发</button>
+            <button id="delivery-cancel" type="button" disabled>取消投递</button>
+            <button id="delivery-archive" type="button" disabled>归档投递</button>
+            <button id="delivery-copy" type="button" disabled>从本记录建立新投递</button>
+          </div>
+          <form id="delivery-review" hidden>
+            <label
+              >人工核查结论<select id="delivery-resolution">
+                <option value="confirmed_not_sent">已核实未发送</option>
+                <option value="confirmed_sent">已核实已发送</option>
+                <option value="allow_future">结果仍未知，允许后续任务</option>
+              </select></label
+            >
+            <label>核查依据<textarea id="delivery-evidence" rows="3" maxlength="2000" required></textarea></label>
+            <button type="submit">登记核查结论</button>
+            <p class="muted">登记核查不会改写原始未知结果，也不会解除模型费用预留。再次发送仍需建立新投递并批准。</p>
+          </form>
+          <h2>尝试与回执</h2>
+          <pre id="delivery-attempts"></pre>
+        </section>
+        <section id="action-reviews" class="page" hidden>
+          <h1>未知副作用动作核查</h1>
+          <p class="muted">
+            这里只登记所有者对终态未知写动作的核查结论，原始 unknown 状态和副作用记录保持。
+            核查不会执行或重试旧动作，也不会解除模型费用、投递或凭据的核查要求。若启用计划只被本动作的未知结果阻塞，确认已生效或未生效后，未来到期调度可恢复；仍不确定则保持阻塞。
+          </p>
+          <div class="actions">
+            <button id="action-review-refresh" type="button">刷新未知动作</button>
+            <button id="action-review-more" type="button" disabled>更多动作</button>
+          </div>
+          <p id="action-review-list-status" role="status"></p>
+          <label>动作记录<select id="action-review-select"></select></label>
+          <div class="actions">
+            <button id="action-review-refresh-detail" type="button" disabled>刷新所选动作</button>
+            <button id="action-review-more-history" type="button" disabled>更多核查记录</button>
+          </div>
+          <p id="action-review-status" role="status"></p>
+          <pre id="action-review-detail"></pre>
+          <form id="action-review-form">
+            <fieldset id="action-review-fields" disabled>
+              <label
+                >人工核查结论<select id="action-review-decision" required>
+                  <option value="" disabled selected>请选择核查结论</option>
+                  <option value="applied">已核实已产生副作用</option>
+                  <option value="not_applied">已核实未产生副作用</option>
+                  <option value="still_unknown">核查后仍无法确定</option>
+                </select></label
+              >
+              <label
+                >人工核查依据<textarea id="action-review-evidence" rows="3" maxlength="2000" required></textarea>
+              </label>
+              <p class="muted">依据保存为本空间的业务记录，请勿填写密钥。核查结论与原始执行结果分别展示。</p>
+              <button id="action-review-submit" type="submit" disabled>仅登记核查结论</button>
+            </fieldset>
+          </form>
+          <button id="action-review-clear" type="button">清空本次核查草稿</button>
+          <button id="action-review-resolve" type="button" hidden>核查上次登记结果</button>
+          <h2>独立核查记录</h2>
+          <div id="action-review-history"></div>
+        </section>
+        <section id="desktop" class="page" hidden>
+          <h1>桌面能力</h1>
+          <p class="muted">
+            检查桌面能力，显式列举窗口并核验身份。“读取界面内容”返回有限文字和控件信息；“截图保存至当前会话”会保存所选窗口的图片，可能包含私人内容。
+            窗口观察和预览在离开面板后清除，已保存的截图保留在会话中，需单独移除引用。截图不会自动发送给模型。
+            支持的控件可提交调用、选择或文本设置。前台文字、按键及点击另需逐次授权，审批后手动切到目标控件。一次操作消耗本次观察；无法独立验证的结果进入待核查，不自动重试。
+          </p>
+          <button id="desktop-refresh" type="button">重新载入视图</button>
+          <button id="desktop-probe" type="button">检查桌面能力</button>
+          <button id="desktop-list" type="button" disabled>列举当前用户窗口</button>
+          <p id="desktop-summary" role="status"></p>
+          <p id="desktop-status" role="status" aria-live="polite"></p>
+          <p id="desktop-staging" role="status"></p>
+          <div id="desktop-capabilities"></div>
+          <div id="desktop-portal" hidden>
+            <h2>Wayland 窗口共享</h2>
+            <p class="muted">
+              由你在系统选择器中选择一个窗口。授权后手动查询状态，再显式保存单帧；共享最多保持 150
+              秒。离开本页会撤回共享，不授予键鼠控制。
+            </p>
+            <button id="desktop-portal-open" type="button">选择共享窗口</button>
+            <button id="desktop-portal-query" type="button" disabled>查询共享状态</button>
+            <button id="desktop-portal-capture" type="button" disabled>保存共享窗口单帧</button>
+            <button id="desktop-portal-close" type="button" disabled>结束共享</button>
+            <p id="desktop-portal-status" role="status" aria-live="polite"></p>
+          </div>
+          <h2>本次窗口观察</h2>
+          <div id="desktop-targets"></div>
+          <h2>当前会话截图</h2>
+          <p id="desktop-captures-status" role="status"></p>
+          <button id="desktop-captures-refresh" type="button">加载会话截图记录</button>
+          <button id="desktop-captures-more" type="button" hidden>更多截图记录</button>
+          <div id="desktop-captures"></div>
+        </section>
+        <section id="terminals" class="page" hidden>
+          <h1>所有者终端</h1>
+          <p class="muted">
+            Shell 使用当前用户权限，不是操作系统沙箱。本期只供所有者手动操作，不向模型开放原始输入。工作目录采用服务端
+            Agent 配置，输入不进入诊断日志。
+          </p>
+          <p id="terminal-options" role="status"></p>
+          <label>Shell<select id="terminal-shell"></select></label>
+          <div class="actions">
+            <button id="terminal-create" type="button" disabled>信任并启动终端</button
+            ><button id="terminal-query-create" type="button" hidden>仅查询上次启动收据</button>
+          </div>
+          <div class="actions">
+            <button id="terminal-refresh" type="button">刷新会话和进程状态</button
+            ><button id="terminal-more" type="button" disabled>更多会话</button>
+          </div>
+          <p id="terminal-list-status" role="status"></p>
+          <label>终端会话<select id="terminal-select"></select></label>
+          <pre id="terminal-detail"></pre>
+          <div class="actions">
+            <button id="terminal-attach" type="button" disabled>显式连接并回放输出</button
+            ><button id="terminal-detach" type="button" disabled>仅断开面板连接</button
+            ><button id="terminal-close" type="button" disabled>结束终端及其进程</button>
+          </div>
+          <p id="terminal-status" role="status"></p>
+          <p id="terminal-gap" role="alert" hidden></p>
+          <div id="terminal-screen" class="terminal-screen" aria-label="不可信终端输出"></div>
+          <label
+            >明确发送的输入文本<textarea
+              id="terminal-input"
+              rows="3"
+              maxlength="16384"
+              autocomplete="off"
+              spellcheck="false"
+            ></textarea>
+          </label>
+          <fieldset id="terminal-input-fields" disabled>
+            <div class="actions">
+              <button id="terminal-send" type="button" disabled>发送文本</button
+              ><button id="terminal-send-enter" type="button" disabled>发送文本并回车</button
+              ><button id="terminal-enter" type="button">回车</button
+              ><button id="terminal-tab" type="button">Tab</button
+              ><button id="terminal-interrupt" type="button">Ctrl+C</button>
+            </div>
+          </fieldset>
+          <div class="actions">
+            <button id="terminal-resize" type="button" disabled>同步当前视图尺寸</button
+            ><button id="terminal-query" type="button" disabled>仅查询最后操作收据</button>
+          </div>
+          <pre id="terminal-receipt"></pre>
+          <p class="muted">
+            回车或多行文本可能立即执行。断线不会自动重发；离开面板会停止读取并断开连接，不代表进程结束。再次进入须显式连接。
+          </p>
+          <details>
+            <summary>未知终端操作核查</summary>
+            <p class="muted">仅登记独立观察。原始回执、历史进程状态和命令结果保持原义，核查不会重发输入。</p>
+            <div class="actions">
+              <button id="terminal-review-load" type="button">加载未知终端操作</button
+              ><button id="terminal-review-more" type="button" disabled>更多未知操作</button>
+            </div>
+            <label>待核查操作<select id="terminal-review-select"></select></label>
+            <button id="terminal-review-refresh" type="button" disabled>刷新核查来源与历史</button>
+            <pre id="terminal-review-detail"></pre>
+            <fieldset id="terminal-review-fields" disabled>
+              <label
+                >核查观察<select id="terminal-review-decision">
+                  <option value="">请选择</option>
+                  <option value="applied">已观察到影响</option>
+                  <option value="not_applied">未观察到影响</option>
+                  <option value="still_unknown">核查后仍不确定</option>
+                </select></label
+              >
+              <label>独立核查说明<textarea id="terminal-review-evidence" rows="3" maxlength="2000"></textarea></label>
+              <label
+                ><input
+                  id="terminal-review-ack"
+                  type="checkbox"
+                />我确认：此记录不证明命令成功，不重发输入，也不确认历史进程已停止。</label
+              >
+            </fieldset>
+            <div class="actions">
+              <button id="terminal-review-submit" type="button" disabled>登记终端核查</button
+              ><button id="terminal-review-retry" type="button" hidden>按原身份重试登记</button
+              ><button id="terminal-review-abandon" type="button" hidden>放弃本地待确认请求</button>
+            </div>
+            <p id="terminal-review-status" role="status"></p>
+            <div id="terminal-review-history"></div>
+            <button id="terminal-review-history-more" type="button" disabled>更多核查记录</button>
+          </details>
+        </section>
+        <section id="memory" class="page" hidden>
+          <h1>记忆</h1>
+          <p class="muted">
+            遗忘会清除关联派生记忆和摘要，并停用受影响会话已有的历史上下文、停止相关活跃运行。聊天原文仍在；删除原文请在对话页操作。
+          </p>
+          <form id="remember">
+            <label>人工记录<textarea id="memory-text" rows="3" required></textarea></label
+            ><button type="submit">保存记忆</button>
+          </form>
+          <div id="memory-list"></div>
+          <h2>本地重复事实整理</h2>
+          <p class="muted">
+            仅检查本空间手动选择的事实是否原文完全相同，不整理人设、人物档案或常驻记忆。无模型调用，预算与费用均为
+            0。生成提案不会自动改变召回；所有者逐项应用后仅减少重复召回，正文与所有来源保留，可撤销恢复。
+          </p>
+          <div class="actions">
+            <button id="memory-organization-refresh-sources" type="button">刷新可选事实</button>
+            <button id="memory-organization-create" type="button" disabled>生成本地整理提案</button>
+          </div>
+          <p id="memory-organization-source-status" role="status"></p>
+          <fieldset id="memory-organization-selection" disabled>
+            <legend>手动选择 2–32 条事实（不会自动全选）</legend>
+            <div id="memory-organization-sources"></div>
+          </fieldset>
+          <h3>整理批次与所有者核查</h3>
+          <div class="actions">
+            <button id="memory-organization-refresh-batches" type="button">刷新整理批次</button>
+            <button id="memory-organization-more" type="button" disabled>更多整理批次</button>
+          </div>
+          <p id="memory-organization-list-status" role="status"></p>
+          <label>选择整理批次<select id="memory-organization-batches"></select></label>
+          <div class="actions">
+            <button id="memory-organization-refresh-detail" type="button" disabled>刷新所选批次</button>
+            <button id="memory-organization-cancel" type="button" disabled>取消本批剩余提案</button>
+          </div>
+          <p id="memory-organization-status" role="status"></p>
+          <pre id="memory-organization-detail"></pre>
+          <div id="memory-organization-detail-sources"></div>
+          <div id="memory-organization-candidates"></div>
+          <h2>本地向量召回与相关事实</h2>
+          <p class="muted">
+            事实、人物档案和常驻记忆共用原始修订与来源。向量模型可选，未配置时仍可全文检索；建立索引每次最多 32
+            条。相关候选使用上方手动选择的事实，只标记关系，不合并或抑制召回。
+          </p>
+          <div class="actions">
+            <button id="semantic-index" type="button">建立下一页记忆索引</button>
+            <button id="semantic-propose" type="button">生成相关事实候选</button>
+            <button id="semantic-refresh" type="button">刷新语义批次</button>
+            <button id="semantic-more" type="button" disabled>更多语义批次</button>
+          </div>
+          <p id="semantic-status" role="status"></p>
+          <p id="semantic-index-status" role="status"></p>
+          <form id="semantic-search-form">
+            <label>查询记忆<input id="semantic-query" maxlength="500" required /></label>
+            <button id="semantic-search" type="submit">查询记忆</button>
+          </form>
+          <p id="semantic-search-status" role="status"></p>
+          <div id="semantic-results"></div>
+          <label>相关事实批次<select id="semantic-batches"></select></label>
+          <button id="semantic-detail-refresh" type="button">刷新关联详情</button>
+          <div id="semantic-detail"></div>
+        </section>
+        <section id="skills" class="page" hidden>
+          <h1>技能</h1>
+          <p class="muted">
+            技能是流程说明，不授予工具权限。导入、编辑、回滚都会产生停用修订；审阅正文、参考文件与清单后明确启用。停用或改写会撤销已使用此技能的运行。不会执行包内文件。
+          </p>
+          <div class="actions">
+            <button id="skills-refresh" type="button">刷新技能</button
+            ><button id="skills-more" type="button" disabled>更多技能</button
+            ><button id="skills-new" type="button">新建技能</button>
+          </div>
+          <label>技能列表<select id="skills-list"></select></label>
+          <p id="skills-status" role="status"></p>
+          <form id="skills-form">
+            <label>SKILL.md<textarea id="skills-content" rows="16" required></textarea></label
+            ><button id="skills-save" type="submit">保存为停用修订</button>
+          </form>
+          <div class="actions">
+            <button id="skills-reload" type="button">重新载入当前修订</button
+            ><button id="skills-enable" type="button">启用此修订</button
+            ><button id="skills-disable" type="button">停用此技能</button
+            ><button id="skills-archive" type="button">归档此技能</button
+            ><button id="skills-restore" type="button">恢复为停用</button
+            ><button id="skills-export" type="button">导出当前修订</button>
+          </div>
+          <label
+            >导入 SKILL.md 或扁平 ZIP 文本包（最多 1 MiB）<input
+              id="skills-file"
+              type="file"
+              accept=".md,.zip" /></label
+          ><button id="skills-import" type="button">导入为停用修订</button>
+          <h2>文件清单与参考内容</h2>
+          <pre id="skills-files"></pre>
+          <label>所选修订文件<select id="skills-reference"></select></label
+          ><button id="skills-reference-read" type="button">读取参考文件</button>
+          <pre id="skills-reference-body"></pre>
+          <h2>内容历史</h2>
+          <label>历史修订<select id="skills-history"></select></label>
+          <div class="actions">
+            <button id="skills-history-more" type="button" disabled>更多历史</button
+            ><button id="skills-rollback" type="button">复制历史为新修订</button>
+          </div>
+        </section>
+        <section id="extensions" class="page" hidden>
+          <h1>可信 Python 插件</h1>
+          <p class="muted">
+            登记只读取并保存本机插件包与固定工具目录，不执行代码。插件具有当前用户的本机权限；进程隔离用于故障隔离，不提供操作系统沙箱。
+            所有者须手动选择并授权工具，本期所有工具的实际写动作仍须逐次人工审批。
+          </p>
+          <label>选择插件或新登记<select id="extension-select"></select></label>
+          <div class="actions">
+            <button id="extension-new" type="button">新插件登记</button>
+            <button id="extension-refresh" type="button">刷新插件列表</button>
+            <button id="extension-more" type="button" disabled>更多插件</button>
+          </div>
+          <p id="extension-list-status" role="status"></p>
+          <form id="extension-install-form">
+            <label>本机插件目录（绝对路径）<input id="extension-source" maxlength="4000" required /></label>
+            <div class="actions">
+              <button id="extension-install" type="submit">登记插件包</button>
+              <button id="extension-resolve-install" type="button" hidden>核查上次登记结果</button>
+            </div>
+          </form>
+          <p class="muted">
+            更新所选插件时绑定当前修订，并撤销旧版本的授权。输入草稿只保存在当前网页内存；登记结果未核清时保留原请求键，核查不会覆盖新输入。
+          </p>
+          <div class="actions">
+            <button id="extension-refresh-detail" type="button" disabled>刷新所选插件</button>
+            <button id="extension-disable" type="button" disabled>禁用并核查回收</button>
+          </div>
+          <p id="extension-status" role="status"></p>
+          <pre id="extension-details"></pre>
+          <details>
+            <summary>包内文件与指纹</summary>
+            <pre id="extension-files"></pre>
+          </details>
+          <fieldset id="extension-authorization-fields" disabled>
+            <legend>手动选择授权工具（不自动全选）</legend>
+            <div id="extension-tools"></div>
+            <label>
+              <input id="extension-trust" type="checkbox" />
+              我信任此 Python 插件，并了解它具有当前用户的本机权限，进程隔离不是操作系统沙箱。
+            </label>
+            <button id="extension-authorize" type="button" disabled>授权所选工具</button>
+          </fieldset>
+        </section>
+        <section id="settings" class="page" hidden>
+          <h1>运行设置</h1>
+          <h2>运行偏好</h2>
+          <form id="settings-form">
+            <fieldset id="settings-fields" disabled>
+              <label>本空间使用的模型配置<select id="active-model" required></select></label>
+              <label>绝对工作目录<input id="workspace" /></label>
+              <label>人设<textarea id="persona" rows="5" maxlength="50000"></textarea></label>
+              <div class="log-filters">
+                <label>每日预算（微美元，0 表示不限）<input id="daily-budget" type="number" min="0" required /></label>
+                <label>单次调用费用预留（微美元）<input id="call-budget" type="number" min="1" required /></label>
+                <label>每轮最大步骤<input id="max-steps" type="number" min="1" max="32" required /></label>
+              </div>
+              <label>禁用能力名称（逗号分隔）<input id="disabled-tools" /></label>
+              <p class="muted">人设与模型选择用于新运行；禁用能力、更换工作目录会使旧授权失效。</p>
+              <div class="actions">
+                <button type="submit">保存设置</button
+                ><button id="reload-settings" type="button">放弃设置草稿并重载</button>
+              </div>
+              <p id="saved" role="status"></p>
+            </fieldset>
+          </form>
+          <h3>模型与能力档位</h3>
+          <form id="route-form">
+            <fieldset id="route-fields" disabled>
+              <label
+                >未显式指定时的档位<select id="route-default">
+                  <option value="agent">完整</option>
+                  <option value="auto">自动</option>
+                  <option value="chat">聊天</option>
+                  <option value="retrieval">检索</option>
+                </select></label
+              >
+              <label class="checkbox"
+                ><input id="route-escalation" type="checkbox" />允许一次工具升档（模型固定，操作仍需审批）</label
+              >
+              <div class="form-row">
+                <label>聊天模型<select id="route-chat-model"></select></label
+                ><label
+                  >每次预留微美元（空白跟随设置）<input
+                    id="route-chat-reserve"
+                    type="number"
+                    min="1"
+                    max="1000000000000"
+                /></label>
+              </div>
+              <div class="form-row">
+                <label>检索模型<select id="route-retrieval-model"></select></label
+                ><label
+                  >每次预留微美元<input id="route-retrieval-reserve" type="number" min="1" max="1000000000000"
+                /></label>
+              </div>
+              <div class="form-row">
+                <label>完整模型<select id="route-agent-model"></select></label
+                ><label
+                  >每次预留微美元<input id="route-agent-reserve" type="number" min="1" max="1000000000000"
+                /></label>
+              </div>
+              <p class="muted">
+                留空模型跟随本空间默认模型。图片能力和计量来自实际选中的模型；缺少能力会明确拒绝。升档只改变下一次调用工具，模型和预算保持本轮捕获值。
+              </p>
+              <button type="submit">保存档位配置</button
+              ><button id="route-reload" type="button">放弃档位草稿并重新载入</button>
+            </fieldset>
+          </form>
+          <p id="route-config-status" role="status"></p>
+          <h2>配置目录</h2>
+          <p class="muted">
+            模型、通道、MCP 和预设均在服务端保存修订。保存不会自动连接或认证；已接入的通道在对应面板显式使用，MCP
+            服务仍待接入。归档保留历史。
+          </p>
+          <label
+            >配置类型<select id="configuration-kind">
+              <option value="model">模型</option>
+              <option value="channel">通道</option>
+              <option value="mcp">MCP</option>
+              <option value="preset">人设预设</option>
+            </select></label
+          >
+          <label>已有配置<select id="configuration-list"></select></label>
+          <div class="actions">
+            <button id="refresh-configurations" type="button">刷新配置列表</button
+            ><button id="more-configurations" type="button" disabled>更多配置</button>
+          </div>
+          <form id="new-configuration" class="actions">
+            <label>新配置名称<input id="new-configuration-name" maxlength="100" required /></label
+            ><button type="submit">新建配置草稿</button>
+          </form>
+          <form id="configuration-form">
+            <fieldset id="configuration-fields" disabled>
+              <label>配置名称<input id="cfg-name" maxlength="100" required /></label>
+              <label><input id="cfg-enabled" type="checkbox" />配置启用（停用模型会撤销旧运行的后续调用）</label>
+              <fieldset id="cfg-model-fields">
+                <label>模型标识<input id="model" maxlength="200" placeholder="provider/model" /></label>
+                <label>模型端点<input id="base-url" type="url" /></label>
+                <label>凭据引用名称<input id="credential-ref" maxlength="200" /></label>
+                <div class="log-filters">
+                  <label
+                    >声明上下文容量（token）<input id="context-tokens" type="number" min="1024" max="2000000" required
+                  /></label>
+                  <label>回答输出上限（token）<input id="output-tokens" type="number" min="1" required /></label>
+                  <label>摘要输出上限（token）<input id="summary-tokens" type="number" min="1" required /></label>
+                  <label>安全余量（token）<input id="margin-tokens" type="number" min="128" required /></label>
+                </div>
+                <label
+                  >输入计量方式<select id="counter-mode">
+                    <option value="utf8_upper_bound">本地保守估计</option>
+                    <option value="required">要求专用计量器</option>
+                  </select></label
+                >
+                <label>计量器版本标识<input id="counter-ref" maxlength="100" required /></label>
+                <label
+                  >图片协议<select id="image-protocol">
+                    <option value="disabled">关闭</option>
+                    <option value="openai_low">OpenAI 低清（已知计量型号）</option>
+                  </select></label
+                >
+                <div class="form-row">
+                  <label>单次附图上限<input id="image-per-call" type="number" min="1" max="4" required /></label
+                  ><label
+                    >本轮累计附图次数<input id="image-run-budget" type="number" min="1" max="64" required
+                  /></label>
+                </div>
+                <p class="muted">
+                  仅对明确支持低清计量的 gpt-4o / gpt-4o-mini
+                  型号开放。重复调用会累计次数，压缩上下文不重置；真实模型仍需验收。
+                </p>
+                <p class="muted">
+                  容量需按目标模型声明填写。保守估计包含 UTF-8
+                  字节与封装余量，不能保证供应商隐藏内容；专用计量器不可用时不会发送请求。
+                </p>
+              </fieldset>
+              <fieldset id="cfg-channel-fields" hidden disabled>
+                <label
+                  >通道类型<select id="channel-driver">
+                    <option value="qq">QQ</option>
+                    <option value="bilibili">B站</option>
+                    <option value="android">安卓</option>
+                  </select></label
+                >
+                <label>服务端点<input id="channel-endpoint" /></label
+                ><label>账号或目标<input id="channel-account" maxlength="200" /></label
+                ><label>凭据引用名称<input id="channel-credential" /></label>
+              </fieldset>
+              <fieldset id="cfg-mcp-fields" hidden disabled>
+                <label
+                  >传输<select id="mcp-transport">
+                    <option value="stdio">stdio</option>
+                    <option value="streamable_http">Streamable HTTP</option>
+                  </select></label
+                >
+                <label>stdio 可执行文件<input id="mcp-command" maxlength="4000" /></label
+                ><label>公开参数（每行一个，不放令牌）<textarea id="mcp-arguments" rows="3"></textarea></label>
+                <label>远程端点<input id="mcp-endpoint" /></label
+                ><label
+                  >远程认证<select id="mcp-auth">
+                    <option value="none">无</option>
+                    <option value="bearer">凭据引用</option>
+                    <option value="oauth">OAuth（接入待实现）</option>
+                  </select></label
+                ><label>凭据引用名称<input id="mcp-credential" /></label>
+              </fieldset>
+              <fieldset id="cfg-preset-fields" hidden disabled>
+                <label>预设人设<textarea id="preset-content" rows="5" maxlength="50000"></textarea></label>
+              </fieldset>
+              <div class="actions">
+                <button type="submit">保存配置</button
+                ><button id="reload-configuration" type="button">放弃配置草稿并重载</button
+                ><button id="configuration-history-button" type="button">查看配置修订</button
+                ><button id="configuration-export" type="button">导出已保存配置</button
+                ><button id="configuration-archive" type="button">归档配置</button
+                ><button id="apply-preset" type="button" hidden>应用已保存预设到设置草稿</button>
+              </div>
+            </fieldset>
+          </form>
+          <p id="configuration-status" role="status"></p>
+          <p id="configuration-diagnosis" role="status"></p>
+          <pre id="configuration-history"></pre>
+          <form id="configuration-import">
+            <label
+              >导入 JSON 配置（只生成草稿）<input
+                id="configuration-file"
+                type="file"
+                accept=".json,application/json"
+                required /></label
+            ><button type="submit">导入为草稿</button>
+          </form>
+          <form id="credential-form">
+            <h2>实例凭据</h2>
+            <label>引用名称<input id="secret-ref" required /></label
+            ><label>凭据<input id="secret" type="password" autocomplete="off" required /></label
+            ><button type="submit">保存至凭据库</button>
+            <button id="credential-register" type="button">仅登记引用名称</button>
+            <button id="credential-delete" type="button">删除引用对应凭据</button>
+          </form>
+          <p class="muted">
+            修改结果未知时会阻止使用及再次修改。请先在系统凭据库核对，再提交核查依据；不要在依据中填写密钥。登记引用不会解除已有阻断。
+          </p>
+          <label>凭据引用<select id="credential-list"></select></label>
+          <div class="actions">
+            <button id="credential-refresh" type="button">重新载入并清空核查草稿</button
+            ><button id="credential-more" type="button" disabled>更多引用</button>
+          </div>
+          <p id="credential-state" role="status"></p>
+          <form id="credential-review">
+            <fieldset id="credential-review-fields" disabled>
+              <label
+                >核查结论<select id="credential-decision">
+                  <option value="revoke">撤销未来使用</option>
+                  <option value="allow_current">允许未来尝试使用</option>
+                </select></label
+              >
+              <label>人工核查依据<textarea id="credential-evidence" maxlength="2000" required></textarea></label>
+              <button type="submit">提交凭据核查</button>
+            </fieldset>
+          </form>
+          <details>
+            <summary>操作与核查记录（各最多 100 条）</summary>
+            <pre id="credential-history"></pre>
+          </details>
+        </section>
+        <section id="documents" class="page" hidden>
+          <h1>来源文档</h1>
+          <p class="muted">
+            原文保存在对象存储中，每次保存产生确定修订。全文和向量均为可重建索引；向量仅在本地组件可用时手动建立。未保存草稿只在当前网页内存保留。
+          </p>
+          <label>来源文档<select id="document-list"></select></label>
+          <div class="actions">
+            <button id="document-new" type="button">新建文档草稿</button
+            ><button id="document-refresh" type="button">刷新文档列表</button
+            ><button id="document-more" type="button" disabled>更多文档</button>
+          </div>
+          <form id="source-document-form">
+            <fieldset id="document-fields" disabled>
+              <label>标题<input id="document-title" maxlength="200" required /></label>
+              <label>正文<textarea id="document-content" rows="10" maxlength="100000" required></textarea></label>
+              <div class="actions">
+                <button id="document-save" type="submit">保存来源文档</button
+                ><button id="document-reload" type="button">放弃文档草稿并载入当前版本</button
+                ><button id="document-history-button" type="button">查看来源修订</button
+                ><button id="document-export" type="button">导出已保存来源</button
+                ><button id="document-rebuild-text" type="button">重建全文索引</button
+                ><button id="document-rebuild-vector" type="button" disabled>重建本地向量</button
+                ><button id="document-delete" type="button">删除来源与派生内容</button>
+              </div>
+            </fieldset>
+          </form>
+          <p id="document-status" role="status"></p>
+          <pre id="document-index-state"></pre>
+          <div class="actions">
+            <button id="document-refresh-maintenance" type="button" disabled>刷新本次维护状态</button>
+            <button id="document-resume-erasure" type="button" hidden>续跑已确认擦除</button>
+          </div>
+          <p id="document-maintenance-status" role="status"></p>
+          <div id="document-history" class="actions"></div>
+          <form id="document-import-form">
+            <label>导入标题<input id="document-import-title" maxlength="200" required /></label>
+            <label
+              >UTF-8 文本（最多 256 KiB）<input
+                id="document-import-file"
+                type="file"
+                accept="text/plain,text/markdown,.txt,.md"
+                required
+            /></label>
+            <button type="submit">导入文档草稿</button>
+          </form>
+          <form id="document-search-form" class="log-filters">
+            <label>检索来源<input id="document-query" maxlength="500" required /></label
+            ><button type="submit">检索文档</button>
+          </form>
+          <p id="document-search-status" role="status"></p>
+          <div id="document-results"></div>
+        </section>
+        <section id="logs" class="page" hidden>
+          <h1>诊断日志</h1>
+          <div class="actions">
+            <button id="refresh-metrics" type="button">刷新运行指标</button
+            ><button id="export-diagnostics" type="button">导出诊断包</button>
+          </div>
+          <p class="muted">
+            诊断包只包含版本、平台、运行汇总和有界的结构化日志关联信息，不包含聊天、数据库正文、凭据、浏览器状态或自由文本日志。
+          </p>
+          <p id="metrics-status" role="status"></p>
+          <h2>后台维护任务</h2>
+          <p class="muted">
+            仅列出当前 Agent 的全文索引重建与已确认擦除续跑任务。入队不代表完成；取消后须刷新核对实际终态。
+          </p>
+          <div class="actions">
+            <button id="refresh-maintenance" type="button">刷新维护任务</button>
+            <button id="more-maintenance" type="button" disabled>更多维护任务</button>
+          </div>
+          <p id="maintenance-status" role="status"></p>
+          <div id="maintenance-list"></div>
+          <h2>180天审计候选（仅预览）</h2>
+          <p class="muted">
+            仅检查当前 Agent
+            的审计保留条件，不删除记录或生成执行计划。每页重新核验当前业务保护，不能作为完整业务快照或删除授权。
+          </p>
+          <div class="actions">
+            <button id="refresh-audit-retention" type="button">刷新审计候选预览</button
+            ><button id="more-audit-retention" type="button" disabled>加载更多审计候选</button>
+          </div>
+          <p id="audit-retention-status" role="status"></p>
+          <pre id="audit-retention-list"></pre>
+          <h2>180天事件明细候选（仅预览）</h2>
+          <p class="muted">
+            仅检查当前 Agent
+            的事件明细保留条件，不删除记录或生成执行计划。预览只显示身份与保护原因，不包含事件正文。每页重新核验当前业务保护，不能作为完整业务快照或删除授权。
+          </p>
+          <div class="actions">
+            <button id="refresh-event-retention" type="button">刷新事件候选预览</button
+            ><button id="more-event-retention" type="button" disabled>加载更多事件候选</button>
+          </div>
+          <p id="event-retention-status" role="status"></p>
+          <pre id="event-retention-list"></pre>
+          <div class="actions">
+            <button id="read-instance-audit" type="button">读取实例审计</button
+            ><button id="more-instance-audit" type="button" disabled>加载更多实例审计</button>
+          </div>
+          <p id="instance-audit-status" role="status"></p>
+          <details>
+            <summary>实例维护审计（最多显示最近读取的 200 条）</summary>
+            <pre id="instance-audit"></pre>
+          </details>
+          <div class="actions">
+            <label
+              >调试时长<select id="debug-duration">
+                <option value="300">5 分钟</option>
+                <option value="1800">30 分钟</option>
+                <option value="3600">1 小时</option>
+              </select></label
+            >
+            <button id="start-debug" type="button">开启限时调试</button>
+            <button id="stop-debug" type="button" disabled>停止调试</button>
+          </div>
+          <p id="debug-status" role="status"></p>
+          <button id="read-debug" type="button" disabled>读取调试记录</button>
+          <details>
+            <summary>调试记录（最多显示最近 500 条）</summary>
+            <pre id="debug-records"></pre>
+          </details>
+          <p class="muted">
+            限时调试只记录当前 Agent 的关联、状态与耗时，不采集聊天或异常正文；总量最多 128 MiB，24
+            小时后清理。重启后保持关闭。
+          </p>
+          <details>
+            <summary>查看指标详情</summary>
+            <pre id="metrics-details"></pre>
+          </details>
+          <form id="log-filter" class="log-filters">
+            <label
+              >等级<select id="log-level">
+                <option value="">全部</option>
+                <option>DEBUG</option>
+                <option>INFO</option>
+                <option>WARNING</option>
+                <option>ERROR</option>
+                <option>CRITICAL</option>
+              </select></label
+            >
+            <label>组件<input id="log-component" maxlength="200" /></label>
+            <label>运行编号<input id="log-run" maxlength="100" /></label>
+            <label>起始时间（本地）<input id="log-since" type="datetime-local" /></label>
+            <label>结束时间（本地）<input id="log-until" type="datetime-local" /></label>
+            <button id="refresh-logs" type="submit">重新查询</button>
+          </form>
+          <div class="actions">
+            <button id="more-logs" type="button" disabled>继续读取</button>
+            <label><input id="live-logs" type="checkbox" />实时查看</label>
+          </div>
+          <p id="log-status" role="status"></p>
+          <pre id="log-list"></pre>
+        </section>
+        <section id="objects" class="page" hidden>
+          <h1>文件</h1>
+          <p class="muted">文件保存在当前 Agent 空间，单个上限 16 MiB。作为模型附件发送尚未开放。</p>
+          <form id="upload-object">
+            <label>选择文件<input id="object-file" type="file" required /></label>
+            <div class="actions">
+              <label><input id="object-keep" type="checkbox" checked />固定保留</label>
+              <button type="submit">上传文件</button>
+              <button id="refresh-objects" type="button">刷新文件</button>
+              <button id="more-objects" type="button" disabled>更多文件</button>
+            </div>
+          </form>
+          <p class="muted">未固定且没有引用的文件满 24 小时后可由停机回收命令清理。</p>
+          <p id="object-status" role="status"></p>
+          <div id="object-list"></div>
+        </section>
+        <section id="audit" class="page" hidden>
+          <h1>审计记录</h1>
+          <div class="actions">
+            <button id="refresh-audit" type="button">重新加载审计</button
+            ><button id="more-audit" type="button" disabled>加载更多审计</button>
+          </div>
+          <p id="audit-status" role="status"></p>
+          <pre id="audit-list"></pre>
+        </section>
+        <section id="schedules" class="page" hidden>
+          <h1>持久调度</h1>
+          <p class="muted">
+            启用后到期自动创建回合，使用本空间的模型预算与工具审批。每个计划同一时间只执行一轮；停机错过多个周期时只保留最近一次。夏令时缺失时刻跳过，重复时刻仅执行第一次。
+          </p>
+          <label>计划<select id="schedule-list"></select></label>
+          <label><input id="schedule-archived" type="checkbox" />包含归档计划（只读，仍可取消在途回合）</label>
+          <div class="actions">
+            <button id="schedule-new" type="button">新计划草稿</button>
+            <button id="schedule-refresh" type="button">刷新计划列表</button>
+            <button id="schedule-more" type="button" disabled>更多计划</button>
+          </div>
+          <form id="schedule-form">
+            <fieldset id="schedule-fields" disabled>
+              <label>计划名称<input id="schedule-name" maxlength="100" required /></label>
+              <label><input id="schedule-enabled" type="checkbox" />启用自动调度</label>
+              <label
+                >重复方式<select id="schedule-kind">
+                  <option value="cron">日历规则</option>
+                  <option value="interval">固定间隔</option>
+                  <option value="once">单次</option>
+                </select></label
+              >
+              <label
+                >IANA 时区<input id="schedule-timezone" maxlength="100" required placeholder="Asia/Shanghai"
+              /></label>
+              <label
+                >五段日历规则（分 时 日 月 周）<input id="schedule-expression" maxlength="100" placeholder="0 9 * * *"
+              /></label>
+              <label>间隔秒数（至少 60）<input id="schedule-interval" type="number" min="60" max="31536000" /></label>
+              <label
+                >起始时间（ISO，需含 UTC 偏移）<input
+                  id="schedule-start"
+                  placeholder="2026-12-01T09:00:00+08:00"
+                  maxlength="40"
+              /></label>
+              <label>到期指令<textarea id="schedule-prompt" maxlength="20000" rows="4" required></textarea></label>
+              <p class="muted">
+                保存修订不覆盖已经登记的到期指令。停用或归档会取消尚未入队的到期记录；已入队或运行中的回合请在下方单独取消。
+              </p>
+              <div class="actions">
+                <button type="submit">保存计划</button
+                ><button id="schedule-reload" type="button">放弃计划草稿并重载</button
+                ><button id="schedule-archive" type="button" disabled>归档计划</button>
+              </div>
+            </fieldset>
+          </form>
+          <p id="schedule-status" role="status"></p>
+          <pre id="schedule-progress"></pre>
+          <button id="schedule-review" type="button" hidden>核查后允许后续调度</button>
+          <div class="actions">
+            <button id="schedule-occurrences" type="button" disabled>刷新到期记录</button
+            ><button id="schedule-occurrences-more" type="button" disabled>更多到期记录</button
+            ><button id="schedule-history-button" type="button" disabled>查看计划修订</button
+            ><button id="schedule-history-more" type="button" disabled>更多计划修订</button>
+          </div>
+          <div id="schedule-ledger"></div>
+          <pre id="schedule-history"></pre>
+        </section>
+        <section id="people" class="page" hidden>
+          <h1>人物与档案</h1>
+          <p class="muted">
+            所有者档案和常驻内容供本空间的新运行使用。清空后保存即遗忘：相关摘要失效、受影响会话的历史上下文重置，相关活跃运行停止。已发出的请求无法撤回。
+          </p>
+          <form id="person-create" class="actions">
+            <label>新人物名称<input id="new-person-name" maxlength="100" required /></label>
+            <button type="submit">创建人物</button>
+          </form>
+          <label>选择人物<select id="person-select" aria-label="选择人物"></select></label>
+          <div class="actions">
+            <button id="refresh-people" type="button">重新载入人物</button
+            ><button id="more-people" type="button" disabled>更多人物</button>
+          </div>
+          <p id="people-status" role="status"></p>
+          <fieldset id="person-fields" disabled>
+            <form id="person-rename">
+              <label>显示名称<input id="person-name" maxlength="100" required /></label>
+              <button type="submit">保存名称</button><span id="person-role" role="status"></span>
+            </form>
+            <form id="profile-form">
+              <h2>人物档案</h2>
+              <label>档案正文<textarea id="profile-content" maxlength="8000" rows="5"></textarea></label>
+              <div class="actions">
+                <button type="submit">保存档案</button
+                ><button id="profile-reload" type="button">放弃档案草稿并重载</button
+                ><button id="profile-history-button" type="button">档案修订</button>
+              </div>
+              <button id="profile-export" type="button">导出已保存档案</button>
+              <p id="profile-status" role="status"></p>
+              <pre id="profile-history"></pre>
+            </form>
+            <form id="resident-form">
+              <h2>常驻记忆</h2>
+              <label>常驻正文<textarea id="resident-content" maxlength="8000" rows="5"></textarea></label>
+              <div class="actions">
+                <button type="submit">保存常驻记忆</button
+                ><button id="resident-reload" type="button">放弃常驻草稿并重载</button
+                ><button id="resident-history-button" type="button">常驻修订</button>
+              </div>
+              <button id="resident-export" type="button">导出已保存常驻记忆</button>
+              <p id="resident-status" role="status"></p>
+              <pre id="resident-history"></pre>
+            </form>
+            <form id="document-import">
+              <h2>导入已保存文件</h2>
+              <label
+                >目标<select id="document-kind">
+                  <option value="profile">人物档案</option>
+                  <option value="resident">常驻记忆</option>
+                </select></label
+              >
+              <label>UTF-8 文件<select id="document-object" required></select></label>
+              <button type="submit">导入并保存</button>
+            </form>
+            <form id="account-bind">
+              <h2>账号关联</h2>
+              <p class="muted">当前为人工记录，不授予所有者权限；通道验证接入后再核验身份。</p>
+              <label>通道<input id="account-channel" maxlength="32" placeholder="例如 qq" required /></label>
+              <label>通道内账号<input id="account-external" maxlength="200" required /></label>
+              <button type="submit">关联账号</button>
+              <div id="accounts-list"></div>
+            </form>
+            <label><input id="erase-person-consent" type="checkbox" />同时遗忘此人物的账号和记忆</label>
+            <button id="erase-person" type="button" disabled>遗忘此人物</button>
+          </fieldset>
+        </section>
+      </section>
+    </main>
+    <script src="/assets/vendor/xterm.js?v=20261110v48"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v48"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261110v48"></script>
+  </body>
+</html>

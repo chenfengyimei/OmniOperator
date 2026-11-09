@@ -16,7 +16,6 @@ import json
 import os
 import subprocess
 import sys
-from pathlib import Path
 
 from omni.system.process_identity import inspect_process
 from omni.system.services import ServiceManager
@@ -40,15 +39,17 @@ CHILD_FIRST = """
 import json, os, sys, time
 from omni.system.services import ServiceManager
 run_dir, log_dir, ready = sys.argv[1], sys.argv[2], sys.argv[3]
+def publish(payload):
+    with open(ready + ".partial", "w", encoding="utf-8") as handle:
+        json.dump(payload, handle)
+    os.replace(ready + ".partial", ready)
 try:
     service = ServiceManager(run_dir=run_dir, log_dir=log_dir)
     launch_id = service.register_current("omni-heartbeat")
-    with open(ready, "w", encoding="utf-8") as handle:
-        handle.write(json.dumps({"ok": True, "launch_id": launch_id, "pid": os.getpid()}))
+    publish({"ok": True, "launch_id": launch_id, "pid": os.getpid()})
     print(json.dumps({"ok": True, "launch_id": launch_id, "pid": os.getpid()}))
 except Exception as exc:
-    with open(ready, "w", encoding="utf-8") as handle:
-        handle.write(json.dumps({"ok": False, "error": "%s: %s" % (type(exc).__name__, exc)}))
+    publish({"ok": False, "error": "%s: %s" % (type(exc).__name__, exc)})
     print(json.dumps({"ok": False, "error": "%s: %s" % (type(exc).__name__, exc)}))
 time.sleep(30)
 """

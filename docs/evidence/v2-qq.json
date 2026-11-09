@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "batch": "D5.business_channels.qq_text",
+  "date": "2026-11-08T10:49:08.765185+08:00",
+  "whole_v2_complete": false,
+  "business_channels_complete": false,
+  "selected_text_development_complete": true,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "18cfa8d5b22fe336b73bc1af9d5046d0acc2cd5413b72c39fab95c53254ea816",
+    "fixed_source_files": 1039,
+    "snapshot": "temp/build/v2-qq-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 98,
+    "migration_head": "v2_0027",
+    "assets_version": "20261108v37",
+    "guide": "docs/V2_QQ.md",
+    "default_entrypoint_changed": false,
+    "v1_runtime_or_data_imported": false,
+    "real_account_login_or_delivery": false,
+    "inbound_connections": 4,
+    "owned_connections": 8,
+    "frame_bytes": 65536,
+    "frame_queue": 16,
+    "send_deadline_s": 15,
+    "send_cooldown_s": 3,
+    "scope": [
+      "V2 people/account attribution, explicit private/group grants/personas/sessions; signed message IDs and exact group mention",
+      "Atomic inbound dedupe/message/run/work/audit and output/message/terminal/outbox commit; original message text stored once",
+      "Owner/private memory and tools/plugins excluded from remote context; shared model/delivery authorization",
+      "Pinned OneBot login, supervised bounded reconnect, credential generation before admission/dispatch; no write replay",
+      "Durable inbound/account send cooldown without spending attempts; actual transport cleanup ownership",
+      "Workbench CRUD/CAS, in-memory per-agent drafts, isolated status and owner-authenticated API"
+    ],
+    "pending": [
+      "Bilibili and Android V2 migrations",
+      "QQ attachments/replies/upstream replay contract and real-account acceptance",
+      "Remaining model/extensions/product/default entry and native/three-platform acceptance"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 105,
+    "all_latest_cases_passed": true,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-qq-chain.xml",
+        "sha256": "322ba0c735cf38e957b05d441b2ad67c36390a0e6260088ec9c073f75e2fca99",
+        "tests": 40,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 39.306
+      },
+      {
+        "path": "temp/build/v2-qq-callers.xml",
+        "sha256": "d6a796b99114149a3b90683fba19a62668ee95c7f94d2918c5190228719b1fd4",
+        "tests": 65,
+        "failures": 3,
+        "errors": 2,
+        "skipped": 0,
+        "duration_s": 73.142
+      },
+      {
+        "path": "temp/build/v2-qq-callers-fixed.xml",
+        "sha256": "64c74fe800467098e5fd6841a74a4457811f74218664b08d3a755339a3797fb5",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 38.913
+      }
+    ],
+    "report_method": "Incremental chain40, callers65, fixed5; deduplicate latest node identities; replace obsolete no-transport node with installed-QQ/unconfigured-sender contract. Not one105 run or full suite.",
+    "superseded_test": {
+      "old": [
+        "tests.test_v2_delivery_http",
+        "test_default_delivery_capability_reports_no_real_transport"
+      ],
+      "new": [
+        "tests.test_v2_delivery_http",
+        "test_default_delivery_capability_reports_installed_qq_and_rejects_unconfigured_sender"
+      ],
+      "reason": "Built-in QQ transport is now installed; unconfigured sending is still denied without network"
+    },
+    "browser_cases": 8,
+    "viewports": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "current_packaging_rerun": false,
+    "gates": {
+      "path": "temp/build/v2-qq-gates.json",
+      "sha256": "16cf68dfb93772afd13305743e312066c8857b95278a3b9efb95b6e96a6bf733",
+      "passed": 4
+    },
+    "pyright": {
+      "mode": "host",
+      "checking": "default",
+      "summary": {
+        "filesAnalyzed": 17,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 4.639
+      },
+      "sources": [
+        "agent/src/omni/domain/qq.py",
+        "agent/src/omni/application/qq.py",
+        "agent/src/omni/adapters/onebot.py",
+        "agent/src/omni/adapters/persistence/qq_authority.py",
+        "agent/src/omni/adapters/persistence/qq_repository.py",
+        "agent/src/omni/adapters/persistence/schema.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0027.py",
+        "agent/src/omni/adapters/persistence/repository.py",
+        "agent/src/omni/adapters/persistence/configuration_repository.py",
+        "agent/src/omni/adapters/persistence/context_repository.py",
+        "agent/src/omni/adapters/persistence/delivery_repository.py",
+        "agent/src/omni/composition/instance.py",
+        "agent/src/omni/composition/http.py",
+        "agent/src/omni/application/engine.py",
+        "agent/src/omni/application/ports.py",
+        "agent/src/omni/adapters/http.py",
+        "agent/src/omni/application/delivery.py"
+      ]
+    },
+    "limitations": [
+      "Real SQLite/model orchestration with fake model and provider; local fake OneBot verifies installed websocket library, not real QQ delivery",
+      "Current-head expectations updated in shared tests; those historical migration files were not all rerun",
+      "No full/strict-all/platform build or real-account/device/load/72-hour result",
+      "Selected QQ text scope only; no persistent upstream replay guarantee"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-qq-source-20261108T104908+0800/manifest.json",
+    "source_files": 1281,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "id": "D5.bilibili_android",
+    "status": "待开始",
+    "scope": "持续D5业务迁移，接入B站读取、真实mention载荷、审批发布和发布后核验，随后安卓能力、授权、产物与设备身份；只走V2用例/配置/凭据/对象/动作账本，不导入V1 Runtime或旧库。QQ后续补附件/引用与真实账号验收，正向WS补收不作隐式承诺；D6模型扩展、D7入口及原生/三平台验收继续待推进。",
+    "design": "docs/V2_QQ.md"
+  }
+}

@@ -8,16 +8,22 @@ import json
 import logging
 import queue
 import re
+import stat
 import sys
 import threading
 import time
 import traceback
-from collections.abc import Iterator, Mapping
+import uuid
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
+from itertools import islice
 from pathlib import Path
 from typing import Any
 
 from opentelemetry import trace
+
+from ..domain.contracts import BusinessError
+from .temporary_debug import DebugEnvelope, TemporaryDebug
 
 _context: contextvars.ContextVar[dict[str, str]] = contextvars.ContextVar("omni_v2_context", default={})
 CONTEXT_FIELDS = {"request_id", "agent_id", "session_id", "run_id", "operation_id", "boot_id", "build_id"}
@@ -28,7 +34,7 @@ SECRET_KEY = re.compile(
 
 @contextmanager
 def bind_context(**fields: str) -> Iterator[None]:
-    token = _context.set({**_context.get(), **{k: v for k, v in fields.items() if k in CONTEXT_FIELDS}})
+    token = _context.set({**_context.get(), **{k: v[:200] for k, v in fields.items() if k in CONTEXT_FIELDS}})
     try:
         yield
     finally:
@@ -38,14 +44,31 @@ def bind_context(**fields: str) -> Iterator[None]:
 class Redactor:
     def __init__(self) -> None:
         self._secrets: set[str] = set()
+        self._secret_bytes = 0
         self._lock = threading.Lock()
 
     def register(self, value: str) -> None:
         if value:
             with self._lock:
+                if value in self._secrets:
+                    return
+                if len(value) > 262144:
+                    raise BusinessError(
+                        "redaction_capacity", "Credential exceeds diagnostic protection capacity", status=503
+                    )
+                size = len(value.encode("utf-8"))
+                if len(self._secrets) >= 256 or self._secret_bytes + size > 16 * 1024 * 1024:
+                    # Do not evict an old secret that may still appear in a late
+                    # provider failure, and never save an unprotected new value.
+                    raise BusinessError(
+                        "redaction_capacity", "Restart before adding more diagnostic secrets", status=503
+                    )
                 self._secrets.add(value)
+                self._secret_bytes += size
 
     def text(self, value: str) -> str:
+        if len(value) > 262144:
+            return "[text_limit]"
         with self._lock:
             secrets = sorted(self._secrets, key=len, reverse=True)
         for secret in secrets:
@@ -61,18 +84,31 @@ class Redactor:
         value = re.sub(r"(https?://[^\s?#]+)[?#][^\s]*", r"\1?[redacted]", value)
         return value[:8192]
 
-    def value(self, value: Any, depth: int = 0) -> Any:
+    def value(self, value: Any, depth: int = 0, _budget: list[int] | None = None) -> Any:
+        budget = _budget if _budget is not None else [256, 16384]
+        budget[0] -= 1
+        if budget[0] < 0 or budget[1] <= 0:
+            return "[payload_limit]"
         if depth > 6:
             return "[depth_limit]"
         if isinstance(value, Mapping):
-            return {
-                str(k)[:100]: "[redacted]" if SECRET_KEY.search(str(k)) else self.value(v, depth + 1)
-                for k, v in list(value.items())[:100]
-            }
+            result = {}
+            for key, item in islice(value.items(), 100):
+                if budget[0] <= 0 or budget[1] <= 0:
+                    break
+                original_key = str(key)
+                safe_key = self.text(original_key)[: min(100, budget[1])]
+                budget[1] -= len(safe_key)
+                result[safe_key] = (
+                    "[redacted]" if SECRET_KEY.search(original_key) else self.value(item, depth + 1, budget)
+                )
+            return result
         if isinstance(value, (tuple, list)):
-            return [self.value(v, depth + 1) for v in value[:100]]
+            return [self.value(v, depth + 1, budget) for v in value[:100] if budget[0] > 0]
         if isinstance(value, str):
-            return self.text(value)
+            result = self.text(value)[: budget[1]]
+            budget[1] -= len(result)
+            return result
         if value is None or isinstance(value, (bool, int, float)):
             return value
         return self.text(str(value))
@@ -90,11 +126,14 @@ class JsonLogSink(logging.Handler):
         segments: int = 16,
         age_days: int = 14,
         stderr_only: bool = False,
+        monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
         super().__init__()
+        if not 1 <= capacity <= 10_000 or segment_bytes < 1024 or not 1 <= segments <= 16 or age_days < 1:
+            raise ValueError("Diagnostic limits must be positive and bounded")
         self.directory, self.boot_id, self.build_id = directory, boot_id, build_id
         self.redactor = Redactor()
-        self.queue: queue.Queue[dict] = queue.Queue(maxsize=capacity)
+        self.queue: queue.Queue[bytes | DebugEnvelope] = queue.Queue(maxsize=capacity)
         self.segment_bytes, self.segments, self.age_days = segment_bytes, segments, age_days
         self.stderr_only = stderr_only
         self.dropped = self.written = self.failures = 0
@@ -102,21 +141,40 @@ class JsonLogSink(logging.Handler):
         self._stderr = sys.stderr
         self._emergency_at = 0.0
         self._closing = threading.Event()
+        self.io_lock = threading.RLock()
+        self.debug = TemporaryDebug(directory / "debug", boot_id, monotonic, enabled=not stderr_only)
         self._thread = threading.Thread(target=self._pump, name="omni-log-writer", daemon=True)
         self._thread.start()
 
     def emit(self, record: logging.LogRecord) -> None:
+        debug_record = None
         try:
             span = trace.get_current_span().get_span_context()
+            if record.levelno < logging.INFO:
+                if record.levelno != logging.DEBUG or self._closing.is_set():
+                    return
+                metadata = {**_context.get(), "timestamp": dt.datetime.now(dt.timezone.utc).isoformat()}
+                for name in ("event", "duration_ms", "outcome", "operation"):
+                    if hasattr(record, name):
+                        metadata[name] = getattr(record, name)
+                if span.is_valid:
+                    metadata.update(trace_id=f"{span.trace_id:032x}", span_id=f"{span.span_id:016x}")
+                debug_record = self.debug.admit(metadata)
+                if debug_record is not None:
+                    self.queue.put_nowait(debug_record)
+                return
             entry = {
+                "record_id": str(uuid.uuid4()),
                 "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds"),
                 "level": record.levelname,
-                "event": getattr(record, "event", "diagnostic"),
-                "component": record.name,
+                "event": str(getattr(record, "event", "diagnostic"))[:200],
+                "component": record.name[:200],
                 "boot_id": self.boot_id,
                 "build_id": self.build_id,
                 **_context.get(),
-                "message": self.redactor.text(record.getMessage()),
+                "message": self.redactor.text(record.getMessage())
+                if record.name.startswith("omni.v2")
+                else "External library emitted a diagnostic; inspect its component and exception type",
             }
             if span.is_valid:
                 entry.update(trace_id=f"{span.trace_id:032x}", span_id=f"{span.span_id:016x}")
@@ -124,16 +182,39 @@ class JsonLogSink(logging.Handler):
                 if hasattr(record, name):
                     entry[name] = self.redactor.value(getattr(record, name))
             if record.exc_info:
-                entry["exception"] = self.redactor.text("".join(traceback.format_exception(*record.exc_info)))
+                # Exception values, source lines and locals may contain full model
+                # requests. Keep frame locations and types, never their payloads.
+                kind, _value, tb = record.exc_info
+                frames = traceback.extract_tb(tb, limit=20) if tb else []
+                entry["exception"] = self.redactor.text(
+                    (kind.__name__ if kind else "Exception")
+                    + "\n"
+                    + "\n".join(f"{frame.filename}:{frame.lineno} in {frame.name}" for frame in frames)
+                )
             entry = self.redactor.value(entry)
+            payload = (json.dumps(entry, ensure_ascii=False, allow_nan=False, separators=(",", ":")) + "\n").encode(
+                "utf-8"
+            )
+            if len(payload) > min(self.segment_bytes, 32768):
+                entry = {k: v for k, v in entry.items() if k not in {"message", "exception"}}
+                entry["truncated"] = True
+                payload = (json.dumps(entry, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
+            if len(payload) > min(self.segment_bytes, 32768):
+                self.dropped += 1
+                self._emergency("log_record_too_large")
+                return
             if self._closing.is_set():
                 self.dropped += 1
                 return
-            self.queue.put_nowait(entry)
+            self.queue.put_nowait(payload)
         except queue.Full:
+            if debug_record is not None:
+                self.debug.discard(debug_record)
             self.dropped += 1
             self._emergency("log_queue_full")
         except Exception:  # noqa: BLE001 -- logging failures must never escape into a use case
+            if debug_record is not None:
+                self.debug.discard(debug_record)
             self.dropped += 1
             self._emergency("log_encode_failed")
 
@@ -175,22 +256,48 @@ class JsonLogSink(logging.Handler):
         with paths[0].open("ab") as stream:
             stream.write(payload)
 
+    def maintenance(self) -> dict:
+        """Expire only named runtime segments even when no new log event arrives."""
+        if self.stderr_only:
+            return {"available": False, "reason": "logs_external"}
+        with self.io_lock:
+            if self.directory.is_symlink() or self.directory.is_junction():
+                raise OSError("Log directory is a link")
+            paths = [self.directory / ("runtime.jsonl" + (f".{n}" if n else "")) for n in range(self.segments)]
+            expired = []
+            cutoff = time.time() - self.age_days * 86400
+            for path in paths:
+                if path.is_symlink() or path.is_junction():
+                    raise OSError("Log file is a link")
+                try:
+                    info = path.stat()
+                except FileNotFoundError:
+                    continue
+                if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                    raise OSError("Log segment must be a single-link regular file")
+                if info.st_mtime < cutoff:
+                    expired.append(path)
+            for path in expired:
+                path.unlink()
+            return {"available": True, "removed_files": len(expired)}
+
     def _pump(self) -> None:
         while not self._closing.is_set() or not self.queue.empty():
             try:
-                entry = self.queue.get(timeout=0.05)
+                payload = self.queue.get(timeout=0.05)
             except queue.Empty:
                 continue
             try:
-                payload = (json.dumps(entry, ensure_ascii=False, allow_nan=False, separators=(",", ":")) + "\n").encode(
-                    "utf-8"
-                )
-                if len(payload) > min(self.segment_bytes, 32768):
-                    entry = {k: v for k, v in entry.items() if k not in {"message", "exception"}}
-                    entry["truncated"] = True
-                    payload = (json.dumps(entry, ensure_ascii=False) + "\n").encode("utf-8")
-                self._write(payload)
-                self.written += 1
+                with self.io_lock:
+                    if isinstance(payload, DebugEnvelope):
+                        written = self.debug.write(payload)
+                    else:
+                        self._write(payload)
+                        written = True
+                if written:
+                    self.written += 1
+                else:
+                    self.dropped += 1
             except (OSError, ValueError, TypeError):
                 self.failures += 1
                 self.dropped += 1
@@ -210,6 +317,7 @@ class JsonLogSink(logging.Handler):
         }
 
     def shutdown(self, timeout_s: float = 5) -> bool:
+        self.debug.stop("runtime_shutdown")
         self._closing.set()
         self._thread.join(max(0, timeout_s))
         return not self._thread.is_alive()
@@ -220,7 +328,7 @@ class JsonLogSink(logging.Handler):
 
 
 class LoggingSession:
-    def __init__(self, sink: JsonLogSink, *, level: int = logging.INFO) -> None:
+    def __init__(self, sink: JsonLogSink, *, level: int = logging.DEBUG) -> None:
         self.sink = sink
         self._logger = logging.getLogger("omni.v2")
         self._level, self._propagate = self._logger.level, self._logger.propagate

@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "batch": "D5.business_channels.android_owner",
+  "date": "2026-11-08T20:45:34.415332+08:00",
+  "whole_v2_complete": false,
+  "business_channels_complete": false,
+  "android_full_functionality_complete": false,
+  "selected_owner_chain_development_complete": true,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "b10d9a13a8c673281ef7d1fd796fad6ab8159d2ce684586239a11ad06e01945a",
+    "fixed_source_files": 1064,
+    "snapshot": "temp/build/v2-android-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 103,
+    "migration_head": "v2_0029",
+    "assets_version": "20261108v39",
+    "ipc_protocol": 2,
+    "guide": "docs/V2_ANDROID.md",
+    "default_entrypoint_changed": false,
+    "v1_runtime_or_data_imported": false,
+    "actual_device_actions": false,
+    "scope": [
+      "Existing loopback smart-socket server; no daemon start, pair, install, root or arbitrary shell",
+      "Agent/config/transport/boot/Android-user/build/history-generation device grants; immutable identity and explicit revocation",
+      "Bounded ephemeral password-redacted tree, scoped opaque nodes and exact tree recheck",
+      "Controlled full-screen PNG, decoded receipt, shared object/session references and audit",
+      "Shared owner command, approvals, actions, leases and independent unknown review; single persistent input body",
+      "Fresh ready/host guard/commit; verified ASCII append and toggle; generic taps remain unknown",
+      "Unresolved same-device input blocks new dispatch; cancellation retains real ownership and shutdown fences",
+      "Workbench scoped drafts, observation clearing, preview disposal, explicit device consent and normal approvals"
+    ],
+    "limits": {
+      "accepted_service_tasks": 8,
+      "accepted_worker_tasks": 4,
+      "actual_adb_operations": 1,
+      "nodes": 128,
+      "tree_depth": 8,
+      "text_bytes": 16384,
+      "ipc_bytes": 65536,
+      "capture_bytes": 16777216,
+      "socket_s": 8,
+      "worker_s": 20,
+      "host_s": 22,
+      "tool_s": 25
+    },
+    "pending": [
+      "继续同一D5安卓交付包：模型显式受限授权及运行/会话绑定、原安卓工具的滑动/按键/长按/应用查询启动/中文输入。保持统一审批、设备身份、来源和unknown核查；不以任意shell、安装或IME切换作隐式回退。随后D6模型/媒体/真实向量/MCP/技能、D7产品切换；真实账号、设备、原生与三平台72小时另记。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 48,
+    "all_latest_cases_passed": true,
+    "method": "48 scoped cases initially had one cross-Agent draft failure; UI9 rerun after frontend correction, core4 rerun after raw stdout path correction. Latest result per node is authoritative. Not one 48-pass run or full repository.",
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-android-final.xml",
+        "sha256": "d746aa5b0b78d2a311527245af54e02eab1309124bb2a18c2bcfb578612151d6",
+        "tests": 48,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 86.784
+      },
+      {
+        "path": "temp/build/v2-android-ui-final.xml",
+        "sha256": "4612a1fef90648bbe73eb2834d17aa0231cf8eb7a6b61a4f9a6f97caedaa3adc",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 22.82
+      },
+      {
+        "path": "temp/build/v2-android-raw-output.xml",
+        "sha256": "7b9d17f7949fd277d07c685c58528d53772b06e4731b33a684ce5109f734bf5c",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 16.661
+      }
+    ],
+    "browser_ui_cases": 9,
+    "viewports": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "current_packaging_rerun": false,
+    "gates": {
+      "path": "temp/build/v2-android-gates.json",
+      "sha256": "d671d872653ea54d345217997655427941f05ad876425d9db3c6415df0c23bc8",
+      "passed": 4
+    },
+    "pyright": {
+      "mode": "host",
+      "checking": "default",
+      "summary": {
+        "filesAnalyzed": 15,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 4.159
+      },
+      "sources": [
+        "agent/src/omni/domain/android.py",
+        "agent/src/omni/domain/desktop.py",
+        "agent/src/omni/application/android.py",
+        "agent/src/omni/application/ports.py",
+        "agent/src/omni/adapters/android.py",
+        "agent/src/omni/adapters/workers/android.py",
+        "agent/src/omni/adapters/workers/android_adb.py",
+        "agent/src/omni/adapters/persistence/android_repository.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0029.py",
+        "agent/src/omni/adapters/persistence/schema.py",
+        "agent/src/omni/adapters/persistence/repository.py",
+        "agent/src/omni/adapters/persistence/object_repository.py",
+        "agent/src/omni/composition/instance.py",
+        "agent/src/omni/composition/http.py",
+        "agent/src/omni/adapters/http.py"
+      ]
+    },
+    "limitations": [
+      "Fake ADB device only; actual managed Python and SQLite on Windows. Browser device endpoints fulfilled independently.",
+      "Historical metadata table-count assertions adjusted; nine historical migration files were not all rerun. Real V28 owner-command upgrade and current empty-schema checks passed.",
+      "Earlier failed test reports retained. UI double encoding, an unscoped request sequence and cross-Agent draft restoration were fixed; latest per-node results recorded, shutdown test uses production retained-close loop.",
+      "No real Android, QQ/Bilibili account action, macOS/Linux execution, full suite, current package, strict-all, load or72h acceptance."
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-android-source-20261108T204534+0800/manifest.json",
+    "source_files": 1310,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "id": "D5.android",
+    "status": "开发中",
+    "design": "docs/V2_ANDROID.md",
+    "scope": "继续同一D5安卓交付包：模型显式受限授权及运行/会话绑定、原安卓工具的滑动/按键/长按/应用查询启动/中文输入。保持统一审批、设备身份、来源和unknown核查；不以任意shell、安装或IME切换作隐式回退。随后D6模型/媒体/真实向量/MCP/技能、D7产品切换；真实账号、设备、原生与三平台72小时另记。"
+  }
+}

@@ -28,62 +28,1196 @@
       "status": "开发中",
       "notes": "四层结构、独立实例、路径/配置/端口已落地；正式入口和旧联接清理等待业务迁移。",
       "evidence": [
-        "docs/evidence/v2-offline.json"
+        "docs/evidence/v2-offline.json",
+        "docs/evidence/v2-system-start.json",
+        "docs/evidence/v2-macos-activation.json",
+        "docs/evidence/v2-service-cleanup.json",
+        "docs/evidence/v2-system-exchange.json",
+        "docs/evidence/v2-macos-system-inspection.json",
+        "docs/evidence/v2-darwin-admin.json",
+        "docs/evidence/v2-darwin-exchange.json",
+        "docs/evidence/v2-schema-release.json",
+        "docs/evidence/v2-service-handover.json",
+        "docs/evidence/v2-vectors.json",
+        "docs/evidence/v2-routing.json",
+        "docs/evidence/v2-memory-semantics.json",
+        "docs/evidence/v2-skills.json"
       ]
     },
     {
       "id": "R2",
       "title": "数据基础与状态机",
       "status": "开发中",
-      "notes": "35表新基线、FTS、关键事务、记忆来源/遗忘和备份恢复已落地；对象/人物/摘要等完整流程待接入。",
+      "notes": "125表/v2_0035；技能正文/参考文件复用对象，修订/审阅/一次捕获/实际使用规范化，原文/费用/任务仍单一；恢复要求重新授权，不导入旧V1数据。",
       "evidence": [
-        "docs/evidence/v2-offline.json"
+        "docs/evidence/v2-offline.json",
+        "docs/evidence/v2-objects.json",
+        "docs/evidence/v2-people.json",
+        "docs/evidence/v2-context.json",
+        "docs/evidence/v2-configuration.json",
+        "docs/evidence/v2-documents.json",
+        "docs/evidence/v2-scheduling.json",
+        "docs/evidence/v2-delivery.json",
+        "docs/evidence/v2-pruning.json",
+        "docs/evidence/v2-references.json",
+        "docs/evidence/v2-history.json",
+        "docs/evidence/v2-audit-apply.json",
+        "docs/evidence/v2-event-pruning.json",
+        "docs/evidence/v2-maintenance.json",
+        "docs/evidence/v2-memory-organization.json",
+        "docs/evidence/v2-extensions.json",
+        "docs/evidence/v2-action-review.json",
+        "docs/evidence/v2-terminals.json",
+        "docs/evidence/v2-actions.json",
+        "docs/evidence/v2-linux-capture.json",
+        "docs/evidence/v2-linux-portal-frames.json",
+        "docs/evidence/v2-terminal-review.json",
+        "docs/evidence/v2-exchange-recovery.json",
+        "docs/evidence/v2-schema-release.json",
+        "docs/evidence/v2-qq.json",
+        "docs/evidence/v2-bilibili.json",
+        "docs/evidence/v2-android.json",
+        "docs/evidence/v2-android-model.json",
+        "docs/evidence/v2-android-unicode.json",
+        "docs/evidence/v2-images.json",
+        "docs/evidence/v2-routing.json",
+        "docs/evidence/v2-memory-semantics.json",
+        "docs/evidence/v2-skills.json"
       ]
     },
     {
       "id": "R3",
       "title": "日志与诊断",
       "status": "开发中",
-      "notes": "JSON日志、脱敏、追踪关联、轮转/丢失计数和查询已落地；保留策略/调试/指标/异常钩子待完善。",
+      "notes": "Portal请求/授权/关闭使用元数据审计；审计失败撤回授权，原生handle/stream/异常正文不进诊断。日志整体故障与负载验收仍待完成。",
       "evidence": [
-        "docs/evidence/v2-offline.json"
+        "docs/evidence/v2-offline.json",
+        "docs/evidence/v2-objects.json",
+        "docs/evidence/v2-operations.json",
+        "docs/evidence/v2-retention.json",
+        "docs/evidence/v2-pruning.json",
+        "docs/evidence/v2-references.json",
+        "docs/evidence/v2-history.json",
+        "docs/evidence/v2-audit-preview.json",
+        "docs/evidence/v2-audit-apply.json",
+        "docs/evidence/v2-event-pruning.json",
+        "docs/evidence/v2-maintenance.json",
+        "docs/evidence/v2-memory-organization.json",
+        "docs/evidence/v2-extensions.json",
+        "docs/evidence/v2-action-review.json",
+        "docs/evidence/v2-terminals.json",
+        "docs/evidence/v2-services.json",
+        "docs/evidence/v2-desktop.json",
+        "docs/evidence/v2-uia.json",
+        "docs/evidence/v2-actions.json",
+        "docs/evidence/v2-native.json",
+        "docs/evidence/v2-macos-control.json",
+        "docs/evidence/v2-linux-session.json",
+        "docs/evidence/v2-linux-capture.json",
+        "docs/evidence/v2-linux-portal.json",
+        "docs/evidence/v2-linux-portal-frames.json",
+        "docs/evidence/v2-linux-control.json",
+        "docs/evidence/v2-native-credentials.json",
+        "docs/evidence/v2-terminal-review.json",
+        "docs/evidence/v2-routing.json",
+        "docs/evidence/v2-memory-semantics.json",
+        "docs/evidence/v2-skills.json"
       ]
     },
     {
       "id": "R4",
       "title": "运行内核",
       "status": "开发中",
-      "notes": "并发回合、同会话顺序、取消/审批/费用及受管内建能力工作器已落地；调度/投递/整理/扩展工作器待接入。",
+      "notes": "平台运维源码与分阶段交换已接；本批补共享关闭遗留短预算接续并专项通过。真实原生服务、跨平台和72小时仍待。",
       "evidence": [
-        "docs/evidence/v2-offline.json"
+        "docs/evidence/v2-offline.json",
+        "docs/evidence/v2-scheduling.json",
+        "docs/evidence/v2-delivery.json",
+        "docs/evidence/v2-safety.json",
+        "docs/evidence/v2-authority.json",
+        "docs/evidence/v2-maintenance.json",
+        "docs/evidence/v2-memory-organization.json",
+        "docs/evidence/v2-extensions.json",
+        "docs/evidence/v2-action-review.json",
+        "docs/evidence/v2-terminals.json",
+        "docs/evidence/v2-services.json",
+        "docs/evidence/v2-desktop.json",
+        "docs/evidence/v2-uia.json",
+        "docs/evidence/v2-actions.json",
+        "docs/evidence/v2-linux-portal.json",
+        "docs/evidence/v2-linux-portal-frames.json",
+        "docs/evidence/v2-linux-control.json",
+        "docs/evidence/v2-native-credentials.json",
+        "docs/evidence/v2-terminal-review.json",
+        "docs/evidence/v2-service-exchange.json",
+        "docs/evidence/v2-exchange-recovery.json",
+        "docs/evidence/v2-system-start.json",
+        "docs/evidence/v2-macos-activation.json",
+        "docs/evidence/v2-service-cleanup.json",
+        "docs/evidence/v2-system-exchange.json",
+        "docs/evidence/v2-darwin-admin.json",
+        "docs/evidence/v2-darwin-exchange.json",
+        "docs/evidence/v2-schema-release.json",
+        "docs/evidence/v2-service-handover.json",
+        "docs/evidence/v2-model-stream.json",
+        "docs/evidence/v2-images.json",
+        "docs/evidence/v2-vectors.json",
+        "docs/evidence/v2-routing.json",
+        "docs/evidence/v2-memory-semantics.json",
+        "docs/evidence/v2-skills.json"
       ]
     },
     {
       "id": "R5",
       "title": "三平台原生能力",
-      "status": "待开始",
-      "notes": "已有进程锁、Windows Job Object/POSIX进程组和凭据原语；终端、原生桌面和系统服务尚未交付。",
+      "status": "开发中",
+      "notes": "Windows原生源码与所选离线验证已接入，真实前台输入稍后；Mac源码待Mac mini编译，Linux持续控制与原生验收仍待。D4用户/系统交接、独立恢复和跨schema链已接源码，三平台原生服务与72小时未验收。",
       "evidence": [
-        "docs/evidence/v2-offline.json"
+        "docs/evidence/v2-offline.json",
+        "docs/evidence/v2-terminals.json",
+        "docs/evidence/v2-services.json",
+        "docs/evidence/v2-desktop.json",
+        "docs/evidence/v2-uia.json",
+        "docs/evidence/v2-actions.json",
+        "docs/evidence/v2-native.json",
+        "docs/evidence/v2-macos-control.json",
+        "docs/evidence/v2-linux-session.json",
+        "docs/evidence/v2-linux-capture.json",
+        "docs/evidence/v2-linux-portal.json",
+        "docs/evidence/v2-linux-portal-frames.json",
+        "docs/evidence/v2-linux-control.json",
+        "docs/evidence/v2-native-credentials.json",
+        "docs/evidence/v2-service-operations.json",
+        "docs/evidence/v2-macos-services.json",
+        "docs/evidence/v2-service-admin.json",
+        "docs/evidence/v2-releases.json",
+        "docs/evidence/v2-service-control.json",
+        "docs/evidence/v2-service-exchange.json",
+        "docs/evidence/v2-exchange-recovery.json",
+        "docs/evidence/v2-system-start.json",
+        "docs/evidence/v2-macos-activation.json",
+        "docs/evidence/v2-service-cleanup.json",
+        "docs/evidence/v2-system-exchange.json",
+        "docs/evidence/v2-macos-system-inspection.json",
+        "docs/evidence/v2-darwin-admin.json",
+        "docs/evidence/v2-darwin-exchange.json",
+        "docs/evidence/v2-schema-release.json",
+        "docs/evidence/v2-service-handover.json"
       ]
     },
     {
       "id": "R6",
       "title": "业务接入与交付",
       "status": "开发中",
-      "notes": "最小新API/开发工作台及容器/CI配方已落地；现有完整业务、正式安装更新和默认入口切换未完成。",
+      "notes": "D6媒体已接通B站来源→字幕/ASR/抽帧→时间锚点转写对象与只读模型工具→工作台分区，取消/恢复/删除传播闭环。下一MCP stdio/HTTP/OAuth、完整插件市场、D7及真实验收仍待。",
       "evidence": [
-        "docs/evidence/v2-offline.json"
+        "docs/evidence/v2-offline.json",
+        "docs/evidence/v2-people.json",
+        "docs/evidence/v2-context.json",
+        "docs/evidence/v2-configuration.json",
+        "docs/evidence/v2-documents.json",
+        "docs/evidence/v2-delivery.json",
+        "docs/evidence/v2-maintenance.json",
+        "docs/evidence/v2-memory-organization.json",
+        "docs/evidence/v2-extensions.json",
+        "docs/evidence/v2-action-review.json",
+        "docs/evidence/v2-terminals.json",
+        "docs/evidence/v2-desktop.json",
+        "docs/evidence/v2-uia.json",
+        "docs/evidence/v2-actions.json",
+        "docs/evidence/v2-native.json",
+        "docs/evidence/v2-macos-control.json",
+        "docs/evidence/v2-linux-session.json",
+        "docs/evidence/v2-linux-capture.json",
+        "docs/evidence/v2-linux-portal.json",
+        "docs/evidence/v2-linux-portal-frames.json",
+        "docs/evidence/v2-terminal-review.json",
+        "docs/evidence/v2-qq.json",
+        "docs/evidence/v2-bilibili.json",
+        "docs/evidence/v2-android.json",
+        "docs/evidence/v2-android-model.json",
+        "docs/evidence/v2-android-unicode.json",
+        "docs/evidence/v2-model-stream.json",
+        "docs/evidence/v2-images.json",
+        "docs/evidence/v2-vectors.json",
+        "docs/evidence/v2-routing.json",
+        "docs/evidence/v2-memory-semantics.json",
+        "docs/evidence/v2-skills.json",
+        "docs/evidence/v2-media.json"
       ]
     },
     {
       "id": "R7",
       "title": "稳定性验收",
       "status": "待开始",
-      "notes": "Windows专项已执行；三平台全量与真实设备、负载、每平台72小时尚未执行。",
+      "notes": "完整验收未开始；本批78项不同专项最新通过，16例UI及16份默认类型通过；旧精确整理UI时序待复核，非全量/实机。",
       "evidence": [
-        "docs/evidence/v2-offline.json"
+        "docs/evidence/v2-offline.json",
+        "docs/evidence/v2-objects.json",
+        "docs/evidence/v2-people.json",
+        "docs/evidence/v2-context.json",
+        "docs/evidence/v2-configuration.json",
+        "docs/evidence/v2-documents.json",
+        "docs/evidence/v2-delivery.json",
+        "docs/evidence/v2-operations.json",
+        "docs/evidence/v2-safety.json",
+        "docs/evidence/v2-authority.json",
+        "docs/evidence/v2-retention.json",
+        "docs/evidence/v2-pruning.json",
+        "docs/evidence/v2-references.json",
+        "docs/evidence/v2-history.json",
+        "docs/evidence/v2-maintenance.json",
+        "docs/evidence/v2-memory-organization.json",
+        "docs/evidence/v2-extensions.json",
+        "docs/evidence/v2-action-review.json",
+        "docs/evidence/v2-terminals.json",
+        "docs/evidence/v2-services.json",
+        "docs/evidence/v2-desktop.json",
+        "docs/evidence/v2-uia.json",
+        "docs/evidence/v2-actions.json",
+        "docs/evidence/v2-native.json",
+        "docs/evidence/v2-macos-control.json",
+        "docs/evidence/v2-linux-session.json",
+        "docs/evidence/v2-linux-capture.json",
+        "docs/evidence/v2-linux-portal.json",
+        "docs/evidence/v2-linux-portal-frames.json"
       ]
+    }
+  ],
+  "checkpoint_commit": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+  "current_validation": {
+    "status": "scoped_media_production_chain_latest_passed_mcp_pending",
+    "targeted_unique_passed": 133,
+    "includes_browser_cases": 75,
+    "current_full_passed": false,
+    "full_runs_this_checkpoint": 0,
+    "whole_plan_complete": false,
+    "evidence": "docs/evidence/v2-media.json",
+    "last_full_evidence": "docs/evidence/v2-history.json",
+    "current_packaging_passed": false,
+    "previous_packaging_evidence": "docs/evidence/v2-darwin-admin.json",
+    "open_validation_findings": [
+      {
+        "id": "UI.exact_organization_refresh_timing",
+        "status": "待复核",
+        "scope": "旧精确整理UI在本批一次刷新显示queued；同源码单节点独立复核通过，未判定已修复或稳定验收通过。",
+        "first_report": "temp/build/v2-memory-semantics-final.xml",
+        "recheck_report": "temp/build/v2-memory-semantics-repair.xml"
+      }
+    ],
+    "code_version": "b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21",
+    "fixed_source_files": 1165
+  },
+  "next_checkpoint": {
+    "id": "D6.mcp",
+    "status": "待开始",
+    "design": "docs/V2_REFACTOR.md",
+    "scope": "继续D6 MCP接入：stdio、Streamable HTTP、显式 OAuth、凭据引用、目录指纹、授权漂移撤销、超时/取消、unknown与工作台。完整插件市场、D7正式入口及三平台真实模型/设备/负载/72小时仍待。"
+  },
+  "milestones": [
+    {
+      "id": "R2.objects",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "4f1f8c9479a7cd466bc5c050638454a789ec8627dd25a8dbb959e4892fc22a9e",
+      "evidence": [
+        "docs/evidence/v2-objects.json"
+      ],
+      "remaining": "macOS/Linux runtime validation",
+      "followup_business_integration": "R6 native worker artifact ingestion and model attachments"
+    },
+    {
+      "id": "R2.people",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "1d868c738d69b4d50d65d0cd63bad25023307ca88684ddc217f2b85e848ee59a",
+      "evidence": [
+        "docs/evidence/v2-people.json"
+      ],
+      "remaining": "macOS/Linux runtime validation",
+      "followup_business_integration": "R6 channel identity verification and automatic person association; R2 summaries and derived deletion propagation"
+    },
+    {
+      "id": "R2.summaries",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "06fcdfba280194f4574b3ad748af802e28f9c92c29e21f4b05cb4e3596710bc9",
+      "evidence": [
+        "docs/evidence/v2-context.json"
+      ],
+      "remaining": "macOS/Linux runtime and real model/summary quality acceptance",
+      "followup_business_integration": "R2 configuration: model capacity/token policy; future vector/document/review derivations and R6 channel integration"
+    },
+    {
+      "id": "R2.configuration",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "179e7b394e2b11774d6ebf9b14cd4b697c9beb2a8b30b974b8f6aa98e7f8f7b3",
+      "evidence": [
+        "docs/evidence/v2-configuration.json"
+      ],
+      "remaining": "macOS/Linux runtime and real provider capacity/tokenizer acceptance",
+      "followup_business_integration": "R6 channel/MCP/OAuth connections and advanced model routing; R2 source documents and derived indexes"
+    },
+    {
+      "id": "R2.documents",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "9b0b49fa9873027a8f853f1494b462ff3f4fe75f30458a8ba024363670b29dba",
+      "evidence": [
+        "docs/evidence/v2-documents.json"
+      ],
+      "remaining": "macOS/Linux runtime and real source/embedding quality acceptance",
+      "followup_business_integration": "R6 bundled local vector adapter/ANN/skills and channels; R4 persistent cleanup/review workers"
+    },
+    {
+      "id": "R4.scheduling",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "2c2a795b26a5aa0df1393c06757727f858ea5a6f6de4cf4f004ec479ad54e6a4",
+      "evidence": [
+        "docs/evidence/v2-scheduling.json"
+      ],
+      "remaining": "macOS/Linux runtime, real model/device effects and workstation sleep/recovery acceptance",
+      "followup_business_integration": "R4.delivery and maintenance/review workers/shared shutdown budget; R6 channels and real local vectors; R5 native adapters"
+    },
+    {
+      "id": "R4.delivery",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "d17c8e6fe68cb31aaca35cb572199d3a299b79c63ab5a7cd48dbea8ac5c15905",
+      "evidence": [
+        "docs/evidence/v2-delivery.json"
+      ],
+      "remaining": "Real account transport, macOS/Linux runtime and three-platform/72h acceptance",
+      "followup_business_integration": "R6 actual transports/attachments/routing; R3 operations and R4 maintenance/full worker host"
+    },
+    {
+      "id": "R3.operations",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "487ea6aaa9deba61768d4fd6cfa0c694f3b76b3f7bd46e1ff0f722a1576796d6",
+      "evidence": [
+        "docs/evidence/v2-operations.json"
+      ],
+      "remaining": "macOS/Linux runtime, native gauges, real-platform/72h acceptance",
+      "followup_business_integration": "R4.safety, R3.retention/full audit and R4/R5/R6 remaining business/platform work"
+    },
+    {
+      "id": "R4.io_safety",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "79e35ee47183186e0dafab3fa992282b4c0a29e1c6e930bb6c50f1cb4a912f65",
+      "evidence": [
+        "docs/evidence/v2-safety.json"
+      ],
+      "remaining": "Native credential/OS accounts and macOS/Linux runtime; full host and credential-authority follow-up still open"
+    },
+    {
+      "id": "R4.credentials_authority",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "51a508f7b2bcc2b164c6c07eba4bf39106c2a35d3f922bd15e682631a7e03332",
+      "evidence": [
+        "docs/evidence/v2-authority.json"
+      ],
+      "remaining": "Native credential stores/accounts and Mac/Linux runtime not accepted; full R4 still incomplete"
+    },
+    {
+      "id": "R3.retention_preview",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "f2b598349f63ecd19324e39e8962a2f57f6b7e01218dce78876d57cc3513db1d",
+      "evidence": [
+        "docs/evidence/v2-retention.json"
+      ],
+      "remaining": "Read-only foundation only; actual pruning/restore/180d audit are not implemented; real platforms still pending"
+    },
+    {
+      "id": "R3.retention_apply",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "3d29bf4ece5aa91cb72ebcb525fe925dbbf2b64ee83b142ba7b6fc4bb4ea80ab",
+      "evidence": [
+        "docs/evidence/v2-pruning.json"
+      ],
+      "remaining": "Object-reference release and180d audit remain pending; real platforms and complete V2 not accepted"
+    },
+    {
+      "id": "R3.retention_references",
+      "status": "待真实验收",
+      "development": "完成",
+      "windows_offline_validation": "完成",
+      "code_version": "33a70e0d5b4f4854222bed761d1e14800d3e8ddd74d85ecf693253aa0fcc12fe",
+      "evidence": [
+        "docs/evidence/v2-references.json"
+      ],
+      "remaining": "180d summary/audit, cancelled-body source batches, native adapters and real platforms remain pending; whole V2 incomplete"
+    },
+    {
+      "id": "R3.retention_audit.cursors",
+      "status": "开发中",
+      "development": "完成",
+      "windows_offline_validation": "专项通过，当前源码全仓待复验",
+      "code_version": "c24a30d1871307140f2a70aa7dbb2a152978bfb061b97476a304764321faf16a",
+      "evidence": [
+        "docs/evidence/v2-history.json"
+      ],
+      "remaining": "Full recheck merged with next development batch;180d preview/apply and native/real platforms pending"
+    },
+    {
+      "id": "R3.retention_audit.preview",
+      "status": "开发中",
+      "development": "完成",
+      "windows_offline_validation": "138个不同专项通过，当前源码全仓待复验",
+      "code_version": "9fa9ddbdb8fc88303f7c1a8957909cfeb240786a812e47df47a1e469bad3c998",
+      "evidence": [
+        "docs/evidence/v2-audit-preview.json"
+      ],
+      "remaining": "Audit plan/apply/events, combined full recheck, native/real platforms; whole V2 incomplete"
+    },
+    {
+      "id": "R3.retention_audit.apply",
+      "status": "开发中",
+      "development": "完成",
+      "windows_offline_validation": "231个不同专项通过，当前源码全仓待复验",
+      "code_version": "e3060cc92a0f92f766f718eafec50a58094e8cc056f2ca6218c372986f582224",
+      "evidence": [
+        "docs/evidence/v2-audit-apply.json"
+      ],
+      "remaining": "Event detail retention, combined full recheck and real native/platform/business acceptance; whole V2 incomplete"
+    },
+    {
+      "id": "R3.retention_audit.events",
+      "status": "开发中",
+      "development": "完成",
+      "windows_offline_validation": "269个不同专项通过，当前源码全仓待复验",
+      "code_version": "5376218131a483ef8c35d574ba2e22b59daf0f8e286012b12f76bcff7595f780",
+      "evidence": [
+        "docs/evidence/v2-event-pruning.json"
+      ],
+      "remaining": "Combined full recheck, R4 maintenance and real native/platform/business/72h acceptance; whole V2 incomplete"
+    },
+    {
+      "id": "R4.maintenance.documents",
+      "status": "开发中",
+      "development": "完成",
+      "windows_offline_validation": "252个不同专项通过，当前源码全仓待复验",
+      "code_version": "f30cf2f71dba260c38c28d695514511bacb5e2ca209356a799d8570b5cf9c243",
+      "evidence": [
+        "docs/evidence/v2-maintenance.json"
+      ],
+      "remaining": "Memory organization/review, extension host, combined full and real native/business/platform72h acceptance; whole V2 incomplete"
+    },
+    {
+      "id": "R4.maintenance.memory_exact",
+      "status": "开发中",
+      "development": "完成",
+      "windows_offline_validation": "156个不同专项通过，当前源码全仓待阶段复验",
+      "code_version": "319959d032d6af3d32b82a81af5191ff6de56162ce7f4d46306d30a2a13ccd56",
+      "evidence": [
+        "docs/evidence/v2-memory-organization.json"
+      ],
+      "remaining": "Semantic memory organization, extension host, combined full/UI matrix and real native/business/platform72h acceptance; whole V2 incomplete"
+    },
+    {
+      "id": "R4.extensions.python",
+      "status": "开发中",
+      "development": "完成",
+      "windows_offline_validation": "151个不同专项通过，当前源码全仓待阶段复验",
+      "code_version": "c43f7c8a058849891005d144205209f02db84b3d41c699d21fb288fede2ba0f3",
+      "evidence": [
+        "docs/evidence/v2-extensions.json"
+      ],
+      "remaining": "Unified unknown-action review, callbacks/artifacts, combined full/UI and real native/business/platform72h acceptance; whole V2 incomplete"
+    },
+    {
+      "id": "R4.action_review",
+      "status": "开发中",
+      "development": "完成",
+      "windows_offline_validation": "277个不同专项通过，当前源码全仓待阶段复验",
+      "code_version": "5921a3c655cb5814ef26d29411b642fc8c304df52a1b7d96c3b1d5b64d82ca2c",
+      "evidence": [
+        "docs/evidence/v2-action-review.json"
+      ],
+      "remaining": "PTY/native and remaining business integration; combined full/UI and three-platform real72h acceptance; whole V2 incomplete"
+    },
+    {
+      "id": "R5.terminal",
+      "status": "开发中",
+      "development": "首批完成",
+      "windows_offline_validation": "53个不同专项通过，Windows仅隔离ConPTY样例，当前全仓与整体平台待阶段验收",
+      "code_version": "4a4f564b12a2a784aea65324442beb86d590763e2ba75401a2af4514a725627a",
+      "evidence": [
+        "docs/evidence/v2-terminals.json"
+      ],
+      "remaining": "Old terminal reconciliation, services, native desktop, Mac/Linux actual execution and combined full/UI/three-platform72h; whole V2 incomplete"
+    },
+    {
+      "id": "R5.services",
+      "status": "开发中",
+      "development": "首批完成",
+      "windows_offline_validation": "106个不同专项通过；固定源码集成53项，当前全量/打包/服务实装/三平台验收未完成",
+      "code_version": "c4342ab52a8be0f13e0d248b26b872a6baa59155d1ea53c9111ed8d959ed2606",
+      "evidence": [
+        "docs/evidence/v2-services.json"
+      ],
+      "remaining": "R5.desktop foundation: shared native capability/permission/target-identity protocol; Windows UIA, Swift AX/ScreenCaptureKit, Linux AT-SPI/X11/Portal implementations; Real five-target service installation/removal/startup/upgrade/rollback, matching installed wheel and three-platform runtime acceptance; Old-terminal unknown reconciliation, remaining business/vector/provider/extensions integration and default-entry parity; Combined fixed-source full/UI/load/three-platform72h and candidate/release acceptance"
+    },
+    {
+      "id": "R5.desktop.foundation",
+      "status": "开发中",
+      "development": "只读首批完成",
+      "windows_offline_validation": "98个不同专项通过，含Windows隔离窗口和3UI场景；全量/平台实机未完成",
+      "code_version": "f4a821f0fc878c936095b69a3d5d6304098eeba3be86a79268621762046ab166",
+      "evidence": [
+        "docs/evidence/v2-desktop.json"
+      ],
+      "remaining": "R5.desktop.windows_observation: bounded UIA semantic observation, fresh object identity and permission changes, no reuse of metadata snapshots as write authorization; Fixed signed Swift helper/AX/ScreenCaptureKit, Linux logind/peer ownership/AT-SPI/X11/Portal sessions and all real native acceptance; Actual five-target service installation/removal and startup/upgrade/rollback, old terminal reconciliation, business/vector/provider/extensions integration; Default-entry parity, fixed-source full/UI/load/three-platform72h and candidate/release acceptance"
+    },
+    {
+      "id": "R6.qq_text",
+      "status": "开发中",
+      "development": "QQ文本首批完成",
+      "offline_validation": "105个不同专项最新通过；17份默认类型、四视口双主题及本地假OneBot",
+      "evidence": [
+        "docs/evidence/v2-qq.json"
+      ],
+      "remaining": "持续D5业务迁移，接入B站读取、真实mention载荷、审批发布和发布后核验，随后安卓能力、授权、产物与设备身份；只走V2用例/配置/凭据/对象/动作账本，不导入V1 Runtime或旧库。QQ后续补附件/引用与真实账号验收，正向WS补收不作隐式承诺；D6模型扩展、D7入口及原生/三平台验收继续待推进。",
+      "code_version": "18cfa8d5b22fe336b73bc1af9d5046d0acc2cd5413b72c39fab95c53254ea816"
+    },
+    {
+      "id": "R6.bilibili_base",
+      "status": "开发中",
+      "development": "基础读取与评论/私信首批完成",
+      "offline_validation": "95项不同专项最新通过，含受管浏览器与四视口双主题；14份默认类型",
+      "evidence": [
+        "docs/evidence/v2-bilibili.json"
+      ],
+      "remaining": "接通完整安卓业务闭环：V2配置/明确设备授权、受管ADB或语义辅助进程、固定设备身份与并发资源、观察/截图对象、动作意图与审批、派发前核验、断开/取消/unknown及回收、工作台和隔离假设备验证。不复用V1 Runtime或旧库，不操作未批准真实设备。随后继续D6模型/媒体/向量/MCP/技能扩展、D7产品切换；QQ/B站真实账号与原生/三平台72小时分别待验收。",
+      "code_version": "349262b3c0fcae4588bd4f8b7617fd8d9908724103a612d9b4ab99a8d44210a0"
+    },
+    {
+      "id": "R6.android_owner",
+      "status": "开发中",
+      "development": "所有者操作链完成，完整安卓继续开发",
+      "offline_validation": "48项专项通过，15份默认类型",
+      "evidence": [
+        "docs/evidence/v2-android.json"
+      ],
+      "remaining": "继续同一D5安卓交付包：模型显式受限授权及运行/会话绑定、原安卓工具的滑动/按键/长按/应用查询启动/中文输入。保持统一审批、设备身份、来源和unknown核查；不以任意shell、安装或IME切换作隐式回退。随后D6模型/媒体/真实向量/MCP/技能、D7产品切换；真实账号、设备、原生与三平台72小时另记。",
+      "code_version": "b10d9a13a8c673281ef7d1fd796fad6ab8159d2ce684586239a11ad06e01945a"
+    },
+    {
+      "id": "R6.android_model_inputs",
+      "status": "开发中",
+      "development": "模型范围与扩展操作完成，Unicode及完整安卓继续开发",
+      "offline_validation": "72项专项通过，17份默认类型",
+      "evidence": [
+        "docs/evidence/v2-android-model.json"
+      ],
+      "remaining": "继续同一D5安卓包的受控Unicode输入辅助组件：可构建的Android应用/协议、明确安装授权、目标应用与编辑器身份、IME切换恢复、用户输入暂停、取消与unknown；不以任意广播/剪贴板作隐式回退。随后D6流式/多模态/真实向量/MCP/OAuth/技能媒体、D7产品切换；真实账号设备、原生与三平台72小时分别待验收。",
+      "code_version": "6a124db0d6b2acb44e1e9c908e679aa0a6e099cb8324612c538833306c669403"
+    },
+    {
+      "id": "R6.android_unicode",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "57项专项、24项JVM核心和APK编译/开发签名通过",
+      "evidence": [
+        "docs/evidence/v2-android-unicode.json"
+      ],
+      "remaining": "继续D6模型流式输出与多模态：运行持有的流、断线/取消、用量结算、实际上下文附件与图像预算；随后真实向量、MCP/OAuth、技能媒体、插件和市场，D7统一产品切换。D5选定代码范围已接通；QQ/B站账号、Android辅助应用实机、原生平台与三平台72小时分别待验收，不将模拟结果称为已支持。",
+      "code_version": "9f1867036d6c08e43d8ab7bfb23fedf49808bc4e13604d465d9ee32896965f47"
+    },
+    {
+      "id": "R6.model_streaming",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "82项专项及12份默认类型通过",
+      "evidence": [
+        "docs/evidence/v2-model-stream.json"
+      ],
+      "remaining": "继续D6图像附件与实际附图预算：统一上传/截图对象、message_parts及接收入队原子提交、模型图像能力/计量、实际上下文来源、累计预算与压缩引用分离、删除/撤权/取消与费用闭环。随后档位/真实向量、技能/视频/ASR、MCP/OAuth、插件/市场及D7产品切换；真实供应商、账号/设备、原生与三平台72小时仍待验收。",
+      "code_version": "20c393f8f0d5c98fdb2b4048a055a79a60151a3771e1eb6c600a476f5227587e"
+    },
+    {
+      "id": "R6.image_attachments",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "110项专项及17份默认类型通过",
+      "evidence": [
+        "docs/evidence/v2-images.json"
+      ],
+      "remaining": "继续D6真实本地向量：显式本地模型目录/指纹和维度、受管进程内离线加载/有界嵌入、索引版本与重建、删除/撤销/取消及全文降级，接入现有DocumentService而非再建检索真值。随后档位路由、技能/视频/ASR、MCP/OAuth、插件/市场及D7入口切换；真实供应商、账号设备、原生与三平台72小时仍待验收。",
+      "code_version": "2808b4cff0cc1928e3a9f8c2dfa2798931da0bdbe4e639a82a2c7b18cf4fdbc1"
+    },
+    {
+      "id": "R6.local_vector_documents",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "61专项、8份默认类型及无ONNX核心探针通过",
+      "evidence": [
+        "docs/evidence/v2-vectors.json"
+      ],
+      "remaining": "继续D6档位路由：模型角色/配置修订、每轮实际选择与费用/图像能力一致性、撤权/取消、界面解释和可复现成本验证。文档本地ONNX已接；预训练模型语义质量、记忆向量召回/语义整理、技能媒体、MCP/OAuth、插件市场仍待；D7正式入口及各平台真实模型/设备/负载/72小时未完成。",
+      "code_version": "a1e5aefbefd5d96aa19f54832e4538c82de5b1f0b4363c89dad2bdf1f90b5c20"
+    },
+    {
+      "id": "R6.model_routing",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "93项不同专项最新通过、14份默认类型/排版",
+      "evidence": [
+        "docs/evidence/v2-routing.json"
+      ],
+      "remaining": "继续D6记忆语义：复用本地向量端口接事实/人物/常驻记忆派生索引与混合召回，绑定修订、来源和作用域，删除/撤权/模型版本变化阻止旧结果返回；语义整理只生成可核验候选，保留人工决定与撤销，不自动改写事实。技能媒体、MCP/OAuth、插件市场、D7正式入口和三平台真实模型/设备/负载/72小时仍待。",
+      "code_version": "6aa5da91980a792f8a1c19d6b7d51d381fbf653c91879b33e8f71a309785f79d"
+    },
+    {
+      "id": "R6.memory_semantics",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "81项不同专项最新通过、18份默认类型/排版；旧UI单次时序失败另记待复核",
+      "evidence": [
+        "docs/evidence/v2-memory-semantics.json"
+      ],
+      "remaining": "继续D6技能接入：以对象/内容修订为技能真值，完成显式导入、启停/权限、模型可见范围和实际回合激活，防止文件漂移绕过版本与撤权；接工作台和相关专项。媒体/视频ASR、MCP stdio/HTTP/OAuth、完整插件市场、D7产品入口与三平台真实质量/设备/负载/72小时仍待。",
+      "code_version": "b80aaf23a72059bcdf6b1eed0ae929e5870fa0478d53bf7d16ef29dc929659cc"
+    },
+    {
+      "id": "R6.skills",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "78项不同专项最新通过、16份默认类型/排版；历史UI时序另记待复核",
+      "evidence": [
+        "docs/evidence/v2-skills.json"
+      ],
+      "remaining": "继续D6媒体/视频理解：核清旧音视频/ASR入口，以受控对象和明确来源为真值，接可选本地媒体处理及转写端口、时间锚点、模型实际输入、取消/超时/产物回收和工作台。MCP stdio/HTTP/OAuth、完整插件市场、D7正式入口及三平台真实质量/设备/负载/72小时仍待。",
+      "code_version": "9b5228dfac1e8d4e0fe649ee7a508042da3ccab3d9c653c12181b87de62814c3"
+    },
+    {
+      "id": "R6.media",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "媒体专项7项、浏览器2例（390/1024视口）、调用方31项（HTTP/B站/B站网关）、守卫20项（架构/目录/进程/冻结迁移）最新全过；工作台全量浏览器回归另附报告",
+      "evidence": [
+        "docs/evidence/v2-media.json"
+      ],
+      "remaining": "继续D6 MCP：stdio、Streamable HTTP、显式 OAuth、凭据引用、目录指纹、授权漂移撤销、超时/取消、unknown与工作台。完整插件市场、D7正式入口及三平台真实模型/设备/负载/72小时仍待。真实B站视频端到端、真实ASR模型质量与上传媒体来源接入处理管线另记待验收。",
+      "code_version": "b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21"
+    }
+  ],
+  "latest_source_recovery": {
+    "manifest": "temp/private/v2-media-source-20261110-b505d4b2a9a2/manifest.json",
+    "files": 1435,
+    "standalone_source": true,
+    "runtime_data_included": false,
+    "validation_status": "scoped_media_production_chain_latest_passed_mcp_pending"
+  },
+  "delivery_strategy": {
+    "date": "2026-11-06",
+    "priority": "native_platforms_first",
+    "windows": "current machine; isolated validation",
+    "macos": "implementation handoff to owner Mac mini Codex; no acceptance until actual run",
+    "linux": "runtime environment not yet provided",
+    "full_tests": "targeted during development; full at delivery close or commit",
+    "scope": "seven development deliveries plus full acceptance; no reduction of original V2 scope"
+  },
+  "delivery_packages": [
+    {
+      "id": "D1",
+      "title": "Windows原生闭环",
+      "development": "完成",
+      "offline_validation": "完成",
+      "platform_acceptance": "待真实验收",
+      "exit_criteria": "UIA观察、窗口截图、语义动作与显式前台接管连同审批、产物、撤销和回收在隔离目标闭环",
+      "progress": "Windows生产链路开发及所选离线验证完成；真实前台键鼠由所有者安排稍后，完整平台实测仍未完成。",
+      "components": {
+        "uia_observation": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "隔离Windows样例通过，完整实机待验收",
+          "evidence": "docs/evidence/v2-uia.json",
+          "identity_fix_evidence": "docs/evidence/v2-capture.json"
+        },
+        "capture": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "隔离Windows窗口截图通过，完整实机待验收",
+          "evidence": "docs/evidence/v2-capture.json"
+        },
+        "semantic_actions": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "隔离Windows测试窗口通过，完整实机待验收",
+          "evidence": "docs/evidence/v2-actions.json"
+        },
+        "foreground_takeover": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实验收；用户明确稍后",
+          "evidence": "docs/evidence/v2-native.json",
+          "native_test_method": "Injected input port with real fixed framing/UIA identity; no global input"
+        }
+      },
+      "code_version": "af23b32922f432ffbd0b6f3ca2994ca6123fc5c16aefa29217a0b0396fdf82a3"
+    },
+    {
+      "id": "D2",
+      "title": "macOS实现与交接包",
+      "development": "开发中",
+      "offline_validation": "开发中",
+      "platform_acceptance": "待真实验收；Mac mini交接后执行",
+      "exit_criteria": "固定Swift辅助应用、AX/ScreenCaptureKit/输入暂停、PTY和Keychain交付源码构建与验收包",
+      "progress": "Mac选定源码路径及交接工具已加入；前台CGEvent单对、监听与焦点/睡眠暂停、二次放行、独立Core端口与CI接线。Swift/C及9个Swift用例未编译执行，等待Mac mini反馈；PTY/Keychain实测仍未完成。",
+      "handoff": "docs/V2_MACOS_HANDOFF.md",
+      "components": {
+        "fixed_helper_host": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-native.json"
+        },
+        "ax_capture_semantic_sources": {
+          "development": "开发中",
+          "offline_validation": "待开始；Swift编译需Mac",
+          "platform_acceptance": "待真实验收"
+        },
+        "foreground_input": {
+          "development": "开发中",
+          "source_implementation": "present",
+          "offline_validation": "Python共用授权与传输专项通过；9个Swift用例未执行",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-macos-control.json"
+        },
+        "pty_keychain": {
+          "development": "开发中",
+          "source_implementation": "Existing native adapters and explicit isolated acceptance paths",
+          "offline_validation": "Keychain工作器使用注入存储/管道验证，非系统实测",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-macos-control.json"
+        },
+        "native_credential_process": {
+          "development": "完成",
+          "offline_validation": "Windows隔离假存储、管道和错误permit进程；非系统存储验收",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-native-credentials.json",
+          "code_version": "d41c487790e988a50ef31c1448615e8bbfcbe73254fa7bbb62ea3a7b981cdf87"
+        }
+      },
+      "code_version": "60b70b446807c2e26c50899d33322b41e7994a50e82488a1dec851f69a5182ea"
+    },
+    {
+      "id": "D3",
+      "title": "Linux原生实现",
+      "development": "开发中",
+      "offline_validation": "开发中",
+      "platform_acceptance": "待真实验收；尚未提供实机",
+      "exit_criteria": "logind/总线身份、AT-SPI/X11/Portal、PTY和凭据闭环；无桌面部署保持可用",
+      "progress": "AT-SPI/X11读取、Portal窗口单帧/对象/工作台及X11输入守卫支持的AT-SPI语义动作已接源码与所选注入链路；真实Linux未运行。继续显式前台、Wayland RemoteDesktop目标/暂停证明及PTY/凭据。",
+      "handoff": "docs/V2_LINUX_HANDOFF.md",
+      "components": {
+        "session_bus_atspi_read": {
+          "development": "完成",
+          "offline_validation": "完成；Windows注入专项",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-linux-session.json"
+        },
+        "x11_capture": {
+          "development": "完成",
+          "offline_validation": "完成；Windows注入与隔离DB/浏览器",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-linux-capture.json"
+        },
+        "portal_and_control": {
+          "development": "开发中",
+          "offline_validation": "只读窗口共享链路专项；非控制或Linux原生验收",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-linux-portal-frames.json",
+          "implemented": "Window selection/session revocation, correlated FD lifetime, serial-bound bounded GStreamer frame, objects/references and manual workbench",
+          "remaining": "X11显式前台、Wayland RemoteDesktop独立控制授权、目标/输入暂停证明和实际Linux/GStreamer验收"
+        },
+        "x11_semantic_actions": {
+          "development": "完成",
+          "offline_validation": "所选Windows注入协议、运行审批及工作台；非Linux原生验证",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-linux-control.json",
+          "limitations": "仅已证明Xorg会话/AT-SPI目标与XI2输入守卫；未提供Linux全局输入或Wayland控制。"
+        },
+        "native_credential_process": {
+          "development": "完成",
+          "offline_validation": "Windows隔离假存储、管道和错误permit进程；非系统存储验收",
+          "platform_acceptance": "待真实验收",
+          "evidence": "docs/evidence/v2-native-credentials.json",
+          "code_version": "d41c487790e988a50ef31c1448615e8bbfcbe73254fa7bbb62ea3a7b981cdf87"
+        }
+      },
+      "code_version": "19218645a20f467abe29b275f65616d805b7238650a7e69ee44efa7f39043d77"
+    },
+    {
+      "id": "D4",
+      "title": "平台运维闭环",
+      "development": "开发中",
+      "offline_validation": "开发中",
+      "platform_acceptance": "待真实验收",
+      "exit_criteria": "终端未知核查、服务安装卸载、不可变更新、验证备份与失败恢复",
+      "progress": "分阶段管理员版本及跨schema服务链已接源码，计划4/协议4按角色固定两包；等待/回收与未知恢复有显式状态。124个不同专项最新通过，19份默认类型/Ruff/CLI通过。共享协议4范围已接线；原生实测、真实崩溃和常驻仍待完成，不标记整个D4或V2交付。后续开发转D5业务。",
+      "components": {
+        "terminal_reviews": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待三平台运行验证；本批不执行原生动作",
+          "evidence": "docs/evidence/v2-terminal-review.json",
+          "code_version": "8c05095f0d5b3008d27178555b5f0c23f064e5c8729d80628f791ddd39ea06e4",
+          "validation_scope": "43个不同专项，含3个浏览器用例；非全量或三平台实机"
+        },
+        "user_service_registration": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Windows/Linux隔离账号实际安装与卸载；macOS和系统级目标未实现",
+          "evidence": "docs/evidence/v2-service-operations.json",
+          "scope": "仅Windows/Linux用户注册，不启动、停止或删除实例数据；不是完整D4交付",
+          "code_version": "d8b68ed48f83b2264787854a22b90ad090fb52d2d1abafad83b18acfff560811"
+        },
+        "macos_user_services": {
+          "development": "开发中",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Mac编译、默认ACL证明、实际字典/GUI域对应及真实注册卸载；当前不能声明可用",
+          "evidence": "docs/evidence/v2-macos-services.json",
+          "scope": "Python宿主/计划/只读验收脚本的注入协议与调用方；Swift/C源码加入但未编译",
+          "code_version": "d606117e5847254b783cd4467a7618b49d56577192c1d67ec6d1dd16758308af",
+          "remaining": "默认ACL缺省证明采用statx/filesec源码并增加8项签名前真实路径测试，待Mac编译执行；正向只读ACL仍拒绝。实际SM字段/GUI归属/登录及安装恢复仍待验收；只读协议升级2需重建",
+          "current_inspection_protocol": "omni-macos-service-query-2",
+          "current_inspection_evidence": "docs/evidence/v2-macos-system-inspection.json"
+        },
+        "linux_system_service_admin": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Linux实机root归属/对端认证、pidfd/subreaper、文件保护、systemd注册卸载及崩溃恢复；不能据源码声明已支持",
+          "scope": "原注册证据仅涵盖固定linux-system注册/移除；当前新增独立start计划见linux_system_start组件，均不自动提权或停止服务，不等于D4交付",
+          "evidence": "docs/evidence/v2-service-admin.json",
+          "code_version": "6e7afac6a12d25ed7b323eb46ba090dcf02a77f719b17b924f0f7e65e5274878",
+          "current_protocol": 4,
+          "current_protocol_evidence": "docs/evidence/v2-service-handover.json",
+          "current_bundle_files": 29
+        },
+        "immutable_release_offline": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实不可变安装、账号与服务链，Mac/Linux实机；无自动原生交换/启停/跨schema支持结论",
+          "scope": "同schema且新旧采用相同启动闸门；一致快照、对象、双锁、恢复隔离、源连续性、单目录选择和匹配原快照的新目录恢复",
+          "evidence": "docs/evidence/v2-releases.json",
+          "code_version": "5538e0b56b6e749d652865993d1187864ceb97eaf82808ec92698effc7315395"
+        },
+        "service_lifecycle": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实用户任务/服务、规范argv、不可变安装和三平台实测；Linux系统start源码已接线，macOS系统授权及Mac原生编译待完成",
+          "scope": "用户启动源码、已证明身份实例的正常排空、单次启动领取、unknown不重放、同boot就绪及实际关闭归属；不含完整交换/跨schema",
+          "evidence": "docs/evidence/v2-service-control.json",
+          "code_version": "cd6690cbb8103e8999bf0384d386da0d987194eee94088fe4ea4e7344679651e"
+        },
+        "user_service_exchange": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Windows/Linux/macOS真实不可变安装、管理器和故障恢复；Mac编译/ACL/实际字段/登录仍未验收，非三平台已支持",
+          "scope": "历史证据对应当时Windows/Linux用户范围；当前Mac用户激活见macos_exchange_activation，Linux系统父会话另见linux_system_service_exchange",
+          "remaining": "用户/系统激活及隔离前代清理已接线；macOS系统管理员、跨管理员协议、跨schema及三平台真实验收待推进",
+          "evidence": "docs/evidence/v2-service-exchange.json",
+          "code_version": "16e89a69827cdf17895fae26154578a55bdf05ad244b991472c9a5b655c5860b"
+        },
+        "exchange_recovery_and_online_prepare": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Windows/Linux真实不可变安装、管理器、服务排空/恢复；Mac/系统目标未开放，非三平台支持结论",
+          "scope": "同schema用户服务，严格隔离计划/历史绑定、旧未知回执不改写、最新失败数据一致快照、新目录及独立名称救援、一次排空到备份、真实关闭归属",
+          "limits": "隔离不停止运行应用；旧注册继续待核查，不自动回滚/删除/重发；普通原快照回滚必须通过源数据连续性",
+          "evidence": "docs/evidence/v2-exchange-recovery.json",
+          "code_version": "0b4865e6e9446bebc86e79156d5dd46dfbcc6b527ca5f6ccd3f7a54765bee10a",
+          "cleanup_evidence": "docs/evidence/v2-service-cleanup.json"
+        },
+        "linux_system_start": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Linux隔离账号、真实root/socket/UnitPath/pidfd/subreaper及systemd启动/故障验收；注入不等于已支持",
+          "scope": "仅显式linux-system ControlPlan start：一次root派发、只提交、主进程核验预留boot与MainPID、未知只读核查、实际关闭归属",
+          "limits": "无自动提权、root stop/restart/force、系统服务交换或macOS系统后端；不改默认入口/数据库",
+          "evidence": "docs/evidence/v2-system-start.json",
+          "code_version": "8f6e62f3bb6fbc5b149672382251a165f1295e168df63902cf6a4a7b15279046",
+          "shared_runtime_readiness_evidence": "docs/evidence/v2-macos-activation.json",
+          "current_transport_evidence": "docs/evidence/v2-system-exchange.json",
+          "current_bundle_files": 28,
+          "current_protocol_evidence": "docs/evidence/v2-darwin-admin.json"
+        },
+        "macos_exchange_activation": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Mac mini编译Swift/ACL/SM加载字段、真实登录/launchd/不可变环境与恢复；Windows注入不是Mac支持证据",
+          "scope": "Mac用户交换预约3/激活1、源/未预留目标封锁、精确boot一次领取、共享运行/PID判定、旧预约完整恢复、Mac只读证据2及实际查询关闭",
+          "limits": "只接同schema用户目标；无macOS系统授权、系统交换、跨schema或实际服务操作，业务迁移和默认入口切换未完成",
+          "evidence": "docs/evidence/v2-macos-activation.json",
+          "code_version": "6128a8d73721b3db45b48a8134db44964cad33596baab2d8b57368861f906556"
+        },
+        "predecessor_registration_cleanup": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Windows/Linux/macOS独立账号、真实不可变安装、原生管理器移除/迟到效果与故障验收；本批未操作真实服务",
+          "scope": "仅isolated用户交换；完整历史/见证/所选定义，独立审核及日志，同原生键双home预约、既有注册状态复用、未知不重发、原数据保留",
+          "limits": "保留历史用户范围证据；本批追加Linux系统显式nested uninstall授权。不清除原unknown/闸门，不承诺永久缺失；macOS系统后端/跨schema仍未实现，不等于D4/V2完成",
+          "evidence": "docs/evidence/v2-service-cleanup.json",
+          "code_version": "a169cf7b21822156094451f9f07e1afee28adaa178d4986de1a6ece40edb29fb",
+          "system_route_evidence": "docs/evidence/v2-system-exchange.json"
+        },
+        "linux_system_service_exchange": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Linux独立账号、受保护root安装/Unix身份、systemd、pidfd/subreaper、真实启动/拒绝/恢复；本批无真实服务操作",
+          "scope": "同schema、管理员源码双端一致；完整交换SHA/root父会话、精确三子操作、只读目录选择、实际settle/close归属、系统激活绑定、独立隔离清理授权",
+          "limits": "无自动提权/root stop/restart/force；不支持管理员代码或协议本身变化的升级、macOS系统后端或跨schema；原数据/unknown保留，默认V1",
+          "evidence": "docs/evidence/v2-system-exchange.json",
+          "code_version": "dd8ec722522427da71073795cb3c0f334c243e8b845b0173a5f49798e9ce6228",
+          "current_bundle_files": 29,
+          "current_protocol_evidence": "docs/evidence/v2-service-handover.json",
+          "shared_probe_evidence": "docs/evidence/v2-darwin-exchange.json",
+          "current_protocol": 4
+        },
+        "macos_system_services": {
+          "development": "开发中",
+          "offline_validation": "开发中",
+          "platform_acceptance": "待Mac编译/8项原生路径门禁、实际SM/ACL/账号/kqueue/launchd与系统交换验收",
+          "scope": "普通所有者只读协议2；独立root单操作和同schema整体交换/激活/独立清理已接源码",
+          "remaining": "跨管理员版本/协议和跨schema；Mac原生ABI/ACL/kqueue/launchd/Swift及真实交换验收",
+          "evidence": "docs/evidence/v2-macos-system-inspection.json",
+          "code_version": "c246d5d67edc86aadfee286cbc54364ec4b60e46e49000aa6c149f179dd46169",
+          "administrator_evidence": "docs/evidence/v2-darwin-admin.json",
+          "exchange_evidence": "docs/evidence/v2-darwin-exchange.json"
+        },
+        "macos_system_service_admin": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Mac本地账号/内核peer/ACL/文件、ctypes原生ABI/kqueue无fork合同、实际launchd及取消回收验证",
+          "scope": "仅单个精确macos-system注册/卸载/start；协议3、审计3、28文件包。Darwin固定命令no-fork；fork或关闭不确定保留归属",
+          "limits": "不含系统交换、通用后代树清理、自动提权、root stop/restart/force；启动只提交，真实未验收",
+          "evidence": "docs/evidence/v2-darwin-admin.json",
+          "code_version": "da498e633ec6c27271c31e5b1d57d66c1bc919ccad6a9657192ac8872cb6e582",
+          "current_bundle_files": 29,
+          "current_protocol_evidence": "docs/evidence/v2-service-handover.json",
+          "current_protocol": 4
+        },
+        "macos_system_service_exchange": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Mac独立账号、不可变安装、root文件/peer/原生ABI/kqueue/launchd及实际boot/恢复；Windows注入不等于支持",
+          "scope": "仅同schema且管理员源码双端一致；父会话、三子操作/审计、源/目标启动预约、恢复只读两份批准定义、独立隔离清理",
+          "limits": "无自动提权/未知重发/root stop/restart/force；跨管理员代码和schema仍不开放；Darwin no-fork限制继续保留",
+          "evidence": "docs/evidence/v2-darwin-exchange.json",
+          "code_version": "6ec291d530646f804dc2f9344171cda29f9ab4a8682fc7c123822cebbf7fd80a",
+          "current_bundle_files": 29,
+          "current_protocol_evidence": "docs/evidence/v2-service-handover.json",
+          "current_protocol": 4
+        },
+        "cross_schema_data_preparation": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "Windows隔离真实SQLite V25→V26及旧快照恢复；Mac/Linux文件、服务、真实中断和72小时待验收",
+          "scope": "release计划3/路线1、完整迁移历史双端指纹、新home/双锁/闸门、一致备份/对象、事务迁移/审计/完成证明、费用及未知工作保留、原安装旧快照恢复且拒绝新数据覆盖",
+          "limits": "V25起前向范围；无旧V1数据迁入，无downgrade/覆盖恢复/自动重试；跨管理员及完整跨schema服务交换未开放",
+          "evidence": "docs/evidence/v2-schema-release.json",
+          "code_version": "0e474a9c6c5661b9b52931ffb8faecfd6a603076b8768035af9b373b0e3391ff",
+          "service_integration_evidence": "docs/evidence/v2-service-handover.json"
+        },
+        "staged_administrator_handover": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待Linux/Mac独立账号/真实root及服务、锁和peer；跨schema用户链仅Windows隔离SQLite/原生和ready注入",
+          "scope": "交换4/分角色批准1、协议/包/审计4及29文件包；角色独立指纹与本方源码、两关闭阶段、目标等待无派发、取消/迟到回执、缺失旧证明拒绝补造、用户及分阶段系统跨schema",
+          "limits": "仅共享协议4；无协议3兼容/任意协议桥接/闸门变更/root stop或force/自动提权；缺失旧cleanup或close须人工核查，平台未支持结论",
+          "evidence": "docs/evidence/v2-service-handover.json",
+          "code_version": "8c1267070849dbc061bbd5ab8e860c15c999d683dd9e0a34705768abb67b3563"
+        }
+      }
+    },
+    {
+      "id": "D5",
+      "title": "业务通道迁移",
+      "development": "完成",
+      "offline_validation": "完成",
+      "platform_acceptance": "待真实验收",
+      "exit_criteria": "QQ、B站、安卓均通过V2应用用例完成收发/操作与核验",
+      "progress": "选定QQ文本、B站基础读取/发布、安卓观察/截图/所有者与模型范围及Unicode恢复已接通；真实账号、Android及平台验收待完成。附件、视频、扩展等既定剩余项归D6。",
+      "components": {
+        "qq_text": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待指定QQ测试账号、OneBot服务、明确单条外发及故障验收；本批仅假服务",
+          "scope": "QQ好友文本/正常群@；人物绑定、独立会话/人设、去重与回合、共享审批/投递/unknown、入站及发送冷却、监督重连与凭据代次、工作台",
+          "limits": "无附件、引用回复、临时/匿名会话、历史补收及远程工具；不代表D5完整完成",
+          "evidence": "docs/evidence/v2-qq.json",
+          "code_version": "18cfa8d5b22fe336b73bc1af9d5046d0acc2cd5413b72c39fab95c53254ea816"
+        },
+        "bilibili": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待指定测试账号、当前站点页面/回执格式、明确单次发布与macOS/Linux实测；本批仅假服务和隔离页面",
+          "scope": "基础账号/视频/评论/回复读取；不可变规则/浏览器模式、V2消息来源、真实mention UID、共享审批/投递、网络单次放行、成功回执与对应记录核验、受管回收及工作台",
+          "limits": "仅首批基础范围；无短链/用户搜索/字幕/ASR/抽帧或真实账号结论，不等于B站全部功能及D5完成",
+          "evidence": "docs/evidence/v2-bilibili.json",
+          "code_version": "349262b3c0fcae4588bd4f8b7617fd8d9908724103a612d9b4ab99a8d44210a0"
+        },
+        "android": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实验收",
+          "owner_chain_development": "完成",
+          "owner_chain_offline_validation": "完成",
+          "selected_scope": "D5选定安卓观察/截图、应用/手势/按键及配对Unicode输入与持久IME恢复",
+          "evidence": "docs/evidence/v2-android-unicode.json",
+          "remaining": "继续D6模型流式输出与多模态：运行持有的流、断线/取消、用量结算、实际上下文附件与图像预算；随后真实向量、MCP/OAuth、技能媒体、插件和市场，D7统一产品切换。D5选定代码范围已接通；QQ/B站账号、Android辅助应用实机、原生平台与三平台72小时分别待验收，不将模拟结果称为已支持。",
+          "code_version": "9f1867036d6c08e43d8ab7bfb23fedf49808bc4e13604d465d9ee32896965f47",
+          "model_scope_and_extended_inputs_development": "完成",
+          "model_scope_and_extended_inputs_offline_validation": "完成",
+          "unicode_development": "完成",
+          "unicode_offline_validation": "完成"
+        }
+      }
+    },
+    {
+      "id": "D6",
+      "title": "模型与扩展补齐",
+      "development": "开发中",
+      "offline_validation": "开发中",
+      "platform_acceptance": "待真实验收",
+      "exit_criteria": "流式/附件/档位、真实向量、技能/整理、视频ASR、MCP/OAuth、插件回调产物及市场端到端接入",
+      "progress": "流式/图片、ONNX文档、档位、记忆语义、文本技能和媒体已接选定生产链；下一MCP。完整插件市场与真实质量仍待，完整D6未完成。",
+      "components": {
+        "model_streaming": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实供应商与对应平台验收；本批仅Windows/本地假服务",
+          "scope": "有界异步传输、供应商结束/原始用量、完整工具审批、凭据代次、取消/残留、无正文副本预览及持久状态校准",
+          "evidence": "docs/evidence/v2-model-stream.json",
+          "limits": "不代表全部供应商协议、图像/音视频、路由、D6或完整V2完成",
+          "code_version": "20c393f8f0d5c98fdb2b4048a055a79a60151a3771e1eb6c600a476f5227587e"
+        },
+        "image_attachments": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实供应商和对应平台验收；本批仅Windows/本地假服务",
+          "scope": "所选低清图片上传/截图复用、原子消息、不可变策略、实际SDK载荷与计量、上下文/累计预算和删除/取消闭环",
+          "evidence": "docs/evidence/v2-images.json",
+          "limits": "仅支持已知低清计量型号，非所有视觉协议/多模态、真实理解质量或完整D6完成",
+          "code_version": "2808b4cff0cc1928e3a9f8c2dfa2798931da0bdbe4e639a82a2c7b18cf4fdbc1"
+        },
+        "local_vector_documents": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实预训练模型、Mac/Linux运行与语义/负载验收；CI仅模板，未执行",
+          "scope": "显式模型包和离线ONNX CPU子进程接文档索引/混合检索，前缀/分窗/模型版本、删除和关闭故障闭环",
+          "evidence": "docs/evidence/v2-vectors.json",
+          "limits": "真实SDK以合成图验收；非记忆向量/语义整理、预训练语义质量或完整D6完成",
+          "code_version": "a1e5aefbefd5d96aa19f54832e4538c82de5b1f0b4363c89dad2bdf1f90b5c20"
+        },
+        "model_routing": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实模型成本/质量、平台运行和负载验收",
+          "scope": "三档规则、分档初始模型与预留、一次固定模型升档、逐次实际准备工具与原费用关联、HTTP与工作台",
+          "evidence": "docs/evidence/v2-routing.json",
+          "limits": "确定规则无模型分类；升档不换模型、不批准动作；规格字节差不等于真实成本质量收益；非完整D6",
+          "code_version": "6aa5da91980a792f8a1c19d6b7d51d381fbf653c91879b33e8f71a309785f79d"
+        },
+        "memory_semantics": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实预训练语义质量、Mac/Linux运行和负载验收",
+          "scope": "事实/档案/常驻记忆本地索引与模型混合召回、源删除/恢复失效、相关事实显式核查/撤销、HTTP与工作台",
+          "evidence": "docs/evidence/v2-memory-semantics.json",
+          "limits": "只保存related关系，不做生成式事实综合、自动合并、遗忘或召回抑制；向量候选512上限明确报告；非完整D6/真实质量验收；旧UI时序问题另记",
+          "code_version": "b80aaf23a72059bcdf6b1eed0ae929e5870fa0478d53bf7d16ef29dc929659cc"
+        },
+        "skills": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待实际模型和三平台运行、负载验收",
+          "scope": "文本包导入/导出、版本/参考文件/节段修补、审阅启停、回合目录/实际披露、审批/撤权/恢复和工作台；补共享关闭接续；模型可见的编辑CAS、参考清单与写入回执已闭环",
+          "evidence": "docs/evidence/v2-skills.json",
+          "limits": "不执行技能内代码，不自动导入旧文件或信任市场；非媒体/MCP或完整D6；旧精确整理UI时序另记待复核",
+          "code_version": "9b5228dfac1e8d4e0fe649ee7a508042da3ccab3d9c653c12181b87de62814c3"
+        },
+        "media": {
+          "development": "完成",
+          "offline_validation": "完成",
+          "platform_acceptance": "待真实B站视频端到端、真实ASR模型质量与平台编解码验收；本批仅隔离假网关与假处理器",
+          "scope": "B站来源登记绑定配置修订、在线字幕/受管子进程ASR转写/等距抽帧、数据库触发器状态机与准入上限、时间锚点转写对象与只读模型工具、取消/失败分类/重启恢复/删除传播、HTTP契约与工作台媒体分区",
+          "evidence": "docs/evidence/v2-media.json",
+          "limits": "上传媒体来源未接处理管线；帧拼图只是模型输入材料，理解质量取决于模型；不做任意下载地址或本机路径；非MCP或完整D6",
+          "code_version": "b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21"
+        }
+      }
+    },
+    {
+      "id": "D7",
+      "title": "产品切换与候选包",
+      "development": "待开始",
+      "offline_validation": "待开始",
+      "platform_acceptance": "待真实验收",
+      "exit_criteria": "功能清单闭环、严格类型、三平台包与容器后切换omni入口并可恢复归档V1",
+      "progress": "默认入口维持V1直到R6功能门槛"
+    },
+    {
+      "id": "D8",
+      "title": "完整验收",
+      "development": "待开始",
+      "offline_validation": "待开始",
+      "platform_acceptance": "待真实验收",
+      "exit_criteria": "固定构建全量、四视口双主题、故障/负载、真实功能和每平台72小时通过",
+      "progress": "开发、离线与真实验收分别记录，不把假端口当真实平台"
+    }
+  ],
+  "previous_validation": {
+    "status": "scoped_skills_latest_passed_media_pending",
+    "targeted_unique_passed": 76,
+    "includes_browser_cases": 16,
+    "current_full_passed": false,
+    "full_runs_this_checkpoint": 0,
+    "whole_plan_complete": false,
+    "evidence": "temp/private/v2-skills-source-20261110-58cccddafd86/source/docs/evidence/v2-skills.json",
+    "last_full_evidence": "docs/evidence/v2-history.json",
+    "current_packaging_passed": false,
+    "previous_packaging_evidence": "docs/evidence/v2-darwin-admin.json",
+    "open_validation_findings": [
+      {
+        "id": "UI.exact_organization_refresh_timing",
+        "status": "待复核",
+        "scope": "旧精确整理UI在本批一次刷新显示queued；同源码单节点独立复核通过，未判定已修复或稳定验收通过。",
+        "first_report": "temp/build/v2-memory-semantics-final.xml",
+        "recheck_report": "temp/build/v2-memory-semantics-repair.xml"
+      }
+    ],
+    "code_version": "192a588404e16df21e0e168364714a9d3e209803f2563dc50be1e3ef927a8d6a",
+    "fixed_source_files": 1138,
+    "source_recovery": "temp/private/v2-skills-source-20261110-58cccddafd86/manifest.json"
+  },
+  "open_validation_findings": [
+    {
+      "id": "UI.exact_organization_refresh_timing",
+      "status": "待复核",
+      "scope": "旧精确整理UI在本批一次刷新显示queued；同源码单节点独立复核通过，未判定已修复或稳定验收通过。",
+      "first_report": "temp/build/v2-memory-semantics-final.xml",
+      "recheck_report": "temp/build/v2-memory-semantics-repair.xml"
     }
   ]
 }

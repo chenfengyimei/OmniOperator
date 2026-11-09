@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.cross_schema_data_preparation",
+  "date": "2026-11-08T00:26:55.018450+08:00",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "data_preparation_development_complete": true,
+  "cross_schema_service_handover_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "0e474a9c6c5661b9b52931ffb8faecfd6a603076b8768035af9b373b0e3391ff",
+    "fixed_source_files": 1026,
+    "snapshot": "temp/build/v2-schema-release-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "release_plan": 3,
+    "schema_route": 1,
+    "minimum_forward_source": "v2_0025",
+    "administrator_protocol": 3,
+    "administrator_bundle_files": 29,
+    "actual_os_services_modified": false,
+    "default_entrypoint_changed": false,
+    "scope": [
+      "Pure bound linear migration route, source/target inventories and immutable past scripts",
+      "Shared actor/offline SQLAlchemy engine setup; target-only upgrade and per-Agent audit in one transaction",
+      "Verified snapshot, registered object preservation, unknown work/quota holds and revoked prior tokens",
+      "Persistent pre-write intent and separate completion report; partial work never retried or made startable",
+      "Original-installation/new-home old snapshot recovery only with unchanged failed data; no downgrade",
+      "Same-schema root exchange guards retained; separate administrator/version coordination pending"
+    ],
+    "pending": [
+      "继续D4分阶段跨管理员版本交接：精确绑定源/目标不可变管理员、各自批准/协议/包SHA，源移除与只读缺失、目标注册/启动分别拥有实际settle/close，再接完整跨schema服务协调。当前release计划3已支持V25起新目录前向迁移及无新增数据的旧快照恢复；现有单root父会话仍只接受同schema/双端源码一致。D3持续前台/Portal、D5业务、D6扩展、D7入口和三平台真实/72小时仍开放。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 48,
+    "all_latest_cases_passed": true,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-schema-release-development.xml",
+        "sha256": "8675d39aa07ed9291cecd1891b5ccd6b12c056658dbb1dcd3c3ca8d47d1ea7d1",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 57.305
+      },
+      {
+        "path": "temp/build/v2-schema-release-callers.xml",
+        "sha256": "be35c44296e6262ea916f6801570d05524d4752315e76420a99693e859bee9ae",
+        "tests": 39,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 38.108
+      },
+      {
+        "path": "temp/build/v2-schema-release-recovery.xml",
+        "sha256": "1a2fb0cd97712d540a9782fe313b3ce30ae485ad5fb39b17b8e9a95b724b4610",
+        "tests": 2,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 28.186
+      },
+      {
+        "path": "temp/build/v2-schema-release-recovery-corrected.xml",
+        "sha256": "6d1e2f3f9b3da6c0ca9ca46cf63a0ee104c2e4240ddab695ca0e46452d389174",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 29.748
+      }
+    ],
+    "report_method": "Chronological latest case identities: development7, callers39, recovery2 failed then exact2 corrected. Not a48-case/full run; failures retained.",
+    "resolved_development_failures": [
+      "Recovery fixture reused one-command application service; now uses a new explicitly owned command service",
+      "Recovery fixture now establishes SQLite read-only identity/WAL state before a continuity witness; all production byte comparisons retained",
+      "Eight initial JSON-union type errors fixed by validating the source deployment before using its runtime"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "gates": {
+      "path": "temp/build/v2-schema-release-gates.json",
+      "sha256": "f5cfd34b1b30fe36c58fefe94d0683d557f5c7af447d0adbdfd7cca947741cb5",
+      "passed": 3
+    },
+    "pyright": {
+      "mode": "host",
+      "checking": "default",
+      "summary": {
+        "filesAnalyzed": 17,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.654
+      },
+      "sources": [
+        "agent/src/omni/domain/releases.py",
+        "agent/src/omni/domain/schema_upgrade.py",
+        "agent/src/omni/domain/service_exchange.py",
+        "agent/src/omni/application/releases.py",
+        "agent/src/omni/application/ports.py",
+        "agent/src/omni/application/exchange_recovery.py",
+        "agent/src/omni/adapters/persistence/schema_upgrade.py",
+        "agent/src/omni/adapters/persistence/sqlalchemy_access.py",
+        "agent/src/omni/adapters/persistence/database.py",
+        "agent/src/omni/adapters/persistence/deployed_instance.py",
+        "agent/src/omni/adapters/persistence/releases.py",
+        "agent/src/omni/adapters/platform/service_operation_files.py",
+        "agent/src/omni/adapters/platform/service_admin_bundle.py",
+        "agent/src/omni/adapters/platform/release_files.py",
+        "agent/src/omni/adapters/platform/exchange_deployments.py",
+        "agent/src/omni/composition/releases.py",
+        "agent/src/omni/composition/service_exchange.py"
+      ]
+    },
+    "current_packaging_rerun": false,
+    "previous_packaging_evidence": "docs/evidence/v2-darwin-admin.json",
+    "previous_packaging_limit": "Previous wheels only prove that source; current29-file standard-library artifact/import proof covered by scoped root tests, no current wheel claim",
+    "limitations": [
+      "Real isolated Windows SQLite V25→V26, native services/managers not invoked",
+      "Migration/report exceptions injected, not actual process-kill/power/disk-full acceptance",
+      "No full/UI/current package/all-target strict types/three-platform or72-hour result",
+      "Cross-admin protocol and full cross-schema service handover remain unsupported; default V1"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-schema-release-source-20261108T002655+0800/manifest.json",
+    "source_files": 1264,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_SCHEMA_UPGRADE.md",
+    "scope": "继续D4分阶段跨管理员版本交接：精确绑定源/目标不可变管理员、各自批准/协议/包SHA，源移除与只读缺失、目标注册/启动分别拥有实际settle/close，再接完整跨schema服务协调。当前release计划3已支持V25起新目录前向迁移及无新增数据的旧快照恢复；现有单root父会话仍只接受同schema/双端源码一致。D3持续前台/Portal、D5业务、D6扩展、D7入口和三平台真实/72小时仍开放。"
+  }
+}

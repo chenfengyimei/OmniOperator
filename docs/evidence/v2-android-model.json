@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "batch": "D5.business_channels.android_model_inputs",
+  "date": "2026-11-08T23:53:53.246877+08:00",
+  "whole_v2_complete": false,
+  "business_channels_complete": false,
+  "android_full_functionality_complete": false,
+  "selected_model_scope_and_inputs_complete": true,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "6a124db0d6b2acb44e1e9c908e679aa0a6e099cb8324612c538833306c669403",
+    "fixed_source_files": 1066,
+    "snapshot": "temp/build/v2-android-model-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 106,
+    "migration_head": "v2_0030",
+    "assets_version": "20261108v40",
+    "ipc_protocol": 2,
+    "guide": "docs/V2_ANDROID_MODEL.md",
+    "default_entrypoint_changed": false,
+    "actual_device_or_paid_model_actions": false,
+    "v1_runtime_or_data_imported": false,
+    "scope": [
+      "Explicit approved model per-run, Agent, session-epoch, app and action allowlists; 60-900 second lifetime",
+      "Three normalized scope tables, immutable membership, unique approval source, fingerprints and atomic metadata audit",
+      "Source approval action must settle ok/applied; unknown source, expiry, config/identity/history/context/policy revocation deny access",
+      "App whitelist checked before UI dump; model package inventory filtered to scope; owner stable 200-item pages",
+      "Individual input approval, own exact target metadata, run-bound opaque nodes and shared approved_dispatch",
+      "Swipe child geometry proof; exact foreground launch proof; unverified long/key/tap preserve unknown and independent review",
+      "Existing bounded process/files/leases/cancellation ownership and owner-only node separation maintained",
+      "Workbench scoped drafts, device reference, live authority status and CAS revocation; typed operation parameters"
+    ],
+    "pending": [
+      "继续同一D5安卓包的受控Unicode输入辅助组件：可构建的Android应用/协议、明确安装授权、目标应用与编辑器身份、IME切换恢复、用户输入暂停、取消与unknown；不以任意广播/剪贴板作隐式回退。随后D6流式/多模态/真实向量/MCP/OAuth/技能媒体、D7产品切换；真实账号设备、原生与三平台72小时分别待验收。"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 72,
+    "all_latest_cases_passed": true,
+    "method": "One offline scoped suite for Android/model/migration/UI and directly affected architecture, desktop and QQ callers; not full repository",
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-android-model-final.xml",
+        "sha256": "2398bbd8266f7154038795f3d6db4902935e91ac439da6c67004a4df9ed1df7c",
+        "tests": 72,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 248.049
+      }
+    ],
+    "browser_ui_cases": 10,
+    "viewports": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "current_packaging_rerun": false,
+    "gates": {
+      "path": "temp/build/v2-android-model-gates.json",
+      "sha256": "6214cfef7bf7ac48cc5f4322d83f12c8946b8b4b46ad4f4efcd339f7da479308",
+      "passed": 4
+    },
+    "pyright": {
+      "mode": "host",
+      "checking": "default",
+      "summary": {
+        "filesAnalyzed": 17,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 7.878
+      },
+      "sources": [
+        "agent/src/omni/domain/android.py",
+        "agent/src/omni/domain/desktop.py",
+        "agent/src/omni/application/android.py",
+        "agent/src/omni/application/ports.py",
+        "agent/src/omni/adapters/android.py",
+        "agent/src/omni/adapters/workers/android.py",
+        "agent/src/omni/adapters/workers/android_adb.py",
+        "agent/src/omni/adapters/persistence/android_repository.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0029.py",
+        "agent/src/omni/adapters/persistence/schema.py",
+        "agent/src/omni/adapters/persistence/repository.py",
+        "agent/src/omni/adapters/persistence/object_repository.py",
+        "agent/src/omni/composition/instance.py",
+        "agent/src/omni/composition/http.py",
+        "agent/src/omni/adapters/http.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0030.py",
+        "agent/src/omni/application/engine.py"
+      ]
+    },
+    "limitations": [
+      "Actual managed Python/SQLite on Windows; all ADB devices and models are isolated fakes, browser device endpoints locally fulfilled",
+      "Historical table-count assertions updated; ten touched historical migration/test files were not all rerun; actual V28/V29 upgrades and declared-schema checks covered",
+      "No actual Android, QQ/Bilibili sends, paid model, macOS/Linux execution, full suite, current package, strict-all, load or72h acceptance",
+      "Unicode helper and complete Android/D5/V2 remain pending; generic key/long/tap cannot claim semantic success"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-android-model-source-20261108T235353+0800/manifest.json",
+    "source_files": 1314,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "id": "D5.android_unicode",
+    "status": "待开始",
+    "design": "docs/V2_ANDROID_MODEL.md",
+    "scope": "继续同一D5安卓包的受控Unicode输入辅助组件：可构建的Android应用/协议、明确安装授权、目标应用与编辑器身份、IME切换恢复、用户输入暂停、取消与unknown；不以任意广播/剪贴板作隐式回退。随后D6流式/多模态/真实向量/MCP/OAuth/技能媒体、D7产品切换；真实账号设备、原生与三平台72小时分别待验收。"
+  }
+}

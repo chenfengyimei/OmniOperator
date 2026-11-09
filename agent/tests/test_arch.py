@@ -72,6 +72,19 @@ def violations(source: str, rel: str) -> list[str]:
     from importlib.util import resolve_name
 
     tree = ast.parse(source)
+    # The trusted V2 plugin child intentionally loads captured user code after
+    # approval. Permit only the two loader calls, never the entire adapter/file.
+    plugin_loader_calls = set()
+    if rel == "adapters/extensions/worker.py":
+        expected = {
+            ast.dump(ast.parse("importlib.import_module(parent)", mode="eval").body),
+            ast.dump(ast.parse('exec(compile(payload, str(path), "exec"), module.__dict__)', mode="eval").body),
+        }
+        for function in tree.body:
+            if isinstance(function, ast.FunctionDef) and function.name == "_load_entry":
+                plugin_loader_calls.update(
+                    id(node) for node in ast.walk(function) if isinstance(node, ast.Call) and ast.dump(node) in expected
+                )
     parts = Path(rel).with_suffix("").parts
     layer = parts[0]
     package = ".".join(("omni", *parts[:-1]))
@@ -129,11 +142,11 @@ def violations(source: str, rel: str) -> list[str]:
             imports.add(name(node))
         if isinstance(node, ast.Call):
             function = name(node.func)
-            if function in {"eval", "exec", "builtins.eval", "builtins.exec"}:
+            if function in {"eval", "exec", "builtins.eval", "builtins.exec"} and id(node) not in plugin_loader_calls:
                 issues.append("禁止动态执行绕过架构检查")
             if function in {"importlib.import_module", "__import__", "builtins.__import__"}:
                 target = name(node)
-                if not target:
+                if not target and id(node) not in plugin_loader_calls:
                     issues.append("动态导入必须使用可静态解析的模块常量")
                 else:
                     imports.add(target)
@@ -200,6 +213,16 @@ def test_guard_accepts_overload_declarations_but_rejects_duplicate_implementatio
     assert any(
         "重复定义" in item for item in violations(declarations + "def f(x): return x\n", "tools/android/protocol.py")
     )
+
+
+def test_plugin_loading_exception_is_limited_to_captured_entry_in_the_child():
+    loader = 'import importlib\ndef _load_entry(root, package):\n    importlib.import_module(parent)\n    exec(compile(payload, str(path), "exec"), module.__dict__)\n'
+    assert not violations(loader, "adapters/extensions/worker.py")
+    assert violations(loader, "application/extensions.py")
+    assert violations(loader.replace("_load_entry", "serve"), "adapters/extensions/worker.py")
+    assert violations(loader.replace("compile(payload", "compile(other"), "adapters/extensions/worker.py")
+    assert violations(loader + "\nexec(other)\n", "adapters/extensions/worker.py")
+    assert violations(loader.replace("import_module(parent)", "import_module(other)"), "adapters/extensions/worker.py")
 
 
 def test_source_architecture():

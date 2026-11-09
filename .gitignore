@@ -49,3 +49,7 @@ agent/.tmp/
 
 /temp/build/
 /web/node_modules/
+
+# Native helper compiler caches; source and lock files remain tracked.
+/agent/src/omni/adapters/workers/macos/**/.build/
+/agent/src/omni/adapters/workers/macos/**/.swiftpm/

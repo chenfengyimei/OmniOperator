@@ -6,8 +6,8 @@
 // - **只要槽位里有字符串就按"已选"渲染**：认不出的型号显示原文，而不是退化成
 //   "还没选"。以前认不出的型号会掉回槽位说明文案，看起来像没选，于是用户再点一次
 //   供应商卡——而那次点击会把已存的型号重置成内置列表第一个，配置就这么被"选"没了。
-import { $, esc } from './dom.js?v=20261102u2';
-import { api } from './api.js?v=20261102u2';
+import { $, esc } from './dom.js?v=20261103u5';
+import { api } from './api.js?v=20261103u5';
 
 const MODEL_SLOTS = [
   { kind: 'chat', title: '日常对话', desc: '平时跟它说话用这个，便宜量大', vision: false },

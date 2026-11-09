@@ -1,4 +1,4 @@
-import { $ } from '/ui/app/dom.js?v=20261102u2';
+import { $ } from '/ui/app/dom.js?v=20261103u5';
 const UI = window.OmniUI;
 const labels = {
   workspace: '工作目录',

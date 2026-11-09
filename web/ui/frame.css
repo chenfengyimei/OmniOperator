@@ -660,7 +660,7 @@ body[data-ui-page]:not([data-ui-page="workbench"]) {
   width: 24px;
   height: 17px;
   flex-shrink: 0;
-  background: url("/ui/brand-mark.svg?v=20261102u2") center/contain no-repeat;
+  background: url("/ui/brand-mark.svg?v=20261103u5") center/contain no-repeat;
 }
 .rail-btn {
   position: relative;

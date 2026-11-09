@@ -1,0 +1,172 @@
+{
+  "schema": 1,
+  "batch": "D4.platform_operations.immutable_release_offline",
+  "date": "2026-11-07",
+  "whole_v2_complete": false,
+  "platform_operations_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "5538e0b56b6e749d652865993d1187864ceb97eaf82808ec92698effc7315395",
+    "fixed_source_files": 978,
+    "snapshot": "temp/build/v2-releases-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 96,
+    "migration_head": "v2_0026",
+    "assets_version": "20261107v36",
+    "desktop_ipc_version": "omni-desktop-ipc-6",
+    "operation_plan_format": "omni-service-operation-2",
+    "release_plan_format": "omni-release-plan-1",
+    "startup_fence_format": "omni-release-fence-1",
+    "offline_same_schema_prepare_select_recovery_implemented": true,
+    "native_service_swap_implemented": false,
+    "automatic_start_stop_implemented": false,
+    "cross_schema_release_implemented": false,
+    "actual_root_executed": false,
+    "native_services_modified": false,
+    "scope": [
+      "Pure typed release plan binds source/target deployments, distinct immutable environments, homes, snapshot/journal and shared startup gate contract",
+      "Artifact verification factored from current-install eligibility; explicit foreign interpreter file/link/config hashing never imports or executes its environment",
+      "Normal instance locks reject staged/retired homes; exact release ID/SHA can enter coordinated maintenance; malformed/missing/foreign proof never opens a fenced directory",
+      "Preparation owns source and target descriptors, fences target before restoring, uses consistent SQLite/object snapshot and current restore quarantine, then verifies target deployment",
+      "Source main/WAL/journal continuity, target database/objects and restore-report proofs rechecked before and after manager wait; no checkpoint or discarding foreign SQLite state",
+      "Native absence uses registration inspect port, not an incomplete ordinary query; Linux system can explicitly pin original uninstall operation/root endpoint/bundle for inspect/close only",
+      "Selection requires separate prior native removal; persist intent then retire source, commit, open target; interrupted filesystem steps only finish with renewed proof and both locks",
+      "Cancellation/manager cleanup failure retains actual task and locks; no implicit native change, elevation, startup or readiness success",
+      "Recovery plans require original installation capture and original snapshot SHA; first snapshot failed version, then restore into another fresh home without overriding either version",
+      "Independent bounded hash-linked maintenance audit and CLI plan/prepare/select/inspect/abandon/recovery-plan; no chat bodies, credential copying or V1 imports"
+    ],
+    "pending": [
+      "Coordinated reviewed native service registration swap, graceful drain/start/stop and current HMAC runtime readiness; current select returns ready=false",
+      "Cross-schema upgrade/recovery coordinator and startup gate protocol evolution; baseline requires same schema and identical gate/lock code in both captures",
+      "Actual immutable installations and all native service/platform acceptance; Linux root IO/kernel and Mac compilation/ACL/ServiceManagement remain unverified",
+      "D3 sustained X11 identity/foreground and independent Wayland control; business/model/extension migration, default switch and platform72h"
+    ]
+  },
+  "validation": {
+    "targeted_unique_passed": 67,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-releases-callers.xml",
+        "sha256": "e4c1f57cb65c81a71f136d8de2e6375e9b901f4a8d001179b05eaf638be04aa3",
+        "tests": 46,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 36.747
+      },
+      {
+        "path": "temp/build/v2-releases-current.xml",
+        "sha256": "60b3e9c430df7d97afbe1c88491160ee5a59e4cfe9d78c3b95565b81e852eef8",
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 51.14
+      },
+      {
+        "path": "temp/build/v2-releases-contracts.xml",
+        "sha256": "bba44d3755a7516c4885c761cc79c099702f3c8cd7ecc7b864e1e4db71158e08",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 1.98
+      }
+    ],
+    "strategy": "Current19 release end-to-end/fault cases,46 affected file/operation/restore/architecture callers and4 architecture/readiness cases deduplicate67. Earlier development failure corrected by explicit missing-fence error; no full suite.",
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "browser_runs_this_checkpoint": 0,
+    "pyright": [
+      {
+        "path": "temp/build/v2-releases-types-host.json",
+        "sha256": "1194d26c436b2166ec9bafcae203581e7bdcd738a07cb3a26a11f1d76fed3a32",
+        "filesAnalyzed": 10,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.412
+      },
+      {
+        "path": "temp/build/v2-releases-types-linux.json",
+        "sha256": "5aacb6e49b1a493983689f833d7851d48ced135d9eb561f30856fab680c1a03c",
+        "filesAnalyzed": 10,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.279
+      },
+      {
+        "path": "temp/build/v2-releases-types-darwin.json",
+        "sha256": "629f174a057e70d2fbe3ea2f759bc6a6a1a12f34f446f502a291817b1ecb78f9",
+        "filesAnalyzed": 10,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.232
+      }
+    ],
+    "type_limit": "Ten affected Python files in default host/Linux/Darwin modes; not strict whole repository or native SDK/kernel validation",
+    "gates": {
+      "path": "temp/build/v2-releases-gates.json",
+      "sha256": "0e9f0e873bfb057d826c4185dc9ee25fabcdf68fcae36a17f62b03b7b176a43f",
+      "passed": 8
+    },
+    "packaging": {
+      "path": "temp/build/v2-releases-packaging/evidence.json",
+      "assets": 103,
+      "sha256": "50bd9067cda0cf3b7dc8e016fc569c405b708648c8a4abfdb476a98e0bc77d7c",
+      "chains": [
+        "direct wheel",
+        "sdist to wheel",
+        "isolated import"
+      ],
+      "v2": [
+        "packaged assets",
+        "isolated fresh schema",
+        "no V1 imports",
+        "clean shutdown"
+      ],
+      "v2_kernel_sha256": "6fcff956b87c42fce30da2930289afc997bf46eb0d912824016b5e72c264687f"
+    },
+    "packaging_current_source_verified": true,
+    "packaged_source_proofs": [
+      {
+        "path": "temp/build/v2-releases-packaging/direct/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "8d934680973cf390f78de9ae1a0b797563bc6430c641a37050fd20502c060cb6"
+      },
+      {
+        "path": "temp/build/v2-releases-packaging/sdist/omnioperator-0.1.0-py3-none-any.whl",
+        "sha256": "8d934680973cf390f78de9ae1a0b797563bc6430c641a37050fd20502c060cb6"
+      }
+    ],
+    "limitations": [
+      "Real isolated Windows SQLite, file publication, instance exclusion and restore; both version installations/interpreters are synthetic fixtures and never executed",
+      "User/native/root manager queries injected; no service registered/stopped/started, no root/socket/kernel/device/model/account action",
+      "Original foreign environment static source/interpreter proof does not prove its full dependencies; recovery requires original running capture",
+      "Same-schema/shared-fence baseline only; older installations without gate are rejected rather than promised compatible",
+      "Selected directory is not installed service or live ready; all real platform/full/load/UI matrix/72h remain pending"
+    ],
+    "development_corrections": [
+      "Plans and metadata now use explicit TypedDict contracts instead of leaving JSON unions to unchecked nested indexing; no type ignores added",
+      "Missing startup marker returns explicit release_fence_changed rather than an accidental filesystem traceback",
+      "Ordinary status query lacks sufficient file/absence proof; selection wired to shared registration inspection and explicit root read-only route",
+      "Recheck data after manager wait and require persisted source fence after committed selection before any idempotent finish"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-releases-source-20261107T052252+0800/manifest.json",
+    "source_files": 1197,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "development": "D4.platform_operations",
+    "design": "docs/V2_RELEASES.md",
+    "scope": "D4继续受审阅的原生服务交换与启停、本次运行HMAC就绪验证及跨schema协调升级；已完成首批相同schema/共同闸门的离线准备、选择和新目录恢复，不再重复搭建这些基础。Linux root、Mac编译/ACL/原生字段及D3持续身份/前台/Wayland控制仍待实机/实现。"
+  }
+}

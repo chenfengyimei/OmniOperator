@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "batch": "D1.windows.capture",
+  "date": "2026-11-06",
+  "status": "capture_chain_implemented_targeted_verified_D1_still_in_progress",
+  "whole_v2_complete": false,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "192f2043346086cf007e18bb8b24120ebf5ab288521e7f88b308bab36eea8381",
+    "fixed_source_files": 846,
+    "snapshot": "temp/build/v2-capture-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 94,
+    "migration_head": "v2_0022",
+    "assets_version": "20261106v31",
+    "scope": [
+      "Fixed target PrintWindow capture with repeated native identity/geometry checks; private staging, bounded I/O, fingerprint and PNG verification",
+      "Scoped session/object FK references, atomic publication audit and content-epoch guards; explicit release, GC and verified backup/restore",
+      "Owner API and workbench capture/history/preview/release, late response isolation, no hidden polling or implicit model attachment",
+      "Owned cleanup and bounded orphan staging inventory; capability/doctor degradation, unrelated private files preserved",
+      "Shared UIA/capture identity fixed with exact FILETIME integer rounding and IEEE754 IPC; no identity tolerance"
+    ],
+    "real_user_windows_read": false,
+    "real_accounts_or_paid_models_used": false,
+    "native_services_modified": false
+  },
+  "validation": {
+    "targeted_unique_passed": 180,
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-capture-first.xml",
+        "sha256": "aa82412aa447c88b081526d7a6ffb848f8a3fbbf282353c67a3722b8500fa132",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 17.722
+      },
+      {
+        "path": "temp/build/v2-capture-chain.xml",
+        "sha256": "df279510730fea0cc30969d1488853c8b3b89001419fec6245e7df66742689fd",
+        "tests": 88,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 79.67
+      },
+      {
+        "path": "temp/build/v2-capture-callers.xml",
+        "sha256": "6e2b4decb6030d52324bfa71de380ef6ebf98019138a7b5a30175fe363929484",
+        "tests": 60,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 75.952
+      },
+      {
+        "path": "temp/build/v2-capture-final-targets.xml",
+        "sha256": "f50381ba6387dd196e51a424f180bb080534775abe86921356217b79b5f2889d",
+        "tests": 36,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 23.768
+      },
+      {
+        "path": "temp/build/v2-capture-identity-recheck.xml",
+        "sha256": "1df737236f2fbe288bfaf70bdf3303eefbf36e6fca3e1c235636283e66b431bc",
+        "tests": 55,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 25.063
+      },
+      {
+        "path": "temp/build/v2-capture-catalog.xml",
+        "sha256": "557e6469c684bf788a78ba6048667d739ad3024bbaefcd74df2eb8f657db1754",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 28.439
+      }
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "packaging_runs_this_checkpoint": 0,
+    "packaging_current_source_verified": false,
+    "last_packaging_evidence": "docs/evidence/v2-uia.json",
+    "pyright": {
+      "path": "temp/build/v2-capture-pyright-verified.json",
+      "filesAnalyzed": 8,
+      "errorCount": 0,
+      "warningCount": 0,
+      "informationCount": 0,
+      "timeInSec": 4.379,
+      "all_production_strict": false
+    },
+    "static_reports": [
+      {
+        "path": "temp/build/v2-capture-static.json",
+        "sha256": "3ea32856a170e308ef2f7669f8a304202391b9929b7d9a669a5d28f096345865"
+      },
+      {
+        "path": "temp/build/v2-capture-static-final.json",
+        "sha256": "bc7aa0ff5a10c9e211784668d6eca60e052db5fc31f10da146dd598d38692b61"
+      }
+    ],
+    "windows_native": "Owned off-screen nonactivating fixture: UIA/password/text limits, PNG and changed process proof. No real user windows enumerated or manipulated.",
+    "identity_numeric_samples": 10004,
+    "old_conversion_diagnostic": {
+      "samples": 10000,
+      "mismatches": 2614,
+      "path": "temp/build/capture-diagnostic/rounding-result.txt"
+    },
+    "macos_runtime": false,
+    "linux_runtime": false,
+    "full_ui_matrix": false,
+    "browser": {
+      "capture_cases": 2,
+      "capture_viewports": [
+        390,
+        1440
+      ],
+      "capture_themes": [
+        "dark",
+        "light"
+      ],
+      "desktop_callers_viewports": [
+        390,
+        760,
+        1024,
+        1440
+      ],
+      "isolated_contexts_and_databases": true
+    },
+    "failures_retained": [
+      "Constraint test now asserts application data_constraint code; database checks unchanged",
+      "Workbench parsed successful 204 deletion as JSON; shared API corrected and both capture UI cases passed",
+      "Native identity failure reproduced in Framework decimal conversion/JSON parsing; exact integer rounding/bit serialization fixed it, numeric corpus and native cases passed",
+      "Two V2 asset formatting deviations corrected; final frontend formatting passed; index regenerated after identity changes"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-capture-source-20261106T033754+0800/manifest.json",
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "pending": [
+    "D1 semantic actions, explicit foreground takeover, independent approvals/leases, post-action verification and unknown recovery",
+    "D2 Swift/macOS implementation and Mac mini handoff; D3 Linux native and real environment",
+    "D4 operations, D5 business migration, D6 model/extensions, D7 default-entry/packaging, D8 full/real/72h acceptance"
+  ]
+}

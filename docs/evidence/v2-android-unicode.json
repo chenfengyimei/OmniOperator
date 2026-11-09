@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "batch": "D5.business_channels.android_unicode",
+  "date": "2026-11-09T01:02:06.377382+08:00",
+  "whole_v2_complete": false,
+  "business_channels_complete": false,
+  "d5_selected_development_connected": true,
+  "android_full_functionality_complete": false,
+  "unicode_selected_development_complete": true,
+  "release_candidate": false,
+  "default_entrypoints": "V1 until R6 parity gate",
+  "source": {
+    "code_version": "9f1867036d6c08e43d8ab7bfb23fedf49808bc4e13604d465d9ee32896965f47",
+    "fixed_source_files": 1084,
+    "snapshot": "temp/build/v2-android-unicode-validation-snapshot.json",
+    "git_head": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+    "dirty_checkout": true
+  },
+  "development": {
+    "schema_tables": 108,
+    "migration_head": "v2_0031",
+    "assets_version": "20261109v41",
+    "guide": "docs/V2_ANDROID_UNICODE.md",
+    "default_entrypoint_changed": false,
+    "actual_device_or_paid_model_actions": false,
+    "v1_runtime_or_data_imported": false,
+    "scope": [
+      "Packaged Android InputMethodService with device-local expiring consent and KeyStore-protected pairing key",
+      "Pinned APK/certificate, shell UID localabstract peer, bounded authenticated IPC, target UID/user/resource/connection/selection proof",
+      "One-use Unicode append permit and exact postcondition; no broadcast, clipboard, implicit enable/install or enter fallback",
+      "Shared owner/model action approvals and credential-generation checks; original text stored only in existing action ledger",
+      "Immutable profile revisions and durable pre-selection restoration obligations, scoped foreign keys/triggers and 108-table migration",
+      "Unknown selection/input never replayed; reclaimed worker then read-only environment; independent approved restoration",
+      "Cancellation/revocation cleanup ownership, restart persistence, no overwrite of user-selected third IME, durable receipt before success",
+      "Scoped workbench profile drafts and recovery page; captured navigation target prevents stale handler dispatching another panel"
+    ],
+    "pending": [
+      "继续D6模型流式输出与多模态：运行持有的流、断线/取消、用量结算、实际上下文附件与图像预算；随后真实向量、MCP/OAuth、技能媒体、插件和市场，D7统一产品切换。D5选定代码范围已接通；QQ/B站账号、Android辅助应用实机、原生平台与三平台72小时分别待验收，不将模拟结果称为已支持。"
+    ]
+  },
+  "android_build": {
+    "path": "temp/build/v2-android-unicode-development-apk/omni-input-helper.apk",
+    "record": "temp/build/v2-android-unicode-development-apk/build.json",
+    "apk_sha256": "6637ee1c6812bfb09c963578cb6e7976659481427c875b406f6d70170f90f573",
+    "certificate_sha256": "4acc5bee5552567e2f9bcac19559d8b9684c996db72d741566a85bc7e2f67d7b",
+    "api": 35,
+    "min_sdk": 30,
+    "signing": "local_development_only",
+    "installed": false,
+    "device_tested": false,
+    "release_signing": false
+  },
+  "validation": {
+    "targeted_unique_passed": 57,
+    "all_latest_cases_passed": true,
+    "method": "One final offline scoped suite; native pure-Java core separate; no full suite",
+    "targeted_reports": [
+      {
+        "path": "temp/build/v2-android-unicode-final.xml",
+        "sha256": "7528cad4c0bd7d38da106f42d28fb775a6554bb765889f74d238095f3631d42f",
+        "tests": 57,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "duration_s": 220.175
+      }
+    ],
+    "browser_ui_cases": 18,
+    "viewports": [
+      390,
+      760,
+      1024,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "full_runs_this_checkpoint": 0,
+    "current_full_passed": false,
+    "current_packaging_rerun": false,
+    "gates": {
+      "path": "temp/build/v2-android-unicode-gates.json",
+      "sha256": "8f69f1cad53f426b5ea6a3490e484d9afab12d315f23196f7b19f42b480e282e",
+      "passed": 5
+    },
+    "pyright": {
+      "mode": "host",
+      "checking": "default",
+      "summary": {
+        "filesAnalyzed": 23,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 7.836
+      },
+      "sources": [
+        "agent/src/omni/adapters/android.py",
+        "agent/src/omni/adapters/android_unicode.py",
+        "agent/src/omni/adapters/build_identity.py",
+        "agent/src/omni/adapters/http.py",
+        "agent/src/omni/adapters/persistence/android_repository.py",
+        "agent/src/omni/adapters/persistence/android_unicode_repository.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0029.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0030.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0031.py",
+        "agent/src/omni/adapters/persistence/object_repository.py",
+        "agent/src/omni/adapters/persistence/repository.py",
+        "agent/src/omni/adapters/persistence/schema.py",
+        "agent/src/omni/adapters/workers/android.py",
+        "agent/src/omni/adapters/workers/android_adb.py",
+        "agent/src/omni/adapters/workers/android_unicode.py",
+        "agent/src/omni/application/android.py",
+        "agent/src/omni/application/engine.py",
+        "agent/src/omni/application/ports.py",
+        "agent/src/omni/composition/http.py",
+        "agent/src/omni/composition/instance.py",
+        "agent/src/omni/domain/android.py",
+        "agent/src/omni/domain/android_unicode.py",
+        "agent/src/omni/domain/desktop.py"
+      ]
+    },
+    "java_core": {
+      "checks": 24,
+      "failed": 0,
+      "native_android_tested": false
+    },
+    "limitations": [
+      "Managed Python and SQLite on Windows with fake ADB/IME/model; browser endpoints isolated; Java core uses a JVM, not Android runtime",
+      "Historical table-count assertions updated in ten files; only stated Android/frozen-schema/migration callers rerun, not all historical suites",
+      "No real Android installation/input, social sends, paid model, macOS/Linux runtime, full suite, current main package, strict-all, load or 72h acceptance",
+      "Android API35 compile and development signing verified; local development key/password excluded from recovery and Git",
+      "Observed current-editor intervention only; no global Android input monitoring; unsupported/password/custom editors refused"
+    ]
+  },
+  "source_recovery": {
+    "manifest": "temp/private/v2-android-unicode-source-20261109T010206+0800/manifest.json",
+    "source_files": 1334,
+    "runtime_data_included": false,
+    "credentials_included": false
+  },
+  "next": {
+    "id": "D6.model_streaming_multimodal",
+    "status": "待开始",
+    "design": "docs/V2_REFACTOR.md",
+    "scope": "继续D6模型流式输出与多模态：运行持有的流、断线/取消、用量结算、实际上下文附件与图像预算；随后真实向量、MCP/OAuth、技能媒体、插件和市场，D7统一产品切换。D5选定代码范围已接通；QQ/B站账号、Android辅助应用实机、原生平台与三平台72小时分别待验收，不将模拟结果称为已支持。"
+  }
+}

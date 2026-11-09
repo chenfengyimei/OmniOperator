@@ -4,32 +4,49 @@ from __future__ import annotations
 
 import asyncio
 import contextvars
-import sqlite3
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import TypeVar
 
 from alembic import command
-from alembic.config import Config
-from sqlalchemy import create_engine, event, inspect
+from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError, OperationalError
-from sqlalchemy.pool import NullPool
 
-from ...application.ports import Clock, Ids, UnitOfWork
+from ...application.ports import Clock, Ids, MetricsPort, UnitOfWork
 from ...domain.contracts import BusinessError
+from .migration_config import configuration
+from .migration_config import head as migration_head
 from .repository import Repositories
+from .sqlalchemy_access import database_engine
+from .sqlite_access import sqlite_connection
 
 T = TypeVar("T")
 
 
 class Database:
-    def __init__(self, path: Path, clock: Clock, ids: Ids, *, max_writes: int = 256, max_reads: int = 64) -> None:
+    def __init__(
+        self,
+        path: Path,
+        clock: Clock,
+        ids: Ids,
+        *,
+        max_writes: int = 256,
+        max_reads: int = 64,
+        objects_root: Path | None = None,
+        boot_id: str | None = None,
+        metrics: MetricsPort | None = None,
+    ) -> None:
         self.path, self.clock, self.ids = path, clock, ids
+        self._measurements = metrics
+        self.boot_id = boot_id or ids.new()
         self.max_writes, self.max_reads = max_writes, max_reads
         self._writes = self._reads = 0
         self._closed = False
         self._last_error = ""
+        cfg = configuration()
+        head = migration_head(cfg)
+        old_revision = None
         self._pending: set[asyncio.Future] = set()
         self._writer = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-db-write")
         self._readers = ThreadPoolExecutor(max_workers=4, thread_name_prefix="omni-db-read")
@@ -37,37 +54,30 @@ class Database:
         if path.is_symlink() or path.is_junction():
             raise BusinessError("unsafe_database", "Database cannot be a link")
         if path.exists():
-            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True) as probe:
+            with sqlite_connection(path) as probe:
                 tables = {row[0] for row in probe.execute("SELECT name FROM sqlite_master WHERE type='table'")}
                 if tables and not {"instances", "alembic_version"}.issubset(tables):
                     raise BusinessError(
                         "foreign_database", "Existing database is not a V2 instance; choose an empty home"
                     )
-        self._engine = create_engine(
-            "sqlite+pysqlite:///" + str(path), poolclass=NullPool, connect_args={"check_same_thread": False}
-        )
+                if "alembic_version" in tables:
+                    old_revision = probe.execute("SELECT version_num FROM alembic_version").fetchone()[0]
+        if old_revision and old_revision != head:
+            from .maintenance import migration_snapshot
 
-        @event.listens_for(self._engine, "connect")
-        def setup(connection, _record):
-            connection.isolation_level = None
-            connection.execute("PRAGMA foreign_keys=ON")
-            connection.execute("PRAGMA busy_timeout=5000")
-            connection.execute("PRAGMA journal_mode=WAL")
-            connection.execute("PRAGMA synchronous=FULL")
-
-        @event.listens_for(self._engine, "begin")
-        def begin(connection):
-            connection.exec_driver_sql("BEGIN IMMEDIATE" if connection.info.get("omni_write") else "BEGIN")
+            migration_snapshot(path, objects_root)
+        self._engine = database_engine(path)
 
         try:
             with self._engine.connect() as connection:
                 connection.info["omni_write"] = True
-                cfg = Config()
-                cfg.set_main_option("script_location", str(Path(__file__).with_name("migrations")))
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "head")
                 if connection.in_transaction():
                     connection.commit()
+                self.schema_version = str(
+                    connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
+                )
         except BaseException:
             self._engine.dispose()
             self._writer.shutdown(wait=False)
@@ -93,7 +103,10 @@ class Database:
         else:
             self._reads += 1
 
+        queued_at = self.clock.monotonic()
+
         def perform() -> T:
+            outcome = "ok"
             try:
                 with self._engine.connect() as connection:
                     connection.info["omni_write"] = write
@@ -101,15 +114,27 @@ class Database:
                         connection.exec_driver_sql("PRAGMA query_only=ON")
                         connection.commit()
                     with connection.begin():
-                        result = operation(Repositories(connection, self.clock, self.ids))
+                        result = operation(Repositories(connection, self.clock, self.ids, self.boot_id))
                     if write:
                         self._last_error = ""
                     return result
             except IntegrityError as exc:
+                outcome = "error"
                 raise BusinessError("data_constraint", "Operation violates a data constraint") from exc
             except OperationalError as exc:
+                outcome = "error"
                 self._last_error = "database_unavailable"
                 raise BusinessError("database_unavailable", "Database operation failed", status=503) from exc
+            except BaseException:
+                outcome = "error"
+                raise
+            finally:
+                if self._measurements:
+                    self._measurements.observe(
+                        "database_write" if write else "database_read",
+                        outcome,
+                        max(0, self.clock.monotonic() - queued_at),
+                    )
 
         future = asyncio.get_running_loop().run_in_executor(
             self._writer if write else self._readers, contextvars.copy_context().run, perform
