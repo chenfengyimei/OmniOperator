@@ -359,7 +359,14 @@ class ExtensionRepositories(RepositoryBase):
         )
         for tool in tools:
             self._record(
-                s.extension_tools, {"extension_id": slot["id"], "extension_revision_id": version_id, **tool}, agent_id
+                s.extension_tools,
+                {
+                    key: value
+                    for key, value in tool.items()
+                    if key in {"local_name", "name", "description", "parameters", "timeout_s", "writes", "spec_sha256"}
+                }
+                | {"extension_id": slot["id"], "extension_revision_id": version_id},
+                agent_id,
             )
         self._record(
             s.extension_install_requests,

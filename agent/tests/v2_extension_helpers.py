@@ -10,27 +10,40 @@ from omni.domain.contracts import Invocation, ModelReply
 PUBLIC_TOOL = "ext__fixture__echo"
 
 
-def plugin_source(folder, *, marker=None, call_marker=None, crash=False, version="1", identity="fixture"):
+def plugin_source(
+    folder,
+    *,
+    marker=None,
+    call_marker=None,
+    crash=False,
+    version="1",
+    identity="fixture",
+    artifact_type=None,
+    artifact_name="report.txt",
+    artifact_body=b"artifact-body",
+    artifact_mode="ok",
+):
     folder.mkdir(parents=True)
+    tool = {
+        "name": "echo",
+        "description": "Return the approved local value",
+        "parameters": {
+            "type": "object",
+            "properties": {"value": {"type": "string", "maxLength": 1024}},
+            "required": ["value"],
+            "additionalProperties": False,
+        },
+        "writes": True,
+        "timeout_s": 30,
+    }
+    if artifact_type is not None:
+        tool["artifacts"] = [artifact_type]
     manifest = {
         "format": "omni-python-extension-1",
         "id": identity,
         "version": version,
         "entry": "plugin.py",
-        "tools": [
-            {
-                "name": "echo",
-                "description": "Return the approved local value",
-                "parameters": {
-                    "type": "object",
-                    "properties": {"value": {"type": "string", "maxLength": 1024}},
-                    "required": ["value"],
-                    "additionalProperties": False,
-                },
-                "writes": True,
-                "timeout_s": 30,
-            }
-        ],
+        "tools": [tool],
     }
     (folder / "extension.json").write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
     body = "from pathlib import Path\nimport os\n"
@@ -41,7 +54,27 @@ def plugin_source(folder, *, marker=None, call_marker=None, crash=False, version
         body += f"    Path({str(call_marker)!r}).write_text(arguments['value'],encoding='utf-8')\n"
     if crash:
         body += "    os._exit(91)\n"
-    body += "    print('plugin-private-stderr-canary')\n    return {'status':'ok','text':'plugin result: '+arguments['value'],'effect':'applied','error_code':'','retryable':False,'artifacts':[],'verification':'fixture','data':{'echo':arguments['value']}}\n"
+    body += "    print('plugin-private-stderr-canary')\n"
+    if artifact_type is None:
+        body += "    return {'status':'ok','text':'plugin result: '+arguments['value'],'effect':'applied','error_code':'','retryable':False,'artifacts':[],'verification':'fixture','data':{'echo':arguments['value']}}\n"
+    else:
+        root = 'os.environ["OMNI_EXTENSION_ARTIFACTS"]'
+        if artifact_mode in {"escape", "missing"}:
+            target = (
+                f"os.path.join({root}, '..', {artifact_name!r})"
+                if artifact_mode == "escape"
+                else f"os.path.join({root}, 'absent-' + {artifact_name!r})"
+            )
+        else:
+            target = f"os.path.join({root}, {artifact_name!r})"
+        media = "text/plain" if artifact_mode == "undeclared" else artifact_type
+        payload = "b'X' * (9 * 1024 * 1024)" if artifact_mode == "oversize" else repr(artifact_body)
+        body += (
+            f"    Path({target}).write_bytes({payload})\n"
+            "    return {'status':'ok','text':'plugin result: '+arguments['value'],'effect':'applied',"
+            f"'error_code':'','retryable':False,'artifacts':[],'verification':'fixture',"
+            f"'data':{{'echo':arguments['value'],'artifacts':[{{'name':{artifact_name!r},'media_type':{media!r}}}]}}}}\n"
+        )
     (folder / "plugin.py").write_text(body, encoding="utf-8")
     return folder
 

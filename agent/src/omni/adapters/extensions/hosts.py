@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import shutil
 import sys
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
@@ -13,7 +14,7 @@ from ...application.ports import Record
 from ...domain.contracts import JSON, ActionResult, BusinessError, InvocationContext
 from ...domain.extensions import catalog
 from ..workers.client import WorkerClient
-from .worker import handshake
+from .worker import ARTIFACTS_ENV, handshake
 
 MAX_HOSTS = 4
 MAX_PENDING = 64
@@ -28,11 +29,18 @@ class Host:
 
 
 class ExtensionHosts:
-    def __init__(self) -> None:
+    def __init__(self, artifact_root: str = "") -> None:
         self._hosts: dict[tuple[str, str, int], Host] = {}
         self._calls: dict[asyncio.Task, tuple[str, str, int]] = {}
         self._lock = asyncio.Lock()
         self._closing = False
+        self._artifact_root = str(Path(artifact_root).resolve()) if artifact_root else ""
+
+    def artifact_path(self, agent_id: str, extension_id: str) -> str:
+        """The child's only writable artifact directory; absent roots make artifact results unknown."""
+        if not self._artifact_root:
+            return ""
+        return str(Path(self._artifact_root) / agent_id / extension_id)
 
     async def _acquire(self, revision: Record, location: str) -> Host:
         key = str(revision["agent_id"]), str(revision["extension_id"]), cast(int, revision["authority_epoch"])
@@ -75,7 +83,12 @@ class ExtensionHosts:
                 ],
                 startup=startup,
                 cwd=str(Path(location).parent),
-                forbid_artifacts=True,
+                forbid_artifacts=False,
+                extra_env=(
+                    {ARTIFACTS_ENV: self.artifact_path(str(revision["agent_id"]), str(revision["extension_id"]))}
+                    if self._artifact_root
+                    else None
+                ),
             )
             host = Host(key, client, True)
             self._hosts[key] = host
@@ -182,4 +195,6 @@ class ExtensionHosts:
         if pending:
             _, remaining = await asyncio.wait(pending, timeout=max(0, deadline - asyncio.get_running_loop().time()))
             complete = complete and not remaining
+        if complete and self._artifact_root:
+            shutil.rmtree(self._artifact_root, ignore_errors=True)
         return complete and not self._hosts

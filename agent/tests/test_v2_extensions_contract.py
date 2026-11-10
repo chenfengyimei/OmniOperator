@@ -109,8 +109,18 @@ def test_manifest_and_catalog_are_copied_and_have_deterministic_explicit_identit
     assert PROTOCOL == "omni-python-extension-ipc-1"
     assert [row["local_name"] for row in rows] == ["tool0", "tool1"]
     for row in rows:
-        assert set(row) == {"local_name", "name", "description", "parameters", "writes", "timeout_s", "spec_sha256"}
+        assert set(row) == {
+            "local_name",
+            "name",
+            "description",
+            "parameters",
+            "writes",
+            "timeout_s",
+            "artifacts",
+            "spec_sha256",
+        }
         assert row["writes"] is True and row["name"] == "ext__calculator__" + row["local_name"]
+        assert row["artifacts"] == []
         assert (
             row["spec_sha256"]
             == hashlib.sha256(encoded({key: item for key, item in row.items() if key != "spec_sha256"})).hexdigest()

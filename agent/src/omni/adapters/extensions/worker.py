@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import importlib
 import importlib.util
 import inspect
 import io
 import json
+import os
 import re
 import sys
 import uuid
 import zipfile
+from dataclasses import replace
 from pathlib import Path
 from types import ModuleType
 from typing import BinaryIO
@@ -19,11 +22,57 @@ from typing import BinaryIO
 from jsonschema import Draft202012Validator
 
 from ...domain.contracts import ActionResult, BusinessError, Effect, Outcome
-from ...domain.extensions import PROTOCOL, CapturedPackage, catalog
+from ...domain.extensions import (
+    MAX_ARTIFACT_BYTES,
+    MAX_ARTIFACT_TOTAL_BYTES,
+    MAX_ARTIFACTS,
+    PROTOCOL,
+    CapturedPackage,
+    artifact_types,
+    catalog,
+)
 from ..workers.protocol import MAX_FRAME, VERSION, action, decode, encode_response, request
 from .packages import relative_path, verify_snapshot
 
 HELLO_FIELDS = frozenset({"version", "id", "method", "protocol", "package_sha256", "catalog_sha256"})
+ARTIFACTS_ENV = "OMNI_EXTENSION_ARTIFACTS"
+
+
+def _artifacts(root: Path | None, value: object, allowed: tuple[str, ...]) -> list[dict]:
+    """Compute size/hash inside the child; the host revalidates both before publishing."""
+    if value is None:
+        return []
+    if not isinstance(value, list) or not value or len(value) > MAX_ARTIFACTS:
+        raise ValueError
+    permitted = set(artifact_types(list(allowed)))
+    result = []
+    total = 0
+    seen = set()
+    for item in value:
+        if not isinstance(item, dict) or set(item) != {"name", "media_type"}:
+            raise ValueError
+        name, media_type = item["name"], item["media_type"]
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,119}", name):
+            raise ValueError
+        if name in seen or media_type not in permitted or root is None:
+            raise ValueError
+        seen.add(name)
+        path = (root / name).resolve()
+        if path.parent != root.resolve() or path.is_symlink() or not path.is_file():
+            raise ValueError
+        size = path.stat().st_size
+        total += size
+        if not 0 < size <= MAX_ARTIFACT_BYTES or total > MAX_ARTIFACT_TOTAL_BYTES:
+            raise ValueError
+        result.append(
+            {
+                "name": name,
+                "media_type": media_type,
+                "bytes": size,
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            }
+        )
+    return result
 
 
 def _hello(identity: str, method: str, package_sha256: str, catalog_sha256: str) -> bytes:
@@ -115,6 +164,13 @@ def _write(stream: BinaryIO, frame: bytes) -> None:
 
 async def serve(location: str, package_sha256: str, catalog_sha256: str) -> None:
     root = Path(location)
+    raw_artifacts = os.environ.get(ARTIFACTS_ENV, "")
+    artifact_root: Path | None = None
+    if raw_artifacts:
+        candidate = Path(raw_artifacts)
+        if not candidate.is_absolute() or candidate.is_symlink():
+            raise ValueError
+        artifact_root = candidate.resolve()
     initial = decode(await _read())
     if (
         set(initial) != HELLO_FIELDS
@@ -177,6 +233,13 @@ async def serve(location: str, package_sha256: str, catalog_sha256: str) -> None
             result = action(raw, writes=True)
             if result.artifacts:
                 raise ValueError
+            descriptors = _artifacts(artifact_root, result.data.get("artifacts"), tuple(tool.get("artifacts", [])))
+            if descriptors:
+                result = replace(
+                    result,
+                    data={key: value for key, value in result.data.items() if key != "artifacts"}
+                    | {"artifacts": descriptors},
+                )
         except BaseException:  # noqa: BLE001 -- plugin SystemExit and import failures cannot erase dispatched effects
             # Import or call may already have changed the outside world. Never
             # turn an entry exception, malformed receipt or artifact into retryable failure.

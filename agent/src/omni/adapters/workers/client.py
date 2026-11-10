@@ -29,11 +29,21 @@ class WorkerClient:
         startup: Callable[[asyncio.subprocess.Process], Awaitable[None]] | None = None,
         cwd: str | None = None,
         forbid_artifacts: bool = False,
+        extra_env: Mapping[str, str] | None = None,
     ) -> None:
         self.kind = kind
         if not tool_writes or len(tool_writes) > 200 or any(type(value) is not bool for value in tool_writes.values()):
             raise ValueError("Worker requires a bounded, explicit capability manifest")
         self._tool_writes = MappingProxyType(dict(tool_writes))
+        if extra_env is not None and (
+            len(extra_env) > 16
+            or any(
+                not isinstance(key, str) or not key.startswith("OMNI_") or len(value) > 4000
+                for key, value in extra_env.items()
+            )
+        ):
+            raise ValueError("Worker extra environment entries are not bounded")
+        self._extra_env = MappingProxyType(dict(extra_env or {}))
         self.argv = list(argv) if argv is not None else [sys.executable, "-m", "omni.adapters.workers.main", kind]
         self._startup, self._cwd, self._forbid_artifacts = startup, cwd, forbid_artifacts
         self._owned: OwnedProcess | None = None
@@ -90,6 +100,7 @@ class WorkerClient:
             )
         env["PYTHONUTF8"] = "1"
         env["PYTHONDONTWRITEBYTECODE"] = "1"
+        env.update(self._extra_env)
         self._owned = await OwnedProcess.spawn(
             self.argv,
             stdin=asyncio.subprocess.PIPE,

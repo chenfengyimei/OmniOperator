@@ -1,7 +1,10 @@
 """Real isolated Python host execution, immutable installation and approval/revocation certainty."""
 
 import asyncio
+import json
+from pathlib import Path
 
+import pytest
 from sqlalchemy import select
 from v2_extension_helpers import (
     PUBLIC_TOOL,
@@ -16,6 +19,152 @@ from v2_extension_helpers import (
 
 from omni.adapters.persistence import schema as s
 from omni.composition.instance import open_instance
+from omni.domain.extensions import (
+    artifact_descriptors,
+    catalog,
+    catalog_fingerprint,
+    parse_manifest,
+    tool_artifacts,
+)
+
+MANIFEST = {
+    "format": "omni-python-extension-1",
+    "id": "fixture",
+    "version": "1",
+    "entry": "plugin.py",
+    "tools": [
+        {
+            "name": "echo",
+            "description": "Return the approved local value",
+            "parameters": {
+                "type": "object",
+                "properties": {"value": {"type": "string"}},
+                "required": ["value"],
+                "additionalProperties": False,
+            },
+            "writes": True,
+            "timeout_s": 30,
+        }
+    ],
+}
+
+
+def test_manifest_artifact_capability_changes_the_fingerprint_and_is_bounded():
+    plain = parse_manifest(json.loads(json.dumps(MANIFEST)))
+    assert catalog(plain)[0]["artifacts"] == [] and tool_artifacts(plain, "echo") == ()
+    declared = json.loads(json.dumps(MANIFEST))
+    declared["tools"][0]["artifacts"] = ["image/png", "application/pdf"]
+    parsed = parse_manifest(declared)
+    assert tool_artifacts(parsed, "echo") == ("image/png", "application/pdf")
+    assert catalog_fingerprint(parsed) != catalog_fingerprint(plain)
+    for invalid in (["image/png", "image/png"], ["IMAGE/PNG"], ["text"], [""], ["text/plain"] * 5):
+        broken = json.loads(json.dumps(MANIFEST))
+        broken["tools"][0]["artifacts"] = invalid
+        with pytest.raises(Exception):
+            parse_manifest(broken)
+
+
+def test_artifact_descriptors_are_bounded_and_must_match_declared_types():
+    allowed = ("image/png",)
+    good = artifact_descriptors([{"name": "a.png", "media_type": "image/png", "bytes": 3, "sha256": "a" * 64}], allowed)
+    assert good[0]["name"] == "a.png"
+    for invalid in (
+        [{"name": "../a.png", "media_type": "image/png", "bytes": 3, "sha256": "a" * 64}],
+        [{"name": "a.png", "media_type": "text/plain", "bytes": 3, "sha256": "a" * 64}],
+        [{"name": "a.png", "media_type": "image/png", "bytes": 0, "sha256": "a" * 64}],
+        [{"name": "a.png", "media_type": "image/png", "bytes": 3, "sha256": "zz"}],
+        [{"name": "a.png", "media_type": "image/png", "bytes": 3, "sha256": "a" * 64}] * 5,
+    ):
+        with pytest.raises(Exception):
+            artifact_descriptors(invalid, allowed)
+
+
+def test_artifact_plugin_publishes_verified_objects_and_bounded_model_text(tmp_path):
+    async def scenario():
+        body = b"\x89PNG fixture artifact"
+        source = plugin_source(tmp_path / "source", artifact_type="image/png", artifact_body=body)
+        instance = await open_instance(tmp_path / "home", model=PluginModel(), capabilities=())
+        try:
+            agent, extension = await installed(instance, source)
+            await instance.extensions.authorize(agent, extension["id"], authorization(extension))
+            await configured(instance, agent)
+            receipt = await instance.application.submit_turn(agent, None, "artifact", "Produce the fixture artifact")
+            await wait_run(instance, agent, receipt["run_id"], {"waiting_approval"})
+            approval = (await instance.application.approvals(agent))[0]
+            await instance.application.approve(agent, approval["id"], True, approval["policy_revision"])
+            final = await wait_run(instance, agent, receipt["run_id"], {"succeeded", "failed", "interrupted"})
+            assert final["state"] == "succeeded", final
+            action = (await instance.application.query("actions", agent, run_id=receipt["run_id"]))[0]
+            assert action["state"] == "ok" and action["effect"] == "applied"
+            result = action["result"]
+            assert len(result["artifacts"]) == 1
+            metadata, payload = await instance.objects.get(agent, result["artifacts"][0])
+            assert payload == body and metadata["media_type"] == "image/png"
+            assert result["data"]["artifacts"] == [
+                {"id": result["artifacts"][0], "media_type": "image/png", "bytes": len(body)}
+            ]
+            assert "artifacts: image/png" in result["text"]
+            assert "fixture artifact" not in result["text"]
+            assert await instance._database.read(
+                lambda u: u.connection.execute(
+                    select(s.action_objects).where(
+                        s.action_objects.c.agent_id == agent,
+                        s.action_objects.c.action_id == action["id"],
+                        s.action_objects.c.object_id == result["artifacts"][0],
+                    )
+                ).first()
+            )
+            staging = Path(instance.extensions._hosts.artifact_path(agent, extension["id"]))
+            assert not staging.exists()
+            assert instance.extensions.health()["hosts"]["cleanup_pending"] == 0
+        finally:
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("mode", ["escape", "undeclared", "missing", "oversize"])
+def test_unverifiable_artifacts_end_unknown_without_publishing_objects(tmp_path, mode):
+    async def scenario():
+        source = plugin_source(
+            tmp_path / "source",
+            artifact_type="image/png",
+            artifact_name="report.png",
+            artifact_mode=mode,
+            artifact_body=b"bounded",
+        )
+        instance = await open_instance(tmp_path / "home", model=PluginModel(), capabilities=())
+        try:
+            agent, extension = await installed(instance, source)
+            await instance.extensions.authorize(agent, extension["id"], authorization(extension))
+            await configured(instance, agent)
+            receipt = await instance.application.submit_turn(agent, None, "invalid", "Produce a bad artifact")
+            await wait_run(instance, agent, receipt["run_id"], {"waiting_approval"})
+            approval = (await instance.application.approvals(agent))[0]
+            await instance.application.approve(agent, approval["id"], True, approval["policy_revision"])
+            final = await wait_run(instance, agent, receipt["run_id"], {"succeeded", "failed", "interrupted"})
+            assert final["state"] == "failed", final
+            action = (await instance.application.query("actions", agent, run_id=receipt["run_id"]))[0]
+            assert action["state"] == action["effect"] == "unknown"
+            assert action["result"]["artifacts"] == []
+            assert action["result"]["error_code"] in {
+                "extension_outcome_unknown",
+                "extension_artifact_invalid",
+            }
+            assert (
+                await instance._database.read(
+                    lambda u: u.connection.execute(
+                        select(s.action_objects).where(
+                            s.action_objects.c.agent_id == agent, s.action_objects.c.action_id == action["id"]
+                        )
+                    ).first()
+                )
+                is None
+            )
+        finally:
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())
 
 
 def test_static_install_and_enable_do_not_execute_plugin_and_owner_approval_runs_isolated_code(tmp_path):

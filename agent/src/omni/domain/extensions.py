@@ -16,6 +16,10 @@ from .history import MAX_INTEGER
 FORMAT = "omni-python-extension-1"
 PROTOCOL = "omni-python-extension-ipc-1"
 MAX_TOOLS = 16
+MAX_ARTIFACTS = 4
+MAX_ARTIFACT_BYTES = 8_388_608
+MAX_ARTIFACT_TOTAL_BYTES = 16_777_216
+MAX_ARTIFACT_NAME = 120
 MAX_MANIFEST_BYTES = 65_536
 MAX_SCHEMA_BYTES = 16_384
 MAX_SCHEMA_DEPTH = 12
@@ -213,7 +217,10 @@ def parse_manifest(data: object) -> dict:
             raise ValueError
         names = set()
         for tool in tools:
-            if not isinstance(tool, dict) or set(tool) != {"name", "description", "parameters", "writes", "timeout_s"}:
+            if not isinstance(tool, dict) or set(tool) not in (
+                {"name", "description", "parameters", "writes", "timeout_s"},
+                {"name", "description", "parameters", "writes", "timeout_s", "artifacts"},
+            ):
                 raise ValueError
             name = tool["name"]
             if not isinstance(name, str) or NAME.fullmatch(name) is None or name in names:
@@ -226,6 +233,7 @@ def parse_manifest(data: object) -> dict:
                 raise ValueError
             _integer(tool["timeout_s"], 1, 300)
             _parameters(tool["parameters"])
+            artifact_types(tool.get("artifacts", []))
         raw = _encoded(data)
         if len(raw) > MAX_MANIFEST_BYTES:
             raise ValueError
@@ -245,6 +253,7 @@ def catalog(manifest: object) -> list[dict]:
             "parameters": tool["parameters"],
             "writes": True,
             "timeout_s": tool["timeout_s"],
+            "artifacts": sorted(tool.get("artifacts", [])),
         }
         result.append({**row, "spec_sha256": _fingerprint(row)})
     return result
@@ -252,6 +261,72 @@ def catalog(manifest: object) -> list[dict]:
 
 def catalog_fingerprint(manifest: object) -> str:
     return _fingerprint(catalog(manifest))
+
+
+MEDIA_TYPE = re.compile(r"[a-z0-9][a-z0-9.+-]{0,63}/[a-z0-9][a-z0-9.+-]{0,63}")
+ARTIFACT_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,119}")
+ARTIFACT_FIELDS = frozenset({"name", "media_type", "bytes", "sha256"})
+
+
+def artifact_types(value: object) -> list[str]:
+    """Owner-declared media types a tool may publish; never inferred from the child."""
+    if not isinstance(value, list) or len(value) > MAX_ARTIFACTS:
+        raise ValueError
+    if not all(isinstance(item, str) and MEDIA_TYPE.fullmatch(item) for item in value):
+        raise ValueError
+    if len(set(value)) != len(value):
+        raise ValueError
+    return list(value)
+
+
+def tool_artifacts(manifest: object, local_name: str) -> tuple[str, ...]:
+    value = parse_manifest(manifest)
+    for tool in value["tools"]:
+        if tool["name"] == local_name:
+            return tuple(artifact_types(tool.get("artifacts", [])))
+    raise _invalid()
+
+
+def artifact_descriptors(value: object, allowed: object) -> tuple[dict, ...]:
+    """Validate child-reported artifact metadata; file bytes are checked by the host."""
+    try:
+        if not isinstance(allowed, (list, tuple)):
+            raise ValueError
+        permitted = set(artifact_types(list(allowed)))
+        if not isinstance(value, list) or len(value) > MAX_ARTIFACTS:
+            raise ValueError
+        names: set[str] = set()
+        total = 0
+        result = []
+        for item in value:
+            if not isinstance(item, dict) or set(item) != ARTIFACT_FIELDS:
+                raise ValueError
+            name = item["name"]
+            if not isinstance(name, str) or ARTIFACT_NAME.fullmatch(name) is None or name in names:
+                raise ValueError
+            names.add(name)
+            if item["media_type"] not in permitted:
+                raise ValueError
+            size = _integer(item["bytes"], 1, MAX_ARTIFACT_BYTES)
+            total += size
+            if total > MAX_ARTIFACT_TOTAL_BYTES:
+                raise ValueError
+            digest = _sha(item["sha256"])
+            result.append({"name": name, "media_type": item["media_type"], "bytes": size, "sha256": digest})
+        return tuple(result)
+    except (ValueError, TypeError, KeyError, AttributeError, OverflowError) as exc:
+        raise _invalid() from exc
+
+
+def artifact_summary(descriptors: object) -> str:
+    """A bounded model-visible line: types and sizes only, never names or bytes."""
+    if not isinstance(descriptors, (list, tuple)) or not descriptors:
+        return ""
+    parts = []
+    for item in descriptors:
+        if isinstance(item, dict):
+            parts.append(f"{str(item.get('media_type'))} {int(item.get('bytes', 0))}B")
+    return ("artifacts: " + ", ".join(parts))[:512]
 
 
 def parse_install(data: object) -> dict:

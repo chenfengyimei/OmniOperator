@@ -5,11 +5,22 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import shutil
 from collections.abc import Awaitable, Callable, Mapping, Sequence
+from pathlib import Path
 from typing import TypeVar, cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
-from ..domain.extensions import parse_authorization, parse_install, request_fingerprint, tool_spec
+from ..domain.extensions import (
+    MAX_ARTIFACT_BYTES,
+    artifact_descriptors,
+    artifact_summary,
+    parse_authorization,
+    parse_install,
+    request_fingerprint,
+    tool_artifacts,
+    tool_spec,
+)
 from .objects import ObjectService
 from .ports import DatabasePort, ExtensionHostsPort, ExtensionPackagesPort, Record
 
@@ -92,6 +103,49 @@ class ExtensionService:
         agent = str(record["agent_id"])
         _, payload = await self._objects.get(agent, str(record["object_id"]))
         return await self._packages.prepare(agent, record, payload)
+
+    def _artifact_directory(self, agent_id: str, extension_id: str) -> Path | None:
+        """A fresh per-extension directory; the child can only write here, and only this call reads it."""
+        raw = self._hosts.artifact_path(agent_id, extension_id)
+        if not raw:
+            return None
+        path = Path(raw)
+        shutil.rmtree(path, ignore_errors=True)
+        path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        return path
+
+    @staticmethod
+    def _cleanup_artifacts(directory: Path | None) -> None:
+        if directory is not None:
+            shutil.rmtree(directory, ignore_errors=True)
+
+    async def _publish_artifacts(
+        self, record: Record, result: ActionResult, directory: Path | None
+    ) -> tuple[tuple[str, ...], list[JSON]]:
+        """Revalidate child-reported bytes/hashes, then publish immutable objects for this action."""
+        if directory is None:
+            raise ValueError
+        descriptors = artifact_descriptors(
+            result.data.get("artifacts"), tool_artifacts(record["manifest"], str(record["local_name"]))
+        )
+        root = directory.resolve()
+        identities: list[str] = []
+        published: list[JSON] = []
+        for descriptor in descriptors:
+            path = (root / descriptor["name"]).resolve()
+            if path.parent != root or path.is_symlink() or not path.is_file():
+                raise ValueError
+            content = path.read_bytes()
+            if len(content) != descriptor["bytes"] or len(content) > MAX_ARTIFACT_BYTES:
+                raise ValueError
+            if hashlib.sha256(content).hexdigest() != descriptor["sha256"]:
+                raise ValueError
+            obj = await self._objects.publish(str(record["agent_id"]), content, descriptor["media_type"])
+            identities.append(str(obj["id"]))
+            published.append(
+                cast(JSON, {"id": str(obj["id"]), "media_type": descriptor["media_type"], "bytes": descriptor["bytes"]})
+            )
+        return tuple(identities), published
 
     async def _drift(self, record: Record, code: str = "extension_snapshot_drift") -> None:
         changed = await self._db.write(
@@ -254,37 +308,69 @@ class ExtensionService:
                     preflight_error = exc.code
                     raise
 
+            artifact_directory: Path | None = None
             try:
-                result = await self._hosts.invoke(
-                    record,
-                    location,
-                    name,
-                    frozen,
-                    operation_id=operation_id,
-                    context=context,
-                    before_dispatch=before_dispatch,
-                )
-            except BusinessError as exc:
-                return ActionResult(
-                    Outcome.ERROR, "No extension host is available", error_code=exc.code, retryable=exc.retryable
-                )
-            if preflight_error:
-                self._remember_error(record, preflight_error)
-                if preflight_error == "extension_snapshot_drift":
+                artifact_directory = self._artifact_directory(context.agent_id, str(record["extension_id"]))
+                try:
+                    result = await self._hosts.invoke(
+                        record,
+                        location,
+                        name,
+                        frozen,
+                        operation_id=operation_id,
+                        context=context,
+                        before_dispatch=before_dispatch,
+                    )
+                except BusinessError as exc:
+                    return ActionResult(
+                        Outcome.ERROR, "No extension host is available", error_code=exc.code, retryable=exc.retryable
+                    )
+                if preflight_error:
+                    self._remember_error(record, preflight_error)
+                    if preflight_error == "extension_snapshot_drift":
+                        await self._drift(record)
+                    return ActionResult(
+                        Outcome.DENIED,
+                        "Plugin dispatch was rejected before code execution",
+                        error_code=preflight_error,
+                    )
+                if result.error_code == "extension_snapshot_drift":
                     await self._drift(record)
-                return ActionResult(
-                    Outcome.DENIED, "Plugin dispatch was rejected before code execution", error_code=preflight_error
-                )
-            if result.error_code == "extension_snapshot_drift":
-                await self._drift(record)
-            if result.artifacts:
-                return ActionResult(
-                    Outcome.UNKNOWN,
-                    "Plugin returned unsupported artifact references",
-                    Effect.UNKNOWN,
-                    error_code="extension_artifact_protocol",
-                )
-            return result
+                if result.artifacts:
+                    return ActionResult(
+                        Outcome.UNKNOWN,
+                        "Plugin returned unsupported artifact references",
+                        Effect.UNKNOWN,
+                        error_code="extension_artifact_protocol",
+                    )
+                if result.data.get("artifacts"):
+                    try:
+                        identities, published = await self._publish_artifacts(record, result, artifact_directory)
+                    except (ValueError, OSError, KeyError, TypeError, BusinessError):
+                        return ActionResult(
+                            Outcome.UNKNOWN,
+                            "Plugin artifacts could not be verified and published; verify the external result",
+                            Effect.UNKNOWN,
+                            error_code="extension_artifact_invalid",
+                        )
+                    summary = artifact_summary(result.data.get("artifacts"))
+                    text = (result.text + "\n" + summary)[:12000] if summary else result.text
+                    return ActionResult(
+                        result.status,
+                        text,
+                        result.effect,
+                        error_code=result.error_code,
+                        retryable=result.retryable,
+                        artifacts=identities,
+                        verification=result.verification,
+                        data={
+                            **{key: value for key, value in result.data.items() if key != "artifacts"},
+                            "artifacts": published,
+                        },
+                    )
+                return result
+            finally:
+                self._cleanup_artifacts(artifact_directory)
 
         return await self._execute(perform, cancel_operation=True)
 

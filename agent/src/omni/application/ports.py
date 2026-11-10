@@ -286,6 +286,8 @@ class ExtensionPackagesPort(Protocol):
 
 
 class ExtensionHostsPort(Protocol):
+    def artifact_path(self, agent_id: str, extension_id: str) -> str: ...
+
     async def invoke(
         self,
         revision: Record,

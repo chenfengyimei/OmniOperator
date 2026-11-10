@@ -362,7 +362,7 @@ async def open_instance(
         lifetime.own("images", 0, images.close, images.stop_accepting)
         extension_packages = ExtensionPackages(paths.home / "cache" / "extensions")
         lifetime.own("extension_packages", 1, extension_packages.close)
-        extension_hosts = ExtensionHosts()
+        extension_hosts = ExtensionHosts(str(paths.control / "extension-artifacts"))
         lifetime.own("extension_hosts", 0, extension_hosts.close, extension_hosts.stop_accepting)
         extensions = ExtensionService(database, objects, extension_packages, extension_hosts)
         lifetime.own("extensions", 0, extensions.close, extensions.stop_accepting)
