@@ -9,6 +9,7 @@ from typing import Protocol
 from ...domain.contracts import BusinessError
 from ...domain.mcp import ServerTarget
 from .http import HttpSession
+from .oauth import OAuthFlow
 from .stdio import StdioSession
 
 MAX_SESSIONS = 8
@@ -36,10 +37,12 @@ class MCPHosts:
         *,
         cwd: str,
         session_factory: Callable[[ServerTarget], MCPSessionPort] | None = None,
+        oauth: OAuthFlow | None = None,
     ) -> None:
         self._authorization = authorization
         self._cwd = cwd
         self._factory = session_factory or self._default_session
+        self._oauth = oauth
         self._sessions: dict[tuple[str, str, int], MCPSessionPort] = {}
         self._handshakes: dict[tuple[str, str, int], dict] = {}
         self._pending = 0
@@ -124,6 +127,16 @@ class MCPHosts:
         finally:
             self._pending -= 1
 
+    async def oauth_start(self, target: ServerTarget, redirect_uri: str) -> dict:
+        if self._oauth is None:
+            raise BusinessError("mcp_oauth_unavailable", "OAuth support is not configured", status=503)
+        return await self._oauth.start(target, redirect_uri)
+
+    async def oauth_callback(self, state: str, code: str) -> dict:
+        if self._oauth is None:
+            raise BusinessError("mcp_oauth_unavailable", "OAuth support is not configured", status=503)
+        return await self._oauth.callback(state, code)
+
     async def stop(self, agent_id: str, server_id: str, timeout_s: float = 5) -> bool:
         async with self._lock:
             complete = True
@@ -143,6 +156,7 @@ class MCPHosts:
             "pending": self._pending,
             "max_sessions": MAX_SESSIONS,
             "max_pending": MAX_PENDING,
+            "oauth": self._oauth.health() if self._oauth is not None else {"available": False},
             "sessions": [
                 {
                     "agent_id": key[0],

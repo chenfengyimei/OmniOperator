@@ -551,6 +551,48 @@ class MCPRepositories(ContextRepositories):
         revoked = self._mcp_revoke(agent_id, server, reason)
         return {"revoked": revoked, "authority_epoch": server["authority_epoch"]}
 
+    def mcp_oauth_authorized(self, agent_id: str, config_id: str) -> dict:
+        """A completed remote authorization invalidates old grants and requires a reconnect."""
+        config = self.mcp_configuration(agent_id, config_id)
+        server = self._mcp_server(agent_id, config_id)
+        if server is None:
+            self._record(
+                s.mcp_servers,
+                {
+                    "config_id": config_id,
+                    "config_revision_id": config["revision_id"],
+                    "state": "idle",
+                    "authority_epoch": 1,
+                    "fingerprint": "",
+                    "tool_count": 0,
+                    "error_code": "",
+                    "connected_at": None,
+                },
+                agent_id,
+            )
+            self.audit(agent_id, "mcp.oauth_authorized", config_id, {"authority_epoch": 1})
+            return self.mcp_server_get(agent_id, config_id)
+        revoked = self._mcp_revoke(agent_id, server, "mcp_oauth_authorized")
+        revision_changed = server["config_revision_id"] != config["revision_id"]
+        values: dict = {
+            "state": "idle",
+            "connected_at": None,
+            "error_code": "",
+            "authority_epoch": cast(int, server["authority_epoch"]) + 1,
+        }
+        if revision_changed:
+            values.update(config_revision_id=config["revision_id"], fingerprint="", tool_count=0)
+        if server["state"] == "idle":
+            values.pop("state")
+        self._mcp_runtime(agent_id, config_id, **values)
+        self.audit(
+            agent_id,
+            "mcp.oauth_authorized",
+            config_id,
+            {"revoked": revoked, "authority_epoch": values["authority_epoch"], "revision_changed": revision_changed},
+        )
+        return self.mcp_server_get(agent_id, config_id)
+
     # ---------- run capture and dispatch ----------
 
     def _mcp_live_grants(self, agent_id: str):

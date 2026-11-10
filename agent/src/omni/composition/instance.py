@@ -26,6 +26,7 @@ from ..adapters.extensions.packages import ExtensionPackages
 from ..adapters.images import ImageCodec
 from ..adapters.local_vectors import configured_vectors
 from ..adapters.mcp.hosts import MCPHosts
+from ..adapters.mcp.oauth import OAuthFlow
 from ..adapters.media import MediaProcessor
 from ..adapters.metrics import Metrics
 from ..adapters.models import LiteLLMModel
@@ -102,7 +103,6 @@ from ..domain.android import RESTORE_SPEC as ANDROID_RESTORE
 from ..domain.android import SPEC as ANDROID_ACTION
 from ..domain.contracts import BusinessError, Outcome
 from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
-from ..domain.mcp import oauth_reference
 from ..domain.skills import SKILL_SPECS
 from .capabilities import builtin_capabilities
 from .lifecycle import Lifetime, close_sync
@@ -512,11 +512,18 @@ async def open_instance(
         credentials = CredentialService(database, credential_io, ids, deliveries.cancel_active, observation)
         lifetime.own("credential_changes", 0, credentials.close, credentials.stop_accepting)
 
+        oauth_flow = OAuthFlow(credential_io, redact=sink.redactor.register)
+
         async def mcp_authorization(target):
             if target.auth_mode == "none":
                 return ""
-            reference = target.credential_ref if target.auth_mode == "bearer" else oauth_reference(target.server_id)
-            raw = await credential_io.get(reference)
+            if target.auth_mode == "oauth":
+                token = await oauth_flow.tokens.access_token(target.server_id)
+                if token:
+                    return token
+            if not target.credential_ref:
+                return ""
+            raw = await credential_io.get(target.credential_ref)
             if not raw:
                 return ""
             try:
@@ -527,7 +534,9 @@ async def open_instance(
 
         mcp = MCPService(
             database,
-            mcp_transport if mcp_transport is not None else MCPHosts(mcp_authorization, cwd=str(paths.control)),
+            mcp_transport
+            if mcp_transport is not None
+            else MCPHosts(mcp_authorization, cwd=str(paths.control), oauth=oauth_flow),
             clock,
         )
         lifetime.own("mcp", 0, mcp.close, mcp.stop_accepting)

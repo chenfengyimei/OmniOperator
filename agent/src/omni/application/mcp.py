@@ -47,6 +47,10 @@ class MCPTransportPort(Protocol):
 
     async def stop(self, agent_id: str, server_id: str, timeout_s: float = 5) -> bool: ...
 
+    async def oauth_start(self, target: ServerTarget, redirect_uri: str) -> Record: ...
+
+    async def oauth_callback(self, state: str, code: str) -> Record: ...
+
     def health(self) -> Record: ...
 
     def stop_accepting(self) -> None: ...
@@ -160,6 +164,33 @@ class MCPService:
 
     async def calls(self, agent_id: str, config_id: str, after: str = "", limit: int = 50) -> Record:
         return await self._db.read(lambda u: u.mcp_call_page(agent_id, config_id, after, limit))
+
+    async def oauth_start(self, agent_id: str, config_id: str, redirect_uri: str) -> Record:
+        config = await self._db.read(lambda u: u.mcp_configuration(agent_id, config_id))
+        value = cast(dict, config["value"])
+        if value["auth_mode"] != "oauth":
+            raise BusinessError("mcp_oauth_not_configured", "This server does not use remote OAuth", status=422)
+        try:
+            server = await self._db.read(lambda u: u.mcp_server_get(agent_id, config_id))
+        except BusinessError:
+            server = {"authority_epoch": 1}
+        epoch = int(cast(int, server.get("authority_epoch") or 1))
+        target = server_target({**config, "authority_epoch": epoch})
+        started = await self._transports.oauth_start(target, redirect_uri)
+        return {**started, "server": config["name"]}
+
+    async def oauth_callback(self, state: str, code: str) -> Record:
+        completed = await self._transports.oauth_callback(state, code)
+        view = await self._db.write(
+            lambda u: u.mcp_oauth_authorized(str(completed["agent_id"]), str(completed["config_id"]))
+        )
+        return {
+            "authorized": True,
+            "server": view["name"],
+            "state": view["state"],
+            "authority_epoch": view["authority_epoch"],
+            "scope": completed["scope"],
+        }
 
     # ---------- run-scoped tools ----------
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import html
 import ipaddress
 import json
 import logging
@@ -15,7 +16,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import APIRouter, Depends, FastAPI, Query, Request
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from ..application.action_review import ActionReviewService
@@ -231,6 +232,10 @@ class MCPToolDecisionInput(StrictInput):
     read_only: bool = Field(default=False, strict=True)
     authorized: bool = Field(default=True, strict=True)
     evidence: str = Field(min_length=1, max_length=200)
+
+
+class MCPOAuthStartInput(StrictInput):
+    redirect_uri: str = Field(default="", max_length=2000)
 
 
 class DeliveryDecision(StrictInput):
@@ -504,6 +509,37 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
         return await current.drain(await bounded_configuration(request, 4096, strict=True))
 
     router = APIRouter(prefix="/api/v1", dependencies=[Depends(authenticate)])
+
+    @app.get("/oauth/callback", include_in_schema=False)
+    async def oauth_callback(
+        request: Request,
+        state: str = Query(default="", max_length=200),
+        code: str = Query(default="", max_length=4096),
+        error: str = Query(default="", max_length=200),
+    ):
+        """Loopback-only OAuth return target; the state is single use and the code never echoes."""
+
+        def page(message: str) -> HTMLResponse:
+            body = (
+                '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
+                "<title>OmniOperator MCP 授权</title></head><body><main><h1>MCP 授权</h1><p>"
+                + html.escape(message)
+                + "</p></main></body></html>"
+            )
+            return HTMLResponse(body)
+
+        service = runtime(request).mcp
+        if service is None:
+            return page("本实例未启用 MCP。")
+        if error:
+            return page("授权服务返回了错误，请回到工作台重新发起。")
+        try:
+            await service.oauth_callback(state, code)
+        except BusinessError as exc:
+            response = page("授权未完成：" + exc.message)
+            response.status_code = exc.status
+            return response
+        return page("授权已完成。请回到工作台重新连接并复查工具。")
 
     @router.get("/version")
     async def version(request: Request):
@@ -819,6 +855,12 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
         limit: int = Query(default=50, ge=1, le=100),
     ):
         return await mcp_service(request).calls(str(agent_id), str(config_id), str(after) if after else "", limit)
+
+    @router.post("/agents/{agent_id}/mcp/servers/{config_id}/oauth/start")
+    async def mcp_oauth_start(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        data = configuration_input(MCPOAuthStartInput, await bounded_configuration(request, 4096, strict=True))
+        redirect = data.redirect_uri or str(request.base_url).rstrip("/") + "/oauth/callback"
+        return await mcp_service(request).oauth_start(str(agent_id), str(config_id), redirect)
 
     @router.get("/agents/{agent_id}/mcp/health")
     async def mcp_health(agent_id: uuid.UUID, request: Request):

@@ -3,6 +3,7 @@
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qsl
 
 from omni.domain.contracts import Invocation, ModelReply
 
@@ -111,12 +112,16 @@ def stdio_server(folder, mode="ok", log=None):
 
 
 class FixtureHTTP:
-    """Loopback Streamable HTTP MCP endpoint with an optional SSE response and bearer check."""
+    """Loopback Streamable HTTP MCP endpoint with optional SSE, bearer check and OAuth provider."""
 
-    def __init__(self, *, sse=False, require_token="", mode="ok"):
+    def __init__(self, *, sse=False, require_token="", mode="ok", oauth=False, issued_token="fixture-access"):
         self.sse, self.require_token, self.mode = sse, require_token, mode
+        self.oauth, self.issued_token = oauth, issued_token
         self.requests = []
         self.session_ids = []
+        self.authorization_headers = []
+        self.token_requests = []
+        self.authorizations = []
         fixture = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -133,11 +138,64 @@ class FixtureHTTP:
                 self.end_headers()
                 self.wfile.write(body)
 
+            def do_GET(self):
+                base = f"http://127.0.0.1:{fixture.server.server_address[1]}"
+                if fixture.oauth and self.path == "/.well-known/oauth-protected-resource":
+                    body = json.dumps({"authorization_servers": [base]}).encode()
+                    self._send(200, body, {"Content-Type": "application/json"})
+                    return
+                if fixture.oauth and self.path == "/.well-known/oauth-authorization-server":
+                    body = json.dumps(
+                        {
+                            "issuer": base,
+                            "authorization_endpoint": base + "/authorize",
+                            "token_endpoint": base + "/token",
+                            "registration_endpoint": base + "/register",
+                            "scopes_supported": ["mcp.read"],
+                        }
+                    ).encode()
+                    self._send(200, body, {"Content-Type": "application/json"})
+                    return
+                self._send(404, b"not found")
+
             def do_POST(self):
                 length = int(self.headers.get("Content-Length", "0"))
-                payload = json.loads(self.rfile.read(length) or b"{}")
+                raw = self.rfile.read(length)
+                if fixture.oauth and self.path == "/register":
+                    document = json.loads(raw or b"{}")
+                    fixture.authorizations.append(document)
+                    body = json.dumps({"client_id": "fixture-client", "client_secret": "fixture-secret"}).encode()
+                    self._send(200, body, {"Content-Type": "application/json"})
+                    return
+                if fixture.oauth and self.path == "/token":
+                    form = dict(parse_qsl(raw.decode("utf-8")))
+                    fixture.token_requests.append(form)
+                    if form.get("grant_type") == "authorization_code":
+                        if form.get("code") != "fixture-code" or not 40 <= len(form.get("code_verifier", "")) <= 128:
+                            self._send(400, b'{"error":"invalid_grant"}', {"Content-Type": "application/json"})
+                            return
+                        value = {
+                            "access_token": fixture.issued_token,
+                            "refresh_token": "fixture-refresh",
+                            "token_type": "Bearer",
+                            "expires_in": 3600,
+                            "scope": "mcp.read",
+                        }
+                    elif form.get("grant_type") == "refresh_token":
+                        value = {
+                            "access_token": fixture.issued_token + "-refreshed",
+                            "token_type": "Bearer",
+                            "expires_in": 3600,
+                        }
+                    else:
+                        self._send(400, b'{"error":"unsupported_grant_type"}', {"Content-Type": "application/json"})
+                        return
+                    self._send(200, json.dumps(value).encode(), {"Content-Type": "application/json"})
+                    return
+                payload = json.loads(raw or b"{}")
                 fixture.requests.append(payload)
                 fixture.session_ids.append(self.headers.get("Mcp-Session-Id", ""))
+                fixture.authorization_headers.append(self.headers.get("Authorization", ""))
                 if fixture.require_token and self.headers.get("Authorization") != "Bearer " + fixture.require_token:
                     self._send(401, b'{"error":"unauthorized"}', {"Content-Type": "application/json"})
                     return
@@ -205,6 +263,22 @@ class FixtureHTTP:
         }
 
 
+class SeededSecrets:
+    """In-memory SecretStore for injected credentials; never reads a real vault."""
+
+    def __init__(self, values=None):
+        self.values = dict(values or {})
+
+    def get(self, reference):
+        return self.values.get(reference)
+
+    def set(self, reference, value):
+        self.values[reference] = value
+
+    def delete(self, reference):
+        self.values.pop(reference, None)
+
+
 class CallModel:
     """One scripted tool call, then a final reply; records the advertised catalog."""
 
@@ -219,4 +293,4 @@ class CallModel:
         return ModelReply("done", cost_micro=2)
 
 
-__all__ = ["FixtureHTTP", "CallModel", "TOOLS", "stdio_server"]
+__all__ = ["FixtureHTTP", "CallModel", "SeededSecrets", "TOOLS", "stdio_server"]
