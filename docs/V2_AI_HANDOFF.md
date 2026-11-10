@@ -1,255 +1,333 @@
 # OmniOperator V2：AI 接续开发完整交接
 
-交接日期：2026-11-10（用户时区 Asia/Shanghai）。本文是交接时点的快照；后续开发以 `docs/tasks/v2.json`、当前源码及相应证据共同核验。不要根据文件修改时间推断功能已经完成。
+交接日期：2026-11-10（Asia/Shanghai）。本文是交接时点的快照；后续以 `docs/tasks/v2.json`、当前源码和 `docs/evidence/` 共同核验。不要用文件修改时间推断功能完成度。
 
 ## 1. 接手时先明确的结论
 
-- **整个 V2 未完成，默认 `omni`、`python -m omni`、`omni-web` 等正式入口仍为 V1。** V2 使用独立开发入口，不能提前切换或删除 V1。
-- 当前开发断点为 **D6.mcp：MCP stdio/Streamable HTTP/OAuth 接入**，不是重新开发媒体、对象存储、人物、摘要、调度或文本技能。
-- 最新完成的是 D6 媒体/视频理解的选定生产链路，数据库 **129 张业务表 / `v2_0036`**，前端资源标识 **`20261110v48`**。资源标识是版本串，不能仅因日期不同而改写。
-- 最新选定范围 **133 个不同测试节点的最新结果通过**，其中有 75 例浏览器测试（媒体面板 2 例跨 390/1024 视口，工作台全量回归 73 例）；13 份受影响生产 Python 文件通过默认级别 Pyright，Ruff 与相关排版检查通过。**这不是全量测试、全仓严格类型或三平台验收通过。**
-- 按用户要求，媒体批次及其前累计的 V2 成果已提交并推送 gitee；接手时以 `git log`/`git status` 对账，仍不要 reset/clean 或删除未跟踪文件。
-- Windows 的部分隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 源码待 Mac mini 编译及验收；Linux 实机环境尚未提供。不要把 Windows 注入测试称为 Mac/Linux 支持证据。
-- 用户要求 **开发优先，先打通完整生产链路，再集中验证相关模块与调用方；不要频繁全量测试，不要每次只推进文档或一个很小的断点。每完成一个节点，git 提交推送一次。**
+- **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
+- 当前断点是 **D6.mcp：MCP stdio / Streamable HTTP / OAuth 运行适配器**。不要重做媒体、对象存储、人物、摘要、调度、文本技能或扩展包校验。
+- 最新完成批次是 **D6.media（媒体/视频理解）**：数据库 **129 张业务表 / `v2_0036`**，前端资源标识 **`20261110v48`**，静态索引 **65 模块 / 705 文件 / 415 路由 / 94 声明工具**。
+- 该批 **133 个不同测试节点的最新结果通过**，其中 **75 例浏览器**（媒体面板 2 例跨 390/1024 视口 + 工作台全量回归 73 例）。**不是全量、不是全仓严格类型、不是三平台验收。**
+- 媒体批及此前累计的 V2 成果已提交并推送：`7f78de8`（785 文件），分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
+- Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
+- 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
 
-## 2. 用户已确认的产品方向与授权边界
+## 2. 产品方向与授权边界
 
-目标是单实例、单所有者、多个 Agent 空间的个人智能体，可部署于 Windows、macOS、Linux 桌面和无桌面服务器。核心是模块化单体、一个主进程、单一 SQLite 应用库、受控文件对象和受管能力子进程。当前不扩展多人共享、跨机器设备节点或分布式集群。
+单实例、单所有者、多 Agent 空间的个人智能体，可部署 Windows / macOS / Linux 桌面与无桌面服务器。模块化单体、一个主进程、单一 SQLite 应用库、受控文件对象、受管能力子进程。当前不做多人共享、跨机器设备节点或分布式集群。
 
-V2 不需要兼容 V1 的数据库、配置、HTTP、工具名或导入路径；旧数据不迁入新模型，也不双写。这个授权允许重构，并不允许丢弃当前未提交成果、私人数据或尚未退役的生产入口。
+V2 **不兼容** V1 的数据库、配置、HTTP、工具名或导入路径；不迁 V1 数据、不双写、不保留旧接口兼容层。该授权允许重构，不允许丢弃未提交成果、私人数据或仍在使用的生产入口。
 
-沿用现有视觉风格与原生 ES 模块。功能、配置、权限和状态各有单一真值，禁止通过复制一份状态、旁路授权或根据中文结果字符串推断成功来“接通”。
+功能、配置、权限、状态各有单一真值；禁止复制状态、旁路授权，或用中文结果字符串推断成功。
 
-已经授权的普通代码开发、可逆修改、离线验证和文档更新可继续进行，不要反复索取许可。真实支付、外发消息、发布、提权、安装系统服务、设备输入与公开部署，仍需对应具体方案及既有明确授权；用户此前已延后前台实测，不要继续弹测试窗口要求配合。
+已授权的普通开发、可逆修改、离线验证、文档更新直接进行，不反复索取许可。真实支付、外发消息、公开发布、提权、安装系统服务、设备输入与公开部署仍需具体方案与既有授权；用户已延后前台实测，不要再弹测试窗口要求配合。
 
-旧内容可在确认退役后归档到 `temp/archive`；私人运行数据及恢复材料归 `temp/private`，可再生构建/测试产物归 `temp/build`。不能仅因文件位于 temp 就删除；活跃 SQLite/WAL/SHM 不单独搬动。
+归档区：`temp/archive`（退役内容）、`temp/private`（私人数据与恢复材料）、`temp/build`（可再生构建/测试产物）。三者都不入库，但不能仅因位于 temp 就删除；活跃 SQLite/WAL/SHM 不单独搬动。
 
 ## 3. 必读顺序与文档权威
 
-1. 仓库根 `AGENTS.md`、`docs/HANDOFF.md`、`docs/ARCHITECTURE.md`、`CONTRIBUTING.md`。
-2. 本文、`docs/tasks/v2.json`、`docs/DEVELOPMENT_STATUS.md`、`docs/V2_REFACTOR.md` **历史实施记录标题之前**的当前摘要。
-3. 最新证据 `docs/evidence/v2-media.json`；需要修改的能力再读该能力合同及专项报告。
-4. 数据规则 `docs/DATA_MODEL.md`，界面规则 `docs/UI_DESIGN_SYSTEM.md`，测试规则 `docs/TESTING.md`。
-5. 下一批重点读 `docs/V2_MEDIA.md`、`docs/V2_BILIBILI.md`、`docs/V2_SKILLS.md`、`docs/MCP.md`（如有）及相应应用服务与端口。
+1. `AGENTS.md`、`docs/HANDOFF.md`、`docs/ARCHITECTURE.md`、`CONTRIBUTING.md`。
+2. 本文、`docs/tasks/v2.json`、`docs/DEVELOPMENT_STATUS.md`、`docs/V2_REFACTOR.md` 的**当前摘要段**（历史实施记录标题之前）。
+3. 最新证据 `docs/evidence/v2-media.json`；改哪个能力就读哪个能力的合同与报告。
+4. `docs/DATA_MODEL.md`（数据规则）、`docs/UI_DESIGN_SYSTEM.md`（界面规则）、`docs/TESTING.md`（测试规则）。
+5. 本批重点：`docs/V2_MEDIA.md`、`docs/V2_BILIBILI.md`、`docs/V2_SKILLS.md`，以及 **`docs/MCP.md`**——它是 **V1 的 MCP 行为先例**（指纹撤权、只读白名单、未知不重放、有界重连、OAuth 回调约束），只读参考，**V2 不得 import V1 代码**。
 
-`ARCHITECTURE.md` 是架构职责权威；任务状态以 `tasks/v2.json` 为入口，`DEVELOPMENT_STATUS.md` 由脚本生成。领域合同解释具体行为，原始报告只证明所属源码版本。
+权威关系：`ARCHITECTURE.md` 管职责，`tasks/v2.json` 管任务状态（`DEVELOPMENT_STATUS.md` 由脚本生成），领域合同管行为，原始报告只证明其所属源码版本。
 
-**文档存在历史残留：** `CONTRIBUTING.md` 的 Windows 定位、旧分层及兼容要求主要描述 V1；`deploy/v2/README.md` 某些前段仍有“不截图”“尚无本地向量”等早期限制；`V2_REFACTOR.md` 历史段落保留旧“下一断点”。遇到冲突要核对最新台账、领域合同及源码，不按历史句子重新开发，也不批量改写历史证据。
+**已知历史残留：** `CONTRIBUTING.md` 的 Windows 定位与旧分层主要描述 V1；`deploy/v2/README.md` 部分早期限制已过期；`V2_REFACTOR.md` 历史段落里的“下一断点”可能落后。冲突时以最新台账、领域合同、源码为准，不按历史句子重做，也不批量改写历史证据。
 
 ## 4. 工作区与可恢复基线
 
 | 项目 | 本次核验结果 |
 | --- | --- |
 | 工作区 | `D:\xm\OmniOperator`，PowerShell |
-| 当前分支 | `codex/architecture-v2` |
-| Git HEAD | 媒体批次提交（接手时以 `git log --oneline -5` 对账；台账 `checkpoint_commit` 记录该批代码提交哈希） |
-| 最初重构基线提交 | `076c0c22fa8ecb90d3ce9a64562c90a23a129e00` |
-| 工作区状态 | 媒体批及其前累计 V2 成果已按用户要求提交推送；接手时以 `git status` 对账，仍不 reset/clean |
+| 分支 | `codex/architecture-v2`，上游 `origin/codex/architecture-v2`（gitee） |
+| 媒体批代码提交 | `7f78de8`（台账 `checkpoint_commit` 已指向它） |
+| 最初重构基线 | `076c0c22fa8ecb90d3ce9a64562c90a23a129e00` |
+| 交接时工作区 | 干净（`git status` 空）；提交本文后 HEAD 会前进一个文档提交 |
 | 最新固定源码指纹 | `b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21` |
-| 冻结文件 | 1165 份，见 `temp/build/v2-media-validation-snapshot.json` |
-| 最近恢复材料 | `temp/private/v2-media-source-20261110-b505d4b2a9a2/manifest.json` |
-| 源码备份 | 同目录 `source-and-evidence.zip`：1435 份源码/文档、7 份验证材料 |
-| 备份 ZIP SHA256 | `fe045494ff872c22c0e52e978ab6a147a8d324f572f71d451add185a055129cd` |
+| 冻结文件 | 1165 份，清单 `temp/build/v2-media-validation-snapshot.json` |
+| 恢复材料 | `temp/private/v2-media-source-20261110-b505d4b2a9a2/manifest.json` |
+| 源码备份 | 同目录 `source-and-evidence.zip`（1435 份源码/文档 + 7 份验证材料） |
+| ZIP SHA256 | `fe045494ff872c22c0e52e978ab6a147a8d324f572f71d451add185a055129cd` |
 
-本次媒体批封存时，恢复 manifest 为 complete 且 ZIP SHA 匹配。**complete 仅表示可恢复，不表示 V2 完成。** 上一技能批次的 corrected 恢复材料（`temp/private/v2-skills-source-20261110-corrected-712a15f2b732`）与未修正版（`...-58cccddafd86`）保留为溯源材料，不要删除。
+封存时 manifest 为 `complete` 且 ZIP SHA 匹配；**complete 只表示可恢复，不表示 V2 完成**。上一技能批的 `-corrected-712a15f2b732` 与未修正版 `-58cccddafd86` 保留为溯源材料，不删除。工作台全量回归报告生成于封存之后，不在 ZIP 内（已在证据中注明）。
 
-不要 `git reset --hard`、`git clean`、批量覆盖、批量暂存或重写历史。不要把所有未跟踪文件当临时垃圾；构建/验证产物在 `temp/build`、私人材料在 `temp/private`，均不入库。
+不要 `git reset --hard`、`git clean`、批量覆盖或重写历史；不要把未跟踪文件当垃圾。
 
 ## 5. 目录与主要接线位置
 
 | 路径 | 用途 |
 | --- | --- |
-| `agent/src/omni/domain/` | V2 纯领域模型、状态机、约束、协议数据 |
-| `agent/src/omni/application/` | V2 用例、编排与端口；`ports.py` 为主要依赖合同 |
-| `agent/src/omni/adapters/` | V2 HTTP、模型、数据库、对象、平台、原生及扩展适配器 |
-| `agent/src/omni/composition/` | V2 组装、独立 CLI、HTTP 及生命周期 |
-| `agent/src/omni/adapters/persistence/` | SQLAlchemy、仓储、维护和 Alembic 迁移 |
-| `agent/src/omni/adapters/workers/` | 受管辅助进程；macOS Swift/C 源码也在此树下 |
-| `agent/src/omni/adapters/platform/` | 路径、实例锁、权限与进程管理 |
-| `web/ui/v2/` | V2 工作台原生 ES 模块 |
-| `agent/tests/test_v2_*.py` | V2 回归与架构守卫 |
-| `deploy/v2/` | 开发部署、容器与平台模板，存在不等于已验收 |
-| `docs/evidence/` | 各批次版本、范围、失败与修复证据 |
-| `docs/tasks/v2.json` | 当前任务真值及下一断点 |
-| `temp/build/` | 原始专项报告、指纹、验证脚本与构建产物 |
+| `agent/src/omni/domain/` | 纯领域模型、状态机、约束、协议数据（51 个 .py） |
+| `agent/src/omni/application/` | 用例、编排与端口；`ports.py` 是主要依赖合同（44 个 .py） |
+| `agent/src/omni/adapters/` | HTTP、模型、数据库、对象、平台、原生、扩展与 worker（204 个 .py） |
+| `agent/src/omni/composition/` | 组装、独立 CLI、HTTP 运行时与生命周期（13 个 .py） |
+| `agent/src/omni/adapters/persistence/` | SQLAlchemy 元数据、仓储、维护、Alembic 迁移 |
+| `agent/src/omni/adapters/workers/` | 受管辅助进程（含 macOS Swift/C 源码） |
+| `agent/src/omni/adapters/platform/` | 路径、实例锁、权限、`OwnedProcess` 进程管理 |
+| `web/ui/v2/` | V2 工作台原生 ES 模块（`main.js` / `index.html` / 各分区） |
+| `agent/tests/test_v2_*.py` | V2 回归、HTTP 契约、迁移冻结、架构与工作台守卫 |
+| `deploy/v2/` | 开发部署、容器与平台模板（存在不等于验收） |
+| `docs/evidence/` | 各批版本、范围、失败与修复证据 |
+| `docs/tasks/v2.json` | 任务真值、下一断点、开放问题 |
 
-根目录 `src`、`tests` 是本机兼容联接，不要从它们再创建一套源码。V1 `core/`、`tools/`、`llm/`、`memory/`、`channels/` 与 V2 并存，只可参考，V2 不能 import V1 Runtime、旧业务库或原生脚本。
-
-本次静态计数四层 Python 文件为 domain 50、application 43、adapters 200、composition 13。该计数包括各层基础设施文件，不能当完成功能比例。
+根目录 `src`、`tests` 是本机兼容联接，不要从它们再建一套源码。V1 `core/`、`tools/`、`llm/`、`memory/`、`channels/` 只可参考。
 
 ## 6. 必须保持的架构与数据合同
 
-- 入口适配器 → 应用服务 → 领域与端口；基础设施实现端口；构造及生命周期集中于 composition。领域无网络、文件、数据库、平台 API 或全局运行对象。
-- 一个主事件循环、一个实例主进程、一个 Web worker；实例目录由独占运行锁保护。维护命令必须取得相应独占锁，不能为验证停止用户正在使用的服务。
-- 默认最多 4 个活跃回合、64 个排队回合；同会话顺序。后台任务、线程执行、原生/插件子进程、队列及 IPC 有界，并具有实际所有者、取消与关闭状态。
-- V2 真值为 `<home>/data/omni.db`，文件对象在 `<home>/objects`，日志在 `<home>/logs`。显式 `--home` 优先，其次 `OMNI_HOME`，否则平台标准 V2 目录。工作目录单独配置，不默认为源码目录。
-- SQLAlchemy 连接、事务与 Alembic 由持久适配器管理；统一短事务写入执行器，网络、模型、人工等待和原生调用不进入数据库事务。不要在仓储或业务模块另行连接、建表。
-- UUID、UTC、Agent 作用域组合约束、编辑 revision、事件 sequence、稳定游标、分页上限必须在服务端与数据库维持；JSON 不代替可筛选/关联/唯一的结构化字段。
-- 入站去重/消息/运行/工作项原子入队；动作先登记意图及审批再派发；输出消息/终态/投递/必要审计共同提交；费用按调用身份一次结算。
-- **unknown 不等于失败，不能自动重发、重复输入或释放未核清费用。** 实际进程/线程/连接/文件未回收时保留归属，不能只取消 await 就报告已关闭。
-- 对象先完成临时写入、校验与发布，再建立引用；引用/固定保护 GC，备份使用一致快照及完整引用对象，恢复进入新目录。
-- 删除传播必须覆盖摘要、检索、派生记忆、模型来源和对象引用；FTS/向量是可重建索引，不是另一份正文真值。
-- 审计、业务与诊断分开。结构化诊断默认不含聊天原文、完整工具参数/结果、Cookie、凭据、原生 handle 或异常局部变量；关联编号串联调用。
-- HTTP 收口 `/api/v1`；工具使用结构化状态、错误码、副作用与验证结果；界面显示实际能力、版本差异、未知及降级原因。
-- 凭据只通过引用与专用存储。无桌面加密库主密钥由外部文件提供，不和密文一同自动生成保存。插件进程隔离是故障隔离，不能宣称操作系统沙箱。
+- 入口适配器 → 应用服务 → 领域与端口；基础设施实现端口；构造与生命周期集中在 composition。领域无网络/文件/数据库/平台 API/全局运行对象。
+- 一个主事件循环、一个实例主进程、一个 Web worker；实例目录由独占运行锁保护。维护命令取得相应独占锁，不为验证停止用户正在使用的服务。
+- 默认最多 4 个活跃回合、64 个排队回合；同会话顺序。后台任务、线程、子进程、队列、IPC 全部有界，并有实际所有者、取消与关闭状态。
+- 真值 `<home>/data/omni.db`，对象 `<home>/objects`，日志 `<home>/logs`。`--home` 优先，其次 `OMNI_HOME`，否则平台标准目录；工作目录单独配置。
+- SQLAlchemy 连接/事务/Alembic 由持久适配器管理；统一短事务写入；网络、模型、人工等待、原生调用不进数据库事务。仓储不自建连接或建表。
+- UUID、UTC、Agent 作用域组合约束、revision、事件 sequence、稳定游标、分页上限在服务端与数据库同时维持；JSON 不替代可筛选/关联/唯一的结构化列。
+- 入站去重/消息/运行/工作项原子入队；动作先登记意图与审批再派发；输出/终态/投递/必要审计共同提交；费用按调用身份一次结算。
+- **unknown ≠ 失败**：不自动重发、不重复输入、不释放未核清费用。进程/线程/连接/文件未实际回收时保留归属，不能只取消 await 就报告已关闭。
+- 对象先临时写入、校验、发布，再建引用；引用/固定保护 GC；备份用一致快照与完整引用对象，恢复进新目录。
+- 删除传播覆盖摘要、检索、派生记忆、模型来源与对象引用；FTS/向量是可重建索引，不是第二份正文真值。
+- 审计/业务/诊断分离；结构化诊断默认不含聊天原文、完整工具参数与结果、Cookie、凭据、原生 handle、异常局部变量；用关联编号串联。
+- HTTP 收口 `/api/v1`；工具用结构化状态、错误码、副作用与验证结果；界面如实显示能力、版本差异、未知与降级。
+- 凭据只经引用与专用存储（`AsyncSecretPort` / `FileVault`，主密钥外部提供）；模型与工具文本永不含凭据本体。插件进程隔离是故障隔离，不是操作系统沙箱。
 
 ## 7. 八个交付包的真实状态
 
-这里的 D1–D8 是交付包；原计划 R0–R7 是架构实施阶段，编号不可直接互换。父阶段未收口不会因为某个子批次通过而自动完成。
+D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段不因某个子批通过而自动完成。
 
-| 包 | 开发与离线状态 | 仍须完成 |
+| 包 | 开发与离线 | 仍须完成 |
 | --- | --- | --- |
-| D1 Windows 原生 | 选定 UIA、截图、语义动作、显式接管开发及离线完成；有隔离原生样例 | 用户延后的前台键鼠、完整权限/焦点/睡眠/恢复和实际平台验收 |
-| D2 macOS | 固定 helper、AX/截图/输入暂停、PTY/Keychain、构建交接及 Python 接线源码已有；仍开发中 | Mac mini 编译 Swift/C、执行原生测试、签名/权限/输入及运行反馈 |
-| D3 Linux | logind/总线、AT-SPI/X11 读取、截图、Portal 单帧和部分语义动作已有源码/注入验证 | 持续前台控制、Wayland RemoteDesktop 身份/暂停证明、PTY/凭据实测与桌面验收 |
-| D4 平台运维 | 终端核查、注册/控制、不可变 release、服务交换/隔离救援、旧注册清理、分阶段管理员和跨 schema 源码及专项已有 | 真正管理器、root/账号/文件/ABI/崩溃恢复、三平台长期运行与剩余缺陷 |
-| D5 业务通道 | 选定 QQ 文本、B站基础读取/发布、安卓所有者/模型范围/Unicode 恢复开发及离线完成 | 真实账号和设备验收；附件、视频等在 D6，不能据此称所有业务迁移完成 |
-| D6 模型与扩展 | 流式、低清图片、ONNX 文档、本地记忆语义、档位、文本技能和媒体的选定链路完成 | **MCP stdio/HTTP/OAuth → 插件回调/产物/市场完整流程**，以及真实质量 |
-| D7 产品切换 | 待开始 | 令牌管理、统一产品工作台/能力、全仓严格类型、三平台包/容器/安装恢复，达到门槛后切换正式入口及归档 V1 |
-| D8 完整验收 | 待开始 | 固定构建全量、浏览器、故障/负载、真实功能及每平台 72 小时 |
+| D1 Windows 原生 | UIA、截图、语义动作、显式接管开发及离线完成，有隔离原生样例 | 用户延后的前台键鼠、完整权限/焦点/睡眠恢复与平台验收 |
+| D2 macOS | helper、AX/截图/输入暂停、PTY/Keychain、构建交接与 Python 接线源码已有 | Mac mini 编译、原生测试、签名/权限/输入反馈 |
+| D3 Linux | logind/总线、AT-SPI/X11 读取、截图、Portal 单帧与部分语义动作源码/注入验证 | 持续前台控制、Wayland RemoteDesktop 身份/暂停证明、PTY/凭据实测 |
+| D4 平台运维 | 终端核查、注册/控制、不可变 release、服务交换/隔离救援、分阶段管理员与跨 schema 源码及专项 | 真实管理器、root/账号/文件/ABI/崩溃恢复、三平台长期运行 |
+| D5 业务通道 | 选定 QQ 文本、B站读取/发布、安卓所有者/模型范围/Unicode 恢复开发及离线完成 | 真实账号与设备验收；附件/视频属 D6 |
+| D6 模型与扩展 | 流式、低清图片、ONNX 文档、记忆语义、档位、文本技能、媒体选定链路完成；**MCP 仅有配置数据层** | **MCP stdio/HTTP/OAuth 运行适配器 → 插件回调/产物/市场**，以及真实质量 |
+| D7 产品切换 | 待开始 | 令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、三平台包/容器/安装更新恢复 |
+| D8 完整验收 | 待开始 | 固定构建全量、四视口双主题、故障/负载、真实功能、每平台 72 小时 |
 
-本次不重新给出百分比。不能根据 35 个历史里程碑或测试数量推断整个产品已经接近完成。
+不根据历史里程碑数或测试数推断接近完成；本次不给百分比。
 
-## 8. 已有能力、边界与应复用的位置
+## 8. 已有能力与应复用的位置
 
-| 能力 | 已有实现与边界 | 接手入口 |
+| 能力 | 已有实现与边界 | 入口 |
 | --- | --- | --- |
-| 核心数据/运行 | 单库、审批、费用、任务、投递、对象、人物、常驻、摘要/删除、配置与来源文档 | application 各用例、persistence 仓储；`DATA_MODEL.md` |
-| 日志/维护 | 结构化日志、关联、脱敏、诊断、指标、保留预览/计划/备份/执行/取消/恢复 | `adapters/diagnostics.py`、维护合同与既有证据；不因交接再扩展清理系统 |
-| QQ | 独立人物/会话/人设、明确@群聊、重连、冷却、共享审批投递；仅文本，不注入所有者私人记忆及工具 | `V2_QQ.md`、`application/qq.py` |
-| B站 | 基础读取、评论/回复/私信、真实 mention、一次放行与新增记录核验，共用 outbox | `V2_BILIBILI.md`、`application/bilibili.py` |
-| 安卓 | 明确设备及运行范围、观察/截图、审批输入、unknown 核查、Unicode IME 与恢复义务；APK 编译不等于安装验收 | `V2_ANDROID*.md`、`application/android.py` |
-| 模型流式 | 本地假 SSE 经真实锁定 SDK 验证，完整结束/用量/工具才结算或派发；预览不保存第二份消息 | `V2_MODEL_STREAMING.md`、`application/model_calls.py` |
-| 图片 | 原子入队、受控对象、低清实际 SDK 载荷与预算；累计附图次数独立于当前上下文/压缩 | `V2_IMAGES.md`、`application/images.py`、`adapters/images.py` |
-| 本地向量 | 可选离线 ONNX CPU worker、模型指纹/前缀/分窗、文档及记忆混合召回；实际合成图通过，未下载预训练模型验证质量 | `V2_LOCAL_VECTORS.md`、`V2_MEMORY_SEMANTICS.md` |
-| 记忆整理 | 事实/档案/常驻共用条目与来源；相关事实仅明确人工 related 关系，不按相似度自动合并/遗忘/抑制 | `application/memory_semantics.py` |
-| 档位 | 入队捕获模型/预留/策略、工具交集、一次固定模型升档；升档不换模型、不代替审批 | `V2_ROUTING.md`、`domain/routing.py` |
-| Python 扩展 | 可信目录封存、显式授权、进程外工具；首批所有工具按写处理；未完成宿主回调/文件产物/市场 | deploy 文档扩展节、`adapters/extensions/`、扩展用例 |
-| 文本技能 | 文本包导入/导出、修订/参考文件、审阅启用、回合封存/披露、审批编辑与撤权恢复 | `V2_SKILLS.md`、`application/skills.py` |
-| 媒体/视频理解 | B站来源登记（配置修订绑定）、在线字幕/受管 ASR/等距抽帧、数据库触发器状态机、时间锚点转写对象与只读模型工具、取消/恢复/删除传播、工作台媒体分区 | `V2_MEDIA.md`、`application/media.py`、`adapters/media.py`、`adapters/workers/media.py` |
+| 核心数据/运行 | 单库、审批、费用、任务、投递、对象、人物、常驻、摘要/删除、配置与来源文档 | `application/*`、`persistence/*`；`DATA_MODEL.md` |
+| 日志/维护 | 结构化日志、关联、脱敏、诊断、指标、保留预览/计划/备份/执行/取消/恢复 | `adapters/diagnostics.py`；不因交接再扩展清理系统 |
+| QQ | 独立人物/会话/人设、明确 @、重连、冷却、共享审批；仅文本 | `V2_QQ.md`、`application/qq.py` |
+| B站 | 基础读取、评论/回复/私信、真实 mention、一次放行、共用 outbox | `V2_BILIBILI.md`、`application/bilibili.py` |
+| 安卓 | 设备与运行范围、观察/截图、审批输入、unknown 核查、Unicode IME 与恢复 | `V2_ANDROID*.md`、`application/android.py` |
+| 模型流式 | 假 SSE 经真实锁定 SDK 验证；结束/用量/工具才结算或派发 | `V2_MODEL_STREAMING.md`、`application/model_calls.py` |
+| 图片 | 原子入队、受控对象、低清实际载荷与预算 | `V2_IMAGES.md`、`application/images.py` |
+| 本地向量 | 可选离线 ONNX CPU worker、模型指纹/前缀/分窗、文档与记忆混合召回 | `V2_LOCAL_VECTORS.md`、`V2_MEMORY_SEMANTICS.md` |
+| 记忆整理 | 事实/档案/常驻共用条目与来源；只保留显式人工 related | `application/memory_semantics.py` |
+| 档位 | 入队捕获模型/预留/策略、工具交集、一次固定模型升档 | `V2_ROUTING.md`、`domain/routing.py` |
+| Python 扩展 | 可信目录封存、显式授权、进程外工具、指纹漂移撤权、按回合披露 | `V2_EXTENSIONS` 相关合同、`application/extensions.py`、`adapters/extensions/` |
+| 文本技能 | 文本包导入/导出、修订/参考文件、审阅启用、回合封存/披露、撤权恢复 | `V2_SKILLS.md`、`application/skills.py` |
+| 媒体/视频理解 | B站来源登记、字幕/ASR/抽帧、触发器状态机、锚点转写、只读工具、取消/恢复/删除、工作台分区 | `V2_MEDIA.md`、`application/media.py`、`adapters/media.py`、`adapters/workers/media.py` |
+| **MCP（仅数据层）** | `mcp_options` 表（transport / command / arguments / endpoint / auth_mode / credential_ref，绑定配置修订）+ `MCPOptions` 校验（stdio 无远端、HTTP 无进程、bearer 必须带引用、参数禁止内联凭据）；**无运行适配器、无工具、无 HTTP 端点、无工作台分区** | `persistence/schema.py`、`domain/configuration.py` |
 
-## 9. 最近一批：媒体/视频理解的关键事实与易错点
+## 9. 最近一批：媒体/视频理解（已收口，勿重做）
 
-主要新增文件：`domain/media.py`、`application/media.py`、`adapters/media.py`、`adapters/workers/media.py`、`adapters/persistence/media_repository.py`、`migrations/versions/v0036.py`、`web/ui/v2/media.js`，及 `test_v2_media.py`、`test_v2_media_ui.py`；接线改动 `adapters/bilibili.py`（subtitle/streams 读取与有界下载）、`adapters/http.py`、`composition/instance.py`、`composition/http.py`、`application/ports.py`、`schema.py`、`repository.py`。
+新增：`domain/media.py`、`application/media.py`、`adapters/media.py`、`adapters/workers/media.py`、`persistence/media_repository.py`、`migrations/versions/v0036.py`、`web/ui/v2/media.js`、`agent/tests/test_v2_media.py`、`test_v2_media_ui.py`；接线：`adapters/bilibili.py`、`adapters/http.py`、`composition/instance.py`、`composition/http.py`、`application/ports.py`、`schema.py`、`repository.py`。
 
-生产路径：B站视频经既有配置/凭据/修订授权登记为 `media_sources`（唯一键 agent+bvid，身份列不可变，绑定登记时的配置修订）→ 作业 `subtitle/transcribe/frames`（数据库触发器状态机：准入 ≤8 活跃/来源、转移白名单、终态不可变、done 必须带产物、终态必须带 finished_at）→ 在线字幕或受管子进程 ASR/抽帧 → 转写对象带 `[MM:SS-MM:SS]` 锚点（字幕无可靠时间轴，不伪造锚点）、帧拼图复用既有对象+图片校验链 → 模型只经 `media_list`/`media_transcript` 只读工具读实际落库文本。
+生产链：B站视频经配置/凭据/修订授权登记为 `media_sources`（唯一 agent+bvid，身份列不可变，绑定登记时的配置修订）→ 作业 `subtitle/transcribe/frames`（DB 触发器：每来源 ≤8 活跃、转移白名单、终态不可变、`done` 必须有产物行、终态必须 `finished_at`）→ 在线字幕 / 受管子进程 ASR / 等距抽帧 → 转写对象带 `[MM:SS-MM:SS]` 锚点（字幕没有可靠时间轴就不伪造）→ 模型只经 `media_list` / `media_transcript` 读实际落库文本。
 
-本批要点与踩坑：
+本批教训（写 MCP 时同样适用）：
 
-- **模型读的是 `ActionResult.text`**：工具头行带 transcript_id/kind/language/range，正文为锚点窗口；缺失行如实报错，不发明文本。
-- 作业行没有嵌套来源：`media_jobs` 行只带 source_id 坐标，`_execute` 在 `media_job_start` **之后**显式读来源行，保证失败落在合法转移上（此前 `job["source"]` 直接 KeyError、作业卡死 queued——测试抓出后修复）。
-- ASR 分支必须显式把 worker 写出的 transcript.json 作为发布载荷（`body` 此前未赋值，NameError 归类 unknown——测试抓出后修复）。
-- 终态幂等是刻意设计：取消与完成竞态时后到方观察到已完成状态并返回，不报错。
-- 排队作业只能经取消离开；失败/unknown 只描述 running 工作。超时/崩溃类错误归 unknown，业务错误归 failed。
-- 配置修订后来源被搁浅（`bilibili_configuration_revoked`），重新登记即重绑新修订——不是缺陷，是绑定语义。
-- 分页游标与比较键必须同为 `id`（此前 created_at 比较配 id 游标，翻页必空——对齐 B 站仓储样板后修复）。
-- 工作台刷新不得无条件清空当前选择；所选项消失才清（否则登记后详情全 undefined）。
-- 浏览器测试等作业出现要轮询服务端真值，状态文本在两次提交间相同，不能用 UI 文本当同步点。
-- WBI 签名（纯算法）在领域层，`wts` 由调用方注入；worker 懒加载重型库，缺组件返回 `media_component_missing`，ASR 只用离线缓存。
+- 模型读的是 `ActionResult.text`：头行带 id/kind/language/range，正文是窗口；缺数据如实报错。
+- 作业行不含嵌套来源；`_execute` 在 `media_job_start` **之后**显式读来源行（此前 KeyError 导致卡 queued）。
+- 后台分支必须显式赋值发布载荷（ASR 的 `body` 曾未赋值，NameError 被归 unknown）。
+- 终态幂等是刻意设计：取消与完成竞态时后到方返回已完成，不报错。
+- 超时/崩溃→unknown，业务拒收→failed；排队作业只能经取消离开。
+- 配置修订后来源搁浅（`bilibili_configuration_revoked`），重新登记重绑——设计语义，不是缺陷。
+- 分页游标与比较键必须同列（曾 created_at 比较配 id 游标，第二页必空）。
+- 工作台刷新只在所选项消失时清空选择。
+- 浏览器测试同步点用服务端真值（轮询 job id），不要用重复的 UI 状态文本。
+- 服务上限：2 并发、下载 256 MiB/180 s、转写 4 MiB/900 s、抽帧 180 s、工具文本 ≤12000 字符。
 
 ## 10. 下一批 D6.mcp 的可执行开发合同
 
-以下是**接续开发要求，不是声称已经存在的接口**。数据层已有 MCP 配置表；运行适配器（stdio/HTTP/OAuth/指纹/撤权）尚未完成，先按源码核清已有部分再实现。
+以下**不是已存在的接口**，是本批要求。已核实的现状与可复用先例在前，建议结构在后；最终以源码对账为准。
 
-### 10.1 先做有界对账，随后立即实现
+### 10.1 已核实的起点（2026-11-10）
 
-核清 V1 的 `tools/mcp/`（客户端、发现、授权、漂移撤权与子进程生命周期）及 MCP 配置表、概念文档；V2 只参考不 import。对照 V2 的受管进程（OwnedProcess/MediaProcessor 先例）、凭据引用（Credentials/CredentialService）、审批与费用合同，列出 stdio/HTTP/OAuth 各自的接入位置，然后写代码。
+- `agent/src/omni/adapters/persistence/schema.py` 的 `mcp_options`：主键 `(revision_id, agent_id, kind='mcp')`，外键到 `configuration_revisions`；列 `transport('stdio'|'streamable_http')`、`command`、`arguments`(JSON)、`endpoint`、`auth_mode('none'|'bearer'|'oauth')`、`credential_ref`，并有 transport 形状约束。**MCP 服务是"配置修订"这一等公民，不是新增独立配置体系。**
+- `agent/src/omni/domain/configuration.py` 的 `MCPOptions` 已校验：stdio 不得带 endpoint/auth；HTTP 不得带 command/arguments 且必须 endpoint；bearer 必须 credential_ref；arguments 里禁止 `--api-key/--token/--password/--cookie/--authorization` 之类内联凭据。
+- `agent/src/omni/adapters/http.py` 已有 `kind: Literal["model","channel","mcp","preset"]` 的配置 CRUD 端点，`HttpRuntime` **没有** mcp 字段；`composition/instance.py` 也**没有** MCP 构造。
+- `agent/src/omni/domain|application|adapters` 下**没有**任何 MCP 运行代码。V1 的 `tools/mcp/`、`channels/web_api/mcp.py`、`memory/mcp_schemas.py` 只能读来理解行为，**不得 import**。
+- 先例（强烈建议照抄结构，不照抄业务）：
+  - `application/extensions.py`：`authorize` / `disable` / `tools_for_run` / `invoke` / `review_quiescent` / `health`；invoke 前比对 `arguments_sha256`，`before_dispatch` 二次校验，漂移码 `extension_snapshot_drift`，产物协议不支持时返回 UNKNOWN。
+  - `adapters/extensions/hosts.py`：`MAX_HOSTS=4`、`MAX_PENDING=64`、`revoke(agent_id, id, authority_epoch, timeout_s)`、`health()`、`stop_accepting/close`。
+  - `adapters/workers/client.py`：`spawn` 用 `OwnedProcess`、stderr 排空、`invoke` 有界、`health()`、`review_quiescent()`、`close()`。
+  - `adapters/platform/processes.py`：`OwnedProcess.spawn/terminate`，Windows Job 对象。
+  - `application/engine.py` 第 224–230 行：每回合把 `tools_for_run` 的 spec 合并进 registry；`Capability(spec, adapter)`；`ToolSpec(writes, timeout_s, resource, binding_id)`。
+  - `domain/contracts.py`：`ActionResult(status, text, effect, error_code, retryable, artifacts, verification, data)`、`InvocationContext(agent_id, run_id, session_id, policy_revision, workspace)`。
+  - 凭据：`AsyncSecretPort.get(reference)` 只在适配器里取用；引用字符集 `[a-zA-Z0-9_.:/-]{1,200}`；`FileVault` 主密钥必须在目录外。
 
-### 10.2 传输与外部进程
+### 10.2 建议的新建与接线
 
-- stdio 子进程沿 OwnedProcess 合同：有界、可取消、崩溃即销毁、下一调用重拉；in-flight 调用随进程销毁归类 unknown，不自动重放写操作。
-- Streamable HTTP 客户端有界超时、显式取消与连接复用；断连/超时区分失败与 unknown。
-- OAuth 走显式授权流，凭据只入专用存储并按引用使用；模型与工具结果永不含凭据本体；授权失败/过期如实上报，不静默降级。
+| 位置 | 内容 |
+| --- | --- |
+| `domain/mcp.py` | 传输/认证枚举、目录与工具指纹（**name + inputSchema**，不含 description）、错误分类（failed / unknown / denied）、授权与漂移判定、结果文本上限；纯函数，无 I/O |
+| `application/mcp.py` | `MCPService`：install/save（走既有 ConfigurationService 语义）、connect、discover(分页)、authorize/revoke、`tools_for_run`、`invoke`、cancel、recover、health、close；端口 `MCPTransportPort` |
+| `adapters/mcp/`（或单文件 `adapters/mcp.py`） | `stdio.py`（JSON-RPC over 子进程，复用 `OwnedProcess`）、`http.py`（Streamable HTTP，有界超时/取消）、`oauth.py`（显式授权流 + PKCE/state）、`catalog.py`（分页发现与指纹） |
+| `persistence/mcp_repository.py` + `migrations/versions/v0037.py` | 服务运行态与代际、目录快照/指纹、逐工具授权（含 owner 审阅证据）、调用记录与 unknown 标记；沿用触发器风格：状态转移白名单、终态不可变、`done` 必须有结果行 |
+| `composition/instance.py` / `composition/http.py` | 构造、`lifetime.own("mcp", ...)`、`health()["mcp"]`、启动 `recover()`；`HttpRuntime.mcp` |
+| `adapters/http.py` | `/agents/{id}/mcp/servers`（列表/详情/连接/断开/重置）、`.../catalog`（分页）、`.../tools/{tool}/authorization`、`.../oauth/start`（显式）、`.../health` |
+| `web/ui/v2/mcp.js` + `index.html` + `main.js` | 新分区：服务列表、被动状态、目录逐工具展开与确认、连接/断开/重置（先确认目标）、OAuth 显式发起、脱敏日志入口 |
+| `agent/tests/test_v2_mcp*.py` | 见 10.8 |
 
-### 10.3 目录、指纹与授权
+不要新建第二套配置体系、不要新增 `config.yaml` 式旁路、不要把 MCP 服务塞进 `settings` 表。
 
-- 工具目录按服务显式发现；name+inputSchema 指纹（不含 description）变化触发撤权与所有者显式重新确认；未授权工具对模型不可见。
-- 模型可见文本保留来源服务与资源标识；MCP 工具副作用沿统一审批链，不旁路。
-- 配置、授权、漂移、unknown 与重连全部进工作台分区与审计；服务启停显式，不自动后台重连风暴。
+### 10.3 传输与进程
 
-### 10.4 退出条件
+- stdio：每服务一个持久会话 + 所有者线程/进程；同一服务调用串行；`MAX_*` 与等待上限显式；握手/发现/调用共用请求总预算。
+- 进程退出/崩溃：in-flight 调用归 **unknown**，不重放；显式请求才允许有界重连（V1 先例 5/10/20/40/80 秒，5 次用尽须人工 reset），本批可自定但必须写进合同与证据。
+- HTTP：连接有界、超时与显式取消；断连与超时区分 failed/unknown；不允许无限重试；凭据只从引用取，不回显。
+- OAuth：用户显式发起才注册客户端与打开授权页；PKCE/state 限本次请求（V1 先例 120 秒）；回调来源白名单；令牌入 vault；换账号/机器需重新授权。遇到 401 不自动开授权。
+- 关闭顺序：`stop_accepting()` → 取消等待 → 回收子进程/连接 → `close(timeout)`；实际未回收时 `health()` 如实报。
 
-至少形成“显式配置 → 受管 stdio/HTTP 连接 → 工具发现与授权 → 模型经工具实际调用 → 指纹漂移撤权 → 工作台可见”的端到端生产路径；离线假服务覆盖超时/取消/崩溃/unknown/撤权/跨 Agent。真实外部 MCP 服务器与真实 OAuth 供应商另行验收；仅有配置表不等于完成。
+### 10.4 目录、指纹与授权
 
-## 11. 后续固定顺序与不能遗失的欠账
+- 目录按服务显式发现，分页有上限（V1 先例 16 页 / 256 项）；指纹 = 工具名 + `inputSchema` 的稳定序列化哈希。
+- 指纹变化 → 撤销该服务既有授权并置"需重新确认"；未授权工具对模型不可见；旧页面不能批准新指纹。
+- 只读白名单只能由所有者显式声明（不得依据服务自报 `readOnlyHint`），且必须是已授权工具的子集；未声明则按写处理（走审批）。
+- 外部描述与返回值是不可信数据：不授予权限、不自动访问链接、不转发 base64 媒体。
+- 服务器 `isError` 呈现为错误，不等同传输失败，不断开连接。
 
-1. D6.mcp 收口：stdio、Streamable HTTP、显式 OAuth、凭据引用、目录指纹、授权漂移撤销、超时/取消、unknown 与工作台。仅有 MCP 配置表不等于运行适配器完成。
-2. 完整扩展链：进程外宿主回调、产物协议、版本/授权、市场更新提示与实际安装流程，复用对象/审批/费用；不能把文本技能包等同代码插件或市场。
-3. 收口 D2/D3/D4 的源码欠账及各平台反馈：尤其 Linux 持续控制与 Wayland 证明、Mac 编译/权限/原生 ABI/文件保护、真实系统管理器与恢复。没有环境时记录“待真实验收”，继续其他已授权开发。
-4. D7 产品门槛：所有者令牌管理、工作台统一与能力报告、业务清单、全仓严格类型、打包/容器/安装更新恢复。只在明确门槛满足后切换 `omni` 默认入口，移除生产对 V1 的引用并可恢复归档。
-5. D8 固定构建验收：全量、四视口双主题、故障注入、参考负载、真实模型/QQ/B站/安卓/远程 MCP，以及每平台 72 小时。
+### 10.5 工具暴露与模型文本
 
-这些是固定交付单元，不再无限扩展已经具备能力的清理/维护基础。发现真实缺陷或新接入必须修改时，限定影响范围并保留证据。
+- 用 `ToolSpec(..., writes=?, timeout_s=?, resource="mcp")`；名称前缀服务标识防撞（例如 `mcp_<server>_<tool>` 或保留原始名 + binding_id，二选一并写进合同）。
+- 每回合按 run 封存可用工具（`tools_for_run` 先例），而不是全局常驻；运行中撤权后不得再用旧授权派发。
+- 模型可见文本：来源服务 + 工具名 + 结果摘要，≤12000 字符；错误码结构化；不得回传凭据、完整异常或原始外部载荷。
+- `Outcome.UNKNOWN` 只在"可能已执行"时使用，`Effect.UNKNOWN` 同步标注；不要用 failed 掩盖未知。
 
-## 12. 最新验证、已知问题及证据口径
+### 10.6 数据与迁移
 
-最新 `docs/evidence/v2-skills.json` 汇总八份原始报告的**同节点最新结果**，共 78 个不同节点全部通过；不是八份报告数量简单相加。最初 62 项报告有 10 项失败，原报告保留，后续针对性修复/调用方/模型闭环复核记录也保留。
+- 新迁移 **v0037**；不改写 v0036。表至少覆盖：服务运行态与代际（authority epoch）、目录快照与指纹、逐工具授权、调用与 unknown 记录。
+- 触发器/约束：状态转移白名单、同一服务不能同时两个活会话、终态不可变、授权必须带当前指纹、跨 Agent 隔离（组合外键 `(id, agent_id)`）。
+- 服务身份绑定配置修订；修订变更后旧授权失效并要求确认（与媒体 `bilibili_configuration_revoked` 同类语义）。
 
-16 例浏览器为技能和调用方流式界面，各覆盖 390/760/1024/1440px、深浅主题。16 份默认类型检查不等于全仓严格类型。当前代码没有全量通过、主包重建、远程 CI、Mac/Linux、真实账号设备、负载或 72 小时通过结论。
+### 10.7 工作台
 
-开放问题 `UI.exact_organization_refresh_timing`：旧精确整理 UI 曾一次刷新显示 queued；同源码单节点独立复核通过，**尚未认定修复**。原报告在 `temp/build/v2-memory-semantics-final.xml` 和 `...-repair.xml`，见台账 `open_validation_findings`。不要删掉该项或用一次重跑通过替代根因结论。
+- 新分区挂在 `web/ui/v2/index.html` 的 `nav` 与页面容器，`main.js` 注册 mount/load/switch（参照 `page === 'extensions'` 的写法）；版本串**整组原子递增**（当前 `20261110v48`）。
+- 状态必须被动可读（不启动进程），连接/断开/重置先展示目标并防重复点击，失败不自动重放。
+- 目录逐工具展开、显示完整参数 schema、当前指纹与授权状态；390/1024 两个视口都要能用。
 
-较早的全量 2606 通过及后续 2659 通过/1 失败都只属于当时源码，不能用于证明当前全仓全绿。旧批次“未实现”的限制也不自动变为当前待办。
+### 10.8 退出条件与测试矩阵
+
+至少形成端到端：**显式配置 → 受管 stdio/HTTP 连接 → 目录发现与逐工具授权 → 模型经工具实际调用 → 指纹漂移撤权 → 工作台可见**。
+
+- 假 stdio JSON-RPC 子进程（真实进程，非 mock）与假 HTTP 服务；覆盖中文、分页、会话复用、并发串行。
+- 故障：握手超时、调用超时、崩溃、断连、取消、`isError`、未知不重放、重连上限用尽。
+- 授权：未授权不可见、漂移撤权、旧指纹不能确认、只读白名单子集校验、跨 Agent 不可见。
+- 凭据：模型文本/HTTP/日志/审计中均无凭据；引用不存在时失败明确。
+- 守卫：`test_v2_architecture.py`（依赖方向）、worker 文件范围与进程所有权、迁移冻结、`test_v2_http.py`（OpenAPI 与端点目录一致）。
+- 浏览器：新分区 390/1024 流程 + 一次全工作台回归；报告与哈希按既有证据格式记录。
+
+真实外部 MCP 服务与真实 OAuth 供应商另列"待真实验收"；只有配置表或只有假服务都不算完成。
+
+### 10.9 不得做的事
+
+- 不 import V1 `tools/mcp`、不复制其 YAML 配置或 DPAPI 凭据目录。
+- 不在模型上下文、`ActionResult.data`、HTTP 响应或日志中暴露 token。
+- 不因为"连不上"就自动安装/下载外部服务，或修改用户 system 服务。
+- 不把 unknown 当 failed 后自动重试写操作；不静默放行未授权工具。
+- 不新增第二套迁移头、不改写历史迁移、不手工改 `schema.py` 之外的真值。
+
+## 11. 后续固定顺序
+
+1. **D6.mcp** 收口（本批）。
+2. 完整扩展链：进程外宿主回调、产物协议、版本/授权、市场更新提示与实际安装；复用对象/审批/费用。
+3. 收口 D2/D3/D4 源码欠账与平台反馈（Linux 持续控制与 Wayland 证明、Mac 编译/权限/原生 ABI、真实系统管理器与恢复）；无环境就记"待真实验收"，继续其他开发。
+4. D7 门槛：令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、打包/容器/安装更新恢复；门槛满足后才切 `omni` 默认入口并归档 V1。
+5. D8 固定构建验收：全量、四视口双主题、故障注入、参考负载、真实模型/QQ/B站/安卓/远程 MCP、每平台 72 小时。
+
+## 12. 验证口径与已知问题
+
+媒体批 `docs/evidence/v2-media.json` 汇总五份报告的**同节点最新结果**，共 133 个不同节点全过（不是报告数相加）：
+
+| 报告 | 用例 | 用时 | SHA256 前缀 |
+| --- | --- | --- | --- |
+| `v2-media-final.xml` | 7 | 15.904 s | `28cc220e…` |
+| `v2-media-ui.xml` | 2 | 10.715 s | `eaaa7dd6…` |
+| `v2-media-callers.xml` | 31 | 24.830 s | `ee273d29…` |
+| `v2-media-guards.xml` | 20 | 27.359 s | `e84e8808…` |
+| `v2-media-workbench.xml` | 73 | 555.145 s | `a7ba4f9a…` |
+
+门禁 `temp/build/v2-media-gates.json`（ruff / format / pyright / prettier 全 exit 0，13 个生产文件，0 错误）。**没有当前全量、主包重建、远程 CI、Mac/Linux、真实账号设备、负载或 72 小时通过结论。** 早期全量 2606/2659 等数字只属于当时源码。
+
+开放问题（不要因一次重跑通过就标记修复）：
+
+- `UI.exact_organization_refresh_timing`：旧精确整理 UI 一次刷新显示 queued；单节点复核通过，未判定稳定。报告 `temp/build/v2-memory-semantics-final.xml`、`-repair.xml`。
+- `security.sensitive_history_services_acceptance`：敏感审计 2/2 为历史命中，但工作区 `docs/evidence/services-acceptance-2026-11-01.json`（`ad2ae05` 引入，未改动）仍含 1 条已确认字面量；本批新增文件零命中。处置（改写历史或替换该文件）需所有者决定。审计产物在 `D:\omni-private-evidence\sensitive-audit\v2-media-20261110.json\`。
 
 ## 13. 开发与验证执行方法
 
-优先完成同一生产链路的关联开发。开发中只跑受影响模块和直接调用方，少量测试使用单进程：
+开发中只跑受影响模块与直接调用方，单进程：
 
 ```powershell
 uv run --no-sync pytest -q -n 0 agent/tests/test_<相关模块>.py
-uv run --no-sync pytest -q -n 0 agent/tests/test_<相关模块>.py::test_<失败或新增行为>
-# 只使用缓存中的失败，不因缓存为空启动全仓：
-uv run --no-sync pytest -q -n 0 --lf --last-failed-no-failures=none
+uv run --no-sync pytest -q -n 0 agent/tests/test_<相关模块>.py::test_<行为>
+uv run --no-sync pytest -q -n 0 --lf --last-failed-no-failures=none   # 只用缓存失败，缓存空不启动全仓
 ```
 
-不要为了提速跳过断言、缩短被测超时、去掉网络闸门或使用用户真实数据。UI 同文件优先共享 `ui_browser` 进程，每个用例独立 BrowserContext 和临时数据库；重型 Pyright、浏览器、打包顺序执行。
+`agent/pyproject.toml` 的 addopts 已含 `-n auto --dist=loadfile`；不要加 `-p no:xdist`，`-n 0` 用于单文件调试。重型 Pyright、浏览器、打包顺序执行；UI 同文件共享 `ui_browser` 进程，每用例独立 BrowserContext 与临时数据库。
 
-完整任务收尾/提交前按仓库要求执行一次 `uv run --no-sync pytest -q`，同一固定版本可复用有效结果；不要在本次纯文档交接或每次状态更新后跑全量，不并发多个全量。当前用户偏好开发优先，不代表可以虚报尚未运行的门禁。
-
-新增/删除文件后更新并核查索引；台账变更后生成摘要：
+门禁命令（按改动文件）：
 
 ```powershell
-uv run --no-sync python scripts/project_index.py
-uv run --no-sync python scripts/project_index.py --check
-uv run --no-sync python scripts/task_status.py
-uv run --no-sync python scripts/task_status.py --check
+.venv\Scripts\python.exe -m ruff check <files>
+.venv\Scripts\python.exe -m ruff format --check <files>
+uv run --no-sync pyright <files>            # 必须 --no-sync
+node web/node_modules/prettier/bin/prettier.cjs --check <files>
+uv run --no-sync python scripts/project_index.py [--check]
+uv run --no-sync python scripts/task_status.py [--check]
 ```
 
-锁定依赖内的 Ruff 与格式检查按改动文件运行；前端沿 `web/package-lock.json` 的现有 Prettier，避免重建用户环境。既有验证脚本可参考 `temp/build/validate_v2_skills.py`、`revalidate_v2_skills.py`；**seal 脚本是特定批次的一次性状态变更工具，不能直接重跑**，否则可能覆盖证据或重复修改记录。
+完整任务收尾/提交前按仓库要求跑一次全量；同一固定版本可复用结果；不在纯文档或状态更新后跑全量，不并发多个全量。不要为提速跳过断言、缩短被测超时、去掉网络闸门或用真实用户数据；不要 `uv sync`（会重建入口并锁文件）。
 
-## 14. V2 的隔离运行与平台交接
+`temp/build` 下的 seal 脚本是特定批次的一次性状态变更工具，**不能直接重跑**。
 
-开发入口为 `python -m omni.composition.cli`，不要用 `omni` 来证明 V2 已运行。Windows 手动示例：
+## 14. 隔离运行与平台交接
 
 ```powershell
-# 仅供需要启动隔离实例时使用；这不是每个新会话必须执行的动作。
 $v2DevHome = Join-Path $env:TEMP ("omni-v2-dev-" + [guid]::NewGuid().ToString("N"))
 uv run --no-sync python -m omni.composition.cli --home $v2DevHome init
 uv run --no-sync python -m omni.composition.cli --home $v2DevHome serve
 ```
 
-默认访问 `http://127.0.0.1:8766`。端口已占用时先看 `serve --help` 选择隔离端口，不停止已有服务。`auth` 是同前缀的所有者本机命令；令牌只能给所有者在本机界面使用，不写入 AI 工具输出、交接、URL 或日志。未配置真实模型时不要为验证擅自填写真实凭据或发付费请求。
+默认 `http://127.0.0.1:8766`；端口占用时看 `serve --help` 换隔离端口，不停已有服务。`auth` 是所有者本机命令；令牌只给所有者在本地界面使用，不写进 AI 工具输出、交接、URL 或日志。未配置真实模型时不要填真实凭据或发付费请求。
 
-新机器/新 checkout 才按锁文件准备独立环境；当前工作区用 `--no-sync`，不执行 `uv sync`。工作目录、数据库和运行文件都显式隔离。
+macOS 先看 `docs/V2_MACOS_HANDOFF.md`、`V2_MACOS_SYSTEM_SERVICES.md`、`V2_ADMIN_HANDOVER.md`；Bundle ID `org.omnioperator.desktophelper`，安装/签名仍须按合同核验。Linux 看 `docs/V2_LINUX_HANDOFF.md`；无桌面容器不能替代 X11/AT-SPI/Wayland 交互验证。
 
-macOS 请先看 `docs/V2_MACOS_HANDOFF.md`，系统服务另看 `V2_MACOS_SYSTEM_SERVICES.md` 与 `V2_ADMIN_HANDOVER.md`；向 Mac mini 交接源码、锁文件、构建/签名/权限及证据要求，返回原始编译与原生测试结果。固定 helper Bundle ID 为 `org.omnioperator.desktophelper`，实际安装/签名仍须按合同核验。
+## 15. 换会话、换机器时如何交付
 
-Linux 看 `docs/V2_LINUX_HANDOFF.md`；无桌面容器只能证明核心部署，不替代 X11、AT-SPI 或 Wayland 交互验证。无法证明身份/暂停条件时不开放相应前台动作。
-
-## 15. 换会话、换机器时如何交付材料
-
-- **同一机器且 AI 能访问工作区：**发送配套 `docs/V2_AI_CONTINUATION_PROMPT.md` 全文，并要求先读本文和当前台账。继续使用当前工作树，保留全部在途修改。
-- **只有聊天附件能力：**至少提供本文、提示词、台账和最新证据；要实际开发还必须提供源码，AI 无法仅靠这些说明重建未提交成果。
-- **换机器或新的 checkout：**在全新目录准备记录的 Git HEAD，再核验并叠加 corrected 源码包的 `source/` 内容；31 份报告在 `validation/`，其路径语义对应原 `temp/build/`。恢复只针对新目录，不能覆盖有他人修改的工作区。
-- 同时提供原 manifest。按 manifest 校验 ZIP SHA、每个成员指纹和路径；仅“能解压”不足以证明恢复成功。1400 份源码快照不包含当前新交接文档，需额外复制本文和提示词。
-- 源码恢复包不包含运行数据库正文、凭据、主密钥、浏览器登录态或已安装系统服务。源码包含项目实现，应仅交给获授权的开发环境，不自动上传公开仓库。
-
-如提供本次专用交接 ZIP，优先阅读 ZIP 根 `START_HERE.md`，它包含本文/提示词的新版本与原封存源码/manifest，按其清单校验。专用包不改变原技能批次证据指纹。
+- **同机且能访问工作区**：发送 `docs/V2_AI_CONTINUATION_PROMPT.md` 全文，要求先读本文与台账；继续用当前工作树，保留在途修改。
+- **只有聊天附件**：至少给本文、提示词、台账、最新证据；要实际开发必须给源码，AI 无法只靠说明重建。
+- **换机器/新 checkout**：准备记录的 Git HEAD，再叠加 `source-and-evidence.zip` 的 `source/`；`validation/` 对应 `temp/build/` 语义。按 manifest 校验 ZIP SHA 与逐成员指纹，仅"能解压"不算恢复成功。
+- 恢复包不含运行库正文、凭据、主密钥、浏览器登录态或已安装服务；本次文档晚于封存，需单独复制本文与提示词。
 
 ## 16. 下一会话的交付要求与最终完成门槛
 
-接手后先给出简短事实核对，随后实际开发 D6.media。一个会话的收尾需要：说明完成的生产路径、修改文件、真实限制；记录相关测试/类型/排版的实际结果与原始报告；保持开放问题；更新当前台账、生成摘要、HANDOFF 当前段、领域合同与索引；为该固定源码保留可恢复副本。
+接手后先给一段事实核对，然后**实际开发 D6.mcp**。每个节点收尾需要：说明完成的生产路径、修改文件、真实限制；记录测试/类型/排版的实际结果与原始报告；保留开放问题；更新台账、生成摘要、更新本文当前段、领域合同与索引；为该固定源码保留可恢复副本；提交并推送。
 
-开发完成、离线验证、真实平台验收分别记录。文档或提示词更新不产生“新业务验证通过”，也不应改写旧封存指纹。若当前源码和这里的版本不一致，先对账，不自动覆盖为旧快照。
+开发完成、离线验证、真实平台验收分别记录；文档更新不产生"新业务验证通过"，不改写旧封存指纹。源码与本文不一致时先对账，不自动覆盖为旧快照。
 
-**整个 V2 的完成条件：**既定业务迁移与扩展开发闭环、正式入口切换、V1 生产引用退役、三平台能力如实可用、安装/包/容器/更新/恢复可复现、当前固定构建必要测试通过，以及对应真实账号/设备/三平台各 72 小时证据。缺环境、设备或授权应准确登记，不能用“模拟通过”替代，也不要因为这些验收暂缺就停止其他可完成开发。
+**整个 V2 的完成条件：**既定业务迁移与扩展开发闭环、正式入口切换、V1 生产引用退役、三平台能力如实可用、安装/包/容器/更新/恢复可复现、固定构建必要测试通过，以及对应真实账号/设备/三平台各 72 小时证据。缺环境就如实登记，不用"模拟通过"替代，也不因此停止其他可完成开发。
+
+## 17. 接手当天核对清单
+
+```powershell
+git log --oneline -5
+git status --porcelain
+git ls-remote origin refs/heads/codex/architecture-v2
+git rev-parse HEAD
+uv run --no-sync python scripts/project_index.py --check
+uv run --no-sync python scripts/task_status.py --check
+```
+
+- 期望：分支 `codex/architecture-v2`，远端与本地一致（或本地领先本批文档提交），工作区干净。
+- 期望：索引 `modules=65 files=705 routes=415 declared_tools=94`，`stale=` 为空。
+- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D6.mcp"`，`current_validation.targeted_unique_passed == 133`、`includes_browser_cases == 75`。
+- 若数字不同：先判断是否有并行会话提交，再决定是否重算索引/摘要；不要改历史证据。

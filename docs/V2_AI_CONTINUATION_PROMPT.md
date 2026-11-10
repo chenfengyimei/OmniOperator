@@ -1,61 +1,68 @@
 # 可直接复制给下一 AI 的接续提示词
 
-以下正文可以整段复制。默认下一 AI 能访问本地工作区；若换机器，请同时提供 `V2_AI_HANDOFF.md`、源码恢复包及 manifest，并将工作区路径改为实际位置。
+以下正文可整段复制。默认下一 AI 能访问本机工作区；换机器时同时提供 `V2_AI_HANDOFF.md`、源码恢复包与 manifest，并把路径改为实际位置。
 
 ---
 
-你接手的是 OmniOperator V2 的持续重构开发。请实际阅读仓库、接着实现，不要只回复计划，也不要重做已经完成的基础系统。
+你接手的是 OmniOperator V2 的持续重构开发。请实际读代码并接着实现，不要只回复计划，也不要重做已完成的基础系统。
 
-工作区：`D:\xm\OmniOperator`，Windows / PowerShell。当前分支 `codex/architecture-v2`。媒体批次及其前累计的 V2 成果已按用户要求提交并推送 gitee（origin）；接手时先 `git log --oneline -5` 与 `git status` 对账工作区状态，保留现状，不 reset/clean/批量覆盖或删除未跟踪文件。
+工作区：`D:\xm\OmniOperator`，Windows / PowerShell。分支 `codex/architecture-v2`（上游 `origin/codex/architecture-v2`，gitee）。媒体批及其前累计成果已提交推送（媒体批代码提交 `7f78de8`）；接手先 `git log --oneline -5`、`git status --porcelain`、`git ls-remote origin refs/heads/codex/architecture-v2` 对账，保留现状，不 reset/clean/批量覆盖或删除未跟踪文件。
 
-**先按顺序阅读：**
+**按顺序读：**
 
 1. `AGENTS.md`、`docs/HANDOFF.md`、`docs/ARCHITECTURE.md`、`CONTRIBUTING.md`。
-2. `docs/V2_AI_HANDOFF.md`（本次完整交接）、`docs/tasks/v2.json`、`docs/DEVELOPMENT_STATUS.md`。
-3. `docs/V2_REFACTOR.md` 当前摘要与 `docs/evidence/v2-media.json`；历史实施记录不作为当前待办。
-4. 按本批需要读 `docs/DATA_MODEL.md`、`docs/UI_DESIGN_SYSTEM.md`、`docs/TESTING.md`、`docs/V2_MEDIA.md`、`docs/V2_BILIBILI.md`、`docs/V2_SKILLS.md`。
+2. `docs/V2_AI_HANDOFF.md`（完整交接，含架构合同、目录地图、MCP 先例锚点）、`docs/tasks/v2.json`、`docs/DEVELOPMENT_STATUS.md`。
+3. `docs/V2_REFACTOR.md` 的当前摘要段、`docs/evidence/v2-media.json`；`V2_REFACTOR.md` 历史段落只作历史。
+4. 本批再读 `docs/MCP.md`（**V1 行为先例，只读参考，禁止 import**）、`docs/V2_MEDIA.md`、`docs/V2_SKILLS.md`、`docs/DATA_MODEL.md`、`docs/TESTING.md`、`docs/UI_DESIGN_SYSTEM.md`。
 
-先核验以下事实，发现不一致时与当前源码/台账对账，不自动恢复旧文件：
+**先核对这些事实，不一致时以源码与台账为准：**
 
-- **V2 未完成，默认正式入口仍为 V1**；独立 V2 入口是 `uv run --no-sync python -m omni.composition.cli --home <全新绝对目录> serve`。现在不要切换默认入口或归档仍在使用的 V1。
-- 当前结构 **129 表 / `v2_0036`**，前端 **`20261110v48`**。
-- 最新媒体批次固定源码指纹 `b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21`，1165 份冻结文件；最新证据是 `docs/evidence/v2-media.json`。
-- 媒体批次 133 个不同专项节点的最新结果通过，含 75 例浏览器（媒体面板 2 例 + 工作台全量回归 73 例）；13 份生产文件默认 Pyright 及相关 Ruff/排版通过。**没有当前全量、全仓严格类型、主包重建、三平台或 72 小时通过结论。**
-- 可恢复源码：`temp/private/v2-media-source-20261110-b505d4b2a9a2/manifest.json`，同目录 `source-and-evidence.zip`。备份 complete 不代表产品 complete。
-- 旧开放问题 `UI.exact_organization_refresh_timing` 仍待复核，不能因单节点重跑通过就标为已修复。
-- Windows 前台实测用户已说“稍后验收，继续开发”；Mac 待 Mac mini 编译，Linux 尚无实机。不要再次要求用户配合前台操作来阻塞当前开发。
+- V2 未完成，默认正式入口仍是 V1；独立入口 `uv run --no-sync python -m omni.composition.cli --home <全新绝对目录> serve`，默认 `127.0.0.1:8766`。
+- 结构 **129 表 / `v2_0036`**，前端资源标识 **`20261110v48`**，索引 **65 模块 / 705 文件 / 415 路由 / 94 声明工具**。
+- 最新证据 `docs/evidence/v2-media.json`：133 个专项节点最新全过，含 75 例浏览器（媒体面板 2 例 + 工作台回归 73 例）；13 个生产文件默认 Pyright 0 错。**这不是全量、全仓严格类型或三平台验收。**
+- 源码恢复：`temp/private/v2-media-source-20261110-b505d4b2a9a2/manifest.json` 与同目录 ZIP（ZIP SHA `fe045494…`）。complete 只表示可恢复。
+- 开放问题不得自行销账：`UI.exact_organization_refresh_timing` 待复核；`security.sensitive_history_services_acceptance` 待所有者处置（工作区 `docs/evidence/services-acceptance-2026-11-01.json` 仍含 1 条历史字面量，本批新增文件零命中）。
+- Windows 前台实测用户已安排“稍后”，Mac 待 Mac mini 编译，Linux 无实机；不要用弹测试窗口阻塞开发。
 
-**本轮首要任务：继续 D6.mcp，外部 MCP 能力接入。** 媒体/视频理解已经打通 B站来源登记、在线字幕/受管 ASR 转写/等距抽帧、时间锚点转写对象、只读模型工具（media_list/media_transcript）、取消/失败分类/重启恢复/删除传播与工作台媒体分区，不再把它当下一断点；真实 B站视频端到端与真实 ASR 模型质量属真实验收，不阻塞开发。
+**本轮唯一首要任务：D6.mcp —— MCP 运行适配器。** 媒体/视频理解已收口，不再当断点。
 
-MCP 批次的既有基础只有数据层的 MCP 配置表与概念文档；运行适配器尚未完成。按 `docs/tasks/v2.json` 的 D6.mcp 范围实现：**stdio 与 Streamable HTTP 传输、显式 OAuth、凭据引用（不经模型）、目录/工具指纹与授权漂移撤销、超时/取消/unknown 分类、工作台配置与状态。** 具体新接口/表/工具名在源码对账后确定，交接中的设计建议不是既有实现。
+已核实的起点（不要再重复调研成结论）：`mcp_options` 表（transport / command / arguments / endpoint / auth_mode / credential_ref，绑定 `configuration_revisions`）与 `domain/configuration.py` 的 `MCPOptions` 校验已存在，配置 CRUD 已支持 `kind="mcp"`；但**没有** `domain/mcp.py`、`application/mcp.py`、任何 MCP 适配器、HTTP 端点或工作台分区，`HttpRuntime` 也没有 mcp 字段。
 
-实现要求：
+按此范围实现：**stdio 与 Streamable HTTP 传输、显式 OAuth、凭据引用（模型永不可见）、目录与工具指纹、授权漂移撤权、超时/取消/unknown 分类、工作台分区与审计。**
 
-- MCP 是外部进程/HTTP 依赖：stdio 子进程沿 OwnedProcess/受管进程合同；HTTP 客户端有界超时与取消；崩溃/断连的 in-flight 调用归类 unknown，不自动重放写操作。
-- 凭据（OAuth token、API key）只走凭据引用与专用存储；模型永远拿不到凭据本体。
-- 工具发现/授权/漂移：工具清单指纹变化触发撤权与显式重新确认；未授权工具对模型不可见，不静默放行。
-- 模型读的是 `ActionResult.text`：MCP 工具结果进入模型可见文本时保留来源服务与资源标识。
-- 保持四层：入口适配器 → 应用服务 → 领域与端口；基础设施实现端口；composition 统一构造与关闭。领域无 I/O；仓储不自行连接/建表。
-- V2 是单实例、单所有者、多 Agent、单一 `omni.db`；不迁 V1 数据，不双写，不保留旧接口兼容层。
-- 沿用现有视觉风格、原生 ES 模块与公共组件；新能力同时接服务、工具/HTTP、工作台、取消与审计，避免只写底层端口。
-- 每完成一个节点，按用户要求 git 提交并推送一次。
+可直接照抄结构的先例（不照抄业务）：
+- `application/extensions.py`：`authorize` / `disable` / `tools_for_run` / `invoke` / `review_quiescent`；invoke 前比对 `arguments_sha256`，`before_dispatch` 二次校验，漂移码 `extension_snapshot_drift`。
+- `adapters/extensions/hosts.py`：`MAX_HOSTS=4`、`MAX_PENDING=64`、`revoke(..., authority_epoch, timeout_s)`、`health()`、`stop_accepting/close`。
+- `adapters/workers/client.py` + `adapters/platform/processes.py`：`OwnedProcess.spawn/terminate`，stderr 排空，有界 invoke 与 `review_quiescent`。
+- `application/engine.py` 第 224–230 行：每回合合并 `tools_for_run` 的 spec；`Capability(spec, adapter)`、`ToolSpec(writes, timeout_s, resource, binding_id)`。
+- 凭据：`AsyncSecretPort.get(reference)` 只在适配器取用，引用字符集 `[a-zA-Z0-9_.:/-]{1,200}`；`FileVault` 主密钥必须在目录外。
 
-**执行偏好：开发优先，持续推进同一交付包。** 不要每个小步骤都跑全量、重打包或三目标类型，不重新展开已完成的清理/恢复基础。完成一条生产链后集中跑受影响模块和调用方：
+硬性要求：
+- stdio 子进程有界、可取消、崩溃即销毁；in-flight 调用归 **unknown**，不自动重放写操作。HTTP 有界超时与取消，区分 failed/unknown，不无限重试。
+- OAuth 只在用户显式发起时进行（PKCE/state 限本次请求、回调来源白名单、令牌入 vault）；遇到 401 不自动开授权；换账号/机器需重新授权。
+- 目录指纹 = 工具名 + `inputSchema` 的稳定哈希（不含 description）；变化即撤销旧授权并要求显式确认；未授权工具对模型不可见；旧页面不能批准新指纹。
+- 只读白名单只能由所有者显式声明（不得依据服务自报 `readOnlyHint`），且是已授权工具的子集；未声明按写处理、走审批。
+- 模型只读 `ActionResult.text`：带来源服务与工具名，≤12000 字符；不回传凭据、完整异常或原始外部载荷；外部描述/结果都是不可信数据，不授予权限、不自动打开链接。
+- 每回合按 run 封存可用工具，运行中撤权后不得用旧授权派发。
+- 数据层用**新迁移 v0037**（不改 v0036）：服务运行态与代际、目录快照/指纹、逐工具授权、调用与 unknown 记录；沿用触发器风格（状态转移白名单、终态不可变、跨 Agent 组合外键）。
+- 新分区接 `web/ui/v2/index.html` 的 nav 与页面容器、`main.js` 的 mount/load/switch，版本串**整组原子递增**；状态被动可读，连接/断开/重置先确认目标，失败不自动重放，390/1024 可用。
+- 保持四层：入口适配器 → 应用服务 → 领域与端口；基础设施实现端口；composition 统一构造与关闭。领域无 I/O；仓储不建表不自连。
+- V2 是单实例、单所有者、多 Agent、单一 `omni.db`；不迁 V1 数据、不双写、不加兼容层。
+
+**执行偏好：开发优先，持续推进同一交付包。** 不每步跑全量、不重打包、不跑三目标类型；完成一条生产链后集中验证受影响模块与调用方：
 
 ```powershell
 uv run --no-sync pytest -q -n 0 agent/tests/test_<相关模块>.py
-# 失败优先具体 nodeid；只用缓存失败时禁止空缓存自动全量：
+uv run --no-sync pytest -q -n 0 agent/tests/test_<相关模块>.py::test_<行为>
 uv run --no-sync pytest -q -n 0 --lf --last-failed-no-failures=none
 ```
 
-不重建用户环境，不执行 `uv sync`，不为测试停止服务。所有测试离线、临时数据库、隔离文件和假账号/假设备，不跳过闸门、不缩短被测超时、不放宽断言。UI 每用例独立 BrowserContext/数据库；重型类型、浏览器、打包顺序执行。
+`addopts` 已含 `-n auto --dist=loadfile`，不要加 `-p no:xdist`；`-n 0` 仅用于单文件调试。门禁按改动文件跑 ruff check/format、`uv run --no-sync pyright`、`node web/node_modules/prettier/bin/prettier.cjs --check`；改文件后跑 `scripts/project_index.py` 与 `scripts/task_status.py` 的生成与 `--check`。不 `uv sync`，不为测试停止服务，不用真实账号/设备数据，不跳过闸门或缩短被测超时。UI 每用例独立 BrowserContext/数据库；重型类型、浏览器、打包顺序执行。
 
-完整任务收尾/提交前按仓库要求执行一次全量，同一固定版本复用有效证据；不要因新会话初始化、文档或状态更新运行全量。专项不能写成全量，默认类型不能写成严格类型，注入不能写成平台支持。不要直接重跑历史 seal 脚本。
+MCP 本批至少覆盖：真实假 stdio JSON-RPC 子进程（非 mock）与假 HTTP 服务；握手/调用超时、崩溃、断连、取消、`isError`、unknown 不重放、重连上限；未授权不可见、漂移撤权、只读子集校验、跨 Agent 隔离；凭据不出现在文本/HTTP/日志/审计；`test_v2_architecture.py`、worker 进程守卫、迁移冻结、`test_v2_http.py` 契约；新分区 390/1024 浏览器流程 + 一次工作台回归。真实外部 MCP 服务与真实 OAuth 供应商另记“待真实验收”。
 
-后续保持固定范围：D6.mcp → 完整插件回调/产物/市场；收口 Mac/Linux/运维源码与平台反馈；D7 令牌/工作台/类型/包/容器/安装更新恢复及正式入口；D8 固定构建全量、真实功能、负载、三平台各 72 小时。环境暂缺时记录待真实验收，继续其他可开发内容。
+**每完成一个节点，按用户要求 git 提交并推送一次**（先 `git status` 核对范围，临时/私人材料不入库）。每批收口：更新台账三个状态、本文当前段与领域合同、写入 `docs/evidence/v2-mcp.json`（报告 + SHA + 门禁 + 限制）、保留恢复副本、记录实际源码指纹；保留历史报告与开放问题，不把小批完成写成完整 D6/V2 完成。
 
-真实付费、外发、设备输入、提权、系统安装、公开发布或部署仍按已有授权规则；普通已授权开发不反复询问许可。不要因为需要后续真实验收就停止当前可完成工作。
+真实付费、外发、发布、提权、设备输入、系统安装或部署仍按既有授权规则；普通已授权开发不反复询问。不要因为后续需要真实验收就停下当前可完成的工作。
 
-每批收口：更新任务台账的开发/离线/实测三个状态、HANDOFF 当前段、领域合同及证据，记录实际源码指纹和限制；运行索引及任务摘要生成/检查，为当前成果保留恢复副本。保留历史报告及开放问题，不把小批次完成写成完整 D6/V2 完成。
-
-先用一段简短说明报告你核对出的当前断点，然后开始写代码。只有用户要求重新规划、出现无法绕开的缺失信息或需要具体真实操作授权时才停下来询问。
+先用一段简短说明报告你核对出的当前断点与工作区状态，然后开始写代码。只有用户要求重新规划、出现无法绕开的缺失信息或需要具体真实操作授权时才停下来询问。

@@ -284,7 +284,7 @@
       ]
     }
   ],
-  "checkpoint_commit": "0c0aa0413c99fee7f12907bae0a14946850c9b99",
+  "checkpoint_commit": "7f78de85fc1c45f1331a62b03e05b790e3376d53",
   "current_validation": {
     "status": "scoped_media_production_chain_latest_passed_mcp_pending",
     "targeted_unique_passed": 133,
