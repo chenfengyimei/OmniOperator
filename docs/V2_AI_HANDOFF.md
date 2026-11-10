@@ -6,9 +6,9 @@
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
 - 当前断点是 **D6.extensions 的下一节点：进程外宿主回调与市场更新/安装**。扩展产物协议已完成；D6.mcp 的离线生产链也已收口，不要重做 MCP 传输/授权/工作台，也不要重做媒体、对象存储、人物、摘要、调度、文本技能或扩展包校验。
-- 最新完成批次是 **D6.extensions.artifacts.workbench（扩展产物工作台）**：数据库 **136 张业务表 / `v2_0037`**（无新表），前端资源标识 **`20261110v50`**，静态索引 **65 模块 / 715 文件 / 428 路由 / 94 声明工具**。合同见 `docs/V2_EXTENSIONS.md`，证据见 `docs/evidence/v2-extension-artifacts.json`。
-- 该节点 **18 项工作台/API 专项最新通过**；与产物协议/MCP 批合并 **228 个不同测试节点**最新全过（含 MCP 与扩展工作台 390/1024 共 4 例）。同源码另跑一次全量：**4548 passed / 16 failed / 10 errors**，26 个失败/错误节点均为基线遗留，本批未新增失败。**不是全量通过、不是全仓严格类型、不是三平台验收。**
-- MCP 批与本节点已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
+- 最新完成批次是 **baseline.repair（基线遗留失败修复）**：测试-only，未改产品代码；26 项历史失败全部修复，修复后全量 **4574 passed / 2 failed**，两处失败（debug_sink、portal_ui）在相同源码隔离运行 **12 项全过**，判定为并行时序抖动并登记观察。扩展产物工作台（v50/428 路由）仍为最新功能批，合同见 `docs/V2_EXTENSIONS.md`，证据见 `docs/evidence/v2-extension-artifacts.json` 与 `docs/evidence/v2-baseline-repair.json`。
+- 该功能节点 **18 项工作台/API 专项最新通过**；与产物协议/MCP 批合并 **228 个不同测试节点**最新全过（含 MCP 与扩展工作台 390/1024 共 4 例）；基线修复专项 126 项全过。**仍不是全仓严格类型或三平台验收。**
+- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
 
@@ -42,14 +42,14 @@ V2 **不兼容** V1 的数据库、配置、HTTP、工具名或导入路径；�
 | --- | --- |
 | 工作区 | `D:\xm\OmniOperator`，PowerShell |
 | 分支 | `codex/architecture-v2`，上游 `origin/codex/architecture-v2`（gitee） |
-| MCP 与扩展批代码提交 | `8ad22cf`→`bf5f91f`→`564f0db`→`8590144`→`320549f`→`44890f0`→`adc528d`；台账 `checkpoint_commit=adc528d`，本文档提交再前进一个 |
+| MCP 与扩展批代码提交 | `8ad22cf`→`bf5f91f`→`564f0db`→`8590144`→`320549f`→`44890f0`→`adc528d`→`5f3b46e`；台账 `checkpoint_commit=5f3b46e`，本文档提交再前进一个 |
 | 最初重构基线 | `076c0c22fa8ecb90d3ce9a64562c90a23a129e00` |
 | 交接时工作区 | 干净（`git status` 空） |
-| 最新固定源码指纹 | `de4300e848e7604c6193d366874ea030ebd30a1e856e46accfd1478dc2a503a5` |
+| 最新固定源码指纹 | `025d46b86a76392f83d798b2d840feb51caa07217ae057f9e74c1ca2673930fc` |
 | 源码文件 | 1162 份（`agent/`、`web/`、`scripts/` 的 git blob 集合） |
-| 恢复材料 | `temp/private/v2-extension-workbench-source-20261111-de4300e848e7/manifest.json` |
+| 恢复材料 | `temp/private/v2-baseline-repair-source-20261111-025d46b86a76/manifest.json` |
 | 源码备份 | 同目录 `source-and-evidence.zip`（1413 份源码/文档 + 4 份验证材料） |
-| ZIP SHA256 | `ac71e5e5c54b…`（完整值见 manifest 与证据） |
+| ZIP SHA256 | `b6a739d7ecf9d3de58385878587be396c0d6568f0f48ad9f1dc0af7b5842e862` |
 
 封存时 manifest 为 `complete` 且 ZIP SHA 匹配；**complete 只表示可恢复，不表示 V2 完成**。本批证据 JSON 与本文档晚于该封存，恢复时需一并复制。MCP/媒体/技能批的恢复包保留为溯源材料，不删除。
 
@@ -248,7 +248,7 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 1. ~~D6.mcp 收口（上一批，已完成离线链）~~；仍待真实外部 MCP 服务与真实 OAuth 供应商验收、自动重连策略。
 2. **完整扩展链（当前断点，产物协议已完成）**：下一节点为进程外宿主回调（插件请求宿主能力）、市场更新提示与实际安装（显式确认、失败不重放）、产物工作台展示；复用对象/审批/费用；真实第三方插件另记待验收。
 3. 收口 D2/D3/D4 源码欠账与平台反馈（Linux 持续控制与 Wayland 证明、Mac 编译/权限/原生 ABI、真实系统管理器与恢复）；无环境就记"待真实验收"，继续其他开发。
-4. 处理基线遗留失败（`tests.baseline_failures_pre_mcp`：history/event-pruning、schema-release、service 启动效果、extensions UI 等）——按所属批次修复，不用 MCP 批兜底。
+4. ~~处理基线遗留失败（history/event-pruning、schema-release、service 启动效果、extensions UI 等）~~ 已完成：`5f3b46e` 测试-only 修复 26 项，证据 `docs/evidence/v2-baseline-repair.json`；仅两处并行时序抖动在观察。
 5. D7 门槛：令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、打包/容器/安装更新恢复；门槛满足后才切 `omni` 默认入口并归档 V1。
 6. D8 固定构建验收：全量、四视口双主题、故障注入、参考负载、真实模型/QQ/B站/安卓/远程 MCP、每平台 72 小时。
 
@@ -262,12 +262,14 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | `v2-extension-workbench.xml` | 18 | 动作证据 API + 产物预览（390/1024）+ MCP UI 版本断言 |
 | `v2-mcp-final.xml` + `-ui` + `-callers` + `-guards` | 150 | 上一批 MCP，共享节点以扩展报告的重跑结果为准 |
 
-门禁 `temp/build/v2-extension-workbench-gates.json`（ruff / format / prettier / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 4 文件 0 错误）。**没有全量通过结论**：同源码全量 **4548 passed / 16 failed / 10 errors**，26 个失败/错误节点与上一检查点完全相同，均为基线遗留，已在证据中登记。没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、负载或 72 小时结论。
+门禁 `temp/build/v2-extension-workbench-gates.json`（ruff / format / prettier / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 4 文件 0 错误）。
+
+基线修复批 `docs/evidence/v2-baseline-repair.json`（测试-only，`5f3b46e`）：26 项历史失败全部修复，126 项专项全过；修复后全量 **4574 passed / 2 failed**（debug_sink、portal_ui），同源码隔离 **12 项全过**，两处按并行时序抖动登记观察。产品代码未改，未放宽断言。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、负载或 72 小时结论。
 
 开放问题（不要因一次重跑通过就标记修复）：
 
 - `UI.exact_organization_refresh_timing`：旧精确整理 UI 一次刷新显示 queued；单节点复核通过，未判定稳定。报告 `temp/build/v2-memory-semantics-final.xml`、`-repair.xml`。
-- `tests.baseline_failures_pre_mcp`：基线已有 16 failed / 10 errors（history/event-pruning、schema-release 固定旧 schema、service 启动效果、extensions UI 假 hosts 等）；与 MCP/产物协议均无关，需由所属批次处置。报告 `temp/build/v2-extension-artifacts-full.xml`。
+- `tests.parallel_run_timing_flakes`：全量并行下 `test_v2_debug_sink` 与 `test_v2_portal_ui` 各一处时序失败；同源码隔离运行 12 项全过，未判定产品缺陷，不以放宽断言处理。报告 `temp/build/v2-baseline-repair-full.xml`、`-isolation.xml`。
 - `security.sensitive_history_services_acceptance`：敏感审计 2/2 为历史命中，但工作区 `docs/evidence/services-acceptance-2026-11-01.json`（`ad2ae05` 引入，未改动）仍含 1 条已确认字面量；MCP 批新增文件零命中。处置（改写历史或替换该文件）需所有者决定。审计产物在 `D:\omni-private-evidence\sensitive-audit\v2-media-20261110.json\`。
 
 ## 13. 开发与验证执行方法
@@ -337,5 +339,5 @@ uv run --no-sync python scripts/task_status.py --check
 
 - 期望：分支 `codex/architecture-v2`，远端与本地一致（或本地领先本批文档提交），工作区干净。
 - 期望：索引 `modules=65 files=715 routes=427 declared_tools=94`，`stale=` 为空。
-- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D6.extensions"`（产物协议与工作台已完成，下一节点宿主回调/市场），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 4`、`current_full_passed == false`（全量 16 failed / 10 errors 为基线遗留，见证据 `known_baseline_failures`）。
+- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D6.extensions"`（产物协议与工作台已完成，下一节点宿主回调/市场），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 4`、`current_full_passed == false`（仅两处并行时序抖动，隔离全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`）。
 - 若数字不同：先判断是否有并行会话提交，再决定是否重算索引/摘要；不要改历史证据。
