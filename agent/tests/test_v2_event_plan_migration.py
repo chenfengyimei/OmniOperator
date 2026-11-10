@@ -255,7 +255,11 @@ def evidence_rows(unit):
     agent = unit.query("agents", "")[0]["id"]
     run = unit.accept_turn(agent, None, "event-schema-evidence", "Preserved event evidence source", {})
     event = dict(
-        unit.connection.execute(select(s.run_events).where(s.run_events.c.run_id == run["run_id"])).mappings().one()
+        unit.connection.execute(
+            select(s.run_events).where(s.run_events.c.run_id == run["run_id"], s.run_events.c.kind == "run.queued")
+        )
+        .mappings()
+        .one()
     )
     plan = make_plan(1)
     plan.update(
@@ -429,14 +433,17 @@ def test_v16_identity_keep_kind_and_unique_constraints_and_absence_of_live_event
                     update(s.event_retention_batches).where(batch_where).values(state="prepared", completed_at=None)
                 )
                 persisted_run = await database.read(lambda u: u.get_run(batch["agent_id"], run["run_id"]))
-                assert persisted_run["state"] == "queued" and persisted_run["last_seq"] == 1
+                # run.queued plus the routing.selected event this fixture's default route emits.
+                assert persisted_run["state"] == "queued" and persisted_run["last_seq"] == 2
+                # Two runs each emitted run.queued plus routing.selected; deleting one event row and
+                # every denied retention write must leave the allocator untouched.
                 assert (
                     await database.read(
                         lambda u: u.connection.execute(
                             select(s.history_sequences.c.last_issued).where(s.history_sequences.c.kind == "events")
                         ).scalar_one()
                     )
-                ) == 2
+                ) == 4
                 messages = await database.read(lambda u: u.messages(batch["agent_id"], run["session_id"]))
                 assert [row["content"] for row in messages] == ["Preserved event evidence source"]
                 report = await database.integrity()

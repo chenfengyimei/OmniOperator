@@ -377,7 +377,8 @@ def test_v15_triggers_preserve_evidence_identity_and_a_deleted_audit_has_no_live
                 )
                 await denied(delete(s.audit_retention_batches).where(batch_where))
                 persisted_run = await database.read(lambda u: u.get_run(batch["agent_id"], run["run_id"]))
-                assert persisted_run["state"] == "queued" and persisted_run["last_seq"] == 1
+                # run.queued plus the routing.selected event this fixture's default route emits.
+                assert persisted_run["state"] == "queued" and persisted_run["last_seq"] == 2
                 messages = await database.read(lambda u: u.messages(batch["agent_id"], run["session_id"]))
                 assert [row["content"] for row in messages] == ["Preserved evidence source"]
                 report = await database.integrity()

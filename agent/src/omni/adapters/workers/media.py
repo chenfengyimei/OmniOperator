@@ -57,12 +57,26 @@ def _bounded_path(value: object) -> Path:
 
 def _probe() -> dict:
     components = {}
-    for name in ("av", "PIL", "numpy"):
-        try:
-            __import__(name)
-            components[name] = True
-        except ImportError:
-            components[name] = False
+    for name in ("av", "numpy", "PIL"):
+        components[name] = False
+    try:
+        import av  # noqa: F401
+
+        components["av"] = True
+    except ImportError:
+        pass
+    try:
+        import numpy  # noqa: F401
+
+        components["numpy"] = True
+    except ImportError:
+        pass
+    try:
+        import PIL  # noqa: F401
+
+        components["PIL"] = True
+    except ImportError:
+        pass
     try:
         import faster_whisper  # noqa: F401
 
