@@ -1,6 +1,6 @@
 # V2 架构重构：当前实施入口
 
-> 当前推进D6：扩展链已完成产物协议、产物工作台与本地市场只读扫描（本机目录直接子目录、版本/目录指纹对比、update_available，不安装不写库）；MCP运行适配器（stdio/Streamable HTTP/OAuth/逐工具授权/工作台）已收口；基线26项历史测试失败已测试-only修复（5f3b46e）。136表/v2_0037，工作台v50；扩展产物/工作台与MCP合并228个不同节点最新全过（含4例390/1024浏览器），市场扫描62项全过；修复后全量4574 passed / 2 failed（两处并行时序隔离全过并观察）。市场 UI/浏览器流程、宿主回调、真实市场源/第三方插件与D7/D8仍待，整个V2未完成，默认入口仍为V1。见[扩展合同](V2_EXTENSIONS.md)、[市场证据](evidence/v2-extension-market.json)、[扩展证据](evidence/v2-extension-artifacts.json)、[基线修复证据](evidence/v2-baseline-repair.json)与[MCP证据](evidence/v2-mcp.json)。
+> 当前推进D6：扩展链已完成产物协议、产物工作台、本地市场只读扫描与市场更新工作台（逐项更新提示、显式确认登记、更新后撤销旧授权、失败不重试）；MCP运行适配器（stdio/Streamable HTTP/OAuth/逐工具授权/工作台）已收口；基线26项历史测试失败已测试-only修复（5f3b46e）。136表/v2_0037，工作台v51；扩展产物/工作台与MCP合并228个不同节点最新全过（含6例390/1024浏览器），市场扫描62项与市场工作台25项全过；修复后全量4574 passed / 2 failed（两处并行时序隔离全过并观察）。宿主回调、真实市场源/第三方插件与D7/D8仍待，整个V2未完成，默认入口仍为V1。见[扩展合同](V2_EXTENSIONS.md)、[市场证据](evidence/v2-extension-market.json)、[扩展证据](evidence/v2-extension-artifacts.json)、[基线修复证据](evidence/v2-baseline-repair.json)与[MCP证据](evidence/v2-mcp.json)。
 
 当前采用已确认的“三平台原生优先”顺序，完整范围保持不变。**V2未完成，默认入口仍为V1。**
 任务真值为[任务台账](tasks/v2.json)，当前交付摘要由其生成：[开发状态](DEVELOPMENT_STATUS.md)。历史记录只证明所属源码版本，不能作为当前待办或当前测试结论。

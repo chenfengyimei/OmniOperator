@@ -284,11 +284,11 @@
       ]
     }
   ],
-  "checkpoint_commit": "965588e",
+  "checkpoint_commit": "7ffda3d",
   "current_validation": {
-    "status": "scoped_extension_market_scan_latest_passed_workbench_pending",
+    "status": "scoped_extension_market_workbench_latest_passed",
     "targeted_unique_passed": 228,
-    "includes_browser_cases": 4,
+    "includes_browser_cases": 6,
     "current_full_passed": false,
     "full_runs_this_checkpoint": 2,
     "whole_plan_complete": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-baseline-repair-isolation.xml"
       }
     ],
-    "code_version": "8b67771402243d710f7badf600192c5587a57bb85b8a7975c3c64d05ebb6fa30",
-    "fixed_source_files": 1163,
+    "code_version": "3b99575064ae0bf92eefab92fdbda97d904412cbe8b9c5539b21785352b8d077",
+    "fixed_source_files": 1164,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json"
   },
@@ -314,7 +314,7 @@
     "id": "D6.extensions",
     "status": "进行中",
     "design": "docs/V2_EXTENSIONS.md",
-    "scope": "下一节点：市场更新/安装的工作台流程与浏览器用例、进程外宿主回调；随后真实第三方插件与 MCP 真实服务验收。"
+    "scope": "下一节点：进程外宿主回调（插件请求宿主能力）；随后真实市场源/第三方插件、MCP 真实服务与 D7/D8 验收。"
   },
   "milestones": [
     {
@@ -789,22 +789,22 @@
     },
     {
       "id": "R6.extensions.market",
-      "status": "部分完成（离线扫描）",
+      "status": "完成（离线）",
       "development": "扫描完成",
-      "offline_validation": "本地市场只读扫描 62 项调用方/服务/HTTP 全过；安装复用既有显式确认链；工作台流程与浏览器用例待下一节点",
+      "offline_validation": "本地市场扫描 62 项 + 工作台/浏览器回归 25 项（390/1024 更新确认与重新授权）全过；安装复用显式确认链",
       "evidence": [
         "docs/evidence/v2-extension-market.json"
       ],
-      "remaining": "市场 UI/浏览器流程、真实市场源与真实第三方插件；宿主回调仍待。",
+      "remaining": "真实市场源与真实第三方插件；宿主回调另节点。",
       "code_version": "8b67771402243d710f7badf600192c5587a57bb85b8a7975c3c64d05ebb6fa30"
     }
   ],
   "latest_source_recovery": {
-    "manifest": "temp/private/v2-extension-market-source-20261111-8b6777140224/manifest.json",
-    "files": 1163,
+    "manifest": "temp/private/v2-extension-market-ui-source-20261111-3b99575064ae/manifest.json",
+    "files": 1164,
     "standalone_source": true,
     "runtime_data_included": false,
-    "validation_status": "scoped_extension_market_scan_latest_passed_workbench_pending"
+    "validation_status": "scoped_extension_market_workbench_latest_passed"
   },
   "delivery_strategy": {
     "date": "2026-11-06",

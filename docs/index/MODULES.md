@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`0170318bddfeb651d03121353660e730ce12d715ec7fc4bbf41418cc06f5ecad`。包含 65 个职责模块、715 个源码/界面文件。
+源码指纹：`08f5e3aa8abc4ad8127112ef07fb75205aae4ccbeeab05524c0c4e17b0ec59e5`。包含 65 个职责模块、715 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -416,8 +416,8 @@
 | [web/ui/v2/desktop-actions.js](../../web/ui/v2/desktop-actions.js) | 148 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 568 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 542 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1364 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1372 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/main.js](../../web/ui/v2/main.js) | 783 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
