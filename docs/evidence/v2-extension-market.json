@@ -1,0 +1,78 @@
+{
+ "schema": 1,
+ "batch": "D6.extensions.market",
+ "date": "2026-11-11",
+ "whole_v2_complete": false,
+ "d6_complete": false,
+ "source": {
+  "code_version": "8b67771402243d710f7badf600192c5587a57bb85b8a7975c3c64d05ebb6fa30",
+  "fixed_source_files": 1163,
+  "git_head": "965588e",
+  "dirty_checkout": false
+ },
+ "development": {
+  "schema_tables": 136,
+  "migration_head": "v2_0037",
+  "assets_version": "20261110v50",
+  "scope": [
+   "Owner-supplied local market directory scan (direct children only, bounded manifest reads, links rejected, malformed candidates skipped)",
+   "Read-only comparison with installed slots: installed/version/revision/current/update_available; no mutation and no install",
+   "Explicit POST /extensions/market endpoint; install still uses the existing explicit capture/authorize chain and re-authorization after update"
+  ],
+  "pending": [
+   "Market workbench flow and 390/1024 browser case",
+   "Real market source and real third-party plugin acceptance",
+   "Out-of-process host callbacks"
+  ]
+ },
+ "validation": {
+  "targeted_unique_passed": 62,
+  "all_latest_cases_passed": true,
+  "targeted_reports": [
+   {
+    "path": "temp/build/v2-extension-market.xml",
+    "sha256": "45c1f6567068a99d68514920959870d198cffb88154c78e15dec4415d77c26bc",
+    "tests": 62,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 55.783
+   }
+  ],
+  "gates": {
+   "path": "temp/build/v2-extension-market-gates.json",
+   "sha256": "72e272a78c22a5d16d14ed144f8037abbea11662f36f617a8521546c6e06055f",
+   "passed": 5,
+   "total": 5
+  },
+  "pyright": {
+   "checking": "default",
+   "mode": "host",
+   "summary": {
+    "filesAnalyzed": 4,
+    "errorCount": 0,
+    "warningCount": 0,
+    "informationCount": 0,
+    "timeInSec": 1.656
+   },
+   "sources": [
+    "agent/src/omni/adapters/extensions/packages.py",
+    "agent/src/omni/application/extensions.py",
+    "agent/src/omni/application/ports.py",
+    "agent/src/omni/adapters/http.py"
+   ]
+  }
+ },
+ "source_recovery": {
+  "manifest": "temp/private/v2-extension-market-source-20261111-8b6777140224/manifest.json",
+  "archive_sha256": "eedcab953b9f1503bdf4ffaf412165b57ca0fe1052d929263131bee9ba5d6682",
+  "files": 1163,
+  "validation_artifacts": [
+   "v2-extension-market.xml",
+   "v2-extension-market-gates.json"
+  ]
+ },
+ "next": {
+  "id": "D6.extensions",
+  "scope": "Market workbench/browser flow and host callbacks; real third-party acceptance."
+ }
+}

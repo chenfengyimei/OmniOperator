@@ -84,7 +84,9 @@
 - 既有 `/agents/{id}/extensions`（列表/详情/安装/授权/停用）与工作台「可信插件」分区。
 - 新增 `GET /agents/{id}/extensions/{extension_id}/actions?after=&limit=`：按扩展返回最近动作证据，只含 `id/tool/state/effect/ended_at` 与产物 `{id,media_type,bytes}`，**不回传参数、结果正文或异常**；游标与 limit（1..50）有界，跨 Agent 404。
 - 工作台新增“最近调用/产物”：逐条显示时间、工具、终态与产物类型/大小；`text/*` 与 `application/json` 可显式预览前 4000 字符，其他类型只提示已保存为对象（可通过既有对象接口读取）。切换插件/刷新/换 Agent 会清空旧预览，避免迟到响应覆盖新目标。
-- 尚未做：市场更新提示与安装确认 UI、宿主回调；真实第三方插件仍未验收。
+- 新增 `POST /agents/{id}/extensions/market`（body 只接受 `{source}`）：所有者给定**本机绝对目录**，只读扫描其直接子目录的 `extension.json`（有界读取、拒绝符号链接/junction、最多 64 项/32 个有效候选、损坏候选跳过），返回 `name/version/entry/source/catalog_sha256` 并与已安装槽位比对给出 `installed/installed_version/extension_id/revision/is_current_version/update_available`；扫描不捕获、不执行、不写库。
+- 安装仍走既有 `POST /extensions`：显式确认后由 `ExtensionPackages.capture` 封存、新版本撤销旧授权并要求重新授权；失败不自动重试。真实网络市场源与自动下载不在本轮范围。
+- 尚未做：市场扫描/安装的工作台与浏览器流程、宿主回调；真实第三方插件仍未验收。
 
 ## 7. 上限与错误码（择要）
 
@@ -94,4 +96,5 @@
 
 - 本节点覆盖：manifest/目录指纹（含 artifacts 能力变化）、描述校验、真实子进程产物写入与宿主二次校验、对象发布与动作引用、文本无正文、越界/未声明/缺失/超限均归 UNKNOWN 且不发布对象、产物目录清理；调用方（HTTP/对象/worker/架构）回归。
 - 工作台节点覆盖：按扩展的动作证据接口（白名单字段、游标/上限、跨 Agent 拒绝）、390/1024 安装→授权→模型调用→审批→产物列表→文本预览、资源版本 v50。
-- 未完成/待真实验收：**进程外宿主回调**（插件请求宿主能力）、市场更新提示与实际安装（需要真实市场源）、真实第三方插件验收、三平台原生 ABI。
+- 市场扫描节点覆盖：本地目录 v1/v2 对比、损坏候选跳过、相对/不存在/链接源拒绝、扫描后版本不变；HTTP 返回字段、非法 body 422、未授权 401；62 项调用方/服务/HTTP 全过（`docs/evidence/v2-extension-market.json`）。
+- 未完成/待真实验收：**进程外宿主回调**（插件请求宿主能力）、市场工作台/浏览器流程、真实市场源与真实第三方插件验收、三平台原生 ABI。
