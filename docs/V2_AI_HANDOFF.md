@@ -5,10 +5,10 @@
 ## 1. 接手时先明确的结论
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
-- 当前断点是 **D6.extensions 的下一节点：进程外宿主回调**。市场扫描与工作台更新/安装流程已完成；扩展产物协议/工作台、基线修复与 MCP 离线链已收口，不要重做这些部分，也不要重做媒体、对象存储、人物、摘要、调度、文本技能或扩展包校验。
-- 最新完成批次是 **D6.extensions.market.ui（市场更新工作台）**：本地目录只读扫描 + 工作台逐项更新提示；登记需逐项确认，更新后详情变为新版本且 `enabled=false`、旧授权全部撤销并需重新授权；失败只提示不重试。**25 项 UI/服务/HTTP 回归全过（含 390/1024 浏览器 2 例）**；证据 `docs/evidence/v2-extension-market.json`，合同 `docs/V2_EXTENSIONS.md`。
-- 功能与基线：市场扫描 62 项、市场工作台 25 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过；基线修复后全量 **4574 passed / 2 failed**（两处并行时序，隔离 12 项全过，市场节点之后未再跑全量）。**仍不是全仓严格类型或三平台验收。**
-- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
+- 当前断点是 **D6.extensions 收尾：全量复核与真实环境验收记录**。宿主回调、市场扫描/工作台、产物协议/工作台、基线修复与 MCP 离线链均已收口，不要重做这些部分，也不要重做媒体、对象存储、人物、摘要、调度、文本技能或扩展包校验。
+- 最新完成批次是 **D6.extensions.callbacks（受控宿主回调）**：插件可选接收第 4 参数 `HostBridge`，仅 `context`（标识，无凭据）与 `log`（≤1000 字符）两项能力；未知能力回 `callback_denied`；每次调用 ≤16 次回调、日志 ≤8192 字节；超预算/超长/畸形帧在已派发后归 **UNKNOWN** 且不重放；日志以有界 `data.host_callbacks` 保存，模型文本不含日志。**93 项扩展/包/宿主/worker/架构回归全过（3 项回调专项）**；证据 `docs/evidence/v2-extension-callbacks.json`。
+- 功能与基线：宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过；基线修复后全量 **4574 passed / 2 failed**（两处并行时序，隔离 12 项全过；市场/回调节点之后未再跑全量，下一轮复核）。**仍不是全仓严格类型或三平台验收。**
+- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
 
@@ -42,14 +42,14 @@ V2 **不兼容** V1 的数据库、配置、HTTP、工具名或导入路径；�
 | --- | --- |
 | 工作区 | `D:\xm\OmniOperator`，PowerShell |
 | 分支 | `codex/architecture-v2`，上游 `origin/codex/architecture-v2`（gitee） |
-| MCP 与扩展批代码提交 | `8ad22cf`→`bf5f91f`→`564f0db`→`8590144`→`320549f`→`44890f0`→`adc528d`→`5f3b46e`→`965588e`→`7ffda3d`；台账 `checkpoint_commit=7ffda3d`，本文档提交再前进一个 |
+| MCP 与扩展批代码提交 | `8ad22cf`→`bf5f91f`→`564f0db`→`8590144`→`320549f`→`44890f0`→`adc528d`→`5f3b46e`→`965588e`→`7ffda3d`→`e74572d`；台账 `checkpoint_commit=e74572d`，本文档提交再前进一个 |
 | 最初重构基线 | `076c0c22fa8ecb90d3ce9a64562c90a23a129e00` |
 | 交接时工作区 | 干净（`git status` 空） |
-| 最新固定源码指纹 | `3b99575064ae0bf92eefab92fdbda97d904412cbe8b9c5539b21785352b8d077` |
+| 最新固定源码指纹 | `3150824a329f952cd333ed91145d2c626597af3fd9625dfdd6fa9e3f0112afdb` |
 | 源码文件 | 1164 份（`agent/`、`web/`、`scripts/` 的 git blob 集合） |
-| 恢复材料 | `temp/private/v2-extension-market-ui-source-20261111-3b99575064ae/manifest.json` |
+| 恢复材料 | `temp/private/v2-extension-callbacks-source-20261111-3150824a329f/manifest.json` |
 | 源码备份 | 同目录 `source-and-evidence.zip`（1419 份源码/文档 + 2 份验证材料） |
-| ZIP SHA256 | `3a95dd3fddf8fc0fba3c5fabffa04c6297735a931d3730bf5c10fe611dd7167b` |
+| ZIP SHA256 | `92ed979015e6a68f1d8f36bf6f1bb3cf683a86bdfcfb2e7b1b846aa829fcd63f` |
 
 封存时 manifest 为 `complete` 且 ZIP SHA 匹配；**complete 只表示可恢复，不表示 V2 完成**。本批证据 JSON 与本文档晚于该封存，恢复时需一并复制。MCP/媒体/技能批的恢复包保留为溯源材料，不删除。
 
@@ -246,7 +246,7 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 ## 11. 后续固定顺序
 
 1. ~~D6.mcp 收口（上一批，已完成离线链）~~；仍待真实外部 MCP 服务与真实 OAuth 供应商验收、自动重连策略。
-2. **完整扩展链（当前断点，产物协议已完成）**：下一节点为进程外宿主回调（插件请求宿主能力）、市场更新提示与实际安装（显式确认、失败不重放）、产物工作台展示；复用对象/审批/费用；真实第三方插件另记待验收。
+2. **扩展链离线节点已完成**：产物协议/工作台、本地市场扫描/工作台、宿主回调（context/log）、版本/授权回归均已提交；剩余真实市场源、真实第三方插件、三平台原生 ABI 等真实环境验收，无环境则继续其他开发。
 3. 收口 D2/D3/D4 源码欠账与平台反馈（Linux 持续控制与 Wayland 证明、Mac 编译/权限/原生 ABI、真实系统管理器与恢复）；无环境就记"待真实验收"，继续其他开发。
 4. ~~处理基线遗留失败（history/event-pruning、schema-release、service 启动效果、extensions UI 等）~~ 已完成：`5f3b46e` 测试-only 修复 26 项，证据 `docs/evidence/v2-baseline-repair.json`；仅两处并行时序抖动在观察。
 5. D7 门槛：令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、打包/容器/安装更新恢复；门槛满足后才切 `omni` 默认入口并归档 V1。
@@ -262,9 +262,10 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | `v2-extension-workbench.xml` | 18 | 动作证据 API + 产物预览（390/1024）+ MCP UI 版本断言 |
 | `v2-extension-market.xml` | 62 | 本地市场只读扫描：服务/HTTP + 包/宿主/架构调用方 |
 | `v2-extension-market-ui.xml` | 25 | 市场工作台 390/1024 更新确认与重新授权 + UI/服务/HTTP 回归 |
+| `v2-extension-callbacks.xml` | 93 | 宿主回调 context/log、预算/超长 UNKNOWN + 扩展/包/宿主/worker/架构回归 |
 | `v2-mcp-final.xml` + `-ui` + `-callers` + `-guards` | 150 | 上一批 MCP，共享节点以扩展报告的重跑结果为准 |
 
-门禁 `temp/build/v2-extension-market-ui-gates.json`（ruff / format / prettier / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 4 文件 0 错误）。市场工作台节点 25 项专项，未再跑全量；上一全量为 4574 passed / 2 failed（并行时序，隔离全过）。
+门禁 `temp/build/v2-extension-callbacks-gates.json`（ruff / format / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 4 文件 0 错误）。回调节点 93 项专项，未再跑全量；上一全量为 4574 passed / 2 failed（并行时序，隔离全过），下一轮全量复核。
 
 基线修复批 `docs/evidence/v2-baseline-repair.json`（测试-only，`5f3b46e`）：26 项历史失败全部修复，126 项专项全过；修复后全量 **4574 passed / 2 failed**（debug_sink、portal_ui），同源码隔离 **12 项全过**，两处按并行时序抖动登记观察。产品代码未改，未放宽断言。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、负载或 72 小时结论。
 
@@ -341,5 +342,5 @@ uv run --no-sync python scripts/task_status.py --check
 
 - 期望：分支 `codex/architecture-v2`，远端与本地一致（或本地领先本批文档提交），工作区干净。
 - 期望：索引 `modules=65 files=715 routes=427 declared_tools=94`，`stale=` 为空。
-- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D6.extensions"`（产物协议/工作台/市场扫描与市场工作台已完成，下一节点宿主回调），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 6`、`current_full_passed == false`（仅两处并行时序抖动，隔离全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；市场证据 `docs/evidence/v2-extension-market.json`）。
+- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D6.extensions"`（离线节点已完成，收尾为全量复核），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 6`、`current_full_passed == false`（仅两处并行时序抖动，隔离全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；市场/回调证据 `docs/evidence/v2-extension-market.json`、`docs/evidence/v2-extension-callbacks.json`）。
 - 若数字不同：先判断是否有并行会话提交，再决定是否重算索引/摘要；不要改历史证据。
