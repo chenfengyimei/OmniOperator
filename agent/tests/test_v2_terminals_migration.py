@@ -80,7 +80,7 @@ def baseline(paths):
 
 def assert_schema(unit):
     reflection = inspect(unit.connection)
-    assert len(s.metadata.tables) == 125 and set(s.metadata.tables) <= set(reflection.get_table_names())
+    assert len(s.metadata.tables) == 136 and set(s.metadata.tables) <= set(reflection.get_table_names())
     for name in TABLES:
         table = s.metadata.tables[name]
         columns = reflection.get_columns(name)

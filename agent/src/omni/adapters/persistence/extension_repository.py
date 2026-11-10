@@ -648,10 +648,15 @@ class ExtensionRepositories(RepositoryBase):
         return result
 
     def extension_bind_action(self, agent_id: str, run_id: str, action_id: str, spec: ToolSpec) -> None:
-        if not spec.binding_id:
-            if spec.name.startswith("ext__"):
+        if spec.name.startswith("mcp__"):
+            # MCP run captures are bound by their own repository path.
+            return
+        if not spec.name.startswith("ext__"):
+            if spec.binding_id:
                 raise self._extension_denied()
             return
+        if not spec.binding_id:
+            raise self._extension_denied()
         binding = self._extension_binding(agent_id, spec.binding_id)
         action = self._one(s.actions, agent_id, action_id)
         if (

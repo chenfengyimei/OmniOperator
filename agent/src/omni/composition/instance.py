@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
 import logging
 import sys
 from contextlib import contextmanager
@@ -24,6 +25,7 @@ from ..adapters.extensions.hosts import ExtensionHosts
 from ..adapters.extensions.packages import ExtensionPackages
 from ..adapters.images import ImageCodec
 from ..adapters.local_vectors import configured_vectors
+from ..adapters.mcp.hosts import MCPHosts
 from ..adapters.media import MediaProcessor
 from ..adapters.metrics import Metrics
 from ..adapters.models import LiteLLMModel
@@ -63,6 +65,7 @@ from ..application.engine import Application, Capability
 from ..application.extensions import ExtensionService
 from ..application.images import ImageService
 from ..application.maintenance import MaintenanceService
+from ..application.mcp import MCPService, MCPTransportPort
 from ..application.media import LIST_SPEC as MEDIA_LIST
 from ..application.media import TRANSCRIPT_SPEC as MEDIA_TRANSCRIPT
 from ..application.media import BilibiliMediaPort, MediaProcessingPort, MediaService
@@ -99,6 +102,7 @@ from ..domain.android import RESTORE_SPEC as ANDROID_RESTORE
 from ..domain.android import SPEC as ANDROID_ACTION
 from ..domain.contracts import BusinessError, Outcome
 from ..domain.desktop_actions import SPEC as DESKTOP_ACTION
+from ..domain.mcp import oauth_reference
 from ..domain.skills import SKILL_SPECS
 from .capabilities import builtin_capabilities
 from .lifecycle import Lifetime, close_sync
@@ -194,6 +198,7 @@ class Instance:
     qq: QQService
     bilibili: BilibiliService
     media: MediaService
+    mcp: MCPService
     android: AndroidService
     operations: OperationsService
     credentials: CredentialService
@@ -232,6 +237,7 @@ class Instance:
             "qq": self.qq.health(),
             "bilibili": self.bilibili.health(),
             "media": self.media.health(),
+            "mcp": self.mcp.health(),
             "android": self.android.health(),
             "credentials": self.credentials.health(),
             "action_reviews": self.action_reviews.health(),
@@ -257,6 +263,7 @@ class Instance:
             and not self.memory_semantics.health()["closing"]
             and not self.skills.health()["closing"]
             and not self.media.health()["closing"]
+            and not self.mcp.health()["closing"]
             and not self._lifetime.closing
             and not self._database.metrics["closed"]
             and not self._database.metrics["error_code"]
@@ -280,6 +287,7 @@ async def open_instance(
     qq_transport: QQTransportPort | None = None,
     bilibili_backend: BilibiliPort | None = None,
     media_processor: MediaProcessingPort | None = None,
+    mcp_transport: MCPTransportPort | None = None,
     android_backend: AndroidPort | None = None,
     capabilities: tuple[Capability, ...] | None = None,
     master_key_file: Path | None = None,
@@ -503,6 +511,34 @@ async def open_instance(
         lifetime.own("deliveries", 0, deliveries.close, deliveries.stop_accepting)
         credentials = CredentialService(database, credential_io, ids, deliveries.cancel_active, observation)
         lifetime.own("credential_changes", 0, credentials.close, credentials.stop_accepting)
+
+        async def mcp_authorization(target):
+            if target.auth_mode == "none":
+                return ""
+            reference = target.credential_ref if target.auth_mode == "bearer" else oauth_reference(target.server_id)
+            raw = await credential_io.get(reference)
+            if not raw:
+                return ""
+            try:
+                parsed = json.loads(raw)
+            except (ValueError, TypeError):
+                return raw
+            return str(parsed.get("access_token") or "") if isinstance(parsed, dict) else raw
+
+        mcp = MCPService(
+            database,
+            mcp_transport if mcp_transport is not None else MCPHosts(mcp_authorization, cwd=str(paths.control)),
+            clock,
+        )
+        lifetime.own("mcp", 0, mcp.close, mcp.stop_accepting)
+        # Calls owned by the previous process never replay: a prepared call was not
+        # dispatched and a dispatched call stays unknown until the owner verifies it.
+        mcp_recovered = await mcp.recover()
+        if any(mcp_recovered.values()):
+            logging.getLogger("omni.v2.startup").warning(
+                "MCP records from the previous process were reconciled",
+                extra={"event": "mcp.restart_reconciled", **mcp_recovered},
+            )
         application = Application(
             database,
             calls,
@@ -525,6 +561,7 @@ async def open_instance(
             workspace_validator=WorkspacePolicy(paths.home, Path(__file__).resolve().parents[1]).validate,
             delivery_cancellation=deliveries.cancel_active,
             extensions=extensions,
+            mcp=mcp,
             images=images,
             memory_semantics=memory_semantics,
             skills=skills,
@@ -559,6 +596,10 @@ async def open_instance(
                 "extension_cleanup_pending": health["extensions"]["hosts"]["cleanup_pending"],
                 "active_terminals": health["terminals"]["active"],
                 "media_jobs_pending": health["media"]["pending"],
+                "mcp_sessions": health["mcp"]["transports"]["resident"],
+                "mcp_cleanup_pending": sum(
+                    1 for session in health["mcp"]["transports"]["sessions"] if session.get("cleanup_pending")
+                ),
                 "desktop_observations": health["desktop"]["pending"],
                 "desktop_portal_pending": health["desktop_portal"]["pending"],
                 "desktop_portal_resident": health["desktop_portal"]["backend"]["resident"],
@@ -642,6 +683,7 @@ async def open_instance(
             qq=qq,
             bilibili=bilibili,
             media=media,
+            mcp=mcp,
             android=android,
             operations=operations,
             credentials=credentials,

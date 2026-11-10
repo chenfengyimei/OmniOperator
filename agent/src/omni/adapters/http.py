@@ -32,6 +32,7 @@ from ..application.engine import Application
 from ..application.extensions import ExtensionService
 from ..application.images import ImageService
 from ..application.maintenance import MaintenanceService
+from ..application.mcp import MCPService
 from ..application.media import MediaService
 from ..application.memory_organization import MemoryOrganizationService
 from ..application.memory_semantics import MemorySemanticService
@@ -82,6 +83,7 @@ class HttpRuntime:
     qq: QQService | None = None
     bilibili: BilibiliService | None = None
     media: MediaService | None = None
+    mcp: MCPService | None = None
     android: AndroidService | None = None
     images: ImageService | None = None
     routing: RoutingService | None = None
@@ -207,6 +209,28 @@ class MediaJobInput(StrictInput):
     compute_type: Literal["int8", "float16", "float32"] = "int8"
     count: int = Field(default=6, ge=1, le=12, strict=True)
     width: int = Field(default=640, ge=320, le=1280, strict=True)
+
+
+class MCPConnectInput(StrictInput):
+    revision: int = Field(ge=1, strict=True)
+
+
+class MCPToolAuthorizationInput(StrictInput):
+    tool_id: uuid.UUID
+    read_only: bool = Field(strict=True)
+
+
+class MCPAuthorizationInput(StrictInput):
+    catalog_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
+    tools: list[MCPToolAuthorizationInput] = Field(default_factory=list, max_length=256)
+    evidence: str = Field(min_length=1, max_length=200)
+
+
+class MCPToolDecisionInput(StrictInput):
+    catalog_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
+    read_only: bool = Field(default=False, strict=True)
+    authorized: bool = Field(default=True, strict=True)
+    evidence: str = Field(min_length=1, max_length=200)
 
 
 class DeliveryDecision(StrictInput):
@@ -722,6 +746,83 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.post("/agents/{agent_id}/media/processor/probe")
     async def media_processor_probe(agent_id: uuid.UUID, request: Request):
         return await media_service(request).processor_probe()
+
+    def mcp_service(request: Request) -> MCPService:
+        service = runtime(request).mcp
+        if service is None:
+            raise BusinessError("mcp_unavailable", "MCP capability is unavailable", status=503)
+        return service
+
+    @router.get("/agents/{agent_id}/mcp/servers")
+    async def mcp_servers(agent_id: uuid.UUID, request: Request):
+        return await mcp_service(request).servers(str(agent_id))
+
+    @router.get("/agents/{agent_id}/mcp/servers/{config_id}")
+    async def mcp_server(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        return await mcp_service(request).server(str(agent_id), str(config_id))
+
+    @router.post("/agents/{agent_id}/mcp/servers/{config_id}/connect")
+    async def mcp_connect(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        data = configuration_input(MCPConnectInput, await bounded_configuration(request, 1024, strict=True))
+        return await mcp_service(request).connect(str(agent_id), str(config_id), data.revision)
+
+    @router.post("/agents/{agent_id}/mcp/servers/{config_id}/disconnect")
+    async def mcp_disconnect(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        return await mcp_service(request).disconnect(str(agent_id), str(config_id))
+
+    @router.post("/agents/{agent_id}/mcp/servers/{config_id}/reset")
+    async def mcp_reset(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        return await mcp_service(request).reset(str(agent_id), str(config_id))
+
+    @router.get("/agents/{agent_id}/mcp/servers/{config_id}/catalog")
+    async def mcp_catalog(
+        agent_id: uuid.UUID,
+        config_id: uuid.UUID,
+        request: Request,
+        after: int = Query(default=-1, ge=-1),
+        limit: int = Query(default=20, ge=1, le=100),
+    ):
+        return await mcp_service(request).catalog(str(agent_id), str(config_id), after, limit)
+
+    @router.put("/agents/{agent_id}/mcp/servers/{config_id}/authorization")
+    async def mcp_authorize(agent_id: uuid.UUID, config_id: uuid.UUID, request: Request):
+        data = configuration_input(MCPAuthorizationInput, await bounded_configuration(request, 65536, strict=True))
+        return await mcp_service(request).authorize(
+            str(agent_id),
+            str(config_id),
+            {
+                "catalog_fingerprint": data.catalog_fingerprint,
+                "tools": [{"tool_id": str(item.tool_id), "read_only": item.read_only} for item in data.tools],
+                "evidence": data.evidence,
+            },
+        )
+
+    @router.put("/agents/{agent_id}/mcp/servers/{config_id}/tools/{tool_id}/authorization")
+    async def mcp_authorize_tool(agent_id: uuid.UUID, config_id: uuid.UUID, tool_id: uuid.UUID, request: Request):
+        data = configuration_input(MCPToolDecisionInput, await bounded_configuration(request, 4096, strict=True))
+        return await mcp_service(request).authorize_tool(
+            str(agent_id),
+            str(config_id),
+            str(tool_id),
+            authorized=data.authorized,
+            read_only=data.read_only,
+            catalog_fingerprint=data.catalog_fingerprint,
+            evidence=data.evidence,
+        )
+
+    @router.get("/agents/{agent_id}/mcp/servers/{config_id}/calls")
+    async def mcp_calls(
+        agent_id: uuid.UUID,
+        config_id: uuid.UUID,
+        request: Request,
+        after: uuid.UUID | None = None,
+        limit: int = Query(default=50, ge=1, le=100),
+    ):
+        return await mcp_service(request).calls(str(agent_id), str(config_id), str(after) if after else "", limit)
+
+    @router.get("/agents/{agent_id}/mcp/health")
+    async def mcp_health(agent_id: uuid.UUID, request: Request):
+        return mcp_service(request).health()
 
     @router.get("/agents/{agent_id}/qq/bindings")
     async def qq_bindings(

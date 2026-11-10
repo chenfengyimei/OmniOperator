@@ -3109,6 +3109,157 @@ run_skill_activations = scoped(
     ),
 )
 
+mcp_servers = scoped(
+    "mcp_servers",
+    Column("config_id", String(36), nullable=False),
+    Column("config_revision_id", String(36), nullable=False),
+    Column("state", String(12), nullable=False),
+    Column("authority_epoch", Integer, nullable=False),
+    Column("fingerprint", String(64), nullable=False),
+    Column("tool_count", Integer, nullable=False),
+    Column("error_code", String(80), nullable=False),
+    Column("connected_at", String(40)),
+    scoped_fk("config_id", "configurations"),
+    scoped_fk("config_revision_id", "configuration_revisions"),
+    UniqueConstraint("agent_id", "config_id"),
+    CheckConstraint(
+        "state IN ('idle','starting','ready','failed','unknown') AND typeof(authority_epoch)='integer' AND authority_epoch BETWEEN 1 AND 9223372036854775807 AND (fingerprint='' OR (length(fingerprint)=64 AND fingerprint NOT GLOB '*[^0-9a-f]*')) AND typeof(tool_count)='integer' AND tool_count BETWEEN 0 AND 256 AND length(error_code)<=80 AND (state!='ready' OR (length(fingerprint)=64 AND connected_at IS NOT NULL))",
+        name="runtime",
+    ),
+)
+mcp_catalogs = scoped(
+    "mcp_catalogs",
+    Column("server_id", String(36), nullable=False),
+    Column("config_revision_id", String(36), nullable=False),
+    Column("fingerprint", String(64), nullable=False),
+    Column("tool_count", Integer, nullable=False),
+    scoped_fk("server_id", "mcp_servers"),
+    scoped_fk("config_revision_id", "configuration_revisions"),
+    UniqueConstraint("agent_id", "server_id", "fingerprint"),
+    UniqueConstraint("id", "server_id", "fingerprint", "agent_id"),
+    UniqueConstraint("id", "server_id", "agent_id"),
+    CheckConstraint(
+        "length(fingerprint)=64 AND fingerprint NOT GLOB '*[^0-9a-f]*' AND typeof(tool_count)='integer' AND tool_count BETWEEN 0 AND 256",
+        name="catalog",
+    ),
+)
+mcp_tools = scoped(
+    "mcp_tools",
+    Column("server_id", String(36), nullable=False),
+    Column("catalog_id", String(36), nullable=False),
+    Column("name", String(64), nullable=False),
+    Column("exposed_name", String(100), nullable=False),
+    Column("description", String(1024), nullable=False),
+    Column("input_schema", JSON, nullable=False),
+    Column("tool_fingerprint", String(64), nullable=False),
+    Column("position", Integer, nullable=False),
+    scoped_fk("server_id", "mcp_servers"),
+    ForeignKeyConstraint(
+        ["catalog_id", "server_id", "agent_id"],
+        ["mcp_catalogs.id", "mcp_catalogs.server_id", "mcp_catalogs.agent_id"],
+        ondelete="RESTRICT",
+    ),
+    UniqueConstraint("catalog_id", "name"),
+    UniqueConstraint("catalog_id", "exposed_name"),
+    UniqueConstraint("id", "catalog_id", "server_id", "agent_id"),
+    CheckConstraint(
+        "length(name) BETWEEN 1 AND 64 AND name NOT GLOB '*[^A-Za-z0-9_-]*' AND length(exposed_name) BETWEEN 1 AND 100 AND length(description)<=1024 AND length(tool_fingerprint)=64 AND tool_fingerprint NOT GLOB '*[^0-9a-f]*' AND typeof(position)='integer' AND position BETWEEN 0 AND 255",
+        name="tool",
+    ),
+    CheckConstraint("json_valid(input_schema) AND json_type(input_schema)='object'", name="schema"),
+)
+mcp_grants = scoped(
+    "mcp_grants",
+    Column("server_id", String(36), nullable=False),
+    Column("catalog_id", String(36), nullable=False),
+    Column("tool_id", String(36), nullable=False),
+    Column("catalog_fingerprint", String(64), nullable=False),
+    Column("tool_fingerprint", String(64), nullable=False),
+    Column("authority_epoch", Integer, nullable=False),
+    Column("read_only", Boolean, nullable=False),
+    Column("revoked_at", String(40)),
+    Column("review_audit_id", String(36), nullable=False),
+    scoped_fk("server_id", "mcp_servers"),
+    scoped_fk("review_audit_id", "audit"),
+    ForeignKeyConstraint(
+        ["tool_id", "catalog_id", "server_id", "agent_id"],
+        ["mcp_tools.id", "mcp_tools.catalog_id", "mcp_tools.server_id", "mcp_tools.agent_id"],
+        ondelete="RESTRICT",
+    ),
+    UniqueConstraint("server_id", "authority_epoch", "tool_id"),
+    UniqueConstraint("id", "tool_id", "authority_epoch", "agent_id"),
+    CheckConstraint(
+        "typeof(authority_epoch)='integer' AND authority_epoch BETWEEN 1 AND 9223372036854775807 AND read_only IN (0,1) AND length(catalog_fingerprint)=64 AND length(tool_fingerprint)=64",
+        name="grant",
+    ),
+)
+Index("ix_mcp_grants_review_audit", mcp_grants.c.agent_id, mcp_grants.c.review_audit_id)
+Index(
+    "uq_mcp_grants_active",
+    mcp_grants.c.agent_id,
+    mcp_grants.c.server_id,
+    mcp_grants.c.tool_id,
+    unique=True,
+    sqlite_where=mcp_grants.c.revoked_at.is_(None),
+)
+mcp_run_tools = scoped(
+    "mcp_run_tools",
+    Column("run_id", String(36), nullable=False),
+    Column("server_id", String(36), nullable=False),
+    Column("tool_id", String(36), nullable=False),
+    Column("grant_id", String(36), nullable=False),
+    Column("authority_epoch", Integer, nullable=False),
+    Column("name", String(100), nullable=False),
+    Column("writes", Boolean, nullable=False),
+    scoped_fk("run_id", "runs"),
+    scoped_fk("server_id", "mcp_servers"),
+    ForeignKeyConstraint(
+        ["tool_id", "grant_id", "authority_epoch", "agent_id"],
+        ["mcp_grants.tool_id", "mcp_grants.id", "mcp_grants.authority_epoch", "mcp_grants.agent_id"],
+        ondelete="RESTRICT",
+    ),
+    UniqueConstraint("run_id", "name"),
+    UniqueConstraint("run_id", "tool_id"),
+    UniqueConstraint("id", "run_id", "agent_id"),
+    CheckConstraint(
+        "typeof(authority_epoch)='integer' AND authority_epoch BETWEEN 1 AND 9223372036854775807 AND length(name) BETWEEN 1 AND 100 AND writes IN (0,1)",
+        name="capture",
+    ),
+)
+mcp_action_bindings = scoped(
+    "mcp_action_bindings",
+    Column("action_id", String(36), nullable=False),
+    Column("run_tool_id", String(36), nullable=False),
+    scoped_fk("action_id", "actions"),
+    scoped_fk("run_tool_id", "mcp_run_tools"),
+    UniqueConstraint("action_id"),
+)
+mcp_calls = scoped(
+    "mcp_calls",
+    Column("server_id", String(36), nullable=False),
+    Column("tool_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False),
+    Column("action_id", String(36), nullable=False),
+    Column("name", String(100), nullable=False),
+    Column("writes", Boolean, nullable=False),
+    Column("state", String(12), nullable=False),
+    Column("error_code", String(80), nullable=False),
+    Column("text_chars", Integer, nullable=False),
+    Column("truncated", Boolean, nullable=False),
+    Column("duration_ms", Integer, nullable=False),
+    Column("finished_at", String(40)),
+    scoped_fk("server_id", "mcp_servers"),
+    scoped_fk("tool_id", "mcp_tools"),
+    scoped_fk("run_id", "runs"),
+    scoped_fk("action_id", "actions"),
+    UniqueConstraint("action_id"),
+    CheckConstraint(
+        "state IN ('prepared','dispatched','done','failed','denied','unknown','cancelled') AND length(error_code)<=80 AND typeof(text_chars)='integer' AND text_chars BETWEEN 0 AND 12000 AND truncated IN (0,1) AND typeof(duration_ms)='integer' AND duration_ms BETWEEN 0 AND 86400000 AND (state IN ('prepared','dispatched') OR finished_at IS NOT NULL) AND (state NOT IN ('unknown','failed','denied') OR length(error_code)>0)",
+        name="call",
+    ),
+)
+Index("ix_mcp_calls_server", mcp_calls.c.agent_id, mcp_calls.c.server_id, mcp_calls.c.id)
+
 # Compute once after every object-owning table is declared; live queries and
 # offline foreign-key inventory must recognize exactly the same owners.
 OBJECT_REFERENCES = tuple(

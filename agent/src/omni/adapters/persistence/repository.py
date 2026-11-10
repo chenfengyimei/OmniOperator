@@ -23,6 +23,7 @@ from .extension_repository import ExtensionRepositories
 from .history_repository import HistoryRepositories
 from .history_sequence import allocate_history
 from .maintenance_repository import MaintenanceRepositories
+from .mcp_repository import MCPRepositories
 from .media_repository import MediaRepositories
 from .memory_organization_repository import MemoryOrganizationRepositories
 from .memory_semantic_repository import MemorySemanticRepositories
@@ -48,6 +49,7 @@ class Repositories(
     QQRepositories,
     TerminalReviewRepositories,
     ActionReviewRepositories,
+    MCPRepositories,
     ExtensionRepositories,
     MemoryOrganizationRepositories,
     MaintenanceRepositories,
@@ -622,6 +624,7 @@ class Repositories(
             agent_id,
         )
         self.extension_bind_action(agent_id, run_id, action["id"], spec)
+        self.mcp_bind_action(agent_id, run_id, action["id"], spec)
         command = self.owner_command(agent_id, run_id)
         if command:
             if command["tool"] != spec.name or command["arguments"] != arguments or command["action_id"] is not None:
@@ -672,6 +675,7 @@ class Repositories(
         if approval["state"] != "pending" or approval["expires_at"] <= self.clock.now() or action["state"] != "pending":
             raise BusinessError("approval_expired", "Approval is no longer pending")
         self.extension_assert_action(agent_id, action["id"])
+        self.mcp_assert_action(agent_id, action["id"])
         if self.settings(agent_id)["policy_revision"] != policy or action["policy_revision"] != policy:
             raise BusinessError("policy_changed", "Approval belongs to an older policy")
         if self.get_run(agent_id, action["run_id"])["state"] != "waiting_approval":
@@ -692,6 +696,7 @@ class Repositories(
         if run["state"] != "running" or action["state"] != "approved":
             raise BusinessError("action_not_authorized", "Action is not authorized")
         self.extension_assert_action(agent_id, action_id)
+        self.mcp_assert_action(agent_id, action_id)
         if action["policy_revision"] != current["policy_revision"] or action["tool"] in current["value"].get(
             "disabled_tools", []
         ):

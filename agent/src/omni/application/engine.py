@@ -19,7 +19,15 @@ from .context import ContextService
 from .images import ImageService
 from .memory_semantics import MemorySemanticService
 from .model_calls import ModelCalls
-from .ports import CapabilityPort, Clock, DatabasePort, ExtensionCapabilityPort, Observer, Record
+from .ports import (
+    CapabilityPort,
+    Clock,
+    DatabasePort,
+    ExtensionCapabilityPort,
+    MCPCapabilityPort,
+    Observer,
+    Record,
+)
 from .skills import SkillService
 
 log = logging.getLogger("omni.v2.engine")
@@ -49,6 +57,7 @@ class Application:
         workspace_validator: Callable[[str], None] | None = None,
         delivery_cancellation: Callable[[list[str]], None] | None = None,
         extensions: ExtensionCapabilityPort | None = None,
+        mcp: MCPCapabilityPort | None = None,
         owner_capabilities: tuple[Capability, ...] = (),
         images: ImageService | None = None,
         memory_semantics: MemorySemanticService | None = None,
@@ -65,6 +74,7 @@ class Application:
         self._workspace_validator = workspace_validator
         self._delivery_cancellation = delivery_cancellation
         self._extensions = extensions
+        self._mcp = mcp
         self._images = images
         self._memory_semantics = memory_semantics
         self._skills = skills
@@ -131,6 +141,9 @@ class Application:
             if self._extensions is None or not self._extensions.review_quiescent(
                 str(record["agent_id"]), str(source["extension_id"]), self._revision(source["authority_epoch"])
             ):
+                blockers.append("action_worker_active")
+        elif str(record["tool"]).startswith("mcp__"):
+            if self._mcp is None or not self._mcp.quiescent():
                 blockers.append("action_worker_active")
         else:
             cap = self._tools.get(str(record["tool"])) or self._owner_tools.get(str(record["tool"]))
@@ -228,6 +241,13 @@ class Application:
                                 "extension_tool_collision", "Extension name conflicts with a registered capability"
                             )
                         registry[spec.name] = Capability(spec, self._extensions)
+                if self._mcp is not None and not remote:
+                    for mcp_spec in await self._mcp.tools_for_run(agent_id, run_id):
+                        if mcp_spec.name in registry or mcp_spec.name == "request_mode":
+                            raise BusinessError(
+                                "mcp_tool_collision", "MCP tool name conflicts with a registered capability"
+                            )
+                        registry[mcp_spec.name] = Capability(mcp_spec, self._mcp)
                 baseline = tuple(c.spec for c in registry.values() if c.spec.name not in settings["disabled_tools"])
                 route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
                 may_promote = bool(route["allow_escalation"] and not route["promoted"])

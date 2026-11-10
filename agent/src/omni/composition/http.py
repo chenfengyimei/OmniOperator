@@ -16,6 +16,7 @@ from ..adapters.log_query import LogQuery
 from ..adapters.platform.permissions import private_path
 from ..application.android import AndroidPort
 from ..application.bilibili import BilibiliPort
+from ..application.mcp import MCPTransportPort
 from ..application.media import MediaProcessingPort
 from ..application.ports import (
     DeliveryPort,
@@ -52,6 +53,7 @@ def http_app(
     qq_transport: QQTransportPort | None = None,
     bilibili_backend: BilibiliPort | None = None,
     media_processor: MediaProcessingPort | None = None,
+    mcp_transport: MCPTransportPort | None = None,
     android_backend: AndroidPort | None = None,
     master_key_file: Path | None = None,
     allowed_origins: tuple[str, ...] = (),
@@ -76,6 +78,7 @@ def http_app(
             qq_transport=qq_transport,
             bilibili_backend=bilibili_backend,
             media_processor=media_processor,
+            mcp_transport=mcp_transport,
             android_backend=android_backend,
             master_key_file=master_key_file,
             stderr_only=stderr_only,
@@ -135,6 +138,7 @@ def http_app(
                 qq=instance.qq,
                 bilibili=instance.bilibili,
                 media=instance.media,
+                mcp=instance.mcp,
                 android=instance.android,
                 application=instance.application,
                 authenticate=authenticate,
