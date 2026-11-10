@@ -94,3 +94,33 @@ def test_plugin_api_scope_bounds_and_immutable_update_replay_do_not_follow_mutab
         assert client.put(wrong + "/authorization", json=authorization(changed.json())).status_code == 404
         assert client.get(f"/api/v1/agents/{other}/extensions").json()["items"] == []
         assert client.get(base).json()["items"][0]["agent_id"] == agent
+
+
+def test_local_market_scan_reports_updates_without_installing(tmp_path):
+    market = tmp_path / "market"
+    market.mkdir()
+    plugin_source(market / "v1", version="1")
+    plugin_source(market / "v2", version="2")
+    home = tmp_path / "instance"
+    with TestClient(http_app(home)) as client:
+        _, base = owner(client, home)
+        installed = client.post(base, json=installation(plugin_source(tmp_path / "source", version="1"))).json()
+        response = client.post(base + "/market", json={"source": str(market)})
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["scanned"] == 2 and body["marketplace_source"] == str(market)
+        rows = {row["version"]: row for row in body["items"]}
+        assert rows["1"]["installed"] and rows["1"]["is_current_version"] and not rows["1"]["update_available"]
+        assert rows["2"]["update_available"] and rows["2"]["extension_id"] == installed["id"]
+        assert "source" in rows["2"] and str(tmp_path / "source") not in response.text
+        assert client.get(base + "/" + installed["id"]).json()["version"] == "1"
+        for payload in ({"source": "relative"}, {"source": ""}, {}, {"source": str(market), "extra": 1}):
+            assert client.post(base + "/market", json=payload).status_code == 422
+        assert (
+            client.post(
+                "/api/v1/agents/" + str(uuid.uuid4()) + "/extensions/market",
+                json={"source": str(market)},
+                headers={"Authorization": ""},
+            ).status_code
+            == 401
+        )

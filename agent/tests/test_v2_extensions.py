@@ -19,6 +19,7 @@ from v2_extension_helpers import (
 
 from omni.adapters.persistence import schema as s
 from omni.composition.instance import open_instance
+from omni.domain.contracts import BusinessError
 from omni.domain.extensions import (
     artifact_descriptors,
     catalog,
@@ -347,5 +348,42 @@ def test_disable_during_real_plugin_write_keeps_unknown_and_reclaims_actual_chil
         finally:
             assert (await instance.close(15))["complete"]
         assert instance.extensions.health()["hosts"]["resident"] == 0
+
+    asyncio.run(scenario())
+
+
+def test_market_scan_is_read_only_reports_updates_and_rejects_unsafe_sources(tmp_path):
+    async def scenario():
+        market = tmp_path / "market"
+        market.mkdir()
+        plugin_source(market / "v1", version="1")
+        plugin_source(market / "v2", version="2")
+        broken = market / "broken"
+        broken.mkdir()
+        (broken / "extension.json").write_text("{", encoding="utf-8")
+        source = plugin_source(tmp_path / "source", version="1")
+        instance = await open_instance(tmp_path / "home", model=PluginModel(), capabilities=())
+        try:
+            agent, extension = await installed(instance, source)
+            result = await instance.extensions.market(agent, str(market))
+            assert result["scanned"] == 2 and result["marketplace_source"] == str(market)
+            rows = {row["version"]: row for row in result["items"]}
+            assert rows["1"]["installed"] and rows["1"]["is_current_version"] and not rows["1"]["update_available"]
+            assert rows["2"]["update_available"] and rows["2"]["extension_id"] == extension["id"]
+            assert rows["2"]["revision"] == extension["revision"] and rows["2"]["installed_version"] == "1"
+            assert (await instance.extensions.get(agent, extension["id"]))["version"] == "1"
+            for bad in ("relative/market", str(tmp_path / "missing")):
+                with pytest.raises(BusinessError):
+                    await instance.extensions.market(agent, bad)
+            link = tmp_path / "market-link"
+            try:
+                link.symlink_to(market, target_is_directory=True)
+            except OSError:
+                link = None
+            if link is not None:
+                with pytest.raises(BusinessError):
+                    await instance.extensions.market(agent, str(link))
+        finally:
+            assert (await instance.close())["complete"]
 
     asyncio.run(scenario())

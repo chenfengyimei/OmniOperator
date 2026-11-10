@@ -1772,6 +1772,18 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def extension_install(agent_id: uuid.UUID, request: Request):
         return await runtime(request).extensions.install(str(agent_id), await bounded_configuration(request, 8192))
 
+    @router.post("/agents/{agent_id}/extensions/market")
+    async def extension_market(agent_id: uuid.UUID, request: Request):
+        data = await bounded_configuration(request, 4096)
+        if (
+            not isinstance(data, dict)
+            or set(data) != {"source"}
+            or not isinstance(data["source"], str)
+            or not 1 <= len(data["source"]) <= 4000
+        ):
+            raise BusinessError("extension_invalid", "A bounded local market directory is required", status=422)
+        return await runtime(request).extensions.market(str(agent_id), data["source"])
+
     @router.get("/agents/{agent_id}/extensions")
     async def extension_list(
         agent_id: uuid.UUID,

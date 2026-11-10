@@ -231,6 +231,47 @@ class ExtensionService:
 
         return await self._execute(perform)
 
+    async def market(self, agent_id: str, source: str) -> Record:
+        """Read-only owner scan of one local market directory; installing is a separate explicit call."""
+
+        async def perform():
+            candidates = await self._packages.market(source)
+            installed = {
+                str(row["name"]): row for row in await self._db.read(lambda u: u.extension_page(agent_id, 0, 50))
+            }
+            items = []
+            for candidate in candidates:
+                slot = installed.get(str(candidate["name"]))
+                items.append(
+                    {
+                        "name": candidate["name"],
+                        "version": candidate["version"],
+                        "entry": candidate["entry"],
+                        "source": candidate["source"],
+                        "catalog_sha256": candidate["catalog_sha256"],
+                        "extension_id": slot["id"] if slot else None,
+                        "revision": slot["revision"] if slot else 0,
+                        "installed": slot is not None,
+                        "installed_version": slot["version"] if slot else "",
+                        "is_current_version": bool(
+                            slot
+                            and slot["version"] == candidate["version"]
+                            and slot["catalog_sha256"] == candidate["catalog_sha256"]
+                        ),
+                        "update_available": bool(
+                            slot
+                            and (
+                                slot["version"] != candidate["version"]
+                                or slot["catalog_sha256"] != candidate["catalog_sha256"]
+                            )
+                        ),
+                    }
+                )
+            items.sort(key=lambda item: (str(item["name"]), str(item["version"])))
+            return {"items": items, "scanned": len(items), "marketplace_source": str(source)}
+
+        return await self._execute(perform)
+
     async def authorize(self, agent_id: str, extension_id: str, request: Record) -> Record:
         checked = parse_authorization(request)
 

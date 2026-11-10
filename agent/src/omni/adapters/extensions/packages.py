@@ -393,6 +393,54 @@ class ExtensionPackages:
 
         return await self._execute(perform)
 
+    async def market(self, source: str) -> list[dict]:
+        """Read-only manifest scan of one owner-supplied directory; never captures or imports code."""
+
+        def perform():
+            try:
+                if not isinstance(source, str) or not source or len(source) > 4000 or "\0" in source:
+                    raise _invalid()
+                root = Path(source)
+                if not root.is_absolute() or not root.is_dir():
+                    raise _invalid()
+                no_links(root)
+                candidates = []
+                entries = 0
+                for entry in sorted(root.iterdir()):
+                    entries += 1
+                    if entries > 64 or len(candidates) >= 32:
+                        break
+                    if entry.is_symlink() or entry.is_junction():
+                        raise _invalid()
+                    if not entry.is_dir():
+                        continue
+                    manifest_path = entry / "extension.json"
+                    if manifest_path.is_symlink() or not manifest_path.is_file():
+                        continue
+                    try:
+                        data = manifest_path.read_bytes()
+                        if len(data) > MAX_MANIFEST_BYTES:
+                            continue
+                        manifest = _manifest(data)
+                    except (BusinessError, OSError):
+                        continue
+                    candidates.append(
+                        {
+                            "name": manifest["id"],
+                            "version": manifest["version"],
+                            "entry": manifest["entry"],
+                            "source": str(entry),
+                            "catalog_sha256": catalog_fingerprint(manifest),
+                        }
+                    )
+                return candidates
+            except BusinessError:
+                raise
+            except (OSError, ValueError, TypeError, AttributeError, UnicodeError) as exc:
+                raise _invalid() from exc
+
+        return await self._execute(perform)
+
     def _location(self, location: str, revision: Record) -> Path:
         if not isinstance(location, str):
             raise _invalid("extension_snapshot_drift", status=409)
