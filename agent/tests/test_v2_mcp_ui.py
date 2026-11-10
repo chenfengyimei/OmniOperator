@@ -79,7 +79,9 @@ def test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects(ui_browser,
         agent = page.request.get(url + "/api/v1/agents", headers=headers).json()["items"][0]["id"]
         base = f"{url}/api/v1/agents/{agent}"
         profile = page.request.get(base + "/settings", headers=headers).json()
-        model = page.request.get(base + "/configurations/" + profile["value"]["model_profile_id"], headers=headers).json()
+        model = page.request.get(
+            base + "/configurations/" + profile["value"]["model_profile_id"], headers=headers
+        ).json()
         page.request.put(
             base + "/configurations/" + model["id"],
             headers=headers,
@@ -90,7 +92,7 @@ def test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects(ui_browser,
                 "value": {**model["value"], "model": "fake"},
             },
         )
-        config = page.request.post(
+        page.request.post(
             base + "/configurations",
             headers=headers,
             data={"kind": "mcp", "name": "notes", "enabled": True, "value": definition},
