@@ -1,5 +1,5 @@
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountTerminalReviews } from './terminal-reviews.js?v=20261110v50';
+import { mountTerminalReviews } from './terminal-reviews.js?v=20261110v51';
 
 const labels = {
   starting: '正在启动',

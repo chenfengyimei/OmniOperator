@@ -7,8 +7,8 @@
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v50" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v50" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v51" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v51" />
   </head>
   <body>
     <header>
@@ -805,6 +805,14 @@
           <p class="muted">
             更新所选插件时绑定当前修订，并撤销旧版本的授权。输入草稿只保存在当前网页内存；登记结果未核清时保留原请求键，核查不会覆盖新输入。
           </p>
+          <form id="extension-market-form">
+            <label>本地市场目录（绝对路径，只读扫描）<input id="extension-market-source" maxlength="4000" /></label>
+            <div class="actions">
+              <button id="extension-market-check" type="submit" disabled>检查更新</button>
+            </div>
+          </form>
+          <p id="extension-market-status" role="status"></p>
+          <div id="extension-market-list"></div>
           <div class="actions">
             <button id="extension-refresh-detail" type="button" disabled>刷新所选插件</button>
             <button id="extension-disable" type="button" disabled>禁用并核查回收</button>
@@ -1357,8 +1365,8 @@
         </section>
       </section>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261110v50"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v50"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261110v50"></script>
+    <script src="/assets/vendor/xterm.js?v=20261110v51"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v51"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261110v51"></script>
   </body>
 </html>

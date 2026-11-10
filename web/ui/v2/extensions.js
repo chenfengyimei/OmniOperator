@@ -17,6 +17,7 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
   let owner = '',
     selected = null,
     detail = null,
+    marketResult = null,
     scopeRead = 0,
     viewRead = 0,
     listRead = 0,
@@ -96,6 +97,7 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
     $('extension-disable').disabled = !detail || detailLoading || Boolean(mutation);
     $('extension-actions-refresh').disabled = !selected || detailLoading || Boolean(mutation);
     $('extension-actions-more').disabled = !selected || !actionAfter || detailLoading || Boolean(mutation);
+    $('extension-market-check').disabled = Boolean(mutation) || !$('extension-market-source').value.trim();
   }
   function clearDetail() {
     detail = null;
@@ -236,6 +238,10 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
     clearDetail();
     choices();
     $('extension-source').value = '';
+    marketResult = null;
+    $('extension-market-source').value = '';
+    $('extension-market-list').replaceChildren();
+    $('extension-market-status').textContent = '';
     $('extension-status').textContent = $('extension-list-status').textContent = '';
     controls();
   }
@@ -369,6 +375,105 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
       if (sameScope(t)) controls();
     }
   }
+  function renderMarket(result) {
+    const list = $('extension-market-list');
+    list.replaceChildren();
+    for (const item of result.items) {
+      const card = document.createElement('article');
+      const text = document.createElement('p');
+      const state = item.is_current_version
+        ? '已是当前版本'
+        : item.update_available
+          ? `可更新（当前 ${item.installed_version}）`
+          : '未安装';
+      text.textContent = `${item.name} · ${item.version} · ${state} · ${item.source}`;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = item.is_current_version ? '已是当前版本' : item.installed ? '登记为新版本' : '登记为新插件';
+      button.disabled = item.is_current_version || Boolean(mutation);
+      button.addEventListener(
+        'click',
+        wrap(() => installMarket(item)),
+      );
+      card.append(text, button);
+      list.append(card);
+    }
+    if (!result.items.length) {
+      const empty = document.createElement('p');
+      empty.textContent = '该目录没有可读取的插件包（仅扫描直接子目录的 extension.json）。';
+      list.append(empty);
+    }
+  }
+  async function checkMarket(source) {
+    const t = target(),
+      flight = {};
+    if (!source) return;
+    mutation = flight;
+    controls();
+    $('extension-market-status').textContent = '正在只读扫描本机市场目录，不会安装或执行插件…';
+    try {
+      const result = await api(`${root(t.agent)}/market`, { method: 'POST', body: { source } });
+      if (!current(t) || mutation !== flight) return;
+      marketResult = result;
+      renderMarket(result);
+      $('extension-market-status').textContent =
+        `扫描 ${result.scanned} 个候选；登记仍需逐项确认，更新版本会撤销旧授权。`;
+    } catch (error) {
+      if (!current(t) || mutation !== flight) return;
+      $('extension-market-status').textContent = '市场目录扫描被拒绝或不可读；请核对绝对路径后重试。';
+      throw error;
+    } finally {
+      if (mutation === flight) mutation = null;
+      if (current(t)) {
+        controls();
+        if (marketResult) renderMarket(marketResult);
+      }
+    }
+  }
+  async function installMarket(item) {
+    if (mutation || !current(target())) return;
+    const t = target();
+    if (
+      !(await ask({
+        title: item.installed ? '登记插件新版本' : '登记新插件',
+        message: `${item.name} 版本 ${item.version}，目录 ${item.source}。登记只捕获固定包与工具目录，不执行插件；更新版本会撤销旧授权并要求重新审查。`,
+        confirmLabel: '登记该版本',
+      }))
+    )
+      return;
+    if (!current(t) || mutation) return;
+    const flight = {};
+    mutation = flight;
+    controls();
+    try {
+      const record = await api(root(t.agent), {
+        method: 'POST',
+        body: {
+          key: crypto.randomUUID(),
+          source: item.source,
+          extension_id: item.extension_id,
+          revision: item.revision,
+        },
+      });
+      if (!current(t)) return;
+      selected = record.id;
+      viewRead++;
+      selections.set(t.agent, selected);
+      remember(record);
+      choices();
+      await loadDetail();
+      if (current(target()))
+        $('extension-status').textContent = '包已登记，尚未执行插件；请核查指纹并手动选择授权工具。';
+    } catch (error) {
+      if (!current(t)) return;
+      $('extension-market-status').textContent = '登记被拒绝或结果未核清；请显式刷新后核对版本。';
+      if (error.status !== 409) throw error;
+    } finally {
+      if (mutation === flight) mutation = null;
+      if (current(t)) controls();
+    }
+    if (current(t)) await checkMarket($('extension-market-source').value.trim());
+  }
   async function mutate(captured, operation, disabling = false) {
     const t = target(),
       flight = {};
@@ -404,6 +509,15 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
     value.version++;
     controls();
   });
+  $('extension-market-source').addEventListener('input', controls);
+  $('extension-market-form').addEventListener(
+    'submit',
+    wrap(async () => {
+      const source = $('extension-market-source').value.trim();
+      if (!source) return;
+      await checkMarket(source);
+    }),
+  );
   $('extension-install-form').addEventListener(
     'submit',
     wrap(() => install()),
