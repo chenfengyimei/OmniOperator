@@ -1,25 +1,26 @@
-import { mountSkills } from './skills.js?v=20261110v48';
-import { mountCredentials } from './credentials.js?v=20261110v48';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261110v48';
-import { mountDocuments } from './documents.js?v=20261110v48';
-import { mountConfiguration } from './configuration.js?v=20261110v48';
+import { mountSkills } from './skills.js?v=20261110v49';
+import { mountCredentials } from './credentials.js?v=20261110v49';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261110v49';
+import { mountDocuments } from './documents.js?v=20261110v49';
+import { mountConfiguration } from './configuration.js?v=20261110v49';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261110v48';
-import { mountDeliveries } from './deliveries.js?v=20261110v48';
-import { mountSchedules } from './schedules.js?v=20261110v48';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261110v48';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261110v48';
-import { mountExtensions } from './extensions.js?v=20261110v48';
-import { mountActionReviews } from './action-reviews.js?v=20261110v48';
-import { mountTerminals } from './terminals.js?v=20261110v48';
-import { mountDesktop } from './desktop.js?v=20261110v48';
-import { mountQQ } from './qq.js?v=20261110v48';
-import { mountBilibili } from './bilibili.js?v=20261110v48';
-import { mountMedia } from './media.js?v=20261110v48';
-import { mountAndroid } from './android.js?v=20261110v48';
-import { mountModelOutput } from './model-output.js?v=20261110v48';
-import { mountRouting } from './routing.js?v=20261110v48';
-import { mountChatImages } from './chat-images.js?v=20261110v48';
+import { mountPeople } from './people.js?v=20261110v49';
+import { mountDeliveries } from './deliveries.js?v=20261110v49';
+import { mountSchedules } from './schedules.js?v=20261110v49';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261110v49';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261110v49';
+import { mountExtensions } from './extensions.js?v=20261110v49';
+import { mountActionReviews } from './action-reviews.js?v=20261110v49';
+import { mountTerminals } from './terminals.js?v=20261110v49';
+import { mountDesktop } from './desktop.js?v=20261110v49';
+import { mountQQ } from './qq.js?v=20261110v49';
+import { mountBilibili } from './bilibili.js?v=20261110v49';
+import { mountMedia } from './media.js?v=20261110v49';
+import { mountMcp } from './mcp.js?v=20261110v49';
+import { mountAndroid } from './android.js?v=20261110v49';
+import { mountModelOutput } from './model-output.js?v=20261110v49';
+import { mountRouting } from './routing.js?v=20261110v49';
+import { mountChatImages } from './chat-images.js?v=20261110v49';
 
 const $ = (id) => document.getElementById(id);
 let token = '',
@@ -89,6 +90,7 @@ const peoplePanel = mountPeople({ api, wrap, getAgent: () => agent, getGeneratio
 const qqPanel = mountQQ({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const bilibiliPanel = mountBilibili({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const mediaPanel = mountMedia({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
+const mcpPanel = mountMcp({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const androidPanel = mountAndroid({
   api,
   wrap,
@@ -442,6 +444,7 @@ async function selectAgent() {
   peoplePanel.reset();
   qqPanel.reset();
   bilibiliPanel.reset();
+  mcpPanel.reset();
   androidPanel.reset();
   configurationPanel.reset();
   routingPanel.reset();
@@ -488,6 +491,7 @@ async function selectAgent() {
   if (page === 'people') await peoplePanel.load();
   if (page === 'qq') await qqPanel.load();
   if (page === 'bilibili') await bilibiliPanel.load();
+  if (page === 'mcp') await mcpPanel.load();
   if (page === 'android') await androidPanel.load();
   if (page === 'documents') await documentsPanel.load();
   if (page === 'schedules') await schedulesPanel.load();
@@ -757,6 +761,7 @@ for (const button of document.querySelectorAll('[data-page]'))
       if (selectedPage === 'qq') await qqPanel.load();
       if (selectedPage === 'bilibili') await bilibiliPanel.load();
       if (selectedPage === 'media') await mediaPanel.load();
+      if (selectedPage === 'mcp') await mcpPanel.load();
       if (selectedPage === 'android') await androidPanel.load();
       if (selectedPage === 'documents') await documentsPanel.load();
       if (selectedPage === 'schedules') await schedulesPanel.load();

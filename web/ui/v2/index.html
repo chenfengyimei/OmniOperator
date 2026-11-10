@@ -7,8 +7,8 @@
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v48" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v48" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v49" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v49" />
   </head>
   <body>
     <header>
@@ -40,6 +40,7 @@
           <button type="button" data-page="qq">QQ 通道</button>
           <button type="button" data-page="bilibili">B站</button>
           <button type="button" data-page="media">媒体</button>
+          <button type="button" data-page="mcp">MCP</button>
           <button type="button" data-page="android">安卓设备</button>
           <button type="button" data-page="documents">来源文档</button>
           <button type="button" data-page="schedules">持久调度</button>
@@ -382,6 +383,42 @@
             <button id="media-processor-probe" type="button" disabled>检查本地组件</button>
           </div>
           <button id="media-source-delete" type="button" disabled>删除所选来源（级联其作业与产物行）</button>
+        </section>
+        <section id="mcp" class="page" hidden>
+          <h2>MCP 服务</h2>
+          <p>
+            外部 MCP
+            服务以“配置修订”为身份。连接、目录发现与逐工具授权都由所有者显式发起：状态只读本地记录，不会启动进程；工具参数
+            schema 与当前指纹展示在此，未授权工具对模型不可见。远端 OAuth 只在点“授权远程服务”后开始。
+          </p>
+          <div class="actions">
+            <button id="mcp-refresh" type="button">刷新服务</button
+            ><button id="mcp-connect" type="button" disabled>连接所选服务</button
+            ><button id="mcp-disconnect" type="button" disabled>断开所选服务</button
+            ><button id="mcp-reset" type="button" disabled>重置所选服务</button>
+          </div>
+          <p id="mcp-status" role="status"></p>
+          <label>MCP 服务<select id="mcp-server-list"></select></label>
+          <pre id="mcp-server-detail"></pre>
+          <div class="actions">
+            <button id="mcp-catalog-refresh" type="button" disabled>刷新目录</button
+            ><button id="mcp-catalog-more" type="button" disabled>更多工具</button
+            ><button id="mcp-authorize-save" type="button" disabled>保存逐工具授权</button
+            ><button id="mcp-revoke" type="button" disabled>撤销全部授权</button>
+          </div>
+          <p id="mcp-catalog-status" role="status"></p>
+          <pre id="mcp-catalog-meta"></pre>
+          <div id="mcp-tool-list"></div>
+          <div class="actions">
+            <button id="mcp-oauth-start" type="button" disabled>授权远程服务（显式 OAuth）</button>
+          </div>
+          <p id="mcp-oauth-status" role="status"></p>
+          <pre id="mcp-oauth-url"></pre>
+          <div class="actions">
+            <button id="mcp-calls-refresh" type="button" disabled>刷新调用记录</button
+            ><button id="mcp-calls-more" type="button" disabled>更多调用记录</button>
+          </div>
+          <pre id="mcp-calls"></pre>
         </section>
         <section id="qq" class="page" hidden>
           <h2>QQ 通道</h2>
@@ -1314,8 +1351,8 @@
         </section>
       </section>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261110v48"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v48"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261110v48"></script>
+    <script src="/assets/vendor/xterm.js?v=20261110v49"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v49"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261110v49"></script>
   </body>
 </html>
