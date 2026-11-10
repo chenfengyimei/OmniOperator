@@ -63,8 +63,29 @@
    ]
   },
   "full_run": {
-   "status": "not_rerun",
-   "last_known": "4574 passed / 2 failed (parallel timing flakes) before market/callback nodes"
+   "path": "temp/build/v2-callbacks-final-full.xml",
+   "sha256": "1f06dda5dd7e6725c00fd881e5b24f8ce293ace244c236341b6b2fa18c2e29e0",
+   "tests": 4583,
+   "passed": 4580,
+   "failures": 3,
+   "errors": 0,
+   "skipped": 0,
+   "duration_s": 1406.768,
+   "failed_nodes": [
+    "agent.tests.test_v2_service_runtime::test_identity_tracks_real_boot_and_drains_before_releasing_lock",
+    "agent.tests.test_v2_debug_sink::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime",
+    "agent.tests.test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels"
+   ],
+   "current_full_passed": false,
+   "note": "Three parallel-run timing failures; all pass in isolation with the same source."
+  },
+  "final_isolation": {
+   "path": "temp/build/v2-callbacks-final-isolation.xml",
+   "sha256": "84ac06f5543dff6fd5ab30b1af9bcbc258e9d3d00defb91f75d67bb205e45ba5",
+   "tests": 36,
+   "failures": 0,
+   "errors": 0,
+   "duration_s": 20.973
   }
  },
  "source_recovery": {

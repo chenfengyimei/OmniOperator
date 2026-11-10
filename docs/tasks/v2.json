@@ -300,21 +300,29 @@
       {
         "id": "tests.parallel_run_timing_flakes",
         "status": "观察中",
-        "scope": "全量并行下 debug_sink 与 portal_ui 各一处时序失败；同源码单文件/两文件隔离 12 项全过，未判定产品缺陷，不以放宽断言处理。",
-        "first_report": "temp/build/v2-baseline-repair-full.xml",
-        "recheck_report": "temp/build/v2-baseline-repair-isolation.xml"
+        "scope": "全量并行下 service_runtime 身份、debug_sink 与 portal_ui 各一处时序失败；同源码隔离 36 项全过，未判定产品缺陷。",
+        "first_report": "temp/build/v2-callbacks-final-full.xml",
+        "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
       }
     ],
     "code_version": "3150824a329f952cd333ed91145d2c626597af3fd9625dfdd6fa9e3f0112afdb",
     "fixed_source_files": 1164,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
-    "market_evidence": "docs/evidence/v2-extension-market.json"
+    "market_evidence": "docs/evidence/v2-extension-market.json",
+    "final_full_run": {
+      "passed": 4580,
+      "failed": 3,
+      "errors": 0,
+      "isolation_passed": 36,
+      "report": "temp/build/v2-callbacks-final-full.xml",
+      "isolation_report": "temp/build/v2-callbacks-final-isolation.xml"
+    }
   },
   "next_checkpoint": {
-    "id": "D6.extensions",
-    "status": "收尾",
-    "design": "docs/V2_EXTENSIONS.md",
-    "scope": "全量复核回调/市场/产物节点与并行时序；真实市场源、真实第三方插件、MCP 真实服务与三平台原生仍记待真实验收；随后 D7/D8。"
+    "id": "D7.product_switch",
+    "status": "待开始",
+    "design": "docs/V2_REFACTOR.md",
+    "scope": "令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、三平台包/容器/安装更新恢复；真实市场源/第三方插件与 MCP 真实服务仍记待真实验收。"
   },
   "milestones": [
     {
@@ -802,12 +810,22 @@
       "id": "R6.extensions.callbacks",
       "status": "完成（离线）",
       "development": "完成",
-      "offline_validation": "宿主 callback 正常路径与两类预算违规 UNKNOWN 通过；扩展/包/宿主/worker/架构 93 项全过",
+      "offline_validation": "宿主 callback 正常路径与两类预算违规 UNKNOWN 通过；扩展/包/宿主/worker/架构 93 项全过；最终全量 4580 passed / 3 failed（并行时序），隔离 36 项全过",
       "evidence": [
         "docs/evidence/v2-extension-callbacks.json"
       ],
       "remaining": "真实第三方插件使用回调的验收；宿主回调能力仅 context/log。",
       "code_version": "3150824a329f952cd333ed91145d2c626597af3fd9625dfdd6fa9e3f0112afdb"
+    },
+    {
+      "id": "R6.extensions.final_verification",
+      "status": "完成（离线）",
+      "development": "完成",
+      "offline_validation": "最终全量 4580 passed / 3 failed / 0 errors；三处失败同源码隔离 36 项全过，登记为并行时序观察；扩展链离线节点全部完成",
+      "evidence": [
+        "docs/evidence/v2-extension-callbacks.json"
+      ],
+      "remaining": "真实市场源、真实第三方插件、MCP 真实服务/供应商与三平台原生验收；D7/D8 未开始。"
     }
   ],
   "latest_source_recovery": {
@@ -1323,9 +1341,9 @@
     {
       "id": "tests.parallel_run_timing_flakes",
       "status": "观察中",
-      "scope": "全量并行下 debug_sink 与 portal_ui 各一处时序失败；同源码单文件/两文件隔离 12 项全过，未判定产品缺陷，不以放宽断言处理。",
-      "first_report": "temp/build/v2-baseline-repair-full.xml",
-      "recheck_report": "temp/build/v2-baseline-repair-isolation.xml"
+      "scope": "全量并行下 service_runtime 身份、debug_sink 与 portal_ui 各一处时序失败；同源码隔离 36 项全过，未判定产品缺陷。",
+      "first_report": "temp/build/v2-callbacks-final-full.xml",
+      "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
     }
   ]
 }

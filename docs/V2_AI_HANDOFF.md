@@ -5,9 +5,9 @@
 ## 1. 接手时先明确的结论
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
-- 当前断点是 **D6.extensions 收尾：全量复核与真实环境验收记录**。宿主回调、市场扫描/工作台、产物协议/工作台、基线修复与 MCP 离线链均已收口，不要重做这些部分，也不要重做媒体、对象存储、人物、摘要、调度、文本技能或扩展包校验。
+- 当前断点：**D6.extensions 离线节点全部完成**，下一阶段为 D7（令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、三平台包/安装更新恢复）；真实市场源/第三方插件、MCP 真实服务与三平台原生仍记“待真实验收”。不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
 - 最新完成批次是 **D6.extensions.callbacks（受控宿主回调）**：插件可选接收第 4 参数 `HostBridge`，仅 `context`（标识，无凭据）与 `log`（≤1000 字符）两项能力；未知能力回 `callback_denied`；每次调用 ≤16 次回调、日志 ≤8192 字节；超预算/超长/畸形帧在已派发后归 **UNKNOWN** 且不重放；日志以有界 `data.host_callbacks` 保存，模型文本不含日志。**93 项扩展/包/宿主/worker/架构回归全过（3 项回调专项）**；证据 `docs/evidence/v2-extension-callbacks.json`。
-- 功能与基线：宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过；基线修复后全量 **4574 passed / 2 failed**（两处并行时序，隔离 12 项全过；市场/回调节点之后未再跑全量，下一轮复核）。**仍不是全仓严格类型或三平台验收。**
+- 功能与基线：宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**最终全量：4583 项，4580 passed / 3 failed / 0 errors**（service_runtime 身份、debug_sink、portal_ui 各一处并行时序；同源码隔离 **36 项全过**，登记观察）。**仍不是全量全绿、全仓严格类型或三平台验收。**
 - 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
@@ -265,14 +265,16 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | `v2-extension-callbacks.xml` | 93 | 宿主回调 context/log、预算/超长 UNKNOWN + 扩展/包/宿主/worker/架构回归 |
 | `v2-mcp-final.xml` + `-ui` + `-callers` + `-guards` | 150 | 上一批 MCP，共享节点以扩展报告的重跑结果为准 |
 
-门禁 `temp/build/v2-extension-callbacks-gates.json`（ruff / format / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 4 文件 0 错误）。回调节点 93 项专项，未再跑全量；上一全量为 4574 passed / 2 failed（并行时序，隔离全过），下一轮全量复核。
+门禁 `temp/build/v2-extension-callbacks-gates.json`（ruff / format / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 4 文件 0 错误）。
 
-基线修复批 `docs/evidence/v2-baseline-repair.json`（测试-only，`5f3b46e`）：26 项历史失败全部修复，126 项专项全过；修复后全量 **4574 passed / 2 failed**（debug_sink、portal_ui），同源码隔离 **12 项全过**，两处按并行时序抖动登记观察。产品代码未改，未放宽断言。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、负载或 72 小时结论。
+最终全量 `temp/build/v2-callbacks-final-full.xml`：**4583 项，4580 passed / 3 failed / 0 errors**（service_runtime 身份、debug_sink、portal_ui 各一处并行时序）；同源码隔离 `temp/build/v2-callbacks-final-isolation.xml` **36 项全过**，按并行时序抖动登记观察。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、真实市场源、负载或 72 小时结论。
+
+基线修复批 `docs/evidence/v2-baseline-repair.json`（测试-only，`5f3b46e`）：26 项历史失败全部修复，126 项专项全过；修复当时全量 4574 passed / 2 failed，最终全量如上报 4580 passed / 3 failed，均为并行时序并隔离通过。产品代码未改、未放宽断言。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、负载或 72 小时结论。
 
 开放问题（不要因一次重跑通过就标记修复）：
 
 - `UI.exact_organization_refresh_timing`：旧精确整理 UI 一次刷新显示 queued；单节点复核通过，未判定稳定。报告 `temp/build/v2-memory-semantics-final.xml`、`-repair.xml`。
-- `tests.parallel_run_timing_flakes`：全量并行下 `test_v2_debug_sink` 与 `test_v2_portal_ui` 各一处时序失败；同源码隔离运行 12 项全过，未判定产品缺陷，不以放宽断言处理。报告 `temp/build/v2-baseline-repair-full.xml`、`-isolation.xml`。
+- `tests.parallel_run_timing_flakes`：全量并行下 `test_v2_service_runtime::test_identity_tracks_real_boot_and_drains_before_releasing_lock`、`test_v2_debug_sink`、`test_v2_portal_ui` 各一处时序失败；同源码隔离运行 **36 项全过**，未判定产品缺陷，不以放宽断言处理。报告 `temp/build/v2-callbacks-final-full.xml`、`-isolation.xml`。
 - `security.sensitive_history_services_acceptance`：敏感审计 2/2 为历史命中，但工作区 `docs/evidence/services-acceptance-2026-11-01.json`（`ad2ae05` 引入，未改动）仍含 1 条已确认字面量；MCP 批新增文件零命中。处置（改写历史或替换该文件）需所有者决定。审计产物在 `D:\omni-private-evidence\sensitive-audit\v2-media-20261110.json\`。
 
 ## 13. 开发与验证执行方法
@@ -342,5 +344,5 @@ uv run --no-sync python scripts/task_status.py --check
 
 - 期望：分支 `codex/architecture-v2`，远端与本地一致（或本地领先本批文档提交），工作区干净。
 - 期望：索引 `modules=65 files=715 routes=427 declared_tools=94`，`stale=` 为空。
-- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D6.extensions"`（离线节点已完成，收尾为全量复核），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 6`、`current_full_passed == false`（仅两处并行时序抖动，隔离全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；市场/回调证据 `docs/evidence/v2-extension-market.json`、`docs/evidence/v2-extension-callbacks.json`）。
+- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D7.product_switch"`（D6.extensions 离线节点已完成），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 6`、`current_full_passed == false`（最终全量 4580 passed / 3 failed，三处并行时序隔离 36 项全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；市场/回调证据 `docs/evidence/v2-extension-market.json`、`docs/evidence/v2-extension-callbacks.json`）。
 - 若数字不同：先判断是否有并行会话提交，再决定是否重算索引/摘要；不要改历史证据。
