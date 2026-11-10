@@ -22,6 +22,7 @@ def plugin_source(
     artifact_name="report.txt",
     artifact_body=b"artifact-body",
     artifact_mode="ok",
+    host_mode=None,
 ):
     folder.mkdir(parents=True)
     tool = {
@@ -50,6 +51,33 @@ def plugin_source(
     if marker is not None:
         body += f"Path({str(marker)!r}).write_text('imported',encoding='utf-8')\n"
     body += "async def invoke(name, arguments, context):\n"
+    if host_mode is not None:
+        body = body.removesuffix("async def invoke(name, arguments, context):\n")
+        body += "async def invoke(name, arguments, context, host):\n"
+        if host_mode == "happy":
+            body += (
+                "    info = host.call('context')\n"
+                "    try:\n"
+                "        host.call('not-allowed')\n"
+                "        denied = False\n"
+                "    except PermissionError:\n"
+                "        denied = True\n"
+                "    host.call('log', text='fixture-callback-log')\n"
+                "    return {'status':'ok','text':'plugin result: '+arguments['value']+' ctx='+info['tool']+' denied='+str(denied),"
+                "'effect':'applied','error_code':'','retryable':False,'artifacts':[],'verification':'fixture',"
+                "'data':{'echo':arguments['value'],'host':{'tool':info['tool'],'extension_id':info['extension_id']}}}\n"
+            )
+        elif host_mode == "over_budget":
+            body += (
+                "    for _ in range(17):\n"
+                "        host.call('log', text='x')\n"
+                "    return {'status':'ok','text':'unreachable','effect':'applied','error_code':'','retryable':False,'artifacts':[],'verification':'fixture','data':{}}\n"
+            )
+        else:
+            body += (
+                "    host.call('log', text='x' * 2000)\n"
+                "    return {'status':'ok','text':'unreachable','effect':'applied','error_code':'','retryable':False,'artifacts':[],'verification':'fixture','data':{}}\n"
+            )
     if call_marker is not None:
         body += f"    Path({str(call_marker)!r}).write_text(arguments['value'],encoding='utf-8')\n"
     if crash:

@@ -162,6 +162,42 @@ def _write(stream: BinaryIO, frame: bytes) -> None:
     stream.flush()
 
 
+class HostBridge:
+    """Opt-in host capabilities for the plugin; every call is a bounded synchronous request."""
+
+    def __init__(self, output: BinaryIO) -> None:
+        self._output = output
+        self.calls = 0
+
+    def call(self, name: str, **arguments: object) -> object:
+        if not isinstance(name, str) or not 1 <= len(name) <= 64:
+            raise ValueError("Invalid host capability name")
+        if self.calls >= 16:
+            raise RuntimeError("Host callback budget exhausted")
+        self.calls += 1
+        call_id = str(uuid.uuid4())
+        payload = (
+            json.dumps(
+                {"version": VERSION, "kind": "callback", "id": call_id, "name": name, "arguments": arguments},
+                ensure_ascii=False,
+                allow_nan=False,
+            ).encode()
+            + b"\n"
+        )
+        if len(payload) > MAX_FRAME:
+            raise ValueError("Host callback request too large")
+        _write(self._output, payload)
+        line = sys.stdin.buffer.readline(MAX_FRAME + 1)
+        if not line or len(line) > MAX_FRAME or not line.endswith(b"\n"):
+            raise RuntimeError("Host callback channel closed")
+        reply = decode(line)
+        if reply.get("kind") != "callback_result" or reply.get("id") != call_id:
+            raise RuntimeError("Host callback reply mismatch")
+        if reply.get("ok") is not True:
+            raise PermissionError(str(reply.get("error", "callback_denied")))
+        return reply.get("result")
+
+
 async def serve(location: str, package_sha256: str, catalog_sha256: str) -> None:
     root = Path(location)
     raw_artifacts = os.environ.get(ARTIFACTS_ENV, "")
@@ -227,7 +263,14 @@ async def serve(location: str, package_sha256: str, catalog_sha256: str) -> None
             if module is None:
                 module = _load_entry(root, captured)
             invoke = getattr(module, "invoke")
-            raw = invoke(tool["local_name"], invocation["arguments"], invocation["context"])
+            try:
+                accepts_host = len(inspect.signature(invoke).parameters) >= 4
+            except (TypeError, ValueError):
+                accepts_host = False
+            if accepts_host:
+                raw = invoke(tool["local_name"], invocation["arguments"], invocation["context"], HostBridge(output))
+            else:
+                raw = invoke(tool["local_name"], invocation["arguments"], invocation["context"])
             if inspect.isawaitable(raw):
                 raw = await raw
             result = action(raw, writes=True)

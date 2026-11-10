@@ -387,3 +387,64 @@ def test_market_scan_is_read_only_reports_updates_and_rejects_unsafe_sources(tmp
             assert (await instance.close())["complete"]
 
     asyncio.run(scenario())
+
+
+def test_extension_can_request_allowlisted_host_capabilities(tmp_path):
+    async def scenario():
+        source = plugin_source(tmp_path / "source", host_mode="happy")
+        instance = await open_instance(tmp_path / "home", model=PluginModel(), capabilities=())
+        try:
+            agent, extension = await installed(instance, source)
+            await instance.extensions.authorize(agent, extension["id"], authorization(extension))
+            await configured(instance, agent)
+            receipt = await instance.application.submit_turn(agent, None, "host", "Use a host callback")
+            await wait_run(instance, agent, receipt["run_id"], {"waiting_approval"})
+            approval = (await instance.application.approvals(agent))[0]
+            await instance.application.approve(agent, approval["id"], True, approval["policy_revision"])
+            final = await wait_run(instance, agent, receipt["run_id"], {"succeeded", "failed", "interrupted"})
+            assert final["state"] == "succeeded", final
+            action = (await instance.application.query("actions", agent, run_id=receipt["run_id"]))[0]
+            assert action["state"] == "ok" and action["effect"] == "applied"
+            result = action["result"]
+            assert result["data"]["host_callbacks"] == {
+                "calls": 3,
+                "logs": ["fixture-callback-log"],
+            }
+            assert result["data"]["host"] == {
+                "tool": PUBLIC_TOOL,
+                "extension_id": extension["id"],
+            }
+            assert f"ctx={PUBLIC_TOOL} denied=True" in result["text"]
+            assert "fixture-callback-log" not in result["text"]
+        finally:
+            assert (await instance.close())["complete"]
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("host_mode", ["over_budget", "oversize_log"])
+def test_host_callback_budget_violations_end_unknown_without_replay(tmp_path, host_mode):
+    async def scenario():
+        source = plugin_source(tmp_path / "source", host_mode=host_mode)
+        instance = await open_instance(tmp_path / "home", model=PluginModel(), capabilities=())
+        try:
+            agent, extension = await installed(instance, source)
+            await instance.extensions.authorize(agent, extension["id"], authorization(extension))
+            await configured(instance, agent)
+            receipt = await instance.application.submit_turn(agent, None, "budget", "Exceed the callback budget")
+            await wait_run(instance, agent, receipt["run_id"], {"waiting_approval"})
+            approval = (await instance.application.approvals(agent))[0]
+            await instance.application.approve(agent, approval["id"], True, approval["policy_revision"])
+            final = await wait_run(instance, agent, receipt["run_id"], {"succeeded", "failed", "interrupted"})
+            assert final["state"] == "failed", final
+            action = (await instance.application.query("actions", agent, run_id=receipt["run_id"]))[0]
+            assert action["state"] == action["effect"] == "unknown"
+            assert action["result"]["error_code"] in {
+                "extension_outcome_unknown",
+                "worker_disconnected",
+            }
+            assert action["result"]["text"] != "unreachable"
+        finally:
+            assert (await instance.close(15))["complete"]
+
+    asyncio.run(scenario())

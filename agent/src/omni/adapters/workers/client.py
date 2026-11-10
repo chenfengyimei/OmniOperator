@@ -9,7 +9,7 @@ import logging
 import os
 import sys
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from types import MappingProxyType
 
 from ...domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome
@@ -17,6 +17,10 @@ from ..platform.processes import OwnedProcess
 from .protocol import MAX_FRAME, VERSION, response
 
 log = logging.getLogger("omni.v2.worker")
+
+MAX_HOST_CALLBACKS = 16
+MAX_HOST_CALLBACK_BYTES = 8192
+MAX_HOST_LOG_CHARS = 1000
 
 
 class WorkerClient:
@@ -217,6 +221,7 @@ class WorkerClient:
         operation_id: str,
         context: InvocationContext,
         before_dispatch: Callable[[], Awaitable[None]] | None = None,
+        host_context: Mapping[str, JSON] | None = None,
     ) -> ActionResult:
         if name not in self._tool_writes:
             return ActionResult(
@@ -247,8 +252,29 @@ class WorkerClient:
                 sent = True
                 process.stdin.write(frame)
                 await process.stdin.drain()
-                frame = await process.stdout.readline()
-                result = response(frame, operation_id, writes=writes)
+                budget = {"calls": 0, "bytes": 0}
+                logs: list[str] = []
+                while True:
+                    frame = await process.stdout.readline()
+                    if not frame:
+                        raise ValueError("Worker closed before returning a result")
+                    try:
+                        decoded = json.loads(frame)
+                    except (ValueError, UnicodeError):
+                        raise ValueError("Worker produced a malformed frame") from None
+                    if isinstance(decoded, dict) and decoded.get("kind") == "callback":
+                        await self._host_callback(process, decoded, host_context or {}, budget, logs)
+                        continue
+                    result = response(frame, operation_id, writes=writes)
+                    break
+                if budget["calls"]:
+                    result = replace(
+                        result,
+                        data={
+                            **dict(result.data),
+                            "host_callbacks": {"calls": budget["calls"], "logs": logs},
+                        },
+                    )
                 if self._forbid_artifacts and result.artifacts:
                     raise ValueError("This worker cannot publish artifacts")
                 if result.effect == Effect.UNKNOWN:
@@ -274,6 +300,55 @@ class WorkerClient:
                     Effect.UNKNOWN if sent and writes else Effect.NONE,
                     error_code="worker_disconnected" if sent else "worker_unavailable",
                 )
+
+    async def _host_callback(
+        self,
+        process: asyncio.subprocess.Process,
+        frame: dict,
+        host_context: Mapping[str, JSON],
+        budget: dict[str, int],
+        logs: list[str],
+    ) -> None:
+        """Allowlisted, budgeted host capabilities; malformed or over-budget traffic fails closed."""
+        call_id, name, arguments = frame.get("id"), frame.get("name"), frame.get("arguments")
+        if (
+            not isinstance(call_id, str)
+            or len(call_id) != 36
+            or not isinstance(name, str)
+            or not isinstance(arguments, dict)
+        ):
+            raise ValueError("Malformed host callback frame")
+        budget["calls"] += 1
+        if budget["calls"] > MAX_HOST_CALLBACKS:
+            raise ValueError("Host callback budget exhausted")
+        if name == "context":
+            if arguments:
+                raise ValueError("Host context callback takes no arguments")
+            reply = {"ok": True, "result": dict(host_context)}
+        elif name == "log":
+            text = arguments.get("text")
+            if set(arguments) != {"text"} or not isinstance(text, str) or not 1 <= len(text) <= MAX_HOST_LOG_CHARS:
+                raise ValueError("Host log callback is not bounded")
+            budget["bytes"] += len(text.encode("utf-8"))
+            if budget["bytes"] > MAX_HOST_CALLBACK_BYTES:
+                raise ValueError("Host callback byte budget exhausted")
+            logs.append(text)
+            reply = {"ok": True, "result": {"accepted": True}}
+        else:
+            reply = {"ok": False, "error": "callback_denied"}
+        payload = (
+            json.dumps(
+                {"version": VERSION, "kind": "callback_result", "id": call_id, **reply},
+                ensure_ascii=False,
+                allow_nan=False,
+            ).encode()
+            + b"\n"
+        )
+        if len(payload) > MAX_FRAME:
+            raise ValueError("Host callback reply too large")
+        assert process.stdin is not None
+        process.stdin.write(payload)
+        await process.stdin.drain()
 
     async def close(self, timeout_s: float = 5) -> bool:
         self._closed = True

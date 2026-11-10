@@ -104,6 +104,7 @@ class ExtensionHosts:
         operation_id: str,
         context: InvocationContext,
         before_dispatch: Callable[[], Awaitable[None]],
+        host_context: Mapping[str, JSON] | None = None,
     ) -> ActionResult:
         if self._closing:
             raise BusinessError("extension_hosts_closing", "Extension hosts are draining", status=503)
@@ -115,7 +116,12 @@ class ExtensionHosts:
             host = await self._acquire(revision, location)
             try:
                 return await host.client.invoke(
-                    name, arguments, operation_id=operation_id, context=context, before_dispatch=before_dispatch
+                    name,
+                    arguments,
+                    operation_id=operation_id,
+                    context=context,
+                    before_dispatch=before_dispatch,
+                    host_context=host_context,
                 )
             finally:
                 # A poisoned client remains resident and owns its process until close

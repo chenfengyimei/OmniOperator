@@ -399,6 +399,12 @@ class ExtensionService:
                         operation_id=operation_id,
                         context=context,
                         before_dispatch=before_dispatch,
+                        host_context={
+                            "agent_id": context.agent_id,
+                            "run_id": context.run_id,
+                            "extension_id": str(record["extension_id"]),
+                            "tool": name,
+                        },
                     )
                 except BusinessError as exc:
                     return ActionResult(
