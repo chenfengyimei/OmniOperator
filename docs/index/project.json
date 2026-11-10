@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d2280f51b9554f417962ade7e5a275df911d923b2a91b26a7d70c9a10186ece8",
+  "source_sha256": "9433ec212a8a05c4e910e092b76ce62f7910b2d1a19df5354df7860fde33fa50",
   "modules": [
     {
       "id": "v2-domain",
@@ -391,7 +391,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51003,
+      "lines": 51017,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -32535,7 +32535,7 @@
       "path": "agent/src/omni/adapters/workers/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.media",
-      "lines": 332,
+      "lines": 346,
       "imports": [],
       "symbols": [
         {
@@ -32586,7 +32586,7 @@
         },
         {
           "name": "_decode_audio_16k_mono",
-          "line": 75,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "path"
@@ -32597,7 +32597,7 @@
         },
         {
           "name": "_transcribe",
-          "line": 101,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "request"
@@ -32608,7 +32608,7 @@
         },
         {
           "name": "_format_time",
-          "line": 157,
+          "line": 171,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -32619,7 +32619,7 @@
         },
         {
           "name": "_target_times",
-          "line": 162,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "duration_s",
@@ -32632,7 +32632,7 @@
         },
         {
           "name": "_frame_at",
-          "line": 171,
+          "line": 185,
           "kind": "function",
           "parameters": [
             "container",
@@ -32645,7 +32645,7 @@
         },
         {
           "name": "_frames",
-          "line": 186,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "request"
@@ -32656,7 +32656,7 @@
         },
         {
           "name": "_asr_model_missing",
-          "line": 255,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "exc"
@@ -32667,7 +32667,7 @@
         },
         {
           "name": "_handle",
-          "line": 271,
+          "line": 285,
           "kind": "function",
           "parameters": [
             "line"
@@ -32678,7 +32678,7 @@
         },
         {
           "name": "main",
-          "line": 313,
+          "line": 327,
           "kind": "function",
           "parameters": [],
           "annotations": {}

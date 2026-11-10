@@ -250,7 +250,7 @@
       "id": "R7",
       "title": "稳定性验收",
       "status": "待开始",
-      "notes": "完整验收未开始；本批78项不同专项最新通过，16例UI及16份默认类型通过；旧精确整理UI时序待复核，非全量/实机。",
+      "notes": "完整验收未开始；本批MCP专项150项不同节点最新通过（含2例390/1024浏览器与74项守卫），全量4541 passed/16 failed/10 errors，失败均为基线遗留并有独立复现记录；非实机/真实服务验收。",
       "evidence": [
         "docs/evidence/v2-offline.json",
         "docs/evidence/v2-objects.json",
@@ -284,15 +284,15 @@
       ]
     }
   ],
-  "checkpoint_commit": "7f78de85fc1c45f1331a62b03e05b790e3376d53",
+  "checkpoint_commit": "320549f",
   "current_validation": {
-    "status": "scoped_media_production_chain_latest_passed_mcp_pending",
-    "targeted_unique_passed": 133,
-    "includes_browser_cases": 75,
+    "status": "scoped_mcp_production_chain_latest_passed_extensions_pending",
+    "targeted_unique_passed": 150,
+    "includes_browser_cases": 2,
     "current_full_passed": false,
-    "full_runs_this_checkpoint": 0,
+    "full_runs_this_checkpoint": 1,
     "whole_plan_complete": false,
-    "evidence": "docs/evidence/v2-media.json",
+    "evidence": "docs/evidence/v2-mcp.json",
     "last_full_evidence": "docs/evidence/v2-history.json",
     "current_packaging_passed": false,
     "previous_packaging_evidence": "docs/evidence/v2-darwin-admin.json",
@@ -303,16 +303,23 @@
         "scope": "旧精确整理UI在本批一次刷新显示queued；同源码单节点独立复核通过，未判定已修复或稳定验收通过。",
         "first_report": "temp/build/v2-memory-semantics-final.xml",
         "recheck_report": "temp/build/v2-memory-semantics-repair.xml"
+      },
+      {
+        "id": "tests.baseline_failures_pre_mcp",
+        "status": "待处置",
+        "scope": "基线 be58739 已有 16 failed / 10 errors（history/event-pruning、schema-release 固定旧 schema、service 启动效果、extensions UI 假 hosts 等）；本批修复 3 个（媒体 worker 动态导入与两处迁移时间线），其余与 D6.mcp 无关，未在本批改产品代码掩盖。",
+        "first_report": "temp/build/v2-mcp-full.xml",
+        "recheck_report": "temp/build/v2-mcp-full.xml"
       }
     ],
-    "code_version": "b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21",
-    "fixed_source_files": 1165
+    "code_version": "474c67827a9fe8a0eef1136db59685bf305838d9d89c93a18b8922fa9c61cced",
+    "fixed_source_files": 1162
   },
   "next_checkpoint": {
-    "id": "D6.mcp",
+    "id": "D6.extensions",
     "status": "待开始",
     "design": "docs/V2_REFACTOR.md",
-    "scope": "继续D6 MCP接入：stdio、Streamable HTTP、显式 OAuth、凭据引用、目录指纹、授权漂移撤销、超时/取消、unknown与工作台。完整插件市场、D7正式入口及三平台真实模型/设备/负载/72小时仍待。"
+    "scope": "完整扩展链：进程外宿主回调、产物协议、版本/授权、市场更新提示与实际安装；复用对象/审批/费用。真实MCP服务与OAuth供应商、D7正式入口及三平台真实模型/设备/负载/72小时仍待。"
   },
   "milestones": [
     {
@@ -718,14 +725,58 @@
       ],
       "remaining": "继续D6 MCP：stdio、Streamable HTTP、显式 OAuth、凭据引用、目录指纹、授权漂移撤销、超时/取消、unknown与工作台。完整插件市场、D7正式入口及三平台真实模型/设备/负载/72小时仍待。真实B站视频端到端、真实ASR模型质量与上传媒体来源接入处理管线另记待验收。",
       "code_version": "b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21"
+    },
+    {
+      "id": "R6.mcp",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "MCP专项20项、浏览器2例（390/1024视口）、调用方54项（HTTP契约/扩展/配置/生命周期）、守卫74项（架构/源码/worker/事件循环）最新全过；全量另跑并记录基线失败",
+      "evidence": [
+        "docs/evidence/v2-mcp.json"
+      ],
+      "remaining": "真实外部MCP服务与真实OAuth供应商验收、自动重连策略与跨进程会话共享；完整插件市场、D7正式入口与三平台真实模型/设备/负载/72小时仍待。",
+      "code_version": "0e9f1129d75cbe6310dddbdc69c5fb3b1ad6ed095cf68b31e3eb9cfc5d9bfd03"
+    },
+    {
+      "id": "R6.mcp",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "MCP专项20项、浏览器2例（390/1024视口）、调用方54项（HTTP契约/扩展/配置/生命周期）、守卫74项（架构/源码/worker/事件循环）最新全过；全量另跑并记录基线失败",
+      "evidence": [
+        "docs/evidence/v2-mcp.json"
+      ],
+      "remaining": "真实外部MCP服务与真实OAuth供应商验收、自动重连策略与跨进程会话共享；完整插件市场、D7正式入口与三平台真实模型/设备/负载/72小时仍待。",
+      "code_version": "dd650652c543f284fde774c2ba2b45f038b58ff46034898ef5f8f0f2882876c7"
+    },
+    {
+      "id": "R6.mcp",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "MCP专项20项、浏览器2例（390/1024视口）、调用方54项（HTTP契约/扩展/配置/生命周期）、守卫74项（架构/源码/worker/事件循环）最新全过；全量另跑并记录基线失败",
+      "evidence": [
+        "docs/evidence/v2-mcp.json"
+      ],
+      "remaining": "真实外部MCP服务与真实OAuth供应商验收、自动重连策略与跨进程会话共享；完整插件市场、D7正式入口与三平台真实模型/设备/负载/72小时仍待。",
+      "code_version": "dd650652c543f284fde774c2ba2b45f038b58ff46034898ef5f8f0f2882876c7"
+    },
+    {
+      "id": "R6.mcp",
+      "status": "待真实验收",
+      "development": "完成",
+      "offline_validation": "MCP专项20项、浏览器2例（390/1024视口）、调用方54项（HTTP契约/扩展/配置/生命周期）、守卫74项（架构/源码/worker/事件循环）最新全过；全量另跑并记录基线失败",
+      "evidence": [
+        "docs/evidence/v2-mcp.json"
+      ],
+      "remaining": "真实外部MCP服务与真实OAuth供应商验收、自动重连策略与跨进程会话共享；完整插件市场、D7正式入口与三平台真实模型/设备/负载/72小时仍待。",
+      "code_version": "474c67827a9fe8a0eef1136db59685bf305838d9d89c93a18b8922fa9c61cced"
     }
   ],
   "latest_source_recovery": {
-    "manifest": "temp/private/v2-media-source-20261110-b505d4b2a9a2/manifest.json",
-    "files": 1435,
+    "manifest": "temp/private/v2-mcp-source-20261111-474c67827a9f/manifest.json",
+    "files": 1162,
     "standalone_source": true,
     "runtime_data_included": false,
-    "validation_status": "scoped_media_production_chain_latest_passed_mcp_pending"
+    "validation_status": "scoped_mcp_production_chain_latest_passed_extensions_pending"
   },
   "delivery_strategy": {
     "date": "2026-11-06",
@@ -1101,7 +1152,7 @@
       "offline_validation": "开发中",
       "platform_acceptance": "待真实验收",
       "exit_criteria": "流式/附件/档位、真实向量、技能/整理、视频ASR、MCP/OAuth、插件回调产物及市场端到端接入",
-      "progress": "流式/图片、ONNX文档、档位、记忆语义、文本技能和媒体已接选定生产链；下一MCP。完整插件市场与真实质量仍待，完整D6未完成。",
+      "progress": "流式/图片、ONNX文档、档位、记忆语义、文本技能、媒体与MCP运行适配器（stdio/HTTP/OAuth/逐工具授权/工作台）已接选定生产链；完整插件市场与真实质量仍待，完整D6未完成。",
       "components": {
         "model_streaming": {
           "development": "完成",
@@ -1165,6 +1216,15 @@
           "evidence": "docs/evidence/v2-media.json",
           "limits": "上传媒体来源未接处理管线；帧拼图只是模型输入材料，理解质量取决于模型；不做任意下载地址或本机路径；非MCP或完整D6",
           "code_version": "b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21"
+        },
+        "mcp": {
+          "development": "完成",
+          "offline_validation": "MCP专项20项、浏览器2例（390/1024）、调用方54项、守卫74项最新全过；全量另跑（16 failed/10 errors 均为基线遗留）",
+          "platform_acceptance": "待真实验收：真实外部MCP服务与真实OAuth供应商；Windows/本机假服务不等于真实服务",
+          "scope": "配置修订即服务身份、stdio/Streamable HTTP、显式OAuth+PKCE/state、目录与工具指纹、逐工具授权与漂移撤权、每run封存、超时/取消/unknown分类、调用记录与工作台",
+          "evidence": "docs/evidence/v2-mcp.json",
+          "limits": "无自动退避重连与跨进程会话共享；真实服务/供应商未验收；完整D6与D7未完成",
+          "code_version": "474c67827a9fe8a0eef1136db59685bf305838d9d89c93a18b8922fa9c61cced"
         }
       }
     },
@@ -1218,6 +1278,13 @@
       "scope": "旧精确整理UI在本批一次刷新显示queued；同源码单节点独立复核通过，未判定已修复或稳定验收通过。",
       "first_report": "temp/build/v2-memory-semantics-final.xml",
       "recheck_report": "temp/build/v2-memory-semantics-repair.xml"
+    },
+    {
+      "id": "tests.baseline_failures_pre_mcp",
+      "status": "待处置",
+      "scope": "基线 be58739 已有 16 failed / 10 errors（history/event-pruning、schema-release 固定旧 schema、service 启动效果、extensions UI 假 hosts 等）；本批修复 3 个（媒体 worker 动态导入与两处迁移时间线），其余与 D6.mcp 无关，未在本批改产品代码掩盖。",
+      "first_report": "temp/build/v2-mcp-full.xml",
+      "recheck_report": "temp/build/v2-mcp-full.xml"
     }
   ]
 }

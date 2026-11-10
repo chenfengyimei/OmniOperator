@@ -5,10 +5,10 @@
 ## 1. 接手时先明确的结论
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
-- 当前断点是 **D6.mcp：MCP stdio / Streamable HTTP / OAuth 运行适配器**。不要重做媒体、对象存储、人物、摘要、调度、文本技能或扩展包校验。
-- 最新完成批次是 **D6.media（媒体/视频理解）**：数据库 **129 张业务表 / `v2_0036`**，前端资源标识 **`20261110v48`**，静态索引 **65 模块 / 705 文件 / 415 路由 / 94 声明工具**。
-- 该批 **133 个不同测试节点的最新结果通过**，其中 **75 例浏览器**（媒体面板 2 例跨 390/1024 视口 + 工作台全量回归 73 例）。**不是全量、不是全仓严格类型、不是三平台验收。**
-- 媒体批及此前累计的 V2 成果已提交并推送：`7f78de8`（785 文件），分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
+- 当前断点是 **D6.extensions：完整扩展链（进程外宿主回调、产物协议、版本/授权、市场更新提示与实际安装）**。D6.mcp 的离线生产链已收口，不要重做 MCP 传输/授权/工作台，也不要重做媒体、对象存储、人物、摘要、调度、文本技能或扩展包校验。
+- 最新完成批次是 **D6.mcp（MCP 运行适配器）**：数据库 **136 张业务表 / `v2_0037`**，前端资源标识 **`20261110v49`**，静态索引 **65 模块 / 715 文件 / 427 路由 / 94 声明工具**。合同见 `docs/V2_MCP.md`，证据见 `docs/evidence/v2-mcp.json`。
+- 该批 **150 个不同测试节点的最新结果通过**，其中 **2 例浏览器**（MCP 工作台跨 390/1024 视口）；同源码另跑一次全量：**4541 passed / 16 failed / 10 errors**，26 个失败/错误节点均为基线 `be58739` 遗留（history/event-pruning、schema-release 固定旧 schema、service 启动效果、extensions UI 假 hosts 等），本批另修复其中 3 个（媒体 worker 动态导入与两处迁移时间线）。**不是全量通过、不是全仓严格类型、不是三平台验收。**
+- MCP 批及此前累计的 V2 成果已提交并推送：`8ad22cf`（数据层/传输/宿主/服务）、`bf5f91f`（显式 OAuth）、`564f0db`（工作台）、`8590144`+`320549f`（基线守卫修复与测试清理）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
 
@@ -101,7 +101,7 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | D3 Linux | logind/总线、AT-SPI/X11 读取、截图、Portal 单帧与部分语义动作源码/注入验证 | 持续前台控制、Wayland RemoteDesktop 身份/暂停证明、PTY/凭据实测 |
 | D4 平台运维 | 终端核查、注册/控制、不可变 release、服务交换/隔离救援、分阶段管理员与跨 schema 源码及专项 | 真实管理器、root/账号/文件/ABI/崩溃恢复、三平台长期运行 |
 | D5 业务通道 | 选定 QQ 文本、B站读取/发布、安卓所有者/模型范围/Unicode 恢复开发及离线完成 | 真实账号与设备验收；附件/视频属 D6 |
-| D6 模型与扩展 | 流式、低清图片、ONNX 文档、记忆语义、档位、文本技能、媒体选定链路完成；**MCP 仅有配置数据层** | **MCP stdio/HTTP/OAuth 运行适配器 → 插件回调/产物/市场**，以及真实质量 |
+| D6 模型与扩展 | 流式、低清图片、ONNX 文档、记忆语义、档位、文本技能、媒体选定链路完成；**MCP 运行适配器（stdio/Streamable HTTP、显式 OAuth、目录指纹、逐工具授权、工作台）离线完成** | 完整插件链（进程外宿主回调、产物协议、市场更新与安装）；真实外部 MCP 服务与真实 OAuth 供应商验收；真实质量 |
 | D7 产品切换 | 待开始 | 令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、三平台包/容器/安装更新恢复 |
 | D8 完整验收 | 待开始 | 固定构建全量、四视口双主题、故障/负载、真实功能、每平台 72 小时 |
 
@@ -124,9 +124,17 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | Python 扩展 | 可信目录封存、显式授权、进程外工具、指纹漂移撤权、按回合披露 | `V2_EXTENSIONS` 相关合同、`application/extensions.py`、`adapters/extensions/` |
 | 文本技能 | 文本包导入/导出、修订/参考文件、审阅启用、回合封存/披露、撤权恢复 | `V2_SKILLS.md`、`application/skills.py` |
 | 媒体/视频理解 | B站来源登记、字幕/ASR/抽帧、触发器状态机、锚点转写、只读工具、取消/恢复/删除、工作台分区 | `V2_MEDIA.md`、`application/media.py`、`adapters/media.py`、`adapters/workers/media.py` |
-| **MCP（仅数据层）** | `mcp_options` 表（transport / command / arguments / endpoint / auth_mode / credential_ref，绑定配置修订）+ `MCPOptions` 校验（stdio 无远端、HTTP 无进程、bearer 必须带引用、参数禁止内联凭据）；**无运行适配器、无工具、无 HTTP 端点、无工作台分区** | `persistence/schema.py`、`domain/configuration.py` |
+| **MCP 运行适配器** | 配置修订即服务身份；stdio JSON-RPC 子进程与 Streamable HTTP（JSON/SSE）；显式 OAuth（PKCE/state/回环回调/vault+refresh）；目录与工具指纹、漂移撤权、逐工具授权、每 run 封存；超时/取消/崩溃 unknown 不重放；脱敏调用记录与工作台分区 | `V2_MCP.md`、`domain/mcp.py`、`application/mcp.py`、`adapters/mcp/`、`persistence/mcp_repository.py`、`web/ui/v2/mcp.js` |
 
-## 9. 最近一批：媒体/视频理解（已收口，勿重做）
+## 9. 最近一批：D6.mcp 运行适配器（已收口，勿重做）
+
+新增：`domain/mcp.py`、`application/mcp.py`、`adapters/mcp/{stdio,http,oauth,hosts}.py`、`persistence/mcp_repository.py`、`migrations/versions/v0037.py`、`web/ui/v2/mcp.js`、`agent/tests/test_v2_mcp{,_flow,_oauth,_ui}.py`；接线：`application/{engine,ports}.py`、`adapters/http.py`、`adapters/persistence/{schema,repository,extension_repository}.py`、`composition/{instance,http}.py`、`web/ui/v2/{index.html,main.js}`（资源版本 v49）。
+
+生产链：配置修订（kind=mcp）→ 所有者显式 connect（必要时递增代际、撤销旧授权）→ stdio/HTTP 握手 → `tools/list` 分页 → 目录快照与指纹（name+inputSchema，不含 description）→ 逐工具授权（read_only 显式、审阅审计外键）→ 每 run 封存 `mcp_run_tools` → 模型调用 `mcp__<server>__<tool>` → 动作绑定与 before_send 二次校验 → 传输 → `mcp_calls`（done/failed/unknown 分类）。漂移即撤权并要求重新确认；旧指纹确认 409；OAuth 完成撤旧授权并要求重连。
+
+本批教训：运行封存与授权校验必须同时存在（封存决定模型可见集合，派发前校验决定能否真的发出）；已发出请求的超时/崩溃只能是 unknown，未发出才是 failed；外部 `isError` 是结果错误，不断连；目录指纹不能包含 description，否则文案变化会误撤权。
+
+## 9.1 上一批：媒体/视频理解（已收口，勿重做）
 
 新增：`domain/media.py`、`application/media.py`、`adapters/media.py`、`adapters/workers/media.py`、`persistence/media_repository.py`、`migrations/versions/v0036.py`、`web/ui/v2/media.js`、`agent/tests/test_v2_media.py`、`test_v2_media_ui.py`；接线：`adapters/bilibili.py`、`adapters/http.py`、`composition/instance.py`、`composition/http.py`、`application/ports.py`、`schema.py`、`repository.py`。
 
@@ -145,9 +153,9 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 - 浏览器测试同步点用服务端真值（轮询 job id），不要用重复的 UI 状态文本。
 - 服务上限：2 并发、下载 256 MiB/180 s、转写 4 MiB/900 s、抽帧 180 s、工具文本 ≤12000 字符。
 
-## 10. 下一批 D6.mcp 的可执行开发合同
+## 10. 刚刚完成的 D6.mcp 合同（实现已交付，保留为设计与验收依据）
 
-以下**不是已存在的接口**，是本批要求。已核实的现状与可复用先例在前，建议结构在后；最终以源码对账为准。
+**状态（2026-11-11）：本合同已实现并提交（`8ad22cf`、`bf5f91f`、`564f0db`、`8590144`、`320549f`），离线验收见 `docs/evidence/v2-mcp.json` 与 `docs/V2_MCP.md`。** 以下起点描述保留为当时的现状快照；真实外部 MCP 服务与真实 OAuth 供应商仍属“待真实验收”，完整插件链是下一批。不要重做已交付部分，也不要把离线验收当作真实服务完成。
 
 ### 10.1 已核实的起点（2026-11-10）
 
@@ -237,30 +245,31 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 
 ## 11. 后续固定顺序
 
-1. **D6.mcp** 收口（本批）。
-2. 完整扩展链：进程外宿主回调、产物协议、版本/授权、市场更新提示与实际安装；复用对象/审批/费用。
+1. ~~D6.mcp 收口（上一批，已完成离线链）~~；仍待真实外部 MCP 服务与真实 OAuth 供应商验收、自动重连策略。
+2. **完整扩展链（当前断点）**：进程外宿主回调、产物协议、版本/授权、市场更新提示与实际安装；复用对象/审批/费用。
 3. 收口 D2/D3/D4 源码欠账与平台反馈（Linux 持续控制与 Wayland 证明、Mac 编译/权限/原生 ABI、真实系统管理器与恢复）；无环境就记"待真实验收"，继续其他开发。
-4. D7 门槛：令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、打包/容器/安装更新恢复；门槛满足后才切 `omni` 默认入口并归档 V1。
-5. D8 固定构建验收：全量、四视口双主题、故障注入、参考负载、真实模型/QQ/B站/安卓/远程 MCP、每平台 72 小时。
+4. 处理基线遗留失败（`tests.baseline_failures_pre_mcp`：history/event-pruning、schema-release、service 启动效果、extensions UI 等）——按所属批次修复，不用 MCP 批兜底。
+5. D7 门槛：令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、打包/容器/安装更新恢复；门槛满足后才切 `omni` 默认入口并归档 V1。
+6. D8 固定构建验收：全量、四视口双主题、故障注入、参考负载、真实模型/QQ/B站/安卓/远程 MCP、每平台 72 小时。
 
 ## 12. 验证口径与已知问题
 
-媒体批 `docs/evidence/v2-media.json` 汇总五份报告的**同节点最新结果**，共 133 个不同节点全过（不是报告数相加）：
+MCP 批 `docs/evidence/v2-mcp.json` 汇总四份报告的**同节点最新结果**，共 150 个不同节点全过（不是报告数相加）：
 
 | 报告 | 用例 | 用时 | SHA256 前缀 |
 | --- | --- | --- | --- |
-| `v2-media-final.xml` | 7 | 15.904 s | `28cc220e…` |
-| `v2-media-ui.xml` | 2 | 10.715 s | `eaaa7dd6…` |
-| `v2-media-callers.xml` | 31 | 24.830 s | `ee273d29…` |
-| `v2-media-guards.xml` | 20 | 27.359 s | `e84e8808…` |
-| `v2-media-workbench.xml` | 73 | 555.145 s | `a7ba4f9a…` |
+| `v2-mcp-final.xml` | 20 | 见证据 | 见证据 |
+| `v2-mcp-ui.xml` | 2 | 见证据 | 见证据 |
+| `v2-mcp-callers.xml` | 54 | 见证据 | 见证据 |
+| `v2-mcp-guards.xml` | 74 | 见证据 | 见证据 |
 
-门禁 `temp/build/v2-media-gates.json`（ruff / format / pyright / prettier 全 exit 0，13 个生产文件，0 错误）。**没有当前全量、主包重建、远程 CI、Mac/Linux、真实账号设备、负载或 72 小时通过结论。** 早期全量 2606/2659 等数字只属于当时源码。
+门禁 `temp/build/v2-mcp-gates.json`（ruff / format / pyright / prettier / 项目索引 / 任务摘要 全 exit 0，pyright 0 错误）。**没有全量通过结论**：同源码全量 4541 passed / 16 failed / 10 errors，26 个失败/错误节点均为基线 `be58739` 遗留，已逐类在基线复现并写入证据；本批另修复其中 3 个（媒体 worker 动态导入、两处迁移时间线）。全量内的工作台/主题 73 例浏览器用例通过。没有主包重建、远程 CI、Mac/Linux、真实账号设备、负载或 72 小时结论。
 
 开放问题（不要因一次重跑通过就标记修复）：
 
 - `UI.exact_organization_refresh_timing`：旧精确整理 UI 一次刷新显示 queued；单节点复核通过，未判定稳定。报告 `temp/build/v2-memory-semantics-final.xml`、`-repair.xml`。
-- `security.sensitive_history_services_acceptance`：敏感审计 2/2 为历史命中，但工作区 `docs/evidence/services-acceptance-2026-11-01.json`（`ad2ae05` 引入，未改动）仍含 1 条已确认字面量；本批新增文件零命中。处置（改写历史或替换该文件）需所有者决定。审计产物在 `D:\omni-private-evidence\sensitive-audit\v2-media-20261110.json\`。
+- `tests.baseline_failures_pre_mcp`：基线已有 16 failed / 10 errors（history/event-pruning、schema-release 固定旧 schema、service 启动效果、extensions UI 假 hosts 等）；与 MCP 无关，需由所属批次处置。报告 `temp/build/v2-mcp-full.xml`。
+- `security.sensitive_history_services_acceptance`：敏感审计 2/2 为历史命中，但工作区 `docs/evidence/services-acceptance-2026-11-01.json`（`ad2ae05` 引入，未改动）仍含 1 条已确认字面量；MCP 批新增文件零命中。处置（改写历史或替换该文件）需所有者决定。审计产物在 `D:\omni-private-evidence\sensitive-audit\v2-media-20261110.json\`。
 
 ## 13. 开发与验证执行方法
 
@@ -328,6 +337,6 @@ uv run --no-sync python scripts/task_status.py --check
 ```
 
 - 期望：分支 `codex/architecture-v2`，远端与本地一致（或本地领先本批文档提交），工作区干净。
-- 期望：索引 `modules=65 files=705 routes=415 declared_tools=94`，`stale=` 为空。
-- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D6.mcp"`，`current_validation.targeted_unique_passed == 133`、`includes_browser_cases == 75`。
+- 期望：索引 `modules=65 files=715 routes=427 declared_tools=94`，`stale=` 为空。
+- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D6.extensions"`（`D6.mcp` 已完成离线链），`current_validation.targeted_unique_passed == 150`、`includes_browser_cases == 2`、`current_full_passed == false`（全量 16 failed / 10 errors 为基线遗留，见证据 `known_baseline_failures`）。
 - 若数字不同：先判断是否有并行会话提交，再决定是否重算索引/摘要；不要改历史证据。
