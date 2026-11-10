@@ -284,11 +284,11 @@
       ]
     }
   ],
-  "checkpoint_commit": "44890f0",
+  "checkpoint_commit": "adc528d",
   "current_validation": {
-    "status": "scoped_extension_artifacts_latest_passed_mcp_retained",
-    "targeted_unique_passed": 226,
-    "includes_browser_cases": 2,
+    "status": "scoped_extension_artifacts_workbench_latest_passed_mcp_retained",
+    "targeted_unique_passed": 228,
+    "includes_browser_cases": 4,
     "current_full_passed": false,
     "full_runs_this_checkpoint": 1,
     "whole_plan_complete": false,
@@ -312,14 +312,14 @@
         "recheck_report": "temp/build/v2-mcp-full.xml"
       }
     ],
-    "code_version": "eca903199618b417f5dafd52b86b9c95bf062113fc553a48466c9058bd65e50b",
-    "fixed_source_files": 1162
+    "code_version": "de4300e848e7604c6193d366874ea030ebd30a1e856e46accfd1478dc2a503a5",
+    "fixed_source_files": 1163
   },
   "next_checkpoint": {
     "id": "D6.extensions",
     "status": "进行中",
     "design": "docs/V2_EXTENSIONS.md",
-    "scope": "下一节点：进程外宿主回调（插件请求宿主能力）、市场更新提示与实际安装（显式确认、失败不重放）、产物工作台展示与真实第三方插件验收；MCP 真实服务验收与 D7/D8 仍待。"
+    "scope": "下一节点：进程外宿主回调（插件请求宿主能力）、市场更新提示与实际安装（显式确认、失败不重放）；产物工作台已可查看/预览；真实第三方插件、MCP 真实服务与 D7/D8 仍待。"
   },
   "milestones": [
     {
@@ -774,7 +774,7 @@
       "id": "R6.extensions.artifacts",
       "status": "待真实验收",
       "development": "完成",
-      "offline_validation": "扩展产物专项146项最新全过（含真实子进程、对象发布、四类不可验证产物 unknown 与调用方回归）；全量 4548 passed / 16 failed / 10 errors（失败均为基线遗留）",
+      "offline_validation": "扩展产物协议146项 + 工作台/API 回归29项（含390/1024产物预览）最新全过；全量 4548 passed / 16 failed / 10 errors（失败均为基线遗留）",
       "evidence": [
         "docs/evidence/v2-extension-artifacts.json"
       ],
@@ -783,11 +783,11 @@
     }
   ],
   "latest_source_recovery": {
-    "manifest": "temp/private/v2-extension-artifacts-source-20261111-eca903199618/manifest.json",
-    "files": 1162,
+    "manifest": "temp/private/v2-extension-workbench-source-20261111-de4300e848e7/manifest.json",
+    "files": 1163,
     "standalone_source": true,
     "runtime_data_included": false,
-    "validation_status": "scoped_extension_artifacts_latest_passed_mcp_retained"
+    "validation_status": "scoped_extension_artifacts_workbench_latest_passed_mcp_retained"
   },
   "delivery_strategy": {
     "date": "2026-11-06",
@@ -1239,9 +1239,9 @@
         },
         "extension_artifacts": {
           "development": "完成",
-          "offline_validation": "扩展产物专项146项（含调用方/对象/worker/架构/HTTP）最新全过；全量另跑 4548 passed / 16 failed / 10 errors",
+          "offline_validation": "扩展产物协议146项 + 工作台/API 回归29项（含390/1024产物预览）最新全过；全量另跑 4548 passed / 16 failed / 10 errors",
           "platform_acceptance": "待真实验收：真实第三方插件与三平台原生 ABI；产物对象在真实备份/恢复链的验收",
-          "scope": "manifest 声明媒体类型、子进程有界写入、宿主二次校验、对象发布与动作引用、文本摘要、清理与 unknown 分类",
+          "scope": "声明式媒体类型、子进程有界目录、宿主二次校验、对象发布与动作引用、文本摘要、清理与 unknown 分类；最近调用/产物列表与文本预览",
           "evidence": "docs/evidence/v2-extension-artifacts.json",
           "limits": "宿主回调、市场更新/安装与产物 UI 未实现；真实第三方插件未验收",
           "code_version": "eca903199618b417f5dafd52b86b9c95bf062113fc553a48466c9058bd65e50b"

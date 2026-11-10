@@ -6,7 +6,7 @@
 
 你接手的是 OmniOperator V2 的持续重构开发。请实际读代码并接着实现，不要只回复计划，也不要重做已完成的基础系统。
 
-工作区：`D:\xm\OmniOperator`，Windows / PowerShell。分支 `codex/architecture-v2`（上游 `origin/codex/architecture-v2`，gitee）。MCP 批、扩展产物协议及其前累计成果已提交推送（`8ad22cf`、`bf5f91f`、`564f0db`、`8590144`、`320549f`、`44890f0`）；接手先 `git log --oneline -5`、`git status --porcelain`、`git ls-remote origin refs/heads/codex/architecture-v2` 对账，保留现状，不 reset/clean/批量覆盖或删除未跟踪文件。
+工作区：`D:\xm\OmniOperator`，Windows / PowerShell。分支 `codex/architecture-v2`（上游 `origin/codex/architecture-v2`，gitee）。MCP 批、扩展产物协议/工作台及其前累计成果已提交推送（`8ad22cf`、`bf5f91f`、`564f0db`、`8590144`、`320549f`、`44890f0`、`adc528d`）；接手先 `git log --oneline -5`、`git status --porcelain`、`git ls-remote origin refs/heads/codex/architecture-v2` 对账，保留现状，不 reset/clean/批量覆盖或删除未跟踪文件。
 
 **按顺序读：**
 
@@ -18,13 +18,13 @@
 **先核对这些事实，不一致时以源码与台账为准：**
 
 - V2 未完成，默认正式入口仍是 V1；独立入口 `uv run --no-sync python -m omni.composition.cli --home <全新绝对目录> serve`，默认 `127.0.0.1:8766`。
-- 结构 **136 表 / `v2_0037`**，前端资源标识 **`20261110v49`**，索引 **65 模块 / 715 文件 / 427 路由 / 94 声明工具**。
-- 最新证据 `docs/evidence/v2-extension-artifacts.json`：扩展产物专项 146 项全过；与 MCP 批合并 **226 个不同节点**最新全过；Pyright 8 文件 0 错；同源码另跑全量 **4548 passed / 16 failed / 10 errors**，26 个失败/错误均为基线遗留（与上一检查点相同）并已复现记录。**这不是全量通过、全仓严格类型或三平台验收。**
-- 源码恢复：`temp/private/v2-extension-artifacts-source-20261111-eca903199618/manifest.json` 与同目录 ZIP（ZIP SHA `8c8ef710…`）。complete 只表示可恢复，文档晚于封存。
+- 结构 **136 表 / `v2_0037`**，前端资源标识 **`20261110v50`**，索引 **65 模块 / 715 文件 / 428 路由 / 94 声明工具**。
+- 最新证据 `docs/evidence/v2-extension-artifacts.json`：产物协议 146 项 + 工作台/API 18 项全过；与 MCP 批合并 **228 个不同节点**最新全过（含 4 例浏览器）；Pyright 0 错；同源码另跑全量 **4548 passed / 16 failed / 10 errors**，26 个失败/错误均为基线遗留（与上一检查点相同）并已复现记录。**这不是全量通过、全仓严格类型或三平台验收。**
+- 源码恢复：`temp/private/v2-extension-workbench-source-20261111-de4300e848e7/manifest.json` 与同目录 ZIP（ZIP SHA `ac71e5e5…`）。complete 只表示可恢复，文档晚于封存。
 - 开放问题不得自行销账：`UI.exact_organization_refresh_timing` 待复核；`tests.baseline_failures_pre_mcp` 待所属批次处置（history/event-pruning、schema-release、service 启动效果、extensions UI 等）；`security.sensitive_history_services_acceptance` 待所有者处置（工作区 `docs/evidence/services-acceptance-2026-11-01.json` 仍含 1 条历史字面量，本批新增文件零命中）。
 - Windows 前台实测用户已安排“稍后”，Mac 待 Mac mini 编译，Linux 无实机；不要用弹测试窗口阻塞开发。
 
-**本轮首要任务：D6.extensions 下一节点 —— 进程外宿主回调与市场更新/安装。** 扩展产物协议（声明式媒体类型、子进程有界目录、宿主二次校验、对象发布与动作引用、unknown 分类）已完成，不再当断点；MCP 运行适配器离线链亦已收口，真实外部服务与真实第三方插件仍记“待真实验收”。
+**本轮首要任务：D6.extensions 下一节点 —— 进程外宿主回调与市场更新/安装。** 扩展产物协议与产物工作台（声明式媒体类型、子进程有界目录、宿主二次校验、对象发布与动作引用、最近调用/产物列表与文本预览）已完成，不再当断点；MCP 运行适配器离线链亦已收口，真实外部服务与真实第三方插件仍记“待真实验收”。
 
 已核实的起点（不要再重复调研成结论）：`domain/extensions.py`、`application/extensions.py`、`adapters/extensions/{worker,hosts,packages}.py`、`persistence/extension_repository.py` 已有安装/捕获、显式授权、每 run 封存、进程外工具、漂移撤权与产物协议；扩展宿主是单向“宿主→子进程”IPC（`adapters/workers/client.py` 请求/响应），**没有** 子进程主动请求宿主能力的回调通道，也**没有** 市场源/更新提示/实际安装链。
 
