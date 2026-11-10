@@ -42,16 +42,16 @@ V2 **不兼容** V1 的数据库、配置、HTTP、工具名或导入路径；�
 | --- | --- |
 | 工作区 | `D:\xm\OmniOperator`，PowerShell |
 | 分支 | `codex/architecture-v2`，上游 `origin/codex/architecture-v2`（gitee） |
-| 媒体批代码提交 | `7f78de8`（台账 `checkpoint_commit` 已指向它） |
+| MCP 批代码提交 | `8ad22cf`→`bf5f91f`→`564f0db`→`8590144`→`320549f`；台账 `checkpoint_commit=320549f`，本文档提交再前进一个 |
 | 最初重构基线 | `076c0c22fa8ecb90d3ce9a64562c90a23a129e00` |
-| 交接时工作区 | 干净（`git status` 空）；提交本文后 HEAD 会前进一个文档提交 |
-| 最新固定源码指纹 | `b505d4b2a9a251c57cf357cbdc0b3731ff0e109165e15f59e001f71490d51b21` |
-| 冻结文件 | 1165 份，清单 `temp/build/v2-media-validation-snapshot.json` |
-| 恢复材料 | `temp/private/v2-media-source-20261110-b505d4b2a9a2/manifest.json` |
-| 源码备份 | 同目录 `source-and-evidence.zip`（1435 份源码/文档 + 7 份验证材料） |
-| ZIP SHA256 | `fe045494ff872c22c0e52e978ab6a147a8d324f572f71d451add185a055129cd` |
+| 交接时工作区 | 干净（`git status` 空） |
+| 最新固定源码指纹 | `474c67827a9fe8a0eef1136db59685bf305838d9d89c93a18b8922fa9c61cced` |
+| 源码文件 | 1162 份（`agent/`、`web/`、`scripts/` 的 git blob 集合） |
+| 恢复材料 | `temp/private/v2-mcp-source-20261111-474c67827a9f/manifest.json` |
+| 源码备份 | 同目录 `source-and-evidence.zip`（1411 份源码/文档 + 7 份验证材料） |
+| ZIP SHA256 | `51a7fc10b38e8a5b4073e63ddf87b7490521965892a11cd32d70247577123ede` |
 
-封存时 manifest 为 `complete` 且 ZIP SHA 匹配；**complete 只表示可恢复，不表示 V2 完成**。上一技能批的 `-corrected-712a15f2b732` 与未修正版 `-58cccddafd86` 保留为溯源材料，不删除。工作台全量回归报告生成于封存之后，不在 ZIP 内（已在证据中注明）。
+封存时 manifest 为 `complete` 且 ZIP SHA 匹配；**complete 只表示可恢复，不表示 V2 完成**。MCP 证据 JSON 与本文档晚于该封存，恢复时需一并复制。上一媒体批与技能批的恢复包保留为溯源材料，不删除。
 
 不要 `git reset --hard`、`git clean`、批量覆盖或重写历史；不要把未跟踪文件当垃圾。
 
