@@ -22,8 +22,10 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
     listRead = 0,
     detailRead = 0,
     after = 0,
+    actionAfter = '',
     listLoading = false,
     detailLoading = false,
+    actionRead = 0,
     mutation = null;
   const root = (agent = getAgent()) => `/agents/${agent}/extensions`;
   const formKey = (agent = getAgent(), identity = selected) => `${agent}/${identity || 'new'}`;
@@ -92,12 +94,18 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
       !authorization?.trust ||
       !authorization.tools.size;
     $('extension-disable').disabled = !detail || detailLoading || Boolean(mutation);
+    $('extension-actions-refresh').disabled = !selected || detailLoading || Boolean(mutation);
+    $('extension-actions-more').disabled = !selected || !actionAfter || detailLoading || Boolean(mutation);
   }
   function clearDetail() {
     detail = null;
+    actionAfter = '';
+    actionRead++;
     $('extension-details').textContent = '';
     $('extension-files').textContent = '';
     $('extension-tools').replaceChildren();
+    $('extension-actions').replaceChildren();
+    $('extension-artifact-preview').textContent = '';
     $('extension-trust').checked = false;
   }
   function renderDetail(record) {
@@ -154,6 +162,65 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
   function restoreSource() {
     $('extension-source').value = draft().source;
     controls();
+  }
+  function renderActions(result, appended) {
+    const box = $('extension-actions');
+    if (!appended) box.replaceChildren();
+    for (const item of result.items) {
+      const line = document.createElement('p');
+      const artifacts = item.artifacts.length
+        ? item.artifacts.map((artifact) => `${artifact.media_type} ${artifact.bytes}B`).join('，')
+        : '无产物';
+      line.textContent = `${(item.ended_at || '').slice(0, 19)} · ${item.tool} · ${item.state}/${item.effect} · ${artifacts}`;
+      box.append(line);
+      for (const artifact of item.artifacts) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = `预览 ${artifact.media_type} · ${artifact.bytes}B`;
+        button.addEventListener(
+          'click',
+          wrap(async () => {
+            const t = target();
+            const blob = await api(`/agents/${t.agent}/objects/${artifact.id}/content`, { binary: true });
+            if (!current(t)) return;
+            const text =
+              artifact.media_type.startsWith('text/') || artifact.media_type === 'application/json'
+                ? (await blob.text()).slice(0, 4000)
+                : `非文本产物，已保存为对象 ${artifact.id}，不在此展开。`;
+            $('extension-artifact-preview').textContent =
+              `对象 ${artifact.id} · ${artifact.media_type} · ${artifact.bytes} 字节\n${text}`;
+          }),
+        );
+        box.append(button);
+      }
+    }
+    if (!result.items.length) {
+      const empty = document.createElement('p');
+      empty.textContent = '尚无调用记录；实际调用需要模型发起并完成审批。';
+      box.append(empty);
+    }
+  }
+  async function loadActions(more = false) {
+    const t = target(),
+      ticket = ++actionRead;
+    if (!t.selected) {
+      actionAfter = '';
+      renderActions({ items: [] }, false);
+      return;
+    }
+    try {
+      const query = more && actionAfter ? `?after=${actionAfter}&limit=20` : '?limit=20';
+      const result = await api(`${root(t.agent)}/${t.selected}/actions${query}`);
+      if (!current(t) || ticket !== actionRead) return;
+      actionAfter = result.next_after || '';
+      renderActions(result, more);
+    } catch (error) {
+      if (!current(t) || ticket !== actionRead) return;
+      $('extension-actions').textContent = '最近调用读取失败，请显式刷新后重试。';
+      throw error;
+    } finally {
+      if (current(t) && ticket === actionRead) controls();
+    }
   }
   function reset() {
     if (owner) selections.set(owner, selected);
@@ -220,6 +287,8 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
       const record = await api(`${root(t.agent)}/${t.selected}`);
       if (!current(t) || ticket !== detailRead) return;
       renderDetail(record);
+      await loadActions(false);
+      if (!current(t) || ticket !== detailRead) return;
       $('extension-status').textContent =
         record.runtime?.cleanup_pending > 0
           ? '实例仍有宿主待回收；授权状态与实际回收状态需分别核查，请显式刷新。'
@@ -437,6 +506,14 @@ export function mountExtensions({ api, wrap, getAgent, getGeneration }) {
     wrap(() => loadList(true)),
   );
   $('extension-refresh-detail').addEventListener('click', wrap(loadDetail));
+  $('extension-actions-refresh').addEventListener(
+    'click',
+    wrap(() => loadActions(false)),
+  );
+  $('extension-actions-more').addEventListener(
+    'click',
+    wrap(() => loadActions(true)),
+  );
   return {
     reset,
     resume: () => {

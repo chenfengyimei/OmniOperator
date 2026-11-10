@@ -105,6 +105,15 @@ def test_artifact_plugin_publishes_verified_objects_and_bounded_model_text(tmp_p
             ]
             assert "artifacts: image/png" in result["text"]
             assert "fixture artifact" not in result["text"]
+            listed = await instance.extensions.actions(agent, extension["id"])
+            assert len(listed["items"]) == 1 and listed["next_after"] is None
+            evidence = listed["items"][0]
+            assert set(evidence) == {"id", "tool", "state", "effect", "ended_at", "artifacts"}
+            assert evidence["tool"] == PUBLIC_TOOL and evidence["state"] == "ok" and evidence["effect"] == "applied"
+            assert evidence["artifacts"] == [
+                {"id": result["artifacts"][0], "media_type": "image/png", "bytes": len(body)}
+            ]
+            assert "fixture artifact" not in str(evidence)
             assert await instance._database.read(
                 lambda u: u.connection.execute(
                     select(s.action_objects).where(

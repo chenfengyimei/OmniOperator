@@ -7,8 +7,8 @@
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v49" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v49" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v50" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v50" />
   </head>
   <body>
     <header>
@@ -815,6 +815,12 @@
             <summary>包内文件与指纹</summary>
             <pre id="extension-files"></pre>
           </details>
+          <div class="actions">
+            <button id="extension-actions-refresh" type="button" disabled>刷新最近调用</button>
+            <button id="extension-actions-more" type="button" disabled>更多调用</button>
+          </div>
+          <div id="extension-actions"></div>
+          <pre id="extension-artifact-preview"></pre>
           <fieldset id="extension-authorization-fields" disabled>
             <legend>手动选择授权工具（不自动全选）</legend>
             <div id="extension-tools"></div>
@@ -1351,8 +1357,8 @@
         </section>
       </section>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261110v49"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v49"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261110v49"></script>
+    <script src="/assets/vendor/xterm.js?v=20261110v50"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v50"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261110v50"></script>
   </body>
 </html>

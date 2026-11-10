@@ -83,11 +83,14 @@ def test_plugin_api_scope_bounds_and_immutable_update_replay_do_not_follow_mutab
         assert client.get(base + f"?after={page['next_after']}").json()["items"] == []
         for query in ("?limit=51", "?after=-1", "?after=9223372036854775808"):
             assert client.get(base + query).status_code == 422
+        assert client.get(target + "/actions").json() == {"items": [], "next_after": None}
+        assert client.get(target + "/actions?limit=51").status_code == 422
         other = client.portal.call(client.app.state.runtime.application._db.write, lambda u: u.create_agent("Other"))[
             "id"
         ]
         wrong = f"/api/v1/agents/{other}/extensions/" + installed["id"]
         assert client.get(wrong).status_code == 404
+        assert client.get(wrong + "/actions").status_code == 404
         assert client.put(wrong + "/authorization", json=authorization(changed.json())).status_code == 404
         assert client.get(f"/api/v1/agents/{other}/extensions").json()["items"] == []
         assert client.get(base).json()["items"][0]["agent_id"] == agent

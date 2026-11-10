@@ -193,6 +193,44 @@ class ExtensionService:
 
         return await self._execute(perform)
 
+    async def actions(self, agent_id: str, extension_id: str, after: str = "", limit: int = 20) -> Record:
+        """Bounded owner view of what this plugin actually returned; no arguments or free text."""
+
+        async def perform():
+            records = await self._db.read(lambda u: u.extension_action_page(agent_id, extension_id, after, limit))
+            items = []
+            for record in records:
+                raw_result = record.get("result")
+                result = raw_result if isinstance(raw_result, dict) else {}
+                raw_data = result.get("data")
+                data = raw_data if isinstance(raw_data, dict) else {}
+                raw_artifacts = data.get("artifacts")
+                artifacts = raw_artifacts if isinstance(raw_artifacts, list) else []
+                items.append(
+                    {
+                        "id": record["id"],
+                        "tool": record["tool"],
+                        "state": record["state"],
+                        "effect": record["effect"],
+                        "ended_at": record["ended_at"],
+                        "artifacts": [
+                            {
+                                "id": str(item["id"]),
+                                "media_type": str(item["media_type"]),
+                                "bytes": int(cast(int, item["bytes"])),
+                            }
+                            for item in artifacts[:4]
+                            if isinstance(item, dict)
+                            and isinstance(item.get("id"), str)
+                            and isinstance(item.get("media_type"), str)
+                            and type(item.get("bytes")) is int
+                        ],
+                    }
+                )
+            return {"items": items, "next_after": items[-1]["id"] if len(items) == limit else None}
+
+        return await self._execute(perform)
+
     async def authorize(self, agent_id: str, extension_id: str, request: Record) -> Record:
         checked = parse_authorization(request)
 

@@ -1785,6 +1785,18 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     async def extension_detail(agent_id: uuid.UUID, extension_id: uuid.UUID, request: Request):
         return await runtime(request).extensions.get(str(agent_id), str(extension_id))
 
+    @router.get("/agents/{agent_id}/extensions/{extension_id}/actions")
+    async def extension_actions(
+        agent_id: uuid.UUID,
+        extension_id: uuid.UUID,
+        request: Request,
+        after: uuid.UUID | None = None,
+        limit: int = Query(default=20, ge=1, le=50),
+    ):
+        return await runtime(request).extensions.actions(
+            str(agent_id), str(extension_id), str(after) if after else "", limit
+        )
+
     @router.put("/agents/{agent_id}/extensions/{extension_id}/authorization")
     async def extension_authorization(agent_id: uuid.UUID, extension_id: uuid.UUID, request: Request):
         return await runtime(request).extensions.authorize(

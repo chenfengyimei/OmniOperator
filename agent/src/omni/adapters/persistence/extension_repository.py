@@ -128,6 +128,44 @@ class ExtensionRepositories(RepositoryBase):
             ).mappings()
         ]
 
+    def extension_action_page(self, agent_id: str, extension_id: str, after: str = "", limit: int = 20) -> list[dict]:
+        """Owner-visible action evidence for one plugin; text and arguments stay in the action row."""
+        self._one(s.extensions, agent_id, extension_id)
+        if not isinstance(after, str) or len(after) > 36 or type(limit) is not int or not 1 <= limit <= 50:
+            raise BusinessError("invalid_extension_query", "Bounded action cursor and limit are required", status=422)
+        rows = self.connection.execute(
+            select(
+                s.actions.c.id,
+                s.actions.c.tool,
+                s.actions.c.state,
+                s.actions.c.effect,
+                s.actions.c.result,
+                s.actions.c.ended_at,
+            )
+            .join(
+                s.action_extension_bindings,
+                and_(
+                    s.action_extension_bindings.c.action_id == s.actions.c.id,
+                    s.action_extension_bindings.c.agent_id == s.actions.c.agent_id,
+                ),
+            )
+            .join(
+                s.run_extension_tools,
+                and_(
+                    s.run_extension_tools.c.id == s.action_extension_bindings.c.run_tool_id,
+                    s.run_extension_tools.c.agent_id == s.actions.c.agent_id,
+                ),
+            )
+            .where(
+                s.actions.c.agent_id == agent_id,
+                s.run_extension_tools.c.extension_id == extension_id,
+                s.actions.c.id > after,
+            )
+            .order_by(s.actions.c.id)
+            .limit(limit)
+        ).mappings()
+        return [dict(row) for row in rows]
+
     def extension_install_replay(self, agent_id: str, key: str, request_sha: str) -> dict | None:
         self._extension_agent(agent_id)
         previous = (
