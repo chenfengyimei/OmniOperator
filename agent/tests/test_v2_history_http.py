@@ -28,8 +28,8 @@ def test_three_history_endpoints_validate_auth_bounds_and_cursor_scope(tmp_path)
         audit = base + "/audit"
         first = client.get(events, params={"limit": 1}).json()
         assert len(first["items"]) == 1 and first["has_more"] and first["stream"]["high_water"] >= 2
-        second = client.get(events, params={"limit": 1, "cursor": first["next_cursor"]}).json()
-        assert len(second["items"]) == 1 and not second["has_more"]
+        second = client.get(events, params={"limit": 2, "cursor": first["next_cursor"]}).json()
+        assert len(second["items"]) == 2 and not second["has_more"]
         assert second["items"][0]["sequence"] > first["items"][0]["sequence"]
         assert client.get(audit, params={"cursor": first["next_cursor"]}).status_code == 422
         page = client.get(audit).json()

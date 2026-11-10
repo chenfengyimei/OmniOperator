@@ -260,10 +260,12 @@ def test_native_start_uses_fixed_non_force_commands_and_requires_matching_idle_d
             return {
                 "available": True,
                 "installed": True,
+                "definition_present": True,
                 "definition_matches": True,
                 "enabled": True,
                 "state": "stopped",
                 "loaded": False,
+                "pid": None,
             }
 
         async def command(argv):

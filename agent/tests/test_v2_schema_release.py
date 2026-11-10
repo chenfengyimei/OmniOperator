@@ -15,6 +15,7 @@ from alembic.config import Config
 from test_v2_deployment_files import installation as installation
 from test_v2_deployment_files import plan_for
 from test_v2_releases import Manager
+from v2_legacy_seed import LegacySeedRepositories
 
 from omni.adapters.object_store import FileObjects
 from omni.adapters.persistence import schema_upgrade as migration
@@ -23,7 +24,6 @@ from omni.adapters.persistence.maintenance import verify_snapshot
 from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
 from omni.adapters.persistence.releases import ReleaseData, database_witness
-from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlalchemy_access import database_engine
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.platform import deployment_files as d
@@ -83,7 +83,7 @@ def upgrading(installation, tmp_path, monkeypatch):
                 cfg = configuration()
                 cfg.attributes["connection"] = connection
                 command.upgrade(cfg, "v2_0025")
-                unit = Repositories(connection, clock, ids, ids.new())
+                unit = LegacySeedRepositories(connection, clock, ids, ids.new())
                 identity = unit.initialize()["id"]
                 agent = unit.query("agents", "")[0]["id"]
                 unit.issue_token("a" * 64, "2099-01-01T00:00:00+00:00")

@@ -143,7 +143,7 @@ def boot_identity(plan):
         "process_created": 123.0,
         "build_id": plan["runtime"]["build_id"],
         "api_version": 1,
-        "schema_version": "v2_0026",
+        "schema_version": plan["runtime"]["schema_head"],
         "service_plan_sha256": plan["sha256"],
         "state": "running",
     }

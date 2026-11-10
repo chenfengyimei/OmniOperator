@@ -18,12 +18,15 @@ def test_history_pages_bind_agents_runs_and_streams_with_bounded_continuation(tm
             turns = [await db.write(lambda u, i=i: u.accept_turn(agent, None, str(i), "history", {})) for i in range(2)]
             first = await db.read(lambda u: u.history_page("events", agent, limit=1))
             assert first["has_more"] and len(first["items"]) == 1
-            second = await db.read(lambda u: u.history_page("events", agent, cursor=first["next_cursor"], limit=1))
+            second = await db.read(lambda u: u.history_page("events", agent, cursor=first["next_cursor"], limit=3))
             assert not second["has_more"] and second["items"][0]["sequence"] > first["items"][0]["sequence"]
             empty = await db.read(lambda u: u.history_page("events", agent, cursor=second["next_cursor"]))
             assert not empty["items"] and empty["next_cursor"] == second["next_cursor"]
             filtered = await db.read(lambda u: u.history_page("events", agent, run_id=turns[0]["run_id"]))
-            assert len(filtered["items"]) == 1 and filtered["items"][0]["run_id"] == turns[0]["run_id"]
+            # Each accepted turn emits run.queued plus routing.selected.
+            assert len(filtered["items"]) == 2 and all(
+                item["run_id"] == turns[0]["run_id"] for item in filtered["items"]
+            )
             for kind, owner, run_id in [
                 ("audit", agent, ""),
                 ("events", other["id"], ""),
@@ -104,7 +107,7 @@ def test_event_empty_stream_and_rolled_back_allocations_preserve_run_sequence(tm
             await db.write(lambda u: u.event(agent, turn["run_id"], "fixture", {}))
             current = await db.read(lambda u: u.history_page("events", agent, cursor=empty["next_cursor"]))
             assert len(current["items"]) == 1 and current["items"][0]["sequence"] == old + 1
-            assert current["items"][0]["seq"] == 2
+            assert current["items"][0]["seq"] == 3
 
     asyncio.run(scenario())
 
@@ -222,6 +225,6 @@ def test_event_trim_is_isolated_by_agent_and_conservative_across_its_run_filters
                 )
             assert failure.value.code == "history_cursor_expired"
             fresh = await db.read(lambda u: u.history_page("events", agent, run_id=turns[0]["run_id"]))
-            assert len(fresh["items"]) == 1 and fresh["stream"]["deleted_count"] == 1
+            assert len(fresh["items"]) == 2 and fresh["stream"]["deleted_count"] == 2
 
     asyncio.run(scenario())

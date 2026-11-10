@@ -9,13 +9,13 @@ from alembic import command
 from sqlalchemy import create_engine, event, update
 from test_v2_desktop import prepared
 from v2_desktop_helpers import captured_frame
+from v2_legacy_seed import LegacySeedRepositories
 
 from omni.adapters.object_store import FileObjects
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.database import Database
 from omni.adapters.persistence.migration_config import configuration
 from omni.adapters.persistence.migration_config import head as migration_head
-from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.primitives import SystemClock, UUIDs
 from omni.domain.contracts import BusinessError
@@ -71,7 +71,7 @@ def test_capture_rebuild_interruption_preserves_rows_and_guards(tmp_path, baseli
         with engine.begin() as connection:
             cfg.attributes["connection"] = connection
             command.upgrade(cfg, baseline)
-            unit = Repositories(connection, SystemClock(), UUIDs())
+            unit = LegacySeedRepositories(connection, SystemClock(), UUIDs())
             unit.initialize()
             agent = unit.query("agents", "")[0]["id"]
             turn = unit.accept_turn(agent, None, "capture", "fixture", {})

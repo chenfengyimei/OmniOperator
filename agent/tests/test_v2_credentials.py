@@ -453,19 +453,82 @@ def test_encrypted_vault_delete_residue_cannot_resurrect_a_lookup_reference(tmp_
 
 
 def test_prepared_default_model_sends_once_with_owned_credential_and_records_known_cost(tmp_path, monkeypatch):
-    class Response:
+    class Chunk:
+        def __init__(self, payload):
+            self.payload = payload
+
         def model_dump(self):
-            return {
+            return self.payload
+
+    class Native:
+        def __init__(self):
+            self.chunks = iter(
+                [
+                    Chunk(
+                        {
+                            "model": "fake",
+                            "choices": [{"index": 0, "delta": {"content": "prepared reply"}, "finish_reason": None}],
+                            "usage": None,
+                        }
+                    ),
+                    Chunk(
+                        {
+                            "model": "fake",
+                            "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+                            "usage": None,
+                        }
+                    ),
+                    Chunk(
+                        {
+                            "model": "fake",
+                            "choices": [],
+                            "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+                        }
+                    ),
+                ]
+            )
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            try:
+                return next(self.chunks)
+            except StopIteration:
+                raise StopAsyncIteration from None
+
+        async def aclose(self):
+            return None
+
+    class Stream:
+        def __init__(self):
+            self.completion_stream = Native()
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            return await self.completion_stream.__anext__()
+
+        async def aclose(self):
+            return None
+
+    class Response:
+        def __init__(self, **payload):
+            self.payload = payload or {
                 "choices": [{"message": {"content": "prepared reply", "tool_calls": []}}],
                 "usage": {"prompt_tokens": 1, "completion_tokens": 1},
             }
+
+        def model_dump(self):
+            return self.payload
 
     async def scenario():
         calls = []
 
         async def complete(**kwargs):
             calls.append(kwargs)
-            return Response()
+            return Stream() if kwargs.get("stream") else Response()
 
         monkeypatch.setenv("OMNI_TEST_OFFLINE", "0")
         monkeypatch.setitem(

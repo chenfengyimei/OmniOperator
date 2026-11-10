@@ -122,7 +122,9 @@ def test_delete_all_retired_events_preserves_last_seq_allocator_business_and_res
     assert result["deleted"] == len(case["plan"]["targets"])
     assert business_snapshot(case) == before
     after = read_case(case, history)
-    assert not after["events"]["items"] and after["events"]["history_trimmed"]
+    # routing.selected remains outside the event-retention kinds; every planned target is gone.
+    assert not [item for item in after["events"]["items"] if item["kind"] != "routing.selected"]
+    assert after["events"]["history_trimmed"]
     assert after["events"]["stream"]["high_water"] == pages["events"]["stream"]["high_water"]
     assert after["audit"]["stream"]["trim_revision"] == pages["audit"]["stream"]["trim_revision"]
     assert after["other"] == pages["other"]
@@ -150,8 +152,10 @@ def test_delete_all_retired_events_preserves_last_seq_allocator_business_and_res
     # Even an empty event table never determines a run's next local position.
     assert write_case(case, lambda u: u.event(case["agent"], run_id, "fixture.appended", {})) == last_seq + 1
     appended = read_case(case, lambda u: u.history_page("events", case["agent"], run_id=run_id))
-    assert len(appended["items"]) == 1 and appended["items"][0]["seq"] == last_seq + 1
-    assert appended["items"][0]["sequence"] > pages["events"]["stream"]["high_water"]
+    # routing.selected is outside the retention kinds and stays; the new event continues the run position.
+    appended_row = next(item for item in appended["items"] if item["kind"] == "fixture.appended")
+    assert appended_row["seq"] == last_seq + 1
+    assert appended_row["sequence"] > pages["events"]["stream"]["high_water"]
     assert apply_events(case) == result
 
 
@@ -237,7 +241,11 @@ def test_unpruned_unknown_recovery_and_forged_action_events_are_protected(event_
     preview = read_case(case, lambda u: u.event_retention_preview(case["agent"], limit=50))
     assert not preview["can_apply"] and "not exported" not in json.dumps(preview)
     recent = [row for row in preview["items"] if row["run_id"] == run and row["seq"] > 5]
-    assert recent and all(not row["eligible"] and "event_body_not_pruned" in row["protected_reasons"] for row in recent)
+    forged = [row for row in recent if row["kind"] in {"run.running", "run.interrupted", "future.kind"}]
+    assert len(forged) == 3 and all(
+        not row["eligible"] and "event_body_not_pruned" in row["protected_reasons"] for row in forged
+    ), [(row["kind"], row["seq"], row["protected_reasons"]) for row in forged]
+    assert any(row["kind"] == "run.succeeded" and row["eligible"] for row in recent)
     assert all(
         "event_kind_not_eligible" in row["protected_reasons"]
         for row in recent

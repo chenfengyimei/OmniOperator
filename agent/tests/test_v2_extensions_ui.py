@@ -247,7 +247,9 @@ def test_snapshot_drift_revokes_authority_and_pending_cleanup_is_explicit_instan
         runtime = v2_server.app.state.runtime.extensions
         health = runtime._hosts.health()
         monkeypatch.setattr(
-            runtime._hosts, "health", lambda: {**health, "resident": 2, "active": 0, "cleanup_pending": 1}
+            runtime._hosts,
+            "health",
+            lambda *_args: {**health, "resident": 2, "active": 0, "cleanup_pending": 1, "workers": []},
         )
         snapshot = runtime._packages._root / agent / extension["package_sha256"] / "plugin.py"
         snapshot.write_text("raise RuntimeError('snapshot drift canary')", encoding="utf-8")

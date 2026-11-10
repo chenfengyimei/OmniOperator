@@ -61,8 +61,8 @@ def test_preview_auth_scope_bounds_age_ceiling_and_independent_trim(tmp_path):
                 path, params={"cursor": first["next_cursor"], "as_of": first["as_of"], "limit": 50}
             ).json()
             assert second["as_of"] == first["as_of"] and second["stream"]["high_water"] == first["stream"]["high_water"]
-            assert len(second["items"]) == 1 and not second["has_more"]
-            assert second["items"][0]["kind"] == "run.cancelled"
+            assert len(second["items"]) == 2 and not second["has_more"]
+            assert [item["kind"] for item in second["items"]] == ["routing.selected", "run.cancelled"]
             scope_before = client.get(f"/api/v1/agents/{agent}/audit", params={"cursor": audit["next_cursor"]})
             assert scope_before.status_code == 200
             sequence = first["items"][0]["sequence"]
