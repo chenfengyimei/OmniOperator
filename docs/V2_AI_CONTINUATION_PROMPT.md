@@ -6,29 +6,29 @@
 
 你接手的是 OmniOperator V2 的持续重构开发。请实际读代码并接着实现，不要只回复计划，也不要重做已完成的基础系统。
 
-工作区：`D:\xm\OmniOperator`，Windows / PowerShell。分支 `codex/architecture-v2`（上游 `origin/codex/architecture-v2`，gitee）。MCP 批及其前累计成果已提交推送（MCP 代码提交 `8ad22cf`、`bf5f91f`、`564f0db`、`8590144`、`320549f`）；接手先 `git log --oneline -5`、`git status --porcelain`、`git ls-remote origin refs/heads/codex/architecture-v2` 对账，保留现状，不 reset/clean/批量覆盖或删除未跟踪文件。
+工作区：`D:\xm\OmniOperator`，Windows / PowerShell。分支 `codex/architecture-v2`（上游 `origin/codex/architecture-v2`，gitee）。MCP 批、扩展产物协议及其前累计成果已提交推送（`8ad22cf`、`bf5f91f`、`564f0db`、`8590144`、`320549f`、`44890f0`）；接手先 `git log --oneline -5`、`git status --porcelain`、`git ls-remote origin refs/heads/codex/architecture-v2` 对账，保留现状，不 reset/clean/批量覆盖或删除未跟踪文件。
 
 **按顺序读：**
 
 1. `AGENTS.md`、`docs/HANDOFF.md`、`docs/ARCHITECTURE.md`、`CONTRIBUTING.md`。
-2. `docs/V2_AI_HANDOFF.md`（完整交接，含架构合同、目录地图、MCP 先例锚点）、`docs/tasks/v2.json`、`docs/DEVELOPMENT_STATUS.md`。
-3. `docs/V2_REFACTOR.md` 的当前摘要段、`docs/evidence/v2-mcp.json`；`V2_REFACTOR.md` 历史段落只作历史。
-4. 本批再读 `docs/V2_MCP.md`、`docs/MCP.md`（**V1 行为先例，只读参考，禁止 import**）、`docs/V2_MEDIA.md`、`docs/V2_SKILLS.md`、`docs/DATA_MODEL.md`、`docs/TESTING.md`、`docs/UI_DESIGN_SYSTEM.md`。
+2. `docs/V2_AI_HANDOFF.md`（完整交接，含架构合同、目录地图、扩展/MCP 先例锚点）、`docs/tasks/v2.json`、`docs/DEVELOPMENT_STATUS.md`。
+3. `docs/V2_REFACTOR.md` 的当前摘要段、`docs/evidence/v2-extension-artifacts.json`；`V2_REFACTOR.md` 历史段落只作历史。
+4. 本批再读 `docs/V2_EXTENSIONS.md`、`docs/V2_MCP.md`、`docs/MCP.md`（**V1 行为先例，只读参考，禁止 import**）、`docs/DATA_MODEL.md`、`docs/TESTING.md`、`docs/UI_DESIGN_SYSTEM.md`。
 
 **先核对这些事实，不一致时以源码与台账为准：**
 
 - V2 未完成，默认正式入口仍是 V1；独立入口 `uv run --no-sync python -m omni.composition.cli --home <全新绝对目录> serve`，默认 `127.0.0.1:8766`。
 - 结构 **136 表 / `v2_0037`**，前端资源标识 **`20261110v49`**，索引 **65 模块 / 715 文件 / 427 路由 / 94 声明工具**。
-- 最新证据 `docs/evidence/v2-mcp.json`：150 个专项节点最新全过（MCP 专项 20 + 390/1024 浏览器 2 + 调用方 54 + 守卫 74），Pyright 0 错；同源码另跑全量 **4541 passed / 16 failed / 10 errors**，26 个失败/错误均为基线 `be58739` 遗留并已复现记录。**这不是全量通过、全仓严格类型或三平台验收。**
-- 源码恢复：`temp/private/v2-mcp-source-20261111-474c67827a9f/manifest.json` 与同目录 ZIP（ZIP SHA `51a7fc10…`）。complete 只表示可恢复，文档晚于封存。
-- 开放问题不得自行销账：`UI.exact_organization_refresh_timing` 待复核；`tests.baseline_failures_pre_mcp` 待所属批次处置（history/event-pruning、schema-release、service 启动效果、extensions UI 等）；`security.sensitive_history_services_acceptance` 待所有者处置（工作区 `docs/evidence/services-acceptance-2026-11-01.json` 仍含 1 条历史字面量，MCP 批新增文件零命中）。
+- 最新证据 `docs/evidence/v2-extension-artifacts.json`：扩展产物专项 146 项全过；与 MCP 批合并 **226 个不同节点**最新全过；Pyright 8 文件 0 错；同源码另跑全量 **4548 passed / 16 failed / 10 errors**，26 个失败/错误均为基线遗留（与上一检查点相同）并已复现记录。**这不是全量通过、全仓严格类型或三平台验收。**
+- 源码恢复：`temp/private/v2-extension-artifacts-source-20261111-eca903199618/manifest.json` 与同目录 ZIP（ZIP SHA `8c8ef710…`）。complete 只表示可恢复，文档晚于封存。
+- 开放问题不得自行销账：`UI.exact_organization_refresh_timing` 待复核；`tests.baseline_failures_pre_mcp` 待所属批次处置（history/event-pruning、schema-release、service 启动效果、extensions UI 等）；`security.sensitive_history_services_acceptance` 待所有者处置（工作区 `docs/evidence/services-acceptance-2026-11-01.json` 仍含 1 条历史字面量，本批新增文件零命中）。
 - Windows 前台实测用户已安排“稍后”，Mac 待 Mac mini 编译，Linux 无实机；不要用弹测试窗口阻塞开发。
 
-**本轮首要任务：D6.extensions —— 完整扩展链（进程外宿主回调、产物协议、版本/授权、市场更新提示与实际安装）。** D6.mcp 运行适配器离线链已收口（stdio/Streamable HTTP、显式 OAuth、目录指纹、逐工具授权、工作台），不再当断点；真实外部 MCP 服务与真实 OAuth 供应商仍记“待真实验收”。
+**本轮首要任务：D6.extensions 下一节点 —— 进程外宿主回调与市场更新/安装。** 扩展产物协议（声明式媒体类型、子进程有界目录、宿主二次校验、对象发布与动作引用、unknown 分类）已完成，不再当断点；MCP 运行适配器离线链亦已收口，真实外部服务与真实第三方插件仍记“待真实验收”。
 
-已核实的起点（不要再重复调研成结论）：MCP 已交付 `domain/mcp.py`、`application/mcp.py`、`adapters/mcp/`、`persistence/mcp_repository.py`、`v0037`、工作台分区与 11 个 HTTP 端点；扩展侧已有可信目录封存、显式授权、进程外工具、指纹漂移撤权与按回合披露（`application/extensions.py`、`adapters/extensions/`、`V2_EXTENSIONS` 合同），但**尚无产物协议、宿主回调、版本升级与市场安装链**。
+已核实的起点（不要再重复调研成结论）：`domain/extensions.py`、`application/extensions.py`、`adapters/extensions/{worker,hosts,packages}.py`、`persistence/extension_repository.py` 已有安装/捕获、显式授权、每 run 封存、进程外工具、漂移撤权与产物协议；扩展宿主是单向“宿主→子进程”IPC（`adapters/workers/client.py` 请求/响应），**没有** 子进程主动请求宿主能力的回调通道，也**没有** 市场源/更新提示/实际安装链。
 
-按此范围实现：**扩展产物协议（受控对象/校验/清理）、进程外宿主回调与生命周期、版本与授权升级、市场更新提示与实际安装（明确确认、失败不自动重试）；复用既有对象/审批/费用与 Agent 隔离。**
+按此范围实现：**受控宿主回调（插件请求宿主能力时仍受授权与预算约束、失败归 unknown 不重放）、版本更新提示与显式安装确认（真实来源状态如实显示、失败不自动重试）、产物在工作台可见（列表/类型/大小/读取入口，不转发正文给模型）；复用对象/审批/费用与既有审计。**
 
 可直接照抄结构的先例（不照抄业务）：
 - `application/extensions.py`：`authorize` / `disable` / `tools_for_run` / `invoke` / `review_quiescent`；invoke 前比对 `arguments_sha256`，`before_dispatch` 二次校验，漂移码 `extension_snapshot_drift`。
@@ -59,7 +59,7 @@ uv run --no-sync pytest -q -n 0 --lf --last-failed-no-failures=none
 
 `addopts` 已含 `-n auto --dist=loadfile`，不要加 `-p no:xdist`；`-n 0` 仅用于单文件调试。门禁按改动文件跑 ruff check/format、`uv run --no-sync pyright`、`node web/node_modules/prettier/bin/prettier.cjs --check`；改文件后跑 `scripts/project_index.py` 与 `scripts/task_status.py` 的生成与 `--check`。不 `uv sync`，不为测试停止服务，不用真实账号/设备数据，不跳过闸门或缩短被测超时。UI 每用例独立 BrowserContext/数据库；重型类型、浏览器、打包顺序执行。
 
-扩展链本批至少覆盖：产物协议（受控对象、校验、引用/GC、删除传播）真实链路；进程外宿主回调与崩溃/超时/取消/unknown；版本升级与授权再确认、旧授权不复活；市场更新提示只作提示，实际安装要显式确认、失败不自动重放；凭据不出现在文本/HTTP/日志/审计；`test_v2_architecture.py`、worker 进程守卫、迁移冻结、`test_v2_http.py` 契约；新分区 390/1024 浏览器流程 + 一次工作台回归。真实市场源与真实第三方扩展另记“待真实验收”。
+扩展链下一节点至少覆盖：受控宿主回调（插件请求宿主能力仍受授权/预算约束，失败归unknown不重放）；版本更新提示与实际安装（真实来源状态如实显示、显式确认、失败不自动重试、旧授权不复活）；产物在工作台可见（列表/类型/大小/读取入口，模型文本仍只含类型与字节数）；`test_v2_architecture.py`、worker 进程守卫、迁移冻结、`test_v2_http.py` 契约；相关分区 390/1024 浏览器流程 + 一次工作台回归。真实市场源、真实第三方扩展与三平台原生 ABI 另记“待真实验收”。
 
 **每完成一个节点，按用户要求 git 提交并推送一次**（先 `git status` 核对范围，临时/私人材料不入库）。每批收口：更新台账三个状态、本文当前段与领域合同、写入 `docs/evidence/v2-<批次>.json`（报告 + SHA + 门禁 + 限制）、保留恢复副本、记录实际源码指纹；保留历史报告与开放问题，不把小批完成写成完整 D6/V2 完成。基线遗留失败按所属批次修复并在证据中分立记录，不要算进本批通过数。
 

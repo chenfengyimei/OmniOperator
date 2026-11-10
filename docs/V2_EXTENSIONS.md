@@ -1,0 +1,95 @@
+# V2 扩展链（D6.extensions）
+
+本文是 V2 扩展（可信 Python 插件）子系统的设计权威：安装与捕获、进程外宿主、显式授权与漂移撤权、产物协议、版本与升级、仍未完成的宿主回调与市场。实现进度与原始报告见 `docs/evidence/v2-extension-artifacts.json`。
+
+默认正式入口仍是 V1；扩展链未完成，真实第三方插件与市场源另记“待真实验收”。
+
+## 1. 生产路径与真值
+
+```
+所有者安装（目录来源）→ ExtensionPackages.capture 封存为对象（package_sha256 / catalog_sha256）
+  → extension_revisions 不可变版本 + extension_tools 工具目录（spec_sha256 含 artifacts 能力）
+  → 所有者显式 authorize（信任 + 当前 catalog_sha256）→ extensions 槽位 enabled/current revision
+  → 每回合 extension_capture_run 封存 run_extension_tools（未授权/漂移不可见）
+  → 模型调用 ext__<id>__<tool> → 动作行 + 审批（写操作）→ 宿主子进程 invoke
+  → 结果文本/对象产物；终态与审计共同提交；撤权取消在途调用
+```
+
+- 真值：`<home>/data/omni.db`；包正文与产物正文都只在对象存储（`<home>/objects`），行表只存 `object_id` 与度量。
+- 插件进程是**故障隔离**，不是操作系统沙箱；插件仍以本机用户身份运行，只能安装所有者审核过的可信包。
+- 外部来源不可信：插件描述与返回值不授予权限、不自动打开链接；宿主不信任子进程上报的字节与哈希。
+
+## 2. 数据模型（既有，v2_0019 起）
+
+- `extensions`：每 Agent 槽位（`name` 唯一、`revision`、`authority_epoch`、`enabled/state`、`current_revision_id`）。
+- `extension_revisions`：不可变版本（`package_sha256`、`catalog_sha256`、`manifest`、`files`、`entry`、对象引用）。
+- `extension_tools`：工具目录行（`name/local_name/description/parameters/timeout_s/writes/spec_sha256`）；`spec_sha256` 现在包含 `artifacts` 能力，能力变化会改变目录指纹。
+- `grants`：逐工具授权（`authority_epoch`、`history_epoch`、`review_audit_id`、`revoked_at`）。
+- `run_extension_tools` / `action_extension_bindings`：每 run 封存与动作绑定，均不可变。
+- `extension_install_requests`：安装幂等键与请求指纹。
+
+产物协议**不新增表**：产物与动作通过既有 `action_objects`（`settle_action` 按 `ActionResult.artifacts` 建立）关联，对象 GC 按引用/固定保护。
+
+## 3. 进程外宿主与失败分类
+
+- 每个扩展一个 `WorkerClient`（`OwnedProcess` + Windows Job/进程组），握手只校验静态元数据，**授权调用到达前不导入插件代码**；同一宿主串行，最多 4 个宿主、64 个待处理调用。
+- 子进程 stderr 持续排空并只记字节数元数据；异常正文不回传。
+- 失败分类：派发前失败（策略/授权/参数/宿主不可用）→ `DENIED/ERROR` 且无副作用；已派发后的异常、崩溃、畸形结果 → **UNKNOWN**（可能已执行，不重放）；插件 `status=ok` 且有产物但产物不可验证 → 仍归 UNKNOWN。
+- 撤权/停用：数据库先撤销授权并递增代际，随后取消在途调用、关闭宿主；实际未回收时 `health()` 暴露 `cleanup_pending`。
+
+## 4. 产物协议（本批新增）
+
+### 4.1 声明
+
+工具条目可声明可产出的媒体类型（不声明则不能产出产物）：
+
+```json
+{
+  "name": "render",
+  "description": "Render the approved content into an image",
+  "parameters": {"type": "object", "properties": {"value": {"type": "string"}}, "required": ["value"], "additionalProperties": false},
+  "writes": true,
+  "timeout_s": 30,
+  "artifacts": ["image/png"]
+}
+```
+
+- `artifacts`：0..4 个媒体类型，小写 `type/subtype`（如 `image/png`、`application/pdf`），不可重复。
+- 该能力进入 `catalog` 行与 `spec_sha256`；能力变化即目录指纹变化 → 旧授权撤销、需要重新审阅授权。
+- 工具仍为写操作（`writes=true`），产物能力不改变审批链。
+
+### 4.2 子进程侧
+
+- 宿主为每个扩展准备唯一可写目录 `<home>/control/extension-artifacts/<agent>/<extension>`，启动子进程时通过 `OMNI_EXTENSION_ARTIFACTS` 传入；其余环境仍是白名单。
+- 工具返回 `data.artifacts = [{"name": "report.png", "media_type": "image/png"}]`（只允许这两个键）；子进程只读取该目录内的普通文件（拒绝符号链接、路径越界、缺失文件），计算 `bytes` 与 `sha256`，并按声明媒体类型校验后把完整描述（name/media_type/bytes/sha256）回传。
+- 越界/未声明类型/超限（单文件 8 MiB、总计 16 MiB、最多 4 个、文件名 `[A-Za-z0-9][A-Za-z0-9._-]{0,119}`）→ 子进程返回 UNKNOWN，不伪造成功。
+
+### 4.3 宿主与服务侧
+
+- 服务在每次调用前清空并重建该扩展的产物目录，调用后再次独立校验：路径必须解析到目录内、非符号链接、普通文件、字节数与 SHA-256 与子进程上报一致、媒体类型在**捕获的 manifest** 中声明。
+- 校验通过后逐份 `ObjectService.publish` 为不可变对象；`ActionResult.artifacts` 携带对象 id，`settle_action` 建立 `action_objects` 关联，GC/备份/恢复沿用既有对象合同。
+- 模型文本只追加有界摘要（媒体类型 + 字节数），**不含文件名或正文**；`ActionResult.data.artifacts` 只含 `{id, media_type, bytes}`。
+- 任一步骤失败在派发之后 → UNKNOWN（`extension_artifact_invalid`），不发布、不重放、不建立动作引用。
+- 调用结束后删除产物目录（成功、失败、取消一致）；宿主关闭时清理根目录。
+
+## 5. 版本、升级与授权
+
+- 升级安装带 `extension_id + revision`：不改变包身份，追加不可变版本，槽位置为 disabled 并**撤销旧授权/递增代际**；必须对新版本重新审阅授权。
+- 同一 `catalog_sha256` 重放安装返回原结果（幂等键 + 请求指纹）；原始来源改动不影响已捕获版本。
+- 目录/参数/产物能力变化 → 授权漂移，旧 run 封存与动作绑定不再可派发。
+- 安装上限：每 Agent 16 个槽位、128 个不可变版本、包 ≤8 MiB、64 个文件、单文件 ≤1 MiB。
+
+## 6. HTTP 与工作台
+
+- 既有 `/agents/{id}/extensions`（列表/详情/安装/授权/停用）与工作台「可信插件」分区；本批不新增端点。
+- 工作台展示目录、参数 schema、授权与漂移状态；产物协议目前通过工具结果文本（类型/字节数）与动作记录可见，对象可通过既有对象接口读取。
+- 尚未做：产物专用列表/预览、市场更新提示与安装确认 UI。
+
+## 7. 上限与错误码（择要）
+
+`extension_invalid`、`extension_integrity_failed`、`extension_snapshot_drift`、`extension_not_authorized`、`extension_artifact_protocol`（子进程回传对象 id 等旧式产物）、`extension_artifact_invalid`（发布前校验失败）、`extension_outcome_unknown`（已派发后异常/畸形结果）、`extension_hosts_closing`、`extension_busy`、`extension_cleanup_pending`。
+
+## 8. 验证与未完成
+
+- 本节点覆盖：manifest/目录指纹（含 artifacts 能力变化）、描述校验、真实子进程产物写入与宿主二次校验、对象发布与动作引用、文本无正文、越界/未声明/缺失/超限均归 UNKNOWN 且不发布对象、产物目录清理；调用方（HTTP/对象/worker/架构）回归。
+- 未完成/待真实验收：**进程外宿主回调**（插件请求宿主能力）、市场更新提示与实际安装（需要真实市场源）、产物工作台预览、真实第三方插件验收、三平台原生 ABI。
