@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "66aa615b630a7a0c75e3234e54ca4a9dcbf66c59c632ffec318919095a13625c",
+  "source_sha256": "1a98cd1d8988be25cb5c676294529bca16630da80ca94842cf119092256bdb66",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9437,
+      "lines": 9464,
       "dependencies": []
     },
     {
@@ -493,7 +493,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 11132,
+      "lines": 11947,
       "dependencies": []
     },
     {
@@ -65604,7 +65604,7 @@
       "path": "agent/src/omni/domain/mcp.py",
       "module": "v2-domain",
       "python_module": "omni.domain.mcp",
-      "lines": 396,
+      "lines": 419,
       "imports": [
         "omni.domain.configuration",
         "omni.domain.contracts"
@@ -65612,7 +65612,7 @@
       "symbols": [
         {
           "name": "_invalid",
-          "line": 68,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "code",
@@ -65627,12 +65627,12 @@
         },
         {
           "name": "MCPDispatchError",
-          "line": 72,
+          "line": 74,
           "kind": "class"
         },
         {
           "name": "MCPDispatchError.__init__",
-          "line": 75,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self",
@@ -65650,12 +65650,12 @@
         },
         {
           "name": "MCPUncertain",
-          "line": 80,
+          "line": 82,
           "kind": "class"
         },
         {
           "name": "MCPUncertain.__init__",
-          "line": 83,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self",
@@ -65669,17 +65669,17 @@
         },
         {
           "name": "ServerTarget",
-          "line": 88,
+          "line": 90,
           "kind": "class"
         },
         {
           "name": "CatalogTool",
-          "line": 103,
+          "line": 105,
           "kind": "class"
         },
         {
           "name": "_encoded",
-          "line": 110,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "value"
@@ -65690,7 +65690,7 @@
         },
         {
           "name": "_text",
-          "line": 114,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "value",
@@ -65705,7 +65705,7 @@
         },
         {
           "name": "_json_nodes",
-          "line": 127,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "value",
@@ -65720,7 +65720,7 @@
         },
         {
           "name": "server_slug",
-          "line": 148,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "name"
@@ -65731,7 +65731,7 @@
         },
         {
           "name": "exposed_name",
-          "line": 154,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "server_name",
@@ -65744,7 +65744,7 @@
         },
         {
           "name": "canonical_schema",
-          "line": 165,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "value"
@@ -65755,7 +65755,7 @@
         },
         {
           "name": "tool_fingerprint",
-          "line": 184,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "name",
@@ -65763,23 +65763,23 @@
           ],
           "annotations": {
             "name": "str",
-            "input_schema": "dict"
+            "input_schema": "Mapping[str, object]"
           }
         },
         {
           "name": "catalog_fingerprint",
-          "line": 189,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "tools"
           ],
           "annotations": {
-            "tools": "list[dict]"
+            "tools": "Sequence[Mapping[str, object]]"
           }
         },
         {
           "name": "parse_tool",
-          "line": 194,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "raw",
@@ -65794,7 +65794,7 @@
         },
         {
           "name": "catalog_rows",
-          "line": 216,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "raw_tools",
@@ -65807,28 +65807,17 @@
         },
         {
           "name": "server_target",
-          "line": 242,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "record"
           ],
           "annotations": {
-            "record": "dict"
+            "record": "Mapping[str, object]"
           }
         },
         {
           "name": "call_timeout",
-          "line": 275,
-          "kind": "function",
-          "parameters": [
-            "value"
-          ],
-          "annotations": {
-            "value": "object"
-          }
-        },
-        {
-          "name": "positive_revision",
           "line": 285,
           "kind": "function",
           "parameters": [
@@ -65839,8 +65828,19 @@
           }
         },
         {
+          "name": "positive_revision",
+          "line": 295,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
           "name": "page_bounds",
-          "line": 291,
+          "line": 301,
           "kind": "function",
           "parameters": [
             "after",
@@ -65853,7 +65853,7 @@
         },
         {
           "name": "parse_tool_authorization",
-          "line": 299,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "request",
@@ -65862,13 +65862,13 @@
           ],
           "annotations": {
             "request": "object",
-            "catalog": "dict[str, dict]",
+            "catalog": "Mapping[str, Mapping[str, object]]",
             "fingerprint": "str"
           }
         },
         {
           "name": "result_text",
-          "line": 328,
+          "line": 349,
           "kind": "function",
           "parameters": [
             "server",
@@ -65878,23 +65878,23 @@
           "annotations": {
             "server": "str",
             "tool": "str",
-            "payload": "dict"
+            "payload": "Mapping[str, object]"
           }
         },
         {
           "name": "call_state",
-          "line": 357,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "payload"
           ],
           "annotations": {
-            "payload": "dict"
+            "payload": "Mapping[str, object]"
           }
         },
         {
           "name": "oauth_reference",
-          "line": 361,
+          "line": 384,
           "kind": "function",
           "parameters": [
             "server_id"
@@ -65905,7 +65905,7 @@
         },
         {
           "name": "argument_digest",
-          "line": 365,
+          "line": 388,
           "kind": "function",
           "parameters": [
             "arguments"
@@ -65916,18 +65916,18 @@
         },
         {
           "name": "tool_spec",
-          "line": 372,
+          "line": 395,
           "kind": "function",
           "parameters": [
             "record"
           ],
           "annotations": {
-            "record": "dict"
+            "record": "Mapping[str, object]"
           }
         },
         {
           "name": "uuid_of",
-          "line": 392,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "value"
@@ -67398,7 +67398,7 @@
       "path": "agent/src/omni/domain/service_admin.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_admin",
-      "lines": 282,
+      "lines": 286,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_control",
@@ -67482,7 +67482,7 @@
         },
         {
           "name": "scoped_operations",
-          "line": 89,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "scope"
@@ -67493,7 +67493,7 @@
         },
         {
           "name": "verify_broker",
-          "line": 102,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "scope",
@@ -67506,7 +67506,7 @@
         },
         {
           "name": "bound_operation",
-          "line": 107,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "scope",
@@ -67519,7 +67519,7 @@
         },
         {
           "name": "encode",
-          "line": 114,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "value"
@@ -67530,7 +67530,7 @@
         },
         {
           "name": "decode",
-          "line": 124,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "payload"
@@ -67541,7 +67541,7 @@
         },
         {
           "name": "decode.pairs",
-          "line": 128,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "items"
@@ -67552,7 +67552,7 @@
         },
         {
           "name": "request",
-          "line": 149,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "operation",
@@ -67573,7 +67573,7 @@
         },
         {
           "name": "validate_request",
-          "line": 193,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "value",
@@ -67590,7 +67590,7 @@
         },
         {
           "name": "response",
-          "line": 225,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "request",
@@ -67603,7 +67603,7 @@
         },
         {
           "name": "validate_response",
-          "line": 229,
+          "line": 233,
           "kind": "function",
           "parameters": [
             "value",
@@ -94822,7 +94822,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1410,
+      "lines": 1415,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94832,7 +94832,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 801,
+      "lines": 886,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94992,7 +94992,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 189,
+      "lines": 914,
       "imports": [],
       "symbols": [],
       "kind": "asset",

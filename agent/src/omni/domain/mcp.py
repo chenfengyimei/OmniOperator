@@ -15,13 +15,15 @@ import math
 import re
 import unicodedata
 import uuid
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from typing import cast
 
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError
 
 from .configuration import MCPOptions
-from .contracts import BusinessError, ToolSpec
+from .contracts import BusinessError, JSON, ToolSpec
 
 TRANSPORTS = frozenset({"stdio", "streamable_http"})
 AUTH_MODES = frozenset({"none", "bearer", "oauth"})
@@ -103,7 +105,7 @@ class ServerTarget:
 class CatalogTool:
     name: str
     description: str
-    input_schema: dict
+    input_schema: dict[str, object]
     fingerprint: str
 
 
@@ -130,11 +132,11 @@ def _json_nodes(value: object, depth: int = 0, budget: list[int] | None = None) 
     if budget[0] < 0 or depth > MAX_SCHEMA_DEPTH:
         raise ValueError
     if isinstance(value, dict):
-        for key, item in value.items():
+        for key, item in cast(dict[str, object], value).items():
             _text(key, 200, empty=True)
             _json_nodes(item, depth + 1, budget)
     elif isinstance(value, list):
-        for item in value:
+        for item in cast(list[object], value):
             _json_nodes(item, depth + 1, budget)
     elif isinstance(value, str):
         _text(value, 4_000, empty=True)
@@ -162,45 +164,50 @@ def exposed_name(server_name: str, tool_name: str) -> str:
     return result
 
 
-def canonical_schema(value: object) -> dict:
+def canonical_schema(value: object) -> dict[str, object]:
     """A bounded, finite JSON Schema object; the exact value later validates arguments."""
     try:
         _json_nodes(value)
         if not isinstance(value, dict):
             raise ValueError
-        if "type" in value and value["type"] != "object":
+        fields = cast(dict[str, object], value)
+        if "type" in fields and fields["type"] != "object":
             raise ValueError
-        schema = json.loads(_encoded(value))
+        schema = json.loads(_encoded(fields))
         if not isinstance(schema, dict):
             raise ValueError
-        Draft202012Validator.check_schema(schema)
-        if len(_encoded(schema)) > MAX_SCHEMA_BYTES:
+        checked = cast(dict[str, object], schema)
+        Draft202012Validator.check_schema(checked)
+        if len(_encoded(checked)) > MAX_SCHEMA_BYTES:
             raise ValueError
-        return schema
+        return checked
     except (ValueError, TypeError, UnicodeError, RecursionError, OverflowError, SchemaError) as exc:
         raise _invalid("mcp_tool_schema_invalid", "MCP tool inputSchema is not a bounded JSON Schema object") from exc
 
 
-def tool_fingerprint(name: str, input_schema: dict) -> str:
+def tool_fingerprint(name: str, input_schema: Mapping[str, object]) -> str:
     """Fingerprint over the tool name and inputSchema only; descriptions never revoke access."""
     return hashlib.sha256(_encoded({"name": name, "inputSchema": input_schema})).hexdigest()
 
 
-def catalog_fingerprint(tools: list[dict]) -> str:
+def catalog_fingerprint(tools: Sequence[Mapping[str, object]]) -> str:
     pairs = sorted((str(tool["name"]), str(tool["tool_fingerprint"])) for tool in tools)
     return hashlib.sha256(_encoded([[name, digest] for name, digest in pairs])).hexdigest()
 
 
 def parse_tool(raw: object, server_name: str, position: int) -> CatalogTool:
-    if not isinstance(raw, dict) or not isinstance(raw.get("name"), str):
+    if not isinstance(raw, dict):
         raise _invalid("mcp_catalog_invalid", "Every MCP catalog entry requires a textual name", status=502)
-    name = raw["name"]
+    fields = cast(dict[str, object], raw)
+    name = fields.get("name")
+    if not isinstance(name, str):
+        raise _invalid("mcp_catalog_invalid", "Every MCP catalog entry requires a textual name", status=502)
     try:
         exposed_name(server_name, name)
         if not 0 <= position < MAX_TOOLS:
             raise ValueError
-        schema = canonical_schema(raw.get("inputSchema") or {"type": "object"})
-        description = _text(raw.get("description") or "", MAX_DESCRIPTION_CHARS, empty=True)
+        schema = canonical_schema(fields.get("inputSchema") or {"type": "object"})
+        description = _text(fields.get("description") or "", MAX_DESCRIPTION_CHARS, empty=True)
         encoded = _encoded({"name": name, "description": description, "inputSchema": schema})
         if len(encoded) > MAX_SCHEMA_BYTES + 4_096:
             raise ValueError
@@ -213,15 +220,16 @@ def parse_tool(raw: object, server_name: str, position: int) -> CatalogTool:
     )
 
 
-def catalog_rows(raw_tools: object, server_name: str) -> list[dict]:
+def catalog_rows(raw_tools: object, server_name: str) -> list[dict[str, object]]:
     """Validated, de-duplicated catalog rows for one discovery snapshot."""
     if not isinstance(raw_tools, list):
         raise _invalid("mcp_catalog_invalid", "An MCP catalog must be a list of tools", status=502)
-    if len(raw_tools) > MAX_TOOLS:
+    tools = cast(list[object], raw_tools)
+    if len(tools) > MAX_TOOLS:
         raise _invalid("mcp_catalog_too_large", f"An MCP server may expose at most {MAX_TOOLS} tools", status=502)
     seen: set[str] = set()
-    rows: list[dict] = []
-    for position, raw in enumerate(raw_tools):
+    rows: list[dict[str, object]] = []
+    for position, raw in enumerate(tools):
         tool = parse_tool(raw, server_name, position)
         if tool.name in seen:
             raise _invalid("mcp_catalog_duplicate", "The MCP server listed the same tool name twice", status=502)
@@ -239,7 +247,7 @@ def catalog_rows(raw_tools: object, server_name: str) -> list[dict]:
     return rows
 
 
-def server_target(record: dict) -> ServerTarget:
+def server_target(record: Mapping[str, object]) -> ServerTarget:
     """Build a transport target from a stored configuration row; values stay bounded."""
     try:
         if record["kind"] != "mcp":
@@ -251,7 +259,9 @@ def server_target(record: dict) -> ServerTarget:
         if not record["enabled"]:
             raise ValueError
         epoch = record.get("authority_epoch", 0)
-        if type(epoch) is not int or epoch < 0:
+        if type(epoch) is not int:
+            raise ValueError
+        if epoch < 0:
             raise ValueError
         return ServerTarget(
             agent_id=str(record["agent_id"]),
@@ -289,54 +299,67 @@ def positive_revision(value: object) -> int:
 
 
 def page_bounds(after: str = "", limit: int = 20) -> tuple[str, int]:
-    if not isinstance(after, str) or len(after) > 36:
+    if not isinstance(cast(object, after), str) or len(after) > 36:
         raise _invalid("mcp_page_invalid", "Invalid MCP page cursor")
     if type(limit) is not int or not 1 <= limit <= 100:
         raise _invalid("mcp_page_invalid", "MCP page limit must be between 1 and 100")
     return after, limit
 
 
-def parse_tool_authorization(request: object, catalog: dict[str, dict], fingerprint: str) -> dict:
+def parse_tool_authorization(
+    request: object, catalog: Mapping[str, Mapping[str, object]], fingerprint: str
+) -> dict[str, object]:
     """Owner-declared per-tool authorization; read-only must be an explicit flag."""
-    if not isinstance(request, dict) or set(request) != {"catalog_fingerprint", "tools", "evidence"}:
+    if not isinstance(request, dict):
         raise _invalid("mcp_authorization_invalid", "Authorization requires a fingerprint, tools and evidence")
-    if request["catalog_fingerprint"] != fingerprint:
+    fields = cast(dict[str, object], request)
+    if set(fields) != {"catalog_fingerprint", "tools", "evidence"}:
+        raise _invalid("mcp_authorization_invalid", "Authorization requires a fingerprint, tools and evidence")
+    if fields["catalog_fingerprint"] != fingerprint:
         raise _invalid(
             "mcp_catalog_changed", "The catalog fingerprint changed; inspect the current tools again", status=409
         )
-    tools = request["tools"]
-    if not isinstance(tools, list) or len(tools) > MAX_TOOLS:
+    tools = fields["tools"]
+    if not isinstance(tools, list):
+        raise _invalid("mcp_authorization_invalid", "Authorization must list at most the discovered tools")
+    items = cast(list[object], tools)
+    if len(items) > MAX_TOOLS:
         raise _invalid("mcp_authorization_invalid", "Authorization must list at most the discovered tools")
     try:
-        evidence = _text(request["evidence"], MAX_EVIDENCE_CHARS)
+        evidence = _text(fields["evidence"], MAX_EVIDENCE_CHARS)
     except ValueError as exc:
         raise _invalid("mcp_authorization_invalid", "Authorization needs bounded owner review evidence") from exc
-    checked: dict[str, dict] = {}
-    for item in tools:
-        if not isinstance(item, dict) or set(item) != {"tool_id", "read_only"}:
+    checked: dict[str, dict[str, object]] = {}
+    for item in items:
+        if not isinstance(item, dict):
             raise _invalid("mcp_authorization_invalid", "Each authorized tool needs an id and a read-only flag")
-        tool_id = str(item["tool_id"])
+        entry = cast(dict[str, object], item)
+        if set(entry) != {"tool_id", "read_only"}:
+            raise _invalid("mcp_authorization_invalid", "Each authorized tool needs an id and a read-only flag")
+        tool_id = str(entry["tool_id"])
         row = catalog.get(tool_id)
         if row is None:
             raise _invalid("mcp_authorization_invalid", "An authorized tool is not in the current catalog")
-        if type(item["read_only"]) is not bool:
+        if type(entry["read_only"]) is not bool:
             raise _invalid("mcp_authorization_invalid", "read_only must be an explicit boolean")
-        checked[tool_id] = {"tool_id": tool_id, "read_only": item["read_only"]}
+        checked[tool_id] = {"tool_id": tool_id, "read_only": entry["read_only"]}
     return {"catalog_fingerprint": fingerprint, "tools": checked, "evidence": evidence}
 
 
-def result_text(server: str, tool: str, payload: dict) -> tuple[str, dict]:
+def result_text(server: str, tool: str, payload: Mapping[str, object]) -> tuple[str, dict[str, object]]:
     """External result text is untrusted data: bounded, attributed and never raw payload."""
     content = payload.get("content")
     is_error = payload.get("isError") is True
     parts: list[str] = []
     if isinstance(content, list):
-        for item in content[:MAX_TOOL_PARTS]:
-            if isinstance(item, dict) and item.get("type") == "text" and isinstance(item.get("text"), str):
-                parts.append(item["text"])
-            elif isinstance(item, dict):
-                kind = str(item.get("type") or "unknown")[:40]
-                parts.append(f"[omitted non-text MCP content: {kind}]")
+        for item in cast(list[object], content)[:MAX_TOOL_PARTS]:
+            if isinstance(item, dict):
+                entry = cast(dict[str, object], item)
+                if entry.get("type") == "text" and isinstance(entry.get("text"), str):
+                    parts.append(cast(str, entry["text"]))
+                else:
+                    kind = str(entry.get("type") or "unknown")[:40]
+                    parts.append(f"[omitted non-text MCP content: {kind}]")
             else:
                 parts.append("[omitted non-text MCP content]")
     body = "\n".join(parts)
@@ -354,7 +377,7 @@ def result_text(server: str, tool: str, payload: dict) -> tuple[str, dict]:
     }
 
 
-def call_state(payload: dict) -> str:
+def call_state(payload: Mapping[str, object]) -> str:
     return "failed" if payload.get("isError") is True else "done"
 
 
@@ -369,7 +392,7 @@ def argument_digest(arguments: object) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def tool_spec(record: dict) -> ToolSpec:
+def tool_spec(record: Mapping[str, object]) -> ToolSpec:
     """A run capture row becomes the model-visible capability, writes derived from the owner flag."""
     try:
         binding = str(record["binding_id"])
@@ -379,7 +402,7 @@ def tool_spec(record: dict) -> ToolSpec:
         return ToolSpec(
             name=_text(record["name"], 100),
             description=_text(record["description"], MAX_DESCRIPTION_CHARS, empty=True),
-            parameters=canonical_schema(record["input_schema"]),
+            parameters=cast(dict[str, JSON], canonical_schema(record["input_schema"])),
             writes=not read_only,
             timeout_s=DEFAULT_CALL_TIMEOUT_S,
             resource="mcp:" + str(record["server_id"]),
