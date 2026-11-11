@@ -7,6 +7,7 @@ import hashlib
 import json
 import uuid
 from collections.abc import Iterable, Mapping
+from typing import cast
 
 from .contracts import BusinessError
 
@@ -28,7 +29,7 @@ def retention_cutoff(now: str) -> str:
 
 def retention_page(after: str, limit: int) -> None:
     try:
-        valid = isinstance(after, str) and (not after or str(uuid.UUID(after)) == after)
+        valid = not after or str(uuid.UUID(after)) == after
     except (ValueError, AttributeError):
         valid = False
     if not valid or type(limit) is not int or not 1 <= limit <= 50:
@@ -47,7 +48,7 @@ def body_fingerprint(records: Iterable[Mapping[str, object]]) -> tuple[str, int,
     return digest.hexdigest(), count, size
 
 
-def validate_retention_plan(plan: dict, now: str, *, allow_future: bool = False) -> str:
+def validate_retention_plan(plan: dict[str, object], now: str, *, allow_future: bool = False) -> str:
     """Only bounded, explicit plans are executable; previews are never executable."""
     try:
         if set(plan) != {"format", "id", "instance_id", "schema_version", "policy", "created_at", "cutoff", "targets"}:
@@ -55,34 +56,43 @@ def validate_retention_plan(plan: dict, now: str, *, allow_future: bool = False)
         if plan["format"] != PLAN_FORMAT or plan["policy"] != RETENTION_POLICY:
             raise ValueError
         for key in ("id", "instance_id"):
-            if str(uuid.UUID(plan[key])) != plan[key]:
+            value = cast(str, plan[key])
+            if str(uuid.UUID(value)) != value:
                 raise ValueError
-        created = dt.datetime.fromisoformat(plan["created_at"])
-        cutoff = dt.datetime.fromisoformat(plan["cutoff"])
+        created_at = cast(str, plan["created_at"])
+        created = dt.datetime.fromisoformat(created_at)
+        cutoff = dt.datetime.fromisoformat(cast(str, plan["cutoff"]))
         current = dt.datetime.fromisoformat(now)
         if any(value.tzinfo is None for value in (created, cutoff, current)):
             raise ValueError
-        if (created > current and not allow_future) or plan["cutoff"] != retention_cutoff(plan["created_at"]):
+        if (created > current and not allow_future) or plan["cutoff"] != retention_cutoff(created_at):
             raise ValueError
-        if not isinstance(plan["schema_version"], str) or len(plan["schema_version"]) > 40:
+        schema_version = plan["schema_version"]
+        if not isinstance(schema_version, str) or len(schema_version) > 40:
             raise ValueError
-        targets = plan["targets"]
-        if not isinstance(targets, list) or not 1 <= len(targets) <= 50:
+        raw_targets = plan["targets"]
+        if not isinstance(raw_targets, list):
             raise ValueError
-        seen = set()
+        targets = cast(list[dict[str, object]], raw_targets)
+        if not 1 <= len(targets) <= 50:
+            raise ValueError
+        seen: set[str] = set()
         for target in targets:
             if set(target) != {"agent_id", "run_id", "fingerprint", "retention_revision"}:
                 raise ValueError
             for key in ("agent_id", "run_id"):
-                if str(uuid.UUID(target[key])) != target[key]:
+                value = cast(str, target[key])
+                if str(uuid.UUID(value)) != value:
                     raise ValueError
-            if target["run_id"] in seen:
+            run_id = cast(str, target["run_id"])
+            if run_id in seen:
                 raise ValueError
-            seen.add(target["run_id"])
-            sha = target["fingerprint"]
-            if not isinstance(sha, str) or len(sha) != 64 or any(c not in "0123456789abcdef" for c in sha):
+            seen.add(run_id)
+            sha = cast(str, target["fingerprint"])
+            if len(sha) != 64 or any(c not in "0123456789abcdef" for c in sha):
                 raise ValueError
-            if type(target["retention_revision"]) is not int or target["retention_revision"] < 1:
+            revision = cast(int, target["retention_revision"])
+            if type(target["retention_revision"]) is not int or revision < 1:
                 raise ValueError
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError) as exc:
         raise BusinessError(

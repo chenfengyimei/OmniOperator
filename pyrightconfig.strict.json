@@ -32,6 +32,7 @@
     "agent/src/omni/domain/foreground.py",
     "agent/src/omni/domain/installation.py",
     "agent/src/omni/domain/maintenance.py",
+    "agent/src/omni/domain/memory_organization.py",
     "agent/src/omni/domain/memory_semantics.py",
     "agent/src/omni/domain/metering.py",
     "agent/src/omni/domain/model_stream.py",
@@ -40,6 +41,7 @@
     "agent/src/omni/domain/recovery_authority.py",
     "agent/src/omni/domain/reference_release.py",
     "agent/src/omni/domain/release_fence.py",
+    "agent/src/omni/domain/retention.py",
     "agent/src/omni/domain/routing.py",
     "agent/src/omni/domain/schema_upgrade.py",
     "agent/src/omni/domain/scheduling.py",
@@ -53,4 +55,5 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 

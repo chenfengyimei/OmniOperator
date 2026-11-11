@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d4c438bddf207b0c43bfab635d58c209132dd1f3ec748493bf661237357efc97",
+  "source_sha256": "e3f52ae010134f399cdd77998198073f730dd7d1305946080f19118ec759c24e",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9051,
+      "lines": 9075,
       "dependencies": []
     },
     {
@@ -66032,7 +66032,7 @@
       "path": "agent/src/omni/domain/memory_organization.py",
       "module": "v2-domain",
       "python_module": "omni.domain.memory_organization",
-      "lines": 104,
+      "lines": 118,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.history"
@@ -66040,7 +66040,7 @@
       "symbols": [
         {
           "name": "_uuid",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "value"
@@ -66051,7 +66051,7 @@
         },
         {
           "name": "_positive",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "value"
@@ -66062,7 +66062,7 @@
         },
         {
           "name": "parse_request",
-          "line": 35,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "data"
@@ -66073,7 +66073,7 @@
         },
         {
           "name": "request_fingerprint",
-          "line": 72,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "data"
@@ -66084,7 +66084,7 @@
         },
         {
           "name": "parse_decision",
-          "line": 80,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "data"
@@ -66095,7 +66095,7 @@
         },
         {
           "name": "page",
-          "line": 100,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "after",
@@ -66868,14 +66868,14 @@
       "path": "agent/src/omni/domain/retention.py",
       "module": "v2-domain",
       "python_module": "omni.domain.retention",
-      "lines": 91,
+      "lines": 101,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "retention_cutoff",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "now"
@@ -66886,7 +66886,7 @@
         },
         {
           "name": "retention_page",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "after",
@@ -66899,7 +66899,7 @@
         },
         {
           "name": "body_fingerprint",
-          "line": 38,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "records"
@@ -66910,7 +66910,7 @@
         },
         {
           "name": "validate_retention_plan",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "plan",
@@ -66918,7 +66918,7 @@
             "allow_future"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, object]",
             "now": "str",
             "allow_future": "bool"
           }

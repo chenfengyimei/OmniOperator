@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d4c438bddf207b0c43bfab635d58c209132dd1f3ec748493bf661237357efc97`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`e3f52ae010134f399cdd77998198073f730dd7d1305946080f19118ec759c24e`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -37,7 +37,7 @@
 | [agent/src/omni/domain/maintenance.py](../../agent/src/omni/domain/maintenance.py) | 115 | Bounded local maintenance requests, ownership claims and lease times; no ORM, I/O or execution. |
 | [agent/src/omni/domain/mcp.py](../../agent/src/omni/domain/mcp.py) | 396 | External MCP transport identity, catalog fingerprints and bounded model text; performs no I/O. |
 | [agent/src/omni/domain/media.py](../../agent/src/omni/domain/media.py) | 200 | Bounded media sources, transcripts and frame sheets; timestamps are anchors, never guesses. |
-| [agent/src/omni/domain/memory_organization.py](../../agent/src/omni/domain/memory_organization.py) | 104 | Bounded exact-fact organization requests and owner decisions; no memory writes, model calls or I/O. |
+| [agent/src/omni/domain/memory_organization.py](../../agent/src/omni/domain/memory_organization.py) | 118 | Bounded exact-fact organization requests and owner decisions; no memory writes, model calls or I/O. |
 | [agent/src/omni/domain/memory_semantics.py](../../agent/src/omni/domain/memory_semantics.py) | 55 | Bounded derived-memory indexing and related-fact proposals; no I/O or fact rewriting. |
 | [agent/src/omni/domain/metering.py](../../agent/src/omni/domain/metering.py) | 80 | Request shape and capacity policy shared by counting and model invocation; no I/O. |
 | [agent/src/omni/domain/model_stream.py](../../agent/src/omni/domain/model_stream.py) | 193 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
@@ -48,7 +48,7 @@
 | [agent/src/omni/domain/reference_release.py](../../agent/src/omni/domain/reference_release.py) | 69 | Bounded artifact-reference release plans; validates identities without accessing storage or files. |
 | [agent/src/omni/domain/release_fence.py](../../agent/src/omni/domain/release_fence.py) | 78 | Persisted startup exclusion contract shared by immutable installations; no IO or mutable state. |
 | [agent/src/omni/domain/releases.py](../../agent/src/omni/domain/releases.py) | 243 | Reviewed immutable release/recovery plans; same-schema first delivery, with no platform or storage IO. |
-| [agent/src/omni/domain/retention.py](../../agent/src/omni/domain/retention.py) | 91 | Execution-body retention policy; time is injected, no erasure or file operations. |
+| [agent/src/omni/domain/retention.py](../../agent/src/omni/domain/retention.py) | 101 | Execution-body retention policy; time is injected, no erasure or file operations. |
 | [agent/src/omni/domain/routing.py](../../agent/src/omni/domain/routing.py) | 128 | Deterministic capability tiers and immutable route policy; neither permissions nor model/network calls. |
 | [agent/src/omni/domain/scheduling.py](../../agent/src/omni/domain/scheduling.py) | 190 | Deterministic UTC scheduling and numeric cron rules; resolved timezone data is injected. |
 | [agent/src/omni/domain/schema_upgrade.py](../../agent/src/omni/domain/schema_upgrade.py) | 81 | Explicit forward-only V2 schema routes bound to both immutable runtime inventories; no IO. |

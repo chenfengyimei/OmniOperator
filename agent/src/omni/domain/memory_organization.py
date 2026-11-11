@@ -7,6 +7,7 @@ import json
 import re
 import unicodedata
 import uuid
+from typing import cast
 
 from .contracts import BusinessError
 from .history import MAX_INTEGER
@@ -27,17 +28,21 @@ def _uuid(value: object) -> str:
 
 
 def _positive(value: object) -> int:
-    if type(value) is not int or not 1 <= value <= MAX_INTEGER:
+    number = cast(int, value)
+    if type(value) is not int or not 1 <= number <= MAX_INTEGER:
         raise ValueError
-    return value
+    return number
 
 
-def parse_request(data: object) -> dict:
+def parse_request(data: object) -> dict[str, object]:
     """Canonical source identities fix the reviewed input; repeated equal identities never expand its scope."""
     try:
-        if not isinstance(data, dict) or set(data) != {"key", "sources"}:
+        if not isinstance(data, dict):
             raise ValueError
-        key = data["key"]
+        record = cast(dict[str, object], data)
+        if set(record) != {"key", "sources"}:
+            raise ValueError
+        key = record["key"]
         if (
             not isinstance(key, str)
             or not 1 <= len(key) <= 200
@@ -46,12 +51,18 @@ def parse_request(data: object) -> dict:
         ):
             raise ValueError
         key.encode("utf-8")
-        sources = data["sources"]
-        if not isinstance(sources, list) or not 2 <= len(sources) <= MAX_SOURCES:
+        raw_sources = record["sources"]
+        if not isinstance(raw_sources, list):
+            raise ValueError
+        sources = cast(list[object], raw_sources)
+        if not 2 <= len(sources) <= MAX_SOURCES:
             raise ValueError
         revisions: dict[str, int] = {}
-        for source in sources:
-            if not isinstance(source, dict) or set(source) != {"memory_id", "revision"}:
+        for item in sources:
+            if not isinstance(item, dict):
+                raise ValueError
+            source = cast(dict[str, object], item)
+            if set(source) != {"memory_id", "revision"}:
                 raise ValueError
             identity, revision = _uuid(source["memory_id"]), _positive(source["revision"])
             if identity in revisions and revisions[identity] != revision:
@@ -77,13 +88,16 @@ def request_fingerprint(data: object) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
-def parse_decision(data: object) -> dict:
+def parse_decision(data: object) -> dict[str, object]:
     """Every owner action binds the observed candidate revision, immutable fingerprint and restoration epoch."""
     try:
-        if not isinstance(data, dict) or set(data) != {"revision", "fingerprint", "epoch", "decision"}:
+        if not isinstance(data, dict):
             raise ValueError
-        revision, epoch = _positive(data["revision"]), _uuid(data["epoch"])
-        digest, decision = data["fingerprint"], data["decision"]
+        record = cast(dict[str, object], data)
+        if set(record) != {"revision", "fingerprint", "epoch", "decision"}:
+            raise ValueError
+        revision, epoch = _positive(record["revision"]), _uuid(record["epoch"])
+        digest, decision = record["fingerprint"], record["decision"]
         if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
             raise ValueError
         if not isinstance(decision, str) or decision not in DECISIONS:
