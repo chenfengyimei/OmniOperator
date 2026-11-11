@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 from pathlib import Path
 
 from ...domain.contracts import BusinessError
 from ...domain.installation import validate_installation
+from ..persistence.maintenance import read_schema
 from ..persistence.migration_config import head as migration_head
 from .paths import InstanceLock, InstancePaths
 from .wheel_prepare import FORMAT as PREPARED_FORMAT
@@ -20,12 +20,7 @@ def invalid(code: str = "switch_plan_invalid") -> BusinessError:
 
 
 def _schema(database: Path) -> str:
-    connection = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True, timeout=5)
-    try:
-        row = connection.execute("SELECT version_num FROM alembic_version").fetchone()
-    finally:
-        connection.close()
-    return str(row[0]) if row else ""
+    return read_schema(database)
 
 
 def switch_plan(paths: InstancePaths, sha256: str) -> dict[str, object]:
@@ -53,7 +48,7 @@ def switch_plan(paths: InstancePaths, sha256: str) -> dict[str, object]:
         raise invalid("switch_plan_unsealed") from exc
     try:
         schema = _schema(paths.database)
-    except sqlite3.Error:
+    except BusinessError:
         raise invalid("switch_plan_database") from None
     if not schema or receipt["schema_version"] != schema:
         raise invalid("switch_plan_receipt_stale")

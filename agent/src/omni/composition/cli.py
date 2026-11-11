@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import sqlite3
 import sys
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -30,6 +29,7 @@ from ..adapters.persistence.maintenance import (
     durable_json,
     inspect_database,
     object_report,
+    read_schema,
     restore,
 )
 from ..adapters.persistence.object_gc import apply_collection, plan_collection
@@ -50,14 +50,7 @@ from .serving import serve_instance
 
 
 def _database_schema(database: Path) -> str:
-    if not database.is_file() or database.is_symlink():
-        raise BusinessError("installation_missing", "Initialize the instance before inspecting its schema")
-    connection = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True, timeout=5)
-    try:
-        row = connection.execute("SELECT version_num FROM alembic_version").fetchone()
-    finally:
-        connection.close()
-    return str(row[0]) if row else ""
+    return read_schema(database)
 
 
 def installation_report(paths: InstancePaths) -> dict[str, object]:

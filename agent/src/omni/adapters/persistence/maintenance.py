@@ -105,6 +105,17 @@ def safe_child(root: Path, relative: str) -> Path:
     return candidate
 
 
+def read_schema(path: Path) -> str:
+    if not path.is_file() or path.is_symlink():
+        raise BusinessError("database_missing", "V2 database does not exist")
+    try:
+        with sqlite_connection(path) as connection:
+            row = connection.execute("SELECT version_num FROM alembic_version").fetchone()
+    except sqlite3.Error:
+        raise BusinessError("database_unreadable", "V2 database schema cannot be read", status=503) from None
+    return str(row[0]) if row else ""
+
+
 def inspect_database(path: Path, *, allow_restore_in_progress: bool = False) -> dict:
     if not allow_restore_in_progress and (path.parent.parent / "restore-in-progress.json").exists():
         raise BusinessError("restore_incomplete", "Restore completion has not been verified", status=503)
