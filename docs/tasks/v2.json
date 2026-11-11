@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "0951001",
+  "checkpoint_commit": "f6f0e2e",
   "current_validation": {
-    "status": "d7_strict_typing_tenth_batch",
+    "status": "d7_installation_receipt",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-d7-isolation.xml"
       }
     ],
-    "code_version": "135f004275b75c667505acfb8737295280c93723b1558b11285372b1caad389c",
-    "fixed_source_files": 1175,
+    "code_version": "c44bd91769c0eae8417eae319e3c16404d17ca0fa8cf37a53a8737bfafbdccac",
+    "fixed_source_files": 1177,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -908,6 +908,17 @@
       ],
       "remaining": "并行时序观察；真实环境与三平台验收未做。",
       "code_version": "6d4d32de05af01c9a862c681a5018965f443a093987e1037e5dbdd745dc9f341"
+    },
+    {
+      "id": "R7.installation",
+      "status": "部分完成（收据/预检）",
+      "development": "installation verify/seal",
+      "offline_validation": "4 项安装收据测试 + 2 项打包守卫全过；verify 只读报告 home/收据/schema/WAL/升级需求，seal 幂等且 fail-closed",
+      "evidence": [
+        "docs/evidence/v2-installation.json"
+      ],
+      "remaining": "未下载/校验 wheel、未创建 venv、未切换目录、未执行迁移/回滚/卸载；macOS/Linux 与干净机器未验收。",
+      "code_version": "c44bd91769c0eae8417eae319e3c16404d17ca0fa8cf37a53a8737bfafbdccac"
     }
   ],
   "latest_source_recovery": {

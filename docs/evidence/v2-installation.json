@@ -1,0 +1,59 @@
+{
+ "schema": 1,
+ "batch": "D7.installation",
+ "date": "2026-11-11",
+ "whole_v2_complete": false,
+ "d7_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "code_version": "c44bd91769c0eae8417eae319e3c16404d17ca0fa8cf37a53a8737bfafbdccac",
+  "fixed_source_files": 1177,
+  "git_head": "f6f0e2e"
+ },
+ "development": {
+  "scope": [
+   "installation verify is read-only and reports home, receipt validity, database/WAL presence, current and expected schema, upgrade_required, ready",
+   "installation seal writes one durable receipt only when the database schema equals the code head; same-head replay is idempotent, different head is rejected",
+   "Receipt validation is a pure domain rule rejecting non-UTC timestamps, unexpected fields and malformed schema/head"
+  ],
+  "pending": [
+   "wheel download/verification",
+   "venv creation",
+   "runtime directory switch",
+   "migration execution",
+   "rollback/uninstall",
+   "macOS/Linux clean-machine acceptance"
+  ]
+ },
+ "validation": {
+  "tests": 6,
+  "report": {
+   "path": "temp/build/v2-installation.xml",
+   "sha256": "b0af89f0d05b23c912b90e28ada7b4d2e144f388be6cc69037946f4da9014a77",
+   "tests": 6,
+   "failures": 0,
+   "errors": 0,
+   "duration_s": 5.748
+  },
+  "gates": {
+   "path": "temp/build/v2-installation-gates.json",
+   "sha256": "bdbef191df8905b90a52dd78dca633a7293c6957dcadcf06b385ae80d777c7fa",
+   "passed": 5,
+   "total": 5
+  }
+ },
+ "source_recovery": {
+  "manifest": "temp/private/v2-installation-source-20261111-c44bd91769c0/manifest.json",
+  "archive_sha256": "d14e11cee46befa1dea8882874a267a55138a58a5b3513e66408c177f81dfd3d",
+  "files": 1177,
+  "validation_artifacts": [
+   "v2-installation.xml",
+   "v2-installation-gates.json"
+  ]
+ },
+ "limits": [
+  "Still not a complete installer/updater.",
+  "No real wheel install, service switch, migration or rollback was executed.",
+  "Default entrypoint remains V1."
+ ]
+}
