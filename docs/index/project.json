@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "de41a2350b24b9a98af3bf06eab888dd4f0be6dd074da2a894fabf0daf688ac0",
+  "source_sha256": "62785c7fc1c532113c2944a61a966460753174cf780f73ec0d23233d4301babf",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9166,
+      "lines": 9186,
       "dependencies": []
     },
     {
@@ -65131,14 +65131,14 @@
       "path": "agent/src/omni/domain/images.py",
       "module": "v2-domain",
       "python_module": "omni.domain.images",
-      "lines": 187,
+      "lines": 207,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "code"
@@ -65149,7 +65149,7 @@
         },
         {
           "name": "image_ids",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "value"
@@ -65160,7 +65160,7 @@
         },
         {
           "name": "model_tokens",
-          "line": 45,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "model"
@@ -65171,7 +65171,7 @@
         },
         {
           "name": "policy",
-          "line": 52,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "value",
@@ -65184,7 +65184,7 @@
         },
         {
           "name": "fingerprint",
-          "line": 72,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "value"
@@ -65195,12 +65195,12 @@
         },
         {
           "name": "ImageInfo",
-          "line": 79,
+          "line": 87,
           "kind": "class"
         },
         {
           "name": "ImageInfo.validate",
-          "line": 86,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self"
@@ -65209,18 +65209,18 @@
         },
         {
           "name": "references",
-          "line": 103,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "messages"
           ],
           "annotations": {
-            "messages": "Sequence[dict]"
+            "messages": "Sequence[dict[str, object]]"
           }
         },
         {
           "name": "with_images",
-          "line": 148,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "rows",
@@ -65229,9 +65229,9 @@
             "model"
           ],
           "annotations": {
-            "rows": "list[dict]",
-            "image_rows": "list[dict]",
-            "config": "dict",
+            "rows": "list[dict[str, object]]",
+            "image_rows": "list[dict[str, object]]",
+            "config": "dict[str, object]",
             "model": "str"
           }
         }

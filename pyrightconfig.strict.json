@@ -37,6 +37,7 @@
     "agent/src/omni/domain/documents.py",
     "agent/src/omni/domain/foreground.py",
     "agent/src/omni/domain/history.py",
+    "agent/src/omni/domain/images.py",
     "agent/src/omni/domain/installation.py",
     "agent/src/omni/domain/local_vectors.py",
     "agent/src/omni/domain/maintenance.py",
@@ -67,6 +68,7 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 
 
 

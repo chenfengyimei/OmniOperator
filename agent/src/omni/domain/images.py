@@ -8,6 +8,7 @@ import re
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import cast
 
 from .contracts import BusinessError
 
@@ -29,10 +30,13 @@ def invalid(code: str = "image_invalid") -> BusinessError:
 
 
 def image_ids(value: object) -> list[str]:
-    if not isinstance(value, (list, tuple)) or len(value) > MAX_IMAGES:
+    if not isinstance(value, (list, tuple)):
         raise invalid()
-    result = []
-    for item in value:
+    items = cast(list[object] | tuple[object, ...], value)
+    if len(items) > MAX_IMAGES:
+        raise invalid()
+    result: list[str] = []
+    for item in items:
         try:
             if not isinstance(item, str) or str(uuid.UUID(item)) != item or item in result:
                 raise invalid()
@@ -49,24 +53,28 @@ def model_tokens(model: str) -> int:
     return LOW_MODELS[name]
 
 
-def policy(value: object, model: str) -> dict:
+def policy(value: object, model: str) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise invalid("image_policy_invalid")
+    record = cast(dict[str, object], value)
     if (
-        not isinstance(value, dict)
-        or set(value) != set(POLICY_DEFAULT)
-        or not isinstance(value["protocol"], str)
-        or value["protocol"] not in {"disabled", "openai_low"}
+        set(record) != set(POLICY_DEFAULT)
+        or not isinstance(record["protocol"], str)
+        or record["protocol"] not in {"disabled", "openai_low"}
     ):
         raise invalid("image_policy_invalid")
+    per_call = cast(int, record["per_call_limit"])
+    run_budget = cast(int, record["run_budget"])
     if (
-        type(value["per_call_limit"]) is not int
-        or not 1 <= value["per_call_limit"] <= MAX_IMAGES
-        or type(value["run_budget"]) is not int
-        or not value["per_call_limit"] <= value["run_budget"] <= 64
+        type(record["per_call_limit"]) is not int
+        or not 1 <= per_call <= MAX_IMAGES
+        or type(record["run_budget"]) is not int
+        or not per_call <= run_budget <= 64
     ):
         raise invalid("image_policy_invalid")
-    if value["protocol"] != "disabled":
+    if record["protocol"] != "disabled":
         model_tokens(model)
-    return dict(value)
+    return dict(record)
 
 
 def fingerprint(value: object) -> str:
@@ -85,12 +93,10 @@ class ImageInfo:
 
     def validate(self) -> None:
         if (
-            not isinstance(self.media_type, str)
-            or self.media_type not in {"image/png", "image/jpeg", "image/webp"}
+            self.media_type not in {"image/png", "image/jpeg", "image/webp"}
             or type(self.width) is not int
             or type(self.height) is not int
             or type(self.bytes) is not int
-            or not isinstance(self.sha256, str)
             or not 1 <= self.width <= 8192
             or not 1 <= self.height <= 8192
             or self.width * self.height > 16000000
@@ -100,15 +106,16 @@ class ImageInfo:
             raise invalid()
 
 
-def references(messages: Sequence[dict]) -> list[dict]:
-    result = []
+def references(messages: Sequence[dict[str, object]]) -> list[dict[str, object]]:
+    result: list[dict[str, object]] = []
     for message in messages:
         content = message.get("content")
         if not isinstance(content, list):
             continue
-        for item in content:
-            if not isinstance(item, dict):
+        for raw_item in cast(list[object], content):
+            if not isinstance(raw_item, dict):
                 raise invalid()
+            item = cast(dict[str, object], raw_item)
             if item.get("type") == "omni_image":
                 if (
                     message.get("role") != "user"
@@ -131,8 +138,15 @@ def references(messages: Sequence[dict]) -> list[dict]:
                     raise invalid()
                 for key in ("part_id", "object_id", "policy_id"):
                     image_ids([item[key]])
-                ImageInfo(item["media_type"], item["width"], item["height"], item["sha256"], item["bytes"]).validate()
-                if type(item["token_cost"]) is not int or item["token_cost"] not in set(LOW_MODELS.values()):
+                ImageInfo(
+                    cast(str, item["media_type"]),
+                    cast(int, item["width"]),
+                    cast(int, item["height"]),
+                    cast(str, item["sha256"]),
+                    cast(int, item["bytes"]),
+                ).validate()
+                token_cost = cast(int, item["token_cost"])
+                if type(item["token_cost"]) is not int or token_cost not in set(LOW_MODELS.values()):
                     raise invalid()
                 if item["part_id"] in {r["part_id"] for r in result}:
                     raise invalid()
@@ -145,22 +159,28 @@ def references(messages: Sequence[dict]) -> list[dict]:
     return result
 
 
-def with_images(rows: list[dict], image_rows: list[dict], config: dict, model: str) -> list[dict]:
-    positions = {row["id"]: index for index, row in enumerate(rows)}
+def with_images(
+    rows: list[dict[str, object]],
+    image_rows: list[dict[str, object]],
+    config: dict[str, object],
+    model: str,
+) -> list[dict[str, object]]:
+    positions = {cast(str, row["id"]): index for index, row in enumerate(rows)}
     available = sorted(
         (r for r in image_rows if r["message_id"] in positions),
-        key=lambda r: (positions[r["message_id"]], r["position"]),
+        key=lambda r: (positions[cast(str, r["message_id"])], cast(int, r["position"])),
     )
-    chosen = (
-        {r["part_id"] for r in available[-config["per_call_limit"] :]} if config["protocol"] != "disabled" else set()
+    limit = cast(int, config["per_call_limit"])
+    chosen: set[str] = (
+        {cast(str, r["part_id"]) for r in available[-limit:]} if config["protocol"] != "disabled" else set()
     )
-    result = []
+    result: list[dict[str, object]] = []
     for row in rows:
         parts = [r for r in available if r["message_id"] == row["id"]]
         if not parts:
             result.append(row)
             continue
-        content = [{"type": "text", "text": row["content"]}]
+        content: list[dict[str, object]] = [{"type": "text", "text": row["content"]}]
         for item in parts:
             if item["part_id"] not in chosen:
                 reason = "image_capability_disabled" if config["protocol"] == "disabled" else "context_image_limit"

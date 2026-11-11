@@ -22,6 +22,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/delivery.py` | 出站意图身份/受限文本/可信结果纯规则 |
 | `agent/src/omni/domain/documents.py` | 源文本/分块/向量归一化与合并纯规则 |
 | `agent/src/omni/domain/history.py` | 历史游标编码/解码与代际校验 |
+| `agent/src/omni/domain/images.py` | 图像引用/策略/低细节计量纯规则 |
 | `agent/src/omni/domain/installation.py` | 安装收据校验与 schema 一致性纯规则 |
 | `agent/src/omni/domain/objects.py` | 对象类型/上限纯规则 |
 | `agent/src/omni/domain/people.py` | 人物档案纯规则 |
@@ -102,6 +103,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 - strict 门禁 0 errors / 0 warnings。
 - `agent/tests/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `agent/src/omni/domain/` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
 - 相关调用方回归：能力/凭据/对象/人物测试。
+
 
 
 

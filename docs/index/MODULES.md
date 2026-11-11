@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`de41a2350b24b9a98af3bf06eab888dd4f0be6dd074da2a894fabf0daf688ac0`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`62785c7fc1c532113c2944a61a966460753174cf780f73ec0d23233d4301babf`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -31,7 +31,7 @@
 | [agent/src/omni/domain/extensions.py](../../agent/src/omni/domain/extensions.py) | 429 | Static trusted-plugin metadata, immutable capture records and owner authorizations; never loads code or files. |
 | [agent/src/omni/domain/foreground.py](../../agent/src/omni/domain/foreground.py) | 107 | Single-use foreground authority and bounded input, independent of native APIs. |
 | [agent/src/omni/domain/history.py](../../agent/src/omni/domain/history.py) | 142 | Canonical, bounded history cursors bind a stream and its retention generation; performs no I/O. |
-| [agent/src/omni/domain/images.py](../../agent/src/omni/domain/images.py) | 187 | Validated image references, immutable model policies and conservative low-detail metering; no I/O. |
+| [agent/src/omni/domain/images.py](../../agent/src/omni/domain/images.py) | 207 | Validated image references, immutable model policies and conservative low-detail metering; no I/O. |
 | [agent/src/omni/domain/installation.py](../../agent/src/omni/domain/installation.py) | 63 | Immutable local installation receipt written once per home; no I/O and no upgrade execution. |
 | [agent/src/omni/domain/local_vectors.py](../../agent/src/omni/domain/local_vectors.py) | 156 | Local embedding bundle and bounded transport contracts; no files, model imports or I/O. |
 | [agent/src/omni/domain/maintenance.py](../../agent/src/omni/domain/maintenance.py) | 115 | Bounded local maintenance requests, ownership claims and lease times; no ORM, I/O or execution. |
