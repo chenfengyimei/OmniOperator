@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "25a557825fbdfee75d972a115beed7de9eb6f1e46ea76b6e7b4dc2fbf3ed493e",
+  "source_sha256": "1585c7c8ab5a3e6ab24822727e0fe47c721861b637fda655ec6ba5437dd23594",
   "modules": [
     {
       "id": "v2-domain",
@@ -352,6 +352,7 @@
         "agent/src/omni/adapters/platform/wheel_stage.py",
         "agent/src/omni/adapters/platform/wheel_status.py",
         "agent/src/omni/adapters/platform/wheel_switch.py",
+        "agent/src/omni/adapters/platform/wheel_uninstall.py",
         "agent/src/omni/adapters/platform/workspaces.py",
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
@@ -402,7 +403,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52333,
+      "lines": 52426,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -437,7 +438,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2914,
+      "lines": 2919,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -31190,6 +31191,81 @@
       "summary": "Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_uninstall.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_uninstall",
+      "lines": 93,
+      "imports": [
+        "omni.adapters.platform.paths",
+        "omni.adapters.platform.wheel_install",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_inside",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "root"
+          ],
+          "annotations": {
+            "path": "Path",
+            "root": "Path"
+          }
+        },
+        {
+          "name": "_remove_stage",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "updates"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "updates": "Path"
+          }
+        },
+        {
+          "name": "_active_sha",
+          "line": 32,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Path"
+          }
+        },
+        {
+          "name": "uninstall_candidate",
+          "line": 45,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/workspaces.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.workspaces",
@@ -57931,7 +58007,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 973,
+      "lines": 978,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57957,6 +58033,7 @@
         "omni.adapters.platform.wheel_stage",
         "omni.adapters.platform.wheel_status",
         "omni.adapters.platform.wheel_switch",
+        "omni.adapters.platform.wheel_uninstall",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
         "omni.application.service_deployment",
@@ -58013,7 +58090,7 @@
         },
         {
           "name": "local_origin",
-          "line": 415,
+          "line": 416,
           "kind": "function",
           "parameters": [
             "value"
@@ -58024,7 +58101,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 434,
+          "line": 435,
           "kind": "function",
           "parameters": [
             "paths",
@@ -58037,7 +58114,7 @@
         },
         {
           "name": "main",
-          "line": 476,
+          "line": 477,
           "kind": "function",
           "parameters": [],
           "annotations": {}
