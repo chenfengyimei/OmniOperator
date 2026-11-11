@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "fc3495f",
+  "checkpoint_commit": "af4a347",
   "current_validation": {
-    "status": "d7_strict_batches_full_verified",
+    "status": "d7_installer_switch_execution",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-strict-isolation.xml"
       }
     ],
-    "code_version": "5039cdfa12f16d832dcbdd9d3456764c921c506be23c86fe6f74fb6e3030956e",
-    "fixed_source_files": 1193,
+    "code_version": "8bd96e153f0aa22dda484968c39f76758acafe45cde63c8f894f1d6e23a4a05b",
+    "fixed_source_files": 1195,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -913,12 +913,12 @@
       "id": "R7.installation",
       "status": "部分完成（收据/预检）",
       "development": "installation verify/seal",
-      "offline_validation": "34 项安装/运行时/产物/暂存/解包/切换计划/备份/回滚演练/状态/候选冒烟/打包测试全过；live 切换/迁移/回滚仍未执行",
+      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/current；切换只写运行指针，不建 venv/不停服/不迁移",
       "evidence": [
         "docs/evidence/v2-installation.json"
       ],
-      "remaining": "未下载/校验 wheel、未创建 venv、未切换目录、未执行迁移/回滚/卸载；macOS/Linux 与干净机器未验收。",
-      "code_version": "0b20cfe0dd0305b34a998c6214b9070e4283d78551b60c18d285a7663584dc26"
+      "remaining": "未下载 wheel、未建 venv、未停服/启动、未执行迁移/live 回滚/卸载；macOS/Linux 与干净机器未验收。",
+      "code_version": "8bd96e153f0aa22dda484968c39f76758acafe45cde63c8f894f1d6e23a4a05b"
     },
     {
       "id": "R7.installer.verification",
