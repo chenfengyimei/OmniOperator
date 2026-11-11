@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "62785c7fc1c532113c2944a61a966460753174cf780f73ec0d23233d4301babf",
+  "source_sha256": "1538195b37d23abc0d399700b57112e37fd27a3cab60727f3c930c4ec13881ff",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9186,
+      "lines": 9207,
       "dependencies": []
     },
     {
@@ -62694,7 +62694,7 @@
       "path": "agent/src/omni/domain/audit_retention.py",
       "module": "v2-domain",
       "python_module": "omni.domain.audit_retention",
-      "lines": 280,
+      "lines": 291,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.history",
@@ -62870,7 +62870,7 @@
         },
         {
           "name": "validate_audit_plan",
-          "line": 219,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "plan",
@@ -62878,7 +62878,7 @@
             "allow_future"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, object]",
             "now": "str",
             "allow_future": "bool"
           }
@@ -64373,7 +64373,7 @@
       "path": "agent/src/omni/domain/event_retention.py",
       "module": "v2-domain",
       "python_module": "omni.domain.event_retention",
-      "lines": 279,
+      "lines": 289,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.history",
@@ -64549,7 +64549,7 @@
         },
         {
           "name": "validate_event_plan",
-          "line": 219,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "plan",
@@ -64557,7 +64557,7 @@
             "allow_future"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, object]",
             "now": "str",
             "allow_future": "bool"
           }

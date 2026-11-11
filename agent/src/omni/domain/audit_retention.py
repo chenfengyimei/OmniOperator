@@ -173,7 +173,11 @@ def decode_preview_cursor(
     try:
         expected_epoch, expected_agent = _identity(epoch), _identity(agent_id)
         expected_revision, current_cap = _position(revision), _position(current_high_water)
-        if not isinstance(as_of, str) or not isinstance(value, str) or not 1 <= len(value) <= MAX_CURSOR_LENGTH:
+        if (
+            not isinstance(cast(object, as_of), str)
+            or not isinstance(cast(object, value), str)
+            or not 1 <= len(value) <= MAX_CURSOR_LENGTH
+        ):
             raise ValueError
         if re.fullmatch(r"[A-Za-z0-9_-]+", value) is None:
             raise ValueError
@@ -186,7 +190,7 @@ def decode_preview_cursor(
         if not isinstance(decoded, dict):
             raise ValueError
         fields = cast(dict[str, object], decoded)
-        if set(fields) != KEYS or fields["format"] != FORMAT or fields["policy"] != POLICY:
+        if set(fields) != set(KEYS) or fields["format"] != FORMAT or fields["policy"] != POLICY:
             raise ValueError
         payload = _payload(
             fields["epoch"],
@@ -216,10 +220,10 @@ def decode_preview_cursor(
     return {"as_of": canonical_as_of, "cutoff": cutoff, "high_water": cap, "position": position}
 
 
-def validate_audit_plan(plan: dict, now: str, *, allow_future: bool = False) -> str:
+def validate_audit_plan(plan: dict[str, object], now: str, *, allow_future: bool = False) -> str:
     """Cancellation tolerates clock rollback; ownership, fixed time and target integrity remain mandatory."""
     try:
-        if not isinstance(plan, dict) or set(plan) != PLAN_KEYS or type(allow_future) is not bool:
+        if set(plan) != set(PLAN_KEYS) or type(allow_future) is not bool:
             raise ValueError
         if plan["format"] != PLAN_FORMAT or plan["policy"] != POLICY:
             raise ValueError
@@ -246,31 +250,38 @@ def validate_audit_plan(plan: dict, now: str, *, allow_future: bool = False) -> 
         _position(plan["trim_revision"])
         cap = _position(plan["high_water"])
         targets = plan["targets"]
-        if not isinstance(targets, list) or not 1 <= len(targets) <= 50:
+        if not isinstance(targets, list):
+            raise ValueError
+        rows = cast(list[object], targets)
+        if not 1 <= len(rows) <= 50:
             raise ValueError
         seen: set[str] = set()
         previous = 0
-        for target in targets:
-            if not isinstance(target, dict) or set(target) != TARGET_KEYS:
+        for target in rows:
+            if not isinstance(target, dict):
+                raise ValueError
+            entry = cast(dict[str, object], target)
+            if set(entry) != set(TARGET_KEYS):
                 raise ValueError
             for key in TARGET_IDS:
-                _identity(target[key])
-            if target["agent_id"] != plan["agent_id"] or target["audit_id"] in seen:
+                _identity(entry[key])
+            audit_id = _identity(entry["audit_id"])
+            if entry["agent_id"] != plan["agent_id"] or audit_id in seen:
                 raise ValueError
-            seen.add(target["audit_id"])
-            sequence = _position(target["sequence"])
+            seen.add(audit_id)
+            sequence = _position(entry["sequence"])
             if not previous < sequence <= cap:
                 raise ValueError
             previous = sequence
-            if _position(target["run_retention_revision"]) < 1:
+            if _position(entry["run_retention_revision"]) < 1:
                 raise ValueError
-            kind = target["kind"]
-            if not isinstance(kind, str) or kind not in SUBJECTS or target["subject_kind"] != SUBJECTS[kind]:
+            kind = entry["kind"]
+            if not isinstance(kind, str) or kind not in SUBJECTS or entry["subject_kind"] != SUBJECTS[kind]:
                 raise ValueError
-            if target["subject_kind"] == "run" and target["operation_id"] != target["run_id"]:
+            if entry["subject_kind"] == "run" and entry["operation_id"] != entry["run_id"]:
                 raise ValueError
             for key in ("body_sha256", "fingerprint"):
-                digest = target[key]
+                digest = entry[key]
                 if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None:
                     raise ValueError
         return body_fingerprint([plan])[0]

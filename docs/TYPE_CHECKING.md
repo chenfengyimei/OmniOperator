@@ -16,11 +16,13 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain/action_review.py` | 未知写动作的观察复核/证据指纹纯规则 |
 | `agent/src/omni/domain/android_unicode.py` | 输入助手配置/认证报文纯校验 |
+| `agent/src/omni/domain/audit_retention.py` | 审计保留主体/冻结预览/计划纯校验 |
 | `agent/src/omni/domain/capabilities.py` | 能力报告纯投影，需保持无 `Any` 泄漏 |
 | `agent/src/omni/domain/credential_ipc.py` | 原生凭据帧解码/请求/响应纯校验 |
 | `agent/src/omni/domain/credentials.py` | 凭据引用与权限指纹纯函数 |
 | `agent/src/omni/domain/delivery.py` | 出站意图身份/受限文本/可信结果纯规则 |
 | `agent/src/omni/domain/documents.py` | 源文本/分块/向量归一化与合并纯规则 |
+| `agent/src/omni/domain/event_retention.py` | 事件保留冻结预览/计划纯校验 |
 | `agent/src/omni/domain/history.py` | 历史游标编码/解码与代际校验 |
 | `agent/src/omni/domain/images.py` | 图像引用/策略/低细节计量纯规则 |
 | `agent/src/omni/domain/installation.py` | 安装收据校验与 schema 一致性纯规则 |
@@ -88,7 +90,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 与 `adapters/` 已从 25 个小模块开始；`composition/`、`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 与 `adapters/` 已覆盖 24 个模块；`composition/`、`agent/tests/` 尚未开始 strict。
 
 ## 4. 推进规则
 

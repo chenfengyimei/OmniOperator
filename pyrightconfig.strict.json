@@ -27,6 +27,7 @@
     "agent/src/omni/application/terminal_review.py",
     "agent/src/omni/domain/android_unicode.py",
     "agent/src/omni/domain/action_review.py",
+    "agent/src/omni/domain/audit_retention.py",
     "agent/src/omni/domain/capabilities.py",
     "agent/src/omni/domain/configuration.py",
     "agent/src/omni/domain/context.py",
@@ -35,6 +36,7 @@
     "agent/src/omni/domain/credentials.py",
     "agent/src/omni/domain/delivery.py",
     "agent/src/omni/domain/documents.py",
+    "agent/src/omni/domain/event_retention.py",
     "agent/src/omni/domain/foreground.py",
     "agent/src/omni/domain/history.py",
     "agent/src/omni/domain/images.py",
@@ -65,20 +67,8 @@
     "agent/src/omni/domain/terminal_review.py",
     "agent/src/omni/domain/terminals.py"
   ],
-  "exclude": ["**/__pycache__"],
+  "exclude": [
+    "**/__pycache__"
+  ],
   "pythonVersion": "3.12"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
