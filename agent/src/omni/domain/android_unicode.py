@@ -7,6 +7,7 @@ import hashlib
 import hmac
 import json
 import re
+from typing import cast
 
 from .configuration import reference
 from .contracts import BusinessError
@@ -37,25 +38,29 @@ def text_value(value: object) -> str:
     return value
 
 
-def profile(value: object) -> dict:
+def profile(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise invalid()
+    record = cast(dict[str, object], value)
     if (
-        not isinstance(value, dict)
-        or set(value) != {"enabled", "credential_ref", "apk_sha256", "certificate_sha256"}
-        or type(value["enabled"]) is not bool
+        set(record) != {"enabled", "credential_ref", "apk_sha256", "certificate_sha256"}
+        or type(record["enabled"]) is not bool
     ):
         raise invalid()
     for field in ("apk_sha256", "certificate_sha256"):
-        if not isinstance(value[field], str) or (value[field] and not re.fullmatch(r"[0-9a-f]{64}", value[field])):
+        digest = record[field]
+        if not isinstance(digest, str) or (digest and not re.fullmatch(r"[0-9a-f]{64}", digest)):
             raise invalid()
-    if not isinstance(value["credential_ref"], str) or len(value["credential_ref"]) > 200:
+    credential = record["credential_ref"]
+    if not isinstance(credential, str) or len(credential) > 200:
         raise invalid()
     try:
-        reference(value["credential_ref"])
+        reference(credential)
     except (TypeError, ValueError):
         raise invalid() from None
-    if value["enabled"] and not all(value[k] for k in ("credential_ref", "apk_sha256", "certificate_sha256")):
+    if record["enabled"] and not all(record[k] for k in ("credential_ref", "apk_sha256", "certificate_sha256")):
         raise invalid()
-    return dict(value)
+    return dict(record)
 
 
 def key_value(value: object) -> bytes:
@@ -73,7 +78,7 @@ def fingerprint(value: object) -> str:
     ).hexdigest()
 
 
-def packet(value: dict, key: bytes, *, response_to: str = "") -> bytes:
+def packet(value: dict[str, object], key: bytes, *, response_to: str = "") -> bytes:
     body = json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()
     if not 1 <= len(body) <= MAX_PACKET:
         raise invalid()
@@ -83,29 +88,31 @@ def packet(value: dict, key: bytes, *, response_to: str = "") -> bytes:
     return len(body).to_bytes(4, "big") + body + hmac.digest(key, prefix + body, "sha256")
 
 
-def unpack(body: bytes, signature: bytes, key: bytes, nonce: str) -> dict:
+def unpack(body: bytes, signature: bytes, key: bytes, nonce: str) -> dict[str, object]:
     if not 1 <= len(body) <= MAX_PACKET or not hmac.compare_digest(
         signature, hmac.digest(key, b"omni-input-response-1\n" + nonce.encode("ascii") + b"\n" + body, "sha256")
     ):
         raise invalid("android_helper_auth_failed")
 
-    def pairs(entries):
-        value = {}
+    def pairs(entries: list[tuple[str, object]]) -> dict[str, object]:
+        value: dict[str, object] = {}
         for name, item in entries:
             if name in value:
                 raise invalid()
             value[name] = item
         return value
 
-    result = json.loads(body, object_pairs_hook=pairs, parse_constant=lambda _: (_ for _ in ()).throw(invalid()))
-    if (
-        not isinstance(result, dict)
-        or type(result.get("version")) is not int
-        or result.get("version") != VERSION
-        or result.get("nonce") != nonce
-    ):
+    def constant(_: str) -> object:
         raise invalid()
-    return result
+
+    result = json.loads(body, object_pairs_hook=pairs, parse_constant=constant)
+    if not isinstance(result, dict):
+        raise invalid()
+    record = cast(dict[str, object], result)
+    version = record.get("version")
+    if type(version) is not int or version != VERSION or record.get("nonce") != nonce:
+        raise invalid()
+    return record
 
 
 def ime_component(value: object) -> str:

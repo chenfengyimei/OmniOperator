@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c751c001e80b29ba4d1faaddf30a1b1f2ac9df2051c5e08ef75e0f79d8527ce8",
+  "source_sha256": "21e66e334faad5f716610f8a2a8f1a6829fecf37ea52da0717496f476be03ddd",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9085,
+      "lines": 9092,
       "dependencies": []
     },
     {
@@ -62561,7 +62561,7 @@
       "path": "agent/src/omni/domain/android_unicode.py",
       "module": "v2-domain",
       "python_module": "omni.domain.android_unicode",
-      "lines": 114,
+      "lines": 121,
       "imports": [
         "omni.domain.configuration",
         "omni.domain.contracts"
@@ -62569,7 +62569,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "code"
@@ -62580,7 +62580,7 @@
         },
         {
           "name": "text_value",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "value"
@@ -62591,7 +62591,7 @@
         },
         {
           "name": "profile",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "value"
@@ -62602,7 +62602,7 @@
         },
         {
           "name": "key_value",
-          "line": 61,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "value"
@@ -62613,7 +62613,7 @@
         },
         {
           "name": "fingerprint",
-          "line": 70,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "value"
@@ -62624,7 +62624,7 @@
         },
         {
           "name": "packet",
-          "line": 76,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "value",
@@ -62632,14 +62632,14 @@
             "response_to"
           ],
           "annotations": {
-            "value": "dict",
+            "value": "dict[str, object]",
             "key": "bytes",
             "response_to": "str"
           }
         },
         {
           "name": "unpack",
-          "line": 86,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "body",
@@ -62656,16 +62656,29 @@
         },
         {
           "name": "unpack.pairs",
-          "line": 92,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "entries"
           ],
-          "annotations": {}
+          "annotations": {
+            "entries": "list[tuple[str, object]]"
+          }
+        },
+        {
+          "name": "unpack.constant",
+          "line": 105,
+          "kind": "function",
+          "parameters": [
+            "_"
+          ],
+          "annotations": {
+            "_": "str"
+          }
         },
         {
           "name": "ime_component",
-          "line": 111,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "value"

@@ -14,6 +14,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 | 文件 | 纳入原因 |
 | --- | --- |
+| `agent/src/omni/domain/android_unicode.py` | 输入助手配置/认证报文纯校验 |
 | `agent/src/omni/domain/capabilities.py` | 能力报告纯投影，需保持无 `Any` 泄漏 |
 | `agent/src/omni/domain/credentials.py` | 凭据引用与权限指纹纯函数 |
 | `agent/src/omni/domain/delivery.py` | 出站意图身份/受限文本/可信结果纯规则 |
@@ -92,3 +93,4 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 - strict 门禁 0 errors / 0 warnings。
 - `agent/tests/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `agent/src/omni/domain/` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
 - 相关调用方回归：能力/凭据/对象/人物测试。
+

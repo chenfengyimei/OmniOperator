@@ -25,6 +25,7 @@
     "agent/src/omni/application/service_cleanup.py",
     "agent/src/omni/application/service_deployment.py",
     "agent/src/omni/application/terminal_review.py",
+    "agent/src/omni/domain/android_unicode.py",
     "agent/src/omni/domain/capabilities.py",
     "agent/src/omni/domain/context.py",
     "agent/src/omni/domain/credentials.py",
@@ -57,6 +58,7 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 
 
 
