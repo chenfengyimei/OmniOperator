@@ -164,6 +164,10 @@ def deployment_sha(value: object) -> str:
     return _sha(value)
 
 
+def deployment_text(value: object, maximum: int = 4000) -> str:
+    return _text(value, maximum)
+
+
 def deployment_uuid(value: object) -> str:
     return _uuid(value)
 

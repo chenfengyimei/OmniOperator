@@ -48,6 +48,7 @@
     "agent/src/omni/domain/skills.py",
     "agent/src/omni/domain/service_activation.py",
     "agent/src/omni/domain/service_control.py",
+    "agent/src/omni/domain/service_isolation.py",
     "agent/src/omni/domain/settings.py",
     "agent/src/omni/domain/terminal_review.py",
     "agent/src/omni/domain/terminals.py"
@@ -55,5 +56,6 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 
 

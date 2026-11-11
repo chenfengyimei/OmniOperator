@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, TypedDict, cast
+from typing import TypedDict, cast
 
 from .contracts import BusinessError
 from .releases import digest
-from .service_deployment import _created, _integer, _object, _sha, _text, _uuid
+from .service_deployment import (
+    deployment_created,
+    deployment_fields,
+    deployment_integer,
+    deployment_sha,
+    deployment_text,
+    deployment_uuid,
+)
 from .service_exchange import ExchangePlan, validate_exchange
 
 FORMAT = "omni-service-isolation-1"
@@ -35,12 +42,12 @@ def make_isolation(
 ) -> IsolationPlan:
     value = {
         "format": FORMAT,
-        "id": _uuid(identity),
-        "created_at": _created(at),
+        "id": deployment_uuid(identity),
+        "created_at": deployment_created(at),
         "exchange": validate_exchange(exchange),
-        "event_count": _integer(count, 1, 62),
-        "history_sha256": _sha(history_sha),
-        "reason": _text(reason, 1024),
+        "event_count": deployment_integer(count, 1, 62),
+        "history_sha256": deployment_sha(history_sha),
+        "reason": deployment_text(reason, 1024),
         "blocks_startup": True,
         "starts_service": False,
         "stops_service": False,
@@ -49,7 +56,7 @@ def make_isolation(
 
 
 def validate_isolation(value: object) -> IsolationPlan:
-    record = _object(
+    record = deployment_fields(
         value,
         {
             "format",
@@ -67,11 +74,11 @@ def validate_isolation(value: object) -> IsolationPlan:
     )
     expected = make_isolation(
         record["exchange"],
-        record["event_count"],
-        record["history_sha256"],
-        record["reason"],
-        record["id"],
-        record["created_at"],
+        cast(int, record["event_count"]),
+        cast(str, record["history_sha256"]),
+        cast(str, record["reason"]),
+        cast(str, record["id"]),
+        cast(str, record["created_at"]),
     )
     if record != expected or any(
         type(record[key]) is not bool for key in ("blocks_startup", "starts_service", "stops_service")
@@ -80,7 +87,7 @@ def validate_isolation(value: object) -> IsolationPlan:
     return expected
 
 
-def reference(plan: IsolationPlan) -> dict[str, Any]:
+def reference(plan: IsolationPlan) -> dict[str, object]:
     return {
         "isolation_id": plan["id"],
         "isolation_sha256": plan["sha256"],
@@ -91,17 +98,17 @@ def reference(plan: IsolationPlan) -> dict[str, Any]:
     }
 
 
-def isolation_reference(value: object) -> dict[str, Any]:
-    record = _object(
+def isolation_reference(value: object) -> dict[str, object]:
+    record = deployment_fields(
         value, {"isolation_id", "isolation_sha256", "exchange_id", "exchange_sha256", "event_count", "history_sha256"}
     )
-    expected = {
-        "isolation_id": _uuid(record["isolation_id"]),
-        "isolation_sha256": _sha(record["isolation_sha256"]),
-        "exchange_id": _uuid(record["exchange_id"]),
-        "exchange_sha256": _sha(record["exchange_sha256"]),
-        "event_count": _integer(record["event_count"], 1, 62),
-        "history_sha256": _sha(record["history_sha256"]),
+    expected: dict[str, object] = {
+        "isolation_id": deployment_uuid(record["isolation_id"]),
+        "isolation_sha256": deployment_sha(record["isolation_sha256"]),
+        "exchange_id": deployment_uuid(record["exchange_id"]),
+        "exchange_sha256": deployment_sha(record["exchange_sha256"]),
+        "event_count": deployment_integer(record["event_count"], 1, 62),
+        "history_sha256": deployment_sha(record["history_sha256"]),
     }
     if record != expected:
         raise invalid()

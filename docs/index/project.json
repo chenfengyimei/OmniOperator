@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e3f52ae010134f399cdd77998198073f730dd7d1305946080f19118ec759c24e",
+  "source_sha256": "47077e375b12c887911a75a9b0067747083cb148084a4776488440c390da3ff3",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9075,
+      "lines": 9086,
       "dependencies": []
     },
     {
@@ -67791,7 +67791,7 @@
       "path": "agent/src/omni/domain/service_deployment.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_deployment",
-      "lines": 534,
+      "lines": 538,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -67971,8 +67971,21 @@
           }
         },
         {
-          "name": "deployment_uuid",
+          "name": "deployment_text",
           "line": 167,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "maximum"
+          ],
+          "annotations": {
+            "value": "object",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "deployment_uuid",
+          "line": 171,
           "kind": "function",
           "parameters": [
             "value"
@@ -67983,7 +67996,7 @@
         },
         {
           "name": "_principal",
-          "line": 171,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "value",
@@ -67998,7 +68011,7 @@
         },
         {
           "name": "_endpoint",
-          "line": 187,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "host",
@@ -68013,7 +68026,7 @@
         },
         {
           "name": "parse_request",
-          "line": 225,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "data"
@@ -68024,7 +68037,7 @@
         },
         {
           "name": "validate_runtime",
-          "line": 253,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "data"
@@ -68035,7 +68048,7 @@
         },
         {
           "name": "_created",
-          "line": 352,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "value"
@@ -68046,7 +68059,7 @@
         },
         {
           "name": "_content",
-          "line": 363,
+          "line": 367,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68057,7 +68070,7 @@
         },
         {
           "name": "plan_fingerprint",
-          "line": 390,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68068,7 +68081,7 @@
         },
         {
           "name": "make_plan",
-          "line": 395,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "request",
@@ -68087,7 +68100,7 @@
         },
         {
           "name": "validate_plan",
-          "line": 411,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68098,7 +68111,7 @@
         },
         {
           "name": "startup",
-          "line": 420,
+          "line": 424,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68109,7 +68122,7 @@
         },
         {
           "name": "parse_startup",
-          "line": 443,
+          "line": 447,
           "kind": "function",
           "parameters": [
             "data"
@@ -68120,7 +68133,7 @@
         },
         {
           "name": "service_argv",
-          "line": 480,
+          "line": 484,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68131,7 +68144,7 @@
         },
         {
           "name": "manager_identity",
-          "line": 493,
+          "line": 497,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68304,7 +68317,7 @@
       "path": "agent/src/omni/domain/service_isolation.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_isolation",
-      "lines": 108,
+      "lines": 115,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.releases",
@@ -68314,12 +68327,12 @@
       "symbols": [
         {
           "name": "IsolationPlan",
-          "line": 15,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "invalid",
-          "line": 29,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "code"
@@ -68330,7 +68343,7 @@
         },
         {
           "name": "make_isolation",
-          "line": 33,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "exchange",
@@ -68351,7 +68364,7 @@
         },
         {
           "name": "validate_isolation",
-          "line": 51,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "value"
@@ -68362,7 +68375,7 @@
         },
         {
           "name": "reference",
-          "line": 83,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68373,7 +68386,7 @@
         },
         {
           "name": "isolation_reference",
-          "line": 94,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "value"
