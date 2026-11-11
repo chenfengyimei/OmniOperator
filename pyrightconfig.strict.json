@@ -8,6 +8,7 @@
     "agent/src/omni/application/action_review.py",
     "agent/src/omni/application/credentials.py",
     "agent/src/omni/application/debugging.py",
+    "agent/src/omni/application/desktop_actions.py",
     "agent/src/omni/application/exchange_recovery.py",
     "agent/src/omni/application/exchange_recovery_steps.py",
     "agent/src/omni/application/exchange_steps.py",

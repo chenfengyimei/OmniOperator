@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`1ece9ab514c2fe83db318da85e1c78174a274b4fdb367ff6412fba108a8edde5`。包含 65 个职责模块、727 个源码/界面文件。
+源码指纹：`9e049617ae2c8d1d6d92d3d9242411fcfaa34b8b2c74e9d7f96de8371799a472`。包含 65 个职责模块、727 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -87,7 +87,7 @@
 | [agent/src/omni/application/debugging.py](../../agent/src/omni/application/debugging.py) | 122 | Boot-scoped debug authorization, durable audit and bounded maintenance; no log files here. |
 | [agent/src/omni/application/delivery.py](../../agent/src/omni/application/delivery.py) | 413 | Supervised, bounded outbound execution; never supplies a real transport by default. |
 | [agent/src/omni/application/desktop.py](../../agent/src/omni/application/desktop.py) | 528 | Owner desktop observations with short-lived scoped identities; never authorizes or dispatches desktop writes. |
-| [agent/src/omni/application/desktop_actions.py](../../agent/src/omni/application/desktop_actions.py) | 195 | Owner-selected semantic commands using the shared run, approval and action ledger. |
+| [agent/src/omni/application/desktop_actions.py](../../agent/src/omni/application/desktop_actions.py) | 224 | Owner-selected semantic commands using the shared run, approval and action ledger. |
 | [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 314 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 346 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
 | [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 632 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |

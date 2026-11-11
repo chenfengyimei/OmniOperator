@@ -89,7 +89,7 @@ def linux_ready(request: dict, *, permitted: bool = False) -> dict:
     }
 
 
-def owner_action(value: object) -> dict:
+def owner_action(value: object) -> dict[str, object]:
     foreground = isinstance(value, dict) and value.get("kind") in FOREGROUND_KINDS
     value = _object(
         value,

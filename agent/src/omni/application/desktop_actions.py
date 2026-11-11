@@ -5,14 +5,16 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-from collections.abc import Callable, Mapping
-from typing import Any
+from collections.abc import Callable, Coroutine, Mapping
+from typing import Any, TypeVar, cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
 from ..domain.desktop_actions import POLICY, SPEC, action_result, owner_action
 from ..domain.foreground import POLICY as FOREGROUND_POLICY
 from .desktop import DesktopService
 from .ports import Clock, DatabasePort, DesktopBackendPort, Ids, Record
+
+T = TypeVar("T")
 
 
 class DesktopActions:
@@ -28,13 +30,13 @@ class DesktopActions:
     ) -> None:
         self._db, self._views, self._backend, self._clock, self._ids = db, views, backend, clock, ids
         self._accepting = accepting
-        self._bindings: dict[str, dict] = {}
+        self._bindings: dict[str, dict[str, object]] = {}
         self._pending: set[asyncio.Task[Any]] = set()
         self._leases: list[Record] = []
         self._closing = False
         self._admission = asyncio.Lock()
 
-    async def _owned(self, coroutine) -> Any:
+    async def _owned(self, coroutine: Coroutine[Any, Any, T]) -> T:
         if self._closing or len(self._pending) >= 4:
             coroutine.close()
             raise BusinessError("desktop_busy", "Desktop action admission is closed or busy", status=503)
@@ -55,29 +57,38 @@ class DesktopActions:
         request = owner_action(data)
         return await self._owned(self._submit(agent_id, request))
 
-    async def _submit(self, agent_id: str, request: dict) -> Record:
+    async def _submit(self, agent_id: str, request: dict[str, object]) -> Record:
         fingerprint = hashlib.sha256(
             json.dumps(request, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
         ).hexdigest()
         async with self._admission:
-            replay = await self._db.read(lambda u: u.owner_command_replay(agent_id, request["request_id"], fingerprint))
+            replay = await self._db.read(
+                lambda u: u.owner_command_replay(agent_id, str(request["request_id"]), fingerprint)
+            )
             if replay:
                 return replay
             if self._closing or not self._accepting():
                 raise BusinessError("desktop_closing", "Desktop action admission is closed")
-            self._bindings = {k: v for k, v in self._bindings.items() if v["expires"] > self._clock.monotonic()}
+            self._bindings = {
+                key: value
+                for key, value in self._bindings.items()
+                if cast(float, value["expires"]) > self._clock.monotonic()
+            }
             if len(self._bindings) >= 64:
                 raise BusinessError("desktop_busy", "Desktop action bindings are full")
             binding = self._views.action_binding(agent_id, request)
             identity = self._ids.new()
-            arguments: Record = {
-                "binding_id": identity,
-                "kind": request["kind"],
-                "text": request["text"],
-                "target_application": binding["target"]["application_id"],
-                "target_role": binding["node"]["role"],
-                "policy": FOREGROUND_POLICY if request.get("takeover") else POLICY,
-            }
+            arguments: Record = cast(
+                Record,
+                {
+                    "binding_id": identity,
+                    "kind": request["kind"],
+                    "text": request["text"],
+                    "target_application": cast(Mapping[str, object], binding["target"])["application_id"],
+                    "target_role": cast(Mapping[str, object], binding["node"])["role"],
+                    "policy": FOREGROUND_POLICY if request.get("takeover") else POLICY,
+                },
+            )
             if request.get("takeover"):
                 arguments["takeover"] = True
             # Keep identities only. Approved content has a single persistent owner in the command/action ledger.
@@ -86,7 +97,11 @@ class DesktopActions:
             try:
                 return await self._db.write(
                     lambda u: u.accept_owner_command(
-                        agent_id, request["session_id"], request["request_id"], fingerprint, arguments
+                        agent_id,
+                        str(request["session_id"]),
+                        str(request["request_id"]),
+                        fingerprint,
+                        arguments,
                     )
                 )
             except BaseException:
@@ -114,11 +129,11 @@ class DesktopActions:
         async def guard() -> None:
             if self._closing:
                 raise BusinessError("desktop_action_revoked", "Desktop action admission was revoked")
-            current = self._views.action_binding(context.agent_id, binding["request"])
+            current = self._views.action_binding(context.agent_id, cast(dict[str, object], binding["request"]))
             if current != {k: binding[k] for k in ("target", "node", "expires")}:
                 raise BusinessError("desktop_binding_changed", "Desktop observation changed")
             await self._db.read(lambda u: u.desktop_dispatch(context.agent_id, context.run_id, operation_id, arguments))
-            self._views.action_binding(context.agent_id, binding["request"])
+            self._views.action_binding(context.agent_id, cast(dict[str, object], binding["request"]))
 
         try:
             await guard()
@@ -133,28 +148,42 @@ class DesktopActions:
         try:
             if arguments.get("takeover"):
                 result = await self._backend.foreground(
-                    binding["target"],
-                    {
-                        "kind": arguments["kind"],
-                        "text": arguments["text"],
-                        "node": binding["node"],
-                        "policy": FOREGROUND_POLICY,
-                        "takeover": True,
-                        "grant_id": arguments["binding_id"],
-                        "run_id": context.run_id,
-                        "operation_id": operation_id,
-                    },
+                    cast(Record, binding["target"]),
+                    cast(
+                        Record,
+                        {
+                            "kind": arguments["kind"],
+                            "text": arguments["text"],
+                            "node": binding["node"],
+                            "policy": FOREGROUND_POLICY,
+                            "takeover": True,
+                            "grant_id": arguments["binding_id"],
+                            "run_id": context.run_id,
+                            "operation_id": operation_id,
+                        },
+                    ),
                     before_dispatch=guard,
                 )
             else:
                 result = await self._backend.act(
-                    binding["target"],
-                    {"kind": arguments["kind"], "text": arguments["text"], "node": binding["node"], "policy": POLICY},
+                    cast(Record, binding["target"]),
+                    cast(
+                        Record,
+                        {
+                            "kind": arguments["kind"],
+                            "text": arguments["text"],
+                            "node": binding["node"],
+                            "policy": POLICY,
+                        },
+                    ),
                     before_dispatch=guard,
                 )
             return action_result(result, str(arguments["kind"]))
         finally:
-            self._views.consume_observation(context.agent_id, binding["request"]["observation_id"])
+            self._views.consume_observation(
+                context.agent_id,
+                str(cast(Mapping[str, object], binding["request"])["observation_id"]),
+            )
             self._bindings.pop(str(arguments["binding_id"]), None)
             await self._release(0.2)
 

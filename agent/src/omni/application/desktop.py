@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import copy
 from collections import OrderedDict
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, TypeVar
 
@@ -417,7 +417,7 @@ class DesktopService:
 
         return await self._execute(agent_id, request["view_id"], "observe", perform)
 
-    def action_binding(self, agent_id: str, request: dict) -> dict:
+    def action_binding(self, agent_id: str, request: Mapping[str, object]) -> dict[str, object]:
         view = self._views.get(agent_id)
         if view is None:
             raise BusinessError("desktop_view_changed", "Desktop view is no longer available")
