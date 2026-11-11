@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7cfecdf5fa73b331dc9339f7c2c11ba6d68437200c8776e8bac2e2d57c48a3be`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`8166835e550e3b400e032f1bf659b46607de9e943a5de9b4eea2315ee619951e`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -327,7 +327,7 @@
 | [agent/src/omni/adapters/platform/wheel_rollback.py](../../agent/src/omni/adapters/platform/wheel_rollback.py) | 69 | Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home. |
 | [agent/src/omni/adapters/platform/wheel_smoke.py](../../agent/src/omni/adapters/platform/wheel_smoke.py) | 84 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
 | [agent/src/omni/adapters/platform/wheel_stage.py](../../agent/src/omni/adapters/platform/wheel_stage.py) | 70 | Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations. |
-| [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 89 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
+| [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 112 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_switch.py](../../agent/src/omni/adapters/platform/wheel_switch.py) | 83 | Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back. |
 | [agent/src/omni/adapters/platform/wheel_uninstall.py](../../agent/src/omni/adapters/platform/wheel_uninstall.py) | 93 | Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay. |
 | [agent/src/omni/adapters/platform/workspaces.py](../../agent/src/omni/adapters/platform/workspaces.py) | 27 | Workspace admission keeps instance control, secrets and installed code private. |

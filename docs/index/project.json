@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7cfecdf5fa73b331dc9339f7c2c11ba6d68437200c8776e8bac2e2d57c48a3be",
+  "source_sha256": "8166835e550e3b400e032f1bf659b46607de9e943a5de9b4eea2315ee619951e",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52650,
+      "lines": 52673,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -31193,7 +31193,7 @@
       "path": "agent/src/omni/adapters/platform/wheel_status.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_status",
-      "lines": 89,
+      "lines": 112,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
@@ -31218,15 +31218,28 @@
           "line": 25,
           "kind": "function",
           "parameters": [
-            "stage"
+            "stage",
+            "pending"
           ],
           "annotations": {
-            "stage": "Path"
+            "stage": "Path",
+            "pending": "bool"
+          }
+        },
+        {
+          "name": "_runtime",
+          "line": 39,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
           }
         },
         {
           "name": "installation_status",
-          "line": 37,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "paths"

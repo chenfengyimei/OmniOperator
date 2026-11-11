@@ -111,6 +111,8 @@ D7 离线环境节点：新增 `installation environment`，为已暂存 wheel �
 
 D7 live 回滚节点：新增 `installation rollback`，实例空闲时把运行指针换回 `previous.json` 并重写启动包装/`launch.py`，写 `rollback-live.json`；要求上一候选树存在且 schema 与当前数据库一致（否则 `rollback_schema_mismatch`），重复调用幂等。仅回滚代码指针，不恢复数据库备份；仍不停服/启动、不清理数据目录，默认入口仍是 V1。
 
+D7 状态投影节点：`installation status` 增补运行指针（active/SHA/mode/python/previous/live-rollback）与候选的 environment/migrate/active 标志，`next_step` 在待迁移时指向 `migrate`；仍只读。
+
 ## D6 扩展产物协议（2026-11-11）
 
 扩展工具可在manifest中声明≤4个产物媒体类型，声明进入目录/spec指纹，能力变化即触发漂移撤权。宿主为每个扩展给出唯一可写目录（OMNI_EXTENSION_ARTIFACTS），工具只回传name+media_type，子进程拒绝符号链接/越界/缺失并自行计算bytes+sha256；服务在派发后独立复读复核路径、大小与哈希，逐份发布为不可变对象，ActionResult.artifacts交给settle_action建立action_objects引用，模型文本只含媒体类型与字节数摘要。四类不可验证产物（越界/未声明/缺失/超限）一律归unknown、不发布、不重放；目录每次调用前后清理，宿主关闭时清理根目录。安装表写入显式挑列，避免新能力混入数据库列。

@@ -22,7 +22,7 @@ def _read(path: Path) -> dict[str, object] | None:
     return value if isinstance(value, dict) else None
 
 
-def _next_step(stage: Path) -> str:
+def _next_step(stage: Path, pending: bool) -> str:
     if not (stage / "staged.json").is_file():
         return "artifact/stage"
     if not (stage / "prepared.json").is_file():
@@ -31,7 +31,24 @@ def _next_step(stage: Path) -> str:
         return "backup"
     if not (stage / "rollback.json").is_file():
         return "rollback-check"
+    if pending and not (stage / "migrate.json").is_file():
+        return "migrate"
     return "switch"
+
+
+def _runtime(paths: InstancePaths) -> dict[str, object]:
+    record = _read(paths.home / "runtime" / "current.json") or {}
+    previous = _read(paths.home / "runtime" / "previous.json") or {}
+    rollback = _read(paths.home / "runtime" / "rollback-live.json") or {}
+    return {
+        "active": bool(record.get("wheel_sha256")),
+        "wheel_sha256": record.get("wheel_sha256"),
+        "mode": record.get("mode"),
+        "python": record.get("python"),
+        "tree": record.get("tree"),
+        "previous": previous.get("wheel_sha256"),
+        "rollback_live": rollback.get("written") is True,
+    }
 
 
 def installation_status(paths: InstancePaths) -> dict[str, object]:
@@ -57,6 +74,8 @@ def installation_status(paths: InstancePaths) -> dict[str, object]:
         except BusinessError:
             database["problem"] = "database_unreadable"
     expected = migration_head()
+    pending = bool(database["schema"]) and database["schema"] != expected
+    runtime = _runtime(paths)
     candidates = []
     updates = paths.home / "updates"
     if updates.is_dir() and not updates.is_symlink():
@@ -71,9 +90,12 @@ def installation_status(paths: InstancePaths) -> dict[str, object]:
                     "wheel_sha256": (staged or prepared or {}).get("wheel_sha256", ""),
                     "staged": staged is not None,
                     "prepared": prepared is not None,
+                    "environment": (stage / "environment.json").is_file(),
                     "backup": (stage / "backup.json").is_file(),
                     "rollback": (stage / "rollback.json").is_file(),
-                    "next_step": _next_step(stage),
+                    "migrate": (stage / "migrate.json").is_file(),
+                    "active": stage.name == str(runtime.get("wheel_sha256", ""))[:16],
+                    "next_step": _next_step(stage, pending),
                 }
             )
     return {
@@ -84,6 +106,7 @@ def installation_status(paths: InstancePaths) -> dict[str, object]:
         "manifest_problem": problem,
         "database": database,
         "expected_schema": expected,
-        "upgrade_required": bool(database["schema"]) and database["schema"] != expected,
+        "upgrade_required": pending,
+        "runtime": runtime,
         "candidates": candidates,
     }
