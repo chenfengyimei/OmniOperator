@@ -65,6 +65,8 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 Windows 主机实测 `scripts/check_package.py`：离线构建 direct wheel 与 sdist→wheel，交叉验证 `domain/application/adapters/composition` 内核字节一致、116 个 web 资源一致（排除 node_modules）、隔离解释器导入 `omni`、fresh V2 实例（1 agent、ready、无 `omni.bootstrap`/`omni.memory.*`、关闭 complete）。发布/部署/drain/schema 恢复调用方 57 项全过。`docs/V2_PACKAGING.md` 明确未完成：macOS/Linux 构建安装、容器镜像、V2 独立安装器/更新器、签名公证、干净机器端到端；默认入口仍是 V1。证据见[证据](evidence/v2-packaging.json)。
 
+D7 节点后全量复核：**4601 项，4599 passed / 2 failed / 0 errors**（`memory_organization_ui` 迟到详情与 `portal_ui` 各一处并行时序，同源码隔离 2 项全过）；历史并行时序还包括 service_runtime 身份与 debug_sink。仍不是全量全绿。证据见[证据](evidence/v2-d7-verification.json)。
+
 ## D6 扩展产物协议（2026-11-11）
 
 扩展工具可在manifest中声明≤4个产物媒体类型，声明进入目录/spec指纹，能力变化即触发漂移撤权。宿主为每个扩展给出唯一可写目录（OMNI_EXTENSION_ARTIFACTS），工具只回传name+media_type，子进程拒绝符号链接/越界/缺失并自行计算bytes+sha256；服务在派发后独立复读复核路径、大小与哈希，逐份发布为不可变对象，ActionResult.artifacts交给settle_action建立action_objects引用，模型文本只含媒体类型与字节数摘要。四类不可验证产物（越界/未声明/缺失/超限）一律归unknown、不发布、不重放；目录每次调用前后清理，宿主关闭时清理根目录。安装表写入显式挑列，避免新能力混入数据库列。

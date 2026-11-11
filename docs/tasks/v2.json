@@ -300,9 +300,9 @@
       {
         "id": "tests.parallel_run_timing_flakes",
         "status": "观察中",
-        "scope": "全量并行下 service_runtime 身份、debug_sink 与 portal_ui 各一处时序失败；同源码隔离 36 项全过，未判定产品缺陷。",
-        "first_report": "temp/build/v2-callbacks-final-full.xml",
-        "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
+        "scope": "全量并行下 memory_organization_ui、portal_ui、debug_sink、service_runtime 身份各一处时序失败；同源码隔离全过，未判定产品缺陷。",
+        "first_report": "temp/build/v2-d7-full.xml",
+        "recheck_report": "temp/build/v2-d7-isolation.xml"
       }
     ],
     "code_version": "6d4d32de05af01c9a862c681a5018965f443a093987e1037e5dbdd745dc9f341",
@@ -310,12 +310,12 @@
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
-      "passed": 4580,
-      "failed": 3,
+      "passed": 4599,
+      "failed": 2,
       "errors": 0,
-      "isolation_passed": 36,
-      "report": "temp/build/v2-callbacks-final-full.xml",
-      "isolation_report": "temp/build/v2-callbacks-final-isolation.xml"
+      "isolation_passed": 2,
+      "report": "temp/build/v2-d7-full.xml",
+      "isolation_report": "temp/build/v2-d7-isolation.xml"
     },
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",
     "token_evidence": "docs/evidence/v2-owner-token.json",
@@ -897,6 +897,17 @@
       ],
       "remaining": "macOS/Linux 构建安装、容器镜像、V2 安装器/更新器、签名公证、干净机器端到端均未验收。",
       "code_version": "6abdbc8853e316f3a154a1806e9efc29ec0217c0574229bd58de97011e38edc2"
+    },
+    {
+      "id": "R7.verification",
+      "status": "完成（离线）",
+      "development": "完成",
+      "offline_validation": "全量 4601 项：4599 passed / 2 failed / 0 errors；两处并行时序隔离全过",
+      "evidence": [
+        "docs/evidence/v2-d7-verification.json"
+      ],
+      "remaining": "并行时序观察；真实环境与三平台验收未做。",
+      "code_version": "6d4d32de05af01c9a862c681a5018965f443a093987e1037e5dbdd745dc9f341"
     }
   ],
   "latest_source_recovery": {
@@ -1412,9 +1423,9 @@
     {
       "id": "tests.parallel_run_timing_flakes",
       "status": "观察中",
-      "scope": "全量并行下 service_runtime 身份、debug_sink 与 portal_ui 各一处时序失败；同源码隔离 36 项全过，未判定产品缺陷。",
-      "first_report": "temp/build/v2-callbacks-final-full.xml",
-      "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
+      "scope": "全量并行下 memory_organization_ui、portal_ui、debug_sink、service_runtime 身份各一处时序失败；同源码隔离全过，未判定产品缺陷。",
+      "first_report": "temp/build/v2-d7-full.xml",
+      "recheck_report": "temp/build/v2-d7-isolation.xml"
     }
   ]
 }

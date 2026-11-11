@@ -6,8 +6,8 @@
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
 - 当前断点：**D7 产品切换进行中**，能力报告、令牌管理（API/CLI/工作台）、业务清单、导航收敛、strict 类型九批与 Windows 打包验证已完成；剩余 V2 安装器/更新器、容器镜像、三平台构建与干净机器端到端、正式入口切换。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
-- 最新完成批次是 **D7.typecheck.9（严格类型第九批）**：strict 范围扩到 **24 个文件**，新增 application/service_cleanup（依赖已类型化的 service_exchange.progress）与 domain/terminal_review（parse_review 返回 dict[str, object]，键集合/决策/证据显式校验）。strict 门禁 24 文件 **0 errors/0 warnings**。**类型守卫 2 项 + 服务清理/终端核查 41 项全过**；证据 `docs/evidence/v2-typecheck.json`。
-- 功能与基线：strict 24 文件、打包验证 57 项、导航 11 项、业务清单 3 项守卫、令牌工作台与 38 项令牌 API/CLI、能力报告 17 项、宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**最终全量（D7 节点前）：4583 项，4580 passed / 3 failed / 0 errors**（并行时序，隔离 36 项全过，登记观察）。**仍不是全量全绿、全仓严格类型或三平台验收。**
+- 最新完成批次是 **D7.verification（D7 节点后全量复核）**：D7 各节点落地后跑一次全量 **4601 项：4599 passed / 2 failed / 0 errors**（`memory_organization_ui` 迟到详情与 `portal_ui` 各一处并行时序；同源码隔离 2 项全过）。已登记四类并行时序观察（另有 debug_sink、service_runtime 身份），未判定产品缺陷、未放宽断言；证据 `docs/evidence/v2-d7-verification.json`。strict 24 文件仍 0 errors。
+- 功能与基线：strict 24 文件、打包验证 57 项、导航 11 项、业务清单 3 项守卫、令牌工作台与 38 项令牌 API/CLI、能力报告 17 项、宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**仍不是全量全绿、全仓严格类型或三平台验收。**
 - 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）、`1eaf6a9`（能力报告）、`ed5912a`（令牌管理）、`560387d`（令牌工作台）、`9133001`（业务清单）、`1a18fae`（导航收敛）、`6679edf`（类型起步）、`a3aa0e4`（类型第二批）、`cfa9d1d`（类型第三批）、`800e719`（类型第四批）、`7a5568f`（打包验证）、`ac752a1`（类型第五批）、`bd3efe4`（类型第六批）、`dd84b04`（类型第七批）、`3ee417a`（类型第八批）、`0a90cec`（类型第九批）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
@@ -279,11 +279,12 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | `v2-typecheck-9.xml` | 41 | D7 strict 第九批：service_cleanup/terminal_review + 服务清理/终端核查调用方 |
 | `v2-packaging-guard.xml` | 2 | D7 打包：构建门禁 V2 检查项与文档边界守卫 |
 | `v2-packaging-callers.xml` | 57 | D7 打包：发布/部署/drain/schema 恢复调用方 |
+| `v2-d7-full.xml` | 4601 | D7 节点后全量：4599 passed / 2 failed（并行时序）；`v2-d7-isolation.xml` 2 项全过 |
 | `v2-mcp-final.xml` + `-ui` + `-callers` + `-guards` | 150 | 上一批 MCP，共享节点以扩展报告的重跑结果为准 |
 
-门禁 `temp/build/v2-owner-token-ui-gates.json`（ruff / format / prettier / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 5 文件 0 错误）。令牌工作台 16 项节点回归，未再跑全量；最终全量仍为 4580 passed / 3 failed。
+门禁 `temp/build/v2-owner-token-ui-gates.json`（ruff / format / prettier / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 5 文件 0 错误）。令牌工作台 16 项节点回归。
 
-最终全量 `temp/build/v2-callbacks-final-full.xml`：**4583 项，4580 passed / 3 failed / 0 errors**（service_runtime 身份、debug_sink、portal_ui 各一处并行时序）；同源码隔离 `temp/build/v2-callbacks-final-isolation.xml` **36 项全过**，按并行时序抖动登记观察。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、真实市场源、负载或 72 小时结论。
+D7 节点后全量 `temp/build/v2-d7-full.xml`：**4601 项，4599 passed / 2 failed / 0 errors**（`memory_organization_ui` 迟到详情、`portal_ui` 各一处并行时序）；同源码隔离 `temp/build/v2-d7-isolation.xml` 2 项全过。历史观察的并行时序还包括 service_runtime 身份与 debug_sink。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、真实市场源、负载或 72 小时结论。
 
 基线修复批 `docs/evidence/v2-baseline-repair.json`（测试-only，`5f3b46e`）：26 项历史失败全部修复，126 项专项全过；修复当时全量 4574 passed / 2 failed，最终全量如上报 4580 passed / 3 failed，均为并行时序并隔离通过。产品代码未改、未放宽断言。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、负载或 72 小时结论。
 
@@ -360,5 +361,5 @@ uv run --no-sync python scripts/task_status.py --check
 
 - 期望：分支 `codex/architecture-v2`，远端与本地一致（或本地领先本批文档提交），工作区干净。
 - 期望：索引 `modules=65 files=717 routes=430 declared_tools=94`，`stale=` 为空。
-- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D7.product_switch"`（D6.extensions 离线节点已完成，D7 能力报告、令牌管理、业务清单、导航收敛、strict 九批与 Windows 打包验证已完成），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 10`、`current_full_passed == false`（最终全量 4580 passed / 3 failed，三处并行时序隔离 36 项全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；D7 证据 `docs/evidence/v2-capabilities.json`、`docs/evidence/v2-owner-token.json`、`docs/evidence/v2-business-inventory.json`、`docs/evidence/v2-typecheck.json`、`docs/evidence/v2-packaging.json`）。
+- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D7.product_switch"`（D6.extensions 离线节点已完成，D7 能力报告、令牌管理、业务清单、导航收敛、strict 九批、Windows 打包验证与全量复核已完成），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 10`、`current_full_passed == false`（D7 节点后全量 4599 passed / 2 failed，两处并行时序隔离全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；D7 证据 `docs/evidence/v2-capabilities.json`、`docs/evidence/v2-owner-token.json`、`docs/evidence/v2-business-inventory.json`、`docs/evidence/v2-typecheck.json`、`docs/evidence/v2-packaging.json`、`docs/evidence/v2-d7-verification.json`）。
 - 若数字不同：先判断是否有并行会话提交，再决定是否重算索引/摘要；不要改历史证据。
