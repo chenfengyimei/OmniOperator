@@ -10,6 +10,7 @@ import ntpath
 import posixpath
 import re
 import uuid
+from typing import cast
 from urllib.parse import urlsplit
 
 from .contracts import BusinessError
@@ -132,6 +133,27 @@ def _path(value: object, windows: bool) -> str:
     if any(part in {".", ".."} for part in value.split("/")):
         raise invalid()
     return posixpath.normpath(value)
+
+
+def deployment_fields(value: object, keys: set[str] | frozenset[str]) -> dict[str, object]:
+    """Typed public bridge for sibling domain validators that must not import private helpers."""
+    return cast(dict[str, object], _object(value, keys))
+
+
+def deployment_integer(value: object, minimum: int, maximum: int) -> int:
+    return _integer(value, minimum, maximum)
+
+
+def deployment_path(value: object, windows: bool) -> str:
+    return _path(value, windows)
+
+
+def deployment_sha(value: object) -> str:
+    return _sha(value)
+
+
+def deployment_uuid(value: object) -> str:
+    return _uuid(value)
 
 
 def _principal(value: object, windows: bool, system: bool = False) -> dict:

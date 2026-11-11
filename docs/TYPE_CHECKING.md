@@ -22,6 +22,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/release_fence.py` | 启动互斥栅栏纯校验 |
 | `agent/src/omni/domain/memory_semantics.py` | 派生记忆索引/相关事实合并纯规则 |
 | `agent/src/omni/domain/foreground.py` | 前台输入授权与有界输入纯校验 |
+| `agent/src/omni/domain/context.py` | 对话压缩/批次/尾部预算纯规则 |
+| `agent/src/omni/domain/recovery_authority.py` | 恢复授权与源见证校验（经 service_deployment 公共桥） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
@@ -34,10 +36,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 | `domain/model_stream.py` | 75 |
 | `domain/service_control.py` | 94 |
-| `domain/context.py` | 38 |
-| `domain/recovery_authority.py` | 27 |
 
-`memory_semantics.py`（19）与 `foreground.py`（24）已在纳入 strict 前清零；`metering.py`（19）与 `release_fence.py`（16）同样已清零，不再列为基线例外。`application/`、`adapters/`、`composition/`、`agent/tests/` 尚未开始 strict。
+`context.py`（38）与 `recovery_authority.py`（27）已在纳入 strict 前清零；`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，不再列为基线例外。`application/`、`adapters/`、`composition/`、`agent/tests/` 尚未开始 strict。
 
 ## 4. 推进规则
 

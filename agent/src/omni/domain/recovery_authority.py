@@ -5,7 +5,13 @@ from __future__ import annotations
 from typing import TypedDict, cast
 
 from .contracts import BusinessError
-from .service_deployment import _integer, _object, _path, _sha, _uuid
+from .service_deployment import (
+    deployment_fields,
+    deployment_integer,
+    deployment_path,
+    deployment_sha,
+    deployment_uuid,
+)
 
 
 class RecoveryAuthority(TypedDict):
@@ -25,29 +31,32 @@ class RecoverySpec(TypedDict):
     manifest_sha256: str
     isolation: RecoveryAuthority | None
     restore_policy: str
-    expected_source_witness: list[dict]
+    expected_source_witness: list[dict[str, object]]
 
 
-def validate_witness(value: object) -> list[dict]:
-    if not isinstance(value, list) or len(value) != 3:
+def validate_witness(value: object) -> list[dict[str, object]]:
+    if not isinstance(value, list):
         raise BusinessError("release_source_witness_invalid", "Bind the exact source database/WAL/journal fingerprints")
-    rows = []
-    for item, name in zip(value, ("omni.db", "omni.db-wal", "omni.db-journal"), strict=True):
-        row = _object(item, {"path", "sha256", "bytes"})
+    items = cast(list[object], value)
+    if len(items) != 3:
+        raise BusinessError("release_source_witness_invalid", "Bind the exact source database/WAL/journal fingerprints")
+    rows: list[dict[str, object]] = []
+    for item, name in zip(items, ("omni.db", "omni.db-wal", "omni.db-journal"), strict=True):
+        row = deployment_fields(item, {"path", "sha256", "bytes"})
         if row["path"] != name or (row["sha256"] is None and (row["bytes"] is not None or name == "omni.db")):
             raise BusinessError("release_source_witness_invalid", "Source fingerprint identity changed")
         rows.append(
             {
                 "path": name,
-                "sha256": None if row["sha256"] is None else _sha(row["sha256"]),
-                "bytes": None if row["sha256"] is None else _integer(row["bytes"], 0, 1 << 50),
+                "sha256": None if row["sha256"] is None else deployment_sha(row["sha256"]),
+                "bytes": None if row["sha256"] is None else deployment_integer(row["bytes"], 0, 1 << 50),
             }
         )
     return rows
 
 
 def validate_authority(value: object, windows: bool) -> RecoveryAuthority:
-    record = _object(
+    record = deployment_fields(
         value,
         {
             "exchange_id",
@@ -63,13 +72,13 @@ def validate_authority(value: object, windows: bool) -> RecoveryAuthority:
     return cast(
         RecoveryAuthority,
         {
-            "exchange_id": _uuid(record["exchange_id"]),
-            "exchange_sha256": _sha(record["exchange_sha256"]),
-            "exchange_journal": _path(record["exchange_journal"], windows),
-            "isolation_id": _uuid(record["isolation_id"]),
-            "isolation_sha256": _sha(record["isolation_sha256"]),
-            "release_id": _uuid(record["release_id"]),
-            "release_sha256": _sha(record["release_sha256"]),
-            "source_deployment_sha256": _sha(record["source_deployment_sha256"]),
+            "exchange_id": deployment_uuid(record["exchange_id"]),
+            "exchange_sha256": deployment_sha(record["exchange_sha256"]),
+            "exchange_journal": deployment_path(record["exchange_journal"], windows),
+            "isolation_id": deployment_uuid(record["isolation_id"]),
+            "isolation_sha256": deployment_sha(record["isolation_sha256"]),
+            "release_id": deployment_uuid(record["release_id"]),
+            "release_sha256": deployment_sha(record["release_sha256"]),
+            "source_deployment_sha256": deployment_sha(record["source_deployment_sha256"]),
         },
     )
