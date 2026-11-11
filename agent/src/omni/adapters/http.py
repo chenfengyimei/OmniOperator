@@ -82,6 +82,8 @@ class HttpRuntime:
     desktop_actions: DesktopActions
     identity_proof: Callable[[str], dict] | None = None
     drain: Callable[[dict], Awaitable[dict]] | None = None
+    token_sessions: Callable[[], Awaitable[list[dict]]] | None = None
+    rotate_token: Callable[[], Awaitable[dict]] | None = None
     qq: QQService | None = None
     bilibili: BilibiliService | None = None
     media: MediaService | None = None
@@ -549,6 +551,20 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.get("/capabilities")
     async def capabilities(request: Request):
         return capability_report(runtime(request).describe())
+
+    @router.get("/owner-token/sessions")
+    async def owner_token_sessions(request: Request):
+        operation = runtime(request).token_sessions
+        if operation is None:
+            raise BusinessError("owner_token_unavailable", "Owner token sessions are unavailable", status=503)
+        return {"items": await operation()}
+
+    @router.post("/owner-token/rotate")
+    async def owner_token_rotate(request: Request):
+        operation = runtime(request).rotate_token
+        if operation is None:
+            raise BusinessError("owner_token_unavailable", "Owner token rotation is unavailable", status=503)
+        return await operation()
 
     def qq_service(request: Request) -> QQService:
         service = runtime(request).qq

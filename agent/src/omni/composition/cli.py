@@ -277,7 +277,9 @@ def parser() -> argparse.ArgumentParser:
     refs_cancel.add_argument("--reason", required=True)
     indexes = commands.add_parser("indexes", help="Exclusive offline full-text index maintenance")
     indexes.add_argument("operation", choices=["check", "rebuild"])
-    commands.add_parser("auth", help="Print the local owner token (keep it private)")
+    auth = commands.add_parser("auth", help="Print or rotate the local owner token (keep it private)")
+    auth.add_argument("--rotate", action="store_true", help="Rotate via the running instance and print the new token")
+    auth.add_argument("--url", default="http://127.0.0.1:8766")
     diagnostics = commands.add_parser(
         "diagnostics", help="Export bounded metadata without chat, credentials or model/device calls"
     )
@@ -758,7 +760,19 @@ def main() -> int:
                 content = diagnostic_download(paths, args.url)
             print(json.dumps(publish_diagnostic(paths, args.destination, content)))
         elif args.command == "auth":
-            print((paths.control / "owner.token").read_text(encoding="utf-8"))
+            if not args.rotate:
+                print((paths.control / "owner.token").read_text(encoding="utf-8"))
+            else:
+                import httpx
+
+                origin = local_origin(args.url)
+                token = (paths.control / "owner.token").read_text(encoding="utf-8").strip()
+                with httpx.Client(trust_env=False, follow_redirects=False, timeout=10) as client:
+                    response = client.post(
+                        origin + "/api/v1/owner-token/rotate", headers={"Authorization": "Bearer " + token}
+                    )
+                    response.raise_for_status()
+                    print(response.json()["token"])
         elif args.command == "request":
             import httpx
 

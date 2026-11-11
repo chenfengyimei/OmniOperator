@@ -114,6 +114,59 @@ def http_app(
                 digest = hashlib.sha256(token.encode()).hexdigest()
                 return await instance._database.read(lambda u: u.token_valid(digest))
 
+            rotate_lock = asyncio.Lock()
+
+            async def token_sessions() -> list[dict]:
+                rows = await instance._database.read(lambda u: u.token_sessions(50))
+                current = ""
+                if token_path.exists() and not token_path.is_symlink():
+                    current = hashlib.sha256(token_path.read_text(encoding="utf-8").strip().encode()).hexdigest()
+                return [
+                    {
+                        "created_at": str(row["created_at"]),
+                        "expires_at": str(row["expires_at"]),
+                        "revoked_at": row["revoked_at"],
+                        "current": row["token_hash"] == current,
+                    }
+                    for row in rows
+                ]
+
+            async def rotate_token() -> dict:
+                async with rotate_lock:
+                    new_token = secrets.token_urlsafe(32)
+                    digest = hashlib.sha256(new_token.encode()).hexdigest()
+                    expires = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=30)).isoformat(
+                        timespec="microseconds"
+                    )
+                    # Issue first so a crash can only leave an extra valid session,
+                    # never a published token the database does not recognize.
+                    await instance._database.write(lambda u: u.issue_token(digest, expires))
+
+                    def publish() -> None:
+                        if token_path.is_symlink():
+                            raise OSError("Owner token cannot be a link")
+                        staged = token_path.with_name(token_path.name + ".next")
+                        descriptor = os.open(staged, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                        try:
+                            with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+                                stream.write(new_token)
+                                stream.flush()
+                                os.fsync(stream.fileno())
+                            os.replace(staged, token_path)
+                            private_path(token_path)
+                        except BaseException:
+                            try:
+                                staged.unlink()
+                            except OSError:
+                                pass
+                            raise
+
+                    await asyncio.to_thread(publish)
+                    await instance._database.write(lambda u: u.revoke_other_tokens(digest))
+                    instance._logging.sink.redactor.register(new_token)
+                    # Returned exactly once; never logged or persisted outside the control file.
+                    return {"token": new_token, "expires_at": expires}
+
             async def logs(query: LogQuery) -> dict:
                 return await instance.operations.logs(asdict(query))
 
@@ -169,6 +222,8 @@ def http_app(
                 desktop_actions=instance.desktop_actions,
                 identity_proof=instance.identity_proof,
                 drain=drain if shutdown is not None else None,
+                token_sessions=token_sessions,
+                rotate_token=rotate_token,
             )
         except BaseException:
             await instance.close()

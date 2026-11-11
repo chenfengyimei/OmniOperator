@@ -125,6 +125,23 @@ class Repositories(
             is not None
         )
 
+    def token_sessions(self, limit: int = 50) -> list[dict]:
+        if type(limit) is not int or not 1 <= limit <= 50:
+            raise ValueError("Token session limit is not bounded")
+        return [
+            dict(row)
+            for row in self.connection.execute(
+                select(s.auth_sessions).order_by(s.auth_sessions.c.created_at.desc()).limit(limit)
+            ).mappings()
+        ]
+
+    def revoke_other_tokens(self, keep_hash: str) -> None:
+        self.connection.execute(
+            update(s.auth_sessions)
+            .where(s.auth_sessions.c.revoked_at.is_(None), s.auth_sessions.c.token_hash != keep_hash)
+            .values(revoked_at=self.clock.now())
+        )
+
     def _message(self, agent_id: str, session_id: str, role: str, text: str) -> dict:
         session = self._one(s.sessions, agent_id, session_id)
         if session["deleted_at"]:
