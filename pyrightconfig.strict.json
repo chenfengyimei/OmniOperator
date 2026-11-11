@@ -7,6 +7,7 @@
     "agent/src/omni/domain/foreground.py",
     "agent/src/omni/domain/memory_semantics.py",
     "agent/src/omni/domain/metering.py",
+    "agent/src/omni/domain/model_stream.py",
     "agent/src/omni/domain/objects.py",
     "agent/src/omni/domain/people.py",
     "agent/src/omni/domain/recovery_authority.py",

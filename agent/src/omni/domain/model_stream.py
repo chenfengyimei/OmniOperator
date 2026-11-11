@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
+from typing import cast
 
-from .contracts import BusinessError, Invocation, ModelReply
+from .contracts import JSON, BusinessError, Invocation, ModelReply
 
 MAX_TEXT_BYTES = 1024 * 1024
 MAX_ARGUMENT_BYTES = 262144
 MAX_CHUNKS = 32768
 MAX_FRAME_BYTES = 262144
 MAX_STREAM_BYTES = 8 * 1024 * 1024
+FINISH_REASONS = {"stop", "tool_calls", "length", "content_filter"}
 
 
 def invalid(code: str = "invalid_model_stream") -> BusinessError:
@@ -34,57 +37,61 @@ def integer(value: object) -> int:
     return value
 
 
+def _mapping(value: object) -> Mapping[str, object] | None:
+    return cast(Mapping[str, object], value) if isinstance(value, dict) else None
+
+
 class StreamAssembly:
-    def __init__(self):
+    def __init__(self) -> None:
         self.fragments: list[str] = []
         self.calls: dict[int, dict[str, str]] = {}
         self.bytes = self.argument_bytes = self.chunks = self.wire_bytes = 0
         self.finish_reason = ""
         self.model = ""
-        self.usage: dict | None = None
+        self.usage: dict[str, object] | None = None
         self.refused = False
 
-    def feed(self, payload: dict) -> str:
+    def feed(self, payload: object) -> str:
         self.chunks += 1
-        if self.chunks > MAX_CHUNKS or not isinstance(payload, dict):
+        data = _mapping(payload)
+        if self.chunks > MAX_CHUNKS or data is None:
             raise invalid()
         try:
-            size = len(json.dumps(payload, ensure_ascii=False, allow_nan=False).encode("utf-8"))
+            size = len(json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8"))
         except (ValueError, TypeError, UnicodeError):
             raise invalid() from None
         self.wire_bytes += size
         if size > MAX_FRAME_BYTES or self.wire_bytes > MAX_STREAM_BYTES:
             raise invalid("model_stream_too_large")
-        model = payload.get("model")
+        model = data.get("model")
         if model:
-            model = text(model)
-            if len(model) > 300 or self.model and model != self.model:
+            label = text(model)
+            if len(label) > 300 or self.model and label != self.model:
                 raise invalid()
-            self.model = model
-        usage = payload.get("usage")
-        if usage is not None:
-            if not isinstance(usage, dict) or self.usage is not None:
+            self.model = label
+        usage_value = data.get("usage")
+        if usage_value is not None:
+            usage = _mapping(usage_value)
+            if usage is None or self.usage is not None:
                 raise invalid()
             for name in ("prompt_tokens", "completion_tokens"):
                 integer(usage.get(name))
             self.usage = dict(usage)
-        choices = payload.get("choices")
-        if not isinstance(choices, list) or len(choices) > 1:
+        choices_value = data.get("choices")
+        if not isinstance(choices_value, list):
+            raise invalid()
+        choices = cast(list[object], choices_value)
+        if len(choices) > 1:
             raise invalid()
         if not choices:
-            if not self.finish_reason or usage is None:
+            if not self.finish_reason or usage_value is None:
                 raise invalid()
             return ""
-        choice = choices[0]
-        if (
-            not isinstance(choice, dict)
-            or type(choice.get("index")) is not int
-            or choice["index"] != 0
-            or self.finish_reason
-        ):
+        choice = _mapping(choices[0])
+        if choice is None or type(choice.get("index")) is not int or choice["index"] != 0 or self.finish_reason:
             raise invalid()
-        delta = choice.get("delta")
-        if not isinstance(delta, dict) or delta.get("role") not in (None, "assistant") or delta.get("function_call"):
+        delta = _mapping(choice.get("delta"))
+        if delta is None or delta.get("role") not in (None, "assistant") or delta.get("function_call"):
             raise invalid()
         if delta.get("refusal") is not None:
             self.refused = bool(text(delta["refusal"])) or self.refused
@@ -94,24 +101,31 @@ class StreamAssembly:
             raise invalid("model_stream_too_large")
         if value:
             self.fragments.append(value)
-        calls = delta.get("tool_calls") or []
-        if not isinstance(calls, list) or len(calls) > 32:
+        calls_value = delta.get("tool_calls")
+        if calls_value is None:
+            calls: list[object] = []
+        elif isinstance(calls_value, list):
+            calls = cast(list[object], calls_value)
+        else:
             raise invalid()
-        for item in calls:
-            if not isinstance(item, dict) or item.get("type") not in (None, "function"):
+        if len(calls) > 32:
+            raise invalid()
+        for item_value in calls:
+            item = _mapping(item_value)
+            if item is None or item.get("type") not in (None, "function"):
                 raise invalid()
             index = integer(item.get("index"))
             if index >= 32:
                 raise invalid()
             call = self.calls.setdefault(index, {"id": "", "name": "", "arguments": ""})
-            identifier = item.get("id")
-            if identifier:
-                identifier = text(identifier)
+            identifier_value = item.get("id")
+            if identifier_value:
+                identifier = text(identifier_value)
                 if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,200}", identifier) or call["id"] and identifier != call["id"]:
                     raise invalid()
                 call["id"] = identifier
-            function = item.get("function") or {}
-            if not isinstance(function, dict):
+            function = _mapping(item.get("function") or {})
+            if function is None:
                 raise invalid()
             name = text(function["name"]) if function.get("name") is not None else ""
             arguments = text(function["arguments"]) if function.get("arguments") is not None else ""
@@ -124,10 +138,10 @@ class StreamAssembly:
             call["arguments"] += arguments
         finish = choice.get("finish_reason")
         if finish is not None:
-            if finish not in {"stop", "tool_calls", "length", "content_filter"}:
+            if not isinstance(finish, str) or finish not in FINISH_REASONS:
                 raise invalid()
             self.finish_reason = finish
-        if usage is not None and not self.finish_reason:
+        if usage_value is not None and not self.finish_reason:
             raise invalid()
         return value
 
@@ -140,11 +154,11 @@ class StreamAssembly:
             and not self.calls
         ):
             raise invalid("model_stream_incomplete")
-        invocations = []
+        invocations: list[Invocation] = []
         if self.finish_reason == "tool_calls":
 
-            def pairs(entries):
-                result = {}
+            def pairs(entries: list[tuple[str, object]]) -> dict[str, object]:
+                result: dict[str, object] = {}
                 for key, value in entries:
                     if key in result:
                         raise invalid()
@@ -159,21 +173,21 @@ class StreamAssembly:
                 ):
                     raise invalid()
                 try:
-                    arguments = json.loads(
+                    decoded = json.loads(
                         call["arguments"],
                         object_pairs_hook=pairs,
                         parse_constant=lambda _: (_ for _ in ()).throw(invalid()),
                     )
                 except (ValueError, TypeError):
                     raise invalid("invalid_tool_arguments") from None
-                if not isinstance(arguments, dict) or call["id"] in {c.id for c in invocations}:
+                if not isinstance(decoded, dict) or call["id"] in {item.id for item in invocations}:
                     raise invalid("invalid_tool_arguments")
-                invocations.append(Invocation(call["id"], call["name"], arguments))
+                invocations.append(Invocation(call["id"], call["name"], cast(dict[str, JSON], decoded)))
         return ModelReply(
             "".join(self.fragments),
             tuple(invocations),
-            self.usage["prompt_tokens"] if self.usage else None,
-            self.usage["completion_tokens"] if self.usage else None,
+            integer(self.usage["prompt_tokens"]) if self.usage else None,
+            integer(self.usage["completion_tokens"]) if self.usage else None,
             cost_micro,
             completion_reason="content_filter" if self.refused else self.finish_reason,
         )
