@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "38f088f6454c25ab250a85872759188d8890fb797cf12d2ba7b5ddb7c4521a5f",
+  "source_sha256": "17b54831d16a3cd9394e2f4939e87fb6393a9986f22ac29ce8df728537861826",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8993,
+      "lines": 8994,
       "dependencies": []
     },
     {
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10831,
+      "lines": 10835,
       "dependencies": [
         "v2-domain"
       ]
@@ -38375,7 +38375,7 @@
       "path": "agent/src/omni/application/exchange_steps.py",
       "module": "v2-application",
       "python_module": "omni.application.exchange_steps",
-      "lines": 138,
+      "lines": 139,
       "imports": [
         "omni.application.ports",
         "omni.application.releases",
@@ -38389,12 +38389,12 @@
       "symbols": [
         {
           "name": "ExchangeSteps",
-          "line": 18,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "ExchangeSteps.__init__",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -38416,7 +38416,7 @@
         },
         {
           "name": "ExchangeSteps.admit",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -38432,7 +38432,7 @@
         },
         {
           "name": "ExchangeSteps.prepared",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -38444,7 +38444,7 @@
         },
         {
           "name": "ExchangeSteps.perform",
-          "line": 61,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -38460,7 +38460,7 @@
         },
         {
           "name": "ExchangeSteps.close",
-          "line": 131,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -51471,7 +51471,7 @@
       "path": "agent/src/omni/application/service_operations.py",
       "module": "v2-application",
       "python_module": "omni.application.service_operations",
-      "lines": 281,
+      "lines": 284,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -51531,7 +51531,7 @@
           }
         },
         {
-          "name": "ServiceOperations._verify_operation_deployment",
+          "name": "ServiceOperations.verify_operation_deployment",
           "line": 44,
           "kind": "function",
           "parameters": [
@@ -51543,8 +51543,20 @@
           }
         },
         {
+          "name": "ServiceOperations._verify_operation_deployment",
+          "line": 47,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "deployment"
+          ],
+          "annotations": {
+            "deployment": "Record"
+          }
+        },
+        {
           "name": "ServiceOperations.apply",
-          "line": 53,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -51560,7 +51572,7 @@
         },
         {
           "name": "ServiceOperations.reconcile",
-          "line": 59,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -51574,7 +51586,7 @@
         },
         {
           "name": "ServiceOperations.cancel",
-          "line": 64,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self",
@@ -51586,7 +51598,7 @@
         },
         {
           "name": "ServiceOperations._start",
-          "line": 67,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -51604,7 +51616,7 @@
         },
         {
           "name": "ServiceOperations._run",
-          "line": 79,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -51622,7 +51634,7 @@
         },
         {
           "name": "ServiceOperations._record",
-          "line": 224,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self",
@@ -51646,7 +51658,7 @@
         },
         {
           "name": "ServiceOperations._settle",
-          "line": 253,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self"
@@ -51655,7 +51667,7 @@
         },
         {
           "name": "ServiceOperations._release",
-          "line": 266,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "self"
@@ -51664,7 +51676,7 @@
         },
         {
           "name": "ServiceOperations.close",
-          "line": 271,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "self",
@@ -68044,7 +68056,7 @@
       "path": "agent/src/omni/domain/service_operations.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_operations",
-      "lines": 129,
+      "lines": 130,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_deployment"
@@ -68052,7 +68064,7 @@
       "symbols": [
         {
           "name": "operation_steps",
-          "line": 15,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "plan",
@@ -68065,7 +68077,7 @@
         },
         {
           "name": "make_operation",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "deployment",
@@ -68082,7 +68094,7 @@
         },
         {
           "name": "_fingerprint",
-          "line": 72,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "value"
@@ -68093,7 +68105,7 @@
         },
         {
           "name": "validate_operation",
-          "line": 78,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "data"
@@ -68104,7 +68116,7 @@
         },
         {
           "name": "registration_goal",
-          "line": 107,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "action",
@@ -68112,12 +68124,12 @@
           ],
           "annotations": {
             "action": "str",
-            "report": "dict"
+            "report": "Mapping[str, object]"
           }
         },
         {
           "name": "registration_precondition",
-          "line": 123,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "action",
