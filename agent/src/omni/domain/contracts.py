@@ -104,7 +104,8 @@ class ToolSpec:
             raise ValueError("Invalid capability name")
         if not math.isfinite(self.timeout_s) or self.timeout_s <= 0:
             raise ValueError("Capability timeout must be finite and positive")
-        if self.binding_id and str(uuid.UUID(self.binding_id)) != self.binding_id:
+        binding: object = cast(object, self.binding_id)
+        if not isinstance(binding, str) or (binding and str(uuid.UUID(binding)) != binding):
             raise ValueError("Capability binding requires a canonical UUID")
 
 
