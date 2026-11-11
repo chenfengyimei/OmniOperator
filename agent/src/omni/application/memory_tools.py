@@ -7,7 +7,7 @@ from typing import cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome
 from .memory_semantics import MemorySemanticService
-from .ports import DatabasePort
+from .ports import DatabasePort, Record, UnitOfWork
 
 
 class MemoryCapabilities:
@@ -49,10 +49,10 @@ class MemoryCapabilities:
                     Outcome.OK,
                     "\n".join(f"{row['id']} revision={row['revision']}: {row['content']}" for row in rows)
                     or "No memories matched",
-                    data=cast(dict, {**result, "entries": rows}),
+                    data=cast(dict[str, JSON], {**result, "entries": rows}),
                 )
 
-            def search(u):
+            def search(u: UnitOfWork) -> list[Record]:
                 rows = u.search_memory(context.agent_id, str(arguments["query"]))
                 u.capture_tool_memories(context.agent_id, context.run_id, [str(row["id"]) for row in rows])
                 return rows
