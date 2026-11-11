@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "96d580b5467ad012481947ba07756096b5b27cc3c70bea8d57e877d51597b1ac",
+  "source_sha256": "7d3fff84e0645310c3768cb78335d86ae9e960979a9a134125300bdb5ea9e837",
   "modules": [
     {
       "id": "v2-domain",
@@ -347,6 +347,7 @@
         "agent/src/omni/adapters/platform/wheel_backup.py",
         "agent/src/omni/adapters/platform/wheel_prepare.py",
         "agent/src/omni/adapters/platform/wheel_rollback.py",
+        "agent/src/omni/adapters/platform/wheel_smoke.py",
         "agent/src/omni/adapters/platform/wheel_stage.py",
         "agent/src/omni/adapters/platform/wheel_status.py",
         "agent/src/omni/adapters/platform/wheel_switch.py",
@@ -400,7 +401,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51952,
+      "lines": 52036,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -435,7 +436,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2871,
+      "lines": 2880,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30880,6 +30881,44 @@
       "summary": "Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_smoke.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_smoke",
+      "lines": 84,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.wheel_prepare",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 27,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "smoke_candidate",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/wheel_stage.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_stage",
@@ -57731,7 +57770,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 930,
+      "lines": 939,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57752,6 +57791,7 @@
         "omni.adapters.platform.wheel_backup",
         "omni.adapters.platform.wheel_prepare",
         "omni.adapters.platform.wheel_rollback",
+        "omni.adapters.platform.wheel_smoke",
         "omni.adapters.platform.wheel_stage",
         "omni.adapters.platform.wheel_status",
         "omni.adapters.platform.wheel_switch",
@@ -57811,7 +57851,7 @@
         },
         {
           "name": "local_origin",
-          "line": 400,
+          "line": 403,
           "kind": "function",
           "parameters": [
             "value"
@@ -57822,7 +57862,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 419,
+          "line": 422,
           "kind": "function",
           "parameters": [
             "paths",
@@ -57835,7 +57875,7 @@
         },
         {
           "name": "main",
-          "line": 461,
+          "line": 464,
           "kind": "function",
           "parameters": [],
           "annotations": {}
