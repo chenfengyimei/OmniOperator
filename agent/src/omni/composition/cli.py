@@ -139,8 +139,8 @@ def parser() -> argparse.ArgumentParser:
     installation = commands.add_parser("installation", help="V2 installation receipt and read-only upgrade preflight")
     installation.add_argument(
         "operation",
-        choices=["verify", "seal", "artifact", "stage", "prepare"],
-        help="Verify without writing, seal once, check/stage/prepare a wheel",
+        choices=["verify", "seal", "artifact", "stage", "prepare", "switch-plan"],
+        help="Verify without writing, seal once, check/stage/prepare a wheel, or plan a switch",
     )
     installation.add_argument("artifact", nargs="?", type=Path, help="Wheel to verify for the artifact operation")
     installation.add_argument("--sha256", default="", help="Expected wheel SHA256 for the artifact operation")
@@ -690,6 +690,12 @@ def main() -> int:
                 from ..adapters.platform.wheel_prepare import prepare_wheel
 
                 print(json.dumps(prepare_wheel(paths.home, args.sha256)))
+            elif args.operation == "switch-plan":
+                if not args.sha256:
+                    raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
+                from ..adapters.platform.wheel_switch import switch_plan
+
+                print(json.dumps(switch_plan(paths, args.sha256)))
             else:
                 print(json.dumps(installation_report(paths)))
         elif args.command == "doctor":

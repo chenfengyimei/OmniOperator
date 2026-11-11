@@ -49,6 +49,7 @@ python -m omni.composition.cli --home <home> installation seal
 - `installation artifact <wheel> --sha256 <hex>` 只读校验候选 wheel：SHA256、zip CRC、成员数/解压体积上限、绝对路径/反斜杠/`..` 越界、重名、缺少 `omni/web_assets/index.html`/`ui/v2/index.html` 或 METADATA 均 fail-closed；只报告，不解压安装。
 - `installation stage <wheel> --sha256 <hex>` 在 artifact 校验通过后把 wheel 原子复制到 `<home>/updates/<sha 前16>/artifact.whl`，写 `staged.json`（`extracted=false`、`installed=false`）；同 SHA 重放幂等 `written=false`，损坏收据 fail-closed；不解压、不建 venv、不切换、不迁移。
 - `installation prepare --sha256 <hex>` 仅对已暂存且哈希未变的 wheel 解包到 `<home>/updates/<sha 前16>/tree`：重新校验 SHA/CRC/成员上限/越界/重名/V2 资源，成功后写 `prepared.json`；同 SHA 重放幂等 `written=false`，失败清理 `.tree.partial`；仍不建 venv、不切换、不迁移。
+- `installation switch-plan --sha256 <hex>` 只读生成切换计划：要求候选已 prepare、安装收据有效且与当前数据库 schema 一致、实例未被占用；输出 backup/stop/switch/migrate/seal/start/health 七步与 `executable=false`、`requires_owner_approval=true`，不执行任何步骤。
 - **仍未完成**：不下载 wheel（artifact/stage 只处理本地文件）、不创建 venv、不切换运行目录、不执行迁移、不回滚、不卸载；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
 
 ## 4. 明确未完成

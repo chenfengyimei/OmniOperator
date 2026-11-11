@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`74a6bad5222f58a5431ce27171b8dbe3008d07b81e1d04767b63bcef5f8a61a4`。包含 65 个职责模块、722 个源码/界面文件。
+源码指纹：`4d876a50260086c5f88c26fb8f3f72f4bfa0d19ef068033ab27ba93c9fbb2d16`。包含 65 个职责模块、723 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -322,6 +322,7 @@
 | [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
 | [agent/src/omni/adapters/platform/wheel_prepare.py](../../agent/src/omni/adapters/platform/wheel_prepare.py) | 118 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_stage.py](../../agent/src/omni/adapters/platform/wheel_stage.py) | 70 | Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations. |
+| [agent/src/omni/adapters/platform/wheel_switch.py](../../agent/src/omni/adapters/platform/wheel_switch.py) | 88 | Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back. |
 | [agent/src/omni/adapters/platform/workspaces.py](../../agent/src/omni/adapters/platform/workspaces.py) | 27 | Workspace admission keeps instance control, secrets and installed code private. |
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 105 | Process-owned logging and exception hooks; installed only by the executable host. |
@@ -386,7 +387,7 @@
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 164 | Explicit builtin capability registration; capabilities never construct the kernel. |
-| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 915 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
+| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 921 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 232 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 735 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 156 | Own startup rollback and one shared shutdown budget; never dispatches business work. |

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "74a6bad5222f58a5431ce27171b8dbe3008d07b81e1d04767b63bcef5f8a61a4",
+  "source_sha256": "4d876a50260086c5f88c26fb8f3f72f4bfa0d19ef068033ab27ba93c9fbb2d16",
   "modules": [
     {
       "id": "v2-domain",
@@ -346,6 +346,7 @@
         "agent/src/omni/adapters/platform/wheel_artifact.py",
         "agent/src/omni/adapters/platform/wheel_prepare.py",
         "agent/src/omni/adapters/platform/wheel_stage.py",
+        "agent/src/omni/adapters/platform/wheel_switch.py",
         "agent/src/omni/adapters/platform/workspaces.py",
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
@@ -396,7 +397,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51634,
+      "lines": 51722,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -431,7 +432,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2856,
+      "lines": 2862,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30826,6 +30827,57 @@
       "summary": "Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_switch.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_switch",
+      "lines": 88,
+      "imports": [
+        "omni.adapters.persistence.migration_config",
+        "omni.adapters.platform.paths",
+        "omni.adapters.platform.wheel_prepare",
+        "omni.domain.contracts",
+        "omni.domain.installation"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_schema",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "database"
+          ],
+          "annotations": {
+            "database": "Path"
+          }
+        },
+        {
+          "name": "switch_plan",
+          "line": 31,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/workspaces.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.workspaces",
@@ -57535,7 +57587,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 915,
+      "lines": 921,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57555,6 +57607,7 @@
         "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_prepare",
         "omni.adapters.platform.wheel_stage",
+        "omni.adapters.platform.wheel_switch",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
         "omni.application.service_deployment",
