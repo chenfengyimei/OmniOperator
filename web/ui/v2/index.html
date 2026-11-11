@@ -7,8 +7,8 @@
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v52" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v52" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v53" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v53" />
   </head>
   <body>
     <header>
@@ -35,6 +35,7 @@
           <button type="button" data-page="desktop">桌面能力</button>
           <button type="button" data-page="logs">诊断日志</button>
           <button type="button" data-page="capabilities">能力</button>
+          <button type="button" data-page="tokens">令牌</button>
           <button type="button" data-page="audit">审计记录</button>
           <button type="button" data-page="objects">文件</button>
           <button type="button" data-page="people">人物与档案</button>
@@ -1126,6 +1127,22 @@
           <div id="capabilities-list"></div>
           <pre id="capabilities-notes"></pre>
         </section>
+        <section id="tokens" class="page" hidden>
+          <h1>所有者令牌</h1>
+          <p class="muted">
+            列出本机 owner
+            会话并支持显式轮换。轮换后旧令牌立即失效，新令牌只显示一次；令牌不写入日志、诊断包或页面存储。
+          </p>
+          <div class="actions">
+            <button id="token-refresh" type="button">刷新会话</button>
+            <button id="token-rotate" type="button">轮换令牌</button>
+            <button id="token-hide" type="button">隐藏新令牌</button>
+          </div>
+          <p id="token-status" role="status"></p>
+          <pre id="token-new"></pre>
+          <div id="token-sessions"></div>
+          <pre id="token-notes"></pre>
+        </section>
         <section id="logs" class="page" hidden>
           <h1>诊断日志</h1>
           <div class="actions">
@@ -1379,8 +1396,8 @@
         </section>
       </section>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261110v52"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v52"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261110v52"></script>
+    <script src="/assets/vendor/xterm.js?v=20261110v53"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v53"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261110v53"></script>
   </body>
 </html>

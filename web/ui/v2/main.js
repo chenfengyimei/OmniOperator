@@ -1,27 +1,28 @@
-import { mountSkills } from './skills.js?v=20261110v52';
-import { mountCredentials } from './credentials.js?v=20261110v52';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261110v52';
-import { mountCapabilities } from './capabilities.js?v=20261110v52';
-import { mountDocuments } from './documents.js?v=20261110v52';
-import { mountConfiguration } from './configuration.js?v=20261110v52';
+import { mountSkills } from './skills.js?v=20261110v53';
+import { mountCredentials } from './credentials.js?v=20261110v53';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261110v53';
+import { mountCapabilities } from './capabilities.js?v=20261110v53';
+import { mountTokens } from './tokens.js?v=20261110v53';
+import { mountDocuments } from './documents.js?v=20261110v53';
+import { mountConfiguration } from './configuration.js?v=20261110v53';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261110v52';
-import { mountDeliveries } from './deliveries.js?v=20261110v52';
-import { mountSchedules } from './schedules.js?v=20261110v52';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261110v52';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261110v52';
-import { mountExtensions } from './extensions.js?v=20261110v52';
-import { mountActionReviews } from './action-reviews.js?v=20261110v52';
-import { mountTerminals } from './terminals.js?v=20261110v52';
-import { mountDesktop } from './desktop.js?v=20261110v52';
-import { mountQQ } from './qq.js?v=20261110v52';
-import { mountBilibili } from './bilibili.js?v=20261110v52';
-import { mountMedia } from './media.js?v=20261110v52';
-import { mountMcp } from './mcp.js?v=20261110v52';
-import { mountAndroid } from './android.js?v=20261110v52';
-import { mountModelOutput } from './model-output.js?v=20261110v52';
-import { mountRouting } from './routing.js?v=20261110v52';
-import { mountChatImages } from './chat-images.js?v=20261110v52';
+import { mountPeople } from './people.js?v=20261110v53';
+import { mountDeliveries } from './deliveries.js?v=20261110v53';
+import { mountSchedules } from './schedules.js?v=20261110v53';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261110v53';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261110v53';
+import { mountExtensions } from './extensions.js?v=20261110v53';
+import { mountActionReviews } from './action-reviews.js?v=20261110v53';
+import { mountTerminals } from './terminals.js?v=20261110v53';
+import { mountDesktop } from './desktop.js?v=20261110v53';
+import { mountQQ } from './qq.js?v=20261110v53';
+import { mountBilibili } from './bilibili.js?v=20261110v53';
+import { mountMedia } from './media.js?v=20261110v53';
+import { mountMcp } from './mcp.js?v=20261110v53';
+import { mountAndroid } from './android.js?v=20261110v53';
+import { mountModelOutput } from './model-output.js?v=20261110v53';
+import { mountRouting } from './routing.js?v=20261110v53';
+import { mountChatImages } from './chat-images.js?v=20261110v53';
 
 const $ = (id) => document.getElementById(id);
 let token = '',
@@ -106,6 +107,15 @@ const deliveriesPanel = mountDeliveries({ api, wrap, getAgent: () => agent, getG
 const credentialsPanel = mountCredentials({ api, wrap, getGeneration: () => generation });
 const operationsPanel = mountOperations({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const capabilitiesPanel = mountCapabilities({ api, wrap, getGeneration: () => generation });
+const tokensPanel = mountTokens({
+  api,
+  wrap,
+  getGeneration: () => generation,
+  onRotated: (value) => {
+    token = value;
+    $('token').value = value;
+  },
+});
 const extensionsPanel = mountExtensions({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const actionReviewsPanel = mountActionReviews({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
 const terminalsPanel = mountTerminals({ api, wrap, getAgent: () => agent, getGeneration: () => generation });
@@ -456,6 +466,7 @@ async function selectAgent() {
   deliveriesPanel.reset();
   operationsPanel.reset();
   capabilitiesPanel.reset();
+  tokensPanel.reset();
   auditPanel.reset();
   credentialsPanel.reset();
   memoryOrganizationPanel.reset();
@@ -489,6 +500,7 @@ async function selectAgent() {
   if (page === 'desktop') await desktopPanel.load();
   if (page === 'logs') await operationsPanel.load();
   if (page === 'capabilities') await capabilitiesPanel.load();
+  if (page === 'tokens') await tokensPanel.load();
   if (page === 'audit') await auditPanel.load();
   if (page === 'settings') await credentialsPanel.load();
   if (page === 'objects') await loadObjects();
@@ -760,6 +772,7 @@ for (const button of document.querySelectorAll('[data-page]'))
       if (selectedPage === 'settings') await Promise.all([credentialsPanel.load(), routingPanel.load()]);
       if (selectedPage === 'logs') await Promise.all([loadLogs(), operationsPanel.load()]);
       if (selectedPage === 'capabilities') await capabilitiesPanel.load();
+      if (selectedPage === 'tokens') await tokensPanel.load();
       if (selectedPage === 'audit') await auditPanel.load();
       if (selectedPage === 'objects') await loadObjects();
       if (selectedPage === 'people') await peoplePanel.load();
