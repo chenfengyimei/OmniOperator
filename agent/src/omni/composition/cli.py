@@ -132,8 +132,8 @@ def parser() -> argparse.ArgumentParser:
     installation = commands.add_parser("installation", help="V2 installation receipt and read-only upgrade preflight")
     installation.add_argument(
         "operation",
-        choices=["verify", "seal", "artifact", "stage", "prepare", "switch-plan", "backup", "rollback-check"],
-        help="Verify/seal/check/stage/prepare, plan, back up, or drill a rollback",
+        choices=["verify", "seal", "artifact", "stage", "prepare", "switch-plan", "backup", "rollback-check", "status"],
+        help="Verify/seal/check/stage/prepare, plan, back up, drill a rollback, or show status",
     )
     installation.add_argument("artifact", nargs="?", type=Path, help="Wheel to verify for the artifact operation")
     installation.add_argument("--sha256", default="", help="Expected wheel SHA256 for the artifact operation")
@@ -701,6 +701,10 @@ def main() -> int:
                 from ..adapters.platform.wheel_rollback import rollback_check
 
                 print(json.dumps(rollback_check(paths, args.sha256)))
+            elif args.operation == "status":
+                from ..adapters.platform.wheel_status import installation_status
+
+                print(json.dumps(installation_status(paths)))
             else:
                 print(json.dumps(installation_report(paths)))
         elif args.command == "doctor":

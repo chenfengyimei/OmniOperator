@@ -52,6 +52,7 @@ python -m omni.composition.cli --home <home> installation seal
 - `installation switch-plan --sha256 <hex>` 只读生成切换计划：要求候选已 prepare、安装收据有效且与当前数据库 schema 一致、实例未被占用；输出 backup/stop/switch/migrate/seal/start/health 七步与 `executable=false`、`requires_owner_approval=true`，不执行任何步骤。
 - `installation backup --sha256 <hex>` 只执行计划中的备份步：复用同一前置校验，调用既有 `backup` 在 home **之外**创建一致快照（拒绝覆盖已存在目录），在暂存目录写 `backup.json`（含 manifest SHA256）；同 SHA 重放幂等 `written=false`；不停服、不切换、不迁移。
 - `installation rollback-check --sha256 <hex>` 只做回滚演练：把 `backup.json` 指向的快照 restore 到 home 之外的**新目录**，用 `inspect_database` 校验完整性与 schema，写 `rollback.json`；同 SHA 幂等、目标已存在则拒绝；不触碰 live home。
+- `installation status` 只读汇总：收据有效性、数据库/WAL/当前与期望 schema、是否需要升级，以及 `updates/<sha16>` 下每个候选的 staged/prepared/backup/rollback 与 `next_step`；不创建目录、不写文件。
 - **仍未完成**：不下载 wheel（artifact/stage 只处理本地文件）、不创建 venv、不切换运行目录、不执行迁移、不执行 live 回滚、不卸载；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
 
 ## 4. 明确未完成

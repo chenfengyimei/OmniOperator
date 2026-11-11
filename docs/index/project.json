@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "14646b1ea001883425a0fcfdc8b6253b083edf92523075cde2f53e45ca0e9965",
+  "source_sha256": "96d580b5467ad012481947ba07756096b5b27cc3c70bea8d57e877d51597b1ac",
   "modules": [
     {
       "id": "v2-domain",
@@ -348,6 +348,7 @@
         "agent/src/omni/adapters/platform/wheel_prepare.py",
         "agent/src/omni/adapters/platform/wheel_rollback.py",
         "agent/src/omni/adapters/platform/wheel_stage.py",
+        "agent/src/omni/adapters/platform/wheel_status.py",
         "agent/src/omni/adapters/platform/wheel_switch.py",
         "agent/src/omni/adapters/platform/workspaces.py",
         "agent/src/omni/adapters/primitives.py",
@@ -399,7 +400,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51863,
+      "lines": 51952,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -434,7 +435,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2867,
+      "lines": 2871,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30920,6 +30921,55 @@
       "summary": "Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_status.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_status",
+      "lines": 89,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.persistence.migration_config",
+        "omni.adapters.platform.paths",
+        "omni.domain.contracts",
+        "omni.domain.installation"
+      ],
+      "symbols": [
+        {
+          "name": "_read",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "_next_step",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "stage"
+          ],
+          "annotations": {
+            "stage": "Path"
+          }
+        },
+        {
+          "name": "installation_status",
+          "line": 37,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        }
+      ],
+      "summary": "Read-only installation/update status projection; never mutates, plans, switches or migrates."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/wheel_switch.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_switch",
@@ -57681,7 +57731,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 926,
+      "lines": 930,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57703,6 +57753,7 @@
         "omni.adapters.platform.wheel_prepare",
         "omni.adapters.platform.wheel_rollback",
         "omni.adapters.platform.wheel_stage",
+        "omni.adapters.platform.wheel_status",
         "omni.adapters.platform.wheel_switch",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
