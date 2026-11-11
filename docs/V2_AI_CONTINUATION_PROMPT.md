@@ -18,13 +18,13 @@
 **先核对这些事实，不一致时以源码与台账为准：**
 
 - V2 未完成，默认正式入口仍是 V1；独立入口 `uv run --no-sync python -m omni.composition.cli --home <全新绝对目录> serve`，默认 `127.0.0.1:8766`。
-- 结构 **136 表 / `v2_0037`**，前端资源标识 **`20261110v53`**，索引 **65 模块 / 717 文件 / 430 路由 / 94 声明工具**。
-- 最新证据 `docs/evidence/v2-business-inventory.json`（业务清单 2 项守卫）、`docs/evidence/v2-owner-token.json`（令牌管理 38 项 + 令牌工作台 16 项）、`docs/evidence/v2-capabilities.json`（能力报告 17 项）、`docs/evidence/v2-extension-callbacks.json`（宿主回调 93 项 + 最终全量/隔离）、`docs/evidence/v2-extension-market.json`（市场扫描 62 + 工作台 25）、`docs/evidence/v2-extension-artifacts.json`（产物协议 146 + 工作台/API 18）与 `docs/evidence/v2-baseline-repair.json`（26 项基线失败已测试-only修复）；与 MCP 批合并 **228 个不同节点**最新全过（含 8 例浏览器）。**最终全量 4583 项：4580 passed / 3 failed / 0 errors**，三处并行时序，同源码隔离 **36 项全过**。**这不是全量全绿、全仓严格类型或三平台验收。**
-- 源码恢复：`temp/private/v2-business-inventory-source-20261111-b885a42de316/manifest.json` 与同目录 ZIP（ZIP SHA `fd12bf6d…`）。complete 只表示可恢复，文档晚于封存。
+- 结构 **136 表 / `v2_0037`**，前端资源标识 **`20261110v54`**，索引 **65 模块 / 717 文件 / 430 路由 / 94 声明工具**。
+- 最新证据 `docs/evidence/v2-business-inventory.json`（业务清单 3 项守卫 + 导航收敛 11 项）、`docs/evidence/v2-owner-token.json`（令牌管理 38 项 + 令牌工作台 16 项）、`docs/evidence/v2-capabilities.json`（能力报告 17 项）、`docs/evidence/v2-extension-callbacks.json`（宿主回调 93 项 + 最终全量/隔离）、`docs/evidence/v2-extension-market.json`（市场扫描 62 + 工作台 25）、`docs/evidence/v2-extension-artifacts.json`（产物协议 146 + 工作台/API 18）与 `docs/evidence/v2-baseline-repair.json`（26 项基线失败已测试-only修复）；与 MCP 批合并 **228 个不同节点**最新全过（含 10 例浏览器）。**最终全量 4583 项：4580 passed / 3 failed / 0 errors**，三处并行时序，同源码隔离 **36 项全过**。**这不是全量全绿、全仓严格类型或三平台验收。**
+- 源码恢复：`temp/private/v2-navigation-source-20261111-cc74b783ea47/manifest.json` 与同目录 ZIP（ZIP SHA `480ee6f3…`）。complete 只表示可恢复，文档晚于封存。
 - 开放问题不得自行销账：`UI.exact_organization_refresh_timing` 待复核；`tests.parallel_run_timing_flakes` 观察中；`security.sensitive_history_services_acceptance` 待所有者处置（工作区 `docs/evidence/services-acceptance-2026-11-01.json` 仍含 1 条历史字面量，本批新增文件零命中）。
 - Windows 前台实测用户已安排“稍后”，Mac 待 Mac mini 编译，Linux 无实机；不要用弹测试窗口阻塞开发。
 
-**D7 当前进度：能力报告、令牌管理（API/CLI/工作台）与业务清单已完成，下一节点为统一工作台导航收敛。** 能力页、令牌页、`docs/V2_BUSINESS_INVENTORY.md`（22 页 + 守卫）已交付；D6 扩展链与最终全量复核已完成。剩余 D7 门槛：导航收敛、全仓严格类型、三平台包/容器/安装更新恢复；真实市场源/第三方插件/MCP 真实服务/三平台原生仍记待真实验收。
+**D7 当前进度：能力报告、令牌管理（API/CLI/工作台）、业务清单与导航收敛已完成，下一节点为全仓严格类型。** 能力页、令牌页、业务清单（22 页 + 守卫）、7 组导航已交付；D6 扩展链与最终全量复核已完成。剩余 D7 门槛：全仓严格类型、三平台包/容器/安装更新恢复与正式入口切换；真实市场源/第三方插件/MCP 真实服务/三平台原生仍记待真实验收。
 
 已核实的起点（不要再重复调研成结论）：D6 扩展链（产物协议/工作台、市场扫描/工作台、宿主回调）、基线修复、D7 能力报告与令牌管理（API/CLI/工作台）均已提交；`domain/capabilities.py` + `GET /api/v1/capabilities`、`composition/http.py` 的令牌轮换闭包、`web/ui/v2/{capabilities,tokens}.js` 可直接作为 D7 其余节点的结构先例。
 

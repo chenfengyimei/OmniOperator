@@ -284,11 +284,11 @@
       ]
     }
   ],
-  "checkpoint_commit": "9133001",
+  "checkpoint_commit": "1a18fae",
   "current_validation": {
-    "status": "d7_business_inventory_latest_passed",
+    "status": "d7_navigation_latest_passed",
     "targeted_unique_passed": 228,
-    "includes_browser_cases": 8,
+    "includes_browser_cases": 10,
     "current_full_passed": false,
     "full_runs_this_checkpoint": 2,
     "whole_plan_complete": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
       }
     ],
-    "code_version": "b885a42de316f7ec9a69e31102365f74458f50f2d998d6bf571960ad34c890c4",
-    "fixed_source_files": 1172,
+    "code_version": "cc74b783ea4744f30d61bff48c0a87d29557aa6671e4003dfb9d30500f244c3b",
+    "fixed_source_files": 1173,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -325,7 +325,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_BUSINESS_INVENTORY.md",
-    "scope": "D7 业务清单已建立并有守卫；剩余：统一工作台导航收敛、全仓严格类型、三平台包/容器/安装更新恢复。"
+    "scope": "能力/令牌/业务清单/导航收敛已完成；剩余：全仓严格类型、三平台包/容器/安装更新恢复与正式入口切换门槛。"
   },
   "milestones": [
     {
@@ -856,20 +856,31 @@
       "id": "R7.business_inventory",
       "status": "完成（离线）",
       "development": "完成",
-      "offline_validation": "22 个工作台页面与业务清单双向一致、状态仅用“可用（离线）/需配置”、未实现/未验收边界齐全；2 项守卫通过",
+      "offline_validation": "22 个工作台页面与业务清单双向一致、状态仅用“可用（离线）/需配置”、未实现/未验收边界齐全；2 项守卫通过；导航按 7 个业务域分组，390/1024 与 22 入口可达性回归通过",
       "evidence": [
         "docs/evidence/v2-business-inventory.json"
       ],
       "remaining": "导航分组收敛未做；真实环境能力仍待验收。",
       "code_version": "b885a42de316f7ec9a69e31102365f74458f50f2d998d6bf571960ad34c890c4"
+    },
+    {
+      "id": "R7.navigation",
+      "status": "完成（离线）",
+      "development": "完成",
+      "offline_validation": "7 个分组顺序、22 个入口、逐项页面可达、无横向溢出；11 项导航/清单/UI 与 73 项工作台回归全过",
+      "evidence": [
+        "docs/evidence/v2-business-inventory.json"
+      ],
+      "remaining": "真实环境页面验收；导航信息架构后续可再评估。",
+      "code_version": "cc74b783ea4744f30d61bff48c0a87d29557aa6671e4003dfb9d30500f244c3b"
     }
   ],
   "latest_source_recovery": {
-    "manifest": "temp/private/v2-business-inventory-source-20261111-b885a42de316/manifest.json",
-    "files": 1172,
+    "manifest": "temp/private/v2-navigation-source-20261111-cc74b783ea47/manifest.json",
+    "files": 1173,
     "standalone_source": true,
     "runtime_data_included": false,
-    "validation_status": "d7_business_inventory_latest_passed"
+    "validation_status": "d7_navigation_latest_passed"
   },
   "delivery_strategy": {
     "date": "2026-11-06",
