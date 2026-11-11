@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "e74572d",
+  "checkpoint_commit": "1eaf6a9",
   "current_validation": {
-    "status": "scoped_extension_callbacks_latest_passed",
+    "status": "d7_capability_report_latest_passed",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 6,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
       }
     ],
-    "code_version": "3150824a329f952cd333ed91145d2c626597af3fd9625dfdd6fa9e3f0112afdb",
-    "fixed_source_files": 1164,
+    "code_version": "7553dcf059df0b4457374da3964caedfb4c31cc2eb326242e6f613e056e675b3",
+    "fixed_source_files": 1168,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -316,13 +316,14 @@
       "isolation_passed": 36,
       "report": "temp/build/v2-callbacks-final-full.xml",
       "isolation_report": "temp/build/v2-callbacks-final-isolation.xml"
-    }
+    },
+    "capabilities_evidence": "docs/evidence/v2-capabilities.json"
   },
   "next_checkpoint": {
     "id": "D7.product_switch",
-    "status": "待开始",
-    "design": "docs/V2_REFACTOR.md",
-    "scope": "令牌管理、统一工作台与能力报告、业务清单、全仓严格类型、三平台包/容器/安装更新恢复；真实市场源/第三方插件与 MCP 真实服务仍记待真实验收。"
+    "status": "进行中",
+    "design": "docs/V2_CAPABILITIES.md",
+    "scope": "能力报告已完成；剩余：令牌管理、统一工作台收敛与业务清单、全仓严格类型、三平台包/容器/安装更新恢复；真实环境验收仍待。"
   },
   "milestones": [
     {
@@ -826,14 +827,25 @@
         "docs/evidence/v2-extension-callbacks.json"
       ],
       "remaining": "真实市场源、真实第三方插件、MCP 真实服务/供应商与三平台原生验收；D7/D8 未开始。"
+    },
+    {
+      "id": "R7.capabilities",
+      "status": "完成（离线）",
+      "development": "完成",
+      "offline_validation": "能力域投影边界/attention 判定、HTTP 鉴权与泄漏检查、390/1024 工作台页全过；17 项节点专项",
+      "evidence": [
+        "docs/evidence/v2-capabilities.json"
+      ],
+      "remaining": "真实环境能力仍待验收；D7 其余门槛未完成。",
+      "code_version": "7553dcf059df0b4457374da3964caedfb4c31cc2eb326242e6f613e056e675b3"
     }
   ],
   "latest_source_recovery": {
-    "manifest": "temp/private/v2-extension-callbacks-source-20261111-3150824a329f/manifest.json",
-    "files": 1164,
+    "manifest": "temp/private/v2-capabilities-source-20261111-7553dcf059df/manifest.json",
+    "files": 1168,
     "standalone_source": true,
     "runtime_data_included": false,
-    "validation_status": "scoped_extension_callbacks_latest_passed"
+    "validation_status": "d7_capability_report_latest_passed"
   },
   "delivery_strategy": {
     "date": "2026-11-06",

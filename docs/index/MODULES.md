@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`88cb6b308997b8463592c0606d41061b886914709bd5c8734973faf6fb8cad5a`。包含 65 个职责模块、715 个源码/界面文件。
+源码指纹：`e49efeef929fc02ad33383bc32b1efdedcc0899aa3833c4f7288f8658357e834`。包含 65 个职责模块、717 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -16,6 +16,7 @@
 | [agent/src/omni/domain/android_unicode.py](../../agent/src/omni/domain/android_unicode.py) | 114 | Pinned helper profiles and authenticated, bounded Unicode input messages; no device I/O. |
 | [agent/src/omni/domain/audit_retention.py](../../agent/src/omni/domain/audit_retention.py) | 280 | Agent audit-retention subjects, frozen previews and explicit plans; performs no I/O or deletion. |
 | [agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py) | 261 | Explicit Bilibili form profiles, targets and mention ranges; no browser, network or storage. |
+| [agent/src/omni/domain/capabilities.py](../../agent/src/omni/domain/capabilities.py) | 108 | Read-only capability projection over the instance health snapshot; no I/O and no acceptance claims. |
 | [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 156 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
 | [agent/src/omni/domain/context.py](../../agent/src/omni/domain/context.py) | 51 | Bounded conversation policy; whole turns are the smallest compression unit. |
 | [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 156 | Typed execution contracts and state transitions; performs no I/O. |
@@ -145,7 +146,7 @@
 | [agent/src/omni/adapters/extensions/hosts.py](../../agent/src/omni/adapters/extensions/hosts.py) | 206 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
 | [agent/src/omni/adapters/extensions/packages.py](../../agent/src/omni/adapters/extensions/packages.py) | 558 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
 | [agent/src/omni/adapters/extensions/worker.py](../../agent/src/omni/adapters/extensions/worker.py) | 312 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
-| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2149 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
+| [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2154 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 78 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 284 | One bounded, supervised local embedding process; no native ML imports in the application process. |
 | [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 300 | Bounded diagnostic pages with cursors that survive rename and process restart. |
@@ -409,6 +410,7 @@
 | [web/ui/v2/android-unicode.js](../../web/ui/v2/android-unicode.js) | 158 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/android.js](../../web/ui/v2/android.js) | 403 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/bilibili.js](../../web/ui/v2/bilibili.js) | 295 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/capabilities.js](../../web/ui/v2/capabilities.js) | 57 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/chat-images.js](../../web/ui/v2/chat-images.js) | 155 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/configuration.js](../../web/ui/v2/configuration.js) | 544 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/credentials.js](../../web/ui/v2/credentials.js) | 182 | 原生源码、平台脚本或界面资源 |
@@ -417,8 +419,8 @@
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 568 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1372 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 783 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1386 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 788 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |
