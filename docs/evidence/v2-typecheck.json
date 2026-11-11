@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "d8293eff2dd316e90c5f8b05e64080e17a81a90671b6135001aea1be40077628",
+  "code_version": "56a2c061bb0e9e03ba9b9dad15ec06e56e01574d815d74cf2fec1f6018d70201",
   "fixed_source_files": 1199,
-  "git_head": "df32bac",
+  "git_head": "57e5f60",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py"
  },
@@ -61,10 +61,11 @@
    "Strict scope reaches 61 files with domain/action_review; review proofs/sources are explicit and set/tool checks are narrowed without changing review or evidence fingerprint semantics",
    "Strict scope reaches 62 files with domain/qq; connections/grants/event parsing are explicit and message segments are narrowed without changing OneBot validation",
    "Strict scope reaches 63 files with domain/images; image references/policy/message refs/attach results are explicit and redundant type checks are removed without changing image admission or budget semantics",
-   "Strict scope reaches 65 files with domain/audit_retention and domain/event_retention; plan parameters are explicit dict[str, object], target rows are cast item by item and set comparisons no longer compare against frozenset while caller-context fail-closed checks remain"
+   "Strict scope reaches 65 files with domain/audit_retention and domain/event_retention; plan parameters are explicit dict[str, object], target rows are cast item by item and set comparisons no longer compare against frozenset while caller-context fail-closed checks remain",
+   "Strict scope reaches 66 files with domain/bilibili; WBI signing parameters are explicit Mapping[str, object], form and mention rows are narrowed item by item and non-string inputs stay fail-closed"
   ],
   "pending": [
-   "Remaining 12 domain files (41/53 in strict)",
+   "Remaining 11 domain files (42/53 in strict)",
    "Remaining application/adapters strict typing (20/44 application, 4/215 adapters in strict)",
    "composition layer not yet in strict scope",
    "Three-platform packaging/install/update/restore",
@@ -74,8 +75,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-42-callers.xml",
-   "tests": 89,
+   "report": "temp/build/v2-typecheck-43-callers.xml",
+   "tests": 45,
    "failures": 0
   },
   "targeted_reports": [
@@ -455,6 +456,15 @@
     "errors": 0,
     "duration_s": 35.65,
     "note": "forty-second strict batch: guard + audit/event retention contract, HTTP and UI callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-43-callers.xml",
+    "sha256": "56574112b7a6fdb2b30b00fd8e6e3759fef3daaaccef57e7f5e8a8140c0ca42f",
+    "tests": 45,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 85.32,
+    "note": "forty-third strict batch: guard + Bilibili domain, HTTP, UI, worker and WBI callers"
    }
   ],
   "gates": {
@@ -466,7 +476,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 65,
+    "filesAnalyzed": 66,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -487,7 +497,7 @@
   },
   "full_run": {
    "status": "not_rerun_since_source_change",
-   "last_known": "4654 tests: 4653 passed / 1 failed (debug_sink parallel timing; isolation 11/11) on source 1e67fb8; batches 41-42 changed source afterwards"
+   "last_known": "4654 tests: 4653 passed / 1 failed (debug_sink parallel timing; isolation 11/11) on source 1e67fb8; batches 41-43 changed source afterwards"
   }
  },
  "source_recovery": {
@@ -501,6 +511,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue strict typing (12 domain files left, then application/adapters); three-platform packaging/install/update/restore and real-environment acceptance remain."
+  "scope": "Continue strict typing (11 domain files left, then application/adapters); three-platform packaging/install/update/restore and real-environment acceptance remain."
  }
 }
