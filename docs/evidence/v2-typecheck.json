@@ -526,8 +526,27 @@
    ]
   },
   "full_run": {
-   "status": "not_rerun_since_source_change",
-   "last_known": "4654 tests: 4653 passed / 1 failed (debug_sink parallel timing; isolation 11/11) on source 1e67fb8; batches 41-46 changed source afterwards"
+   "status": "rerun_after_batches_41_46",
+   "source": "ff8397f",
+   "report": "temp/build/v2-typecheck-batches-46-full.xml",
+   "sha256": "f6bae5e46961f213332482f6484d6e3d33569307e8414f4800c9ec528ab483d1",
+   "tests": 4654,
+   "passed": 4651,
+   "failed": 3,
+   "errors": 0,
+   "duration_s": 1365.89,
+   "failures": [
+    "test_v2_service_runtime.py::test_identity_tracks_real_boot_and_drains_before_releasing_lock",
+    "test_v2_debug_sink.py::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime",
+    "test_android_streams.py::test_runtime_preserves_database_while_capture_is_residual"
+   ],
+   "isolation": {
+    "report": "temp/build/v2-typecheck-batches-46-isolation.xml",
+    "sha256": "afe0147979d918526bc1dcdf97a7824a36573657ab6febe92d26316ffe1489bb",
+    "tests": 3,
+    "passed": 3,
+    "note": "all three pass with -n 0 on the same source; parallel timing, android_streams observed for the first time"
+   }
   }
  },
  "source_recovery": {

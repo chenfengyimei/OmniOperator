@@ -286,11 +286,11 @@
   ],
   "checkpoint_commit": "ff8397f",
   "current_validation": {
-    "status": "d7_typecheck_batch_46",
+    "status": "d7_typecheck_batches_full_rerun",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
-    "full_runs_this_checkpoint": 2,
+    "full_runs_this_checkpoint": 1,
     "whole_plan_complete": false,
     "evidence": "docs/evidence/v2-extension-artifacts.json",
     "last_full_evidence": "docs/evidence/v2-history.json",
@@ -300,9 +300,9 @@
       {
         "id": "tests.parallel_run_timing_flakes",
         "status": "观察中",
-        "scope": "全量并行下 debug_sink 一处时序失败；同源码隔离 11 项全过，未判定产品缺陷。",
-        "first_report": "temp/build/v2-strict-batches-full.xml",
-        "recheck_report": "temp/build/v2-strict-isolation.xml"
+        "scope": "全量并行下 service_runtime identity、debug_sink 与 android_streams 三处时序失败；同源码隔离 3 项全过，未判定产品缺陷，android_streams 首次出现。",
+        "first_report": "temp/build/v2-typecheck-batches-46-full.xml",
+        "recheck_report": "temp/build/v2-typecheck-batches-46-isolation.xml"
       }
     ],
     "code_version": "fadc7154c877df33979fb5c036ea3e65a83b684a42af24193e95a99858b9ea43",
@@ -310,12 +310,12 @@
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
-      "passed": 4653,
-      "failed": 1,
+      "passed": 4651,
+      "failed": 3,
       "errors": 0,
-      "isolation_passed": 11,
-      "report": "temp/build/v2-typecheck-batches-full-fixed.xml",
-      "isolation_report": "temp/build/v2-typecheck-batches-isolation.xml"
+      "isolation_passed": 3,
+      "report": "temp/build/v2-typecheck-batches-46-full.xml",
+      "isolation_report": "temp/build/v2-typecheck-batches-46-isolation.xml"
     },
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",
     "token_evidence": "docs/evidence/v2-owner-token.json",
