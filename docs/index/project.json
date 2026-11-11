@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d1a9dd81743b8a21ff5ecfc6792def1c187d8d86ab58e498312a80803f621ff0",
+  "source_sha256": "55a05ac3bdd817fcfd9c539fb013ea4c088d886284f6a678a1d360a33119bf3b",
   "modules": [
     {
       "id": "v2-domain",
@@ -71,7 +71,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8777,
+      "lines": 8823,
       "dependencies": []
     },
     {
@@ -64045,15 +64045,70 @@
       "path": "agent/src/omni/domain/foreground.py",
       "module": "v2-domain",
       "python_module": "omni.domain.foreground",
-      "lines": 59,
+      "lines": 107,
       "imports": [
-        "omni.domain.desktop",
+        "omni.domain.contracts",
         "omni.domain.desktop_actions"
       ],
       "symbols": [
         {
+          "name": "_invalid",
+          "line": 18,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_choice",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "choices"
+          ],
+          "annotations": {
+            "value": "object",
+            "choices": "Sequence[str]"
+          }
+        },
+        {
+          "name": "_text",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "maximum"
+          ],
+          "annotations": {
+            "value": "object",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "_fields",
+          "line": 42,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_uuid",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
           "name": "input_value",
-          "line": 13,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "kind",
@@ -64066,7 +64121,7 @@
         },
         {
           "name": "action",
-          "line": 32,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "value"
@@ -64077,24 +64132,24 @@
         },
         {
           "name": "ready",
-          "line": 48,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "request"
           ],
           "annotations": {
-            "request": "dict"
+            "request": "Mapping[str, object]"
           }
         },
         {
           "name": "permit",
-          "line": 58,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "request"
           ],
           "annotations": {
-            "request": "dict"
+            "request": "Mapping[str, object]"
           }
         }
       ],
@@ -65180,14 +65235,14 @@
       "path": "agent/src/omni/domain/memory_semantics.py",
       "module": "v2-domain",
       "python_module": "omni.domain.memory_semantics",
-      "lines": 57,
+      "lines": 55,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "digest",
-          "line": 18,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "value"
@@ -65198,7 +65253,7 @@
         },
         {
           "name": "paging",
-          "line": 24,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "after",
@@ -65211,7 +65266,7 @@
         },
         {
           "name": "query_value",
-          "line": 34,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "query",
@@ -65224,7 +65279,7 @@
         },
         {
           "name": "merge",
-          "line": 44,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "text",
@@ -65232,8 +65287,8 @@
             "limit"
           ],
           "annotations": {
-            "text": "list[dict]",
-            "vectors": "list[dict]",
+            "text": "Sequence[Mapping[str, object]]",
+            "vectors": "Sequence[Mapping[str, object]]",
             "limit": "int"
           }
         }

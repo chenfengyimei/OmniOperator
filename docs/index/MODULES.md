@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d1a9dd81743b8a21ff5ecfc6792def1c187d8d86ab58e498312a80803f621ff0`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`55a05ac3bdd817fcfd9c539fb013ea4c088d886284f6a678a1d360a33119bf3b`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -29,7 +29,7 @@
 | [agent/src/omni/domain/documents.py](../../agent/src/omni/domain/documents.py) | 101 | Bounded source text, deterministic chunks and local vector math; contains no I/O. |
 | [agent/src/omni/domain/event_retention.py](../../agent/src/omni/domain/event_retention.py) | 279 | Bounded event-retention previews and explicit plans; performs no I/O, deletion or sequence reconstruction. |
 | [agent/src/omni/domain/extensions.py](../../agent/src/omni/domain/extensions.py) | 429 | Static trusted-plugin metadata, immutable capture records and owner authorizations; never loads code or files. |
-| [agent/src/omni/domain/foreground.py](../../agent/src/omni/domain/foreground.py) | 59 | Single-use foreground authority and bounded input, independent of native APIs. |
+| [agent/src/omni/domain/foreground.py](../../agent/src/omni/domain/foreground.py) | 107 | Single-use foreground authority and bounded input, independent of native APIs. |
 | [agent/src/omni/domain/history.py](../../agent/src/omni/domain/history.py) | 142 | Canonical, bounded history cursors bind a stream and its retention generation; performs no I/O. |
 | [agent/src/omni/domain/images.py](../../agent/src/omni/domain/images.py) | 187 | Validated image references, immutable model policies and conservative low-detail metering; no I/O. |
 | [agent/src/omni/domain/local_vectors.py](../../agent/src/omni/domain/local_vectors.py) | 140 | Local embedding bundle and bounded transport contracts; no files, model imports or I/O. |
@@ -37,7 +37,7 @@
 | [agent/src/omni/domain/mcp.py](../../agent/src/omni/domain/mcp.py) | 396 | External MCP transport identity, catalog fingerprints and bounded model text; performs no I/O. |
 | [agent/src/omni/domain/media.py](../../agent/src/omni/domain/media.py) | 200 | Bounded media sources, transcripts and frame sheets; timestamps are anchors, never guesses. |
 | [agent/src/omni/domain/memory_organization.py](../../agent/src/omni/domain/memory_organization.py) | 104 | Bounded exact-fact organization requests and owner decisions; no memory writes, model calls or I/O. |
-| [agent/src/omni/domain/memory_semantics.py](../../agent/src/omni/domain/memory_semantics.py) | 57 | Bounded derived-memory indexing and related-fact proposals; no I/O or fact rewriting. |
+| [agent/src/omni/domain/memory_semantics.py](../../agent/src/omni/domain/memory_semantics.py) | 55 | Bounded derived-memory indexing and related-fact proposals; no I/O or fact rewriting. |
 | [agent/src/omni/domain/metering.py](../../agent/src/omni/domain/metering.py) | 80 | Request shape and capacity policy shared by counting and model invocation; no I/O. |
 | [agent/src/omni/domain/model_stream.py](../../agent/src/omni/domain/model_stream.py) | 179 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
 | [agent/src/omni/domain/objects.py](../../agent/src/omni/domain/objects.py) | 44 | Immutable object identities and metadata constraints, independent of storage. |

@@ -43,9 +43,11 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块，当前为 **6 个**（capabilities/credentials/metering/objects/people/release_fence），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块，当前为 **8 个**（capabilities/credentials/foreground/memory_semantics/metering/objects/people/release_fence），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表、文件存在与未完成声明一致。
 
-第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。两批类型守卫 4 项 + 122 项调用方回归全过。D7 剩余门槛：继续分模块严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
+
+第三批把 memory_semantics（19 个）与 foreground（24 个）清零后纳入：foreground 自包含前台输入校验、去掉 desktop 私有依赖，`ready/permit` 接受 `Mapping`、version 原样透传；`desktop_actions.node_proof` 补返回注解。三批类型守卫 6 项 + 166 项调用方回归全过。D7 剩余门槛：继续分模块严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 
