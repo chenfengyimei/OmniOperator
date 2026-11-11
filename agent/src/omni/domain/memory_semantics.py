@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
+from collections.abc import Mapping, Sequence
 
 from .contracts import BusinessError
 
@@ -23,7 +24,7 @@ def digest(value: object) -> str:
 
 def paging(after: str, limit: int) -> None:
     try:
-        if not isinstance(after, str) or (after and str(uuid.UUID(after)) != after):
+        if after and str(uuid.UUID(after)) != after:
             raise ValueError
         if type(limit) is not int or not 1 <= limit <= PAGE:
             raise ValueError
@@ -32,22 +33,19 @@ def paging(after: str, limit: int) -> None:
 
 
 def query_value(query: str, limit: int) -> None:
-    if (
-        not isinstance(query, str)
-        or not 1 <= len(query.strip()) <= 500
-        or type(limit) is not int
-        or not 1 <= limit <= 20
-    ):
+    if not 1 <= len(query.strip()) <= 500 or type(limit) is not int or not 1 <= limit <= 20:
         raise BusinessError("invalid_memory_query", "Use 1 to 500 query characters and at most 20 hits", status=422)
 
 
-def merge(text: list[dict], vectors: list[dict], limit: int) -> list[dict]:
+def merge(
+    text: Sequence[Mapping[str, object]], vectors: Sequence[Mapping[str, object]], limit: int
+) -> list[dict[str, object]]:
     scores: dict[str, float] = {}
-    rows: dict[str, dict] = {}
+    rows: dict[str, dict[str, object]] = {}
     origins: dict[str, list[str]] = {}
     for mode, values in (("full_text", text), ("vector", vectors)):
         for position, row in enumerate(values, 1):
-            key = row["id"]
+            key = str(row["id"])
             rows[key] = {**rows.get(key, {}), **row}
             scores[key] = scores.get(key, 0) + 1 / (60 + position)
             origins.setdefault(key, []).append(mode)

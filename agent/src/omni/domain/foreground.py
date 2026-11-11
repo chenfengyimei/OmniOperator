@@ -2,58 +2,106 @@
 
 from __future__ import annotations
 
-from .desktop import _choice, _object, _uuid, invalid
+import uuid
+from collections.abc import Mapping, Sequence
+from typing import cast
+
+from .contracts import BusinessError
 
 POLICY = "desktop-foreground-1"
 KINDS = ("type_text", "press_key", "click")
 KEYS = ("Enter", "Tab", "Escape", "Backspace", "Delete", "Home", "End", "Left", "Right", "Up", "Down")
+FIELDS = frozenset({"kind", "text", "node", "policy", "takeover", "grant_id", "run_id", "operation_id"})
 TIMEOUT_S = 15.0
 
 
-def input_value(kind: object, value: object) -> str:
-    kind = _choice(kind, KINDS)
-    if not isinstance(value, str):
-        raise invalid()
-    if kind == "press_key":
-        return _choice(value, KEYS)
-    if kind == "click":
-        if value:
-            raise invalid()
-        return ""
-    if not 1 <= len(value) <= 128 or any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in value):
-        raise invalid()
-    try:
-        value.encode("utf-8")
-    except UnicodeError:
-        raise invalid() from None
+def _invalid() -> BusinessError:
+    return BusinessError("desktop_invalid", "Use an exact, bounded desktop identity and discovery protocol", status=422)
+
+
+def _choice(value: object, choices: Sequence[str]) -> str:
+    if not isinstance(value, str) or value not in choices:
+        raise _invalid()
     return value
 
 
-def action(value: object) -> dict:
+def _text(value: object, maximum: int) -> str:
+    if (
+        not isinstance(value, str)
+        or not 1 <= len(value) <= maximum
+        or any(ord(character) < 32 or 127 <= ord(character) <= 159 for character in value)
+    ):
+        raise _invalid()
+    try:
+        value.encode("utf-8")
+    except UnicodeError as exc:
+        raise _invalid() from exc
+    return value
+
+
+def _fields(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise _invalid()
+    data = cast(dict[object, object], value)
+    keys = {key for key in data if isinstance(key, str)}
+    if len(keys) != len(data) or keys != set(FIELDS):
+        raise _invalid()
+    return {key: data[key] for key in keys}
+
+
+def _uuid(value: object) -> str:
+    text = _text(value, 36)
+    try:
+        if str(uuid.UUID(text)) != text:
+            raise _invalid()
+    except ValueError as exc:
+        raise _invalid() from exc
+    return text
+
+
+def input_value(kind: object, value: object) -> str:
+    selected = _choice(kind, KINDS)
+    if not isinstance(value, str):
+        raise _invalid()
+    if selected == "press_key":
+        return _choice(value, KEYS)
+    if selected == "click":
+        if value:
+            raise _invalid()
+        return ""
+    return _text(value, 128)
+
+
+def action(value: object) -> dict[str, object]:
     from .desktop_actions import node_proof
 
-    value = _object(value, {"kind", "text", "node", "policy", "takeover", "grant_id", "run_id", "operation_id"})
-    if value["takeover"] is not True or value["policy"] != POLICY:
-        raise invalid()
+    record = _fields(value)
+    if record["takeover"] is not True or record["policy"] != POLICY:
+        raise _invalid()
+    kind = _choice(record["kind"], KINDS)
     return {
-        "kind": _choice(value["kind"], KINDS),
-        "text": input_value(value["kind"], value["text"]),
-        "node": node_proof(value["node"]),
+        "kind": kind,
+        "text": input_value(kind, record["text"]),
+        "node": node_proof(record["node"]),
         "policy": POLICY,
         "takeover": True,
-        **{key: _uuid(value[key]) for key in ("grant_id", "run_id", "operation_id")},
+        **{key: _uuid(record[key]) for key in ("grant_id", "run_id", "operation_id")},
     }
 
 
-def ready(request: dict) -> dict:
+def ready(request: Mapping[str, object]) -> dict[str, object]:
+    nested = request.get("action")
+    if not isinstance(nested, Mapping):
+        raise _invalid()
+    action_value = cast(Mapping[str, object], nested)
     return {
-        "version": request["version"],
-        "request_id": request["request_id"],
+        "version": request.get("version"),
+        "request_id": _uuid(request.get("request_id")),
         "operation": "foreground",
         "phase": "ready",
-        **{key: request["action"][key] for key in ("grant_id", "run_id", "operation_id")},
+        **{key: _uuid(action_value.get(key)) for key in ("grant_id", "run_id", "operation_id")},
     }
 
 
-def permit(request: dict) -> dict:
+def permit(request: Mapping[str, object]) -> dict[str, object]:
     return {**ready(request), "phase": "permit"}

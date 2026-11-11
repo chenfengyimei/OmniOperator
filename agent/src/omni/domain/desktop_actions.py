@@ -18,7 +18,7 @@ def runtime_id(value: object) -> list[int]:
     return [_integer(item, -2147483648, 2147483647) for item in value]
 
 
-def node_proof(value: object) -> dict:
+def node_proof(value: object) -> dict[str, object]:
     if isinstance(value, dict) and value.get("backend") == "atspi":
         value = _object(
             value, {"backend", "path", "ancestry_sha256", "role", "name_sha256", "value_sha256", "actions_sha256"}
