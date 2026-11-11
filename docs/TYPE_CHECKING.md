@@ -22,6 +22,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/people.py` | 人物档案纯规则 |
 | `agent/src/omni/domain/metering.py` | 请求形状/记忆提示/令牌估算纯函数 |
 | `agent/src/omni/domain/release_fence.py` | 启动互斥栅栏纯校验 |
+| `agent/src/omni/domain/routing.py` | 能力档位/路由策略/工具筛选纯规则 |
+| `agent/src/omni/domain/settings.py` | Agent 设置与运行配置纯校验 |
 | `agent/src/omni/domain/scheduling.py` | 数值 cron/下次到期/到期选择纯规则 |
 | `agent/src/omni/domain/memory_semantics.py` | 派生记忆索引/相关事实合并纯规则 |
 | `agent/src/omni/domain/foreground.py` | 前台输入授权与有界输入纯校验 |

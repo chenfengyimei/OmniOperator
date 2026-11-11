@@ -117,13 +117,13 @@ class PresetOptions(Payload):
 PAYLOADS = {"model": ModelOptions, "channel": ChannelOptions, "mcp": MCPOptions, "preset": PresetOptions}
 
 
-def config_value(kind: str, value: object) -> dict:
-    if not isinstance(kind, str) or kind not in PAYLOADS or not isinstance(value, dict):
+def config_value(kind: str, value: object) -> dict[str, object]:
+    if kind not in PAYLOADS or not isinstance(value, dict):
         raise BusinessError("invalid_configuration", "A known configuration kind and object are required", status=422)
     try:
         result = PAYLOADS[kind].model_validate(value).model_dump()
 
-        def has_nul(node):
+        def has_nul(node: object) -> bool:
             if isinstance(node, str):
                 return "\0" in node
             if isinstance(node, list):

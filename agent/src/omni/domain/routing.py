@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import uuid
 from collections.abc import Sequence
+from typing import cast
 
 from .contracts import BusinessError, ToolSpec
 
@@ -54,26 +55,30 @@ def requested(value: object) -> str:
     return value
 
 
-def policy(value: object) -> dict:
+def policy(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise invalid()
+    record = cast(dict[str, object], value)
     if (
-        not isinstance(value, dict)
-        or set(value) != set(POLICY_DEFAULT)
-        or not isinstance(value["default_mode"], str)
-        or value["default_mode"] not in (*MODES, "auto")
-        or type(value["allow_escalation"]) is not bool
+        set(record) != set(POLICY_DEFAULT)
+        or not isinstance(record["default_mode"], str)
+        or record["default_mode"] not in (*MODES, "auto")
+        or type(record["allow_escalation"]) is not bool
     ):
         raise invalid()
     for mode in MODES:
-        identity, amount = value[f"{mode}_model_id"], value[f"{mode}_reservation_micro"]
+        identity = record[f"{mode}_model_id"]
+        amount = record[f"{mode}_reservation_micro"]
         if identity is not None:
             try:
                 if not isinstance(identity, str) or str(uuid.UUID(identity)) != identity:
                     raise invalid()
             except ValueError:
                 raise invalid() from None
-        if amount is not None and (type(amount) is not int or not 1 <= amount <= 10**12):
+        number = cast(int, amount)
+        if amount is not None and (type(amount) is not int or not 1 <= number <= 10**12):
             raise invalid()
-    return dict(value)
+    return dict(record)
 
 
 def choose(text: str, mode: str, default: str, *, images: bool, remote: bool) -> dict[str, str]:

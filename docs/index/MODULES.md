@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`5ccef8f5bb9edf8e46864d24c400a1bb98daef4c2fbc2a9a76ebcb3f3a959433`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`d4c438bddf207b0c43bfab635d58c209132dd1f3ec748493bf661237357efc97`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -49,7 +49,7 @@
 | [agent/src/omni/domain/release_fence.py](../../agent/src/omni/domain/release_fence.py) | 78 | Persisted startup exclusion contract shared by immutable installations; no IO or mutable state. |
 | [agent/src/omni/domain/releases.py](../../agent/src/omni/domain/releases.py) | 243 | Reviewed immutable release/recovery plans; same-schema first delivery, with no platform or storage IO. |
 | [agent/src/omni/domain/retention.py](../../agent/src/omni/domain/retention.py) | 91 | Execution-body retention policy; time is injected, no erasure or file operations. |
-| [agent/src/omni/domain/routing.py](../../agent/src/omni/domain/routing.py) | 123 | Deterministic capability tiers and immutable route policy; neither permissions nor model/network calls. |
+| [agent/src/omni/domain/routing.py](../../agent/src/omni/domain/routing.py) | 128 | Deterministic capability tiers and immutable route policy; neither permissions nor model/network calls. |
 | [agent/src/omni/domain/scheduling.py](../../agent/src/omni/domain/scheduling.py) | 190 | Deterministic UTC scheduling and numeric cron rules; resolved timezone data is injected. |
 | [agent/src/omni/domain/schema_upgrade.py](../../agent/src/omni/domain/schema_upgrade.py) | 81 | Explicit forward-only V2 schema routes bound to both immutable runtime inventories; no IO. |
 | [agent/src/omni/domain/service_activation.py](../../agent/src/omni/domain/service_activation.py) | 83 | Bind unattended exchange activation to one reviewed boot; pure persisted contracts with no platform IO. |
@@ -60,7 +60,7 @@
 | [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 311 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
 | [agent/src/omni/domain/service_isolation.py](../../agent/src/omni/domain/service_isolation.py) | 108 | Reviewed offline startup quarantine; retains unknown outcomes and authorizes only a separate recovery plan. |
 | [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 130 | Fingerprint offline service changes; registration never implies a healthy running service. |
-| [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 89 | Editable Agent settings and immutable resolved run configuration; no I/O. |
+| [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 98 | Editable Agent settings and immutable resolved run configuration; no I/O. |
 | [agent/src/omni/domain/skills.py](../../agent/src/omni/domain/skills.py) | 246 | Versioned textual skills, bounded disclosure and edit rules; skills confer no authority. |
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 124 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |

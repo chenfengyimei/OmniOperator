@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5ccef8f5bb9edf8e46864d24c400a1bb98daef4c2fbc2a9a76ebcb3f3a959433",
+  "source_sha256": "d4c438bddf207b0c43bfab635d58c209132dd1f3ec748493bf661237357efc97",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9037,
+      "lines": 9051,
       "dependencies": []
     },
     {
@@ -66930,14 +66930,14 @@
       "path": "agent/src/omni/domain/routing.py",
       "module": "v2-domain",
       "python_module": "omni.domain.routing",
-      "lines": 123,
+      "lines": 128,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 45,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "code"
@@ -66948,7 +66948,7 @@
         },
         {
           "name": "requested",
-          "line": 49,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "value"
@@ -66959,7 +66959,7 @@
         },
         {
           "name": "policy",
-          "line": 57,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "value"
@@ -66970,7 +66970,7 @@
         },
         {
           "name": "choose",
-          "line": 79,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "text",
@@ -66989,7 +66989,7 @@
         },
         {
           "name": "select_tools",
-          "line": 107,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "mode",
@@ -67004,7 +67004,7 @@
         },
         {
           "name": "notice",
-          "line": 118,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "mode",
@@ -68480,7 +68480,7 @@
       "path": "agent/src/omni/domain/settings.py",
       "module": "v2-domain",
       "python_module": "omni.domain.settings",
-      "lines": 89,
+      "lines": 98,
       "imports": [
         "omni.domain.configuration",
         "omni.domain.contracts"
@@ -68515,12 +68515,12 @@
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "dict[str, object]"
           }
         },
         {
           "name": "settings_value",
-          "line": 82,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "value"
