@@ -37,6 +37,7 @@
     "agent/src/omni/domain/credentials.py",
     "agent/src/omni/domain/delivery.py",
     "agent/src/omni/domain/desktop_actions.py",
+    "agent/src/omni/domain/desktop_portal.py",
     "agent/src/omni/domain/documents.py",
     "agent/src/omni/domain/event_retention.py",
     "agent/src/omni/domain/foreground.py",

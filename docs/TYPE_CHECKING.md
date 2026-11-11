@@ -23,6 +23,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/credentials.py` | 凭据引用与权限指纹纯函数 |
 | `agent/src/omni/domain/delivery.py` | 出站意图身份/受限文本/可信结果纯规则 |
 | `agent/src/omni/domain/desktop_actions.py` | 语义桌面动作/节点证据/结果纯校验（经公共桥） |
+| `agent/src/omni/domain/desktop_portal.py` | 窗口共享授权/命令/事件/帧收据纯校验 |
 | `agent/src/omni/domain/documents.py` | 源文本/分块/向量归一化与合并纯规则 |
 | `agent/src/omni/domain/event_retention.py` | 事件保留冻结预览/计划纯校验 |
 | `agent/src/omni/domain/history.py` | 历史游标编码/解码与代际校验 |

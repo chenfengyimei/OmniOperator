@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from typing import NoReturn, cast
 
 from .contracts import BusinessError
 
@@ -16,7 +17,7 @@ PHASES = frozenset(
 )
 TERMINAL = frozenset({"closed", "denied", "failed"})
 BINDING_KEYS = frozenset({"agent_id", "view_id", "boot_id", "grant_id"})
-TRANSITIONS = {
+TRANSITIONS: dict[str, set[str]] = {
     "starting": {"prepared", "failed", "closing"},
     "prepared": {"creating", "closing", "failed"},
     "creating": {"selecting", "closing", "failed", "denied"},
@@ -34,6 +35,15 @@ def invalid() -> BusinessError:
     return BusinessError("portal_protocol_invalid", "Use the exact scoped window-share protocol", status=422)
 
 
+def _fields(value: object, keys: set[str] | frozenset[str]) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise invalid()
+    fields = cast(dict[str, object], value)
+    if set(fields) != keys:
+        raise invalid()
+    return fields
+
+
 def uuid_value(value: object) -> str:
     if not isinstance(value, str) or len(value) != 36:
         raise invalid()
@@ -45,71 +55,72 @@ def uuid_value(value: object) -> str:
     return value
 
 
-def binding(value: object) -> dict:
-    if not isinstance(value, dict) or set(value) != BINDING_KEYS:
-        raise invalid()
-    return {key: uuid_value(value[key]) for key in sorted(BINDING_KEYS)}
+def binding(value: object) -> dict[str, str]:
+    fields = _fields(value, BINDING_KEYS)
+    return {key: uuid_value(fields[key]) for key in sorted(BINDING_KEYS)}
 
 
-def command(value: object, expected: dict | None = None) -> dict:
-    capture = isinstance(value, dict) and value.get("command") == "capture"
-    if (
-        not isinstance(value, dict)
-        or set(value)
-        != (
+def command(value: object, expected: dict[str, str] | None = None) -> dict[str, object]:
+    capture = isinstance(value, dict) and cast(dict[str, object], value).get("command") == "capture"
+    fields = _fields(
+        cast(object, value),
+        (
             {"version", "binding", "command", "capture_id", "capture_path"}
             if capture
             else {"version", "binding", "command"}
-        )
-        or value["version"] != VERSION
-        or not isinstance(value["command"], str)
-        or value["command"] not in {"open", "permit", "close", "capture"}
+        ),
+    )
+    if (
+        fields["version"] != VERSION
+        or not isinstance(fields["command"], str)
+        or fields["command"] not in {"open", "permit", "close", "capture"}
     ):
         raise invalid()
-    scope = binding(value["binding"])
+    scope = binding(fields["binding"])
     if expected is not None and scope != binding(expected):
         raise invalid()
-    result = {"version": VERSION, "binding": scope, "command": value["command"]}
+    result: dict[str, object] = {"version": VERSION, "binding": scope, "command": fields["command"]}
     if capture:
-        path = value["capture_path"]
+        path = fields["capture_path"]
         if not isinstance(path, str) or not 1 <= len(path) <= 4000 or any(ord(c) < 32 for c in path):
             raise invalid()
-        result.update(capture_id=uuid_value(value["capture_id"]), capture_path=path)
+        result.update(capture_id=uuid_value(fields["capture_id"]), capture_path=path)
     return result
 
 
-def event(value: object, expected: dict) -> dict:
+def event(value: object, expected: dict[str, str]) -> dict[str, object]:
+    fields = _fields(
+        value,
+        {"version", "binding", "kind", "phase", "error_code", "clean", "capture_available", "capture_error_code"},
+    )
     if (
-        not isinstance(value, dict)
-        or set(value)
-        != {"version", "binding", "kind", "phase", "error_code", "clean", "capture_available", "capture_error_code"}
-        or value["version"] != VERSION
-        or not isinstance(value["kind"], str)
-        or value["kind"] not in {"state", "heartbeat"}
-        or not isinstance(value["phase"], str)
-        or value["phase"] not in PHASES
+        fields["version"] != VERSION
+        or not isinstance(fields["kind"], str)
+        or fields["kind"] not in {"state", "heartbeat"}
+        or not isinstance(fields["phase"], str)
+        or fields["phase"] not in PHASES
     ):
         raise invalid()
-    if binding(value["binding"]) != binding(expected) or type(value["clean"]) is not bool:
+    if binding(fields["binding"]) != binding(expected) or type(fields["clean"]) is not bool:
         raise invalid()
-    code = value["error_code"]
+    code = fields["error_code"]
     if code is not None and (
         not isinstance(code, str) or re.fullmatch(r"(?:portal|desktop)_[a-z0-9_]{1,100}", code) is None
     ):
         raise invalid()
-    if value["clean"] and value["phase"] not in TERMINAL:
+    if fields["clean"] and fields["phase"] not in TERMINAL:
         raise invalid()
-    if value["phase"] == "closed" and (code is not None or not value["clean"]):
+    if fields["phase"] == "closed" and (code is not None or not fields["clean"]):
         raise invalid()
-    if value["phase"] in {"failed", "denied"} and code is None:
+    if fields["phase"] in {"failed", "denied"} and code is None:
         raise invalid()
-    if value["phase"] not in TERMINAL and code is not None:
+    if fields["phase"] not in TERMINAL and code is not None:
         raise invalid()
-    capture_availability(value)
-    return dict(value)
+    capture_availability(fields)
+    return dict(fields)
 
 
-def capture_availability(value: dict) -> None:
+def capture_availability(value: dict[str, object]) -> None:
     available, code = value["capture_available"], value["capture_error_code"]
     if (
         type(available) is not bool
@@ -119,83 +130,83 @@ def capture_availability(value: dict) -> None:
         raise invalid()
 
 
-def receipt(value: object) -> dict:
-    if not isinstance(value, dict) or set(value) != {"width", "height", "bytes", "sha256", "method"}:
+def receipt(value: object) -> dict[str, object]:
+    fields = _fields(value, {"width", "height", "bytes", "sha256", "method"})
+    width, height, size = fields["width"], fields["height"], fields["bytes"]
+    if type(width) is not int or type(height) is not int or type(size) is not int:
         raise invalid()
+    width_i, height_i, size_i = width, height, size
+    digest = fields["sha256"]
     if (
-        any(type(value[k]) is not int for k in ("width", "height", "bytes"))
-        or not 1 <= value["width"] <= 4096
-        or not 1 <= value["height"] <= 4096
-        or value["width"] * value["height"] > 16_000_000
-        or not 1 <= value["bytes"] <= 16 * 1024 * 1024
-        or not isinstance(value["sha256"], str)
-        or re.fullmatch(r"[0-9a-f]{64}", value["sha256"]) is None
-        or value["method"] != "pipewire_window"
+        not 1 <= width_i <= 4096
+        or not 1 <= height_i <= 4096
+        or width_i * height_i > 16_000_000
+        or not 1 <= size_i <= 16 * 1024 * 1024
+        or not isinstance(digest, str)
+        or re.fullmatch(r"[0-9a-f]{64}", digest) is None
+        or fields["method"] != "pipewire_window"
     ):
         raise invalid()
-    return dict(value)
+    return dict(fields)
 
 
-def frame_event(value: object, expected: dict) -> dict:
+def frame_event(value: object, expected: dict[str, str]) -> dict[str, object]:
+    fields = _fields(value, {"version", "binding", "kind", "capture_id", "receipt"})
     if (
-        not isinstance(value, dict)
-        or set(value) != {"version", "binding", "kind", "capture_id", "receipt"}
-        or value["version"] != VERSION
-        or value["kind"] != "frame"
-        or binding(value["binding"]) != binding(expected)
+        fields["version"] != VERSION
+        or fields["kind"] != "frame"
+        or binding(fields["binding"]) != binding(expected)
     ):
         raise invalid()
-    return {"capture_id": uuid_value(value["capture_id"]), "receipt": receipt(value["receipt"])}
+    return {"capture_id": uuid_value(fields["capture_id"]), "receipt": receipt(fields["receipt"])}
 
 
-def encode(value: dict) -> bytes:
+def encode(value: dict[str, object]) -> bytes:
     data = json.dumps(value, ensure_ascii=True, separators=(",", ":"), allow_nan=False).encode("ascii") + b"\n"
     if len(data) > MAX_FRAME:
         raise invalid()
     return data
 
 
-def decode(data: bytes) -> dict:
+def decode(data: bytes) -> dict[str, object]:
     if not data or len(data) > MAX_FRAME or not data.endswith(b"\n") or b"\n" in data[:-1] or b"\r" in data:
         raise invalid()
 
-    def pairs(items):
-        value = {}
+    def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
+        value: dict[str, object] = {}
         for key, item in items:
             if key in value:
                 raise invalid()
             value[key] = item
         return value
 
-    def constant(_):
+    def constant(_: str) -> NoReturn:
         raise invalid()
 
     try:
-        value = json.loads(data, object_pairs_hook=pairs, parse_constant=constant)
+        decoded = json.loads(data, object_pairs_hook=pairs, parse_constant=constant)
     except (ValueError, UnicodeError, RecursionError):
         raise invalid() from None
-    if not isinstance(value, dict):
+    if not isinstance(decoded, dict):
         raise invalid()
-    return value
+    return cast(dict[str, object], decoded)
 
 
 def owner(value: object) -> str:
-    if not isinstance(value, dict) or set(value) != {"consent", "view_id"} or value["consent"] is not True:
+    fields = _fields(value, {"consent", "view_id"})
+    if fields["consent"] is not True:
         raise invalid()
-    return uuid_value(value["view_id"])
+    return uuid_value(fields["view_id"])
 
 
-def capture_request(value: object) -> dict:
-    if (
-        not isinstance(value, dict)
-        or set(value) != {"consent", "view_id", "grant_id", "session_id"}
-        or value["consent"] is not True
-    ):
+def capture_request(value: object) -> dict[str, str]:
+    fields = _fields(value, {"consent", "view_id", "grant_id", "session_id"})
+    if fields["consent"] is not True:
         raise invalid()
-    return {key: uuid_value(value[key]) for key in ("view_id", "grant_id", "session_id")}
+    return {key: uuid_value(fields[key]) for key in ("view_id", "grant_id", "session_id")}
 
 
-def backend_status(value: object, expected_grant: str | None = None) -> dict:
+def backend_status(value: object, expected_grant: str | None = None) -> dict[str, object]:
     keys = {
         "grant_id",
         "phase",
@@ -206,27 +217,24 @@ def backend_status(value: object, expected_grant: str | None = None) -> dict:
         "capture_available",
         "capture_error_code",
     }
+    fields = _fields(value, keys)
+    if not isinstance(fields["phase"], str) or fields["phase"] not in PHASES:
+        raise invalid()
+    uuid_value(fields["grant_id"])
+    if expected_grant is not None and fields["grant_id"] != uuid_value(expected_grant):
+        raise invalid()
+    revision = fields["revision"]
     if (
-        not isinstance(value, dict)
-        or set(value) != keys
-        or not isinstance(value["phase"], str)
-        or value["phase"] not in PHASES
+        type(revision) is not int
+        or revision < 0
+        or type(fields["clean"]) is not bool
+        or type(fields["cleanup_pending"]) is not bool
     ):
         raise invalid()
-    uuid_value(value["grant_id"])
-    if expected_grant is not None and value["grant_id"] != uuid_value(expected_grant):
-        raise invalid()
-    if (
-        type(value["revision"]) is not int
-        or value["revision"] < 0
-        or type(value["clean"]) is not bool
-        or type(value["cleanup_pending"]) is not bool
-    ):
-        raise invalid()
-    capture_availability(value)
-    code = value["error_code"]
+    capture_availability(fields)
+    code = fields["error_code"]
     if code is not None and (
         not isinstance(code, str) or re.fullmatch(r"(?:portal|desktop)_[a-z0-9_]{1,100}", code) is None
     ):
         raise invalid()
-    return dict(value)
+    return dict(fields)
