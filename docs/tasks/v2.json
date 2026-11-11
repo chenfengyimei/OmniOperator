@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "800e719",
+  "checkpoint_commit": "7a5568f",
   "current_validation": {
-    "status": "d7_strict_typing_fourth_batch",
+    "status": "d7_packaging_verified_windows",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
       }
     ],
-    "code_version": "c9fb7869affabe8c75537cb8d4c4beecf38c7d998d92bc4800c4b7ca05a18838",
-    "fixed_source_files": 1174,
+    "code_version": "6abdbc8853e316f3a154a1806e9efc29ec0217c0574229bd58de97011e38edc2",
+    "fixed_source_files": 1175,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -320,13 +320,14 @@
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",
     "token_evidence": "docs/evidence/v2-owner-token.json",
     "inventory_evidence": "docs/evidence/v2-business-inventory.json",
-    "typecheck_evidence": "docs/evidence/v2-typecheck.json"
+    "typecheck_evidence": "docs/evidence/v2-typecheck.json",
+    "packaging_evidence": "docs/evidence/v2-packaging.json"
   },
   "next_checkpoint": {
     "id": "D7.product_switch",
     "status": "进行中",
-    "design": "docs/TYPE_CHECKING.md",
-    "scope": "strict 门禁与首批 4 个 domain 模块已完成；剩余：继续分模块严格化、三平台包/容器/安装更新恢复与入口切换门槛。"
+    "design": "docs/V2_PACKAGING.md",
+    "scope": "Windows wheel/sdist 打包验证与安装/更新/恢复合同调用方已完成；剩余：V2 独立安装器/更新器、容器镜像、三平台构建与干净机器端到端、入口切换。"
   },
   "milestones": [
     {
@@ -885,14 +886,25 @@
       ],
       "remaining": "domain 其余 49 文件与 application/adapters/composition 未严格化；不得称全仓 strict。",
       "code_version": "fb4aeec8fe2d3aacdb14cd3a3f2759a99308dc16c08cf0b025a80e0d5c0c6fbf"
+    },
+    {
+      "id": "R7.packaging",
+      "status": "部分完成（Windows 构建验证）",
+      "development": "构建验证完成",
+      "offline_validation": "direct wheel 与 sdist→wheel 内核/资源一致、隔离 V2 实例通过；发布/部署/drain/schema 恢复调用方 57 项全过",
+      "evidence": [
+        "docs/evidence/v2-packaging.json"
+      ],
+      "remaining": "macOS/Linux 构建安装、容器镜像、V2 安装器/更新器、签名公证、干净机器端到端均未验收。",
+      "code_version": "6abdbc8853e316f3a154a1806e9efc29ec0217c0574229bd58de97011e38edc2"
     }
   ],
   "latest_source_recovery": {
-    "manifest": "temp/private/v2-typecheck-source-20261111-fb4aeec8fe2d/manifest.json",
-    "files": 1174,
+    "manifest": "temp/private/v2-packaging-source-20261111-6abdbc8853e3/manifest.json",
+    "files": 1175,
     "standalone_source": true,
     "runtime_data_included": false,
-    "validation_status": "d7_strict_typing_started"
+    "validation_status": "d7_packaging_verified_windows"
   },
   "delivery_strategy": {
     "date": "2026-11-06",

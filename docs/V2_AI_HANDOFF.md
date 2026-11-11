@@ -5,10 +5,10 @@
 ## 1. 接手时先明确的结论
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
-- 当前断点：**D7 产品切换进行中**，能力报告、令牌管理（API/CLI/工作台）、业务清单、导航收敛与 strict 类型四批已完成；剩余继续分模块严格化、三平台包/容器/安装更新恢复与正式入口切换门槛。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
-- 最新完成批次是 **D7.typecheck.4（严格类型第四批）**：strict 范围扩到 **10 个 domain 模块**（新增 context、recovery_authority）；`context` 显式 `Sequence[Mapping[str, object]]`/`list[Mapping[str, object]]` 注解；`recovery_authority` 通过 `service_deployment` 新增的公共桥（deployment_fields/integer/path/sha/uuid）消除跨模块私有依赖，witness 行类型化并保留原错误码。strict 门禁 10 文件 **0 errors/0 warnings**；基线表移出已清零的 context(38)/recovery_authority(27)。**类型守卫 2 项 + 上下文/上下文故障/发布/恢复守卫 50 项全过**；证据 `docs/evidence/v2-typecheck.json`。
-- 功能与基线：strict 10 模块、导航 11 项、业务清单 3 项守卫、令牌工作台与 38 项令牌 API/CLI、能力报告 17 项、宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**最终全量（D7 节点前）：4583 项，4580 passed / 3 failed / 0 errors**（并行时序，隔离 36 项全过，登记观察）。**仍不是全量全绿、全仓严格类型或三平台验收。**
-- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）、`1eaf6a9`（能力报告）、`ed5912a`（令牌管理）、`560387d`（令牌工作台）、`9133001`（业务清单）、`1a18fae`（导航收敛）、`6679edf`（类型起步）、`a3aa0e4`（类型第二批）、`cfa9d1d`（类型第三批）、`800e719`（类型第四批）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
+- 当前断点：**D7 产品切换进行中**，能力报告、令牌管理（API/CLI/工作台）、业务清单、导航收敛、strict 类型四批与 Windows 打包验证已完成；剩余 V2 安装器/更新器、容器镜像、三平台构建与干净机器端到端、正式入口切换。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
+- 最新完成批次是 **D7.packaging（打包验证）**：`scripts/check_package.py` 离线构建 direct wheel 与 sdist→wheel，交叉验证内核字节一致、116 个 web 资源一致、隔离解释器导入、fresh V2 实例（1 agent/ready/无 V1 模块/干净关闭）；发布/部署/drain/schema 恢复调用方 **57 项全过**。`docs/V2_PACKAGING.md` 记录已验证链与未完成边界（macOS/Linux、容器、V2 安装器/更新器、签名公证、干净机器）。**守卫 2 项 + 调用方 57 项全过**；证据 `docs/evidence/v2-packaging.json`。
+- 功能与基线：打包验证 57 项、strict 10 模块、导航 11 项、业务清单 3 项守卫、令牌工作台与 38 项令牌 API/CLI、能力报告 17 项、宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**最终全量（D7 节点前）：4583 项，4580 passed / 3 failed / 0 errors**（并行时序，隔离 36 项全过，登记观察）。**仍不是全量全绿、全仓严格类型或三平台验收。**
+- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）、`1eaf6a9`（能力报告）、`ed5912a`（令牌管理）、`560387d`（令牌工作台）、`9133001`（业务清单）、`1a18fae`（导航收敛）、`6679edf`（类型起步）、`a3aa0e4`（类型第二批）、`cfa9d1d`（类型第三批）、`800e719`（类型第四批）、`7a5568f`（打包验证）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
 
@@ -42,14 +42,14 @@ V2 **不兼容** V1 的数据库、配置、HTTP、工具名或导入路径；�
 | --- | --- |
 | 工作区 | `D:\xm\OmniOperator`，PowerShell |
 | 分支 | `codex/architecture-v2`，上游 `origin/codex/architecture-v2`（gitee） |
-| MCP 与扩展批代码提交 | `8ad22cf`→…→`cfa9d1d`→`800e719`；台账 `checkpoint_commit=800e719`，本文档提交再前进一个 |
+| MCP 与扩展批代码提交 | `8ad22cf`→…→`800e719`→`7a5568f`；台账 `checkpoint_commit=7a5568f`，本文档提交再前进一个 |
 | 最初重构基线 | `076c0c22fa8ecb90d3ce9a64562c90a23a129e00` |
 | 交接时工作区 | 干净（`git status` 空） |
-| 最新固定源码指纹 | `c9fb7869affabe8c75537cb8d4c4beecf38c7d998d92bc4800c4b7ca05a18838` |
-| 源码文件 | 1174 份（`agent/`、`web/`、`scripts/` 的 git blob 集合） |
-| 恢复材料 | `temp/private/v2-typecheck-4-source-20261111-c9fb7869affa/manifest.json` |
-| 源码备份 | 同目录 `source-and-evidence.zip`（1439 份源码/文档 + 2 份验证材料） |
-| ZIP SHA256 | `47ec9121b589d01b68080fc3d10271fe6a7c7d5c10af394e22574ba711244c9c` |
+| 最新固定源码指纹 | `6abdbc8853e316f3a154a1806e9efc29ec0217c0574229bd58de97011e38edc2` |
+| 源码文件 | 1175 份（`agent/`、`web/`、`scripts/` 的 git blob 集合） |
+| 恢复材料 | `temp/private/v2-packaging-source-20261111-6abdbc8853e3/manifest.json` |
+| 源码备份 | 同目录 `source-and-evidence.zip`（1441 份源码/文档 + 4 份验证材料） |
+| ZIP SHA256 | `bd290b140b498d2660772ee772dafc2835bd108cca801b589286d4db31817c1e` |
 
 封存时 manifest 为 `complete` 且 ZIP SHA 匹配；**complete 只表示可恢复，不表示 V2 完成**。本批证据 JSON 与本文档晚于该封存，恢复时需一并复制。MCP/媒体/技能批的恢复包保留为溯源材料，不删除。
 
@@ -272,6 +272,8 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | `v2-typecheck-2.xml` | 74 | D7 strict 第二批：metering/release_fence + 配置/上下文/清理/恢复调用方 |
 | `v2-typecheck-3.xml` | 44 | D7 strict 第三批：memory_semantics/foreground + 前台/记忆语义调用方 |
 | `v2-typecheck-4.xml` | 50 | D7 strict 第四批：context/recovery_authority + 上下文/发布/恢复调用方 |
+| `v2-packaging-guard.xml` | 2 | D7 打包：构建门禁 V2 检查项与文档边界守卫 |
+| `v2-packaging-callers.xml` | 57 | D7 打包：发布/部署/drain/schema 恢复调用方 |
 | `v2-mcp-final.xml` + `-ui` + `-callers` + `-guards` | 150 | 上一批 MCP，共享节点以扩展报告的重跑结果为准 |
 
 门禁 `temp/build/v2-owner-token-ui-gates.json`（ruff / format / prettier / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 5 文件 0 错误）。令牌工作台 16 项节点回归，未再跑全量；最终全量仍为 4580 passed / 3 failed。
@@ -353,5 +355,5 @@ uv run --no-sync python scripts/task_status.py --check
 
 - 期望：分支 `codex/architecture-v2`，远端与本地一致（或本地领先本批文档提交），工作区干净。
 - 期望：索引 `modules=65 files=717 routes=430 declared_tools=94`，`stale=` 为空。
-- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D7.product_switch"`（D6.extensions 离线节点已完成，D7 能力报告、令牌管理、业务清单、导航收敛与 strict 四批已完成），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 10`、`current_full_passed == false`（最终全量 4580 passed / 3 failed，三处并行时序隔离 36 项全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；D7 证据 `docs/evidence/v2-capabilities.json`、`docs/evidence/v2-owner-token.json`、`docs/evidence/v2-business-inventory.json`、`docs/evidence/v2-typecheck.json`）。
+- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D7.product_switch"`（D6.extensions 离线节点已完成，D7 能力报告、令牌管理、业务清单、导航收敛、strict 四批与 Windows 打包验证已完成），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 10`、`current_full_passed == false`（最终全量 4580 passed / 3 failed，三处并行时序隔离 36 项全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；D7 证据 `docs/evidence/v2-capabilities.json`、`docs/evidence/v2-owner-token.json`、`docs/evidence/v2-business-inventory.json`、`docs/evidence/v2-typecheck.json`、`docs/evidence/v2-packaging.json`）。
 - 若数字不同：先判断是否有并行会话提交，再决定是否重算索引/摘要；不要改历史证据。
