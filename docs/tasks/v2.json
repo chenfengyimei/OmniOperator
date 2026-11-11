@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "b0bafae",
+  "checkpoint_commit": "a6dd48e",
   "current_validation": {
-    "status": "d7_installation_wheel_prepared",
+    "status": "d7_installation_switch_planned",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-d7-isolation.xml"
       }
     ],
-    "code_version": "16538782d075a6a2dcd7e591f5f82dbe3d48232cf87a78da4747a07704f1d6ea",
-    "fixed_source_files": 1183,
+    "code_version": "33072ccc9277bb296b325000bac96fd0c77d6b1586dcbf38e25db5d9a76aa6e6",
+    "fixed_source_files": 1185,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -913,12 +913,12 @@
       "id": "R7.installation",
       "status": "部分完成（收据/预检）",
       "development": "installation verify/seal",
-      "offline_validation": "17 项安装/运行时/产物/暂存/解包/打包测试全过；verify/seal/运行时收据/wheel 校验/暂存/解包均 fail-closed",
+      "offline_validation": "21 项安装/运行时/产物/暂存/解包/切换计划/打包测试全过；候选/收据/schema/实例占用任一不满足即 fail-closed，计划不执行",
       "evidence": [
         "docs/evidence/v2-installation.json"
       ],
       "remaining": "未下载/校验 wheel、未创建 venv、未切换目录、未执行迁移/回滚/卸载；macOS/Linux 与干净机器未验收。",
-      "code_version": "16538782d075a6a2dcd7e591f5f82dbe3d48232cf87a78da4747a07704f1d6ea"
+      "code_version": "33072ccc9277bb296b325000bac96fd0c77d6b1586dcbf38e25db5d9a76aa6e6"
     }
   ],
   "latest_source_recovery": {
