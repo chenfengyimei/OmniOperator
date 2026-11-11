@@ -6,15 +6,16 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "c44bd91769c0eae8417eae319e3c16404d17ca0fa8cf37a53a8737bfafbdccac",
+  "code_version": "d77165d3ade5d06d143c56c7325d385d2f22c270cec8ceeb5d41d9b7b345e8d2",
   "fixed_source_files": 1177,
-  "git_head": "f6f0e2e"
+  "git_head": "701f3f4"
  },
  "development": {
   "scope": [
    "installation verify is read-only and reports home, receipt validity, database/WAL presence, current and expected schema, upgrade_required, ready",
    "installation seal writes one durable receipt only when the database schema equals the code head; same-head replay is idempotent, different head is rejected",
-   "Receipt validation is a pure domain rule rejecting non-UTC timestamps, unexpected fields and malformed schema/head"
+   "Receipt validation is a pure domain rule rejecting non-UTC timestamps, unexpected fields and malformed schema/head",
+   "open_instance verifies an existing receipt: schema mismatch raises installation_mismatch, corrupt or linked receipts raise installation_invalid, absence stays compatible"
   ],
   "pending": [
    "wheel download/verification",
@@ -26,29 +27,29 @@
   ]
  },
  "validation": {
-  "tests": 6,
+  "tests": 7,
   "report": {
-   "path": "temp/build/v2-installation.xml",
-   "sha256": "b0af89f0d05b23c912b90e28ada7b4d2e144f388be6cc69037946f4da9014a77",
-   "tests": 6,
+   "path": "temp/build/v2-installation-runtime.xml",
+   "sha256": "d13af3ee601b8c7bec673913f3cf8114f0da312099951c4d961ef9a3f7d16be4",
+   "tests": 7,
    "failures": 0,
    "errors": 0,
-   "duration_s": 5.748
+   "duration_s": 7.805
   },
   "gates": {
-   "path": "temp/build/v2-installation-gates.json",
-   "sha256": "bdbef191df8905b90a52dd78dca633a7293c6957dcadcf06b385ae80d777c7fa",
+   "path": "temp/build/v2-installation-runtime-gates.json",
+   "sha256": "3ffb4ab1fef9864a6b03c6b2f341cfe8f98479500f6a55ba9c9bab5f8c0b2c68",
    "passed": 5,
    "total": 5
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-installation-source-20261111-c44bd91769c0/manifest.json",
-  "archive_sha256": "d14e11cee46befa1dea8882874a267a55138a58a5b3513e66408c177f81dfd3d",
+  "manifest": "temp/private/v2-installation-runtime-source-20261111-d77165d3ade5/manifest.json",
+  "archive_sha256": "1b98c50c3214cd158c0148a2957e456142913317f7d39854845191979df73799",
   "files": 1177,
   "validation_artifacts": [
-   "v2-installation.xml",
-   "v2-installation-gates.json"
+   "v2-installation-runtime.xml",
+   "v2-installation-runtime-gates.json"
   ]
  },
  "limits": [
