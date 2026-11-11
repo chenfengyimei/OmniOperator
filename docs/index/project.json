@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "abcb0ee1d91371747315c5424aaef9f71ba0a6ee327f24304b663763d7a17398",
+  "source_sha256": "b837e29eaf14c3a9aa9a4fd499e371554ebdf7d7b6fa8a29c0a521692c6f229d",
   "modules": [
     {
       "id": "v2-domain",
@@ -41609,7 +41609,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[T]"
+          }
         },
         {
           "name": "OperationsService.status",
