@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "c61372cf3fce1c5f10c734a8e6263b238e395fb06f5d59750383509154e4836e",
-  "fixed_source_files": 1179,
-  "git_head": "fd0eb0b"
+  "code_version": "29d68fe40c7a5f305a1d4796169c09281e36f17cfc9c66dfae3c43305fe848c5",
+  "fixed_source_files": 1181,
+  "git_head": "5b28d41"
  },
  "development": {
   "scope": [
@@ -16,7 +16,8 @@
    "installation seal writes one durable receipt only when the database schema equals the code head; same-head replay is idempotent, different head is rejected",
    "Receipt validation is a pure domain rule rejecting non-UTC timestamps, unexpected fields and malformed schema/head",
    "open_instance verifies an existing receipt: schema mismatch raises installation_mismatch, corrupt or linked receipts raise installation_invalid, absence stays compatible",
-   "installation artifact verifies a local wheel read-only: SHA256, zip CRC, member count/uncompressed caps, path traversal/backslash/absolute names, duplicates, V2 assets and METADATA"
+   "installation artifact verifies a local wheel read-only: SHA256, zip CRC, member count/uncompressed caps, path traversal/backslash/absolute names, duplicates, V2 assets and METADATA",
+   "installation stage copies a verified wheel atomically to home/updates/<sha16>/artifact.whl with staged.json (extracted=false, installed=false); same-SHA replay is idempotent and corrupt receipts fail closed"
   ],
   "pending": [
    "wheel download/verification",
@@ -28,29 +29,29 @@
   ]
  },
  "validation": {
-  "tests": 10,
+  "tests": 14,
   "report": {
-   "path": "temp/build/v2-wheel-artifact.xml",
-   "sha256": "0749f60bc07ba344d783d50a941f23463c651b785db2ab8ed0ee97014b0a07fe",
-   "tests": 10,
+   "path": "temp/build/v2-wheel-stage.xml",
+   "sha256": "078cca02dc60c8b906f037819c4ba9979f528b9dab20681e53ea6f4b7b4da3a2",
+   "tests": 14,
    "failures": 0,
    "errors": 0,
-   "duration_s": 8.255
+   "duration_s": 7.889
   },
   "gates": {
-   "path": "temp/build/v2-wheel-artifact-gates.json",
-   "sha256": "d32245b6aeba17e08d16fea8ac5d72645504e9e6d793e283232341a5dc3aa8f3",
+   "path": "temp/build/v2-wheel-stage-gates.json",
+   "sha256": "f66c3cd66f382674aae146ce24d5ff632bae342ad369ded15c2685c3a3fe9936",
    "passed": 5,
    "total": 5
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-wheel-artifact-source-20261111-c61372cf3fce/manifest.json",
-  "archive_sha256": "c376821e337ab38f98cff3650b67c3b8f8a07e992a8a62ec8cefa667a5c0037e",
-  "files": 1179,
+  "manifest": "temp/private/v2-wheel-stage-source-20261111-29d68fe40c7a/manifest.json",
+  "archive_sha256": "f70fce9a7de16119d6db656c0300109f761213fa2dd31b3bbff48468f49f235e",
+  "files": 1181,
   "validation_artifacts": [
-   "v2-wheel-artifact.xml",
-   "v2-wheel-artifact-gates.json"
+   "v2-wheel-stage.xml",
+   "v2-wheel-stage-gates.json"
   ]
  },
  "limits": [
