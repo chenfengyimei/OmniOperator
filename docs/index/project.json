@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "16219470774c6e328b22ab03a31f941a51eef0d669e5381c95eeb6807a763fd6",
+  "source_sha256": "14646b1ea001883425a0fcfdc8b6253b083edf92523075cde2f53e45ca0e9965",
   "modules": [
     {
       "id": "v2-domain",
@@ -346,6 +346,7 @@
         "agent/src/omni/adapters/platform/wheel_artifact.py",
         "agent/src/omni/adapters/platform/wheel_backup.py",
         "agent/src/omni/adapters/platform/wheel_prepare.py",
+        "agent/src/omni/adapters/platform/wheel_rollback.py",
         "agent/src/omni/adapters/platform/wheel_stage.py",
         "agent/src/omni/adapters/platform/wheel_switch.py",
         "agent/src/omni/adapters/platform/workspaces.py",
@@ -398,7 +399,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51794,
+      "lines": 51863,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -433,7 +434,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2861,
+      "lines": 2867,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30838,6 +30839,46 @@
       "summary": "Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_rollback.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_rollback",
+      "lines": 69,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.paths",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.wheel_backup",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 17,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "rollback_check",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/wheel_stage.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_stage",
@@ -57640,7 +57681,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 920,
+      "lines": 926,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57660,6 +57701,7 @@
         "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_backup",
         "omni.adapters.platform.wheel_prepare",
+        "omni.adapters.platform.wheel_rollback",
         "omni.adapters.platform.wheel_stage",
         "omni.adapters.platform.wheel_switch",
         "omni.adapters.primitives",
