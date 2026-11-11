@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ccd62dd1a05d34829822e8a58588b8965168421844ef39c3d2eeee10a6e69e84",
+  "source_sha256": "74a6bad5222f58a5431ce27171b8dbe3008d07b81e1d04767b63bcef5f8a61a4",
   "modules": [
     {
       "id": "v2-domain",
@@ -344,6 +344,7 @@
         "agent/src/omni/adapters/platform/systemd_state.py",
         "agent/src/omni/adapters/platform/terminal.py",
         "agent/src/omni/adapters/platform/wheel_artifact.py",
+        "agent/src/omni/adapters/platform/wheel_prepare.py",
         "agent/src/omni/adapters/platform/wheel_stage.py",
         "agent/src/omni/adapters/platform/workspaces.py",
         "agent/src/omni/adapters/primitives.py",
@@ -395,7 +396,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51516,
+      "lines": 51634,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -430,7 +431,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2850,
+      "lines": 2856,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30720,6 +30721,70 @@
       "summary": "Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_prepare.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_prepare",
+      "lines": 118,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.wheel_artifact",
+        "omni.adapters.platform.wheel_stage",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 21,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_digest",
+          "line": 25,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "_safe_target",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "root",
+            "name"
+          ],
+          "annotations": {
+            "root": "Path",
+            "name": "str"
+          }
+        },
+        {
+          "name": "prepare_wheel",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "home",
+            "sha256"
+          ],
+          "annotations": {
+            "home": "Path",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/wheel_stage.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_stage",
@@ -57470,7 +57535,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 909,
+      "lines": 915,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57488,6 +57553,7 @@
         "omni.adapters.platform.service_query",
         "omni.adapters.platform.service_readiness",
         "omni.adapters.platform.wheel_artifact",
+        "omni.adapters.platform.wheel_prepare",
         "omni.adapters.platform.wheel_stage",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
