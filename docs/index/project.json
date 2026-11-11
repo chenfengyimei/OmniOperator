@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6ec52b59d9623f0572fe2c8fb4424ada9c9d18be845865d1e414493e3df25e27",
+  "source_sha256": "178cb3a32b772622e8a5e19ce983842c84a717a57e47aaf7d532502c907a4fba",
   "modules": [
     {
       "id": "v2-domain",
@@ -41323,7 +41323,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[T]"
+          }
         },
         {
           "name": "ObjectService.publish",

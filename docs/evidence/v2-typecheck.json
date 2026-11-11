@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "b2fe8bba303da4b7f06650caa8adbd85d79b6489d69c19b4a101c05958e57ff1",
+  "code_version": "ed9055f6b4dd67a6278e094876492f9aafafc031793f9d5177225f4265d98e34",
   "fixed_source_files": 1193,
-  "git_head": "6e5e64c",
+  "git_head": "b05d937",
   "dirty_checkout": false
  },
  "development": {
@@ -33,7 +33,8 @@
    "Strict scope reaches 27 files with memory_tools; its DatabasePort callback is typed as UnitOfWork -> list[Record] and search data as dict[str, JSON]",
    "Strict scope reaches 28 files with action_review; task sets/callbacks are explicitly typed and parse_review returns dict[str, object]",
    "Strict scope reaches 29 files with operations; bounded task sets and the close task are explicitly typed without changing concurrency or shutdown semantics",
-   "Strict scope reaches 31 files with debugging and terminal_review; maintenance/owner-review tasks and review requests are explicitly typed without changing bounds or shutdown semantics"
+   "Strict scope reaches 31 files with debugging and terminal_review; maintenance/owner-review tasks and review requests are explicitly typed without changing bounds or shutdown semantics",
+   "Strict scope reaches 32 files with objects; bounded task sets and paginated capture/object results are explicitly typed without changing queue or publication semantics"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -179,22 +180,31 @@
     "errors": 0,
     "duration_s": 11.843,
     "note": "fifteenth strict batch: guard + debug-sink/terminal-review callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-16.xml",
+    "sha256": "03930f1da77d08df8514e84978d29d49350eacda75b3809cc49f66d68613d59f",
+    "tests": 25,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 36.366,
+    "note": "sixteenth strict batch: guard + objects/capture callers"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-15-gates.json",
-   "sha256": "e8d30bd76349b572b086a1e523c0198e8b58fdbad00cbcd6fa71dcef45630b60",
+   "path": "temp/build/v2-typecheck-16-gates.json",
+   "sha256": "edf8b581c270b6f79604f1722324b29908a2653fe97c176a2218dfdad3bd37e2",
    "passed": 5,
    "total": 5
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 31,
+    "filesAnalyzed": 32,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 1.032
+    "timeInSec": 1.012
    }
   },
   "default_pyright": {
@@ -216,12 +226,12 @@
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-typecheck-15-source-20261111-b2fe8bba303d/manifest.json",
-  "archive_sha256": "85d0b823ad8d38c45e9a96bdd6f7b332e5e0118dcf751d0bf9d59884c02fdfb1",
+  "manifest": "temp/private/v2-typecheck-16-source-20261111-ed9055f6b4dd/manifest.json",
+  "archive_sha256": "272efcd44736da1815608aa8102063e7e336b4d925d60e7f169838288b1eb95e",
   "files": 1193,
   "validation_artifacts": [
-   "v2-typecheck-15.xml",
-   "v2-typecheck-15-gates.json"
+   "v2-typecheck-16.xml",
+   "v2-typecheck-16-gates.json"
   ]
  },
  "next": {

@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **31 个文件**（14 个 domain + application 的 routing/release_drain/exchange_recovery_steps/local_vectors/service_deployment/exchange_recovery/service_cleanup/model_output/people/memory_tools/action_review/operations/debugging/terminal_review + adapters 的 build_identity/primitives/timezones/metrics），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **32 个文件**（14 个 domain + application 的 routing/release_drain/exchange_recovery_steps/local_vectors/service_deployment/exchange_recovery/service_cleanup/model_output/people/memory_tools/action_review/operations/debugging/terminal_review/objects + adapters 的 build_identity/primitives/timezones/metrics），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -71,7 +71,9 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 第十四批加入 application/operations（`_pending` 显式 `Task[object]`、完成回调 `Task[T]`、`_port_close` 显式 `Task[bool] | None`）。
 
-第十五批加入 application/debugging 与 application/terminal_review（维护任务 `Task[None] | None`、终端核查回调 `Task[Any]`、`parse_review` cast `Record`）。十五批类型守卫 30 项 + 685 项调用方回归全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第十五批加入 application/debugging 与 application/terminal_review（维护任务 `Task[None] | None`、终端核查回调 `Task[Any]`、`parse_review` cast `Record`）。
+
+第十六批加入 application/objects（`_pending` 显式 `Task[object]`、完成回调 `Task[T]`、captures/page 返回 cast `Record`）。十六批类型守卫 32 项 + 710 项调用方回归全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D7 打包验证（2026-11-11）
 
