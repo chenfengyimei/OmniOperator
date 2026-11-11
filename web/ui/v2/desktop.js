@@ -1,4 +1,4 @@
-import { renderDesktopActions } from './desktop-actions.js?v=20261110v51';
+import { renderDesktopActions } from './desktop-actions.js?v=20261110v52';
 
 export function mountDesktop({ api, wrap, getAgent, getGeneration, getSession }) {
   const $ = (id) => document.getElementById(id);

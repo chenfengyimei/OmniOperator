@@ -7,8 +7,8 @@
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v51" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v51" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v52" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v52" />
   </head>
   <body>
     <header>
@@ -34,6 +34,7 @@
           <button type="button" data-page="terminals">所有者终端</button>
           <button type="button" data-page="desktop">桌面能力</button>
           <button type="button" data-page="logs">诊断日志</button>
+          <button type="button" data-page="capabilities">能力</button>
           <button type="button" data-page="audit">审计记录</button>
           <button type="button" data-page="objects">文件</button>
           <button type="button" data-page="people">人物与档案</button>
@@ -1112,6 +1113,19 @@
           <p id="document-search-status" role="status"></p>
           <div id="document-results"></div>
         </section>
+        <section id="capabilities" class="page" hidden>
+          <h1>能力报告</h1>
+          <p class="muted">
+            只读投影当前实例的健康快照，仅展示有界计数与限制说明；不表示 V2 已验收、已切换正式入口或真实平台已通过。
+          </p>
+          <div class="actions">
+            <button id="capabilities-refresh" type="button">刷新能力报告</button>
+          </div>
+          <p id="capabilities-status" role="status"></p>
+          <pre id="capabilities-meta"></pre>
+          <div id="capabilities-list"></div>
+          <pre id="capabilities-notes"></pre>
+        </section>
         <section id="logs" class="page" hidden>
           <h1>诊断日志</h1>
           <div class="actions">
@@ -1365,8 +1379,8 @@
         </section>
       </section>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261110v51"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v51"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261110v51"></script>
+    <script src="/assets/vendor/xterm.js?v=20261110v52"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v52"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261110v52"></script>
   </body>
 </html>

@@ -46,6 +46,7 @@ from ..application.scheduling import SchedulingService
 from ..application.skills import SkillService
 from ..application.terminal_review import TerminalReviewService
 from ..application.terminals import TerminalService
+from ..domain.capabilities import capability_report
 from ..domain.contracts import BusinessError
 from ..domain.objects import MAX_OBJECT_BYTES
 from .diagnostics import bind_context
@@ -544,6 +545,10 @@ def create_app(factory: Callable[[], Awaitable[HttpRuntime]], *, allowed_origins
     @router.get("/version")
     async def version(request: Request):
         return runtime(request).describe()
+
+    @router.get("/capabilities")
+    async def capabilities(request: Request):
+        return capability_report(runtime(request).describe())
 
     def qq_service(request: Request) -> QQService:
         service = runtime(request).qq
