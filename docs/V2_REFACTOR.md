@@ -39,7 +39,11 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 `docs/V2_BUSINESS_INVENTORY.md` 逐页列出 22 个工作台页面的业务能力、状态（仅“可用（离线）/需配置”）、配置依赖与真实验收边界，并单列实例级接口/CLI 与明确未实现项；`agent/tests/test_v2_business_inventory.py` 对导航、page section 与清单表格做双向一致守卫，并禁止“已验收”状态词。2 项守卫通过；证据见[证据](evidence/v2-business-inventory.json)。
 
-导航收敛（v54）：侧栏 22 个入口按 7 个业务域分组（对话与记忆、知识与技能、工具与扩展、设备与平台、资料与媒体、自动化、系统与运维），仅加分组标题，不改变 `data-page` id、页面能力与既有测试选择器；守卫新增分组顺序与文档一致性断言，浏览器 390/1024 验证 7 组顺序、22 入口齐全、逐项页面可达。导航/清单/UI 11 项与工作台 73 项回归通过。D7 剩余门槛：全仓严格类型、三平台包/容器/安装更新恢复与正式入口切换。
+导航收敛（v54）：侧栏 22 个入口按 7 个业务域分组（对话与记忆、知识与技能、工具与扩展、设备与平台、资料与媒体、自动化、系统与运维），仅加分组标题，不改变 `data-page` id、页面能力与既有测试选择器；守卫新增分组顺序与文档一致性断言，浏览器 390/1024 验证 7 组顺序、22 入口齐全、逐项页面可达。导航/清单/UI 11 项与工作台 73 项回归通过。
+
+## D7 严格类型起步（2026-11-11）
+
+`pyrightconfig.strict.json` 以 strict 模式只纳入 4 个纯 domain 模块（capabilities/credentials/objects/people），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 当前 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表、文件存在与未完成声明一致；能力/对象/人物/凭据调用方 48 项回归通过。D7 剩余门槛：继续分模块严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 

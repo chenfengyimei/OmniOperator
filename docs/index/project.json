@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "732ff9d6cec46670317769f7ac90b3681754d8a4fa9b2b14559a3cb08a4e00df",
+  "source_sha256": "7c9274401003ad990ba8d38e8b3b3b2bc7d8ed475d5e2eda86fe576e296c6211",
   "modules": [
     {
       "id": "v2-domain",
@@ -71,7 +71,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8712,
+      "lines": 8717,
       "dependencies": []
     },
     {
@@ -62240,40 +62240,62 @@
       "path": "agent/src/omni/domain/capabilities.py",
       "module": "v2-domain",
       "python_module": "omni.domain.capabilities",
-      "lines": 108,
+      "lines": 116,
       "imports": [],
       "symbols": [
         {
           "name": "_fact",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "Any"
+            "value": "object"
           }
         },
         {
           "name": "_state",
-          "line": 57,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "section"
           ],
           "annotations": {
-            "section": "dict"
+            "section": "Mapping[str, object]"
+          }
+        },
+        {
+          "name": "_integer",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_text",
+          "line": 74,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
           }
         },
         {
           "name": "capability_report",
-          "line": 69,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "health"
           ],
           "annotations": {
-            "health": "dict"
+            "health": "Mapping[str, object]"
           }
         }
       ],
@@ -62692,24 +62714,24 @@
       "path": "agent/src/omni/domain/credentials.py",
       "module": "v2-domain",
       "python_module": "omni.domain.credentials",
-      "lines": 82,
+      "lines": 79,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "CredentialState",
-          "line": 15,
+          "line": 16,
           "kind": "class"
         },
         {
           "name": "CredentialOperationState",
-          "line": 22,
+          "line": 23,
           "kind": "class"
         },
         {
           "name": "reference_fingerprint",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "reference"
@@ -62720,18 +62742,18 @@
         },
         {
           "name": "authority_fingerprint",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "row"
           ],
           "annotations": {
-            "row": "dict"
+            "row": "Mapping[str, object]"
           }
         },
         {
           "name": "review_value",
-          "line": 58,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "decision",
@@ -62744,7 +62766,7 @@
         },
         {
           "name": "validate_reference",
-          "line": 71,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "reference"
@@ -62755,7 +62777,7 @@
         },
         {
           "name": "validate_secret",
-          "line": 76,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "value"

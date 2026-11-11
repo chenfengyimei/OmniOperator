@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "1a18fae",
+  "checkpoint_commit": "6679edf",
   "current_validation": {
-    "status": "d7_navigation_latest_passed",
+    "status": "d7_strict_typing_started",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
       }
     ],
-    "code_version": "cc74b783ea4744f30d61bff48c0a87d29557aa6671e4003dfb9d30500f244c3b",
-    "fixed_source_files": 1173,
+    "code_version": "fb4aeec8fe2d3aacdb14cd3a3f2759a99308dc16c08cf0b025a80e0d5c0c6fbf",
+    "fixed_source_files": 1174,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -319,13 +319,14 @@
     },
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",
     "token_evidence": "docs/evidence/v2-owner-token.json",
-    "inventory_evidence": "docs/evidence/v2-business-inventory.json"
+    "inventory_evidence": "docs/evidence/v2-business-inventory.json",
+    "typecheck_evidence": "docs/evidence/v2-typecheck.json"
   },
   "next_checkpoint": {
     "id": "D7.product_switch",
     "status": "进行中",
-    "design": "docs/V2_BUSINESS_INVENTORY.md",
-    "scope": "能力/令牌/业务清单/导航收敛已完成；剩余：全仓严格类型、三平台包/容器/安装更新恢复与正式入口切换门槛。"
+    "design": "docs/TYPE_CHECKING.md",
+    "scope": "strict 门禁与首批 4 个 domain 模块已完成；剩余：继续分模块严格化、三平台包/容器/安装更新恢复与入口切换门槛。"
   },
   "milestones": [
     {
@@ -873,14 +874,25 @@
       ],
       "remaining": "真实环境页面验收；导航信息架构后续可再评估。",
       "code_version": "cc74b783ea4744f30d61bff48c0a87d29557aa6671e4003dfb9d30500f244c3b"
+    },
+    {
+      "id": "R7.typecheck",
+      "status": "进行中",
+      "development": "门禁与首批模块完成",
+      "offline_validation": "strict 4 文件 0 errors；类型守卫 2 项 + 能力/对象/人物/凭据 48 项调用方回归全过",
+      "evidence": [
+        "docs/evidence/v2-typecheck.json"
+      ],
+      "remaining": "domain 其余 49 文件与 application/adapters/composition 未严格化；不得称全仓 strict。",
+      "code_version": "fb4aeec8fe2d3aacdb14cd3a3f2759a99308dc16c08cf0b025a80e0d5c0c6fbf"
     }
   ],
   "latest_source_recovery": {
-    "manifest": "temp/private/v2-navigation-source-20261111-cc74b783ea47/manifest.json",
-    "files": 1173,
+    "manifest": "temp/private/v2-typecheck-source-20261111-fb4aeec8fe2d/manifest.json",
+    "files": 1174,
     "standalone_source": true,
     "runtime_data_included": false,
-    "validation_status": "d7_navigation_latest_passed"
+    "validation_status": "d7_strict_typing_started"
   },
   "delivery_strategy": {
     "date": "2026-11-06",

@@ -1,0 +1,97 @@
+{
+ "schema": 1,
+ "batch": "D7.typecheck",
+ "date": "2026-11-11",
+ "whole_v2_complete": false,
+ "d7_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "code_version": "fb4aeec8fe2d3aacdb14cd3a3f2759a99308dc16c08cf0b025a80e0d5c0c6fbf",
+  "fixed_source_files": 1174,
+  "git_head": "6679edf",
+  "dirty_checkout": false
+ },
+ "development": {
+  "schema_tables": 136,
+  "migration_head": "v2_0037",
+  "assets_version": "20261110v54",
+  "scope": [
+   "pyrightconfig.strict.json enables strict for four pure domain modules only",
+   "Strict gate currently reports 0 errors / 0 warnings; default-mode pyright also clean on the changed files",
+   "docs/TYPE_CHECKING.md records the measured domain baseline (2321 strict errors) and per-file samples at 1a18fae",
+   "A guard keeps config include, documented scope, file existence and the unfinished-baseline statement in lockstep"
+  ],
+  "pending": [
+   "Remaining 49 domain files",
+   "application/adapters/composition strict typing",
+   "Three-platform packaging/install/update/restore",
+   "Real-environment acceptance"
+  ]
+ },
+ "validation": {
+  "targeted_unique_passed": 48,
+  "all_latest_cases_passed": true,
+  "targeted_reports": [
+   {
+    "path": "temp/build/v2-typecheck.xml",
+    "sha256": "c47fcf26a12f7adade89519e0497809d6e50f68ad236f37686410e0738fff8c5",
+    "tests": 48,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 67.813
+   }
+  ],
+  "gates": {
+   "path": "temp/build/v2-typecheck-gates.json",
+   "sha256": "ccc495e934419c864a1715bd0cf3cd6768c613693e33f8fe2db67fa8b46d21fc",
+   "passed": 6,
+   "total": 6
+  },
+  "strict": {
+   "config": "pyrightconfig.strict.json",
+   "summary": {
+    "filesAnalyzed": 4,
+    "errorCount": 0,
+    "warningCount": 0,
+    "informationCount": 0,
+    "timeInSec": 0.342
+   },
+   "files": [
+    "agent/src/omni/domain/capabilities.py",
+    "agent/src/omni/domain/credentials.py",
+    "agent/src/omni/domain/objects.py",
+    "agent/src/omni/domain/people.py"
+   ]
+  },
+  "default_pyright": {
+   "summary": {
+    "filesAnalyzed": 2,
+    "errorCount": 0,
+    "warningCount": 0,
+    "informationCount": 0,
+    "timeInSec": 0.313
+   },
+   "sources": [
+    "agent/src/omni/domain/capabilities.py",
+    "agent/src/omni/domain/credentials.py"
+   ]
+  },
+  "full_run": {
+   "status": "not_rerun",
+   "last_known": "4580 passed / 3 failed (parallel timing) before D7 nodes"
+  }
+ },
+ "source_recovery": {
+  "manifest": "temp/private/v2-typecheck-source-20261111-fb4aeec8fe2d/manifest.json",
+  "archive_sha256": "f79217aa0661312ed98b45f07b271c9b67c62cc01b0bfbc3991eef8cb3630233",
+  "files": 1174,
+  "validation_artifacts": [
+   "v2-typecheck.xml",
+   "v2-typecheck-gates.json"
+  ]
+ },
+ "next": {
+  "id": "D7.product_switch",
+  "scope": "Continue strict typing module by module; packaging."
+ }
+}

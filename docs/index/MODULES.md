@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`732ff9d6cec46670317769f7ac90b3681754d8a4fa9b2b14559a3cb08a4e00df`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`7c9274401003ad990ba8d38e8b3b3b2bc7d8ed475d5e2eda86fe576e296c6211`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -16,12 +16,12 @@
 | [agent/src/omni/domain/android_unicode.py](../../agent/src/omni/domain/android_unicode.py) | 114 | Pinned helper profiles and authenticated, bounded Unicode input messages; no device I/O. |
 | [agent/src/omni/domain/audit_retention.py](../../agent/src/omni/domain/audit_retention.py) | 280 | Agent audit-retention subjects, frozen previews and explicit plans; performs no I/O or deletion. |
 | [agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py) | 261 | Explicit Bilibili form profiles, targets and mention ranges; no browser, network or storage. |
-| [agent/src/omni/domain/capabilities.py](../../agent/src/omni/domain/capabilities.py) | 108 | Read-only capability projection over the instance health snapshot; no I/O and no acceptance claims. |
+| [agent/src/omni/domain/capabilities.py](../../agent/src/omni/domain/capabilities.py) | 116 | Read-only capability projection over the instance health snapshot; no I/O and no acceptance claims. |
 | [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 156 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
 | [agent/src/omni/domain/context.py](../../agent/src/omni/domain/context.py) | 51 | Bounded conversation policy; whole turns are the smallest compression unit. |
 | [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 156 | Typed execution contracts and state transitions; performs no I/O. |
 | [agent/src/omni/domain/credential_ipc.py](../../agent/src/omni/domain/credential_ipc.py) | 101 | Bounded native credential messages; no platform selection, imports or diagnostics payloads. |
-| [agent/src/omni/domain/credentials.py](../../agent/src/omni/domain/credentials.py) | 82 | Credential reference and payload bounds; contains no secret store or platform dependency. |
+| [agent/src/omni/domain/credentials.py](../../agent/src/omni/domain/credentials.py) | 79 | Credential reference and payload bounds; contains no secret store or platform dependency. |
 | [agent/src/omni/domain/delivery.py](../../agent/src/omni/domain/delivery.py) | 89 | Outbound intent identities and trusted transport results; no I/O or credentials. |
 | [agent/src/omni/domain/desktop.py](../../agent/src/omni/domain/desktop.py) | 553 | Bounded desktop discovery and read-only UI contracts; no native I/O or action authorization. |
 | [agent/src/omni/domain/desktop_actions.py](../../agent/src/omni/domain/desktop_actions.py) | 204 | Exact semantic action contracts; observations never grant write authority. |
