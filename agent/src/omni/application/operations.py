@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from typing import TypeVar
+from typing import TypeVar, cast
 
 from ..domain.contracts import BusinessError
 from .debugging import DebugService
@@ -26,9 +26,9 @@ class OperationsService:
         self._health = health
         self._debugging = debugging
         self._slots = asyncio.Semaphore(4)
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._closing = False
-        self._port_close: asyncio.Task | None = None
+        self._port_close: asyncio.Task[bool] | None = None
 
     def observe(self, operation: str, outcome: str, seconds: float) -> None:
         self._metrics.observe(operation, outcome, seconds)
@@ -57,8 +57,8 @@ class OperationsService:
         task = asyncio.create_task(perform(), name="omni-diagnostic-query")
         self._pending.add(task)
 
-        def completed(future):
-            self._pending.discard(future)
+        def completed(future: asyncio.Task[T]) -> None:
+            self._pending.discard(cast(asyncio.Task[object], future))
             self._slots.release()
             if not future.cancelled():
                 future.exception()
