@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6400137c8b2a1e34c53a1dd71a9f1681255f3445e11835a2344764cd6759f7ba",
+  "source_sha256": "a95db958bbf2534218caf6b37442cfb16b07492984aa742ac68f8c339646406e",
   "modules": [
     {
       "id": "v2-domain",
@@ -135,7 +135,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10805,
+      "lines": 10822,
       "dependencies": [
         "v2-domain"
       ]
@@ -40777,17 +40777,22 @@
       "path": "agent/src/omni/application/model_output.py",
       "module": "v2-application",
       "python_module": "omni.application.model_output",
-      "lines": 40,
+      "lines": 57,
       "imports": [],
       "symbols": [
         {
+          "name": "_Row",
+          "line": 11,
+          "kind": "class"
+        },
+        {
           "name": "ModelOutput",
-          "line": 8,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "ModelOutput.__init__",
-          "line": 9,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self"
@@ -40796,7 +40801,7 @@
         },
         {
           "name": "ModelOutput.begin",
-          "line": 12,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -40809,12 +40814,12 @@
             "agent_id": "str",
             "run_id": "str",
             "call_id": "str",
-            "authority": "dict"
+            "authority": "Mapping[str, object]"
           }
         },
         {
           "name": "ModelOutput.append",
-          "line": 18,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self",
@@ -40832,7 +40837,7 @@
         },
         {
           "name": "ModelOutput.get",
-          "line": 29,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -40846,7 +40851,7 @@
         },
         {
           "name": "ModelOutput.authority",
-          "line": 33,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self",
@@ -40860,7 +40865,7 @@
         },
         {
           "name": "ModelOutput.clear",
-          "line": 37,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",

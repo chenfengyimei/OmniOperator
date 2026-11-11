@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`6400137c8b2a1e34c53a1dd71a9f1681255f3445e11835a2344764cd6759f7ba`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`a95db958bbf2534218caf6b37442cfb16b07492984aa742ac68f8c339646406e`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -103,7 +103,7 @@
 | [agent/src/omni/application/memory_semantics.py](../../agent/src/omni/application/memory_semantics.py) | 219 | Owned local memory indexing, hybrid recall and explicit related-fact reviews; no automatic merge or deletion. |
 | [agent/src/omni/application/memory_tools.py](../../agent/src/omni/application/memory_tools.py) | 107 | Memory capabilities share application transactions and verified source rules. |
 | [agent/src/omni/application/model_calls.py](../../agent/src/omni/application/model_calls.py) | 274 | One preflight, authorization and settlement path for model and compression calls. |
-| [agent/src/omni/application/model_output.py](../../agent/src/omni/application/model_output.py) | 40 | Bounded previews owned by active model calls; durable messages remain the only completed output. |
+| [agent/src/omni/application/model_output.py](../../agent/src/omni/application/model_output.py) | 57 | Bounded previews owned by active model calls; durable messages remain the only completed output. |
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
