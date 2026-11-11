@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4d876a50260086c5f88c26fb8f3f72f4bfa0d19ef068033ab27ba93c9fbb2d16",
+  "source_sha256": "ddcd5576a7473a76f8c849c2ac249120b84c138beddbd903ecf30b8ab0010289",
   "modules": [
     {
       "id": "v2-domain",
@@ -344,6 +344,7 @@
         "agent/src/omni/adapters/platform/systemd_state.py",
         "agent/src/omni/adapters/platform/terminal.py",
         "agent/src/omni/adapters/platform/wheel_artifact.py",
+        "agent/src/omni/adapters/platform/wheel_backup.py",
         "agent/src/omni/adapters/platform/wheel_prepare.py",
         "agent/src/omni/adapters/platform/wheel_stage.py",
         "agent/src/omni/adapters/platform/wheel_switch.py",
@@ -397,7 +398,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51722,
+      "lines": 51788,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -432,7 +433,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2862,
+      "lines": 2868,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30722,6 +30723,46 @@
       "summary": "Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_backup.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_backup",
+      "lines": 66,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.paths",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.wheel_switch",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "backup_candidate",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/wheel_prepare.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_prepare",
@@ -57587,7 +57628,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 921,
+      "lines": 927,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57605,6 +57646,7 @@
         "omni.adapters.platform.service_query",
         "omni.adapters.platform.service_readiness",
         "omni.adapters.platform.wheel_artifact",
+        "omni.adapters.platform.wheel_backup",
         "omni.adapters.platform.wheel_prepare",
         "omni.adapters.platform.wheel_stage",
         "omni.adapters.platform.wheel_switch",
