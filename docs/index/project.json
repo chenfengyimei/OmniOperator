@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7c9274401003ad990ba8d38e8b3b3b2bc7d8ed475d5e2eda86fe576e296c6211",
+  "source_sha256": "d1a9dd81743b8a21ff5ecfc6792def1c187d8d86ab58e498312a80803f621ff0",
   "modules": [
     {
       "id": "v2-domain",
@@ -71,7 +71,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8717,
+      "lines": 8777,
       "dependencies": []
     },
     {
@@ -65244,7 +65244,7 @@
       "path": "agent/src/omni/domain/metering.py",
       "module": "v2-domain",
       "python_module": "omni.domain.metering",
-      "lines": 76,
+      "lines": 80,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -65283,7 +65283,7 @@
             "tools"
           ],
           "annotations": {
-            "messages": "Sequence[dict]",
+            "messages": "Sequence[Mapping[str, object]]",
             "tools": "Sequence[ToolSpec]"
           }
         },
@@ -65298,7 +65298,7 @@
           ],
           "annotations": {
             "settings": "Mapping[str, object]",
-            "memories": "list[dict]",
+            "memories": "Sequence[Mapping[str, object]]",
             "notice": "str"
           }
         },
@@ -65315,15 +65315,15 @@
           ],
           "annotations": {
             "settings": "Mapping[str, object]",
-            "memories": "list[dict]",
-            "messages": "list[dict]",
-            "summary": "dict | None",
+            "memories": "Sequence[Mapping[str, object]]",
+            "messages": "Sequence[Mapping[str, object]]",
+            "summary": "Mapping[str, object] | None",
             "notice": "str"
           }
         },
         {
           "name": "context_notice",
-          "line": 72,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "omitted",
@@ -65726,15 +65726,67 @@
       "path": "agent/src/omni/domain/release_fence.py",
       "module": "v2-domain",
       "python_module": "omni.domain.release_fence",
-      "lines": 22,
+      "lines": 78,
       "imports": [
-        "omni.domain.contracts",
-        "omni.domain.service_deployment"
+        "omni.domain.contracts"
       ],
       "symbols": [
         {
+          "name": "_invalid",
+          "line": 16,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_text",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "maximum"
+          ],
+          "annotations": {
+            "value": "object",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "_fields",
+          "line": 30,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_release",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_digest",
+          "line": 50,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
           "name": "fence",
-          "line": 11,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "identity",
@@ -65749,7 +65801,7 @@
         },
         {
           "name": "validate_fence",
-          "line": 17,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "value"

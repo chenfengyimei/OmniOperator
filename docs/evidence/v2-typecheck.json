@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "fb4aeec8fe2d3aacdb14cd3a3f2759a99308dc16c08cf0b025a80e0d5c0c6fbf",
+  "code_version": "9f5745b08bcac413968043639b5cc5d00b84874f15c7b3962f215e1f3071489d",
   "fixed_source_files": 1174,
-  "git_head": "6679edf",
+  "git_head": "a3aa0e4",
   "dirty_checkout": false
  },
  "development": {
@@ -19,7 +19,8 @@
    "pyrightconfig.strict.json enables strict for four pure domain modules only",
    "Strict gate currently reports 0 errors / 0 warnings; default-mode pyright also clean on the changed files",
    "docs/TYPE_CHECKING.md records the measured domain baseline (2321 strict errors) and per-file samples at 1a18fae",
-   "A guard keeps config include, documented scope, file existence and the unfinished-baseline statement in lockstep"
+   "A guard keeps config include, documented scope, file existence and the unfinished-baseline statement in lockstep",
+   "Strict scope grows to six domain modules; release_fence no longer imports private deployment helpers and metering uses explicit Mapping annotations"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -39,28 +40,39 @@
     "failures": 0,
     "errors": 0,
     "duration_s": 67.813
+   },
+   {
+    "path": "temp/build/v2-typecheck-2.xml",
+    "sha256": "205e3a023bf6210c348a7e2ee16a5e582ac8bf5929df03a446dc5ae066a1743b",
+    "tests": 74,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 177.69,
+    "note": "second strict batch: guard + configuration/context/cleanup/exchange/recovery callers"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-gates.json",
-   "sha256": "ccc495e934419c864a1715bd0cf3cd6768c613693e33f8fe2db67fa8b46d21fc",
-   "passed": 6,
-   "total": 6
+   "path": "temp/build/v2-typecheck-2-gates.json",
+   "sha256": "a1e10b25b8a375c6df12a0ac4c0b1c585aa4b51e8cc87497fcc3c90bc3456e7c",
+   "passed": 5,
+   "total": 5
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 4,
+    "filesAnalyzed": 6,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.342
+    "timeInSec": 0.404
    },
    "files": [
-    "agent/src/omni/domain/capabilities.py",
-    "agent/src/omni/domain/credentials.py",
-    "agent/src/omni/domain/objects.py",
-    "agent/src/omni/domain/people.py"
+    "capabilities",
+    "credentials",
+    "metering",
+    "objects",
+    "people",
+    "release_fence"
    ]
   },
   "default_pyright": {
@@ -82,12 +94,12 @@
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-typecheck-source-20261111-fb4aeec8fe2d/manifest.json",
-  "archive_sha256": "f79217aa0661312ed98b45f07b271c9b67c62cc01b0bfbc3991eef8cb3630233",
+  "manifest": "temp/private/v2-typecheck-2-source-20261111-9f5745b08bca/manifest.json",
+  "archive_sha256": "54e9979de39b557f079ec31bcddaa14899893b05feea9202b6269189f811a104",
   "files": 1174,
   "validation_artifacts": [
-   "v2-typecheck.xml",
-   "v2-typecheck-gates.json"
+   "v2-typecheck-2.xml",
+   "v2-typecheck-2-gates.json"
   ]
  },
  "next": {

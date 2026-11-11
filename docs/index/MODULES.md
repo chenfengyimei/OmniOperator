@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7c9274401003ad990ba8d38e8b3b3b2bc7d8ed475d5e2eda86fe576e296c6211`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`d1a9dd81743b8a21ff5ecfc6792def1c187d8d86ab58e498312a80803f621ff0`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -38,14 +38,14 @@
 | [agent/src/omni/domain/media.py](../../agent/src/omni/domain/media.py) | 200 | Bounded media sources, transcripts and frame sheets; timestamps are anchors, never guesses. |
 | [agent/src/omni/domain/memory_organization.py](../../agent/src/omni/domain/memory_organization.py) | 104 | Bounded exact-fact organization requests and owner decisions; no memory writes, model calls or I/O. |
 | [agent/src/omni/domain/memory_semantics.py](../../agent/src/omni/domain/memory_semantics.py) | 57 | Bounded derived-memory indexing and related-fact proposals; no I/O or fact rewriting. |
-| [agent/src/omni/domain/metering.py](../../agent/src/omni/domain/metering.py) | 76 | Request shape and capacity policy shared by counting and model invocation; no I/O. |
+| [agent/src/omni/domain/metering.py](../../agent/src/omni/domain/metering.py) | 80 | Request shape and capacity policy shared by counting and model invocation; no I/O. |
 | [agent/src/omni/domain/model_stream.py](../../agent/src/omni/domain/model_stream.py) | 179 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
 | [agent/src/omni/domain/objects.py](../../agent/src/omni/domain/objects.py) | 44 | Immutable object identities and metadata constraints, independent of storage. |
 | [agent/src/omni/domain/people.py](../../agent/src/omni/domain/people.py) | 48 | Person, account and memory document rules; contains no I/O or ORM types. |
 | [agent/src/omni/domain/qq.py](../../agent/src/omni/domain/qq.py) | 122 | Bounded OneBot text events and explicit conversation grants; no transport I/O. |
 | [agent/src/omni/domain/recovery_authority.py](../../agent/src/omni/domain/recovery_authority.py) | 75 | Versioned authority for keeping an isolated predecessor fenced; no IO or claims about external effects. |
 | [agent/src/omni/domain/reference_release.py](../../agent/src/omni/domain/reference_release.py) | 62 | Bounded artifact-reference release plans; validates identities without accessing storage or files. |
-| [agent/src/omni/domain/release_fence.py](../../agent/src/omni/domain/release_fence.py) | 22 | Persisted startup exclusion contract shared by immutable installations; no IO or mutable state. |
+| [agent/src/omni/domain/release_fence.py](../../agent/src/omni/domain/release_fence.py) | 78 | Persisted startup exclusion contract shared by immutable installations; no IO or mutable state. |
 | [agent/src/omni/domain/releases.py](../../agent/src/omni/domain/releases.py) | 243 | Reviewed immutable release/recovery plans; same-schema first delivery, with no platform or storage IO. |
 | [agent/src/omni/domain/retention.py](../../agent/src/omni/domain/retention.py) | 91 | Execution-body retention policy; time is injected, no erasure or file operations. |
 | [agent/src/omni/domain/routing.py](../../agent/src/omni/domain/routing.py) | 123 | Deterministic capability tiers and immutable route policy; neither permissions nor model/network calls. |
