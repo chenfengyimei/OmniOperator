@@ -5,16 +5,24 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Mapping
+from typing import cast
 
 from .contracts import BusinessError
-from .service_deployment import _created, _object, _sha, _uuid, manager_identity, validate_plan
+from .service_deployment import (
+    deployment_created,
+    deployment_fields,
+    deployment_sha,
+    deployment_uuid,
+    manager_identity,
+    validate_plan,
+)
 
 FORMAT = "omni-service-operation-2"
 ACTIONS = frozenset({"install", "uninstall"})
 
 
-def operation_steps(plan: dict, action: str) -> list[str]:
-    target = plan["request"]["target"]
+def operation_steps(plan: dict[str, object], action: str) -> list[str]:
+    target = cast(str, cast(dict[str, object], plan["request"])["target"])
     steps = ["verify_immutable_deployment", "lock_initialized_instance", "persist_intent", "inspect_registration"]
     if target == "windows-user":
         steps += ["create_task_only" if action == "install" else "delete_matching_idle_task"]
@@ -49,35 +57,36 @@ def operation_steps(plan: dict, action: str) -> list[str]:
     return [*steps, "inspect_postcondition", "persist_receipt"]
 
 
-def make_operation(deployment: object, action: str, id: str, created_at: str) -> dict:
+def make_operation(deployment: object, action: str, id: str, created_at: str) -> dict[str, object]:
     if action not in ACTIONS:
         raise BusinessError("invalid_service_operation", "Choose install or uninstall", status=422)
     plan = validate_plan(deployment)
-    value = {
+    target = cast(str, cast(dict[str, object], plan["request"])["target"])
+    value: dict[str, object] = {
         "format": FORMAT,
-        "id": _uuid(id),
-        "created_at": _created(created_at),
+        "id": deployment_uuid(id),
+        "created_at": deployment_created(created_at),
         "action": action,
         "deployment": plan,
         "manager": manager_identity(plan),
         "steps": operation_steps(plan, action),
         # macOS may react to a new login item independently of this process;
         # bootout may terminate an idle job that starts between the checks.
-        "starts_service": plan["request"]["target"].startswith("macos-") and action == "install",
-        "stops_service": plan["request"]["target"].startswith("macos-") and action == "uninstall",
+        "starts_service": target.startswith("macos-") and action == "install",
+        "stops_service": target.startswith("macos-") and action == "uninstall",
         "deletes_instance_data": False,
     }
     return {**value, "sha256": _fingerprint(value)}
 
 
-def _fingerprint(value: dict) -> str:
+def _fingerprint(value: dict[str, object]) -> str:
     return hashlib.sha256(
         json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
     ).hexdigest()
 
 
-def validate_operation(data: object) -> dict:
-    value = _object(
+def validate_operation(data: object) -> dict[str, object]:
+    value = deployment_fields(
         data,
         {
             "format",
@@ -93,14 +102,15 @@ def validate_operation(data: object) -> dict:
             "sha256",
         },
     )
+    action = value["action"]
     if (
         value["format"] != FORMAT
-        or not isinstance(value["action"], str)
+        or not isinstance(action, str)
         or any(type(value[key]) is not bool for key in ("starts_service", "stops_service", "deletes_instance_data"))
     ):
         raise BusinessError("invalid_service_operation", "Service operation format is invalid", status=422)
-    expected = make_operation(value["deployment"], value["action"], value["id"], value["created_at"])
-    if _sha(value["sha256"]) != expected["sha256"] or value != expected:
+    expected = make_operation(value["deployment"], action, cast(str, value["id"]), cast(str, value["created_at"]))
+    if deployment_sha(value["sha256"]) != expected["sha256"] or value != expected:
         raise BusinessError("service_operation_changed", "Review the exact service operation fingerprint")
     return expected
 
@@ -121,7 +131,7 @@ def registration_goal(action: str, report: Mapping[str, object]) -> bool:
     )
 
 
-def registration_precondition(action: str, report: dict) -> bool:
+def registration_precondition(action: str, report: dict[str, object]) -> bool:
     # Unknown manager output is neither absence nor a safe removal target.
     if report.get("available") is not True or report.get("state") != "stopped":
         return False

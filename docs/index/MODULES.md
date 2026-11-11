@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9fb386fe95aa39a5375d34c5178499ff87d31530779b31c3797e0dcf8656ff28`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`167f51c9fafd39ec1c0119b3d30556dadaacbfd13b301cc348010a95b430c9ac`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -59,7 +59,7 @@
 | [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 538 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
 | [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 311 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
 | [agent/src/omni/domain/service_isolation.py](../../agent/src/omni/domain/service_isolation.py) | 115 | Reviewed offline startup quarantine; retains unknown outcomes and authorizes only a separate recovery plan. |
-| [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 130 | Fingerprint offline service changes; registration never implies a healthy running service. |
+| [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 140 | Fingerprint offline service changes; registration never implies a healthy running service. |
 | [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 98 | Editable Agent settings and immutable resolved run configuration; no I/O. |
 | [agent/src/omni/domain/skills.py](../../agent/src/omni/domain/skills.py) | 246 | Versioned textual skills, bounded disclosure and edit rules; skills confer no authority. |
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9fb386fe95aa39a5375d34c5178499ff87d31530779b31c3797e0dcf8656ff28",
+  "source_sha256": "167f51c9fafd39ec1c0119b3d30556dadaacbfd13b301cc348010a95b430c9ac",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9120,
+      "lines": 9130,
       "dependencies": []
     },
     {
@@ -68426,7 +68426,7 @@
       "path": "agent/src/omni/domain/service_operations.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_operations",
-      "lines": 130,
+      "lines": 140,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_deployment"
@@ -68434,20 +68434,20 @@
       "symbols": [
         {
           "name": "operation_steps",
-          "line": 16,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "plan",
             "action"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, object]",
             "action": "str"
           }
         },
         {
           "name": "make_operation",
-          "line": 52,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "deployment",
@@ -68464,18 +68464,18 @@
         },
         {
           "name": "_fingerprint",
-          "line": 73,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "dict[str, object]"
           }
         },
         {
           "name": "validate_operation",
-          "line": 79,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "data"
@@ -68486,7 +68486,7 @@
         },
         {
           "name": "registration_goal",
-          "line": 108,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "action",
@@ -68499,7 +68499,7 @@
         },
         {
           "name": "registration_precondition",
-          "line": 124,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "action",
@@ -68507,7 +68507,7 @@
           ],
           "annotations": {
             "action": "str",
-            "report": "dict"
+            "report": "dict[str, object]"
           }
         }
       ],

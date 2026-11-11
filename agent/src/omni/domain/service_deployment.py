@@ -412,7 +412,7 @@ def make_plan(
     return {**plan, "sha256": plan_fingerprint(plan)}
 
 
-def validate_plan(plan: object) -> dict:
+def validate_plan(plan: object) -> dict[str, object]:
     value = _object(plan, {"format", "id", "created_at", "request", "runtime", "isolated_registration", "sha256"})
     result = _content(value)
     fingerprint = _sha(value["sha256"])
@@ -494,7 +494,7 @@ def service_argv(plan: object) -> list[str]:
     ]
 
 
-def manager_identity(plan: object) -> dict:
+def manager_identity(plan: object) -> dict[str, object]:
     value = validate_plan(plan)
     request = value["request"]
     target, identity = request["target"], request["instance_id"]
