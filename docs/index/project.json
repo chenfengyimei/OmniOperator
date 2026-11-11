@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1320aad390ba21beb67ced8427e9b5f3ac4ce28d703eb622a4aaf14f62c6aa2f",
+  "source_sha256": "5ccef8f5bb9edf8e46864d24c400a1bb98daef4c2fbc2a9a76ebcb3f3a959433",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9020,
+      "lines": 9037,
       "dependencies": []
     },
     {
@@ -67173,7 +67173,7 @@
       "path": "agent/src/omni/domain/schema_upgrade.py",
       "module": "v2-domain",
       "python_module": "omni.domain.schema_upgrade",
-      "lines": 64,
+      "lines": 81,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_deployment"
@@ -67181,14 +67181,14 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 15,
+          "line": 16,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "schema_upgrade",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "source",
@@ -67196,8 +67196,8 @@
             "value"
           ],
           "annotations": {
-            "source": "dict",
-            "target": "dict",
+            "source": "dict[str, object]",
+            "target": "dict[str, object]",
             "value": "object"
           }
         }

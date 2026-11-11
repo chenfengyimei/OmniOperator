@@ -40,6 +40,7 @@
     "agent/src/omni/domain/recovery_authority.py",
     "agent/src/omni/domain/reference_release.py",
     "agent/src/omni/domain/release_fence.py",
+    "agent/src/omni/domain/schema_upgrade.py",
     "agent/src/omni/domain/scheduling.py",
     "agent/src/omni/domain/skills.py",
     "agent/src/omni/domain/service_activation.py",

@@ -29,6 +29,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/context.py` | 对话压缩/批次/尾部预算纯规则 |
 | `agent/src/omni/domain/recovery_authority.py` | 恢复授权与源见证校验（经 service_deployment 公共桥） |
 | `agent/src/omni/domain/reference_release.py` | 工件引用释放计划结构与指纹纯校验 |
+| `agent/src/omni/domain/schema_upgrade.py` | 前向 schema 路由与双运行时清单校验（经公共桥） |
 | `agent/src/omni/domain/model_stream.py` | 有界流式装配与工具调用解析纯规则 |
 | `agent/src/omni/domain/service_control.py` | 服务启动/排空身份与 HMAC 消息纯规则（经 service_deployment 公共桥） |
 | `agent/src/omni/domain/service_activation.py` | 无人值守启动绑定/预留纯校验（经公共桥） |

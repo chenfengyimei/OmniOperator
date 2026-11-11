@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 
 from .contracts import BusinessError
-from .service_deployment import _integer, _object, _sha
+from .service_deployment import deployment_fields, deployment_integer, deployment_sha
 
 FORMAT = "omni-schema-upgrade-1"
 PREFIX = "adapters/persistence/migrations/versions/"
@@ -18,23 +19,34 @@ def invalid() -> BusinessError:
     )
 
 
-def schema_upgrade(source: dict, target: dict, value: object) -> dict:
-    record = _object(value, {"format", "source", "target", "revisions"})
+def schema_upgrade(source: dict[str, object], target: dict[str, object], value: object) -> dict[str, object]:
+    record = deployment_fields(value, {"format", "source", "target", "revisions"})
     old, new = source["schema_head"], target["schema_head"]
+    if not isinstance(old, str) or not isinstance(new, str):
+        raise invalid()
     revisions = record["revisions"]
+    if not isinstance(revisions, list):
+        raise invalid()
+    items = cast(list[object], revisions)
     if (
         record["format"] != FORMAT
         or record["source"] != old
         or record["target"] != new
         or not MINIMUM_SOURCE <= old < new
-        or not isinstance(revisions, list)
-        or not 2 <= len(revisions) <= 256
+        or not 2 <= len(items) <= 256
     ):
         raise invalid()
-    inventories = [{row["path"]: row for row in runtime["files"]} for runtime in (source, target)]
-    rows, previous, source_seen = [], None, False
-    for item in revisions:
-        row = _object(item, {"revision", "parent", "path", "sha256", "bytes"})
+    inventories: list[dict[str, dict[str, object]]] = []
+    for runtime in (source, target):
+        files = runtime["files"]
+        if not isinstance(files, list):
+            raise invalid()
+        inventories.append({cast(str, row["path"]): row for row in cast(list[dict[str, object]], files)})
+    rows: list[dict[str, object]] = []
+    previous: str | None = None
+    source_seen = False
+    for item in items:
+        row = deployment_fields(item, {"revision", "parent", "path", "sha256", "bytes"})
         revision = row["revision"]
         if (
             not isinstance(revision, str)
@@ -45,20 +57,25 @@ def schema_upgrade(source: dict, target: dict, value: object) -> dict:
             or row["path"] != PREFIX + "v" + revision.removeprefix("v2_") + ".py"
         ):
             raise invalid()
-        file = {"path": row["path"], "sha256": _sha(row["sha256"]), "bytes": _integer(row["bytes"], 1, 1024 * 1024)}
-        if inventories[1].get(row["path"]) != file or (not source_seen and inventories[0].get(row["path"]) != file):
+        file: dict[str, object] = {
+            "path": cast(str, row["path"]),
+            "sha256": deployment_sha(row["sha256"]),
+            "bytes": deployment_integer(row["bytes"], 1, 1024 * 1024),
+        }
+        path = cast(str, row["path"])
+        if inventories[1].get(path) != file or (not source_seen and inventories[0].get(path) != file):
             raise invalid()
         if revision == old:
             source_seen = True
         rows.append({"revision": revision, "parent": previous, **file})
         previous = revision
-    expected = {row["path"] for row in rows}
+    expected = {cast(str, row["path"]) for row in rows}
     actual = {path for path in inventories[1] if path.startswith(PREFIX) and path != PREFIX + "__init__.py"}
-    old_expected = {row["path"] for row in rows if row["revision"] <= old}
+    old_expected = {cast(str, row["path"]) for row in rows if cast(str, row["revision"]) <= old}
     old_actual = {path for path in inventories[0] if path.startswith(PREFIX) and path != PREFIX + "__init__.py"}
     if not source_seen or previous != new or expected != actual or old_expected != old_actual:
         raise invalid()
-    result = {"format": FORMAT, "source": old, "target": new, "revisions": rows}
+    result: dict[str, object] = {"format": FORMAT, "source": old, "target": new, "revisions": rows}
     if record != result:
         raise invalid()
     return result
