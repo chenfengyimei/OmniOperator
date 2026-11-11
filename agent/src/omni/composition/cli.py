@@ -137,7 +137,11 @@ def parser() -> argparse.ArgumentParser:
     commands.add_parser("init", help="Create the empty V2 schema without calling a model")
     commands.add_parser("doctor", help="Read-only, exclusive database diagnostics")
     installation = commands.add_parser("installation", help="V2 installation receipt and read-only upgrade preflight")
-    installation.add_argument("operation", choices=["verify", "seal"], help="Verify without writing, or seal once")
+    installation.add_argument(
+        "operation", choices=["verify", "seal", "artifact"], help="Verify without writing, seal once, or check a wheel"
+    )
+    installation.add_argument("artifact", nargs="?", type=Path, help="Wheel to verify for the artifact operation")
+    installation.add_argument("--sha256", default="", help="Expected wheel SHA256 for the artifact operation")
     vector = commands.add_parser("vectors", help="Select or disable a reviewed local ONNX bundle for the next startup")
     vector_commands = vector.add_subparsers(dest="vector_operation", required=True)
     vector_inspect = vector_commands.add_parser("inspect")
@@ -666,6 +670,12 @@ def main() -> int:
         elif args.command == "installation":
             if args.operation == "seal":
                 print(json.dumps(seal_installation(paths)))
+            elif args.operation == "artifact":
+                if args.artifact is None or not args.sha256:
+                    raise BusinessError("artifact_missing", "Provide the wheel path and its recorded SHA256")
+                from ..adapters.platform.wheel_artifact import inspect_wheel
+
+                print(json.dumps(inspect_wheel(args.artifact, args.sha256)))
             else:
                 print(json.dumps(installation_report(paths)))
         elif args.command == "doctor":

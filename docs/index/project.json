@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "bdfb782ea2f164da2553699a80bf3bc3cbe79cf9613331aa9bb498ec653e1a09",
+  "source_sha256": "0fc4a0437af1e07ac53caee72c0b8e85406aa33f511e05f6323a4082324051fa",
   "modules": [
     {
       "id": "v2-domain",
@@ -343,6 +343,7 @@
         "agent/src/omni/adapters/platform/service_templates.py",
         "agent/src/omni/adapters/platform/systemd_state.py",
         "agent/src/omni/adapters/platform/terminal.py",
+        "agent/src/omni/adapters/platform/wheel_artifact.py",
         "agent/src/omni/adapters/platform/workspaces.py",
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
@@ -393,7 +394,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51385,
+      "lines": 51446,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -428,7 +429,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2832,
+      "lines": 2842,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30682,6 +30683,42 @@
       "summary": "Owned terminal IPC. Native PTY libraries run only in the fixed helper process."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_artifact.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_artifact",
+      "lines": 61,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "inspect_wheel",
+          "line": 22,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "sha256"
+          ],
+          "annotations": {
+            "path": "Path",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/workspaces.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.workspaces",
@@ -57391,7 +57428,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 891,
+      "lines": 901,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57408,6 +57445,7 @@
         "omni.adapters.platform.service_admin_bundle",
         "omni.adapters.platform.service_query",
         "omni.adapters.platform.service_readiness",
+        "omni.adapters.platform.wheel_artifact",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
         "omni.application.service_deployment",
@@ -57464,7 +57502,7 @@
         },
         {
           "name": "local_origin",
-          "line": 401,
+          "line": 405,
           "kind": "function",
           "parameters": [
             "value"
@@ -57475,7 +57513,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 420,
+          "line": 424,
           "kind": "function",
           "parameters": [
             "paths",
@@ -57488,7 +57526,7 @@
         },
         {
           "name": "main",
-          "line": 462,
+          "line": 466,
           "kind": "function",
           "parameters": [],
           "annotations": {}

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`bdfb782ea2f164da2553699a80bf3bc3cbe79cf9613331aa9bb498ec653e1a09`。包含 65 个职责模块、719 个源码/界面文件。
+源码指纹：`0fc4a0437af1e07ac53caee72c0b8e85406aa33f511e05f6323a4082324051fa`。包含 65 个职责模块、720 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -319,6 +319,7 @@
 | [agent/src/omni/adapters/platform/service_templates.py](../../agent/src/omni/adapters/platform/service_templates.py) | 212 | Deterministic service artifacts. Rendering never installs or controls a service. |
 | [agent/src/omni/adapters/platform/systemd_state.py](../../agent/src/omni/adapters/platform/systemd_state.py) | 100 | Shared bounded systemd decoding; no command execution or filesystem access. |
 | [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 533 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
+| [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
 | [agent/src/omni/adapters/platform/workspaces.py](../../agent/src/omni/adapters/platform/workspaces.py) | 27 | Workspace admission keeps instance control, secrets and installed code private. |
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 105 | Process-owned logging and exception hooks; installed only by the executable host. |
@@ -383,7 +384,7 @@
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 164 | Explicit builtin capability registration; capabilities never construct the kernel. |
-| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 891 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
+| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 901 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 232 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 735 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 156 | Own startup rollback and one shared shutdown budget; never dispatches business work. |

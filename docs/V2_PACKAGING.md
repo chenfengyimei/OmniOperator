@@ -46,7 +46,8 @@ python -m omni.composition.cli --home <home> installation seal
 - `seal` 显式写入一次安装收据（`installation.json`：format/created_at/schema_version/code_head），要求数据库 schema 等于代码 head，已存在且同 head 时幂等返回 `written=false`，不同 head 时 fail-closed；使用 `durable_json` 原子写并收紧权限。
 - 收据校验为纯 domain 规则（`domain/installation.py`），拒绝链接、缺字段、非 UTC 时间、非法 schema。
 - 运行时打开实例时校验已存在的收据：schema 与数据库不一致 → `installation_mismatch`；内容损坏或被替换为链接 → `installation_invalid`；没有收据的历史实例保持兼容。升级后必须重新 `seal`。
-- **仍未完成**：不下载/校验 wheel、不创建 venv、不切换运行目录、不执行迁移、不回滚、不卸载；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
+- `installation artifact <wheel> --sha256 <hex>` 只读校验候选 wheel：SHA256、zip CRC、成员数/解压体积上限、绝对路径/反斜杠/`..` 越界、重名、缺少 `omni/web_assets/index.html`/`ui/v2/index.html` 或 METADATA 均 fail-closed；只报告，不解压安装。
+- **仍未完成**：不下载/校验 wheel（artifact 只校验本地文件）、不创建 venv、不切换运行目录、不执行迁移、不回滚、不卸载；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
 
 ## 4. 明确未完成
 
