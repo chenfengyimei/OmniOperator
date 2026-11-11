@@ -28,6 +28,7 @@
     "agent/src/omni/domain/android_unicode.py",
     "agent/src/omni/domain/capabilities.py",
     "agent/src/omni/domain/context.py",
+    "agent/src/omni/domain/credential_ipc.py",
     "agent/src/omni/domain/credentials.py",
     "agent/src/omni/domain/delivery.py",
     "agent/src/omni/domain/documents.py",
@@ -58,6 +59,7 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 
 
 

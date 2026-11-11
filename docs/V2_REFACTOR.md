@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **53 个文件**（29 个 domain + application 的 routing/scheduling/release_drain/exchange_recovery_steps/local_vectors/service_deployment/exchange_recovery/service_cleanup/model_output/people/memory_tools/action_review/operations/debugging/terminal_review/objects/memory_organization/exchange_steps/credentials/desktop_actions + adapters 的 build_identity/primitives/timezones/metrics），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **54 个文件**（30 个 domain + application 的 routing/scheduling/release_drain/exchange_recovery_steps/local_vectors/service_deployment/exchange_recovery/service_cleanup/model_output/people/memory_tools/action_review/operations/debugging/terminal_review/objects/memory_organization/exchange_steps/credentials/desktop_actions + adapters 的 build_identity/primitives/timezones/metrics），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -133,7 +133,9 @@ D7 显式清理节点：`installation uninstall --purge-data` 在实例空闲时
 
 第三十一批加入 domain/documents（分块/向量/合并结果显式类型，去掉恒真类型检查，保留文本与向量边界校验）。三十一批专项全过。
 
-第三十二批加入 domain/android_unicode（配置/报文/解包显式 `dict[str, object]`，JSON pairs 钩子与常量拒绝显式类型）。三十二批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第三十二批加入 domain/android_unicode（配置/报文/解包显式 `dict[str, object]`，JSON pairs 钩子与常量拒绝显式类型）。三十二批专项全过。
+
+第三十三批加入 domain/credential_ipc（帧解码/请求/控制/响应显式 `dict[str, object]`，JSON 钩子显式类型，保留重复键与非有限值拒绝）。三十三批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 

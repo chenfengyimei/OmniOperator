@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from typing import cast
 
 from .contracts import BusinessError
 from .credentials import validate_reference, validate_secret
@@ -18,16 +19,16 @@ def invalid() -> BusinessError:
     return BusinessError("credential_protocol_invalid", "Native credential protocol did not complete", status=503)
 
 
-def decode(data: bytes) -> dict:
-    def pairs(items):
-        result = {}
+def decode(data: bytes) -> dict[str, object]:
+    def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
+        result: dict[str, object] = {}
         for key, value in items:
             if key in result:
                 raise ValueError("duplicate field")
             result[key] = value
         return result
 
-    def constant(_value):
+    def constant(_value: str) -> object:
         raise ValueError("non-finite value")
 
     try:
@@ -36,12 +37,12 @@ def decode(data: bytes) -> dict:
         value = json.loads(data, object_pairs_hook=pairs, parse_constant=constant)
         if not isinstance(value, dict):
             raise ValueError("invalid message")
-        return value
+        return cast(dict[str, object], value)
     except (ValueError, UnicodeError, RecursionError):
         raise invalid() from None
 
 
-def encode(value: dict) -> bytes:
+def encode(value: dict[str, object]) -> bytes:
     try:
         data = json.dumps(value, ensure_ascii=True, allow_nan=False, separators=(",", ":")).encode() + b"\n"
     except (ValueError, TypeError, RecursionError):
@@ -51,16 +52,18 @@ def encode(value: dict) -> bytes:
     return data
 
 
-def request(value: dict) -> dict:
+def request(value: dict[str, object]) -> dict[str, object]:
     if set(value) != {"version", "request_id", "operation", "namespace", "reference", "value"}:
         raise invalid()
     try:
+        request_id = cast(str, value["request_id"])
+        namespace = value["namespace"]
         if (
             value["version"] != VERSION
-            or str(uuid.UUID(value["request_id"])) != value["request_id"]
+            or str(uuid.UUID(request_id)) != request_id
             or value["operation"] not in {"get", "set", "delete"}
-            or not isinstance(value["namespace"], str)
-            or not re.fullmatch(r"[a-f0-9]{20}", value["namespace"])
+            or not isinstance(namespace, str)
+            or not re.fullmatch(r"[a-f0-9]{20}", namespace)
         ):
             raise invalid()
         validate_reference(value["reference"])
@@ -73,13 +76,18 @@ def request(value: dict) -> dict:
     return value
 
 
-def control(query: dict, phase: str) -> dict:
+def control(query: dict[str, object], phase: str) -> dict[str, object]:
     if phase not in {"ready", "permit"}:
         raise invalid()
-    return {"version": VERSION, "request_id": query["request_id"], "operation": query["operation"], "phase": phase}
+    return {
+        "version": VERSION,
+        "request_id": query["request_id"],
+        "operation": query["operation"],
+        "phase": phase,
+    }
 
 
-def response(query: dict, value: dict) -> dict:
+def response(query: dict[str, object], value: dict[str, object]) -> dict[str, object]:
     if (
         set(value) != {"version", "request_id", "operation", "phase", "ok", "value", "error_code"}
         or value["version"] != VERSION

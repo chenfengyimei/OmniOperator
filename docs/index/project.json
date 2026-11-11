@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "21e66e334faad5f716610f8a2a8f1a6829fecf37ea52da0717496f476be03ddd",
+  "source_sha256": "6da0fb223aaa075384f7d06f61064ae521d62af57724a578f736ffe84b15526e",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9092,
+      "lines": 9100,
       "dependencies": []
     },
     {
@@ -63428,7 +63428,7 @@
       "path": "agent/src/omni/domain/credential_ipc.py",
       "module": "v2-domain",
       "python_module": "omni.domain.credential_ipc",
-      "lines": 101,
+      "lines": 109,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.credentials"
@@ -63436,14 +63436,14 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 17,
+          "line": 18,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "decode",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "data"
@@ -63454,68 +63454,72 @@
         },
         {
           "name": "decode.pairs",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "items"
           ],
-          "annotations": {}
+          "annotations": {
+            "items": "list[tuple[str, object]]"
+          }
         },
         {
           "name": "decode.constant",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "_value"
           ],
-          "annotations": {}
+          "annotations": {
+            "_value": "str"
+          }
         },
         {
           "name": "encode",
-          "line": 44,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "dict[str, object]"
           }
         },
         {
           "name": "request",
-          "line": 54,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "dict[str, object]"
           }
         },
         {
           "name": "control",
-          "line": 76,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "query",
             "phase"
           ],
           "annotations": {
-            "query": "dict",
+            "query": "dict[str, object]",
             "phase": "str"
           }
         },
         {
           "name": "response",
-          "line": 82,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "query",
             "value"
           ],
           "annotations": {
-            "query": "dict",
-            "value": "dict"
+            "query": "dict[str, object]",
+            "value": "dict[str, object]"
           }
         }
       ],
