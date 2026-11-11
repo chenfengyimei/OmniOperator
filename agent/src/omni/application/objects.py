@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 from collections.abc import Awaitable, Callable
-from typing import TypeVar
+from typing import TypeVar, cast
 
 from ..domain.contracts import JSON, BusinessError
 from ..domain.desktop import CapturedFrame
@@ -18,7 +18,7 @@ T = TypeVar("T")
 class ObjectService:
     def __init__(self, database: DatabasePort, files: ObjectFilesPort, clock: Clock) -> None:
         self._db, self._files, self._clock = database, files, clock
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = False
 
@@ -38,8 +38,8 @@ class ObjectService:
         task = asyncio.create_task(perform(), name="object-operation")
         self._pending.add(task)
 
-        def completed(future):
-            self._pending.discard(future)
+        def completed(future: asyncio.Task[T]) -> None:
+            self._pending.discard(cast(asyncio.Task[object], future))
             if not future.cancelled():
                 future.exception()
 
@@ -100,7 +100,7 @@ class ObjectService:
     async def captures(self, agent_id: str, session_id: str, after: str = "", limit: int = 50) -> Record:
         rows = await self._db.read(lambda u: u.capture_page(agent_id, session_id, after, limit))
         items: list[JSON] = list(rows)
-        return {"items": items, "next_after": rows[-1]["id"] if len(rows) == limit else None}
+        return cast(Record, {"items": items, "next_after": rows[-1]["id"] if len(rows) == limit else None})
 
     async def release_capture(self, agent_id: str, session_id: str, capture_id: str) -> None:
         await self._db.write(lambda u: u.capture_remove(agent_id, session_id, capture_id))
@@ -126,7 +126,7 @@ class ObjectService:
     async def page(self, agent_id: str, *, after: str = "", limit: int = 100) -> Record:
         async def perform():
             rows = await self._db.read(lambda u: u.object_page(agent_id, after, limit))
-            return {"items": rows, "next_after": rows[-1]["id"] if len(rows) == limit else None}
+            return cast(Record, {"items": rows, "next_after": rows[-1]["id"] if len(rows) == limit else None})
 
         return await self._execute(perform)
 
