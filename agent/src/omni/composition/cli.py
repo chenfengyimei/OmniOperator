@@ -155,6 +155,9 @@ def parser() -> argparse.ArgumentParser:
     )
     installation.add_argument("artifact", nargs="?", type=Path, help="Wheel to verify for the artifact operation")
     installation.add_argument("--sha256", default="", help="Expected wheel SHA256 for the artifact operation")
+    installation.add_argument(
+        "--purge-data", action="store_true", help="Explicitly remove local data/objects/receipts during uninstall"
+    )
     vector = commands.add_parser("vectors", help="Select or disable a reviewed local ONNX bundle for the next startup")
     vector_commands = vector.add_subparsers(dest="vector_operation", required=True)
     vector_inspect = vector_commands.add_parser("inspect")
@@ -732,7 +735,7 @@ def main() -> int:
             elif args.operation == "uninstall":
                 from ..adapters.platform.wheel_uninstall import uninstall_candidate
 
-                print(json.dumps(uninstall_candidate(paths, args.sha256)))
+                print(json.dumps(uninstall_candidate(paths, args.sha256, purge=args.purge_data)))
             elif args.operation == "environment":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the staged wheel SHA256")

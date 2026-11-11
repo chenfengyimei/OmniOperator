@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8166835e550e3b400e032f1bf659b46607de9e943a5de9b4eea2315ee619951e",
+  "source_sha256": "1e952c783a0f6fb71d04a1425e022d89957810d2f465c9f08a85a8d9b9273f57",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52673,
+      "lines": 52717,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2931,
+      "lines": 2934,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -31307,7 +31307,7 @@
       "path": "agent/src/omni/adapters/platform/wheel_uninstall.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_uninstall",
-      "lines": 93,
+      "lines": 137,
       "imports": [
         "omni.adapters.platform.paths",
         "omni.adapters.platform.wheel_install",
@@ -31316,7 +31316,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 17,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "code"
@@ -31327,7 +31327,7 @@
         },
         {
           "name": "_inside",
-          "line": 21,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "path",
@@ -31340,7 +31340,7 @@
         },
         {
           "name": "_remove_stage",
-          "line": 26,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "stage",
@@ -31353,7 +31353,7 @@
         },
         {
           "name": "_active_sha",
-          "line": 32,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "runtime"
@@ -31364,15 +31364,17 @@
         },
         {
           "name": "uninstall_candidate",
-          "line": 45,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "paths",
-            "sha256"
+            "sha256",
+            "purge"
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "sha256": "str"
+            "sha256": "str",
+            "purge": "bool"
           }
         }
       ],
@@ -58120,7 +58122,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 990,
+      "lines": 993,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -58204,7 +58206,7 @@
         },
         {
           "name": "local_origin",
-          "line": 418,
+          "line": 421,
           "kind": "function",
           "parameters": [
             "value"
@@ -58215,7 +58217,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 437,
+          "line": 440,
           "kind": "function",
           "parameters": [
             "paths",
@@ -58228,7 +58230,7 @@
         },
         {
           "name": "main",
-          "line": 479,
+          "line": 482,
           "kind": "function",
           "parameters": [],
           "annotations": {}

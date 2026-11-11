@@ -5,6 +5,7 @@ import hashlib
 import json
 import sys
 import zipfile
+from pathlib import Path
 
 import pytest
 
@@ -105,3 +106,39 @@ def test_cli_uninstall_emits_json(tmp_path, monkeypatch, capsys):
     assert main() == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["format"] == "omni-uninstall-1" and payload["removed"] is True
+
+
+def test_purge_data_removes_local_state_but_keeps_home_and_backup(tmp_path):
+    paths, _ = active_candidate(tmp_path)
+    purged = uninstall_candidate(paths, purge=True)
+    assert purged["data_kept"] is False and purged["backup_kept"]
+    assert "data" in purged["purged"] and "updates" in purged["purged"]
+    assert paths.home.is_dir()
+    assert not (paths.home / "data").exists() and not (paths.home / "installation.json").exists()
+    assert not (paths.home / "runtime").exists() and not (paths.home / "omni.cmd").exists()
+    assert Path(purged["backup_kept"]).is_dir()
+
+
+def test_purge_requires_explicit_flag_without_sha_and_idle_instance(tmp_path):
+    paths, sha256 = active_candidate(tmp_path)
+    with pytest.raises(BusinessError) as conflict:
+        uninstall_candidate(paths, sha256, purge=True)
+    assert conflict.value.code == "uninstall_purge_conflict"
+
+    lock = InstanceLock(paths)
+    lock.acquire()
+    try:
+        with pytest.raises(BusinessError) as running:
+            uninstall_candidate(paths, purge=True)
+        assert running.value.code == "uninstall_instance_running"
+    finally:
+        lock.close()
+    assert paths.database.is_file()
+
+
+def test_cli_purge_data_emits_json(tmp_path, monkeypatch, capsys):
+    paths, _ = active_candidate(tmp_path)
+    monkeypatch.setattr(sys, "argv", ["omni", "--home", str(paths.home), "installation", "uninstall", "--purge-data"])
+    assert main() == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["format"] == "omni-uninstall-1" and "data" in payload["purged"]
