@@ -18,7 +18,7 @@ SEND_SECONDS = 30
 LEASE_SECONDS = 60
 
 
-def bounded_text(value: str, limit: int, field: str) -> str:
+def bounded_text(value: object, limit: int, field: str) -> str:
     if not isinstance(value, str) or not value.strip() or len(value) > limit or any(ord(c) < 32 for c in value):
         raise BusinessError("invalid_delivery", f"A bounded {field} is required", status=422)
     return value
@@ -36,7 +36,7 @@ def body_hash(text: str) -> str:
     return text_fingerprint(text)
 
 
-def digest(value: dict) -> str:
+def digest(value: dict[str, object]) -> str:
     return hashlib.sha256(
         json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
     ).hexdigest()
@@ -55,7 +55,7 @@ class OutboundMessage:
     account_key: str
     target: str
     text: str
-    configuration: dict
+    configuration: dict[str, object]
 
 
 @dataclass(frozen=True)
@@ -79,7 +79,7 @@ class DeliveryResult:
             raise ValueError("Only positively known-not-sent attempts may retry")
 
 
-def result_value(result: DeliveryResult) -> dict:
+def result_value(result: DeliveryResult) -> dict[str, object]:
     return {
         "status": result.status,
         "fingerprint": result.fingerprint,

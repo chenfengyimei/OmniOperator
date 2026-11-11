@@ -8,6 +8,7 @@ import json
 import unicodedata
 import uuid
 from dataclasses import dataclass
+from typing import cast
 
 from .contracts import BusinessError
 from .documents import TEXT_INDEX_VERSION
@@ -32,17 +33,18 @@ def _uuid(value: object) -> str:
     return value
 
 
-def parse_request(data: object) -> dict:
+def parse_request(data: object) -> dict[str, object]:
     """Only queue an exact document revision or resume an existing erasure identity; never carry source text."""
     try:
         if not isinstance(data, dict):
             raise ValueError
-        kind = data.get("kind")
+        request = cast(dict[str, object], data)
+        kind = request.get("kind")
         if not isinstance(kind, str) or kind not in KINDS:
             raise ValueError
-        if set(data) != (INDEX_KEYS if kind == "document_index_rebuild" else ERASURE_KEYS):
+        if set(request) != (set(INDEX_KEYS) if kind == "document_index_rebuild" else set(ERASURE_KEYS)):
             raise ValueError
-        key = data["key"]
+        key = request["key"]
         if (
             not isinstance(key, str)
             or not 1 <= len(key) <= 200
@@ -52,11 +54,11 @@ def parse_request(data: object) -> dict:
             raise ValueError
         key.encode("utf-8")
         if kind == "document_index_rebuild":
-            revision = data["revision"]
+            revision = request["revision"]
             if type(revision) is not int or not 1 <= revision <= MAX_INTEGER:
                 raise ValueError
-            return {"kind": kind, "key": key, "document_id": _uuid(data["document_id"]), "revision": revision}
-        return {"kind": kind, "key": key, "erasure_job_id": _uuid(data["erasure_job_id"])}
+            return {"kind": kind, "key": key, "document_id": _uuid(request["document_id"]), "revision": revision}
+        return {"kind": kind, "key": key, "erasure_job_id": _uuid(request["erasure_job_id"])}
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError) as exc:
         raise BusinessError(
             "maintenance_invalid", "Use a bounded, explicit local document maintenance request", status=422
@@ -79,7 +81,7 @@ def page(after: int = 0, limit: int = 50) -> None:
         )
 
 
-def lease_until(now: str) -> str:
+def lease_until(now: object) -> str:
     try:
         if not isinstance(now, str) or not 1 <= len(now) <= 40:
             raise ValueError

@@ -16,6 +16,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain/capabilities.py` | 能力报告纯投影，需保持无 `Any` 泄漏 |
 | `agent/src/omni/domain/credentials.py` | 凭据引用与权限指纹纯函数 |
+| `agent/src/omni/domain/delivery.py` | 出站意图身份/受限文本/可信结果纯规则 |
+| `agent/src/omni/domain/installation.py` | 安装收据校验与 schema 一致性纯规则 |
 | `agent/src/omni/domain/objects.py` | 对象类型/上限纯规则 |
 | `agent/src/omni/domain/people.py` | 人物档案纯规则 |
 | `agent/src/omni/domain/metering.py` | 请求形状/记忆提示/令牌估算纯函数 |
@@ -23,6 +25,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/scheduling.py` | 数值 cron/下次到期/到期选择纯规则 |
 | `agent/src/omni/domain/memory_semantics.py` | 派生记忆索引/相关事实合并纯规则 |
 | `agent/src/omni/domain/foreground.py` | 前台输入授权与有界输入纯校验 |
+| `agent/src/omni/domain/maintenance.py` | 维护请求/认领/租约时间纯校验 |
 | `agent/src/omni/domain/context.py` | 对话压缩/批次/尾部预算纯规则 |
 | `agent/src/omni/domain/recovery_authority.py` | 恢复授权与源见证校验（经 service_deployment 公共桥） |
 | `agent/src/omni/domain/model_stream.py` | 有界流式装配与工具调用解析纯规则 |

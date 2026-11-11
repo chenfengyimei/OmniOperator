@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e14bd8c15f5bc4bfa9fb30f30505a3e2828d06f3e34ab821b97ae0f3c3bfabfd",
+  "source_sha256": "e98bfc3faabab9387c2b289bef4bce65475cd2adbcbb15dee144841fde14b39d",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8994,
+      "lines": 8996,
       "dependencies": []
     },
     {
@@ -63283,7 +63283,7 @@
             "field"
           ],
           "annotations": {
-            "value": "str",
+            "value": "object",
             "limit": "int",
             "field": "str"
           }
@@ -63318,7 +63318,7 @@
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "dict[str, object]"
           }
         },
         {
@@ -65095,7 +65095,7 @@
       "path": "agent/src/omni/domain/maintenance.py",
       "module": "v2-domain",
       "python_module": "omni.domain.maintenance",
-      "lines": 113,
+      "lines": 115,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.documents",
@@ -65104,7 +65104,7 @@
       "symbols": [
         {
           "name": "_uuid",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "value"
@@ -65115,7 +65115,7 @@
         },
         {
           "name": "parse_request",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "data"
@@ -65126,7 +65126,7 @@
         },
         {
           "name": "request_fingerprint",
-          "line": 66,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "data"
@@ -65137,7 +65137,7 @@
         },
         {
           "name": "page",
-          "line": 75,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "after",
@@ -65150,18 +65150,18 @@
         },
         {
           "name": "lease_until",
-          "line": 82,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "now"
           ],
           "annotations": {
-            "now": "str"
+            "now": "object"
           }
         },
         {
           "name": "Claim",
-          "line": 99,
+          "line": 101,
           "kind": "class"
         }
       ],
