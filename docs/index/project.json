@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7d3fff84e0645310c3768cb78335d86ae9e960979a9a134125300bdb5ea9e837",
+  "source_sha256": "bc3ec20155f959baf3d4c8a08c3eceba7d84dda7d2597d9d64e9035099d051bb",
   "modules": [
     {
       "id": "v2-domain",
@@ -436,7 +436,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2880,
+      "lines": 2888,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -57770,7 +57770,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 939,
+      "lines": 947,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57851,7 +57851,7 @@
         },
         {
           "name": "local_origin",
-          "line": 403,
+          "line": 411,
           "kind": "function",
           "parameters": [
             "value"
@@ -57862,7 +57862,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 422,
+          "line": 430,
           "kind": "function",
           "parameters": [
             "paths",
@@ -57875,7 +57875,7 @@
         },
         {
           "name": "main",
-          "line": 464,
+          "line": 472,
           "kind": "function",
           "parameters": [],
           "annotations": {}
