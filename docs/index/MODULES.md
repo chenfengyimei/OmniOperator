@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`93547cb59b5c74702bb4e8f516f87e73b589f12b2e4694e78b010fb3011deeb8`。包含 65 个职责模块、728 个源码/界面文件。
+源码指纹：`25a557825fbdfee75d972a115beed7de9eb6f1e46ea76b6e7b4dc2fbf3ed493e`。包含 65 个职责模块、728 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -193,7 +193,7 @@
 | [agent/src/omni/adapters/persistence/history_sequence.py](../../agent/src/omni/adapters/persistence/history_sequence.py) | 27 | Allocate global history positions in the caller's transaction; never opens connections. |
 | [agent/src/omni/adapters/persistence/image_repository.py](../../agent/src/omni/adapters/persistence/image_repository.py) | 319 | Scoped image metadata, model-revision policies and per-call references; never reads files or encodes images. |
 | [agent/src/omni/adapters/persistence/lease_repository.py](../../agent/src/omni/adapters/persistence/lease_repository.py) | 276 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
-| [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 993 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
+| [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1039 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
 | [agent/src/omni/adapters/persistence/maintenance_repository.py](../../agent/src/omni/adapters/persistence/maintenance_repository.py) | 514 | Bounded document-maintenance admission, fenced attempts and business-result settlement; no execution or I/O. |
 | [agent/src/omni/adapters/persistence/mcp_repository.py](../../agent/src/omni/adapters/persistence/mcp_repository.py) | 977 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
 | [agent/src/omni/adapters/persistence/media_repository.py](../../agent/src/omni/adapters/persistence/media_repository.py) | 329 | Scoped media sources, bounded jobs and immutable artifact rows; never reads files. |
@@ -321,7 +321,7 @@
 | [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 533 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
 | [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
 | [agent/src/omni/adapters/platform/wheel_backup.py](../../agent/src/omni/adapters/platform/wheel_backup.py) | 66 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
-| [agent/src/omni/adapters/platform/wheel_install.py](../../agent/src/omni/adapters/platform/wheel_install.py) | 200 | Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start. |
+| [agent/src/omni/adapters/platform/wheel_install.py](../../agent/src/omni/adapters/platform/wheel_install.py) | 251 | Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start. |
 | [agent/src/omni/adapters/platform/wheel_prepare.py](../../agent/src/omni/adapters/platform/wheel_prepare.py) | 118 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_rollback.py](../../agent/src/omni/adapters/platform/wheel_rollback.py) | 69 | Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home. |
 | [agent/src/omni/adapters/platform/wheel_smoke.py](../../agent/src/omni/adapters/platform/wheel_smoke.py) | 84 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
@@ -392,7 +392,7 @@
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 164 | Explicit builtin capability registration; capabilities never construct the kernel. |
-| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 966 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
+| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 973 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 232 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 735 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 156 | Own startup rollback and one shared shutdown budget; never dispatches business work. |

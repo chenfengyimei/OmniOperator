@@ -116,6 +116,52 @@ def read_schema(path: Path) -> str:
     return str(row[0]) if row else ""
 
 
+def migrate_database(path: Path) -> dict:
+    """Apply the packaged Alembic head with exclusive ownership; never runs on an owned instance."""
+    from alembic import command
+
+    from .migration_config import configuration, head
+
+    before = read_schema(path)
+    config = configuration()
+    target = head(config)
+    if before == target:
+        return {
+            "format": "omni-schema-migration-1",
+            "before": before,
+            "after": before,
+            "target": target,
+            "migrated": False,
+        }
+    try:
+        from .sqlalchemy_access import database_engine
+
+        engine = database_engine(path)
+        try:
+            with engine.connect() as connection:
+                connection.info["omni_write"] = True
+                config.attributes["connection"] = connection
+                command.upgrade(config, "head")
+                if connection.in_transaction():
+                    connection.commit()
+                after = str(connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one())
+        finally:
+            engine.dispose()
+    except BusinessError:
+        raise
+    except Exception as exc:
+        raise BusinessError("migration_failed", "Database migration failed and was rolled back", status=503) from exc
+    if after != target:
+        raise BusinessError("migration_incomplete", "Database migration did not reach the packaged head", status=503)
+    return {
+        "format": "omni-schema-migration-1",
+        "before": before,
+        "after": after,
+        "target": target,
+        "migrated": True,
+    }
+
+
 def inspect_database(path: Path, *, allow_restore_in_progress: bool = False) -> dict:
     if not allow_restore_in_progress and (path.parent.parent / "restore-in-progress.json").exists():
         raise BusinessError("restore_incomplete", "Restore completion has not been verified", status=503)

@@ -1,23 +1,35 @@
-"""Switch step: runtime pointer and launcher only after prepared/smoke/backup/rollback; no stop or migrate."""
+"""Switch/migrate step: runtime pointer only after prepared/smoke/backup/rollback and reseal."""
 
 import asyncio
 import hashlib
 import json
+import sqlite3
 import sys
 import zipfile
 
 import pytest
+from alembic import command
 
+from omni.adapters.persistence.maintenance import durable_json
+from omni.adapters.persistence.migration_config import configuration, head
+from omni.adapters.persistence.sqlalchemy_access import database_engine
 from omni.adapters.platform.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.wheel_backup import backup_candidate
-from omni.adapters.platform.wheel_install import install_candidate, runtime_current, switch_candidate
+from omni.adapters.platform.wheel_install import (
+    install_candidate,
+    migrate_candidate,
+    runtime_current,
+    switch_candidate,
+)
 from omni.adapters.platform.wheel_prepare import prepare_wheel
 from omni.adapters.platform.wheel_rollback import rollback_check
 from omni.adapters.platform.wheel_smoke import smoke_candidate
 from omni.adapters.platform.wheel_stage import stage_wheel
+from omni.adapters.primitives import SystemClock
 from omni.composition.cli import main, seal_installation
 from omni.composition.instance import open_instance
 from omni.domain.contracts import BusinessError
+from omni.domain.installation import make_installation
 
 REQUIRED = (
     "omni/__init__.py",
@@ -90,10 +102,51 @@ def test_install_runs_the_whole_chain_and_switches(tmp_path):
     paths, sha256, wheel = candidate(tmp_path, drilled=False)
     result = install_candidate(paths, wheel, sha256)
     assert result["format"] == "omni-install-1" and result["verified"] is True
+    assert result["migrate"]["written"] is False and result["migrate"]["resealed"] is False
     assert result["switch"]["written"] is True and result["requires_owner_approval"] is True
     assert runtime_current(paths)["active"] is True
     again = install_candidate(paths, wheel, sha256)
     assert again["staged"]["written"] is False and again["switch"]["written"] is False
+
+
+def test_migrate_runs_pending_schema_and_reseals_before_switch(tmp_path):
+    home = tmp_path / "home"
+    (home / "data").mkdir(parents=True)
+    paths = InstancePaths.resolve(home)
+    database = paths.database
+    sqlite3.connect(database).close()
+    cfg = configuration()
+    engine = database_engine(database)
+    try:
+        with engine.connect() as connection:
+            connection.info["omni_write"] = True
+            cfg.attributes["connection"] = connection
+            command.upgrade(cfg, "v2_0036")
+            if connection.in_transaction():
+                connection.commit()
+    finally:
+        engine.dispose()
+    old = "v2_0036"
+    receipt = make_installation(SystemClock().now(), old, head())
+    durable_json(home / "installation.json", receipt)
+
+    path = tmp_path / "candidate.whl"
+    with zipfile.ZipFile(path, "w") as archive:
+        for name in REQUIRED:
+            archive.writestr(name, "" if name.endswith("__init__.py") else "x")
+    sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+    stage_wheel(home, path, sha256)
+    prepare_wheel(home, sha256)
+    smoke_candidate(paths, sha256)
+    backup_candidate(paths, sha256)
+    rollback_check(paths, sha256)
+
+    migrated = migrate_candidate(paths, sha256)
+    assert migrated["written"] is True and migrated["migrated"] is True
+    assert migrated["before"] == old and migrated["after"] == head() and migrated["resealed"] is True
+    assert json.loads((home / "installation.json").read_text(encoding="utf-8"))["schema_version"] == head()
+    assert switch_candidate(paths, sha256)["written"] is True
+    assert migrate_candidate(paths, sha256)["written"] is False
 
 
 def test_cli_switch_and_current_emit_json(tmp_path, monkeypatch, capsys):

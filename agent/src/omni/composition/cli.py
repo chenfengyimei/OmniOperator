@@ -141,13 +141,14 @@ def parser() -> argparse.ArgumentParser:
             "switch-plan",
             "switch",
             "install",
+            "migrate",
             "current",
             "backup",
             "rollback-check",
             "status",
             "smoke",
         ],
-        help="Verify/seal/check/stage/prepare, plan, switch, install, show current, back up, drill, show status, or smoke",
+        help="Verify/seal/check/stage/prepare, plan, switch, install, migrate, show current, back up, drill, show status, or smoke",
     )
     installation.add_argument("artifact", nargs="?", type=Path, help="Wheel to verify for the artifact operation")
     installation.add_argument("--sha256", default="", help="Expected wheel SHA256 for the artifact operation")
@@ -715,6 +716,12 @@ def main() -> int:
                 from ..adapters.platform.wheel_install import install_candidate
 
                 print(json.dumps(install_candidate(paths, args.artifact, args.sha256)))
+            elif args.operation == "migrate":
+                if not args.sha256:
+                    raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
+                from ..adapters.platform.wheel_install import migrate_candidate
+
+                print(json.dumps(migrate_candidate(paths, args.sha256)))
             elif args.operation == "current":
                 from ..adapters.platform.wheel_install import runtime_current
 

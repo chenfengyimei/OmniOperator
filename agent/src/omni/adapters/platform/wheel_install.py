@@ -9,9 +9,10 @@ import sys
 from pathlib import Path
 
 from ...domain.contracts import BusinessError
-from ...domain.installation import validate_installation
-from ..persistence.maintenance import durable_json, read_schema
+from ...domain.installation import make_installation, validate_installation
+from ..persistence.maintenance import durable_json, migrate_database, read_schema
 from ..persistence.migration_config import head as migration_head
+from ..primitives import SystemClock
 from .paths import InstanceLock, InstancePaths
 from .permissions import private_path
 from .wheel_backup import FORMAT as BACKUP_FORMAT
@@ -64,6 +65,60 @@ def _wrapper(home: Path) -> None:
     script.write_text(f'#!/bin/sh\nexec "{python}" "$(dirname "$0")/runtime/launch.py" "$@"\n', encoding="utf-8")
     if os.name != "nt":
         script.chmod(0o755)
+
+
+def migrate_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
+    stage = paths.home / "updates" / sha256[:16]
+    _receipt(stage, "prepared.json", PREPARED_FORMAT, sha256)
+    _receipt(stage, "smoke.json", SMOKE_FORMAT, sha256)
+    _receipt(stage, "backup.json", BACKUP_FORMAT, sha256)
+    _receipt(stage, "rollback.json", ROLLBACK_FORMAT, sha256)
+    receipt_path = paths.home / "installation.json"
+    if not receipt_path.is_file():
+        raise invalid("migrate_unsealed")
+    try:
+        receipt = validate_installation(json.loads(receipt_path.read_text(encoding="utf-8")))
+    except (ValueError, UnicodeError, BusinessError) as exc:
+        raise invalid("migrate_unsealed") from exc
+    schema = read_schema(paths.database)
+    if receipt["schema_version"] != schema:
+        raise invalid("migrate_receipt_stale")
+    target = migration_head()
+    if schema == target:
+        return {
+            "format": "omni-schema-migration-1",
+            "wheel_sha256": sha256,
+            "written": False,
+            "before": schema,
+            "after": schema,
+            "target": target,
+            "migrated": False,
+            "resealed": False,
+        }
+    lock = InstanceLock(paths)
+    lock.acquire()
+    try:
+        result = migrate_database(paths.database)
+        if result["after"] != target:
+            raise invalid("migrate_incomplete")
+        resealed = make_installation(SystemClock().now(), str(result["after"]), target)
+        durable_json(receipt_path, resealed)
+        private_path(receipt_path)
+    finally:
+        lock.close()
+    record = {
+        "format": "omni-schema-migration-1",
+        "wheel_sha256": sha256,
+        "written": True,
+        "before": result["before"],
+        "after": result["after"],
+        "target": target,
+        "migrated": bool(result["migrated"]),
+        "resealed": True,
+    }
+    durable_json(stage / "migrate.json", record)
+    private_path(stage / "migrate.json")
+    return record
 
 
 def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
@@ -174,17 +229,12 @@ def install_candidate(paths: InstancePaths, wheel: Path, sha256: str) -> dict[st
     from .wheel_stage import stage_wheel
 
     inspected = inspect_wheel(wheel, sha256)
-    schema = read_schema(paths.database) if paths.database.is_file() else ""
-    target = migration_head()
-    if schema != target:
-        raise BusinessError(
-            "install_migration_required", "Apply schema migrations before installing this candidate", status=422
-        )
     staged = stage_wheel(paths.home, wheel, sha256)
     prepared = prepare_wheel(paths.home, sha256)
     smoke = smoke_candidate(paths, sha256)
     backup = backup_candidate(paths, sha256)
     rollback = rollback_check(paths, sha256)
+    migration = migrate_candidate(paths, sha256)
     switched = switch_candidate(paths, sha256)
     return {
         "format": "omni-install-1",
@@ -195,6 +245,7 @@ def install_candidate(paths: InstancePaths, wheel: Path, sha256: str) -> dict[st
         "smoke": smoke,
         "backup": backup,
         "rollback": rollback,
+        "migrate": migration,
         "switch": switched,
         "requires_owner_approval": True,
     }

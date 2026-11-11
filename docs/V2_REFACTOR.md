@@ -101,7 +101,9 @@ D7 节点后全量复核：**4601 项，4599 passed / 2 failed / 0 errors**（`m
 
 安装器节点后全量复核 **4624 项：4623 passed / 1 failed / 0 errors**（`debug_sink` 并行时序，隔离 11 项全过）。首次全量发现 `test_v2_architecture` 分层违规（`wheel_switch`/CLI 直接 import sqlite3），已在 `1a13f3c` 将只读 schema 读取移入 `adapters/persistence/maintenance.read_schema` 并在第二次全量确认；证据见[证据](evidence/v2-installer-verification.json)。
 
-D7 切换执行节点：新增 `installation switch|install|current`。switch 只执行计划中的切换步，要求 prepared/smoke/backup/rollback 收据齐全、收据 schema 与数据库一致且无待迁移、实例未被占用，原子写运行指针与启动包装并保留上一指针；install 串起本地 wheel 的校验/暂存/解包/冒烟/备份/演练/切换，任一步失败即停止；current 只读。仍不建 venv、不停服/启动、不执行迁移或 live 回滚、不卸载，默认入口仍是 V1。专项 23 项通过（含新增 5 项与既有安装器/切换计划/状态调用方）。
+D7 切换执行节点：新增 `installation switch|install|current`。switch 只执行计划中的切换步，要求 prepared/smoke/backup/rollback 收据齐全、收据 schema 与数据库一致且无待迁移、实例未被占用，原子写运行指针与启动包装并保留上一指针；install 串起本地 wheel 的校验/暂存/解包/冒烟/备份/演练/切换，任一步失败即停止；current 只读。仍不建 venv、不停服/启动、不执行 live 回滚、不卸载，默认入口仍是 V1。
+
+D7 迁移执行节点：新增 `installation migrate`，在同一组 prepared/smoke/backup/rollback 收据、收据 schema 一致且实例空闲时，用打包的 Alembic head 迁移数据库，校验到达 head 后重新 seal 收据并写 `migrate.json`；install 自动串入 migrate 再 switch，迁移失败由事务回滚并 fail-closed。仍不建 venv、不停服/启动、不执行 live 回滚或卸载，默认入口仍是 V1。
 
 ## D6 扩展产物协议（2026-11-11）
 
