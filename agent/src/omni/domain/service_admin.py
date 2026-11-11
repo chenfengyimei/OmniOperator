@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
+from collections.abc import Mapping
+from typing import cast
 
 from .contracts import BusinessError
 from .service_control import FORMAT as CONTROL_FORMAT
 from .service_control import validate_control
-from .service_deployment import _object, _sha, _uuid
+from .service_deployment import deployment_fields, deployment_sha, deployment_uuid
 from .service_exchange import ADMIN_PROTOCOL, PHASE_FORMAT, validate_administrator_approval, validate_exchange
 from .service_exchange import FORMAT as EXCHANGE_FORMAT
 from .service_operations import validate_operation
@@ -29,62 +30,88 @@ def invalid() -> BusinessError:
     return BusinessError("service_admin_protocol_invalid", "Use the exact approved local service operation", status=422)
 
 
-def admin_operation(value: object) -> dict:
-    operation: dict[str, Any]
-    if isinstance(value, dict) and value.get("format") == CONTROL_FORMAT:
-        operation = dict(validate_control(value))
+def _deployment(operation: Mapping[str, object]) -> dict[str, object]:
+    deployment = operation["deployment"]
+    if not isinstance(deployment, dict):
+        raise invalid()
+    return cast(dict[str, object], deployment)
+
+
+def _request(deployment: Mapping[str, object]) -> dict[str, object]:
+    request = deployment["request"]
+    if not isinstance(request, dict):
+        raise invalid()
+    return cast(dict[str, object], request)
+
+
+def _deployment_target(operation: Mapping[str, object]) -> object:
+    return _request(_deployment(operation))["target"]
+
+
+def admin_operation(value: object) -> dict[str, object]:
+    operation: dict[str, object]
+    if isinstance(value, dict) and cast(dict[str, object], value).get("format") == CONTROL_FORMAT:
+        operation = dict(validate_control(cast(object, value)))
         if operation["action"] != "start":
             raise BusinessError("service_admin_action_unsupported", "Root control authorizes only the reviewed start")
     else:
-        operation = validate_operation(value)
-    if operation["deployment"]["request"]["target"] not in {"linux-system", "macos-system"}:
+        operation = validate_operation(cast(object, value))
+    if _deployment_target(operation) not in {"linux-system", "macos-system"}:
         raise BusinessError("service_admin_target_unsupported", "Use a reviewed Linux or macOS system service")
     return operation
 
 
 def socket_path(operation: object) -> str:
     scope = admin_scope(operation)
-    deployment = next(iter(scoped_operations(scope).values()))["deployment"]
-    directory = MACOS_SOCKET_DIRECTORY if deployment["request"]["target"] == "macos-system" else SOCKET_DIRECTORY
-    return directory + "/" + scope["id"] + ".sock"
+    deployment = _deployment(next(iter(scoped_operations(scope).values())))
+    directory = MACOS_SOCKET_DIRECTORY if _request(deployment)["target"] == "macos-system" else SOCKET_DIRECTORY
+    return directory + "/" + cast(str, scope["id"]) + ".sock"
 
 
-def admin_scope(value: object) -> dict:
-    if isinstance(value, dict) and value.get("format") == PHASE_FORMAT:
-        return validate_administrator_approval(value)
-    if isinstance(value, dict) and value.get("format") == EXCHANGE_FORMAT:
-        plan: dict[str, Any] = dict(validate_exchange(value))
+def admin_scope(value: object) -> dict[str, object]:
+    if isinstance(value, dict) and cast(dict[str, object], value).get("format") == PHASE_FORMAT:
+        return validate_administrator_approval(cast(object, value))
+    if isinstance(value, dict) and cast(dict[str, object], value).get("format") == EXCHANGE_FORMAT:
+        plan = cast(dict[str, object], validate_exchange(cast(object, value)))
         if plan["administrators"] is not None:
             raise BusinessError(
                 "service_admin_phase_required", "Approve the source and target administrator phases separately"
             )
-        if plan["release"]["target"]["request"]["target"] not in {"linux-system", "macos-system"}:
+        release = plan["release"]
+        if not isinstance(release, dict):
+            raise invalid()
+        if _deployment_target(cast(dict[str, object], release)) not in {"linux-system", "macos-system"}:
             raise BusinessError("service_admin_target_unsupported", "Root exchange requires reviewed system services")
         return plan
-    return admin_operation(value)
+    return admin_operation(cast(object, value))
 
 
-def scoped_operations(scope: dict) -> dict[str, dict]:
+def scoped_operations(scope: Mapping[str, object]) -> dict[str, dict[str, object]]:
     if scope.get("format") == PHASE_FORMAT:
         keys = ("remove_source",) if scope["role"] == "source" else ("install_target", "start_target")
-        return {key: admin_operation(scope["exchange"][key]) for key in keys}
+        exchange = scope["exchange"]
+        if not isinstance(exchange, dict):
+            raise invalid()
+        fields = cast(dict[str, object], exchange)
+        return {key: admin_operation(fields[key]) for key in keys}
     if scope.get("format") == EXCHANGE_FORMAT:
         return {key: admin_operation(scope[key]) for key in ("remove_source", "install_target", "start_target")}
     return {"": admin_operation(scope)}
 
 
-def verify_broker(scope: dict, broker_sha256: str) -> None:
+def verify_broker(scope: Mapping[str, object], broker_sha256: str) -> None:
     if scope.get("format") == PHASE_FORMAT and broker_sha256 != scope["broker_sha256"]:
         raise BusinessError("service_admin_bundle_changed", "Use this phase's reviewed immutable administrator bundle")
 
 
-def bound_operation(scope: dict, key: str) -> dict:
-    if not isinstance(key, str) or key not in scoped_operations(scope):
+def bound_operation(scope: Mapping[str, object], key: str) -> dict[str, object]:
+    operations = scoped_operations(scope)
+    if key not in operations:
         raise invalid()
-    return scoped_operations(scope)[key]
+    return operations[key]
 
 
-def encode(value: dict) -> bytes:
+def encode(value: Mapping[str, object]) -> bytes:
     result = (
         json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
         + b"\n"
@@ -94,12 +121,12 @@ def encode(value: dict) -> bytes:
     return result
 
 
-def decode(payload: bytes) -> dict:
+def decode(payload: bytes) -> dict[str, object]:
     if not payload.endswith(b"\n") or len(payload) > MAX_FRAME or b"\n" in payload[:-1]:
         raise invalid()
 
-    def pairs(items):
-        value = {}
+    def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
+        value: dict[str, object] = {}
         for key, item in items:
             if key in value:
                 raise invalid()
@@ -107,18 +134,27 @@ def decode(payload: bytes) -> dict:
         return value
 
     try:
-        value = json.loads(payload, object_pairs_hook=pairs, parse_constant=lambda _: (_ for _ in ()).throw(invalid()))
-        if not isinstance(value, dict):
+        decoded = json.loads(
+            payload, object_pairs_hook=pairs, parse_constant=lambda _: (_ for _ in ()).throw(invalid())
+        )
+        if not isinstance(decoded, dict):
             raise invalid()
-        encode(value)
-        return value
+        checked = cast(dict[str, object], decoded)
+        encode(checked)
+        return checked
     except (ValueError, TypeError, UnicodeError, RecursionError) as error:
         raise invalid() from error
 
 
 def request(
-    operation: dict, command: str, sequence: int, request_id: str, broker_sha256: str, *, operation_key: str = ""
-) -> dict:
+    operation: object,
+    command: object,
+    sequence: int,
+    request_id: object,
+    broker_sha256: str,
+    *,
+    operation_key: object = "",
+) -> dict[str, object]:
     scope = admin_scope(operation)
     verify_broker(scope, broker_sha256)
     if (
@@ -129,12 +165,15 @@ def request(
         or (sequence == MAX_REQUESTS - 1 and command != "close")
     ):
         raise invalid()
+    selected: dict[str, object]
     if command == "close":
         if operation_key != "":
             raise invalid()
-        operation = scope
+        selected = scope
     else:
-        operation = bound_operation(scope, operation_key)
+        if not isinstance(operation_key, str):
+            raise invalid()
+        selected = bound_operation(scope, operation_key)
         if command == "settle" and scope.get("format") not in {EXCHANGE_FORMAT, PHASE_FORMAT}:
             raise invalid()
     return {
@@ -142,17 +181,17 @@ def request(
         "scope_id": scope["id"],
         "scope_sha256": scope["sha256"],
         "operation_key": operation_key,
-        "operation_id": operation["id"],
-        "operation_sha256": operation["sha256"],
+        "operation_id": selected["id"],
+        "operation_sha256": selected["sha256"],
         "command": command,
         "sequence": sequence,
-        "request_id": _uuid(request_id),
-        "broker_sha256": _sha(broker_sha256),
+        "request_id": deployment_uuid(request_id),
+        "broker_sha256": deployment_sha(broker_sha256),
     }
 
 
-def validate_request(value: object, operation: dict, sequence: int, broker_sha256: str) -> dict:
-    checked = _object(
+def validate_request(value: object, operation: object, sequence: int, broker_sha256: str) -> dict[str, object]:
+    checked = deployment_fields(
         value,
         {
             "format",
@@ -183,12 +222,12 @@ def validate_request(value: object, operation: dict, sequence: int, broker_sha25
     return checked
 
 
-def response(request: dict, report: dict) -> dict:
-    return {**request, "root_uid": 0, "report": report}
+def response(request: Mapping[str, object], report: Mapping[str, object]) -> dict[str, object]:
+    return {**request, "root_uid": 0, "report": dict(report)}
 
 
-def validate_response(value: object, expected: dict) -> dict:
-    checked = _object(value, {*expected, "root_uid", "report"})
+def validate_response(value: object, expected: Mapping[str, object]) -> dict[str, object]:
+    checked = deployment_fields(value, {*expected, "root_uid", "report"})
     if (
         any(checked[key] != item or type(checked[key]) is not type(item) for key, item in expected.items())
         or type(checked["root_uid"]) is not int
@@ -198,21 +237,22 @@ def validate_response(value: object, expected: dict) -> dict:
     report = checked["report"]
     if not isinstance(report, dict):
         raise invalid()
+    fields = cast(dict[str, object], report)
     if expected["command"] == "close":
-        if set(report) != {"closed", "cleanup_pending"} or any(type(item) is not bool for item in report.values()):
+        if set(fields) != {"closed", "cleanup_pending"} or any(type(item) is not bool for item in fields.values()):
             raise invalid()
     elif expected["command"] == "settle":
-        if set(report) != {"settled", "cleanup_pending"} or any(type(item) is not bool for item in report.values()):
+        if set(fields) != {"settled", "cleanup_pending"} or any(type(item) is not bool for item in fields.values()):
             raise invalid()
     elif expected["command"] == "change":
         if (
-            set(report) != {"effect", "error_code"}
-            or not isinstance(report["effect"], str)
-            or report["effect"] not in {"none", "applied", "unknown"}
+            set(fields) != {"effect", "error_code"}
+            or not isinstance(fields["effect"], str)
+            or fields["effect"] not in {"none", "applied", "unknown"}
         ):
             raise invalid()
     else:
-        if set(report) != {
+        if set(fields) != {
             "available",
             "installed",
             "definition_present",
@@ -223,23 +263,20 @@ def validate_response(value: object, expected: dict) -> dict:
             "error_code",
         }:
             raise invalid()
-        if type(report["available"]) is not bool or any(
-            type(report[key]) not in {bool, type(None)}
+        if type(fields["available"]) is not bool or any(
+            type(fields[key]) not in {bool, type(None)}
             for key in ("installed", "definition_present", "definition_matches", "enabled")
         ):
             raise invalid()
-        if (
-            not isinstance(report["state"], str)
-            or report["state"] not in {"running", "stopped", "unknown"}
-            or (
-                report["pid"] is not None
-                and (type(report["pid"]) is not int or not 1 <= report["pid"] <= 2_147_483_647)
-            )
-        ):
+        pid = fields["pid"]
+        if not isinstance(fields["state"], str) or fields["state"] not in {"running", "stopped", "unknown"}:
             raise invalid()
-    if "error_code" in report and (
-        not isinstance(report["error_code"], str)
-        or re.fullmatch(r"[a-z][a-z0-9_]{0,99}|", report["error_code"]) is None
+        if pid is not None and (type(pid) is not int or not 1 <= pid <= 2_147_483_647):
+            raise invalid()
+    if "error_code" in fields and (
+        not isinstance(fields["error_code"], str)
+        or re.fullmatch(r"[a-z][a-z0-9_]{0,99}|", fields["error_code"]) is None
     ):
         raise invalid()
-    return report
+    return fields
+

@@ -58,6 +58,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/service_isolation.py` | 中断交换隔离计划与启动隔离校验（经公共桥） |
 | `agent/src/omni/domain/service_operations.py` | 离线服务安装/卸载操作指纹纯规则 | 中断交换隔离计划与启动隔离校验（经公共桥） |
 | `agent/src/omni/domain/service_activation.py` | 无人值守启动绑定/预留纯校验（经公共桥） |
+| `agent/src/omni/domain/service_admin.py` | 管理员操作/阶段/请求/响应帧纯校验（经公共桥） |
 | `agent/src/omni/domain/skills.py` | 技能元数据/文件路径/文档/补丁/清单纯规则 |
 | `agent/src/omni/application/routing.py` | 档位配置读取/保存用例（显式 Record） |
 | `agent/src/omni/application/scheduling.py` | 单调度器保存/到期入队（UnitOfWork 回调与嵌套字段显式化） |

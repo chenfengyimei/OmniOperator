@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9fa8351be79d6292f9bae5e65a862ebf779731c2eaf0505027bac353464ee187`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`3c78e7e20d170fc302dd376628235bddd313559c15cf1b59ed200a40383ba312`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -53,7 +53,7 @@
 | [agent/src/omni/domain/scheduling.py](../../agent/src/omni/domain/scheduling.py) | 190 | Deterministic UTC scheduling and numeric cron rules; resolved timezone data is injected. |
 | [agent/src/omni/domain/schema_upgrade.py](../../agent/src/omni/domain/schema_upgrade.py) | 81 | Explicit forward-only V2 schema routes bound to both immutable runtime inventories; no IO. |
 | [agent/src/omni/domain/service_activation.py](../../agent/src/omni/domain/service_activation.py) | 83 | Bind unattended exchange activation to one reviewed boot; pure persisted contracts with no platform IO. |
-| [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 245 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
+| [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 282 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
 | [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 180 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
 | [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 206 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
 | [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 538 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |

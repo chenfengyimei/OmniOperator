@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9fa8351be79d6292f9bae5e65a862ebf779731c2eaf0505027bac353464ee187",
+  "source_sha256": "3c78e7e20d170fc302dd376628235bddd313559c15cf1b59ed200a40383ba312",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9349,
+      "lines": 9386,
       "dependencies": []
     },
     {
@@ -67396,7 +67396,7 @@
       "path": "agent/src/omni/domain/service_admin.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_admin",
-      "lines": 245,
+      "lines": 282,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_control",
@@ -67407,14 +67407,47 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 28,
+          "line": 29,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
+          "name": "_deployment",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "operation"
+          ],
+          "annotations": {
+            "operation": "Mapping[str, object]"
+          }
+        },
+        {
+          "name": "_request",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "deployment"
+          ],
+          "annotations": {
+            "deployment": "Mapping[str, object]"
+          }
+        },
+        {
+          "name": "_deployment_target",
+          "line": 47,
+          "kind": "function",
+          "parameters": [
+            "operation"
+          ],
+          "annotations": {
+            "operation": "Mapping[str, object]"
+          }
+        },
+        {
           "name": "admin_operation",
-          "line": 32,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "value"
@@ -67425,7 +67458,7 @@
         },
         {
           "name": "socket_path",
-          "line": 45,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "operation"
@@ -67436,7 +67469,7 @@
         },
         {
           "name": "admin_scope",
-          "line": 52,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "value"
@@ -67447,55 +67480,55 @@
         },
         {
           "name": "scoped_operations",
-          "line": 67,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "scope"
           ],
           "annotations": {
-            "scope": "dict"
+            "scope": "Mapping[str, object]"
           }
         },
         {
           "name": "verify_broker",
-          "line": 76,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "scope",
             "broker_sha256"
           ],
           "annotations": {
-            "scope": "dict",
+            "scope": "Mapping[str, object]",
             "broker_sha256": "str"
           }
         },
         {
           "name": "bound_operation",
-          "line": 81,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "scope",
             "key"
           ],
           "annotations": {
-            "scope": "dict",
+            "scope": "Mapping[str, object]",
             "key": "str"
           }
         },
         {
           "name": "encode",
-          "line": 87,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "Mapping[str, object]"
           }
         },
         {
           "name": "decode",
-          "line": 97,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "payload"
@@ -67506,16 +67539,18 @@
         },
         {
           "name": "decode.pairs",
-          "line": 101,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "items"
           ],
-          "annotations": {}
+          "annotations": {
+            "items": "list[tuple[str, object]]"
+          }
         },
         {
           "name": "request",
-          "line": 119,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "operation",
@@ -67526,17 +67561,17 @@
             "operation_key"
           ],
           "annotations": {
-            "operation": "dict",
-            "command": "str",
+            "operation": "object",
+            "command": "object",
             "sequence": "int",
-            "request_id": "str",
+            "request_id": "object",
             "broker_sha256": "str",
-            "operation_key": "str"
+            "operation_key": "object"
           }
         },
         {
           "name": "validate_request",
-          "line": 154,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "value",
@@ -67546,27 +67581,27 @@
           ],
           "annotations": {
             "value": "object",
-            "operation": "dict",
+            "operation": "object",
             "sequence": "int",
             "broker_sha256": "str"
           }
         },
         {
           "name": "response",
-          "line": 186,
+          "line": 225,
           "kind": "function",
           "parameters": [
             "request",
             "report"
           ],
           "annotations": {
-            "request": "dict",
-            "report": "dict"
+            "request": "Mapping[str, object]",
+            "report": "Mapping[str, object]"
           }
         },
         {
           "name": "validate_response",
-          "line": 190,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "value",
@@ -67574,7 +67609,7 @@
           ],
           "annotations": {
             "value": "object",
-            "expected": "dict"
+            "expected": "Mapping[str, object]"
           }
         }
       ],
