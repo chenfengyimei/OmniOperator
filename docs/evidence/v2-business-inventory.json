@@ -1,0 +1,67 @@
+{
+ "schema": 1,
+ "batch": "D7.business_inventory",
+ "date": "2026-11-11",
+ "whole_v2_complete": false,
+ "d7_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "code_version": "b885a42de316f7ec9a69e31102365f74458f50f2d998d6bf571960ad34c890c4",
+  "fixed_source_files": 1172,
+  "git_head": "9133001",
+  "dirty_checkout": false
+ },
+ "development": {
+  "schema_tables": 136,
+  "migration_head": "v2_0037",
+  "assets_version": "20261110v53",
+  "scope": [
+   "docs/V2_BUSINESS_INVENTORY.md lists all 22 workbench pages with status, dependencies and acceptance limits",
+   "A stdlib guard keeps navigation ids, page sections and inventory rows bijectively equal",
+   "Statuses are limited to 可用（离线）/需配置; no page claims real-environment acceptance"
+  ],
+  "pending": [
+   "Navigation grouping/consolidation",
+   "Repository-wide strict typing",
+   "Three-platform packaging/install/update/restore",
+   "Real-environment acceptance"
+  ]
+ },
+ "validation": {
+  "targeted_unique_passed": 2,
+  "all_latest_cases_passed": true,
+  "targeted_reports": [
+   {
+    "path": "temp/build/v2-business-inventory.xml",
+    "sha256": "126902e3b29b5e37ad222d98510610ceca598b8b2f17a3b9ce5bd6283ff92874",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 0.207
+   }
+  ],
+  "gates": {
+   "path": "temp/build/v2-business-inventory-gates.json",
+   "sha256": "b30196b2574cab3399e6d3ed3b565322bf7fb1ae76ba71dfe6aab30b6fd736fc",
+   "passed": 4,
+   "total": 4
+  },
+  "full_run": {
+   "status": "not_rerun",
+   "last_known": "4580 passed / 3 failed (parallel timing) before D7 nodes"
+  }
+ },
+ "source_recovery": {
+  "manifest": "temp/private/v2-business-inventory-source-20261111-b885a42de316/manifest.json",
+  "archive_sha256": "fd12bf6ddbbf578d628c39e04ab0b6e4aeb2e15bf10551c9600a5d565a3ba46b",
+  "files": 1172,
+  "validation_artifacts": [
+   "v2-business-inventory.xml",
+   "v2-business-inventory-gates.json"
+  ]
+ },
+ "next": {
+  "id": "D7.product_switch",
+  "scope": "Navigation consolidation; strict typing; packaging."
+ }
+}
