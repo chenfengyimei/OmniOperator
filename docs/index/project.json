@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1a98cd1d8988be25cb5c676294529bca16630da80ca94842cf119092256bdb66",
+  "source_sha256": "8ff92ed05924e6af24ddd89587ab05d2e6ad64ad0f98a1a6ac2714e6da273855",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9464,
+      "lines": 9518,
       "dependencies": []
     },
     {
@@ -64655,7 +64655,7 @@
       "path": "agent/src/omni/domain/extensions.py",
       "module": "v2-domain",
       "python_module": "omni.domain.extensions",
-      "lines": 429,
+      "lines": 483,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.history"
@@ -64663,14 +64663,14 @@
       "symbols": [
         {
           "name": "_invalid",
-          "line": 51,
+          "line": 53,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_text",
-          "line": 57,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "value",
@@ -64685,7 +64685,7 @@
         },
         {
           "name": "_uuid",
-          "line": 69,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "value"
@@ -64696,7 +64696,7 @@
         },
         {
           "name": "_integer",
-          "line": 75,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "value",
@@ -64711,7 +64711,7 @@
         },
         {
           "name": "_sha",
-          "line": 81,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "value"
@@ -64722,7 +64722,7 @@
         },
         {
           "name": "_encoded",
-          "line": 87,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "value"
@@ -64733,7 +64733,7 @@
         },
         {
           "name": "_fingerprint",
-          "line": 91,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "value"
@@ -64744,7 +64744,7 @@
         },
         {
           "name": "_json_nodes",
-          "line": 95,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "value",
@@ -64759,7 +64759,7 @@
         },
         {
           "name": "_matches",
-          "line": 116,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "value",
@@ -64772,7 +64772,7 @@
         },
         {
           "name": "_schema",
-          "line": 128,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "value"
@@ -64783,7 +64783,7 @@
         },
         {
           "name": "_parameters",
-          "line": 184,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "value"
@@ -64794,7 +64794,7 @@
         },
         {
           "name": "parse_manifest",
-          "line": 193,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "data"
@@ -64805,7 +64805,7 @@
         },
         {
           "name": "catalog",
-          "line": 245,
+          "line": 268,
           "kind": "function",
           "parameters": [
             "manifest"
@@ -64816,7 +64816,7 @@
         },
         {
           "name": "catalog_fingerprint",
-          "line": 262,
+          "line": 289,
           "kind": "function",
           "parameters": [
             "manifest"
@@ -64827,7 +64827,7 @@
         },
         {
           "name": "artifact_types",
-          "line": 271,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "value"
@@ -64838,7 +64838,7 @@
         },
         {
           "name": "tool_artifacts",
-          "line": 282,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "manifest",
@@ -64851,7 +64851,7 @@
         },
         {
           "name": "artifact_descriptors",
-          "line": 290,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "value",
@@ -64864,7 +64864,7 @@
         },
         {
           "name": "artifact_summary",
-          "line": 321,
+          "line": 360,
           "kind": "function",
           "parameters": [
             "descriptors"
@@ -64875,7 +64875,7 @@
         },
         {
           "name": "parse_install",
-          "line": 332,
+          "line": 375,
           "kind": "function",
           "parameters": [
             "data"
@@ -64886,7 +64886,7 @@
         },
         {
           "name": "request_fingerprint",
-          "line": 346,
+          "line": 392,
           "kind": "function",
           "parameters": [
             "data"
@@ -64897,7 +64897,7 @@
         },
         {
           "name": "parse_authorization",
-          "line": 350,
+          "line": 396,
           "kind": "function",
           "parameters": [
             "data"
@@ -64908,7 +64908,7 @@
         },
         {
           "name": "positive_revision",
-          "line": 383,
+          "line": 435,
           "kind": "function",
           "parameters": [
             "value"
@@ -64919,7 +64919,7 @@
         },
         {
           "name": "page",
-          "line": 390,
+          "line": 442,
           "kind": "function",
           "parameters": [
             "after",
@@ -64932,18 +64932,18 @@
         },
         {
           "name": "tool_spec",
-          "line": 398,
+          "line": 450,
           "kind": "function",
           "parameters": [
             "record"
           ],
           "annotations": {
-            "record": "dict"
+            "record": "Mapping[str, object]"
           }
         },
         {
           "name": "CapturedPackage",
-          "line": 424,
+          "line": 477,
           "kind": "class"
         }
       ],

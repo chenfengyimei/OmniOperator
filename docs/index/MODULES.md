@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`1a98cd1d8988be25cb5c676294529bca16630da80ca94842cf119092256bdb66`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`8ff92ed05924e6af24ddd89587ab05d2e6ad64ad0f98a1a6ac2714e6da273855`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -28,7 +28,7 @@
 | [agent/src/omni/domain/desktop_portal.py](../../agent/src/omni/domain/desktop_portal.py) | 240 | Ephemeral window-share consent and helper protocol; grants never identify a native PID or authorize input. |
 | [agent/src/omni/domain/documents.py](../../agent/src/omni/domain/documents.py) | 100 | Bounded source text, deterministic chunks and local vector math; contains no I/O. |
 | [agent/src/omni/domain/event_retention.py](../../agent/src/omni/domain/event_retention.py) | 289 | Bounded event-retention previews and explicit plans; performs no I/O, deletion or sequence reconstruction. |
-| [agent/src/omni/domain/extensions.py](../../agent/src/omni/domain/extensions.py) | 429 | Static trusted-plugin metadata, immutable capture records and owner authorizations; never loads code or files. |
+| [agent/src/omni/domain/extensions.py](../../agent/src/omni/domain/extensions.py) | 483 | Static trusted-plugin metadata, immutable capture records and owner authorizations; never loads code or files. |
 | [agent/src/omni/domain/foreground.py](../../agent/src/omni/domain/foreground.py) | 107 | Single-use foreground authority and bounded input, independent of native APIs. |
 | [agent/src/omni/domain/history.py](../../agent/src/omni/domain/history.py) | 142 | Canonical, bounded history cursors bind a stream and its retention generation; performs no I/O. |
 | [agent/src/omni/domain/images.py](../../agent/src/omni/domain/images.py) | 207 | Validated image references, immutable model policies and conservative low-detail metering; no I/O. |

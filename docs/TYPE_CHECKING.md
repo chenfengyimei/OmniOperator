@@ -27,6 +27,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/desktop_portal.py` | 窗口共享授权/命令/事件/帧收据纯校验 |
 | `agent/src/omni/domain/documents.py` | 源文本/分块/向量归一化与合并纯规则 |
 | `agent/src/omni/domain/event_retention.py` | 事件保留冻结预览/计划纯校验 |
+| `agent/src/omni/domain/extensions.py` | 扩展清单/schema/产物元数据/授权纯校验 |
 | `agent/src/omni/domain/history.py` | 历史游标编码/解码与代际校验 |
 | `agent/src/omni/domain/images.py` | 图像引用/策略/低细节计量纯规则 |
 | `agent/src/omni/domain/installation.py` | 安装收据校验与 schema 一致性纯规则 |

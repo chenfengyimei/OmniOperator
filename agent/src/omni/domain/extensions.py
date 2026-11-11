@@ -8,9 +8,11 @@ import math
 import re
 import unicodedata
 import uuid
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from typing import cast
 
-from .contracts import BusinessError, ToolSpec
+from .contracts import BusinessError, JSON, ToolSpec
 from .history import MAX_INTEGER
 
 FORMAT = "omni-python-extension-1"
@@ -98,11 +100,11 @@ def _json_nodes(value: object, depth: int = 0, budget: list[int] | None = None) 
     if budget[0] < 0 or depth > MAX_SCHEMA_DEPTH:
         raise ValueError
     if isinstance(value, dict):
-        for key, item in value.items():
+        for key, item in cast(dict[str, object], value).items():
             _text(key, 200, empty=True)
             _json_nodes(item, depth + 1, budget)
     elif isinstance(value, list):
-        for item in value:
+        for item in cast(list[object], value):
             _json_nodes(item, depth + 1, budget)
     elif isinstance(value, str):
         value.encode("utf-8")
@@ -125,84 +127,96 @@ def _matches(value: object, kind: str) -> bool:
     }[kind]
 
 
-def _schema(value: object) -> dict:
-    if not isinstance(value, dict) or not set(value) <= SCHEMA_KEYS:
+def _schema(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
         raise ValueError
-    kind = value.get("type")
+    fields = cast(dict[str, object], value)
+    if not set(fields) <= SCHEMA_KEYS:
+        raise ValueError
+    kind = fields.get("type")
     if not isinstance(kind, str) or kind not in TYPES:
         raise ValueError
     allowed = {"type", "description", "enum"}
     if kind == "object":
         allowed |= {"properties", "required", "additionalProperties"}
-        if value.get("additionalProperties") is not False or not isinstance(value.get("properties"), dict):
+        if fields.get("additionalProperties") is not False or not isinstance(fields.get("properties"), dict):
             raise ValueError
-        properties = value["properties"]
+        properties = cast(dict[str, object], fields["properties"])
         for name, schema in properties.items():
             _text(name, 100)
             _schema(schema)
-        required = value.get("required", [])
+        required = fields.get("required", [])
+        if not isinstance(required, list):
+            raise ValueError
+        required_names = cast(list[object], required)
         if (
-            not isinstance(required, list)
-            or not all(isinstance(name, str) for name in required)
-            or len(set(required)) != len(required)
-            or not set(required) <= set(properties)
+            not all(isinstance(name, str) for name in required_names)
+            or len(set(required_names)) != len(required_names)
+            or not set(required_names) <= set(properties)
         ):
             raise ValueError
     elif kind == "array":
         allowed |= {"items", "minItems", "maxItems"}
-        _schema(value.get("items"))
+        _schema(fields.get("items"))
     elif kind == "string":
         allowed |= {"minLength", "maxLength"}
     elif kind in {"number", "integer"}:
         allowed |= {"minimum", "maximum"}
-    if not set(value) <= allowed:
+    if not set(fields) <= allowed:
         raise ValueError
-    if "description" in value:
-        _text(value["description"], 512, empty=True)
+    if "description" in fields:
+        _text(fields["description"], 512, empty=True)
     for lower, upper in (("minLength", "maxLength"), ("minItems", "maxItems")):
         for key in (lower, upper):
-            if key in value:
-                _integer(value[key], 0)
-        if lower in value and upper in value and value[lower] > value[upper]:
+            if key in fields:
+                _integer(fields[key], 0)
+        if lower in fields and upper in fields and cast(int, fields[lower]) > cast(int, fields[upper]):
             raise ValueError
     for key in ("minimum", "maximum"):
-        if key in value and (type(value[key]) not in {int, float} or not math.isfinite(value[key])):
-            raise ValueError
-    if "minimum" in value and "maximum" in value and value["minimum"] > value["maximum"]:
+        if key in fields:
+            number = fields[key]
+            if type(number) not in {int, float} or not math.isfinite(cast(float, number)):
+                raise ValueError
+    if "minimum" in fields and "maximum" in fields and cast(float, fields["minimum"]) > cast(float, fields["maximum"]):
         raise ValueError
-    if "enum" in value:
-        choices = value["enum"]
-        if not isinstance(choices, list) or not 1 <= len(choices) <= 100:
+    if "enum" in fields:
+        choices = fields["enum"]
+        if not isinstance(choices, list):
             raise ValueError
-        if not all(_matches(choice, kind) for choice in choices) or len(
-            {_encoded(choice) for choice in choices}
-        ) != len(choices):
+        options = cast(list[object], choices)
+        if not 1 <= len(options) <= 100:
             raise ValueError
-    return value
+        if not all(_matches(choice, kind) for choice in options) or len(
+            {_encoded(choice) for choice in options}
+        ) != len(options):
+            raise ValueError
+    return fields
 
 
-def _parameters(value: object) -> dict:
+def _parameters(value: object) -> dict[str, JSON]:
     _json_nodes(value)
     parameters = _schema(value)
     raw = _encoded(parameters)
     if parameters["type"] != "object" or len(raw) > MAX_SCHEMA_BYTES:
         raise ValueError
-    return json.loads(raw)
+    parsed = json.loads(raw)
+    if not isinstance(parsed, dict):
+        raise ValueError
+    return cast(dict[str, JSON], parsed)
 
 
-def parse_manifest(data: object) -> dict:
+def parse_manifest(data: object) -> dict[str, object]:
     try:
-        if (
-            not isinstance(data, dict)
-            or set(data) != {"format", "id", "version", "entry", "tools"}
-            or data["format"] != FORMAT
-        ):
+        if not isinstance(data, dict):
             raise ValueError
-        identity = data["id"]
+        fields = cast(dict[str, object], data)
+        if set(fields) != {"format", "id", "version", "entry", "tools"} or fields["format"] != FORMAT:
+            raise ValueError
+        identity = fields["id"]
         if not isinstance(identity, str) or NAME.fullmatch(identity) is None:
             raise ValueError
-        _text(data["version"], 64)
-        entry = _text(data["entry"], 200)
+        _text(fields["version"], 64)
+        entry = _text(fields["entry"], 200)
         parts = entry.split("/")
         if (
             entry.startswith("/")
@@ -212,48 +226,61 @@ def parse_manifest(data: object) -> dict:
             or any(part in {"", ".", ".."} for part in parts)
         ):
             raise ValueError
-        tools = data["tools"]
-        if not isinstance(tools, list) or not 1 <= len(tools) <= MAX_TOOLS:
+        tools = fields["tools"]
+        if not isinstance(tools, list):
             raise ValueError
-        names = set()
-        for tool in tools:
-            if not isinstance(tool, dict) or set(tool) not in (
+        rows = cast(list[object], tools)
+        if not 1 <= len(rows) <= MAX_TOOLS:
+            raise ValueError
+        names: set[str] = set()
+        for tool in rows:
+            if not isinstance(tool, dict):
+                raise ValueError
+            entry_fields = cast(dict[str, object], tool)
+            if set(entry_fields) not in (
                 {"name", "description", "parameters", "writes", "timeout_s"},
                 {"name", "description", "parameters", "writes", "timeout_s", "artifacts"},
             ):
                 raise ValueError
-            name = tool["name"]
+            name = entry_fields["name"]
             if not isinstance(name, str) or NAME.fullmatch(name) is None or name in names:
                 raise ValueError
             if len(f"ext__{identity}__{name}") > 64:
                 raise ValueError
             names.add(name)
-            _text(tool["description"], 512)
-            if tool["writes"] is not True:
+            _text(entry_fields["description"], 512)
+            if entry_fields["writes"] is not True:
                 raise ValueError
-            _integer(tool["timeout_s"], 1, 300)
-            _parameters(tool["parameters"])
-            artifact_types(tool.get("artifacts", []))
-        raw = _encoded(data)
+            _integer(entry_fields["timeout_s"], 1, 300)
+            _parameters(entry_fields["parameters"])
+            artifact_types(entry_fields.get("artifacts", []))
+        raw = _encoded(fields)
         if len(raw) > MAX_MANIFEST_BYTES:
             raise ValueError
-        return json.loads(raw)
+        parsed = json.loads(raw)
+        if not isinstance(parsed, dict):
+            raise ValueError
+        return cast(dict[str, object], parsed)
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError, RecursionError) as exc:
         raise _invalid() from exc
 
 
-def catalog(manifest: object) -> list[dict]:
+def catalog(manifest: object) -> list[dict[str, object]]:
     value = parse_manifest(manifest)
-    result = []
-    for tool in sorted(value["tools"], key=lambda item: item["name"]):
-        row = {
+    tools = value["tools"]
+    if not isinstance(tools, list):
+        raise _invalid()
+    rows = cast(list[dict[str, object]], tools)
+    result: list[dict[str, object]] = []
+    for tool in sorted(rows, key=lambda item: cast(str, item["name"])):
+        row: dict[str, object] = {
             "local_name": tool["name"],
             "name": f"ext__{value['id']}__{tool['name']}",
             "description": tool["description"],
             "parameters": tool["parameters"],
             "writes": True,
             "timeout_s": tool["timeout_s"],
-            "artifacts": sorted(tool.get("artifacts", [])),
+            "artifacts": sorted(cast(list[str], tool.get("artifacts", []))),
         }
         result.append({**row, "spec_sha256": _fingerprint(row)})
     return result
@@ -270,49 +297,61 @@ ARTIFACT_FIELDS = frozenset({"name", "media_type", "bytes", "sha256"})
 
 def artifact_types(value: object) -> list[str]:
     """Owner-declared media types a tool may publish; never inferred from the child."""
-    if not isinstance(value, list) or len(value) > MAX_ARTIFACTS:
+    if not isinstance(value, list):
         raise ValueError
-    if not all(isinstance(item, str) and MEDIA_TYPE.fullmatch(item) for item in value):
+    items = cast(list[object], value)
+    if len(items) > MAX_ARTIFACTS:
         raise ValueError
-    if len(set(value)) != len(value):
+    if not all(isinstance(item, str) and MEDIA_TYPE.fullmatch(item) for item in items):
         raise ValueError
-    return list(value)
+    if len(set(items)) != len(items):
+        raise ValueError
+    return [cast(str, item) for item in items]
 
 
 def tool_artifacts(manifest: object, local_name: str) -> tuple[str, ...]:
     value = parse_manifest(manifest)
-    for tool in value["tools"]:
+    tools = value["tools"]
+    if not isinstance(tools, list):
+        raise _invalid()
+    for tool in cast(list[dict[str, object]], tools):
         if tool["name"] == local_name:
             return tuple(artifact_types(tool.get("artifacts", [])))
     raise _invalid()
 
 
-def artifact_descriptors(value: object, allowed: object) -> tuple[dict, ...]:
+def artifact_descriptors(value: object, allowed: object) -> tuple[dict[str, object], ...]:
     """Validate child-reported artifact metadata; file bytes are checked by the host."""
     try:
         if not isinstance(allowed, (list, tuple)):
             raise ValueError
-        permitted = set(artifact_types(list(allowed)))
-        if not isinstance(value, list) or len(value) > MAX_ARTIFACTS:
+        permitted = set(artifact_types(list(cast(Sequence[object], allowed))))
+        if not isinstance(value, list):
+            raise ValueError
+        items = cast(list[object], value)
+        if len(items) > MAX_ARTIFACTS:
             raise ValueError
         names: set[str] = set()
         total = 0
-        result = []
-        for item in value:
-            if not isinstance(item, dict) or set(item) != ARTIFACT_FIELDS:
+        result: list[dict[str, object]] = []
+        for item in items:
+            if not isinstance(item, dict):
                 raise ValueError
-            name = item["name"]
+            entry = cast(dict[str, object], item)
+            if set(entry) != set(ARTIFACT_FIELDS):
+                raise ValueError
+            name = entry["name"]
             if not isinstance(name, str) or ARTIFACT_NAME.fullmatch(name) is None or name in names:
                 raise ValueError
             names.add(name)
-            if item["media_type"] not in permitted:
+            if entry["media_type"] not in permitted:
                 raise ValueError
-            size = _integer(item["bytes"], 1, MAX_ARTIFACT_BYTES)
+            size = _integer(entry["bytes"], 1, MAX_ARTIFACT_BYTES)
             total += size
             if total > MAX_ARTIFACT_TOTAL_BYTES:
                 raise ValueError
-            digest = _sha(item["sha256"])
-            result.append({"name": name, "media_type": item["media_type"], "bytes": size, "sha256": digest})
+            digest = _sha(entry["sha256"])
+            result.append({"name": name, "media_type": entry["media_type"], "bytes": size, "sha256": digest})
         return tuple(result)
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError) as exc:
         raise _invalid() from exc
@@ -320,22 +359,29 @@ def artifact_descriptors(value: object, allowed: object) -> tuple[dict, ...]:
 
 def artifact_summary(descriptors: object) -> str:
     """A bounded model-visible line: types and sizes only, never names or bytes."""
-    if not isinstance(descriptors, (list, tuple)) or not descriptors:
+    if not isinstance(descriptors, (list, tuple)):
         return ""
-    parts = []
-    for item in descriptors:
+    items = list(cast(Sequence[object], descriptors))
+    if not items:
+        return ""
+    parts: list[str] = []
+    for item in items:
         if isinstance(item, dict):
-            parts.append(f"{str(item.get('media_type'))} {int(item.get('bytes', 0))}B")
+            entry = cast(dict[str, object], item)
+            parts.append(f"{str(entry.get('media_type'))} {int(cast(int, entry.get('bytes', 0)))}B")
     return ("artifacts: " + ", ".join(parts))[:512]
 
 
-def parse_install(data: object) -> dict:
+def parse_install(data: object) -> dict[str, object]:
     try:
-        if not isinstance(data, dict) or set(data) != {"key", "source", "extension_id", "revision"}:
+        if not isinstance(data, dict):
             raise ValueError
-        key, source = _text(data["key"], 200), _text(data["source"], 4_000)
-        identity = None if data["extension_id"] is None else _uuid(data["extension_id"])
-        revision = _integer(data["revision"], 0)
+        fields = cast(dict[str, object], data)
+        if set(fields) != {"key", "source", "extension_id", "revision"}:
+            raise ValueError
+        key, source = _text(fields["key"], 200), _text(fields["source"], 4_000)
+        identity = None if fields["extension_id"] is None else _uuid(fields["extension_id"])
+        revision = _integer(fields["revision"], 0)
         if (identity is None) != (revision == 0):
             raise ValueError
         return {"key": key, "source": source, "extension_id": identity, "revision": revision}
@@ -347,9 +393,12 @@ def request_fingerprint(data: object) -> str:
     return _fingerprint(parse_install(data))
 
 
-def parse_authorization(data: object) -> dict:
+def parse_authorization(data: object) -> dict[str, object]:
     try:
-        if not isinstance(data, dict) or set(data) != {
+        if not isinstance(data, dict):
+            raise ValueError
+        fields = cast(dict[str, object], data)
+        if set(fields) != {
             "revision",
             "package_sha256",
             "catalog_sha256",
@@ -358,22 +407,25 @@ def parse_authorization(data: object) -> dict:
             "trust",
         }:
             raise ValueError
-        tools = data["tools"]
-        if data["trust"] is not True or not isinstance(tools, list) or not 1 <= len(tools) <= MAX_TOOLS:
+        tools = fields["tools"]
+        if fields["trust"] is not True or not isinstance(tools, list):
+            raise ValueError
+        names = cast(list[object], tools)
+        if not 1 <= len(names) <= MAX_TOOLS:
             raise ValueError
         if not all(
             isinstance(name, str) and re.fullmatch(r"ext__[a-z][a-z0-9_]{0,31}__[a-z][a-z0-9_]{0,31}", name)
-            for name in tools
+            for name in names
         ):
             raise ValueError
-        if len(set(tools)) != len(tools):
+        if len(set(names)) != len(names):
             raise ValueError
         return {
-            "revision": _integer(data["revision"]),
-            "package_sha256": _sha(data["package_sha256"]),
-            "catalog_sha256": _sha(data["catalog_sha256"]),
-            "history_epoch": _uuid(data["history_epoch"]),
-            "tools": sorted(tools),
+            "revision": _integer(fields["revision"]),
+            "package_sha256": _sha(fields["package_sha256"]),
+            "catalog_sha256": _sha(fields["catalog_sha256"]),
+            "history_epoch": _uuid(fields["history_epoch"]),
+            "tools": sorted(cast(list[str], names)),
             "trust": True,
         }
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError) as exc:
@@ -395,20 +447,21 @@ def page(after: int = 0, limit: int = 20) -> None:
         raise _invalid() from exc
 
 
-def tool_spec(record: dict) -> ToolSpec:
+def tool_spec(record: Mapping[str, object]) -> ToolSpec:
     try:
         binding = _uuid(record["binding_id"])
         extension_id = _uuid(record["extension_id"])
         if record["writes"] is not True:
             raise ValueError
+        name = record["name"]
         if (
-            not isinstance(record["name"], str)
-            or len(record["name"]) > 64
-            or re.fullmatch(r"ext__[a-z][a-z0-9_]{0,31}__[a-z][a-z0-9_]{0,31}", record["name"]) is None
+            not isinstance(name, str)
+            or len(name) > 64
+            or re.fullmatch(r"ext__[a-z][a-z0-9_]{0,31}__[a-z][a-z0-9_]{0,31}", name) is None
         ):
             raise ValueError
         return ToolSpec(
-            name=record["name"],
+            name=name,
             description=_text(record["description"], 512),
             parameters=_parameters(record["parameters"]),
             writes=True,
@@ -422,8 +475,9 @@ def tool_spec(record: dict) -> ToolSpec:
 
 @dataclass(frozen=True)
 class CapturedPackage:
-    manifest: dict
-    files: tuple[dict, ...]
+    manifest: dict[str, object]
+    files: tuple[dict[str, object], ...]
     package_sha256: str
     catalog_sha256: str
     content: bytes
+
