@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "218d1b6cd5353dd1b9171450f295c4380da6d519f7ce5e1d857a0538987cc0df",
+  "source_sha256": "abcb0ee1d91371747315c5424aaef9f71ba0a6ee327f24304b663763d7a17398",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10822,
+      "lines": 10828,
       "dependencies": [
         "v2-domain"
       ]
@@ -34078,7 +34078,7 @@
       "path": "agent/src/omni/application/action_review.py",
       "module": "v2-application",
       "python_module": "omni.application.action_review",
-      "lines": 105,
+      "lines": 111,
       "imports": [
         "omni.application.ports",
         "omni.domain.action_review",
@@ -34132,7 +34132,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[T]"
+          }
         },
         {
           "name": "ActionReviewService._public",
@@ -34148,7 +34150,7 @@
         },
         {
           "name": "ActionReviewService.page",
-          "line": 54,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
@@ -34164,14 +34166,14 @@
         },
         {
           "name": "ActionReviewService.page.perform",
-          "line": 55,
+          "line": 58,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ActionReviewService.get",
-          "line": 64,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -34185,14 +34187,14 @@
         },
         {
           "name": "ActionReviewService.get.perform",
-          "line": 65,
+          "line": 71,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ActionReviewService.history",
-          "line": 70,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -34210,14 +34212,14 @@
         },
         {
           "name": "ActionReviewService.history.perform",
-          "line": 71,
+          "line": 77,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ActionReviewService.review",
-          "line": 77,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "self",
@@ -34233,14 +34235,14 @@
         },
         {
           "name": "ActionReviewService.review.perform",
-          "line": 80,
+          "line": 86,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ActionReviewService.health",
-          "line": 94,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self"
@@ -34249,7 +34251,7 @@
         },
         {
           "name": "ActionReviewService.stop_accepting",
-          "line": 97,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self"
@@ -34258,7 +34260,7 @@
         },
         {
           "name": "ActionReviewService.close",
-          "line": 100,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self",

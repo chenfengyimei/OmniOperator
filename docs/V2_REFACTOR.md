@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **27 个文件**（14 个 domain + application 的 routing/release_drain/exchange_recovery_steps/local_vectors/service_deployment/exchange_recovery/service_cleanup/model_output/people/memory_tools + adapters 的 build_identity/primitives/timezones/metrics），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **28 个文件**（14 个 domain + application 的 routing/release_drain/exchange_recovery_steps/local_vectors/service_deployment/exchange_recovery/service_cleanup/model_output/people/memory_tools/action_review + adapters 的 build_identity/primitives/timezones/metrics），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -65,7 +65,9 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 第十一批加入 application/people（人物档案用例，strict 下本已干净、无忽略注释）。
 
-第十二批加入 application/memory_tools（`DatabasePort` 回调显式 `UnitOfWork -> list[Record]`，搜索 data 显式 `dict[str, JSON]`）。十二批类型守卫 24 项 + 618 项调用方回归全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第十二批加入 application/memory_tools（`DatabasePort` 回调显式 `UnitOfWork -> list[Record]`，搜索 data 显式 `dict[str, JSON]`）。
+
+第十三批加入 application/action_review（`_pending` 显式 `Task[object]`、完成回调类型、`parse_review` 返回 `dict[str, object]`、page/history/_public 显式 `Record`）。十三批类型守卫 26 项 + 633 项调用方回归全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D7 打包验证（2026-11-11）
 
