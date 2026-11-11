@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **56 个文件**（32 个 domain + application 的 routing/scheduling/release_drain/exchange_recovery_steps/local_vectors/service_deployment/exchange_recovery/service_cleanup/model_output/people/memory_tools/action_review/operations/debugging/terminal_review/objects/memory_organization/exchange_steps/credentials/desktop_actions + adapters 的 build_identity/primitives/timezones/metrics），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **57 个文件**（33 个 domain + application 的 routing/scheduling/release_drain/exchange_recovery_steps/local_vectors/service_deployment/exchange_recovery/service_cleanup/model_output/people/memory_tools/action_review/operations/debugging/terminal_review/objects/memory_organization/exchange_steps/credentials/desktop_actions + adapters 的 build_identity/primitives/timezones/metrics），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -137,7 +137,9 @@ D7 显式清理节点：`installation uninstall --purge-data` 在实例空闲时
 
 第三十三批加入 domain/credential_ipc（帧解码/请求/控制/响应显式 `dict[str, object]`，JSON 钩子显式类型，保留重复键与非有限值拒绝）。三十三批专项全过。
 
-第三十四批加入 domain/contracts 与 domain/history（动作结果默认工厂/状态检查显式化，历史游标集合比较与字符串检查收敛）。三十四批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第三十四批加入 domain/contracts 与 domain/history（动作结果默认工厂/状态检查显式化，历史游标集合比较与字符串检查收敛）。三十四批专项全过。
+
+第三十五批加入 domain/local_vectors（清单/协议/请求/向量显式类型，JSON 钩子与边界校验收敛）。三十五批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 
@@ -616,4 +618,5 @@ release计划3增加捕获绑定的完整线性迁移路线，持久层从V25起
 ## D4 分阶段管理员版本交接与跨schema服务链（2026-11-08）
 
 新增交换计划4和分角色批准1，协议/包/审计4、29文件标准库包，启动预约仍3/激活1。源、目标固定不同包指纹，只比对执行本方源码；单父模式保留双端源码与同schema限制，旧管理员协议3不隐式兼容。六阶段分别记录管理员关闭，实际命令回收且原生锁释放后才回执；目标缺失等待不派发，取消/迟到回执继续持有实际任务及预约。原cleanup/close证明缺失，新会话拒绝补造，要求核查。共享协议4的跨管理员代码/schema链及用户跨schema真实SQLite链已接通。124个不同专项最新通过，19份默认类型/Ruff/CLI通过；未全量/重新打包/真实服务。下一开发转D5 QQ→B站→安卓，D3控制及各平台原生/长期验收仍开放。见[合同](V2_ADMIN_HANDOVER.md)和[证据](evidence/v2-service-handover.json)。
+
 

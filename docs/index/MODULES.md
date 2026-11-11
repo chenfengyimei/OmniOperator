@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`a15ab36334a9ec6a54c0b4696649675667bb63167c1177c847385094ed025087`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`9fb386fe95aa39a5375d34c5178499ff87d31530779b31c3797e0dcf8656ff28`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -33,7 +33,7 @@
 | [agent/src/omni/domain/history.py](../../agent/src/omni/domain/history.py) | 142 | Canonical, bounded history cursors bind a stream and its retention generation; performs no I/O. |
 | [agent/src/omni/domain/images.py](../../agent/src/omni/domain/images.py) | 187 | Validated image references, immutable model policies and conservative low-detail metering; no I/O. |
 | [agent/src/omni/domain/installation.py](../../agent/src/omni/domain/installation.py) | 63 | Immutable local installation receipt written once per home; no I/O and no upgrade execution. |
-| [agent/src/omni/domain/local_vectors.py](../../agent/src/omni/domain/local_vectors.py) | 140 | Local embedding bundle and bounded transport contracts; no files, model imports or I/O. |
+| [agent/src/omni/domain/local_vectors.py](../../agent/src/omni/domain/local_vectors.py) | 156 | Local embedding bundle and bounded transport contracts; no files, model imports or I/O. |
 | [agent/src/omni/domain/maintenance.py](../../agent/src/omni/domain/maintenance.py) | 115 | Bounded local maintenance requests, ownership claims and lease times; no ORM, I/O or execution. |
 | [agent/src/omni/domain/mcp.py](../../agent/src/omni/domain/mcp.py) | 396 | External MCP transport identity, catalog fingerprints and bounded model text; performs no I/O. |
 | [agent/src/omni/domain/media.py](../../agent/src/omni/domain/media.py) | 200 | Bounded media sources, transcripts and frame sheets; timestamps are anchors, never guesses. |

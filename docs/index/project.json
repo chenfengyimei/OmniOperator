@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a15ab36334a9ec6a54c0b4696649675667bb63167c1177c847385094ed025087",
+  "source_sha256": "9fb386fe95aa39a5375d34c5178499ff87d31530779b31c3797e0dcf8656ff28",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9104,
+      "lines": 9120,
       "dependencies": []
     },
     {
@@ -65322,7 +65322,7 @@
       "path": "agent/src/omni/domain/local_vectors.py",
       "module": "v2-domain",
       "python_module": "omni.domain.local_vectors",
-      "lines": 140,
+      "lines": 156,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.documents"
@@ -65330,7 +65330,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "code"
@@ -65341,7 +65341,7 @@
         },
         {
           "name": "canonical",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "value"
@@ -65352,7 +65352,7 @@
         },
         {
           "name": "fingerprint",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "value"
@@ -65363,7 +65363,7 @@
         },
         {
           "name": "manifest",
-          "line": 33,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "value"
@@ -65374,20 +65374,20 @@
         },
         {
           "name": "version",
-          "line": 82,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "value",
             "runtime"
           ],
           "annotations": {
-            "value": "dict",
-            "runtime": "dict | None"
+            "value": "dict[str, object]",
+            "runtime": "dict[str, object] | None"
           }
         },
         {
           "name": "texts_request",
-          "line": 93,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "texts",
@@ -65400,7 +65400,7 @@
         },
         {
           "name": "_pairs",
-          "line": 111,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "entries"
@@ -65411,7 +65411,7 @@
         },
         {
           "name": "decode",
-          "line": 120,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "frame"
@@ -65422,7 +65422,7 @@
         },
         {
           "name": "vectors",
-          "line": 137,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "value",

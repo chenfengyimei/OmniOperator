@@ -36,6 +36,7 @@
     "agent/src/omni/domain/foreground.py",
     "agent/src/omni/domain/history.py",
     "agent/src/omni/domain/installation.py",
+    "agent/src/omni/domain/local_vectors.py",
     "agent/src/omni/domain/maintenance.py",
     "agent/src/omni/domain/memory_organization.py",
     "agent/src/omni/domain/memory_semantics.py",
@@ -61,6 +62,7 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 
 
 

@@ -29,6 +29,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/routing.py` | 能力档位/路由策略/工具筛选纯规则 |
 | `agent/src/omni/domain/settings.py` | Agent 设置与运行配置纯校验 |
 | `agent/src/omni/domain/scheduling.py` | 数值 cron/下次到期/到期选择纯规则 |
+| `agent/src/omni/domain/local_vectors.py` | 本地向量包清单/协议纯校验 |
 | `agent/src/omni/domain/memory_semantics.py` | 派生记忆索引/相关事实合并纯规则 |
 | `agent/src/omni/domain/foreground.py` | 前台输入授权与有界输入纯校验 |
 | `agent/src/omni/domain/maintenance.py` | 维护请求/认领/租约时间纯校验 |
@@ -96,6 +97,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 - strict 门禁 0 errors / 0 warnings。
 - `agent/tests/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `agent/src/omni/domain/` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
 - 相关调用方回归：能力/凭据/对象/人物测试。
+
 
 
 
