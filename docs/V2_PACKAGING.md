@@ -54,13 +54,16 @@ python -m omni.composition.cli --home <home> installation seal
 - `installation rollback-check --sha256 <hex>` 只做回滚演练：把 `backup.json` 指向的快照 restore 到 home 之外的**新目录**，用 `inspect_database` 校验完整性与 schema，写 `rollback.json`；同 SHA 幂等、目标已存在则拒绝；不触碰 live home。
 - `installation status` 只读汇总：收据有效性、数据库/WAL/当前与期望 schema、是否需要升级，以及 `updates/<sha16>` 下每个候选的 staged/prepared/backup/rollback 与 `next_step`；不创建目录、不写文件。
 - `installation smoke --sha256 <hex>` 在子解释器中把候选树加入 `PYTHONPATH`，导入 `omni` 并断言导入路径位于候选树、V2 资源存在；成功写 `smoke.json`（幂等），失败 fail-closed；不安装、不切换、不迁移。
-- **仍未完成**：不下载 wheel（artifact/stage 只处理本地文件）、不创建 venv、不切换运行目录、不执行迁移、不执行 live 回滚、不卸载；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
+- `installation switch --sha256 <hex>` 执行计划中的**切换步**：要求候选已 prepare、smoke 已 verified、backup 与 rollback 演练收据齐全、收据与当前 schema 一致且无待迁移（否则 `switch_migration_required`）、实例未被占用；原子写 `<home>/runtime/current.json`（保留上一指针为 `previous.json`）、`runtime/launch.py` 与 `omni.cmd`/`omni` 启动包装；同 SHA 重放幂等 `written=false`；不停止/启动服务、不迁移。
+- `installation install <wheel> --sha256 <hex>` 串起 artifact 校验→stage→prepare→smoke→backup→rollback-check→switch，任一步失败即停止；存在待迁移时在改动前 `install_migration_required`；输出 `omni-install-1` 汇总；仍不建 venv、不停服/启动、不执行迁移。
+- `installation current` 只读读取运行指针：active 表示候选树仍存在、wheel SHA、schema 与上一指针；不写文件。
+- **仍未完成**：不下载 wheel（artifact/stage 只处理本地文件）、不创建 venv、不停止/启动服务、不执行迁移、不执行 live 回滚、不卸载；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
 
 ## 4. 明确未完成
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
 - **容器镜像**：无 Dockerfile/镜像构建链与验收。
-- **V2 安装器/更新器**：`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 属于 V1 运行目录与 V1 组件安装，不是 V2 安装/更新链；V2 尚无独立安装器、升级器或卸载器。
+- **V2 安装器/更新器**：已有本地 wheel 的 stage/prepare/smoke/backup/rollback-check/switch/install 链与运行指针，但尚无建 venv、停服/启动、迁移执行、live 回滚与卸载；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不是 V2 安装链。
 - **代码签名/公证**：未做 Windows 签名、macOS notarization。
 - **真实机器验收**：未在干净 Windows/macOS/Linux 机器执行“安装→升级→回滚→恢复→卸载”。
 - **正式入口切换**：未满足 D7 门槛，`omni` 仍指向 V1。
@@ -76,6 +79,6 @@ uv run --no-sync pytest -q -n 0 agent/tests/test_v2_releases.py agent/tests/test
 
 ## 5. 下一步
 
-1. 增加 V2 独立安装/更新/卸载链（安装目录、版本清单、原子切换、失败回滚），先在 Windows 实测。
+1. 补齐 V2 安装/更新/卸载执行链：建 venv、停服/启动、迁移执行、live 回滚与卸载，先在 Windows 实测。
 2. 生成容器镜像与三平台构建矩阵；macOS/Linux 无环境时只记录“待真实验收”。
 3. 干净机器端到端演练：安装→启动→升级→回滚→备份恢复→卸载，全部留证据后才评估正式入口切换。

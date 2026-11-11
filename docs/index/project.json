@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e98bfc3faabab9387c2b289bef4bce65475cd2adbcbb15dee144841fde14b39d",
+  "source_sha256": "93547cb59b5c74702bb4e8f516f87e73b589f12b2e4694e78b010fb3011deeb8",
   "modules": [
     {
       "id": "v2-domain",
@@ -345,6 +345,7 @@
         "agent/src/omni/adapters/platform/terminal.py",
         "agent/src/omni/adapters/platform/wheel_artifact.py",
         "agent/src/omni/adapters/platform/wheel_backup.py",
+        "agent/src/omni/adapters/platform/wheel_install.py",
         "agent/src/omni/adapters/platform/wheel_prepare.py",
         "agent/src/omni/adapters/platform/wheel_rollback.py",
         "agent/src/omni/adapters/platform/wheel_smoke.py",
@@ -401,7 +402,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52036,
+      "lines": 52236,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -436,7 +437,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2888,
+      "lines": 2907,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30777,6 +30778,107 @@
       "summary": "Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_install.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_install",
+      "lines": 200,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.persistence.migration_config",
+        "omni.adapters.platform.paths",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.wheel_artifact",
+        "omni.adapters.platform.wheel_backup",
+        "omni.adapters.platform.wheel_prepare",
+        "omni.adapters.platform.wheel_rollback",
+        "omni.adapters.platform.wheel_smoke",
+        "omni.adapters.platform.wheel_stage",
+        "omni.domain.contracts",
+        "omni.domain.installation"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 40,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_receipt",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "stage",
+            "name",
+            "fmt",
+            "sha256"
+          ],
+          "annotations": {
+            "stage": "Path",
+            "name": "str",
+            "fmt": "str",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "_wrapper",
+          "line": 57,
+          "kind": "function",
+          "parameters": [
+            "home"
+          ],
+          "annotations": {
+            "home": "Path"
+          }
+        },
+        {
+          "name": "switch_candidate",
+          "line": 69,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "sha256": "str"
+          }
+        },
+        {
+          "name": "runtime_current",
+          "line": 146,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "install_candidate",
+          "line": 168,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "wheel",
+            "sha256"
+          ],
+          "annotations": {
+            "paths": "InstancePaths",
+            "wheel": "Path",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/wheel_prepare.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_prepare",
@@ -57802,7 +57904,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 947,
+      "lines": 966,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57821,6 +57923,7 @@
         "omni.adapters.platform.service_readiness",
         "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_backup",
+        "omni.adapters.platform.wheel_install",
         "omni.adapters.platform.wheel_prepare",
         "omni.adapters.platform.wheel_rollback",
         "omni.adapters.platform.wheel_smoke",
@@ -57883,7 +57986,7 @@
         },
         {
           "name": "local_origin",
-          "line": 411,
+          "line": 414,
           "kind": "function",
           "parameters": [
             "value"
@@ -57894,7 +57997,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 430,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "paths",
@@ -57907,7 +58010,7 @@
         },
         {
           "name": "main",
-          "line": 472,
+          "line": 475,
           "kind": "function",
           "parameters": [],
           "annotations": {}

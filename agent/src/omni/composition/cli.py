@@ -78,7 +78,7 @@ def installation_report(paths: InstancePaths) -> dict[str, object]:
     if database["exists"]:
         try:
             database["schema"] = _database_schema(paths.database)
-        except (BusinessError, sqlite3.Error):
+        except BusinessError:
             database["problem"] = "database_unreadable"
     pending = bool(database["schema"]) and database["schema"] != expected
     return {
@@ -139,12 +139,15 @@ def parser() -> argparse.ArgumentParser:
             "stage",
             "prepare",
             "switch-plan",
+            "switch",
+            "install",
+            "current",
             "backup",
             "rollback-check",
             "status",
             "smoke",
         ],
-        help="Verify/seal/check/stage/prepare, plan, back up, drill, show status, or smoke",
+        help="Verify/seal/check/stage/prepare, plan, switch, install, show current, back up, drill, show status, or smoke",
     )
     installation.add_argument("artifact", nargs="?", type=Path, help="Wheel to verify for the artifact operation")
     installation.add_argument("--sha256", default="", help="Expected wheel SHA256 for the artifact operation")
@@ -700,6 +703,22 @@ def main() -> int:
                 from ..adapters.platform.wheel_switch import switch_plan
 
                 print(json.dumps(switch_plan(paths, args.sha256)))
+            elif args.operation == "switch":
+                if not args.sha256:
+                    raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
+                from ..adapters.platform.wheel_install import switch_candidate
+
+                print(json.dumps(switch_candidate(paths, args.sha256)))
+            elif args.operation == "install":
+                if args.artifact is None or not args.sha256:
+                    raise BusinessError("artifact_missing", "Provide the wheel path and its recorded SHA256")
+                from ..adapters.platform.wheel_install import install_candidate
+
+                print(json.dumps(install_candidate(paths, args.artifact, args.sha256)))
+            elif args.operation == "current":
+                from ..adapters.platform.wheel_install import runtime_current
+
+                print(json.dumps(runtime_current(paths)))
             elif args.operation == "backup":
                 if not args.sha256:
                     raise BusinessError("artifact_missing", "Provide the prepared wheel SHA256")
