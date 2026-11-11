@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6da0fb223aaa075384f7d06f61064ae521d62af57724a578f736ffe84b15526e",
+  "source_sha256": "a15ab36334a9ec6a54c0b4696649675667bb63167c1177c847385094ed025087",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9100,
+      "lines": 9104,
       "dependencies": []
     },
     {
@@ -63305,17 +63305,24 @@
       "path": "agent/src/omni/domain/contracts.py",
       "module": "v2-domain",
       "python_module": "omni.domain.contracts",
-      "lines": 156,
+      "lines": 160,
       "imports": [],
       "symbols": [
         {
-          "name": "BusinessError",
+          "name": "_empty_json",
           "line": 15,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "BusinessError",
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "BusinessError.__init__",
-          "line": 18,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "self",
@@ -63333,12 +63340,12 @@
         },
         {
           "name": "RunState",
-          "line": 23,
+          "line": 27,
           "kind": "class"
         },
         {
           "name": "check_transition",
-          "line": 45,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "before",
@@ -63351,22 +63358,22 @@
         },
         {
           "name": "Outcome",
-          "line": 50,
+          "line": 54,
           "kind": "class"
         },
         {
           "name": "Effect",
-          "line": 58,
+          "line": 62,
           "kind": "class"
         },
         {
           "name": "ActionResult",
-          "line": 65,
+          "line": 69,
           "kind": "class"
         },
         {
           "name": "ActionResult.__post_init__",
-          "line": 75,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self"
@@ -63375,12 +63382,12 @@
         },
         {
           "name": "ToolSpec",
-          "line": 87,
+          "line": 93,
           "kind": "class"
         },
         {
           "name": "ToolSpec.__post_init__",
-          "line": 96,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self"
@@ -63389,22 +63396,22 @@
         },
         {
           "name": "Invocation",
-          "line": 108,
+          "line": 112,
           "kind": "class"
         },
         {
           "name": "InvocationContext",
-          "line": 115,
+          "line": 119,
           "kind": "class"
         },
         {
           "name": "ModelReply",
-          "line": 124,
+          "line": 128,
           "kind": "class"
         },
         {
           "name": "ModelReply.__post_init__",
-          "line": 132,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self"
@@ -63413,12 +63420,12 @@
         },
         {
           "name": "CapabilityStatus",
-          "line": 141,
+          "line": 145,
           "kind": "class"
         },
         {
           "name": "TurnReceipt",
-          "line": 153,
+          "line": 157,
           "kind": "class"
         }
       ],

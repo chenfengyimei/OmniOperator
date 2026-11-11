@@ -28,11 +28,13 @@
     "agent/src/omni/domain/android_unicode.py",
     "agent/src/omni/domain/capabilities.py",
     "agent/src/omni/domain/context.py",
+    "agent/src/omni/domain/contracts.py",
     "agent/src/omni/domain/credential_ipc.py",
     "agent/src/omni/domain/credentials.py",
     "agent/src/omni/domain/delivery.py",
     "agent/src/omni/domain/documents.py",
     "agent/src/omni/domain/foreground.py",
+    "agent/src/omni/domain/history.py",
     "agent/src/omni/domain/installation.py",
     "agent/src/omni/domain/maintenance.py",
     "agent/src/omni/domain/memory_organization.py",
@@ -59,6 +61,7 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 
 
 

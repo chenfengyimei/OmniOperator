@@ -7,9 +7,13 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import TypeAlias
+from typing import TypeAlias, cast
 
 JSON: TypeAlias = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
+
+
+def _empty_json() -> dict[str, JSON]:
+    return {}
 
 
 class BusinessError(Exception):
@@ -70,10 +74,12 @@ class ActionResult:
     retryable: bool = False
     artifacts: tuple[str, ...] = ()
     verification: str = ""
-    data: dict[str, JSON] = field(default_factory=dict)
+    data: dict[str, JSON] = field(default_factory=_empty_json)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.status, Outcome) or not isinstance(self.effect, Effect):
+        status: object = cast(object, self.status)
+        effect: object = cast(object, self.effect)
+        if not isinstance(status, Outcome) or not isinstance(effect, Effect):
             raise TypeError("Structured outcomes and effects are required")
         if self.effect != Effect.NONE and self.retryable:
             raise ValueError("Applied or unknown effects cannot be automatically retried")
@@ -98,9 +104,7 @@ class ToolSpec:
             raise ValueError("Invalid capability name")
         if not math.isfinite(self.timeout_s) or self.timeout_s <= 0:
             raise ValueError("Capability timeout must be finite and positive")
-        if not isinstance(self.binding_id, str) or (
-            self.binding_id and str(uuid.UUID(self.binding_id)) != self.binding_id
-        ):
+        if self.binding_id and str(uuid.UUID(self.binding_id)) != self.binding_id:
             raise ValueError("Capability binding requires a canonical UUID")
 
 

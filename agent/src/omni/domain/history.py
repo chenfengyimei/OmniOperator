@@ -110,7 +110,7 @@ def decode_cursor(
     try:
         expected = _payload(epoch, kind, scope, revision, 0, filters)
         _integer(high_water)
-        if not isinstance(value, str) or not 1 <= len(value) <= MAX_CURSOR_LENGTH:
+        if not 1 <= len(value) <= MAX_CURSOR_LENGTH:
             raise ValueError
         if re.fullmatch(r"[A-Za-z0-9_-]+", value) is None:
             raise ValueError
@@ -123,7 +123,7 @@ def decode_cursor(
         if not isinstance(decoded, dict):
             raise ValueError
         fields = cast(dict[str, object], decoded)
-        if set(fields) != KEYS or fields["format"] != FORMAT:
+        if set(fields) != set(KEYS) or fields["format"] != FORMAT:
             raise ValueError
         payload = _payload(
             fields["epoch"], fields["kind"], fields["scope"], fields["revision"], fields["position"], fields["filters"]
