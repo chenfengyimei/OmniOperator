@@ -5,11 +5,11 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
-from typing import TypeVar
+from typing import TypeVar, cast
 
 from ..domain.contracts import BusinessError
 from ..domain.credentials import validate_reference, validate_secret
-from .ports import AsyncSecretPort, DatabasePort, Ids, Observer, Record
+from .ports import AsyncSecretPort, DatabasePort, Ids, Observer, Record, UnitOfWork
 
 log = logging.getLogger("omni.v2.credentials")
 T = TypeVar("T")
@@ -27,7 +27,7 @@ class CredentialService:
         self._db, self._backend, self._ids, self._interrupt = database, backend, ids, interrupt
         self._observer = observer
         self._lock = asyncio.Lock()
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._closing = False
 
     async def _change(self, reference: str, value: str | None) -> None:
@@ -44,7 +44,7 @@ class CredentialService:
     async def _apply(self, reference: str, value: str | None, identity: str) -> None:
         self._backend.invalidate(reference)
 
-        def prepare(u):
+        def prepare(u: UnitOfWork) -> tuple[Record, list[str]]:
             operation = u.credential_begin(reference, "delete" if value is None else "set", identity)
             return operation, u.delivery_revoke_credential(reference)
 
@@ -104,8 +104,8 @@ class CredentialService:
         task = asyncio.create_task(perform(), name="omni-credential-operation")
         self._pending.add(task)
 
-        def done(future):
-            self._pending.discard(future)
+        def done(future: asyncio.Task[T]) -> None:
+            self._pending.discard(cast(asyncio.Task[object], future))
             if not future.cancelled():
                 future.exception()
 
@@ -114,7 +114,7 @@ class CredentialService:
 
     async def page(self, after: str = "", limit: int = 100) -> Record:
         rows = await self._db.read(lambda u: u.credential_page(after, limit))
-        return {"items": list(rows), "next_after": rows[-1]["id"] if rows else after}
+        return cast(Record, {"items": list(rows), "next_after": rows[-1]["id"] if rows else after})
 
     async def get(self, identity: str) -> Record:
         return await self._db.read(lambda u: u.credential_get(identity))
@@ -142,7 +142,7 @@ class CredentialService:
             health = self._backend.health()
             actual_work = health.get("pending") or health.get("resident") or health.get("cleanup_pending")
 
-            def commit(u):
+            def commit(u: UnitOfWork) -> tuple[Record, list[str]]:
                 # The existing persistent changing/revision rules retain their
                 # precise errors. The extra guard closes only the gap where an
                 # unknown result still owns native work after ledger settlement.
