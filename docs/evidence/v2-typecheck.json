@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "e2b189bc449851ed908eb4308c18617d0e04aab1bce8b23b5190a84079cf821a",
+  "code_version": "04a78dfbbfe498c2a1d20e2e6cab3467e2658ff610d98f3523f066bde74b4641",
   "fixed_source_files": 1199,
-  "git_head": "a2de461",
+  "git_head": "5833664",
   "dirty_checkout": false
  },
  "development": {
@@ -47,7 +47,8 @@
    "Strict scope reaches 45 files with domain/skills; identifiers, metadata, platform sets and manifests are explicitly typed and ToolSpec parameters cast dict[str, JSON] without changing validation semantics",
    "Strict scope reaches 46 files with domain/schema_upgrade; public deployment bridges and explicit runtime inventories/revision rows replace private helpers without changing forward-route validation",
    "Strict scope reaches 48 files with domain/routing and domain/settings; policy/settings are explicit dict[str, object] and configuration.config_value returns dict[str, object] without changing validation semantics",
-   "Strict scope reaches 50 files with domain/retention and domain/memory_organization; plans, requests and decisions are explicit dict[str, object] with per-field casts without changing validation semantics"
+   "Strict scope reaches 50 files with domain/retention and domain/memory_organization; plans, requests and decisions are explicit dict[str, object] with per-field casts without changing validation semantics",
+   "Strict scope reaches 51 files with domain/service_isolation; a public deployment_text bridge replaces private helpers and isolation plans/references are explicit dict[str, object] without changing validation semantics"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -319,6 +320,15 @@
     "errors": 0,
     "duration_s": 30.849,
     "note": "twenty-ninth strict batch: guard + retention/memory-organization callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-30.xml",
+    "sha256": "ace6c065ccbfdbc19de0c26bd49caa00376df28309e9ee37c56582268ba93ca8",
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 142.704,
+    "note": "thirtieth strict batch: guard + service exchange/control callers"
    }
   ],
   "gates": {
@@ -330,7 +340,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 50,
+    "filesAnalyzed": 51,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0

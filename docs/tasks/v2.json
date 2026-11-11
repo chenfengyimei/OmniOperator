@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "a2de461",
+  "checkpoint_commit": "5833664",
   "current_validation": {
-    "status": "d7_strict_typing_twenty_ninth_batch",
+    "status": "d7_strict_typing_thirtieth_batch",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "recheck_report": "temp/build/v2-strict-isolation.xml"
       }
     ],
-    "code_version": "e2b189bc449851ed908eb4308c18617d0e04aab1bce8b23b5190a84079cf821a",
+    "code_version": "04a78dfbbfe498c2a1d20e2e6cab3467e2658ff610d98f3523f066bde74b4641",
     "fixed_source_files": 1199,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -880,12 +880,12 @@
       "id": "R7.typecheck",
       "status": "进行中",
       "development": "门禁与首批模块完成",
-      "offline_validation": "strict 50 文件 0 errors（含 application/adapters 25 个）；二十九批类型守卫 + 保留/记忆整理调用方回归全过",
+      "offline_validation": "strict 51 文件 0 errors（含 application/adapters 25 个）；三十批类型守卫 + 服务交换/控制调用方回归全过",
       "evidence": [
         "docs/evidence/v2-typecheck.json"
       ],
       "remaining": "domain 其余 49 文件与 application/adapters/composition 未严格化；不得称全仓 strict。",
-      "code_version": "e2b189bc449851ed908eb4308c18617d0e04aab1bce8b23b5190a84079cf821a"
+      "code_version": "04a78dfbbfe498c2a1d20e2e6cab3467e2658ff610d98f3523f066bde74b4641"
     },
     {
       "id": "R7.packaging",
