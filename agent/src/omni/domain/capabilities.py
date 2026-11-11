@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Mapping
+from typing import cast
 
 FORMAT = "omni-capability-report-1"
 DEFAULT_ENTRYPOINT = "v1"
@@ -44,17 +45,17 @@ NOTES = (
 MAX_FACT_TEXT = 80
 
 
-def _fact(value: Any) -> int | bool | str | None:
+def _fact(value: object) -> int | bool | str | None:
     if type(value) is bool or type(value) is int:
         return value
     if isinstance(value, str) and len(value) <= MAX_FACT_TEXT:
         return value
     if isinstance(value, (list, tuple, dict)):
-        return len(value)
+        return len(cast(list[object] | tuple[object, ...] | dict[object, object], value))
     return None
 
 
-def _state(section: dict) -> str:
+def _state(section: Mapping[str, object]) -> str:
     if section.get("closing") is True:
         return "attention"
     for key in ("error_code", "last_error"):
@@ -66,14 +67,23 @@ def _state(section: dict) -> str:
     return "available"
 
 
-def capability_report(health: dict) -> dict:
+def _integer(value: object) -> int:
+    return value if type(value) is int else 0
+
+
+def _text(value: object) -> str:
+    return value if isinstance(value, str) else ""
+
+
+def capability_report(health: Mapping[str, object]) -> dict[str, object]:
     """Bounded projection; missing sections stay absent rather than being guessed."""
-    areas = []
+    areas: list[dict[str, object]] = []
     for key, name, fields, limits in AREAS:
         section = health.get(key)
-        if not isinstance(section, dict):
+        if not isinstance(section, Mapping):
             continue
-        facts = {}
+        section = cast(Mapping[str, object], section)
+        facts: dict[str, object] = {}
         for field in fields:
             value = _fact(section.get(field))
             if value is not None:
@@ -89,14 +99,12 @@ def capability_report(health: dict) -> dict:
         )
     return {
         "format": FORMAT,
-        "api_version": health.get("api_version") if type(health.get("api_version")) is int else 0,
-        "schema_version": health.get("schema_version") if isinstance(health.get("schema_version"), str) else "",
-        "build_id": health.get("build_id") if isinstance(health.get("build_id"), str) else "",
+        "api_version": _integer(health.get("api_version")),
+        "schema_version": _text(health.get("schema_version")),
+        "build_id": _text(health.get("build_id")),
         "ready": health.get("ready") is True,
         "closing": health.get("closing") is True,
-        "platform_acceptance": health.get("platform_acceptance")
-        if isinstance(health.get("platform_acceptance"), str)
-        else "unknown",
+        "platform_acceptance": _text(health.get("platform_acceptance")) or "unknown",
         "entrypoint": DEFAULT_ENTRYPOINT,
         "v2_accepted": ACCEPTED,
         "areas": areas,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Mapping
 from enum import StrEnum
 
 from .contracts import BusinessError
@@ -32,7 +33,7 @@ def reference_fingerprint(reference: str) -> str:
     return hashlib.sha256(reference.encode("utf-8")).hexdigest()
 
 
-def authority_fingerprint(row: dict) -> str:
+def authority_fingerprint(row: Mapping[str, object]) -> str:
     return hashlib.sha256(
         json.dumps(
             {
@@ -56,11 +57,7 @@ def authority_fingerprint(row: dict) -> str:
 
 
 def review_value(decision: str, evidence: str) -> None:
-    if (
-        decision not in {"allow_current", "revoke"}
-        or not isinstance(evidence, str)
-        or not 1 <= len(evidence.strip()) <= 2000
-    ):
+    if decision not in {"allow_current", "revoke"} or not 1 <= len(evidence.strip()) <= 2000:
         raise BusinessError(
             "invalid_credential_review",
             "Choose an explicit decision and provide bounded verification evidence",
