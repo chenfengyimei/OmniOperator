@@ -284,13 +284,13 @@
       ]
     }
   ],
-  "checkpoint_commit": "54a9248",
+  "checkpoint_commit": "3b65358",
   "current_validation": {
-    "status": "d7_typecheck_batch_50",
+    "status": "d7_typecheck_batches_50_full_verified",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
-    "full_runs_this_checkpoint": 1,
+    "full_runs_this_checkpoint": 2,
     "whole_plan_complete": false,
     "evidence": "docs/evidence/v2-extension-artifacts.json",
     "last_full_evidence": "docs/evidence/v2-history.json",
@@ -300,9 +300,9 @@
       {
         "id": "tests.parallel_run_timing_flakes",
         "status": "观察中",
-        "scope": "全量并行下 service_runtime identity、debug_sink 与 android_streams 三处时序失败；同源码隔离 3 项全过，未判定产品缺陷，android_streams 首次出现。",
-        "first_report": "temp/build/v2-typecheck-batches-46-full.xml",
-        "recheck_report": "temp/build/v2-typecheck-batches-46-isolation.xml"
+        "scope": "全量并行下 MCP 工作台 390/1024 两例浏览器时序失败；同源码隔离 2 项全过，未判定产品缺陷。此前第四十九批 service_admin 回归已由 3b65358 修复。",
+        "first_report": "temp/build/v2-typecheck-batches-50-full-fixed.xml",
+        "recheck_report": "temp/build/v2-typecheck-batches-50-mcp-isolation.xml"
       }
     ],
     "code_version": "1235701a22a32bebfbd3c8837f89a9c08bce3a225225b4c7e46cc9c2fb3e1787",
@@ -310,12 +310,12 @@
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
-      "passed": 4651,
-      "failed": 3,
+      "passed": 4652,
+      "failed": 2,
       "errors": 0,
-      "isolation_passed": 3,
-      "report": "temp/build/v2-typecheck-batches-46-full.xml",
-      "isolation_report": "temp/build/v2-typecheck-batches-46-isolation.xml"
+      "isolation_passed": 2,
+      "report": "temp/build/v2-typecheck-batches-50-full-fixed.xml",
+      "isolation_report": "temp/build/v2-typecheck-batches-50-mcp-isolation.xml"
     },
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",
     "token_evidence": "docs/evidence/v2-owner-token.json",

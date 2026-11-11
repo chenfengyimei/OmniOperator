@@ -8,7 +8,7 @@
  "source": {
   "code_version": "1235701a22a32bebfbd3c8837f89a9c08bce3a225225b4c7e46cc9c2fb3e1787",
   "fixed_source_files": 1199,
-  "git_head": "54a9248",
+  "git_head": "3b65358",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py"
  },
@@ -576,26 +576,34 @@
    ]
   },
   "full_run": {
-   "status": "rerun_after_batches_41_46",
-   "source": "ff8397f",
-   "report": "temp/build/v2-typecheck-batches-46-full.xml",
-   "sha256": "f6bae5e46961f213332482f6484d6e3d33569307e8414f4800c9ec528ab483d1",
+   "status": "rerun_after_batches_47_50",
+   "source": "54a9248 + 3b65358 fix",
+   "report": "temp/build/v2-typecheck-batches-50-full-fixed.xml",
+   "sha256": "2cb547584688f0a7e1162ca75d0a61e36e1bc8f4b4abcd613a357bfd2f69df42",
    "tests": 4654,
-   "passed": 4651,
-   "failed": 3,
+   "passed": 4652,
+   "failed": 2,
    "errors": 0,
-   "duration_s": 1365.89,
+   "duration_s": 1504.55,
    "failures": [
-    "test_v2_service_runtime.py::test_identity_tracks_real_boot_and_drains_before_releasing_lock",
-    "test_v2_debug_sink.py::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime",
-    "test_android_streams.py::test_runtime_preserves_database_while_capture_is_residual"
+    "test_v2_mcp_ui.py::test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects[390]",
+    "test_v2_mcp_ui.py::test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects[1024]"
    ],
    "isolation": {
-    "report": "temp/build/v2-typecheck-batches-46-isolation.xml",
-    "sha256": "afe0147979d918526bc1dcdf97a7824a36573657ab6febe92d26316ffe1489bb",
-    "tests": 3,
-    "passed": 3,
-    "note": "all three pass with -n 0 on the same source; parallel timing, android_streams observed for the first time"
+    "report": "temp/build/v2-typecheck-batches-50-mcp-isolation.xml",
+    "sha256": "cbccbbfdc5d5daf1096cd48f925eba9e51061bd91c2efd5cbf4e362c3af6bea0",
+    "tests": 2,
+    "passed": 2,
+    "note": "both MCP UI cases pass with -n 0 on the same source; browser timing under parallel load"
+   },
+   "worktree_note": "运行期间工作区含另一会话未提交的工作台 UI 改动（资源标识 20261112v55）；该全量不作为该 UI 的验收",
+   "regression_run": {
+    "report": "temp/build/v2-typecheck-batches-50-full.xml",
+    "sha256": "8022a2762faca2c196f9ae8916dd933a95201202153fb03d79f0cc5da5aa623a",
+    "tests": 4655,
+    "failed": 33,
+    "errors": 4,
+    "note": "暴露第四十九批 service_admin 读取 release.target 的回归；已由 3b65358 修复并复跑"
    }
   }
  },
