@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "c9fb7869affabe8c75537cb8d4c4beecf38c7d998d92bc4800c4b7ca05a18838",
-  "fixed_source_files": 1174,
-  "git_head": "800e719",
+  "code_version": "72f1a1ec60c51fc797c6a0000a0cfda5fc5b284f8559896306ef00fb69964f91",
+  "fixed_source_files": 1175,
+  "git_head": "ac752a1",
   "dirty_checkout": false
  },
  "development": {
@@ -22,7 +22,8 @@
    "A guard keeps config include, documented scope, file existence and the unfinished-baseline statement in lockstep",
    "Strict scope grows to six domain modules; release_fence no longer imports private deployment helpers and metering uses explicit Mapping annotations",
    "Strict scope grows to eight domain modules; foreground no longer imports private desktop helpers and memory_semantics uses explicit Mapping/Sequence annotations",
-   "Strict scope grows to ten domain modules; recovery_authority uses typed public bridges from service_deployment and context uses Mapping/Sequence annotations"
+   "Strict scope grows to ten domain modules; recovery_authority uses typed public bridges from service_deployment and context uses Mapping/Sequence annotations",
+   "Strict scope grows to eleven domain modules; model_stream maps payload/usage/choices/tool calls to explicit Mapping/sequence types without changing bounds or error classes"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -69,22 +70,31 @@
     "errors": 0,
     "duration_s": 145.34,
     "note": "fourth strict batch: guard + context/context-faults/releases/recovery callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-5.xml",
+    "sha256": "3d8791bfcb5eb6e14664c53bc1db4a1c462a410789b8d578f7d10aba6d2937f4",
+    "tests": 34,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 47.1,
+    "note": "fifth strict batch: guard + model-stream/worker callers"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-4-gates.json",
-   "sha256": "e51cd26626e94542d074cd9e915d8c3872256e311025b3a51262e26389517b67",
+   "path": "temp/build/v2-typecheck-5-gates.json",
+   "sha256": "cff595a0f83dd70e8296880838ba9774aabc6fcce25cbd63b4b842d206920232",
    "passed": 5,
    "total": 5
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 10,
+    "filesAnalyzed": 11,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.497
+    "timeInSec": 0.551
    }
   },
   "default_pyright": {
@@ -106,12 +116,12 @@
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-typecheck-4-source-20261111-c9fb7869affa/manifest.json",
-  "archive_sha256": "47ec9121b589d01b68080fc3d10271fe6a7c7d5c10af394e22574ba711244c9c",
-  "files": 1174,
+  "manifest": "temp/private/v2-typecheck-5-source-20261111-72f1a1ec60c5/manifest.json",
+  "archive_sha256": "443f5eda1ef10a85bf87c7a8f065d77348bc0f4cda26712629f0f5c2fd819727",
+  "files": 1175,
   "validation_artifacts": [
-   "v2-typecheck-4.xml",
-   "v2-typecheck-4-gates.json"
+   "v2-typecheck-5.xml",
+   "v2-typecheck-5-gates.json"
   ]
  },
  "next": {

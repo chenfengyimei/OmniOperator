@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "377fd0751cef8871a644cf98fc7c9306d342e3ee7d3260ed33cef87bb4e82b38",
+  "source_sha256": "c38ae4ee4da9f4f4824148a46bfb47ab913686b11fbac04f33eae039b2657519",
   "modules": [
     {
       "id": "v2-domain",
@@ -71,7 +71,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8859,
+      "lines": 8873,
       "dependencies": []
     },
     {
@@ -65409,14 +65409,14 @@
       "path": "agent/src/omni/domain/model_stream.py",
       "module": "v2-domain",
       "python_module": "omni.domain.model_stream",
-      "lines": 179,
+      "lines": 193,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 17,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "code"
@@ -65427,7 +65427,7 @@
         },
         {
           "name": "text",
-          "line": 21,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "value"
@@ -65438,7 +65438,18 @@
         },
         {
           "name": "integer",
-          "line": 31,
+          "line": 34,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_mapping",
+          "line": 40,
           "kind": "function",
           "parameters": [
             "value"
@@ -65449,12 +65460,12 @@
         },
         {
           "name": "StreamAssembly",
-          "line": 37,
+          "line": 44,
           "kind": "class"
         },
         {
           "name": "StreamAssembly.__init__",
-          "line": 38,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self"
@@ -65463,19 +65474,19 @@
         },
         {
           "name": "StreamAssembly.feed",
-          "line": 47,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",
             "payload"
           ],
           "annotations": {
-            "payload": "dict"
+            "payload": "object"
           }
         },
         {
           "name": "StreamAssembly.result",
-          "line": 134,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",

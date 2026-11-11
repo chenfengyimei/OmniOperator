@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`377fd0751cef8871a644cf98fc7c9306d342e3ee7d3260ed33cef87bb4e82b38`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`c38ae4ee4da9f4f4824148a46bfb47ab913686b11fbac04f33eae039b2657519`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -39,7 +39,7 @@
 | [agent/src/omni/domain/memory_organization.py](../../agent/src/omni/domain/memory_organization.py) | 104 | Bounded exact-fact organization requests and owner decisions; no memory writes, model calls or I/O. |
 | [agent/src/omni/domain/memory_semantics.py](../../agent/src/omni/domain/memory_semantics.py) | 55 | Bounded derived-memory indexing and related-fact proposals; no I/O or fact rewriting. |
 | [agent/src/omni/domain/metering.py](../../agent/src/omni/domain/metering.py) | 80 | Request shape and capacity policy shared by counting and model invocation; no I/O. |
-| [agent/src/omni/domain/model_stream.py](../../agent/src/omni/domain/model_stream.py) | 179 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
+| [agent/src/omni/domain/model_stream.py](../../agent/src/omni/domain/model_stream.py) | 193 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
 | [agent/src/omni/domain/objects.py](../../agent/src/omni/domain/objects.py) | 44 | Immutable object identities and metadata constraints, independent of storage. |
 | [agent/src/omni/domain/people.py](../../agent/src/omni/domain/people.py) | 48 | Person, account and memory document rules; contains no I/O or ORM types. |
 | [agent/src/omni/domain/qq.py](../../agent/src/omni/domain/qq.py) | 122 | Bounded OneBot text events and explicit conversation grants; no transport I/O. |
