@@ -15,6 +15,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | 文件 | 纳入原因 |
 | --- | --- |
 | `agent/src/omni/domain/action_review.py` | 未知写动作的观察复核/证据指纹纯规则 |
+| `agent/src/omni/domain/android.py` | Android 身份/观察/输入/权限请求纯校验 |
 | `agent/src/omni/domain/android_unicode.py` | 输入助手配置/认证报文纯校验 |
 | `agent/src/omni/domain/audit_retention.py` | 审计保留主体/冻结预览/计划纯校验 |
 | `agent/src/omni/domain/bilibili.py` | WBI 签名/字幕与流地址/表单/提及区间纯校验 |

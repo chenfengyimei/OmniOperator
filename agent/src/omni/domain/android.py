@@ -6,6 +6,8 @@ import hashlib
 import json
 import re
 import uuid
+from collections.abc import Mapping, Sequence
+from typing import cast
 from urllib.parse import urlsplit
 
 from .android_unicode import text_value
@@ -48,7 +50,7 @@ def digest(value: object) -> str:
     ).hexdigest()
 
 
-def connection(value: dict) -> dict:
+def connection(value: Mapping[str, object]) -> dict[str, object]:
     if value.get("driver") != "android" or value.get("credential_ref"):
         raise invalid("android_configuration_invalid")
     url = urlsplit(str(value.get("endpoint", "")))
@@ -74,33 +76,44 @@ def connection(value: dict) -> dict:
     return {"port": port, "serial": serial}
 
 
-def device(value: object) -> dict:
-    if not isinstance(value, dict) or set(value) != {"serial", "transport_id", "boot_id", "user_id", "fingerprint"}:
+def device(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
         raise invalid()
-    if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", str(value["serial"])):
+    fields = cast(dict[str, object], value)
+    if set(fields) != {"serial", "transport_id", "boot_id", "user_id", "fingerprint"}:
+        raise invalid()
+    if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", str(fields["serial"])):
         raise invalid()
     for key in ("transport_id", "user_id"):
-        if type(value[key]) is not int or not (1 if key == "transport_id" else 0) <= value[key] <= 2147483647:
+        item = fields[key]
+        if type(item) is not int:
             raise invalid()
-    identity(value["boot_id"])
+        minimum = 1 if key == "transport_id" else 0
+        if not minimum <= item <= 2147483647:
+            raise invalid()
+    identity(fields["boot_id"])
+    fingerprint = fields["fingerprint"]
     if (
-        not isinstance(value["fingerprint"], str)
-        or not 1 <= len(value["fingerprint"]) <= 512
-        or any(ord(c) < 32 for c in value["fingerprint"])
+        not isinstance(fingerprint, str)
+        or not 1 <= len(fingerprint) <= 512
+        or any(ord(c) < 32 for c in fingerprint)
     ):
         raise invalid()
-    return dict(value)
+    return dict(fields)
 
 
-def action_request(value: object) -> dict:
+def action_request(value: object) -> dict[str, object]:
     fields = {"consent", "grant_id", "observation_id", "node_id", "session_id", "request_id", "kind", "text"}
-    if isinstance(value, dict) and "params" in value:
+    if isinstance(value, dict) and "params" in cast(dict[str, object], value):
         fields.add("params")
-    if not isinstance(value, dict) or set(value) != fields or value["consent"] is not True:
+    if not isinstance(value, dict):
         raise invalid()
-    result = {key: identity(value[key]) for key in fields - {"consent", "kind", "text", "params"}}
-    kind, text = value["kind"], value["text"]
-    if kind not in KINDS or not isinstance(text, str):
+    provided = cast(dict[str, object], value)
+    if set(provided) != fields or provided["consent"] is not True:
+        raise invalid()
+    result = {key: identity(provided[key]) for key in fields - {"consent", "kind", "text", "params"}}
+    kind, text = provided["kind"], provided["text"]
+    if not isinstance(kind, str) or kind not in KINDS or not isinstance(text, str):
         raise invalid()
     # ADB input text cannot reliably deliver Unicode. No IME installation or shell interpolation.
     if kind == "append_ascii":
@@ -110,7 +123,7 @@ def action_request(value: object) -> dict:
         text_value(text)
     elif text:
         raise invalid()
-    params = input_params(kind, value.get("params", {}))
+    params = input_params(kind, provided.get("params", {}))
     return {**result, "consent": True, "kind": kind, "text": text, "params": params}
 
 
@@ -124,26 +137,29 @@ def package(value: object) -> str:
     return value
 
 
-def input_params(kind: str, value: object) -> dict:
+def input_params(kind: str, value: object) -> dict[str, object]:
     if not isinstance(value, dict):
         raise invalid()
-    fields = {
+    fields = cast(dict[str, object], value)
+    expected = {
         "long_press": {"duration_ms"},
         "swipe": {"direction", "duration_ms"},
         "key": {"key"},
         "launch": {"package"},
         "append_unicode": {"helper_revision", "restore_ime"},
     }.get(kind, set())
-    if set(value) != fields:
+    if set(fields) != expected:
         raise invalid()
-    if "duration_ms" in fields and (
-        type(value["duration_ms"]) is not int
-        or not (500 if kind == "long_press" else 100) <= value["duration_ms"] <= 1500
-    ):
+    if "duration_ms" in expected:
+        duration = fields["duration_ms"]
+        if type(duration) is not int:
+            raise invalid()
+        minimum = 500 if kind == "long_press" else 100
+        if not minimum <= duration <= 1500:
+            raise invalid()
+    if kind == "swipe" and fields["direction"] not in {"up", "down", "left", "right"}:
         raise invalid()
-    if kind == "swipe" and value["direction"] not in {"up", "down", "left", "right"}:
-        raise invalid()
-    if kind == "key" and value["key"] not in {
+    if kind == "key" and fields["key"] not in {
         "BACK",
         "HOME",
         "ENTER",
@@ -155,12 +171,14 @@ def input_params(kind: str, value: object) -> dict:
     }:
         raise invalid()
     if kind == "launch":
-        package(value["package"])
-    if kind == "append_unicode" and (
-        type(value["helper_revision"]) is not int or value["helper_revision"] < 1 or value["restore_ime"] is not True
-    ):
-        raise invalid()
-    return dict(value)
+        package(fields["package"])
+    if kind == "append_unicode":
+        revision, restore = fields["helper_revision"], fields["restore_ime"]
+        if type(revision) is not int:
+            raise invalid()
+        if revision < 1 or restore is not True:
+            raise invalid()
+    return dict(fields)
 
 
 RESTORE_SPEC = ToolSpec(
@@ -184,40 +202,64 @@ RESTORE_SPEC = ToolSpec(
 )
 
 
-def access_request(value: object) -> dict:
-    fields = {"grant_id", "target_serial", "target_user", "packages", "kinds", "ttl_seconds"}
-    if not isinstance(value, dict) or set(value) != fields:
+def access_request(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
         raise invalid()
-    identity(value["grant_id"])
-    if not isinstance(value["target_serial"], str) or not re.fullmatch(
-        r"[A-Za-z0-9_.:-]{1,128}", value["target_serial"]
-    ):
+    fields = cast(dict[str, object], value)
+    if set(fields) != {"grant_id", "target_serial", "target_user", "packages", "kinds", "ttl_seconds"}:
         raise invalid()
-    if type(value["target_user"]) is not int or not 0 <= value["target_user"] <= 2147483647:
+    identity(fields["grant_id"])
+    serial = fields["target_serial"]
+    if not isinstance(serial, str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", serial):
         raise invalid()
-    if type(value["ttl_seconds"]) is not int or not 60 <= value["ttl_seconds"] <= 900:
+    user = fields["target_user"]
+    if type(user) is not int:
         raise invalid()
-    packages, kinds = value["packages"], value["kinds"]
-    if not isinstance(packages, list) or not 1 <= len(packages) <= 16 or len(set(map(str, packages))) != len(packages):
+    if not 0 <= user <= 2147483647:
         raise invalid()
+    ttl = fields["ttl_seconds"]
+    if type(ttl) is not int:
+        raise invalid()
+    if not 60 <= ttl <= 900:
+        raise invalid()
+    packages, kinds = fields["packages"], fields["kinds"]
+    if not isinstance(packages, list):
+        raise invalid()
+    package_rows = cast(list[object], packages)
+    if not 1 <= len(package_rows) <= 16 or len(set(map(str, package_rows))) != len(package_rows):
+        raise invalid()
+    if not isinstance(kinds, list):
+        raise invalid()
+    kind_rows = cast(list[object], kinds)
     if (
-        not isinstance(kinds, list)
-        or len(kinds) > len(KINDS)
-        or any(k not in KINDS for k in kinds)
-        or len(set(kinds)) != len(kinds)
+        len(kind_rows) > len(KINDS)
+        or any(k not in KINDS for k in kind_rows)
+        or len(set(kind_rows)) != len(kind_rows)
     ):
         raise invalid()
-    return {**value, "packages": [package(p) for p in packages], "kinds": list(kinds)}
+    return {**fields, "packages": [package(p) for p in package_rows], "kinds": list(kind_rows)}
 
 
-def scroll_verified(before: list[dict], after: list[dict], container: dict, direction: str) -> bool:
+def scroll_verified(
+    before: Sequence[Mapping[str, object]],
+    after: Sequence[Mapping[str, object]],
+    container: Mapping[str, object],
+    direction: str,
+) -> bool:
     """Require two stable child identities moving along the approved axis; changed text alone is insufficient."""
     path = container["path"]
+    if not isinstance(path, list):
+        return False
+    prefix = cast(list[object], path)
 
-    def children(nodes):
-        result: dict[tuple, list[dict]] = {}
+    def children(nodes: Sequence[Mapping[str, object]]) -> dict[tuple[object, ...], list[Mapping[str, object]]]:
+        result: dict[tuple[object, ...], list[Mapping[str, object]]] = {}
         for node in nodes:
-            if node.get("password") or len(node["path"]) <= len(path) or node["path"][: len(path)] != path:
+            node_path = node.get("path")
+            if node.get("password") or not isinstance(node_path, list):
+                continue
+            steps = cast(list[object], node_path)
+            if len(steps) <= len(prefix) or steps[: len(prefix)] != prefix:
                 continue
             key = tuple(node.get(k, "") for k in ("resource_id", "class", "text", "description"))
             if not key[0] and not key[2] and not key[3]:
@@ -232,9 +274,18 @@ def scroll_verified(before: list[dict], after: list[dict], container: dict, dire
     for key in old.keys() & new.keys():
         if len(old[key]) != 1 or len(new[key]) != 1:
             continue
-        first, second = old[key][0]["bounds"], new[key][0]["bounds"]
-        delta = second[axis] - first[axis]
-        perpendicular = second[1 - axis] - first[1 - axis]
+        first, second = old[key][0].get("bounds"), new[key][0].get("bounds")
+        if not isinstance(first, list) or not isinstance(second, list):
+            continue
+        left, right = cast(list[object], first), cast(list[object], second)
+        if len(left) < 2 or len(right) < 2:
+            continue
+        a, b = left[axis], left[1 - axis]
+        c, d = right[axis], right[1 - axis]
+        if type(a) is not int or type(b) is not int or type(c) is not int or type(d) is not int:
+            return False
+        delta = c - a
+        perpendicular = d - b
         if abs(perpendicular) > 2 or delta * sign < -2:
             return False
         if delta * sign >= 2:

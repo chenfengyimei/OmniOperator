@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3c78e7e20d170fc302dd376628235bddd313559c15cf1b59ed200a40383ba312",
+  "source_sha256": "66aa615b630a7a0c75e3234e54ca4a9dcbf66c59c632ffec318919095a13625c",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9386,
+      "lines": 9437,
       "dependencies": []
     },
     {
@@ -62421,7 +62421,7 @@
       "path": "agent/src/omni/domain/android.py",
       "module": "v2-domain",
       "python_module": "omni.domain.android",
-      "lines": 350,
+      "lines": 401,
       "imports": [
         "omni.domain.android_unicode",
         "omni.domain.contracts"
@@ -62429,7 +62429,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 32,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "code"
@@ -62440,7 +62440,7 @@
         },
         {
           "name": "identity",
-          "line": 36,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "value"
@@ -62451,7 +62451,7 @@
         },
         {
           "name": "digest",
-          "line": 45,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "value"
@@ -62462,18 +62462,18 @@
         },
         {
           "name": "connection",
-          "line": 51,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "Mapping[str, object]"
           }
         },
         {
           "name": "device",
-          "line": 77,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "value"
@@ -62484,7 +62484,7 @@
         },
         {
           "name": "action_request",
-          "line": 95,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "value"
@@ -62495,7 +62495,7 @@
         },
         {
           "name": "package",
-          "line": 117,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "value"
@@ -62506,7 +62506,7 @@
         },
         {
           "name": "input_params",
-          "line": 127,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "kind",
@@ -62519,7 +62519,7 @@
         },
         {
           "name": "access_request",
-          "line": 187,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "value"
@@ -62530,7 +62530,7 @@
         },
         {
           "name": "scroll_verified",
-          "line": 213,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "before",
@@ -62539,20 +62539,22 @@
             "direction"
           ],
           "annotations": {
-            "before": "list[dict]",
-            "after": "list[dict]",
-            "container": "dict",
+            "before": "Sequence[Mapping[str, object]]",
+            "after": "Sequence[Mapping[str, object]]",
+            "container": "Mapping[str, object]",
             "direction": "str"
           }
         },
         {
           "name": "scroll_verified.children",
-          "line": 217,
+          "line": 255,
           "kind": "function",
           "parameters": [
             "nodes"
           ],
-          "annotations": {}
+          "annotations": {
+            "nodes": "Sequence[Mapping[str, object]]"
+          }
         }
       ],
       "summary": "Android identities, bounded UI observations and approved input contracts; no native I/O."

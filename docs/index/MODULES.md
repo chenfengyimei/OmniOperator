@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`3c78e7e20d170fc302dd376628235bddd313559c15cf1b59ed200a40383ba312`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`66aa615b630a7a0c75e3234e54ca4a9dcbf66c59c632ffec318919095a13625c`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -12,7 +12,7 @@
 |---|---:|---|
 | [agent/src/omni/domain/__init__.py](../../agent/src/omni/domain/__init__.py) | 1 | V2 business rules. No storage, operating-system or transport dependencies. |
 | [agent/src/omni/domain/action_review.py](../../agent/src/omni/domain/action_review.py) | 199 | Owner observations about unknown writes; does not settle actions, authorize replay or release model costs. |
-| [agent/src/omni/domain/android.py](../../agent/src/omni/domain/android.py) | 350 | Android identities, bounded UI observations and approved input contracts; no native I/O. |
+| [agent/src/omni/domain/android.py](../../agent/src/omni/domain/android.py) | 401 | Android identities, bounded UI observations and approved input contracts; no native I/O. |
 | [agent/src/omni/domain/android_unicode.py](../../agent/src/omni/domain/android_unicode.py) | 121 | Pinned helper profiles and authenticated, bounded Unicode input messages; no device I/O. |
 | [agent/src/omni/domain/audit_retention.py](../../agent/src/omni/domain/audit_retention.py) | 291 | Agent audit-retention subjects, frozen previews and explicit plans; performs no I/O or deletion. |
 | [agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py) | 286 | Explicit Bilibili form profiles, targets and mention ranges; no browser, network or storage. |
