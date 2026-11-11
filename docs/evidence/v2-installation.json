@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "33072ccc9277bb296b325000bac96fd0c77d6b1586dcbf38e25db5d9a76aa6e6",
-  "fixed_source_files": 1185,
-  "git_head": "a6dd48e"
+  "code_version": "6d207800508e5c20e66ac026bf0b25ec523c7004f9f651e160b13addeda10c08",
+  "fixed_source_files": 1187,
+  "git_head": "caa08d4"
  },
  "development": {
   "scope": [
@@ -19,7 +19,8 @@
    "installation artifact verifies a local wheel read-only: SHA256, zip CRC, member count/uncompressed caps, path traversal/backslash/absolute names, duplicates, V2 assets and METADATA",
    "installation stage copies a verified wheel atomically to home/updates/<sha16>/artifact.whl with staged.json (extracted=false, installed=false); same-SHA replay is idempotent and corrupt receipts fail closed",
    "installation prepare unpacks a staged, hash-unchanged wheel into updates/<sha16>/tree after re-validating CRC/bounds/paths/duplicates and V2 assets; prepared.json makes replay idempotent and partial trees are cleaned",
-   "installation switch-plan is read-only: requires prepared candidate, sealed receipt matching the database schema and an unused instance, then lists backup/stop/switch/migrate/seal/start/health with executable=false"
+   "installation switch-plan is read-only: requires prepared candidate, sealed receipt matching the database schema and an unused instance, then lists backup/stop/switch/migrate/seal/start/health with executable=false",
+   "installation backup executes only the plan's backup step: reuses switch-plan preconditions, creates a consistent snapshot outside home, refuses to overwrite, records manifest SHA256 and is idempotent per wheel SHA"
   ],
   "pending": [
    "wheel download/verification",
@@ -31,29 +32,29 @@
   ]
  },
  "validation": {
-  "tests": 21,
+  "tests": 25,
   "report": {
-   "path": "temp/build/v2-wheel-switch.xml",
-   "sha256": "a95864e766762942033f567c340917fb0b50ff14c4eeda0b1774c9200b97b559",
-   "tests": 21,
+   "path": "temp/build/v2-wheel-backup.xml",
+   "sha256": "6a85bd1dbf3cba23281553d71bef42eebeddec742975f133fb07c6a576310438",
+   "tests": 25,
    "failures": 0,
    "errors": 0,
-   "duration_s": 13.989
+   "duration_s": 19.945
   },
   "gates": {
-   "path": "temp/build/v2-wheel-switch-gates.json",
-   "sha256": "c3831639696fe0366478bae34e6949cdb51d26ea21be613351f7400b1b5becbb",
+   "path": "temp/build/v2-wheel-backup-gates.json",
+   "sha256": "4e600d0b873cb734714123a66a39f4c82d2c92c7ac47565b0cf72529ccde380c",
    "passed": 5,
    "total": 5
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-wheel-switch-source-20261111-33072ccc9277/manifest.json",
-  "archive_sha256": "27e7c5887c49ecfb9461451178bea40582bd7569d03b86c648bd1fb40d5de5da",
-  "files": 1185,
+  "manifest": "temp/private/v2-wheel-backup-source-20261111-6d207800508e/manifest.json",
+  "archive_sha256": "3899b8dc010f8311be51386d57f0f2b8a72371108fa53e2ab2a366f290ebc05a",
+  "files": 1187,
   "validation_artifacts": [
-   "v2-wheel-switch.xml",
-   "v2-wheel-switch-gates.json"
+   "v2-wheel-backup.xml",
+   "v2-wheel-backup-gates.json"
   ]
  },
  "limits": [

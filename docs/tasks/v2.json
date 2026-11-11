@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "a6dd48e",
+  "checkpoint_commit": "caa08d4",
   "current_validation": {
-    "status": "d7_installation_switch_planned",
+    "status": "d7_installation_update_backup",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-d7-isolation.xml"
       }
     ],
-    "code_version": "33072ccc9277bb296b325000bac96fd0c77d6b1586dcbf38e25db5d9a76aa6e6",
-    "fixed_source_files": 1185,
+    "code_version": "6d207800508e5c20e66ac026bf0b25ec523c7004f9f651e160b13addeda10c08",
+    "fixed_source_files": 1187,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -913,12 +913,12 @@
       "id": "R7.installation",
       "status": "部分完成（收据/预检）",
       "development": "installation verify/seal",
-      "offline_validation": "21 项安装/运行时/产物/暂存/解包/切换计划/打包测试全过；候选/收据/schema/实例占用任一不满足即 fail-closed，计划不执行",
+      "offline_validation": "25 项安装/运行时/产物/暂存/解包/切换计划/更新备份/打包测试全过；备份步已可执行，切换/迁移/回滚仍未执行",
       "evidence": [
         "docs/evidence/v2-installation.json"
       ],
       "remaining": "未下载/校验 wheel、未创建 venv、未切换目录、未执行迁移/回滚/卸载；macOS/Linux 与干净机器未验收。",
-      "code_version": "33072ccc9277bb296b325000bac96fd0c77d6b1586dcbf38e25db5d9a76aa6e6"
+      "code_version": "6d207800508e5c20e66ac026bf0b25ec523c7004f9f651e160b13addeda10c08"
     }
   ],
   "latest_source_recovery": {
