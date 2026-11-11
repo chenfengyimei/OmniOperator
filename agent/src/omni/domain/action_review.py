@@ -85,7 +85,7 @@ def evidence_sha256(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def parse_review(data: object) -> dict:
+def parse_review(data: object) -> dict[str, object]:
     try:
         if not isinstance(data, dict) or set(data) != {
             "review_id",

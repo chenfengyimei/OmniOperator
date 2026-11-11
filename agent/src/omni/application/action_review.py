@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from typing import TypeVar
+from typing import TypeVar, cast
 
 from ..domain.action_review import parse_review
 from ..domain.contracts import JSON, BusinessError
@@ -18,7 +18,7 @@ class ActionReviewService:
         self, database: DatabasePort, blockers: Callable[[Record], list[str]], notify: Callable[[], None]
     ) -> None:
         self._db, self._blockers, self._notify = database, blockers, notify
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = False
 
@@ -35,8 +35,8 @@ class ActionReviewService:
         task = asyncio.create_task(perform(), name="action-review-operation")
         self._pending.add(task)
 
-        def complete(future):
-            self._pending.discard(future)
+        def complete(future: asyncio.Task[T]) -> None:
+            self._pending.discard(cast(asyncio.Task[object], future))
             if not future.cancelled():
                 future.exception()
 
@@ -49,15 +49,21 @@ class ActionReviewService:
             raise BusinessError("action_review_contract", "Action review protections are unavailable", status=503)
         reasons: list[JSON] = list(protected)
         reasons.extend(reason for reason in self._blockers(record) if reason not in reasons)
-        return {**record, "protected_reasons": reasons, "eligible": bool(record.get("eligible")) and not reasons}
+        return cast(
+            Record,
+            {**record, "protected_reasons": reasons, "eligible": bool(record.get("eligible")) and not reasons},
+        )
 
     async def page(self, agent_id: str, after: int = 0, limit: int = 20) -> Record:
         async def perform():
             rows = await self._db.write(lambda u: u.action_review_page(agent_id, after, limit))
-            return {
-                "items": [self._public(row) for row in rows],
-                "next_after": rows[-1]["sequence"] if len(rows) == limit else None,
-            }
+            return cast(
+                Record,
+                {
+                    "items": [self._public(row) for row in rows],
+                    "next_after": rows[-1]["sequence"] if len(rows) == limit else None,
+                },
+            )
 
         return await self._execute(perform)
 
@@ -70,12 +76,12 @@ class ActionReviewService:
     async def history(self, agent_id: str, action_id: str, after: int = 0, limit: int = 20) -> Record:
         async def perform():
             rows = await self._db.read(lambda u: u.action_review_history(agent_id, action_id, after, limit))
-            return {"items": rows, "next_after": rows[-1]["sequence"] if len(rows) == limit else None}
+            return cast(Record, {"items": rows, "next_after": rows[-1]["sequence"] if len(rows) == limit else None})
 
         return await self._execute(perform)
 
     async def review(self, agent_id: str, action_id: str, request: Record) -> Record:
-        checked = parse_review(request)
+        checked = cast(Record, parse_review(request))
 
         async def perform():
             replayed = await self._db.write(lambda u: u.action_review_replay(agent_id, action_id, checked))
