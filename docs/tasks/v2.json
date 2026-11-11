@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "26fc9d1",
+  "checkpoint_commit": "1bd8472",
   "current_validation": {
-    "status": "d7_installation_candidate_smoked",
+    "status": "d7_strict_typing_eleventh_batch",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -880,12 +880,12 @@
       "id": "R7.typecheck",
       "status": "进行中",
       "development": "门禁与首批模块完成",
-      "offline_validation": "strict 25 文件 0 errors（含 application/adapters 13 个）；十批类型守卫 + 部署/发布/清理/模型流等 585 项调用方回归全过",
+      "offline_validation": "strict 26 文件 0 errors（含 application/adapters 14 个）；十一批类型守卫 + 人物等调用方回归全过",
       "evidence": [
         "docs/evidence/v2-typecheck.json"
       ],
       "remaining": "domain 其余 49 文件与 application/adapters/composition 未严格化；不得称全仓 strict。",
-      "code_version": "fb4aeec8fe2d3aacdb14cd3a3f2759a99308dc16c08cf0b025a80e0d5c0c6fbf"
+      "code_version": "0b20cfe0dd0305b34a998c6214b9070e4283d78551b60c18d285a7663584dc26"
     },
     {
       "id": "R7.packaging",
