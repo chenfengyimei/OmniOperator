@@ -6,7 +6,7 @@ import hashlib
 import json
 import re
 import unicodedata
-from typing import Literal
+from typing import Literal, cast
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -127,8 +127,8 @@ def config_value(kind: str, value: object) -> dict[str, object]:
             if isinstance(node, str):
                 return "\0" in node
             if isinstance(node, list):
-                return any(has_nul(item) for item in node)
-            return isinstance(node, dict) and any(has_nul(item) for item in node.values())
+                return any(has_nul(item) for item in cast(list[object], node))
+            return isinstance(node, dict) and any(has_nul(item) for item in cast(dict[str, object], node).values())
 
         if has_nul(result):
             raise ValueError("NUL is not allowed")
@@ -142,15 +142,13 @@ def config_value(kind: str, value: object) -> dict[str, object]:
 
 
 def config_name(name: str) -> tuple[str, str]:
-    if not isinstance(name, str):
-        raise BusinessError("invalid_configuration_name", "A textual name is required", status=422)
     cleaned = name.strip()
     if not cleaned or len(cleaned) > 100 or any(ord(c) < 32 for c in cleaned):
         raise BusinessError("invalid_configuration_name", "Name must contain 1 to 100 printable characters", status=422)
     return cleaned, unicodedata.normalize("NFKC", cleaned).casefold()
 
 
-def fingerprint(kind: str, name: str, enabled: bool, value: dict) -> str:
+def fingerprint(kind: str, name: str, enabled: bool, value: dict[str, object]) -> str:
     return hashlib.sha256(
         json.dumps([kind, name, enabled, value], sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
     ).hexdigest()

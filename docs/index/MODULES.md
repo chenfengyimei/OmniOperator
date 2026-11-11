@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`167f51c9fafd39ec1c0119b3d30556dadaacbfd13b301cc348010a95b430c9ac`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`d0aa601bd40eeab6b9527101cfa169e913eca730dc4b47280f27bd59646a8945`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -17,7 +17,7 @@
 | [agent/src/omni/domain/audit_retention.py](../../agent/src/omni/domain/audit_retention.py) | 280 | Agent audit-retention subjects, frozen previews and explicit plans; performs no I/O or deletion. |
 | [agent/src/omni/domain/bilibili.py](../../agent/src/omni/domain/bilibili.py) | 261 | Explicit Bilibili form profiles, targets and mention ranges; no browser, network or storage. |
 | [agent/src/omni/domain/capabilities.py](../../agent/src/omni/domain/capabilities.py) | 116 | Read-only capability projection over the instance health snapshot; no I/O and no acceptance claims. |
-| [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 156 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
+| [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 154 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
 | [agent/src/omni/domain/context.py](../../agent/src/omni/domain/context.py) | 56 | Bounded conversation policy; whole turns are the smallest compression unit. |
 | [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 160 | Typed execution contracts and state transitions; performs no I/O. |
 | [agent/src/omni/domain/credential_ipc.py](../../agent/src/omni/domain/credential_ipc.py) | 109 | Bounded native credential messages; no platform selection, imports or diagnostics payloads. |

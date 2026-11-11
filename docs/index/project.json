@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "167f51c9fafd39ec1c0119b3d30556dadaacbfd13b301cc348010a95b430c9ac",
+  "source_sha256": "d0aa601bd40eeab6b9527101cfa169e913eca730dc4b47280f27bd59646a8945",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9130,
+      "lines": 9128,
       "dependencies": []
     },
     {
@@ -63105,7 +63105,7 @@
       "path": "agent/src/omni/domain/configuration.py",
       "module": "v2-domain",
       "python_module": "omni.domain.configuration",
-      "lines": 156,
+      "lines": 154,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -63212,7 +63212,7 @@
         },
         {
           "name": "fingerprint",
-          "line": 153,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "kind",
@@ -63224,7 +63224,7 @@
             "kind": "str",
             "name": "str",
             "enabled": "bool",
-            "value": "dict"
+            "value": "dict[str, object]"
           }
         }
       ],
