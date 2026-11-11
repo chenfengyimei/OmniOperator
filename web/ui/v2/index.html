@@ -7,15 +7,16 @@
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v54" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v54" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261112v55" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261112v55" />
   </head>
   <body>
-    <header>
-      <img src="/assets/ui/brand-mark.svg" width="30" height="30" alt="" />
-      <strong>OmniOperator <small>V2 开发工作台</small></strong>
-      <span id="health" role="status">尚未连接</span>
-      <button id="theme" type="button">切换主题</button>
+    <header class="app-header">
+      <img src="/assets/ui/brand-mark.svg" width="26" height="26" alt="" />
+      <span class="brand-text"><strong>OmniOperator</strong><small>V2 开发工作台</small></span>
+      <span class="header-spacer"></span>
+      <span id="health" role="status" data-state="idle">尚未连接</span>
+      <button id="theme" type="button" title="切换主题" aria-label="切换主题">◐</button>
     </header>
     <main>
       <aside>
@@ -59,6 +60,10 @@
         <div id="sessions" aria-label="历史会话"></div>
       </aside>
       <section aria-label="工作区">
+        <header class="page-head">
+          <h1 id="page-title">对话</h1>
+          <p id="page-subtitle">与当前 Agent 空间对话、发起运行并审批动作。</p>
+        </header>
         <p id="error" role="alert" hidden></p>
         <div id="approvals" aria-live="polite"></div>
         <section id="chat" class="page">
@@ -1403,8 +1408,8 @@
         </section>
       </section>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261110v54"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v54"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261110v54"></script>
+    <script src="/assets/vendor/xterm.js?v=20261112v55"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261112v55"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261112v55"></script>
   </body>
 </html>

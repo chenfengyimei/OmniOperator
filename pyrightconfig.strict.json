@@ -69,6 +69,7 @@
     "agent/src/omni/domain/service_activation.py",
     "agent/src/omni/domain/service_admin.py",
     "agent/src/omni/domain/service_control.py",
+    "agent/src/omni/domain/service_deployment.py",
     "agent/src/omni/domain/service_cleanup.py",
     "agent/src/omni/domain/service_exchange.py",
     "agent/src/omni/domain/service_isolation.py",

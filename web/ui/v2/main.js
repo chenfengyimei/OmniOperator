@@ -1,28 +1,28 @@
-import { mountSkills } from './skills.js?v=20261110v54';
-import { mountCredentials } from './credentials.js?v=20261110v54';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261110v54';
-import { mountCapabilities } from './capabilities.js?v=20261110v54';
-import { mountTokens } from './tokens.js?v=20261110v54';
-import { mountDocuments } from './documents.js?v=20261110v54';
-import { mountConfiguration } from './configuration.js?v=20261110v54';
+import { mountSkills } from './skills.js?v=20261112v55';
+import { mountCredentials } from './credentials.js?v=20261112v55';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261112v55';
+import { mountCapabilities } from './capabilities.js?v=20261112v55';
+import { mountTokens } from './tokens.js?v=20261112v55';
+import { mountDocuments } from './documents.js?v=20261112v55';
+import { mountConfiguration } from './configuration.js?v=20261112v55';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261110v54';
-import { mountDeliveries } from './deliveries.js?v=20261110v54';
-import { mountSchedules } from './schedules.js?v=20261110v54';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261110v54';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261110v54';
-import { mountExtensions } from './extensions.js?v=20261110v54';
-import { mountActionReviews } from './action-reviews.js?v=20261110v54';
-import { mountTerminals } from './terminals.js?v=20261110v54';
-import { mountDesktop } from './desktop.js?v=20261110v54';
-import { mountQQ } from './qq.js?v=20261110v54';
-import { mountBilibili } from './bilibili.js?v=20261110v54';
-import { mountMedia } from './media.js?v=20261110v54';
-import { mountMcp } from './mcp.js?v=20261110v54';
-import { mountAndroid } from './android.js?v=20261110v54';
-import { mountModelOutput } from './model-output.js?v=20261110v54';
-import { mountRouting } from './routing.js?v=20261110v54';
-import { mountChatImages } from './chat-images.js?v=20261110v54';
+import { mountPeople } from './people.js?v=20261112v55';
+import { mountDeliveries } from './deliveries.js?v=20261112v55';
+import { mountSchedules } from './schedules.js?v=20261112v55';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261112v55';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261112v55';
+import { mountExtensions } from './extensions.js?v=20261112v55';
+import { mountActionReviews } from './action-reviews.js?v=20261112v55';
+import { mountTerminals } from './terminals.js?v=20261112v55';
+import { mountDesktop } from './desktop.js?v=20261112v55';
+import { mountQQ } from './qq.js?v=20261112v55';
+import { mountBilibili } from './bilibili.js?v=20261112v55';
+import { mountMedia } from './media.js?v=20261112v55';
+import { mountMcp } from './mcp.js?v=20261112v55';
+import { mountAndroid } from './android.js?v=20261112v55';
+import { mountModelOutput } from './model-output.js?v=20261112v55';
+import { mountRouting } from './routing.js?v=20261112v55';
+import { mountChatImages } from './chat-images.js?v=20261112v55';
 
 const $ = (id) => document.getElementById(id);
 let token = '',
@@ -208,13 +208,89 @@ function scope(path) {
   if (!agent) throw new Error('请先连接实例');
   return `/agents/${agent}${path}`;
 }
+function setHealth(text, state = 'idle') {
+  const node = $('health');
+  node.textContent = text;
+  node.dataset.state = state;
+}
+const PAGE_META = {
+  chat: ['对话', '与当前 Agent 空间对话、发起运行并审批动作。'],
+  memory: ['记忆', '事实、档案与常驻记忆，含语义整理。'],
+  skills: ['技能', '文本技能的导入、修订、审阅与启用。'],
+  documents: ['来源文档', '上传、索引、检索与删除传播。'],
+  extensions: ['可信插件', '扩展登记、授权、产物与市场更新。'],
+  mcp: ['MCP', 'MCP 服务连接、目录审阅与逐工具授权。'],
+  'action-reviews': ['动作核查', '未知或待核查动作的审批与证据。'],
+  qq: ['QQ 通道', 'QQ 文本通道、监听与发送审批。'],
+  bilibili: ['B站', '账号、视频读取、字幕转写与发布审批。'],
+  android: ['安卓设备', '设备授权、观察、截图与输入操作。'],
+  desktop: ['桌面能力', '窗口观察、截图与语义动作。'],
+  terminals: ['所有者终端', '交互式终端会话与回收。'],
+  people: ['人物与档案', '人物档案、别名与关联事件。'],
+  objects: ['文件', '对象登记、引用与下载。'],
+  media: ['媒体', '来源登记、字幕/ASR/抽帧与时间锚点转写。'],
+  schedules: ['持久调度', '计划、时区、到期入队与重试。'],
+  deliveries: ['持久投递', '草稿、审批、回执与归档。'],
+  settings: ['设置', '模型档案、凭据引用、路由与预算。'],
+  capabilities: ['能力', '只读能力报告与未验收声明。'],
+  tokens: ['令牌', '所有者的会话列表与显式轮换。'],
+  logs: ['诊断日志', '结构化日志查询、指标与维护任务。'],
+  audit: ['审计记录', '审计事件查询与导出。'],
+};
+function syncPageChrome(next) {
+  document.body.dataset.page = next;
+  for (const button of document.querySelectorAll('[data-page]')) {
+    if (button.dataset.page === next) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  }
+  const meta = PAGE_META[next] || [next, ''];
+  const title = $('page-title'),
+    subtitle = $('page-subtitle');
+  if (title) title.textContent = meta[0];
+  if (subtitle) subtitle.textContent = meta[1];
+}
+function themeLabel() {
+  const pref = window.OmniTheme?.pref?.() || 'auto';
+  const button = $('theme');
+  if (!button) return;
+  button.textContent = pref === 'light' ? '☀' : pref === 'dark' ? '☾' : '◐';
+  button.title = `切换主题（当前：${{ auto: '跟随系统', light: '浅色', dark: '深色' }[pref] || pref}）`;
+}
 function renderMessages(items) {
   const boundAgent = agent,
     boundSession = session;
+  if (!items.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    const strong = document.createElement('strong');
+    strong.textContent = '还没有消息';
+    const hint = document.createElement('span');
+    hint.textContent = '在下方输入框开始对话；模型与凭据需先在「设置」中配置。';
+    empty.append(strong, hint);
+    $('messages').replaceChildren(empty);
+    return;
+  }
   $('messages').replaceChildren(
     ...items.map((m) => {
       const node = document.createElement('article');
-      node.textContent = `${m.role === 'user' ? '你' : '助手'}\n${m.content}`;
+      node.dataset.role = m.role === 'user' ? 'user' : 'assistant';
+      const head = document.createElement('div');
+      head.className = 'message-head';
+      const role = document.createElement('span');
+      role.className = 'message-role';
+      role.textContent = m.role === 'user' ? '你' : '助手';
+      head.append(role);
+      if (m.created_at) {
+        const time = document.createElement('time');
+        time.textContent = String(m.created_at).replace('T', ' ').slice(0, 19);
+        head.append(time);
+      }
+      const body = document.createElement('div');
+      body.className = 'message-body';
+      body.textContent = m.content;
+      const actions = document.createElement('div');
+      actions.className = 'message-actions';
+      node.append(head, body, actions);
       chatImages.append(node, m);
       if (m.role === 'assistant') {
         const publish = document.createElement('button');
@@ -225,7 +301,7 @@ function renderMessages(items) {
           bilibiliPanel.useMessage(m.id);
           document.querySelector('[data-page="bilibili"]').click();
         });
-        node.append(publish);
+        actions.append(publish);
       }
       const erase = document.createElement('button');
       erase.type = 'button';
@@ -257,7 +333,7 @@ function renderMessages(items) {
           }
         }),
       );
-      node.append(document.createElement('br'), erase);
+      actions.append(erase);
       if (m.role === 'assistant') {
         const outbound = document.createElement('button');
         outbound.type = 'button';
@@ -271,11 +347,12 @@ function renderMessages(items) {
             await deliveriesPanel.fromMessage(m.id);
           }),
         );
-        node.append(outbound);
+        actions.append(outbound);
       }
       return node;
     }),
   );
+  $('messages').scrollTop = $('messages').scrollHeight;
 }
 async function refreshSessions() {
   const current = generation,
@@ -304,12 +381,12 @@ async function poll() {
   const version = await api('/version');
   if (current !== generation) return;
   if (version.api_version !== 1 || (build && build !== version.build_id)) {
-    $('health').textContent = '实例版本已变化，请刷新';
+    setHealth('实例版本已变化，请刷新', 'error');
     $('send').inert = true;
     stop();
     return;
   }
-  $('health').textContent = version.ready ? '实例已就绪' : '实例尚未就绪';
+  setHealth(version.ready ? '实例已就绪' : '实例尚未就绪', version.ready ? 'ok' : 'warn');
   const approvals = (await api(scope('/approvals'))).items;
   if (current !== generation) return;
   $('approvals').replaceChildren(
@@ -490,7 +567,7 @@ async function selectAgent() {
   await routingPanel.load();
   await skillsPanel.available();
   if (selectedGeneration !== generation) return;
-  $('messages').replaceChildren();
+  renderMessages([]);
   await refreshSessions();
   if (page === 'memory') await Promise.all([loadMemory(), memoryOrganizationPanel.load(), memorySemanticPanel.load()]);
   if (page === 'skills') await skillsPanel.load();
@@ -531,12 +608,16 @@ $('connect').addEventListener(
   }),
 );
 $('agents').addEventListener('change', wrap(selectAgent));
-$('theme').addEventListener('click', () => window.OmniTheme.cycle());
+$('theme').addEventListener('click', () => {
+  window.OmniTheme.cycle();
+  themeLabel();
+});
+document.addEventListener('omni:theme-change', themeLabel);
 $('new-session').addEventListener('click', () => {
   session = null;
   clearContext();
   pendingKey = null;
-  $('messages').replaceChildren();
+  renderMessages([]);
 });
 $('send').addEventListener(
   'submit',
@@ -761,6 +842,8 @@ for (const button of document.querySelectorAll('[data-page]'))
         chatImages.deactivate();
       } else chatImages.change();
       page = selectedPage;
+      syncPageChrome(selectedPage);
+      document.querySelector('main > section')?.scrollTo?.({ top: 0 });
       for (const node of document.querySelectorAll('.page')) node.hidden = node.id !== selectedPage;
       if (selectedPage === 'memory')
         await Promise.all([loadMemory(), memoryOrganizationPanel.load(), memorySemanticPanel.load()]);
@@ -787,6 +870,8 @@ for (const button of document.querySelectorAll('[data-page]'))
     }),
   );
 window.addEventListener('pagehide', stop);
+syncPageChrome('chat');
+themeLabel();
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) stop();
   else if (token) {

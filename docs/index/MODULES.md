@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`8ff92ed05924e6af24ddd89587ab05d2e6ad64ad0f98a1a6ac2714e6da273855`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`9a7fd874c40f55f7d319b12e7918e33397cc94383974ef465b6524d3efe6a42d`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -56,7 +56,7 @@
 | [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 286 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
 | [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 180 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
 | [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 206 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
-| [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 538 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
+| [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 564 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
 | [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 329 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
 | [agent/src/omni/domain/service_isolation.py](../../agent/src/omni/domain/service_isolation.py) | 115 | Reviewed offline startup quarantine; retains unknown outcomes and authorizes only a separate recovery plan. |
 | [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 140 | Fingerprint offline service changes; registration never implies a healthy running service. |
@@ -448,7 +448,7 @@
 | [web/ui/v2/terminal-reviews.js](../../web/ui/v2/terminal-reviews.js) | 254 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminals.js](../../web/ui/v2/terminals.js) | 564 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/tokens.js](../../web/ui/v2/tokens.js) | 81 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 914 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 918 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

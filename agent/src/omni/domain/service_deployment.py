@@ -70,10 +70,13 @@ def invalid() -> BusinessError:
     )
 
 
-def _object(value: object, keys: set[str] | frozenset[str]) -> dict:
-    if not isinstance(value, dict) or set(value) != keys:
+def _object(value: object, keys: set[str] | frozenset[str]) -> dict[str, object]:
+    if not isinstance(value, dict):
         raise invalid()
-    return value
+    fields = cast(dict[str, object], value)
+    if set(fields) != keys:
+        raise invalid()
+    return fields
 
 
 def _text(value: object, maximum: int = 4000) -> str:
@@ -137,7 +140,7 @@ def _path(value: object, windows: bool) -> str:
 
 def deployment_fields(value: object, keys: set[str] | frozenset[str]) -> dict[str, object]:
     """Typed public bridge for sibling domain validators that must not import private helpers."""
-    return cast(dict[str, object], _object(value, keys))
+    return _object(value, keys)
 
 
 def deployment_created(value: object) -> str:
@@ -145,11 +148,11 @@ def deployment_created(value: object) -> str:
 
 
 def deployment_plan(value: object) -> dict[str, object]:
-    return cast(dict[str, object], validate_plan(value))
+    return validate_plan(value)
 
 
 def deployment_make(request: object, runtime: object, identity: object, at: object) -> dict[str, object]:
-    return cast(dict[str, object], make_plan(request, runtime, identity, at))
+    return make_plan(request, runtime, identity, at)
 
 
 def deployment_integer(value: object, minimum: int, maximum: int) -> int:
@@ -172,7 +175,7 @@ def deployment_uuid(value: object) -> str:
     return _uuid(value)
 
 
-def _principal(value: object, windows: bool, system: bool = False) -> dict:
+def _principal(value: object, windows: bool, system: bool = False) -> dict[str, object]:
     value = _object(value, {"name", "id", "home"})
     name, identity = _text(value["name"], 200), _text(value["id"], 200)
     if windows:
@@ -226,7 +229,7 @@ def _endpoint(host: object, port: object, external_url: object) -> tuple[str, in
     return host, port, origin
 
 
-def parse_request(data: object) -> dict:
+def parse_request(data: object) -> dict[str, object]:
     value = _object(data, REQUEST_KEYS)
     target = value["target"]
     if (
@@ -254,7 +257,7 @@ def parse_request(data: object) -> dict:
     }
 
 
-def validate_runtime(data: object) -> dict:
+def validate_runtime(data: object) -> dict[str, object]:
     value = _object(data, RUNTIME_KEYS)
     if (
         value["format"] != RUNTIME_FORMAT
@@ -264,7 +267,10 @@ def validate_runtime(data: object) -> dict:
     ):
         raise invalid()
     windows = value["platform"] == "win32"
-    result = {
+    python_version = value["python_version"]
+    if isinstance(python_version, str):
+        python_version = python_version.replace("\r\n", " ").replace("\n", " ")
+    result: dict[str, object] = {
         **value,
         "python": _path(value["python"], windows),
         "python_realpath": _path(value["python_realpath"], windows),
@@ -273,12 +279,7 @@ def validate_runtime(data: object) -> dict:
         "python_sha256": _sha(value["python_sha256"]),
         "process_python": _path(value["process_python"], windows),
         "process_python_sha256": _sha(value["process_python_sha256"]),
-        "python_version": _text(
-            value["python_version"].replace("\r\n", " ").replace("\n", " ")
-            if isinstance(value["python_version"], str)
-            else value["python_version"],
-            1000,
-        ),
+        "python_version": _text(python_version, 1000),
         "architecture": _text(value["architecture"], 64),
         "build_id": _sha(value["build_id"]),
         "assets_sha256": _sha(value["assets_sha256"]),
@@ -290,34 +291,43 @@ def validate_runtime(data: object) -> dict:
         or re.fullmatch(r"v2_[0-9]{4}", _text(value["schema_head"], 20)) is None
     ):
         raise invalid()
-    links = value["python_links"]
-    if not isinstance(links, list) or len(links) > 8:
+    links_raw = value["python_links"]
+    if not isinstance(links_raw, list):
         raise invalid()
-    result["python_links"] = []
-    seen = set()
+    links = cast(list[object], links_raw)
+    if len(links) > 8:
+        raise invalid()
+    python_links: list[dict[str, object]] = []
+    seen: set[str] = set()
     for item in links:
-        item = _object(item, {"path", "target"})
-        path = _path(item["path"], windows)
+        entry = _object(item, {"path", "target"})
+        path = _path(entry["path"], windows)
         if path in seen:
             raise invalid()
         seen.add(path)
-        result["python_links"].append({"path": path, "target": _text(item["target"])})
+        python_links.append({"path": path, "target": _text(entry["target"])})
+    result["python_links"] = python_links
     config = value["venv_config"]
     if config is not None:
-        config = _object(config, {"path", "sha256", "bytes"})
+        options = _object(config, {"path", "sha256", "bytes"})
         config = {
-            "path": _path(config["path"], windows),
-            "sha256": _sha(config["sha256"]),
-            "bytes": _integer(config["bytes"], 0, MAX_BYTES),
+            "path": _path(options["path"], windows),
+            "sha256": _sha(options["sha256"]),
+            "bytes": _integer(options["bytes"], 0, MAX_BYTES),
         }
     result["venv_config"] = config
-    files = value["files"]
-    if not isinstance(files, list) or not 1 <= len(files) <= MAX_FILES:
+    files_raw = value["files"]
+    if not isinstance(files_raw, list):
         raise invalid()
-    result["files"], seen, total = [], set(), 0
+    files = cast(list[object], files_raw)
+    if not 1 <= len(files) <= MAX_FILES:
+        raise invalid()
+    entries: list[dict[str, object]] = []
+    seen = set()
+    total = 0
     for item in files:
-        item = _object(item, {"path", "sha256", "bytes"})
-        path = _text(item["path"])
+        entry = _object(item, {"path", "sha256", "bytes"})
+        path = _text(entry["path"])
         if (
             path.startswith("/")
             or "\\" in path
@@ -329,27 +339,33 @@ def validate_runtime(data: object) -> dict:
         if key in seen:
             raise invalid()
         seen.add(key)
-        size = _integer(item["bytes"], 0, MAX_BYTES)
+        size = _integer(entry["bytes"], 0, MAX_BYTES)
         total += size
         if total > MAX_BYTES:
             raise invalid()
-        result["files"].append({"path": path, "sha256": _sha(item["sha256"]), "bytes": size})
-    result["files"].sort(key=lambda item: item["path"])
-    distributions = value["distributions"]
-    if not isinstance(distributions, list) or len(distributions) > MAX_DISTRIBUTIONS:
+        entries.append({"path": path, "sha256": _sha(entry["sha256"]), "bytes": size})
+    entries.sort(key=lambda row: cast(str, row["path"]))
+    result["files"] = entries
+    distributions_raw = value["distributions"]
+    if not isinstance(distributions_raw, list):
         raise invalid()
-    result["distributions"], seen = [], set()
+    distributions = cast(list[object], distributions_raw)
+    if len(distributions) > MAX_DISTRIBUTIONS:
+        raise invalid()
+    rows: list[dict[str, object]] = []
+    seen = set()
     for item in distributions:
-        item = _object(item, {"name", "version"})
-        name, version = _text(item["name"], 200), _text(item["version"], 200)
+        entry = _object(item, {"name", "version"})
+        name, version = _text(entry["name"], 200), _text(entry["version"], 200)
         if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", name) is None:
             raise invalid()
         key = re.sub(r"[-_.]+", "-", name).lower()
         if key in seen:
             raise invalid()
         seen.add(key)
-        result["distributions"].append({"name": name, "version": version})
-    result["distributions"].sort(key=lambda item: item["name"])
+        rows.append({"name": name, "version": version})
+    rows.sort(key=lambda row: cast(str, row["name"]))
+    result["distributions"] = rows
     return result
 
 
@@ -364,30 +380,30 @@ def _created(value: object) -> str:
         raise invalid() from exc
 
 
-def _content(plan: object) -> dict:
-    if (
-        not isinstance(plan, dict)
-        or set(plan)
-        not in (
-            {"format", "id", "created_at", "request", "runtime", "isolated_registration"},
-            {"format", "id", "created_at", "request", "runtime", "isolated_registration", "sha256"},
-        )
-        or plan["format"] != PLAN_FORMAT
-    ):
+def _content(plan: object) -> dict[str, object]:
+    if not isinstance(plan, dict):
         raise invalid()
-    request, runtime = parse_request(plan["request"]), validate_runtime(plan["runtime"])
-    if type(plan["isolated_registration"]) is not bool:
+    fields = cast(dict[str, object], plan)
+    if set(fields) not in (
+        {"format", "id", "created_at", "request", "runtime", "isolated_registration"},
+        {"format", "id", "created_at", "request", "runtime", "isolated_registration", "sha256"},
+    ) or fields["format"] != PLAN_FORMAT:
         raise invalid()
-    platform = {"windows": "win32", "macos": "darwin", "linux": "linux"}[request["target"].split("-", 1)[0]]
+    request, runtime = parse_request(fields["request"]), validate_runtime(fields["runtime"])
+    if type(fields["isolated_registration"]) is not bool:
+        raise invalid()
+    platform = {"windows": "win32", "macos": "darwin", "linux": "linux"}[
+        cast(str, request["target"]).split("-", 1)[0]
+    ]
     if platform != runtime["platform"] or request["principal"] != runtime["principal"]:
         raise invalid()
     return {
         "format": PLAN_FORMAT,
-        "id": _uuid(plan["id"]),
-        "created_at": _created(plan["created_at"]),
+        "id": _uuid(fields["id"]),
+        "created_at": _created(fields["created_at"]),
         "request": request,
         "runtime": runtime,
-        "isolated_registration": plan["isolated_registration"],
+        "isolated_registration": fields["isolated_registration"],
     }
 
 
@@ -397,8 +413,8 @@ def plan_fingerprint(plan: object) -> str:
 
 
 def make_plan(
-    request: object, runtime: object, id: str, created_at: str, *, isolated_registration: bool = False
-) -> dict:
+    request: object, runtime: object, id: object, created_at: object, *, isolated_registration: bool = False
+) -> dict[str, object]:
     plan = _content(
         {
             "format": PLAN_FORMAT,
@@ -421,9 +437,10 @@ def validate_plan(plan: object) -> dict[str, object]:
     return {**result, "sha256": fingerprint}
 
 
-def startup(plan: object) -> dict:
+def startup(plan: object) -> dict[str, object]:
     value = validate_plan(plan)
-    request = value["request"]
+    request = cast(dict[str, object], value["request"])
+    runtime = cast(dict[str, object], value["runtime"])
     return {
         "format": STARTUP_FORMAT,
         **{
@@ -440,11 +457,11 @@ def startup(plan: object) -> dict:
             )
         },
         "service_plan_sha256": value["sha256"],
-        "build_id": value["runtime"]["build_id"],
+        "build_id": runtime["build_id"],
     }
 
 
-def parse_startup(data: object) -> dict:
+def parse_startup(data: object) -> dict[str, object]:
     value = _object(
         data,
         {
@@ -483,56 +500,65 @@ def parse_startup(data: object) -> dict:
 
 def service_argv(plan: object) -> list[str]:
     value = validate_plan(plan)
+    runtime = cast(dict[str, object], value["runtime"])
+    request = cast(dict[str, object], value["request"])
     return [
-        value["runtime"]["python"],
+        cast(str, runtime["python"]),
         "-I",
         "-u",
         "-m",
         "omni.composition.service_runner",
         "--deployment",
-        value["request"]["bundle_dir"],
+        cast(str, request["bundle_dir"]),
     ]
 
 
 def manager_identity(plan: object) -> dict[str, object]:
     value = validate_plan(plan)
-    request = value["request"]
-    target, identity = request["target"], request["instance_id"]
+    request = cast(dict[str, object], value["request"])
+    principal = cast(dict[str, object], request["principal"])
+    target = cast(str, request["target"])
+    identity = cast(str, request["instance_id"])
     if value["isolated_registration"]:
         # Recovery never reuses a native key that an unresolved old operation could still mutate.
-        identity += "-" + value["id"]
+        identity += "-" + cast(str, value["id"])
     system = target.endswith("-system")
     if target == "windows-user":
         return {
             "manager": "task_scheduler",
             "name": "OmniOperator-V2-" + identity,
             "scope": "user",
-            "domain": request["principal"]["id"],
+            "domain": principal["id"],
             "artifact": "service.xml",
             "installed_path": None,
         }
     if target.startswith("macos-"):
         name = "com.omnioperator.v2." + identity
         directory = (
-            "/Library/LaunchDaemons" if system else posixpath.join(request["principal"]["home"], "Library/LaunchAgents")
+            "/Library/LaunchDaemons"
+            if system
+            else posixpath.join(cast(str, principal["home"]), "Library/LaunchAgents")
         )
         return {
             "manager": "launchd",
             "name": name,
             "scope": "system" if system else "user",
-            "domain": "system" if system else "gui/" + request["principal"]["id"],
+            "domain": "system" if system else "gui/" + cast(str, principal["id"]),
             "artifact": "daemon.plist" if system else "agent.plist",
             "installed_path": posixpath.join(directory, name + ".plist"),
         }
     name = "omnioperator-v2-" + identity + ".service"
     directory = (
-        "/etc/systemd/system" if system else posixpath.join(request["principal"]["home"], ".config/systemd/user")
+        "/etc/systemd/system"
+        if system
+        else posixpath.join(cast(str, principal["home"]), ".config/systemd/user")
     )
     return {
         "manager": "systemd",
         "name": name,
         "scope": "system" if system else "user",
-        "domain": "system" if system else "user/" + request["principal"]["id"],
+        "domain": "system" if system else "user/" + cast(str, principal["id"]),
         "artifact": "omni.service",
         "installed_path": posixpath.join(directory, name),
     }
+

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8ff92ed05924e6af24ddd89587ab05d2e6ad64ad0f98a1a6ac2714e6da273855",
+  "source_sha256": "9a7fd874c40f55f7d319b12e7918e33397cc94383974ef465b6524d3efe6a42d",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9518,
+      "lines": 9544,
       "dependencies": []
     },
     {
@@ -493,7 +493,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 11947,
+      "lines": 11951,
       "dependencies": []
     },
     {
@@ -67947,7 +67947,7 @@
       "path": "agent/src/omni/domain/service_deployment.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_deployment",
-      "lines": 538,
+      "lines": 564,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -67974,7 +67974,7 @@
         },
         {
           "name": "_text",
-          "line": 79,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "value",
@@ -67987,7 +67987,7 @@
         },
         {
           "name": "_uuid",
-          "line": 93,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "value"
@@ -67998,7 +67998,7 @@
         },
         {
           "name": "_sha",
-          "line": 103,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "value"
@@ -68009,7 +68009,7 @@
         },
         {
           "name": "_integer",
-          "line": 110,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "value",
@@ -68024,7 +68024,7 @@
         },
         {
           "name": "_path",
-          "line": 116,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "value",
@@ -68037,7 +68037,7 @@
         },
         {
           "name": "deployment_fields",
-          "line": 138,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "value",
@@ -68050,7 +68050,7 @@
         },
         {
           "name": "deployment_created",
-          "line": 143,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "value"
@@ -68061,7 +68061,7 @@
         },
         {
           "name": "deployment_plan",
-          "line": 147,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "value"
@@ -68072,7 +68072,7 @@
         },
         {
           "name": "deployment_make",
-          "line": 151,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "request",
@@ -68089,7 +68089,7 @@
         },
         {
           "name": "deployment_integer",
-          "line": 155,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "value",
@@ -68104,7 +68104,7 @@
         },
         {
           "name": "deployment_path",
-          "line": 159,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "value",
@@ -68117,7 +68117,7 @@
         },
         {
           "name": "deployment_sha",
-          "line": 163,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "value"
@@ -68128,7 +68128,7 @@
         },
         {
           "name": "deployment_text",
-          "line": 167,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "value",
@@ -68141,7 +68141,7 @@
         },
         {
           "name": "deployment_uuid",
-          "line": 171,
+          "line": 174,
           "kind": "function",
           "parameters": [
             "value"
@@ -68152,7 +68152,7 @@
         },
         {
           "name": "_principal",
-          "line": 175,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "value",
@@ -68167,7 +68167,7 @@
         },
         {
           "name": "_endpoint",
-          "line": 191,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "host",
@@ -68182,7 +68182,7 @@
         },
         {
           "name": "parse_request",
-          "line": 229,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "data"
@@ -68193,7 +68193,7 @@
         },
         {
           "name": "validate_runtime",
-          "line": 257,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "data"
@@ -68204,7 +68204,7 @@
         },
         {
           "name": "_created",
-          "line": 356,
+          "line": 372,
           "kind": "function",
           "parameters": [
             "value"
@@ -68215,7 +68215,7 @@
         },
         {
           "name": "_content",
-          "line": 367,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68226,7 +68226,7 @@
         },
         {
           "name": "plan_fingerprint",
-          "line": 394,
+          "line": 410,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68237,7 +68237,7 @@
         },
         {
           "name": "make_plan",
-          "line": 399,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "request",
@@ -68249,14 +68249,14 @@
           "annotations": {
             "request": "object",
             "runtime": "object",
-            "id": "str",
-            "created_at": "str",
+            "id": "object",
+            "created_at": "object",
             "isolated_registration": "bool"
           }
         },
         {
           "name": "validate_plan",
-          "line": 415,
+          "line": 431,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68267,7 +68267,7 @@
         },
         {
           "name": "startup",
-          "line": 424,
+          "line": 440,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68278,7 +68278,7 @@
         },
         {
           "name": "parse_startup",
-          "line": 447,
+          "line": 464,
           "kind": "function",
           "parameters": [
             "data"
@@ -68289,7 +68289,7 @@
         },
         {
           "name": "service_argv",
-          "line": 484,
+          "line": 501,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68300,7 +68300,7 @@
         },
         {
           "name": "manager_identity",
-          "line": 497,
+          "line": 516,
           "kind": "function",
           "parameters": [
             "plan"
@@ -94992,7 +94992,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 914,
+      "lines": 918,
       "imports": [],
       "symbols": [],
       "kind": "asset",
