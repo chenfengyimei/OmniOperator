@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "04a78dfbbfe498c2a1d20e2e6cab3467e2658ff610d98f3523f066bde74b4641",
+  "code_version": "8440f231a23cace96f22188cf07a76d9325a41006d1581cfaa7d89536c2a1301",
   "fixed_source_files": 1199,
-  "git_head": "5833664",
+  "git_head": "91a9e74",
   "dirty_checkout": false
  },
  "development": {
@@ -48,7 +48,8 @@
    "Strict scope reaches 46 files with domain/schema_upgrade; public deployment bridges and explicit runtime inventories/revision rows replace private helpers without changing forward-route validation",
    "Strict scope reaches 48 files with domain/routing and domain/settings; policy/settings are explicit dict[str, object] and configuration.config_value returns dict[str, object] without changing validation semantics",
    "Strict scope reaches 50 files with domain/retention and domain/memory_organization; plans, requests and decisions are explicit dict[str, object] with per-field casts without changing validation semantics",
-   "Strict scope reaches 51 files with domain/service_isolation; a public deployment_text bridge replaces private helpers and isolation plans/references are explicit dict[str, object] without changing validation semantics"
+   "Strict scope reaches 51 files with domain/service_isolation; a public deployment_text bridge replaces private helpers and isolation plans/references are explicit dict[str, object] without changing validation semantics",
+   "Strict scope reaches 52 files with domain/documents; chunk/vector/merge results are explicit and redundant type checks are removed without changing text or vector bounds"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -329,6 +330,15 @@
     "errors": 0,
     "duration_s": 142.704,
     "note": "thirtieth strict batch: guard + service exchange/control callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-31.xml",
+    "sha256": "8b3ba60258e9c87565bd9e1cdf625ef99ce8b37effecfe8e118807a62e04be25",
+    "tests": 27,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 50.868,
+    "note": "thirty-first strict batch: guard + documents/faults callers"
    }
   ],
   "gates": {
@@ -340,7 +350,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 51,
+    "filesAnalyzed": 52,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
