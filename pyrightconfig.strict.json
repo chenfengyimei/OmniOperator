@@ -41,6 +41,7 @@
     "agent/src/omni/domain/reference_release.py",
     "agent/src/omni/domain/release_fence.py",
     "agent/src/omni/domain/scheduling.py",
+    "agent/src/omni/domain/service_activation.py",
     "agent/src/omni/domain/service_control.py",
     "agent/src/omni/domain/terminal_review.py"
   ],

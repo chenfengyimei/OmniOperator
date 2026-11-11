@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7d9486f50a717092f3e8731f449b37204a09b020faabeb7aa5ad8d7df15a9902`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`334bb7ebefd649aa76933ecceb824ea802a58fe6a028c59b63ee5b7469eab046`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -52,7 +52,7 @@
 | [agent/src/omni/domain/routing.py](../../agent/src/omni/domain/routing.py) | 123 | Deterministic capability tiers and immutable route policy; neither permissions nor model/network calls. |
 | [agent/src/omni/domain/scheduling.py](../../agent/src/omni/domain/scheduling.py) | 190 | Deterministic UTC scheduling and numeric cron rules; resolved timezone data is injected. |
 | [agent/src/omni/domain/schema_upgrade.py](../../agent/src/omni/domain/schema_upgrade.py) | 64 | Explicit forward-only V2 schema routes bound to both immutable runtime inventories; no IO. |
-| [agent/src/omni/domain/service_activation.py](../../agent/src/omni/domain/service_activation.py) | 79 | Bind unattended exchange activation to one reviewed boot; pure persisted contracts with no platform IO. |
+| [agent/src/omni/domain/service_activation.py](../../agent/src/omni/domain/service_activation.py) | 83 | Bind unattended exchange activation to one reviewed boot; pure persisted contracts with no platform IO. |
 | [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 245 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
 | [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 173 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
 | [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 206 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |

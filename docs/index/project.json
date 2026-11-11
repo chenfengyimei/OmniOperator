@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7d9486f50a717092f3e8731f449b37204a09b020faabeb7aa5ad8d7df15a9902",
+  "source_sha256": "334bb7ebefd649aa76933ecceb824ea802a58fe6a028c59b63ee5b7469eab046",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9003,
+      "lines": 9007,
       "dependencies": []
     },
     {
@@ -67208,7 +67208,7 @@
       "path": "agent/src/omni/domain/service_activation.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_activation",
-      "lines": 79,
+      "lines": 83,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_control",
@@ -67217,14 +67217,14 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 13,
+          "line": 15,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "activation_binding",
-          "line": 17,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "operation"
@@ -67235,7 +67235,7 @@
         },
         {
           "name": "validate_binding",
-          "line": 37,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "value"
@@ -67246,7 +67246,7 @@
         },
         {
           "name": "reservation",
-          "line": 64,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "identity",
@@ -67261,7 +67261,7 @@
         },
         {
           "name": "validate_reservation",
-          "line": 74,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "value"
