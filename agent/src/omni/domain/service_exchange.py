@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ntpath
 import posixpath
+from collections.abc import Mapping, Sequence
 from typing import Any, TypedDict, cast
 
 from .contracts import BusinessError
@@ -247,7 +248,7 @@ def checked_proof(plan: ExchangePlan, stage: str, value: object) -> dict:
     return proof
 
 
-def progress(plan: ExchangePlan, history: list[dict]) -> tuple[int, str, str]:
+def progress(plan: ExchangePlan, history: Sequence[Mapping[str, object]]) -> tuple[int, str, str]:
     """Validate every transition before deriving completed count and the in-flight stage."""
     completed, active, last = 0, "", ""
     ordered = stages(plan)

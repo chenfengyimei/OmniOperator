@@ -30,6 +30,9 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/release_drain.py` | 发布排空绑定既有 once-only 启动控制 |
 | `agent/src/omni/application/exchange_recovery_steps.py` | 隔离/救援计划复用发布快照与栅栏 |
 | `agent/src/omni/application/local_vectors.py` | 本地 ONNX 向量器选择/状态无 I/O 规则 |
+| `agent/src/omni/application/service_deployment.py` | 服务部署准备/验证/状态组合（公共桥 + 显式 Record） |
+| `agent/src/omni/application/exchange_recovery.py` | 交换隔离/救援计划（进度与授权类型化） |
+| `agent/src/omni/adapters/metrics.py` | 运行指标观测适配器 |
 | `agent/src/omni/adapters/build_identity.py` | 构建身份常量与代码后缀 |
 | `agent/src/omni/adapters/primitives.py` | 时钟/ID 原语 Protocol 与实现 |
 | `agent/src/omni/adapters/timezones.py` | 时区数据库标识读取边界 |

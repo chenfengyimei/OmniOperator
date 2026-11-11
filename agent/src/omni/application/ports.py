@@ -16,6 +16,7 @@ from ..domain.images import ImageInfo
 from ..domain.metering import TokenEstimate
 from ..domain.objects import Blob
 from ..domain.qq import QQEvent
+from ..domain.recovery_authority import RecoveryAuthority
 from ..domain.releases import ReleaseEvent, ReleasePlan, ReleasePrepared, ReleaseSnapshot
 from ..domain.service_cleanup import CleanupPlan
 from ..domain.service_control import ControlPlan
@@ -170,7 +171,9 @@ class AdministratorHandoverPort(OwnedClosePort, Protocol):
 class ExchangeRecoveryPort(Protocol):
     def publish(self, plan: IsolationPlan, output: str) -> Record: ...
     def isolate(self, plan: ExchangePlan) -> None: ...
-    def rescue_plan(self, plan: ExchangePlan, authority: dict, request: Record, output: str) -> Record: ...
+    def rescue_plan(
+        self, plan: ExchangePlan, authority: RecoveryAuthority | None, request: Record, output: str
+    ) -> Record: ...
 
 
 class CleanupPlanFilesPort(Protocol):

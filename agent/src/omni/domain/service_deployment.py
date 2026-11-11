@@ -148,6 +148,10 @@ def deployment_plan(value: object) -> dict[str, object]:
     return cast(dict[str, object], validate_plan(value))
 
 
+def deployment_make(request: object, runtime: object, identity: object, at: object) -> dict[str, object]:
+    return cast(dict[str, object], make_plan(request, runtime, identity, at))
+
+
 def deployment_integer(value: object, minimum: int, maximum: int) -> int:
     return _integer(value, minimum, maximum)
 

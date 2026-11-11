@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import cast
 
 from ..domain.contracts import BusinessError
+from ..domain.recovery_authority import RecoveryAuthority
 from ..domain.releases import digest
 from ..domain.service_exchange import progress, validate_exchange
 from ..domain.service_isolation import make_isolation, reference, validate_isolation
@@ -68,15 +69,18 @@ class ExchangeRecovery:
             _, _, state = progress(exchange, history)
             if state != "isolated":
                 raise BusinessError("service_rescue_not_isolated", "Complete the reviewed offline quarantine first")
-            ref = cast(dict, history[-1]["proof"])
-            authority = {
-                "exchange_id": exchange["id"],
-                "exchange_sha256": exchange["sha256"],
-                "exchange_journal": exchange["journal"],
-                "isolation_id": ref["isolation_id"],
-                "isolation_sha256": ref["isolation_sha256"],
-                "release_id": exchange["release"]["id"],
-                "release_sha256": exchange["release"]["sha256"],
-                "source_deployment_sha256": exchange["release"]["target"]["sha256"],
-            }
+            ref = cast(dict[str, object], history[-1]["proof"])
+            authority = cast(
+                RecoveryAuthority,
+                {
+                    "exchange_id": exchange["id"],
+                    "exchange_sha256": exchange["sha256"],
+                    "exchange_journal": exchange["journal"],
+                    "isolation_id": ref["isolation_id"],
+                    "isolation_sha256": ref["isolation_sha256"],
+                    "release_id": exchange["release"]["id"],
+                    "release_sha256": exchange["release"]["sha256"],
+                    "source_deployment_sha256": exchange["release"]["target"]["sha256"],
+                },
+            )
             return self.steps.rescue_plan(exchange, authority, request, output)
