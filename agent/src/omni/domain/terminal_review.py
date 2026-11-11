@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from typing import cast
 
 from .contracts import BusinessError
 from .terminals import digest, identity, integer
@@ -33,9 +34,13 @@ def fingerprint(value: object) -> str:
         raise invalid() from None
 
 
-def parse_review(value: object) -> dict:
+def parse_review(value: object) -> dict[str, object]:
     try:
-        if not isinstance(value, dict) or set(value) != {
+        if not isinstance(value, dict):
+            raise ValueError
+        data = cast(dict[object, object], value)
+        keys = {key for key in data if isinstance(key, str)}
+        if len(keys) != len(data) or keys != {
             "review_id",
             "revision",
             "history_epoch",
@@ -46,19 +51,22 @@ def parse_review(value: object) -> dict:
             "acknowledge_limits",
         }:
             raise ValueError
-        if value["policy"] != POLICY or value["acknowledge_limits"] is not True or value["decision"] not in DECISIONS:
+        if data["policy"] != POLICY or data["acknowledge_limits"] is not True:
             raise ValueError
-        evidence = value["evidence"]
+        decision = data["decision"]
+        if not isinstance(decision, str) or decision not in DECISIONS:
+            raise ValueError
+        evidence = data["evidence"]
         if not isinstance(evidence, str) or not 1 <= len(evidence) <= 2000 or not evidence.strip() or "\0" in evidence:
             raise ValueError
         evidence.encode("utf-8")
         return {
-            "review_id": identity(value["review_id"]),
-            "revision": integer(value["revision"], 0, MAX_REVIEWS),
-            "history_epoch": identity(value["history_epoch"]),
-            "fingerprint": digest(value["fingerprint"]),
+            "review_id": identity(data["review_id"]),
+            "revision": integer(data["revision"], 0, MAX_REVIEWS),
+            "history_epoch": identity(data["history_epoch"]),
+            "fingerprint": digest(data["fingerprint"]),
             "policy": POLICY,
-            "decision": value["decision"],
+            "decision": decision,
             "evidence": evidence,
             "acknowledge_limits": True,
         }
@@ -69,12 +77,11 @@ def parse_review(value: object) -> dict:
 def request_fingerprint(value: object) -> str:
     normalized = parse_review(value)
     evidence = normalized.pop("evidence")
-    return fingerprint({**normalized, "evidence_sha256": hashlib.sha256(evidence.encode("utf-8")).hexdigest()})
+    evidence_text = evidence if isinstance(evidence, str) else ""
+    return fingerprint({**normalized, "evidence_sha256": hashlib.sha256(evidence_text.encode("utf-8")).hexdigest()})
 
 
 def page(after: str = "", limit: int = 20) -> None:
-    if not isinstance(after, str):
-        raise invalid()
     if after:
         identity(after)
     integer(limit, 1, 50)

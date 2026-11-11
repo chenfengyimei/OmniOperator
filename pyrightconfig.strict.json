@@ -10,6 +10,7 @@
     "agent/src/omni/application/local_vectors.py",
     "agent/src/omni/application/release_drain.py",
     "agent/src/omni/application/routing.py",
+    "agent/src/omni/application/service_cleanup.py",
     "agent/src/omni/application/service_deployment.py",
     "agent/src/omni/domain/capabilities.py",
     "agent/src/omni/domain/context.py",
@@ -22,7 +23,8 @@
     "agent/src/omni/domain/people.py",
     "agent/src/omni/domain/recovery_authority.py",
     "agent/src/omni/domain/release_fence.py",
-    "agent/src/omni/domain/service_control.py"
+    "agent/src/omni/domain/service_control.py",
+    "agent/src/omni/domain/terminal_review.py"
   ],
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
