@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "b6f34cf",
+  "checkpoint_commit": "a325e72",
   "current_validation": {
-    "status": "d7_installer_migration_execution",
+    "status": "d7_installer_candidate_uninstall",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-strict-isolation.xml"
       }
     ],
-    "code_version": "f79c9008162e5733d3a8a4f712750c6db07a6d27c9c8d7d6f606811fd198e230",
-    "fixed_source_files": 1195,
+    "code_version": "777c73e7e57eb43ae9ccd54fc9bd8c9e61b39779de06c626ddcf736b6d44e943",
+    "fixed_source_files": 1197,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -913,12 +913,12 @@
       "id": "R7.installation",
       "status": "部分完成（收据/预检）",
       "development": "installation verify/seal",
-      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/migrate/current；迁移执行打包 Alembic head 并重 seal，仍不建 venv/不停服",
+      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/migrate/current/uninstall；卸载保留 data/收据/外部备份，仍不建 venv/不停服",
       "evidence": [
         "docs/evidence/v2-installation.json"
       ],
-      "remaining": "未下载 wheel、未建 venv、未停服/启动、未执行 live 回滚/卸载；macOS/Linux 与干净机器未验收。",
-      "code_version": "f79c9008162e5733d3a8a4f712750c6db07a6d27c9c8d7d6f606811fd198e230"
+      "remaining": "未下载 wheel、未建 venv、未停服/启动、未执行 live 回滚/数据目录清理；macOS/Linux 与干净机器未验收。",
+      "code_version": "777c73e7e57eb43ae9ccd54fc9bd8c9e61b39779de06c626ddcf736b6d44e943"
     },
     {
       "id": "R7.installer.verification",
