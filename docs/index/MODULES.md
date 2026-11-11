@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9bdbbd6815cdccc8fd6110b74266b4921ef4f5a96c6e0e29d090b8d237d5bc1f`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`4928a174a99c1b9fde5a8f1a3ee295ecf034a1f0058146862f46d4599843b029`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -55,8 +55,8 @@
 | [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 245 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
 | [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 173 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
 | [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 206 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
-| [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 530 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
-| [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 310 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
+| [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 534 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
+| [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 311 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
 | [agent/src/omni/domain/service_isolation.py](../../agent/src/omni/domain/service_isolation.py) | 108 | Reviewed offline startup quarantine; retains unknown outcomes and authorizes only a separate recovery plan. |
 | [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 129 | Fingerprint offline service changes; registration never implies a healthy running service. |
 | [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 89 | Editable Agent settings and immutable resolved run configuration; no I/O. |
@@ -90,7 +90,7 @@
 | [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 314 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 346 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
 | [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 632 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
-| [agent/src/omni/application/exchange_recovery.py](../../agent/src/omni/application/exchange_recovery.py) | 82 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
+| [agent/src/omni/application/exchange_recovery.py](../../agent/src/omni/application/exchange_recovery.py) | 86 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
 | [agent/src/omni/application/exchange_recovery_steps.py](../../agent/src/omni/application/exchange_recovery_steps.py) | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../agent/src/omni/application/exchange_steps.py) | 138 | Compose existing release/registration/control use cases without holding instance locks across target startup. |
 | [agent/src/omni/application/extensions.py](../../agent/src/omni/application/extensions.py) | 497 | Trusted extension installation, scoped catalogs and explicit authorization; no plugin imports or process creation. |
@@ -107,7 +107,7 @@
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
-| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 958 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 961 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../agent/src/omni/application/qq.py) | 197 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
 | [agent/src/omni/application/release_drain.py](../../agent/src/omni/application/release_drain.py) | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
 | [agent/src/omni/application/releases.py](../../agent/src/omni/application/releases.py) | 335 | Offline release preparation and single-directory selection; never elevates, registers or starts a service. |
@@ -115,7 +115,7 @@
 | [agent/src/omni/application/scheduling.py](../../agent/src/omni/application/scheduling.py) | 197 | One bounded scheduler; durable identities and admission are committed together. |
 | [agent/src/omni/application/service_cleanup.py](../../agent/src/omni/application/service_cleanup.py) | 78 | Review quarantined native definitions and reuse once-only registration use cases; never clears original unknowns. |
 | [agent/src/omni/application/service_control.py](../../agent/src/omni/application/service_control.py) | 242 | Reviewed start and graceful stop use cases; external dispatch happens once and unknown work is never replayed. |
-| [agent/src/omni/application/service_deployment.py](../../agent/src/omni/application/service_deployment.py) | 42 | Prepare reviewable service deployments and combine independent proofs; never installs or starts services. |
+| [agent/src/omni/application/service_deployment.py](../../agent/src/omni/application/service_deployment.py) | 47 | Prepare reviewable service deployments and combine independent proofs; never installs or starts services. |
 | [agent/src/omni/application/service_exchange.py](../../agent/src/omni/application/service_exchange.py) | 194 | Ordered service exchange ownership; interrupted native steps are observed, never automatically replayed. |
 | [agent/src/omni/application/service_operations.py](../../agent/src/omni/application/service_operations.py) | 281 | Offline registration use cases with durable intent, no replay, and retained cancellation ownership. |
 | [agent/src/omni/application/skills.py](../../agent/src/omni/application/skills.py) | 360 | Owned textual skill import/edit/disclosure; explicit trust and shared action authorization remain separate. |
