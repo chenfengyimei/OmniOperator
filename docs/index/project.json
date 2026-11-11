@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "27f6f42d092578a1789daadc07894bef84e22a77ef2196ca29123e9a68269c3b",
+  "source_sha256": "31d8f3e9d195cf33bfede51e3169bccd86a963b9cf9b9e141f5e95848fe2b4d1",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9295,
+      "lines": 9309,
       "dependencies": []
     },
     {
@@ -65924,7 +65924,7 @@
       "path": "agent/src/omni/domain/media.py",
       "module": "v2-domain",
       "python_module": "omni.domain.media",
-      "lines": 200,
+      "lines": 214,
       "imports": [
         "omni.domain.bilibili",
         "omni.domain.contracts"
@@ -65932,7 +65932,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "code"
@@ -65943,7 +65943,7 @@
         },
         {
           "name": "bvid",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "value"
@@ -65954,7 +65954,7 @@
         },
         {
           "name": "duration",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "value"
@@ -65965,7 +65965,7 @@
         },
         {
           "name": "frames_plan",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "count",
@@ -65978,7 +65978,7 @@
         },
         {
           "name": "asr_plan",
-          "line": 55,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "model",
@@ -65993,7 +65993,7 @@
         },
         {
           "name": "segment_rows",
-          "line": 63,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "segments"
@@ -66004,7 +66004,7 @@
         },
         {
           "name": "subtitle_text",
-          "line": 92,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "value"
@@ -66015,7 +66015,7 @@
         },
         {
           "name": "transcript_payload",
-          "line": 98,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "kind",
@@ -66025,12 +66025,12 @@
           "annotations": {
             "kind": "str",
             "language": "str",
-            "rows": "list[list]"
+            "rows": "list[list[object]]"
           }
         },
         {
           "name": "parse_transcript",
-          "line": 109,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "payload"
@@ -66041,7 +66041,7 @@
         },
         {
           "name": "_stamp",
-          "line": 141,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "seconds"
@@ -66052,7 +66052,7 @@
         },
         {
           "name": "transcript_body",
-          "line": 145,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "kind",
@@ -66060,12 +66060,12 @@
           ],
           "annotations": {
             "kind": "str",
-            "rows": "Sequence[Sequence]"
+            "rows": "Sequence[Sequence[object]]"
           }
         },
         {
           "name": "transcript_text",
-          "line": 152,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "kind",
@@ -66075,14 +66075,14 @@
           ],
           "annotations": {
             "kind": "str",
-            "rows": "Sequence[Sequence]",
+            "rows": "Sequence[Sequence[object]]",
             "start": "int",
             "length": "int"
           }
         },
         {
           "name": "sheet_result",
-          "line": 162,
+          "line": 174,
           "kind": "function",
           "parameters": [
             "count",
@@ -66103,7 +66103,7 @@
         },
         {
           "name": "source_row",
-          "line": 189,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "config_id",
@@ -66113,7 +66113,7 @@
           "annotations": {
             "config_id": "str",
             "config_revision_id": "str",
-            "video": "dict"
+            "video": "Mapping[str, object]"
           }
         }
       ],

@@ -40,6 +40,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/memory_semantics.py` | 派生记忆索引/相关事实合并纯规则 |
 | `agent/src/omni/domain/foreground.py` | 前台输入授权与有界输入纯校验 |
 | `agent/src/omni/domain/maintenance.py` | 维护请求/认领/租约时间纯校验 |
+| `agent/src/omni/domain/media.py` | 媒体源/字幕分段/帧表/转写载荷纯校验 |
 | `agent/src/omni/domain/memory_organization.py` | 精确事实整理请求/决定纯校验 |
 | `agent/src/omni/domain/retention.py` | 执行正文保留策略/计划纯校验 |
 | `agent/src/omni/domain/contracts.py` | 执行合同/状态机/动作结果纯类型 |

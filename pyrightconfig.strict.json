@@ -45,6 +45,7 @@
     "agent/src/omni/domain/installation.py",
     "agent/src/omni/domain/local_vectors.py",
     "agent/src/omni/domain/maintenance.py",
+    "agent/src/omni/domain/media.py",
     "agent/src/omni/domain/memory_organization.py",
     "agent/src/omni/domain/memory_semantics.py",
     "agent/src/omni/domain/metering.py",
