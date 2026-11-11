@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "fd9e0ecfea1b2179d9ce511d74165c988315afb7351cfc97d9a8435a3f862f1e",
+  "code_version": "a525a308723a6a89f7dd5bc3a5070e586b57224691b5fa7ca7bfbaa2a4e1d43c",
   "fixed_source_files": 1199,
-  "git_head": "99bc23a",
+  "git_head": "85cb820",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py"
  },
@@ -68,10 +68,11 @@
    "Strict scope reaches 69 files with domain/media; media sources, subtitle segments, frame sheets and transcript payloads are explicit, rows and timestamps are narrowed item by item while anchors and character bounds stay unchanged",
    "Strict scope reaches 70 files with domain/desktop_portal; consent, command, event and frame receipt fields are explicit dict[str, object], decoding validates item by item and the window-share authorization boundary stays unchanged",
    "Strict scope reaches 70 files with domain/desktop_portal; consent, command, event and frame receipt fields are explicit dict[str, object], decoding validates item by item and the window-share authorization boundary stays unchanged",
-   "Strict scope reaches 71 files with domain/releases; deployment helpers move to the public bridges and release plans, fence rows and path separation are narrowed item by item while schema routes and recovery isolation checks stay unchanged"
+   "Strict scope reaches 71 files with domain/releases; deployment helpers move to the public bridges and release plans, fence rows and path separation are narrowed item by item while schema routes and recovery isolation checks stay unchanged",
+   "Strict scope reaches 72 files with domain/service_admin; administrator operations, phases, request and response frames are explicit dict[str, object], nested deployment targets are checked item by item while command allowlists and root report checks stay unchanged"
   ],
   "pending": [
-   "Remaining 6 domain files (47/53 in strict)",
+   "Remaining 5 domain files (48/53 in strict)",
    "Remaining application/adapters strict typing (20/44 application, 4/215 adapters in strict)",
    "composition layer not yet in strict scope",
    "Three-platform packaging/install/update/restore",
@@ -81,8 +82,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-48-callers.xml",
-   "tests": 97,
+   "report": "temp/build/v2-typecheck-49-callers.xml",
+   "tests": 101,
    "failures": 0
   },
   "targeted_reports": [
@@ -525,6 +526,15 @@
     "errors": 0,
     "duration_s": 355.41,
     "note": "forty-eighth strict batch: guard + release/schema-release/exchange callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-49-callers.xml",
+    "sha256": "20372135a6dc129d5c2dea70ad805d9c4b983508b3908b252bfb639042c48875",
+    "tests": 101,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 11.34,
+    "note": "forty-ninth strict batch: guard + service admin/client/ownership, darwin admin and handover callers"
    }
   ],
   "gates": {
@@ -536,7 +546,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 71,
+    "filesAnalyzed": 72,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -590,6 +600,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue strict typing (6 domain files left, then application/adapters); three-platform packaging/install/update/restore and real-environment acceptance remain."
+  "scope": "Continue strict typing (5 domain files left, then application/adapters); three-platform packaging/install/update/restore and real-environment acceptance remain."
  }
 }
