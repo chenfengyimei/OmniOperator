@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "dcb1f5b",
+  "checkpoint_commit": "4042f66",
   "current_validation": {
-    "status": "d7_installer_status_projection",
+    "status": "d7_installer_explicit_purge",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "recheck_report": "temp/build/v2-strict-isolation.xml"
       }
     ],
-    "code_version": "3301628964eea1a79a213bca32c504191d0727c12cb93eb90a7edab73359e2a6",
+    "code_version": "55c803b4a2f6c093d4f74cdc16de8abc1b6b5f4b1d60addcf3b2138df203e2fc",
     "fixed_source_files": 1199,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -913,12 +913,12 @@
       "id": "R7.installation",
       "status": "部分完成（收据/预检）",
       "development": "installation verify/seal",
-      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/migrate/current/uninstall/environment/rollback；status 投影运行指针与候选阶段，仍不建 venv/不停服",
+      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/migrate/current/uninstall/environment/rollback/purge；purge 仅显式清本地状态，仍不停服/不恢复数据库",
       "evidence": [
         "docs/evidence/v2-installation.json"
       ],
-      "remaining": "未下载 wheel、未停服/启动、未恢复数据库备份/清理数据目录；macOS/Linux 与干净机器未验收。",
-      "code_version": "3301628964eea1a79a213bca32c504191d0727c12cb93eb90a7edab73359e2a6"
+      "remaining": "未下载 wheel、未停服/启动、未恢复数据库备份；macOS/Linux 与干净机器未验收。",
+      "code_version": "55c803b4a2f6c093d4f74cdc16de8abc1b6b5f4b1d60addcf3b2138df203e2fc"
     },
     {
       "id": "R7.installer.verification",
