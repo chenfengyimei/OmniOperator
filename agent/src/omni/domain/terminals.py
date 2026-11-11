@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 import uuid
+from typing import cast
 
 from .contracts import BusinessError
 from .history import MAX_INTEGER
@@ -46,27 +47,31 @@ def digest(value: object) -> str:
     return value
 
 
-def _exact(data: object, keys: set[str]) -> dict:
-    if not isinstance(data, dict) or set(data) != keys:
+def _exact(data: object, keys: set[str]) -> dict[str, object]:
+    if not isinstance(data, dict):
         raise invalid()
-    return data
+    value = cast(dict[str, object], data)
+    if set(value) != keys:
+        raise invalid()
+    return value
 
 
-def parse_open(data: object) -> dict:
+def parse_open(data: object) -> dict[str, object]:
     value = _exact(data, {"operation_id", "shell", "cols", "rows", "trust"})
-    if value["trust"] is not True or not isinstance(value["shell"], str) or value["shell"] not in SHELLS:
+    shell = value["shell"]
+    if value["trust"] is not True or not isinstance(shell, str) or shell not in SHELLS:
         raise invalid()
     cols, rows = geometry(value["cols"], value["rows"])
     return {
         "operation_id": identity(value["operation_id"]),
-        "shell": value["shell"],
+        "shell": shell,
         "cols": cols,
         "rows": rows,
         "trust": True,
     }
 
 
-def parse_input(data: object) -> dict:
+def parse_input(data: object) -> dict[str, object]:
     value = _exact(data, {"operation_id", "connection_id", "data"})
     text = value["data"]
     try:
@@ -83,7 +88,7 @@ def parse_input(data: object) -> dict:
     }
 
 
-def parse_resize(data: object) -> dict:
+def parse_resize(data: object) -> dict[str, object]:
     value = _exact(data, {"operation_id", "connection_id", "cols", "rows"})
     cols, rows = geometry(value["cols"], value["rows"])
     return {
@@ -94,14 +99,14 @@ def parse_resize(data: object) -> dict:
     }
 
 
-def parse_close(data: object) -> dict:
+def parse_close(data: object) -> dict[str, object]:
     value = _exact(data, {"operation_id", "revision"})
     return {"operation_id": identity(value["operation_id"]), "revision": integer(value["revision"], 1)}
 
 
 def payload_fingerprint(kind: str, data: object) -> str:
     parsers = {"open": parse_open, "input": parse_input, "resize": parse_resize, "close": parse_close}
-    if not isinstance(kind, str) or kind not in parsers:
+    if kind not in parsers:
         raise invalid()
     normalized = parsers[kind](data)
     raw = json.dumps(

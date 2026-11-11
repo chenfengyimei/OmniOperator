@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "334bb7ebefd649aa76933ecceb824ea802a58fe6a028c59b63ee5b7469eab046",
+  "source_sha256": "4c371041d8a3e70c745d541bffdd14fae2717f3b2351a71b15f5bc2619522649",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9007,
+      "lines": 9012,
       "dependencies": []
     },
     {
@@ -68719,7 +68719,7 @@
       "path": "agent/src/omni/domain/terminals.py",
       "module": "v2-domain",
       "python_module": "omni.domain.terminals",
-      "lines": 119,
+      "lines": 124,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.history"
@@ -68727,14 +68727,14 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 20,
+          "line": 21,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "identity",
-          "line": 24,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "value"
@@ -68745,7 +68745,7 @@
         },
         {
           "name": "integer",
-          "line": 33,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "value",
@@ -68760,7 +68760,7 @@
         },
         {
           "name": "geometry",
-          "line": 39,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "cols",
@@ -68773,7 +68773,7 @@
         },
         {
           "name": "digest",
-          "line": 43,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "value"
@@ -68784,7 +68784,7 @@
         },
         {
           "name": "_exact",
-          "line": 49,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "data",
@@ -68797,7 +68797,7 @@
         },
         {
           "name": "parse_open",
-          "line": 55,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "data"
@@ -68808,7 +68808,7 @@
         },
         {
           "name": "parse_input",
-          "line": 69,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "data"
@@ -68819,7 +68819,7 @@
         },
         {
           "name": "parse_resize",
-          "line": 86,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "data"
@@ -68830,7 +68830,7 @@
         },
         {
           "name": "parse_close",
-          "line": 97,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "data"
@@ -68841,7 +68841,7 @@
         },
         {
           "name": "payload_fingerprint",
-          "line": 102,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "kind",
@@ -68854,7 +68854,7 @@
         },
         {
           "name": "page",
-          "line": 117,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "after",
