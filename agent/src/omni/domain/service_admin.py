@@ -80,7 +80,11 @@ def admin_scope(value: object) -> dict[str, object]:
         release = plan["release"]
         if not isinstance(release, dict):
             raise invalid()
-        if _deployment_target(cast(dict[str, object], release)) not in {"linux-system", "macos-system"}:
+        release_fields = cast(dict[str, object], release)
+        target_plan = release_fields["target"]
+        if not isinstance(target_plan, dict):
+            raise invalid()
+        if _request(cast(dict[str, object], target_plan))["target"] not in {"linux-system", "macos-system"}:
             raise BusinessError("service_admin_target_unsupported", "Root exchange requires reviewed system services")
         return plan
     return admin_operation(cast(object, value))
