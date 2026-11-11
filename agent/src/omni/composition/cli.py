@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import sqlite3
 import sys
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -40,10 +41,91 @@ from ..adapters.persistence.reference_release import (
     read_reference_plan,
 )
 from ..adapters.platform.paths import InstanceLock, InstancePaths
+from ..adapters.platform.permissions import private_path
 from ..adapters.primitives import SystemClock, UUIDs
 from ..domain.contracts import BusinessError
+from ..domain.installation import make_installation, validate_installation
 from .instance import open_instance
 from .serving import serve_instance
+
+
+def _database_schema(database: Path) -> str:
+    if not database.is_file() or database.is_symlink():
+        raise BusinessError("installation_missing", "Initialize the instance before inspecting its schema")
+    connection = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True, timeout=5)
+    try:
+        row = connection.execute("SELECT version_num FROM alembic_version").fetchone()
+    finally:
+        connection.close()
+    return str(row[0]) if row else ""
+
+
+def installation_report(paths: InstancePaths) -> dict[str, object]:
+    from ..adapters.persistence.migration_config import head as migration_head
+
+    expected = migration_head()
+    manifest_path = paths.home / "installation.json"
+    manifest: dict[str, str] | None = None
+    problem = ""
+    if manifest_path.is_symlink():
+        problem = "manifest_link"
+    elif manifest_path.is_file():
+        try:
+            manifest = validate_installation(json.loads(manifest_path.read_text(encoding="utf-8")))
+            if manifest["schema_version"] != expected or manifest["code_head"] != expected:
+                problem = "manifest_mismatch"
+        except (ValueError, BusinessError, UnicodeError):
+            problem = "manifest_invalid"
+    database = {
+        "exists": paths.database.is_file(),
+        "wal": (paths.database.parent / "omni.db-wal").is_file(),
+        "schema": "",
+        "problem": "",
+    }
+    if database["exists"]:
+        try:
+            database["schema"] = _database_schema(paths.database)
+        except (BusinessError, sqlite3.Error):
+            database["problem"] = "database_unreadable"
+    pending = bool(database["schema"]) and database["schema"] != expected
+    return {
+        "format": "omni-installation-report-1",
+        "home": str(paths.home),
+        "exists": paths.home.is_dir(),
+        "manifest": manifest,
+        "manifest_problem": problem,
+        "database": database,
+        "expected_schema": expected,
+        "upgrade_required": pending,
+        "ready": bool(manifest and database["exists"] and database["schema"] and not pending and not problem),
+    }
+
+
+def seal_installation(paths: InstancePaths) -> dict[str, object]:
+    from ..adapters.persistence.migration_config import head as migration_head
+
+    if not paths.home.is_dir():
+        raise BusinessError("installation_missing", "Initialize the instance before sealing its receipt")
+    manifest_path = paths.home / "installation.json"
+    if manifest_path.is_symlink():
+        raise BusinessError("unsafe_manifest", "Installation receipts cannot be links")
+    expected = migration_head()
+    schema = _database_schema(paths.database)
+    if schema != expected:
+        raise BusinessError(
+            "installation_pending_upgrade", "Apply pending migrations and verify the instance before sealing"
+        )
+    receipt = make_installation(SystemClock().now(), schema, expected)
+    if manifest_path.is_file():
+        existing = validate_installation(json.loads(manifest_path.read_text(encoding="utf-8")))
+        if existing["schema_version"] != receipt["schema_version"] or existing["code_head"] != receipt["code_head"]:
+            raise BusinessError(
+                "installation_changed", "The installation receipt already names another schema or code head"
+            )
+        return {"written": False, "manifest": existing}
+    durable_json(manifest_path, receipt)
+    private_path(manifest_path)
+    return {"written": True, "manifest": receipt}
 
 
 def parser() -> argparse.ArgumentParser:
@@ -54,6 +136,8 @@ def parser() -> argparse.ArgumentParser:
     commands = result.add_subparsers(dest="command", required=True)
     commands.add_parser("init", help="Create the empty V2 schema without calling a model")
     commands.add_parser("doctor", help="Read-only, exclusive database diagnostics")
+    installation = commands.add_parser("installation", help="V2 installation receipt and read-only upgrade preflight")
+    installation.add_argument("operation", choices=["verify", "seal"], help="Verify without writing, or seal once")
     vector = commands.add_parser("vectors", help="Select or disable a reviewed local ONNX bundle for the next startup")
     vector_commands = vector.add_subparsers(dest="vector_operation", required=True)
     vector_inspect = vector_commands.add_parser("inspect")
@@ -579,6 +663,11 @@ def main() -> int:
                     await instance.close()
 
             print(json.dumps(asyncio.run(initialize())))
+        elif args.command == "installation":
+            if args.operation == "seal":
+                print(json.dumps(seal_installation(paths)))
+            else:
+                print(json.dumps(installation_report(paths)))
         elif args.command == "doctor":
             lock = InstanceLock(paths)
             lock.acquire()

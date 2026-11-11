@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`a95db958bbf2534218caf6b37442cfb16b07492984aa742ac68f8c339646406e`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`7cfe21b455c90640d109c25258ca6f11a7c91b3d116834b7e35eb7e310fb2820`。包含 65 个职责模块、719 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -32,6 +32,7 @@
 | [agent/src/omni/domain/foreground.py](../../agent/src/omni/domain/foreground.py) | 107 | Single-use foreground authority and bounded input, independent of native APIs. |
 | [agent/src/omni/domain/history.py](../../agent/src/omni/domain/history.py) | 142 | Canonical, bounded history cursors bind a stream and its retention generation; performs no I/O. |
 | [agent/src/omni/domain/images.py](../../agent/src/omni/domain/images.py) | 187 | Validated image references, immutable model policies and conservative low-detail metering; no I/O. |
+| [agent/src/omni/domain/installation.py](../../agent/src/omni/domain/installation.py) | 63 | Immutable local installation receipt written once per home; no I/O and no upgrade execution. |
 | [agent/src/omni/domain/local_vectors.py](../../agent/src/omni/domain/local_vectors.py) | 140 | Local embedding bundle and bounded transport contracts; no files, model imports or I/O. |
 | [agent/src/omni/domain/maintenance.py](../../agent/src/omni/domain/maintenance.py) | 113 | Bounded local maintenance requests, ownership claims and lease times; no ORM, I/O or execution. |
 | [agent/src/omni/domain/mcp.py](../../agent/src/omni/domain/mcp.py) | 396 | External MCP transport identity, catalog fingerprints and bounded model text; performs no I/O. |
@@ -382,7 +383,7 @@
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 164 | Explicit builtin capability registration; capabilities never construct the kernel. |
-| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 802 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
+| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 891 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 232 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 723 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 156 | Own startup rollback and one shared shutdown budget; never dispatches business work. |

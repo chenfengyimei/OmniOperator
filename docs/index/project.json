@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a95db958bbf2534218caf6b37442cfb16b07492984aa742ac68f8c339646406e",
+  "source_sha256": "7cfe21b455c90640d109c25258ca6f11a7c91b3d116834b7e35eb7e310fb2820",
   "modules": [
     {
       "id": "v2-domain",
@@ -39,6 +39,7 @@
         "agent/src/omni/domain/foreground.py",
         "agent/src/omni/domain/history.py",
         "agent/src/omni/domain/images.py",
+        "agent/src/omni/domain/installation.py",
         "agent/src/omni/domain/local_vectors.py",
         "agent/src/omni/domain/maintenance.py",
         "agent/src/omni/domain/mcp.py",
@@ -71,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8930,
+      "lines": 8993,
       "dependencies": []
     },
     {
@@ -427,7 +428,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2731,
+      "lines": 2820,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -57390,18 +57391,20 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 802,
+      "lines": 891,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
         "omni.adapters.persistence.event_pruning",
         "omni.adapters.persistence.execution_pruning",
         "omni.adapters.persistence.maintenance",
+        "omni.adapters.persistence.migration_config",
         "omni.adapters.persistence.object_gc",
         "omni.adapters.persistence.operations_read",
         "omni.adapters.persistence.reference_release",
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.paths",
+        "omni.adapters.platform.permissions",
         "omni.adapters.platform.service_admin_bundle",
         "omni.adapters.platform.service_query",
         "omni.adapters.platform.service_readiness",
@@ -57415,19 +57418,53 @@
         "omni.composition.service_exchange",
         "omni.composition.service_operations",
         "omni.composition.serving",
-        "omni.domain.contracts"
+        "omni.domain.contracts",
+        "omni.domain.installation"
       ],
       "symbols": [
         {
+          "name": "_database_schema",
+          "line": 52,
+          "kind": "function",
+          "parameters": [
+            "database"
+          ],
+          "annotations": {
+            "database": "Path"
+          }
+        },
+        {
+          "name": "installation_report",
+          "line": 63,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
+          "name": "seal_installation",
+          "line": 104,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
           "name": "parser",
-          "line": 49,
+          "line": 131,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "local_origin",
-          "line": 317,
+          "line": 401,
           "kind": "function",
           "parameters": [
             "value"
@@ -57438,7 +57475,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 336,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "paths",
@@ -57451,7 +57488,7 @@
         },
         {
           "name": "main",
-          "line": 378,
+          "line": 462,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -64433,6 +64470,86 @@
         }
       ],
       "summary": "Validated image references, immutable model policies and conservative low-detail metering; no I/O."
+    },
+    {
+      "path": "agent/src/omni/domain/installation.py",
+      "module": "v2-domain",
+      "python_module": "omni.domain.installation",
+      "lines": 63,
+      "imports": [
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 16,
+          "kind": "function",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "_text",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "maximum"
+          ],
+          "annotations": {
+            "value": "object",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "_schema",
+          "line": 26,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "_created",
+          "line": 33,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "make_installation",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "created_at",
+            "schema_version",
+            "code_head"
+          ],
+          "annotations": {
+            "created_at": "object",
+            "schema_version": "object",
+            "code_head": "object"
+          }
+        },
+        {
+          "name": "validate_installation",
+          "line": 53,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        }
+      ],
+      "summary": "Immutable local installation receipt written once per home; no I/O and no upgrade execution."
     },
     {
       "path": "agent/src/omni/domain/local_vectors.py",

@@ -35,7 +35,19 @@ uv run --no-sync python scripts/check_package.py
 
 上述四组调用方 57 项在本次节点全过（`temp/build/v2-packaging-callers.xml`）。
 
-## 3. 明确未完成
+## 3. 安装收据与升级预检（2026-11-11 新增，仍非完整安装器）
+
+```powershell
+python -m omni.composition.cli --home <home> installation verify
+python -m omni.composition.cli --home <home> installation seal
+```
+
+- `verify` 只读：报告 home 是否存在、`installation.json` 是否存在/有效/与当前 schema 一致、`data/omni.db` 与 `-wal` 是否存在、数据库当前 schema、代码期望 schema、是否需要升级；不写文件、不改数据库。
+- `seal` 显式写入一次安装收据（`installation.json`：format/created_at/schema_version/code_head），要求数据库 schema 等于代码 head，已存在且同 head 时幂等返回 `written=false`，不同 head 时 fail-closed；使用 `durable_json` 原子写并收紧权限。
+- 收据校验为纯 domain 规则（`domain/installation.py`），拒绝链接、缺字段、非 UTC 时间、非法 schema。
+- **仍未完成**：不下载/校验 wheel、不创建 venv、不切换运行目录、不执行迁移、不回滚、不卸载；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
+
+## 4. 明确未完成
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
 - **容器镜像**：无 Dockerfile/镜像构建链与验收。
