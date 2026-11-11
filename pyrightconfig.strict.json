@@ -21,6 +21,7 @@
     "agent/src/omni/application/people.py",
     "agent/src/omni/application/release_drain.py",
     "agent/src/omni/application/routing.py",
+    "agent/src/omni/application/scheduling.py",
     "agent/src/omni/application/service_cleanup.py",
     "agent/src/omni/application/service_deployment.py",
     "agent/src/omni/application/terminal_review.py",
@@ -35,6 +36,7 @@
     "agent/src/omni/domain/people.py",
     "agent/src/omni/domain/recovery_authority.py",
     "agent/src/omni/domain/release_fence.py",
+    "agent/src/omni/domain/scheduling.py",
     "agent/src/omni/domain/service_control.py",
     "agent/src/omni/domain/terminal_review.py"
   ],

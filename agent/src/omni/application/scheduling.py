@@ -5,12 +5,12 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from typing import cast
 
 from ..domain.contracts import BusinessError
 from ..domain.scheduling import due_selection, instant, next_due, schedule_value, timestamp
-from .ports import Clock, DatabasePort, Record, Timezones
+from .ports import Clock, DatabasePort, Record, Timezones, UnitOfWork
 
 log = logging.getLogger("omni.v2.scheduling")
 
@@ -26,7 +26,7 @@ class SchedulingService:
     ) -> None:
         self._db, self._clock, self._zones = database, clock, zones
         self._notify, self._cancel = notify, cancel
-        self._worker: asyncio.Task | None = None
+        self._worker: asyncio.Task[None] | None = None
         self._wake = asyncio.Event()
         self._closing = False
         self._error = ""
@@ -35,27 +35,34 @@ class SchedulingService:
         self._last_tick: str | None = None
 
     async def save(
-        self, agent_id: str, name: str, enabled: bool, value: dict, schedule_id: str | None = None, revision: int = 0
+        self,
+        agent_id: str,
+        name: str,
+        enabled: bool,
+        value: dict[str, object],
+        schedule_id: str | None = None,
+        revision: int = 0,
     ) -> Record:
         if self._closing:
             raise BusinessError("scheduler_closing", "Scheduling is draining", status=503)
         value = schedule_value(value)
-        zone = self._zones.resolve(value["timezone"])
+        zone = self._zones.resolve(str(value["timezone"]))
         now = self._clock.now()
         old = await self.get(agent_id, schedule_id) if schedule_id else None
         if value["kind"] == "interval" and value["start_at"] is None:
-            value["start_at"] = timestamp(instant(now) + dt.timedelta(seconds=value["interval_seconds"]))
-        previous = cast(dict, old["progress"]) if old else {}
+            value["start_at"] = timestamp(instant(now) + dt.timedelta(seconds=cast(float, value["interval_seconds"])))
+        previous = cast(dict[str, object], old["progress"]) if old else {}
         boundary = max(now, str(previous.get("last_scheduled_at") or now))
         due = next_due(value, boundary, zone)
         if enabled and value["kind"] == "once" and due is None:
             raise BusinessError("schedule_in_past", "An enabled one-time schedule must be in the future", status=422)
 
-        def persist(u):
+        def persist(u: UnitOfWork) -> Record:
             if schedule_id:
                 current = u.schedule_get(agent_id, schedule_id)
-                progress = current["progress"]
-                if progress["last_scheduled_at"] and progress["last_scheduled_at"] > boundary:
+                progress = cast(dict[str, object], current["progress"])
+                last = progress.get("last_scheduled_at")
+                if last and str(last) > boundary:
                     raise BusinessError("revision_conflict", "Schedule advanced while editing; load it again")
             return u.schedule_save(agent_id, name, enabled, value, self._zones.version, due, schedule_id, revision)
 
@@ -102,31 +109,34 @@ class SchedulingService:
                 break
             agent, key = str(row["agent_id"]), str(row["id"])
             try:
-                selection = None
-                progress = cast(dict, row["progress"])
-                definition = cast(dict, row["value"])
-                if progress["next_at"] and progress["next_at"] <= self._clock.now():
+                selection: dict[str, object] | None = None
+                progress = cast(dict[str, object], row["progress"])
+                definition = cast(dict[str, object], row["value"])
+                next_at = progress.get("next_at")
+                if next_at and str(next_at) <= self._clock.now():
                     selection = due_selection(
                         definition,
-                        progress["next_at"],
+                        str(next_at),
                         self._clock.now(),
-                        self._zones.resolve(definition["timezone"]),
+                        self._zones.resolve(str(definition["timezone"])),
                     )
 
-                def admit(u):
+                def admit(u: UnitOfWork) -> Record | None:
                     occurrence = u.schedule_materialize(row, selection, self._zones.version)
                     if occurrence is None:
                         return None
-                    return u.schedule_enqueue(
-                        occurrence,
-                        lambda definition, token: u.accept_turn(
+
+                    def accept(definition: Mapping[str, object], token: str) -> Record:
+                        session = definition.get("session_id")
+                        return u.accept_turn(
                             agent,
-                            definition["session_id"],
+                            None if session is None else str(session),
                             token,
-                            definition["prompt"],
+                            str(definition["prompt"]),
                             {},
-                        ),
-                    )
+                        )
+
+                    return u.schedule_enqueue(occurrence, accept)
 
                 receipt = await self._db.write(admit)
                 if receipt:
@@ -169,7 +179,7 @@ class SchedulingService:
             raise BusinessError("already_started", "Scheduler cannot start twice")
         self._worker = asyncio.create_task(self._loop(), name="omni-scheduler")
 
-    def health(self) -> dict:
+    def health(self) -> Record:
         return {
             "ready": bool(self._worker and not self._worker.done() and not self._closing and not self._error),
             "closing": self._closing,

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9e049617ae2c8d1d6d92d3d9242411fcfaa34b8b2c74e9d7f96de8371799a472`。包含 65 个职责模块、727 个源码/界面文件。
+源码指纹：`e14bd8c15f5bc4bfa9fb30f30505a3e2828d06f3e34ab821b97ae0f3c3bfabfd`。包含 65 个职责模块、727 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -108,12 +108,12 @@
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
-| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 961 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 965 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../agent/src/omni/application/qq.py) | 197 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
 | [agent/src/omni/application/release_drain.py](../../agent/src/omni/application/release_drain.py) | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
 | [agent/src/omni/application/releases.py](../../agent/src/omni/application/releases.py) | 335 | Offline release preparation and single-directory selection; never elevates, registers or starts a service. |
 | [agent/src/omni/application/routing.py](../../agent/src/omni/application/routing.py) | 19 | Tier configuration, query and bounded control use cases; model invocation remains in ModelCalls. |
-| [agent/src/omni/application/scheduling.py](../../agent/src/omni/application/scheduling.py) | 197 | One bounded scheduler; durable identities and admission are committed together. |
+| [agent/src/omni/application/scheduling.py](../../agent/src/omni/application/scheduling.py) | 207 | One bounded scheduler; durable identities and admission are committed together. |
 | [agent/src/omni/application/service_cleanup.py](../../agent/src/omni/application/service_cleanup.py) | 78 | Review quarantined native definitions and reuse once-only registration use cases; never clears original unknowns. |
 | [agent/src/omni/application/service_control.py](../../agent/src/omni/application/service_control.py) | 242 | Reviewed start and graceful stop use cases; external dispatch happens once and unknown work is never replayed. |
 | [agent/src/omni/application/service_deployment.py](../../agent/src/omni/application/service_deployment.py) | 47 | Prepare reviewable service deployments and combine independent proofs; never installs or starts services. |

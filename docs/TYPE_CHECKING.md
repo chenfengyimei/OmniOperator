@@ -20,6 +20,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/people.py` | 人物档案纯规则 |
 | `agent/src/omni/domain/metering.py` | 请求形状/记忆提示/令牌估算纯函数 |
 | `agent/src/omni/domain/release_fence.py` | 启动互斥栅栏纯校验 |
+| `agent/src/omni/domain/scheduling.py` | 数值 cron/下次到期/到期选择纯规则 |
 | `agent/src/omni/domain/memory_semantics.py` | 派生记忆索引/相关事实合并纯规则 |
 | `agent/src/omni/domain/foreground.py` | 前台输入授权与有界输入纯校验 |
 | `agent/src/omni/domain/context.py` | 对话压缩/批次/尾部预算纯规则 |
@@ -27,6 +28,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/model_stream.py` | 有界流式装配与工具调用解析纯规则 |
 | `agent/src/omni/domain/service_control.py` | 服务启动/排空身份与 HMAC 消息纯规则（经 service_deployment 公共桥） |
 | `agent/src/omni/application/routing.py` | 档位配置读取/保存用例（显式 Record） |
+| `agent/src/omni/application/scheduling.py` | 单调度器保存/到期入队（UnitOfWork 回调与嵌套字段显式化） |
 | `agent/src/omni/application/release_drain.py` | 发布排空绑定既有 once-only 启动控制 |
 | `agent/src/omni/application/exchange_recovery_steps.py` | 隔离/救援计划复用发布快照与栅栏 |
 | `agent/src/omni/application/local_vectors.py` | 本地 ONNX 向量器选择/状态无 I/O 规则 |
@@ -61,7 +63,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 与 `adapters/` 已从 24 个小模块开始；`composition/`、`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 与 `adapters/` 已从 25 个小模块开始；`composition/`、`agent/tests/` 尚未开始 strict。
 
 ## 4. 推进规则
 

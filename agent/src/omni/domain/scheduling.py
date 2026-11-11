@@ -6,7 +6,7 @@ import datetime as dt
 import re
 import uuid
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, cast
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
@@ -149,34 +149,34 @@ class ScheduleValue(BaseModel):
         return self
 
 
-def schedule_value(value: object) -> dict:
+def schedule_value(value: object) -> dict[str, object]:
     try:
         return ScheduleValue.model_validate(value).model_dump()
     except (ValueError, TypeError, ValidationError) as exc:
         raise BusinessError("invalid_schedule", "Schedule fields, time or recurrence are invalid", status=422) from exc
 
 
-def next_due(value: dict, after: str, zone: dt.tzinfo) -> str | None:
+def next_due(value: dict[str, object], after: str, zone: dt.tzinfo) -> str | None:
     boundary = instant(after)
     if value["kind"] == "cron":
-        return timestamp(Cron.parse(value["expression"]).find(boundary, zone))
-    anchor = instant(value["start_at"])
+        return timestamp(Cron.parse(str(value["expression"])).find(boundary, zone))
+    anchor = instant(str(value["start_at"]))
     if anchor > boundary:
         return timestamp(anchor)
     if value["kind"] == "once":
         return None
-    interval = dt.timedelta(seconds=value["interval_seconds"])
+    interval = dt.timedelta(seconds=cast(float, value["interval_seconds"]))
     return timestamp(anchor + ((boundary - anchor) // interval + 1) * interval)
 
 
-def due_selection(value: dict, first_due: str, now: str, zone: dt.tzinfo) -> dict:
+def due_selection(value: dict[str, object], first_due: str, now: str, zone: dt.tzinfo) -> dict[str, object]:
     first, current = instant(first_due), instant(now)
     if first > current:
         raise BusinessError("not_due", "Schedule time has not arrived")
     if value["kind"] == "cron":
-        due = Cron.parse(value["expression"]).find(current, zone, previous=True)
+        due = Cron.parse(str(value["expression"])).find(current, zone, previous=True)
     elif value["kind"] == "interval":
-        interval = dt.timedelta(seconds=value["interval_seconds"])
+        interval = dt.timedelta(seconds=cast(float, value["interval_seconds"]))
         due = first + ((current - first) // interval) * interval
     else:
         due = first
