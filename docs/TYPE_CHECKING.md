@@ -17,6 +17,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/action_review.py` | 未知写动作的观察复核/证据指纹纯规则 |
 | `agent/src/omni/domain/android_unicode.py` | 输入助手配置/认证报文纯校验 |
 | `agent/src/omni/domain/audit_retention.py` | 审计保留主体/冻结预览/计划纯校验 |
+| `agent/src/omni/domain/bilibili.py` | WBI 签名/字幕与流地址/表单/提及区间纯校验 |
 | `agent/src/omni/domain/capabilities.py` | 能力报告纯投影，需保持无 `Any` 泄漏 |
 | `agent/src/omni/domain/credential_ipc.py` | 原生凭据帧解码/请求/响应纯校验 |
 | `agent/src/omni/domain/credentials.py` | 凭据引用与权限指纹纯函数 |

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1538195b37d23abc0d399700b57112e37fd27a3cab60727f3c930c4ec13881ff",
+  "source_sha256": "e24e814f791f48b55e4df41875d1cb3f808aac826dc4a4901d6c7868079f2ae9",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9207,
+      "lines": 9232,
       "dependencies": []
     },
     {
@@ -62890,25 +62890,25 @@
       "path": "agent/src/omni/domain/bilibili.py",
       "module": "v2-domain",
       "python_module": "omni.domain.bilibili",
-      "lines": 261,
+      "lines": 286,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "wbi_keys",
-          "line": 31,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "nav"
           ],
           "annotations": {
-            "nav": "dict"
+            "nav": "Mapping[str, object]"
           }
         },
         {
           "name": "sign_wbi",
-          "line": 44,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "params",
@@ -62917,7 +62917,7 @@
             "wts"
           ],
           "annotations": {
-            "params": "dict",
+            "params": "Mapping[str, object]",
             "img_key": "str",
             "sub_key": "str",
             "wts": "int"
@@ -62925,7 +62925,7 @@
         },
         {
           "name": "subtitle_url",
-          "line": 56,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "value"
@@ -62936,7 +62936,7 @@
         },
         {
           "name": "stream_url",
-          "line": 69,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "value"
@@ -62947,7 +62947,7 @@
         },
         {
           "name": "uid",
-          "line": 86,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "value"
@@ -62958,18 +62958,18 @@
         },
         {
           "name": "connection",
-          "line": 94,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "Mapping[str, object]"
           }
         },
         {
           "name": "page_identity",
-          "line": 104,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "value"
@@ -62980,12 +62980,12 @@
         },
         {
           "name": "Form",
-          "line": 119,
+          "line": 124,
           "kind": "class"
         },
         {
           "name": "forms_value",
-          "line": 142,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "forms",
@@ -62998,7 +62998,7 @@
         },
         {
           "name": "target",
-          "line": 181,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "kind",
@@ -63011,7 +63011,7 @@
         },
         {
           "name": "mentions_value",
-          "line": 213,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "text",
@@ -63024,7 +63024,7 @@
         },
         {
           "name": "digest",
-          "line": 258,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "value"
@@ -105744,7 +105744,7 @@
     {
       "name": "Form",
       "source": "agent/src/omni/domain/bilibili.py",
-      "line": 119,
+      "line": 124,
       "fields": [
         {
           "name": "account",

@@ -28,6 +28,7 @@
     "agent/src/omni/domain/android_unicode.py",
     "agent/src/omni/domain/action_review.py",
     "agent/src/omni/domain/audit_retention.py",
+    "agent/src/omni/domain/bilibili.py",
     "agent/src/omni/domain/capabilities.py",
     "agent/src/omni/domain/configuration.py",
     "agent/src/omni/domain/context.py",

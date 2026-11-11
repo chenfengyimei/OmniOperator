@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Mapping
+from typing import cast
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -28,12 +30,15 @@ SUBTITLE_HOSTS = ("aisubtitle.hdslb.com", "api.bilibili.com", "www.bilibili.com"
 STREAM_HOST_SUFFIXES = (".bilivideo.com", ".hdslb.com", ".akamaized.net", ".bilibili.com")
 
 
-def wbi_keys(nav: dict) -> tuple[str, str]:
+def wbi_keys(nav: Mapping[str, object]) -> tuple[str, str]:
     """Extract the (img_key, sub_key) pair from a verified nav payload."""
-    wbi = nav.get("wbi_img") or {}
+    wbi = nav.get("wbi_img")
+    if not isinstance(wbi, dict):
+        raise BusinessError("bilibili_read_rejected", "Bilibili nav response changed format", status=502)
+    fields = cast(dict[str, object], wbi)
     try:
-        img = str(wbi.get("img_url", "")).rsplit("/", 1)[-1].split(".")[0]
-        sub = str(wbi.get("sub_url", "")).rsplit("/", 1)[-1].split(".")[0]
+        img = str(fields.get("img_url", "")).rsplit("/", 1)[-1].split(".")[0]
+        sub = str(fields.get("sub_url", "")).rsplit("/", 1)[-1].split(".")[0]
     except (AttributeError, IndexError) as exc:
         raise BusinessError("bilibili_read_rejected", "Bilibili nav response changed format", status=502) from exc
     if not re.fullmatch(r"[0-9a-f]{32}", img) or not re.fullmatch(r"[0-9a-f]{32}", sub):
@@ -41,9 +46,9 @@ def wbi_keys(nav: dict) -> tuple[str, str]:
     return img, sub
 
 
-def sign_wbi(params: dict, img_key: str, sub_key: str, wts: int) -> dict:
+def sign_wbi(params: Mapping[str, object], img_key: str, sub_key: str, wts: int) -> dict[str, object]:
     """Signed parameter set (wts + w_rid); the timestamp is injected by the adapter."""
-    signed = {k: v for k, v in sorted(params.items())}
+    signed: dict[str, object] = {k: v for k, v in sorted(params.items())}
     signed["wts"] = wts
     filtered = {k: str(v).translate({ord(c): None for c in _STRIP_CHARS}) for k, v in signed.items()}
     query = urlencode(filtered, quote_via=quote)
@@ -91,7 +96,7 @@ def uid(value: object) -> str:
     return value
 
 
-def connection(value: dict) -> dict:
+def connection(value: Mapping[str, object]) -> dict[str, object]:
     if value.get("driver") != "bilibili" or value.get("endpoint") not in {"", API} or not value.get("credential_ref"):
         raise BusinessError(
             "bilibili_configuration_invalid",
@@ -139,21 +144,22 @@ class Form(BaseModel):
     record_mentions: str = ""
 
 
-def forms_value(forms: object, enabled: bool) -> dict:
+def forms_value(forms: object, enabled: bool) -> dict[str, object]:
+    entries = cast(dict[str, object], forms) if isinstance(forms, dict) else None
     if (
         type(enabled) is not bool
-        or not isinstance(forms, dict)
-        or set(forms) - {"comment", "private_message"}
-        or (enabled and not forms)
+        or entries is None
+        or set(entries) - {"comment", "private_message"}
+        or (enabled and not entries)
     ):
         raise BusinessError(
             "bilibili_profile_invalid",
             "Choose reviewed comment/private-message forms before enabling publication",
             status=422,
         )
-    result = {}
+    result: dict[str, object] = {}
     try:
-        for kind, raw in forms.items():
+        for kind, raw in entries.items():
             profile = Form.model_validate(raw).model_dump()
             for name, value in profile.items():
                 value.encode("utf-8")
@@ -179,7 +185,7 @@ def forms_value(forms: object, enabled: bool) -> dict:
 
 
 def target(kind: str, value: str) -> tuple[str, str]:
-    if not isinstance(value, str) or len(value) > 500:
+    if not isinstance(cast(object, value), str) or len(value) > 500:
         raise BusinessError("bilibili_target_invalid", "A bounded Bilibili target URL is required", status=422)
     try:
         parsed = urlsplit(value)
@@ -210,9 +216,9 @@ def target(kind: str, value: str) -> tuple[str, str]:
     )
 
 
-def mentions_value(text: str, mentions: object) -> list[dict]:
+def mentions_value(text: str, mentions: object) -> list[dict[str, object]]:
     if (
-        not isinstance(text, str)
+        not isinstance(cast(object, text), str)
         or not text.strip()
         or len(text) > MAX_CONTENT
         or any(ord(c) < 32 and c not in "\n\t" for c in text)
@@ -220,38 +226,57 @@ def mentions_value(text: str, mentions: object) -> list[dict]:
         raise BusinessError(
             "bilibili_content_invalid", "Publication requires 1–2000 characters without control bytes", status=422
         )
-    if not isinstance(mentions, list) or len(mentions) > 10:
+    if not isinstance(mentions, list):
         raise BusinessError(
             "bilibili_mentions_invalid", "At most ten explicit mention ranges are supported", status=422
         )
-    result, end, names = [], 0, {}
-    for item in mentions:
+    items = cast(list[object], mentions)
+    if len(items) > 10:
+        raise BusinessError(
+            "bilibili_mentions_invalid", "At most ten explicit mention ranges are supported", status=422
+        )
+    result: list[dict[str, object]] = []
+    end = 0
+    names: dict[str, str] = {}
+    for item in items:
+        if not isinstance(item, dict):
+            raise BusinessError(
+                "bilibili_mentions_invalid",
+                "Mentions must be ordered, nonoverlapping exact @name character ranges",
+                status=422,
+            )
+        entry = cast(dict[str, object], item)
+        start, stop = entry.get("start"), entry.get("end")
+        name, ref = entry.get("name"), entry.get("uid")
         if (
-            not isinstance(item, dict)
-            or set(item) != {"start", "end", "uid", "name"}
-            or type(item["start"]) is not int
-            or type(item["end"]) is not int
-            or not end <= item["start"] < item["end"] <= len(text)
-            or not isinstance(item["name"], str)
-            or not 1 <= len(item["name"]) <= 40
-            or any(ord(c) < 32 for c in item["name"])
-            or text[item["start"] : item["end"]] != "@" + item["name"]
+            set(entry) != {"start", "end", "uid", "name"}
+            or type(start) is not int
+            or type(stop) is not int
+            or not isinstance(name, str)
+            or not 1 <= len(name) <= 40
+            or any(ord(c) < 32 for c in name)
         ):
             raise BusinessError(
                 "bilibili_mentions_invalid",
                 "Mentions must be ordered, nonoverlapping exact @name character ranges",
                 status=422,
             )
-        identity = uid(item["uid"])
-        if item["name"] in names and names[item["name"]] != identity:
+        if not end <= start < stop <= len(text) or text[start:stop] != "@" + name:
+            raise BusinessError(
+                "bilibili_mentions_invalid",
+                "Mentions must be ordered, nonoverlapping exact @name character ranges",
+                status=422,
+            )
+        identity = uid(ref)
+        if name in names and names[name] != identity:
             raise BusinessError(
                 "bilibili_mentions_invalid",
                 "One mention display name cannot bind multiple UIDs in a publication",
                 status=422,
             )
-        names[item["name"]] = identity
-        result.append({**item, "uid": identity})
-        end = item["end"]
+        names[name] = identity
+        result.append({**entry, "uid": identity})
+        end = stop
     return result
 
 
