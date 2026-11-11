@@ -9,7 +9,12 @@ import zipfile
 import pytest
 
 from omni.adapters.platform.paths import InstancePaths
+from omni.adapters.platform.wheel_backup import backup_candidate
 from omni.adapters.platform.wheel_environment import create_environment
+from omni.adapters.platform.wheel_install import switch_candidate
+from omni.adapters.platform.wheel_prepare import prepare_wheel
+from omni.adapters.platform.wheel_rollback import rollback_check
+from omni.adapters.platform.wheel_smoke import smoke_candidate
 from omni.adapters.platform.wheel_stage import stage_wheel
 from omni.composition.cli import main, seal_installation
 from omni.composition.instance import open_instance
@@ -91,3 +96,18 @@ def test_cli_environment_emits_json(tmp_path, monkeypatch, capsys):
     assert main() == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["format"] == "omni-environment-1" and payload["installed"] is True
+
+
+def test_switch_prefers_the_installed_environment(tmp_path):
+    paths, sha256 = staged(tmp_path)
+    environment = create_environment(paths, sha256)
+    prepare_wheel(paths.home, sha256)
+    smoke_candidate(paths, sha256)
+    backup_candidate(paths, sha256)
+    rollback_check(paths, sha256)
+    switched = switch_candidate(paths, sha256)
+    assert switched["mode"] == "venv" and switched["python"] == environment["python"]
+    assert environment["python"] in (paths.home / "omni.cmd").read_text(encoding="utf-8")
+    assert environment["python"] in (paths.home / "omni").read_text(encoding="utf-8")
+    launch = (paths.home / "runtime" / "launch.py").read_text(encoding="utf-8")
+    assert environment["python"] not in launch and 'pointer.get("mode") != "venv"' in launch

@@ -30,7 +30,8 @@ from pathlib import Path
 runtime = Path(__file__).resolve().parent
 home = runtime.parent
 pointer = json.loads((runtime / "current.json").read_text(encoding="utf-8"))
-sys.path.insert(0, str(Path(pointer["tree"])))
+if pointer.get("mode") != "venv":
+    sys.path.insert(0, str(Path(pointer["tree"])))
 from omni.composition.cli import main
 
 sys.argv[1:1] = ["--home", str(home)]
@@ -55,8 +56,7 @@ def _receipt(stage: Path, name: str, fmt: str, sha256: str) -> dict[str, object]
     return record
 
 
-def _wrapper(home: Path) -> None:
-    python = sys.executable
+def _wrapper(home: Path, python: str) -> None:
     (home / "omni.cmd").write_text(
         '@echo off\r\nsetlocal\r\n"' + python + '" "%~dp0runtime\\launch.py" %*\r\n',
         encoding="utf-8",
@@ -65,6 +65,20 @@ def _wrapper(home: Path) -> None:
     script.write_text(f'#!/bin/sh\nexec "{python}" "$(dirname "$0")/runtime/launch.py" "$@"\n', encoding="utf-8")
     if os.name != "nt":
         script.chmod(0o755)
+
+
+def _environment(stage: Path) -> tuple[str, str] | None:
+    path = stage / "environment.json"
+    if not path.is_file():
+        return None
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError, UnicodeError):
+        return None
+    if not isinstance(record, dict) or record.get("installed") is not True:
+        return None
+    python = Path(str(record.get("python", "")))
+    return (str(python), "venv") if python.is_file() else None
 
 
 def migrate_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
@@ -161,6 +175,8 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
     runtime = paths.home / "runtime"
     runtime.mkdir(parents=True, exist_ok=True)
     current_path = runtime / "current.json"
+    environment = _environment(stage)
+    python, mode = environment if environment is not None else (sys.executable, "tree")
     previous: str | None = None
     if current_path.is_file():
         try:
@@ -171,13 +187,20 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
             previous = str(old.get("wheel_sha256", "")) or None
             durable_json(runtime / "previous.json", old)
             private_path(runtime / "previous.json")
-            if old.get("wheel_sha256") == sha256 and Path(str(old.get("tree", ""))) == tree:
-                _wrapper(paths.home)
+            if (
+                old.get("wheel_sha256") == sha256
+                and Path(str(old.get("tree", ""))) == tree
+                and old.get("python") == python
+                and old.get("mode") == mode
+            ):
+                _wrapper(paths.home, python)
                 return {
                     "format": FORMAT,
                     "written": False,
                     "wheel_sha256": sha256,
                     "tree": str(tree),
+                    "python": python,
+                    "mode": mode,
                     "previous": previous,
                     "launcher": str(runtime / "launch.py"),
                 }
@@ -186,7 +209,9 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
         "wheel_sha256": sha256,
         "tree": str(tree),
         "schema_version": schema,
-        "python": sys.version.split()[0],
+        "python": python,
+        "mode": mode,
+        "python_version": sys.version.split()[0],
         "activated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds"),
         "previous": previous,
         "prepared_files": prepared.get("files", 0),
@@ -194,7 +219,7 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
     durable_json(current_path, record)
     private_path(current_path)
     (runtime / "launch.py").write_text(LAUNCHER, encoding="utf-8")
-    _wrapper(paths.home)
+    _wrapper(paths.home, python)
     return {"format": FORMAT, "written": True, **record, "launcher": str(runtime / "launch.py")}
 
 
@@ -214,6 +239,8 @@ def runtime_current(paths: InstancePaths) -> dict[str, object]:
         "active": (tree / "omni" / "__init__.py").is_file(),
         "wheel_sha256": record.get("wheel_sha256"),
         "tree": str(tree),
+        "python": record.get("python"),
+        "mode": record.get("mode"),
         "schema_version": record.get("schema_version"),
         "previous": record.get("previous"),
         "launcher": str(paths.home / "runtime" / "launch.py"),

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "71f1f270302b7f82320d0b978c88e62cbd41f6aacea6ac8707080d083d6b416a",
+  "source_sha256": "fe99158fd20996793a9e4ad05fa8f5e21eb8bbb878d614f105901e2b112368cd",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52554,
+      "lines": 52581,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -30871,7 +30871,7 @@
       "path": "agent/src/omni/adapters/platform/wheel_install.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_install",
-      "lines": 251,
+      "lines": 278,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
@@ -30890,7 +30890,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "code"
@@ -30901,7 +30901,7 @@
         },
         {
           "name": "_receipt",
-          "line": 45,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "stage",
@@ -30918,18 +30918,31 @@
         },
         {
           "name": "_wrapper",
-          "line": 58,
+          "line": 59,
           "kind": "function",
           "parameters": [
-            "home"
+            "home",
+            "python"
           ],
           "annotations": {
-            "home": "Path"
+            "home": "Path",
+            "python": "str"
+          }
+        },
+        {
+          "name": "_environment",
+          "line": 70,
+          "kind": "function",
+          "parameters": [
+            "stage"
+          ],
+          "annotations": {
+            "stage": "Path"
           }
         },
         {
           "name": "migrate_candidate",
-          "line": 70,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "paths",
@@ -30942,7 +30955,7 @@
         },
         {
           "name": "switch_candidate",
-          "line": 124,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "paths",
@@ -30955,7 +30968,7 @@
         },
         {
           "name": "runtime_current",
-          "line": 201,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "paths"
@@ -30966,7 +30979,7 @@
         },
         {
           "name": "install_candidate",
-          "line": 223,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "paths",
