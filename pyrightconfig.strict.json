@@ -57,6 +57,7 @@
     "agent/src/omni/domain/reference_release.py",
     "agent/src/omni/domain/qq.py",
     "agent/src/omni/domain/release_fence.py",
+    "agent/src/omni/domain/releases.py",
     "agent/src/omni/domain/retention.py",
     "agent/src/omni/domain/routing.py",
     "agent/src/omni/domain/schema_upgrade.py",

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d19b60feceb65f6438343fbd0f00d4a79b9dac2efec98a270bf1e67b20a89c0c",
+  "source_sha256": "9fa8351be79d6292f9bae5e65a862ebf779731c2eaf0505027bac353464ee187",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9317,
+      "lines": 9349,
       "dependencies": []
     },
     {
@@ -66869,7 +66869,7 @@
       "path": "agent/src/omni/domain/releases.py",
       "module": "v2-domain",
       "python_module": "omni.domain.releases",
-      "lines": 243,
+      "lines": 275,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.recovery_authority",
@@ -66880,27 +66880,27 @@
       "symbols": [
         {
           "name": "ReleasePlan",
-          "line": 26,
+          "line": 35,
           "kind": "class"
         },
         {
           "name": "ReleaseSnapshot",
-          "line": 42,
-          "kind": "class"
-        },
-        {
-          "name": "ReleasePrepared",
           "line": 51,
           "kind": "class"
         },
         {
+          "name": "ReleasePrepared",
+          "line": 60,
+          "kind": "class"
+        },
+        {
           "name": "ReleaseEvent",
-          "line": 59,
+          "line": 68,
           "kind": "class"
         },
         {
           "name": "digest",
-          "line": 67,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "value"
@@ -66911,7 +66911,7 @@
         },
         {
           "name": "invalid",
-          "line": 73,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "code"
@@ -66921,8 +66921,19 @@
           }
         },
         {
+          "name": "_runtime_files",
+          "line": 86,
+          "kind": "function",
+          "parameters": [
+            "runtime"
+          ],
+          "annotations": {
+            "runtime": "Mapping[str, object]"
+          }
+        },
+        {
           "name": "make_release",
-          "line": 77,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "source",
@@ -66938,8 +66949,8 @@
             "source": "object",
             "target": "object",
             "paths": "object",
-            "identity": "str",
-            "at": "str",
+            "identity": "object",
+            "at": "object",
             "recovery": "object",
             "source_stop": "object",
             "migration": "object"
@@ -66947,7 +66958,7 @@
         },
         {
           "name": "make_release.overlaps",
-          "line": 125,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "left",
@@ -66960,7 +66971,7 @@
         },
         {
           "name": "validate_release",
-          "line": 210,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "value"

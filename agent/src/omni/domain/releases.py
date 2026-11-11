@@ -6,13 +6,22 @@ import hashlib
 import json
 import ntpath
 import posixpath
+from collections.abc import Mapping
 from typing import Any, TypedDict, cast
 
 from .contracts import BusinessError
 from .recovery_authority import RecoverySpec, validate_authority, validate_witness
 from .schema_upgrade import schema_upgrade
 from .service_control import ControlPlan, validate_control
-from .service_deployment import _created, _object, _path, _sha, _uuid, manager_identity, validate_plan
+from .service_deployment import (
+    deployment_created,
+    deployment_fields,
+    deployment_path,
+    deployment_sha,
+    deployment_uuid,
+    manager_identity,
+    validate_plan,
+)
 
 FORMAT = "omni-release-plan-3"
 FENCE_FILES = (
@@ -74,19 +83,37 @@ def invalid(code: str = "release_plan_invalid") -> BusinessError:
     return BusinessError(code, "Review an exact immutable release with separate new data, bundle, backup and journal")
 
 
+def _runtime_files(runtime: Mapping[str, object]) -> dict[str, object]:
+    files = runtime["files"]
+    if not isinstance(files, list):
+        raise invalid("release_fence_contract_missing")
+    rows: dict[str, object] = {}
+    for row in cast(list[object], files):
+        if not isinstance(row, dict):
+            raise invalid("release_fence_contract_missing")
+        entry = cast(dict[str, object], row)
+        path = entry["path"]
+        if not isinstance(path, str):
+            raise invalid("release_fence_contract_missing")
+        rows[path] = entry
+    return rows
+
+
 def make_release(
     source: object,
     target: object,
     paths: object,
-    identity: str,
-    at: str,
+    identity: object,
+    at: object,
     recovery: object = None,
     source_stop: object = None,
     migration: object = None,
 ) -> ReleasePlan:
     old, new = validate_plan(source), validate_plan(target)
-    a, b = old["request"], new["request"]
-    x, y = old["runtime"], new["runtime"]
+    a = cast(dict[str, object], old["request"])
+    b = cast(dict[str, object], new["request"])
+    x = cast(dict[str, object], old["runtime"])
+    y = cast(dict[str, object], new["runtime"])
     if (
         a["instance_id"] != b["instance_id"]
         or a["target"] != b["target"]
@@ -98,12 +125,13 @@ def make_release(
         raise invalid("release_installations_incompatible")
     transition = None
     if x["schema_head"] != y["schema_head"]:
+        supplied_recovery = cast(dict[str, object], recovery) if isinstance(recovery, dict) else None
         snapshot_recovery = (
-            isinstance(recovery, dict)
-            and recovery.get("restore_policy") == "original_snapshot"
-            and recovery.get("isolation") is None
+            supplied_recovery is not None
+            and supplied_recovery.get("restore_policy") == "original_snapshot"
+            and supplied_recovery.get("isolation") is None
             and migration is None
-            and x["schema_head"] > y["schema_head"]
+            and cast(int, x["schema_head"]) > cast(int, y["schema_head"])
         )
         if not snapshot_recovery:
             if migration is None or recovery is not None:
@@ -114,12 +142,12 @@ def make_release(
     # Both versions must understand precisely the same persisted startup gate.
     # An earlier executable without this contract cannot safely be retired.
     for name in FENCE_FILES:
-        rows = [{row["path"]: row for row in runtime["files"]} for runtime in (x, y)]
-        if name not in rows[0] or rows[0].get(name) != rows[1].get(name):
+        left, right = _runtime_files(x), _runtime_files(y)
+        if name not in left or left.get(name) != right.get(name):
             raise invalid("release_fence_contract_missing")
-    supplied = _object(paths, {"backup", "journal"})
+    supplied = deployment_fields(paths, {"backup", "journal"})
     windows = x["platform"] == "win32"
-    locations = {key: _path(value, windows) for key, value in supplied.items()}
+    locations = {key: deployment_path(value, windows) for key, value in supplied.items()}
     pathmod = ntpath if windows else posixpath
 
     def overlaps(left: str, right: str) -> bool:
@@ -129,35 +157,39 @@ def make_release(
         except ValueError:
             return False
 
-    mutable = [a["home"], b["home"], *locations.values()]
+    mutable: list[str] = [cast(str, a["home"]), cast(str, b["home"]), *locations.values()]
     for index, left in enumerate(mutable):
         if any(overlaps(left, right) for right in mutable[index + 1 :]):
             raise invalid("release_paths_overlap")
-    immutable = [
-        a["bundle_dir"],
-        b["bundle_dir"],
-        x["python_prefix"],
-        y["python_prefix"],
-        x["package_root"],
-        y["package_root"],
+    immutable: list[str] = [
+        cast(str, a["bundle_dir"]),
+        cast(str, b["bundle_dir"]),
+        cast(str, x["python_prefix"]),
+        cast(str, y["python_prefix"]),
+        cast(str, x["package_root"]),
+        cast(str, y["package_root"]),
     ]
     if any(overlaps(left, right) for left in mutable for right in immutable):
         raise invalid("release_paths_overlap")
     if (
-        overlaps(a["bundle_dir"], b["bundle_dir"])
-        or overlaps(x["python_prefix"], y["python_prefix"])
-        or overlaps(x["package_root"], y["package_root"])
+        overlaps(cast(str, a["bundle_dir"]), cast(str, b["bundle_dir"]))
+        or overlaps(cast(str, x["python_prefix"]), cast(str, y["python_prefix"]))
+        or overlaps(cast(str, x["package_root"]), cast(str, y["package_root"]))
     ):
         raise invalid("release_installations_not_separate")
-    if any(overlaps(bundle, code) for bundle in (a["bundle_dir"], b["bundle_dir"]) for code in immutable[2:]):
+    if any(
+        overlaps(cast(str, bundle), code)
+        for bundle in (a["bundle_dir"], b["bundle_dir"])
+        for code in immutable[2:]
+    ):
         raise invalid("release_paths_overlap")
     restore = None
     stop = None if source_stop is None else validate_control(source_stop)
     if stop is not None and (stop["deployment"] != old or stop["action"] != "stop"):
         raise invalid("release_source_stop_changed")
     if recovery is not None:
-        record = _object(
-            recovery,
+        record = deployment_fields(
+            cast(object, recovery),
             {"release_sha256", "snapshot", "manifest_sha256", "isolation", "restore_policy", "expected_source_witness"},
         )
         if record["restore_policy"] not in ("original_snapshot", "latest_failed"):
@@ -166,9 +198,9 @@ def make_release(
         restore = cast(
             RecoverySpec,
             {
-                "release_sha256": _sha(record["release_sha256"]),
-                "snapshot": _path(record["snapshot"], windows),
-                "manifest_sha256": _sha(record["manifest_sha256"]),
+                "release_sha256": deployment_sha(record["release_sha256"]),
+                "snapshot": deployment_path(record["snapshot"], windows),
+                "manifest_sha256": deployment_sha(record["manifest_sha256"]),
                 "isolation": authority,
                 "restore_policy": record["restore_policy"],
                 "expected_source_witness": validate_witness(record["expected_source_witness"]),
@@ -190,10 +222,10 @@ def make_release(
                 raise invalid("release_paths_overlap")
         if any(overlaps(restore["snapshot"], item) for item in (*mutable, *immutable)):
             raise invalid("release_paths_overlap")
-    value = {
+    value: dict[str, object] = {
         "format": FORMAT,
-        "id": _uuid(identity),
-        "created_at": _created(at),
+        "id": deployment_uuid(identity),
+        "created_at": deployment_created(at),
         "source": old,
         "target": new,
         "paths": locations,
@@ -208,7 +240,7 @@ def make_release(
 
 
 def validate_release(value: object) -> ReleasePlan:
-    record = _object(
+    record = deployment_fields(
         value,
         {
             "format",

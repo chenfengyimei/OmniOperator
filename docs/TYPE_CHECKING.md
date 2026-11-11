@@ -34,6 +34,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/metering.py` | 请求形状/记忆提示/令牌估算纯函数 |
 | `agent/src/omni/domain/qq.py` | OneBot 文本事件/连接/会话授权纯校验 |
 | `agent/src/omni/domain/release_fence.py` | 启动互斥栅栏纯校验 |
+| `agent/src/omni/domain/releases.py` | 发布/恢复计划、栅栏文件与路径分离纯校验（经公共桥） |
 | `agent/src/omni/domain/routing.py` | 能力档位/路由策略/工具筛选纯规则 |
 | `agent/src/omni/domain/settings.py` | Agent 设置与运行配置纯校验 |
 | `agent/src/omni/domain/scheduling.py` | 数值 cron/下次到期/到期选择纯规则 |

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d19b60feceb65f6438343fbd0f00d4a79b9dac2efec98a270bf1e67b20a89c0c`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`9fa8351be79d6292f9bae5e65a862ebf779731c2eaf0505027bac353464ee187`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -47,7 +47,7 @@
 | [agent/src/omni/domain/recovery_authority.py](../../agent/src/omni/domain/recovery_authority.py) | 84 | Versioned authority for keeping an isolated predecessor fenced; no IO or claims about external effects. |
 | [agent/src/omni/domain/reference_release.py](../../agent/src/omni/domain/reference_release.py) | 69 | Bounded artifact-reference release plans; validates identities without accessing storage or files. |
 | [agent/src/omni/domain/release_fence.py](../../agent/src/omni/domain/release_fence.py) | 78 | Persisted startup exclusion contract shared by immutable installations; no IO or mutable state. |
-| [agent/src/omni/domain/releases.py](../../agent/src/omni/domain/releases.py) | 243 | Reviewed immutable release/recovery plans; same-schema first delivery, with no platform or storage IO. |
+| [agent/src/omni/domain/releases.py](../../agent/src/omni/domain/releases.py) | 275 | Reviewed immutable release/recovery plans; same-schema first delivery, with no platform or storage IO. |
 | [agent/src/omni/domain/retention.py](../../agent/src/omni/domain/retention.py) | 101 | Execution-body retention policy; time is injected, no erasure or file operations. |
 | [agent/src/omni/domain/routing.py](../../agent/src/omni/domain/routing.py) | 128 | Deterministic capability tiers and immutable route policy; neither permissions nor model/network calls. |
 | [agent/src/omni/domain/scheduling.py](../../agent/src/omni/domain/scheduling.py) | 190 | Deterministic UTC scheduling and numeric cron rules; resolved timezone data is injected. |
