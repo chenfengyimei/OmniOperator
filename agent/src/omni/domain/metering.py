@@ -27,20 +27,20 @@ class TokenEstimate:
             raise ValueError("Invalid token estimate")
 
 
-def wire_tools(tools: Sequence[ToolSpec]) -> list[dict]:
+def wire_tools(tools: Sequence[ToolSpec]) -> list[dict[str, object]]:
     return [
         {"type": "function", "function": {"name": t.name, "description": t.description, "parameters": t.parameters}}
         for t in tools
     ]
 
 
-def serialized_request(messages: Sequence[dict], tools: Sequence[ToolSpec]) -> str:
+def serialized_request(messages: Sequence[Mapping[str, object]], tools: Sequence[ToolSpec]) -> str:
     return json.dumps(
         {"messages": list(messages), "tools": wire_tools(tools)}, ensure_ascii=False, separators=(",", ":")
     )
 
 
-def memory_system(settings: Mapping[str, object], memories: list[dict], notice: str = "") -> str:
+def memory_system(settings: Mapping[str, object], memories: Sequence[Mapping[str, object]], notice: str = "") -> str:
     visible = [
         {"memory_id": m["memory_id"], "revision": m["revision"], "kind": m["kind"], "content": m["content"]}
         for m in memories
@@ -54,9 +54,13 @@ def memory_system(settings: Mapping[str, object], memories: list[dict], notice: 
 
 
 def history_request(
-    settings: Mapping[str, object], memories: list[dict], messages: list[dict], summary: dict | None, notice: str = ""
-) -> list[dict]:
-    result = [{"role": "system", "content": memory_system(settings, memories, notice)}]
+    settings: Mapping[str, object],
+    memories: Sequence[Mapping[str, object]],
+    messages: Sequence[Mapping[str, object]],
+    summary: Mapping[str, object] | None,
+    notice: str = "",
+) -> list[dict[str, object]]:
+    result: list[dict[str, object]] = [{"role": "system", "content": memory_system(settings, memories, notice)}]
     if summary:
         result.append(
             {

@@ -18,6 +18,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/credentials.py` | 凭据引用与权限指纹纯函数 |
 | `agent/src/omni/domain/objects.py` | 对象类型/上限纯规则 |
 | `agent/src/omni/domain/people.py` | 人物档案纯规则 |
+| `agent/src/omni/domain/metering.py` | 请求形状/记忆提示/令牌估算纯函数 |
+| `agent/src/omni/domain/release_fence.py` | 启动互斥栅栏纯校验 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
@@ -34,10 +36,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `domain/recovery_authority.py` | 27 |
 | `domain/foreground.py` | 24 |
 | `domain/memory_semantics.py` | 19 |
-| `domain/metering.py` | 19 |
-| `domain/release_fence.py` | 16 |
 
-`application/`、`adapters/`、`composition/`、`agent/tests/` 尚未开始 strict。
+`metering.py`（19）与 `release_fence.py`（16）已在纳入 strict 前清零，不再列为基线例外。`application/`、`adapters/`、`composition/`、`agent/tests/` 尚未开始 strict。
 
 ## 4. 推进规则
 

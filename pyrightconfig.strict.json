@@ -3,8 +3,10 @@
   "include": [
     "agent/src/omni/domain/capabilities.py",
     "agent/src/omni/domain/credentials.py",
+    "agent/src/omni/domain/metering.py",
     "agent/src/omni/domain/objects.py",
-    "agent/src/omni/domain/people.py"
+    "agent/src/omni/domain/people.py",
+    "agent/src/omni/domain/release_fence.py"
   ],
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
