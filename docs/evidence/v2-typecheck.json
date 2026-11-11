@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "70ef1ba1691db68a4a44f905ba12b45b7b4135b8acedf1e6684c126ec24bcd12",
+  "code_version": "02758a8e361883c1454132932a5f42170435acea9f43bb86ce42cd6b4093d5f2",
   "fixed_source_files": 1193,
-  "git_head": "9efa947",
+  "git_head": "9d9153d",
   "dirty_checkout": false
  },
  "development": {
@@ -37,7 +37,8 @@
    "Strict scope reaches 32 files with objects; bounded task sets and paginated capture/object results are explicitly typed without changing queue or publication semantics",
    "Strict scope reaches 33 files with memory_organization; bounded task sets and paginated proposal results are explicitly typed without changing admission or review semantics",
    "Strict scope reaches 34 files with exchange_steps; registration_goal takes Mapping, deployment verification goes through a public bridge and stage payloads are explicitly mapped",
-   "Strict scope reaches 35 files with credentials; UnitOfWork callbacks, bounded tasks and credential pages are explicitly typed without changing audit or interruption semantics"
+   "Strict scope reaches 35 files with credentials; UnitOfWork callbacks, bounded tasks and credential pages are explicitly typed without changing audit or interruption semantics",
+   "Strict scope reaches 36 files with desktop_actions; binding requests, bounded tasks, nested target/node/request fields and foreground/act payloads are explicitly typed without changing approval, lease or unknown-outcome semantics"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -219,22 +220,31 @@
     "errors": 0,
     "duration_s": 67.106,
     "note": "nineteenth strict batch: guard + credentials/authority callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-20.xml",
+    "sha256": "e2f5a4609e61f43707440dfeeefd9b45929cb1ce7c7f93720707b742ce18cb9e",
+    "tests": 32,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 31.476,
+    "note": "twentieth strict batch: guard + desktop action/transport/http callers"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-19-gates.json",
-   "sha256": "a2a5b78e62ab5c340e0522c6ff71a2ce0841530e1d87ca41ee25ba2671fd15b1",
+   "path": "temp/build/v2-typecheck-20-gates.json",
+   "sha256": "eb24774eca488cc58c453984d88ea56628a301115bb41c2123354f295358e7d5",
    "passed": 5,
    "total": 5
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 35,
+    "filesAnalyzed": 36,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 1.145
+    "timeInSec": 1.15
    }
   },
   "default_pyright": {
@@ -256,12 +266,12 @@
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-typecheck-19-source-20261111-70ef1ba1691d/manifest.json",
-  "archive_sha256": "0d2adae5c1369dc20d2e0360978ff50f8c6dcac98d66741385006f23a73088aa",
+  "manifest": "temp/private/v2-typecheck-20-source-20261111-02758a8e3618/manifest.json",
+  "archive_sha256": "4800baf3bd22beee775395bbb7c2a1513b46db6d10190e17a9d04a5c65a0b236",
   "files": 1193,
   "validation_artifacts": [
-   "v2-typecheck-19.xml",
-   "v2-typecheck-19-gates.json"
+   "v2-typecheck-20.xml",
+   "v2-typecheck-20-gates.json"
   ]
  },
  "next": {
