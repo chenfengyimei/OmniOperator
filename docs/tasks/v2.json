@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "1e67fb8",
+  "checkpoint_commit": "e67d43d",
   "current_validation": {
-    "status": "d7_typecheck_batches_full_verified",
+    "status": "d7_typecheck_batch_41",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "recheck_report": "temp/build/v2-strict-isolation.xml"
       }
     ],
-    "code_version": "16892305cfda6d7ef807a157cb956c74ac581f3341171d3e08303e98d25b394e",
+    "code_version": "1a3fe04f99d102ee83887e7dab71f8933e564ea85f7d3491e401f730ccd215bd",
     "fixed_source_files": 1199,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -327,7 +327,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "Windows wheel/sdist 打包验证与安装/更新/恢复合同调用方已完成；剩余：V2 独立安装器/更新器、容器镜像、三平台构建与干净机器端到端、入口切换。"
+    "scope": "Windows wheel/sdist 打包验证与安装/更新/恢复合同调用方已完成；strict 已到 63 文件（domain 39/53）。剩余：domain 14 文件与 application/adapters/composition 严格化、容器镜像、三平台构建与干净机器端到端、入口切换。"
   },
   "milestones": [
     {
@@ -880,12 +880,12 @@
       "id": "R7.typecheck",
       "status": "进行中",
       "development": "门禁与首批模块完成",
-      "offline_validation": "strict 62 文件 0 errors（含 application/adapters 25 个）；四十批类型守卫 + 调用方回归全过；strict 批次后全量 4654 项：4653 passed / 1 failed / 0 errors（debug_sink 并行时序，隔离 11 项全过）",
+      "offline_validation": "strict 63 文件 0 errors（39 domain + 20 application + 4 adapters）；四十一批类型守卫 + 图像上传/附接/预算调用方 21 项全过；全量沿用 4654 项结果（4653 passed / 1 failed / 0 errors，debug_sink 并行时序，隔离 11 项全过），本批改源码后尚未重跑全量",
       "evidence": [
         "docs/evidence/v2-typecheck.json"
       ],
-      "remaining": "domain 其余 49 文件与 application/adapters/composition 未严格化；不得称全仓 strict。",
-      "code_version": "16892305cfda6d7ef807a157cb956c74ac581f3341171d3e08303e98d25b394e"
+      "remaining": "domain 其余 14 文件（39/53）、application 20/44、adapters 4/215 其余文件与 composition 未严格化；不得称全仓 strict。",
+      "code_version": "1a3fe04f99d102ee83887e7dab71f8933e564ea85f7d3491e401f730ccd215bd"
     },
     {
       "id": "R7.packaging",
