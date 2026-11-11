@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "c291234",
+  "checkpoint_commit": "805f2bb",
   "current_validation": {
-    "status": "d7_installer_venv_launch_selection",
+    "status": "d7_installer_live_rollback",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "recheck_report": "temp/build/v2-strict-isolation.xml"
       }
     ],
-    "code_version": "76fbc537b8c40f0c85490e6b160aec5ed41b14a4174870d819809faa1653ff25",
+    "code_version": "ceb83115e357ce2c306ac1553711f35ec5387e633c2f931127c5c47a2f860fb4",
     "fixed_source_files": 1199,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -913,12 +913,12 @@
       "id": "R7.installation",
       "status": "部分完成（收据/预检）",
       "development": "installation verify/seal",
-      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/migrate/current/uninstall/environment；switch 优先使用候选 venv（mode=venv），否则宿主解释器+树（mode=tree）",
+      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/migrate/current/uninstall/environment/rollback；live 回滚仅切回代码指针并校验 schema，不恢复数据库",
       "evidence": [
         "docs/evidence/v2-installation.json"
       ],
-      "remaining": "未下载 wheel、未停服/启动、未执行 live 回滚/数据目录清理；macOS/Linux 与干净机器未验收。",
-      "code_version": "76fbc537b8c40f0c85490e6b160aec5ed41b14a4174870d819809faa1653ff25"
+      "remaining": "未下载 wheel、未停服/启动、未恢复数据库备份/清理数据目录；macOS/Linux 与干净机器未验收。",
+      "code_version": "ceb83115e357ce2c306ac1553711f35ec5387e633c2f931127c5c47a2f860fb4"
     },
     {
       "id": "R7.installer.verification",

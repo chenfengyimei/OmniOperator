@@ -1,0 +1,57 @@
+{
+ "schema": 1,
+ "batch": "D7.installer.live_rollback",
+ "date": "2026-11-11",
+ "whole_v2_complete": false,
+ "d7_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "code_version": "ceb83115e357ce2c306ac1553711f35ec5387e633c2f931127c5c47a2f860fb4",
+  "fixed_source_files": 1199,
+  "git_head": "805f2bb"
+ },
+ "development": {
+  "scope": [
+   "installation rollback swaps the runtime pointer back to previous.json while the instance is idle, rewrites the launch wrappers/launch.py and records rollback-live.json",
+   "the previous candidate tree must still exist and its schema_version must match the live database, otherwise rollback_schema_mismatch fails closed",
+   "repeating the same swap is idempotent; a later successful switch clears the live-rollback receipt"
+  ],
+  "pending": [
+   "No wheel download, service stop/start, database restore or data-directory purge",
+   "macOS/Linux and clean-machine end-to-end are not verified; default entrypoint remains V1"
+  ]
+ },
+ "validation": {
+  "targeted_reports": [
+   {
+    "path": "temp/build/v2-installer-live-rollback.xml",
+    "sha256": "322d6c8d7f3ae479cadc6efa0765a95cb65dc398c5b2a4fee5867f144d3eeae7",
+    "tests": 24,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 36.888,
+    "note": "live rollback plus installer, uninstall and architecture callers"
+   }
+  ],
+  "gates": {
+   "path": "temp/build/v2-installer-live-rollback-gates.json",
+   "sha256": "0f953cb4c757f228ddebfd624155503277e4be51fd784fdec2e9a2c14d936285",
+   "passed": 5,
+   "total": 5
+  }
+ },
+ "limits": [
+  "No main-package rebuild, remote CI, macOS/Linux run, real accounts/devices or 72-hour soak.",
+  "Rollback is code-pointer only; restoring the matching database backup remains open.",
+  "Default entrypoint remains V1; D7 exit gates are not met."
+ ],
+ "source_recovery": {
+  "manifest": "temp/private/v2-installer-live-rollback-source-20261111-ceb83115e357/manifest.json",
+  "archive_sha256": "fbe6446e9b515b9f114259503fd22070733a78b07d59e3d66c8bac4d90e66445",
+  "files": 1199,
+  "validation_artifacts": [
+   "v2-installer-live-rollback.xml",
+   "v2-installer-live-rollback-gates.json"
+  ]
+ }
+}
