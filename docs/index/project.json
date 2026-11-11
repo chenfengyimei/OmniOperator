@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1e952c783a0f6fb71d04a1425e022d89957810d2f465c9f08a85a8d9b9273f57",
+  "source_sha256": "7d9486f50a717092f3e8731f449b37204a09b020faabeb7aa5ad8d7df15a9902",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8996,
+      "lines": 9003,
       "dependencies": []
     },
     {
@@ -66631,7 +66631,7 @@
       "path": "agent/src/omni/domain/reference_release.py",
       "module": "v2-domain",
       "python_module": "omni.domain.reference_release",
-      "lines": 62,
+      "lines": 69,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.retention"
@@ -66639,7 +66639,7 @@
       "symbols": [
         {
           "name": "_uuid",
-          "line": 18,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "value"
@@ -66650,7 +66650,7 @@
         },
         {
           "name": "validate_reference_plan",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "plan",
@@ -66658,7 +66658,7 @@
             "allow_future"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, object]",
             "now": "str",
             "allow_future": "bool"
           }
@@ -66905,7 +66905,7 @@
             "records"
           ],
           "annotations": {
-            "records": "Iterable[dict]"
+            "records": "Iterable[Mapping[str, object]]"
           }
         },
         {

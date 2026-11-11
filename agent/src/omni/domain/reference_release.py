@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
+from typing import cast
 
 from .contracts import BusinessError
 from .retention import body_fingerprint
@@ -20,10 +21,10 @@ def _uuid(value: object) -> None:
         raise ValueError
 
 
-def validate_reference_plan(plan: dict, now: str, *, allow_future: bool = False) -> str:
+def validate_reference_plan(plan: dict[str, object], now: str, *, allow_future: bool = False) -> str:
     """Cancellation may tolerate clock rollback; all structural checks remain mandatory."""
     try:
-        if not isinstance(plan, dict) or set(plan) != PLAN_KEYS or type(allow_future) is not bool:
+        if set(plan) != set(PLAN_KEYS) or type(allow_future) is not bool:
             raise ValueError
         if plan["format"] != FORMAT or plan["policy"] != POLICY:
             raise ValueError
@@ -31,29 +32,35 @@ def validate_reference_plan(plan: dict, now: str, *, allow_future: bool = False)
         _uuid(plan["instance_id"])
         if not isinstance(plan["schema_version"], str) or not 1 <= len(plan["schema_version"]) <= 40:
             raise ValueError
-        created = dt.datetime.fromisoformat(plan["created_at"])
+        created = dt.datetime.fromisoformat(str(plan["created_at"]))
         current = dt.datetime.fromisoformat(now)
         if created.tzinfo is None or current.tzinfo is None or (created > current and not allow_future):
             raise ValueError
-        targets = plan["targets"]
-        if not isinstance(targets, list) or not 1 <= len(targets) <= 50:
+        raw_targets = plan["targets"]
+        if not isinstance(raw_targets, list):
             raise ValueError
-        seen = set()
+        targets = cast(list[dict[str, object]], raw_targets)
+        if not 1 <= len(targets) <= 50:
+            raise ValueError
+        seen: set[str] = set()
         for target in targets:
-            if not isinstance(target, dict) or set(target) != TARGET_KEYS:
+            if set(target) != set(TARGET_KEYS):
                 raise ValueError
             for key in TARGET_IDS:
                 _uuid(target[key])
-            if target["reference_id"] in seen:
+            reference = cast(str, target["reference_id"])
+            if reference in seen:
                 raise ValueError
-            seen.add(target["reference_id"])
-            if type(target["object_revision"]) is not int or target["object_revision"] < 1:
+            seen.add(reference)
+            revision = cast(int, target["object_revision"])
+            if type(revision) is not int or revision < 1:
                 raise ValueError
-            if type(target["object_bytes"]) is not int or not 0 <= target["object_bytes"] <= 2**63 - 1:
+            size = cast(int, target["object_bytes"])
+            if type(size) is not int or not 0 <= size <= 2**63 - 1:
                 raise ValueError
             for key in ("fingerprint", "object_sha256"):
-                digest = target[key]
-                if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+                digest = cast(str, target[key])
+                if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
                     raise ValueError
         return body_fingerprint([plan])[0]
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError) as exc:

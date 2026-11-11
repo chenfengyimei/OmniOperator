@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`1e952c783a0f6fb71d04a1425e022d89957810d2f465c9f08a85a8d9b9273f57`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`7d9486f50a717092f3e8731f449b37204a09b020faabeb7aa5ad8d7df15a9902`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -45,7 +45,7 @@
 | [agent/src/omni/domain/people.py](../../agent/src/omni/domain/people.py) | 48 | Person, account and memory document rules; contains no I/O or ORM types. |
 | [agent/src/omni/domain/qq.py](../../agent/src/omni/domain/qq.py) | 122 | Bounded OneBot text events and explicit conversation grants; no transport I/O. |
 | [agent/src/omni/domain/recovery_authority.py](../../agent/src/omni/domain/recovery_authority.py) | 84 | Versioned authority for keeping an isolated predecessor fenced; no IO or claims about external effects. |
-| [agent/src/omni/domain/reference_release.py](../../agent/src/omni/domain/reference_release.py) | 62 | Bounded artifact-reference release plans; validates identities without accessing storage or files. |
+| [agent/src/omni/domain/reference_release.py](../../agent/src/omni/domain/reference_release.py) | 69 | Bounded artifact-reference release plans; validates identities without accessing storage or files. |
 | [agent/src/omni/domain/release_fence.py](../../agent/src/omni/domain/release_fence.py) | 78 | Persisted startup exclusion contract shared by immutable installations; no IO or mutable state. |
 | [agent/src/omni/domain/releases.py](../../agent/src/omni/domain/releases.py) | 243 | Reviewed immutable release/recovery plans; same-schema first delivery, with no platform or storage IO. |
 | [agent/src/omni/domain/retention.py](../../agent/src/omni/domain/retention.py) | 91 | Execution-body retention policy; time is injected, no erasure or file operations. |

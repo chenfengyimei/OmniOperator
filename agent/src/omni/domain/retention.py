@@ -6,7 +6,7 @@ import datetime as dt
 import hashlib
 import json
 import uuid
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 from .contracts import BusinessError
 
@@ -35,7 +35,7 @@ def retention_page(after: str, limit: int) -> None:
         raise BusinessError("invalid_retention_query", "Use a full UUID cursor and 1 to 50 runs", status=422)
 
 
-def body_fingerprint(records: Iterable[dict]) -> tuple[str, int, int]:
+def body_fingerprint(records: Iterable[Mapping[str, object]]) -> tuple[str, int, int]:
     digest = hashlib.sha256()
     count = size = 0
     for record in records:
