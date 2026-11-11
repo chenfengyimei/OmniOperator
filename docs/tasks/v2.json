@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "fe0d7b2",
+  "checkpoint_commit": "6121831",
   "current_validation": {
-    "status": "d7_installation_rollback_drilled",
+    "status": "d7_installation_status",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-installer-isolation.xml"
       }
     ],
-    "code_version": "a858efaa6ee9d907c4edfc4d74d9cc6689d67523b78556a946fda0fd7795da82",
-    "fixed_source_files": 1189,
+    "code_version": "fa833bf700c29939d2c7ea55a87893f5ff65c491148874183fd452c71322ed9f",
+    "fixed_source_files": 1191,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -913,12 +913,12 @@
       "id": "R7.installation",
       "status": "部分完成（收据/预检）",
       "development": "installation verify/seal",
-      "offline_validation": "28 项安装/运行时/产物/暂存/解包/切换计划/备份/回滚演练/打包测试全过；live 切换/迁移/回滚仍未执行",
+      "offline_validation": "31 项安装/运行时/产物/暂存/解包/切换计划/备份/回滚演练/状态/打包测试全过；live 切换/迁移/回滚仍未执行",
       "evidence": [
         "docs/evidence/v2-installation.json"
       ],
       "remaining": "未下载/校验 wheel、未创建 venv、未切换目录、未执行迁移/回滚/卸载；macOS/Linux 与干净机器未验收。",
-      "code_version": "a858efaa6ee9d907c4edfc4d74d9cc6689d67523b78556a946fda0fd7795da82"
+      "code_version": "fa833bf700c29939d2c7ea55a87893f5ff65c491148874183fd452c71322ed9f"
     },
     {
       "id": "R7.installer.verification",

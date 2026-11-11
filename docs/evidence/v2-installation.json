@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "a858efaa6ee9d907c4edfc4d74d9cc6689d67523b78556a946fda0fd7795da82",
-  "fixed_source_files": 1189,
-  "git_head": "fe0d7b2"
+  "code_version": "fa833bf700c29939d2c7ea55a87893f5ff65c491148874183fd452c71322ed9f",
+  "fixed_source_files": 1191,
+  "git_head": "6121831"
  },
  "development": {
   "scope": [
@@ -21,7 +21,8 @@
    "installation prepare unpacks a staged, hash-unchanged wheel into updates/<sha16>/tree after re-validating CRC/bounds/paths/duplicates and V2 assets; prepared.json makes replay idempotent and partial trees are cleaned",
    "installation switch-plan is read-only: requires prepared candidate, sealed receipt matching the database schema and an unused instance, then lists backup/stop/switch/migrate/seal/start/health with executable=false",
    "installation backup executes only the plan's backup step: reuses switch-plan preconditions, creates a consistent snapshot outside home, refuses to overwrite, records manifest SHA256 and is idempotent per wheel SHA",
-   "installation rollback-check restores the recorded backup into a new sibling directory, verifies integrity/schema, records rollback.json and is idempotent; the live home is never modified"
+   "installation rollback-check restores the recorded backup into a new sibling directory, verifies integrity/schema, records rollback.json and is idempotent; the live home is never modified",
+   "installation status is a read-only projection of receipt/database and every staged candidate with its staged/prepared/backup/rollback flags and next_step"
   ],
   "pending": [
    "wheel download/verification",
@@ -33,29 +34,29 @@
   ]
  },
  "validation": {
-  "tests": 28,
+  "tests": 31,
   "report": {
-   "path": "temp/build/v2-wheel-rollback.xml",
-   "sha256": "74bb40fcb99f4d26641478f2a13c66bb29feeb0189546452e1afab062598cac5",
-   "tests": 28,
+   "path": "temp/build/v2-wheel-status.xml",
+   "sha256": "fa65c425c31557ffd03c7d612c7d6af3475e2f2344238aee0469829049e19cbc",
+   "tests": 31,
    "failures": 0,
    "errors": 0,
-   "duration_s": 23.301
+   "duration_s": 25.553
   },
   "gates": {
-   "path": "temp/build/v2-wheel-rollback-gates.json",
-   "sha256": "4d4503eabbf3f88ed7c5c8904dd4561745c53dbf76b932f45c384996d12686c7",
+   "path": "temp/build/v2-wheel-status-gates.json",
+   "sha256": "6a442884f9a4eb697833dd2eb1f3f9a29840155103e9caea2f8da0929dd6d478",
    "passed": 5,
    "total": 5
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-wheel-rollback-source-20261111-a858efaa6ee9/manifest.json",
-  "archive_sha256": "76e5b0d40a7894282bd4fb25b198feac68660bc936854ee81b83ebfa841ad2d9",
-  "files": 1189,
+  "manifest": "temp/private/v2-wheel-status-source-20261111-fa833bf700c2/manifest.json",
+  "archive_sha256": "46aeb565d572ef19cda403b39573b4e1185f8dd64231eef0b52c8bc1b4ea8022",
+  "files": 1191,
   "validation_artifacts": [
-   "v2-wheel-rollback.xml",
-   "v2-wheel-rollback-gates.json"
+   "v2-wheel-status.xml",
+   "v2-wheel-status-gates.json"
   ]
  },
  "limits": [
