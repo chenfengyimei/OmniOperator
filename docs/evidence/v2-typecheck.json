@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "d4f4c095a52a6eaa49564155a150614a32e89ee4adcc8c9ae78997837c00eae6",
+  "code_version": "7994b6bc620c0621585e2d2d4e9a3747c7b1ca9c85bbe65f30482ef2407ba18e",
   "fixed_source_files": 1175,
-  "git_head": "bd3efe4",
+  "git_head": "dd84b04",
   "dirty_checkout": false
  },
  "development": {
@@ -24,7 +24,8 @@
    "Strict scope grows to eight domain modules; foreground no longer imports private desktop helpers and memory_semantics uses explicit Mapping/Sequence annotations",
    "Strict scope grows to ten domain modules; recovery_authority uses typed public bridges from service_deployment and context uses Mapping/Sequence annotations",
    "Strict scope grows to eleven domain modules; model_stream maps payload/usage/choices/tool calls to explicit Mapping/sequence types without changing bounds or error classes",
-   "Strict scope grows to twelve domain modules; service_control uses typed plans and public service_deployment bridges while HMAC and time-window checks stay unchanged"
+   "Strict scope grows to twelve domain modules; service_control uses typed plans and public service_deployment bridges while HMAC and time-window checks stay unchanged",
+   "Strict scope reaches 19 files and the first application/adapters modules; ports.witness now returns list[dict[str, object]]"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -89,22 +90,31 @@
     "errors": 0,
     "duration_s": 208.246,
     "note": "sixth strict batch: guard + service drain/runtime/cleanup/exchange/release/recovery callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-7.xml",
+    "sha256": "cdd2339c94438de930771504163522bcbd3c00543ee60dc1e73a77153778d1a7",
+    "tests": 64,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 226.975,
+    "note": "seventh strict batch: guard + routing/release-drain/exchange/release/local-vectors callers"
    }
   ],
   "gates": {
-   "path": "temp/build/v2-typecheck-6-gates.json",
-   "sha256": "abcf847d9f8364dbfd7f78d70806e69be7d23d74e78d03374d7e8f829f69d599",
+   "path": "temp/build/v2-typecheck-7-gates.json",
+   "sha256": "cb41d89d4e8c7e5ce36bd44722a9a15bb72f56e2082f3e3f2def9c8e405b936c",
    "passed": 5,
    "total": 5
   },
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 12,
+    "filesAnalyzed": 19,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0,
-    "timeInSec": 0.584
+    "timeInSec": 0.753
    }
   },
   "default_pyright": {
@@ -126,12 +136,12 @@
   }
  },
  "source_recovery": {
-  "manifest": "temp/private/v2-typecheck-6-source-20261111-d4f4c095a52a/manifest.json",
-  "archive_sha256": "5db1ef8c449df9abd2de0f6cdd1ba666a6bf43397db7ef942994b5a6e0ca1aae",
+  "manifest": "temp/private/v2-typecheck-7-source-20261111-7994b6bc620c/manifest.json",
+  "archive_sha256": "dc36ffebe23c35213cf7b2903ddadb9370eb5a24918272b718485a208b9438c3",
   "files": 1175,
   "validation_artifacts": [
-   "v2-typecheck-6.xml",
-   "v2-typecheck-6-gates.json"
+   "v2-typecheck-7.xml",
+   "v2-typecheck-7-gates.json"
   ]
  },
  "next": {

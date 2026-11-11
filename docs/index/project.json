@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "76592e6fed29705d334dfb2320a7bf7ca58a655617db3b419df84115077339a0",
+  "source_sha256": "9bdbbd6815cdccc8fd6110b74266b4921ef4f5a96c6e0e29d090b8d237d5bc1f",
   "modules": [
     {
       "id": "v2-domain",
@@ -135,7 +135,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10791,
+      "lines": 10793,
       "dependencies": [
         "v2-domain"
       ]
@@ -37913,7 +37913,7 @@
       "path": "agent/src/omni/application/exchange_recovery_steps.py",
       "module": "v2-application",
       "python_module": "omni.application.exchange_recovery_steps",
-      "lines": 45,
+      "lines": 47,
       "imports": [
         "omni.application.ports",
         "omni.application.releases",
@@ -37980,7 +37980,7 @@
           ],
           "annotations": {
             "plan": "ExchangePlan",
-            "authority": "dict",
+            "authority": "RecoveryAuthority | None",
             "request": "Record",
             "output": "str"
           }
@@ -50237,7 +50237,7 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "value": "dict",
+            "value": "Record",
             "revision": "int"
           }
         },

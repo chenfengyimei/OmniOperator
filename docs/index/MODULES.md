@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`76592e6fed29705d334dfb2320a7bf7ca58a655617db3b419df84115077339a0`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`9bdbbd6815cdccc8fd6110b74266b4921ef4f5a96c6e0e29d090b8d237d5bc1f`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -91,7 +91,7 @@
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 346 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
 | [agent/src/omni/application/engine.py](../../agent/src/omni/application/engine.py) | 632 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
 | [agent/src/omni/application/exchange_recovery.py](../../agent/src/omni/application/exchange_recovery.py) | 82 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
-| [agent/src/omni/application/exchange_recovery_steps.py](../../agent/src/omni/application/exchange_recovery_steps.py) | 45 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
+| [agent/src/omni/application/exchange_recovery_steps.py](../../agent/src/omni/application/exchange_recovery_steps.py) | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../agent/src/omni/application/exchange_steps.py) | 138 | Compose existing release/registration/control use cases without holding instance locks across target startup. |
 | [agent/src/omni/application/extensions.py](../../agent/src/omni/application/extensions.py) | 497 | Trusted extension installation, scoped catalogs and explicit authorization; no plugin imports or process creation. |
 | [agent/src/omni/application/images.py](../../agent/src/omni/application/images.py) | 134 | Validated image admission, context selection and last-mile wire materialization over injected ports. |

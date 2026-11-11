@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块，当前为 **12 个**（capabilities/context/credentials/foreground/memory_semantics/metering/model_stream/objects/people/recovery_authority/release_fence/service_control），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与首批 application/adapters，当前为 **19 个文件**（12 个 domain + application 的 routing/release_drain/exchange_recovery_steps/local_vectors + adapters 的 build_identity/primitives/timezones），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -53,7 +53,9 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 第五批把 model_stream（75 个基线错误）清零后纳入：payload/usage/choices/tool_calls 全部显式 `Mapping`/序列类型，JSON 解码结果 cast 为 `dict[str, JSON]`，chunk/字节/参数上限与错误分类不变。
 
-第六批把 service_control（94 个基线错误）清零后纳入：ControlPlan/排空请求/回执全部显式类型，通过 service_deployment 新增 `deployment_created/deployment_plan` 公共桥消除私有依赖，嵌套字段有界读取，HMAC 与时间窗校验路径不变。六批类型守卫 12 项 + 361 项调用方回归全过。D7 剩余门槛：application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第六批把 service_control（94 个基线错误）清零后纳入：ControlPlan/排空请求/回执全部显式类型，通过 service_deployment 新增 `deployment_created/deployment_plan` 公共桥消除私有依赖，嵌套字段有界读取，HMAC 与时间窗校验路径不变。
+
+第七批首次进入 application/adapters：routing（显式 Record）、release_drain（deployment cast）、exchange_recovery_steps（`RecoveryAuthority | None` + `ports.witness` 返回 `list[dict[str, object]]`）、local_vectors，以及 adapters 的 build_identity/primitives/timezones；守卫与文档表同步扩到三层。七批类型守卫 14 项 + 425 项调用方回归全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D7 打包验证（2026-11-11）
 
