@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "219f646",
+  "checkpoint_commit": "1e67fb8",
   "current_validation": {
-    "status": "d7_strict_typing_fortieth_batch",
+    "status": "d7_typecheck_batches_full_verified",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,17 +305,17 @@
         "recheck_report": "temp/build/v2-strict-isolation.xml"
       }
     ],
-    "code_version": "709df0a1b076e3cbe3b29b1c3226b77bdc849464ecb6970a671b5891cd4e1ab7",
+    "code_version": "16892305cfda6d7ef807a157cb956c74ac581f3341171d3e08303e98d25b394e",
     "fixed_source_files": 1199,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
-      "passed": 4652,
-      "failed": 2,
+      "passed": 4653,
+      "failed": 1,
       "errors": 0,
-      "isolation_passed": 13,
-      "report": "temp/build/v2-installer-final-full.xml",
-      "isolation_report": "temp/build/v2-installer-final-isolation.xml"
+      "isolation_passed": 11,
+      "report": "temp/build/v2-typecheck-batches-full-fixed.xml",
+      "isolation_report": "temp/build/v2-typecheck-batches-isolation.xml"
     },
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",
     "token_evidence": "docs/evidence/v2-owner-token.json",
@@ -880,12 +880,12 @@
       "id": "R7.typecheck",
       "status": "进行中",
       "development": "门禁与首批模块完成",
-      "offline_validation": "strict 62 文件 0 errors（含 application/adapters 25 个）；四十批类型守卫 + QQ 调用方回归全过",
+      "offline_validation": "strict 62 文件 0 errors（含 application/adapters 25 个）；四十批类型守卫 + 调用方回归全过；strict 批次后全量 4654 项：4653 passed / 1 failed / 0 errors（debug_sink 并行时序，隔离 11 项全过）",
       "evidence": [
         "docs/evidence/v2-typecheck.json"
       ],
       "remaining": "domain 其余 49 文件与 application/adapters/composition 未严格化；不得称全仓 strict。",
-      "code_version": "709df0a1b076e3cbe3b29b1c3226b77bdc849464ecb6970a671b5891cd4e1ab7"
+      "code_version": "16892305cfda6d7ef807a157cb956c74ac581f3341171d3e08303e98d25b394e"
     },
     {
       "id": "R7.packaging",

@@ -1,0 +1,63 @@
+{
+ "schema": 1,
+ "batch": "D7.typecheck.batches_verification",
+ "date": "2026-11-12",
+ "whole_v2_complete": false,
+ "d7_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "code_version": "16892305cfda6d7ef807a157cb956c74ac581f3341171d3e08303e98d25b394e",
+  "fixed_source_files": 1199,
+  "git_head": "1e67fb8"
+ },
+ "validation": {
+  "full_run": {
+   "path": "temp/build/v2-typecheck-batches-full-fixed.xml",
+   "sha256": "c2b5ba3670d5600e16de6f37ca9345f1d560a96624c5909e2faaf7f660c72c77",
+   "tests": 4654,
+   "failures": 1,
+   "errors": 0,
+   "duration_s": 1518.164,
+   "failed_nodes": [
+    "agent.tests.test_v2_debug_sink::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
+   ],
+   "passed": 4653,
+   "current_full_passed": false,
+   "note": "Only the known debug_sink parallel-timing failure remains; isolated run passes."
+  },
+  "isolation": {
+   "path": "temp/build/v2-typecheck-batches-isolation.xml",
+   "sha256": "dde22bddc52a56d28f7564d1ce459181818eac05467ba3ced6996b97cad7fb81",
+   "tests": 11,
+   "failures": 0,
+   "errors": 0,
+   "duration_s": 3.298,
+   "failed_nodes": []
+  },
+  "first_run_before_fix": {
+   "path": "temp/build/v2-typecheck-batches-full.xml",
+   "sha256": "53c248cdb20b68612a1c79b9ce92f874f5b7d274d654c5389480cfc1f70987cc",
+   "tests": 4654,
+   "failures": 2,
+   "errors": 0,
+   "duration_s": 1531.451,
+   "failed_nodes": [
+    "agent.tests.test_v2_extensions_contract::test_run_bound_tool_specs_and_page_revision_contracts_are_explicit",
+    "agent.tests.test_v2_debug_sink::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
+   ]
+  },
+  "regression_fix": {
+   "id": "extensions_contract.binding_id",
+   "cause": "strict batch 34 removed the runtime isinstance guard for ToolSpec.binding_id",
+   "fix": "1e67fb8 restored ValueError for non-string binding_id while keeping cast(object) for strict"
+  },
+  "known_flakes": [
+   "test_v2_debug_sink::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
+  ]
+ },
+ "limits": [
+  "No main-package rebuild, remote CI, macOS/Linux run, real accounts/devices or 72-hour soak.",
+  "Parallel-run timing flakes are observed, not treated as product failures or hidden by relaxed assertions.",
+  "Default entrypoint remains V1; D7 exit gates are not met."
+ ]
+}
