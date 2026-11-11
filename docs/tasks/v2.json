@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "ae5d4fb",
+  "checkpoint_commit": "c291234",
   "current_validation": {
-    "status": "d7_installer_offline_environment",
+    "status": "d7_installer_venv_launch_selection",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "recheck_report": "temp/build/v2-strict-isolation.xml"
       }
     ],
-    "code_version": "cd07b29ff9e518d0bb252f34edc9a41168ae7bdfe83ab50634da35dd08e3f372",
+    "code_version": "76fbc537b8c40f0c85490e6b160aec5ed41b14a4174870d819809faa1653ff25",
     "fixed_source_files": 1199,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -913,12 +913,12 @@
       "id": "R7.installation",
       "status": "部分完成（收据/预检）",
       "development": "installation verify/seal",
-      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/migrate/current/uninstall/environment；离线 venv 已能安装并导入，尚未接入启动选择",
+      "offline_validation": "verify/seal/artifact/stage/prepare/switch-plan/backup/rollback-check/status/smoke + switch/install/migrate/current/uninstall/environment；switch 优先使用候选 venv（mode=venv），否则宿主解释器+树（mode=tree）",
       "evidence": [
         "docs/evidence/v2-installation.json"
       ],
-      "remaining": "未下载 wheel、未停服/启动、未执行 live 回滚/数据目录清理、venv 未接入 launcher；macOS/Linux 与干净机器未验收。",
-      "code_version": "cd07b29ff9e518d0bb252f34edc9a41168ae7bdfe83ab50634da35dd08e3f372"
+      "remaining": "未下载 wheel、未停服/启动、未执行 live 回滚/数据目录清理；macOS/Linux 与干净机器未验收。",
+      "code_version": "76fbc537b8c40f0c85490e6b160aec5ed41b14a4174870d819809faa1653ff25"
     },
     {
       "id": "R7.installer.verification",
