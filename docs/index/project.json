@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1585c7c8ab5a3e6ab24822727e0fe47c721861b637fda655ec6ba5437dd23594",
+  "source_sha256": "71f1f270302b7f82320d0b978c88e62cbd41f6aacea6ac8707080d083d6b416a",
   "modules": [
     {
       "id": "v2-domain",
@@ -345,6 +345,7 @@
         "agent/src/omni/adapters/platform/terminal.py",
         "agent/src/omni/adapters/platform/wheel_artifact.py",
         "agent/src/omni/adapters/platform/wheel_backup.py",
+        "agent/src/omni/adapters/platform/wheel_environment.py",
         "agent/src/omni/adapters/platform/wheel_install.py",
         "agent/src/omni/adapters/platform/wheel_prepare.py",
         "agent/src/omni/adapters/platform/wheel_rollback.py",
@@ -403,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52426,
+      "lines": 52554,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -438,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2919,
+      "lines": 2926,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30792,6 +30793,81 @@
       "summary": "Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_environment.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_environment",
+      "lines": 128,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.wheel_stage",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 20,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "_python",
+          "line": 24,
+          "kind": "function",
+          "parameters": [
+            "venv"
+          ],
+          "annotations": {
+            "venv": "Path"
+          }
+        },
+        {
+          "name": "_run",
+          "line": 28,
+          "kind": "function",
+          "parameters": [
+            "command",
+            "cwd"
+          ],
+          "annotations": {
+            "command": "list[str]",
+            "cwd": "Path"
+          }
+        },
+        {
+          "name": "_installable",
+          "line": 35,
+          "kind": "function",
+          "parameters": [
+            "artifact",
+            "stage"
+          ],
+          "annotations": {
+            "artifact": "Path",
+            "stage": "Path"
+          }
+        },
+        {
+          "name": "create_environment",
+          "line": 58,
+          "kind": "function",
+          "parameters": [
+            "paths",
+            "sha256"
+          ],
+          "annotations": {
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Create an offline candidate environment: a venv that installs the staged wheel without a network."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/wheel_install.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_install",
@@ -58007,7 +58083,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 978,
+      "lines": 985,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -58026,6 +58102,7 @@
         "omni.adapters.platform.service_readiness",
         "omni.adapters.platform.wheel_artifact",
         "omni.adapters.platform.wheel_backup",
+        "omni.adapters.platform.wheel_environment",
         "omni.adapters.platform.wheel_install",
         "omni.adapters.platform.wheel_prepare",
         "omni.adapters.platform.wheel_rollback",
@@ -58090,7 +58167,7 @@
         },
         {
           "name": "local_origin",
-          "line": 416,
+          "line": 417,
           "kind": "function",
           "parameters": [
             "value"
@@ -58101,7 +58178,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 435,
+          "line": 436,
           "kind": "function",
           "parameters": [
             "paths",
@@ -58114,7 +58191,7 @@
         },
         {
           "name": "main",
-          "line": 477,
+          "line": 478,
           "kind": "function",
           "parameters": [],
           "annotations": {}

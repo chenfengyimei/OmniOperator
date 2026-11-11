@@ -105,7 +105,9 @@ D7 切换执行节点：新增 `installation switch|install|current`。switch �
 
 D7 迁移执行节点：新增 `installation migrate`，在同一组 prepared/smoke/backup/rollback 收据、收据 schema 一致且实例空闲时，用打包的 Alembic head 迁移数据库，校验到达 head 后重新 seal 收据并写 `migrate.json`；install 自动串入 migrate 再 switch，迁移失败由事务回滚并 fail-closed。仍不建 venv、不停服/启动、不执行 live 回滚或卸载，默认入口仍是 V1。
 
-D7 候选卸载节点：新增 `installation uninstall [--sha256]`，实例空闲时删除指定 `updates/<sha16>` 与匹配的当前指针/启动包装，或只停用当前指针；保留 `data/`、安装收据与 home 之外备份，未知/非当前候选和实例占用均 fail-closed。仍不建 venv、不停服/启动、不执行 live 回滚或数据目录清理，默认入口仍是 V1。
+D7 候选卸载节点：新增 `installation uninstall [--sha256]`，实例空闲时删除指定 `updates/<sha16>` 与匹配的当前指针/启动包装，或只停用当前指针；保留 `data/`、安装收据与 home 之外备份，未知/非当前候选和实例占用均 fail-closed。仍不停服/启动、不执行 live 回滚或数据目录清理，默认入口仍是 V1。
+
+D7 离线环境节点：新增 `installation environment`，为已暂存 wheel 创建 `venv`（`--system-site-packages` 离线模式）并用 `pip --no-index --no-deps` 安装，子解释器验证 `omni` 导入位于该 venv，写 `environment.json`，同 SHA 幂等；依赖宿主 site-packages，尚未接入 `launch.py` 运行选择。仍不停服/启动、不执行 live 回滚或数据目录清理，默认入口仍是 V1。
 
 ## D6 扩展产物协议（2026-11-11）
 
