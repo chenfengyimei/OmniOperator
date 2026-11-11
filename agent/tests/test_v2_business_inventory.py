@@ -7,6 +7,14 @@ ROOT = Path(__file__).resolve().parents[2]
 INDEX = ROOT / "web/ui/v2/index.html"
 DOC = ROOT / "docs/V2_BUSINESS_INVENTORY.md"
 STATUSES = {"可用（离线）", "需配置"}
+GROUPS = ("对话与记忆", "知识与技能", "工具与扩展", "设备与平台", "资料与媒体", "自动化", "系统与运维")
+
+
+def nav_groups():
+    html = INDEX.read_text(encoding="utf-8")
+    block = re.search(r'<nav aria-label="工作台" inert>(.*?)</nav>', html, re.S)
+    assert block, "workbench navigation block is missing"
+    return re.findall(r'<p class="nav-group">([^<]+)</p>', block.group(1))
 
 
 def page_sets():
@@ -32,6 +40,14 @@ def test_every_page_is_documented_and_every_documented_page_exists():
     assert nav == sections, f"navigation/section drift: {nav ^ sections}"
     assert set(rows) == nav, f"inventory/navigation drift: {set(rows) ^ nav}"
     assert len(rows) == len(nav)
+
+
+def test_navigation_is_grouped_by_business_domain():
+    groups = nav_groups()
+    assert tuple(groups) == GROUPS, f"navigation groups drifted: {groups}"
+    text = DOC.read_text(encoding="utf-8")
+    for group in GROUPS:
+        assert group in text, f"inventory does not explain navigation group {group}"
 
 
 def test_inventory_statuses_are_honest_and_bounded():

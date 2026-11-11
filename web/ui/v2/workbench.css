@@ -75,6 +75,16 @@ nav {
   gap: 8px;
   margin: 20px 0;
 }
+nav .nav-group {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  letter-spacing: 0.04em;
+}
+nav .nav-group:first-child {
+  margin-top: 0;
+}
 pre {
   overflow-wrap: anywhere;
   white-space: pre-wrap;

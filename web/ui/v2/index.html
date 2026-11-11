@@ -7,8 +7,8 @@
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v53" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v53" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261110v54" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261110v54" />
   </head>
   <body>
     <header>
@@ -25,28 +25,35 @@
         </form>
         <label>Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
         <nav aria-label="工作台" inert>
+          <p class="nav-group">对话与记忆</p>
           <button type="button" data-page="chat">对话</button>
           <button type="button" data-page="memory">记忆</button>
+          <p class="nav-group">知识与技能</p>
           <button type="button" data-page="skills">技能</button>
-          <button type="button" data-page="settings">设置</button>
+          <button type="button" data-page="documents">来源文档</button>
+          <p class="nav-group">工具与扩展</p>
           <button type="button" data-page="extensions">可信插件</button>
+          <button type="button" data-page="mcp">MCP</button>
           <button type="button" data-page="action-reviews">动作核查</button>
-          <button type="button" data-page="terminals">所有者终端</button>
-          <button type="button" data-page="desktop">桌面能力</button>
-          <button type="button" data-page="logs">诊断日志</button>
-          <button type="button" data-page="capabilities">能力</button>
-          <button type="button" data-page="tokens">令牌</button>
-          <button type="button" data-page="audit">审计记录</button>
-          <button type="button" data-page="objects">文件</button>
-          <button type="button" data-page="people">人物与档案</button>
+          <p class="nav-group">设备与平台</p>
           <button type="button" data-page="qq">QQ 通道</button>
           <button type="button" data-page="bilibili">B站</button>
-          <button type="button" data-page="media">媒体</button>
-          <button type="button" data-page="mcp">MCP</button>
           <button type="button" data-page="android">安卓设备</button>
-          <button type="button" data-page="documents">来源文档</button>
+          <button type="button" data-page="desktop">桌面能力</button>
+          <button type="button" data-page="terminals">所有者终端</button>
+          <p class="nav-group">资料与媒体</p>
+          <button type="button" data-page="people">人物与档案</button>
+          <button type="button" data-page="objects">文件</button>
+          <button type="button" data-page="media">媒体</button>
+          <p class="nav-group">自动化</p>
           <button type="button" data-page="schedules">持久调度</button>
           <button type="button" data-page="deliveries">持久投递</button>
+          <p class="nav-group">系统与运维</p>
+          <button type="button" data-page="settings">设置</button>
+          <button type="button" data-page="capabilities">能力</button>
+          <button type="button" data-page="tokens">令牌</button>
+          <button type="button" data-page="logs">诊断日志</button>
+          <button type="button" data-page="audit">审计记录</button>
         </nav>
         <button id="new-session" type="button">新建对话</button>
         <div id="sessions" aria-label="历史会话"></div>
@@ -1396,8 +1403,8 @@
         </section>
       </section>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261110v53"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v53"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261110v53"></script>
+    <script src="/assets/vendor/xterm.js?v=20261110v54"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261110v54"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261110v54"></script>
   </body>
 </html>
