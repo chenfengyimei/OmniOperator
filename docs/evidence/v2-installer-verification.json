@@ -1,0 +1,83 @@
+{
+ "schema": 1,
+ "batch": "D7.installer.verification",
+ "date": "2026-11-11",
+ "whole_v2_complete": false,
+ "d7_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "code_version": "d723f33ea5df2b8a44f2eb6a3f7545737ca306b45077e8a1499894f0d16fa260",
+  "fixed_source_files": 1187,
+  "git_head": "1a13f3c",
+  "architecture_fix": "1a13f3c moved read-only alembic schema reads into adapters/persistence/maintenance.read_schema"
+ },
+ "validation": {
+  "full_run": {
+   "path": "temp/build/v2-installer-full-fixed.xml",
+   "sha256": "7f62138235a3e307f119ba12e390b47e62b5872fbd3e2c0d1f9a82c4ea97b716",
+   "tests": 4624,
+   "failures": 1,
+   "errors": 0,
+   "skipped": 0,
+   "duration_s": 1464.669,
+   "failed_nodes": [
+    "agent.tests.test_v2_debug_sink::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
+   ],
+   "passed": 4623,
+   "current_full_passed": false,
+   "note": "Only the known debug_sink parallel-timing failure remains; isolated run passes."
+  },
+  "first_run_before_architecture_fix": {
+   "path": "temp/build/v2-installer-full.xml",
+   "sha256": "701e8b3160ef93bc1e65f93668108ad954c225009d8e5d4814c825449ef18a15",
+   "tests": 4624,
+   "failures": 3,
+   "errors": 0,
+   "skipped": 0,
+   "duration_s": 1308.882,
+   "failed_nodes": [
+    "agent.tests.test_v2_debug_sink::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime",
+    "agent.tests.test_v2_architecture::test_v2_dependency_direction_and_no_legacy_imports",
+    "agent.tests.test_v2_desktop_observation_native::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]"
+   ]
+  },
+  "isolation": {
+   "path": "temp/build/v2-installer-isolation.xml",
+   "sha256": "1fc1f2d752b6a2d72a3ec6861f6ce36f8d833b1882cca0f20c1fe8db9bdfec71",
+   "tests": 11,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "duration_s": 2.477,
+   "failed_nodes": []
+  },
+  "known_flakes": [
+   "test_v2_debug_sink::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime",
+   "test_v2_memory_organization_ui::test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_batch",
+   "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels",
+   "test_v2_service_runtime::test_identity_tracks_real_boot_and_drains_before_releasing_lock",
+   "test_v2_desktop_observation_native::test_fixed_windows_uia_worker_reads_only_owned_fixture_and_redacts_password[act]"
+  ],
+  "architecture": {
+   "first_run": "failed: sqlite3 imports outside persistence (wheel_switch, cli)",
+   "fix": "1a13f3c",
+   "recheck": "test_v2_architecture passes in full and isolation"
+  }
+ },
+ "limits": [
+  "No main-package rebuild, remote CI, macOS/Linux run, real accounts/devices, real third-party plugins/MCP services or 72-hour soak.",
+  "Parallel-run timing flakes are observed, not treated as product failures or hidden by relaxed assertions.",
+  "Default entrypoint remains V1; D7 exit gates are not met."
+ ],
+ "source_recovery": {
+  "manifest": "temp/private/v2-installer-verification-source-20261111-d723f33ea5df/manifest.json",
+  "archive_sha256": "b0075d05b73fc9834ba19f8b8477f5aa448fe201a8495f7d1e0ed92c61d82cc0",
+  "files": 1187,
+  "validation_artifacts": [
+   "v2-installer-full-fixed.xml",
+   "v2-installer-isolation.xml",
+   "v2-installer-full.xml",
+   "v2-installer-verification-gates.json"
+  ]
+ }
+}

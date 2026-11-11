@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ddcd5576a7473a76f8c849c2ac249120b84c138beddbd903ecf30b8ab0010289",
+  "source_sha256": "16219470774c6e328b22ab03a31f941a51eef0d669e5381c95eeb6807a763fd6",
   "modules": [
     {
       "id": "v2-domain",
@@ -398,7 +398,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51788,
+      "lines": 51794,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -433,7 +433,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2868,
+      "lines": 2861,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -15277,7 +15277,7 @@
       "path": "agent/src/omni/adapters/persistence/maintenance.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.maintenance",
-      "lines": 982,
+      "lines": 993,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence",
@@ -15341,8 +15341,19 @@
           }
         },
         {
-          "name": "inspect_database",
+          "name": "read_schema",
           "line": 108,
+          "kind": "function",
+          "parameters": [
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "inspect_database",
+          "line": 119,
           "kind": "function",
           "parameters": [
             "path",
@@ -15355,7 +15366,7 @@
         },
         {
           "name": "backup",
-          "line": 252,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "paths",
@@ -15368,7 +15379,7 @@
         },
         {
           "name": "create_snapshot",
-          "line": 266,
+          "line": 277,
           "kind": "function",
           "parameters": [
             "database",
@@ -15383,7 +15394,7 @@
         },
         {
           "name": "durable_json",
-          "line": 321,
+          "line": 332,
           "kind": "function",
           "parameters": [
             "path",
@@ -15396,7 +15407,7 @@
         },
         {
           "name": "migration_snapshot",
-          "line": 340,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "database",
@@ -15409,7 +15420,7 @@
         },
         {
           "name": "object_report",
-          "line": 347,
+          "line": 358,
           "kind": "function",
           "parameters": [
             "paths"
@@ -15420,7 +15431,7 @@
         },
         {
           "name": "_quarantine_restored_work",
-          "line": 385,
+          "line": 396,
           "kind": "function",
           "parameters": [
             "connection",
@@ -15433,7 +15444,7 @@
         },
         {
           "name": "_finish_restore_marker",
-          "line": 760,
+          "line": 771,
           "kind": "function",
           "parameters": [
             "destination",
@@ -15446,7 +15457,7 @@
         },
         {
           "name": "verify_snapshot",
-          "line": 772,
+          "line": 783,
           "kind": "function",
           "parameters": [
             "source"
@@ -15457,7 +15468,7 @@
         },
         {
           "name": "_restore_verified",
-          "line": 844,
+          "line": 855,
           "kind": "function",
           "parameters": [
             "source",
@@ -15476,7 +15487,7 @@
         },
         {
           "name": "restore",
-          "line": 958,
+          "line": 969,
           "kind": "function",
           "parameters": [
             "source",
@@ -30871,8 +30882,9 @@
       "path": "agent/src/omni/adapters/platform/wheel_switch.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_switch",
-      "lines": 88,
+      "lines": 83,
       "imports": [
+        "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
         "omni.adapters.platform.paths",
         "omni.adapters.platform.wheel_prepare",
@@ -30904,7 +30916,7 @@
         },
         {
           "name": "switch_plan",
-          "line": 31,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "paths",
@@ -57628,7 +57640,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 927,
+      "lines": 920,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57677,7 +57689,7 @@
         },
         {
           "name": "installation_report",
-          "line": 63,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "paths"
@@ -57688,7 +57700,7 @@
         },
         {
           "name": "seal_installation",
-          "line": 104,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "paths"
@@ -57699,14 +57711,14 @@
         },
         {
           "name": "parser",
-          "line": 131,
+          "line": 124,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "local_origin",
-          "line": 407,
+          "line": 400,
           "kind": "function",
           "parameters": [
             "value"
@@ -57717,7 +57729,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 426,
+          "line": 419,
           "kind": "function",
           "parameters": [
             "paths",
@@ -57730,7 +57742,7 @@
         },
         {
           "name": "main",
-          "line": 468,
+          "line": 461,
           "kind": "function",
           "parameters": [],
           "annotations": {}

@@ -73,6 +73,8 @@ D7 节点后全量复核：**4601 项，4599 passed / 2 failed / 0 errors**（`m
 
 `python -m omni.composition.cli --home <home> installation verify|seal|artifact|stage|prepare|switch-plan|backup`：verify 只读报告 home/收据/数据库/WAL/schema/期望 head 与是否需要升级；seal 显式写入一次性安装收据（schema==代码 head，幂等、原子写、权限收紧、异常 fail-closed），校验规则位于 `domain/installation.py`；artifact 只读校验本地候选 wheel（哈希/zip CRC/成员与解压上限/越界路径/重名/V2 资源与 METADATA）；stage 在 artifact 通过后原子复制到 `home/updates/<sha16>/artifact.whl` 并写 `staged.json`；prepare 仅对已暂存且哈希未变的 wheel 解包到 `tree/`，重校验后写 `prepared.json`（同 SHA 幂等、失败清理 partial）；switch-plan 只读校验候选/收据/数据库 schema/实例占用并输出 backup→stop→switch→migrate→seal→start→health 七步计划（executable=false）；backup 只执行计划中的备份步，在 home 之外创建一致快照并写 `backup.json`，同 SHA 幂等、不覆盖旧目录。运行时打开实例会校验已存在收据：schema 不一致 `installation_mismatch`、损坏/链接 `installation_invalid`，无收据的历史实例保持兼容；升级后必须重新 seal。这仍不是完整安装器：不下载 wheel、不创建环境、不切换目录、不执行迁移或回滚；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
 
+安装器节点后全量复核 **4624 项：4623 passed / 1 failed / 0 errors**（`debug_sink` 并行时序，隔离 11 项全过）。首次全量发现 `test_v2_architecture` 分层违规（`wheel_switch`/CLI 直接 import sqlite3），已在 `1a13f3c` 将只读 schema 读取移入 `adapters/persistence/maintenance.read_schema` 并在第二次全量确认；证据见[证据](evidence/v2-installer-verification.json)。
+
 ## D6 扩展产物协议（2026-11-11）
 
 扩展工具可在manifest中声明≤4个产物媒体类型，声明进入目录/spec指纹，能力变化即触发漂移撤权。宿主为每个扩展给出唯一可写目录（OMNI_EXTENSION_ARTIFACTS），工具只回传name+media_type，子进程拒绝符号链接/越界/缺失并自行计算bytes+sha256；服务在派发后独立复读复核路径、大小与哈希，逐份发布为不可变对象，ActionResult.artifacts交给settle_action建立action_objects引用，模型文本只含媒体类型与字节数摘要。四类不可验证产物（越界/未声明/缺失/超限）一律归unknown、不发布、不重放；目录每次调用前后清理，宿主关闭时清理根目录。安装表写入显式挑列，避免新能力混入数据库列。
