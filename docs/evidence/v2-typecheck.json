@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "01d40e8b987dade2e464e555d0212c73c648610717023bb5b82e837d178dd237",
+  "code_version": "69671533c4db3de8d3aedaf9e8f627a24be9774f64bec3bd7e270d142e43f99f",
   "fixed_source_files": 1199,
-  "git_head": "7b3f535",
+  "git_head": "12c9fe0",
   "dirty_checkout": false
  },
  "development": {
@@ -43,7 +43,8 @@
    "Strict scope reaches 41 files with domain delivery, installation and maintenance; outbound digests/configuration/results, maintenance request casts and set comparisons are explicitly typed while non-string inputs stay fail-closed",
    "Strict scope reaches 42 files with domain/reference_release; plan keys, target lists and 64-hex digests are explicitly cast and retention.body_fingerprint accepts Iterable[Mapping[str, object]] without changing validation semantics",
    "Strict scope reaches 43 files with domain/service_activation; public deployment bridges and explicit dict[str, object] bindings/reservations replace private helper imports without changing validation semantics",
-   "Strict scope reaches 44 files with domain/terminals; parsed terminal requests return explicit dict[str, object] and _exact narrows before casting without changing validation semantics"
+   "Strict scope reaches 44 files with domain/terminals; parsed terminal requests return explicit dict[str, object] and _exact narrows before casting without changing validation semantics",
+   "Strict scope reaches 45 files with domain/skills; identifiers, metadata, platform sets and manifests are explicitly typed and ToolSpec parameters cast dict[str, JSON] without changing validation semantics"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -279,6 +280,15 @@
     "errors": 0,
     "duration_s": 11.969,
     "note": "twenty-fifth strict batch: guard + terminal http/lifecycle callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-26.xml",
+    "sha256": "17ba49be672498a4765afba84a6f0e782a74025de9ad73d2c3e00c80bc4e7f6a",
+    "tests": 27,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 42.004,
+    "note": "twenty-sixth strict batch: guard + skills callers"
    }
   ],
   "gates": {
@@ -290,7 +300,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 44,
+    "filesAnalyzed": 45,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
