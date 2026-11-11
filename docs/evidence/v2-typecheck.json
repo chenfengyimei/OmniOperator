@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "055c640b1d55e5212ab5541fe4016c90b4218fadcd89e249f7134ad7f383386c",
+  "code_version": "9063d3a5b5aa01b44fa3e4a91e0e7d26e208cd53bbffc961f0c326a7e88613b9",
   "fixed_source_files": 1199,
-  "git_head": "05ceb36",
+  "git_head": "ef1e1cb",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py"
  },
@@ -63,10 +63,11 @@
    "Strict scope reaches 63 files with domain/images; image references/policy/message refs/attach results are explicit and redundant type checks are removed without changing image admission or budget semantics",
    "Strict scope reaches 65 files with domain/audit_retention and domain/event_retention; plan parameters are explicit dict[str, object], target rows are cast item by item and set comparisons no longer compare against frozenset while caller-context fail-closed checks remain",
    "Strict scope reaches 66 files with domain/bilibili; WBI signing parameters are explicit Mapping[str, object], form and mention rows are narrowed item by item and non-string inputs stay fail-closed",
-   "Strict scope reaches 67 files with domain/service_exchange; deployment helpers move to the public bridges and participants, proofs and progress are explicitly typed without changing exchange identity, stage order or fail-closed checks"
+   "Strict scope reaches 67 files with domain/service_exchange; deployment helpers move to the public bridges and participants, proofs and progress are explicitly typed without changing exchange identity, stage order or fail-closed checks",
+   "Strict scope reaches 68 files with domain/desktop_actions; desktop exposes public bridges and node proofs, semantic actions and results are narrowed item by item while observations still grant no write authority"
   ],
   "pending": [
-   "Remaining 10 domain files (43/53 in strict)",
+   "Remaining 9 domain files (44/53 in strict)",
    "Remaining application/adapters strict typing (20/44 application, 4/215 adapters in strict)",
    "composition layer not yet in strict scope",
    "Three-platform packaging/install/update/restore",
@@ -76,8 +77,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-44-callers.xml",
-   "tests": 109,
+   "report": "temp/build/v2-typecheck-45-callers.xml",
+   "tests": 54,
    "failures": 0
   },
   "targeted_reports": [
@@ -475,6 +476,15 @@
     "errors": 0,
     "duration_s": 246.33,
     "note": "forty-fourth strict batch: guard + service exchange/system/darwin, recovery and cleanup callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-45-callers.xml",
+    "sha256": "a3df7a7200be88e7e60c135354105f5754f074ea223d0e4b4c106663672ab5ec",
+    "tests": 54,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 46.67,
+    "note": "forty-fifth strict batch: guard + desktop action/transport/UI, foreground and Linux semantic callers"
    }
   ],
   "gates": {
@@ -486,7 +496,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 67,
+    "filesAnalyzed": 68,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -507,7 +517,7 @@
   },
   "full_run": {
    "status": "not_rerun_since_source_change",
-   "last_known": "4654 tests: 4653 passed / 1 failed (debug_sink parallel timing; isolation 11/11) on source 1e67fb8; batches 41-44 changed source afterwards"
+   "last_known": "4654 tests: 4653 passed / 1 failed (debug_sink parallel timing; isolation 11/11) on source 1e67fb8; batches 41-45 changed source afterwards"
   }
  },
  "source_recovery": {
@@ -521,6 +531,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue strict typing (10 domain files left, then application/adapters); three-platform packaging/install/update/restore and real-environment acceptance remain."
+  "scope": "Continue strict typing (9 domain files left, then application/adapters); three-platform packaging/install/update/restore and real-environment acceptance remain."
  }
 }
