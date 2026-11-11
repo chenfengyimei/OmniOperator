@@ -6,8 +6,8 @@
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
 - 当前断点：**D7 产品切换进行中**，能力报告、令牌管理（API/CLI/工作台）、业务清单、导航收敛、strict 类型二十二批、Windows 打包验证、安装收据/产物/暂存/解包/切换计划/更新备份/回滚演练/状态/冒烟、**切换执行（switch/install/current）、迁移执行（migrate+重 seal）、候选卸载（uninstall）与离线环境（environment）**已完成；剩余完整 V2 安装器/更新器（停服/启动、live 回滚、数据目录清理、venv 接入启动选择）、容器镜像、三平台构建与干净机器端到端、正式入口切换。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
-- 最新完成节点是 **D7.installer.purge（显式清理）**：`installation uninstall --purge-data` 在实例空闲时显式删除 `data`/`objects`/`logs`/`updates`/`runtime`/`cache` 与安装收据、启动包装，保留 home 目录本身与 home 之外备份；purge 与 `--sha256` 并用、实例占用、restore-in-progress 均 fail-closed；专项 **22 项全过**；证据 `docs/evidence/v2-installer-purge.json`。
-- 严格类型基线：strict 41 文件、0 errors；最新全量仍是二十二批后 **4633 项：4632 passed / 1 failed / 0 errors**（debug_sink 并行时序，隔离 11 项全过）。
+- 最新完成节点是 **D7.installer.full_verification（安装器链后全量复核）**：全量 **4654 项：4652 passed / 2 failed / 0 errors，1529 秒**；两项失败为已知 `debug_sink` 并行时序与本次已修复的 `V2_PACKAGING.md` 文档守卫（要求保留“V2 尚无独立安装器”缺口句），隔离 13 项全过。**不是全量全绿**；证据 `docs/evidence/v2-installer-full-verification.json`。
+- 严格类型基线：strict 41 文件、0 errors；安装器链后全量 **4654 项：4652 passed / 2 failed / 0 errors**（debug_sink 并行时序 + 已修复的文档守卫；隔离 13 项全过）。**仍不是全量全绿、全仓严格类型或三平台验收。**
 - 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）、`1eaf6a9`（能力报告）、`ed5912a`（令牌管理）、`560387d`（令牌工作台）、`9133001`（业务清单）、`1a18fae`（导航收敛）、`6679edf`（类型起步）、`a3aa0e4`（类型第二批）、`cfa9d1d`（类型第三批）、`800e719`（类型第四批）、`7a5568f`（打包验证）、`ac752a1`（类型第五批）、`bd3efe4`（类型第六批）、`dd84b04`（类型第七批）、`3ee417a`（类型第八批）、`0a90cec`（类型第九批）、`0951001`（类型第十批）、`f6f0e2e`（安装收据/预检）、`701f3f4`（运行时收据校验）、`fd0eb0b`（wheel 产物校验）、`5b28d41`（wheel 产物暂存）、`b0bafae`（wheel 候选解包）、`a6dd48e`（切换计划）、`caa08d4`（更新备份步）、`1a13f3c`（分层修复）、`fe0d7b2`（回滚演练）、`6121831`（安装状态汇总）、`26fc9d1`（候选冒烟）、`1bd8472`（类型第十一批）、`e8a5431`（类型第十二批）、`febe5df`（类型第十三批）、`95d4524`（类型第十四批）、`6e5e64c`（类型第十五批）、`b05d937`（类型第十六批）、`3cb1116`（类型第十七批）、`45121bf`（类型第十八批）、`9efa947`（类型第十九批）、`9d9153d`（类型第二十批）、`91c8c6f`（类型第二十一批）、`5640983`（类型第二十二批）、`fc3495f`（二十二批收口）、`af4a347`（切换执行）、`b6f34cf`（迁移执行）、`a325e72`（候选卸载）、`ae5d4fb`（离线环境）、`c291234`（运行选择）、`805f2bb`（live 回滚）、`dcb1f5b`（状态投影）、`4042f66`（显式清理）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
@@ -310,6 +310,7 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | `v2-installer-live-rollback.xml` | 24 | D7 live 回滚：rollback + 安装器/卸载/切换/架构调用方 |
 | `v2-installer-status.xml` | 19 | D7 状态投影：status + 安装器/架构调用方 |
 | `v2-installer-purge.xml` | 22 | D7 显式清理：purge-data + 安装器/架构调用方 |
+| `v2-installer-final-full.xml` | 4654 | 安装器链后全量：4652 passed / 2 failed（debug_sink 并行时序 + 已修复文档守卫）；`v2-installer-final-isolation.xml` 13 项全过 |
 | `v2-installer-full.xml` | 4624 | 首次全量：4621 passed / 3 failed（架构违规 + debug_sink + desktop observation），架构已在 1a13f3c 修复 |
 | `v2-packaging-guard.xml` | 2 | D7 打包：构建门禁 V2 检查项与文档边界守卫 |
 | `v2-packaging-callers.xml` | 57 | D7 打包：发布/部署/drain/schema 恢复调用方 |

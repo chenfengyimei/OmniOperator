@@ -68,7 +68,7 @@ python -m omni.composition.cli --home <home> installation seal
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
 - **容器镜像**：无 Dockerfile/镜像构建链与验收。
-- **V2 安装器/更新器**：已有本地 wheel 的 stage/prepare/smoke/backup/rollback-check/migrate/switch/install 链、运行指针、候选卸载与显式 `--purge-data`、离线 venv 创建与启动选择、代码级 live 回滚，但尚无停服/启动与数据库备份恢复；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不是 V2 安装链。
+- **V2 尚无独立安装器/更新器（仅有本地 wheel 执行链）**：已有 stage/prepare/smoke/backup/rollback-check/migrate/switch/install 链、运行指针、候选卸载与显式 `--purge-data`、离线 venv 创建与启动选择、代码级 live 回滚，但尚无停服/启动与数据库备份恢复；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不是 V2 安装链。
 - **代码签名/公证**：未做 Windows 签名、macOS notarization。
 - **真实机器验收**：未在干净 Windows/macOS/Linux 机器执行“安装→升级→回滚→恢复→卸载”。
 - **正式入口切换**：未满足 D7 门槛，`omni` 仍指向 V1。
