@@ -29,6 +29,7 @@
     "agent/src/omni/domain/context.py",
     "agent/src/omni/domain/credentials.py",
     "agent/src/omni/domain/delivery.py",
+    "agent/src/omni/domain/documents.py",
     "agent/src/omni/domain/foreground.py",
     "agent/src/omni/domain/installation.py",
     "agent/src/omni/domain/maintenance.py",
@@ -56,6 +57,7 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 
 
 

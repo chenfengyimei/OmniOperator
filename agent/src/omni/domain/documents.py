@@ -6,6 +6,7 @@ import hashlib
 import math
 import re
 from dataclasses import dataclass
+from typing import cast
 
 from .contracts import BusinessError
 
@@ -17,7 +18,7 @@ VECTOR_CANDIDATES = 512
 
 
 def document_title(value: str) -> str:
-    if not isinstance(value, str) or not value.strip() or len(value) > 200 or any(ord(c) < 32 for c in value):
+    if not value.strip() or len(value) > 200 or any(ord(c) < 32 for c in value):
         raise BusinessError("invalid_document", "A printable title of 1 to 200 characters is required", status=422)
     return value.strip()
 
@@ -50,7 +51,7 @@ class DocumentText:
         except UnicodeError as exc:
             raise BusinessError("invalid_document", "Source text must be valid UTF-8", status=422) from exc
 
-    def chunks(self) -> list[dict]:
+    def chunks(self) -> list[dict[str, object]]:
         return [
             {
                 "position": i // CHUNK_CHARS,
@@ -63,39 +64,37 @@ class DocumentText:
 
 
 def normalized_vector(value: object, dimension: int) -> list[float]:
-    if (
-        type(dimension) is not int
-        or not 1 <= dimension <= 512
-        or not isinstance(value, (list, tuple))
-        or len(value) != dimension
-        or not all(type(n) in {int, float} and math.isfinite(n) for n in value)
-    ):
+    if type(dimension) is not int or not 1 <= dimension <= 512 or not isinstance(value, (list, tuple)):
         raise BusinessError(
             "invalid_vector", "A finite vector with the declared bounded dimension is required", status=422
         )
-    norm = math.hypot(*value)
+    items = cast(list[object] | tuple[object, ...], value)
+    if len(items) != dimension or not all(isinstance(n, (int, float)) and math.isfinite(cast(float, n)) for n in items):
+        raise BusinessError(
+            "invalid_vector", "A finite vector with the declared bounded dimension is required", status=422
+        )
+    numbers = cast(list[float] | tuple[float, ...], items)
+    norm = math.hypot(*numbers)
     if not norm or not math.isfinite(norm):
         raise BusinessError("invalid_vector", "A finite nonzero vector is required", status=422)
-    return [float(n) / norm for n in value]
+    return [float(n) / norm for n in numbers]
 
 
 def vector_identity(version: str, dimension: int) -> None:
-    if (
-        not isinstance(version, str)
-        or not re.fullmatch(r"[A-Za-z0-9_.:/-]{1,100}", version)
-        or type(dimension) is not int
-        or not 1 <= dimension <= 512
-    ):
+    if not re.fullmatch(r"[A-Za-z0-9_.:/-]{1,100}", version) or type(dimension) is not int or not 1 <= dimension <= 512:
         raise BusinessError(
             "vector_unavailable", "A versioned local vectorizer with dimension 1 to 512 is required", status=503
         )
 
 
-def merge_results(text_rows: list[dict], vector_rows: list[dict], limit: int) -> list[dict]:
-    scores, rows = {}, {}
+def merge_results(
+    text_rows: list[dict[str, object]], vector_rows: list[dict[str, object]], limit: int
+) -> list[dict[str, object]]:
+    scores: dict[str, float] = {}
+    rows: dict[str, dict[str, object]] = {}
     for source in (text_rows, vector_rows):
         for rank, row in enumerate(source, 1):
-            key = row["chunk_id"]
+            key = cast(str, row["chunk_id"])
             rows[key] = row
             scores[key] = scores.get(key, 0.0) + 1 / (60 + rank)
     return [{**rows[key], "score": scores[key]} for key in sorted(scores, key=lambda key: (-scores[key], key))[:limit]]

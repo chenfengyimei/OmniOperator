@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`47077e375b12c887911a75a9b0067747083cb148084a4776488440c390da3ff3`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`c751c001e80b29ba4d1faaddf30a1b1f2ac9df2051c5e08ef75e0f79d8527ce8`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -26,7 +26,7 @@
 | [agent/src/omni/domain/desktop.py](../../agent/src/omni/domain/desktop.py) | 553 | Bounded desktop discovery and read-only UI contracts; no native I/O or action authorization. |
 | [agent/src/omni/domain/desktop_actions.py](../../agent/src/omni/domain/desktop_actions.py) | 204 | Exact semantic action contracts; observations never grant write authority. |
 | [agent/src/omni/domain/desktop_portal.py](../../agent/src/omni/domain/desktop_portal.py) | 232 | Ephemeral window-share consent and helper protocol; grants never identify a native PID or authorize input. |
-| [agent/src/omni/domain/documents.py](../../agent/src/omni/domain/documents.py) | 101 | Bounded source text, deterministic chunks and local vector math; contains no I/O. |
+| [agent/src/omni/domain/documents.py](../../agent/src/omni/domain/documents.py) | 100 | Bounded source text, deterministic chunks and local vector math; contains no I/O. |
 | [agent/src/omni/domain/event_retention.py](../../agent/src/omni/domain/event_retention.py) | 279 | Bounded event-retention previews and explicit plans; performs no I/O, deletion or sequence reconstruction. |
 | [agent/src/omni/domain/extensions.py](../../agent/src/omni/domain/extensions.py) | 429 | Static trusted-plugin metadata, immutable capture records and owner authorizations; never loads code or files. |
 | [agent/src/omni/domain/foreground.py](../../agent/src/omni/domain/foreground.py) | 107 | Single-use foreground authority and bounded input, independent of native APIs. |

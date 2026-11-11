@@ -17,6 +17,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/capabilities.py` | 能力报告纯投影，需保持无 `Any` 泄漏 |
 | `agent/src/omni/domain/credentials.py` | 凭据引用与权限指纹纯函数 |
 | `agent/src/omni/domain/delivery.py` | 出站意图身份/受限文本/可信结果纯规则 |
+| `agent/src/omni/domain/documents.py` | 源文本/分块/向量归一化与合并纯规则 |
 | `agent/src/omni/domain/installation.py` | 安装收据校验与 schema 一致性纯规则 |
 | `agent/src/omni/domain/objects.py` | 对象类型/上限纯规则 |
 | `agent/src/omni/domain/people.py` | 人物档案纯规则 |

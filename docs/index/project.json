@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "47077e375b12c887911a75a9b0067747083cb148084a4776488440c390da3ff3",
+  "source_sha256": "c751c001e80b29ba4d1faaddf30a1b1f2ac9df2051c5e08ef75e0f79d8527ce8",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9086,
+      "lines": 9085,
       "dependencies": []
     },
     {
@@ -64247,14 +64247,14 @@
       "path": "agent/src/omni/domain/documents.py",
       "module": "v2-domain",
       "python_module": "omni.domain.documents",
-      "lines": 101,
+      "lines": 100,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "document_title",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "value"
@@ -64265,12 +64265,12 @@
         },
         {
           "name": "DocumentText",
-          "line": 26,
+          "line": 27,
           "kind": "class"
         },
         {
           "name": "DocumentText.parse",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "cls",
@@ -64282,7 +64282,7 @@
         },
         {
           "name": "DocumentText.from_text",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "cls",
@@ -64294,7 +64294,7 @@
         },
         {
           "name": "DocumentText.chunks",
-          "line": 53,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self"
@@ -64303,7 +64303,7 @@
         },
         {
           "name": "normalized_vector",
-          "line": 65,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "value",
@@ -64316,7 +64316,7 @@
         },
         {
           "name": "vector_identity",
-          "line": 82,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "version",
@@ -64329,7 +64329,7 @@
         },
         {
           "name": "merge_results",
-          "line": 94,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "text_rows",
@@ -64337,8 +64337,8 @@
             "limit"
           ],
           "annotations": {
-            "text_rows": "list[dict]",
-            "vector_rows": "list[dict]",
+            "text_rows": "list[dict[str, object]]",
+            "vector_rows": "list[dict[str, object]]",
             "limit": "int"
           }
         }
