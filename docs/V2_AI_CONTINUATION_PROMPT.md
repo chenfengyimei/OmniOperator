@@ -6,7 +6,7 @@
 
 你接手的是 OmniOperator V2 的持续重构开发。请实际读代码并接着实现，不要只回复计划，也不要重做已完成的基础系统。
 
-工作区：`D:\xm\OmniOperator`，Windows / PowerShell。分支 `codex/architecture-v2`（上游 `origin/codex/architecture-v2`，gitee）。MCP/扩展链、基线修复、D7 能力报告与令牌管理已提交推送（`8ad22cf`…`e74572d`、`1eaf6a9`、`ed5912a`）；接手先 `git log --oneline -5`、`git status --porcelain`、`git ls-remote origin refs/heads/codex/architecture-v2` 对账，保留现状，不 reset/clean/批量覆盖或删除未跟踪文件。
+工作区：`D:\xm\OmniOperator`，Windows / PowerShell。分支 `codex/architecture-v2`（上游 `origin/codex/architecture-v2`，gitee）。MCP/扩展链、基线修复、D7 能力报告与令牌管理（API/CLI/工作台）已提交推送（`8ad22cf`…`e74572d`、`1eaf6a9`、`ed5912a`、`560387d`）；接手先 `git log --oneline -5`、`git status --porcelain`、`git ls-remote origin refs/heads/codex/architecture-v2` 对账，保留现状，不 reset/clean/批量覆盖或删除未跟踪文件。
 
 **按顺序读：**
 
@@ -18,17 +18,17 @@
 **先核对这些事实，不一致时以源码与台账为准：**
 
 - V2 未完成，默认正式入口仍是 V1；独立入口 `uv run --no-sync python -m omni.composition.cli --home <全新绝对目录> serve`，默认 `127.0.0.1:8766`。
-- 结构 **136 表 / `v2_0037`**，前端资源标识 **`20261110v52`**，索引 **65 模块 / 716 文件 / 428 路由 / 94 声明工具**。
-- 最新证据 `docs/evidence/v2-owner-token.json`（令牌管理 38 项）、`docs/evidence/v2-capabilities.json`（能力报告 17 项）、`docs/evidence/v2-extension-callbacks.json`（宿主回调 93 项 + 最终全量/隔离）、`docs/evidence/v2-extension-market.json`（市场扫描 62 + 工作台 25）、`docs/evidence/v2-extension-artifacts.json`（产物协议 146 + 工作台/API 18）与 `docs/evidence/v2-baseline-repair.json`（26 项基线失败已测试-only修复）；与 MCP 批合并 **228 个不同节点**最新全过（含 6 例浏览器）。**最终全量 4583 项：4580 passed / 3 failed / 0 errors**，三处并行时序，同源码隔离 **36 项全过**。**这不是全量全绿、全仓严格类型或三平台验收。**
-- 源码恢复：`temp/private/v2-owner-token-source-20261111-6d5504e89f47/manifest.json` 与同目录 ZIP（ZIP SHA `0b1566d6…`）。complete 只表示可恢复，文档晚于封存。
+- 结构 **136 表 / `v2_0037`**，前端资源标识 **`20261110v53`**，索引 **65 模块 / 717 文件 / 430 路由 / 94 声明工具**。
+- 最新证据 `docs/evidence/v2-owner-token.json`（令牌管理 38 项 + 令牌工作台 16 项）、`docs/evidence/v2-capabilities.json`（能力报告 17 项）、`docs/evidence/v2-extension-callbacks.json`（宿主回调 93 项 + 最终全量/隔离）、`docs/evidence/v2-extension-market.json`（市场扫描 62 + 工作台 25）、`docs/evidence/v2-extension-artifacts.json`（产物协议 146 + 工作台/API 18）与 `docs/evidence/v2-baseline-repair.json`（26 项基线失败已测试-only修复）；与 MCP 批合并 **228 个不同节点**最新全过（含 8 例浏览器）。**最终全量 4583 项：4580 passed / 3 failed / 0 errors**，三处并行时序，同源码隔离 **36 项全过**。**这不是全量全绿、全仓严格类型或三平台验收。**
+- 源码恢复：`temp/private/v2-owner-token-ui-source-20261111-a4f3f0f7aaa5/manifest.json` 与同目录 ZIP（ZIP SHA `09795b51…`）。complete 只表示可恢复，文档晚于封存。
 - 开放问题不得自行销账：`UI.exact_organization_refresh_timing` 待复核；`tests.parallel_run_timing_flakes` 观察中；`security.sensitive_history_services_acceptance` 待所有者处置（工作区 `docs/evidence/services-acceptance-2026-11-01.json` 仍含 1 条历史字面量，本批新增文件零命中）。
 - Windows 前台实测用户已安排“稍后”，Mac 待 Mac mini 编译，Linux 无实机；不要用弹测试窗口阻塞开发。
 
-**D7 当前进度：能力报告与令牌管理已完成，下一节点为令牌工作台页或统一工作台/业务清单。** 能力页（只读健康投影、显式未验收、390/1024）与 `GET/POST /api/v1/owner-token/*`、CLI `auth --rotate` 已交付；D6 扩展链与最终全量复核已完成。剩余 D7 门槛：令牌工作台页、统一工作台收敛与业务清单、全仓严格类型、三平台包/容器/安装更新恢复；真实市场源/第三方插件/MCP 真实服务/三平台原生仍记待真实验收。
+**D7 当前进度：能力报告与令牌管理（API/CLI/工作台）已完成，下一节点为统一工作台收敛/业务清单。** 能力页（只读健康投影、显式未验收、390/1024）与令牌页（会话/轮换/一次性交接）、`GET/POST /api/v1/owner-token/*`、CLI `auth --rotate` 已交付；D6 扩展链与最终全量复核已完成。剩余 D7 门槛：统一工作台收敛与业务清单、全仓严格类型、三平台包/容器/安装更新恢复；真实市场源/第三方插件/MCP 真实服务/三平台原生仍记待真实验收。
 
-已核实的起点（不要再重复调研成结论）：`domain/extensions.py`、`application/extensions.py`、`adapters/extensions/{worker,hosts,packages}.py`、`persistence/extension_repository.py` 已有安装/捕获、显式授权、每 run 封存、进程外工具、漂移撤权与产物协议；扩展宿主是单向“宿主→子进程”IPC（`adapters/workers/client.py` 请求/响应），**没有** 子进程主动请求宿主能力的回调通道，也**没有** 市场源/更新提示/实际安装链。
+已核实的起点（不要再重复调研成结论）：D6 扩展链（产物协议/工作台、市场扫描/工作台、宿主回调）、基线修复、D7 能力报告与令牌管理（API/CLI/工作台）均已提交；`domain/capabilities.py` + `GET /api/v1/capabilities`、`composition/http.py` 的令牌轮换闭包、`web/ui/v2/{capabilities,tokens}.js` 可直接作为 D7 其余节点的结构先例。
 
-按此范围实现：**受控宿主回调（插件请求宿主能力时仍受授权与预算约束、失败归 unknown 不重放）、版本更新提示与显式安装确认（真实来源状态如实显示、失败不自动重试）、产物在工作台可见（列表/类型/大小/读取入口，不转发正文给模型）；复用对象/审批/费用与既有审计。**
+按 D7 剩余范围实现：**统一工作台收敛与业务清单（如实标注可用/需配置/未验收）、全仓严格类型（分模块推进并记录例外）、三平台包/容器/安装更新恢复（缺环境记待真实验收）**；每批只改该任务所需内容，专项覆盖调用方，收尾再跑全量。
 
 可直接照抄结构的先例（不照抄业务）：
 - `application/extensions.py`：`authorize` / `disable` / `tools_for_run` / `invoke` / `review_quiescent`；invoke 前比对 `arguments_sha256`，`before_dispatch` 二次校验，漂移码 `extension_snapshot_drift`。

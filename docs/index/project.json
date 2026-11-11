@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9c2fb0939f7fddbec30ed453cea1fc2dd74b72c519f7399c933df27c5504abaf",
+  "source_sha256": "c4db0a88f85d3f04c4717dd8ff7577a4408344ea13cf63d46b35903becc37dfb",
   "modules": [
     {
       "id": "v2-domain",
@@ -478,9 +478,10 @@
         "web/ui/v2/skills.js",
         "web/ui/v2/terminal-reviews.js",
         "web/ui/v2/terminals.js",
+        "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 11004,
+      "lines": 11115,
       "dependencies": []
     },
     {
@@ -93520,7 +93521,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1386,
+      "lines": 1403,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -93530,7 +93531,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 788,
+      "lines": 801,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -93671,6 +93672,16 @@
       "module": "v2-workbench",
       "python_module": null,
       "lines": 564,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "原生源码、平台脚本或界面资源"
+    },
+    {
+      "path": "web/ui/v2/tokens.js",
+      "module": "v2-workbench",
+      "python_module": null,
+      "lines": 81,
       "imports": [],
       "symbols": [],
       "kind": "asset",
