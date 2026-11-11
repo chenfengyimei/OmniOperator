@@ -5,10 +5,10 @@
 ## 1. 接手时先明确的结论
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
-- 当前断点：**D7 产品切换进行中**，能力报告、令牌管理（API/CLI/工作台）、业务清单、导航收敛、strict 类型二十批、Windows 打包验证与安装收据/产物/暂存/解包/切换计划/更新备份已完成；剩余完整 V2 安装器/更新器（建环境、执行切换、迁移执行/回滚/卸载）、容器镜像、三平台构建与干净机器端到端、正式入口切换。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
-- 最新完成批次是 **D7.typecheck.20（严格类型第二十批）**：strict 范围扩到 **36 个文件**，新增 `application/desktop_actions.py`；绑定请求显式 `dict[str, object]`、有界任务 `Task[Any]`、完成回调 `Task[Any]`、`target/node/request` 嵌套字段 cast、foreground/act payload 显式 `Record`；不改变审批、租约与未知结果语义。strict 门禁 36 文件 **0 errors/0 warnings**；`docs/TYPE_CHECKING.md` 的 application/adapters 起始模块数更新为 24。**类型守卫 2 项 + 桌面动作/传输/HTTP 调用方 32 项全过**；证据 `docs/evidence/v2-typecheck.json`。
-- 功能与基线：strict 36 文件、安装/产物/暂存/解包/切换计划/备份/回滚演练/状态/候选冒烟 34 项、打包验证 57 项、导航 11 项、业务清单 3 项守卫、令牌工作台与 38 项令牌 API/CLI、能力报告 17 项、宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**安装器节点后全量 4624 项：4623 passed / 1 failed / 0 errors**（debug_sink 并行时序，隔离全过）。**仍不是全量全绿、全仓严格类型或三平台验收。**
-- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）、`1eaf6a9`（能力报告）、`ed5912a`（令牌管理）、`560387d`（令牌工作台）、`9133001`（业务清单）、`1a18fae`（导航收敛）、`6679edf`（类型起步）、`a3aa0e4`（类型第二批）、`cfa9d1d`（类型第三批）、`800e719`（类型第四批）、`7a5568f`（打包验证）、`ac752a1`（类型第五批）、`bd3efe4`（类型第六批）、`dd84b04`（类型第七批）、`3ee417a`（类型第八批）、`0a90cec`（类型第九批）、`0951001`（类型第十批）、`f6f0e2e`（安装收据/预检）、`701f3f4`（运行时收据校验）、`fd0eb0b`（wheel 产物校验）、`5b28d41`（wheel 产物暂存）、`b0bafae`（wheel 候选解包）、`a6dd48e`（切换计划）、`caa08d4`（更新备份步）、`1a13f3c`（分层修复）、`fe0d7b2`（回滚演练）、`6121831`（安装状态汇总）、`26fc9d1`（候选冒烟）、`1bd8472`（类型第十一批）、`e8a5431`（类型第十二批）、`febe5df`（类型第十三批）、`95d4524`（类型第十四批）、`6e5e64c`（类型第十五批）、`b05d937`（类型第十六批）、`3cb1116`（类型第十七批）、`45121bf`（类型第十八批）、`9efa947`（类型第十九批）、`9d9153d`（类型第二十批）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
+- 当前断点：**D7 产品切换进行中**，能力报告、令牌管理（API/CLI/工作台）、业务清单、导航收敛、strict 类型二十一批、Windows 打包验证与安装收据/产物/暂存/解包/切换计划/更新备份已完成；剩余完整 V2 安装器/更新器（建环境、执行切换、迁移执行/回滚/卸载）、容器镜像、三平台构建与干净机器端到端、正式入口切换。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
+- 最新完成批次是 **D7.typecheck.21（严格类型第二十一批）**：strict 范围扩到 **38 个文件**，新增 `domain/scheduling.py` 与 `application/scheduling.py`；cron/到期选择返回 `dict[str, object]`、`UnitOfWork` 回调与嵌套 progress/value 显式化、端口 materialize/enqueue 接受 `Mapping`；不改变调度、入队与故障分类语义。strict 门禁 38 文件 **0 errors/0 warnings**；`docs/TYPE_CHECKING.md` 的 application/adapters 起始模块数更新为 25。**类型守卫 2 项 + 调度/故障/HTTP 调用方 41 项全过**；证据 `docs/evidence/v2-typecheck.json`。
+- 功能与基线：strict 38 文件、安装/产物/暂存/解包/切换计划/备份/回滚演练/状态/候选冒烟 34 项、打包验证 57 项、导航 11 项、业务清单 3 项守卫、令牌工作台与 38 项令牌 API/CLI、能力报告 17 项、宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**安装器节点后全量 4624 项：4623 passed / 1 failed / 0 errors**（debug_sink 并行时序，隔离全过）。**仍不是全量全绿、全仓严格类型或三平台验收。**
+- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）、`1eaf6a9`（能力报告）、`ed5912a`（令牌管理）、`560387d`（令牌工作台）、`9133001`（业务清单）、`1a18fae`（导航收敛）、`6679edf`（类型起步）、`a3aa0e4`（类型第二批）、`cfa9d1d`（类型第三批）、`800e719`（类型第四批）、`7a5568f`（打包验证）、`ac752a1`（类型第五批）、`bd3efe4`（类型第六批）、`dd84b04`（类型第七批）、`3ee417a`（类型第八批）、`0a90cec`（类型第九批）、`0951001`（类型第十批）、`f6f0e2e`（安装收据/预检）、`701f3f4`（运行时收据校验）、`fd0eb0b`（wheel 产物校验）、`5b28d41`（wheel 产物暂存）、`b0bafae`（wheel 候选解包）、`a6dd48e`（切换计划）、`caa08d4`（更新备份步）、`1a13f3c`（分层修复）、`fe0d7b2`（回滚演练）、`6121831`（安装状态汇总）、`26fc9d1`（候选冒烟）、`1bd8472`（类型第十一批）、`e8a5431`（类型第十二批）、`febe5df`（类型第十三批）、`95d4524`（类型第十四批）、`6e5e64c`（类型第十五批）、`b05d937`（类型第十六批）、`3cb1116`（类型第十七批）、`45121bf`（类型第十八批）、`9efa947`（类型第十九批）、`9d9153d`（类型第二十批）、`91c8c6f`（类型第二十一批）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
 
@@ -42,14 +42,14 @@ V2 **不兼容** V1 的数据库、配置、HTTP、工具名或导入路径；�
 | --- | --- |
 | 工作区 | `D:\xm\OmniOperator`，PowerShell |
 | 分支 | `codex/architecture-v2`，上游 `origin/codex/architecture-v2`（gitee） |
-| MCP 与扩展批代码提交 | `8ad22cf`→…→`45121bf`→`9efa947`→`9d9153d`；台账 `checkpoint_commit=9d9153d`，本文档提交再前进一个 |
+| MCP 与扩展批代码提交 | `8ad22cf`→…→`9efa947`→`9d9153d`→`91c8c6f`；台账 `checkpoint_commit=91c8c6f`，本文档提交再前进一个 |
 | 最初重构基线 | `076c0c22fa8ecb90d3ce9a64562c90a23a129e00` |
 | 交接时工作区 | 干净（`git status` 空） |
-| 最新固定源码指纹 | `02758a8e361883c1454132932a5f42170435acea9f43bb86ce42cd6b4093d5f2` |
+| 最新固定源码指纹 | `408c0c55d96ad288678772efc14ff4c9478e6ccffb04c26778de452991cad469` |
 | 源码文件 | 1193 份（`agent/`、`web/`、`scripts/` 的 git blob 集合） |
-| 恢复材料 | `temp/private/v2-typecheck-20-source-20261111-02758a8e3618/manifest.json` |
+| 恢复材料 | `temp/private/v2-typecheck-21-source-20261111-408c0c55d96a/manifest.json` |
 | 源码备份 | 同目录 `source-and-evidence.zip`（1463 份源码/文档 + 2 份验证材料） |
-| ZIP SHA256 | `4800baf3bd22beee775395bbb7c2a1513b46db6d10190e17a9d04a5c65a0b236` |
+| ZIP SHA256 | `b74c7a789ab425c12af38170f1b920ef2992ee394e19478a375efa7c2d704b5d` |
 
 封存时 manifest 为 `complete` 且 ZIP SHA 匹配；**complete 只表示可恢复，不表示 V2 完成**。本批证据 JSON 与本文档晚于该封存，恢复时需一并复制。MCP/媒体/技能批的恢复包保留为溯源材料，不删除。
 
@@ -299,6 +299,7 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | `v2-typecheck-18.xml` | 27 | D7 strict 第十八批：exchange_steps + 交换恢复/发布调用方 |
 | `v2-typecheck-19.xml` | 40 | D7 strict 第十九批：credentials + 凭据/授权调用方 |
 | `v2-typecheck-20.xml` | 32 | D7 strict 第二十批：desktop_actions + 桌面动作/传输/HTTP 调用方 |
+| `v2-typecheck-21.xml` | 41 | D7 strict 第二十一批：scheduling + 调度/故障/HTTP 调用方 |
 | `v2-installer-full.xml` | 4624 | 首次全量：4621 passed / 3 failed（架构违规 + debug_sink + desktop observation），架构已在 1a13f3c 修复 |
 | `v2-packaging-guard.xml` | 2 | D7 打包：构建门禁 V2 检查项与文档边界守卫 |
 | `v2-packaging-callers.xml` | 57 | D7 打包：发布/部署/drain/schema 恢复调用方 |
