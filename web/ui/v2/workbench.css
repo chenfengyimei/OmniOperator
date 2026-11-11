@@ -244,7 +244,7 @@ main > section,
   padding: 14px 22px 10px;
   border-bottom: 1px solid var(--line-3);
   background: color-mix(in srgb, var(--bg) 93%, transparent);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--glass-strong-blur));
 }
 .page-head h1 {
   margin: 0;
@@ -798,7 +798,7 @@ h3 {
   overflow: hidden;
   border: 1px solid var(--line-2);
   border-radius: var(--r-md);
-  background: #0b0e13;
+  background: var(--terminal-bg);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -822,7 +822,7 @@ h3 {
 /* ==========================================================================
    响应式
    ========================================================================== */
-@media (max-width: 1180px) {
+@media (max-width: 900px) {
   :root {
     --sidebar-w: 264px;
   }
@@ -882,7 +882,7 @@ h3 {
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 520px) {
   header.app-header,
   body > header {
     gap: 8px;
@@ -916,3 +916,4 @@ h3 {
     animation: none !important;
   }
 }
+

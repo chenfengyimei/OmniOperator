@@ -19,6 +19,8 @@
   --surface-3: color-mix(in oklab, var(--surface-2) 85%, var(--seed-fg) 15%);
   --surface-accent: color-mix(in oklab, var(--surface-2) 86%, var(--seed-accent) 14%);
   --surface-inset: color-mix(in oklab, var(--surface-0) 62%, transparent);
+  /* 终端/日志深底：组件层只准引用 token，不再写死近黑色。 */
+  --terminal-bg: #0b0e13;
 
   --text-1: color-mix(in srgb, var(--seed-fg) 96%, transparent);
   --text-2: color-mix(in srgb, var(--seed-fg) 71%, transparent);
@@ -217,3 +219,4 @@
 
   color-scheme: light;
 }
+
