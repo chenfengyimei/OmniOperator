@@ -26,6 +26,13 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/recovery_authority.py` | 恢复授权与源见证校验（经 service_deployment 公共桥） |
 | `agent/src/omni/domain/model_stream.py` | 有界流式装配与工具调用解析纯规则 |
 | `agent/src/omni/domain/service_control.py` | 服务启动/排空身份与 HMAC 消息纯规则（经 service_deployment 公共桥） |
+| `agent/src/omni/application/routing.py` | 档位配置读取/保存用例（显式 Record） |
+| `agent/src/omni/application/release_drain.py` | 发布排空绑定既有 once-only 启动控制 |
+| `agent/src/omni/application/exchange_recovery_steps.py` | 隔离/救援计划复用发布快照与栅栏 |
+| `agent/src/omni/application/local_vectors.py` | 本地 ONNX 向量器选择/状态无 I/O 规则 |
+| `agent/src/omni/adapters/build_identity.py` | 构建身份常量与代码后缀 |
+| `agent/src/omni/adapters/primitives.py` | 时钟/ID 原语 Protocol 与实现 |
+| `agent/src/omni/adapters/timezones.py` | 时区数据库标识读取边界 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
@@ -37,7 +44,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/`、`adapters/`、`composition/`、`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 与 `adapters/` 已从上述 7 个小模块开始；`composition/`、`agent/tests/` 尚未开始 strict。
 
 ## 4. 推进规则
 

@@ -19,7 +19,7 @@ class ReleaseDrain:
     async def stop(self, operation: ControlPlan, *, reconcile: bool) -> Record:
         raw = cast(Record, dict(operation))
         if reconcile and self.control.files.latest(raw) is None:
-            self.control.verify(operation["deployment"])
+            self.control.verify(cast(Record, operation["deployment"]))
             return {
                 "state": "succeeded" if self.control.files.closed(raw) else "unknown",
                 "boot_id": operation["boot_id"],

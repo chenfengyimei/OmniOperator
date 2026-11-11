@@ -12,7 +12,7 @@ class RoutingService:
     async def get(self, agent_id: str) -> Record:
         return await self._db.read(lambda u: u.route_policy(agent_id))
 
-    async def save(self, agent_id: str, value: dict, revision: int) -> Record:
+    async def save(self, agent_id: str, value: Record, revision: int) -> Record:
         return await self._db.write(lambda u: u.route_policy_save(agent_id, value, revision))
 
     async def report(self, agent_id: str, run_id: str) -> Record:

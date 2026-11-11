@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from ..domain.recovery_authority import RecoverySpec
+from ..domain.recovery_authority import RecoveryAuthority, RecoverySpec
 from ..domain.service_exchange import ExchangePlan
 from ..domain.service_isolation import IsolationPlan
 from .ports import ExchangeFilesPort, Record
@@ -24,7 +24,9 @@ class ExchangeRecoverySteps:
         with self.release.files.exclusive(original):
             self.release.files.isolate(original)
 
-    def rescue_plan(self, plan: ExchangePlan, authority: dict, request: Record, output: str) -> Record:
+    def rescue_plan(
+        self, plan: ExchangePlan, authority: RecoveryAuthority | None, request: Record, output: str
+    ) -> Record:
         original = plan["release"]
         for side in ("source", "target"):
             self.release.files.require_fence(original, side)
