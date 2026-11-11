@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, cast
 
 from ..domain.contracts import BusinessError
 from ..domain.terminal_review import parse_review
@@ -73,7 +73,7 @@ class TerminalReviewService:
         task = asyncio.create_task(perform(), name="terminal-owner-review")
         self._pending.add(task)
 
-        def done(future):
+        def done(future: asyncio.Task[Any]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
@@ -82,13 +82,13 @@ class TerminalReviewService:
         return await asyncio.shield(task)
 
     async def record(self, agent_id: str, operation_id: str, data: object) -> Record:
-        operation_id, request = identity(operation_id), parse_review(data)
+        operation_id, request = identity(operation_id), cast(Record, parse_review(data))
 
         async def perform():
             prior = await self._db.read(lambda u: u.terminal_review_replay(agent_id, operation_id, request))
             if prior is not None:
                 return prior
-            with self._observer.context(agent_id=agent_id, operation_id=request["review_id"]):
+            with self._observer.context(agent_id=agent_id, operation_id=str(request["review_id"])):
                 row = await self._guard(
                     lambda: self._db.write(lambda u: u.terminal_review_commit(agent_id, operation_id, request))
                 )

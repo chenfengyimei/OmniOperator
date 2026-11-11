@@ -17,7 +17,7 @@ class DebugService:
         self._lock = asyncio.Lock()
         self._current: Record | None = None
         self._stop = asyncio.Event()
-        self._worker: asyncio.Task | None = None
+        self._worker: asyncio.Task[None] | None = None
         self._last_cleanup = float("-inf")
         self.error_code = ""
 
