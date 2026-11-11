@@ -50,6 +50,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/model_stream.py` | 有界流式装配与工具调用解析纯规则 |
 | `agent/src/omni/domain/service_control.py` | 服务启动/排空身份与 HMAC 消息纯规则（经 service_deployment 公共桥） |
 | `agent/src/omni/domain/service_cleanup.py` | 隔离注册清理计划纯校验（经公共桥） |
+| `agent/src/omni/domain/service_exchange.py` | 同 schema 服务交换/管理员阶段/证据纯校验 |
 | `agent/src/omni/domain/service_isolation.py` | 中断交换隔离计划与启动隔离校验（经公共桥） |
 | `agent/src/omni/domain/service_operations.py` | 离线服务安装/卸载操作指纹纯规则 | 中断交换隔离计划与启动隔离校验（经公共桥） |
 | `agent/src/omni/domain/service_activation.py` | 无人值守启动绑定/预留纯校验（经公共桥） |

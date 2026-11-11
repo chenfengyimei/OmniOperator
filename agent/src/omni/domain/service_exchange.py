@@ -11,7 +11,13 @@ from .contracts import BusinessError
 from .releases import ReleasePlan, digest, validate_release
 from .service_activation import activation_binding, reservation
 from .service_control import ControlPlan, validate_control
-from .service_deployment import _created, _object, _path, _sha, _uuid
+from .service_deployment import (
+    deployment_created,
+    deployment_fields,
+    deployment_path,
+    deployment_sha,
+    deployment_uuid,
+)
 from .service_operations import validate_operation
 
 FORMAT = "omni-service-exchange-4"
@@ -46,9 +52,9 @@ def make_exchange(
     removal: object,
     installation: object,
     start: object,
-    journal: str,
-    identity: str,
-    at: str,
+    journal: object,
+    identity: object,
+    at: object,
     administrators: object = None,
 ) -> ExchangePlan:
     plan = validate_release(release)
@@ -77,27 +83,34 @@ def make_exchange(
         or control["deployment"] != plan["target"]
     ):
         raise invalid("service_exchange_operation_changed")
-    ids = [_uuid(identity), plan["id"], remove["id"], install["id"], control["id"], control["boot_id"]]
-    participants = None
+    ids = [
+        deployment_uuid(identity),
+        plan["id"],
+        remove["id"],
+        install["id"],
+        control["id"],
+        control["boot_id"],
+    ]
+    participants: dict[str, dict[str, str]] | None = None
     if administrators is not None:
         if not system:
             raise invalid("service_exchange_administrators_invalid")
-        supplied = _object(administrators, {"source", "target"})
+        supplied = deployment_fields(administrators, {"source", "target"})
         participants = {}
         for role in ("source", "target"):
-            item = _object(supplied[role], {"id", "protocol", "bundle_sha256"})
+            item = deployment_fields(supplied[role], {"id", "protocol", "bundle_sha256"})
             if item["protocol"] != ADMIN_PROTOCOL:
                 raise invalid("service_exchange_admin_protocol_unsupported")
             participants[role] = {
-                "id": _uuid(item["id"]),
+                "id": deployment_uuid(item["id"]),
                 "protocol": ADMIN_PROTOCOL,
-                "bundle_sha256": _sha(item["bundle_sha256"]),
+                "bundle_sha256": deployment_sha(item["bundle_sha256"]),
             }
             ids.append(participants[role]["id"])
     if len(set(ids)) != len(ids):
         raise invalid("service_exchange_identity_reused")
     windows = plan["target"]["runtime"]["platform"] == "win32"
-    location = _path(journal, windows)
+    location = deployment_path(journal, windows)
     pathmod = ntpath if windows else posixpath
     protected = [*plan["paths"].values()]
     if plan["recovery"] is not None:
@@ -116,7 +129,7 @@ def make_exchange(
     value = {
         "format": FORMAT,
         "id": ids[0],
-        "created_at": _created(at),
+        "created_at": deployment_created(at),
         "release": plan,
         "remove_source": remove,
         "install_target": install,
@@ -133,7 +146,7 @@ def make_exchange(
 
 
 def validate_exchange(value: object) -> ExchangePlan:
-    record = _object(
+    record = deployment_fields(
         value,
         {
             "format",
@@ -170,7 +183,7 @@ def validate_exchange(value: object) -> ExchangePlan:
     return expected
 
 
-def marker(plan: ExchangePlan) -> dict:
+def marker(plan: ExchangePlan) -> dict[str, object]:
     binding = activation_binding(plan["start_target"]) if plan["releases_activation_on_abandon"] else None
     return reservation(plan["id"], plan["sha256"], binding)
 
@@ -183,7 +196,7 @@ def stages(plan: ExchangePlan) -> tuple[str, ...]:
     )
 
 
-def administrator_approval(plan: object, role: str) -> dict:
+def administrator_approval(plan: object, role: object) -> dict[str, object]:
     checked = validate_exchange(plan)
     if checked["administrators"] is None or not isinstance(role, str) or role not in {"source", "target"}:
         raise invalid("service_exchange_administrators_invalid")
@@ -199,8 +212,8 @@ def administrator_approval(plan: object, role: str) -> dict:
     return {**content, "sha256": digest(content)}
 
 
-def validate_administrator_approval(value: object) -> dict:
-    record = _object(value, {"format", "id", "role", "protocol", "broker_sha256", "exchange", "sha256"})
+def validate_administrator_approval(value: object) -> dict[str, object]:
+    record = deployment_fields(value, {"format", "id", "role", "protocol", "broker_sha256", "exchange", "sha256"})
     if record != administrator_approval(record["exchange"], record["role"]):
         raise invalid("service_exchange_administrator_changed")
     return record
@@ -209,7 +222,7 @@ def validate_administrator_approval(value: object) -> dict:
 def stage_identity(plan: ExchangePlan, stage: str) -> tuple[str, str]:
     if stage in {"close_source", "close_target"}:
         item = administrator_approval(plan, "source" if stage == "close_source" else "target")
-        return item["id"], item["sha256"]
+        return cast(str, item["id"]), cast(str, item["sha256"])
     item = {
         "select_target": plan["release"],
         "remove_source": plan["remove_source"],
@@ -221,8 +234,8 @@ def stage_identity(plan: ExchangePlan, stage: str) -> tuple[str, str]:
     return str(item["id"]), str(item["sha256"])
 
 
-def checked_proof(plan: ExchangePlan, stage: str, value: object) -> dict:
-    proof = _object(
+def checked_proof(plan: ExchangePlan, stage: str, value: object) -> dict[str, object]:
+    proof = deployment_fields(
         value,
         {
             "stage",
@@ -241,7 +254,10 @@ def checked_proof(plan: ExchangePlan, stage: str, value: object) -> dict:
         or proof["operation_sha256"] != sha
         or type(proof["succeeded"]) is not bool
         or type(proof["cleanup_complete"]) is not bool
-        or any(not isinstance(proof[key], str) or len(proof[key]) > 128 for key in ("error_code", "verification"))
+        or any(
+            not isinstance(proof[key], str) or len(cast(str, proof[key])) > 128
+            for key in ("error_code", "verification")
+        )
         or (proof["succeeded"] and (proof["error_code"] or not proof["verification"]))
     ):
         raise invalid("service_exchange_proof_changed")
@@ -255,8 +271,10 @@ def progress(plan: ExchangePlan, history: Sequence[Mapping[str, object]]) -> tup
     for index, row in enumerate(history):
         if set(row) != {"state", "stage", "recorded_at", "proof"}:
             raise invalid("service_exchange_journal_invalid")
-        _created(row["recorded_at"])
-        state, stage, proof = row["state"], row["stage"], row["proof"]
+        deployment_created(row["recorded_at"])
+        state = cast(str, row["state"])
+        stage = cast(str, row["stage"])
+        proof = row["proof"]
         if last in {"finished", "abandoned", "isolated"}:
             raise invalid("service_exchange_journal_invalid")
         if last == "isolating" and state != "isolated":
@@ -279,7 +297,7 @@ def progress(plan: ExchangePlan, history: Sequence[Mapping[str, object]]) -> tup
             valid = bool(active) and stage == active
             if valid:
                 checked = checked_proof(plan, stage, proof)
-                success = checked["succeeded"] and checked["cleanup_complete"]
+                success = bool(checked["succeeded"]) and bool(checked["cleanup_complete"])
                 valid = success if state == "complete" else not success
                 if valid and state == "complete":
                     completed, active = completed + 1, ""

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e24e814f791f48b55e4df41875d1cb3f808aac826dc4a4901d6c7868079f2ae9",
+  "source_sha256": "96f4922e3b9f322ba5eb329070ec5d141d2fa503997efba991ceaa95ea6d3346",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9232,
+      "lines": 9250,
       "dependencies": []
     },
     {
@@ -68184,7 +68184,7 @@
       "path": "agent/src/omni/domain/service_exchange.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_exchange",
-      "lines": 311,
+      "lines": 329,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.releases",
@@ -68197,12 +68197,12 @@
       "symbols": [
         {
           "name": "ExchangePlan",
-          "line": 23,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "invalid",
-          "line": 40,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "code"
@@ -68213,7 +68213,7 @@
         },
         {
           "name": "make_exchange",
-          "line": 44,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "release",
@@ -68230,15 +68230,15 @@
             "removal": "object",
             "installation": "object",
             "start": "object",
-            "journal": "str",
-            "identity": "str",
-            "at": "str",
+            "journal": "object",
+            "identity": "object",
+            "at": "object",
             "administrators": "object"
           }
         },
         {
           "name": "validate_exchange",
-          "line": 135,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "value"
@@ -68249,7 +68249,7 @@
         },
         {
           "name": "marker",
-          "line": 173,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68260,7 +68260,7 @@
         },
         {
           "name": "stages",
-          "line": 178,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "plan"
@@ -68271,7 +68271,7 @@
         },
         {
           "name": "administrator_approval",
-          "line": 186,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "plan",
@@ -68279,12 +68279,12 @@
           ],
           "annotations": {
             "plan": "object",
-            "role": "str"
+            "role": "object"
           }
         },
         {
           "name": "validate_administrator_approval",
-          "line": 202,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "value"
@@ -68295,7 +68295,7 @@
         },
         {
           "name": "stage_identity",
-          "line": 209,
+          "line": 222,
           "kind": "function",
           "parameters": [
             "plan",
@@ -68308,7 +68308,7 @@
         },
         {
           "name": "checked_proof",
-          "line": 224,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "plan",
@@ -68323,7 +68323,7 @@
         },
         {
           "name": "progress",
-          "line": 251,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "plan",
