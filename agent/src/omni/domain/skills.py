@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass
 from typing import cast
 
-from .contracts import BusinessError, ToolSpec
+from .contracts import JSON, BusinessError, ToolSpec
 
 PLATFORMS = ("windows", "macos", "linux")
 SECTIONS = ("When to Use", "Procedure", "Pitfalls", "Verification")
@@ -26,18 +26,21 @@ def invalid(code: str = "invalid_skill") -> BusinessError:
 
 def identifiers(value: object) -> tuple[str, ...]:
     try:
-        if not isinstance(value, (tuple, list)) or len(value) > MAX_ACTIVE:
+        if not isinstance(value, (tuple, list)):
             raise ValueError
-        result = tuple(value)
+        items = cast(tuple[object, ...] | list[object], value)
+        if len(items) > MAX_ACTIVE:
+            raise ValueError
+        result = tuple(items)
         if len(set(result)) != len(result) or any(not isinstance(v, str) or str(uuid.UUID(v)) != v for v in result):
             raise ValueError
-        return result
+        return cast(tuple[str, ...], result)
     except (ValueError, TypeError, AttributeError) as exc:
         raise invalid() from exc
 
 
 def file_path(value: str) -> str:
-    if not isinstance(value, str) or len(value) > 180 or value != unicodedata.normalize("NFC", value):
+    if len(value) > 180 or value != unicodedata.normalize("NFC", value):
         raise invalid()
     parts = value.split("/")
     if len(parts) > 4 or any(
@@ -60,15 +63,14 @@ def file_path(value: str) -> str:
     return value
 
 
-def document(metadata: object, body: str) -> dict:
-    if (
-        not isinstance(metadata, dict)
-        or not {"name", "description"} <= set(metadata)
-        or not set(metadata) <= {"name", "description", "platforms", "version"}
-    ):
+def document(metadata: object, body: str) -> dict[str, object]:
+    if not isinstance(metadata, dict):
         raise invalid()
-    name, description = metadata["name"], metadata["description"]
-    platforms = metadata.get("platforms", list(PLATFORMS))
+    fields = cast(dict[str, object], metadata)
+    if not {"name", "description"} <= set(fields) or not set(fields) <= {"name", "description", "platforms", "version"}:
+        raise invalid()
+    name, description = fields["name"], fields["description"]
+    platforms = fields.get("platforms", list(PLATFORMS))
     if (
         not isinstance(name, str)
         or not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,39}", name)
@@ -77,14 +79,16 @@ def document(metadata: object, body: str) -> dict:
         or any(ord(c) < 32 for c in description)
     ):
         raise invalid()
+    if not isinstance(platforms, list):
+        raise invalid()
+    choices = cast(list[object], platforms)
     if (
-        not isinstance(platforms, list)
-        or not 1 <= len(platforms) <= 3
-        or any(not isinstance(p, str) or p not in PLATFORMS for p in platforms)
-        or len(set(platforms)) != len(platforms)
+        not 1 <= len(choices) <= 3
+        or any(not isinstance(p, str) or p not in PLATFORMS for p in choices)
+        or len(set(choices)) != len(choices)
     ):
         raise invalid()
-    if "version" in metadata and (not isinstance(metadata["version"], str) or not 1 <= len(metadata["version"]) <= 40):
+    if "version" in fields and (not isinstance(fields["version"], str) or not 1 <= len(fields["version"]) <= 40):
         raise invalid()
     if (
         not 50 <= len(body) <= 24000
@@ -98,7 +102,6 @@ def document(metadata: object, body: str) -> dict:
 def patch_section(content: str, section: str, replacement: str) -> str:
     if (
         section not in SECTIONS
-        or not isinstance(replacement, str)
         or not replacement.strip()
         or len(replacement) > 12000
         or re.search(r"(?m)^##?\s", replacement)
@@ -110,10 +113,10 @@ def patch_section(content: str, section: str, replacement: str) -> str:
     return pattern.sub(lambda m: m[1] + replacement.strip() + "\n\n", content, count=1)
 
 
-def manifest(files: list[dict]) -> str:
+def manifest(files: list[dict[str, object]]) -> str:
     return hashlib.sha256(
         json.dumps(
-            [{k: r[k] for k in ("path", "sha256", "bytes")} for r in sorted(files, key=lambda r: r["path"])],
+            [{k: r[k] for k in ("path", "sha256", "bytes")} for r in sorted(files, key=lambda r: cast(str, r["path"]))],
             ensure_ascii=False,
             sort_keys=True,
             separators=(",", ":"),
@@ -123,7 +126,7 @@ def manifest(files: list[dict]) -> str:
 
 @dataclass(frozen=True)
 class SkillPackage:
-    metadata: dict
+    metadata: dict[str, object]
     files: tuple[tuple[str, bytes], ...]
 
     def validate(self) -> None:
@@ -146,11 +149,16 @@ class SkillPackage:
                 raise invalid()
 
 
-def _spec(name: str, description: str, properties: dict, required: list[str], writes: bool = False) -> ToolSpec:
+def _spec(
+    name: str, description: str, properties: dict[str, object], required: list[str], writes: bool = False
+) -> ToolSpec:
     return ToolSpec(
         name,
         description,
-        cast(dict, {"type": "object", "properties": properties, "required": required, "additionalProperties": False}),
+        cast(
+            dict[str, JSON],
+            {"type": "object", "properties": properties, "required": required, "additionalProperties": False},
+        ),
         writes,
         resource="skills",
     )

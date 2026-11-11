@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4c371041d8a3e70c745d541bffdd14fae2717f3b2351a71b15f5bc2619522649",
+  "source_sha256": "1320aad390ba21beb67ced8427e9b5f3ac4ce28d703eb622a4aaf14f62c6aa2f",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9012,
+      "lines": 9020,
       "dependencies": []
     },
     {
@@ -68536,7 +68536,7 @@
       "path": "agent/src/omni/domain/skills.py",
       "module": "v2-domain",
       "python_module": "omni.domain.skills",
-      "lines": 238,
+      "lines": 246,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -68565,7 +68565,7 @@
         },
         {
           "name": "file_path",
-          "line": 39,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "value"
@@ -68576,7 +68576,7 @@
         },
         {
           "name": "document",
-          "line": 63,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "metadata",
@@ -68589,7 +68589,7 @@
         },
         {
           "name": "patch_section",
-          "line": 98,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "content",
@@ -68604,23 +68604,23 @@
         },
         {
           "name": "manifest",
-          "line": 113,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "files"
           ],
           "annotations": {
-            "files": "list[dict]"
+            "files": "list[dict[str, object]]"
           }
         },
         {
           "name": "SkillPackage",
-          "line": 125,
+          "line": 128,
           "kind": "class"
         },
         {
           "name": "SkillPackage.validate",
-          "line": 129,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self"
@@ -68629,7 +68629,7 @@
         },
         {
           "name": "_spec",
-          "line": 149,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "name",
@@ -68641,7 +68641,7 @@
           "annotations": {
             "name": "str",
             "description": "str",
-            "properties": "dict",
+            "properties": "dict[str, object]",
             "required": "list[str]",
             "writes": "bool"
           }

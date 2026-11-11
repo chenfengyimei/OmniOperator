@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`4c371041d8a3e70c745d541bffdd14fae2717f3b2351a71b15f5bc2619522649`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`1320aad390ba21beb67ced8427e9b5f3ac4ce28d703eb622a4aaf14f62c6aa2f`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -61,7 +61,7 @@
 | [agent/src/omni/domain/service_isolation.py](../../agent/src/omni/domain/service_isolation.py) | 108 | Reviewed offline startup quarantine; retains unknown outcomes and authorizes only a separate recovery plan. |
 | [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 130 | Fingerprint offline service changes; registration never implies a healthy running service. |
 | [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 89 | Editable Agent settings and immutable resolved run configuration; no I/O. |
-| [agent/src/omni/domain/skills.py](../../agent/src/omni/domain/skills.py) | 238 | Versioned textual skills, bounded disclosure and edit rules; skills confer no authority. |
+| [agent/src/omni/domain/skills.py](../../agent/src/omni/domain/skills.py) | 246 | Versioned textual skills, bounded disclosure and edit rules; skills confer no authority. |
 | [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 124 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |
 
