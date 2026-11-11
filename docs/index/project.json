@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0fc4a0437af1e07ac53caee72c0b8e85406aa33f511e05f6323a4082324051fa",
+  "source_sha256": "ccd62dd1a05d34829822e8a58588b8965168421844ef39c3d2eeee10a6e69e84",
   "modules": [
     {
       "id": "v2-domain",
@@ -344,6 +344,7 @@
         "agent/src/omni/adapters/platform/systemd_state.py",
         "agent/src/omni/adapters/platform/terminal.py",
         "agent/src/omni/adapters/platform/wheel_artifact.py",
+        "agent/src/omni/adapters/platform/wheel_stage.py",
         "agent/src/omni/adapters/platform/workspaces.py",
         "agent/src/omni/adapters/primitives.py",
         "agent/src/omni/adapters/process_diagnostics.py",
@@ -394,7 +395,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 51446,
+      "lines": 51516,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -429,7 +430,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2842,
+      "lines": 2850,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30719,6 +30720,47 @@
       "summary": "Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs."
     },
     {
+      "path": "agent/src/omni/adapters/platform/wheel_stage.py",
+      "module": "v2-adapters",
+      "python_module": "omni.adapters.platform.wheel_stage",
+      "lines": 70,
+      "imports": [
+        "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.permissions",
+        "omni.adapters.platform.wheel_artifact",
+        "omni.domain.contracts"
+      ],
+      "symbols": [
+        {
+          "name": "invalid",
+          "line": 19,
+          "kind": "function",
+          "parameters": [
+            "code"
+          ],
+          "annotations": {
+            "code": "str"
+          }
+        },
+        {
+          "name": "stage_wheel",
+          "line": 23,
+          "kind": "function",
+          "parameters": [
+            "home",
+            "wheel",
+            "sha256"
+          ],
+          "annotations": {
+            "home": "Path",
+            "wheel": "Path",
+            "sha256": "str"
+          }
+        }
+      ],
+      "summary": "Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations."
+    },
+    {
       "path": "agent/src/omni/adapters/platform/workspaces.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.workspaces",
@@ -57428,7 +57470,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 901,
+      "lines": 909,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -57446,6 +57488,7 @@
         "omni.adapters.platform.service_query",
         "omni.adapters.platform.service_readiness",
         "omni.adapters.platform.wheel_artifact",
+        "omni.adapters.platform.wheel_stage",
         "omni.adapters.primitives",
         "omni.adapters.vector_files",
         "omni.application.service_deployment",
@@ -57502,7 +57545,7 @@
         },
         {
           "name": "local_origin",
-          "line": 405,
+          "line": 407,
           "kind": "function",
           "parameters": [
             "value"
@@ -57513,7 +57556,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 424,
+          "line": 426,
           "kind": "function",
           "parameters": [
             "paths",
@@ -57526,7 +57569,7 @@
         },
         {
           "name": "main",
-          "line": 466,
+          "line": 468,
           "kind": "function",
           "parameters": [],
           "annotations": {}

@@ -138,7 +138,9 @@ def parser() -> argparse.ArgumentParser:
     commands.add_parser("doctor", help="Read-only, exclusive database diagnostics")
     installation = commands.add_parser("installation", help="V2 installation receipt and read-only upgrade preflight")
     installation.add_argument(
-        "operation", choices=["verify", "seal", "artifact"], help="Verify without writing, seal once, or check a wheel"
+        "operation",
+        choices=["verify", "seal", "artifact", "stage"],
+        help="Verify without writing, seal once, check or stage a wheel",
     )
     installation.add_argument("artifact", nargs="?", type=Path, help="Wheel to verify for the artifact operation")
     installation.add_argument("--sha256", default="", help="Expected wheel SHA256 for the artifact operation")
@@ -676,6 +678,12 @@ def main() -> int:
                 from ..adapters.platform.wheel_artifact import inspect_wheel
 
                 print(json.dumps(inspect_wheel(args.artifact, args.sha256)))
+            elif args.operation == "stage":
+                if args.artifact is None or not args.sha256:
+                    raise BusinessError("artifact_missing", "Provide the wheel path and its recorded SHA256")
+                from ..adapters.platform.wheel_stage import stage_wheel
+
+                print(json.dumps(stage_wheel(paths.home, args.artifact, args.sha256)))
             else:
                 print(json.dumps(installation_report(paths)))
         elif args.command == "doctor":
