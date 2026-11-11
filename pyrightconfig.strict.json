@@ -8,6 +8,7 @@
     "agent/src/omni/application/exchange_recovery.py",
     "agent/src/omni/application/exchange_recovery_steps.py",
     "agent/src/omni/application/local_vectors.py",
+    "agent/src/omni/application/model_output.py",
     "agent/src/omni/application/release_drain.py",
     "agent/src/omni/application/routing.py",
     "agent/src/omni/application/service_cleanup.py",
