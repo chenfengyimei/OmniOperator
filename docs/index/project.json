@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d0aa601bd40eeab6b9527101cfa169e913eca730dc4b47280f27bd59646a8945",
+  "source_sha256": "a46ee0e207ada92c4b41c2ba26c2e30d52fc52ea635041ee0d846b4f004a4676",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9128,
+      "lines": 9135,
       "dependencies": []
     },
     {
@@ -67489,7 +67489,7 @@
       "path": "agent/src/omni/domain/service_cleanup.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_cleanup",
-      "lines": 173,
+      "lines": 180,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.releases",
@@ -67501,12 +67501,12 @@
       "symbols": [
         {
           "name": "CleanupPlan",
-          "line": 19,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "invalid",
-          "line": 38,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "code"
@@ -67517,7 +67517,7 @@
         },
         {
           "name": "registry",
-          "line": 42,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "exchange"
@@ -67528,18 +67528,18 @@
         },
         {
           "name": "registration_key",
-          "line": 48,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "operation"
           ],
           "annotations": {
-            "operation": "dict"
+            "operation": "dict[str, object]"
           }
         },
         {
           "name": "protected_paths",
-          "line": 53,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "exchange"
@@ -67550,7 +67550,7 @@
         },
         {
           "name": "overlaps",
-          "line": 68,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "left",
@@ -67565,7 +67565,7 @@
         },
         {
           "name": "make_cleanup",
-          "line": 77,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "exchange",
@@ -67590,7 +67590,7 @@
         },
         {
           "name": "validate_cleanup",
-          "line": 129,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "value"

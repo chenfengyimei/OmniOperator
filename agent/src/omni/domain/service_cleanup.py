@@ -8,7 +8,14 @@ from typing import Any, TypedDict, cast
 
 from .contracts import BusinessError
 from .releases import digest
-from .service_deployment import _created, _integer, _object, _path, _sha, _uuid
+from .service_deployment import (
+    deployment_created,
+    deployment_fields,
+    deployment_integer,
+    deployment_path,
+    deployment_sha,
+    deployment_uuid,
+)
 from .service_exchange import ExchangePlan, validate_exchange
 from .service_isolation import isolation_reference
 from .service_operations import make_operation, validate_operation
@@ -45,8 +52,8 @@ def registry(exchange: ExchangePlan) -> str:
     return pathmod.join(pathmod.dirname(root), "." + pathmod.basename(root) + ".cleanup")
 
 
-def registration_key(operation: dict) -> str:
-    manager = operation["manager"]
+def registration_key(operation: dict[str, object]) -> str:
+    manager = cast(dict[str, object], operation["manager"])
     return digest({key: manager[key] for key in ("manager", "domain", "name", "scope")})
 
 
@@ -85,22 +92,22 @@ def make_cleanup(
     at: str,
 ) -> CleanupPlan:
     original, ref = validate_exchange(exchange), isolation_reference(isolation)
-    if not isinstance(side, str) or side not in {"source", "target"}:
+    if side not in {"source", "target"}:
         raise invalid()
-    count = _integer(count, 3, 64)
+    count = deployment_integer(count, 3, 64)
     if (
         ref["exchange_id"] != original["id"]
         or ref["exchange_sha256"] != original["sha256"]
-        or count != ref["event_count"] + 2
+        or count != cast(int, ref["event_count"]) + 2
     ):
         raise invalid("service_cleanup_isolation_changed")
-    identity, operation_id = _uuid(identity), _uuid(operation_id)
+    identity, operation_id = deployment_uuid(identity), deployment_uuid(operation_id)
     existing = {original["id"], original["release"]["id"], ref["isolation_id"]}
     existing.update(original[key]["id"] for key in ("remove_source", "install_target", "start_target"))
     existing.add(original["start_target"]["boot_id"])
     if identity == operation_id or {identity, operation_id} & existing:
         raise invalid("service_cleanup_identity_reused")
-    operation = make_operation(original["release"][side], "uninstall", operation_id, at)
+    operation = make_operation(cast(object, original["release"][side]), "uninstall", operation_id, at)
     windows = original["release"]["target"]["runtime"]["platform"] == "win32"
     pathmod = ntpath if windows else posixpath
     root = registry(original)
@@ -109,14 +116,14 @@ def make_cleanup(
     value = {
         "format": FORMAT,
         "id": identity,
-        "created_at": _created(at),
+        "created_at": deployment_created(at),
         "exchange": original,
         "event_count": count,
-        "history_sha256": _sha(history_sha),
+        "history_sha256": deployment_sha(history_sha),
         "isolation": ref,
         "side": side,
         "operation": operation,
-        "journal": _path(pathmod.join(root, registration_key(operation), identity), windows),
+        "journal": deployment_path(pathmod.join(root, registration_key(operation), identity), windows),
         "starts_service": False,
         "stops_service": operation["stops_service"],
         "deletes_instance_data": False,
@@ -127,7 +134,7 @@ def make_cleanup(
 
 
 def validate_cleanup(value: object) -> CleanupPlan:
-    record = _object(
+    record = deployment_fields(
         value,
         {
             "format",
@@ -151,13 +158,13 @@ def validate_cleanup(value: object) -> CleanupPlan:
     operation = validate_operation(record["operation"])
     expected = make_cleanup(
         record["exchange"],
-        record["event_count"],
-        record["history_sha256"],
+        cast(int, record["event_count"]),
+        cast(str, record["history_sha256"]),
         record["isolation"],
-        record["side"],
-        record["id"],
-        operation["id"],
-        record["created_at"],
+        cast(str, record["side"]),
+        cast(str, record["id"]),
+        cast(str, operation["id"]),
+        cast(str, record["created_at"]),
     )
     if record != expected or any(
         type(record[key]) is not bool

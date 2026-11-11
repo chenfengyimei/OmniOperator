@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d0aa601bd40eeab6b9527101cfa169e913eca730dc4b47280f27bd59646a8945`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`a46ee0e207ada92c4b41c2ba26c2e30d52fc52ea635041ee0d846b4f004a4676`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -54,7 +54,7 @@
 | [agent/src/omni/domain/schema_upgrade.py](../../agent/src/omni/domain/schema_upgrade.py) | 81 | Explicit forward-only V2 schema routes bound to both immutable runtime inventories; no IO. |
 | [agent/src/omni/domain/service_activation.py](../../agent/src/omni/domain/service_activation.py) | 83 | Bind unattended exchange activation to one reviewed boot; pure persisted contracts with no platform IO. |
 | [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 245 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
-| [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 173 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
+| [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 180 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
 | [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 206 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
 | [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 538 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
 | [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 311 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
