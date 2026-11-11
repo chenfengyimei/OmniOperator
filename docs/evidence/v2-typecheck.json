@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "7f4db21cc8490d0e6d9f329e30c93a1025a6f93ff1fe64271a9f0311f4d3f4b9",
+  "code_version": "a3ffc592484bcf58e4732e44cb6d3a8d6b623b007d352dd2378fa1162dbc371d",
   "fixed_source_files": 1199,
-  "git_head": "a67715b",
+  "git_head": "6e21875",
   "dirty_checkout": false
  },
  "development": {
@@ -45,7 +45,8 @@
    "Strict scope reaches 43 files with domain/service_activation; public deployment bridges and explicit dict[str, object] bindings/reservations replace private helper imports without changing validation semantics",
    "Strict scope reaches 44 files with domain/terminals; parsed terminal requests return explicit dict[str, object] and _exact narrows before casting without changing validation semantics",
    "Strict scope reaches 45 files with domain/skills; identifiers, metadata, platform sets and manifests are explicitly typed and ToolSpec parameters cast dict[str, JSON] without changing validation semantics",
-   "Strict scope reaches 46 files with domain/schema_upgrade; public deployment bridges and explicit runtime inventories/revision rows replace private helpers without changing forward-route validation"
+   "Strict scope reaches 46 files with domain/schema_upgrade; public deployment bridges and explicit runtime inventories/revision rows replace private helpers without changing forward-route validation",
+   "Strict scope reaches 48 files with domain/routing and domain/settings; policy/settings are explicit dict[str, object] and configuration.config_value returns dict[str, object] without changing validation semantics"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -299,6 +300,15 @@
     "errors": 0,
     "duration_s": 105.655,
     "note": "twenty-seventh strict batch: guard + schema release callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-28.xml",
+    "sha256": "ded32f6e94b1637558e4e29bcf0e284d8dab6f78e7a2a3c1681271bc2a2f06a5",
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 29.482,
+    "note": "twenty-eighth strict batch: guard + routing callers"
    }
   ],
   "gates": {
@@ -310,7 +320,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 46,
+    "filesAnalyzed": 48,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
