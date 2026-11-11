@@ -41,6 +41,9 @@ class ServiceOperations:
                 "deployment_not_eligible", "Service changes require the verified immutable installation"
             )
 
+    def verify_operation_deployment(self, deployment: Record) -> None:
+        self._verify_operation_deployment(deployment)
+
     def _verify_operation_deployment(self, deployment: Record) -> None:
         request = cast(Record, deployment["request"])
         verification = self.deployments.verify(str(request["bundle_dir"]))

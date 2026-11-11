@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Mapping
 from typing import cast
 
 from ..domain.contracts import BusinessError
@@ -40,7 +41,7 @@ class ExchangeSteps:
                 stage
             )
             if service is not None:
-                previous = service.files.latest(cast(Record, dict(plan[stage])))
+                previous = service.files.latest(cast(Record, dict(cast(Mapping[str, object], plan[stage]))))
                 if previous is not None and previous.get("cleanup_complete") is not True:
                     raise BusinessError(
                         "service_exchange_administrator_cleanup_unresolved",
@@ -56,7 +57,7 @@ class ExchangeSteps:
         with self.release.files.exclusive(plan):
             self.release.files.require_fence(plan, "target")
             self.release.data.verify(plan, self.release.prepared(history))
-            self.target._verify_operation_deployment(plan["target"])
+            self.target.verify_operation_deployment(plan["target"])
 
     async def perform(self, plan: ExchangePlan, stage: str, *, reconcile: bool) -> Record:
         self.release.files.installations(plan["release"])
@@ -130,7 +131,7 @@ class ExchangeSteps:
 
     async def close(self, timeout_s: float) -> bool:
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
-        closed = []
+        closed: list[bool] = []
         for service in (self.source, self.target, self.release, self.control):
             closed.append(await service.close(max(0, deadline - asyncio.get_running_loop().time())))
         if self.owner is not None:

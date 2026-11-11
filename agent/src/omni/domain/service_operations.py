@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 
 from .contracts import BusinessError
 from .service_deployment import _created, _object, _sha, _uuid, manager_identity, validate_plan
@@ -104,7 +105,7 @@ def validate_operation(data: object) -> dict:
     return expected
 
 
-def registration_goal(action: str, report: dict) -> bool:
+def registration_goal(action: str, report: Mapping[str, object]) -> bool:
     if report.get("available") is not True:
         return False
     if action == "install":
