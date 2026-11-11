@@ -85,7 +85,9 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 第二十一批加入 domain/scheduling 与 application/scheduling（cron/到期选择返回 `dict[str, object]`、`UnitOfWork` 回调与嵌套 progress/value 显式化、端口 materialize/enqueue 接受 `Mapping`）。二十一批专项 41 项（类型守卫 + 调度/故障/HTTP 调用方）全过。
 
-第二十二批加入 domain/installation、domain/delivery 与 domain/maintenance（收据本已干净；出站摘要/配置/结果显式 `dict[str, object]`，维护请求 cast 与集合比较显式化，保留非字符串输入的 fail-closed 校验）。二十二批专项（类型守卫 + 安装/投递/维护调用方）全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第二十二批加入 domain/installation、domain/delivery 与 domain/maintenance（收据本已干净；出站摘要/配置/结果显式 `dict[str, object]`，维护请求 cast 与集合比较显式化，保留非字符串输入的 fail-closed 校验）。二十二批专项 62 项全过。
+
+二十二批后全量复核：**4633 项，4632 passed / 1 failed / 0 errors**（`debug_sink` 并行时序，同源码隔离 11 项全过）；strict 门禁 41 文件 0 errors。**不是全量全绿**，也未做三平台或真实环境验收。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D7 打包验证（2026-11-11）
 
