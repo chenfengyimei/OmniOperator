@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 import uuid
+from typing import cast
 
 from .contracts import BusinessError
 from .history import MAX_INTEGER
@@ -87,7 +88,10 @@ def evidence_sha256(value: str) -> str:
 
 def parse_review(data: object) -> dict[str, object]:
     try:
-        if not isinstance(data, dict) or set(data) != {
+        if not isinstance(data, dict):
+            raise ValueError
+        record = cast(dict[str, object], data)
+        if set(record) != {
             "review_id",
             "revision",
             "history_epoch",
@@ -97,19 +101,20 @@ def parse_review(data: object) -> dict[str, object]:
             "evidence",
         }:
             raise ValueError
-        if data["policy"] != POLICY or not isinstance(data["decision"], str) or data["decision"] not in DECISIONS:
+        decision = record["decision"]
+        if record["policy"] != POLICY or not isinstance(decision, str) or decision not in DECISIONS:
             raise ValueError
-        evidence = data["evidence"]
+        evidence = record["evidence"]
         if not isinstance(evidence, str) or not 1 <= len(evidence) <= 2000 or not evidence.strip() or "\0" in evidence:
             raise ValueError
         evidence.encode("utf-8")
         return {
-            "review_id": _uuid(data["review_id"]),
-            "revision": _integer(data["revision"]),
-            "history_epoch": _uuid(data["history_epoch"]),
-            "fingerprint": _sha(data["fingerprint"]),
+            "review_id": _uuid(record["review_id"]),
+            "revision": _integer(record["revision"]),
+            "history_epoch": _uuid(record["history_epoch"]),
+            "fingerprint": _sha(record["fingerprint"]),
             "policy": POLICY,
-            "decision": data["decision"],
+            "decision": decision,
             "evidence": evidence,
         }
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError) as exc:
@@ -119,63 +124,68 @@ def parse_review(data: object) -> dict[str, object]:
 def request_fingerprint(data: object) -> str:
     value = parse_review(data)
     evidence = value.pop("evidence")
-    value["evidence_sha256"] = evidence_sha256(evidence)
+    value["evidence_sha256"] = evidence_sha256(cast(str, evidence))
     return hashlib.sha256(_canonical(value)).hexdigest()
 
 
 def proof_fingerprint(proof: object) -> str:
     try:
-        if not isinstance(proof, dict) or set(proof) != PROOF_KEYS or proof["policy"] != POLICY:
+        if not isinstance(proof, dict):
+            raise ValueError
+        record = cast(dict[str, object], proof)
+        if set(record) != set(PROOF_KEYS) or record["policy"] != POLICY:
             raise ValueError
         for key in ("agent_id", "action_id", "run_id", "session_id", "history_epoch"):
-            _uuid(proof[key])
+            _uuid(record[key])
         if (
-            not isinstance(proof["run_state"], str)
-            or proof["run_state"] not in TERMINAL_RUNS
-            or proof["writes"] is not True
+            not isinstance(record["run_state"], str)
+            or record["run_state"] not in TERMINAL_RUNS
+            or record["writes"] is not True
         ):
             raise ValueError
-        if proof["state"] not in {
+        if record["state"] not in {
             "denied",
             "ok",
             "error",
             "cancelled",
             "unknown",
-        } or proof["effect"] not in {"none", "applied", "unknown"}:
+        } or record["effect"] not in {"none", "applied", "unknown"}:
             raise ValueError
-        if proof["state"] != "unknown" and proof["effect"] != "unknown":
+        if record["state"] != "unknown" and record["effect"] != "unknown":
             raise ValueError
-        if not isinstance(proof["tool"], str) or re.fullmatch(r"[A-Za-z0-9_-]{1,100}", proof["tool"]) is None:
+        tool = record["tool"]
+        if not isinstance(tool, str) or re.fullmatch(r"[A-Za-z0-9_-]{1,100}", tool) is None:
             raise ValueError
-        _integer(proof["policy_revision"], 1)
-        _integer(proof["session_epoch"], 1)
-        _sha(proof["arguments_sha256"])
-        _sha(proof["result_sha256"])
-        ended_at = proof["ended_at"]
+        _integer(record["policy_revision"], 1)
+        _integer(record["session_epoch"], 1)
+        _sha(record["arguments_sha256"])
+        _sha(record["result_sha256"])
+        ended_at = record["ended_at"]
         if not isinstance(ended_at, str) or not 1 <= len(ended_at) <= 40:
             raise ValueError
         ended = dt.datetime.fromisoformat(ended_at)
         if ended.tzinfo is None or ended.utcoffset() is None:
             raise ValueError
-        source = proof["source"]
+        source = record["source"]
         if not isinstance(source, dict):
             raise ValueError
-        if source.get("kind") == "builtin_unversioned":
-            if set(source) != {"kind"} or proof["tool"].startswith("ext__"):
+        source_record = cast(dict[str, object], source)
+        if source_record.get("kind") == "builtin_unversioned":
+            if set(source_record) != {"kind"} or tool.startswith("ext__"):
                 raise ValueError
-        elif source.get("kind") == "plugin":
-            if set(source) != PLUGIN_KEYS or not proof["tool"].startswith("ext__"):
+        elif source_record.get("kind") == "plugin":
+            if set(source_record) != set(PLUGIN_KEYS) or not tool.startswith("ext__"):
                 raise ValueError
             for key in ("binding_id", "extension_id", "extension_revision_id", "tool_id", "grant_id", "history_epoch"):
-                _uuid(source[key])
-            _integer(source["authority_epoch"], 1)
+                _uuid(source_record[key])
+            _integer(source_record["authority_epoch"], 1)
             for key in ("package_sha256", "catalog_sha256", "spec_sha256"):
-                _sha(source[key])
+                _sha(source_record[key])
         else:
             raise ValueError
-        if len(_canonical(proof)) > 16_384:
+        if len(_canonical(record)) > 16_384:
             raise ValueError
-        return body_fingerprint([proof])[0]
+        return body_fingerprint([record])[0]
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError, RecursionError) as exc:
         raise _error() from exc
 

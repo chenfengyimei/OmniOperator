@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a46ee0e207ada92c4b41c2ba26c2e30d52fc52ea635041ee0d846b4f004a4676",
+  "source_sha256": "a7cd349785ab12484ed151116dfc81e0c498fd67078a6c09045ec3c9fee50c7f",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9135,
+      "lines": 9145,
       "dependencies": []
     },
     {
@@ -62297,7 +62297,7 @@
       "path": "agent/src/omni/domain/action_review.py",
       "module": "v2-domain",
       "python_module": "omni.domain.action_review",
-      "lines": 189,
+      "lines": 199,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.history",
@@ -62306,14 +62306,14 @@
       "symbols": [
         {
           "name": "_error",
-          "line": 56,
+          "line": 57,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_uuid",
-          "line": 62,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "value"
@@ -62324,7 +62324,7 @@
         },
         {
           "name": "_integer",
-          "line": 68,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "value",
@@ -62337,7 +62337,7 @@
         },
         {
           "name": "_sha",
-          "line": 74,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "value"
@@ -62348,7 +62348,7 @@
         },
         {
           "name": "_canonical",
-          "line": 80,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "value"
@@ -62359,7 +62359,7 @@
         },
         {
           "name": "evidence_sha256",
-          "line": 84,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "value"
@@ -62370,7 +62370,7 @@
         },
         {
           "name": "parse_review",
-          "line": 88,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "data"
@@ -62381,7 +62381,7 @@
         },
         {
           "name": "request_fingerprint",
-          "line": 119,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "data"
@@ -62392,7 +62392,7 @@
         },
         {
           "name": "proof_fingerprint",
-          "line": 126,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "proof"
@@ -62403,7 +62403,7 @@
         },
         {
           "name": "page",
-          "line": 183,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "after",
