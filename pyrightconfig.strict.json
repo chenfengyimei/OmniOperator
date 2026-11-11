@@ -11,7 +11,8 @@
     "agent/src/omni/domain/objects.py",
     "agent/src/omni/domain/people.py",
     "agent/src/omni/domain/recovery_authority.py",
-    "agent/src/omni/domain/release_fence.py"
+    "agent/src/omni/domain/release_fence.py",
+    "agent/src/omni/domain/service_control.py"
   ],
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"

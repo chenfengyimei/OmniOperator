@@ -140,6 +140,14 @@ def deployment_fields(value: object, keys: set[str] | frozenset[str]) -> dict[st
     return cast(dict[str, object], _object(value, keys))
 
 
+def deployment_created(value: object) -> str:
+    return _created(value)
+
+
+def deployment_plan(value: object) -> dict[str, object]:
+    return cast(dict[str, object], validate_plan(value))
+
+
 def deployment_integer(value: object, minimum: int, maximum: int) -> int:
     return _integer(value, minimum, maximum)
 
