@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from typing import TypeVar
+from typing import TypeVar, cast
 
 from ..domain.contracts import BusinessError, Outcome
 from .ports import DatabasePort, Observer, Record
@@ -15,7 +15,7 @@ T = TypeVar("T")
 class MemoryOrganizationService:
     def __init__(self, database: DatabasePort, observer: Observer) -> None:
         self._db, self._observer = database, observer
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = False
         self._notify: Callable[[], None] = lambda: None
@@ -38,8 +38,8 @@ class MemoryOrganizationService:
         task = asyncio.create_task(perform(), name="memory-organization-operation")
         self._pending.add(task)
 
-        def complete(future):
-            self._pending.discard(future)
+        def complete(future: asyncio.Task[T]) -> None:
+            self._pending.discard(cast(asyncio.Task[object], future))
             if not future.cancelled():
                 future.exception()
 
@@ -61,10 +61,13 @@ class MemoryOrganizationService:
     async def page(self, agent_id: str, after: int = 0, limit: int = 20) -> Record:
         async def perform():
             rows = await self._db.read(lambda u: u.memory_organization_page(agent_id, after, limit))
-            return {
-                "items": [self._public(row) for row in rows],
-                "next_after": rows[-1]["sequence"] if len(rows) == limit else None,
-            }
+            return cast(
+                Record,
+                {
+                    "items": [self._public(row) for row in rows],
+                    "next_after": rows[-1]["sequence"] if len(rows) == limit else None,
+                },
+            )
 
         return await self._execute(perform)
 

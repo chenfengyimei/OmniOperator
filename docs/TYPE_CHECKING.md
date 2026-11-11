@@ -39,6 +39,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/debugging.py` | 显式调试会话语义（维护任务显式 Task[None]） |
 | `agent/src/omni/application/terminal_review.py` | 终端核查用例（有界任务/Record 显式化） |
 | `agent/src/omni/application/objects.py` | 对象发布/访问用例（有界任务与分页返回显式化） |
+| `agent/src/omni/application/memory_organization.py` | 记忆整理用例（有界任务/分页返回显式化） |
 | `agent/src/omni/application/exchange_recovery.py` | 交换隔离/救援计划（进度与授权类型化） |
 | `agent/src/omni/application/service_cleanup.py` | 隔离定义审查/清理计划复用 |
 | `agent/src/omni/domain/terminal_review.py` | 终端未知结果核查与证据指纹纯规则 |
@@ -57,7 +58,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 与 `adapters/` 已从 20 个小模块开始；`composition/`、`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 与 `adapters/` 已从 21 个小模块开始；`composition/`、`agent/tests/` 尚未开始 strict。
 
 ## 4. 推进规则
 
