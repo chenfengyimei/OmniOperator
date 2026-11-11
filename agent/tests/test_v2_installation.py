@@ -68,6 +68,25 @@ def test_seal_refuses_missing_home_and_pending_migrations(tmp_path, monkeypatch)
     assert report["upgrade_required"] is True and report["ready"] is False
 
 
+def test_runtime_accepts_sealed_receipt_and_rejects_tampering(tmp_path):
+    paths = initialized(tmp_path)
+    seal_installation(paths)
+    asyncio.run(_open_and_close(paths.home))
+
+    manifest_path = paths.home / "installation.json"
+    receipt = json.loads(manifest_path.read_text(encoding="utf-8"))
+    receipt["schema_version"] = "v2_9999"
+    manifest_path.write_text(json.dumps(receipt), encoding="utf-8")
+    with pytest.raises(BusinessError) as mismatch:
+        asyncio.run(_open_and_close(paths.home))
+    assert mismatch.value.code == "installation_mismatch"
+
+    manifest_path.write_text("{", encoding="utf-8")
+    with pytest.raises(BusinessError) as invalid:
+        asyncio.run(_open_and_close(paths.home))
+    assert invalid.value.code == "installation_invalid"
+
+
 def test_cli_verify_emits_json(tmp_path, monkeypatch, capsys):
     paths = initialized(tmp_path)
     monkeypatch.setattr(sys, "argv", ["omni", "--home", str(paths.home), "installation", "verify"])

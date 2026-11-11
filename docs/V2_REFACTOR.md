@@ -71,7 +71,7 @@ D7 节点后全量复核：**4601 项，4599 passed / 2 failed / 0 errors**（`m
 
 ## D7 安装收据与升级预检（2026-11-11）
 
-`python -m omni.composition.cli --home <home> installation verify|seal`：verify 只读报告 home/收据/数据库/WAL/schema/期望 head 与是否需要升级；seal 显式写入一次性安装收据（schema==代码 head，幂等、原子写、权限收紧、异常 fail-closed），校验规则位于 `domain/installation.py`。这仍不是完整安装器：不下载/校验 wheel、不创建环境、不切换目录、不执行迁移或回滚；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
+`python -m omni.composition.cli --home <home> installation verify|seal`：verify 只读报告 home/收据/数据库/WAL/schema/期望 head 与是否需要升级；seal 显式写入一次性安装收据（schema==代码 head，幂等、原子写、权限收紧、异常 fail-closed），校验规则位于 `domain/installation.py`。运行时打开实例会校验已存在收据：schema 不一致 `installation_mismatch`、损坏/链接 `installation_invalid`，无收据的历史实例保持兼容；升级后必须重新 seal。这仍不是完整安装器：不下载/校验 wheel、不创建环境、不切换目录、不执行迁移或回滚；macOS/Linux 与干净机器端到端未验收，默认入口仍是 V1。
 
 ## D6 扩展产物协议（2026-11-11）
 

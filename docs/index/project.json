@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7cfe21b455c90640d109c25258ca6f11a7c91b3d116834b7e35eb7e310fb2820",
+  "source_sha256": "bdfb782ea2f164da2553699a80bf3bc3cbe79cf9613331aa9bb498ec653e1a09",
   "modules": [
     {
       "id": "v2-domain",
@@ -428,7 +428,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2820,
+      "lines": 2832,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -57587,7 +57587,7 @@
       "path": "agent/src/omni/composition/instance.py",
       "module": "v2-composition",
       "python_module": "omni.composition.instance",
-      "lines": 723,
+      "lines": 735,
       "imports": [
         "omni.adapters.android",
         "omni.adapters.bilibili",
@@ -57658,6 +57658,7 @@
         "omni.domain.android",
         "omni.domain.contracts",
         "omni.domain.desktop_actions",
+        "omni.domain.installation",
         "omni.domain.skills"
       ],
       "symbols": [

@@ -339,6 +339,18 @@ async def open_instance(
             paths.database, clock, ids, objects_root=paths.objects, boot_id=boot_id, metrics=measurements
         )
         lifetime.own("database", 3, lambda _: database.close())
+        receipt_path = paths.home / "installation.json"
+        if receipt_path.is_symlink():
+            raise BusinessError("installation_invalid", "Installation receipt cannot be a link")
+        if receipt_path.is_file():
+            from ..domain.installation import validate_installation
+
+            try:
+                receipt = validate_installation(json.loads(receipt_path.read_text(encoding="utf-8")))
+            except (ValueError, UnicodeError, BusinessError) as exc:
+                raise BusinessError("installation_invalid", "Installation receipt is invalid") from exc
+            if receipt["schema_version"] != database.schema_version:
+                raise BusinessError("installation_mismatch", "Installation receipt does not match the database schema")
         if deployment is not None:
             persisted = await database.read(lambda u: u.instance_identity())
             if persisted["instance_id"] != deployment["instance_id"] or build_id != deployment["build_id"]:
