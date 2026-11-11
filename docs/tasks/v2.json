@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "ac752a1",
+  "checkpoint_commit": "bd3efe4",
   "current_validation": {
-    "status": "d7_strict_typing_fifth_batch",
+    "status": "d7_strict_typing_sixth_batch",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
       }
     ],
-    "code_version": "72f1a1ec60c51fc797c6a0000a0cfda5fc5b284f8559896306ef00fb69964f91",
+    "code_version": "d4f4c095a52a6eaa49564155a150614a32e89ee4adcc8c9ae78997837c00eae6",
     "fixed_source_files": 1175,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -880,7 +880,7 @@
       "id": "R7.typecheck",
       "status": "进行中",
       "development": "门禁与首批模块完成",
-      "offline_validation": "strict 11 文件 0 errors；五批类型守卫 + 上下文/发布/模型流等 250 项调用方回归全过",
+      "offline_validation": "strict 12 文件 0 errors；六批类型守卫 + 服务/发布/模型流等 361 项调用方回归全过",
       "evidence": [
         "docs/evidence/v2-typecheck.json"
       ],

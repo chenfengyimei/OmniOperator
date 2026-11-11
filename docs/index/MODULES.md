@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`c38ae4ee4da9f4f4824148a46bfb47ab913686b11fbac04f33eae039b2657519`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`76592e6fed29705d334dfb2320a7bf7ca58a655617db3b419df84115077339a0`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -54,8 +54,8 @@
 | [agent/src/omni/domain/service_activation.py](../../agent/src/omni/domain/service_activation.py) | 79 | Bind unattended exchange activation to one reviewed boot; pure persisted contracts with no platform IO. |
 | [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 245 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
 | [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 173 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
-| [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 169 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
-| [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 522 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
+| [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 206 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
+| [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 530 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
 | [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 310 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
 | [agent/src/omni/domain/service_isolation.py](../../agent/src/omni/domain/service_isolation.py) | 108 | Reviewed offline startup quarantine; retains unknown outcomes and authorizes only a separate recovery plan. |
 | [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 129 | Fingerprint offline service changes; registration never implies a healthy running service. |
