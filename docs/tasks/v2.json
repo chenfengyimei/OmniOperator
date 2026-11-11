@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "1eaf6a9",
+  "checkpoint_commit": "ed5912a",
   "current_validation": {
-    "status": "d7_capability_report_latest_passed",
+    "status": "d7_owner_token_latest_passed",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 6,
     "current_full_passed": false,
@@ -305,8 +305,8 @@
         "recheck_report": "temp/build/v2-callbacks-final-isolation.xml"
       }
     ],
-    "code_version": "7553dcf059df0b4457374da3964caedfb4c31cc2eb326242e6f613e056e675b3",
-    "fixed_source_files": 1168,
+    "code_version": "6d5504e89f47066dc1e8a330d7644ecde2dae9a26216af02556abcc54788f74e",
+    "fixed_source_files": 1169,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
@@ -317,13 +317,14 @@
       "report": "temp/build/v2-callbacks-final-full.xml",
       "isolation_report": "temp/build/v2-callbacks-final-isolation.xml"
     },
-    "capabilities_evidence": "docs/evidence/v2-capabilities.json"
+    "capabilities_evidence": "docs/evidence/v2-capabilities.json",
+    "token_evidence": "docs/evidence/v2-owner-token.json"
   },
   "next_checkpoint": {
     "id": "D7.product_switch",
     "status": "进行中",
-    "design": "docs/V2_CAPABILITIES.md",
-    "scope": "能力报告已完成；剩余：令牌管理、统一工作台收敛与业务清单、全仓严格类型、三平台包/容器/安装更新恢复；真实环境验收仍待。"
+    "design": "docs/V2_OWNER_TOKENS.md",
+    "scope": "能力报告与令牌管理已完成；剩余：令牌工作台页、统一工作台收敛与业务清单、全仓严格类型、三平台包/容器/安装更新恢复。"
   },
   "milestones": [
     {
@@ -838,14 +839,25 @@
       ],
       "remaining": "真实环境能力仍待验收；D7 其余门槛未完成。",
       "code_version": "7553dcf059df0b4457374da3964caedfb4c31cc2eb326242e6f613e056e675b3"
+    },
+    {
+      "id": "R7.owner_tokens",
+      "status": "完成（离线）",
+      "development": "完成",
+      "offline_validation": "会话清单/轮换/崩溃顺序/重启/CLI 共 38 项调用方回归全过",
+      "evidence": [
+        "docs/evidence/v2-owner-token.json"
+      ],
+      "remaining": "工作台令牌页未实现；真实环境轮换演练未做。",
+      "code_version": "6d5504e89f47066dc1e8a330d7644ecde2dae9a26216af02556abcc54788f74e"
     }
   ],
   "latest_source_recovery": {
-    "manifest": "temp/private/v2-capabilities-source-20261111-7553dcf059df/manifest.json",
-    "files": 1168,
+    "manifest": "temp/private/v2-owner-token-source-20261111-6d5504e89f47/manifest.json",
+    "files": 1169,
     "standalone_source": true,
     "runtime_data_included": false,
-    "validation_status": "d7_capability_report_latest_passed"
+    "validation_status": "d7_owner_token_latest_passed"
   },
   "delivery_strategy": {
     "date": "2026-11-06",

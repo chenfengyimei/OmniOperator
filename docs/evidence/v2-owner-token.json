@@ -1,0 +1,87 @@
+{
+ "schema": 1,
+ "batch": "D7.owner_tokens",
+ "date": "2026-11-11",
+ "whole_v2_complete": false,
+ "d7_complete": false,
+ "default_entrypoint": "v1",
+ "source": {
+  "code_version": "6d5504e89f47066dc1e8a330d7644ecde2dae9a26216af02556abcc54788f74e",
+  "fixed_source_files": 1169,
+  "git_head": "ed5912a",
+  "dirty_checkout": false
+ },
+ "development": {
+  "schema_tables": 136,
+  "migration_head": "v2_0037",
+  "assets_version": "20261110v52",
+  "scope": [
+   "GET /api/v1/owner-token/sessions exposes only created/expires/revoked/current, never token or hash",
+   "POST /api/v1/owner-token/rotate issues a new 30-day session, atomically replaces run/owner.token (0600, fsync, no links), then revokes the others and registers the redactor",
+   "Crash ordering can only leave an extra valid session; it never publishes a token the database does not recognize",
+   "CLI auth --rotate uses the running local instance and prints the new token once; auth still prints the current token"
+  ],
+  "pending": [
+   "Workbench token page",
+   "Unified workbench/inventory",
+   "Repository-wide strict typing",
+   "Three-platform packaging/install/update/restore",
+   "Real-environment acceptance"
+  ]
+ },
+ "validation": {
+  "targeted_unique_passed": 38,
+  "all_latest_cases_passed": true,
+  "targeted_reports": [
+   {
+    "path": "temp/build/v2-owner-token.xml",
+    "sha256": "3a1092251c4e7c9a9c980b147e712a39e4c9e5bf23ae9d48b26ca7b059584b3c",
+    "tests": 38,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 38.615
+   }
+  ],
+  "gates": {
+   "path": "temp/build/v2-owner-token-gates.json",
+   "sha256": "314c6401c0f0d90cf98c3b42fd4e3ab5c062512fe9d5c8daa5a8611f7012cba2",
+   "passed": 5,
+   "total": 5
+  },
+  "pyright": {
+   "checking": "default",
+   "mode": "host",
+   "summary": {
+    "filesAnalyzed": 5,
+    "errorCount": 0,
+    "warningCount": 0,
+    "informationCount": 0,
+    "timeInSec": 3.762
+   },
+   "sources": [
+    "agent/src/omni/adapters/persistence/repository.py",
+    "agent/src/omni/adapters/http.py",
+    "agent/src/omni/composition/http.py",
+    "agent/src/omni/composition/cli.py",
+    "agent/src/omni/application/ports.py"
+   ]
+  },
+  "full_run": {
+   "status": "not_rerun",
+   "last_known": "4580 passed / 3 failed (parallel timing) before D7 nodes"
+  }
+ },
+ "source_recovery": {
+  "manifest": "temp/private/v2-owner-token-source-20261111-6d5504e89f47/manifest.json",
+  "archive_sha256": "0b1566d6d6f21a4142605376aa05626b3b9ee7bfee993271551e346db613bbf6",
+  "files": 1169,
+  "validation_artifacts": [
+   "v2-owner-token.xml",
+   "v2-owner-token-gates.json"
+  ]
+ },
+ "next": {
+  "id": "D7.product_switch",
+  "scope": "Token workbench page; unified workbench/inventory; strict typing; packaging."
+ }
+}

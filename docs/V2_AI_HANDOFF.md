@@ -5,10 +5,10 @@
 ## 1. 接手时先明确的结论
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
-- 当前断点：**D7 产品切换进行中**，首个节点（能力报告）已完成；剩余令牌管理、统一工作台收敛与业务清单、全仓严格类型、三平台包/容器/安装更新恢复。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
-- 最新完成批次是 **D7.capabilities（能力报告）**：`GET /api/v1/capabilities` 把实例健康快照投影为 24 个能力域的有界报告，只含布尔/整数/≤80 字符短文本（列表/映射只取长度），路径/标识/凭据/自由文本不出现；`closing`/错误码/`ready=false` 标为需注意，缺失域省略；固定 `entrypoint=v1`、`v2_accepted=false`，`platform_acceptance` 原样透传（当前 `pending`）。工作台新增“能力”页（390/1024，v52）。**17 项节点专项全过、86 项相关回归通过**；合同 `docs/V2_CAPABILITIES.md`，证据 `docs/evidence/v2-capabilities.json`。
-- 功能与基线：能力报告 17 项、宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**最终全量（本节点前）：4583 项，4580 passed / 3 failed / 0 errors**（并行时序，同源码隔离 36 项全过，登记观察）。**仍不是全量全绿、全仓严格类型或三平台验收。**
-- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）、`1eaf6a9`（能力报告）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
+- 当前断点：**D7 产品切换进行中**，能力报告与令牌管理已完成；剩余令牌工作台页、统一工作台收敛与业务清单、全仓严格类型、三平台包/容器/安装更新恢复。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
+- 最新完成批次是 **D7.owner_tokens（令牌管理）**：`GET /api/v1/owner-token/sessions` 只返回创建/过期/撤销/当前标记，不暴露令牌或哈希；`POST /api/v1/owner-token/rotate` 先登记新会话、原子替换 `run/owner.token`（0600/fsync/拒绝链接）、再撤销其余会话并注册脱敏，新令牌只返回一次、旧令牌立即 401；崩溃窗口最多多一个有效会话。CLI `auth --rotate` 可对运行实例轮换并打印新令牌。**38 项调用方回归全过**；合同 `docs/V2_OWNER_TOKENS.md`，证据 `docs/evidence/v2-owner-token.json`。
+- 功能与基线：令牌管理 38 项、能力报告 17 项、宿主回调 93 项、市场工作台 25 项、市场扫描 62 项、扩展产物工作台 18 项、产物协议 146 项、MCP 合并 228 个不同节点、基线修复 126 项均最新全过。**最终全量（D7 节点前）：4583 项，4580 passed / 3 failed / 0 errors**（并行时序，隔离 36 项全过，登记观察）。**仍不是全量全绿、全仓严格类型或三平台验收。**
+- 已提交并推送：`8ad22cf`…`44890f0`（产物协议）、`adc528d`（产物工作台）、`5f3b46e`（基线修复）、`965588e`（市场扫描）、`7ffda3d`（市场工作台）、`e74572d`（宿主回调）、`1eaf6a9`（能力报告）、`ed5912a`（令牌管理）；分支 `codex/architecture-v2` 已设上游 `origin/codex/architecture-v2`；`master` 未变。
 - Windows 的隔离原生样例已执行；前台真实键鼠验收被用户明确安排为“稍后”。macOS 待 Mac mini 编译，Linux 无实机。不要把 Windows 注入测试当作 Mac/Linux 证据。
 - 用户要求：**开发优先，打通完整生产链后再集中验证受影响模块与调用方；不要频繁全量；每完成一个节点 git 提交并推送一次。**
 
@@ -42,14 +42,14 @@ V2 **不兼容** V1 的数据库、配置、HTTP、工具名或导入路径；�
 | --- | --- |
 | 工作区 | `D:\xm\OmniOperator`，PowerShell |
 | 分支 | `codex/architecture-v2`，上游 `origin/codex/architecture-v2`（gitee） |
-| MCP 与扩展批代码提交 | `8ad22cf`→`bf5f91f`→`564f0db`→`8590144`→`320549f`→`44890f0`→`adc528d`→`5f3b46e`→`965588e`→`7ffda3d`→`e74572d`→`1eaf6a9`；台账 `checkpoint_commit=1eaf6a9`，本文档提交再前进一个 |
+| MCP 与扩展批代码提交 | `8ad22cf`→`bf5f91f`→`564f0db`→`8590144`→`320549f`→`44890f0`→`adc528d`→`5f3b46e`→`965588e`→`7ffda3d`→`e74572d`→`1eaf6a9`→`ed5912a`；台账 `checkpoint_commit=ed5912a`，本文档提交再前进一个 |
 | 最初重构基线 | `076c0c22fa8ecb90d3ce9a64562c90a23a129e00` |
 | 交接时工作区 | 干净（`git status` 空） |
-| 最新固定源码指纹 | `7553dcf059df0b4457374da3964caedfb4c31cc2eb326242e6f613e056e675b3` |
-| 源码文件 | 1168 份（`agent/`、`web/`、`scripts/` 的 git blob 集合） |
-| 恢复材料 | `temp/private/v2-capabilities-source-20261111-7553dcf059df/manifest.json` |
-| 源码备份 | 同目录 `source-and-evidence.zip`（1424 份源码/文档 + 2 份验证材料） |
-| ZIP SHA256 | `bccf467058e9688eb74b019bfd578ac3f2e9c7134204be18356b90914e668b5e` |
+| 最新固定源码指纹 | `6d5504e89f47066dc1e8a330d7644ecde2dae9a26216af02556abcc54788f74e` |
+| 源码文件 | 1169 份（`agent/`、`web/`、`scripts/` 的 git blob 集合） |
+| 恢复材料 | `temp/private/v2-owner-token-source-20261111-6d5504e89f47/manifest.json` |
+| 源码备份 | 同目录 `source-and-evidence.zip`（1427 份源码/文档 + 2 份验证材料） |
+| ZIP SHA256 | `0b1566d6d6f21a4142605376aa05626b3b9ee7bfee993271551e346db613bbf6` |
 
 封存时 manifest 为 `complete` 且 ZIP SHA 匹配；**complete 只表示可恢复，不表示 V2 完成**。本批证据 JSON 与本文档晚于该封存，恢复时需一并复制。MCP/媒体/技能批的恢复包保留为溯源材料，不删除。
 
@@ -264,9 +264,10 @@ D1–D8 是交付包；R0–R7 是架构阶段，编号不可互换。父阶段�
 | `v2-extension-market-ui.xml` | 25 | 市场工作台 390/1024 更新确认与重新授权 + UI/服务/HTTP 回归 |
 | `v2-extension-callbacks.xml` | 93 | 宿主回调 context/log、预算/超长 UNKNOWN + 扩展/包/宿主/worker/架构回归 |
 | `v2-capabilities.xml` | 17 | D7 能力报告：域投影边界/attention、HTTP 鉴权与泄漏检查、390/1024 页面 |
+| `v2-owner-token.xml` | 38 | D7 令牌清单/轮换/重启/CLI + HTTP/架构/服务运行时调用方 |
 | `v2-mcp-final.xml` + `-ui` + `-callers` + `-guards` | 150 | 上一批 MCP，共享节点以扩展报告的重跑结果为准 |
 
-门禁 `temp/build/v2-capabilities-gates.json`（ruff / format / prettier / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 2 文件 0 错误）。能力报告节点 17 项专项，未再跑全量；最终全量仍为上表 4580 passed / 3 failed。
+门禁 `temp/build/v2-owner-token-gates.json`（ruff / format / pyright / 项目索引 / 任务摘要 全 exit 0，pyright 5 文件 0 错误）。令牌节点 38 项调用方回归，未再跑全量；最终全量仍为上表 4580 passed / 3 failed。
 
 最终全量 `temp/build/v2-callbacks-final-full.xml`：**4583 项，4580 passed / 3 failed / 0 errors**（service_runtime 身份、debug_sink、portal_ui 各一处并行时序）；同源码隔离 `temp/build/v2-callbacks-final-isolation.xml` **36 项全过**，按并行时序抖动登记观察。**没有全量全绿结论**：没有主包重建、远程 CI、Mac/Linux、真实账号设备、真实第三方插件、真实市场源、负载或 72 小时结论。
 
@@ -345,5 +346,5 @@ uv run --no-sync python scripts/task_status.py --check
 
 - 期望：分支 `codex/architecture-v2`，远端与本地一致（或本地领先本批文档提交），工作区干净。
 - 期望：索引 `modules=65 files=716 routes=428 declared_tools=94`，`stale=` 为空。
-- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D7.product_switch"`（D6.extensions 离线节点已完成，D7 能力报告已完成），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 6`、`current_full_passed == false`（最终全量 4580 passed / 3 failed，三处并行时序隔离 36 项全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；能力报告证据 `docs/evidence/v2-capabilities.json`）。
+- 期望：`docs/tasks/v2.json` 的 `next_checkpoint.id == "D7.product_switch"`（D6.extensions 离线节点已完成，D7 能力报告与令牌管理已完成），`current_validation.targeted_unique_passed == 228`、`includes_browser_cases == 6`、`current_full_passed == false`（最终全量 4580 passed / 3 failed，三处并行时序隔离 36 项全过；基线 26 项已修复，见 `docs/evidence/v2-baseline-repair.json`；D7 证据 `docs/evidence/v2-capabilities.json`、`docs/evidence/v2-owner-token.json`）。
 - 若数字不同：先判断是否有并行会话提交，再决定是否重算索引/摘要；不要改历史证据。
