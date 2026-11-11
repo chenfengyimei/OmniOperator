@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "d3bf46baa285f8d301dfe541c89f1cb8e852484de5ee46659b34b223fbf30982",
+  "code_version": "436e008e0b0efcac26572df7a4caeb9ae7a09aba546817bcda76b4c1cbd45217",
   "fixed_source_files": 1199,
-  "git_head": "727e5c6",
+  "git_head": "56aacde",
   "dirty_checkout": false
  },
  "development": {
@@ -55,7 +55,8 @@
    "Strict scope reaches 56 files with domain/contracts and domain/history; action-result defaults/status guards and history-cursor comparisons are explicit without changing transitions or cursor validation",
    "Strict scope reaches 57 files with domain/local_vectors; manifests/protocols/requests/vectors are explicit with typed JSON hooks without changing bundle or protocol validation",
    "Strict scope reaches 58 files with domain/service_operations; public deployment bridges and explicit operation steps/fingerprints/preconditions replace private helpers without changing offline operation validation",
-   "Strict scope reaches 59 files with domain/configuration; payload NUL checks, names and fingerprints are explicit without changing configuration validation"
+   "Strict scope reaches 59 files with domain/configuration; payload NUL checks, names and fingerprints are explicit without changing configuration validation",
+   "Strict scope reaches 60 files with domain/service_cleanup; public deployment bridges and explicit cleanup plans/validation replace private helpers without changing cleanup validation"
   ],
   "pending": [
    "Remaining 49 domain files",
@@ -399,6 +400,15 @@
     "errors": 0,
     "duration_s": 27.374,
     "note": "thirty-seventh strict batch: guard + configuration callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-38.xml",
+    "sha256": "c5600152cee46285fe1873af9b7f11e47d15535cee8de2f28f9e18001322a2f1",
+    "tests": 27,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 18.684,
+    "note": "thirty-eighth strict batch: guard + service cleanup callers"
    }
   ],
   "gates": {
@@ -410,7 +420,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 59,
+    "filesAnalyzed": 60,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
