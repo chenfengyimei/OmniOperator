@@ -107,7 +107,9 @@ D7 迁移执行节点：新增 `installation migrate`，在同一组 prepared/sm
 
 D7 候选卸载节点：新增 `installation uninstall [--sha256]`，实例空闲时删除指定 `updates/<sha16>` 与匹配的当前指针/启动包装，或只停用当前指针；保留 `data/`、安装收据与 home 之外备份，未知/非当前候选和实例占用均 fail-closed。仍不停服/启动、不执行 live 回滚或数据目录清理，默认入口仍是 V1。
 
-D7 离线环境节点：新增 `installation environment`，为已暂存 wheel 创建 `venv`（`--system-site-packages` 离线模式）并用 `pip --no-index --no-deps` 安装，子解释器验证 `omni` 导入位于该 venv，写 `environment.json`，同 SHA 幂等；switch 检测到有效环境时把运行指针/启动包装指向 venv（`mode=venv`），否则保持宿主解释器+候选树（`mode=tree`）。仍不停服/启动、不执行 live 回滚或数据目录清理，默认入口仍是 V1。
+D7 离线环境节点：新增 `installation environment`，为已暂存 wheel 创建 `venv`（`--system-site-packages` 离线模式）并用 `pip --no-index --no-deps` 安装，子解释器验证 `omni` 导入位于该 venv，写 `environment.json`，同 SHA 幂等；switch 检测到有效环境时把运行指针/启动包装指向 venv（`mode=venv`），否则保持宿主解释器+候选树（`mode=tree`）。仍不停服/启动、不执行数据目录清理，默认入口仍是 V1。
+
+D7 live 回滚节点：新增 `installation rollback`，实例空闲时把运行指针换回 `previous.json` 并重写启动包装/`launch.py`，写 `rollback-live.json`；要求上一候选树存在且 schema 与当前数据库一致（否则 `rollback_schema_mismatch`），重复调用幂等。仅回滚代码指针，不恢复数据库备份；仍不停服/启动、不清理数据目录，默认入口仍是 V1。
 
 ## D6 扩展产物协议（2026-11-11）
 

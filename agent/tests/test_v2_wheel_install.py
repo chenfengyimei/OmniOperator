@@ -18,6 +18,7 @@ from omni.adapters.platform.wheel_backup import backup_candidate
 from omni.adapters.platform.wheel_install import (
     install_candidate,
     migrate_candidate,
+    rollback_candidate,
     runtime_current,
     switch_candidate,
 )
@@ -160,3 +161,60 @@ def test_cli_switch_and_current_emit_json(tmp_path, monkeypatch, capsys):
     assert main() == 0
     current = json.loads(capsys.readouterr().out)
     assert current["active"] is True and current["wheel_sha256"] == sha256
+
+
+def _second_candidate(tmp_path, paths, tag):
+    path = tmp_path / f"{tag}.whl"
+    with zipfile.ZipFile(path, "w") as archive:
+        for name in REQUIRED:
+            archive.writestr(name, tag if name.endswith(".html") else "")
+    sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+    stage_wheel(paths.home, path, sha256)
+    prepare_wheel(paths.home, sha256)
+    smoke_candidate(paths, sha256)
+    backup_candidate(paths, sha256)
+    rollback_check(paths, sha256)
+    switch_candidate(paths, sha256)
+    return sha256
+
+
+def test_live_rollback_returns_to_previous_pointer(tmp_path):
+    paths, first, _ = candidate(tmp_path)
+    switch_candidate(paths, first)
+    second = _second_candidate(tmp_path, paths, "second")
+    assert runtime_current(paths)["wheel_sha256"] == second
+    rolled = rollback_candidate(paths)
+    assert rolled["written"] is True and rolled["from"] == second and rolled["to"] == first
+    assert runtime_current(paths)["wheel_sha256"] == first
+    assert rollback_candidate(paths)["written"] is False
+    assert switch_candidate(paths, second)["written"] is True
+    assert (paths.home / "runtime" / "rollback-live.json").exists() is False
+
+
+def test_live_rollback_requires_previous_and_idle_instance(tmp_path):
+    paths, sha256, _ = candidate(tmp_path)
+    with pytest.raises(BusinessError) as missing:
+        rollback_candidate(paths)
+    assert missing.value.code == "rollback_missing"
+
+    switch_candidate(paths, sha256)
+    second = _second_candidate(tmp_path, paths, "third")
+    lock = InstanceLock(paths)
+    lock.acquire()
+    try:
+        with pytest.raises(BusinessError) as running:
+            rollback_candidate(paths)
+        assert running.value.code == "instance_running"
+    finally:
+        lock.close()
+    assert runtime_current(paths)["wheel_sha256"] == second
+
+
+def test_cli_rollback_emits_json(tmp_path, monkeypatch, capsys):
+    paths, first, _ = candidate(tmp_path)
+    switch_candidate(paths, first)
+    _second_candidate(tmp_path, paths, "cli-second")
+    monkeypatch.setattr(sys, "argv", ["omni", "--home", str(paths.home), "installation", "rollback"])
+    assert main() == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["format"] == "omni-live-rollback-1" and payload["to"] == first

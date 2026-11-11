@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "fe99158fd20996793a9e4ad05fa8f5e21eb8bbb878d614f105901e2b112368cd",
+  "source_sha256": "7cfecdf5fa73b331dc9339f7c2c11ba6d68437200c8776e8bac2e2d57c48a3be",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52581,
+      "lines": 52650,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2926,
+      "lines": 2931,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -30871,7 +30871,7 @@
       "path": "agent/src/omni/adapters/platform/wheel_install.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_install",
-      "lines": 278,
+      "lines": 347,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
@@ -30967,8 +30967,19 @@
           }
         },
         {
+          "name": "rollback_candidate",
+          "line": 227,
+          "kind": "function",
+          "parameters": [
+            "paths"
+          ],
+          "annotations": {
+            "paths": "InstancePaths"
+          }
+        },
+        {
           "name": "runtime_current",
-          "line": 226,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "paths"
@@ -30979,7 +30990,7 @@
         },
         {
           "name": "install_candidate",
-          "line": 250,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "paths",
@@ -58096,7 +58107,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 985,
+      "lines": 990,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -58180,7 +58191,7 @@
         },
         {
           "name": "local_origin",
-          "line": 417,
+          "line": 418,
           "kind": "function",
           "parameters": [
             "value"
@@ -58191,7 +58202,7 @@
         },
         {
           "name": "diagnostic_download",
-          "line": 436,
+          "line": 437,
           "kind": "function",
           "parameters": [
             "paths",
@@ -58204,7 +58215,7 @@
         },
         {
           "name": "main",
-          "line": 478,
+          "line": 479,
           "kind": "function",
           "parameters": [],
           "annotations": {}

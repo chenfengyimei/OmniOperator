@@ -220,7 +220,76 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
     private_path(current_path)
     (runtime / "launch.py").write_text(LAUNCHER, encoding="utf-8")
     _wrapper(paths.home, python)
+    (runtime / "rollback-live.json").unlink(missing_ok=True)
     return {"format": FORMAT, "written": True, **record, "launcher": str(runtime / "launch.py")}
+
+
+def rollback_candidate(paths: InstancePaths) -> dict[str, object]:
+    """Point the runtime back at previous.json; code-only, no database restore."""
+    runtime = paths.home / "runtime"
+    current_path = runtime / "current.json"
+    previous_path = runtime / "previous.json"
+    if not current_path.is_file() or not previous_path.is_file():
+        raise invalid("rollback_missing")
+    try:
+        current = json.loads(current_path.read_text(encoding="utf-8"))
+        previous = json.loads(previous_path.read_text(encoding="utf-8"))
+    except (ValueError, OSError, UnicodeError):
+        raise invalid("rollback_pointer_invalid") from None
+    if (
+        not isinstance(current, dict)
+        or not isinstance(previous, dict)
+        or current.get("format") != FORMAT
+        or previous.get("format") != FORMAT
+    ):
+        raise invalid("rollback_pointer_invalid")
+    source, target = str(current.get("wheel_sha256", "")), str(previous.get("wheel_sha256", ""))
+    if not source or not target or source == target:
+        raise invalid("rollback_missing")
+    tree = Path(str(previous.get("tree", "")))
+    if not (tree / "omni" / "__init__.py").is_file():
+        raise invalid("rollback_tree_invalid")
+    schema = read_schema(paths.database)
+    if previous.get("schema_version") != schema:
+        raise BusinessError(
+            "rollback_schema_mismatch",
+            "Restore the matching database backup before rolling back this candidate",
+            status=422,
+        )
+    receipt_path = runtime / "rollback-live.json"
+    if receipt_path.is_file():
+        try:
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        except (ValueError, OSError, UnicodeError):
+            raise invalid("rollback_pointer_invalid") from None
+        if isinstance(receipt, dict) and {receipt.get("from"), receipt.get("to")} == {source, target}:
+            return {"format": "omni-live-rollback-1", "written": False, "from": source, "to": target}
+    lock = InstanceLock(paths)
+    try:
+        lock.acquire()
+    except BusinessError as exc:
+        if exc.code == "instance_busy":
+            raise invalid("instance_running") from None
+        raise
+    finally:
+        lock.close()
+    durable_json(previous_path, current)
+    private_path(previous_path)
+    durable_json(current_path, previous)
+    private_path(current_path)
+    (runtime / "launch.py").write_text(LAUNCHER, encoding="utf-8")
+    _wrapper(paths.home, str(previous.get("python", sys.executable)))
+    record = {
+        "format": "omni-live-rollback-1",
+        "from": source,
+        "to": target,
+        "python": previous.get("python"),
+        "mode": previous.get("mode"),
+        "written": True,
+    }
+    durable_json(receipt_path, record)
+    private_path(receipt_path)
+    return record
 
 
 def runtime_current(paths: InstancePaths) -> dict[str, object]:

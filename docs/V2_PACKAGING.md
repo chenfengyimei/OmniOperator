@@ -61,13 +61,14 @@ python -m omni.composition.cli --home <home> installation seal
 - `installation uninstall [--sha256 <hex>]` 在实例空闲时卸载候选：带 SHA 时删除 `updates/<sha16>`（含暂存 wheel/树/收据），若它正是当前指针则同时移除 `current.json`/`previous.json`/`launch.py` 与 `omni.cmd`/`omni` 包装；不带 SHA 时只停用当前指针；保留 `data/`、`installation.json` 与 home 之外的备份，报告 `data_kept`/`backup_kept`；未知/非当前候选与实例占用均 fail-closed。
 - `installation environment --sha256 <hex>` 为已暂存候选创建**离线** venv：`python -m venv --system-site-packages` 后用 `pip --no-index --no-deps` 安装暂存 wheel（按 METADATA 生成 pip 可识别的文件名），在子解释器中验证 `omni` 导入路径位于该 venv，写 `environment.json`；同 SHA 重放幂等 `written=false`，失败清理 `venv.partial`。这是离线开发/验收模式，依赖宿主 site-packages。
 - `installation switch` 在候选存在有效 `environment.json` 时把运行指针的 `python` 指向该 venv、`mode=venv`，`omni.cmd`/`omni` 与 `runtime/launch.py` 按指针选择解释器（venv 模式不再插入候选树 `sys.path`）；没有环境时保持宿主解释器 + 候选树（`mode=tree`）。
-- **仍未完成**：不下载 wheel（artifact/stage 只处理本地文件）、不停止/启动服务、不执行 live 回滚、不清理数据目录；三平台 venv 与干净机器端到端未验收，默认入口仍是 V1。
+- `installation rollback` 执行**代码级 live 回滚**：实例空闲时把运行指针换回 `previous.json`（上一候选），重写启动包装与 `launch.py`，写 `rollback-live.json`；要求上一候选树仍存在且其 `schema_version` 与当前数据库一致，否则 `rollback_schema_mismatch`；同一切换对的重复调用幂等 `written=false`；不恢复数据库快照。
+- **仍未完成**：不下载 wheel（artifact/stage 只处理本地文件）、不停止/启动服务、不恢复数据库备份、不清理数据目录；三平台 venv 与干净机器端到端未验收，默认入口仍是 V1。
 
 ## 4. 明确未完成
 
 - **三平台**：仅在 Windows 主机验证纯 Python wheel 构建与隔离导入；macOS/Linux 未构建、未安装、未恢复，不得写“三平台已交付”。
 - **容器镜像**：无 Dockerfile/镜像构建链与验收。
-- **V2 安装器/更新器**：已有本地 wheel 的 stage/prepare/smoke/backup/rollback-check/migrate/switch/install 链、运行指针、候选卸载与离线 venv 创建及启动选择，但尚无停服/启动、live 回滚与数据目录清理；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不是 V2 安装链。
+- **V2 安装器/更新器**：已有本地 wheel 的 stage/prepare/smoke/backup/rollback-check/migrate/switch/install 链、运行指针、候选卸载、离线 venv 创建与启动选择、代码级 live 回滚，但尚无停服/启动、数据库备份恢复与数据目录清理；`scripts/install.ps1`、`update.ps1`、`installer_lib.ps1` 仍是 V1 组件安装，不是 V2 安装链。
 - **代码签名/公证**：未做 Windows 签名、macOS notarization。
 - **真实机器验收**：未在干净 Windows/macOS/Linux 机器执行“安装→升级→回滚→恢复→卸载”。
 - **正式入口切换**：未满足 D7 门槛，`omni` 仍指向 V1。
