@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9869bec1a8107af5066cf1f3277784cb371c90e7e136de5e4c44d056e8d3ea14`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`de41a2350b24b9a98af3bf06eab888dd4f0be6dd074da2a894fabf0daf688ac0`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -19,7 +19,7 @@
 | [agent/src/omni/domain/capabilities.py](../../agent/src/omni/domain/capabilities.py) | 116 | Read-only capability projection over the instance health snapshot; no I/O and no acceptance claims. |
 | [agent/src/omni/domain/configuration.py](../../agent/src/omni/domain/configuration.py) | 154 | Typed configuration payloads and fingerprints; contains no I/O or credential values. |
 | [agent/src/omni/domain/context.py](../../agent/src/omni/domain/context.py) | 56 | Bounded conversation policy; whole turns are the smallest compression unit. |
-| [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 160 | Typed execution contracts and state transitions; performs no I/O. |
+| [agent/src/omni/domain/contracts.py](../../agent/src/omni/domain/contracts.py) | 161 | Typed execution contracts and state transitions; performs no I/O. |
 | [agent/src/omni/domain/credential_ipc.py](../../agent/src/omni/domain/credential_ipc.py) | 109 | Bounded native credential messages; no platform selection, imports or diagnostics payloads. |
 | [agent/src/omni/domain/credentials.py](../../agent/src/omni/domain/credentials.py) | 79 | Credential reference and payload bounds; contains no secret store or platform dependency. |
 | [agent/src/omni/domain/delivery.py](../../agent/src/omni/domain/delivery.py) | 89 | Outbound intent identities and trusted transport results; no I/O or credentials. |

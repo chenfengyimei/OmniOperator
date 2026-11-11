@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9869bec1a8107af5066cf1f3277784cb371c90e7e136de5e4c44d056e8d3ea14",
+  "source_sha256": "de41a2350b24b9a98af3bf06eab888dd4f0be6dd074da2a894fabf0daf688ac0",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9165,
+      "lines": 9166,
       "dependencies": []
     },
     {
@@ -63305,7 +63305,7 @@
       "path": "agent/src/omni/domain/contracts.py",
       "module": "v2-domain",
       "python_module": "omni.domain.contracts",
-      "lines": 160,
+      "lines": 161,
       "imports": [],
       "symbols": [
         {
@@ -63396,22 +63396,22 @@
         },
         {
           "name": "Invocation",
-          "line": 112,
+          "line": 113,
           "kind": "class"
         },
         {
           "name": "InvocationContext",
-          "line": 119,
+          "line": 120,
           "kind": "class"
         },
         {
           "name": "ModelReply",
-          "line": 128,
+          "line": 129,
           "kind": "class"
         },
         {
           "name": "ModelReply.__post_init__",
-          "line": 136,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self"
@@ -63420,12 +63420,12 @@
         },
         {
           "name": "CapabilityStatus",
-          "line": 145,
+          "line": 146,
           "kind": "class"
         },
         {
           "name": "TurnReceipt",
-          "line": 157,
+          "line": 158,
           "kind": "class"
         }
       ],
