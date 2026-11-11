@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "96f4922e3b9f322ba5eb329070ec5d141d2fa503997efba991ceaa95ea6d3346",
+  "source_sha256": "27f6f42d092578a1789daadc07894bef84e22a77ef2196ca29123e9a68269c3b",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9250,
+      "lines": 9295,
       "dependencies": []
     },
     {
@@ -63718,7 +63718,7 @@
       "path": "agent/src/omni/domain/desktop.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop",
-      "lines": 553,
+      "lines": 574,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop_actions",
@@ -63727,14 +63727,14 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 73,
+          "line": 74,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_object",
-          "line": 77,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "value",
@@ -63747,7 +63747,7 @@
         },
         {
           "name": "_text",
-          "line": 83,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "value",
@@ -63762,7 +63762,7 @@
         },
         {
           "name": "_choice",
-          "line": 100,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "value",
@@ -63775,7 +63775,7 @@
         },
         {
           "name": "_boolean",
-          "line": 106,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "value"
@@ -63786,7 +63786,7 @@
         },
         {
           "name": "_integer",
-          "line": 112,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "value",
@@ -63801,7 +63801,74 @@
         },
         {
           "name": "_uuid",
-          "line": 118,
+          "line": 119,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "desktop_object",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "keys"
+          ],
+          "annotations": {
+            "value": "object",
+            "keys": "set[str] | frozenset[str]"
+          }
+        },
+        {
+          "name": "desktop_text",
+          "line": 134,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "maximum",
+            "nullable"
+          ],
+          "annotations": {
+            "value": "object",
+            "maximum": "int",
+            "nullable": "bool"
+          }
+        },
+        {
+          "name": "desktop_choice",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "choices"
+          ],
+          "annotations": {
+            "value": "object",
+            "choices": "tuple[str, ...] | frozenset[str]"
+          }
+        },
+        {
+          "name": "desktop_integer",
+          "line": 142,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "minimum",
+            "maximum"
+          ],
+          "annotations": {
+            "value": "object",
+            "minimum": "int",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "desktop_uuid",
+          "line": 146,
           "kind": "function",
           "parameters": [
             "value"
@@ -63812,7 +63879,7 @@
         },
         {
           "name": "_code",
-          "line": 129,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "value",
@@ -63825,7 +63892,7 @@
         },
         {
           "name": "_canonical",
-          "line": 136,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "value"
@@ -63836,7 +63903,7 @@
         },
         {
           "name": "validate_target",
-          "line": 148,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "data"
@@ -63847,7 +63914,7 @@
         },
         {
           "name": "target_fingerprint",
-          "line": 172,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "target"
@@ -63858,7 +63925,7 @@
         },
         {
           "name": "encode_native_target",
-          "line": 176,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "target"
@@ -63869,7 +63936,7 @@
         },
         {
           "name": "decode_native_target",
-          "line": 183,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "target"
@@ -63880,7 +63947,7 @@
         },
         {
           "name": "parse_request",
-          "line": 192,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "data"
@@ -63891,7 +63958,7 @@
         },
         {
           "name": "validate_capture",
-          "line": 239,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "data",
@@ -63904,12 +63971,12 @@
         },
         {
           "name": "CapturedFrame",
-          "line": 267,
+          "line": 288,
           "kind": "class"
         },
         {
           "name": "CapturedFrame.validate",
-          "line": 274,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "self"
@@ -63918,7 +63985,7 @@
         },
         {
           "name": "_hints",
-          "line": 291,
+          "line": 312,
           "kind": "function",
           "parameters": [
             "value"
@@ -63929,7 +63996,7 @@
         },
         {
           "name": "validate_capabilities",
-          "line": 302,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "data"
@@ -63940,7 +64007,7 @@
         },
         {
           "name": "validate_targets",
-          "line": 355,
+          "line": 376,
           "kind": "function",
           "parameters": [
             "data",
@@ -63953,7 +64020,7 @@
         },
         {
           "name": "validate_verification",
-          "line": 368,
+          "line": 389,
           "kind": "function",
           "parameters": [
             "data",
@@ -63966,7 +64033,7 @@
         },
         {
           "name": "validate_observation",
-          "line": 381,
+          "line": 402,
           "kind": "function",
           "parameters": [
             "data",
@@ -63979,7 +64046,7 @@
         },
         {
           "name": "parse_response",
-          "line": 478,
+          "line": 499,
           "kind": "function",
           "parameters": [
             "data",
@@ -63992,7 +64059,7 @@
         },
         {
           "name": "parse_owner",
-          "line": 526,
+          "line": 547,
           "kind": "function",
           "parameters": [
             "operation",
@@ -64010,7 +64077,7 @@
       "path": "agent/src/omni/domain/desktop_actions.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop_actions",
-      "lines": 204,
+      "lines": 228,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop",
@@ -64019,7 +64086,7 @@
       "symbols": [
         {
           "name": "runtime_id",
-          "line": 15,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "value"
@@ -64030,7 +64097,7 @@
         },
         {
           "name": "node_proof",
-          "line": 21,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "value"
@@ -64041,7 +64108,7 @@
         },
         {
           "name": "semantic",
-          "line": 60,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "value"
@@ -64052,20 +64119,20 @@
         },
         {
           "name": "linux_ready",
-          "line": 76,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "request",
             "permitted"
           ],
           "annotations": {
-            "request": "dict",
+            "request": "Mapping[str, object]",
             "permitted": "bool"
           }
         },
         {
           "name": "owner_action",
-          "line": 92,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "value"
@@ -64076,7 +64143,7 @@
         },
         {
           "name": "action_result",
-          "line": 139,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "value",

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`96f4922e3b9f322ba5eb329070ec5d141d2fa503997efba991ceaa95ea6d3346`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`27f6f42d092578a1789daadc07894bef84e22a77ef2196ca29123e9a68269c3b`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -23,8 +23,8 @@
 | [agent/src/omni/domain/credential_ipc.py](../../agent/src/omni/domain/credential_ipc.py) | 109 | Bounded native credential messages; no platform selection, imports or diagnostics payloads. |
 | [agent/src/omni/domain/credentials.py](../../agent/src/omni/domain/credentials.py) | 79 | Credential reference and payload bounds; contains no secret store or platform dependency. |
 | [agent/src/omni/domain/delivery.py](../../agent/src/omni/domain/delivery.py) | 89 | Outbound intent identities and trusted transport results; no I/O or credentials. |
-| [agent/src/omni/domain/desktop.py](../../agent/src/omni/domain/desktop.py) | 553 | Bounded desktop discovery and read-only UI contracts; no native I/O or action authorization. |
-| [agent/src/omni/domain/desktop_actions.py](../../agent/src/omni/domain/desktop_actions.py) | 204 | Exact semantic action contracts; observations never grant write authority. |
+| [agent/src/omni/domain/desktop.py](../../agent/src/omni/domain/desktop.py) | 574 | Bounded desktop discovery and read-only UI contracts; no native I/O or action authorization. |
+| [agent/src/omni/domain/desktop_actions.py](../../agent/src/omni/domain/desktop_actions.py) | 228 | Exact semantic action contracts; observations never grant write authority. |
 | [agent/src/omni/domain/desktop_portal.py](../../agent/src/omni/domain/desktop_portal.py) | 232 | Ephemeral window-share consent and helper protocol; grants never identify a native PID or authorize input. |
 | [agent/src/omni/domain/documents.py](../../agent/src/omni/domain/documents.py) | 100 | Bounded source text, deterministic chunks and local vector math; contains no I/O. |
 | [agent/src/omni/domain/event_retention.py](../../agent/src/omni/domain/event_retention.py) | 289 | Bounded event-retention previews and explicit plans; performs no I/O, deletion or sequence reconstruction. |

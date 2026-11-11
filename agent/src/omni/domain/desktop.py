@@ -9,6 +9,7 @@ import re
 import struct
 import uuid
 from dataclasses import dataclass, field
+from typing import cast
 
 from .contracts import BusinessError
 
@@ -124,6 +125,26 @@ def _uuid(value: object) -> str:
     except ValueError as exc:
         raise invalid() from exc
     return value
+
+
+def desktop_object(value: object, keys: set[str] | frozenset[str]) -> dict[str, object]:
+    return cast(dict[str, object], _object(value, keys))
+
+
+def desktop_text(value: object, maximum: int, *, nullable: bool = False) -> str | None:
+    return _text(value, maximum, nullable=nullable)
+
+
+def desktop_choice(value: object, choices: tuple[str, ...] | frozenset[str]) -> str:
+    return _choice(value, choices)
+
+
+def desktop_integer(value: object, minimum: int, maximum: int) -> int:
+    return _integer(value, minimum, maximum)
+
+
+def desktop_uuid(value: object) -> str:
+    return _uuid(value)
 
 
 def _code(value: object, *, nullable: bool = True) -> str | None:
