@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`4928a174a99c1b9fde5a8f1a3ee295ecf034a1f0058146862f46d4599843b029`。包含 65 个职责模块、718 个源码/界面文件。
+源码指纹：`6400137c8b2a1e34c53a1dd71a9f1681255f3445e11835a2344764cd6759f7ba`。包含 65 个职责模块、718 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -61,7 +61,7 @@
 | [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 129 | Fingerprint offline service changes; registration never implies a healthy running service. |
 | [agent/src/omni/domain/settings.py](../../agent/src/omni/domain/settings.py) | 89 | Editable Agent settings and immutable resolved run configuration; no I/O. |
 | [agent/src/omni/domain/skills.py](../../agent/src/omni/domain/skills.py) | 238 | Versioned textual skills, bounded disclosure and edit rules; skills confer no authority. |
-| [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 80 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
+| [agent/src/omni/domain/terminal_review.py](../../agent/src/omni/domain/terminal_review.py) | 87 | Owner observations of unknown terminal effects; never a receipt correction or replay authority. |
 | [agent/src/omni/domain/terminals.py](../../agent/src/omni/domain/terminals.py) | 119 | Explicit owner terminal requests and metadata identities; no model tools, shell execution or transcript storage. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)

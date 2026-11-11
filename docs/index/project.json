@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4928a174a99c1b9fde5a8f1a3ee295ecf034a1f0058146862f46d4599843b029",
+  "source_sha256": "6400137c8b2a1e34c53a1dd71a9f1681255f3445e11835a2344764cd6759f7ba",
   "modules": [
     {
       "id": "v2-domain",
@@ -71,7 +71,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8923,
+      "lines": 8930,
       "dependencies": []
     },
     {
@@ -67788,7 +67788,7 @@
       "path": "agent/src/omni/domain/terminal_review.py",
       "module": "v2-domain",
       "python_module": "omni.domain.terminal_review",
-      "lines": 80,
+      "lines": 87,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.terminals"
@@ -67796,14 +67796,14 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 16,
+          "line": 17,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "fingerprint",
-          "line": 24,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "value"
@@ -67814,7 +67814,7 @@
         },
         {
           "name": "parse_review",
-          "line": 36,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "value"
@@ -67825,7 +67825,7 @@
         },
         {
           "name": "request_fingerprint",
-          "line": 69,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "value"
@@ -67836,7 +67836,7 @@
         },
         {
           "name": "page",
-          "line": 75,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "after",
