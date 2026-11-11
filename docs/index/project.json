@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "178cb3a32b772622e8a5e19ce983842c84a717a57e47aaf7d532502c907a4fba",
+  "source_sha256": "38f088f6454c25ab250a85872759188d8890fb797cf12d2ba7b5ddb7c4521a5f",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10828,
+      "lines": 10831,
       "dependencies": [
         "v2-domain"
       ]
@@ -40433,7 +40433,7 @@
       "path": "agent/src/omni/application/memory_organization.py",
       "module": "v2-application",
       "python_module": "omni.application.memory_organization",
-      "lines": 141,
+      "lines": 144,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts"
@@ -40496,7 +40496,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[T]"
+          }
         },
         {
           "name": "MemoryOrganizationService._public",
@@ -40555,7 +40557,7 @@
         },
         {
           "name": "MemoryOrganizationService.get",
-          "line": 71,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self",
@@ -40569,14 +40571,14 @@
         },
         {
           "name": "MemoryOrganizationService.get.perform",
-          "line": 72,
+          "line": 75,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemoryOrganizationService.cancel",
-          "line": 77,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "self",
@@ -40592,14 +40594,14 @@
         },
         {
           "name": "MemoryOrganizationService.cancel.perform",
-          "line": 78,
+          "line": 81,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemoryOrganizationService.decide",
-          "line": 85,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -40615,14 +40617,14 @@
         },
         {
           "name": "MemoryOrganizationService.decide.perform",
-          "line": 86,
+          "line": 89,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemoryOrganizationService.process_one",
-          "line": 96,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self"
@@ -40631,14 +40633,14 @@
         },
         {
           "name": "MemoryOrganizationService.process_one.perform",
-          "line": 99,
+          "line": 102,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemoryOrganizationService.health",
-          "line": 125,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self"
@@ -40647,7 +40649,7 @@
         },
         {
           "name": "MemoryOrganizationService.stop_accepting",
-          "line": 133,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self"
@@ -40656,7 +40658,7 @@
         },
         {
           "name": "MemoryOrganizationService.close",
-          "line": 136,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
