@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a7cd349785ab12484ed151116dfc81e0c498fd67078a6c09045ec3c9fee50c7f",
+  "source_sha256": "9869bec1a8107af5066cf1f3277784cb371c90e7e136de5e4c44d056e8d3ea14",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9145,
+      "lines": 9165,
       "dependencies": []
     },
     {
@@ -66526,7 +66526,7 @@
       "path": "agent/src/omni/domain/qq.py",
       "module": "v2-domain",
       "python_module": "omni.domain.qq",
-      "lines": 122,
+      "lines": 142,
       "imports": [
         "omni.domain.configuration",
         "omni.domain.contracts"
@@ -66534,7 +66534,7 @@
       "symbols": [
         {
           "name": "qq_id",
-          "line": 17,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "value"
@@ -66545,34 +66545,34 @@
         },
         {
           "name": "connection_value",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "dict[str, object]"
           }
         },
         {
           "name": "binding_value",
-          "line": 41,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "value"
           ],
           "annotations": {
-            "value": "dict"
+            "value": "dict[str, object]"
           }
         },
         {
           "name": "QQEvent",
-          "line": 65,
+          "line": 69,
           "kind": "class"
         },
         {
           "name": "QQEvent.key",
-          "line": 74,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self"
@@ -66581,7 +66581,7 @@
         },
         {
           "name": "QQEvent.fingerprint",
-          "line": 80,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self"
@@ -66590,14 +66590,14 @@
         },
         {
           "name": "parse_event",
-          "line": 86,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "event",
             "account"
           ],
           "annotations": {
-            "event": "dict",
+            "event": "dict[str, object]",
             "account": "str"
           }
         }

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
+from typing import cast
 
 from .configuration import endpoint
 from .contracts import BusinessError
@@ -24,21 +25,22 @@ def qq_id(value: object) -> str:
     return value
 
 
-def connection_value(value: dict) -> dict:
+def connection_value(value: dict[str, object]) -> dict[str, object]:
     try:
-        endpoint(value.get("endpoint", ""), websocket=True)
+        endpoint(cast(str, value.get("endpoint", "")), websocket=True)
     except (TypeError, ValueError) as exc:
         raise BusinessError(
             "invalid_qq_connection",
             "QQ requires a credential-free WebSocket URL with TLS except on loopback",
             status=422,
         ) from exc
-    if value.get("driver") != "qq" or not value["endpoint"].startswith(("ws://", "wss://")):
+    link = value.get("endpoint")
+    if value.get("driver") != "qq" or not isinstance(link, str) or not link.startswith(("ws://", "wss://")):
         raise BusinessError("invalid_qq_connection", "QQ requires an explicit OneBot WebSocket endpoint", status=422)
     return {**value, "account": qq_id(value.get("account"))}
 
 
-def binding_value(value: dict) -> dict:
+def binding_value(value: dict[str, object]) -> dict[str, object]:
     if set(value) != {"scene", "peer_id", "enabled", "persona", "cooldown_s"}:
         raise BusinessError("invalid_qq_binding", "Supply the complete conversation grant", status=422)
     if (
@@ -47,13 +49,15 @@ def binding_value(value: dict) -> dict:
         or type(value["enabled"]) is not bool
     ):
         raise BusinessError("invalid_qq_binding", "Invalid QQ conversation scope", status=422)
+    persona = value["persona"]
+    cooldown = cast(int, value["cooldown_s"])
     if (
-        not isinstance(value["persona"], str)
-        or not value["persona"].strip()
-        or len(value["persona"]) > 8000
-        or "\0" in value["persona"]
+        not isinstance(persona, str)
+        or not persona.strip()
+        or len(persona) > 8000
+        or "\0" in persona
         or type(value["cooldown_s"]) is not int
-        or not 1 <= value["cooldown_s"] <= 3600
+        or not 1 <= cooldown <= 3600
     ):
         raise BusinessError(
             "invalid_qq_binding", "A bounded persona and 1–3600 second cooldown are required", status=422
@@ -83,7 +87,7 @@ class QQEvent:
         ).hexdigest()
 
 
-def parse_event(event: dict, account: str) -> QQEvent | None:
+def parse_event(event: dict[str, object], account: str) -> QQEvent | None:
     """Ignore untriggered/unsupported events; never turn CQ strings into executable segments."""
     if event.get("post_type") != "message":
         return None
@@ -100,17 +104,26 @@ def parse_event(event: dict, account: str) -> QQEvent | None:
     identity = event.get("message_id")
     if type(identity) is not int or not -(2**31) <= identity < 2**31:
         raise BusinessError("invalid_qq_event", "OneBot message id must be a signed int32", status=422)
-    parts = event.get("message")
-    if not isinstance(parts, list) or not 1 <= len(parts) <= 128:
+    raw_parts = event.get("message")
+    if not isinstance(raw_parts, list):
         return None
-    text, mentioned = [], False
-    for part in parts:
-        if not isinstance(part, dict) or not isinstance(part.get("data"), dict):
+    parts = cast(list[object], raw_parts)
+    if not 1 <= len(parts) <= 128:
+        return None
+    text: list[str] = []
+    mentioned = False
+    for raw_part in parts:
+        if not isinstance(raw_part, dict):
             return None
-        if part.get("type") == "at" and str(part["data"].get("qq")) == account:
+        part = cast(dict[str, object], raw_part)
+        data = part.get("data")
+        if not isinstance(data, dict):
+            return None
+        fields = cast(dict[str, object], data)
+        if part.get("type") == "at" and str(fields.get("qq")) == account:
             mentioned = True
-        elif part.get("type") == "text" and isinstance(part["data"].get("text"), str):
-            text.append(part["data"]["text"])
+        elif part.get("type") == "text" and isinstance(fields.get("text"), str):
+            text.append(cast(str, fields["text"]))
         else:
             # Attachments/replies/other mentions require their own source and budget contract.
             return None
@@ -119,4 +132,11 @@ def parse_event(event: dict, account: str) -> QQEvent | None:
         return None
     if len(body) > MAX_TEXT or len(body.encode("utf-8")) > 32768 or "\0" in body:
         raise BusinessError("qq_message_too_large", "QQ text exceeds its admission limit", status=422)
-    return QQEvent(account, scene, qq_id(event.get("group_id")) if scene == "group" else sender, sender, identity, body)
+    return QQEvent(
+        account,
+        scene,
+        qq_id(event.get("group_id")) if scene == "group" else sender,
+        sender,
+        identity,
+        body,
+    )

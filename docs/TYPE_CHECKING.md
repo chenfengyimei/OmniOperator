@@ -26,6 +26,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/objects.py` | 对象类型/上限纯规则 |
 | `agent/src/omni/domain/people.py` | 人物档案纯规则 |
 | `agent/src/omni/domain/metering.py` | 请求形状/记忆提示/令牌估算纯函数 |
+| `agent/src/omni/domain/qq.py` | OneBot 文本事件/连接/会话授权纯校验 |
 | `agent/src/omni/domain/release_fence.py` | 启动互斥栅栏纯校验 |
 | `agent/src/omni/domain/routing.py` | 能力档位/路由策略/工具筛选纯规则 |
 | `agent/src/omni/domain/settings.py` | Agent 设置与运行配置纯校验 |
@@ -101,6 +102,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 - strict 门禁 0 errors / 0 warnings。
 - `agent/tests/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `agent/src/omni/domain/` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
 - 相关调用方回归：能力/凭据/对象/人物测试。
+
 
 
 

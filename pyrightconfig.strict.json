@@ -48,6 +48,7 @@
     "agent/src/omni/domain/people.py",
     "agent/src/omni/domain/recovery_authority.py",
     "agent/src/omni/domain/reference_release.py",
+    "agent/src/omni/domain/qq.py",
     "agent/src/omni/domain/release_fence.py",
     "agent/src/omni/domain/retention.py",
     "agent/src/omni/domain/routing.py",
@@ -66,6 +67,7 @@
   "exclude": ["**/__pycache__"],
   "pythonVersion": "3.12"
 }
+
 
 
 

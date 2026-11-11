@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`a7cd349785ab12484ed151116dfc81e0c498fd67078a6c09045ec3c9fee50c7f`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`9869bec1a8107af5066cf1f3277784cb371c90e7e136de5e4c44d056e8d3ea14`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -43,7 +43,7 @@
 | [agent/src/omni/domain/model_stream.py](../../agent/src/omni/domain/model_stream.py) | 193 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
 | [agent/src/omni/domain/objects.py](../../agent/src/omni/domain/objects.py) | 44 | Immutable object identities and metadata constraints, independent of storage. |
 | [agent/src/omni/domain/people.py](../../agent/src/omni/domain/people.py) | 48 | Person, account and memory document rules; contains no I/O or ORM types. |
-| [agent/src/omni/domain/qq.py](../../agent/src/omni/domain/qq.py) | 122 | Bounded OneBot text events and explicit conversation grants; no transport I/O. |
+| [agent/src/omni/domain/qq.py](../../agent/src/omni/domain/qq.py) | 142 | Bounded OneBot text events and explicit conversation grants; no transport I/O. |
 | [agent/src/omni/domain/recovery_authority.py](../../agent/src/omni/domain/recovery_authority.py) | 84 | Versioned authority for keeping an isolated predecessor fenced; no IO or claims about external effects. |
 | [agent/src/omni/domain/reference_release.py](../../agent/src/omni/domain/reference_release.py) | 69 | Bounded artifact-reference release plans; validates identities without accessing storage or files. |
 | [agent/src/omni/domain/release_fence.py](../../agent/src/omni/domain/release_fence.py) | 78 | Persisted startup exclusion contract shared by immutable installations; no IO or mutable state. |
