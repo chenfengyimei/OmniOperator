@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "55a05ac3bdd817fcfd9c539fb013ea4c088d886284f6a678a1d360a33119bf3b",
+  "source_sha256": "377fd0751cef8871a644cf98fc7c9306d342e3ee7d3260ed33cef87bb4e82b38",
   "modules": [
     {
       "id": "v2-domain",
@@ -71,7 +71,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 8823,
+      "lines": 8859,
       "dependencies": []
     },
     {
@@ -62434,12 +62434,23 @@
       "path": "agent/src/omni/domain/context.py",
       "module": "v2-domain",
       "python_module": "omni.domain.context",
-      "lines": 51,
+      "lines": 56,
       "imports": [],
       "symbols": [
         {
+          "name": "_text",
+          "line": 18,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
           "name": "source_digest",
-          "line": 17,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "epoch",
@@ -62449,41 +62460,41 @@
           "annotations": {
             "epoch": "int",
             "parent_id": "str | None",
-            "messages": "list[dict]"
+            "messages": "Sequence[Mapping[str, object]]"
           }
         },
         {
           "name": "turns",
-          "line": 22,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "messages"
           ],
           "annotations": {
-            "messages": "list[dict]"
+            "messages": "Sequence[Mapping[str, object]]"
           }
         },
         {
           "name": "batch",
-          "line": 31,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "messages"
           ],
           "annotations": {
-            "messages": "list[dict]"
+            "messages": "Sequence[Mapping[str, object]]"
           }
         },
         {
           "name": "tail",
-          "line": 43,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "messages",
             "budget"
           ],
           "annotations": {
-            "messages": "list[dict]",
+            "messages": "Sequence[Mapping[str, object]]",
             "budget": "int"
           }
         }
@@ -65695,7 +65706,7 @@
       "path": "agent/src/omni/domain/recovery_authority.py",
       "module": "v2-domain",
       "python_module": "omni.domain.recovery_authority",
-      "lines": 75,
+      "lines": 84,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.service_deployment"
@@ -65703,17 +65714,17 @@
       "symbols": [
         {
           "name": "RecoveryAuthority",
-          "line": 11,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "RecoverySpec",
-          "line": 22,
+          "line": 28,
           "kind": "class"
         },
         {
           "name": "validate_witness",
-          "line": 31,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "value"
@@ -65724,7 +65735,7 @@
         },
         {
           "name": "validate_authority",
-          "line": 49,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "value",
@@ -66890,21 +66901,21 @@
       "path": "agent/src/omni/domain/service_deployment.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_deployment",
-      "lines": 500,
+      "lines": 522,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 66,
+          "line": 67,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_object",
-          "line": 72,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "value",
@@ -66917,7 +66928,7 @@
         },
         {
           "name": "_text",
-          "line": 78,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "value",
@@ -66930,7 +66941,7 @@
         },
         {
           "name": "_uuid",
-          "line": 92,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "value"
@@ -66941,7 +66952,7 @@
         },
         {
           "name": "_sha",
-          "line": 102,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "value"
@@ -66952,7 +66963,7 @@
         },
         {
           "name": "_integer",
-          "line": 109,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "value",
@@ -66967,7 +66978,7 @@
         },
         {
           "name": "_path",
-          "line": 115,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "value",
@@ -66979,8 +66990,71 @@
           }
         },
         {
+          "name": "deployment_fields",
+          "line": 138,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "keys"
+          ],
+          "annotations": {
+            "value": "object",
+            "keys": "set[str] | frozenset[str]"
+          }
+        },
+        {
+          "name": "deployment_integer",
+          "line": 143,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "minimum",
+            "maximum"
+          ],
+          "annotations": {
+            "value": "object",
+            "minimum": "int",
+            "maximum": "int"
+          }
+        },
+        {
+          "name": "deployment_path",
+          "line": 147,
+          "kind": "function",
+          "parameters": [
+            "value",
+            "windows"
+          ],
+          "annotations": {
+            "value": "object",
+            "windows": "bool"
+          }
+        },
+        {
+          "name": "deployment_sha",
+          "line": 151,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
+          "name": "deployment_uuid",
+          "line": 155,
+          "kind": "function",
+          "parameters": [
+            "value"
+          ],
+          "annotations": {
+            "value": "object"
+          }
+        },
+        {
           "name": "_principal",
-          "line": 137,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "value",
@@ -66995,7 +67069,7 @@
         },
         {
           "name": "_endpoint",
-          "line": 153,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "host",
@@ -67010,7 +67084,7 @@
         },
         {
           "name": "parse_request",
-          "line": 191,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "data"
@@ -67021,7 +67095,7 @@
         },
         {
           "name": "validate_runtime",
-          "line": 219,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "data"
@@ -67032,7 +67106,7 @@
         },
         {
           "name": "_created",
-          "line": 318,
+          "line": 340,
           "kind": "function",
           "parameters": [
             "value"
@@ -67043,7 +67117,7 @@
         },
         {
           "name": "_content",
-          "line": 329,
+          "line": 351,
           "kind": "function",
           "parameters": [
             "plan"
@@ -67054,7 +67128,7 @@
         },
         {
           "name": "plan_fingerprint",
-          "line": 356,
+          "line": 378,
           "kind": "function",
           "parameters": [
             "plan"
@@ -67065,7 +67139,7 @@
         },
         {
           "name": "make_plan",
-          "line": 361,
+          "line": 383,
           "kind": "function",
           "parameters": [
             "request",
@@ -67084,7 +67158,7 @@
         },
         {
           "name": "validate_plan",
-          "line": 377,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "plan"
@@ -67095,7 +67169,7 @@
         },
         {
           "name": "startup",
-          "line": 386,
+          "line": 408,
           "kind": "function",
           "parameters": [
             "plan"
@@ -67106,7 +67180,7 @@
         },
         {
           "name": "parse_startup",
-          "line": 409,
+          "line": 431,
           "kind": "function",
           "parameters": [
             "data"
@@ -67117,7 +67191,7 @@
         },
         {
           "name": "service_argv",
-          "line": 446,
+          "line": 468,
           "kind": "function",
           "parameters": [
             "plan"
@@ -67128,7 +67202,7 @@
         },
         {
           "name": "manager_identity",
-          "line": 459,
+          "line": 481,
           "kind": "function",
           "parameters": [
             "plan"
