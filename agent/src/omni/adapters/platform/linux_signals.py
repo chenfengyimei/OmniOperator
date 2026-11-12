@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import re
 from dataclasses import dataclass, field
+from typing import Any, cast
 
 from .linux_bus import DBUS, DBUS_PATH, BusPort, failure
 from .linux_session import object_path, unique
@@ -15,7 +16,7 @@ class Subscription:
     owner: SignalBus
     rule: str
     callback: object = None
-    queue: asyncio.Queue = field(default_factory=lambda: asyncio.Queue(maxsize=4))
+    queue: asyncio.Queue[object] = field(default_factory=lambda: asyncio.Queue[object](maxsize=4))
     error: bool = False
     closed: bool = False
 
@@ -25,13 +26,13 @@ class Subscription:
         except asyncio.QueueFull:
             self.error = True
 
-    async def next(self) -> list:
+    async def next(self) -> list[Any]:
         if self.closed or self.error:
             raise failure("portal_signal_invalid")
         body = await self.queue.get()
         if self.closed or self.error or not isinstance(body, list):
             raise failure("portal_signal_invalid")
-        return body
+        return cast(list[Any], body)
 
     async def close(self) -> bool:
         if self.closed:
@@ -58,7 +59,7 @@ class SignalBus:
     def name(self) -> str:
         return unique(self.native.unique_name)
 
-    def variant(self, signature: str, value: object):
+    def variant(self, signature: str, value: object) -> Any:
         return self.package.Variant(signature, value)
 
     async def listen(self, sender: str, path: str, interface: str, member: str, signature: str) -> Subscription:
@@ -72,7 +73,7 @@ class SignalBus:
         rule = f"type='signal',sender='{sender}',path='{path}',interface='{interface}',member='{member}'"
         subscription = Subscription(self, rule)
 
-        def receive(message):
+        def receive(message: Any) -> bool:
             if (message.sender, message.path, message.interface, message.member) != (sender, path, interface, member):
                 return False
             if (
