@@ -25,6 +25,7 @@
     "agent/src/omni/application/local_vectors.py",
     "agent/src/omni/application/maintenance.py",
     "agent/src/omni/application/mcp.py",
+    "agent/src/omni/application/media.py",
     "agent/src/omni/application/memory_organization.py",
     "agent/src/omni/application/memory_semantics.py",
     "agent/src/omni/application/memory_tools.py",

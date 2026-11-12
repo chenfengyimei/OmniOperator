@@ -12,9 +12,9 @@ import asyncio
 import hashlib
 import logging
 import shutil
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Coroutine, Mapping
 from pathlib import Path
-from typing import Protocol, cast
+from typing import Any, Protocol, cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
 from ..domain.media import (
@@ -75,9 +75,9 @@ class MediaProcessingPort(Protocol):
 
     async def probe(self) -> Record: ...
 
-    async def transcribe(self, audio: Path, output: Path, plan: dict) -> dict: ...
+    async def transcribe(self, audio: Path, output: Path, plan: Record) -> Record: ...
 
-    async def frames(self, video: Path, sheet_output: Path, count: int, width: int) -> dict: ...
+    async def frames(self, video: Path, sheet_output: Path, count: int, width: int) -> Record: ...
 
     def stop_accepting(self) -> None: ...
 
@@ -85,18 +85,18 @@ class MediaProcessingPort(Protocol):
 
 
 class BilibiliMediaPort(Protocol):
-    async def read(self, configuration: dict, operation: str, target: str, limit: int = 10) -> dict: ...
+    async def read(self, configuration: Record, operation: str, target: str, limit: int = 10) -> Record: ...
 
     async def download(
         self,
-        configuration: dict,
+        configuration: Record,
         url: str,
         destination: Path,
         *,
         max_bytes: int,
         budget_s: float,
-        before_dispatch=None,
-    ) -> dict: ...
+        before_dispatch: Callable[[], Awaitable[None]] | None = None,
+    ) -> Record: ...
 
 
 def _processing_error(exc: BaseException) -> str:
@@ -118,7 +118,7 @@ class MediaService:
         self._bilibili, self._processor, self._clock = bilibili, processor, clock
         self._staging = staging_root
         self._slots = asyncio.Semaphore(MAX_ACTIVE_JOBS)
-        self._tasks: set[asyncio.Task] = set()
+        self._tasks: set[asyncio.Task[object]] = set()
         self._closing = False
 
     # ---------- sources ----------
@@ -126,14 +126,17 @@ class MediaService:
     async def register(self, agent_id: str, config_id: str, target: str) -> Record:
         if self._closing:
             raise BusinessError("media_closing", "Media admission is draining", status=503)
-        config = cast(dict, await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id)))
-        video = cast(dict, await self._bilibili.read(config["value"], "video", target))
+        config = await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id))
+        video = await self._bilibili.read(cast(Record, config["value"]), "video", target)
         row = source_row(config_id, str(config["revision_id"]), video)
-        return await self._db.write(lambda u: u.media_source_register(agent_id, row))
+        return await self._db.write(lambda u: u.media_source_register(agent_id, cast(Record, row)))
 
     async def sources(self, agent_id: str, after: str = "", limit: int = 50) -> Record:
         rows = await self._db.read(lambda u: u.media_source_page(agent_id, after, limit))
-        return {"items": list(rows), "next_after": rows[-1]["id"] if len(rows) == limit else None}
+        return {
+            "items": cast(JSON, list(rows)),
+            "next_after": rows[-1]["id"] if len(rows) == limit else None,
+        }
 
     async def source(self, agent_id: str, source_id: str) -> Record:
         return await self._db.read(lambda u: u.media_source_get(agent_id, source_id))
@@ -148,7 +151,7 @@ class MediaService:
             raise BusinessError("media_closing", "Media admission is draining", status=503)
         if operation not in OPERATIONS:
             raise BusinessError("media_operation_invalid", "Choose subtitle, transcribe or frames", status=422)
-        plan: dict = {}
+        plan: dict[str, object] = {}
         if operation == "frames":
             plan = frames_plan(params.get("count", 6), params.get("width", 640))
         if operation == "transcribe":
@@ -157,7 +160,9 @@ class MediaService:
                 str(params.get("device") or ASR_DEFAULT["device"]),
                 str(params.get("compute_type") or ASR_DEFAULT["compute_type"]),
             )
-        job = await self._db.write(lambda u: u.media_job_create(agent_id, source_id, operation, plan))
+        job = await self._db.write(
+            lambda u: u.media_job_create(agent_id, source_id, operation, cast(Record, plan))
+        )
 
         async def perform() -> None:
             async with self._slots:
@@ -165,16 +170,16 @@ class MediaService:
 
         task = asyncio.create_task(perform(), name=f"media-job-{job['id']}")
         self._tasks.add(task)
-        task.add_done_callback(self._retire)
+        task.add_done_callback(lambda done: self._retire(cast(asyncio.Task[object], done)))
         return job
 
-    def _retire(self, task: asyncio.Task) -> None:
+    def _retire(self, task: asyncio.Task[object]) -> None:
         self._tasks.discard(task)
         if not task.cancelled():
             task.exception()
 
-    async def _configuration(self, agent_id: str, config_id: str, revision_id: str = "") -> dict:
-        config = cast(dict, await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id, revision_id)))
+    async def _configuration(self, agent_id: str, config_id: str, revision_id: str = "") -> Record:
+        config = await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id, revision_id))
         if config["revision_id"] != revision_id:
             raise BusinessError(
                 "bilibili_credential_changed", "Bilibili configuration changed while media was processing"
@@ -182,7 +187,7 @@ class MediaService:
         return config
 
     async def _execute(self, job_id: str) -> None:
-        job = cast(dict, await self._db.read(lambda u: u.media_job_get(job_id)))
+        job = await self._db.read(lambda u: u.media_job_get(job_id))
         agent_id, operation = str(job["agent_id"]), str(job["operation"])
         staging = self._staging / job_id
         staging.mkdir(parents=True, exist_ok=True)
@@ -191,10 +196,10 @@ class MediaService:
             await self._db.write(lambda u: u.media_job_start(job_id))
             # The job row carries only source coordinates; the bound source
             # row is read after start so failures land in a legal transition.
-            source = cast(dict, await self._db.read(lambda u: u.media_source_get(agent_id, str(job["source_id"]))))
+            source = await self._db.read(lambda u: u.media_source_get(agent_id, str(job["source_id"])))
             config = await self._configuration(agent_id, str(source["config_id"]), str(source["config_revision_id"]))
             if operation == "subtitle":
-                result = cast(dict, await self._bilibili.read(config["value"], "subtitle", str(source["bvid"])))
+                result = await self._bilibili.read(cast(Record, config["value"]), "subtitle", str(source["bvid"]))
                 if not result.get("text"):
                     raise BusinessError("media_subtitle_missing", "This video exposes no readable subtitle", status=422)
                 body = transcript_payload(
@@ -205,8 +210,8 @@ class MediaService:
                     "language": str(result.get("language") or "")[:16],
                 }
             else:
-                streams = cast(dict, await self._bilibili.read(config["value"], "streams", str(source["bvid"])))
-                media = streams.get("audio" if operation == "transcribe" else "video")
+                streams = await self._bilibili.read(cast(Record, config["value"]), "streams", str(source["bvid"]))
+                media = cast(Record, streams.get("audio" if operation == "transcribe" else "video"))
                 if not media:
                     raise BusinessError(
                         "media_stream_missing",
@@ -217,35 +222,38 @@ class MediaService:
                     )
                 destination = staging / ("audio.bin" if operation == "transcribe" else "video.bin")
                 await self._bilibili.download(
-                    config["value"],
+                    cast(Record, config["value"]),
                     str(media["url"]),
                     destination,
                     max_bytes=MAX_DOWNLOAD_BYTES,
                     budget_s=DOWNLOAD_BUDGET_S,
                 )
                 if operation == "frames":
-                    plan = cast(dict, job["params"])
+                    plan = cast(Record, job["params"])
                     sheet = staging / "sheet.png"
-                    result = cast(
-                        dict,
-                        await self._processor.frames(destination, sheet, int(plan["count"]), int(plan["width"])),
+                    result = await self._processor.frames(
+                        destination, sheet, int(cast(int, plan["count"])), int(cast(int, plan["width"]))
                     )
                     sheet_info = await self._register_sheet(agent_id, sheet, result)
                     await self._db.write(lambda u: u.media_job_complete_frames(job_id, sheet_info))
                     state, code = "done", ""
                     return
                 output = staging / "transcript.json"
-                await self._processor.transcribe(destination, output, cast(dict, job["params"]))
+                await self._processor.transcribe(destination, output, cast(Record, job["params"]))
                 # The worker writes the exact bounded payload that is published.
                 body = output.read_bytes()
                 info = {
                     "kind": "asr",
-                    "language": str(cast(dict, parse_transcript(body)).get("language") or "")[:16],
+                    "language": str(parse_transcript(body).get("language") or "")[:16],
                 }
             obj = await self._objects.publish(agent_id, body, "application/json")
             await self._db.write(
                 lambda u: u.media_job_complete_transcript(
-                    job_id, {**info, "object_id": str(obj["id"]), "bytes": int(cast(int, obj["bytes"]))}
+                    job_id,
+                    cast(
+                        Record,
+                        {**info, "object_id": str(obj["id"]), "bytes": int(cast(int, obj["bytes"]))},
+                    ),
                 )
             )
             state, code = "done", ""
@@ -272,7 +280,7 @@ class MediaService:
                         raise
             self._cleanup(staging)
 
-    async def _register_sheet(self, agent_id: str, sheet: Path, result: dict) -> dict:
+    async def _register_sheet(self, agent_id: str, sheet: Path, result: Record) -> Record:
         """Publish the frame sheet and register it as a verified image object."""
         from ..domain.media import sheet_result
 
@@ -289,7 +297,10 @@ class MediaService:
             raise BusinessError("media_sheet_invalid", "Frame sheet content changed during processing", status=503)
         obj = await self._objects.publish(agent_id, content, "image/png")
         prepared = await self._images.prepare(agent_id, str(obj["id"]))
-        return {**info, "object_id": str(obj["id"]), "image_state": prepared.get("state", "registered_not_attached")}
+        return cast(
+            Record,
+            {**info, "object_id": str(obj["id"]), "image_state": prepared.get("state", "registered_not_attached")},
+        )
 
     def _cleanup(self, staging: Path) -> None:
         try:
@@ -324,18 +335,26 @@ class MediaService:
 
     async def jobs(self, agent_id: str, source_id: str, after: str = "", limit: int = 50) -> Record:
         rows = await self._db.read(lambda u: u.media_job_page(agent_id, source_id, after, limit))
-        return {"items": list(rows), "next_after": rows[-1]["id"] if len(rows) == limit else None}
+        return {
+            "items": cast(JSON, list(rows)),
+            "next_after": rows[-1]["id"] if len(rows) == limit else None,
+        }
 
     # ---------- artifacts ----------
 
     async def transcript(self, agent_id: str, transcript_id: str) -> Record:
-        async def perform():
+        async def perform() -> Record:
             row = await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
             _, payload = await self._objects.get(agent_id, str(row["object_id"]))
             parsed = parse_transcript(payload)
             # A concurrent source deletion must not publish a previously loaded row.
             await self._db.read(lambda u: u.media_transcript_get(agent_id, transcript_id))
-            return {**row, "segments": parsed["segments"], "kind": parsed["kind"], "language": parsed["language"]}
+            return {
+                **row,
+                "segments": cast(JSON, parsed["segments"]),
+                "kind": cast(JSON, parsed["kind"]),
+                "language": cast(JSON, parsed["language"]),
+            }
 
         return await self._run_bounded(perform())
 
@@ -352,8 +371,9 @@ class MediaService:
         full = await self.transcript(agent_id, str(row["id"]))
         from ..domain.media import transcript_body
 
-        body = transcript_body(str(full["kind"]), cast(list, full["segments"]))
-        window = transcript_text(str(full["kind"]), cast(list, full["segments"]), start, length)
+        segments = cast(list[list[object]], full["segments"])
+        body = transcript_body(str(full["kind"]), segments)
+        window = transcript_text(str(full["kind"]), segments, start, length)
         return {
             "transcript_id": row["id"],
             "source_id": source_id,
@@ -373,13 +393,13 @@ class MediaService:
     async def frames(self, agent_id: str, frames_id: str) -> Record:
         return await self._db.read(lambda u: u.media_frames_get(agent_id, frames_id))
 
-    async def _run_bounded(self, coroutine):
+    async def _run_bounded(self, coroutine: Coroutine[Any, Any, Record]) -> Record:
         if self._closing:
             coroutine.close()
             raise BusinessError("media_closing", "Media admission is draining", status=503)
         task = asyncio.create_task(coroutine, name="media-read")
         self._tasks.add(task)
-        task.add_done_callback(self._retire)
+        task.add_done_callback(lambda done: self._retire(cast(asyncio.Task[object], done)))
         return await asyncio.shield(task)
 
     # ---------- model tools ----------
@@ -398,7 +418,7 @@ class MediaService:
                         r.get("latest_transcript_id") or "none",
                         r.get("latest_frames_id") or "none",
                     )
-                    for r in cast(list, rows["items"])
+                    for r in cast(list[Record], rows["items"])
                 )
                 return ActionResult(Outcome.OK, text or "No media sources registered", data=rows)
             if name == TRANSCRIPT_SPEC.name:
