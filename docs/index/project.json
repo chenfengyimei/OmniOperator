@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5326a2f57344b675b8e1d9b691da6a79a243a67ac81554a838c5fdc71a5ad143",
+  "source_sha256": "e368fe65ce8715bdf5426afba1c601c67705038ffeff2ef7e0661edb6c129c04",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53261,
+      "lines": 53276,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -11500,7 +11500,7 @@
       "path": "agent/src/omni/adapters/persistence/audit_pruning_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.audit_pruning_repository",
-      "lines": 99,
+      "lines": 107,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.audit_retention_repository",
@@ -11512,12 +11512,12 @@
       "symbols": [
         {
           "name": "AuditPruningRepositories",
-          "line": 29,
+          "line": 31,
           "kind": "class"
         },
         {
           "name": "AuditPruningRepositories._audit_target",
-          "line": 30,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "self",
@@ -11535,7 +11535,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_plan",
-          "line": 57,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -11553,7 +11553,7 @@
         },
         {
           "name": "AuditPruningRepositories._audit_cycle",
-          "line": 80,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self"
@@ -11562,7 +11562,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_batch",
-          "line": 83,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -11574,19 +11574,19 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_validate",
-          "line": 86,
+          "line": 92,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "dict[str, Any]"
           }
         },
         {
           "name": "AuditPruningRepositories.audit_retention_prepare",
-          "line": 89,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -11595,14 +11595,14 @@
             "backup_sha256"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, Any]",
             "backup_path": "str",
             "backup_sha256": "str"
           }
         },
         {
           "name": "AuditPruningRepositories.audit_retention_delete",
-          "line": 92,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -11610,13 +11610,13 @@
             "target"
           ],
           "annotations": {
-            "plan": "dict",
-            "target": "dict"
+            "plan": "dict[str, Any]",
+            "target": "dict[str, Any]"
           }
         },
         {
           "name": "AuditPruningRepositories.audit_retention_complete",
-          "line": 95,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -11628,7 +11628,7 @@
         },
         {
           "name": "AuditPruningRepositories.audit_retention_cancel",
-          "line": 98,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self",
@@ -11636,7 +11636,7 @@
             "reason"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, Any]",
             "reason": "str"
           }
         }
@@ -11647,7 +11647,7 @@
       "path": "agent/src/omni/adapters/persistence/audit_retention_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.audit_retention_repository",
-      "lines": 207,
+      "lines": 211,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.history_protection",
@@ -11657,12 +11657,12 @@
       "symbols": [
         {
           "name": "AuditRetentionRepositories",
-          "line": 20,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "AuditRetentionRepositories.audit_retention_preview",
-          "line": 21,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -11680,7 +11680,7 @@
         },
         {
           "name": "AuditRetentionRepositories._audit_retention_candidates",
-          "line": 112,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "self",
@@ -11691,14 +11691,14 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "rows": "list[dict]",
+            "rows": "list[dict[str, Any]]",
             "cutoff": "str",
             "batch_id": "str"
           }
         },
         {
           "name": "AuditRetentionRepositories._audit_retention_candidates.owned",
-          "line": 145,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "table",
@@ -14825,7 +14825,7 @@
       "path": "agent/src/omni/adapters/persistence/history_pruning_cycle.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.history_pruning_cycle",
-      "lines": 302,
+      "lines": 305,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
@@ -14835,17 +14835,17 @@
       "symbols": [
         {
           "name": "PruningSpec",
-          "line": 17,
+          "line": 18,
           "kind": "class"
         },
         {
           "name": "PruningCycle",
-          "line": 31,
+          "line": 32,
           "kind": "class"
         },
         {
           "name": "PruningCycle.__init__",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -14856,12 +14856,12 @@
           "annotations": {
             "unit": "RepositoryBase",
             "spec": "PruningSpec",
-            "resolve": "Callable[..., dict]"
+            "resolve": "Callable[..., dict[str, Any]]"
           }
         },
         {
           "name": "PruningCycle.batch",
-          "line": 36,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self",
@@ -14873,7 +14873,7 @@
         },
         {
           "name": "PruningCycle.bound_batch",
-          "line": 44,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self",
@@ -14887,7 +14887,7 @@
         },
         {
           "name": "PruningCycle.progress",
-          "line": 70,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -14901,7 +14901,7 @@
         },
         {
           "name": "PruningCycle.recheck",
-          "line": 101,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "self",
@@ -14917,19 +14917,19 @@
         },
         {
           "name": "PruningCycle.validate",
-          "line": 117,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "dict[str, Any]"
           }
         },
         {
           "name": "PruningCycle.prepare",
-          "line": 144,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -14938,14 +14938,14 @@
             "backup_sha256"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, Any]",
             "backup_path": "str",
             "backup_sha256": "str"
           }
         },
         {
           "name": "PruningCycle.prune",
-          "line": 191,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "self",
@@ -14953,13 +14953,13 @@
             "target"
           ],
           "annotations": {
-            "plan": "dict",
-            "target": "dict"
+            "plan": "dict[str, Any]",
+            "target": "dict[str, Any]"
           }
         },
         {
           "name": "PruningCycle.complete",
-          "line": 230,
+          "line": 233,
           "kind": "function",
           "parameters": [
             "self",
@@ -14971,7 +14971,7 @@
         },
         {
           "name": "PruningCycle.cancel",
-          "line": 266,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "self",
@@ -14979,7 +14979,7 @@
             "reason"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "dict[str, Any]",
             "reason": "str"
           }
         }
