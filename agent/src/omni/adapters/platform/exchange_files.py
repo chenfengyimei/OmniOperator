@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Iterator
+from collections.abc import Generator, Mapping
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import cast
@@ -14,7 +14,7 @@ from ...domain.releases import digest
 from ...domain.service_exchange import ExchangePlan, administrator_approval, marker, progress, validate_exchange
 from ...domain.service_isolation import IsolationPlan, validate_isolation
 from ..object_store import sync_directory
-from .deployment_files import CurrentDeploymentFiles, _json, _no_links, _path
+from .deployment_files import CurrentDeploymentFiles, json_bytes, no_links, path_of, publish_json
 from .paths import InstancePaths, PrivateFileLock
 from .permissions import assert_private, private_path
 
@@ -31,25 +31,25 @@ class ExchangeFiles:
         self._owned: str | None = None
 
     @staticmethod
-    def _homes(plan: ExchangePlan) -> list[InstancePaths]:
+    def homes(plan: ExchangePlan) -> list[InstancePaths]:
         # The predecessor stays quarantined and keeps its unknown maintenance records.
         # A rescue owns only its new target's reservation, never the predecessor marker.
         recovery = plan["release"]["recovery"]
         sides = ("target",) if recovery is not None and recovery["isolation"] is not None else ("source", "target")
         return sorted(
-            [InstancePaths(_path(plan["release"][side]["request"]["home"])) for side in sides],
+            [InstancePaths(path_of(plan["release"][side]["request"]["home"])) for side in sides],
             key=lambda paths: str(paths.home).casefold(),
         )
 
     def _root(self, plan: ExchangePlan) -> Path:
-        root = _path(plan["journal"])
-        _no_links(root)
+        root = path_of(plan["journal"])
+        no_links(root)
         if root.exists():
             assert_private(root)
         return root
 
     def _read(self, path: Path) -> Record:
-        _no_links(path)
+        no_links(path)
         assert_private(path)
         return self.deployments.read(path)
 
@@ -61,7 +61,7 @@ class ExchangeFiles:
         checked = validate_exchange(plan)
         self._publish(checked, dict(checked), output)
         return {
-            "path": str(_path(output)),
+            "path": str(path_of(output)),
             "exchange_id": checked["id"],
             "sha256": checked["sha256"],
             "executed": False,
@@ -75,7 +75,7 @@ class ExchangeFiles:
         checked = validate_isolation(plan)
         self._publish(checked["exchange"], dict(checked), output)
         return {
-            "path": str(_path(output)),
+            "path": str(path_of(output)),
             "isolation_id": checked["id"],
             "sha256": checked["sha256"],
             "executed": False,
@@ -90,20 +90,23 @@ class ExchangeFiles:
         checked = validate_exchange(plan)
         approval = administrator_approval(checked, role)
         self._publish(checked, approval, output)
-        return {
-            "path": str(_path(output)),
-            "approval_id": approval["id"],
-            "sha256": approval["sha256"],
-            "role": role,
-            "protocol": approval["protocol"],
-            "bundle_sha256": approval["broker_sha256"],
-            "socket": socket_path(approval),
-            "executed": False,
-        }
+        return cast(
+            Record,
+            {
+                "path": str(path_of(output)),
+                "approval_id": approval["id"],
+                "sha256": approval["sha256"],
+                "role": role,
+                "protocol": approval["protocol"],
+                "bundle_sha256": approval["broker_sha256"],
+                "socket": socket_path(approval),
+                "executed": False,
+            },
+        )
 
-    def _publish(self, checked: ExchangePlan, document: dict, output: str) -> None:
-        path = _path(output)
-        _no_links(path)
+    def _publish(self, checked: ExchangePlan, document: Mapping[str, object], output: str) -> None:
+        path = path_of(output)
+        no_links(path)
         protected = [checked["journal"], *checked["release"]["paths"].values()]
         if checked["release"]["recovery"] is not None:
             protected.append(checked["release"]["recovery"]["snapshot"])
@@ -119,10 +122,10 @@ class ExchangeFiles:
             for text in protected
         ):
             raise invalid("service_exchange_output_unsafe")
-        self.deployments._publish_json(path, _json(document))
+        publish_json(self.deployments, path, json_bytes(document))
 
     @contextmanager
-    def exclusive(self, plan: ExchangePlan) -> Iterator[None]:
+    def exclusive(self, plan: ExchangePlan) -> Generator[None, None, None]:
         checked = validate_exchange(plan)
         if self._owned is not None:
             raise invalid("service_exchange_busy")
@@ -151,11 +154,12 @@ class ExchangeFiles:
         events = sorted(path for path in names if path.name != "plan.json")
         if len(names) > MAX_EVENTS + 1 or any(path.name != f"{i:04}.json" for i, path in enumerate(events)):
             raise invalid()
-        rows, previous = [], "0" * 64
+        rows: list[Record] = []
+        previous = "0" * 64
         for index, path in enumerate(events):
             value = self._read(path)
             if (
-                len(_json(value)) > 8192
+                len(json_bytes(value)) > 8192
                 or set(value) != {"sequence", "previous_sha256", "record", "sha256"}
                 or type(value["sequence"]) is not int
                 or value["sequence"] != index
@@ -172,12 +176,12 @@ class ExchangeFiles:
         return rows
 
     @contextmanager
-    def maintenance(self, plan: ExchangePlan) -> Iterator[list[InstancePaths]]:
-        homes = self._homes(plan)
+    def maintenance(self, plan: ExchangePlan) -> Generator[list[InstancePaths], None, None]:
+        homes = self.homes(plan)
         with ExitStack() as stack:
             for home in homes:
                 for path in (home.home, home.control):
-                    _no_links(path)
+                    no_links(path)
                     assert_private(path)
                 lock = PrivateFileLock(home.control / "service-maintenance.lock")
                 lock.acquire()
@@ -197,14 +201,14 @@ class ExchangeFiles:
                 )
                 allowed = {(plan[key]["id"], plan[key]["sha256"]) for key in keys}
                 reservation = home.control / "service-exchange.json"
-                _no_links(reservation)
+                no_links(reservation)
                 if history and not reservation.exists():
                     raise invalid("service_exchange_reservation_missing")
                 if reservation.exists() and self._read(reservation) != expected:
                     raise invalid("service_exchange_reserved")
                 for namespace in ("service-operations", "service-controls"):
                     active = home.control / namespace / "active.json"
-                    _no_links(active)
+                    no_links(active)
                     if active.exists():
                         value = self._read(active)
                         if (
@@ -219,12 +223,12 @@ class ExchangeFiles:
                 private_path(root, directory=True)
                 sync_directory(root.parent)
             if not (root / "plan.json").exists():
-                self.deployments._publish_json(root / "plan.json", _json(dict(plan)))
+                publish_json(self.deployments, root / "plan.json", json_bytes(dict(plan)))
             for home in homes:
                 path = home.control / "service-exchange.json"
-                _no_links(path)
+                no_links(path)
                 if not path.exists():
-                    self.deployments._publish_json(path, _json(expected))
+                    publish_json(self.deployments, path, json_bytes(expected))
 
     def append(self, plan: ExchangePlan, record: Record) -> None:
         self._require_owned(plan)
@@ -236,17 +240,17 @@ class ExchangeFiles:
         root = self._root(plan)
         previous = self._read(root / f"{len(history) - 1:04}.json")["sha256"] if history else "0" * 64
         entry = {"sequence": len(history), "previous_sha256": previous, "record": record}
-        data = _json({**entry, "sha256": digest(entry)})
+        data = json_bytes({**entry, "sha256": digest(entry)})
         if len(data) > 8192:
             raise invalid("service_exchange_record_limit")
-        self.deployments._publish_json(root / f"{len(history):04}.json", data)
+        publish_json(self.deployments, root / f"{len(history):04}.json", data)
 
     def check_idle(self, plan: ExchangePlan) -> None:
         self._require_owned(plan)
-        for home in self._homes(plan):
+        for home in self.homes(plan):
             for namespace in ("service-operations", "service-controls"):
                 active = home.control / namespace / "active.json"
-                _no_links(active)
+                no_links(active)
                 if active.exists():
                     raise invalid("service_exchange_child_unresolved")
 
@@ -260,7 +264,7 @@ class ExchangeFiles:
             # Verify both reservations before removing either; partial unlink is safely repeatable.
             for home in homes:
                 path = home.control / "service-exchange.json"
-                _no_links(path)
+                no_links(path)
                 if path.exists() and self._read(path) != marker(plan):
                     raise invalid("service_exchange_reserved")
             for home in homes:

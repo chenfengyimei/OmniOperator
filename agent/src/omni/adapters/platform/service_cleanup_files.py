@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
+from typing import Any, cast
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
@@ -21,7 +22,7 @@ from ...domain.service_cleanup import (
 )
 from ...domain.service_exchange import marker, progress
 from ..object_store import sync_directory
-from .deployment_files import CurrentDeploymentFiles, _json, _no_links, _path
+from .deployment_files import CurrentDeploymentFiles, json_bytes, no_links, path_of, publish_json
 from .exchange_files import ExchangeFiles
 from .paths import InstanceLock, InstancePaths, PrivateFileLock
 from .permissions import assert_private, private_path
@@ -38,12 +39,12 @@ class CleanupPlanFiles:
         self.deployments = deployments
 
     def publish(self, plan: CleanupPlan, output: str) -> Record:
-        checked, target = validate_cleanup(plan), _path(output)
-        _no_links(target)
+        checked, target = validate_cleanup(plan), path_of(output)
+        no_links(target)
         windows = checked["operation"]["deployment"]["runtime"]["platform"] == "win32"
         if any(overlaps(str(target), name, windows) for name in protected_paths(checked["exchange"])):
             raise invalid("service_cleanup_output_unsafe")
-        self.deployments._publish_json(target, _json(dict(checked)))
+        publish_json(self.deployments, target, json_bytes(dict(checked)))
         return {
             "path": str(target),
             "cleanup_id": checked["id"],
@@ -67,18 +68,20 @@ class CleanupFiles(ServiceOperationFiles):
         self._owned = False
         super().__init__(validate=self._operation)
 
-    def _operation(self, value: object) -> dict:
+    def _operation(self, value: object) -> Record:
         if value != self.plan["operation"]:
             raise invalid()
         return self.plan["operation"]
 
     def _paths(self, operation: Record) -> tuple[InstancePaths, Path, Path]:
-        checked = self._operation(operation)
-        paths = InstancePaths(_path(checked["deployment"]["request"]["home"]))
-        journal = _path(self.plan["journal"])
-        root, folder = journal / self.namespace, journal / self.namespace / checked["id"]
-        for path in (_path(registry(self.plan["exchange"])), journal.parent, journal, root, folder):
-            _no_links(path)
+        self._operation(operation)
+        operation_plan = self.plan["operation"]
+        deployment = operation_plan["deployment"]
+        paths = InstancePaths(path_of(cast(str, cast(dict[str, Any], deployment["request"])["home"])))
+        journal = path_of(self.plan["journal"])
+        root, folder = journal / self.namespace, journal / self.namespace / cast(str, operation_plan["id"])
+        for path in (path_of(registry(self.plan["exchange"])), journal.parent, journal, root, folder):
+            no_links(path)
             if path.exists():
                 assert_private(path)
         if journal.exists():
@@ -112,7 +115,7 @@ class CleanupFiles(ServiceOperationFiles):
         present = False
         for home in self.homes():
             path = self.reservation_path(home)
-            _no_links(path)
+            no_links(path)
             if path.parent.exists():
                 assert_private(path.parent)
                 if not path.parent.is_dir():
@@ -137,20 +140,20 @@ class CleanupFiles(ServiceOperationFiles):
         self.releases.isolation_authority(exchange["release"])
         for side in ("source", "target"):
             self.releases.require_fence(exchange["release"], side)
-        for home in self.exchanges._homes(exchange):
+        for home in self.exchanges.homes(exchange):
             if self._private_json(home.control / "service-exchange.json", 8192) != marker(exchange):
                 raise invalid("service_cleanup_exchange_changed")
 
     @contextmanager
-    def exclusive(self, operation: Record) -> Iterator[None]:
+    def exclusive(self, operation: Record) -> Generator[None, None, None]:
         self._operation(operation)
         if self._owned:
             raise invalid("service_cleanup_busy")
         with self.exchanges.exclusive(self.plan["exchange"]), ExitStack() as stack:
             for home in self.homes():
-                _no_links(home.home)
+                no_links(home.home)
                 assert_private(home.home)
-                _no_links(home.control)
+                no_links(home.control)
                 assert_private(home.control)
                 mutex = PrivateFileLock(home.control / "service-maintenance.lock")
                 mutex.acquire()
@@ -176,7 +179,7 @@ class CleanupFiles(ServiceOperationFiles):
 
     @staticmethod
     def _directory(path: Path) -> None:
-        _no_links(path)
+        no_links(path)
         if not path.exists():
             path.mkdir(mode=0o700)
             private_path(path, directory=True)
@@ -187,13 +190,13 @@ class CleanupFiles(ServiceOperationFiles):
 
     def _prepare(self) -> None:
         self._require_owned()
-        root = _path(registry(self.plan["exchange"]))
-        journal = _path(self.plan["journal"])
+        root = path_of(registry(self.plan["exchange"]))
+        journal = path_of(self.plan["journal"])
         for directory in (root, journal.parent, journal):
             self._directory(directory)
         review = journal / "review.json"
         if not review.exists():
-            self._publisher._publish_json(review, _json(dict(self.plan)))
+            publish_json(self._publisher, review, json_bytes(dict(self.plan)))
         self._paths(self.plan["operation"])
 
     def latest(self, operation: Record) -> Record | None:
@@ -215,7 +218,7 @@ class CleanupFiles(ServiceOperationFiles):
             path = self.reservation_path(home)
             self._directory(path.parent)
             if not path.exists():
-                self._publisher._publish_json(path, _json(self.reservation()))
+                publish_json(self._publisher, path, json_bytes(self.reservation()))
         super().activate(operation)
 
     def append(self, operation: Record, result: Record) -> None:

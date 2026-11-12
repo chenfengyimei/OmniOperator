@@ -139,6 +139,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/audit_pruning.py` | 离线审计裁剪绑定（计划/应用/取消，备份校验归共享设施） |
 | `agent/src/omni/adapters/persistence/event_pruning.py` | 离线事件裁剪绑定（计划/应用/取消，备份校验归共享设施） |
 | `agent/src/omni/adapters/workers/client.py` | 有界 JSON IPC 工作进程客户端（能力清单与宿主回调预算） |
+| `agent/src/omni/adapters/platform/exchange_files.py` | 服务交换见证与维护预留（公共桥，不触库/不原生调用） |
+| `agent/src/omni/adapters/platform/service_cleanup_files.py` | 服务清理日志与双家预留（保留旧未知记录与栅栏） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |

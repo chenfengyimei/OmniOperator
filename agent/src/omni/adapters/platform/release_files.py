@@ -6,7 +6,7 @@ import itertools
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
@@ -96,7 +96,7 @@ class ReleaseFiles:
             raise failed("release_target_program_changed")
         self.reviewed_installation(plan["source"])
 
-    def reviewed_installation(self, deployment: dict) -> None:
+    def reviewed_installation(self, deployment: dict[str, Any]) -> None:
         """Static proof for removal only; never imports or executes the reviewed installation."""
         from ...domain.service_deployment import validate_plan
 
