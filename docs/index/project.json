@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0e4056d97f3ce1d0beace6bc2264b0030f101115e168b918b6c65880ab09d57d",
+  "source_sha256": "85aa0ae09099a7528a7293cc234afb0631459b8afb1dcaff488f8fdba3a37fdd",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10924,
+      "lines": 10940,
       "dependencies": [
         "v2-domain"
       ]
@@ -493,7 +493,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 12253,
+      "lines": 12478,
       "dependencies": []
     },
     {
@@ -39234,7 +39234,7 @@
       "path": "agent/src/omni/application/images.py",
       "module": "v2-application",
       "python_module": "omni.application.images",
-      "lines": 134,
+      "lines": 150,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -39323,7 +39323,7 @@
             "future"
           ],
           "annotations": {
-            "future": "asyncio.Task"
+            "future": "asyncio.Task[object]"
           }
         },
         {
@@ -39396,35 +39396,23 @@
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
-            "rows": "list[dict]",
+            "rows": "list[dict[str, object]]",
             "settings": "Mapping[str, object]"
           }
         },
         {
           "name": "ImageService.context.read",
-          "line": 66,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
-        },
-        {
-          "name": "ImageService.summary_sources",
-          "line": 79,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "agent_id",
-            "rows"
-          ],
           "annotations": {
-            "agent_id": "str",
-            "rows": "list[dict]"
+            "u": "UnitOfWork"
           }
         },
         {
-          "name": "ImageService.messages",
+          "name": "ImageService.summary_sources",
           "line": 83,
           "kind": "function",
           "parameters": [
@@ -39434,12 +39422,26 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "rows": "list[dict]"
+            "rows": "list[dict[str, object]]"
+          }
+        },
+        {
+          "name": "ImageService.messages",
+          "line": 89,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "rows"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "rows": "list[dict[str, object]]"
           }
         },
         {
           "name": "ImageService.wire",
-          "line": 87,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
@@ -39449,13 +39451,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "messages": "list[dict]",
+            "messages": "list[dict[str, object]]",
             "guard": "Callable[[], Awaitable[None]]"
           }
         },
         {
           "name": "ImageService._wire",
-          "line": 90,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "self",
@@ -39465,13 +39467,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "messages": "list[dict]",
+            "messages": "list[dict[str, object]]",
             "guard": "Callable[[], Awaitable[None]]"
           }
         },
         {
           "name": "ImageService.report",
-          "line": 121,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self",
@@ -39485,7 +39487,7 @@
         },
         {
           "name": "ImageService.health",
-          "line": 124,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self"
@@ -39494,7 +39496,7 @@
         },
         {
           "name": "ImageService.stop_accepting",
-          "line": 127,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "self"
@@ -39503,7 +39505,7 @@
         },
         {
           "name": "ImageService.close",
-          "line": 130,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self",
@@ -94824,7 +94826,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1424,
+      "lines": 1450,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94834,7 +94836,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 892,
+      "lines": 954,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94994,7 +94996,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1205,
+      "lines": 1342,
       "imports": [],
       "symbols": [],
       "kind": "asset",

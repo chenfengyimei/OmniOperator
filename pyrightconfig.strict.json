@@ -13,6 +13,7 @@
     "agent/src/omni/application/exchange_recovery.py",
     "agent/src/omni/application/exchange_recovery_steps.py",
     "agent/src/omni/application/exchange_steps.py",
+    "agent/src/omni/application/images.py",
     "agent/src/omni/application/local_vectors.py",
     "agent/src/omni/application/memory_organization.py",
     "agent/src/omni/application/memory_semantics.py",
