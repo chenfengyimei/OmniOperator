@@ -27,7 +27,7 @@ class DocumentService:
         self, database: DatabasePort, objects: ObjectService, vectorizer: LocalVectorizer | None = None
     ) -> None:
         self._db, self._objects, self._vectorizer = database, objects, vectorizer
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = self._closed = False
 
@@ -37,14 +37,14 @@ class DocumentService:
         if len(self._pending) >= 8:
             raise BusinessError("documents_busy", "Source operation queue is full", retryable=True, status=503)
 
-        async def perform():
+        async def perform() -> T:
             async with self._slots:
                 return await operation()
 
         task = asyncio.create_task(perform(), name="source-document-operation")
         self._pending.add(task)
 
-        def completed(future):
+        def completed(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
@@ -65,7 +65,7 @@ class DocumentService:
         title = document_title(title)
         source = DocumentText.from_text(content)
 
-        async def perform():
+        async def perform() -> Record:
             await self._db.read(lambda u: u.settings(agent_id))
             obj = await self._objects.publish(agent_id, source.content.encode("utf-8"), "text/plain")
             return await self._db.write(
@@ -79,7 +79,7 @@ class DocumentService:
     ) -> Record:
         title = document_title(title)
 
-        async def perform():
+        async def perform() -> Record:
             _, payload = await self._objects.get(agent_id, object_id)
             source = DocumentText.parse(payload)
             return await self._db.write(
@@ -89,7 +89,7 @@ class DocumentService:
         return await self._execute(perform)
 
     async def get(self, agent_id: str, document_id: str, revision_id: str | None = None) -> Record:
-        async def perform():
+        async def perform() -> Record:
             row = await self._db.read(lambda u: u.document_get(agent_id, document_id, revision_id))
             source = await self._source(agent_id, row)
             # A concurrent erasure must not publish a previously loaded source.
@@ -107,15 +107,15 @@ class DocumentService:
         return {"items": list(rows), "next_after": rows[-1]["revision"] if len(rows) == limit else None}
 
     async def erase(self, agent_id: str, document_id: str, revision: int) -> None:
-        async def perform():
+        async def perform() -> None:
             job = await self._db.write(lambda u: u.document_erasure_begin(agent_id, document_id, revision))
             if job["state"] == "done":
                 await self._db.write(lambda u: u.document_erasure_finish(agent_id, str(job["id"])))
                 return
 
-            def remove(u):
+            def remove(u: UnitOfWork) -> None:
                 derived = u.document_erase(agent_id, document_id, revision)
-                for memory_id in derived:
+                for memory_id in cast(list[str], derived):
                     u.forget(agent_id, memory_id)
                 u.document_erasure_finish(agent_id, str(job["id"]))
 
@@ -157,8 +157,8 @@ class DocumentService:
         version = str(status["version"]) if kind == "vector" else TEXT_INDEX_VERSION
         dimension = cast(int, status["dimension"]) if kind == "vector" else None
 
-        async def perform():
-            def begin(u):
+        async def perform() -> Record:
+            def begin(u: UnitOfWork) -> Record:
                 if guard:
                     guard(u)
                 row = u.document_build_begin(
@@ -171,17 +171,19 @@ class DocumentService:
             build = await self._db.write(begin)
             identity = str(build["id"])
             try:
-                source = await self._source(agent_id, cast(dict, build["document"]))
-                vectors = None
+                source = await self._source(agent_id, cast(Record, build["document"]))
+                vectors: list[list[float]] | None = None
                 if kind == "vector":
                     vectors = []
                     chunks = source.chunks()
                     for i in range(0, len(chunks), 8):
                         vectors.extend(
-                            await self._embed([r["content"] for r in chunks[i : i + 8]], version, cast(int, dimension))
+                            await self._embed(
+                                [str(r["content"]) for r in chunks[i : i + 8]], version, cast(int, dimension)
+                            )
                         )
 
-                def publish(u):
+                def publish(u: UnitOfWork) -> Record:
                     if guard:
                         guard(u)
                     result = u.document_build_finish(agent_id, identity, source, vectors)
@@ -211,12 +213,12 @@ class DocumentService:
     async def search(
         self, agent_id: str, query: str, limit: int = 20, *, run_id: str | None = None, action_id: str | None = None
     ) -> Record:
-        if not isinstance(query, str) or not 1 <= len(query.strip()) <= 500 or not 1 <= limit <= 20:
+        if not isinstance(cast(object, query), str) or not 1 <= len(query.strip()) <= 500 or not 1 <= limit <= 20:
             raise BusinessError(
                 "invalid_document_query", "A query of 1 to 500 characters and at most 20 hits is required", status=422
             )
 
-        async def perform():
+        async def perform() -> Record:
             await self._db.read(lambda u: u.settings(agent_id))
             text_rows = await self._db.read(lambda u: u.document_search(agent_id, query, limit))
             vector_rows, limited, reason = [], False, ""
@@ -241,7 +243,12 @@ class DocumentService:
                     reason = str(self.vector_status().get("reason") or "vector_unavailable")
             else:
                 reason = str(status["reason"])
-            rows = merge_results(text_rows, vector_rows, limit)
+            rows = cast(
+                list[Record],
+                merge_results(
+                    cast(list[dict[str, object]], text_rows), cast(list[dict[str, object]], vector_rows), limit
+                ),
+            )
             for revision_id in {str(r["document_revision_id"]) for r in rows}:
                 metadata = await self._db.read(
                     lambda u: u.document_get(
@@ -253,7 +260,7 @@ class DocumentService:
                 await self._source(agent_id, metadata)
             index_health = await self._db.read(lambda u: u.document_index_health(agent_id))
 
-            def validate(u):
+            def validate(u: UnitOfWork) -> None:
                 u.document_validate_results(agent_id, rows)
                 if run_id and action_id:
                     u.document_capture(
@@ -261,19 +268,26 @@ class DocumentService:
                         run_id,
                         action_id,
                         [
-                            {"document_revision_id": r["document_revision_id"], "start": r["start"], "end": r["end"]}
+                            {
+                                "document_revision_id": r["document_revision_id"],
+                                "start": r["start"],
+                                "end": r["end"],
+                            }
                             for r in rows
                         ],
                     )
 
             await self._db.write(validate) if run_id else await self._db.read(validate)
-            return {
-                "items": list(rows),
-                "mode": "hybrid" if vector_rows else "full_text",
-                "degraded_reason": reason,
-                "vector_candidates_limited": limited,
-                "unindexed_documents": index_health["unindexed_documents"],
-            }
+            return cast(
+                Record,
+                {
+                    "items": list(rows),
+                    "mode": "hybrid" if vector_rows else "full_text",
+                    "degraded_reason": reason,
+                    "vector_candidates_limited": limited,
+                    "unindexed_documents": index_health["unindexed_documents"],
+                },
+            )
 
         return await self._execute(perform)
 
@@ -285,7 +299,7 @@ class DocumentService:
                 result = await self.search(
                     context.agent_id, str(arguments["query"]), 6, run_id=context.run_id, action_id=operation_id
                 )
-                rows = cast(list[dict], result["items"])
+                rows = cast(list[dict[str, object]], result["items"])
                 text = "\n".join(
                     f"{r['document_id']} revision_id={r['document_revision_id']} range={r['start']}:{r['end']}: {r['content']}"
                     for r in rows
@@ -344,3 +358,8 @@ class DocumentService:
                 return False
         self._closed = True
         return True
+
+
+
+
+
