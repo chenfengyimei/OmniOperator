@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`0d31aa4ff6b41d8cce82471b8f8eb3494a6d840cd1f84434d8a8f39c86a9fb4b`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`c3432579b21728d657afc3af04dc36be62811e62c7aa844e1e54d9f86c2ac9a3`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -294,7 +294,7 @@
 | [agent/src/omni/adapters/platform/linux_x11_wire.py](../../agent/src/omni/adapters/platform/linux_x11_wire.py) | 239 | Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect. |
 | [agent/src/omni/adapters/platform/macos_helper.py](../../agent/src/omni/adapters/platform/macos_helper.py) | 113 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
 | [agent/src/omni/adapters/platform/macos_service.py](../../agent/src/omni/adapters/platform/macos_service.py) | 109 | Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority. |
-| [agent/src/omni/adapters/platform/macos_service_state.py](../../agent/src/omni/adapters/platform/macos_service_state.py) | 91 | Pure bounded launchd definition and override comparison shared by owner and administrator ports. |
+| [agent/src/omni/adapters/platform/macos_service_state.py](../../agent/src/omni/adapters/platform/macos_service_state.py) | 101 | Pure bounded launchd definition and override comparison shared by owner and administrator ports. |
 | [agent/src/omni/adapters/platform/paths.py](../../agent/src/omni/adapters/platform/paths.py) | 157 | Resolve writable instance paths independently from installed code and cwd. |
 | [agent/src/omni/adapters/platform/permissions.py](../../agent/src/omni/adapters/platform/permissions.py) | 159 | Current-owner private files on POSIX and NTFS; never changes ancestor ACLs. |
 | [agent/src/omni/adapters/platform/portal.py](../../agent/src/omni/adapters/platform/portal.py) | 495 | Owned long-lived Portal helper sessions with shared desktop capacity and bounded metadata pipes; no pixel or input dispatch. |
