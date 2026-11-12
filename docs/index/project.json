@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5f202685f208c65346b2d6496a08ab3c888946126db5453f82422f991c8c2b76",
+  "source_sha256": "462cf62d1cdeca804b08173af68c5f58ed65da25ce4b753abfd13cd7965a4810",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52751,
+      "lines": 52761,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -18853,7 +18853,7 @@
       "path": "agent/src/omni/adapters/persistence/offline_plans.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.offline_plans",
-      "lines": 188,
+      "lines": 189,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.database",
@@ -18912,7 +18912,7 @@
         },
         {
           "name": "create_plan",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18931,7 +18931,7 @@
         },
         {
           "name": "apply_plan",
-          "line": 117,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18948,7 +18948,7 @@
         },
         {
           "name": "cancel_plan",
-          "line": 167,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "paths",
@@ -23353,16 +23353,17 @@
       "path": "agent/src/omni/adapters/platform/desktop_capture.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop_capture",
-      "lines": 76,
+      "lines": 83,
       "imports": [
         "omni.adapters.object_store",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.desktop"
       ],
       "symbols": [
         {
           "name": "prepare",
-          "line": 18,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "root",
@@ -23375,7 +23376,7 @@
         },
         {
           "name": "inventory",
-          "line": 26,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "root",
@@ -23388,7 +23389,7 @@
         },
         {
           "name": "read",
-          "line": 39,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "root",
@@ -23398,12 +23399,12 @@
           "annotations": {
             "root": "Path",
             "path": "Path",
-            "receipt": "dict"
+            "receipt": "Record"
           }
         },
         {
           "name": "discard",
-          "line": 71,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "root",
@@ -26307,7 +26308,7 @@
       "path": "agent/src/omni/adapters/platform/macos_helper.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.macos_helper",
-      "lines": 111,
+      "lines": 113,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop"
@@ -26353,7 +26354,7 @@
         },
         {
           "name": "resolve",
-          "line": 69,
+          "line": 71,
           "kind": "function",
           "parameters": [],
           "annotations": {}

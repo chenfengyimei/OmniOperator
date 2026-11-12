@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`5f202685f208c65346b2d6496a08ab3c888946126db5453f82422f991c8c2b76`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`462cf62d1cdeca804b08173af68c5f58ed65da25ce4b753abfd13cd7965a4810`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -244,7 +244,7 @@
 | [agent/src/omni/adapters/persistence/object_gc.py](../../agent/src/omni/adapters/persistence/object_gc.py) | 214 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
 | [agent/src/omni/adapters/persistence/object_inventory.py](../../agent/src/omni/adapters/persistence/object_inventory.py) | 125 | Offline object registry snapshots and bounded physical inventory validation. |
 | [agent/src/omni/adapters/persistence/object_repository.py](../../agent/src/omni/adapters/persistence/object_repository.py) | 205 | Object metadata, pins and real foreign-key references; never touches files. |
-| [agent/src/omni/adapters/persistence/offline_plans.py](../../agent/src/omni/adapters/persistence/offline_plans.py) | 188 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
+| [agent/src/omni/adapters/persistence/offline_plans.py](../../agent/src/omni/adapters/persistence/offline_plans.py) | 189 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
 | [agent/src/omni/adapters/persistence/operations_read.py](../../agent/src/omni/adapters/persistence/operations_read.py) | 58 | Offline read-only operational snapshot; caller holds exclusive instance ownership. |
 | [agent/src/omni/adapters/persistence/operations_repository.py](../../agent/src/omni/adapters/persistence/operations_repository.py) | 100 | Operational aggregates and owner credential audit; business bodies and secret values stay excluded. |
 | [agent/src/omni/adapters/persistence/people_repository.py](../../agent/src/omni/adapters/persistence/people_repository.py) | 210 | People and manual account identities; personal documents reuse memory repositories. |
@@ -275,7 +275,7 @@
 | [agent/src/omni/adapters/platform/darwin_service_admin.py](../../agent/src/omni/adapters/platform/darwin_service_admin.py) | 137 | Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force. |
 | [agent/src/omni/adapters/platform/deployment_files.py](../../agent/src/omni/adapters/platform/deployment_files.py) | 588 | Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage. |
 | [agent/src/omni/adapters/platform/desktop.py](../../agent/src/omni/adapters/platform/desktop.py) | 581 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
-| [agent/src/omni/adapters/platform/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop_capture.py) | 76 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
+| [agent/src/omni/adapters/platform/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop_capture.py) | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
 | [agent/src/omni/adapters/platform/desktop_native.py](../../agent/src/omni/adapters/platform/desktop_native.py) | 492 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
 | [agent/src/omni/adapters/platform/event_loop.py](../../agent/src/omni/adapters/platform/event_loop.py) | 105 | Own the Windows TCP reset workaround without patching global asyncio classes. |
 | [agent/src/omni/adapters/platform/exchange_deployments.py](../../agent/src/omni/adapters/platform/exchange_deployments.py) | 27 | Verify a reviewed source for removal or signed boot draining; never execute or import the source installation. |
@@ -292,7 +292,7 @@
 | [agent/src/omni/adapters/platform/linux_x11.py](../../agent/src/omni/adapters/platform/linux_x11.py) | 247 | XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input. |
 | [agent/src/omni/adapters/platform/linux_x11_socket.py](../../agent/src/omni/adapters/platform/linux_x11_socket.py) | 218 | Canonical local X11 sockets and private Xauthority; verify peers before sending credentials. |
 | [agent/src/omni/adapters/platform/linux_x11_wire.py](../../agent/src/omni/adapters/platform/linux_x11_wire.py) | 239 | Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect. |
-| [agent/src/omni/adapters/platform/macos_helper.py](../../agent/src/omni/adapters/platform/macos_helper.py) | 111 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
+| [agent/src/omni/adapters/platform/macos_helper.py](../../agent/src/omni/adapters/platform/macos_helper.py) | 113 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
 | [agent/src/omni/adapters/platform/macos_service.py](../../agent/src/omni/adapters/platform/macos_service.py) | 107 | Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority. |
 | [agent/src/omni/adapters/platform/macos_service_state.py](../../agent/src/omni/adapters/platform/macos_service_state.py) | 90 | Pure bounded launchd definition and override comparison shared by owner and administrator ports. |
 | [agent/src/omni/adapters/platform/paths.py](../../agent/src/omni/adapters/platform/paths.py) | 157 | Resolve writable instance paths independently from installed code and cwd. |
