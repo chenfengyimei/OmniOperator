@@ -34,6 +34,7 @@
     "agent/src/omni/application/objects.py",
     "agent/src/omni/application/operations.py",
     "agent/src/omni/application/people.py",
+    "agent/src/omni/application/ports.py",
     "agent/src/omni/application/qq.py",
     "agent/src/omni/application/release_drain.py",
     "agent/src/omni/application/releases.py",
