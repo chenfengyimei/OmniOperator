@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b78432418ee1f3014900af6a43f674b9c8f1e613576d3b6bf20dc93e92b2c9dc",
+  "source_sha256": "01b7c366ff95917f573ae9f7cbcfe8a746f0bc4a1aa08443970673c184617852",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53048,
+      "lines": 53103,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -30519,7 +30519,7 @@
       "path": "agent/src/omni/adapters/platform/terminal.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.terminal",
-      "lines": 533,
+      "lines": 588,
       "imports": [
         "omni.adapters.platform.processes",
         "omni.adapters.workers.terminal",
@@ -30581,19 +30581,19 @@
         },
         {
           "name": "_environment",
-          "line": 65,
+          "line": 68,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "TerminalBackend",
-          "line": 93,
+          "line": 96,
           "kind": "class"
         },
         {
           "name": "TerminalBackend.__init__",
-          "line": 96,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self",
@@ -30606,8 +30606,8 @@
           }
         },
         {
-          "name": "TerminalBackend.capabilities",
-          "line": 122,
+          "name": "TerminalBackend.closing",
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self"
@@ -30615,7 +30615,28 @@
           "annotations": {}
         },
         {
-          "name": "TerminalBackend.health",
+          "name": "TerminalBackend.closing",
+          "line": 130,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "bool"
+          }
+        },
+        {
+          "name": "TerminalBackend.hosts",
+          "line": 134,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend.capabilities",
           "line": 137,
           "kind": "function",
           "parameters": [
@@ -30624,8 +30645,52 @@
           "annotations": {}
         },
         {
+          "name": "TerminalBackend.health",
+          "line": 152,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalBackend.io",
+          "line": 160,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "operation",
+            "closing"
+          ],
+          "annotations": {
+            "operation": "Callable[[], T]",
+            "closing": "bool"
+          }
+        },
+        {
+          "name": "TerminalBackend.track",
+          "line": 164,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "task"
+          ],
+          "annotations": {
+            "task": "Awaitable[T]"
+          }
+        },
+        {
+          "name": "TerminalBackend.admit",
+          "line": 168,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "TerminalBackend._admit",
-          "line": 145,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self"
@@ -30634,7 +30699,7 @@
         },
         {
           "name": "TerminalBackend._track",
-          "line": 151,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self",
@@ -30646,7 +30711,7 @@
         },
         {
           "name": "TerminalBackend._track.done",
-          "line": 155,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "completed"
@@ -30657,7 +30722,7 @@
         },
         {
           "name": "TerminalBackend._io",
-          "line": 163,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -30671,7 +30736,7 @@
         },
         {
           "name": "TerminalBackend._prepare",
-          "line": 173,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "self",
@@ -30685,7 +30750,7 @@
         },
         {
           "name": "TerminalBackend.prepare",
-          "line": 199,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -30699,7 +30764,7 @@
         },
         {
           "name": "TerminalBackend.open",
-          "line": 204,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "self",
@@ -30713,7 +30778,7 @@
         },
         {
           "name": "TerminalBackend.close",
-          "line": 221,
+          "line": 248,
           "kind": "function",
           "parameters": [
             "self",
@@ -30725,12 +30790,12 @@
         },
         {
           "name": "TerminalProcess",
-          "line": 237,
+          "line": 264,
           "kind": "class"
         },
         {
           "name": "TerminalProcess.__init__",
-          "line": 238,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "self",
@@ -30743,8 +30808,83 @@
           }
         },
         {
+          "name": "TerminalProcess.closing",
+          "line": 290,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess.closing",
+          "line": 294,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "bool"
+          }
+        },
+        {
+          "name": "TerminalProcess.reclaimed",
+          "line": 298,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess.starting",
+          "line": 302,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "TerminalProcess.starting",
+          "line": 306,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "asyncio.Task[TerminalProcess] | None"
+          }
+        },
+        {
+          "name": "TerminalProcess.start",
+          "line": 309,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "before_dispatch"
+          ],
+          "annotations": {
+            "before_dispatch": "Callable[[], Awaitable[None]] | None"
+          }
+        },
+        {
+          "name": "TerminalProcess.ensure_cleanup",
+          "line": 313,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "timeout_s"
+          ],
+          "annotations": {
+            "timeout_s": "float"
+          }
+        },
+        {
           "name": "TerminalProcess._start",
-          "line": 262,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "self",
@@ -30756,7 +30896,7 @@
         },
         {
           "name": "TerminalProcess._drain_stderr",
-          "line": 309,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self"
@@ -30765,7 +30905,7 @@
         },
         {
           "name": "TerminalProcess._read_frames",
-          "line": 314,
+          "line": 369,
           "kind": "function",
           "parameters": [
             "self"
@@ -30774,7 +30914,7 @@
         },
         {
           "name": "TerminalProcess._exchange",
-          "line": 367,
+          "line": 422,
           "kind": "function",
           "parameters": [
             "self",
@@ -30790,7 +30930,7 @@
         },
         {
           "name": "TerminalProcess.read",
-          "line": 408,
+          "line": 463,
           "kind": "function",
           "parameters": [
             "self"
@@ -30799,7 +30939,7 @@
         },
         {
           "name": "TerminalProcess._command",
-          "line": 424,
+          "line": 479,
           "kind": "function",
           "parameters": [
             "self",
@@ -30813,14 +30953,14 @@
         },
         {
           "name": "TerminalProcess._command.run",
-          "line": 429,
+          "line": 484,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "TerminalProcess.write",
-          "line": 436,
+          "line": 491,
           "kind": "function",
           "parameters": [
             "self",
@@ -30834,7 +30974,7 @@
         },
         {
           "name": "TerminalProcess.resize",
-          "line": 447,
+          "line": 502,
           "kind": "function",
           "parameters": [
             "self",
@@ -30850,7 +30990,7 @@
         },
         {
           "name": "TerminalProcess.snapshot",
-          "line": 452,
+          "line": 507,
           "kind": "function",
           "parameters": [
             "self"
@@ -30859,7 +30999,7 @@
         },
         {
           "name": "TerminalProcess._ensure_cleanup",
-          "line": 462,
+          "line": 517,
           "kind": "function",
           "parameters": [
             "self",
@@ -30871,7 +31011,7 @@
         },
         {
           "name": "TerminalProcess.close",
-          "line": 468,
+          "line": 523,
           "kind": "function",
           "parameters": [
             "self",
@@ -30883,7 +31023,7 @@
         },
         {
           "name": "TerminalProcess._close_actual",
-          "line": 477,
+          "line": 532,
           "kind": "function",
           "parameters": [
             "self",

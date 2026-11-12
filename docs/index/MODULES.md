@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`b78432418ee1f3014900af6a43f674b9c8f1e613576d3b6bf20dc93e92b2c9dc`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`01b7c366ff95917f573ae9f7cbcfe8a746f0bc4a1aa08443970673c184617852`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -318,7 +318,7 @@
 | [agent/src/omni/adapters/platform/service_registration.py](../../agent/src/omni/adapters/platform/service_registration.py) | 413 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
 | [agent/src/omni/adapters/platform/service_templates.py](../../agent/src/omni/adapters/platform/service_templates.py) | 212 | Deterministic service artifacts. Rendering never installs or controls a service. |
 | [agent/src/omni/adapters/platform/systemd_state.py](../../agent/src/omni/adapters/platform/systemd_state.py) | 102 | Shared bounded systemd decoding; no command execution or filesystem access. |
-| [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 533 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
+| [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 588 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
 | [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
 | [agent/src/omni/adapters/platform/wheel_backup.py](../../agent/src/omni/adapters/platform/wheel_backup.py) | 68 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
 | [agent/src/omni/adapters/platform/wheel_environment.py](../../agent/src/omni/adapters/platform/wheel_environment.py) | 136 | Create an offline candidate environment: a venv that installs the staged wheel without a network. |
