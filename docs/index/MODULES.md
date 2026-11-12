@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`12820b595ccb34bc542ea162cee2e3ed834ae5339c9cfb413f1ccd5dc88a2c89`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`3f89ff2c74dbfb625ea2feedbcb5ef190c597700575dc3473ae6940cc64e42cd`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -262,7 +262,7 @@
 | [agent/src/omni/adapters/persistence/schema_upgrade.py](../../agent/src/omni/adapters/persistence/schema_upgrade.py) | 153 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
 | [agent/src/omni/adapters/persistence/search_schema.py](../../agent/src/omni/adapters/persistence/search_schema.py) | 8 | Derived FTS definitions. Applied only by versioned migrations. |
 | [agent/src/omni/adapters/persistence/skill_repository.py](../../agent/src/omni/adapters/persistence/skill_repository.py) | 459 | Immutable skill versions, review state and per-run bindings; no package or filesystem access. |
-| [agent/src/omni/adapters/persistence/sqlalchemy_access.py](../../agent/src/omni/adapters/persistence/sqlalchemy_access.py) | 26 | Shared SQLAlchemy SQLite transaction setup for the actor and exclusive offline migration. |
+| [agent/src/omni/adapters/persistence/sqlalchemy_access.py](../../agent/src/omni/adapters/persistence/sqlalchemy_access.py) | 27 | Shared SQLAlchemy SQLite transaction setup for the actor and exclusive offline migration. |
 | [agent/src/omni/adapters/persistence/sqlite_access.py](../../agent/src/omni/adapters/persistence/sqlite_access.py) | 32 | Owned SQLite connections for offline inspection, backup and restore only. |
 | [agent/src/omni/adapters/persistence/terminal_repository.py](../../agent/src/omni/adapters/persistence/terminal_repository.py) | 299 | Terminal intent transactions and immutable metadata receipts; never opens a native process or stores terminal bodies. |
 | [agent/src/omni/adapters/persistence/terminal_review_repository.py](../../agent/src/omni/adapters/persistence/terminal_review_repository.py) | 225 | Append owner observations and erasable evidence; terminal receipts and native lifecycle remain unchanged. |
@@ -290,7 +290,7 @@
 | [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 333 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
 | [agent/src/omni/adapters/platform/linux_signals.py](../../agent/src/omni/adapters/platform/linux_signals.py) | 102 | Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs. |
 | [agent/src/omni/adapters/platform/linux_x11.py](../../agent/src/omni/adapters/platform/linux_x11.py) | 247 | XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input. |
-| [agent/src/omni/adapters/platform/linux_x11_socket.py](../../agent/src/omni/adapters/platform/linux_x11_socket.py) | 218 | Canonical local X11 sockets and private Xauthority; verify peers before sending credentials. |
+| [agent/src/omni/adapters/platform/linux_x11_socket.py](../../agent/src/omni/adapters/platform/linux_x11_socket.py) | 219 | Canonical local X11 sockets and private Xauthority; verify peers before sending credentials. |
 | [agent/src/omni/adapters/platform/linux_x11_wire.py](../../agent/src/omni/adapters/platform/linux_x11_wire.py) | 239 | Small bounded X11 read protocol on an already verified socket; no discovery, input or reconnect. |
 | [agent/src/omni/adapters/platform/macos_helper.py](../../agent/src/omni/adapters/platform/macos_helper.py) | 113 | Resolve the fixed, owner-installed Swift bundle; never build, install or request TCC permissions. |
 | [agent/src/omni/adapters/platform/macos_service.py](../../agent/src/omni/adapters/platform/macos_service.py) | 109 | Inspect loaded launchd descriptions via the fixed Swift helper; never parses launchctl print as authority. |
