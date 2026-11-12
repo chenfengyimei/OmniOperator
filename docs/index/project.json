@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ce8c8298503b1cb59cb1c8aaba863953012d72256473d3bdeff49342018d23e2",
+  "source_sha256": "5c1a54d9dc08d455ad873f44eb5e8abfb4897fdd5d0298beff934f175c6e1054",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11068,
+      "lines": 11083,
       "dependencies": [
         "v2-domain"
       ]
@@ -36293,7 +36293,7 @@
       "path": "agent/src/omni/application/delivery.py",
       "module": "v2-application",
       "python_module": "omni.application.delivery",
-      "lines": 413,
+      "lines": 428,
       "imports": [
         "omni.application.ports",
         "omni.domain.configuration",
@@ -36338,7 +36338,7 @@
             "configuration"
           ],
           "annotations": {
-            "configuration": "dict"
+            "configuration": "Record"
           }
         },
         {
@@ -36534,11 +36534,13 @@
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "DeliveryService.capabilities",
-          "line": 175,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self",
@@ -36550,7 +36552,7 @@
         },
         {
           "name": "DeliveryService.tick",
-          "line": 186,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self"
@@ -36559,7 +36561,7 @@
         },
         {
           "name": "DeliveryService._completed",
-          "line": 241,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self",
@@ -36568,12 +36570,12 @@
           ],
           "annotations": {
             "identity": "str",
-            "future": "asyncio.Task"
+            "future": "asyncio.Task[None]"
           }
         },
         {
           "name": "DeliveryService._send",
-          "line": 248,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -36599,7 +36601,7 @@
         },
         {
           "name": "DeliveryService._loop",
-          "line": 320,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self"
@@ -36608,7 +36610,7 @@
         },
         {
           "name": "DeliveryService.start",
-          "line": 339,
+          "line": 354,
           "kind": "function",
           "parameters": [
             "self"
@@ -36617,7 +36619,7 @@
         },
         {
           "name": "DeliveryService.stop_accepting",
-          "line": 344,
+          "line": 359,
           "kind": "function",
           "parameters": [
             "self"
@@ -36626,7 +36628,7 @@
         },
         {
           "name": "DeliveryService.health",
-          "line": 348,
+          "line": 363,
           "kind": "function",
           "parameters": [
             "self"
@@ -36635,7 +36637,7 @@
         },
         {
           "name": "DeliveryService.close",
-          "line": 358,
+          "line": 373,
           "kind": "function",
           "parameters": [
             "self",
@@ -47658,7 +47660,7 @@
             "agent_id": "str",
             "attempt_id": "str",
             "token": "str",
-            "result": "dict"
+            "result": "Record"
           }
         },
         {
