@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "bb5e21c8568784b1723ff5bc96650735a233759d8b4ddc03a3128acd1b7089ff",
+  "source_sha256": "f2fa68e3a2d59376f22295aa1117a0880b3c3a2d91160bcc58cf1cf195d45d55",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53249,
+      "lines": 53256,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -17118,7 +17118,7 @@
       "path": "agent/src/omni/adapters/persistence/memory_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.memory_repository",
-      "lines": 367,
+      "lines": 368,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.document_repository",
@@ -17129,12 +17129,12 @@
       "symbols": [
         {
           "name": "MemoryRepositories",
-          "line": 16,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "MemoryRepositories._live_person",
-          "line": 17,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "self",
@@ -17148,7 +17148,7 @@
         },
         {
           "name": "MemoryRepositories._touch_person",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -17160,7 +17160,7 @@
         },
         {
           "name": "MemoryRepositories._evidence",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
@@ -17190,7 +17190,7 @@
         },
         {
           "name": "MemoryRepositories.remember",
-          "line": 135,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self",
@@ -17222,7 +17222,7 @@
         },
         {
           "name": "MemoryRepositories.revise_memory",
-          "line": 200,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -17244,7 +17244,7 @@
         },
         {
           "name": "MemoryRepositories.forget",
-          "line": 232,
+          "line": 233,
           "kind": "function",
           "parameters": [
             "self",
@@ -17260,7 +17260,7 @@
         },
         {
           "name": "MemoryRepositories.erase_message",
-          "line": 252,
+          "line": 253,
           "kind": "function",
           "parameters": [
             "self",
@@ -17274,7 +17274,7 @@
         },
         {
           "name": "MemoryRepositories._forget_one",
-          "line": 257,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self",
@@ -17290,7 +17290,7 @@
         },
         {
           "name": "MemoryRepositories.memory_history",
-          "line": 298,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "self",
@@ -17308,7 +17308,7 @@
         },
         {
           "name": "MemoryRepositories.search_memory",
-          "line": 321,
+          "line": 322,
           "kind": "function",
           "parameters": [
             "self",
@@ -19192,7 +19192,7 @@
       "path": "agent/src/omni/adapters/persistence/people_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.people_repository",
-      "lines": 210,
+      "lines": 216,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.memory_repository",
@@ -19202,12 +19202,12 @@
       "symbols": [
         {
           "name": "PeopleRepositories",
-          "line": 13,
+          "line": 15,
           "kind": "class"
         },
         {
           "name": "PeopleRepositories.owner_person",
-          "line": 14,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "self",
@@ -19219,7 +19219,7 @@
         },
         {
           "name": "PeopleRepositories.ensure_owner",
-          "line": 28,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
@@ -19231,7 +19231,7 @@
         },
         {
           "name": "PeopleRepositories.people_page",
-          "line": 43,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "self",
@@ -19247,7 +19247,7 @@
         },
         {
           "name": "PeopleRepositories.person_create",
-          "line": 57,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self",
@@ -19261,7 +19261,7 @@
         },
         {
           "name": "PeopleRepositories.person_get",
-          "line": 65,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self",
@@ -19275,7 +19275,7 @@
         },
         {
           "name": "PeopleRepositories.person_rename",
-          "line": 68,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self",
@@ -19293,7 +19293,7 @@
         },
         {
           "name": "PeopleRepositories.person_delete",
-          "line": 80,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -19309,7 +19309,7 @@
         },
         {
           "name": "PeopleRepositories.account_bind",
-          "line": 107,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -19327,7 +19327,7 @@
         },
         {
           "name": "PeopleRepositories.account_unbind",
-          "line": 140,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",
@@ -19345,7 +19345,7 @@
         },
         {
           "name": "PeopleRepositories.accounts_page",
-          "line": 151,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self",
@@ -19363,7 +19363,7 @@
         },
         {
           "name": "PeopleRepositories.personal_document",
-          "line": 163,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self",
@@ -19379,7 +19379,7 @@
         },
         {
           "name": "PeopleRepositories.save_document",
-          "line": 186,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",

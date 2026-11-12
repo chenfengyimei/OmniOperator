@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`bb5e21c8568784b1723ff5bc96650735a233759d8b4ddc03a3128acd1b7089ff`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`f2fa68e3a2d59376f22295aa1117a0880b3c3a2d91160bcc58cf1cf195d45d55`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -199,7 +199,7 @@
 | [agent/src/omni/adapters/persistence/media_repository.py](../../agent/src/omni/adapters/persistence/media_repository.py) | 329 | Scoped media sources, bounded jobs and immutable artifact rows; never reads files. |
 | [agent/src/omni/adapters/persistence/memory_organization_predicates.py](../../agent/src/omni/adapters/persistence/memory_organization_predicates.py) | 104 | One live approved-duplicate predicate for recall and new context capture; never edits memory truth. |
 | [agent/src/omni/adapters/persistence/memory_organization_repository.py](../../agent/src/omni/adapters/persistence/memory_organization_repository.py) | 584 | Bounded exact-duplicate proposals and owner review; never changes, forgets or copies memory truth. |
-| [agent/src/omni/adapters/persistence/memory_repository.py](../../agent/src/omni/adapters/persistence/memory_repository.py) | 367 | One memory truth for facts and personal documents, evidence, revisions and erasure. |
+| [agent/src/omni/adapters/persistence/memory_repository.py](../../agent/src/omni/adapters/persistence/memory_repository.py) | 368 | One memory truth for facts and personal documents, evidence, revisions and erasure. |
 | [agent/src/omni/adapters/persistence/memory_semantic_repository.py](../../agent/src/omni/adapters/persistence/memory_semantic_repository.py) | 400 | Derived memory vectors and source-bound related-fact decisions; never suppresses or rewrites facts. |
 | [agent/src/omni/adapters/persistence/migration_config.py](../../agent/src/omni/adapters/persistence/migration_config.py) | 23 | One migration-directory and expected-head lookup for startup and offline readers. |
 | [agent/src/omni/adapters/persistence/migrations/__init__.py](../../agent/src/omni/adapters/persistence/migrations/__init__.py) | 1 | Fresh V2 baseline; V1 data is never imported. |
@@ -247,7 +247,7 @@
 | [agent/src/omni/adapters/persistence/offline_plans.py](../../agent/src/omni/adapters/persistence/offline_plans.py) | 189 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
 | [agent/src/omni/adapters/persistence/operations_read.py](../../agent/src/omni/adapters/persistence/operations_read.py) | 58 | Offline read-only operational snapshot; caller holds exclusive instance ownership. |
 | [agent/src/omni/adapters/persistence/operations_repository.py](../../agent/src/omni/adapters/persistence/operations_repository.py) | 100 | Operational aggregates and owner credential audit; business bodies and secret values stay excluded. |
-| [agent/src/omni/adapters/persistence/people_repository.py](../../agent/src/omni/adapters/persistence/people_repository.py) | 210 | People and manual account identities; personal documents reuse memory repositories. |
+| [agent/src/omni/adapters/persistence/people_repository.py](../../agent/src/omni/adapters/persistence/people_repository.py) | 216 | People and manual account identities; personal documents reuse memory repositories. |
 | [agent/src/omni/adapters/persistence/qq_authority.py](../../agent/src/omni/adapters/persistence/qq_authority.py) | 99 | Shared QQ audience and credential authority for context, model and outbound checks. |
 | [agent/src/omni/adapters/persistence/qq_repository.py](../../agent/src/omni/adapters/persistence/qq_repository.py) | 229 | QQ admission and authority within the shared unit of work; no network or extra truth store. |
 | [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 41 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
