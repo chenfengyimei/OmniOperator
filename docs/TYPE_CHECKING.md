@@ -125,6 +125,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/sqlite_access.py` | 离线 SQLite 连接（只读/备份，含 WAL） |
 | `agent/src/omni/adapters/token_counter.py` | 本地保守 token 估算（不取模型元数据） |
 | `agent/src/omni/adapters/images.py` | 图像编解码/校验（有界任务、Pillow 校验） |
+| `agent/src/omni/adapters/platform/secrets.py` | OS 凭据库/外键加密 vault 适配 |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |

@@ -69,6 +69,7 @@
     "agent/src/omni/adapters/platform/paths.py",
     "agent/src/omni/adapters/platform/permissions.py",
     "agent/src/omni/adapters/platform/publication.py",
+    "agent/src/omni/adapters/platform/secrets.py",
     "agent/src/omni/adapters/platform/service_admin_bundle.py",
     "agent/src/omni/adapters/platform/service_admin_commands.py",
     "agent/src/omni/adapters/platform/systemd_state.py",

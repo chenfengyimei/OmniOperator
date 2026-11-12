@@ -6,6 +6,7 @@ import os
 import sys
 import uuid
 from pathlib import Path
+from typing import Any
 
 from cryptography.fernet import Fernet, InvalidToken
 from keyring.errors import KeyringError, PasswordDeleteError
@@ -46,9 +47,9 @@ def native_keyring():
 class SystemSecrets:
     def __init__(self, namespace: str) -> None:
         self.namespace = "OmniOperator:" + namespace
-        self._native = None
+        self._native: Any = None
 
-    def _backend(self):
+    def _backend(self) -> Any:
         if self._native is None:
             self._native = native_keyring()
         return self._native
