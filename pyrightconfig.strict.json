@@ -80,6 +80,7 @@
     "agent/src/omni/adapters/platform/processes.py",
     "agent/src/omni/adapters/platform/publication.py",
     "agent/src/omni/adapters/platform/secrets.py",
+    "agent/src/omni/adapters/platform/service_admin.py",
     "agent/src/omni/adapters/platform/service_admin_bundle.py",
     "agent/src/omni/adapters/platform/service_admin_commands.py",
     "agent/src/omni/adapters/platform/service_cleanup_files.py",

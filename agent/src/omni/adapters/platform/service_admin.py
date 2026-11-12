@@ -10,7 +10,7 @@ import stat
 import struct
 import sys
 import time
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.service_admin import MAX_FRAME, MAX_REQUESTS, decode, encode, response, validate_request
@@ -42,12 +42,13 @@ class SystemServiceAdministrator:
     def inspect(self) -> dict[str, Any]:
         try:
             program, manager = self.policy.program(), self.policy.manager
+            name = str(manager["name"])
             code, output = self.commands.run(
                 [
                     program,
                     "--system",
                     "show",
-                    manager["name"],
+                    name,
                     "--no-pager",
                     "--property=" + ",".join(PROPERTIES),
                     "--no-ask-password",
@@ -63,10 +64,10 @@ class SystemServiceAdministrator:
             if code != 0 and raw["installed"] is not False:
                 return unknown("service_admin_query_unverified")
             if parsed.definition_path is not None:
-                matches = present and content == render(self.policy.plan)[manager["artifact"]]
+                matches = present and content == render(self.policy.plan)[str(manager["artifact"])]
                 report.update(definition_matches=matches, error_code="" if matches else "service_definition_mismatch")
             enabled_code, enabled = self.commands.run(
-                [program, "--system", "is-enabled", manager["name"], "--no-pager", "--no-ask-password"]
+                [program, "--system", "is-enabled", name, "--no-pager", "--no-ask-password"]
             )
             if enabled_code == 0 and enabled == b"enabled\n":
                 report["enabled"] = True
@@ -87,7 +88,7 @@ class SystemServiceAdministrator:
             if self.policy.dispatched():
                 return {"effect": "unknown", "error_code": "service_admin_already_dispatched"}
             before = self.inspect()
-            action = self.policy.operation["action"]
+            action = cast(str, self.policy.operation["action"])
             if not registration_precondition(action, before) or before["enabled"] is None:
                 return {"effect": "none", "error_code": "service_registration_precondition"}
             program = self.policy.program()
@@ -99,7 +100,7 @@ class SystemServiceAdministrator:
             self.policy.reject_dropins(paths)
             self.policy.record("dispatch", {"effect": "unknown"})
             dispatched = True
-            program, name = self.policy.program(), self.policy.manager["name"]
+            program, name = self.policy.program(), str(self.policy.manager["name"])
             if action == "install":
                 self.policy.publish_definition()
                 code, _ = self.commands.run([program, "--system", "daemon-reload", "--no-ask-password"])
@@ -168,7 +169,7 @@ class SystemServiceAdministrator:
                     program,
                     "--system",
                     "start",
-                    self.policy.manager["name"],
+                    str(self.policy.manager["name"]),
                     "--no-block",
                     "--job-mode=fail",
                     "--no-ask-password",
@@ -241,8 +242,8 @@ class Administrator(Protocol):
     @property
     def policy(self) -> RootServicePolicy: ...
 
-    def inspect(self) -> dict: ...
-    def change(self) -> dict: ...
+    def inspect(self) -> dict[str, Any]: ...
+    def change(self) -> dict[str, Any]: ...
     def close(self, timeout_s: float = 2) -> bool: ...
 
 
@@ -252,7 +253,7 @@ def serve_connection(connection: socket.socket, administrator: Administrator, br
         value = validate_request(decode(receive(connection, 60)), operation, sequence, broker_sha256)
         command = value["command"]
         if command != "close":
-            administrator.policy.select(value["operation_key"])
+            administrator.policy.select(cast(str, value["operation_key"]))
         if command == "inspect":
             report = administrator.inspect()
         elif command == "change":
