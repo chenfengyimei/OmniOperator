@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "cd7106ed0dfdadb5a9835d77fed290af58dbba011048a734021b3b5a46a04fe0",
+  "code_version": "6487dd0af1de83b03fc9a73c5bf9b3e43161df10f036df2622ddf70e7c88dffa",
   "fixed_source_files": 1199,
-  "git_head": "bf07460",
+  "git_head": "b3e27b3",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py"
  },
@@ -73,11 +73,11 @@
    "Strict scope reaches 73 files with domain/android; connections, devices, actions, access requests and scroll verification are explicit while ADB text bounds and approval semantics stay unchanged",
    "Strict scope reaches 74 files with domain/mcp; transport targets, catalog rows, tool authorizations and result text are explicit, schema nodes and content parts are narrowed item by item while fingerprint revocation and unknown semantics stay unchanged",
    "Strict scope reaches 75 files with domain/extensions; manifests, recursive schemas, artifact metadata and authorizations are explicit, schema and artifact rows are narrowed item by item while media-type allowlists and byte bounds stay unchanged",
-   "Strict scope reaches 76 files with domain/service_deployment; request, runtime, plan, startup and the public bridges are explicit, files/distributions/links are narrowed item by item while path, principal and fingerprint checks stay unchanged"
+   "Strict scope reaches 76 files with domain/service_deployment; request, runtime, plan, startup and the public bridges are explicit, files/distributions/links are narrowed item by item while path, principal and fingerprint checks stay unchanged",
+   "Strict scope reaches 77 files with domain/desktop; targets, requests, capabilities, observations and response frames are explicit, nodes and bounds are narrowed item by item while untrusted UI data and read-only observation boundaries stay unchanged. All 53 domain files are now in strict scope."
   ],
   "pending": [
-   "Remaining 1 domain file (52/53 in strict)",
-   "Remaining application/adapters strict typing (20/44 application, 4/215 adapters in strict)",
+   "application 20/44 and adapters 4/215 strict typing",
    "composition layer not yet in strict scope",
    "Three-platform packaging/install/update/restore",
    "Real-environment acceptance"
@@ -86,8 +86,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-53-callers.xml",
-   "tests": 116,
+   "report": "temp/build/v2-typecheck-54-callers.xml",
+   "tests": 141,
    "failures": 0
   },
   "targeted_reports": [
@@ -575,6 +575,15 @@
     "errors": 0,
     "duration_s": 31.47,
     "note": "fifty-third strict batch: guard + deployment/files/control/registration/identity callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-54-callers.xml",
+    "sha256": "9e7dc17131bfa1a826500faeb0e3ef378f4e99bc821d92e50d2b024a9f7e4899",
+    "tests": 141,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 75.08,
+    "note": "fifty-fourth strict batch: guard + desktop/contracts/capture/backend/native/observation/http/foreground callers"
    }
   ],
   "gates": {
@@ -586,7 +595,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 76,
+    "filesAnalyzed": 77,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -652,6 +661,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue strict typing (1 domain file left: desktop, then application/adapters); three-platform packaging/install/update/restore and real-environment acceptance remain."
+  "scope": "Domain strict typing is complete (53/53); continue with application/adapters strict typing, three-platform packaging/install/update/restore and real-environment acceptance."
  }
 }
