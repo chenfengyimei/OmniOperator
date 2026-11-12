@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "b2c9d6e1ea9588b0e9415e96009d4635153d67449c7c90fbb429719f1e9abdfb",
+  "code_version": "8138afd00199a00735e1270253b3931dcbac5d5f175a4b473683fcd00bfe645f",
   "fixed_source_files": 1200,
-  "git_head": "24aeed9",
+  "git_head": "62f1a81",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -142,10 +142,11 @@
    "Strict scope reaches 229 files (53 domain + 43 application + 133 adapters); the bounded D-Bus signal subscription types its queue, next() body and receive handler, so no unknown message members remain while the match rule, overflow and no-fd checks stay unchanged",
    "Strict scope reaches 231 files (53 domain + 43 application + 135 adapters); the received-descriptor adapter reads recvmsg/CMSG_SPACE/AF_UNIX/SCM_RIGHTS through getattr for the Windows stub set, and the Xorg input guard types its id/seen sets, device topology rows and injected factories without changing held-state denial",
    "Strict scope reaches 232 files (53 domain + 43 application + 136 adapters); the native credential host types its host readers/collected tasks, protocol query dict and reply value casts, so no unknown task members remain while the permit ordering, redaction and unknown-outcome rules stay unchanged",
-   "Strict scope reaches 234 files (53 domain + 43 application + 138 adapters); the shared worker IPC protocol now types its pair hook, decode/request/action field narrowing and response encoder, which also cleared the extension child worker's artifact list, hello comparison and schema validation call"
+   "Strict scope reaches 234 files (53 domain + 43 application + 138 adapters); the shared worker IPC protocol now types its pair hook, decode/request/action field narrowing and response encoder, which also cleared the extension child worker's artifact list, hello comparison and schema validation call",
+   "Strict scope reaches 235 files (53 domain + 43 application + 139 adapters); the pinned Wayland portal session types its injected signal factory, property rows, request arguments/options and stream pair narrowing without changing the version/cursor-mode checks or the no-PipeWire-fd rule"
   ],
   "pending": [
-   "application 43/44 and adapters 138/215 strict typing",
+   "application 43/44 and adapters 139/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -154,8 +155,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-121-callers.xml",
-   "tests": 55,
+   "report": "temp/build/v2-typecheck-122-callers.xml",
+   "tests": 35,
    "failures": 0
   },
   "targeted_reports": [
@@ -1255,6 +1256,15 @@
     "errors": 0,
     "duration_s": 52.43,
     "note": "one hundred twenty-first strict batch: guard + worker protocol and extension child callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-122-callers.xml",
+    "sha256": "99661e6afe248bad62e9d41d934ecfab6253712cc44e4701c182a96cec69cf2a",
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 7.68,
+    "note": "one hundred twenty-second strict batch: guard + Wayland portal session callers"
    }
   ],
   "gates": {
@@ -1266,7 +1276,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 234,
+    "filesAnalyzed": 235,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1330,6 +1340,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 138/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 139/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }

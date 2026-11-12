@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "183cb82ab3f67168afe245e60fe94fcbe230338fd967333d063c33fe61ce47ba",
+  "source_sha256": "2848373215487f552c228a1fa479e3d973b5b165f8b8d43a0edc2bb7ee5ec9f1",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53194,
+      "lines": 53207,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -25211,7 +25211,7 @@
       "path": "agent/src/omni/adapters/platform/linux_portal.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_portal",
-      "lines": 205,
+      "lines": 218,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_fds",
@@ -25222,12 +25222,12 @@
       "symbols": [
         {
           "name": "PortalFactory",
-          "line": 22,
+          "line": 23,
           "kind": "class"
         },
         {
           "name": "PortalFactory.open",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -25239,12 +25239,12 @@
         },
         {
           "name": "PortalSession",
-          "line": 27,
+          "line": 28,
           "kind": "class"
         },
         {
           "name": "PortalSession.__init__",
-          "line": 28,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self",
@@ -25252,12 +25252,13 @@
             "signal_factory"
           ],
           "annotations": {
-            "inspector": "SessionInspector"
+            "inspector": "SessionInspector",
+            "signal_factory": "Callable[[BusPort], SignalBus]"
           }
         },
         {
           "name": "PortalSession.prepare",
-          "line": 41,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self"
@@ -25266,7 +25267,7 @@
         },
         {
           "name": "PortalSession.check",
-          "line": 65,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self"
@@ -25275,7 +25276,7 @@
         },
         {
           "name": "PortalSession.request",
-          "line": 79,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -25287,13 +25288,13 @@
           "annotations": {
             "member": "str",
             "signature": "str",
-            "arguments": "list",
-            "options": "dict"
+            "arguments": "list[object]",
+            "options": "dict[str, object]"
           }
         },
         {
           "name": "PortalSession.authorize",
-          "line": 114,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -25305,7 +25306,7 @@
         },
         {
           "name": "PortalSession.close",
-          "line": 167,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "self"
@@ -25314,7 +25315,7 @@
         },
         {
           "name": "PortalSession.open_pipewire",
-          "line": 194,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self"
