@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "25036888a3c60fe13e361792599e607d129a4ff9bfd533e4fd68247a55b15be4",
+  "source_sha256": "21d66ef760e62cbf38e14f110741a67b0261e9e876a69bc6e9f108664f8dec97",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52904,
+      "lines": 52914,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -15357,7 +15357,7 @@
       "path": "agent/src/omni/adapters/persistence/maintenance.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.maintenance",
-      "lines": 1040,
+      "lines": 1046,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence",
@@ -15375,7 +15375,7 @@
       "symbols": [
         {
           "name": "_rebuild_fulltext",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "connection",
@@ -15388,7 +15388,7 @@
         },
         {
           "name": "derived_indexes",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "paths",
@@ -15401,7 +15401,7 @@
         },
         {
           "name": "fingerprint",
-          "line": 86,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "path"
@@ -15412,7 +15412,7 @@
         },
         {
           "name": "safe_child",
-          "line": 94,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "root",
@@ -15425,7 +15425,7 @@
         },
         {
           "name": "read_schema",
-          "line": 109,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "path"
@@ -15436,7 +15436,7 @@
         },
         {
           "name": "migrate_database",
-          "line": 120,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "path"
@@ -15447,7 +15447,7 @@
         },
         {
           "name": "inspect_database",
-          "line": 166,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "path",
@@ -15460,7 +15460,7 @@
         },
         {
           "name": "backup",
-          "line": 310,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "paths",
@@ -15473,7 +15473,7 @@
         },
         {
           "name": "create_snapshot",
-          "line": 324,
+          "line": 325,
           "kind": "function",
           "parameters": [
             "database",
@@ -15488,7 +15488,7 @@
         },
         {
           "name": "durable_json",
-          "line": 379,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "path",
@@ -15501,7 +15501,7 @@
         },
         {
           "name": "migration_snapshot",
-          "line": 398,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "database",
@@ -15514,7 +15514,7 @@
         },
         {
           "name": "object_report",
-          "line": 405,
+          "line": 406,
           "kind": "function",
           "parameters": [
             "paths"
@@ -15525,7 +15525,7 @@
         },
         {
           "name": "_quarantine_restored_work",
-          "line": 443,
+          "line": 444,
           "kind": "function",
           "parameters": [
             "connection",
@@ -15538,7 +15538,7 @@
         },
         {
           "name": "_finish_restore_marker",
-          "line": 818,
+          "line": 819,
           "kind": "function",
           "parameters": [
             "destination",
@@ -15551,7 +15551,7 @@
         },
         {
           "name": "verify_snapshot",
-          "line": 830,
+          "line": 831,
           "kind": "function",
           "parameters": [
             "source"
@@ -15562,7 +15562,7 @@
         },
         {
           "name": "_restore_verified",
-          "line": 902,
+          "line": 903,
           "kind": "function",
           "parameters": [
             "source",
@@ -15574,14 +15574,14 @@
           "annotations": {
             "source": "Path",
             "destination": "Path",
-            "manifest": "dict",
+            "manifest": "dict[str, Any]",
             "manifest_hash": "str",
             "existed": "bool"
           }
         },
         {
           "name": "restore",
-          "line": 1016,
+          "line": 1022,
           "kind": "function",
           "parameters": [
             "source",
@@ -19852,7 +19852,7 @@
       "path": "agent/src/omni/adapters/persistence/releases.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.releases",
-      "lines": 206,
+      "lines": 210,
       "imports": [
         "omni.adapters.persistence.deployed_instance",
         "omni.adapters.persistence.maintenance",
@@ -19866,7 +19866,7 @@
       "symbols": [
         {
           "name": "failed",
-          "line": 20,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "code"
@@ -19877,7 +19877,7 @@
         },
         {
           "name": "database_witness",
-          "line": 24,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "home"
@@ -19888,12 +19888,12 @@
         },
         {
           "name": "ReleaseData",
-          "line": 48,
+          "line": 52,
           "kind": "class"
         },
         {
           "name": "ReleaseData.__init__",
-          "line": 49,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "self",
@@ -19905,7 +19905,7 @@
         },
         {
           "name": "ReleaseData.schema_upgrade",
-          "line": 52,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -19913,13 +19913,13 @@
             "target"
           ],
           "annotations": {
-            "source": "dict",
-            "target": "dict"
+            "source": "dict[str, object]",
+            "target": "dict[str, object]"
           }
         },
         {
           "name": "ReleaseData.source",
-          "line": 55,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self",
@@ -19931,7 +19931,7 @@
         },
         {
           "name": "ReleaseData.witness",
-          "line": 69,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -19940,12 +19940,12 @@
           ],
           "annotations": {
             "plan": "ReleasePlan",
-            "side": "str"
+            "side": "Literal['source', 'target']"
           }
         },
         {
           "name": "ReleaseData.snapshot",
-          "line": 79,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "self",
@@ -19957,7 +19957,7 @@
         },
         {
           "name": "ReleaseData.restore",
-          "line": 116,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self",
@@ -19971,7 +19971,7 @@
         },
         {
           "name": "ReleaseData.verify",
-          "line": 146,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",
