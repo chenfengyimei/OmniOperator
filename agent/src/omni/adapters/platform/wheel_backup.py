@@ -5,8 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+from typing import cast
 
 from ...domain.contracts import BusinessError
+from ...application.ports import Record
 from ..persistence.maintenance import backup, durable_json
 from .paths import InstancePaths
 from .permissions import private_path
@@ -29,9 +31,9 @@ def backup_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
             raise invalid("update_backup_receipt_invalid") from None
         if (
             not isinstance(record, dict)
-            or record.get("format") != FORMAT
-            or record.get("wheel_sha256") != sha256
-            or not Path(str(record.get("destination", ""))).is_dir()
+            or cast(Record, record).get("format") != FORMAT
+            or cast(Record, record).get("wheel_sha256") != sha256
+            or not Path(str(cast(Record, record).get("destination", ""))).is_dir()
         ):
             raise invalid("update_backup_receipt_invalid")
         return {
@@ -55,7 +57,7 @@ def backup_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
         "manifest_sha256": digest,
         "plan": plan["format"],
     }
-    durable_json(record_path, record)
+    durable_json(record_path, cast(Record, record))
     private_path(record_path)
     return {
         "format": FORMAT,

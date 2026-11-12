@@ -8,8 +8,10 @@ import os
 import shutil
 import zipfile
 from pathlib import Path, PurePosixPath
+from typing import cast
 
 from ...domain.contracts import BusinessError
+from ...application.ports import Record
 from ..persistence.maintenance import durable_json
 from .permissions import private_path
 from .wheel_artifact import MAX_BYTES, MAX_FILES
@@ -49,9 +51,9 @@ def prepare_wheel(home: Path, sha256: str) -> dict[str, object]:
         raise invalid("prepare_receipt_invalid") from None
     if (
         not isinstance(receipt, dict)
-        or receipt.get("format") != STAGED_FORMAT
-        or receipt.get("wheel_sha256") != sha256
-        or receipt.get("extracted") is not False
+        or cast(Record, receipt).get("format") != STAGED_FORMAT
+        or cast(Record, receipt).get("wheel_sha256") != sha256
+        or cast(Record, receipt).get("extracted") is not False
     ):
         raise invalid("prepare_receipt_invalid")
     if _digest(artifact) != sha256:
@@ -66,8 +68,8 @@ def prepare_wheel(home: Path, sha256: str) -> dict[str, object]:
             raise invalid("prepare_receipt_invalid") from None
         if (
             not isinstance(prepared, dict)
-            or prepared.get("format") != FORMAT
-            or prepared.get("wheel_sha256") != sha256
+            or cast(Record, prepared).get("format") != FORMAT
+            or cast(Record, prepared).get("wheel_sha256") != sha256
             or not (tree / "omni/web_assets/ui/v2/index.html").is_file()
         ):
             raise invalid("prepare_receipt_invalid")
@@ -113,6 +115,6 @@ def prepare_wheel(home: Path, sha256: str) -> dict[str, object]:
         raise
     private_path(tree, directory=True)
     manifest = {"format": FORMAT, "wheel_sha256": sha256, "files": files, "bytes": total, "tree": "tree"}
-    durable_json(prepared_path, manifest)
+    durable_json(prepared_path, cast(Record, manifest))
     private_path(prepared_path)
     return {"format": FORMAT, "written": True, "tree": str(tree), "manifest": manifest}

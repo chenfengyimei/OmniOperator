@@ -45,4 +45,4 @@ class RepositoryBase:
         return cast(Record, dict(row))
 
     def audit(self, agent_id: str, kind: str, operation_id: str | None, data: Record) -> str:
-        return self._record(s.audit, {"kind": kind, "operation_id": operation_id, "data": data}, agent_id)["id"]
+        return str(self._record(s.audit, {"kind": kind, "operation_id": operation_id, "data": data}, agent_id)["id"])

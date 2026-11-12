@@ -175,6 +175,11 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/wheel_stage.py` | wheel 暂存收据 |
 | `agent/src/omni/adapters/platform/wheel_switch.py` | wheel 切换计划 |
 | `agent/src/omni/adapters/platform/wheel_status.py` | 安装状态汇总 |
+| `agent/src/omni/adapters/persistence/repository_base.py` | 仓储基类（审计/记录/游标辅助） |
+| `agent/src/omni/adapters/platform/wheel_backup.py` | wheel 更新备份收据 |
+| `agent/src/omni/adapters/platform/wheel_prepare.py` | wheel 候选解包与准备收据 |
+| `agent/src/omni/adapters/platform/wheel_rollback.py` | wheel 回滚演练收据 |
+| `agent/src/omni/adapters/platform/wheel_uninstall.py` | 候选卸载与显式清理 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

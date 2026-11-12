@@ -5,8 +5,10 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
+from typing import cast
 
 from ...domain.contracts import BusinessError
+from ...application.ports import Record
 from .paths import InstanceLock, InstancePaths
 from .wheel_install import FORMAT as RUNTIME_FORMAT
 
@@ -39,9 +41,9 @@ def _active_sha(runtime: Path) -> str | None:
         record = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError, UnicodeError):
         raise invalid("uninstall_pointer_invalid") from None
-    if not isinstance(record, dict) or record.get("format") != RUNTIME_FORMAT:
+    if not isinstance(record, dict) or cast(Record, record).get("format") != RUNTIME_FORMAT:
         raise invalid("uninstall_pointer_invalid")
-    return str(record.get("wheel_sha256", "")) or None
+    return str(cast(Record, record).get("wheel_sha256", "")) or None
 
 
 def uninstall_candidate(paths: InstancePaths, sha256: str = "", purge: bool = False) -> dict[str, object]:
@@ -63,7 +65,7 @@ def uninstall_candidate(paths: InstancePaths, sha256: str = "", purge: bool = Fa
                 raise invalid("uninstall_missing")
             if (paths.home / "restore-in-progress.json").exists():
                 raise invalid("uninstall_restore_pending")
-            backups = []
+            backups: list[str] = []
             if updates.is_dir() and not updates.is_symlink():
                 for stage in sorted(updates.iterdir()):
                     record = stage / "backup.json"
@@ -72,7 +74,7 @@ def uninstall_candidate(paths: InstancePaths, sha256: str = "", purge: bool = Fa
                             backups.append(str(json.loads(record.read_text(encoding="utf-8")).get("destination", "")))
                         except (ValueError, OSError, UnicodeError):
                             pass
-            purged = []
+            purged: list[str] = []
             for name in PURGE_DIRS:
                 target = paths.home / name
                 if target.is_symlink() or not _inside(target, paths.home):

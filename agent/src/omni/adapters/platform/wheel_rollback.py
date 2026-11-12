@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 from ...domain.contracts import BusinessError
+from ...application.ports import Record
 from ..persistence.maintenance import durable_json, inspect_database, restore
 from .paths import InstancePaths
 from .permissions import private_path
@@ -29,12 +31,12 @@ def rollback_check(paths: InstancePaths, sha256: str) -> dict[str, object]:
         raise invalid("rollback_backup_invalid") from None
     if (
         not isinstance(record, dict)
-        or record.get("format") != BACKUP_FORMAT
-        or record.get("wheel_sha256") != sha256
-        or not Path(str(record.get("destination", ""))).is_dir()
+        or cast(Record, record).get("format") != BACKUP_FORMAT
+        or cast(Record, record).get("wheel_sha256") != sha256
+        or not Path(str(cast(Record, record).get("destination", ""))).is_dir()
     ):
         raise invalid("rollback_backup_invalid")
-    source = Path(str(record["destination"]))
+    source = Path(str(cast(Record, record)["destination"]))
     target = paths.home.with_name(f"{paths.home.name}-rollback-{sha256[:16]}")
     result_path = stage / "rollback.json"
     if result_path.is_file():
@@ -44,8 +46,8 @@ def rollback_check(paths: InstancePaths, sha256: str) -> dict[str, object]:
             raise invalid("rollback_receipt_invalid") from None
         if (
             not isinstance(existing, dict)
-            or existing.get("format") != FORMAT
-            or existing.get("wheel_sha256") != sha256
+            or cast(Record, existing).get("format") != FORMAT
+            or cast(Record, existing).get("wheel_sha256") != sha256
             or not (target / "data/omni.db").is_file()
         ):
             raise invalid("rollback_receipt_invalid")
@@ -64,6 +66,6 @@ def rollback_check(paths: InstancePaths, sha256: str) -> dict[str, object]:
         "schema": inspected["schema"],
         "verified": True,
     }
-    durable_json(result_path, result)
+    durable_json(result_path, cast(Record, result))
     private_path(result_path)
     return {"written": True, **result}

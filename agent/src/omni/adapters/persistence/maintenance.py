@@ -307,7 +307,7 @@ def inspect_database(path: Path, *, allow_restore_in_progress: bool = False) -> 
         }
 
 
-def backup(paths: InstancePaths, destination: Path) -> dict:
+def backup(paths: InstancePaths, destination: Path) -> Record:
     destination = destination.absolute()
     if destination.resolve().is_relative_to(paths.home.resolve()) or paths.home.resolve().is_relative_to(
         destination.resolve()
@@ -1013,7 +1013,7 @@ def _restore_verified(source: Path, destination: Path, manifest: dict, manifest_
     return report
 
 
-def restore(source: Path, destination: Path) -> dict:
+def restore(source: Path, destination: Path) -> Record:
     source, destination = source.resolve(), destination.absolute()
     if source.is_relative_to(destination.resolve()) or destination.resolve().is_relative_to(source):
         raise BusinessError("unsafe_destination", "Restore must be outside the backup directory")
