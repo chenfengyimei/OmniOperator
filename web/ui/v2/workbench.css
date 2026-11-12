@@ -2414,3 +2414,95 @@ html[data-theme="dark"] .msg.user .bubble {
   );
   border-color: color-mix(in srgb, #34d399 38%, transparent);
 }
+
+/* ==========================================================================
+   设置中心：覆盖主区域的整屏面板（rail 保持可点，测试不影响）
+   ========================================================================== */
+body:not(.chat-mode) > main > section {
+  position: fixed;
+  top: var(--header-h);
+  right: 0;
+  bottom: 0;
+  left: var(--rail-w);
+  z-index: 30;
+  max-width: none;
+  background: var(--bg);
+  border-left: 1px solid var(--line-2);
+  box-shadow: -18px 0 48px rgb(0 0 0 / 0.35);
+  animation: settings-in 0.18s var(--ease-out);
+}
+@keyframes settings-in {
+  from {
+    opacity: 0.6;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+body:not(.chat-mode) .page-head-text::before {
+  content: "设置中心";
+  display: block;
+  margin-bottom: 2px;
+  color: var(--accent);
+  font-size: var(--fs-caption);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+@media (max-width: 900px) {
+  body:not(.chat-mode) > main > section {
+    position: static;
+    animation: none;
+    box-shadow: none;
+    border-left: 0;
+  }
+}
+
+/* 设置中心面板需要不透明底（覆盖主区域） */
+html[data-theme="dark"] body:not(.chat-mode) > main > section {
+  background: #041c1c;
+}
+html[data-theme="light"] body:not(.chat-mode) > main > section {
+  background: #f4f6f8;
+}
+
+/* 设置中心内容宽度与深色控件 */
+body:not(.chat-mode) > main > section {
+  padding: 22px 30px 28px;
+}
+body:not(.chat-mode) > main > section > * {
+  max-width: 900px;
+}
+body:not(.chat-mode) > main > section .page-head {
+  max-width: none;
+  margin: -22px -30px 0;
+  padding: 16px 30px 12px;
+}
+html[data-theme="dark"] body input,
+html[data-theme="dark"] body select,
+html[data-theme="dark"] body textarea {
+  background: #06201f;
+  border-color: color-mix(in srgb, #ffe6cb 22%, transparent);
+  color: var(--text-1);
+}
+html[data-theme="dark"] body input:focus-visible,
+html[data-theme="dark"] body select:focus-visible,
+html[data-theme="dark"] body textarea:focus-visible {
+  border-color: #34d399;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #34d399 22%, transparent);
+}
+html[data-theme="dark"] body button {
+  border-color: color-mix(in srgb, #ffe6cb 18%, transparent);
+  background: color-mix(in srgb, #ffe6cb 6%, #041c1c);
+  color: var(--text-1);
+}
+html[data-theme="dark"] body button:hover {
+  border-color: color-mix(in srgb, #ffe6cb 32%, transparent);
+  background: color-mix(in srgb, #ffe6cb 10%, #041c1c);
+}
+html[data-theme="dark"] body button[type="submit"] {
+  background: #34d399;
+  border-color: #34d399;
+  color: #041c1c;
+}
