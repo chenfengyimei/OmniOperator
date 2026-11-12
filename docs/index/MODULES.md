@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`fa6666fc1b9b209dab9270a20ca45bdc2dc45910d789846ea15b8a40276f6326`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`a4bd87cde76d608ce8afadf3964bb51581ac688eeb9416461faca4b6a8039612`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -119,7 +119,7 @@
 | [agent/src/omni/application/service_deployment.py](../../agent/src/omni/application/service_deployment.py) | 47 | Prepare reviewable service deployments and combine independent proofs; never installs or starts services. |
 | [agent/src/omni/application/service_exchange.py](../../agent/src/omni/application/service_exchange.py) | 194 | Ordered service exchange ownership; interrupted native steps are observed, never automatically replayed. |
 | [agent/src/omni/application/service_operations.py](../../agent/src/omni/application/service_operations.py) | 286 | Offline registration use cases with durable intent, no replay, and retained cancellation ownership. |
-| [agent/src/omni/application/skills.py](../../agent/src/omni/application/skills.py) | 360 | Owned textual skill import/edit/disclosure; explicit trust and shared action authorization remain separate. |
+| [agent/src/omni/application/skills.py](../../agent/src/omni/application/skills.py) | 373 | Owned textual skill import/edit/disclosure; explicit trust and shared action authorization remain separate. |
 | [agent/src/omni/application/terminal_review.py](../../agent/src/omni/application/terminal_review.py) | 127 | Owner terminal evidence use cases; no native actions, receipt changes or historical PID operations. |
 | [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 514 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
 

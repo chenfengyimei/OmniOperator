@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "fa6666fc1b9b209dab9270a20ca45bdc2dc45910d789846ea15b8a40276f6326",
+  "source_sha256": "a4bd87cde76d608ce8afadf3964bb51581ac688eeb9416461faca4b6a8039612",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11151,
+      "lines": 11164,
       "dependencies": [
         "v2-domain"
       ]
@@ -44706,8 +44706,8 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "metadata": "dict",
-            "files": "list[dict]",
+            "metadata": "Record",
+            "files": "list[Record]",
             "skill_id": "str | None",
             "revision": "int"
           }
@@ -52075,7 +52075,7 @@
       "path": "agent/src/omni/application/skills.py",
       "module": "v2-application",
       "python_module": "omni.application.skills",
-      "lines": 360,
+      "lines": 373,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -52132,7 +52132,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "SkillService._package",
@@ -52143,7 +52145,7 @@
             "row"
           ],
           "annotations": {
-            "row": "dict"
+            "row": "Record"
           }
         },
         {
@@ -52154,12 +52156,12 @@
             "row"
           ],
           "annotations": {
-            "row": "dict"
+            "row": "Record"
           }
         },
         {
           "name": "SkillService.page",
-          "line": 70,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self",
@@ -52175,7 +52177,7 @@
         },
         {
           "name": "SkillService.available",
-          "line": 74,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -52187,7 +52189,7 @@
         },
         {
           "name": "SkillService.export",
-          "line": 80,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -52203,14 +52205,14 @@
         },
         {
           "name": "SkillService.export.perform",
-          "line": 81,
+          "line": 89,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillService.get",
-          "line": 95,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -52228,14 +52230,14 @@
         },
         {
           "name": "SkillService.get.perform",
-          "line": 96,
+          "line": 104,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillService._install",
-          "line": 106,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self",
@@ -52255,7 +52257,7 @@
         },
         {
           "name": "SkillService._install.commit",
-          "line": 120,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "u"
@@ -52266,7 +52268,7 @@
         },
         {
           "name": "SkillService.import_object",
-          "line": 127,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -52286,14 +52288,14 @@
         },
         {
           "name": "SkillService.import_object.perform",
-          "line": 130,
+          "line": 138,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillService.save",
-          "line": 137,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self",
@@ -52313,14 +52315,14 @@
         },
         {
           "name": "SkillService.save.perform",
-          "line": 146,
+          "line": 154,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillService.state",
-          "line": 162,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -52344,14 +52346,14 @@
         },
         {
           "name": "SkillService.state.perform",
-          "line": 173,
+          "line": 181,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillService.state.perform.commit",
-          "line": 178,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "u"
@@ -52362,7 +52364,7 @@
         },
         {
           "name": "SkillService.rollback",
-          "line": 187,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -52382,14 +52384,14 @@
         },
         {
           "name": "SkillService.rollback.perform",
-          "line": 196,
+          "line": 204,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillService.history",
-          "line": 203,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self",
@@ -52407,7 +52409,7 @@
         },
         {
           "name": "SkillService.notice",
-          "line": 207,
+          "line": 218,
           "kind": "function",
           "parameters": [
             "self",
@@ -52421,14 +52423,14 @@
         },
         {
           "name": "SkillService.notice.perform",
-          "line": 212,
+          "line": 223,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillService.run_report",
-          "line": 239,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -52442,7 +52444,7 @@
         },
         {
           "name": "SkillService.invoke",
-          "line": 242,
+          "line": 253,
           "kind": "function",
           "parameters": [
             "self",
@@ -52460,7 +52462,7 @@
         },
         {
           "name": "SkillService.invoke.guard",
-          "line": 247,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "u"
@@ -52471,7 +52473,7 @@
         },
         {
           "name": "SkillService.health",
-          "line": 345,
+          "line": 358,
           "kind": "function",
           "parameters": [
             "self"
@@ -52480,7 +52482,7 @@
         },
         {
           "name": "SkillService.stop_accepting",
-          "line": 353,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "self"
@@ -52489,7 +52491,7 @@
         },
         {
           "name": "SkillService.close",
-          "line": 356,
+          "line": 369,
           "kind": "function",
           "parameters": [
             "self",
