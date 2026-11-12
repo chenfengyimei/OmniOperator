@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`6aae3443a68c32f4444f2b9461c7523ec38710179cbe280f83789212263e9534`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`10179bd22076731230c035f6496b1b41343dcd226528d337820cd4145a3c2a7d`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -97,7 +97,7 @@
 | [agent/src/omni/application/extensions.py](../../agent/src/omni/application/extensions.py) | 497 | Trusted extension installation, scoped catalogs and explicit authorization; no plugin imports or process creation. |
 | [agent/src/omni/application/images.py](../../agent/src/omni/application/images.py) | 150 | Validated image admission, context selection and last-mile wire materialization over injected ports. |
 | [agent/src/omni/application/local_vectors.py](../../agent/src/omni/application/local_vectors.py) | 40 | Shared local-vector preflight and computation; ownership stays with the composing lifecycle. |
-| [agent/src/omni/application/maintenance.py](../../agent/src/omni/application/maintenance.py) | 252 | Own bounded durable maintenance executions; never runs exclusive offline cleanup or remote model/device actions. |
+| [agent/src/omni/application/maintenance.py](../../agent/src/omni/application/maintenance.py) | 253 | Own bounded durable maintenance executions; never runs exclusive offline cleanup or remote model/device actions. |
 | [agent/src/omni/application/mcp.py](../../agent/src/omni/application/mcp.py) | 335 | Owner MCP servers: explicit connect, bounded catalog, per-tool authorization and run-scoped calls. |
 | [agent/src/omni/application/media.py](../../agent/src/omni/application/media.py) | 451 | Owner media sources, bounded processing jobs and model-visible anchored transcripts. |
 | [agent/src/omni/application/memory_organization.py](../../agent/src/omni/application/memory_organization.py) | 144 | Own bounded exact-fact proposals and explicit owner decisions; never calls a model or erases facts. |

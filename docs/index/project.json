@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6aae3443a68c32f4444f2b9461c7523ec38710179cbe280f83789212263e9534",
+  "source_sha256": "10179bd22076731230c035f6496b1b41343dcd226528d337820cd4145a3c2a7d",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10987,
+      "lines": 10988,
       "dependencies": [
         "v2-domain"
       ]
@@ -39574,7 +39574,7 @@
       "path": "agent/src/omni/application/maintenance.py",
       "module": "v2-application",
       "python_module": "omni.application.maintenance",
-      "lines": 252,
+      "lines": 253,
       "imports": [
         "omni.application.documents",
         "omni.application.memory_organization",

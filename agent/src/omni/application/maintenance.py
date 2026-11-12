@@ -25,8 +25,8 @@ class MaintenanceService:
         memory_organization: MemoryOrganizationService | None = None,
     ) -> None:
         self._db, self._documents, self._clock, self._observer = database, documents, clock, observer
-        self._active: dict[str, tuple[Record, asyncio.Task]] = {}
-        self._worker: asyncio.Task | None = None
+        self._active: dict[str, tuple[Record, asyncio.Task[None]]] = {}
+        self._worker: asyncio.Task[None] | None = None
         self._wake = asyncio.Event()
         self._closing = self._closed = False
         self._error = ""
@@ -120,12 +120,12 @@ class MaintenanceService:
                     )
                 else:
 
-                    def erase(unit):
+                    def erase(unit: UnitOfWork) -> Record:
                         self._guard(unit, claim)
                         derived = unit.document_erase(
                             agent, str(claim["document_id"]), cast(int, claim["source_revision"])
                         )
-                        for memory_id in derived:
+                        for memory_id in cast(list[str], derived):
                             unit.forget(agent, memory_id)
                         unit.document_erasure_finish(agent, str(claim["erasure_job_id"]))
                         return unit.maintenance_finish(claim)
@@ -191,7 +191,7 @@ class MaintenanceService:
             task = asyncio.create_task(self._perform(claim), name="maintenance-" + identity)
             self._active[identity] = (claim, task)
 
-            def complete(future, identity=identity):
+            def complete(future: asyncio.Task[None], identity: str = identity) -> None:
                 self._active.pop(identity, None)
                 if not future.cancelled():
                     future.exception()
@@ -241,7 +241,7 @@ class MaintenanceService:
 
     async def close(self, timeout_s: float = 30) -> bool:
         self.stop_accepting()
-        tasks = [task for _, task in self._active.values()]
+        tasks: list[asyncio.Task[None]] = [task for _, task in self._active.values()]
         if self._worker:
             tasks.append(self._worker)
         if tasks:
@@ -250,3 +250,4 @@ class MaintenanceService:
                 return False
         self._closed = True
         return True
+
