@@ -114,6 +114,12 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/build_identity.py` | 构建身份常量与代码后缀 |
 | `agent/src/omni/adapters/primitives.py` | 时钟/ID 原语 Protocol 与实现 |
 | `agent/src/omni/adapters/timezones.py` | 时区数据库标识读取边界 |
+| `agent/src/omni/adapters/platform/exchange_deployments.py` | 交换部署布局/路径校验（平台适配） |
+| `agent/src/omni/adapters/platform/workspaces.py` | 工作区路径解析/校验（平台适配） |
+| `agent/src/omni/adapters/persistence/credential_predicates.py` | 凭据谓词 SQL 片段（持久化适配） |
+| `agent/src/omni/adapters/persistence/history_sequence.py` | 历史游标序列持久化辅助 |
+| `agent/src/omni/adapters/persistence/migration_config.py` | 迁移配置读取边界 |
+| `agent/src/omni/adapters/persistence/search_schema.py` | 检索 schema 定义 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

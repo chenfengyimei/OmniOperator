@@ -3,6 +3,12 @@
   "include": [
     "agent/src/omni/adapters/build_identity.py",
     "agent/src/omni/adapters/metrics.py",
+    "agent/src/omni/adapters/persistence/credential_predicates.py",
+    "agent/src/omni/adapters/persistence/history_sequence.py",
+    "agent/src/omni/adapters/persistence/migration_config.py",
+    "agent/src/omni/adapters/persistence/search_schema.py",
+    "agent/src/omni/adapters/platform/exchange_deployments.py",
+    "agent/src/omni/adapters/platform/workspaces.py",
     "agent/src/omni/adapters/primitives.py",
     "agent/src/omni/adapters/timezones.py",
     "agent/src/omni/application/action_review.py",
