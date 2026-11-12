@@ -453,7 +453,7 @@ def test_summary_and_erasure_are_visible_in_the_workbench(ui_browser, v2_server,
         page.goto(url)
         page.locator("#token").fill(token)
         page.get_by_role("button", name="连接实例", exact=True).click()
-        page.locator("#sessions").get_by_role("button", name="history 0", exact=True).click()
+        page.locator("#sessions li", has_text="history 0").first.click()
         expect(page.locator("#messages")).to_contain_text("history 21")
         page.locator("#message").fill("continue using the summary")
         page.get_by_role("button", name="发送", exact=True).click()

@@ -328,9 +328,10 @@ def test_rail_has_no_window_open_tool_escape():
 
 
 def test_icons_css_embeds_material_font_offline():
-    """Material Icons 字体必须内联 base64（离线可用），不外链字体 CDN。"""
+    """Material Icons 字体必须离线可用（内联 base64 或同源本地 woff2），不外链字体 CDN。"""
     text = ICONS.read_text(encoding="utf-8")
-    assert "@font-face" in text and "data:font/woff2;base64" in text
+    assert "@font-face" in text
+    assert "data:font/woff2;base64" in text or "url(MaterialIcons.woff2)" in text
     assert "http://" not in text and "https://" not in text
 
 

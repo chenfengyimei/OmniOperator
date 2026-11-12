@@ -1078,7 +1078,8 @@ body > main {
 body:not(.chat-mode) > main {
   grid-template-columns: minmax(0, 1fr);
 }
-body:not(.chat-mode) > main > aside.sessions-panel {
+/* 会话列表只在对话模式显示；连接表单与 Agent 选择必须在任何页面都可用。 */
+body:not(.chat-mode) > main > aside.sessions-panel > .panel.session-panel {
   display: none;
 }
 body > main > aside.sessions-panel {
@@ -1182,7 +1183,7 @@ body > main > section {
 #back-to-chat {
   margin-left: auto;
 }
-@media (max-width: 620px) {
+@media (max-width: 520px) {
   .page-head p {
     display: none;
   }
@@ -1327,7 +1328,7 @@ body:not(.chat-mode) > main > aside.inspector {
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 900px) {
   body > main {
     grid-template-columns: 312px minmax(0, 1fr);
   }

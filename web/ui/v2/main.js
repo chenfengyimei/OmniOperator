@@ -581,13 +581,22 @@ function schedule() {
   }, 1000);
 }
 async function selectAgent() {
+  // 任何异常或提前返回都必须解除 inert，否则整个导航（含 #agents）永久不可交互。
+  const nav = document.querySelector('nav');
+  nav.inert = true;
+  try {
+    await selectAgentBody();
+  } finally {
+    nav.inert = false;
+  }
+}
+async function selectAgentBody() {
   stop();
   renderRetention(null);
   summaryTarget = null;
   $('show-summary').hidden = true;
   $('summary-body').textContent = '';
   $('context-status').textContent = '';
-  document.querySelector('nav').inert = true;
   peoplePanel.reset();
   qqPanel.reset();
   bilibiliPanel.reset();
@@ -624,7 +633,10 @@ async function selectAgent() {
   await configurationPanel.load();
   await routingPanel.load();
   await skillsPanel.available();
-  if (selectedGeneration !== generation) return;
+  if (selectedGeneration !== generation) {
+    document.querySelector('nav').inert = false;
+    return;
+  }
   renderMessages([]);
   await refreshSessions();
   if (page === 'memory') await Promise.all([loadMemory(), memoryOrganizationPanel.load(), memorySemanticPanel.load()]);
@@ -647,7 +659,10 @@ async function selectAgent() {
   if (page === 'documents') await documentsPanel.load();
   if (page === 'schedules') await schedulesPanel.load();
   if (page === 'deliveries') await deliveriesPanel.load();
-  if (selectedGeneration !== generation) return;
+  if (selectedGeneration !== generation) {
+    document.querySelector('nav').inert = false;
+    return;
+  }
   document.querySelector('nav').inert = false;
   schedule();
 }
