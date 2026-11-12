@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
-from typing import Any
+from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop import VERSION, parse_request, parse_response
@@ -15,8 +15,8 @@ MAX_FRAME = 65536
 Record = dict[str, Any]
 
 
-def _pairs(items):
-    result = {}
+def _pairs(items: list[tuple[str, Any]]) -> Record:
+    result: Record = {}
     for key, value in items:
         if key in result:
             raise ValueError("duplicate desktop field")
@@ -24,7 +24,7 @@ def _pairs(items):
     return result
 
 
-def _constant(_value):
+def _constant(_value: str) -> None:
     raise ValueError("nonfinite desktop value")
 
 
@@ -35,7 +35,7 @@ def frame_data(frame: bytes) -> Record:
     json.dumps(value, allow_nan=False)
     if not isinstance(value, dict):
         raise ValueError("invalid desktop object")
-    return value
+    return cast(Record, value)
 
 
 def decode(frame: bytes) -> Record:

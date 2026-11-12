@@ -189,6 +189,9 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/service_admin_bundle.py` | 管理员工件物化（不安装/不提权） |
 | `agent/src/omni/adapters/persistence/history_protection.py` | 历史保留保护原因（运行/引用/审计） |
 | `agent/src/omni/adapters/workers/terminal.py` | 终端 worker 帧解码/打开校验 |
+| `agent/src/omni/adapters/persistence/sqlalchemy_access.py` | SQLAlchemy 引擎事务/PRAGMA 设置 |
+| `agent/src/omni/adapters/platform/linux_x11_socket.py` | X11 授权 cookie 解析 |
+| `agent/src/omni/adapters/workers/desktop.py` | 桌面 worker 帧解码 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

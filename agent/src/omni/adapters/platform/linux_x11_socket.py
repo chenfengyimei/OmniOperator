@@ -26,13 +26,14 @@ def display_number(value: object) -> tuple[int, int]:
 def cookie_record(data: bytes, display: int, hostname: bytes) -> bytes:
     if not 1 <= len(data) <= 65536:
         raise failure("desktop_x11_auth_unavailable")
-    position, matches = 0, set()
+    position = 0
+    matches: set[bytes] = set()
     while position < len(data):
         if position + 2 > len(data):
             raise failure("desktop_x11_auth_unavailable")
         family = int.from_bytes(data[position : position + 2], "big")
         position += 2
-        fields = []
+        fields: list[bytes] = []
         for _ in range(4):
             if position + 2 > len(data):
                 raise failure("desktop_x11_auth_unavailable")
