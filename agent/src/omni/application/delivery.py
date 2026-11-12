@@ -8,9 +8,9 @@ from dataclasses import dataclass
 from typing import cast
 
 from ..domain.configuration import reference
-from ..domain.contracts import BusinessError, Outcome
+from ..domain.contracts import JSON, BusinessError, Outcome
 from ..domain.delivery import SEND_SECONDS, DeliveryResult, OutboundMessage, bounded_text, result_value
-from .ports import Clock, DatabasePort, DeliveryPort, Observer, Record
+from .ports import Clock, DatabasePort, DeliveryPort, Observer, Record, UnitOfWork
 
 log = logging.getLogger("omni.v2.delivery")
 
@@ -19,7 +19,7 @@ log = logging.getLogger("omni.v2.delivery")
 class ActiveSend:
     agent_id: str
     delivery_id: str
-    task: asyncio.Task
+    task: asyncio.Task[None]
     deadline: float
     interrupted: bool = False
 
@@ -36,15 +36,15 @@ class DeliveryService:
             bounded_text(driver, 40, "transport driver")
             bounded_text(port.identity, 100, "transport identity")
         self._active: dict[str, ActiveSend] = {}
-        self._port_closers: dict[int, asyncio.Task] = {}
-        self._close_writes: dict[str, asyncio.Task] = {}
-        self._worker: asyncio.Task | None = None
+        self._port_closers: dict[int, asyncio.Task[bool]] = {}
+        self._close_writes: dict[str, asyncio.Task[object]] = {}
+        self._worker: asyncio.Task[None] | None = None
         self._wake = asyncio.Event()
         self._closing = self._closed = False
         self._error = ""
 
-    def _binding(self, configuration: dict) -> tuple[DeliveryPort, str]:
-        port = self._ports.get(configuration["driver"])
+    def _binding(self, configuration: Record) -> tuple[DeliveryPort, str]:
+        port = self._ports.get(cast(str, configuration["driver"]))
         if port is None:
             raise BusinessError(
                 "delivery_adapter_unavailable", "No sending adapter is installed for this channel", status=503
@@ -71,7 +71,7 @@ class DeliveryService:
         config = await self._db.read(lambda u: u.configuration_get(agent_id, config_id))
         if config["kind"] != "channel":
             raise BusinessError("invalid_delivery_channel", "Choose a channel configuration", status=422)
-        port, account = self._binding(cast(dict, config["value"]))
+        port, account = self._binding(cast(Record, config["value"]))
         row = await self._db.write(
             lambda u: u.delivery_create(
                 agent_id,
@@ -148,29 +148,30 @@ class DeliveryService:
         self.cancel_active(ids)
 
     async def channels(self, agent_id: str, after: str = "", limit: int = 100) -> Record:
-        def read(u):
+        def read(u: UnitOfWork) -> list[Record]:
             rows = u.configuration_page(agent_id, "channel", after, limit)
-            return [u.configuration_get(agent_id, row["id"]) for row in rows]
+            return [u.configuration_get(agent_id, str(row["id"])) for row in rows]
 
         rows = await self._db.read(read)
-        items = []
+        items: list[Record] = []
         for row in rows:
             available, account, code = bool(row["enabled"]), "", ""
             try:
-                _, account = self._binding(cast(dict, row["value"]))
+                _, account = self._binding(cast(Record, row["value"]))
             except BusinessError as exc:
                 available, code = False, exc.code
+            value = cast(dict[str, object], row["value"])
             items.append(
                 {
                     "id": row["id"],
                     "name": row["name"],
                     "available": available,
                     "account_key": account,
-                    "driver": row["value"]["driver"],
+                    "driver": cast(JSON, value["driver"]),
                     "error_code": code,
                 }
             )
-        return {"items": items, "next_after": rows[-1]["id"] if len(rows) == limit else None}
+        return {"items": cast(JSON, items), "next_after": rows[-1]["id"] if len(rows) == limit else None}
 
     async def capabilities(self, agent_id: str) -> Record:
         await self._db.read(lambda u: u.configuration_page(agent_id, "channel", limit=1))
@@ -238,7 +239,7 @@ class DeliveryService:
             self._active[attempt_id] = ActiveSend(agent, key, task, self._clock.monotonic() + SEND_SECONDS)
             task.add_done_callback(lambda future, identity=attempt_id: self._completed(identity, future))
 
-    def _completed(self, identity: str, future: asyncio.Task) -> None:
+    def _completed(self, identity: str, future: asyncio.Task[None]) -> None:
         self._active.pop(identity, None)
         if not future.cancelled() and future.exception():
             self._error = "delivery_cleanup_failed"
@@ -256,7 +257,7 @@ class DeliveryService:
         run_id: str,
         session_id: str,
     ) -> None:
-        child: asyncio.Task | None = None
+        child: asyncio.Task[DeliveryResult] | None = None
         payload = None
         with (
             self._observer.context(agent_id=agent, operation_id=delivery_id, run_id=run_id, session_id=session_id),
@@ -273,7 +274,19 @@ class DeliveryService:
                 if measured:
                     measured.result(Outcome.UNKNOWN)
                 child = asyncio.create_task(
-                    port.send(OutboundMessage(**cast(dict, payload))), name="transport-" + attempt_id
+                    port.send(
+                        OutboundMessage(
+                            delivery_id=str(payload["delivery_id"]),
+                            attempt_id=str(payload["attempt_id"]),
+                            token=str(payload["token"]),
+                            fingerprint=str(payload["fingerprint"]),
+                            account_key=str(payload["account_key"]),
+                            target=str(payload["target"]),
+                            text=str(payload["text"]),
+                            configuration=cast(dict[str, object], payload["configuration"]),
+                        )
+                    ),
+                    name="transport-" + attempt_id,
                 )
                 result = await asyncio.shield(child)
             except asyncio.CancelledError:
@@ -299,10 +312,12 @@ class DeliveryService:
                 log.exception("Transport result unavailable", extra={"event": "delivery.transport_failed"})
                 row = await self.get(agent, delivery_id)
                 result = DeliveryResult("unknown", str(row["fingerprint"]), error_code="transport_exception")
-            if not isinstance(result, DeliveryResult):
+            if not isinstance(cast(object, result), DeliveryResult):
                 row = await self.get(agent, delivery_id)
                 result = DeliveryResult("unknown", str(row["fingerprint"]), error_code="invalid_delivery_result")
-            state = await self._db.write(lambda u: u.delivery_settle(agent, attempt_id, token, result_value(result)))
+            state = await self._db.write(
+                lambda u: u.delivery_settle(agent, attempt_id, token, cast(Record, result_value(result)))
+            )
             if measured:
                 measured.result(
                     Outcome.OK
@@ -345,7 +360,7 @@ class DeliveryService:
         self._closing = True
         self._wake.set()
 
-    def health(self) -> dict:
+    def health(self) -> Record:
         return {
             "ready": bool(self._worker and not self._worker.done() and not self._closing and not self._error),
             "closing": self._closing,
