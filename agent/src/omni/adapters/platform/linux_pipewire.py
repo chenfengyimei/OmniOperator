@@ -11,9 +11,10 @@ import os
 import stat
 import threading
 import uuid
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from PIL import Image
 
@@ -24,7 +25,7 @@ from .linux_fds import OwnedFd
 MAX_EDGE, MAX_PIXELS, MAX_RAW = 4096, 16_000_000, 64 * 1024 * 1024
 
 
-def failure(code="portal_frame_invalid") -> BusinessError:
+def failure(code: str = "portal_frame_invalid") -> BusinessError:
     return BusinessError(code, "Window frame is unavailable or could not be verified", status=503)
 
 
@@ -63,7 +64,7 @@ def publish(path: Path, content: bytes) -> None:
             raise failure()
         if item == path.parent and (info.st_uid != uid or info.st_mode & 0o077):
             raise failure()
-    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW"), 0o600)
     with os.fdopen(descriptor, "wb") as stream:
         stream.write(content)
         stream.flush()
@@ -72,7 +73,8 @@ def publish(path: Path, content: bytes) -> None:
 
 class GstConsumer:
     def __init__(self) -> None:
-        self.Gst = self.Video = None
+        self.Gst: Any = None
+        self.Video: Any = None
 
     def probe(self) -> None:
         try:
@@ -97,7 +99,7 @@ class GstConsumer:
         except (ImportError, ValueError, importlib.metadata.PackageNotFoundError):
             raise failure("portal_frame_adapter_missing") from None
 
-    def read(self, remote: OwnedFd, serial: int, path: Path, stopped: threading.Event) -> dict:
+    def read(self, remote: OwnedFd, serial: int, path: Path, stopped: threading.Event) -> dict[str, Any]:
         if self.Gst is None or self.Video is None or type(serial) is not int or not 0 < serial < 1 << 64:
             raise failure()
         Gst, Video = self.Gst, self.Video
@@ -201,15 +203,15 @@ class GstConsumer:
 
 
 class FrameExecutor:
-    def __init__(self, consumer=None) -> None:
-        self.consumer = consumer or GstConsumer()
+    def __init__(self, consumer: GstConsumer | None = None) -> None:
+        self.consumer: GstConsumer = consumer or GstConsumer()
         self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="portal-frame")
         self.stopped = threading.Event()
-        self.pending: asyncio.Future | None = None
-        self.available = False
-        self.error_code = "portal_frame_adapter_missing"
+        self.pending: asyncio.Future[Any] | None = None
+        self.available: bool = False
+        self.error_code: str | None = "portal_frame_adapter_missing"
 
-    async def _work(self, operation):
+    async def _work(self, operation: Callable[[], Any]) -> Any:
         if self.stopped.is_set() or self.pending is not None and not self.pending.done():
             raise failure("portal_frame_busy")
         self.pending = asyncio.get_running_loop().run_in_executor(self.pool, operation)
@@ -223,7 +225,7 @@ class FrameExecutor:
         except BusinessError as error:
             self.available, self.error_code = False, error.code
 
-    async def read(self, remote: OwnedFd, serial: int, path: Path) -> dict:
+    async def read(self, remote: OwnedFd, serial: int, path: Path) -> dict[str, Any]:
         if self.stopped.is_set() or self.pending is not None and not self.pending.done():
             remote.close()
             raise failure("portal_frame_busy")
@@ -231,7 +233,7 @@ class FrameExecutor:
             remote.close()
             raise failure(self.error_code or "portal_frame_adapter_missing")
 
-        def actual():
+        def actual() -> dict[str, Any]:
             try:
                 return self.consumer.read(remote, serial, path, self.stopped)
             finally:

@@ -253,6 +253,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/workers/linux_action.py` | Linux 语义动作 worker 单帧入口（初始帧不授权写入） |
 | `agent/src/omni/adapters/persistence/operations_read.py` | 离线只读运维快照（只读 URI、schema 校验、不自动升级） |
 | `agent/src/omni/adapters/platform/event_loop.py` | Windows TCP 重置清理事件循环（不改全局 asyncio 类） |
+| `agent/src/omni/adapters/platform/linux_pipewire.py` | 串行目标 GStreamer 取帧（不开默认远程/不读根窗口） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

@@ -88,6 +88,7 @@
     "agent/src/omni/adapters/platform/linux_bus.py",
     "agent/src/omni/adapters/platform/linux_fds.py",
     "agent/src/omni/adapters/platform/linux_input.py",
+    "agent/src/omni/adapters/platform/linux_pipewire.py",
     "agent/src/omni/adapters/platform/linux_portal.py",
     "agent/src/omni/adapters/platform/linux_session.py",
     "agent/src/omni/adapters/platform/linux_signals.py",
