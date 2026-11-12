@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a722c3cab3d563f5b7ee7173f383bfb3801e5f240275053e00bdb328dab00ee9",
+  "source_sha256": "a5574ce756141780cd21d6c490066eb33e345c0f646e822deaee01428b065472",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52933,
+      "lines": 52958,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -8540,7 +8540,7 @@
       "path": "agent/src/omni/adapters/log_query.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.log_query",
-      "lines": 300,
+      "lines": 320,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.application.ports",
@@ -8649,12 +8649,12 @@
         },
         {
           "name": "LogReader",
-          "line": 115,
+          "line": 118,
           "kind": "class"
         },
         {
           "name": "LogReader.__init__",
-          "line": 116,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self",
@@ -8666,7 +8666,7 @@
         },
         {
           "name": "LogReader.page",
-          "line": 119,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self",
@@ -8678,7 +8678,7 @@
         },
         {
           "name": "LogReader.tail",
-          "line": 129,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -8690,7 +8690,7 @@
         },
         {
           "name": "LogReader._paths",
-          "line": 189,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self"
@@ -8699,7 +8699,7 @@
         },
         {
           "name": "LogReader._checked_paths",
-          "line": 194,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self",
@@ -8711,7 +8711,7 @@
         },
         {
           "name": "LogReader._segments",
-          "line": 210,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self"
@@ -8720,7 +8720,7 @@
         },
         {
           "name": "LogReader._page",
-          "line": 220,
+          "line": 224,
           "kind": "function",
           "parameters": [
             "self",
@@ -8732,12 +8732,12 @@
         },
         {
           "name": "CaptureLogReader",
-          "line": 288,
+          "line": 308,
           "kind": "class"
         },
         {
           "name": "CaptureLogReader.__init__",
-          "line": 291,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -8751,7 +8751,7 @@
         },
         {
           "name": "CaptureLogReader._paths",
-          "line": 299,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self"
@@ -32352,19 +32352,19 @@
       "path": "agent/src/omni/adapters/workers/android_adb.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.android_adb",
-      "lines": 122,
+      "lines": 127,
       "imports": [
         "omni.domain.android"
       ],
       "symbols": [
         {
           "name": "Adb",
-          "line": 13,
+          "line": 15,
           "kind": "class"
         },
         {
           "name": "Adb.__init__",
-          "line": 14,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "self",
@@ -32378,7 +32378,7 @@
         },
         {
           "name": "Adb.request",
-          "line": 20,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "reader",
@@ -32386,12 +32386,14 @@
             "service"
           ],
           "annotations": {
+            "reader": "asyncio.StreamReader",
+            "writer": "asyncio.StreamWriter",
             "service": "str"
           }
         },
         {
           "name": "Adb.connect",
-          "line": 31,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self"
@@ -32400,7 +32402,7 @@
         },
         {
           "name": "Adb.transport",
-          "line": 40,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "self"
@@ -32409,7 +32411,7 @@
         },
         {
           "name": "Adb.shell",
-          "line": 59,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -32421,12 +32423,13 @@
           "annotations": {
             "transport": "int",
             "command": "str",
-            "maximum": "int"
+            "maximum": "int",
+            "before_send": "Callable[[], None] | None"
           }
         },
         {
           "name": "Adb.identify",
-          "line": 82,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self"
@@ -32435,18 +32438,6 @@
         },
         {
           "name": "Adb.require",
-          "line": 101,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "expected"
-          ],
-          "annotations": {
-            "expected": "dict"
-          }
-        },
-        {
-          "name": "Adb.window",
           "line": 105,
           "kind": "function",
           "parameters": [
@@ -32454,7 +32445,19 @@
             "expected"
           ],
           "annotations": {
-            "expected": "dict"
+            "expected": "dict[str, object]"
+          }
+        },
+        {
+          "name": "Adb.window",
+          "line": 109,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "expected"
+          ],
+          "annotations": {
+            "expected": "dict[str, object]"
           }
         }
       ],

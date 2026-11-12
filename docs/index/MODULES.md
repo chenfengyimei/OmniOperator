@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`a722c3cab3d563f5b7ee7173f383bfb3801e5f240275053e00bdb328dab00ee9`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`a5574ce756141780cd21d6c490066eb33e345c0f646e822deaee01428b065472`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -150,7 +150,7 @@
 | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2170 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 79 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 284 | One bounded, supervised local embedding process; no native ML imports in the application process. |
-| [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 300 | Bounded diagnostic pages with cursors that survive rename and process restart. |
+| [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 320 | Bounded diagnostic pages with cursors that survive rename and process restart. |
 | [agent/src/omni/adapters/mcp/__init__.py](../../agent/src/omni/adapters/mcp/__init__.py) | 1 | Bounded MCP transports: stdio JSON-RPC, Streamable HTTP and later explicit OAuth. |
 | [agent/src/omni/adapters/mcp/hosts.py](../../agent/src/omni/adapters/mcp/hosts.py) | 189 | Bounded MCP session ownership keyed by server generation; no database or model access. |
 | [agent/src/omni/adapters/mcp/http.py](../../agent/src/omni/adapters/mcp/http.py) | 299 | Bounded Streamable HTTP JSON-RPC transport with explicit bearer/OAuth tokens. |
@@ -340,7 +340,7 @@
 | [agent/src/omni/adapters/vector_files.py](../../agent/src/omni/adapters/vector_files.py) | 130 | Verify explicit local vector files and startup selection; never imports a model or downloads data. |
 | [agent/src/omni/adapters/workers/__init__.py](../../agent/src/omni/adapters/workers/__init__.py) | 1 | Owned capability workers; no application database or credentials access. |
 | [agent/src/omni/adapters/workers/android.py](../../agent/src/omni/adapters/workers/android.py) | 380 | Fixed Android observation/input worker. No database, arbitrary shell or automatic device setup. |
-| [agent/src/omni/adapters/workers/android_adb.py](../../agent/src/omni/adapters/workers/android_adb.py) | 122 | Bounded smart-socket ADB client. Never starts a server, pairs, installs, roots or accepts arbitrary commands. |
+| [agent/src/omni/adapters/workers/android_adb.py](../../agent/src/omni/adapters/workers/android_adb.py) | 127 | Bounded smart-socket ADB client. Never starts a server, pairs, installs, roots or accepts arbitrary commands. |
 | [agent/src/omni/adapters/workers/android_unicode.py](../../agent/src/omni/adapters/workers/android_unicode.py) | 295 | Fixed IME transaction and authenticated localabstract IPC; no database or arbitrary shell. |
 | [agent/src/omni/adapters/workers/bilibili.py](../../agent/src/omni/adapters/workers/bilibili.py) | 481 | One isolated Bilibili browser transaction; no database, arbitrary script, API writes or persisted cookies. |
 | [agent/src/omni/adapters/workers/client.py](../../agent/src/omni/adapters/workers/client.py) | 358 | Versioned, bounded JSON IPC to a supervised capability process. |
