@@ -61,10 +61,12 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/service_cleanup.py` | 隔离注册清理计划纯校验（经公共桥） |
 | `agent/src/omni/domain/service_exchange.py` | 同 schema 服务交换/管理员阶段/证据纯校验 |
 | `agent/src/omni/domain/service_isolation.py` | 中断交换隔离计划与启动隔离校验（经公共桥） |
-| `agent/src/omni/domain/service_operations.py` | 离线服务安装/卸载操作指纹纯规则 | 中断交换隔离计划与启动隔离校验（经公共桥） |
+| `agent/src/omni/domain/service_operations.py` | 离线服务安装/卸载操作指纹纯规则 |
 | `agent/src/omni/domain/service_activation.py` | 无人值守启动绑定/预留纯校验（经公共桥） |
 | `agent/src/omni/domain/service_admin.py` | 管理员操作/阶段/请求/响应帧纯校验（经公共桥） |
 | `agent/src/omni/domain/skills.py` | 技能元数据/文件路径/文档/补丁/清单纯规则 |
+| `agent/src/omni/domain/terminal_review.py` | 终端未知结果核查与证据指纹纯规则 |
+| `agent/src/omni/domain/terminals.py` | 终端打开/输入/缩放/关闭请求纯校验 |
 | `agent/src/omni/application/routing.py` | 档位配置读取/保存用例（显式 Record） |
 | `agent/src/omni/application/scheduling.py` | 单调度器保存/到期入队（UnitOfWork 回调与嵌套字段显式化） |
 | `agent/src/omni/application/release_drain.py` | 发布排空绑定既有 once-only 启动控制 |
@@ -98,8 +100,6 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/exchange_recovery.py` | 交换隔离/救援计划（进度与授权类型化） |
 | `agent/src/omni/application/service_cleanup.py` | 隔离定义审查/清理计划复用 |
 | `agent/src/omni/application/service_control.py` | 服务启动/停止/复核编排（显式 Record） |
-| `agent/src/omni/domain/terminal_review.py` | 终端未知结果核查与证据指纹纯规则 |
-| `agent/src/omni/domain/terminals.py` | 终端打开/输入/缩放/关闭请求纯校验 |
 | `agent/src/omni/adapters/metrics.py` | 运行指标观测适配器 |
 | `agent/src/omni/adapters/build_identity.py` | 构建身份常量与代码后缀 |
 | `agent/src/omni/adapters/primitives.py` | 时钟/ID 原语 Protocol 与实现 |
@@ -115,7 +115,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 与 `adapters/` 已覆盖 24 个模块；`composition/`、`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已覆盖 33 个模块、`adapters/` 4 个模块；`composition/`、`agent/tests/` 尚未开始 strict。
 
 ## 4. 推进规则
 
@@ -128,8 +128,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 ## 5. 验证
 
 - strict 门禁 0 errors / 0 warnings。
-- `agent/tests/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `agent/src/omni/domain/` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
-- 相关调用方回归：能力/凭据/对象/人物测试。
+- `agent/tests/test_v2_typecheck_scope.py`：配置与文档表一致、文件存在、只允许 `domain`/`application`/`adapters` 前缀、无目录/通配批量纳入、文档保留“全仓严格类型尚未完成”。
+- 相关调用方回归：各批守卫 + 对应模块调用方测试。
 
 
 

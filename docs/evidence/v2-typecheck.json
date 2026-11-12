@@ -6,17 +6,17 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "0ed245cf50d0e71b873df8aa667e9a2c9a689ac45d4384aadbee059990458f75",
+  "code_version": "4fe952ef318de786825c8d949d2fc6a90d5f1cbe8794ea1a4b1b7284749dc847",
   "fixed_source_files": 1200,
-  "git_head": "cfd93c4",
+  "git_head": "0fd9465",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
-  "head_ui": "b7043ee"
+  "head_ui": "75c4219"
  },
  "development": {
   "schema_tables": 136,
   "migration_head": "v2_0037",
-  "assets_version": "20261110v54",
+  "assets_version": "20261112v56",
   "scope": [
    "pyrightconfig.strict.json enables strict for four pure domain modules only",
    "Strict gate currently reports 0 errors / 0 warnings; default-mode pyright also clean on the changed files",
@@ -86,10 +86,11 @@
    "Application scope grows with application/model_calls: preflight, authorization and settlement are explicit, PreparedModelStream is named and wire messages are narrowed while known/unknown, credential re-check and no-replay semantics stay unchanged",
    "Application scope grows with application/documents: source documents, index rebuilds and retrieval are explicit, bounded tasks use Task[object], erased derived memories and retrieval rows are narrowed while vector degradation and erasure semantics stay unchanged",
    "Application scope grows with application/context: compression and summary orchestration are explicit, history requests and candidate messages are narrowed while summary call budgets, erasure invalidation and unknown semantics stay unchanged",
-   "Application scope grows with application/service_control: start/stop/reconcile orchestration is explicit and deployment plans are cast to Record while once-dispatch, boot proof and unknown no-replay semantics stay unchanged"
+   "Application scope grows with application/service_control: start/stop/reconcile orchestration is explicit and deployment plans are cast to Record while once-dispatch, boot proof and unknown no-replay semantics stay unchanged",
+   "Strict scope reaches 90 files (53 domain + 33 application + 4 adapters); releases and service_operations use explicit Record/typed plans without changing migration, registration precondition or once-dispatch semantics"
   ],
   "pending": [
-   "application 31/44 and adapters 4/215 strict typing",
+   "application 33/44 and adapters 4/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -98,8 +99,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-65-callers.xml",
-   "tests": 67,
+   "report": "temp/build/v2-typecheck-66-callers.xml",
+   "tests": 43,
    "failures": 0
   },
   "targeted_reports": [
@@ -695,6 +696,15 @@
     "errors": 0,
     "duration_s": 17.12,
     "note": "sixty-fifth strict batch: guard + service control/drain/start callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-66-callers.xml",
+    "sha256": "985e6073a5b3d830521d3593366b1a3ce7e4cdcce1901453291e2d56aa9d2454",
+    "tests": 43,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 99.23,
+    "note": "sixty-sixth strict batch: guard + release/service-operation callers"
    }
   ],
   "gates": {
@@ -706,7 +716,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 88,
+    "filesAnalyzed": 90,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -770,6 +780,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 31/44); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 33/44); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
