@@ -8,7 +8,7 @@
  "source": {
   "code_version": "cd7106ed0dfdadb5a9835d77fed290af58dbba011048a734021b3b5a46a04fe0",
   "fixed_source_files": 1199,
-  "git_head": "11042ce",
+  "git_head": "bf07460",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py"
  },
@@ -606,35 +606,39 @@
    ]
   },
   "full_run": {
-   "status": "rerun_after_batches_47_50",
-   "source": "54a9248 + 3b65358 fix",
-   "report": "temp/build/v2-typecheck-batches-50-full-fixed.xml",
-   "sha256": "2cb547584688f0a7e1162ca75d0a61e36e1bc8f4b4abcd613a357bfd2f69df42",
+   "status": "rerun_after_batches_51_53",
+   "source": "635bdc0 + bf07460 ui fix",
+   "workers": 2,
+   "report": "temp/build/v2-typecheck-batches-53-full-n2.xml",
+   "sha256": "b6e75f503fd91853360d38f13c8a21fd69734e67fc2a3e62720102b1fe21c97a",
    "tests": 4654,
-   "passed": 4652,
-   "failed": 2,
+   "passed": 4653,
+   "failed": 1,
    "errors": 0,
-   "duration_s": 1504.55,
+   "duration_s": 2688.78,
    "failures": [
-    "test_v2_mcp_ui.py::test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects[390]",
-    "test_v2_mcp_ui.py::test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects[1024]"
+    "test_v2_debug_sink.py::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
    ],
    "isolation": {
-    "report": "temp/build/v2-typecheck-batches-50-mcp-isolation.xml",
-    "sha256": "cbccbbfdc5d5daf1096cd48f925eba9e51061bd91c2efd5cbf4e362c3af6bea0",
-    "tests": 2,
-    "passed": 2,
-    "note": "both MCP UI cases pass with -n 0 on the same source; browser timing under parallel load"
+    "report": "temp/build/v2-typecheck-batches-53-debug-isolation.xml",
+    "sha256": "dfc82e43dda684e587d81c065ef3a8d2bce3c07a13b5d469a215f2a731f54f85",
+    "tests": 1,
+    "passed": 1,
+    "note": "debug_sink passes with -n 0 on the same source; parallel timing under load"
    },
-   "worktree_note": "运行期间工作区含另一会话未提交的工作台 UI 改动（资源标识 20261112v55）；该全量不作为该 UI 的验收",
-   "regression_run": {
-    "report": "temp/build/v2-typecheck-batches-50-full.xml",
-    "sha256": "8022a2762faca2c196f9ae8916dd933a95201202153fb03d79f0cc5da5aa623a",
-    "tests": 4655,
-    "failed": 33,
-    "errors": 4,
-    "note": "暴露第四十九批 service_admin 读取 release.target 的回归；已由 3b65358 修复并复跑"
-   }
+   "aborted_runs": [
+    {
+     "workers": 4,
+     "report": "temp/build/v2-typecheck-batches-53-full.xml",
+     "note": "xdist INTERNALERROR: Playwright worker crash on test_v2_action_review_ui; 4487 tests before abort"
+    },
+    {
+     "workers": 4,
+     "report": "temp/build/v2-typecheck-batches-53-full-fixed.xml",
+     "note": "xdist INTERNALERROR: Playwright worker crash on test_v2_extensions_ui; 4524 tests before abort; failed UI/kernel cases pass with -n 0"
+    }
+   ],
+   "ui_note": "工作台 v55 视觉改动随 11042ce 入库；bf07460 修复设计系统约束（blur token、--terminal-bg、断点 900/520）"
   }
  },
  "source_recovery": {
