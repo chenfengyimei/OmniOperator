@@ -1478,9 +1478,9 @@
   },
   "open_findings": [
    {
-    "id": "ui.parallel_uncommitted_css_tokens",
+    "id": "ui.parallel_theme_raw_values",
     "status": "open",
-    "scope": "并行 UI 会话未提交的 web/ui/v2/workbench.css 引入未登记裸色值，test_no_second_accent_color 会在其落地前间歇失败；需要该会话把新色值收敛到 tokens.css 或登记设计系统后再复跑。"
+    "scope": "并行 UI 会话 558c7d6 把暗色主题改回炭黑+青色时，在 web/ui/v2/workbench.css 重新写入裸色值（#04121a/#0b0d10/#16191d/#f2efea 等 18 个）与裸圆角 14px，触发 test_no_second_accent_color 与 test_radius_values_use_tokens_only；需要把这些值收敛到 tokens.css 或登记设计系统后再复跑。"
    },
    {
     "id": "tests.load_dependent_flakes",
