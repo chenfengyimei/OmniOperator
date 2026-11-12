@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ec959c0be84a67cb821dc3c4166ac125f267367dca089fbe88dc832ad864f97f",
+  "source_sha256": "3c7b6bb0fb08f58923962b060852e04014ce304cbc6dbacf39d41ea17eb2ee9d",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52889,
+      "lines": 52890,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -27937,7 +27937,7 @@
       "path": "agent/src/omni/adapters/platform/service_admin.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_admin",
-      "lines": 363,
+      "lines": 364,
       "imports": [
         "omni.adapters.platform.darwin_admin_files",
         "omni.adapters.platform.darwin_admin_peer",
@@ -27994,7 +27994,7 @@
         },
         {
           "name": "SystemServiceAdministrator.change",
-          "line": 81,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self"
@@ -28003,7 +28003,7 @@
         },
         {
           "name": "SystemServiceAdministrator._start",
-          "line": 143,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self"
@@ -28012,7 +28012,7 @@
         },
         {
           "name": "SystemServiceAdministrator.close",
-          "line": 195,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self",
@@ -28024,7 +28024,7 @@
         },
         {
           "name": "peer_identity",
-          "line": 199,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "connection"
@@ -28035,7 +28035,7 @@
         },
         {
           "name": "connected",
-          "line": 209,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "connection"
@@ -28046,7 +28046,7 @@
         },
         {
           "name": "receive",
-          "line": 222,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "connection",
@@ -28059,12 +28059,12 @@
         },
         {
           "name": "Administrator",
-          "line": 240,
+          "line": 241,
           "kind": "class"
         },
         {
           "name": "Administrator.policy",
-          "line": 242,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "self"
@@ -28073,15 +28073,6 @@
         },
         {
           "name": "Administrator.inspect",
-          "line": 244,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "Administrator.change",
           "line": 245,
           "kind": "function",
           "parameters": [
@@ -28090,8 +28081,17 @@
           "annotations": {}
         },
         {
-          "name": "Administrator.close",
+          "name": "Administrator.change",
           "line": 246,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "Administrator.close",
+          "line": 247,
           "kind": "function",
           "parameters": [
             "self",
@@ -28103,7 +28103,7 @@
         },
         {
           "name": "serve_connection",
-          "line": 249,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "connection",
@@ -28118,7 +28118,7 @@
         },
         {
           "name": "serve",
-          "line": 280,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "policy"
