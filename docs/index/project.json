@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "41b996106a12e9f42af53fd9897418c1fac9a0d7e6a22cf66d7c65b04b857a4d",
+  "source_sha256": "25036888a3c60fe13e361792599e607d129a4ff9bfd533e4fd68247a55b15be4",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52897,
+      "lines": 52904,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -18736,10 +18736,11 @@
       "path": "agent/src/omni/adapters/persistence/object_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.object_repository",
-      "lines": 205,
+      "lines": 211,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.desktop",
         "omni.domain.objects"
@@ -18747,12 +18748,12 @@
       "symbols": [
         {
           "name": "ObjectRepositories",
-          "line": 14,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "ObjectRepositories.capture_session",
-          "line": 15,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "self",
@@ -18766,7 +18767,7 @@
         },
         {
           "name": "ObjectRepositories.capture_attach",
-          "line": 21,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -18788,7 +18789,7 @@
         },
         {
           "name": "ObjectRepositories.capture_page",
-          "line": 55,
+          "line": 58,
           "kind": "function",
           "parameters": [
             "self",
@@ -18806,7 +18807,7 @@
         },
         {
           "name": "ObjectRepositories.capture_remove",
-          "line": 73,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -18822,7 +18823,7 @@
         },
         {
           "name": "ObjectRepositories.object_register",
-          "line": 85,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -18840,7 +18841,7 @@
         },
         {
           "name": "ObjectRepositories.object_get",
-          "line": 121,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -18854,7 +18855,7 @@
         },
         {
           "name": "ObjectRepositories.object_pin",
-          "line": 131,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self",
@@ -18872,7 +18873,7 @@
         },
         {
           "name": "ObjectRepositories.object_remove",
-          "line": 145,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",
@@ -18888,7 +18889,7 @@
         },
         {
           "name": "ObjectRepositories.object_page",
-          "line": 158,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -18904,7 +18905,7 @@
         },
         {
           "name": "ObjectRepositories.object_link",
-          "line": 171,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self",
@@ -31877,7 +31878,7 @@
       "path": "agent/src/omni/adapters/temporary_debug.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.temporary_debug",
-      "lines": 320,
+      "lines": 321,
       "imports": [
         "omni.adapters.metrics",
         "omni.adapters.platform.permissions",
@@ -31886,17 +31887,17 @@
       "symbols": [
         {
           "name": "DebugEnvelope",
-          "line": 32,
+          "line": 33,
           "kind": "class"
         },
         {
           "name": "TemporaryDebug",
-          "line": 40,
+          "line": 41,
           "kind": "class"
         },
         {
           "name": "TemporaryDebug.__init__",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "self",
@@ -31914,7 +31915,7 @@
         },
         {
           "name": "TemporaryDebug._finish",
-          "line": 60,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -31928,7 +31929,7 @@
         },
         {
           "name": "TemporaryDebug._expire",
-          "line": 65,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "self"
@@ -31937,7 +31938,7 @@
         },
         {
           "name": "TemporaryDebug._snapshot",
-          "line": 69,
+          "line": 70,
           "kind": "function",
           "parameters": [
             "self"
@@ -31946,7 +31947,7 @@
         },
         {
           "name": "TemporaryDebug.snapshot",
-          "line": 88,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self"
@@ -31955,7 +31956,7 @@
         },
         {
           "name": "TemporaryDebug.stop",
-          "line": 92,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
@@ -31967,7 +31968,7 @@
         },
         {
           "name": "TemporaryDebug._inventory",
-          "line": 100,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self",
@@ -31979,7 +31980,7 @@
         },
         {
           "name": "TemporaryDebug.maintenance",
-          "line": 134,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self"
@@ -31988,7 +31989,7 @@
         },
         {
           "name": "TemporaryDebug.start",
-          "line": 148,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -32006,19 +32007,19 @@
         },
         {
           "name": "TemporaryDebug.admit",
-          "line": 202,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "self",
             "metadata"
           ],
           "annotations": {
-            "metadata": "dict"
+            "metadata": "dict[str, Any]"
           }
         },
         {
           "name": "TemporaryDebug.discard",
-          "line": 246,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "self",
@@ -32030,7 +32031,7 @@
         },
         {
           "name": "TemporaryDebug.write",
-          "line": 252,
+          "line": 253,
           "kind": "function",
           "parameters": [
             "self",
@@ -32042,7 +32043,7 @@
         },
         {
           "name": "TemporaryDebug._write_file",
-          "line": 296,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self",

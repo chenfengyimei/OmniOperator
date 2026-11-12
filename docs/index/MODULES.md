@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`41b996106a12e9f42af53fd9897418c1fac9a0d7e6a22cf66d7c65b04b857a4d`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`25036888a3c60fe13e361792599e607d129a4ff9bfd533e4fd68247a55b15be4`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -243,7 +243,7 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0037.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0037.py) | 53 | MCP runtime generations, catalog fingerprints, per-tool grants, run captures and calls; frozen SQL. |
 | [agent/src/omni/adapters/persistence/object_gc.py](../../agent/src/omni/adapters/persistence/object_gc.py) | 214 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
 | [agent/src/omni/adapters/persistence/object_inventory.py](../../agent/src/omni/adapters/persistence/object_inventory.py) | 129 | Offline object registry snapshots and bounded physical inventory validation. |
-| [agent/src/omni/adapters/persistence/object_repository.py](../../agent/src/omni/adapters/persistence/object_repository.py) | 205 | Object metadata, pins and real foreign-key references; never touches files. |
+| [agent/src/omni/adapters/persistence/object_repository.py](../../agent/src/omni/adapters/persistence/object_repository.py) | 211 | Object metadata, pins and real foreign-key references; never touches files. |
 | [agent/src/omni/adapters/persistence/offline_plans.py](../../agent/src/omni/adapters/persistence/offline_plans.py) | 189 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
 | [agent/src/omni/adapters/persistence/operations_read.py](../../agent/src/omni/adapters/persistence/operations_read.py) | 58 | Offline read-only operational snapshot; caller holds exclusive instance ownership. |
 | [agent/src/omni/adapters/persistence/operations_repository.py](../../agent/src/omni/adapters/persistence/operations_repository.py) | 100 | Operational aggregates and owner credential audit; business bodies and secret values stay excluded. |
@@ -334,7 +334,7 @@
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 105 | Process-owned logging and exception hooks; installed only by the executable host. |
 | [agent/src/omni/adapters/skill_packages.py](../../agent/src/omni/adapters/skill_packages.py) | 127 | Bounded in-memory Markdown/ZIP parsing; never extracts files or executes package content. |
-| [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 320 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
+| [agent/src/omni/adapters/temporary_debug.py](../../agent/src/omni/adapters/temporary_debug.py) | 321 | Boot-bound, owner-enabled metadata capture; never opens business storage or records free text. |
 | [agent/src/omni/adapters/timezones.py](../../agent/src/omni/adapters/timezones.py) | 29 | Pinned tzdata resolver; avoids OS-dependent timezone database drift. |
 | [agent/src/omni/adapters/token_counter.py](../../agent/src/omni/adapters/token_counter.py) | 34 | Local conservative token estimate; it never fetches model metadata or credentials. |
 | [agent/src/omni/adapters/vector_files.py](../../agent/src/omni/adapters/vector_files.py) | 130 | Verify explicit local vector files and startup selection; never imports a model or downloads data. |
