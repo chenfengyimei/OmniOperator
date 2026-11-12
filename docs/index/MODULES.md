@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`9c01a26943632fd4bcf9381f4ea579ee8c88d5312756408595ee0683fa928d95`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`4f43a32c7a49937b838516961c3e528e241618feb0d27f7a0988bf07d6b8acf5`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -82,7 +82,7 @@
 | [agent/src/omni/application/android.py](../../agent/src/omni/application/android.py) | 735 | Owner Android device grants, ephemeral observations and shared approved actions; no platform I/O. |
 | [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 210 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
 | [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 186 | Owner configuration use cases; import only previews and never starts an adapter. |
-| [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 211 | Token-aware bounded compression; external calls never hold a transaction. |
+| [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 236 | Token-aware bounded compression; external calls never hold a transaction. |
 | [agent/src/omni/application/credentials.py](../../agent/src/omni/application/credentials.py) | 185 | Serialize audited owner credential changes; shield accepted mutations through caller cancellation. |
 | [agent/src/omni/application/debugging.py](../../agent/src/omni/application/debugging.py) | 122 | Boot-scoped debug authorization, durable audit and bounded maintenance; no log files here. |
 | [agent/src/omni/application/delivery.py](../../agent/src/omni/application/delivery.py) | 413 | Supervised, bounded outbound execution; never supplies a real transport by default. |

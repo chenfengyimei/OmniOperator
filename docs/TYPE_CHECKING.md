@@ -82,6 +82,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/action_review.py` | 动作复核用例（有界任务集/Record 返回显式化） |
 | `agent/src/omni/application/bilibili.py` | B 站读取/发布准备（有界任务、显式 Record） |
 | `agent/src/omni/application/configuration.py` | 配置读取/创建/保存/预览/诊断（显式 Record） |
+| `agent/src/omni/application/context.py` | 上下文压缩/摘要编排（显式 Record、边界窄化） |
 | `agent/src/omni/application/operations.py` | 运维查询/诊断导出用例（有界任务集与关闭任务显式化） |
 | `agent/src/omni/application/debugging.py` | 显式调试会话语义（维护任务显式 Task[None]） |
 | `agent/src/omni/application/terminal_review.py` | 终端核查用例（有界任务/Record 显式化） |

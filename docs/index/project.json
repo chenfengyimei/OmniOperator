@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9c01a26943632fd4bcf9381f4ea579ee8c88d5312756408595ee0683fa928d95",
+  "source_sha256": "4f43a32c7a49937b838516961c3e528e241618feb0d27f7a0988bf07d6b8acf5",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11027,
+      "lines": 11052,
       "dependencies": [
         "v2-domain"
       ]
@@ -35743,7 +35743,7 @@
       "path": "agent/src/omni/application/context.py",
       "module": "v2-application",
       "python_module": "omni.application.context",
-      "lines": 211,
+      "lines": 236,
       "imports": [
         "omni.application.images",
         "omni.application.model_calls",
@@ -35756,12 +35756,12 @@
       "symbols": [
         {
           "name": "ContextService",
-          "line": 18,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "ContextService.__init__",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -35777,7 +35777,7 @@
         },
         {
           "name": "ContextService._history",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -35789,22 +35789,33 @@
             "parent",
             "notice"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str",
+            "settings": "Settings",
+            "memories": "Sequence[Mapping[str, object]]",
+            "rows": "Sequence[Mapping[str, object]]",
+            "parent": "Mapping[str, object] | None",
+            "notice": "str"
+          }
         },
         {
           "name": "ContextService._summary_sources",
-          "line": 28,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
             "agent_id",
             "rows"
           ],
-          "annotations": {}
+          "annotations": {
+            "agent_id": "str",
+            "rows": "list[dict[str, object]]"
+          }
         },
         {
           "name": "ContextService.summary_request",
-          "line": 32,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "parent",
@@ -35812,12 +35823,12 @@
           ],
           "annotations": {
             "parent": "str",
-            "sources": "list[dict]"
+            "sources": "list[dict[str, object]]"
           }
         },
         {
           "name": "ContextService._fits",
-          "line": 60,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -35827,7 +35838,7 @@
             "summary"
           ],
           "annotations": {
-            "request": "list[Record]",
+            "request": "Sequence[Record]",
             "tools": "tuple[ToolSpec, ...]",
             "settings": "Settings",
             "summary": "bool"
@@ -35835,7 +35846,7 @@
         },
         {
           "name": "ContextService.prepare",
-          "line": 68,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
