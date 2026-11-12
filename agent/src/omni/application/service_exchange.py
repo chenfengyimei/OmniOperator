@@ -33,14 +33,14 @@ class ServiceExchange:
         checked = validate_release(release)
         self.steps.prepared(checked)
         at = self.clock.now()
-        participants = None
+        participants: dict[str, dict[str, str]] | None = None
         if administrators is not None:
-            from ..domain.service_deployment import _object, _sha
+            from ..domain.service_deployment import deployment_fields, deployment_sha
 
-            roles = _object(administrators, {"source", "target"})
+            roles = deployment_fields(administrators, {"source", "target"})
             participants = {}
             for role in ("source", "target"):
-                row = _object(roles[role], {"protocol", "bundle_sha256"})
+                row = deployment_fields(roles[role], {"protocol", "bundle_sha256"})
                 if row["protocol"] != ADMIN_PROTOCOL:
                     raise BusinessError(
                         "service_exchange_admin_protocol_unsupported",
@@ -49,7 +49,7 @@ class ServiceExchange:
                 participants[role] = {
                     "id": self.ids.new(),
                     "protocol": ADMIN_PROTOCOL,
-                    "bundle_sha256": _sha(row["bundle_sha256"]),
+                    "bundle_sha256": deployment_sha(row["bundle_sha256"]),
                 }
         plan = make_exchange(
             checked,

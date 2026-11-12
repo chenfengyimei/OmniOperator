@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`fa417af40c8c7398baef7099ee87e23171745b7aa7d19beca1d4c376840b8001`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`0aae37bfe66d08fc9f2a3df35daf04364cee6ca4b8c9dc235105395b0dbdf864`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -431,8 +431,8 @@
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 568 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1420 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 890 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1424 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 892 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |
@@ -448,7 +448,7 @@
 | [web/ui/v2/terminal-reviews.js](../../web/ui/v2/terminal-reviews.js) | 254 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminals.js](../../web/ui/v2/terminals.js) | 564 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/tokens.js](../../web/ui/v2/tokens.js) | 81 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 976 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1205 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

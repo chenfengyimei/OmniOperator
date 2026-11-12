@@ -24,6 +24,7 @@
     "agent/src/omni/application/scheduling.py",
     "agent/src/omni/application/service_cleanup.py",
     "agent/src/omni/application/service_deployment.py",
+    "agent/src/omni/application/service_exchange.py",
     "agent/src/omni/application/terminal_review.py",
     "agent/src/omni/domain/android.py",
     "agent/src/omni/domain/android_unicode.py",

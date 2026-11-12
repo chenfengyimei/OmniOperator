@@ -71,6 +71,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/exchange_recovery_steps.py` | 隔离/救援计划复用发布快照与栅栏 |
 | `agent/src/omni/application/local_vectors.py` | 本地 ONNX 向量器选择/状态无 I/O 规则 |
 | `agent/src/omni/application/service_deployment.py` | 服务部署准备/验证/状态组合（公共桥 + 显式 Record） |
+| `agent/src/omni/application/service_exchange.py` | 交换计划/管理员阶段/应用编排（公共桥） |
 | `agent/src/omni/application/model_output.py` | 有界实时预览（TypedDict 行、authority Mapping） |
 | `agent/src/omni/application/people.py` | 人物档案用例（显式 Record/类型化调用） |
 | `agent/src/omni/application/memory_tools.py` | 记忆工具用例（UnitOfWork 回调显式类型） |
