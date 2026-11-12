@@ -9,6 +9,7 @@
     "agent/src/omni/adapters/log_query.py",
     "agent/src/omni/adapters/media.py",
     "agent/src/omni/adapters/metrics.py",
+    "agent/src/omni/adapters/native_credentials.py",
     "agent/src/omni/adapters/object_store.py",
     "agent/src/omni/adapters/persistence/action_predicates.py",
     "agent/src/omni/adapters/persistence/audit_pruning.py",

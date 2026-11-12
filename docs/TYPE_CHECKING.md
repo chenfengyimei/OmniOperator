@@ -173,6 +173,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/linux_signals.py` | 已认证本地连接上的有界 D-Bus 信号（无激活/无 fd） |
 | `agent/src/omni/adapters/platform/linux_fds.py` | 受控接收描述符与有界 SCM_RIGHTS（无总线/桌面策略） |
 | `agent/src/omni/adapters/platform/linux_input.py` | Xorg 输入变更守卫（不抓取/不合成/不存内容） |
+| `agent/src/omni/adapters/native_credentials.py` | 固定单次原生凭据宿主（不落明文、不自动重发） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |

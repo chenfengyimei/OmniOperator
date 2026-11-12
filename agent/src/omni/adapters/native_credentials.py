@@ -11,7 +11,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ..application.ports import Record
 from ..domain.contracts import BusinessError
@@ -62,11 +62,11 @@ class Job:
 
 @dataclass(eq=False, repr=False)
 class Host:
-    expected: dict
+    expected: dict[str, object]
     starting: asyncio.Task[OwnedProcess] | None = None
     owned: OwnedProcess | None = None
-    readers: list[asyncio.Task] = field(default_factory=list)
-    collected: asyncio.Task | None = None
+    readers: list[asyncio.Task[None]] = field(default_factory=lambda: list[asyncio.Task[None]]())
+    collected: asyncio.Task[int] | None = None
     cleanup: asyncio.Task[bool] | None = None
     output: bytearray = field(default_factory=bytearray)
     ready: asyncio.Event = field(default_factory=asyncio.Event)
@@ -185,7 +185,7 @@ class NativeCredentials:
                 )
             )
 
-        async def collected():
+        async def collected() -> int:
             await asyncio.gather(*host.readers)
             return await process.wait()
 
@@ -205,7 +205,10 @@ class NativeCredentials:
                 host.owned.process.stdin.close()
             if not await host.owned.terminate(1):
                 return False
-        tasks = [*host.readers, *([host.collected] if host.collected is not None else [])]
+        tasks: list[asyncio.Task[Any]] = [
+            *host.readers,
+            *([host.collected] if host.collected is not None else []),
+        ]
         for task in tasks:
             if not task.done():
                 task.cancel()
@@ -229,7 +232,7 @@ class NativeCredentials:
             done and not host.cleanup.cancelled() and host.cleanup.exception() is None and host.cleanup.result()
         )
 
-    async def _run(self, job: Job, query: dict) -> str | None:
+    async def _run(self, job: Job, query: dict[str, object]) -> str | None:
         async with self._lock:
             self._gate(job)
             if self._host is not None:
@@ -264,10 +267,10 @@ class NativeCredentials:
                         raise failure("credential_protocol_invalid")
                     reply = response(query, decode(bytes(host.output)))
                     if not reply["ok"]:
-                        raise failure(reply["error_code"])
+                        raise failure(cast(str, reply["error_code"]))
                     value = reply["value"]
                     if value is not None:
-                        self._redactor.register(value)
+                        self._redactor.register(cast(str, value))
                     if job.reading and job.invalidated:
                         raise failure("credential_changed")
             except BusinessError as caught:
@@ -294,7 +297,7 @@ class NativeCredentials:
                     error = "credential_cleanup_pending"
             if error:
                 raise failure(error)
-            return value
+            return cast(str | None, value)
 
     async def _execute(self, reference: str, operation: str, value: str | None = None) -> str | None:
         validate_reference(reference)
@@ -325,7 +328,7 @@ class NativeCredentials:
         job.task = asyncio.create_task(self._run(job, query), name="credential-native-operation")
         self._jobs.add(job)
 
-        def finished(task):
+        def finished(task: asyncio.Task[str | None]) -> None:
             self._jobs.discard(job)
             if not task.cancelled() and (error := task.exception()) is not None:
                 self._failures += 1
