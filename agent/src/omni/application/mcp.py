@@ -39,7 +39,7 @@ class MCPTransportPort(Protocol):
         self,
         target: ServerTarget,
         name: str,
-        arguments: dict,
+        arguments: dict[str, JSON],
         timeout_s: float,
         *,
         before_send: Callable[[], Awaitable[None]] | None = None,
@@ -89,12 +89,12 @@ class MCPService:
         try:
             handshake = await self._transports.connect(target)
             raw = await self._transports.catalog(target)
-            tools = catalog_rows(raw, str(begin["name"]))
+            tools = [cast(Record, row) for row in catalog_rows(raw, str(begin["name"]))]
             committed = await self._db.write(
                 lambda u: u.mcp_catalog_commit(agent_id, config_id, str(begin["revision_id"]), tools)
             )
         except (MCPDispatchError, BusinessError) as exc:
-            code = exc.code if isinstance(exc, BusinessError) else "mcp_connect_failed"
+            code = exc.code
             await self._transports.stop(agent_id, config_id, 5)
             await self._db.write(lambda u: u.mcp_server_failed(agent_id, config_id, code))
             log.warning("MCP connect failed", extra={"event": "mcp.connect_failed", "error_code": code})
@@ -112,7 +112,7 @@ class MCPService:
             "handshake": handshake,
             "tools": [
                 {"tool_id": None, "name": tool["name"], "exposed_name": tool["exposed_name"]}
-                for tool in cast(list, committed["tools"])
+                for tool in cast(list[Record], committed["tools"])
             ],
         }
 
@@ -167,7 +167,7 @@ class MCPService:
 
     async def oauth_start(self, agent_id: str, config_id: str, redirect_uri: str) -> Record:
         config = await self._db.read(lambda u: u.mcp_configuration(agent_id, config_id))
-        value = cast(dict, config["value"])
+        value = cast(dict[str, object], config["value"])
         if value["auth_mode"] != "oauth":
             raise BusinessError("mcp_oauth_not_configured", "This server does not use remote OAuth", status=422)
         try:
@@ -278,7 +278,7 @@ class MCPService:
         except BaseException:
             await self._finish(context.agent_id, call_id, "unknown", "mcp_outcome_unknown", started)
             raise
-        text, data = result_text(str(config["name"]), str(binding["tool_name"]), cast(dict, payload))
+        text, data = result_text(str(config["name"]), str(binding["tool_name"]), payload)
         is_error = call_state(payload) == "failed"
         await self._db.write(
             lambda u: u.mcp_call_finish(
@@ -286,7 +286,7 @@ class MCPService:
                 call_id,
                 "failed" if is_error else "done",
                 "mcp_tool_error" if is_error else "",
-                int(data["chars"]),
+                cast(int, data["chars"]),
                 bool(data["truncated"]),
                 int(max(0, (self._clock.monotonic() - started) * 1000)),
             )
@@ -296,7 +296,7 @@ class MCPService:
             text,
             Effect.NONE if binding["read_only"] else Effect.APPLIED,
             error_code="mcp_tool_error" if is_error else "",
-            data=data,
+            data=cast(dict[str, JSON], data),
         )
 
     async def _finish(self, agent_id: str, call_id: str, state: str, code: str, started: float) -> None:

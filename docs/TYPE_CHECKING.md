@@ -74,6 +74,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/exchange_recovery_steps.py` | 隔离/救援计划复用发布快照与栅栏 |
 | `agent/src/omni/application/local_vectors.py` | 本地 ONNX 向量器选择/状态无 I/O 规则 |
 | `agent/src/omni/application/maintenance.py` | 维护作业编排/心跳/结算（有界任务、显式 Record） |
+| `agent/src/omni/application/mcp.py` | MCP 连接/目录授权/运行期调用编排（显式 Record、有界传输端口） |
 | `agent/src/omni/application/images.py` | 图片准入/上下文选择/线材物化（有界任务、显式 Record） |
 | `agent/src/omni/application/service_deployment.py` | 服务部署准备/验证/状态组合（公共桥 + 显式 Record） |
 | `agent/src/omni/application/service_operations.py` | 服务安装/启动/移除操作编排（显式 Record） |
