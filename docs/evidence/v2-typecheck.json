@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "51b4afd8f6bf49695706864e18a483fe16540837d2fc66a7c3a74e61565f693e",
+  "code_version": "e3d0c25545171c5700a5be0ebc0ce9491482cd45e8c5c68225d65d811673c2e6",
   "fixed_source_files": 1200,
-  "git_head": "0b5028f",
+  "git_head": "dec708a",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -112,10 +112,11 @@
    "Strict scope reaches 183 files (53 domain + 43 application + 87 adapters); the image codec bounds its pending task set explicitly while keeping Pillow verification, decompression-bomb rejection and wire normalization unchanged",
    "Strict scope reaches 184 files (53 domain + 43 application + 88 adapters); the OS credential adapter pins its native backend access explicitly while keeping the no-plaintext-fallback and externally keyed vault behavior unchanged",
    "Strict scope reaches 185 files (53 domain + 43 application + 89 adapters); macos_service_state types the bounded job walk and typed launchd comparison while staying stdlib-only inside the administrator bundle",
-   "Strict scope reaches 186 files (53 domain + 43 application + 90 adapters); the two-phase administrator handover types parent sessions and approval records while keeping ordered admission, source-before-target cleanup and native-lock release semantics"
+   "Strict scope reaches 186 files (53 domain + 43 application + 90 adapters); the two-phase administrator handover types parent sessions and approval records while keeping ordered admission, source-before-target cleanup and native-lock release semantics",
+   "Strict scope reaches 187 files (53 domain + 43 application + 91 adapters); the credential adapter pins executor futures and the redaction callback while keeping single-threaded backend access, invalidation and close semantics"
   ],
   "pending": [
-   "application 43/44 and adapters 90/215 strict typing",
+   "application 43/44 and adapters 91/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -124,8 +125,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-91-callers.xml",
-   "tests": 34,
+   "report": "temp/build/v2-typecheck-92-callers.xml",
+   "tests": 46,
    "failures": 0
   },
   "targeted_reports": [
@@ -955,6 +956,15 @@
     "errors": 0,
     "duration_s": 128.91,
     "note": "ninety-first strict batch: guard + service exchange/architecture callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-92-callers.xml",
+    "sha256": "823dcd31d7196c375694ca883e480295f5391b00c6a3ab6704eb3179456cc29c",
+    "tests": 46,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 67.76,
+    "note": "ninety-second strict batch: guard + credential/authority/architecture callers"
    }
   ],
   "gates": {
@@ -966,7 +976,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 186,
+    "filesAnalyzed": 187,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1030,6 +1040,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 90/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 91/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }

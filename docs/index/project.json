@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a63c34d5fb8579fd97d3324500bea20c749e987e5a41c41af4a06a9537a6b9b5",
+  "source_sha256": "4715ec7ad4e3733acf0ebf2f114b39d11e90c984c608318cd3c27551b2414d03",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52816,
+      "lines": 52819,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -2764,7 +2764,7 @@
       "path": "agent/src/omni/adapters/credentials.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.credentials",
-      "lines": 176,
+      "lines": 179,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.application.ports",
@@ -2774,17 +2774,17 @@
       "symbols": [
         {
           "name": "CredentialJob",
-          "line": 18,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "Credentials",
-          "line": 26,
+          "line": 27,
           "kind": "class"
         },
         {
           "name": "Credentials.__init__",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "self",
@@ -2800,7 +2800,7 @@
         },
         {
           "name": "Credentials.invalidate",
-          "line": 38,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self",
@@ -2812,7 +2812,7 @@
         },
         {
           "name": "Credentials._retire",
-          "line": 45,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -2824,7 +2824,7 @@
         },
         {
           "name": "Credentials._execute",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self",
@@ -2840,23 +2840,25 @@
         },
         {
           "name": "Credentials._execute.perform",
-          "line": 55,
+          "line": 56,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "Credentials._execute.finished",
-          "line": 109,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "actual"
           ],
-          "annotations": {}
+          "annotations": {
+            "actual": "Future[str | None]"
+          }
         },
         {
           "name": "Credentials.get",
-          "line": 136,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self",
@@ -2868,7 +2870,7 @@
         },
         {
           "name": "Credentials.set",
-          "line": 139,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "self",
@@ -2882,7 +2884,7 @@
         },
         {
           "name": "Credentials.delete",
-          "line": 142,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self",
@@ -2894,7 +2896,7 @@
         },
         {
           "name": "Credentials.stop_accepting",
-          "line": 145,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self"
@@ -2903,7 +2905,7 @@
         },
         {
           "name": "Credentials.health",
-          "line": 152,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "self"
@@ -2912,7 +2914,7 @@
         },
         {
           "name": "Credentials.close",
-          "line": 163,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
