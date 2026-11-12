@@ -284,6 +284,10 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 4. 不允许用 `# type: ignore`/`# pyright: ignore` 掩盖真实错误；确需忽略时必须在类型检查文档写明原因与范围。
    - 目前唯一的忽略：`agent/src/omni/adapters/platform/event_loop.py` 中 `from asyncio.proactor_events import ...` 一行带 `# pyright: ignore[reportPrivateUsage]`。CPython 未公开 proactor 传输类，绕过导入就无法子类化该传输；范围仅限该导入行，同一文件的其余私有成员访问用 `Any` 桥接（协议仍保留形状说明）而不是忽略。
 5. 全仓 strict 完成前，任何报告不得写“全仓严格类型已通过”。
+6. 已知前置阻塞（纳入 strict 前必须先处理）：
+   - `agent/src/omni/adapters/platform/deployment_files.py` 用绝对 `import omni` 取包版本，strict 会报 `reportMissingTypeStubs`（`omni` 无 `py.typed`）。纳入前应改为相对导入或 `importlib.metadata.version`，不要用忽略注释绕过。
+   - 仓储 mixin 体系（`repository.py` 及其 70 余个 mixin）依赖 `RepositoryBase` 的公共方法；新增跨模块助手时应使用 `one` 等公共方法，而不是访问 `_one` 等受保护成员。
+
 
 ## 5. 验证
 
