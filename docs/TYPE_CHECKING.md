@@ -157,6 +157,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/workers/credentials.py` | 固定单次 OS 凭据辅助进程（无明文回退） |
 | `agent/src/omni/adapters/platform/service_admin_policy.py` | Linux 服务管理员根策略（本地账户与受保护根工件） |
 | `agent/src/omni/adapters/process_diagnostics.py` | 进程级日志与异常钩子（不保留异常对象/不重复链式） |
+| `agent/src/omni/adapters/log_query.py` | 有界诊断分页与跨重命名游标（共享写锁） |
+| `agent/src/omni/adapters/workers/android_adb.py` | 有界 ADB smart-socket 客户端（不启动服务/不配对） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |

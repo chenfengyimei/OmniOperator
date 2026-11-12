@@ -10,7 +10,7 @@ import stat
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, cast
 
 from ..application.ports import Record
 from ..domain.contracts import BusinessError
@@ -24,7 +24,7 @@ class LogSource(Protocol):
     @property
     def directory(self) -> Path: ...
     @property
-    def io_lock(self) -> AbstractContextManager: ...
+    def io_lock(self) -> AbstractContextManager[object, bool | None]: ...
     @property
     def stderr_only(self) -> bool: ...
     @property
@@ -97,17 +97,20 @@ def _cursor(segment: str, offset: int) -> str:
 def _decode(value: str) -> tuple[str, int]:
     try:
         data = json.loads(base64.b64decode(value + "=" * (-len(value) % 4), altchars=b"-_", validate=True))
+        if not isinstance(data, list):
+            raise ValueError
+        parts = cast(list[object], data)
+        if len(parts) != 3:
+            raise ValueError
         if (
-            not isinstance(data, list)
-            or len(data) != 3
-            or data[0] != 1
-            or not isinstance(data[1], str)
-            or len(data[1]) != 64
-            or type(data[2]) is not int
-            or data[2] < 0
+            parts[0] != 1
+            or not isinstance(parts[1], str)
+            or len(parts[1]) != 64
+            or type(parts[2]) is not int
+            or parts[2] < 0
         ):
             raise ValueError
-        return data[1], data[2]
+        return parts[1], parts[2]
     except (ValueError, TypeError, UnicodeError) as exc:
         raise BusinessError("invalid_log_cursor", "Log cursor is malformed", status=422) from exc
 
@@ -116,7 +119,7 @@ class LogReader:
     def __init__(self, sink: LogSource) -> None:
         self.sink = sink
 
-    def page(self, query: LogQuery) -> dict:
+    def page(self, query: LogQuery) -> Record:
         if self.sink.stderr_only:
             raise BusinessError(
                 "logs_external", "Diagnostics are directed to the deployment's stderr collector", status=409
@@ -126,7 +129,7 @@ class LogReader:
         with self.sink.io_lock:
             return self._page(query)
 
-    def tail(self, limit: int = 500) -> dict:
+    def tail(self, limit: int = 500) -> Record:
         """Read at most MAX_SCAN bytes/10000 records, retaining only bounded recent metadata."""
         if not 1 <= limit <= 500:
             raise BusinessError("invalid_log_query", "Bounded recent log count required", status=422)
@@ -135,7 +138,7 @@ class LogReader:
         with self.sink.io_lock:
             segments = self._paths()
             remaining, invalid, scanned = MAX_SCAN, 0, 0
-            items = []
+            items: list[Record] = []
             truncated = False
             for index, path in enumerate(reversed(segments)):
                 if not remaining:
@@ -165,13 +168,14 @@ class LogReader:
                         if len(line) > MAX_RECORD:
                             raise ValueError
                         record = json.loads(line)
-                        if (
-                            not isinstance(record, dict)
-                            or not isinstance(record.get("record_id"), str)
-                            or not isinstance(record.get("timestamp"), str)
+                        if not isinstance(record, dict):
+                            raise ValueError
+                        entry_row = cast(Record, record)
+                        if not isinstance(entry_row.get("record_id"), str) or not isinstance(
+                            entry_row.get("timestamp"), str
                         ):
                             raise ValueError
-                        items.append(record)
+                        items.append(entry_row)
                     except (ValueError, UnicodeError, RecursionError):
                         invalid += 1
                 if len(items) >= limit or scanned >= 10000:
@@ -194,7 +198,7 @@ class LogReader:
     def _checked_paths(self, names: list[str]) -> list[Path]:
         if self.sink.directory.is_symlink() or self.sink.directory.is_junction():
             raise BusinessError("unsafe_log_path", "Log directory cannot be a link", status=503)
-        result = []
+        result: list[Path] = []
         for name in names:
             path = self.sink.directory / name
             if path.is_symlink() or path.is_junction():
@@ -208,7 +212,7 @@ class LogReader:
         return result
 
     def _segments(self) -> list[tuple[Path, str]]:
-        result = []
+        result: list[tuple[Path, str]] = []
         for path in self._paths():
             with path.open("rb") as stream:
                 first = stream.readline(MAX_RECORD + 1)
@@ -217,7 +221,7 @@ class LogReader:
             result.append((path, hashlib.sha256(first).hexdigest()))
         return result
 
-    def _page(self, query: LogQuery) -> dict:
+    def _page(self, query: LogQuery) -> Record:
         segments = self._segments()
         index, offset = 0, 0
         if query.cursor:
@@ -239,7 +243,8 @@ class LogReader:
                     stream.seek(offset)
                     stream.readline(MAX_RECORD + 1)
                     offset = stream.tell()
-        items, scanned, next_cursor, more = [], 0, query.cursor or None, False
+        items: list[Record] = []
+        scanned, next_cursor, more = 0, query.cursor or None, False
         for i in range(index, len(segments)):
             path, identity = segments[i]
             with path.open("rb") as stream:
@@ -265,24 +270,39 @@ class LogReader:
                         )
                     scanned += len(raw)
                     try:
-                        entry = json.loads(raw)
-                        if not isinstance(entry, dict) or not isinstance(entry.get("timestamp"), str):
+                        decoded = json.loads(raw)
+                        if not isinstance(decoded, dict):
+                            raise ValueError
+                        entry = cast(Record, decoded)
+                        if not isinstance(entry.get("timestamp"), str):
                             raise ValueError
                     except (ValueError, UnicodeError) as exc:
                         raise BusinessError("log_record_invalid", "A diagnostic record is corrupt", status=503) from exc
                     next_cursor = _cursor(identity, stream.tell())
+                    timestamp = cast(str, entry["timestamp"])
                     if (
                         (not query.level or entry.get("level") == query.level)
                         and (not query.component or entry.get("component") == query.component)
                         and (not query.run_id or entry.get("run_id") == query.run_id)
-                        and (not query.since or entry["timestamp"] >= query.since)
-                        and (not query.until or entry["timestamp"] <= query.until)
+                        and (not query.since or timestamp >= query.since)
+                        and (not query.until or timestamp <= query.until)
                     ):
                         items.append(self.sink.redactor.value(entry))
                     if len(items) >= query.limit or scanned >= MAX_SCAN:
                         more = stream.tell() < size or i < len(segments) - 1
-                        return {"items": items, "next_cursor": next_cursor, "has_more": more, "scanned_bytes": scanned}
-        return {"items": items, "next_cursor": next_cursor, "has_more": more, "scanned_bytes": scanned}
+                        return cast(
+                            Record,
+                            {
+                                "items": items,
+                                "next_cursor": next_cursor,
+                                "has_more": more,
+                                "scanned_bytes": scanned,
+                            },
+                        )
+        return cast(
+            Record,
+            {"items": items, "next_cursor": next_cursor, "has_more": more, "scanned_bytes": scanned},
+        )
 
 
 class CaptureLogReader(LogReader):

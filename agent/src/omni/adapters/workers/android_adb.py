@@ -5,7 +5,9 @@ from __future__ import annotations
 import asyncio
 import re
 import struct
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
+from typing import cast
 
 from ...domain.android import device
 
@@ -17,7 +19,7 @@ class Adb:
         self.port, self.serial = port, serial
 
     @staticmethod
-    async def request(reader, writer, service: str) -> None:
+    async def request(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, service: str) -> None:
         payload = service.encode("utf-8")
         if len(payload) > 4096:
             raise ValueError("ADB service exceeds limit")
@@ -28,7 +30,7 @@ class Adb:
             raise ValueError("ADB request was rejected")
 
     @asynccontextmanager
-    async def connect(self):
+    async def connect(self) -> AsyncGenerator[tuple[asyncio.StreamReader, asyncio.StreamWriter], None]:
         async with asyncio.timeout(8):
             reader, writer = await asyncio.open_connection("127.0.0.1", self.port, limit=65536)
             try:
@@ -44,7 +46,7 @@ class Adb:
             if size > 32768:
                 raise ValueError("Too many ADB devices")
             rows = (await reader.readexactly(size)).decode("utf-8").splitlines()
-        matches = []
+        matches: list[int] = []
         for line in rows:
             parts = line.split()
             if len(parts) >= 2 and parts[0] == self.serial:
@@ -56,7 +58,9 @@ class Adb:
             raise ValueError("ADB device is absent or ambiguous")
         return matches[0]
 
-    async def shell(self, transport: int, command: str, *, maximum: int = 262144, before_send=None) -> bytes:
+    async def shell(
+        self, transport: int, command: str, *, maximum: int = 262144, before_send: Callable[[], None] | None = None
+    ) -> bytes:
         # Only this module's fixed command builders call shell; no raw API/IPC argument is a command.
         async with self.connect() as (reader, writer):
             await self.request(reader, writer, "host:transport-id:" + str(transport))
@@ -79,7 +83,7 @@ class Adb:
                     return bytes(output)
             raise ValueError("Too many shell frames")
 
-    async def identify(self) -> dict:
+    async def identify(self) -> dict[str, object]:
         transport = await self.transport()
         boot = (await self.shell(transport, "cat /proc/sys/kernel/random/boot_id", maximum=1024)).decode().strip()
         user = (await self.shell(transport, "am get-current-user", maximum=1024)).decode().strip()
@@ -98,13 +102,14 @@ class Adb:
             }
         )
 
-    async def require(self, expected: dict) -> None:
+    async def require(self, expected: dict[str, object]) -> None:
         if await self.identify() != device(expected):
             raise ValueError("Android boot, user or transport changed")
 
-    async def window(self, expected: dict) -> dict:
-        raw = (await self.shell(expected["transport_id"], "dumpsys window windows")).decode("utf-8")
-        policy = (await self.shell(expected["transport_id"], "dumpsys window policy")).decode("utf-8")
+    async def window(self, expected: dict[str, object]) -> dict[str, object]:
+        transport = cast(int, expected["transport_id"])
+        raw = (await self.shell(transport, "dumpsys window windows")).decode("utf-8")
+        policy = (await self.shell(transport, "dumpsys window policy")).decode("utf-8")
         matches = re.findall(r"mCurrentFocus=Window\{[^}\r\n]*\bu(\d+) ([A-Za-z0-9_.]+)/(\S+)\}", raw)
         if len(matches) != 1 or int(matches[0][0]) != expected["user_id"]:
             raise ValueError("Foreground Android user/application is unverified")
