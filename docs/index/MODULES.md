@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`aacdc77e22b11f4ebf950a81681b82e21b51a376c46b325eb4f815783d38ecaf`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`ef3dc5245612e96e0ab1a9f37577437cc8ecb93c18ac12c2af3185c059b37b92`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -166,7 +166,7 @@
 | [agent/src/omni/adapters/persistence/__init__.py](../../agent/src/omni/adapters/persistence/__init__.py) | 1 | Only this package owns application SQL, connections and schema evolution. |
 | [agent/src/omni/adapters/persistence/action_predicates.py](../../agent/src/omni/adapters/persistence/action_predicates.py) | 65 | One current owner-resolution predicate; never rewrites raw action observations or acknowledges model costs. |
 | [agent/src/omni/adapters/persistence/action_review_repository.py](../../agent/src/omni/adapters/persistence/action_review_repository.py) | 426 | Owner observation ledger for uncertain actions; original actions, costs and delivery state remain unchanged. |
-| [agent/src/omni/adapters/persistence/android_repository.py](../../agent/src/omni/adapters/persistence/android_repository.py) | 278 | Device grants bind immutable configuration/device identities; actions remain in the shared ledger. |
+| [agent/src/omni/adapters/persistence/android_repository.py](../../agent/src/omni/adapters/persistence/android_repository.py) | 279 | Device grants bind immutable configuration/device identities; actions remain in the shared ledger. |
 | [agent/src/omni/adapters/persistence/android_unicode_repository.py](../../agent/src/omni/adapters/persistence/android_unicode_repository.py) | 242 | Immutable helper profiles and durable IME restoration obligations; input truth stays in actions. |
 | [agent/src/omni/adapters/persistence/audit_pruning.py](../../agent/src/omni/adapters/persistence/audit_pruning.py) | 56 | Offline audit-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |
 | [agent/src/omni/adapters/persistence/audit_pruning_repository.py](../../agent/src/omni/adapters/persistence/audit_pruning_repository.py) | 99 | Persist reviewed audit deletion and its proof atomically; preserve identities and business ledgers. |
@@ -257,7 +257,7 @@
 | [agent/src/omni/adapters/persistence/repository_base.py](../../agent/src/omni/adapters/persistence/repository_base.py) | 48 | Common transaction-scoped identity, ownership and audit primitives. |
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../agent/src/omni/adapters/persistence/retention_repository.py) | 135 | Context barriers invalidate derived views without deleting original conversations. |
 | [agent/src/omni/adapters/persistence/routing_repository.py](../../agent/src/omni/adapters/persistence/routing_repository.py) | 283 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
-| [agent/src/omni/adapters/persistence/schedule_repository.py](../../agent/src/omni/adapters/persistence/schedule_repository.py) | 402 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
+| [agent/src/omni/adapters/persistence/schedule_repository.py](../../agent/src/omni/adapters/persistence/schedule_repository.py) | 410 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
 | [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3276 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
 | [agent/src/omni/adapters/persistence/schema_upgrade.py](../../agent/src/omni/adapters/persistence/schema_upgrade.py) | 154 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
 | [agent/src/omni/adapters/persistence/search_schema.py](../../agent/src/omni/adapters/persistence/search_schema.py) | 8 | Derived FTS definitions. Applied only by versioned migrations. |

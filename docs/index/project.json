@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "aacdc77e22b11f4ebf950a81681b82e21b51a376c46b325eb4f815783d38ecaf",
+  "source_sha256": "ef3dc5245612e96e0ab1a9f37577437cc8ecb93c18ac12c2af3185c059b37b92",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53219,
+      "lines": 53228,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -11014,7 +11014,7 @@
       "path": "agent/src/omni/adapters/persistence/android_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.android_repository",
-      "lines": 278,
+      "lines": 279,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_predicates",
@@ -11026,12 +11026,12 @@
       "symbols": [
         {
           "name": "AndroidRepositories",
-          "line": 20,
+          "line": 21,
           "kind": "class"
         },
         {
           "name": "AndroidRepositories._android_access_record",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "self",
@@ -11043,7 +11043,7 @@
         },
         {
           "name": "AndroidRepositories._android_model_run",
-          "line": 55,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "self",
@@ -11057,7 +11057,7 @@
         },
         {
           "name": "AndroidRepositories.android_access_create",
-          "line": 68,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "self",
@@ -11075,7 +11075,7 @@
         },
         {
           "name": "AndroidRepositories.android_access_authorize",
-          "line": 123,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -11091,7 +11091,7 @@
         },
         {
           "name": "AndroidRepositories.android_access_revoke",
-          "line": 144,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "self",
@@ -11107,7 +11107,7 @@
         },
         {
           "name": "AndroidRepositories.android_access_page",
-          "line": 157,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -11123,7 +11123,7 @@
         },
         {
           "name": "AndroidRepositories.android_dispatch",
-          "line": 182,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self",
@@ -11139,7 +11139,7 @@
         },
         {
           "name": "AndroidRepositories.android_connection",
-          "line": 212,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -11153,25 +11153,25 @@
         },
         {
           "name": "AndroidRepositories.android_grant",
-          "line": 218,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self",
             "agent_id",
             "config_id",
             "revision_id",
-            "target"
+            "device"
           ],
           "annotations": {
             "agent_id": "str",
             "config_id": "str",
             "revision_id": "str",
-            "target": "dict"
+            "device": "dict"
           }
         },
         {
           "name": "AndroidRepositories.android_authorize",
-          "line": 241,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self",
@@ -11185,7 +11185,7 @@
         },
         {
           "name": "AndroidRepositories.android_revoke",
-          "line": 253,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "self",
@@ -11201,7 +11201,7 @@
         },
         {
           "name": "AndroidRepositories.android_grants",
-          "line": 266,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self",
@@ -20992,22 +20992,23 @@
       "path": "agent/src/omni/adapters/persistence/schedule_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.schedule_repository",
-      "lines": 402,
+      "lines": 410,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.delivery_predicates",
         "omni.adapters.persistence.lease_repository",
+        "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "ScheduleRepositories",
-          "line": 15,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "ScheduleRepositories._schedule_agent",
-          "line": 16,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -21019,7 +21020,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_get",
-          "line": 22,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "self",
@@ -21033,7 +21034,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_page",
-          "line": 51,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -21051,7 +21052,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_save",
-          "line": 67,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -21077,7 +21078,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_archive",
-          "line": 160,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -21093,7 +21094,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_history",
-          "line": 185,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self",
@@ -21111,7 +21112,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_occurrences",
-          "line": 200,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
@@ -21129,7 +21130,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_candidates",
-          "line": 223,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self",
@@ -21143,7 +21144,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_materialize",
-          "line": 252,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self",
@@ -21152,14 +21153,14 @@
             "tzdb_version"
           ],
           "annotations": {
-            "captured": "dict",
-            "selection": "dict | None",
+            "captured": "Mapping[str, Any]",
+            "selection": "Mapping[str, Any] | None",
             "tzdb_version": "str"
           }
         },
         {
           "name": "ScheduleRepositories.schedule_error",
-          "line": 309,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -21175,7 +21176,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_enqueue",
-          "line": 317,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -21183,12 +21184,13 @@
             "accept"
           ],
           "annotations": {
-            "occurrence": "dict"
+            "occurrence": "Mapping[str, Any]",
+            "accept": "Callable[[Mapping[str, object], str], Record]"
           }
         },
         {
           "name": "ScheduleRepositories.schedule_review",
-          "line": 349,
+          "line": 357,
           "kind": "function",
           "parameters": [
             "self",
@@ -21206,7 +21208,7 @@
         },
         {
           "name": "ScheduleRepositories.schedule_cancel",
-          "line": 390,
+          "line": 398,
           "kind": "function",
           "parameters": [
             "self",
