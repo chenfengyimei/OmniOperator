@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9a7fd874c40f55f7d319b12e7918e33397cc94383974ef465b6524d3efe6a42d",
+  "source_sha256": "fa417af40c8c7398baef7099ee87e23171745b7aa7d19beca1d4c376840b8001",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9544,
+      "lines": 9583,
       "dependencies": []
     },
     {
@@ -493,7 +493,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 11951,
+      "lines": 12018,
       "dependencies": []
     },
     {
@@ -1035,7 +1035,7 @@
         "web/ui/tokens.css",
         "web/ui/workbench.css"
       ],
-      "lines": 12620,
+      "lines": 12623,
       "dependencies": []
     },
     {
@@ -63720,7 +63720,7 @@
       "path": "agent/src/omni/domain/desktop.py",
       "module": "v2-domain",
       "python_module": "omni.domain.desktop",
-      "lines": 574,
+      "lines": 613,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop_actions",
@@ -63749,7 +63749,7 @@
         },
         {
           "name": "_text",
-          "line": 84,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "value",
@@ -63764,7 +63764,7 @@
         },
         {
           "name": "_choice",
-          "line": 101,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "value",
@@ -63777,7 +63777,7 @@
         },
         {
           "name": "_boolean",
-          "line": 107,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "value"
@@ -63788,7 +63788,7 @@
         },
         {
           "name": "_integer",
-          "line": 113,
+          "line": 116,
           "kind": "function",
           "parameters": [
             "value",
@@ -63803,7 +63803,7 @@
         },
         {
           "name": "_uuid",
-          "line": 119,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "value"
@@ -63814,7 +63814,7 @@
         },
         {
           "name": "desktop_object",
-          "line": 130,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "value",
@@ -63827,7 +63827,7 @@
         },
         {
           "name": "desktop_text",
-          "line": 134,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "value",
@@ -63842,7 +63842,7 @@
         },
         {
           "name": "desktop_choice",
-          "line": 138,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "value",
@@ -63855,7 +63855,7 @@
         },
         {
           "name": "desktop_integer",
-          "line": 142,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "value",
@@ -63870,7 +63870,7 @@
         },
         {
           "name": "desktop_uuid",
-          "line": 146,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "value"
@@ -63881,7 +63881,7 @@
         },
         {
           "name": "_code",
-          "line": 150,
+          "line": 153,
           "kind": "function",
           "parameters": [
             "value",
@@ -63894,7 +63894,7 @@
         },
         {
           "name": "_canonical",
-          "line": 157,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "value"
@@ -63905,7 +63905,7 @@
         },
         {
           "name": "validate_target",
-          "line": 169,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "data"
@@ -63916,7 +63916,7 @@
         },
         {
           "name": "target_fingerprint",
-          "line": 193,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "target"
@@ -63927,7 +63927,7 @@
         },
         {
           "name": "encode_native_target",
-          "line": 197,
+          "line": 200,
           "kind": "function",
           "parameters": [
             "target"
@@ -63938,7 +63938,7 @@
         },
         {
           "name": "decode_native_target",
-          "line": 204,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "target"
@@ -63949,7 +63949,7 @@
         },
         {
           "name": "parse_request",
-          "line": 213,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "data"
@@ -63960,7 +63960,7 @@
         },
         {
           "name": "validate_capture",
-          "line": 260,
+          "line": 274,
           "kind": "function",
           "parameters": [
             "data",
@@ -63973,12 +63973,12 @@
         },
         {
           "name": "CapturedFrame",
-          "line": 288,
+          "line": 302,
           "kind": "class"
         },
         {
           "name": "CapturedFrame.validate",
-          "line": 295,
+          "line": 309,
           "kind": "function",
           "parameters": [
             "self"
@@ -63987,7 +63987,7 @@
         },
         {
           "name": "_hints",
-          "line": 312,
+          "line": 326,
           "kind": "function",
           "parameters": [
             "value"
@@ -63998,7 +63998,7 @@
         },
         {
           "name": "validate_capabilities",
-          "line": 323,
+          "line": 340,
           "kind": "function",
           "parameters": [
             "data"
@@ -64009,7 +64009,7 @@
         },
         {
           "name": "validate_targets",
-          "line": 376,
+          "line": 396,
           "kind": "function",
           "parameters": [
             "data",
@@ -64022,7 +64022,7 @@
         },
         {
           "name": "validate_verification",
-          "line": 389,
+          "line": 413,
           "kind": "function",
           "parameters": [
             "data",
@@ -64035,7 +64035,7 @@
         },
         {
           "name": "validate_observation",
-          "line": 402,
+          "line": 426,
           "kind": "function",
           "parameters": [
             "data",
@@ -64048,7 +64048,7 @@
         },
         {
           "name": "parse_response",
-          "line": 499,
+          "line": 530,
           "kind": "function",
           "parameters": [
             "data",
@@ -64061,7 +64061,7 @@
         },
         {
           "name": "parse_owner",
-          "line": 547,
+          "line": 585,
           "kind": "function",
           "parameters": [
             "operation",
@@ -94682,7 +94682,7 @@
       "path": "web/ui/tokens.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 219,
+      "lines": 222,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94822,7 +94822,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1415,
+      "lines": 1420,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94832,7 +94832,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 886,
+      "lines": 890,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94992,7 +94992,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 918,
+      "lines": 976,
       "imports": [],
       "symbols": [],
       "kind": "asset",

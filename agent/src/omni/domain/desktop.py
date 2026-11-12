@@ -75,10 +75,13 @@ def invalid() -> BusinessError:
     return BusinessError("desktop_invalid", "Use an exact, bounded desktop identity and discovery protocol", status=422)
 
 
-def _object(value: object, keys: set[str] | frozenset[str]) -> dict:
-    if not isinstance(value, dict) or set(value) != keys:
+def _object(value: object, keys: set[str] | frozenset[str]) -> dict[str, object]:
+    if not isinstance(value, dict):
         raise invalid()
-    return value
+    fields = cast(dict[str, object], value)
+    if set(fields) != keys:
+        raise invalid()
+    return fields
 
 
 def _text(value: object, maximum: int, *, nullable: bool = False) -> str | None:
@@ -128,7 +131,7 @@ def _uuid(value: object) -> str:
 
 
 def desktop_object(value: object, keys: set[str] | frozenset[str]) -> dict[str, object]:
-    return cast(dict[str, object], _object(value, keys))
+    return _object(value, keys)
 
 
 def desktop_text(value: object, maximum: int, *, nullable: bool = False) -> str | None:
@@ -166,15 +169,15 @@ def _canonical(value: object) -> bytes:
     return data
 
 
-def validate_target(data: object) -> dict:
+def validate_target(data: object) -> dict[str, object]:
     value = _object(data, TARGET_KEYS)
     platform = _choice(value["platform"], PLATFORMS)
     backend = _choice(value["backend"], BACKENDS[platform])
-    created = value["process_created"]
-    if type(created) not in {int, float}:
+    created_value = value["process_created"]
+    if type(created_value) not in {int, float}:
         raise invalid()
     try:
-        created = float(created)
+        created = float(cast(float, created_value))
     except (ValueError, OverflowError) as exc:
         raise invalid() from exc
     if not math.isfinite(created) or created <= 0:
@@ -194,29 +197,34 @@ def target_fingerprint(target: object) -> str:
     return hashlib.sha256(_canonical(validate_target(target))).hexdigest()
 
 
-def encode_native_target(target: object) -> dict:
+def encode_native_target(target: object) -> dict[str, object]:
     result = validate_target(target)
     # Windows PowerShell/.NET Framework decimal JSON conversion is not bit-preserving.
-    result["process_created"] = "ieee754:" + struct.pack(">d", result["process_created"]).hex()
+    result["process_created"] = "ieee754:" + struct.pack(">d", cast(float, result["process_created"])).hex()
     return result
 
 
-def decode_native_target(target: object) -> dict:
-    if isinstance(target, dict) and isinstance(target.get("process_created"), str):
-        value = target["process_created"]
-        if re.fullmatch(r"ieee754:[0-9a-f]{16}", value) is None:
-            raise invalid()
-        target = {**target, "process_created": struct.unpack(">d", bytes.fromhex(value[8:]))[0]}
-    return validate_target(target)
+def decode_native_target(target: object) -> dict[str, object]:
+    candidate: object = target
+    if isinstance(target, dict):
+        fields = cast(dict[str, object], target)
+        created = fields.get("process_created")
+        if isinstance(created, str):
+            if re.fullmatch(r"ieee754:[0-9a-f]{16}", created) is None:
+                raise invalid()
+            candidate = {**fields, "process_created": struct.unpack(">d", bytes.fromhex(created[8:]))[0]}
+    return validate_target(candidate)
 
 
-def parse_request(data: object) -> dict:
+def parse_request(data: object) -> dict[str, object]:
     keys = {"version", "request_id", "operation", "target", "limit"}
-    if isinstance(data, dict) and data.get("operation") == "capture":
-        keys.add("output_path")
-    if isinstance(data, dict) and data.get("operation") in {"act", "foreground"}:
-        keys.add("action")
-    value = _object(data, keys)
+    if isinstance(data, dict):
+        fields = cast(dict[str, object], data)
+        if fields.get("operation") == "capture":
+            keys.add("output_path")
+        if fields.get("operation") in {"act", "foreground"}:
+            keys.add("action")
+    value = _object(cast(object, data), keys)
     if value["version"] != VERSION:
         raise invalid()
     operation = _choice(value["operation"], OPERATIONS)
@@ -228,7 +236,7 @@ def parse_request(data: object) -> dict:
         target = decode_native_target(value["target"])
     elif value["target"] is not None or (operation == "probe" and limit != 1):
         raise invalid()
-    result = {
+    result: dict[str, object] = {
         "version": VERSION,
         "request_id": _uuid(value["request_id"]),
         "operation": operation,
@@ -248,8 +256,14 @@ def parse_request(data: object) -> dict:
         result["action"] = action(value["action"])
     if operation in {"act", "foreground"}:
         assert target is not None
-        proof_backend = result["action"]["node"].get("backend")
-        if proof_backend != {"win32": None, "darwin": "ax", "linux": "atspi"}[target["platform"]]:
+        action = result["action"]
+        if not isinstance(action, dict):
+            raise invalid()
+        node = cast(dict[str, object], action).get("node")
+        if not isinstance(node, dict):
+            raise invalid()
+        proof_backend = cast(dict[str, object], node).get("backend")
+        if proof_backend != {"win32": None, "darwin": "ax", "linux": "atspi"}[cast(str, target["platform"])]:
             raise invalid()
         if target["platform"] == "linux" and (operation != "act" or target["backend"] != "atspi"):
             raise invalid()
@@ -257,11 +271,11 @@ def parse_request(data: object) -> dict:
     return result
 
 
-def validate_capture(data: object, target: object) -> dict:
+def validate_capture(data: object, target: object) -> dict[str, object]:
     value = _object(data, {"target", "width", "height", "bytes", "sha256", "method"})
     actual = validate_target(value["target"])
     expected_method = {"win32": "print_window", "darwin": "screen_capture_kit", "linux": "x11_composite"}.get(
-        actual["platform"]
+        cast(str, actual["platform"])
     )
     if actual != validate_target(target) or expected_method is None or value["method"] != expected_method:
         raise invalid()
@@ -310,41 +324,47 @@ class CapturedFrame:
 
 
 def _hints(value: object) -> list[str]:
-    if not isinstance(value, list) or len(value) > MAX_HINTS:
+    if not isinstance(value, list):
         raise invalid()
-    result = []
-    for item in value:
+    items = cast(list[object], value)
+    if len(items) > MAX_HINTS:
+        raise invalid()
+    result: list[str] = []
+    for item in items:
         text = _text(item, MAX_HINT_LENGTH)
         assert text is not None
         result.append(text)
     return result
 
 
-def validate_capabilities(data: object) -> dict:
+def validate_capabilities(data: object) -> dict[str, object]:
     value = _object(data, {"version", "platform", "session", "capabilities", "acceptance"})
     if value["version"] != VERSION or value["acceptance"] != "pending":
         raise invalid()
     platform = _choice(value["platform"], PLATFORMS)
-    session = _object(value["session"], {"kind", "identity"})
-    session = {
-        "kind": _choice(session["kind"], frozenset({"interactive", "headless", "unknown"})),
-        "identity": _text(session["identity"], MAX_IDENTITY, nullable=True),
+    session_fields = _object(value["session"], {"kind", "identity"})
+    session: dict[str, object] = {
+        "kind": _choice(session_fields["kind"], frozenset({"interactive", "headless", "unknown"})),
+        "identity": _text(session_fields["identity"], MAX_IDENTITY, nullable=True),
     }
-    capabilities = value["capabilities"]
-    if not isinstance(capabilities, list) or len(capabilities) != len(CAPABILITIES):
+    raw_capabilities = value["capabilities"]
+    if not isinstance(raw_capabilities, list):
         raise invalid()
-    indexed = {}
+    capabilities = cast(list[object], raw_capabilities)
+    if len(capabilities) != len(CAPABILITIES):
+        raise invalid()
+    indexed: dict[str, dict[str, object]] = {}
     for item in capabilities:
-        item = _object(item, CAPABILITY_KEYS)
-        identity = _choice(item["id"], CAPABILITIES)
+        entry = _object(item, CAPABILITY_KEYS)
+        identity = _choice(entry["id"], CAPABILITIES)
         if identity in indexed:
             raise invalid()
         supported, installed, available = (
-            _boolean(item["supported"]),
-            _boolean(item["installed"]),
-            _boolean(item["available"]),
+            _boolean(entry["supported"]),
+            _boolean(entry["installed"]),
+            _boolean(entry["available"]),
         )
-        permission = _choice(item["permission"], frozenset({"granted", "denied", "unknown", "not_applicable"}))
+        permission = _choice(entry["permission"], frozenset({"granted", "denied", "unknown", "not_applicable"}))
         if available and (
             not supported
             or not installed
@@ -358,11 +378,11 @@ def validate_capabilities(data: object) -> dict:
             "installed": installed,
             "permission": permission,
             "available": available,
-            "error_code": _code(item["error_code"]),
-            "limitations": _hints(item["limitations"]),
-            "recovery": _hints(item["recovery"]),
+            "error_code": _code(entry["error_code"]),
+            "limitations": _hints(entry["limitations"]),
+            "recovery": _hints(entry["recovery"]),
         }
-    result = {
+    result: dict[str, object] = {
         "version": VERSION,
         "platform": platform,
         "session": session,
@@ -373,20 +393,24 @@ def validate_capabilities(data: object) -> dict:
     return result
 
 
-def validate_targets(data: object, limit: int = 50) -> dict:
+def validate_targets(data: object, limit: int = 50) -> dict[str, object]:
     limit = _integer(limit, 1, 50)
     raw = _object(data, {"items", "truncated"})
-    if not isinstance(raw["items"], list) or len(raw["items"]) > limit:
+    items_raw = raw["items"]
+    if not isinstance(items_raw, list):
         raise invalid()
-    targets = [validate_target(item) for item in raw["items"]]
+    items = cast(list[object], items_raw)
+    if len(items) > limit:
+        raise invalid()
+    targets = [validate_target(item) for item in items]
     if len({target_fingerprint(target) for target in targets}) != len(targets):
         raise invalid()
-    result = {"items": targets, "truncated": _boolean(raw["truncated"])}
+    result: dict[str, object] = {"items": targets, "truncated": _boolean(raw["truncated"])}
     _canonical(result)
     return result
 
 
-def validate_verification(data: object, target: object) -> dict:
+def validate_verification(data: object, target: object) -> dict[str, object]:
     expected = validate_target(target)
     raw = _object(data, {"matches", "target", "reason"})
     matches = _boolean(raw["matches"])
@@ -394,12 +418,12 @@ def validate_verification(data: object, target: object) -> dict:
     reason = _code(raw["reason"], nullable=matches)
     if matches and (actual != expected or reason is not None):
         raise invalid()
-    result = {"matches": matches, "target": actual, "reason": reason}
+    result: dict[str, object] = {"matches": matches, "target": actual, "reason": reason}
     _canonical(result)
     return result
 
 
-def validate_observation(data: object, target: object) -> dict:
+def validate_observation(data: object, target: object) -> dict[str, object]:
     """Treat helper UI data as untrusted, including hierarchy, text and target proof."""
     expected = validate_target(target)
     linux = expected["platform"] == "linux"
@@ -407,21 +431,23 @@ def validate_observation(data: object, target: object) -> dict:
     if linux and raw["coordinate_space"] != "window":
         raise invalid()
     actual = validate_target(raw["target"])
-    if (
-        actual != validate_target(target)
-        or not isinstance(raw["nodes"], list)
-        or not 1 <= len(raw["nodes"]) <= MAX_NODES
-    ):
+    nodes_raw = raw["nodes"]
+    if actual != validate_target(target) or not isinstance(nodes_raw, list):
         raise invalid()
-    nodes, depths, text_bytes = [], {}, 0
-    for index, item in enumerate(raw["nodes"], 1):
+    raw_nodes = cast(list[object], nodes_raw)
+    if not 1 <= len(raw_nodes) <= MAX_NODES:
+        raise invalid()
+    nodes: list[dict[str, object]] = []
+    depths: dict[int, int] = {}
+    text_bytes = 0
+    for index, item in enumerate(raw_nodes, 1):
         keys = {"id", "parent", "role", "name", "text", "password", "enabled", "offscreen", "bounds"}
         actionable = isinstance(item, dict) and "reference" in item
         if actionable:
             keys |= {"reference", "actions"}
-        item = _object(item, keys)
-        identity = _integer(item["id"], index, index)
-        parent = item["parent"]
+        entry = _object(cast(object, item), keys)
+        identity = _integer(entry["id"], index, index)
+        parent = entry["parent"]
         if index == 1:
             if parent is not None:
                 raise invalid()
@@ -432,37 +458,40 @@ def validate_observation(data: object, target: object) -> dict:
         if depth > MAX_DEPTH:
             raise invalid()
         depths[identity] = depth
-        texts = {}
+        texts: dict[str, str] = {}
         for key in ("name", "text"):
-            value = item[key]
-            if not isinstance(value, str) or len(value) > MAX_NODE_TEXT:
+            text_value = entry[key]
+            if not isinstance(text_value, str) or len(text_value) > MAX_NODE_TEXT:
                 raise invalid()
-            if any((ord(c) < 32 and c not in "\t\r\n") or 127 <= ord(c) <= 159 for c in value):
+            if any((ord(c) < 32 and c not in "\t\r\n") or 127 <= ord(c) <= 159 for c in text_value):
                 raise invalid()
             try:
-                text_bytes += len(value.encode("utf-8"))
+                text_bytes += len(text_value.encode("utf-8"))
             except UnicodeError as exc:
                 raise invalid() from exc
-            texts[key] = value
-        password = _boolean(item["password"])
+            texts[key] = text_value
+        password = _boolean(entry["password"])
         if text_bytes > MAX_TEXT_BYTES or (password and (texts["name"] or texts["text"])):
             raise invalid()
-        bounds = item["bounds"]
-        if not isinstance(bounds, list) or len(bounds) != 4:
+        bounds_raw = entry["bounds"]
+        if not isinstance(bounds_raw, list):
             raise invalid()
-        if any(type(v) not in {int, float} or abs(v) > 10_000_000 or not math.isfinite(v) for v in bounds):
+        bounds = cast(list[object], bounds_raw)
+        if len(bounds) != 4:
             raise invalid()
-        if bounds[2] < 0 or bounds[3] < 0:
+        if any(type(v) not in {int, float} or abs(cast(float, v)) > 10_000_000 or not math.isfinite(cast(float, v)) for v in bounds):
+            raise invalid()
+        if cast(float, bounds[2]) < 0 or cast(float, bounds[3]) < 0:
             raise invalid()
         nodes.append(
             {
                 "id": identity,
                 "parent": parent,
-                "role": _text(item["role"], 80),
+                "role": _text(entry["role"], 80),
                 **texts,
                 "password": password,
-                "enabled": _boolean(item["enabled"]),
-                "offscreen": _boolean(item["offscreen"]),
+                "enabled": _boolean(entry["enabled"]),
+                "offscreen": _boolean(entry["offscreen"]),
                 "bounds": bounds,
             }
         )
@@ -470,33 +499,35 @@ def validate_observation(data: object, target: object) -> dict:
             from .desktop_actions import KINDS, node_proof
             from .foreground import KINDS as FOREGROUND_KINDS
 
-            actions = item["actions"]
+            actions_raw = entry["actions"]
+            if not isinstance(actions_raw, list):
+                raise invalid()
+            actions = cast(list[object], actions_raw)
             if (
-                not isinstance(actions, list)
-                or len(actions) > 6
+                len(actions) > 6
                 or any(a not in KINDS + FOREGROUND_KINDS for a in actions)
                 or len(set(actions)) != len(actions)
             ):
                 raise invalid()
-            reference = node_proof(item["reference"]) if item["reference"] is not None else None
+            reference = node_proof(entry["reference"]) if entry["reference"] is not None else None
             if (
                 reference is not None
-                and reference.get("backend") != {"win32": None, "darwin": "ax", "linux": "atspi"}[actual["platform"]]
+                and reference.get("backend") != {"win32": None, "darwin": "ax", "linux": "atspi"}[cast(str, actual["platform"])]
             ):
                 raise invalid()
             if linux and (actual["backend"] != "atspi" or any(a not in KINDS for a in actions)):
                 raise invalid()
-            if actions and (reference is None or password or not item["enabled"] or item["offscreen"]):
+            if actions and (reference is None or password or not entry["enabled"] or entry["offscreen"]):
                 raise invalid()
             nodes[-1].update(reference=reference, actions=actions)
-    result = {"target": actual, "nodes": nodes, "truncated": _boolean(raw["truncated"])}
+    result: dict[str, object] = {"target": actual, "nodes": nodes, "truncated": _boolean(raw["truncated"])}
     if linux:
         result["coordinate_space"] = "window"
     _canonical(result)
     return result
 
 
-def parse_response(data: object, request: object) -> dict:
+def parse_response(data: object, request: object) -> dict[str, object]:
     expected = parse_request(request)
     value = _object(data, {"version", "request_id", "operation", "ok", "result", "error_code"})
     if (
@@ -507,6 +538,7 @@ def parse_response(data: object, request: object) -> dict:
         raise invalid()
     ok = _boolean(value["ok"])
     error = _code(value["error_code"])
+    result: object = None
     if not ok:
         if value["result"] is not None or error is None:
             raise invalid()
@@ -514,13 +546,16 @@ def parse_response(data: object, request: object) -> dict:
     else:
         if error is not None:
             raise invalid()
-        payload = value["result"]
-        if expected["operation"] in {"observe", "capture"} and isinstance(payload, dict) and "target" in payload:
-            payload = {**payload, "target": decode_native_target(payload["target"])}
+        raw_payload = value["result"]
+        payload: object = raw_payload
+        if expected["operation"] in {"observe", "capture"} and isinstance(raw_payload, dict):
+            fields = cast(dict[str, object], raw_payload)
+            if "target" in fields:
+                payload = {**fields, "target": decode_native_target(fields["target"])}
         if expected["operation"] == "probe":
             result = validate_capabilities(value["result"])
         elif expected["operation"] == "targets":
-            result = validate_targets(value["result"], expected["limit"])
+            result = validate_targets(value["result"], cast(int, expected["limit"]))
         elif expected["operation"] == "observe":
             result = validate_observation(payload, expected["target"])
         elif expected["operation"] == "capture":
@@ -528,11 +563,14 @@ def parse_response(data: object, request: object) -> dict:
         elif expected["operation"] in {"act", "foreground"}:
             from .desktop_actions import action_result
 
-            action_result(payload, expected["action"]["kind"])
+            action = expected["action"]
+            if not isinstance(action, dict):
+                raise invalid()
+            action_result(payload, cast(str | None, cast(dict[str, object], action).get("kind")))
             result = payload
         else:
             result = validate_verification(value["result"], expected["target"])
-    normalized = {
+    normalized: dict[str, object] = {
         "version": VERSION,
         "request_id": expected["request_id"],
         "operation": expected["operation"],
@@ -544,7 +582,7 @@ def parse_response(data: object, request: object) -> dict:
     return normalized
 
 
-def parse_owner(operation: object, data: object) -> dict:
+def parse_owner(operation: object, data: object) -> dict[str, object]:
     operation = _choice(operation, OWNER_OPERATIONS)
     keys = (
         {"consent", "view_id"}
@@ -563,7 +601,7 @@ def parse_owner(operation: object, data: object) -> dict:
         return {"consent": True, "view_id": view_id}
     if operation == "targets":
         return {"consent": True, "view_id": view_id, "limit": _integer(value["limit"], 1, 50)}
-    result = {
+    result: dict[str, object] = {
         "consent": True,
         "view_id": view_id,
         "snapshot_id": _uuid(value["snapshot_id"]),
@@ -572,3 +610,4 @@ def parse_owner(operation: object, data: object) -> dict:
     if operation == "capture":
         result["session_id"] = _uuid(value["session_id"])
     return result
+

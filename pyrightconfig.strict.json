@@ -37,6 +37,7 @@
     "agent/src/omni/domain/credential_ipc.py",
     "agent/src/omni/domain/credentials.py",
     "agent/src/omni/domain/delivery.py",
+    "agent/src/omni/domain/desktop.py",
     "agent/src/omni/domain/desktop_actions.py",
     "agent/src/omni/domain/desktop_portal.py",
     "agent/src/omni/domain/documents.py",
