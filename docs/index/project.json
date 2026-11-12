@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a4bd87cde76d608ce8afadf3964bb51581ac688eeb9416461faca4b6a8039612",
+  "source_sha256": "de86ac654ebabb0cf1ac8104ff57366223b00844a4e3fe9fb490a9a32b0f8547",
   "modules": [
     {
       "id": "v2-domain",
@@ -45403,7 +45403,7 @@
             "agent_id": "str",
             "run_id": "str",
             "action_id": "str",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
@@ -45496,7 +45496,7 @@
           "annotations": {
             "agent_id": "str",
             "grant_id": "str",
-            "value": "dict",
+            "value": "Record",
             "revision": "int"
           }
         },
@@ -45531,9 +45531,9 @@
             "agent_id": "str",
             "run_id": "str",
             "action_id": "str",
-            "arguments": "dict",
+            "arguments": "Record",
             "profile_id": "str",
-            "snapshot": "dict"
+            "snapshot": "Record"
           }
         },
         {
@@ -45579,7 +45579,7 @@
           "annotations": {
             "agent_id": "str",
             "environment_id": "str",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
@@ -45597,7 +45597,7 @@
             "agent_id": "str",
             "run_id": "str",
             "action_id": "str",
-            "arguments": "dict"
+            "arguments": "Record"
           }
         },
         {
