@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`f834500c0042526a3ed885098a7640432d961e81c6ec744b57462d63061545ec`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`6324d7c05648fce3c8e756dc062e55b8f0b41fc7e95e4f6673ad09ea774e4a65`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -86,7 +86,7 @@
 | [agent/src/omni/application/credentials.py](../../agent/src/omni/application/credentials.py) | 185 | Serialize audited owner credential changes; shield accepted mutations through caller cancellation. |
 | [agent/src/omni/application/debugging.py](../../agent/src/omni/application/debugging.py) | 122 | Boot-scoped debug authorization, durable audit and bounded maintenance; no log files here. |
 | [agent/src/omni/application/delivery.py](../../agent/src/omni/application/delivery.py) | 428 | Supervised, bounded outbound execution; never supplies a real transport by default. |
-| [agent/src/omni/application/desktop.py](../../agent/src/omni/application/desktop.py) | 528 | Owner desktop observations with short-lived scoped identities; never authorizes or dispatches desktop writes. |
+| [agent/src/omni/application/desktop.py](../../agent/src/omni/application/desktop.py) | 533 | Owner desktop observations with short-lived scoped identities; never authorizes or dispatches desktop writes. |
 | [agent/src/omni/application/desktop_actions.py](../../agent/src/omni/application/desktop_actions.py) | 224 | Owner-selected semantic commands using the shared run, approval and action ledger. |
 | [agent/src/omni/application/desktop_portal.py](../../agent/src/omni/application/desktop_portal.py) | 314 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/documents.py](../../agent/src/omni/application/documents.py) | 365 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |

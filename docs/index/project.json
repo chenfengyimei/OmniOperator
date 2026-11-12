@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f834500c0042526a3ed885098a7640432d961e81c6ec744b57462d63061545ec",
+  "source_sha256": "6324d7c05648fce3c8e756dc062e55b8f0b41fc7e95e4f6673ad09ea774e4a65",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11112,
+      "lines": 11117,
       "dependencies": [
         "v2-domain"
       ]
@@ -36654,7 +36654,7 @@
       "path": "agent/src/omni/application/desktop.py",
       "module": "v2-application",
       "python_module": "omni.application.desktop",
-      "lines": 528,
+      "lines": 533,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -36752,7 +36752,7 @@
         },
         {
           "name": "DesktopService._execute",
-          "line": 115,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -36770,25 +36770,25 @@
         },
         {
           "name": "DesktopService._execute.perform",
-          "line": 131,
+          "line": 133,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopService._execute.finished",
-          "line": 144,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "done"
           ],
           "annotations": {
-            "done": "asyncio.Task"
+            "done": "asyncio.Task[object]"
           }
         },
         {
           "name": "DesktopService._current",
-          "line": 154,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "self",
@@ -36804,7 +36804,7 @@
         },
         {
           "name": "DesktopService._dispatch_guard",
-          "line": 160,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "self",
@@ -36822,14 +36822,14 @@
         },
         {
           "name": "DesktopService._dispatch_guard.guard",
-          "line": 163,
+          "line": 165,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopService.status",
-          "line": 173,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self",
@@ -36841,7 +36841,7 @@
         },
         {
           "name": "DesktopService.begin",
-          "line": 191,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self",
@@ -36855,7 +36855,7 @@
         },
         {
           "name": "DesktopService._audit",
-          "line": 213,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -36874,7 +36874,7 @@
         },
         {
           "name": "DesktopService.probe",
-          "line": 225,
+          "line": 227,
           "kind": "function",
           "parameters": [
             "self",
@@ -36888,7 +36888,7 @@
         },
         {
           "name": "DesktopService.probe.perform",
-          "line": 228,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "view",
@@ -36903,7 +36903,7 @@
         },
         {
           "name": "DesktopService.targets",
-          "line": 255,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self",
@@ -36917,7 +36917,7 @@
         },
         {
           "name": "DesktopService.targets.perform",
-          "line": 258,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "view",
@@ -36932,7 +36932,7 @@
         },
         {
           "name": "DesktopService.verify",
-          "line": 314,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "self",
@@ -36946,7 +36946,7 @@
         },
         {
           "name": "DesktopService.verify.perform",
-          "line": 317,
+          "line": 320,
           "kind": "function",
           "parameters": [
             "view",
@@ -36961,7 +36961,7 @@
         },
         {
           "name": "DesktopService.observe",
-          "line": 361,
+          "line": 364,
           "kind": "function",
           "parameters": [
             "self",
@@ -36975,7 +36975,7 @@
         },
         {
           "name": "DesktopService.observe.perform",
-          "line": 364,
+          "line": 367,
           "kind": "function",
           "parameters": [
             "view",
@@ -36990,7 +36990,7 @@
         },
         {
           "name": "DesktopService.action_binding",
-          "line": 420,
+          "line": 425,
           "kind": "function",
           "parameters": [
             "self",
@@ -37004,7 +37004,7 @@
         },
         {
           "name": "DesktopService.consume_observation",
-          "line": 442,
+          "line": 447,
           "kind": "function",
           "parameters": [
             "self",
@@ -37018,7 +37018,7 @@
         },
         {
           "name": "DesktopService.capture",
-          "line": 447,
+          "line": 452,
           "kind": "function",
           "parameters": [
             "self",
@@ -37032,7 +37032,7 @@
         },
         {
           "name": "DesktopService.capture.perform",
-          "line": 450,
+          "line": 455,
           "kind": "function",
           "parameters": [
             "view",
@@ -37047,14 +37047,14 @@
         },
         {
           "name": "DesktopService.capture.perform.guard",
-          "line": 457,
+          "line": 462,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DesktopService.forget",
-          "line": 485,
+          "line": 490,
           "kind": "function",
           "parameters": [
             "self",
@@ -37068,7 +37068,7 @@
         },
         {
           "name": "DesktopService.health",
-          "line": 498,
+          "line": 503,
           "kind": "function",
           "parameters": [
             "self"
@@ -37077,7 +37077,7 @@
         },
         {
           "name": "DesktopService.stop_accepting",
-          "line": 506,
+          "line": 511,
           "kind": "function",
           "parameters": [
             "self"
@@ -37086,7 +37086,7 @@
         },
         {
           "name": "DesktopService.close",
-          "line": 517,
+          "line": 522,
           "kind": "function",
           "parameters": [
             "self",
