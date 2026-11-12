@@ -30,6 +30,8 @@
 
 按 D7 剩余范围实现：**统一工作台收敛与业务清单（如实标注可用/需配置/未验收）、全仓严格类型（分模块推进并记录例外）、三平台包/容器/安装更新恢复（缺环境记待真实验收）**；每批只改该任务所需内容，专项覆盖调用方，收尾再跑全量。
 
+严格类型的下一步（2026-11-12 交接时实测，勿重复摸底）：strict 已到 249 文件（53 domain + 43 application + 153/222 adapters）0 errors；范围外还有 62 个 adapters 文件 / 6842 个 strict 错误，清单见 `docs/TYPE_CHECKING.md` §3.1。建议顺序：`persistence/qq_repository.py`（41）、`persistence/history_pruning_cycle.py`（45）、`workers/linux_desktop.py`（46）、`persistence/memory_repository.py`（47）；`platform/deployment_files.py`（49）需先去掉绝对 `import omni`。全量最近一次（第一百三十三批源码，-n 2）4654 项 4593 passed / 25 failed / 36 errors，其中 36 errors 是陈旧夹具已由 `1b0bdb0` 修复并隔离 54 项全过，24 项失败属并行工作台改版；工作台改版落地后需补跑一次完整全量。
+
 可直接照抄结构的先例（不照抄业务）：
 - `application/extensions.py`：`authorize` / `disable` / `tools_for_run` / `invoke` / `review_quiescent`；invoke 前比对 `arguments_sha256`，`before_dispatch` 二次校验，漂移码 `extension_snapshot_drift`。
 - `adapters/extensions/hosts.py`：`MAX_HOSTS=4`、`MAX_PENDING=64`、`revoke(..., authority_epoch, timeout_s)`、`health()`、`stop_accepting/close`。
