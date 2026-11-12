@@ -2506,3 +2506,95 @@ html[data-theme="dark"] body button[type="submit"] {
   border-color: #34d399;
   color: #041c1c;
 }
+
+/* ==========================================================================
+   对话工作区：去掉大边框、居中列宽、消息与输入区对齐
+   ========================================================================== */
+body > main > section {
+  padding: 0 0 16px;
+}
+#chat {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+#messages {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 18px 20px 12px;
+  gap: 20px;
+}
+.msg {
+  padding: 0;
+}
+.msg.user .bubble {
+  padding: 10px 14px;
+  border-radius: 14px 14px 4px 14px;
+}
+.msg.assistant .bubble {
+  padding: 2px 0 0 30px;
+  max-width: 760px;
+  line-height: 1.75;
+}
+#send {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+#send textarea {
+  min-height: 64px;
+}
+#pin-run,
+#chat > details {
+  max-width: 880px;
+  margin-inline: auto;
+}
+.page-head {
+  margin: 0;
+  padding: 14px 24px 10px;
+}
+body.chat-mode > main > section {
+  max-width: none;
+}
+
+/* 运行工具条对齐到会话列宽 */
+#pin-run:disabled {
+  display: none;
+}
+#pin-run {
+  margin-left: max(20px, calc((100% - 880px) / 2));
+  margin-bottom: 2px;
+}
+#chat > details {
+  width: min(880px, calc(100% - 40px));
+  margin: 0 auto 8px;
+}
+#send {
+  margin-top: 6px;
+}
+#open-settings {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--accent);
+}
+
+/* 会话列表与服务行的小幅润色 */
+#sessions li {
+  margin: 2px 4px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+}
+#sessions li:hover {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.svc-row {
+  padding: 7px 10px;
+}
+.svc-row + .svc-row {
+  border-top: 1px solid var(--line-3);
+  border-radius: 0;
+}
