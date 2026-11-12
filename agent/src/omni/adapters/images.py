@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import cast
 import base64
 import hashlib
 import io
@@ -40,7 +41,7 @@ def inspect_image(content: bytes, wire: bool = False) -> ImageInfo | str:
 
 class ImageCodec:
     def __init__(self) -> None:
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = False
 
@@ -60,12 +61,12 @@ class ImageCodec:
         task = asyncio.create_task(perform(), name="image-codec")
         self._pending.add(task)
 
-        def done(future: asyncio.Task) -> None:
+        def done(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
 
-        task.add_done_callback(done)
+        task.add_done_callback(lambda future: done(cast(asyncio.Task[object], future)))
         return await asyncio.shield(task)
 
     def stop_accepting(self) -> None:

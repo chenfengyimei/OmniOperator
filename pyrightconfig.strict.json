@@ -2,6 +2,7 @@
   "typeCheckingMode": "strict",
   "include": [
     "agent/src/omni/adapters/build_identity.py",
+    "agent/src/omni/adapters/images.py",
     "agent/src/omni/adapters/metrics.py",
     "agent/src/omni/adapters/object_store.py",
     "agent/src/omni/adapters/persistence/action_predicates.py",
