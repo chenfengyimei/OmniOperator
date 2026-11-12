@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "65712b440b63c8a6813c57ae1156071c6952bc6cb284c5cfe30dc46773c6d1bb",
+  "source_sha256": "47298c9b241cf409c5867a8d74e6cd4deaef4364f689c50636dff6f54ebced30",
   "modules": [
     {
       "id": "v2-domain",
@@ -493,7 +493,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 13225,
+      "lines": 13997,
       "dependencies": []
     },
     {
@@ -1035,7 +1035,7 @@
         "web/ui/tokens.css",
         "web/ui/workbench.css"
       ],
-      "lines": 12623,
+      "lines": 12632,
       "dependencies": []
     },
     {
@@ -3534,11 +3534,13 @@
           "parameters": [
             "self",
             "sink",
-            "level"
+            "level",
+            "logger_name"
           ],
           "annotations": {
             "sink": "JsonLogSink",
-            "level": "int"
+            "level": "int",
+            "logger_name": "str"
           }
         },
         {
@@ -95280,7 +95282,7 @@
       "path": "web/ui/tokens.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 222,
+      "lines": 231,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95420,7 +95422,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1452,
+      "lines": 1469,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95430,7 +95432,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 985,
+      "lines": 1131,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95590,7 +95592,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2056,
+      "lines": 2665,
       "imports": [],
       "symbols": [],
       "kind": "asset",
