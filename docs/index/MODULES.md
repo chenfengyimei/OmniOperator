@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`8de2313d6d5dc57f3cc6c71e00e3a5fddbf946c71310e0b9ebcb51d21fe238fd`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`d94d321ed345cfcfda1ffa3ce168354f916553389a8c40f15de0499bfd6865a9`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -395,7 +395,7 @@
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 164 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 993 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
-| [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 232 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
+| [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 233 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 735 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 156 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
 | [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 122 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
@@ -404,7 +404,7 @@
 | [agent/src/omni/composition/service_exchange.py](../../agent/src/omni/composition/service_exchange.py) | 186 | Assemble reviewed exchanges and their explicitly pinned root session; never elevates or switches default entrypoints. |
 | [agent/src/omni/composition/service_operations.py](../../agent/src/omni/composition/service_operations.py) | 71 | Assemble one explicit offline service-registration command; production entry remains unchanged. |
 | [agent/src/omni/composition/service_runner.py](../../agent/src/omni/composition/service_runner.py) | 60 | Start only a verified immutable deployment as its declared account; never registers a native service. |
-| [agent/src/omni/composition/serving.py](../../agent/src/omni/composition/serving.py) | 67 | Compose the single-worker HTTP process for manual and pinned service startup. |
+| [agent/src/omni/composition/serving.py](../../agent/src/omni/composition/serving.py) | 68 | Compose the single-worker HTTP process for manual and pinned service startup. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8de2313d6d5dc57f3cc6c71e00e3a5fddbf946c71310e0b9ebcb51d21fe238fd",
+  "source_sha256": "d94d321ed345cfcfda1ffa3ce168354f916553389a8c40f15de0499bfd6865a9",
   "modules": [
     {
       "id": "v2-domain",
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2934,
+      "lines": 2936,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -58840,7 +58840,7 @@
       "path": "agent/src/omni/composition/http.py",
       "module": "v2-composition",
       "python_module": "omni.composition.http",
-      "lines": 232,
+      "lines": 233,
       "imports": [
         "omni.adapters.http",
         "omni.adapters.log_query",
@@ -58857,14 +58857,14 @@
       "symbols": [
         {
           "name": "web_assets",
-          "line": 37,
+          "line": 38,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "http_app",
-          "line": 45,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "home",
@@ -58909,13 +58909,13 @@
             "terminal_backend": "TerminalBackendPort | None",
             "desktop_backend": "DesktopBackendPort | None",
             "portal_backend": "DesktopPortalPort | None",
-            "deployment": "dict | None",
+            "deployment": "dict[str, Any] | None",
             "shutdown": "Callable[[], None] | None"
           }
         },
         {
           "name": "http_app.factory",
-          "line": 69,
+          "line": 70,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -59573,7 +59573,7 @@
       "path": "agent/src/omni/composition/serving.py",
       "module": "v2-composition",
       "python_module": "omni.composition.serving",
-      "lines": 67,
+      "lines": 68,
       "imports": [
         "omni.composition.http",
         "omni.domain.contracts"
@@ -59581,7 +59581,7 @@
       "symbols": [
         {
           "name": "serve_instance",
-          "line": 12,
+          "line": 13,
           "kind": "function",
           "parameters": [
             "home",
@@ -59599,12 +59599,12 @@
             "external_url": "str | None",
             "master_key_file": "Path | None",
             "stdout_logs": "bool",
-            "deployment": "dict | None"
+            "deployment": "dict[str, Any] | None"
           }
         },
         {
           "name": "serve_instance.request_shutdown",
-          "line": 44,
+          "line": 45,
           "kind": "function",
           "parameters": [],
           "annotations": {}
