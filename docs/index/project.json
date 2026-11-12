@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0ee5bace83214b678391c2bfa96669b2b16205e8109afc58f4187f51490a5d12",
+  "source_sha256": "2957d00e697de97500472852cb8658e9f0cf30bdbdec4655388ba5e170c09772",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53230,
+      "lines": 53232,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -12834,7 +12834,7 @@
       "path": "agent/src/omni/adapters/persistence/database.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.database",
-      "lines": 188,
+      "lines": 190,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
@@ -12955,7 +12955,9 @@
           "parameters": [
             "uow"
           ],
-          "annotations": {}
+          "annotations": {
+            "uow": "UnitOfWork"
+          }
         }
       ],
       "summary": "Bounded, single-writer database actor with isolated read connections."

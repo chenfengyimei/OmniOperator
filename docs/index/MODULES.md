@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`0ee5bace83214b678391c2bfa96669b2b16205e8109afc58f4187f51490a5d12`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`2957d00e697de97500472852cb8658e9f0cf30bdbdec4655388ba5e170c09772`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -177,7 +177,7 @@
 | [agent/src/omni/adapters/persistence/context_repository.py](../../agent/src/omni/adapters/persistence/context_repository.py) | 487 | Revision-bound summaries and context provenance; all operations stay inside a short transaction. |
 | [agent/src/omni/adapters/persistence/credential_predicates.py](../../agent/src/omni/adapters/persistence/credential_predicates.py) | 7 | One unreviewed credential authority predicate for diagnostics and retention guards. |
 | [agent/src/omni/adapters/persistence/credential_repository.py](../../agent/src/omni/adapters/persistence/credential_repository.py) | 460 | Owner credential references, operation state and review; no native I/O or connection creation. |
-| [agent/src/omni/adapters/persistence/database.py](../../agent/src/omni/adapters/persistence/database.py) | 188 | Bounded, single-writer database actor with isolated read connections. |
+| [agent/src/omni/adapters/persistence/database.py](../../agent/src/omni/adapters/persistence/database.py) | 190 | Bounded, single-writer database actor with isolated read connections. |
 | [agent/src/omni/adapters/persistence/delivery_predicates.py](../../agent/src/omni/adapters/persistence/delivery_predicates.py) | 32 | Shared outbound pending/review predicates for dispatch, scheduling and maintenance queries. |
 | [agent/src/omni/adapters/persistence/delivery_repository.py](../../agent/src/omni/adapters/persistence/delivery_repository.py) | 896 | Transactional outbound authority, FIFO ownership and immutable attempt observations. |
 | [agent/src/omni/adapters/persistence/deployed_instance.py](../../agent/src/omni/adapters/persistence/deployed_instance.py) | 30 | Check an initialized service home without migrations or business recovery. |
