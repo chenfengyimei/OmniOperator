@@ -75,6 +75,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/service_exchange.py` | 交换计划/管理员阶段/应用编排（公共桥） |
 | `agent/src/omni/application/model_output.py` | 有界实时预览（TypedDict 行、authority Mapping） |
 | `agent/src/omni/application/people.py` | 人物档案用例（显式 Record/类型化调用） |
+| `agent/src/omni/application/qq.py` | QQ 监听/会话授权/健康状态（有界任务、显式 Record） |
 | `agent/src/omni/application/memory_tools.py` | 记忆工具用例（UnitOfWork 回调显式类型） |
 | `agent/src/omni/application/action_review.py` | 动作复核用例（有界任务集/Record 返回显式化） |
 | `agent/src/omni/application/bilibili.py` | B 站读取/发布准备（有界任务、显式 Record） |

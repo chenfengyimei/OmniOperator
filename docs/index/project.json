@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d26c8a000db93df61d0e9f23a6cbdac0f3a0e392c303cf522a0b9171bc39fa96",
+  "source_sha256": "6aae3443a68c32f4444f2b9461c7523ec38710179cbe280f83789212263e9534",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10954,
+      "lines": 10987,
       "dependencies": [
         "v2-domain"
       ]
@@ -50409,7 +50409,7 @@
       "path": "agent/src/omni/application/qq.py",
       "module": "v2-application",
       "python_module": "omni.application.qq",
-      "lines": 197,
+      "lines": 230,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -50432,24 +50432,24 @@
             "connected"
           ],
           "annotations": {
-            "configuration": "dict",
-            "receive": "Callable",
+            "configuration": "dict[str, object]",
+            "receive": "Callable[[object], Awaitable[None]]",
             "connected": "Callable[[], None]"
           }
         },
         {
           "name": "QQTransportPort",
-          "line": 21,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "QQService",
-          "line": 25,
+          "line": 30,
           "kind": "class"
         },
         {
           "name": "QQService.__init__",
-          "line": 26,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "self",
@@ -50465,7 +50465,7 @@
         },
         {
           "name": "QQService.page",
-          "line": 34,
+          "line": 39,
           "kind": "function",
           "parameters": [
             "self",
@@ -50481,7 +50481,7 @@
         },
         {
           "name": "QQService.save",
-          "line": 38,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "self",
@@ -50501,7 +50501,7 @@
         },
         {
           "name": "QQService.receive",
-          "line": 45,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self",
@@ -50515,13 +50515,13 @@
             "agent_id": "str",
             "config_id": "str",
             "revision_id": "str",
-            "raw": "dict",
+            "raw": "Mapping[str, object]",
             "transport_revision": "str"
           }
         },
         {
           "name": "QQService.health",
-          "line": 62,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self"
@@ -50530,7 +50530,7 @@
         },
         {
           "name": "QQService.status",
-          "line": 71,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -50542,7 +50542,7 @@
         },
         {
           "name": "QQService.start",
-          "line": 81,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self"
@@ -50551,28 +50551,30 @@
         },
         {
           "name": "QQService._listen",
-          "line": 85,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
             "config"
           ],
           "annotations": {
-            "config": "dict"
+            "config": "Mapping[str, object]"
           }
         },
         {
           "name": "QQService._listen.receive",
-          "line": 89,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "raw"
           ],
-          "annotations": {}
+          "annotations": {
+            "raw": "object"
+          }
         },
         {
           "name": "QQService._loop",
-          "line": 125,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self"
@@ -50581,7 +50583,7 @@
         },
         {
           "name": "QQService.stop_accepting",
-          "line": 182,
+          "line": 212,
           "kind": "function",
           "parameters": [
             "self"
@@ -50590,7 +50592,7 @@
         },
         {
           "name": "QQService.close",
-          "line": 185,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
