@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261112v55" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261112v55" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261112v56" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261112v56" />
   </head>
   <body class="chat-mode">
     <header class="app-header">
@@ -96,36 +96,39 @@
           <button id="show-summary" type="button" hidden>查看当前摘要</button>
           <pre id="summary-body"></pre>
           <form id="send">
-            <label
-              >本次档位<select id="chat-mode">
-                <option value="">跟随空间档位设置</option>
-                <option value="auto">自动（不确定时完整）</option>
-                <option value="chat">聊天</option>
-                <option value="retrieval">检索</option>
-                <option value="agent">完整</option>
-              </select></label
-            >
-            <label>本轮技能（可选，最多 4 个）<select id="skill-turn" multiple size="3"></select></label>
-            <button id="skill-turn-clear" type="button">清空技能选择</button>
-            <label>消息<textarea id="message" rows="3"></textarea></label>
-            <label
-              >图片（PNG / JPEG / WebP，最多 4 张）<input
-                id="image-file"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                disabled
-            /></label>
-            <ul id="image-drafts"></ul>
-            <div class="actions">
-              <button id="image-refresh-captures" type="button">载入会话截图</button
-              ><label>复用截图<select id="image-capture"></select></label
-              ><button id="image-add-capture" type="button" disabled>附加所选截图</button>
+            <div class="composer-main">
+              <textarea id="message" rows="2" placeholder="给小鱼发消息…（Enter 发送，Shift + Enter 换行）"></textarea>
+              <div class="composer-actions">
+                <button type="submit">发送</button>
+                <button id="cancel" type="button" disabled>取消运行</button>
+              </div>
             </div>
+            <div class="composer-tools">
+              <label class="mini"
+                >档位<select id="chat-mode">
+                  <option value="">跟随空间档位设置</option>
+                  <option value="auto">自动（不确定时完整）</option>
+                  <option value="chat">聊天</option>
+                  <option value="retrieval">检索</option>
+                  <option value="agent">完整</option>
+                </select></label
+              >
+              <label class="mini">技能<select id="skill-turn" multiple size="1"></select></label>
+              <button id="skill-turn-clear" type="button" title="清空本轮技能选择">清空</button>
+              <label class="mini"
+                >图片<input
+                  id="image-file"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  disabled
+              /></label>
+              <button id="image-refresh-captures" type="button" title="载入会话截图">载入截图</button>
+              <label class="mini">复用<select id="image-capture"></select></label>
+              <button id="image-add-capture" type="button" disabled title="附加所选截图">附加</button>
+            </div>
+            <ul id="image-drafts"></ul>
             <p id="image-status" role="status"></p>
             <p id="image-run-status" role="status"></p>
-            <div class="actions">
-              <button type="submit">发送</button><button id="cancel" type="button" disabled>取消运行</button>
-            </div>
           </form>
         </section>
         <section id="android" class="page" hidden>
@@ -1416,9 +1419,32 @@
           </fieldset>
         </section>
       </section>
+      <aside class="inspector" aria-label="会话面板">
+        <div class="inspector-tabs" role="tablist">
+          <button type="button" data-inspector="todo" role="tab" aria-selected="true">待办</button>
+          <button type="button" data-inspector="skills" role="tab" aria-selected="false">技能</button>
+          <button type="button" data-inspector="objects" role="tab" aria-selected="false">产物</button>
+          <button type="button" data-inspector="desktop" role="tab" aria-selected="false">桌面</button>
+        </div>
+        <div class="inspector-body">
+          <section data-inspector-panel="todo">
+            <p id="inspector-todo-count" class="muted">暂无待办</p>
+            <p class="muted">需要审批的动作会显示在对话上方。</p>
+          </section>
+          <section data-inspector-panel="skills" hidden>
+            <div id="inspector-skills" class="muted">本轮未使用技能</div>
+          </section>
+          <section data-inspector-panel="objects" hidden>
+            <div id="inspector-objects" class="muted">暂无产物</div>
+          </section>
+          <section data-inspector-panel="desktop" hidden>
+            <p id="inspector-desktop" class="muted">桌面截图与窗口操作在「桌面能力」页。</p>
+          </section>
+        </div>
+      </aside>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261112v55"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261112v55"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261112v55"></script>
+    <script src="/assets/vendor/xterm.js?v=20261112v56"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261112v56"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261112v56"></script>
   </body>
 </html>

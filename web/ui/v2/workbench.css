@@ -1203,3 +1203,148 @@ body > main > section {
     grid-row: 3;
   }
 }
+
+/* ==========================================================================
+   V1 风格：紧凑输入区 + 右侧会话面板
+   ========================================================================== */
+#send {
+  padding: 10px 12px;
+  gap: 6px;
+}
+.composer-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.composer-main textarea {
+  flex: 1 1 auto;
+  min-height: 52px;
+  max-height: 180px;
+}
+.composer-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 6px;
+}
+.composer-actions button {
+  min-width: 84px;
+}
+.composer-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.composer-tools label.mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+  white-space: nowrap;
+}
+.composer-tools select,
+.composer-tools input[type="file"] {
+  width: auto;
+  height: 26px;
+  padding: 1px 6px;
+  font-size: var(--fs-caption);
+}
+.composer-tools button {
+  height: 26px;
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: var(--fs-caption);
+}
+#skill-turn {
+  min-height: 26px;
+  height: 26px;
+}
+#image-drafts:empty {
+  display: none;
+}
+#image-status:empty,
+#image-run-status:empty {
+  display: none;
+}
+
+body > main {
+  grid-template-columns: 312px minmax(0, 1fr) 320px;
+}
+body.chat-mode > main > section {
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+}
+body > main > aside.inspector {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid var(--line-3);
+  background: color-mix(in srgb, var(--surface-1) 40%, transparent);
+}
+body:not(.chat-mode) > main > aside.inspector {
+  display: none;
+}
+.inspector-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 8px 0;
+  border-bottom: 1px solid var(--line-3);
+}
+.inspector-tabs button {
+  flex: 1;
+  height: 30px;
+  padding: 0 6px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+.inspector-tabs button[aria-selected="true"] {
+  color: var(--text-1);
+  border-bottom-color: var(--accent);
+}
+.inspector-body {
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+}
+.inspector-body section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.inspector-body .object-row {
+  padding: 6px 8px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+  body > main {
+    grid-template-columns: 312px minmax(0, 1fr);
+  }
+  body > main > aside.inspector {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  body > main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 窄屏兜底：横向裁掉溢出（rail 本身是滚动容器） */
+@media (max-width: 900px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}

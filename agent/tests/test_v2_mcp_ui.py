@@ -71,7 +71,7 @@ def test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects(ui_browser,
         errors = []
         page.on("pageerror", lambda exc: errors.append(str(exc)))
         page.goto(url)
-        assert "main.js?v=20261112v55" in page.content()
+        assert "main.js?v=20261112v56" in page.content()
         page.locator("#token").fill(token)
         page.get_by_role("button", name="连接实例").click()
         expect(page.locator("#agents option")).to_have_count(1)

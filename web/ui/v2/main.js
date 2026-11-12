@@ -1,28 +1,28 @@
-import { mountSkills } from './skills.js?v=20261112v55';
-import { mountCredentials } from './credentials.js?v=20261112v55';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261112v55';
-import { mountCapabilities } from './capabilities.js?v=20261112v55';
-import { mountTokens } from './tokens.js?v=20261112v55';
-import { mountDocuments } from './documents.js?v=20261112v55';
-import { mountConfiguration } from './configuration.js?v=20261112v55';
+import { mountSkills } from './skills.js?v=20261112v56';
+import { mountCredentials } from './credentials.js?v=20261112v56';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261112v56';
+import { mountCapabilities } from './capabilities.js?v=20261112v56';
+import { mountTokens } from './tokens.js?v=20261112v56';
+import { mountDocuments } from './documents.js?v=20261112v56';
+import { mountConfiguration } from './configuration.js?v=20261112v56';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261112v55';
-import { mountDeliveries } from './deliveries.js?v=20261112v55';
-import { mountSchedules } from './schedules.js?v=20261112v55';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261112v55';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261112v55';
-import { mountExtensions } from './extensions.js?v=20261112v55';
-import { mountActionReviews } from './action-reviews.js?v=20261112v55';
-import { mountTerminals } from './terminals.js?v=20261112v55';
-import { mountDesktop } from './desktop.js?v=20261112v55';
-import { mountQQ } from './qq.js?v=20261112v55';
-import { mountBilibili } from './bilibili.js?v=20261112v55';
-import { mountMedia } from './media.js?v=20261112v55';
-import { mountMcp } from './mcp.js?v=20261112v55';
-import { mountAndroid } from './android.js?v=20261112v55';
-import { mountModelOutput } from './model-output.js?v=20261112v55';
-import { mountRouting } from './routing.js?v=20261112v55';
-import { mountChatImages } from './chat-images.js?v=20261112v55';
+import { mountPeople } from './people.js?v=20261112v56';
+import { mountDeliveries } from './deliveries.js?v=20261112v56';
+import { mountSchedules } from './schedules.js?v=20261112v56';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261112v56';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261112v56';
+import { mountExtensions } from './extensions.js?v=20261112v56';
+import { mountActionReviews } from './action-reviews.js?v=20261112v56';
+import { mountTerminals } from './terminals.js?v=20261112v56';
+import { mountDesktop } from './desktop.js?v=20261112v56';
+import { mountQQ } from './qq.js?v=20261112v56';
+import { mountBilibili } from './bilibili.js?v=20261112v56';
+import { mountMedia } from './media.js?v=20261112v56';
+import { mountMcp } from './mcp.js?v=20261112v56';
+import { mountAndroid } from './android.js?v=20261112v56';
+import { mountModelOutput } from './model-output.js?v=20261112v56';
+import { mountRouting } from './routing.js?v=20261112v56';
+import { mountChatImages } from './chat-images.js?v=20261112v56';
 
 const $ = (id) => document.getElementById(id);
 let token = '',
@@ -261,6 +261,36 @@ function themeLabel() {
   button.textContent = pref === 'light' ? '☀' : pref === 'dark' ? '☾' : '◐';
   button.title = `切换主题（当前：${{ auto: '跟随系统', light: '浅色', dark: '深色' }[pref] || pref}）`;
 }
+const runToolsCache = new Map();
+async function loadRunTools(runId) {
+  if (!runId) return [];
+  if (runToolsCache.has(runId)) return runToolsCache.get(runId);
+  const data = await api(scope(`/runs/${runId}/events?limit=200`));
+  const rows = (data.items || []).filter((row) => /^(tool|action)\./.test(String(row.kind || '')));
+  runToolsCache.set(runId, rows);
+  return rows;
+}
+function renderToolBlock(node, rows) {
+  if (!rows.length || node.querySelector('.tool-calls')) return;
+  const names = new Set();
+  for (const row of rows) {
+    const name = row.tool || row.data?.tool || row.data?.name;
+    if (name) names.add(String(name));
+  }
+  const details = document.createElement('details');
+  details.className = 'tool-calls';
+  const summary = document.createElement('summary');
+  summary.textContent = `调用过程 ${rows.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
+  details.append(summary);
+  for (const row of rows.slice(0, 40)) {
+    const line = document.createElement('div');
+    line.className = 'tool-call';
+    const payload = typeof row.data === 'string' ? row.data : JSON.stringify(row.data || {});
+    line.textContent = `${row.kind}${payload && payload !== '{}' ? ' · ' + payload.slice(0, 200) : ''}`;
+    details.append(line);
+  }
+  node.append(details);
+}
 function renderMessages(items) {
   const boundAgent = agent,
     boundSession = session;
@@ -279,6 +309,7 @@ function renderMessages(items) {
     ...items.map((m) => {
       const node = document.createElement('article');
       node.dataset.role = m.role === 'user' ? 'user' : 'assistant';
+      if (m.run_id) node.dataset.runId = m.run_id;
       const head = document.createElement('div');
       head.className = 'message-head';
       const role = document.createElement('span');
@@ -358,6 +389,12 @@ function renderMessages(items) {
     }),
   );
   $('messages').scrollTop = $('messages').scrollHeight;
+  for (const node of $('messages').querySelectorAll('article[data-run-id]'))
+    loadRunTools(node.dataset.runId)
+      .then((rows) => {
+        if (rows.length) renderToolBlock(node, rows);
+      })
+      .catch(() => {});
 }
 async function refreshSessions() {
   const current = generation,
@@ -420,6 +457,8 @@ async function poll() {
       return card;
     }),
   );
+  $('inspector-todo-count').textContent = approvals.length ? `${approvals.length} 项待审批` : '暂无待办';
+  $('inspector-skills').textContent = $('skill-run-status').textContent.trim() || '本轮未使用技能';
   if (run) {
     const checkedRun = run;
     const result = await api(scope(`/runs/${checkedRun}`));
@@ -876,6 +915,31 @@ for (const button of document.querySelectorAll('[data-page]'))
     }),
   );
 window.addEventListener('pagehide', stop);
+for (const tab of document.querySelectorAll('[data-inspector]'))
+  tab.addEventListener('click', () => {
+    for (const other of document.querySelectorAll('[data-inspector]'))
+      other.setAttribute('aria-selected', String(other === tab));
+    for (const panel of document.querySelectorAll('[data-inspector-panel]'))
+      panel.hidden = panel.dataset.inspectorPanel !== tab.dataset.inspector;
+    if (tab.dataset.inspector === 'objects') loadInspectorObjects().catch(error);
+  });
+async function loadInspectorObjects() {
+  if (!agent) return;
+  const bound = agent,
+    stamp = generation;
+  const data = await api(scope('/objects?limit=12'));
+  if (bound !== agent || stamp !== generation) return;
+  const list = $('inspector-objects');
+  list.replaceChildren(
+    ...data.items.map((item) => {
+      const row = document.createElement('div');
+      row.className = 'object-row';
+      row.textContent = `${item.media_type} · ${item.bytes} 字节 · ${String(item.sha256).slice(0, 10)}…`;
+      return row;
+    }),
+  );
+  if (!data.items.length) list.textContent = '暂无产物';
+}
 syncPageChrome('chat');
 themeLabel();
 document.addEventListener('visibilitychange', () => {
