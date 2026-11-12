@@ -7,7 +7,9 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import cast
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.installation import make_installation, validate_installation
 from ..persistence.maintenance import durable_json, migrate_database, read_schema
@@ -43,7 +45,7 @@ def invalid(code: str = "switch_invalid") -> BusinessError:
     return BusinessError(code, "Switch only a prepared, smoked, backed-up and drilled candidate", status=422)
 
 
-def _receipt(stage: Path, name: str, fmt: str, sha256: str) -> dict[str, object]:
+def _receipt(stage: Path, name: str, fmt: str, sha256: str) -> Record:
     path = stage / name
     if not path.is_file():
         raise invalid(f"switch_missing_{name.removesuffix('.json')}")
@@ -51,9 +53,12 @@ def _receipt(stage: Path, name: str, fmt: str, sha256: str) -> dict[str, object]
         record = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError, UnicodeError):
         raise invalid(f"switch_{name.removesuffix('.json')}_invalid") from None
-    if not isinstance(record, dict) or record.get("format") != fmt or record.get("wheel_sha256") != sha256:
+    if not isinstance(record, dict):
         raise invalid(f"switch_{name.removesuffix('.json')}_invalid")
-    return record
+    receipt = cast(Record, record)
+    if receipt.get("format") != fmt or receipt.get("wheel_sha256") != sha256:
+        raise invalid(f"switch_{name.removesuffix('.json')}_invalid")
+    return receipt
 
 
 def _wrapper(home: Path, python: str) -> None:
@@ -75,13 +80,16 @@ def _environment(stage: Path) -> tuple[str, str] | None:
         record = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError, UnicodeError):
         return None
-    if not isinstance(record, dict) or record.get("installed") is not True:
+    if not isinstance(record, dict):
         return None
-    python = Path(str(record.get("python", "")))
+    receipt = cast(Record, record)
+    if receipt.get("installed") is not True:
+        return None
+    python = Path(str(receipt.get("python", "")))
     return (str(python), "venv") if python.is_file() else None
 
 
-def migrate_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
+def migrate_candidate(paths: InstancePaths, sha256: str) -> Record:
     stage = paths.home / "updates" / sha256[:16]
     _receipt(stage, "prepared.json", PREPARED_FORMAT, sha256)
     _receipt(stage, "smoke.json", SMOKE_FORMAT, sha256)
@@ -116,11 +124,11 @@ def migrate_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
         if result["after"] != target:
             raise invalid("migrate_incomplete")
         resealed = make_installation(SystemClock().now(), str(result["after"]), target)
-        durable_json(receipt_path, resealed)
+        durable_json(receipt_path, cast(Record, resealed))
         private_path(receipt_path)
     finally:
         lock.close()
-    record = {
+    record: Record = {
         "format": "omni-schema-migration-1",
         "wheel_sha256": sha256,
         "written": True,
@@ -135,7 +143,7 @@ def migrate_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
     return record
 
 
-def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
+def switch_candidate(paths: InstancePaths, sha256: str) -> Record:
     stage = paths.home / "updates" / sha256[:16]
     tree = stage / "tree"
     prepared = _receipt(stage, "prepared.json", PREPARED_FORMAT, sha256)
@@ -183,15 +191,16 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
             old = json.loads(current_path.read_text(encoding="utf-8"))
         except (ValueError, OSError, UnicodeError):
             raise invalid("switch_pointer_invalid") from None
-        if isinstance(old, dict) and old.get("format") == FORMAT:
-            previous = str(old.get("wheel_sha256", "")) or None
-            durable_json(runtime / "previous.json", old)
+        pointer = cast(Record, old) if isinstance(old, dict) else None
+        if pointer is not None and pointer.get("format") == FORMAT:
+            previous = str(pointer.get("wheel_sha256", "")) or None
+            durable_json(runtime / "previous.json", pointer)
             private_path(runtime / "previous.json")
             if (
-                old.get("wheel_sha256") == sha256
-                and Path(str(old.get("tree", ""))) == tree
-                and old.get("python") == python
-                and old.get("mode") == mode
+                pointer.get("wheel_sha256") == sha256
+                and Path(str(pointer.get("tree", ""))) == tree
+                and pointer.get("python") == python
+                and pointer.get("mode") == mode
             ):
                 _wrapper(paths.home, python)
                 return {
@@ -224,7 +233,7 @@ def switch_candidate(paths: InstancePaths, sha256: str) -> dict[str, object]:
     return {"format": FORMAT, "written": True, **record, "launcher": str(runtime / "launch.py")}
 
 
-def rollback_candidate(paths: InstancePaths) -> dict[str, object]:
+def rollback_candidate(paths: InstancePaths) -> Record:
     """Point the runtime back at previous.json; code-only, no database restore."""
     runtime = paths.home / "runtime"
     current_path = runtime / "current.json"
@@ -236,21 +245,20 @@ def rollback_candidate(paths: InstancePaths) -> dict[str, object]:
         previous = json.loads(previous_path.read_text(encoding="utf-8"))
     except (ValueError, OSError, UnicodeError):
         raise invalid("rollback_pointer_invalid") from None
-    if (
-        not isinstance(current, dict)
-        or not isinstance(previous, dict)
-        or current.get("format") != FORMAT
-        or previous.get("format") != FORMAT
-    ):
+    if not isinstance(current, dict) or not isinstance(previous, dict):
         raise invalid("rollback_pointer_invalid")
-    source, target = str(current.get("wheel_sha256", "")), str(previous.get("wheel_sha256", ""))
+    current_pointer = cast(Record, current)
+    previous_pointer = cast(Record, previous)
+    if current_pointer.get("format") != FORMAT or previous_pointer.get("format") != FORMAT:
+        raise invalid("rollback_pointer_invalid")
+    source, target = str(current_pointer.get("wheel_sha256", "")), str(previous_pointer.get("wheel_sha256", ""))
     if not source or not target or source == target:
         raise invalid("rollback_missing")
-    tree = Path(str(previous.get("tree", "")))
+    tree = Path(str(previous_pointer.get("tree", "")))
     if not (tree / "omni" / "__init__.py").is_file():
         raise invalid("rollback_tree_invalid")
     schema = read_schema(paths.database)
-    if previous.get("schema_version") != schema:
+    if previous_pointer.get("schema_version") != schema:
         raise BusinessError(
             "rollback_schema_mismatch",
             "Restore the matching database backup before rolling back this candidate",
@@ -262,7 +270,12 @@ def rollback_candidate(paths: InstancePaths) -> dict[str, object]:
             receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
         except (ValueError, OSError, UnicodeError):
             raise invalid("rollback_pointer_invalid") from None
-        if isinstance(receipt, dict) and {receipt.get("from"), receipt.get("to")} == {source, target}:
+        live = cast(Record, receipt) if isinstance(receipt, dict) else None
+        # Order-insensitive: a repeated rollback sees the pointers swapped.
+        if live is not None and (
+            (live.get("from") == source and live.get("to") == target)
+            or (live.get("from") == target and live.get("to") == source)
+        ):
             return {"format": "omni-live-rollback-1", "written": False, "from": source, "to": target}
     lock = InstanceLock(paths)
     try:
@@ -273,18 +286,18 @@ def rollback_candidate(paths: InstancePaths) -> dict[str, object]:
         raise
     finally:
         lock.close()
-    durable_json(previous_path, current)
+    durable_json(previous_path, current_pointer)
     private_path(previous_path)
-    durable_json(current_path, previous)
+    durable_json(current_path, previous_pointer)
     private_path(current_path)
     (runtime / "launch.py").write_text(LAUNCHER, encoding="utf-8")
-    _wrapper(paths.home, str(previous.get("python", sys.executable)))
-    record = {
+    _wrapper(paths.home, str(previous_pointer.get("python", sys.executable)))
+    record: Record = {
         "format": "omni-live-rollback-1",
         "from": source,
         "to": target,
-        "python": previous.get("python"),
-        "mode": previous.get("mode"),
+        "python": previous_pointer.get("python"),
+        "mode": previous_pointer.get("mode"),
         "written": True,
     }
     durable_json(receipt_path, record)
@@ -292,7 +305,7 @@ def rollback_candidate(paths: InstancePaths) -> dict[str, object]:
     return record
 
 
-def runtime_current(paths: InstancePaths) -> dict[str, object]:
+def runtime_current(paths: InstancePaths) -> Record:
     path = paths.home / "runtime" / "current.json"
     if not path.is_file():
         return {"format": FORMAT, "active": False, "wheel_sha256": None, "tree": None, "previous": None}
@@ -300,23 +313,26 @@ def runtime_current(paths: InstancePaths) -> dict[str, object]:
         record = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError, UnicodeError):
         raise invalid("switch_pointer_invalid") from None
-    if not isinstance(record, dict) or record.get("format") != FORMAT:
+    if not isinstance(record, dict):
         raise invalid("switch_pointer_invalid")
-    tree = Path(str(record.get("tree", "")))
+    pointer = cast(Record, record)
+    if pointer.get("format") != FORMAT:
+        raise invalid("switch_pointer_invalid")
+    tree = Path(str(pointer.get("tree", "")))
     return {
         "format": FORMAT,
         "active": (tree / "omni" / "__init__.py").is_file(),
-        "wheel_sha256": record.get("wheel_sha256"),
+        "wheel_sha256": pointer.get("wheel_sha256"),
         "tree": str(tree),
-        "python": record.get("python"),
-        "mode": record.get("mode"),
-        "schema_version": record.get("schema_version"),
-        "previous": record.get("previous"),
+        "python": pointer.get("python"),
+        "mode": pointer.get("mode"),
+        "schema_version": pointer.get("schema_version"),
+        "previous": pointer.get("previous"),
         "launcher": str(paths.home / "runtime" / "launch.py"),
     }
 
 
-def install_candidate(paths: InstancePaths, wheel: Path, sha256: str) -> dict[str, object]:
+def install_candidate(paths: InstancePaths, wheel: Path, sha256: str) -> Record:
     from .wheel_artifact import inspect_wheel
     from .wheel_backup import backup_candidate
     from .wheel_prepare import prepare_wheel
@@ -332,16 +348,19 @@ def install_candidate(paths: InstancePaths, wheel: Path, sha256: str) -> dict[st
     rollback = rollback_check(paths, sha256)
     migration = migrate_candidate(paths, sha256)
     switched = switch_candidate(paths, sha256)
-    return {
-        "format": "omni-install-1",
-        "wheel_sha256": sha256,
-        "verified": inspected["verified"] is True,
-        "staged": staged,
-        "prepared": prepared,
-        "smoke": smoke,
-        "backup": backup,
-        "rollback": rollback,
-        "migrate": migration,
-        "switch": switched,
-        "requires_owner_approval": True,
-    }
+    return cast(
+        Record,
+        {
+            "format": "omni-install-1",
+            "wheel_sha256": sha256,
+            "verified": inspected["verified"] is True,
+            "staged": staged,
+            "prepared": prepared,
+            "smoke": smoke,
+            "backup": backup,
+            "rollback": rollback,
+            "migrate": migration,
+            "switch": switched,
+            "requires_owner_approval": True,
+        },
+    )

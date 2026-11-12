@@ -118,7 +118,7 @@ def read_schema(path: Path) -> str:
     return str(row[0]) if row else ""
 
 
-def migrate_database(path: Path) -> dict:
+def migrate_database(path: Path) -> Record:
     """Apply the packaged Alembic head with exclusive ownership; never runs on an owned instance."""
     from alembic import command
 

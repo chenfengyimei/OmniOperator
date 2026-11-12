@@ -8,9 +8,12 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
+from typing import cast
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..persistence.maintenance import durable_json
+from .paths import InstancePaths
 from .permissions import private_path
 from .wheel_stage import FORMAT as STAGED_FORMAT
 
@@ -40,7 +43,7 @@ def _installable(artifact: Path, stage: Path) -> Path:
             text = archive.read(metadata).decode("utf-8", "replace") if metadata else ""
     except (OSError, KeyError, zipfile.BadZipFile, UnicodeError):
         raise invalid("environment_wheel_invalid") from None
-    fields = {}
+    fields: dict[str, str] = {}
     for line in text.splitlines():
         key, _, value = line.partition(":")
         if key in {"Name", "Version"} and value.strip():
@@ -55,7 +58,7 @@ def _installable(artifact: Path, stage: Path) -> Path:
     return target
 
 
-def create_environment(paths, sha256: str) -> dict[str, object]:
+def create_environment(paths: InstancePaths, sha256: str) -> Record:
     stage = paths.home / "updates" / sha256[:16]
     staged_path = stage / "staged.json"
     artifact = stage / "artifact.whl"
@@ -65,7 +68,11 @@ def create_environment(paths, sha256: str) -> dict[str, object]:
         staged = json.loads(staged_path.read_text(encoding="utf-8"))
     except (ValueError, OSError, UnicodeError):
         raise invalid("environment_receipt_invalid") from None
-    if not isinstance(staged, dict) or staged.get("format") != STAGED_FORMAT or staged.get("wheel_sha256") != sha256:
+    if (
+        not isinstance(staged, dict)
+        or cast(dict[str, object], staged).get("format") != STAGED_FORMAT
+        or cast(dict[str, object], staged).get("wheel_sha256") != sha256
+    ):
         raise invalid("environment_receipt_invalid")
     result_path = stage / "environment.json"
     venv = stage / "venv"
@@ -74,14 +81,15 @@ def create_environment(paths, sha256: str) -> dict[str, object]:
             existing = json.loads(result_path.read_text(encoding="utf-8"))
         except (ValueError, OSError, UnicodeError):
             raise invalid("environment_receipt_invalid") from None
+        receipt = cast(Record, existing) if isinstance(existing, dict) else None
         if (
-            isinstance(existing, dict)
-            and existing.get("format") == FORMAT
-            and existing.get("wheel_sha256") == sha256
-            and existing.get("installed") is True
+            receipt is not None
+            and receipt.get("format") == FORMAT
+            and receipt.get("wheel_sha256") == sha256
+            and receipt.get("installed") is True
             and _python(venv).is_file()
         ):
-            return {"format": FORMAT, "written": False, **existing}
+            return {"format": FORMAT, "written": False, **receipt}
         raise invalid("environment_receipt_invalid")
     partial = stage / "venv.partial"
     shutil.rmtree(partial, ignore_errors=True)
@@ -114,7 +122,7 @@ def create_environment(paths, sha256: str) -> dict[str, object]:
     if imported.returncode != 0 or str(venv) not in imported.stdout:
         shutil.rmtree(venv, ignore_errors=True)
         raise invalid("environment_import_failed")
-    record = {
+    record: Record = {
         "format": FORMAT,
         "wheel_sha256": sha256,
         "installed": True,

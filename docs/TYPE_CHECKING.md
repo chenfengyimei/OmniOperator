@@ -162,6 +162,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/darwin_service_admin.py` | macOS 注册与单次启动根后端（固定 launchctl，不强制重启） |
 | `agent/src/omni/adapters/extensions/hosts.py` | 扩展宿主池（有界进程归属与吊销，不触库/凭据） |
 | `agent/src/omni/adapters/platform/release_files.py` | 发布日志/安装字节与启动栅栏（不触库、不原生注册） |
+| `agent/src/omni/adapters/platform/wheel_environment.py` | 离线候选 venv 环境（无网络安装暂存 wheel） |
+| `agent/src/omni/adapters/platform/wheel_install.py` | 运行时切换/迁移/回滚指针（不停服、不迁移库） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |

@@ -104,6 +104,8 @@
     "agent/src/omni/adapters/platform/systemd_state.py",
     "agent/src/omni/adapters/platform/wheel_artifact.py",
     "agent/src/omni/adapters/platform/wheel_backup.py",
+    "agent/src/omni/adapters/platform/wheel_environment.py",
+    "agent/src/omni/adapters/platform/wheel_install.py",
     "agent/src/omni/adapters/platform/wheel_prepare.py",
     "agent/src/omni/adapters/platform/wheel_rollback.py",
     "agent/src/omni/adapters/platform/wheel_smoke.py",
