@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from sqlalchemy import Table, delete, func, insert, select, update
 
@@ -29,11 +30,13 @@ class PruningSpec:
 
 
 class PruningCycle:
-    def __init__(self, unit: RepositoryBase, spec: PruningSpec, resolve: Callable[..., dict]) -> None:
+    def __init__(
+        self, unit: RepositoryBase, spec: PruningSpec, resolve: Callable[..., dict[str, Any]]
+    ) -> None:
         self.unit, self.spec, self.resolve = unit, spec, resolve
         self.connection = unit.connection
 
-    def batch(self, identity: str) -> dict | None:
+    def batch(self, identity: str) -> dict[str, Any] | None:
         row = (
             self.connection.execute(select(self.spec.batches).where(self.spec.batches.c.id == identity))
             .mappings()
@@ -114,7 +117,7 @@ class PruningCycle:
             raise BusinessError(f"{self.spec.prefix}_conflict", "History content, subject or pruning proof changed")
         return True
 
-    def validate(self, plan: dict) -> None:
+    def validate(self, plan: dict[str, Any]) -> None:
         batch = self.bound_batch(plan)
         other = self.connection.execute(
             select(self.spec.batches.c.id)
@@ -141,7 +144,7 @@ class PruningCycle:
             if batch and batch["state"] == "complete" and pending:
                 raise BusinessError(f"{self.spec.prefix}_conflict", "Complete receipt has an undeleted target")
 
-    def prepare(self, plan: dict, backup_path: str, backup_sha256: str) -> dict:
+    def prepare(self, plan: dict[str, Any], backup_path: str, backup_sha256: str) -> dict[str, Any]:
         self.validate(plan)
         batch = self.batch(plan["id"])
         if batch:
@@ -188,7 +191,7 @@ class PruningCycle:
         )
         return batch
 
-    def prune(self, plan: dict, target: dict) -> None:
+    def prune(self, plan: dict[str, Any], target: dict[str, Any]) -> None:
         batch = self.bound_batch(plan)
         if not batch or target not in plan["targets"]:
             raise BusinessError(f"{self.spec.prefix}_conflict", "Deletion requires an original prepared target")
@@ -227,7 +230,7 @@ class PruningCycle:
             },
         )
 
-    def complete(self, identity: str) -> dict:
+    def complete(self, identity: str) -> dict[str, Any]:
         batch = self.batch(identity)
         if not batch or batch["state"] == "cancelled":
             raise BusinessError(f"{self.spec.prefix}_conflict", "Completion requires an active original plan")
@@ -263,7 +266,7 @@ class PruningCycle:
             "business_records_deleted": False,
         }
 
-    def cancel(self, plan: dict, reason: str) -> dict:
+    def cancel(self, plan: dict[str, Any], reason: str) -> dict[str, Any]:
         batch = self.bound_batch(plan, cancelling=True)
         if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 500:
             raise BusinessError(

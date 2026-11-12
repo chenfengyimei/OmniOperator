@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from sqlalchemy import Table, select
 
 from ...domain.audit_retention import (
@@ -18,7 +20,9 @@ from .history_protection import HistoryProtectionRepositories
 
 
 class AuditRetentionRepositories(HistoryProtectionRepositories):
-    def audit_retention_preview(self, agent_id: str, *, cursor: str = "", limit: int = 20, as_of: str = "") -> dict:
+    def audit_retention_preview(
+        self, agent_id: str, *, cursor: str = "", limit: int = 20, as_of: str = ""
+    ) -> dict[str, Any]:
         if type(limit) is not int or not 1 <= limit <= 50 or not isinstance(cursor, str) or not isinstance(as_of, str):
             raise BusinessError(
                 "invalid_audit_retention_query", "Use a cursor and a page of 1 to 50 audits", status=422
@@ -110,8 +114,8 @@ class AuditRetentionRepositories(HistoryProtectionRepositories):
         }
 
     def _audit_retention_candidates(
-        self, agent_id: str, rows: list[dict], cutoff: str, batch_id: str = ""
-    ) -> list[dict]:
+        self, agent_id: str, rows: list[dict[str, Any]], cutoff: str, batch_id: str = ""
+    ) -> list[dict[str, Any]]:
         identities = [row["id"] for row in rows]
         memory_sources = set(
             self.connection.execute(
