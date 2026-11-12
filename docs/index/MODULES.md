@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`01b7c366ff95917f573ae9f7cbcfe8a746f0bc4a1aa08443970673c184617852`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`da6b2817ff4079c458bdcfe58da80056e9f506110928e498b17bf45f36492198`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -213,7 +213,7 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0007.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0007.py) | 152 | Immutable schedules, due identities and fenced work claims; frozen migration. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0008.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0008.py) | 101 | Outbound intent, attempt, approval and recovery baseline; frozen SQL only. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0009.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0009.py) | 30 | Instance-wide credential intent and outcome audit; no arbitrary Agent attribution. |
-| [agent/src/omni/adapters/persistence/migrations/versions/v0010.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0010.py) | 118 | Credential authority state and immutable review. Frozen SQL; no V1 credential import. |
+| [agent/src/omni/adapters/persistence/migrations/versions/v0010.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0010.py) | 120 | Credential authority state and immutable review. Frozen SQL; no V1 credential import. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0011.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0011.py) | 23 | Owner run retention pins, independent of run execution/configuration revisions. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0012.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0012.py) | 68 | Recoverable execution-body pruning; frozen SQL, no live model imports. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0013.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0013.py) | 61 | Historical reference-release evidence never points back to live object rows. |

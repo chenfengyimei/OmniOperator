@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "01b7c366ff95917f573ae9f7cbcfe8a746f0bc4a1aa08443970673c184617852",
+  "source_sha256": "da6b2817ff4079c458bdcfe58da80056e9f506110928e498b17bf45f36492198",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53103,
+      "lines": 53105,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -17888,38 +17888,43 @@
       "path": "agent/src/omni/adapters/persistence/migrations/versions/v0010.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.migrations.versions.v0010",
-      "lines": 118,
+      "lines": 120,
       "imports": [],
       "symbols": [
         {
           "name": "upgrade",
-          "line": 17,
+          "line": 19,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "adopt_legacy",
-          "line": 41,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "db"
           ],
-          "annotations": {}
+          "annotations": {
+            "db": "Connection"
+          }
         },
         {
           "name": "adopt_legacy.register",
-          "line": 46,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "fingerprint",
             "reference"
           ],
-          "annotations": {}
+          "annotations": {
+            "fingerprint": "str",
+            "reference": "str | None"
+          }
         },
         {
           "name": "downgrade",
-          "line": 96,
+          "line": 98,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -32099,7 +32104,7 @@
         },
         {
           "name": "TemporaryDebug._finish",
-          "line": 61,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "self",
@@ -32113,7 +32118,7 @@
         },
         {
           "name": "TemporaryDebug._expire",
-          "line": 66,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "self"
@@ -32122,7 +32127,7 @@
         },
         {
           "name": "TemporaryDebug._snapshot",
-          "line": 70,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self"
@@ -32131,7 +32136,7 @@
         },
         {
           "name": "TemporaryDebug.snapshot",
-          "line": 89,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self"
@@ -32140,7 +32145,7 @@
         },
         {
           "name": "TemporaryDebug.stop",
-          "line": 93,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -32152,7 +32157,7 @@
         },
         {
           "name": "TemporaryDebug._inventory",
-          "line": 101,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -32164,7 +32169,7 @@
         },
         {
           "name": "TemporaryDebug.maintenance",
-          "line": 135,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self"
@@ -32173,7 +32178,7 @@
         },
         {
           "name": "TemporaryDebug.start",
-          "line": 149,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
