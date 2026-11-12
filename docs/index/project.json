@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "9280d2ad555eb52d846e98e4ffa24eeb786d3b25011b4bee76665a961407a4ce",
+  "source_sha256": "7a5d758d7db574da75416577eeea4dc584e479929213b1c007894001a25cc86d",
   "modules": [
     {
       "id": "v2-domain",
@@ -17600,7 +17600,9 @@
           "parameters": [
             "value"
           ],
-          "annotations": {}
+          "annotations": {
+            "value": "str"
+          }
         },
         {
           "name": "_source_hash",
@@ -17611,7 +17613,11 @@
             "identity",
             "quote"
           ],
-          "annotations": {}
+          "annotations": {
+            "kind": "str",
+            "identity": "str",
+            "quote": "str"
+          }
         },
         {
           "name": "upgrade",
