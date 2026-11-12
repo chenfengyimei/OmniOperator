@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "1f96ed2",
+  "checkpoint_commit": "0d140c9",
   "current_validation": {
-    "status": "d7_typecheck_batch_59",
+    "status": "d7_typecheck_batch_60",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "recheck_report": "temp/build/v2-typecheck-batches-54-isolation.xml"
       }
     ],
-    "code_version": "dec493a77b9cf746929328fdb7a627a738407bdf58c920dae7016b7fcf059529",
+    "code_version": "d5e6ef19aa150ced5646b447ccfeb1667ed0bdf548b75525aad42ded1e5266be",
     "fixed_source_files": 1200,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -328,7 +328,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "Windows wheel/sdist 打包验证与安装/更新/恢复合同调用方已完成；strict 已到 82 文件（domain 53/53、application 25/44）。剩余：application/adapters/composition 严格化、工作台改版 UI 复跑、容器镜像、三平台构建与干净机器端到端、入口切换。"
+    "scope": "Windows wheel/sdist 打包验证与安装/更新/恢复合同调用方已完成；strict 已到 83 文件（domain 53/53、application 26/44）。剩余：application/adapters/composition 严格化、工作台改版 UI 复跑、容器镜像、三平台构建与干净机器端到端、入口切换。"
   },
   "milestones": [
     {
@@ -881,12 +881,12 @@
       "id": "R7.typecheck",
       "status": "进行中",
       "development": "门禁与首批模块完成",
-      "offline_validation": "strict 82 文件 0 errors（53 domain 全部 + 25 application + 4 adapters）；五十九批类型守卫 + 配置/HTTP/故障调用方 24 项全过；第五十四批后全量（-n 2）4654 项（4630 passed / 24 failed，其中 22 项为进行中工作台改版 UI 用例、2 项并行时序隔离通过），第五十五至五十九批改源码后尚未重跑全量",
+      "offline_validation": "strict 83 文件 0 errors（53 domain 全部 + 26 application + 4 adapters）；六十批类型守卫 + QQ/HTTP 调用方 19 项全过（并修复 parse_event 误传回归）；第五十四批后全量（-n 2）4654 项（4630 passed / 24 failed，其中 22 项为进行中工作台改版 UI 用例、2 项并行时序隔离通过），第五十五至六十批改源码后尚未重跑全量",
       "evidence": [
         "docs/evidence/v2-typecheck.json"
       ],
-      "remaining": "domain 53/53 已全部严格化；application 25/44、adapters 4/215 其余文件与 composition 未严格化；不得称全仓 strict。",
-      "code_version": "dec493a77b9cf746929328fdb7a627a738407bdf58c920dae7016b7fcf059529"
+      "remaining": "domain 53/53 已全部严格化；application 26/44、adapters 4/215 其余文件与 composition 未严格化；不得称全仓 strict。",
+      "code_version": "d5e6ef19aa150ced5646b447ccfeb1667ed0bdf548b75525aad42ded1e5266be"
     },
     {
       "id": "R7.packaging",
