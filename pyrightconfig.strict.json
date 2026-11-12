@@ -8,6 +8,7 @@
     "agent/src/omni/adapters/extensions/worker.py",
     "agent/src/omni/adapters/images.py",
     "agent/src/omni/adapters/log_query.py",
+    "agent/src/omni/adapters/mcp/hosts.py",
     "agent/src/omni/adapters/media.py",
     "agent/src/omni/adapters/metrics.py",
     "agent/src/omni/adapters/models.py",

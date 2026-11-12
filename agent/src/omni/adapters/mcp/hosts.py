@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from typing import Protocol
+from typing import Any, Protocol
 
 from ...domain.contracts import BusinessError
 from ...domain.mcp import ServerTarget
@@ -17,15 +17,22 @@ MAX_PENDING = 32
 
 
 class MCPSessionPort(Protocol):
-    async def start(self) -> dict: ...
+    async def start(self) -> dict[str, Any]: ...
 
-    async def catalog(self) -> list[dict]: ...
+    async def catalog(self) -> list[dict[str, Any]]: ...
 
-    async def call(self, name: str, arguments: dict, timeout_s: float, *, before_send=None) -> dict: ...
+    async def call(
+        self,
+        name: str,
+        arguments: dict[str, Any],
+        timeout_s: float,
+        *,
+        before_send: Callable[[], Awaitable[None]] | None = None,
+    ) -> dict[str, Any]: ...
 
     async def close(self, timeout_s: float = 5) -> bool: ...
 
-    def health(self) -> dict: ...
+    def health(self) -> dict[str, Any]: ...
 
 
 class MCPHosts:
@@ -44,7 +51,7 @@ class MCPHosts:
         self._factory = session_factory or self._default_session
         self._oauth = oauth
         self._sessions: dict[tuple[str, str, int], MCPSessionPort] = {}
-        self._handshakes: dict[tuple[str, str, int], dict] = {}
+        self._handshakes: dict[tuple[str, str, int], dict[str, Any]] = {}
         self._pending = 0
         self._lock = asyncio.Lock()
         self._closing = False
@@ -65,7 +72,7 @@ class MCPHosts:
     def _server_keys(self, agent_id: str, server_id: str) -> list[tuple[str, str, int]]:
         return [key for key in self._sessions if key[0] == agent_id and key[1] == server_id]
 
-    async def connect(self, target: ServerTarget) -> dict:
+    async def connect(self, target: ServerTarget) -> dict[str, Any]:
         if self._closing:
             raise BusinessError("mcp_closing", "MCP sessions are draining", status=503)
         key = self._key(target)
@@ -103,7 +110,7 @@ class MCPHosts:
             )
         return session
 
-    async def catalog(self, target: ServerTarget) -> list[dict]:
+    async def catalog(self, target: ServerTarget) -> list[dict[str, Any]]:
         if self._closing:
             raise BusinessError("mcp_closing", "MCP sessions are draining", status=503)
         return await self._require(target).catalog()
@@ -112,11 +119,11 @@ class MCPHosts:
         self,
         target: ServerTarget,
         name: str,
-        arguments: dict,
+        arguments: dict[str, Any],
         timeout_s: float,
         *,
         before_send: Callable[[], Awaitable[None]] | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         if self._closing:
             raise BusinessError("mcp_closing", "MCP sessions are draining", status=503)
         if self._pending >= MAX_PENDING:
@@ -127,12 +134,12 @@ class MCPHosts:
         finally:
             self._pending -= 1
 
-    async def oauth_start(self, target: ServerTarget, redirect_uri: str) -> dict:
+    async def oauth_start(self, target: ServerTarget, redirect_uri: str) -> dict[str, Any]:
         if self._oauth is None:
             raise BusinessError("mcp_oauth_unavailable", "OAuth support is not configured", status=503)
         return await self._oauth.start(target, redirect_uri)
 
-    async def oauth_callback(self, state: str, code: str) -> dict:
+    async def oauth_callback(self, state: str, code: str) -> dict[str, Any]:
         if self._oauth is None:
             raise BusinessError("mcp_oauth_unavailable", "OAuth support is not configured", status=503)
         return await self._oauth.callback(state, code)
@@ -149,7 +156,7 @@ class MCPHosts:
                     complete = False
             return complete
 
-    def health(self) -> dict:
+    def health(self) -> dict[str, Any]:
         return {
             "closing": self._closing,
             "resident": len(self._sessions),

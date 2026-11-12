@@ -17,6 +17,7 @@ import logging
 import secrets as random_secrets
 import time
 from collections.abc import Callable
+from typing import Any
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import httpx
@@ -348,7 +349,7 @@ class OAuthFlow:
         await self.tokens.save_client(target.server_id, value)
         return value
 
-    async def start(self, target: ServerTarget, redirect_uri: str) -> dict:
+    async def start(self, target: ServerTarget, redirect_uri: str) -> dict[str, Any]:
         if target.auth_mode != "oauth" or target.transport != "streamable_http":
             raise BusinessError("mcp_oauth_not_configured", "This server does not use remote OAuth", status=422)
         try:
@@ -418,7 +419,7 @@ class OAuthFlow:
             "scope": scope,
         }
 
-    async def callback(self, state: str, code: str) -> dict:
+    async def callback(self, state: str, code: str) -> dict[str, Any]:
         if not isinstance(state, str) or not 1 <= len(state) <= 200:
             raise BusinessError("mcp_oauth_state_invalid", "Unknown or expired OAuth state", status=409)
         async with self._lock:
@@ -473,7 +474,7 @@ class OAuthFlow:
             "expires_at": stored["expires_at"],
         }
 
-    def health(self) -> dict:
+    def health(self) -> dict[str, Any]:
         return {"pending": len(self._pending), "max_pending": MAX_PENDING, "ttl_s": OAUTH_TTL_S}
 
 

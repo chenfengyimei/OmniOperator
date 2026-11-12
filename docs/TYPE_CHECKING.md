@@ -261,6 +261,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/people_repository.py` | 人物与手工账号身份（个人文档复用记忆仓储） |
 | `agent/src/omni/adapters/persistence/audit_pruning_repository.py` | 审计删除计划/批次/恢复回执（保留身份与业务账本） |
 | `agent/src/omni/adapters/persistence/audit_retention_repository.py` | 审计保留预览与候选资格（只读元数据，不删行） |
+| `agent/src/omni/adapters/mcp/hosts.py` | 按服务代次持有 MCP 会话（不访问数据库/模型） |
 | `agent/src/omni/adapters/workers/main.py` | 能力子进程入口（文件/命令/浏览器能力，不导入数据库或 Runtime） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
