@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "6487dd0af1de83b03fc9a73c5bf9b3e43161df10f036df2622ddf70e7c88dffa",
-  "fixed_source_files": 1199,
-  "git_head": "b3e27b3",
+  "code_version": "35196fe5069bca98257d32a86c8614c8fcb0b261727cabd06deac9d53ad90f39",
+  "fixed_source_files": 1200,
+  "git_head": "19b77e7",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "b7043ee"
@@ -75,20 +75,21 @@
    "Strict scope reaches 74 files with domain/mcp; transport targets, catalog rows, tool authorizations and result text are explicit, schema nodes and content parts are narrowed item by item while fingerprint revocation and unknown semantics stay unchanged",
    "Strict scope reaches 75 files with domain/extensions; manifests, recursive schemas, artifact metadata and authorizations are explicit, schema and artifact rows are narrowed item by item while media-type allowlists and byte bounds stay unchanged",
    "Strict scope reaches 76 files with domain/service_deployment; request, runtime, plan, startup and the public bridges are explicit, files/distributions/links are narrowed item by item while path, principal and fingerprint checks stay unchanged",
-   "Strict scope reaches 77 files with domain/desktop; targets, requests, capabilities, observations and response frames are explicit, nodes and bounds are narrowed item by item while untrusted UI data and read-only observation boundaries stay unchanged. All 53 domain files are now in strict scope."
+   "Strict scope reaches 77 files with domain/desktop; targets, requests, capabilities, observations and response frames are explicit, nodes and bounds are narrowed item by item while untrusted UI data and read-only observation boundaries stay unchanged. All 53 domain files are now in strict scope.",
+   "Application scope starts with application/service_exchange: deployment helpers move to the public bridges and administrator participants are explicit dict[str, str] while the administrator protocol and stage checks stay unchanged"
   ],
   "pending": [
-   "application 20/44 and adapters 4/215 strict typing",
+   "application 21/44 and adapters 4/215 strict typing",
    "composition layer not yet in strict scope",
-   "Three-platform packaging/install/update/restore",
-   "Real-environment acceptance"
+   "Workbench redesign UI suite rerun after the parallel session lands",
+   "Three-platform packaging/install/update/restore and real-environment acceptance"
   ]
  },
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-54-callers.xml",
-   "tests": 141,
+   "report": "temp/build/v2-typecheck-55-callers.xml",
+   "tests": 66,
    "failures": 0
   },
   "targeted_reports": [
@@ -585,6 +586,15 @@
     "errors": 0,
     "duration_s": 75.08,
     "note": "fifty-fourth strict batch: guard + desktop/contracts/capture/backend/native/observation/http/foreground callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-55-callers.xml",
+    "sha256": "525bd0902017191e39df2e90731c74f5797ad7fda665f453e8d7a831fe11b3bc",
+    "tests": 66,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 173.64,
+    "note": "fifty-fifth strict batch: guard + exchange/system/darwin/recovery callers"
    }
   ],
   "gates": {
@@ -596,7 +606,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 77,
+    "filesAnalyzed": 78,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -660,6 +670,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Domain strict typing complete (53/53); application/adapters strict typing remains. Workbench redesign is in flight in a parallel session; rerun UI suite after it lands. Packaging/install and real-environment acceptance still pending."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 21/44); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
