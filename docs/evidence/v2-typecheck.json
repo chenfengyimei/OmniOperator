@@ -1406,37 +1406,65 @@
    ]
   },
   "full_run": {
-   "status": "rerun_after_batch_54_with_inflight_ui_redesign",
-   "source": "b3e27b3 + b7043ee (workbench redesign) + uncommitted icons.css/MaterialIcons.woff2",
+   "status": "rerun_after_batch_133_with_inflight_ui_redesign",
+   "source": "df22e93 (batches 1-133) plus the parallel workbench redesign commits",
    "workers": 2,
-   "report": "temp/build/v2-typecheck-batches-54b-full-n2.xml",
-   "sha256": "c485744740ad93e7a22360076e24ea86a3532f4fd86c623ddf3c236dfebb79e9",
+   "report": "temp/build/v2-typecheck-batches-133-full-n2.xml",
+   "sha256": "bea3ee815a123184321aa0bd515fe85c53d6333cc92945fa863b1449f5125de2",
    "tests": 4654,
-   "passed": 4630,
-   "failed": 24,
-   "errors": 0,
-   "duration_s": 2489.12,
+   "passed": 4593,
+   "failed": 25,
+   "errors": 36,
+   "duration_s": 2996.06,
    "failure_summary": {
-    "ui_redesign_in_flight": 22,
-    "parallel_timing": 2
+    "ui_redesign_in_flight": 24,
+    "parallel_timing": 1,
+    "fixed_fixture_errors": 36
    },
    "ui_failures": [
     "test_ui_contract.py::test_icons_css_embeds_material_font_offline",
     "test_ui_glass_tokens.py::test_breakpoints_are_only_900_760_520",
-    "test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
-    "20 个 test_v2_*_ui.py 两 Agent/窄视口用例（credential/people/config/document/schedule/android/skills/desktop/action-review/extensions/history/memory/maintenance/terminals/audit/event retention）"
+    "test_v2_action_review_ui.py::test_late_real_detail_and_committed_receipt_do_not_overwrite_agent_or_new_note[two_agents]",
+    "test_v2_android_ui.py::test_android_drafts_do_not_cross_agent_scopes[two_agents]",
+    "test_v2_audit_retention_ui.py::test_late_preview_expiration_cannot_clear_new_agent_results[two_agents]",
+    "test_v2_desktop_ui.py::test_late_agent_and_panel_responses_cannot_clear_a_new_view_snapshot[two_agents]",
+    "test_v2_event_retention_ui.py::test_late_event_refresh_and_more_cannot_replace_or_clear_another_agent[two_agents]",
+    "test_v2_extensions_ui.py::test_late_real_receipts_and_details_keep_current_agent_and_new_path_draft[two_agents]",
+    "test_v2_history_ui.py::test_late_agent_audit_cannot_restore_previous_view_or_cursor[two_agents]",
+    "test_v2_maintenance_ui.py::test_late_real_cancellation_and_list_cannot_populate_another_agent[two_agents]",
+    "test_v2_memory_organization_ui.py::test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_batch[two_agents]",
+    "test_v2_terminals_ui.py::test_late_input_receipt_keeps_agent_drafts_and_lost_reply_only_queries_get[two_agents]",
+    "test_v2_ui.py::test_configuration_reload_waits_for_pending_write_and_agent_drafts_are_isolated[two_agents]",
+    "test_v2_ui.py::test_schedule_drafts_are_isolated_across_agents[two_agents]",
+    "test_v2_ui.py::test_source_document_drafts_and_selection_are_isolated_across_agents[two_agents]",
+    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-1024]",
+    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-1440]",
+    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-390]",
+    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-760]",
+    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-1024]",
+    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-1440]",
+    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-390]",
+    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-760]",
+    "test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable"
    ],
    "parallel_failures": [
-    "test_v2_model_stream.py::test_stream_rejects_partial_ambiguous_or_unbounded_results[too_large]",
     "test_v2_debug_sink.py::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
    ],
    "isolation": {
-    "report": "temp/build/v2-typecheck-batches-54-isolation.xml",
-    "tests": 12,
-    "passed": 12,
-    "note": "model_stream too_large 与 debug_sink 同源码 -n 0 全过；UI 用例属另一会话进行中的工作台改版，未作为产品失败修复"
+    "macos_activation": {
+     "report": "temp/build/v2-typecheck-133-macos-activation.xml",
+     "tests": 54,
+     "passed": 54,
+     "note": "36 setup errors came from one fixture still patching ExchangeFiles._homes after batch 112 made it public; fixed in 1b0bdb0"
+    },
+    "debug_sink": {
+     "report": "temp/build/v2-typecheck-133-debug-sink.xml",
+     "tests": 11,
+     "passed": 11,
+     "note": "same parallel timing flake as earlier full runs; passes with -n 0"
+    }
    },
-   "note": "另一会话正进行工作台改版（b7043ee + 未提交 icons.css/woff2）；UI 失败待其完成后复跑，不作为 V2 产品验收"
+   "note": "First full run since batch 54. 24 UI failures are the in-flight workbench redesign owned by the parallel session; 36 setup errors were a stale test fixture and are fixed. This is not a green full suite and not a product failure judgement for the redesign."
   }
  },
  "source_recovery": {

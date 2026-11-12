@@ -335,7 +335,9 @@ D7 显式清理节点：`installation uninstall --purge-data` 在实例空闲时
 
 第一百三十二批收敛并纳入人物/账号仓储（人物、分页与个人文档回执显式类型化，记忆 mixin 的 `_live_person`/`remember`/`revise_memory` 同步收紧，审计操作 id 用 `cast` 从 JSON 取 `str`）。所有者保护、修订冲突与擦除语义不变；一百三十二批专项全过。
 
-第一百三十三批收敛并纳入能力子进程入口（`invoke`/文件/命令/浏览器处理器的 `args` 与 `context` 显式 `dict[str, Any]`，`argv` 与文件清单在 JSON 边界 `cast`，子进程管道断言非空）。工作区、参数与派发规则不变；一百三十三批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第一百三十三批收敛并纳入能力子进程入口（`invoke`/文件/命令/浏览器处理器的 `args` 与 `context` 显式 `dict[str, Any]`，`argv` 与文件清单在 JSON 边界 `cast`，子进程管道断言非空）。工作区、参数与派发规则不变；一百三十三批专项全过。
+
+第一百三十三批后全量复核（-n 2，2996 秒）：**4654 项：4593 passed / 25 failed / 36 errors**。24 项失败属并行会话进行中的工作台改版 UI/设计契约用例；1 项 `debug_sink` 并行时序隔离 11 项全过；36 errors 全部来自 macOS 激活夹具仍在补丁已公开的 `ExchangeFiles.homes`（第一百一十二批公开化），已由 `1b0bdb0` 修复并隔离 54 项全过。**这不是全量全绿，也不构成 UI 改版的产品失败判断**；证据 `docs/evidence/v2-typecheck.json`。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 
