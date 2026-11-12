@@ -1,6 +1,13 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
+  "resource_version_final": "20261112v66",
+  "full_suite": {
+    "command": "uv run --no-sync pytest -q",
+    "result": "4656 passed, 10 warnings in 1585.54s (0:26:25)",
+    "ran_at": "2026-11-13",
+    "note": "全量在最终源码（v66）上通过；warnings 均为第三方库弃用提示"
+  },
   "scope": {
     "files": [
       "web/ui/v2/inspector.js",
@@ -97,7 +104,6 @@
     "真实模型供应商、真实桌面截图源与真实平台下的右栏数据未验证（仅本地夹具实例）",
     "未做 72 小时稳定性与三平台原生验收",
     "性能与大规模数据（产物/截图数量很大时）未测",
-    "未运行全量 pytest（本批只跑受影响 UI 模块与调用方）",
     "本批不构成验收，V2 仍未切换正式入口"
   ]
 }
