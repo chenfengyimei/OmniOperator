@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6324d7c05648fce3c8e756dc062e55b8f0b41fc7e95e4f6673ad09ea774e4a65",
+  "source_sha256": "52ec9471059b7260efd850b61fade8af53c534729a18b09befdb84ef8fb5edd2",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11117,
+      "lines": 11131,
       "dependencies": [
         "v2-domain"
       ]
@@ -37291,7 +37291,7 @@
       "path": "agent/src/omni/application/desktop_portal.py",
       "module": "v2-application",
       "python_module": "omni.application.desktop_portal",
-      "lines": 314,
+      "lines": 328,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -37301,17 +37301,17 @@
       "symbols": [
         {
           "name": "Grant",
-          "line": 16,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "DesktopPortalService",
-          "line": 24,
+          "line": 25,
           "kind": "class"
         },
         {
           "name": "DesktopPortalService.__init__",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "self",
@@ -37335,7 +37335,7 @@
         },
         {
           "name": "DesktopPortalService._audit",
-          "line": 45,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -37350,7 +37350,7 @@
         },
         {
           "name": "DesktopPortalService._public",
-          "line": 60,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -37359,12 +37359,12 @@
           ],
           "annotations": {
             "grant": "Grant",
-            "native": "dict"
+            "native": "Record"
           }
         },
         {
           "name": "DesktopPortalService._guard",
-          "line": 83,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -37376,7 +37376,7 @@
         },
         {
           "name": "DesktopPortalService.open",
-          "line": 90,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -37390,28 +37390,30 @@
         },
         {
           "name": "DesktopPortalService._own",
-          "line": 106,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self",
             "task"
           ],
           "annotations": {
-            "task": "asyncio.Task"
+            "task": "asyncio.Task[object]"
           }
         },
         {
           "name": "DesktopPortalService._own.done",
-          "line": 109,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "DesktopPortalService._open",
-          "line": 116,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self",
@@ -37425,7 +37427,7 @@
         },
         {
           "name": "DesktopPortalService._watch",
-          "line": 160,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -37437,7 +37439,7 @@
         },
         {
           "name": "DesktopPortalService.status",
-          "line": 189,
+          "line": 197,
           "kind": "function",
           "parameters": [
             "self",
@@ -37451,7 +37453,7 @@
         },
         {
           "name": "DesktopPortalService.detach",
-          "line": 202,
+          "line": 210,
           "kind": "function",
           "parameters": [
             "self",
@@ -37465,7 +37467,7 @@
         },
         {
           "name": "DesktopPortalService.close_grant",
-          "line": 214,
+          "line": 222,
           "kind": "function",
           "parameters": [
             "self",
@@ -37481,7 +37483,7 @@
         },
         {
           "name": "DesktopPortalService.capture",
-          "line": 222,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self",
@@ -37495,7 +37497,7 @@
         },
         {
           "name": "DesktopPortalService._capture",
-          "line": 239,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -37509,7 +37511,7 @@
         },
         {
           "name": "DesktopPortalService.health",
-          "line": 282,
+          "line": 296,
           "kind": "function",
           "parameters": [
             "self"
@@ -37518,7 +37520,7 @@
         },
         {
           "name": "DesktopPortalService.stop_accepting",
-          "line": 290,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self"
@@ -37527,7 +37529,7 @@
         },
         {
           "name": "DesktopPortalService.close",
-          "line": 296,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "self",
