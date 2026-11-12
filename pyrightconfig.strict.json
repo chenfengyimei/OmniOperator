@@ -15,6 +15,7 @@
     "agent/src/omni/adapters/persistence/action_predicates.py",
     "agent/src/omni/adapters/persistence/audit_pruning.py",
     "agent/src/omni/adapters/persistence/credential_predicates.py",
+    "agent/src/omni/adapters/persistence/database.py",
     "agent/src/omni/adapters/persistence/delivery_predicates.py",
     "agent/src/omni/adapters/persistence/deployed_instance.py",
     "agent/src/omni/adapters/persistence/event_pruning.py",

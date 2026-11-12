@@ -396,7 +396,7 @@ def durable_json(path: Path, value: Record) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def migration_snapshot(database: Path, objects_root: Path | None) -> dict:
+def migration_snapshot(database: Path, objects_root: Path | None) -> Record:
     folder = database.parent / "schema-backups"
     if folder.is_symlink() or folder.is_junction():
         raise BusinessError("unsafe_backup_path", "Schema backup directory cannot be a link")

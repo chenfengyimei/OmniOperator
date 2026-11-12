@@ -7,7 +7,7 @@ import contextvars
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import TypeVar
+from typing import Any, TypeVar, cast
 
 from alembic import command
 from sqlalchemy import inspect
@@ -47,7 +47,7 @@ class Database:
         cfg = configuration()
         head = migration_head(cfg)
         old_revision = None
-        self._pending: set[asyncio.Future] = set()
+        self._pending: set[asyncio.Future[Any]] = set()
         self._writer = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-db-write")
         self._readers = ThreadPoolExecutor(max_workers=4, thread_name_prefix="omni-db-read")
         path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -85,7 +85,7 @@ class Database:
             raise
 
     @property
-    def metrics(self) -> dict:
+    def metrics(self) -> dict[str, Any]:
         return {
             "pending_writes": self._writes,
             "pending_reads": self._reads,
@@ -177,12 +177,14 @@ class Database:
         self._readers.shutdown(wait=True)
         self._engine.dispose()
 
-    async def integrity(self) -> dict:
-        def check(uow):
+    async def integrity(self) -> dict[str, Any]:
+        def check(uow: UnitOfWork) -> dict[str, Any]:
+            # The port stays storage-agnostic; the concrete connection is read here.
+            connection = cast(Any, uow).connection
             return {
-                "integrity": uow.connection.exec_driver_sql("PRAGMA integrity_check").scalar(),
-                "foreign_keys": len(uow.connection.exec_driver_sql("PRAGMA foreign_key_check").all()),
-                "tables": sorted(inspect(uow.connection).get_table_names()),
+                "integrity": connection.exec_driver_sql("PRAGMA integrity_check").scalar(),
+                "foreign_keys": len(connection.exec_driver_sql("PRAGMA foreign_key_check").all()),
+                "tables": sorted(inspect(connection).get_table_names()),
             }
 
         return await self.read(check)
