@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1ba1ef941f2bff0f78d2b610290f94f3923c8aed6708f069a477486aeac92975",
+  "source_sha256": "12820b595ccb34bc542ea162cee2e3ed834ae5339c9cfb413f1ccd5dc88a2c89",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52777,
+      "lines": 52786,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -14165,24 +14165,25 @@
       "path": "agent/src/omni/adapters/persistence/execution_retention_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.execution_retention_repository",
-      "lines": 445,
+      "lines": 446,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_predicates",
         "omni.adapters.persistence.delivery_predicates",
         "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.retention"
       ],
       "symbols": [
         {
           "name": "ExecutionRetentionRepositories",
-          "line": 25,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "ExecutionRetentionRepositories.retention_pin",
-          "line": 26,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "self",
@@ -14200,7 +14201,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories._retention_protections",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "self",
@@ -14210,7 +14211,7 @@
             "event_batch_id"
           ],
           "annotations": {
-            "row": "dict",
+            "row": "Record",
             "cutoff": "str",
             "batch_id": "str",
             "event_batch_id": "str"
@@ -14218,7 +14219,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_inspect",
-          "line": 123,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -14236,7 +14237,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_plan",
-          "line": 160,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
@@ -14250,7 +14251,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_batch",
-          "line": 178,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -14262,7 +14263,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories._retention_target",
-          "line": 186,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self",
@@ -14276,7 +14277,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_validate",
-          "line": 201,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self",
@@ -14288,7 +14289,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_prepare",
-          "line": 216,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self",
@@ -14304,7 +14305,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_prune",
-          "line": 251,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -14318,7 +14319,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_complete",
-          "line": 354,
+          "line": 355,
           "kind": "function",
           "parameters": [
             "self",
@@ -14330,7 +14331,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_cancel",
-          "line": 378,
+          "line": 379,
           "kind": "function",
           "parameters": [
             "self",
@@ -14344,7 +14345,7 @@
         },
         {
           "name": "ExecutionRetentionRepositories.retention_preview",
-          "line": 419,
+          "line": 420,
           "kind": "function",
           "parameters": [
             "self",
@@ -14700,20 +14701,21 @@
       "path": "agent/src/omni/adapters/persistence/history_protection.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.history_protection",
-      "lines": 67,
+      "lines": 69,
       "imports": [
         "omni.adapters.persistence",
-        "omni.adapters.persistence.execution_retention_repository"
+        "omni.adapters.persistence.execution_retention_repository",
+        "omni.application.ports"
       ],
       "symbols": [
         {
           "name": "HistoryProtectionRepositories",
-          "line": 11,
+          "line": 13,
           "kind": "class"
         },
         {
           "name": "HistoryProtectionRepositories._history_run_protections",
-          "line": 12,
+          "line": 14,
           "kind": "function",
           "parameters": [
             "self",
@@ -14723,7 +14725,7 @@
             "batch_id"
           ],
           "annotations": {
-            "row": "dict",
+            "row": "Record",
             "cutoff": "str",
             "stream": "str",
             "batch_id": "str"
@@ -33996,7 +33998,7 @@
       "path": "agent/src/omni/adapters/workers/terminal.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.terminal",
-      "lines": 714,
+      "lines": 720,
       "imports": [],
       "symbols": [
         {
@@ -34163,14 +34165,14 @@
         },
         {
           "name": "_read",
-          "line": 291,
+          "line": 294,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_session_members",
-          "line": 300,
+          "line": 303,
           "kind": "function",
           "parameters": [
             "session_id"
@@ -34181,7 +34183,7 @@
         },
         {
           "name": "reclaim_posix",
-          "line": 320,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "pid",
@@ -34196,12 +34198,12 @@
         },
         {
           "name": "Host",
-          "line": 361,
+          "line": 364,
           "kind": "class"
         },
         {
           "name": "Host.__init__",
-          "line": 362,
+          "line": 365,
           "kind": "function",
           "parameters": [
             "self"
@@ -34210,7 +34212,7 @@
         },
         {
           "name": "Host.emit",
-          "line": 379,
+          "line": 382,
           "kind": "function",
           "parameters": [
             "self",
@@ -34223,7 +34225,7 @@
         },
         {
           "name": "Host.reply",
-          "line": 403,
+          "line": 406,
           "kind": "function",
           "parameters": [
             "self",
@@ -34236,7 +34238,7 @@
         },
         {
           "name": "Host._write_frames",
-          "line": 406,
+          "line": 409,
           "kind": "function",
           "parameters": [
             "self"
@@ -34245,7 +34247,7 @@
         },
         {
           "name": "Host._text",
-          "line": 421,
+          "line": 424,
           "kind": "function",
           "parameters": [
             "self",
@@ -34257,7 +34259,7 @@
         },
         {
           "name": "Host.open",
-          "line": 429,
+          "line": 432,
           "kind": "function",
           "parameters": [
             "self",
@@ -34269,7 +34271,7 @@
         },
         {
           "name": "Host._open_posix",
-          "line": 454,
+          "line": 460,
           "kind": "function",
           "parameters": [
             "self",
@@ -34281,7 +34283,7 @@
         },
         {
           "name": "Host._open_windows",
-          "line": 506,
+          "line": 512,
           "kind": "function",
           "parameters": [
             "self",
@@ -34293,7 +34295,7 @@
         },
         {
           "name": "Host._read_output",
-          "line": 530,
+          "line": 536,
           "kind": "function",
           "parameters": [
             "self"
@@ -34302,7 +34304,7 @@
         },
         {
           "name": "Host._exited",
-          "line": 583,
+          "line": 589,
           "kind": "function",
           "parameters": [
             "self",
@@ -34314,7 +34316,7 @@
         },
         {
           "name": "Host.go",
-          "line": 588,
+          "line": 594,
           "kind": "function",
           "parameters": [
             "self",
@@ -34326,7 +34328,7 @@
         },
         {
           "name": "Host.command",
-          "line": 610,
+          "line": 616,
           "kind": "function",
           "parameters": [
             "self",
@@ -34338,7 +34340,7 @@
         },
         {
           "name": "Host.close",
-          "line": 652,
+          "line": 658,
           "kind": "function",
           "parameters": [
             "self"
@@ -34347,7 +34349,7 @@
         },
         {
           "name": "main",
-          "line": 684,
+          "line": 690,
           "kind": "function",
           "parameters": [],
           "annotations": {}

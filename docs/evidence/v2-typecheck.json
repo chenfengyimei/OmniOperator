@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "15456bda9a893103be86fd5998b7bd2371f9713fcb82025b49535b210c879df9",
+  "code_version": "ab891d0399a31c64e9ebb580b661817a2cea0694e041a1bd935d76964f3d3982",
   "fixed_source_files": 1200,
-  "git_head": "a00ba37",
+  "git_head": "921d3b6",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -104,10 +104,11 @@
    "Strict scope reaches 161 files (53 domain + 43 application + 65 adapters); eleven small adapter modules were typed (action/history/operations predicates and repositories, frozen v0006/v0027, macOS admin commands/files, systemd decoding, wheel stage/switch/status), with shared maintenance/repository helpers narrowed to Record",
    "Strict scope reaches 166 files (53 domain + 43 application + 70 adapters); repository_base plus wheel prepare/backup/rollback/uninstall receipts are typed, and shared maintenance backup/restore return Record, keeping WAL-preserving and fail-closed semantics",
    "Strict scope reaches 170 files (53 domain + 43 application + 74 adapters); retention_repository, offline_plans, desktop_capture and macos_helper are typed, keeping erasure-session invalidation, bounded plan reads, screenshot identity and helper fingerprint semantics",
-   "Strict scope reaches 173 files (53 domain + 43 application + 77 adapters); paths, service_admin_bundle and macos_service are typed, deployment_files exposes public bridges, and the stdlib-only admin bundle keeps zero omni.application imports"
+   "Strict scope reaches 173 files (53 domain + 43 application + 77 adapters); paths, service_admin_bundle and macos_service are typed, deployment_files exposes public bridges, and the stdlib-only admin bundle keeps zero omni.application imports",
+   "Strict scope reaches 175 files (53 domain + 43 application + 79 adapters); workers/terminal decodes frames and validates fixed profiles explicitly, and history_protection shares Record-typed retention protection reasons without changing pruning or release semantics"
   ],
   "pending": [
-   "application 43/44 and adapters 77/215 strict typing",
+   "application 43/44 and adapters 79/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -116,8 +117,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-83-callers.xml",
-   "tests": 99,
+   "report": "temp/build/v2-typecheck-84-callers.xml",
+   "tests": 21,
    "failures": 0
   },
   "targeted_reports": [
@@ -875,6 +876,15 @@
     "errors": 0,
     "duration_s": 5.38,
     "note": "eighty-third strict batch: guard + macos service/admin bundle/architecture callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-84-callers.xml",
+    "sha256": "a40087867e21f13386c682b6cbf4bc4f1b163cf93e8730dc2e5153745e1fab69",
+    "tests": 21,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 15.92,
+    "note": "eighty-fourth strict batch: guard + terminal lifecycle/native and history callers"
    }
   ],
   "gates": {
@@ -886,7 +896,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 173,
+    "filesAnalyzed": 175,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -950,6 +960,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 77/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 79/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
