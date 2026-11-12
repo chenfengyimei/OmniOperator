@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "25ee7e241570ca41aad28beb4c67f095ff48b2f62dca201c74b684c817d1eb40",
+  "source_sha256": "ec959c0be84a67cb821dc3c4166ac125f267367dca089fbe88dc832ad864f97f",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52885,
+      "lines": 52889,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -21299,7 +21299,7 @@
       "path": "agent/src/omni/adapters/persistence/schema_upgrade.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.schema_upgrade",
-      "lines": 153,
+      "lines": 154,
       "imports": [
         "omni.adapters.persistence.deployed_instance",
         "omni.adapters.persistence.history_sequence",
@@ -21323,8 +21323,8 @@
             "target"
           ],
           "annotations": {
-            "source": "dict",
-            "target": "dict"
+            "source": "dict[str, object]",
+            "target": "dict[str, object]"
           }
         },
         {
@@ -21336,8 +21336,8 @@
             "target"
           ],
           "annotations": {
-            "source": "dict",
-            "target": "dict"
+            "source": "dict[str, object]",
+            "target": "dict[str, object]"
           }
         },
         {
@@ -32135,7 +32135,7 @@
       "path": "agent/src/omni/adapters/vector_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.vector_files",
-      "lines": 127,
+      "lines": 130,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.permissions",
@@ -32144,14 +32144,14 @@
       "symbols": [
         {
           "name": "runtime_versions",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "identity",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "path"
@@ -32162,7 +32162,7 @@
         },
         {
           "name": "read_file",
-          "line": 37,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "path",
@@ -32177,7 +32177,7 @@
         },
         {
           "name": "read_manifest",
-          "line": 54,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "root",
@@ -32190,7 +32190,7 @@
         },
         {
           "name": "inspect_bundle",
-          "line": 67,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "root"
@@ -32201,7 +32201,7 @@
         },
         {
           "name": "selection",
-          "line": 76,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "home"
@@ -32212,7 +32212,7 @@
         },
         {
           "name": "configure",
-          "line": 94,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "home",
