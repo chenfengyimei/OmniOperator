@@ -7,6 +7,7 @@
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
+    <link rel="stylesheet" href="/assets/ui/icons.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261112v55" />
     <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261112v55" />
   </head>
@@ -18,48 +19,51 @@
       <span id="health" role="status" data-state="idle">尚未连接</span>
       <button id="theme" type="button" title="切换主题" aria-label="切换主题">◐</button>
     </header>
+    <nav aria-label="工作台" inert>
+      <p class="nav-group">对话与记忆</p>
+      <button type="button" data-page="chat" aria-label="对话" title="对话"><span class="material-icons">forum</span></button>
+      <button type="button" data-page="memory" aria-label="记忆" title="记忆"><span class="material-icons">psychology</span></button>
+      <p class="nav-group">知识与技能</p>
+      <button type="button" data-page="skills" aria-label="技能" title="技能"><span class="material-icons">auto_awesome</span></button>
+      <button type="button" data-page="documents" aria-label="来源文档" title="来源文档"><span class="material-icons">description</span></button>
+      <p class="nav-group">工具与扩展</p>
+      <button type="button" data-page="extensions" aria-label="可信插件" title="可信插件"><span class="material-icons">extension</span></button>
+      <button type="button" data-page="mcp" aria-label="MCP" title="MCP"><span class="material-icons">device_hub</span></button>
+      <button type="button" data-page="action-reviews" aria-label="动作核查" title="动作核查"><span class="material-icons">fact_check</span></button>
+      <p class="nav-group">设备与平台</p>
+      <button type="button" data-page="qq" aria-label="QQ 通道" title="QQ 通道"><span class="material-icons">chat</span></button>
+      <button type="button" data-page="bilibili" aria-label="B站" title="B站"><span class="material-icons">live_tv</span></button>
+      <button type="button" data-page="android" aria-label="安卓设备" title="安卓设备"><span class="material-icons">smartphone</span></button>
+      <button type="button" data-page="desktop" aria-label="桌面能力" title="桌面能力"><span class="material-icons">desktop_windows</span></button>
+      <button type="button" data-page="terminals" aria-label="所有者终端" title="所有者终端"><span class="material-icons">terminal</span></button>
+      <p class="nav-group">资料与媒体</p>
+      <button type="button" data-page="people" aria-label="人物与档案" title="人物与档案"><span class="material-icons">person</span></button>
+      <button type="button" data-page="objects" aria-label="文件" title="文件"><span class="material-icons">folder</span></button>
+      <button type="button" data-page="media" aria-label="媒体" title="媒体"><span class="material-icons">movie</span></button>
+      <p class="nav-group">自动化</p>
+      <button type="button" data-page="schedules" aria-label="持久调度" title="持久调度"><span class="material-icons">schedule</span></button>
+      <button type="button" data-page="deliveries" aria-label="持久投递" title="持久投递"><span class="material-icons">send</span></button>
+      <p class="nav-group">系统与运维</p>
+      <button type="button" data-page="settings" aria-label="设置" title="设置"><span class="material-icons">settings</span></button>
+      <button type="button" data-page="capabilities" aria-label="能力" title="能力"><span class="material-icons">dashboard</span></button>
+      <button type="button" data-page="tokens" aria-label="令牌" title="令牌"><span class="material-icons">key</span></button>
+      <button type="button" data-page="logs" aria-label="诊断日志" title="诊断日志"><span class="material-icons">article</span></button>
+      <button type="button" data-page="audit" aria-label="审计记录" title="审计记录"><span class="material-icons">history</span></button>
+    </nav>
     <main>
-      <aside>
+      <aside class="sessions-panel">
         <form id="connect">
           <label>所有者令牌<input id="token" type="password" autocomplete="off" required /></label>
           <button type="submit">连接实例</button>
         </form>
-        <label>Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
-        <p class="side-title">对话</p>
-        <button id="new-session" type="button">新建对话</button>
+        <label class="agent-field">Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
+        <div class="sessions-head">
+          <span>会话</span>
+          <button id="new-session" type="button" aria-label="新建对话" title="新建对话">
+            <span class="material-icons">add</span>
+          </button>
+        </div>
         <div id="sessions" aria-label="历史会话"></div>
-        <p class="side-title">设置中心</p>
-        <nav aria-label="工作台" inert>
-          <p class="nav-group">对话与记忆</p>
-          <button type="button" data-page="chat">对话</button>
-          <button type="button" data-page="memory">记忆</button>
-          <p class="nav-group">知识与技能</p>
-          <button type="button" data-page="skills">技能</button>
-          <button type="button" data-page="documents">来源文档</button>
-          <p class="nav-group">工具与扩展</p>
-          <button type="button" data-page="extensions">可信插件</button>
-          <button type="button" data-page="mcp">MCP</button>
-          <button type="button" data-page="action-reviews">动作核查</button>
-          <p class="nav-group">设备与平台</p>
-          <button type="button" data-page="qq">QQ 通道</button>
-          <button type="button" data-page="bilibili">B站</button>
-          <button type="button" data-page="android">安卓设备</button>
-          <button type="button" data-page="desktop">桌面能力</button>
-          <button type="button" data-page="terminals">所有者终端</button>
-          <p class="nav-group">资料与媒体</p>
-          <button type="button" data-page="people">人物与档案</button>
-          <button type="button" data-page="objects">文件</button>
-          <button type="button" data-page="media">媒体</button>
-          <p class="nav-group">自动化</p>
-          <button type="button" data-page="schedules">持久调度</button>
-          <button type="button" data-page="deliveries">持久投递</button>
-          <p class="nav-group">系统与运维</p>
-          <button type="button" data-page="settings">设置</button>
-          <button type="button" data-page="capabilities">能力</button>
-          <button type="button" data-page="tokens">令牌</button>
-          <button type="button" data-page="logs">诊断日志</button>
-          <button type="button" data-page="audit">审计记录</button>
-        </nav>
       </aside>
       <section aria-label="工作区">
         <header class="page-head">

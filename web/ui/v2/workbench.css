@@ -984,3 +984,222 @@ body.chat-mode main > section {
   }
 }
 
+
+/* ==========================================================================
+   V1 风格壳层：左侧图标栏 + 会话面板 + 对话区
+   ========================================================================== */
+body {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-rows: var(--header-h) minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden;
+}
+body > header {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  position: static;
+}
+
+body > nav[aria-label="工作台"] {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid var(--line-3);
+  background: color-mix(in srgb, var(--surface-1) 55%, transparent);
+}
+body > nav[aria-label="工作台"]::-webkit-scrollbar {
+  width: 0;
+}
+body > nav .nav-group {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+body > nav button[data-page] {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-2);
+}
+body > nav button[data-page]:hover {
+  background: var(--surface-2);
+  color: var(--text-1);
+}
+body > nav button[data-page][aria-current="page"] {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--text-1);
+}
+body > nav button[data-page][aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: var(--r-full);
+  background: var(--grad);
+}
+body > nav button .material-icons {
+  font-size: 20px;
+}
+body > nav[inert] button[data-page] {
+  opacity: 0.4;
+}
+
+body > main {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 312px minmax(0, 1fr);
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+}
+body:not(.chat-mode) > main {
+  grid-template-columns: minmax(0, 1fr);
+}
+body:not(.chat-mode) > main > aside.sessions-panel {
+  display: none;
+}
+body > main > aside.sessions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding: 14px 12px 18px;
+  overflow-y: auto;
+  border-right: 1px solid var(--line-3);
+  background: color-mix(in srgb, var(--surface-1) 45%, transparent);
+}
+body > main > section {
+  height: 100%;
+  min-height: 0;
+}
+.sessions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  color: var(--text-4);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.sessions-head button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: var(--r-sm);
+}
+.sessions-head .material-icons {
+  font-size: 17px;
+}
+
+@media (max-width: 900px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    height: auto;
+    overflow: visible;
+  }
+  body > header {
+    grid-row: 1;
+  }
+  body > nav[aria-label="工作台"] {
+    grid-row: 2;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 6px 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-3);
+  }
+  body > nav .nav-group {
+    display: none;
+  }
+  body > main {
+    grid-row: 3;
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+  body > main > aside.sessions-panel {
+    height: auto;
+    max-height: 40vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-3);
+  }
+  body > main > section {
+    height: auto;
+  }
+}
+
+/* 会话面板头部与新建按钮（覆盖旧的全宽样式） */
+.sessions-head {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: var(--fs-small);
+  white-space: nowrap;
+}
+.sessions-head > span {
+  white-space: nowrap;
+}
+#new-session {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-style: solid;
+  border-radius: var(--r-sm);
+}
+
+/* 窄屏页头：允许换行，避免“返回对话”把页面撑宽 */
+.page-head {
+  flex-wrap: wrap;
+}
+#back-to-chat {
+  margin-left: auto;
+}
+@media (max-width: 620px) {
+  .page-head p {
+    display: none;
+  }
+}
+
+/* 窄屏：复位桌面的网格定位，否则 body 会隐式生成第二列 */
+@media (max-width: 900px) {
+  body > header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  body > nav[aria-label="工作台"] {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  body > main {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
