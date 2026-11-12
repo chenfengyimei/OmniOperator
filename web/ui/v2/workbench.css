@@ -238,13 +238,24 @@ main > section,
   top: 0;
   z-index: 4;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   margin: -18px -22px 0;
   padding: 14px 22px 10px;
   border-bottom: 1px solid var(--line-3);
   background: color-mix(in srgb, var(--bg) 93%, transparent);
   backdrop-filter: blur(var(--glass-strong-blur));
+}
+.page-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+#back-to-chat {
+  flex: 0 0 auto;
+  margin-top: 2px;
 }
 .page-head h1 {
   margin: 0;
@@ -294,8 +305,29 @@ nav[aria-label="工作台"] {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  margin: 6px 0 2px;
+  margin: 2px 0 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line-3);
   min-height: 0;
+}
+
+.side-title {
+  margin: 14px 4px 2px;
+  color: var(--text-4);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.side-title:first-of-type {
+  margin-top: 8px;
+}
+
+/* 对话 / 设置中心 两种侧栏模式：对话时显示会话，设置时只显示功能导航 */
+body:not(.chat-mode) #new-session,
+body:not(.chat-mode) #sessions,
+body:not(.chat-mode) aside .side-title:first-of-type {
+  display: none;
 }
 
 nav .nav-group {
@@ -604,6 +636,16 @@ h2 {
 h3 {
   font-weight: 650;
 }
+main > section h1 {
+  margin: 2px 0 6px;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+main > section h2 {
+  margin: 6px 0 4px;
+  font-size: 15px;
+}
 
 #error {
   margin: 0;
@@ -638,17 +680,32 @@ h3 {
    对话页
    ========================================================================== */
 #chat {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
+  overflow-y: auto;
+}
+#chat > * {
+  flex: 0 0 auto;
+}
+#chat > button {
+  align-self: flex-start;
 }
 
 #messages {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 12px;
-  min-height: 120px;
+  min-height: 140px;
   padding: 6px 2px 10px;
+  overflow-y: auto;
+}
+
+/* 对话视图不滚动整页：消息区内部滚动，输入区固定在底部 */
+body.chat-mode main > section {
+  overflow-y: hidden;
 }
 
 #messages > article {
@@ -737,21 +794,27 @@ h3 {
 
 /* 输入区：卡片式，跟随内容滚动 */
 #send {
+  position: sticky;
+  bottom: -10px;
+  z-index: 6;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   margin: 2px 0 0;
-  padding: 12px 14px 12px;
+  padding: 10px 12px;
   border: 1px solid var(--line-2);
   border-radius: var(--r-card);
   background: var(--surface-1);
   box-shadow: var(--sh-1);
 }
+#send label {
+  gap: 4px;
+}
 #send textarea {
-  min-height: 48px;
+  min-height: 44px;
 }
 #send select[multiple] {
-  min-height: 52px;
+  min-height: 44px;
 }
 #send > button {
   justify-self: start;
@@ -854,6 +917,10 @@ h3 {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
     gap: 4px;
+  }
+  #sessions {
+    max-height: 34vh;
+    overflow-y: auto;
   }
   nav .nav-group {
     grid-column: 1 / -1;

@@ -239,6 +239,7 @@ const PAGE_META = {
 };
 function syncPageChrome(next) {
   document.body.dataset.page = next;
+  document.body.classList.toggle('chat-mode', next === 'chat');
   for (const button of document.querySelectorAll('[data-page]')) {
     if (button.dataset.page === next) button.setAttribute('aria-current', 'page');
     else button.removeAttribute('aria-current');
@@ -248,6 +249,10 @@ function syncPageChrome(next) {
     subtitle = $('page-subtitle');
   if (title) title.textContent = meta[0];
   if (subtitle) subtitle.textContent = meta[1];
+  const back = $('back-to-chat');
+  if (back) back.hidden = next === 'chat';
+  const aside = document.querySelector('aside');
+  if (aside && next === 'chat') aside.scrollTop = 0;
 }
 function themeLabel() {
   const pref = window.OmniTheme?.pref?.() || 'auto';
@@ -608,6 +613,7 @@ $('connect').addEventListener(
   }),
 );
 $('agents').addEventListener('change', wrap(selectAgent));
+$('back-to-chat').addEventListener('click', () => document.querySelector('[data-page="chat"]').click());
 $('theme').addEventListener('click', () => {
   window.OmniTheme.cycle();
   themeLabel();

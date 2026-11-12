@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261112v55" />
     <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261112v55" />
   </head>
-  <body>
+  <body class="chat-mode">
     <header class="app-header">
       <img src="/assets/ui/brand-mark.svg" width="26" height="26" alt="" />
       <span class="brand-text"><strong>OmniOperator</strong><small>V2 开发工作台</small></span>
@@ -25,6 +25,10 @@
           <button type="submit">连接实例</button>
         </form>
         <label>Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
+        <p class="side-title">对话</p>
+        <button id="new-session" type="button">新建对话</button>
+        <div id="sessions" aria-label="历史会话"></div>
+        <p class="side-title">设置中心</p>
         <nav aria-label="工作台" inert>
           <p class="nav-group">对话与记忆</p>
           <button type="button" data-page="chat">对话</button>
@@ -56,13 +60,14 @@
           <button type="button" data-page="logs">诊断日志</button>
           <button type="button" data-page="audit">审计记录</button>
         </nav>
-        <button id="new-session" type="button">新建对话</button>
-        <div id="sessions" aria-label="历史会话"></div>
       </aside>
       <section aria-label="工作区">
         <header class="page-head">
-          <h1 id="page-title">对话</h1>
-          <p id="page-subtitle">与当前 Agent 空间对话、发起运行并审批动作。</p>
+          <div class="page-head-text">
+            <h1 id="page-title">对话</h1>
+            <p id="page-subtitle">与当前 Agent 空间对话、发起运行并审批动作。</p>
+          </div>
+          <button id="back-to-chat" type="button" hidden>返回对话</button>
         </header>
         <p id="error" role="alert" hidden></p>
         <div id="approvals" aria-live="polite"></div>
