@@ -1456,34 +1456,36 @@
    ]
   },
   "full_run": {
-   "status": "confirmed_after_ui_fixes",
-   "source": "6863ca9 (all UI fixes) + parallel workbench redesign commits",
+   "status": "measured_with_parallel_ui_session_in_flight",
+   "source": "5a2ab90 + parallel UI commits (e2bb3ed, 22eac40, 9d7c2c8) + their uncommitted workbench.css",
    "workers": 2,
-   "report": "temp/build/v2-full-139.xml",
+   "report": "temp/build/v2-full-141.xml",
    "tests": 4654,
-   "passed": 4653,
-   "failed": 1,
+   "passed": 4650,
+   "failed": 4,
    "errors": 0,
-   "duration_s": 2815.58,
+   "duration_s": 2721.77,
    "failure_summary": {
-    "parallel_timing": 1
+    "parallel_uncommitted_css": 1,
+    "load_dependent_flake": 3
    },
-   "parallel_failures": [
-    "test_v2_debug_sink.py::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
+   "details": [
+    "test_ui_glass_tokens::test_no_second_accent_color — 并行会话正在改 web/ui/v2/workbench.css（未提交），引入新一批裸色值；我方已把 39e018f 的 Hermes 主题色收敛到 tokens.css，但对方未提交的在改文件不能代改",
+    "test_v2_service_runtime::test_identity_tracks_real_boot_and_drains_before_releasing_lock — 单独跑 1 passed",
+    "test_v2_skills_ui::test_skill_draft_review_and_explicit_turn_selection[light-1024/1440] — 整文件单独跑 8 passed"
    ],
-   "isolation": {
-    "report": "temp/build/v2-full-139-debug-sink.xml",
-    "tests": 11,
-    "passed": 11,
-    "note": "same file passes with -n 0; the failure is test isolation under xdist (LoggingSession attaches to the shared omni.v2 logger, so a parallel worker can format a private message), not a product defect"
-   },
-   "note": "24 UI failures and the workbench route/font hang are fixed; only the known debug_sink parallel-isolation flake remains. This is still not a green full suite for -n 2."
+   "note": "本轮全量在并行 UI 会话持续提交+未提交改动期间测得；除对方未提交 CSS 触发的 1 项守卫外，其余 3 项均为负载相关抖动，隔离复跑通过。"
   },
   "open_findings": [
    {
-    "id": "tests.debug_sink_parallel_isolation",
+    "id": "ui.parallel_uncommitted_css_tokens",
     "status": "open",
-    "scope": "test_v2_debug_sink 在 -n 2 下偶发格式化私有消息而失败；隔离 11 项全过。LoggingSession 挂载到共享的 omni.v2 logger，并行 worker 复用该 logger 时会串到别处，需按测试隔离 logger 名。"
+    "scope": "并行 UI 会话未提交的 web/ui/v2/workbench.css 引入未登记裸色值，test_no_second_accent_color 会在其落地前间歇失败；需要该会话把新色值收敛到 tokens.css 或登记设计系统后再复跑。"
+   },
+   {
+    "id": "tests.load_dependent_flakes",
+    "status": "open",
+    "scope": "test_v2_service_runtime 的真实 boot/锁用例与 test_v2_skills_ui 在 -n 2 高负载下偶发超时，隔离均通过；属负载相关抖动，非功能缺陷。"
    }
   ]
  },
