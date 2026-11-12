@@ -564,3 +564,5 @@ def manager_identity(plan: object) -> dict[str, object]:
 
 
 created = _created
+
+sha = _sha

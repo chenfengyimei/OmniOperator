@@ -5,7 +5,6 @@ from __future__ import annotations
 import secrets
 from typing import Any, cast
 
-from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.service_admin import decode
 from ...domain.service_control import start_precondition
@@ -22,7 +21,7 @@ class DarwinAdministrator:
     def __init__(self, policy: DarwinPolicy, commands: DarwinCommands) -> None:
         self.policy, self.commands = policy, commands
 
-    def snapshot(self) -> tuple[Record, bool | None]:
+    def snapshot(self) -> tuple[dict[str, Any], bool | None]:
         program, manager = self.policy.program(), self.policy.manager
         name, artifact = str(manager["name"]), str(manager["artifact"])
         nonce = secrets.token_hex(16)

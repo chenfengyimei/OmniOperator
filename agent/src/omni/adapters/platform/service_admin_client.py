@@ -10,7 +10,7 @@ import struct
 import sys
 import uuid
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
@@ -28,7 +28,7 @@ from ...domain.service_admin import (
     validate_response,
     verify_broker,
 )
-from ...domain.service_deployment import _sha
+from ...domain.service_deployment import sha
 from ...domain.service_exchange import FORMAT as EXCHANGE_FORMAT
 from ...domain.service_exchange import PHASE_FORMAT
 
@@ -50,13 +50,13 @@ class PrivilegedServiceClient:
     def __init__(
         self, operation: Record, endpoint: str, broker_sha256: str, *, _approval: Record | None = None
     ) -> None:
-        self.operation = admin_operation(operation)
-        self.approval = self.operation if _approval is None else admin_scope(_approval)
+        self.operation: dict[str, Any] = cast(dict[str, Any], admin_operation(operation))
+        self.approval: Record = self.operation if _approval is None else cast(Record, admin_scope(_approval))
         if self.operation not in scoped_operations(self.approval).values():
             raise BusinessError(
                 "service_admin_scope_changed", "The connection principal must belong to its approved scope"
             )
-        self.endpoint, self.broker_sha256 = Path(endpoint), _sha(broker_sha256)
+        self.endpoint, self.broker_sha256 = Path(endpoint), sha(broker_sha256)
         verify_broker(self.approval, self.broker_sha256)
         if str(self.endpoint) != str(Path(socket_path(self.approval))):
             raise BusinessError(
@@ -119,6 +119,34 @@ class PrivilegedServiceClient:
         except BaseException:
             connection.close()
             raise
+
+    @property
+    def closed(self) -> bool:
+        return self._closed
+
+    @closed.setter
+    def closed(self, value: bool) -> None:
+        self._closed = value
+
+    @property
+    def pending(self) -> asyncio.Task[Record] | None:
+        return self._pending
+
+    @property
+    def failed(self) -> bool:
+        return self._failed
+
+    @property
+    def sequence(self) -> int:
+        return self._sequence
+
+    async def rpc(self, command: str, *, operation_key: str = "") -> Record:
+        """Public bridge: one owned request through the pinned broker connection."""
+        return await self._rpc(command, operation_key=operation_key)
+
+    async def exchange(self, command: str, *, operation_key: str = "") -> Record:
+        """Public bridge: leases settle through the same single owned connection."""
+        return await self._exchange(command, operation_key=operation_key)
 
     async def _exchange(self, command: str, *, operation_key: str = "") -> Record:
         if self._writer is None:
@@ -258,9 +286,22 @@ class ExchangeAdministrator(PrivilegedServiceClient):
         scope = admin_scope(plan)
         if scope.get("format") not in {EXCHANGE_FORMAT, PHASE_FORMAT}:
             raise BusinessError("service_admin_exchange_required", "Bind the complete reviewed system exchange")
-        super().__init__(next(iter(scoped_operations(scope).values())), endpoint, broker_sha256, _approval=scope)
+        super().__init__(
+            cast(Record, next(iter(scoped_operations(scope).values()))),
+            endpoint,
+            broker_sha256,
+            _approval=cast(Record, scope),
+        )
         self._holder: AdministratorLease | None = None
         self._leases: list[AdministratorLease] = []
+
+    @property
+    def holder(self) -> AdministratorLease | None:
+        return self._holder
+
+    @holder.setter
+    def holder(self, value: AdministratorLease | None) -> None:
+        self._holder = value
 
     def lease(self, key: str, *, read_only: bool = False) -> AdministratorLease:
         bound_operation(self.approval, key)
@@ -281,7 +322,7 @@ class ExchangeAdministrator(PrivilegedServiceClient):
             if key == "start_target":
                 continue
             lease = self.lease(key, read_only=True)
-            report = await lease.inspect(bound_operation(self.approval, key)["deployment"])
+            report = await lease.inspect(cast(Record, bound_operation(self.approval, key)["deployment"]))
             if not await lease.close(6):
                 return False
             if report.get("available") is True:
@@ -291,14 +332,14 @@ class ExchangeAdministrator(PrivilegedServiceClient):
     async def close(self, timeout_s: float = 30) -> bool:
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
         holder = self._holder
-        if holder is not None and holder._settle is not None and not holder._settle.done():
-            done, _ = await asyncio.wait((holder._settle,), timeout=max(0, timeout_s))
+        if holder is not None and holder.settle is not None and not holder.settle.done():
+            done, _ = await asyncio.wait((holder.settle,), timeout=max(0, timeout_s))
             if not done:
                 return False
         closed = await super().close(max(0, deadline - asyncio.get_running_loop().time()))
         if closed:
             for lease in self._leases:
-                lease._closed = True
+                lease.closed = True
             self._holder = None
         return closed
 
@@ -310,19 +351,31 @@ class AdministratorLease:
         self._closed = False
         self._settle: asyncio.Task[Record] | None = None
 
+    @property
+    def settle(self) -> asyncio.Task[Record] | None:
+        return self._settle
+
+    @property
+    def closed(self) -> bool:
+        return self._closed
+
+    @closed.setter
+    def closed(self, value: bool) -> None:
+        self._closed = value
+
     def _plan(self, deployment: Record) -> None:
         if deployment != self.operation["deployment"]:
             raise BusinessError("service_admin_plan_changed", "The lease binds only its reviewed deployment")
 
     async def _call(self, command: str) -> Record:
-        if self._closed or self.parent._closed or self._settle is not None:
+        if self._closed or self.parent.closed or self._settle is not None:
             raise BusinessError("service_admin_lease_closed", "This native operation lease has been released")
-        if self.parent._holder not in (None, self):
+        if self.parent.holder not in (None, self):
             raise BusinessError(
                 "service_admin_lease_owned", "Another native operation still owns administrator cleanup"
             )
-        self.parent._holder = self
-        return await self.parent._rpc(command, operation_key=self.key)
+        self.parent.holder = self
+        return await self.parent.rpc(command, operation_key=self.key)
 
     async def inspect(self, plan: Record) -> Record:
         self._plan(plan)
@@ -360,24 +413,24 @@ class AdministratorLease:
         return await self._change(plan, "start")
 
     async def close(self, timeout_s: float = 30) -> bool:
-        if self._closed or self.parent._closed:
+        if self._closed or self.parent.closed:
             self._closed = True
             return True
-        if self.parent._holder is not self:
+        if self.parent.holder is not self:
             self._closed = True  # An unused lease has no RPC or native work of its own.
             return True
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
-        if self.parent._pending is not None:
-            done, _ = await asyncio.wait((self.parent._pending,), timeout=max(0, timeout_s))
+        if self.parent.pending is not None:
+            done, _ = await asyncio.wait((self.parent.pending,), timeout=max(0, timeout_s))
             if not done:
                 return False
-        if self.parent._failed:
+        if self.parent.failed:
             return False
-        if self.parent._sequence >= MAX_REQUESTS - 1:
+        if self.parent.sequence >= MAX_REQUESTS - 1:
             return await self.parent.close(max(0, deadline - asyncio.get_running_loop().time()))
         if self._settle is None:
             self._settle = asyncio.create_task(
-                self.parent._exchange("settle", operation_key=self.key), name="service-administrator-settle"
+                self.parent.exchange("settle", operation_key=self.key), name="service-administrator-settle"
             )
             self._settle.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
         done, _ = await asyncio.wait((self._settle,), timeout=max(0, deadline - asyncio.get_running_loop().time()))
@@ -389,5 +442,5 @@ class AdministratorLease:
             return False
         if report.get("settled") is not True or report.get("cleanup_pending") is not False:
             return False
-        self._closed, self.parent._holder = True, None
+        self._closed, self.parent.holder = True, None
         return True
