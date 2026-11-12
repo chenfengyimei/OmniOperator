@@ -66,6 +66,7 @@
     "agent/src/omni/adapters/platform/linux_x11_socket.py",
     "agent/src/omni/adapters/platform/macos_helper.py",
     "agent/src/omni/adapters/platform/macos_service.py",
+    "agent/src/omni/adapters/platform/macos_service_state.py",
     "agent/src/omni/adapters/platform/paths.py",
     "agent/src/omni/adapters/platform/permissions.py",
     "agent/src/omni/adapters/platform/publication.py",

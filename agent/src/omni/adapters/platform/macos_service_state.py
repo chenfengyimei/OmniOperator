@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import plistlib
 import re
+from typing import cast
 from collections.abc import Mapping
 
 from ...domain.service_deployment import manager_identity
@@ -14,7 +15,8 @@ MAX_OUTPUT = 65536
 
 
 def _bounded_job(value: object) -> bool:
-    pending, count, text = [(value, 0)], 0, 0
+    pending: list[tuple[object, int]] = [(value, 0)]
+    count, text = 0, 0
     while pending:
         item, depth = pending.pop()
         count += 1
@@ -26,13 +28,15 @@ def _bounded_job(value: object) -> bool:
             if size > 4096 or text > 32768:
                 return False
         elif isinstance(item, dict):
-            if len(item) > 64 or any(not isinstance(key, str) for key in item):
+            mapping = cast(dict[object, object], item)
+            if len(mapping) > 64 or any(not isinstance(key, str) for key in mapping):
                 return False
-            pending.extend((child, depth + 1) for pair in item.items() for child in pair)
+            pending.extend((child, depth + 1) for pair in mapping.items() for child in pair)
         elif isinstance(item, list):
-            if len(item) > 64:
+            items = cast(list[object], item)
+            if len(items) > 64:
                 return False
-            pending.extend((child, depth + 1) for child in item)
+            pending.extend((child, depth + 1) for child in items)
         elif type(item) not in {type(None), bool, int, float}:
             return False
     return True
@@ -40,27 +44,33 @@ def _bounded_job(value: object) -> bool:
 
 def loaded_definition(plan: Mapping[str, object], job: object) -> bool | None:
     """Compare all execution-relevant fields; unknown native fields cannot prove a match."""
-    if not isinstance(job, dict) or not _bounded_job(job):
+    if not isinstance(job, dict) or not _bounded_job(cast(object, job)):
         return None
-    expected = plistlib.loads(render(plan)[manager_identity(plan)["artifact"]])
+    job_value = cast(dict[str, object], job)
+    artifact = str(manager_identity(plan)["artifact"])
+    expected = cast(dict[str, object], plistlib.loads(render(plan)[artifact]))
     metadata = {"PID", "LastExitStatus", "OnDemand", "Program"}
-    if set(job) - set(expected) - metadata:
+    if set(job_value) - set(expected) - metadata:
         return None
-    if set(expected) - set(job):
+    if set(expected) - set(job_value):
         return None
     # JSON's typed spelling distinguishes booleans from integers.
-    actual = {key: job[key] for key in expected}
+    actual = {key: job_value[key] for key in expected}
     if json.dumps(actual, sort_keys=True, allow_nan=False) != json.dumps(expected, sort_keys=True, allow_nan=False):
         return False
-    if "Program" in job and job["Program"] != expected["ProgramArguments"][0]:
+    if "Program" in job_value and job_value["Program"] != cast(list[object], expected["ProgramArguments"])[0]:
         return False
-    if "OnDemand" in job and job["OnDemand"] is not True:
+    if "OnDemand" in job_value and job_value["OnDemand"] is not True:
         return False
     for key in ("PID", "LastExitStatus"):
-        if key in job and (type(job[key]) is not int or not -2_147_483_648 <= job[key] <= 2_147_483_647):
+        if key in job_value:
+            number = job_value[key]
+            if type(number) is not int or not -2_147_483_648 <= number <= 2_147_483_647:
+                return None
+    if "PID" in job_value:
+        pid = job_value["PID"]
+        if type(pid) is int and pid < 0:
             return None
-    if "PID" in job and job["PID"] < 0:
-        return None
     return True
 
 
