@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1132034b71239bcf0e70ebabb7e1c8f648ae7255426019826f31099b27d52973",
+  "source_sha256": "3007e942a170324e3ff95631939294411641d019a4be95ae1861b3aaa28e632a",
   "modules": [
     {
       "id": "v2-domain",
@@ -39847,7 +39847,7 @@
           "annotations": {
             "target": "ServerTarget",
             "name": "str",
-            "arguments": "dict",
+            "arguments": "dict[str, JSON]",
             "timeout_s": "float",
             "before_send": "Callable[[], Awaitable[None]] | None"
           }
