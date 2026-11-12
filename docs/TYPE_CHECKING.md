@@ -68,11 +68,13 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/routing.py` | 档位配置读取/保存用例（显式 Record） |
 | `agent/src/omni/application/scheduling.py` | 单调度器保存/到期入队（UnitOfWork 回调与嵌套字段显式化） |
 | `agent/src/omni/application/release_drain.py` | 发布排空绑定既有 once-only 启动控制 |
+| `agent/src/omni/application/releases.py` | 发布计划/准备/恢复编排（显式 Record） |
 | `agent/src/omni/application/exchange_recovery_steps.py` | 隔离/救援计划复用发布快照与栅栏 |
 | `agent/src/omni/application/local_vectors.py` | 本地 ONNX 向量器选择/状态无 I/O 规则 |
 | `agent/src/omni/application/maintenance.py` | 维护作业编排/心跳/结算（有界任务、显式 Record） |
 | `agent/src/omni/application/images.py` | 图片准入/上下文选择/线材物化（有界任务、显式 Record） |
 | `agent/src/omni/application/service_deployment.py` | 服务部署准备/验证/状态组合（公共桥 + 显式 Record） |
+| `agent/src/omni/application/service_operations.py` | 服务安装/启动/移除操作编排（显式 Record） |
 | `agent/src/omni/application/service_exchange.py` | 交换计划/管理员阶段/应用编排（公共桥） |
 | `agent/src/omni/application/model_output.py` | 有界实时预览（TypedDict 行、authority Mapping） |
 | `agent/src/omni/application/model_calls.py` | 模型调用预检/授权/结算（显式 Record、流对象） |

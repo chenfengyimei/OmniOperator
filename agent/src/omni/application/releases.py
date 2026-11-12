@@ -65,6 +65,8 @@ class Releases:
             isolated_registration=reviewed.get("isolated_registration") is True
             or (recovery is not None and recovery["isolation"] is not None),
         )
+        source_runtime = cast(Record, reviewed["runtime"])
+        target_runtime = cast(Record, target["runtime"])
         plan = make_release(
             reviewed,
             target,
@@ -72,8 +74,8 @@ class Releases:
             self.ids.new(),
             self.clock.now(),
             recovery,
-            migration=self.data.schema_upgrade(reviewed["runtime"], target["runtime"])
-            if recovery is None and reviewed["runtime"]["schema_head"] != target["runtime"]["schema_head"]
+            migration=self.data.schema_upgrade(source_runtime, target_runtime)
+            if recovery is None and source_runtime["schema_head"] != target_runtime["schema_head"]
             else None,
         )
         self.files.installations(plan)
@@ -140,7 +142,7 @@ class Releases:
 
     def prepared(self, history: list[ReleaseEvent]) -> ReleasePrepared:
         values = [row["data"] for row in history if row["phase"] == "prepared"]
-        if len(values) != 1 or not isinstance(values[0], dict):
+        if len(values) != 1 or not isinstance(cast(object, values[0]), dict):
             raise BusinessError("release_not_prepared", "A complete prepared release is required")
         return cast(ReleasePrepared, values[0])
 
@@ -333,3 +335,4 @@ class Releases:
             return False
         self._release()
         return True
+

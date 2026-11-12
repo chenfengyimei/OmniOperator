@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a4d5430cd9fc6681386a4430c3dc5a86becbcd4bdf275d97f3733a7e4241700e",
+  "source_sha256": "1132034b71239bcf0e70ebabb7e1c8f648ae7255426019826f31099b27d52973",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11053,
+      "lines": 11058,
       "dependencies": [
         "v2-domain"
       ]
@@ -50701,7 +50701,7 @@
       "path": "agent/src/omni/application/releases.py",
       "module": "v2-application",
       "python_module": "omni.application.releases",
-      "lines": 335,
+      "lines": 338,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -50758,7 +50758,7 @@
         },
         {
           "name": "Releases.plan",
-          "line": 82,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -50776,7 +50776,7 @@
         },
         {
           "name": "Releases.plan_online",
-          "line": 85,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -50792,7 +50792,7 @@
         },
         {
           "name": "Releases.approved",
-          "line": 110,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "plan",
@@ -50805,7 +50805,7 @@
         },
         {
           "name": "Releases.inspect",
-          "line": 116,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self",
@@ -50817,7 +50817,7 @@
         },
         {
           "name": "Releases._append",
-          "line": 138,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "self",
@@ -50833,7 +50833,7 @@
         },
         {
           "name": "Releases.prepared",
-          "line": 141,
+          "line": 143,
           "kind": "function",
           "parameters": [
             "self",
@@ -50845,7 +50845,7 @@
         },
         {
           "name": "Releases.prepare",
-          "line": 147,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -50859,7 +50859,7 @@
         },
         {
           "name": "Releases.prepare_online",
-          "line": 181,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self",
@@ -50873,7 +50873,7 @@
         },
         {
           "name": "Releases._prepare_online",
-          "line": 191,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self",
@@ -50885,7 +50885,7 @@
         },
         {
           "name": "Releases.select",
-          "line": 244,
+          "line": 246,
           "kind": "function",
           "parameters": [
             "self",
@@ -50899,7 +50899,7 @@
         },
         {
           "name": "Releases._select",
-          "line": 252,
+          "line": 254,
           "kind": "function",
           "parameters": [
             "self",
@@ -50911,7 +50911,7 @@
         },
         {
           "name": "Releases.abandon",
-          "line": 302,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self",
@@ -50925,7 +50925,7 @@
         },
         {
           "name": "Releases._release",
-          "line": 317,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self"
@@ -50934,7 +50934,7 @@
         },
         {
           "name": "Releases.close",
-          "line": 322,
+          "line": 324,
           "kind": "function",
           "parameters": [
             "self",
@@ -51838,7 +51838,7 @@
       "path": "agent/src/omni/application/service_operations.py",
       "module": "v2-application",
       "python_module": "omni.application.service_operations",
-      "lines": 284,
+      "lines": 286,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -51953,7 +51953,7 @@
         },
         {
           "name": "ServiceOperations.cancel",
-          "line": 67,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "self",
@@ -51965,7 +51965,7 @@
         },
         {
           "name": "ServiceOperations._start",
-          "line": 70,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self",
@@ -51983,7 +51983,7 @@
         },
         {
           "name": "ServiceOperations._run",
-          "line": 82,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -52001,7 +52001,7 @@
         },
         {
           "name": "ServiceOperations._record",
-          "line": 227,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
@@ -52025,7 +52025,7 @@
         },
         {
           "name": "ServiceOperations._settle",
-          "line": 256,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self"
@@ -52034,7 +52034,7 @@
         },
         {
           "name": "ServiceOperations._release",
-          "line": 269,
+          "line": 271,
           "kind": "function",
           "parameters": [
             "self"
@@ -52043,7 +52043,7 @@
         },
         {
           "name": "ServiceOperations.close",
-          "line": 274,
+          "line": 276,
           "kind": "function",
           "parameters": [
             "self",

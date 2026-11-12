@@ -32,7 +32,7 @@ class ServiceOperations:
         verification = self.deployments.verify(bundle)
         self._eligible(verification)
         operation = make_operation(verification["plan"], action, self.ids.new(), self.clock.now())
-        return self.files.publish(operation, output)
+        return self.files.publish(cast(Record, operation), output)
 
     @staticmethod
     def _eligible(verification: Record) -> None:
@@ -57,15 +57,17 @@ class ServiceOperations:
         checked = validate_operation(operation)
         if approved_sha256 != checked["sha256"]:
             raise BusinessError("service_operation_not_approved", "Approve the exact reviewed operation fingerprint")
-        return await self._start(checked, reconcile=False, accept_observed_goal=accept_observed_goal)
+        return await self._start(cast(Record, checked), reconcile=False, accept_observed_goal=accept_observed_goal)
 
     async def reconcile(self, operation: Record, *, accept_observed_goal: bool = False) -> Record:
         return await self._start(
-            validate_operation(operation), reconcile=True, accept_observed_goal=accept_observed_goal
+            cast(Record, validate_operation(operation)),
+            reconcile=True,
+            accept_observed_goal=accept_observed_goal,
         )
 
     async def cancel(self, operation: Record) -> Record:
-        return await self._start(validate_operation(operation), reconcile=False, cancel=True)
+        return await self._start(cast(Record, validate_operation(operation)), reconcile=False, cancel=True)
 
     async def _start(
         self, operation: Record, *, reconcile: bool, cancel: bool = False, accept_observed_goal: bool = False
@@ -172,7 +174,7 @@ class ServiceOperations:
                         verification="observed_registration_without_dispatch",
                     )
                     return result
-                if not registration_precondition(str(operation["action"]), report):
+                if not registration_precondition(str(operation["action"]), cast(dict[str, object], report)):
                     result = self._record(
                         operation, "denied", "none", "service_registration_precondition", report, terminal=True
                     )
