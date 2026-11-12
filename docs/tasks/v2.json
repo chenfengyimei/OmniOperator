@@ -328,7 +328,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "Windows wheel/sdist 构建验证与安装/更新/恢复同步调用已完成，strict 已到 240 文件（domain 53/53、application 43/44、adapters 144/215）；剩余：application/adapters/composition 严格化、工作台改版 UI 功能、完整安装/更新执行、容器与三平台构建、干净机器端到端、正式入口切换。"
+    "scope": "Windows wheel/sdist 构建验证与安装/更新/恢复同步调用已完成，strict 已到 240 文件（domain 53/53、application 43/44、adapters 144/222）；剩余：application/adapters/composition 严格化、工作台改版 UI 功能、完整安装/更新执行、容器与三平台构建、干净机器端到端、正式入口切换。"
   },
   "milestones": [
     {
@@ -885,7 +885,7 @@
       "evidence": [
         "docs/evidence/v2-typecheck.json"
       ],
-      "remaining": "domain 53/53 已全部严格化；application 31/44、adapters 4/215 其余文件与 composition 未严格化；不得称全仓 strict。",
+      "remaining": "domain 53/53 已全部严格化；application 31/44、adapters 4/222 其余文件与 composition 未严格化；不得称全仓 strict。",
       "code_version": "0ed245cf50d0e71b873df8aa667e9a2c9a689ac45d4384aadbee059990458f75"
     },
     {

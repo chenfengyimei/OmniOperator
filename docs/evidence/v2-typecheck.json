@@ -151,7 +151,7 @@
    "Strict scope reaches 240 files (53 domain + 43 application + 144 adapters); the serial-target PipeWire frame helper types its Gst consumer surface, frame executor future/callback and receipt payloads, and reads O_NOFOLLOW through getattr so the serial-target and no-root-window rules stay unchanged"
   ],
   "pending": [
-   "application 43/44 and adapters 144/215 strict typing",
+   "application 43/44 and adapters 144/222 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -1390,6 +1390,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 144/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 144/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
