@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4f43a32c7a49937b838516961c3e528e241618feb0d27f7a0988bf07d6b8acf5",
+  "source_sha256": "a4d5430cd9fc6681386a4430c3dc5a86becbcd4bdf275d97f3733a7e4241700e",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11052,
+      "lines": 11053,
       "dependencies": [
         "v2-domain"
       ]
@@ -51420,7 +51420,7 @@
       "path": "agent/src/omni/application/service_control.py",
       "module": "v2-application",
       "python_module": "omni.application.service_control",
-      "lines": 242,
+      "lines": 243,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",

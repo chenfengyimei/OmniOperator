@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`4f43a32c7a49937b838516961c3e528e241618feb0d27f7a0988bf07d6b8acf5`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`a4d5430cd9fc6681386a4430c3dc5a86becbcd4bdf275d97f3733a7e4241700e`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -115,7 +115,7 @@
 | [agent/src/omni/application/routing.py](../../agent/src/omni/application/routing.py) | 19 | Tier configuration, query and bounded control use cases; model invocation remains in ModelCalls. |
 | [agent/src/omni/application/scheduling.py](../../agent/src/omni/application/scheduling.py) | 207 | One bounded scheduler; durable identities and admission are committed together. |
 | [agent/src/omni/application/service_cleanup.py](../../agent/src/omni/application/service_cleanup.py) | 78 | Review quarantined native definitions and reuse once-only registration use cases; never clears original unknowns. |
-| [agent/src/omni/application/service_control.py](../../agent/src/omni/application/service_control.py) | 242 | Reviewed start and graceful stop use cases; external dispatch happens once and unknown work is never replayed. |
+| [agent/src/omni/application/service_control.py](../../agent/src/omni/application/service_control.py) | 243 | Reviewed start and graceful stop use cases; external dispatch happens once and unknown work is never replayed. |
 | [agent/src/omni/application/service_deployment.py](../../agent/src/omni/application/service_deployment.py) | 47 | Prepare reviewable service deployments and combine independent proofs; never installs or starts services. |
 | [agent/src/omni/application/service_exchange.py](../../agent/src/omni/application/service_exchange.py) | 194 | Ordered service exchange ownership; interrupted native steps are observed, never automatically replayed. |
 | [agent/src/omni/application/service_operations.py](../../agent/src/omni/application/service_operations.py) | 284 | Offline registration use cases with durable intent, no replay, and retained cancellation ownership. |

@@ -32,6 +32,7 @@
     "agent/src/omni/application/routing.py",
     "agent/src/omni/application/scheduling.py",
     "agent/src/omni/application/service_cleanup.py",
+    "agent/src/omni/application/service_control.py",
     "agent/src/omni/application/service_deployment.py",
     "agent/src/omni/application/service_exchange.py",
     "agent/src/omni/application/terminal_review.py",

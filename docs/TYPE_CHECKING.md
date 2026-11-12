@@ -95,6 +95,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/documents.py` | 源文档/索引/检索编排（有界任务、显式 Record） |
 | `agent/src/omni/application/exchange_recovery.py` | 交换隔离/救援计划（进度与授权类型化） |
 | `agent/src/omni/application/service_cleanup.py` | 隔离定义审查/清理计划复用 |
+| `agent/src/omni/application/service_control.py` | 服务启动/停止/复核编排（显式 Record） |
 | `agent/src/omni/domain/terminal_review.py` | 终端未知结果核查与证据指纹纯规则 |
 | `agent/src/omni/domain/terminals.py` | 终端打开/输入/缩放/关闭请求纯校验 |
 | `agent/src/omni/adapters/metrics.py` | 运行指标观测适配器 |

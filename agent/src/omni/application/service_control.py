@@ -113,11 +113,11 @@ class ServiceControl:
         raw = cast(Record, dict(op))
         if op["action"] == "stop":
             return {"closed": True, "instance_lock_released": True} if self.files.closed(raw) else None
-        proof = await self.boot.probe(op["deployment"])
+        proof = await self.boot.probe(cast(Record, op["deployment"]))
         if proof.get("ready") is not True or proof.get("boot_id") != op["boot_id"]:
             return None
-        native = await self.native.inspect(op["deployment"])
-        if start_postcondition(op["deployment"], native, proof):
+        native = await self.native.inspect(cast(Record, op["deployment"]))
+        if start_postcondition(cast(Record, op["deployment"]), native, proof):
             self.files.finish_launch(raw)
             return proof
         return None
@@ -125,7 +125,7 @@ class ServiceControl:
     async def _run(
         self, op: ControlPlan, reconcile: bool, cancel: bool = False, verify_terminal: bool = False
     ) -> Record:
-        self.verify(op["deployment"])
+        self.verify(cast(Record, op["deployment"]))
         raw = cast(Record, dict(op))
         guard = self.files.exclusive(raw)
         guard.__enter__()
@@ -164,19 +164,19 @@ class ServiceControl:
             self.files.activate(raw)
             self.record(op, "intent")
             if op["action"] == "start":
-                before = await self.native.inspect(op["deployment"])
+                before = await self.native.inspect(cast(Record, op["deployment"]))
                 allowed = start_precondition(before)
             else:
-                before = await self.boot.probe(op["deployment"])
+                before = await self.boot.probe(cast(Record, op["deployment"]))
                 allowed = before.get("error_code") is None and before.get("boot_id") == op["boot_id"]
             if not allowed:
                 result = self.record(op, "denied", "service_control_precondition", terminal=True, observed=before)
                 return result
-            self.verify(op["deployment"])
+            self.verify(cast(Record, op["deployment"]))
             self.record(op, "dispatch")
             if op["action"] == "start":
                 self.files.reserve(raw)
-                await self.native.start(op["deployment"])
+                await self.native.start(cast(Record, op["deployment"]))
             else:
                 await self.boot.drain(op)
             deadline = self.clock.monotonic() + op["wait_seconds"]
@@ -240,3 +240,4 @@ class ServiceControl:
         self._settle()
         self._release()
         return True
+
