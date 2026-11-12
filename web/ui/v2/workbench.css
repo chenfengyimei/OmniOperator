@@ -2598,3 +2598,68 @@ body.chat-mode > main > section {
   border-top: 1px solid var(--line-3);
   border-radius: 0;
 }
+
+/* ==========================================================================
+   暗色主题回到 V1 的炭黑 + 青色（保留 Hermes 的字号/圆角/密度）
+   ========================================================================== */
+html[data-theme="dark"] body {
+  --bg: #070809;
+  --surface-0: #070809;
+  --surface-1: #101215;
+  --surface-2: #16191d;
+  --surface-3: #1c2025;
+  --surface-inset: #0b0d10;
+  --text-1: #eae7e2;
+  --text-2: #b9b6b1;
+  --text-3: #8f8c87;
+  --text-4: #7a776f;
+  --line-1: #2b2f34;
+  --line-2: #23272c;
+  --line-3: #191c20;
+  --accent: #3ddbd9;
+  --accent2: #7c8cf8;
+  --panel: var(--surface-1);
+  --panel2: var(--surface-2);
+  --border: var(--line-2);
+  --text: var(--text-1);
+  --dim: var(--text-2);
+  --user: color-mix(in srgb, #3ddbd9 20%, #16191d);
+  --assistant: #16191d;
+  background: #070809;
+}
+html[data-theme="dark"] body > header {
+  background: color-mix(in srgb, #070809 88%, transparent);
+}
+html[data-theme="dark"] body #send button[type="submit"] {
+  background: #3ddbd9;
+  border-color: #3ddbd9;
+  color: #04121a;
+}
+html[data-theme="dark"] body input,
+html[data-theme="dark"] body select,
+html[data-theme="dark"] body textarea {
+  background: #0b0d10;
+  border-color: #2b2f34;
+  color: var(--text-1);
+}
+html[data-theme="dark"] body button {
+  background: #16191d;
+  border-color: #2b2f34;
+  color: var(--text-1);
+}
+html[data-theme="dark"] body button[type="submit"] {
+  background: #3ddbd9;
+  border-color: #3ddbd9;
+  color: #04121a;
+}
+html[data-theme="dark"] body:not(.chat-mode) > main > section {
+  background: #070809;
+}
+html[data-theme="dark"] .msg.user .bubble {
+  background: linear-gradient(135deg, color-mix(in srgb, #3ddbd9 26%, #16191d), color-mix(in srgb, #7c8cf8 20%, #16191d));
+  border-color: color-mix(in srgb, #3ddbd9 30%, transparent);
+  color: #f2efea;
+}
+html[data-theme="dark"] .msg.assistant .bubble {
+  background: transparent;
+}
