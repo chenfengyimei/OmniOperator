@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`2a55d0c8bd69c06943c064de529ad16ec34b4cc1b69a67132402651ea9008983`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`a0d15dce7d18639e2d99c48080a8add214dd1715266a34155d371838ed770456`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -242,7 +242,7 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0036.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0036.py) | 37 | Scoped media sources, bounded jobs and immutable anchored artifacts; frozen SQL. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0037.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0037.py) | 53 | MCP runtime generations, catalog fingerprints, per-tool grants, run captures and calls; frozen SQL. |
 | [agent/src/omni/adapters/persistence/object_gc.py](../../agent/src/omni/adapters/persistence/object_gc.py) | 214 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
-| [agent/src/omni/adapters/persistence/object_inventory.py](../../agent/src/omni/adapters/persistence/object_inventory.py) | 125 | Offline object registry snapshots and bounded physical inventory validation. |
+| [agent/src/omni/adapters/persistence/object_inventory.py](../../agent/src/omni/adapters/persistence/object_inventory.py) | 129 | Offline object registry snapshots and bounded physical inventory validation. |
 | [agent/src/omni/adapters/persistence/object_repository.py](../../agent/src/omni/adapters/persistence/object_repository.py) | 205 | Object metadata, pins and real foreign-key references; never touches files. |
 | [agent/src/omni/adapters/persistence/offline_plans.py](../../agent/src/omni/adapters/persistence/offline_plans.py) | 189 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
 | [agent/src/omni/adapters/persistence/operations_read.py](../../agent/src/omni/adapters/persistence/operations_read.py) | 58 | Offline read-only operational snapshot; caller holds exclusive instance ownership. |
@@ -250,7 +250,7 @@
 | [agent/src/omni/adapters/persistence/people_repository.py](../../agent/src/omni/adapters/persistence/people_repository.py) | 210 | People and manual account identities; personal documents reuse memory repositories. |
 | [agent/src/omni/adapters/persistence/qq_authority.py](../../agent/src/omni/adapters/persistence/qq_authority.py) | 99 | Shared QQ audience and credential authority for context, model and outbound checks. |
 | [agent/src/omni/adapters/persistence/qq_repository.py](../../agent/src/omni/adapters/persistence/qq_repository.py) | 229 | QQ admission and authority within the shared unit of work; no network or extra truth store. |
-| [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 36 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
+| [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 41 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
 | [agent/src/omni/adapters/persistence/reference_release_repository.py](../../agent/src/omni/adapters/persistence/reference_release_repository.py) | 305 | Release only reviewed retired action-object references; history is not a live object reference. |
 | [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 206 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
 | [agent/src/omni/adapters/persistence/repository.py](../../agent/src/omni/adapters/persistence/repository.py) | 1059 | Transaction-scoped repositories. No connection creation, DDL or external calls. |

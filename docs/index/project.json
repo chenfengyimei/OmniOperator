@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2a55d0c8bd69c06943c064de529ad16ec34b4cc1b69a67132402651ea9008983",
+  "source_sha256": "a0d15dce7d18639e2d99c48080a8add214dd1715266a34155d371838ed770456",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52795,
+      "lines": 52804,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -18602,17 +18602,18 @@
       "path": "agent/src/omni/adapters/persistence/object_inventory.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.object_inventory",
-      "lines": 125,
+      "lines": 129,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.sqlite_access",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.objects"
       ],
       "symbols": [
         {
           "name": "registry",
-          "line": 19,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "database"
@@ -18623,7 +18624,7 @@
         },
         {
           "name": "signature",
-          "line": 55,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "root",
@@ -18636,7 +18637,7 @@
         },
         {
           "name": "physical_keys",
-          "line": 78,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "root"
@@ -18647,7 +18648,7 @@
         },
         {
           "name": "verify_objects",
-          "line": 116,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "database",
@@ -19546,16 +19547,17 @@
       "path": "agent/src/omni/adapters/persistence/reference_release.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.reference_release",
-      "lines": 36,
+      "lines": 41,
       "imports": [
         "omni.adapters.persistence.offline_plans",
         "omni.adapters.platform.paths",
+        "omni.application.ports",
         "omni.domain.reference_release"
       ],
       "symbols": [
         {
           "name": "read_reference_plan",
-          "line": 23,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "path",
@@ -19568,7 +19570,7 @@
         },
         {
           "name": "plan_reference_release",
-          "line": 27,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "paths",
@@ -19585,7 +19587,7 @@
         },
         {
           "name": "apply_reference_release",
-          "line": 31,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "paths",
@@ -19594,13 +19596,13 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Record",
             "backup_path": "Path"
           }
         },
         {
           "name": "cancel_reference_release",
-          "line": 35,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "paths",
@@ -19609,7 +19611,7 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Record",
             "reason": "str"
           }
         }
