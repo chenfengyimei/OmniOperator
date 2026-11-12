@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "7d1a99140a16045bb250d824c75bcbc5c1a742c1ff263865a89ebb9cfc29c826",
+  "code_version": "fb2b7e311f43fc02b27766191684726928f01e5b7b334fe3adf501e4020e5a67",
   "fixed_source_files": 1200,
-  "git_head": "8f9a88c",
+  "git_head": "2b836d9",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -106,10 +106,11 @@
    "Strict scope reaches 170 files (53 domain + 43 application + 74 adapters); retention_repository, offline_plans, desktop_capture and macos_helper are typed, keeping erasure-session invalidation, bounded plan reads, screenshot identity and helper fingerprint semantics",
    "Strict scope reaches 173 files (53 domain + 43 application + 77 adapters); paths, service_admin_bundle and macos_service are typed, deployment_files exposes public bridges, and the stdlib-only admin bundle keeps zero omni.application imports",
    "Strict scope reaches 175 files (53 domain + 43 application + 79 adapters); workers/terminal decodes frames and validates fixed profiles explicitly, and history_protection shares Record-typed retention protection reasons without changing pruning or release semantics",
-   "Strict scope reaches 178 files (53 domain + 43 application + 82 adapters); sqlalchemy_access pins the DBAPI connect callback and transaction pragmas, linux_x11_socket types the cookie parser, and workers/desktop types its JSON frame hook"
+   "Strict scope reaches 178 files (53 domain + 43 application + 82 adapters); sqlalchemy_access pins the DBAPI connect callback and transaction pragmas, linux_x11_socket types the cookie parser, and workers/desktop types its JSON frame hook",
+   "Strict scope reaches 180 files (53 domain + 43 application + 84 adapters); execution_pruning returns Record for plan read/build/apply/cancel, and the Windows ConPTY gate types console handles and the fixed argv profile without changing Job-before-start semantics"
   ],
   "pending": [
-   "application 43/44 and adapters 82/215 strict typing",
+   "application 43/44 and adapters 84/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -118,8 +119,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-85-callers.xml",
-   "tests": 96,
+   "report": "temp/build/v2-typecheck-86-callers.xml",
+   "tests": 29,
    "failures": 0
   },
   "targeted_reports": [
@@ -895,6 +896,15 @@
     "errors": 0,
     "duration_s": 26.12,
     "note": "eighty-fifth strict batch: guard + storage/X11/desktop-native callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-86-callers.xml",
+    "sha256": "c0d99e58194324402502fc34e994410e54ba51d63eb81fb221b790b2d540476b",
+    "tests": 29,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 23.93,
+    "note": "eighty-sixth strict batch: guard + terminal native/retention preview/architecture callers"
    }
   ],
   "gates": {
@@ -906,7 +916,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 178,
+    "filesAnalyzed": 180,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -970,6 +980,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 82/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 84/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }

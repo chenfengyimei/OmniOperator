@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`3f89ff2c74dbfb625ea2feedbcb5ef190c597700575dc3473ae6940cc64e42cd`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`2a55d0c8bd69c06943c064de529ad16ec34b4cc1b69a67132402651ea9008983`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -184,7 +184,7 @@
 | [agent/src/omni/adapters/persistence/document_repository.py](../../agent/src/omni/adapters/persistence/document_repository.py) | 616 | Source revision, bounded search and derived index transactions; never reads files. |
 | [agent/src/omni/adapters/persistence/event_pruning.py](../../agent/src/omni/adapters/persistence/event_pruning.py) | 51 | Offline event-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |
 | [agent/src/omni/adapters/persistence/event_retention_repository.py](../../agent/src/omni/adapters/persistence/event_retention_repository.py) | 300 | Preview and prune retired run events through the shared history cycle; never remove run identities. |
-| [agent/src/omni/adapters/persistence/execution_pruning.py](../../agent/src/omni/adapters/persistence/execution_pruning.py) | 36 | Execution-body maintenance bindings; shared offline infrastructure owns files and lifecycle. |
+| [agent/src/omni/adapters/persistence/execution_pruning.py](../../agent/src/omni/adapters/persistence/execution_pruning.py) | 41 | Execution-body maintenance bindings; shared offline infrastructure owns files and lifecycle. |
 | [agent/src/omni/adapters/persistence/execution_retention_repository.py](../../agent/src/omni/adapters/persistence/execution_retention_repository.py) | 446 | Execution-body eligibility, owner pins and transactional prune progress; preserves conversations and ledgers. |
 | [agent/src/omni/adapters/persistence/extension_repository.py](../../agent/src/omni/adapters/persistence/extension_repository.py) | 751 | Immutable trusted-plugin versions, scoped grants and execution bindings; no plugin code or file I/O. |
 | [agent/src/omni/adapters/persistence/history_protection.py](../../agent/src/omni/adapters/persistence/history_protection.py) | 69 | Shared provenance and maintenance protection for aged pruned history; never reads execution bodies. |
@@ -374,7 +374,7 @@
 | [agent/src/omni/adapters/workers/protocol.py](../../agent/src/omni/adapters/workers/protocol.py) | 162 | Strict, bounded IPC records shared by the host and capability worker; no dispatch or I/O. |
 | [agent/src/omni/adapters/workers/service_admin_boot.py](../../agent/src/omni/adapters/workers/service_admin_boot.py) | 202 | Standalone administrator entry. Invoke a reviewed root-owned bundle with Python -I -S. |
 | [agent/src/omni/adapters/workers/terminal.py](../../agent/src/omni/adapters/workers/terminal.py) | 720 | Fixed terminal host. Only this isolated, single-threaded startup may fork. |
-| [agent/src/omni/adapters/workers/terminal_gate.py](../../agent/src/omni/adapters/workers/terminal_gate.py) | 102 | Trusted ConPTY gate: no user startup code before the parent owns its Job. |
+| [agent/src/omni/adapters/workers/terminal_gate.py](../../agent/src/omni/adapters/workers/terminal_gate.py) | 104 | Trusted ConPTY gate: no user startup code before the parent owns its Job. |
 | [agent/src/omni/adapters/workers/windows_foreground.cs](../../agent/src/omni/adapters/workers/windows_foreground.cs) | 250 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_services.ps1](../../agent/src/omni/adapters/workers/windows_services.ps1) | 172 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/windows_uia.cs](../../agent/src/omni/adapters/workers/windows_uia.cs) | 348 | 原生源码、平台脚本或界面资源 |

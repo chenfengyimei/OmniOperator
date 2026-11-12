@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "8f9a88c",
+  "checkpoint_commit": "2b836d9",
   "current_validation": {
-    "status": "d7_typecheck_batch_85",
+    "status": "d7_typecheck_batch_86",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -305,7 +305,7 @@
         "recheck_report": "temp/build/v2-typecheck-batches-54-isolation.xml"
       }
     ],
-    "code_version": "7d1a99140a16045bb250d824c75bcbc5c1a742c1ff263865a89ebb9cfc29c826",
+    "code_version": "fb2b7e311f43fc02b27766191684726928f01e5b7b334fe3adf501e4020e5a67",
     "fixed_source_files": 1200,
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
@@ -328,7 +328,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "Windows wheel/sdist 构建验证与安装/更新/恢复同步调用已完成，strict 已到 178 文件（domain 53/53、application 43/44、adapters 82/215）；剩余：application/adapters/composition 严格化、工作台改版 UI 功能、完整安装/更新执行、容器与三平台构建、干净机器端到端、正式入口切换。"
+    "scope": "Windows wheel/sdist 构建验证与安装/更新/恢复同步调用已完成，strict 已到 180 文件（domain 53/53、application 43/44、adapters 84/215）；剩余：application/adapters/composition 严格化、工作台改版 UI 功能、完整安装/更新执行、容器与三平台构建、干净机器端到端、正式入口切换。"
   },
   "milestones": [
     {

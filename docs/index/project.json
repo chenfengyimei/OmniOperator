@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3f89ff2c74dbfb625ea2feedbcb5ef190c597700575dc3473ae6940cc64e42cd",
+  "source_sha256": "2a55d0c8bd69c06943c064de529ad16ec34b4cc1b69a67132402651ea9008983",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52788,
+      "lines": 52795,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -14091,16 +14091,17 @@
       "path": "agent/src/omni/adapters/persistence/execution_pruning.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.execution_pruning",
-      "lines": 36,
+      "lines": 41,
       "imports": [
         "omni.adapters.persistence.offline_plans",
         "omni.adapters.platform.paths",
+        "omni.application.ports",
         "omni.domain.retention"
       ],
       "symbols": [
         {
           "name": "read_pruning_plan",
-          "line": 23,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "path",
@@ -14113,7 +14114,7 @@
         },
         {
           "name": "plan_pruning",
-          "line": 27,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "paths",
@@ -14130,7 +14131,7 @@
         },
         {
           "name": "apply_pruning",
-          "line": 31,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "paths",
@@ -14139,13 +14140,13 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Record",
             "backup_path": "Path"
           }
         },
         {
           "name": "cancel_pruning",
-          "line": 35,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "paths",
@@ -14154,7 +14155,7 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Record",
             "reason": "str"
           }
         }
@@ -34370,12 +34371,12 @@
       "path": "agent/src/omni/adapters/workers/terminal_gate.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.terminal_gate",
-      "lines": 102,
+      "lines": 104,
       "imports": [],
       "symbols": [
         {
           "name": "_console",
-          "line": 16,
+          "line": 17,
           "kind": "function",
           "parameters": [
             "stack"
@@ -34386,7 +34387,7 @@
         },
         {
           "name": "main",
-          "line": 37,
+          "line": 38,
           "kind": "function",
           "parameters": [],
           "annotations": {}
