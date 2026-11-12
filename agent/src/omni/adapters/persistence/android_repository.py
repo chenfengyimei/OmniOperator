@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import select, update
 
-from ...domain.android import ACCESS_SPEC, access_request, connection, device, digest
+from ...domain.android import ACCESS_SPEC, access_request, connection, digest
+from ...domain.android import device as device_record
 from ...domain.contracts import BusinessError
 from . import schema as s
 from .action_predicates import unresolved_action
@@ -215,9 +216,9 @@ class AndroidRepositories(ConfigurationRepositories):
             raise BusinessError("android_configuration_disabled", "An enabled Android channel is required")
         return {"config_id": config_id, "revision_id": config["revision_id"], **connection(config["value"])}
 
-    def android_grant(self, agent_id: str, config_id: str, revision_id: str, target: dict) -> dict:
+    def android_grant(self, agent_id: str, config_id: str, revision_id: str, device: dict) -> dict:
         config = self.android_connection(agent_id, config_id)
-        checked = device(target)
+        checked = device_record(device)
         if config["revision_id"] != revision_id or config["serial"] != checked["serial"]:
             raise BusinessError("android_configuration_changed", "Probe configuration changed; observe again")
         row = self._record(
@@ -245,7 +246,7 @@ class AndroidRepositories(ConfigurationRepositories):
             row["revoked_at"]
             or row["history_epoch"] != self.connection.execute(select(s.history_identity.c.epoch)).scalar_one()
             or config["revision_id"] != row["config_revision_id"]
-            or digest(device(row["device"])) != row["device_sha256"]
+            or digest(device_record(row["device"])) != row["device_sha256"]
         ):
             raise BusinessError("android_grant_revoked", "Device authority was revoked or changed")
         return {"grant": row, "connection": config}

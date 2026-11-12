@@ -63,6 +63,7 @@
     "agent/src/omni/adapters/persistence/object_inventory.py",
     "agent/src/omni/adapters/persistence/object_repository.py",
     "agent/src/omni/adapters/persistence/offline_plans.py",
+    "agent/src/omni/adapters/persistence/operations_read.py",
     "agent/src/omni/adapters/persistence/operations_repository.py",
     "agent/src/omni/adapters/persistence/reference_release.py",
     "agent/src/omni/adapters/persistence/releases.py",

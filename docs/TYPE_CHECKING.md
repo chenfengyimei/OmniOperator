@@ -251,6 +251,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/workers/terminal_gate.py` | Windows ConPTY 启动门（Job 归属后放行） |
 | `agent/src/omni/adapters/workers/service_admin_boot.py` | 受审管理员工件物的隔离 root 入口（按持有 fd 降层校验） |
 | `agent/src/omni/adapters/workers/linux_action.py` | Linux 语义动作 worker 单帧入口（初始帧不授权写入） |
+| `agent/src/omni/adapters/persistence/operations_read.py` | 离线只读运维快照（只读 URI、schema 校验、不自动升级） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

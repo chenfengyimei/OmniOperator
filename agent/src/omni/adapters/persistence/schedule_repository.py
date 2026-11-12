@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
+from typing import Any
+
 from sqlalchemy import func, insert, literal, or_, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from . import schema as s
 from .delivery_predicates import pending_for_run
@@ -249,7 +253,9 @@ class ScheduleRepositories(LeaseRepositories):
         ).all()
         return [self.schedule_get(agent, key) for agent, key in ids]
 
-    def schedule_materialize(self, captured: dict, selection: dict | None, tzdb_version: str) -> dict | None:
+    def schedule_materialize(
+        self, captured: Mapping[str, Any], selection: Mapping[str, Any] | None, tzdb_version: str
+    ) -> dict | None:
         agent, key = captured["agent_id"], captured["id"]
         row = self.schedule_get(agent, key)
         if row["deleted_at"] or not row["enabled"] or row["revision"] != captured["revision"]:
@@ -314,7 +320,9 @@ class ScheduleRepositories(LeaseRepositories):
             .values(error_code=code, updated_at=self.clock.now())
         )
 
-    def schedule_enqueue(self, occurrence: dict, accept) -> dict | None:
+    def schedule_enqueue(
+        self, occurrence: Mapping[str, Any], accept: Callable[[Mapping[str, object], str], Record]
+    ) -> dict | None:
         """A savepoint keeps the due ledger even when admission fails before commit."""
         agent, key = occurrence["agent_id"], occurrence["id"]
         try:
