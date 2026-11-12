@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "683b9569a6f4977633256ed78d5c6ef464f813ab43877561796e28ab2f7dd8e5",
+  "code_version": "d7124c44b813c1cc29c6eec49e6d4b060804e1f4cc1cc8fd570d211c1cfb0518",
   "fixed_source_files": 1200,
-  "git_head": "b1af426",
+  "git_head": "4b393ec",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -133,10 +133,11 @@
    "Strict scope reaches 215 files (53 domain + 43 application + 119 adapters); the Linux root policy types its scope/operation boundary and principal tuple, and the process diagnostics hooks type their native signatures without changing root checks, hook ownership or exception-object retention",
    "Strict scope reaches 217 files (53 domain + 43 application + 121 adapters); the log query types its cursor decoding, page/tail records and shared writer lock, and the ADB client types its stream pair, transport selection and optional pre-send callback without changing bounds or command builders",
    "Strict scope reaches 219 files (53 domain + 43 application + 123 adapters); the Darwin administrator returns typed snapshots and narrows the native job row, and the extension host pool types its pending-call map and spawn startup without changing launchctl commands, revocation or capacity semantics",
-   "Strict scope reaches 220 files (53 domain + 43 application + 124 adapters); the release journal/installation adapter uses the new proof/walk/created public bridges, types its transition table and event records, and ExchangeFiles gained a public read bridge; a pre-existing F811 duplicate write_file alias was removed"
+   "Strict scope reaches 220 files (53 domain + 43 application + 124 adapters); the release journal/installation adapter uses the new proof/walk/created public bridges, types its transition table and event records, and ExchangeFiles gained a public read bridge; a pre-existing F811 duplicate write_file alias was removed",
+   "Strict scope reaches 222 files (53 domain + 43 application + 126 adapters); the candidate venv builder and the runtime switch/migrate/rollback pointer reader type their receipts and pointer narrowing, with the repeated-rollback comparison kept order-insensitive; migrate_database now returns Record"
   ],
   "pending": [
-   "application 43/44 and adapters 124/215 strict typing",
+   "application 43/44 and adapters 126/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -145,8 +146,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-112-callers.xml",
-   "tests": 34,
+   "report": "temp/build/v2-typecheck-113-callers.xml",
+   "tests": 21,
    "failures": 0
   },
   "targeted_reports": [
@@ -1165,6 +1166,15 @@
     "errors": 0,
     "duration_s": 85.79,
     "note": "one hundred twelfth strict batch: guard + release journal/exchange callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-113-callers.xml",
+    "sha256": "65e84fa055737ab7ca3b045504a7b36788390b14d6c6b420987683eaade1fe0c",
+    "tests": 21,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 42.56,
+    "note": "one hundred thirteenth strict batch: guard + candidate environment/runtime switch callers"
    }
   ],
   "gates": {
@@ -1176,7 +1186,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 220,
+    "filesAnalyzed": 222,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1240,6 +1250,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 124/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 126/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
