@@ -7,7 +7,7 @@ import io
 import stat
 import zipfile
 from collections.abc import Callable
-from typing import TypeVar
+from typing import TypeVar, cast
 
 import yaml
 
@@ -17,9 +17,13 @@ T = TypeVar("T")
 
 
 def capture(payload: bytes, format: str) -> SkillPackage:
-    if not isinstance(payload, bytes) or not 1 <= len(payload) <= MAX_ZIP or format not in {"markdown", "zip"}:
+    if (
+        not isinstance(cast(object, payload), bytes)
+        or not 1 <= len(payload) <= MAX_ZIP
+        or format not in {"markdown", "zip"}
+    ):
         raise invalid()
-    files = []
+    files: list[tuple[str, bytes]] = []
     try:
         if format == "markdown":
             files = [("SKILL.md", payload)]
@@ -77,7 +81,7 @@ def capture(payload: bytes, format: str) -> SkillPackage:
 
 class SkillPackages:
     def __init__(self) -> None:
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = False
 
@@ -85,7 +89,7 @@ class SkillPackages:
         return await self._execute(lambda: capture(payload, format))
 
     async def archive(self, package: SkillPackage) -> bytes:
-        def perform():
+        def perform() -> bytes:
             package.validate()
             output = io.BytesIO()
             with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -101,19 +105,19 @@ class SkillPackages:
         if self._closing or len(self._pending) >= 8:
             raise invalid("skill_codec_busy")
 
-        async def perform():
+        async def perform() -> T:
             async with self._slots:
                 return await asyncio.to_thread(operation)
 
         task = asyncio.create_task(perform(), name="skill-package-parse")
         self._pending.add(task)
 
-        def done(future):
+        def done(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
 
-        task.add_done_callback(done)
+        task.add_done_callback(lambda future: done(cast(asyncio.Task[object], future)))
         return await asyncio.shield(task)
 
     async def close(self, timeout_s: float = 30) -> bool:
