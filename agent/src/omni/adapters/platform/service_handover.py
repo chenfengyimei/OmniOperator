@@ -15,11 +15,11 @@ from .service_admin_client import ExchangeAdministrator
 class AdministratorHandover:
     def __init__(self, value: Record) -> None:
         self.plan = validate_exchange(value)
-        self.parents = {}
+        self.parents: dict[str, ExchangeAdministrator] = {}
         for role in ("source", "target"):
-            approval = administrator_approval(self.plan, role)
+            approval = cast(Record, administrator_approval(self.plan, role))
             self.parents[role] = ExchangeAdministrator(
-                cast(Record, approval), socket_path(approval), approval["broker_sha256"]
+                approval, socket_path(approval), str(approval["broker_sha256"])
             )
         self._admitted: set[str] = set()
         self._source_closed = False
@@ -73,7 +73,7 @@ class AdministratorHandover:
 
     async def close(self, timeout_s: float = 30) -> bool:
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
-        complete = []
+        complete: list[bool] = []
         for parent in self.parents.values():
             complete.append(await parent.close(max(0, deadline - asyncio.get_running_loop().time())))
         return all(complete)

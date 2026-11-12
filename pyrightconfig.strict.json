@@ -73,6 +73,7 @@
     "agent/src/omni/adapters/platform/secrets.py",
     "agent/src/omni/adapters/platform/service_admin_bundle.py",
     "agent/src/omni/adapters/platform/service_admin_commands.py",
+    "agent/src/omni/adapters/platform/service_handover.py",
     "agent/src/omni/adapters/platform/systemd_state.py",
     "agent/src/omni/adapters/platform/wheel_artifact.py",
     "agent/src/omni/adapters/platform/wheel_backup.py",
