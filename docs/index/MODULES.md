@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d2a2666a4c3aced5db60960ca4b13fb433b58684aa3b58d4e54b77d59521d5f6`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`3c681b8a20f59f831acef22a3ce14361fe5aaa6421d4d179671518a1bffa2089`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -273,7 +273,7 @@
 | [agent/src/omni/adapters/platform/darwin_admin_policy.py](../../agent/src/omni/adapters/platform/darwin_admin_policy.py) | 177 | Exact local-account Darwin administrator policy, protected root artifacts and shared audit bytes. |
 | [agent/src/omni/adapters/platform/darwin_admin_probe.py](../../agent/src/omni/adapters/platform/darwin_admin_probe.py) | 156 | Bounded public CoreFoundation/ServiceManagement reads for a separately owned root worker; no mutation or GUI. |
 | [agent/src/omni/adapters/platform/darwin_service_admin.py](../../agent/src/omni/adapters/platform/darwin_service_admin.py) | 137 | Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force. |
-| [agent/src/omni/adapters/platform/deployment_files.py](../../agent/src/omni/adapters/platform/deployment_files.py) | 600 | Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage. |
+| [agent/src/omni/adapters/platform/deployment_files.py](../../agent/src/omni/adapters/platform/deployment_files.py) | 606 | Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage. |
 | [agent/src/omni/adapters/platform/desktop.py](../../agent/src/omni/adapters/platform/desktop.py) | 581 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
 | [agent/src/omni/adapters/platform/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop_capture.py) | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
 | [agent/src/omni/adapters/platform/desktop_native.py](../../agent/src/omni/adapters/platform/desktop_native.py) | 492 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
@@ -309,12 +309,12 @@
 | [agent/src/omni/adapters/platform/service_admin_commands.py](../../agent/src/omni/adapters/platform/service_admin_commands.py) | 220 | Single-threaded root manager process ownership using pidfds and subreaping; never uses historical PIDs. |
 | [agent/src/omni/adapters/platform/service_admin_policy.py](../../agent/src/omni/adapters/platform/service_admin_policy.py) | 322 | Root-only fixed Linux paths and append-only dispatch evidence; never opens owner business storage. |
 | [agent/src/omni/adapters/platform/service_cleanup_files.py](../../agent/src/omni/adapters/platform/service_cleanup_files.py) | 256 | Separate cleanup journals and two-home reservations; preserves old unknown records, fences and business data. |
-| [agent/src/omni/adapters/platform/service_control_files.py](../../agent/src/omni/adapters/platform/service_control_files.py) | 120 | Service lifecycle journal and once-only startup reservation; reuses registration audit and file-lock ownership. |
+| [agent/src/omni/adapters/platform/service_control_files.py](../../agent/src/omni/adapters/platform/service_control_files.py) | 124 | Service lifecycle journal and once-only startup reservation; reuses registration audit and file-lock ownership. |
 | [agent/src/omni/adapters/platform/service_handover.py](../../agent/src/omni/adapters/platform/service_handover.py) | 79 | Two pinned root phases, opened in order and owned until native lock release; never elevates or spawns a broker. |
 | [agent/src/omni/adapters/platform/service_launch.py](../../agent/src/omni/adapters/platform/service_launch.py) | 83 | Once-only reviewed boot reservations under the instance lock; never starts a process or reads credentials. |
 | [agent/src/omni/adapters/platform/service_operation_files.py](../../agent/src/omni/adapters/platform/service_operation_files.py) | 264 | Private offline maintenance journal; never migrates, replays or removes instance data. |
 | [agent/src/omni/adapters/platform/service_query.py](../../agent/src/omni/adapters/platform/service_query.py) | 474 | Read-only OS service inspection with bounded output and retained process ownership. |
-| [agent/src/omni/adapters/platform/service_readiness.py](../../agent/src/omni/adapters/platform/service_readiness.py) | 300 | Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential. |
+| [agent/src/omni/adapters/platform/service_readiness.py](../../agent/src/omni/adapters/platform/service_readiness.py) | 302 | Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential. |
 | [agent/src/omni/adapters/platform/service_registration.py](../../agent/src/omni/adapters/platform/service_registration.py) | 413 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
 | [agent/src/omni/adapters/platform/service_templates.py](../../agent/src/omni/adapters/platform/service_templates.py) | 212 | Deterministic service artifacts. Rendering never installs or controls a service. |
 | [agent/src/omni/adapters/platform/systemd_state.py](../../agent/src/omni/adapters/platform/systemd_state.py) | 102 | Shared bounded systemd decoding; no command execution or filesystem access. |

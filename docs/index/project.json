@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d2a2666a4c3aced5db60960ca4b13fb433b58684aa3b58d4e54b77d59521d5f6",
+  "source_sha256": "3c681b8a20f59f831acef22a3ce14361fe5aaa6421d4d179671518a1bffa2089",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52823,
+      "lines": 52835,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -22590,7 +22590,7 @@
       "path": "agent/src/omni/adapters/platform/deployment_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.deployment_files",
-      "lines": 600,
+      "lines": 606,
       "imports": [
         "omni.adapters.build_identity",
         "omni.adapters.object_store",
@@ -22953,6 +22953,21 @@
           ],
           "annotations": {
             "path": "Path",
+            "data": "bytes"
+          }
+        },
+        {
+          "name": "publish_json",
+          "line": 605,
+          "kind": "function",
+          "parameters": [
+            "files",
+            "target",
+            "data"
+          ],
+          "annotations": {
+            "files": "CurrentDeploymentFiles",
+            "target": "Path",
             "data": "bytes"
           }
         }
@@ -29068,7 +29083,7 @@
       "path": "agent/src/omni/adapters/platform/service_control_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_control_files",
-      "lines": 120,
+      "lines": 124,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.deployed_instance",
@@ -29085,12 +29100,12 @@
       "symbols": [
         {
           "name": "ServiceControlFiles",
-          "line": 21,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "ServiceControlFiles.__init__",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -29102,7 +29117,7 @@
         },
         {
           "name": "ServiceControlFiles.publish",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "self",
@@ -29116,7 +29131,7 @@
         },
         {
           "name": "ServiceControlFiles.exclusive",
-          "line": 45,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self",
@@ -29128,7 +29143,7 @@
         },
         {
           "name": "ServiceControlFiles.reserve",
-          "line": 52,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",
@@ -29140,7 +29155,7 @@
         },
         {
           "name": "ServiceControlFiles.dispatched",
-          "line": 68,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -29152,7 +29167,7 @@
         },
         {
           "name": "ServiceControlFiles.finish_launch",
-          "line": 79,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -29164,7 +29179,7 @@
         },
         {
           "name": "ServiceControlFiles.closed",
-          "line": 98,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self",
@@ -29379,7 +29394,7 @@
             "exchange"
           ],
           "annotations": {
-            "validate": "Callable[[object], dict]",
+            "validate": "Callable[[object], Record]",
             "namespace": "str",
             "exchange": "Record | None"
           }
@@ -29823,7 +29838,7 @@
       "path": "agent/src/omni/adapters/platform/service_readiness.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_readiness",
-      "lines": 300,
+      "lines": 302,
       "imports": [
         "omni.adapters.platform.runtime_identity",
         "omni.application.ports",
