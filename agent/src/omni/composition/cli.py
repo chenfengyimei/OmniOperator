@@ -951,13 +951,21 @@ def main() -> int:
                 content = diagnostic_download(paths, args.url)
             print(json.dumps(publish_diagnostic(paths, args.destination, content)))
         elif args.command == "auth":
+            token_path = paths.control / "owner.token"
+            if not token_path.is_file():
+                # 令牌由运行时首次启动时创建；未启动就取令牌要说清下一步，而不是抛 filesystem_error。
+                raise BusinessError(
+                    "owner_token_missing",
+                    "The owner token is created by the first serve; run `serve` once, then retry `auth`",
+                    status=404,
+                )
             if not args.rotate:
-                print((paths.control / "owner.token").read_text(encoding="utf-8"))
+                print(token_path.read_text(encoding="utf-8"))
             else:
                 import httpx
 
                 origin = local_origin(args.url)
-                token = (paths.control / "owner.token").read_text(encoding="utf-8").strip()
+                token = token_path.read_text(encoding="utf-8").strip()
                 with httpx.Client(trust_env=False, follow_redirects=False, timeout=10) as client:
                     response = client.post(
                         origin + "/api/v1/owner-token/rotate", headers={"Authorization": "Bearer " + token}

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "47298c9b241cf409c5867a8d74e6cd4deaef4364f689c50636dff6f54ebced30",
+  "source_sha256": "5fdfeb69f815fab750cf444102b56030b3c546fdbf5d08681f379377b863f275",
   "modules": [
     {
       "id": "v2-domain",
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2936,
+      "lines": 2944,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -475,6 +475,7 @@
         "web/ui/v2/documents.js",
         "web/ui/v2/extensions.js",
         "web/ui/v2/index.html",
+        "web/ui/v2/inspector.js",
         "web/ui/v2/main.js",
         "web/ui/v2/maintenance.js",
         "web/ui/v2/mcp.js",
@@ -487,13 +488,14 @@
         "web/ui/v2/qq.js",
         "web/ui/v2/routing.js",
         "web/ui/v2/schedules.js",
+        "web/ui/v2/settings-rail.js",
         "web/ui/v2/skills.js",
         "web/ui/v2/terminal-reviews.js",
         "web/ui/v2/terminals.js",
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 13997,
+      "lines": 14548,
       "dependencies": []
     },
     {
@@ -58722,7 +58724,7 @@
       "path": "agent/src/omni/composition/cli.py",
       "module": "v2-composition",
       "python_module": "omni.composition.cli",
-      "lines": 993,
+      "lines": 1001,
       "imports": [
         "omni.adapters.diagnostic_bundle",
         "omni.adapters.persistence.audit_pruning",
@@ -95429,10 +95431,20 @@
       "summary": "原生源码、平台脚本或界面资源"
     },
     {
+      "path": "web/ui/v2/inspector.js",
+      "module": "v2-workbench",
+      "python_module": null,
+      "lines": 266,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "原生源码、平台脚本或界面资源"
+    },
+    {
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1131,
+      "lines": 1165,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95549,6 +95561,16 @@
       "summary": "原生源码、平台脚本或界面资源"
     },
     {
+      "path": "web/ui/v2/settings-rail.js",
+      "module": "v2-workbench",
+      "python_module": null,
+      "lines": 84,
+      "imports": [],
+      "symbols": [],
+      "kind": "asset",
+      "summary": "原生源码、平台脚本或界面资源"
+    },
+    {
       "path": "web/ui/v2/skills.js",
       "module": "v2-workbench",
       "python_module": null,
@@ -95592,7 +95614,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2665,
+      "lines": 2832,
       "imports": [],
       "symbols": [],
       "kind": "asset",

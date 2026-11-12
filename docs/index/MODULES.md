@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`47298c9b241cf409c5867a8d74e6cd4deaef4364f689c50636dff6f54ebced30`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`5fdfeb69f815fab750cf444102b56030b3c546fdbf5d08681f379377b863f275`。包含 65 个职责模块、732 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -394,7 +394,7 @@
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
 | [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 164 | Explicit builtin capability registration; capabilities never construct the kernel. |
-| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 993 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
+| [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1001 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 233 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 735 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 156 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
@@ -432,7 +432,8 @@
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1469 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1131 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1165 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |
@@ -444,11 +445,12 @@
 | [web/ui/v2/qq.js](../../web/ui/v2/qq.js) | 181 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/routing.js](../../web/ui/v2/routing.js) | 140 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/schedules.js](../../web/ui/v2/schedules.js) | 374 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/settings-rail.js](../../web/ui/v2/settings-rail.js) | 84 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/skills.js](../../web/ui/v2/skills.js) | 423 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminal-reviews.js](../../web/ui/v2/terminal-reviews.js) | 254 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminals.js](../../web/ui/v2/terminals.js) | 564 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/tokens.js](../../web/ui/v2/tokens.js) | 81 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2665 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2832 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
