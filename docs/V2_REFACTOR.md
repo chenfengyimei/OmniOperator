@@ -347,7 +347,9 @@ D7 显式清理节点：`installation uninstall --purge-data` 在实例空闲时
 
 第一百三十七批把 adapters 的七个包标记（仅文档字符串的 `__init__.py`）纳入 strict，使 adapters 层没有未登记的包文件；本批无代码改动。一百三十七批守卫全过。
 
-第一百三十八批开始 composition 层：`composition/serving.py` 的 `deployment` 载荷显式 `dict[str, Any]`，strict 守卫的允许层加入 `composition/`，`TYPE_CHECKING.md` 记录该层已开始。绑定/来源/关停规则不变；一百三十八批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第一百三十八批开始 composition 层：`composition/serving.py` 的 `deployment` 载荷显式 `dict[str, Any]`，strict 守卫的允许层加入 `composition/`，`TYPE_CHECKING.md` 记录该层已开始。绑定/来源/关停规则不变；一百三十八批专项全过。
+
+第一百三十八批后全量复核（-n 2，3220 秒）：**4654 项：4629 passed / 25 failed / 0 errors**。随后按失败清单定位 24 项 UI 失败根因并修复：会话行改为 `li[role=button]` 后精确名字查询失效、切 Agent 时 `nav.inert` 在提前返回路径残留、会话面板整体隐藏使非对话页无法切换 Agent、改版引入的 620/1180 断点超出设计系统、图标字体外置后契约仍要求内联 base64；复跑 154 项全过。仅剩 `test_workbench_ui` 的 V1 浏览器驱动 shutdown 真实挂起（5s/20s 预算均超时，V2 未改该路径）。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 
