@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "710769c1b2328839ecc65bf30107a58c00c3cedcf51c3d7639abda202f1bc4df",
+  "source_sha256": "183cb82ab3f67168afe245e60fe94fcbe230338fd967333d063c33fe61ce47ba",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53173,
+      "lines": 53194,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -4107,17 +4107,18 @@
       "path": "agent/src/omni/adapters/extensions/worker.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.extensions.worker",
-      "lines": 312,
+      "lines": 326,
       "imports": [
         "omni.adapters.extensions.packages",
         "omni.adapters.workers.protocol",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.extensions"
       ],
       "symbols": [
         {
           "name": "_artifacts",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "root",
@@ -4132,7 +4133,7 @@
         },
         {
           "name": "_hello",
-          "line": 78,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "identity",
@@ -4149,7 +4150,7 @@
         },
         {
           "name": "handshake",
-          "line": 96,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "process",
@@ -4164,7 +4165,7 @@
         },
         {
           "name": "_load_entry",
-          "line": 122,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "root",
@@ -4177,14 +4178,14 @@
         },
         {
           "name": "_read",
-          "line": 153,
+          "line": 160,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_write",
-          "line": 160,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "stream",
@@ -4197,12 +4198,12 @@
         },
         {
           "name": "HostBridge",
-          "line": 165,
+          "line": 172,
           "kind": "class"
         },
         {
           "name": "HostBridge.__init__",
-          "line": 168,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self",
@@ -4214,7 +4215,7 @@
         },
         {
           "name": "HostBridge.call",
-          "line": 172,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -4227,7 +4228,7 @@
         },
         {
           "name": "serve",
-          "line": 201,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "location",
@@ -34220,14 +34221,14 @@
       "path": "agent/src/omni/adapters/workers/protocol.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.protocol",
-      "lines": 162,
+      "lines": 169,
       "imports": [
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "identity",
-          "line": 18,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "value"
@@ -34238,25 +34239,29 @@
         },
         {
           "name": "_pairs",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "entries"
           ],
-          "annotations": {}
+          "annotations": {
+            "entries": "list[tuple[str, Any]]"
+          }
         },
         {
           "name": "_constant",
-          "line": 36,
+          "line": 37,
           "kind": "function",
           "parameters": [
-            "_"
+            "_value"
           ],
-          "annotations": {}
+          "annotations": {
+            "_value": "str"
+          }
         },
         {
           "name": "_json",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "value",
@@ -34271,7 +34276,7 @@
         },
         {
           "name": "decode",
-          "line": 59,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "frame"
@@ -34282,7 +34287,7 @@
         },
         {
           "name": "request",
-          "line": 74,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "frame"
@@ -34293,7 +34298,7 @@
         },
         {
           "name": "action",
-          "line": 96,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "value",
@@ -34306,7 +34311,7 @@
         },
         {
           "name": "response",
-          "line": 125,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "frame",
@@ -34321,7 +34326,7 @@
         },
         {
           "name": "encode_response",
-          "line": 132,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "operation_id",
@@ -34334,12 +34339,14 @@
         },
         {
           "name": "encode_response.encode",
-          "line": 133,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "current"
           ],
-          "annotations": {}
+          "annotations": {
+            "current": "ActionResult"
+          }
         }
       ],
       "summary": "Strict, bounded IPC records shared by the host and capability worker; no dispatch or I/O."

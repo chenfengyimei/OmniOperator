@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`710769c1b2328839ecc65bf30107a58c00c3cedcf51c3d7639abda202f1bc4df`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`183cb82ab3f67168afe245e60fe94fcbe230338fd967333d063c33fe61ce47ba`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -146,7 +146,7 @@
 | [agent/src/omni/adapters/extensions/__init__.py](../../agent/src/omni/adapters/extensions/__init__.py) | 1 | Trusted Python extension files and process adapters; never opens the application database. |
 | [agent/src/omni/adapters/extensions/hosts.py](../../agent/src/omni/adapters/extensions/hosts.py) | 208 | Bounded trusted Python worker ownership; no database, model, credential or arbitrary command access. |
 | [agent/src/omni/adapters/extensions/packages.py](../../agent/src/omni/adapters/extensions/packages.py) | 558 | Bounded zero-execution package capture and immutable verified snapshots; never opens a database. |
-| [agent/src/omni/adapters/extensions/worker.py](../../agent/src/omni/adapters/extensions/worker.py) | 312 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
+| [agent/src/omni/adapters/extensions/worker.py](../../agent/src/omni/adapters/extensions/worker.py) | 326 | Static extension handshake and trusted Python invocation in an owned child; never opens the main database. |
 | [agent/src/omni/adapters/http.py](../../agent/src/omni/adapters/http.py) | 2170 | Versioned HTTP contract for the V2 kernel; business access goes through use cases. |
 | [agent/src/omni/adapters/images.py](../../agent/src/omni/adapters/images.py) | 79 | Bounded image verification and metadata-free low-detail PNG encoding; no database or remote URLs. |
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 284 | One bounded, supervised local embedding process; no native ML imports in the application process. |
@@ -371,7 +371,7 @@
 | [agent/src/omni/adapters/workers/main.py](../../agent/src/omni/adapters/workers/main.py) | 280 | Capability subprocess. Requests carry scope; no database or Runtime is imported. |
 | [agent/src/omni/adapters/workers/media.py](../../agent/src/omni/adapters/workers/media.py) | 346 | Bounded media worker: audio decode + local ASR and frame extraction in an owned subprocess. |
 | [agent/src/omni/adapters/workers/portal.py](../../agent/src/omni/adapters/workers/portal.py) | 250 | Owned Wayland window-share helper with explicit one-frame requests; no database, restore token or input capability. |
-| [agent/src/omni/adapters/workers/protocol.py](../../agent/src/omni/adapters/workers/protocol.py) | 162 | Strict, bounded IPC records shared by the host and capability worker; no dispatch or I/O. |
+| [agent/src/omni/adapters/workers/protocol.py](../../agent/src/omni/adapters/workers/protocol.py) | 169 | Strict, bounded IPC records shared by the host and capability worker; no dispatch or I/O. |
 | [agent/src/omni/adapters/workers/service_admin_boot.py](../../agent/src/omni/adapters/workers/service_admin_boot.py) | 202 | Standalone administrator entry. Invoke a reviewed root-owned bundle with Python -I -S. |
 | [agent/src/omni/adapters/workers/terminal.py](../../agent/src/omni/adapters/workers/terminal.py) | 720 | Fixed terminal host. Only this isolated, single-threaded startup may fork. |
 | [agent/src/omni/adapters/workers/terminal_gate.py](../../agent/src/omni/adapters/workers/terminal_gate.py) | 104 | Trusted ConPTY gate: no user startup code before the parent owns its Job. |
