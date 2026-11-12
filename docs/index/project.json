@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a0d15dce7d18639e2d99c48080a8add214dd1715266a34155d371838ed770456",
+  "source_sha256": "df50420e3f2f8db5c8aa59d2b3ea4488cc84bc4ce3e03f2c78e4bb3a07840864",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52804,
+      "lines": 52805,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -8282,7 +8282,7 @@
       "path": "agent/src/omni/adapters/images.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.images",
-      "lines": 78,
+      "lines": 79,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.images"
@@ -8290,7 +8290,7 @@
       "symbols": [
         {
           "name": "inspect_image",
-          "line": 17,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "content",
@@ -8303,12 +8303,12 @@
         },
         {
           "name": "ImageCodec",
-          "line": 41,
+          "line": 42,
           "kind": "class"
         },
         {
           "name": "ImageCodec.__init__",
-          "line": 42,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "self"
@@ -8317,7 +8317,7 @@
         },
         {
           "name": "ImageCodec.execute",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "self",
@@ -8331,25 +8331,25 @@
         },
         {
           "name": "ImageCodec.execute.perform",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ImageCodec.execute.done",
-          "line": 63,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "future"
           ],
           "annotations": {
-            "future": "asyncio.Task"
+            "future": "asyncio.Task[object]"
           }
         },
         {
           "name": "ImageCodec.stop_accepting",
-          "line": 71,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self"
@@ -8358,7 +8358,7 @@
         },
         {
           "name": "ImageCodec.close",
-          "line": 74,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self",
