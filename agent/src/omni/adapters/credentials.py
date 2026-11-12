@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import cast
 import contextvars
 import threading
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -18,7 +19,7 @@ from .diagnostics import Redactor
 class CredentialJob:
     reference: str
     reading: bool
-    future: Future
+    future: Future[str | None]
     invalidated: bool = False
     waiter_finished: bool = False
 
@@ -47,17 +48,17 @@ class Credentials:
             if job.future.done() and job.waiter_finished:
                 self._jobs.discard(job)
 
-    async def _execute(self, reference: str, operation: str, value: str | None = None):
+    async def _execute(self, reference: str, operation: str, value: str | None = None) -> str | None:
         validate_reference(reference)
         if operation == "set":
             validate_secret(value)
 
-        def perform():
+        def perform() -> str | None:
             try:
                 if operation == "get":
                     result = self._backend.get(reference)
                     if result is not None:
-                        if not isinstance(result, str):
+                        if not isinstance(cast(object, result), str):
                             raise BusinessError(
                                 "credential_store_unavailable",
                                 "Credential backend returned an invalid value",
@@ -106,7 +107,7 @@ class Credentials:
             job = CredentialJob(reference, operation == "get", future)
             self._jobs.add(job)
 
-        def finished(actual):
+        def finished(actual: Future[str | None]) -> None:
             with self._lock:
                 error = actual.exception()
                 if error is not None:
@@ -163,7 +164,9 @@ class Credentials:
     async def close(self, timeout_s: float = 30) -> bool:
         self.stop_accepting()
         with self._lock:
-            futures = [asyncio.wrap_future(job.future) for job in self._jobs if not job.future.done()]
+            futures: list[asyncio.Future[str | None]] = [
+                asyncio.wrap_future(job.future) for job in self._jobs if not job.future.done()
+            ]
         if futures:
             for future in futures:
                 future.add_done_callback(lambda item: item.exception() if not item.cancelled() else None)
