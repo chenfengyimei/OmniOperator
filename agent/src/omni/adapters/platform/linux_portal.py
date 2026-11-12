@@ -5,9 +5,10 @@ from __future__ import annotations
 import asyncio
 import uuid
 from collections.abc import Awaitable, Callable
+from typing import Any, cast
 
 from ...domain.desktop_portal import CHOICE_SECONDS
-from .linux_bus import Endpoint, LocalBus, RemoteError, failure
+from .linux_bus import BusPort, Endpoint, LocalBus, RemoteError, failure
 from .linux_fds import OwnedFd
 from .linux_session import PROPERTIES, LocalFactory, Owner, SessionInspector, number, object_path, one, variant
 from .linux_signals import SignalBus
@@ -20,12 +21,14 @@ SESSION = "org.freedesktop.portal.Session"
 
 
 class PortalFactory(LocalFactory):
-    async def open(self, endpoint: Endpoint):
+    async def open(self, endpoint: Endpoint) -> LocalBus:
         return await LocalBus(endpoint, self.ops, unix_fds=endpoint.address == f"/run/user/{self.ops.uid}/bus").open()
 
 
 class PortalSession:
-    def __init__(self, inspector: SessionInspector, *, signal_factory=SignalBus) -> None:
+    def __init__(
+        self, inspector: SessionInspector, *, signal_factory: Callable[[BusPort], SignalBus] = SignalBus
+    ) -> None:
         self.inspector, self._signals = inspector, signal_factory
         self.bus = None
         self.signals = None
@@ -47,8 +50,13 @@ class PortalSession:
         )
         self.owner = await self.inspector.owner(self.bus, PORTAL, self.inspector.ops.uid)
         self.signals = self._signals(self.bus)
-        row = one(await self.bus.call(self.owner.name, PATH, PROPERTIES, "GetAll", "s", [SCREENCAST], returns="a{sv}"))
-        if not isinstance(row, dict) or len(row) > 32:
+        raw_row = one(
+            await self.bus.call(self.owner.name, PATH, PROPERTIES, "GetAll", "s", [SCREENCAST], returns="a{sv}")
+        )
+        if not isinstance(raw_row, dict):
+            raise failure("portal_response_invalid")
+        row = cast(dict[str, Any], raw_row)
+        if len(row) > 32:
             raise failure("portal_response_invalid")
         # V6 gives the non-reused PipeWire object serial. Never substitute a
         # recycled node ID for future frame targeting on older implementations.
@@ -76,7 +84,9 @@ class PortalSession:
                 self.revoked = True
                 raise failure("portal_revoked")
 
-    async def request(self, member: str, signature: str, arguments: list, options: dict) -> dict:
+    async def request(
+        self, member: str, signature: str, arguments: list[object], options: dict[str, object]
+    ) -> dict[str, Any]:
         await self.check()
         assert self.signals is not None and self.owner is not None and self.bus is not None
         token = "omni_" + uuid.uuid4().hex
@@ -99,14 +109,14 @@ class PortalSession:
                 or type(body[0]) is not int
                 or body[0] not in {0, 1, 2}
                 or not isinstance(body[1], dict)
-                or len(body[1]) > 32
+                or len(cast(dict[str, Any], body[1])) > 32
             ):
                 raise failure("portal_response_invalid")
             self.pending.discard(path)
             if body[0] != 0:
                 raise failure("portal_cancelled" if body[0] == 1 else "portal_request_failed")
             await self.check()
-            return body[1]
+            return cast(dict[str, Any], body[1])
         finally:
             if not await subscription.close():
                 raise failure("portal_cleanup_pending")
@@ -142,25 +152,28 @@ class PortalSession:
             )
             await phase("authorizing")
             value = await self.request("Start", "osa{sv}", [self.session, ""], {})
-            streams = variant(value.get("streams"), "a(ua{sv})")
-            if (
-                not isinstance(streams, list)
-                or len(streams) != 1
-                or not isinstance(streams[0], list)
-                or len(streams[0]) != 2
-            ):
+            raw_streams = variant(value.get("streams"), "a(ua{sv})")
+            if not isinstance(raw_streams, list):
                 raise failure("portal_response_invalid")
-            node, properties = streams[0]
-            if (
-                not isinstance(properties, dict)
-                or len(properties) > 32
-                or number(variant(properties.get("source_type"), "u")) != 2
-            ):
+            streams = cast(list[object], raw_streams)
+            if len(streams) != 1:
+                raise failure("portal_response_invalid")
+            first = streams[0]
+            if not isinstance(first, list):
+                raise failure("portal_response_invalid")
+            pair = cast(list[object], first)
+            if len(pair) != 2:
+                raise failure("portal_response_invalid")
+            node, raw_properties = pair
+            if not isinstance(raw_properties, dict):
+                raise failure("portal_window_source_unavailable")
+            properties = cast(dict[str, Any], raw_properties)
+            if len(properties) > 32 or number(variant(properties.get("source_type"), "u")) != 2:
                 raise failure("portal_window_source_unavailable")
             serial = number(variant(properties.get("pipewire-serial"), "t"), (1 << 64) - 1)
             if not serial or not number(node):
                 raise failure("portal_response_invalid")
-            self.stream = (node, serial)
+            self.stream = (cast(int, node), serial)
             await self.check()
             await phase("active")
 
