@@ -32,8 +32,8 @@ class ExtensionService:
         self, database: DatabasePort, objects: ObjectService, packages: ExtensionPackagesPort, hosts: ExtensionHostsPort
     ) -> None:
         self._db, self._objects, self._packages, self._hosts = database, objects, packages, hosts
-        self._pending: set[asyncio.Task] = set()
-        self._invocations: dict[asyncio.Task, tuple[str, str, int]] = {}
+        self._pending: set[asyncio.Task[object]] = set()
+        self._invocations: dict[asyncio.Task[object], tuple[str, str, int]] = {}
         self._errors: dict[tuple[str, str], str] = {}
         self._closing = False
 
@@ -62,19 +62,19 @@ class ExtensionService:
         if len(self._pending) >= 64:
             raise BusinessError("extension_busy", "Extension operations are bounded", retryable=True, status=503)
 
-        async def perform():
+        async def perform() -> T:
             return await operation()
 
         task = asyncio.create_task(perform(), name="extension-operation")
         self._pending.add(task)
 
-        def complete(future):
+        def complete(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             self._invocations.pop(future, None)
             if not future.cancelled():
                 future.exception()
 
-        task.add_done_callback(complete)
+        task.add_done_callback(lambda future: complete(cast(asyncio.Task[object], future)))
         try:
             return await asyncio.shield(task)
         except asyncio.CancelledError:
@@ -132,19 +132,21 @@ class ExtensionService:
         identities: list[str] = []
         published: list[JSON] = []
         for descriptor in descriptors:
-            path = (root / descriptor["name"]).resolve()
+            name = str(descriptor["name"])
+            size = cast(int, descriptor["bytes"])
+            media_type = str(descriptor["media_type"])
+            sha256 = str(descriptor["sha256"])
+            path = (root / name).resolve()
             if path.parent != root or path.is_symlink() or not path.is_file():
                 raise ValueError
             content = path.read_bytes()
-            if len(content) != descriptor["bytes"] or len(content) > MAX_ARTIFACT_BYTES:
+            if len(content) != size or len(content) > MAX_ARTIFACT_BYTES:
                 raise ValueError
-            if hashlib.sha256(content).hexdigest() != descriptor["sha256"]:
+            if hashlib.sha256(content).hexdigest() != sha256:
                 raise ValueError
-            obj = await self._objects.publish(str(record["agent_id"]), content, descriptor["media_type"])
+            obj = await self._objects.publish(str(record["agent_id"]), content, media_type)
             identities.append(str(obj["id"]))
-            published.append(
-                cast(JSON, {"id": str(obj["id"]), "media_type": descriptor["media_type"], "bytes": descriptor["bytes"]})
-            )
+            published.append(cast(JSON, {"id": str(obj["id"]), "media_type": media_type, "bytes": size}))
         return tuple(identities), published
 
     async def _drift(self, record: Record, code: str = "extension_snapshot_drift") -> None:
@@ -159,35 +161,39 @@ class ExtensionService:
     async def install(self, agent_id: str, request: Record) -> Record:
         normalized, digest = parse_install(request), request_fingerprint(request)
 
-        async def perform():
-            prior = await self._db.read(lambda u: u.extension_install_replay(agent_id, normalized["key"], digest))
+        async def perform() -> Record:
+            prior = await self._db.read(
+                lambda u: u.extension_install_replay(agent_id, str(normalized["key"]), digest)
+            )
             if prior:
                 return self._public(prior)
-            captured = await self._packages.capture(normalized["source"])
+            captured = await self._packages.capture(str(normalized["source"]))
             obj = await self._objects.publish(agent_id, captured.content, "application/vnd.omni.extension+zip")
             metadata: Record = {
-                "manifest": captured.manifest,
-                "files": list(captured.files),
+                "manifest": cast(JSON, captured.manifest),
+                "files": cast(JSON, list(captured.files)),
                 "package_sha256": captured.package_sha256,
                 "catalog_sha256": captured.catalog_sha256,
             }
-            result = await self._db.write(lambda u: u.extension_install(agent_id, normalized, metadata, str(obj["id"])))
+            result = await self._db.write(
+                lambda u: u.extension_install(agent_id, cast(Record, normalized), metadata, str(obj["id"]))
+            )
             await self._retire(result)
             return self._public(result)
 
         return await self._execute(perform)
 
     async def get(self, agent_id: str, extension_id: str) -> Record:
-        async def perform():
+        async def perform() -> Record:
             return self._public(await self._db.read(lambda u: u.extension_get(agent_id, extension_id)))
 
         return await self._execute(perform)
 
     async def page(self, agent_id: str, after: int = 0, limit: int = 20) -> Record:
-        async def perform():
+        async def perform() -> Record:
             records = await self._db.read(lambda u: u.extension_page(agent_id, after, limit))
             return {
-                "items": [self._public(row) for row in records],
+                "items": cast(JSON, [self._public(row) for row in records]),
                 "next_after": records[-1]["sequence"] if len(records) == limit else None,
             }
 
@@ -196,9 +202,11 @@ class ExtensionService:
     async def actions(self, agent_id: str, extension_id: str, after: str = "", limit: int = 20) -> Record:
         """Bounded owner view of what this plugin actually returned; no arguments or free text."""
 
-        async def perform():
-            records = await self._db.read(lambda u: u.extension_action_page(agent_id, extension_id, after, limit))
-            items = []
+        async def perform() -> Record:
+            records = await self._db.read(
+                lambda u: u.extension_action_page(agent_id, extension_id, after, limit)
+            )
+            items: list[Record] = []
             for record in records:
                 raw_result = record.get("result")
                 result = raw_result if isinstance(raw_result, dict) else {}
@@ -227,19 +235,19 @@ class ExtensionService:
                         ],
                     }
                 )
-            return {"items": items, "next_after": items[-1]["id"] if len(items) == limit else None}
+            return {"items": cast(JSON, items), "next_after": items[-1]["id"] if len(items) == limit else None}
 
         return await self._execute(perform)
 
     async def market(self, agent_id: str, source: str) -> Record:
         """Read-only owner scan of one local market directory; installing is a separate explicit call."""
 
-        async def perform():
+        async def perform() -> Record:
             candidates = await self._packages.market(source)
             installed = {
                 str(row["name"]): row for row in await self._db.read(lambda u: u.extension_page(agent_id, 0, 50))
             }
-            items = []
+            items: list[Record] = []
             for candidate in candidates:
                 slot = installed.get(str(candidate["name"]))
                 items.append(
@@ -268,14 +276,14 @@ class ExtensionService:
                     }
                 )
             items.sort(key=lambda item: (str(item["name"]), str(item["version"])))
-            return {"items": items, "scanned": len(items), "marketplace_source": str(source)}
+            return {"items": cast(JSON, items), "scanned": len(items), "marketplace_source": str(source)}
 
         return await self._execute(perform)
 
     async def authorize(self, agent_id: str, extension_id: str, request: Record) -> Record:
         checked = parse_authorization(request)
 
-        async def perform():
+        async def perform() -> Record:
             record = await self._db.read(lambda u: u.extension_get(agent_id, extension_id))
             if record["revision"] != checked["revision"]:
                 raise BusinessError("revision_conflict", "Plugin changed; inspect its current version")
@@ -285,7 +293,9 @@ class ExtensionService:
                 if exc.code == "extension_snapshot_drift":
                     await self._drift(record)
                 raise
-            result = await self._db.write(lambda u: u.extension_authorize(agent_id, extension_id, checked))
+            result = await self._db.write(
+                lambda u: u.extension_authorize(agent_id, extension_id, cast(Record, checked))
+            )
             await self._retire(result)
             self._errors.pop((agent_id, extension_id), None)
             return self._public(result)
@@ -293,7 +303,7 @@ class ExtensionService:
         return await self._execute(perform)
 
     async def disable(self, agent_id: str, extension_id: str, revision: int) -> Record:
-        async def perform():
+        async def perform() -> Record:
             result = await self._db.write(lambda u: u.extension_disable(agent_id, extension_id, revision))
             if not result.get("retired_authority_epoch"):
                 # Explicitly retry resource cleanup for an already disabled slot;
@@ -305,7 +315,7 @@ class ExtensionService:
         return await self._execute(perform)
 
     async def tools_for_run(self, agent_id: str, run_id: str) -> Sequence[ToolSpec]:
-        async def perform():
+        async def perform() -> Sequence[ToolSpec]:
             records = await self._db.read(lambda u: u.extension_run_tools(agent_id, run_id))
             usable: set[str] = set()
             checked: dict[str, bool] = {}
@@ -331,7 +341,7 @@ class ExtensionService:
     async def invoke(
         self, name: str, arguments: Mapping[str, JSON], *, operation_id: str, context: InvocationContext
     ) -> ActionResult:
-        async def perform():
+        async def perform() -> ActionResult:
             try:
                 encoded = json.dumps(
                     dict(arguments), sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
