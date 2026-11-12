@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "dc1ba0942a56d229787b3d44a648123bd484058babed0b9efe170c690df1f91a",
+  "source_sha256": "430464e4b8530044120c3566462841fe6b38978efbb752972383c5583056da8e",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53157,
+      "lines": 53158,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -25793,7 +25793,7 @@
       "path": "agent/src/omni/adapters/platform/linux_signals.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_signals",
-      "lines": 102,
+      "lines": 103,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session"
@@ -25801,12 +25801,12 @@
       "symbols": [
         {
           "name": "Subscription",
-          "line": 14,
+          "line": 15,
           "kind": "class"
         },
         {
           "name": "Subscription.accept",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -25818,7 +25818,7 @@
         },
         {
           "name": "Subscription.next",
-          "line": 28,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self"
@@ -25827,7 +25827,7 @@
         },
         {
           "name": "Subscription.close",
-          "line": 36,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "self"
@@ -25836,12 +25836,12 @@
         },
         {
           "name": "SignalBus",
-          "line": 50,
+          "line": 51,
           "kind": "class"
         },
         {
           "name": "SignalBus.__init__",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -25853,7 +25853,7 @@
         },
         {
           "name": "SignalBus.name",
-          "line": 58,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self"
@@ -25862,7 +25862,7 @@
         },
         {
           "name": "SignalBus.variant",
-          "line": 61,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "self",
@@ -25876,7 +25876,7 @@
         },
         {
           "name": "SignalBus.listen",
-          "line": 64,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "self",
@@ -25896,16 +25896,18 @@
         },
         {
           "name": "SignalBus.listen.receive",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "message"
           ],
-          "annotations": {}
+          "annotations": {
+            "message": "Any"
+          }
         },
         {
           "name": "SignalBus.close",
-          "line": 100,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self"
