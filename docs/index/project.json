@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "1370bc271ec37f5b1f52704154ff4c789368ff40068f0791342ef52e3a4ecdf8",
+  "source_sha256": "25ee7e241570ca41aad28beb4c67f095ff48b2f62dca201c74b684c817d1eb40",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52876,
+      "lines": 52885,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -22351,7 +22351,7 @@
       "path": "agent/src/omni/adapters/platform/darwin_admin_policy.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.darwin_admin_policy",
-      "lines": 177,
+      "lines": 181,
       "imports": [
         "omni.adapters.platform.darwin_admin_commands",
         "omni.adapters.platform.darwin_admin_files",
@@ -22363,12 +22363,12 @@
       "symbols": [
         {
           "name": "DarwinPolicy",
-          "line": 27,
+          "line": 28,
           "kind": "class"
         },
         {
           "name": "DarwinPolicy.__init__",
-          "line": 28,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self",
@@ -22378,7 +22378,7 @@
             "root"
           ],
           "annotations": {
-            "operation": "dict",
+            "operation": "object",
             "broker_sha256": "str",
             "commands": "DarwinCommands",
             "root": "Path"
@@ -22386,7 +22386,7 @@
         },
         {
           "name": "DarwinPolicy.authorize",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self"
@@ -22395,7 +22395,7 @@
         },
         {
           "name": "DarwinPolicy.audit",
-          "line": 86,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self"
@@ -22404,7 +22404,7 @@
         },
         {
           "name": "DarwinPolicy.initialize",
-          "line": 89,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self"
@@ -22413,7 +22413,7 @@
         },
         {
           "name": "DarwinPolicy.program",
-          "line": 132,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self"
@@ -22422,7 +22422,7 @@
         },
         {
           "name": "DarwinPolicy.probe_argv",
-          "line": 140,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self",
@@ -22434,7 +22434,7 @@
         },
         {
           "name": "DarwinPolicy.definition",
-          "line": 147,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self"
@@ -22443,7 +22443,7 @@
         },
         {
           "name": "DarwinPolicy.publish_definition",
-          "line": 153,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self"
@@ -22452,7 +22452,7 @@
         },
         {
           "name": "DarwinPolicy.remove_definition",
-          "line": 157,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self"
@@ -22461,7 +22461,7 @@
         },
         {
           "name": "DarwinPolicy.dispatched",
-          "line": 165,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "self"
@@ -22470,7 +22470,7 @@
         },
         {
           "name": "DarwinPolicy.record",
-          "line": 176,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "self",
@@ -22479,7 +22479,7 @@
           ],
           "annotations": {
             "phase": "str",
-            "result": "dict"
+            "result": "dict[str, Any]"
           }
         }
       ],
@@ -31250,17 +31250,19 @@
       "path": "agent/src/omni/adapters/platform/wheel_smoke.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_smoke",
-      "lines": 84,
+      "lines": 89,
       "imports": [
         "omni.adapters.persistence.maintenance",
+        "omni.adapters.platform.paths",
         "omni.adapters.platform.permissions",
         "omni.adapters.platform.wheel_prepare",
+        "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 27,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "code"
@@ -31271,13 +31273,14 @@
         },
         {
           "name": "smoke_candidate",
-          "line": 31,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "paths",
             "sha256"
           ],
           "annotations": {
+            "paths": "InstancePaths",
             "sha256": "str"
           }
         }

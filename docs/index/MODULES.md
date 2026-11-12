@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`1370bc271ec37f5b1f52704154ff4c789368ff40068f0791342ef52e3a4ecdf8`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`25ee7e241570ca41aad28beb4c67f095ff48b2f62dca201c74b684c817d1eb40`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -270,7 +270,7 @@
 | [agent/src/omni/adapters/platform/darwin_admin_commands.py](../../agent/src/omni/adapters/platform/darwin_admin_commands.py) | 276 | Single-threaded Darwin command ownership; pre-exec permit, kqueue no-fork proof and unreaped group anchor. |
 | [agent/src/omni/adapters/platform/darwin_admin_files.py](../../agent/src/omni/adapters/platform/darwin_admin_files.py) | 184 | Darwin local-volume ACL and root file proofs; no application storage or arbitrary library lookup. |
 | [agent/src/omni/adapters/platform/darwin_admin_peer.py](../../agent/src/omni/adapters/platform/darwin_admin_peer.py) | 30 | Kernel Unix peer UID/GID and PID; never accepts a TCP credential result or an empty native option. |
-| [agent/src/omni/adapters/platform/darwin_admin_policy.py](../../agent/src/omni/adapters/platform/darwin_admin_policy.py) | 177 | Exact local-account Darwin administrator policy, protected root artifacts and shared audit bytes. |
+| [agent/src/omni/adapters/platform/darwin_admin_policy.py](../../agent/src/omni/adapters/platform/darwin_admin_policy.py) | 181 | Exact local-account Darwin administrator policy, protected root artifacts and shared audit bytes. |
 | [agent/src/omni/adapters/platform/darwin_admin_probe.py](../../agent/src/omni/adapters/platform/darwin_admin_probe.py) | 156 | Bounded public CoreFoundation/ServiceManagement reads for a separately owned root worker; no mutation or GUI. |
 | [agent/src/omni/adapters/platform/darwin_service_admin.py](../../agent/src/omni/adapters/platform/darwin_service_admin.py) | 137 | Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force. |
 | [agent/src/omni/adapters/platform/deployment_files.py](../../agent/src/omni/adapters/platform/deployment_files.py) | 606 | Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage. |
@@ -325,7 +325,7 @@
 | [agent/src/omni/adapters/platform/wheel_install.py](../../agent/src/omni/adapters/platform/wheel_install.py) | 347 | Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start. |
 | [agent/src/omni/adapters/platform/wheel_prepare.py](../../agent/src/omni/adapters/platform/wheel_prepare.py) | 120 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_rollback.py](../../agent/src/omni/adapters/platform/wheel_rollback.py) | 71 | Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home. |
-| [agent/src/omni/adapters/platform/wheel_smoke.py](../../agent/src/omni/adapters/platform/wheel_smoke.py) | 84 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
+| [agent/src/omni/adapters/platform/wheel_smoke.py](../../agent/src/omni/adapters/platform/wheel_smoke.py) | 89 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
 | [agent/src/omni/adapters/platform/wheel_stage.py](../../agent/src/omni/adapters/platform/wheel_stage.py) | 76 | Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations. |
 | [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 113 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_switch.py](../../agent/src/omni/adapters/platform/wheel_switch.py) | 85 | Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back. |

@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "b157aa69f31a1b65a4f28d2d3e15ca37bc4d059ef4337e611a929609fbaddf8c",
+  "code_version": "9d6876cba8b6e59e3d54a9fc9c14f49337ed241b571f587664de655559b9171c",
   "fixed_source_files": 1200,
-  "git_head": "5689cb5",
+  "git_head": "70cde9c",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -121,10 +121,11 @@
    "Strict scope reaches 194 files (53 domain + 43 application + 98 adapters); process ownership types its spawn options explicitly and the desktop/service-query consumers narrow nested frames item by item without changing bounds, approval or unknown semantics",
    "Strict scope reaches 196 files (53 domain + 43 application + 100 adapters); the offline audit and event pruning bindings type their plan callbacks through UnitOfWork and cast Record plans at the domain boundary without changing plan, backup or cancellation semantics",
    "Strict scope reaches 197 files (53 domain + 43 application + 101 adapters); the worker client types its stderr drain task, narrows host-callback frames item by item and shares one empty host-context mapping without changing callback budgets, capability checks or unknown-outcome semantics",
-   "Strict scope reaches 199 files (53 domain + 43 application + 103 adapters); the exchange and cleanup file boundaries use the deployment public bridges, typed generators and explicit nested operation casts while journal, reservation and unknown-record semantics stay unchanged"
+   "Strict scope reaches 199 files (53 domain + 43 application + 103 adapters); the exchange and cleanup file boundaries use the deployment public bridges, typed generators and explicit nested operation casts while journal, reservation and unknown-record semantics stay unchanged",
+   "Strict scope reaches 201 files (53 domain + 43 application + 105 adapters); the Darwin administrator policy types its scope/operation boundary and stringifies protected manager fields, and the candidate smoke test types its instance paths and JSON receipts without changing root checks, argv or smoke semantics"
   ],
   "pending": [
-   "application 43/44 and adapters 103/215 strict typing",
+   "application 43/44 and adapters 105/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -133,8 +134,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-100-callers.xml",
-   "tests": 61,
+   "report": "temp/build/v2-typecheck-101-callers.xml",
+   "tests": 67,
    "failures": 0
   },
   "targeted_reports": [
@@ -1045,6 +1046,15 @@
     "errors": 0,
     "duration_s": 143.23,
     "note": "one hundredth strict batch: guard + service exchange/cleanup file callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-101-callers.xml",
+    "sha256": "cc537e3cdf06ce9372f00b96b201d98e7c9431440cedf1eb3907e9e26513d113",
+    "tests": 67,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 6.64,
+    "note": "one hundred first strict batch: guard + Darwin admin policy and wheel smoke callers"
    }
   ],
   "gates": {
@@ -1056,7 +1066,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 199,
+    "filesAnalyzed": 201,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1120,6 +1130,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 103/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 105/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
