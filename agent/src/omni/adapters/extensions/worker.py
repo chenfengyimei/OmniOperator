@@ -17,10 +17,11 @@ import zipfile
 from dataclasses import replace
 from pathlib import Path
 from types import ModuleType
-from typing import BinaryIO
+from typing import Any, BinaryIO, cast
 
 from jsonschema import Draft202012Validator
 
+from ...application.ports import Record
 from ...domain.contracts import ActionResult, BusinessError, Effect, Outcome
 from ...domain.extensions import (
     MAX_ARTIFACT_BYTES,
@@ -38,23 +39,29 @@ HELLO_FIELDS = frozenset({"version", "id", "method", "protocol", "package_sha256
 ARTIFACTS_ENV = "OMNI_EXTENSION_ARTIFACTS"
 
 
-def _artifacts(root: Path | None, value: object, allowed: tuple[str, ...]) -> list[dict]:
+def _artifacts(root: Path | None, value: object, allowed: tuple[str, ...]) -> list[Record]:
     """Compute size/hash inside the child; the host revalidates both before publishing."""
     if value is None:
         return []
-    if not isinstance(value, list) or not value or len(value) > MAX_ARTIFACTS:
+    if not isinstance(value, list) or not value:
+        raise ValueError
+    entries = cast(list[object], value)
+    if len(entries) > MAX_ARTIFACTS:
         raise ValueError
     permitted = set(artifact_types(list(allowed)))
-    result = []
+    result: list[Record] = []
     total = 0
-    seen = set()
-    for item in value:
-        if not isinstance(item, dict) or set(item) != {"name", "media_type"}:
+    seen: set[str] = set()
+    for item in entries:
+        if not isinstance(item, dict):
             raise ValueError
-        name, media_type = item["name"], item["media_type"]
+        entry = cast(Record, item)
+        if set(entry) != {"name", "media_type"}:
+            raise ValueError
+        name, media_type = entry["name"], entry["media_type"]
         if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,119}", name):
             raise ValueError
-        if name in seen or media_type not in permitted or root is None:
+        if name in seen or cast(str, media_type) not in permitted or root is None:
             raise ValueError
         seen.add(name)
         path = (root / name).resolve()
@@ -105,7 +112,7 @@ async def handshake(process: asyncio.subprocess.Process, package_sha256: str, ca
         await process.stdin.drain()
         response = decode(await process.stdout.readline())
         if (
-            set(response) != HELLO_FIELDS
+            set(response) != set(HELLO_FIELDS)
             or response["id"] != identity
             or response["method"] != "ready"
             or response["protocol"] != PROTOCOL
@@ -170,7 +177,7 @@ class HostBridge:
         self.calls = 0
 
     def call(self, name: str, **arguments: object) -> object:
-        if not isinstance(name, str) or not 1 <= len(name) <= 64:
+        if not 1 <= len(name) <= 64:
             raise ValueError("Invalid host capability name")
         if self.calls >= 16:
             raise RuntimeError("Host callback budget exhausted")
@@ -209,7 +216,7 @@ async def serve(location: str, package_sha256: str, catalog_sha256: str) -> None
         artifact_root = candidate.resolve()
     initial = decode(await _read())
     if (
-        set(initial) != HELLO_FIELDS
+        set(initial) != set(HELLO_FIELDS)
         or initial["method"] != "initialize"
         or initial["protocol"] != PROTOCOL
         or initial["package_sha256"] != package_sha256
@@ -245,7 +252,10 @@ async def serve(location: str, package_sha256: str, catalog_sha256: str) -> None
                 ),
             )
             continue
-        if not Draft202012Validator(tool["parameters"]).is_valid(invocation["arguments"]):
+        schema = cast(dict[str, Any], tool["parameters"])
+        # jsonschema's is_valid overloads are only partly typed; keep the runtime call exact.
+        validator: Any = Draft202012Validator(schema)
+        if not validator.is_valid(invocation["arguments"]):
             _write(
                 output,
                 encode_response(
@@ -276,7 +286,11 @@ async def serve(location: str, package_sha256: str, catalog_sha256: str) -> None
             result = action(raw, writes=True)
             if result.artifacts:
                 raise ValueError
-            descriptors = _artifacts(artifact_root, result.data.get("artifacts"), tuple(tool.get("artifacts", [])))
+            descriptors = _artifacts(
+                artifact_root,
+                result.data.get("artifacts"),
+                tuple(cast(list[str], tool.get("artifacts", []))),
+            )
             if descriptors:
                 result = replace(
                     result,

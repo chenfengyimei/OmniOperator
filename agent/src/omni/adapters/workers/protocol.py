@@ -7,6 +7,7 @@ import math
 import re
 import uuid
 from dataclasses import asdict
+from typing import Any, cast
 
 from ...domain.contracts import ActionResult, Effect, Outcome
 
@@ -24,8 +25,8 @@ def identity(value: object) -> bool:
         return False
 
 
-def _pairs(entries):
-    result = {}
+def _pairs(entries: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
     for name, value in entries:
         if name in result:
             raise ValueError("Duplicate IPC field")
@@ -33,7 +34,7 @@ def _pairs(entries):
     return result
 
 
-def _constant(_):
+def _constant(_value: str) -> None:
     raise ValueError("Nonfinite IPC number")
 
 
@@ -43,12 +44,12 @@ def _json(value: object, depth: int = 0, budget: list[int] | None = None) -> Non
     if remaining[0] < 0 or depth > 16:
         raise ValueError("IPC data exceeds structural limits")
     if isinstance(value, dict):
-        for key, item in value.items():
+        for key, item in cast(dict[Any, Any], value).items():
             if not isinstance(key, str):
                 raise ValueError("IPC keys must be strings")
             _json(item, depth + 1, remaining)
     elif isinstance(value, list):
-        for item in value:
+        for item in cast(list[Any], value):
             _json(item, depth + 1, remaining)
     elif isinstance(value, float) and not math.isfinite(value):
         raise ValueError("Nonfinite IPC number")
@@ -56,7 +57,7 @@ def _json(value: object, depth: int = 0, budget: list[int] | None = None) -> Non
         raise ValueError("Unsupported IPC value")
 
 
-def decode(frame: bytes) -> dict:
+def decode(frame: bytes) -> dict[str, Any]:
     if len(frame) > MAX_FRAME or not frame.endswith(b"\n"):
         raise ValueError("Incomplete or oversized IPC frame")
     try:
@@ -64,14 +65,17 @@ def decode(frame: bytes) -> dict:
         _json(data)
     except (UnicodeError, RecursionError) as exc:
         raise ValueError("Malformed IPC JSON") from exc
-    if not isinstance(data, dict) or type(data.get("version")) is not int or data["version"] != VERSION:
+    if not isinstance(data, dict):
         raise ValueError("IPC version mismatch")
-    if not identity(data.get("id")):
+    decoded = cast(dict[str, Any], data)
+    if type(decoded.get("version")) is not int or decoded["version"] != VERSION:
+        raise ValueError("IPC version mismatch")
+    if not identity(decoded.get("id")):
         raise ValueError("IPC identity is invalid")
-    return data
+    return decoded
 
 
-def request(frame: bytes) -> dict:
+def request(frame: bytes) -> dict[str, Any]:
     data = decode(frame)
     if set(data) != {"version", "id", "method", "writes", "arguments", "context"}:
         raise ValueError("IPC request fields do not match")
@@ -79,10 +83,12 @@ def request(frame: bytes) -> dict:
         raise ValueError("Invalid IPC capability")
     if type(data["writes"]) is not bool or not isinstance(data["arguments"], dict):
         raise ValueError("Invalid IPC capability metadata")
-    context = data["context"]
+    raw_context = data["context"]
+    if not isinstance(raw_context, dict):
+        raise ValueError("Invalid IPC invocation context")
+    context = cast(dict[str, Any], raw_context)
     if (
-        not isinstance(context, dict)
-        or set(context) != {"agent_id", "run_id", "session_id", "policy_revision", "workspace"}
+        set(context) != {"agent_id", "run_id", "session_id", "policy_revision", "workspace"}
         or not all(identity(context[name]) for name in ("agent_id", "run_id", "session_id"))
         or type(context["policy_revision"]) is not int
         or context["policy_revision"] <= 0
@@ -94,28 +100,31 @@ def request(frame: bytes) -> dict:
 
 
 def action(value: object, *, writes: bool) -> ActionResult:
-    if not isinstance(value, dict) or set(value) != RESULT_FIELDS:
+    if not isinstance(value, dict):
+        raise ValueError("IPC result fields do not match")
+    fields = cast(dict[str, Any], value)
+    if set(fields) != RESULT_FIELDS:
         raise ValueError("IPC result fields do not match")
     if (
-        not all(isinstance(value[name], str) for name in ("status", "effect", "text", "error_code", "verification"))
-        or not re.fullmatch(r"[a-zA-Z0-9_.-]{0,100}", value["error_code"])
-        or type(value["retryable"]) is not bool
-        or not isinstance(value["artifacts"], list)
-        or len(value["artifacts"]) > 100
-        or not all(identity(item) for item in value["artifacts"])
-        or not isinstance(value["data"], dict)
+        not all(isinstance(fields[name], str) for name in ("status", "effect", "text", "error_code", "verification"))
+        or not re.fullmatch(r"[a-zA-Z0-9_.-]{0,100}", cast(str, fields["error_code"]))
+        or type(fields["retryable"]) is not bool
+        or not isinstance(fields["artifacts"], list)
+        or len(cast(list[object], fields["artifacts"])) > 100
+        or not all(identity(item) for item in cast(list[object], fields["artifacts"]))
+        or not isinstance(fields["data"], dict)
     ):
         raise ValueError("Invalid IPC result types")
-    _json(value)
+    _json(fields)
     result = ActionResult(
-        Outcome(value["status"]),
-        value["text"],
-        Effect(value["effect"]),
-        error_code=value["error_code"],
-        retryable=value["retryable"],
-        artifacts=tuple(value["artifacts"]),
-        verification=value["verification"],
-        data=value["data"],
+        Outcome(cast(str, fields["status"])),
+        cast(str, fields["text"]),
+        Effect(cast(str, fields["effect"])),
+        error_code=cast(str, fields["error_code"]),
+        retryable=fields["retryable"],
+        artifacts=tuple(cast(list[str], fields["artifacts"])),
+        verification=cast(str, fields["verification"]),
+        data=cast(dict[str, Any], fields["data"]),
     )
     if not writes and result.effect != Effect.NONE:
         raise ValueError("Read-only capability reported an external effect")
@@ -130,7 +139,7 @@ def response(frame: bytes, operation_id: str, *, writes: bool) -> ActionResult:
 
 
 def encode_response(operation_id: str, result: ActionResult) -> bytes:
-    def encode(current):
+    def encode(current: ActionResult) -> bytes:
         return (
             json.dumps(
                 {"version": VERSION, "id": operation_id, "result": asdict(current)}, ensure_ascii=False, allow_nan=False
@@ -154,9 +163,7 @@ def encode_response(operation_id: str, result: ActionResult) -> bytes:
         artifacts=result.artifacts
         if len(result.artifacts) <= 100 and all(identity(item) for item in result.artifacts)
         else (),
-        verification=result.verification
-        if isinstance(result.verification, str) and len(result.verification) <= 4096
-        else "",
+        verification=result.verification if len(result.verification) <= 4096 else "",
         data={"truncated": True},
     )
     return encode(compact)
