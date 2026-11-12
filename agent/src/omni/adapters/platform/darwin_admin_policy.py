@@ -8,6 +8,7 @@ import plistlib
 import stat
 import sys
 from pathlib import Path
+from typing import Any, cast
 
 from ...domain.service_admin import (
     MACOS_AUDIT_DIRECTORY,
@@ -25,11 +26,11 @@ from .service_templates import render
 
 
 class DarwinPolicy(RootServicePolicy):
-    def __init__(self, operation: dict, broker_sha256: str, commands: DarwinCommands, root: Path) -> None:
+    def __init__(self, operation: object, broker_sha256: str, commands: DarwinCommands, root: Path) -> None:
         self.approval = admin_scope(operation)
         verify_broker(self.approval, broker_sha256)
         self.operation_key = next(iter(scoped_operations(self.approval)))
-        self.operation = bound_operation(self.approval, self.operation_key)
+        self.operation = cast(dict[str, Any], bound_operation(self.approval, self.operation_key))
         if self.operation["deployment"]["request"]["target"] != "macos-system":
             raise error("service_admin_target_unsupported")
         self.plan = self.operation["deployment"]
@@ -142,22 +143,22 @@ class DarwinPolicy(RootServicePolicy):
         probe = self.root / "service-admin-probe.py"
         protected(executable)
         protected(probe)
-        return [str(executable), "-I", "-S", str(probe), self.manager["name"], nonce]
+        return [str(executable), "-I", "-S", str(probe), str(self.manager["name"]), nonce]
 
     def definition(self) -> tuple[bool, bytes | None]:
         self.authorize()
-        path = Path(self.manager["installed_path"])
+        path = Path(str(self.manager["installed_path"]))
         protected(path, missing=True)
         return (True, read(path)) if path.exists() else (False, None)
 
     def publish_definition(self) -> None:
         self.authorize()
-        publish(Path(self.manager["installed_path"]), render(self.plan)[self.manager["artifact"]], 0o644)
+        publish(Path(str(self.manager["installed_path"])), render(self.plan)[str(self.manager["artifact"])], 0o644)
 
     def remove_definition(self) -> None:
         self.authorize()
-        path = Path(self.manager["installed_path"])
-        if read(path) != render(self.plan)[self.manager["artifact"]]:
+        path = Path(str(self.manager["installed_path"]))
+        if read(path) != render(self.plan)[str(self.manager["artifact"])]:
             raise error("service_definition_mismatch")
         path.unlink()
         sync(path.parent)
@@ -169,9 +170,12 @@ class DarwinPolicy(RootServicePolicy):
         if not path.exists():
             return False
         value = json.loads(read(path, 16384))
-        if not isinstance(value, dict) or value.get("operation_sha256") != self.operation["sha256"]:
+        if (
+            not isinstance(value, dict)
+            or cast(dict[str, object], value).get("operation_sha256") != self.operation["sha256"]
+        ):
             raise error("service_admin_audit_changed")
         return True
 
-    def record(self, phase: str, result: dict) -> None:
+    def record(self, phase: str, result: dict[str, Any]) -> None:
         publish(self.audit / (phase + ".json"), self.audit_bytes(phase, result))
