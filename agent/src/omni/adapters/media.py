@@ -9,6 +9,7 @@ import os
 import sys
 import uuid
 from pathlib import Path
+from typing import cast
 
 from ..domain.contracts import BusinessError
 from ..domain.media import MAX_DOWNLOAD_BYTES, frames_plan
@@ -34,11 +35,11 @@ class MediaProcessor:
         self._argv = argv or [sys.executable, "-m", "omni.adapters.workers.media"]
         self._owned: OwnedProcess | None = None
         self._lock = asyncio.Lock()
-        self._probed: dict | None = None
+        self._probed: dict[str, object] | None = None
         self._closing = False
         self._cleanup_pending = False
 
-    def status(self) -> dict:
+    def status(self) -> dict[str, object]:
         return {
             "available": not self._closing,
             "probed": self._probed is not None,
@@ -84,7 +85,7 @@ class MediaProcessor:
         self._cleanup_pending = False
         return True
 
-    async def _request(self, operation: str, payload: dict, budget_s: float) -> dict:
+    async def _request(self, operation: str, payload: dict[str, object], budget_s: float) -> dict[str, object]:
         if self._closing:
             raise BusinessError("media_processor_closing", "Media processing is closing", status=503)
         identity = str(uuid.uuid4())
@@ -123,12 +124,14 @@ class MediaProcessor:
             except ValueError as exc:
                 await self._terminate()
                 raise BusinessError("media_processing_failed", "Media worker response was invalid", status=503) from exc
-            result = response.get("result") if isinstance(response, dict) else None
-            if response.get("id") != identity or not isinstance(result, dict):
+            reply = cast(dict[str, object], response) if isinstance(response, dict) else None
+            result = reply.get("result") if reply is not None else None
+            if reply is None or reply.get("id") != identity or not isinstance(result, dict):
                 await self._terminate()
                 raise BusinessError("media_processing_failed", "Media worker response identity mismatch", status=503)
-            if not result.get("ok"):
-                code = str(result.get("code") or "media_processing_error")
+            outcome = cast(dict[str, object], result)
+            if not outcome.get("ok"):
+                code = str(outcome.get("code") or "media_processing_error")
                 if code == "media_component_missing":
                     raise BusinessError(code, "A media processing component is not installed", status=503)
                 if code == "media_asr_model_missing":
@@ -138,14 +141,14 @@ class MediaProcessor:
                 if code == "media_processing_timeout":
                     raise BusinessError(code, "Media processing exceeded its time budget", status=504)
                 raise BusinessError(code, "Media processing failed", status=503)
-            return result
+            return outcome
 
-    async def probe(self) -> dict:
+    async def probe(self) -> dict[str, object]:
         if self._probed is None:
             self._probed = dict(await self._request("probe", {}, PROBE_BUDGET_S))
         return dict(self._probed)
 
-    async def transcribe(self, audio: Path, output: Path, plan: dict) -> dict:
+    async def transcribe(self, audio: Path, output: Path, plan: dict[str, object]) -> dict[str, object]:
         return await self._request(
             "transcribe",
             {
@@ -158,7 +161,7 @@ class MediaProcessor:
             TRANSCRIBE_BUDGET_S,
         )
 
-    async def frames(self, video: Path, sheet_output: Path, count: int, width: int) -> dict:
+    async def frames(self, video: Path, sheet_output: Path, count: int, width: int) -> dict[str, object]:
         plan = frames_plan(count, width)
         return await self._request(
             "frames",

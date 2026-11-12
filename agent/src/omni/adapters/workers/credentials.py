@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import os
 import sys
+from collections.abc import Callable
+from typing import Any, BinaryIO, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.credential_ipc import ERRORS, MAX_FRAME, VERSION, control, decode, encode, request, response
 
 
-def perform(query: dict, store) -> dict:
-    result = {
+def perform(query: dict[str, object], store: Any) -> dict[str, object]:
+    result: dict[str, object] = {
         "version": VERSION,
         "request_id": query["request_id"],
         "operation": query["operation"],
@@ -37,7 +39,7 @@ def perform(query: dict, store) -> dict:
     return result
 
 
-def run(reader, writer, *, factory=None) -> int:
+def run(reader: BinaryIO, writer: BinaryIO, *, factory: Callable[[str], Any] | None = None) -> int:
     initial = reader.readline(MAX_FRAME + 1)
     query = request(decode(initial))
     writer.write(encode(control(query, "ready")))
@@ -51,7 +53,7 @@ def run(reader, writer, *, factory=None) -> int:
         factory = SystemSecrets
     # Neither importing/constructing a native backend nor prompting happens
     # before an exact parent permit. Only Python composition/tests inject factories.
-    result = perform(query, factory(query["namespace"]))
+    result = perform(query, factory(cast(str, query["namespace"])))
     writer.write(encode(result))
     writer.flush()
     return 0
