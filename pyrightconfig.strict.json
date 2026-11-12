@@ -76,6 +76,7 @@
     "agent/src/omni/adapters/platform/service_admin_commands.py",
     "agent/src/omni/adapters/platform/service_control_files.py",
     "agent/src/omni/adapters/platform/service_handover.py",
+    "agent/src/omni/adapters/platform/service_launch.py",
     "agent/src/omni/adapters/platform/systemd_state.py",
     "agent/src/omni/adapters/platform/wheel_artifact.py",
     "agent/src/omni/adapters/platform/wheel_backup.py",
