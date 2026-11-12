@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "da6b2817ff4079c458bdcfe58da80056e9f506110928e498b17bf45f36492198",
+  "source_sha256": "dc1ba0942a56d229787b3d44a648123bd484058babed0b9efe170c690df1f91a",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9585,
+      "lines": 9587,
       "dependencies": []
     },
     {
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53105,
+      "lines": 53157,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -22589,7 +22589,7 @@
       "path": "agent/src/omni/adapters/platform/darwin_service_admin.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.darwin_service_admin",
-      "lines": 148,
+      "lines": 147,
       "imports": [
         "omni.adapters.platform.darwin_admin_commands",
         "omni.adapters.platform.darwin_admin_policy",
@@ -22597,7 +22597,6 @@
         "omni.adapters.platform.service_admin",
         "omni.adapters.platform.service_admin_policy",
         "omni.adapters.platform.service_templates",
-        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_admin",
         "omni.domain.service_control",
@@ -22606,12 +22605,12 @@
       "symbols": [
         {
           "name": "DarwinAdministrator",
-          "line": 21,
+          "line": 20,
           "kind": "class"
         },
         {
           "name": "DarwinAdministrator.__init__",
-          "line": 22,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "self",
@@ -22625,7 +22624,7 @@
         },
         {
           "name": "DarwinAdministrator.snapshot",
-          "line": 25,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self"
@@ -22634,7 +22633,7 @@
         },
         {
           "name": "DarwinAdministrator.inspect",
-          "line": 66,
+          "line": 65,
           "kind": "function",
           "parameters": [
             "self"
@@ -22643,7 +22642,7 @@
         },
         {
           "name": "DarwinAdministrator.change",
-          "line": 72,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self"
@@ -22652,7 +22651,7 @@
         },
         {
           "name": "DarwinAdministrator.close",
-          "line": 147,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self",
@@ -28214,7 +28213,7 @@
       "path": "agent/src/omni/adapters/platform/service_admin_client.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_admin_client",
-      "lines": 393,
+      "lines": 446,
       "imports": [
         "omni.adapters.platform.darwin_admin_files",
         "omni.adapters.platform.darwin_admin_peer",
@@ -28278,8 +28277,84 @@
           "annotations": {}
         },
         {
+          "name": "PrivilegedServiceClient.closed",
+          "line": 124,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PrivilegedServiceClient.closed",
+          "line": 128,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "bool"
+          }
+        },
+        {
+          "name": "PrivilegedServiceClient.pending",
+          "line": 132,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PrivilegedServiceClient.failed",
+          "line": 136,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PrivilegedServiceClient.sequence",
+          "line": 140,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "PrivilegedServiceClient.rpc",
+          "line": 143,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "command",
+            "operation_key"
+          ],
+          "annotations": {
+            "command": "str",
+            "operation_key": "str"
+          }
+        },
+        {
+          "name": "PrivilegedServiceClient.exchange",
+          "line": 147,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "command",
+            "operation_key"
+          ],
+          "annotations": {
+            "command": "str",
+            "operation_key": "str"
+          }
+        },
+        {
           "name": "PrivilegedServiceClient._exchange",
-          "line": 123,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -28293,7 +28368,7 @@
         },
         {
           "name": "PrivilegedServiceClient._rpc",
-          "line": 142,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -28307,7 +28382,7 @@
         },
         {
           "name": "PrivilegedServiceClient._rpc.finished",
-          "line": 152,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "actual"
@@ -28318,7 +28393,7 @@
         },
         {
           "name": "PrivilegedServiceClient._plan",
-          "line": 167,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -28330,7 +28405,7 @@
         },
         {
           "name": "PrivilegedServiceClient.inspect",
-          "line": 171,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "self",
@@ -28342,7 +28417,7 @@
         },
         {
           "name": "PrivilegedServiceClient.change",
-          "line": 179,
+          "line": 207,
           "kind": "function",
           "parameters": [
             "self",
@@ -28356,7 +28431,7 @@
         },
         {
           "name": "PrivilegedServiceClient.start",
-          "line": 191,
+          "line": 219,
           "kind": "function",
           "parameters": [
             "self",
@@ -28368,7 +28443,7 @@
         },
         {
           "name": "PrivilegedServiceClient.close",
-          "line": 203,
+          "line": 231,
           "kind": "function",
           "parameters": [
             "self",
@@ -28380,12 +28455,12 @@
         },
         {
           "name": "ExchangeAdministrator",
-          "line": 254,
+          "line": 282,
           "kind": "class"
         },
         {
           "name": "ExchangeAdministrator.__init__",
-          "line": 257,
+          "line": 285,
           "kind": "function",
           "parameters": [
             "self",
@@ -28400,8 +28475,29 @@
           }
         },
         {
+          "name": "ExchangeAdministrator.holder",
+          "line": 299,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ExchangeAdministrator.holder",
+          "line": 303,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "AdministratorLease | None"
+          }
+        },
+        {
           "name": "ExchangeAdministrator.lease",
-          "line": 265,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "self",
@@ -28415,7 +28511,7 @@
         },
         {
           "name": "ExchangeAdministrator.probe",
-          "line": 275,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self"
@@ -28424,7 +28520,7 @@
         },
         {
           "name": "ExchangeAdministrator.close",
-          "line": 291,
+          "line": 332,
           "kind": "function",
           "parameters": [
             "self",
@@ -28436,12 +28532,12 @@
         },
         {
           "name": "AdministratorLease",
-          "line": 306,
+          "line": 347,
           "kind": "class"
         },
         {
           "name": "AdministratorLease.__init__",
-          "line": 307,
+          "line": 348,
           "kind": "function",
           "parameters": [
             "self",
@@ -28456,8 +28552,38 @@
           }
         },
         {
+          "name": "AdministratorLease.settle",
+          "line": 355,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AdministratorLease.closed",
+          "line": 359,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "AdministratorLease.closed",
+          "line": 363,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "value"
+          ],
+          "annotations": {
+            "value": "bool"
+          }
+        },
+        {
           "name": "AdministratorLease._plan",
-          "line": 313,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "self",
@@ -28469,7 +28595,7 @@
         },
         {
           "name": "AdministratorLease._call",
-          "line": 317,
+          "line": 370,
           "kind": "function",
           "parameters": [
             "self",
@@ -28481,7 +28607,7 @@
         },
         {
           "name": "AdministratorLease.inspect",
-          "line": 327,
+          "line": 380,
           "kind": "function",
           "parameters": [
             "self",
@@ -28493,7 +28619,7 @@
         },
         {
           "name": "AdministratorLease._change",
-          "line": 340,
+          "line": 393,
           "kind": "function",
           "parameters": [
             "self",
@@ -28507,7 +28633,7 @@
         },
         {
           "name": "AdministratorLease.change",
-          "line": 354,
+          "line": 407,
           "kind": "function",
           "parameters": [
             "self",
@@ -28521,7 +28647,7 @@
         },
         {
           "name": "AdministratorLease.start",
-          "line": 359,
+          "line": 412,
           "kind": "function",
           "parameters": [
             "self",
@@ -28533,7 +28659,7 @@
         },
         {
           "name": "AdministratorLease.close",
-          "line": 362,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "self",
@@ -68369,7 +68495,7 @@
       "path": "agent/src/omni/domain/service_deployment.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_deployment",
-      "lines": 566,
+      "lines": 568,
       "imports": [
         "omni.domain.contracts"
       ],

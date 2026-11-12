@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`da6b2817ff4079c458bdcfe58da80056e9f506110928e498b17bf45f36492198`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`dc1ba0942a56d229787b3d44a648123bd484058babed0b9efe170c690df1f91a`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -56,7 +56,7 @@
 | [agent/src/omni/domain/service_admin.py](../../agent/src/omni/domain/service_admin.py) | 286 | Exact operation or exchange privilege scope; never accepts arbitrary commands, paths or identities. |
 | [agent/src/omni/domain/service_cleanup.py](../../agent/src/omni/domain/service_cleanup.py) | 180 | Exact quarantined-registration cleanup plans; no filesystem, native calls or reinterpretation of old effects. |
 | [agent/src/omni/domain/service_control.py](../../agent/src/omni/domain/service_control.py) | 206 | Reviewed service start/drain identities and domain-separated HMAC messages; no network or process IO. |
-| [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 566 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
+| [agent/src/omni/domain/service_deployment.py](../../agent/src/omni/domain/service_deployment.py) | 568 | Pure, versioned service plans. Validation performs no filesystem or OS calls. |
 | [agent/src/omni/domain/service_exchange.py](../../agent/src/omni/domain/service_exchange.py) | 329 | Reviewed same-schema service exchanges and ordered witnesses; no platform, process or storage IO. |
 | [agent/src/omni/domain/service_isolation.py](../../agent/src/omni/domain/service_isolation.py) | 115 | Reviewed offline startup quarantine; retains unknown outcomes and authorizes only a separate recovery plan. |
 | [agent/src/omni/domain/service_operations.py](../../agent/src/omni/domain/service_operations.py) | 140 | Fingerprint offline service changes; registration never implies a healthy running service. |
@@ -272,7 +272,7 @@
 | [agent/src/omni/adapters/platform/darwin_admin_peer.py](../../agent/src/omni/adapters/platform/darwin_admin_peer.py) | 30 | Kernel Unix peer UID/GID and PID; never accepts a TCP credential result or an empty native option. |
 | [agent/src/omni/adapters/platform/darwin_admin_policy.py](../../agent/src/omni/adapters/platform/darwin_admin_policy.py) | 181 | Exact local-account Darwin administrator policy, protected root artifacts and shared audit bytes. |
 | [agent/src/omni/adapters/platform/darwin_admin_probe.py](../../agent/src/omni/adapters/platform/darwin_admin_probe.py) | 154 | Bounded public CoreFoundation/ServiceManagement reads for a separately owned root worker; no mutation or GUI. |
-| [agent/src/omni/adapters/platform/darwin_service_admin.py](../../agent/src/omni/adapters/platform/darwin_service_admin.py) | 148 | Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force. |
+| [agent/src/omni/adapters/platform/darwin_service_admin.py](../../agent/src/omni/adapters/platform/darwin_service_admin.py) | 147 | Darwin registration and single-start root backend; fixed launchctl operations, no GUI, database or force. |
 | [agent/src/omni/adapters/platform/deployment_files.py](../../agent/src/omni/adapters/platform/deployment_files.py) | 607 | Capture installation identity and publish reviewed deployment bundles; never registers services or opens business storage. |
 | [agent/src/omni/adapters/platform/desktop.py](../../agent/src/omni/adapters/platform/desktop.py) | 580 | Bounded, one-shot desktop metadata helpers; construction never probes a native desktop. |
 | [agent/src/omni/adapters/platform/desktop_capture.py](../../agent/src/omni/adapters/platform/desktop_capture.py) | 83 | Host-owned screenshot staging. File decoding runs only on the desktop I/O worker. |
@@ -305,7 +305,7 @@
 | [agent/src/omni/adapters/platform/secrets.py](../../agent/src/omni/adapters/platform/secrets.py) | 159 | Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback. |
 | [agent/src/omni/adapters/platform/service_admin.py](../../agent/src/omni/adapters/platform/service_admin.py) | 364 | Fixed Linux system-service registration/start broker; no owner code execution, business DB, stop or shell. |
 | [agent/src/omni/adapters/platform/service_admin_bundle.py](../../agent/src/omni/adapters/platform/service_admin_bundle.py) | 143 | Publish a reviewable stdlib-only administrator artifact; never installs it or elevates privileges. |
-| [agent/src/omni/adapters/platform/service_admin_client.py](../../agent/src/omni/adapters/platform/service_admin_client.py) | 393 | Owner-side pinned root broker connection; no elevation, root code launch or automatic request retry. |
+| [agent/src/omni/adapters/platform/service_admin_client.py](../../agent/src/omni/adapters/platform/service_admin_client.py) | 446 | Owner-side pinned root broker connection; no elevation, root code launch or automatic request retry. |
 | [agent/src/omni/adapters/platform/service_admin_commands.py](../../agent/src/omni/adapters/platform/service_admin_commands.py) | 220 | Single-threaded root manager process ownership using pidfds and subreaping; never uses historical PIDs. |
 | [agent/src/omni/adapters/platform/service_admin_policy.py](../../agent/src/omni/adapters/platform/service_admin_policy.py) | 329 | Root-only fixed Linux paths and append-only dispatch evidence; never opens owner business storage. |
 | [agent/src/omni/adapters/platform/service_cleanup_files.py](../../agent/src/omni/adapters/platform/service_cleanup_files.py) | 259 | Separate cleanup journals and two-home reservations; preserves old unknown records, fences and business data. |
