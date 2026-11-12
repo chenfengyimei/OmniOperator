@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7758a75000bf3861e13a0f9e599ef147c9957d2883d976f95c037f5b43e1ffec`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`b78432418ee1f3014900af6a43f674b9c8f1e613576d3b6bf20dc93e92b2c9dc`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -281,13 +281,13 @@
 | [agent/src/omni/adapters/platform/exchange_deployments.py](../../agent/src/omni/adapters/platform/exchange_deployments.py) | 27 | Verify a reviewed source for removal or signed boot draining; never execute or import the source installation. |
 | [agent/src/omni/adapters/platform/exchange_files.py](../../agent/src/omni/adapters/platform/exchange_files.py) | 278 | Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback. |
 | [agent/src/omni/adapters/platform/linux_atspi.py](../../agent/src/omni/adapters/platform/linux_atspi.py) | 341 | Read-only AT-SPI windows in a proven logind session. No X11/Portal capture or input fallback. |
-| [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 419 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
-| [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 90 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
+| [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 436 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
+| [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 92 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
 | [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 175 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
 | [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 254 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 205 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
 | [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 193 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
-| [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 333 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
+| [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 348 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
 | [agent/src/omni/adapters/platform/linux_signals.py](../../agent/src/omni/adapters/platform/linux_signals.py) | 102 | Bounded, pinned D-Bus signals on the same pre-authenticated local connection; no service activation or FDs. |
 | [agent/src/omni/adapters/platform/linux_x11.py](../../agent/src/omni/adapters/platform/linux_x11.py) | 247 | XRes-bound local X11 targets and existing Composite pixmaps; never captures the root or sends input. |
 | [agent/src/omni/adapters/platform/linux_x11_socket.py](../../agent/src/omni/adapters/platform/linux_x11_socket.py) | 219 | Canonical local X11 sockets and private Xauthority; verify peers before sending credentials. |

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7758a75000bf3861e13a0f9e599ef147c9957d2883d976f95c037f5b43e1ffec",
+  "source_sha256": "b78432418ee1f3014900af6a43f674b9c8f1e613576d3b6bf20dc93e92b2c9dc",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53014,
+      "lines": 53048,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -24404,7 +24404,7 @@
       "path": "agent/src/omni/adapters/platform/linux_bus.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_bus",
-      "lines": 419,
+      "lines": 436,
       "imports": [
         "omni.adapters.platform.linux_fds",
         "omni.domain.contracts"
@@ -24657,40 +24657,37 @@
             "length",
             "_ancillary_size"
           ],
-          "annotations": {}
+          "annotations": {
+            "length": "int",
+            "_ancillary_size": "int"
+          }
         },
         {
           "name": "LocalBus.open.LimitedUnmarshaller",
-          "line": 262,
+          "line": 264,
           "kind": "class"
         },
         {
           "name": "LocalBus.open.LimitedUnmarshaller.read",
-          "line": 263,
+          "line": 265,
           "kind": "function",
           "parameters": [
             "self",
             "count",
             "prefetch"
           ],
-          "annotations": {}
+          "annotations": {
+            "count": "int",
+            "prefetch": "bool"
+          }
         },
         {
           "name": "LocalBus.open.VerifiedBus",
-          "line": 268,
+          "line": 271,
           "kind": "class"
         },
         {
           "name": "LocalBus.open.VerifiedBus._setup_socket",
-          "line": 269,
-          "kind": "function",
-          "parameters": [
-            "self"
-          ],
-          "annotations": {}
-        },
-        {
-          "name": "LocalBus.open.VerifiedBus._create_unmarshaller",
           "line": 275,
           "kind": "function",
           "parameters": [
@@ -24699,8 +24696,17 @@
           "annotations": {}
         },
         {
+          "name": "LocalBus.open.VerifiedBus._create_unmarshaller",
+          "line": 281,
+          "kind": "function",
+          "parameters": [
+            "self"
+          ],
+          "annotations": {}
+        },
+        {
           "name": "LocalBus.open.VerifiedBus._auth_readline",
-          "line": 280,
+          "line": 286,
           "kind": "function",
           "parameters": [
             "self"
@@ -24709,17 +24715,19 @@
         },
         {
           "name": "LocalBus.open.VerifiedBus._on_message",
-          "line": 291,
+          "line": 297,
           "kind": "function",
           "parameters": [
             "self",
             "message"
           ],
-          "annotations": {}
+          "annotations": {
+            "message": "Any"
+          }
         },
         {
           "name": "LocalBus.check",
-          "line": 322,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "self"
@@ -24728,7 +24736,7 @@
         },
         {
           "name": "LocalBus.call",
-          "line": 327,
+          "line": 334,
           "kind": "function",
           "parameters": [
             "self",
@@ -24740,11 +24748,19 @@
             "body",
             "returns"
           ],
-          "annotations": {}
+          "annotations": {
+            "destination": "str",
+            "path": "str",
+            "interface": "str",
+            "member": "str",
+            "signature": "str",
+            "body": "list[Any] | None",
+            "returns": "str"
+          }
         },
         {
           "name": "LocalBus.open_pipewire",
-          "line": 352,
+          "line": 369,
           "kind": "function",
           "parameters": [
             "self",
@@ -24758,7 +24774,7 @@
         },
         {
           "name": "LocalBus.close",
-          "line": 396,
+          "line": 413,
           "kind": "function",
           "parameters": [
             "self"
@@ -24772,7 +24788,7 @@
       "path": "agent/src/omni/adapters/platform/linux_fds.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_fds",
-      "lines": 90,
+      "lines": 92,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -24856,12 +24872,13 @@
             "length"
           ],
           "annotations": {
+            "connection": "socket.socket",
             "length": "int"
           }
         },
         {
           "name": "ReceivedFds.claim",
-          "line": 83,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self",
@@ -24873,7 +24890,7 @@
         },
         {
           "name": "ReceivedFds.close",
-          "line": 88,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self"
@@ -25458,7 +25475,7 @@
       "path": "agent/src/omni/adapters/platform/linux_session.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_session",
-      "lines": 333,
+      "lines": 348,
       "imports": [
         "omni.adapters.platform.linux_bus"
       ],
@@ -25524,7 +25541,7 @@
         },
         {
           "name": "variant",
-          "line": 60,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "value",
@@ -25537,12 +25554,12 @@
         },
         {
           "name": "OpsPort",
-          "line": 66,
+          "line": 69,
           "kind": "class"
         },
         {
           "name": "OpsPort.process",
-          "line": 70,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -25556,12 +25573,12 @@
         },
         {
           "name": "FactoryPort",
-          "line": 73,
+          "line": 76,
           "kind": "class"
         },
         {
           "name": "FactoryPort.open",
-          "line": 74,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self",
@@ -25573,12 +25590,12 @@
         },
         {
           "name": "LocalFactory",
-          "line": 77,
+          "line": 80,
           "kind": "class"
         },
         {
           "name": "LocalFactory.__init__",
-          "line": 78,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -25590,7 +25607,7 @@
         },
         {
           "name": "LocalFactory.open",
-          "line": 81,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self",
@@ -25602,22 +25619,22 @@
         },
         {
           "name": "Owner",
-          "line": 86,
+          "line": 89,
           "kind": "class"
         },
         {
           "name": "Session",
-          "line": 92,
+          "line": 95,
           "kind": "class"
         },
         {
           "name": "SessionInspector",
-          "line": 102,
+          "line": 105,
           "kind": "class"
         },
         {
           "name": "SessionInspector.__init__",
-          "line": 103,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self",
@@ -25631,7 +25648,7 @@
         },
         {
           "name": "SessionInspector.open_bus",
-          "line": 116,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self",
@@ -25643,7 +25660,7 @@
         },
         {
           "name": "SessionInspector.owner",
-          "line": 125,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self",
@@ -25659,7 +25676,7 @@
         },
         {
           "name": "SessionInspector.connection",
-          "line": 132,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -25675,7 +25692,7 @@
         },
         {
           "name": "SessionInspector.properties",
-          "line": 143,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self",
@@ -25689,7 +25706,7 @@
         },
         {
           "name": "SessionInspector.selected_path",
-          "line": 154,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self"
@@ -25698,7 +25715,7 @@
         },
         {
           "name": "SessionInspector.read_session",
-          "line": 193,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self"
@@ -25707,7 +25724,7 @@
         },
         {
           "name": "SessionInspector.open",
-          "line": 222,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -25719,7 +25736,7 @@
         },
         {
           "name": "SessionInspector.open_accessibility",
-          "line": 236,
+          "line": 251,
           "kind": "function",
           "parameters": [
             "self"
@@ -25728,7 +25745,7 @@
         },
         {
           "name": "SessionInspector._open_accessibility",
-          "line": 252,
+          "line": 267,
           "kind": "function",
           "parameters": [
             "self"
@@ -25737,7 +25754,7 @@
         },
         {
           "name": "SessionInspector.check",
-          "line": 289,
+          "line": 304,
           "kind": "function",
           "parameters": [
             "self"
@@ -25746,7 +25763,7 @@
         },
         {
           "name": "SessionInspector.app",
-          "line": 308,
+          "line": 323,
           "kind": "function",
           "parameters": [
             "self",
@@ -25758,7 +25775,7 @@
         },
         {
           "name": "SessionInspector.close",
-          "line": 330,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "self"
