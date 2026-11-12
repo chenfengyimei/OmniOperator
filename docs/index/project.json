@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0d7ec37339eba5e8ced8ba9d41ee27cc6451b7c161964114cbd3711424b74a59",
+  "source_sha256": "bc1b8327a146ddc22eb1a7d629636dc54dec00fdbcdaefe15be2bbfbcad50eee",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52857,
+      "lines": 52867,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -11371,16 +11371,32 @@
       "path": "agent/src/omni/adapters/persistence/audit_pruning.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.audit_pruning",
-      "lines": 51,
+      "lines": 56,
       "imports": [
         "omni.adapters.persistence.offline_plans",
         "omni.adapters.platform.paths",
+        "omni.application.ports",
         "omni.domain.audit_retention"
       ],
       "symbols": [
         {
+          "name": "_validate",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "plan",
+            "now",
+            "allow_future"
+          ],
+          "annotations": {
+            "plan": "Record",
+            "now": "str",
+            "allow_future": "bool"
+          }
+        },
+        {
           "name": "read_audit_plan",
-          "line": 24,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "path",
@@ -11393,7 +11409,7 @@
         },
         {
           "name": "plan_audit_retention",
-          "line": 28,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "paths",
@@ -11413,8 +11429,23 @@
           }
         },
         {
+          "name": "plan_audit_retention.make",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "unit",
+            "after",
+            "page_limit"
+          ],
+          "annotations": {
+            "unit": "UnitOfWork",
+            "after": "str",
+            "page_limit": "int"
+          }
+        },
+        {
           "name": "apply_audit_retention",
-          "line": 46,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "paths",
@@ -11423,13 +11454,13 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Record",
             "backup_path": "Path"
           }
         },
         {
           "name": "cancel_audit_retention",
-          "line": 50,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "paths",
@@ -11438,7 +11469,7 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Record",
             "reason": "str"
           }
         }
@@ -13814,16 +13845,32 @@
       "path": "agent/src/omni/adapters/persistence/event_pruning.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.event_pruning",
-      "lines": 51,
+      "lines": 56,
       "imports": [
         "omni.adapters.persistence.offline_plans",
         "omni.adapters.platform.paths",
+        "omni.application.ports",
         "omni.domain.event_retention"
       ],
       "symbols": [
         {
+          "name": "_validate",
+          "line": 15,
+          "kind": "function",
+          "parameters": [
+            "plan",
+            "now",
+            "allow_future"
+          ],
+          "annotations": {
+            "plan": "Record",
+            "now": "str",
+            "allow_future": "bool"
+          }
+        },
+        {
           "name": "read_event_plan",
-          "line": 24,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "path",
@@ -13836,7 +13883,7 @@
         },
         {
           "name": "plan_event_retention",
-          "line": 28,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "paths",
@@ -13856,8 +13903,23 @@
           }
         },
         {
+          "name": "plan_event_retention.make",
+          "line": 44,
+          "kind": "function",
+          "parameters": [
+            "unit",
+            "after",
+            "page_limit"
+          ],
+          "annotations": {
+            "unit": "UnitOfWork",
+            "after": "str",
+            "page_limit": "int"
+          }
+        },
+        {
           "name": "apply_event_retention",
-          "line": 46,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "paths",
@@ -13866,13 +13928,13 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Record",
             "backup_path": "Path"
           }
         },
         {
           "name": "cancel_event_retention",
-          "line": 50,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "paths",
@@ -13881,7 +13943,7 @@
           ],
           "annotations": {
             "paths": "InstancePaths",
-            "plan": "dict",
+            "plan": "Record",
             "reason": "str"
           }
         }
