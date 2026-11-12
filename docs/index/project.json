@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5fdfeb69f815fab750cf444102b56030b3c546fdbf5d08681f379377b863f275",
+  "source_sha256": "752022d7d1dbd495923600941f43a87da8c1656e468349966205c4c0becd4a29",
   "modules": [
     {
       "id": "v2-domain",
@@ -495,7 +495,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 14548,
+      "lines": 14807,
       "dependencies": []
     },
     {
@@ -1037,7 +1037,7 @@
         "web/ui/tokens.css",
         "web/ui/workbench.css"
       ],
-      "lines": 12632,
+      "lines": 12652,
       "dependencies": []
     },
     {
@@ -95284,7 +95284,7 @@
       "path": "web/ui/tokens.css",
       "module": "ui-shared",
       "python_module": null,
-      "lines": 231,
+      "lines": 251,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95424,7 +95424,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1469,
+      "lines": 1473,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95444,7 +95444,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1165,
+      "lines": 1191,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95614,7 +95614,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2832,
+      "lines": 3061,
       "imports": [],
       "symbols": [],
       "kind": "asset",
