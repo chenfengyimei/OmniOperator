@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "462cf62d1cdeca804b08173af68c5f58ed65da25ce4b753abfd13cd7965a4810",
+  "source_sha256": "1ba1ef941f2bff0f78d2b610290f94f3923c8aed6708f069a477486aeac92975",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52761,
+      "lines": 52777,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -22578,7 +22578,7 @@
       "path": "agent/src/omni/adapters/platform/deployment_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.deployment_files",
-      "lines": 588,
+      "lines": 600,
       "imports": [
         "omni.adapters.build_identity",
         "omni.adapters.object_store",
@@ -22929,6 +22929,19 @@
           ],
           "annotations": {
             "bundle": "str | Path"
+          }
+        },
+        {
+          "name": "write_file",
+          "line": 599,
+          "kind": "function",
+          "parameters": [
+            "path",
+            "data"
+          ],
+          "annotations": {
+            "path": "Path",
+            "data": "bytes"
           }
         }
       ],
@@ -26366,7 +26379,7 @@
       "path": "agent/src/omni/adapters/platform/macos_service.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.macos_service",
-      "lines": 107,
+      "lines": 109,
       "imports": [
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.macos_service_state",
@@ -26377,12 +26390,12 @@
       "symbols": [
         {
           "name": "MacOSServiceInspection",
-          "line": 31,
+          "line": 32,
           "kind": "class"
         },
         {
           "name": "MacOSServiceInspection.__init__",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -26396,14 +26409,14 @@
         },
         {
           "name": "MacOSServiceInspection.probe",
-          "line": 37,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
             "plan"
           ],
           "annotations": {
-            "plan": "dict"
+            "plan": "Record"
           }
         }
       ],
@@ -26413,7 +26426,7 @@
       "path": "agent/src/omni/adapters/platform/macos_service_state.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.macos_service_state",
-      "lines": 90,
+      "lines": 91,
       "imports": [
         "omni.adapters.platform.service_templates",
         "omni.domain.service_deployment"
@@ -26421,7 +26434,7 @@
       "symbols": [
         {
           "name": "_bounded_job",
-          "line": 15,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "value"
@@ -26432,20 +26445,20 @@
         },
         {
           "name": "loaded_definition",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "plan",
             "job"
           ],
           "annotations": {
-            "plan": "dict",
+            "plan": "Mapping[str, object]",
             "job": "object"
           }
         },
         {
           "name": "disabled_override",
-          "line": 66,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "output",
@@ -28015,18 +28028,19 @@
       "path": "agent/src/omni/adapters/platform/service_admin_bundle.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_admin_bundle",
-      "lines": 142,
+      "lines": 143,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.permissions",
         "omni.adapters.platform.publication",
+        "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "materialize_admin_bundle",
-          "line": 48,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "destination"
@@ -30301,9 +30315,7 @@
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.systemd_state",
       "lines": 102,
-      "imports": [
-        "omni.application.ports"
-      ],
+      "imports": [],
       "symbols": [
         {
           "name": "manager_report",
@@ -30343,7 +30355,7 @@
           ],
           "annotations": {
             "output": "bytes",
-            "identity": "Record"
+            "identity": "Mapping[str, object]"
           }
         }
       ],
