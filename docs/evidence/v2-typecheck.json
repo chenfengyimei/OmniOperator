@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "3719a81e0abc45d56a2dd82b584738e5e5ea8d6406b004ca341f7bb094e02bed",
+  "code_version": "9d9e0e819a5e01a8830be397549cbbbd62fe7da2ab9af566fc3f4d62c7e40865",
   "fixed_source_files": 1200,
-  "git_head": "5a20b24",
+  "git_head": "0ddc6f6",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -98,10 +98,11 @@
    "Strict scope reaches 98 files (53 domain + 41 application + 4 adapters); application/media makes source registration, bounded jobs and transcript/frame publication explicit, while subtitle/ASR anchors, unknown job outcomes and no-replay semantics stay unchanged",
    "Strict scope reaches 99 files (53 domain + 42 application + 4 adapters); application/skills makes import, edit, enable, rollback and disclosure explicit with bounded tasks, while owner review, captured-revision checks and unknown/no-replay semantics stay unchanged",
    "Strict scope reaches 100 files (53 domain + 43 application + 4 adapters); application/ports closes the remaining bare dict boundaries in outbound and Android protocols, keeping every port contract and unknown/no-replay semantics unchanged",
-   "Strict scope reaches 106 files (53 domain + 43 application + 10 adapters); six already-clean adapter modules (platform workspace/exchange layouts, persistence predicates/history/migration config/search schema) join the gate, and the scope guard now accepts nested adapter paths"
+   "Strict scope reaches 106 files (53 domain + 43 application + 10 adapters); six already-clean adapter modules (platform workspace/exchange layouts, persistence predicates/history/migration config/search schema) join the gate, and the scope guard now accepts nested adapter paths",
+   "Strict scope reaches 110 files (53 domain + 43 application + 14 adapters); token_counter, sqlite_access, deployed_instance and delivery_predicates are typed without changing estimation, WAL-preserving access, deployment verification or outbound predicate semantics"
   ],
   "pending": [
-   "application 43/44 and adapters 10/215 strict typing",
+   "application 43/44 and adapters 14/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -110,8 +111,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-77-callers.xml",
-   "tests": 29,
+   "report": "temp/build/v2-typecheck-78-callers.xml",
+   "tests": 64,
    "failures": 0
   },
   "targeted_reports": [
@@ -815,6 +816,15 @@
     "errors": 0,
     "duration_s": 15.78,
     "note": "seventy-seventh strict batch: guard + adapter/storage/architecture callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-78-callers.xml",
+    "sha256": "2d5e42b8cf1a371d639249047fd385fec596b22882d87355dbecc7b7cf1eee69",
+    "tests": 64,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 81.2,
+    "note": "seventy-eighth strict batch: guard + token estimate/delivery/storage/architecture callers"
    }
   ],
   "gates": {
@@ -826,7 +836,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 106,
+    "filesAnalyzed": 110,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -890,6 +900,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 10/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 14/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }

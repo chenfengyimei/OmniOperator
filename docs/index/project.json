@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "de86ac654ebabb0cf1ac8104ff57366223b00844a4e3fe9fb490a9a32b0f8547",
+  "source_sha256": "b8caef18a7fc91e9ecbbcf4a9645874862adde092e61c45bd4c3b08d3dccd168",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52717,
+      "lines": 52723,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -493,7 +493,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 12488,
+      "lines": 12682,
       "dependencies": []
     },
     {
@@ -12954,7 +12954,9 @@
           "parameters": [
             "run_id"
           ],
-          "annotations": {}
+          "annotations": {
+            "run_id": "str"
+          }
         }
       ],
       "summary": "Shared outbound pending/review predicates for dispatch, scheduling and maintenance queries."
@@ -31938,21 +31940,23 @@
       "path": "agent/src/omni/adapters/token_counter.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.token_counter",
-      "lines": 28,
+      "lines": 34,
       "imports": [
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.images",
-        "omni.domain.metering"
+        "omni.domain.metering",
+        "omni.domain.settings"
       ],
       "symbols": [
         {
           "name": "ConservativeTokenCounter",
-          "line": 10,
+          "line": 15,
           "kind": "class"
         },
         {
           "name": "ConservativeTokenCounter.supports",
-          "line": 11,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "self",
@@ -31968,7 +31972,7 @@
         },
         {
           "name": "ConservativeTokenCounter.count",
-          "line": 14,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "self",
@@ -31976,7 +31980,11 @@
             "tools",
             "settings"
           ],
-          "annotations": {}
+          "annotations": {
+            "messages": "Sequence[Record]",
+            "tools": "Sequence[ToolSpec]",
+            "settings": "Settings"
+          }
         }
       ],
       "summary": "Local conservative token estimate; it never fetches model metadata or credentials."
@@ -94880,7 +94888,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1450,
+      "lines": 1452,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94890,7 +94898,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 956,
+      "lines": 960,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95050,7 +95058,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1350,
+      "lines": 1538,
       "imports": [],
       "symbols": [],
       "kind": "asset",
