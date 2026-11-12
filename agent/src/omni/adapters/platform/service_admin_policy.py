@@ -9,7 +9,7 @@ import stat
 import sys
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.service_admin import (
@@ -103,18 +103,18 @@ def publish(path: Path, data: bytes, mode: int = 0o600) -> None:
 
 
 class RootServicePolicy:
-    def __init__(self, operation: dict, broker_sha256: str) -> None:
+    def __init__(self, operation: object, broker_sha256: str) -> None:
         self.approval = admin_scope(operation)
         verify_broker(self.approval, broker_sha256)
         self.operation_key = next(iter(scoped_operations(self.approval)))
-        self.operation = bound_operation(self.approval, self.operation_key)
+        self.operation = cast(dict[str, Any], bound_operation(self.approval, self.operation_key))
         self.broker_sha256 = broker_sha256
         self.plan = self.operation["deployment"]
         if self.plan["request"]["target"] != "linux-system":
             raise error("service_admin_target_unsupported")
         self.manager = manager_identity(self.plan)
         self._lock: int | None = None
-        self._principal: tuple | None = None
+        self._principal: tuple[int, int, str, str] | None = None
 
     def authorize(self) -> None:
         if (
@@ -161,7 +161,7 @@ class RootServicePolicy:
         return Path(socket_path(self.approval))
 
     def select(self, key: str) -> None:
-        operation = bound_operation(self.approval, key)
+        operation = cast(dict[str, Any], bound_operation(self.approval, key))
         self.operation_key, self.operation = key, operation
         self.plan = operation["deployment"]
         self.manager = manager_identity(self.plan)
@@ -229,13 +229,17 @@ class RootServicePolicy:
 
     def definition(self) -> tuple[bool, bytes | None]:
         self.authorize()
-        path = Path(self.manager["installed_path"])
+        path = Path(str(self.manager["installed_path"]))
         root_path(path, missing=True)
         return (True, root_read(path)) if path.exists() else (False, None)
 
     def publish_definition(self) -> None:
         self.authorize()
-        publish(Path(self.manager["installed_path"]), render(self.plan)[self.manager["artifact"]], 0o644)
+        publish(
+            Path(str(self.manager["installed_path"])),
+            render(self.plan)[str(self.manager["artifact"])],
+            0o644,
+        )
 
     def reject_dropins(self, output: bytes) -> None:
         self.authorize()
@@ -244,7 +248,7 @@ class RootServicePolicy:
         paths = output.decode("utf-8", errors="strict").strip().split()
         if not paths or len(paths) > 32 or "/etc/systemd/system" not in paths or len(set(paths)) != len(paths):
             raise error("service_admin_unit_paths_unverified")
-        stem = self.manager["name"].removesuffix(".service")
+        stem = str(self.manager["name"]).removesuffix(".service")
         names = ["service.d", stem + ".service.d"]
         names.extend(stem[: index + 1] + ".service.d" for index, char in enumerate(stem) if char == "-")
         for text in paths:
@@ -268,8 +272,8 @@ class RootServicePolicy:
 
     def remove_definition(self) -> None:
         self.authorize()
-        path = Path(self.manager["installed_path"])
-        if root_read(path) != render(self.plan)[self.manager["artifact"]]:
+        path = Path(str(self.manager["installed_path"]))
+        if root_read(path) != render(self.plan)[str(self.manager["artifact"])]:
             raise error("service_definition_mismatch")
         path.unlink()
         sync(path.parent)
@@ -281,7 +285,10 @@ class RootServicePolicy:
         if not path.exists():
             return False
         record = json.loads(root_read(path, 16384))
-        if not isinstance(record, dict) or record.get("operation_sha256") != self.operation["sha256"]:
+        if (
+            not isinstance(record, dict)
+            or cast(dict[str, object], record).get("operation_sha256") != self.operation["sha256"]
+        ):
             raise error("service_admin_audit_changed")
         return True
 
@@ -297,7 +304,7 @@ class RootServicePolicy:
             "approval_id": self.approval["id"],
             "approval_sha256": self.approval["sha256"],
             "administrator_role": self.approval.get("role"),
-            "exchange_sha256": self.approval.get("exchange", {}).get("sha256"),
+            "exchange_sha256": cast(dict[str, object], self.approval.get("exchange", {})).get("sha256"),
             "operation_key": self.operation_key,
             "operation_id": self.operation["id"],
             "operation_sha256": self.operation["sha256"],

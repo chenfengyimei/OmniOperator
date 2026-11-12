@@ -7,6 +7,7 @@ import logging
 import sys
 import threading
 from types import TracebackType
+from typing import Any
 
 from .diagnostics import JsonLogSink
 
@@ -30,7 +31,13 @@ class ProcessDiagnostics:
         self._sink, self._loop = sink, loop
         self._sys, self._thread, self._unraisable = sys.excepthook, threading.excepthook, sys.unraisablehook
         self._async = loop.get_exception_handler()
-        self._hooks = (self._process_error, self._thread_error, self._unraisable_error, self._async_error)
+        # Heterogeneous native hook signatures; each handler is typed individually below.
+        self._hooks: tuple[Any, Any, Any, Any] = (
+            self._process_error,
+            self._thread_error,
+            self._unraisable_error,
+            self._async_error,
+        )
         self.counts = {"process": 0, "thread": 0, "unraisable": 0, "asyncio": 0}
         self._filter = _HostFilter()
         self._logger = logging.getLogger("omni.v2.unhandled")
@@ -66,7 +73,7 @@ class ProcessDiagnostics:
             extra={"event": "unhandled." + event, "error_code": "unhandled_exception"},
         )
 
-    def _process_error(self, kind, value, tb) -> None:
+    def _process_error(self, kind: type[BaseException], value: BaseException, tb: TracebackType | None) -> None:
         if issubclass(kind, (SystemExit, KeyboardInterrupt)):
             self._sys(kind, value, tb)
         else:
@@ -75,11 +82,11 @@ class ProcessDiagnostics:
     def _thread_error(self, args: threading.ExceptHookArgs) -> None:
         self._record("thread", args.exc_type, args.exc_value, args.exc_traceback)
 
-    def _unraisable_error(self, args) -> None:
+    def _unraisable_error(self, args: Any) -> None:
         # args.object, err_msg and callback repr may contain user content.
         self._record("unraisable", args.exc_type, args.exc_value, args.exc_traceback)
 
-    def _async_error(self, loop: asyncio.AbstractEventLoop, context: dict) -> None:
+    def _async_error(self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]) -> None:
         exc = context.get("exception")
         self._record(
             "asyncio", type(exc) if isinstance(exc, BaseException) else None, exc, getattr(exc, "__traceback__", None)
