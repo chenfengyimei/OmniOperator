@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "524f883dbc14cf15109be1900eba58894fe7730717f81c0704dd326f16d2947c",
+  "source_sha256": "0ee5bace83214b678391c2bfa96669b2b16205e8109afc58f4187f51490a5d12",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53228,
+      "lines": 53230,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -25031,7 +25031,7 @@
       "path": "agent/src/omni/adapters/platform/linux_pipewire.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_pipewire",
-      "lines": 254,
+      "lines": 256,
       "imports": [
         "omni.adapters.platform.linux_fds",
         "omni.domain.contracts",
@@ -25040,16 +25040,18 @@
       "symbols": [
         {
           "name": "failure",
-          "line": 27,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "code"
           ],
-          "annotations": {}
+          "annotations": {
+            "code": "str"
+          }
         },
         {
           "name": "rgb_png",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "width",
@@ -25068,7 +25070,7 @@
         },
         {
           "name": "publish",
-          "line": 54,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "path",
@@ -25081,12 +25083,12 @@
         },
         {
           "name": "GstConsumer",
-          "line": 73,
+          "line": 74,
           "kind": "class"
         },
         {
           "name": "GstConsumer.__init__",
-          "line": 74,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self"
@@ -25095,7 +25097,7 @@
         },
         {
           "name": "GstConsumer.probe",
-          "line": 77,
+          "line": 79,
           "kind": "function",
           "parameters": [
             "self"
@@ -25104,7 +25106,7 @@
         },
         {
           "name": "GstConsumer.read",
-          "line": 100,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
@@ -25122,32 +25124,36 @@
         },
         {
           "name": "FrameExecutor",
-          "line": 203,
+          "line": 205,
           "kind": "class"
         },
         {
           "name": "FrameExecutor.__init__",
-          "line": 204,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self",
             "consumer"
           ],
-          "annotations": {}
+          "annotations": {
+            "consumer": "GstConsumer | None"
+          }
         },
         {
           "name": "FrameExecutor._work",
-          "line": 212,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
             "operation"
           ],
-          "annotations": {}
+          "annotations": {
+            "operation": "Callable[[], Any]"
+          }
         },
         {
           "name": "FrameExecutor.probe",
-          "line": 219,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self"
@@ -25156,7 +25162,7 @@
         },
         {
           "name": "FrameExecutor.read",
-          "line": 226,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self",
@@ -25172,14 +25178,14 @@
         },
         {
           "name": "FrameExecutor.read.actual",
-          "line": 234,
+          "line": 236,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "FrameExecutor.close",
-          "line": 247,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",

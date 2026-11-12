@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`524f883dbc14cf15109be1900eba58894fe7730717f81c0704dd326f16d2947c`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`0ee5bace83214b678391c2bfa96669b2b16205e8109afc58f4187f51490a5d12`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -284,7 +284,7 @@
 | [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 436 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 95 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
 | [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 184 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
-| [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 254 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
+| [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 256 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 218 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
 | [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 193 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |
 | [agent/src/omni/adapters/platform/linux_session.py](../../agent/src/omni/adapters/platform/linux_session.py) | 348 | logind display-session and accessibility bus ownership; never trusts desktop environment variables. |
