@@ -120,6 +120,10 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/history_sequence.py` | 历史游标序列持久化辅助 |
 | `agent/src/omni/adapters/persistence/migration_config.py` | 迁移配置读取边界 |
 | `agent/src/omni/adapters/persistence/search_schema.py` | 检索 schema 定义 |
+| `agent/src/omni/adapters/persistence/deployed_instance.py` | 已部署实例校验（只读，不迁移） |
+| `agent/src/omni/adapters/persistence/delivery_predicates.py` | 出站待处理/未决谓词（持久化适配） |
+| `agent/src/omni/adapters/persistence/sqlite_access.py` | 离线 SQLite 连接（只读/备份，含 WAL） |
+| `agent/src/omni/adapters/token_counter.py` | 本地保守 token 估算（不取模型元数据） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

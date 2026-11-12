@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -11,7 +11,7 @@ from ...domain.contracts import BusinessError
 
 
 @contextmanager
-def sqlite_connection(path: Path, *, read_only: bool = True) -> Iterator[sqlite3.Connection]:
+def sqlite_connection(path: Path, *, read_only: bool = True) -> Generator[sqlite3.Connection, None, None]:
     if path.is_symlink() or path.is_junction() or (path.exists() and (not path.is_file() or path.stat().st_nlink != 1)):
         raise BusinessError("unsafe_database", "SQLite files must be regular files without links")
     connection = sqlite3.connect(

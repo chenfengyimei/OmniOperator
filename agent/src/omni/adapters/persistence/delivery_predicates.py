@@ -28,5 +28,5 @@ def pending_outbound():
     return or_(s.outbox.c.state.in_(CANCELLABLE_DELIVERIES), held_outbound())
 
 
-def pending_for_run(run_id):
+def pending_for_run(run_id: str):
     return select(s.outbox.c.id).where(s.outbox.c.run_id == run_id, pending_outbound()).exists()
