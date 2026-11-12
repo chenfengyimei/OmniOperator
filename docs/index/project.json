@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f92c4727945bb57544c9f65c50da0f1e3bfabed0364f69ef66617c7cbb67600f",
+  "source_sha256": "bb5e21c8568784b1723ff5bc96650735a233759d8b4ddc03a3128acd1b7089ff",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53241,
+      "lines": 53249,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -10015,7 +10015,7 @@
       "path": "agent/src/omni/adapters/models.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.models",
-      "lines": 185,
+      "lines": 193,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.model_stream",
@@ -10027,12 +10027,12 @@
       "symbols": [
         {
           "name": "PreparedCall",
-          "line": 19,
+          "line": 20,
           "kind": "class"
         },
         {
           "name": "PreparedCall.__init__",
-          "line": 20,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "self",
@@ -10044,7 +10044,7 @@
         },
         {
           "name": "PreparedCall.send",
-          "line": 23,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self"
@@ -10053,12 +10053,12 @@
         },
         {
           "name": "LiteLLMModel",
-          "line": 30,
+          "line": 31,
           "kind": "class"
         },
         {
           "name": "LiteLLMModel.__init__",
-          "line": 31,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "self",
@@ -10074,7 +10074,7 @@
         },
         {
           "name": "LiteLLMModel.complete",
-          "line": 42,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "self",
@@ -10090,7 +10090,7 @@
         },
         {
           "name": "LiteLLMModel.prepare",
-          "line": 45,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -10106,7 +10106,7 @@
         },
         {
           "name": "LiteLLMModel.prepare_stream",
-          "line": 49,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self",
@@ -10122,14 +10122,25 @@
         },
         {
           "name": "LiteLLMModel.prepare_stream.send",
-          "line": 59,
+          "line": 60,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
+          "name": "LiteLLMModel.prepare_stream.price",
+          "line": 68,
+          "kind": "function",
+          "parameters": [
+            "payload"
+          ],
+          "annotations": {
+            "payload": "dict[str, Any]"
+          }
+        },
+        {
           "name": "LiteLLMModel.health",
-          "line": 73,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self"
@@ -10138,7 +10149,7 @@
         },
         {
           "name": "LiteLLMModel.stop_accepting",
-          "line": 82,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "self"
@@ -10147,7 +10158,7 @@
         },
         {
           "name": "LiteLLMModel.close",
-          "line": 85,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -10159,7 +10170,7 @@
         },
         {
           "name": "LiteLLMModel._prepare",
-          "line": 98,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -10175,24 +10186,26 @@
         },
         {
           "name": "LiteLLMModel._send",
-          "line": 134,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self",
             "kwargs"
           ],
           "annotations": {
-            "kwargs": "dict"
+            "kwargs": "dict[str, Any]"
           }
         },
         {
           "name": "LiteLLMModel._price",
-          "line": 173,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "response"
           ],
-          "annotations": {}
+          "annotations": {
+            "response": "Any"
+          }
         }
       ],
       "summary": "Async model adapter. Credentials and vendor exceptions do not cross the port."

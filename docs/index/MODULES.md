@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`f92c4727945bb57544c9f65c50da0f1e3bfabed0364f69ef66617c7cbb67600f`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`bb5e21c8568784b1723ff5bc96650735a233759d8b4ddc03a3128acd1b7089ff`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -159,7 +159,7 @@
 | [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 192 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |
 | [agent/src/omni/adapters/metrics.py](../../agent/src/omni/adapters/metrics.py) | 92 | Fixed-cardinality in-process measurements; never stores request identities or text. |
 | [agent/src/omni/adapters/model_stream.py](../../agent/src/omni/adapters/model_stream.py) | 236 | One-shot LiteLLM chat stream with verified async upstream close; no persistence or global runtime. |
-| [agent/src/omni/adapters/models.py](../../agent/src/omni/adapters/models.py) | 185 | Async model adapter. Credentials and vendor exceptions do not cross the port. |
+| [agent/src/omni/adapters/models.py](../../agent/src/omni/adapters/models.py) | 193 | Async model adapter. Credentials and vendor exceptions do not cross the port. |
 | [agent/src/omni/adapters/native_credentials.py](../../agent/src/omni/adapters/native_credentials.py) | 368 | Serial owned OS-credential helpers; cancelled waiters never release native work or stale reads. |
 | [agent/src/omni/adapters/object_store.py](../../agent/src/omni/adapters/object_store.py) | 142 | Private, immutable content-addressed files; never opens the application database. |
 | [agent/src/omni/adapters/onebot.py](../../agent/src/omni/adapters/onebot.py) | 186 | V2 OneBot v11 text transport; no V1 runtime, database access or automatic write replay. |

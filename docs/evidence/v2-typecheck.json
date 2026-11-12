@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "3ec55ff0e05e34e71d25f46527a902d3e93f7b5af2f531a5791e43ea676d57a4",
+  "code_version": "9a70350e0cef459b7e069a89d509f8603c93eee250936f0f560bf36703db82e5",
   "fixed_source_files": 1200,
-  "git_head": "7b20ca9",
+  "git_head": "c4fcce0",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -151,10 +151,11 @@
    "Strict scope reaches 240 files (53 domain + 43 application + 144 adapters); the serial-target PipeWire frame helper types its Gst consumer surface, frame executor future/callback and receipt payloads, and reads O_NOFOLLOW through getattr so the serial-target and no-root-window rules stay unchanged",
    "Strict scope reaches 241 files (53 domain + 43 application + 145 adapters); the single-writer database actor types its pending future set, metrics and integrity report, reads the concrete connection through a local Any view so the port stays storage-agnostic, and migration_snapshot now returns Record; write/read budgets, cancellation charging and schema checks are unchanged",
    "Strict scope reaches 242 files (53 domain + 43 application + 146 adapters); the shared QQ audience/credential authority types its payloads and receipts, uses the new public RepositoryBase.one single-row fetch instead of the protected helper, and narrows JSON reads with casts; send cooldown, disabled-agent and revocation checks are unchanged",
-   "Strict scope reaches 243 files (53 domain + 43 application + 147 adapters); the shared Bilibili publication authority types its read/publication/preview receipts, fetches single rows through the public RepositoryBase.one and narrows body text, mentions and form tables from JSON with casts; the target-prefix, revision and erased-source checks are unchanged"
+   "Strict scope reaches 243 files (53 domain + 43 application + 147 adapters); the shared Bilibili publication authority types its read/publication/preview receipts, fetches single rows through the public RepositoryBase.one and narrows body text, mentions and form tables from JSON with casts; the target-prefix, revision and erased-source checks are unchanged",
+   "Strict scope reaches 244 files (53 domain + 43 application + 148 adapters); the async model adapter types its prepared kwargs, health report, tool-call list and usage mapping, bridges the vendor pydantic dump through a local Any view and keeps the optional price branch; offline denial, reuse guard and charge-reconciliation wording are unchanged"
   ],
   "pending": [
-   "application 43/44 and adapters 147/222 strict typing",
+   "application 43/44 and adapters 148/222 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -163,8 +164,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-130-callers.xml",
-   "tests": 19,
+   "report": "temp/build/v2-typecheck-131-callers.xml",
+   "tests": 50,
    "failures": 0
   },
   "targeted_reports": [
@@ -1345,6 +1346,15 @@
     "errors": 0,
     "duration_s": 28.82,
     "note": "one hundred thirtieth strict batch: guard + Bilibili authority callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-131-callers.xml",
+    "sha256": "1d77fa4f0c04631c7b6d34e72846b4dd22cb8469932717c610f00560a183e466",
+    "tests": 50,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 71.78,
+    "note": "one hundred thirty-first strict batch: guard + model adapter and streaming callers"
    }
   ],
   "gates": {
@@ -1356,7 +1366,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 243,
+    "filesAnalyzed": 244,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1420,6 +1430,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 147/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 148/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
