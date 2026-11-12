@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "df50420e3f2f8db5c8aa59d2b3ea4488cc84bc4ce3e03f2c78e4bb3a07840864",
+  "source_sha256": "0d31aa4ff6b41d8cce82471b8f8eb3494a6d840cd1f84434d8a8f39c86a9fb4b",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52805,
+      "lines": 52806,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -27686,7 +27686,7 @@
       "path": "agent/src/omni/adapters/platform/secrets.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.secrets",
-      "lines": 158,
+      "lines": 159,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.permissions",
@@ -27696,19 +27696,19 @@
       "symbols": [
         {
           "name": "native_keyring",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SystemSecrets",
-          "line": 46,
+          "line": 47,
           "kind": "class"
         },
         {
           "name": "SystemSecrets.__init__",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "self",
@@ -27720,7 +27720,7 @@
         },
         {
           "name": "SystemSecrets._backend",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self"
@@ -27729,7 +27729,7 @@
         },
         {
           "name": "SystemSecrets.get",
-          "line": 56,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
@@ -27741,7 +27741,7 @@
         },
         {
           "name": "SystemSecrets.set",
-          "line": 70,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -27755,7 +27755,7 @@
         },
         {
           "name": "SystemSecrets.delete",
-          "line": 80,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -27767,12 +27767,12 @@
         },
         {
           "name": "FileVault",
-          "line": 92,
+          "line": 93,
           "kind": "class"
         },
         {
           "name": "FileVault.__init__",
-          "line": 95,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "self",
@@ -27786,7 +27786,7 @@
         },
         {
           "name": "FileVault._path",
-          "line": 108,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -27798,7 +27798,7 @@
         },
         {
           "name": "FileVault.get",
-          "line": 119,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self",
@@ -27810,7 +27810,7 @@
         },
         {
           "name": "FileVault.set",
-          "line": 130,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self",
@@ -27824,7 +27824,7 @@
         },
         {
           "name": "FileVault.delete",
-          "line": 149,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "self",

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`df50420e3f2f8db5c8aa59d2b3ea4488cc84bc4ce3e03f2c78e4bb3a07840864`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`0d31aa4ff6b41d8cce82471b8f8eb3494a6d840cd1f84434d8a8f39c86a9fb4b`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -302,7 +302,7 @@
 | [agent/src/omni/adapters/platform/publication.py](../../agent/src/omni/adapters/platform/publication.py) | 70 | Atomic, exclusive directory publication on the supported hosts; never replaces an existing target. |
 | [agent/src/omni/adapters/platform/release_files.py](../../agent/src/omni/adapters/platform/release_files.py) | 400 | Private release journals, installation bytes and startup fences; no database or native registration. |
 | [agent/src/omni/adapters/platform/runtime_identity.py](../../agent/src/omni/adapters/platform/runtime_identity.py) | 236 | Publish private boot identity while the instance lock is held; never controls another process. |
-| [agent/src/omni/adapters/platform/secrets.py](../../agent/src/omni/adapters/platform/secrets.py) | 158 | Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback. |
+| [agent/src/omni/adapters/platform/secrets.py](../../agent/src/omni/adapters/platform/secrets.py) | 159 | Explicit OS credential store or externally keyed encrypted vault; no plaintext fallback. |
 | [agent/src/omni/adapters/platform/service_admin.py](../../agent/src/omni/adapters/platform/service_admin.py) | 363 | Fixed Linux system-service registration/start broker; no owner code execution, business DB, stop or shell. |
 | [agent/src/omni/adapters/platform/service_admin_bundle.py](../../agent/src/omni/adapters/platform/service_admin_bundle.py) | 143 | Publish a reviewable stdlib-only administrator artifact; never installs it or elevates privileges. |
 | [agent/src/omni/adapters/platform/service_admin_client.py](../../agent/src/omni/adapters/platform/service_admin_client.py) | 393 | Owner-side pinned root broker connection; no elevation, root code launch or automatic request retry. |
