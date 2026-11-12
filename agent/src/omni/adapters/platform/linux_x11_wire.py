@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import socket
 import struct
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -49,19 +51,20 @@ def setup_reply(data: bytes, screen: int) -> Setup:
     if not 1 <= screens <= 16 or screen >= screens or formats > 32 or order not in {0, 1} or not mask or base & mask:
         raise failure("desktop_x11_protocol_invalid")
     position = 32 + (vendor + 3) // 4 * 4
-    pixels = {}
+    pixels: dict[int, tuple[int, int]] = {}
     for _ in range(formats):
         depth, bits, pad = unpack("BBB", data, position)
         if depth in pixels:
             raise failure("desktop_x11_protocol_invalid")
         pixels[depth] = (bits, pad)
         position += 8
-    selected_root, selected_visuals = 0, {}
+    selected_root = 0
+    selected_visuals: dict[int, tuple[int, int, int, int, int]] = {}
     for index in range(screens):
         root = unpack("I", data, position)[0]
         depths = unpack("B", data, position + 39)[0]
         position += 40
-        visuals = {}
+        visuals: dict[int, tuple[int, int, int, int, int]] = {}
         for _ in range(depths):
             depth, count = unpack("BxH", data, position)
             position += 8
@@ -81,7 +84,7 @@ def setup_reply(data: bytes, screen: int) -> Setup:
 
 
 class Wire:
-    def __init__(self, connection, check) -> None:
+    def __init__(self, connection: socket.socket, check: Callable[[], None]) -> None:
         self.connection, self.check = connection, check
         self.loop = asyncio.get_running_loop()
         self.sequence = self.messages = self.received = 0
@@ -180,7 +183,7 @@ class Wire:
         count = unpack("I", reply, 8)[0]
         if count > 1024 or len(reply) != 32 + count * 8:
             raise failure("desktop_x11_protocol_invalid")
-        matches = []
+        matches: list[int] = []
         for index in range(count):
             base, mask = unpack("II", reply, 32 + index * 8)
             if base and not base & mask and window & ~mask == base:
@@ -215,7 +218,7 @@ class Wire:
         self.watched = window
         await self.geometry(window)  # barrier for subscription errors
 
-    async def image(self, composite: int, window: int, geometry: tuple, stride: int) -> bytes:
+    async def image(self, composite: int, window: int, geometry: tuple[int, int, int, int, int], stride: int) -> bytes:
         assert self.setup is not None
         _root, width, height, _border, depth = geometry
         if window == self.setup.root or _root != self.setup.root or _border:

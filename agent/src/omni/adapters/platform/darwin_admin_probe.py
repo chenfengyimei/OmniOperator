@@ -5,7 +5,7 @@ from __future__ import annotations
 import ctypes
 import json
 import math
-from typing import Any
+from typing import Any, cast
 
 
 class NativeJobs:
@@ -30,7 +30,7 @@ class NativeJobs:
         ):
             method = getattr(self.cf, name)
             method.argtypes, method.restype = args, result
-        self.types = {}
+        self.types: dict[str, int] = {}
         for kind in ("String", "Dictionary", "Array", "Boolean", "Number", "Null"):
             method = getattr(self.cf, "CF" + kind + "GetTypeID")
             method.argtypes, method.restype = [], ctypes.c_ulong
@@ -79,13 +79,13 @@ class NativeJobs:
                 raise ValueError("native dictionary limit")
             keys, values = (ctypes.c_void_p * count)(), (ctypes.c_void_p * count)()
             self.cf.CFDictionaryGetKeysAndValues(pointer, keys, values)
-            result = {}
+            mapping: dict[str, Any] = {}
             for key, value in zip(keys, values, strict=True):
                 name = self.value(key, depth + 1, budget)
-                if not isinstance(name, str) or name in result:
+                if not isinstance(name, str) or name in mapping:
                     raise ValueError("native dictionary invalid")
-                result[name] = self.value(value, depth + 1, budget)
-            return result
+                mapping[name] = self.value(value, depth + 1, budget)
+            return mapping
         if kind == self.types["Array"]:
             count = self.cf.CFArrayGetCount(pointer)
             if not 0 <= count <= 64:
@@ -105,7 +105,7 @@ class NativeJobs:
             return None
         raise ValueError("native value unsupported")
 
-    def copy(self, label: int) -> dict | None:
+    def copy(self, label: int) -> dict[str, Any] | None:
         pointer = self.sm.SMJobCopyDictionary(self.domain, label)
         if not pointer:
             return None
@@ -113,20 +113,18 @@ class NativeJobs:
             result = self.value(pointer)
             if not isinstance(result, dict):
                 raise ValueError("native job invalid")
-            return result
+            return cast(dict[str, Any], result)
         finally:
             self.cf.CFRelease(pointer)
 
-    def query(self, label: str) -> dict:
+    def query(self, label: str) -> dict[str, Any]:
         selected, label_key = self.string(label), self.string("Label")
         try:
             first = self.copy(selected)
             if first is not None:
                 second = self.copy(selected)
-                if (
-                    not isinstance(first, dict)
-                    or first.get("Label") != label
-                    or json.dumps(first, sort_keys=True) != json.dumps(second, sort_keys=True)
+                if first.get("Label") != label or json.dumps(first, sort_keys=True) != json.dumps(
+                    second, sort_keys=True
                 ):
                     raise ValueError("native definition changed")
                 return {"complete": True, "loaded": True, "job": first}
