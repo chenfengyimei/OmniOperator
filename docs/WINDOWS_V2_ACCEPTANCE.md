@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 冷启动（空 home → schema → 健康体检） | ✅ | 本文 §2；`agent/tests/test_v2_windows_cold_start.py` |
 | 服务启动与 API/UI 可达 | ✅ | 本文 §3 |
-| 全量测试（Windows，`-n 2`） | ✅ | `docs/evidence/v2-typecheck.json` 的 `full_run` |
+| 全量测试（Windows，`-n 2`） | ✅ 4656 项：4655 passed / 1 failed / 0 errors（唯一失败为 portal 采集时序抖动，隔离通过） | `docs/evidence/v2-typecheck.json` 的 `full_run` |
 | 离线打包（wheel/sdist + 116 资产 + 隔离导入） | ✅ | `docs/evidence/v2-packaging.json`（5/5 gate、57 调用方） |
 | 安装器链（verify/seal/artifact/stage/prepare/switch/install/migrate/uninstall/environment/rollback/purge） | ✅ 离线节点 | 各节点证据 + `docs/evidence/v2-typecheck.json` |
 | 设计系统守卫（强调色/圆角/断点/契约） | ✅ | `test_ui_glass_tokens.py`、`test_ui_contract.py` 31 项 |
@@ -51,6 +51,14 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth   # �
 2. 新增冷启动守卫测试（init → doctor → auth 指引）。
 3. V2 工作台把 18 个裸色值收敛到 `tokens.css` 的 `--v2-*` 种子、14px 圆角改用 `--r-lg`、620/1180 断点收敛到设计系统允许的 520/900；三处设计系统守卫由失败转全过。
 4. 新增 `docs/WINDOWS_V2_RUNBOOK.md`（演示命令、停止方式、可讲/不可讲、常见问题）。
+
+## 4.1 本轮验收修复汇总
+
+24 项 UI 回归（会话行 role、`nav.inert` 残留、会话面板隐藏、图标字体契约）→ 修；
+workbench 测试把二进制字体当文本读导致 goto/close 挂起 → 修；
+debug 会话共享 `omni.v2` logger 导致并行串用 → 按测试隔离；
+设计系统守卫（18 个裸色值、14px 裸圆角、620/1180 断点）→ 收敛到 `tokens.css` 与 520/900；
+MCP UI 硬编码资源版本 `v66` → 改为从 `index.html` 派生。
 
 ## 5. 演示口径
 
