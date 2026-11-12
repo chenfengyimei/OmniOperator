@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2957d00e697de97500472852cb8658e9f0cf30bdbdec4655388ba5e170c09772",
+  "source_sha256": "6477f4a8fba6b8a1071c624965b0c8b758285e7f08db47643af0cbb5b1838a2b",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53232,
+      "lines": 53238,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -11916,7 +11916,7 @@
       "path": "agent/src/omni/adapters/persistence/configuration_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.configuration_repository",
-      "lines": 353,
+      "lines": 355,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.credential_repository",
@@ -11929,12 +11929,12 @@
       "symbols": [
         {
           "name": "ConfigurationRepositories",
-          "line": 23,
+          "line": 25,
           "kind": "class"
         },
         {
           "name": "ConfigurationRepositories._configuration_agent",
-          "line": 24,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "self",
@@ -11946,7 +11946,7 @@
         },
         {
           "name": "ConfigurationRepositories._configuration_revision",
-          "line": 28,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
@@ -11960,7 +11960,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_get",
-          "line": 44,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -11974,7 +11974,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_page",
-          "line": 57,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self",
@@ -11992,7 +11992,7 @@
         },
         {
           "name": "ConfigurationRepositories._configuration_record",
-          "line": 76,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self",
@@ -12008,7 +12008,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_create",
-          "line": 98,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -12028,7 +12028,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_put",
-          "line": 121,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "self",
@@ -12050,7 +12050,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_archive",
-          "line": 149,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -12066,7 +12066,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_history",
-          "line": 166,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -12084,7 +12084,7 @@
         },
         {
           "name": "ConfigurationRepositories.settings",
-          "line": 180,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self",
@@ -12096,7 +12096,7 @@
         },
         {
           "name": "ConfigurationRepositories._settings_history_record",
-          "line": 194,
+          "line": 196,
           "kind": "function",
           "parameters": [
             "self",
@@ -12114,7 +12114,7 @@
         },
         {
           "name": "ConfigurationRepositories.settings_put",
-          "line": 199,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -12130,7 +12130,7 @@
         },
         {
           "name": "ConfigurationRepositories.settings_history",
-          "line": 235,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -12146,7 +12146,7 @@
         },
         {
           "name": "ConfigurationRepositories.capture_configuration",
-          "line": 247,
+          "line": 249,
           "kind": "function",
           "parameters": [
             "self",
@@ -12162,7 +12162,7 @@
         },
         {
           "name": "ConfigurationRepositories.run_settings",
-          "line": 268,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "self",
@@ -12176,7 +12176,7 @@
         },
         {
           "name": "ConfigurationRepositories.route_reservation",
-          "line": 288,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self",
@@ -12192,7 +12192,7 @@
         },
         {
           "name": "ConfigurationRepositories.assert_model_authorized",
-          "line": 292,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self",
@@ -12206,7 +12206,7 @@
         },
         {
           "name": "ConfigurationRepositories.skill_authorize_run",
-          "line": 309,
+          "line": 311,
           "kind": "function",
           "parameters": [
             "self",
@@ -12220,7 +12220,7 @@
         },
         {
           "name": "ConfigurationRepositories.model_dispatch_authority",
-          "line": 313,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -12234,7 +12234,7 @@
         },
         {
           "name": "ConfigurationRepositories.record_metering",
-          "line": 336,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "self",
@@ -20654,7 +20654,7 @@
       "path": "agent/src/omni/adapters/persistence/repository_base.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.repository_base",
-      "lines": 48,
+      "lines": 52,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.history_sequence",
@@ -20718,8 +20718,24 @@
           }
         },
         {
-          "name": "RepositoryBase.audit",
+          "name": "RepositoryBase.one",
           "line": 47,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "table",
+            "agent_id",
+            "entity_id"
+          ],
+          "annotations": {
+            "table": "Table",
+            "agent_id": "str",
+            "entity_id": "str"
+          }
+        },
+        {
+          "name": "RepositoryBase.audit",
+          "line": 51,
           "kind": "function",
           "parameters": [
             "self",

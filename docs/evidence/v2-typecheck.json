@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "e7d92c24aa6b9cf6b451d522ac1f737ea9269601a5392796fc7fbd2918172d3e",
+  "code_version": "bf231acc23867b05edf0be08a884628ed21e96567983fe9fd0c6009ca7324a2b",
   "fixed_source_files": 1200,
-  "git_head": "2d73599",
+  "git_head": "c9ec75d",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -149,10 +149,11 @@
    "Strict scope reaches 238 files (53 domain + 43 application + 142 adapters); the offline operations snapshot joins strict scope after the repository aggregate stopped mismatching its UnitOfWork port (android_grant takes the device keyword and schedule payloads are Mapping-based), leaving the read-only URI, schema and no-auto-upgrade rules untouched",
    "Strict scope reaches 239 files (53 domain + 43 application + 143 adapters); the Windows TCP reset event loop types its Future/extra parameters and bridges the private CPython transport members through a local Any view, with the single private-import ignore recorded in docs/TYPE_CHECKING.md, so the exact reset-cleanup rule and the no-global-monkeypatch rule are unchanged",
    "Strict scope reaches 240 files (53 domain + 43 application + 144 adapters); the serial-target PipeWire frame helper types its Gst consumer surface, frame executor future/callback and receipt payloads, and reads O_NOFOLLOW through getattr so the serial-target and no-root-window rules stay unchanged",
-   "Strict scope reaches 241 files (53 domain + 43 application + 145 adapters); the single-writer database actor types its pending future set, metrics and integrity report, reads the concrete connection through a local Any view so the port stays storage-agnostic, and migration_snapshot now returns Record; write/read budgets, cancellation charging and schema checks are unchanged"
+   "Strict scope reaches 241 files (53 domain + 43 application + 145 adapters); the single-writer database actor types its pending future set, metrics and integrity report, reads the concrete connection through a local Any view so the port stays storage-agnostic, and migration_snapshot now returns Record; write/read budgets, cancellation charging and schema checks are unchanged",
+   "Strict scope reaches 242 files (53 domain + 43 application + 146 adapters); the shared QQ audience/credential authority types its payloads and receipts, uses the new public RepositoryBase.one single-row fetch instead of the protected helper, and narrows JSON reads with casts; send cooldown, disabled-agent and revocation checks are unchanged"
   ],
   "pending": [
-   "application 43/44 and adapters 145/222 strict typing",
+   "application 43/44 and adapters 146/222 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -161,8 +162,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-128-callers.xml",
-   "tests": 15,
+   "report": "temp/build/v2-typecheck-129-callers.xml",
+   "tests": 58,
    "failures": 0
   },
   "targeted_reports": [
@@ -1325,6 +1326,15 @@
     "errors": 0,
     "duration_s": 24.55,
     "note": "one hundred twenty-eighth strict batch: guard + database actor and migration snapshot callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-129-callers.xml",
+    "sha256": "39768fc7af5041c243a589f90497f17e281ba54379a55c166168e40722d88fc0",
+    "tests": 58,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 111.54,
+    "note": "one hundred twenty-ninth strict batch: guard + QQ authority, credential, delivery and context callers"
    }
   ],
   "gates": {
@@ -1336,7 +1346,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 241,
+    "filesAnalyzed": 242,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1400,6 +1410,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 145/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 146/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
