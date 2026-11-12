@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from sqlalchemy import delete, select, update
 
 from ...domain.configuration import config_name, config_value, fingerprint
@@ -41,7 +43,7 @@ class ConfigurationRepositories(CredentialRepositories):
             "value": {k: v for k, v in value.items() if k not in {"revision_id", "agent_id", "kind"}},
         }
 
-    def configuration_get(self, agent_id: str, config_id: str) -> dict:
+    def configuration_get(self, agent_id: str, config_id: str) -> dict[str, Any]:
         entity = self._one(s.configurations, agent_id, config_id)
         if entity["deleted_at"]:
             raise BusinessError("configuration_archived", "Configuration was archived", status=410)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import func, select
 
@@ -33,7 +33,7 @@ def qq_send_after(unit: "ConfigurationRepositories", account: str) -> str:
 
 def qq_connection_authorized(
     unit: "ConfigurationRepositories", agent_id: str, config_id: str, revision_id: str
-) -> dict:
+) -> dict[str, Any]:
     config = unit.configuration_get(agent_id, config_id)
     if not unit.connection.execute(
         select(s.agents.c.id).where(s.agents.c.id == agent_id, s.agents.c.enabled.is_(True))
@@ -59,7 +59,7 @@ def qq_connection_authorized(
     return config
 
 
-def qq_run(unit: "ConfigurationRepositories", agent_id: str, run_id: str) -> dict | None:
+def qq_run(unit: "ConfigurationRepositories", agent_id: str, run_id: str) -> dict[str, Any] | None:
     row = (
         unit.connection.execute(select(s.qq_runs).where(s.qq_runs.c.agent_id == agent_id, s.qq_runs.c.run_id == run_id))
         .mappings()
@@ -68,11 +68,11 @@ def qq_run(unit: "ConfigurationRepositories", agent_id: str, run_id: str) -> dic
     return dict(row) if row else None
 
 
-def qq_run_authorized(unit: "ConfigurationRepositories", agent_id: str, run_id: str) -> dict | None:
+def qq_run_authorized(unit: "ConfigurationRepositories", agent_id: str, run_id: str) -> dict[str, Any] | None:
     row = qq_run(unit, agent_id, run_id)
     if not row:
         return None
-    binding = unit._one(s.qq_bindings, agent_id, row["binding_id"])
+    binding = unit.one(s.qq_bindings, agent_id, row["binding_id"])
     if not binding["enabled"] or binding["revision"] != row["binding_revision"]:
         raise BusinessError("qq_binding_revoked", "QQ conversation grant changed")
     account = unit.connection.execute(
@@ -86,14 +86,14 @@ def qq_run_authorized(unit: "ConfigurationRepositories", agent_id: str, run_id: 
     ).first()
     if account is None:
         raise BusinessError("qq_sender_revoked", "QQ sender binding was removed")
-    person = unit._one(s.people, agent_id, row["person_id"])
+    person = unit.one(s.people, agent_id, row["person_id"])
     if person["deleted_at"]:
         raise BusinessError("qq_sender_revoked", "QQ sender person was erased")
-    config = qq_connection_authorized(unit, agent_id, binding["config_id"], row["config_revision_id"])
+    config = qq_connection_authorized(unit, agent_id, cast(str, binding["config_id"]), row["config_revision_id"])
     return {
         "config_id": config["id"],
         "config_revision_id": row["config_revision_id"],
         "adapter_id": ADAPTER,
         "account_key": config["value"]["account"],
-        "target": binding["scene"] + ":" + binding["peer_id"],
+        "target": cast(str, binding["scene"]) + ":" + cast(str, binding["peer_id"]),
     }

@@ -44,5 +44,9 @@ class RepositoryBase:
             raise BusinessError("not_found", "Resource does not exist in this Agent space", status=404)
         return cast(Record, dict(row))
 
+    def one(self, table: Table, agent_id: str, entity_id: str) -> Record:
+        """Public single-row fetch for module-level authority helpers."""
+        return self._one(table, agent_id, entity_id)
+
     def audit(self, agent_id: str, kind: str, operation_id: str | None, data: Record) -> str:
         return str(self._record(s.audit, {"kind": kind, "operation_id": operation_id, "data": data}, agent_id)["id"])
