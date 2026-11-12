@@ -187,6 +187,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/macos_service.py` | macOS launchd 查询边界（原生身份校验） |
 | `agent/src/omni/adapters/platform/paths.py` | 实例路径与启动栅栏互斥 |
 | `agent/src/omni/adapters/platform/service_admin_bundle.py` | 管理员工件物化（不安装/不提权） |
+| `agent/src/omni/adapters/persistence/history_protection.py` | 历史保留保护原因（运行/引用/审计） |
+| `agent/src/omni/adapters/workers/terminal.py` | 终端 worker 帧解码/打开校验 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

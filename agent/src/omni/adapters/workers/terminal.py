@@ -18,7 +18,7 @@ import subprocess
 import sys
 import threading
 import time
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 import psutil
@@ -281,11 +281,14 @@ def _decode(raw: bytes) -> Record:
         return result
 
     value = json.loads(raw, object_pairs_hook=pairs, parse_constant=invalid_constant)
-    if not isinstance(value, dict) or value.get("version") != VERSION:
+    if not isinstance(value, dict):
         raise ValueError("invalid frame")
-    if not isinstance(value.get("id"), str) or len(value["id"]) > 64:
+    frame = cast(Record, value)
+    if frame.get("version") != VERSION:
+        raise ValueError("invalid frame")
+    if not isinstance(frame.get("id"), str) or len(str(frame["id"])) > 64:
         raise ValueError("invalid operation identity")
-    return value
+    return frame
 
 
 def _read() -> Record | None:
@@ -428,11 +431,14 @@ class Host:
 
     def open(self, request: Record) -> None:
         argv, cwd = request.get("argv"), request.get("cwd")
+        if not isinstance(argv, list):
+            raise ValueError("invalid fixed profile")
+        parts = cast(list[object], argv)
+        if not 1 <= len(parts) <= 8:
+            raise ValueError("invalid fixed profile")
         if (
-            not isinstance(argv, list)
-            or not 1 <= len(argv) <= 8
-            or any(not isinstance(part, str) or not part or "\x00" in part for part in argv)
-            or not os.path.isabs(argv[0])
+            any(not isinstance(part, str) or not part or "\x00" in part for part in parts)
+            or not os.path.isabs(cast(str, parts[0]))
             or not isinstance(cwd, str)
             or not os.path.isabs(cwd)
         ):

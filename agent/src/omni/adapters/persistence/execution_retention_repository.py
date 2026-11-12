@@ -6,6 +6,7 @@ from itertools import chain
 
 from sqlalchemy import insert, or_, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.retention import (
     PLAN_FORMAT,
@@ -45,7 +46,7 @@ class ExecutionRetentionRepositories(RepositoryBase):
         return self._one(s.runs, agent_id, run_id)
 
     def _retention_protections(
-        self, row: dict, cutoff: str, batch_id: str = "", *, event_batch_id: str = ""
+        self, row: Record, cutoff: str, batch_id: str = "", *, event_batch_id: str = ""
     ) -> list[str]:
         """Shared business protections without loading or hashing execution bodies."""
         agent_id, run_id = row["agent_id"], row["id"]

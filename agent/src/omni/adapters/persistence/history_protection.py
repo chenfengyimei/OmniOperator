@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
+from ...application.ports import Record
+
 from . import schema as s
 from .execution_retention_repository import ExecutionRetentionRepositories
 
 
 class HistoryProtectionRepositories(ExecutionRetentionRepositories):
-    def _history_run_protections(self, row: dict, cutoff: str, *, stream: str = "", batch_id: str = "") -> list[str]:
+    def _history_run_protections(self, row: Record, cutoff: str, *, stream: str = "", batch_id: str = "") -> list[str]:
         reasons = [
             "within_run_retention" if reason == "within_body_retention" else reason
             for reason in self._retention_protections(
