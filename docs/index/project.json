@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "8fcc1f0b1e918b9d71b3bed85378212f50c4c73b7100c1dedff21ad70d711fae",
+  "source_sha256": "f834500c0042526a3ed885098a7640432d961e81c6ec744b57462d63061545ec",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11101,
+      "lines": 11112,
       "dependencies": [
         "v2-domain"
       ]
@@ -37934,7 +37934,7 @@
       "path": "agent/src/omni/application/engine.py",
       "module": "v2-application",
       "python_module": "omni.application.engine",
-      "lines": 632,
+      "lines": 643,
       "imports": [
         "omni.application.context",
         "omni.application.images",
@@ -37950,17 +37950,17 @@
       "symbols": [
         {
           "name": "Capability",
-          "line": 37,
+          "line": 39,
           "kind": "class"
         },
         {
           "name": "Application",
-          "line": 43,
+          "line": 45,
           "kind": "class"
         },
         {
           "name": "Application.__init__",
-          "line": 46,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "self",
@@ -38002,7 +38002,7 @@
         },
         {
           "name": "Application.start",
-          "line": 91,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self"
@@ -38011,7 +38011,7 @@
         },
         {
           "name": "Application.submit_turn",
-          "line": 101,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -38035,7 +38035,7 @@
         },
         {
           "name": "Application.notify",
-          "line": 129,
+          "line": 131,
           "kind": "function",
           "parameters": [
             "self"
@@ -38044,7 +38044,7 @@
         },
         {
           "name": "Application.action_review_blockers",
-          "line": 132,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "self",
@@ -38056,7 +38056,7 @@
         },
         {
           "name": "Application._dispatch",
-          "line": 156,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self"
@@ -38065,7 +38065,7 @@
         },
         {
           "name": "Application._completed",
-          "line": 188,
+          "line": 190,
           "kind": "function",
           "parameters": [
             "self",
@@ -38077,7 +38077,7 @@
         },
         {
           "name": "Application._run",
-          "line": 200,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self",
@@ -38095,7 +38095,7 @@
         },
         {
           "name": "Application._end_error",
-          "line": 367,
+          "line": 371,
           "kind": "function",
           "parameters": [
             "self",
@@ -38113,16 +38113,18 @@
         },
         {
           "name": "Application._end_error.end",
-          "line": 368,
+          "line": 372,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "Application._revision",
-          "line": 385,
+          "line": 389,
           "kind": "function",
           "parameters": [
             "value"
@@ -38133,7 +38135,7 @@
         },
         {
           "name": "Application._checkpoint",
-          "line": 390,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self",
@@ -38147,7 +38149,7 @@
         },
         {
           "name": "Application._execute",
-          "line": 396,
+          "line": 400,
           "kind": "function",
           "parameters": [
             "self",
@@ -38169,7 +38171,7 @@
         },
         {
           "name": "Application.query",
-          "line": 467,
+          "line": 473,
           "kind": "function",
           "parameters": [
             "self",
@@ -38188,7 +38190,7 @@
         },
         {
           "name": "Application.settings",
-          "line": 472,
+          "line": 478,
           "kind": "function",
           "parameters": [
             "self",
@@ -38200,7 +38202,7 @@
         },
         {
           "name": "Application.history",
-          "line": 475,
+          "line": 481,
           "kind": "function",
           "parameters": [
             "self",
@@ -38220,7 +38222,7 @@
         },
         {
           "name": "Application.save_settings",
-          "line": 482,
+          "line": 488,
           "kind": "function",
           "parameters": [
             "self",
@@ -38236,34 +38238,6 @@
         },
         {
           "name": "Application.run_configuration",
-          "line": 488,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "agent_id",
-            "run_id"
-          ],
-          "annotations": {
-            "agent_id": "str",
-            "run_id": "str"
-          }
-        },
-        {
-          "name": "Application.get_run",
-          "line": 491,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "agent_id",
-            "run_id"
-          ],
-          "annotations": {
-            "agent_id": "str",
-            "run_id": "str"
-          }
-        },
-        {
-          "name": "Application.live_output",
           "line": 494,
           "kind": "function",
           "parameters": [
@@ -38277,8 +38251,36 @@
           }
         },
         {
-          "name": "Application.pin_run",
+          "name": "Application.get_run",
           "line": 497,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str"
+          }
+        },
+        {
+          "name": "Application.live_output",
+          "line": 500,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "run_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "run_id": "str"
+          }
+        },
+        {
+          "name": "Application.pin_run",
+          "line": 503,
           "kind": "function",
           "parameters": [
             "self",
@@ -38296,7 +38298,7 @@
         },
         {
           "name": "Application.run_retention",
-          "line": 500,
+          "line": 506,
           "kind": "function",
           "parameters": [
             "self",
@@ -38310,7 +38312,7 @@
         },
         {
           "name": "Application.audit_retention_preview",
-          "line": 503,
+          "line": 509,
           "kind": "function",
           "parameters": [
             "self",
@@ -38328,7 +38330,7 @@
         },
         {
           "name": "Application.event_retention_preview",
-          "line": 510,
+          "line": 516,
           "kind": "function",
           "parameters": [
             "self",
@@ -38346,7 +38348,7 @@
         },
         {
           "name": "Application.messages",
-          "line": 517,
+          "line": 523,
           "kind": "function",
           "parameters": [
             "self",
@@ -38360,7 +38362,7 @@
         },
         {
           "name": "Application.approvals",
-          "line": 521,
+          "line": 529,
           "kind": "function",
           "parameters": [
             "self",
@@ -38372,7 +38374,7 @@
         },
         {
           "name": "Application.approve",
-          "line": 524,
+          "line": 532,
           "kind": "function",
           "parameters": [
             "self",
@@ -38390,7 +38392,7 @@
         },
         {
           "name": "Application.cancel",
-          "line": 527,
+          "line": 535,
           "kind": "function",
           "parameters": [
             "self",
@@ -38404,16 +38406,18 @@
         },
         {
           "name": "Application.cancel.cancel",
-          "line": 528,
+          "line": 536,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "Application.remember",
-          "line": 539,
+          "line": 547,
           "kind": "function",
           "parameters": [
             "self",
@@ -38435,7 +38439,7 @@
         },
         {
           "name": "Application.forget",
-          "line": 560,
+          "line": 568,
           "kind": "function",
           "parameters": [
             "self",
@@ -38451,7 +38455,7 @@
         },
         {
           "name": "Application.context",
-          "line": 563,
+          "line": 571,
           "kind": "function",
           "parameters": [
             "self",
@@ -38465,7 +38469,7 @@
         },
         {
           "name": "Application.context_report",
-          "line": 566,
+          "line": 574,
           "kind": "function",
           "parameters": [
             "self",
@@ -38479,16 +38483,18 @@
         },
         {
           "name": "Application.context_report.read",
-          "line": 567,
+          "line": 575,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "Application.summary",
-          "line": 572,
+          "line": 583,
           "kind": "function",
           "parameters": [
             "self",
@@ -38502,7 +38508,7 @@
         },
         {
           "name": "Application.erase_message",
-          "line": 575,
+          "line": 586,
           "kind": "function",
           "parameters": [
             "self",
@@ -38516,7 +38522,7 @@
         },
         {
           "name": "Application.search_memory",
-          "line": 578,
+          "line": 589,
           "kind": "function",
           "parameters": [
             "self",
@@ -38530,7 +38536,7 @@
         },
         {
           "name": "Application.health",
-          "line": 583,
+          "line": 594,
           "kind": "function",
           "parameters": [
             "self"
@@ -38539,7 +38545,7 @@
         },
         {
           "name": "Application.stop_accepting",
-          "line": 592,
+          "line": 603,
           "kind": "function",
           "parameters": [
             "self"
@@ -38548,7 +38554,7 @@
         },
         {
           "name": "Application.close",
-          "line": 596,
+          "line": 607,
           "kind": "function",
           "parameters": [
             "self",
