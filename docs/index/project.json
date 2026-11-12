@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f8e9b09e18ce0004daa5b05e76fbf0a56d1c6d3074787104624512149639718f",
+  "source_sha256": "eec6271399b9e50f5a4c760dba2e84bc973b870447f895c45b8b6a48386b9b77",
   "modules": [
     {
       "id": "v2-domain",
@@ -72,7 +72,7 @@
         "agent/src/omni/domain/terminal_review.py",
         "agent/src/omni/domain/terminals.py"
       ],
-      "lines": 9583,
+      "lines": 9585,
       "dependencies": []
     },
     {
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52971,
+      "lines": 52987,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -22664,7 +22664,7 @@
       "path": "agent/src/omni/adapters/platform/deployment_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.deployment_files",
-      "lines": 606,
+      "lines": 607,
       "imports": [
         "omni.adapters.build_identity",
         "omni.adapters.object_store",
@@ -23019,7 +23019,7 @@
         },
         {
           "name": "write_file",
-          "line": 599,
+          "line": 600,
           "kind": "function",
           "parameters": [
             "path",
@@ -23032,7 +23032,7 @@
         },
         {
           "name": "publish_json",
-          "line": 605,
+          "line": 606,
           "kind": "function",
           "parameters": [
             "files",
@@ -23862,7 +23862,7 @@
       "path": "agent/src/omni/adapters/platform/exchange_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.exchange_files",
-      "lines": 274,
+      "lines": 278,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
@@ -23940,8 +23940,20 @@
           }
         },
         {
-          "name": "ExchangeFiles._require_owned",
+          "name": "ExchangeFiles.read",
           "line": 56,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "path"
+          ],
+          "annotations": {
+            "path": "Path"
+          }
+        },
+        {
+          "name": "ExchangeFiles._require_owned",
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self",
@@ -23953,7 +23965,7 @@
         },
         {
           "name": "ExchangeFiles.publish",
-          "line": 60,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "self",
@@ -23967,7 +23979,7 @@
         },
         {
           "name": "ExchangeFiles.publish_isolation",
-          "line": 74,
+          "line": 78,
           "kind": "function",
           "parameters": [
             "self",
@@ -23981,7 +23993,7 @@
         },
         {
           "name": "ExchangeFiles.publish_administrator",
-          "line": 87,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -23997,7 +24009,7 @@
         },
         {
           "name": "ExchangeFiles._publish",
-          "line": 107,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
@@ -24013,7 +24025,7 @@
         },
         {
           "name": "ExchangeFiles.exclusive",
-          "line": 128,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -24025,7 +24037,7 @@
         },
         {
           "name": "ExchangeFiles.history",
-          "line": 144,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -24037,7 +24049,7 @@
         },
         {
           "name": "ExchangeFiles.maintenance",
-          "line": 179,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self",
@@ -24049,7 +24061,7 @@
         },
         {
           "name": "ExchangeFiles.claim",
-          "line": 191,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -24061,7 +24073,7 @@
         },
         {
           "name": "ExchangeFiles.append",
-          "line": 233,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -24075,7 +24087,7 @@
         },
         {
           "name": "ExchangeFiles.check_idle",
-          "line": 248,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -24087,7 +24099,7 @@
         },
         {
           "name": "ExchangeFiles.settled",
-          "line": 257,
+          "line": 261,
           "kind": "function",
           "parameters": [
             "self",
@@ -27292,7 +27304,7 @@
       "path": "agent/src/omni/adapters/platform/release_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.release_files",
-      "lines": 400,
+      "lines": 411,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
@@ -27310,7 +27322,7 @@
       "symbols": [
         {
           "name": "failed",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "code"
@@ -27321,12 +27333,12 @@
         },
         {
           "name": "ReleaseFiles",
-          "line": 55,
+          "line": 56,
           "kind": "class"
         },
         {
           "name": "ReleaseFiles.__init__",
-          "line": 56,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
@@ -27340,7 +27352,7 @@
         },
         {
           "name": "ReleaseFiles.homes",
-          "line": 62,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "plan"
@@ -27351,7 +27363,7 @@
         },
         {
           "name": "ReleaseFiles.publish",
-          "line": 68,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "self",
@@ -27365,7 +27377,7 @@
         },
         {
           "name": "ReleaseFiles.installations",
-          "line": 92,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self",
@@ -27377,7 +27389,7 @@
         },
         {
           "name": "ReleaseFiles.reviewed_installation",
-          "line": 99,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "self",
@@ -27389,7 +27401,7 @@
         },
         {
           "name": "ReleaseFiles.isolation_authority",
-          "line": 128,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -27401,7 +27413,7 @@
         },
         {
           "name": "ReleaseFiles.isolation_exchange",
-          "line": 133,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self",
@@ -27413,7 +27425,7 @@
         },
         {
           "name": "ReleaseFiles._fence_path",
-          "line": 169,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "home"
@@ -27424,7 +27436,7 @@
         },
         {
           "name": "ReleaseFiles.require_fence",
-          "line": 172,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self",
@@ -27440,7 +27452,7 @@
         },
         {
           "name": "ReleaseFiles._publish_fence",
-          "line": 191,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -27454,7 +27466,7 @@
         },
         {
           "name": "ReleaseFiles.preparation",
-          "line": 200,
+          "line": 204,
           "kind": "function",
           "parameters": [
             "self",
@@ -27466,7 +27478,7 @@
         },
         {
           "name": "ReleaseFiles.exclusive",
-          "line": 213,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self",
@@ -27480,7 +27492,7 @@
         },
         {
           "name": "ReleaseFiles._journal",
-          "line": 260,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "self",
@@ -27492,7 +27504,7 @@
         },
         {
           "name": "ReleaseFiles.history",
-          "line": 267,
+          "line": 271,
           "kind": "function",
           "parameters": [
             "self",
@@ -27504,7 +27516,7 @@
         },
         {
           "name": "ReleaseFiles.begin",
-          "line": 324,
+          "line": 335,
           "kind": "function",
           "parameters": [
             "self",
@@ -27516,7 +27528,7 @@
         },
         {
           "name": "ReleaseFiles.append",
-          "line": 333,
+          "line": 344,
           "kind": "function",
           "parameters": [
             "self",
@@ -27534,7 +27546,7 @@
         },
         {
           "name": "ReleaseFiles.retire_source",
-          "line": 357,
+          "line": 368,
           "kind": "function",
           "parameters": [
             "self",
@@ -27546,7 +27558,7 @@
         },
         {
           "name": "ReleaseFiles._rescue_selection",
-          "line": 365,
+          "line": 376,
           "kind": "function",
           "parameters": [
             "self",
@@ -27562,7 +27574,7 @@
         },
         {
           "name": "ReleaseFiles.isolate",
-          "line": 383,
+          "line": 394,
           "kind": "function",
           "parameters": [
             "self",
@@ -27574,7 +27586,7 @@
         },
         {
           "name": "ReleaseFiles.owned",
-          "line": 388,
+          "line": 399,
           "kind": "function",
           "parameters": [
             "self",
@@ -27586,7 +27598,7 @@
         },
         {
           "name": "ReleaseFiles.activate_target",
-          "line": 392,
+          "line": 403,
           "kind": "function",
           "parameters": [
             "self",
@@ -68191,7 +68203,7 @@
       "path": "agent/src/omni/domain/service_deployment.py",
       "module": "v2-domain",
       "python_module": "omni.domain.service_deployment",
-      "lines": 564,
+      "lines": 566,
       "imports": [
         "omni.domain.contracts"
       ],

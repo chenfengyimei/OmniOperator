@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与 application/adapters 模块，当前为 **219 个文件**（53 个 domain + 43 个 application + 123 个 adapters；逐文件清单见 `docs/TYPE_CHECKING.md`），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与 application/adapters 模块，当前为 **220 个文件**（53 个 domain + 43 个 application + 124 个 adapters；逐文件清单见 `docs/TYPE_CHECKING.md`），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -291,7 +291,9 @@ D7 显式清理节点：`installation uninstall --purge-data` 在实例空闲时
 
 第一百一十批收敛并纳入诊断分页与 ADB 客户端（游标解码/分页与共享写锁显式类型化，流对与可选发送前回调参数化；边界、命令构造与不启动服务语义不变）；一百一十批专项全过。
 
-第一百一十一批收敛并纳入 macOS 服务后端与扩展宿主池（快照/原生作业行与待决调用表显式类型化，spawn 启动回调参数化；launchctl 命令、吊销与容量语义不变）；一百一十一批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第一百一十一批收敛并纳入 macOS 服务后端与扩展宿主池（快照/原生作业行与待决调用表显式类型化，spawn 启动回调参数化；launchctl 命令、吊销与容量语义不变）；一百一十一批专项全过。
+
+第一百一十二批收敛并纳入发布日志文件边界（新增 `proof`/`walk`/`created` 公共桥，转换表与事件记录显式类型化，`ExchangeFiles.read` 公共桥替代私有读取；顺带删除既有 F811 重复别名）；一百一十二批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 
