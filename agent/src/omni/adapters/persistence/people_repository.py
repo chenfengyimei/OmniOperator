@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 from sqlalchemy import delete, select, update
 
 from ...domain.contracts import BusinessError
@@ -11,7 +13,7 @@ from .memory_repository import MemoryRepositories
 
 
 class PeopleRepositories(MemoryRepositories):
-    def owner_person(self, agent_id: str) -> dict:
+    def owner_person(self, agent_id: str) -> dict[str, Any]:
         row = (
             self.connection.execute(
                 select(s.people).where(
@@ -25,7 +27,7 @@ class PeopleRepositories(MemoryRepositories):
             raise BusinessError("owner_person_missing", "This Agent has no owner person", status=503)
         return dict(row)
 
-    def ensure_owner(self, agent_id: str) -> dict:
+    def ensure_owner(self, agent_id: str) -> dict[str, Any]:
         row = (
             self.connection.execute(
                 select(s.people).where(s.people.c.agent_id == agent_id, s.people.c.owner_id.is_not(None))
@@ -40,7 +42,7 @@ class PeopleRepositories(MemoryRepositories):
             s.people, {"name": owner["name"], "owner_id": owner["id"], "revision": 1, "deleted_at": None}, agent_id
         )
 
-    def people_page(self, agent_id: str, after: str = "", limit: int = 100) -> list[dict]:
+    def people_page(self, agent_id: str, after: str = "", limit: int = 100) -> list[dict[str, Any]]:
         self.owner_person(agent_id)
         if not 1 <= limit <= 200:
             raise BusinessError("invalid_page", "People pages contain at most 200 entries", status=422)
@@ -54,18 +56,18 @@ class PeopleRepositories(MemoryRepositories):
             ).mappings()
         ]
 
-    def person_create(self, agent_id: str, name: str) -> dict:
+    def person_create(self, agent_id: str, name: str) -> dict[str, Any]:
         self.owner_person(agent_id)
         row = self._record(
             s.people, {"name": person_name(name), "revision": 1, "owner_id": None, "deleted_at": None}, agent_id
         )
-        self.audit(agent_id, "person.created", row["id"], {})
+        self.audit(agent_id, "person.created", cast(str, row["id"]), {})
         return row
 
-    def person_get(self, agent_id: str, person_id: str) -> dict:
+    def person_get(self, agent_id: str, person_id: str) -> dict[str, Any]:
         return self._live_person(agent_id, person_id)
 
-    def person_rename(self, agent_id: str, person_id: str, name: str, revision: int) -> dict:
+    def person_rename(self, agent_id: str, person_id: str, name: str, revision: int) -> dict[str, Any]:
         self._live_person(agent_id, person_id)
         updated = self.connection.execute(
             update(s.people)
@@ -104,7 +106,7 @@ class PeopleRepositories(MemoryRepositories):
         )
         self.audit(agent_id, "person.erased", person_id, {"memories": len(memory_ids)})
 
-    def account_bind(self, agent_id: str, person_id: str, channel: str, external_id: str) -> dict:
+    def account_bind(self, agent_id: str, person_id: str, channel: str, external_id: str) -> dict[str, Any]:
         self._live_person(agent_id, person_id)
         channel, external_id = account_identity(channel, external_id)
         prior = (
@@ -134,7 +136,9 @@ class PeopleRepositories(MemoryRepositories):
             agent_id,
         )
         self._touch_person(person_id)
-        self.audit(agent_id, "account.bound", row["id"], {"person_id": person_id, "verification": "manual"})
+        self.audit(
+            agent_id, "account.bound", cast(str, row["id"]), {"person_id": person_id, "verification": "manual"}
+        )
         return row
 
     def account_unbind(self, agent_id: str, person_id: str, account_id: str, revision: int) -> None:
@@ -148,7 +152,9 @@ class PeopleRepositories(MemoryRepositories):
         self._touch_person(person_id)
         self.audit(agent_id, "account.unbound", account_id, {"person_id": person_id})
 
-    def accounts_page(self, agent_id: str, person_id: str, after: str = "", limit: int = 100) -> list[dict]:
+    def accounts_page(
+        self, agent_id: str, person_id: str, after: str = "", limit: int = 100
+    ) -> list[dict[str, Any]]:
         self._live_person(agent_id, person_id)
         return [
             dict(row)
@@ -160,7 +166,7 @@ class PeopleRepositories(MemoryRepositories):
             ).mappings()
         ]
 
-    def personal_document(self, agent_id: str, person_id: str, kind: str) -> dict:
+    def personal_document(self, agent_id: str, person_id: str, kind: str) -> dict[str, Any]:
         self._live_person(agent_id, person_id)
         document_content(kind, "")
         row = (
@@ -194,7 +200,7 @@ class PeopleRepositories(MemoryRepositories):
         *,
         object_id: str | None = None,
         quote: str = "",
-    ) -> dict:
+    ) -> dict[str, Any]:
         current = self.personal_document(agent_id, person_id, kind)
         if current["entry_id"] != entry_id or current["revision"] != revision:
             raise BusinessError("revision_conflict", "Document changed; reload while retaining your draft")

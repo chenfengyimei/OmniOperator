@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from sqlalchemy import column, delete, literal_column, select, table, text, update
 
@@ -14,7 +15,7 @@ from .memory_organization_predicates import memory_is_organized
 
 
 class MemoryRepositories(DocumentRepositories):
-    def _live_person(self, agent_id: str, person_id: str) -> dict:
+    def _live_person(self, agent_id: str, person_id: str) -> dict[str, Any]:
         person = self._one(s.people, agent_id, person_id)
         if person["deleted_at"]:
             raise BusinessError("person_deleted", "Person was erased", status=410)
@@ -146,7 +147,7 @@ class MemoryRepositories(DocumentRepositories):
         action_id: str | None = None,
         document_revision_id: str | None = None,
         source_run_id: str | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         if (
             not content.strip()
             or len(content) > 20_000
@@ -206,7 +207,7 @@ class MemoryRepositories(DocumentRepositories):
         *,
         object_id: str | None = None,
         quote: str = "",
-    ) -> dict:
+    ) -> dict[str, Any]:
         row = self._one(s.memory_entries, agent_id, memory_id)
         if row["deleted_at"]:
             raise BusinessError("memory_deleted", "Memory was forgotten", status=410)
