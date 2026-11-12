@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Mapping, Sequence
+from typing import cast
 
 from ..domain.context import CONTEXT_CHARS
 from ..domain.contracts import BusinessError, ModelReply, Outcome, ToolSpec
@@ -12,7 +13,17 @@ from ..domain.metering import TokenEstimate, serialized_request
 from ..domain.settings import Settings
 from .images import ImageService
 from .model_output import ModelOutput
-from .ports import DatabasePort, ModelPort, ModelPreparationPort, ModelStreamingPort, Observer, Record, TokenCounter
+from .ports import (
+    DatabasePort,
+    ModelPort,
+    ModelPreparationPort,
+    ModelStreamingPort,
+    Observer,
+    PreparedModelStream,
+    Record,
+    TokenCounter,
+    UnitOfWork,
+)
 
 
 class ModelCalls:
@@ -33,7 +44,7 @@ class ModelCalls:
         self._images = images
         self._output = ModelOutput()
 
-    def health(self) -> dict:
+    def health(self) -> Record:
         return self._streamer.health() if self._streamer is not None else {"enabled": False, "owned": 0}
 
     async def live_output(self, agent_id: str, run_id: str) -> Record:
@@ -46,7 +57,7 @@ class ModelCalls:
             return result
         authority = self._output.authority(agent_id, run_id)
 
-        def authorize(u):
+        def authorize(u: UnitOfWork) -> None:
             u.assert_run_authorized(agent_id, run_id)
             u.assert_context(agent_id, run_id)
             u.assert_model_authorized(agent_id, run_id)
@@ -59,7 +70,7 @@ class ModelCalls:
             self._output.clear(agent_id, run_id)
             return {**result, "reason": error.code}
         row = self._output.get(agent_id, run_id)
-        return {**result, **row, "state": "streaming", "ephemeral": True} if row else result
+        return cast(Record, {**result, **row, "state": "streaming", "ephemeral": True}) if row else result
 
     def counter_available(self, settings: Mapping[str, object]) -> bool:
         return self._counter.supports(
@@ -74,8 +85,8 @@ class ModelCalls:
                 raise ValueError("Unsupported counter")
             estimate = await asyncio.wait_for(self._counter.count(messages, tools, settings), timeout=2)
             if (
-                not isinstance(estimate, TokenEstimate)
-                or estimate.counter_id != settings["counter_ref"]
+                estimate.counter_id != settings["counter_ref"]
+                or (settings["counter_mode"] == "required" and estimate.method != "exact")
                 or (settings["counter_mode"] == "required" and estimate.method != "exact")
             ):
                 raise ValueError("Counter identity or quality mismatch")
@@ -105,7 +116,7 @@ class ModelCalls:
         reserved_id: str | None = None,
         baseline_tools: Sequence[ToolSpec] | None = None,
     ) -> ModelReply:
-        def reserve(u):
+        def reserve(u: UnitOfWork) -> str:
             u.assert_context(agent_id, run_id)
             u.assert_model_authorized(agent_id, run_id)
             return u.reserve_call(
@@ -116,7 +127,7 @@ class ModelCalls:
         output = settings["summary_tokens"] if reserved_id else settings["output_tokens"]
         refs = []
         try:
-            refs = references(messages)
+            refs = references(cast(Sequence[dict[str, object]], messages))
             if refs and (self._images is None or reserved_id is not None):
                 raise BusinessError("image_protocol_unavailable", "Image materialization is unavailable for this call")
             await self._db.read(lambda u: u.assert_context(agent_id, run_id))
@@ -127,7 +138,7 @@ class ModelCalls:
                 )
             estimate = await self.estimate(messages, tools, settings)
 
-            def register(u):
+            def register(u: UnitOfWork) -> None:
                 u.assert_context(agent_id, run_id)
                 if baseline_tools is not None:
                     u.route_call(agent_id, run_id, identity, tools, baseline_tools)
@@ -151,7 +162,7 @@ class ModelCalls:
             raise
         known = False
         dispatched = False
-        streaming = None
+        streaming: PreparedModelStream | None = None
         try:
             with (
                 self._observer.context(operation_id=identity),
@@ -160,7 +171,7 @@ class ModelCalls:
                 try:
                     authority = await self._db.read(lambda u: u.model_dispatch_authority(agent_id, run_id))
 
-                    def authorize(u):
+                    def authorize(u: UnitOfWork) -> None:
                         u.assert_run_authorized(agent_id, run_id)
                         u.assert_context(agent_id, run_id)
                         u.assert_model_authorized(agent_id, run_id)
@@ -172,15 +183,20 @@ class ModelCalls:
                     async def guard():
                         await self._db.read(authorize)
 
-                    wire_messages = list(messages)
+                    wire_messages: Sequence[Record] = list(messages)
                     if refs and self._images is not None:
 
-                        def prepare_images(u):
+                        def prepare_images(u: UnitOfWork) -> None:
                             authorize(u)
-                            u.model_images_prepare(agent_id, run_id, identity, refs)
+                            u.model_images_prepare(agent_id, run_id, identity, cast(list[Record], refs))
 
                         await self._db.write(prepare_images)
-                        wire_messages = await self._images.wire(agent_id, wire_messages, guard)
+                        wire_messages = cast(
+                            list[Record],
+                            await self._images.wire(
+                                agent_id, cast(list[dict[str, object]], wire_messages), guard
+                            ),
+                        )
                     streaming = (
                         await self._streamer.prepare_stream(wire_messages, tools, settings)
                         if self._streamer is not None and not reserved_id
@@ -196,7 +212,7 @@ class ModelCalls:
                     # authority after preparation and immediately before send.
                     if refs:
 
-                        def dispatch_images(u):
+                        def dispatch_images(u: UnitOfWork) -> None:
                             authorize(u)
                             u.model_images_dispatch(agent_id, run_id, identity)
 
@@ -206,7 +222,7 @@ class ModelCalls:
                     if streaming is not None:
                         self._output.begin(agent_id, run_id, identity, authority)
 
-                    async def emit(delta: str):
+                    async def emit(delta: str) -> None:
                         await self._db.read(authorize)
                         self._output.append(agent_id, run_id, identity, delta)
 
@@ -272,3 +288,6 @@ class ModelCalls:
                 "The provider exceeded the requested output budget; recorded costs remain settled",
             )
         return reply
+
+
+

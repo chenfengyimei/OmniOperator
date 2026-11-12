@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "10179bd22076731230c035f6496b1b41343dcd226528d337820cd4145a3c2a7d",
+  "source_sha256": "2533c3f2cfdb07e6347da333af11471c738156ae452ea9514f41a92451358866",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10988,
+      "lines": 11008,
       "dependencies": [
         "v2-domain"
       ]
@@ -41345,7 +41345,7 @@
       "path": "agent/src/omni/application/model_calls.py",
       "module": "v2-application",
       "python_module": "omni.application.model_calls",
-      "lines": 274,
+      "lines": 293,
       "imports": [
         "omni.application.images",
         "omni.application.model_output",
@@ -41359,12 +41359,12 @@
       "symbols": [
         {
           "name": "ModelCalls",
-          "line": 18,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "ModelCalls.__init__",
-          "line": 19,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
@@ -41388,7 +41388,7 @@
         },
         {
           "name": "ModelCalls.health",
-          "line": 36,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self"
@@ -41397,7 +41397,7 @@
         },
         {
           "name": "ModelCalls.live_output",
-          "line": 39,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self",
@@ -41411,16 +41411,18 @@
         },
         {
           "name": "ModelCalls.live_output.authorize",
-          "line": 49,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "ModelCalls.counter_available",
-          "line": 64,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self",
@@ -41432,7 +41434,7 @@
         },
         {
           "name": "ModelCalls.estimate",
-          "line": 69,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "self",
@@ -41448,7 +41450,7 @@
         },
         {
           "name": "ModelCalls.fits",
-          "line": 93,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "estimate",
@@ -41463,7 +41465,7 @@
         },
         {
           "name": "ModelCalls.invoke",
-          "line": 97,
+          "line": 108,
           "kind": "function",
           "parameters": [
             "self",
@@ -41487,12 +41489,14 @@
         },
         {
           "name": "ModelCalls.invoke.reserve",
-          "line": 108,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         }
       ],
       "summary": "One preflight, authorization and settlement path for model and compression calls."
@@ -42333,7 +42337,7 @@
       "path": "agent/src/omni/application/ports.py",
       "module": "v2-application",
       "python_module": "omni.application.ports",
-      "lines": 981,
+      "lines": 982,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delivery",

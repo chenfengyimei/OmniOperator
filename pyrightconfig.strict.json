@@ -20,6 +20,7 @@
     "agent/src/omni/application/memory_organization.py",
     "agent/src/omni/application/memory_semantics.py",
     "agent/src/omni/application/memory_tools.py",
+    "agent/src/omni/application/model_calls.py",
     "agent/src/omni/application/model_output.py",
     "agent/src/omni/application/objects.py",
     "agent/src/omni/application/operations.py",
