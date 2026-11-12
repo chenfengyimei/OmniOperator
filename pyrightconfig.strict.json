@@ -82,6 +82,7 @@
     "agent/src/omni/adapters/platform/desktop.py",
     "agent/src/omni/adapters/platform/desktop_capture.py",
     "agent/src/omni/adapters/platform/desktop_native.py",
+    "agent/src/omni/adapters/platform/event_loop.py",
     "agent/src/omni/adapters/platform/exchange_deployments.py",
     "agent/src/omni/adapters/platform/exchange_files.py",
     "agent/src/omni/adapters/platform/linux_bus.py",

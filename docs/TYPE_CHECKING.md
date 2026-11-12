@@ -252,6 +252,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/workers/service_admin_boot.py` | 受审管理员工件物的隔离 root 入口（按持有 fd 降层校验） |
 | `agent/src/omni/adapters/workers/linux_action.py` | Linux 语义动作 worker 单帧入口（初始帧不授权写入） |
 | `agent/src/omni/adapters/persistence/operations_read.py` | 离线只读运维快照（只读 URI、schema 校验、不自动升级） |
+| `agent/src/omni/adapters/platform/event_loop.py` | Windows TCP 重置清理事件循环（不改全局 asyncio 类） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
@@ -271,6 +272,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 2. 新增的 strict 模块必须同时更新 `pyrightconfig.strict.json`、本文件表格与证据；守卫测试会拦截漂移。
 3. 基线例外数字只代表对应源码版本；源码变化后需重测，不沿用旧数字。
 4. 不允许用 `# type: ignore`/`# pyright: ignore` 掩盖真实错误；确需忽略时必须在类型检查文档写明原因与范围。
+   - 目前唯一的忽略：`agent/src/omni/adapters/platform/event_loop.py` 中 `from asyncio.proactor_events import ...` 一行带 `# pyright: ignore[reportPrivateUsage]`。CPython 未公开 proactor 传输类，绕过导入就无法子类化该传输；范围仅限该导入行，同一文件的其余私有成员访问用 `Any` 桥接（协议仍保留形状说明）而不是忽略。
 5. 全仓 strict 完成前，任何报告不得写“全仓严格类型已通过”。
 
 ## 5. 验证

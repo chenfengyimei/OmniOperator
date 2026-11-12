@@ -8,7 +8,7 @@ import os
 import socket
 from collections.abc import Callable
 from types import CodeType, FunctionType
-from typing import Protocol, cast
+from typing import Any, Protocol, cast
 
 log = logging.getLogger("omni.v2.network")
 
@@ -19,10 +19,6 @@ class _Socket(Protocol):
 
 class _Server(Protocol):
     def _detach(self) -> None: ...
-
-
-class _Finalizer(Protocol):
-    def _call_connection_lost(self, exc: BaseException | None) -> None: ...
 
 
 class _Connection(Protocol):
@@ -43,6 +39,9 @@ def finish_connection_loss(
     socket and detaching exactly once finishes cleanup; unrelated errors remain
     visible. No descriptor lookup, global monkeypatch or timeout bypass occurs.
     """
+    # CPython keeps these transport members private by construction; the
+    # protocol above documents the shape and this bridge keeps the access local.
+    state: Any = connection
     try:
         original(error)
     except ConnectionResetError as reset:
@@ -51,18 +50,18 @@ def finish_connection_loss(
             frame = frame.tb_next
         if (
             getattr(reset, "winerror", None) != 10054
-            or connection._called_connection_lost
-            or connection._sock is None
+            or state._called_connection_lost
+            or state._sock is None
             or frame is None
             or frame.tb_frame.f_code is not shutdown_code
         ):
             raise
-        connection._sock.close()
-        connection._sock = None
-        if connection._server is not None:
-            connection._server._detach()
-            connection._server = None
-        connection._called_connection_lost = True
+        state._sock.close()
+        state._sock = None
+        if state._server is not None:
+            state._server._detach()
+            state._server = None
+        state._called_connection_lost = True
         log.warning(
             "Closed a reset TCP connection",
             extra={"event": "network.reset_cleanup", "error_code": "tcp_peer_reset"},
@@ -72,13 +71,14 @@ def finish_connection_loss(
 
 
 if os.name == "nt":
-    from asyncio.proactor_events import _ProactorBasePipeTransport, _ProactorSocketTransport
+    from asyncio.proactor_events import _ProactorBasePipeTransport, _ProactorSocketTransport  # pyright: ignore[reportPrivateUsage]
 
     class _ResetSafeSocketTransport(_ProactorSocketTransport):
         def _call_connection_lost(self, exc: BaseException | None) -> None:
+            parent: Any = super()
             finish_connection_loss(
                 cast(_Connection, self),
-                cast(_Finalizer, super())._call_connection_lost,
+                parent._call_connection_lost,
                 exc,
                 cast(FunctionType, vars(_ProactorBasePipeTransport)["_call_connection_lost"]).__code__,
             )
@@ -88,8 +88,8 @@ if os.name == "nt":
             self,
             sock: socket.socket,
             protocol: asyncio.BaseProtocol,
-            waiter: asyncio.Future | None = None,
-            extra: dict | None = None,
+            waiter: asyncio.Future[None] | None = None,
+            extra: dict[str, Any] | None = None,
             server: asyncio.Server | None = None,
         ) -> asyncio.Transport:
             # CPython accepts BaseProtocol here; its private constructor stub
