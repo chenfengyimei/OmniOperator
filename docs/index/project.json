@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3019cc230af1beeeb6759a304b8c316dcbe3a3b1e60e062ed4ed096dc042781c",
+  "source_sha256": "1370bc271ec37f5b1f52704154ff4c789368ff40068f0791342ef52e3a4ecdf8",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52869,
+      "lines": 52876,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -23847,7 +23847,7 @@
       "path": "agent/src/omni/adapters/platform/exchange_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.exchange_files",
-      "lines": 270,
+      "lines": 274,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
@@ -23890,7 +23890,7 @@
           }
         },
         {
-          "name": "ExchangeFiles._homes",
+          "name": "ExchangeFiles.homes",
           "line": 34,
           "kind": "function",
           "parameters": [
@@ -23982,7 +23982,7 @@
         },
         {
           "name": "ExchangeFiles._publish",
-          "line": 104,
+          "line": 107,
           "kind": "function",
           "parameters": [
             "self",
@@ -23992,13 +23992,13 @@
           ],
           "annotations": {
             "checked": "ExchangePlan",
-            "document": "dict",
+            "document": "Mapping[str, object]",
             "output": "str"
           }
         },
         {
           "name": "ExchangeFiles.exclusive",
-          "line": 125,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self",
@@ -24010,7 +24010,7 @@
         },
         {
           "name": "ExchangeFiles.history",
-          "line": 141,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",
@@ -24022,7 +24022,7 @@
         },
         {
           "name": "ExchangeFiles.maintenance",
-          "line": 175,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -24034,7 +24034,7 @@
         },
         {
           "name": "ExchangeFiles.claim",
-          "line": 187,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self",
@@ -24046,7 +24046,7 @@
         },
         {
           "name": "ExchangeFiles.append",
-          "line": 229,
+          "line": 233,
           "kind": "function",
           "parameters": [
             "self",
@@ -24060,7 +24060,7 @@
         },
         {
           "name": "ExchangeFiles.check_idle",
-          "line": 244,
+          "line": 248,
           "kind": "function",
           "parameters": [
             "self",
@@ -24072,7 +24072,7 @@
         },
         {
           "name": "ExchangeFiles.settled",
-          "line": 253,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "self",
@@ -27366,7 +27366,7 @@
             "deployment"
           ],
           "annotations": {
-            "deployment": "dict"
+            "deployment": "dict[str, Any]"
           }
         },
         {
@@ -28885,7 +28885,7 @@
       "path": "agent/src/omni/adapters/platform/service_cleanup_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_cleanup_files",
-      "lines": 256,
+      "lines": 259,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.platform.deployment_files",
@@ -28904,7 +28904,7 @@
       "symbols": [
         {
           "name": "invalid",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "code"
@@ -28915,12 +28915,12 @@
         },
         {
           "name": "CleanupPlanFiles",
-          "line": 36,
+          "line": 37,
           "kind": "class"
         },
         {
           "name": "CleanupPlanFiles.__init__",
-          "line": 37,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "self",
@@ -28932,7 +28932,7 @@
         },
         {
           "name": "CleanupPlanFiles.publish",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
@@ -28946,12 +28946,12 @@
         },
         {
           "name": "CleanupFiles",
-          "line": 62,
+          "line": 63,
           "kind": "class"
         },
         {
           "name": "CleanupFiles.__init__",
-          "line": 63,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "self",
@@ -28965,7 +28965,7 @@
         },
         {
           "name": "CleanupFiles._operation",
-          "line": 70,
+          "line": 71,
           "kind": "function",
           "parameters": [
             "self",
@@ -28977,7 +28977,7 @@
         },
         {
           "name": "CleanupFiles._paths",
-          "line": 75,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -28989,7 +28989,7 @@
         },
         {
           "name": "CleanupFiles.homes",
-          "line": 95,
+          "line": 98,
           "kind": "function",
           "parameters": [
             "self"
@@ -28998,7 +28998,7 @@
         },
         {
           "name": "CleanupFiles.reservation_path",
-          "line": 100,
+          "line": 103,
           "kind": "function",
           "parameters": [
             "self",
@@ -29010,7 +29010,7 @@
         },
         {
           "name": "CleanupFiles.reservation",
-          "line": 103,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self"
@@ -29019,7 +29019,7 @@
         },
         {
           "name": "CleanupFiles._reservations",
-          "line": 111,
+          "line": 114,
           "kind": "function",
           "parameters": [
             "self"
@@ -29028,7 +29028,7 @@
         },
         {
           "name": "CleanupFiles.scope",
-          "line": 126,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "self"
@@ -29037,7 +29037,7 @@
         },
         {
           "name": "CleanupFiles.exclusive",
-          "line": 145,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -29049,7 +29049,7 @@
         },
         {
           "name": "CleanupFiles._require_owned",
-          "line": 173,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self"
@@ -29058,7 +29058,7 @@
         },
         {
           "name": "CleanupFiles._directory",
-          "line": 178,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "path"
@@ -29069,7 +29069,7 @@
         },
         {
           "name": "CleanupFiles._prepare",
-          "line": 188,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self"
@@ -29078,7 +29078,7 @@
         },
         {
           "name": "CleanupFiles.latest",
-          "line": 199,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self",
@@ -29090,7 +29090,7 @@
         },
         {
           "name": "CleanupFiles.activate",
-          "line": 211,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -29102,7 +29102,7 @@
         },
         {
           "name": "CleanupFiles.append",
-          "line": 221,
+          "line": 224,
           "kind": "function",
           "parameters": [
             "self",
@@ -29116,7 +29116,7 @@
         },
         {
           "name": "CleanupFiles.settled",
-          "line": 227,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "self",
@@ -29128,12 +29128,12 @@
         },
         {
           "name": "CleanupDeployment",
-          "line": 241,
+          "line": 244,
           "kind": "class"
         },
         {
           "name": "CleanupDeployment.__init__",
-          "line": 242,
+          "line": 245,
           "kind": "function",
           "parameters": [
             "self",
@@ -29145,7 +29145,7 @@
         },
         {
           "name": "CleanupDeployment.verify",
-          "line": 245,
+          "line": 248,
           "kind": "function",
           "parameters": [
             "self",

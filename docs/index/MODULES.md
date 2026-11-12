@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`3019cc230af1beeeb6759a304b8c316dcbe3a3b1e60e062ed4ed096dc042781c`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`1370bc271ec37f5b1f52704154ff4c789368ff40068f0791342ef52e3a4ecdf8`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -279,7 +279,7 @@
 | [agent/src/omni/adapters/platform/desktop_native.py](../../agent/src/omni/adapters/platform/desktop_native.py) | 492 | Read-only desktop diagnostics and process/window identities; never reads UI contents or performs input. |
 | [agent/src/omni/adapters/platform/event_loop.py](../../agent/src/omni/adapters/platform/event_loop.py) | 105 | Own the Windows TCP reset workaround without patching global asyncio classes. |
 | [agent/src/omni/adapters/platform/exchange_deployments.py](../../agent/src/omni/adapters/platform/exchange_deployments.py) | 27 | Verify a reviewed source for removal or signed boot draining; never execute or import the source installation. |
-| [agent/src/omni/adapters/platform/exchange_files.py](../../agent/src/omni/adapters/platform/exchange_files.py) | 270 | Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback. |
+| [agent/src/omni/adapters/platform/exchange_files.py](../../agent/src/omni/adapters/platform/exchange_files.py) | 274 | Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback. |
 | [agent/src/omni/adapters/platform/linux_atspi.py](../../agent/src/omni/adapters/platform/linux_atspi.py) | 341 | Read-only AT-SPI windows in a proven logind session. No X11/Portal capture or input fallback. |
 | [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 419 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
 | [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 90 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
@@ -308,7 +308,7 @@
 | [agent/src/omni/adapters/platform/service_admin_client.py](../../agent/src/omni/adapters/platform/service_admin_client.py) | 393 | Owner-side pinned root broker connection; no elevation, root code launch or automatic request retry. |
 | [agent/src/omni/adapters/platform/service_admin_commands.py](../../agent/src/omni/adapters/platform/service_admin_commands.py) | 220 | Single-threaded root manager process ownership using pidfds and subreaping; never uses historical PIDs. |
 | [agent/src/omni/adapters/platform/service_admin_policy.py](../../agent/src/omni/adapters/platform/service_admin_policy.py) | 322 | Root-only fixed Linux paths and append-only dispatch evidence; never opens owner business storage. |
-| [agent/src/omni/adapters/platform/service_cleanup_files.py](../../agent/src/omni/adapters/platform/service_cleanup_files.py) | 256 | Separate cleanup journals and two-home reservations; preserves old unknown records, fences and business data. |
+| [agent/src/omni/adapters/platform/service_cleanup_files.py](../../agent/src/omni/adapters/platform/service_cleanup_files.py) | 259 | Separate cleanup journals and two-home reservations; preserves old unknown records, fences and business data. |
 | [agent/src/omni/adapters/platform/service_control_files.py](../../agent/src/omni/adapters/platform/service_control_files.py) | 124 | Service lifecycle journal and once-only startup reservation; reuses registration audit and file-lock ownership. |
 | [agent/src/omni/adapters/platform/service_handover.py](../../agent/src/omni/adapters/platform/service_handover.py) | 79 | Two pinned root phases, opened in order and owned until native lock release; never elevates or spawns a broker. |
 | [agent/src/omni/adapters/platform/service_launch.py](../../agent/src/omni/adapters/platform/service_launch.py) | 88 | Once-only reviewed boot reservations under the instance lock; never starts a process or reads credentials. |
