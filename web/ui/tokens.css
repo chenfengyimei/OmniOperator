@@ -217,6 +217,15 @@
   /* 强调底上的前景色：深青紫上要白字 */
   --on-accent: #ffffff;
 
+  /* ---- Hermes-Agent 深青主题（仅 V2 工作台，见 39e018f 与 UI_DESIGN_SYSTEM §3）---- */
+  --hermes-bg: #041c1c;
+  --hermes-panel: #0a2626;
+  --hermes-accent: #34d399;
+  --hermes-accent2: #2dd4bf;
+  --hermes-fg: #ffe6cb;
+  --hermes-fg-soft: #fff3e2;
+  --hermes-fg-bright: #fff6ea;
+
   color-scheme: light;
 }
 

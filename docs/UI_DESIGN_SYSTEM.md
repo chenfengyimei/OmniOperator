@@ -52,6 +52,9 @@ docs/ui-migration/          迁移素材与历史快照（差分基线职责已�
 /* 第 1 层：种子（唯一允许原始色值的地方） */
 --seed-accent:#3ddbd9; --seed-accent2:#7c8cf8;
 --seed-bg:#070809;     --seed-fg:#eae7e2;
+/* Hermes 深青主题（仅 V2 工作台，39e018f）：种子集中在 tokens.css，组件层只准 var() */
+--hermes-bg:#041c1c; --hermes-panel:#0a2626; --hermes-accent:#34d399; --hermes-accent2:#2dd4bf;
+--hermes-fg:#ffe6cb; --hermes-fg-soft:#fff3e2; --hermes-fg-bright:#fff6ea;
 
 /* 第 2 层：派生（color-mix 计算，组件只准用这层） */
 --surface-0（页面底） --surface-1（面板） --surface-2（次面板） --surface-3（浮起）
