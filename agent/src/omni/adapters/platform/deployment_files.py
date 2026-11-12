@@ -598,3 +598,9 @@ write_file = CurrentDeploymentFiles._write
 
 def write_file(path: Path, data: bytes) -> None:
     CurrentDeploymentFiles._write(path, data)
+
+destination = _destination
+
+
+def publish_json(files: CurrentDeploymentFiles, target: Path, data: bytes) -> None:
+    files._publish_json(target, data)

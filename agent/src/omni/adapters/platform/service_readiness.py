@@ -298,3 +298,5 @@ class ServiceReadiness:
             self._executor.shutdown(wait=False)
             self._closed = True
         return True
+
+decode = _decode

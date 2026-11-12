@@ -28,7 +28,7 @@ class ServiceOperationFiles:
     def __init__(
         self,
         *,
-        validate: Callable[[object], dict] = validate_operation,
+        validate: Callable[[object], Record] = validate_operation,
         namespace: str = "service-operations",
         exchange: Record | None = None,
     ) -> None:
