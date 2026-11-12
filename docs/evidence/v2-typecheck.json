@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "8d55f00a4145fb74f61ac1ecfb61804ffb3691cd6040c3a4d544849cd3645b38",
+  "code_version": "35f41b8ebabe95cd4b3cb0de047514207c630008bb77c7ac8f7f7681d8a25df0",
   "fixed_source_files": 1200,
-  "git_head": "4d29c27",
+  "git_head": "9814b14",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -101,10 +101,11 @@
    "Strict scope reaches 106 files (53 domain + 43 application + 10 adapters); six already-clean adapter modules (platform workspace/exchange layouts, persistence predicates/history/migration config/search schema) join the gate, and the scope guard now accepts nested adapter paths",
    "Strict scope reaches 110 files (53 domain + 43 application + 14 adapters); token_counter, sqlite_access, deployed_instance and delivery_predicates are typed without changing estimation, WAL-preserving access, deployment verification or outbound predicate semantics",
    "Strict scope reaches 150 files (53 domain + 43 application + 54 adapters); all remaining zero-error adapter modules join the gate, including the frozen Alembic versions, and the scope guard now accepts versioned module names",
-   "Strict scope reaches 161 files (53 domain + 43 application + 65 adapters); eleven small adapter modules were typed (action/history/operations predicates and repositories, frozen v0006/v0027, macOS admin commands/files, systemd decoding, wheel stage/switch/status), with shared maintenance/repository helpers narrowed to Record"
+   "Strict scope reaches 161 files (53 domain + 43 application + 65 adapters); eleven small adapter modules were typed (action/history/operations predicates and repositories, frozen v0006/v0027, macOS admin commands/files, systemd decoding, wheel stage/switch/status), with shared maintenance/repository helpers narrowed to Record",
+   "Strict scope reaches 166 files (53 domain + 43 application + 70 adapters); repository_base plus wheel prepare/backup/rollback/uninstall receipts are typed, and shared maintenance backup/restore return Record, keeping WAL-preserving and fail-closed semantics"
   ],
   "pending": [
-   "application 43/44 and adapters 65/215 strict typing",
+   "application 43/44 and adapters 70/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -113,8 +114,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-80-callers.xml",
-   "tests": 59,
+   "report": "temp/build/v2-typecheck-81-callers.xml",
+   "tests": 68,
    "failures": 0
   },
   "targeted_reports": [
@@ -845,6 +846,15 @@
     "errors": 0,
     "duration_s": 44.62,
     "note": "eightieth strict batch: guard + wheel/history/operations/storage callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-81-callers.xml",
+    "sha256": "bb01616a30ef49aa5dd7d64be6f35facfcb299459a08eab97891ea3bc556076c",
+    "tests": 68,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 54.71,
+    "note": "eighty-first strict batch: guard + wheel/history/operations/storage callers"
    }
   ],
   "gates": {
@@ -856,7 +866,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 161,
+    "filesAnalyzed": 166,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -920,6 +930,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 65/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 70/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }

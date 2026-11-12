@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`e0a9dc75f8abf95b147d50faf5bde6d822e0d4239398dea2f35c909b061b9151`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`5f202685f208c65346b2d6496a08ab3c888946126db5453f82422f991c8c2b76`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -320,16 +320,16 @@
 | [agent/src/omni/adapters/platform/systemd_state.py](../../agent/src/omni/adapters/platform/systemd_state.py) | 102 | Shared bounded systemd decoding; no command execution or filesystem access. |
 | [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 533 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
 | [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
-| [agent/src/omni/adapters/platform/wheel_backup.py](../../agent/src/omni/adapters/platform/wheel_backup.py) | 66 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
+| [agent/src/omni/adapters/platform/wheel_backup.py](../../agent/src/omni/adapters/platform/wheel_backup.py) | 68 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
 | [agent/src/omni/adapters/platform/wheel_environment.py](../../agent/src/omni/adapters/platform/wheel_environment.py) | 128 | Create an offline candidate environment: a venv that installs the staged wheel without a network. |
 | [agent/src/omni/adapters/platform/wheel_install.py](../../agent/src/omni/adapters/platform/wheel_install.py) | 347 | Execute the switch step: point the runtime at a prepared candidate; no stop, migrate or start. |
-| [agent/src/omni/adapters/platform/wheel_prepare.py](../../agent/src/omni/adapters/platform/wheel_prepare.py) | 118 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
-| [agent/src/omni/adapters/platform/wheel_rollback.py](../../agent/src/omni/adapters/platform/wheel_rollback.py) | 69 | Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home. |
+| [agent/src/omni/adapters/platform/wheel_prepare.py](../../agent/src/omni/adapters/platform/wheel_prepare.py) | 120 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
+| [agent/src/omni/adapters/platform/wheel_rollback.py](../../agent/src/omni/adapters/platform/wheel_rollback.py) | 71 | Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home. |
 | [agent/src/omni/adapters/platform/wheel_smoke.py](../../agent/src/omni/adapters/platform/wheel_smoke.py) | 84 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
 | [agent/src/omni/adapters/platform/wheel_stage.py](../../agent/src/omni/adapters/platform/wheel_stage.py) | 76 | Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations. |
 | [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 113 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_switch.py](../../agent/src/omni/adapters/platform/wheel_switch.py) | 85 | Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back. |
-| [agent/src/omni/adapters/platform/wheel_uninstall.py](../../agent/src/omni/adapters/platform/wheel_uninstall.py) | 137 | Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay. |
+| [agent/src/omni/adapters/platform/wheel_uninstall.py](../../agent/src/omni/adapters/platform/wheel_uninstall.py) | 139 | Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay. |
 | [agent/src/omni/adapters/platform/workspaces.py](../../agent/src/omni/adapters/platform/workspaces.py) | 27 | Workspace admission keeps instance control, secrets and installed code private. |
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
 | [agent/src/omni/adapters/process_diagnostics.py](../../agent/src/omni/adapters/process_diagnostics.py) | 105 | Process-owned logging and exception hooks; installed only by the executable host. |
