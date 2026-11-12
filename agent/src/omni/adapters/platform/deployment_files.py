@@ -12,12 +12,11 @@ import re
 import stat
 import sys
 import uuid
+from importlib.util import find_spec
 from pathlib import Path
 from typing import Any
 
 import psutil
-
-import omni
 
 from ...domain.contracts import BusinessError
 from ..build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
@@ -270,9 +269,13 @@ def python_files(executable: Path, prefix: Path, process_executable: Path | None
 
 
 def _installation() -> tuple[Path, Path, bool]:
-    if omni.__file__ is None:
+    # 不用绝对 `import omni`：包本身没有 py.typed，strict 会报 reportMissingTypeStubs；
+    # find_spec 同样能定位包根目录，且不需要执行包 __init__。
+    spec = find_spec("omni")
+    origin = spec.origin if spec is not None else None
+    if not origin:
         raise _error("deployment_program_missing")
-    package = _path(Path(omni.__file__).absolute().parent)
+    package = _path(Path(origin).absolute().parent)
     _no_links(package)
     assets, editable = package / "web_assets", True
     try:
