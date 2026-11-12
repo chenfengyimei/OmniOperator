@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
-from sqlalchemy import Connection, insert, select, update
+from sqlalchemy import Connection, Table, insert, select, update
 
-from ...application.ports import Clock, Ids
+from ...application.ports import Clock, Ids, Record
 from ...domain.contracts import BusinessError
 from . import schema as s
 from .history_sequence import allocate_history
@@ -18,7 +18,7 @@ class RepositoryBase:
         self.connection, self.clock, self.ids = connection, clock, ids
         self.boot_id = boot_id
 
-    def _record(self, table, values: Mapping[str, Any], agent_id: str | None = None) -> dict:
+    def _record(self, table: Table, values: Mapping[str, Any], agent_id: str | None = None) -> Record:
         row = {"id": self.ids.new(), "created_at": self.clock.now(), **values}
         if agent_id is not None:
             row["agent_id"] = agent_id
@@ -34,7 +34,7 @@ class RepositoryBase:
         self.connection.execute(insert(table).values(**row))
         return row
 
-    def _one(self, table, agent_id: str, entity_id: str) -> dict:
+    def _one(self, table: Table, agent_id: str, entity_id: str) -> Record:
         row = (
             self.connection.execute(select(table).where(table.c.id == entity_id, table.c.agent_id == agent_id))
             .mappings()
@@ -42,7 +42,7 @@ class RepositoryBase:
         )
         if row is None:
             raise BusinessError("not_found", "Resource does not exist in this Agent space", status=404)
-        return dict(row)
+        return cast(Record, dict(row))
 
-    def audit(self, agent_id: str, kind: str, operation_id: str | None, data: dict) -> str:
+    def audit(self, agent_id: str, kind: str, operation_id: str | None, data: Record) -> str:
         return self._record(s.audit, {"kind": kind, "operation_id": operation_id, "data": data}, agent_id)["id"]

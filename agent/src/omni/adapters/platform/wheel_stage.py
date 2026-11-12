@@ -6,7 +6,9 @@ import json
 import os
 import shutil
 from pathlib import Path
+from typing import cast
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..persistence.maintenance import durable_json
 from .permissions import private_path
@@ -36,7 +38,11 @@ def stage_wheel(home: Path, wheel: Path, sha256: str) -> dict[str, object]:
             existing = json.loads(receipt_path.read_text(encoding="utf-8"))
         except (ValueError, OSError, UnicodeError):
             raise invalid("staging_receipt_invalid") from None
-        if not isinstance(existing, dict) or existing.get("format") != FORMAT or existing.get("wheel_sha256") != sha256:
+        if (
+            not isinstance(existing, dict)
+            or cast(Record, existing).get("format") != FORMAT
+            or cast(Record, existing).get("wheel_sha256") != sha256
+        ):
             raise invalid("staging_receipt_invalid")
         if not (stage / "artifact.whl").is_file():
             raise invalid("staging_receipt_invalid")
@@ -65,6 +71,6 @@ def stage_wheel(home: Path, wheel: Path, sha256: str) -> dict[str, object]:
         "extracted": False,
         "installed": False,
     }
-    durable_json(receipt_path, manifest)
+    durable_json(receipt_path, cast(Record, manifest))
     private_path(receipt_path)
     return {"format": FORMAT, "written": True, "stage": str(stage), "manifest": manifest}

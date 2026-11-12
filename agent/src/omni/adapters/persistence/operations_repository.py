@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 
 from sqlalchemy import Table, func, select
 
-from ...domain.contracts import BusinessError
+from ...application.ports import Record
+from ...domain.contracts import JSON, BusinessError
 from . import schema as s
 from .credential_predicates import unreviewed_credentials
 from .credential_repository import CredentialRepositories
@@ -18,12 +20,12 @@ class OperationsRepositories(CredentialRepositories):
         if self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first() is None:
             raise BusinessError("not_found", "Agent space does not exist", status=404)
 
-    def diagnostic_audit(self, agent_id: str, operation_id: str, kind: str, data: dict) -> None:
+    def diagnostic_audit(self, agent_id: str, operation_id: str, kind: str, data: Record) -> None:
         self.diagnostic_agent(agent_id)
         self.audit(agent_id, kind, operation_id, {**data, "boot_id": self.boot_id})
 
-    def operations_status(self) -> dict:
-        def states(table: Table) -> dict[str, int]:
+    def operations_status(self) -> Record:
+        def states(table: Table) -> dict[str, JSON]:
             return {
                 str(state): count
                 for state, count in self.connection.execute(select(table.c.state, func.count()).group_by(table.c.state))
@@ -78,7 +80,7 @@ class OperationsRepositories(CredentialRepositories):
             "held_dispatch_resources": self.connection.execute(
                 select(func.count()).select_from(s.dispatch_resources).where(s.dispatch_resources.c.state == "held")
             ).scalar_one(),
-            "money": money[:16],
+            "money": cast(JSON, money[:16]),
             "money_truncated": len(money) > 16,
             "money_limit": 16,
             "unknown_cost_is_zero": False,

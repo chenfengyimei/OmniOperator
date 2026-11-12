@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.installation import validate_installation
 from ..persistence.maintenance import read_schema
@@ -35,8 +37,8 @@ def switch_plan(paths: InstancePaths, sha256: str) -> dict[str, object]:
         raise invalid("switch_plan_receipt_invalid") from None
     if (
         not isinstance(prepared, dict)
-        or prepared.get("format") != PREPARED_FORMAT
-        or prepared.get("wheel_sha256") != sha256
+        or cast(Record, prepared).get("format") != PREPARED_FORMAT
+        or cast(Record, prepared).get("wheel_sha256") != sha256
     ):
         raise invalid("switch_plan_receipt_invalid")
     receipt_path = paths.home / "installation.json"

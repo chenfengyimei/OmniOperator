@@ -1,5 +1,7 @@
 """One current owner-resolution predicate; never rewrites raw action observations or acknowledges model costs."""
 
+from typing import Any
+
 from sqlalchemy import and_, func, or_, select
 
 from ...domain.action_review import POLICY, TERMINAL_RUNS
@@ -8,7 +10,7 @@ from . import schema as s
 ACTIVE_ACTION_STATES = frozenset({"pending", "approved", "executing"})
 
 
-def resolved_action(action=s.actions):
+def resolved_action(action: Any = s.actions):
     head = s.action_review_heads.alias("current_action_review")
     review = s.action_reviews.alias("current_action_review_evidence")
     run = s.runs.alias("reviewed_action_run")
@@ -56,7 +58,7 @@ def resolved_action(action=s.actions):
     )
 
 
-def unresolved_action(action=s.actions):
+def unresolved_action(action: Any = s.actions):
     return or_(
         action.c.state.in_(ACTIVE_ACTION_STATES),
         and_(or_(action.c.state == "unknown", action.c.effect == "unknown"), ~resolved_action(action)),

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 from ...domain.contracts import BusinessError
 from ...domain.installation import validate_installation
@@ -19,7 +20,7 @@ def _read(path: Path) -> dict[str, object] | None:
         value = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError, UnicodeError):
         return None
-    return value if isinstance(value, dict) else None
+    return cast(dict[str, object], value) if isinstance(value, dict) else None
 
 
 def _next_step(stage: Path, pending: bool) -> str:
@@ -76,7 +77,7 @@ def installation_status(paths: InstancePaths) -> dict[str, object]:
     expected = migration_head()
     pending = bool(database["schema"]) and database["schema"] != expected
     runtime = _runtime(paths)
-    candidates = []
+    candidates: list[dict[str, object]] = []
     updates = paths.home / "updates"
     if updates.is_dir() and not updates.is_symlink():
         for stage in sorted(updates.iterdir()):

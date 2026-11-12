@@ -36,7 +36,7 @@ class Command:
     reaped: bool = False
     status: int | None = None
     accepting: bool = True
-    extras: set[int] = field(default_factory=set)
+    extras: set[int] = field(default_factory=lambda: set[int]())
     uncertain: bool = False
 
 

@@ -164,6 +164,17 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/service_admin_commands.py` | 服务管理员命令构造 |
 | `agent/src/omni/adapters/platform/wheel_artifact.py` | wheel 产物校验 |
 | `agent/src/omni/adapters/workers/darwin_admin_probe.py` | macOS 管理员探测 worker |
+| `agent/src/omni/adapters/persistence/action_predicates.py` | 动作复核当前解析谓词（持久化适配） |
+| `agent/src/omni/adapters/persistence/history_repository.py` | 历史游标分页仓储 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0006.py` | 冻结迁移版本 v0006（文档来源与索引） |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0027.py` | 冻结迁移版本 v0027（QQ 入站归属） |
+| `agent/src/omni/adapters/persistence/operations_repository.py` | 运维聚合与凭据审计仓储 |
+| `agent/src/omni/adapters/platform/darwin_admin_commands.py` | macOS 管理员命令构造 |
+| `agent/src/omni/adapters/platform/darwin_admin_files.py` | macOS 管理员文件身份校验 |
+| `agent/src/omni/adapters/platform/systemd_state.py` | systemd 状态解码边界 |
+| `agent/src/omni/adapters/platform/wheel_stage.py` | wheel 暂存收据 |
+| `agent/src/omni/adapters/platform/wheel_switch.py` | wheel 切换计划 |
+| `agent/src/omni/adapters/platform/wheel_status.py` | 安装状态汇总 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

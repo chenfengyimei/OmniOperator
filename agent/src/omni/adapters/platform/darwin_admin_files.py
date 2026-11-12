@@ -22,7 +22,7 @@ class Attributes(ctypes.Structure):
     _fields_ = [("count", ctypes.c_uint16), ("reserved", ctypes.c_uint16), ("bits", ctypes.c_uint32 * 5)]
 
 
-def identity(info: os.stat_result) -> tuple:
+def identity(info: os.stat_result) -> tuple[int, int, int, int, int, int, int, int, int]:
     return (
         info.st_dev,
         info.st_ino,

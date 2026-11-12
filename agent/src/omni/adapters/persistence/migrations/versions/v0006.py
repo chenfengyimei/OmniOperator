@@ -1,4 +1,4 @@
-"""Source document revisions, provenance and rebuildable local indexes; frozen SQL."""
+"""Source document revisions, provenance and rebuildable local indexes; frozen sql_statements."""
 
 from alembic import op
 
@@ -20,7 +20,7 @@ def upgrade() -> None:
     op.execute("DROP TABLE _v6_anchors")
     for statement in INDEXES:
         op.execute(statement)
-    for statement in TRIGGERS:
+    for statement in triggers:
         op.execute(statement)
 
 
@@ -54,7 +54,7 @@ INDEXES = (
     "CREATE INDEX ix_source_anchors_document ON source_anchors (agent_id, document_revision_id)",
     "CREATE INDEX ix_source_anchors_object ON source_anchors (agent_id, object_id)",
 )
-TRIGGERS = (
+triggers = (
     "CREATE VIRTUAL TABLE document_fts USING fts5(content,content='document_chunks',content_rowid='rowid')",
     "CREATE TRIGGER document_chunks_ai AFTER INSERT ON document_chunks BEGIN INSERT INTO document_fts(rowid,content) VALUES(new.rowid,new.content); END",
     "CREATE TRIGGER document_chunks_ad AFTER DELETE ON document_chunks BEGIN INSERT INTO document_fts(document_fts,rowid,content) VALUES('delete',old.rowid,old.content); END",
@@ -66,7 +66,7 @@ TRIGGERS = (
 )
 
 
-TRIGGERS += (
+triggers += (
     "CREATE TRIGGER document_revision_object_insert BEFORE INSERT ON document_revisions WHEN new.object_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM objects o WHERE o.id=new.object_id AND o.agent_id=new.agent_id AND o.sha256=new.sha256 AND o.bytes=new.bytes) BEGIN SELECT RAISE(ABORT,'source object fingerprint mismatch'); END",
     "CREATE TRIGGER document_vector_head_insert BEFORE INSERT ON document_revisions WHEN new.active_vector_build_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM document_index_builds b WHERE b.id=new.active_vector_build_id AND b.agent_id=new.agent_id AND b.revision_id=new.id AND b.kind='vector' AND b.state='ready') BEGIN SELECT RAISE(ABORT,'vector build does not belong to source revision'); END",
     "CREATE TRIGGER document_chunk_scope_insert BEFORE INSERT ON document_chunks WHEN NOT EXISTS(SELECT 1 FROM document_revisions r WHERE r.id=new.revision_id AND r.agent_id=new.agent_id AND r.document_id=new.document_id AND r.redacted_at IS NULL AND new.start=new.position*1000 AND new.end<=r.chars AND (new.end=r.chars OR new.end-new.start=1000)) BEGIN SELECT RAISE(ABORT,'chunk does not match a live source revision'); END",
@@ -75,7 +75,7 @@ TRIGGERS += (
     "CREATE TRIGGER document_anchor_scope_insert BEFORE INSERT ON source_anchors WHEN new.document_revision_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM document_revisions r WHERE r.id=new.document_revision_id AND r.agent_id=new.agent_id AND r.redacted_at IS NULL AND new.source_end<=r.chars) BEGIN SELECT RAISE(ABORT,'source anchor is erased or outside the revision'); END",
 )
 
-TRIGGERS += (
+triggers += (
     "CREATE TRIGGER document_revision_object_update BEFORE UPDATE ON document_revisions WHEN new.object_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM objects o WHERE o.id=new.object_id AND o.agent_id=new.agent_id AND o.sha256=new.sha256 AND o.bytes=new.bytes) BEGIN SELECT RAISE(ABORT,'source object fingerprint mismatch'); END",
     "CREATE TRIGGER document_vector_head_update BEFORE UPDATE ON document_revisions WHEN new.active_vector_build_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM document_index_builds b WHERE b.id=new.active_vector_build_id AND b.agent_id=new.agent_id AND b.revision_id=new.id AND b.kind='vector' AND b.state='ready') BEGIN SELECT RAISE(ABORT,'vector build does not belong to source revision'); END",
     "CREATE TRIGGER document_chunk_scope_update BEFORE UPDATE ON document_chunks WHEN NOT EXISTS(SELECT 1 FROM document_revisions r WHERE r.id=new.revision_id AND r.agent_id=new.agent_id AND r.document_id=new.document_id AND r.redacted_at IS NULL AND new.start=new.position*1000 AND new.end<=r.chars AND (new.end=r.chars OR new.end-new.start=1000)) BEGIN SELECT RAISE(ABORT,'chunk does not match a live source revision'); END",

@@ -12,6 +12,7 @@ import uuid
 from itertools import islice
 from pathlib import Path
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..object_store import publish_file, sync_directory
 from ..platform.paths import InstanceLock, InstancePaths
@@ -162,7 +163,7 @@ def migrate_database(path: Path) -> dict:
     }
 
 
-def inspect_database(path: Path, *, allow_restore_in_progress: bool = False) -> dict:
+def inspect_database(path: Path, *, allow_restore_in_progress: bool = False) -> Record:
     if not allow_restore_in_progress and (path.parent.parent / "restore-in-progress.json").exists():
         raise BusinessError("restore_incomplete", "Restore completion has not been verified", status=503)
     if not path.is_file() or path.is_symlink():
@@ -320,7 +321,7 @@ def backup(paths: InstancePaths, destination: Path) -> dict:
         lock.close()
 
 
-def create_snapshot(database: Path, objects_root: Path | None, destination: Path) -> dict:
+def create_snapshot(database: Path, objects_root: Path | None, destination: Path) -> Record:
     """Caller holds exclusive instance ownership, including before schema upgrades."""
     if destination.exists() or destination.is_symlink() or destination.is_junction():
         raise BusinessError("destination_exists", "Use a new backup directory; partial snapshots are never overwritten")
@@ -375,7 +376,7 @@ def create_snapshot(database: Path, objects_root: Path | None, destination: Path
     return manifest
 
 
-def durable_json(path: Path, value: dict) -> None:
+def durable_json(path: Path, value: Record) -> None:
     if path.is_symlink() or path.is_junction():
         raise BusinessError("unsafe_manifest", "Maintenance records cannot be links")
     temporary = path.with_name(f".{uuid.uuid4()}.partial")
@@ -826,7 +827,7 @@ def _finish_restore_marker(destination: Path, manifest_hash: str) -> None:
         sync_directory(destination)
 
 
-def verify_snapshot(source: Path) -> dict:
+def verify_snapshot(source: Path) -> Record:
     """Verify an immutable snapshot without opening a runtime or upgrading its schema."""
     source = source.absolute()
     manifest_path = safe_child(source, "manifest.json")

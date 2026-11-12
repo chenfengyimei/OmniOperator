@@ -7,14 +7,18 @@ from sqlalchemy import select
 from ...domain.contracts import BusinessError
 from ...domain.history import decode_cursor, encode_cursor
 from . import schema as s
+from typing import cast
+
+from ...application.ports import Record
+from ...domain.contracts import JSON
 from .repository_base import RepositoryBase
 
 
 class HistoryRepositories(RepositoryBase):
     def history_page(
         self, kind: str, agent_id: str = "", *, cursor: str = "", limit: int = 100, run_id: str = ""
-    ) -> dict:
-        if type(limit) is not int or not 1 <= limit <= 200 or not isinstance(cursor, str):
+    ) -> Record:
+        if type(limit) is not int or not 1 <= limit <= 200:
             raise BusinessError("invalid_history_query", "History page bounds are invalid", status=422)
         if kind not in {"events", "audit", "instance_audit"} or (run_id and kind != "events"):
             raise BusinessError("invalid_history_query", "Unknown history stream or filter", status=422)
@@ -71,7 +75,7 @@ class HistoryRepositories(RepositoryBase):
         items = rows[:limit]
         position = items[-1]["sequence"] if items else position
         return {
-            "items": items,
+            "items": cast(JSON, items),
             "next_cursor": encode_cursor(epoch, kind, scope_id, state["trim_revision"], position, filters=filters),
             "has_more": len(rows) > limit,
             "history_trimmed": state["deleted_count"] > 0,
