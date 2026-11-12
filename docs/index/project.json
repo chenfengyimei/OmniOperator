@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2848373215487f552c228a1fa479e3d973b5b165f8b8d43a0edc2bb7ee5ec9f1",
+  "source_sha256": "7a06ed00dcb0e9724b89a2b36b4d5e830bcc977b5b1e55de06035773ae3ed14d",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53207,
+      "lines": 53216,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -34356,7 +34356,7 @@
       "path": "agent/src/omni/adapters/workers/service_admin_boot.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.service_admin_boot",
-      "lines": 202,
+      "lines": 211,
       "imports": [
         "omni.adapters.platform.darwin_admin_commands",
         "omni.adapters.platform.darwin_admin_files",
@@ -34368,7 +34368,7 @@
       "symbols": [
         {
           "name": "canonical",
-          "line": 14,
+          "line": 15,
           "kind": "function",
           "parameters": [
             "value"
@@ -34379,7 +34379,7 @@
         },
         {
           "name": "strict_json",
-          "line": 18,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "data"
@@ -34390,16 +34390,18 @@
         },
         {
           "name": "strict_json.pairs",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "items"
           ],
-          "annotations": {}
+          "annotations": {
+            "items": "list[tuple[Any, Any]]"
+          }
         },
         {
           "name": "trusted",
-          "line": 34,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "path"
@@ -34410,7 +34412,7 @@
         },
         {
           "name": "read_owner_file",
-          "line": 41,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "path",
@@ -34425,7 +34427,7 @@
         },
         {
           "name": "validate_bundle",
-          "line": 76,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "root"
@@ -34436,20 +34438,20 @@
         },
         {
           "name": "validate_sources",
-          "line": 129,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "manifest",
             "operation"
           ],
           "annotations": {
-            "manifest": "dict",
-            "operation": "dict"
+            "manifest": "dict[str, Any]",
+            "operation": "dict[str, Any]"
           }
         },
         {
           "name": "main",
-          "line": 147,
+          "line": 156,
           "kind": "function",
           "parameters": [
             "argv"
