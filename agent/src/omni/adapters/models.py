@@ -7,6 +7,7 @@ import json
 import logging
 import os
 from collections.abc import Awaitable, Callable, Sequence
+from typing import Any, cast
 
 from ..application.ports import AsyncSecretPort, Record
 from ..domain.contracts import BusinessError, Invocation, ModelReply, ToolSpec
@@ -64,13 +65,14 @@ class LiteLLMModel:
             raise BusinessError(
                 "model_stream_capacity", "Model streaming transport admission is closed or full", status=503
             )
-        prepared = PreparedStream(
-            send, lambda payload: self._price(litellm.ModelResponse(**payload)), lambda: self._streams.discard(prepared)
-        )
+        def price(payload: dict[str, Any]) -> int | None:
+            return self._price(litellm.ModelResponse(**payload))
+
+        prepared = PreparedStream(send, price, lambda: self._streams.discard(prepared))
         self._streams.add(prepared)
         return prepared
 
-    def health(self) -> dict:
+    def health(self) -> dict[str, Any]:
         return {
             "enabled": True,
             "owned": len(self._streams),
@@ -79,7 +81,7 @@ class LiteLLMModel:
             "cleanup_pending": sum(s.cleanup_pending for s in self._streams),
         }
 
-    def stop_accepting(self):
+    def stop_accepting(self) -> None:
         self._closing = True
 
     async def close(self, timeout_s: float = 30) -> bool:
@@ -95,13 +97,15 @@ class LiteLLMModel:
                 return False
         return not self._streams
 
-    async def _prepare(self, messages: Sequence[Record], tools: Sequence[ToolSpec], settings: Settings) -> dict:
+    async def _prepare(
+        self, messages: Sequence[Record], tools: Sequence[ToolSpec], settings: Settings
+    ) -> dict[str, Any]:
         if os.environ.get("OMNI_TEST_OFFLINE") == "1":
             raise BusinessError("offline_model_denied", "Real model calls are disabled in offline tests")
         model = str(settings.get("model", ""))
         if not model:
             raise BusinessError("model_not_configured", "Choose a model first")
-        kwargs = {
+        kwargs: dict[str, Any] = {
             "model": model,
             "messages": list(messages),
             "timeout": 120,
@@ -131,7 +135,7 @@ class LiteLLMModel:
             )
         return kwargs
 
-    async def _send(self, kwargs: dict) -> ModelReply:
+    async def _send(self, kwargs: dict[str, Any]) -> ModelReply:
         import litellm
 
         try:
@@ -145,10 +149,12 @@ class LiteLLMModel:
             ) from exc
         if not isinstance(response, litellm.ModelResponse):
             raise BusinessError("invalid_model_response", "Expected a non-streaming model response", status=502)
-        payload = response.model_dump()
-        calls = []
+        # The vendor response is a pydantic model whose dump type is partially unknown here.
+        native: Any = response
+        payload: Any = native.model_dump()
+        calls: list[Invocation] = []
         message = payload["choices"][0]["message"]
-        for call in message.get("tool_calls") or []:
+        for call in cast(list[dict[str, Any]], message.get("tool_calls") or []):
             try:
                 arguments = json.loads(call["function"]["arguments"])
                 if not isinstance(arguments, dict):
@@ -157,9 +163,11 @@ class LiteLLMModel:
                 raise BusinessError(
                     "invalid_tool_arguments", "Model returned invalid tool arguments", status=502
                 ) from exc
-            calls.append(Invocation(str(call["id"]), str(call["function"]["name"]), arguments))
+            calls.append(
+                Invocation(str(call["id"]), str(call["function"]["name"]), cast(dict[str, Any], arguments))
+            )
         cost = self._price(response)
-        usage = payload.get("usage") or {}
+        usage: dict[str, Any] = payload.get("usage") or {}
         return ModelReply(
             message.get("content") or "",
             tuple(calls),
@@ -170,12 +178,12 @@ class LiteLLMModel:
         )
 
     @staticmethod
-    def _price(response) -> int | None:
+    def _price(response: Any) -> int | None:
         import litellm
 
         cost = None
         try:
-            price = litellm.completion_cost(completion_response=response)
+            price = cast(float | None, litellm.completion_cost(completion_response=response))
             if price is not None and price >= 0:
                 cost = max(1, round(price * 1_000_000)) if price > 0 else 0
         except Exception:  # noqa: BLE001 -- vendor price lookup can fail for unknown models

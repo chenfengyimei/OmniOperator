@@ -257,6 +257,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/database.py` | 单写者数据库 actor（隔离读连接、关闭与完整性检查） |
 | `agent/src/omni/adapters/persistence/qq_authority.py` | QQ 受众/凭据权威（上下文、模型与外发共用检查） |
 | `agent/src/omni/adapters/persistence/bilibili_authority.py` | Bilibili 发布/预览共用权威（读取、来源与形态校验） |
+| `agent/src/omni/adapters/models.py` | 异步模型适配器（凭据与厂商异常不出端口） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
