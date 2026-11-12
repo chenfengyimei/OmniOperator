@@ -259,6 +259,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/bilibili_authority.py` | Bilibili 发布/预览共用权威（读取、来源与形态校验） |
 | `agent/src/omni/adapters/models.py` | 异步模型适配器（凭据与厂商异常不出端口） |
 | `agent/src/omni/adapters/persistence/people_repository.py` | 人物与手工账号身份（个人文档复用记忆仓储） |
+| `agent/src/omni/adapters/workers/main.py` | 能力子进程入口（文件/命令/浏览器能力，不导入数据库或 Runtime） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

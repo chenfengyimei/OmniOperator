@@ -12,12 +12,12 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from playwright.async_api import Browser, BrowserContext, Page, Playwright
 
-from ...domain.contracts import ActionResult, Effect, Outcome
+from ...domain.contracts import JSON, ActionResult, Effect, Outcome
 from ..object_store import publish_file
 from .protocol import MAX_FRAME, encode_response
 from .protocol import request as decode_request
@@ -61,7 +61,7 @@ class Worker:
         self._contexts: dict[str, BrowserContext] = {}
         self._pages: dict[str, Page] = {}
 
-    async def invoke(self, name: str, args: dict, context: dict) -> ActionResult:
+    async def invoke(self, name: str, args: dict[str, Any], context: dict[str, Any]) -> ActionResult:
         effects = Effects()
         try:
             if name == "system_info":
@@ -95,10 +95,10 @@ class Worker:
                 error_code="capability_outcome_unknown" if effects.dispatched else "invalid_capability_request",
             )
 
-    def _files(self, name: str, args: dict, context: dict, effects: Effects) -> ActionResult:
+    def _files(self, name: str, args: dict[str, Any], context: dict[str, Any], effects: Effects) -> ActionResult:
         path = workspace_path(context["workspace"], str(args.get("path", ".")))
         if name == "files_list":
-            rows = []
+            rows: list[dict[str, Any]] = []
             for item in heapq.nsmallest(200, path.iterdir(), key=lambda p: p.name):
                 if item.is_symlink() or item.is_junction():
                     continue
@@ -111,7 +111,9 @@ class Worker:
                         "bytes": item.stat().st_size if item.is_file() else None,
                     }
                 )
-            return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data={"entries": rows})
+            return ActionResult(
+                Outcome.OK, json.dumps(rows, ensure_ascii=False), data={"entries": cast(list[JSON], rows)}
+            )
         if name == "files_read":
             if path.stat().st_size > 256 * 1024:
                 raise ValueError("File exceeds text read limit")
@@ -154,11 +156,13 @@ class Worker:
             return ActionResult(Outcome.OK, "File saved", Effect.APPLIED, verification=digest, data={"sha256": digest})
         raise ValueError("Unknown file capability")
 
-    async def _shell(self, args: dict, context: dict, effects: Effects) -> ActionResult:
-        argv = args.get("argv")
+    async def _shell(self, args: dict[str, Any], context: dict[str, Any], effects: Effects) -> ActionResult:
+        raw_argv = args.get("argv")
+        if not isinstance(raw_argv, list):
+            raise ValueError("Provide a bounded argv array; shell interpolation is not supported")
+        argv = cast(list[Any], raw_argv)
         if (
-            not isinstance(argv, list)
-            or not argv
+            not argv
             or len(argv) > 100
             or not all(isinstance(item, str) and "\0" not in item for item in argv)
         ):
@@ -166,14 +170,14 @@ class Worker:
         cwd = workspace_path(context["workspace"], str(args.get("cwd", ".")))
         effects.dispatched = True
         process = await asyncio.create_subprocess_exec(
-            *argv,
+            *cast(list[str], argv),
             cwd=cwd,
             stdin=asyncio.subprocess.DEVNULL,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
 
-        async def drain(stream):
+        async def drain(stream: asyncio.StreamReader) -> tuple[str, bool]:
             output = bytearray()
             truncated = False
             while data := await stream.read(8192):
@@ -182,6 +186,7 @@ class Worker:
                 output.extend(data[:remaining])
             return output.decode("utf-8", errors="replace"), truncated
 
+        assert process.stdout is not None and process.stderr is not None
         (stdout, stdout_truncated), (stderr, stderr_truncated) = await asyncio.gather(
             drain(process.stdout), drain(process.stderr)
         )
@@ -203,7 +208,7 @@ class Worker:
             },
         )
 
-    async def _web(self, name: str, args: dict, context: dict, effects: Effects) -> ActionResult:
+    async def _web(self, name: str, args: dict[str, Any], context: dict[str, Any], effects: Effects) -> ActionResult:
         from urllib.parse import urlsplit
 
         if self._playwright is None:
