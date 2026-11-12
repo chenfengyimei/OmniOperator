@@ -8,7 +8,7 @@
  "source": {
   "code_version": "2eb9a371f7e28bb9d9a03a455b53198b8fb42079400b77657bf14850578849dc",
   "fixed_source_files": 1200,
-  "git_head": "ffdcb4b",
+  "git_head": "9549929",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -157,10 +157,11 @@
    "Strict scope reaches 246 files (53 domain + 43 application + 150 adapters); the capability subprocess entry types its invoke/file/shell/browser handlers with dict[str, Any] args and context, casts argv and the file listing at the JSON boundary and asserts the piped subprocess streams; workspace, argv and dispatch rules are unchanged",
    "Strict scope reaches 247 files (53 domain + 43 application + 151 adapters); the audit deletion repository types its preview/candidate/target/plan receipts and the shared PruningCycle surface, casting the audit run id from JSON; identity preservation and business-ledger protection are unchanged",
    "Strict scope reaches 248 files (53 domain + 43 application + 152 adapters); the audit retention preview types its candidate cache, reference set and item list, keeping the runtime cursor/as-of type guards through cast(object, ...); the metadata-only read rule and business protections are unchanged",
-   "Strict scope reaches 249 files (53 domain + 43 application + 153 adapters); the MCP session host types its session port, handshake cache, call receipts, health report and before_send hook, and OAuthFlow's start/callback/health gain explicit payload types; generation replacement, capacity bounds and cleanup rules are unchanged"
+   "Strict scope reaches 249 files (53 domain + 43 application + 153 adapters); the MCP session host types its session port, handshake cache, call receipts, health report and before_send hook, and OAuthFlow's start/callback/health gain explicit payload types; generation replacement, capacity bounds and cleanup rules are unchanged",
+   "Strict scope reaches 256 files (53 domain + 43 application + 160 adapters); the seven adapter package markers (docstring-only __init__.py) join the scope so the adapter layer has no unlisted package files; no code changed in this batch"
   ],
   "pending": [
-   "application 43/44 and adapters 153/222 strict typing",
+   "application 43/44 and adapters 160/222 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -169,8 +170,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-136-callers.xml",
-   "tests": 22,
+   "report": "temp/build/v2-typecheck-137-callers.xml",
+   "tests": 8,
    "failures": 0
   },
   "targeted_reports": [
@@ -1405,6 +1406,15 @@
     "errors": 0,
     "duration_s": 33.26,
     "note": "one hundred thirty-sixth strict batch: guard + MCP host, OAuth and flow callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-137-callers.xml",
+    "sha256": "288b6afe568b5875bad48eea4de97e7dadb1685e1b342febbe4238f216b86e6c",
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 2.15,
+    "note": "one hundred thirty-seventh strict batch: guard + architecture callers (package markers, no code change)"
    }
   ],
   "gates": {
@@ -1416,7 +1426,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 249,
+    "filesAnalyzed": 256,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1508,6 +1518,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 153/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 160/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
