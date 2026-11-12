@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
@@ -61,14 +62,14 @@ def capability_report(inspector, error, installed, atspi_ready, x11, x11_ready, 
 
 
 async def perform(
-    request: dict,
+    request: dict[str, Any],
     *,
     ops: OpsPort | None = None,
     factory: FactoryPort | None = None,
-    x11_factory=X11Desktop,
-    monitor_factory=X11Input,
-    permit=None,
-) -> dict:
+    x11_factory: Any = X11Desktop,
+    monitor_factory: Any = X11Input,
+    permit: Callable[[], Awaitable[bool]] | None = None,
+) -> dict[str, Any]:
     inspector: SessionInspector | None = None
     error: str | None = None
     result: Any = None

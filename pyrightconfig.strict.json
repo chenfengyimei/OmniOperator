@@ -137,6 +137,7 @@
     "agent/src/omni/adapters/workers/credentials.py",
     "agent/src/omni/adapters/workers/darwin_admin_probe.py",
     "agent/src/omni/adapters/workers/desktop.py",
+    "agent/src/omni/adapters/workers/linux_action.py",
     "agent/src/omni/adapters/workers/protocol.py",
     "agent/src/omni/adapters/workers/service_admin_boot.py",
     "agent/src/omni/adapters/workers/terminal.py",

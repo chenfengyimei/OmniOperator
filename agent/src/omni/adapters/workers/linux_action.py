@@ -6,6 +6,8 @@ import asyncio
 import json
 import os
 import sys
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from ...domain.contracts import BusinessError
 from ...domain.desktop_actions import linux_ready
@@ -13,12 +15,12 @@ from .desktop import MAX_FRAME, decode, encode, frame_data
 from .linux_desktop import perform
 
 
-async def run(reader: asyncio.StreamReader, send, **injected) -> int:
+async def run(reader: asyncio.StreamReader, send: Callable[[bytes], Awaitable[None]], **injected: Any) -> int:
     initial = await reader.readline()
     request = decode(initial)
     linux_ready(request)
 
-    async def authorize():
+    async def authorize() -> bool:
         await send(json.dumps(linux_ready(request), separators=(",", ":")).encode() + b"\n")
         try:
             async with asyncio.timeout(1):
@@ -41,7 +43,7 @@ async def pipe_main() -> int:
     descriptor = sys.stdout.fileno()
     os.set_blocking(descriptor, False)
 
-    async def send(data):
+    async def send(data: bytes) -> None:
         async with asyncio.timeout(1):
             pending = memoryview(data)
             while pending:
