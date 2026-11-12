@@ -65,7 +65,7 @@ class WindowsDesktop:
         self.kernel = ctypes.WinDLL("kernel32", use_last_error=True)
         self.security = ctypes.WinDLL("advapi32", use_last_error=True)
         self.wts = ctypes.WinDLL("wtsapi32", use_last_error=True)
-        signatures = {
+        signatures: dict[str, tuple[list[Any], Any]] = {
             "GetProcessWindowStation": ([], w.HANDLE),
             "GetThreadDesktop": ([w.DWORD], w.HANDLE),
             "GetUserObjectInformationW": (
@@ -83,7 +83,7 @@ class WindowsDesktop:
             fn.argtypes, fn.restype = arguments, result
         self.callback_type = ctypes.WINFUNCTYPE(w.BOOL, w.HWND, w.LPARAM)
         self.user.EnumWindows.argtypes, self.user.EnumWindows.restype = [self.callback_type, w.LPARAM], w.BOOL
-        signatures = {
+        signatures: dict[str, tuple[list[Any], Any]] = {
             "GetCurrentProcessId": ([], w.DWORD),
             "GetCurrentThreadId": ([], w.DWORD),
             "GetCurrentProcess": ([], w.HANDLE),
@@ -122,7 +122,7 @@ class WindowsDesktop:
             raise OSError("Session identity unavailable")
         return value.value
 
-    def _sid(self, process) -> bytes:
+    def _sid(self, process: int) -> bytes:
         token, size = self.w.HANDLE(), self.w.DWORD()
         if not self.security.OpenProcessToken(process, 0x8, ctypes.byref(token)):
             raise OSError("Process owner unavailable")
@@ -141,7 +141,7 @@ class WindowsDesktop:
         finally:
             self.kernel.CloseHandle(token)
 
-    def _name(self, handle) -> str:
+    def _name(self, handle: int) -> str:
         buffer, needed = ctypes.create_unicode_buffer(256), self.w.DWORD()
         if not handle or not self.user.GetUserObjectInformationW(
             handle, 2, buffer, ctypes.sizeof(buffer), ctypes.byref(needed)
@@ -201,7 +201,7 @@ class WindowsDesktop:
         finally:
             self.user.CloseDesktop(input_desktop)
 
-    def _created(self, process) -> float:
+    def _created(self, process: int) -> float:
         created, exited, kernel, user = (self.w.FILETIME() for _ in range(4))
         if not self.kernel.GetProcessTimes(
             process, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel), ctypes.byref(user)
@@ -254,9 +254,10 @@ class WindowsDesktop:
         if self.session()["kind"] != "interactive":
             raise OSError("Interactive desktop is unavailable")
         identity = self.session_identity
-        items, scanned, truncated = [], 0, False
+        items: list[Record] = []
+        scanned, truncated = 0, False
 
-        def callback(hwnd, _parameter):
+        def callback(hwnd: int, _parameter: int) -> bool:
             nonlocal scanned, truncated
             scanned += 1
             if scanned > 4096:

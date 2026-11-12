@@ -15,7 +15,7 @@ import sys
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import httpx
 import psutil
@@ -45,7 +45,7 @@ def _decode(content: bytes) -> dict[str, Any]:
     value = json.loads(content, object_pairs_hook=pairs, parse_constant=constant)
     if not isinstance(value, dict):
         raise ValueError("Readiness proof must be an object")
-    return value
+    return cast(dict[str, Any], value)
 
 
 def _preflight(plan: dict[str, Any]) -> tuple[dict[str, Any], bytes, str]:
@@ -115,24 +115,26 @@ def verify_proof(proof: dict[str, Any], identity: dict[str, Any], challenge: str
     if set(proof) != {"identity", "challenge", "signature"} or proof["challenge"] != challenge:
         raise BusinessError("service_response_invalid", "Readiness response challenge or fields differ")
     report = proof["identity"]
+    if not isinstance(report, dict):
+        raise BusinessError("service_response_invalid", "Readiness response shape is invalid")
+    checked = cast(dict[str, Any], report)
     if (
-        not isinstance(report, dict)
-        or set(report) != {*READINESS_FIELDS, "ready"}
-        or type(report["ready"]) is not bool
+        set(checked) != {*READINESS_FIELDS, "ready"}
+        or type(checked["ready"]) is not bool
         or not isinstance(proof["signature"], str)
         or re.fullmatch(r"[a-f0-9]{64}", proof["signature"]) is None
     ):
         raise BusinessError("service_response_invalid", "Readiness response shape is invalid")
     if any(
-        report[name] != identity.get(name) or type(report[name]) is not type(identity.get(name))
+        checked[name] != identity.get(name) or type(checked[name]) is not type(identity.get(name))
         for name in READINESS_FIELDS
     ):
         raise BusinessError("service_identity_mismatch", "Readiness response belongs to another boot or program")
-    expected = canonical_proof(report, challenge, key)
+    expected = canonical_proof(checked, challenge, key)
     expected_signature = expected["signature"]
     if not isinstance(expected_signature, str) or not hmac.compare_digest(proof["signature"], expected_signature):
         raise BusinessError("service_signature_invalid", "Readiness signature does not prove this private boot")
-    return {**{name: report[name] for name in READINESS_FIELDS}, "ready": report["ready"], "error_code": None}
+    return {**{name: checked[name] for name in READINESS_FIELDS}, "ready": checked["ready"], "error_code": None}
 
 
 class ServiceReadiness:
@@ -157,7 +159,7 @@ class ServiceReadiness:
         if self._closing or len(self._tasks) >= MAX_PROBES or len(self._pending) >= MAX_PROBES:
             return {"ready": False, "error_code": "service_probe_busy"}
         checked = validate_plan(plan)
-        if checked["runtime"]["platform"] != sys.platform:
+        if cast(dict[str, Any], checked["runtime"])["platform"] != sys.platform:
             return {"ready": False, "error_code": "service_target_unsupported"}
         deadline = asyncio.get_running_loop().time() + PROBE_SECONDS
         task = asyncio.create_task(self._probe(checked, deadline), name="service-readiness-proof")
@@ -245,7 +247,9 @@ class ServiceReadiness:
                     raise BusinessError("service_control_boot_changed", "The reviewed boot is no longer running")
                 challenge = secrets.token_hex(32)
 
-                async def response_json(client, method, path, **kwargs):
+                async def response_json(
+                    client: httpx.AsyncClient, method: str, path: str, **kwargs: Any
+                ) -> dict[str, Any]:
                     async with client.stream(
                         method, origin + path, headers={"Accept-Encoding": "identity"}, **kwargs
                     ) as response:
@@ -298,5 +302,6 @@ class ServiceReadiness:
             self._executor.shutdown(wait=False)
             self._closed = True
         return True
+
 
 decode = _decode

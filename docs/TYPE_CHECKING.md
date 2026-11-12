@@ -148,6 +148,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/service_admin.py` | Linux 系统服务注册/启动代理（不执行属主代码、不触业务库） |
 | `agent/src/omni/adapters/platform/darwin_admin_probe.py` | macOS 管理员原生只读探测（CoreFoundation/SM 有界读取） |
 | `agent/src/omni/adapters/platform/linux_x11_wire.py` | X11 只读线上协议（已校验套接字，无发现/输入/重连） |
+| `agent/src/omni/adapters/platform/service_readiness.py` | 每次启动的 HMAC 就绪证明（不读不传属主凭据） |
+| `agent/src/omni/adapters/platform/desktop_native.py` | Windows 桌面只读诊断与进程/窗口身份（不读界面内容） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |
