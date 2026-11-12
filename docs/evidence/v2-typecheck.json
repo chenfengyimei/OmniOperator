@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "188315eff3e55adbede50f6eaac573fa9658e7722d4875a9a0f47861d09212e8",
+  "code_version": "d8b1102d5fb5847cbdb880ff8733e3d1a2acd2b2e67fb2a2c6cca2bd22094137",
   "fixed_source_files": 1200,
-  "git_head": "b425f7d",
+  "git_head": "44eaa19",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -119,10 +119,11 @@
    "Strict scope reaches 190 files (53 domain + 43 application + 94 adapters); service_launch uses public deployment-file bridges and Record-typed activation/deployment bindings, keeping the once-only reservation, instance lock and no-process-start semantics",
    "Strict scope reaches 191 files (53 domain + 43 application + 95 adapters); the frozen v0003 migration types its hashing helpers and legacy context rows without changing the frozen schema or backfill semantics",
    "Strict scope reaches 194 files (53 domain + 43 application + 98 adapters); process ownership types its spawn options explicitly and the desktop/service-query consumers narrow nested frames item by item without changing bounds, approval or unknown semantics",
-   "Strict scope reaches 196 files (53 domain + 43 application + 100 adapters); the offline audit and event pruning bindings type their plan callbacks through UnitOfWork and cast Record plans at the domain boundary without changing plan, backup or cancellation semantics"
+   "Strict scope reaches 196 files (53 domain + 43 application + 100 adapters); the offline audit and event pruning bindings type their plan callbacks through UnitOfWork and cast Record plans at the domain boundary without changing plan, backup or cancellation semantics",
+   "Strict scope reaches 197 files (53 domain + 43 application + 101 adapters); the worker client types its stderr drain task, narrows host-callback frames item by item and shares one empty host-context mapping without changing callback budgets, capability checks or unknown-outcome semantics"
   ],
   "pending": [
-   "application 43/44 and adapters 100/215 strict typing",
+   "application 43/44 and adapters 101/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -131,8 +132,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-98-callers.xml",
-   "tests": 112,
+   "report": "temp/build/v2-typecheck-99-callers.xml",
+   "tests": 51,
    "failures": 0
   },
   "targeted_reports": [
@@ -1025,6 +1026,15 @@
     "errors": 0,
     "duration_s": 44.1,
     "note": "ninety-eighth strict batch: guard + offline audit/event pruning and plan contracts"
+   },
+   {
+    "path": "temp/build/v2-typecheck-99-callers.xml",
+    "sha256": "05631a31b9dbdadce792b14fd9d6bc527dea3b6d33486b5eadabe06b990d605a",
+    "tests": 51,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 6.42,
+    "note": "ninety-ninth strict batch: guard + worker client/host callback callers"
    }
   ],
   "gates": {
@@ -1036,7 +1046,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 196,
+    "filesAnalyzed": 197,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1100,6 +1110,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 100/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 101/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }

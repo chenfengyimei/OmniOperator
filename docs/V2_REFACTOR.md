@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与 application/adapters 模块，当前为 **196 个文件**（53 个 domain + 43 个 application + 100 个 adapters；逐文件清单见 `docs/TYPE_CHECKING.md`），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与 application/adapters 模块，当前为 **197 个文件**（53 个 domain + 43 个 application + 101 个 adapters；逐文件清单见 `docs/TYPE_CHECKING.md`），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -265,7 +265,9 @@ D7 显式清理节点：`installation uninstall --purge-data` 在实例空闲时
 
 第九十七批收敛并纳入进程所有权、桌面辅助与服务查询（`spawn` 选项显式化，桌面与服务查询逐项收敛嵌套帧，输出上限、两阶段授权与未知语义不变）；九十七批专项全过。
 
-第九十八批收敛并纳入离线审计/事件裁剪绑定（计划回调经 `UnitOfWork` 显式类型化，`Record` 计划在域边界转换，计划、备份与取消语义不变）；九十八批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第九十八批收敛并纳入离线审计/事件裁剪绑定（计划回调经 `UnitOfWork` 显式类型化，`Record` 计划在域边界转换，计划、备份与取消语义不变）；九十八批专项全过。
+
+第九十九批收敛并纳入工作进程客户端（stderr 排空任务参数化、宿主回调帧逐项收敛、空宿主上下文共享常量，回调预算、能力校验与未知语义不变）；九十九批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 

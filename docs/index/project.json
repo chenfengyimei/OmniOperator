@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "bc1b8327a146ddc22eb1a7d629636dc54dec00fdbcdaefe15be2bbfbcad50eee",
+  "source_sha256": "3019cc230af1beeeb6759a304b8c316dcbe3a3b1e60e062ed4ed096dc042781c",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52867,
+      "lines": 52869,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -32735,7 +32735,7 @@
       "path": "agent/src/omni/adapters/workers/client.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.client",
-      "lines": 356,
+      "lines": 358,
       "imports": [
         "omni.adapters.platform.processes",
         "omni.adapters.workers.protocol",
@@ -32744,12 +32744,12 @@
       "symbols": [
         {
           "name": "WorkerClient",
-          "line": 26,
+          "line": 28,
           "kind": "class"
         },
         {
           "name": "WorkerClient.__init__",
-          "line": 27,
+          "line": 29,
           "kind": "function",
           "parameters": [
             "self",
@@ -32773,7 +32773,7 @@
         },
         {
           "name": "WorkerClient._drain_errors",
-          "line": 62,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -32785,7 +32785,7 @@
         },
         {
           "name": "WorkerClient._spawn",
-          "line": 78,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self"
@@ -32794,7 +32794,7 @@
         },
         {
           "name": "WorkerClient._start",
-          "line": 123,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self"
@@ -32803,7 +32803,7 @@
         },
         {
           "name": "WorkerClient._reclaim_actual",
-          "line": 148,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -32815,7 +32815,7 @@
         },
         {
           "name": "WorkerClient._reclaim",
-          "line": 173,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self",
@@ -32827,7 +32827,7 @@
         },
         {
           "name": "WorkerClient.cleanup_pending",
-          "line": 188,
+          "line": 187,
           "kind": "function",
           "parameters": [
             "self"
@@ -32836,7 +32836,7 @@
         },
         {
           "name": "WorkerClient.health",
-          "line": 199,
+          "line": 198,
           "kind": "function",
           "parameters": [
             "self"
@@ -32845,7 +32845,7 @@
         },
         {
           "name": "WorkerClient.review_quiescent",
-          "line": 209,
+          "line": 208,
           "kind": "function",
           "parameters": [
             "self"
@@ -32854,7 +32854,7 @@
         },
         {
           "name": "WorkerClient.invoke",
-          "line": 216,
+          "line": 215,
           "kind": "function",
           "parameters": [
             "self",
@@ -32876,7 +32876,7 @@
         },
         {
           "name": "WorkerClient._host_callback",
-          "line": 304,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -32888,7 +32888,7 @@
           ],
           "annotations": {
             "process": "asyncio.subprocess.Process",
-            "frame": "dict",
+            "frame": "dict[str, object]",
             "host_context": "Mapping[str, JSON]",
             "budget": "dict[str, int]",
             "logs": "list[str]"
@@ -32896,7 +32896,7 @@
         },
         {
           "name": "WorkerClient.close",
-          "line": 353,
+          "line": 355,
           "kind": "function",
           "parameters": [
             "self",
