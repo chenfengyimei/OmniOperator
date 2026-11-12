@@ -14,11 +14,11 @@ import threading
 import time
 import traceback
 import uuid
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Generator, Mapping, Sequence
 from contextlib import contextmanager
 from itertools import islice
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from opentelemetry import trace
 
@@ -33,7 +33,7 @@ SECRET_KEY = re.compile(
 
 
 @contextmanager
-def bind_context(**fields: str) -> Iterator[None]:
+def bind_context(**fields: str) -> Generator[None, None, None]:
     token = _context.set({**_context.get(), **{k: v[:200] for k, v in fields.items() if k in CONTEXT_FIELDS}})
     try:
         yield
@@ -92,19 +92,19 @@ class Redactor:
         if depth > 6:
             return "[depth_limit]"
         if isinstance(value, Mapping):
-            result = {}
-            for key, item in islice(value.items(), 100):
+            mapped: dict[str, Any] = {}
+            for key, item in islice(cast(Mapping[Any, Any], value).items(), 100):
                 if budget[0] <= 0 or budget[1] <= 0:
                     break
                 original_key = str(key)
                 safe_key = self.text(original_key)[: min(100, budget[1])]
                 budget[1] -= len(safe_key)
-                result[safe_key] = (
+                mapped[safe_key] = (
                     "[redacted]" if SECRET_KEY.search(original_key) else self.value(item, depth + 1, budget)
                 )
-            return result
+            return mapped
         if isinstance(value, (tuple, list)):
-            return [self.value(v, depth + 1, budget) for v in value[:100] if budget[0] > 0]
+            return [self.value(v, depth + 1, budget) for v in cast(Sequence[Any], value)[:100] if budget[0] > 0]
         if isinstance(value, str):
             result = self.text(value)[: budget[1]]
             budget[1] -= len(result)
@@ -185,7 +185,7 @@ class JsonLogSink(logging.Handler):
                 # Exception values, source lines and locals may contain full model
                 # requests. Keep frame locations and types, never their payloads.
                 kind, _value, tb = record.exc_info
-                frames = traceback.extract_tb(tb, limit=20) if tb else []
+                frames: list[traceback.FrameSummary] = list(traceback.extract_tb(tb, limit=20)) if tb else []
                 entry["exception"] = self.redactor.text(
                     (kind.__name__ if kind else "Exception")
                     + "\n"
@@ -256,7 +256,7 @@ class JsonLogSink(logging.Handler):
         with paths[0].open("ab") as stream:
             stream.write(payload)
 
-    def maintenance(self) -> dict:
+    def maintenance(self) -> dict[str, Any]:
         """Expire only named runtime segments even when no new log event arrives."""
         if self.stderr_only:
             return {"available": False, "reason": "logs_external"}
@@ -264,7 +264,7 @@ class JsonLogSink(logging.Handler):
             if self.directory.is_symlink() or self.directory.is_junction():
                 raise OSError("Log directory is a link")
             paths = [self.directory / ("runtime.jsonl" + (f".{n}" if n else "")) for n in range(self.segments)]
-            expired = []
+            expired: list[Path] = []
             cutoff = time.time() - self.age_days * 86400
             for path in paths:
                 if path.is_symlink() or path.is_junction():
@@ -306,7 +306,7 @@ class JsonLogSink(logging.Handler):
             finally:
                 self.queue.task_done()
 
-    def snapshot(self) -> dict:
+    def snapshot(self) -> dict[str, Any]:
         return {
             "queued": self.queue.qsize(),
             "dropped": self.dropped,

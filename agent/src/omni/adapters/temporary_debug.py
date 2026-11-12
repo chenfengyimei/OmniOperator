@@ -15,6 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from itertools import islice
 from pathlib import Path
+from typing import Any
 
 from ..domain.contracts import JSON, BusinessError, Outcome
 from .metrics import OPERATIONS
@@ -66,7 +67,7 @@ class TemporaryDebug:
         if self._active and self._clock() >= self._until:
             self._finish("expired")
 
-    def _snapshot(self) -> dict:
+    def _snapshot(self) -> dict[str, Any]:
         self._expire()
         return {
             "active": self._active,
@@ -89,7 +90,7 @@ class TemporaryDebug:
         with self._lock:
             return self._snapshot()
 
-    def stop(self, reason: str = "owner_stopped") -> dict:
+    def stop(self, reason: str = "owner_stopped") -> dict[str, Any]:
         with self._lock:
             self._activation_epoch += 1
             if reason == "runtime_shutdown":
@@ -145,7 +146,7 @@ class TemporaryDebug:
                 self._retained = retained
                 return {**self._snapshot(), "removed_files": removed}
 
-    def start(self, agent_id: str, operation_id: str, duration_s: int, byte_limit: int = MAX_BYTES) -> dict:
+    def start(self, agent_id: str, operation_id: str, duration_s: int, byte_limit: int = MAX_BYTES) -> dict[str, Any]:
         if (
             not isinstance(agent_id, str)
             or not isinstance(operation_id, str)
@@ -199,7 +200,7 @@ class TemporaryDebug:
                 self._revision += 1
                 return self._snapshot()
 
-    def admit(self, metadata: dict) -> DebugEnvelope | None:
+    def admit(self, metadata: dict[str, Any]) -> DebugEnvelope | None:
         with self._lock:
             self._expire()
             if not self._active or metadata.get("agent_id") != self._agent:
