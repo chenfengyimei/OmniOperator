@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "30459f47dacb4f65fa8f9fd3895dd5dce36c8f3d8dcc85c6708664ec6ff9d300",
+  "source_sha256": "41b996106a12e9f42af53fd9897418c1fac9a0d7e6a22cf66d7c65b04b857a4d",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52891,
+      "lines": 52897,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -23530,7 +23530,7 @@
       "path": "agent/src/omni/adapters/platform/desktop_native.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop_native",
-      "lines": 492,
+      "lines": 493,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.desktop"
@@ -23591,7 +23591,9 @@
             "self",
             "process"
           ],
-          "annotations": {}
+          "annotations": {
+            "process": "int"
+          }
         },
         {
           "name": "WindowsDesktop._name",
@@ -23601,7 +23603,9 @@
             "self",
             "handle"
           ],
-          "annotations": {}
+          "annotations": {
+            "handle": "int"
+          }
         },
         {
           "name": "WindowsDesktop.session",
@@ -23625,7 +23629,9 @@
             "self",
             "process"
           ],
-          "annotations": {}
+          "annotations": {
+            "process": "int"
+          }
         },
         {
           "name": "WindowsDesktop._window",
@@ -23653,17 +23659,20 @@
         },
         {
           "name": "WindowsDesktop.targets.callback",
-          "line": 259,
+          "line": 260,
           "kind": "function",
           "parameters": [
             "hwnd",
             "_parameter"
           ],
-          "annotations": {}
+          "annotations": {
+            "hwnd": "int",
+            "_parameter": "int"
+          }
         },
         {
           "name": "WindowsDesktop.verify",
-          "line": 285,
+          "line": 286,
           "kind": "function",
           "parameters": [
             "self",
@@ -23675,21 +23684,21 @@
         },
         {
           "name": "_macos",
-          "line": 306,
+          "line": 307,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "probe",
-          "line": 396,
+          "line": 397,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "targets",
-          "line": 481,
+          "line": 482,
           "kind": "function",
           "parameters": [
             "limit"
@@ -23700,7 +23709,7 @@
         },
         {
           "name": "verify",
-          "line": 487,
+          "line": 488,
           "kind": "function",
           "parameters": [
             "target"
@@ -29921,7 +29930,7 @@
       "path": "agent/src/omni/adapters/platform/service_readiness.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_readiness",
-      "lines": 302,
+      "lines": 307,
       "imports": [
         "omni.adapters.platform.runtime_identity",
         "omni.application.ports",
@@ -29993,12 +30002,12 @@
         },
         {
           "name": "ServiceReadiness",
-          "line": 138,
+          "line": 140,
           "kind": "class"
         },
         {
           "name": "ServiceReadiness.__init__",
-          "line": 139,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self"
@@ -30007,7 +30016,7 @@
         },
         {
           "name": "ServiceReadiness.health",
-          "line": 145,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self"
@@ -30016,7 +30025,7 @@
         },
         {
           "name": "ServiceReadiness.stop_accepting",
-          "line": 153,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self"
@@ -30025,7 +30034,7 @@
         },
         {
           "name": "ServiceReadiness.probe",
-          "line": 156,
+          "line": 158,
           "kind": "function",
           "parameters": [
             "self",
@@ -30037,7 +30046,7 @@
         },
         {
           "name": "ServiceReadiness.probe.finished",
-          "line": 166,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "done"
@@ -30048,7 +30057,7 @@
         },
         {
           "name": "ServiceReadiness._probe",
-          "line": 174,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self",
@@ -30062,7 +30071,7 @@
         },
         {
           "name": "ServiceReadiness.drain",
-          "line": 224,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -30074,7 +30083,7 @@
         },
         {
           "name": "ServiceReadiness._drain",
-          "line": 234,
+          "line": 236,
           "kind": "function",
           "parameters": [
             "self",
@@ -30086,7 +30095,7 @@
         },
         {
           "name": "ServiceReadiness.close",
-          "line": 288,
+          "line": 292,
           "kind": "function",
           "parameters": [
             "self",
