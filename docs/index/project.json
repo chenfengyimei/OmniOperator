@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "21d66ef760e62cbf38e14f110741a67b0261e9e876a69bc6e9f108664f8dec97",
+  "source_sha256": "cc8e36e09c36221ac04063ef330f58b86a5f36cf7c5e5461ce2e59f7db30cacd",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52914,
+      "lines": 52919,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -9688,7 +9688,7 @@
       "path": "agent/src/omni/adapters/media.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.media",
-      "lines": 189,
+      "lines": 192,
       "imports": [
         "omni.adapters.platform.processes",
         "omni.domain.contracts",
@@ -9697,12 +9697,12 @@
       "symbols": [
         {
           "name": "MediaProcessor",
-          "line": 25,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "MediaProcessor.__init__",
-          "line": 33,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "self",
@@ -9714,7 +9714,7 @@
         },
         {
           "name": "MediaProcessor.status",
-          "line": 41,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "self"
@@ -9723,7 +9723,7 @@
         },
         {
           "name": "MediaProcessor._spawn",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self"
@@ -9732,7 +9732,7 @@
         },
         {
           "name": "MediaProcessor._terminate",
-          "line": 74,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self",
@@ -9744,7 +9744,7 @@
         },
         {
           "name": "MediaProcessor._request",
-          "line": 87,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -9754,13 +9754,13 @@
           ],
           "annotations": {
             "operation": "str",
-            "payload": "dict",
+            "payload": "dict[str, object]",
             "budget_s": "float"
           }
         },
         {
           "name": "MediaProcessor.probe",
-          "line": 143,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self"
@@ -9769,7 +9769,7 @@
         },
         {
           "name": "MediaProcessor.transcribe",
-          "line": 148,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -9780,12 +9780,12 @@
           "annotations": {
             "audio": "Path",
             "output": "Path",
-            "plan": "dict"
+            "plan": "dict[str, object]"
           }
         },
         {
           "name": "MediaProcessor.frames",
-          "line": 161,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -9803,7 +9803,7 @@
         },
         {
           "name": "MediaProcessor.stop_accepting",
-          "line": 169,
+          "line": 172,
           "kind": "function",
           "parameters": [
             "self"
@@ -9812,7 +9812,7 @@
         },
         {
           "name": "MediaProcessor.close",
-          "line": 172,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self",
@@ -32929,7 +32929,7 @@
       "path": "agent/src/omni/adapters/workers/credentials.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.credentials",
-      "lines": 74,
+      "lines": 76,
       "imports": [
         "omni.adapters.platform.secrets",
         "omni.domain.contracts",
@@ -32938,30 +32938,35 @@
       "symbols": [
         {
           "name": "perform",
-          "line": 12,
+          "line": 14,
           "kind": "function",
           "parameters": [
             "query",
             "store"
           ],
           "annotations": {
-            "query": "dict"
+            "query": "dict[str, object]",
+            "store": "Any"
           }
         },
         {
           "name": "run",
-          "line": 40,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "reader",
             "writer",
             "factory"
           ],
-          "annotations": {}
+          "annotations": {
+            "reader": "BinaryIO",
+            "writer": "BinaryIO",
+            "factory": "Callable[[str], Any] | None"
+          }
         },
         {
           "name": "main",
-          "line": 60,
+          "line": 62,
           "kind": "function",
           "parameters": [],
           "annotations": {}

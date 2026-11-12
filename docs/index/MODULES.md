@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`21d66ef760e62cbf38e14f110741a67b0261e9e876a69bc6e9f108664f8dec97`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`cc8e36e09c36221ac04063ef330f58b86a5f36cf7c5e5461ce2e59f7db30cacd`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -156,7 +156,7 @@
 | [agent/src/omni/adapters/mcp/http.py](../../agent/src/omni/adapters/mcp/http.py) | 299 | Bounded Streamable HTTP JSON-RPC transport with explicit bearer/OAuth tokens. |
 | [agent/src/omni/adapters/mcp/oauth.py](../../agent/src/omni/adapters/mcp/oauth.py) | 480 | Explicit MCP OAuth 2.0 authorization-code flow with PKCE, state and a vault token store. |
 | [agent/src/omni/adapters/mcp/stdio.py](../../agent/src/omni/adapters/mcp/stdio.py) | 301 | Bounded JSON-RPC over one owned stdio process per MCP server generation. |
-| [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 189 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |
+| [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 192 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |
 | [agent/src/omni/adapters/metrics.py](../../agent/src/omni/adapters/metrics.py) | 92 | Fixed-cardinality in-process measurements; never stores request identities or text. |
 | [agent/src/omni/adapters/model_stream.py](../../agent/src/omni/adapters/model_stream.py) | 236 | One-shot LiteLLM chat stream with verified async upstream close; no persistence or global runtime. |
 | [agent/src/omni/adapters/models.py](../../agent/src/omni/adapters/models.py) | 185 | Async model adapter. Credentials and vendor exceptions do not cross the port. |
@@ -344,7 +344,7 @@
 | [agent/src/omni/adapters/workers/android_unicode.py](../../agent/src/omni/adapters/workers/android_unicode.py) | 295 | Fixed IME transaction and authenticated localabstract IPC; no database or arbitrary shell. |
 | [agent/src/omni/adapters/workers/bilibili.py](../../agent/src/omni/adapters/workers/bilibili.py) | 481 | One isolated Bilibili browser transaction; no database, arbitrary script, API writes or persisted cookies. |
 | [agent/src/omni/adapters/workers/client.py](../../agent/src/omni/adapters/workers/client.py) | 358 | Versioned, bounded JSON IPC to a supervised capability process. |
-| [agent/src/omni/adapters/workers/credentials.py](../../agent/src/omni/adapters/workers/credentials.py) | 74 | Fixed one-operation OS credential helper; no database, config lookup or plaintext fallback. |
+| [agent/src/omni/adapters/workers/credentials.py](../../agent/src/omni/adapters/workers/credentials.py) | 76 | Fixed one-operation OS credential helper; no database, config lookup or plaintext fallback. |
 | [agent/src/omni/adapters/workers/darwin_admin_probe.py](../../agent/src/omni/adapters/workers/darwin_admin_probe.py) | 45 | Root bundle's fixed read-only system probe. Never imported from an owner environment. |
 | [agent/src/omni/adapters/workers/desktop.py](../../agent/src/omni/adapters/workers/desktop.py) | 132 | One bounded read-only desktop request per helper; stdout is IPC and never contains diagnostics. |
 | [agent/src/omni/adapters/workers/linux_action.py](../../agent/src/omni/adapters/workers/linux_action.py) | 77 | One prepared Linux semantic action; the initial frame never permits a write, and no provider text is logged. |
