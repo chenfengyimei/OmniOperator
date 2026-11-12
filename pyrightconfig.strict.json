@@ -59,6 +59,7 @@
     "agent/src/omni/adapters/persistence/offline_plans.py",
     "agent/src/omni/adapters/persistence/operations_repository.py",
     "agent/src/omni/adapters/persistence/reference_release.py",
+    "agent/src/omni/adapters/persistence/releases.py",
     "agent/src/omni/adapters/persistence/repository_base.py",
     "agent/src/omni/adapters/persistence/retention_repository.py",
     "agent/src/omni/adapters/persistence/schema_upgrade.py",

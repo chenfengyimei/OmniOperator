@@ -6,13 +6,14 @@ import hashlib
 import os
 import stat
 from pathlib import Path
+from typing import Any, Literal, cast
 
 from ...domain.contracts import BusinessError
 from ...domain.releases import ReleasePlan, ReleasePrepared, ReleaseSnapshot, digest
-from ..platform.deployment_files import _no_links
+from ..platform.deployment_files import no_links
 from ..platform.release_files import ReleaseFiles
 from .deployed_instance import verify_deployed_instance
-from .maintenance import _restore_verified, create_snapshot, fingerprint, safe_child, verify_snapshot
+from .maintenance import create_snapshot, fingerprint, restore_verified, safe_child, verify_snapshot
 from .object_inventory import verify_objects
 from .schema_upgrade import route, upgrade_target
 
@@ -21,9 +22,9 @@ def failed(code: str) -> BusinessError:
     return BusinessError(code, "Release data changed or is incomplete; preserve it and prepare a new reviewed release")
 
 
-def database_witness(home: Path) -> list[dict]:
+def database_witness(home: Path) -> list[dict[str, Any]]:
     """Main/WAL/journal bytes are a conservative continuity proof, never a copy or a live-state restore."""
-    rows = []
+    rows: list[dict[str, Any]] = []
     for name in ("omni.db", "omni.db-wal", "omni.db-journal"):
         path = safe_child(home, "data/" + name)
         if not path.exists():
@@ -38,7 +39,10 @@ def database_witness(home: Path) -> list[dict]:
             while block := stream.read(1048576):
                 proof.update(block)
             after = os.fstat(stream.fileno())
-        fields = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink)
+
+        def fields(info: os.stat_result) -> tuple[int, int, int, int, int]:
+            return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink
+
         if fields(before) != fields(after) or fields(after) != fields(path.stat(follow_symlinks=False)):
             raise failed("release_database_changed")
         rows.append({"path": name, "sha256": proof.hexdigest(), "bytes": before.st_size})
@@ -49,7 +53,7 @@ class ReleaseData:
     def __init__(self, files: ReleaseFiles) -> None:
         self.files = files
 
-    def schema_upgrade(self, source: dict, target: dict) -> dict:
+    def schema_upgrade(self, source: dict[str, object], target: dict[str, object]) -> dict[str, object]:
         return route(source, target)
 
     def source(self, plan: ReleasePlan) -> None:
@@ -66,7 +70,7 @@ class ReleaseData:
             schema_version=plan["source"]["runtime"]["schema_head"],
         )
 
-    def witness(self, plan: ReleasePlan, side: str) -> list[dict]:
+    def witness(self, plan: ReleasePlan, side: Literal["source", "target"]) -> list[dict[str, Any]]:
         self.files.owned(plan)
         home = self.files.homes(plan)[0 if side == "source" else 1]
         # SQLite's read-only identity probe may create an empty WAL. Establish
@@ -85,7 +89,7 @@ class ReleaseData:
         ):
             raise failed("release_recovery_source_changed")
         destination = Path(plan["paths"]["backup"])
-        _no_links(destination)
+        no_links(destination)
         create_snapshot(source.database, source.objects, destination)
         manifest = verify_snapshot(destination)
         digest = fingerprint(destination / "manifest.json")
@@ -109,7 +113,7 @@ class ReleaseData:
             "backup_manifest_sha256": digest,
             "restore_from": str(restore_path),
             "restore_manifest_sha256": restore_sha,
-            "objects": len(manifest["files"]) - 1,
+            "objects": len(cast(dict[str, Any], manifest["files"])) - 1,
             "source_witness": database_witness(source.home),
         }
 
@@ -123,7 +127,7 @@ class ReleaseData:
             raise failed("release_snapshot_changed")
         if target.database.exists() or (target.home / "restore-report.json").exists():
             raise failed("release_target_exists")
-        _restore_verified(source, target.home, manifest, snapshot["restore_manifest_sha256"], False)
+        restore_verified(source, target.home, manifest, snapshot["restore_manifest_sha256"], False)
         restored_sha = fingerprint(target.home / "restore-report.json")
         migration_sha = None
         if plan["schema_upgrade"] is not None:
@@ -151,7 +155,7 @@ class ReleaseData:
             (prepared["restore_from"], "restore_manifest_sha256"),
         ):
             path = Path(text)
-            _no_links(path)
+            no_links(path)
             verify_snapshot(path)
             if fingerprint(path / "manifest.json") != prepared[key]:
                 raise failed("release_snapshot_changed")

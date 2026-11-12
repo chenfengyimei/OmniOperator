@@ -11,6 +11,7 @@ import sqlite3
 import uuid
 from itertools import islice
 from pathlib import Path
+from typing import Any
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
@@ -899,7 +900,9 @@ def verify_snapshot(source: Path) -> Record:
     return manifest
 
 
-def _restore_verified(source: Path, destination: Path, manifest: dict, manifest_hash: str, existed: bool) -> dict:
+def _restore_verified(
+    source: Path, destination: Path, manifest: dict[str, Any], manifest_hash: str, existed: bool
+) -> dict[str, Any]:
     """Caller holds the target instance lock through report and marker publication."""
     report_path = safe_child(destination, "restore-report.json")
     if existed:
@@ -1011,6 +1014,9 @@ def _restore_verified(source: Path, destination: Path, manifest: dict, manifest_
     durable_json(report_path, report)
     _finish_restore_marker(destination, manifest_hash)
     return report
+
+
+restore_verified = _restore_verified
 
 
 def restore(source: Path, destination: Path) -> Record:
