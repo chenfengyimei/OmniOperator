@@ -11,6 +11,7 @@ import sys
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import asdict, replace
 from types import MappingProxyType
+from typing import cast
 
 from ...domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome
 from ..platform.processes import OwnedProcess
@@ -21,6 +22,7 @@ log = logging.getLogger("omni.v2.worker")
 MAX_HOST_CALLBACKS = 16
 MAX_HOST_CALLBACK_BYTES = 8192
 MAX_HOST_LOG_CHARS = 1000
+_NO_HOST_CONTEXT: Mapping[str, JSON] = MappingProxyType({})
 
 
 class WorkerClient:
@@ -41,10 +43,7 @@ class WorkerClient:
         self._tool_writes = MappingProxyType(dict(tool_writes))
         if extra_env is not None and (
             len(extra_env) > 16
-            or any(
-                not isinstance(key, str) or not key.startswith("OMNI_") or len(value) > 4000
-                for key, value in extra_env.items()
-            )
+            or any(not key.startswith("OMNI_") or len(value) > 4000 for key, value in extra_env.items())
         ):
             raise ValueError("Worker extra environment entries are not bounded")
         self._extra_env = MappingProxyType(dict(extra_env or {}))
@@ -54,7 +53,7 @@ class WorkerClient:
         self._starting: asyncio.Task[OwnedProcess] | None = None
         self._cleanup: asyncio.Task[bool] | None = None
         self._lock = asyncio.Lock()
-        self._stderr: asyncio.Task | None = None
+        self._stderr: asyncio.Task[None] | None = None
         self._closed = False
         self._ready = self._poisoned = False
         self._stderr_bytes = self._stderr_reports = 0
@@ -262,9 +261,11 @@ class WorkerClient:
                         decoded = json.loads(frame)
                     except (ValueError, UnicodeError):
                         raise ValueError("Worker produced a malformed frame") from None
-                    if isinstance(decoded, dict) and decoded.get("kind") == "callback":
-                        await self._host_callback(process, decoded, host_context or {}, budget, logs)
-                        continue
+                    if isinstance(decoded, dict):
+                        control = cast(dict[str, object], decoded)
+                        if control.get("kind") == "callback":
+                            await self._host_callback(process, control, host_context or _NO_HOST_CONTEXT, budget, logs)
+                            continue
                     result = response(frame, operation_id, writes=writes)
                     break
                 if budget["calls"]:
@@ -304,20 +305,21 @@ class WorkerClient:
     async def _host_callback(
         self,
         process: asyncio.subprocess.Process,
-        frame: dict,
+        frame: dict[str, object],
         host_context: Mapping[str, JSON],
         budget: dict[str, int],
         logs: list[str],
     ) -> None:
         """Allowlisted, budgeted host capabilities; malformed or over-budget traffic fails closed."""
-        call_id, name, arguments = frame.get("id"), frame.get("name"), frame.get("arguments")
+        call_id, name, raw_arguments = frame.get("id"), frame.get("name"), frame.get("arguments")
         if (
             not isinstance(call_id, str)
             or len(call_id) != 36
             or not isinstance(name, str)
-            or not isinstance(arguments, dict)
+            or not isinstance(raw_arguments, dict)
         ):
             raise ValueError("Malformed host callback frame")
+        arguments = cast(dict[str, object], raw_arguments)
         budget["calls"] += 1
         if budget["calls"] > MAX_HOST_CALLBACKS:
             raise ValueError("Host callback budget exhausted")

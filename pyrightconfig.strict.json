@@ -97,6 +97,7 @@
     "agent/src/omni/adapters/skill_packages.py",
     "agent/src/omni/adapters/timezones.py",
     "agent/src/omni/adapters/token_counter.py",
+    "agent/src/omni/adapters/workers/client.py",
     "agent/src/omni/adapters/workers/darwin_admin_probe.py",
     "agent/src/omni/adapters/workers/desktop.py",
     "agent/src/omni/adapters/workers/terminal.py",
