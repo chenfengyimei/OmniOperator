@@ -164,6 +164,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/release_files.py` | 发布日志/安装字节与启动栅栏（不触库、不原生注册） |
 | `agent/src/omni/adapters/platform/wheel_environment.py` | 离线候选 venv 环境（无网络安装暂存 wheel） |
 | `agent/src/omni/adapters/platform/wheel_install.py` | 运行时切换/迁移/回滚指针（不停服、不迁移库） |
+| `agent/src/omni/adapters/platform/linux_bus.py` | 已校验本地 D-Bus 传输（无环境选择/网络总线） |
+| `agent/src/omni/adapters/platform/linux_session.py` | logind 会话与无障碍总线归属（不信环境变量） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |

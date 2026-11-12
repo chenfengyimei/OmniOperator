@@ -80,6 +80,8 @@
     "agent/src/omni/adapters/platform/desktop_native.py",
     "agent/src/omni/adapters/platform/exchange_deployments.py",
     "agent/src/omni/adapters/platform/exchange_files.py",
+    "agent/src/omni/adapters/platform/linux_bus.py",
+    "agent/src/omni/adapters/platform/linux_session.py",
     "agent/src/omni/adapters/platform/linux_x11_socket.py",
     "agent/src/omni/adapters/platform/linux_x11_wire.py",
     "agent/src/omni/adapters/platform/macos_helper.py",

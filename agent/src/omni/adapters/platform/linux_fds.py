@@ -49,7 +49,9 @@ class ReceivedFds:
         self.owned: dict[int, OwnedFd] = {}
         self.received = 0
 
-    def receive(self, connection, length: int):
+    def receive(
+        self, connection: socket.socket, length: int
+    ) -> tuple[bytes, list[tuple[int, int, bytes]], int, object]:
         size = array.array("i").itemsize
         data, ancillary, flags, address = connection.recvmsg(
             length, socket.CMSG_SPACE(2 * size), getattr(socket, "MSG_CMSG_CLOEXEC", 0)

@@ -7,7 +7,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 from .linux_bus import DBUS, DBUS_PATH, BusPort, Endpoint, LinuxOps, LocalBus, Process, RemoteError, failure
 
@@ -52,9 +52,12 @@ def object_path(value: object) -> str:
 
 
 def one(body: object) -> Any:
-    if not isinstance(body, list) or len(body) != 1:
+    if not isinstance(body, list):
         raise failure("desktop_bus_response_invalid")
-    return body[0]
+    items = cast(list[object], body)
+    if len(items) != 1:
+        raise failure("desktop_bus_response_invalid")
+    return items[0]
 
 
 def variant(value: object, signature: str) -> Any:
@@ -140,16 +143,19 @@ class SessionInspector:
             raise failure("desktop_bus_peer_unverified")
         return Owner(name, process)
 
-    async def properties(self, path: str, interface: str) -> dict:
+    async def properties(self, path: str, interface: str) -> dict[str, Any]:
         assert self.system is not None and self.login is not None
         value = one(
             await self.system.call(
                 self.login.name, object_path(path), PROPERTIES, "GetAll", "s", [interface], returns="a{sv}"
             )
         )
-        if not isinstance(value, dict) or len(value) > 128:
+        if not isinstance(value, dict):
             raise failure("desktop_bus_response_invalid")
-        return value
+        properties = cast(dict[str, Any], value)
+        if len(properties) > 128:
+            raise failure("desktop_bus_response_invalid")
+        return properties
 
     async def selected_path(self) -> str:
         assert self.system is not None and self.login is not None
@@ -186,15 +192,21 @@ class SessionInspector:
             raise
         properties = await self.properties(path, LOGIN + ".User")
         display = variant(properties.get("Display"), "(so)")
-        if not isinstance(display, list) or len(display) != 2 or not display[0] or display[1] == "/":
+        if not isinstance(display, list):
             raise failure("desktop_headless")
-        return object_path(display[1])
+        display_items = cast(list[object], display)
+        if len(display_items) != 2 or not display_items[0] or display_items[1] == "/":
+            raise failure("desktop_headless")
+        return object_path(display_items[1])
 
     async def read_session(self) -> Session:
         path = await self.selected_path()
         row = await self.properties(path, LOGIN + ".Session")
         uid = variant(row.get("User"), "(uo)")
-        if not isinstance(uid, list) or len(uid) != 2 or number(uid[0]) != self.ops.uid:
+        if not isinstance(uid, list):
+            raise failure("desktop_session_unverified")
+        uid_items = cast(list[object], uid)
+        if len(uid_items) != 2 or number(uid_items[0]) != self.ops.uid:
             raise failure("desktop_session_unverified")
         kind, state, category = [variant(row.get(k), "s") for k in ("Type", "State", "Class")]
         if kind not in {"x11", "wayland"} or category != "user":
@@ -209,15 +221,18 @@ class SessionInspector:
         identity = text(variant(row.get("Id"), "s"), 64)
         timestamp = number(variant(row.get("TimestampMonotonic"), "t"), (1 << 64) - 1)
         seat = variant(row.get("Seat"), "(so)")
-        if not timestamp or not isinstance(seat, list) or len(seat) != 2 or not seat[0] or seat[1] == "/":
+        if not isinstance(seat, list):
             raise failure("desktop_session_unverified")
-        seat_row = await self.properties(object_path(seat[1]), LOGIN + ".Seat")
+        seat_items = cast(list[object], seat)
+        if not timestamp or len(seat_items) != 2 or not seat_items[0] or seat_items[1] == "/":
+            raise failure("desktop_session_unverified")
+        seat_row = await self.properties(object_path(seat_items[1]), LOGIN + ".Seat")
         if variant(seat_row.get("ActiveSession"), "(so)") != [identity, path]:
             raise failure("desktop_session_unverified")
         display = variant(row.get("Display"), "s")
         if not isinstance(display, str) or len(display) > 128:
             raise failure("desktop_bus_response_invalid")
-        return Session(path, identity, self.ops.uid, timestamp, kind, text(seat[0], 64), display)
+        return Session(path, identity, self.ops.uid, timestamp, kind, text(seat_items[0], 64), display)
 
     async def open(self, *, accessibility: bool = True) -> None:
         if self.ops.uid <= 0:

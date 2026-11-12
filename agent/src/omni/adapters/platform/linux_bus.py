@@ -57,7 +57,7 @@ class Endpoint:
     def accessibility(cls, value: object, uid: int) -> Endpoint:
         if not isinstance(value, str) or len(value) > 1024 or not value.startswith("unix:") or ";" in value:
             raise failure("desktop_bus_address_denied")
-        fields = {}
+        fields: dict[str, str] = {}
         for part in value[5:].split(","):
             key, separator, raw = part.partition("=")
             if not separator or key in fields or key not in {"path", "abstract", "guid"}:
@@ -256,17 +256,23 @@ class LocalBus:
         transport = self
 
         class ReceivingSocket:
-            def recvmsg(self, length, _ancillary_size):
+            def recvmsg(
+                self, length: int, _ancillary_size: int
+            ) -> tuple[bytes, list[tuple[int, int, bytes]], int, object]:
                 return transport._received.receive(connected, length)
 
         class LimitedUnmarshaller(unmarshaller):
-            def read(self, count, prefetch=False):
+            def read(self, count: int, prefetch: bool = False) -> Any:
                 if count < 0 or self.offset + count > MAX_MESSAGE:
                     raise failure("desktop_bus_message_limit")
-                return super().read(count, prefetch)
+                parent: Any = super()
+                return parent.read(count, prefetch)
 
         class VerifiedBus(base):
-            def _setup_socket(self):
+            omni_messages: int
+            omni_bytes: int
+
+            def _setup_socket(self) -> None:
                 self._sock = connected
                 self._stream = connected.makefile("rwb", buffering=0)
                 transport.stream = self._stream
@@ -288,7 +294,7 @@ class LocalBus:
                     line.extend(block)
                 return bytes(line[:-2]).decode("ascii")
 
-            def _on_message(self, message):
+            def _on_message(self, message: Any) -> None:
                 self.omni_messages += 1
                 self.omni_bytes += len(self._unmarshaller.buf)
                 if self.omni_messages > MAX_MESSAGES or self.omni_bytes > MAX_TOTAL:
@@ -306,7 +312,8 @@ class LocalBus:
                     ):
                         transport._received.close()
                         raise failure("portal_fd_invalid")
-                super()._on_message(message)
+                parent: Any = super()
+                parent._on_message(message)
 
         try:
             self.bus = VerifiedBus(bus_address="unix:path=/omni-preconnected", negotiate_unix_fd=self.unix_fds)
@@ -324,7 +331,17 @@ class LocalBus:
             raise failure("desktop_bus_disconnected")
         self.ops.peer(self.endpoint, self.connection, self.identity, self.inode)
 
-    async def call(self, destination, path, interface, member, signature="", body=None, *, returns):
+    async def call(
+        self,
+        destination: str,
+        path: str,
+        interface: str,
+        member: str,
+        signature: str = "",
+        body: list[Any] | None = None,
+        *,
+        returns: str,
+    ) -> list[Any]:
         self.check()
         self.calls += 1
         if self.calls > MAX_MESSAGES:
