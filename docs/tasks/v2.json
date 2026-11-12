@@ -303,12 +303,6 @@
         "scope": "并行会话工作台改版进行中（b7043ee 起）导致 UI 失败 24 项；第一百三十三批后全量 4654 项：4593 passed / 25 failed / 36 errors（-n 2，2996 秒）。36 errors 为 macOS 激活夹具仍补丁已公开的 ExchangeFiles.homes（1b0bdb0 已修，隔离 54 项全过）；1 项 debug_sink 并行时序隔离 11 项全过。UI 改版失败不判 V2 产品失败。",
         "first_report": "temp/build/v2-typecheck-batches-133-full-n2.xml",
         "recheck_report": "temp/build/v2-typecheck-133-macos-activation.xml"
-      },
-      {
-        "id": "v1.browser_driver.shutdown_hang",
-        "status": "open",
-        "scope": "test_workbench_ui 的 driver.close 在 5s/20s 预算下都超时（V1 路径，V2 未改），需单独排查。",
-        "first_report": "temp/build/v2-full-138.xml"
       }
     ],
     "code_version": "4c4e9bf2c5d973ab8768ec4ee966829a61bbf32f661c2e69ed69d4156e085c87",

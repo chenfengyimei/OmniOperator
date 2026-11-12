@@ -1520,27 +1520,21 @@
     "verified": [
      "agent/tests/test_v2_ui.py + test_ui_glass_tokens.py + test_ui_contract.py: 104 passed",
      "test_v2_action_review_ui / audit_retention_ui / desktop_ui / event_retention_ui / extensions_ui / maintenance_ui / memory_organization_ui / terminals_ui / debug_sink: 37 passed",
-     "test_v2_android_ui + test_v2_history_ui: 13 passed"
+     "test_v2_android_ui + test_v2_history_ui: 13 passed",
+     "test_workbench_ui + test_browser_owner + 两个 UI 契约守卫: 10 passed"
     ],
-    "remaining": [
-     "test_workbench_ui::test_desktop_and_publication_tabs_are_reachable — V1 浏览器驱动 shutdown 真实挂起，把关闭预算从 5s 提到 20s 仍超时，属既有 V1 路径问题，待单独排查"
-    ],
+    "remaining": [],
     "root_causes": [
      "会话行改为 li[role=button]（标题 + 8 位 id）后，精确名字匹配的 role 查询失效",
      "切 Agent 时 nav.inert 在提前返回路径上永久残留，导致 #agents 等控件不可交互",
      "会话面板整体 display:none 使非对话页无法切换 Agent",
      "改版引入 620/1180 断点，超出设计系统允许的 520/760/900",
-     "图标字体改为同源 woff2 后，契约仍要求内联 base64"
+     "图标字体改为同源 woff2 后，契约仍要求内联 base64",
+     "test_workbench_ui 的 route 处理器把所有 /ui/* 资源按 UTF-8 文本读取，改版新增的 MaterialIcons.woff2 是二进制，读取抛 UnicodeDecodeError → 请求永不 fulfil → page.goto 等不到 load → 整个 _run 超时 → 随后的 close 排在同一所有者线程后面，表现为“关闭挂起”。驱动本身无缺陷（其超时/残留报告是正确行为）"
     ]
    }
   },
-  "open_findings": [
-   {
-    "id": "v1.browser_driver.shutdown_hang",
-    "status": "open",
-    "scope": "agent/tests/test_workbench_ui.py 用 V1 页面与 BrowserDriver；driver.close 在 5s 与 20s 预算下均超时，说明是真实挂起而非慢，需单独排查 shutdown 路径（V2 未改该文件）。"
-   }
-  ]
+  "open_findings": []
  },
  "source_recovery": {
   "manifest": "temp/private/v2-typecheck-22-source-20261111-5039cdfa12f1/manifest.json",

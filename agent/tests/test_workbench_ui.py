@@ -25,11 +25,16 @@ def test_desktop_and_publication_tabs_are_reachable(tmp_path):
             if url == "http://127.0.0.1/":
                 request.fulfill(body=html, content_type="text/html")
             elif path.startswith(("/ui/", "/vendor/", "/memory/")):
-                # 工作台样式/脚本已外置（Phase 1 token 统一）：从磁盘喂真实文件，页签显隐逻辑才成立
+                # 工作台样式/脚本已外置（Phase 1 token 统一）：从磁盘喂真实文件，页签显隐逻辑才成立。
+                # 字体等二进制资源必须按字节喂；用文本读 woff2 会抛 UnicodeDecodeError，
+                # 请求因此永远不被 fulfil，页面 load 事件不来，goto/close 就表现为“挂起”。
                 asset = STATIC / path.lstrip("/")
                 if asset.is_file():
-                    ctype = "text/css" if path.endswith(".css") else "text/javascript"
-                    request.fulfill(body=asset.read_text(encoding="utf-8"), content_type=ctype)
+                    if path.endswith((".css", ".js", ".html", ".json", ".svg", ".map", ".txt")):
+                        ctype = "text/css" if path.endswith(".css") else "text/javascript"
+                        request.fulfill(body=asset.read_text(encoding="utf-8"), content_type=ctype)
+                    else:
+                        request.fulfill(body=asset.read_bytes(), content_type="application/octet-stream")
                 else:
                     request.fulfill(status=404, body="", content_type="text/plain")
             elif url.endswith("/api/publications"):
