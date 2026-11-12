@@ -276,6 +276,29 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 
 `service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已覆盖 43 个模块、`adapters/` 153 个模块；`composition/`、`agent/tests/` 尚未开始 strict。
 
+### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
+
+`pyrightconfig.strict.json` 之外还有 **62 个 adapters 文件、共 6842 个 strict 错误**（`temp/build/survey-remaining.py` 可重测）。最少的 15 个（计数在前，避免被守卫的表格正则误认为已纳入）：
+
+| strict 错误数 | 文件 |
+| --- | --- |
+| 41 | `agent/src/omni/adapters/persistence/qq_repository.py` |
+| 45 | `agent/src/omni/adapters/persistence/history_pruning_cycle.py` |
+| 46 | `agent/src/omni/adapters/workers/linux_desktop.py` |
+| 47 | `agent/src/omni/adapters/persistence/memory_repository.py` |
+| 49 | `agent/src/omni/adapters/platform/deployment_files.py` |
+| 53 | `agent/src/omni/adapters/persistence/routing_repository.py` |
+| 58 | `agent/src/omni/adapters/persistence/schedule_repository.py` |
+| 58 | `agent/src/omni/adapters/persistence/schema.py` |
+| 59 | `agent/src/omni/adapters/persistence/image_repository.py` |
+| 62 | `agent/src/omni/adapters/workers/local_vectors.py` |
+| 63 | `agent/src/omni/adapters/persistence/bilibili_repository.py` |
+| 64 | `agent/src/omni/adapters/persistence/terminal_review_repository.py` |
+| 64 | `agent/src/omni/adapters/platform/service_templates.py` |
+| 65 | `agent/src/omni/adapters/persistence/object_gc.py` |
+| 67 | `agent/src/omni/adapters/mcp/stdio.py` |
+
+`composition/`、`agent/tests/` 尚未测量；`application/android.py` 是最后一个未纳入的 application 模块。
 ## 4. 推进规则
 
 1. 每次只把一个模块或一组强相关纯函数纳入 strict；纳入前先清零该模块错误，不把“忽略注释”当清零。
