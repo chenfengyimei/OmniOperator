@@ -53,6 +53,10 @@ class ExchangeFiles:
         assert_private(path)
         return self.deployments.read(path)
 
+    def read(self, path: Path) -> Record:
+        """Public bridge for a verified witness file; keeps the private checks in one place."""
+        return self._read(path)
+
     def _require_owned(self, plan: ExchangePlan) -> None:
         if self._owned != plan["sha256"]:
             raise invalid("service_exchange_not_owned")

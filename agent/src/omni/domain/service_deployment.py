@@ -562,3 +562,5 @@ def manager_identity(plan: object) -> dict[str, object]:
         "installed_path": posixpath.join(directory, name),
     }
 
+
+created = _created

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, cast
@@ -13,26 +13,27 @@ from ...domain.contracts import BusinessError
 from ...domain.recovery_authority import RecoveryAuthority
 from ...domain.release_fence import fence
 from ...domain.releases import ReleaseEvent, ReleasePlan, digest, validate_release
-from ...domain.service_deployment import _created
+from ...domain.service_deployment import created
 from ...domain.service_exchange import ExchangePlan, marker
 from ..object_store import sync_directory
 from .deployment_files import (
     LAYERS,
     MAX_BYTES,
     CurrentDeploymentFiles,
-    _json,
-    _no_links,
-    _path,
-    _proof,
-    _read,
-    _walk,
+    json_bytes,
+    no_links,
+    path_of,
+    proof,
+    publish_json,
     python_files,
+    read_file,
+    walk,
 )
 from .paths import InstanceLock, InstancePaths, PrivateFileLock
 from .permissions import assert_private, private_path
 
 MAX_EVENTS = 32
-TRANSITIONS = {
+TRANSITIONS: dict[str, set[str]] = {
     "": {"intent", "drain_intent"},
     "drain_intent": {"drained", "drain_unknown"},
     "drain_unknown": {"drained", "drain_unknown"},
@@ -61,14 +62,14 @@ class ReleaseFiles:
     @staticmethod
     def homes(plan: ReleasePlan) -> tuple[InstancePaths, InstancePaths]:
         return (
-            InstancePaths(_path(plan["source"]["request"]["home"])),
-            InstancePaths(_path(plan["target"]["request"]["home"])),
+            InstancePaths(path_of(plan["source"]["request"]["home"])),
+            InstancePaths(path_of(plan["target"]["request"]["home"])),
         )
 
     def publish(self, plan: ReleasePlan, output: str) -> Record:
         checked = validate_release(plan)
-        path = _path(output)
-        _no_links(path)
+        path = path_of(output)
+        no_links(path)
         for side in ("source", "target"):
             for text in (
                 checked[side]["request"]["home"],
@@ -86,7 +87,7 @@ class ReleaseFiles:
                 protected.append(checked["recovery"]["isolation"]["exchange_journal"])
         if any(path == Path(text) or path.is_relative_to(Path(text)) for text in protected):
             raise failed("release_output_unsafe")
-        self.deployments._publish_json(path, _json(checked))
+        publish_json(self.deployments, path, json_bytes(checked))
         return {"path": str(path), "release_id": checked["id"], "sha256": checked["sha256"], "executed": False}
 
     def installations(self, plan: ReleasePlan) -> None:
@@ -107,22 +108,25 @@ class ReleaseFiles:
         for artifact in (bundle, *bundle.iterdir()):
             assert_private(artifact)
         source = deployment["runtime"]
-        root = _path(source["package_root"])
-        _no_links(root)
+        root = path_of(source["package_root"])
+        no_links(root)
         candidates = [("__init__.py", root / "__init__.py")]
         candidates += [
-            (layer + "/" + name, path) for layer in LAYERS for name, path in _walk(root / layer, python_only=True)
+            (layer + "/" + name, path) for layer in LAYERS for name, path in walk(root / layer, python_only=True)
         ]
-        candidates += [("web_assets/" + name, path) for name, path in _walk(root / "web_assets")]
-        rows, total = [], 0
+        candidates += [("web_assets/" + name, path) for name, path in walk(root / "web_assets")]
+        rows: list[Record] = []
+        total = 0
         for name, path in sorted(candidates):
-            data = _read(path, MAX_BYTES)
+            data = read_file(path, MAX_BYTES)
             total += len(data)
             if total > MAX_BYTES:
                 raise failed("release_source_program_changed")
-            rows.append(_proof(name, data))
-        proof = python_files(_path(source["python"]), _path(source["python_prefix"]), _path(source["process_python"]))
-        if rows != source["files"] or any(source[key] != value for key, value in proof.items()):
+            rows.append(proof(name, data))
+        program = python_files(
+            path_of(source["python"]), path_of(source["python_prefix"]), path_of(source["process_python"])
+        )
+        if rows != source["files"] or any(source[key] != value for key, value in program.items()):
             raise failed("release_source_program_changed")
 
     def isolation_authority(self, plan: ReleasePlan) -> RecoveryAuthority | None:
@@ -139,10 +143,10 @@ class ReleaseFiles:
 
         authority = recovery["isolation"]
         original = validate_exchange(
-            ExchangeFiles(self.deployments)._read(_path(authority["exchange_journal"]) / "plan.json")
+            ExchangeFiles(self.deployments).read(path_of(authority["exchange_journal"]) / "plan.json")
         )
         history = ExchangeFiles(self.deployments).history(original)
-        ref = cast(dict, history[-1]["proof"]) if history else {}
+        ref = cast(Record, history[-1]["proof"]) if history else cast(Record, {})
         release = original["release"]
         prepared = [row["data"] for row in self.history(release) if row["phase"] == "prepared"]
         if (
@@ -172,7 +176,7 @@ class ReleaseFiles:
     def require_fence(self, plan: ReleasePlan, side: str, missing_ok: bool = False) -> None:
         home = self.homes(plan)[0 if side == "source" else 1]
         path = self._fence_path(home)
-        _no_links(path)
+        no_links(path)
         if not path.exists():
             if missing_ok:
                 return
@@ -194,13 +198,13 @@ class ReleaseFiles:
         if path.exists():
             self.require_fence(plan, side)
         else:
-            self.deployments._publish_json(path, _json(fence(plan["id"], plan["sha256"], side)))
+            publish_json(self.deployments, path, json_bytes(fence(plan["id"], plan["sha256"], side)))
 
     @contextmanager
-    def preparation(self, plan: ReleasePlan) -> Iterator[None]:
+    def preparation(self, plan: ReleasePlan) -> Generator[None, None, None]:
         validate_release(plan)
         source = self.homes(plan)[0]
-        _no_links(source.control)
+        no_links(source.control)
         assert_private(source.control)
         lock = PrivateFileLock(source.control / "release-preparation.lock")
         lock.acquire()
@@ -210,13 +214,13 @@ class ReleaseFiles:
             lock.close()
 
     @contextmanager
-    def exclusive(self, plan: ReleasePlan, create_target: bool = False) -> Iterator[None]:
+    def exclusive(self, plan: ReleasePlan, create_target: bool = False) -> Generator[None, None, None]:
         checked = validate_release(plan)
         source, target = self.homes(checked)
         if self._claims or not source.database.is_file():
             raise failed("release_instance_unavailable")
         for home in (source.home, target.home):
-            _no_links(home)
+            no_links(home)
         source_lock, target_lock = InstanceLock(source), InstanceLock(target)
         original = self.isolation_exchange(checked)
         recovery = checked["recovery"]
@@ -242,7 +246,7 @@ class ReleaseFiles:
             try:
                 for home in (source, target):
                     reservation = home.control / "service-exchange.json"
-                    _no_links(reservation)
+                    no_links(reservation)
                     if reservation.exists():
                         assert_private(reservation)
                         expected = marker(original) if original is not None and home == source else self.exchange
@@ -258,8 +262,8 @@ class ReleaseFiles:
             source_lock.close()
 
     def _journal(self, plan: ReleasePlan) -> Path:
-        path = _path(plan["paths"]["journal"])
-        _no_links(path)
+        path = path_of(plan["paths"]["journal"])
+        no_links(path)
         if path.exists():
             assert_private(path)
         return path
@@ -276,33 +280,40 @@ class ReleaseFiles:
         events = sorted(path for path in names if path.name != "plan.json")
         if len(names) > MAX_EVENTS + 1 or any(path.name != f"{index:04}.json" for index, path in enumerate(events)):
             raise failed()
-        result, previous, phase = [], "0" * 64, ""
+        result: list[ReleaseEvent] = []
+        previous, phase = "0" * 64, ""
         for index, path in enumerate(events):
             assert_private(path)
             value = self.deployments.read(path)
-            if len(_json(value)) > 16384 or set(value) != {"sequence", "previous_sha256", "record", "sha256"}:
+            if len(json_bytes(value)) > 16384 or set(value) != {"sequence", "previous_sha256", "record", "sha256"}:
                 raise failed()
             content = {key: item for key, item in value.items() if key != "sha256"}
-            record = value["record"]
+            raw_record = value["record"]
             if (
                 type(value["sequence"]) is not int
                 or value["sequence"] != index
                 or value["previous_sha256"] != previous
                 or digest(content) != value["sha256"]
-                or not isinstance(record, dict)
-                or set(record) != {"release_id", "release_sha256", "phase", "recorded_at", "data"}
-                or record["release_id"] != plan["id"]
+                or not isinstance(raw_record, dict)
+            ):
+                raise failed()
+            record = cast(Record, raw_record)
+            if set(record) != {"release_id", "release_sha256", "phase", "recorded_at", "data"}:
+                raise failed()
+            if (
+                record["release_id"] != plan["id"]
                 or record["release_sha256"] != plan["sha256"]
                 or not isinstance(record.get("phase"), str)
-                or record["phase"] not in TRANSITIONS[phase]
+                or cast(str, record["phase"]) not in TRANSITIONS[phase]
                 or not isinstance(record.get("data"), dict)
             ):
                 raise failed()
-            _created(record["recorded_at"])
-            if record["phase"] in {"drain_intent", "drain_unknown", "drained"}:
-                stop, data = plan["source_stop"], record["data"]
+            created(cast(str, record["recorded_at"]))
+            phase_value = cast(str, record["phase"])
+            if phase_value in {"drain_intent", "drain_unknown", "drained"}:
+                stop, data = plan["source_stop"], cast(Record, record["data"])
                 keys = {"operation_id", "operation_sha256"} | (
-                    set() if record["phase"] == "drain_intent" else {"error_code"}
+                    set[str]() if phase_value == "drain_intent" else {"error_code"}
                 )
                 if (
                     stop is None
@@ -313,11 +324,11 @@ class ReleaseFiles:
                         "error_code" in keys
                         and (not isinstance(data["error_code"], str) or len(data["error_code"]) > 128)
                     )
-                    or (record["phase"] == "drained" and data["error_code"] != "")
+                    or (phase_value == "drained" and data["error_code"] != "")
                 ):
                     raise failed("release_drain_witness_changed")
             result.append(cast(ReleaseEvent, record))
-            phase = record["phase"]
+            phase = phase_value
             previous = value["sha256"]
         return result
 
@@ -328,7 +339,7 @@ class ReleaseFiles:
         root.mkdir(mode=0o700)
         private_path(root, directory=True)
         sync_directory(root.parent)
-        self.deployments._publish_json(root / "plan.json", _json(plan))
+        publish_json(self.deployments, root / "plan.json", json_bytes(plan))
 
     def append(self, plan: ReleasePlan, phase: str, data: Record, at: str) -> None:
         history = self.history(plan)
@@ -349,10 +360,10 @@ class ReleaseFiles:
                 "data": data,
             },
         }
-        raw = _json({**content, "sha256": digest(content)})
+        raw = json_bytes({**content, "sha256": digest(content)})
         if len(raw) > 16384:
             raise failed("release_journal_record_limit")
-        self.deployments._publish_json(root / f"{len(history):04}.json", raw)
+        publish_json(self.deployments, root / f"{len(history):04}.json", raw)
 
     def retire_source(self, plan: ReleasePlan) -> None:
         self.owned(plan)
@@ -364,7 +375,7 @@ class ReleaseFiles:
 
     def _rescue_selection(self, plan: ReleasePlan, *, publish: bool = False, required: bool = False) -> None:
         path = self.homes(plan)[0].control / "rescue-selection.json"
-        _no_links(path)
+        no_links(path)
         expected = {
             "format": "omni-rescue-selection-1",
             "release_id": plan["id"],
@@ -376,7 +387,7 @@ class ReleaseFiles:
             if self.deployments.read(path) != expected:
                 raise failed("release_rescue_already_selected")
         elif publish:
-            self.deployments._publish_json(path, _json(expected))
+            publish_json(self.deployments, path, json_bytes(expected))
         elif required:
             raise failed("release_rescue_selection_missing")
 

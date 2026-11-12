@@ -589,11 +589,12 @@ class CurrentDeploymentFiles:
 
 
 decode = _decode
+proof = _proof
 read_file = _read
 json_bytes = _json
 no_links = _no_links
 path_of = _path
-write_file = CurrentDeploymentFiles._write
+walk = _walk
 
 
 def write_file(path: Path, data: bytes) -> None:
