@@ -280,14 +280,22 @@ function renderToolBlock(node, rows) {
   const details = document.createElement('details');
   details.className = 'tool-calls';
   const summary = document.createElement('summary');
-  summary.textContent = `调用过程 ${rows.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
+  summary.textContent = `调用过程 · ${rows.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
   details.append(summary);
   for (const row of rows.slice(0, 40)) {
-    const line = document.createElement('div');
-    line.className = 'tool-call';
     const payload = typeof row.data === 'string' ? row.data : JSON.stringify(row.data || {});
-    line.textContent = `${row.kind}${payload && payload !== '{}' ? ' · ' + payload.slice(0, 200) : ''}`;
-    details.append(line);
+    const item = document.createElement('div');
+    item.className = 'tool-call-row';
+    const icon = document.createElement('span');
+    icon.className = 'material-icons';
+    icon.textContent = 'check_circle';
+    const name = document.createElement('code');
+    name.textContent = String(row.tool || row.data?.tool || row.kind || 'tool').replace(/^(tool|action)\./, '');
+    const args = document.createElement('code');
+    args.className = 'tool-args';
+    args.textContent = payload && payload !== '{}' ? payload.slice(0, 200) : '';
+    item.append(icon, name, args);
+    details.append(item);
   }
   node.append(details);
 }
@@ -682,6 +690,7 @@ $('connect').addEventListener(
 );
 $('agents').addEventListener('change', wrap(selectAgent));
 $('back-to-chat').addEventListener('click', () => document.querySelector('[data-page="chat"]').click());
+$('open-settings').addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
 $('theme').addEventListener('click', () => {
   window.OmniTheme.cycle();
   themeLabel();
