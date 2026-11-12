@@ -307,9 +307,12 @@ function renderMessages(items) {
   }
   $('messages').replaceChildren(
     ...items.map((m) => {
-      const node = document.createElement('article');
+      const node = document.createElement('div');
+      node.className = `msg ${m.role === 'user' ? 'user' : 'assistant'}`;
       node.dataset.role = m.role === 'user' ? 'user' : 'assistant';
       if (m.run_id) node.dataset.runId = m.run_id;
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
       const head = document.createElement('div');
       head.className = 'message-head';
       const role = document.createElement('span');
@@ -326,7 +329,8 @@ function renderMessages(items) {
       body.textContent = m.content;
       const actions = document.createElement('div');
       actions.className = 'message-actions';
-      node.append(head, body, actions);
+      bubble.append(head, body, actions);
+      node.append(bubble);
       chatImages.append(node, m);
       if (m.role === 'assistant') {
         const publish = document.createElement('button');
@@ -402,18 +406,28 @@ async function refreshSessions() {
   if (generation !== current) return;
   $('sessions').replaceChildren(
     ...data.items.map((item) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = item.title;
-      button.addEventListener(
+      const row = document.createElement('li');
+      row.dataset.id = item.id;
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      if (item.id === session) row.classList.add('active');
+      const title = document.createElement('span');
+      title.className = 's-title';
+      title.textContent = item.title;
+      const meta = document.createElement('span');
+      meta.className = 's-id';
+      meta.textContent = String(item.id).slice(0, 8);
+      row.append(title, meta);
+      row.addEventListener(
         'click',
         wrap(async () => {
           session = item.id;
           clearContext();
           renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
+          for (const other of $('sessions').children) other.classList.toggle('active', other === row);
         }),
       );
-      return button;
+      return row;
     }),
   );
 }

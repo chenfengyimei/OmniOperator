@@ -51,19 +51,21 @@
       <button type="button" data-page="audit" aria-label="审计记录" title="审计记录"><span class="material-icons">history</span></button>
     </nav>
     <main>
-      <aside class="sessions-panel">
-        <form id="connect">
+      <aside class="sessions-panel workbench-side">
+        <form id="connect" class="panel">
           <label>所有者令牌<input id="token" type="password" autocomplete="off" required /></label>
           <button type="submit">连接实例</button>
         </form>
         <label class="agent-field">Agent 空间<select id="agents" aria-label="Agent 空间"></select></label>
-        <div class="sessions-head">
-          <span>会话</span>
-          <button id="new-session" type="button" aria-label="新建对话" title="新建对话">
-            <span class="material-icons">add</span>
-          </button>
+        <div class="panel session-panel">
+          <div class="panel-title">
+            <span>会话</span>
+            <button id="new-session" type="button" aria-label="新建对话" title="新建对话">
+              <span class="material-icons">add</span>
+            </button>
+          </div>
+          <ul id="sessions" aria-label="历史会话"></ul>
         </div>
-        <div id="sessions" aria-label="历史会话"></div>
       </aside>
       <section aria-label="工作区">
         <header class="page-head">
@@ -1419,8 +1421,8 @@
           </fieldset>
         </section>
       </section>
-      <aside class="inspector" aria-label="会话面板">
-        <div class="inspector-tabs" role="tablist">
+      <aside class="inspector panel" aria-label="会话面板">
+        <div class="tabs" role="tablist">
           <button type="button" data-inspector="todo" role="tab" aria-selected="true">待办</button>
           <button type="button" data-inspector="skills" role="tab" aria-selected="false">技能</button>
           <button type="button" data-inspector="objects" role="tab" aria-selected="false">产物</button>
