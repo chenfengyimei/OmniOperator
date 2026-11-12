@@ -14,7 +14,7 @@ def scope():
     doc_rows = {
         match.group(1)
         for match in re.finditer(
-            r"^\| `(agent/src/omni/(?:domain|application|adapters)/[a-z0-9_/]+\.py)` \|",
+            r"^\| `(agent/src/omni/(?:domain|application|adapters|composition)/[a-z0-9_/]+\.py)` \|",
             DOC.read_text(encoding="utf-8"),
             re.M,
         )
@@ -28,7 +28,12 @@ def test_config_and_document_list_the_same_strict_files():
     assert config["typeCheckingMode"] == "strict"
     assert len(include) == len(set(include)), "duplicate strict files"
     assert set(include) == doc_rows, f"strict scope drift: {set(include) ^ doc_rows}"
-    layers = ("agent/src/omni/domain/", "agent/src/omni/application/", "agent/src/omni/adapters/")
+    layers = (
+        "agent/src/omni/domain/",
+        "agent/src/omni/application/",
+        "agent/src/omni/adapters/",
+        "agent/src/omni/composition/",
+    )
     for relative in include:
         assert relative.startswith(layers), f"{relative} is outside the typed layers"
         assert "*" not in relative and not relative.endswith("/"), f"{relative} must name one file"

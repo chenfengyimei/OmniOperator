@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlsplit
 
 from ..domain.contracts import BusinessError
@@ -17,7 +18,7 @@ def serve_instance(
     external_url: str | None,
     master_key_file: Path | None,
     stdout_logs: bool,
-    deployment: dict | None = None,
+    deployment: dict[str, Any] | None = None,
 ) -> None:
     import uvicorn
 

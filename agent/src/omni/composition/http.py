@@ -10,6 +10,7 @@ import secrets
 from collections.abc import Callable
 from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 
 from ..adapters.http import HttpRuntime, create_app
 from ..adapters.log_query import LogQuery
@@ -63,7 +64,7 @@ def http_app(
     terminal_backend: TerminalBackendPort | None = None,
     desktop_backend: DesktopBackendPort | None = None,
     portal_backend: DesktopPortalPort | None = None,
-    deployment: dict | None = None,
+    deployment: dict[str, Any] | None = None,
     shutdown: Callable[[], None] | None = None,
 ):
     async def factory() -> HttpRuntime:
