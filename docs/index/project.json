@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ac22b74e37019421bbc63c3bb031214eb2cd64185b23c8bb43b2fd832506a47c",
+  "source_sha256": "e0a9dc75f8abf95b147d50faf5bde6d822e0d4239398dea2f35c909b061b9151",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52723,
+      "lines": 52743,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -10777,7 +10777,7 @@
       "path": "agent/src/omni/adapters/persistence/action_predicates.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.action_predicates",
-      "lines": 63,
+      "lines": 65,
       "imports": [
         "omni.adapters.persistence",
         "omni.domain.action_review"
@@ -10785,21 +10785,25 @@
       "symbols": [
         {
           "name": "resolved_action",
-          "line": 11,
+          "line": 13,
           "kind": "function",
           "parameters": [
             "action"
           ],
-          "annotations": {}
+          "annotations": {
+            "action": "Any"
+          }
         },
         {
           "name": "unresolved_action",
-          "line": 59,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "action"
           ],
-          "annotations": {}
+          "annotations": {
+            "action": "Any"
+          }
         }
       ],
       "summary": "One current owner-resolution predicate; never rewrites raw action observations or acknowledges model costs."
@@ -14897,22 +14901,23 @@
       "path": "agent/src/omni/adapters/persistence/history_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.history_repository",
-      "lines": 82,
+      "lines": 86,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.history"
       ],
       "symbols": [
         {
           "name": "HistoryRepositories",
-          "line": 13,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "HistoryRepositories.history_page",
-          "line": 14,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "self",
@@ -15285,7 +15290,7 @@
       "path": "agent/src/omni/adapters/persistence/maintenance.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.maintenance",
-      "lines": 1039,
+      "lines": 1040,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence",
@@ -15297,12 +15302,13 @@
         "omni.adapters.persistence.sqlite_access",
         "omni.adapters.platform.paths",
         "omni.adapters.platform.permissions",
+        "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "_rebuild_fulltext",
-          "line": 24,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "connection",
@@ -15315,7 +15321,7 @@
         },
         {
           "name": "derived_indexes",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "paths",
@@ -15328,7 +15334,7 @@
         },
         {
           "name": "fingerprint",
-          "line": 85,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "path"
@@ -15339,7 +15345,7 @@
         },
         {
           "name": "safe_child",
-          "line": 93,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "root",
@@ -15352,7 +15358,7 @@
         },
         {
           "name": "read_schema",
-          "line": 108,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "path"
@@ -15363,7 +15369,7 @@
         },
         {
           "name": "migrate_database",
-          "line": 119,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "path"
@@ -15374,7 +15380,7 @@
         },
         {
           "name": "inspect_database",
-          "line": 165,
+          "line": 166,
           "kind": "function",
           "parameters": [
             "path",
@@ -15387,7 +15393,7 @@
         },
         {
           "name": "backup",
-          "line": 309,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "paths",
@@ -15400,7 +15406,7 @@
         },
         {
           "name": "create_snapshot",
-          "line": 323,
+          "line": 324,
           "kind": "function",
           "parameters": [
             "database",
@@ -15415,7 +15421,7 @@
         },
         {
           "name": "durable_json",
-          "line": 378,
+          "line": 379,
           "kind": "function",
           "parameters": [
             "path",
@@ -15423,12 +15429,12 @@
           ],
           "annotations": {
             "path": "Path",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
           "name": "migration_snapshot",
-          "line": 397,
+          "line": 398,
           "kind": "function",
           "parameters": [
             "database",
@@ -15441,7 +15447,7 @@
         },
         {
           "name": "object_report",
-          "line": 404,
+          "line": 405,
           "kind": "function",
           "parameters": [
             "paths"
@@ -15452,7 +15458,7 @@
         },
         {
           "name": "_quarantine_restored_work",
-          "line": 442,
+          "line": 443,
           "kind": "function",
           "parameters": [
             "connection",
@@ -15465,7 +15471,7 @@
         },
         {
           "name": "_finish_restore_marker",
-          "line": 817,
+          "line": 818,
           "kind": "function",
           "parameters": [
             "destination",
@@ -15478,7 +15484,7 @@
         },
         {
           "name": "verify_snapshot",
-          "line": 829,
+          "line": 830,
           "kind": "function",
           "parameters": [
             "source"
@@ -15489,7 +15495,7 @@
         },
         {
           "name": "_restore_verified",
-          "line": 901,
+          "line": 902,
           "kind": "function",
           "parameters": [
             "source",
@@ -15508,7 +15514,7 @@
         },
         {
           "name": "restore",
-          "line": 1015,
+          "line": 1016,
           "kind": "function",
           "parameters": [
             "source",
@@ -17727,7 +17733,7 @@
           "annotations": {}
         }
       ],
-      "summary": "Source document revisions, provenance and rebuildable local indexes; frozen SQL."
+      "summary": "Source document revisions, provenance and rebuildable local indexes; frozen sql_statements."
     },
     {
       "path": "agent/src/omni/adapters/persistence/migrations/versions/v0007.py",
@@ -19012,23 +19018,24 @@
       "path": "agent/src/omni/adapters/persistence/operations_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.operations_repository",
-      "lines": 98,
+      "lines": 100,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.credential_predicates",
         "omni.adapters.persistence.credential_repository",
         "omni.adapters.persistence.delivery_predicates",
+        "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "OperationsRepositories",
-          "line": 16,
+          "line": 18,
           "kind": "class"
         },
         {
           "name": "OperationsRepositories.diagnostic_agent",
-          "line": 17,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "self",
@@ -19040,7 +19047,7 @@
         },
         {
           "name": "OperationsRepositories.diagnostic_audit",
-          "line": 21,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -19053,12 +19060,12 @@
             "agent_id": "str",
             "operation_id": "str",
             "kind": "str",
-            "data": "dict"
+            "data": "Record"
           }
         },
         {
           "name": "OperationsRepositories.operations_status",
-          "line": 25,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "self"
@@ -19067,7 +19074,7 @@
         },
         {
           "name": "OperationsRepositories.operations_status.states",
-          "line": 26,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "table"
@@ -20599,6 +20606,7 @@
             "agent_id"
           ],
           "annotations": {
+            "table": "Table",
             "values": "Mapping[str, Any]",
             "agent_id": "str | None"
           }
@@ -20614,6 +20622,7 @@
             "entity_id"
           ],
           "annotations": {
+            "table": "Table",
             "agent_id": "str",
             "entity_id": "str"
           }
@@ -20633,7 +20642,7 @@
             "agent_id": "str",
             "kind": "str",
             "operation_id": "str | None",
-            "data": "dict"
+            "data": "Record"
           }
         }
       ],
@@ -30290,12 +30299,14 @@
       "path": "agent/src/omni/adapters/platform/systemd_state.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.systemd_state",
-      "lines": 100,
-      "imports": [],
+      "lines": 102,
+      "imports": [
+        "omni.application.ports"
+      ],
       "symbols": [
         {
           "name": "manager_report",
-          "line": 23,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "available",
@@ -30318,12 +30329,12 @@
         },
         {
           "name": "SystemdState",
-          "line": 45,
+          "line": 47,
           "kind": "class"
         },
         {
           "name": "systemd_state",
-          "line": 50,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "output",
@@ -30331,7 +30342,7 @@
           ],
           "annotations": {
             "output": "bytes",
-            "identity": "dict"
+            "identity": "Record"
           }
         }
       ],
@@ -31154,17 +31165,18 @@
       "path": "agent/src/omni/adapters/platform/wheel_stage.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_stage",
-      "lines": 70,
+      "lines": 76,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.platform.permissions",
         "omni.adapters.platform.wheel_artifact",
+        "omni.application.ports",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 19,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "code"
@@ -31175,7 +31187,7 @@
         },
         {
           "name": "stage_wheel",
-          "line": 23,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "home",
@@ -31195,7 +31207,7 @@
       "path": "agent/src/omni/adapters/platform/wheel_status.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_status",
-      "lines": 112,
+      "lines": 113,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
@@ -31206,7 +31218,7 @@
       "symbols": [
         {
           "name": "_read",
-          "line": 17,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "path"
@@ -31217,7 +31229,7 @@
         },
         {
           "name": "_next_step",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "stage",
@@ -31230,7 +31242,7 @@
         },
         {
           "name": "_runtime",
-          "line": 39,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "paths"
@@ -31241,7 +31253,7 @@
         },
         {
           "name": "installation_status",
-          "line": 54,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "paths"
@@ -31257,19 +31269,20 @@
       "path": "agent/src/omni/adapters/platform/wheel_switch.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.wheel_switch",
-      "lines": 83,
+      "lines": 85,
       "imports": [
         "omni.adapters.persistence.maintenance",
         "omni.adapters.persistence.migration_config",
         "omni.adapters.platform.paths",
         "omni.adapters.platform.wheel_prepare",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.installation"
       ],
       "symbols": [
         {
           "name": "invalid",
-          "line": 18,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "code"
@@ -31280,7 +31293,7 @@
         },
         {
           "name": "_schema",
-          "line": 22,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "database"
@@ -31291,7 +31304,7 @@
         },
         {
           "name": "switch_plan",
-          "line": 26,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "paths",

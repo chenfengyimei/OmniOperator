@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ac22b74e37019421bbc63c3bb031214eb2cd64185b23c8bb43b2fd832506a47c`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`e0a9dc75f8abf95b147d50faf5bde6d822e0d4239398dea2f35c909b061b9151`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -164,7 +164,7 @@
 | [agent/src/omni/adapters/object_store.py](../../agent/src/omni/adapters/object_store.py) | 142 | Private, immutable content-addressed files; never opens the application database. |
 | [agent/src/omni/adapters/onebot.py](../../agent/src/omni/adapters/onebot.py) | 186 | V2 OneBot v11 text transport; no V1 runtime, database access or automatic write replay. |
 | [agent/src/omni/adapters/persistence/__init__.py](../../agent/src/omni/adapters/persistence/__init__.py) | 1 | Only this package owns application SQL, connections and schema evolution. |
-| [agent/src/omni/adapters/persistence/action_predicates.py](../../agent/src/omni/adapters/persistence/action_predicates.py) | 63 | One current owner-resolution predicate; never rewrites raw action observations or acknowledges model costs. |
+| [agent/src/omni/adapters/persistence/action_predicates.py](../../agent/src/omni/adapters/persistence/action_predicates.py) | 65 | One current owner-resolution predicate; never rewrites raw action observations or acknowledges model costs. |
 | [agent/src/omni/adapters/persistence/action_review_repository.py](../../agent/src/omni/adapters/persistence/action_review_repository.py) | 426 | Owner observation ledger for uncertain actions; original actions, costs and delivery state remain unchanged. |
 | [agent/src/omni/adapters/persistence/android_repository.py](../../agent/src/omni/adapters/persistence/android_repository.py) | 278 | Device grants bind immutable configuration/device identities; actions remain in the shared ledger. |
 | [agent/src/omni/adapters/persistence/android_unicode_repository.py](../../agent/src/omni/adapters/persistence/android_unicode_repository.py) | 242 | Immutable helper profiles and durable IME restoration obligations; input truth stays in actions. |
@@ -189,11 +189,11 @@
 | [agent/src/omni/adapters/persistence/extension_repository.py](../../agent/src/omni/adapters/persistence/extension_repository.py) | 751 | Immutable trusted-plugin versions, scoped grants and execution bindings; no plugin code or file I/O. |
 | [agent/src/omni/adapters/persistence/history_protection.py](../../agent/src/omni/adapters/persistence/history_protection.py) | 67 | Shared provenance and maintenance protection for aged pruned history; never reads execution bodies. |
 | [agent/src/omni/adapters/persistence/history_pruning_cycle.py](../../agent/src/omni/adapters/persistence/history_pruning_cycle.py) | 302 | One transactional history-pruning algorithm; stream policies own target eligibility and identity. |
-| [agent/src/omni/adapters/persistence/history_repository.py](../../agent/src/omni/adapters/persistence/history_repository.py) | 82 | Read history pages and retention revisions in one transaction; does not delete history. |
+| [agent/src/omni/adapters/persistence/history_repository.py](../../agent/src/omni/adapters/persistence/history_repository.py) | 86 | Read history pages and retention revisions in one transaction; does not delete history. |
 | [agent/src/omni/adapters/persistence/history_sequence.py](../../agent/src/omni/adapters/persistence/history_sequence.py) | 27 | Allocate global history positions in the caller's transaction; never opens connections. |
 | [agent/src/omni/adapters/persistence/image_repository.py](../../agent/src/omni/adapters/persistence/image_repository.py) | 319 | Scoped image metadata, model-revision policies and per-call references; never reads files or encodes images. |
 | [agent/src/omni/adapters/persistence/lease_repository.py](../../agent/src/omni/adapters/persistence/lease_repository.py) | 276 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
-| [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1039 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
+| [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1040 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
 | [agent/src/omni/adapters/persistence/maintenance_repository.py](../../agent/src/omni/adapters/persistence/maintenance_repository.py) | 514 | Bounded document-maintenance admission, fenced attempts and business-result settlement; no execution or I/O. |
 | [agent/src/omni/adapters/persistence/mcp_repository.py](../../agent/src/omni/adapters/persistence/mcp_repository.py) | 977 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
 | [agent/src/omni/adapters/persistence/media_repository.py](../../agent/src/omni/adapters/persistence/media_repository.py) | 329 | Scoped media sources, bounded jobs and immutable artifact rows; never reads files. |
@@ -209,7 +209,7 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0003.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0003.py) | 150 | People, revision-bound evidence and memory context; frozen schema evolution. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0004.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0004.py) | 99 | Persistent conversation summaries and context barriers; frozen SQL, no current metadata. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0005.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0005.py) | 242 | Typed business configuration and immutable run references; frozen migration. |
-| [agent/src/omni/adapters/persistence/migrations/versions/v0006.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0006.py) | 85 | Source document revisions, provenance and rebuildable local indexes; frozen SQL. |
+| [agent/src/omni/adapters/persistence/migrations/versions/v0006.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0006.py) | 85 | Source document revisions, provenance and rebuildable local indexes; frozen sql_statements. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0007.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0007.py) | 152 | Immutable schedules, due identities and fenced work claims; frozen migration. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0008.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0008.py) | 101 | Outbound intent, attempt, approval and recovery baseline; frozen SQL only. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0009.py](../../agent/src/omni/adapters/persistence/migrations/versions/v0009.py) | 30 | Instance-wide credential intent and outcome audit; no arbitrary Agent attribution. |
@@ -246,7 +246,7 @@
 | [agent/src/omni/adapters/persistence/object_repository.py](../../agent/src/omni/adapters/persistence/object_repository.py) | 205 | Object metadata, pins and real foreign-key references; never touches files. |
 | [agent/src/omni/adapters/persistence/offline_plans.py](../../agent/src/omni/adapters/persistence/offline_plans.py) | 188 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
 | [agent/src/omni/adapters/persistence/operations_read.py](../../agent/src/omni/adapters/persistence/operations_read.py) | 58 | Offline read-only operational snapshot; caller holds exclusive instance ownership. |
-| [agent/src/omni/adapters/persistence/operations_repository.py](../../agent/src/omni/adapters/persistence/operations_repository.py) | 98 | Operational aggregates and owner credential audit; business bodies and secret values stay excluded. |
+| [agent/src/omni/adapters/persistence/operations_repository.py](../../agent/src/omni/adapters/persistence/operations_repository.py) | 100 | Operational aggregates and owner credential audit; business bodies and secret values stay excluded. |
 | [agent/src/omni/adapters/persistence/people_repository.py](../../agent/src/omni/adapters/persistence/people_repository.py) | 210 | People and manual account identities; personal documents reuse memory repositories. |
 | [agent/src/omni/adapters/persistence/qq_authority.py](../../agent/src/omni/adapters/persistence/qq_authority.py) | 99 | Shared QQ audience and credential authority for context, model and outbound checks. |
 | [agent/src/omni/adapters/persistence/qq_repository.py](../../agent/src/omni/adapters/persistence/qq_repository.py) | 229 | QQ admission and authority within the shared unit of work; no network or extra truth store. |
@@ -317,7 +317,7 @@
 | [agent/src/omni/adapters/platform/service_readiness.py](../../agent/src/omni/adapters/platform/service_readiness.py) | 300 | Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential. |
 | [agent/src/omni/adapters/platform/service_registration.py](../../agent/src/omni/adapters/platform/service_registration.py) | 413 | Native user-service registration with fixed commands and scoped macOS unload; no elevation or data deletion. |
 | [agent/src/omni/adapters/platform/service_templates.py](../../agent/src/omni/adapters/platform/service_templates.py) | 212 | Deterministic service artifacts. Rendering never installs or controls a service. |
-| [agent/src/omni/adapters/platform/systemd_state.py](../../agent/src/omni/adapters/platform/systemd_state.py) | 100 | Shared bounded systemd decoding; no command execution or filesystem access. |
+| [agent/src/omni/adapters/platform/systemd_state.py](../../agent/src/omni/adapters/platform/systemd_state.py) | 102 | Shared bounded systemd decoding; no command execution or filesystem access. |
 | [agent/src/omni/adapters/platform/terminal.py](../../agent/src/omni/adapters/platform/terminal.py) | 533 | Owned terminal IPC. Native PTY libraries run only in the fixed helper process. |
 | [agent/src/omni/adapters/platform/wheel_artifact.py](../../agent/src/omni/adapters/platform/wheel_artifact.py) | 61 | Read-only wheel artifact verification: hash, archive safety and V2 asset presence; never installs. |
 | [agent/src/omni/adapters/platform/wheel_backup.py](../../agent/src/omni/adapters/platform/wheel_backup.py) | 66 | Execute only the backup step of a reviewed switch plan; no stop, switch, migration or rollback. |
@@ -326,9 +326,9 @@
 | [agent/src/omni/adapters/platform/wheel_prepare.py](../../agent/src/omni/adapters/platform/wheel_prepare.py) | 118 | Safely unpack one staged wheel into a candidate tree; never creates a venv, switches or migrates. |
 | [agent/src/omni/adapters/platform/wheel_rollback.py](../../agent/src/omni/adapters/platform/wheel_rollback.py) | 69 | Rollback drill: restore the update backup into a new sibling directory and verify it; never touches live home. |
 | [agent/src/omni/adapters/platform/wheel_smoke.py](../../agent/src/omni/adapters/platform/wheel_smoke.py) | 84 | Smoke-test a prepared candidate tree in a child interpreter; no install, switch or migration. |
-| [agent/src/omni/adapters/platform/wheel_stage.py](../../agent/src/omni/adapters/platform/wheel_stage.py) | 70 | Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations. |
-| [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 112 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
-| [agent/src/omni/adapters/platform/wheel_switch.py](../../agent/src/omni/adapters/platform/wheel_switch.py) | 83 | Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back. |
+| [agent/src/omni/adapters/platform/wheel_stage.py](../../agent/src/omni/adapters/platform/wheel_stage.py) | 76 | Atomic local staging of a verified wheel; never extracts, switches directories or runs migrations. |
+| [agent/src/omni/adapters/platform/wheel_status.py](../../agent/src/omni/adapters/platform/wheel_status.py) | 113 | Read-only installation/update status projection; never mutates, plans, switches or migrates. |
+| [agent/src/omni/adapters/platform/wheel_switch.py](../../agent/src/omni/adapters/platform/wheel_switch.py) | 85 | Read-only switch plan for a prepared candidate; never stops, switches, migrates or rolls back. |
 | [agent/src/omni/adapters/platform/wheel_uninstall.py](../../agent/src/omni/adapters/platform/wheel_uninstall.py) | 137 | Remove one staged candidate or deactivate the runtime pointer; data and installation receipts stay. |
 | [agent/src/omni/adapters/platform/workspaces.py](../../agent/src/omni/adapters/platform/workspaces.py) | 27 | Workspace admission keeps instance control, secrets and installed code private. |
 | [agent/src/omni/adapters/primitives.py](../../agent/src/omni/adapters/primitives.py) | 20 | Real clocks and full UUID identities, injected by the composition root. |
