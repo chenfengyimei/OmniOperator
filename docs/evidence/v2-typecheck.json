@@ -10,7 +10,8 @@
   "fixed_source_files": 1199,
   "git_head": "b3e27b3",
   "dirty_checkout": false,
-  "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py"
+  "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
+  "head_ui": "b7043ee"
  },
  "development": {
   "schema_tables": 136,
@@ -615,39 +616,37 @@
    ]
   },
   "full_run": {
-   "status": "rerun_after_batches_51_53",
-   "source": "635bdc0 + bf07460 ui fix",
+   "status": "rerun_after_batch_54_with_inflight_ui_redesign",
+   "source": "b3e27b3 + b7043ee (workbench redesign) + uncommitted icons.css/MaterialIcons.woff2",
    "workers": 2,
-   "report": "temp/build/v2-typecheck-batches-53-full-n2.xml",
-   "sha256": "b6e75f503fd91853360d38f13c8a21fd69734e67fc2a3e62720102b1fe21c97a",
+   "report": "temp/build/v2-typecheck-batches-54b-full-n2.xml",
+   "sha256": "c485744740ad93e7a22360076e24ea86a3532f4fd86c623ddf3c236dfebb79e9",
    "tests": 4654,
-   "passed": 4653,
-   "failed": 1,
+   "passed": 4630,
+   "failed": 24,
    "errors": 0,
-   "duration_s": 2688.78,
-   "failures": [
+   "duration_s": 2489.12,
+   "failure_summary": {
+    "ui_redesign_in_flight": 22,
+    "parallel_timing": 2
+   },
+   "ui_failures": [
+    "test_ui_contract.py::test_icons_css_embeds_material_font_offline",
+    "test_ui_glass_tokens.py::test_breakpoints_are_only_900_760_520",
+    "test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable",
+    "20 个 test_v2_*_ui.py 两 Agent/窄视口用例（credential/people/config/document/schedule/android/skills/desktop/action-review/extensions/history/memory/maintenance/terminals/audit/event retention）"
+   ],
+   "parallel_failures": [
+    "test_v2_model_stream.py::test_stream_rejects_partial_ambiguous_or_unbounded_results[too_large]",
     "test_v2_debug_sink.py::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
    ],
    "isolation": {
-    "report": "temp/build/v2-typecheck-batches-53-debug-isolation.xml",
-    "sha256": "dfc82e43dda684e587d81c065ef3a8d2bce3c07a13b5d469a215f2a731f54f85",
-    "tests": 1,
-    "passed": 1,
-    "note": "debug_sink passes with -n 0 on the same source; parallel timing under load"
+    "report": "temp/build/v2-typecheck-batches-54-isolation.xml",
+    "tests": 12,
+    "passed": 12,
+    "note": "model_stream too_large 与 debug_sink 同源码 -n 0 全过；UI 用例属另一会话进行中的工作台改版，未作为产品失败修复"
    },
-   "aborted_runs": [
-    {
-     "workers": 4,
-     "report": "temp/build/v2-typecheck-batches-53-full.xml",
-     "note": "xdist INTERNALERROR: Playwright worker crash on test_v2_action_review_ui; 4487 tests before abort"
-    },
-    {
-     "workers": 4,
-     "report": "temp/build/v2-typecheck-batches-53-full-fixed.xml",
-     "note": "xdist INTERNALERROR: Playwright worker crash on test_v2_extensions_ui; 4524 tests before abort; failed UI/kernel cases pass with -n 0"
-    }
-   ],
-   "ui_note": "工作台 v55 视觉改动随 11042ce 入库；bf07460 修复设计系统约束（blur token、--terminal-bg、断点 900/520）"
+   "note": "另一会话正进行工作台改版（b7043ee + 未提交 icons.css/woff2）；UI 失败待其完成后复跑，不作为 V2 产品验收"
   }
  },
  "source_recovery": {
@@ -661,6 +660,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Domain strict typing is complete (53/53); continue with application/adapters strict typing, three-platform packaging/install/update/restore and real-environment acceptance."
+  "scope": "Domain strict typing complete (53/53); application/adapters strict typing remains. Workbench redesign is in flight in a parallel session; rerun UI suite after it lands. Packaging/install and real-environment acceptance still pending."
  }
 }

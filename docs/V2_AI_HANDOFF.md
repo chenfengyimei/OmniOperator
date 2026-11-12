@@ -6,7 +6,7 @@
 
 - **整个 V2 未完成；`omni`、`python -m omni`、`omni-web` 等正式入口仍是 V1。** V2 用独立开发入口 `python -m omni.composition.cli --home <新目录> serve`，默认 `127.0.0.1:8766`。不要提前切换或删除 V1。
 - 当前断点：**D7 产品切换进行中**，能力报告、令牌管理、业务清单、导航收敛、strict 类型五十四批（domain 完成）、Windows 打包验证、安装收据/产物/暂存/解包/切换计划/更新备份/回滚演练/状态/冒烟、**切换执行（switch/install/current）、迁移执行（migrate+重 seal）、候选卸载（uninstall）、离线环境（environment）、venv 运行选择、live 回滚（代码指针）、状态投影与显式清理（--purge-data）**已完成；剩余完整 V2 安装器/更新器（停服/启动、数据库备份恢复）、容器镜像、三平台构建与干净机器端到端、正式入口切换。D6 扩展链离线节点已全部完成，不要重做已收口的扩展/MCP/媒体/对象/人物/摘要/调度/文本技能部分。
-- 最新完成节点是 **D7.typecheck.batch_54（strict 第五十四批，domain 全量完成）**：strict **77 文件**（**53/53 domain** + 20 application + 4 adapters）0 errors；本批守卫 + 桌面/前台/语义调用方 **141 项全过**。第五十三批后全量（-n 2）**4654 项：4653 passed / 1 failed / 0 errors**（debug_sink 并行时序，隔离通过）；第五十四批改源码后尚未重跑全量，**不是全量全绿、全仓严格类型或三平台验收**；证据 `docs/evidence/v2-typecheck.json`。
+- 最新完成节点是 **D7.typecheck.batch_54 + 全量复核**：strict **77 文件**（**53/53 domain** + 20 application + 4 adapters）0 errors；桌面/前台/语义调用方 141 项全过。第五十四批后全量（-n 2）**4654 项：4630 passed / 24 failed / 0 errors，2489 秒**：其中 22 项是另一会话进行中的工作台改版（`b7043ee` + 未提交 `icons.css`/`MaterialIcons.woff2`）导致的 UI/设计契约用例，2 项 `model_stream`/`debug_sink` 为并行时序且隔离通过；**不以该 UI 改版失败判定产品失败，也不是全量全绿**。证据 `docs/evidence/v2-typecheck.json`。
 - 严格类型基线：strict 77 文件、0 errors（domain 53/53 完成）；五十四批类型守卫 + 调用方回归全过。
 - 安装器链后全量复核：**4654 项：4652 passed / 2 failed / 0 errors**（debug_sink 并行时序 + 已修复的文档守卫；隔离 13 项全过）；证据 `docs/evidence/v2-installer-full-verification.json`。
 - strict 批次后全量复核：**4654 项：4653 passed / 1 failed / 0 errors**（`debug_sink` 并行时序，隔离通过）；证据 `temp/build/v2-typecheck-batches-53-full-n2.xml`。

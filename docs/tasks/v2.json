@@ -286,11 +286,11 @@
   ],
   "checkpoint_commit": "b3e27b3",
   "current_validation": {
-    "status": "d7_typecheck_batch_54_domain_complete",
+    "status": "d7_typecheck_batch_54_full_rerun_ui_pending",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
-    "full_runs_this_checkpoint": 3,
+    "full_runs_this_checkpoint": 4,
     "whole_plan_complete": false,
     "evidence": "docs/evidence/v2-extension-artifacts.json",
     "last_full_evidence": "docs/evidence/v2-history.json",
@@ -300,9 +300,9 @@
       {
         "id": "tests.parallel_run_timing_flakes",
         "status": "观察中",
-        "scope": "四 worker 全量两次因 Playwright worker 崩溃中断（INTERNALERROR）；改 -n 2 后 4654 项 4653 passed / 1 failed，唯一失败 debug_sink 隔离通过。工作台 v55 视觉改动已由 bf07460 收敛到设计系统 token。",
-        "first_report": "temp/build/v2-typecheck-batches-53-full-n2.xml",
-        "recheck_report": "temp/build/v2-typecheck-batches-53-debug-isolation.xml"
+        "scope": "另一会话工作台改版进行中（b7043ee + 未提交 icons.css/woff2），全量 4654 项 4630 passed / 24 failed：22 项为改版相关 UI/设计契约用例（待其完成后复跑），2 项 model_stream/debug_sink 并行时序已隔离通过。不以 UI 改版失败判定 V2 产品失败。",
+        "first_report": "temp/build/v2-typecheck-batches-54b-full-n2.xml",
+        "recheck_report": "temp/build/v2-typecheck-batches-54-isolation.xml"
       }
     ],
     "code_version": "6487dd0af1de83b03fc9a73c5bf9b3e43161df10f036df2622ddf70e7c88dffa",
@@ -310,12 +310,12 @@
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
-      "passed": 4653,
-      "failed": 1,
+      "passed": 4630,
+      "failed": 24,
       "errors": 0,
-      "isolation_passed": 1,
-      "report": "temp/build/v2-typecheck-batches-53-full-n2.xml",
-      "isolation_report": "temp/build/v2-typecheck-batches-53-debug-isolation.xml",
+      "isolation_passed": 12,
+      "report": "temp/build/v2-typecheck-batches-54b-full-n2.xml",
+      "isolation_report": "temp/build/v2-typecheck-batches-54-isolation.xml",
       "workers": 2
     },
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",
