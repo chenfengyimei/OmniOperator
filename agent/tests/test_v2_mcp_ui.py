@@ -1,5 +1,6 @@
 """V2 MCP workbench: explicit connect, per-tool authorization, call records and revoke in a browser."""
 
+import re
 import socket
 import threading
 import time
@@ -11,6 +12,15 @@ from playwright.sync_api import expect
 from v2_mcp_helpers import CallModel, SeededSecrets, stdio_server
 
 from omni.composition.http import http_app
+
+INDEX = Path(__file__).resolve().parents[2] / "web/ui/v2/index.html"
+
+
+def asset_version() -> str:
+    """从 index.html 读取当前资源版本，测试不硬编码版本号。"""
+    match = re.search(r"v2/main\.js\?v=([0-9A-Za-z.]+)", INDEX.read_text(encoding="utf-8"))
+    assert match, "index.html 必须为 main.js 带缓存版本参数"
+    return match.group(1)
 
 
 class ServerInfo(tuple):
@@ -71,7 +81,7 @@ def test_mcp_panel_connects_authorizes_calls_revokes_and_disconnects(ui_browser,
         errors = []
         page.on("pageerror", lambda exc: errors.append(str(exc)))
         page.goto(url)
-        assert "main.js?v=20261112v66" in page.content()
+        assert f"main.js?v={asset_version()}" in page.content()
         page.locator("#token").fill(token)
         page.get_by_role("button", name="连接实例").click()
         expect(page.locator("#agents option")).to_have_count(1)
