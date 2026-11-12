@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "e368fe65ce8715bdf5426afba1c601c67705038ffeff2ef7e0661edb6c129c04",
+  "source_sha256": "d2872b4dc94cb2ff167a9f482ce4cb5dfe51ae61f64ebac12dbad50969f705f8",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53276,
+      "lines": 53283,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -11647,7 +11647,7 @@
       "path": "agent/src/omni/adapters/persistence/audit_retention_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.audit_retention_repository",
-      "lines": 211,
+      "lines": 218,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.history_protection",
@@ -11680,7 +11680,7 @@
         },
         {
           "name": "AuditRetentionRepositories._audit_retention_candidates",
-          "line": 116,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -11698,7 +11698,7 @@
         },
         {
           "name": "AuditRetentionRepositories._audit_retention_candidates.owned",
-          "line": 149,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "table",
@@ -11708,7 +11708,7 @@
           "annotations": {
             "table": "Table",
             "identity": "str | None",
-            "cache": "dict[str, dict | None]"
+            "cache": "dict[str, dict[str, Any] | None]"
           }
         }
       ],
