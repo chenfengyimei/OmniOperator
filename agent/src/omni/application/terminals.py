@@ -12,7 +12,7 @@ from typing import TypeVar, cast
 from ..domain.contracts import JSON, BusinessError
 from ..domain.terminals import identity as uuid_value
 from ..domain.terminals import parse_close, parse_input, parse_open, parse_resize, payload_fingerprint
-from .ports import Clock, DatabasePort, Ids, Record, TerminalBackendPort, TerminalProcessPort
+from .ports import Clock, DatabasePort, Ids, Record, TerminalBackendPort, TerminalProcessPort, UnitOfWork
 
 T = TypeVar("T")
 MAX_SESSIONS, OUTPUT_BYTES, LEASE_SECONDS = 4, 524288, 15
@@ -24,13 +24,13 @@ class LiveTerminal:
     identity: str
     process: TerminalProcessPort
     stream_id: str
-    chunks: deque[tuple[int, str, int]] = field(default_factory=deque)
+    chunks: deque[tuple[int, str, int]] = field(default_factory=lambda: deque())
     sequence: int = 0
     retained: int = 0
     dropped: int = 0
     connection: str = ""
     expires: float = 0
-    pump: asyncio.Task | None = None
+    pump: asyncio.Task[None] | None = None
     closer: asyncio.Task[bool] | None = None
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
@@ -40,7 +40,7 @@ class TerminalService:
         self._db, self._backend, self._clock, self._ids = database, backend, clock, ids
         self._live: dict[str, LiveTerminal] = {}
         self._finished: dict[str, LiveTerminal] = {}
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._shutdown_closers: dict[str, asyncio.Task[bool]] = {}
         self._failed_pumps: dict[str, LiveTerminal] = {}
         self._opening = asyncio.Lock()
@@ -58,12 +58,12 @@ class TerminalService:
         task = asyncio.create_task(perform(), name="terminal-owner-operation")
         self._pending.add(task)
 
-        def complete(future):
+        def complete(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
 
-        task.add_done_callback(complete)
+        task.add_done_callback(lambda future: complete(cast(asyncio.Task[object], future)))
         # Losing an HTTP waiter cannot abandon a native call or discard its receipt.
         return await asyncio.shield(task)
 
@@ -139,7 +139,9 @@ class TerminalService:
                         "Terminal state must settle before admitting another process",
                         status=503,
                     )
-                prior = await self._db.read(lambda u: u.terminal_open_replay(agent_id, checked))
+                prior = await self._db.read(
+                    lambda u: u.terminal_open_replay(agent_id, cast(Record, checked))
+                )
                 if prior is not None:
                     return prior
                 if len(self._live) >= MAX_SESSIONS:
@@ -148,16 +150,18 @@ class TerminalService:
                     )
                 settings = await self._db.read(lambda u: u.settings(agent_id))
                 cwd = str(cast(Record, settings["value"])["workspace"])
-                prepared = await self._backend.prepare(checked["shell"], cwd)
+                prepared = await self._backend.prepare(str(checked["shell"]), cwd)
                 prepared["configured_workspace"] = cwd
                 if self._closing:
                     raise BusinessError("terminal_draining", "Terminal admission is closed", status=503)
                 session = await self._db.write(
-                    lambda u: u.terminal_open_begin(agent_id, checked, prepared, cast(int, settings["policy_revision"]))
+                    lambda u: u.terminal_open_begin(
+                        agent_id, cast(Record, checked), prepared, cast(int, settings["policy_revision"])
+                    )
                 )
                 if session.get("replayed"):
                     return session
-                identity, operation = str(session["id"]), checked["operation_id"]
+                identity, operation = str(session["id"]), str(checked["operation_id"])
                 entry = None
                 try:
 
@@ -174,7 +178,7 @@ class TerminalService:
                     self._live[identity] = entry
                     native = process.snapshot()
 
-                    def started(u):
+                    def started(u: UnitOfWork) -> Record:
                         row = u.terminal_mark_running(
                             agent_id, identity, cast(int, native["pid"]), cast(float, native["created"])
                         )
@@ -191,7 +195,7 @@ class TerminalService:
                     reclaimed = await self._close_live(entry, 2) if entry else False
                     code = exc.code if isinstance(exc, BusinessError) else "terminal_start_unknown"
 
-                    def failed(u):
+                    def failed(u: UnitOfWork) -> Record:
                         u.terminal_operation_settle(agent_id, identity, operation, "unknown", code)
                         return u.terminal_mark_closed(agent_id, identity, reclaimed, None, code)
 
@@ -263,7 +267,9 @@ class TerminalService:
             )
         entry.expires = self._clock.monotonic() + LEASE_SECONDS
         earliest = entry.chunks[0][0] if entry.chunks else entry.sequence + 1
-        rows: list[Record] = [{"seq": seq, "data": data} for seq, data, _ in entry.chunks if seq > after][:16]
+        rows: list[Record] = [
+            cast(Record, {"seq": seq, "data": data}) for seq, data, _ in entry.chunks if seq > after
+        ][:16]
         chunks: list[JSON] = list(rows)
         next_after = cast(int, rows[-1]["seq"]) if rows else after
         dropped = cast(int, entry.process.snapshot().get("output_dropped", 0))
@@ -301,7 +307,7 @@ class TerminalService:
         finally:
             await self._close_and_record(entry, 2, code)
 
-    def _pump_completed(self, entry: LiveTerminal, task: asyncio.Task) -> None:
+    def _pump_completed(self, entry: LiveTerminal, task: asyncio.Task[None]) -> None:
         if task.cancelled() or task.exception() is not None:
             self._failed_pumps[entry.identity] = entry
 
@@ -323,7 +329,9 @@ class TerminalService:
             sha = payload_fingerprint(kind, checked)
             await self.get(agent_id, identity)
             try:
-                old = await self._db.read(lambda u: u.terminal_operation_lookup(agent_id, checked["operation_id"]))
+                old = await self._db.read(
+                    lambda u: u.terminal_operation_lookup(agent_id, str(checked["operation_id"]))
+                )
             except BusinessError as exc:
                 if exc.status != 404:
                     raise
@@ -335,46 +343,56 @@ class TerminalService:
                 return op
             entry = self._entry(agent_id, identity)
             async with entry.lock:
-                self._writer(entry, checked["connection_id"])
+                self._writer(entry, str(checked["connection_id"]))
                 native = entry.process.snapshot()
                 if not native.get("alive") or native.get("cleanup_pending"):
                     raise BusinessError("terminal_cleanup_pending", "The native terminal requires cleanup")
                 await self._db.read(lambda u: u.terminal_assert_control(agent_id, identity))
-                size = len(checked["data"].encode("utf-8")) if kind == "input" else 0
+                size = len(cast(str, checked["data"]).encode("utf-8")) if kind == "input" else 0
                 receipt = await self._db.write(
-                    lambda u: u.terminal_operation_begin(agent_id, identity, checked["operation_id"], kind, sha, size)
+                    lambda u: u.terminal_operation_begin(
+                        agent_id, identity, str(checked["operation_id"]), kind, sha, size
+                    )
                 )
                 if receipt.get("replayed"):
                     return receipt
                 dispatched = False
                 try:
                     # Recheck the lease after queued database work, immediately before native dispatch.
-                    self._writer(entry, checked["connection_id"])
+                    self._writer(entry, str(checked["connection_id"]))
                     await self._db.read(lambda u: u.terminal_assert_control(agent_id, identity))
-                    self._writer(entry, checked["connection_id"])
+                    self._writer(entry, str(checked["connection_id"]))
                     dispatched = True
                     if kind == "input":
-                        accepted = await entry.process.write(checked["data"], checked["operation_id"])
+                        accepted = await entry.process.write(
+                            cast(str, checked["data"]), str(checked["operation_id"])
+                        )
                         if accepted != size:
                             raise BusinessError("terminal_partial_input", "PTY accepted an incomplete input frame")
                     else:
-                        await entry.process.resize(checked["cols"], checked["rows"], checked["operation_id"])
+                        await entry.process.resize(
+                            cast(int, checked["cols"]), cast(int, checked["rows"]), str(checked["operation_id"])
+                        )
                 except Exception:  # noqa: BLE001 -- uncertainty after native dispatch cannot be downgraded to failure
                     entry.connection, entry.expires = "", 0
                     return await self._db.write(
                         lambda u: u.terminal_operation_settle(
                             agent_id,
                             identity,
-                            checked["operation_id"],
+                            str(checked["operation_id"]),
                             "unknown" if dispatched else "not_sent",
                             "terminal_dispatch_unknown" if dispatched else "terminal_authority_changed",
                         )
                     )
 
-                def settled(u):
+                def settled(u: UnitOfWork) -> Record:
                     if kind == "resize":
-                        u.terminal_mark_resized(agent_id, identity, checked["cols"], checked["rows"])
-                    return u.terminal_operation_settle(agent_id, identity, checked["operation_id"], "accepted")
+                        u.terminal_mark_resized(
+                            agent_id, identity, cast(int, checked["cols"]), cast(int, checked["rows"])
+                        )
+                    return u.terminal_operation_settle(
+                        agent_id, identity, str(checked["operation_id"]), "accepted"
+                    )
 
                 return await self._db.write(settled)
 
@@ -394,11 +412,11 @@ class TerminalService:
                 lambda u: u.terminal_operation_begin(
                     agent_id,
                     identity,
-                    checked["operation_id"],
+                    str(checked["operation_id"]),
                     "close",
                     payload_fingerprint("close", checked),
                     0,
-                    checked["revision"],
+                    cast(int | None, checked["revision"]),
                 )
             )
             if receipt.get("replayed"):
@@ -410,14 +428,14 @@ class TerminalService:
                 entry.connection, entry.expires = "", 0
                 reclaimed = await self._close_live(entry, 5)
 
-            def settled(u):
+            def settled(u: UnitOfWork) -> Record:
                 row = u.terminal_mark_closed(
                     agent_id, identity, reclaimed, None, "" if reclaimed else "terminal_cleanup_pending"
                 )
                 op = u.terminal_operation_settle(
                     agent_id,
                     identity,
-                    checked["operation_id"],
+                    str(checked["operation_id"]),
                     "accepted" if reclaimed else "unknown",
                     "" if reclaimed else "terminal_cleanup_pending",
                 )
