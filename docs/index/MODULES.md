@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`6477f4a8fba6b8a1071c624965b0c8b758285e7f08db47643af0cbb5b1838a2b`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`f92c4727945bb57544c9f65c50da0f1e3bfabed0364f69ef66617c7cbb67600f`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -171,7 +171,7 @@
 | [agent/src/omni/adapters/persistence/audit_pruning.py](../../agent/src/omni/adapters/persistence/audit_pruning.py) | 56 | Offline audit-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |
 | [agent/src/omni/adapters/persistence/audit_pruning_repository.py](../../agent/src/omni/adapters/persistence/audit_pruning_repository.py) | 99 | Persist reviewed audit deletion and its proof atomically; preserve identities and business ledgers. |
 | [agent/src/omni/adapters/persistence/audit_retention_repository.py](../../agent/src/omni/adapters/persistence/audit_retention_repository.py) | 207 | Bounded metadata-only audit retention preview; never deletes rows or creates executable plans. |
-| [agent/src/omni/adapters/persistence/bilibili_authority.py](../../agent/src/omni/adapters/persistence/bilibili_authority.py) | 70 | One Bilibili authority implementation shared by owner reads, previews and final dispatch. |
+| [agent/src/omni/adapters/persistence/bilibili_authority.py](../../agent/src/omni/adapters/persistence/bilibili_authority.py) | 73 | One Bilibili authority implementation shared by owner reads, previews and final dispatch. |
 | [agent/src/omni/adapters/persistence/bilibili_repository.py](../../agent/src/omni/adapters/persistence/bilibili_repository.py) | 258 | Immutable Bilibili form revisions and publications referencing the common delivery ledger. |
 | [agent/src/omni/adapters/persistence/configuration_repository.py](../../agent/src/omni/adapters/persistence/configuration_repository.py) | 355 | Typed configuration revisions and Agent preferences; no connections, DDL or credentials. |
 | [agent/src/omni/adapters/persistence/context_repository.py](../../agent/src/omni/adapters/persistence/context_repository.py) | 487 | Revision-bound summaries and context provenance; all operations stay inside a short transaction. |

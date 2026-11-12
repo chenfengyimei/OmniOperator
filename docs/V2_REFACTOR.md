@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与 application/adapters 模块，当前为 **242 个文件**（53 个 domain + 43 个 application + 146 个 adapters；逐文件清单见 `docs/TYPE_CHECKING.md`），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与 application/adapters 模块，当前为 **243 个文件**（53 个 domain + 43 个 application + 147 个 adapters；逐文件清单见 `docs/TYPE_CHECKING.md`），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -327,7 +327,9 @@ D7 显式清理节点：`installation uninstall --purge-data` 在实例空闲时
 
 第一百二十八批收敛并纳入单写者数据库 actor（待处理 `Future` 集合、指标与完整性报告显式类型化；端口保持存储无关，具体连接在 actor 内以局部 `Any` 读取；`migration_snapshot` 返回 `Record`）。写入/读取预算、取消仍计费与 schema 校验不变；一百二十八批专项全过。
 
-第一百二十九批收敛并纳入 QQ 受众/凭据权威（载荷与回执显式类型化，新增 `RepositoryBase.one` 公共单行读取取代模块级助手对受保护 `_one` 的访问，JSON 读取用 `cast` 窄化）。发送冷却、禁用 Agent 与撤销检查不变；一百二十九批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
+第一百二十九批收敛并纳入 QQ 受众/凭据权威（载荷与回执显式类型化，新增 `RepositoryBase.one` 公共单行读取取代模块级助手对受保护 `_one` 的访问，JSON 读取用 `cast` 窄化）。发送冷却、禁用 Agent 与撤销检查不变；一百二十九批专项全过。
+
+第一百三十批收敛并纳入 Bilibili 发布权威（读取/发布/预览回执显式类型化，单行读取改用公共 `one`，正文、提及与形态表用 `cast` 从 JSON 窄化）。目标前缀、修订与已擦除来源检查不变；一百三十批专项全过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
 ## D6 扩展产物协议（2026-11-11）
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "6477f4a8fba6b8a1071c624965b0c8b758285e7f08db47643af0cbb5b1838a2b",
+  "source_sha256": "f92c4727945bb57544c9f65c50da0f1e3bfabed0364f69ef66617c7cbb67600f",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53238,
+      "lines": 53241,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -11705,7 +11705,7 @@
       "path": "agent/src/omni/adapters/persistence/bilibili_authority.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.bilibili_authority",
-      "lines": 70,
+      "lines": 73,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.configuration_repository",
@@ -11734,7 +11734,7 @@
         },
         {
           "name": "publication_for_delivery",
-          "line": 38,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "unit",
@@ -11755,7 +11755,7 @@
         },
         {
           "name": "publication_preview",
-          "line": 66,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "unit",
