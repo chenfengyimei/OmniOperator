@@ -328,9 +328,9 @@ class JsonLogSink(logging.Handler):
 
 
 class LoggingSession:
-    def __init__(self, sink: JsonLogSink, *, level: int = logging.DEBUG) -> None:
+    def __init__(self, sink: JsonLogSink, *, level: int = logging.DEBUG, logger_name: str = "omni.v2") -> None:
         self.sink = sink
-        self._logger = logging.getLogger("omni.v2")
+        self._logger = logging.getLogger(logger_name)
         self._level, self._propagate = self._logger.level, self._logger.propagate
         self._logger.setLevel(level)
         self._logger.propagate = False

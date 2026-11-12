@@ -26,10 +26,11 @@ def test_registered_secrets_are_redacted_from_nested_mapping_keys_and_log_record
     assert secret not in json.dumps(result)
     assert result["nested"][0]["[redacted]"] == "value"
     sink = JsonLogSink(tmp_path, boot_id=identity(), build_id="a" * 64)
-    session = LoggingSession(sink)
+    logger_name = f"omni.v2.test.{uuid.uuid4().hex}"
+    session = LoggingSession(sink, logger_name=logger_name)
     sink.redactor.register(secret)
     try:
-        logging.getLogger("omni.v2.test").error("bounded", extra={"error_code": {secret: "value"}})
+        logging.getLogger(logger_name).error("bounded", extra={"error_code": {secret: "value"}})
     finally:
         assert session.close()
     assert secret not in (tmp_path / "runtime.jsonl").read_text()
@@ -37,9 +38,10 @@ def test_registered_secrets_are_redacted_from_nested_mapping_keys_and_log_record
 
 def test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime(tmp_path):
     sink = JsonLogSink(tmp_path, boot_id=identity(), build_id="a" * 64)
-    session = LoggingSession(sink)
+    logger_name = f"omni.v2.debug_test.{uuid.uuid4().hex}"
+    session = LoggingSession(sink, logger_name=logger_name)
     agent, other, operation = identity(), identity(), identity()
-    logger = logging.getLogger("omni.v2.debug_test")
+    logger = logging.getLogger(logger_name)
 
     class PrivateMessage:
         def __str__(self):
