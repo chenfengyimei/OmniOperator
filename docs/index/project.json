@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "0aae37bfe66d08fc9f2a3df35daf04364cee6ca4b8c9dc235105395b0dbdf864",
+  "source_sha256": "b02df2ea58b6b8f0f261b3dc011c0d0393828e12a0d6cc1da533c51a9211b365",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10878,
+      "lines": 10883,
       "dependencies": [
         "v2-domain"
       ]
@@ -41003,7 +41003,7 @@
       "path": "agent/src/omni/application/memory_semantics.py",
       "module": "v2-application",
       "python_module": "omni.application.memory_semantics",
-      "lines": 219,
+      "lines": 224,
       "imports": [
         "omni.application.local_vectors",
         "omni.application.ports",
@@ -41062,7 +41062,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "MemorySemanticService.status",
@@ -41109,7 +41111,7 @@
         },
         {
           "name": "MemorySemanticService.search",
-          "line": 116,
+          "line": 119,
           "kind": "function",
           "parameters": [
             "self",
@@ -41127,14 +41129,14 @@
         },
         {
           "name": "MemorySemanticService.search.perform",
-          "line": 119,
+          "line": 122,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemorySemanticService.search.perform.validate",
-          "line": 148,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "u"
@@ -41145,7 +41147,7 @@
         },
         {
           "name": "MemorySemanticService.propose",
-          "line": 161,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self",
@@ -41159,14 +41161,14 @@
         },
         {
           "name": "MemorySemanticService.propose.perform",
-          "line": 162,
+          "line": 165,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemorySemanticService.get",
-          "line": 179,
+          "line": 182,
           "kind": "function",
           "parameters": [
             "self",
@@ -41180,7 +41182,7 @@
         },
         {
           "name": "MemorySemanticService.page",
-          "line": 185,
+          "line": 188,
           "kind": "function",
           "parameters": [
             "self",
@@ -41196,7 +41198,7 @@
         },
         {
           "name": "MemorySemanticService.decide",
-          "line": 192,
+          "line": 195,
           "kind": "function",
           "parameters": [
             "self",
@@ -41212,14 +41214,14 @@
         },
         {
           "name": "MemorySemanticService.decide.perform",
-          "line": 193,
+          "line": 196,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MemorySemanticService.health",
-          "line": 203,
+          "line": 206,
           "kind": "function",
           "parameters": [
             "self"
@@ -41228,7 +41230,7 @@
         },
         {
           "name": "MemorySemanticService.stop_accepting",
-          "line": 211,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self"
@@ -41237,7 +41239,7 @@
         },
         {
           "name": "MemorySemanticService.close",
-          "line": 214,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self",

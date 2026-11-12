@@ -81,6 +81,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/terminal_review.py` | 终端核查用例（有界任务/Record 显式化） |
 | `agent/src/omni/application/objects.py` | 对象发布/访问用例（有界任务与分页返回显式化） |
 | `agent/src/omni/application/memory_organization.py` | 记忆整理用例（有界任务/分页返回显式化） |
+| `agent/src/omni/application/memory_semantics.py` | 记忆索引/混合召回/关联评审（有界任务与显式 Record） |
 | `agent/src/omni/application/exchange_steps.py` | 服务交换步骤编排（公开部署校验桥/显式 Mapping） |
 | `agent/src/omni/application/credentials.py` | 凭据变更/审阅用例（UnitOfWork 回调与有界任务显式化） |
 | `agent/src/omni/application/desktop_actions.py` | 语义桌面动作用例（绑定请求显式化/有界任务与守卫回调） |

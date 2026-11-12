@@ -25,7 +25,7 @@ class RecallReport(TypedDict):
 class MemorySemanticService:
     def __init__(self, database: DatabasePort, vectorizer: LocalVectorizer | None = None) -> None:
         self._db, self._vectorizer = database, vectorizer
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = False
 
@@ -35,14 +35,14 @@ class MemorySemanticService:
                 "memory_semantics_busy", "Memory semantic work is closed or full", status=503, retryable=True
             )
 
-        async def perform():
+        async def perform() -> T:
             async with self._slots:
                 return await operation()
 
         task = asyncio.create_task(perform(), name="memory-semantic-operation")
         self._pending.add(task)
 
-        def completed(future):
+        def completed(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
@@ -62,7 +62,7 @@ class MemorySemanticService:
             )
         version, dimension = str(status["version"]), cast(int, status["dimension"])
 
-        async def perform():
+        async def perform() -> Record:
             def prepare(u: UnitOfWork):
                 page = u.memory_index_page(agent_id, after, limit)
                 sources = [u.memory_semantic_capture(agent_id, str(r["id"]), cast(int, r["revision"])) for r in page]
@@ -105,11 +105,14 @@ class MemorySemanticService:
                         lambda u, r=row: u.memory_embedding_finish(agent_id, str(r["id"]), error=error)
                     )
                 raise
-            return {
-                "items": results,
-                "next_after": page[-1]["id"] if len(page) == limit else None,
-                "vector": self.status(),
-            }
+            return cast(
+                Record,
+                {
+                    "items": results,
+                    "next_after": page[-1]["id"] if len(page) == limit else None,
+                    "vector": self.status(),
+                },
+            )
 
         return await self._execute(perform)
 
@@ -143,7 +146,7 @@ class MemorySemanticService:
             current = self.status()
             if vectors and (not current["available"] or current.get("version") != status.get("version")):
                 vectors, reason = [], "local_vector_identity_changed"
-            rows = merge(text, vectors, limit)
+            rows = cast(list[Record], merge(text, vectors, limit))
 
             def validate(u: UnitOfWork):
                 return u.memory_recall_validate(agent_id, rows, run_id)
@@ -159,7 +162,7 @@ class MemorySemanticService:
         return await self._execute(perform)
 
     async def propose(self, agent_id: str, request: Record) -> Record:
-        async def perform():
+        async def perform() -> Record:
             prior = await self._db.read(lambda u: u.memory_semantic_replay(agent_id, request))
             if prior:
                 return await self.get(agent_id, str(prior["id"]))
@@ -190,7 +193,7 @@ class MemorySemanticService:
         )
 
     async def decide(self, agent_id: str, identity: str, request: Record) -> Record:
-        async def perform():
+        async def perform() -> Record:
             status = self.status()
             return await self._db.write(
                 lambda u: u.memory_semantic_decide(
@@ -217,3 +220,5 @@ class MemorySemanticService:
             _, pending = await asyncio.wait(self._pending, timeout=max(0, timeout_s))
             return not pending
         return True
+
+
