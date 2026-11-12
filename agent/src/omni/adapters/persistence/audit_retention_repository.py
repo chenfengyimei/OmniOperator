@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import Table, select
 
@@ -23,7 +23,12 @@ class AuditRetentionRepositories(HistoryProtectionRepositories):
     def audit_retention_preview(
         self, agent_id: str, *, cursor: str = "", limit: int = 20, as_of: str = ""
     ) -> dict[str, Any]:
-        if type(limit) is not int or not 1 <= limit <= 50 or not isinstance(cursor, str) or not isinstance(as_of, str):
+        if (
+            type(limit) is not int
+            or not 1 <= limit <= 50
+            or not isinstance(cast(object, cursor), str)
+            or not isinstance(cast(object, as_of), str)
+        ):
             raise BusinessError(
                 "invalid_audit_retention_query", "Use a cursor and a page of 1 to 50 audits", status=422
             )
@@ -133,7 +138,7 @@ class AuditRetentionRepositories(HistoryProtectionRepositories):
                 )
             ).scalars()
         )
-        referenced = set()
+        referenced: set[str] = set()
         for table, column in s.AUDIT_REFERENCES:
             if table in (s.source_anchors, s.document_revisions):
                 continue
@@ -142,11 +147,13 @@ class AuditRetentionRepositories(HistoryProtectionRepositories):
                     select(column).where(table.c.agent_id == agent_id, column.in_(identities))
                 ).scalars()
             )
-        runs: dict[str, dict | None] = {}
-        actions: dict[str, dict | None] = {}
+        runs: dict[str, dict[str, Any] | None] = {}
+        actions: dict[str, dict[str, Any] | None] = {}
         protections: dict[str, list[str]] = {}
 
-        def owned(table: Table, identity: str | None, cache: dict[str, dict | None]) -> dict | None:
+        def owned(
+            table: Table, identity: str | None, cache: dict[str, dict[str, Any] | None]
+        ) -> dict[str, Any] | None:
             if not identity:
                 return None
             if identity not in cache:
@@ -164,7 +171,7 @@ class AuditRetentionRepositories(HistoryProtectionRepositories):
                 cache[identity] = dict(row) if row else None
             return cache[identity]
 
-        items = []
+        items: list[dict[str, Any]] = []
         for row in rows:
             subject = SUBJECTS.get(row["kind"])
             reasons: list[str] = []
