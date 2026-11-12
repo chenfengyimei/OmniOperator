@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3007e942a170324e3ff95631939294411641d019a4be95ae1861b3aaa28e632a",
+  "source_sha256": "ce8c8298503b1cb59cb1c8aaba863953012d72256473d3bdeff49342018d23e2",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11058,
+      "lines": 11068,
       "dependencies": [
         "v2-domain"
       ]
@@ -38832,7 +38832,7 @@
       "path": "agent/src/omni/application/extensions.py",
       "module": "v2-application",
       "python_module": "omni.application.extensions",
-      "lines": 497,
+      "lines": 507,
       "imports": [
         "omni.application.objects",
         "omni.application.ports",
@@ -38917,7 +38917,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "ExtensionService._retire",
@@ -38986,7 +38988,7 @@
         },
         {
           "name": "ExtensionService._drift",
-          "line": 150,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
@@ -39000,7 +39002,7 @@
         },
         {
           "name": "ExtensionService.install",
-          "line": 159,
+          "line": 161,
           "kind": "function",
           "parameters": [
             "self",
@@ -39014,14 +39016,14 @@
         },
         {
           "name": "ExtensionService.install.perform",
-          "line": 162,
+          "line": 164,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.get",
-          "line": 180,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self",
@@ -39035,14 +39037,14 @@
         },
         {
           "name": "ExtensionService.get.perform",
-          "line": 181,
+          "line": 187,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.page",
-          "line": 186,
+          "line": 192,
           "kind": "function",
           "parameters": [
             "self",
@@ -39058,14 +39060,14 @@
         },
         {
           "name": "ExtensionService.page.perform",
-          "line": 187,
+          "line": 193,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.actions",
-          "line": 196,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self",
@@ -39083,14 +39085,14 @@
         },
         {
           "name": "ExtensionService.actions.perform",
-          "line": 199,
+          "line": 205,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.market",
-          "line": 234,
+          "line": 242,
           "kind": "function",
           "parameters": [
             "self",
@@ -39104,14 +39106,14 @@
         },
         {
           "name": "ExtensionService.market.perform",
-          "line": 237,
+          "line": 245,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.authorize",
-          "line": 275,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "self",
@@ -39127,14 +39129,14 @@
         },
         {
           "name": "ExtensionService.authorize.perform",
-          "line": 278,
+          "line": 286,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.disable",
-          "line": 295,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -39150,14 +39152,14 @@
         },
         {
           "name": "ExtensionService.disable.perform",
-          "line": 296,
+          "line": 306,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.tools_for_run",
-          "line": 307,
+          "line": 317,
           "kind": "function",
           "parameters": [
             "self",
@@ -39171,14 +39173,14 @@
         },
         {
           "name": "ExtensionService.tools_for_run.perform",
-          "line": 308,
+          "line": 318,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.invoke",
-          "line": 331,
+          "line": 341,
           "kind": "function",
           "parameters": [
             "self",
@@ -39196,21 +39198,21 @@
         },
         {
           "name": "ExtensionService.invoke.perform",
-          "line": 334,
+          "line": 344,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.invoke.perform.before_dispatch",
-          "line": 375,
+          "line": 385,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionService.health",
-          "line": 462,
+          "line": 472,
           "kind": "function",
           "parameters": [
             "self"
@@ -39219,7 +39221,7 @@
         },
         {
           "name": "ExtensionService.review_quiescent",
-          "line": 470,
+          "line": 480,
           "kind": "function",
           "parameters": [
             "self",
@@ -39235,7 +39237,7 @@
         },
         {
           "name": "ExtensionService.stop_accepting",
-          "line": 486,
+          "line": 496,
           "kind": "function",
           "parameters": [
             "self"
@@ -39244,7 +39246,7 @@
         },
         {
           "name": "ExtensionService.close",
-          "line": 489,
+          "line": 499,
           "kind": "function",
           "parameters": [
             "self",

@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "46e034cdf26d689efa65da42793dba9dde7b91c51c7e8fa681818b37ce1e054a",
+  "code_version": "13aa9f1f2d73052b5ebb2c3ceb04b3da0a5ccbd02ef2de1c389a98bbacd7a353",
   "fixed_source_files": 1200,
-  "git_head": "853bf26",
+  "git_head": "98f4bf5",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -88,10 +88,11 @@
    "Application scope grows with application/context: compression and summary orchestration are explicit, history requests and candidate messages are narrowed while summary call budgets, erasure invalidation and unknown semantics stay unchanged",
    "Application scope grows with application/service_control: start/stop/reconcile orchestration is explicit and deployment plans are cast to Record while once-dispatch, boot proof and unknown no-replay semantics stay unchanged",
    "Strict scope reaches 90 files (53 domain + 33 application + 4 adapters); releases and service_operations use explicit Record/typed plans without changing migration, registration precondition or once-dispatch semantics",
-   "Strict scope reaches 91 files (53 domain + 34 application + 4 adapters); application/mcp makes connect, catalog authorization and run-scoped calls explicit, with a bounded transport port and unchanged unknown/no-replay and catalog-drift semantics"
+   "Strict scope reaches 91 files (53 domain + 34 application + 4 adapters); application/mcp makes connect, catalog authorization and run-scoped calls explicit, with a bounded transport port and unchanged unknown/no-replay and catalog-drift semantics",
+   "Strict scope reaches 92 files (53 domain + 35 application + 4 adapters); application/extensions makes install, authorization and run-scoped invocation explicit with bounded task sets, while artifact verification, host budgets and unknown/no-replay semantics stay unchanged"
   ],
   "pending": [
-   "application 34/44 and adapters 4/215 strict typing",
+   "application 35/44 and adapters 4/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -100,8 +101,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-67-callers.xml",
-   "tests": 26,
+   "report": "temp/build/v2-typecheck-68-callers.xml",
+   "tests": 108,
    "failures": 0
   },
   "targeted_reports": [
@@ -715,6 +716,15 @@
     "errors": 0,
     "duration_s": 34.31,
     "note": "sixty-seventh strict batch: guard + MCP core/flow/OAuth and architecture callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-68-callers.xml",
+    "sha256": "c31bc50ad9c310e6c3bf06cd34e64e0433dc66e94c3433d2006305accbf4ecf0",
+    "tests": 108,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 99.81,
+    "note": "sixty-eighth strict batch: guard + extension contract/HTTP/packages/repository/hosts/crash callers"
    }
   ],
   "gates": {
@@ -726,7 +736,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 91,
+    "filesAnalyzed": 92,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -790,6 +800,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 34/44); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 35/44); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
