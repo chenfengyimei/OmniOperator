@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`b02df2ea58b6b8f0f261b3dc011c0d0393828e12a0d6cc1da533c51a9211b365`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`0e4056d97f3ce1d0beace6bc2264b0030f101115e168b918b6c65880ab09d57d`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -80,7 +80,7 @@
 | [agent/src/omni/application/__init__.py](../../agent/src/omni/application/__init__.py) | 1 | V2 use cases consume ports and domain types, never infrastructure. |
 | [agent/src/omni/application/action_review.py](../../agent/src/omni/application/action_review.py) | 111 | Owner reconciliation records observations, never dispatches an action or rewrites its result. |
 | [agent/src/omni/application/android.py](../../agent/src/omni/application/android.py) | 735 | Owner Android device grants, ephemeral observations and shared approved actions; no platform I/O. |
-| [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 184 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
+| [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 210 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
 | [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 173 | Owner configuration use cases; import only previews and never starts an adapter. |
 | [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 211 | Token-aware bounded compression; external calls never hold a transaction. |
 | [agent/src/omni/application/credentials.py](../../agent/src/omni/application/credentials.py) | 185 | Serialize audited owner credential changes; shield accepted mutations through caller cancellation. |
@@ -108,7 +108,7 @@
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
-| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 965 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 980 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../agent/src/omni/application/qq.py) | 197 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
 | [agent/src/omni/application/release_drain.py](../../agent/src/omni/application/release_drain.py) | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
 | [agent/src/omni/application/releases.py](../../agent/src/omni/application/releases.py) | 335 | Offline release preparation and single-directory selection; never elevates, registers or starts a service. |

@@ -64,7 +64,7 @@ PREPARE_SPEC = ToolSpec(
 
 
 class BilibiliPort(DeliveryPort, Protocol):
-    async def read(self, configuration: dict, operation: str, target: str, limit: int = 10) -> dict: ...
+    async def read(self, configuration: Mapping[str, object], operation: str, target: str, limit: int = 10) -> dict[str, object]: ...
 
 
 log = logging.getLogger("omni.v2.bilibili")
@@ -74,17 +74,21 @@ class BilibiliService:
     def __init__(self, database: DatabasePort, gateway: BilibiliPort) -> None:
         self._db, self._gateway = database, gateway
         self._closing = False
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
 
-    async def read(self, agent_id: str, config_id: str, operation: str, target: str = "", limit: int = 10) -> dict:
+    async def read(
+        self, agent_id: str, config_id: str, operation: str, target: str = "", limit: int = 10
+    ) -> dict[str, object]:
         if self._closing or len(self._pending) >= 8:
             raise BusinessError("bilibili_busy", "Bilibili read admission is closed or full", status=503)
 
-        async def perform():
-            config = cast(dict, await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id)))
-            result = await self._gateway.read(config["value"], operation, target, limit)
+        async def perform() -> dict[str, object]:
+            config = cast(
+                dict[str, object], await self._db.read(lambda u: u.bilibili_read_authorized(agent_id, config_id))
+            )
+            result = await self._gateway.read(cast(Mapping[str, object], config["value"]), operation, target, limit)
             current = await self._db.read(
-                lambda u: u.bilibili_read_authorized(agent_id, config_id, config["revision_id"])
+                lambda u: u.bilibili_read_authorized(agent_id, config_id, cast(str, config["revision_id"]))
             )
             if current["authority"] != config["authority"]:
                 raise BusinessError("bilibili_credential_changed", "Credential authority changed during the read")
@@ -99,7 +103,7 @@ class BilibiliService:
         task.add_done_callback(self._retire)
         return await asyncio.shield(task)
 
-    def _retire(self, task: asyncio.Task) -> None:
+    def _retire(self, task: asyncio.Task[object]) -> None:
         self._pending.discard(task)
         if not task.cancelled():
             task.exception()
@@ -108,21 +112,36 @@ class BilibiliService:
         return await self._db.read(lambda u: u.bilibili_profile_get(agent_id, config_id))
 
     async def save_profile(
-        self, agent_id: str, config_id: str, enabled: bool, forms: dict, revision: int, headless: bool = True
+        self,
+        agent_id: str,
+        config_id: str,
+        enabled: bool,
+        forms: Mapping[str, object],
+        revision: int,
+        headless: bool = True,
     ) -> Record:
         if self._closing:
             raise BusinessError("bilibili_closing", "Bilibili admission is draining", status=503)
         return await self._db.write(
-            lambda u: u.bilibili_profile_save(agent_id, config_id, enabled, forms, revision, headless)
+            lambda u: u.bilibili_profile_save(agent_id, config_id, enabled, cast(dict[str, object], forms), revision, headless)
         )
 
     async def prepare(
-        self, agent_id: str, message_id: str, config_id: str, kind: str, target: str, mentions: list, key: str
+        self,
+        agent_id: str,
+        message_id: str,
+        config_id: str,
+        kind: str,
+        target: str,
+        mentions: list[Mapping[str, object]],
+        key: str,
     ) -> Record:
         if self._closing:
             raise BusinessError("bilibili_closing", "Bilibili admission is draining", status=503)
         return await self._db.write(
-            lambda u: u.bilibili_prepare(agent_id, message_id, config_id, kind, target, mentions, key)
+            lambda u: u.bilibili_prepare(
+                agent_id, message_id, config_id, kind, target, cast(list[dict[str, object]], mentions), key
+            )
         )
 
     async def get(self, agent_id: str, identity: str) -> Record:
@@ -152,25 +171,28 @@ class BilibiliService:
                     str(arguments["config_id"]),
                     str(arguments["kind"]),
                     str(arguments["target"]),
-                    cast(list, arguments["mentions"]),
+                    cast(list[Mapping[str, object]], arguments["mentions"]),
                     str(arguments["key"]),
                 )
-                prepared = cast(dict, result)
+                prepared = cast(dict[str, object], result)
                 result = {
                     **{
                         k: prepared[k]
                         for k in ("id", "config_id", "kind", "target", "profile_revision_id", "body_hash", "mentions")
                     },
-                    "deliveries": [{k: d[k] for k in ("id", "state", "fingerprint")} for d in prepared["deliveries"]],
+                    "deliveries": [
+                        {k: d[k] for k in ("id", "state", "fingerprint")}
+                        for d in cast(list[dict[str, object]], prepared["deliveries"])
+                    ],
                 }
-                metadata = {"publication_id": prepared["id"]}
+                metadata = {"publication_id": cast(JSON, prepared["id"])}
             else:
                 return ActionResult(Outcome.ERROR, "Unknown Bilibili capability", error_code="tool_not_found")
             return ActionResult(Outcome.OK, json.dumps(result, ensure_ascii=False), data=metadata)
         except BusinessError as exc:
             return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
 
-    def health(self) -> dict:
+    def health(self) -> dict[str, object]:
         return {"closing": self._closing, "active_reads": len(self._pending), "publication_approval_required": True}
 
     def stop_accepting(self) -> None:
@@ -182,3 +204,7 @@ class BilibiliService:
             _, pending = await asyncio.wait(tuple(self._pending), timeout=max(0, timeout_s))
             return not pending
         return True
+
+
+
+

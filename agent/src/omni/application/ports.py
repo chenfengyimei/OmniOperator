@@ -389,10 +389,23 @@ class UnitOfWork(Protocol):
     def bilibili_read_authorized(self, agent_id: str, config_id: str, revision_id: str = "") -> Record: ...
     def bilibili_profile_get(self, agent_id: str, config_id: str) -> Record: ...
     def bilibili_profile_save(
-        self, agent_id: str, config_id: str, enabled: bool, forms: dict, revision: int, headless: bool = True
+        self,
+        agent_id: str,
+        config_id: str,
+        enabled: bool,
+        forms: dict[str, object],
+        revision: int,
+        headless: bool = True
     ) -> Record: ...
     def bilibili_prepare(
-        self, agent_id: str, message_id: str, config_id: str, kind: str, url: str, mentions: list, key: str
+        self,
+        agent_id: str,
+        message_id: str,
+        config_id: str,
+        kind: str,
+        url: str,
+        mentions: list[dict[str, object]],
+        key: str
     ) -> Record: ...
     def bilibili_publication_get(self, agent_id: str, identity: str) -> Record: ...
     def bilibili_publication_page(self, agent_id: str, after: str = "", limit: int = 50) -> list[Record]: ...
@@ -963,3 +976,5 @@ class SpanReport(Protocol):
 class Observer(Protocol):
     def context(self, **fields: str) -> AbstractContextManager[None]: ...
     def span(self, name: str) -> AbstractContextManager[SpanReport | None]: ...
+
+

@@ -6,6 +6,7 @@
     "agent/src/omni/adapters/primitives.py",
     "agent/src/omni/adapters/timezones.py",
     "agent/src/omni/application/action_review.py",
+    "agent/src/omni/application/bilibili.py",
     "agent/src/omni/application/credentials.py",
     "agent/src/omni/application/debugging.py",
     "agent/src/omni/application/desktop_actions.py",
