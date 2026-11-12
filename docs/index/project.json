@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a5574ce756141780cd21d6c490066eb33e345c0f646e822deaee01428b065472",
+  "source_sha256": "f8e9b09e18ce0004daa5b05e76fbf0a56d1c6d3074787104624512149639718f",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52958,
+      "lines": 52971,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -3569,7 +3569,7 @@
       "path": "agent/src/omni/adapters/extensions/hosts.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.extensions.hosts",
-      "lines": 206,
+      "lines": 208,
       "imports": [
         "omni.adapters.extensions.worker",
         "omni.adapters.workers.client",
@@ -3630,7 +3630,7 @@
         },
         {
           "name": "ExtensionHosts.invoke",
-          "line": 97,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self",
@@ -3656,23 +3656,25 @@
         },
         {
           "name": "ExtensionHosts.invoke.perform",
-          "line": 115,
+          "line": 117,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ExtensionHosts.invoke.complete",
-          "line": 134,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[ActionResult]"
+          }
         },
         {
           "name": "ExtensionHosts.revoke",
-          "line": 147,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -3690,16 +3692,18 @@
         },
         {
           "name": "ExtensionHosts.revoke.matches",
-          "line": 148,
+          "line": 150,
           "kind": "function",
           "parameters": [
             "key"
           ],
-          "annotations": {}
+          "annotations": {
+            "key": "tuple[str, str, int]"
+          }
         },
         {
           "name": "ExtensionHosts.health",
-          "line": 167,
+          "line": 169,
           "kind": "function",
           "parameters": [
             "self",
@@ -3713,7 +3717,7 @@
         },
         {
           "name": "ExtensionHosts.stop_accepting",
-          "line": 184,
+          "line": 186,
           "kind": "function",
           "parameters": [
             "self"
@@ -3722,7 +3726,7 @@
         },
         {
           "name": "ExtensionHosts.close",
-          "line": 187,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self",
@@ -22580,7 +22584,7 @@
       "path": "agent/src/omni/adapters/platform/darwin_service_admin.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.darwin_service_admin",
-      "lines": 137,
+      "lines": 148,
       "imports": [
         "omni.adapters.platform.darwin_admin_commands",
         "omni.adapters.platform.darwin_admin_policy",
@@ -22588,6 +22592,7 @@
         "omni.adapters.platform.service_admin",
         "omni.adapters.platform.service_admin_policy",
         "omni.adapters.platform.service_templates",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.service_admin",
         "omni.domain.service_control",
@@ -22596,12 +22601,12 @@
       "symbols": [
         {
           "name": "DarwinAdministrator",
-          "line": 19,
+          "line": 21,
           "kind": "class"
         },
         {
           "name": "DarwinAdministrator.__init__",
-          "line": 20,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "self",
@@ -22615,7 +22620,7 @@
         },
         {
           "name": "DarwinAdministrator.snapshot",
-          "line": 23,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "self"
@@ -22624,7 +22629,7 @@
         },
         {
           "name": "DarwinAdministrator.inspect",
-          "line": 62,
+          "line": 66,
           "kind": "function",
           "parameters": [
             "self"
@@ -22633,7 +22638,7 @@
         },
         {
           "name": "DarwinAdministrator.change",
-          "line": 68,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self"
@@ -22642,7 +22647,7 @@
         },
         {
           "name": "DarwinAdministrator.close",
-          "line": 136,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
