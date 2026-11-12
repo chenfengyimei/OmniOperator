@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`5c1a54d9dc08d455ad873f44eb5e8abfb4897fdd5d0298beff934f175c6e1054`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`8fcc1f0b1e918b9d71b3bed85378212f50c4c73b7100c1dedff21ad70d711fae`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -121,7 +121,7 @@
 | [agent/src/omni/application/service_operations.py](../../agent/src/omni/application/service_operations.py) | 286 | Offline registration use cases with durable intent, no replay, and retained cancellation ownership. |
 | [agent/src/omni/application/skills.py](../../agent/src/omni/application/skills.py) | 360 | Owned textual skill import/edit/disclosure; explicit trust and shared action authorization remain separate. |
 | [agent/src/omni/application/terminal_review.py](../../agent/src/omni/application/terminal_review.py) | 127 | Owner terminal evidence use cases; no native actions, receipt changes or historical PID operations. |
-| [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 496 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
+| [agent/src/omni/application/terminals.py](../../agent/src/omni/application/terminals.py) | 514 | Bounded owner terminals with durable input receipts, single-writer leases and explicit output gaps. |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

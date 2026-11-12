@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5c1a54d9dc08d455ad873f44eb5e8abfb4897fdd5d0298beff934f175c6e1054",
+  "source_sha256": "8fcc1f0b1e918b9d71b3bed85378212f50c4c73b7100c1dedff21ad70d711fae",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11083,
+      "lines": 11101,
       "dependencies": [
         "v2-domain"
       ]
@@ -52699,7 +52699,7 @@
       "path": "agent/src/omni/application/terminals.py",
       "module": "v2-application",
       "python_module": "omni.application.terminals",
-      "lines": 496,
+      "lines": 514,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -52760,7 +52760,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "TerminalService.options",
@@ -52878,7 +52880,7 @@
         },
         {
           "name": "TerminalService._entry",
-          "line": 207,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self",
@@ -52892,7 +52894,7 @@
         },
         {
           "name": "TerminalService._writer",
-          "line": 217,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -52906,7 +52908,7 @@
         },
         {
           "name": "TerminalService.attach",
-          "line": 224,
+          "line": 228,
           "kind": "function",
           "parameters": [
             "self",
@@ -52920,14 +52922,14 @@
         },
         {
           "name": "TerminalService.attach.perform",
-          "line": 225,
+          "line": 229,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "TerminalService.detach",
-          "line": 246,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -52943,7 +52945,7 @@
         },
         {
           "name": "TerminalService.output",
-          "line": 254,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self",
@@ -52963,7 +52965,7 @@
         },
         {
           "name": "TerminalService._drain",
-          "line": 284,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self",
@@ -52975,7 +52977,7 @@
         },
         {
           "name": "TerminalService._pump_completed",
-          "line": 304,
+          "line": 310,
           "kind": "function",
           "parameters": [
             "self",
@@ -52984,12 +52986,12 @@
           ],
           "annotations": {
             "entry": "LiveTerminal",
-            "task": "asyncio.Task"
+            "task": "asyncio.Task[None]"
           }
         },
         {
           "name": "TerminalService._close_and_record",
-          "line": 308,
+          "line": 314,
           "kind": "function",
           "parameters": [
             "self",
@@ -53005,7 +53007,7 @@
         },
         {
           "name": "TerminalService._change",
-          "line": 319,
+          "line": 325,
           "kind": "function",
           "parameters": [
             "self",
@@ -53023,14 +53025,14 @@
         },
         {
           "name": "TerminalService._change.perform",
-          "line": 322,
+          "line": 328,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "TerminalService.input",
-          "line": 383,
+          "line": 401,
           "kind": "function",
           "parameters": [
             "self",
@@ -53046,7 +53048,7 @@
         },
         {
           "name": "TerminalService.resize",
-          "line": 386,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "self",
@@ -53062,7 +53064,7 @@
         },
         {
           "name": "TerminalService.end",
-          "line": 389,
+          "line": 407,
           "kind": "function",
           "parameters": [
             "self",
@@ -53078,23 +53080,25 @@
         },
         {
           "name": "TerminalService.end.perform",
-          "line": 392,
+          "line": 410,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "TerminalService.end.perform.settled",
-          "line": 413,
+          "line": 431,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "TerminalService._close_live",
-          "line": 430,
+          "line": 448,
           "kind": "function",
           "parameters": [
             "self",
@@ -53108,7 +53112,7 @@
         },
         {
           "name": "TerminalService.health",
-          "line": 452,
+          "line": 470,
           "kind": "function",
           "parameters": [
             "self"
@@ -53117,7 +53121,7 @@
         },
         {
           "name": "TerminalService.stop_accepting",
-          "line": 468,
+          "line": 486,
           "kind": "function",
           "parameters": [
             "self"
@@ -53126,7 +53130,7 @@
         },
         {
           "name": "TerminalService.close",
-          "line": 473,
+          "line": 491,
           "kind": "function",
           "parameters": [
             "self",
