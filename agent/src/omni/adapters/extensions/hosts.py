@@ -31,7 +31,7 @@ class Host:
 class ExtensionHosts:
     def __init__(self, artifact_root: str = "") -> None:
         self._hosts: dict[tuple[str, str, int], Host] = {}
-        self._calls: dict[asyncio.Task, tuple[str, str, int]] = {}
+        self._calls: dict[asyncio.Task[ActionResult], tuple[str, str, int]] = {}
         self._lock = asyncio.Lock()
         self._closing = False
         self._artifact_root = str(Path(artifact_root).resolve()) if artifact_root else ""
@@ -63,7 +63,7 @@ class ExtensionHosts:
                         "extension_busy", "No reclaimed extension host is available", retryable=True, status=503
                     )
 
-            async def startup(process):
+            async def startup(process: asyncio.subprocess.Process) -> None:
                 assert host is not None  # Published in the pool before the client may spawn.
                 host.pid = process.pid
                 async with asyncio.timeout(10):
@@ -71,7 +71,9 @@ class ExtensionHosts:
 
             client = WorkerClient(
                 "extension",
-                tool_writes={tool["name"]: True for tool in catalog(cast(dict, revision["manifest"]))},
+                tool_writes={
+                    str(tool["name"]): True for tool in catalog(cast(dict[str, object], revision["manifest"]))
+                },
                 argv=[
                     sys.executable,
                     "-P",
@@ -112,7 +114,7 @@ class ExtensionHosts:
             raise BusinessError("extension_busy", "Extension invocation queue is full", retryable=True, status=503)
         key = context.agent_id, str(revision["extension_id"]), cast(int, revision["authority_epoch"])
 
-        async def perform():
+        async def perform() -> ActionResult:
             host = await self._acquire(revision, location)
             try:
                 return await host.client.invoke(
@@ -131,7 +133,7 @@ class ExtensionHosts:
         task = asyncio.create_task(perform(), name="extension-call-" + operation_id)
         self._calls[task] = key
 
-        def complete(future):
+        def complete(future: asyncio.Task[ActionResult]) -> None:
             self._calls.pop(future, None)
             if not future.cancelled():
                 future.exception()
@@ -145,7 +147,7 @@ class ExtensionHosts:
             raise
 
     async def revoke(self, agent_id: str, extension_id: str, authority_epoch: int, timeout_s: float = 1) -> bool:
-        def matches(key):
+        def matches(key: tuple[str, str, int]) -> bool:
             return key[:2] == (agent_id, extension_id) and key[2] <= authority_epoch
 
         for task, key in list(self._calls.items()):

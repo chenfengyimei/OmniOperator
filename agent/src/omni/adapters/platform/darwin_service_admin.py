@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import secrets
+from typing import Any, cast
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.service_admin import decode
 from ...domain.service_control import start_precondition
@@ -20,8 +22,9 @@ class DarwinAdministrator:
     def __init__(self, policy: DarwinPolicy, commands: DarwinCommands) -> None:
         self.policy, self.commands = policy, commands
 
-    def snapshot(self) -> tuple[dict, bool | None]:
+    def snapshot(self) -> tuple[Record, bool | None]:
         program, manager = self.policy.program(), self.policy.manager
+        name, artifact = str(manager["name"]), str(manager["artifact"])
         nonce = secrets.token_hex(16)
         code, raw = self.commands.run(self.policy.probe_argv(nonce))
         if code != 0 or len(raw) > 65536:
@@ -30,7 +33,7 @@ class DarwinAdministrator:
         if (
             set(native) != {"format", "label", "nonce", "complete", "loaded", "job"}
             or native["format"] != "omni-macos-root-query-1"
-            or native["label"] != manager["name"]
+            or native["label"] != name
             or native["nonce"] != nonce
             or native["complete"] is not True
             or type(native["loaded"]) is not bool
@@ -40,14 +43,15 @@ class DarwinAdministrator:
         if (not loaded and job is not None) or (loaded and loaded_definition(self.policy.plan, job) is not True):
             return unknown("service_admin_native_unverified"), None
         present, content = self.policy.definition()
-        matches = present and content == render(self.policy.plan)[manager["artifact"]]
+        matches = present and content == render(self.policy.plan)[artifact]
         code, raw = self.commands.run([program, "print-disabled", "system"])
-        disabled = disabled_override(raw, manager["name"]) if code == 0 else None
+        disabled = disabled_override(raw, name) if code == 0 else None
         if disabled is None:
             return unknown("service_admin_enable_unverified"), None
         if loaded and not isinstance(job, dict):
             return unknown("service_admin_native_unverified"), None
-        pid = job.get("PID", 0) if isinstance(job, dict) else 0
+        job_row = cast(dict[str, object], job) if isinstance(job, dict) else None
+        pid = cast(int, job_row.get("PID", 0)) if job_row is not None else 0
         return {
             "available": True,
             "installed": present or loaded,
@@ -59,13 +63,13 @@ class DarwinAdministrator:
             "error_code": "" if matches or not (present or loaded) else "service_definition_mismatch",
         }, loaded
 
-    def inspect(self) -> dict:
+    def inspect(self) -> dict[str, Any]:
         try:
             return self.snapshot()[0]
         except (BusinessError, OSError, ValueError):
             return unknown("service_admin_query_unverified")
 
-    def change(self) -> dict:
+    def change(self) -> dict[str, Any]:
         dispatched = False
         try:
             self.policy.authorize()
@@ -73,13 +77,17 @@ class DarwinAdministrator:
                 return {"effect": "unknown", "error_code": "service_admin_already_dispatched"}
             before, loaded = self.snapshot()
             action = self.policy.operation["action"]
-            accepted = start_precondition(before) if action == "start" else registration_precondition(action, before)
+            accepted = (
+                start_precondition(before)
+                if action == "start"
+                else registration_precondition(action, cast(dict[str, object], before))
+            )
             if not accepted or loaded is None:
                 return {"effect": "none", "error_code": "service_registration_precondition"}
             program, manager = self.policy.program(), self.policy.manager
             self.policy.record("dispatch", {"effect": "unknown", "acceptance_only": action == "start"})
             dispatched = True
-            target = "system/" + manager["name"]
+            target = "system/" + str(manager["name"])
             if action == "install":
                 self.policy.publish_definition()
                 code, _ = self.commands.run([program, "enable", target])
@@ -89,7 +97,7 @@ class DarwinAdministrator:
                 argv = (
                     [program, "kickstart", target]
                     if loaded
-                    else [program, "bootstrap", "system", manager["installed_path"]]
+                    else [program, "bootstrap", "system", str(manager["installed_path"])]
                 )
                 code, _ = self.commands.run(argv)
             else:
@@ -97,7 +105,10 @@ class DarwinAdministrator:
                 if code != 0:
                     raise error("service_admin_disable_unverified")
                 current, current_loaded = self.snapshot()
-                if not registration_precondition(action, current) or current["enabled"] is not False:
+                if (
+                    not registration_precondition(action, cast(dict[str, object], current))
+                    or current["enabled"] is not False
+                ):
                     raise error("service_registration_changed")
                 if current_loaded:
                     code, _ = self.commands.run([program, "bootout", target])
