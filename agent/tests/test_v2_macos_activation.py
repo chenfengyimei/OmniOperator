@@ -63,7 +63,7 @@ def claimed(tmp_path, monkeypatch, request):
     for home in (source, target):
         home.initialize()
     files = ExchangeFiles(CurrentDeploymentFiles())
-    monkeypatch.setattr(files, "_homes", lambda _: [source, target])
+    monkeypatch.setattr(files, "homes", lambda _: [source, target])
     monkeypatch.setattr(files, "_root", lambda _: tmp_path / "journal")
     # Native macOS home strings remain POSIX. Map only this port's comparison
     # to isolated Windows/POSIX test paths; this is not a Mac execution claim.
