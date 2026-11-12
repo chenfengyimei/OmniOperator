@@ -6,11 +6,10 @@ import asyncio
 import contextvars
 import hashlib
 import os
-import re
 import stat
 import sys
 import xml.etree.ElementTree as ET
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from functools import partial
@@ -29,10 +28,6 @@ MAX_OUTPUT = 1_048_576
 QUERY_SECONDS = 5.0
 MAX_PENDING = 8
 T = TypeVar("T")
-
-
-def _pid(value: str) -> int | None:
-    return int(value) if re.fullmatch(r"[1-9][0-9]{0,9}", value) and int(value) <= 2_147_483_647 else None
 
 
 def _xml(payload: bytes) -> ET.Element:
@@ -93,7 +88,10 @@ def _read_definition(path: Path) -> bytes:
         result = stream.read(MAX_OUTPUT + 1)
         after = os.fstat(stream.fileno())
     current = path.stat(follow_symlinks=False)
-    identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)
+
+    def identity(info: os.stat_result) -> tuple[int, int, int, int]:
+        return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns
+
     if len(result) != before.st_size or identity(before) != identity(after) or identity(before) != identity(current):
         raise OSError("Definition changed during inspection")
     return result
@@ -106,7 +104,7 @@ class _Query:
     output: bytearray = field(default_factory=bytearray)
     total: int = 0
     overflow: asyncio.Event = field(default_factory=asyncio.Event)
-    readers: list[asyncio.Task[None]] = field(default_factory=list)
+    readers: list[asyncio.Task[None]] = field(default_factory=lambda: list[asyncio.Task[None]]())
     collected: asyncio.Task[int] | None = None
     cleanup: asyncio.Task[bool] | None = None
     released: bool = False
@@ -158,7 +156,7 @@ class ServiceQuery:
             return _report(available=False, code="service_query_closing")
         if len(self._tasks) + len(self._files) >= MAX_PENDING:
             return _report(code="service_query_busy")
-        task = asyncio.create_task(self._query(checked), name="service-manager-query")
+        task = asyncio.create_task(self._query(cast(Record, checked)), name="service-manager-query")
         self._tasks.add(task)
 
         def complete(future: asyncio.Task[Record]) -> None:
@@ -442,7 +440,7 @@ class ServiceQuery:
         )
         return result
 
-    async def _linux(self, output: bytes, identity: Record, expected: bytes) -> Record:
+    async def _linux(self, output: bytes, identity: Mapping[str, object], expected: bytes) -> Record:
         parsed = systemd_state(output, identity)
         result = parsed.report
         if parsed.definition_path is None:

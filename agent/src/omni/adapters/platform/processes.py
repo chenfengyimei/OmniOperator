@@ -7,7 +7,9 @@ import ctypes
 import os
 import signal
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import IO, Any
 
 import psutil
 
@@ -118,12 +120,30 @@ class OwnedProcess:
     reclaimed: bool = False
 
     @classmethod
-    async def spawn(cls, argv: list[str], **kwargs) -> OwnedProcess:
+    async def spawn(
+        cls,
+        argv: list[str],
+        *,
+        stdin: int | IO[Any] | None = None,
+        stdout: int | IO[Any] | None = None,
+        stderr: int | IO[Any] | None = None,
+        limit: int = 65536,
+        env: Mapping[str, str] | None = None,
+        cwd: str | None = None,
+    ) -> OwnedProcess:
+        options: dict[str, Any] = {
+            "stdin": stdin,
+            "stdout": stdout,
+            "stderr": stderr,
+            "limit": limit,
+            "env": env,
+            "cwd": cwd,
+        }
         if os.name == "nt":
-            kwargs["creationflags"] = 0x08000000  # CREATE_NO_WINDOW
+            options["creationflags"] = 0x08000000  # CREATE_NO_WINDOW
         else:
-            kwargs["start_new_session"] = True
-        process = await asyncio.create_subprocess_exec(*argv, **kwargs)
+            options["start_new_session"] = True
+        process = await asyncio.create_subprocess_exec(*argv, **options)
         try:
             identity = psutil.Process(process.pid).create_time()
             job = WindowsJob(process.pid) if os.name == "nt" else None

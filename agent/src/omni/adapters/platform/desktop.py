@@ -61,7 +61,7 @@ def _decode(frame: bytes) -> dict[str, Any]:
     value = json.loads(frame, object_pairs_hook=pairs, parse_constant=constant)
     if not isinstance(value, dict):
         raise _error("desktop_protocol_invalid")
-    return value
+    return cast(dict[str, Any], value)
 
 
 def helper_environment() -> dict[str, str]:
@@ -110,7 +110,7 @@ def helper_environment() -> dict[str, str]:
 class _Host:
     starting: asyncio.Task[OwnedProcess] | None = None
     owned: OwnedProcess | None = None
-    readers: list[asyncio.Task[None]] = field(default_factory=list)
+    readers: list[asyncio.Task[None]] = field(default_factory=lambda: list[asyncio.Task[None]]())
     collected: asyncio.Task[int] | None = None
     cleanup: asyncio.Task[bool] | None = None
     output: bytearray = field(default_factory=bytearray)
@@ -122,7 +122,7 @@ class _Host:
     capture_path: Path | None = None
     capture_owned: bool = False
     file_work: asyncio.Task[Any] | None = None
-    ready_frame: Record | None = None
+    ready_frame: dict[str, object] | None = None
     ready_seen: bool = False
     ready: asyncio.Event = field(default_factory=asyncio.Event)
 
@@ -135,7 +135,7 @@ class DesktopBackend:
         capture_root: Path | None = None,
         capacity: asyncio.Semaphore | None = None,
     ) -> None:
-        self._factory = process_factory or OwnedProcess.spawn
+        self._factory: Spawn = process_factory or OwnedProcess.spawn
         self._pending: set[asyncio.Task[Any]] = set()
         self._hosts: set[_Host] = set()
         self._slots = capacity if capacity is not None else asyncio.Semaphore(MAX_RESIDENT)
@@ -341,7 +341,7 @@ class DesktopBackend:
                 host.owned.process.stdin.close()
             if not await host.owned.terminate(timeout_s):
                 return False
-        tasks = [*host.readers, *((host.collected,) if host.collected else ())]
+        tasks: list[asyncio.Task[Any]] = [*host.readers, *((host.collected,) if host.collected else ())]
         for task in tasks:
             if not task.done():
                 task.cancel()
@@ -503,45 +503,44 @@ class DesktopBackend:
                 except (BusinessError, ValueError, TypeError, UnicodeError, RecursionError, OverflowError):
                     raise _error("desktop_protocol_invalid") from None
                 if not response["ok"]:
-                    code = response["error_code"]
-                    raise _error(
-                        code
-                        if code
-                        in LINUX_ERRORS
-                        | {
-                            "desktop_native_unavailable",
-                            "desktop_response_too_large",
-                            "desktop_observation_unavailable",
-                            "desktop_target_changed",
-                            "desktop_permission_denied",
-                            "desktop_capture_unavailable",
-                            "desktop_capture_protected",
-                            "desktop_capture_too_large",
-                            "desktop_capture_failed",
-                        }
-                        else "desktop_helper_error"
-                    )
-                if two_phase and sent is not None and not sent[0] and response["result"]["effect"] != "none":
+                    reported = str(response["error_code"])
+                    recognized = reported in LINUX_ERRORS | {
+                        "desktop_native_unavailable",
+                        "desktop_response_too_large",
+                        "desktop_observation_unavailable",
+                        "desktop_target_changed",
+                        "desktop_permission_denied",
+                        "desktop_capture_unavailable",
+                        "desktop_capture_protected",
+                        "desktop_capture_too_large",
+                        "desktop_capture_failed",
+                    }
+                    raise _error(reported if recognized else "desktop_helper_error")
+                result = cast(Record, response["result"])
+                if two_phase and sent is not None and not sent[0] and result["effect"] != "none":
                     raise _error("desktop_protocol_invalid")
                 if request["operation"] == "capture":
                     result_path = host.capture_path
                     assert capture_root is not None and result_path is not None
-                    return await self._file(
-                        host, lambda: desktop_capture.read(capture_root, result_path, response["result"])
-                    )
+                    return await self._file(host, lambda: desktop_capture.read(capture_root, result_path, result))
                 if (
                     request["operation"] == "probe"
                     and self._staging
                     and self._staging["error_code"] == "desktop_staging_unavailable"
                 ):
-                    for capability in response["result"]["capabilities"]:
+                    for capability in cast(list[Record], result["capabilities"]):
                         if capability["id"] == "screen_capture":
                             capability.update(
-                                available=False,
-                                error_code="desktop_staging_unavailable",
-                                recovery=["截图暂存区无法核验；请检查实例目录权限后重新检查能力。"],
+                                cast(
+                                    Record,
+                                    {
+                                        "available": False,
+                                        "error_code": "desktop_staging_unavailable",
+                                        "recovery": ["截图暂存区无法核验；请检查实例目录权限后重新检查能力。"],
+                                    },
+                                )
                             )
-                return cast(Record, response["result"])
+                return result
         except TimeoutError:
             failed = True
             raise _error("desktop_timeout") from None

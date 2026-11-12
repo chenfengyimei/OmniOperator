@@ -133,6 +133,9 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/service_control_files.py` | 服务启停日志/一次性启动预留 |
 | `agent/src/omni/adapters/platform/service_launch.py` | 一次性启动预留（实例锁下，不启动进程） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0003.py` | 冻结迁移版本 v0003（人物/证据/记忆上下文） |
+| `agent/src/omni/adapters/platform/processes.py` | 受管进程组与 Windows Job Object（不终止未校验 PID） |
+| `agent/src/omni/adapters/platform/desktop.py` | 桌面辅助进程（有界单帧、两阶段授权、不探测即构造） |
+| `agent/src/omni/adapters/platform/service_query.py` | 只读系统服务查询（有界输出与保留进程所有权） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |
