@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f2fa68e3a2d59376f22295aa1117a0880b3c3a2d91160bcc58cf1cf195d45d55",
+  "source_sha256": "5326a2f57344b675b8e1d9b691da6a79a243a67ac81554a838c5fdc71a5ad143",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53256,
+      "lines": 53261,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -33843,7 +33843,7 @@
       "path": "agent/src/omni/adapters/workers/main.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.main",
-      "lines": 280,
+      "lines": 285,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.workers.protocol",
@@ -33894,8 +33894,8 @@
           ],
           "annotations": {
             "name": "str",
-            "args": "dict",
-            "context": "dict"
+            "args": "dict[str, Any]",
+            "context": "dict[str, Any]"
           }
         },
         {
@@ -33911,14 +33911,14 @@
           ],
           "annotations": {
             "name": "str",
-            "args": "dict",
-            "context": "dict",
+            "args": "dict[str, Any]",
+            "context": "dict[str, Any]",
             "effects": "Effects"
           }
         },
         {
           "name": "Worker._shell",
-          "line": 157,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self",
@@ -33927,23 +33927,25 @@
             "effects"
           ],
           "annotations": {
-            "args": "dict",
-            "context": "dict",
+            "args": "dict[str, Any]",
+            "context": "dict[str, Any]",
             "effects": "Effects"
           }
         },
         {
           "name": "Worker._shell.drain",
-          "line": 176,
+          "line": 180,
           "kind": "function",
           "parameters": [
             "stream"
           ],
-          "annotations": {}
+          "annotations": {
+            "stream": "asyncio.StreamReader"
+          }
         },
         {
           "name": "Worker._web",
-          "line": 206,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self",
@@ -33954,14 +33956,14 @@
           ],
           "annotations": {
             "name": "str",
-            "args": "dict",
-            "context": "dict",
+            "args": "dict[str, Any]",
+            "context": "dict[str, Any]",
             "effects": "Effects"
           }
         },
         {
           "name": "Worker.close",
-          "line": 251,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self"
@@ -33970,7 +33972,7 @@
         },
         {
           "name": "serve",
-          "line": 258,
+          "line": 263,
           "kind": "function",
           "parameters": [],
           "annotations": {}

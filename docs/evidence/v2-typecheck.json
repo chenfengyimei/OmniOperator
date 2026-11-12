@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "a136afad66324ff21337703fe38b1cb1c00bc8431e4ac507cad13fbedb46d953",
+  "code_version": "ea713105ba3d408725f12a7bad6798da967021a6016c24f22ded631d2c5b1813",
   "fixed_source_files": 1200,
-  "git_head": "88e250e",
+  "git_head": "df22e93",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -153,10 +153,11 @@
    "Strict scope reaches 242 files (53 domain + 43 application + 146 adapters); the shared QQ audience/credential authority types its payloads and receipts, uses the new public RepositoryBase.one single-row fetch instead of the protected helper, and narrows JSON reads with casts; send cooldown, disabled-agent and revocation checks are unchanged",
    "Strict scope reaches 243 files (53 domain + 43 application + 147 adapters); the shared Bilibili publication authority types its read/publication/preview receipts, fetches single rows through the public RepositoryBase.one and narrows body text, mentions and form tables from JSON with casts; the target-prefix, revision and erased-source checks are unchanged",
    "Strict scope reaches 244 files (53 domain + 43 application + 148 adapters); the async model adapter types its prepared kwargs, health report, tool-call list and usage mapping, bridges the vendor pydantic dump through a local Any view and keeps the optional price branch; offline denial, reuse guard and charge-reconciliation wording are unchanged",
-   "Strict scope reaches 245 files (53 domain + 43 application + 149 adapters); the people/account repository types its person, page and personal-document receipts and the shared memory mixin tightens _live_person, remember and revise_memory, casting the audit operation id from JSON; owner protection, revision conflicts and erasure semantics are unchanged"
+   "Strict scope reaches 245 files (53 domain + 43 application + 149 adapters); the people/account repository types its person, page and personal-document receipts and the shared memory mixin tightens _live_person, remember and revise_memory, casting the audit operation id from JSON; owner protection, revision conflicts and erasure semantics are unchanged",
+   "Strict scope reaches 246 files (53 domain + 43 application + 150 adapters); the capability subprocess entry types its invoke/file/shell/browser handlers with dict[str, Any] args and context, casts argv and the file listing at the JSON boundary and asserts the piped subprocess streams; workspace, argv and dispatch rules are unchanged"
   ],
   "pending": [
-   "application 43/44 and adapters 149/222 strict typing",
+   "application 43/44 and adapters 150/222 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -165,8 +166,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-132-callers.xml",
-   "tests": 26,
+   "report": "temp/build/v2-typecheck-133-callers.xml",
+   "tests": 35,
    "failures": 0
   },
   "targeted_reports": [
@@ -1365,6 +1366,15 @@
     "errors": 0,
     "duration_s": 35.53,
     "note": "one hundred thirty-second strict batch: guard + people, account and personal document callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-133-callers.xml",
+    "sha256": "d1d2ed11b341a2e83a073174cecc4f1f4535fb46af5eef132d9617f1ca85d9f9",
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 4.15,
+    "note": "one hundred thirty-third strict batch: guard + capability worker entry callers"
    }
   ],
   "gates": {
@@ -1376,7 +1386,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 245,
+    "filesAnalyzed": 246,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1440,6 +1450,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 149/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 150/222); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
