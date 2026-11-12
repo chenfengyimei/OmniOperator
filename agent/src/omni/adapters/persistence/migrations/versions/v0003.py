@@ -13,13 +13,13 @@ branch_labels = None
 depends_on = None
 
 
-def _hash(value):
+def _hash(value: str) -> str:
     return hashlib.sha256(
         b"content\0" + " ".join(unicodedata.normalize("NFKC", value).split()).casefold().encode()
     ).hexdigest()
 
 
-def _source_hash(kind, identity, quote):
+def _source_hash(kind: str, identity: str, quote: str) -> str:
     normalized = " ".join(unicodedata.normalize("NFKC", quote).split()).casefold()
     return hashlib.sha256(b"source\0" + (kind + ":" + identity + ":" + normalized).encode()).hexdigest()
 
@@ -88,7 +88,7 @@ def upgrade() -> None:
             ["id", "memory_id", "agent_id"],
             ondelete="RESTRICT",
         )
-    old_context = []
+    old_context: list[tuple[str, object, object, object, object]] = []
     for row in connection.exec_driver_sql("SELECT id,agent_id,created_at,memory_ids FROM context_snapshots").mappings():
         for memory_id in json.loads(row["memory_ids"]):
             old_context.append((str(uuid.uuid4()), row["agent_id"], row["created_at"], row["id"], memory_id))

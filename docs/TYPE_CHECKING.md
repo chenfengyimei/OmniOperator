@@ -132,6 +132,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/skill_packages.py` | 内存内技能 Markdown/ZIP 解析（不解压/不执行） |
 | `agent/src/omni/adapters/platform/service_control_files.py` | 服务启停日志/一次性启动预留 |
 | `agent/src/omni/adapters/platform/service_launch.py` | 一次性启动预留（实例锁下，不启动进程） |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0003.py` | 冻结迁移版本 v0003（人物/证据/记忆上下文） |
 | `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
 | `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |
