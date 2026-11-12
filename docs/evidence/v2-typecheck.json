@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "09bbbfc615108d88ea2ce11619145372251cab764b7e4698af15ddb6ef4f1a7d",
+  "code_version": "620d96643c64330c8ff7614c2e7af940d531fdabe849e8c6a3021b4f49fcb1f0",
   "fixed_source_files": 1200,
-  "git_head": "48aa885",
+  "git_head": "26722f6",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -144,10 +144,11 @@
    "Strict scope reaches 232 files (53 domain + 43 application + 136 adapters); the native credential host types its host readers/collected tasks, protocol query dict and reply value casts, so no unknown task members remain while the permit ordering, redaction and unknown-outcome rules stay unchanged",
    "Strict scope reaches 234 files (53 domain + 43 application + 138 adapters); the shared worker IPC protocol now types its pair hook, decode/request/action field narrowing and response encoder, which also cleared the extension child worker's artifact list, hello comparison and schema validation call",
    "Strict scope reaches 235 files (53 domain + 43 application + 139 adapters); the pinned Wayland portal session types its injected signal factory, property rows, request arguments/options and stream pair narrowing without changing the version/cursor-mode checks or the no-PipeWire-fd rule",
-   "Strict scope reaches 236 files (53 domain + 43 application + 140 adapters); the reviewed root administrator entry types its strict-JSON payload, bundle record list and owner/administrator source comparison with explicit dict[str, Any] payloads while keeping the duplicate-field/format/hash/path/size checks unchanged"
+   "Strict scope reaches 236 files (53 domain + 43 application + 140 adapters); the reviewed root administrator entry types its strict-JSON payload, bundle record list and owner/administrator source comparison with explicit dict[str, Any] payloads while keeping the duplicate-field/format/hash/path/size checks unchanged",
+   "Strict scope reaches 237 files (53 domain + 43 application + 141 adapters); the Linux semantic-action worker entry types its frame sender, pipe writer and injected kwargs, and the desktop worker's perform gains explicit request/permit/response annotations without changing the initial-frame no-write rule"
   ],
   "pending": [
-   "application 43/44 and adapters 140/215 strict typing",
+   "application 43/44 and adapters 141/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -156,8 +157,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-123-callers.xml",
-   "tests": 65,
+   "report": "temp/build/v2-typecheck-124-callers.xml",
+   "tests": 94,
    "failures": 0
   },
   "targeted_reports": [
@@ -1275,6 +1276,15 @@
     "errors": 0,
     "duration_s": 14.7,
     "note": "one hundred twenty-third strict batch: guard + reviewed administrator bundle entry callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-124-callers.xml",
+    "sha256": "dff9e4e1488b4ba1d11ee4ddd39a30e6528c7c8f98135f36aa4477227439db9e",
+    "tests": 94,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 13.3,
+    "note": "one hundred twenty-fourth strict batch: guard + Linux semantic action worker callers"
    }
   ],
   "gates": {
@@ -1286,7 +1296,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 236,
+    "filesAnalyzed": 237,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1350,6 +1360,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 140/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 141/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }

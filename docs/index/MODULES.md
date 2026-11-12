@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7a06ed00dcb0e9724b89a2b36b4d5e830bcc977b5b1e55de06035773ae3ed14d`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`aacdc77e22b11f4ebf950a81681b82e21b51a376c46b325eb4f815783d38ecaf`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -347,8 +347,8 @@
 | [agent/src/omni/adapters/workers/credentials.py](../../agent/src/omni/adapters/workers/credentials.py) | 76 | Fixed one-operation OS credential helper; no database, config lookup or plaintext fallback. |
 | [agent/src/omni/adapters/workers/darwin_admin_probe.py](../../agent/src/omni/adapters/workers/darwin_admin_probe.py) | 45 | Root bundle's fixed read-only system probe. Never imported from an owner environment. |
 | [agent/src/omni/adapters/workers/desktop.py](../../agent/src/omni/adapters/workers/desktop.py) | 132 | One bounded read-only desktop request per helper; stdout is IPC and never contains diagnostics. |
-| [agent/src/omni/adapters/workers/linux_action.py](../../agent/src/omni/adapters/workers/linux_action.py) | 77 | One prepared Linux semantic action; the initial frame never permits a write, and no provider text is logged. |
-| [agent/src/omni/adapters/workers/linux_desktop.py](../../agent/src/omni/adapters/workers/linux_desktop.py) | 248 | One Linux read-only request in the owned helper. No service activation, settings, input or database access. |
+| [agent/src/omni/adapters/workers/linux_action.py](../../agent/src/omni/adapters/workers/linux_action.py) | 79 | One prepared Linux semantic action; the initial frame never permits a write, and no provider text is logged. |
+| [agent/src/omni/adapters/workers/linux_desktop.py](../../agent/src/omni/adapters/workers/linux_desktop.py) | 249 | One Linux read-only request in the owned helper. No service activation, settings, input or database access. |
 | [agent/src/omni/adapters/workers/local_vectors.py](../../agent/src/omni/adapters/workers/local_vectors.py) | 202 | CPU ONNX/tokenizers subprocess. No database, credentials, model downloads or arbitrary Python imports. |
 | [agent/src/omni/adapters/workers/macos/Core/Package.swift](../../agent/src/omni/adapters/workers/macos/Core/Package.swift) | 12 | 原生源码、平台脚本或界面资源 |
 | [agent/src/omni/adapters/workers/macos/Core/Sources/ForegroundCore/Takeover.swift](../../agent/src/omni/adapters/workers/macos/Core/Sources/ForegroundCore/Takeover.swift) | 107 | 原生源码、平台脚本或界面资源 |

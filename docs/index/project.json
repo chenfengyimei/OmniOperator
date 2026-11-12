@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7a06ed00dcb0e9724b89a2b36b4d5e830bcc977b5b1e55de06035773ae3ed14d",
+  "source_sha256": "aacdc77e22b11f4ebf950a81681b82e21b51a376c46b325eb4f815783d38ecaf",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53216,
+      "lines": 53219,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -33428,7 +33428,7 @@
       "path": "agent/src/omni/adapters/workers/linux_action.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.linux_action",
-      "lines": 77,
+      "lines": 79,
       "imports": [
         "omni.adapters.workers.desktop",
         "omni.adapters.workers.linux_desktop",
@@ -33438,7 +33438,7 @@
       "symbols": [
         {
           "name": "run",
-          "line": 16,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "reader",
@@ -33446,35 +33446,38 @@
             "**injected"
           ],
           "annotations": {
-            "reader": "asyncio.StreamReader"
+            "reader": "asyncio.StreamReader",
+            "send": "Callable[[bytes], Awaitable[None]]"
           }
         },
         {
           "name": "run.authorize",
-          "line": 21,
+          "line": 23,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "pipe_main",
-          "line": 37,
+          "line": 39,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "pipe_main.send",
-          "line": 44,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "data"
           ],
-          "annotations": {}
+          "annotations": {
+            "data": "bytes"
+          }
         },
         {
           "name": "main",
-          "line": 67,
+          "line": 69,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -33486,7 +33489,7 @@
       "path": "agent/src/omni/adapters/workers/linux_desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.workers.linux_desktop",
-      "lines": 248,
+      "lines": 249,
       "imports": [
         "omni.adapters.platform.linux_atspi",
         "omni.adapters.platform.linux_bus",
@@ -33501,7 +33504,7 @@
       "symbols": [
         {
           "name": "session_record",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "inspector",
@@ -33514,7 +33517,7 @@
         },
         {
           "name": "capability_report",
-          "line": 33,
+          "line": 34,
           "kind": "function",
           "parameters": [
             "inspector",
@@ -33529,7 +33532,7 @@
         },
         {
           "name": "perform",
-          "line": 63,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "request",
@@ -33540,9 +33543,12 @@
             "permit"
           ],
           "annotations": {
-            "request": "dict",
+            "request": "dict[str, Any]",
             "ops": "OpsPort | None",
-            "factory": "FactoryPort | None"
+            "factory": "FactoryPort | None",
+            "x11_factory": "Any",
+            "monitor_factory": "Any",
+            "permit": "Callable[[], Awaitable[bool]] | None"
           }
         }
       ],
