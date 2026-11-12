@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "3c7b6bb0fb08f58923962b060852e04014ce304cbc6dbacf39d41ea17eb2ee9d",
+  "source_sha256": "30459f47dacb4f65fa8f9fd3895dd5dce36c8f3d8dcc85c6708664ec6ff9d300",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52890,
+      "lines": 52891,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -22489,7 +22489,7 @@
       "path": "agent/src/omni/adapters/platform/darwin_admin_probe.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.darwin_admin_probe",
-      "lines": 156,
+      "lines": 154,
       "imports": [],
       "symbols": [
         {
@@ -26154,19 +26154,19 @@
       "path": "agent/src/omni/adapters/platform/linux_x11_wire.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_x11_wire",
-      "lines": 239,
+      "lines": 242,
       "imports": [
         "omni.adapters.platform.linux_bus"
       ],
       "symbols": [
         {
           "name": "XError",
-          "line": 15,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "XError.__init__",
-          "line": 16,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "self",
@@ -26178,7 +26178,7 @@
         },
         {
           "name": "unpack",
-          "line": 21,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "format",
@@ -26193,7 +26193,7 @@
         },
         {
           "name": "padded",
-          "line": 28,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "data"
@@ -26204,12 +26204,12 @@
         },
         {
           "name": "Setup",
-          "line": 33,
+          "line": 35,
           "kind": "class"
         },
         {
           "name": "setup_reply",
-          "line": 43,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "data",
@@ -26222,23 +26222,26 @@
         },
         {
           "name": "Wire",
-          "line": 83,
+          "line": 86,
           "kind": "class"
         },
         {
           "name": "Wire.__init__",
-          "line": 84,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
             "connection",
             "check"
           ],
-          "annotations": {}
+          "annotations": {
+            "connection": "socket.socket",
+            "check": "Callable[[], None]"
+          }
         },
         {
           "name": "Wire.read",
-          "line": 91,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self",
@@ -26250,7 +26253,7 @@
         },
         {
           "name": "Wire.authenticate",
-          "line": 103,
+          "line": 106,
           "kind": "function",
           "parameters": [
             "self",
@@ -26264,7 +26267,7 @@
         },
         {
           "name": "Wire.send",
-          "line": 118,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -26280,7 +26283,7 @@
         },
         {
           "name": "Wire.request",
-          "line": 125,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self",
@@ -26298,7 +26301,7 @@
         },
         {
           "name": "Wire.event",
-          "line": 145,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -26310,7 +26313,7 @@
         },
         {
           "name": "Wire.extension",
-          "line": 154,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "self",
@@ -26322,7 +26325,7 @@
         },
         {
           "name": "Wire.atom",
-          "line": 160,
+          "line": 163,
           "kind": "function",
           "parameters": [
             "self",
@@ -26334,7 +26337,7 @@
         },
         {
           "name": "Wire.windows",
-          "line": 164,
+          "line": 167,
           "kind": "function",
           "parameters": [
             "self"
@@ -26343,7 +26346,7 @@
         },
         {
           "name": "Wire.client",
-          "line": 178,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self",
@@ -26357,7 +26360,7 @@
         },
         {
           "name": "Wire.geometry",
-          "line": 199,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self",
@@ -26369,7 +26372,7 @@
         },
         {
           "name": "Wire.attributes",
-          "line": 206,
+          "line": 209,
           "kind": "function",
           "parameters": [
             "self",
@@ -26381,7 +26384,7 @@
         },
         {
           "name": "Wire.watch",
-          "line": 213,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "self",
@@ -26393,7 +26396,7 @@
         },
         {
           "name": "Wire.image",
-          "line": 218,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -26405,7 +26408,7 @@
           "annotations": {
             "composite": "int",
             "window": "int",
-            "geometry": "tuple",
+            "geometry": "tuple[int, int, int, int, int]",
             "stride": "int"
           }
         }
