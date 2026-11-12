@@ -35,7 +35,7 @@ class OwnedFd:
         borrowed = socket.socket(fileno=self.fileno())
         try:
             if (
-                borrowed.family != socket.AF_UNIX
+                borrowed.family != getattr(socket, "AF_UNIX")
                 or borrowed.getsockopt(socket.SOL_SOCKET, socket.SO_TYPE) != socket.SOCK_STREAM
             ):
                 raise failure("portal_fd_invalid")
@@ -53,13 +53,16 @@ class ReceivedFds:
         self, connection: socket.socket, length: int
     ) -> tuple[bytes, list[tuple[int, int, bytes]], int, object]:
         size = array.array("i").itemsize
-        data, ancillary, flags, address = connection.recvmsg(
-            length, socket.CMSG_SPACE(2 * size), getattr(socket, "MSG_CMSG_CLOEXEC", 0)
+        # recvmsg/CMSG_SPACE/AF_UNIX are absent from the Windows stub set; the
+        # platform guard lives in the caller, so read them through getattr.
+        received = getattr(connection, "recvmsg")(
+            length, getattr(socket, "CMSG_SPACE")(2 * size), getattr(socket, "MSG_CMSG_CLOEXEC", 0)
         )
-        descriptors = []
+        data, ancillary, flags, address = received
+        descriptors: list[int] = []
         invalid = bool(flags & (getattr(socket, "MSG_CTRUNC", 8) | getattr(socket, "MSG_TRUNC", 32)))
         for level, kind, body in ancillary:
-            if level != socket.SOL_SOCKET or kind != socket.SCM_RIGHTS:
+            if level != socket.SOL_SOCKET or kind != getattr(socket, "SCM_RIGHTS"):
                 invalid = True
                 continue
             numbers = array.array("i")

@@ -5,7 +5,9 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import socket
 import struct
+from collections.abc import Awaitable, Callable
 
 from .linux_bus import failure
 from .linux_session import SessionInspector
@@ -20,8 +22,10 @@ def devices(data: bytes) -> str:
     """Prove one master pair and released buttons; unsupported held-state sources deny control."""
     if len(data) < 32 or not 1 <= unpack("H", data, 8)[0] <= 64:
         raise failure("desktop_input_unverified")
-    count, position, ids = unpack("H", data, 8)[0], 32, set()
-    masters, topology = {}, []
+    count, position = unpack("H", data, 8)[0], 32
+    ids: set[int] = set()
+    masters: dict[int, tuple[int, int]] = {}
+    topology: list[object] = []
     for _ in range(count):
         identity, kind, attachment, classes, name_length, enabled = unpack("HHHHHB", data, position)
         if (
@@ -42,7 +46,8 @@ def devices(data: bytes) -> str:
             if not enabled or kind in masters:
                 raise failure("desktop_input_unverified")
             masters[kind] = (identity, attachment)
-        seen, described = set(), []
+        seen: set[int] = set()
+        described: list[tuple[int, int, int, object]] = []
         for _ in range(classes):
             category, words, _source = unpack("HHH", data, position)
             end = position + words * 4
@@ -79,7 +84,7 @@ def devices(data: bytes) -> str:
 
 
 class InputWire(Wire):
-    def __init__(self, connection, check) -> None:
+    def __init__(self, connection: socket.socket, check: Callable[[], None]) -> None:
         super().__init__(connection, check)
         self.opcode: int | None = None
         self.changed = False
@@ -114,7 +119,11 @@ class InputWire(Wire):
 
 class X11Input:
     def __init__(
-        self, inspector: SessionInspector, *, connection_factory=Connection.open, wire_factory=InputWire
+        self,
+        inspector: SessionInspector,
+        *,
+        connection_factory: Callable[[SessionInspector], Awaitable[Connection]] = Connection.open,
+        wire_factory: Callable[[socket.socket, Callable[[], None]], InputWire] = InputWire,
     ) -> None:
         self.inspector, self._connect, self._wire = inspector, connection_factory, wire_factory
         self.connection = self.wire = None
