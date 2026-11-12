@@ -2189,3 +2189,133 @@ html[data-theme="dark"] #send button[type="submit"] {
   border-radius: var(--r-full);
   padding: 0 18px;
 }
+
+/* V1 上下文用量与服务卡 */
+.svc-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-body);
+}
+.svc-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--text-4);
+}
+.svc-dot.ok {
+  background: var(--ok);
+}
+.svc-main {
+  flex: 1;
+  min-width: 0;
+}
+.svc-name {
+  color: var(--text);
+}
+.svc-detail {
+  color: var(--dim);
+  font-size: var(--fs-small);
+}
+.svc-row {
+  border-bottom-color: var(--line-3);
+}
+.svc-dot.ok {
+  background: var(--ok);
+}
+
+/* 服务与上下文面板 */
+.svc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+}
+.svc-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-small);
+}
+.svc-row:hover {
+  background: var(--surface-2);
+}
+.svc-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-4);
+}
+.svc-dot.ok {
+  background: #34d399;
+}
+.svc-dot.warn {
+  background: #fbbf24;
+}
+.svc-dot.off {
+  background: #f87171;
+}
+.svc-name {
+  min-width: 62px;
+  color: var(--text-2);
+}
+.svc-detail {
+  margin-left: auto;
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+}
+.ctx-seg {
+  display: block;
+  height: 100%;
+}
+.ctx-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--fs-caption);
+  color: var(--text-3);
+}
+.ctx-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ctx-legend-item i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* 左栏：会话列表限高，保证服务与上下文面板可见 */
+#sessions {
+  max-height: 42vh;
+  overflow-y: auto;
+}
+body > main > aside.sessions-panel {
+  gap: 10px;
+}
+#connect.panel {
+  padding: 12px;
+}
+
+/* 发送按钮：深色主题强制翡翠底 */
+html[data-theme="dark"] body #send button[type="submit"] {
+  background: #34d399;
+  border-color: #34d399;
+  color: #041c1c;
+  font-weight: 700;
+}
+
+.tool-call-row .tool-ms {
+  margin-left: auto;
+  color: var(--text-4);
+  font-size: var(--fs-caption);
+  font-variant-numeric: tabular-nums;
+}

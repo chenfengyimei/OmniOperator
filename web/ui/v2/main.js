@@ -295,9 +295,108 @@ function renderToolBlock(node, rows) {
     args.className = 'tool-args';
     args.textContent = payload && payload !== '{}' ? payload.slice(0, 200) : '';
     item.append(icon, name, args);
+    try {
+      const parsed = JSON.parse(payload || "{}");
+      if (parsed && typeof parsed === "object") {
+        const ms = parsed.duration_ms ?? parsed.elapsed_ms ?? parsed.ms;
+        if (typeof ms === "number") {
+          const dur = document.createElement("span");
+          dur.className = "tool-ms";
+          dur.textContent = ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
+          item.append(dur);
+        }
+      }
+    } catch (e) {
+      /* 非 JSON 载荷不展示耗时 */
+    }
     details.append(item);
   }
   node.append(details);
+}
+function statusRow(name, state, detail) {
+  const row = document.createElement('div');
+  row.className = 'svc-row';
+  const dot = document.createElement('span');
+  dot.className = `svc-dot ${state}`;
+  const label = document.createElement('span');
+  label.className = 'svc-name';
+  label.textContent = name;
+  const info = document.createElement('span');
+  info.className = 'svc-detail';
+  info.textContent = detail;
+  row.append(dot, label, info);
+  return row;
+}
+function renderServices(version) {
+  const db = version.database || {};
+  const logs = version.logs || {};
+  const qq = version.qq || {};
+  const sch = version.schedules || {};
+  const del = version.deliveries || {};
+  const mcp = version.mcp?.transports || {};
+  const term = version.terminals || {};
+  const media = version.media?.processor || {};
+  const items = [
+    ['数据库', db.closed ? 'off' : db.error_code ? 'warn' : 'ok', db.closed ? '已关闭' : db.error_code || `写 ${db.pending_writes ?? 0} / 读 ${db.pending_reads ?? 0}`],
+    ['诊断日志', logs.writer_alive ? 'ok' : 'off', `写入 ${logs.written ?? 0} · 丢弃 ${logs.dropped ?? 0}`],
+    ['QQ 通道', qq.worker_alive ? 'ok' : 'off', qq.worker_alive ? `监听 ${qq.listeners ?? 0}` : '未启动'],
+    ['持久调度', sch.ready ? 'ok' : 'off', sch.ready ? `${sch.ticks ?? 0} tick` : '未就绪'],
+    ['持久投递', del.ready ? 'ok' : 'off', `在途 ${del.active ?? 0}`],
+    ['MCP', 'ok', `常驻 ${mcp.resident ?? 0} · 待定 ${mcp.pending ?? 0}`],
+    ['终端', 'ok', `活动 ${term.active ?? 0}`],
+    ['媒体处理', media.available ? 'ok' : 'warn', media.available ? '可用' : '未安装 ASR'],
+  ];
+  $('service-list').replaceChildren(...items.map(([name, state, detail]) => statusRow(name, state, detail)));
+  const bad = items.filter(([, state]) => state !== 'ok').length;
+  $('service-meta').textContent = bad ? `${bad} 项需注意` : '全部正常';
+}
+function renderContext(report, snapshot) {
+  const snap = snapshot || (report?.snapshots || []).at(-1);
+  if (!snap) {
+    $('ctx-chars').textContent = '—';
+    $('ctx-mode').textContent = '—';
+    $('context-meta').textContent = '等待会话';
+    $('ctx-bar').replaceChildren();
+    $('ctx-legend').replaceChildren();
+    $('ctx-note').textContent = '读取当前会话后显示估算占用。';
+    return;
+  }
+  const chars = snap.input_chars || 0;
+  const tokens = snap.input_token_estimate;
+  $('ctx-chars').textContent = tokens != null ? `${tokens} tok` : `${chars} 字符`;
+  const modes = { complete: '完整历史', summary: '摘要', truncated: '已省略', redacted: '已遗忘', blocked: '受阻', preparing: '准备中', legacy: '旧记录' };
+  $('ctx-mode').textContent = modes[snap.mode] || snap.mode || '—';
+  $('context-meta').textContent = `省略 ${snap.omitted_count ?? 0} 条`;
+  const segs = [
+    ['消息', (snap.message_ids || []).length, 'var(--accent)'],
+    ['摘要', (snap.summaries || []).length, 'var(--accent2)'],
+    ['文档', (snap.documents || []).length, 'var(--warn)'],
+  ];
+  const total = segs.reduce((sum, [, n]) => sum + n, 0) || 1;
+  $('ctx-bar').replaceChildren(
+    ...segs
+      .filter(([, n]) => n > 0)
+      .map(([name, n, color]) => {
+        const seg = document.createElement('span');
+        seg.className = 'ctx-seg';
+        seg.dataset.share = String(Math.max(6, Math.round((n / total) * 100)));
+        seg.style.width = `${Math.max(6, Math.round((n / total) * 100))}%`;
+        seg.style.background = color;
+        seg.title = `${name} ${n}`;
+        return seg;
+      }),
+  );
+  $('ctx-legend').replaceChildren(
+    ...segs.map(([name, n, color]) => {
+      const row = document.createElement('span');
+      row.className = 'ctx-legend-item';
+      const dot = document.createElement('i');
+      dot.style.background = color;
+      row.append(dot, document.createTextNode(`${name} ${n}`));
+      return row;
+    }),
+  );
+  $('ctx-note').textContent = snap.reason ? `原因：${snap.reason}` : `计数方式：${snap.counting_method || '未计量'}`;
 }
 function renderMessages(items) {
   const boundAgent = agent,
@@ -451,6 +550,7 @@ async function poll() {
     return;
   }
   setHealth(version.ready ? '实例已就绪' : '实例尚未就绪', version.ready ? 'ok' : 'warn');
+  renderServices(version);
   const approvals = (await api(scope('/approvals'))).items;
   if (current !== generation) return;
   $('approvals').replaceChildren(
@@ -501,6 +601,7 @@ async function poll() {
       const context = report.items,
         latest = report.snapshots.at(-1);
       if (current !== generation || run !== checkedRun) return;
+      renderContext(report, latest);
       const modes = {
         complete: '完整历史',
         summary: '已登记持久摘要',
@@ -553,6 +654,7 @@ function stop() {
   androidPanel.deactivate();
 }
 function clearContext() {
+  renderContext(null);
   routingPanel.clear();
   skillsPanel.clear();
   modelOutput.clear();

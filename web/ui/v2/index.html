@@ -67,6 +67,22 @@
           </div>
           <ul id="sessions" aria-label="历史会话"></ul>
         </div>
+        <div class="panel service-panel">
+          <div class="panel-title"><span>服务</span><span class="panel-meta" id="service-meta">读取中…</span></div>
+          <div id="service-list" class="svc-list"></div>
+        </div>
+        <div class="panel context-panel">
+          <div class="panel-title"><span>上下文用量</span><span class="panel-meta" id="context-meta">等待会话</span></div>
+          <div id="context-usage" class="ctx">
+            <div class="ctx-head">
+              <span class="ctx-val" id="ctx-chars">—</span>
+              <span class="ctx-percent" id="ctx-mode">—</span>
+            </div>
+            <div class="ctx-bar" id="ctx-bar" role="img" aria-label="上下文占用分布"></div>
+            <div class="ctx-legend" id="ctx-legend"></div>
+            <div class="ctx-note" id="ctx-note">读取当前会话后显示估算占用。</div>
+          </div>
+        </div>
       </aside>
       <section aria-label="工作区">
         <header class="page-head">
