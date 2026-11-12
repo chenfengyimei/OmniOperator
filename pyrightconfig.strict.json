@@ -14,6 +14,7 @@
     "agent/src/omni/application/delivery.py",
     "agent/src/omni/application/desktop.py",
     "agent/src/omni/application/desktop_actions.py",
+    "agent/src/omni/application/desktop_portal.py",
     "agent/src/omni/application/documents.py",
     "agent/src/omni/application/engine.py",
     "agent/src/omni/application/exchange_recovery.py",

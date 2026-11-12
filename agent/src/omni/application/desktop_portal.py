@@ -5,19 +5,20 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from typing import cast
 
 from ..domain.contracts import BusinessError
 from ..domain.desktop_portal import TERMINAL, backend_status, capture_request, owner, uuid_value
 from .objects import ObjectService
-from .ports import DatabasePort, DesktopPortalPort, Ids, Observer
+from .ports import DatabasePort, DesktopPortalPort, Ids, Observer, Record
 
 
 @dataclass
 class Grant:
-    scope: dict
+    scope: Record
     phase: str = "starting"
     error_code: str | None = None
-    task: asyncio.Task | None = None
+    task: asyncio.Task[None] | None = None
     authorized: bool = False
 
 
@@ -36,20 +37,20 @@ class DesktopPortalService:
         self._db, self._backend, self._ids, self._boot, self._observer = database, backend, ids, boot_id, observer
         self._authorize = authorize
         self._grants: dict[str, Grant] = {}
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._opening: set[str] = set()
         self._closing = False
         self._objects = objects
         self._capturing: set[str] = set()
 
-    async def _audit(self, grant: Grant, kind: str, **data) -> None:
+    async def _audit(self, grant: Grant, kind: str, **data: object) -> None:
         try:
             await self._db.write(
                 lambda u: u.diagnostic_audit(
-                    grant.scope["agent_id"],
-                    grant.scope["grant_id"],
+                    cast(str, grant.scope["agent_id"]),
+                    cast(str, grant.scope["grant_id"]),
                     kind,
-                    {"window_only": True, "input_authorized": False, **data},
+                    cast(Record, {"window_only": True, "input_authorized": False, **data}),
                 )
             )
         except Exception:  # noqa: BLE001 -- a failed business audit never becomes a usable grant or leaks SQL/provider data
@@ -57,8 +58,8 @@ class DesktopPortalService:
                 "portal_audit_failed", "Window-share audit could not be persisted", status=503
             ) from None
 
-    def _public(self, grant: Grant, native: dict) -> dict:
-        native = backend_status(native, grant.scope["grant_id"])
+    def _public(self, grant: Grant, native: Record) -> Record:
+        native = cast(Record, backend_status(native, cast(str, grant.scope["grant_id"])))
         phase = grant.phase if native["phase"] == "active" or grant.phase in TERMINAL else native["phase"]
         return {
             "grant_id": grant.scope["grant_id"],
@@ -81,13 +82,13 @@ class DesktopPortalService:
         }
 
     async def _guard(self, grant: Grant) -> None:
-        if self._closing or self._grants.get(grant.scope["agent_id"]) is not grant:
+        if self._closing or self._grants.get(cast(str, grant.scope["agent_id"])) is not grant:
             raise BusinessError("portal_grant_changed", "Window-share grant was detached", status=409)
-        await self._authorize(grant.scope["agent_id"], grant.scope["view_id"])
-        if self._closing or self._grants.get(grant.scope["agent_id"]) is not grant:
+        await self._authorize(cast(str, grant.scope["agent_id"]), cast(str, grant.scope["view_id"]))
+        if self._closing or self._grants.get(cast(str, grant.scope["agent_id"])) is not grant:
             raise BusinessError("portal_grant_changed", "Window-share grant was detached", status=409)
 
-    async def open(self, agent_id: str, data: object) -> dict:
+    async def open(self, agent_id: str, data: object) -> Record:
         view_id = owner(data)
         if self._closing:
             raise BusinessError("portal_draining", "Window sharing is draining", status=503)
@@ -103,17 +104,17 @@ class DesktopPortalService:
         self._own(task)
         return await asyncio.shield(task)
 
-    def _own(self, task: asyncio.Task) -> None:
+    def _own(self, task: asyncio.Task[object]) -> None:
         self._pending.add(task)
 
-        def done(future):
+        def done(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
 
         task.add_done_callback(done)
 
-    async def _open(self, agent_id: str, view_id: str) -> dict:
+    async def _open(self, agent_id: str, view_id: str) -> Record:
         previous = self._grants.get(agent_id)
         try:
             if previous is not None:
@@ -127,13 +128,16 @@ class DesktopPortalService:
                 {"agent_id": agent_id, "view_id": view_id, "boot_id": self._boot, "grant_id": self._ids.new()}
             )
             self._grants[agent_id] = grant
-            with self._observer.context(agent_id=agent_id, operation_id=grant.scope["grant_id"]):
+            with self._observer.context(agent_id=agent_id, operation_id=cast(str, grant.scope["grant_id"])):
                 try:
                     await self._guard(grant)
                     await self._audit(grant, "desktop.portal_requested")
-                    native = backend_status(
-                        await self._backend.open(grant.scope, before_dispatch=lambda: self._guard(grant)),
-                        grant.scope["grant_id"],
+                    native = cast(
+                        Record,
+                        backend_status(
+                            await self._backend.open(grant.scope, before_dispatch=lambda: self._guard(grant)),
+                            cast(str, grant.scope["grant_id"]),
+                        ),
                     )
                     await self._guard(grant)
                 except BaseException:
@@ -150,7 +154,7 @@ class DesktopPortalService:
                         self._grants.pop(agent_id, None)
                     await self._audit(grant, "desktop.portal_closed", error_code=grant.error_code)
                     raise
-                grant.phase = native["phase"]
+                grant.phase = cast(str, native["phase"])
                 grant.task = asyncio.create_task(self._watch(grant), name="portal-consent-settlement")
                 self._own(grant.task)
                 return self._public(grant, native)
@@ -159,18 +163,22 @@ class DesktopPortalService:
 
     async def _watch(self, grant: Grant) -> None:
         try:
-            value = backend_status(await self._backend.status(grant.scope), grant.scope["grant_id"])
+            value = backend_status(
+                await self._backend.status(grant.scope), cast(str, grant.scope["grant_id"])
+            )
             while True:
                 if value["phase"] == "active" and not grant.authorized:
                     await self._guard(grant)
                     await self._audit(grant, "desktop.portal_authorized")
                     await self._guard(grant)
                     grant.authorized = True
-                grant.phase, grant.error_code = value["phase"], value["error_code"]
+                grant.phase = cast(str, value["phase"])
+                grant.error_code = cast(str | None, value["error_code"])
                 if value["phase"] in TERMINAL and not value["cleanup_pending"]:
                     break
                 value = backend_status(
-                    await self._backend.wait(grant.scope, value["revision"]), grant.scope["grant_id"]
+                    await self._backend.wait(grant.scope, cast(int, value["revision"])),
+                    cast(str, grant.scope["grant_id"]),
                 )
         except Exception as caught:  # noqa: BLE001 -- failed audit or revoked view cannot expose a usable consent
             grant.phase = "failed"
@@ -186,7 +194,7 @@ class DesktopPortalService:
             grant.authorized = False
             await self._audit(grant, "desktop.portal_closed", error_code=grant.error_code, phase=grant.phase)
 
-    async def status(self, agent_id: str, view_id: str) -> dict:
+    async def status(self, agent_id: str, view_id: str) -> Record:
         view_id = uuid_value(view_id)
         await self._authorize(agent_id, view_id)
         grant = self._grants.get(agent_id)
@@ -211,7 +219,7 @@ class DesktopPortalService:
         if self._grants.get(agent_id) is grant:
             self._grants.pop(agent_id, None)
 
-    async def close_grant(self, agent_id: str, view_id: str, grant_id: str) -> dict:
+    async def close_grant(self, agent_id: str, view_id: str, grant_id: str) -> Record:
         await self._authorize(agent_id, uuid_value(view_id))
         grant = self._grants.get(agent_id)
         if grant is None or grant.scope["view_id"] != view_id or grant.scope["grant_id"] != uuid_value(grant_id):
@@ -219,7 +227,7 @@ class DesktopPortalService:
         await self.detach(agent_id, view_id)
         return {"closed": True, "grant_id": grant_id}
 
-    async def capture(self, agent_id: str, data: object) -> dict:
+    async def capture(self, agent_id: str, data: object) -> Record:
         request = capture_request(data)
         await self._authorize(agent_id, request["view_id"])
         grant = self._grants.get(agent_id)
@@ -232,19 +240,23 @@ class DesktopPortalService:
         if agent_id in self._capturing or len(self._capturing) >= 4 or self._closing:
             raise BusinessError("portal_frame_busy", "Window frame requests are bounded", status=503)
         self._capturing.add(agent_id)
-        task = asyncio.create_task(self._capture(grant, request["session_id"]), name="portal-frame-publication")
+        task = asyncio.create_task(
+            self._capture(grant, request["session_id"]), name="portal-frame-publication"
+        )
         self._own(task)
         return await asyncio.shield(task)
 
-    async def _capture(self, grant: Grant, session_id: str) -> dict:
-        agent_id = grant.scope["agent_id"]
+    async def _capture(self, grant: Grant, session_id: str) -> Record:
+        agent_id = cast(str, grant.scope["agent_id"])
         operation_id = self._ids.new()
         try:
             epoch = await self._db.read(lambda u: u.capture_session(agent_id, session_id))
 
             async def guard():
                 await self._guard(grant)
-                native = backend_status(await self._backend.status(grant.scope), grant.scope["grant_id"])
+                native = backend_status(
+                    await self._backend.status(grant.scope), cast(str, grant.scope["grant_id"])
+                )
                 if (
                     not grant.authorized
                     or native["phase"] != "active"
@@ -252,7 +264,9 @@ class DesktopPortalService:
                     or not native["capture_available"]
                 ):
                     raise BusinessError(
-                        native["capture_error_code"] or "portal_revoked", "Window frame is not authorized", status=409
+                        str(native["capture_error_code"] or "portal_revoked"),
+                        "Window frame is not authorized",
+                        status=409,
                     )
                 if await self._db.read(lambda u: u.capture_session(agent_id, session_id)) != epoch:
                     raise BusinessError(
@@ -279,7 +293,7 @@ class DesktopPortalService:
         finally:
             self._capturing.discard(agent_id)
 
-    def health(self) -> dict:
+    def health(self) -> Record:
         return {
             "pending": len(self._pending),
             "grants": len(self._grants),
