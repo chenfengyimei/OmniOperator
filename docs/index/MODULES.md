@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`85aa0ae09099a7528a7293cc234afb0631459b8afb1dcaff488f8fdba3a37fdd`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`d26c8a000db93df61d0e9f23a6cbdac0f3a0e392c303cf522a0b9171bc39fa96`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -81,7 +81,7 @@
 | [agent/src/omni/application/action_review.py](../../agent/src/omni/application/action_review.py) | 111 | Owner reconciliation records observations, never dispatches an action or rewrites its result. |
 | [agent/src/omni/application/android.py](../../agent/src/omni/application/android.py) | 735 | Owner Android device grants, ephemeral observations and shared approved actions; no platform I/O. |
 | [agent/src/omni/application/bilibili.py](../../agent/src/omni/application/bilibili.py) | 210 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
-| [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 173 | Owner configuration use cases; import only previews and never starts an adapter. |
+| [agent/src/omni/application/configuration.py](../../agent/src/omni/application/configuration.py) | 186 | Owner configuration use cases; import only previews and never starts an adapter. |
 | [agent/src/omni/application/context.py](../../agent/src/omni/application/context.py) | 211 | Token-aware bounded compression; external calls never hold a transaction. |
 | [agent/src/omni/application/credentials.py](../../agent/src/omni/application/credentials.py) | 185 | Serialize audited owner credential changes; shield accepted mutations through caller cancellation. |
 | [agent/src/omni/application/debugging.py](../../agent/src/omni/application/debugging.py) | 122 | Boot-scoped debug authorization, durable audit and bounded maintenance; no log files here. |
@@ -108,7 +108,7 @@
 | [agent/src/omni/application/objects.py](../../agent/src/omni/application/objects.py) | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
 | [agent/src/omni/application/operations.py](../../agent/src/omni/application/operations.py) | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../agent/src/omni/application/people.py) | 69 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
-| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 980 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/ports.py](../../agent/src/omni/application/ports.py) | 981 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../agent/src/omni/application/qq.py) | 197 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
 | [agent/src/omni/application/release_drain.py](../../agent/src/omni/application/release_drain.py) | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
 | [agent/src/omni/application/releases.py](../../agent/src/omni/application/releases.py) | 335 | Offline release preparation and single-directory selection; never elevates, registers or starts a service. |
@@ -432,7 +432,7 @@
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1450 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 954 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 956 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |
@@ -448,7 +448,7 @@
 | [web/ui/v2/terminal-reviews.js](../../web/ui/v2/terminal-reviews.js) | 254 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminals.js](../../web/ui/v2/terminals.js) | 564 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/tokens.js](../../web/ui/v2/tokens.js) | 81 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1342 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1350 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

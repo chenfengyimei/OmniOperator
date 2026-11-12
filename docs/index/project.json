@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "85aa0ae09099a7528a7293cc234afb0631459b8afb1dcaff488f8fdba3a37fdd",
+  "source_sha256": "d26c8a000db93df61d0e9f23a6cbdac0f3a0e392c303cf522a0b9171bc39fa96",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 10940,
+      "lines": 10954,
       "dependencies": [
         "v2-domain"
       ]
@@ -493,7 +493,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 12478,
+      "lines": 12488,
       "dependencies": []
     },
     {
@@ -35487,7 +35487,7 @@
       "path": "agent/src/omni/application/configuration.py",
       "module": "v2-application",
       "python_module": "omni.application.configuration",
-      "lines": 173,
+      "lines": 186,
       "imports": [
         "omni.application.ports",
         "omni.domain.configuration",
@@ -35497,12 +35497,12 @@
       "symbols": [
         {
           "name": "ConfigurationService",
-          "line": 13,
+          "line": 14,
           "kind": "class"
         },
         {
           "name": "ConfigurationService.__init__",
-          "line": 14,
+          "line": 15,
           "kind": "function",
           "parameters": [
             "self",
@@ -35516,7 +35516,7 @@
         },
         {
           "name": "ConfigurationService.page",
-          "line": 17,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "self",
@@ -35534,7 +35534,7 @@
         },
         {
           "name": "ConfigurationService.get",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "self",
@@ -35548,16 +35548,18 @@
         },
         {
           "name": "ConfigurationService.get.read",
-          "line": 22,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "ConfigurationService.create",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "self",
@@ -35573,22 +35575,24 @@
             "kind": "str",
             "name": "str",
             "enabled": "bool",
-            "value": "dict",
-            "image_policy": "dict | None"
+            "value": "Record",
+            "image_policy": "Record | None"
           }
         },
         {
           "name": "ConfigurationService.create.create",
-          "line": 33,
+          "line": 40,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "ConfigurationService.save",
-          "line": 45,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "self",
@@ -35605,23 +35609,25 @@
             "identity": "str",
             "name": "str",
             "enabled": "bool",
-            "value": "dict",
+            "value": "Record",
             "revision": "int",
-            "image_policy": "dict | None"
+            "image_policy": "Record | None"
           }
         },
         {
           "name": "ConfigurationService.save.save",
-          "line": 55,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "ConfigurationService.archive",
-          "line": 70,
+          "line": 77,
           "kind": "function",
           "parameters": [
             "self",
@@ -35637,7 +35643,7 @@
         },
         {
           "name": "ConfigurationService.history",
-          "line": 73,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "self",
@@ -35655,16 +35661,18 @@
         },
         {
           "name": "ConfigurationService.history.read",
-          "line": 74,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "ConfigurationService.settings_history",
-          "line": 84,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -35680,7 +35688,7 @@
         },
         {
           "name": "ConfigurationService.preset",
-          "line": 88,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -35694,7 +35702,7 @@
         },
         {
           "name": "ConfigurationService.template",
-          "line": 95,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "kind"
@@ -35705,18 +35713,18 @@
         },
         {
           "name": "ConfigurationService.preview",
-          "line": 105,
+          "line": 112,
           "kind": "function",
           "parameters": [
             "document"
           ],
           "annotations": {
-            "document": "dict"
+            "document": "Mapping[str, object]"
           }
         },
         {
           "name": "ConfigurationService.diagnose",
-          "line": 129,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self",
@@ -42325,7 +42333,7 @@
       "path": "agent/src/omni/application/ports.py",
       "module": "v2-application",
       "python_module": "omni.application.ports",
-      "lines": 980,
+      "lines": 981,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delivery",
@@ -48644,7 +48652,7 @@
             "kind": "str",
             "name": "str",
             "enabled": "bool",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
@@ -48665,7 +48673,7 @@
             "config_id": "str",
             "name": "str",
             "enabled": "bool",
-            "value": "dict",
+            "value": "Record",
             "revision": "int"
           }
         },
@@ -94836,7 +94844,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 954,
+      "lines": 956,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -94996,7 +95004,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1342,
+      "lines": 1350,
       "imports": [],
       "symbols": [],
       "kind": "asset",
