@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "9d9e0e819a5e01a8830be397549cbbbd62fe7da2ab9af566fc3f4d62c7e40865",
+  "code_version": "b379eb80e587b32c190f7bbf1c8bc88e92f069746054a1b561c45ee75abbb3f8",
   "fixed_source_files": 1200,
-  "git_head": "0ddc6f6",
+  "git_head": "fa4f3f1",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -99,10 +99,11 @@
    "Strict scope reaches 99 files (53 domain + 42 application + 4 adapters); application/skills makes import, edit, enable, rollback and disclosure explicit with bounded tasks, while owner review, captured-revision checks and unknown/no-replay semantics stay unchanged",
    "Strict scope reaches 100 files (53 domain + 43 application + 4 adapters); application/ports closes the remaining bare dict boundaries in outbound and Android protocols, keeping every port contract and unknown/no-replay semantics unchanged",
    "Strict scope reaches 106 files (53 domain + 43 application + 10 adapters); six already-clean adapter modules (platform workspace/exchange layouts, persistence predicates/history/migration config/search schema) join the gate, and the scope guard now accepts nested adapter paths",
-   "Strict scope reaches 110 files (53 domain + 43 application + 14 adapters); token_counter, sqlite_access, deployed_instance and delivery_predicates are typed without changing estimation, WAL-preserving access, deployment verification or outbound predicate semantics"
+   "Strict scope reaches 110 files (53 domain + 43 application + 14 adapters); token_counter, sqlite_access, deployed_instance and delivery_predicates are typed without changing estimation, WAL-preserving access, deployment verification or outbound predicate semantics",
+   "Strict scope reaches 150 files (53 domain + 43 application + 54 adapters); all remaining zero-error adapter modules join the gate, including the frozen Alembic versions, and the scope guard now accepts versioned module names"
   ],
   "pending": [
-   "application 43/44 and adapters 14/215 strict typing",
+   "application 43/44 and adapters 54/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -111,8 +112,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-78-callers.xml",
-   "tests": 64,
+   "report": "temp/build/v2-typecheck-79-callers.xml",
+   "tests": 29,
    "failures": 0
   },
   "targeted_reports": [
@@ -825,6 +826,15 @@
     "errors": 0,
     "duration_s": 81.2,
     "note": "seventy-eighth strict batch: guard + token estimate/delivery/storage/architecture callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-79-callers.xml",
+    "sha256": "747171a8b82fcf5cf0de1187341b51468318ca956330d31e56592ebe3d05d427",
+    "tests": 29,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 14.93,
+    "note": "seventy-ninth strict batch: guard + architecture/storage callers"
    }
   ],
   "gates": {
@@ -836,7 +846,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 110,
+    "filesAnalyzed": 150,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -900,6 +910,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 14/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 54/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
