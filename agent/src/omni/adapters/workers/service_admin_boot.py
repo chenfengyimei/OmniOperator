@@ -9,24 +9,28 @@ import os
 import stat
 import sys
 from pathlib import Path
+from typing import Any, cast
 
 
 def canonical(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
 
 
-def strict_json(data: bytes) -> dict:
-    def pairs(items):
-        result = {}
+def strict_json(data: bytes) -> dict[str, Any]:
+    def pairs(items: list[tuple[Any, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
         for key, value in items:
             if key in result:
                 raise ValueError("duplicate field")
             result[key] = value
         return result
 
-    result = json.loads(data, object_pairs_hook=pairs, parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
-    if not isinstance(result, dict):
+    decoded: Any = json.loads(
+        data, object_pairs_hook=pairs, parse_constant=lambda _: (_ for _ in ()).throw(ValueError())
+    )
+    if not isinstance(decoded, dict):
         raise ValueError("object required")
+    result = cast(dict[str, Any], decoded)
     canonical(result)
     return result
 
@@ -73,7 +77,7 @@ def read_owner_file(path: Path, uid: int, maximum: int = 2 * 1024 * 1024) -> byt
         os.close(descriptor)
 
 
-def validate_bundle(root: Path) -> dict:
+def validate_bundle(root: Path) -> dict[str, Any]:
     trusted(root)
     manifest_path = root / "manifest.json"
     trusted(manifest_path)
@@ -85,14 +89,19 @@ def validate_bundle(root: Path) -> dict:
         != hashlib.sha256(canonical({key: value for key, value in manifest.items() if key != "sha256"})).hexdigest()
     ):
         raise ValueError("bundle hash")
-    entries = manifest["files"]
-    if not isinstance(entries, list) or not 8 <= len(entries) <= 32:
+    if not isinstance(manifest["files"], list):
         raise ValueError("bounded bundle required")
-    names = set()
+    entries = cast(list[Any], manifest["files"])
+    if not 8 <= len(entries) <= 32:
+        raise ValueError("bounded bundle required")
+    names: set[str] = set()
     for record in entries:
-        if not isinstance(record, dict) or set(record) != {"path", "source", "bytes", "sha256"}:
+        if not isinstance(record, dict):
             raise ValueError("record format")
-        name = record["path"]
+        fields = cast(dict[str, Any], record)
+        if set(fields) != {"path", "source", "bytes", "sha256"}:
+            raise ValueError("record format")
+        name = fields["path"]
         if (
             not isinstance(name, str)
             or name in names
@@ -109,12 +118,12 @@ def validate_bundle(root: Path) -> dict:
             raise ValueError("bundle file")
         data = path.read_bytes()
         if (
-            type(record["bytes"]) is not int
-            or len(data) != record["bytes"]
-            or hashlib.sha256(data).hexdigest() != record["sha256"]
+            type(fields["bytes"]) is not int
+            or len(data) != fields["bytes"]
+            or hashlib.sha256(data).hexdigest() != fields["sha256"]
         ):
             raise ValueError("bundle changed")
-    actual = set()
+    actual: set[str] = set()
     for path in root.rglob("*"):
         trusted(path)
         if path.is_file():
@@ -126,7 +135,7 @@ def validate_bundle(root: Path) -> dict:
     return manifest
 
 
-def validate_sources(manifest: dict, operation: dict) -> None:
+def validate_sources(manifest: dict[str, Any], operation: dict[str, Any]) -> None:
     if operation.get("format") == "omni-service-admin-phase-1":
         # A phase executes only its own installation's administrator code.
         # The other installation is reviewed metadata, never imported as root.
