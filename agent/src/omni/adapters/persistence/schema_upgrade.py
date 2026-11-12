@@ -16,7 +16,7 @@ from alembic.util.exc import CommandError
 from ...domain.contracts import BusinessError
 from ...domain.releases import ReleasePlan, digest
 from ...domain.schema_upgrade import FORMAT, schema_upgrade
-from ..platform.deployment_files import CurrentDeploymentFiles, _json, _no_links, _read
+from ..platform.deployment_files import CurrentDeploymentFiles, json_bytes, no_links, publish_json, read_file
 from ..platform.paths import InstancePaths
 from .deployed_instance import verify_deployed_instance
 from .history_sequence import allocate_history
@@ -26,7 +26,7 @@ from .object_inventory import verify_objects
 from .sqlalchemy_access import database_engine
 
 
-def route(source: dict, target: dict) -> dict:
+def route(source: dict[str, object], target: dict[str, object]) -> dict[str, object]:
     try:
         return _route(source, target)
     except (CommandError, RevisionError, KeyError, ImportError, OSError, ValueError) as exc:
@@ -35,19 +35,19 @@ def route(source: dict, target: dict) -> dict:
         ) from exc
 
 
-def _route(source: dict, target: dict) -> dict:
+def _route(source: dict[str, object], target: dict[str, object]) -> dict[str, object]:
     config = configuration()
     scripts = ScriptDirectory.from_config(config)
     if scripts.get_current_head() != target["schema_head"]:
         raise BusinessError("release_schema_program_changed", "Use the reviewed target migration installation")
     root = Path(__file__).resolve().parents[2]
-    revisions = []
+    revisions: list[dict[str, object]] = []
     for script in reversed(list(scripts.walk_revisions())):
         path = Path(script.path)
-        _no_links(path)
+        no_links(path)
         if not path.is_relative_to(root) or script.dependencies is not None:
             raise BusinessError("release_schema_route_invalid", "Use one complete linear migration history")
-        data = _read(path, 1024 * 1024, single=True)
+        data = read_file(path, 1024 * 1024, single=True)
         revisions.append(
             {
                 "revision": script.revision,
@@ -83,7 +83,7 @@ def upgrade_target(plan: ReleasePlan, paths: InstancePaths, restore_report_sha25
     intent = paths.control / "schema-upgrade-intent.json"
     report = paths.control / "schema-upgrade-report.json"
     for path in (intent, report):
-        _no_links(path)
+        no_links(path)
         if path.exists():
             raise BusinessError(
                 "release_schema_already_attempted", "Preserve interrupted migration; restore into another new home"
@@ -99,7 +99,7 @@ def upgrade_target(plan: ReleasePlan, paths: InstancePaths, restore_report_sha25
     }
     # Persist before opening the write transaction. A missing result after a
     # crash never authorizes a second attempt against partially migrated data.
-    publisher._publish_json(intent, _json(binding))
+    publish_json(publisher, intent, json_bytes(binding))
     engine = database_engine(paths.database)
     try:
         with engine.connect() as connection:
@@ -136,9 +136,10 @@ def upgrade_target(plan: ReleasePlan, paths: InstancePaths, restore_report_sha25
     )
     after = inspect_database(paths.database)
     objects = verify_objects(paths.database, paths.objects)
-    publisher._publish_json(
+    publish_json(
+        publisher,
         report,
-        _json(
+        json_bytes(
             {
                 **binding,
                 "complete": True,

@@ -10,6 +10,7 @@ import stat
 import sys
 import uuid
 from pathlib import Path
+from typing import cast
 
 from ..domain.local_vectors import RUNTIME, canonical, fingerprint, invalid, manifest
 from .object_store import sync_directory
@@ -51,7 +52,7 @@ def read_file(path: Path, maximum: int, digest: str | None = None) -> tuple[byte
     return data, before
 
 
-def read_manifest(root: Path, expected: str | None) -> tuple[dict, tuple[int, ...]]:
+def read_manifest(root: Path, expected: str | None) -> tuple[dict[str, object], tuple[int, ...]]:
     if not root.is_absolute():
         raise invalid("vector_bundle_path_unsafe")
     raw, captured = read_file(root / "manifest.json", 65536)
@@ -64,10 +65,10 @@ def read_manifest(root: Path, expected: str | None) -> tuple[dict, tuple[int, ..
     return value, captured
 
 
-def inspect_bundle(root: Path) -> dict:
+def inspect_bundle(root: Path) -> dict[str, object]:
     value, _ = read_manifest(root, None)
-    for name, row in value["files"].items():
-        data, _ = read_file(root / name, row["bytes"], row["sha256"])
+    for name, row in cast(dict[str, dict[str, object]], value["files"]).items():
+        data, _ = read_file(root / name, cast(int, row["bytes"]), cast(str, row["sha256"]))
         if len(data) != row["bytes"]:
             raise invalid("vector_bundle_changed")
     return {"manifest": value, "sha256": fingerprint(value), "files_verified": True, "native_model_verified": False}
@@ -78,10 +79,12 @@ def selection(home: Path) -> tuple[Path, str] | None:
     if not path.exists() and not path.is_symlink() and not path.is_junction():
         return None
     raw, _ = read_file(path, 16384)
-    row = json.loads(raw)
+    decoded = json.loads(raw)
+    if not isinstance(decoded, dict):
+        raise invalid()
+    row = cast(dict[str, object], decoded)
     if (
-        not isinstance(row, dict)
-        or set(row) != {"schema", "bundle", "sha256"}
+        set(row) != {"schema", "bundle", "sha256"}
         or type(row["schema"]) is not int
         or row["schema"] != 1
         or not isinstance(row["bundle"], str)
@@ -91,10 +94,10 @@ def selection(home: Path) -> tuple[Path, str] | None:
     return Path(row["bundle"]), row["sha256"]
 
 
-def configure(home: Path, bundle: Path, expected: str) -> dict:
+def configure(home: Path, bundle: Path, expected: str) -> dict[str, object]:
     # The CLI owns the exclusive instance lock before calling this function.
     value, _ = read_manifest(bundle, expected)
-    for name, row in value["files"].items():
+    for name, row in cast(dict[str, dict[str, object]], value["files"]).items():
         info = identity(bundle / name)
         if info[2] != row["bytes"]:
             raise invalid("vector_bundle_changed")
