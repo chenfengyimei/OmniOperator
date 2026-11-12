@@ -124,6 +124,46 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/delivery_predicates.py` | 出站待处理/未决谓词（持久化适配） |
 | `agent/src/omni/adapters/persistence/sqlite_access.py` | 离线 SQLite 连接（只读/备份，含 WAL） |
 | `agent/src/omni/adapters/token_counter.py` | 本地保守 token 估算（不取模型元数据） |
+| `agent/src/omni/adapters/object_store.py` | 受控对象文件存储（无链接/越界） |
+| `agent/src/omni/adapters/persistence/migrations/env.py` | Alembic 环境入口（迁移配置） |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0001.py` | 冻结迁移版本 v0001 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0002.py` | 冻结迁移版本 v0002 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0004.py` | 冻结迁移版本 v0004 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0007.py` | 冻结迁移版本 v0007 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0008.py` | 冻结迁移版本 v0008 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0009.py` | 冻结迁移版本 v0009 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0011.py` | 冻结迁移版本 v0011 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0012.py` | 冻结迁移版本 v0012 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0013.py` | 冻结迁移版本 v0013 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0014.py` | 冻结迁移版本 v0014 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0015.py` | 冻结迁移版本 v0015 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0016.py` | 冻结迁移版本 v0016 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0017.py` | 冻结迁移版本 v0017 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0018.py` | 冻结迁移版本 v0018 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0019.py` | 冻结迁移版本 v0019 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0020.py` | 冻结迁移版本 v0020 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0021.py` | 冻结迁移版本 v0021 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0022.py` | 冻结迁移版本 v0022 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0023.py` | 冻结迁移版本 v0023 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0024.py` | 冻结迁移版本 v0024 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0025.py` | 冻结迁移版本 v0025 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0026.py` | 冻结迁移版本 v0026 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0028.py` | 冻结迁移版本 v0028 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0029.py` | 冻结迁移版本 v0029 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0030.py` | 冻结迁移版本 v0030 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0031.py` | 冻结迁移版本 v0031 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0032.py` | 冻结迁移版本 v0032 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0033.py` | 冻结迁移版本 v0033 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0034.py` | 冻结迁移版本 v0034 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0035.py` | 冻结迁移版本 v0035 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0036.py` | 冻结迁移版本 v0036 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0037.py` | 冻结迁移版本 v0037 |
+| `agent/src/omni/adapters/platform/darwin_admin_peer.py` | macOS 管理员对端帧校验 |
+| `agent/src/omni/adapters/platform/permissions.py` | 平台权限检查边界 |
+| `agent/src/omni/adapters/platform/publication.py` | 发布文件写入边界 |
+| `agent/src/omni/adapters/platform/service_admin_commands.py` | 服务管理员命令构造 |
+| `agent/src/omni/adapters/platform/wheel_artifact.py` | wheel 产物校验 |
+| `agent/src/omni/adapters/workers/darwin_admin_probe.py` | macOS 管理员探测 worker |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

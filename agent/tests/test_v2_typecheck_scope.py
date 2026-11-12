@@ -14,7 +14,7 @@ def scope():
     doc_rows = {
         match.group(1)
         for match in re.finditer(
-            r"^\| `(agent/src/omni/(?:domain|application|adapters)/[a-z_/]+\.py)` \|",
+            r"^\| `(agent/src/omni/(?:domain|application|adapters)/[a-z0-9_/]+\.py)` \|",
             DOC.read_text(encoding="utf-8"),
             re.M,
         )
