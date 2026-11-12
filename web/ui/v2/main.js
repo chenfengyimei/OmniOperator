@@ -408,7 +408,18 @@ function renderMessages(items) {
     strong.textContent = '还没有消息';
     const hint = document.createElement('span');
     hint.textContent = '在下方输入框开始对话；模型与凭据需先在「设置」中配置。';
-    empty.append(strong, hint);
+    const actions = document.createElement('div');
+    actions.className = 'empty-actions';
+    const fresh = document.createElement('button');
+    fresh.type = 'button';
+    fresh.textContent = '新建对话';
+    fresh.addEventListener('click', () => document.getElementById('new-session').click());
+    const openSettings = document.createElement('button');
+    openSettings.type = 'button';
+    openSettings.textContent = '打开设置中心';
+    openSettings.addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
+    actions.append(fresh, openSettings);
+    empty.append(strong, hint, actions);
     $('messages').replaceChildren(empty);
     return;
   }
@@ -428,7 +439,10 @@ function renderMessages(items) {
       head.append(role);
       if (m.created_at) {
         const time = document.createElement('time');
-        time.textContent = String(m.created_at).replace('T', ' ').slice(0, 19);
+        const stamp = String(m.created_at);
+        const clock = /T(\d{2}:\d{2})/.exec(stamp);
+        time.textContent = clock ? clock[1] : stamp.slice(11, 16);
+        time.dateTime = stamp;
         head.append(time);
       }
       const body = document.createElement('div');
@@ -436,6 +450,19 @@ function renderMessages(items) {
       body.textContent = m.content;
       const actions = document.createElement('div');
       actions.className = 'message-actions';
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'copy-msg';
+      copy.title = '复制这条消息';
+      copy.setAttribute('aria-label', '复制这条消息');
+      copy.textContent = '⧉';
+      copy.addEventListener('click', () => {
+        navigator.clipboard?.writeText(String(m.content || '')).then(() => {
+          copy.textContent = '✓';
+          setTimeout(() => (copy.textContent = '⧉'), 1200);
+        });
+      });
+      head.append(copy);
       bubble.append(head, body, actions);
       node.append(bubble);
       chatImages.append(node, m);
@@ -793,6 +820,14 @@ $('connect').addEventListener(
 $('agents').addEventListener('change', wrap(selectAgent));
 $('back-to-chat').addEventListener('click', () => document.querySelector('[data-page="chat"]').click());
 $('open-settings').addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
+
+$('message').addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+  event.preventDefault();
+  if (event.ctrlKey || event.metaKey) return;
+  const form = $('send');
+  if (form.requestSubmit) form.requestSubmit();
+});
 $('theme').addEventListener('click', () => {
   window.OmniTheme.cycle();
   themeLabel();

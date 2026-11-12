@@ -2319,3 +2319,98 @@ html[data-theme="dark"] body #send button[type="submit"] {
   font-size: var(--fs-caption);
   font-variant-numeric: tabular-nums;
 }
+
+/* ==========================================================================
+   左栏布局：连接卡（紧凑）→ 会话（弹性）→ 服务（固定）→ 上下文（固定）
+   ========================================================================== */
+body > main > aside.sessions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+#connect.panel {
+  flex: 0 0 auto;
+  padding: 10px;
+}
+#connect {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+#connect label {
+  gap: 4px;
+}
+#connect button[type="submit"] {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+}
+.panel.session-panel {
+  flex: 1 1 auto;
+  min-height: 120px;
+}
+.panel.service-panel,
+.panel.context-panel {
+  flex: 0 0 auto;
+}
+.panel.session-panel #sessions {
+  flex: 1 1 auto;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+}
+.panel-title {
+  font-size: var(--fs-small);
+  padding: 8px 10px;
+}
+.panel-meta {
+  color: var(--text-4);
+  font-size: var(--fs-caption);
+}
+.ctx {
+  padding: 8px 10px;
+}
+
+/* 消息复制按钮与空状态 */
+.msg .copy-msg {
+  margin-left: auto;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text-4);
+  font-size: var(--fs-caption);
+  opacity: 0;
+  cursor: pointer;
+}
+.msg:hover .copy-msg {
+  opacity: 1;
+}
+.empty-state {
+  gap: 10px;
+  padding: 48px 20px;
+}
+.empty-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* 细节：取消按钮仅在运行中显示、时间戳与气泡对比 */
+#cancel:disabled {
+  display: none;
+}
+.msg .message-head time {
+  font-variant-numeric: tabular-nums;
+}
+html[data-theme="dark"] .msg.user .bubble {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #34d399 30%, #0a2626),
+    color-mix(in srgb, #2dd4bf 24%, #0a2626)
+  );
+  border-color: color-mix(in srgb, #34d399 38%, transparent);
+}
