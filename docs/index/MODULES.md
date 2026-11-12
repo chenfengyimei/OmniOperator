@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`3c681b8a20f59f831acef22a3ce14361fe5aaa6421d4d179671518a1bffa2089`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`9280d2ad555eb52d846e98e4ffa24eeb786d3b25011b4bee76665a961407a4ce`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -311,7 +311,7 @@
 | [agent/src/omni/adapters/platform/service_cleanup_files.py](../../agent/src/omni/adapters/platform/service_cleanup_files.py) | 256 | Separate cleanup journals and two-home reservations; preserves old unknown records, fences and business data. |
 | [agent/src/omni/adapters/platform/service_control_files.py](../../agent/src/omni/adapters/platform/service_control_files.py) | 124 | Service lifecycle journal and once-only startup reservation; reuses registration audit and file-lock ownership. |
 | [agent/src/omni/adapters/platform/service_handover.py](../../agent/src/omni/adapters/platform/service_handover.py) | 79 | Two pinned root phases, opened in order and owned until native lock release; never elevates or spawns a broker. |
-| [agent/src/omni/adapters/platform/service_launch.py](../../agent/src/omni/adapters/platform/service_launch.py) | 83 | Once-only reviewed boot reservations under the instance lock; never starts a process or reads credentials. |
+| [agent/src/omni/adapters/platform/service_launch.py](../../agent/src/omni/adapters/platform/service_launch.py) | 88 | Once-only reviewed boot reservations under the instance lock; never starts a process or reads credentials. |
 | [agent/src/omni/adapters/platform/service_operation_files.py](../../agent/src/omni/adapters/platform/service_operation_files.py) | 264 | Private offline maintenance journal; never migrates, replays or removes instance data. |
 | [agent/src/omni/adapters/platform/service_query.py](../../agent/src/omni/adapters/platform/service_query.py) | 474 | Read-only OS service inspection with bounded output and retained process ownership. |
 | [agent/src/omni/adapters/platform/service_readiness.py](../../agent/src/omni/adapters/platform/service_readiness.py) | 302 | Bounded, per-boot HMAC readiness proof. Never reads or sends an owner credential. |
