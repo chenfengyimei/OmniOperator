@@ -10,6 +10,7 @@ from typing import cast
 
 from PIL import Image
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.desktop import MAX_CAPTURE_BYTES, CapturedFrame
 from ..object_store import checked_path
@@ -23,7 +24,7 @@ def prepare(root: Path, ticket: str) -> Path:
     return path
 
 
-def inventory(root: Path, owned: set[str]) -> dict:
+def inventory(root: Path, owned: set[str]) -> Record:
     checked_path(root, ".check")
     count = 0
     if root.exists():
@@ -36,7 +37,7 @@ def inventory(root: Path, owned: set[str]) -> dict:
     return {"residual_count": count, "truncated": False, "error_code": "desktop_staging_residual" if count else None}
 
 
-def read(root: Path, path: Path, receipt: dict) -> CapturedFrame:
+def read(root: Path, path: Path, receipt: Record) -> CapturedFrame:
     path = checked_path(root, path.relative_to(root).as_posix())
     descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0))
     with os.fdopen(descriptor, "rb") as stream:
@@ -44,7 +45,13 @@ def read(root: Path, path: Path, receipt: dict) -> CapturedFrame:
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size != receipt["bytes"]:
             raise BusinessError("desktop_capture_invalid", "Screenshot file identity or size changed", status=503)
         content = stream.read(MAX_CAPTURE_BYTES + 1)
-    frame = CapturedFrame(content, receipt["width"], receipt["height"], receipt["sha256"], receipt["method"])
+    frame = CapturedFrame(
+        content,
+        cast(int, receipt["width"]),
+        cast(int, receipt["height"]),
+        cast(str, receipt["sha256"]),
+        cast(str, receipt["method"]),
+    )
     try:
         frame.validate()
     except BusinessError:

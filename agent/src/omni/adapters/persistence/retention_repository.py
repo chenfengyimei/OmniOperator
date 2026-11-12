@@ -13,7 +13,7 @@ class RetentionRepositories(DeliveryRepositories):
     def assert_context(self, agent_id: str, run_id: str) -> None:
         self.assert_run_lease(agent_id, run_id)
         run = self._one(s.runs, agent_id, run_id)
-        session = self._one(s.sessions, agent_id, run["session_id"])
+        session = self._one(s.sessions, agent_id, str(run["session_id"]))
         if run.get("execution_kind") == "owner":
             command = (
                 self.connection.execute(
@@ -119,17 +119,17 @@ class RetentionRepositories(DeliveryRepositories):
         )
         entry = self._one(s.memory_entries, agent_id, memory_id)
         if entry["session_id"]:
-            sessions.add(entry["session_id"])
+            sessions.add(str(entry["session_id"]))
         return sessions
 
     def erase_message_record(self, agent_id: str, message_id: str) -> tuple[str, set[str]]:
         message = self._one(s.messages, agent_id, message_id)
         if message["deleted_at"]:
-            return message["session_id"], set()
-        derived = self._invalidate_sessions(agent_id, {message["session_id"]})
+            return str(message["session_id"]), set()
+        derived = self._invalidate_sessions(agent_id, {str(message["session_id"])})
         self.connection.execute(
             update(s.messages).where(s.messages.c.id == message_id).values(content="", deleted_at=self.clock.now())
         )
         self.connection.execute(delete(s.message_parts).where(s.message_parts.c.message_id == message_id))
         self.audit(agent_id, "message.erased", message_id, {})
-        return message["session_id"], derived
+        return str(message["session_id"]), derived

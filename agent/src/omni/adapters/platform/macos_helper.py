@@ -29,7 +29,7 @@ def bundle_path() -> Path:
 
 def source_fingerprints() -> dict[str, str]:
     root = Path(__file__).resolve().parents[1] / "workers/macos"
-    result = {}
+    result: dict[str, str] = {}
     for path in sorted(root.rglob("*")):
         if (
             not path.is_file()
@@ -60,7 +60,9 @@ def _checked(root: Path, relative: str, maximum: int, uid: int) -> bytes:
             raise _invalid()
         content = stream.read(maximum + 1)
         after = os.fstat(stream.fileno())
-        identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+        def identity(info: os.stat_result) -> tuple[int, int, int, int, int]:
+            return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
         if identity(before) != identity(after) or len(content) != before.st_size:
             raise _invalid()
     return content

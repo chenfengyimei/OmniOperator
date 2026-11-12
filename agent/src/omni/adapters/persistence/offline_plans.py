@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import cast
 
 from ...application.ports import Record, UnitOfWork
-from ...domain.contracts import BusinessError
+from ...domain.contracts import JSON, BusinessError
 from ..object_store import publish_file, sync_directory
 from ..platform.paths import InstanceLock, InstancePaths
 from ..platform.permissions import private_path
@@ -24,12 +24,12 @@ from .operations_read import offline_read
 MAX_PLAN_BYTES = 65_536
 
 
-def _unique_fields(pairs: list[tuple[str, object]]) -> dict:
-    result = {}
+def _unique_fields(pairs: list[tuple[str, object]]) -> Record:
+    result: dict[str, JSON] = {}
     for key, value in pairs:
         if key in result:
             raise ValueError("Duplicate maintenance plan field")
-        result[key] = value
+        result[key] = cast(JSON, value)
     return result
 
 
@@ -66,8 +66,9 @@ def read_plan(path: Path, operations: PlanOperations, *, allow_future: bool = Fa
         plan = json.loads(data, object_pairs_hook=_unique_fields)
         if not isinstance(plan, dict):
             raise ValueError
-        operations.validate(plan, SystemClock().now(), allow_future)
-        return plan
+        checked = cast(Record, plan)
+        operations.validate(checked, SystemClock().now(), allow_future)
+        return checked
     except (OSError, ValueError, UnicodeError, RecursionError) as exc:
         raise BusinessError("invalid_retention_plan", "Plan must be valid JSON up to 64 KiB", status=422) from exc
 

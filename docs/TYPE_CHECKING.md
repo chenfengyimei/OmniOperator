@@ -180,6 +180,10 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/platform/wheel_prepare.py` | wheel 候选解包与准备收据 |
 | `agent/src/omni/adapters/platform/wheel_rollback.py` | wheel 回滚演练收据 |
 | `agent/src/omni/adapters/platform/wheel_uninstall.py` | 候选卸载与显式清理 |
+| `agent/src/omni/adapters/persistence/offline_plans.py` | 离线维护计划读取/校验 |
+| `agent/src/omni/adapters/persistence/retention_repository.py` | 保留/擦除会话失效仓储 |
+| `agent/src/omni/adapters/platform/desktop_capture.py` | 桌面截图文件身份校验 |
+| `agent/src/omni/adapters/platform/macos_helper.py` | macOS 辅助源指纹与文件校验 |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
