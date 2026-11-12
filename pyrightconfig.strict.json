@@ -104,6 +104,7 @@
     "agent/src/omni/adapters/platform/service_query.py",
     "agent/src/omni/adapters/platform/service_readiness.py",
     "agent/src/omni/adapters/platform/systemd_state.py",
+    "agent/src/omni/adapters/platform/terminal.py",
     "agent/src/omni/adapters/platform/wheel_artifact.py",
     "agent/src/omni/adapters/platform/wheel_backup.py",
     "agent/src/omni/adapters/platform/wheel_environment.py",

@@ -14,7 +14,7 @@ from collections import deque
 from collections.abc import Awaitable, Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 from uuid import uuid4
 
 import psutil
@@ -57,9 +57,12 @@ def _decode(raw: bytes) -> Record:
         return result
 
     value = json.loads(raw, object_pairs_hook=pairs, parse_constant=invalid_constant)
-    if not isinstance(value, dict) or value.get("version") != VERSION:
+    if not isinstance(value, dict):
         raise ValueError("invalid terminal frame")
-    return value
+    decoded = cast(Record, value)
+    if decoded.get("version") != VERSION:
+        raise ValueError("invalid terminal frame")
+    return decoded
 
 
 def _environment() -> dict[str, str]:
@@ -113,11 +116,23 @@ class TerminalBackend:
         self._available = self._supported
         if sys.platform == "win32":
             self._available = hasattr(ctypes.WinDLL("kernel32"), "CreatePseudoConsole")
-        self._shells = []
+        self._shells: list[Record] = []
         for identity, (executable, _) in self._profiles.items():
             found = shutil.which(executable)
             if found is not None:
                 self._shells.append({"id": identity, "label": identity, "executable": os.path.abspath(found)})
+
+    @property
+    def closing(self) -> bool:
+        return self._closing
+
+    @closing.setter
+    def closing(self, value: bool) -> None:
+        self._closing = value
+
+    @property
+    def hosts(self) -> set[TerminalProcess]:
+        return self._hosts
 
     def capabilities(self) -> Record:
         return {
@@ -138,9 +153,21 @@ class TerminalBackend:
         return {
             "resident": len(self._hosts),
             "pending": len(self._tasks) + len(self._futures),
-            "cleanup_pending": sum(host._closing and not host._reclaimed for host in self._hosts),
+            "cleanup_pending": sum(host.closing and not host.reclaimed for host in self._hosts),
             "closing": self._closing,
         }
+
+    async def io(self, operation: Callable[[], T], *, closing: bool = False) -> T:
+        """Public bridge: the owned process shares this single-threaded executor."""
+        return await self._io(operation, closing=closing)
+
+    def track(self, task: Awaitable[T]) -> asyncio.Task[T]:
+        """Public bridge: every owned task is tracked until it settles."""
+        return self._track(task)
+
+    def admit(self) -> None:
+        """Public capacity check used by the owned process before dispatch."""
+        self._admit()
 
     def _admit(self) -> None:
         if self._closing:
@@ -209,21 +236,21 @@ class TerminalBackend:
             raise _error("terminal_capacity", "Four terminal hosts are already owned")
         host = TerminalProcess(self, dict(spec))
         self._hosts.add(host)
-        task = self._track(host._start(before_dispatch))
-        host._starting = task
+        task = self._track(host.start(before_dispatch))
+        host.starting = task
         try:
             return await asyncio.shield(task)
         except BaseException:
-            host._closing = True
-            host._ensure_cleanup(5)
+            host.closing = True
+            host.ensure_cleanup(5)
             raise
 
     async def close(self, timeout_s: float) -> bool:
         self._closing = True
         deadline = asyncio.get_running_loop().time() + max(0, timeout_s)
         for host in tuple(self._hosts):
-            host._closing = True
-            host._ensure_cleanup(max(0, deadline - asyncio.get_running_loop().time()))
+            host.closing = True
+            host.ensure_cleanup(max(0, deadline - asyncio.get_running_loop().time()))
         while self._hosts or self._tasks or self._futures:
             if asyncio.get_running_loop().time() >= deadline:
                 return False
@@ -259,13 +286,41 @@ class TerminalProcess:
         self._protocol_error = ""
         self._native_possible = False
 
+    @property
+    def closing(self) -> bool:
+        return self._closing
+
+    @closing.setter
+    def closing(self, value: bool) -> None:
+        self._closing = value
+
+    @property
+    def reclaimed(self) -> bool:
+        return self._reclaimed
+
+    @property
+    def starting(self) -> asyncio.Task[TerminalProcess] | None:
+        return self._starting
+
+    @starting.setter
+    def starting(self, value: asyncio.Task[TerminalProcess] | None) -> None:
+        self._starting = value
+
+    def start(self, before_dispatch: Callable[[], Awaitable[None]] | None) -> Awaitable[TerminalProcess]:
+        """Public bridge: the backend owns the task that performs the actual startup."""
+        return self._start(before_dispatch)
+
+    def ensure_cleanup(self, timeout_s: float) -> None:
+        """Public bridge: cleanup is idempotent and keeps ownership until it succeeds."""
+        self._ensure_cleanup(timeout_s)
+
     async def _start(self, before_dispatch: Callable[[], Awaitable[None]] | None) -> TerminalProcess:
         try:
             configured_workspace = self._spec.get("configured_workspace", self._spec["cwd"])
-            profile = await self._backend._io(lambda: self._backend._prepare(self._spec["shell"], configured_workspace))
+            profile = await self._backend.prepare(self._spec["shell"], cast(str, configured_workspace))
             if any(profile[key] != self._spec.get(key) for key in ("argv", "cwd", "workspace_sha256", "backend")):
                 raise _error("terminal_workspace_changed", "Shell or workspace identity changed before startup")
-            if self._closing or self._backend._closing:
+            if self._closing or self._backend.closing:
                 raise _error("terminal_closing", "Terminal startup was cancelled")
             self._owned = await OwnedProcess.spawn(
                 [sys.executable, "-P", "-m", "omni.adapters.workers.terminal"],
@@ -289,14 +344,14 @@ class TerminalProcess:
                 if sys.platform == "win32":
                     self._native_job = WindowsJob(gate_pid)
 
-            await self._backend._io(register)
+            await self._backend.io(register)
             # Re-check filesystem identity and application authorization after native startup.
-            current = await self._backend._io(lambda: self._backend._prepare(self._spec["shell"], configured_workspace))
+            current = await self._backend.prepare(self._spec["shell"], cast(str, configured_workspace))
             if current != profile:
                 raise _error("terminal_workspace_changed", "Workspace identity changed while starting")
             if before_dispatch is not None:
                 await before_dispatch()
-            if self._closing or self._backend._closing:
+            if self._closing or self._backend.closing:
                 raise _error("terminal_closing", "Terminal startup was cancelled before execution")
             started = await self._exchange("go", {})
             self._pid, self._created = int(started["pid"]), float(started["created"])
@@ -422,7 +477,7 @@ class TerminalProcess:
             await self._changed.wait()
 
     async def _command(self, kind: str, payload: Record) -> Record:
-        self._backend._admit()
+        self._backend.admit()
         if self._closing or not self._ready:
             raise _error("terminal_not_sent", "Terminal is not accepting operations")
 
@@ -431,10 +486,10 @@ class TerminalProcess:
                 raise _error("terminal_not_sent", "Terminal closed before dispatch")
             return await self._exchange(kind, payload)
 
-        return await asyncio.shield(self._backend._track(run()))
+        return await asyncio.shield(self._backend.track(run()))
 
     async def write(self, data: str, operation_id: str) -> int:
-        if not isinstance(data, str) or not data or len(data.encode("utf-8")) > MAX_INPUT:
+        if not data or len(data.encode("utf-8")) > MAX_INPUT:
             raise _error("terminal_not_sent", "Terminal input must be between one byte and 16 KiB")
         reply = await self._command("write", {"data": data, "operation_id": operation_id})
         accepted = reply.get("accepted")
@@ -494,7 +549,7 @@ class TerminalProcess:
             except (BusinessError, OSError, ValueError):
                 native_clean = False
         if self._native_job is not None:
-            native_clean = await self._backend._io(
+            native_clean = await self._backend.io(
                 lambda: self._native_job is not None and self._native_job.terminate(), closing=True
             )
             while native_clean and self._native_job.active_count() != 0:
@@ -506,7 +561,7 @@ class TerminalProcess:
             from ..workers.terminal import reclaim_posix
 
             gate_pid, gate_created = self._gate_pid, self._gate_created
-            native_clean = await self._backend._io(
+            native_clean = await self._backend.io(
                 lambda: reclaim_posix(gate_pid, gate_created, max(0, deadline - loop.time())), closing=True
             )
         if self._owned is None:
@@ -529,5 +584,5 @@ class TerminalProcess:
             await asyncio.gather(
                 *(task for task in (self._reader, self._stderr) if task is not None), return_exceptions=True
             )
-            self._backend._hosts.discard(self)
+            self._backend.hosts.discard(self)
         return self._reclaimed
