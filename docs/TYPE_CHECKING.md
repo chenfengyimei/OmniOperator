@@ -79,6 +79,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/images.py` | 图片准入/上下文选择/线材物化（有界任务、显式 Record） |
 | `agent/src/omni/application/service_deployment.py` | 服务部署准备/验证/状态组合（公共桥 + 显式 Record） |
 | `agent/src/omni/application/service_operations.py` | 服务安装/启动/移除操作编排（显式 Record） |
+| `agent/src/omni/application/skills.py` | 技能导入/编辑/启用/回滚/披露编排（有界任务、显式 Record） |
 | `agent/src/omni/application/service_exchange.py` | 交换计划/管理员阶段/应用编排（公共桥） |
 | `agent/src/omni/application/model_output.py` | 有界实时预览（TypedDict 行、authority Mapping） |
 | `agent/src/omni/application/model_calls.py` | 模型调用预检/授权/结算（显式 Record、流对象） |

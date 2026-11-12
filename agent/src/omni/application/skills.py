@@ -10,7 +10,7 @@ from typing import TypeVar, cast
 from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome
 from ..domain.skills import PLATFORMS, SkillPackage, file_path, invalid, manifest, patch_section
 from .objects import ObjectService
-from .ports import DatabasePort, SkillPackagesPort, UnitOfWork
+from .ports import DatabasePort, Record, SkillPackagesPort, UnitOfWork
 
 T = TypeVar("T")
 
@@ -22,7 +22,7 @@ class SkillService:
         if platform not in PLATFORMS:
             raise ValueError("Unsupported skill platform")
         self._db, self._objects, self._packages, self.platform = database, objects, packages, platform
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._slots = asyncio.Semaphore(2)
         self._closing = False
 
@@ -32,29 +32,29 @@ class SkillService:
                 "skills_busy", "Skill operation admission is closed or full", status=503, retryable=True
             )
 
-        async def perform():
+        async def perform() -> T:
             async with self._slots:
                 return await operation()
 
         task = asyncio.create_task(perform(), name="skill-operation")
         self._pending.add(task)
 
-        def done(future):
+        def done(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
 
-        task.add_done_callback(done)
+        task.add_done_callback(lambda future: done(cast(asyncio.Task[object], future)))
         return await asyncio.shield(task)
 
-    async def _package(self, row: dict) -> SkillPackage:
-        files = []
-        for file in row["files"]:
-            meta, raw = await self._objects.get(row["agent_id"], file["object_id"])
+    async def _package(self, row: Record) -> SkillPackage:
+        files: list[tuple[str, bytes]] = []
+        for file in cast(list[Record], row["files"]):
+            meta, raw = await self._objects.get(str(row["agent_id"]), str(file["object_id"]))
             if meta["sha256"] != file["sha256"] or len(raw) != file["bytes"]:
                 raise invalid("skill_object_changed")
-            files.append((file_path(file["path"]), raw))
-        if manifest(row["files"]) != row["manifest_sha256"]:
+            files.append((file_path(str(file["path"])), raw))
+        if manifest(cast(list[dict[str, object]], row["files"])) != row["manifest_sha256"]:
             raise invalid("skill_object_changed")
         parsed = await self._packages.parse(dict(files)["SKILL.md"], "markdown")
         if any(parsed.metadata[k] != row[k] for k in ("name", "description", *PLATFORMS)):
@@ -64,21 +64,29 @@ class SkillService:
         return package
 
     @staticmethod
-    def _public(row: dict) -> dict:
-        return {**row, "files": [{k: r[k] for k in ("path", "sha256", "bytes")} for r in row["files"]]}
-
-    async def page(self, agent_id: str, after: str = "", limit: int = 50) -> dict:
-        rows = await self._db.read(lambda u: u.skill_page(agent_id, after, limit))
-        return {"items": rows, "next_after": rows[-1]["id"] if len(rows) == limit else None, "platform": self.platform}
-
-    async def available(self, agent_id: str) -> dict:
+    def _public(row: Record) -> Record:
+        files = cast(list[Record], row["files"])
         return {
-            "items": await self._db.read(lambda u: u.skill_available(agent_id, self.platform)),
+            **row,
+            "files": cast(JSON, [{k: r[k] for k in ("path", "sha256", "bytes")} for r in files]),
+        }
+
+    async def page(self, agent_id: str, after: str = "", limit: int = 50) -> Record:
+        rows = await self._db.read(lambda u: u.skill_page(agent_id, after, limit))
+        return {
+            "items": cast(JSON, rows),
+            "next_after": rows[-1]["id"] if len(rows) == limit else None,
             "platform": self.platform,
         }
 
-    async def export(self, agent_id: str, skill_id: str, revision_id: str | None = None) -> dict:
-        async def perform():
+    async def available(self, agent_id: str) -> Record:
+        return {
+            "items": cast(JSON, await self._db.read(lambda u: u.skill_available(agent_id, self.platform))),
+            "platform": self.platform,
+        }
+
+    async def export(self, agent_id: str, skill_id: str, revision_id: str | None = None) -> Record:
+        async def perform() -> Record:
             row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id, revision_id))
             package = await self._package(row)
             payload = await self._packages.archive(package)
@@ -92,14 +100,14 @@ class SkillService:
 
         return await self._execute(perform)
 
-    async def get(self, agent_id: str, skill_id: str, revision_id: str | None = None, path: str = "SKILL.md") -> dict:
-        async def perform():
+    async def get(self, agent_id: str, skill_id: str, revision_id: str | None = None, path: str = "SKILL.md") -> Record:
+        async def perform() -> Record:
             row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id, revision_id))
-            package = await self._package(cast(dict, row))
+            package = await self._package(row)
             content = dict(package.files).get(file_path(path))
             if content is None:
                 raise BusinessError("not_found", "Reference is not declared in this skill revision", status=404)
-            return {**self._public(cast(dict, row)), "path": path, "content": content.decode("utf-8-sig")}
+            return {**self._public(row), "path": path, "content": content.decode("utf-8-sig")}
 
         return await self._execute(perform)
 
@@ -110,24 +118,24 @@ class SkillService:
         skill_id: str | None,
         revision: int,
         guard: Callable[[UnitOfWork], None] | None = None,
-    ) -> dict:
+    ) -> Record:
         package.validate()
-        files = []
+        files: list[Record] = []
         for path, payload in package.files:
             obj = await self._objects.publish(agent_id, payload, "text/plain")
             files.append({"path": path, "object_id": obj["id"], "sha256": obj["sha256"], "bytes": obj["bytes"]})
 
-        def commit(u: UnitOfWork):
+        def commit(u: UnitOfWork) -> Record:
             if guard:
                 guard(u)
-            return u.skill_install(agent_id, package.metadata, files, skill_id, revision)
+            return u.skill_install(agent_id, cast(Record, package.metadata), files, skill_id, revision)
 
-        return self._public(cast(dict, await self._db.write(commit)))
+        return self._public(await self._db.write(commit))
 
     async def import_object(
         self, agent_id: str, object_id: str, format: str, skill_id: str | None = None, revision: int = 0
-    ) -> dict:
-        async def perform():
+    ) -> Record:
+        async def perform() -> Record:
             _, payload = await self._objects.get(agent_id, object_id)
             package = await self._packages.parse(payload, format)
             return await self._install(agent_id, package, skill_id, revision)
@@ -142,8 +150,8 @@ class SkillService:
         revision: int = 0,
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
-    ) -> dict:
-        async def perform():
+    ) -> Record:
+        async def perform() -> Record:
             try:
                 payload = content.encode("utf-8")
             except (AttributeError, UnicodeError):
@@ -151,7 +159,7 @@ class SkillService:
             package = await self._packages.parse(payload, "markdown")
             if skill_id:
                 old = await self._db.read(lambda u: u.skill_get(agent_id, cast(str, skill_id)))
-                previous = await self._package(cast(dict, old))
+                previous = await self._package(old)
                 package = SkillPackage(
                     package.metadata, (*package.files, *[(p, b) for p, b in previous.files if p != "SKILL.md"])
                 )
@@ -169,18 +177,18 @@ class SkillService:
         sha256: str,
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
-    ) -> dict:
-        async def perform():
+    ) -> Record:
+        async def perform() -> Record:
             if state == "enabled":
                 row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id))
-                await self._package(cast(dict, row))
+                await self._package(row)
 
-            def commit(u: UnitOfWork):
+            def commit(u: UnitOfWork) -> Record:
                 if guard:
                     guard(u)
                 return u.skill_state(agent_id, skill_id, revision, state, revision_id, sha256)
 
-            return self._public(cast(dict, await self._db.write(commit)))
+            return self._public(await self._db.write(commit))
 
         return await self._execute(perform)
 
@@ -192,30 +200,33 @@ class SkillService:
         revision: int,
         *,
         guard: Callable[[UnitOfWork], None] | None = None,
-    ) -> dict:
-        async def perform():
+    ) -> Record:
+        async def perform() -> Record:
             row = await self._db.read(lambda u: u.skill_get(agent_id, skill_id, revision_id))
-            package = await self._package(cast(dict, row))
+            package = await self._package(row)
             return await self._install(agent_id, package, skill_id, revision, guard)
 
         return await self._execute(perform)
 
-    async def history(self, agent_id: str, skill_id: str, after: int = 0, limit: int = 50) -> dict:
+    async def history(self, agent_id: str, skill_id: str, after: int = 0, limit: int = 50) -> Record:
         rows = await self._db.read(lambda u: u.skill_history(agent_id, skill_id, after, limit))
-        return {"items": rows, "next_after": rows[-1]["revision"] if len(rows) == limit else None}
+        return {
+            "items": cast(JSON, rows),
+            "next_after": rows[-1]["revision"] if len(rows) == limit else None,
+        }
 
     async def notice(self, agent_id: str, run_id: str) -> str:
         rows = await self._db.read(lambda u: u.skill_catalog(agent_id, run_id, self.platform, active=True))
         if not rows:
             return ""
 
-        async def perform():
-            active = []
+        async def perform() -> str:
+            active: list[Record] = []
             for row in rows:
                 version = await self._db.read(
                     lambda u, r=row: u.skill_get(agent_id, str(r["skill_id"]), str(r["revision_id"]))
                 )
-                package = await self._package(cast(dict, version))
+                package = await self._package(version)
                 active.append(
                     {
                         "skill_id": row["skill_id"],
@@ -236,7 +247,7 @@ class SkillService:
 
         return await self._execute(perform)
 
-    async def run_report(self, agent_id: str, run_id: str) -> dict:
+    async def run_report(self, agent_id: str, run_id: str) -> Record:
         return await self._db.read(lambda u: u.skill_run_report(agent_id, run_id, self.platform))
 
     async def invoke(
@@ -244,13 +255,14 @@ class SkillService:
     ) -> ActionResult:
         agent, run = context.agent_id, context.run_id
 
-        def guard(u: UnitOfWork):
+        def guard(u: UnitOfWork) -> None:
             u.approved_dispatch(agent, run, operation_id, dict(arguments), name)
 
         try:
             if name == "skills_list":
                 rows = await self._db.read(lambda u: u.skill_catalog(agent, run, self.platform))
-                return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data=cast(dict, {"items": rows}))
+                payload: dict[str, JSON] = {"items": cast(JSON, rows)}
+                return ActionResult(Outcome.OK, json.dumps(rows, ensure_ascii=False), data=payload)
             skill_id = str(arguments.get("skill_id", ""))
             if name in {"skill_activate", "skill_view", "skill_history"}:
                 catalog = await self._db.read(lambda u: u.skill_catalog(agent, run, self.platform))
@@ -260,15 +272,16 @@ class SkillService:
                 ):
                     raise invalid("skill_not_captured")
                 if name == "skill_history":
-                    rows = (await self.history(agent, skill_id))["items"]
+                    rows = cast(list[Record], (await self.history(agent, skill_id))["items"])
+                    history_payload: dict[str, JSON] = {"items": cast(JSON, rows)}
                     return ActionResult(
-                        Outcome.OK, json.dumps(rows, ensure_ascii=False), data=cast(dict, {"items": rows})
+                        Outcome.OK, json.dumps(rows, ensure_ascii=False), data=history_payload
                     )
                 row = await self.get(
                     agent, skill_id, str(captured["revision_id"]), str(arguments.get("path", "SKILL.md"))
                 )
                 await self._db.write(lambda u: u.skill_activate_run(agent, run, skill_id, self.platform, operation_id))
-                metadata = {
+                metadata: Record = {
                     "skill_id": skill_id,
                     "revision_id": captured["revision_id"],
                     "revision": row["revision"],
@@ -278,7 +291,7 @@ class SkillService:
                 }
                 return ActionResult(
                     Outcome.OK,
-                    json.dumps({**metadata, "content": row["content"]}, ensure_ascii=False),
+                        json.dumps({**metadata, "content": row["content"]}, ensure_ascii=False),
                     data=metadata,
                 )
             revision = cast(int, arguments.get("revision", 0))
@@ -294,7 +307,7 @@ class SkillService:
                 previous = await self.get(agent, skill_id)
                 row = await self.save(
                     agent,
-                    patch_section(previous["content"], str(arguments["section"]), str(arguments["text"])),
+                    patch_section(str(previous["content"]), str(arguments["section"]), str(arguments["text"])),
                     skill_id,
                     revision,
                     guard=guard,
@@ -314,7 +327,7 @@ class SkillService:
                 )
             else:
                 return ActionResult(Outcome.ERROR, "Unknown skill capability", error_code="tool_not_found")
-            receipt = {
+            receipt: Record = {
                 "skill_id": row["id"],
                 "revision_id": row["revision_id"],
                 "revision": row["revision"],
@@ -342,7 +355,7 @@ class SkillService:
                 error_code=exc.code,
             )
 
-    def health(self) -> dict:
+    def health(self) -> Record:
         return {
             "pending": len(self._pending),
             "closing": self._closing,

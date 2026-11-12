@@ -44,6 +44,7 @@
     "agent/src/omni/application/service_deployment.py",
     "agent/src/omni/application/service_exchange.py",
     "agent/src/omni/application/service_operations.py",
+    "agent/src/omni/application/skills.py",
     "agent/src/omni/application/terminal_review.py",
     "agent/src/omni/application/terminals.py",
     "agent/src/omni/domain/action_review.py",
