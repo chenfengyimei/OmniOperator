@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "430464e4b8530044120c3566462841fe6b38978efbb752972383c5583056da8e",
+  "source_sha256": "5c996822fb49cd0e4308adde94141c6942bdedf087f4b8ab6a86bf01ae1644c7",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53158,
+      "lines": 53170,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -24792,7 +24792,7 @@
       "path": "agent/src/omni/adapters/platform/linux_fds.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_fds",
-      "lines": 92,
+      "lines": 95,
       "imports": [
         "omni.domain.contracts"
       ],
@@ -24882,7 +24882,7 @@
         },
         {
           "name": "ReceivedFds.claim",
-          "line": 85,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -24894,7 +24894,7 @@
         },
         {
           "name": "ReceivedFds.close",
-          "line": 90,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "self"
@@ -24908,7 +24908,7 @@
       "path": "agent/src/omni/adapters/platform/linux_input.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.linux_input",
-      "lines": 175,
+      "lines": 184,
       "imports": [
         "omni.adapters.platform.linux_bus",
         "omni.adapters.platform.linux_session",
@@ -24918,7 +24918,7 @@
       "symbols": [
         {
           "name": "devices",
-          "line": 19,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "data"
@@ -24929,23 +24929,26 @@
         },
         {
           "name": "InputWire",
-          "line": 81,
+          "line": 86,
           "kind": "class"
         },
         {
           "name": "InputWire.__init__",
-          "line": 82,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
             "connection",
             "check"
           ],
-          "annotations": {}
+          "annotations": {
+            "connection": "socket.socket",
+            "check": "Callable[[], None]"
+          }
         },
         {
           "name": "InputWire.read",
-          "line": 89,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self",
@@ -24957,7 +24960,7 @@
         },
         {
           "name": "InputWire.event",
-          "line": 94,
+          "line": 99,
           "kind": "function",
           "parameters": [
             "self",
@@ -24969,12 +24972,12 @@
         },
         {
           "name": "X11Input",
-          "line": 115,
+          "line": 120,
           "kind": "class"
         },
         {
           "name": "X11Input.__init__",
-          "line": 116,
+          "line": 121,
           "kind": "function",
           "parameters": [
             "self",
@@ -24983,12 +24986,14 @@
             "wire_factory"
           ],
           "annotations": {
-            "inspector": "SessionInspector"
+            "inspector": "SessionInspector",
+            "connection_factory": "Callable[[SessionInspector], Awaitable[Connection]]",
+            "wire_factory": "Callable[[socket.socket, Callable[[], None]], InputWire]"
           }
         },
         {
           "name": "X11Input.open",
-          "line": 124,
+          "line": 133,
           "kind": "function",
           "parameters": [
             "self"
@@ -24997,7 +25002,7 @@
         },
         {
           "name": "X11Input.released",
-          "line": 137,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self"
@@ -25006,7 +25011,7 @@
         },
         {
           "name": "X11Input.arm",
-          "line": 148,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "self"
@@ -25015,7 +25020,7 @@
         },
         {
           "name": "X11Input.check",
-          "line": 166,
+          "line": 175,
           "kind": "function",
           "parameters": [
             "self"
@@ -25024,7 +25029,7 @@
         },
         {
           "name": "X11Input.close",
-          "line": 174,
+          "line": 183,
           "kind": "function",
           "parameters": [
             "self"

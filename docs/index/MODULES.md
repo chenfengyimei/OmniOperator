@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`430464e4b8530044120c3566462841fe6b38978efbb752972383c5583056da8e`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`5c996822fb49cd0e4308adde94141c6942bdedf087f4b8ab6a86bf01ae1644c7`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -282,8 +282,8 @@
 | [agent/src/omni/adapters/platform/exchange_files.py](../../agent/src/omni/adapters/platform/exchange_files.py) | 278 | Private bounded exchange witnesses and maintenance reservations; no database, native calls or rollback. |
 | [agent/src/omni/adapters/platform/linux_atspi.py](../../agent/src/omni/adapters/platform/linux_atspi.py) | 341 | Read-only AT-SPI windows in a proven logind session. No X11/Portal capture or input fallback. |
 | [agent/src/omni/adapters/platform/linux_bus.py](../../agent/src/omni/adapters/platform/linux_bus.py) | 436 | Verified local D-Bus transport for desktop helpers; no environment-selected or network buses. |
-| [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 92 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
-| [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 175 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
+| [agent/src/omni/adapters/platform/linux_fds.py](../../agent/src/omni/adapters/platform/linux_fds.py) | 95 | Owned received descriptors and bounded SCM_RIGHTS; no bus or desktop policy. |
+| [agent/src/omni/adapters/platform/linux_input.py](../../agent/src/omni/adapters/platform/linux_input.py) | 184 | Verified Xorg input-change guard for addressed semantic actions; never grabs, synthesizes or stores input content. |
 | [agent/src/omni/adapters/platform/linux_pipewire.py](../../agent/src/omni/adapters/platform/linux_pipewire.py) | 254 | One serial-targeted GStreamer PipeWire frame inside an owned helper, never the default remote or display. |
 | [agent/src/omni/adapters/platform/linux_portal.py](../../agent/src/omni/adapters/platform/linux_portal.py) | 205 | Explicit ephemeral window selection on a pinned Wayland portal; never opens PipeWire FDs or dispatches input. |
 | [agent/src/omni/adapters/platform/linux_semantic.py](../../agent/src/omni/adapters/platform/linux_semantic.py) | 193 | Addressed AT-SPI semantic proof and single mutation; no global input, focus acquisition or retry. |

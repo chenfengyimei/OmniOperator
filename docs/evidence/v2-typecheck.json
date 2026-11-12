@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "ac232b29c79516781ae8013d202c810497b2cca3b24a7037df533e76954a6a28",
+  "code_version": "a58105a857b4047bcfeba8c08f29fb18201717f03a52784e6a13edafb2db99a8",
   "fixed_source_files": 1200,
-  "git_head": "2a6205a",
+  "git_head": "1259605",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -139,10 +139,11 @@
    "Strict scope reaches 225 files (53 domain + 43 application + 129 adapters); the managed terminal backend publishes io/track/admit/closing/hosts bridges for its owned process and the process exposes closing/reclaimed/starting/start/ensure_cleanup, so no cross-class private access remains; the shell catalogue is typed and the redundant isinstance check was dropped",
    "Strict scope reaches 227 files (53 domain + 43 application + 131 adapters); the temporary debug capture declares its reason/error/revision state and typed inventory, and the frozen v0010 migration types its connection, legacy adoption helper and JSON row reads without changing frozen SQL or backfill order",
    "Strict scope reaches 228 files (53 domain + 43 application + 132 adapters); the owner-side root broker client publishes rpc/exchange/pending/failed/sequence/closed bridges plus lease holder/settle/closed accessors, and a batch-111 regression is fixed: darwin_service_admin no longer imports omni.application, restoring the stdlib-only root bundle",
-   "Strict scope reaches 229 files (53 domain + 43 application + 133 adapters); the bounded D-Bus signal subscription types its queue, next() body and receive handler, so no unknown message members remain while the match rule, overflow and no-fd checks stay unchanged"
+   "Strict scope reaches 229 files (53 domain + 43 application + 133 adapters); the bounded D-Bus signal subscription types its queue, next() body and receive handler, so no unknown message members remain while the match rule, overflow and no-fd checks stay unchanged",
+   "Strict scope reaches 231 files (53 domain + 43 application + 135 adapters); the received-descriptor adapter reads recvmsg/CMSG_SPACE/AF_UNIX/SCM_RIGHTS through getattr for the Windows stub set, and the Xorg input guard types its id/seen sets, device topology rows and injected factories without changing held-state denial"
   ],
   "pending": [
-   "application 43/44 and adapters 133/215 strict typing",
+   "application 43/44 and adapters 135/215 strict typing",
    "composition layer not yet in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
@@ -151,8 +152,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-118-callers.xml",
-   "tests": 54,
+   "report": "temp/build/v2-typecheck-119-callers.xml",
+   "tests": 35,
    "failures": 0
   },
   "targeted_reports": [
@@ -1225,6 +1226,15 @@
     "errors": 0,
     "duration_s": 7.7,
     "note": "one hundred eighteenth strict batch: guard + local bus/portal frame callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-119-callers.xml",
+    "sha256": "edc4599170cb6e94e8ccf243cf5f254ff29ded2d52d94f5a74b251655d276d84",
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 5.14,
+    "note": "one hundred nineteenth strict batch: guard + portal fd and Xorg input callers"
    }
   ],
   "gates": {
@@ -1236,7 +1246,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 229,
+    "filesAnalyzed": 231,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1300,6 +1310,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 133/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
+  "scope": "Continue application/adapters strict typing (domain 53/53 done, application 43/44, adapters 135/215); rerun the UI suite after the parallel workbench redesign lands; packaging/install and real-environment acceptance remain."
  }
 }
