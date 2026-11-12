@@ -9,11 +9,12 @@ import sys
 import time
 from contextlib import ExitStack
 from multiprocessing.connection import Client
+from typing import IO, cast
 
 import psutil
 
 
-def _console(stack: ExitStack):
+def _console(stack: ExitStack) -> list[IO[bytes]]:
     """Explicit console handles prevent inherited IPC handles reaching a shell."""
     if sys.platform != "win32":
         raise OSError("ConPTY gate requires Windows")
@@ -24,7 +25,7 @@ def _console(stack: ExitStack):
     api = ctypes.WinDLL("kernel32", use_last_error=True)
     api.CreateFileW.argtypes = [w.LPCWSTR, w.DWORD, w.DWORD, ctypes.c_void_p, w.DWORD, w.DWORD, w.HANDLE]
     api.CreateFileW.restype = w.HANDLE
-    handles = []
+    handles: list[IO[bytes]] = []
     for name, mode, flags in (("CONIN$", "rb", os.O_RDONLY), ("CONOUT$", "wb", os.O_WRONLY)):
         handle = api.CreateFileW(name, 0x80000000 | 0x40000000, 3, None, 3, 0, None)
         if handle == ctypes.c_void_p(-1).value:
@@ -39,7 +40,7 @@ def main() -> int:
     nonce = os.environ.pop("OMNI_TERMINAL_NONCE", "")
     if sys.platform != "win32" or not address.startswith("\\\\.\\pipe\\omni-terminal-") or len(nonce) != 64:
         return 71
-    process: subprocess.Popen | None = None
+    process: subprocess.Popen[bytes] | None = None
     connection = None
     try:
         connection = Client(address, family="AF_PIPE", authkey=bytes.fromhex(nonce))
@@ -47,12 +48,13 @@ def main() -> int:
             return 71
         configured = json.loads(connection.recv_bytes(65536))
         argv, cwd = configured.get("argv"), configured.get("cwd")
+        if configured.get("kind") != "configure" or not isinstance(argv, list):
+            return 71
+        parts = cast(list[object], argv)
         if (
-            configured.get("kind") != "configure"
-            or not isinstance(argv, list)
-            or not 1 <= len(argv) <= 8
-            or any(not isinstance(part, str) or "\x00" in part for part in argv)
-            or not os.path.isabs(argv[0])
+            not 1 <= len(parts) <= 8
+            or any(not isinstance(part, str) or "\x00" in part for part in parts)
+            or not os.path.isabs(cast(str, parts[0]))
             or not isinstance(cwd, str)
             or not os.path.isabs(cwd)
         ):
@@ -66,7 +68,7 @@ def main() -> int:
         with ExitStack() as streams:
             console_in, console_out = _console(streams)
             process = subprocess.Popen(
-                argv,
+                cast(list[str], parts),
                 cwd=cwd,
                 env=dict(os.environ),
                 close_fds=True,

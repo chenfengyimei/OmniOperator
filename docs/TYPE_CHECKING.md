@@ -192,6 +192,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/sqlalchemy_access.py` | SQLAlchemy 引擎事务/PRAGMA 设置 |
 | `agent/src/omni/adapters/platform/linux_x11_socket.py` | X11 授权 cookie 解析 |
 | `agent/src/omni/adapters/workers/desktop.py` | 桌面 worker 帧解码 |
+| `agent/src/omni/adapters/persistence/execution_pruning.py` | 执行正文保留计划（读/建/应用/取消） |
+| `agent/src/omni/adapters/workers/terminal_gate.py` | Windows ConPTY 启动门（Job 归属后放行） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 
