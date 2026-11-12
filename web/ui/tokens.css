@@ -217,6 +217,26 @@
   /* 强调底上的前景色：深青紫上要白字 */
   --on-accent: #ffffff;
 
+  /* ---- V2 工作台暗色主题（炭黑 + 青，558c7d6 起）：种子集中在此，组件层只准 var() ---- */
+  --v2-bg: #0b0d10;
+  --v2-surface-1: #101215;
+  --v2-surface-2: #16191d;
+  --v2-surface-3: #191c20;
+  --v2-surface-4: #1c2025;
+  --v2-line-strong: #23272c;
+  --v2-line-soft: #2b2f34;
+  --v2-teal-deep: #041c1c;
+  --v2-teal-mid: #06201f;
+  --v2-teal-ink: #04121a;
+  --v2-teal-panel: #0a2626;
+  --v2-accent: #34d399;
+  --v2-accent-2: #2dd4bf;
+  --v2-fg-warm: #ffe6cb;
+  --v2-fg: #f2efea;
+  --v2-fg-dim: #b9b6b1;
+  --v2-fg-muted: #8f8c87;
+  --v2-fg-faint: #7a776f;
+
   /* ---- Hermes-Agent 深青主题（仅 V2 工作台，见 39e018f 与 UI_DESIGN_SYSTEM §3）---- */
   --hermes-bg: #041c1c;
   --hermes-panel: #0a2626;
