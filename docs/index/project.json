@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "4715ec7ad4e3733acf0ebf2f114b39d11e90c984c608318cd3c27551b2414d03",
+  "source_sha256": "d2a2666a4c3aced5db60960ca4b13fb433b58684aa3b58d4e54b77d59521d5f6",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52819,
+      "lines": 52823,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -31653,7 +31653,7 @@
       "path": "agent/src/omni/adapters/skill_packages.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.skill_packages",
-      "lines": 123,
+      "lines": 127,
       "imports": [
         "omni.domain.skills"
       ],
@@ -31673,12 +31673,12 @@
         },
         {
           "name": "SkillPackages",
-          "line": 78,
+          "line": 82,
           "kind": "class"
         },
         {
           "name": "SkillPackages.__init__",
-          "line": 79,
+          "line": 83,
           "kind": "function",
           "parameters": [
             "self"
@@ -31687,7 +31687,7 @@
         },
         {
           "name": "SkillPackages.parse",
-          "line": 84,
+          "line": 88,
           "kind": "function",
           "parameters": [
             "self",
@@ -31701,7 +31701,7 @@
         },
         {
           "name": "SkillPackages.archive",
-          "line": 87,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -31713,14 +31713,14 @@
         },
         {
           "name": "SkillPackages.archive.perform",
-          "line": 88,
+          "line": 92,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillPackages._execute",
-          "line": 100,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "self",
@@ -31732,23 +31732,25 @@
         },
         {
           "name": "SkillPackages._execute.perform",
-          "line": 104,
+          "line": 108,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "SkillPackages._execute.done",
-          "line": 111,
+          "line": 115,
           "kind": "function",
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "SkillPackages.close",
-          "line": 119,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "self",
