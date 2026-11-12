@@ -101,6 +101,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/credentials.py` | 凭据变更/审阅用例（UnitOfWork 回调与有界任务显式化） |
 | `agent/src/omni/application/desktop_actions.py` | 语义桌面动作用例（绑定请求显式化/有界任务与守卫回调） |
 | `agent/src/omni/application/documents.py` | 源文档/索引/检索编排（有界任务、显式 Record） |
+| `agent/src/omni/application/engine.py` | 运行准入/调度/工具执行/关闭编排（有界任务、显式 Record） |
 | `agent/src/omni/application/exchange_recovery.py` | 交换隔离/救援计划（进度与授权类型化） |
 | `agent/src/omni/application/service_cleanup.py` | 隔离定义审查/清理计划复用 |
 | `agent/src/omni/application/service_control.py` | 服务启动/停止/复核编排（显式 Record） |

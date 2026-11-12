@@ -7,10 +7,11 @@ import json
 import logging
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from typing import cast
 
 from jsonschema import Draft202012Validator
 
-from ..domain.contracts import ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
+from ..domain.contracts import JSON, ActionResult, BusinessError, Effect, InvocationContext, Outcome, ToolSpec
 from ..domain.metering import memory_system
 from ..domain.routing import REQUEST_MODE, select_tools
 from ..domain.routing import notice as route_notice
@@ -27,6 +28,7 @@ from .ports import (
     MCPCapabilityPort,
     Observer,
     Record,
+    UnitOfWork,
 )
 from .skills import SkillService
 
@@ -79,9 +81,9 @@ class Application:
         self._memory_semantics = memory_semantics
         self._skills = skills
         self._last_probe = 0.0
-        self._active: dict[str, tuple[str, asyncio.Task]] = {}
+        self._active: dict[str, tuple[str, asyncio.Task[None]]] = {}
         self._resources: dict[str, asyncio.Lock] = {}
-        self._dispatcher: asyncio.Task | None = None
+        self._dispatcher: asyncio.Task[None] | None = None
         self._wake = asyncio.Event()
         self._closing = False
         self._ready = False
@@ -131,7 +133,7 @@ class Application:
 
     def action_review_blockers(self, record: Record) -> list[str]:
         """Observe actual execution ownership; a terminal database row alone is insufficient."""
-        blockers = []
+        blockers: list[str] = []
         item = self._active.get(str(record["run_id"]))
         if item is not None and not item[1].done():
             blockers.append("action_run_active")
@@ -203,7 +205,7 @@ class Application:
                 measured.result(Outcome.ERROR)
             try:
 
-                def start(u):
+                def start(u: UnitOfWork) -> None:
                     u.start_claimed_run(agent_id, run_id, token, fence)
                     u.transition(agent_id, run_id, "running")
 
@@ -260,8 +262,8 @@ class Application:
                     extra_notice=route_notice(str(route["mode"]), any(spec.name == "request_mode" for spec in tools))
                     + (await self._skills.notice(agent_id, run_id) if self._skills and not remote else ""),
                 )
-                messages: list[Record] = prepared["request"]
-                notice = prepared["notice"]
+                messages: list[Record] = cast(list[Record], prepared["request"])
+                notice = str(prepared["notice"])
                 for _step in range(min(32, max(1, int(settings.get("max_steps", 12))))):
                     await self._checkpoint(agent_id, run_id)
                     route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
@@ -303,7 +305,9 @@ class Application:
                     for call in reply.calls:
                         await self._checkpoint(agent_id, run_id)
                         if call.name == "request_mode":
-                            if not Draft202012Validator(REQUEST_MODE.parameters).is_valid(call.arguments):
+                            validator = Draft202012Validator(REQUEST_MODE.parameters)
+                            check = cast(Callable[[object], bool], getattr(validator, "is_valid"))
+                            if not check(call.arguments):
                                 result = ActionResult(
                                     Outcome.ERROR, "Invalid tier control arguments", error_code="invalid_tool_arguments"
                                 )
@@ -365,7 +369,7 @@ class Application:
                 await self._end_error(agent_id, run_id, "failed", "internal_error")
 
     async def _end_error(self, agent_id: str, run_id: str, target: str, code: str) -> None:
-        def end(u):
+        def end(u: UnitOfWork) -> None:
             run = u.get_run(agent_id, run_id)
             u.context_failure(agent_id, run_id, code)
             unresolved = u.close_run_actions(agent_id, run_id)
@@ -406,7 +410,9 @@ class Application:
         cap = (registry if registry is not None else self._tools).get(name)
         if cap is None:
             return ActionResult(Outcome.ERROR, "Unknown capability", error_code="tool_not_found")
-        if not Draft202012Validator(cap.spec.parameters).is_valid(arguments):
+        validator = Draft202012Validator(cap.spec.parameters)
+        check = cast(Callable[[object], bool], getattr(validator, "is_valid"))
+        if not check(arguments):
             return ActionResult(
                 Outcome.ERROR, "Tool arguments do not match its schema", error_code="invalid_tool_arguments"
             )
@@ -446,7 +452,7 @@ class Application:
                     result = await asyncio.wait_for(
                         cap.adapter.invoke(name, arguments, operation_id=action_id, context=context), cap.spec.timeout_s
                     )
-                    if not isinstance(result, ActionResult):
+                    if not isinstance(cast(object, result), ActionResult):
                         raise TypeError("Capability must return ActionResult")
                     if measured:
                         measured.result(result.status)
@@ -516,7 +522,9 @@ class Application:
 
     async def messages(self, agent_id: str, session_id: str) -> list[Record]:
         rows = await self._db.read(lambda u: u.messages(agent_id, session_id))
-        return await self._images.messages(agent_id, rows) if self._images is not None else rows
+        if self._images is not None:
+            return cast(list[Record], await self._images.messages(agent_id, cast(list[dict[str, object]], rows)))
+        return rows
 
     async def approvals(self, agent_id: str) -> list[Record]:
         return await self._db.read(lambda u: u.pending_approvals(agent_id))
@@ -525,7 +533,7 @@ class Application:
         await self._db.write(lambda u: u.resolve_approval(agent_id, approval_id, allowed, revision))
 
     async def cancel(self, agent_id: str, run_id: str) -> None:
-        def cancel(u):
+        def cancel(u: UnitOfWork) -> list[str]:
             u.cancel(agent_id, run_id)
             return u.delivery_cancel_run(agent_id, run_id)
 
@@ -564,8 +572,11 @@ class Application:
         return await self._db.read(lambda u: u.run_context(agent_id, run_id))
 
     async def context_report(self, agent_id: str, run_id: str) -> Record:
-        def read(u):
-            return {**u.run_context_report(agent_id, run_id), "items": u.run_context(agent_id, run_id)}
+        def read(u: UnitOfWork) -> Record:
+            return {
+                **u.run_context_report(agent_id, run_id),
+                "items": cast(JSON, u.run_context(agent_id, run_id)),
+            }
 
         return await self._db.read(read)
 
@@ -595,7 +606,7 @@ class Application:
 
     async def close(self, timeout_s: float | None = None, *, close_database: bool = True) -> Record:
         if self._fully_closed:
-            return {"complete": True, "residual": []}
+            return {"complete": True, "residual": cast(JSON, [])}
         self.stop_accepting()
         budget = self._close_s if timeout_s is None else max(0, timeout_s)
         started = asyncio.get_running_loop().time()
@@ -606,12 +617,12 @@ class Application:
         for task in tasks:
             task.cancel()
         remaining = max(0, budget - (asyncio.get_running_loop().time() - started))
-        pending = set()
+        pending: set[asyncio.Task[None]] = set()
         if tasks:
             _, pending = await asyncio.wait(tasks, timeout=remaining)
         remaining = max(0, budget - (asyncio.get_running_loop().time() - started))
         adapters = {id(c.adapter): c.adapter for c in (*self._tools.values(), *self._owner_tools.values())}
-        residual = []
+        residual: list[str] = []
         for adapter in adapters.values():
             try:
                 async with asyncio.timeout(remaining):
@@ -629,4 +640,4 @@ class Application:
             if close_database:
                 await self._db.close()
             self._fully_closed = True
-        return {"complete": not residual, "residual": residual}
+        return {"complete": not residual, "residual": cast(JSON, residual)}
