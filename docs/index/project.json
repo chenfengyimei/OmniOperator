@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "cc8e36e09c36221ac04063ef330f58b86a5f36cf7c5e5461ce2e59f7db30cacd",
+  "source_sha256": "a722c3cab3d563f5b7ee7173f383bfb3801e5f240275053e00bdb328dab00ee9",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52919,
+      "lines": 52933,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -28641,7 +28641,7 @@
       "path": "agent/src/omni/adapters/platform/service_admin_policy.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_admin_policy",
-      "lines": 322,
+      "lines": 329,
       "imports": [
         "omni.adapters.platform.service_templates",
         "omni.domain.contracts",
@@ -28727,7 +28727,7 @@
             "broker_sha256"
           ],
           "annotations": {
-            "operation": "dict",
+            "operation": "object",
             "broker_sha256": "str"
           }
         },
@@ -28826,7 +28826,7 @@
         },
         {
           "name": "RootServicePolicy.reject_dropins",
-          "line": 240,
+          "line": 244,
           "kind": "function",
           "parameters": [
             "self",
@@ -28838,7 +28838,7 @@
         },
         {
           "name": "RootServicePolicy.remove_definition",
-          "line": 269,
+          "line": 273,
           "kind": "function",
           "parameters": [
             "self"
@@ -28847,7 +28847,7 @@
         },
         {
           "name": "RootServicePolicy.dispatched",
-          "line": 277,
+          "line": 281,
           "kind": "function",
           "parameters": [
             "self"
@@ -28856,7 +28856,7 @@
         },
         {
           "name": "RootServicePolicy.record",
-          "line": 288,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "self",
@@ -28870,7 +28870,7 @@
         },
         {
           "name": "RootServicePolicy.audit_bytes",
-          "line": 291,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self",
@@ -28884,7 +28884,7 @@
         },
         {
           "name": "RootServicePolicy.close",
-          "line": 319,
+          "line": 326,
           "kind": "function",
           "parameters": [
             "self"
@@ -31629,19 +31629,19 @@
       "path": "agent/src/omni/adapters/process_diagnostics.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.process_diagnostics",
-      "lines": 105,
+      "lines": 112,
       "imports": [
         "omni.adapters.diagnostics"
       ],
       "symbols": [
         {
           "name": "_HostFilter",
-          "line": 14,
+          "line": 15,
           "kind": "class"
         },
         {
           "name": "_HostFilter.filter",
-          "line": 15,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "self",
@@ -31653,12 +31653,12 @@
         },
         {
           "name": "ProcessDiagnostics",
-          "line": 19,
+          "line": 20,
           "kind": "class"
         },
         {
           "name": "ProcessDiagnostics.__init__",
-          "line": 24,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "self",
@@ -31672,7 +31672,7 @@
         },
         {
           "name": "ProcessDiagnostics.capture",
-          "line": 48,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -31684,7 +31684,7 @@
         },
         {
           "name": "ProcessDiagnostics._record",
-          "line": 57,
+          "line": 64,
           "kind": "function",
           "parameters": [
             "self",
@@ -31702,7 +31702,7 @@
         },
         {
           "name": "ProcessDiagnostics._process_error",
-          "line": 69,
+          "line": 76,
           "kind": "function",
           "parameters": [
             "self",
@@ -31710,11 +31710,15 @@
             "value",
             "tb"
           ],
-          "annotations": {}
+          "annotations": {
+            "kind": "type[BaseException]",
+            "value": "BaseException",
+            "tb": "TracebackType | None"
+          }
         },
         {
           "name": "ProcessDiagnostics._thread_error",
-          "line": 75,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -31726,17 +31730,19 @@
         },
         {
           "name": "ProcessDiagnostics._unraisable_error",
-          "line": 78,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "self",
             "args"
           ],
-          "annotations": {}
+          "annotations": {
+            "args": "Any"
+          }
         },
         {
           "name": "ProcessDiagnostics._async_error",
-          "line": 82,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -31745,12 +31751,12 @@
           ],
           "annotations": {
             "loop": "asyncio.AbstractEventLoop",
-            "context": "dict"
+            "context": "dict[str, Any]"
           }
         },
         {
           "name": "ProcessDiagnostics.close",
-          "line": 88,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self"
