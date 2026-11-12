@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "5c996822fb49cd0e4308adde94141c6942bdedf087f4b8ab6a86bf01ae1644c7",
+  "source_sha256": "710769c1b2328839ecc65bf30107a58c00c3cedcf51c3d7639abda202f1bc4df",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53170,
+      "lines": 53173,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -10200,7 +10200,7 @@
       "path": "agent/src/omni/adapters/native_credentials.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.native_credentials",
-      "lines": 365,
+      "lines": 368,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.platform.processes",
@@ -10352,7 +10352,7 @@
         },
         {
           "name": "NativeCredentials._reclaim",
-          "line": 218,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -10366,7 +10366,7 @@
         },
         {
           "name": "NativeCredentials._run",
-          "line": 232,
+          "line": 235,
           "kind": "function",
           "parameters": [
             "self",
@@ -10375,12 +10375,12 @@
           ],
           "annotations": {
             "job": "Job",
-            "query": "dict"
+            "query": "dict[str, object]"
           }
         },
         {
           "name": "NativeCredentials._execute",
-          "line": 299,
+          "line": 302,
           "kind": "function",
           "parameters": [
             "self",
@@ -10396,16 +10396,18 @@
         },
         {
           "name": "NativeCredentials._execute.finished",
-          "line": 328,
+          "line": 331,
           "kind": "function",
           "parameters": [
             "task"
           ],
-          "annotations": {}
+          "annotations": {
+            "task": "asyncio.Task[str | None]"
+          }
         },
         {
           "name": "NativeCredentials.get",
-          "line": 343,
+          "line": 346,
           "kind": "function",
           "parameters": [
             "self",
@@ -10417,7 +10419,7 @@
         },
         {
           "name": "NativeCredentials.set",
-          "line": 346,
+          "line": 349,
           "kind": "function",
           "parameters": [
             "self",
@@ -10431,7 +10433,7 @@
         },
         {
           "name": "NativeCredentials.delete",
-          "line": 349,
+          "line": 352,
           "kind": "function",
           "parameters": [
             "self",
@@ -10443,7 +10445,7 @@
         },
         {
           "name": "NativeCredentials.close",
-          "line": 352,
+          "line": 355,
           "kind": "function",
           "parameters": [
             "self",
