@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7a5d758d7db574da75416577eeea4dc584e479929213b1c007894001a25cc86d",
+  "source_sha256": "0d7ec37339eba5e8ced8ba9d41ee27cc6451b7c161964114cbd3711424b74a59",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 52840,
+      "lines": 52857,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -22984,7 +22984,7 @@
       "path": "agent/src/omni/adapters/platform/desktop.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.desktop",
-      "lines": 581,
+      "lines": 580,
       "imports": [
         "omni.adapters.platform",
         "omni.adapters.platform.processes",
@@ -23382,7 +23382,7 @@
         },
         {
           "name": "DesktopBackend.close",
-          "line": 571,
+          "line": 570,
           "kind": "function",
           "parameters": [
             "self",
@@ -27050,17 +27050,17 @@
       "path": "agent/src/omni/adapters/platform/processes.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.processes",
-      "lines": 194,
+      "lines": 214,
       "imports": [],
       "symbols": [
         {
           "name": "WindowsJob",
-          "line": 15,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "WindowsJob.__init__",
-          "line": 18,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -27072,22 +27072,22 @@
         },
         {
           "name": "WindowsJob.__init__.Basic",
-          "line": 23,
+          "line": 25,
           "kind": "class"
         },
         {
           "name": "WindowsJob.__init__.IO",
-          "line": 36,
+          "line": 38,
           "kind": "class"
         },
         {
           "name": "WindowsJob.__init__.Extended",
-          "line": 42,
+          "line": 44,
           "kind": "class"
         },
         {
           "name": "WindowsJob.terminate",
-          "line": 84,
+          "line": 86,
           "kind": "function",
           "parameters": [
             "self"
@@ -27096,7 +27096,7 @@
         },
         {
           "name": "WindowsJob.close",
-          "line": 87,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self"
@@ -27105,7 +27105,7 @@
         },
         {
           "name": "WindowsJob.active_count",
-          "line": 92,
+          "line": 94,
           "kind": "function",
           "parameters": [
             "self"
@@ -27114,30 +27114,41 @@
         },
         {
           "name": "WindowsJob.active_count.Accounting",
-          "line": 93,
+          "line": 95,
           "kind": "class"
         },
         {
           "name": "OwnedProcess",
-          "line": 114,
+          "line": 116,
           "kind": "class"
         },
         {
           "name": "OwnedProcess.spawn",
-          "line": 121,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "cls",
             "argv",
-            "**kwargs"
+            "stdin",
+            "stdout",
+            "stderr",
+            "limit",
+            "env",
+            "cwd"
           ],
           "annotations": {
-            "argv": "list[str]"
+            "argv": "list[str]",
+            "stdin": "int | IO[Any] | None",
+            "stdout": "int | IO[Any] | None",
+            "stderr": "int | IO[Any] | None",
+            "limit": "int",
+            "env": "Mapping[str, str] | None",
+            "cwd": "str | None"
           }
         },
         {
           "name": "OwnedProcess.terminate",
-          "line": 137,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "self",
@@ -27149,7 +27160,7 @@
         },
         {
           "name": "OwnedProcess._group_quiet",
-          "line": 179,
+          "line": 199,
           "kind": "function",
           "parameters": [
             "self"
@@ -29549,7 +29560,7 @@
       "path": "agent/src/omni/adapters/platform/service_query.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.service_query",
-      "lines": 474,
+      "lines": 472,
       "imports": [
         "omni.adapters.platform.macos_helper",
         "omni.adapters.platform.macos_service",
@@ -29562,19 +29573,8 @@
       ],
       "symbols": [
         {
-          "name": "_pid",
-          "line": 34,
-          "kind": "function",
-          "parameters": [
-            "value"
-          ],
-          "annotations": {
-            "value": "str"
-          }
-        },
-        {
           "name": "_xml",
-          "line": 38,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "payload"
@@ -29585,7 +29585,7 @@
         },
         {
           "name": "_task_identity",
-          "line": 48,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "payload"
@@ -29596,7 +29596,7 @@
         },
         {
           "name": "_read_definition",
-          "line": 80,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "path"
@@ -29606,18 +29606,29 @@
           }
         },
         {
+          "name": "_read_definition.identity",
+          "line": 92,
+          "kind": "function",
+          "parameters": [
+            "info"
+          ],
+          "annotations": {
+            "info": "os.stat_result"
+          }
+        },
+        {
           "name": "_Query",
-          "line": 103,
+          "line": 101,
           "kind": "class"
         },
         {
           "name": "ServiceQuery",
-          "line": 116,
+          "line": 114,
           "kind": "class"
         },
         {
           "name": "ServiceQuery.__init__",
-          "line": 119,
+          "line": 117,
           "kind": "function",
           "parameters": [
             "self"
@@ -29626,7 +29637,7 @@
         },
         {
           "name": "ServiceQuery.health",
-          "line": 127,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self"
@@ -29635,7 +29646,7 @@
         },
         {
           "name": "ServiceQuery.stop_accepting",
-          "line": 138,
+          "line": 136,
           "kind": "function",
           "parameters": [
             "self"
@@ -29644,7 +29655,7 @@
         },
         {
           "name": "ServiceQuery.query",
-          "line": 141,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -29656,7 +29667,7 @@
         },
         {
           "name": "ServiceQuery.query.complete",
-          "line": 164,
+          "line": 162,
           "kind": "function",
           "parameters": [
             "future"
@@ -29667,7 +29678,7 @@
         },
         {
           "name": "ServiceQuery._file",
-          "line": 172,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -29679,7 +29690,7 @@
         },
         {
           "name": "ServiceQuery._native_helper",
-          "line": 175,
+          "line": 173,
           "kind": "function",
           "parameters": [
             "self"
@@ -29688,7 +29699,7 @@
         },
         {
           "name": "ServiceQuery._blocking",
-          "line": 180,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self",
@@ -29700,7 +29711,7 @@
         },
         {
           "name": "ServiceQuery._program",
-          "line": 193,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "target"
@@ -29711,7 +29722,7 @@
         },
         {
           "name": "ServiceQuery._drain",
-          "line": 213,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self",
@@ -29727,7 +29738,7 @@
         },
         {
           "name": "ServiceQuery._spawn",
-          "line": 223,
+          "line": 221,
           "kind": "function",
           "parameters": [
             "self",
@@ -29741,14 +29752,14 @@
         },
         {
           "name": "ServiceQuery._spawn.collected",
-          "line": 262,
+          "line": 260,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "ServiceQuery._reclaim_actual",
-          "line": 270,
+          "line": 268,
           "kind": "function",
           "parameters": [
             "self",
@@ -29762,7 +29773,7 @@
         },
         {
           "name": "ServiceQuery._reclaim",
-          "line": 291,
+          "line": 289,
           "kind": "function",
           "parameters": [
             "self",
@@ -29776,7 +29787,7 @@
         },
         {
           "name": "ServiceQuery._command",
-          "line": 304,
+          "line": 302,
           "kind": "function",
           "parameters": [
             "self",
@@ -29788,7 +29799,7 @@
         },
         {
           "name": "ServiceQuery._query",
-          "line": 345,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "self",
@@ -29800,7 +29811,7 @@
         },
         {
           "name": "ServiceQuery._macos_native",
-          "line": 406,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "self",
@@ -29812,7 +29823,7 @@
         },
         {
           "name": "ServiceQuery._linux",
-          "line": 445,
+          "line": 443,
           "kind": "function",
           "parameters": [
             "self",
@@ -29822,13 +29833,13 @@
           ],
           "annotations": {
             "output": "bytes",
-            "identity": "Record",
+            "identity": "Mapping[str, object]",
             "expected": "bytes"
           }
         },
         {
           "name": "ServiceQuery.close",
-          "line": 457,
+          "line": 455,
           "kind": "function",
           "parameters": [
             "self",
