@@ -6,8 +6,11 @@ import hashlib
 import re
 import sqlite3
 import uuid
+from collections.abc import Iterator
 from pathlib import Path
+from typing import cast
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.objects import MAX_OBJECT_BYTES, Blob, agent_identity
 from ..object_store import checked_path
@@ -16,7 +19,7 @@ from .sqlite_access import sqlite_connection
 MAX_INVENTORY = 100_000
 
 
-def registry(database: Path) -> tuple[str, str, list[dict], set[str]]:
+def registry(database: Path) -> tuple[str, str, list[Record], set[str]]:
     if database.is_symlink() or database.is_junction() or not database.is_file():
         raise BusinessError("database_missing", "A regular V2 database is required")
     with sqlite_connection(database) as connection:
@@ -26,12 +29,13 @@ def registry(database: Path) -> tuple[str, str, list[dict], set[str]]:
         instance_row = connection.execute("SELECT id FROM instances WHERE slot=1").fetchone()
         instance = instance_row[0] if instance_row else ""
         rows = [
-            dict(row) for row in connection.execute("SELECT * FROM objects ORDER BY id LIMIT ?", (MAX_INVENTORY + 1,))
+            cast(Record, dict(row))
+            for row in connection.execute("SELECT * FROM objects ORDER BY id LIMIT ?", (MAX_INVENTORY + 1,))
         ]
         if len(rows) > MAX_INVENTORY:
             raise BusinessError("inventory_limit", "Object inventory exceeds the maintenance page limit")
-        tables = {r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        refs = set()
+        tables = {str(r[0]) for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        refs: set[str] = set()
         for table in tables:
             if table == "image_objects":
                 # Non-owning metadata cascades with its object. Message/call
@@ -42,17 +46,17 @@ def registry(database: Path) -> tuple[str, str, list[dict], set[str]]:
                 if foreign_key["table"] == "objects" and foreign_key["to"] == "id":
                     column = '"' + foreign_key["from"].replace('"', '""') + '"'
                     refs.update(
-                        row[0]
+                        str(row[0])
                         for row in connection.execute(
                             f"SELECT DISTINCT {column} FROM {quoted_table} WHERE {column} IS NOT NULL"
                         )
                     )
     for row in rows:
-        Blob(row["agent_id"], row["sha256"], row["bytes"])
+        Blob(str(row["agent_id"]), str(row["sha256"]), cast(int, row["bytes"]))
     return instance, schema, rows, refs
 
 
-def signature(root: Path, key: str) -> dict | None:
+def signature(root: Path, key: str) -> Record | None:
     path = checked_path(root, key)
     if not path.exists():
         return None
@@ -75,7 +79,7 @@ def signature(root: Path, key: str) -> dict | None:
     }
 
 
-def physical_keys(root: Path):
+def physical_keys(root: Path) -> Iterator[str]:
     if root.is_symlink() or root.is_junction():
         raise BusinessError("unsafe_object_path", "Object store cannot be a link")
     if not root.exists():
@@ -113,11 +117,11 @@ def physical_keys(root: Path):
                     yield path.relative_to(root).as_posix()
 
 
-def verify_objects(database: Path, root: Path) -> list[dict]:
+def verify_objects(database: Path, root: Path) -> list[Record]:
     _, _, rows, _ = registry(database)
-    files = []
+    files: list[Record] = []
     for row in rows:
-        blob = Blob(row["agent_id"], row["sha256"], row["bytes"])
+        blob = Blob(str(row["agent_id"]), str(row["sha256"]), cast(int, row["bytes"]))
         current = signature(root, blob.key)
         if current is None or current["sha256"] != blob.sha256 or current["bytes"] != blob.size:
             raise BusinessError("object_integrity_failed", "Registered object is missing or has changed", status=503)
