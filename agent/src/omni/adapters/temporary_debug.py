@@ -53,8 +53,10 @@ class TemporaryDebug:
         self._bytes = self._retained = self._reserved = 0
         self._limit = MAX_BYTES
         self._identity: tuple[int, int] | None = None
-        self._reason, self._error = "not_started", ""
-        self._revision = self._dropped = self._written = 0
+        self._reason: str = "not_started"
+        self._error: str = ""
+        self._revision: int = 0
+        self._dropped = self._written = 0
         self._generation = 0
         self._activation_epoch = 0
 
@@ -86,7 +88,7 @@ class TemporaryDebug:
             "written": self._written,
         }
 
-    def snapshot(self) -> dict:
+    def snapshot(self) -> dict[str, Any]:
         with self._lock:
             return self._snapshot()
 
@@ -103,7 +105,7 @@ class TemporaryDebug:
             raise BusinessError("unsafe_debug_path", "Debug paths cannot contain links", status=503)
         if not self.directory.exists():
             return 0, 0
-        owned = []
+        owned: list[tuple[Path, os.stat_result]] = []
         with os.scandir(self.directory) as entries:
             for index, entry in enumerate(islice(entries, MAX_FILES + 1)):
                 if index == MAX_FILES:
@@ -132,7 +134,7 @@ class TemporaryDebug:
                 total += info.st_size
         return total, removed
 
-    def maintenance(self) -> dict:
+    def maintenance(self) -> dict[str, Any]:
         with self._io_lock:
             with self._lock:
                 self._expire()
@@ -148,9 +150,7 @@ class TemporaryDebug:
 
     def start(self, agent_id: str, operation_id: str, duration_s: int, byte_limit: int = MAX_BYTES) -> dict[str, Any]:
         if (
-            not isinstance(agent_id, str)
-            or not isinstance(operation_id, str)
-            or not re.fullmatch(UUID_PATTERN, agent_id)
+            not re.fullmatch(UUID_PATTERN, agent_id)
             or not re.fullmatch(UUID_PATTERN, operation_id)
             or type(duration_s) is not int
             or not 1 <= duration_s <= MAX_SECONDS

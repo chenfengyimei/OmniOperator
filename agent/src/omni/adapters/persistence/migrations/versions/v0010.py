@@ -5,8 +5,10 @@ import hashlib
 import json
 import re
 import uuid
+from typing import Any
 
 from alembic import op
+from sqlalchemy.engine import Connection
 
 revision = "v2_0010"
 down_revision = "v2_0009"
@@ -38,12 +40,12 @@ def upgrade() -> None:
         op.execute(statement)
 
 
-def adopt_legacy(db) -> None:
+def adopt_legacy(db: Connection) -> None:
     now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds")
     owner = db.exec_driver_sql("SELECT owner_id FROM instances WHERE slot=1").scalar_one_or_none()
-    refs = {}
+    refs: dict[str, str] = {}
 
-    def register(fingerprint, reference=None):
+    def register(fingerprint: str, reference: str | None = None) -> str:
         if fingerprint in refs:
             return refs[fingerprint]
         if owner is None or not re.fullmatch(r"[a-f0-9]{64}", fingerprint):
@@ -67,10 +69,10 @@ def adopt_legacy(db) -> None:
     for row in db.exec_driver_sql(
         "SELECT * FROM instance_audit WHERE kind='credential.requested' ORDER BY sequence"
     ).mappings():
-        data = json.loads(row["data"])
-        fingerprint = data.get("reference_sha256", "")
+        data: dict[str, Any] = json.loads(row["data"])
+        fingerprint = str(data.get("reference_sha256", ""))
         credential = register(fingerprint)
-        identity = row["operation_id"]
+        identity = str(row["operation_id"])
         if str(uuid.UUID(identity)) != identity:
             raise RuntimeError("Legacy credential operation identity is invalid")
         operation = data.get("operation")
@@ -80,7 +82,7 @@ def adopt_legacy(db) -> None:
             "SELECT outcome FROM instance_audit WHERE operation_id=? AND kind='credential.resolved'", (identity,)
         ).scalar_one_or_none()
         state = result if result in ("applied", "not_applied", "unknown") else "unknown"
-        boot = data.get("boot_id", "")
+        boot = str(data.get("boot_id", ""))
         try:
             if str(uuid.UUID(boot)) != boot:
                 raise ValueError
