@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d2872b4dc94cb2ff167a9f482ce4cb5dfe51ae61f64ebac12dbad50969f705f8",
+  "source_sha256": "8de2313d6d5dc57f3cc6c71e00e3a5fddbf946c71310e0b9ebcb51d21fe238fd",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53283,
+      "lines": 53291,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -8779,7 +8779,7 @@
       "path": "agent/src/omni/adapters/mcp/hosts.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.mcp.hosts",
-      "lines": 189,
+      "lines": 196,
       "imports": [
         "omni.adapters.mcp.http",
         "omni.adapters.mcp.oauth",
@@ -8824,13 +8824,14 @@
           ],
           "annotations": {
             "name": "str",
-            "arguments": "dict",
-            "timeout_s": "float"
+            "arguments": "dict[str, Any]",
+            "timeout_s": "float",
+            "before_send": "Callable[[], Awaitable[None]] | None"
           }
         },
         {
           "name": "MCPSessionPort.close",
-          "line": 26,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -8842,7 +8843,7 @@
         },
         {
           "name": "MCPSessionPort.health",
-          "line": 28,
+          "line": 35,
           "kind": "function",
           "parameters": [
             "self"
@@ -8851,12 +8852,12 @@
         },
         {
           "name": "MCPHosts",
-          "line": 31,
+          "line": 38,
           "kind": "class"
         },
         {
           "name": "MCPHosts.__init__",
-          "line": 34,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "self",
@@ -8874,7 +8875,7 @@
         },
         {
           "name": "MCPHosts._default_session",
-          "line": 52,
+          "line": 59,
           "kind": "function",
           "parameters": [
             "self",
@@ -8886,14 +8887,14 @@
         },
         {
           "name": "MCPHosts._default_session.authorization",
-          "line": 56,
+          "line": 63,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MCPHosts._key",
-          "line": 62,
+          "line": 69,
           "kind": "function",
           "parameters": [
             "target"
@@ -8904,7 +8905,7 @@
         },
         {
           "name": "MCPHosts._server_keys",
-          "line": 65,
+          "line": 72,
           "kind": "function",
           "parameters": [
             "self",
@@ -8918,7 +8919,7 @@
         },
         {
           "name": "MCPHosts.connect",
-          "line": 68,
+          "line": 75,
           "kind": "function",
           "parameters": [
             "self",
@@ -8930,7 +8931,7 @@
         },
         {
           "name": "MCPHosts._require",
-          "line": 98,
+          "line": 105,
           "kind": "function",
           "parameters": [
             "self",
@@ -8942,7 +8943,7 @@
         },
         {
           "name": "MCPHosts.catalog",
-          "line": 106,
+          "line": 113,
           "kind": "function",
           "parameters": [
             "self",
@@ -8954,7 +8955,7 @@
         },
         {
           "name": "MCPHosts.call",
-          "line": 111,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self",
@@ -8967,14 +8968,14 @@
           "annotations": {
             "target": "ServerTarget",
             "name": "str",
-            "arguments": "dict",
+            "arguments": "dict[str, Any]",
             "timeout_s": "float",
             "before_send": "Callable[[], Awaitable[None]] | None"
           }
         },
         {
           "name": "MCPHosts.oauth_start",
-          "line": 130,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "self",
@@ -8988,7 +8989,7 @@
         },
         {
           "name": "MCPHosts.oauth_callback",
-          "line": 135,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "self",
@@ -9002,7 +9003,7 @@
         },
         {
           "name": "MCPHosts.stop",
-          "line": 140,
+          "line": 147,
           "kind": "function",
           "parameters": [
             "self",
@@ -9018,7 +9019,7 @@
         },
         {
           "name": "MCPHosts.health",
-          "line": 152,
+          "line": 159,
           "kind": "function",
           "parameters": [
             "self"
@@ -9027,7 +9028,7 @@
         },
         {
           "name": "MCPHosts.stop_accepting",
-          "line": 171,
+          "line": 178,
           "kind": "function",
           "parameters": [
             "self"
@@ -9036,7 +9037,7 @@
         },
         {
           "name": "MCPHosts.close",
-          "line": 174,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self",
@@ -9239,7 +9240,7 @@
       "path": "agent/src/omni/adapters/mcp/oauth.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.mcp.oauth",
-      "lines": 480,
+      "lines": 481,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
@@ -9248,14 +9249,14 @@
       "symbols": [
         {
           "name": "_now",
-          "line": 40,
+          "line": 41,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_iso",
-          "line": 44,
+          "line": 45,
           "kind": "function",
           "parameters": [
             "seconds_from_now"
@@ -9266,7 +9267,7 @@
         },
         {
           "name": "_endpoint",
-          "line": 50,
+          "line": 51,
           "kind": "function",
           "parameters": [
             "value",
@@ -9279,7 +9280,7 @@
         },
         {
           "name": "loopback_redirect",
-          "line": 66,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "value"
@@ -9290,12 +9291,12 @@
         },
         {
           "name": "OAuthTokens",
-          "line": 86,
+          "line": 87,
           "kind": "class"
         },
         {
           "name": "OAuthTokens.__init__",
-          "line": 89,
+          "line": 90,
           "kind": "function",
           "parameters": [
             "self",
@@ -9311,7 +9312,7 @@
         },
         {
           "name": "OAuthTokens.load",
-          "line": 100,
+          "line": 101,
           "kind": "function",
           "parameters": [
             "self",
@@ -9323,7 +9324,7 @@
         },
         {
           "name": "OAuthTokens.save",
-          "line": 110,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
@@ -9337,7 +9338,7 @@
         },
         {
           "name": "OAuthTokens.clear",
-          "line": 121,
+          "line": 122,
           "kind": "function",
           "parameters": [
             "self",
@@ -9349,7 +9350,7 @@
         },
         {
           "name": "OAuthTokens.client",
-          "line": 124,
+          "line": 125,
           "kind": "function",
           "parameters": [
             "self",
@@ -9361,7 +9362,7 @@
         },
         {
           "name": "OAuthTokens.save_client",
-          "line": 134,
+          "line": 135,
           "kind": "function",
           "parameters": [
             "self",
@@ -9375,7 +9376,7 @@
         },
         {
           "name": "OAuthTokens.access_token",
-          "line": 137,
+          "line": 138,
           "kind": "function",
           "parameters": [
             "self",
@@ -9387,7 +9388,7 @@
         },
         {
           "name": "OAuthTokens._refresh",
-          "line": 153,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -9401,7 +9402,7 @@
         },
         {
           "name": "OAuthTokens._post_form",
-          "line": 183,
+          "line": 184,
           "kind": "function",
           "parameters": [
             "self",
@@ -9415,12 +9416,12 @@
         },
         {
           "name": "OAuthFlow",
-          "line": 210,
+          "line": 211,
           "kind": "class"
         },
         {
           "name": "OAuthFlow.__init__",
-          "line": 213,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -9436,7 +9437,7 @@
         },
         {
           "name": "OAuthFlow._fetch",
-          "line": 225,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -9448,7 +9449,7 @@
         },
         {
           "name": "OAuthFlow._metadata",
-          "line": 255,
+          "line": 256,
           "kind": "function",
           "parameters": [
             "self",
@@ -9460,7 +9461,7 @@
         },
         {
           "name": "OAuthFlow._client",
-          "line": 297,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self",
@@ -9476,7 +9477,7 @@
         },
         {
           "name": "OAuthFlow.start",
-          "line": 351,
+          "line": 352,
           "kind": "function",
           "parameters": [
             "self",
@@ -9490,7 +9491,7 @@
         },
         {
           "name": "OAuthFlow.callback",
-          "line": 421,
+          "line": 422,
           "kind": "function",
           "parameters": [
             "self",
@@ -9504,7 +9505,7 @@
         },
         {
           "name": "OAuthFlow.health",
-          "line": 476,
+          "line": 477,
           "kind": "function",
           "parameters": [
             "self"

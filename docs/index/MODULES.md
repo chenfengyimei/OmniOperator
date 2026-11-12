@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`d2872b4dc94cb2ff167a9f482ce4cb5dfe51ae61f64ebac12dbad50969f705f8`。包含 65 个职责模块、730 个源码/界面文件。
+源码指纹：`8de2313d6d5dc57f3cc6c71e00e3a5fddbf946c71310e0b9ebcb51d21fe238fd`。包含 65 个职责模块、730 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -152,9 +152,9 @@
 | [agent/src/omni/adapters/local_vectors.py](../../agent/src/omni/adapters/local_vectors.py) | 284 | One bounded, supervised local embedding process; no native ML imports in the application process. |
 | [agent/src/omni/adapters/log_query.py](../../agent/src/omni/adapters/log_query.py) | 320 | Bounded diagnostic pages with cursors that survive rename and process restart. |
 | [agent/src/omni/adapters/mcp/__init__.py](../../agent/src/omni/adapters/mcp/__init__.py) | 1 | Bounded MCP transports: stdio JSON-RPC, Streamable HTTP and later explicit OAuth. |
-| [agent/src/omni/adapters/mcp/hosts.py](../../agent/src/omni/adapters/mcp/hosts.py) | 189 | Bounded MCP session ownership keyed by server generation; no database or model access. |
+| [agent/src/omni/adapters/mcp/hosts.py](../../agent/src/omni/adapters/mcp/hosts.py) | 196 | Bounded MCP session ownership keyed by server generation; no database or model access. |
 | [agent/src/omni/adapters/mcp/http.py](../../agent/src/omni/adapters/mcp/http.py) | 299 | Bounded Streamable HTTP JSON-RPC transport with explicit bearer/OAuth tokens. |
-| [agent/src/omni/adapters/mcp/oauth.py](../../agent/src/omni/adapters/mcp/oauth.py) | 480 | Explicit MCP OAuth 2.0 authorization-code flow with PKCE, state and a vault token store. |
+| [agent/src/omni/adapters/mcp/oauth.py](../../agent/src/omni/adapters/mcp/oauth.py) | 481 | Explicit MCP OAuth 2.0 authorization-code flow with PKCE, state and a vault token store. |
 | [agent/src/omni/adapters/mcp/stdio.py](../../agent/src/omni/adapters/mcp/stdio.py) | 301 | Bounded JSON-RPC over one owned stdio process per MCP server generation. |
 | [agent/src/omni/adapters/media.py](../../agent/src/omni/adapters/media.py) | 192 | One bounded, supervised media processing subprocess; heavy libraries never load in the host. |
 | [agent/src/omni/adapters/metrics.py](../../agent/src/omni/adapters/metrics.py) | 92 | Fixed-cardinality in-process measurements; never stores request identities or text. |
