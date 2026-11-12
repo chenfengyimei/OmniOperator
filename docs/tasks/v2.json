@@ -286,7 +286,7 @@
   ],
   "checkpoint_commit": "3405c64",
   "current_validation": {
-    "status": "d7_ui_regression_fix",
+    "status": "d7_ui_regression_fix_verified",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -303,6 +303,13 @@
         "scope": "并行会话工作台改版进行中（b7043ee 起）导致 UI 失败 24 项；第一百三十三批后全量 4654 项：4593 passed / 25 failed / 36 errors（-n 2，2996 秒）。36 errors 为 macOS 激活夹具仍补丁已公开的 ExchangeFiles.homes（1b0bdb0 已修，隔离 54 项全过）；1 项 debug_sink 并行时序隔离 11 项全过。UI 改版失败不判 V2 产品失败。",
         "first_report": "temp/build/v2-typecheck-batches-133-full-n2.xml",
         "recheck_report": "temp/build/v2-typecheck-133-macos-activation.xml"
+      },
+      {
+        "id": "tests.debug_sink_parallel_isolation",
+        "status": "open",
+        "scope": "-n 2 下 test_v2_debug_sink 偶发失败（隔离 11 项全过）；LoggingSession 用共享 omni.v2 logger，需按测试隔离。",
+        "first_report": "temp/build/v2-full-139.xml",
+        "recheck_report": "temp/build/v2-full-139-debug-sink.xml"
       }
     ],
     "code_version": "4c4e9bf2c5d973ab8768ec4ee966829a61bbf32f661c2e69ed69d4156e085c87",
@@ -310,12 +317,12 @@
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
-      "passed": 4593,
-      "failed": 25,
-      "errors": 36,
-      "isolation_passed": 65,
-      "report": "temp/build/v2-typecheck-batches-133-full-n2.xml",
-      "isolation_report": "temp/build/v2-typecheck-133-macos-activation.xml",
+      "passed": 4653,
+      "failed": 1,
+      "errors": 0,
+      "isolation_passed": 11,
+      "report": "temp/build/v2-full-139.xml",
+      "isolation_report": "temp/build/v2-full-139-debug-sink.xml",
       "workers": 2
     },
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",

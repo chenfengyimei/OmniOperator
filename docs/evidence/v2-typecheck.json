@@ -1456,85 +1456,36 @@
    ]
   },
   "full_run": {
-   "status": "rerun_after_batch_133_with_inflight_ui_redesign",
-   "source": "df22e93 (batches 1-133) plus the parallel workbench redesign commits",
+   "status": "confirmed_after_ui_fixes",
+   "source": "6863ca9 (all UI fixes) + parallel workbench redesign commits",
    "workers": 2,
-   "report": "temp/build/v2-typecheck-batches-133-full-n2.xml",
-   "sha256": "bea3ee815a123184321aa0bd515fe85c53d6333cc92945fa863b1449f5125de2",
+   "report": "temp/build/v2-full-139.xml",
    "tests": 4654,
-   "passed": 4593,
-   "failed": 25,
-   "errors": 36,
-   "duration_s": 2996.06,
+   "passed": 4653,
+   "failed": 1,
+   "errors": 0,
+   "duration_s": 2815.58,
    "failure_summary": {
-    "ui_redesign_in_flight": 24,
-    "parallel_timing": 1,
-    "fixed_fixture_errors": 36
+    "parallel_timing": 1
    },
-   "ui_failures": [
-    "test_ui_contract.py::test_icons_css_embeds_material_font_offline",
-    "test_ui_glass_tokens.py::test_breakpoints_are_only_900_760_520",
-    "test_v2_action_review_ui.py::test_late_real_detail_and_committed_receipt_do_not_overwrite_agent_or_new_note[two_agents]",
-    "test_v2_android_ui.py::test_android_drafts_do_not_cross_agent_scopes[two_agents]",
-    "test_v2_audit_retention_ui.py::test_late_preview_expiration_cannot_clear_new_agent_results[two_agents]",
-    "test_v2_desktop_ui.py::test_late_agent_and_panel_responses_cannot_clear_a_new_view_snapshot[two_agents]",
-    "test_v2_event_retention_ui.py::test_late_event_refresh_and_more_cannot_replace_or_clear_another_agent[two_agents]",
-    "test_v2_extensions_ui.py::test_late_real_receipts_and_details_keep_current_agent_and_new_path_draft[two_agents]",
-    "test_v2_history_ui.py::test_late_agent_audit_cannot_restore_previous_view_or_cursor[two_agents]",
-    "test_v2_maintenance_ui.py::test_late_real_cancellation_and_list_cannot_populate_another_agent[two_agents]",
-    "test_v2_memory_organization_ui.py::test_late_real_decision_detail_and_raw_memory_reads_keep_current_agent_and_batch[two_agents]",
-    "test_v2_terminals_ui.py::test_late_input_receipt_keeps_agent_drafts_and_lost_reply_only_queries_get[two_agents]",
-    "test_v2_ui.py::test_configuration_reload_waits_for_pending_write_and_agent_drafts_are_isolated[two_agents]",
-    "test_v2_ui.py::test_schedule_drafts_are_isolated_across_agents[two_agents]",
-    "test_v2_ui.py::test_source_document_drafts_and_selection_are_isolated_across_agents[two_agents]",
-    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-1024]",
-    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-1440]",
-    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-390]",
-    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[dark-760]",
-    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-1024]",
-    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-1440]",
-    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-390]",
-    "test_v2_ui.py::test_summary_and_erasure_are_visible_in_the_workbench[light-760]",
-    "test_workbench_ui.py::test_desktop_and_publication_tabs_are_reachable"
-   ],
    "parallel_failures": [
     "test_v2_debug_sink.py::test_debug_is_explicit_agent_scoped_metadata_only_and_never_enters_runtime"
    ],
    "isolation": {
-    "macos_activation": {
-     "report": "temp/build/v2-typecheck-133-macos-activation.xml",
-     "tests": 54,
-     "passed": 54,
-     "note": "36 setup errors came from one fixture still patching ExchangeFiles._homes after batch 112 made it public; fixed in 1b0bdb0"
-    },
-    "debug_sink": {
-     "report": "temp/build/v2-typecheck-133-debug-sink.xml",
-     "tests": 11,
-     "passed": 11,
-     "note": "same parallel timing flake as earlier full runs; passes with -n 0"
-    }
+    "report": "temp/build/v2-full-139-debug-sink.xml",
+    "tests": 11,
+    "passed": 11,
+    "note": "same file passes with -n 0; the failure is test isolation under xdist (LoggingSession attaches to the shared omni.v2 logger, so a parallel worker can format a private message), not a product defect"
    },
-   "note": "First full run since batch 54. 24 UI failures are the in-flight workbench redesign owned by the parallel session; 36 setup errors were a stale test fixture and are fixed. This is not a green full suite and not a product failure judgement for the redesign.",
-   "post_fix": {
-    "commit": "576913f",
-    "verified": [
-     "agent/tests/test_v2_ui.py + test_ui_glass_tokens.py + test_ui_contract.py: 104 passed",
-     "test_v2_action_review_ui / audit_retention_ui / desktop_ui / event_retention_ui / extensions_ui / maintenance_ui / memory_organization_ui / terminals_ui / debug_sink: 37 passed",
-     "test_v2_android_ui + test_v2_history_ui: 13 passed",
-     "test_workbench_ui + test_browser_owner + 两个 UI 契约守卫: 10 passed"
-    ],
-    "remaining": [],
-    "root_causes": [
-     "会话行改为 li[role=button]（标题 + 8 位 id）后，精确名字匹配的 role 查询失效",
-     "切 Agent 时 nav.inert 在提前返回路径上永久残留，导致 #agents 等控件不可交互",
-     "会话面板整体 display:none 使非对话页无法切换 Agent",
-     "改版引入 620/1180 断点，超出设计系统允许的 520/760/900",
-     "图标字体改为同源 woff2 后，契约仍要求内联 base64",
-     "test_workbench_ui 的 route 处理器把所有 /ui/* 资源按 UTF-8 文本读取，改版新增的 MaterialIcons.woff2 是二进制，读取抛 UnicodeDecodeError → 请求永不 fulfil → page.goto 等不到 load → 整个 _run 超时 → 随后的 close 排在同一所有者线程后面，表现为“关闭挂起”。驱动本身无缺陷（其超时/残留报告是正确行为）"
-    ]
-   }
+   "note": "24 UI failures and the workbench route/font hang are fixed; only the known debug_sink parallel-isolation flake remains. This is still not a green full suite for -n 2."
   },
-  "open_findings": []
+  "open_findings": [
+   {
+    "id": "tests.debug_sink_parallel_isolation",
+    "status": "open",
+    "scope": "test_v2_debug_sink 在 -n 2 下偶发格式化私有消息而失败；隔离 11 项全过。LoggingSession 挂载到共享的 omni.v2 logger，并行 worker 复用该 logger 时会串到别处，需按测试隔离 logger 名。"
+   }
+  ]
  },
  "source_recovery": {
   "manifest": "temp/private/v2-typecheck-22-source-20261111-5039cdfa12f1/manifest.json",
