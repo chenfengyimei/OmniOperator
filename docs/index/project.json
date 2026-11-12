@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "52ec9471059b7260efd850b61fade8af53c534729a18b09befdb84ef8fb5edd2",
+  "source_sha256": "fa6666fc1b9b209dab9270a20ca45bdc2dc45910d789846ea15b8a40276f6326",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11131,
+      "lines": 11151,
       "dependencies": [
         "v2-domain"
       ]
@@ -40276,7 +40276,7 @@
       "path": "agent/src/omni/application/media.py",
       "module": "v2-application",
       "python_module": "omni.application.media",
-      "lines": 451,
+      "lines": 471,
       "imports": [
         "omni.application.images",
         "omni.application.objects",
@@ -40321,7 +40321,7 @@
           "annotations": {
             "audio": "Path",
             "output": "Path",
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
@@ -40380,7 +40380,7 @@
             "limit"
           ],
           "annotations": {
-            "configuration": "dict",
+            "configuration": "Record",
             "operation": "str",
             "target": "str",
             "limit": "int"
@@ -40400,11 +40400,12 @@
             "before_dispatch"
           ],
           "annotations": {
-            "configuration": "dict",
+            "configuration": "Record",
             "url": "str",
             "destination": "Path",
             "max_bytes": "int",
-            "budget_s": "float"
+            "budget_s": "float",
+            "before_dispatch": "Callable[[], Awaitable[None]] | None"
           }
         },
         {
@@ -40481,20 +40482,6 @@
         },
         {
           "name": "MediaService.source",
-          "line": 138,
-          "kind": "function",
-          "parameters": [
-            "self",
-            "agent_id",
-            "source_id"
-          ],
-          "annotations": {
-            "agent_id": "str",
-            "source_id": "str"
-          }
-        },
-        {
-          "name": "MediaService.delete",
           "line": 141,
           "kind": "function",
           "parameters": [
@@ -40508,8 +40495,22 @@
           }
         },
         {
+          "name": "MediaService.delete",
+          "line": 144,
+          "kind": "function",
+          "parameters": [
+            "self",
+            "agent_id",
+            "source_id"
+          ],
+          "annotations": {
+            "agent_id": "str",
+            "source_id": "str"
+          }
+        },
+        {
           "name": "MediaService.submit",
-          "line": 146,
+          "line": 149,
           "kind": "function",
           "parameters": [
             "self",
@@ -40527,26 +40528,26 @@
         },
         {
           "name": "MediaService.submit.perform",
-          "line": 162,
+          "line": 167,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService._retire",
-          "line": 171,
+          "line": 176,
           "kind": "function",
           "parameters": [
             "self",
             "task"
           ],
           "annotations": {
-            "task": "asyncio.Task"
+            "task": "asyncio.Task[object]"
           }
         },
         {
           "name": "MediaService._configuration",
-          "line": 176,
+          "line": 181,
           "kind": "function",
           "parameters": [
             "self",
@@ -40562,7 +40563,7 @@
         },
         {
           "name": "MediaService._execute",
-          "line": 184,
+          "line": 189,
           "kind": "function",
           "parameters": [
             "self",
@@ -40574,7 +40575,7 @@
         },
         {
           "name": "MediaService._register_sheet",
-          "line": 275,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "self",
@@ -40585,12 +40586,12 @@
           "annotations": {
             "agent_id": "str",
             "sheet": "Path",
-            "result": "dict"
+            "result": "Record"
           }
         },
         {
           "name": "MediaService._cleanup",
-          "line": 294,
+          "line": 305,
           "kind": "function",
           "parameters": [
             "self",
@@ -40602,7 +40603,7 @@
         },
         {
           "name": "MediaService.cancel",
-          "line": 303,
+          "line": 314,
           "kind": "function",
           "parameters": [
             "self",
@@ -40616,7 +40617,7 @@
         },
         {
           "name": "MediaService.job",
-          "line": 319,
+          "line": 330,
           "kind": "function",
           "parameters": [
             "self",
@@ -40630,7 +40631,7 @@
         },
         {
           "name": "MediaService.jobs",
-          "line": 325,
+          "line": 336,
           "kind": "function",
           "parameters": [
             "self",
@@ -40648,7 +40649,7 @@
         },
         {
           "name": "MediaService.transcript",
-          "line": 331,
+          "line": 345,
           "kind": "function",
           "parameters": [
             "self",
@@ -40662,14 +40663,14 @@
         },
         {
           "name": "MediaService.transcript.perform",
-          "line": 332,
+          "line": 346,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "MediaService.transcript_window",
-          "line": 342,
+          "line": 361,
           "kind": "function",
           "parameters": [
             "self",
@@ -40689,7 +40690,7 @@
         },
         {
           "name": "MediaService.transcript_window_for",
-          "line": 368,
+          "line": 388,
           "kind": "function",
           "parameters": [
             "self",
@@ -40707,7 +40708,7 @@
         },
         {
           "name": "MediaService.frames",
-          "line": 373,
+          "line": 393,
           "kind": "function",
           "parameters": [
             "self",
@@ -40721,17 +40722,19 @@
         },
         {
           "name": "MediaService._run_bounded",
-          "line": 376,
+          "line": 396,
           "kind": "function",
           "parameters": [
             "self",
             "coroutine"
           ],
-          "annotations": {}
+          "annotations": {
+            "coroutine": "Coroutine[Any, Any, Record]"
+          }
         },
         {
           "name": "MediaService.invoke",
-          "line": 387,
+          "line": 407,
           "kind": "function",
           "parameters": [
             "self",
@@ -40749,7 +40752,7 @@
         },
         {
           "name": "MediaService.processor_probe",
-          "line": 426,
+          "line": 446,
           "kind": "function",
           "parameters": [
             "self"
@@ -40758,7 +40761,7 @@
         },
         {
           "name": "MediaService.recover",
-          "line": 430,
+          "line": 450,
           "kind": "function",
           "parameters": [
             "self"
@@ -40767,7 +40770,7 @@
         },
         {
           "name": "MediaService.health",
-          "line": 434,
+          "line": 454,
           "kind": "function",
           "parameters": [
             "self"
@@ -40776,7 +40779,7 @@
         },
         {
           "name": "MediaService.stop_accepting",
-          "line": 442,
+          "line": 462,
           "kind": "function",
           "parameters": [
             "self"
@@ -40785,7 +40788,7 @@
         },
         {
           "name": "MediaService.close",
-          "line": 445,
+          "line": 465,
           "kind": "function",
           "parameters": [
             "self",
@@ -44960,7 +44963,7 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "row": "dict"
+            "row": "Record"
           }
         },
         {
@@ -45022,7 +45025,7 @@
             "agent_id": "str",
             "source_id": "str",
             "operation": "str",
-            "plan": "dict"
+            "plan": "Record"
           }
         },
         {
@@ -45106,7 +45109,7 @@
           ],
           "annotations": {
             "job_id": "str",
-            "info": "dict"
+            "info": "Record"
           }
         },
         {
@@ -45120,7 +45123,7 @@
           ],
           "annotations": {
             "job_id": "str",
-            "info": "dict"
+            "info": "Record"
           }
         },
         {
