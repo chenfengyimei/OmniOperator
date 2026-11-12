@@ -91,6 +91,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/application/operations.py` | 运维查询/诊断导出用例（有界任务集与关闭任务显式化） |
 | `agent/src/omni/application/debugging.py` | 显式调试会话语义（维护任务显式 Task[None]） |
 | `agent/src/omni/application/delivery.py` | 出站投递准入/发送/结算编排（有界任务、显式 Record） |
+| `agent/src/omni/application/desktop.py` | 桌面观察视图/目标/验证/捕获编排（短租约、显式 Record） |
 | `agent/src/omni/application/terminal_review.py` | 终端核查用例（有界任务/Record 显式化） |
 | `agent/src/omni/application/terminals.py` | 终端会话/输入/缩放/关闭编排（有界任务、单写者租约） |
 | `agent/src/omni/application/objects.py` | 对象发布/访问用例（有界任务与分页返回显式化） |

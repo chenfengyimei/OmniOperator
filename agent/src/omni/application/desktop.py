@@ -7,7 +7,7 @@ import copy
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from ..domain.contracts import JSON, BusinessError
 from ..domain.desktop import (
@@ -27,14 +27,14 @@ VIEW_LIMIT, REQUEST_LIMIT, SNAPSHOT_SECONDS, MAX_SNAPSHOTS = 8, 8, 60, 4
 @dataclass
 class DesktopView:
     generation: str
-    capabilities: dict | None = None
+    capabilities: Record | None = None
     checked_at: str | None = None
     snapshot_id: str | None = None
     expires: float = 0
-    targets: dict[str, dict] = field(default_factory=dict)
+    targets: dict[str, Record] = field(default_factory=lambda: dict[str, Record]())
     observation_id: str | None = None
     observed_target: str | None = None
-    references: dict[str, dict] = field(default_factory=dict)
+    references: dict[str, Record] = field(default_factory=lambda: dict[str, Record]())
 
 
 class DesktopService:
@@ -54,7 +54,7 @@ class DesktopService:
         self._observer = observer
         self._objects = objects
         self._views: OrderedDict[str, DesktopView] = OrderedDict()
-        self._pending: set[asyncio.Task[Any]] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._active: set[str] = set()
         self._listing: set[str] = set()
         self._closing = False
@@ -99,12 +99,14 @@ class DesktopService:
                     )
                     self._pending.add(task)
 
-                    def detached(done):
+                    def detached(done: asyncio.Task[object]) -> None:
                         self._pending.discard(done)
                         if not done.cancelled():
                             done.exception()
 
-                    task.add_done_callback(detached)
+                    task.add_done_callback(
+                        lambda future: detached(cast(asyncio.Task[object], future))
+                    )
                 del self._views[victim]
             self._views[agent_id] = DesktopView(self._ids.new())
         self._views.move_to_end(agent_id)
@@ -141,14 +143,14 @@ class DesktopService:
         task = asyncio.create_task(perform(), name="desktop-owner-observation")
         self._pending.add(task)
 
-        def finished(done: asyncio.Task) -> None:
+        def finished(done: asyncio.Task[object]) -> None:
             self._pending.discard(done)
             self._active.discard(agent_id)
             self._listing.discard(agent_id)
             if not done.cancelled():
                 done.exception()
 
-        task.add_done_callback(finished)
+        task.add_done_callback(lambda future: finished(cast(asyncio.Task[object], future)))
         return await asyncio.shield(task)
 
     def _current(self, agent_id: str, view: DesktopView, generation: str) -> None:
@@ -194,9 +196,9 @@ class DesktopService:
         if self._closing:
             raise BusinessError("desktop_draining", "Desktop observation admission is closed", status=503)
         view = self._view(agent_id)
-        if view.generation != request["view_id"]:
+        if view.generation != cast(str, request["view_id"]):
             previous = view.generation
-            view.generation = request["view_id"]
+            view.generation = cast(str, request["view_id"])
             view.targets.clear()
             view.snapshot_id = None
             if self._on_detach is not None:
@@ -239,18 +241,19 @@ class DesktopService:
             self._current(agent_id, view, generation)
             await self._audit(agent_id, operation_id, "probe", completed=True)
             self._current(agent_id, view, generation)
-            view.capabilities, view.checked_at = copy.deepcopy(report), self._clock.now()
+            view.capabilities = cast(Record, copy.deepcopy(report))
+            view.checked_at = self._clock.now()
             # Re-probing permissions invalidates observations made under an earlier report.
             view.targets.clear()
             view.snapshot_id = None
             return {
                 "operation_id": operation_id,
                 "checked_at": view.checked_at,
-                "capabilities": report,
+                "capabilities": cast(JSON, report),
                 "runtime": self.health(),
             }
 
-        return await self._execute(agent_id, request["view_id"], "probe", perform)
+        return await self._execute(agent_id, cast(str, request["view_id"]), "probe", perform)
 
     async def targets(self, agent_id: str, data: object) -> Record:
         request = parse_owner("targets", data)
@@ -274,11 +277,11 @@ class DesktopService:
             self._current(agent_id, view, generation)
             report = validate_targets(
                 await self._backend.targets(
-                    request["limit"], before_dispatch=self._dispatch_guard(agent_id, view, generation)
+                    cast(int, request["limit"]), before_dispatch=self._dispatch_guard(agent_id, view, generation)
                 ),
-                request["limit"],
+                cast(int, request["limit"]),
             )
-            targets = {self._ids.new(): target for target in report["items"]}
+            targets = {self._ids.new(): target for target in cast(list[Record], report["items"])}
             self._current(agent_id, view, generation)
             await self._audit(
                 agent_id, operation_id, "targets", completed=True, count=len(targets), truncated=report["truncated"]
@@ -295,7 +298,7 @@ class DesktopService:
                 "boot_id": self._boot_id,
                 "expires_in_s": SNAPSHOT_SECONDS,
                 "observation_only": True,
-                "truncated": report["truncated"],
+                "truncated": cast(JSON, report["truncated"]),
                 "items": [
                     {
                         "target_id": identity,
@@ -309,63 +312,63 @@ class DesktopService:
                 ],
             }
 
-        return await self._execute(agent_id, request["view_id"], "targets", perform)
+        return await self._execute(agent_id, cast(str, request["view_id"]), "targets", perform)
 
     async def verify(self, agent_id: str, data: object) -> Record:
         request = parse_owner("verify", data)
 
         async def perform(view: DesktopView, generation: str, operation_id: str) -> Record:
-            target = view.targets.get(request["target_id"])
-            if view.snapshot_id != request["snapshot_id"] or target is None:
+            target = view.targets.get(cast(str, request["target_id"]))
+            if view.snapshot_id != cast(str, request["snapshot_id"]) or target is None:
                 raise BusinessError("desktop_snapshot_expired", "Refresh this Agent's desktop observations", status=410)
             await self._audit(agent_id, operation_id, "verify")
             self._current(agent_id, view, generation)
             self._expire(view)
-            if view.snapshot_id != request["snapshot_id"]:
+            if view.snapshot_id != cast(str, request["snapshot_id"]):
                 raise BusinessError(
                     "desktop_snapshot_expired", "Desktop observation expired before verification", status=410
                 )
             report = validate_verification(
                 await self._backend.verify(
                     copy.deepcopy(target),
-                    before_dispatch=self._dispatch_guard(agent_id, view, generation, request["snapshot_id"]),
+                    before_dispatch=self._dispatch_guard(agent_id, view, generation, cast(str, request["snapshot_id"])),
                 ),
                 target,
             )
             self._current(agent_id, view, generation)
             self._expire(view)
-            if view.snapshot_id != request["snapshot_id"]:
+            if view.snapshot_id != cast(str, request["snapshot_id"]):
                 raise BusinessError(
                     "desktop_snapshot_expired", "Desktop observation expired during verification", status=410
                 )
             await self._audit(agent_id, operation_id, "verify", completed=True, matches=report["matches"])
             self._current(agent_id, view, generation)
             self._expire(view)
-            if view.snapshot_id != request["snapshot_id"]:
+            if view.snapshot_id != cast(str, request["snapshot_id"]):
                 raise BusinessError(
                     "desktop_snapshot_expired", "Desktop observation expired during settlement", status=410
                 )
             if not report["matches"]:
-                view.targets.pop(request["target_id"], None)
+                view.targets.pop(cast(str, request["target_id"]), None)
             return {
                 "operation_id": operation_id,
-                "target_id": request["target_id"],
-                "matches": report["matches"],
-                "reason": report["reason"],
+                "target_id": cast(str, request["target_id"]),
+                "matches": cast(JSON, report["matches"]),
+                "reason": cast(JSON, report["reason"]),
                 "verified_at": self._clock.now(),
                 "observation_only": True,
             }
 
-        return await self._execute(agent_id, request["view_id"], "verify", perform)
+        return await self._execute(agent_id, cast(str, request["view_id"]), "verify", perform)
 
     async def observe(self, agent_id: str, data: object) -> Record:
         request = parse_owner("observe", data)
 
         async def perform(view: DesktopView, generation: str, operation_id: str) -> Record:
-            target = view.targets.get(request["target_id"])
-            if view.snapshot_id != request["snapshot_id"] or target is None:
+            target = view.targets.get(cast(str, request["target_id"]))
+            if view.snapshot_id != cast(str, request["snapshot_id"]) or target is None:
                 raise BusinessError("desktop_snapshot_expired", "Refresh this Agent's desktop observations", status=410)
-            guard = self._dispatch_guard(agent_id, view, generation, request["snapshot_id"])
+            guard = self._dispatch_guard(agent_id, view, generation, cast(str, request["snapshot_id"]))
             await self._audit(agent_id, operation_id, "observe")
             await guard()
             try:
@@ -374,7 +377,7 @@ class DesktopService:
                 )
             except BusinessError as error:
                 if error.code in {"desktop_target_changed", "desktop_permission_denied"}:
-                    view.targets.pop(request["target_id"], None)
+                    view.targets.pop(cast(str, request["target_id"]), None)
                 raise
             await guard()
             await self._audit(
@@ -382,60 +385,62 @@ class DesktopService:
                 operation_id,
                 "observe",
                 completed=True,
-                count=len(report["nodes"]),
+                count=len(cast(list[Record], report["nodes"])),
                 truncated=report["truncated"],
             )
             await guard()
             # UI text is returned once, never cached, audited or turned into an action lease.
-            identities = {node["id"]: self._ids.new() for node in report["nodes"]}
-            view.observation_id, view.observed_target = self._ids.new(), request["target_id"]
+            identities = {
+                str(node["id"]): self._ids.new() for node in cast(list[Record], report["nodes"])
+            }
+            view.observation_id, view.observed_target = self._ids.new(), cast(str, request["target_id"])
             view.references = {
-                identities[node["id"]]: {"reference": node["reference"], "actions": node["actions"]}
-                for node in report["nodes"]
+                identities[str(node["id"])]: {"reference": node["reference"], "actions": node["actions"]}
+                for node in cast(list[Record], report["nodes"])
                 if node.get("reference") and node.get("actions")
             }
             nodes: list[JSON] = [
                 {
                     **{k: v for k, v in node.items() if k not in {"id", "parent", "reference"}},
-                    "node_id": identities[node["id"]],
-                    "parent_id": identities.get(node["parent"]),
+                    "node_id": identities[str(node["id"])],
+                    "parent_id": identities.get(str(node["parent"])),
                 }
-                for node in report["nodes"]
+                for node in cast(list[Record], report["nodes"])
             ]
             return {
                 "operation_id": operation_id,
                 "observation_id": view.observation_id,
-                "target_id": request["target_id"],
-                "snapshot_id": request["snapshot_id"],
+                "target_id": cast(str, request["target_id"]),
+                "snapshot_id": cast(str, request["snapshot_id"]),
                 "observed_at": self._clock.now(),
                 "observation_only": True,
                 "expires_in_s": max(0, view.expires - self._clock.monotonic()),
                 "nodes": nodes,
-                "truncated": report["truncated"],
-                **({"coordinate_space": report["coordinate_space"]} if "coordinate_space" in report else {}),
+                "truncated": cast(JSON, report["truncated"]),
+                **({"coordinate_space": cast(JSON, report["coordinate_space"])} if "coordinate_space" in report else {}),
             }
 
-        return await self._execute(agent_id, request["view_id"], "observe", perform)
+        return await self._execute(agent_id, cast(str, request["view_id"]), "observe", perform)
 
     def action_binding(self, agent_id: str, request: Mapping[str, object]) -> dict[str, object]:
         view = self._views.get(agent_id)
         if view is None:
             raise BusinessError("desktop_view_changed", "Desktop view is no longer available")
-        self._current(agent_id, view, request["view_id"])
+        self._current(agent_id, view, cast(str, request["view_id"]))
         self._expire(view)
-        node = view.references.get(request["node_id"])
-        target = view.targets.get(request["target_id"])
+        node = view.references.get(cast(str, request["node_id"]))
+        target = view.targets.get(cast(str, request["target_id"]))
         if (
-            view.snapshot_id != request["snapshot_id"]
-            or view.observation_id != request["observation_id"]
-            or view.observed_target != request["target_id"]
+            view.snapshot_id != cast(str, request["snapshot_id"])
+            or view.observation_id != cast(str, request["observation_id"])
+            or view.observed_target != cast(str, request["target_id"])
             or node is None
             or target is None
         ):
             raise BusinessError(
                 "desktop_observation_expired", "Refresh the window observation before proposing an action", status=410
             )
-        if request["kind"] not in node["actions"]:
+        if cast(str, request["kind"]) not in cast(list[JSON], node["actions"]):
             raise BusinessError("desktop_pattern_unavailable", "Observed control does not support this semantic action")
         return {"target": copy.deepcopy(target), "node": copy.deepcopy(node["reference"]), "expires": view.expires}
 
@@ -448,15 +453,15 @@ class DesktopService:
         request = parse_owner("capture", data)
 
         async def perform(view: DesktopView, generation: str, operation_id: str) -> Record:
-            target = view.targets.get(request["target_id"])
-            if view.snapshot_id != request["snapshot_id"] or target is None:
+            target = view.targets.get(cast(str, request["target_id"]))
+            if view.snapshot_id != cast(str, request["snapshot_id"]) or target is None:
                 raise BusinessError("desktop_snapshot_expired", "Refresh this Agent's desktop observations", status=410)
-            epoch = await self._db.read(lambda u: u.capture_session(agent_id, request["session_id"]))
-            view_guard = self._dispatch_guard(agent_id, view, generation, request["snapshot_id"])
+            epoch = await self._db.read(lambda u: u.capture_session(agent_id, cast(str, request["session_id"])))
+            view_guard = self._dispatch_guard(agent_id, view, generation, cast(str, request["snapshot_id"]))
 
             async def guard() -> None:
                 await view_guard()
-                current = await self._db.read(lambda u: u.capture_session(agent_id, request["session_id"]))
+                current = await self._db.read(lambda u: u.capture_session(agent_id, cast(str, request["session_id"])))
                 if current != epoch:
                     raise BusinessError(
                         "context_invalidated", "Conversation content changed during capture", status=409
@@ -469,18 +474,18 @@ class DesktopService:
                 frame = await self._backend.capture(copy.deepcopy(target), before_dispatch=guard)
             except BusinessError as error:
                 if error.code in {"desktop_target_changed", "desktop_permission_denied"}:
-                    view.targets.pop(request["target_id"], None)
+                    view.targets.pop(cast(str, request["target_id"]), None)
                 raise
             await guard()
             result = await self._objects.publish_capture(
-                agent_id, request["session_id"], epoch, operation_id, frame, before_publish=guard
+                agent_id, cast(str, request["session_id"]), epoch, operation_id, frame, before_publish=guard
             )
             # A committed artifact stays visible in session history even if the view is
             # subsequently detached. A late HTTP response never grants a fresh preview.
             await guard()
             return {**result, "observation_only": True, "attached_to_model": False}
 
-        return await self._execute(agent_id, request["view_id"], "capture", perform)
+        return await self._execute(agent_id, cast(str, request["view_id"]), "capture", perform)
 
     async def forget(self, agent_id: str, view_id: str) -> Record:
         await self._db.read(lambda u: u.diagnostic_agent(agent_id))
