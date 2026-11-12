@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from ...application.ports import Record
 
 PROPERTIES = (
     "Id",
@@ -49,7 +49,7 @@ class SystemdState:
     definition_path: str | None = None
 
 
-def systemd_state(output: bytes, identity: Record) -> SystemdState:
+def systemd_state(output: bytes, identity: Mapping[str, object]) -> SystemdState:
     if len(output) > 1_048_576:
         return SystemdState(manager_report(code="service_manager_output_invalid"))
     values: dict[str, str] = {}

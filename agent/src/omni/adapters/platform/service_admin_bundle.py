@@ -7,9 +7,10 @@ import sys
 import uuid
 from pathlib import Path
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ..object_store import sync_directory
-from .deployment_files import CurrentDeploymentFiles, _json, _no_links, _path, _read
+from .deployment_files import json_bytes, no_links, path_of, read_file, write_file
 from .permissions import private_path
 from .publication import publish_directory
 
@@ -45,9 +46,9 @@ BOOT = "adapters/workers/service_admin_boot.py"
 PROBE = "adapters/workers/darwin_admin_probe.py"
 
 
-def materialize_admin_bundle(destination: str | Path) -> dict:
-    target = _path(destination)
-    _no_links(target)
+def materialize_admin_bundle(destination: str | Path) -> Record:
+    target = path_of(destination)
+    no_links(target)
     source = Path(__file__).resolve().parents[2]
     if (
         target.exists()
@@ -71,10 +72,10 @@ def materialize_admin_bundle(destination: str | Path) -> dict:
                 "service_admin_destination_unsafe", "Build an unprivileged review artifact outside managed paths"
             )
     files: dict[str, tuple[str | None, bytes]] = {
-        "lib/omni/" + name: (name, _read(source / name, 1024 * 1024)) for name in SOURCES
+        "lib/omni/" + name: (name, read_file(source / name, 1024 * 1024)) for name in SOURCES
     }
-    files["service-admin.py"] = (BOOT, _read(source / BOOT, 1024 * 1024))
-    files["service-admin-probe.py"] = (PROBE, _read(source / PROBE, 1024 * 1024))
+    files["service-admin.py"] = (BOOT, read_file(source / BOOT, 1024 * 1024))
+    files["service-admin-probe.py"] = (PROBE, read_file(source / PROBE, 1024 * 1024))
     notes = {
         "format": "omni-service-admin-instructions-4",
         "installed": False,
@@ -109,13 +110,13 @@ def materialize_admin_bundle(destination: str | Path) -> dict:
             "OWNER_UID",
         ],
     }
-    files["README.json"] = (None, _json(notes))
+    files["README.json"] = (None, json_bytes(notes))
     entries = [
         {"path": name, "source": origin, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
         for name, (origin, data) in sorted(files.items())
     ]
     manifest = {"format": "omni-service-admin-bundle-4", "files": entries}
-    manifest["sha256"] = hashlib.sha256(_json(manifest)).hexdigest()
+    manifest["sha256"] = hashlib.sha256(json_bytes(manifest)).hexdigest()
     temporary = target.with_name("." + uuid.uuid4().hex + ".admin-bundle.partial")
     temporary.mkdir(mode=0o700)
     private_path(temporary, directory=True)
@@ -123,14 +124,14 @@ def materialize_admin_bundle(destination: str | Path) -> dict:
     for name, (_, data) in files.items():
         path = temporary / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        CurrentDeploymentFiles._write(path, data)
-    CurrentDeploymentFiles._write(temporary / "manifest.json", _json(manifest))
+        write_file(path, data)
+    write_file(temporary / "manifest.json", json_bytes(manifest))
     for path in sorted(temporary.rglob("*"), reverse=True):
         if path.is_dir():
             private_path(path, directory=True)
             sync_directory(path)
     sync_directory(temporary)
-    _no_links(target)
+    no_links(target)
     publish_directory(temporary, target)
     return {
         "bundle": str(target),

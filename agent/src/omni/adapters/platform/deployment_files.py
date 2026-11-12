@@ -586,3 +586,15 @@ class CurrentDeploymentFiles:
             if _relative(name) != name or "/" in name or _read(root / name, MAX_JSON, single=True) != content:
                 raise _error("deployment_artifact_changed", status=409)
         return plan
+
+
+decode = _decode
+read_file = _read
+json_bytes = _json
+no_links = _no_links
+path_of = _path
+write_file = CurrentDeploymentFiles._write
+
+
+def write_file(path: Path, data: bytes) -> None:
+    CurrentDeploymentFiles._write(path, data)

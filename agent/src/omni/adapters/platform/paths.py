@@ -141,14 +141,14 @@ class InstanceLock(PrivateFileLock):
     def _admit(self, release: tuple[str, str] | None) -> None:
         from ...domain.contracts import BusinessError
         from ...domain.release_fence import validate_fence
-        from .deployment_files import _decode, _read
+        from .deployment_files import decode, read_file
         from .permissions import assert_private
 
         fence_path = self.path.parent / "release-fence.json"
         if fence_path.exists() or fence_path.is_symlink() or fence_path.is_junction():
             try:
                 assert_private(fence_path)
-                marker = validate_fence(_decode(_read(fence_path, 4096, single=True)))
+                marker = validate_fence(decode(read_file(fence_path, 4096, single=True)))
             except OSError as exc:
                 raise BusinessError(
                     "release_fence_unavailable", "The release startup fence cannot be verified"

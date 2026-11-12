@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import plistlib
 import re
+from collections.abc import Mapping
 
 from ...domain.service_deployment import manager_identity
 from .service_templates import render
@@ -37,7 +38,7 @@ def _bounded_job(value: object) -> bool:
     return True
 
 
-def loaded_definition(plan: dict, job: object) -> bool | None:
+def loaded_definition(plan: Mapping[str, object], job: object) -> bool | None:
     """Compare all execution-relevant fields; unknown native fields cannot prove a match."""
     if not isinstance(job, dict) or not _bounded_job(job):
         return None

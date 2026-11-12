@@ -184,6 +184,9 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/retention_repository.py` | 保留/擦除会话失效仓储 |
 | `agent/src/omni/adapters/platform/desktop_capture.py` | 桌面截图文件身份校验 |
 | `agent/src/omni/adapters/platform/macos_helper.py` | macOS 辅助源指纹与文件校验 |
+| `agent/src/omni/adapters/platform/macos_service.py` | macOS launchd 查询边界（原生身份校验） |
+| `agent/src/omni/adapters/platform/paths.py` | 实例路径与启动栅栏互斥 |
+| `agent/src/omni/adapters/platform/service_admin_bundle.py` | 管理员工件物化（不安装/不提权） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
 

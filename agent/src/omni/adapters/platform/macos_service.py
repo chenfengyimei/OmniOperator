@@ -5,11 +5,12 @@ from __future__ import annotations
 import secrets
 from collections.abc import Awaitable, Callable
 from pathlib import Path
+from typing import cast
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.service_deployment import manager_identity
-from .deployment_files import _decode
+from .deployment_files import decode
 from .macos_service_state import disabled_override as disabled_override
 from .macos_service_state import loaded_definition
 
@@ -34,8 +35,8 @@ class MacOSServiceInspection:
     ) -> None:
         self.command, self.helper = command, helper
 
-    async def probe(self, plan: dict) -> Record:
-        request, manager = plan["request"], manager_identity(plan)
+    async def probe(self, plan: Record) -> Record:
+        request, manager = cast(Record, plan["request"]), manager_identity(plan)
         if request["target"] not in {"macos-user", "macos-system"}:
             raise BusinessError("service_native_target_invalid", "Inspect an exact macOS service domain")
         result: Record = {
@@ -60,21 +61,21 @@ class MacOSServiceInspection:
             [
                 str(executable),
                 "--system-service-query" if request["target"] == "macos-system" else "--service-query",
-                manager["name"],
-                request["principal"]["id"],
+                str(manager["name"]),
+                str(cast(Record, request["principal"])["id"]),
                 nonce,
             ]
         )
         if code != 0 or len(output) > MAX_OUTPUT:
             return result
-        response = _decode(output)
+        response = decode(output)
         if (
             set(response) != {"version", "domain", "label", "uid", "nonce", "complete", "loaded", "job", "error_code"}
             or response["version"] != VERSION
             or response["domain"] != manager["domain"]
             or response["nonce"] != nonce
             or response["label"] != manager["name"]
-            or response["uid"] != request["principal"]["id"]
+            or response["uid"] != cast(Record, request["principal"])["id"]
         ):
             raise BusinessError("service_native_identity_invalid", "Native service query identity is invalid")
         if response["complete"] is not True or type(response["loaded"]) is not bool or response["error_code"] != "":
@@ -87,7 +88,8 @@ class MacOSServiceInspection:
             return {**result, "loaded": False, "state": "stopped", "error_code": ""}
         matched = loaded_definition(plan, response["job"])
         job = response["job"]
-        pid = job.get("PID") if isinstance(job, dict) else None
+        job_value = cast(Record, job) if isinstance(job, dict) else None
+        pid = job_value.get("PID") if job_value is not None else None
         if type(pid) is not int or not 0 <= pid <= 2_147_483_647:
             pid = None
         state = (
