@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "2533c3f2cfdb07e6347da333af11471c738156ae452ea9514f41a92451358866",
+  "source_sha256": "9c01a26943632fd4bcf9381f4ea579ee8c88d5312756408595ee0683fa928d95",
   "modules": [
     {
       "id": "v2-domain",
@@ -136,7 +136,7 @@
         "agent/src/omni/application/terminal_review.py",
         "agent/src/omni/application/terminals.py"
       ],
-      "lines": 11008,
+      "lines": 11027,
       "dependencies": [
         "v2-domain"
       ]
@@ -37531,7 +37531,7 @@
       "path": "agent/src/omni/application/documents.py",
       "module": "v2-application",
       "python_module": "omni.application.documents",
-      "lines": 346,
+      "lines": 365,
       "imports": [
         "omni.application.local_vectors",
         "omni.application.objects",
@@ -37587,7 +37587,9 @@
           "parameters": [
             "future"
           ],
-          "annotations": {}
+          "annotations": {
+            "future": "asyncio.Task[object]"
+          }
         },
         {
           "name": "DocumentService._source",
@@ -37744,7 +37746,9 @@
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "DocumentService.vector_status",
@@ -37811,11 +37815,13 @@
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "DocumentService.index_status",
-          "line": 200,
+          "line": 202,
           "kind": "function",
           "parameters": [
             "self",
@@ -37833,7 +37839,7 @@
         },
         {
           "name": "DocumentService.search",
-          "line": 211,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -37853,23 +37859,25 @@
         },
         {
           "name": "DocumentService.search.perform",
-          "line": 219,
+          "line": 221,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "DocumentService.search.perform.validate",
-          "line": 256,
+          "line": 263,
           "kind": "function",
           "parameters": [
             "u"
           ],
-          "annotations": {}
+          "annotations": {
+            "u": "UnitOfWork"
+          }
         },
         {
           "name": "DocumentService.invoke",
-          "line": 280,
+          "line": 294,
           "kind": "function",
           "parameters": [
             "self",
@@ -37887,7 +37895,7 @@
         },
         {
           "name": "DocumentService.health",
-          "line": 329,
+          "line": 343,
           "kind": "function",
           "parameters": [
             "self"
@@ -37896,7 +37904,7 @@
         },
         {
           "name": "DocumentService.close",
-          "line": 332,
+          "line": 346,
           "kind": "function",
           "parameters": [
             "self",
