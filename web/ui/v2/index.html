@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261112v56" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261112v56" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261112v66" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261112v66" />
   </head>
   <body class="chat-mode">
     <header class="app-header">
@@ -52,7 +52,7 @@
       <button type="button" data-page="audit" aria-label="审计记录" title="审计记录"><span class="material-icons">history</span></button>
     </nav>
     <main>
-      <aside class="sessions-panel workbench-side">
+      <aside class="sessions-panel workbench-side" id="sessions-panel">
         <form id="connect" class="panel">
           <label>所有者令牌<input id="token" type="password" autocomplete="off" required /></label>
           <button type="submit">连接实例</button>
@@ -91,7 +91,11 @@
             <p id="page-subtitle">与当前 Agent 空间对话、发起运行并审批动作。</p>
           </div>
           <button id="back-to-chat" type="button" hidden>返回对话</button>
+          <button id="toggle-sessions" type="button" class="drawer-toggle" aria-expanded="false" aria-controls="sessions-panel">
+            会话
+          </button>
         </header>
+        <div id="settings-rail" class="settings-rail" role="navigation" aria-label="设置分类"></div>
         <p id="error" role="alert" hidden></p>
         <div id="approvals" aria-live="polite"></div>
         <section id="chat" class="page">
@@ -1462,8 +1466,8 @@
         </div>
       </aside>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261112v56"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261112v56"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261112v56"></script>
+    <script src="/assets/vendor/xterm.js?v=20261112v66"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261112v66"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261112v66"></script>
   </body>
 </html>

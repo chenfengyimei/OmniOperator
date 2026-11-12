@@ -1,28 +1,30 @@
-import { mountSkills } from './skills.js?v=20261112v56';
-import { mountCredentials } from './credentials.js?v=20261112v56';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261112v56';
-import { mountCapabilities } from './capabilities.js?v=20261112v56';
-import { mountTokens } from './tokens.js?v=20261112v56';
-import { mountDocuments } from './documents.js?v=20261112v56';
-import { mountConfiguration } from './configuration.js?v=20261112v56';
+import { mountSkills } from './skills.js?v=20261112v66';
+import { mountCredentials } from './credentials.js?v=20261112v66';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261112v66';
+import { mountCapabilities } from './capabilities.js?v=20261112v66';
+import { mountTokens } from './tokens.js?v=20261112v66';
+import { mountDocuments } from './documents.js?v=20261112v66';
+import { mountConfiguration } from './configuration.js?v=20261112v66';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261112v56';
-import { mountDeliveries } from './deliveries.js?v=20261112v56';
-import { mountSchedules } from './schedules.js?v=20261112v56';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261112v56';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261112v56';
-import { mountExtensions } from './extensions.js?v=20261112v56';
-import { mountActionReviews } from './action-reviews.js?v=20261112v56';
-import { mountTerminals } from './terminals.js?v=20261112v56';
-import { mountDesktop } from './desktop.js?v=20261112v56';
-import { mountQQ } from './qq.js?v=20261112v56';
-import { mountBilibili } from './bilibili.js?v=20261112v56';
-import { mountMedia } from './media.js?v=20261112v56';
-import { mountMcp } from './mcp.js?v=20261112v56';
-import { mountAndroid } from './android.js?v=20261112v56';
-import { mountModelOutput } from './model-output.js?v=20261112v56';
-import { mountRouting } from './routing.js?v=20261112v56';
-import { mountChatImages } from './chat-images.js?v=20261112v56';
+import { mountPeople } from './people.js?v=20261112v66';
+import { mountDeliveries } from './deliveries.js?v=20261112v66';
+import { mountSchedules } from './schedules.js?v=20261112v66';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261112v66';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261112v66';
+import { mountExtensions } from './extensions.js?v=20261112v66';
+import { mountActionReviews } from './action-reviews.js?v=20261112v66';
+import { mountTerminals } from './terminals.js?v=20261112v66';
+import { mountDesktop } from './desktop.js?v=20261112v66';
+import { mountQQ } from './qq.js?v=20261112v66';
+import { mountBilibili } from './bilibili.js?v=20261112v66';
+import { mountMedia } from './media.js?v=20261112v66';
+import { mountMcp } from './mcp.js?v=20261112v66';
+import { mountAndroid } from './android.js?v=20261112v66';
+import { mountModelOutput } from './model-output.js?v=20261112v66';
+import { mountRouting } from './routing.js?v=20261112v66';
+import { mountChatImages } from './chat-images.js?v=20261112v66';
+import { mountInspector } from './inspector.js?v=20261112v66';
+import { mountSettingsRail } from './settings-rail.js?v=20261112v66';
 
 const $ = (id) => document.getElementById(id);
 let token = '',
@@ -57,9 +59,19 @@ const chatImages = mountChatImages({
   getSession: () => session,
   getGeneration: () => generation,
 });
+const inspectorPanel = mountInspector({
+  api,
+  wrap,
+  getAgent: () => agent,
+  getSession: () => session,
+  getGeneration: () => generation,
+  getRun: () => run,
+});
+const settingsRail = mountSettingsRail({ getPage: () => page });
 let summaryTarget = null;
 let retentionTarget = null;
 let memoryRead = 0;
+let inspectorSkillsLoaded = false;
 function renderRetention(value) {
   if (value && retentionTarget?.id === value.id && retentionTarget.retention_revision > value.retention_revision)
     return;
@@ -251,6 +263,7 @@ function syncPageChrome(next) {
   if (subtitle) subtitle.textContent = meta[1];
   const back = $('back-to-chat');
   if (back) back.hidden = next === 'chat';
+  settingsRail.sync(next);
   const aside = document.querySelector('aside');
   if (aside && next === 'chat') aside.scrollTop = 0;
 }
@@ -398,6 +411,33 @@ function renderContext(report, snapshot) {
   );
   $('ctx-note').textContent = snap.reason ? `原因：${snap.reason}` : `计数方式：${snap.counting_method || '未计量'}`;
 }
+function setThinking(active) {
+  const node = $('messages');
+  if (!node) return;
+  const existing = node.querySelector('.thinking-indicator');
+  if (!active) {
+    existing?.remove();
+    return;
+  }
+  if (existing) return;
+  const box = document.createElement('div');
+  box.className = 'thinking-indicator';
+  box.dataset.role = 'assistant';
+  box.setAttribute('role', 'status');
+  const label = document.createElement('span');
+  label.className = 'thinking-label';
+  label.textContent = '小鱼正在处理';
+  const dots = document.createElement('span');
+  dots.className = 'thinking-dots';
+  dots.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 3; i++) {
+    const dot = document.createElement('i');
+    dots.append(dot);
+  }
+  box.append(label, dots);
+  node.append(box);
+  node.scrollTop = node.scrollHeight;
+}
 function renderMessages(items) {
   const boundAgent = agent,
     boundSession = session;
@@ -435,7 +475,7 @@ function renderMessages(items) {
       head.className = 'message-head';
       const role = document.createElement('span');
       role.className = 'message-role';
-      role.textContent = m.role === 'user' ? '你' : '助手';
+      role.textContent = m.role === 'user' ? '你' : '小鱼';
       head.append(role);
       if (m.created_at) {
         const time = document.createElement('time');
@@ -527,10 +567,11 @@ function renderMessages(items) {
     }),
   );
   $('messages').scrollTop = $('messages').scrollHeight;
-  for (const node of $('messages').querySelectorAll('article[data-run-id]'))
+  setThinking(false);
+  for (const node of $('messages').querySelectorAll('.msg[data-run-id]'))
     loadRunTools(node.dataset.runId)
       .then((rows) => {
-        if (rows.length) renderToolBlock(node, rows);
+        if (rows.length) renderToolBlock(node.querySelector('.bubble') || node, rows);
       })
       .catch(() => {});
 }
@@ -607,12 +648,19 @@ async function poll() {
     }),
   );
   $('inspector-todo-count').textContent = approvals.length ? `${approvals.length} 项待审批` : '暂无待办';
-  $('inspector-skills').textContent = $('skill-run-status').textContent.trim() || '本轮未使用技能';
+  if (current !== generation) return;
+  if (run || !inspectorSkillsLoaded) {
+    inspectorPanel.loadSkills();
+    inspectorSkillsLoaded = Boolean(run);
+  }
   if (run) {
     const checkedRun = run;
     const result = await api(scope(`/runs/${checkedRun}`));
     if (current !== generation || run !== checkedRun) return;
     $('run-status').textContent = `${result.state}${result.error_code ? ` · ${result.error_code}` : ''}`;
+    setThinking(
+      page === 'chat' && session === result.session_id && ['running', 'waiting_approval', 'cancelling'].includes(result.state),
+    );
     renderRetention(result);
     if (page === 'chat' && session === result.session_id && result.state === 'running')
       await modelOutput.refresh(checkedRun);
@@ -662,6 +710,7 @@ async function poll() {
       $('summary-body').textContent = '';
       run = null;
       $('cancel').disabled = true;
+      setThinking(false);
       if (session === result.session_id) renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
     }
   }
@@ -672,6 +721,7 @@ async function poll() {
 function stop() {
   modelOutput.clear();
   chatImages.deactivate();
+  setThinking(false);
   generation++;
   clearTimeout(timer);
   timer = null;
@@ -813,6 +863,7 @@ $('connect').addEventListener(
     build = version.build_id;
     const data = await api('/agents');
     $('agents').replaceChildren(...data.items.map((item) => new Option(item.name, item.id)));
+    document.body.dataset.connected = 'true';
     await selectAgent();
     $('token').value = '';
   }),
@@ -820,6 +871,27 @@ $('connect').addEventListener(
 $('agents').addEventListener('change', wrap(selectAgent));
 $('back-to-chat').addEventListener('click', () => document.querySelector('[data-page="chat"]').click());
 $('open-settings').addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
+
+// 窄屏会话抽屉：只在 <=620 生效；桌面端按钮由 CSS 隐藏，data-open 不参与布局。
+function setDrawer(open) {
+  const panel = $('sessions-panel'),
+    button = $('toggle-sessions');
+  if (!panel || !button) return;
+  panel.dataset.open = String(open);
+  button.setAttribute('aria-expanded', String(open));
+  button.textContent = open ? '收起会话' : '会话';
+}
+$('toggle-sessions').addEventListener('click', () => {
+  setDrawer($('sessions-panel')?.dataset.open !== 'true');
+});
+setDrawer(true);
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || page === 'chat') return;
+  // 模态对话框自己有 Esc 语义，先让它处理，避免一次按键关掉两层。
+  if (document.getElementById('ui-dialog')?.open) return;
+  if (event.target?.closest?.('select, input, textarea')) return;
+  document.querySelector('[data-page="chat"]').click();
+});
 
 $('message').addEventListener('keydown', (event) => {
   if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
@@ -1092,29 +1164,16 @@ for (const button of document.querySelectorAll('[data-page]'))
 window.addEventListener('pagehide', stop);
 for (const tab of document.querySelectorAll('[data-inspector]'))
   tab.addEventListener('click', () => {
+    const selected = tab.dataset.inspector;
     for (const other of document.querySelectorAll('[data-inspector]'))
       other.setAttribute('aria-selected', String(other === tab));
     for (const panel of document.querySelectorAll('[data-inspector-panel]'))
-      panel.hidden = panel.dataset.inspectorPanel !== tab.dataset.inspector;
-    if (tab.dataset.inspector === 'objects') loadInspectorObjects().catch(error);
+      panel.hidden = panel.dataset.inspectorPanel !== selected;
+    if (!agent) return;
+    if (selected === 'skills') inspectorPanel.loadSkills();
+    if (selected === 'objects') inspectorPanel.loadObjects();
+    if (selected === 'desktop') inspectorPanel.loadDesktop();
   });
-async function loadInspectorObjects() {
-  if (!agent) return;
-  const bound = agent,
-    stamp = generation;
-  const data = await api(scope('/objects?limit=12'));
-  if (bound !== agent || stamp !== generation) return;
-  const list = $('inspector-objects');
-  list.replaceChildren(
-    ...data.items.map((item) => {
-      const row = document.createElement('div');
-      row.className = 'object-row';
-      row.textContent = `${item.media_type} · ${item.bytes} 字节 · ${String(item.sha256).slice(0, 10)}…`;
-      return row;
-    }),
-  );
-  if (!data.items.length) list.textContent = '暂无产物';
-}
 syncPageChrome('chat');
 themeLabel();
 document.addEventListener('visibilitychange', () => {

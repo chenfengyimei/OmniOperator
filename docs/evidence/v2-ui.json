@@ -1,0 +1,103 @@
+{
+  "batch": "v2-ui-workbench-completion",
+  "recorded_at": "2026-11-13",
+  "scope": {
+    "files": [
+      "web/ui/v2/inspector.js",
+      "web/ui/v2/settings-rail.js",
+      "web/ui/v2/main.js",
+      "web/ui/v2/index.html",
+      "web/ui/v2/workbench.css",
+      "web/ui/v2/android.js",
+      "web/ui/v2/desktop.js",
+      "web/ui/v2/documents.js",
+      "web/ui/v2/operations.js",
+      "web/ui/v2/terminals.js",
+      "agent/tests/test_v2_mcp_ui.py",
+      "docs/V2_UI_PROMPT.md",
+      "temp/build/v2_shot.py",
+      "temp/build/v2_probe.py"
+    ],
+    "unchanged_contracts": [
+      "22 个 section.page 与 22 个 nav button[data-page] 一一对应",
+      "7 个 nav p.nav-group 文本未改",
+      "nav[aria-label=\"工作台\"] 仍为页面中唯一 nav 元素",
+      "所有既有 id 钩子（#token/#connect/#agents/#sessions/#messages/#send/#message/#cancel/#pin-run/#open-settings/#back-to-chat）保留",
+      "V1 web/index.html 与 web/ui/frame.css 未改动"
+    ],
+    "resource_version": "20261112v65"
+  },
+  "delivered": {
+    "8.1_right_panel": [
+      "技能页签改为读 GET /agents/{id}/runs/{run}/skills，渲染名称 + 本轮是否使用 + 授权状态；无运行/无快照/空目录分别给独立空态与下一步按钮",
+      "产物页签读 GET /agents/{id}/objects?limit=12，渲染 media_type · 字节 · sha 前 10 位，点击按字节下载",
+      "桌面页签读 GET /agents/{id}/sessions/{sid}/captures?limit=12，点击在右栏预览图片（含私人内容提示）"
+    ],
+    "8.2_conversation": [
+      "助手消息发言者行显示「小鱼 · HH:MM」，用户为「你」",
+      "运行中在消息列底部显示三点脉冲（prefers-reduced-motion 时静止）",
+      "修复工具卡从未渲染的选择器缺陷：原查询 article[data-run-id] 与实际 div.msg 不符，现改为 .msg[data-run-id] 并把卡片挂进气泡"
+    ],
+    "8.3_settings_center": [
+      "新增设置分类栏，22 个分类项由 rail 分组与页面名自动生成，点击转发到对应 rail 按钮（页面切换入口保持唯一）",
+      "选中态同步当前页（aria-current）",
+      "新增 Esc 关闭覆盖层；与模态对话框共存时先让对话框处理 Esc",
+      "覆盖层内页面 h1 降为二级标题字号，避免与页头 h1 层级颠倒"
+    ],
+    "8.4_mobile": [
+      "≤620 会话栏改为抽屉，页头「会话/收起」按钮切换，选会话后自动收起",
+      "未连接实例前抽屉不生效，令牌输入与 Agent 选择始终可见",
+      "≤620 对话页锁定视口高度，消息区内部滚动，dock 精确贴底（实测 gapBelow=0）",
+      "≤900 rail 横向滚动并加右缘渐隐提示"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "uv run --no-sync pytest -q -n 0 agent/tests/test_v2_ui.py  → 73 passed in 727.13s",
+      "uv run --no-sync pytest -q -n 0 agent/tests/test_v2_navigation_ui.py agent/tests/test_v2_business_inventory.py agent/tests/test_v2_mcp_ui.py → 7 passed",
+      "uv run --no-sync pytest -q -n 0 agent/tests/test_v2_skills_ui.py → 8 passed in 65.27s",
+      "uv run --no-sync pytest -q -n 0 agent/tests/test_v2_skills_ui.py agent/tests/test_v2_images_ui.py agent/tests/test_v2_history_ui.py agent/tests/test_v2_navigation_ui.py agent/tests/test_v2_business_inventory.py agent/tests/test_v2_mcp_ui.py → 24 passed / 2 failed（1024 项，因分类栏高度压扁导致内容不可滚动，已修复并复跑技能页 8 项全过）"
+    ],
+    "layout_probe": {
+      "script": "temp/build/v2_probe.py",
+      "observed": [
+        "1440 设置页：分类栏容器 43px / 链接 29px，clippedLinks 为空，docScrollWidth == innerWidth",
+        "390 设置页：分类栏容器 43px / 链接 29px，clippedLinks 为空，docScrollWidth == innerWidth",
+        "390 对话页：dock 底部与视口底部重合，gapBelow=0"
+      ]
+    },
+    "screenshots": [
+      "temp/build/v2-shot/chat-dark-1440.png",
+      "temp/build/v2-shot/chat-dark-1024.png",
+      "temp/build/v2-shot/chat-dark-390.png",
+      "temp/build/v2-shot/chat-light-1440.png",
+      "temp/build/v2-shot/chat-light-1024.png",
+      "temp/build/v2-shot/chat-light-390.png",
+      "temp/build/v2-shot/settings-dark-1440.png",
+      "temp/build/v2-shot/settings-dark-1024.png",
+      "temp/build/v2-shot/settings-dark-390.png",
+      "temp/build/v2-shot/settings-light-1440.png",
+      "temp/build/v2-shot/settings-light-1024.png",
+      "temp/build/v2-shot/settings-light-390.png"
+    ]
+  },
+  "defects_found_and_fixed": [
+    "工具卡从未显示：渲染查询用 article[data-run-id]，消息实际是 div.msg，故 loadRunTools 永不命中",
+    "新增设置分类栏用 <nav> 导致 locator('nav') 命中两个元素，history 测试严格模式失败；改为 div[role=navigation]",
+    "打包层 .page-shell 包住页面后，覆盖层 > * 限宽规则只作用于包裹层，1024 宽内容不可滚动、回滚按钮滚不进视口；改为分类栏不脱离文档流的横向条带",
+    "分类栏被父级 flex 压到 17px 高导致文字裁切；由实测盒子尺寸定位并修正",
+    "窄屏抽屉默认收起使 #token 不可见，连接实例无法完成；改为连接后才允许收起",
+    "窄屏抽屉后来改为连接后仍默认展开：默认收起会让 390 宽会话列表不可见，测试与真实用户都无法点选会话，实测 dark-390 摘要用例与 MCP 390/1024 用例因此超时；最终固定为默认展开、可手动收起"
+  ],
+  "followups": [
+    "窄屏 dock 贴底实测 gapBelow=0，但设置页在 <=900 仍为普通文档流，属既有设计",
+    "工作台壳层新增能力与导航/分区三方一致性由 test_v2_business_inventory.py 覆盖"
+  ],
+  "not_verified": [
+    "真实模型供应商、真实桌面截图源与真实平台下的右栏数据未验证（仅本地夹具实例）",
+    "未做 72 小时稳定性与三平台原生验收",
+    "性能与大规模数据（产物/截图数量很大时）未测",
+    "未运行全量 pytest（本批只跑受影响 UI 模块与调用方）",
+    "本批不构成验收，V2 仍未切换正式入口"
+  ]
+}

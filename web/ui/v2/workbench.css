@@ -2961,19 +2961,17 @@ body:not(.chat-mode) > main > section .page > header h1 {
     padding: 0 10px;
     font-size: var(--fs-caption);
   }
+  /* 默认展开：会话在首屏可见；点「收起」才让位给对话 */
   body > main > aside.sessions-panel {
-    position: fixed;
-    top: var(--header-h);
-    left: 0;
-    right: 0;
-    z-index: 25;
-    max-height: min(70vh, 520px);
+    display: flex;
+    position: static;
+    max-height: 46vh;
     padding: 12px;
     overflow-y: auto;
     border-right: 0;
     border-bottom: 1px solid var(--line-2);
     background: var(--surface-1);
-    box-shadow: var(--sh-2);
+    box-shadow: none;
   }
   body > main > aside.sessions-panel[data-open="false"] {
     display: none;
