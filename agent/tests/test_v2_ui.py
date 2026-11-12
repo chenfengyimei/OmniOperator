@@ -9,6 +9,8 @@ from contextvars import ContextVar
 from pathlib import Path
 
 import pytest
+
+pytestmark = pytest.mark.xdist_group("ui-sensitive")
 import uvicorn
 from playwright.sync_api import expect
 

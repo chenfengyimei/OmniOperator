@@ -1,6 +1,8 @@
 """Real skills API and per-case BrowserContext/DB, four widths and both themes."""
 
 import pytest
+
+pytestmark = pytest.mark.xdist_group("ui-sensitive")
 from playwright.sync_api import expect
 from test_v2_history_ui import connect
 from test_v2_memory_organization_ui import confirm

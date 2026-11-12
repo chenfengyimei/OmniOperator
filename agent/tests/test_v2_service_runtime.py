@@ -10,6 +10,8 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
+
+pytestmark = pytest.mark.xdist_group("ui-sensitive")
 from test_v2_deployment_files import installation as installation
 from test_v2_deployment_files import plan_for
 
