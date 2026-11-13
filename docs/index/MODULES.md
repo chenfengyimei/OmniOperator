@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`a307bada21387859eeb47d414b721281274db8203b7337fc7fec566390610f92`。包含 65 个职责模块、732 个源码/界面文件。
+源码指纹：`ecd491874fafba7ee32767bc3d1c214be17bf201741ef2d6c7c429536efdb3c8`。包含 65 个职责模块、732 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -252,7 +252,7 @@
 | [agent/src/omni/adapters/persistence/qq_repository.py](../../agent/src/omni/adapters/persistence/qq_repository.py) | 229 | QQ admission and authority within the shared unit of work; no network or extra truth store. |
 | [agent/src/omni/adapters/persistence/reference_release.py](../../agent/src/omni/adapters/persistence/reference_release.py) | 41 | Offline reference release uses the shared verified maintenance lifecycle; never unlinks objects. |
 | [agent/src/omni/adapters/persistence/reference_release_repository.py](../../agent/src/omni/adapters/persistence/reference_release_repository.py) | 305 | Release only reviewed retired action-object references; history is not a live object reference. |
-| [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 210 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
+| [agent/src/omni/adapters/persistence/releases.py](../../agent/src/omni/adapters/persistence/releases.py) | 214 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
 | [agent/src/omni/adapters/persistence/repository.py](../../agent/src/omni/adapters/persistence/repository.py) | 1059 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../agent/src/omni/adapters/persistence/repository_base.py) | 52 | Common transaction-scoped identity, ownership and audit primitives. |
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../agent/src/omni/adapters/persistence/retention_repository.py) | 135 | Context barriers invalidate derived views without deleting original conversations. |
@@ -393,12 +393,12 @@
 | 文件 | 行数 | 职责 |
 |---|---:|---|
 | [agent/src/omni/composition/__init__.py](../../agent/src/omni/composition/__init__.py) | 1 | V2 composition root. Constructors and lifecycle ownership are explicit here. |
-| [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 164 | Explicit builtin capability registration; capabilities never construct the kernel. |
+| [agent/src/omni/composition/capabilities.py](../../agent/src/omni/composition/capabilities.py) | 166 | Explicit builtin capability registration; capabilities never construct the kernel. |
 | [agent/src/omni/composition/cli.py](../../agent/src/omni/composition/cli.py) | 1001 | V2 development entrypoint. Online commands use the authenticated HTTP facade. |
 | [agent/src/omni/composition/http.py](../../agent/src/omni/composition/http.py) | 233 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
 | [agent/src/omni/composition/instance.py](../../agent/src/omni/composition/instance.py) | 735 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../agent/src/omni/composition/lifecycle.py) | 160 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
-| [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 122 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
+| [agent/src/omni/composition/releases.py](../../agent/src/omni/composition/releases.py) | 125 | Assemble explicit offline release commands. No service install, stop, model or default-entry switch. |
 | [agent/src/omni/composition/service_cleanup.py](../../agent/src/omni/composition/service_cleanup.py) | 79 | Assemble quarantined registration cleanup, with an explicit root route for system definitions. |
 | [agent/src/omni/composition/service_control.py](../../agent/src/omni/composition/service_control.py) | 68 | Assemble reviewed lifecycle commands, with no operation during import or plan inspection. |
 | [agent/src/omni/composition/service_exchange.py](../../agent/src/omni/composition/service_exchange.py) | 186 | Assemble reviewed exchanges and their explicitly pinned root session; never elevates or switches default entrypoints. |

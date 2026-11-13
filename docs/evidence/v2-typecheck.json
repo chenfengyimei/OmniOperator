@@ -8,7 +8,7 @@
  "source": {
   "code_version": "8af85826d823101895a7b4f681922c44dce26781e6512327487a0fe6cbb8bc3e",
   "fixed_source_files": 1200,
-  "git_head": "2afd88e",
+  "git_head": "07368b4",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -160,7 +160,8 @@
    "Strict scope reaches 249 files (53 domain + 43 application + 153 adapters); the MCP session host types its session port, handshake cache, call receipts, health report and before_send hook, and OAuthFlow's start/callback/health gain explicit payload types; generation replacement, capacity bounds and cleanup rules are unchanged",
    "Strict scope reaches 256 files (53 domain + 43 application + 160 adapters); the seven adapter package markers (docstring-only __init__.py) join the scope so the adapter layer has no unlisted package files; no code changed in this batch",
    "Strict scope reaches 257 files (53 domain + 43 application + 160 adapters + 1 composition); the first composition module (serving) types the optional deployment payload in serve_instance/http_app, and the scope guard now accepts the composition layer; binding/origin/shutdown rules are unchanged",
-   "Strict scope reaches 260 files (53 domain + 43 application + 160 adapters + 4 composition); the three service command modules (cleanup/operations/runner) type their close callback, operation records and pinned startup fields with explicit casts; approval, plan/journal and no-native-registration rules are unchanged"
+   "Strict scope reaches 260 files (53 domain + 43 application + 160 adapters + 4 composition); the three service command modules (cleanup/operations/runner) type their close callback, operation records and pinned startup fields with explicit casts; approval, plan/journal and no-native-registration rules are unchanged",
+   "Strict scope reaches 263 files (53 domain + 43 application + 160 adapters + 7 composition); capabilities, releases and service_exchange type their spec list, close callbacks and plan lookups, and the ReleaseData adapter now matches ReleaseDataPort signatures; approval/plan/journal rules unchanged"
   ],
   "pending": [
    "application 43/44 and adapters 160/222 strict typing",
@@ -172,8 +173,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-139-callers.xml",
-   "tests": 42,
+   "report": "temp/build/v2-typecheck-140-callers.xml",
+   "tests": 49,
    "failures": 0
   },
   "targeted_reports": [
@@ -1435,6 +1436,15 @@
     "errors": 0,
     "duration_s": 63.37,
     "note": "P1 batch: composition service command modules + guard"
+   },
+   {
+    "path": "temp/build/v2-typecheck-140-callers.xml",
+    "sha256": "cfe44c9db26f2e780624aa85ac97faedea35fee4971bef9b7f1215264eba9693",
+    "tests": 49,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 220.29,
+    "note": "P1 second batch: composition capabilities/releases/service_exchange + guard"
    }
   ],
   "gates": {
@@ -1446,7 +1456,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 260,
+    "filesAnalyzed": 263,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1504,6 +1514,6 @@
  },
  "next": {
   "id": "D7.product_switch",
-  "scope": "P1 continues with composition capabilities/releases/lifecycle/service_exchange, then P2 application/android.py (475 errors) and the persistence layer (34 files); real-environment acceptance still pending."
+  "scope": "P1 left: composition lifecycle (63 errors) and the large http/instance/cli; then P2 application/android.py (475) and P3 persistence (34 files). Real-environment acceptance still pending."
  }
 }

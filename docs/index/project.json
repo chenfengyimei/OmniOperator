@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "a307bada21387859eeb47d414b721281274db8203b7337fc7fec566390610f92",
+  "source_sha256": "ecd491874fafba7ee32767bc3d1c214be17bf201741ef2d6c7c429536efdb3c8",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53294,
+      "lines": 53298,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2960,
+      "lines": 2965,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -19884,7 +19884,7 @@
       "path": "agent/src/omni/adapters/persistence/releases.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.releases",
-      "lines": 210,
+      "lines": 214,
       "imports": [
         "omni.adapters.persistence.deployed_instance",
         "omni.adapters.persistence.maintenance",
@@ -19892,13 +19892,14 @@
         "omni.adapters.persistence.schema_upgrade",
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.release_files",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.releases"
       ],
       "symbols": [
         {
           "name": "failed",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "code"
@@ -19909,7 +19910,7 @@
         },
         {
           "name": "database_witness",
-          "line": 25,
+          "line": 26,
           "kind": "function",
           "parameters": [
             "home"
@@ -19920,12 +19921,12 @@
         },
         {
           "name": "ReleaseData",
-          "line": 52,
+          "line": 53,
           "kind": "class"
         },
         {
           "name": "ReleaseData.__init__",
-          "line": 53,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",
@@ -19937,7 +19938,7 @@
         },
         {
           "name": "ReleaseData.schema_upgrade",
-          "line": 56,
+          "line": 57,
           "kind": "function",
           "parameters": [
             "self",
@@ -19945,13 +19946,13 @@
             "target"
           ],
           "annotations": {
-            "source": "dict[str, object]",
-            "target": "dict[str, object]"
+            "source": "Record",
+            "target": "Record"
           }
         },
         {
           "name": "ReleaseData.source",
-          "line": 59,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self",
@@ -19963,7 +19964,7 @@
         },
         {
           "name": "ReleaseData.witness",
-          "line": 73,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "self",
@@ -19972,12 +19973,12 @@
           ],
           "annotations": {
             "plan": "ReleasePlan",
-            "side": "Literal['source', 'target']"
+            "side": "str"
           }
         },
         {
           "name": "ReleaseData.snapshot",
-          "line": 83,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -19989,7 +19990,7 @@
         },
         {
           "name": "ReleaseData.restore",
-          "line": 120,
+          "line": 124,
           "kind": "function",
           "parameters": [
             "self",
@@ -20003,7 +20004,7 @@
         },
         {
           "name": "ReleaseData.verify",
-          "line": 150,
+          "line": 154,
           "kind": "function",
           "parameters": [
             "self",
@@ -58678,7 +58679,7 @@
       "path": "agent/src/omni/composition/capabilities.py",
       "module": "v2-composition",
       "python_module": "omni.composition.capabilities",
-      "lines": 164,
+      "lines": 166,
       "imports": [
         "omni.adapters.workers.client",
         "omni.application.documents",
@@ -58691,20 +58692,20 @@
       "symbols": [
         {
           "name": "parameters",
-          "line": 14,
+          "line": 16,
           "kind": "function",
           "parameters": [
             "properties",
             "required"
           ],
           "annotations": {
-            "properties": "dict",
+            "properties": "dict[str, Any]",
             "required": "list[str] | None"
           }
         },
         {
           "name": "builtin_capabilities",
-          "line": 18,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "database",
@@ -59291,7 +59292,7 @@
       "path": "agent/src/omni/composition/releases.py",
       "module": "v2-composition",
       "python_module": "omni.composition.releases",
-      "lines": 122,
+      "lines": 125,
       "imports": [
         "omni.adapters.persistence.releases",
         "omni.adapters.platform.deployment_files",
@@ -59315,7 +59316,7 @@
       "symbols": [
         {
           "name": "run_release",
-          "line": 26,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "command",

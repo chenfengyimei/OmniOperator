@@ -284,9 +284,9 @@
       ]
     }
   ],
-  "checkpoint_commit": "2afd88e",
+  "checkpoint_commit": "07368b4",
   "current_validation": {
-    "status": "d7_typecheck_batch_139",
+    "status": "d7_typecheck_batch_140",
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
@@ -325,7 +325,7 @@
     "id": "D7.product_switch",
     "status": "进行中",
     "design": "docs/V2_PACKAGING.md",
-    "scope": "P1：composition 剩 capabilities/releases/lifecycle/service_exchange；随后 P2 android.py(475) 与 P3 持久化 34 文件。strict 已到 260 文件（domain 53/53、application 43/44、adapters 160/222、composition 4/13）。"
+    "scope": "P1 剩 composition lifecycle(63) 与大模块 http/instance/cli；随后 P2 android.py(475)、P3 持久化 34 文件。strict 已到 263 文件（domain 53/53、application 43/44、adapters 160/222、composition 7/13）。"
   },
   "milestones": [
     {
