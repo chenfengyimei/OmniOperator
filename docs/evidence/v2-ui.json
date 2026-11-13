@@ -1,12 +1,66 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
-  "resource_version_final": "20261112v66",
+  "resource_version_final": "20261113v74",
+  "v1_alignment": {
+    "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
+    "ported_from_v1": [
+      "中间对话区改为整块圆角描边面板（1px 描边 + 12px 圆角 + 中玻璃底），消息填满面板、dock 位于面板内底部",
+      "左栏三卡标题加青色渐变竖条（3×11px），标题改正常字距非大写",
+      "会话项改两行结构：标题 + 元信息行（时钟图标 + 相对时间 + #序号），保留 .s-title/.s-id 契约",
+      "工具卡改 V1 逐行形态：17px 勾选方块（按状态着色）+ 工具名 + 参数 + 耗时 + 右箭头，折叠开关带图标与旋转 chevron，默认展开",
+      "右栏 tab 改 3 列网格 + 选中描边高亮 + 徽标样式",
+      "dock 底栏加键帽提示（Enter 发送 / Shift+Enter 换行）",
+      "运行状态从裸状态码改为中文友好提示条（按状态着色，失败给出可操作指引）",
+      "对话空态补图标并垂直居中，初始空态与运行时渲染一致"
+    ],
+    "breakpoint_compliance": "按 test_ui_glass_tokens.py 守卫把 1180/620 断点改为白名单 900/520，栏宽改 clamp 自适应替代额外断点",
+    "verification": {
+      "style_guards": "test_ui_glass_tokens.py + test_ui_design_tokens.py + business_inventory 共 19 passed",
+      "audit": "temp/build/v2_audit.py 多视口双主题 0 项缺陷",
+      "computed_style_probe": "竖条 3×11 渐变、#chat 1px 描边 12px 圆角、.tabs grid 3 列均已实测生效",
+      "visual_review": "读图评审 8.5/10，无重叠/裁切/溢出/错位",
+      "ui_regression_v73": "104 passed in 899.24s（含 portal）",
+      "ui_regression_v74": "112 passed in 796.60s（含 portal 与 routing，-n 4）"
+    },
+    "flaky_confirmed": [
+      "test_v2_portal_ui 与 test_v2_desktop_observation_native[act] 在全量并行下失败，隔离重跑均通过，属负载抖动非本改动引入"
+    ]
+  },
+  "glass_refactor": {
+    "summary": "应用户要求彻底重构 V2 样式为统一毛玻璃设计系统：学习 V1 三档玻璃 token 与 hermes 排版，重写 workbench.css（3060 行精简至约 2136 行），修复全部实测视觉缺陷。",
+    "design_sources": [
+      "V1 web/ui 的 glass-strong/mid/weak 三档玻璃 token 与面板/气泡/dock 模式",
+      "hermes（xuexi/hermes-agent）的 15px 正文、宽字距大写面板标题、低对比描边、grain 质感"
+    ],
+    "fixed_defects": [
+      "设置页分类栏与页头/会话栏重叠（8 处实测 overlap 清零）",
+      "390 宽分类栏高度不足裁切（min-height 修复）",
+      "原生 Choose File 按钮与下拉箭头破坏质感（自定义文件选择器 + chevron）",
+      "深色黑成一团、次要文字对比度不足（表面色阶 + text-3/4 提亮）",
+      "浅色阴影脏重（柔化阴影 + 增强描边）",
+      "右栏待办空态孤悬（图标 + 引导空态）",
+      "助手消息无头像（渐变头像 + 名称行）",
+      "工具卡状态图标恒为 check（按 action 完成事件显示真实状态与耗时）",
+      "重构曾把会话栏整体隐藏导致设置页无法切换 Agent（4 个 two_agents 用例失败）；改为非对话模式保留连接卡与 Agent 选择器、覆盖层左边界让出会话栏宽度，4 用例隔离复跑全过"
+    ],
+    "verification": {
+      "audit_script": "temp/build/v2_audit.py（多视口双主题盒子量取 + 重叠/裁切/溢出/对比度检测）",
+      "audit_result": "0 项缺陷（重构前 8 项）",
+      "visual_review": "读图评审从 6.5/10 提升至 8.5/10，无硬缺陷",
+      "file_upload_tests": "test_v2_ui/images/skills 文件上传用例通过（sr-only 原生 input 保留可交互）",
+      "full_ui_regression": "103 passed in 788.45s（test_v2_ui/navigation/business_inventory/mcp/images/history/skills/owner_token/capabilities，-n 4，v71 源码）"
+    },
+    "not_verified": [
+      "真实模型/平台/72 小时稳定性仍未验收",
+      "本批不构成验收，V2 未切换正式入口"
+    ]
+  },
   "full_suite": {
     "command": "uv run --no-sync pytest -q",
     "result": "4656 passed, 10 warnings in 1585.54s (0:26:25)",
     "ran_at": "2026-11-13",
-    "note": "全量在最终源码（v66）上通过；warnings 均为第三方库弃用提示"
+    "note": "全量在 v66 源码上通过；毛玻璃重构（v70）后的全量待补跑"
   },
   "scope": {
     "files": [

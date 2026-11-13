@@ -1,30 +1,30 @@
-import { mountSkills } from './skills.js?v=20261112v66';
-import { mountCredentials } from './credentials.js?v=20261112v66';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261112v66';
-import { mountCapabilities } from './capabilities.js?v=20261112v66';
-import { mountTokens } from './tokens.js?v=20261112v66';
-import { mountDocuments } from './documents.js?v=20261112v66';
-import { mountConfiguration } from './configuration.js?v=20261112v66';
+import { mountSkills } from './skills.js?v=20261113v74';
+import { mountCredentials } from './credentials.js?v=20261113v74';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v74';
+import { mountCapabilities } from './capabilities.js?v=20261113v74';
+import { mountTokens } from './tokens.js?v=20261113v74';
+import { mountDocuments } from './documents.js?v=20261113v74';
+import { mountConfiguration } from './configuration.js?v=20261113v74';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261112v66';
-import { mountDeliveries } from './deliveries.js?v=20261112v66';
-import { mountSchedules } from './schedules.js?v=20261112v66';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261112v66';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261112v66';
-import { mountExtensions } from './extensions.js?v=20261112v66';
-import { mountActionReviews } from './action-reviews.js?v=20261112v66';
-import { mountTerminals } from './terminals.js?v=20261112v66';
-import { mountDesktop } from './desktop.js?v=20261112v66';
-import { mountQQ } from './qq.js?v=20261112v66';
-import { mountBilibili } from './bilibili.js?v=20261112v66';
-import { mountMedia } from './media.js?v=20261112v66';
-import { mountMcp } from './mcp.js?v=20261112v66';
-import { mountAndroid } from './android.js?v=20261112v66';
-import { mountModelOutput } from './model-output.js?v=20261112v66';
-import { mountRouting } from './routing.js?v=20261112v66';
-import { mountChatImages } from './chat-images.js?v=20261112v66';
-import { mountInspector } from './inspector.js?v=20261112v66';
-import { mountSettingsRail } from './settings-rail.js?v=20261112v66';
+import { mountPeople } from './people.js?v=20261113v74';
+import { mountDeliveries } from './deliveries.js?v=20261113v74';
+import { mountSchedules } from './schedules.js?v=20261113v74';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261113v74';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261113v74';
+import { mountExtensions } from './extensions.js?v=20261113v74';
+import { mountActionReviews } from './action-reviews.js?v=20261113v74';
+import { mountTerminals } from './terminals.js?v=20261113v74';
+import { mountDesktop } from './desktop.js?v=20261113v74';
+import { mountQQ } from './qq.js?v=20261113v74';
+import { mountBilibili } from './bilibili.js?v=20261113v74';
+import { mountMedia } from './media.js?v=20261113v74';
+import { mountMcp } from './mcp.js?v=20261113v74';
+import { mountAndroid } from './android.js?v=20261113v74';
+import { mountModelOutput } from './model-output.js?v=20261113v74';
+import { mountRouting } from './routing.js?v=20261113v74';
+import { mountChatImages } from './chat-images.js?v=20261113v74';
+import { mountInspector } from './inspector.js?v=20261113v74';
+import { mountSettingsRail } from './settings-rail.js?v=20261113v74';
 
 const $ = (id) => document.getElementById(id);
 let token = '',
@@ -285,43 +285,78 @@ async function loadRunTools(runId) {
 }
 function renderToolBlock(node, rows) {
   if (!rows.length || node.querySelector('.tool-calls')) return;
-  const names = new Set();
+  // 按 action_id 关联完成事件，拿到真实状态与结束时间
+  const completed = new Map();
   for (const row of rows) {
-    const name = row.tool || row.data?.tool || row.data?.name;
+    const data = typeof row.data === 'object' && row.data ? row.data : {};
+    if (String(row.kind) === 'action.completed' && data.action_id) completed.set(String(data.action_id), row);
+  }
+  const prepared = rows.filter((row) => String(row.kind) === 'action.prepared');
+  const steps = prepared.length ? prepared : rows;
+  const names = new Set();
+  for (const row of steps) {
+    const data = typeof row.data === 'object' && row.data ? row.data : {};
+    const name = row.tool || data.tool || data.name;
     if (name) names.add(String(name));
   }
   const details = document.createElement('details');
   details.className = 'tool-calls';
+  details.open = true;
   const summary = document.createElement('summary');
-  summary.textContent = `调用过程 · ${rows.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
+  const sumIcon = document.createElement('span');
+  sumIcon.className = 'material-icons';
+  sumIcon.textContent = 'account_tree';
+  const sumText = document.createElement('span');
+  sumText.textContent = `调用过程 · ${steps.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
+  const sumChev = document.createElement('span');
+  sumChev.className = 'material-icons tool-chev';
+  sumChev.textContent = 'expand_more';
+  summary.append(sumIcon, sumText, sumChev);
   details.append(summary);
-  for (const row of rows.slice(0, 40)) {
-    const payload = typeof row.data === 'string' ? row.data : JSON.stringify(row.data || {});
+  const STATE_ICON = {
+    ok: 'check',
+    error: 'close',
+    denied: 'block',
+    cancelled: 'remove',
+    unknown: 'help',
+  };
+  for (const row of steps.slice(0, 40)) {
+    const data = typeof row.data === 'object' && row.data ? row.data : {};
+    const payload = typeof row.data === 'string' ? row.data : JSON.stringify(data || {});
+    const done = data.action_id ? completed.get(String(data.action_id)) : null;
+    const doneData = done && typeof done.data === 'object' ? done.data : {};
+    const state = doneData.status || 'unknown';
     const item = document.createElement('div');
     item.className = 'tool-call-row';
+    item.dataset.state = state;
+    const glyphBox = document.createElement('span');
+    glyphBox.className = 'tool-glyph';
     const icon = document.createElement('span');
     icon.className = 'material-icons';
-    icon.textContent = 'check_circle';
+    icon.textContent = done ? STATE_ICON[state] || 'help' : 'more_horiz';
+    glyphBox.append(icon);
     const name = document.createElement('code');
-    name.textContent = String(row.tool || row.data?.tool || row.kind || 'tool').replace(/^(tool|action)\./, '');
+    name.className = 'tool-name';
+    name.textContent = String(row.tool || data.tool || row.kind || 'tool').replace(/^(tool|action)\./, '');
     const args = document.createElement('code');
     args.className = 'tool-args';
     args.textContent = payload && payload !== '{}' ? payload.slice(0, 200) : '';
-    item.append(icon, name, args);
-    try {
-      const parsed = JSON.parse(payload || "{}");
-      if (parsed && typeof parsed === "object") {
-        const ms = parsed.duration_ms ?? parsed.elapsed_ms ?? parsed.ms;
-        if (typeof ms === "number") {
-          const dur = document.createElement("span");
-          dur.className = "tool-ms";
-          dur.textContent = ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
-          item.append(dur);
-        }
-      }
-    } catch (e) {
-      /* 非 JSON 载荷不展示耗时 */
+    item.append(glyphBox, name, args);
+    let ms = data.duration_ms ?? data.elapsed_ms ?? data.ms;
+    if (typeof ms !== 'number' && done && row.created_at && done.created_at) {
+      const delta = Date.parse(done.created_at) - Date.parse(row.created_at);
+      if (Number.isFinite(delta) && delta >= 0) ms = delta;
     }
+    if (typeof ms === 'number') {
+      const dur = document.createElement('span');
+      dur.className = 'tool-ms';
+      dur.textContent = ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
+      item.append(dur);
+    }
+    const chev = document.createElement('span');
+    chev.className = 'material-icons tool-row-chev';
+    chev.textContent = 'chevron_right';
+    item.append(chev);
     details.append(item);
   }
   node.append(details);
@@ -411,6 +446,17 @@ function renderContext(report, snapshot) {
   );
   $('ctx-note').textContent = snap.reason ? `原因：${snap.reason}` : `计数方式：${snap.counting_method || '未计量'}`;
 }
+function relTime(value) {
+  if (!value) return '';
+  const then = Date.parse(value);
+  if (!Number.isFinite(then)) return '';
+  const diff = Date.now() - then;
+  if (diff < 60_000) return '刚刚';
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} 分钟前`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} 小时前`;
+  if (diff < 172_800_000) return '昨天';
+  return `${Math.floor(diff / 86_400_000)} 天前`;
+}
 function setThinking(active) {
   const node = $('messages');
   if (!node) return;
@@ -444,6 +490,9 @@ function renderMessages(items) {
   if (!items.length) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
+    const mark = document.createElement('span');
+    mark.className = 'material-icons';
+    mark.textContent = 'forum';
     const strong = document.createElement('strong');
     strong.textContent = '还没有消息';
     const hint = document.createElement('span');
@@ -459,7 +508,7 @@ function renderMessages(items) {
     openSettings.textContent = '打开设置中心';
     openSettings.addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
     actions.append(fresh, openSettings);
-    empty.append(strong, hint, actions);
+    empty.append(mark, strong, hint, actions);
     $('messages').replaceChildren(empty);
     return;
   }
@@ -473,6 +522,16 @@ function renderMessages(items) {
       bubble.className = 'bubble';
       const head = document.createElement('div');
       head.className = 'message-head';
+      if (m.role !== 'user') {
+        const avatar = document.createElement('span');
+        avatar.className = 'a-avatar';
+        avatar.setAttribute('aria-hidden', 'true');
+        const glyph = document.createElement('span');
+        glyph.className = 'material-icons';
+        glyph.textContent = 'smart_toy';
+        avatar.append(glyph);
+        head.append(avatar);
+      }
       const role = document.createElement('span');
       role.className = 'message-role';
       role.textContent = m.role === 'user' ? '你' : '小鱼';
@@ -586,13 +645,24 @@ async function refreshSessions() {
       row.tabIndex = 0;
       row.setAttribute('role', 'button');
       if (item.id === session) row.classList.add('active');
+      const main = document.createElement('div');
+      main.className = 'sess-main';
       const title = document.createElement('span');
       title.className = 's-title';
       title.textContent = item.title;
-      const meta = document.createElement('span');
-      meta.className = 's-id';
-      meta.textContent = String(item.id).slice(0, 8);
-      row.append(title, meta);
+      const meta = document.createElement('div');
+      meta.className = 's-meta';
+      const clock = document.createElement('span');
+      clock.className = 'material-icons';
+      clock.textContent = 'schedule';
+      const when = document.createElement('span');
+      when.textContent = relTime(item.created_at);
+      const seq = document.createElement('span');
+      seq.className = 's-id';
+      seq.textContent = `#${item.next_seq ?? 0}`;
+      meta.append(clock, when, seq);
+      main.append(title, meta);
+      row.append(main);
       row.addEventListener(
         'click',
         wrap(async () => {
@@ -657,7 +727,25 @@ async function poll() {
     const checkedRun = run;
     const result = await api(scope(`/runs/${checkedRun}`));
     if (current !== generation || run !== checkedRun) return;
-    $('run-status').textContent = `${result.state}${result.error_code ? ` · ${result.error_code}` : ''}`;
+    const RUN_LABEL = {
+      running: '正在处理',
+      waiting_approval: '等待你审批动作',
+      cancelling: '正在取消',
+      succeeded: '已完成',
+      failed: '本次运行未完成',
+      cancelled: '已取消',
+      unknown: '状态待确认',
+    };
+    const ERROR_HINT = {
+      model_not_configured: '尚未配置可用模型，请到「设置 → 模型与凭据」填写模型与端点。',
+      credential_unavailable: '凭据不可用，请检查凭据引用是否已授权。',
+      budget_exceeded: '本次预算不足，已停止执行。',
+    };
+    const statusNode = $('run-status');
+    statusNode.dataset.state = String(result.state);
+    statusNode.textContent = result.error_code
+      ? `${RUN_LABEL[result.state] || result.state}：${ERROR_HINT[result.error_code] || result.error_code}`
+      : RUN_LABEL[result.state] || String(result.state);
     setThinking(
       page === 'chat' && session === result.session_id && ['running', 'waiting_approval', 'cancelling'].includes(result.state),
     );
@@ -872,7 +960,7 @@ $('agents').addEventListener('change', wrap(selectAgent));
 $('back-to-chat').addEventListener('click', () => document.querySelector('[data-page="chat"]').click());
 $('open-settings').addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
 
-// 窄屏会话抽屉：只在 <=620 生效；桌面端按钮由 CSS 隐藏，data-open 不参与布局。
+// 窄屏会话抽屉：只在 <=520 生效；桌面端按钮由 CSS 隐藏，data-open 不参与布局。
 function setDrawer(open) {
   const panel = $('sessions-panel'),
     button = $('toggle-sessions');
@@ -1176,6 +1264,31 @@ for (const tab of document.querySelectorAll('[data-inspector]'))
   });
 syncPageChrome('chat');
 themeLabel();
+// 自定义文件选择器：隐藏原生 input，用玻璃按钮 + 文件名标签替代浏览器默认控件
+for (const input of document.querySelectorAll('input[type="file"]')) {
+  if (input.dataset.fileUi) continue;
+  input.dataset.fileUi = '1';
+  input.classList.add('file-native');
+  const wrap = document.createElement('span');
+  wrap.className = 'file-picker';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'file-picker-btn';
+  const icon = document.createElement('span');
+  icon.className = 'material-icons';
+  icon.textContent = 'upload_file';
+  btn.append(icon, document.createTextNode('选择文件'));
+  const name = document.createElement('span');
+  name.className = 'file-picker-name';
+  name.textContent = '未选择';
+  btn.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => {
+    name.textContent = input.files?.[0]?.name || '未选择';
+    name.title = input.files?.[0]?.name || '';
+  });
+  input.replaceWith(wrap);
+  wrap.append(btn, name, input);
+}
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) stop();
   else if (token) {

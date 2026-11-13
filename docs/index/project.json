@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "d164fc0f00119894a54133f1f4b762827ac5a446aefc79daf0a5530e8cfa5967",
+  "source_sha256": "a307bada21387859eeb47d414b721281274db8203b7337fc7fec566390610f92",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53291,
+      "lines": 53294,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 2944,
+      "lines": 2960,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -495,7 +495,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 14804,
+      "lines": 14151,
       "dependencies": []
     },
     {
@@ -22709,7 +22709,7 @@
       "path": "agent/src/omni/adapters/platform/deployment_files.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.platform.deployment_files",
-      "lines": 607,
+      "lines": 610,
       "imports": [
         "omni.adapters.build_identity",
         "omni.adapters.object_store",
@@ -22723,7 +22723,7 @@
       "symbols": [
         {
           "name": "_error",
-          "line": 39,
+          "line": 38,
           "kind": "function",
           "parameters": [
             "code",
@@ -22736,7 +22736,7 @@
         },
         {
           "name": "_json",
-          "line": 43,
+          "line": 42,
           "kind": "function",
           "parameters": [
             "value"
@@ -22747,7 +22747,7 @@
         },
         {
           "name": "_sha",
-          "line": 47,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "data"
@@ -22758,7 +22758,7 @@
         },
         {
           "name": "_path",
-          "line": 51,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "value"
@@ -22769,7 +22769,7 @@
         },
         {
           "name": "_no_links",
-          "line": 63,
+          "line": 62,
           "kind": "function",
           "parameters": [
             "path",
@@ -22782,7 +22782,7 @@
         },
         {
           "name": "_identity",
-          "line": 69,
+          "line": 68,
           "kind": "function",
           "parameters": [
             "info"
@@ -22793,7 +22793,7 @@
         },
         {
           "name": "_read",
-          "line": 75,
+          "line": 74,
           "kind": "function",
           "parameters": [
             "path",
@@ -22808,7 +22808,7 @@
         },
         {
           "name": "_decode",
-          "line": 96,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "data"
@@ -22819,7 +22819,7 @@
         },
         {
           "name": "_decode.pairs",
-          "line": 97,
+          "line": 96,
           "kind": "function",
           "parameters": [
             "items"
@@ -22828,7 +22828,7 @@
         },
         {
           "name": "_decode.constant",
-          "line": 105,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "_value"
@@ -22837,7 +22837,7 @@
         },
         {
           "name": "_relative",
-          "line": 119,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "value"
@@ -22848,7 +22848,7 @@
         },
         {
           "name": "_walk",
-          "line": 135,
+          "line": 134,
           "kind": "function",
           "parameters": [
             "root",
@@ -22863,21 +22863,21 @@
         },
         {
           "name": "_principal",
-          "line": 175,
+          "line": 174,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_python",
-          "line": 222,
+          "line": 221,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "python_files",
-          "line": 231,
+          "line": 230,
           "kind": "function",
           "parameters": [
             "executable",
@@ -22892,14 +22892,14 @@
         },
         {
           "name": "_installation",
-          "line": 272,
+          "line": 271,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_proof",
-          "line": 296,
+          "line": 299,
           "kind": "function",
           "parameters": [
             "name",
@@ -22912,14 +22912,14 @@
         },
         {
           "name": "_startup_locations",
-          "line": 300,
+          "line": 303,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "_overlap",
-          "line": 330,
+          "line": 333,
           "kind": "function",
           "parameters": [
             "left",
@@ -22932,7 +22932,7 @@
         },
         {
           "name": "_destination",
-          "line": 334,
+          "line": 337,
           "kind": "function",
           "parameters": [
             "path",
@@ -22945,12 +22945,12 @@
         },
         {
           "name": "CurrentDeploymentFiles",
-          "line": 345,
+          "line": 348,
           "kind": "class"
         },
         {
           "name": "CurrentDeploymentFiles.capture",
-          "line": 346,
+          "line": 349,
           "kind": "function",
           "parameters": [
             "self"
@@ -22959,7 +22959,7 @@
         },
         {
           "name": "CurrentDeploymentFiles.read",
-          "line": 412,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "self",
@@ -22971,7 +22971,7 @@
         },
         {
           "name": "CurrentDeploymentFiles.write_capture",
-          "line": 415,
+          "line": 418,
           "kind": "function",
           "parameters": [
             "self",
@@ -22985,7 +22985,7 @@
         },
         {
           "name": "CurrentDeploymentFiles.write_plan",
-          "line": 430,
+          "line": 433,
           "kind": "function",
           "parameters": [
             "self",
@@ -22999,7 +22999,7 @@
         },
         {
           "name": "CurrentDeploymentFiles._publish_json",
-          "line": 439,
+          "line": 442,
           "kind": "function",
           "parameters": [
             "self",
@@ -23013,7 +23013,7 @@
         },
         {
           "name": "CurrentDeploymentFiles._write",
-          "line": 460,
+          "line": 463,
           "kind": "function",
           "parameters": [
             "path",
@@ -23026,7 +23026,7 @@
         },
         {
           "name": "CurrentDeploymentFiles.materialize",
-          "line": 468,
+          "line": 471,
           "kind": "function",
           "parameters": [
             "self",
@@ -23040,7 +23040,7 @@
         },
         {
           "name": "CurrentDeploymentFiles.verify",
-          "line": 513,
+          "line": 516,
           "kind": "function",
           "parameters": [
             "self",
@@ -23052,7 +23052,7 @@
         },
         {
           "name": "CurrentDeploymentFiles.artifact_plan",
-          "line": 558,
+          "line": 561,
           "kind": "function",
           "parameters": [
             "self",
@@ -23064,7 +23064,7 @@
         },
         {
           "name": "write_file",
-          "line": 600,
+          "line": 603,
           "kind": "function",
           "parameters": [
             "path",
@@ -23077,7 +23077,7 @@
         },
         {
           "name": "publish_json",
-          "line": 606,
+          "line": 609,
           "kind": "function",
           "parameters": [
             "files",
@@ -59160,22 +59160,24 @@
       "path": "agent/src/omni/composition/lifecycle.py",
       "module": "v2-composition",
       "python_module": "omni.composition.lifecycle",
-      "lines": 156,
-      "imports": [],
+      "lines": 160,
+      "imports": [
+        "omni.application.ports"
+      ],
       "symbols": [
         {
           "name": "CloseStep",
-          "line": 14,
+          "line": 16,
           "kind": "class"
         },
         {
           "name": "Lifetime",
-          "line": 20,
+          "line": 22,
           "kind": "class"
         },
         {
           "name": "Lifetime.__init__",
-          "line": 21,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self"
@@ -59184,7 +59186,7 @@
         },
         {
           "name": "Lifetime.own",
-          "line": 29,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "self",
@@ -59202,7 +59204,7 @@
         },
         {
           "name": "Lifetime._successful",
-          "line": 39,
+          "line": 41,
           "kind": "function",
           "parameters": [
             "task"
@@ -59213,7 +59215,7 @@
         },
         {
           "name": "Lifetime._close_step",
-          "line": 45,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self",
@@ -59227,7 +59229,7 @@
         },
         {
           "name": "Lifetime._perform",
-          "line": 48,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self",
@@ -59239,7 +59241,7 @@
         },
         {
           "name": "Lifetime.close",
-          "line": 102,
+          "line": 104,
           "kind": "function",
           "parameters": [
             "self",
@@ -59251,7 +59253,7 @@
         },
         {
           "name": "Lifetime.stop_accepting",
-          "line": 128,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "self"
@@ -59260,7 +59262,7 @@
         },
         {
           "name": "close_sync",
-          "line": 138,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "operation"
@@ -59271,14 +59273,14 @@
         },
         {
           "name": "close_until_quiescent",
-          "line": 143,
+          "line": 145,
           "kind": "function",
           "parameters": [
             "close",
             "initial_budget"
           ],
           "annotations": {
-            "close": "Callable[[float], Awaitable[dict]]",
+            "close": "Callable[[float], Awaitable[Record]]",
             "initial_budget": "float"
           }
         }
@@ -59501,7 +59503,7 @@
       "path": "agent/src/omni/composition/service_operations.py",
       "module": "v2-composition",
       "python_module": "omni.composition.service_operations",
-      "lines": 71,
+      "lines": 76,
       "imports": [
         "omni.adapters.platform.deployment_files",
         "omni.adapters.platform.service_admin_client",
@@ -59516,7 +59518,7 @@
       "symbols": [
         {
           "name": "run_operation",
-          "line": 17,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "command",
@@ -59544,7 +59546,7 @@
       "path": "agent/src/omni/composition/service_runner.py",
       "module": "v2-composition",
       "python_module": "omni.composition.service_runner",
-      "lines": 60,
+      "lines": 67,
       "imports": [
         "omni.adapters.platform.deployment_files",
         "omni.composition.serving",
@@ -59554,7 +59556,7 @@
       "symbols": [
         {
           "name": "run",
-          "line": 17,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "bundle"
@@ -59565,7 +59567,7 @@
         },
         {
           "name": "main",
-          "line": 44,
+          "line": 51,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -95424,7 +95426,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1473,
+      "lines": 1485,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95444,7 +95446,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1190,
+      "lines": 1303,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95614,7 +95616,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 3059,
+      "lines": 2281,
       "imports": [],
       "symbols": [],
       "kind": "asset",

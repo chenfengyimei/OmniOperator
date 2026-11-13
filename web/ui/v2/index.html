@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261103v7" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261112v66" />
-    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261112v66" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261113v74" />
+    <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261113v74" />
   </head>
   <body class="chat-mode">
     <header class="app-header">
@@ -95,12 +95,18 @@
             会话
           </button>
         </header>
-        <div id="settings-rail" class="settings-rail" role="navigation" aria-label="设置分类"></div>
-        <p id="error" role="alert" hidden></p>
-        <div id="approvals" aria-live="polite"></div>
+        <div class="settings-layout">
+          <div id="settings-rail" class="settings-rail" role="navigation" aria-label="设置分类"></div>
+          <div class="settings-content">
+            <p id="error" role="alert" hidden></p>
+            <div id="approvals" aria-live="polite"></div>
         <section id="chat" class="page">
           <div id="messages" aria-live="polite">
-            <p class="muted">连接实例后开始对话。模型与凭据需先在设置中配置。</p>
+            <div class="empty-state">
+              <span class="material-icons">forum</span>
+              <strong>连接实例后开始对话</strong>
+              <span>填入所有者令牌并连接，然后选择 Agent 空间与会话。模型与凭据需先在设置中心配置。</span>
+            </div>
           </div>
           <p id="run-status" role="status"></p>
           <section id="model-live" hidden aria-label="模型临时输出">
@@ -148,6 +154,7 @@
               <button id="image-refresh-captures" type="button" title="载入会话截图">载入截图</button>
               <label class="mini">复用<select id="image-capture"></select></label>
               <button id="image-add-capture" type="button" disabled title="附加所选截图">附加</button>
+              <span class="dock-hint" aria-hidden="true"><kbd>Enter</kbd> 发送 <kbd>Shift</kbd>+<kbd>Enter</kbd> 换行</span>
             </div>
             <ul id="image-drafts"></ul>
             <p id="image-status" role="status"></p>
@@ -894,8 +901,8 @@
           <form id="settings-form">
             <fieldset id="settings-fields" disabled>
               <label>本空间使用的模型配置<select id="active-model" required></select></label>
-              <label>绝对工作目录<input id="workspace" /></label>
-              <label>人设<textarea id="persona" rows="5" maxlength="50000"></textarea></label>
+              <label>绝对工作目录<input id="workspace" placeholder="例如 D:\projects\my-agent" /></label>
+              <label>人设<textarea id="persona" rows="5" maxlength="50000" placeholder="描述这个 Agent 的身份、语气与行为边界…"></textarea></label>
               <div class="log-filters">
                 <label>每日预算（微美元，0 表示不限）<input id="daily-budget" type="number" min="0" required /></label>
                 <label>单次调用费用预留（微美元）<input id="call-budget" type="number" min="1" required /></label>
@@ -982,8 +989,8 @@
               <label><input id="cfg-enabled" type="checkbox" />配置启用（停用模型会撤销旧运行的后续调用）</label>
               <fieldset id="cfg-model-fields">
                 <label>模型标识<input id="model" maxlength="200" placeholder="provider/model" /></label>
-                <label>模型端点<input id="base-url" type="url" /></label>
-                <label>凭据引用名称<input id="credential-ref" maxlength="200" /></label>
+                <label>模型端点<input id="base-url" type="url" placeholder="https://api.example.com/v1" /></label>
+                <label>凭据引用名称<input id="credential-ref" maxlength="200" placeholder="例如 openai-key" /></label>
                 <div class="log-filters">
                   <label
                     >声明上下文容量（token）<input id="context-tokens" type="number" min="1024" max="2000000" required
@@ -1441,6 +1448,8 @@
             <button id="erase-person" type="button" disabled>遗忘此人物</button>
           </fieldset>
         </section>
+          </div>
+        </div>
       </section>
       <aside class="inspector panel" aria-label="会话面板">
         <div class="tabs" role="tablist">
@@ -1451,8 +1460,11 @@
         </div>
         <div class="inspector-body">
           <section data-inspector-panel="todo">
-            <p id="inspector-todo-count" class="muted">暂无待办</p>
-            <p class="muted">需要审批的动作会显示在对话上方。</p>
+            <div class="inspector-empty-todo">
+              <span class="material-icons">task_alt</span>
+              <strong id="inspector-todo-count">暂无待办</strong>
+              <span>需要审批的动作会显示在对话上方，批准后才会执行。</span>
+            </div>
           </section>
           <section data-inspector-panel="skills" hidden>
             <div id="inspector-skills" class="muted">本轮未使用技能</div>
@@ -1466,8 +1478,8 @@
         </div>
       </aside>
     </main>
-    <script src="/assets/vendor/xterm.js?v=20261112v66"></script>
-    <script src="/assets/vendor/xterm-addon-fit.js?v=20261112v66"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261112v66"></script>
+    <script src="/assets/vendor/xterm.js?v=20261113v74"></script>
+    <script src="/assets/vendor/xterm-addon-fit.js?v=20261113v74"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261113v74"></script>
   </body>
 </html>
