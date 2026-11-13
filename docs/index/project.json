@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "75a12cd49cd23d775d48038c89d775fdd654ada51b5741756c57d7cefe826d9d",
+  "source_sha256": "f58084bc520be308966b5eca57839fa2e3c534349b137625caf8c4d7afcecf4e",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53479,
+      "lines": 53510,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19669,
+      "lines": 19774,
       "dependencies": []
     },
     {
@@ -13067,7 +13067,7 @@
       "path": "agent/src/omni/adapters/persistence/delivery_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.delivery_repository",
-      "lines": 896,
+      "lines": 927,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.bilibili_authority",
@@ -13075,6 +13075,7 @@
         "omni.adapters.persistence.delivery_predicates",
         "omni.adapters.persistence.lease_repository",
         "omni.adapters.persistence.qq_authority",
+        "omni.application.ports",
         "omni.domain.bilibili",
         "omni.domain.contracts",
         "omni.domain.delivery",
@@ -13084,12 +13085,12 @@
       "symbols": [
         {
           "name": "DeliveryRepositories",
-          "line": 33,
+          "line": 35,
           "kind": "class"
         },
         {
           "name": "DeliveryRepositories._delivery_change",
-          "line": 34,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "self",
@@ -13098,13 +13099,13 @@
             "**value"
           ],
           "annotations": {
-            "row": "dict",
+            "row": "Record",
             "outcome": "bool"
           }
         },
         {
           "name": "DeliveryRepositories._delivery_source",
-          "line": 42,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self",
@@ -13118,7 +13119,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_lookup",
-          "line": 58,
+          "line": 60,
           "kind": "function",
           "parameters": [
             "self",
@@ -13140,7 +13141,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_create",
-          "line": 80,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -13172,19 +13173,19 @@
         },
         {
           "name": "DeliveryRepositories._delivery_authority",
-          "line": 227,
+          "line": 234,
           "kind": "function",
           "parameters": [
             "self",
             "row"
           ],
           "annotations": {
-            "row": "dict"
+            "row": "Record"
           }
         },
         {
           "name": "DeliveryRepositories.delivery_get",
-          "line": 258,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "self",
@@ -13198,18 +13199,18 @@
         },
         {
           "name": "DeliveryRepositories._delivery_review_fingerprint",
-          "line": 293,
+          "line": 308,
           "kind": "function",
           "parameters": [
             "row"
           ],
           "annotations": {
-            "row": "dict"
+            "row": "Record"
           }
         },
         {
           "name": "DeliveryRepositories.delivery_page",
-          "line": 298,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self",
@@ -13227,7 +13228,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_decide",
-          "line": 312,
+          "line": 327,
           "kind": "function",
           "parameters": [
             "self",
@@ -13247,7 +13248,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_attempt_page",
-          "line": 351,
+          "line": 368,
           "kind": "function",
           "parameters": [
             "self",
@@ -13265,7 +13266,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_candidates",
-          "line": 373,
+          "line": 390,
           "kind": "function",
           "parameters": [
             "self",
@@ -13277,19 +13278,19 @@
         },
         {
           "name": "DeliveryRepositories._delivery_release",
-          "line": 387,
+          "line": 404,
           "kind": "function",
           "parameters": [
             "self",
             "attempt"
           ],
           "annotations": {
-            "attempt": "dict"
+            "attempt": "Record"
           }
         },
         {
           "name": "DeliveryRepositories._delivery_block",
-          "line": 399,
+          "line": 416,
           "kind": "function",
           "parameters": [
             "self",
@@ -13297,13 +13298,13 @@
             "code"
           ],
           "annotations": {
-            "row": "dict",
+            "row": "Record",
             "code": "str"
           }
         },
         {
           "name": "DeliveryRepositories.delivery_claim",
-          "line": 423,
+          "line": 442,
           "kind": "function",
           "parameters": [
             "self",
@@ -13321,7 +13322,7 @@
         },
         {
           "name": "DeliveryRepositories._delivery_owned",
-          "line": 531,
+          "line": 550,
           "kind": "function",
           "parameters": [
             "self",
@@ -13329,13 +13330,13 @@
             "unexpired"
           ],
           "annotations": {
-            "attempt": "dict",
+            "attempt": "Record",
             "unexpired": "bool"
           }
         },
         {
           "name": "DeliveryRepositories.delivery_start",
-          "line": 543,
+          "line": 562,
           "kind": "function",
           "parameters": [
             "self",
@@ -13355,7 +13356,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_interrupt",
-          "line": 600,
+          "line": 622,
           "kind": "function",
           "parameters": [
             "self",
@@ -13371,7 +13372,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_settle",
-          "line": 633,
+          "line": 657,
           "kind": "function",
           "parameters": [
             "self",
@@ -13384,12 +13385,12 @@
             "agent_id": "str",
             "attempt_id": "str",
             "token": "str",
-            "result": "dict"
+            "result": "Record"
           }
         },
         {
           "name": "DeliveryRepositories.delivery_renew",
-          "line": 715,
+          "line": 743,
           "kind": "function",
           "parameters": [
             "self"
@@ -13398,7 +13399,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_release_boot",
-          "line": 727,
+          "line": 755,
           "kind": "function",
           "parameters": [
             "self"
@@ -13407,7 +13408,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_review",
-          "line": 734,
+          "line": 762,
           "kind": "function",
           "parameters": [
             "self",
@@ -13429,7 +13430,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_archive",
-          "line": 788,
+          "line": 816,
           "kind": "function",
           "parameters": [
             "self",
@@ -13445,7 +13446,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_cancel_run",
-          "line": 795,
+          "line": 823,
           "kind": "function",
           "parameters": [
             "self",
@@ -13461,7 +13462,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_invalidate_session",
-          "line": 810,
+          "line": 838,
           "kind": "function",
           "parameters": [
             "self",
@@ -13475,7 +13476,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_recover",
-          "line": 827,
+          "line": 855,
           "kind": "function",
           "parameters": [
             "self",
@@ -13487,7 +13488,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_configuration",
-          "line": 848,
+          "line": 876,
           "kind": "function",
           "parameters": [
             "self",
@@ -13501,7 +13502,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_block",
-          "line": 854,
+          "line": 885,
           "kind": "function",
           "parameters": [
             "self",
@@ -13517,7 +13518,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_active_check",
-          "line": 857,
+          "line": 888,
           "kind": "function",
           "parameters": [
             "self",
@@ -13531,7 +13532,7 @@
         },
         {
           "name": "DeliveryRepositories.delivery_revoke_credential",
-          "line": 868,
+          "line": 899,
           "kind": "function",
           "parameters": [
             "self",
@@ -95614,7 +95615,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1513,
+      "lines": 1515,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95714,7 +95715,7 @@
       "path": "web/ui/v2/routing.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 140,
+      "lines": 172,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95814,7 +95815,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1440,
+      "lines": 1511,
       "imports": [],
       "symbols": [],
       "kind": "asset",
