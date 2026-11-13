@@ -11,7 +11,7 @@ import sqlite3
 import uuid
 from itertools import islice
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ...application.ports import Record
 from ...domain.contracts import BusinessError
@@ -343,7 +343,7 @@ def create_snapshot(database: Path, objects_root: Path | None, destination: Path
     for entry in files:
         if objects_root is None:
             raise BusinessError("object_store_required", "Snapshot requires its object store")
-        relative = entry["path"]
+        relative = cast(str, entry["path"])
         out = safe_child(destination, relative)
         out.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         shutil.copyfile(safe_child(objects_root, relative.removeprefix("objects/")), out)
@@ -371,10 +371,11 @@ def create_snapshot(database: Path, objects_root: Path | None, destination: Path
             "diagnostic_logs",
         ],
     }
-    if manifest["database"]["integrity"] != "ok" or manifest["database"]["foreign_key_errors"]:
+    database_report = cast(Record, manifest["database"])
+    if database_report["integrity"] != "ok" or database_report["foreign_key_errors"]:
         raise BusinessError("backup_integrity_failed", "Snapshot failed integrity validation")
-    durable_json(destination / "manifest.json", manifest)
-    return manifest
+    durable_json(destination / "manifest.json", cast(Record, manifest))
+    return cast(Record, manifest)
 
 
 def durable_json(path: Path, value: Record) -> None:
@@ -407,13 +408,17 @@ def object_report(paths: InstancePaths) -> dict[str, object]:
     """Read-only, exclusive caller; no models or device actions."""
     try:
         files = verify_objects(paths.database, paths.objects)
-        report = {"ok": True, "registered": len(files), "bytes": sum(item["bytes"] for item in files)}
+        report: Record = {
+            "ok": True,
+            "registered": len(files),
+            "bytes": sum(cast(int, item["bytes"]) for item in files),
+        }
     except (BusinessError, OSError) as exc:
         report = {"ok": False, "error_code": exc.code if isinstance(exc, BusinessError) else "object_io_failed"}
     directory = paths.control / "collection"
     if directory.is_symlink() or directory.is_junction():
         return {**report, "ok": False, "error_code": "unsafe_gc_journal"}
-    pending = []
+    pending: list[Record] = []
     scanned = 0
     for path in islice(directory.glob("*.json"), 301):
         scanned += 1
@@ -429,7 +434,9 @@ def object_report(paths: InstancePaths) -> dict[str, object]:
             or (status_path.exists() and status_path.stat().st_size > 8192)
         ):
             raise BusinessError("unsafe_gc_journal", "Collection status is not a bounded regular file")
-        value = json.loads(status_path.read_text(encoding="utf-8")) if status_path.exists() else {}
+        value: Record = (
+            cast(Record, json.loads(status_path.read_text(encoding="utf-8"))) if status_path.exists() else {}
+        )
         if value.get("complete") is not True:
             pending.append({"plan_id": path.stem, "phase": value.get("phase", "unknown")})
         if len(pending) >= 100:
@@ -441,7 +448,7 @@ def object_report(paths: InstancePaths) -> dict[str, object]:
     }
 
 
-def _quarantine_restored_work(connection: sqlite3.Connection, manifest_hash: str) -> dict:
+def _quarantine_restored_work(connection: sqlite3.Connection, manifest_hash: str) -> Record:
     """A snapshot cannot prove what happened externally after it was captured."""
     now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds")
     tables = {r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
@@ -452,7 +459,8 @@ def _quarantine_restored_work(connection: sqlite3.Connection, manifest_hash: str
     active = connection.execute(
         "SELECT id,agent_id,last_seq FROM runs WHERE state IN ('queued','running','waiting_approval','cancelling')"
     ).fetchall()
-    for run_id, agent_id, seq in active:
+    for run_id, agent_id, raw_seq in active:
+        seq = cast(int, raw_seq)
         connection.execute(
             "UPDATE runs SET state='interrupted',error_code='backup_restored_requires_review',ended_at=?,last_seq=? WHERE id=?",
             (now, seq + 1, run_id),
@@ -468,7 +476,7 @@ def _quarantine_restored_work(connection: sqlite3.Connection, manifest_hash: str
                 json.dumps({"error_code": "backup_restored_requires_review"}),
             ),
         )
-    counts: dict[str, int | str] = {"interrupted_runs": len(active)}
+    counts: Record = {"interrupted_runs": len(active)}
     if "terminal_sessions" in tables:
         counts["unknown_terminals"] = connection.execute(
             "UPDATE terminal_sessions SET state='unknown',cleanup_pending=1,revision=revision+1,"
@@ -843,44 +851,47 @@ def verify_snapshot(source: Path) -> Record:
             encoded = stream.read(64 * 1024 * 1024 + 1)
         if len(encoded) > 64 * 1024 * 1024:
             raise ValueError
-        manifest = json.loads(encoded)
+        manifest = cast(dict[str, Any], json.loads(encoded))
     except (OSError, ValueError, UnicodeError, RecursionError) as exc:
         raise BusinessError("incomplete_backup", "A complete validated backup manifest is required") from exc
     if (
-        not isinstance(manifest, dict)
+        not isinstance(cast(object, manifest), dict)
         or manifest.get("format") != "omni-v2-backup-1"
         or manifest.get("complete") is not True
-        or not isinstance(manifest.get("files"), list)
+        or not isinstance(cast(object, manifest.get("files")), list)
     ):
         raise BusinessError("incomplete_backup", "Backup format or completion marker is invalid")
     # The registry permits 100000 objects; the database is one additional file.
-    if len(manifest["files"]) > 100_001:
+    if len(cast(list[object], manifest["files"])) > 100_001:
         raise BusinessError("unsafe_manifest", "Backup manifest is too large")
-    names = set()
-    for entry in manifest["files"]:
+    names: set[str] = set()
+    for entry in cast(list[object], manifest["files"]):
+        if not isinstance(entry, dict):
+            raise BusinessError("unsafe_manifest", "Snapshot entries must contain bounded paths")
+        item = cast(dict[str, object], entry)
         if (
-            not isinstance(entry, dict)
-            or not isinstance(entry.get("path"), str)
-            or len(entry["path"]) > 400
-            or type(entry.get("bytes")) is not int
-            or entry["bytes"] < 0
-            or not isinstance(entry.get("sha256"), str)
-            or len(entry["sha256"]) != 64
-            or any(character not in "0123456789abcdef" for character in entry["sha256"])
+            not isinstance(item.get("path"), str)
+            or len(cast(str, item["path"])) > 400
+            or type(item.get("bytes")) is not int
+            or cast(int, item["bytes"]) < 0
+            or not isinstance(item.get("sha256"), str)
+            or len(cast(str, item["sha256"])) != 64
+            or any(character not in "0123456789abcdef" for character in cast(str, item["sha256"]))
         ):
             raise BusinessError("unsafe_manifest", "Snapshot entries must contain bounded paths")
-        if entry["path"] != "data/omni.db" and not entry["path"].startswith("objects/"):
+        relative = cast(str, item["path"])
+        if relative != "data/omni.db" and not relative.startswith("objects/"):
             raise BusinessError("unsafe_manifest", "Only the database and registered objects may be restored")
-        path = safe_child(source, entry["path"])
+        path = safe_child(source, relative)
         if (
-            entry["path"] in names
+            relative in names
             or not path.is_file()
             or path.stat().st_nlink != 1
-            or path.stat().st_size != entry["bytes"]
-            or fingerprint(path) != entry["sha256"]
+            or path.stat().st_size != cast(int, item["bytes"])
+            or fingerprint(path) != cast(str, item["sha256"])
         ):
             raise BusinessError("backup_fingerprint_changed", "A backup file changed or is duplicated")
-        names.add(entry["path"])
+        names.add(relative)
     if "data/omni.db" not in names:
         raise BusinessError("incomplete_backup", "Backup database is missing")
     for name in ("omni.db-wal", "omni.db-shm", "omni.db-journal"):
@@ -890,7 +901,7 @@ def verify_snapshot(source: Path) -> Record:
         ):
             raise BusinessError("backup_fingerprint_changed", "Snapshot contains SQLite state outside its manifest")
     expected_objects = verify_objects(source / "data/omni.db", source / "objects")
-    if names != {"data/omni.db", *(entry["path"] for entry in expected_objects)}:
+    if names != {"data/omni.db", *(cast(str, entry["path"]) for entry in expected_objects)}:
         raise BusinessError("unsafe_manifest", "Snapshot object entries differ from the database registry")
     report = inspect_database(source / "data/omni.db")
     if report["integrity"] != "ok" or report["foreign_key_errors"]:
@@ -924,7 +935,7 @@ def _restore_verified(
                 with report_path.open("rb") as stream:
                     encoded = stream.read(64 * 1024 * 1024 + 1)
                 if len(encoded) <= 64 * 1024 * 1024:
-                    previous = json.loads(encoded)
+                    previous = cast(dict[str, Any], json.loads(encoded))
         except (OSError, ValueError, UnicodeError, RecursionError):
             pass
         if (
@@ -942,22 +953,25 @@ def _restore_verified(
             and isinstance(previous.get("files"), list)
             and len(previous["files"]) == len(manifest["files"])
         ):
-            expected = {entry["path"] for entry in manifest["files"]}
-            actual = set()
-            for entry in previous["files"]:
+            manifest_files = cast(list[Record], manifest["files"])
+            expected = {cast(str, entry["path"]) for entry in manifest_files}
+            actual: set[str] = set()
+            for entry in cast(list[object], previous["files"]):
+                if not isinstance(entry, dict):
+                    break
+                item = cast(dict[str, object], entry)
                 if (
-                    not isinstance(entry, dict)
-                    or not isinstance(entry.get("path"), str)
-                    or entry["path"] not in expected
-                    or entry["path"] in actual
-                    or not isinstance(entry.get("sha256"), str)
-                    or len(entry["sha256"]) != 64
+                    not isinstance(item.get("path"), str)
+                    or cast(str, item["path"]) not in expected
+                    or cast(str, item["path"]) in actual
+                    or not isinstance(item.get("sha256"), str)
+                    or len(cast(str, item["sha256"])) != 64
                 ):
                     break
-                path = safe_child(destination, entry["path"])
-                if not path.is_file() or path.stat().st_nlink != 1 or fingerprint(path) != entry["sha256"]:
+                path = safe_child(destination, cast(str, item["path"]))
+                if not path.is_file() or path.stat().st_nlink != 1 or fingerprint(path) != cast(str, item["sha256"]):
                     break
-                actual.add(entry["path"])
+                actual.add(cast(str, item["path"]))
             if actual == expected:
                 verification = inspect_database(destination / "data/omni.db", allow_restore_in_progress=True)
                 if verification["integrity"] == "ok" and not verification["foreign_key_errors"]:
@@ -966,19 +980,23 @@ def _restore_verified(
                             row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")
                         }
                         if "history_identity" in tables:
-                            epoch = connection.execute("SELECT epoch FROM history_identity WHERE slot=1").fetchone()[0]
+                            found = connection.execute("SELECT epoch FROM history_identity WHERE slot=1").fetchone()
+                            epoch = cast(str, found[0]) if found else ""
                             quarantine = previous.get("quarantine")
-                            if not isinstance(quarantine, dict) or quarantine.get("history_epoch") != epoch:
+                            if (
+                                not isinstance(quarantine, dict)
+                                or cast(dict[str, object], quarantine).get("history_epoch") != epoch
+                            ):
                                 raise BusinessError("restore_destination_changed", "Restored history identity changed")
                     verify_objects(destination / "data/omni.db", destination / "objects")
                     _finish_restore_marker(destination, manifest_hash)
-                    return {**previous, "already_restored": True}
+                    return cast(dict[str, Any], {**previous, "already_restored": True})
         raise BusinessError("destination_exists", "Restore requires an empty new directory")
     durable_json(destination / "restore-in-progress.json", {"manifest_sha256": manifest_hash})
-    for entry in manifest["files"]:
-        target = safe_child(destination, entry["path"])
+    for entry in cast(list[Record], manifest["files"]):
+        target = safe_child(destination, cast(str, entry["path"]))
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(safe_child(source, entry["path"]), target)
+        shutil.copyfile(safe_child(source, cast(str, entry["path"])), target)
         if fingerprint(target) != entry["sha256"] or target.stat().st_size != entry["bytes"]:
             raise BusinessError("backup_fingerprint_changed", "A snapshot file changed during restore")
         with target.open("r+b") as stream:
@@ -991,7 +1009,7 @@ def _restore_verified(
         connection.commit()
     with database.open("r+b") as stream:
         os.fsync(stream.fileno())
-    report = {
+    report: Record = {
         "manifest_sha256": manifest_hash,
         "database": inspect_database(database, allow_restore_in_progress=True),
         "credentials_restored": False,
@@ -1005,15 +1023,17 @@ def _restore_verified(
         "terminals_quarantined": True,
         "quarantine": quarantine,
         "files": [
-            {"path": entry["path"], "sha256": fingerprint(destination / entry["path"])} for entry in manifest["files"]
+            {"path": entry["path"], "sha256": fingerprint(destination / cast(str, entry["path"]))}
+            for entry in cast(list[Record], manifest["files"])
         ],
     }
-    if report["database"]["integrity"] != "ok" or report["database"]["foreign_key_errors"]:
+    restored_report = cast(Record, report["database"])
+    if restored_report["integrity"] != "ok" or restored_report["foreign_key_errors"]:
         raise BusinessError("restore_integrity_failed", "Restored database failed validation")
     verify_objects(database, destination / "objects")
     durable_json(report_path, report)
     _finish_restore_marker(destination, manifest_hash)
-    return report
+    return cast(dict[str, Any], report)
 
 
 restore_verified = _restore_verified
@@ -1024,8 +1044,8 @@ def restore(source: Path, destination: Path) -> Record:
     if source.is_relative_to(destination.resolve()) or destination.resolve().is_relative_to(source):
         raise BusinessError("unsafe_destination", "Restore must be outside the backup directory")
     manifest = verify_snapshot(source)
-    for entry in manifest["files"]:
-        safe_child(destination, entry["path"])
+    for entry in cast(list[Record], manifest["files"]):
+        safe_child(destination, cast(str, entry["path"]))
     lock_path = safe_child(destination, "run/instance.lock")
     if lock_path.exists() and (not lock_path.is_file() or lock_path.stat().st_nlink != 1):
         raise BusinessError("unsafe_lock", "Restore target lock must be a single-link regular file")
