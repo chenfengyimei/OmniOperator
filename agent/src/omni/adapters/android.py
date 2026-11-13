@@ -9,11 +9,13 @@ import sys
 import uuid
 from collections.abc import Awaitable, Callable
 from pathlib import Path
+from typing import cast
 
 from PIL import Image
 
+from ..application.ports import AsyncSecretPort, Record
 from ..domain.android import METHODS
-from ..domain.contracts import BusinessError, InvocationContext, Outcome
+from ..domain.contracts import ActionResult, BusinessError, InvocationContext, Outcome
 from ..domain.desktop import CapturedFrame
 from .android_unicode import UnicodeFlow
 from .object_store import checked_path
@@ -21,11 +23,20 @@ from .platform.desktop_capture import inventory
 from .platform.permissions import assert_private, private_path
 from .workers.client import WorkerClient
 
+# 与 application.android.AndroidPort 协议口径一致（参数逆变，适配器须接受同样宽的载荷）。
+Payload = dict[str, object]
+
 
 class AndroidBackend:
-    def __init__(self, staging: Path, *, worker_factory=None, secrets=None) -> None:
+    def __init__(
+        self,
+        staging: Path,
+        *,
+        worker_factory: Callable[[], WorkerClient] | None = None,
+        secrets: AsyncSecretPort | None = None,
+    ) -> None:
         self._staging = staging
-        self._factory = worker_factory or (
+        self._factory: Callable[[], WorkerClient] = worker_factory or (
             lambda: WorkerClient(
                 "android",
                 tool_writes=METHODS,
@@ -33,13 +44,13 @@ class AndroidBackend:
                 forbid_artifacts=True,
             )
         )
-        self._pending: set[asyncio.Task] = set()
+        self._pending: set[asyncio.Task[object]] = set()
         self._lock = asyncio.Lock()
         self._closing = False
-        self._staging_status: dict = {"checked": False, "residual_count": None}
+        self._staging_status: Record = {"checked": False, "residual_count": None}
         self._unicode = UnicodeFlow(self._factory, secrets)
 
-    def health(self) -> dict:
+    def health(self) -> Record:
         return {
             "closing": self._closing,
             "pending": len(self._pending),
@@ -62,13 +73,13 @@ class AndroidBackend:
     async def execute(
         self,
         name: str,
-        args: dict,
+        args: Payload,
         context: InvocationContext,
         *,
         before_dispatch: Callable[[], Awaitable[None]],
-        action: dict | None = None,
-        environment: Callable[[str, dict], Awaitable[None]] | None = None,
-    ):
+        action: Payload | None = None,
+        environment: Callable[[str, Payload], Awaitable[None]] | None = None,
+    ) -> ActionResult | CapturedFrame:
         if self._closing or len(self._pending) >= 4:
             raise BusinessError("android_busy", "Android worker admission is closed or full", status=503)
         task = asyncio.create_task(
@@ -76,7 +87,7 @@ class AndroidBackend:
         )
         self._pending.add(task)
 
-        def done(future):
+        def done(future: asyncio.Task[object]) -> None:
             self._pending.discard(future)
             if not future.cancelled():
                 future.exception()
@@ -84,21 +95,30 @@ class AndroidBackend:
         task.add_done_callback(done)
         return await asyncio.shield(task)
 
-    async def _execute(self, name, args, context, guard, action, environment):
+    async def _execute(
+        self,
+        name: str,
+        args: Payload,
+        context: InvocationContext,
+        guard: Callable[[], Awaitable[None]],
+        action: Payload | None,
+        environment: Callable[[str, Payload], Awaitable[None]] | None,
+    ) -> ActionResult | CapturedFrame:
         async with self._lock:
             if self._closing:
                 raise BusinessError("android_closing", "Android worker admission is closed")
             await guard()
             client = self._factory()
-            destination = None
+            destination: Path | None = None
+            record_args = cast(Record, args)
             try:
                 if environment is not None:
                     if name == "android_unicode_restore":
-                        return await self._unicode.recover(client, args, context, guard, environment)
+                        return await self._unicode.recover(client, record_args, context, guard, environment)
                     if args.get("kind") == "append_unicode":
-                        return await self._unicode.run(client, args, context, guard, environment)
+                        return await self._unicode.run(client, record_args, context, guard, environment)
                     raise ValueError("IME environment callback requires a Unicode operation")
-                values = dict(args)
+                values = cast(Record, dict(args))
                 if name == "android_capture":
                     checked_path(self._staging, ".check")
                     self._staging_status = {"checked": True, **await asyncio.to_thread(inventory, self._staging, set())}
@@ -120,7 +140,7 @@ class AndroidBackend:
                             raise ValueError("Invalid Android ready token")
                         result = await client.invoke(
                             "android_commit",
-                            {**args, "token": token},
+                            cast(Record, {**args, "token": token}),
                             operation_id=str(uuid.uuid4()),
                             context=context,
                             before_dispatch=guard,
@@ -139,7 +159,7 @@ class AndroidBackend:
                     destination.unlink()
 
     @staticmethod
-    def _load(path: Path, receipt: dict) -> CapturedFrame:
+    def _load(path: Path, receipt: Record) -> CapturedFrame:
         if (
             path.is_symlink()
             or path.is_junction()
@@ -167,7 +187,7 @@ class AndroidBackend:
         frame.validate()
         return frame
 
-    def stop_accepting(self):
+    def stop_accepting(self) -> None:
         self._closing = True
 
     async def close(self, timeout_s: float) -> bool:

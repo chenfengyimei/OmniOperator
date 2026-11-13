@@ -22,7 +22,7 @@ class UnicodeFlow:
         args: Record,
         context: InvocationContext,
         guard: Callable[[], Awaitable[None]],
-        environment: Callable[[str, Record], Awaitable[None]],
+        environment: Callable[[str, dict[str, object]], Awaitable[None]],
     ) -> ActionResult:
         snapshot: Record | None = None
         uncertain = False
@@ -56,7 +56,7 @@ class UnicodeFlow:
                     if prepared.status == Outcome.OK:
                         snapshot = dict(prepared.data)
                         # This commit must succeed before the first IME selection write.
-                        await environment("planned", snapshot)
+                        await environment("planned", cast(dict[str, object], snapshot))
                         values = {**args, "prepare_nonce": snapshot["prepare_nonce"]}
                         selection_started = True
                         result = await invoke("android_unicode_begin", values)
@@ -134,7 +134,7 @@ class UnicodeFlow:
         args: Record,
         context: InvocationContext,
         guard: Callable[[], Awaitable[None]],
-        environment: Callable[[str, Record], Awaitable[None]],
+        environment: Callable[[str, dict[str, object]], Awaitable[None]],
     ) -> ActionResult:
         try:
             async with asyncio.timeout(22):
