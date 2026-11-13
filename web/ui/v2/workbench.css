@@ -139,6 +139,54 @@ body[data-ui-page="workbench-v2"] #connect button[type="submit"] {
   font-weight: 650;
   cursor: pointer;
 }
+/* 已连接后收起连接卡：此前空令牌框与「连接实例」按钮一直占着左栏顶部，
+   挤压会话列表且看起来像还没连上。这里只按 body[data-connected] 改样式、
+   不动 DOM——刷新后属性消失，表单自动恢复，测试仍可按 #token 填写并重连。 */
+body[data-ui-page="workbench-v2"][data-connected="true"] #connect.panel {
+  display: flex;
+  /* .panel 基础样式是 flex-direction:column，不覆盖会让标签与按钮上下堆叠 */
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 11px;
+  /* 表单自身 13px 字号会撑出 20.8px 行高，状态条用不到，显式收紧 */
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+}
+body[data-ui-page="workbench-v2"][data-connected="true"] #connect label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"][data-connected="true"] #connect label::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--ok);
+  box-shadow: 0 0 7px -1px color-mix(in srgb, var(--ok) 70%, transparent);
+}
+body[data-ui-page="workbench-v2"][data-connected="true"] #connect input {
+  display: none;
+}
+body[data-ui-page="workbench-v2"][data-connected="true"] #connect button[type="submit"] {
+  min-height: 24px;
+  padding: 0 9px;
+  border: 1px solid var(--line-2);
+  background: var(--glass-weak-bg);
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+}
+body[data-ui-page="workbench-v2"][data-connected="true"] #connect button[type="submit"]:hover {
+  border-color: var(--line-accent);
+  color: var(--text-1);
+}
 body[data-ui-page="workbench-v2"] .agent-field {
   flex: 0 0 auto;
   display: grid;

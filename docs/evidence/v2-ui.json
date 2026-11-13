@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
-  "resource_version_final": "20261113v116",
+  "resource_version_final": "20261113v120",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -274,7 +274,10 @@
       "右栏页签、固定保留、清空技能的键盘焦点完全不可见（副本清掉 outline 未给替代）→ 统一补 :focus-visible 青色 2px 描边，覆盖右栏/工具条/空态/抽屉入口",
       "复制按钮在剪贴板权限被拒时抛未捕获 writeText 异常（无头/非安全上下文/用户拒绝）→ try/catch 兜底：回退选中正文并提示「剪贴板不可用，已选中文本，请按 Ctrl+C 复制」，图标转 content_paste",
       "投递草稿入口只改 page 与 hidden，未走统一切页 → 页头标题/导航选中态/body.dataset.page 不同步，出现半切换状态；改为点击导航按钮走同一路径",
-      "4 处切页入口用裸 [data-page=...] 选择器，会匹配到同样带该属性的 body（点击 body 不切页）→ 全部限定为 nav[aria-label=\"工作台\"] [data-page=...] 并加可选链"
+      "4 处切页入口用裸 [data-page=...] 选择器，会匹配到同样带该属性的 body（点击 body 不切页）→ 全部限定为 nav[aria-label=\"工作台\"] [data-page=...] 并加可选链",
+      "复制 V1 frame.css 时把通用 Embed 降级层一起抄进副本，违反契约 test_ui_embed_layer::test_embed_rules_live_only_in_frame_css（全站只准 ui/frame.css 一处）→ 副本中有意不复制该层并写明原因：它服务于被 iframe 内嵌的子页，V2 是顶层页面用不到；将来若需内嵌应加载 /assets/ui/frame.css 而非再抄一份。修复后该契约 14 项全过、逐项核查仍 76/76",
+      "连接成功后连接卡不收起：空令牌框与「连接实例」常驻左栏顶部（74px），挤压会话列表且看着像没连上 → 按 body[data-connected] 收成 38px 状态条（绿点 + 实例已连接 + 重新连接），点重连展开令牌框，刷新自动还原完整表单；必须显式覆盖 .panel 的 flex-direction:column，否则标签与按钮仍上下堆叠",
+      "档位报告直接暴露 fallback / conservative_full 等原始枚举，日常使用偏噪 → 加中文标签并保留原值备查（回退默认（fallback）/ 保守起见用完整档（conservative_full）），数值与口径说明一字未改"
     ],
     "verification": {
       "css_rules_parsed": "components 90 / frame 108 / workbench 663（原样复制后全部生效）",
@@ -299,7 +302,7 @@
       "guards_v104": "glass_tokens + design_tokens + business_inventory 共 19 passed",
       "tooltip": "悬停导航显示『记忆』，opacity=1、位置在视口内；导航阴影 0px 2px 4px 生效",
       "ui_regression_v103": "135 passed in 976.48s（14 文件 -n 4，零失败）",
-      "ui_regression_final": "最终源码 20261113v116，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
+      "ui_regression_final": "最终源码 20261113v120，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
       "csp_clean": "securitypolicyviolation 事件零触发；1440/390 两视口 pageerror 与 CSP 报错均为空；提示浮层定位随按钮真实变化（技能 y=160、日志 y=790）",
       "ui_regression_v105": "133 passed / 2 failed in 1045.70s（14 文件 -n 4）。两个失败均为文本断言超时，非布局/样式问题，已逐个隔离复跑取证：① test_v2_skills_ui[light-1024] 隔离单跑 passed → 并行负载抖动；② test_v2_portal_ui 隔离仍 failed，状态停在 portal_consent_pending（服务端授权环节），git stash 暂存本批全部改动后用原码跑同一用例同样 failed → 既有问题，非本批引入；本批未改动任何 agent/ 服务端代码（git status 为空）。仓库历史 10656e9 已记录并行抖动口径。",
       "contrast": "深色关键文本对比度 11.2–17.02（页标题 17.02、输入框 11.2、会话标题 16.63、正文 15.4），浅色 17.71–21；均远超 4.5 标准。会话标题一度读出 1.65 系脚本未解析 oklab 背景所致的量取虚警，已用实际颜色值与局部截图证伪。",
@@ -357,11 +360,45 @@
         "链数 5→10 疑似重复挂载 → 异步挂载中间态；每消息链槽 ≤1、同角色重复 0",
         "文件名标签登记后回「未选择」→ 业务主动清空 input 防重复提交，设计行为",
         "会话标题对比度 1.65 → 同样是 oklab 背景解析虚警；真实像素 14.72"
-      ]
+      ],
+      "full_regression_v117": "全量 4651 passed / 5 failed in 1795.81s（29分55秒）。逐项判定：① test_ui_embed_layer::test_embed_rules_live_only_in_frame_css 是本批真缺陷（副本抄了通用 embed 层），已修复并复跑该文件 14 passed；② test_installer_scripts[ready]、③ test_v2_terminal_native、④⑤ test_v2_memory_organization_ui 两项 —— 隔离复跑 8 passed，属并行负载抖动，非本批引入。",
+      "embed_contract": "test_ui_embed_layer.py 全文件 14 passed（含通用降级层唯一性与共享层存在性）",
+      "audit_suites_final_v117": {
+        "说明": "内嵌契约修复后，在最终源码 20261113v120 上把全部 8 套专项重跑一遍",
+        "逐项核查（双主题+两窄屏）": "76/76",
+        "真实交互": "11/11",
+        "切页入口": "6/6",
+        "边界": "7/7",
+        "附加与技能闭环": "6/6",
+        "设置中心": "6/6",
+        "运行生命周期": "7/7",
+        "数据一致性": "8/8",
+        "合计": "127/127 PASS"
+      },
+      "style_contracts_all": "test_ui_embed_layer + test_ui_glass_tokens + test_ui_design_tokens + test_ui_contract + test_v2_business_inventory 共 54 passed（含 embed 唯一性、token 单源、断点白名单、强调色唯一、圆角 token、业务清单）",
+      "copy_fidelity": "副本与原件逐字比对：components 差异 1 行（注释头）；frame 差异为注释头 + .rail/.rail::-webkit-scrollbar 别名 + 有意省略的 Embed 降级层；workbench 差异为注释头 + #input→#message / #send→#send-btn 选择器映射 + .rail 别名。三份副本括号全平衡，V1 原件 git status 为空（未被改动）",
+      "connect_card_v119": "连接卡 8/8 PASS：连接前完整表单；连接后 38px 状态条（原 74px，省 36px）、令牌框隐藏、文案「实例已连接」、按钮「重新连接」；会话列表高度 181px；点重连展开并可再次连接成功；刷新后恢复完整表单且 data-connected 清空；零 pageerror。令牌轮换与导航测试 4 passed（含 reload 后重连路径）",
+      "v1_pages_unaffected": "V1 页面回归 test_ui_flows + test_ui_navigation + test_ui_theme + test_ui_runs 共 49 passed，共享文件改动未影响旧界面",
+      "route_labels_v120": "档位中文标签实测：含中文来源 True、含中文原因 True、保留原值 True；首行「档位 完整（请求 跟随设置） · 回退默认（fallback） / 保守起见用完整档（conservative_full）」；调用卡 settled 状态绿色 rgb(74,222,128)、字段齐全、两视口无溢出；档位测试 8 passed",
+      "full_regression_final": "最终源码全量：4654 passed / 2 failed in 1627.21s（27分07秒）。两项失败 test_v2_memory_organization_ui[two_agents] 与 test_v2_portal_ui 隔离复跑 2 passed in 29.50s → 并行负载抖动，非本批引入。上一轮的真缺陷 test_ui_embed_layer（副本抄了通用 embed 层）已修复，本轮不再出现。",
+      "audit_suites_final": {
+        "说明": "全部 8 套专项在最终源码上重跑通过",
+        "逐项核查（双主题+两窄屏）": "76/76",
+        "真实交互": "11/11",
+        "切页入口": "6/6",
+        "边界": "7/7",
+        "附加与技能闭环": "6/6",
+        "设置中心": "6/6",
+        "运行生命周期": "7/7",
+        "数据一致性": "8/8",
+        "连接卡": "8/8",
+        "合计": "135/135 PASS"
+      },
+      "contracts_final": "样式与清单契约：test_ui_embed_layer + test_ui_glass_tokens + test_ui_design_tokens + test_v2_business_inventory 共 33 passed；加 test_ui_contract 与 test_v2_mcp_ui 共 54 passed；档位 test_v2_routing_ui 8 passed；令牌与导航 4 passed；V1 页面 49 passed"
     }
   },
   "not_accepted": [
-    "真实模型 / 真实平台账号 / 72 小时稳定性仍未验收，本轮全部验证基于离线演示实例",
-    "并行 -n 4 下仍有偶发超时（隔离单跑通过），属既有负载抖动，未销账"
+    "真实模型 / 真实平台账号 / 72 小时稳定性仍未验收，全部验证基于离线演示实例",
+    "并行 -n 4 下偶发超时（隔离单跑均通过），属既有负载抖动，未销账"
   ]
 }

@@ -54,7 +54,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v116`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v120`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -64,7 +64,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 ## 4. 当前 UI 状态（已完成）
 
-**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v116`）：按所有者要求，不再自创视觉，
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v120`）：按所有者要求，不再自创视觉，
 把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
 **声明内容一字未改**，只做三类必要映射：
 
@@ -106,12 +106,23 @@ V2 结构已改用 V1 类名，让复制来的样式真正命中：
 10. **窄屏抽屉断点要与页头入口一致（都是 900）**：只把布局改到 900 而入口留在 520，会让 760 宽下按钮宽高为 0、面板打不开；反之右栏仍按桌面常驻会把对话挤到 65px。
 11. **浅色主题只覆盖了 `--text-3/4`**，`--text-1/2` 沿用深色定义，所以浅色下 `--text-3` 反而比 `--text-2` 更淡。运行面板说明文字实测 `--text-4`=2.76、`--text-3`=3.07、`--text-2`=3.35 全部低于 4.5，只有 `--text-1` 达标。
 12. **技术详情不要同时出现在对话区和右栏**：对话内的调用链只留真实工具步骤，档位/模型计量归右栏「运行」页签。
+13. **原样复制 V1 CSS 不等于整份照搬**：`frame.css` 末尾的「Embed 降级层」有全站唯一性契约（`test_ui_embed_layer::test_embed_rules_live_only_in_frame_css`：通用 embed 降级规则只准 `ui/frame.css` 一处）。抄进副本即红。该层服务于被 iframe 内嵌的子页，V2 是顶层页面用不到，副本里**有意不复制**。复制前先扫一遍 `agent/tests/test_ui_*.py` 里的「只准/全站只有/only_in」类契约。
+14. **切页入口不要用裸 `[data-page="x"]` 选择器**：`body` 也带 `data-page`，`querySelector` 会先匹配到 body，点它不触发切页。必须写成 `nav[aria-label="工作台"] [data-page="x"]`。
+15. **程序化跳转要走导航同一条路径**：只改 `page` 变量与 `.page.hidden` 会漏掉页头标题、导航选中态、`body.dataset.page`，出现半切换状态。直接 `.click()` 对应导航按钮。
+16. **剪贴板写入必须 try/catch**：`navigator.clipboard.writeText` 在非安全上下文、用户拒绝、无头环境会 reject，不兜底就是未捕获异常。兜底做法：选中正文 + 明确提示按 Ctrl+C。
+
+**量取方法教训（三次虚警都由此而来）**：
+
+- **不要用 `getComputedStyle` 的字符串自己解析颜色**：`oklab()` / `color(srgb …)` / `color-mix()` 解析不了就会把浅底当白底，曾把浅色输入框算成 1.63（真实像素 15.62）。判定对比度请**直接采样渲染后的像素**（见 `temp/build/_ct_real.py`）。
+- **`element.focus()` 不触发 `:focus-visible`**：用它判定焦点可见性会全部误报不可见。必须用真实 `keyboard.press("Tab")`。
+- **异步挂载的中间态不是重复渲染**：调用链数量在等待期间会从 5 涨到 10，判重要按「每条消息的 `.chain-slot` 数 ≤1」和「同角色同 runId 是否重复」，而不是看总数变化。
+- **选择器先读源码再写**：`#objects-list`（实际 `#object-list`）、`[data-settings="persona"]`（实际 `[data-settings-page="settings"]`）都是猜错导致的假失败。
 
 **已知遗留问题**：
 
 1. 390 宽度下设置页是普通文档流（不是覆盖层），属于有意为之。
 2. 真实模型/平台/72 小时稳定性未验收；本批不构成验收。
-3. `test_v2_portal_ui` 与 `test_v2_skills_ui` 在 `-n 4` 下偶发超时，隔离单跑均通过（并行负载抖动）。判定回归归属用 `git stash` 暂存本批改动后跑同一用例对照。
+3. `-n 4` 下偶发超时（已见 `test_v2_portal_ui`、`test_v2_skills_ui`、`test_installer_scripts`、`test_v2_terminal_native`、`test_v2_memory_organization_ui`），隔离单跑均通过（并行负载抖动）。判定回归归属用 `git stash` 暂存本批改动后跑同一用例对照。
 
 ---
 

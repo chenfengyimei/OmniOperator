@@ -122,8 +122,21 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
       }
       const labels = { chat: '聊天', retrieval: '检索', agent: '完整' },
         route = value.route;
+      // 原始枚举对日常使用偏噪：给来源与原因加中文标签，原值保留在括号里备查。
+      // 只加可读标签，不改任何数值与口径说明。
+      const SOURCE = { fallback: '回退默认', policy: '按策略', explicit: '显式指定', channel: '通道限定' };
+      const REASON = {
+        conservative_full: '保守起见用完整档',
+        greeting: '识别为问候',
+        read_request: '识别为读取请求',
+        image_input: '含图片输入',
+        policy_default: '按空间默认档位',
+        explicit_mode: '本轮显式指定',
+        restricted_channel: '受限通道固定聊天档',
+      };
+      const named = (map, key) => (map[key] ? `${map[key]}（${key}）` : String(key));
       $('route-run-status').textContent =
-        `档位 ${labels[route.mode]}（请求 ${labels[route.requested_mode] || (route.requested_mode === 'default' ? '跟随设置' : '自动')}） · ${route.source} / ${route.reason}${route.promoted ? ' · 已升档一次' : ''}；本轮模型 ${route.model_name} / ${route.model}，修订 ${route.model_revision_id}，单次预留 ${route.reservation_micro} 微美元。\n` +
+        `档位 ${labels[route.mode]}（请求 ${labels[route.requested_mode] || (route.requested_mode === 'default' ? '跟随设置' : '自动')}） · ${named(SOURCE, route.source)} / ${named(REASON, route.reason)}${route.promoted ? ' · 已升档一次' : ''}；本轮模型 ${route.model_name} / ${route.model}，修订 ${route.model_revision_id}，单次预留 ${route.reservation_micro} 微美元。\n` +
         `已登记 ${value.calls.length} 份调用工具快照；工具规格字节差 ${value.byte_delta}（正值表示减少，不是费用收益）。已知结算 ${value.known_cost_micro} 微美元，${value.unsettled_calls} 次待结清；路由模型调用 ${value.routing_model_calls} 次。`;
       if (value.unrecorded_turn_calls)
         $('route-run-status').textContent +=

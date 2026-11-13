@@ -1,4 +1,10 @@
-/* V1 frame.css 原样副本（仅改页面标识与资源路径）。外观与 V1 完全一致，请勿在此自创样式。 */
+/* V1 frame.css 原样副本。声明内容一字未改，只做三类必要映射 + 一处有意省略：
+   ① 页面标识 workbench → workbench-v2；② 资源路径 /ui/ → /assets/ui/；
+   ③ 为 .rail / .rail::-webkit-scrollbar 追加等效别名 nav[aria-label="工作台"]
+      （V2 的 nav 不能带 class，业务清单守卫的正则依赖标签原文）。
+   ④ 文件末尾的「Embed 降级层」**有意不复制**——见该处说明与
+      test_ui_embed_layer::test_embed_rules_live_only_in_frame_css 的全站唯一性契约。
+   外观与 V1 完全一致，请勿在此自创样式——新样式写进 ../workbench.css 桥接层。 */
 /* ==========================================================================
    OmniOperator 应用壳（frame）——子站与工作台共用的页面骨架层
    职责（UI_DESIGN_SYSTEM.md §5）：全局 chrome、子站画布/顶栏/图标栏、统一控件、
@@ -915,41 +921,12 @@ body[data-ui-page]:not([data-ui-page="workbench-v2"]) :is(#jobs, #catalog, #chec
 }
 
 /* --------------------------------------------------------------------------
-   Embed 降级层：子页被 iframe 内嵌进设置中心时，去掉自身 chrome 与页面留白。
-   共享到这一层后，所有内嵌页共用一份规则；页面级 css 不再重复写 embed。
-   双 class 机制：shared.js 同时给 <html>.ui-embed 与 <body>.ui-embedded。
-   html 侧负责背景透明（首帧即生效），body 侧负责布局归零。
+   原 frame.css 的「Embed 降级层」在此**有意不复制**。
+   契约 test_ui_embed_layer::test_embed_rules_live_only_in_frame_css 要求
+   通用 embed 降级规则（去 chrome / 布局归零）全站只有 ui/frame.css 一处，
+   抄进页面级 css 就算重复实现。
+   该层服务于被 iframe 内嵌进设置中心的子页（terminal/android/storage），
+   靠 shared.js 打的 html.ui-embed / body.ui-embedded 生效；
+   V2 工作台是顶层页面、自身不被内嵌，也不需要内嵌别人，故这段对 V2 无用。
+   若将来 V2 需要被内嵌，正确做法是加载 /assets/ui/frame.css，而不是在此抄一份。
    -------------------------------------------------------------------------- */
-html.ui-embed {
-  background: transparent !important;
-}
-html.ui-embed body[data-ui-page],
-body[data-ui-page].ui-embedded {
-  padding: 0 !important;
-  margin: 0 !important;
-  min-height: 0 !important;
-  background: transparent !important;
-  overflow: auto;
-}
-html.ui-embed body[data-ui-page]::before,
-body[data-ui-page].ui-embedded::before {
-  display: none !important;
-}
-html.ui-embed body[data-ui-page] > header,
-html.ui-embed body[data-ui-page] > .ui-global-nav,
-body[data-ui-page].ui-embedded > header,
-body[data-ui-page].ui-embedded > .ui-global-nav {
-  display: none !important;
-}
-html.ui-embed body[data-ui-page] > :not(header):not(.ui-global-nav),
-body[data-ui-page].ui-embedded > :not(header):not(.ui-global-nav) {
-  width: 100% !important;
-  max-width: none !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-/* 内嵌时页面自己的工具条不再留上边距（外壳已经给过间距了） */
-html.ui-embed body[data-ui-page] > .storage-toolbar,
-body[data-ui-page].ui-embedded > .storage-toolbar {
-  margin-top: 0;
-}

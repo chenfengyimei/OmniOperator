@@ -1,30 +1,30 @@
-import { mountSkills } from './skills.js?v=20261113v116';
-import { mountCredentials } from './credentials.js?v=20261113v116';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v116';
-import { mountCapabilities } from './capabilities.js?v=20261113v116';
-import { mountTokens } from './tokens.js?v=20261113v116';
-import { mountDocuments } from './documents.js?v=20261113v116';
-import { mountConfiguration } from './configuration.js?v=20261113v116';
+import { mountSkills } from './skills.js?v=20261113v120';
+import { mountCredentials } from './credentials.js?v=20261113v120';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v120';
+import { mountCapabilities } from './capabilities.js?v=20261113v120';
+import { mountTokens } from './tokens.js?v=20261113v120';
+import { mountDocuments } from './documents.js?v=20261113v120';
+import { mountConfiguration } from './configuration.js?v=20261113v120';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261113v116';
-import { mountDeliveries } from './deliveries.js?v=20261113v116';
-import { mountSchedules } from './schedules.js?v=20261113v116';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261113v116';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261113v116';
-import { mountExtensions } from './extensions.js?v=20261113v116';
-import { mountActionReviews } from './action-reviews.js?v=20261113v116';
-import { mountTerminals } from './terminals.js?v=20261113v116';
-import { mountDesktop } from './desktop.js?v=20261113v116';
-import { mountQQ } from './qq.js?v=20261113v116';
-import { mountBilibili } from './bilibili.js?v=20261113v116';
-import { mountMedia } from './media.js?v=20261113v116';
-import { mountMcp } from './mcp.js?v=20261113v116';
-import { mountAndroid } from './android.js?v=20261113v116';
-import { mountModelOutput } from './model-output.js?v=20261113v116';
-import { mountRouting } from './routing.js?v=20261113v116';
-import { mountChatImages } from './chat-images.js?v=20261113v116';
-import { mountInspector } from './inspector.js?v=20261113v116';
-import { mountSettingsRail } from './settings-rail.js?v=20261113v116';
+import { mountPeople } from './people.js?v=20261113v120';
+import { mountDeliveries } from './deliveries.js?v=20261113v120';
+import { mountSchedules } from './schedules.js?v=20261113v120';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261113v120';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261113v120';
+import { mountExtensions } from './extensions.js?v=20261113v120';
+import { mountActionReviews } from './action-reviews.js?v=20261113v120';
+import { mountTerminals } from './terminals.js?v=20261113v120';
+import { mountDesktop } from './desktop.js?v=20261113v120';
+import { mountQQ } from './qq.js?v=20261113v120';
+import { mountBilibili } from './bilibili.js?v=20261113v120';
+import { mountMedia } from './media.js?v=20261113v120';
+import { mountMcp } from './mcp.js?v=20261113v120';
+import { mountAndroid } from './android.js?v=20261113v120';
+import { mountModelOutput } from './model-output.js?v=20261113v120';
+import { mountRouting } from './routing.js?v=20261113v120';
+import { mountChatImages } from './chat-images.js?v=20261113v120';
+import { mountInspector } from './inspector.js?v=20261113v120';
+import { mountSettingsRail } from './settings-rail.js?v=20261113v120';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -1154,8 +1154,32 @@ $('connect').addEventListener(
     document.body.dataset.connected = 'true';
     await selectAgent();
     $('token').value = '';
+    setConnectedChrome(true);
   }),
 );
+// 连接卡收成状态条：空令牌框与「连接实例」常驻会挤占会话列表，且看着像没连上。
+// 只改文案与 title，不动结构；刷新后 body[data-connected] 消失即自动还原。
+function setConnectedChrome(on) {
+  const form = $('connect'),
+    label = form?.querySelector('label'),
+    submit = form?.querySelector('button[type="submit"]');
+  if (!form || !label || !submit) return;
+  const textNode = [...label.childNodes].find((n) => n.nodeType === Node.TEXT_NODE);
+  if (textNode) textNode.textContent = on ? '实例已连接' : '所有者令牌';
+  submit.textContent = on ? '重新连接' : '连接实例';
+  submit.title = on ? '令牌轮换或连接异常时，展开重新填写令牌' : '填入所有者令牌并连接实例';
+  form.dataset.connected = String(on);
+}
+// 已连接时点「重新连接」先展开令牌框，避免隐藏输入 required 拦住表单提交
+$('connect').addEventListener('click', (event) => {
+  const submit = event.target.closest?.('button[type="submit"]');
+  if (!submit || $('connect').dataset.connected !== 'true') return;
+  if ($('token').value.trim()) return;
+  event.preventDefault();
+  setConnectedChrome(false);
+  document.body.removeAttribute('data-connected');
+  $('token').focus();
+});
 $('agents').addEventListener('change', wrap(selectAgent));
 $('back-to-chat').addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="chat"]')?.click());
 $('open-settings').addEventListener('click', () => document.querySelector('nav[aria-label="工作台"] [data-page="settings"]')?.click());
