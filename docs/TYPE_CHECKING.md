@@ -226,6 +226,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/credential_repository.py` | 凭据引用/操作状态/复核仓储（显式 Record、标识收窄、执行令牌不外泄） |
 | `agent/src/omni/adapters/persistence/lease_repository.py` | FIFO 认领与栅栏租约仓储（显式 Record、查询条件闭包类型化、栅栏递增收窄） |
 | `agent/src/omni/adapters/persistence/configuration_repository.py` | 配置修订与 Agent 偏好仓储（显式 Record、领域 dict[str, object] 口径、权限代次收窄） |
+| `agent/src/omni/adapters/persistence/repository.py` | 事务仓储聚合根（24 个 mixin 组装，回执显式 Record、标识/序号收窄、未纳入 mixin 局部 Any 桥接） |
 | `agent/src/omni/adapters/persistence/schema.py` | 关系表结构定义（列/约束辅助函数显式 SchemaItem 与列泛型，DDL 不变） |
 | `agent/src/omni/adapters/persistence/android_repository.py` | 设备授权/运行访问仓储（显式 Record、跨模块聚合与设置 Any 桥接） |
 | `agent/src/omni/adapters/persistence/android_unicode_repository.py` | 输入助手配置/IME 恢复义务仓储（显式 Record、跨模块聚合 Any 桥接） |
@@ -305,7 +306,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 170 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 171 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 

@@ -6,6 +6,7 @@ import datetime as dt
 import hashlib
 import json
 from dataclasses import asdict
+from typing import Any, cast
 
 from sqlalchemy import and_, func, insert, select, update
 
@@ -69,7 +70,7 @@ class Repositories(
             raise BusinessError("instance_not_initialized", "Initialize the V2 instance before deploying a service")
         return {"instance_id": current["id"]}
 
-    def initialize(self) -> dict:
+    def initialize(self) -> Record:
         current = self.connection.execute(select(s.instances)).mappings().first()
         if current:
             return dict(current)
@@ -81,11 +82,11 @@ class Repositories(
     def probe_write(self) -> None:
         self.connection.execute(update(s.instances).where(s.instances.c.slot == 1).values(slot=1))
 
-    def create_agent(self, name: str) -> dict:
+    def create_agent(self, name: str) -> Record:
         if not name.strip() or len(name) > 100:
             raise BusinessError("invalid_agent_name", "Agent name must contain 1 to 100 characters", status=422)
         agent = self._record(s.agents, {"name": name, "enabled": True, "revision": 1})
-        model = self.configuration_create(agent["id"], "model", "Default model", True, {})
+        model = self.configuration_create(cast(str, agent["id"]), "model", "Default model", True, {})
         value = {
             "persona": "You are a helpful personal assistant.",
             "workspace": "",
@@ -104,8 +105,8 @@ class Repositories(
                 **{k: v for k, v in value.items() if k != "disabled_tools"},
             )
         )
-        self._settings_history_record(agent["id"], value, 1, 1)
-        self.ensure_owner(agent["id"])
+        self._settings_history_record(cast(str, agent["id"]), value, 1, 1)
+        self.ensure_owner(cast(str, agent["id"]))
         return agent
 
     def issue_token(self, token_hash: str, expires_at: str) -> None:
@@ -125,7 +126,7 @@ class Repositories(
             is not None
         )
 
-    def token_sessions(self, limit: int = 50) -> list[dict]:
+    def token_sessions(self, limit: int = 50) -> list[Record]:
         if type(limit) is not int or not 1 <= limit <= 50:
             raise ValueError("Token session limit is not bounded")
         return [
@@ -142,11 +143,11 @@ class Repositories(
             .values(revoked_at=self.clock.now())
         )
 
-    def _message(self, agent_id: str, session_id: str, role: str, text: str) -> dict:
+    def _message(self, agent_id: str, session_id: str, role: str, text: str) -> Record:
         session = self._one(s.sessions, agent_id, session_id)
         if session["deleted_at"]:
             raise BusinessError("session_deleted", "Session has been deleted")
-        seq = session["next_seq"] + 1
+        seq = cast(int, session["next_seq"]) + 1
         self.connection.execute(update(s.sessions).where(s.sessions.c.id == session_id).values(next_seq=seq))
         return self._record(s.messages, {"session_id": session_id, "seq": seq, "role": role, "content": text}, agent_id)
 
@@ -164,7 +165,7 @@ class Repositories(
         mode: str | None = None,
         skill_ids: tuple[str, ...] = (),
         skill_platform: str = "",
-    ) -> dict:
+    ) -> Record:
         if origin not in {"chat", "qq"}:
             raise BusinessError("invalid_turn_origin", "Unknown turn origin")
         from ...domain.routing import requested
@@ -215,21 +216,30 @@ class Repositories(
         if prior:
             if prior["request_fingerprint"] != request_fingerprint:
                 raise BusinessError("idempotency_conflict", "This key already identifies a different request")
-            run = self.get_run(agent_id, prior["run_id"])
+            run = self.get_run(agent_id, cast(str, prior["run_id"]))
             return {"run_id": run["id"], "session_id": run["session_id"], "duplicate": True}
         if not key or len(key) > 200 or (not text and not images) or len(text) > 200_000:
             raise BusinessError("invalid_turn", "A bounded message and idempotency key are required", status=422)
         settings = self.settings(agent_id)
-        route = self.route_resolve(agent_id, text, route_mode, bool(images), origin == "qq") if model_required else None
+        # RoutingRepositories 尚未纳入 strict；用局部 Any 桥接其未类型化解析结果。
+        routing: Any = self
+        route = (
+            cast(Record, routing.route_resolve(agent_id, text, route_mode, bool(images), origin == "qq"))
+            if model_required
+            else None
+        )
         captured = self.capture_configuration(
-            agent_id, model_required=model_required, model_id=route["model_id"] if route else None
+            agent_id, model_required=model_required, model_id=cast(str, route["model_id"]) if route else None
         )
         if images:
-            self.image_admit(agent_id, captured["model_revision_id"], images)
+            self.image_admit(agent_id, cast(str, captured["model_revision_id"]), images)
         if session_id is None:
-            session_id = self._record(
-                s.sessions, {"title": text[:80] or "Image conversation", "revision": 1, "next_seq": 0}, agent_id
-            )["id"]
+            session_id = cast(
+                str,
+                self._record(
+                    s.sessions, {"title": text[:80] or "Image conversation", "revision": 1, "next_seq": 0}, agent_id
+                )["id"],
+            )
         unfinished = self.connection.execute(
             select(func.count())
             .select_from(s.runs)
@@ -263,10 +273,10 @@ class Repositories(
             agent_id,
         )
         if route:
-            self.route_attach(agent_id, run["id"], route)
+            routing.route_attach(agent_id, cast(str, run["id"]), route)
         if model_required and origin != "qq":
-            self.extension_capture_run(agent_id, run["id"])
-            self.skill_capture_run(agent_id, run["id"], selected_skills, skill_platform)
+            self.extension_capture_run(agent_id, cast(str, run["id"]))
+            self.skill_capture_run(agent_id, cast(str, run["id"]), selected_skills, skill_platform)
         self._record(
             s.inbox,
             {"channel": channel, "key": key, "run_id": run["id"], "request_fingerprint": request_fingerprint},
@@ -278,17 +288,17 @@ class Repositories(
             {"run_id": run["id"], "kind": "turn", "state": "pending", "payload": {}, "attempt": 0},
             agent_id,
         )
-        self.event(agent_id, run["id"], "run.queued", {})
+        self.event(agent_id, cast(str, run["id"]), "run.queued", {})
         if route:
             self.event(
                 agent_id,
-                run["id"],
+                cast(str, run["id"]),
                 "routing.selected",
                 {"mode": route["mode"], "source": route["source"], "reason": route["reason"]},
             )
         return {"run_id": run["id"], "session_id": session_id, "duplicate": False}
 
-    def owner_command(self, agent_id: str, run_id: str) -> dict | None:
+    def owner_command(self, agent_id: str, run_id: str) -> Record | None:
         row = (
             self.connection.execute(
                 select(s.owner_commands).where(
@@ -300,7 +310,7 @@ class Repositories(
         )
         return dict(row) if row else None
 
-    def owner_command_replay(self, agent_id: str, request_id: str, fingerprint: str) -> dict | None:
+    def owner_command_replay(self, agent_id: str, request_id: str, fingerprint: str) -> Record | None:
         row = (
             self.connection.execute(
                 select(s.owner_commands).where(
@@ -326,7 +336,7 @@ class Repositories(
         arguments: Record,
         *,
         tool: str = "desktop_semantic",
-    ) -> dict:
+    ) -> Record:
         if tool not in {"desktop_semantic", "android_input", "android_restore_ime"}:
             raise BusinessError("owner_tool_invalid", "Owner command capability is not registered")
         prior = self.owner_command_replay(agent_id, request_id, fingerprint)
@@ -359,7 +369,7 @@ class Repositories(
         self.audit(
             agent_id,
             "owner.command_queued",
-            receipt["run_id"],
+            cast(str, receipt["run_id"]),
             {"request_id": request_id, "request_sha256": fingerprint, "tool": tool},
         )
         return receipt
@@ -380,7 +390,8 @@ class Repositories(
 
     def approved_dispatch(self, agent_id: str, run_id: str, action_id: str, arguments: Record, tool: str) -> None:
         self.assert_run_authorized(agent_id, run_id)
-        action, run = self.action(agent_id, action_id), self.get_run(agent_id, run_id)
+        reviews: Any = self
+        action, run = cast(Record, reviews.action(agent_id, action_id)), self.get_run(agent_id, run_id)
         settings = self.settings(agent_id)
         if action["run_id"] != run_id or action["tool"] != tool or action["arguments"] != arguments:
             raise BusinessError("action_binding_changed", "Approved action binding changed")
@@ -394,19 +405,19 @@ class Repositories(
                 "desktop_action_revoked" if tool == "desktop_semantic" else "action_authority_revoked",
                 "Action is no longer approved",
             )
-        if (
-            settings["policy_revision"] != action["policy_revision"]
-            or action["tool"] in settings["value"]["disabled_tools"]
+        settings_value = cast(Record, settings["value"])
+        if settings["policy_revision"] != action["policy_revision"] or action["tool"] in cast(
+            list[object], settings_value["disabled_tools"]
         ):
             raise BusinessError("policy_changed", "Action policy was revoked")
 
-    def get_run(self, agent_id: str, run_id: str) -> dict:
+    def get_run(self, agent_id: str, run_id: str) -> Record:
         return self._one(s.runs, agent_id, run_id)
 
     def transition(self, agent_id: str, run_id: str, state: str, error_code: str = "") -> None:
         run = self.get_run(agent_id, run_id)
         target = RunState(state)
-        check_transition(run["state"], target)
+        check_transition(cast(str, run["state"]), target)
         if state == "running":
             work = self._work(agent_id, run_id)
             if work["state"] == "pending" and not self._claim_run(agent_id, run_id):
@@ -439,13 +450,16 @@ class Repositories(
                 work = self._work(agent_id, run_id)
                 if work["claim_token"]:
                     self.lease_release(
-                        agent_id, "session/" + run["session_id"], work["claim_token"], work["lease_fence"]
+                        agent_id,
+                        "session/" + cast(str, run["session_id"]),
+                        cast(str, work["claim_token"]),
+                        cast(int, work["lease_fence"]),
                     )
         self.event(agent_id, run_id, "run." + state, {"error_code": error_code})
 
-    def event(self, agent_id: str, run_id: str, kind: str, data: dict) -> int:
+    def event(self, agent_id: str, run_id: str, kind: str, data: Record) -> int:
         run = self.get_run(agent_id, run_id)
-        seq = run["last_seq"] + 1
+        seq = cast(int, run["last_seq"]) + 1
         self.connection.execute(update(s.runs).where(s.runs.c.id == run_id).values(last_seq=seq))
         self.connection.execute(
             insert(s.run_events).values(
@@ -460,7 +474,7 @@ class Repositories(
         )
         return seq
 
-    def messages(self, agent_id: str, session_id: str, limit: int = 50) -> list[dict]:
+    def messages(self, agent_id: str, session_id: str, limit: int = 50) -> list[Record]:
         self._one(s.sessions, agent_id, session_id)
         rows = (
             self.connection.execute(
@@ -478,7 +492,7 @@ class Repositories(
         )
         return [dict(row) for row in reversed(rows)]
 
-    def context_memories(self, agent_id: str, snapshot_id: str) -> list[dict]:
+    def context_memories(self, agent_id: str, snapshot_id: str) -> list[Record]:
         self._one(s.context_snapshots, agent_id, snapshot_id)
         rows = self.connection.execute(
             select(
@@ -502,7 +516,7 @@ class Repositories(
             for row in rows
         ]
 
-    def run_context(self, agent_id: str, run_id: str) -> list[dict]:
+    def run_context(self, agent_id: str, run_id: str) -> list[Record]:
         self.get_run(agent_id, run_id)
         snapshots = self.connection.execute(
             select(s.context_snapshots.c.id)
@@ -513,7 +527,8 @@ class Repositories(
 
     def finish(self, agent_id: str, run_id: str, text: str, delivery: Record | None = None) -> None:
         self.assert_run_authorized(agent_id, run_id)
-        channel_delivery = self.qq_run_authorized(agent_id, run_id)
+        qq_authority: Any = self
+        channel_delivery = cast("Record | None", qq_authority.qq_run_authorized(agent_id, run_id))
         if channel_delivery:
             if delivery is not None and delivery != channel_delivery:
                 raise BusinessError("qq_delivery_mismatch", "QQ replies must use their captured conversation")
@@ -521,13 +536,14 @@ class Repositories(
         if delivery and self.owner_command(agent_id, run_id):
             raise BusinessError("owner_command_delivery_forbidden", "Owner commands do not create external deliveries")
         run = self.get_run(agent_id, run_id)
-        check_transition(run["state"], RunState.SUCCEEDED)
-        message = self._message(agent_id, run["session_id"], "assistant", text)
+        check_transition(cast(str, run["state"]), RunState.SUCCEEDED)
+        message = self._message(agent_id, cast(str, run["session_id"]), "assistant", text)
         self.connection.execute(update(s.messages).where(s.messages.c.id == message["id"]).values(run_id=run_id))
         if delivery:
-            self.delivery_create(
+            deliveries: Any = self
+            deliveries.delivery_create(
                 agent_id,
-                message["id"],
+                cast(str, message["id"]),
                 str(delivery["config_id"]),
                 str(delivery["target"]),
                 str(delivery.get("key") or "run-output:" + run_id),
@@ -568,18 +584,21 @@ class Repositories(
         ).rowcount
         if changed != 1:
             raise BusinessError("budget_exceeded", "Daily model budget is exhausted")
-        return self._record(
-            s.model_calls,
-            {
-                "run_id": run_id,
-                "model": model,
-                "day": day,
-                "state": "reserved",
-                "reserved_micro": amount,
-                "purpose": purpose,
-            },
-            agent_id,
-        )["id"]
+        return cast(
+            str,
+            self._record(
+                s.model_calls,
+                {
+                    "run_id": run_id,
+                    "model": model,
+                    "day": day,
+                    "state": "reserved",
+                    "reserved_micro": amount,
+                    "purpose": purpose,
+                },
+                agent_id,
+            )["id"],
+        )
 
     def settle_call(
         self, agent_id: str, call_id: str, reply: ModelReply | None, *, known_not_sent: bool = False
@@ -616,12 +635,15 @@ class Repositories(
             )
         )
 
-    def prepare_action(self, agent_id: str, run_id: str, spec: ToolSpec, arguments: Record, policy: int) -> dict:
+    def prepare_action(self, agent_id: str, run_id: str, spec: ToolSpec, arguments: Record, policy: int) -> Record:
         run = self.get_run(agent_id, run_id)
         if run["state"] != "running":
             raise BusinessError("run_not_running", "Run no longer accepts actions")
         current = self.settings(agent_id)
-        if current["policy_revision"] != policy or spec.name in current["value"].get("disabled_tools", []):
+        current_value = cast(Record, current["value"])
+        if current["policy_revision"] != policy or spec.name in cast(
+            list[object], current_value.get("disabled_tools", [])
+        ):
             raise BusinessError("policy_changed", "Action policy changed; submit a new action")
         digest = hashlib.sha256(
             json.dumps(arguments, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
@@ -640,8 +662,8 @@ class Repositories(
             },
             agent_id,
         )
-        self.extension_bind_action(agent_id, run_id, action["id"], spec)
-        self.mcp_bind_action(agent_id, run_id, action["id"], spec)
+        self.extension_bind_action(agent_id, run_id, cast(str, action["id"]), spec)
+        self.mcp_bind_action(agent_id, run_id, cast(str, action["id"]), spec)
         command = self.owner_command(agent_id, run_id)
         if command:
             if command["tool"] != spec.name or command["arguments"] != arguments or command["action_id"] is not None:
@@ -660,7 +682,7 @@ class Repositories(
         self.audit(
             agent_id,
             "action.prepared",
-            action["id"],
+            cast(str, action["id"]),
             {"tool": spec.name, "arguments_sha256": digest, "policy_revision": policy},
         )
         self.event(
@@ -671,7 +693,7 @@ class Repositories(
         )
         return action
 
-    def pending_approvals(self, agent_id: str) -> list[dict]:
+    def pending_approvals(self, agent_id: str) -> list[Record]:
         rows = self.connection.execute(
             select(
                 s.approvals, s.actions.c.tool, s.actions.c.arguments, s.actions.c.run_id, s.actions.c.policy_revision
@@ -688,34 +710,41 @@ class Repositories(
 
     def resolve_approval(self, agent_id: str, approval_id: str, allowed: bool, policy: int) -> None:
         approval = self._one(s.approvals, agent_id, approval_id)
-        action = self._one(s.actions, agent_id, approval["action_id"])
-        if approval["state"] != "pending" or approval["expires_at"] <= self.clock.now() or action["state"] != "pending":
+        action = self._one(s.actions, agent_id, cast(str, approval["action_id"]))
+        if (
+            approval["state"] != "pending"
+            or cast(str, approval["expires_at"]) <= self.clock.now()
+            or action["state"] != "pending"
+        ):
             raise BusinessError("approval_expired", "Approval is no longer pending")
-        self.extension_assert_action(agent_id, action["id"])
-        self.mcp_assert_action(agent_id, action["id"])
+        bindings: Any = self
+        bindings.extension_assert_action(agent_id, cast(str, action["id"]))
+        bindings.mcp_assert_action(agent_id, cast(str, action["id"]))
         if self.settings(agent_id)["policy_revision"] != policy or action["policy_revision"] != policy:
             raise BusinessError("policy_changed", "Approval belongs to an older policy")
-        if self.get_run(agent_id, action["run_id"])["state"] != "waiting_approval":
+        if self.get_run(agent_id, cast(str, action["run_id"]))["state"] != "waiting_approval":
             raise BusinessError("run_not_waiting", "Run no longer accepts approval")
         state = "approved" if allowed else "denied"
         self.connection.execute(
             update(s.approvals).where(s.approvals.c.id == approval_id).values(state=state, resolved_at=self.clock.now())
         )
         self.connection.execute(update(s.actions).where(s.actions.c.id == action["id"]).values(state=state))
-        self.audit(agent_id, "approval." + state, action["id"], {"policy_revision": policy})
-        self.transition(agent_id, action["run_id"], "running")
+        self.audit(agent_id, "approval." + state, cast(str, action["id"]), {"policy_revision": policy})
+        self.transition(agent_id, cast(str, action["run_id"]), "running")
 
-    def authorize_action(self, agent_id: str, action_id: str) -> dict:
-        self.assert_run_authorized(agent_id, self._one(s.actions, agent_id, action_id)["run_id"])
+    def authorize_action(self, agent_id: str, action_id: str) -> Record:
+        self.assert_run_authorized(agent_id, cast(str, self._one(s.actions, agent_id, action_id)["run_id"]))
         action = self._one(s.actions, agent_id, action_id)
-        run = self.get_run(agent_id, action["run_id"])
+        run = self.get_run(agent_id, cast(str, action["run_id"]))
         current = self.settings(agent_id)
         if run["state"] != "running" or action["state"] != "approved":
             raise BusinessError("action_not_authorized", "Action is not authorized")
-        self.extension_assert_action(agent_id, action_id)
-        self.mcp_assert_action(agent_id, action_id)
-        if action["policy_revision"] != current["policy_revision"] or action["tool"] in current["value"].get(
-            "disabled_tools", []
+        authorize_bindings: Any = self
+        authorize_bindings.extension_assert_action(agent_id, action_id)
+        authorize_bindings.mcp_assert_action(agent_id, action_id)
+        authorize_value = cast(Record, current["value"])
+        if action["policy_revision"] != current["policy_revision"] or action["tool"] in cast(
+            list[object], authorize_value.get("disabled_tools", [])
         ):
             raise BusinessError("policy_changed", "Action policy was revoked")
         if action["writes"]:
@@ -730,11 +759,14 @@ class Repositories(
         self.audit(agent_id, "action.executing", action_id, {"tool": action["tool"]})
         return action
 
-    def extension_dispatch(self, agent_id: str, run_id: str, action_id: str, name: str) -> dict:
+    def extension_dispatch(self, agent_id: str, run_id: str, action_id: str, name: str) -> Record:
         self.assert_context(agent_id, run_id)
         self.assert_model_authorized(agent_id, run_id)
         action, current = self._one(s.actions, agent_id, action_id), self.settings(agent_id)
-        if action["policy_revision"] != current["policy_revision"] or name in current["value"]["disabled_tools"]:
+        dispatch_value = cast(Record, current["value"])
+        if action["policy_revision"] != current["policy_revision"] or name in cast(
+            list[object], dispatch_value["disabled_tools"]
+        ):
             raise BusinessError("policy_changed", "Action policy changed before plugin dispatch")
         approval = (
             self.connection.execute(
@@ -748,12 +780,16 @@ class Repositories(
         )
         if approval is None or approval["state"] != "approved" or approval["expires_at"] <= self.clock.now():
             raise BusinessError("approval_expired", "Plugin action approval expired before dispatch")
-        return {
-            **self._extension_dispatch_binding(agent_id, run_id, action_id, name),
-            "arguments_sha256": action["arguments_sha256"],
-        }
+        dispatch_bindings: Any = self
+        return cast(
+            Record,
+            {
+                **dispatch_bindings._extension_dispatch_binding(agent_id, run_id, action_id, name),
+                "arguments_sha256": action["arguments_sha256"],
+            },
+        )
 
-    def _extension_revoke(self, slot: dict) -> list[str]:
+    def _extension_revoke(self, slot: Record) -> list[str]:
         waiting = list(
             self.connection.execute(
                 select(s.runs.c.id)
@@ -781,10 +817,11 @@ class Repositories(
                 .distinct()
             ).scalars()
         )
-        executing = super()._extension_revoke(slot)
+        parent: Any = super()
+        executing = cast(list[str], parent._extension_revoke(slot))
         for run_id in waiting:
             try:
-                self.transition(slot["agent_id"], run_id, "running")
+                self.transition(cast(str, slot["agent_id"]), run_id, "running")
             except BusinessError as exc:
                 # Revocation must commit even when an old worker has lost its lease;
                 # the ordinary run recovery path owns that interrupted execution.
@@ -820,12 +857,12 @@ class Repositories(
         )
         self.event(
             agent_id,
-            action["run_id"],
+            cast(str, action["run_id"]),
             "action.completed",
             {"action_id": action_id, "status": result.status.value, "effect": result.effect.value},
         )
 
-    def action(self, agent_id: str, action_id: str) -> dict:
+    def action(self, agent_id: str, action_id: str) -> Record:
         row = (
             self.connection.execute(
                 select(
@@ -920,7 +957,7 @@ class Repositories(
                 )
         return len(unresolved)
 
-    def recover(self) -> dict:
+    def recover(self) -> Record:
         self.memory_semantic_recover()
         self.terminal_recover()
         recovered_credentials = self.credential_recover()
@@ -1020,7 +1057,7 @@ class Repositories(
             "recovered_credentials": recovered_credentials,
         }
 
-    def query(self, kind: str, agent_id: str, *, after: int = 0, limit: int = 100, **filters: str) -> list[dict]:
+    def query(self, kind: str, agent_id: str, *, after: int = 0, limit: int = 100, **filters: str) -> list[Record]:
         tables = {
             "agents": s.agents,
             "sessions": s.sessions,
