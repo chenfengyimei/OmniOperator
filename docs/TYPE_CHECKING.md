@@ -280,6 +280,8 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/composition/instance.py` | 隔离实例组装根（身份/健康投影/有界关停装配，显式 Record 与端口收窄） |
 | `agent/src/omni/composition/http.py` | HTTP 组合与所有者令牌引导（只读访问器、令牌/排空/关停回执显式 Record） |
 | `agent/src/omni/composition/cli.py` | V2 开发入口（安装/体检/对象回收/诊断回执显式 Record，未类型化适配器返回精化为 dict[str, object]） |
+| `agent/src/omni/composition/service_control.py` | 服务生命周期命令组装（管理员操作收窄为 Record、关闭回执显式 Record） |
+| `agent/src/omni/composition/__init__.py` | composition 包标记（仅包文档字符串） |
 | `agent/src/omni/adapters/workers/main.py` | 能力子进程入口（文件/命令/浏览器能力，不导入数据库或 Runtime） |
 
 `pyrightconfig.strict.json` 的 `include` 必须与本表完全一致；`agent/tests/test_v2_typecheck_scope.py` 会双向校验。
@@ -292,7 +294,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已覆盖 43 个模块、`adapters/` 160 个模块；`composition/` 已开始（11/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已覆盖 43 个模块、`adapters/` 160 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 

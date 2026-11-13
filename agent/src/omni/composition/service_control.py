@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 from ..adapters.platform.deployment_files import CurrentDeploymentFiles
 from ..adapters.platform.service_control_files import ServiceControlFiles
@@ -43,7 +44,7 @@ async def run_control(
             raise BusinessError("service_admin_action_unsupported", "Only a reviewed system start may use this route")
         from ..adapters.platform.service_admin_client import PrivilegedServiceClient
 
-        native = PrivilegedServiceClient(operation, str(admin_socket.absolute()), admin_bundle_sha256)
+        native = PrivilegedServiceClient(cast(Record, operation), str(admin_socket.absolute()), admin_bundle_sha256)
     else:
         native = ServiceRegistration()
     service = ServiceControl(deployments, files, native, ServiceReadiness(), SystemClock(), UUIDs())
@@ -62,7 +63,7 @@ async def run_control(
         raise BusinessError("service_control_command_invalid", "Choose an explicit service lifecycle command")
     finally:
 
-        async def close(budget: float) -> dict:
+        async def close(budget: float) -> Record:
             return {"complete": await service.close(budget), "residual": ["service_control"]}
 
         await close_until_quiescent(close, 8)
