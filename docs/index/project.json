@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "cc71306e755d97678d2c51b718709a911baecea2b23576f4f7a9cedaa47da742",
+  "source_sha256": "15eb1969e514a85b9df14013ec59a425f5306efabe894cdc4b7cc6976d3b801b",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53543,
+      "lines": 53555,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19933,
+      "lines": 19982,
       "dependencies": []
     },
     {
@@ -15101,23 +15101,24 @@
       "path": "agent/src/omni/adapters/persistence/image_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.image_repository",
-      "lines": 319,
+      "lines": 331,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.configuration_repository",
         "omni.adapters.persistence.repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.images"
       ],
       "symbols": [
         {
           "name": "ImageRepositories",
-          "line": 18,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "ImageRepositories.image_register",
-          "line": 19,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
@@ -15133,7 +15134,7 @@
         },
         {
           "name": "ImageRepositories.model_image_policy",
-          "line": 52,
+          "line": 53,
           "kind": "function",
           "parameters": [
             "self",
@@ -15147,7 +15148,7 @@
         },
         {
           "name": "ImageRepositories.model_image_policy_add",
-          "line": 71,
+          "line": 73,
           "kind": "function",
           "parameters": [
             "self",
@@ -15158,12 +15159,12 @@
           "annotations": {
             "agent_id": "str",
             "revision_id": "str",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
           "name": "ImageRepositories.run_image_policy",
-          "line": 89,
+          "line": 91,
           "kind": "function",
           "parameters": [
             "self",
@@ -15177,7 +15178,7 @@
         },
         {
           "name": "ImageRepositories.image_parts",
-          "line": 95,
+          "line": 97,
           "kind": "function",
           "parameters": [
             "self",
@@ -15191,7 +15192,7 @@
         },
         {
           "name": "ImageRepositories.image_admit",
-          "line": 144,
+          "line": 146,
           "kind": "function",
           "parameters": [
             "self",
@@ -15207,7 +15208,7 @@
         },
         {
           "name": "ImageRepositories.model_images_prepare",
-          "line": 166,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -15220,12 +15221,12 @@
             "agent_id": "str",
             "run_id": "str",
             "call_id": "str",
-            "refs": "list[dict]"
+            "refs": "list[Record]"
           }
         },
         {
           "name": "ImageRepositories.model_images_dispatch",
-          "line": 233,
+          "line": 238,
           "kind": "function",
           "parameters": [
             "self",
@@ -15241,7 +15242,7 @@
         },
         {
           "name": "ImageRepositories.model_images_report",
-          "line": 253,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self",
@@ -95617,7 +95618,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1546,
+      "lines": 1570,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95797,7 +95798,7 @@
       "path": "web/ui/v2/v1/frame.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 955,
+      "lines": 932,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95817,7 +95818,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1633,
+      "lines": 1681,
       "imports": [],
       "symbols": [],
       "kind": "asset",

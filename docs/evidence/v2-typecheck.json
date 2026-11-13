@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": "D7.typecheck",
+ "batch": 161,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "5943a9672fc2b35bf0b65e39ff3d92fd6cd57b91e20b2913d7409551b55e69b0",
+  "code_version": "8a7a9185250ecc570a94841fd93b079823dfe8c15c24237357bf7e0bd17c8d52",
   "fixed_source_files": 1206,
-  "git_head": "a32eca4",
+  "git_head": "7e5b7e5",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,9 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-160-callers.xml",
-   "tests": 48,
-   "failures": 0
+   "batch": 161,
+   "sources": [
+    "agent/src/omni/adapters/persistence/image_repository.py"
+   ],
+   "report": "temp/build/v2-typecheck-161-callers.xml",
+   "tests": 58
   },
   "targeted_reports": [
    {
@@ -1645,6 +1648,15 @@
     "errors": 0,
     "duration_s": 53.07,
     "note": "P3 object_gc batch: exclusive collection plan/apply + guard/arch/objects callers; covers per-target revalidation before mutation, pin/reference protection and unlink-failure retry"
+   },
+   {
+    "path": "temp/build/v2-typecheck-161-callers.xml",
+    "sha256": "f235ec1ccbb168465c5ca75d196c48afc553a3f928e6db08cccead6cb5d74245",
+    "tests": 58,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 126.47,
+    "note": "P3 image_repository batch: image metadata/policy/per-call references + guard/arch/images/images-http/images-migration/images-ui callers (four viewports, both themes)"
    }
   ],
   "gates": {
@@ -1656,7 +1668,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 284,
+    "filesAnalyzed": 285,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1748,6 +1760,9 @@
     ],
     "note": "第 15 节点（142～155 批）全量。验收口径：并行跑 + 失败项串行复跑，两份报告留档；不将串行通过写成并行全绿，不将抖动写成功能缺陷，不将他人会话引入的守卫违规写成本批回归。strict 279 文件 0 errors。"
    }
+  ],
+  "scope": [
+   "Strict scope reaches 285 files (53 domain + 44 application + 175 adapters + 13 composition); the image metadata/policy/per-call-reference repository aligns register, policy, parts and report receipts with the port Record contract, narrows per-call and run budgets to int and snapshot message ids to list[str], and keeps model_image_policy_add's value at Record to match the port (a wider dict[str, object] broke protocol contravariance and was corrected); integrity checks, unverified-attachment refusal, the cumulative budget gate and the no-file-read/no-encode boundary are unchanged"
   ]
  },
  "source_recovery": {

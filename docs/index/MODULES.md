@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`cc71306e755d97678d2c51b718709a911baecea2b23576f4f7a9cedaa47da742`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`15eb1969e514a85b9df14013ec59a425f5306efabe894cdc4b7cc6976d3b801b`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -191,7 +191,7 @@
 | [agent/src/omni/adapters/persistence/history_pruning_cycle.py](../../agent/src/omni/adapters/persistence/history_pruning_cycle.py) | 308 | One transactional history-pruning algorithm; stream policies own target eligibility and identity. |
 | [agent/src/omni/adapters/persistence/history_repository.py](../../agent/src/omni/adapters/persistence/history_repository.py) | 86 | Read history pages and retention revisions in one transaction; does not delete history. |
 | [agent/src/omni/adapters/persistence/history_sequence.py](../../agent/src/omni/adapters/persistence/history_sequence.py) | 27 | Allocate global history positions in the caller's transaction; never opens connections. |
-| [agent/src/omni/adapters/persistence/image_repository.py](../../agent/src/omni/adapters/persistence/image_repository.py) | 319 | Scoped image metadata, model-revision policies and per-call references; never reads files or encodes images. |
+| [agent/src/omni/adapters/persistence/image_repository.py](../../agent/src/omni/adapters/persistence/image_repository.py) | 331 | Scoped image metadata, model-revision policies and per-call references; never reads files or encodes images. |
 | [agent/src/omni/adapters/persistence/lease_repository.py](../../agent/src/omni/adapters/persistence/lease_repository.py) | 283 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
 | [agent/src/omni/adapters/persistence/maintenance.py](../../agent/src/omni/adapters/persistence/maintenance.py) | 1046 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
 | [agent/src/omni/adapters/persistence/maintenance_repository.py](../../agent/src/omni/adapters/persistence/maintenance_repository.py) | 514 | Bounded document-maintenance admission, fenced attempts and business-result settlement; no execution or I/O. |
@@ -433,7 +433,7 @@
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1523 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1546 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1570 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |
@@ -451,9 +451,9 @@
 | [web/ui/v2/terminals.js](../../web/ui/v2/terminals.js) | 564 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/tokens.js](../../web/ui/v2/tokens.js) | 81 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 955 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 932 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4450 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1633 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1681 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
