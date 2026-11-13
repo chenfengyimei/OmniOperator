@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 169,
+ "batch": 170,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "94f9087f0cf8259f7dfd2e59101ecd305372f407d93f7a4722840f6e2e3079c7",
+  "code_version": "c2fe37b59dca485bcd4d325cb3942d994d2e6a9d43b9f67dd7d6cba94a84416d",
   "fixed_source_files": 1206,
-  "git_head": "d99187a",
+  "git_head": "79f455c",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 169,
+   "batch": 170,
    "sources": [
-    "agent/src/omni/adapters/persistence/memory_repository.py"
+    "agent/src/omni/adapters/persistence/bilibili_repository.py"
    ],
-   "report": "temp/build/v2-typecheck-169-callers.xml",
-   "tests": 89
+   "report": "temp/build/v2-typecheck-170-callers.xml",
+   "tests": 62
   },
   "targeted_reports": [
    {
@@ -1729,6 +1729,15 @@
     "errors": 0,
     "duration_s": 167.25,
     "note": "P3 memory_repository batch: memory truth, evidence, revisions and erasure + guard/arch/people/memory-semantics/memory-organization/context/retention-preview callers; covers message erasure releasing objects with cross-agent refusal and restore discarding derived vectors"
+   },
+   {
+    "path": "temp/build/v2-typecheck-170-callers.xml",
+    "sha256": "df3975f49cbb4bfedc8b21eb5fe54a194fb9408e1dcc57c1e84d7aba4b1db791",
+    "tests": 62,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 56.1,
+    "note": "P3 bilibili_repository batch: immutable form revisions and publications + guard/arch/bilibili/bilibili-gateway/bilibili-worker/bilibili-http callers; covers revocation refusing approval and publication on both channel and credential paths"
    }
   ],
   "gates": {
@@ -1740,7 +1749,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 293,
+    "filesAnalyzed": 294,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1892,7 +1901,8 @@
    "Strict scope reaches 290 files (53 domain + 44 application + 180 adapters + 13 composition); frozen migration v0005 annotates upgrade/downgrade returns, types the configuration/model/preference backfill closures along their real data flow, gives options/ordinal/preferences explicit container types, narrows historical row fields at each use and types the default preference/model payloads; zero SQL change was verified twice — all 181 string literals match HEAD as a multiset and every module constant (TABLES/INDEXES/COLUMNS/TRIGGERS) is equal — and schema-release plus all 17 migration suites executed for real and passed",
    "Strict scope reaches 291 files (53 domain + 44 application + 181 adapters + 13 composition); the exclusive snapshot/verify/restore module types its manifest, restore report and quarantine counters as Record, narrows object relative paths, byte counts and digests at each use, types the pending-collection ledger as list[Record], splits the manifest-entry dict narrowing while keeping the original error codes and messages, and narrows the replay guard's files and quarantine fields; never checkpointing or discarding WAL/SHM/journal files, single-link and fingerprint validation, quarantining in-flight work before restore completes and never restoring credentials from a snapshot are all unchanged",
    "Strict scope reaches 292 files (53 domain + 44 application + 182 adapters + 13 composition); the terminal intent and immutable-receipt repository aligns session/operation/replay/open receipts with the port Record contract, keeps request and spec parameters at Record to match the port, narrows revisions to int before incrementing, narrows parse_open's shell/cols/rows/operation_id at each use and narrows the nested settings value before reading workspace; boot ownership, permission epochs, refusing control while cleanup is pending, refusing cleanup authority from a foreign boot, immutability of settled observations and recovery always marking unknown without replay are unchanged, and the module still opens no native process and stores no terminal bodies",
-   "Strict scope reaches 293 files (53 domain + 44 application + 183 adapters + 13 composition); the memory truth/evidence/revision/erasure repository aligns remember/revise/history/search receipts with the port Record contract, returns Record from _live_person, narrows source sequences and context-floor comparisons to int, narrows document evidence range bounds to int, narrows the action result and its nested data before reading erased, and types the forget traversal sets and tombstone hash set as set[str]; the single-source constraint, refusing model writes that would revive forgotten content, refusing citations after erasure, hash-only tombstones without raw quotes and immutability of erased memories are unchanged"
+   "Strict scope reaches 293 files (53 domain + 44 application + 183 adapters + 13 composition); the memory truth/evidence/revision/erasure repository aligns remember/revise/history/search receipts with the port Record contract, returns Record from _live_person, narrows source sequences and context-floor comparisons to int, narrows document evidence range bounds to int, narrows the action result and its nested data before reading erased, and types the forget traversal sets and tombstone hash set as set[str]; the single-source constraint, refusing model writes that would revive forgotten content, refusing citations after erasure, hash-only tombstones without raw quotes and immutability of erased memories are unchanged",
+   "Strict scope reaches 294 files (53 domain + 44 application + 184 adapters + 13 composition); the immutable form-revision and publication repository aligns receipts with Record while keeping forms and mentions parameters exactly at the port's dict[str, object] and list[dict[str, object]] widths rather than Record, keeps validated forms/mentions in separate locals so parameter types are not overwritten, narrows publication ids, account, revision ids and the body hash at each use, and bridges the routing mixin through a local Any view; idempotency-key conflicts, refusing remote QQ output as a publication, refusing unreviewed forms, mention-component evidence requirements, no private-message mentions and the per-field ownership/approval-deadline dispatch checks are unchanged"
   ]
  },
  "source_recovery": {

@@ -33,10 +33,10 @@
 **验收口径（务必照此表述）：** `-n 2` 下 Playwright 重度用例会因资源争用偶发失败；先并行跑，再把失败项
 `-n 0` 串行复跑，两份报告都留档。**禁止**把"串行通过"写成"并行全绿"，也禁止把抖动写成功能缺陷。
 
-**当前基线（2026-11-13 实测，开工前再核一次）：** strict **293 文件 / 0 errors**（53 domain + **44 application 全层** +
-183 adapters + **13/13 composition 全层**）；未纳入 61 个 adapters（含 5 个 android 适配器/仓储/worker）
+**当前基线（2026-11-13 实测，开工前再核一次）：** strict **294 文件 / 0 errors**（53 domain + **44 application 全层** +
+184 adapters + **13/13 composition 全层**）；未纳入 61 个 adapters（含 5 个 android 适配器/仓储/worker）
 （domain/application/composition 已全层纳入）；全量 4656 项 4653 passed / 3 failed（抖动，串行全过）/ 0 errors；
-台账 `d7_typecheck_batch_169`。第 25 节点全量 4656 项：4655 passed / 1 failed，失败项 `test_v2_portal_ui` 经干净 HEAD 三次对照（通过/失败/通过）确认为既有 flaky，非本批回归。
+台账 `d7_typecheck_batch_170`。第 25 节点全量 4656 项：4655 passed / 1 failed，失败项 `test_v2_portal_ui` 经干净 HEAD 三次对照（通过/失败/通过）确认为既有 flaky，非本批回归。
 
 **本次要做的顺序：**
 1. ~~`composition/instance.py`（58）~~ → 第一百四十二批，提交 `9f8f1f2`；

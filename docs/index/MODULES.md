@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`7b93c474af27017b9a8d8a79cf4cce9b9f0a60b38b3fd1869bb1682640488379`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`6bd83410bc6e5dc6a979a385da1912dfe2e30741b662d2a75df5503280ad2d25`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -172,7 +172,7 @@
 | [agent/src/omni/adapters/persistence/audit_pruning_repository.py](../../agent/src/omni/adapters/persistence/audit_pruning_repository.py) | 107 | Persist reviewed audit deletion and its proof atomically; preserve identities and business ledgers. |
 | [agent/src/omni/adapters/persistence/audit_retention_repository.py](../../agent/src/omni/adapters/persistence/audit_retention_repository.py) | 218 | Bounded metadata-only audit retention preview; never deletes rows or creates executable plans. |
 | [agent/src/omni/adapters/persistence/bilibili_authority.py](../../agent/src/omni/adapters/persistence/bilibili_authority.py) | 73 | One Bilibili authority implementation shared by owner reads, previews and final dispatch. |
-| [agent/src/omni/adapters/persistence/bilibili_repository.py](../../agent/src/omni/adapters/persistence/bilibili_repository.py) | 258 | Immutable Bilibili form revisions and publications referencing the common delivery ledger. |
+| [agent/src/omni/adapters/persistence/bilibili_repository.py](../../agent/src/omni/adapters/persistence/bilibili_repository.py) | 311 | Immutable Bilibili form revisions and publications referencing the common delivery ledger. |
 | [agent/src/omni/adapters/persistence/configuration_repository.py](../../agent/src/omni/adapters/persistence/configuration_repository.py) | 380 | Typed configuration revisions and Agent preferences; no connections, DDL or credentials. |
 | [agent/src/omni/adapters/persistence/context_repository.py](../../agent/src/omni/adapters/persistence/context_repository.py) | 515 | Revision-bound summaries and context provenance; all operations stay inside a short transaction. |
 | [agent/src/omni/adapters/persistence/credential_predicates.py](../../agent/src/omni/adapters/persistence/credential_predicates.py) | 7 | One unreviewed credential authority predicate for diagnostics and retention guards. |
@@ -453,7 +453,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 932 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4450 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1693 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 2014 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "7b93c474af27017b9a8d8a79cf4cce9b9f0a60b38b3fd1869bb1682640488379",
+  "source_sha256": "6bd83410bc6e5dc6a979a385da1912dfe2e30741b662d2a75df5503280ad2d25",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53757,
+      "lines": 53810,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 20062,
+      "lines": 20383,
       "dependencies": []
     },
     {
@@ -11840,12 +11840,12 @@
       "path": "agent/src/omni/adapters/persistence/bilibili_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.bilibili_repository",
-      "lines": 258,
+      "lines": 311,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.bilibili_authority",
         "omni.adapters.persistence.delivery_repository",
-        "omni.adapters.persistence.repository",
+        "omni.application.ports",
         "omni.domain.bilibili",
         "omni.domain.contracts",
         "omni.domain.delivery"
@@ -11853,12 +11853,12 @@
       "symbols": [
         {
           "name": "BilibiliRepositories",
-          "line": 19,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "BilibiliRepositories.bilibili_read_authorized",
-          "line": 20,
+          "line": 18,
           "kind": "function",
           "parameters": [
             "self",
@@ -11874,7 +11874,7 @@
         },
         {
           "name": "BilibiliRepositories.bilibili_profile_get",
-          "line": 25,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -11888,7 +11888,7 @@
         },
         {
           "name": "BilibiliRepositories.bilibili_profile_save",
-          "line": 57,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -11903,14 +11903,14 @@
             "agent_id": "str",
             "config_id": "str",
             "enabled": "bool",
-            "forms": "dict",
+            "forms": "dict[str, object]",
             "revision": "int",
             "headless": "bool"
           }
         },
         {
           "name": "BilibiliRepositories.bilibili_prepare",
-          "line": 95,
+          "line": 110,
           "kind": "function",
           "parameters": [
             "self",
@@ -11928,13 +11928,13 @@
             "config_id": "str",
             "kind": "str",
             "url": "str",
-            "mentions": "list",
+            "mentions": "list[dict[str, object]]",
             "key": "str"
           }
         },
         {
           "name": "BilibiliRepositories.bilibili_publication_get",
-          "line": 173,
+          "line": 203,
           "kind": "function",
           "parameters": [
             "self",
@@ -11948,7 +11948,7 @@
         },
         {
           "name": "BilibiliRepositories.bilibili_publication_page",
-          "line": 190,
+          "line": 229,
           "kind": "function",
           "parameters": [
             "self",
@@ -11964,7 +11964,7 @@
         },
         {
           "name": "BilibiliRepositories.bilibili_outbound_authorized",
-          "line": 222,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "self",
@@ -95857,7 +95857,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1693,
+      "lines": 2014,
       "imports": [],
       "symbols": [],
       "kind": "asset",
