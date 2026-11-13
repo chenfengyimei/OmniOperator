@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ec5ded550a0a40fbe0e35aac363f4eb23b7cedf74b87270574ed202cbf34d7aa",
+  "source_sha256": "4f0b17aaa80b68ae8e8096383b18b2ee65c3cab0813a19f4e0f57dd56777fae3",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53408,
+      "lines": 53410,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -12587,22 +12587,23 @@
       "path": "agent/src/omni/adapters/persistence/credential_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.credential_repository",
-      "lines": 460,
+      "lines": 462,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.credentials"
       ],
       "symbols": [
         {
           "name": "CredentialRepositories",
-          "line": 16,
+          "line": 18,
           "kind": "class"
         },
         {
           "name": "CredentialRepositories._credential_cursor",
-          "line": 18,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "after",
@@ -12617,7 +12618,7 @@
         },
         {
           "name": "CredentialRepositories._credential_owner",
-          "line": 28,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self"
@@ -12626,7 +12627,7 @@
         },
         {
           "name": "CredentialRepositories._credential_audit",
-          "line": 31,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -12639,12 +12640,12 @@
             "identity": "str",
             "kind": "str",
             "outcome": "str",
-            "data": "dict"
+            "data": "Record"
           }
         },
         {
           "name": "CredentialRepositories._credential_row",
-          "line": 44,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -12656,7 +12657,7 @@
         },
         {
           "name": "CredentialRepositories.credential_register",
-          "line": 59,
+          "line": 61,
           "kind": "function",
           "parameters": [
             "self",
@@ -12670,7 +12671,7 @@
         },
         {
           "name": "CredentialRepositories.credential_get",
-          "line": 116,
+          "line": 118,
           "kind": "function",
           "parameters": [
             "self",
@@ -12682,7 +12683,7 @@
         },
         {
           "name": "CredentialRepositories.credential_page",
-          "line": 139,
+          "line": 141,
           "kind": "function",
           "parameters": [
             "self",
@@ -12696,7 +12697,7 @@
         },
         {
           "name": "CredentialRepositories.credential_authorize",
-          "line": 149,
+          "line": 151,
           "kind": "function",
           "parameters": [
             "self",
@@ -12708,7 +12709,7 @@
         },
         {
           "name": "CredentialRepositories.credential_begin",
-          "line": 168,
+          "line": 170,
           "kind": "function",
           "parameters": [
             "self",
@@ -12724,7 +12725,7 @@
         },
         {
           "name": "CredentialRepositories._credential_operation",
-          "line": 209,
+          "line": 211,
           "kind": "function",
           "parameters": [
             "self",
@@ -12738,7 +12739,7 @@
         },
         {
           "name": "CredentialRepositories.credential_dispatch",
-          "line": 224,
+          "line": 226,
           "kind": "function",
           "parameters": [
             "self",
@@ -12752,7 +12753,7 @@
         },
         {
           "name": "CredentialRepositories._credential_finish",
-          "line": 245,
+          "line": 247,
           "kind": "function",
           "parameters": [
             "self",
@@ -12761,14 +12762,14 @@
             "code"
           ],
           "annotations": {
-            "operation": "dict",
+            "operation": "Record",
             "outcome": "str",
             "code": "str"
           }
         },
         {
           "name": "CredentialRepositories.credential_settle",
-          "line": 287,
+          "line": 289,
           "kind": "function",
           "parameters": [
             "self",
@@ -12786,7 +12787,7 @@
         },
         {
           "name": "CredentialRepositories.credential_review",
-          "line": 290,
+          "line": 292,
           "kind": "function",
           "parameters": [
             "self",
@@ -12812,7 +12813,7 @@
         },
         {
           "name": "CredentialRepositories.credential_history",
-          "line": 364,
+          "line": 366,
           "kind": "function",
           "parameters": [
             "self",
@@ -12828,7 +12829,7 @@
         },
         {
           "name": "CredentialRepositories.credential_review_history",
-          "line": 377,
+          "line": 379,
           "kind": "function",
           "parameters": [
             "self",
@@ -12844,7 +12845,7 @@
         },
         {
           "name": "CredentialRepositories.credential_recover",
-          "line": 390,
+          "line": 392,
           "kind": "function",
           "parameters": [
             "self"
@@ -12853,7 +12854,7 @@
         },
         {
           "name": "CredentialRepositories._credential_audit_intent",
-          "line": 413,
+          "line": 415,
           "kind": "function",
           "parameters": [
             "self",
@@ -12869,7 +12870,7 @@
         },
         {
           "name": "CredentialRepositories._credential_audit_outcome",
-          "line": 429,
+          "line": 431,
           "kind": "function",
           "parameters": [
             "self",

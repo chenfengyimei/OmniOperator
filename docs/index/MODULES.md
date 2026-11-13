@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`ec5ded550a0a40fbe0e35aac363f4eb23b7cedf74b87270574ed202cbf34d7aa`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`4f0b17aaa80b68ae8e8096383b18b2ee65c3cab0813a19f4e0f57dd56777fae3`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -176,7 +176,7 @@
 | [agent/src/omni/adapters/persistence/configuration_repository.py](../../agent/src/omni/adapters/persistence/configuration_repository.py) | 355 | Typed configuration revisions and Agent preferences; no connections, DDL or credentials. |
 | [agent/src/omni/adapters/persistence/context_repository.py](../../agent/src/omni/adapters/persistence/context_repository.py) | 487 | Revision-bound summaries and context provenance; all operations stay inside a short transaction. |
 | [agent/src/omni/adapters/persistence/credential_predicates.py](../../agent/src/omni/adapters/persistence/credential_predicates.py) | 7 | One unreviewed credential authority predicate for diagnostics and retention guards. |
-| [agent/src/omni/adapters/persistence/credential_repository.py](../../agent/src/omni/adapters/persistence/credential_repository.py) | 460 | Owner credential references, operation state and review; no native I/O or connection creation. |
+| [agent/src/omni/adapters/persistence/credential_repository.py](../../agent/src/omni/adapters/persistence/credential_repository.py) | 462 | Owner credential references, operation state and review; no native I/O or connection creation. |
 | [agent/src/omni/adapters/persistence/database.py](../../agent/src/omni/adapters/persistence/database.py) | 190 | Bounded, single-writer database actor with isolated read connections. |
 | [agent/src/omni/adapters/persistence/delivery_predicates.py](../../agent/src/omni/adapters/persistence/delivery_predicates.py) | 32 | Shared outbound pending/review predicates for dispatch, scheduling and maintenance queries. |
 | [agent/src/omni/adapters/persistence/delivery_repository.py](../../agent/src/omni/adapters/persistence/delivery_repository.py) | 896 | Transactional outbound authority, FIFO ownership and immutable attempt observations. |

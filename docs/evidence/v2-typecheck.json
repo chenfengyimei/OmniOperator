@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "cb150f028fe8ae8a7bb5d98f70d663ff4a3ebc5f64a7bcd3b855232a44710345",
+  "code_version": "56f2950f0f2766d46df2b43508d621b8d7b3144db39a31a58aa6f08a56d10e7f",
   "fixed_source_files": 1206,
-  "git_head": "eacf4dc",
+  "git_head": "ae6d07d",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -174,7 +174,8 @@
    "Strict scope reaches 274 files (53 domain + 44 application + 164 adapters + 13 composition); the managed Android worker backend types its factory/secrets/execute/_execute/_load surface and narrows staging inventory and process reclaim, with execute parameters aligned to the AndroidPort Payload variance (the Unicode flow environment callback is widened to match); worker admission, capture bounds and unknown no-replay rules are unchanged",
    "Strict scope reaches 275 files (53 domain + 44 application + 165 adapters + 13 composition); the fixed IME transaction worker types its connection/snapshot/argument fields and narrows environment/packet/invoke payloads layer by layer, casting transport ids and node text; the authenticated localabstract IPC and unknown no-replay rules are unchanged",
    "Strict scope reaches 276 files (53 domain + 44 application + 166 adapters + 13 composition); the fixed observation/input worker types its hierarchy walk closure and node collection, narrows permit bindings, action payloads and postconditions layer by layer and narrows the service entry request fields, completing every Android module (application service, two repositories, two adapters, two workers); observation scope and outcome judgement rules are unchanged. Fixed source file count rises 1203 to 1206 from parallel UI commit 0497fe8 adding three V1 stylesheet copies",
-   "Strict scope reaches 277 files (53 domain + 44 application + 167 adapters + 13 composition); the relational schema module types its ident/scope/stamp column helpers with explicit column generics and annotates scoped/option_columns with SchemaItem (covering columns and every constraint kind), plus an explicit float column generic. DDL verification: all 136 tables produce byte-identical CREATE TABLE and index definitions versus HEAD (sha256 e49d4152bd5b730e0908a6ac810271c689a5279dfad8b7a91544f88bc2104002), so the table structure is unchanged"
+   "Strict scope reaches 277 files (53 domain + 44 application + 167 adapters + 13 composition); the relational schema module types its ident/scope/stamp column helpers with explicit column generics and annotates scoped/option_columns with SchemaItem (covering columns and every constraint kind), plus an explicit float column generic. DDL verification: all 136 tables produce byte-identical CREATE TABLE and index definitions versus HEAD (sha256 e49d4152bd5b730e0908a6ac810271c689a5279dfad8b7a91544f88bc2104002), so the table structure is unchanged",
+   "Strict scope reaches 278 files (53 domain + 44 application + 168 adapters + 13 composition); the credential repository types its reference/operation/review/history receipts as explicit Record, narrows credential identifiers and reference hashes to str and keeps the cursor runtime check; execution tokens stay out of every projection and the fencing/unknown no-replay rules are unchanged"
   ],
   "pending": [
    "application 44/44 complete; adapters 160/222 strict typing",
@@ -186,8 +187,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-153-callers.xml",
-   "tests": 123,
+   "report": "temp/build/v2-typecheck-154-callers.xml",
+   "tests": 105,
    "failures": 0
   },
   "targeted_reports": [
@@ -1575,6 +1576,15 @@
     "errors": 0,
     "duration_s": 283.26,
     "note": "P3 schema batch: relational schema (DDL byte-identical, 136 tables) + guard/arch/schema-release/16 migration suites"
+   },
+   {
+    "path": "temp/build/v2-typecheck-154-callers.xml",
+    "sha256": "6507e89105174b0b3334794893789a9e7a036ba4059b31c595a2033006740bfd",
+    "tests": 105,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 115.97,
+    "note": "P3 credential_repository batch: credential reference/operation/review repository + guard/arch/5 credential suites"
    }
   ],
   "gates": {
@@ -1586,7 +1596,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 277,
+    "filesAnalyzed": 278,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1600,7 +1610,7 @@
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/adapters/persistence/schema.py"
+    "agent/src/omni/adapters/persistence/credential_repository.py"
    ]
   },
   "full_run": {
