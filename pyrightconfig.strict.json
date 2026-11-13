@@ -27,6 +27,7 @@
     "agent/src/omni/adapters/persistence/audit_pruning_repository.py",
     "agent/src/omni/adapters/persistence/audit_retention_repository.py",
     "agent/src/omni/adapters/persistence/bilibili_authority.py",
+    "agent/src/omni/adapters/persistence/bilibili_repository.py",
     "agent/src/omni/adapters/persistence/configuration_repository.py",
     "agent/src/omni/adapters/persistence/credential_predicates.py",
     "agent/src/omni/adapters/persistence/context_repository.py",
