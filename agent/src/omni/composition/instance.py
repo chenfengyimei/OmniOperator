@@ -269,7 +269,7 @@ class Instance:
             "bilibili": _record(self.bilibili.health()),
             "media": self.media.health(),
             "mcp": self.mcp.health(),
-            "android": cast(Record, self.android.health()),
+            "android": self.android.health(),
             "credentials": self.credentials.health(),
             "action_reviews": self.action_reviews.health(),
             "terminals": self.terminals.health(),

@@ -67,6 +67,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/domain/skills.py` | 技能元数据/文件路径/文档/补丁/清单纯规则 |
 | `agent/src/omni/domain/terminal_review.py` | 终端未知结果核查与证据指纹纯规则 |
 | `agent/src/omni/domain/terminals.py` | 终端打开/输入/缩放/关闭请求纯校验 |
+| `agent/src/omni/application/android.py` | 安卓设备授权/观察/输入派发/IME 恢复用例（显式 Record/Payload、有界任务、租约与守卫收窄） |
 | `agent/src/omni/application/routing.py` | 档位配置读取/保存用例（显式 Record） |
 | `agent/src/omni/application/scheduling.py` | 单调度器保存/到期入队（UnitOfWork 回调与嵌套字段显式化） |
 | `agent/src/omni/application/release_drain.py` | 发布排空绑定既有 once-only 启动控制 |
@@ -294,7 +295,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已覆盖 43 个模块、`adapters/` 160 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 160 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 

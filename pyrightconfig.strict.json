@@ -162,6 +162,7 @@
     "agent/src/omni/adapters/workers/terminal.py",
     "agent/src/omni/adapters/workers/terminal_gate.py",
     "agent/src/omni/application/action_review.py",
+    "agent/src/omni/application/android.py",
     "agent/src/omni/application/bilibili.py",
     "agent/src/omni/application/configuration.py",
     "agent/src/omni/application/context.py",
