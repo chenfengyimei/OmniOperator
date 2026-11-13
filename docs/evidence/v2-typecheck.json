@@ -1767,63 +1767,61 @@
    ]
   },
   "full_run": {
-   "status": "parallel_run_serial_rerun_with_preexisting_flaky_portal_ui",
-   "source": "d20e404 (abd9d596); worktree also carries the parallel UI session's uncommitted local-bootstrap changes",
+   "status": "parallel_run_serial_and_isolation_rerun_two_ui_session_guard_violations",
+   "source": "79f455c (c2fe37b5); worktree carries the parallel UI session's uncommitted workbench.css edits (+332 lines)",
    "workers": 2,
-   "report": "temp/build/v2-full-165.xml",
-   "report_sha256": "04d5e4890ccc14771de3e6ddffcf8b158616f8fbe0fa0993640670d088638a91",
-   "tests": 4656,
-   "passed": 4655,
-   "failed": 1,
+   "report": "temp/build/v2-full-170.xml",
+   "report_sha256": "a0d4bbbb2a9eabbe8522e7b08cca14a572fb72ef1a7e2de1da2374ba1a213f65",
+   "tests": 4658,
+   "passed": 4654,
+   "failed": 4,
    "errors": 0,
-   "duration_s": 2830.94,
+   "duration_s": 3047.62,
    "failure_summary": {
-    "preexisting_flaky_portal_ui": 1
+    "ui_session_css_guard_violations": 2,
+    "playwright_contention_jitter": 2
    },
    "serial_rerun": {
-    "report": "temp/build/v2-full-165-serial.xml",
-    "report_sha256": "80d6e427d5c3234a9e17a03e5eeb8c129e4094a44bc5fe0cc3d0963f26e6be7f",
-    "tests": 1,
-    "passed": 1,
+    "report": "temp/build/v2-full-170-serial.xml",
+    "report_sha256": "603d38db7a05f1ee73aec6b03df9e57607e4f9ade521c03f2f6be87126a7ce64",
+    "tests": 4,
+    "passed": 2,
+    "failed": 2,
+    "errors": 0,
+    "duration_s": 17.86
+   },
+   "ui_isolation_rerun": {
+    "report": "temp/build/v2-full-170-ui-isolation.xml",
+    "report_sha256": "1f1dfb714b36fac778ad2a4a7b53b7fe1bf475b4538690bbfb55dd135d5d06e2",
+    "tests": 2,
+    "passed": 2,
     "failed": 0,
     "errors": 0,
-    "duration_s": 13.9
-   },
-   "clean_head_control": {
-    "report": "temp/build/v2-full-165-clean-head.xml",
-    "report_sha256": "9150376d97ddf2aa90a3b22b5baaca61d2060337f60572056aaf46918c900e12",
-    "method": "git worktree at HEAD (0e87c32) with the main interpreter and PYTHONPATH pointed at the copy, so neither the parallel session's uncommitted files nor this batch's worktree edits are present",
-    "runs": 3,
-    "outcomes": [
-     "passed (13.80s)",
-     "failed (15.17s)",
-     "passed (10.53s)"
-    ],
-    "conclusion": "the case is flaky on clean HEAD itself, independent of this batch and of the parallel session"
+    "duration_s": 16.86
    },
    "details": [
-    "并行跑唯一失败 test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels：查询共享状态后仍显示 portal_consent_pending，未在 5 秒内转为已授权",
-    "串行复跑通过（13.90s）；随后在主工作区隔离重跑两次却失败，且症状不同（一次仍是 portal_consent_pending，一次是 #model 输入框 30 秒未启用），说明不能简单归为 -n 2 争用",
-    "为定位归属，在 HEAD 建临时 git worktree 干净副本（不含并行会话未提交改动、也不含本批工作区编辑），同一用例连跑三次结果为 通过/失败/通过 —— 该用例在干净 HEAD 上本身即不稳定",
-    "结论：属既有 flaky 用例，非本批（161～165）回归；本批只改 persistence 层，未触及 portal/desktop 路径。临时副本已用 git worktree remove 清除，并行会话未提交改动完整保留",
-    "过程更正：曾因干净副本首跑通过而一度判为并行会话在途改动所致，第二次失败即推翻该判断，最终以三次对照的结果为准；不把单次通过当作稳定证据"
+    "总数 4658 较第 25 节点 +2：并行 UI 会话在提交 bd603147（本机启动即用）中新增了用例，非本会话改动",
+    "test_ui_glass_tokens::test_no_dangling_css_variables 与 test_no_second_accent_color：违规均在 web/ui/v2/workbench.css —— 悬空变量 --r-xs（114 行）与未登记颜色 #767676（22 行）。git diff 证实两处都是并行 UI 会话**未提交**的新增行（+332 行改动的一部分）；HEAD 版本无违规。串行与隔离复跑仍失败（静态守卫读工作区文件，确定性失败，不是抖动）。归属并行 UI 会话，不由本类型化任务代改其文件",
+    "test_v2_model_stream_ui[light-390]（#model-live 未转可见）与 test_v2_memory_organization_ui[two_agents]（candidates 空列表）：串行复跑通过，再隔离复跑也通过，判定为 -n 2 Playwright 争用抖动，非功能缺陷",
+    "第 25 节点的 portal_ui flaky 用例本次并行通过（与其既有 flaky 定性一致，未再复现）",
+    "结论：本批（166～170）无功能回归；2 项真实守卫违规归并行 UI 会话未提交改动，2 项为并发抖动"
    ],
-   "note": "第 25 节点（161～165 批）全量。验收口径：并行跑 + 失败项串行复跑 + 干净 HEAD 多次对照，全部报告留档；不将串行通过写成并行全绿（并行仍记 1 failed），不把既有 flaky 写成本批回归，也不把单次对照结果当作结论。strict 289 文件 0 errors/0 warnings。"
+   "note": "第 30 节点（166～170 批）全量。验收口径：并行跑 + 失败项串行复跑 + UI 项隔离复跑，全部报告留档；不将串行/隔离通过写成并行全绿（并行仍记 4 failed），不把他方未提交改动的确定性守卫失败写成抖动，也不将他人会话的违规写成本批回归。strict 294 文件 0 errors/0 warnings。"
   },
   "open_findings": [
-   {
-    "id": "ui.embed_guard_violation_v1_frame_copy",
-    "owner": "parallel-ui-session",
-    "state": "closed_in_worktree_check_pending",
-    "detail": "节点 20 登记的 embed 副本守卫违规：本次全量该守卫已通过，web/ui/v2/v1/frame.css 的副本已由 UI 会话在其工作区移除；是否已提交需由其自行确认。",
-    "introduced_by": "0497fe8"
-   },
    {
     "id": "test.portal_ui_flaky_on_clean_head",
     "owner": "shared-test-suite",
     "state": "open",
     "detail": "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels 在干净 HEAD 上连跑三次为 通过/失败/通过，两种症状：portal_consent_pending 未在 5 秒内转 active，以及 #model 输入框 30 秒未启用。属既有用例稳定性问题，非本类型化任务引入；建议由门户/桌面用例负责人加固等待条件或注入确定性时钟。",
     "evidence": "temp/build/v2-full-165.xml, v2-full-165-serial.xml, v2-full-165-clean-head.xml"
+   },
+   {
+    "id": "ui.glass_tokens_violations_workbench_uncommitted",
+    "owner": "parallel-ui-session",
+    "state": "open_in_worktree_uncommitted",
+    "detail": "web/ui/v2/workbench.css 的未提交改动（+332 行）引入悬空变量 --r-xs 与未登记颜色 #767676，触发 test_ui_glass_tokens 两项守卫确定性失败（串行/隔离均失败）。HEAD 无违规。归并行 UI 会话修正后提交；本类型化任务不代改其文件。",
+    "evidence": "temp/build/v2-full-170.xml, v2-full-170-serial.xml"
    }
   ],
   "next": {
@@ -1890,6 +1888,50 @@
      "结论：本批（156～160）无功能回归；该守卫项仍未在版本库层面关闭，取决于 UI 会话提交其工作区修复"
     ],
     "note": "第 20 节点（156～160 批）全量。验收口径：并行跑 + 失败项串行复跑，两份报告留档；不将串行通过写成并行全绿（并行仍记 1 failed），不把他方未提交工作区导致的转绿写成抖动或已修复，也不将他人会话引入的守卫违规写成本批回归。strict 284 文件 0 errors/0 warnings。"
+   },
+   {
+    "status": "parallel_run_serial_rerun_with_preexisting_flaky_portal_ui",
+    "source": "d20e404 (abd9d596); worktree also carries the parallel UI session's uncommitted local-bootstrap changes",
+    "workers": 2,
+    "report": "temp/build/v2-full-165.xml",
+    "report_sha256": "04d5e4890ccc14771de3e6ddffcf8b158616f8fbe0fa0993640670d088638a91",
+    "tests": 4656,
+    "passed": 4655,
+    "failed": 1,
+    "errors": 0,
+    "duration_s": 2830.94,
+    "failure_summary": {
+     "preexisting_flaky_portal_ui": 1
+    },
+    "serial_rerun": {
+     "report": "temp/build/v2-full-165-serial.xml",
+     "report_sha256": "80d6e427d5c3234a9e17a03e5eeb8c129e4094a44bc5fe0cc3d0963f26e6be7f",
+     "tests": 1,
+     "passed": 1,
+     "failed": 0,
+     "errors": 0,
+     "duration_s": 13.9
+    },
+    "clean_head_control": {
+     "report": "temp/build/v2-full-165-clean-head.xml",
+     "report_sha256": "9150376d97ddf2aa90a3b22b5baaca61d2060337f60572056aaf46918c900e12",
+     "method": "git worktree at HEAD (0e87c32) with the main interpreter and PYTHONPATH pointed at the copy, so neither the parallel session's uncommitted files nor this batch's worktree edits are present",
+     "runs": 3,
+     "outcomes": [
+      "passed (13.80s)",
+      "failed (15.17s)",
+      "passed (10.53s)"
+     ],
+     "conclusion": "the case is flaky on clean HEAD itself, independent of this batch and of the parallel session"
+    },
+    "details": [
+     "并行跑唯一失败 test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels：查询共享状态后仍显示 portal_consent_pending，未在 5 秒内转为已授权",
+     "串行复跑通过（13.90s）；随后在主工作区隔离重跑两次却失败，且症状不同（一次仍是 portal_consent_pending，一次是 #model 输入框 30 秒未启用），说明不能简单归为 -n 2 争用",
+     "为定位归属，在 HEAD 建临时 git worktree 干净副本（不含并行会话未提交改动、也不含本批工作区编辑），同一用例连跑三次结果为 通过/失败/通过 —— 该用例在干净 HEAD 上本身即不稳定",
+     "结论：属既有 flaky 用例，非本批（161～165）回归；本批只改 persistence 层，未触及 portal/desktop 路径。临时副本已用 git worktree remove 清除，并行会话未提交改动完整保留",
+     "过程更正：曾因干净副本首跑通过而一度判为并行会话在途改动所致，第二次失败即推翻该判断，最终以三次对照的结果为准；不把单次通过当作稳定证据"
+    ],
+    "note": "第 25 节点（161～165 批）全量。验收口径：并行跑 + 失败项串行复跑 + 干净 HEAD 多次对照，全部报告留档；不将串行通过写成并行全绿（并行仍记 1 failed），不把既有 flaky 写成本批回归，也不把单次对照结果当作结论。strict 289 文件 0 errors/0 warnings。"
    }
   ],
   "scope": [
