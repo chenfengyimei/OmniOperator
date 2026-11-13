@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b448db2e8e30976b314b6943b82738bfa4dbbdc2b352318260b4131f3caac19d",
+  "source_sha256": "5798c759412454e9fb67ee47572d7bf95eb47a5a5696dd06ece2d30de594c04b",
   "modules": [
     {
       "id": "v2-domain",
@@ -439,7 +439,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 3030,
+      "lines": 3033,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -495,7 +495,7 @@
         "web/ui/v2/tokens.js",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 14151,
+      "lines": 14251,
       "dependencies": []
     },
     {
@@ -58863,7 +58863,7 @@
       "path": "agent/src/omni/composition/http.py",
       "module": "v2-composition",
       "python_module": "omni.composition.http",
-      "lines": 233,
+      "lines": 236,
       "imports": [
         "omni.adapters.http",
         "omni.adapters.log_query",
@@ -58880,14 +58880,14 @@
       "symbols": [
         {
           "name": "web_assets",
-          "line": 38,
+          "line": 39,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "http_app",
-          "line": 46,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "home",
@@ -58932,13 +58932,13 @@
             "terminal_backend": "TerminalBackendPort | None",
             "desktop_backend": "DesktopBackendPort | None",
             "portal_backend": "DesktopPortalPort | None",
-            "deployment": "dict[str, Any] | None",
+            "deployment": "Record | None",
             "shutdown": "Callable[[], None] | None"
           }
         },
         {
           "name": "http_app.factory",
-          "line": 70,
+          "line": 71,
           "kind": "function",
           "parameters": [],
           "annotations": {}
@@ -95494,7 +95494,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1485,
+      "lines": 1503,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95684,7 +95684,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 2281,
+      "lines": 2363,
       "imports": [],
       "symbols": [],
       "kind": "asset",

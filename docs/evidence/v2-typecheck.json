@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "b41e6b49f5a5e336ed9017de54e0ef2ba9a37e81f442d36dc5407d262a2ca593",
+  "code_version": "acd1565a633089ae8af017a6b55010eed4644427d47f8e38819522013d035c49",
   "fixed_source_files": 1203,
-  "git_head": "9f8f1f2",
+  "git_head": "0164f79",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -163,11 +163,12 @@
    "Strict scope reaches 260 files (53 domain + 43 application + 160 adapters + 4 composition); the three service command modules (cleanup/operations/runner) type their close callback, operation records and pinned startup fields with explicit casts; approval, plan/journal and no-native-registration rules are unchanged",
    "Strict scope reaches 263 files (53 domain + 43 application + 160 adapters + 7 composition); capabilities, releases and service_exchange type their spec list, close callbacks and plan lookups, and the ReleaseData adapter now matches ReleaseDataPort signatures; approval/plan/journal rules unchanged",
    "Strict scope reaches 264 files (53 domain + 43 application + 160 adapters + 8 composition); lifecycle parameterises its joinable close tasks, narrows the dict branch of _successful and casts shutdown receipts to Record; the bounded-budget and residual-ownership rules are unchanged",
-   "Strict scope reaches 265 files (53 domain + 43 application + 160 adapters + 9 composition); the instance composition root types its identity/health/shutdown receipts as explicit Record, narrows the operational health projection layer by layer, pins the Bilibili/media port injections and bridges the untyped local-vector dimension through a local Any view; UnitOfWork gains the audit declaration already implemented by RepositoryBase; assembly, approval and bounded-shutdown rules are unchanged"
+   "Strict scope reaches 265 files (53 domain + 43 application + 160 adapters + 9 composition); the instance composition root types its identity/health/shutdown receipts as explicit Record, narrows the operational health projection layer by layer, pins the Bilibili/media port injections and bridges the untyped local-vector dimension through a local Any view; UnitOfWork gains the audit declaration already implemented by RepositoryBase; assembly, approval and bounded-shutdown rules are unchanged",
+   "Strict scope reaches 266 files (53 domain + 43 application + 160 adapters + 10 composition); the HTTP composition root replaces private instance members with the database/logging/identity_files/lifetime read-only accessors, types the token-session/rotation/logs/drain/shutdown receipts as explicit Record and bridges the untyped request_drain signature through a local Any view; token publication, drain authorization and bounded-shutdown rules are unchanged"
   ],
   "pending": [
    "application 43/44 and adapters 160/222 strict typing",
-   "composition layer: 9 of 13 modules in strict scope",
+   "composition layer: 10 of 13 modules in strict scope",
    "Workbench redesign UI suite rerun after the parallel session lands",
    "Three-platform packaging/install/update/restore and real-environment acceptance"
   ]
@@ -175,8 +176,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-142-callers.xml",
-   "tests": 100,
+   "report": "temp/build/v2-typecheck-143-callers.xml",
+   "tests": 70,
    "failures": 0
   },
   "targeted_reports": [
@@ -1465,6 +1466,15 @@
     "errors": 0,
     "duration_s": 135.16,
     "note": "P1 instance batch: composition root + guard/arch/lifecycle/cold-start/bilibili/media/service-runtime/android callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-143-callers.xml",
+    "sha256": "2c51808cda987958fec953dad223222192cbd0ee602b4656c7ec433bd65f043d",
+    "tests": 70,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 47.77,
+    "note": "P1 http batch: HTTP composition root + guard/arch/http/owner-token/service-identity/service-drain callers"
    }
   ],
   "gates": {
@@ -1476,7 +1486,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 265,
+    "filesAnalyzed": 266,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1484,14 +1494,13 @@
   },
   "default_pyright": {
    "summary": {
-    "filesAnalyzed": 2,
+    "filesAnalyzed": 1,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/composition/instance.py",
-    "agent/src/omni/application/ports.py"
+    "agent/src/omni/composition/http.py"
    ]
   },
   "full_run": {
