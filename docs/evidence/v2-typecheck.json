@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 171,
+ "batch": 172,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "cc7edfb3f7632533949ebf7fb413ff9200b44c6bc946e7a0802c67742c05159c",
+  "code_version": "83b6fbd392b55e162fe7d41315130dd72a981fe84a55fb4dbdd7bdf4f5be3b51",
   "fixed_source_files": 1206,
-  "git_head": "298c3df",
+  "git_head": "fa35fb6",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,15 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 171,
+   "batch": 172,
    "sources": [
-    "agent/src/omni/adapters/persistence/execution_retention_repository.py"
+    "agent/src/omni/adapters/persistence/action_review_repository.py"
    ],
-   "report": "temp/build/v2-typecheck-171-callers.xml",
-   "tests": 112
+   "report": "temp/build/v2-typecheck-172-callers.xml",
+   "tests": 71,
+   "passed": 70,
+   "failed": 1,
+   "failure_attribution": "test_v2_action_review_ui[two_agents] (#agents select not visible): fails isolated in the main worktree, passes on a clean HEAD worktree, and passes on clean HEAD plus this batch's source file — attributed to the parallel UI session's uncommitted front-end changes, not this batch; isolation report temp/build/v2-typecheck-172-ui-retry.xml"
   },
   "targeted_reports": [
    {
@@ -1747,6 +1750,16 @@
     "errors": 0,
     "duration_s": 202.31,
     "note": "P3 execution_retention_repository batch: execution-body eligibility, pins and prune progress + guard/arch/execution-pruning/pruning-crash/retention-preview callers plus audit-retention and event-pruning suites covering the shared protection helper; covers pending-plan target ownership until explicit cancellation"
+   },
+   {
+    "path": "temp/build/v2-typecheck-172-callers.xml",
+    "sha256": "06a0e1916f8c053e8115675e50e18dad9f32fe451fe03e9553df6b2a5e5d6e01",
+    "tests": 71,
+    "passed": 70,
+    "failures": 1,
+    "errors": 0,
+    "duration_s": 96.11,
+    "note": "P3 action_review_repository batch: owner observation ledger + guard/arch and all seven action-review suites (repository/execution/contract/workers/http/migration/ui); the single ui failure is attributed to the parallel UI session's uncommitted changes via clean-HEAD and clean-HEAD-plus-batch-source controls (temp/build/v2-typecheck-172-ui-retry.xml)"
    }
   ],
   "gates": {
@@ -1758,7 +1771,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 295,
+    "filesAnalyzed": 296,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1831,6 +1844,13 @@
     "state": "open_in_worktree_uncommitted",
     "detail": "web/ui/v2/workbench.css 的未提交改动（+332 行）引入悬空变量 --r-xs 与未登记颜色 #767676，触发 test_ui_glass_tokens 两项守卫确定性失败（串行/隔离均失败）。HEAD 无违规。归并行 UI 会话修正后提交；本类型化任务不代改其文件。",
     "evidence": "temp/build/v2-full-170.xml, v2-full-170-serial.xml"
+   },
+   {
+    "id": "ui.agents_select_hidden_worktree_uncommitted",
+    "owner": "parallel-ui-session",
+    "state": "open_in_worktree_uncommitted",
+    "detail": "test_v2_action_review_ui[two_agents] 在主工作区失败（#agents 选择器不可见，30s 超时），干净 HEAD 通过、干净 HEAD+第 172 批源码也通过；归并行 UI 会话未提交前端改动（bd603147 后续在途编辑）。本类型化任务不代改其文件。",
+    "evidence": "temp/build/v2-typecheck-172-callers.xml, v2-typecheck-172-ui-retry.xml"
    }
   ],
   "next": {
@@ -1954,7 +1974,8 @@
    "Strict scope reaches 292 files (53 domain + 44 application + 182 adapters + 13 composition); the terminal intent and immutable-receipt repository aligns session/operation/replay/open receipts with the port Record contract, keeps request and spec parameters at Record to match the port, narrows revisions to int before incrementing, narrows parse_open's shell/cols/rows/operation_id at each use and narrows the nested settings value before reading workspace; boot ownership, permission epochs, refusing control while cleanup is pending, refusing cleanup authority from a foreign boot, immutability of settled observations and recovery always marking unknown without replay are unchanged, and the module still opens no native process and stores no terminal bodies",
    "Strict scope reaches 293 files (53 domain + 44 application + 183 adapters + 13 composition); the memory truth/evidence/revision/erasure repository aligns remember/revise/history/search receipts with the port Record contract, returns Record from _live_person, narrows source sequences and context-floor comparisons to int, narrows document evidence range bounds to int, narrows the action result and its nested data before reading erased, and types the forget traversal sets and tombstone hash set as set[str]; the single-source constraint, refusing model writes that would revive forgotten content, refusing citations after erasure, hash-only tombstones without raw quotes and immutability of erased memories are unchanged",
    "Strict scope reaches 294 files (53 domain + 44 application + 184 adapters + 13 composition); the immutable form-revision and publication repository aligns receipts with Record while keeping forms and mentions parameters exactly at the port's dict[str, object] and list[dict[str, object]] widths rather than Record, keeps validated forms/mentions in separate locals so parameter types are not overwritten, narrows publication ids, account, revision ids and the body hash at each use, and bridges the routing mixin through a local Any view; idempotency-key conflicts, refusing remote QQ output as a publication, refusing unreviewed forms, mention-component evidence requirements, no private-message mentions and the per-field ownership/approval-deadline dispatch checks are unchanged",
-   "Strict scope reaches 295 files (53 domain + 44 application + 185 adapters + 13 composition); the execution-body retention repository aligns pin/inspect/plan/batch/prepare/prune/complete/cancel/preview receipts with the port Record contract, types the shared protection-reason list as list[str], narrows the ended-at comparison to str and casts plans to dict[str, object] at the domain validate_retention_plan boundary because Record (dict[str, JSON]) does not auto-satisfy the wider parameter; terminal-state/30-day-window/pin/pending-approval/unresolved-action/model-cost/work-item/lease/outbound/memory-source/document-source/pinned-artifact protections, cross-batch holding, fingerprint checks, immutable identities and ledgers, and cancel-without-body-restore are unchanged"
+   "Strict scope reaches 295 files (53 domain + 44 application + 185 adapters + 13 composition); the execution-body retention repository aligns pin/inspect/plan/batch/prepare/prune/complete/cancel/preview receipts with the port Record contract, types the shared protection-reason list as list[str], narrows the ended-at comparison to str and casts plans to dict[str, object] at the domain validate_retention_plan boundary because Record (dict[str, JSON]) does not auto-satisfy the wider parameter; terminal-state/30-day-window/pin/pending-approval/unresolved-action/model-cost/work-item/lease/outbound/memory-source/document-source/pinned-artifact protections, cross-batch holding, fingerprint checks, immutable identities and ledgers, and cancel-without-body-restore are unchanged",
+   "Strict scope reaches 296 files (53 domain + 44 application + 186 adapters + 13 composition); the owner-observation ledger aligns action/source/proof/head/public/detail/page/replay/commit receipts with the port Record contract, uses a tcast alias because sqlalchemy already owns the name cast in this module, types computed column labels as Column[int] and dynamic field selection as Column[str], and keeps the detail dict as dict[str, object] to hold the history list before narrowing at return; unknown preservation without touching the original action, oversized-observation offline refusal, per-field plugin identity checks, fingerprint/epoch conflict refusal, replay immutability and evidence hashing with audit trail are unchanged"
   ]
  },
  "source_recovery": {

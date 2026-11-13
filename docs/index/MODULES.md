@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`71068795d04a20da244ef9121c720fbc16b429001ba54ca9ce75894be24bcc84`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`ad26991e08afe15c56ed06aa03b3d4cdde4b3adc2e0ce177577d66ad07b838be`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -165,7 +165,7 @@
 | [agent/src/omni/adapters/onebot.py](../../agent/src/omni/adapters/onebot.py) | 186 | V2 OneBot v11 text transport; no V1 runtime, database access or automatic write replay. |
 | [agent/src/omni/adapters/persistence/__init__.py](../../agent/src/omni/adapters/persistence/__init__.py) | 1 | Only this package owns application SQL, connections and schema evolution. |
 | [agent/src/omni/adapters/persistence/action_predicates.py](../../agent/src/omni/adapters/persistence/action_predicates.py) | 65 | One current owner-resolution predicate; never rewrites raw action observations or acknowledges model costs. |
-| [agent/src/omni/adapters/persistence/action_review_repository.py](../../agent/src/omni/adapters/persistence/action_review_repository.py) | 426 | Owner observation ledger for uncertain actions; original actions, costs and delivery state remain unchanged. |
+| [agent/src/omni/adapters/persistence/action_review_repository.py](../../agent/src/omni/adapters/persistence/action_review_repository.py) | 446 | Owner observation ledger for uncertain actions; original actions, costs and delivery state remain unchanged. |
 | [agent/src/omni/adapters/persistence/android_repository.py](../../agent/src/omni/adapters/persistence/android_repository.py) | 295 | Device grants bind immutable configuration/device identities; actions remain in the shared ledger. |
 | [agent/src/omni/adapters/persistence/android_unicode_repository.py](../../agent/src/omni/adapters/persistence/android_unicode_repository.py) | 251 | Immutable helper profiles and durable IME restoration obligations; input truth stays in actions. |
 | [agent/src/omni/adapters/persistence/audit_pruning.py](../../agent/src/omni/adapters/persistence/audit_pruning.py) | 56 | Offline audit-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |

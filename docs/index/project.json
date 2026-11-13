@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "71068795d04a20da244ef9121c720fbc16b429001ba54ca9ce75894be24bcc84",
+  "source_sha256": "ad26991e08afe15c56ed06aa03b3d4cdde4b3adc2e0ce177577d66ad07b838be",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53828,
+      "lines": 53848,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -10886,10 +10886,11 @@
       "path": "agent/src/omni/adapters/persistence/action_review_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.action_review_repository",
-      "lines": 426,
+      "lines": 446,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
+        "omni.application.ports",
         "omni.domain.action_review",
         "omni.domain.contracts",
         "omni.domain.retention"
@@ -10897,12 +10898,12 @@
       "symbols": [
         {
           "name": "ActionReviewRepositories",
-          "line": 40,
+          "line": 42,
           "kind": "class"
         },
         {
           "name": "ActionReviewRepositories._action_review_agent",
-          "line": 41,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "self",
@@ -10914,7 +10915,7 @@
         },
         {
           "name": "ActionReviewRepositories._action_review_action",
-          "line": 45,
+          "line": 47,
           "kind": "function",
           "parameters": [
             "self",
@@ -10928,31 +10929,31 @@
         },
         {
           "name": "ActionReviewRepositories._action_review_source",
-          "line": 61,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "self",
             "action"
           ],
           "annotations": {
-            "action": "dict"
+            "action": "Record"
           }
         },
         {
           "name": "ActionReviewRepositories._action_review_proof",
-          "line": 106,
+          "line": 111,
           "kind": "function",
           "parameters": [
             "self",
             "action"
           ],
           "annotations": {
-            "action": "dict"
+            "action": "Record"
           }
         },
         {
           "name": "ActionReviewRepositories._action_review_head",
-          "line": 163,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -10960,25 +10961,25 @@
             "proof"
           ],
           "annotations": {
-            "action": "dict",
-            "proof": "dict | None"
+            "action": "Record",
+            "proof": "Record | None"
           }
         },
         {
           "name": "ActionReviewRepositories._action_review_public",
-          "line": 215,
+          "line": 220,
           "kind": "function",
           "parameters": [
             "self",
             "review"
           ],
           "annotations": {
-            "review": "dict"
+            "review": "Record"
           }
         },
         {
           "name": "ActionReviewRepositories.action_review_history",
-          "line": 235,
+          "line": 243,
           "kind": "function",
           "parameters": [
             "self",
@@ -10996,7 +10997,7 @@
         },
         {
           "name": "ActionReviewRepositories._action_review_detail",
-          "line": 251,
+          "line": 259,
           "kind": "function",
           "parameters": [
             "self",
@@ -11012,7 +11013,7 @@
         },
         {
           "name": "ActionReviewRepositories.action_review_get",
-          "line": 305,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self",
@@ -11026,7 +11027,7 @@
         },
         {
           "name": "ActionReviewRepositories.action_review_page",
-          "line": 308,
+          "line": 316,
           "kind": "function",
           "parameters": [
             "self",
@@ -11042,7 +11043,7 @@
         },
         {
           "name": "ActionReviewRepositories.action_review_replay",
-          "line": 327,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "self",
@@ -11053,12 +11054,12 @@
           "annotations": {
             "agent_id": "str",
             "action_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         },
         {
           "name": "ActionReviewRepositories.action_review_commit",
-          "line": 349,
+          "line": 363,
           "kind": "function",
           "parameters": [
             "self",
@@ -11069,7 +11070,7 @@
           "annotations": {
             "agent_id": "str",
             "action_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         }
       ],
