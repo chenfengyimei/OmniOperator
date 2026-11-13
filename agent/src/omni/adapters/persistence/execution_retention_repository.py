@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from itertools import chain
+from typing import cast
 
 from sqlalchemy import insert, or_, select, update
 
@@ -24,7 +25,7 @@ from .repository_base import RepositoryBase
 
 
 class ExecutionRetentionRepositories(RepositoryBase):
-    def retention_pin(self, agent_id: str, run_id: str, pinned: bool, revision: int) -> dict:
+    def retention_pin(self, agent_id: str, run_id: str, pinned: bool, revision: int) -> Record:
         row = self._one(s.runs, agent_id, run_id)
         if row["body_pruned_at"]:
             raise BusinessError(
@@ -49,11 +50,11 @@ class ExecutionRetentionRepositories(RepositoryBase):
         self, row: Record, cutoff: str, batch_id: str = "", *, event_batch_id: str = ""
     ) -> list[str]:
         """Shared business protections without loading or hashing execution bodies."""
-        agent_id, run_id = row["agent_id"], row["id"]
-        reasons = []
+        agent_id, run_id = cast(str, row["agent_id"]), cast(str, row["id"])
+        reasons: list[str] = []
         if row["state"] not in TERMINAL_RUNS:
             reasons.append("run_not_terminal")
-        if not row["ended_at"] or row["ended_at"] > cutoff:
+        if not row["ended_at"] or cast(str, row["ended_at"]) > cutoff:
             reasons.append("within_body_retention")
         if row["retention_pinned"]:
             reasons.append("run_pinned")
@@ -121,7 +122,7 @@ class ExecutionRetentionRepositories(RepositoryBase):
                 reasons.append(reason)
         return reasons
 
-    def retention_inspect(self, agent_id: str, run_id: str, *, cutoff: str | None = None, batch_id: str = "") -> dict:
+    def retention_inspect(self, agent_id: str, run_id: str, *, cutoff: str | None = None, batch_id: str = "") -> Record:
         row = self._one(s.runs, agent_id, run_id)
         cutoff = cutoff or retention_cutoff(self.clock.now())
         reasons = self._retention_protections(row, cutoff, batch_id)
@@ -139,59 +140,68 @@ class ExecutionRetentionRepositories(RepositoryBase):
                 ({"kind": "event", **dict(item)} for item in event_rows),
             )
         )
-        return {
-            "run_id": run_id,
-            "agent_id": agent_id,
-            "state": row["state"],
-            "ended_at": row["ended_at"],
-            "retention_pinned": row["retention_pinned"],
-            "retention_revision": row["retention_revision"],
-            "body_pruned_at": row["body_pruned_at"],
-            "body_pruned_plan_id": row["body_pruned_plan_id"],
-            "policy": RETENTION_POLICY,
-            "cutoff": cutoff,
-            "eligible": not reasons,
-            "protected_reasons": reasons,
-            "fingerprint": fingerprint,
-            "fingerprinted_records": records,
-            "fingerprinted_bytes": size,
-            "can_apply": False,
-        }
+        return cast(
+            Record,
+            {
+                "run_id": run_id,
+                "agent_id": agent_id,
+                "state": row["state"],
+                "ended_at": row["ended_at"],
+                "retention_pinned": row["retention_pinned"],
+                "retention_revision": row["retention_revision"],
+                "body_pruned_at": row["body_pruned_at"],
+                "body_pruned_plan_id": row["body_pruned_plan_id"],
+                "policy": RETENTION_POLICY,
+                "cutoff": cutoff,
+                "eligible": not reasons,
+                "protected_reasons": reasons,
+                "fingerprint": fingerprint,
+                "fingerprinted_records": records,
+                "fingerprinted_bytes": size,
+                "can_apply": False,
+            },
+        )
 
-    def retention_plan(self, after: str = "", limit: int = 20) -> dict:
+    def retention_plan(self, after: str = "", limit: int = 20) -> Record:
         preview = self.retention_preview(after, limit)
         targets = [
             {key: row[key] for key in ("agent_id", "run_id", "fingerprint", "retention_revision")}
-            for row in preview["items"]
+            for row in cast(list[Record], preview["items"])
             if row["eligible"]
         ]
         if not targets:
             raise BusinessError(
                 "no_retention_candidates", "No eligible bodies in this page; inspect the preview cursor"
             )
-        return {
-            "format": PLAN_FORMAT,
-            "id": self.ids.new(),
-            **{key: preview[key] for key in ("instance_id", "schema_version", "policy", "created_at", "cutoff")},
-            "targets": targets,
-        }
+        return cast(
+            Record,
+            {
+                "format": PLAN_FORMAT,
+                "id": self.ids.new(),
+                **{key: preview[key] for key in ("instance_id", "schema_version", "policy", "created_at", "cutoff")},
+                "targets": targets,
+            },
+        )
 
-    def retention_batch(self, identity: str) -> dict | None:
+    def retention_batch(self, identity: str) -> Record | None:
         row = (
             self.connection.execute(select(s.retention_batches).where(s.retention_batches.c.id == identity))
             .mappings()
             .first()
         )
-        return dict(row) if row else None
+        return cast(Record, dict(row)) if row else None
 
-    def _retention_target(self, plan: dict, target: dict) -> bool:
-        run = self._one(s.runs, target["agent_id"], target["run_id"])
+    def _retention_target(self, plan: Record, target: Record) -> bool:
+        run = self._one(s.runs, cast(str, target["agent_id"]), cast(str, target["run_id"]))
         if run["body_pruned_at"]:
             if run["body_pruned_plan_id"] != plan["id"] or run["body_sha256"] != target["fingerprint"]:
                 raise BusinessError("retention_conflict", "Run was pruned by another plan")
             return False
         current = self.retention_inspect(
-            target["agent_id"], target["run_id"], cutoff=plan["cutoff"], batch_id=plan["id"]
+            cast(str, target["agent_id"]),
+            cast(str, target["run_id"]),
+            cutoff=cast(str, plan["cutoff"]),
+            batch_id=cast(str, plan["id"]),
         )
         if not current["eligible"] or any(current[key] != target[key] for key in ("fingerprint", "retention_revision")):
             raise BusinessError(
@@ -199,24 +209,24 @@ class ExecutionRetentionRepositories(RepositoryBase):
             )
         return True
 
-    def retention_validate(self, plan: dict) -> None:
-        validate_retention_plan(plan, self.clock.now())
+    def retention_validate(self, plan: Record) -> None:
+        validate_retention_plan(cast(dict[str, object], plan), self.clock.now())
         instance = self.connection.execute(select(s.instances.c.id).where(s.instances.c.slot == 1)).scalar_one()
         version = self.connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
         if plan["instance_id"] != instance or plan["schema_version"] != version:
             raise BusinessError("retention_identity_mismatch", "Plan belongs to another instance or schema")
-        batch = self.retention_batch(plan["id"])
+        batch = self.retention_batch(cast(str, plan["id"]))
         if batch and batch["plan_sha256"] != body_fingerprint([plan])[0]:
             raise BusinessError("retention_conflict", "Persisted plan identity cannot be changed")
         if batch and batch["state"] == "cancelled":
             raise BusinessError("retention_cancelled", "This plan was cancelled; preview and create a new plan")
-        for target in plan["targets"]:
+        for target in cast(list[Record], plan["targets"]):
             if not self._retention_target(plan, target) and not batch:
                 raise BusinessError("retention_conflict", "Prune marker has no matching batch")
 
-    def retention_prepare(self, plan: dict, backup_path: str, backup_sha256: str) -> dict:
+    def retention_prepare(self, plan: Record, backup_path: str, backup_sha256: str) -> Record:
         self.retention_validate(plan)
-        batch = self.retention_batch(plan["id"])
+        batch = self.retention_batch(cast(str, plan["id"]))
         if batch:
             if batch["backup_path"] != backup_path or batch["backup_sha256"] != backup_sha256:
                 raise BusinessError("retention_backup_changed", "Resume requires the original verified backup")
@@ -235,12 +245,12 @@ class ExecutionRetentionRepositories(RepositoryBase):
                 "state": "prepared",
             },
         )
-        for target in plan["targets"]:
+        for target in cast(list[Record], plan["targets"]):
             self.connection.execute(insert(s.retention_targets).values(batch_id=plan["id"], state="pending", **target))
             self.audit(
-                target["agent_id"],
+                cast(str, target["agent_id"]),
                 "retention.prepared",
-                plan["id"],
+                cast(str, plan["id"]),
                 {
                     "run_id": target["run_id"],
                     "fingerprint": target["fingerprint"],
@@ -249,12 +259,12 @@ class ExecutionRetentionRepositories(RepositoryBase):
             )
         return batch
 
-    def retention_prune(self, plan: dict, target: dict) -> None:
-        batch = self.retention_batch(plan["id"])
+    def retention_prune(self, plan: Record, target: Record) -> None:
+        batch = self.retention_batch(cast(str, plan["id"]))
         if (
             not batch
-            or batch["plan_sha256"] != validate_retention_plan(plan, self.clock.now())
-            or target not in plan["targets"]
+            or batch["plan_sha256"] != validate_retention_plan(cast(dict[str, object], plan), self.clock.now())
+            or target not in cast(list[Record], plan["targets"])
         ):
             raise BusinessError("retention_conflict", "A matching prepared batch is required")
         item = (
@@ -277,7 +287,7 @@ class ExecutionRetentionRepositories(RepositoryBase):
             select(s.actions).where(s.actions.c.run_id == target["run_id"])
         ).mappings():
             sha = body_fingerprint([{"result": action["result"]}])[0]
-            result = action["result"] if isinstance(action["result"], dict) else {}
+            result = cast(Record, action["result"]) if isinstance(action["result"], dict) else {}
             self.connection.execute(
                 update(s.actions)
                 .where(s.actions.c.id == action["id"])
@@ -298,7 +308,7 @@ class ExecutionRetentionRepositories(RepositoryBase):
             select(s.run_events).where(s.run_events.c.run_id == target["run_id"])
         ).mappings():
             sha = body_fingerprint([{"data": event["data"]}])[0]
-            payload = event["data"] if isinstance(event["data"], dict) else {}
+            payload = cast(Record, event["data"]) if isinstance(event["data"], dict) else {}
             identifiers = {
                 key: payload[key]
                 for key in (
@@ -342,9 +352,9 @@ class ExecutionRetentionRepositories(RepositoryBase):
             .values(state="pruned", pruned_at=now)
         )
         self.audit(
-            target["agent_id"],
+            cast(str, target["agent_id"]),
             "retention.pruned",
-            plan["id"],
+            cast(str, plan["id"]),
             {
                 "run_id": target["run_id"],
                 "fingerprint": target["fingerprint"],
@@ -352,7 +362,7 @@ class ExecutionRetentionRepositories(RepositoryBase):
             },
         )
 
-    def retention_complete(self, identity: str) -> dict:
+    def retention_complete(self, identity: str) -> Record:
         batch = self.retention_batch(identity)
         if not batch:
             raise BusinessError("not_found", "Retention batch does not exist", status=404)
@@ -376,10 +386,10 @@ class ExecutionRetentionRepositories(RepositoryBase):
             )
         return {"plan_id": identity, "complete": True, "backup_sha256": batch["backup_sha256"]}
 
-    def retention_cancel(self, plan: dict, reason: str) -> dict:
-        sha = validate_retention_plan(plan, self.clock.now(), allow_future=True)
-        batch = self.retention_batch(plan["id"])
-        if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 500:
+    def retention_cancel(self, plan: Record, reason: str) -> Record:
+        sha = validate_retention_plan(cast(dict[str, object], plan), self.clock.now(), allow_future=True)
+        batch = self.retention_batch(cast(str, plan["id"]))
+        if not isinstance(cast(object, reason), str) or not 1 <= len(reason.strip()) <= 500:
             raise BusinessError(
                 "invalid_retention_reason", "A cancellation reason of 1 to 500 characters is required", status=422
             )
@@ -404,11 +414,11 @@ class ExecutionRetentionRepositories(RepositoryBase):
                     completed_at=self.clock.now(),
                 )
             )
-            for target in plan["targets"]:
+            for target in cast(list[Record], plan["targets"]):
                 self.audit(
-                    target["agent_id"],
+                    cast(str, target["agent_id"]),
                     "retention.cancelled",
-                    plan["id"],
+                    cast(str, plan["id"]),
                     {
                         "run_id": target["run_id"],
                         "reason": reason.strip(),
@@ -417,7 +427,7 @@ class ExecutionRetentionRepositories(RepositoryBase):
                 )
         return {"plan_id": plan["id"], "cancelled": True, "bodies_restored": False}
 
-    def retention_preview(self, after: str = "", limit: int = 20) -> dict:
+    def retention_preview(self, after: str = "", limit: int = 20) -> Record:
         retention_page(after, limit)
         now = self.clock.now()
         cutoff = retention_cutoff(now)
@@ -429,18 +439,26 @@ class ExecutionRetentionRepositories(RepositoryBase):
                 .limit(limit + 1)
             )
         )
-        items = [self.retention_inspect(agent, identity, cutoff=cutoff) for agent, identity in rows[:limit]]
-        return {
-            "format": "omni-execution-retention-preview-1",
-            "policy": RETENTION_POLICY,
-            "instance_id": self.connection.execute(
-                select(s.instances.c.id).where(s.instances.c.slot == 1)
-            ).scalar_one(),
-            "schema_version": self.connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one(),
-            "created_at": now,
-            "cutoff": cutoff,
-            "items": items,
-            "next_after": rows[limit - 1].id if len(rows) > limit else None,
-            "scope": "Ended runs at least 30 days old; metadata only; preview cannot be applied",
-            "can_apply": False,
-        }
+        items = [
+            self.retention_inspect(cast(str, agent), cast(str, identity), cutoff=cutoff)
+            for agent, identity in rows[:limit]
+        ]
+        return cast(
+            Record,
+            {
+                "format": "omni-execution-retention-preview-1",
+                "policy": RETENTION_POLICY,
+                "instance_id": self.connection.execute(
+                    select(s.instances.c.id).where(s.instances.c.slot == 1)
+                ).scalar_one(),
+                "schema_version": self.connection.exec_driver_sql(
+                    "SELECT version_num FROM alembic_version"
+                ).scalar_one(),
+                "created_at": now,
+                "cutoff": cutoff,
+                "items": items,
+                "next_after": rows[limit - 1].id if len(rows) > limit else None,
+                "scope": "Ended runs at least 30 days old; metadata only; preview cannot be applied",
+                "can_apply": False,
+            },
+        )

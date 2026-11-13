@@ -40,6 +40,7 @@
     "agent/src/omni/adapters/persistence/deployed_instance.py",
     "agent/src/omni/adapters/persistence/event_pruning.py",
     "agent/src/omni/adapters/persistence/execution_pruning.py",
+    "agent/src/omni/adapters/persistence/execution_retention_repository.py",
     "agent/src/omni/adapters/persistence/history_protection.py",
     "agent/src/omni/adapters/persistence/history_pruning_cycle.py",
     "agent/src/omni/adapters/persistence/history_repository.py",
