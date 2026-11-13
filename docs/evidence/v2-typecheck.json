@@ -1456,29 +1456,30 @@
    ]
   },
   "full_run": {
-   "status": "windows_acceptance_run",
-   "source": "43c30de + parallel UI commits",
+   "status": "p0_parallel_run_with_ui_contention",
+   "source": "96d0e56 + parallel UI commits",
    "workers": 2,
-   "report": "temp/build/v2-full-143.xml",
+   "report": "temp/build/v2-full-144.xml",
    "tests": 4656,
-   "passed": 4655,
-   "failed": 1,
+   "passed": 4653,
+   "failed": 3,
    "errors": 0,
-   "duration_s": 2588.98,
+   "duration_s": 3505.71,
    "failure_summary": {
-    "load_dependent_flake": 1
+    "parallel_ui_contention": 3
    },
    "details": [
-    "test_v2_portal_ui::test_owner_selects_queries_captures_and_leaving_revokes_without_implicit_pixels — 整文件单独 -n 0 跑 1 passed（9.6s），属 -n 2 高负载下的采集时序抖动"
+    "test_ui_glass_tokens::test_breakpoints_are_only_900_760_520 — 运行时并行 UI 会话正在改 workbench.css，捕获到编辑中的瞬时状态；随后单独跑 10 项全过",
+    "test_v2_desktop_observation_native[act] 与 test_v2_memory_organization_ui — 并行争用抖动；串行分别 4 passed / 6 passed"
    ],
-   "note": "设计系统三处守卫、24 项 UI 回归、debug_sink 隔离、workbench 字体路由、资源版本硬编码均已修复；本轮只剩 1 项负载抖动，隔离通过。"
+   "note": "P0 结论：deployment_files 的绝对 import 已消除（47 错）；抖动只在 -n 2 资源争用时出现，串行全绿。"
   },
   "open_findings": [
    {
-    "id": "tests.load_dependent_flakes",
+    "id": "tests.parallel_ui_contention",
     "status": "open",
-    "scope": "-n 2 高负载下偶发：test_v2_service_runtime 真实 boot/锁、test_v2_skills_ui 两视口、test_v2_ui 390 视口、test_v2_portal_ui 采集时序；全部隔离 -n 0 通过，非功能缺陷。",
-    "first_report": "temp/build/v2-full-143.xml"
+    "scope": "Playwright 重度用例在 -n 2 下与并行 UI 会话的改文件动作叠加时偶发失败；portal_ui 1、skills_ui 8、service_runtime 24、desktop_observation_native 4 串行全过。xdist 分组实验未能消除（已回滚），后续按“并行跑 + 失败项串行复跑”作为验收口径。",
+    "first_report": "temp/build/v2-full-144.xml"
    }
   ]
  },

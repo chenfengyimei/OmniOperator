@@ -2,7 +2,6 @@
 
 import pytest
 
-pytestmark = pytest.mark.xdist_group("ui-sensitive")
 import test_v2_ui as shared_ui
 from playwright.sync_api import expect
 from test_v2_desktop_ui import open_desktop, probe
