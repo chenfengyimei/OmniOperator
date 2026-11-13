@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 from ..adapters.persistence.releases import ReleaseData
 from ..adapters.platform.deployment_files import CurrentDeploymentFiles
@@ -54,7 +55,9 @@ async def run_release(
                 "release_admin_source_changed",
                 "The read-only root query must bind the exact source uninstall operation",
             )
-        manager = PrivilegedServiceClient(operation, str(admin_socket.absolute()), admin_bundle_sha256)
+        manager = PrivilegedServiceClient(
+            cast(Record, operation), str(admin_socket.absolute()), admin_bundle_sha256
+        )
     else:
         manager = ServiceRegistration()
     drain = None
@@ -116,7 +119,7 @@ async def run_release(
         raise BusinessError("release_command_invalid", "Choose an explicit reviewed release command")
     finally:
 
-        async def close(budget: float) -> dict:
+        async def close(budget: float) -> Record:
             return {"complete": await service.close(budget), "residual": ["release_maintenance"]}
 
         await close_until_quiescent(close, 8)

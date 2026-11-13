@@ -6,8 +6,9 @@ import hashlib
 import os
 import stat
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, cast
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.releases import ReleasePlan, ReleasePrepared, ReleaseSnapshot, digest
 from ..platform.deployment_files import no_links
@@ -53,8 +54,8 @@ class ReleaseData:
     def __init__(self, files: ReleaseFiles) -> None:
         self.files = files
 
-    def schema_upgrade(self, source: dict[str, object], target: dict[str, object]) -> dict[str, object]:
-        return route(source, target)
+    def schema_upgrade(self, source: Record, target: Record) -> Record:
+        return cast(Record, route(cast(dict[str, object], source), cast(dict[str, object], target)))
 
     def source(self, plan: ReleasePlan) -> None:
         self.files.owned(plan)
@@ -70,13 +71,16 @@ class ReleaseData:
             schema_version=plan["source"]["runtime"]["schema_head"],
         )
 
-    def witness(self, plan: ReleasePlan, side: Literal["source", "target"]) -> list[dict[str, Any]]:
+    def witness(self, plan: ReleasePlan, side: str) -> list[dict[str, object]]:
         self.files.owned(plan)
         home = self.files.homes(plan)[0 if side == "source" else 1]
         # SQLite's read-only identity probe may create an empty WAL. Establish
         # that state before sealing the witness; never ignore real WAL changes.
+        side_plan = cast(Record, plan[side])
+        request = cast(Record, side_plan["request"])
+        runtime = cast(Record, side_plan["runtime"])
         verify_deployed_instance(
-            home.database, plan[side]["request"]["instance_id"], schema_version=plan[side]["runtime"]["schema_head"]
+            home.database, cast(str, request["instance_id"]), schema_version=cast(str, runtime["schema_head"])
         )
         return database_witness(home.home)
 

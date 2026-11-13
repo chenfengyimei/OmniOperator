@@ -180,7 +180,7 @@ async def run_exchange(
         raise BusinessError("service_exchange_command_invalid", "Choose an explicit exchange command")
     finally:
 
-        async def close(budget: float) -> dict:
+        async def close(budget: float) -> Record:
             return {"complete": await service.close(budget), "residual": ["service_exchange"]}
 
         await close_until_quiescent(close, 8)

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from ..adapters.workers.client import WorkerClient
 from ..application.documents import DocumentService
 from ..application.engine import Capability
@@ -11,7 +13,7 @@ from ..application.ports import DatabasePort
 from ..domain.contracts import ToolSpec
 
 
-def parameters(properties: dict, required: list[str] | None = None) -> dict:
+def parameters(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
     return {"type": "object", "properties": properties, "required": required or [], "additionalProperties": False}
 
 
@@ -21,7 +23,7 @@ def builtin_capabilities(
     worker = "builtin"
     browser = "browser"
     memory = MemoryCapabilities(database, semantics)
-    specs = [
+    specs: list[tuple[str, str, dict[str, Any], list[str] | None, bool, Any, str]] = [
         ("system_info", "Read operating system and runtime versions", {}, [], False, worker, ""),
         (
             "files_list",
