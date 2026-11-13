@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "253a5f8693304adeccac79dbc73fc35dc216b60dd69523e8073b8eed5f56c390",
+  "code_version": "f9de848f6bcca30c3bc1cde6a22c295168d6b7ee99364b4802acfb47ee7fbb51",
   "fixed_source_files": 1206,
-  "git_head": "8d859ba",
+  "git_head": "1813ff9",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -176,7 +176,8 @@
    "Strict scope reaches 276 files (53 domain + 44 application + 166 adapters + 13 composition); the fixed observation/input worker types its hierarchy walk closure and node collection, narrows permit bindings, action payloads and postconditions layer by layer and narrows the service entry request fields, completing every Android module (application service, two repositories, two adapters, two workers); observation scope and outcome judgement rules are unchanged. Fixed source file count rises 1203 to 1206 from parallel UI commit 0497fe8 adding three V1 stylesheet copies",
    "Strict scope reaches 277 files (53 domain + 44 application + 167 adapters + 13 composition); the relational schema module types its ident/scope/stamp column helpers with explicit column generics and annotates scoped/option_columns with SchemaItem (covering columns and every constraint kind), plus an explicit float column generic. DDL verification: all 136 tables produce byte-identical CREATE TABLE and index definitions versus HEAD (sha256 e49d4152bd5b730e0908a6ac810271c689a5279dfad8b7a91544f88bc2104002), so the table structure is unchanged",
    "Strict scope reaches 278 files (53 domain + 44 application + 168 adapters + 13 composition); the credential repository types its reference/operation/review/history receipts as explicit Record, narrows credential identifiers and reference hashes to str and keeps the cursor runtime check; execution tokens stay out of every projection and the fencing/unknown no-replay rules are unchanged",
-   "Strict scope reaches 279 files (53 domain + 44 application + 169 adapters + 13 composition); the lease repository types its lease/work-item/schedule-blocker/claim receipts as explicit Record, annotates the query-condition closure with Table and ColumnElement[bool], and narrows fence increments and session identifiers; FIFO ordering, fencing and previous-outcome-unknown blocking are unchanged"
+   "Strict scope reaches 279 files (53 domain + 44 application + 169 adapters + 13 composition); the lease repository types its lease/work-item/schedule-blocker/claim receipts as explicit Record, annotates the query-condition closure with Table and ColumnElement[bool], and narrows fence increments and session identifiers; FIFO ordering, fencing and previous-outcome-unknown blocking are unchanged",
+   "Strict scope reaches 280 files (53 domain + 44 application + 170 adapters + 13 composition); the configuration repository types its revision/configuration/settings/history/capture/dispatch-authority receipts as explicit Record, narrows option-table lookups and permission epochs and keeps the settings normalisation runtime check. Compatibility: configuration_get keeps its original dict[str, Any] return because four already-strict callers rely on that width, while value parameters use Record to satisfy the UnitOfWork protocol variance, with casts at the domain boundary; revision conflicts, permission epochs and model-authority rules are unchanged"
   ],
   "pending": [
    "application 44/44 complete; adapters 160/222 strict typing",
@@ -188,8 +189,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-155-callers.xml",
-   "tests": 73,
+   "report": "temp/build/v2-typecheck-156-callers.xml",
+   "tests": 69,
    "failures": 0
   },
   "targeted_reports": [
@@ -1595,6 +1596,15 @@
     "errors": 0,
     "duration_s": 67.65,
     "note": "P3 lease_repository batch: FIFO claim and fenced lease repository + guard/arch/execution/scheduling/scheduling-faults callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-156-callers.xml",
+    "sha256": "39f669eb43eafd7a6637b3a430fe26d93b9288d7bdea5d863d376fcfa4dd60cb",
+    "tests": 69,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 77.51,
+    "note": "P3 configuration_repository batch: configuration revisions and Agent preferences + guard/arch/configuration/configuration-faults/configuration-http/routing callers"
    }
   ],
   "gates": {
@@ -1606,7 +1616,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 279,
+    "filesAnalyzed": 280,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1620,7 +1630,7 @@
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/adapters/persistence/lease_repository.py"
+    "agent/src/omni/adapters/persistence/configuration_repository.py"
    ]
   },
   "full_run": {

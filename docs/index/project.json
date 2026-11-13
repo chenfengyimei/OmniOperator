@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "c1570abe540ac685c2fecb728505c98bc457a809607c9bf7880ebf92a6e01c20",
+  "source_sha256": "5851d1d26476a4ad4a4966796f6725321046575f2254d405b693ddf98645e674",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53417,
+      "lines": 53442,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19572,
+      "lines": 19621,
       "dependencies": []
     },
     {
@@ -11970,11 +11970,12 @@
       "path": "agent/src/omni/adapters/persistence/configuration_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.configuration_repository",
-      "lines": 355,
+      "lines": 380,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.credential_repository",
         "omni.adapters.persistence.qq_authority",
+        "omni.application.ports",
         "omni.domain.configuration",
         "omni.domain.contracts",
         "omni.domain.credentials",
@@ -11983,12 +11984,12 @@
       "symbols": [
         {
           "name": "ConfigurationRepositories",
-          "line": 25,
+          "line": 26,
           "kind": "class"
         },
         {
           "name": "ConfigurationRepositories._configuration_agent",
-          "line": 26,
+          "line": 27,
           "kind": "function",
           "parameters": [
             "self",
@@ -12000,7 +12001,7 @@
         },
         {
           "name": "ConfigurationRepositories._configuration_revision",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "self",
@@ -12014,7 +12015,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_get",
-          "line": 46,
+          "line": 50,
           "kind": "function",
           "parameters": [
             "self",
@@ -12028,7 +12029,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_page",
-          "line": 59,
+          "line": 63,
           "kind": "function",
           "parameters": [
             "self",
@@ -12046,7 +12047,7 @@
         },
         {
           "name": "ConfigurationRepositories._configuration_record",
-          "line": 78,
+          "line": 82,
           "kind": "function",
           "parameters": [
             "self",
@@ -12056,13 +12057,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "entity": "dict",
-            "value": "dict"
+            "entity": "Record",
+            "value": "Record"
           }
         },
         {
           "name": "ConfigurationRepositories.configuration_create",
-          "line": 100,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "self",
@@ -12077,12 +12078,12 @@
             "kind": "str",
             "name": "str",
             "enabled": "bool",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
           "name": "ConfigurationRepositories.configuration_put",
-          "line": 123,
+          "line": 132,
           "kind": "function",
           "parameters": [
             "self",
@@ -12098,13 +12099,13 @@
             "config_id": "str",
             "name": "str",
             "enabled": "bool",
-            "value": "dict",
+            "value": "Record",
             "revision": "int"
           }
         },
         {
           "name": "ConfigurationRepositories.configuration_archive",
-          "line": 151,
+          "line": 160,
           "kind": "function",
           "parameters": [
             "self",
@@ -12120,7 +12121,7 @@
         },
         {
           "name": "ConfigurationRepositories.configuration_history",
-          "line": 168,
+          "line": 177,
           "kind": "function",
           "parameters": [
             "self",
@@ -12138,7 +12139,7 @@
         },
         {
           "name": "ConfigurationRepositories.settings",
-          "line": 182,
+          "line": 191,
           "kind": "function",
           "parameters": [
             "self",
@@ -12150,7 +12151,7 @@
         },
         {
           "name": "ConfigurationRepositories._settings_history_record",
-          "line": 196,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -12161,14 +12162,14 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "value": "dict",
+            "value": "Record",
             "revision": "int",
             "epoch": "int"
           }
         },
         {
           "name": "ConfigurationRepositories.settings_put",
-          "line": 201,
+          "line": 213,
           "kind": "function",
           "parameters": [
             "self",
@@ -12178,13 +12179,13 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "value": "dict",
+            "value": "Record",
             "revision": "int"
           }
         },
         {
           "name": "ConfigurationRepositories.settings_history",
-          "line": 237,
+          "line": 252,
           "kind": "function",
           "parameters": [
             "self",
@@ -12200,7 +12201,7 @@
         },
         {
           "name": "ConfigurationRepositories.capture_configuration",
-          "line": 249,
+          "line": 264,
           "kind": "function",
           "parameters": [
             "self",
@@ -12216,7 +12217,7 @@
         },
         {
           "name": "ConfigurationRepositories.run_settings",
-          "line": 270,
+          "line": 290,
           "kind": "function",
           "parameters": [
             "self",
@@ -12230,7 +12231,7 @@
         },
         {
           "name": "ConfigurationRepositories.route_reservation",
-          "line": 290,
+          "line": 315,
           "kind": "function",
           "parameters": [
             "self",
@@ -12246,7 +12247,7 @@
         },
         {
           "name": "ConfigurationRepositories.assert_model_authorized",
-          "line": 294,
+          "line": 319,
           "kind": "function",
           "parameters": [
             "self",
@@ -12260,7 +12261,7 @@
         },
         {
           "name": "ConfigurationRepositories.skill_authorize_run",
-          "line": 311,
+          "line": 336,
           "kind": "function",
           "parameters": [
             "self",
@@ -12274,7 +12275,7 @@
         },
         {
           "name": "ConfigurationRepositories.model_dispatch_authority",
-          "line": 315,
+          "line": 340,
           "kind": "function",
           "parameters": [
             "self",
@@ -12288,7 +12289,7 @@
         },
         {
           "name": "ConfigurationRepositories.record_metering",
-          "line": 338,
+          "line": 363,
           "kind": "function",
           "parameters": [
             "self",
@@ -95613,7 +95614,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1511,
+      "lines": 1513,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95813,7 +95814,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1345,
+      "lines": 1392,
       "imports": [],
       "symbols": [],
       "kind": "asset",
