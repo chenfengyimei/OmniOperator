@@ -7,6 +7,7 @@ import datetime as dt
 import hashlib
 import json
 import uuid
+from collections.abc import Mapping
 from pathlib import Path
 
 from ...domain.contracts import BusinessError
@@ -76,7 +77,7 @@ def _plan(paths: InstancePaths, now: dt.datetime) -> dict:
     }
 
 
-def plan_collection(paths: InstancePaths, *, now: dt.datetime | None = None) -> dict:
+def plan_collection(paths: InstancePaths, *, now: dt.datetime | None = None) -> dict[str, object]:
     lock = InstanceLock(paths)
     lock.acquire()
     try:
@@ -101,7 +102,9 @@ def _journal_path(paths: InstancePaths, plan_id: str) -> Path:
     return path
 
 
-def apply_collection(paths: InstancePaths, plan: dict, *, now: dt.datetime | None = None) -> dict:
+def apply_collection(
+    paths: InstancePaths, plan: Mapping[str, object], *, now: dt.datetime | None = None
+) -> dict[str, object]:
     if (
         not isinstance(plan, dict)
         or plan.get("format") != "omni-object-gc-1"

@@ -28,7 +28,7 @@ def _rebuild_fulltext(connection: sqlite3.Connection, table: str) -> None:
     connection.execute(f"INSERT INTO {table}({table}) VALUES('rebuild')")
 
 
-def derived_indexes(paths: InstancePaths, *, rebuild: bool = False) -> dict:
+def derived_indexes(paths: InstancePaths, *, rebuild: bool = False) -> dict[str, object]:
     """Exclusive FTS/content consistency check; only explicit rebuild commits changes."""
     lock = InstanceLock(paths)
     lock.acquire()
@@ -403,7 +403,7 @@ def migration_snapshot(database: Path, objects_root: Path | None) -> Record:
     return create_snapshot(database, objects_root, folder / str(uuid.uuid4()))
 
 
-def object_report(paths: InstancePaths) -> dict:
+def object_report(paths: InstancePaths) -> dict[str, object]:
     """Read-only, exclusive caller; no models or device actions."""
     try:
         files = verify_objects(paths.database, paths.objects)

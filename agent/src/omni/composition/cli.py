@@ -7,6 +7,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
+from typing import cast
 from urllib.parse import urlsplit
 
 from ..adapters.diagnostic_bundle import DiagnosticFiles, StoredDiagnostics, publish_diagnostic
@@ -43,6 +44,7 @@ from ..adapters.persistence.reference_release import (
 from ..adapters.platform.paths import InstanceLock, InstancePaths
 from ..adapters.platform.permissions import private_path
 from ..adapters.primitives import SystemClock, UUIDs
+from ..application.ports import Record
 from ..domain.contracts import BusinessError
 from ..domain.installation import make_installation, validate_installation
 from .instance import open_instance
@@ -116,7 +118,7 @@ def seal_installation(paths: InstancePaths) -> dict[str, object]:
                 "installation_changed", "The installation receipt already names another schema or code head"
             )
         return {"written": False, "manifest": existing}
-    durable_json(manifest_path, receipt)
+    durable_json(manifest_path, cast(Record, receipt))
     private_path(manifest_path)
     return {"written": True, "manifest": receipt}
 
@@ -463,7 +465,7 @@ def diagnostic_download(paths: InstancePaths, url: str) -> bytes:
                 raise BusinessError(
                     "invalid_diagnostic_response", "The local service did not return a diagnostic package"
                 )
-            chunks = []
+            chunks: list[bytes] = []
             size = 0
             for chunk in response.iter_raw(chunk_size=65536):
                 size += len(chunk)
@@ -640,7 +642,7 @@ def main() -> int:
                     async def service_status():
                         manager, readiness = ServiceQuery(), ServiceReadiness()
                         try:
-                            return await deployment.status(result, manager, readiness)
+                            return await deployment.status(cast(Record, result), manager, readiness)
                         finally:
                             manager_closed = await manager.close(6)
                             readiness_closed = await readiness.close(6)
@@ -774,7 +776,8 @@ def main() -> int:
             lock = InstanceLock(paths)
             lock.acquire()
             try:
-                report = {**inspect_database(paths.database), "objects": object_report(paths)}
+                report = cast(Record, {**inspect_database(paths.database), "objects": object_report(paths)})
+                objects = cast(Record, report["objects"])
                 print(json.dumps(report))
                 if (
                     report["integrity"] != "ok"
@@ -790,9 +793,9 @@ def main() -> int:
                     or report["unknown_actions"]
                     or report["delivery_attention"]
                     or report["held_dispatch_resources"]
-                    or not report["objects"]["ok"]
-                    or report["objects"].get("pending_collection")
-                    or report["objects"].get("collection_scan_limit_reached")
+                    or not objects["ok"]
+                    or objects.get("pending_collection")
+                    or objects.get("collection_scan_limit_reached")
                 ):
                     return 1
             finally:
@@ -890,7 +893,7 @@ def main() -> int:
                 lock = InstanceLock(paths)
                 lock.acquire()
                 try:
-                    report = object_report(paths)
+                    report = cast(Record, object_report(paths))
                     print(json.dumps(report))
                     return (
                         0
@@ -905,22 +908,26 @@ def main() -> int:
                 output = args.output.absolute()
                 if output.resolve().is_relative_to(paths.home) or output.exists():
                     raise BusinessError("unsafe_plan_destination", "Use a new plan file outside the instance home")
-                plan = plan_collection(paths)
+                plan = cast(Record, plan_collection(paths))
                 output.parent.mkdir(parents=True, exist_ok=True)
                 durable_json(output, plan)
                 print(
                     json.dumps(
-                        {"plan": str(output), "candidates": len(plan["entries"]), "protected": plan["protected"]}
+                        {
+                            "plan": str(output),
+                            "candidates": len(cast(list[object], plan["entries"])),
+                            "protected": plan["protected"],
+                        }
                     )
                 )
             else:
                 if args.plan.stat().st_size > 128 * 1024 * 1024:
                     raise BusinessError("invalid_gc_plan", "Collection plan exceeds its size limit")
                 try:
-                    plan = json.loads(args.plan.read_text(encoding="utf-8"))
+                    plan = cast(Record, json.loads(args.plan.read_text(encoding="utf-8")))
                 except (ValueError, UnicodeError) as exc:
                     raise BusinessError("invalid_gc_plan", "Collection plan must contain valid UTF-8 JSON") from exc
-                report = apply_collection(paths, plan)
+                report = cast(Record, apply_collection(paths, plan))
                 print(json.dumps(report))
                 return 0 if report["complete"] else 1
         elif args.command == "diagnostics":
@@ -933,7 +940,7 @@ def main() -> int:
                     async def export_offline():
                         files = DiagnosticFiles(paths, StoredDiagnostics(paths))
                         try:
-                            information = {
+                            information: Record = {
                                 "schema": 1,
                                 "persisted": persisted,
                                 "measurements": {"available": False, "reason": "offline_process"},

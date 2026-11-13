@@ -152,7 +152,7 @@ class CaptureSource:
     segments: int = 1
 
 
-def publish_diagnostic(paths: InstancePaths, destination: Path, content: bytes) -> dict:
+def publish_diagnostic(paths: InstancePaths, destination: Path, content: bytes) -> dict[str, object]:
     target = Path(destination).expanduser().absolute()
     if target.resolve().is_relative_to(paths.home.resolve()):
         raise BusinessError(
