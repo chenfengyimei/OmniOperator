@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "657232a2561ece1be8b58b59b61afc901c6f1a7883bcc3bb261e71ac0e65a378",
+  "source_sha256": "7b93c474af27017b9a8d8a79cf4cce9b9f0a60b38b3fd1869bb1682640488379",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53750,
+      "lines": 53757,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -17189,23 +17189,24 @@
       "path": "agent/src/omni/adapters/persistence/memory_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.memory_repository",
-      "lines": 368,
+      "lines": 375,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.document_repository",
         "omni.adapters.persistence.memory_organization_predicates",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.people"
       ],
       "symbols": [
         {
           "name": "MemoryRepositories",
-          "line": 17,
+          "line": 18,
           "kind": "class"
         },
         {
           "name": "MemoryRepositories._live_person",
-          "line": 18,
+          "line": 19,
           "kind": "function",
           "parameters": [
             "self",
@@ -17219,7 +17220,7 @@
         },
         {
           "name": "MemoryRepositories._touch_person",
-          "line": 24,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "self",
@@ -17231,7 +17232,7 @@
         },
         {
           "name": "MemoryRepositories._evidence",
-          "line": 30,
+          "line": 31,
           "kind": "function",
           "parameters": [
             "self",
@@ -17261,7 +17262,7 @@
         },
         {
           "name": "MemoryRepositories.remember",
-          "line": 136,
+          "line": 140,
           "kind": "function",
           "parameters": [
             "self",
@@ -17293,7 +17294,7 @@
         },
         {
           "name": "MemoryRepositories.revise_memory",
-          "line": 201,
+          "line": 205,
           "kind": "function",
           "parameters": [
             "self",
@@ -17315,7 +17316,7 @@
         },
         {
           "name": "MemoryRepositories.forget",
-          "line": 233,
+          "line": 237,
           "kind": "function",
           "parameters": [
             "self",
@@ -17331,7 +17332,7 @@
         },
         {
           "name": "MemoryRepositories.erase_message",
-          "line": 253,
+          "line": 257,
           "kind": "function",
           "parameters": [
             "self",
@@ -17345,7 +17346,7 @@
         },
         {
           "name": "MemoryRepositories._forget_one",
-          "line": 258,
+          "line": 262,
           "kind": "function",
           "parameters": [
             "self",
@@ -17361,7 +17362,7 @@
         },
         {
           "name": "MemoryRepositories.memory_history",
-          "line": 299,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "self",
@@ -17379,7 +17380,7 @@
         },
         {
           "name": "MemoryRepositories.search_memory",
-          "line": 322,
+          "line": 329,
           "kind": "function",
           "parameters": [
             "self",

@@ -43,7 +43,7 @@ D7 首个节点落地：`GET /api/v1/capabilities` 把实例健康快照投影�
 
 ## D7 严格类型起步（2026-11-11）
 
-`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与 application/adapters 模块，当前为 **292 个文件**（53 个 domain + 44 个 application 全层 + 182 个 adapters + 13 个 composition 全层；逐文件清单见 `docs/TYPE_CHECKING.md`），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
+`pyrightconfig.strict.json` 以 strict 模式纳入纯 domain 模块与 application/adapters 模块，当前为 **293 个文件**（53 个 domain + 44 个 application 全层 + 183 个 adapters + 13 个 composition 全层；逐文件清单见 `docs/TYPE_CHECKING.md`），门禁 `uv run --no-sync pyright --project pyrightconfig.strict.json` 为 0 errors/0 warnings；`docs/TYPE_CHECKING.md` 记录 `1a18fae` 上 domain 全层 2321 个 strict 错误的基线、逐文件样本与推进规则，明确“全仓 strict 未完成”。守卫测试保证配置 include、文档表（三层）、文件存在与未完成声明一致。
 
 第二批把 metering（19 个基线错误）与 release_fence（16 个）清零后纳入：release_fence 去掉对 service_deployment 私有辅助的跨模块依赖，改为自包含 UUID/64-hex/控制字符校验；metering 显式 `Mapping[str, object]`/`list[dict[str, object]]` 注解。
 
@@ -408,6 +408,8 @@ D7 显式清理节点：`installation uninstall --purge-data` 在实例空闲时
 第一百六十七批纳入 `adapters/persistence/maintenance.py`（89 错清零：**备份/校验/恢复与隔离**，快照清单、恢复报告与隔离计数显式 `Record`，对象相对路径/字节/哈希逐处收窄，待清理台账 `list[Record]`，恢复重放守卫的 files 与 quarantine 逐项收窄），adapters 180 → 181/222。**WAL/SHM/journal 不检查点不丢弃、单链接与指纹校验、恢复必须先隔离在途工作、凭据不随快照恢复等语义未变**。拆分 isinstance 判定时须沿用原错误码与消息，避免改变对外行为。守卫 + 架构/维护/维护崩溃/维护契约/维护归属/恢复锁/wheel备份 113 项全过。
 
 第一百六十八批纳入 `adapters/persistence/terminal_repository.py`（100 错清零：**终端意图事务与不可变回执**，会话/操作/重放/开启回执对齐端口 `Record`，`request` 与 `spec` 参数保持 `Record` 与端口一致，修订号自增前收窄 `int`，`parse_open` 结果逐处收窄，嵌套 settings 取 workspace 前收窄），adapters 181 → 182/222。**boot 归属、权限代次、清理未决拒绝控制、异 boot 不得授权清理、已结算观测不可改写、恢复一律 unknown 不重放等语义未变**，仍不启原生进程、不存终端正文。守卫 + 架构/终端存储/终端生命周期/终端原生/终端HTTP/终端复核 59 项全过。
+
+第一百六十九批纳入 `adapters/persistence/memory_repository.py`（47 错清零：**记忆真相/证据/修订与抹除**，remember/revise/history/search 回执对齐端口 `Record`，来源序号与上下文地板比较收窄 `int`，文档证据区间收窄 `int`，动作结果与嵌套 data 取 erased 前收窄，遗忘遍历集合与墓碑哈希集合显式 `set[str]`），adapters 182 → 183/222。**单一来源约束、模型写入不得复活已遗忘内容、抹除后来源拒绝引用、墓碑仅存哈希不留原引文、已抹除记忆不可再改等语义未变**。守卫 + 架构/人物/记忆语义/记忆整理/上下文/保留预览 89 项全过。
 
 第一百三十八批后全量复核（-n 2，3220 秒）：**4654 项：4629 passed / 25 failed / 0 errors**。随后按失败清单定位 24 项 UI 失败根因并修复：会话行改为 `li[role=button]` 后精确名字查询失效、切 Agent 时 `nav.inert` 在提前返回路径残留、会话面板整体隐藏使非对话页无法切换 Agent、改版引入的 620/1180 断点超出设计系统、图标字体外置后契约仍要求内联 base64；复跑 154 项全过。最后一项 `test_workbench_ui` 也定位并修复：测试 route 处理器把改版新增的二进制 `MaterialIcons.woff2` 当 UTF-8 文本读取，抛 `UnicodeDecodeError` 使请求永不 fulfil，`page.goto` 等不到 load，整次 `_run` 超时后 `close` 又排在同一所有者线程后面，于是表现为“关闭挂起”；驱动本身的超时/残留报告是正确行为，未改驱动。修复后完整复跑（-n 2，2816 秒）：**4654 项：4653 passed / 1 failed / 0 errors**，debug 会话随后按测试隔离 logger（`25140fc`）。最新全量（-n 2，2722 秒）：**4654 项：4650 passed / 4 failed / 0 errors**：1 项为并行 UI 会话未提交 `workbench.css` 的未登记裸色值（不能代改其未提交文件），3 项为负载相关抖动，隔离复跑均通过。D7 剩余门槛：其余 application/adapters/composition 严格化、三平台包/容器/安装更新恢复与正式入口切换。
 
