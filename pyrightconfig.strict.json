@@ -40,6 +40,7 @@
     "agent/src/omni/adapters/persistence/history_pruning_cycle.py",
     "agent/src/omni/adapters/persistence/history_repository.py",
     "agent/src/omni/adapters/persistence/history_sequence.py",
+    "agent/src/omni/adapters/persistence/image_repository.py",
     "agent/src/omni/adapters/persistence/lease_repository.py",
     "agent/src/omni/adapters/persistence/migration_config.py",
     "agent/src/omni/adapters/persistence/migrations/__init__.py",

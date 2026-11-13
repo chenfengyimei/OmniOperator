@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import func, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.images import POLICY_DEFAULT, ImageInfo, fingerprint, model_tokens, policy
 from . import schema as s
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class ImageRepositories(ConfigurationRepositories):
-    def image_register(self, agent_id: str, object_id: str, info: ImageInfo) -> dict:
+    def image_register(self, agent_id: str, object_id: str, info: ImageInfo) -> Record:
         info.validate()
         unit = cast("Repositories", self)
         obj = unit.object_get(agent_id, object_id)
@@ -34,7 +35,7 @@ class ImageRepositories(ConfigurationRepositories):
         if prior:
             if any(prior[k] != getattr(info, k) for k in ("width", "height", "media_type")):
                 raise BusinessError("image_integrity_failed", "Image metadata is inconsistent")
-            row = dict(prior)
+            row = cast(Record, dict(prior))
         else:
             row = self._record(
                 s.image_objects,
@@ -49,7 +50,7 @@ class ImageRepositories(ConfigurationRepositories):
             )
         return {**row, "sha256": obj["sha256"], "bytes": obj["bytes"], "state": "registered_not_attached"}
 
-    def model_image_policy(self, agent_id: str, revision_id: str) -> dict:
+    def model_image_policy(self, agent_id: str, revision_id: str) -> Record:
         revision = self._one(s.configuration_revisions, agent_id, revision_id)
         if revision["kind"] != "model":
             raise BusinessError("image_policy_invalid", "Image policies belong to model revisions", status=422)
@@ -62,17 +63,18 @@ class ImageRepositories(ConfigurationRepositories):
             .mappings()
             .first()
         )
-        return (
+        return cast(
+            Record,
             dict(row)
             if row
-            else {**POLICY_DEFAULT, "id": "", "revision_id": revision_id, "fingerprint": fingerprint(POLICY_DEFAULT)}
+            else {**POLICY_DEFAULT, "id": "", "revision_id": revision_id, "fingerprint": fingerprint(POLICY_DEFAULT)},
         )
 
-    def model_image_policy_add(self, agent_id: str, revision_id: str, value: dict) -> dict:
+    def model_image_policy_add(self, agent_id: str, revision_id: str, value: Record) -> Record:
         revision = self._configuration_revision(agent_id, revision_id)
         if revision["kind"] != "model":
             raise BusinessError("image_policy_invalid", "Only models have image policies", status=422)
-        checked = policy(value, revision["value"]["model"])
+        checked = policy(value, cast(str, cast(Record, revision["value"])["model"]))
         row = self._record(
             s.model_image_policies,
             {"revision_id": revision_id, **checked, "fingerprint": fingerprint(checked)},
@@ -81,18 +83,18 @@ class ImageRepositories(ConfigurationRepositories):
         self.audit(
             agent_id,
             "model.image_policy_recorded",
-            row["id"],
+            cast(str, row["id"]),
             {"revision_id": revision_id, "fingerprint": row["fingerprint"]},
         )
         return row
 
-    def run_image_policy(self, agent_id: str, run_id: str) -> dict:
+    def run_image_policy(self, agent_id: str, run_id: str) -> Record:
         run = self._one(s.runs, agent_id, run_id)
         if not run["model_revision_id"]:
-            return {**POLICY_DEFAULT, "id": "", "fingerprint": fingerprint(POLICY_DEFAULT)}
-        return self.model_image_policy(agent_id, run["model_revision_id"])
+            return cast(Record, {**POLICY_DEFAULT, "id": "", "fingerprint": fingerprint(POLICY_DEFAULT)})
+        return self.model_image_policy(agent_id, cast(str, run["model_revision_id"]))
 
-    def image_parts(self, agent_id: str, message_ids: list[str]) -> list[dict]:
+    def image_parts(self, agent_id: str, message_ids: list[str]) -> list[Record]:
         if not message_ids:
             return []
         if len(message_ids) > 128:
@@ -139,7 +141,7 @@ class ImageRepositories(ConfigurationRepositories):
         )
         if len(rows) > 512:
             raise BusinessError("invalid_context", "Image source query exceeds its bound")
-        return [dict(r) for r in rows]
+        return [cast(Record, dict(r)) for r in rows]
 
     def image_admit(self, agent_id: str, model_revision_id: str, ids: list[str]) -> None:
         config = self.model_image_policy(agent_id, model_revision_id)
@@ -147,7 +149,7 @@ class ImageRepositories(ConfigurationRepositories):
             raise BusinessError(
                 "image_capability_disabled", "Enable a supported image protocol on the selected model first", status=422
             )
-        if len(ids) > config["per_call_limit"]:
+        if len(ids) > cast(int, config["per_call_limit"]):
             raise BusinessError(
                 "image_call_limit_exceeded", "Current images exceed this model's per-call image limit", status=422
             )
@@ -163,7 +165,7 @@ class ImageRepositories(ConfigurationRepositories):
             ):
                 raise BusinessError("image_unverified", "Verify the image before attaching it", status=422)
 
-    def model_images_prepare(self, agent_id: str, run_id: str, call_id: str, refs: list[dict]) -> None:
+    def model_images_prepare(self, agent_id: str, run_id: str, call_id: str, refs: list[Record]) -> None:
         unit = cast("Repositories", self)
         unit.assert_run_authorized(agent_id, run_id)
         call = self._one(s.model_calls, agent_id, call_id)
@@ -181,10 +183,13 @@ class ImageRepositories(ConfigurationRepositories):
             .order_by(s.context_snapshots.c.ordinal.desc())
             .limit(1)
         ).scalar_one()
-        ids = list(
-            self.connection.execute(
-                select(s.context_messages.c.message_id).where(s.context_messages.c.snapshot_id == snapshot)
-            ).scalars()
+        ids = cast(
+            list[str],
+            list(
+                self.connection.execute(
+                    select(s.context_messages.c.message_id).where(s.context_messages.c.snapshot_id == snapshot)
+                ).scalars()
+            ),
         )
         sources = {r["part_id"]: r for r in self.image_parts(agent_id, ids)}
         spent = self.connection.execute(
@@ -197,15 +202,15 @@ class ImageRepositories(ConfigurationRepositories):
                 s.model_call_images.c.state != "not_sent",
             )
         ).scalar_one()
-        if len(refs) > config["per_call_limit"] or spent + len(refs) > config["run_budget"]:
+        if len(refs) > cast(int, config["per_call_limit"]) or spent + len(refs) > cast(int, config["run_budget"]):
             raise BusinessError("image_budget_exceeded", "This run has exhausted its cumulative image budget")
         settings = self.run_settings(agent_id, run_id)
         for ref in refs:
-            source = sources.get(ref["part_id"])
+            source = sources.get(cast(str, ref["part_id"]))
             if (
                 not source
                 or ref["policy_id"] != config["id"]
-                or ref["token_cost"] != model_tokens(settings["model"])
+                or ref["token_cost"] != model_tokens(cast(str, settings["model"]))
                 or any(source[k] != ref[k] for k in ("object_id", "sha256", "width", "height", "media_type", "bytes"))
             ):
                 raise BusinessError("image_source_changed", "Image is outside the captured context or policy")
@@ -250,10 +255,10 @@ class ImageRepositories(ConfigurationRepositories):
         )
         self.audit(agent_id, "model.images_attached_to_request", call_id, {"count": len(rows)})
 
-    def model_images_report(self, agent_id: str, run_id: str) -> dict:
+    def model_images_report(self, agent_id: str, run_id: str) -> Record:
         run = self._one(s.runs, agent_id, run_id)
         config = self.run_image_policy(agent_id, run_id)
-        incoming = self.image_parts(agent_id, [run["input_message_id"]])
+        incoming = self.image_parts(agent_id, [cast(str, run["input_message_id"])])
         rows = (
             self.connection.execute(
                 select(s.model_call_images, s.model_calls.c.state.label("call_state"))
@@ -279,18 +284,22 @@ class ImageRepositories(ConfigurationRepositories):
             .limit(1)
         ).scalar_one_or_none()
         source_ids = (
-            list(
-                self.connection.execute(
-                    select(s.context_messages.c.message_id).where(
-                        s.context_messages.c.snapshot_id == selected, s.context_messages.c.agent_id == agent_id
-                    )
-                ).scalars()
+            cast(
+                list[str],
+                list(
+                    self.connection.execute(
+                        select(s.context_messages.c.message_id).where(
+                            s.context_messages.c.snapshot_id == selected,
+                            s.context_messages.c.agent_id == agent_id,
+                        )
+                    ).scalars()
+                ),
             )
             if selected
             else []
         )
         parts = {r["part_id"]: r for r in self.image_parts(agent_id, source_ids) + incoming}
-        omitted = []
+        omitted: list[Record] = []
         for part_id, item in parts.items():
             evidence = [r for r in rows if r["part_id"] == part_id]
             if not any(r["state"] in {"dispatched", "attached", "unknown"} for r in evidence):
@@ -298,22 +307,25 @@ class ImageRepositories(ConfigurationRepositories):
                     reason = (
                         "request_preparing"
                         if any(r["state"] == "prepared" for r in evidence)
-                        else run["error_code"] or "known_not_sent"
+                        else cast(str, run["error_code"]) or "known_not_sent"
                     )
                 elif config["protocol"] == "disabled":
                     reason = "image_capability_disabled"
                 elif item["message_id"] == run["input_message_id"]:
-                    reason = run["error_code"] or "request_not_dispatched"
+                    reason = cast(str, run["error_code"]) or "request_not_dispatched"
                 else:
                     reason = "context_image_limit" if rows else "request_not_dispatched"
                 omitted.append({"part_id": part_id, "message_id": item["message_id"], "reason": reason})
-        return {
-            "policy": config,
-            "registered": incoming,
-            "requests": [dict(r) for r in rows[:256]],
-            "has_more": len(rows) > 256,
-            "unattached": omitted,
-            "used": used,
-            "budget": config["run_budget"],
-            "model_seen": "not_claimed",
-        }
+        return cast(
+            Record,
+            {
+                "policy": config,
+                "registered": incoming,
+                "requests": [dict(r) for r in rows[:256]],
+                "has_more": len(rows) > 256,
+                "unattached": omitted,
+                "used": used,
+                "budget": config["run_budget"],
+                "model_seen": "not_claimed",
+            },
+        )

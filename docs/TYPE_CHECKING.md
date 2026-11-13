@@ -224,6 +224,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/workers/darwin_admin_probe.py` | macOS 管理员探测 worker |
 | `agent/src/omni/adapters/persistence/action_predicates.py` | 动作复核当前解析谓词（持久化适配） |
 | `agent/src/omni/adapters/persistence/credential_repository.py` | 凭据引用/操作状态/复核仓储（显式 Record、标识收窄、执行令牌不外泄） |
+| `agent/src/omni/adapters/persistence/image_repository.py` | 图像登记/策略/逐调用引用仓储（对齐端口 Record、预算与上限 int 收窄、不读文件不编码） |
 | `agent/src/omni/adapters/persistence/lease_repository.py` | FIFO 认领与栅栏租约仓储（显式 Record、查询条件闭包类型化、栅栏递增收窄） |
 | `agent/src/omni/adapters/persistence/configuration_repository.py` | 配置修订与 Agent 偏好仓储（显式 Record、领域 dict[str, object] 口径、权限代次收窄） |
 | `agent/src/omni/adapters/persistence/repository.py` | 事务仓储聚合根（24 个 mixin 组装，回执显式 Record、标识/序号收窄、未纳入 mixin 局部 Any 桥接） |
@@ -309,7 +310,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 174 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 175 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 
