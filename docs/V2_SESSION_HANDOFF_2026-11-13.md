@@ -6,21 +6,21 @@
 
 ## 1. 一句话现状
 
-Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **291 文件 0 错误**
-（domain/application/composition 三层全层完成，P2 Android 全部完成，P3 已起步）；但 **41 个 adapters 未类型化**，
+Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试、可离线打包**；strict 门禁 **292 文件 0 错误**
+（domain/application/composition 三层全层完成，P2 Android 全部完成，P3 已起步）；但 **40 个 adapters 未类型化**，
 且**真实模型/MCP/市场/设备/安装态/三平台验收全部未做**，入口切换未评估。
 
 ## 2. 已核验的事实（可直接引用，不必重测）
 
 | 项 | 数值 | 证据/命令 |
 | --- | --- | --- |
-| strict 门禁 | **291 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
-| strict 分层 | 53/53 domain、**44/44 application 全层**、181/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
-| 未纳入 strict | 41 个 adapters（P3 剩 17 个 persistence 分片）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
+| strict 门禁 | **292 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
+| strict 分层 | 53/53 domain、**44/44 application 全层**、182/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
+| 未纳入 strict | 40 个 adapters（P3 剩 16 个 persistence 分片）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
 | 全量测试 | 4656 项：**4654 passed / 2 failed / 0 errors**（`-n 2`，56 分钟，第 15 节点） | `temp/build/v2-full-155.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
 | 失败性质 | 2 项：串行复跑 **1 过 1 败**（skills_ui[dark-760] 为抖动）；剩 `test_ui_embed_layer` 为**并行 UI 会话提交 `0497fe8` 引入的真实守卫违规**（`ui/v2/v1/frame.css` 副本截至第 15 节点仍未移除），归 UI 会话修，非本批回归 | 见 §5「验收口径」；两份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
-| 台账 | `status=d7_typecheck_batch_167`、`checkpoint_commit=c1fa2dc`、源码指纹 `4a4f028e…`（1206 文件） |
+| 台账 | `status=d7_typecheck_batch_168`、`checkpoint_commit=2281fd6`、源码指纹 `1ab77768…`（1206 文件） |
 | 第 25 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，2830.94s）；干净 HEAD 三次对照证实既有 flaky |
 | 第 20 节点全量 | 4656 项：4655 passed / 1 failed（-n 2，3219.56s）；失败项串行复跑通过 |
 | 失败归属 | 第 25 节点：`test_v2_portal_ui` 授权用例在干净 HEAD 上通过/失败/通过，属既有 flaky，开放项 `test.portal_ui_flaky_on_clean_head`。第 20 节点的 embed 副本守卫本次已通过（UI 会话工作区已移除副本） | | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
@@ -133,8 +133,8 @@ uv run --no-sync python -m omni.composition.cli --home temp\demo-home auth
 
 ```powershell
 git status -sb                                   # 必须干净；脏的话先确认不是自己的改动
-uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（291 文件）
+uv run --no-sync pyright --project pyrightconfig.strict.json   # 期望 0/0（292 文件）
 uv run --no-sync python temp/build/probe_strict.py agent/src/omni/adapters/android.py  # 以实测为准
 ```
 
-domain/application/composition 已全层纳入（第一百四十二～一百四十六批），P2 Android 7 个模块全部纳入（第一百四十七～一百五十二批）。**P3 已起步**：`persistence/schema.py`(58) 已纳入（第一百五十三批，提交 `eacf4dc`，136 张表 DDL 与 HEAD 逐字一致 sha256 `e49d4152`）。`persistence/credential_repository.py`(80) 已纳入（第一百五十四批，提交 `ae6d07d`）。`persistence/lease_repository.py`(88) 已纳入（第一百五十五批，提交 `8d859ba`）。`persistence/configuration_repository.py`(94) 已纳入（第一百五十六批，提交 `1813ff9`；`configuration_get` 保持原 `dict[str, Any]` 口径以兼容 4 个已纳入调用方）。`persistence/image_repository.py`（实测 62）已纳入（第一百六十一批，提交 `7e5b7e5`）。**协议口径提醒**：`model_image_policy_add` 的 `value` 须与端口一致用 `Record`，写成 `dict[str, object]` 会因 dict 不变性触发逆变不兼容。`persistence/context_repository.py`（实测 73）已纳入（第一百六十二批，提交 `98ee419`）。**领域宽度提醒**：`domain/context.py` 的 batch/tail/turns 返回 `list[Mapping[str, object]]`，比 `Record` 宽，写库前须收窄。`persistence/document_repository.py`（实测 77）已纳入（第一百六十三批，提交 `d6dfe74`）。**SQLAlchemy 提醒**：`Select` 定长列元组不能直接标注为变长元组，需返回处 cast。`persistence/event_retention_repository.py`（实测 77）已纳入（第一百六十四批，提交 `030d92b`）。**运行时防御提醒**：HTTP 边界的 isinstance 检查在静态已窄时报冗余，用 `isinstance(cast(object, x), str)` 保留防御。**测试文件名提醒**：事件保留没有 test_v2_event_retention.py，实际是 event_pruning/event_pruning_crash/event_retention_contract/_http/_ui，先 Glob 再跑。`persistence/memory_organization_predicates.py`（实测 81）已纳入（第一百六十五批，提交 `d20e404`），SQL 与 HEAD 逐字节一致。**SQLAlchemy 提醒**：`.alias()` 返回 `NamedFromClause`（泛型有 bound，不能填 object）；纯 SQL 模块改类型后必须编译比对 SQL。`migrations/versions/v0005.py`（实测 78）已纳入（第一百六十六批，提交 `9e7b305`），SQL 字面量与常量双重验证一致。**冻结迁移提醒**：比对字面量用多重集，AST 遍历顺序会因新增注解而变，按序列比会虚警。`persistence/maintenance.py`（实测 89）已纳入（第一百六十七批，提交 `c1fa2dc`）。**提醒**：拆分 isinstance 判定须沿用原错误码与消息。P3 剩 17 个分片，实测错误数：terminal(100)、execution_retention(105) 等，建议由小到大推进。每节点同步三处。
+domain/application/composition 已全层纳入（第一百四十二～一百四十六批），P2 Android 7 个模块全部纳入（第一百四十七～一百五十二批）。**P3 已起步**：`persistence/schema.py`(58) 已纳入（第一百五十三批，提交 `eacf4dc`，136 张表 DDL 与 HEAD 逐字一致 sha256 `e49d4152`）。`persistence/credential_repository.py`(80) 已纳入（第一百五十四批，提交 `ae6d07d`）。`persistence/lease_repository.py`(88) 已纳入（第一百五十五批，提交 `8d859ba`）。`persistence/configuration_repository.py`(94) 已纳入（第一百五十六批，提交 `1813ff9`；`configuration_get` 保持原 `dict[str, Any]` 口径以兼容 4 个已纳入调用方）。`persistence/image_repository.py`（实测 62）已纳入（第一百六十一批，提交 `7e5b7e5`）。**协议口径提醒**：`model_image_policy_add` 的 `value` 须与端口一致用 `Record`，写成 `dict[str, object]` 会因 dict 不变性触发逆变不兼容。`persistence/context_repository.py`（实测 73）已纳入（第一百六十二批，提交 `98ee419`）。**领域宽度提醒**：`domain/context.py` 的 batch/tail/turns 返回 `list[Mapping[str, object]]`，比 `Record` 宽，写库前须收窄。`persistence/document_repository.py`（实测 77）已纳入（第一百六十三批，提交 `d6dfe74`）。**SQLAlchemy 提醒**：`Select` 定长列元组不能直接标注为变长元组，需返回处 cast。`persistence/event_retention_repository.py`（实测 77）已纳入（第一百六十四批，提交 `030d92b`）。**运行时防御提醒**：HTTP 边界的 isinstance 检查在静态已窄时报冗余，用 `isinstance(cast(object, x), str)` 保留防御。**测试文件名提醒**：事件保留没有 test_v2_event_retention.py，实际是 event_pruning/event_pruning_crash/event_retention_contract/_http/_ui，先 Glob 再跑。`persistence/memory_organization_predicates.py`（实测 81）已纳入（第一百六十五批，提交 `d20e404`），SQL 与 HEAD 逐字节一致。**SQLAlchemy 提醒**：`.alias()` 返回 `NamedFromClause`（泛型有 bound，不能填 object）；纯 SQL 模块改类型后必须编译比对 SQL。`migrations/versions/v0005.py`（实测 78）已纳入（第一百六十六批，提交 `9e7b305`），SQL 字面量与常量双重验证一致。**冻结迁移提醒**：比对字面量用多重集，AST 遍历顺序会因新增注解而变，按序列比会虚警。`persistence/maintenance.py`（实测 89）已纳入（第一百六十七批，提交 `c1fa2dc`）。**提醒**：拆分 isinstance 判定须沿用原错误码与消息。`persistence/terminal_repository.py`（实测 100）已纳入（第一百六十八批，提交 `2281fd6`）。P3 剩 16 个分片，实测错误数：execution_retention(105) 等，其余需重新探测（交接旧数不可信）。建议由小到大推进。每节点同步三处。

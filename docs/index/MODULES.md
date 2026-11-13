@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`b59ae0417bab0be753432ada405f92c5f8f35cab820292d5e0c1fe8a73198ecd`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`657232a2561ece1be8b58b59b61afc901c6f1a7883bcc3bb261e71ac0e65a378`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -264,7 +264,7 @@
 | [agent/src/omni/adapters/persistence/skill_repository.py](../../agent/src/omni/adapters/persistence/skill_repository.py) | 459 | Immutable skill versions, review state and per-run bindings; no package or filesystem access. |
 | [agent/src/omni/adapters/persistence/sqlalchemy_access.py](../../agent/src/omni/adapters/persistence/sqlalchemy_access.py) | 27 | Shared SQLAlchemy SQLite transaction setup for the actor and exclusive offline migration. |
 | [agent/src/omni/adapters/persistence/sqlite_access.py](../../agent/src/omni/adapters/persistence/sqlite_access.py) | 32 | Owned SQLite connections for offline inspection, backup and restore only. |
-| [agent/src/omni/adapters/persistence/terminal_repository.py](../../agent/src/omni/adapters/persistence/terminal_repository.py) | 299 | Terminal intent transactions and immutable metadata receipts; never opens a native process or stores terminal bodies. |
+| [agent/src/omni/adapters/persistence/terminal_repository.py](../../agent/src/omni/adapters/persistence/terminal_repository.py) | 328 | Terminal intent transactions and immutable metadata receipts; never opens a native process or stores terminal bodies. |
 | [agent/src/omni/adapters/persistence/terminal_review_repository.py](../../agent/src/omni/adapters/persistence/terminal_review_repository.py) | 225 | Append owner observations and erasable evidence; terminal receipts and native lifecycle remain unchanged. |
 | [agent/src/omni/adapters/platform/__init__.py](../../agent/src/omni/adapters/platform/__init__.py) | 1 | Portable paths, ownership, credentials and platform capability implementations. |
 | [agent/src/omni/adapters/platform/darwin_admin_commands.py](../../agent/src/omni/adapters/platform/darwin_admin_commands.py) | 276 | Single-threaded Darwin command ownership; pre-exec permit, kqueue no-fork proof and unreaped group anchor. |

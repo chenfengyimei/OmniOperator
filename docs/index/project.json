@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "b59ae0417bab0be753432ada405f92c5f8f35cab820292d5e0c1fe8a73198ecd",
+  "source_sha256": "657232a2561ece1be8b58b59b61afc901c6f1a7883bcc3bb261e71ac0e65a378",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53721,
+      "lines": 53750,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -21804,22 +21804,23 @@
       "path": "agent/src/omni/adapters/persistence/terminal_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.terminal_repository",
-      "lines": 299,
+      "lines": 328,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.configuration_repository",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.terminals"
       ],
       "symbols": [
         {
           "name": "TerminalRepositories",
-          "line": 13,
+          "line": 16,
           "kind": "class"
         },
         {
           "name": "TerminalRepositories._terminal_agent",
-          "line": 14,
+          "line": 17,
           "kind": "function",
           "parameters": [
             "self",
@@ -21831,7 +21832,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_get",
-          "line": 18,
+          "line": 21,
           "kind": "function",
           "parameters": [
             "self",
@@ -21845,7 +21846,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_page",
-          "line": 21,
+          "line": 24,
           "kind": "function",
           "parameters": [
             "self",
@@ -21861,7 +21862,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_operation_get",
-          "line": 34,
+          "line": 37,
           "kind": "function",
           "parameters": [
             "self",
@@ -21877,7 +21878,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_operation_lookup",
-          "line": 41,
+          "line": 44,
           "kind": "function",
           "parameters": [
             "self",
@@ -21891,7 +21892,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_open_replay",
-          "line": 49,
+          "line": 55,
           "kind": "function",
           "parameters": [
             "self",
@@ -21900,12 +21901,12 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "request": "dict"
+            "request": "Record"
           }
         },
         {
           "name": "TerminalRepositories.terminal_open_begin",
-          "line": 71,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "self",
@@ -21916,14 +21917,14 @@
           ],
           "annotations": {
             "agent_id": "str",
-            "request": "dict",
-            "spec": "dict",
+            "request": "Record",
+            "spec": "Record",
             "permission_epoch": "int"
           }
         },
         {
           "name": "TerminalRepositories._terminal_authority",
-          "line": 110,
+          "line": 126,
           "kind": "function",
           "parameters": [
             "self",
@@ -21939,7 +21940,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_assert_start",
-          "line": 123,
+          "line": 139,
           "kind": "function",
           "parameters": [
             "self",
@@ -21953,7 +21954,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_assert_control",
-          "line": 126,
+          "line": 142,
           "kind": "function",
           "parameters": [
             "self",
@@ -21967,7 +21968,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_operation_begin",
-          "line": 132,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -21991,7 +21992,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_operation_settle",
-          "line": 198,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self",
@@ -22011,7 +22012,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_mark_running",
-          "line": 221,
+          "line": 241,
           "kind": "function",
           "parameters": [
             "self",
@@ -22029,7 +22030,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_mark_resized",
-          "line": 235,
+          "line": 259,
           "kind": "function",
           "parameters": [
             "self",
@@ -22047,7 +22048,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_mark_closed",
-          "line": 246,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "self",
@@ -22067,7 +22068,7 @@
         },
         {
           "name": "TerminalRepositories.terminal_recover",
-          "line": 274,
+          "line": 298,
           "kind": "function",
           "parameters": [
             "self"

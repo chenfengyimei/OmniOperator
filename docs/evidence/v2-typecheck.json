@@ -1,14 +1,14 @@
 {
  "schema": 1,
- "batch": 167,
+ "batch": 168,
  "date": "2026-11-13",
  "whole_v2_complete": false,
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "4a4f028e567d2b2e1d04b3b30134e1204129d8cdd816ce80f3e5164c8d966173",
+  "code_version": "1ab777682b0944797b9d3e324c90dbe057e68450bc3684c6f34756b7a8705a9a",
   "fixed_source_files": 1206,
-  "git_head": "c1fa2dc",
+  "git_head": "2281fd6",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -193,12 +193,12 @@
  "validation": {
   "all_latest_cases_passed": false,
   "latest_batch": {
-   "batch": 167,
+   "batch": 168,
    "sources": [
-    "agent/src/omni/adapters/persistence/maintenance.py"
+    "agent/src/omni/adapters/persistence/terminal_repository.py"
    ],
-   "report": "temp/build/v2-typecheck-167-callers.xml",
-   "tests": 113
+   "report": "temp/build/v2-typecheck-168-callers.xml",
+   "tests": 59
   },
   "targeted_reports": [
    {
@@ -1711,6 +1711,15 @@
     "errors": 0,
     "duration_s": 88.72,
     "note": "P3 maintenance batch: snapshots/verify/restore and quarantine + guard/arch/maintenance/maintenance-crash/maintenance-contract/maintenance-ownership/restore-lock/wheel-backup callers; covers repeated-restore complete report file sets and aliased target-lock refusal"
+   },
+   {
+    "path": "temp/build/v2-typecheck-168-callers.xml",
+    "sha256": "0544206660e5690da045e8aee81f37573ef5ee048651f8633417bf8ad1e78389",
+    "tests": 59,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 49.73,
+    "note": "P3 terminal_repository batch: terminal intents and immutable receipts + guard/arch/terminals-storage/terminals-lifecycle/terminal-native/terminals-http/terminal-review callers; covers workspace revocation and foreign-boot refusal of start/input/false cleanup"
    }
   ],
   "gates": {
@@ -1722,7 +1731,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 291,
+    "filesAnalyzed": 292,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1872,7 +1881,8 @@
    "Strict scope reaches 288 files (53 domain + 44 application + 178 adapters + 13 composition); the retired-event preview and pruning repository aligns candidate, preview, target and plan receipts with Record, types the projected columns as ColumnElement|Label with a Label-returning field closure, types the run/action caches as dict[str, Record | None], narrows sequences, epochs and high-water marks to int, and keeps the query-parameter runtime guards via cast(object, ...); projecting only preserved identifiers instead of the JSON body, event/run state agreement, action ownership, the unknown-effect refusal and never deleting run identities are unchanged",
    "Strict scope reaches 289 files (53 domain + 44 application + 179 adapters + 13 composition); the single approved-duplicate predicate types its live_source closure parameters as NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]] because .alias() returns NamedFromClause rather than Alias, types the condition as ColumnElement[bool], casts the relation query to a four-column Select at the return site and types memory_is_organized as Table | Alias -> Exists; both versions were compiled over the sqlite dialect and compared byte for byte, and the SQL is identical (sha256 e25a82d13f6020380bfb0b633bc89266641ed01059d6cae891eef71c81e6a30b), so the approved-duplicate decision, epoch binding and live-person check are unchanged",
    "Strict scope reaches 290 files (53 domain + 44 application + 180 adapters + 13 composition); frozen migration v0005 annotates upgrade/downgrade returns, types the configuration/model/preference backfill closures along their real data flow, gives options/ordinal/preferences explicit container types, narrows historical row fields at each use and types the default preference/model payloads; zero SQL change was verified twice — all 181 string literals match HEAD as a multiset and every module constant (TABLES/INDEXES/COLUMNS/TRIGGERS) is equal — and schema-release plus all 17 migration suites executed for real and passed",
-   "Strict scope reaches 291 files (53 domain + 44 application + 181 adapters + 13 composition); the exclusive snapshot/verify/restore module types its manifest, restore report and quarantine counters as Record, narrows object relative paths, byte counts and digests at each use, types the pending-collection ledger as list[Record], splits the manifest-entry dict narrowing while keeping the original error codes and messages, and narrows the replay guard's files and quarantine fields; never checkpointing or discarding WAL/SHM/journal files, single-link and fingerprint validation, quarantining in-flight work before restore completes and never restoring credentials from a snapshot are all unchanged"
+   "Strict scope reaches 291 files (53 domain + 44 application + 181 adapters + 13 composition); the exclusive snapshot/verify/restore module types its manifest, restore report and quarantine counters as Record, narrows object relative paths, byte counts and digests at each use, types the pending-collection ledger as list[Record], splits the manifest-entry dict narrowing while keeping the original error codes and messages, and narrows the replay guard's files and quarantine fields; never checkpointing or discarding WAL/SHM/journal files, single-link and fingerprint validation, quarantining in-flight work before restore completes and never restoring credentials from a snapshot are all unchanged",
+   "Strict scope reaches 292 files (53 domain + 44 application + 182 adapters + 13 composition); the terminal intent and immutable-receipt repository aligns session/operation/replay/open receipts with the port Record contract, keeps request and spec parameters at Record to match the port, narrows revisions to int before incrementing, narrows parse_open's shell/cols/rows/operation_id at each use and narrows the nested settings value before reading workspace; boot ownership, permission epochs, refusing control while cleanup is pending, refusing cleanup authority from a foreign boot, immutability of settled observations and recovery always marking unknown without replay are unchanged, and the module still opens no native process and stores no terminal bodies"
   ]
  },
  "source_recovery": {
