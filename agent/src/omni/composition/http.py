@@ -26,6 +26,7 @@ from ..application.ports import (
     LocalVectorizer,
     ModelPort,
     ModelStreamingPort,
+    Record,
     SecretStore,
     TerminalBackendPort,
     TokenCounter,
@@ -64,7 +65,7 @@ def http_app(
     terminal_backend: TerminalBackendPort | None = None,
     desktop_backend: DesktopBackendPort | None = None,
     portal_backend: DesktopPortalPort | None = None,
-    deployment: dict[str, Any] | None = None,
+    deployment: Record | None = None,
     shutdown: Callable[[], None] | None = None,
 ):
     async def factory() -> HttpRuntime:
@@ -100,25 +101,25 @@ def http_app(
                 expires = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=30)).isoformat(timespec="microseconds")
                 # Register before publishing. A crash may leave an unreachable token hash,
                 # but cannot publish a credential that was not durably authorized.
-                await instance._database.write(lambda u: u.issue_token(digest, expires))
+                await instance.database.write(lambda u: u.issue_token(digest, expires))
                 descriptor = os.open(token_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
                 with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
                     stream.write(token)
                     stream.flush()
                     os.fsync(stream.fileno())
                 private_path(token_path)
-            instance._logging.sink.redactor.register(token_path.read_text(encoding="utf-8"))
+            instance.logging.sink.redactor.register(token_path.read_text(encoding="utf-8"))
 
             async def authenticate(token: str) -> bool:
                 if len(token) < 32 or len(token) > 200:
                     return False
                 digest = hashlib.sha256(token.encode()).hexdigest()
-                return await instance._database.read(lambda u: u.token_valid(digest))
+                return await instance.database.read(lambda u: u.token_valid(digest))
 
             rotate_lock = asyncio.Lock()
 
-            async def token_sessions() -> list[dict]:
-                rows = await instance._database.read(lambda u: u.token_sessions(50))
+            async def token_sessions() -> list[Record]:
+                rows = await instance.database.read(lambda u: u.token_sessions(50))
                 current = ""
                 if token_path.exists() and not token_path.is_symlink():
                     current = hashlib.sha256(token_path.read_text(encoding="utf-8").strip().encode()).hexdigest()
@@ -132,7 +133,7 @@ def http_app(
                     for row in rows
                 ]
 
-            async def rotate_token() -> dict:
+            async def rotate_token() -> Record:
                 async with rotate_lock:
                     new_token = secrets.token_urlsafe(32)
                     digest = hashlib.sha256(new_token.encode()).hexdigest()
@@ -141,7 +142,7 @@ def http_app(
                     )
                     # Issue first so a crash can only leave an extra valid session,
                     # never a published token the database does not recognize.
-                    await instance._database.write(lambda u: u.issue_token(digest, expires))
+                    await instance.database.write(lambda u: u.issue_token(digest, expires))
 
                     def publish() -> None:
                         if token_path.is_symlink():
@@ -163,16 +164,18 @@ def http_app(
                             raise
 
                     await asyncio.to_thread(publish)
-                    await instance._database.write(lambda u: u.revoke_other_tokens(digest))
-                    instance._logging.sink.redactor.register(new_token)
+                    await instance.database.write(lambda u: u.revoke_other_tokens(digest))
+                    instance.logging.sink.redactor.register(new_token)
                     # Returned exactly once; never logged or persisted outside the control file.
                     return {"token": new_token, "expires_at": expires}
 
-            async def logs(query: LogQuery) -> dict:
+            async def logs(query: LogQuery) -> Record:
                 return await instance.operations.logs(asdict(query))
 
-            async def drain(value: dict) -> dict:
-                return await instance._identity_files.request_drain(
+            async def drain(value: Record) -> Record:
+                # RuntimeIdentityFiles 尚未纳入 strict；request_drain 返回排空回执，用局部 Any 桥接其未类型化签名。
+                identity_files: Any = instance.identity_files
+                return await identity_files.request_drain(
                     value, dt.datetime.now(dt.timezone.utc).isoformat(), request_shutdown
                 )
 
@@ -180,11 +183,11 @@ def http_app(
                 nonlocal drain_deadline
                 if drain_deadline is None:
                     drain_deadline = asyncio.get_running_loop().time() + 30
-                instance._lifetime.stop_accepting()
+                instance.lifetime.stop_accepting()
                 if shutdown is not None:
                     shutdown()
 
-            async def close() -> dict:
+            async def close() -> Record:
                 remaining = 30 if drain_deadline is None else max(0, drain_deadline - asyncio.get_running_loop().time())
                 return await close_until_quiescent(instance.close, remaining)
 
