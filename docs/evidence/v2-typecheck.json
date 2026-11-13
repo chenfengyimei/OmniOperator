@@ -6,9 +6,9 @@
  "d7_complete": false,
  "default_entrypoint": "v1",
  "source": {
-  "code_version": "c9baf6c6548e47493072d844b07313584272f63458bfecae25020fdf56d0cf08",
+  "code_version": "819301990fc423bb927b76bbba9ad24127cf8b011b0d6c63905894ab89f5e4c2",
   "fixed_source_files": 1203,
-  "git_head": "fa5f171",
+  "git_head": "8fdbc73",
   "dirty_checkout": false,
   "recipe": "sha256(json.dumps({path: sha256(blob) for tracked agent/, web/, scripts/ files}, sort_keys=True)); see temp/build/source_version.py",
   "head_ui": "75c4219"
@@ -168,7 +168,8 @@
    "Strict scope reaches 267 files (53 domain + 43 application + 160 adapters + 11 composition); the CLI development entrypoint types its installation/doctor/object-collection/diagnostic receipts as explicit Record and narrows JSON deep indexing layer by layer; the supporting publish_diagnostic/derived_indexes/object_report/plan_collection/apply_collection signatures are refined from bare dict to dict[str, object] (pure typing, no behavior change, default-mode error count unchanged); installation sealing, exclusive diagnostics and collection journal rules are unchanged",
    "Strict scope reaches 269 files (53 domain + 43 application + 160 adapters + 13 composition); service_control narrows the admin operation to Record and types its shutdown receipt, and the composition package marker joins the scope, completing the composition layer (13/13); reviewed root routing, once-dispatch and bounded-shutdown rules are unchanged",
    "Strict scope reaches 270 files (53 domain + 44 application + 160 adapters + 13 composition); the Android owner service types its device-grant/observation/input-dispatch/IME-recovery use cases as explicit Record/Payload, generics the bounded task owner and narrows lease/guard payloads layer by layer, and the AndroidPort args/health signatures are refined (the now-redundant instance cast is removed), completing the application layer (44/44); device authority, per-run scope, once-dispatch and unknown no-replay rules are unchanged",
-   "Strict scope reaches 271 files (53 domain + 44 application + 161 adapters + 13 composition); the Android Unicode repository types its helper-profile/authority/IME-recovery preparation/observation/dispatch receipts as explicit Record, bridges the not-yet-typed repository aggregate through a local Any view and narrows revision/subtype guards; helper pinning, IME obligation and unknown no-replay rules are unchanged"
+   "Strict scope reaches 271 files (53 domain + 44 application + 161 adapters + 13 composition); the Android Unicode repository types its helper-profile/authority/IME-recovery preparation/observation/dispatch receipts as explicit Record, bridges the not-yet-typed repository aggregate through a local Any view and narrows revision/subtype guards; helper pinning, IME obligation and unknown no-replay rules are unchanged",
+   "Strict scope reaches 272 files (53 domain + 44 application + 162 adapters + 13 composition); the Android device-grant/run-access repository types its access-record/model-run/authorize/dispatch/connection/grant receipts as explicit Record, bridges the not-yet-typed aggregate and settings through a local Any view and narrows package/kind lists and expiry comparisons; device authority, run scope and unknown no-replay rules are unchanged"
   ],
   "pending": [
    "application 44/44 complete; adapters 160/222 strict typing",
@@ -180,8 +181,8 @@
  "validation": {
   "all_latest_cases_passed": true,
   "latest_batch": {
-   "report": "temp/build/v2-typecheck-147-callers.xml",
-   "tests": 54,
+   "report": "temp/build/v2-typecheck-148-callers.xml",
+   "tests": 67,
    "failures": 0
   },
   "targeted_reports": [
@@ -1515,6 +1516,15 @@
     "errors": 0,
     "duration_s": 110.06,
     "note": "P2 android_unicode_repository batch: IME obligation repository + guard/arch/android-unicode callers"
+   },
+   {
+    "path": "temp/build/v2-typecheck-148-callers.xml",
+    "sha256": "48c5951142874bc7e997aaa470f1b134c622b014fa37a638fcc501653a8c3ba9",
+    "tests": 67,
+    "failures": 0,
+    "errors": 0,
+    "duration_s": 253.89,
+    "note": "P2 android_repository batch: device-grant/run-access repository + guard/arch/android/android-model callers"
    }
   ],
   "gates": {
@@ -1526,7 +1536,7 @@
   "strict": {
    "config": "pyrightconfig.strict.json",
    "summary": {
-    "filesAnalyzed": 271,
+    "filesAnalyzed": 272,
     "errorCount": 0,
     "warningCount": 0,
     "informationCount": 0
@@ -1540,7 +1550,7 @@
     "informationCount": 0
    },
    "sources": [
-    "agent/src/omni/adapters/persistence/android_unicode_repository.py"
+    "agent/src/omni/adapters/persistence/android_repository.py"
    ]
   },
   "full_run": {

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "76ce6f0fca3cb57dc3c5aa816af28339478d9b77bdd5523a73e7af2a2f87dce6",
+  "source_sha256": "383e8d37531ada7de81d30383fcbc36e22a951552f8fc4d89df5f724d954be46",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53310,
+      "lines": 53326,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19082,
+      "lines": 19117,
       "dependencies": []
     },
     {
@@ -11035,36 +11035,36 @@
       "path": "agent/src/omni/adapters/persistence/android_repository.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.android_repository",
-      "lines": 279,
+      "lines": 295,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.action_predicates",
         "omni.adapters.persistence.configuration_repository",
-        "omni.adapters.persistence.repository",
+        "omni.application.ports",
         "omni.domain.android",
         "omni.domain.contracts"
       ],
       "symbols": [
         {
           "name": "AndroidRepositories",
-          "line": 21,
+          "line": 19,
           "kind": "class"
         },
         {
           "name": "AndroidRepositories._android_access_record",
-          "line": 22,
+          "line": 20,
           "kind": "function",
           "parameters": [
             "self",
             "row"
           ],
           "annotations": {
-            "row": "dict"
+            "row": "Record"
           }
         },
         {
           "name": "AndroidRepositories._android_model_run",
-          "line": 56,
+          "line": 54,
           "kind": "function",
           "parameters": [
             "self",
@@ -11078,7 +11078,7 @@
         },
         {
           "name": "AndroidRepositories.android_access_create",
-          "line": 69,
+          "line": 67,
           "kind": "function",
           "parameters": [
             "self",
@@ -11091,12 +11091,12 @@
             "agent_id": "str",
             "run_id": "str",
             "action_id": "str",
-            "value": "dict"
+            "value": "Record"
           }
         },
         {
           "name": "AndroidRepositories.android_access_authorize",
-          "line": 124,
+          "line": 127,
           "kind": "function",
           "parameters": [
             "self",
@@ -11112,7 +11112,7 @@
         },
         {
           "name": "AndroidRepositories.android_access_revoke",
-          "line": 145,
+          "line": 155,
           "kind": "function",
           "parameters": [
             "self",
@@ -11128,7 +11128,7 @@
         },
         {
           "name": "AndroidRepositories.android_access_page",
-          "line": 158,
+          "line": 168,
           "kind": "function",
           "parameters": [
             "self",
@@ -11144,7 +11144,7 @@
         },
         {
           "name": "AndroidRepositories.android_dispatch",
-          "line": 183,
+          "line": 193,
           "kind": "function",
           "parameters": [
             "self",
@@ -11160,7 +11160,7 @@
         },
         {
           "name": "AndroidRepositories.android_connection",
-          "line": 213,
+          "line": 223,
           "kind": "function",
           "parameters": [
             "self",
@@ -11174,7 +11174,7 @@
         },
         {
           "name": "AndroidRepositories.android_grant",
-          "line": 219,
+          "line": 232,
           "kind": "function",
           "parameters": [
             "self",
@@ -11187,12 +11187,12 @@
             "agent_id": "str",
             "config_id": "str",
             "revision_id": "str",
-            "device": "dict"
+            "device": "Record"
           }
         },
         {
           "name": "AndroidRepositories.android_authorize",
-          "line": 242,
+          "line": 258,
           "kind": "function",
           "parameters": [
             "self",
@@ -11206,7 +11206,7 @@
         },
         {
           "name": "AndroidRepositories.android_revoke",
-          "line": 254,
+          "line": 270,
           "kind": "function",
           "parameters": [
             "self",
@@ -11222,7 +11222,7 @@
         },
         {
           "name": "AndroidRepositories.android_grants",
-          "line": 267,
+          "line": 283,
           "kind": "function",
           "parameters": [
             "self",
@@ -95765,7 +95765,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 937,
+      "lines": 972,
       "imports": [],
       "symbols": [],
       "kind": "asset",

@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`76ce6f0fca3cb57dc3c5aa816af28339478d9b77bdd5523a73e7af2a2f87dce6`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`383e8d37531ada7de81d30383fcbc36e22a951552f8fc4d89df5f724d954be46`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -166,7 +166,7 @@
 | [agent/src/omni/adapters/persistence/__init__.py](../../agent/src/omni/adapters/persistence/__init__.py) | 1 | Only this package owns application SQL, connections and schema evolution. |
 | [agent/src/omni/adapters/persistence/action_predicates.py](../../agent/src/omni/adapters/persistence/action_predicates.py) | 65 | One current owner-resolution predicate; never rewrites raw action observations or acknowledges model costs. |
 | [agent/src/omni/adapters/persistence/action_review_repository.py](../../agent/src/omni/adapters/persistence/action_review_repository.py) | 426 | Owner observation ledger for uncertain actions; original actions, costs and delivery state remain unchanged. |
-| [agent/src/omni/adapters/persistence/android_repository.py](../../agent/src/omni/adapters/persistence/android_repository.py) | 279 | Device grants bind immutable configuration/device identities; actions remain in the shared ledger. |
+| [agent/src/omni/adapters/persistence/android_repository.py](../../agent/src/omni/adapters/persistence/android_repository.py) | 295 | Device grants bind immutable configuration/device identities; actions remain in the shared ledger. |
 | [agent/src/omni/adapters/persistence/android_unicode_repository.py](../../agent/src/omni/adapters/persistence/android_unicode_repository.py) | 251 | Immutable helper profiles and durable IME restoration obligations; input truth stays in actions. |
 | [agent/src/omni/adapters/persistence/audit_pruning.py](../../agent/src/omni/adapters/persistence/audit_pruning.py) | 56 | Offline audit-pruning bindings; shared infrastructure owns locks, verified backups and plan files. |
 | [agent/src/omni/adapters/persistence/audit_pruning_repository.py](../../agent/src/omni/adapters/persistence/audit_pruning_repository.py) | 107 | Persist reviewed audit deletion and its proof atomically; preserve identities and business ledgers. |
@@ -453,7 +453,7 @@
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 955 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4450 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 937 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 972 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 
