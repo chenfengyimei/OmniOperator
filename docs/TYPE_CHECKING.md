@@ -271,6 +271,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | `agent/src/omni/adapters/persistence/execution_pruning.py` | 执行正文保留计划（读/建/应用/取消） |
 | `agent/src/omni/adapters/persistence/object_gc.py` | 独占计划/应用回收（entries/残留显式 Record、写回调用 UnitOfWork、先提交元数据后解链不变） |
 | `agent/src/omni/adapters/persistence/memory_organization_predicates.py` | 已批准重复唯一谓词（别名 NamedFromClause、条件 ColumnElement、Select/Exists 显式；SQL 与 HEAD 逐字节一致） |
+| `agent/src/omni/adapters/persistence/media_repository.py` | 媒体来源/有界任务/不可变产物行（对齐端口 Record、_latest 显式 Connection/Table、不读文件、重启对账 unknown 不重放） |
 | `agent/src/omni/adapters/persistence/memory_repository.py` | 记忆真相/证据/修订与抹除（对齐端口 Record、来源序号与区间 int 收窄、墓碑不重放保留） |
 | `agent/src/omni/adapters/persistence/object_inventory.py` | 离线对象登记/物理清单校验 |
 | `agent/src/omni/adapters/persistence/reference_release.py` | 引用释放计划（读/建/应用/取消） |
@@ -321,7 +322,7 @@ uv run --no-sync pyright --project pyrightconfig.strict.json
 | --- | --- |
 | `agent/src/omni/domain`（全部 53 文件） | 2321 |
 
-`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 186 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
+`service_control.py`（94）已在纳入 strict 前清零；`model_stream.py`（75）、`context.py`（38）、`recovery_authority.py`（27）、`memory_semantics.py`（19）、`foreground.py`（24）、`metering.py`（19）与 `release_fence.py`（16）同样已清零，基线表中不再列逐文件例外。`application/` 已全部纳入（44/44 个模块）、`adapters/` 187 个模块；`composition/` 已全部纳入（13/13 个模块，守卫允许层已加入 composition）；`agent/tests/` 尚未开始 strict。
 
 ### 3.1 剩余 adapters 错误数（本源码版本，仅记录）
 

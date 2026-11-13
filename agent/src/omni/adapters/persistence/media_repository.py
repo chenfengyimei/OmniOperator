@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from typing import cast
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import Table, delete, func, select, update
+from sqlalchemy.engine import Connection
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.media import JOB_STATES, OPERATIONS
 from . import schema as s
@@ -15,7 +17,7 @@ ACTIVE_STATES = ("queued", "running")
 
 
 class MediaRepositories(BilibiliRepositories):
-    def _job(self, job_id: str) -> dict:
+    def _job(self, job_id: str) -> Record:
         row = (
             self.connection.execute(
                 select(s.media_jobs, s.media_sources.c.bvid, s.media_sources.c.config_id.label("source_config_id"))
@@ -31,18 +33,18 @@ class MediaRepositories(BilibiliRepositories):
         )
         if row is None:
             raise BusinessError("media_job_not_found", "No such media job", status=404)
-        return dict(row)
+        return cast(Record, dict(row))
 
-    def _source(self, agent_id: str, source_id: str) -> dict:
+    def _source(self, agent_id: str, source_id: str) -> Record:
         row = self.connection.execute(
             select(s.media_sources).where(s.media_sources.c.agent_id == agent_id, s.media_sources.c.id == source_id)
         ).mappings()
         source = row.first()
         if source is None:
             raise BusinessError("media_source_not_found", "No such media source in this Agent", status=404)
-        return dict(source)
+        return cast(Record, dict(source))
 
-    def media_source_register(self, agent_id: str, row: dict) -> dict:
+    def media_source_register(self, agent_id: str, row: Record) -> Record:
         existing = (
             self.connection.execute(
                 select(s.media_sources).where(
@@ -83,16 +85,19 @@ class MediaRepositories(BilibiliRepositories):
         return self._source(agent_id, str(created["id"]))
 
     @staticmethod
-    def _latest(connection, table, agent_id: str, source_id: str) -> str | None:
-        return connection.execute(
-            select(table.c.id)
-            .where(table.c.agent_id == agent_id, table.c.source_id == source_id)
-            .order_by(table.c.created_at.desc(), table.c.id.desc())
-            .limit(1)
-        ).scalar()
+    def _latest(connection: Connection, table: Table, agent_id: str, source_id: str) -> str | None:
+        return cast(
+            str | None,
+            connection.execute(
+                select(table.c.id)
+                .where(table.c.agent_id == agent_id, table.c.source_id == source_id)
+                .order_by(table.c.created_at.desc(), table.c.id.desc())
+                .limit(1)
+            ).scalar(),
+        )
 
-    def _source_view(self, source: dict) -> dict:
-        agent_id, source_id = source["agent_id"], source["id"]
+    def _source_view(self, source: Record) -> Record:
+        agent_id, source_id = cast(str, source["agent_id"]), cast(str, source["id"])
         active = self.connection.execute(
             select(func.count())
             .select_from(s.media_jobs)
@@ -109,7 +114,7 @@ class MediaRepositories(BilibiliRepositories):
             "latest_frames_id": self._latest(self.connection, s.media_frames, agent_id, source_id),
         }
 
-    def media_source_page(self, agent_id: str, after: str = "", limit: int = 50) -> list[dict]:
+    def media_source_page(self, agent_id: str, after: str = "", limit: int = 50) -> list[Record]:
         rows = (
             self.connection.execute(
                 select(s.media_sources)
@@ -120,9 +125,9 @@ class MediaRepositories(BilibiliRepositories):
             .mappings()
             .all()
         )
-        return [self._source_view(dict(r)) for r in rows]
+        return [self._source_view(cast(Record, dict(r))) for r in rows]
 
-    def media_source_get(self, agent_id: str, source_id: str) -> dict:
+    def media_source_get(self, agent_id: str, source_id: str) -> Record:
         return self._source_view(self._source(agent_id, source_id))
 
     def media_source_delete(self, agent_id: str, source_id: str) -> None:
@@ -156,7 +161,7 @@ class MediaRepositories(BilibiliRepositories):
         )
         self.audit(agent_id, "media.source_deleted", source_id, {"jobs_pruned": True})
 
-    def media_job_create(self, agent_id: str, source_id: str, operation: str, plan: dict) -> dict:
+    def media_job_create(self, agent_id: str, source_id: str, operation: str, plan: Record) -> Record:
         if operation not in OPERATIONS:
             raise BusinessError("media_operation_invalid", "Choose subtitle, transcribe or frames", status=422)
         self._source(agent_id, source_id)
@@ -179,10 +184,10 @@ class MediaRepositories(BilibiliRepositories):
         )
         return self._job(str(created["id"]))
 
-    def media_job_get(self, job_id: str) -> dict:
+    def media_job_get(self, job_id: str) -> Record:
         return self._job(job_id)
 
-    def media_job_page(self, agent_id: str, source_id: str, after: str = "", limit: int = 50) -> list[dict]:
+    def media_job_page(self, agent_id: str, source_id: str, after: str = "", limit: int = 50) -> list[Record]:
         self._source(agent_id, source_id)
         rows = (
             self.connection.execute(
@@ -198,9 +203,9 @@ class MediaRepositories(BilibiliRepositories):
             .mappings()
             .all()
         )
-        return [dict(r) for r in rows]
+        return [cast(Record, dict(r)) for r in rows]
 
-    def media_job_start(self, job_id: str) -> dict:
+    def media_job_start(self, job_id: str) -> Record:
         result = self.connection.execute(
             update(s.media_jobs)
             .where(s.media_jobs.c.id == job_id, s.media_jobs.c.state == "queued")
@@ -213,7 +218,7 @@ class MediaRepositories(BilibiliRepositories):
             raise BusinessError("media_job_state_invalid", "Only queued media jobs can start", status=409)
         return self._job(job_id)
 
-    def media_job_cancel(self, job_id: str) -> dict:
+    def media_job_cancel(self, job_id: str) -> Record:
         self.connection.execute(
             update(s.media_jobs)
             .where(s.media_jobs.c.id == job_id, s.media_jobs.c.state == "queued")
@@ -221,7 +226,7 @@ class MediaRepositories(BilibiliRepositories):
         )
         return self._job(job_id)
 
-    def media_job_finish(self, job_id: str, state: str, error_code: str = "") -> dict:
+    def media_job_finish(self, job_id: str, state: str, error_code: str = "") -> Record:
         if state not in JOB_STATES:
             raise BusinessError("media_job_state_invalid", "Unknown media job state", status=422)
         result = self.connection.execute(
@@ -244,7 +249,7 @@ class MediaRepositories(BilibiliRepositories):
         )
         return current
 
-    def _complete(self, job_id: str, table, values: dict) -> dict:
+    def _complete(self, job_id: str, table: Table, values: Record) -> Record:
         job = self._job(job_id)
         if job["state"] != "running":
             raise BusinessError("media_job_state_invalid", "Only running media jobs can complete", status=409)
@@ -257,7 +262,7 @@ class MediaRepositories(BilibiliRepositories):
         self.audit(str(job["agent_id"]), "media.job_finished", job_id, {"state": "done", "artifact": table.name})
         return self._job(job_id)
 
-    def media_job_complete_transcript(self, job_id: str, info: dict) -> dict:
+    def media_job_complete_transcript(self, job_id: str, info: Record) -> Record:
         source = self._job(job_id)
         return self._complete(
             job_id,
@@ -271,7 +276,7 @@ class MediaRepositories(BilibiliRepositories):
             },
         )
 
-    def media_job_complete_frames(self, job_id: str, info: dict) -> dict:
+    def media_job_complete_frames(self, job_id: str, info: Record) -> Record:
         source = self._job(job_id)
         return self._complete(
             job_id,
@@ -286,7 +291,7 @@ class MediaRepositories(BilibiliRepositories):
             },
         )
 
-    def media_transcript_get(self, agent_id: str, transcript_id: str) -> dict:
+    def media_transcript_get(self, agent_id: str, transcript_id: str) -> Record:
         row = self.connection.execute(
             select(s.media_transcripts).where(
                 s.media_transcripts.c.agent_id == agent_id, s.media_transcripts.c.id == transcript_id
@@ -295,24 +300,24 @@ class MediaRepositories(BilibiliRepositories):
         found = row.first()
         if found is None:
             raise BusinessError("media_transcript_not_found", "No such transcript in this Agent", status=404)
-        return dict(found)
+        return cast(Record, dict(found))
 
-    def media_transcript_latest(self, agent_id: str, source_id: str) -> dict:
+    def media_transcript_latest(self, agent_id: str, source_id: str) -> Record:
         identity = self._latest(self.connection, s.media_transcripts, agent_id, source_id)
         if identity is None:
             raise BusinessError("media_transcript_not_found", "This source has no finished transcript yet", status=404)
         return self.media_transcript_get(agent_id, str(identity))
 
-    def media_frames_get(self, agent_id: str, frames_id: str) -> dict:
+    def media_frames_get(self, agent_id: str, frames_id: str) -> Record:
         row = self.connection.execute(
             select(s.media_frames).where(s.media_frames.c.agent_id == agent_id, s.media_frames.c.id == frames_id)
         ).mappings()
         found = row.first()
         if found is None:
             raise BusinessError("media_frames_not_found", "No such frame sheet in this Agent", status=404)
-        return dict(found)
+        return cast(Record, dict(found))
 
-    def media_recover(self) -> dict:
+    def media_recover(self) -> Record:
         """Startup reconciliation for jobs owned by the previous process."""
         cancelled = self.connection.execute(
             update(s.media_jobs)
@@ -326,4 +331,4 @@ class MediaRepositories(BilibiliRepositories):
         ).rowcount
         # Startup reconciliation is reported by the instance lifecycle log, not
         # per-agent business audit rows (audit rows require a scoped agent).
-        return {"cancelled": cast(int, cancelled), "unknown": cast(int, unknown)}
+        return {"cancelled": cancelled, "unknown": unknown}
