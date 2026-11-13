@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import re
 import uuid
+from typing import cast
 
 from sqlalchemy import insert, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.credentials import AUTHORITY_POLICY, authority_fingerprint, reference_fingerprint, review_value
 from . import schema as s
@@ -17,7 +19,7 @@ class CredentialRepositories(RepositoryBase):
     @staticmethod
     def _credential_cursor(after: str, limit: int, maximum: int) -> None:
         try:
-            valid = isinstance(after, str) and (not after or str(uuid.UUID(after)) == after)
+            valid = isinstance(cast(object, after), str) and (not after or str(uuid.UUID(after)) == after)
         except (ValueError, AttributeError):
             valid = False
         if not valid or type(limit) is not int or not 1 <= limit <= maximum:
@@ -28,7 +30,7 @@ class CredentialRepositories(RepositoryBase):
     def _credential_owner(self) -> str:
         return self.connection.execute(select(s.instances.c.owner_id).where(s.instances.c.slot == 1)).scalar_one()
 
-    def _credential_audit(self, identity: str, kind: str, outcome: str, data: dict) -> None:
+    def _credential_audit(self, identity: str, kind: str, outcome: str, data: Record) -> None:
         self.connection.execute(
             insert(s.instance_audit).values(
                 id=self.ids.new(),
@@ -41,7 +43,7 @@ class CredentialRepositories(RepositoryBase):
             )
         )
 
-    def _credential_row(self, identity: str) -> dict:
+    def _credential_row(self, identity: str) -> Record:
         row = (
             self.connection.execute(
                 select(s.credential_references).where(
@@ -54,9 +56,9 @@ class CredentialRepositories(RepositoryBase):
         )
         if row is None:
             raise BusinessError("credential_not_found", "Credential reference does not exist", status=404)
-        return dict(row)
+        return cast(Record, dict(row))
 
-    def credential_register(self, reference: str, *, audit: bool = True) -> dict:
+    def credential_register(self, reference: str, *, audit: bool = True) -> Record:
         fingerprint = reference_fingerprint(reference)
         row = (
             self.connection.execute(
@@ -90,7 +92,7 @@ class CredentialRepositories(RepositoryBase):
                     )
             elif value["reference"] != reference:
                 raise BusinessError("credential_reference_conflict", "Credential reference identity conflicts")
-            return self.credential_get(value["id"])
+            return self.credential_get(cast(str, value["id"]))
         value = self._record(
             s.credential_references,
             {
@@ -111,9 +113,9 @@ class CredentialRepositories(RepositoryBase):
                 "registered",
                 {"credential_id": value["id"], "reference_sha256": fingerprint, "authority_state": "ready"},
             )
-        return self.credential_get(value["id"])
+        return self.credential_get(cast(str, value["id"]))
 
-    def credential_get(self, identity: str) -> dict:
+    def credential_get(self, identity: str) -> Record:
         row = self._credential_row(identity)
         operation = None
         if row["current_operation_id"]:
@@ -136,7 +138,7 @@ class CredentialRepositories(RepositoryBase):
             "owner_authorization_only": True,
         }
 
-    def credential_page(self, after: str = "", limit: int = 100) -> list[dict]:
+    def credential_page(self, after: str = "", limit: int = 100) -> list[Record]:
         self._credential_cursor(after, limit, 200)
         ids = self.connection.execute(
             select(s.credential_references.c.id)
@@ -165,7 +167,7 @@ class CredentialRepositories(RepositoryBase):
         if code:
             raise BusinessError(code, "Credential reference is not authorized for use; inspect owner credential state")
 
-    def credential_begin(self, reference: str, operation: str, identity: str) -> dict:
+    def credential_begin(self, reference: str, operation: str, identity: str) -> Record:
         if operation not in {"set", "delete"}:
             raise BusinessError("invalid_credential_operation", "Credential operation is invalid", status=422)
         row = self.credential_register(reference, audit=False)
@@ -203,10 +205,10 @@ class CredentialRepositories(RepositoryBase):
                 updated_at=self.clock.now(),
             )
         )
-        self._credential_audit_intent(identity, row["reference_sha256"], operation)
+        self._credential_audit_intent(identity, cast(str, row["reference_sha256"]), operation)
         return value
 
-    def _credential_operation(self, identity: str, token: str) -> dict:
+    def _credential_operation(self, identity: str, token: str) -> Record:
         row = (
             self.connection.execute(
                 select(s.credential_operations).where(
@@ -223,7 +225,7 @@ class CredentialRepositories(RepositoryBase):
 
     def credential_dispatch(self, identity: str, token: str) -> None:
         operation = self._credential_operation(identity, token)
-        row = self._credential_row(operation["credential_id"])
+        row = self._credential_row(cast(str, operation["credential_id"]))
         if (
             operation["state"] != "prepared"
             or row["state"] != "changing"
@@ -242,14 +244,14 @@ class CredentialRepositories(RepositoryBase):
             .values(revision=s.credential_references.c.revision + 1, updated_at=self.clock.now())
         )
 
-    def _credential_finish(self, operation: dict, outcome: str, code: str = "") -> dict:
-        row = self._credential_row(operation["credential_id"])
+    def _credential_finish(self, operation: Record, outcome: str, code: str = "") -> Record:
+        row = self._credential_row(cast(str, operation["credential_id"]))
         if outcome not in {"applied", "not_applied", "unknown"}:
             raise BusinessError("invalid_credential_outcome", "Credential outcome is invalid")
         if operation["state"] in {"applied", "not_applied", "unknown"}:
             if operation["state"] != outcome:
                 raise BusinessError("credential_outcome_conflict", "Credential outcome has already been recorded")
-            return self.credential_get(row["id"])
+            return self.credential_get(cast(str, row["id"]))
         if (
             row["current_operation_id"] != operation["id"]
             or row["state"] != "changing"
@@ -281,10 +283,10 @@ class CredentialRepositories(RepositoryBase):
             .where(s.credential_references.c.id == row["id"])
             .values(state=state, revision=s.credential_references.c.revision + 1, updated_at=self.clock.now())
         )
-        self._credential_audit_outcome(operation["id"], outcome)
-        return self.credential_get(row["id"])
+        self._credential_audit_outcome(cast(str, operation["id"]), outcome)
+        return self.credential_get(cast(str, row["id"]))
 
-    def credential_settle(self, identity: str, token: str, outcome: str, code: str = "") -> dict:
+    def credential_settle(self, identity: str, token: str, outcome: str, code: str = "") -> Record:
         return self._credential_finish(self._credential_operation(identity, token), outcome, code)
 
     def credential_review(
@@ -298,7 +300,7 @@ class CredentialRepositories(RepositoryBase):
         evidence: str,
         *,
         review_id: str | None = None,
-    ) -> dict:
+    ) -> Record:
         review_value(decision, evidence)
         if type(revision) is not int or revision < 1 or type(epoch) is not int or epoch < 1:
             raise BusinessError(
@@ -349,7 +351,7 @@ class CredentialRepositories(RepositoryBase):
             )
         )
         self._credential_audit(
-            review["id"],
+            cast(str, review["id"]),
             "credential.reviewed",
             "allowed" if decision == "allow_current" else "revoked",
             {
@@ -361,7 +363,7 @@ class CredentialRepositories(RepositoryBase):
         )
         return self.credential_get(identity)
 
-    def credential_history(self, identity: str, after: str = "", limit: int = 50) -> list[dict]:
+    def credential_history(self, identity: str, after: str = "", limit: int = 50) -> list[Record]:
         self._credential_row(identity)
         self._credential_cursor(after, limit, 100)
         return [
@@ -374,7 +376,7 @@ class CredentialRepositories(RepositoryBase):
             ).mappings()
         ]
 
-    def credential_review_history(self, identity: str, after: str = "", limit: int = 50) -> list[dict]:
+    def credential_review_history(self, identity: str, after: str = "", limit: int = 50) -> list[Record]:
         self._credential_row(identity)
         self._credential_cursor(after, limit, 100)
         return [
