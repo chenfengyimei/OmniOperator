@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`65f0ad9374d7e5530e1ca74d6fe36b105c8e1b1a248b1932d32eee1c7282a4b8`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`ec5ded550a0a40fbe0e35aac363f4eb23b7cedf74b87270574ed202cbf34d7aa`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -258,7 +258,7 @@
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../agent/src/omni/adapters/persistence/retention_repository.py) | 135 | Context barriers invalidate derived views without deleting original conversations. |
 | [agent/src/omni/adapters/persistence/routing_repository.py](../../agent/src/omni/adapters/persistence/routing_repository.py) | 283 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
 | [agent/src/omni/adapters/persistence/schedule_repository.py](../../agent/src/omni/adapters/persistence/schedule_repository.py) | 410 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
-| [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3276 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
+| [agent/src/omni/adapters/persistence/schema.py](../../agent/src/omni/adapters/persistence/schema.py) | 3277 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
 | [agent/src/omni/adapters/persistence/schema_upgrade.py](../../agent/src/omni/adapters/persistence/schema_upgrade.py) | 154 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
 | [agent/src/omni/adapters/persistence/search_schema.py](../../agent/src/omni/adapters/persistence/search_schema.py) | 8 | Derived FTS definitions. Applied only by versioned migrations. |
 | [agent/src/omni/adapters/persistence/skill_repository.py](../../agent/src/omni/adapters/persistence/skill_repository.py) | 459 | Immutable skill versions, review state and per-run bindings; no package or filesystem access. |

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "65f0ad9374d7e5530e1ca74d6fe36b105c8e1b1a248b1932d32eee1c7282a4b8",
+  "source_sha256": "ec5ded550a0a40fbe0e35aac363f4eb23b7cedf74b87270574ed202cbf34d7aa",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53407,
+      "lines": 53408,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -21302,33 +21302,33 @@
       "path": "agent/src/omni/adapters/persistence/schema.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.schema",
-      "lines": 3276,
+      "lines": 3277,
       "imports": [],
       "symbols": [
         {
           "name": "ident",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "scope",
-          "line": 39,
+          "line": 40,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "stamp",
-          "line": 43,
+          "line": 44,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "scoped_fk",
-          "line": 47,
+          "line": 48,
           "kind": "function",
           "parameters": [
             "column",
@@ -21341,7 +21341,7 @@
         },
         {
           "name": "scoped",
-          "line": 51,
+          "line": 52,
           "kind": "function",
           "parameters": [
             "name",
@@ -21353,23 +21353,25 @@
         },
         {
           "name": "preference_columns",
-          "line": 200,
+          "line": 201,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "option_columns",
-          "line": 294,
+          "line": 295,
           "kind": "function",
           "parameters": [
             "kind"
           ],
-          "annotations": {}
+          "annotations": {
+            "kind": "str"
+          }
         },
         {
           "name": "history_retention_batches",
-          "line": 1736,
+          "line": 1737,
           "kind": "function",
           "parameters": [
             "name",
