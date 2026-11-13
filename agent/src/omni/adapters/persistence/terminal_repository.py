@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from sqlalchemy import insert, select, update
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.terminals import digest, geometry, identity, integer, page, parse_open, payload_fingerprint
 from . import schema as s
@@ -15,14 +18,14 @@ class TerminalRepositories(ConfigurationRepositories):
         if self.connection.execute(select(s.agents.c.id).where(s.agents.c.id == agent_id)).first() is None:
             raise BusinessError("not_found", "Agent space does not exist", status=404)
 
-    def terminal_get(self, agent_id: str, session_id: str) -> dict:
+    def terminal_get(self, agent_id: str, session_id: str) -> Record:
         return self._one(s.terminal_sessions, agent_id, session_id)
 
-    def terminal_page(self, agent_id: str, after: int = 0, limit: int = 20) -> list[dict]:
+    def terminal_page(self, agent_id: str, after: int = 0, limit: int = 20) -> list[Record]:
         page(after, limit)
         self._terminal_agent(agent_id)
         return [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(s.terminal_sessions)
                 .where(s.terminal_sessions.c.agent_id == agent_id, s.terminal_sessions.c.sequence > after)
@@ -31,22 +34,25 @@ class TerminalRepositories(ConfigurationRepositories):
             ).mappings()
         ]
 
-    def terminal_operation_get(self, agent_id: str, session_id: str, operation_id: str) -> dict:
+    def terminal_operation_get(self, agent_id: str, session_id: str, operation_id: str) -> Record:
         self.terminal_get(agent_id, session_id)
         row = self._one(s.terminal_operations, agent_id, identity(operation_id))
         if row["session_id"] != session_id:
             raise BusinessError("not_found", "Operation does not belong to this terminal", status=404)
         return {**row, "operation_id": row["id"]}
 
-    def terminal_operation_lookup(self, agent_id: str, operation_id: str) -> dict:
+    def terminal_operation_lookup(self, agent_id: str, operation_id: str) -> Record:
         self._terminal_agent(agent_id)
         row = self._one(s.terminal_operations, agent_id, identity(operation_id))
-        return {
-            "operation": {**row, "operation_id": row["id"]},
-            "session": self.terminal_get(agent_id, row["session_id"]),
-        }
+        return cast(
+            Record,
+            {
+                "operation": {**row, "operation_id": row["id"]},
+                "session": self.terminal_get(agent_id, cast(str, row["session_id"])),
+            },
+        )
 
-    def terminal_open_replay(self, agent_id: str, request: dict) -> dict | None:
+    def terminal_open_replay(self, agent_id: str, request: Record) -> Record | None:
         checked = parse_open(request)
         self._terminal_agent(agent_id)
         prior = (
@@ -62,24 +68,31 @@ class TerminalRepositories(ConfigurationRepositories):
             raise BusinessError("not_found", "Operation does not exist in this Agent space", status=404)
         if prior["kind"] != "open" or prior["payload_sha256"] != payload_fingerprint("open", checked):
             raise BusinessError("terminal_operation_conflict", "Operation identity already binds another intent")
-        return {
-            **self.terminal_get(agent_id, prior["session_id"]),
-            "operation": {**dict(prior), "operation_id": prior["id"]},
-            "replayed": True,
-        }
+        return cast(
+            Record,
+            {
+                **self.terminal_get(agent_id, cast(str, prior["session_id"])),
+                "operation": {**dict(prior), "operation_id": prior["id"]},
+                "replayed": True,
+            },
+        )
 
-    def terminal_open_begin(self, agent_id: str, request: dict, spec: dict, permission_epoch: int) -> dict:
+    def terminal_open_begin(self, agent_id: str, request: Record, spec: Record, permission_epoch: int) -> Record:
         prior = self.terminal_open_replay(agent_id, request)
         if prior is not None:
             return prior
         checked = parse_open(request)
         settings = self.settings(agent_id)
-        if settings["policy_revision"] != permission_epoch or settings["value"]["workspace"] != spec.get(
+        if settings["policy_revision"] != permission_epoch or cast(Record, settings["value"])["workspace"] != spec.get(
             "configured_workspace", spec["cwd"]
         ):
             raise BusinessError("terminal_authority_changed", "Reload the current configured workspace before opening")
         for key in ("executable", "cwd"):
-            if not isinstance(spec.get(key), str) or not 1 <= len(spec[key]) <= 4000 or "\0" in spec[key]:
+            if (
+                not isinstance(spec.get(key), str)
+                or not 1 <= len(cast(str, spec[key])) <= 4000
+                or "\0" in cast(str, spec[key])
+            ):
                 raise BusinessError("terminal_invalid", "Native profile is invalid", status=422)
         digest(spec["workspace_sha256"])
         sid = self.ids.new()
@@ -89,13 +102,13 @@ class TerminalRepositories(ConfigurationRepositories):
                 agent_id=agent_id,
                 created_at=self.clock.now(),
                 boot_id=self.boot_id,
-                shell=checked["shell"],
+                shell=cast(str, checked["shell"]),
                 executable=spec["executable"],
                 cwd=spec["cwd"],
                 workspace_sha256=spec["workspace_sha256"],
                 permission_epoch=permission_epoch,
-                cols=checked["cols"],
-                rows=checked["rows"],
+                cols=cast(int, checked["cols"]),
+                rows=cast(int, checked["rows"]),
                 state="starting",
                 revision=1,
                 cleanup_pending=True,
@@ -103,11 +116,14 @@ class TerminalRepositories(ConfigurationRepositories):
             )
         )
         receipt = self.terminal_operation_begin(
-            agent_id, sid, checked["operation_id"], "open", payload_fingerprint("open", checked), 0
+            agent_id, sid, cast(str, checked["operation_id"]), "open", payload_fingerprint("open", checked), 0
         )
-        return {**self.terminal_get(agent_id, sid), "operation": receipt, "replayed": False}
+        return cast(
+            Record,
+            {**self.terminal_get(agent_id, sid), "operation": receipt, "replayed": False},
+        )
 
-    def _terminal_authority(self, agent_id: str, session_id: str, state: str) -> dict:
+    def _terminal_authority(self, agent_id: str, session_id: str, state: str) -> Record:
         row = self.terminal_get(agent_id, session_id)
         settings = self.settings(agent_id)
         if row["boot_id"] != self.boot_id or row["state"] != state:
@@ -120,10 +136,10 @@ class TerminalRepositories(ConfigurationRepositories):
             )
         return row
 
-    def terminal_assert_start(self, agent_id: str, session_id: str) -> dict:
+    def terminal_assert_start(self, agent_id: str, session_id: str) -> Record:
         return self._terminal_authority(agent_id, session_id, "starting")
 
-    def terminal_assert_control(self, agent_id: str, session_id: str) -> dict:
+    def terminal_assert_control(self, agent_id: str, session_id: str) -> Record:
         row = self._terminal_authority(agent_id, session_id, "running")
         if row["cleanup_pending"]:
             raise BusinessError("terminal_cleanup_pending", "Native process cleanup is unresolved")
@@ -138,7 +154,7 @@ class TerminalRepositories(ConfigurationRepositories):
         payload_sha256: str,
         size: int,
         revision: int | None = None,
-    ) -> dict:
+    ) -> Record:
         row = self.terminal_get(agent_id, session_id)
         operation_id, payload_sha256 = identity(operation_id), digest(payload_sha256)
         integer(size, 0, 16384)
@@ -158,7 +174,7 @@ class TerminalRepositories(ConfigurationRepositories):
                 raise BusinessError("not_found", "Operation does not belong to this terminal", status=404)
             if old["kind"] != kind or old["payload_sha256"] != payload_sha256 or old["bytes"] != size:
                 raise BusinessError("terminal_operation_conflict", "Operation identity already has another payload")
-            return {**dict(old), "operation_id": operation_id, "replayed": True}
+            return cast(Record, {**dict(old), "operation_id": operation_id, "replayed": True})
         if kind in {"input", "resize"}:
             self.terminal_assert_control(agent_id, session_id)
         elif kind == "open":
@@ -191,15 +207,19 @@ class TerminalRepositories(ConfigurationRepositories):
             self.connection.execute(
                 update(s.terminal_sessions)
                 .where(s.terminal_sessions.c.id == session_id)
-                .values(state="closing", cleanup_pending=True, revision=row["revision"] + 1)
+                .values(state="closing", cleanup_pending=True, revision=cast(int, row["revision"]) + 1)
             )
         return {**op, "operation_id": operation_id, "replayed": False}
 
     def terminal_operation_settle(
         self, agent_id: str, session_id: str, operation_id: str, state: str, error_code: str = ""
-    ) -> dict:
+    ) -> Record:
         row = self.terminal_operation_get(agent_id, session_id, operation_id)
-        if state not in {"accepted", "not_sent", "unknown"} or not isinstance(error_code, str) or len(error_code) > 80:
+        if (
+            state not in {"accepted", "not_sent", "unknown"}
+            or not isinstance(cast(object, error_code), str)
+            or len(error_code) > 80
+        ):
             raise BusinessError("terminal_invalid", "Invalid terminal result", status=422)
         if row["state"] != "prepared":
             if row["state"] != state or row["error_code"] != error_code:
@@ -218,7 +238,7 @@ class TerminalRepositories(ConfigurationRepositories):
         )
         return self.terminal_operation_get(agent_id, session_id, operation_id)
 
-    def terminal_mark_running(self, agent_id: str, session_id: str, pid: int, created: float) -> dict:
+    def terminal_mark_running(self, agent_id: str, session_id: str, pid: int, created: float) -> Record:
         row = self.terminal_assert_start(agent_id, session_id)
         integer(pid, 1)
         if type(created) not in {int, float} or not 0 < created < 1e12:
@@ -227,31 +247,35 @@ class TerminalRepositories(ConfigurationRepositories):
             update(s.terminal_sessions)
             .where(s.terminal_sessions.c.id == session_id)
             .values(
-                state="running", pid=pid, process_created=created, cleanup_pending=False, revision=row["revision"] + 1
+                state="running",
+                pid=pid,
+                process_created=created,
+                cleanup_pending=False,
+                revision=cast(int, row["revision"]) + 1,
             )
         )
         return self.terminal_get(agent_id, session_id)
 
-    def terminal_mark_resized(self, agent_id: str, session_id: str, cols: int, rows: int) -> dict:
+    def terminal_mark_resized(self, agent_id: str, session_id: str, cols: int, rows: int) -> Record:
         row = self.terminal_assert_control(agent_id, session_id)
         cols, rows = geometry(cols, rows)
         if (cols, rows) != (row["cols"], row["rows"]):
             self.connection.execute(
                 update(s.terminal_sessions)
                 .where(s.terminal_sessions.c.id == session_id)
-                .values(cols=cols, rows=rows, revision=row["revision"] + 1)
+                .values(cols=cols, rows=rows, revision=cast(int, row["revision"]) + 1)
             )
         return self.terminal_get(agent_id, session_id)
 
     def terminal_mark_closed(
         self, agent_id: str, session_id: str, reclaimed: bool, exit_code: int | None, error_code: str = ""
-    ) -> dict:
+    ) -> Record:
         row = self.terminal_get(agent_id, session_id)
         if type(reclaimed) is not bool or (exit_code is not None and type(exit_code) is not int):
             raise BusinessError("terminal_invalid", "Native cleanup observation is invalid")
         if row["boot_id"] != self.boot_id and reclaimed and row["state"] != "exited":
             raise BusinessError("terminal_old_boot", "Persisted process IDs cannot authorize cleanup")
-        value = {
+        value: Record = {
             "state": "exited" if reclaimed else "unknown",
             "cleanup_pending": not reclaimed,
             "exit_code": row["exit_code"] if row["exit_code"] is not None else exit_code,
@@ -266,7 +290,7 @@ class TerminalRepositories(ConfigurationRepositories):
                 .values(
                     **value,
                     ended_at=(row["ended_at"] or self.clock.now()) if reclaimed else None,
-                    revision=row["revision"] + 1,
+                    revision=cast(int, row["revision"]) + 1,
                 )
             )
         return self.terminal_get(agent_id, session_id)
@@ -287,10 +311,15 @@ class TerminalRepositories(ConfigurationRepositories):
                     state="unknown",
                     cleanup_pending=True,
                     error_code="terminal_previous_boot",
-                    revision=row["revision"] + 1,
+                    revision=cast(int, row["revision"]) + 1,
                 )
             )
-            self.audit(row["agent_id"], "terminal.recovered_unknown", row["id"], {"no_replay": True})
+            self.audit(
+                cast(str, row["agent_id"]),
+                "terminal.recovered_unknown",
+                cast(str, row["id"]),
+                {"no_replay": True},
+            )
         self.connection.execute(
             update(s.terminal_operations)
             .where(s.terminal_operations.c.state == "prepared")
