@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 from ..adapters.platform.deployment_files import CurrentDeploymentFiles
 from ..adapters.platform.service_operation_files import ServiceOperationFiles
@@ -25,7 +26,11 @@ async def run_operation(
     admin_bundle_sha256: str | None = None,
 ) -> Record:
     deployments, files = CurrentDeploymentFiles(), ServiceOperationFiles()
-    operation = None if command == "operation-plan" else validate_operation(deployments.read(str(path.absolute())))
+    operation: Record | None = (
+        None
+        if command == "operation-plan"
+        else cast(Record, validate_operation(deployments.read(str(path.absolute()))))
+    )
     native: ServiceRegistrationPort
     if (admin_socket is None) != (admin_bundle_sha256 is None):
         raise BusinessError(

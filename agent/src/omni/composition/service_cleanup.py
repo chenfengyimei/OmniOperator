@@ -73,7 +73,7 @@ async def run_cleanup(
         raise BusinessError("service_cleanup_command_invalid", "Choose an explicit cleanup or read-only observation")
     finally:
 
-        async def close(budget: float) -> dict:
+        async def close(budget: float) -> Record:
             return {"complete": await service.close(budget), "residual": ["service_cleanup"]}
 
         await close_until_quiescent(close, 8)

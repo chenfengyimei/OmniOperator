@@ -7,6 +7,8 @@ import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
+from ..application.ports import Record
+
 log = logging.getLogger("omni.v2.lifecycle")
 
 
@@ -140,7 +142,9 @@ async def close_sync(operation: Callable[[], object]) -> object:
     return await asyncio.to_thread(operation)
 
 
-async def close_until_quiescent(close: Callable[[float], Awaitable[dict]], initial_budget: float) -> dict:
+async def close_until_quiescent(
+    close: Callable[[float], Awaitable[Record]], initial_budget: float
+) -> Record:
     """Report the bounded normal shutdown; keep the loop and actual ownership for residual cleanup."""
     result = await close(max(0, initial_budget))
     warned = False
