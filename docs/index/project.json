@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "04a4a0c22bf4bdfb2cf68f1237188b8953f20a6fa63982e7589c9f7e119b2404",
+  "source_sha256": "c1570abe540ac685c2fecb728505c98bc457a809607c9bf7880ebf92a6e01c20",
   "modules": [
     {
       "id": "v2-domain",
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19162,
+      "lines": 19572,
       "dependencies": []
     },
     {
@@ -95513,7 +95513,7 @@
       "path": "web/ui/v2/chat-images.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 155,
+      "lines": 175,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95593,7 +95593,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1514,
+      "lines": 1523,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95613,7 +95613,7 @@
       "path": "web/ui/v2/main.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1495,
+      "lines": 1511,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95743,7 +95743,7 @@
       "path": "web/ui/v2/skills.js",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 462,
+      "lines": 460,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95813,7 +95813,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 978,
+      "lines": 1345,
       "imports": [],
       "symbols": [],
       "kind": "asset",

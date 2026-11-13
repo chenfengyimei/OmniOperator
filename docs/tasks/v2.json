@@ -290,7 +290,7 @@
     "targeted_unique_passed": 228,
     "includes_browser_cases": 10,
     "current_full_passed": false,
-    "full_runs_this_checkpoint": 7,
+    "full_runs_this_checkpoint": 8,
     "whole_plan_complete": false,
     "evidence": "docs/evidence/v2-extension-artifacts.json",
     "last_full_evidence": "docs/evidence/v2-typecheck.json",
@@ -310,13 +310,13 @@
     "baseline_repair_evidence": "docs/evidence/v2-baseline-repair.json",
     "market_evidence": "docs/evidence/v2-extension-market.json",
     "final_full_run": {
-      "passed": 4653,
-      "failed": 3,
+      "passed": 4654,
+      "failed": 2,
       "errors": 0,
-      "report": "temp/build/v2-full-151.xml",
+      "report": "temp/build/v2-full-155.xml",
       "workers": 2,
-      "serial_rerun": "2 passed / 1 failed (temp/build/v2-full-151-serial.xml)",
-      "remaining_failure": "test_ui_embed_layer guard violated by parallel UI commit 0497fe8 (ui/v2/v1/frame.css copy); owned by UI session"
+      "serial_rerun": "1 passed / 1 failed (temp/build/v2-full-155-serial.xml)",
+      "remaining_failure": "test_ui_embed_layer guard violated by parallel UI commit 0497fe8 (ui/v2/v1/frame.css copy still present); owned by UI session"
     },
     "capabilities_evidence": "docs/evidence/v2-capabilities.json",
     "token_evidence": "docs/evidence/v2-owner-token.json",

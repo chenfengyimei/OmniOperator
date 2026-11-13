@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`04a4a0c22bf4bdfb2cf68f1237188b8953f20a6fa63982e7589c9f7e119b2404`。包含 65 个职责模块、735 个源码/界面文件。
+源码指纹：`c1570abe540ac685c2fecb728505c98bc457a809607c9bf7880ebf92a6e01c20`。包含 65 个职责模块、735 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -423,7 +423,7 @@
 | [web/ui/v2/android.js](../../web/ui/v2/android.js) | 403 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/bilibili.js](../../web/ui/v2/bilibili.js) | 295 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/capabilities.js](../../web/ui/v2/capabilities.js) | 57 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/chat-images.js](../../web/ui/v2/chat-images.js) | 155 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/chat-images.js](../../web/ui/v2/chat-images.js) | 175 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/configuration.js](../../web/ui/v2/configuration.js) | 544 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/credentials.js](../../web/ui/v2/credentials.js) | 182 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/deliveries.js](../../web/ui/v2/deliveries.js) | 367 | 原生源码、平台脚本或界面资源 |
@@ -431,9 +431,9 @@
 | [web/ui/v2/desktop.js](../../web/ui/v2/desktop.js) | 568 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/documents.js](../../web/ui/v2/documents.js) | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../web/ui/v2/extensions.js) | 656 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1514 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../web/ui/v2/index.html) | 1523 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../web/ui/v2/inspector.js) | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1495 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../web/ui/v2/main.js) | 1511 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../web/ui/v2/maintenance.js) | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../web/ui/v2/mcp.js) | 362 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../web/ui/v2/media.js) | 365 | 原生源码、平台脚本或界面资源 |
@@ -446,14 +446,14 @@
 | [web/ui/v2/routing.js](../../web/ui/v2/routing.js) | 140 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/schedules.js](../../web/ui/v2/schedules.js) | 374 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/settings-rail.js](../../web/ui/v2/settings-rail.js) | 84 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/skills.js](../../web/ui/v2/skills.js) | 462 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/skills.js](../../web/ui/v2/skills.js) | 460 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminal-reviews.js](../../web/ui/v2/terminal-reviews.js) | 254 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminals.js](../../web/ui/v2/terminals.js) | 564 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/tokens.js](../../web/ui/v2/tokens.js) | 81 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/components.css](../../web/ui/v2/v1/components.css) | 655 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/frame.css](../../web/ui/v2/v1/frame.css) | 955 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/workbench.css](../../web/ui/v2/v1/workbench.css) | 4444 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 978 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../web/ui/v2/workbench.css) | 1345 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/V2_REFACTOR.md](../../docs/V2_REFACTOR.md)
 

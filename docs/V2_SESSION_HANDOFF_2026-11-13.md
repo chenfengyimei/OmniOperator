@@ -17,8 +17,8 @@ Windows 上 V2 底座**可冷启动、可自检、可服务、可跑全量测试
 | strict 门禁 | **279 文件 / 0 errors / 0 warnings** | `uv run --no-sync pyright --project pyrightconfig.strict.json` |
 | strict 分层 | 53/53 domain、**44/44 application 全层**、169/222 adapters、**13/13 composition 全层** | `docs/TYPE_CHECKING.md` |
 | 未纳入 strict | 53 个 adapters（P2 Android 全部纳入；P3 schema/credential/lease 已纳入）（domain/application/composition 已全层纳入） | `temp/build/probe_strict.py`（survey-remaining.py 已不在库） |
-| 全量测试 | 4656 项：**4653 passed / 3 failed / 0 errors**（`-n 2`，57 分钟，第 10 节点） | `temp/build/v2-full-151.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
-| 失败性质 | 3 项：串行复跑 **2 过 1 败**（memory_organization_ui/portal_ui 为抖动）；剩 `test_ui_embed_layer` 为**并行 UI 会话提交 `0497fe8` 引入的真实守卫违规**（`ui/v2/v1/frame.css` 副本），归 UI 会话修，非本批回归 | 见 §5「验收口径」；两份报告留档 |
+| 全量测试 | 4656 项：**4654 passed / 2 failed / 0 errors**（`-n 2`，56 分钟，第 15 节点） | `temp/build/v2-full-155.xml`、`docs/evidence/v2-typecheck.json` 的 `full_run` |
+| 失败性质 | 2 项：串行复跑 **1 过 1 败**（skills_ui[dark-760] 为抖动）；剩 `test_ui_embed_layer` 为**并行 UI 会话提交 `0497fe8` 引入的真实守卫违规**（`ui/v2/v1/frame.css` 副本截至第 15 节点仍未移除），归 UI 会话修，非本批回归 | 见 §5「验收口径」；两份报告留档 |
 | 默认入口 | `V1 until R6 parity gate` | `docs/tasks/v2.json` 的 `default_entrypoints` |
 | 台账 | `status=d7_typecheck_batch_155`、`checkpoint_commit=8d859ba`、源码指纹 `253a5f86…`（1206 文件） | `docs/tasks/v2.json`、`docs/evidence/v2-typecheck.json` |
 | 工作树 | 干净，`codex/architecture-v2` 与 origin 同步（HEAD `e2f72a0` 之后的文档提交） | `git status -sb` |
