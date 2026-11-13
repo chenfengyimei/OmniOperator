@@ -177,6 +177,26 @@ class Observation:
 class Instance:
     application: Application
     paths: InstancePaths
+    @property
+    def database(self) -> Database:
+        """组合层只读访问：单写者数据库 actor。"""
+        return self._database
+
+    @property
+    def logging(self) -> LoggingSession:
+        """组合层只读访问：日志会话（红actioner 与 sink 由其自身维护）。"""
+        return self._logging
+
+    @property
+    def identity_files(self) -> RuntimeIdentityFiles:
+        """组合层只读访问：运行身份文件（排空与指纹由其自身维护）。"""
+        return self._identity_files
+
+    @property
+    def lifetime(self) -> Lifetime:
+        """组合层只读访问：有界关停协调器。"""
+        return self._lifetime
+
     _database: Database
     _lock: InstanceLock
     _logging: LoggingSession
