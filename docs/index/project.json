@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "ff4292d777013eb2c3faa3503c8792e358ecc0e64f6cd2269a0e6c7f80677e2c",
+  "source_sha256": "f886f64aca70dc0d964ea40f51e5f673a6a1176c071a91cbf605b9a60fdccede",
   "modules": [
     {
       "id": "v2-domain",
@@ -404,7 +404,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 53513,
+      "lines": 53543,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -498,7 +498,7 @@
         "web/ui/v2/v1/workbench.css",
         "web/ui/v2/workbench.css"
       ],
-      "lines": 19800,
+      "lines": 19818,
       "dependencies": []
     },
     {
@@ -18665,7 +18665,7 @@
       "path": "agent/src/omni/adapters/persistence/object_gc.py",
       "module": "v2-adapters",
       "python_module": "omni.adapters.persistence.object_gc",
-      "lines": 217,
+      "lines": 247,
       "imports": [
         "omni.adapters.object_store",
         "omni.adapters.persistence.database",
@@ -18673,13 +18673,14 @@
         "omni.adapters.persistence.object_inventory",
         "omni.adapters.platform.paths",
         "omni.adapters.primitives",
+        "omni.application.ports",
         "omni.domain.contracts",
         "omni.domain.objects"
       ],
       "symbols": [
         {
           "name": "_instant",
-          "line": 23,
+          "line": 25,
           "kind": "function",
           "parameters": [
             "now"
@@ -18690,7 +18691,7 @@
         },
         {
           "name": "_plan",
-          "line": 30,
+          "line": 32,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18703,7 +18704,7 @@
         },
         {
           "name": "plan_collection",
-          "line": 80,
+          "line": 84,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18716,7 +18717,7 @@
         },
         {
           "name": "_journal_path",
-          "line": 89,
+          "line": 93,
           "kind": "function",
           "parameters": [
             "paths",
@@ -18729,7 +18730,7 @@
         },
         {
           "name": "apply_collection",
-          "line": 105,
+          "line": 109,
           "kind": "function",
           "parameters": [
             "paths",
@@ -95596,7 +95597,7 @@
       "path": "web/ui/v2/index.html",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1527,
+      "lines": 1523,
       "imports": [],
       "symbols": [],
       "kind": "asset",
@@ -95816,7 +95817,7 @@
       "path": "web/ui/v2/workbench.css",
       "module": "v2-workbench",
       "python_module": null,
-      "lines": 1533,
+      "lines": 1555,
       "imports": [],
       "symbols": [],
       "kind": "asset",
