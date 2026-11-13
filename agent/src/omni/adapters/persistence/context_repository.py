@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from sqlalchemy import delete, func, select, update
+from typing import cast
 
+from sqlalchemy import Select, delete, func, select, update
+
+from ...application.ports import Record
 from ...domain.context import RECENT_TURNS, SUMMARY_CHARS, batch, source_digest, tail, turns
 from ...domain.contracts import BusinessError
 from ...domain.metering import TokenEstimate
@@ -14,11 +17,11 @@ from .retention_repository import RetentionRepositories
 
 
 class ContextRepositories(RetentionRepositories):
-    def _history(self, agent_id: str, run_id: str):
+    def _history(self, agent_id: str, run_id: str) -> tuple[Record, Record, Select[tuple[object, ...]]]:
         run = self._one(s.runs, agent_id, run_id)
-        session = self._one(s.sessions, agent_id, run["session_id"])
+        session = self._one(s.sessions, agent_id, cast(str, run["session_id"]))
         incoming = s.messages.alias("incoming")
-        boundary = self._one(s.messages, agent_id, run["input_message_id"])
+        boundary = self._one(s.messages, agent_id, cast(str, run["input_message_id"]))
         statement = (
             select(s.messages, incoming.c.seq.label("turn_seq"))
             .join(s.runs, s.runs.c.id == s.messages.c.run_id)
@@ -34,7 +37,7 @@ class ContextRepositories(RetentionRepositories):
         )
         return run, session, statement
 
-    def context_plan(self, agent_id: str, run_id: str) -> dict:
+    def context_plan(self, agent_id: str, run_id: str) -> Record:
         run, session, statement = self._history(agent_id, run_id)
         parent = (
             self.connection.execute(
@@ -44,7 +47,7 @@ class ContextRepositories(RetentionRepositories):
                     s.summaries.c.session_id == session["id"],
                     s.summaries.c.state == "ready",
                     s.summaries.c.session_epoch == session["content_epoch"],
-                    s.summaries.c.last_seq < self._one(s.messages, agent_id, run["input_message_id"])["seq"],
+                    s.summaries.c.last_seq < self._one(s.messages, agent_id, cast(str, run["input_message_id"]))["seq"],
                 )
                 .order_by(s.summaries.c.last_seq.desc())
                 .limit(1)
@@ -77,38 +80,41 @@ class ContextRepositories(RetentionRepositories):
         )
         order = (source.c.turn_seq, source.c.seq)
         latest = [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(source).where(source.c.run_id.in_(tail_runs)).order_by(*order).limit(129)
             ).mappings()
         ]
         front = [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(source).where(source.c.run_id.in_(head_runs)).order_by(*order).limit(129)
             ).mappings()
         ]
         if len(latest) == 129 or len(front) == 129:
             raise BusinessError("invalid_context", "A persisted turn exceeds the context source limit")
-        return {
-            "run_id": run_id,
-            "session_id": session["id"],
-            "epoch": session["content_epoch"],
-            "floor_seq": session["context_floor_seq"],
-            "parent": dict(parent) if parent else None,
-            "total_count": total,
-            "remaining_count": count,
-            "remaining_chars": chars,
-            "messages": latest,
-            "candidate": batch(front),
-        }
+        return cast(
+            Record,
+            {
+                "run_id": run_id,
+                "session_id": session["id"],
+                "epoch": session["content_epoch"],
+                "floor_seq": session["context_floor_seq"],
+                "parent": cast(Record, dict(parent)) if parent else None,
+                "total_count": total,
+                "remaining_count": count,
+                "remaining_chars": chars,
+                "messages": latest,
+                "candidate": [cast(Record, dict(row)) for row in batch(front)],
+            },
+        )
 
-    def context_messages(self, agent_id: str, run_id: str) -> list[dict]:
-        return self.context_plan(agent_id, run_id)["messages"]
+    def context_messages(self, agent_id: str, run_id: str) -> list[Record]:
+        return cast(list[Record], self.context_plan(agent_id, run_id)["messages"])
 
     def snapshot(self, agent_id: str, run_id: str, message_ids: list[str], memory_ids: list[str]) -> str:
         run = self._one(s.runs, agent_id, run_id)
-        session = self._one(s.sessions, agent_id, run["session_id"])
+        session = self._one(s.sessions, agent_id, cast(str, run["session_id"]))
         ordinal = (
             self.connection.execute(
                 select(func.coalesce(func.max(s.context_snapshots.c.ordinal), 0)).where(
@@ -134,8 +140,8 @@ class ContextRepositories(RetentionRepositories):
             self._record(
                 s.context_messages, {"snapshot_id": row["id"], "message_id": identity, "position": position}, agent_id
             )
-        self._capture_memories(agent_id, row["id"], memory_ids)
-        return row["id"]
+        self._capture_memories(agent_id, cast(str, row["id"]), memory_ids)
+        return cast(str, row["id"])
 
     def _capture_memories(self, agent_id: str, snapshot_id: str, memory_ids: list[str]) -> None:
         for identity in set(memory_ids):
@@ -177,9 +183,9 @@ class ContextRepositories(RetentionRepositories):
             .limit(1)
         ).scalar_one()
         self.assert_context(agent_id, run_id)
-        self._capture_memories(agent_id, snapshot, memory_ids)
+        self._capture_memories(agent_id, cast(str, snapshot), memory_ids)
 
-    def prepare_context(self, agent_id: str, run_id: str) -> dict:
+    def prepare_context(self, agent_id: str, run_id: str) -> Record:
         if qq_run(self, agent_id, run_id):
             qq_run_authorized(self, agent_id, run_id)
             identity = self.snapshot(agent_id, run_id, [], [])
@@ -190,15 +196,18 @@ class ContextRepositories(RetentionRepositories):
         owner = self.connection.execute(
             select(s.people.c.id).where(s.people.c.agent_id == agent_id, s.people.c.owner_id.is_not(None))
         ).scalar_one()
-        memories = list(
-            self.connection.execute(
-                select(s.memory_entries.c.id).where(
-                    s.memory_entries.c.agent_id == agent_id,
-                    s.memory_entries.c.person_id == owner,
-                    s.memory_entries.c.kind.in_(["profile", "resident"]),
-                    s.memory_entries.c.deleted_at.is_(None),
-                )
-            ).scalars()
+        memories = cast(
+            list[str],
+            list(
+                self.connection.execute(
+                    select(s.memory_entries.c.id).where(
+                        s.memory_entries.c.agent_id == agent_id,
+                        s.memory_entries.c.person_id == owner,
+                        s.memory_entries.c.kind.in_(["profile", "resident"]),
+                        s.memory_entries.c.deleted_at.is_(None),
+                    )
+                ).scalars()
+            ),
         )
         identity = self.snapshot(agent_id, run_id, [], memories)
         self.connection.execute(
@@ -225,10 +234,11 @@ class ContextRepositories(RetentionRepositories):
             .values(state="unknown", content="", error_code=code)
         )
 
-    def prepare_summary(self, agent_id: str, run_id: str, message_ids: list[str] | None = None) -> dict | None:
+    def prepare_summary(self, agent_id: str, run_id: str, message_ids: list[str] | None = None) -> Record | None:
         self.assert_context(agent_id, run_id)
         plan = self.context_plan(agent_id, run_id)
-        sources, parent = plan["candidate"], plan["parent"]
+        sources = cast(list[Record], plan["candidate"])
+        parent = cast(Record | None, plan["parent"])
         if message_ids is not None:
             selected = sources[: len(message_ids)]
             if (
@@ -254,10 +264,12 @@ class ContextRepositories(RetentionRepositories):
                 "revision": 1,
                 "state": "building",
                 "error_code": "",
-                "source_hash": source_digest(plan["epoch"], parent["id"] if parent else None, sources),
+                "source_hash": source_digest(
+                    cast(int, plan["epoch"]), cast(str | None, parent["id"]) if parent else None, sources
+                ),
                 "first_seq": parent["first_seq"] if parent else sources[0]["turn_seq"],
                 "last_seq": sources[-1]["turn_seq"],
-                "covered_count": (parent["covered_count"] if parent else 0) + len(sources),
+                "covered_count": (cast(int, parent["covered_count"]) if parent else 0) + len(sources),
             },
             agent_id,
         )
@@ -267,7 +279,10 @@ class ContextRepositories(RetentionRepositories):
                 {"summary_id": row["id"], "message_id": source["id"], "session_id": plan["session_id"]},
                 agent_id,
             )
-        return {**row, "messages": sources, "parent_content": parent["content"] if parent else ""}
+        return cast(
+            Record,
+            {**row, "messages": sources, "parent_content": parent["content"] if parent else ""},
+        )
 
     def summary_call(self, agent_id: str, summary_id: str, call_id: str) -> None:
         summary, call = self._one(s.summaries, agent_id, summary_id), self._one(s.model_calls, agent_id, call_id)
@@ -280,15 +295,15 @@ class ContextRepositories(RetentionRepositories):
             raise BusinessError("invalid_summary_call", "Summary call identity does not match")
         self.connection.execute(update(s.summaries).where(s.summaries.c.id == summary_id).values(model_call_id=call_id))
 
-    def settle_summary(self, agent_id: str, summary_id: str, content: str = "", error_code: str = "") -> dict:
+    def settle_summary(self, agent_id: str, summary_id: str, content: str = "", error_code: str = "") -> Record:
         row = self._one(s.summaries, agent_id, summary_id)
         if row["state"] == "invalidated":
             return row
         if row["state"] != "building":
             raise BusinessError("summary_already_settled", "Summary is already settled")
-        session = self._one(s.sessions, agent_id, row["session_id"])
+        session = self._one(s.sessions, agent_id, cast(str, row["session_id"]))
         sources = [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(s.messages)
                 .join(s.summary_messages, s.summary_messages.c.message_id == s.messages.c.id)
@@ -297,19 +312,20 @@ class ContextRepositories(RetentionRepositories):
             ).mappings()
         ]
         # Hash order is the persisted turn order, not arrival order of queued inputs.
-        by_id = {r["id"]: r for r in sources}
-        plan_sources = self.context_plan(agent_id, row["run_id"])["candidate"]
-        ordered = [by_id[r["id"]] for r in plan_sources if r["id"] in by_id]
+        by_id = {cast(str, r["id"]): r for r in sources}
+        plan_sources = cast(list[Record], self.context_plan(agent_id, cast(str, row["run_id"]))["candidate"])
+        ordered = [by_id[cast(str, r["id"])] for r in plan_sources if cast(str, r["id"]) in by_id]
         valid = (
             session["content_epoch"] == row["session_epoch"]
             and len(ordered) == len(sources)
             and not any(r["deleted_at"] for r in sources)
-            and source_digest(row["session_epoch"], row["parent_id"], ordered) == row["source_hash"]
+            and source_digest(cast(int, row["session_epoch"]), cast(str | None, row["parent_id"]), ordered)
+            == row["source_hash"]
         )
         if not valid:
             state, content, error_code = "invalidated", "", "source_erased"
         elif error_code:
-            call = self._one(s.model_calls, agent_id, row["model_call_id"]) if row["model_call_id"] else None
+            call = self._one(s.model_calls, agent_id, cast(str, row["model_call_id"])) if row["model_call_id"] else None
             state, content = "unknown" if call and call["state"] == "unknown" else "failed", ""
         elif not content.strip() or len(content) > SUMMARY_CHARS:
             state, content, error_code = "failed", "", "invalid_summary_output"
@@ -318,7 +334,12 @@ class ContextRepositories(RetentionRepositories):
         self.connection.execute(
             update(s.summaries)
             .where(s.summaries.c.id == summary_id)
-            .values(state=state, content=content.strip(), error_code=error_code, revision=row["revision"] + 1)
+            .values(
+                state=state,
+                content=content.strip(),
+                error_code=error_code,
+                revision=cast(int, row["revision"]) + 1,
+            )
         )
         self.audit(agent_id, "summary." + state, summary_id, {"error_code": error_code, "messages": len(sources)})
         return self._one(s.summaries, agent_id, summary_id)
@@ -335,23 +356,24 @@ class ContextRepositories(RetentionRepositories):
         include_summary: bool = True,
         estimate: TokenEstimate | None = None,
         output_limit: int | None = None,
-    ) -> dict:
+    ) -> Record:
         self.assert_context(agent_id, run_id)
         snapshot = self._one(s.context_snapshots, agent_id, snapshot_id)
         if snapshot["run_id"] != run_id:
             raise BusinessError("invalid_context", "Snapshot belongs to another run")
         plan = self.context_plan(agent_id, run_id)
-        parent = plan["parent"] if include_summary else None
-        summary_chars = len(parent["content"]) + 256 if parent else 0
+        parent = cast(Record | None, plan["parent"]) if include_summary else None
+        summary_chars = len(cast(str, parent["content"])) + 256 if parent else 0
         run = self._one(s.runs, agent_id, run_id)
-        incoming = self._one(s.messages, agent_id, run["input_message_id"])
-        if incoming["deleted_at"] or incoming["seq"] <= plan["floor_seq"]:
+        incoming = self._one(s.messages, agent_id, cast(str, run["input_message_id"]))
+        if incoming["deleted_at"] or cast(int, incoming["seq"]) <= cast(int, plan["floor_seq"]):
             raise BusinessError("context_invalidated", "Input predates an erasure boundary; submit a new turn")
-        selected = tail(plan["messages"], budget - summary_chars)
+        plan_messages = cast(list[Record], plan["messages"])
+        selected = [cast(Record, dict(row)) for row in tail(plan_messages, budget - summary_chars)]
         if message_ids is not None:
-            selected = plan["messages"][-len(message_ids) :] if message_ids else []
+            selected = plan_messages[-len(message_ids) :] if message_ids else []
             if [r["id"] for r in selected] != message_ids or (
-                selected and selected[0]["id"] != turns(plan["messages"])[-len(turns(selected))][0]["id"]
+                selected and selected[0]["id"] != turns(plan_messages)[-len(turns(selected))][0]["id"]
             ):
                 raise BusinessError("invalid_context", "Context must select a whole-turn suffix")
 
@@ -360,7 +382,7 @@ class ContextRepositories(RetentionRepositories):
             raise BusinessError(
                 "context_budget_exceeded", "Current input and fixed context exceed the character budget"
             )
-        omitted = plan["total_count"] - len(selected) - (parent["covered_count"] if parent else 0)
+        omitted = cast(int, plan["total_count"]) - len(selected) - (cast(int, parent["covered_count"]) if parent else 0)
         mode = "truncated" if omitted else "summary" if parent else "redacted" if plan["floor_seq"] else "complete"
         reason = (reason or "compression_limit") if omitted else "history_erased" if plan["floor_seq"] else ""
         self.connection.execute(delete(s.context_messages).where(s.context_messages.c.snapshot_id == snapshot_id))
@@ -373,7 +395,7 @@ class ContextRepositories(RetentionRepositories):
             )
         if parent:
             self._record(s.context_summaries, {"snapshot_id": snapshot_id, "summary_id": parent["id"]}, agent_id)
-        size = sum(len(r["content"]) + 64 for r in selected) + summary_chars
+        size = sum(len(cast(str, r["content"])) + 64 for r in selected) + summary_chars
         self.connection.execute(
             update(s.context_snapshots)
             .where(s.context_snapshots.c.id == snapshot_id)
@@ -392,20 +414,23 @@ class ContextRepositories(RetentionRepositories):
         self.audit(
             agent_id, "context.prepared", run_id, {"snapshot_id": snapshot_id, "mode": mode, "omitted_count": omitted}
         )
-        return {
-            "messages": selected,
-            "summary": dict(parent) if parent else None,
-            "mode": mode,
-            "omitted_count": omitted,
-            "reason": reason,
-            "snapshot_id": snapshot_id,
-        }
+        return cast(
+            Record,
+            {
+                "messages": selected,
+                "summary": dict(parent) if parent else None,
+                "mode": mode,
+                "omitted_count": omitted,
+                "reason": reason,
+                "snapshot_id": snapshot_id,
+            },
+        )
 
-    def run_context_report(self, agent_id: str, run_id: str) -> dict:
+    def run_context_report(self, agent_id: str, run_id: str) -> Record:
         run = self._one(s.runs, agent_id, run_id)
-        session = self._one(s.sessions, agent_id, run["session_id"])
+        session = self._one(s.sessions, agent_id, cast(str, run["session_id"]))
         snapshots = [
-            dict(r)
+            cast(Record, dict(r))
             for r in self.connection.execute(
                 select(s.context_snapshots)
                 .where(s.context_snapshots.c.agent_id == agent_id, s.context_snapshots.c.run_id == run_id)
@@ -456,7 +481,7 @@ class ContextRepositories(RetentionRepositories):
                 ).mappings()
             ]
         attempts = [
-            dict(row)
+            cast(Record, dict(row))
             for row in self.connection.execute(
                 select(
                     s.summaries.c.id,
@@ -473,9 +498,12 @@ class ContextRepositories(RetentionRepositories):
                 .limit(3)
             ).mappings()
         ]
-        return {"snapshots": snapshots, "history_floor_seq": session["context_floor_seq"], "attempts": attempts}
+        return cast(
+            Record,
+            {"snapshots": snapshots, "history_floor_seq": session["context_floor_seq"], "attempts": attempts},
+        )
 
-    def summary_get(self, agent_id: str, summary_id: str) -> dict:
+    def summary_get(self, agent_id: str, summary_id: str) -> Record:
         row = self._one(s.summaries, agent_id, summary_id)
         row["message_ids"] = list(
             self.connection.execute(
