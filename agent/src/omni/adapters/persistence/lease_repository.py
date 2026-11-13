@@ -5,9 +5,12 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
+from typing import cast
 
-from sqlalchemy import insert, literal, or_, select, update
+from sqlalchemy import Table, insert, literal, or_, select, update
+from sqlalchemy.sql.elements import ColumnElement
 
+from ...application.ports import Record
 from ...domain.contracts import BusinessError
 from ...domain.scheduling import LEASE_SECONDS, instant, timestamp
 from . import schema as s
@@ -19,7 +22,7 @@ LIVE = ("queued", "running", "waiting_approval", "cancelling")
 
 
 class LeaseRepositories(RepositoryBase):
-    def lease_acquire(self, agent_id: str, resource: str, run_id: str | None = None) -> dict | None:
+    def lease_acquire(self, agent_id: str, resource: str, run_id: str | None = None) -> Record | None:
         key = (s.leases.c.agent_id == agent_id, s.leases.c.resource == resource)
         old = self.connection.execute(select(s.leases).where(*key)).mappings().first()
         now = self.clock.now()
@@ -27,12 +30,12 @@ class LeaseRepositories(RepositoryBase):
             if old["expires_at"] > now:
                 return None
             # Expiration fences the old caller, but is not proof it has stopped.
-            if old["run_id"] and self._one(s.runs, agent_id, old["run_id"])["state"] in LIVE:
+            if old["run_id"] and self._one(s.runs, agent_id, cast(str, old["run_id"]))["state"] in LIVE:
                 return None
         value = {
             "token": self.ids.new(),
             "boot_id": self.boot_id,
-            "fence": old["fence"] + 1 if old else 1,
+            "fence": cast(int, old["fence"]) + 1 if old else 1,
             "expires_at": timestamp(instant(now) + dt.timedelta(seconds=LEASE_SECONDS)),
             "state": "held",
             "run_id": run_id,
@@ -41,7 +44,7 @@ class LeaseRepositories(RepositoryBase):
             self.connection.execute(update(s.leases).where(*key).values(**value))
         else:
             self.connection.execute(insert(s.leases).values(agent_id=agent_id, resource=resource, **value))
-        return {"agent_id": agent_id, "resource": resource, **value}
+        return cast(Record, {"agent_id": agent_id, "resource": resource, **value})
 
     def lease_release(self, agent_id: str, resource: str, token: str, fence: int) -> bool:
         return (
@@ -60,7 +63,7 @@ class LeaseRepositories(RepositoryBase):
             == 1
         )
 
-    def _work(self, agent_id: str, run_id: str) -> dict:
+    def _work(self, agent_id: str, run_id: str) -> Record:
         row = (
             self.connection.execute(
                 select(s.work_items).where(
@@ -72,7 +75,7 @@ class LeaseRepositories(RepositoryBase):
             .mappings()
             .one()
         )
-        return dict(row)
+        return cast(Record, dict(row))
 
     def assert_run_lease(self, agent_id: str, run_id: str) -> None:
         work = self._work(agent_id, run_id)
@@ -82,7 +85,7 @@ class LeaseRepositories(RepositoryBase):
         lease = self.connection.execute(
             select(s.leases).where(
                 s.leases.c.agent_id == agent_id,
-                s.leases.c.resource == "session/" + run["session_id"],
+                s.leases.c.resource == "session/" + cast(str, run["session_id"]),
                 s.leases.c.token == work["claim_token"],
                 s.leases.c.fence == work["lease_fence"],
                 s.leases.c.boot_id == self.boot_id,
@@ -96,7 +99,9 @@ class LeaseRepositories(RepositoryBase):
         occurrence = (
             self.connection.execute(select(s.occurrences).where(s.occurrences.c.run_id == run_id)).mappings().first()
         )
-        if occurrence and self.schedule_blocker(agent_id, occurrence["schedule_id"], occurrence["sequence"]):
+        if occurrence and self.schedule_blocker(
+            agent_id, cast(str, occurrence["schedule_id"]), cast(int, occurrence["sequence"])
+        ):
             raise BusinessError("previous_outcome_unknown", "A previous scheduled outcome requires review")
 
     def renew_run_leases(self) -> None:
@@ -112,7 +117,7 @@ class LeaseRepositories(RepositoryBase):
             .values(expires_at=timestamp(instant(now) + dt.timedelta(seconds=LEASE_SECONDS)))
         )
 
-    def schedule_blocker(self, agent_id: str, schedule_id: str, before_sequence: int | None = None) -> dict | None:
+    def schedule_blocker(self, agent_id: str, schedule_id: str, before_sequence: int | None = None) -> Record | None:
         progress = (
             self.connection.execute(
                 select(s.schedule_progress).where(
@@ -122,16 +127,16 @@ class LeaseRepositories(RepositoryBase):
             .mappings()
             .one()
         )
-        active_delivery = pending_for_run(s.occurrences.c.run_id)
+        active_delivery = pending_for_run(cast(str, s.occurrences.c.run_id))
         specs = (
             (s.model_calls, ("reserved", "unknown")),
             (s.actions, ("executing", "unknown")),
             (s.outbox, ("unknown",)),
         )
 
-        def conditions(table, states, occurrence_id):
+        def conditions(table: Table, states: tuple[str, ...], occurrence_id: object) -> list[ColumnElement[bool]]:
             column = {"model_calls": "model_call_id", "actions": "action_id", "outbox": "delivery_id"}[table.name]
-            clauses = [
+            clauses: list[ColumnElement[bool]] = [
                 s.schedule_reviews.c.occurrence_id == occurrence_id,
                 s.schedule_reviews.c[column] == table.c.id,
                 s.schedule_reviews.c.state == table.c.state,
@@ -144,7 +149,7 @@ class LeaseRepositories(RepositoryBase):
                 # An old continuation acknowledgment is no proof that an active
                 # executor stopped. Only terminal unknown observations may be acknowledged.
                 return [or_(table.c.state.in_(ACTIVE_ACTION_STATES), unresolved_action(table) & ~reviewed)]
-            values = [table.c.state.in_(states), ~reviewed]
+            values: list[ColumnElement[bool]] = [table.c.state.in_(states), ~reviewed]
             if table is s.outbox:
                 values.extend((unresolved_outbound(), ~held_outbound()))
             return values
@@ -174,12 +179,12 @@ class LeaseRepositories(RepositoryBase):
         row = self.connection.execute(query.order_by(s.occurrences.c.sequence).limit(1)).mappings().first()
         if row is None:
             return None
-        base = {"id": row["id"], "sequence": row["sequence"], "run_id": row["run_id"]}
+        base: Record = {"id": row["id"], "sequence": row["sequence"], "run_id": row["run_id"]}
         if row["run_state"] in LIVE or row["run_id"] is None:
             return {**base, "reason": "active"}
         if row["delivery_pending"]:
             return {**base, "reason": "delivery_pending"}
-        unknown = []
+        unknown: list[tuple[str, str, str, int]] = []
         for table, states in specs:
             revision = table.c.outcome_revision if table is s.outbox else literal(0)
             unknown.extend(
@@ -210,7 +215,7 @@ class LeaseRepositories(RepositoryBase):
             ],
         }
 
-    def _claim_run(self, agent_id: str, run_id: str) -> dict | None:
+    def _claim_run(self, agent_id: str, run_id: str) -> Record | None:
         run = self._one(s.runs, agent_id, run_id)
         work = self._work(agent_id, run_id)
         if run["state"] != "queued" or work["state"] != "pending":
@@ -218,9 +223,11 @@ class LeaseRepositories(RepositoryBase):
         occurrence = (
             self.connection.execute(select(s.occurrences).where(s.occurrences.c.run_id == run_id)).mappings().first()
         )
-        if occurrence and self.schedule_blocker(agent_id, occurrence["schedule_id"], occurrence["sequence"]):
+        if occurrence and self.schedule_blocker(
+            agent_id, cast(str, occurrence["schedule_id"]), cast(int, occurrence["sequence"])
+        ):
             return None
-        message = self._one(s.messages, agent_id, run["input_message_id"])
+        message = self._one(s.messages, agent_id, cast(str, run["input_message_id"]))
         earlier = self.connection.execute(
             select(s.runs.c.id)
             .join(s.messages, s.messages.c.id == s.runs.c.input_message_id)
@@ -233,7 +240,7 @@ class LeaseRepositories(RepositoryBase):
         ).first()
         if earlier:
             return None
-        lease = self.lease_acquire(agent_id, "session/" + run["session_id"], run_id)
+        lease = self.lease_acquire(agent_id, "session/" + cast(str, run["session_id"]), run_id)
         if not lease:
             return None
         self.connection.execute(
@@ -244,13 +251,13 @@ class LeaseRepositories(RepositoryBase):
                 claimed_by=self.boot_id,
                 claim_token=lease["token"],
                 lease_fence=lease["fence"],
-                attempt=work["attempt"] + 1,
+                attempt=cast(int, work["attempt"]) + 1,
             )
         )
         return {**run, "claim_token": lease["token"], "lease_fence": lease["fence"]}
 
-    def claim_runs(self, limit: int) -> list[dict]:
-        result = []
+    def claim_runs(self, limit: int) -> list[Record]:
+        result: list[Record] = []
         rows = self.connection.execute(
             select(s.work_items.c.agent_id, s.work_items.c.run_id)
             .join(
