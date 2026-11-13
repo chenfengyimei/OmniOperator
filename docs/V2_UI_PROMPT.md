@@ -54,7 +54,7 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 - 页面切换只允许通过 `[data-page]` 按钮点击触发；`test_v2_navigation_ui.py` 会在 390/1024 两个宽度逐项点击并断言目标分区可见。
 - 任何新增可见按钮，如果文案与既有页面名相同（如"设置"），必须换名或用 `title/aria-label` 区分，避免 `get_by_role(..., exact=True)` 命中两个元素。
-- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v105`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
+- 资源版本串：`index.html` 与所有模块 import 当前为 `?v=20261113v115`。**任何 HTML/CSS/JS 改动都要整体升级版本号**（v58、v59…），并同步：
   - `agent/tests/test_v2_mcp_ui.py` 里的 `assert "main.js?v=..." in page.content()`
   - `docs/V2_AI_CONTINUATION_PROMPT.md` 的版本说明
   - 本文第 3 节这里的版本号
@@ -64,19 +64,30 @@ section.page[id]                  ← 22 个页面分区，id 与 data-page 一�
 
 ## 4. 当前 UI 状态（已完成）
 
-**直接复用 V1 界面**（2026-11-13，资源版本 `20261113v105`）：按所有者要求，不再自创视觉，
-把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`，
-只改两处——页面标识 `data-ui-page="workbench"` → `"workbench-v2"`、资源路径 `/ui/` → `/assets/ui/`。
-样式内容一字未改，因此外观与 V1 完全一致；V1 原文件保持只读，未被修改。
+**直接复用 V1 界面**（2026-11-13/14，资源版本 `20261113v115`）：按所有者要求，不再自创视觉，
+把 V1 的 `components.css` / `frame.css` / `workbench.css` **原样复制**到 `web/ui/v2/v1/`。
+**声明内容一字未改**，只做三类必要映射：
+
+1. 页面标识 `data-ui-page="workbench"` → `"workbench-v2"`
+2. 资源路径 `/ui/` → `/assets/ui/`
+3. **元素标识对齐 V2 结构**：`#input` → `#message`（输入框）、`#send` → `#send-btn`（发送键）
+
+第 3 项是本轮最关键的修复，必须做：V1 的 `#send` 是**按钮**，V2 的 `#send` 是**form 容器**。
+不映射会造成四个连锁症状——按钮渐变涂满整个输入区、输入框露出浏览器白底黑字并溢出容器、
+真正的发送键反而完全没有样式（灰底凸边框）、容器被按钮的 27px 高度压扁。
+另为 `.rail` 追加等效属性选择器别名（V2 的 `nav` 不能带 class，守卫正则依赖标签原文）。
+V1 原文件保持只读，未被修改。
 
 V2 结构已改用 V1 类名，让复制来的样式真正命中：
 
-- `nav.rail` + `.rail-brand` + `.rail-btn`（V1 图标栏；分组标题视觉隐藏但保留在 DOM，守卫依赖）
+- `nav[aria-label="工作台"]` + `.rail-brand` + `.rail-btn`（分组标题视觉隐藏但保留在 DOM，守卫依赖）
 - `aside.workbench-side` + `.panel.session-panel` / `.service-panel` / `.context-panel`
-- `#chat > #messages` + `#composer > form.dock > textarea + .dock-bar`
-- 右栏 `.panel > .tabs`（3 列 grid，选中用 `.active`）+ `.tab-body`
-- 助手 `.a-head > .a-avatar(svg) + .a-name + .a-meta + .spacer + .copy-msg`；用户 `.bubble` + `.turn-foot > .ts`
-- 调用链 `.scaffolds > .scaf-toggle + .scaf(+ .scaf-out)`，折叠与单行详情交互与 V1 一致
+- `#chat > #messages` + `#composer > form.dock > textarea#message + .dock-bar`
+- `.dock-bar` 分两层：`.dock-picks`（两个 `.pick-group`：档位+技能、图片+截图）+ `.dock-actions`（键位提示、取消、发送）
+- 右栏 `.panel > .tabs`（**5 列** grid：运行/待办/技能/产物/桌面，选中用 `.active`）+ `.tab-body`
+- 助手 `.a-head > .a-avatar(svg) + .a-name + .a-meta + .spacer + .copy-msg + .msg-actions`；用户 `.bubble` + `.turn-foot > .ts + .msg-actions`
+- 调用链 `.chain-slot > .scaffolds.open > .scaf-toggle + .scaf(+ .scaf-out)`，**挂在助手正文上方**，默认展开
+- 消息操作是头像行/时间行右侧的 `.act` 图标，悬停显现；名称走 `aria-label`（测试按可访问名点击）
 
 `web/ui/v2/workbench.css` 已降级为**桥接层**，只补 V1 没有的部分（22 个 `section.page`、页头、
 连接卡与 Agent 选择、设置覆盖层、右栏数据行、运行技术详情、窄屏抽屉），不再定义面板/气泡/dock/rail/tabs 外观。
@@ -88,12 +99,19 @@ V2 结构已改用 V1 类名，让复制来的样式真正命中：
 3. `base.css` 的 `body[data-ui-page]:not([data-ui-page="workbench"]):not([data-ui-page="project"])` 会给 V2 加 22px 内边距与 1500px 限宽，必须用**同等特异性**覆盖。
 4. V1 用 `body { padding-left: var(--rail-w) }` 给 fixed rail 让位；V2 改用 grid 骨架，别再叠 margin-left。
 5. 设置包裹层 `.settings-layout` / `.settings-content` 在对话模式必须成为满高容器（grid 单行），否则高度链断裂、dock 贴不到底。
+6. **副本里做别名替换不要盲替换**：曾把注释里的 `.rail` 一起改掉，连带把导航阴影规则整条串坏（规则数 663→664 才暴露）。改完要 diff 原件逐条核对。
+7. **工具条不要单层 flex-wrap**：控件总宽 914px 装进 770px 容器会散成 4–7 行、发送键位置飘忽。必须拆 `.dock-picks` / `.dock-actions` 两层，并按语义分 `.pick-group`。分组竖线作为 flex 项在两组分行时会自己占一行，改用组间距表达。
+8. **右栏页签必须 `flex:0 0 auto`**：窄屏抽屉里它被压到 23px（内容需 44px），页签实际位置超出容器，点击会落到下方内容层上（`elementFromPoint` 命中 `.run-inspector`）。
+9. **不要用负外边距抵消容器留白**：会让内容层向上溢出盖住页签。改为容器 `padding:0`。
+10. **窄屏抽屉断点要与页头入口一致（都是 900）**：只把布局改到 900 而入口留在 520，会让 760 宽下按钮宽高为 0、面板打不开；反之右栏仍按桌面常驻会把对话挤到 65px。
+11. **浅色主题只覆盖了 `--text-3/4`**，`--text-1/2` 沿用深色定义，所以浅色下 `--text-3` 反而比 `--text-2` 更淡。运行面板说明文字实测 `--text-4`=2.76、`--text-3`=3.07、`--text-2`=3.35 全部低于 4.5，只有 `--text-1` 达标。
+12. **技术详情不要同时出现在对话区和右栏**：对话内的调用链只留真实工具步骤，档位/模型计量归右栏「运行」页签。
 
 **已知遗留问题**：
 
-1. 控制台有一条 CSP 报错来自 `web/ui/terminal-theme.js` 的 `probe.style.cssText`（终端主题探测），与 V2 无关，可忽略。
-2. 390 宽度下设置页是普通文档流（不是覆盖层），属于有意为之。
-3. 真实模型/平台/72 小时稳定性未验收；本批不构成验收。
+1. 390 宽度下设置页是普通文档流（不是覆盖层），属于有意为之。
+2. 真实模型/平台/72 小时稳定性未验收；本批不构成验收。
+3. `test_v2_portal_ui` 与 `test_v2_skills_ui` 在 `-n 4` 下偶发超时，隔离单跑均通过（并行负载抖动）。判定回归归属用 `git stash` 暂存本批改动后跑同一用例对照。
 
 ---
 

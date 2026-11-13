@@ -1,30 +1,30 @@
-import { mountSkills } from './skills.js?v=20261113v105';
-import { mountCredentials } from './credentials.js?v=20261113v105';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v105';
-import { mountCapabilities } from './capabilities.js?v=20261113v105';
-import { mountTokens } from './tokens.js?v=20261113v105';
-import { mountDocuments } from './documents.js?v=20261113v105';
-import { mountConfiguration } from './configuration.js?v=20261113v105';
+import { mountSkills } from './skills.js?v=20261113v115';
+import { mountCredentials } from './credentials.js?v=20261113v115';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261113v115';
+import { mountCapabilities } from './capabilities.js?v=20261113v115';
+import { mountTokens } from './tokens.js?v=20261113v115';
+import { mountDocuments } from './documents.js?v=20261113v115';
+import { mountConfiguration } from './configuration.js?v=20261113v115';
 import { ask } from '../dialog.js?v=20261103v7';
-import { mountPeople } from './people.js?v=20261113v105';
-import { mountDeliveries } from './deliveries.js?v=20261113v105';
-import { mountSchedules } from './schedules.js?v=20261113v105';
-import { mountMemorySemantics } from './memory-semantics.js?v=20261113v105';
-import { mountMemoryOrganization } from './memory-organization.js?v=20261113v105';
-import { mountExtensions } from './extensions.js?v=20261113v105';
-import { mountActionReviews } from './action-reviews.js?v=20261113v105';
-import { mountTerminals } from './terminals.js?v=20261113v105';
-import { mountDesktop } from './desktop.js?v=20261113v105';
-import { mountQQ } from './qq.js?v=20261113v105';
-import { mountBilibili } from './bilibili.js?v=20261113v105';
-import { mountMedia } from './media.js?v=20261113v105';
-import { mountMcp } from './mcp.js?v=20261113v105';
-import { mountAndroid } from './android.js?v=20261113v105';
-import { mountModelOutput } from './model-output.js?v=20261113v105';
-import { mountRouting } from './routing.js?v=20261113v105';
-import { mountChatImages } from './chat-images.js?v=20261113v105';
-import { mountInspector } from './inspector.js?v=20261113v105';
-import { mountSettingsRail } from './settings-rail.js?v=20261113v105';
+import { mountPeople } from './people.js?v=20261113v115';
+import { mountDeliveries } from './deliveries.js?v=20261113v115';
+import { mountSchedules } from './schedules.js?v=20261113v115';
+import { mountMemorySemantics } from './memory-semantics.js?v=20261113v115';
+import { mountMemoryOrganization } from './memory-organization.js?v=20261113v115';
+import { mountExtensions } from './extensions.js?v=20261113v115';
+import { mountActionReviews } from './action-reviews.js?v=20261113v115';
+import { mountTerminals } from './terminals.js?v=20261113v115';
+import { mountDesktop } from './desktop.js?v=20261113v115';
+import { mountQQ } from './qq.js?v=20261113v115';
+import { mountBilibili } from './bilibili.js?v=20261113v115';
+import { mountMedia } from './media.js?v=20261113v115';
+import { mountMcp } from './mcp.js?v=20261113v115';
+import { mountAndroid } from './android.js?v=20261113v115';
+import { mountModelOutput } from './model-output.js?v=20261113v115';
+import { mountRouting } from './routing.js?v=20261113v115';
+import { mountChatImages } from './chat-images.js?v=20261113v115';
+import { mountInspector } from './inspector.js?v=20261113v115';
+import { mountSettingsRail } from './settings-rail.js?v=20261113v115';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
 import '../app/tips.js?v=20261103u5';
 
@@ -301,18 +301,21 @@ async function loadRunTrace(runId) {
   runToolsCache.set(runId, trace);
   return trace;
 }
-const MODE_LABEL = { chat: '聊天', retrieval: '检索', agent: '完整' };
-const REASON_LABEL = {
-  conservative_full: '保守起见用完整档',
-  greeting: '识别为问候，用聊天档',
-  read_request: '识别为读取请求，用检索档',
-  image_input: '含图片输入，用完整档',
-  policy_default: '按空间默认档位',
-  explicit_mode: '你在本轮显式指定',
-  restricted_channel: '受限通道固定聊天档',
-};
-
-// V1 调用链结构：.scaffolds > .scaf-toggle + .scaf(+ .scaf-out)
+// 参考原型的工具链：.scaffolds > .scaf(+ .scaf-out)，标签按「命名空间·方法」分色
+function toolLabel(node, raw) {
+  const text = String(raw || 'tool');
+  // bilibili.video_info → <b>bilibili</b>·video_info；无命名空间时整体加粗
+  const dot = text.indexOf('.');
+  if (dot > 0 && dot < text.length - 1) {
+    const ns = document.createElement('b');
+    ns.textContent = text.slice(0, dot);
+    node.append(ns, document.createTextNode(`·${text.slice(dot + 1)}`));
+  } else {
+    const b = document.createElement('b');
+    b.textContent = text;
+    node.append(b);
+  }
+}
 function scafRow(cls, icon, label, arg, time, detail) {
   const row = document.createElement('div');
   row.className = `scaf ${cls}`;
@@ -324,8 +327,7 @@ function scafRow(cls, icon, label, arg, time, detail) {
   glyph.append(gi);
   const name = document.createElement('span');
   name.className = 'scaf-label';
-  name.innerHTML = '';
-  name.textContent = label;
+  toolLabel(name, label);
   row.append(glyph, name);
   if (arg) {
     const a = document.createElement('span');
@@ -356,9 +358,6 @@ const durText = (ms) => (ms == null ? '' : ms >= 1000 ? `${(ms / 1000).toFixed(1
 function renderToolBlock(node, trace) {
   if (!trace || node.querySelector('.scaffolds')) return;
   const rows = trace.tools || [];
-  const report = trace.report;
-  const route = report?.route?.recorded ? report.route : null;
-  const calls = report?.calls || [];
   const completed = new Map();
   for (const row of rows) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
@@ -372,10 +371,12 @@ function renderToolBlock(node, trace) {
     const name = row.tool || data.tool || data.name;
     if (name) names.add(String(name));
   }
-  if (!steps.length && !route && !calls.length && !trace.routing) return;
+  // 没有真实工具步骤就不挂链：技术计量在右栏，对话区不留空壳
+  if (!steps.length) return;
 
   const box = document.createElement('div');
-  box.className = 'scaffolds';
+  // 参考原型里调用链是直接可见的，默认展开；开关仍可收起
+  box.className = 'scaffolds open';
   const toggle = document.createElement('div');
   toggle.className = 'scaf-toggle';
   toggle.dataset.action = 'toggle-chain';
@@ -386,8 +387,7 @@ function renderToolBlock(node, trace) {
   tName.textContent = '调用过程';
   const tMeta = document.createElement('span');
   tMeta.className = 'scaf-toggle-meta';
-  const stepCount = calls.length + steps.length;
-  tMeta.textContent = `· ${stepCount} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
+  tMeta.textContent = `· ${steps.length} 步${names.size ? ` · ${names.size} 个工具` : ''}`;
   const chev = document.createElement('span');
   chev.className = 'chev';
   const chevIcon = document.createElement('span');
@@ -397,44 +397,8 @@ function renderToolBlock(node, trace) {
   toggle.append(tIcon, tName, tMeta, chev);
   box.append(toggle);
 
-  // 档位选择
-  if (route || trace.routing) {
-    const picked = route || trace.routing.data || {};
-    const requested = picked.requested_mode;
-    const asked =
-      requested === 'default' || requested == null ? '跟随设置' : MODE_LABEL[requested] || String(requested);
-    const reason = REASON_LABEL[picked.reason] || picked.reason || '';
-    box.append(
-      scafRow(
-        'done',
-        'tune',
-        '档位选择',
-        `${asked} → ${MODE_LABEL[picked.mode || picked.initial_mode] || '完整'}${reason ? ` · ${reason}` : ''}`,
-      ),
-    );
-  }
-  // 模型调用
-  calls.slice(0, 12).forEach((call, index) => {
-    const tokens = call.input_token_estimate;
-    const bits = [
-      tokens != null ? `输入约 ${tokens} tokens` : '输入未计量',
-      `工具 ${call.tool_count}/${call.full_tool_count}`,
-      call.cost_micro != null ? `${call.cost_micro} 微美元` : '费用待结清',
-    ];
-    const row = scafRow('done', 'check', `模型调用 第 ${index + 1} 次`, bits.join(' · '), '', true);
-    box.append(row);
-    const out = document.createElement('div');
-    out.className = 'scaf-out';
-    out.textContent =
-      `档位 ${MODE_LABEL[call.mode] || call.mode}｜计量 ${call.counting_method || '未登记'}\n` +
-      `工具规格 ${call.tool_bytes} 字节（完整 ${call.full_tool_bytes} 字节）\n` +
-      `调用状态 ${call.call_state}`;
-    box.append(out);
-  });
-  // 工具步骤
-  if (!steps.length) {
-    box.append(scafRow('done', 'do_not_disturb_on', '工具调用', '本轮未调用工具，模型直接回复'));
-  }
+  // 档位与模型计量属于技术详情，已移入右栏「运行」页签；
+  // 对话内的链只呈现真实工具步骤，与参考原型一致。
   const STATE = { ok: ['done', 'check'], error: ['fail', 'error'], denied: ['fail', 'block'], cancelled: ['fail', 'block'], unknown: ['fail', 'help'] };
   for (const row of steps.slice(0, 40)) {
     const data = typeof row.data === 'object' && row.data ? row.data : {};
@@ -448,9 +412,11 @@ function renderToolBlock(node, trace) {
     }
     const [cls, icon] = STATE[state] || STATE.unknown;
     const toolName = String(row.tool || data.tool || row.kind || 'tool').replace(/^(tool|action)\./, '');
+    // 只有「写入长期记忆」才用参考原型的渐变高亮；只读检索不算沉淀
+    const isMemory = /(^|\.)(remember|resident_memory|memory_(add|write|save|update))$/.test(toolName);
     const item = scafRow(
-      done ? cls : 'run',
-      done ? icon : 'progress_activity',
+      `${done ? cls : 'run'}${isMemory && done && cls === 'done' ? ' legend' : ''}`,
+      isMemory ? 'auto_awesome' : done ? icon : 'progress_activity',
       toolName,
       data.requires_approval ? '写动作 · 需审批' : '只读 · 无需审批',
       durText(ms),
@@ -678,31 +644,41 @@ function renderMessages(items) {
       body.textContent = m.content;
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
-      const copy = document.createElement('button');
-      copy.type = 'button';
-      copy.className = 'copy-msg';
-      copy.title = '复制这条消息';
-      copy.setAttribute('aria-label', '复制这条消息');
-      copy.textContent = '⧉';
+      // 参考原型：操作是头像行右侧的紧凑图标，名称走 aria-label/title
+      const iconBtn = (icon, label) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'act';
+        b.title = label;
+        b.setAttribute('aria-label', label);
+        const i = document.createElement('span');
+        i.className = 'material-icons';
+        i.setAttribute('aria-hidden', 'true');
+        i.textContent = icon;
+        b.append(i);
+        return b;
+      };
+      const copy = iconBtn('content_copy', '复制这条消息');
+      copy.classList.add('copy-msg');
       copy.addEventListener('click', () => {
         navigator.clipboard?.writeText(String(m.content || '')).then(() => {
-          copy.textContent = '✓';
-          setTimeout(() => (copy.textContent = '⧉'), 1200);
+          copy.querySelector('.material-icons').textContent = 'check';
+          setTimeout(() => (copy.querySelector('.material-icons').textContent = 'content_copy'), 1200);
         });
       });
       head.append(copy);
+      // 参考原型：操作图标挂在头像行/时间行右侧，悬停显现，不常驻正文底部
+      head.append(actions);
       if (m.role === 'user') {
         bubble.append(body);
-        node.append(bubble, head, actions);
+        node.append(bubble, head);
       } else {
         bubble.append(body);
-        node.append(head, bubble, actions);
+        node.append(head, bubble);
       }
       chatImages.append(node, m);
       if (m.role === 'assistant') {
-        const publish = document.createElement('button');
-        publish.type = 'button';
-        publish.textContent = '准备 B站发布';
+        const publish = iconBtn('smart_display', '准备 B站发布');
         publish.addEventListener('click', () => {
           if (agent !== boundAgent || session !== boundSession) return;
           bilibiliPanel.useMessage(m.id);
@@ -710,9 +686,8 @@ function renderMessages(items) {
         });
         actions.append(publish);
       }
-      const erase = document.createElement('button');
-      erase.type = 'button';
-      erase.textContent = '遗忘消息与派生内容';
+      const erase = iconBtn('delete_sweep', '遗忘消息与派生内容');
+      erase.classList.add('danger');
       erase.addEventListener(
         'click',
         wrap(async () => {
@@ -742,9 +717,7 @@ function renderMessages(items) {
       );
       actions.append(erase);
       if (m.role === 'assistant') {
-        const outbound = document.createElement('button');
-        outbound.type = 'button';
-        outbound.textContent = '建立投递草稿';
+        const outbound = iconBtn('outbox', '建立投递草稿');
         outbound.addEventListener(
           'click',
           wrap(async () => {
@@ -766,7 +739,29 @@ function renderMessages(items) {
     loadRunTrace(node.dataset.runId)
       .then((trace) => {
         if (!trace) return;
-        renderToolBlock(node.querySelector('.bubble') || node, trace);
+        // 参考原型：调用链在助手正文上方（头像行之下），不是正文下方
+        const bubble = node.querySelector('.bubble');
+        const holder = document.createElement('div');
+        holder.className = 'chain-slot';
+        renderToolBlock(holder, trace);
+        if (holder.firstChild) node.insertBefore(holder, bubble || null);
+        // 头像行补「N 步 · 耗时」，与参考截图一致；无事件时不编造
+        const meta = node.querySelector('.a-meta');
+        const chain = holder.querySelector('.scaffolds');
+        if (meta && chain) {
+          const steps = chain.querySelectorAll('.scaf').length;
+          const times = [...chain.querySelectorAll('.scaf-time')]
+            .map((n) => {
+              const t = n.textContent.trim();
+              const v = parseFloat(t);
+              if (!Number.isFinite(v)) return null;
+              return t.endsWith('ms') ? v / 1000 : v;
+            })
+            .filter((n) => n != null);
+          const total = times.length ? `${times.reduce((a, c) => a + c, 0).toFixed(1)}s` : '';
+          const bits = [meta.textContent, steps ? `${steps} 步` : '', total].filter(Boolean);
+          meta.textContent = bits.join(' · ');
+        }
         // 过程条是异步挂上的，会撑高最后一条消息；重新贴底避免被面板边缘裁掉
         $('messages').scrollTop = $('messages').scrollHeight;
       })
@@ -797,6 +792,8 @@ async function showRunDetails(runId, sessionId) {
   if (stale()) return;
   const latest = report.snapshots.at(-1);
   const erased = report.items.filter((row) => row.erased).length;
+  // 左栏用量此前只在运行结束时刷新，打开历史会话会一直停在「等待会话」
+  renderContext(report, latest);
   $('context-status').textContent =
     `本轮登记 ${report.items.length} 条上下文记录，其中 ${erased} 条已遗忘；` +
     `历史处理 ${latest?.mode === 'complete' ? '完整保留' : latest?.mode === 'summary' ? '已登记摘要' : latest?.mode ? '有省略' : '未登记'}，` +
@@ -1134,7 +1131,8 @@ $('agents').addEventListener('change', wrap(selectAgent));
 $('back-to-chat').addEventListener('click', () => document.querySelector('[data-page="chat"]').click());
 $('open-settings').addEventListener('click', () => document.querySelector('[data-page="settings"]').click());
 
-// 窄屏会话抽屉：只在 <=520 生效；桌面端按钮由 CSS 隐藏，data-open 不参与布局。
+// 窄屏两个抽屉互斥：同时展开会把对话与输入区挤没。
+// 宽屏 data-open 不参与布局，左右两栏仍常驻。
 function setDrawer(open) {
   const panel = $('sessions-panel'),
     button = $('toggle-sessions');
@@ -1143,10 +1141,28 @@ function setDrawer(open) {
   button.setAttribute('aria-expanded', String(open));
   button.textContent = open ? '收起会话' : '会话';
 }
+function setInspectorDrawer(open) {
+  const panel = $('inspector-panel'),
+    button = $('toggle-inspector');
+  if (!panel || !button) return;
+  panel.dataset.open = String(open);
+  button.setAttribute('aria-expanded', String(open));
+  button.textContent = open ? '收起运行' : '运行';
+}
 $('toggle-sessions').addEventListener('click', () => {
-  setDrawer($('sessions-panel')?.dataset.open !== 'true');
+  const next = $('sessions-panel')?.dataset.open !== 'true';
+  setDrawer(next);
+  if (next) setInspectorDrawer(false);
 });
+$('toggle-inspector').addEventListener('click', () => {
+  const next = $('inspector-panel')?.dataset.open !== 'true';
+  setInspectorDrawer(next);
+  if (next) setDrawer(false);
+});
+// 初始展开会话栏：首次进入要先选会话，列表必须可见可点。
+// 运行详情按需展开；发消息后自动切到运行面板，让本轮结果立即可见。
 setDrawer(true);
+setInspectorDrawer(false);
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape' || page === 'chat') return;
   // 模态对话框自己有 Esc 语义，先让它处理，避免一次按键关掉两层。
@@ -1204,10 +1220,16 @@ $('send').addEventListener(
     pendingKey = null;
     session = receipt.session_id;
     run = receipt.run_id;
+    // 已经有运行了，右栏不能继续显示「还没有运行记录」的空态
+    $('run-details-empty').hidden = true;
     await routingPanel.report(run, session);
     await skillsPanel.report(run, session);
     if ($('message').value === text) $('message').value = '';
     chatImages.change();
+    // 窄屏发完消息切到运行面板：收起会话栏腾出高度，同时让本轮结果与保留操作可见。
+    // 宽屏两个属性都不参与布局，左右两栏仍常驻。
+    setDrawer(false);
+    setInspectorDrawer(true);
     $('cancel').disabled = false;
     renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
     await refreshSessions();

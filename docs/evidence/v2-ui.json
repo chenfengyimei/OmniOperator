@@ -1,7 +1,7 @@
 {
   "batch": "v2-ui-workbench-completion",
   "recorded_at": "2026-11-13",
-  "resource_version_final": "20261113v105",
+  "resource_version_final": "20261113v115",
   "v1_alignment": {
     "summary": "用户提供 V1 正式工作台截图后，直接精读 web/ui/workbench.css 的 V1 实现并逐项移植，使 V2 结构与 V1 一致（而非自创风格）。",
     "ported_from_v1": [
@@ -246,7 +246,32 @@
       "V2 只复制了浮层样式却未接 V1 提示模块，导航悬停无提示 → 补 #tip-layer 容器并原样复用 app/tips.js",
       "入口脚本与 xterm 仍挂旧版本串 v81 → 统一升到当前版本",
       "安卓截图用内联 style 属性触发 style-src-attr 拦截（securitypolicyviolation 定位到具体行） → 尺寸移入样式表，全页内联 style 归零；实测 maxWidth=100%/maxHeight=512px 生效",
-      "终端主题探测用 cssText 整串赋值 → 改逐条属性赋值，等价且合规"
+      "终端主题探测用 cssText 整串赋值 → 改逐条属性赋值，等价且合规",
+      "V1 的 #send 是按钮而 V2 是表单容器，按钮渐变涂满整个输入区、输入框露白底、真发送键无样式 → 副本选择器改指 #send-btn/#message，声明一字未动",
+      "技能多选在 size=1 时浏览器强制显示英文 N selected → 原生控件保留为数据源，叠中文摘要（pointer-events:none），聚焦展开浮层",
+      "截图下拉空态是空白窄框 → 中文占位「先载入截图」并同步附加按钮禁用态",
+      "附加图片标签有重复图标（外层 image + 选择器 upload_file）→ 移除外层",
+      "工具条控件总宽 914px 装进 770px 容器，散成 4–7 行且发送键位置飘忽 → 拆选择行/操作行两层并按语义分组，发送键恒定右下角",
+      "1024 一档两栏写死 230+300 把中栏压到 354px → 收窄为 196+250，dock 从 208px 降到 179px",
+      "分组竖线作为 flex 项在两组分行时自己占一行 → 去掉该元素改用组间距，1440/760 回到单行",
+      "运行技术详情与调用链重复展示档位计量 → 详情整块移入右栏「运行」页签，链只留真实工具步骤",
+      "调用链挂在正文下方、操作按钮常驻正文底部 → 链移到正文上方，操作收成头像行悬停图标（保留可访问名）",
+      "窄屏右栏 display:none 使技术详情与固定按钮不可达 → 页头加运行抽屉入口，断点与布局统一到 900",
+      "窄屏页头整体 display:none 导致两个抽屉按钮宽高为 0 → 恢复页头并让品牌/状态单行省略",
+      "运行状态条空内容仍渲染边框背景，输入区上方多出空灰条 → :empty 不占位",
+      "右栏技术文本挤成一大团 → 分组卡片化、等宽字体限高内滚、面板风格滚动条",
+      "输入框键盘焦点完全不可见（V1 outline:none 无替代）→ 焦点反馈交给 dock 描边与光晕、光标转青",
+      "打开历史会话时左栏上下文用量一直停在「等待会话」→ showRunDetails 补 renderContext，实测显示 5145 tok / 完整历史 / 3 项图例",
+      "档位调用报告整段长文本挤在一个节点 → 改为一次调用一张卡，字段用定义列表对齐、状态用语义色（待结清琥珀、已结清绿）",
+      "浅色主题顶栏品牌图标是白色鱼形直接落白底、几乎不可见 → 加与导航同款渐变底，双主题清晰",
+      "右栏页签容器被 flex 压到 23px（内容需 44px），页签实际位置超出容器，点击落到内容层 → flex:0 0 auto 保持完整高度，实测 selfHit 由 false 转 true",
+      "运行页签用负外边距抵消留白导致内容层向上溢出 → 改为容器内边距归零",
+      "保留操作埋在长报告底部需滚动很久 → 移到运行页签顶部并吸顶，实测无需滚动即可点击",
+      "xterm 样式表遗漏旧版本串 v81 → 统一到当前版本",
+      "运行面板说明文字在浅色主题下对比度仅 2.76（--text-4），标题 3.35，均低于 4.5 可读线；浅色只覆盖 --text-3/4 导致 --text-3 反而更淡 → 标题与说明改用 --text-1，说明靠小字号与常规字重保持次要层级",
+      "发起运行后右栏仍显示「这个会话还没有运行记录」空态，与已有数据矛盾 → 收到运行回执即隐藏空态；实测新会话显示、发送后隐藏并出 1 张卡、切历史会话正确刷新",
+      "对话空态 .empty-state / .empty-actions 完全没有样式，图标标题说明与两个按钮裸堆左上角 → 补居中引导卡片（渐变图标徽标、1px 描边、12px 圆角、主按钮渐变）",
+      "右栏页签、固定保留、清空技能的键盘焦点完全不可见（副本清掉 outline 未给替代）→ 统一补 :focus-visible 青色 2px 描边，覆盖右栏/工具条/空态/抽屉入口"
     ],
     "verification": {
       "css_rules_parsed": "components 90 / frame 108 / workbench 663（原样复制后全部生效）",
@@ -271,11 +296,38 @@
       "guards_v104": "glass_tokens + design_tokens + business_inventory 共 19 passed",
       "tooltip": "悬停导航显示『记忆』，opacity=1、位置在视口内；导航阴影 0px 2px 4px 生效",
       "ui_regression_v103": "135 passed in 976.48s（14 文件 -n 4，零失败）",
-      "ui_regression_final": "运行中（含浮层接入与版本修正）",
+      "ui_regression_final": "最终源码 20261113v115，15 个测试文件 -n 4：143 passed / 1 failed in 835.01s（13分55秒）。唯一失败 test_v2_ui.py::test_delivery_draft_approval_preview_receipt_and_archive[light-1440-delivery] 隔离单跑 1 passed in 15.16s → 并行负载抖动；该用例按可访问名「建立投递草稿」定位，本批把文字按钮改为图标按钮时已保留 aria-label，契约未破坏。此前批次出现过的 test_v2_skills_ui / test_v2_portal_ui 失败本轮均已通过。",
       "csp_clean": "securitypolicyviolation 事件零触发；1440/390 两视口 pageerror 与 CSP 报错均为空；提示浮层定位随按钮真实变化（技能 y=160、日志 y=790）",
       "ui_regression_v105": "133 passed / 2 failed in 1045.70s（14 文件 -n 4）。两个失败均为文本断言超时，非布局/样式问题，已逐个隔离复跑取证：① test_v2_skills_ui[light-1024] 隔离单跑 passed → 并行负载抖动；② test_v2_portal_ui 隔离仍 failed，状态停在 portal_consent_pending（服务端授权环节），git stash 暂存本批全部改动后用原码跑同一用例同样 failed → 既有问题，非本批引入；本批未改动任何 agent/ 服务端代码（git status 为空）。仓库历史 10656e9 已记录并行抖动口径。",
       "contrast": "深色关键文本对比度 11.2–17.02（页标题 17.02、输入框 11.2、会话标题 16.63、正文 15.4），浅色 17.71–21；均远超 4.5 标准。会话标题一度读出 1.65 系脚本未解析 oklab 背景所致的量取虚警，已用实际颜色值与局部截图证伪。",
-      "narrow_inspector": "390 宽右栏 display:none 属既定响应式设计（空间让给对话），非缺陷；页签在 1440 下四个均可点击切换且无溢出"
+      "narrow_inspector": "390 宽右栏 display:none 属既定响应式设计（空间让给对话），非缺陷；页签在 1440 下四个均可点击切换且无溢出",
+      "dock_layout_v108": "四视口双主题：1440/760 选择行单行、1024 两行 dock 179px、390 两行 dock 178px；发送键恒定 72×30 且右下角对齐，全部无横向溢出、输入框在视口内",
+      "chain_and_inspector": "链默认展开、位于正文上方、标签按命名空间分色、成功态绿底；对话区已无技术详情文本；右栏 5 页签单行、「运行」承载档位/技能/保留，固定与取消实测生效",
+      "stability_v108": "3 轮主题切换 + 12 次切页 + 4 次折叠：消息 14 条、链 6 组无重复累积；再发消息后 16 条、输入框仍在视口内；零 pageerror",
+      "a11y_v108": "CSP 违规事件零触发；rail 22 按钮可访问名齐全、7 组、inert 解除；输入框键盘焦点由 dock 青色描边+光晕承担，光标 rgb(14,116,144)",
+      "route_cards": "1440/390 两视口：2 张调用卡，字段工具/规格/输入估算/费用齐全，状态 unknown 为 rgb(251,191,36)、settled 为绿；卡片与页面均无溢出，零 pageerror",
+      "context_usage": "未选会话显示等待会话；选中后 meta=省略 0 条、chars=5145 tok、mode=完整历史、计数方式 upper_bound、图例 3 项",
+      "interaction_v110": "链展开详情可见、发消息成功（18 条）、技能/产物/桌面三页签真实数据、设置 22 分类、返回对话后输入框在视口内；零报错",
+      "narrow_reachability": "390 宽：页签 selfHit=true、固定按钮 selfHit=true 且无需滚动（吸顶）；两抽屉互斥切换正常、切页签生效、固定与取消真实生效；输入框始终在视口内、零溢出零报错",
+      "brand_icon": "浅色主题顶栏品牌图标加渐变底后清晰可见，与导航品牌视觉统一",
+      "run_panel_contrast": "深色：标题 14.87、说明 14.87、字段标签 5.43、字段值 8.37、工具名 6.13、档位正文 6.13、按钮 7.42；浅色：标题 4.9、说明 4.9、字段标签 4.68、字段值 6.86、工具名 5.75、档位正文 5.75、按钮 6.76。全部 ≥4.5 可读线（修复前浅色说明仅 2.76）",
+      "empty_state": "新会话 emptyHidden=false/cards=0；发送后 emptyHidden=true/cards=1/route 196 字；切历史会话 emptyHidden=true/cards=1/route 207 字；零 pageerror",
+      "pages_all": "22 个分区页 × 1440/390 全部可达、无其他页同时显示、无横向溢出、零报错",
+      "new_chat": "新建对话空态引导可用；首次发送后 2 条消息、上下文 1131 tok、1 张调用卡、固定按钮启用、输入框清空、输入区在视口内；无工具那轮不挂链（符合设计）",
+      "empty_state_card": "1440 双主题：卡片 338×200 水平居中、1px 描边、12px 圆角、图标渐变底；两个按钮 72×30 / 93×30 均 selfHit=true；390 卡片 312px、760 卡片 338px 均在视口内；全部无横向溢出、输入区可见、零 pageerror",
+      "no_duplicate_chain": "12 条助手消息：每条 chain-slot 与 scaffolds 均 ≤1，重复计数 0；3 轮主题切换 + 3 次切页前后总数稳定 11。此前观察到 5→10 是异步挂载未完成的中间态，非重复挂载（已按每消息槽位数证伪）",
+      "accept_v114": "六视口双主题（1440/1024/390 × dark/light）全部：hOverflow=false、work/composer/rail 均在视口内、panels=5 glassPanels=5、tabsGrid=grid、dockBar=1、aHead=avatarSvg=11、scaffolds=scafToggle=10、零 pageerror、零 404",
+      "csp_v114": "securitypolicyviolation 事件零触发",
+      "keyboard_focus_final": "真实 Tab 遍历 22 个落点：焦点不可见数 0，全部 outline solid 2px（含 chat-mode/skill-turn/skill-turn-clear/file-picker-btn/image-refresh-captures/send-btn/运行/待办 等）。注意 element.focus() 不触发 :focus-visible，用它判定会误报不可见，必须用真实按键",
+      "state_reset": "选会话后 26 条消息 / 12 组链 / 2 张调用卡 / 8186 tok；新建对话后全部归零（msgs=0 chains=0 cards=0 ctx=—），空态卡片正确显示、run-details-empty 恢复可见；零 pageerror",
+      "interaction_final": "链展开详情可见、发消息成功（26 条）、技能/产物/桌面三页签真实数据、设置 22 分类、返回对话后输入框在视口内；零报错",
+      "settings_roundtrip_final": "分类跳转令牌页选中态 true、保存返回「已保存，新运行生效；权限变更立即核验」、Esc 与返回按钮均回到对话且输入框在视口内；零报错",
+      "summary_button": "无摘要时按钮正确隐藏、正文为空；新建对话后状态清空无残留；零 pageerror",
+      "guards_final": "glass_tokens + design_tokens + business_inventory 共 19 passed（多次复跑一致）"
     }
-  }
+  },
+  "not_accepted": [
+    "真实模型 / 真实平台账号 / 72 小时稳定性仍未验收，本轮全部验证基于离线演示实例",
+    "并行 -n 4 下仍有偶发超时（隔离单跑通过），属既有负载抖动，未销账"
+  ]
 }

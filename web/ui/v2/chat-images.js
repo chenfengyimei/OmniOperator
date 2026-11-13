@@ -12,6 +12,21 @@ export function mountChatImages({ api, wrap, getAgent, getSession, getGeneration
   function rows() {
     return drafts.get(key()) || [];
   }
+  // 截图下拉空态给中文占位，避免渲染成无提示的空白窄框；
+  // 占位项 value 为空且 disabled，不会被当成真实截图提交。
+  function syncCaptures() {
+    const select = $('image-capture');
+    const real = [...select.options].filter((o) => o.value);
+    if (!real.length) {
+      select.replaceChildren(new Option('先载入截图', ''));
+      select.options[0].disabled = true;
+      select.selectedIndex = 0;
+    } else if (select.options[0] && !select.options[0].value) {
+      select.options[0].remove();
+    }
+    select.disabled = !real.length;
+    render();
+  }
   function render() {
     $('image-drafts').replaceChildren(
       ...rows().map((image) => {
@@ -32,7 +47,8 @@ export function mountChatImages({ api, wrap, getAgent, getSession, getGeneration
       }),
     );
     $('image-file').disabled = busy || !getAgent() || rows().length >= 4;
-    $('image-add-capture').disabled = busy || !getAgent() || rows().length >= 4;
+    $('image-add-capture').disabled =
+      busy || !getAgent() || rows().length >= 4 || !$('image-capture').value;
   }
   function add(image) {
     if (rows().some((r) => r.object_id === image.object_id)) return;
@@ -73,8 +89,10 @@ export function mountChatImages({ api, wrap, getAgent, getSession, getGeneration
       $('image-capture').replaceChildren(
         ...data.items.map((r) => new Option(`${r.created_at} · ${r.object_id}`, r.object_id)),
       );
+      syncCaptures();
     }),
   );
+  $('image-capture').addEventListener('change', render);
   $('image-add-capture').addEventListener(
     'click',
     wrap(async () => {
@@ -95,6 +113,7 @@ export function mountChatImages({ api, wrap, getAgent, getSession, getGeneration
       }
     }),
   );
+  syncCaptures();
   return {
     snapshot() {
       if (busy) throw new Error('请等待图片校验完成');
@@ -111,7 +130,7 @@ export function mountChatImages({ api, wrap, getAgent, getSession, getGeneration
       $('image-capture').replaceChildren();
       $('image-status').textContent = '';
       $('image-run-status').textContent = '';
-      render();
+      syncCaptures();
     },
     async report(run, state) {
       const t = capture(),
@@ -150,6 +169,7 @@ export function mountChatImages({ api, wrap, getAgent, getSession, getGeneration
       $('image-capture').replaceChildren();
       $('image-status').textContent = '';
       $('image-run-status').textContent = '';
+      syncCaptures();
     },
   };
 }

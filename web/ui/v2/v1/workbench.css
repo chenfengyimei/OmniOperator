@@ -1,4 +1,10 @@
-/* V1 workbench.css 原样副本（仅改页面标识与资源路径）。外观与 V1 完全一致，请勿在此自创样式。 */
+/* V1 workbench.css 原样副本。声明内容一字未改，只做三类必要映射：
+   ① 页面标识 workbench → workbench-v2；② 资源路径 /ui/ → /assets/ui/；
+   ③ 元素标识对齐 V2 结构：#input → #message（输入框）、#send → #send-btn（发送键）。
+   第 ③ 项必须做：V1 的 #send 是按钮，V2 的 #send 是 form 容器，
+   不映射会把按钮渐变涂满整个输入区、输入框露出浏览器白底、真发送键反而无样式。
+   另为 .rail 追加等效属性选择器别名（V2 的 nav 不能带 class，守卫正则依赖原文）。
+   外观与 V1 完全一致，请勿在此自创样式——新样式写进 ../workbench.css 桥接层。 */
 /* ==========================================================================
    OmniOperator 工作台专属样式（workbench）
    三段结构（UI_DESIGN_SYSTEM.md §2）：
@@ -247,7 +253,7 @@ main ul {
   padding: 12px;
   border-top: 1px solid var(--border);
 }
-#input {
+#message {
   flex: 1;
   resize: none;
   background: var(--panel2);
@@ -258,11 +264,11 @@ main ul {
   font: inherit;
   max-height: 140px;
 }
-#input:focus {
+#message:focus {
   outline: none;
   border-color: var(--accent);
 }
-#send {
+#send-btn {
   background: var(--accent);
   border: none;
   color: var(--on-accent);
@@ -271,7 +277,7 @@ main ul {
   font-weight: 700;
   cursor: pointer;
 }
-#send:disabled {
+#send-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background: var(--panel2);
@@ -2462,7 +2468,7 @@ main > section,
     background-position: 220px 0;
   }
 }
-#input {
+#message {
   display: block;
   width: 100%;
   min-height: 46px;
@@ -2476,12 +2482,12 @@ main > section,
   line-height: 1.62;
   color: var(--text-1);
 }
-#input:focus {
+#message:focus {
   outline: none;
   border: none;
   box-shadow: none;
 }
-#input::placeholder {
+#message::placeholder {
   color: var(--text-4);
 }
 .dock-bar {
@@ -2535,7 +2541,7 @@ main > section,
 }
 /* 发送键「↑ 发送」：JS 会改写按钮文字（思考中…/发送），图标只能用伪元素画，
    写进按钮标签会被 textContent 冲掉；思考中（disabled）时收起图标让位给文字 */
-#send {
+#send-btn {
   margin-left: auto;
   position: relative;
   flex-shrink: 0;
@@ -2553,7 +2559,7 @@ main > section,
     var(--sh-2),
     inset 0 1px 0 color-mix(in srgb, #fff 30%, transparent);
 }
-#send::before {
+#send-btn::before {
   content: "";
   position: absolute;
   left: 12px;
@@ -2567,16 +2573,16 @@ main > section,
   mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>')
     center/contain no-repeat;
 }
-#send:hover {
+#send-btn:hover {
   filter: brightness(1.08);
 }
-#send:disabled {
+#send-btn:disabled {
   background: var(--surface-2);
   color: var(--text-4);
   box-shadow: none;
   padding: 0 14px;
 }
-#send:disabled::before {
+#send-btn:disabled::before {
   display: none;
 }
 
@@ -3662,7 +3668,7 @@ body[data-ui-page="workbench-v2"] .hub-back .material-icons {
   .dock-meta {
     display: none;
   }
-  #send {
+  #send-btn {
     height: 36px;
     min-height: 36px;
   }

@@ -367,13 +367,50 @@ export function mountSkills({ api, wrap, getAgent, getGeneration, getSession }) 
       });
     }),
   );
+  // 多选 select 在 size=1 时浏览器强制渲染英文「N selected」，无法用 CSS 改写。
+  // 保留原生 select 作为数据源（测试按 id 定位），另挂中文摘要按钮承接视觉与点击。
+  const turnLabel = document.createElement('span');
+  turnLabel.id = 'skill-turn-label';
+  turnLabel.className = 'pick-label';
+  turnLabel.setAttribute('aria-hidden', 'true');
+  const syncTurnLabel = () => {
+    const picked = [...$('skill-turn').selectedOptions];
+    const usable = [...$('skill-turn').options].filter((o) => !o.disabled).length;
+    turnLabel.textContent = picked.length
+      ? `已选 ${picked.length} 项`
+      : usable
+        ? `选择技能（${usable}）`
+        : '暂无可用技能';
+    turnLabel.title = picked.length
+      ? picked.map((o) => o.textContent).join('\n')
+      : '本轮使用的技能，最多 4 个';
+    turnLabel.dataset.count = String(picked.length);
+  };
+  // 聚焦即展开原生多选列表（浮层），失焦收回；键盘与自动化操作均走原生控件
+  $('skill-turn').addEventListener('focus', () => {
+    const select = $('skill-turn');
+    select.size = Math.min(Math.max(select.options.length, 2), 6);
+    select.dataset.expanded = 'true';
+  });
+  $('skill-turn').addEventListener('blur', () => {
+    const select = $('skill-turn');
+    select.size = 1;
+    delete select.dataset.expanded;
+    syncTurnLabel();
+  });
+  $('skill-turn').parentElement.append(turnLabel);
   $('skill-turn').addEventListener('change', () => {
     draft().ids = [...$('skill-turn').selectedOptions].map((o) => o.value);
+    syncTurnLabel();
   });
   $('skill-turn-clear').addEventListener('click', () => {
     draft().ids = [];
     for (const option of $('skill-turn').options) option.selected = false;
+    syncTurnLabel();
   });
+  // 选项由 available()/reset() 异步重建，用 MutationObserver 保证摘要始终同步
+  new MutationObserver(syncTurnLabel).observe($('skill-turn'), { childList: true });
+  syncTurnLabel();
   return {
     load,
     available,

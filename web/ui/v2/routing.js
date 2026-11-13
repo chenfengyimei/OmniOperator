@@ -128,10 +128,42 @@ export function mountRouting({ api, wrap, getAgent, getGeneration, getSession })
       if (value.unrecorded_turn_calls)
         $('route-run-status').textContent +=
           ` ${value.unrecorded_turn_calls} 条主调用记录无工具快照（历史记录或预检未通过）。`;
+      // 结构化分行：此前整段长文本挤在一个节点里，字段边界读不出来。
+      // 字段与口径一字不改，只做排版与标签化。
       $('route-call-list').replaceChildren(
         ...value.calls.map((call) => {
           const node = document.createElement('article');
-          node.textContent = `调用 ${call.ordinal} · ${labels[call.mode]} · ${call.call_state} · 工具 ${call.tool_count}/${call.full_tool_count} · 规格 ${call.tool_bytes}/${call.full_tool_bytes} 字节\n输入估算 ${call.input_token_estimate} token（${call.counting_method}）；费用 ${call.cost_micro === null ? '未知' : `${call.cost_micro} 微美元`}\n${call.tools.map((tool) => tool.name).join('、') || '无工具'}`;
+          node.className = 'route-call';
+          const head = document.createElement('div');
+          head.className = 'route-call-head';
+          const ordinal = document.createElement('b');
+          ordinal.textContent = `调用 ${call.ordinal}`;
+          const mode = document.createElement('span');
+          mode.className = 'route-call-mode';
+          mode.textContent = labels[call.mode] || String(call.mode);
+          const state = document.createElement('span');
+          state.className = 'route-call-state';
+          state.dataset.state = String(call.call_state);
+          state.textContent = String(call.call_state);
+          head.append(ordinal, mode, state);
+          const rows = document.createElement('dl');
+          rows.className = 'route-call-facts';
+          for (const [label, text] of [
+            ['工具', `${call.tool_count}/${call.full_tool_count}`],
+            ['规格', `${call.tool_bytes}/${call.full_tool_bytes} 字节`],
+            ['输入估算', `${call.input_token_estimate} token（${call.counting_method}）`],
+            ['费用', call.cost_micro === null ? '未知' : `${call.cost_micro} 微美元`],
+          ]) {
+            const dt = document.createElement('dt');
+            dt.textContent = label;
+            const dd = document.createElement('dd');
+            dd.textContent = text;
+            rows.append(dt, dd);
+          }
+          const tools = document.createElement('p');
+          tools.className = 'route-call-tools';
+          tools.textContent = call.tools.map((tool) => tool.name).join('、') || '无工具';
+          node.append(head, rows, tools);
           return node;
         }),
       );

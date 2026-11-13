@@ -171,6 +171,20 @@ body[data-ui-page="workbench-v2"] .inspector-panel {
   flex: 1 1 auto;
   min-height: 0;
 }
+/* 右栏页签由 4 增到 5（新增「运行」），副本写死 3 列会折行；改为按实际数量均分。
+   必须 flex:0 0 auto：窄屏抽屉里它被压到 23px（内容需 44px），
+   页签实际位置超出容器，点击会落到下方内容层上。 */
+body[data-ui-page="workbench-v2"] .inspector-panel > .tabs {
+  flex: 0 0 auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+  padding: 6px;
+  overflow: visible;
+}
+body[data-ui-page="workbench-v2"] .inspector-panel > .tabs button {
+  padding: 5px 2px;
+  font-size: var(--fs-caption);
+}
 body[data-ui-page="workbench-v2"] .inspector-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -181,6 +195,81 @@ body[data-ui-page="workbench-v2"] .inspector-body > section {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+/* 运行页签自带内边距：此前用负外边距抵消容器留白，会让内容层向上溢出
+   盖住页签（实测点击命中 .run-inspector 而非页签）。改为容器不留白。 */
+body[data-ui-page="workbench-v2"] .inspector-body:has(> section[data-inspector-panel="run"]:not([hidden])) {
+  padding: 0;
+}
+body[data-ui-page="workbench-v2"] .inspector-body > section[data-inspector-panel="run"] {
+  height: auto;
+  margin: 0;
+}
+/* 对话空态：此前 .empty-state / .empty-actions 完全没有样式，
+   图标、标题、说明与两个按钮裸堆在左上角。补成居中的引导卡片。 */
+body[data-ui-page="workbench-v2"] .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: auto;
+  padding: 30px 26px 26px;
+  max-width: 420px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-card);
+  background: color-mix(in oklab, var(--surface-2) 52%, transparent);
+  box-shadow: var(--sh-1);
+  text-align: center;
+}
+body[data-ui-page="workbench-v2"] .empty-state > .material-icons {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-md);
+  background: var(--grad);
+  color: var(--on-accent);
+  font-size: 22px;
+  box-shadow: 0 0 18px -6px color-mix(in srgb, var(--seed-accent) 62%, transparent);
+}
+body[data-ui-page="workbench-v2"] .empty-state strong {
+  color: var(--text-1);
+  font-size: var(--fs-body);
+  font-weight: 700;
+}
+body[data-ui-page="workbench-v2"] .empty-state > span:not(.material-icons) {
+  color: var(--text-1);
+  font-size: var(--fs-caption);
+  line-height: 1.7;
+  opacity: 0.82;
+}
+body[data-ui-page="workbench-v2"] .empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+body[data-ui-page="workbench-v2"] .empty-actions button {
+  min-height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--glass-weak-bg);
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .empty-actions button:first-child {
+  border-color: transparent;
+  background: var(--grad);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+body[data-ui-page="workbench-v2"] .empty-actions button:hover {
+  filter: brightness(1.08);
 }
 body[data-ui-page="workbench-v2"] .inspector-empty,
 body[data-ui-page="workbench-v2"] .inspector-empty-todo {
@@ -282,6 +371,10 @@ body[data-ui-page="workbench-v2"] #run-status {
   color: var(--text-3);
   font-size: var(--fs-small);
 }
+/* 无运行状态时不渲染空壳：否则输入区上方会多出一条空灰条 */
+body[data-ui-page="workbench-v2"] #run-status:empty {
+  display: none;
+}
 body[data-ui-page="workbench-v2"] #run-status[data-state="failed"],
 body[data-ui-page="workbench-v2"] #run-status[data-state="unknown"] {
   border-color: var(--warn-bd);
@@ -292,95 +385,317 @@ body[data-ui-page="workbench-v2"] #run-status[data-state="succeeded"] {
   border-color: var(--ok-bd);
   background: var(--ok-bg);
 }
-body[data-ui-page="workbench-v2"] #pin-run,
-body[data-ui-page="workbench-v2"] #chat > #run-details,
-body[data-ui-page="workbench-v2"] #show-summary,
-body[data-ui-page="workbench-v2"] #summary-body,
 body[data-ui-page="workbench-v2"] #model-live {
   flex: 0 0 auto;
   width: auto;
   margin: 0 14px;
 }
-body[data-ui-page="workbench-v2"] #pin-run:disabled,
 body[data-ui-page="workbench-v2"] #cancel:disabled {
   display: none;
 }
-body[data-ui-page="workbench-v2"] #run-details > summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-3);
-  font-size: var(--fs-small);
-  font-weight: 600;
-  list-style: none;
-}
-body[data-ui-page="workbench-v2"] #run-details > summary::-webkit-details-marker {
-  display: none;
-}
-body[data-ui-page="workbench-v2"] .run-details-hint {
-  margin-left: auto;
-  color: var(--text-4);
-  font-size: var(--fs-caption);
-  font-weight: 500;
-}
-body[data-ui-page="workbench-v2"] .run-details-body {
+/* 运行技术详情已从对话区移入右栏「运行」页签：对话只留消息与输入框 */
+body[data-ui-page="workbench-v2"] .run-inspector {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 10px 2px 2px;
+  gap: 13px;
+  padding: 11px 12px 14px;
+  overflow-y: auto;
 }
+body[data-ui-page="workbench-v2"] .run-detail-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+/* 保留操作置顶并吸顶：技术报告很长，操作不该埋在底部要滚很久才找到 */
+body[data-ui-page="workbench-v2"] .run-acts-top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 2px 0 8px;
+  background: linear-gradient(
+    180deg,
+    var(--surface-1) 62%,
+    color-mix(in srgb, var(--surface-1) 0%, transparent)
+  );
+}
+body[data-ui-page="workbench-v2"] .run-acts-top:has(> #pin-run:disabled):has(> #show-summary[hidden]) {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] .run-inspector #summary-body {
+  margin: 0;
+  max-height: 190px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+body[data-ui-page="workbench-v2"] .run-inspector #summary-body:empty {
+  display: none;
+}
+/* 每个分组做成独立卡片：此前所有技术文本挤成一大团，边界与层级都读不出来 */
 body[data-ui-page="workbench-v2"] .run-detail-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+  padding: 9px 10px 10px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: color-mix(in oklab, var(--surface-2) 46%, transparent);
 }
+/* 标题用最强文本色：实测浅色下 --text-2 只有 3.35 对比度，低于 4.5 可读线 */
 body[data-ui-page="workbench-v2"] .run-detail-group h4 {
-  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-1);
   font-size: var(--fs-small);
   font-weight: 650;
 }
+body[data-ui-page="workbench-v2"] .run-detail-group h4::before {
+  content: "";
+  width: 3px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--grad);
+  opacity: 0.8;
+}
+/* 说明文字：浅色主题只覆盖了 --text-3/4，实测 --text-4=2.76、--text-2=3.35、
+   --text-3=3.07 全部低于 4.5 可读线，只有 --text-1 达标。
+   这里用 --text-1 配常规字重与小字号保持次要层级，不靠淡化牺牲可读性。 */
 body[data-ui-page="workbench-v2"] .run-detail-note,
 body[data-ui-page="workbench-v2"] .run-detail-empty {
-  color: var(--text-4);
+  color: var(--text-1);
   font-size: var(--fs-caption);
-  line-height: 1.55;
+  font-weight: 400;
+  line-height: 1.6;
+  opacity: 0.82;
 }
 body[data-ui-page="workbench-v2"] .run-detail-group pre,
 body[data-ui-page="workbench-v2"] .run-detail-group p[role="status"] {
+  margin: 0;
+  color: var(--text-3);
   font-size: var(--fs-caption);
+  line-height: 1.68;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+/* 计量正文用等宽字体并限高内滚，避免长报告把面板撑爆 */
+body[data-ui-page="workbench-v2"] .run-detail-group pre {
+  max-height: 168px;
+  padding: 7px 8px;
+  overflow-y: auto;
+  border-radius: var(--r-sm);
+  background: var(--surface-inset);
+  font-family: var(--font-mono);
+}
+body[data-ui-page="workbench-v2"] .run-inspector ::-webkit-scrollbar {
+  width: 8px;
+}
+body[data-ui-page="workbench-v2"] .run-inspector ::-webkit-scrollbar-track {
+  background: transparent;
+}
+body[data-ui-page="workbench-v2"] .run-inspector ::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--seed-fg) 18%, transparent);
+  background-clip: content-box;
+}
+body[data-ui-page="workbench-v2"] .run-inspector ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--seed-accent) 45%, transparent);
+  background-clip: content-box;
+}
+/* 调用报告：一次调用一张小卡，字段用定义列表对齐，状态用语义色 */
+body[data-ui-page="workbench-v2"] #route-call-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+body[data-ui-page="workbench-v2"] .route-call {
+  padding: 8px 9px;
+  border: 1px solid var(--line-3);
+  border-left: 2px solid var(--line-accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--surface-inset);
+}
+body[data-ui-page="workbench-v2"] .route-call-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+body[data-ui-page="workbench-v2"] .route-call-head b {
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+}
+body[data-ui-page="workbench-v2"] .route-call-mode {
+  padding: 1px 6px;
+  border: 1px solid var(--line-accent);
+  border-radius: var(--r-full);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 600;
+}
+body[data-ui-page="workbench-v2"] .route-call-state {
+  margin-left: auto;
+  color: var(--text-4);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+body[data-ui-page="workbench-v2"] .route-call-state[data-state="settled"] {
+  color: var(--ok);
+}
+body[data-ui-page="workbench-v2"] .route-call-state[data-state="unknown"] {
+  color: var(--warn);
+}
+body[data-ui-page="workbench-v2"] .route-call-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 8px;
+  margin: 0;
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .route-call-facts dt {
+  color: var(--text-4);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .route-call-facts dd {
+  margin: 0;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+body[data-ui-page="workbench-v2"] .route-call-tools {
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--line-3);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 body[data-ui-page="workbench-v2"] .run-detail-group pre:empty,
 body[data-ui-page="workbench-v2"] .run-detail-group p[role="status"]:empty,
 body[data-ui-page="workbench-v2"] #route-call-list:empty {
   display: none;
 }
+/* 空分组收起，但含操作按钮的分组必须保留（否则固定/摘要按钮点不到） */
 body[data-ui-page="workbench-v2"]
-  .run-detail-group:not(:has(pre:not(:empty), p[role="status"]:not(:empty), #route-call-list:not(:empty))) {
+  .run-detail-group:not(:has(pre:not(:empty), p[role="status"]:not(:empty), #route-call-list:not(:empty), .run-detail-acts)) {
   display: none;
 }
+body[data-ui-page="workbench-v2"] .run-detail-group:has(.run-detail-acts) .run-detail-note {
+  margin-bottom: 1px;
+}
 
-/* 消息操作行与等待指示 */
+/* 消息操作：参考原型把操作收进头像行/时间行右侧，悬停显现的紧凑图标，
+   不在正文底部常驻一排文字按钮。可访问名保留，测试仍可按名称点击。 */
 body[data-ui-page="workbench-v2"] .msg-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-  opacity: 0.5;
+  align-items: center;
+  gap: 1px;
+  margin: 0;
+  opacity: 0;
   transition: opacity 0.14s;
 }
-body[data-ui-page="workbench-v2"] .msg:hover .msg-actions {
+body[data-ui-page="workbench-v2"] .msg:hover .msg-actions,
+body[data-ui-page="workbench-v2"] .msg:focus-within .msg-actions {
   opacity: 1;
 }
-body[data-ui-page="workbench-v2"] .msg.assistant .msg-actions {
-  padding-left: 26px;
+body[data-ui-page="workbench-v2"] .msg-actions .act,
+body[data-ui-page="workbench-v2"] .a-head > .copy-msg,
+body[data-ui-page="workbench-v2"] .turn-foot > .copy-msg {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  min-height: 21px;
+  height: 21px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-4);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.12s,
+    color 0.12s,
+    background 0.12s;
 }
-body[data-ui-page="workbench-v2"] .msg-actions button {
-  min-height: 24px;
-  padding: 0 9px;
-  font-size: var(--fs-caption);
+body[data-ui-page="workbench-v2"] .msg-actions .act .material-icons,
+body[data-ui-page="workbench-v2"] .copy-msg .material-icons {
+  font-size: 13px;
+}
+body[data-ui-page="workbench-v2"] .msg:hover .msg-actions .act,
+body[data-ui-page="workbench-v2"] .msg:focus-within .msg-actions .act,
+body[data-ui-page="workbench-v2"] .msg:hover .copy-msg,
+body[data-ui-page="workbench-v2"] .msg:focus-within .copy-msg {
+  opacity: 1;
+}
+body[data-ui-page="workbench-v2"] .msg-actions .act:hover:not(:disabled),
+body[data-ui-page="workbench-v2"] .copy-msg:hover {
+  color: var(--seed-accent);
+  background: var(--surface-accent);
+}
+body[data-ui-page="workbench-v2"] .msg-actions .act.danger:hover:not(:disabled) {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+body[data-ui-page="workbench-v2"] .msg-actions .act:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* 调用链槽位：紧贴头像行，不额外留白 */
+body[data-ui-page="workbench-v2"] .chain-slot:empty {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] .chain-slot .scaffolds {
+  margin-top: 0;
 }
 body[data-ui-page="workbench-v2"] .msg .message-body {
   color: var(--text-1);
+}
+/* ==========================================================================
+   工具调用链：对齐 prototype-workbench-redesign 的 scaffold 视觉
+   （成功态绿底方块、记忆沉淀行渐变高亮、参数等宽字体省略）
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .scaf.done .scaf-glyph {
+  background: color-mix(in srgb, var(--ok) 15%, transparent);
+}
+body[data-ui-page="workbench-v2"] .scaf.done .scaf-label {
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .scaf.fail .scaf-glyph {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+/* 记忆沉淀行：警示色→强调色→次强调色渐变文字 + 发光图标，与普通工具行区分。
+   颜色一律取已登记 token，不引入第二套强调色。 */
+body[data-ui-page="workbench-v2"] .scaf.legend .scaf-label,
+body[data-ui-page="workbench-v2"] .scaf.legend .scaf-label b {
+  font-weight: 720;
+  background-image: linear-gradient(
+    100deg,
+    var(--warn) 0%,
+    var(--seed-accent) 52%,
+    var(--seed-accent2) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+body[data-ui-page="workbench-v2"] .scaf.legend .scaf-glyph {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 36%, transparent);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--warn) 52%, transparent));
+}
+/* 链开关行与参考原型一致的紧凑排版（字号不低于 10px 下限） */
+body[data-ui-page="workbench-v2"] .scaf-toggle {
+  font-size: 10px;
+  letter-spacing: 0.01em;
 }
 body[data-ui-page="workbench-v2"] .thinking-indicator {
   display: flex;
@@ -497,9 +812,79 @@ body[data-ui-page="workbench-v2"] .drawer-toggle {
     box-shadow: none;
   }
 }
-@media (max-width: 520px) {
+@media (max-width: 900px) {
+  /* 顶栏在窄屏被挤成两行（品牌 42px、状态 42px）：名称与状态强制单行，
+     次要副标题让位，保证设置按钮与主题键始终可见可点。 */
+  body[data-ui-page="workbench-v2"] > header.app-header {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  body[data-ui-page="workbench-v2"] .brand-text {
+    min-width: 0;
+    overflow: hidden;
+  }
+  body[data-ui-page="workbench-v2"] .brand-text strong {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  body[data-ui-page="workbench-v2"] .brand-text small {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"] #health {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 96px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  body[data-ui-page="workbench-v2"] #open-settings {
+    flex: 0 0 auto;
+    padding: 0 10px;
+    white-space: nowrap;
+  }
+  /* 对话模式默认隐藏页头，但窄屏与中等宽度必须留它承载两个抽屉入口，
+     否则按钮宽高为 0、会话与运行面板都打不开。断点与抽屉布局一致。 */
+  body[data-ui-page="workbench-v2"].chat-mode .page-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode .page-head-text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  /* 标题单行省略：窄屏下「对话」不该被挤成两行 */
+  body[data-ui-page="workbench-v2"].chat-mode .page-head h1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   body[data-ui-page="workbench-v2"] .drawer-toggle {
     display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    min-height: 28px;
+    height: auto;
+    padding: 4px 10px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-sm);
+    background: var(--glass-weak-bg);
+    color: var(--text-2);
+    font-size: var(--fs-caption);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  body[data-ui-page="workbench-v2"] .drawer-toggle[aria-expanded="true"] {
+    border-color: var(--line-accent);
+    color: var(--accent);
+    background: var(--surface-accent);
   }
   body[data-ui-page="workbench-v2"] aside.workbench-side[data-open="false"] {
     display: none;
@@ -548,6 +933,20 @@ body[data-ui-page="workbench-v2"] > header {
   margin-left: 0;
   min-width: 0;
 }
+/* 顶栏品牌图标是白色鱼形 svg，浅色主题下直接落在白底上几乎看不见。
+   给它与导航 .rail-brand 同款渐变底，两个主题都清晰且视觉统一。 */
+body[data-ui-page="workbench-v2"] > header > img {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  padding: 5px 3px;
+  border-radius: var(--r-md);
+  background: var(--grad);
+  box-shadow:
+    var(--sh-1),
+    inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent);
+}
 body[data-ui-page="workbench-v2"] > main {
   grid-column: 2;
   grid-row: 2;
@@ -572,6 +971,16 @@ body[data-ui-page="workbench-v2"] > main > section {
   min-height: 0;
   max-height: 100%;
 }
+/* 1024 一档桌面宽度下，副本写死的 230+300 两栏把中栏压到 354px，
+   工具条控件折成多行、dock 高达 208px。这里收窄两栏把空间还给对话。 */
+@media (min-width: 901px) {
+  body[data-ui-page="workbench-v2"].chat-mode > main {
+    grid-template-columns: 196px minmax(0, 1fr) 250px;
+    gap: 10px;
+    padding: 10px;
+  }
+}
+
 /* #chat 内除消息区与 dock 外还有运行状态/详情等块：
    必须让消息区吸收剩余空间，其余块按内容高度排列，dock 永远留在底部可见。 */
 body[data-ui-page="workbench-v2"].chat-mode #chat {
@@ -593,11 +1002,6 @@ body[data-ui-page="workbench-v2"].chat-mode #messages {
 body[data-ui-page="workbench-v2"].chat-mode #composer {
   flex: 0 0 auto;
   margin-top: auto;
-}
-/* 运行详情展开时限高内滚，不把 dock 顶出视口 */
-body[data-ui-page="workbench-v2"].chat-mode #run-details[open] .run-details-body {
-  max-height: 30vh;
-  overflow-y: auto;
 }
 /* 设置覆盖层左边界随三栏实际宽度 */
 body[data-ui-page="workbench-v2"]:not(.chat-mode) main > section[aria-label="工作区"] {
@@ -729,8 +1133,10 @@ body[data-ui-page="workbench-v2"].chat-mode #chat.page {
   }
 }
 
-/* 窄屏：左栏会话抽屉收起后，对话区要占满剩余视口，不留底部空白 */
-@media (max-width: 520px) {
+/* 窄屏与中等宽度：左右两栏都收进抽屉，对话区占满剩余视口。
+   断点与页头抽屉入口保持一致（900），否则 760 宽下右栏仍按桌面常驻，
+   实测把对话挤到 65px 高。 */
+@media (max-width: 900px) {
   body[data-ui-page="workbench-v2"].chat-mode > main {
     display: flex;
     flex-direction: column;
@@ -743,8 +1149,22 @@ body[data-ui-page="workbench-v2"].chat-mode #chat.page {
     max-height: 38vh;
     overflow-y: auto;
   }
+  /* 右栏收进抽屉；页头「运行」按钮展开为限高面板，保证技术详情可达 */
   body[data-ui-page="workbench-v2"].chat-mode > main > aside.inspector {
     display: none;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode > main > aside.inspector[data-open="true"] {
+    display: flex;
+    flex: 0 0 auto;
+    max-height: 34vh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode
+    > main
+    > aside.inspector[data-open="true"]
+    .inspector-body {
+    overflow-y: auto;
   }
   body[data-ui-page="workbench-v2"].chat-mode > main > section[aria-label="工作区"] {
     flex: 1 1 auto;
@@ -777,11 +1197,50 @@ body[data-ui-page="workbench-v2"].chat-mode #message {
   height: auto;
   max-height: 180px;
 }
+/* 工具条分两层：选择行（可折行）+ 操作行（键位提示与发送键）。
+   此前所有控件挤在一个 flex-wrap 容器里，总宽 914px 装进 770px 容器，
+   散成 4–7 行且发送键位置飘忽；分层后发送键恒定在右下角。 */
 body[data-ui-page="workbench-v2"].chat-mode .dock-bar {
   flex: 0 0 auto;
-  flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  flex-wrap: nowrap;
   min-height: auto;
   height: auto;
+  padding: 7px 9px 8px 11px;
+}
+body[data-ui-page="workbench-v2"] .dock-picks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  min-width: 0;
+}
+/* 语义分组：档位+技能、图片+截图各自成组，窄屏整组换行而不是逐个散落 */
+body[data-ui-page="workbench-v2"] .pick-group {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 6px;
+  min-width: 0;
+}
+body[data-ui-page="workbench-v2"] .dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--line-3);
+}
+/* 分组分隔改用组间距表达：竖线作为 flex 项在两组分行时会自己占一行，
+   实测把 dock 抬高一行。这里让它彻底不参与布局，组间距 14px 对内 6px 足以区分。 */
+body[data-ui-page="workbench-v2"] .dock-sep {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] .dock-picks {
+  column-gap: 14px;
 }
 /* 发送按钮不被挤压：V1 的 #send 是按钮，V2 是 form，故用 id 与 type 双保险 */
 body[data-ui-page="workbench-v2"] .dock-bar > button[type="submit"],
@@ -793,7 +1252,26 @@ body[data-ui-page="workbench-v2"] #send-btn {
 /* 文件选择器在 dock 内不占满整行，避免把工具条撑成两行 */
 body[data-ui-page="workbench-v2"] .dock-bar .file-picker {
   width: auto;
-  max-width: 190px;
+  max-width: 132px;
+}
+/* 工具条控件紧凑化：中等宽度下总宽从 605px 降到约 470px，少折一行 */
+body[data-ui-page="workbench-v2"] .dock-bar .mode-pick select {
+  max-width: 104px;
+}
+body[data-ui-page="workbench-v2"] .dock-bar #skill-turn {
+  width: 104px;
+}
+body[data-ui-page="workbench-v2"] .dock-bar .pick-label {
+  max-width: 96px;
+}
+body[data-ui-page="workbench-v2"] .dock-bar #image-capture {
+  max-width: 96px;
+}
+body[data-ui-page="workbench-v2"] .dock-bar .file-picker-name {
+  max-width: 52px;
+}
+body[data-ui-page="workbench-v2"] .dock-bar .btn.small {
+  padding: 0 8px;
 }
 body[data-ui-page="workbench-v2"] .dock-bar .mode-pick {
   flex: 0 0 auto;
@@ -824,11 +1302,15 @@ body[data-ui-page="workbench-v2"] #send-btn {
   align-self: center;
 }
 body[data-ui-page="workbench-v2"] .dock-bar .dock-meta {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+/* 选择行内的控件按内容宽度排列，档位与技能标签不再抢占整行 */
+body[data-ui-page="workbench-v2"] .dock-picks .mode-pick {
+  margin-right: 0;
 }
 
 /* ==========================================================================
@@ -892,6 +1374,71 @@ body[data-ui-page="workbench-v2"] .dock-bar .file-picker {
   max-width: 200px;
 }
 
+/* 窄屏输入区瘦身：实测 390 宽下 dock 占 228px、对话只剩 117px。
+   隐藏键位提示（触屏无意义）、缩小输入框与控件间距，把高度让给对话。 */
+@media (max-width: 900px) {
+  body[data-ui-page="workbench-v2"] .dock-bar .dock-meta {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode #message {
+    min-height: 44px;
+    max-height: 120px;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode .dock-bar {
+    gap: 5px;
+    padding: 6px 8px 7px;
+  }
+  body[data-ui-page="workbench-v2"] .dock-actions {
+    padding-top: 5px;
+  }
+  body[data-ui-page="workbench-v2"] .dock-picks,
+  body[data-ui-page="workbench-v2"] .pick-group {
+    gap: 4px 5px;
+  }
+  body[data-ui-page="workbench-v2"] #composer {
+    padding: 0 10px 10px;
+  }
+  /* 图片/截图组在 390 宽下总宽略超容器会折成两行（占 60px）。
+     收窄这组控件让它回到一行：文件名改由状态行与 title 反馈。 */
+  body[data-ui-page="workbench-v2"] .dock-bar .file-picker-name {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"] .dock-bar .file-picker {
+    max-width: 96px;
+  }
+  body[data-ui-page="workbench-v2"] .dock-bar #image-capture {
+    max-width: 76px;
+  }
+  body[data-ui-page="workbench-v2"] .dock-bar .mode-pick select {
+    max-width: 92px;
+  }
+  body[data-ui-page="workbench-v2"] .dock-bar #skill-turn {
+    width: 92px;
+  }
+  body[data-ui-page="workbench-v2"] .dock-bar .pick-label {
+    max-width: 84px;
+    left: 15px;
+  }
+  body[data-ui-page="workbench-v2"] .dock-bar .btn.small {
+    padding: 0 7px;
+  }
+  body[data-ui-page="workbench-v2"] .dock-bar .mode-pick {
+    gap: 2px;
+  }
+}
+
+/* 右栏与工具条的键盘焦点：副本把 button 的 outline 清掉了却没给替代，
+   实测页签、固定保留、清空技能三处焦点完全不可见。这里统一补青色细描边，
+   只在 :focus-visible 生效，鼠标点击不留残留框。 */
+body[data-ui-page="workbench-v2"] .inspector-panel :is(button, select, input, a):focus-visible,
+body[data-ui-page="workbench-v2"] .dock-bar :is(button, select):focus-visible,
+body[data-ui-page="workbench-v2"] .empty-actions button:focus-visible,
+body[data-ui-page="workbench-v2"] .drawer-toggle:focus-visible {
+  outline: 2px solid var(--seed-accent);
+  outline-offset: 1px;
+  border-radius: var(--r-sm);
+}
+
 /* 文件选择按钮的禁用态：明确变灰但文字仍可读，不是半透明糊掉 */
 body[data-ui-page="workbench-v2"] .file-picker-btn:disabled {
   border-color: var(--line-2);
@@ -942,6 +1489,11 @@ body[data-ui-page="workbench-v2"] .file-picker[data-disabled="true"] .file-picke
 body[data-ui-page="workbench-v2"] .inspector-body > section {
   height: 100%;
 }
+/* 运行页签内容比一屏长，不能强撑满高：否则窄屏抽屉里按钮被推到视口外点不到 */
+body[data-ui-page="workbench-v2"] .inspector-body > section[data-inspector-panel="run"] {
+  height: auto;
+  min-height: 0;
+}
 body[data-ui-page="workbench-v2"] .inspector-body .inspector-empty,
 body[data-ui-page="workbench-v2"] .inspector-body .inspector-empty-todo {
   flex: 0 0 auto;
@@ -975,4 +1527,107 @@ body[data-ui-page="workbench-v2"] .inspector-list::-webkit-scrollbar-thumb:hover
 body[data-ui-page="workbench-v2"] #android-image {
   max-width: 100%;
   max-height: 32rem;
+}
+
+/* ==========================================================================
+   工具条焦点态：浏览器默认焦点框是粗黑边，与玻璃语言冲突。
+   键盘焦点用青色细描边（可见且协调），鼠标点击不留残留框。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .dock-bar :is(button, select, input):focus {
+  outline: none;
+}
+body[data-ui-page="workbench-v2"] .dock-bar :is(button, select, input):focus-visible {
+  outline: 2px solid var(--line-accent);
+  outline-offset: 1px;
+  border-color: var(--line-accent);
+}
+/* 输入框自身不画焦点框（V1 已 outline:none），焦点反馈交给整个 dock：
+   键盘聚焦时容器描边转青并加光晕，实测此前 textarea 焦点完全不可见。 */
+body[data-ui-page="workbench-v2"] .dock:has(#message:focus-visible) {
+  border-color: var(--line-accent);
+  box-shadow:
+    var(--sh-2),
+    0 0 0 2px color-mix(in srgb, var(--seed-accent) 34%, transparent);
+}
+body[data-ui-page="workbench-v2"] #message:focus-visible {
+  outline: none;
+  caret-color: var(--seed-accent);
+}
+/* 工具条按钮统一走玻璃语言，不用浏览器默认外观 */
+body[data-ui-page="workbench-v2"] .dock-bar .btn {
+  appearance: none;
+  border: 1px solid var(--glass-weak-line);
+  background: var(--glass-weak-bg);
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .dock-bar .btn:hover:not(:disabled) {
+  border-color: var(--line-accent);
+  color: var(--text-1);
+  background: var(--surface-accent);
+}
+
+/* ==========================================================================
+   技能多选：原生 multiple select 在 size=1 时强制显示英文「N selected」。
+   收起态把原生控件缩为 1px 透明覆盖在中文摘要按钮上（仍可点击/可被测试定位），
+   展开态恢复原生列表并浮在工具条上方，避免撑高 dock。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .mode-pick:has(#skill-turn) {
+  position: relative;
+}
+/* 收起态：原生控件仍在流内且可点击（自动化按 id 定位），只把英文文字设为透明 */
+body[data-ui-page="workbench-v2"] #skill-turn {
+  width: 132px;
+  color: transparent;
+}
+body[data-ui-page="workbench-v2"] #skill-turn option {
+  color: var(--text-2);
+}
+/* 中文摘要叠在控件上方，pointer-events:none 保证点击落到原生控件 */
+body[data-ui-page="workbench-v2"] .pick-label {
+  position: absolute;
+  left: 17px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  max-width: 124px;
+  height: 24px;
+  padding: 0 6px;
+  border: none;
+  background: none;
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+body[data-ui-page="workbench-v2"] .pick-label[data-count]:not([data-count="0"]) {
+  color: var(--accent);
+  font-weight: 600;
+}
+/* 展开态：浮在工具条上方，恢复文字可见并隐藏摘要，避免撑高 dock */
+body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 30;
+  width: max-content;
+  min-width: 240px;
+  max-width: 340px;
+  height: auto;
+  padding: 4px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  box-shadow: var(--sh-2);
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] #skill-turn[data-expanded="true"] option {
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+}
+body[data-ui-page="workbench-v2"] .mode-pick:has(#skill-turn[data-expanded="true"]) .pick-label {
+  visibility: hidden;
 }
