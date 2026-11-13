@@ -1,12 +1,17 @@
 """One live approved-duplicate predicate for recall and new context capture; never edits memory truth."""
 
-from sqlalchemy import and_, or_, select
+from typing import Any, cast
+
+from sqlalchemy import Select, Table, and_, or_, select
+from sqlalchemy.sql.base import ReadOnlyColumnCollection
+from sqlalchemy.sql.elements import ColumnElement, KeyedColumnElement
+from sqlalchemy.sql.selectable import Alias, Exists, NamedFromClause
 
 from ...domain.memory_organization import POLICY
 from . import schema as s
 
 
-def live_organization_relations():
+def live_organization_relations() -> Select[tuple[str, str, str, str]]:
     candidate = s.memory_organization_candidates.alias("organization_relation")
     batch = s.memory_organization_batches.alias("organization_batch")
     keep = s.memory_organization_sources.alias("organization_keep_source")
@@ -16,7 +21,11 @@ def live_organization_relations():
     kept_revision = s.memory_revisions.alias("organization_kept_revision")
     duplicate_revision = s.memory_revisions.alias("organization_duplicate_revision")
 
-    def live_source(source, memory, revision):
+    def live_source(
+        source: NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]],
+        memory: NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]],
+        revision: NamedFromClause[ReadOnlyColumnCollection[str, KeyedColumnElement[Any]]],
+    ) -> ColumnElement[bool]:
         person = s.people.alias("organization_person_" + source.name)
         return and_(
             memory.c.agent_id == source.c.agent_id,
@@ -44,7 +53,7 @@ def live_organization_relations():
             ),
         )
 
-    return (
+    statement = (
         select(
             candidate.c.id.label("candidate_id"),
             candidate.c.agent_id,
@@ -92,9 +101,10 @@ def live_organization_relations():
             kept_memory.c.content.collate("BINARY") == duplicate_memory.c.content.collate("BINARY"),
         )
     )
+    return cast(Select[tuple[str, str, str, str]], statement)
 
 
-def memory_is_organized(memory=s.memory_entries):
+def memory_is_organized(memory: Table | Alias = s.memory_entries) -> Exists:
     relations = live_organization_relations().subquery("live_memory_organization")
     return (
         select(relations.c.candidate_id)
