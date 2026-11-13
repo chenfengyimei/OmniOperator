@@ -20,6 +20,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.sql.schema import SchemaItem
 
 metadata = MetaData(
     naming_convention={
@@ -32,15 +33,15 @@ metadata = MetaData(
 )
 
 
-def ident() -> Column:
+def ident() -> Column[str]:
     return Column("id", String(36), CheckConstraint("length(id) = 36", name="uuid_length"), primary_key=True)
 
 
-def scope() -> Column:
+def scope() -> Column[str]:
     return Column("agent_id", String(36), ForeignKey("agents.id", ondelete="RESTRICT"), nullable=False, index=True)
 
 
-def stamp() -> Column:
+def stamp() -> Column[str]:
     return Column("created_at", String(40), nullable=False)
 
 
@@ -48,7 +49,7 @@ def scoped_fk(column: str, table: str) -> ForeignKeyConstraint:
     return ForeignKeyConstraint([column, "agent_id"], [f"{table}.id", f"{table}.agent_id"], ondelete="RESTRICT")
 
 
-def scoped(name: str, *columns) -> Table:
+def scoped(name: str, *columns: SchemaItem) -> Table:
     return Table(name, metadata, ident(), scope(), stamp(), *columns, UniqueConstraint("id", "agent_id"))
 
 
@@ -291,7 +292,7 @@ configuration_revisions = scoped(
 )
 
 
-def option_columns(kind):
+def option_columns(kind: str) -> tuple[SchemaItem, ...]:
     return (
         Column("revision_id", String(36), primary_key=True),
         Column("agent_id", String(36), nullable=False),
@@ -2374,7 +2375,7 @@ terminal_sessions = Table(
     Column("state", String(16), nullable=False),
     Column("revision", Integer, nullable=False),
     Column("pid", Integer),
-    Column("process_created", Float),
+    Column[float]("process_created", Float),
     Column("cleanup_pending", Boolean, nullable=False),
     Column("error_code", String(80), nullable=False),
     Column("exit_code", Integer),
